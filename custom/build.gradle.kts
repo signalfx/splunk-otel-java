@@ -1,7 +1,10 @@
 plugins {
   java
   id("com.github.johnrengelman.shadow") version "5.2.0"
+  id("com.diffplug.spotless") version "5.2.0"
 }
+
+apply(from = "$rootDir/gradle/spotless.gradle")
 
 dependencies {
   compileOnly("io.opentelemetry:opentelemetry-sdk:0.7.0")

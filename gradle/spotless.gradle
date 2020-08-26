@@ -1,0 +1,27 @@
+spotless {
+  java {
+    googleJavaFormat()
+    licenseHeaderFile rootProject.file('gradle/spotless.license.java'), '(package|import|public)'
+    target 'src/**/*.java'
+  }
+  scala {
+    scalafmt()
+    licenseHeaderFile rootProject.file('gradle/spotless.license.java'), '(package|import|public)'
+    target 'src/**/*.scala'
+  }
+  kotlin {
+    // ktfmt() // only supports 4 space indentation
+    ktlint().userData(['indent_size': '2', 'continuation_indent_size': '2'])
+    licenseHeaderFile rootProject.file('gradle/spotless.license.java'), '(package|import|public)'
+  }
+  format 'misc', {
+    // not using '**/...' to help keep spotless fast
+    target '.gitignore', '*.md', 'src/**/.md', '*.sh'
+    indentWithSpaces()
+    trimTrailingWhitespace()
+    endWithNewline()
+  }
+}
+
+task formatCode(dependsOn: ['spotlessApply'])
+check.dependsOn 'spotlessCheck'

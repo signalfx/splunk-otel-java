@@ -1,18 +1,5 @@
 version: 2.1
 
-defaults: &defaults
-  working_directory: ~/dd-trace-java
-  resource_class: xlarge
-  docker:
-    - image: &default_container datadog/dd-trace-java-docker-build:latest
-      environment:
-        JAVA_HOME: /usr/local/openjdk-11
-
-parameters:
-  gradle_flags:
-    type: string
-    default: "--stacktrace --no-daemon"
-
 jobs:
   build:
     resource_class: xlarge

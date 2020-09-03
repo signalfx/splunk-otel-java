@@ -20,4 +20,4 @@ jobs:
 workflows:
   PR:
     jobs:
-      - build:
+      - build

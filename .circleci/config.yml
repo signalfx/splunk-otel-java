@@ -1,0 +1,36 @@
+version: 2.1
+
+defaults: &defaults
+  working_directory: ~/dd-trace-java
+  resource_class: xlarge
+  docker:
+    - image: &default_container datadog/dd-trace-java-docker-build:latest
+      environment:
+        JAVA_HOME: /usr/local/openjdk-11
+
+parameters:
+  gradle_flags:
+    type: string
+    default: "--stacktrace --no-daemon"
+
+jobs:
+  build:
+    resource_class: xlarge
+    docker:
+      - image: datadog/dd-trace-java-docker-build:latest
+    steps:
+      - checkout
+      - run:
+          name: Build Project
+          command: |
+            ./gradlew clean build
+
+      - run:
+          name: Collect Test Results
+          when: always
+          command: .circleci/collect_results.sh
+
+workflows:
+  PR:
+    jobs:
+      - build:

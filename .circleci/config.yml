@@ -5,6 +5,8 @@ jobs:
     resource_class: xlarge
     docker:
       - image: datadog/dd-trace-java-docker-build:latest
+        environment:
+          JAVA_HOME: /usr/lib/jvm/zulu-11-amd64
     steps:
       - checkout
       - run:

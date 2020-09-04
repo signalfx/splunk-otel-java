@@ -1,26 +1,26 @@
 version: 2.1
 
-jobs:
-  build:
-    resource_class: large
-    machine:
-        image: datadog/dd-trace-java-docker-build:latest
-    steps:
-      - checkout
-      - run:
-          name: Build Project
-          environment:
-            JAVA_HOME: /usr/lib/jvm/zulu-11-amd64
-          command: |
-            ./gradlew clean build --scan --no-daemon
-
-      - run:
-          name: Collect Test Results
-          when: always
-          command: .circleci/collect_results.sh
-
-      - store_test_results:
-          path: ./results
+#jobs:
+#  build:
+#    resource_class: large
+#    machine:
+#        image: datadog/dd-trace-java-docker-build:latest
+#    steps:
+#      - checkout
+#      - run:
+#          name: Build Project
+#          environment:
+#            JAVA_HOME: /usr/lib/jvm/zulu-11-amd64
+#          command: |
+#            ./gradlew clean build --scan --no-daemon
+#
+#      - run:
+#          name: Collect Test Results
+#          when: always
+#          command: .circleci/collect_results.sh
+#
+#      - store_test_results:
+#          path: ./results
 
 #workflows:
 #  PR:

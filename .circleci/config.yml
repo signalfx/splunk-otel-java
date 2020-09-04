@@ -2,7 +2,7 @@ version: 2.1
 
 jobs:
   build:
-    resource_class: xlarge
+    resource_class: large
     docker:
       - image: datadog/dd-trace-java-docker-build:latest
         environment:
@@ -18,6 +18,9 @@ jobs:
           name: Collect Test Results
           when: always
           command: .circleci/collect_results.sh
+
+      - store_test_results:
+          path: ./results
 
 workflows:
   PR:

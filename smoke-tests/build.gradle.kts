@@ -17,6 +17,10 @@ dependencies {
 
 tasks.test {
   useJUnitPlatform()
+  reports {
+    junitXml.isOutputPerTestCase = true
+  }
+
   dependsOn(":agent:shadowJar")
 
   doFirst {

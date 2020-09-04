@@ -12,7 +12,7 @@ jobs:
       - run:
           name: Build Project
           command: |
-            ./gradlew clean build
+            ./gradlew clean build --scan --no-daemon
 
       - run:
           name: Collect Test Results

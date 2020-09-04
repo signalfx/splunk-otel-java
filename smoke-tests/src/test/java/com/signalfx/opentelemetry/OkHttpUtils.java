@@ -16,16 +16,24 @@
 
 package com.signalfx.opentelemetry;
 
-import io.opentelemetry.javaagent.OpenTelemetryAgent;
-import java.lang.instrument.Instrumentation;
+import java.util.concurrent.TimeUnit;
+import okhttp3.OkHttpClient;
 
-public class SplunkAgent {
-  public static void premain(final String agentArgs, final Instrumentation inst) {
-    agentmain(agentArgs, inst);
+public class OkHttpUtils {
+
+  static OkHttpClient.Builder clientBuilder() {
+    TimeUnit unit = TimeUnit.MINUTES;
+    return new OkHttpClient.Builder()
+        .connectTimeout(1, unit)
+        .writeTimeout(1, unit)
+        .readTimeout(1, unit);
   }
 
-  public static void agentmain(final String agentArgs, final Instrumentation inst) {
-    System.setProperty("otel.exporter", "splunk");
-    OpenTelemetryAgent.agentmain(agentArgs, inst);
+  public static OkHttpClient client() {
+    return client(false);
+  }
+
+  public static OkHttpClient client(boolean followRedirects) {
+    return clientBuilder().followRedirects(followRedirects).build();
   }
 }

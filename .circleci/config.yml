@@ -4,13 +4,13 @@ jobs:
   build:
     resource_class: large
     machine:
-      - image: datadog/dd-trace-java-docker-build:latest
-        environment:
-          JAVA_HOME: /usr/lib/jvm/zulu-11-amd64
+        image: datadog/dd-trace-java-docker-build:latest
     steps:
       - checkout
       - run:
           name: Build Project
+          environment:
+            JAVA_HOME: /usr/lib/jvm/zulu-11-amd64
           command: |
             ./gradlew clean build --scan --no-daemon
 

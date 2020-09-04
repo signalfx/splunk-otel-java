@@ -9,6 +9,7 @@ jobs:
           JAVA_HOME: /usr/lib/jvm/zulu-11-amd64
     steps:
       - checkout
+      - setup_remote_docker
       - run:
           name: Build Project
           command: |

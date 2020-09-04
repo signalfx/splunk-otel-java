@@ -3,14 +3,15 @@ version: 2.1
 jobs:
   build:
     resource_class: large
-    machine:
-        image: datadog/dd-trace-java-docker-build:latest
+    docker:
+      - image: datadog/dd-trace-java-docker-build:latest
+        environment:
+          JAVA_HOME: /usr/lib/jvm/zulu-11-amd64
+
     steps:
       - checkout
       - run:
           name: Build Project
-          environment:
-            JAVA_HOME: /usr/lib/jvm/zulu-11-amd64
           command: |
             ./gradlew clean build -x :smoke-tests:test --scan --no-daemon
 

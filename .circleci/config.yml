@@ -22,7 +22,7 @@ jobs:
       - store_test_results:
           path: ./results
 
-workflows:
-  PR:
-    jobs:
-      - build
+#workflows:
+#  PR:
+#    jobs:
+#      - build

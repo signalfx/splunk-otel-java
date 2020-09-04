@@ -18,6 +18,7 @@ package com.signalfx.opentelemetry;
 
 import static java.util.stream.Collectors.toList;
 
+import io.opentelemetry.sdk.common.CompletableResultCode;
 import io.opentelemetry.sdk.trace.data.SpanData;
 import io.opentelemetry.sdk.trace.export.SpanExporter;
 import java.util.Collection;
@@ -31,17 +32,17 @@ public class SplunkSpanExporter implements SpanExporter {
   }
 
   @Override
-  public ResultCode export(Collection<SpanData> spans) {
+  public CompletableResultCode export(Collection<SpanData> spans) {
     return delegate.export(spans.stream().map(SpanDataWrapper::new).collect(toList()));
   }
 
   @Override
-  public ResultCode flush() {
+  public CompletableResultCode flush() {
     return delegate.flush();
   }
 
   @Override
-  public void shutdown() {
-    delegate.shutdown();
+  public CompletableResultCode shutdown() {
+    return delegate.shutdown();
   }
 }

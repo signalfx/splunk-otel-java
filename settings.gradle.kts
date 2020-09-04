@@ -1,3 +1,3 @@
 rootProject.name = "signalfx-otel-java"
-include("agent", "custom")
+include("agent", "custom", "smoke-tests")
 

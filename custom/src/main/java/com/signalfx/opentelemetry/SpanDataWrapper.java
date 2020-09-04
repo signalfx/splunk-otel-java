@@ -38,9 +38,9 @@ public class SpanDataWrapper implements SpanData {
     Attributes.Builder builder = Attributes.newBuilder();
     delegate.getAttributes().forEach(builder::setAttribute);
     InstrumentationLibraryInfo libraryInfo = delegate.getInstrumentationLibraryInfo();
-    builder.setAttribute("library", libraryInfo.getName());
+    builder.setAttribute("signalfx.instrumentation_library.name", libraryInfo.getName());
     if (libraryInfo.getVersion() != null) {
-      builder.setAttribute("libraryVersion", libraryInfo.getVersion());
+      builder.setAttribute("signalfx.instrumentation_library.version", libraryInfo.getVersion());
     }
     attributes = builder.build();
   }

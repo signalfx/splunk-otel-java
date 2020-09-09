@@ -1,0 +1,38 @@
+on:
+  push:
+    tags:
+      - 'v*'
+
+name: Make GitHub release
+
+jobs:
+  build:
+    name: Create release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up JDK 11 for running Gradle
+        uses: actions/setup-java@v1
+        with:
+          java-version: 11
+
+      - name: Build and test
+        run: ./gradlew -Prelease.useLastTag=true build final --no-daemon
+
+      - name: Get main artifact without version tag
+        run: mv agent/build/libs/signalfx-otel-javaagent-*-all.jar signalfx-otel-javaagent-all.jar
+
+      - name: Get release version
+        id: get_version
+        run: echo ::set-output name=VERSION::${GITHUB_REF#refs/tags/}
+
+      - name: Create Release
+        id: create_release
+        uses: softprops/action-gh-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          name: Release ${{ steps.get_version.outputs.VERSION }}
+          files: signalfx-otel-javaagent-all.jar

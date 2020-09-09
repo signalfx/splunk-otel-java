@@ -1,10 +1,17 @@
+import nebula.plugin.release.git.opinion.Strategies
+
 plugins {
   java
   id("com.diffplug.spotless") version "5.2.0" apply false
+
+  id("nebula.release") version "15.0.1"
+}
+
+release {
+  defaultVersionStrategy = Strategies.getSNAPSHOT()
 }
 
 group = "com.signalfx.public"
-version = "1.0-SNAPSHOT"
 
 subprojects {
   version = rootProject.version
@@ -29,10 +36,12 @@ subprojects {
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.6.2")
   }
 
-  tasks.test {
-    useJUnitPlatform()
-    reports {
-      junitXml.isOutputPerTestCase = true
+  tasks {
+    test {
+      useJUnitPlatform()
+      reports {
+        junitXml.isOutputPerTestCase = true
+      }
     }
   }
 }

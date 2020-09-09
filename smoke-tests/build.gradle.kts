@@ -18,10 +18,10 @@ tasks.test {
     junitXml.isOutputPerTestCase = true
   }
 
-  dependsOn(":agent:shadowJar")
+  val shadowTask : Jar = project(":agent").tasks.named<Jar>("shadowJar").get()
+  inputs.files(layout.files(shadowTask))
 
   doFirst {
-    val shadowTask : Jar = project(":agent").tasks.named<Jar>("shadowJar").get()
     jvmArgs("-Dio.opentelemetry.smoketest.agent.shadowJar.path=${shadowTask.archiveFile.get()}")
   }
 }

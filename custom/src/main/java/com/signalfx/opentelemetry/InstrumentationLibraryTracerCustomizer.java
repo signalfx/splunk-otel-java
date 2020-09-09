@@ -16,15 +16,12 @@
 
 package com.signalfx.opentelemetry;
 
-import io.opentelemetry.javaagent.OpenTelemetryAgent;
-import java.lang.instrument.Instrumentation;
+import io.opentelemetry.javaagent.bootstrap.spi.TracerCustomizer;
+import io.opentelemetry.sdk.trace.TracerSdkProvider;
 
-public class SplunkAgent {
-  public static void premain(final String agentArgs, final Instrumentation inst) {
-    agentmain(agentArgs, inst);
-  }
-
-  public static void agentmain(final String agentArgs, final Instrumentation inst) {
-    OpenTelemetryAgent.agentmain(agentArgs, inst);
+public class InstrumentationLibraryTracerCustomizer implements TracerCustomizer {
+  @Override
+  public void configure(TracerSdkProvider tracerSdkProvider) {
+    tracerSdkProvider.addSpanProcessor(new InstrumentationLibrarySpanProcessor());
   }
 }

@@ -11,6 +11,7 @@ dependencies {
   implementation("io.opentelemetry.instrumentation.auto:opentelemetry-auto-javaagent-exporters-zipkin:0.8.0-SNAPSHOT")
   implementation("io.opentelemetry.instrumentation.auto:opentelemetry-auto-javaagent-exporters-logging:0.8.0-SNAPSHOT")
   implementation("io.opentelemetry.javaagent:opentelemetry-javaagent-tooling:0.8.0-SNAPSHOT")
+  implementation("io.opentelemetry.javaagent:opentelemetry-javaagent-bootstrap:0.8.0-SNAPSHOT")
 }
 
 tasks {

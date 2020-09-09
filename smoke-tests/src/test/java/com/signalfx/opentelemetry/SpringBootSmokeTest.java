@@ -17,7 +17,6 @@
 package com.signalfx.opentelemetry;
 
 import io.opentelemetry.proto.collector.trace.v1.ExportTraceServiceRequest;
-import io.opentelemetry.proto.common.v1.AnyValue;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.jar.Attributes;
@@ -50,14 +49,24 @@ class SpringBootSmokeTest extends SmokeTest {
 
     Assertions.assertEquals(response.body().string(), "Hi!");
     Assertions.assertEquals(1, countSpansByName(traces, "/greeting"));
-    Assertions.assertEquals(1, countSpansByName(traces, "WebController.greeting"));
-    Assertions.assertEquals(1, countSpansByName(traces, "WebController.withSpan"));
+    Assertions.assertEquals(1, countSpansByName(traces, "webcontroller.greeting"));
+    Assertions.assertEquals(1, countSpansByName(traces, "webcontroller.withspan"));
     Assertions.assertEquals(
-        findResourceAttribute(traces, "telemetry.auto.version")
-            .map(AnyValue::getStringValue)
-            .findFirst()
-            .orElseThrow(),
-        currentAgentVersion);
+        3,
+        getSpanStream(traces)
+            .flatMap(s -> s.getAttributesList().stream())
+            .filter(a -> a.getKey().equals("otel.instrumentation_library.version"))
+            .map(a -> a.getValue().getStringValue())
+            .filter(s -> s.equals(currentAgentVersion))
+            .count());
+    Assertions.assertEquals(
+        3,
+        getSpanStream(traces)
+            .flatMap(s -> s.getAttributesList().stream())
+            .filter(a -> a.getKey().equals("signalfx.instrumentation_library.version"))
+            .map(a -> a.getValue().getStringValue())
+            .filter(s -> s.equals(currentAgentVersion))
+            .count());
 
     stopTarget();
 

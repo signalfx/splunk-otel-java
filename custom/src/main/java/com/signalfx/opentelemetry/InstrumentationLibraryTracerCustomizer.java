@@ -17,10 +17,11 @@
 package com.signalfx.opentelemetry;
 
 import io.opentelemetry.javaagent.bootstrap.spi.TracerCustomizer;
+import io.opentelemetry.sdk.trace.TracerSdkProvider;
 
 public class InstrumentationLibraryTracerCustomizer implements TracerCustomizer {
   @Override
-  public void configure(io.opentelemetry.sdk.trace.TracerSdkProvider tracerSdkProvider) {
+  public void configure(TracerSdkProvider tracerSdkProvider) {
     tracerSdkProvider.addSpanProcessor(new InstrumentationLibrarySpanProcessor());
   }
 }

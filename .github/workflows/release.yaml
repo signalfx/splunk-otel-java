@@ -7,7 +7,7 @@ name: Make GitHub release
 
 jobs:
   build:
-    name: Upload Release Asset
+    name: Create release
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -19,24 +19,20 @@ jobs:
           java-version: 11
 
       - name: Build and test
-        run: ./gradlew build --no-daemon
+        run: ./gradlew -Prelease.useLastTag=true build final --no-daemon
+
+      - name: Get main artifact without version tag
+        run: mv agent/build/libs/signalfx-otel-javaagent-*-all.jar signalfx-otel-javaagent-all.jar
+
+      - name: Get release version
+        id: get_version
+        run: echo ::set-output name=VERSION::${GITHUB_REF#refs/tags/}
 
       - name: Create Release
         id: create_release
-        uses: actions/create-release@v1
+        uses: softprops/action-gh-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ github.ref }}
-          release_name: Release ${{ github.ref }}
-
-      - name: Upload Release Asset
-        id: upload-release-asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: agent/build/libs/signalfx-otel-javaagent-*-all.jar
-          asset_name: signalfx-otel-javaagent-all.jar
-          asset_content_type: application/zip
+          name: Release ${{ steps.get_version.outputs.VERSION }}
+          files: signalfx-otel-javaagent-all.jar

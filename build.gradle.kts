@@ -36,10 +36,12 @@ subprojects {
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.6.2")
   }
 
-  tasks.test {
-    useJUnitPlatform()
-    reports {
-      junitXml.isOutputPerTestCase = true
+  tasks {
+    test {
+      useJUnitPlatform()
+      reports {
+        junitXml.isOutputPerTestCase = true
+      }
     }
   }
 }

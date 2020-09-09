@@ -1,13 +1,16 @@
 plugins {
   java
-  id("com.github.johnrengelman.shadow") version "5.2.0"
+  id("com.github.johnrengelman.shadow") version "6.0.0"
 }
 
 dependencies {
   implementation("io.opentelemetry.javaagent", "opentelemetry-javaagent", version = "0.8.0-20200904.061307-97", classifier = "all")
 }
 
+base.archivesBaseName = "signalfx-otel-javaagent"
+
 tasks {
+
   compileJava {
     options.release.set(8)
   }
@@ -36,5 +39,9 @@ tasks {
       attributes.put("Implementation-Vendor", "Splunk")
       attributes.put("Implementation-Version", project.version)
     }
+  }
+
+  assemble {
+    dependsOn(shadowJar)
   }
 }

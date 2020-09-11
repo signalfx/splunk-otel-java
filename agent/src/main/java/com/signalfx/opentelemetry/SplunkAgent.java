@@ -25,6 +25,7 @@ public class SplunkAgent {
   }
 
   public static void agentmain(final String agentArgs, final Instrumentation inst) {
+    System.setProperty("otel.exporter", "zipkin");
     OpenTelemetryAgent.agentmain(agentArgs, inst);
   }
 }

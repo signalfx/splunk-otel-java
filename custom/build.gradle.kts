@@ -6,12 +6,12 @@ plugins {
 dependencies {
   implementation("io.opentelemetry:opentelemetry-sdk:0.8.0")
   //io/opentelemetry/instrumentation/auto/opentelemetry-auto-javaagent-exporters-otlp
-  implementation("io.opentelemetry.instrumentation.auto:opentelemetry-auto-javaagent-exporters-otlp:0.8.0-SNAPSHOT")
-  implementation("io.opentelemetry.instrumentation.auto:opentelemetry-auto-javaagent-exporters-jaeger:0.8.0-SNAPSHOT")
-  implementation("io.opentelemetry.instrumentation.auto:opentelemetry-auto-javaagent-exporters-zipkin:0.8.0-SNAPSHOT")
-  implementation("io.opentelemetry.instrumentation.auto:opentelemetry-auto-javaagent-exporters-logging:0.8.0-SNAPSHOT")
-  implementation("io.opentelemetry.javaagent:opentelemetry-javaagent-tooling:0.8.0-SNAPSHOT")
-  implementation("io.opentelemetry.javaagent:opentelemetry-javaagent-bootstrap:0.8.0-SNAPSHOT")
+  implementation("io.opentelemetry.instrumentation.auto:opentelemetry-javaagent-exporters-otlp:0.8.0")
+  implementation("io.opentelemetry.instrumentation.auto:opentelemetry-javaagent-exporters-jaeger:0.8.0")
+  implementation("io.opentelemetry.instrumentation.auto:opentelemetry-javaagent-exporters-zipkin:0.8.0")
+  implementation("io.opentelemetry.instrumentation.auto:opentelemetry-javaagent-exporters-logging:0.8.0")
+  implementation("io.opentelemetry.instrumentation.auto:opentelemetry-javaagent-tooling:0.8.0")
+  implementation("io.opentelemetry.instrumentation.auto:opentelemetry-javaagent-bootstrap:0.8.0")
 }
 
 tasks {

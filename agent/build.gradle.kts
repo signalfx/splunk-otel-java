@@ -4,7 +4,7 @@ plugins {
 }
 
 dependencies {
-  implementation("io.opentelemetry.javaagent", "opentelemetry-javaagent", version = "0.8.0-20200904.061307-97", classifier = "all")
+  implementation("io.opentelemetry.instrumentation.auto", "opentelemetry-javaagent", version = "0.8.0", classifier = "all")
 }
 
 base.archivesBaseName = "signalfx-otel-javaagent"

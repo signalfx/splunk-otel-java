@@ -1,6 +1,6 @@
-# SignalFx distribution of OpenTelemetry Java instrumentation
+# Splunk distribution of OpenTelemetry Java instrumentation
 
-The SignalFx distribution of OpenTelemetry Java Instrumentation provides a
+The Splunk distribution of OpenTelemetry Java Instrumentation provides a
 [Java Virtual Machine (JVM) agent](https://docs.oracle.com/javase/7/docs/api/java/lang/instrument/package-summary.html)
 that automatically instruments your Java application to capture and
 report distributed traces to SignalFx.
@@ -24,7 +24,7 @@ and export trace spans. The agent also registers an OpenTelemetry `getTracer`
 so you can support existing custom instrumentation or add custom
 instrumentation to your application later.
 
-This SignalFx distribution comes with the following defaults:
+This Splunk distribution comes with the following defaults:
 
 - [B3 context propagation](https://github.com/openzipkin/b3-propagation).
 - [Zipkin exporter](https://zipkin.io/zipkin-api/#/default/post_spans)
@@ -120,10 +120,8 @@ Debug logging negatively impacts the performance of your application.
 
 # License and versioning
 
-The SignalFx Java Agent for Tracing is released under the terms of the Apache
-Software License version 2.0. See [the license file](./LICENSE) for more
-details.
-
-SignalFx's OpenTelemetry Java agent is a distribution of the [OpenTelemetry
-Java Instrumentation
+The Splunk distribution of OpenTelemetry Java Instrumentation is a distribution
+of the [OpenTelemetry Java Instrumentation
 project](https://github.com/open-telemetry/opentelemetry-java-instrumentation).
+It is released under the terms of the Apache Software License version 2.0. See
+[the license file](./LICENSE) for more details.

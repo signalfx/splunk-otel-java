@@ -5,7 +5,15 @@ Instrumentation](https://github.com/open-telemetry/opentelemetry-java-instrument
 provides a [Java Virtual Machine (JVM)
 agent](https://docs.oracle.com/javase/7/docs/api/java/lang/instrument/package-summary.html)
 that automatically instruments your Java application to capture and report
-distributed traces to SignalFx.
+distributed traces to SignalFx APM.
+
+This Splunk distribution comes with the following defaults:
+
+- [B3 context propagation](https://github.com/openzipkin/b3-propagation).
+- [Zipkin exporter](https://zipkin.io/zipkin-api/#/default/post_spans)
+  configured to send spans to a locally running [SignalFx Smart
+  Agent](https://docs.signalfx.com/en/latest/apm/apm-getting-started/apm-smart-agent.html)
+  (`http://localhost:9080/v1/trace`).
 
 > :warning: This project is currently in **BETA**
 
@@ -35,14 +43,6 @@ manipulation and configures an OpenTelemetry-compatible tracer to capture
 and export trace spans. The agent also registers an OpenTelemetry `getTracer`
 so you can support existing custom instrumentation or add custom
 instrumentation to your application later.
-
-This Splunk distribution comes with the following defaults:
-
-- [B3 context propagation](https://github.com/openzipkin/b3-propagation).
-- [Zipkin exporter](https://zipkin.io/zipkin-api/#/default/post_spans)
-  configured to send spans to a locally running [SignalFx Smart
-  Agent](https://docs.signalfx.com/en/latest/apm/apm-getting-started/apm-smart-agent.html)
-  (`http://localhost:9080/v1/trace`).
 
 To see the Java Agent in action with sample applications, see our
 [examples](https://github.com/signalfx/tracing-examples/tree/master/signalfx-tracing/splunk-otel-java).

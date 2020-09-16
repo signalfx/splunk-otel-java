@@ -1,9 +1,11 @@
-# Splunk distribution of OpenTelemetry Java instrumentation
+# Splunk distribution of OpenTelemetry Java Instrumentation
 
-The Splunk distribution of OpenTelemetry Java Instrumentation provides a
-[Java Virtual Machine (JVM) agent](https://docs.oracle.com/javase/7/docs/api/java/lang/instrument/package-summary.html)
-that automatically instruments your Java application to capture and
-report distributed traces to SignalFx.
+The Splunk distribution of [OpenTelemetry Java
+Instrumentation](https://github.com/open-telemetry/opentelemetry-java-instrumentation)
+provides a [Java Virtual Machine (JVM)
+agent](https://docs.oracle.com/javase/7/docs/api/java/lang/instrument/package-summary.html)
+that automatically instruments your Java application to capture and report
+distributed traces to SignalFx.
 
 > :warning: This project is currently in **BETA**
 

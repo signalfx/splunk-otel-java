@@ -25,9 +25,6 @@ and versions are listed
 Other JVM-based languages like Scala and Kotlin are also supported, but may not
 work with all instrumentations.
 
-> :warning: Specify the agent as the only JVM agent for your application.
-> Specifying multiple agents may result in unexpected behavior.
-
 To get started, download the JAR for the agent's [latest
 version](https://github.com/signalfx/splunk-otel-java/releases/latest/download/splunk-otel-javaagent-all.jar)
 and add its path to your JVM startup options.
@@ -55,6 +52,9 @@ instrumentation to your application later.
 
 To see the Java Agent in action with sample applications, see our
 [examples](https://github.com/signalfx/tracing-examples/tree/master/signalfx-tracing/splunk-otel-java).
+
+> :warning: Specify the agent as the only JVM agent for your application.
+> Specifying multiple agents may result in unexpected behavior.
 
 ## All configuration options
 

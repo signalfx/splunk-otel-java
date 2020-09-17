@@ -19,7 +19,16 @@ This Splunk distribution comes with the following defaults:
 
 ## Getting Started
 
-Download the JAR for the agent's [latest
+The agent works with Java runtimes version 8 and higher. Supported libraries
+and versions are listed
+[here](https://github.com/open-telemetry/opentelemetry-java-instrumentation#supported-java-libraries-and-frameworks).
+Other JVM-based languages like Scala and Kotlin are also supported, but may not
+work with all instrumentations.
+
+> :warning: Specify the agent as the only JVM agent for your application.
+> Specifying multiple agents may result in unexpected behavior and impact.
+
+To get started, download the JAR for the agent's [latest
 version](https://github.com/signalfx/splunk-otel-java/releases/latest/download/splunk-otel-javaagent-all.jar)
 and add its path to your JVM startup options.
 
@@ -47,18 +56,7 @@ instrumentation to your application later.
 To see the Java Agent in action with sample applications, see our
 [examples](https://github.com/signalfx/tracing-examples/tree/master/signalfx-tracing/splunk-otel-java).
 
-## Requirements and supported software
-
-The agent works with Java runtimes version 8 and higher. Other JVM-based
-languages like Scala and Kotlin are also supported, but may not work with all
-instrumentations. Specify the agent as the only JVM agent for your application.
-If you specify multiple agents, you may encounter issues with at least one
-of them.
-
-Supported libraries and versions are listed
-[here](https://github.com/open-telemetry/opentelemetry-java-instrumentation#supported-java-libraries-and-frameworks).
-
-## Configuring the Java Agent
+## All configuration options
 
 The agent offers the following properties or environment variables. System property values take priority
 over corresponding environment variables. Only the service name needs to be updated.
@@ -74,7 +72,7 @@ URL.
 | otel.zipkin.endpoint       | OTEL_ZIPKIN_ENDPOINT       | `http://localhost:9080/v1/trace`     | The Zipkin endpoint to connect to. Currently only HTTP is supported. |
 | otel.zipkin.service.name   | OTEL_ZIPKIN_SERVICE_NAME   | `unknown`                            | The service name of this JVM instance.                               |
 
-### Trace config
+### Trace configuration
 
 | System property                     | Environment variable               | Default value  | Purpose                                                                                                                                                                                                                                                                                                                                                                                                   |
 | ----------------------------------- | ---------------------------------- | -------------- | ------------------------------------------------------------------------------------                                                                                                                                                                                                                                                                                                                      |

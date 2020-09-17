@@ -26,7 +26,7 @@ Other JVM-based languages like Scala and Kotlin are also supported, but may not
 work with all instrumentations.
 
 > :warning: Specify the agent as the only JVM agent for your application.
-> Specifying multiple agents may result in unexpected behavior and impact.
+> Specifying multiple agents may result in unexpected behavior.
 
 To get started, download the JAR for the agent's [latest
 version](https://github.com/signalfx/splunk-otel-java/releases/latest/download/splunk-otel-javaagent-all.jar)

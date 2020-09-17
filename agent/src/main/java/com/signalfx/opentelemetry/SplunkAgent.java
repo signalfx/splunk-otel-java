@@ -16,6 +16,9 @@
 
 package com.signalfx.opentelemetry;
 
+import static com.signalfx.opentelemetry.DefaultConfig.setDefaultConfig;
+import static java.lang.String.valueOf;
+
 import io.opentelemetry.javaagent.OpenTelemetryAgent;
 import java.lang.instrument.Instrumentation;
 
@@ -25,7 +28,23 @@ public class SplunkAgent {
   }
 
   public static void agentmain(final String agentArgs, final Instrumentation inst) {
-    System.setProperty("otel.exporter", "zipkin");
+    setDefaultConfig("otel.exporter", "zipkin");
+    // http://localhost:9080/v1/trace is the default endpoint for SmartAgent
+    // http://localhost:9411/api/v2/spans is the default endpoint for otel-collector
+    setDefaultConfig("otel.zipkin.endpoint", "http://localhost:9080/v1/trace");
+    setDefaultConfig("otel.propagators", "b3");
+
+    String max = valueOf(Integer.MAX_VALUE);
+    setDefaultConfig("otel.config.max.attrs", max);
+    setDefaultConfig("otel.config.max.event.attrs", max);
+    setDefaultConfig("otel.config.max.link.attrs", max);
+
+    // events and links create collections with provided sizes, so we shouldn't set them too high
+    setDefaultConfig("otel.config.max.events", "256");
+    setDefaultConfig("otel.config.max.links", "256");
+    // -1 here means no attribute length limit
+    setDefaultConfig("otel.config.max.attr.length", "-1");
+
     OpenTelemetryAgent.agentmain(agentArgs, inst);
   }
 }

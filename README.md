@@ -15,7 +15,7 @@ This Splunk distribution comes with the following defaults:
   Agent](https://docs.signalfx.com/en/latest/apm/apm-getting-started/apm-smart-agent.html)
   (`http://localhost:9080/v1/trace`).
 
-> :warning: This project is currently in **BETA**
+> :warning: This project is currently in **BETA**.
 
 ## Getting Started
 

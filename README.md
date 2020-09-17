@@ -63,10 +63,6 @@ over corresponding environment variables. Only the service name needs to be upda
 
 ### Zipkin exporter
 
-The Zipkin exporter [POSTs
-JSON](https://zipkin.io/zipkin-api/#/default/post_spans) to a specified HTTP
-URL.
-
 | System property            | Environment variable       | Default value                        | Notes                                                                |
 | -------------------------- | -------------------------- | ------------------------------------ | -------------------------------------------------------------------- |
 | otel.zipkin.endpoint       | OTEL_ZIPKIN_ENDPOINT       | `http://localhost:9080/v1/trace`     | The Zipkin endpoint to connect to. Currently only HTTP is supported. |

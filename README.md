@@ -58,8 +58,12 @@ To see the Java Agent in action with sample applications, see our
 
 ## All configuration options
 
-The agent offers the following properties or environment variables. System property values take priority
-over corresponding environment variables. Only the service name needs to be updated.
+The agent can be configured in the following ways:
+
+* System property (`-Dotel.zipkin.service.name=my-java-app`)
+* Environment variable (`export OTEL_ZIPKIN_SERVICE_NAME=my-java-app`)
+
+System property values take priority over corresponding environment variables.
 
 ### Zipkin exporter
 

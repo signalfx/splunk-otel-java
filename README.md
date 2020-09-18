@@ -109,6 +109,38 @@ System property values take priority over corresponding environment variables.
 Documentation on how to manually instrument a Java application are available
 [here](https://github.com/open-telemetry/opentelemetry-java-instrumentation#manually-instrumenting).
 
+## Inject trace IDs into logs
+
+The agent supports [Mapped Diagnostic
+Context](http://logging.apache.org/log4j/1.2/apidocs/org/apache/log4j/MDC.html)
+(MDC), an open standard for identifying interleaved log outputs from multiple
+sources. MDC adds `trace_id`, `span_id` and `sampled` information which is
+injected into `java.util.logging`. The `log4j` (1.x and 2.x) and `logback`
+logging frameworks are supported.
+
+Follow these steps to inject trace IDs in logs:
+
+1. Enable trace ID injection. Add this to your JVM's command line flags:
+   ```
+   -Dsignalfx.logs.injection=true
+   ```
+2. Find your logging pattern. This is also known as a logging format or layout.
+   Depending on your environment, this could be in a system property, a
+   configuration file specific to your application, or a configuration file your
+   logging framework generates. The logging pattern generally looks something
+   like this:
+   ```
+   logging.pattern.console= %d{yyyy-MM-dd HH:mm:ss} - %logger{36} - %msg %n
+   ```
+3. Add a `%X` placeholder value to your logging pattern:
+   ```
+   logging.pattern.console= %d{yyyy-MM-dd HH:mm:ss} - %logger{36} - %msg %X %n
+   ```
+   The MDC replaces `%X` with the `trace_id`, `span_id` and `sampled` fields
+   associated with the log event.
+4. Update any other services that use the logging pattern to be aware of the
+   new logging pattern format as necessary.
+
 ## Troubleshooting the Java Agent
 
 To turn on the agent's internal debug logging:

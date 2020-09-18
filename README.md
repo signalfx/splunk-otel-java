@@ -14,6 +14,7 @@ This Splunk distribution comes with the following defaults:
   configured to send spans to a locally running [SignalFx Smart
   Agent](https://docs.signalfx.com/en/latest/apm/apm-getting-started/apm-smart-agent.html)
   (`http://localhost:9080/v1/trace`).
+- Unlimited default limits for configuration options to support full-fidelity traces.
 
 > :warning: This project is currently in **BETA**.
 
@@ -49,7 +50,9 @@ $ java -javaagent:./splunk-otel-javaagent.jar -Dotel.zipkin.service.name=my-java
 > information, see the [Oracle
 > documentation](https://docs.oracle.com/javase/8/docs/technotes/tools/windows/java.html).
 
-The service name is the only configuration option that needs to be specified, but you may also need to configure:
+The service name is the only configuration option that typically needs to be
+specified. A couple other configuration options that may need to be changed or
+set are:
 
 * Endpoint if not sending to a locally running Smart Agent with default
   configuration

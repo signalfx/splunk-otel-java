@@ -44,6 +44,19 @@ $ java -javaagent:./splunk-otel-javaagent.jar -Dotel.zipkin.service.name=my-java
     -jar target/java-agent-example-1.0-SNAPSHOT-shaded.jar https://google.com
 ```
 
+> :information_source: The `-javaagent` needs to be run before the `-jar` file,
+> adding it as a JVM option, not as an application argument. For more
+> information, see the [Oracle
+> documentation](https://docs.oracle.com/javase/8/docs/technotes/tools/windows/java.html).
+
+The service name is the only configuration option that needs to be specified, but you may also need to configure:
+
+* Endpoint if not sending to a locally running Smart Agent with default
+  configuration
+* Environment attribute (example:
+  `-Dotel.resource.attributes=environment=production`) to specify what
+  environment the span originated from.
+
 The agent instruments supported libraries and frameworks with bytecode
 manipulation and configures an OpenTelemetry-compatible tracer to capture
 and export trace spans. The agent also registers an OpenTelemetry `getTracer`
@@ -54,14 +67,15 @@ To see the Java Agent in action with sample applications, see our
 [examples](https://github.com/signalfx/tracing-examples/tree/master/signalfx-tracing/splunk-otel-java).
 
 > :warning: Specify the agent as the only JVM agent for your application.
-> Specifying multiple agents may result in unexpected behavior.
+> Multiple agents may result in unpredictable results, broken instrumentation,
+> and in some cases might crash your application.
 
 ## All configuration options
 
 The agent can be configured in the following ways:
 
-* System property (`-Dotel.zipkin.service.name=my-java-app`)
-* Environment variable (`export OTEL_ZIPKIN_SERVICE_NAME=my-java-app`)
+* System property (example: `-Dotel.zipkin.service.name=my-java-app`)
+* Environment variable (example: `export OTEL_ZIPKIN_SERVICE_NAME=my-java-app`)
 
 System property values take priority over corresponding environment variables.
 

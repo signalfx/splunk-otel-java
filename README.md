@@ -16,15 +16,14 @@ This Splunk distribution comes with the following defaults:
   (`http://localhost:9080/v1/trace`).
 - Unlimited default limits for [configuration options](#trace-configuration) to support full-fidelity traces.
 
-> :warning: This project is currently in **BETA**.
+> :construction: This project is currently in **BETA**.
 
 ## Getting Started
 
-The agent works with Java runtimes version 8 and higher. Supported libraries
-and versions are listed
+The agent works with Java runtimes version 8 and higher and supports all
+JVM-based languages (for example, Clojure, Groovy, Kotlin, Scala). Supported
+libraries and versions are listed
 [here](https://github.com/open-telemetry/opentelemetry-java-instrumentation#supported-java-libraries-and-frameworks).
-Other JVM-based languages like Scala and Kotlin are also supported, but may not
-work with all instrumentations.
 
 To get started, download the JAR for the agent's [latest
 version](https://github.com/signalfx/splunk-otel-java/releases/latest/download/splunk-otel-javaagent-all.jar)
@@ -36,7 +35,7 @@ For example, if the runtime parameters were:
 $ java -jar target/java-agent-example-1.0-SNAPSHOT-shaded.jar https://google.com
 ```
 
-Then the updates would be:
+Then the runtime parameters would be updated to:
 
 ```bash
 $ curl -L https://github.com/signalfx/splunk-otel-java/releases/latest/download/splunk-otel-javaagent-all.jar \

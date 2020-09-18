@@ -14,7 +14,7 @@ This Splunk distribution comes with the following defaults:
   configured to send spans to a locally running [SignalFx Smart
   Agent](https://docs.signalfx.com/en/latest/apm/apm-getting-started/apm-smart-agent.html)
   (`http://localhost:9080/v1/trace`).
-- Unlimited default limits for configuration options to support full-fidelity traces.
+- Unlimited default limits for [configuration options](#trace-configuration) to support full-fidelity traces.
 
 > :warning: This project is currently in **BETA**.
 

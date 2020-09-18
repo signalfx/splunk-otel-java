@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.signalfx.opentelemetry;
+package com.splunk.opentelemetry;
 
 import io.opentelemetry.sdk.common.CompletableResultCode;
 import io.opentelemetry.sdk.common.InstrumentationLibraryInfo;
@@ -39,9 +39,9 @@ public class InstrumentationLibrarySpanProcessor implements SpanProcessor {
   public void onStart(ReadWriteSpan span) {
     InstrumentationLibraryInfo libraryInfo = span.getInstrumentationLibraryInfo();
 
-    span.setAttribute("signalfx.instrumentation_library.name", libraryInfo.getName());
+    span.setAttribute("splunk.instrumentation_library.name", libraryInfo.getName());
     if (libraryInfo.getVersion() != null) {
-      span.setAttribute("signalfx.instrumentation_library.version", libraryInfo.getVersion());
+      span.setAttribute("splunk.instrumentation_library.version", libraryInfo.getVersion());
     }
   }
 

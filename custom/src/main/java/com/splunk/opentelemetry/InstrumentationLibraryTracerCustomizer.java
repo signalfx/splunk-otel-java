@@ -14,26 +14,14 @@
  * limitations under the License.
  */
 
-package com.signalfx.opentelemetry;
+package com.splunk.opentelemetry;
 
-import java.util.concurrent.TimeUnit;
-import okhttp3.OkHttpClient;
+import io.opentelemetry.javaagent.bootstrap.spi.TracerCustomizer;
+import io.opentelemetry.sdk.trace.TracerSdkProvider;
 
-public class OkHttpUtils {
-
-  static OkHttpClient.Builder clientBuilder() {
-    TimeUnit unit = TimeUnit.MINUTES;
-    return new OkHttpClient.Builder()
-        .connectTimeout(1, unit)
-        .writeTimeout(1, unit)
-        .readTimeout(1, unit);
-  }
-
-  public static OkHttpClient client() {
-    return client(false);
-  }
-
-  public static OkHttpClient client(boolean followRedirects) {
-    return clientBuilder().followRedirects(followRedirects).build();
+public class InstrumentationLibraryTracerCustomizer implements TracerCustomizer {
+  @Override
+  public void configure(TracerSdkProvider tracerSdkProvider) {
+    tracerSdkProvider.addSpanProcessor(new InstrumentationLibrarySpanProcessor());
   }
 }

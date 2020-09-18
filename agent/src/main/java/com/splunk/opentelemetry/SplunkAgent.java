@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package com.signalfx.opentelemetry;
+package com.splunk.opentelemetry;
 
-import static com.signalfx.opentelemetry.DefaultConfig.setDefaultConfig;
+import static com.splunk.opentelemetry.DefaultConfig.setDefaultConfig;
 import static java.lang.String.valueOf;
 
 import io.opentelemetry.javaagent.OpenTelemetryAgent;

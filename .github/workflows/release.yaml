@@ -22,7 +22,7 @@ jobs:
         run: ./gradlew -Prelease.useLastTag=true build final --no-daemon
 
       - name: Get main artifact without version tag
-        run: mv agent/build/libs/signalfx-otel-javaagent-*-all.jar signalfx-otel-javaagent-all.jar
+        run: mv agent/build/libs/splunk-otel-javaagent-*-all.jar splunk-otel-javaagent-all.jar
 
       - name: Get release version
         id: get_version
@@ -35,4 +35,4 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           name: Release ${{ steps.get_version.outputs.VERSION }}
-          files: signalfx-otel-javaagent-all.jar
+          files: splunk-otel-javaagent-all.jar

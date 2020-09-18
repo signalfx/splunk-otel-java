@@ -8,7 +8,7 @@ gradleEnterprise {
     termsOfServiceAgree = "yes"
   }
 }
-rootProject.name = "signalfx-otel-java"
+rootProject.name = "splunk-otel-java"
 include("agent", "custom", "smoke-tests")
 
 

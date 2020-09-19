@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.signalfx.opentelemetry;
+package com.splunk.opentelemetry;
 
 import io.opentelemetry.proto.collector.trace.v1.ExportTraceServiceRequest;
 import java.io.IOException;
@@ -63,7 +63,7 @@ class SpringBootSmokeTest extends SmokeTest {
         3,
         getSpanStream(traces)
             .flatMap(s -> s.getAttributesList().stream())
-            .filter(a -> a.getKey().equals("signalfx.instrumentation_library.version"))
+            .filter(a -> a.getKey().equals("splunk.instrumentation_library.version"))
             .map(a -> a.getValue().getStringValue())
             .filter(s -> s.equals(currentAgentVersion))
             .count());

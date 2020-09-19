@@ -11,7 +11,7 @@ release {
   defaultVersionStrategy = Strategies.getSNAPSHOT()
 }
 
-group = "com.signalfx.public"
+group = "com.splunk.public"
 
 subprojects {
   version = rootProject.version

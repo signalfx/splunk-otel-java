@@ -7,7 +7,7 @@ dependencies {
   implementation("io.opentelemetry.instrumentation.auto", "opentelemetry-javaagent", version = "0.8.0", classifier = "all")
 }
 
-base.archivesBaseName = "signalfx-otel-javaagent"
+base.archivesBaseName = "splunk-otel-javaagent"
 
 tasks {
 
@@ -32,8 +32,8 @@ tasks {
     exclude("**/module-info.class")
     manifest {
       attributes.put("Main-Class", "io.opentelemetry.javaagent.OpenTelemetryAgent")
-      attributes.put("Agent-Class", "com.signalfx.opentelemetry.SplunkAgent")
-      attributes.put("Premain-Class", "com.signalfx.opentelemetry.SplunkAgent")
+      attributes.put("Agent-Class", "com.splunk.opentelemetry.SplunkAgent")
+      attributes.put("Premain-Class", "com.splunk.opentelemetry.SplunkAgent")
       attributes.put("Can-Redefine-Classes", "true")
       attributes.put("Can-Retransform-Classes", "true")
       attributes.put("Implementation-Vendor", "Splunk")

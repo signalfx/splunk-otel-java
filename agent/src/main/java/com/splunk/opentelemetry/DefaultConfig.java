@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.signalfx.opentelemetry;
+package com.splunk.opentelemetry;
 
 import java.io.File;
 import java.io.FileReader;

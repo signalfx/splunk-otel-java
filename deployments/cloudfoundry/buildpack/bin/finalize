@@ -1,0 +1,5 @@
+#!/bin/bash
+
+# This buildpack should not be run as the final one, so there's nothing to do here
+
+exit 0

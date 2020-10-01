@@ -1,0 +1,77 @@
+#!/usr/bin/env python3
+
+from sys import argv as ARGV
+from os import makedirs, environ as ENV
+from pathlib import Path
+from urllib.request import build_opener, HTTPRedirectHandler
+import shutil
+
+JAVA_AGENT_VERSION = "0.1.0"
+JAVA_AGENT_JAR_NAME = f"splunk-otel-javaagent-{JAVA_AGENT_VERSION}.jar"
+JAVA_AGENT_URL = f"https://github.com/signalfx/splunk-otel-java/releases/download/v{JAVA_AGENT_VERSION}/splunk-otel-javaagent-all.jar"
+
+def log_op(msg):
+    print(f"-----> {msg}")
+
+def download_agent_jar(cache_dir):
+    agent_jar = Path(cache_dir, JAVA_AGENT_JAR_NAME)
+    if not agent_jar.is_file():
+        log_op(f"Agent jar {agent_jar} does not exist, downloading ...")
+        client = build_opener(HTTPRedirectHandler())
+        with client.open(JAVA_AGENT_URL) as rs:
+            with agent_jar.open('wb') as f:
+                f.write(rs.read())
+    return agent_jar
+
+def copy_agent_to_app(agent_jar, app_dir):
+    target_dir = Path(app_dir, ".java-buildpack", "splunk_otel_java")
+    if not target_dir.is_dir():
+        makedirs(target_dir)
+
+    target_agent_jar = Path(target_dir, JAVA_AGENT_JAR_NAME)
+    log_op(f"Moving agent jar to {target_agent_jar} ...")
+    shutil.copy(agent_jar, target_agent_jar)
+    return target_agent_jar
+
+def prepare_env_vars():
+    log_op("Preparing environment variables ...")
+    env_vars = {}
+    for key, value in ENV.items():
+        if key.startswith("OTEL_") or key.startswith("SPLUNK_"):
+            env_vars[key] = value
+    return env_vars
+
+def write_config_yml(agent_jar, env_vars, deps_dir, deps_idx):
+    dep_path = Path(deps_dir, deps_idx)
+    if not dep_path.is_dir():
+        makedirs(dep_path)
+
+    config_yml = Path(dep_path, "config.yml")
+
+    env_var_lines = []
+    for key, value in env_vars.items():
+        env_var_lines.append(f'    {key}: "{value}"\n')
+
+    log_op(f"Writing configuration file {config_yml} ...")
+    with config_yml.open('w') as f:
+        f.writelines([
+            "---\n",
+            "name: splunk-otel-java\n",
+            "config:\n",
+            "  java_opts:\n",
+            f"    javaagents: ['{agent_jar}']\n",
+            "  environment_variables:\n"
+        ] + env_var_lines)
+
+def main(app_dir, cache_dir, deps_dir, deps_idx):
+    log_op("Splunk OpenTelemetry Java Instrumentation Buildpack")
+    agent_jar = download_agent_jar(cache_dir)
+    agent_jar = copy_agent_to_app(agent_jar, app_dir)
+    env_vars = prepare_env_vars()
+    write_config_yml(agent_jar, env_vars, deps_dir, deps_idx)
+
+if __name__ == "__main__":
+    if len(ARGV) < 5:
+        log_op("ERROR: this script must be provided at least 4 args: BUILD_DIR, CACHE_DIR, DEPS_DIR, DEPS_IDX")
+        exit(1)
+    main(ARGV[1], ARGV[2], ARGV[3], ARGV[4])

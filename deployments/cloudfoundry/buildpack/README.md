@@ -26,3 +26,10 @@ $ cf push my-app -b splunk_otel_java_buildpack -b https://github.com/cloudfoundr
 
 You can configure the Java instrumentation agent using environment variables listed in the [main README.md](../../../README.md).
 All configuration options listed there are supported by this buildpack.
+
+In case you want to use a specific version of the Java agent you can set the `SPLUNK_OTEL_JAVA_VERSION` environment variable:
+
+```sh
+# 0.1.0 is the default value
+$ sf set-env SPLUNK_OTEL_JAVA_VERSION "0.1.0"
+```

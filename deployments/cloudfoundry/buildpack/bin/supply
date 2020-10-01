@@ -6,7 +6,7 @@ from pathlib import Path
 from urllib.request import build_opener, HTTPRedirectHandler
 import shutil
 
-JAVA_AGENT_VERSION = "0.1.0"
+JAVA_AGENT_VERSION = ENV.get("SPLUNK_OTEL_JAVA_VERSION", default="0.1.0")
 JAVA_AGENT_JAR_NAME = f"splunk-otel-javaagent-{JAVA_AGENT_VERSION}.jar"
 JAVA_AGENT_URL = f"https://github.com/signalfx/splunk-otel-java/releases/download/v{JAVA_AGENT_VERSION}/splunk-otel-javaagent-all.jar"
 

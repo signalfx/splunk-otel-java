@@ -5,20 +5,36 @@ from os import makedirs, environ as ENV
 from pathlib import Path
 from urllib.request import build_opener, HTTPRedirectHandler
 import shutil
+import os
 
-JAVA_AGENT_VERSION = ENV.get("SPLUNK_OTEL_JAVA_VERSION", default="0.1.0")
+LATEST_VERSION = "latest"
+JAVA_AGENT_VERSION = ENV.get("SPLUNK_OTEL_JAVA_VERSION", default=LATEST_VERSION)
 JAVA_AGENT_JAR_NAME = f"splunk-otel-javaagent-{JAVA_AGENT_VERSION}.jar"
 JAVA_AGENT_URL = f"https://github.com/signalfx/splunk-otel-java/releases/download/v{JAVA_AGENT_VERSION}/splunk-otel-javaagent-all.jar"
+JAVA_AGENT_LATEST_URL = "https://github.com/signalfx/splunk-otel-java/releases/latest/download/splunk-otel-javaagent-all.jar"
 
 def log_op(msg):
     print(f"-----> {msg}")
 
+def disable_cache_for_latest_version(agent_jar):
+    if JAVA_AGENT_VERSION == LATEST_VERSION:
+        if agent_jar.is_file():
+            log_op("Disabling cache when using the latest version ...")
+            os.remove(agent_jar)
+
+def get_url():
+    if JAVA_AGENT_VERSION == LATEST_VERSION:
+        return JAVA_AGENT_LATEST_URL
+    else:
+        return JAVA_AGENT_URL
+
 def download_agent_jar(cache_dir):
     agent_jar = Path(cache_dir, JAVA_AGENT_JAR_NAME)
+    disable_cache_for_latest_version(agent_jar)
     if not agent_jar.is_file():
         log_op(f"Agent jar {agent_jar} does not exist, downloading ...")
         client = build_opener(HTTPRedirectHandler())
-        with client.open(JAVA_AGENT_URL) as rs:
+        with client.open(get_url()) as rs:
             with agent_jar.open('wb') as f:
                 f.write(rs.read())
     return agent_jar

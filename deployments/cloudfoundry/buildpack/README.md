@@ -5,6 +5,8 @@ and run the Splunk distribution of OpenTelemetry Java Instrumentation agent in C
 
 ## Installation
 
+To build and install the buildpack you need to have [cfcli](https://docs.cloudfoundry.org/cf-cli/install-go-cli.html) installed.
+
 If you like to install the buildpack, clone this repo and change to this directory, then run:
 
 ```sh
@@ -27,10 +29,11 @@ $ cf push my-app -b splunk_otel_java_buildpack -b https://github.com/cloudfoundr
 You can configure the Java instrumentation agent using environment variables listed in the [main README.md](../../../README.md).
 All configuration options listed there are supported by this buildpack.
 
-In case you want to use a specific version of the Java agent in your application you can set the `SPLUNK_OTEL_JAVA_VERSION` environment variable:
+In case you want to use a specific version of the Java agent in your application you can set the `SPLUNK_OTEL_JAVA_VERSION`
+environment variable before application deployment, either using `cf set-env` or the `manifest.yml` file:
 
 ```sh
-$ sf set-env SPLUNK_OTEL_JAVA_VERSION "0.1.0"
+$ cf set-env SPLUNK_OTEL_JAVA_VERSION "0.1.0"
 ```
 
 By default the latest agent version available is used.

@@ -1,19 +1,19 @@
 # Splunk distribution of OpenTelemetry Java Instrumentation Buildpack
 
 A [CloudFoundry buildpack](https://docs.run.pivotal.io/buildpacks/) to install
-and run the Splunk distribution of OpenTelemetry Java Instrumentation agent in CloudFoundry apps.
+and run the Splunk distribution of the OpenTelemetry Java Instrumentation agent in CloudFoundry apps.
 
 ## Installation
 
 To build and install the buildpack you need to have [cfcli](https://docs.cloudfoundry.org/cf-cli/install-go-cli.html) installed.
 
-If you like to install the buildpack, clone this repo and change to this directory, then run:
+If you would like to install the buildpack, clone this repo, change to this directory, then run:
 
 ```sh
 $ cf create-buildpack splunk_otel_java_buildpack . 99 --enable
 ```
 
-Now you can use it when running your apps:
+Now you can use the buildpack when running your apps:
 
 ```sh
 # app configuration
@@ -29,13 +29,13 @@ $ cf push my-app -b splunk_otel_java_buildpack -b https://github.com/cloudfoundr
 You can configure the Java instrumentation agent using environment variables listed in the [main README.md](../../../README.md).
 All configuration options listed there are supported by this buildpack.
 
-In case you want to use a specific version of the Java agent in your application you can set the `SPLUNK_OTEL_JAVA_VERSION`
+If you want to use a specific version of the Java agent in your application, you can set the `SPLUNK_OTEL_JAVA_VERSION`
 environment variable before application deployment, either using `cf set-env` or the `manifest.yml` file:
 
 ```sh
 $ cf set-env SPLUNK_OTEL_JAVA_VERSION "0.1.0"
 ```
 
-By default the latest agent version available is used.
+By default the latest available agent version is used.
 
-Note: latest version is not using the buildpack cache, so if you want your deployments to be a bit quicker you may want to specify a concrete version.
+Note: the latest version won't use the buildpack cache, so if you want your deployments to be a bit quicker you may want to specify a concrete version.

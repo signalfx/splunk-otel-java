@@ -3,6 +3,8 @@
 A [CloudFoundry buildpack](https://docs.run.pivotal.io/buildpacks/) to install
 and run the Splunk distribution of the OpenTelemetry Java Instrumentation agent in CloudFoundry apps.
 
+> :construction: This project is currently in **BETA**.
+
 ## Installation
 
 To build and install the buildpack you need to have [cfcli](https://docs.cloudfoundry.org/cf-cli/install-go-cli.html) installed.

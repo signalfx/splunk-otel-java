@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.signalfx.opentelemetry;
+package com.splunk.opentelemetry;
 
 import java.util.concurrent.TimeUnit;
 import okhttp3.OkHttpClient;

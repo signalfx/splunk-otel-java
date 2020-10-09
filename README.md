@@ -104,7 +104,12 @@ System property values take priority over corresponding environment variables.
 | otel.trace.methods                  | OTEL_TRACE_METHODS                 | unset          | Same as adding `@WithSpan` annotation functionality for the target method string. <details><summary>Format</summary>`my.package.MyClass1[method1,method2];my.package.MyClass2[method3]`</details>                                                                                                                                                                                                            |
 | otel.trace.annotated.methods.exclude     | OTEL_TRACE_ANNOTATED_METHODS_EXCLUDE    | unset          | Suppress `@WithSpan` instrumentation for specific methods. <details><summary>Format</summary>`my.package.MyClass1[method1,method2];my.package.MyClass2[method3]`</details>                                                                                                                                                                                                                                |
 
-## Manually instrument an application
+### Splunk distribution configuration
+| System property                                    | Environment variable                              | Default value | Notes                                                                                                                                         |
+| -------------------------------------------------- | ------------------------------------------------- | --------------| --------------------------------------------------------------------------------------------------------------------------------------------- |
+| splunk.otel.config.span.processor.instrlib.enabled | SPLUNK_OTEL_CONFIG_SPAN_PROCESSOR_INSTRLIB_ENABLED| `false`       | Enables span processing adding library instrumentation properties. Deprecated feature for customers not on the newest OpenTelemetry Collector |
+
+## Manually instrument a Java application
 
 Documentation on how to manually instrument a Java application are available
 [here](https://github.com/open-telemetry/opentelemetry-java-instrumentation#manually-instrumenting).

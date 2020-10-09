@@ -14,11 +14,13 @@
  * limitations under the License.
  */
 
-package com.signalfx.opentelemetry;
+package com.splunk.opentelemetry;
 
 import io.opentelemetry.proto.collector.trace.v1.ExportTraceServiceRequest;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Map;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 import okhttp3.Request;
@@ -32,8 +34,14 @@ class SpringBootSmokeTest extends SmokeTest {
     return "open-telemetry-docker-dev.bintray.io/java/smoke-springboot-jdk" + jdk + ":latest";
   }
 
+  @Override
+  protected Map<String, String> getExtraEnv() {
+    return Collections.singletonMap("SPLUNK_OTEL_CONFIG_SPAN_PROCESSOR_INSTRLIB_ENABLED", "true");
+  }
+
   @Test
   public void springBootSmokeTestOnJDK() throws IOException, InterruptedException {
+
     startTarget(8);
     String url = String.format("http://localhost:%d/greeting", target.getMappedPort(8080));
     Request request = new Request.Builder().url(url).get().build();
@@ -63,7 +71,7 @@ class SpringBootSmokeTest extends SmokeTest {
         3,
         getSpanStream(traces)
             .flatMap(s -> s.getAttributesList().stream())
-            .filter(a -> a.getKey().equals("signalfx.instrumentation_library.version"))
+            .filter(a -> a.getKey().equals("splunk.instrumentation_library.version"))
             .map(a -> a.getValue().getStringValue())
             .filter(s -> s.equals(currentAgentVersion))
             .count());

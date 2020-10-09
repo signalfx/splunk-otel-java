@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.signalfx.opentelemetry;
+package com.splunk.opentelemetry;
 
 import io.opentelemetry.common.AttributeValue;
 import io.opentelemetry.common.Attributes;
@@ -37,10 +37,10 @@ class InstrumentationLibrarySpanProcessorTest {
     processor.onStart(span);
 
     Assertions.assertEquals(
-        "com.signalfx.test",
-        span.attributes.get("signalfx.instrumentation_library.name").getStringValue());
+        "com.splunk.test",
+        span.attributes.get("splunk.instrumentation_library.name").getStringValue());
     Assertions.assertEquals(
-        "1.2.3", span.attributes.get("signalfx.instrumentation_library.version").getStringValue());
+        "1.2.3", span.attributes.get("splunk.instrumentation_library.version").getStringValue());
   }
 
   private static class ReadWriteSpanWithLibrary implements ReadWriteSpan {
@@ -64,7 +64,7 @@ class InstrumentationLibrarySpanProcessorTest {
 
     @Override
     public InstrumentationLibraryInfo getInstrumentationLibraryInfo() {
-      return InstrumentationLibraryInfo.create("com.signalfx.test", "1.2.3");
+      return InstrumentationLibraryInfo.create("com.splunk.test", "1.2.3");
     }
 
     @Override

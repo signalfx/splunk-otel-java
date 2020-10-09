@@ -14,14 +14,35 @@
  * limitations under the License.
  */
 
-package com.signalfx.opentelemetry;
+package com.splunk.opentelemetry;
 
+import com.google.common.annotations.VisibleForTesting;
 import io.opentelemetry.javaagent.bootstrap.spi.TracerCustomizer;
 import io.opentelemetry.sdk.trace.TracerSdkProvider;
 
 public class InstrumentationLibraryTracerCustomizer implements TracerCustomizer {
+
+  @VisibleForTesting
+  static final String PROPERTY_SPAN_PROCESSOR_INSTR_LIB_ENABLED =
+      "splunk.otel.config.span.processor.instrlib.enabled";
+
+  private static String propertyToEnv(String property) {
+    return property.replace(".", "_").toUpperCase();
+  }
+
+  private static boolean spanProcessorInstrumentationLibraryEnabled() {
+    String value = System.getProperty(PROPERTY_SPAN_PROCESSOR_INSTR_LIB_ENABLED);
+    if (value == null) {
+      value = System.getenv(propertyToEnv(PROPERTY_SPAN_PROCESSOR_INSTR_LIB_ENABLED));
+    }
+    return ("true".equalsIgnoreCase(value));
+  }
+
   @Override
   public void configure(TracerSdkProvider tracerSdkProvider) {
-    tracerSdkProvider.addSpanProcessor(new InstrumentationLibrarySpanProcessor());
+
+    if (spanProcessorInstrumentationLibraryEnabled()) {
+      tracerSdkProvider.addSpanProcessor(new InstrumentationLibrarySpanProcessor());
+    }
   }
 }

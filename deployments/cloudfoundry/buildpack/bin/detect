@@ -1,0 +1,5 @@
+#!/bin/bash
+
+# This buildpack is not supposed to be auto-detectable
+
+exit 1

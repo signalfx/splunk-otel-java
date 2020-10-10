@@ -1,10 +1,3 @@
 ---
-language: splunk_otel_java_buildpack
+language: splunk-otel-java
 stack: cflinuxfs3
-
-include_files:
-  - README.md
-  - bin/detect
-  - bin/supply
-  - bin/finalize
-  - manifest.yml

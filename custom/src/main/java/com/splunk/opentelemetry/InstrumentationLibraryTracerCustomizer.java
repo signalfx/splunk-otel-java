@@ -16,13 +16,11 @@
 
 package com.splunk.opentelemetry;
 
-import com.google.common.annotations.VisibleForTesting;
 import io.opentelemetry.javaagent.spi.TracerCustomizer;
 import io.opentelemetry.sdk.trace.TracerSdkManagement;
 
 public class InstrumentationLibraryTracerCustomizer implements TracerCustomizer {
 
-  @VisibleForTesting
   static final String PROPERTY_SPAN_PROCESSOR_INSTR_LIB_ENABLED =
       "splunk.otel.config.span.processor.instrlib.enabled";
 

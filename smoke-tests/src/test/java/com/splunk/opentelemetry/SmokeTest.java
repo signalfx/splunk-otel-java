@@ -70,7 +70,8 @@ abstract class SmokeTest {
   @BeforeAll
   static void setupSpec() {
     backend =
-        new GenericContainer<>("open-telemetry-docker-dev.bintray.io/java/smoke-fake-backend:latest")
+        new GenericContainer<>(
+                "open-telemetry-docker-dev.bintray.io/java/smoke-fake-backend:latest")
             .withExposedPorts(8080)
             .waitingFor(Wait.forHttp("/health").forPort(8080))
             .withNetwork(network)

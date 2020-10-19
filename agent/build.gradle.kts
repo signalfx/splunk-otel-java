@@ -4,7 +4,7 @@ plugins {
 }
 
 dependencies {
-  implementation("io.opentelemetry.instrumentation.auto", "opentelemetry-javaagent", version = "0.8.0", classifier = "all")
+  implementation("io.opentelemetry.javaagent", "opentelemetry-javaagent", version = "0.9.0", classifier = "all")
 }
 
 base.archivesBaseName = "splunk-otel-javaagent"

@@ -63,7 +63,7 @@ class SpringBootSmokeTest extends SmokeTest {
         3,
         getSpanStream(traces)
             .flatMap(s -> s.getAttributesList().stream())
-            .filter(a -> a.getKey().equals("otel.instrumentation_library.version"))
+            .filter(a -> a.getKey().equals("otel.library.version"))
             .map(a -> a.getValue().getStringValue())
             .filter(s -> s.equals(currentAgentVersion))
             .count());

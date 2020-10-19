@@ -3,9 +3,11 @@ plugins {
   id("com.github.johnrengelman.shadow") version "6.0.0"
 }
 
+val versions: Map<String, String> by extra
+
 dependencies {
-  implementation("io.opentelemetry:opentelemetry-sdk:0.9.1")
-  implementation("io.opentelemetry.javaagent:opentelemetry-javaagent-spi:0.9.0")
+  implementation("io.opentelemetry:opentelemetry-sdk:${versions["opentelemetry"]}")
+  implementation("io.opentelemetry.javaagent:opentelemetry-javaagent-spi:${versions["opentelemetryJavaagent"]}")
 }
 
 tasks {

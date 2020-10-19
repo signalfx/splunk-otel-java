@@ -39,7 +39,8 @@ class InstrumentationLibrarySpanProcessorTest {
         "com.splunk.test",
         span.attributes.get(AttributeKey.stringKey("splunk.instrumentation_library.name")));
     Assertions.assertEquals(
-        "1.2.3", span.attributes.get(AttributeKey.stringKey("splunk.instrumentation_library.version")));
+        "1.2.3",
+        span.attributes.get(AttributeKey.stringKey("splunk.instrumentation_library.version")));
   }
 
   private static class ReadWriteSpanWithLibrary implements ReadWriteSpan {
@@ -82,67 +83,49 @@ class InstrumentationLibrarySpanProcessorTest {
     }
 
     @Override
-    public void setAttribute(String s, long l) {
-    }
+    public void setAttribute(String s, long l) {}
 
     @Override
-    public void setAttribute(String s, double v) {
-    }
+    public void setAttribute(String s, double v) {}
 
     @Override
-    public void setAttribute(String s, boolean b) {
-    }
+    public void setAttribute(String s, boolean b) {}
 
     @Override
-    public <T> void setAttribute(AttributeKey<T> key, T value) {
-
-    }
+    public <T> void setAttribute(AttributeKey<T> key, T value) {}
 
     @Override
-    public void addEvent(String s) {
-    }
+    public void addEvent(String s) {}
 
     @Override
-    public void addEvent(String s, long l) {
-    }
+    public void addEvent(String s, long l) {}
 
     @Override
-    public void addEvent(String s, Attributes attributes) {
-    }
+    public void addEvent(String s, Attributes attributes) {}
 
     @Override
-    public void addEvent(String s, Attributes attributes, long l) {
-    }
+    public void addEvent(String s, Attributes attributes, long l) {}
 
     @Override
-    public void setStatus(StatusCanonicalCode canonicalCode) {
-
-    }
+    public void setStatus(StatusCanonicalCode canonicalCode) {}
 
     @Override
-    public void setStatus(StatusCanonicalCode canonicalCode, String description) {
-
-    }
+    public void setStatus(StatusCanonicalCode canonicalCode, String description) {}
 
     @Override
-    public void recordException(Throwable throwable) {
-    }
+    public void recordException(Throwable throwable) {}
 
     @Override
-    public void recordException(Throwable throwable, Attributes attributes) {
-    }
+    public void recordException(Throwable throwable, Attributes attributes) {}
 
     @Override
-    public void updateName(String s) {
-    }
+    public void updateName(String s) {}
 
     @Override
-    public void end() {
-    }
+    public void end() {}
 
     @Override
-    public void end(EndSpanOptions endSpanOptions) {
-    }
+    public void end(EndSpanOptions endSpanOptions) {}
 
     @Override
     public SpanContext getContext() {

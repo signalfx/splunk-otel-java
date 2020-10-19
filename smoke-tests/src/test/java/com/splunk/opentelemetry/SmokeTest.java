@@ -70,7 +70,7 @@ abstract class SmokeTest {
   @BeforeAll
   static void setupSpec() {
     backend =
-        new GenericContainer<>("open-telemetry-docker-dev.bintray.io/java/smoke-fake-backend")
+        new GenericContainer<>("open-telemetry-docker-dev.bintray.io/java/smoke-fake-backend:latest")
             .withExposedPorts(8080)
             .waitingFor(Wait.forHttp("/health").forPort(8080))
             .withNetwork(network)
@@ -79,7 +79,7 @@ abstract class SmokeTest {
     backend.start();
 
     collector =
-        new GenericContainer<>("otel/opentelemetry-collector-dev")
+        new GenericContainer<>("otel/opentelemetry-collector-dev:latest")
             .dependsOn(backend)
             .withNetwork(network)
             .withNetworkAliases("collector")

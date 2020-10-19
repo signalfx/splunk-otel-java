@@ -76,8 +76,8 @@ To see the Java Agent in action with sample applications, see our
 
 The agent can be configured in the following ways:
 
-* System property (example: `-Dotel.zipkin.service.name=my-java-app`)
-* Environment variable (example: `export OTEL_ZIPKIN_SERVICE_NAME=my-java-app`)
+* System property (example: `-Dotel.exporter.zipkin.service.name=my-java-app`)
+* Environment variable (example: `export OTEL_EXPORTER_ZIPKIN_SERVICE_NAME=my-java-app`)
 
 System property values take priority over corresponding environment variables.
 
@@ -85,8 +85,8 @@ System property values take priority over corresponding environment variables.
 
 | System property            | Environment variable       | Default value                        | Notes                                                                |
 | -------------------------- | -------------------------- | ------------------------------------ | -------------------------------------------------------------------- |
-| otel.zipkin.endpoint       | OTEL_ZIPKIN_ENDPOINT       | `http://localhost:9080/v1/trace`     | The Zipkin endpoint to connect to. Currently only HTTP is supported. |
-| otel.zipkin.service.name   | OTEL_ZIPKIN_SERVICE_NAME   | `unknown`                            | The service name of this JVM instance.                               |
+| otel.exporter.zipkin.endpoint       | OTEL_EXPORTER_ZIPKIN_ENDPOINT       | `http://localhost:9080/v1/trace`     | The Zipkin endpoint to connect to. Currently only HTTP is supported. |
+| otel.exporter.zipkin.service.name   | OTEL_EXPORTER_ZIPKIN_SERVICE_NAME   | `unknown`                            | The service name of this JVM instance.                               |
 
 ### Trace configuration
 

@@ -20,6 +20,11 @@ subprojects {
   apply(plugin = "com.diffplug.spotless")
   apply(from = "$rootDir/gradle/spotless.gradle")
 
+  extra.set("versions", mapOf(
+      "opentelemetry" to "0.9.1",
+      "opentelemetryJavaagent" to "0.9.0"
+  ))
+
   repositories {
     jcenter()
     maven {

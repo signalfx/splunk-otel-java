@@ -17,8 +17,8 @@
 package com.splunk.opentelemetry;
 
 import com.google.common.annotations.VisibleForTesting;
-import io.opentelemetry.javaagent.bootstrap.spi.TracerCustomizer;
-import io.opentelemetry.sdk.trace.TracerSdkProvider;
+import io.opentelemetry.javaagent.spi.TracerCustomizer;
+import io.opentelemetry.sdk.trace.TracerSdkManagement;
 
 public class InstrumentationLibraryTracerCustomizer implements TracerCustomizer {
 
@@ -39,10 +39,10 @@ public class InstrumentationLibraryTracerCustomizer implements TracerCustomizer 
   }
 
   @Override
-  public void configure(TracerSdkProvider tracerSdkProvider) {
+  public void configure(TracerSdkManagement tracerManagement) {
 
     if (spanProcessorInstrumentationLibraryEnabled()) {
-      tracerSdkProvider.addSpanProcessor(new InstrumentationLibrarySpanProcessor());
+      tracerManagement.addSpanProcessor(new InstrumentationLibrarySpanProcessor());
     }
   }
 }

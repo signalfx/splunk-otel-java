@@ -16,15 +16,14 @@
 
 package com.splunk.opentelemetry;
 
-import io.opentelemetry.common.AttributeValue;
+import io.opentelemetry.common.AttributeKey;
 import io.opentelemetry.common.Attributes;
 import io.opentelemetry.sdk.common.InstrumentationLibraryInfo;
 import io.opentelemetry.sdk.trace.ReadWriteSpan;
 import io.opentelemetry.sdk.trace.data.SpanData;
 import io.opentelemetry.trace.EndSpanOptions;
-import io.opentelemetry.trace.Event;
 import io.opentelemetry.trace.SpanContext;
-import io.opentelemetry.trace.Status;
+import io.opentelemetry.trace.StatusCanonicalCode;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -38,9 +37,9 @@ class InstrumentationLibrarySpanProcessorTest {
 
     Assertions.assertEquals(
         "com.splunk.test",
-        span.attributes.get("splunk.instrumentation_library.name").getStringValue());
+        span.attributes.get(AttributeKey.stringKey("splunk.instrumentation_library.name")));
     Assertions.assertEquals(
-        "1.2.3", span.attributes.get("splunk.instrumentation_library.version").getStringValue());
+        "1.2.3", span.attributes.get(AttributeKey.stringKey("splunk.instrumentation_library.version")));
   }
 
   private static class ReadWriteSpanWithLibrary implements ReadWriteSpan {
@@ -83,52 +82,67 @@ class InstrumentationLibrarySpanProcessorTest {
     }
 
     @Override
-    public void setAttribute(String s, long l) {}
+    public void setAttribute(String s, long l) {
+    }
 
     @Override
-    public void setAttribute(String s, double v) {}
+    public void setAttribute(String s, double v) {
+    }
 
     @Override
-    public void setAttribute(String s, boolean b) {}
+    public void setAttribute(String s, boolean b) {
+    }
 
     @Override
-    public void setAttribute(String s, AttributeValue attributeValue) {}
+    public <T> void setAttribute(AttributeKey<T> key, T value) {
+
+    }
 
     @Override
-    public void addEvent(String s) {}
+    public void addEvent(String s) {
+    }
 
     @Override
-    public void addEvent(String s, long l) {}
+    public void addEvent(String s, long l) {
+    }
 
     @Override
-    public void addEvent(String s, Attributes attributes) {}
+    public void addEvent(String s, Attributes attributes) {
+    }
 
     @Override
-    public void addEvent(String s, Attributes attributes, long l) {}
+    public void addEvent(String s, Attributes attributes, long l) {
+    }
 
     @Override
-    public void addEvent(Event event) {}
+    public void setStatus(StatusCanonicalCode canonicalCode) {
+
+    }
 
     @Override
-    public void addEvent(Event event, long l) {}
+    public void setStatus(StatusCanonicalCode canonicalCode, String description) {
+
+    }
 
     @Override
-    public void setStatus(Status status) {}
+    public void recordException(Throwable throwable) {
+    }
 
     @Override
-    public void recordException(Throwable throwable) {}
+    public void recordException(Throwable throwable, Attributes attributes) {
+    }
 
     @Override
-    public void recordException(Throwable throwable, Attributes attributes) {}
+    public void updateName(String s) {
+    }
 
     @Override
-    public void updateName(String s) {}
+    public void end() {
+    }
 
     @Override
-    public void end() {}
-
-    @Override
-    public void end(EndSpanOptions endSpanOptions) {}
+    public void end(EndSpanOptions endSpanOptions) {
+    }
 
     @Override
     public SpanContext getContext() {

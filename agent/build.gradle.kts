@@ -3,8 +3,10 @@ plugins {
   id("com.github.johnrengelman.shadow") version "6.0.0"
 }
 
+val versions: Map<String, String> by extra
+
 dependencies {
-  implementation("io.opentelemetry.instrumentation.auto", "opentelemetry-javaagent", version = "0.8.0", classifier = "all")
+  implementation("io.opentelemetry.javaagent", "opentelemetry-javaagent", version = versions["opentelemetryJavaagent"], classifier = "all")
 }
 
 base.archivesBaseName = "splunk-otel-javaagent"
@@ -37,7 +39,7 @@ tasks {
       attributes.put("Can-Redefine-Classes", "true")
       attributes.put("Can-Retransform-Classes", "true")
       attributes.put("Implementation-Vendor", "Splunk")
-      attributes.put("Implementation-Version", project.version)
+      attributes.put("Implementation-Version", "splunk-${project.version}-otel-${versions["opentelemetryJavaagent"]}")
     }
   }
 

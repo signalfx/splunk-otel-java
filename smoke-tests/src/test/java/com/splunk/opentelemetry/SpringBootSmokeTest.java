@@ -26,7 +26,8 @@ import java.util.jar.JarFile;
 import okhttp3.Request;
 import okhttp3.Response;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 class SpringBootSmokeTest extends SmokeTest {
 
@@ -39,10 +40,11 @@ class SpringBootSmokeTest extends SmokeTest {
     return Collections.singletonMap("SPLUNK_OTEL_CONFIG_SPAN_PROCESSOR_INSTRLIB_ENABLED", "true");
   }
 
-  @Test
-  public void springBootSmokeTestOnJDK() throws IOException, InterruptedException {
+  @ParameterizedTest(name = "{index} => SpringBoot SmokeTest On JDK{0}.")
+  @ValueSource(ints = {8, 11, 14, 15})
+  public void springBootSmokeTestOnJDK(int jdk) throws IOException, InterruptedException {
 
-    startTarget(8);
+    startTarget(jdk);
     String url = String.format("http://localhost:%d/greeting", target.getMappedPort(8080));
     Request request = new Request.Builder().url(url).get().build();
 
@@ -77,8 +79,5 @@ class SpringBootSmokeTest extends SmokeTest {
             .count());
 
     stopTarget();
-
-    //    where:
-    //    jdk << [8, 11, 14]
   }
 }

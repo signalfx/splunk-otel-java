@@ -32,14 +32,14 @@ distribution of Splunk Distribution of OpenTelemetry Java Instrumentation:
    variable. This is how you can set it with an environment variable with a
    service name of `yourServiceName`:
    ```
-   $ EXPORT OTEL_ZIPKIN_SERVICE_NAME="yourServiceName"
+   $ EXPORT OTEL_EXPORTER_ZIPKIN_SERVICE_NAME="yourServiceName"
    ```
 3. Specify the endpoint of the SignalFx Smart Agent or OpenTelemetry Collector
    you're exporting traces to. You can set the endpoint with a system property
    or environment variable. This is how you can set it with an environment
    variable with an endpoint of `http://yourEndpoint:9080/v1/trace`:
    ```
-   $ EXPORT OTEL_ZIPKIN_ENDPOINT="http://yourEndpoint:9080/v1/trace"
+   $ EXPORT OTEL_EXPORTER_ZIPKIN_ENDPOINT="http://yourEndpoint:9080/v1/trace"
    ```
    The default value is `http://localhost:9080/v1/trace`. If you're exporting
    traces to a local Smart Agent, you don't have to modify this configuration

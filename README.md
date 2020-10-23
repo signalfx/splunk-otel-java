@@ -5,7 +5,11 @@ Instrumentation](https://github.com/open-telemetry/opentelemetry-java-instrument
 provides a [Java Virtual Machine (JVM)
 agent](https://docs.oracle.com/javase/7/docs/api/java/lang/instrument/package-summary.html)
 that automatically instruments your Java application to capture and report
-distributed traces to SignalFx APM.
+distributed traces to Splunk APM.
+
+If you're currently using the SignalFx Java Agent and want to
+migrate to the Splunk Distribution of OpenTelemetry Java Instrumentation,
+see [Migrate from the SignalFx Java Agent](migration.md).
 
 This Splunk distribution comes with the following defaults:
 

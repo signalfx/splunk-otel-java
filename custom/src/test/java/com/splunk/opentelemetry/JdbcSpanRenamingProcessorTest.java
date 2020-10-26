@@ -16,8 +16,7 @@
 
 package com.splunk.opentelemetry;
 
-import static io.opentelemetry.common.AttributeValue.longAttributeValue;
-import static io.opentelemetry.common.AttributeValue.stringAttributeValue;
+import static io.opentelemetry.trace.attributes.SemanticAttributes.DB_SYSTEM;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.Answers.RETURNS_DEEP_STUBS;
@@ -53,19 +52,7 @@ class JdbcSpanRenamingProcessorTest {
   @Test
   void shouldIgnoreSpansThatDoNotHaveDbSystemAttribute() {
     // given
-    given(span.toSpanData().getAttributes().get("db.system")).willReturn(null);
-
-    // when
-    processor.onStart(span);
-
-    // then
-    then(span).should(never()).updateName(anyString());
-  }
-
-  @Test
-  void shouldIgnoreSpansThatHaveWrongTypeAttribute() {
-    // given
-    given(span.toSpanData().getAttributes().get("db.system")).willReturn(longAttributeValue(42));
+    given(span.toSpanData().getAttributes().get(DB_SYSTEM)).willReturn(null);
 
     // when
     processor.onStart(span);
@@ -77,8 +64,7 @@ class JdbcSpanRenamingProcessorTest {
   @Test
   void shouldIgnoreSpansThatAreNotSql() {
     // given
-    given(span.toSpanData().getAttributes().get("db.system"))
-        .willReturn(stringAttributeValue("mongodb"));
+    given(span.toSpanData().getAttributes().get(DB_SYSTEM)).willReturn("mongodb");
 
     // when
     processor.onStart(span);
@@ -103,8 +89,7 @@ class JdbcSpanRenamingProcessorTest {
       })
   void shouldUpdateJdbcSpans(String dbSystem) {
     // given
-    given(span.toSpanData().getAttributes().get("db.system"))
-        .willReturn(stringAttributeValue(dbSystem));
+    given(span.toSpanData().getAttributes().get(DB_SYSTEM)).willReturn(dbSystem);
     given(span.getName()).willReturn("select * from table");
 
     // when
@@ -118,8 +103,7 @@ class JdbcSpanRenamingProcessorTest {
   @MethodSource("spanNameArgs")
   void shouldGetSqlStatementTypeFromSpanName(String query, String sqlStatementType) {
     // given
-    given(span.toSpanData().getAttributes().get("db.system"))
-        .willReturn(stringAttributeValue("other_sql"));
+    given(span.toSpanData().getAttributes().get(DB_SYSTEM)).willReturn("other_sql");
     given(span.getName()).willReturn(query);
 
     // when

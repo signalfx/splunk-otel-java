@@ -24,6 +24,13 @@ import io.opentelemetry.trace.attributes.SemanticAttributes;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * This span processor is responsible for renaming spans produced by the JDBC auto-instrumentation,
+ * which have the full SQL query in their names. To lower the cardinality and make those spans
+ * easier to analyze this processor renames spans so that they only use the SQL operation type (e.g.
+ * {@code SELECT}, {@code INSERT}, ...) as their names. Full SQL query is still available in the
+ * {@code db.statement} attribute.
+ */
 public class JdbcSpanRenamingProcessor implements SpanProcessor {
   private static final Set<String> SQL_SYSTEMS;
 

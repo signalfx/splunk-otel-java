@@ -36,7 +36,7 @@ public class InstrumentationLibraryTracerCustomizer implements TracerCustomizer 
     if (value == null) {
       value = System.getenv(propertyToEnv(PROPERTY_SPAN_PROCESSOR_INSTR_LIB_ENABLED));
     }
-    return ("true".equalsIgnoreCase(value));
+    return Boolean.parseBoolean(value);
   }
 
   private static boolean jdbcSpanLowCardinalityNameEnabled() {
@@ -45,7 +45,7 @@ public class InstrumentationLibraryTracerCustomizer implements TracerCustomizer 
       value = System.getenv(propertyToEnv(ENABLE_JDBC_SPAN_LOW_CARDINALITY_NAME_PROPERTY));
     }
     // enabled by default
-    return value == null || "true".equalsIgnoreCase(value);
+    return value == null || Boolean.parseBoolean(value);
   }
 
   @Override

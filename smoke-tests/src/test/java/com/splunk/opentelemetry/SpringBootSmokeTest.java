@@ -16,22 +16,30 @@
 
 package com.splunk.opentelemetry;
 
+import static org.junit.jupiter.params.provider.Arguments.arguments;
+
 import io.opentelemetry.proto.collector.trace.v1.ExportTraceServiceRequest;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
-import java.util.jar.Attributes;
-import java.util.jar.JarFile;
+import java.util.stream.Stream;
 import okhttp3.Request;
 import okhttp3.Response;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 class SpringBootSmokeTest extends SmokeTest {
 
-  protected String getTargetImage(int jdk) {
-    return "open-telemetry-docker-dev.bintray.io/java/smoke-springboot-jdk" + jdk + ":latest";
+  private static Stream<Arguments> springBootConfigurations() {
+    return Stream.of(
+        arguments(
+            new SpringBootConfiguration(8),
+            new SpringBootConfiguration(11),
+            new SpringBootConfiguration(14),
+            new SpringBootConfiguration(15)));
   }
 
   @Override
@@ -39,18 +47,15 @@ class SpringBootSmokeTest extends SmokeTest {
     return Collections.singletonMap("SPLUNK_OTEL_CONFIG_SPAN_PROCESSOR_INSTRLIB_ENABLED", "true");
   }
 
-  @Test
-  public void springBootSmokeTestOnJDK() throws IOException, InterruptedException {
-
-    startTarget(8);
+  @ParameterizedTest
+  @MethodSource("springBootConfigurations")
+  public void springBootSmokeTestOnJDK(SpringBootConfiguration testConfig)
+      throws IOException, InterruptedException {
+    startTarget(testConfig::getTargetImage);
     String url = String.format("http://localhost:%d/greeting", target.getMappedPort(8080));
     Request request = new Request.Builder().url(url).get().build();
 
-    Object currentAgentVersion =
-        new JarFile(agentPath)
-            .getManifest()
-            .getMainAttributes()
-            .get(Attributes.Name.IMPLEMENTATION_VERSION);
+    String currentAgentVersion = getCurrentAgentVersion();
 
     Response response = client.newCall(request).execute();
     Collection<ExportTraceServiceRequest> traces = waitForTraces();
@@ -60,25 +65,29 @@ class SpringBootSmokeTest extends SmokeTest {
     Assertions.assertEquals(1, countSpansByName(traces, "webcontroller.greeting"));
     Assertions.assertEquals(1, countSpansByName(traces, "webcontroller.withspan"));
     Assertions.assertEquals(
-        3,
-        getSpanStream(traces)
-            .flatMap(s -> s.getAttributesList().stream())
-            .filter(a -> a.getKey().equals("otel.library.version"))
-            .map(a -> a.getValue().getStringValue())
-            .filter(s -> s.equals(currentAgentVersion))
-            .count());
+        3, countFilteredAttributes(traces, "otel.library.version", currentAgentVersion));
     Assertions.assertEquals(
         3,
-        getSpanStream(traces)
-            .flatMap(s -> s.getAttributesList().stream())
-            .filter(a -> a.getKey().equals("splunk.instrumentation_library.version"))
-            .map(a -> a.getValue().getStringValue())
-            .filter(s -> s.equals(currentAgentVersion))
-            .count());
+        countFilteredAttributes(
+            traces, "splunk.instrumentation_library.version", currentAgentVersion));
 
     stopTarget();
+  }
 
-    //    where:
-    //    jdk << [8, 11, 14]
+  static class SpringBootConfiguration {
+    final int jdk;
+
+    SpringBootConfiguration(int jdk) {
+      this.jdk = jdk;
+    }
+
+    @Override
+    public String toString() {
+      return "Spring Boot on JDK " + jdk;
+    }
+
+    public String getTargetImage() {
+      return "open-telemetry-docker-dev.bintray.io/java/smoke-springboot-jdk" + jdk + ":latest";
+    }
   }
 }

@@ -1,0 +1,53 @@
+import com.bmuschko.gradle.docker.tasks.image.DockerBuildImage
+
+plugins {
+  id 'org.springframework.boot' version '2.3.4.RELEASE'
+  id 'io.spring.dependency-management' version '1.0.10.RELEASE'
+  id 'java'
+  id 'war'
+  id 'com.bmuschko.docker-remote-api' version '6.6.1'
+}
+
+sourceCompatibility = '1.8'
+
+repositories {
+  mavenCentral()
+}
+
+dependencies {
+  implementation 'org.springframework.boot:spring-boot-starter-web'
+  implementation 'io.opentelemetry:opentelemetry-extension-auto-annotations:0.9.1'
+  providedRuntime 'org.springframework.boot:spring-boot-starter-tomcat'
+}
+
+war {
+  enabled = true
+}
+
+task prepareWlsDockerBuildDir(type: Copy, dependsOn: war) {
+  from("src/main/docker/wls/" as File, war.archiveFile)
+  into("$buildDir/docker")
+}
+
+task wls12(type: DockerBuildImage, dependsOn: prepareWlsDockerBuildDir) {
+  dockerFile = new File("$buildDir/docker/wls12-j8.dockerfile")
+  buildArgs.APPLICATION_NAME = 'wls-demo'
+  buildArgs.APPLICATION_FILE = war.archiveName
+  images.add('open-telemetry-docker-dev.bintray.io/java/smoke-weblogic12-jdk8-demo:latest')
+}
+
+task wls14j8(type: DockerBuildImage, dependsOn: prepareWlsDockerBuildDir) {
+  dockerFile = new File("$buildDir/docker/wls14-j8.dockerfile")
+  buildArgs.APPLICATION_NAME = 'wls-demo'
+  buildArgs.APPLICATION_FILE = war.archiveName
+  images.add('open-telemetry-docker-dev.bintray.io/java/smoke-weblogic14-jdk8-demo:latest')
+}
+
+task wls14j11(type: DockerBuildImage, dependsOn: prepareWlsDockerBuildDir) {
+  dockerFile = new File("$buildDir/docker/wls14-j11.dockerfile")
+  buildArgs.APPLICATION_NAME = 'wls-demo'
+  buildArgs.APPLICATION_FILE = war.archiveName
+  images.add('open-telemetry-docker-dev.bintray.io/java/smoke-weblogic14-jdk11-demo:latest')
+}
+
+build.dependsOn([wls12, wls14j8, wls14j11])

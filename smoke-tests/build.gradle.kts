@@ -10,6 +10,7 @@ dependencies {
   testImplementation("io.opentelemetry:opentelemetry-proto:0.9.1")
 
   testImplementation("ch.qos.logback:logback-classic:1.2.3")
+  testImplementation("org.junit.jupiter:junit-jupiter-params:5.7.0")
 }
 
 tasks.test {

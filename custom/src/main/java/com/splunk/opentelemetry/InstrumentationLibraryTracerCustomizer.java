@@ -24,6 +24,9 @@ public class InstrumentationLibraryTracerCustomizer implements TracerCustomizer 
   static final String PROPERTY_SPAN_PROCESSOR_INSTR_LIB_ENABLED =
       "splunk.otel.config.span.processor.instrlib.enabled";
 
+  static final String ENABLE_JDBC_SPAN_LOW_CARDINALITY_NAME_PROPERTY =
+      "splunk.jdbc.low.cardinality.span.name.enabled";
+
   private static String propertyToEnv(String property) {
     return property.replace(".", "_").toUpperCase();
   }
@@ -33,14 +36,25 @@ public class InstrumentationLibraryTracerCustomizer implements TracerCustomizer 
     if (value == null) {
       value = System.getenv(propertyToEnv(PROPERTY_SPAN_PROCESSOR_INSTR_LIB_ENABLED));
     }
-    return ("true".equalsIgnoreCase(value));
+    return Boolean.parseBoolean(value);
+  }
+
+  private static boolean jdbcSpanLowCardinalityNameEnabled() {
+    String value = System.getProperty(ENABLE_JDBC_SPAN_LOW_CARDINALITY_NAME_PROPERTY);
+    if (value == null) {
+      value = System.getenv(propertyToEnv(ENABLE_JDBC_SPAN_LOW_CARDINALITY_NAME_PROPERTY));
+    }
+    // enabled by default
+    return value == null || Boolean.parseBoolean(value);
   }
 
   @Override
   public void configure(TracerSdkManagement tracerManagement) {
-
     if (spanProcessorInstrumentationLibraryEnabled()) {
       tracerManagement.addSpanProcessor(new InstrumentationLibrarySpanProcessor());
+    }
+    if (jdbcSpanLowCardinalityNameEnabled()) {
+      tracerManagement.addSpanProcessor(new JdbcSpanRenamingProcessor());
     }
   }
 }

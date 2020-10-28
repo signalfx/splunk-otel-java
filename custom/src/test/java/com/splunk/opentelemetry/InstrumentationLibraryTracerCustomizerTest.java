@@ -16,24 +16,29 @@
 
 package com.splunk.opentelemetry;
 
+import static com.splunk.opentelemetry.InstrumentationLibraryTracerCustomizer.ENABLE_JDBC_SPAN_LOW_CARDINALITY_NAME_PROPERTY;
 import static com.splunk.opentelemetry.InstrumentationLibraryTracerCustomizer.PROPERTY_SPAN_PROCESSOR_INSTR_LIB_ENABLED;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.BDDMockito.then;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 
 import io.opentelemetry.sdk.trace.TracerSdkProvider;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
+@ExtendWith(MockitoExtension.class)
 public class InstrumentationLibraryTracerCustomizerTest {
+  @Mock private TracerSdkProvider tracerSdkProvider;
 
   @Test
-  public void shouldAddSpanProcessorIfPropertySetToTrue() {
+  public void shouldAddSpanProcessorsIfPropertiesAreSetToTrue() {
 
     // given
-    TracerSdkProvider tracerSdkProvider = mock(TracerSdkProvider.class);
     InstrumentationLibraryTracerCustomizer underTest = new InstrumentationLibraryTracerCustomizer();
     System.setProperty(PROPERTY_SPAN_PROCESSOR_INSTR_LIB_ENABLED, "true");
+    System.setProperty(ENABLE_JDBC_SPAN_LOW_CARDINALITY_NAME_PROPERTY, "true");
 
     // when
     underTest.configure(tracerSdkProvider);
@@ -42,32 +47,32 @@ public class InstrumentationLibraryTracerCustomizerTest {
     then(tracerSdkProvider)
         .should()
         .addSpanProcessor(isA(InstrumentationLibrarySpanProcessor.class));
+    then(tracerSdkProvider).should().addSpanProcessor(isA(JdbcSpanRenamingProcessor.class));
+    then(tracerSdkProvider).shouldHaveNoMoreInteractions();
   }
 
   @Test
-  public void shouldNotAddSpanProcessorIfPropertySetToAnythingElse() {
+  public void shouldNotAddSpanProcessorsIfPropertiesAreSetToAnythingElse() {
 
     // given
-    TracerSdkProvider tracerSdkProvider = mock(TracerSdkProvider.class);
     InstrumentationLibraryTracerCustomizer underTest = new InstrumentationLibraryTracerCustomizer();
     System.setProperty(PROPERTY_SPAN_PROCESSOR_INSTR_LIB_ENABLED, "enabled");
+    System.setProperty(ENABLE_JDBC_SPAN_LOW_CARDINALITY_NAME_PROPERTY, "whatever");
 
     // when
     underTest.configure(tracerSdkProvider);
 
     // then
-    then(tracerSdkProvider)
-        .should(never())
-        .addSpanProcessor(isA(InstrumentationLibrarySpanProcessor.class));
+    then(tracerSdkProvider).shouldHaveNoInteractions();
   }
 
   @Test
-  public void shouldNotAddSpanProcessorIfPropertyNotSet() {
+  public void shouldConfigureTracerSdkForDefaultValues() {
 
     // given
-    TracerSdkProvider tracerSdkProvider = mock(TracerSdkProvider.class);
     InstrumentationLibraryTracerCustomizer underTest = new InstrumentationLibraryTracerCustomizer();
     System.clearProperty(PROPERTY_SPAN_PROCESSOR_INSTR_LIB_ENABLED);
+    System.clearProperty(ENABLE_JDBC_SPAN_LOW_CARDINALITY_NAME_PROPERTY);
 
     // when
     underTest.configure(tracerSdkProvider);
@@ -76,5 +81,7 @@ public class InstrumentationLibraryTracerCustomizerTest {
     then(tracerSdkProvider)
         .should(never())
         .addSpanProcessor(isA(InstrumentationLibrarySpanProcessor.class));
+    then(tracerSdkProvider).should().addSpanProcessor(isA(JdbcSpanRenamingProcessor.class));
+    then(tracerSdkProvider).shouldHaveNoMoreInteractions();
   }
 }

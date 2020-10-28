@@ -31,6 +31,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
+
 class SpringBootSmokeTest extends SmokeTest {
 
   private static Stream<Arguments> springBootConfigurations() {
@@ -52,6 +53,7 @@ class SpringBootSmokeTest extends SmokeTest {
   public void springBootSmokeTestOnJDK(SpringBootConfiguration testConfig)
       throws IOException, InterruptedException {
     startTarget(testConfig::getTargetImage);
+
     String url = String.format("http://localhost:%d/greeting", target.getMappedPort(8080));
     Request request = new Request.Builder().url(url).get().build();
 
@@ -72,6 +74,7 @@ class SpringBootSmokeTest extends SmokeTest {
             traces, "splunk.instrumentation_library.version", currentAgentVersion));
 
     stopTarget();
+
   }
 
   static class SpringBootConfiguration {

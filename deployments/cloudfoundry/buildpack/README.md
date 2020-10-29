@@ -7,16 +7,16 @@ and run the Splunk distribution of the OpenTelemetry Java Instrumentation agent 
 
 ## Installation
 
-**This buildpack is created automatically when the Splunk distribution of OpenTelemetry Java Instrumentation tile is installed via Ops Manager on Pivotal Platform.**
-That is the preferred installation route.
-
 To build and install the buildpack without using the tile you need to have
 [cfcli](https://docs.cloudfoundry.org/cf-cli/install-go-cli.html) installed.
 
 If you would like to install the buildpack, clone this repo, change to this directory, then run:
 
 ```sh
-$ cf create-buildpack splunk_otel_java_buildpack . 99 --enable
+$ ./build.sh
+
+# installs the buildpack on CloudFoundry
+$ cf create-buildpack splunk_otel_java_buildpack splunk_otel_java_buildpack-linux.zip 99 --enable
 ```
 
 Now you can use the buildpack when running your apps:

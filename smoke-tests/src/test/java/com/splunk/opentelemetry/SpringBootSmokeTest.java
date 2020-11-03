@@ -38,7 +38,6 @@ class SpringBootSmokeTest extends SmokeTest {
         arguments(
             new SpringBootConfiguration(8),
             new SpringBootConfiguration(11),
-            new SpringBootConfiguration(14),
             new SpringBootConfiguration(15)));
   }
 

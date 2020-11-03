@@ -3,7 +3,7 @@
 ## Prerequisites
 To package the demo into WebLogic you need Docker _development_ images from the official Oracle GitHub repo:
 https://github.com/oracle/docker-images
-To run build the images locally you will need to follow instructions (this means that certain zip files with
+To build the images locally you will need to follow instructions (this means that certain zip files with
 java and weblogic binaries have to be downloaded manually from links in the build instructions as the very 
 first step) and first build  
 [OracleJava 8](https://github.com/oracle/docker-images/blob/master/OracleJava/8/Dockerfile) and 

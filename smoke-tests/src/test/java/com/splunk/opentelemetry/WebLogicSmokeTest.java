@@ -60,7 +60,7 @@ class WebLogicSmokeTest extends SmokeTest {
         wlsConfig.localDockerImageIsPresent(),
         "Local docker image " + wlsConfig.toString() + " is present");
 
-    startTarget(wlsConfig::getImageName);
+    startTarget(wlsConfig.getImageName());
 
     String url =
         String.format(

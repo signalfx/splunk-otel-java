@@ -16,29 +16,21 @@
 
 package com.splunk.opentelemetry;
 
-import static org.junit.jupiter.params.provider.Arguments.arguments;
-
 import io.opentelemetry.proto.collector.trace.v1.ExportTraceServiceRequest;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
-import java.util.stream.Stream;
 import okhttp3.Request;
 import okhttp3.Response;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 class SpringBootSmokeTest extends SmokeTest {
 
-  private static Stream<Arguments> springBootConfigurations() {
-    return Stream.of(
-        arguments(
-            new SpringBootConfiguration(8),
-            new SpringBootConfiguration(11),
-            new SpringBootConfiguration(15)));
+  private String getTargetImage(int jdk) {
+    return "open-telemetry-docker-dev.bintray.io/java/smoke-springboot-jdk" + jdk + ":latest";
   }
 
   @Override
@@ -46,11 +38,10 @@ class SpringBootSmokeTest extends SmokeTest {
     return Collections.singletonMap("SPLUNK_OTEL_CONFIG_SPAN_PROCESSOR_INSTRLIB_ENABLED", "true");
   }
 
-  @ParameterizedTest
-  @MethodSource("springBootConfigurations")
-  public void springBootSmokeTestOnJDK(SpringBootConfiguration testConfig)
-      throws IOException, InterruptedException {
-    startTarget(testConfig::getTargetImage);
+  @ParameterizedTest(name = "{index} => SpringBoot SmokeTest On JDK{0}.")
+  @ValueSource(ints = {8, 11, 15})
+  public void springBootSmokeTestOnJDK(int jdk) throws IOException, InterruptedException {
+    startTarget(getTargetImage(jdk));
 
     String url = String.format("http://localhost:%d/greeting", target.getMappedPort(8080));
     Request request = new Request.Builder().url(url).get().build();
@@ -72,22 +63,5 @@ class SpringBootSmokeTest extends SmokeTest {
             traces, "splunk.instrumentation_library.version", currentAgentVersion));
 
     stopTarget();
-  }
-
-  static class SpringBootConfiguration {
-    final int jdk;
-
-    SpringBootConfiguration(int jdk) {
-      this.jdk = jdk;
-    }
-
-    @Override
-    public String toString() {
-      return "Spring Boot on JDK " + jdk;
-    }
-
-    public String getTargetImage() {
-      return "open-telemetry-docker-dev.bintray.io/java/smoke-springboot-jdk" + jdk + ":latest";
-    }
   }
 }

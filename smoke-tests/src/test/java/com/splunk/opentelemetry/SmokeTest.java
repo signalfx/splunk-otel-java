@@ -30,7 +30,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Supplier;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 import java.util.stream.Collectors;
@@ -95,10 +94,9 @@ abstract class SmokeTest {
 
   protected GenericContainer target;
 
-  /** @param targetImageNameSupplier function that returns an image name to start. */
-  void startTarget(Supplier<String> targetImageNameSupplier) {
+  void startTarget(String targetImageName) {
     target =
-        new GenericContainer<>(targetImageNameSupplier.get())
+        new GenericContainer<>(targetImageName)
             .waitingFor(Wait.forListeningPort())
             .withStartupTimeout(Duration.ofMinutes(5))
             .withExposedPorts(8080)

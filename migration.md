@@ -46,3 +46,44 @@ distribution of Splunk Distribution of OpenTelemetry Java Instrumentation:
    setting.
 4. In your application startup script, replace `-javaagent:./signalfx-tracing.jar`
    with `-javaagent:/path/to/splunk-otel-javaagent-all.jar`.
+
+## Configuration setting changes
+
+These SignalFx Java Agent system properties correspond to the following
+OpenTelemetry system properties:
+
+| SignalFx system property | OpenTelemetry system property |
+| ------------------------ | ----------------------------- |
+| `signalfx.service.name` | `otel.exporter.zipkin.service.name` |
+| `signalfx.endpoint.url` | `otel.exporter.zipkin.endpoint` |
+| `signalfx.tracing.enabled` | `otel.trace.enabled` |
+| `signalfx.span.tags` | `otel.resource.attributes` |
+| `signalfx.recorded.value.max.length` | `otel.config.max.attr.length` |
+| `signalfx.trace.annotated.method.blacklist` | `otel.trace.annotated.methods.exclude` |
+| `signalfx.trace.methods` | `otel.trace.methods` |
+| `signalfx.max.spans.per.trace` | `otel.config.max.event.attrs` |
+
+These SignalFx Java Agent environment variables correspond to the following
+OpenTelemetry environment variables:
+
+| SignalFx environment variable | OpenTelemetry environment variable |
+| ----------------------------- | ---------------------------------- |
+| `SIGNALFX_SERVICE_NAME` | `OTEL_EXPORTER_ZIPKIN_SERVICE_NAME` |
+| `SIGNALFX_ENDPOINT_URL` |`OTEL_EXPORTER_ZIPKIN_ENDPOINT` |
+| `SIGNALFX_TRACING_ENABLED` | `OTEL_TRACE_ENABLED` |
+| `SIGNALFX_SPAN_TAGS` | `OTEL_RESOURCE_ATTRIBUTES` |
+| `SIGNALFX_RECORDED_VALUE_MAX_LENGTH` | `OTEL_CONFIG_MAX_ATTR_LENGTH` |
+| `SIGNALFX_TRACE_ANNOTATED_METHOD_BLACKLIST` | `OTEL_TRACE_ANNOTATED_METHODS_EXCLUDE` |
+| `SIGNALFX_TRACE_METHODS` | `OTEL_TRACE_METHODS` |
+| `SIGNALFX_MAX_SPANS_PER_TRACE` | `OTEL_CONFIG_MAX_EVENT_ATTRS` |
+
+These SignalFx Java Agent system properties and environment variables don't
+have corresponding configuration options with the Spunk Distribution for
+OpenTelemetry Java Instrumentation:
+
+| System property | Environment variable |
+| --------------- | -------------------- |
+| `signalfx.agent.host` | `SIGNALFX_AGENT_HOST` |
+| `signalfx.integration.<name>.enabled=true` | N/A |
+| `signalfx.db.statement.max.length` | `SIGNALFX_DB_STATEMENT_MAX_LENGTH` |
+| `signalfx.max.continuation.depth` | `SIGNALFX_MAX_CONTINUATION_DEPTH` |

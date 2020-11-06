@@ -59,9 +59,10 @@ OpenTelemetry system properties:
 | `signalfx.tracing.enabled` | `otel.trace.enabled` |
 | `signalfx.span.tags` | `otel.resource.attributes` |
 | `signalfx.recorded.value.max.length` | `otel.config.max.attr.length` |
+| `signalfx.db.statement.max.length` | `otel.config.max.attr.length` | 
 | `signalfx.trace.annotated.method.blacklist` | `otel.trace.annotated.methods.exclude` |
 | `signalfx.trace.methods` | `otel.trace.methods` |
-| `signalfx.max.spans.per.trace` | `otel.config.max.event.attrs` |
+| `signalfx.integration.<name>.enabled=true` | `otel.integration.[id].enabled=false` | 
 
 These SignalFx Java Agent environment variables correspond to the following
 OpenTelemetry environment variables:
@@ -73,9 +74,9 @@ OpenTelemetry environment variables:
 | `SIGNALFX_TRACING_ENABLED` | `OTEL_TRACE_ENABLED` |
 | `SIGNALFX_SPAN_TAGS` | `OTEL_RESOURCE_ATTRIBUTES` |
 | `SIGNALFX_RECORDED_VALUE_MAX_LENGTH` | `OTEL_CONFIG_MAX_ATTR_LENGTH` |
+| `SIGNALFX_DB_STATEMENT_MAX_LENGTH` | `OTEL_CONFIG_MAX_ATTR_LENGTH` |
 | `SIGNALFX_TRACE_ANNOTATED_METHOD_BLACKLIST` | `OTEL_TRACE_ANNOTATED_METHODS_EXCLUDE` |
 | `SIGNALFX_TRACE_METHODS` | `OTEL_TRACE_METHODS` |
-| `SIGNALFX_MAX_SPANS_PER_TRACE` | `OTEL_CONFIG_MAX_EVENT_ATTRS` |
 
 These SignalFx Java Agent system properties and environment variables don't
 have corresponding configuration options with the Spunk Distribution for
@@ -84,6 +85,5 @@ OpenTelemetry Java Instrumentation:
 | System property | Environment variable |
 | --------------- | -------------------- |
 | `signalfx.agent.host` | `SIGNALFX_AGENT_HOST` |
-| `signalfx.integration.<name>.enabled=true` | N/A |
 | `signalfx.db.statement.max.length` | `SIGNALFX_DB_STATEMENT_MAX_LENGTH` |
 | `signalfx.max.continuation.depth` | `SIGNALFX_MAX_CONTINUATION_DEPTH` |

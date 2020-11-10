@@ -16,14 +16,15 @@
 
 package com.splunk.opentelemetry;
 
-import io.opentelemetry.common.AttributeKey;
-import io.opentelemetry.common.Attributes;
+import io.opentelemetry.api.common.AttributeKey;
+import io.opentelemetry.api.common.Attributes;
+import io.opentelemetry.api.trace.Span;
+import io.opentelemetry.api.trace.SpanContext;
+import io.opentelemetry.api.trace.StatusCode;
+import io.opentelemetry.context.Context;
 import io.opentelemetry.sdk.common.InstrumentationLibraryInfo;
 import io.opentelemetry.sdk.trace.ReadWriteSpan;
 import io.opentelemetry.sdk.trace.data.SpanData;
-import io.opentelemetry.trace.EndSpanOptions;
-import io.opentelemetry.trace.SpanContext;
-import io.opentelemetry.trace.StatusCanonicalCode;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -33,7 +34,7 @@ class InstrumentationLibrarySpanProcessorTest {
   void shouldAddInstrumentationLibrary() {
     ReadWriteSpanWithLibrary span = new ReadWriteSpanWithLibrary();
     InstrumentationLibrarySpanProcessor processor = new InstrumentationLibrarySpanProcessor();
-    processor.onStart(span);
+    processor.onStart(Context.root(), span);
 
     Assertions.assertEquals(
         "com.splunk.test",
@@ -78,59 +79,81 @@ class InstrumentationLibrarySpanProcessorTest {
     }
 
     @Override
-    public void setAttribute(String s, String s1) {
-      attributes = attributes.toBuilder().setAttribute(s, s1).build();
+    public Span setAttribute(String s, String s1) {
+      attributes = attributes.toBuilder().put(s, s1).build();
+      return this;
     }
 
     @Override
-    public void setAttribute(String s, long l) {}
+    public Span setAttribute(String s, long l) {
+      return this;
+    }
 
     @Override
-    public void setAttribute(String s, double v) {}
+    public Span setAttribute(String s, double v) {
+      return this;
+    }
 
     @Override
-    public void setAttribute(String s, boolean b) {}
+    public Span setAttribute(String s, boolean b) {
+      return this;
+    }
 
     @Override
-    public <T> void setAttribute(AttributeKey<T> key, T value) {}
+    public <T> Span setAttribute(AttributeKey<T> key, T value) {
+      return this;
+    }
 
     @Override
-    public void addEvent(String s) {}
+    public Span addEvent(String s) {
+      return this;
+    }
 
     @Override
-    public void addEvent(String s, long l) {}
+    public Span addEvent(String s, long l) {
+      return this;
+    }
 
     @Override
-    public void addEvent(String s, Attributes attributes) {}
+    public Span addEvent(String s, Attributes attributes) {
+      return this;
+    }
 
     @Override
-    public void addEvent(String s, Attributes attributes, long l) {}
+    public Span addEvent(String s, Attributes attributes, long l) {
+      return this;
+    }
 
     @Override
-    public void setStatus(StatusCanonicalCode canonicalCode) {}
+    public Span setStatus(StatusCode canonicalCode) {
+      return this;
+    }
 
     @Override
-    public void setStatus(StatusCanonicalCode canonicalCode, String description) {}
+    public Span setStatus(StatusCode canonicalCode, String description) {
+      return this;
+    }
 
     @Override
-    public void recordException(Throwable throwable) {}
+    public Span recordException(Throwable throwable) {
+      return this;
+    }
 
     @Override
-    public void recordException(Throwable throwable, Attributes attributes) {}
+    public Span recordException(Throwable throwable, Attributes attributes) {
+      return this;
+    }
 
     @Override
-    public void updateName(String s) {}
+    public Span updateName(String s) {
+      return this;
+    }
 
     @Override
     public void end() {}
 
     @Override
-    public void end(EndSpanOptions endSpanOptions) {}
-
-    @Override
-    public SpanContext getContext() {
-      return null;
-    }
+    public void end(long timestamp) {}
 
     @Override
     public boolean isRecording() {

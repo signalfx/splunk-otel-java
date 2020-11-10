@@ -16,6 +16,7 @@
 
 package com.splunk.opentelemetry;
 
+import io.opentelemetry.context.Context;
 import io.opentelemetry.sdk.common.CompletableResultCode;
 import io.opentelemetry.sdk.common.InstrumentationLibraryInfo;
 import io.opentelemetry.sdk.trace.ReadWriteSpan;
@@ -36,7 +37,7 @@ import io.opentelemetry.sdk.trace.SpanProcessor;
  */
 public class InstrumentationLibrarySpanProcessor implements SpanProcessor {
   @Override
-  public void onStart(ReadWriteSpan span) {
+  public void onStart(Context parentContext, ReadWriteSpan span) {
     InstrumentationLibraryInfo libraryInfo = span.getInstrumentationLibraryInfo();
 
     span.setAttribute("splunk.instrumentation_library.name", libraryInfo.getName());

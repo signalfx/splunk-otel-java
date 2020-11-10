@@ -90,7 +90,9 @@ OpenTelemetry Java Instrumentation:
 
 ### Log injection changes
 
-You can inject trace IDs in logs with the Splunk Distribution of OpenTelemetry Java Instrumentation, but the list of compatible logging frameworks is different:
+You can inject trace IDs in logs with the Splunk Distribution of OpenTelemetry
+Java Instrumentation, but the list of compatible logging frameworks is
+different:
 
 | Old logging framework |
 | --------------------- |
@@ -104,4 +106,6 @@ You can inject trace IDs in logs with the Splunk Distribution of OpenTelemetry J
 | `log4j 2` | 2.7+ |
 | `logback` | 1.0+ |
 
-For more information about injecting trace IDs in logs with the Splunk Distribution of OpenTelemetry Java Instrumentation, see [Logger MDC auto-instrumentation](https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/master/docs/logger-mdc-instrumentation.md).
+For more information about injecting trace IDs in logs with the Splunk
+Distribution of OpenTelemetry Java Instrumentation, see
+[Logger MDC auto-instrumentation](https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/master/docs/logger-mdc-instrumentation.md).

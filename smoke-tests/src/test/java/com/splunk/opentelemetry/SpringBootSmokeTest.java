@@ -35,11 +35,6 @@ class SpringBootSmokeTest extends SmokeTest {
     return "open-telemetry-docker-dev.bintray.io/java/smoke-springboot-jdk" + jdk + ":latest";
   }
 
-  @Override
-  protected Map<String, String> getExtraEnv() {
-    return Collections.singletonMap("SPLUNK_OTEL_CONFIG_SPAN_PROCESSOR_INSTRLIB_ENABLED", "true");
-  }
-
   @ParameterizedTest(name = "{index} => SpringBoot SmokeTest On JDK{0}.")
   @ValueSource(ints = {8, 11, 15})
   public void springBootSmokeTestOnJDK(int jdk) throws IOException, InterruptedException {
@@ -66,14 +61,6 @@ class SpringBootSmokeTest extends SmokeTest {
         getSpanStream(traces)
             .flatMap(s -> s.getAttributesList().stream())
             .filter(a -> a.getKey().equals("otel.library.version"))
-            .map(a -> a.getValue().getStringValue())
-            .filter(s -> s.equals(currentAgentVersion))
-            .count());
-    Assertions.assertEquals(
-        3,
-        getSpanStream(traces)
-            .flatMap(s -> s.getAttributesList().stream())
-            .filter(a -> a.getKey().equals("splunk.instrumentation_library.version"))
             .map(a -> a.getValue().getStringValue())
             .filter(s -> s.equals(currentAgentVersion))
             .count());

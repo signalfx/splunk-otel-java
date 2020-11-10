@@ -16,11 +16,12 @@
 
 package com.splunk.opentelemetry;
 
+import io.opentelemetry.api.trace.attributes.SemanticAttributes;
+import io.opentelemetry.context.Context;
 import io.opentelemetry.sdk.common.CompletableResultCode;
 import io.opentelemetry.sdk.trace.ReadWriteSpan;
 import io.opentelemetry.sdk.trace.ReadableSpan;
 import io.opentelemetry.sdk.trace.SpanProcessor;
-import io.opentelemetry.trace.attributes.SemanticAttributes;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -50,7 +51,7 @@ public class JdbcSpanRenamingProcessor implements SpanProcessor {
   }
 
   @Override
-  public void onStart(ReadWriteSpan span) {
+  public void onStart(Context parentContext, ReadWriteSpan span) {
     String dbSystem = span.toSpanData().getAttributes().get(SemanticAttributes.DB_SYSTEM);
     if (isJdbcSpan(dbSystem)) {
       String query = span.getName().trim().toUpperCase();

@@ -16,7 +16,7 @@
 
 package com.splunk.opentelemetry.weblogic.rest;
 
-import io.opentelemetry.extensions.auto.annotations.WithSpan;
+import io.opentelemetry.extension.auto.annotations.WithSpan;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;

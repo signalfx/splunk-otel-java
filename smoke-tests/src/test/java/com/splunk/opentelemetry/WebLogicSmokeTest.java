@@ -19,11 +19,16 @@ package com.splunk.opentelemetry;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
+import com.google.protobuf.ByteString;
+import io.opentelemetry.api.trace.TraceId;
 import io.opentelemetry.proto.collector.trace.v1.ExportTraceServiceRequest;
+import io.opentelemetry.proto.trace.v1.Span;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -74,18 +79,22 @@ class WebLogicSmokeTest extends SmokeTest {
     Response response = client.newCall(request).execute();
     Collection<ExportTraceServiceRequest> traces = waitForTraces();
 
+    Set<ByteString> traceIds = getSpanStream(traces).map(Span::getTraceId).collect(Collectors.toSet());
+
+    Assertions.assertEquals(traceIds.size(), 1, "There is one trace");
+
+    String theOneTraceId = traceIds.stream().findFirst().map(ByteString::toByteArray).map(TraceId::bytesToHex).orElseThrow(AssertionError::new);
+
     String responseBody = response.body().string();
     Assertions.assertTrue(
-        responseBody.contains("bytes read by weblogic.net.http.SOAPHttpURLConnection"));
-    // TODO: When https://github.com/open-telemetry/opentelemetry-java-instrumentation/pull/1439
-    //    will be released, uncomment following assertion:
-    //    Assertions.assertTrue(responseBody.contains("X-opentelemetry-header"));
+        responseBody.contains("bytes read by weblogic.net.http.SOAPHttpURLConnection"), "HTTP Call is made using weblogic own url connection");
+    Assertions.assertTrue(responseBody.contains(theOneTraceId), "trace id is present in the HTTP headers as reported by the called endpoint");
 
     Assertions.assertEquals(
-        1, countSpansByName(traces, "/greetingremote"), "The span for the initial web request");
+        1, countSpansByName(traces, "/wls-demo/greetingremote"), "The span for the initial web request");
     Assertions.assertEquals(
         1,
-        countSpansByName(traces, "/headers"),
+        countSpansByName(traces, "/wls-demo/headers"),
         "The span for the web request called from the controller");
     Assertions.assertEquals(
         1,
@@ -98,12 +107,12 @@ class WebLogicSmokeTest extends SmokeTest {
     Assertions.assertEquals(
         1, countSpansByName(traces, "thecontroller.withspan"), "Spans for the annotated methods");
     Assertions.assertEquals(
-        5,
+        6,
         countFilteredAttributes(traces, "otel.library.version", currentAgentVersion),
         "Number of spans tagged with current otel library version");
 
     Assertions.assertEquals(
-        5,
+        6,
         countFilteredAttributes(
             traces, "splunk.instrumentation_library.version", currentAgentVersion),
         "Number of spans tagged with splunk library version");

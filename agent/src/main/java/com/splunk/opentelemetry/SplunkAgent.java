@@ -28,10 +28,10 @@ public class SplunkAgent {
   }
 
   public static void agentmain(final String agentArgs, final Instrumentation inst) {
-    setDefaultConfig("otel.exporter", "zipkin");
+    setDefaultConfig("otel.exporter", "jaeger-thrift");
     // http://localhost:9080/v1/trace is the default endpoint for SmartAgent
-    // http://localhost:9411/api/v2/spans is the default endpoint for otel-collector
-    setDefaultConfig("otel.exporter.zipkin.endpoint", "http://localhost:9080/v1/trace");
+    // http://localhost:14268/api/traces is the default endpoint for otel-collector
+    setDefaultConfig("otel.exporter.jaeger.endpoint", "http://localhost:9080/v1/trace");
     setDefaultConfig("otel.propagators", "b3");
 
     String max = valueOf(Integer.MAX_VALUE);

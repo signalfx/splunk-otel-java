@@ -21,6 +21,8 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
+import java.util.jar.Attributes;
+import java.util.jar.JarFile;
 import okhttp3.Request;
 import okhttp3.Response;
 import org.junit.jupiter.api.Assertions;
@@ -31,11 +33,6 @@ class SpringBootSmokeTest extends SmokeTest {
 
   private String getTargetImage(int jdk) {
     return "open-telemetry-docker-dev.bintray.io/java/smoke-springboot-jdk" + jdk + ":latest";
-  }
-
-  @Override
-  protected Map<String, String> getExtraEnv() {
-    return Collections.singletonMap("SPLUNK_OTEL_CONFIG_SPAN_PROCESSOR_INSTRLIB_ENABLED", "true");
   }
 
   @ParameterizedTest(name = "{index} => SpringBoot SmokeTest On JDK{0}.")
@@ -53,14 +50,10 @@ class SpringBootSmokeTest extends SmokeTest {
 
     Assertions.assertEquals(response.body().string(), "Hi!");
     Assertions.assertEquals(1, countSpansByName(traces, "/greeting"));
-    Assertions.assertEquals(1, countSpansByName(traces, "webcontroller.greeting"));
-    Assertions.assertEquals(1, countSpansByName(traces, "webcontroller.withspan"));
+    Assertions.assertEquals(1, countSpansByName(traces, "WebController.greeting"));
+    Assertions.assertEquals(1, countSpansByName(traces, "WebController.withSpan"));
     Assertions.assertEquals(
         3, countFilteredAttributes(traces, "otel.library.version", currentAgentVersion));
-    Assertions.assertEquals(
-        3,
-        countFilteredAttributes(
-            traces, "splunk.instrumentation_library.version", currentAgentVersion));
 
     stopTarget();
   }

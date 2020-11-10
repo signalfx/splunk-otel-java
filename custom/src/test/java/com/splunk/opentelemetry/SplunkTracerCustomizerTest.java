@@ -16,11 +16,9 @@
 
 package com.splunk.opentelemetry;
 
-import static com.splunk.opentelemetry.InstrumentationLibraryTracerCustomizer.ENABLE_JDBC_SPAN_LOW_CARDINALITY_NAME_PROPERTY;
-import static com.splunk.opentelemetry.InstrumentationLibraryTracerCustomizer.PROPERTY_SPAN_PROCESSOR_INSTR_LIB_ENABLED;
+import static com.splunk.opentelemetry.SplunkTracerCustomizer.ENABLE_JDBC_SPAN_LOW_CARDINALITY_NAME_PROPERTY;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.BDDMockito.then;
-import static org.mockito.Mockito.never;
 
 import io.opentelemetry.sdk.trace.TracerSdkProvider;
 import org.junit.jupiter.api.Test;
@@ -29,24 +27,20 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-public class InstrumentationLibraryTracerCustomizerTest {
+public class SplunkTracerCustomizerTest {
   @Mock private TracerSdkProvider tracerSdkProvider;
 
   @Test
   public void shouldAddSpanProcessorsIfPropertiesAreSetToTrue() {
 
     // given
-    InstrumentationLibraryTracerCustomizer underTest = new InstrumentationLibraryTracerCustomizer();
-    System.setProperty(PROPERTY_SPAN_PROCESSOR_INSTR_LIB_ENABLED, "true");
+    SplunkTracerCustomizer underTest = new SplunkTracerCustomizer();
     System.setProperty(ENABLE_JDBC_SPAN_LOW_CARDINALITY_NAME_PROPERTY, "true");
 
     // when
     underTest.configure(tracerSdkProvider);
 
     // then
-    then(tracerSdkProvider)
-        .should()
-        .addSpanProcessor(isA(InstrumentationLibrarySpanProcessor.class));
     then(tracerSdkProvider).should().addSpanProcessor(isA(JdbcSpanRenamingProcessor.class));
     then(tracerSdkProvider).shouldHaveNoMoreInteractions();
   }
@@ -55,8 +49,7 @@ public class InstrumentationLibraryTracerCustomizerTest {
   public void shouldNotAddSpanProcessorsIfPropertiesAreSetToAnythingElse() {
 
     // given
-    InstrumentationLibraryTracerCustomizer underTest = new InstrumentationLibraryTracerCustomizer();
-    System.setProperty(PROPERTY_SPAN_PROCESSOR_INSTR_LIB_ENABLED, "enabled");
+    SplunkTracerCustomizer underTest = new SplunkTracerCustomizer();
     System.setProperty(ENABLE_JDBC_SPAN_LOW_CARDINALITY_NAME_PROPERTY, "whatever");
 
     // when
@@ -70,17 +63,13 @@ public class InstrumentationLibraryTracerCustomizerTest {
   public void shouldConfigureTracerSdkForDefaultValues() {
 
     // given
-    InstrumentationLibraryTracerCustomizer underTest = new InstrumentationLibraryTracerCustomizer();
-    System.clearProperty(PROPERTY_SPAN_PROCESSOR_INSTR_LIB_ENABLED);
+    SplunkTracerCustomizer underTest = new SplunkTracerCustomizer();
     System.clearProperty(ENABLE_JDBC_SPAN_LOW_CARDINALITY_NAME_PROPERTY);
 
     // when
     underTest.configure(tracerSdkProvider);
 
     // then
-    then(tracerSdkProvider)
-        .should(never())
-        .addSpanProcessor(isA(InstrumentationLibrarySpanProcessor.class));
     then(tracerSdkProvider).should().addSpanProcessor(isA(JdbcSpanRenamingProcessor.class));
     then(tracerSdkProvider).shouldHaveNoMoreInteractions();
   }

@@ -19,7 +19,6 @@ package com.splunk.opentelemetry;
 import io.opentelemetry.proto.collector.trace.v1.ExportTraceServiceRequest;
 import java.io.IOException;
 import java.util.Collection;
-import java.util.Map;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 import okhttp3.Request;
@@ -32,11 +31,6 @@ class SpringBootSmokeTest extends SmokeTest {
 
   protected String getTargetImage(int jdk) {
     return "open-telemetry-docker-dev.bintray.io/java/smoke-springboot-jdk" + jdk + ":latest";
-  }
-
-  @Override
-  protected Map<String, String> getExtraEnv() {
-    return Map.of("SPLUNK_OTEL_CONFIG_SPAN_PROCESSOR_INSTRLIB_ENABLED", "true");
   }
 
   @ParameterizedTest(name = "{index} => SpringBoot SmokeTest On JDK{0}.")
@@ -65,14 +59,6 @@ class SpringBootSmokeTest extends SmokeTest {
         getSpanStream(traces)
             .flatMap(s -> s.getAttributesList().stream())
             .filter(a -> a.getKey().equals("otel.library.version"))
-            .map(a -> a.getValue().getStringValue())
-            .filter(s -> s.equals(currentAgentVersion))
-            .count());
-    Assertions.assertEquals(
-        3,
-        getSpanStream(traces)
-            .flatMap(s -> s.getAttributesList().stream())
-            .filter(a -> a.getKey().equals("splunk.instrumentation_library.version"))
             .map(a -> a.getValue().getStringValue())
             .filter(s -> s.equals(currentAgentVersion))
             .count());

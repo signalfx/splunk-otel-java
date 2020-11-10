@@ -41,7 +41,7 @@ class SpringBootSmokeTest extends SmokeTest {
   }
 
   @ParameterizedTest(name = "{index} => SpringBoot SmokeTest On JDK{0}.")
-  @ValueSource(ints = {8, 11, 14, 15})
+  @ValueSource(ints = {8, 11, 15})
   public void springBootSmokeTestOnJDK(int jdk) throws IOException, InterruptedException {
 
     startTarget(jdk);

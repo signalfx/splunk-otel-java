@@ -16,7 +16,7 @@
 
 package com.splunk.opentelemetry;
 
-import static io.opentelemetry.trace.attributes.SemanticAttributes.DB_SYSTEM;
+import static io.opentelemetry.api.trace.attributes.SemanticAttributes.DB_SYSTEM;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.Answers.RETURNS_DEEP_STUBS;
@@ -25,6 +25,7 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.never;
 
+import io.opentelemetry.context.Context;
 import io.opentelemetry.sdk.trace.ReadWriteSpan;
 import io.opentelemetry.sdk.trace.SpanProcessor;
 import java.util.stream.Stream;
@@ -55,7 +56,7 @@ class JdbcSpanRenamingProcessorTest {
     given(span.toSpanData().getAttributes().get(DB_SYSTEM)).willReturn(null);
 
     // when
-    processor.onStart(span);
+    processor.onStart(Context.root(), span);
 
     // then
     then(span).should(never()).updateName(anyString());
@@ -67,7 +68,7 @@ class JdbcSpanRenamingProcessorTest {
     given(span.toSpanData().getAttributes().get(DB_SYSTEM)).willReturn("mongodb");
 
     // when
-    processor.onStart(span);
+    processor.onStart(Context.root(), span);
 
     // then
     then(span).should(never()).updateName(anyString());
@@ -93,7 +94,7 @@ class JdbcSpanRenamingProcessorTest {
     given(span.getName()).willReturn("select * from table");
 
     // when
-    processor.onStart(span);
+    processor.onStart(Context.root(), span);
 
     // then
     then(span).should().updateName("SELECT");
@@ -107,7 +108,7 @@ class JdbcSpanRenamingProcessorTest {
     given(span.getName()).willReturn(query);
 
     // when
-    processor.onStart(span);
+    processor.onStart(Context.root(), span);
 
     // then
     then(span).should().updateName(sqlStatementType);

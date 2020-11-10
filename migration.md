@@ -49,7 +49,9 @@ distribution of Splunk Distribution of OpenTelemetry Java Instrumentation:
 
 ## Changes in functionality
 
-Each of the following sections describe any changes in functionality as you migrate from the SignalFx Java Agent to the Splunk Distribution of OpenTelemetry Java Instrumentation.
+Each of the following sections describe any changes in functionality as you
+migrate from the SignalFx Java Agent to the Splunk Distribution of
+OpenTelemetry Java Instrumentation.
 
 ### Configuration setting changes
 
@@ -94,8 +96,14 @@ OpenTelemetry Java Instrumentation:
 
 ### Trace annotation changes
 
-The `@Trace` annotation that the SignalFx Java Agent uses is compatible with the Splunk Distribution of OpenTelemetry Java Instrumentation. If you're using the `@Trace` annotation for custom instrumentation, you don't have to make any changes to maintain existing functionality. 
+The `@Trace` annotation that the SignalFx Java Agent uses is compatible with
+the Splunk Distribution of OpenTelemetry Java Instrumentation. If you're using
+the `@Trace` annotation for custom instrumentation, you don't have to make any
+changes to maintain existing functionality. 
 
-If you want to configure new custom instrumentation and don't want to use the OpenTelemetry `getTracer` and API directly, use the OpenTelemetry `@WithSpan` annotation instead of the `@Trace` annotation. For more information, see [Configure a WithSpan annotation](https://github.com/open-telemetry/opentelemetry-java-instrumentation#configure-a-withspan-annotation).
+If you want to configure new custom instrumentation and don't want to use the
+OpenTelemetry `getTracer` and API directly, use the OpenTelemetry `@WithSpan`
+annotation instead of the `@Trace` annotation. For more information, see
+[Configure a WithSpan annotation](https://github.com/open-telemetry/opentelemetry-java-instrumentation#configure-a-withspan-annotation).
 
 The `@TraceSetting` annotation to allow an exception isn't supported.

@@ -14,7 +14,7 @@ see [Migrate from the SignalFx Java Agent](migration.md).
 This Splunk distribution comes with the following defaults:
 
 - [B3 context propagation](https://github.com/openzipkin/b3-propagation).
-- [Zipkin exporter](https://zipkin.io/zipkin-api/#/default/post_spans)
+- [Jaeger-Thrift exporter](https://www.jaegertracing.io)
   configured to send spans to a locally running [SignalFx Smart
   Agent](https://docs.signalfx.com/en/latest/apm/apm-getting-started/apm-smart-agent.html)
   (`http://localhost:9080/v1/trace`).

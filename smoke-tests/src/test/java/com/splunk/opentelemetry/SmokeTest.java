@@ -104,10 +104,7 @@ abstract class SmokeTest {
             .withEnv("JAVA_TOOL_OPTIONS", "-javaagent:/opentelemetry-javaagent.jar")
             .withEnv("OTEL_BSP_MAX_EXPORT_BATCH", "1")
             .withEnv("OTEL_BSP_SCHEDULE_DELAY", "10")
-            .withEnv("OTEL_EXPORTER_ZIPKIN_ENDPOINT", "http://collector:9411/api/v2/spans")
-            .withEnv(
-                "OTEL_EXPORTER",
-                "zipkin") // the majority of Splunk customers still use SA, thus Zipkin
+            .withEnv("OTEL_EXPORTER_JAEGER_ENDPOINT", "http://collector:14268/api/traces")
             .withEnv(getExtraEnv());
     target.start();
   }

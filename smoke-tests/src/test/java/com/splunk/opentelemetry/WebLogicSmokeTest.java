@@ -79,19 +79,30 @@ class WebLogicSmokeTest extends SmokeTest {
     Response response = client.newCall(request).execute();
     Collection<ExportTraceServiceRequest> traces = waitForTraces();
 
-    Set<ByteString> traceIds = getSpanStream(traces).map(Span::getTraceId).collect(Collectors.toSet());
+    Set<ByteString> traceIds =
+        getSpanStream(traces).map(Span::getTraceId).collect(Collectors.toSet());
 
     Assertions.assertEquals(traceIds.size(), 1, "There is one trace");
 
-    String theOneTraceId = traceIds.stream().findFirst().map(ByteString::toByteArray).map(TraceId::bytesToHex).orElseThrow(AssertionError::new);
+    String theOneTraceId =
+        traceIds.stream()
+            .findFirst()
+            .map(ByteString::toByteArray)
+            .map(TraceId::bytesToHex)
+            .orElseThrow(AssertionError::new);
 
     String responseBody = response.body().string();
     Assertions.assertTrue(
-        responseBody.contains("bytes read by weblogic.net.http.SOAPHttpURLConnection"), "HTTP Call is made using weblogic own url connection");
-    Assertions.assertTrue(responseBody.contains(theOneTraceId), "trace id is present in the HTTP headers as reported by the called endpoint");
+        responseBody.contains("bytes read by weblogic.net.http.SOAPHttpURLConnection"),
+        "HTTP Call is made using weblogic own url connection");
+    Assertions.assertTrue(
+        responseBody.contains(theOneTraceId),
+        "trace id is present in the HTTP headers as reported by the called endpoint");
 
     Assertions.assertEquals(
-        1, countSpansByName(traces, "/wls-demo/greetingremote"), "The span for the initial web request");
+        1,
+        countSpansByName(traces, "/wls-demo/greetingremote"),
+        "The span for the initial web request");
     Assertions.assertEquals(
         1,
         countSpansByName(traces, "/wls-demo/headers"),
@@ -110,12 +121,6 @@ class WebLogicSmokeTest extends SmokeTest {
         6,
         countFilteredAttributes(traces, "otel.library.version", currentAgentVersion),
         "Number of spans tagged with current otel library version");
-
-    Assertions.assertEquals(
-        6,
-        countFilteredAttributes(
-            traces, "splunk.instrumentation_library.version", currentAgentVersion),
-        "Number of spans tagged with splunk library version");
 
     stopTarget();
   }

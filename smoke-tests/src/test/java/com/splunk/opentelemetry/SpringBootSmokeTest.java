@@ -19,8 +19,6 @@ package com.splunk.opentelemetry;
 import io.opentelemetry.proto.collector.trace.v1.ExportTraceServiceRequest;
 import java.io.IOException;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.Map;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 import okhttp3.Request;

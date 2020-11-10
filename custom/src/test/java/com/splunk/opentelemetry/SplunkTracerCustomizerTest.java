@@ -28,8 +28,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 public class SplunkTracerCustomizerTest {
-  @Mock
-  private TracerSdkProvider tracerSdkProvider;
+  @Mock private TracerSdkProvider tracerSdkProvider;
 
   @Test
   public void shouldAddSpanProcessorsIfPropertiesAreSetToTrue() {

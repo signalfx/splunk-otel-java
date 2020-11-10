@@ -21,8 +21,8 @@ subprojects {
   apply(from = "$rootDir/gradle/spotless.gradle")
 
   extra.set("versions", mapOf(
-      "opentelemetry" to "0.9.1",
-      "opentelemetryJavaagent" to "0.9.0"
+      "opentelemetry" to "0.10.0",
+      "opentelemetryJavaagent" to "0.10.1"
   ))
 
   repositories {

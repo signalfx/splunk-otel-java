@@ -20,7 +20,7 @@ To address this, you could run a pilot test to compare the trace data you
 receive with the Splunk Distribution of OpenTelemetry Java Instrumentation
 against the data you used to receive from the SignalFx Java Agent.
 
-## Steps
+## Steps to migrate
 
 Follow these steps to migrate from the SignalFx Java Agent to the Splunk
 distribution of Splunk Distribution of OpenTelemetry Java Instrumentation:
@@ -47,7 +47,13 @@ distribution of Splunk Distribution of OpenTelemetry Java Instrumentation:
 4. In your application startup script, replace `-javaagent:./signalfx-tracing.jar`
    with `-javaagent:/path/to/splunk-otel-javaagent-all.jar`.
 
-## Configuration setting changes
+## Changes in functionality
+
+Each of the following sections describe any changes in functionality as you
+migrate from the SignalFx Java Agent to the Splunk Distribution of
+OpenTelemetry Java Instrumentation.
+
+### Configuration setting changes
 
 These SignalFx Java Agent system properties correspond to the following
 OpenTelemetry system properties:
@@ -87,3 +93,17 @@ OpenTelemetry Java Instrumentation:
 | `signalfx.agent.host` | `SIGNALFX_AGENT_HOST` |
 | `signalfx.db.statement.max.length` | `SIGNALFX_DB_STATEMENT_MAX_LENGTH` |
 | `signalfx.max.continuation.depth` | `SIGNALFX_MAX_CONTINUATION_DEPTH` |
+
+### Trace annotation changes
+
+The `@Trace` annotation that the SignalFx Java Agent uses is compatible with
+the Splunk Distribution of OpenTelemetry Java Instrumentation. If you're using
+the `@Trace` annotation for custom instrumentation, you don't have to make any
+changes to maintain existing functionality. 
+
+If you want to configure new custom instrumentation and don't want to use the
+OpenTelemetry `getTracer` and API directly, use the OpenTelemetry `@WithSpan`
+annotation instead of the `@Trace` annotation. For more information, see
+[Configure a WithSpan annotation](https://github.com/open-telemetry/opentelemetry-java-instrumentation#configure-a-withspan-annotation).
+
+The `@TraceSetting` annotation to allow an exception isn't supported.

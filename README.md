@@ -80,17 +80,20 @@ To see the Java Agent in action with sample applications, see our
 
 The agent can be configured in the following ways:
 
-* System property (example: `-Dotel.exporter.zipkin.service.name=my-java-app`)
-* Environment variable (example: `export OTEL_EXPORTER_ZIPKIN_SERVICE_NAME=my-java-app`)
+* System property (example: `-Dotel.exporter.jaeger.service.name=my-java-app`)
+* Environment variable (example: `export OTEL_EXPORTER_JAEGER_SERVICE_NAME=my-java-app`)
 
 System property values take priority over corresponding environment variables.
 
-### Zipkin exporter
+### Jaeger exporter
 
-| System property            | Environment variable       | Default value                        | Notes                                                                |
-| -------------------------- | -------------------------- | ------------------------------------ | -------------------------------------------------------------------- |
-| otel.exporter.zipkin.endpoint       | OTEL_EXPORTER_ZIPKIN_ENDPOINT       | `http://localhost:9080/v1/trace`     | The Zipkin endpoint to connect to. Currently only HTTP is supported. |
-| otel.exporter.zipkin.service.name   | OTEL_EXPORTER_ZIPKIN_SERVICE_NAME   | `unknown`                            | The service name of this JVM instance.                               |
+A simple wrapper for the Jaeger exporter of opentelemetry-java. gRPC is currently the only supported communications protocol.
+
+| System property                   | Environment variable              | Description                                                                                            |
+|-----------------------------------|-----------------------------------|----------------------------------------------------------------------------------------------------|
+| otel.exporter=jaeger              | OTEL_EXPORTER=jaeger              | Select the Jaeger exporter                                                                          |
+| otel.exporter.jaeger.endpoint     | OTEL_EXPORTER_JAEGER_ENDPOINT     | The Jaeger endpoint to connect to. Default is `localhost:14250`. Currently only gRPC is supported. |
+| otel.exporter.jaeger.service.name | OTEL_EXPORTER_JAEGER_SERVICE_NAME | The service name of this JVM instance. Default is `unknown`.                                       |
 
 ### Trace configuration
 

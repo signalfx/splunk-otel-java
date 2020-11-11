@@ -25,10 +25,13 @@ import io.opentelemetry.proto.common.v1.AnyValue;
 import io.opentelemetry.proto.common.v1.KeyValue;
 import io.opentelemetry.proto.trace.v1.Span;
 import java.io.IOException;
+import java.time.Duration;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.jar.Attributes;
+import java.util.jar.JarFile;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -56,8 +59,6 @@ abstract class SmokeTest {
   private static final Network network = Network.newNetwork();
   protected static final String agentPath =
       System.getProperty("io.opentelemetry.smoketest.agent.shadowJar.path");
-
-  protected abstract String getTargetImage(int jdk);
 
   /** Subclasses can override this method to customise target application's environment */
   protected Map<String, String> getExtraEnv() {
@@ -93,9 +94,10 @@ abstract class SmokeTest {
 
   protected GenericContainer target;
 
-  void startTarget(int jdk) {
+  void startTarget(String targetImageName) {
     target =
-        new GenericContainer<>(getTargetImage(jdk))
+        new GenericContainer<>(targetImageName)
+            .withStartupTimeout(Duration.ofMinutes(5))
             .withExposedPorts(8080)
             .withNetwork(network)
             .withLogConsumer(new Slf4jLogConsumer(logger))
@@ -197,5 +199,23 @@ abstract class SmokeTest {
     }
 
     return content;
+  }
+
+  protected long countFilteredAttributes(
+      Collection<ExportTraceServiceRequest> traces, String attributeName, Object attributeValue) {
+    return getSpanStream(traces)
+        .flatMap(s -> s.getAttributesList().stream())
+        .filter(a -> a.getKey().equals(attributeName))
+        .map(a -> a.getValue().getStringValue())
+        .filter(s -> s.equals(attributeValue))
+        .count();
+  }
+
+  protected String getCurrentAgentVersion() throws IOException {
+    return new JarFile(agentPath)
+        .getManifest()
+        .getMainAttributes()
+        .get(Attributes.Name.IMPLEMENTATION_VERSION)
+        .toString();
   }
 }

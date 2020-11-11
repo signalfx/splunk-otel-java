@@ -19,8 +19,6 @@ package com.splunk.opentelemetry;
 import io.opentelemetry.proto.collector.trace.v1.ExportTraceServiceRequest;
 import java.io.IOException;
 import java.util.Collection;
-import java.util.jar.Attributes;
-import java.util.jar.JarFile;
 import okhttp3.Request;
 import okhttp3.Response;
 import org.junit.jupiter.api.Assertions;
@@ -29,23 +27,19 @@ import org.junit.jupiter.params.provider.ValueSource;
 
 class SpringBootSmokeTest extends SmokeTest {
 
-  protected String getTargetImage(int jdk) {
+  private String getTargetImage(int jdk) {
     return "open-telemetry-docker-dev.bintray.io/java/smoke-springboot-jdk" + jdk + ":latest";
   }
 
   @ParameterizedTest(name = "{index} => SpringBoot SmokeTest On JDK{0}.")
   @ValueSource(ints = {8, 11, 15})
   public void springBootSmokeTestOnJDK(int jdk) throws IOException, InterruptedException {
+    startTarget(getTargetImage(jdk));
 
-    startTarget(jdk);
     String url = String.format("http://localhost:%d/greeting", target.getMappedPort(8080));
     Request request = new Request.Builder().url(url).get().build();
 
-    Object currentAgentVersion =
-        new JarFile(agentPath)
-            .getManifest()
-            .getMainAttributes()
-            .get(Attributes.Name.IMPLEMENTATION_VERSION);
+    String currentAgentVersion = getCurrentAgentVersion();
 
     Response response = client.newCall(request).execute();
     Collection<ExportTraceServiceRequest> traces = waitForTraces();
@@ -55,13 +49,7 @@ class SpringBootSmokeTest extends SmokeTest {
     Assertions.assertEquals(1, countSpansByName(traces, "WebController.greeting"));
     Assertions.assertEquals(1, countSpansByName(traces, "WebController.withSpan"));
     Assertions.assertEquals(
-        3,
-        getSpanStream(traces)
-            .flatMap(s -> s.getAttributesList().stream())
-            .filter(a -> a.getKey().equals("otel.library.version"))
-            .map(a -> a.getValue().getStringValue())
-            .filter(s -> s.equals(currentAgentVersion))
-            .count());
+        3, countFilteredAttributes(traces, "otel.library.version", currentAgentVersion));
 
     stopTarget();
   }

@@ -65,7 +65,7 @@ abstract class SmokeTest {
     return Collections.emptyMap();
   }
 
-  protected static GenericContainer backend;
+  private static GenericContainer backend;
   private static GenericContainer collector;
 
   @BeforeAll
@@ -97,7 +97,6 @@ abstract class SmokeTest {
   void startTarget(String targetImageName) {
     target =
         new GenericContainer<>(targetImageName)
-            .waitingFor(Wait.forListeningPort())
             .withStartupTimeout(Duration.ofMinutes(5))
             .withExposedPorts(8080)
             .withNetwork(network)

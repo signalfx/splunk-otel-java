@@ -25,8 +25,6 @@ import io.opentelemetry.proto.collector.trace.v1.ExportTraceServiceRequest;
 import io.opentelemetry.proto.trace.v1.Span;
 import java.io.IOException;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -44,11 +42,6 @@ import org.testcontainers.DockerClientFactory;
  * instructions on how to build required images.
  */
 class WebLogicSmokeTest extends SmokeTest {
-
-  @Override
-  protected Map<String, String> getExtraEnv() {
-    return Collections.singletonMap("SPLUNK_OTEL_CONFIG_SPAN_PROCESSOR_INSTRLIB_ENABLED", "true");
-  }
 
   private static Stream<Arguments> supportedWlsConfigurations() {
     return Stream.of(
@@ -101,7 +94,7 @@ class WebLogicSmokeTest extends SmokeTest {
 
     Assertions.assertEquals(
         1,
-        countSpansByName(traces, "/wls-demo/greetingremote"),
+        countSpansByName(traces, "/wls-demo/greetingRemote"),
         "The span for the initial web request");
     Assertions.assertEquals(
         1,
@@ -109,14 +102,14 @@ class WebLogicSmokeTest extends SmokeTest {
         "The span for the web request called from the controller");
     Assertions.assertEquals(
         1,
-        countSpansByName(traces, "thecontroller.showrequestheaders"),
+        countSpansByName(traces, "TheController.showRequestHeaders"),
         "The span for the web framework controller");
     Assertions.assertEquals(
         1,
-        countSpansByName(traces, "thecontroller.sayremotehello"),
+        countSpansByName(traces, "TheController.sayRemoteHello"),
         "The span for the web framework controller");
     Assertions.assertEquals(
-        1, countSpansByName(traces, "thecontroller.withspan"), "Spans for the annotated methods");
+        1, countSpansByName(traces, "TheController.withSpan"), "Spans for the annotated methods");
     Assertions.assertEquals(
         6,
         countFilteredAttributes(traces, "otel.library.version", currentAgentVersion),

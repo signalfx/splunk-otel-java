@@ -94,6 +94,28 @@ OpenTelemetry Java Instrumentation:
 | `signalfx.db.statement.max.length` | `SIGNALFX_DB_STATEMENT_MAX_LENGTH` |
 | `signalfx.max.continuation.depth` | `SIGNALFX_MAX_CONTINUATION_DEPTH` |
 
+### Log injection changes
+
+You can inject trace IDs in logs with the Splunk Distribution of OpenTelemetry
+Java Instrumentation, but the list of compatible logging frameworks is
+different:
+
+| Old logging framework |
+| --------------------- |
+| `logback` |
+| `log4j` |
+| `slf4j` |
+
+| New logging framework | Version |
+| --------------------- | ------- |
+| `log4j 1` | 1.2+ |
+| `log4j 2` | 2.7+ |
+| `logback` | 1.0+ |
+
+For more information about injecting trace IDs in logs with the Splunk
+Distribution of OpenTelemetry Java Instrumentation, see
+[Logger MDC auto-instrumentation](https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/master/docs/logger-mdc-instrumentation.md).
+
 ### Trace annotation changes
 
 The `@Trace` annotation that the SignalFx Java Agent uses is compatible with

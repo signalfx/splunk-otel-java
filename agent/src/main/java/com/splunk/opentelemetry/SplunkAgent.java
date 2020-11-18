@@ -32,7 +32,7 @@ public class SplunkAgent {
     // http://localhost:9080/v1/trace is the default endpoint for SmartAgent
     // http://localhost:14268/api/traces is the default endpoint for otel-collector
     setDefaultConfig("otel.exporter.jaeger.endpoint", "http://localhost:9080/v1/trace");
-    setDefaultConfig("otel.propagators", "b3");
+    setDefaultConfig("otel.propagators", "b3multi");
 
     String max = valueOf(Integer.MAX_VALUE);
     setDefaultConfig("otel.config.max.attrs", max);

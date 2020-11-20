@@ -44,8 +44,7 @@ public class SplunkTracerCustomizer implements TracerCustomizer {
       tracerManagement.addSpanProcessor(new JdbcSpanRenamingProcessor());
     }
 
-    tracerManagement.updateActiveTraceConfig(tracerManagement.getActiveTraceConfig().toBuilder()
-            .setSampler(Sampler.alwaysOn())
-            .build());
+    tracerManagement.updateActiveTraceConfig(
+        tracerManagement.getActiveTraceConfig().toBuilder().setSampler(Sampler.alwaysOn()).build());
   }
 }

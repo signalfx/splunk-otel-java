@@ -17,18 +17,26 @@
 package com.splunk.opentelemetry;
 
 import static com.splunk.opentelemetry.SplunkTracerCustomizer.ENABLE_JDBC_SPAN_LOW_CARDINALITY_NAME_PROPERTY;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.isA;
+import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 
 import io.opentelemetry.sdk.trace.TracerSdkProvider;
+import io.opentelemetry.sdk.trace.config.TraceConfig;
+import io.opentelemetry.sdk.trace.samplers.Sampler;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 public class SplunkTracerCustomizerTest {
   @Mock private TracerSdkProvider tracerSdkProvider;
+
+  @Captor private ArgumentCaptor<TraceConfig> traceConfigCaptor;
 
   @Test
   public void shouldAddSpanProcessorsIfPropertiesAreSetToTrue() {
@@ -37,12 +45,18 @@ public class SplunkTracerCustomizerTest {
     SplunkTracerCustomizer underTest = new SplunkTracerCustomizer();
     System.setProperty(ENABLE_JDBC_SPAN_LOW_CARDINALITY_NAME_PROPERTY, "true");
 
+    TraceConfig traceConfig = TraceConfig.getDefault();
+    given(tracerSdkProvider.getActiveTraceConfig()).willReturn(traceConfig);
+
     // when
     underTest.configure(tracerSdkProvider);
 
     // then
     then(tracerSdkProvider).should().addSpanProcessor(isA(JdbcSpanRenamingProcessor.class));
+    then(tracerSdkProvider).should().updateActiveTraceConfig(traceConfigCaptor.capture());
     then(tracerSdkProvider).shouldHaveNoMoreInteractions();
+
+    assertEquals(Sampler.alwaysOn(), traceConfigCaptor.getValue().getSampler());
   }
 
   @Test
@@ -52,25 +66,36 @@ public class SplunkTracerCustomizerTest {
     SplunkTracerCustomizer underTest = new SplunkTracerCustomizer();
     System.setProperty(ENABLE_JDBC_SPAN_LOW_CARDINALITY_NAME_PROPERTY, "whatever");
 
+    TraceConfig traceConfig = TraceConfig.getDefault();
+    given(tracerSdkProvider.getActiveTraceConfig()).willReturn(traceConfig);
+
     // when
     underTest.configure(tracerSdkProvider);
 
     // then
-    then(tracerSdkProvider).shouldHaveNoInteractions();
+    then(tracerSdkProvider).should().updateActiveTraceConfig(traceConfigCaptor.capture());
+    then(tracerSdkProvider).shouldHaveNoMoreInteractions();
+
+    assertEquals(Sampler.alwaysOn(), traceConfigCaptor.getValue().getSampler());
   }
 
   @Test
   public void shouldConfigureTracerSdkForDefaultValues() {
-
     // given
     SplunkTracerCustomizer underTest = new SplunkTracerCustomizer();
     System.clearProperty(ENABLE_JDBC_SPAN_LOW_CARDINALITY_NAME_PROPERTY);
+
+    TraceConfig traceConfig = TraceConfig.getDefault();
+    given(tracerSdkProvider.getActiveTraceConfig()).willReturn(traceConfig);
 
     // when
     underTest.configure(tracerSdkProvider);
 
     // then
     then(tracerSdkProvider).should().addSpanProcessor(isA(JdbcSpanRenamingProcessor.class));
+    then(tracerSdkProvider).should().updateActiveTraceConfig(traceConfigCaptor.capture());
     then(tracerSdkProvider).shouldHaveNoMoreInteractions();
+
+    assertEquals(Sampler.alwaysOn(), traceConfigCaptor.getValue().getSampler());
   }
 }

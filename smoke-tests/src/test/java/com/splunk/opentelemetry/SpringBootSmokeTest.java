@@ -28,7 +28,9 @@ import org.junit.jupiter.params.provider.ValueSource;
 class SpringBootSmokeTest extends SmokeTest {
 
   private String getTargetImage(int jdk) {
-    return "open-telemetry-docker-dev.bintray.io/java/smoke-springboot-jdk" + jdk + ":latest";
+    return "open-telemetry-docker-dev.bintray.io/java/smoke-springboot-jdk"
+        + jdk
+        + ":20201105.347264626";
   }
 
   @ParameterizedTest(name = "{index} => SpringBoot SmokeTest On JDK{0}.")

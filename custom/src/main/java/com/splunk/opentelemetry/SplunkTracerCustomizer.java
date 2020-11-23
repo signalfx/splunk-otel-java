@@ -18,6 +18,7 @@ package com.splunk.opentelemetry;
 
 import io.opentelemetry.javaagent.spi.TracerCustomizer;
 import io.opentelemetry.sdk.trace.TracerSdkManagement;
+import io.opentelemetry.sdk.trace.samplers.Sampler;
 
 public class SplunkTracerCustomizer implements TracerCustomizer {
 
@@ -42,5 +43,8 @@ public class SplunkTracerCustomizer implements TracerCustomizer {
     if (jdbcSpanLowCardinalityNameEnabled()) {
       tracerManagement.addSpanProcessor(new JdbcSpanRenamingProcessor());
     }
+
+    tracerManagement.updateActiveTraceConfig(
+        tracerManagement.getActiveTraceConfig().toBuilder().setSampler(Sampler.alwaysOn()).build());
   }
 }

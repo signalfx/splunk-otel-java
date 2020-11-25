@@ -35,6 +35,9 @@ val targets = mapOf(
         "13.0.0.Final" to listOf("8", "11", "15"),
         "17.0.1.Final" to listOf("8", "11", "15"),
         "21.0.0.Final" to listOf("8", "11", "15")
+    ),
+    "liberty" to mapOf(
+        "20.0.0.12" to listOf("8", "11", "15", "8-jdk-openj9", "11-jdk-openj9", "15-jdk-openj9")
     )
 )
 
@@ -45,7 +48,7 @@ targets.forEach { (server, data) ->
 
       val prepareTask = tasks.register("${server}ImagePrepare-$version-jdk$jdk", Copy::class) {
         into(dockerWorkingDir)
-        from("src/$template") {
+        from("src") {
           filter(ReplaceTokens::class, "tokens" to mapOf("version" to version, "jdk" to jdk))
           rename { f -> dockerFileName(f) }
         }

@@ -9,7 +9,7 @@ gradleEnterprise {
   }
 }
 rootProject.name = "splunk-otel-java"
-include("agent", "custom", "smoke-tests")
+include("agent", "custom", "smoke-tests", "matrix")
 
 
 

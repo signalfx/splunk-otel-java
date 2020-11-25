@@ -30,8 +30,8 @@ public abstract class AppServerTest extends SmokeTest {
 
     Assertions.assertEquals(1, countSpansByName(traces, serverAttributes.handlerSpanName), "Server span has expected name");
 
-    Assertions.assertEquals(serverAttributes.middlewareName, getServerSpanAttribute(traces, "middleware.name"), "Middleware name tag on server span has expected value");
-    Assertions.assertEquals(serverAttributes.middlewareVersion, getServerSpanAttribute(traces, "middleware.version"), "Middleware version tag on server span has expected value");
+    Assertions.assertEquals(serverAttributes.middlewareName, getServerSpanAttribute(traces, "middleware.name"), "Middleware name tag on server span");
+    Assertions.assertEquals(serverAttributes.middlewareVersion, getServerSpanAttribute(traces, "middleware.version"), "Middleware version tag on server span");
 
     resetBackend();
   }

@@ -92,7 +92,7 @@ A simple wrapper for the Jaeger exporter of opentelemetry-java. gRPC is currentl
 | System property                   | Environment variable              | Description                                                                                            |
 |-----------------------------------|-----------------------------------|----------------------------------------------------------------------------------------------------|
 | otel.exporter=jaeger              | OTEL_EXPORTER=jaeger              | Select the Jaeger exporter                                                                          |
-| otel.exporter.jaeger.endpoint     | OTEL_EXPORTER_JAEGER_ENDPOINT     | The Jaeger endpoint to connect to. Default is `localhost:14250`. Currently only gRPC is supported. |
+| otel.exporter.jaeger.endpoint     | OTEL_EXPORTER_JAEGER_ENDPOINT     | The Jaeger endpoint to connect to. Default is `localhost:9080/v1/trace` for the smart-agent. If you are using a local opentelemetry-collector use `localhost:14250`. Currently only gRPC is supported. |
 | otel.exporter.jaeger.service.name | OTEL_EXPORTER_JAEGER_SERVICE_NAME | The service name of this JVM instance. Default is `unknown`.                                       |
 
 ### Trace configuration

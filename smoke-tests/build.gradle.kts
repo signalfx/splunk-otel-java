@@ -15,6 +15,9 @@ dependencies {
 }
 
 tasks.test {
+  // TODO: remove once we will have the environment to push built images to.
+  dependsOn(":matrix:buildTestImages")
+
   useJUnitPlatform()
   reports {
     junitXml.isOutputPerTestCase = true

@@ -70,8 +70,8 @@ public class TraceInspector {
   }
 
   /**
-   * This method returns the value for the requested attribute of the *first* server span.
-   * Be careful when using on a distributed trace with several server spans.
+   * This method returns the value for the requested attribute of the *first* server span. Be
+   * careful when using on a distributed trace with several server spans.
    */
   public String getServerSpanAttribute(String attributeKey) {
     return getSpanStream()

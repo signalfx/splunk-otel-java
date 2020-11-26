@@ -69,7 +69,8 @@ class WebLogicSmokeTest extends AppServerTest {
   }
 
   @Override
-  protected void assertWebAppTrace(ExpectedServerAttributes serverAttributes) throws IOException, InterruptedException {
+  protected void assertWebAppTrace(ExpectedServerAttributes serverAttributes)
+      throws IOException, InterruptedException {
     String url =
         String.format(
             "http://localhost:%d/wls-demo/greetingRemote?url=http://localhost:8080/wls-demo/headers",

@@ -31,15 +31,15 @@ public abstract class AppServerTest extends SmokeTest {
   private static final Logger log = LoggerFactory.getLogger(AppServerTest.class);
 
   /**
-   * The test case is expected to create and verify the following trace:
-   * <code>
+   * The test case is expected to create and verify the following trace: <code>
    *   1. Server span for the initial request to http://localhost:%d/greeting?url=http://localhost:8080/headers
    *   2. Client http span to http://localhost:8080/headers
    *   3. Server http span for http://localhost:8080/headers
    *   4. Span created by the @WithSpan annotation.
    * </code>
    */
-  protected void assertWebAppTrace(ExpectedServerAttributes serverAttributes) throws IOException, InterruptedException {
+  protected void assertWebAppTrace(ExpectedServerAttributes serverAttributes)
+      throws IOException, InterruptedException {
     String url =
         String.format(
             "http://localhost:%d/greeting?url=http://localhost:8080/headers",
@@ -68,13 +68,11 @@ public abstract class AppServerTest extends SmokeTest {
     Assertions.assertEquals(
         2,
         traces.countFilteredAttributes("middleware.name", serverAttributes.middlewareName),
-        "Middleware name is present on all server spans"
-    );
+        "Middleware name is present on all server spans");
     Assertions.assertEquals(
         2,
         traces.countFilteredAttributes("middleware.version", serverAttributes.middlewareVersion),
-        "Middleware version is present on all server spans"
-    );
+        "Middleware version is present on all server spans");
 
     Assertions.assertEquals(
         1, traces.countFilteredAttributes("http.url", url), "The span for the initial web request");

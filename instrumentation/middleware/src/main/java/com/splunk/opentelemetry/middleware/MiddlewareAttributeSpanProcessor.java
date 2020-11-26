@@ -16,7 +16,7 @@
 
 package com.splunk.opentelemetry.middleware;
 
-import com.splunk.opentelemetry.javaagent.shared.MiddlewareHolder;
+import com.splunk.opentelemetry.javaagent.bootstrap.MiddlewareHolder;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.sdk.common.CompletableResultCode;
 import io.opentelemetry.sdk.trace.ReadWriteSpan;

@@ -23,7 +23,6 @@ public enum MiddlewareAttributes {
   public final String key;
 
   MiddlewareAttributes(String key) {
-
     this.key = key;
   }
 }

@@ -16,9 +16,13 @@
 
 package com.splunk.opentelemetry;
 
+import com.google.protobuf.ByteString;
+import io.opentelemetry.api.trace.TraceId;
 import io.opentelemetry.proto.collector.trace.v1.ExportTraceServiceRequest;
 import io.opentelemetry.proto.trace.v1.Span;
 import java.util.Collection;
+import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class TraceInspector {
@@ -54,5 +58,13 @@ public class TraceInspector {
 
   public int size() {
     return traces.size();
+  }
+
+  public Set<String> getTraceIds() {
+    return getSpanStream()
+        .map(Span::getTraceId)
+        .map(ByteString::toByteArray)
+        .map(TraceId::bytesToHex)
+        .collect(Collectors.toSet());
   }
 }

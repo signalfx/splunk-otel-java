@@ -8,7 +8,7 @@ dependencies {
     customShadow project(path: ":custom", configuration: "shadow")
     customShadow project(path: ":instrumentation", configuration: "shadow")
     implementation "io.opentelemetry.javaagent:opentelemetry-javaagent:${versions.opentelemetryJavaagent}:all"
-    implementation project(":shared")
+    implementation project(":bootstrap")
 }
 
 archivesBaseName = "splunk-otel-javaagent"
@@ -32,7 +32,7 @@ tasks {
     shadowJar {
         dependsOn ':custom:shadowJar'
         dependsOn ':instrumentation:shadowJar'
-        dependsOn ':shared:jar'
+        dependsOn ':bootstrap:jar'
         with isolateSpec()
 
         /// TODO - with this set to EXCLUDE, service files will not be merged between instrumentation and custom

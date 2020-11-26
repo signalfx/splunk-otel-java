@@ -37,7 +37,7 @@ public class GreetingServlet extends HttpServlet {
     URLConnection urlConnection = url.openConnection();
     ByteArrayOutputStream buffer = new ByteArrayOutputStream();
     try (InputStream remoteInputStream = urlConnection.getInputStream()) {
-      long bytesRead = transfer(buffer, remoteInputStream);
+      long bytesRead = transfer(remoteInputStream, buffer);
       String responseBody = buffer.toString("UTF-8");
       ServletOutputStream outputStream = resp.getOutputStream();
       outputStream.print(
@@ -57,13 +57,13 @@ public class GreetingServlet extends HttpServlet {
   }
 
   // We have to run on Java 8, so no Java 9 stream transfer goodies for us.
-  private long transfer(OutputStream out, InputStream in) throws IOException {
-    Objects.requireNonNull(out, "out");
+  private long transfer(InputStream from, OutputStream to) throws IOException {
+    Objects.requireNonNull(to, "out");
     long transferred = 0;
     byte[] buffer = new byte[65535];
     int read;
-    while ((read = in.read(buffer, 0, buffer.length)) >= 0) {
-      out.write(buffer, 0, read);
+    while ((read = from.read(buffer, 0, buffer.length)) >= 0) {
+      to.write(buffer, 0, read);
       transferred += read;
     }
     return transferred;

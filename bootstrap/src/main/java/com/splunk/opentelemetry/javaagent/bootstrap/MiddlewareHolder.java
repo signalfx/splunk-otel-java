@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.splunk.opentelemetry.javaagent.shared;
+package com.splunk.opentelemetry.javaagent.bootstrap;
 
 import java.util.concurrent.atomic.AtomicReference;
 import org.slf4j.Logger;

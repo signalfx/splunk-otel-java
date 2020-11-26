@@ -22,7 +22,7 @@ import static net.bytebuddy.matcher.ElementMatchers.isProtected;
 import static net.bytebuddy.matcher.ElementMatchers.named;
 
 import com.google.auto.service.AutoService;
-import com.splunk.opentelemetry.javaagent.shared.MiddlewareHolder;
+import com.splunk.opentelemetry.javaagent.bootstrap.MiddlewareHolder;
 import io.opentelemetry.javaagent.tooling.InstrumentationModule;
 import io.opentelemetry.javaagent.tooling.TypeInstrumentation;
 import java.util.Collections;
@@ -42,16 +42,16 @@ public class JettyAttributesInstrumentationModule extends InstrumentationModule 
   }
 
   @Override
+  public ElementMatcher.Junction<ClassLoader> classLoaderMatcher() {
+    return hasClassesNamed("org.eclipse.jetty.server.Server");
+  }
+
+  @Override
   public List<TypeInstrumentation> typeInstrumentations() {
     return Collections.singletonList(new Instrumentation());
   }
 
   public static class Instrumentation implements TypeInstrumentation {
-
-    @Override
-    public ElementMatcher<ClassLoader> classLoaderMatcher() {
-      return hasClassesNamed("org.eclipse.jetty.server.Server");
-    }
 
     @Override
     public ElementMatcher<? super TypeDescription> typeMatcher() {

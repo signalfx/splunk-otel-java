@@ -14,6 +14,6 @@ include("agent",
   "instrumentation:middleware",
   "instrumentation:jetty",
   "custom",
-  "shared",
+  "bootstrap",
   "smoke-tests",
   "matrix")

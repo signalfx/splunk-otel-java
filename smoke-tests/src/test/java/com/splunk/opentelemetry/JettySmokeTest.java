@@ -33,36 +33,20 @@ public class JettySmokeTest extends AppServerTest {
 
   private static Stream<Arguments> supportedConfigurations() {
     return Stream.of(
-        arguments(new JettyConfiguration("splunk-jetty:9.4-jdk8", JETTY9_SERVER_ATTRIBUTES)),
-        arguments(new JettyConfiguration("splunk-jetty:9.4-jdk11", JETTY9_SERVER_ATTRIBUTES)),
-        arguments(new JettyConfiguration("splunk-jetty:9.4-jdk15", JETTY9_SERVER_ATTRIBUTES)),
-        arguments(
-            new JettyConfiguration("splunk-jetty:10.0.0.beta3-jdk11", JETTY10_SERVER_ATTRIBUTES)),
-        arguments(
-            new JettyConfiguration("splunk-jetty:10.0.0.beta3-jdk15", JETTY10_SERVER_ATTRIBUTES)));
+        arguments("splunk-jetty:9.4-jdk8", JETTY9_SERVER_ATTRIBUTES),
+        arguments("splunk-jetty:9.4-jdk11", JETTY9_SERVER_ATTRIBUTES),
+        arguments("splunk-jetty:9.4-jdk15", JETTY9_SERVER_ATTRIBUTES),
+        arguments("splunk-jetty:10.0.0.beta3-jdk11", JETTY10_SERVER_ATTRIBUTES),
+        arguments("splunk-jetty:10.0.0.beta3-jdk15", JETTY10_SERVER_ATTRIBUTES));
   }
 
   @ParameterizedTest
   @MethodSource("supportedConfigurations")
-  void jetty_smoke_test(JettyConfiguration config) throws IOException, InterruptedException {
-    startTarget(config.imageName);
+  void jettySmokeTest(String imageName, ExpectedServerAttributes expectedServerAttributes)
+      throws IOException, InterruptedException {
+    startTarget(imageName);
 
-    assertServerHandler(config.serverAttributes);
+    assertServerHandler(expectedServerAttributes);
     assertWebAppTrace();
-  }
-
-  static class JettyConfiguration {
-    final String imageName;
-    final ExpectedServerAttributes serverAttributes;
-
-    public JettyConfiguration(String imageName, ExpectedServerAttributes serverAttributes) {
-      this.imageName = imageName;
-      this.serverAttributes = serverAttributes;
-    }
-
-    @Override
-    public String toString() {
-      return imageName;
-    }
   }
 }

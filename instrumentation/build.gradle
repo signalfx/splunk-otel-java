@@ -12,13 +12,13 @@ subprojects {
             dependencies {
                 compileOnly("io.opentelemetry:opentelemetry-sdk:${versions.opentelemetry}")
                 compileOnly("io.opentelemetry.javaagent:opentelemetry-javaagent-tooling:${versions.opentelemetryJavaagent}")
-                compileOnly("io.opentelemetry.javaagent:opentelemetry-javaagent-spi:${versions["opentelemetryJavaagent"]}")
+                compileOnly("io.opentelemetry.javaagent:opentelemetry-javaagent-spi:${versions.opentelemetryJavaagent}")
                 compileOnly("net.bytebuddy:byte-buddy:1.10.10")
                 annotationProcessor("com.google.auto.service:auto-service:1.0-rc3")
                 annotationProcessor("com.google.auto:auto-common:0.8")
                 implementation("com.google.auto.service:auto-service:1.0-rc3")
                 implementation("com.google.auto:auto-common:0.8")
-                implementation(project(":shared"))
+                implementation(project(":bootstrap"))
             }
 
             compileJava {

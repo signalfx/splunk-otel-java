@@ -17,11 +17,10 @@
 package com.splunk.opentelemetry.appservers.javaee;
 
 import java.io.IOException;
-import java.io.StringWriter;
+import java.io.PrintWriter;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
-import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -30,7 +29,7 @@ public class HeaderDumpingServlet extends HttpServlet {
 
   @Override
   protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-    StringWriter response = new StringWriter();
+    PrintWriter response = resp.getWriter();
     Enumeration<String> headerNames = req.getHeaderNames();
     while (headerNames.hasMoreElements()) {
       String headerName = headerNames.nextElement();
@@ -49,8 +48,6 @@ public class HeaderDumpingServlet extends HttpServlet {
       response.write("\n");
     }
 
-    ServletOutputStream outputStream = resp.getOutputStream();
-    outputStream.print(response.toString());
-    outputStream.flush();
+    response.flush();
   }
 }

@@ -16,15 +16,12 @@
 
 package com.splunk.opentelemetry;
 
-import com.google.protobuf.ByteString;
-import io.opentelemetry.api.trace.TraceId;
 import io.opentelemetry.proto.trace.v1.Span;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.NoSuchElementException;
 import java.util.Set;
-import java.util.stream.Collectors;
 import okhttp3.Request;
 import okhttp3.Response;
 import org.junit.jupiter.api.Assertions;
@@ -46,13 +43,7 @@ public abstract class AppServerTest extends SmokeTest {
 
     TraceInspector traces = waitForTraces();
 
-    Set<String> traceIds =
-        traces
-            .getSpanStream()
-            .map(Span::getTraceId)
-            .map(ByteString::toByteArray)
-            .map(TraceId::bytesToHex)
-            .collect(Collectors.toSet());
+    Set<String> traceIds = traces.getTraceIds();
 
     Assertions.assertEquals(traceIds.size(), 1, "There is one trace");
     String theOneTraceId = new ArrayList<>(traceIds).get(0);

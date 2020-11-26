@@ -18,8 +18,8 @@ val buildTestImagesTask = tasks.create("buildTestImages") {
 val targets = mapOf(
     "jetty" to mapOf(
         "9.4" to listOf("8", "11", "15"),
-        "10.0.0.beta3" to listOf("8", "11", "15"),
-        "11.0.0.beta3" to listOf("8", "11", "15")
+        "10.0.0.beta3" to listOf("11", "15"),
+        "11.0.0.beta3" to listOf("11", "15")
     ),
     "tomcat" to mapOf(
         "7" to listOf("8"),
@@ -28,8 +28,8 @@ val targets = mapOf(
         "10" to listOf("8", "11")
     ),
     "payara" to mapOf(
-        "5.2020.6" to emptyList(),
-        "5.2020.6-jdk11" to emptyList()
+        "5.2020.6" to listOf("8"),
+        "5.2020.6-jdk11" to listOf("11")
     ),
     "wildfly" to mapOf(
         "13.0.0.Final" to listOf("8", "11", "15"),

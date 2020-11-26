@@ -11,6 +11,6 @@ public class MiddlewareBootstrapClassloaderCustomizer implements BootstrapPackag
 
   @Override
   public List<String> getPackagePrefixes() {
-    return Collections.singletonList(MiddlewareHolder.class.getPackageName());
+    return Collections.singletonList(MiddlewareHolder.class.getPackage().getName());
   }
 }

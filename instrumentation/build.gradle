@@ -21,6 +21,10 @@ subprojects {
                 implementation(project(":shared"))
             }
 
+            compileJava {
+                options.release.set(8)
+            }
+
             instr_project.dependencies {
                 implementation(project(subProj.getPath()))
             }

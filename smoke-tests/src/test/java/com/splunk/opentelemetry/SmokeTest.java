@@ -23,7 +23,6 @@ import com.google.protobuf.util.JsonFormat;
 import io.opentelemetry.proto.collector.trace.v1.ExportTraceServiceRequest;
 import io.opentelemetry.proto.common.v1.AnyValue;
 import io.opentelemetry.proto.common.v1.KeyValue;
-import io.opentelemetry.proto.trace.v1.Span;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.Collection;
@@ -147,23 +146,11 @@ abstract class SmokeTest {
         .map(KeyValue::getValue);
   }
 
-  protected static int countSpansByName(
-      Collection<ExportTraceServiceRequest> traces, String spanName) {
-    return (int) getSpanStream(traces).filter(it -> it.getName().equals(spanName)).count();
-  }
-
-  protected static Stream<Span> getSpanStream(Collection<ExportTraceServiceRequest> traces) {
-    return traces.stream()
-        .flatMap(it -> it.getResourceSpansList().stream())
-        .flatMap(it -> it.getInstrumentationLibrarySpansList().stream())
-        .flatMap(it -> it.getSpansList().stream());
-  }
-
-  protected Collection<ExportTraceServiceRequest> waitForTraces()
+  protected TraceInspector waitForTraces()
       throws IOException, InterruptedException {
     String content = waitForContent();
 
-    return StreamSupport.stream(OBJECT_MAPPER.readTree(content).spliterator(), false)
+    return new TraceInspector(StreamSupport.stream(OBJECT_MAPPER.readTree(content).spliterator(), false)
         .map(
             it -> {
               ExportTraceServiceRequest.Builder builder = ExportTraceServiceRequest.newBuilder();
@@ -176,7 +163,7 @@ abstract class SmokeTest {
               }
               return builder.build();
             })
-        .collect(Collectors.toList());
+        .collect(Collectors.toList()));
   }
 
   private String waitForContent() throws IOException, InterruptedException {
@@ -203,16 +190,6 @@ abstract class SmokeTest {
     }
 
     return content;
-  }
-
-  protected long countFilteredAttributes(
-      Collection<ExportTraceServiceRequest> traces, String attributeName, Object attributeValue) {
-    return getSpanStream(traces)
-        .flatMap(s -> s.getAttributesList().stream())
-        .filter(a -> a.getKey().equals(attributeName))
-        .map(a -> a.getValue().getStringValue())
-        .filter(s -> s.equals(attributeValue))
-        .count();
   }
 
   protected String getCurrentAgentVersion() throws IOException {

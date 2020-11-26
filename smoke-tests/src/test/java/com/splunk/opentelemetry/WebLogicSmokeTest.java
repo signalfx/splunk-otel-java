@@ -21,11 +21,9 @@ import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 import com.google.protobuf.ByteString;
 import io.opentelemetry.api.trace.TraceId;
-import io.opentelemetry.proto.collector.trace.v1.ExportTraceServiceRequest;
 import io.opentelemetry.proto.trace.v1.Span;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -64,12 +62,13 @@ class WebLogicSmokeTest extends AppServerTest {
     // FIXME: APMI-1300
 //    assertServerHandler(new ExpectedServerAttributes("HandlerCollection.handle", "weblogic", "12.1"));
 
-    assertWebAppSpans();
+    assertWebAppTrace();
 
     stopTarget();
   }
 
-  private void assertWebAppSpans() throws IOException, InterruptedException {
+  @Override
+  protected void assertWebAppTrace() throws IOException, InterruptedException {
     String url =
         String.format(
             "http://localhost:%d/wls-demo/greetingRemote?url=http://localhost:8080/wls-demo/headers",
@@ -78,10 +77,10 @@ class WebLogicSmokeTest extends AppServerTest {
     Request request = new Request.Builder().get().url(url).build();
     Response response = client.newCall(request).execute();
 
-    Collection<ExportTraceServiceRequest> traces = waitForTraces();
+    TraceInspector traces = waitForTraces();
 
     Set<String> traceIds =
-        getSpanStream(traces)
+        traces.getSpanStream()
             .map(Span::getTraceId)
             .map(ByteString::toByteArray)
             .map(TraceId::bytesToHex)
@@ -100,25 +99,25 @@ class WebLogicSmokeTest extends AppServerTest {
 
     Assertions.assertEquals(
         1,
-        countSpansByName(traces, "/wls-demo/greetingRemote"),
+        traces.countSpansByName("/wls-demo/greetingRemote"),
         "The span for the initial web request");
     Assertions.assertEquals(
         1,
-        countSpansByName(traces, "/wls-demo/headers"),
+        traces.countSpansByName("/wls-demo/headers"),
         "The span for the web request called from the controller");
     Assertions.assertEquals(
         1,
-        countSpansByName(traces, "TheController.showRequestHeaders"),
+        traces.countSpansByName("TheController.showRequestHeaders"),
         "The span for the web framework controller");
     Assertions.assertEquals(
         1,
-        countSpansByName(traces, "TheController.sayRemoteHello"),
+        traces.countSpansByName("TheController.sayRemoteHello"),
         "The span for the web framework controller");
     Assertions.assertEquals(
-        1, countSpansByName(traces, "TheController.withSpan"), "Spans for the annotated methods");
+        1, traces.countSpansByName("TheController.withSpan"), "Spans for the annotated methods");
     Assertions.assertEquals(
         6,
-        countFilteredAttributes(traces, "otel.library.version", getCurrentAgentVersion()),
+        traces.countFilteredAttributes("otel.library.version", getCurrentAgentVersion()),
         "Number of spans tagged with current otel library version");
   }
 

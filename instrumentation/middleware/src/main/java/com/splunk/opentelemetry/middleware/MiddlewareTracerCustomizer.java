@@ -27,5 +27,4 @@ public class MiddlewareTracerCustomizer implements TracerCustomizer {
   public void configure(TracerSdkManagement tracerManagement) {
     tracerManagement.addSpanProcessor(new MiddlewareAttributeSpanProcessor());
   }
-
 }

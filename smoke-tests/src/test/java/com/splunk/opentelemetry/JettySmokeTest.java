@@ -26,17 +26,20 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 public class JettySmokeTest extends AppServerTest {
 
-  public static final ExpectedServerAttributes JETTY9_SERVER_ATTRIBUTES = new ExpectedServerAttributes("HandlerCollection.handle", "jetty", "9.4.35.v20201120");
-  public static final ExpectedServerAttributes JETTY10_SERVER_ATTRIBUTES = new ExpectedServerAttributes("HandlerList.handle", "jetty", "10.0.0.beta3");
+  public static final ExpectedServerAttributes JETTY9_SERVER_ATTRIBUTES =
+      new ExpectedServerAttributes("HandlerCollection.handle", "jetty", "9.4.35.v20201120");
+  public static final ExpectedServerAttributes JETTY10_SERVER_ATTRIBUTES =
+      new ExpectedServerAttributes("HandlerList.handle", "jetty", "10.0.0.beta3");
 
   private static Stream<Arguments> supportedConfigurations() {
     return Stream.of(
         arguments(new JettyConfiguration("splunk-jetty:9.4-jdk8", JETTY9_SERVER_ATTRIBUTES)),
         arguments(new JettyConfiguration("splunk-jetty:9.4-jdk11", JETTY9_SERVER_ATTRIBUTES)),
         arguments(new JettyConfiguration("splunk-jetty:9.4-jdk15", JETTY9_SERVER_ATTRIBUTES)),
-        arguments(new JettyConfiguration("splunk-jetty:10.0.0.beta3-jdk11", JETTY10_SERVER_ATTRIBUTES)),
-        arguments(new JettyConfiguration("splunk-jetty:10.0.0.beta3-jdk15", JETTY10_SERVER_ATTRIBUTES))
-    );
+        arguments(
+            new JettyConfiguration("splunk-jetty:10.0.0.beta3-jdk11", JETTY10_SERVER_ATTRIBUTES)),
+        arguments(
+            new JettyConfiguration("splunk-jetty:10.0.0.beta3-jdk15", JETTY10_SERVER_ATTRIBUTES)));
   }
 
   @ParameterizedTest

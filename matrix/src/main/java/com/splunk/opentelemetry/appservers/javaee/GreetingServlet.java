@@ -40,8 +40,13 @@ public class GreetingServlet extends HttpServlet {
       long bytesRead = transfer(buffer, remoteInputStream);
       String responseBody = buffer.toString("UTF-8");
       ServletOutputStream outputStream = resp.getOutputStream();
-      outputStream.print(withSpan(
-          bytesRead + " bytes read by " + urlConnection.getClass().getName() + "\n" + responseBody));
+      outputStream.print(
+          withSpan(
+              bytesRead
+                  + " bytes read by "
+                  + urlConnection.getClass().getName()
+                  + "\n"
+                  + responseBody));
       outputStream.flush();
     }
   }
@@ -63,5 +68,4 @@ public class GreetingServlet extends HttpServlet {
     }
     return transferred;
   }
-
 }

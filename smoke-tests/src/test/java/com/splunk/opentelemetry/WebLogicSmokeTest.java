@@ -60,7 +60,8 @@ class WebLogicSmokeTest extends AppServerTest {
     startTarget(wlsConfig.getImageName());
 
     // FIXME: APMI-1300
-//    assertServerHandler(new ExpectedServerAttributes("HandlerCollection.handle", "weblogic", "12.1"));
+    //    assertServerHandler(new ExpectedServerAttributes("HandlerCollection.handle", "weblogic",
+    // "12.1"));
 
     assertWebAppTrace();
 
@@ -80,7 +81,8 @@ class WebLogicSmokeTest extends AppServerTest {
     TraceInspector traces = waitForTraces();
 
     Set<String> traceIds =
-        traces.getSpanStream()
+        traces
+            .getSpanStream()
             .map(Span::getTraceId)
             .map(ByteString::toByteArray)
             .map(TraceId::bytesToHex)

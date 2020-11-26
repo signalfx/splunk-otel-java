@@ -43,8 +43,7 @@ public class MiddlewareAttributeSpanProcessor implements SpanProcessor {
   }
 
   @Override
-  public void onEnd(ReadableSpan span) {
-  }
+  public void onEnd(ReadableSpan span) {}
 
   @Override
   public boolean isEndRequired() {

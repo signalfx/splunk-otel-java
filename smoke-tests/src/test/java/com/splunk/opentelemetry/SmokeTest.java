@@ -146,24 +146,25 @@ abstract class SmokeTest {
         .map(KeyValue::getValue);
   }
 
-  protected TraceInspector waitForTraces()
-      throws IOException, InterruptedException {
+  protected TraceInspector waitForTraces() throws IOException, InterruptedException {
     String content = waitForContent();
 
-    return new TraceInspector(StreamSupport.stream(OBJECT_MAPPER.readTree(content).spliterator(), false)
-        .map(
-            it -> {
-              ExportTraceServiceRequest.Builder builder = ExportTraceServiceRequest.newBuilder();
-              // TODO(anuraaga): Register parser into object mapper to avoid de -> re ->
-              // deserialize.
-              try {
-                JsonFormat.parser().merge(OBJECT_MAPPER.writeValueAsString(it), builder);
-              } catch (InvalidProtocolBufferException | JsonProcessingException e) {
-                e.printStackTrace();
-              }
-              return builder.build();
-            })
-        .collect(Collectors.toList()));
+    return new TraceInspector(
+        StreamSupport.stream(OBJECT_MAPPER.readTree(content).spliterator(), false)
+            .map(
+                it -> {
+                  ExportTraceServiceRequest.Builder builder =
+                      ExportTraceServiceRequest.newBuilder();
+                  // TODO(anuraaga): Register parser into object mapper to avoid de -> re ->
+                  // deserialize.
+                  try {
+                    JsonFormat.parser().merge(OBJECT_MAPPER.writeValueAsString(it), builder);
+                  } catch (InvalidProtocolBufferException | JsonProcessingException e) {
+                    e.printStackTrace();
+                  }
+                  return builder.build();
+                })
+            .collect(Collectors.toList()));
   }
 
   private String waitForContent() throws IOException, InterruptedException {

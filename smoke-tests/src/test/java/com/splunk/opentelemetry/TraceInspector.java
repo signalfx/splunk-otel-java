@@ -21,6 +21,7 @@ import io.opentelemetry.api.trace.TraceId;
 import io.opentelemetry.proto.collector.trace.v1.ExportTraceServiceRequest;
 import io.opentelemetry.proto.trace.v1.Span;
 import java.util.Collection;
+import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -66,5 +67,23 @@ public class TraceInspector {
         .map(ByteString::toByteArray)
         .map(TraceId::bytesToHex)
         .collect(Collectors.toSet());
+  }
+
+  /**
+   * This method returns the value for the requested attribute of the *first* server span.
+   * Be careful when using on a distributed trace with several server spans.
+   */
+  public String getServerSpanAttribute(String attributeKey) {
+    return getSpanStream()
+        .filter(span -> span.getKind() == Span.SpanKind.SPAN_KIND_SERVER)
+        .map(Span::getAttributesList)
+        .flatMap(Collection::stream)
+        .filter(attr -> attributeKey.equals(attr.getKey()))
+        .map(keyValue -> keyValue.getValue().getStringValue())
+        .findFirst()
+        .orElseThrow(
+            () ->
+                new NoSuchElementException(
+                    "Attribute " + attributeKey + " is not found on server span"));
   }
 }

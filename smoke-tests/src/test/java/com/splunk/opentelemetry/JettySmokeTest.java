@@ -47,6 +47,6 @@ public class JettySmokeTest extends AppServerTest {
     startTarget(imageName);
 
     assertServerHandler(expectedServerAttributes);
-    assertWebAppTrace();
+    assertWebAppTrace(expectedServerAttributes);
   }
 }

@@ -19,8 +19,6 @@ package com.splunk.opentelemetry;
 import io.opentelemetry.proto.trace.v1.Span;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.NoSuchElementException;
 import java.util.Set;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -32,7 +30,16 @@ public abstract class AppServerTest extends SmokeTest {
 
   private static final Logger log = LoggerFactory.getLogger(AppServerTest.class);
 
-  protected void assertWebAppTrace() throws IOException, InterruptedException {
+  /**
+   * The test case is expected to create and verify the following trace:
+   * <code>
+   *   1. Server span for the initial request to http://localhost:%d/greeting?url=http://localhost:8080/headers
+   *   2. Client http span to http://localhost:8080/headers
+   *   3. Server http span for http://localhost:8080/headers
+   *   4. Span created by the @WithSpan annotation.
+   * </code>
+   */
+  protected void assertWebAppTrace(ExpectedServerAttributes serverAttributes) throws IOException, InterruptedException {
     String url =
         String.format(
             "http://localhost:%d/greeting?url=http://localhost:8080/headers",
@@ -58,6 +65,16 @@ public abstract class AppServerTest extends SmokeTest {
         2,
         traces.countSpansByKind(Span.SpanKind.SPAN_KIND_SERVER),
         "Server spans in the distributed trace");
+    Assertions.assertEquals(
+        2,
+        traces.countFilteredAttributes("middleware.name", serverAttributes.middlewareName),
+        "Middleware name is present on all server spans"
+    );
+    Assertions.assertEquals(
+        2,
+        traces.countFilteredAttributes("middleware.version", serverAttributes.middlewareVersion),
+        "Middleware version is present on all server spans"
+    );
 
     Assertions.assertEquals(
         1, traces.countFilteredAttributes("http.url", url), "The span for the initial web request");
@@ -100,29 +117,14 @@ public abstract class AppServerTest extends SmokeTest {
 
     Assertions.assertEquals(
         serverAttributes.middlewareName,
-        getServerSpanAttribute(traces, "middleware.name"),
+        traces.getServerSpanAttribute("middleware.name"),
         "Middleware name tag on server span");
     Assertions.assertEquals(
         serverAttributes.middlewareVersion,
-        getServerSpanAttribute(traces, "middleware.version"),
+        traces.getServerSpanAttribute("middleware.version"),
         "Middleware version tag on server span");
 
     resetBackend();
-  }
-
-  private String getServerSpanAttribute(TraceInspector traces, String attributeKey) {
-    return traces
-        .getSpanStream()
-        .filter(span -> span.getKind() == Span.SpanKind.SPAN_KIND_SERVER)
-        .map(Span::getAttributesList)
-        .flatMap(Collection::stream)
-        .filter(attr -> attributeKey.equals(attr.getKey()))
-        .map(keyValue -> keyValue.getValue().getStringValue())
-        .findFirst()
-        .orElseThrow(
-            () ->
-                new NoSuchElementException(
-                    "Attribute " + attributeKey + " is not found on server span"));
   }
 
   protected static class ExpectedServerAttributes {

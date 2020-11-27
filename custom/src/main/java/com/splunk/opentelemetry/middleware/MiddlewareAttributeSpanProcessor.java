@@ -17,6 +17,7 @@
 package com.splunk.opentelemetry.middleware;
 
 import com.splunk.opentelemetry.javaagent.bootstrap.MiddlewareHolder;
+import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.sdk.common.CompletableResultCode;
 import io.opentelemetry.sdk.trace.ReadWriteSpan;
@@ -28,10 +29,16 @@ public class MiddlewareAttributeSpanProcessor implements SpanProcessor {
   @Override
   public void onStart(Context parentContext, ReadWriteSpan span) {
     String middlewareName = MiddlewareHolder.middlewareName.get();
+    String middlewareVersion = MiddlewareHolder.middlewareVersion.get();
+    // Getting span kind is not the most straightforward or cheap operation apparently.
+    // Let's do quick cheap null checks first and exit quickly.
+    if ((middlewareName == null && middlewareVersion == null)
+        || span.toSpanData().getKind() != Span.Kind.SERVER) {
+      return;
+    }
     if (middlewareName != null) {
       span.setAttribute(MiddlewareAttributes.MIDDLEWARE_NAME.key, middlewareName);
     }
-    String middlewareVersion = MiddlewareHolder.middlewareVersion.get();
     if (middlewareVersion != null) {
       span.setAttribute(MiddlewareAttributes.MIDDLEWARE_VERSION.key, middlewareVersion);
     }

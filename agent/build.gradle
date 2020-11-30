@@ -1,0 +1,72 @@
+plugins {
+    id("com.github.johnrengelman.shadow") version "6.0.0"
+}
+configurations {
+    customShadow
+}
+dependencies {
+    customShadow project(path: ":custom", configuration: "shadow")
+    customShadow project(path: ":instrumentation", configuration: "shadow")
+    implementation "io.opentelemetry.javaagent:opentelemetry-javaagent:${versions.opentelemetryJavaagent}:all"
+    implementation project(":bootstrap")
+}
+
+archivesBaseName = "splunk-otel-javaagent"
+
+compileJava {
+    options.release.set(8)
+}
+
+CopySpec isolateSpec() {
+    return copySpec {
+        configurations.customShadow.files.each {
+            from(zipTree(it)) {
+                into("inst")
+                rename("(^.*)\\.class\$", "\$1.classdata")
+            }
+        }
+    }
+}
+
+tasks {
+    shadowJar {
+        dependsOn ':custom:shadowJar'
+        dependsOn ':instrumentation:shadowJar'
+        dependsOn ':bootstrap:jar'
+        with isolateSpec()
+
+        /// TODO - with this set to EXCLUDE, service files will not be merged between instrumentation and custom
+        duplicatesStrategy = DuplicatesStrategy.INCLUDE
+
+        mergeServiceFiles {
+            include("inst/META-INF/services/*")
+        }
+        exclude("**/module-info.class")
+
+        // Prevents conflict with other SLF4J instances. Important for premain.
+        relocate("org.slf4j", "io.opentelemetry.javaagent.slf4j")
+        // rewrite dependencies calling Logger.getLogger
+        relocate("java.util.logging.Logger", "io.opentelemetry.javaagent.bootstrap.PatchLogger")
+
+        // prevents conflict with library instrumentation
+        relocate("io.opentelemetry.instrumentation.api", "io.opentelemetry.javaagent.shaded.instrumentation.api")
+
+        // relocate OpenTelemetry API
+        relocate("io.opentelemetry.api", "io.opentelemetry.javaagent.shaded.io.opentelemetry.api")
+        relocate("io.opentelemetry.context", "io.opentelemetry.javaagent.shaded.io.opentelemetry.context")
+
+        manifest {
+            attributes.put("Main-Class", "io.opentelemetry.javaagent.OpenTelemetryAgent")
+            attributes.put("Agent-Class", "com.splunk.opentelemetry.SplunkAgent")
+            attributes.put("Premain-Class", "com.splunk.opentelemetry.SplunkAgent")
+            attributes.put("Can-Redefine-Classes", "true")
+            attributes.put("Can-Retransform-Classes", "true")
+            attributes.put("Implementation-Vendor", "Splunk")
+            attributes.put("Implementation-Version", "splunk-${project.version}-otel-${versions["opentelemetryJavaagent"]}")
+        }
+    }
+
+    assemble {
+        dependsOn(shadowJar)
+    }
+}

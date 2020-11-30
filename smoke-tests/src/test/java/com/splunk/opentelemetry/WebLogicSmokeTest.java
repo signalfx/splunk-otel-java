@@ -21,10 +21,9 @@ import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 import com.google.protobuf.ByteString;
 import io.opentelemetry.api.trace.TraceId;
-import io.opentelemetry.proto.collector.trace.v1.ExportTraceServiceRequest;
 import io.opentelemetry.proto.trace.v1.Span;
 import java.io.IOException;
-import java.util.Collection;
+import java.util.ArrayList;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -41,7 +40,7 @@ import org.testcontainers.DockerClientFactory;
  * there are no WebLogic images installed locally. See the manual in src/weblogic directory for
  * instructions on how to build required images.
  */
-class WebLogicSmokeTest extends SmokeTest {
+class WebLogicSmokeTest extends AppServerTest {
 
   private static Stream<Arguments> supportedWlsConfigurations() {
     return Stream.of(
@@ -60,29 +59,38 @@ class WebLogicSmokeTest extends SmokeTest {
 
     startTarget(wlsConfig.getImageName());
 
+    // FIXME: APMI-1300
+    //    assertServerHandler(new ExpectedServerAttributes("HandlerCollection.handle", "weblogic",
+    // "12.1"));
+
+    assertWebAppTrace(null);
+
+    stopTarget();
+  }
+
+  @Override
+  protected void assertWebAppTrace(ExpectedServerAttributes serverAttributes)
+      throws IOException, InterruptedException {
     String url =
         String.format(
             "http://localhost:%d/wls-demo/greetingRemote?url=http://localhost:8080/wls-demo/headers",
             target.getMappedPort(8080));
 
     Request request = new Request.Builder().get().url(url).build();
-
-    String currentAgentVersion = getCurrentAgentVersion();
-
     Response response = client.newCall(request).execute();
-    Collection<ExportTraceServiceRequest> traces = waitForTraces();
 
-    Set<ByteString> traceIds =
-        getSpanStream(traces).map(Span::getTraceId).collect(Collectors.toSet());
+    TraceInspector traces = waitForTraces();
 
-    Assertions.assertEquals(traceIds.size(), 1, "There is one trace");
-
-    String theOneTraceId =
-        traceIds.stream()
-            .findFirst()
+    Set<String> traceIds =
+        traces
+            .getSpanStream()
+            .map(Span::getTraceId)
             .map(ByteString::toByteArray)
             .map(TraceId::bytesToHex)
-            .orElseThrow(AssertionError::new);
+            .collect(Collectors.toSet());
+
+    Assertions.assertEquals(traceIds.size(), 1, "There is one trace");
+    String theOneTraceId = new ArrayList<>(traceIds).get(0);
 
     String responseBody = response.body().string();
     Assertions.assertTrue(
@@ -94,28 +102,26 @@ class WebLogicSmokeTest extends SmokeTest {
 
     Assertions.assertEquals(
         1,
-        countSpansByName(traces, "/wls-demo/greetingRemote"),
+        traces.countSpansByName("/wls-demo/greetingRemote"),
         "The span for the initial web request");
     Assertions.assertEquals(
         1,
-        countSpansByName(traces, "/wls-demo/headers"),
+        traces.countSpansByName("/wls-demo/headers"),
         "The span for the web request called from the controller");
     Assertions.assertEquals(
         1,
-        countSpansByName(traces, "TheController.showRequestHeaders"),
+        traces.countSpansByName("TheController.showRequestHeaders"),
         "The span for the web framework controller");
     Assertions.assertEquals(
         1,
-        countSpansByName(traces, "TheController.sayRemoteHello"),
+        traces.countSpansByName("TheController.sayRemoteHello"),
         "The span for the web framework controller");
     Assertions.assertEquals(
-        1, countSpansByName(traces, "TheController.withSpan"), "Spans for the annotated methods");
+        1, traces.countSpansByName("TheController.withSpan"), "Spans for the annotated methods");
     Assertions.assertEquals(
         6,
-        countFilteredAttributes(traces, "otel.library.version", currentAgentVersion),
+        traces.countFilteredAttributes("otel.library.version", getCurrentAgentVersion()),
         "Number of spans tagged with current otel library version");
-
-    stopTarget();
   }
 
   static class WebLogicConfiguration {

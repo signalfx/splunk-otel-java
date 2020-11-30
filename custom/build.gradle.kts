@@ -6,9 +6,14 @@ plugins {
 val versions: Map<String, String> by extra
 
 dependencies {
+  implementation(project(":bootstrap"))
   implementation("io.opentelemetry:opentelemetry-sdk:${versions["opentelemetry"]}")
   implementation("io.opentelemetry:opentelemetry-exporter-jaeger-thrift:${versions["opentelemetry"]}")
   implementation("io.opentelemetry.javaagent:opentelemetry-javaagent-spi:${versions["opentelemetryJavaagent"]}")
+  annotationProcessor("com.google.auto.service:auto-service:1.0-rc3")
+  annotationProcessor("com.google.auto:auto-common:0.8")
+  implementation("com.google.auto.service:auto-service:1.0-rc3")
+  implementation("com.google.auto:auto-common:0.8")
 }
 
 tasks {

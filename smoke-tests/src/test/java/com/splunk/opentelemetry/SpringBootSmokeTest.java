@@ -16,9 +16,7 @@
 
 package com.splunk.opentelemetry;
 
-import io.opentelemetry.proto.collector.trace.v1.ExportTraceServiceRequest;
 import java.io.IOException;
-import java.util.Collection;
 import okhttp3.Request;
 import okhttp3.Response;
 import org.junit.jupiter.api.Assertions;
@@ -44,14 +42,14 @@ class SpringBootSmokeTest extends SmokeTest {
     String currentAgentVersion = getCurrentAgentVersion();
 
     Response response = client.newCall(request).execute();
-    Collection<ExportTraceServiceRequest> traces = waitForTraces();
+    TraceInspector traces = waitForTraces();
 
     Assertions.assertEquals(response.body().string(), "Hi!");
-    Assertions.assertEquals(1, countSpansByName(traces, "/greeting"));
-    Assertions.assertEquals(1, countSpansByName(traces, "WebController.greeting"));
-    Assertions.assertEquals(1, countSpansByName(traces, "WebController.withSpan"));
+    Assertions.assertEquals(1, traces.countSpansByName("/greeting"));
+    Assertions.assertEquals(1, traces.countSpansByName("WebController.greeting"));
+    Assertions.assertEquals(1, traces.countSpansByName("WebController.withSpan"));
     Assertions.assertEquals(
-        3, countFilteredAttributes(traces, "otel.library.version", currentAgentVersion));
+        3, traces.countFilteredAttributes("otel.library.version", currentAgentVersion));
 
     stopTarget();
   }

@@ -24,20 +24,22 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-public class JettySmokeTest extends AppServerTest {
+public class TomcatSmokeTest extends AppServerTest {
 
-  public static final ExpectedServerAttributes JETTY9_SERVER_ATTRIBUTES =
-      new ExpectedServerAttributes("HandlerCollection.handle", "jetty", "9.4.35.v20201120");
-  public static final ExpectedServerAttributes JETTY10_SERVER_ATTRIBUTES =
-      new ExpectedServerAttributes("HandlerList.handle", "jetty", "10.0.0.beta3");
+  public static final ExpectedServerAttributes TOMCAT7_SERVER_ATTRIBUTES =
+      new TomcatAttributes("7.0.107.0");
+  public static final ExpectedServerAttributes TOMCAT8_SERVER_ATTRIBUTES =
+      new TomcatAttributes("8.5.60.0");
+  public static final ExpectedServerAttributes TOMCAT9_SERVER_ATTRIBUTES =
+      new TomcatAttributes("9.0.40.0");
 
   private static Stream<Arguments> supportedConfigurations() {
     return Stream.of(
-        arguments("splunk-jetty:9.4-jdk8", JETTY9_SERVER_ATTRIBUTES),
-        arguments("splunk-jetty:9.4-jdk11", JETTY9_SERVER_ATTRIBUTES),
-        arguments("splunk-jetty:9.4-jdk15", JETTY9_SERVER_ATTRIBUTES),
-        arguments("splunk-jetty:10.0.0.beta3-jdk11", JETTY10_SERVER_ATTRIBUTES),
-        arguments("splunk-jetty:10.0.0.beta3-jdk15", JETTY10_SERVER_ATTRIBUTES));
+        arguments("splunk-tomcat:7-jdk8", TOMCAT7_SERVER_ATTRIBUTES),
+        arguments("splunk-tomcat:8-jdk8", TOMCAT8_SERVER_ATTRIBUTES),
+        arguments("splunk-tomcat:8-jdk11", TOMCAT8_SERVER_ATTRIBUTES),
+        arguments("splunk-tomcat:9-jdk8", TOMCAT9_SERVER_ATTRIBUTES),
+        arguments("splunk-tomcat:9-jdk11", TOMCAT9_SERVER_ATTRIBUTES));
   }
 
   @ParameterizedTest(name = "[{index}] {0}")
@@ -48,5 +50,14 @@ public class JettySmokeTest extends AppServerTest {
 
     assertServerHandler(expectedServerAttributes);
     assertWebAppTrace(expectedServerAttributes);
+  }
+
+  public static class TomcatAttributes extends ExpectedServerAttributes {
+    public TomcatAttributes(String version) {
+      super(
+          "/this-is-definitely-not-there-but-there-should-be-a-trace-nevertheless",
+          "tomcat",
+          version);
+    }
   }
 }

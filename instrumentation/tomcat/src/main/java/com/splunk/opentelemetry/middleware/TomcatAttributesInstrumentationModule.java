@@ -38,7 +38,7 @@ import org.apache.catalina.util.ServerInfo;
 public class TomcatAttributesInstrumentationModule extends InstrumentationModule {
 
   public TomcatAttributesInstrumentationModule() {
-    super("jetty");
+    super("tomcat");
   }
 
   @Override

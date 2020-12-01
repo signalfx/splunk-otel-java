@@ -43,7 +43,7 @@ public class TomcatAttributesInstrumentationModule extends InstrumentationModule
 
   @Override
   public ElementMatcher.Junction<ClassLoader> classLoaderMatcher() {
-    return hasClassesNamed("org.apache.catalina.startup.Catalina");
+    return hasClassesNamed("org.apache.catalina.startup.Catalina", "org.apache.catalina.util.ServerInfo");
   }
 
   @Override

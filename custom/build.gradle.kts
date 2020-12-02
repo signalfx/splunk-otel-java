@@ -6,7 +6,7 @@ plugins {
 val versions: Map<String, String> by extra
 
 dependencies {
-  implementation(project(":bootstrap"))
+  compileOnly(project(":bootstrap"))
   implementation("io.opentelemetry:opentelemetry-sdk:${versions["opentelemetry"]}")
   implementation("io.opentelemetry:opentelemetry-exporter-jaeger-thrift:${versions["opentelemetry"]}")
   implementation("io.opentelemetry.javaagent:opentelemetry-javaagent-spi:${versions["opentelemetryJavaagent"]}")

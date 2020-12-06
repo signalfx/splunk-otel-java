@@ -48,13 +48,7 @@ public class GlassFishSmokeTest extends AppServerTest {
 
   @Override
   protected Map<String, String> getExtraEnv() {
-    return Map.of(
-        "HZ_PHONE_HOME_ENABLED", "false",
-        // Payara spawns separate process to detect java version.
-        // For some reason if that process gets our agent it ends badly.
-        // TODO investigate the issue above
-        "JAVA_TOOL_OPTIONS", "",
-        "JVM_ARGS", "-javaagent:/opentelemetry-javaagent.jar");
+    return Map.of("HZ_PHONE_HOME_ENABLED", "false");
   }
 
   @Override

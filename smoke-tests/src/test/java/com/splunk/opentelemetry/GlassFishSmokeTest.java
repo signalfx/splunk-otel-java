@@ -33,12 +33,17 @@ public class GlassFishSmokeTest extends AppServerTest {
   public static final ExpectedServerAttributes PAYARA_SERVER_ATTRIBUTES =
       new ExpectedServerAttributes(
           "/this-is-definitely-not-there-but-there-should-be-a-trace-nevertheless",
-          "Payara Server", "5.2020.6");
+          "Payara Server",
+          "5.2020.6");
 
   private static Stream<Arguments> supportedConfigurations() {
     return Stream.of(
-        arguments("ghcr.io/open-telemetry/java-test-containers:payara-5.2020.6-jdk11-jdk11", PAYARA_SERVER_ATTRIBUTES),
-        arguments("ghcr.io/open-telemetry/java-test-containers:payara-5.2020.6-jdk8", PAYARA_SERVER_ATTRIBUTES));
+        arguments(
+            "ghcr.io/open-telemetry/java-test-containers:payara-5.2020.6-jdk11-jdk11",
+            PAYARA_SERVER_ATTRIBUTES),
+        arguments(
+            "ghcr.io/open-telemetry/java-test-containers:payara-5.2020.6-jdk8",
+            PAYARA_SERVER_ATTRIBUTES));
   }
 
   @Override
@@ -47,15 +52,15 @@ public class GlassFishSmokeTest extends AppServerTest {
         "HZ_PHONE_HOME_ENABLED", "false",
         // Payara spawns separate process to detect java version.
         // For some reason if that process gets our agent it ends badly.
-        //TODO investigate the issue above
+        // TODO investigate the issue above
         "JAVA_TOOL_OPTIONS", "",
-        "JVM_ARGS", "-javaagent:/opentelemetry-javaagent.jar"
-    );
+        "JVM_ARGS", "-javaagent:/opentelemetry-javaagent.jar");
   }
 
   @Override
   protected WaitStrategy getWaitStrategy() {
-    return Wait.forLogMessage(".*app was successfully deployed.*", 1).withStartupTimeout(Duration.ofMinutes(15));
+    return Wait.forLogMessage(".*app was successfully deployed.*", 1)
+        .withStartupTimeout(Duration.ofMinutes(15));
   }
 
   @ParameterizedTest

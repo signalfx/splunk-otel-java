@@ -61,7 +61,8 @@ public class GlassfishAttributesInstrumentationModule extends InstrumentationMod
     public Map<? extends ElementMatcher<? super MethodDescription>, String> transformers() {
       return Collections.singletonMap(
           isTypeInitializer(),
-          GlassfishAttributesInstrumentationModule.class.getName() + "$MiddlewareInitializedAdvice");
+          GlassfishAttributesInstrumentationModule.class.getName()
+              + "$MiddlewareInitializedAdvice");
     }
   }
 

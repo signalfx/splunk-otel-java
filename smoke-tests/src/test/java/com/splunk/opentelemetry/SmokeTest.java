@@ -61,9 +61,7 @@ abstract class SmokeTest {
   protected static final String agentPath =
       System.getProperty("io.opentelemetry.smoketest.agent.shadowJar.path");
 
-  /**
-   * Subclasses can override this method to customise target application's environment
-   */
+  /** Subclasses can override this method to customise target application's environment */
   protected Map<String, String> getExtraEnv() {
     return Collections.emptyMap();
   }
@@ -75,7 +73,8 @@ abstract class SmokeTest {
   static void setupSpec() {
     backend =
         new GenericContainer<>(
-            DockerImageName.parse("open-telemetry-docker-dev.bintray.io/java/smoke-fake-backend:latest"))
+                DockerImageName.parse(
+                    "open-telemetry-docker-dev.bintray.io/java/smoke-fake-backend:latest"))
             .withExposedPorts(8080)
             .waitingFor(Wait.forHttp("/health").forPort(8080))
             .withNetwork(network)

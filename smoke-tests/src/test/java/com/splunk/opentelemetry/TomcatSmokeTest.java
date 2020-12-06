@@ -35,11 +35,21 @@ public class TomcatSmokeTest extends AppServerTest {
 
   private static Stream<Arguments> supportedConfigurations() {
     return Stream.of(
-        arguments("ghcr.io/open-telemetry/java-test-containers:tomcat-7.0.107-jdk8", TOMCAT7_SERVER_ATTRIBUTES),
-        arguments("ghcr.io/open-telemetry/java-test-containers:tomcat-8.5.60-jdk8", TOMCAT8_SERVER_ATTRIBUTES),
-        arguments("ghcr.io/open-telemetry/java-test-containers:tomcat-8.5.60-jdk11", TOMCAT8_SERVER_ATTRIBUTES),
-        arguments("ghcr.io/open-telemetry/java-test-containers:tomcat-9.0.40-jdk8", TOMCAT9_SERVER_ATTRIBUTES),
-        arguments("ghcr.io/open-telemetry/java-test-containers:tomcat-9.0.40-jdk11", TOMCAT9_SERVER_ATTRIBUTES));
+        arguments(
+            "ghcr.io/open-telemetry/java-test-containers:tomcat-7.0.107-jdk8",
+            TOMCAT7_SERVER_ATTRIBUTES),
+        arguments(
+            "ghcr.io/open-telemetry/java-test-containers:tomcat-8.5.60-jdk8",
+            TOMCAT8_SERVER_ATTRIBUTES),
+        arguments(
+            "ghcr.io/open-telemetry/java-test-containers:tomcat-8.5.60-jdk11",
+            TOMCAT8_SERVER_ATTRIBUTES),
+        arguments(
+            "ghcr.io/open-telemetry/java-test-containers:tomcat-9.0.40-jdk8",
+            TOMCAT9_SERVER_ATTRIBUTES),
+        arguments(
+            "ghcr.io/open-telemetry/java-test-containers:tomcat-9.0.40-jdk11",
+            TOMCAT9_SERVER_ATTRIBUTES));
   }
 
   @ParameterizedTest(name = "[{index}] {0}")

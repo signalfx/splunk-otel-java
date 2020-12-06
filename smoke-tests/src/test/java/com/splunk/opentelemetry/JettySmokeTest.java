@@ -33,11 +33,21 @@ public class JettySmokeTest extends AppServerTest {
 
   private static Stream<Arguments> supportedConfigurations() {
     return Stream.of(
-        arguments("ghcr.io/open-telemetry/java-test-containers:jetty-9.4.35-jdk8", JETTY9_SERVER_ATTRIBUTES),
-        arguments("ghcr.io/open-telemetry/java-test-containers:jetty-9.4.35-jdk11", JETTY9_SERVER_ATTRIBUTES),
-        arguments("ghcr.io/open-telemetry/java-test-containers:jetty-9.4.35-jdk15", JETTY9_SERVER_ATTRIBUTES),
-        arguments("ghcr.io/open-telemetry/java-test-containers:jetty-10.0.0.beta3-jdk11", JETTY10_SERVER_ATTRIBUTES),
-        arguments("ghcr.io/open-telemetry/java-test-containers:jetty-10.0.0.beta3-jdk15", JETTY10_SERVER_ATTRIBUTES));
+        arguments(
+            "ghcr.io/open-telemetry/java-test-containers:jetty-9.4.35-jdk8",
+            JETTY9_SERVER_ATTRIBUTES),
+        arguments(
+            "ghcr.io/open-telemetry/java-test-containers:jetty-9.4.35-jdk11",
+            JETTY9_SERVER_ATTRIBUTES),
+        arguments(
+            "ghcr.io/open-telemetry/java-test-containers:jetty-9.4.35-jdk15",
+            JETTY9_SERVER_ATTRIBUTES),
+        arguments(
+            "ghcr.io/open-telemetry/java-test-containers:jetty-10.0.0.beta3-jdk11",
+            JETTY10_SERVER_ATTRIBUTES),
+        arguments(
+            "ghcr.io/open-telemetry/java-test-containers:jetty-10.0.0.beta3-jdk15",
+            JETTY10_SERVER_ATTRIBUTES));
   }
 
   @ParameterizedTest(name = "[{index}] {0}")

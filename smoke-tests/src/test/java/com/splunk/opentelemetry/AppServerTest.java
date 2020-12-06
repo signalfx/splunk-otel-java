@@ -35,7 +35,6 @@ public abstract class AppServerTest extends SmokeTest {
    *   1. Server span for the initial request to http://localhost:%d/greeting?url=http://localhost:8080/headers
    *   2. Client http span to http://localhost:8080/headers
    *   3. Server http span for http://localhost:8080/headers
-   *   4. Span created by the @WithSpan annotation.
    * </code>
    */
   protected void assertWebAppTrace(ExpectedServerAttributes serverAttributes)
@@ -82,10 +81,7 @@ public abstract class AppServerTest extends SmokeTest {
         "Client and server spans for the remote call");
 
     Assertions.assertEquals(
-        1, traces.countSpansByName("GreetingServlet.withSpan"), "Span for the annotated method");
-
-    Assertions.assertEquals(
-        4,
+        3,
         traces.countFilteredAttributes("otel.library.version", getCurrentAgentVersion()),
         "Number of spans tagged with current otel library version");
   }

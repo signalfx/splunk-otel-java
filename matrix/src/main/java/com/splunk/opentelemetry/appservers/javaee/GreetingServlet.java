@@ -16,7 +16,7 @@
 
 package com.splunk.opentelemetry.appservers.javaee;
 
-import io.opentelemetry.extension.auto.annotations.WithSpan;
+import io.opentelemetry.extension.annotations.WithSpan;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;

@@ -17,7 +17,7 @@ val versions: Map<String, String> by extra
 
 dependencies {
   implementation("javax.servlet:javax.servlet-api:3.0.1")
-  implementation("io.opentelemetry:opentelemetry-extension-auto-annotations:${versions["opentelemetry"]}")
+  implementation("io.opentelemetry:opentelemetry-extension-annotations:${versions["opentelemetry"]}")
 }
 
 fun dockerFileName(template: String) = template.replace("-dockerfile.template", ".dockerfile")

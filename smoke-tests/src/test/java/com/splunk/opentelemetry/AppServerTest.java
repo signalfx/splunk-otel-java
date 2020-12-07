@@ -35,15 +35,11 @@ public abstract class AppServerTest extends SmokeTest {
    *   1. Server span for the initial request to http://localhost:%d/greeting?url=http://localhost:8080/headers
    *   2. Client http span to http://localhost:8080/headers
    *   3. Server http span for http://localhost:8080/headers
-   *   4. Span created by the @WithSpan annotation.
    * </code>
    */
   protected void assertWebAppTrace(ExpectedServerAttributes serverAttributes)
       throws IOException, InterruptedException {
-    String url =
-        String.format(
-            "http://localhost:%d/greeting?url=http://localhost:8080/headers",
-            target.getMappedPort(8080));
+    String url = String.format("http://localhost:%d/app/greeting", target.getMappedPort(8080));
 
     Request request = new Request.Builder().get().url(url).build();
     Response response = client.newCall(request).execute();
@@ -78,14 +74,11 @@ public abstract class AppServerTest extends SmokeTest {
         1, traces.countFilteredAttributes("http.url", url), "The span for the initial web request");
     Assertions.assertEquals(
         2,
-        traces.countFilteredAttributes("http.url", "http://localhost:8080/headers"),
+        traces.countFilteredAttributes("http.url", "http://localhost:8080/app/headers"),
         "Client and server spans for the remote call");
 
     Assertions.assertEquals(
-        1, traces.countSpansByName("GreetingServlet.withSpan"), "Span for the annotated method");
-
-    Assertions.assertEquals(
-        4,
+        3,
         traces.countFilteredAttributes("otel.library.version", getCurrentAgentVersion()),
         "Number of spans tagged with current otel library version");
   }

@@ -46,6 +46,8 @@ import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.Network;
 import org.testcontainers.containers.output.Slf4jLogConsumer;
 import org.testcontainers.containers.wait.strategy.Wait;
+import org.testcontainers.containers.wait.strategy.WaitStrategy;
+import org.testcontainers.utility.DockerImageName;
 import org.testcontainers.utility.MountableFile;
 
 abstract class SmokeTest {
@@ -71,7 +73,8 @@ abstract class SmokeTest {
   static void setupSpec() {
     backend =
         new GenericContainer<>(
-                "open-telemetry-docker-dev.bintray.io/java/smoke-fake-backend:latest")
+                DockerImageName.parse(
+                    "open-telemetry-docker-dev.bintray.io/java/smoke-fake-backend:latest"))
             .withExposedPorts(8080)
             .waitingFor(Wait.forHttp("/health").forPort(8080))
             .withNetwork(network)
@@ -80,7 +83,7 @@ abstract class SmokeTest {
     backend.start();
 
     collector =
-        new GenericContainer<>("otel/opentelemetry-collector-dev:latest")
+        new GenericContainer<>(DockerImageName.parse("otel/opentelemetry-collector-dev:latest"))
             .dependsOn(backend)
             .withNetwork(network)
             .withNetworkAliases("collector")
@@ -95,7 +98,7 @@ abstract class SmokeTest {
 
   void startTarget(String targetImageName) {
     target =
-        new GenericContainer<>(targetImageName)
+        new GenericContainer<>(DockerImageName.parse(targetImageName))
             .withStartupTimeout(Duration.ofMinutes(5))
             .withExposedPorts(8080)
             .withNetwork(network)
@@ -107,7 +110,15 @@ abstract class SmokeTest {
             .withEnv("OTEL_BSP_SCHEDULE_DELAY", "10")
             .withEnv("OTEL_EXPORTER_JAEGER_ENDPOINT", "http://collector:14268/api/traces")
             .withEnv(getExtraEnv());
+    WaitStrategy waitStrategy = getWaitStrategy();
+    if (waitStrategy != null) {
+      target = target.waitingFor(waitStrategy);
+    }
     target.start();
+  }
+
+  protected WaitStrategy getWaitStrategy() {
+    return null;
   }
 
   @AfterEach

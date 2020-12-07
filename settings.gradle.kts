@@ -14,6 +14,7 @@ include("agent",
   "custom",
   "instrumentation",
   "instrumentation:jetty",
+  "instrumentation:glassfish",
   "instrumentation:tomcat",
   "smoke-tests",
   "matrix")

@@ -37,7 +37,7 @@ import net.bytebuddy.matcher.ElementMatcher;
 public class GlassfishAttributesInstrumentationModule extends InstrumentationModule {
 
   public GlassfishAttributesInstrumentationModule() {
-    super("middleware");
+    super("glassfish");
   }
 
   @Override

@@ -26,7 +26,11 @@ val dockerWorkingDir = project.buildDir.resolve("docker")
 
 val buildTestImagesTask = tasks.create("buildTestImages") {
   group = "build"
-  description = "Builds all Docker images for the test matrix"
+  description = "Builds all Docker images for the test matrix for fully open-source app servers"
+}
+val buildProprietaryTestImagesTask = tasks.create("buildProprietaryTestImages") {
+  group = "build"
+  description = "Builds all Docker images for the test matrix for proprietary app servers"
 }
 
 val targets = mapOf(
@@ -52,7 +56,11 @@ val targets = mapOf(
     ),
     "liberty" to mapOf(
         "20.0.0.12" to listOf("8", "11", "15", "8-jdk-openj9", "11-jdk-openj9", "15-jdk-openj9")
-    )
+    ),
+   "weblogic" to mapOf(
+        "12.2.1.4" to listOf("developer"),
+        "14.1.1.0" to listOf("developer-8", "developer-11")
+   )
 )
 
 targets.forEach { (server, data) ->
@@ -83,7 +91,12 @@ targets.forEach { (server, data) ->
         dockerFile.set(dockerWorkingDir.resolve(dockerFileName(template)))
       }
 
-      buildTestImagesTask.dependsOn(buildTask)
+      if (server == "weblogic") {
+        buildProprietaryTestImagesTask.dependsOn(buildTask)
+      }
+      else {
+        buildTestImagesTask.dependsOn(buildTask)
+      }
     }
   }
 }

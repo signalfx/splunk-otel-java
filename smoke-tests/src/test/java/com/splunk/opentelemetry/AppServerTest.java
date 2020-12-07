@@ -39,10 +39,7 @@ public abstract class AppServerTest extends SmokeTest {
    */
   protected void assertWebAppTrace(ExpectedServerAttributes serverAttributes)
       throws IOException, InterruptedException {
-    String url =
-        String.format(
-            "http://localhost:%d/greeting?url=http://localhost:8080/headers",
-            target.getMappedPort(8080));
+    String url = String.format("http://localhost:%d/app/greeting", target.getMappedPort(8080));
 
     Request request = new Request.Builder().get().url(url).build();
     Response response = client.newCall(request).execute();
@@ -77,7 +74,7 @@ public abstract class AppServerTest extends SmokeTest {
         1, traces.countFilteredAttributes("http.url", url), "The span for the initial web request");
     Assertions.assertEquals(
         2,
-        traces.countFilteredAttributes("http.url", "http://localhost:8080/headers"),
+        traces.countFilteredAttributes("http.url", "http://localhost:8080/app/headers"),
         "Client and server spans for the remote call");
 
     Assertions.assertEquals(

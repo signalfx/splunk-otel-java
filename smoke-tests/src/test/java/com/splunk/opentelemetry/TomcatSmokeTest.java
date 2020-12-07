@@ -36,25 +36,25 @@ public class TomcatSmokeTest extends AppServerTest {
   private static Stream<Arguments> supportedConfigurations() {
     return Stream.of(
         arguments(
-            "ghcr.io/open-telemetry/java-test-containers:tomcat-7.0.107-jdk8",
+            "ghcr.io/open-telemetry/java-test-containers:tomcat-7.0.107-jdk8-20201207.405832649",
             TOMCAT7_SERVER_ATTRIBUTES),
         arguments(
-            "ghcr.io/open-telemetry/java-test-containers:tomcat-8.5.60-jdk8",
+            "ghcr.io/open-telemetry/java-test-containers:tomcat-8.5.60-jdk8-20201207.405832649",
             TOMCAT8_SERVER_ATTRIBUTES),
         arguments(
-            "ghcr.io/open-telemetry/java-test-containers:tomcat-8.5.60-jdk11",
+            "ghcr.io/open-telemetry/java-test-containers:tomcat-8.5.60-jdk11-20201207.405832649",
             TOMCAT8_SERVER_ATTRIBUTES),
         arguments(
-            "ghcr.io/open-telemetry/java-test-containers:tomcat-9.0.40-jdk8",
+            "ghcr.io/open-telemetry/java-test-containers:tomcat-9.0.40-jdk8-20201207.405832649",
             TOMCAT9_SERVER_ATTRIBUTES),
         arguments(
-            "ghcr.io/open-telemetry/java-test-containers:tomcat-9.0.40-jdk11",
+            "ghcr.io/open-telemetry/java-test-containers:tomcat-9.0.40-jdk11-20201207.405832649",
             TOMCAT9_SERVER_ATTRIBUTES));
   }
 
   @ParameterizedTest(name = "[{index}] {0}")
   @MethodSource("supportedConfigurations")
-  void jettySmokeTest(String imageName, ExpectedServerAttributes expectedServerAttributes)
+  void tomcatSmokeTest(String imageName, ExpectedServerAttributes expectedServerAttributes)
       throws IOException, InterruptedException {
     startTarget(imageName);
 

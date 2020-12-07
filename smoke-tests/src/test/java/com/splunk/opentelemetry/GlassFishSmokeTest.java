@@ -39,10 +39,10 @@ public class GlassFishSmokeTest extends AppServerTest {
   private static Stream<Arguments> supportedConfigurations() {
     return Stream.of(
         arguments(
-            "ghcr.io/open-telemetry/java-test-containers:payara-5.2020.6-jdk11-jdk11",
+            "ghcr.io/open-telemetry/java-test-containers:payara-5.2020.6-jdk11-jdk11-20201207.405832649",
             PAYARA_SERVER_ATTRIBUTES),
         arguments(
-            "ghcr.io/open-telemetry/java-test-containers:payara-5.2020.6-jdk8",
+            "ghcr.io/open-telemetry/java-test-containers:payara-5.2020.6-jdk8-20201207.405832649",
             PAYARA_SERVER_ATTRIBUTES));
   }
 

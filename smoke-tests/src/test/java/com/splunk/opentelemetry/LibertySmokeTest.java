@@ -32,22 +32,22 @@ public class LibertySmokeTest extends AppServerTest {
   private static Stream<Arguments> supportedConfigurations() {
     return Stream.of(
         arguments(
-            "ghcr.io/open-telemetry/java-test-containers:liberty-20.0.0.12-jdk8-20201208.2335475",
+            "ghcr.io/open-telemetry/java-test-containers:liberty-20.0.0.12-jdk8-20201209.410207048",
             LIBERTY20_SERVER_ATTRIBUTES),
         arguments(
-            "ghcr.io/open-telemetry/java-test-containers:liberty-20.0.0.12-jdk11-20201208.2335476",
+            "ghcr.io/open-telemetry/java-test-containers:liberty-20.0.0.12-jdk11-20201209.410207048",
             LIBERTY20_SERVER_ATTRIBUTES),
         arguments(
-            "ghcr.io/open-telemetry/java-test-containers:liberty-20.0.0.12-jdk15-20201208.2335477",
+            "ghcr.io/open-telemetry/java-test-containers:liberty-20.0.0.12-jdk15-20201209.410207048",
             LIBERTY20_SERVER_ATTRIBUTES),
         arguments(
-            "ghcr.io/open-telemetry/java-test-containers:liberty-20.0.0.12-jdk8-jdk-openj9-20201208.2335477",
+            "ghcr.io/open-telemetry/java-test-containers:liberty-20.0.0.12-jdk8-jdk-openj9-20201209.410207048",
             LIBERTY20_SERVER_ATTRIBUTES),
         arguments(
-            "ghcr.io/open-telemetry/java-test-containers:liberty-20.0.0.12-jdk11-jdk-openj9-20201208.2335477",
+            "ghcr.io/open-telemetry/java-test-containers:liberty-20.0.0.12-jdk11-jdk-openj9-20201209.410207048",
             LIBERTY20_SERVER_ATTRIBUTES),
         arguments(
-            "ghcr.io/open-telemetry/java-test-containers:liberty-20.0.0.12-jdk15-jdk-openj9-20201208.2335477",
+            "ghcr.io/open-telemetry/java-test-containers:liberty-20.0.0.12-jdk15-jdk-openj9-20201209.410207048",
             LIBERTY20_SERVER_ATTRIBUTES));
   }
 

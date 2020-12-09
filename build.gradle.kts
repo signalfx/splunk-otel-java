@@ -26,6 +26,7 @@ subprojects {
 
   repositories {
     jcenter()
+    mavenLocal()
     maven {
       url = uri("https://dl.bintray.com/open-telemetry/maven")
     }

@@ -61,14 +61,7 @@ public abstract class AppServerTest extends SmokeTest {
         2,
         traces.countSpansByKind(Span.SpanKind.SPAN_KIND_SERVER),
         "Server spans in the distributed trace");
-    Assertions.assertEquals(
-        2,
-        traces.countFilteredAttributes("middleware.name", serverAttributes.middlewareName),
-        "Middleware name is present on all server spans");
-    Assertions.assertEquals(
-        2,
-        traces.countFilteredAttributes("middleware.version", serverAttributes.middlewareVersion),
-        "Middleware version is present on all server spans");
+    assertMiddlewareAttributesInWebAppTrace(serverAttributes, traces);
 
     Assertions.assertEquals(
         1, traces.countFilteredAttributes("http.url", url), "The span for the initial web request");
@@ -78,9 +71,30 @@ public abstract class AppServerTest extends SmokeTest {
         "Client and server spans for the remote call");
 
     Assertions.assertEquals(
-        3,
+        totalNumberOfSpansInWebappTrace(),
         traces.countFilteredAttributes("otel.library.version", getCurrentAgentVersion()),
         "Number of spans tagged with current otel library version");
+
+    additionalWebAppTraceAssertions(traces, serverAttributes);
+  }
+
+  protected void additionalWebAppTraceAssertions(
+      TraceInspector traces, ExpectedServerAttributes serverAttributes) {}
+
+  protected int totalNumberOfSpansInWebappTrace() {
+    return 3;
+  }
+
+  protected void assertMiddlewareAttributesInWebAppTrace(
+      ExpectedServerAttributes serverAttributes, TraceInspector traces) {
+    Assertions.assertEquals(
+        2,
+        traces.countFilteredAttributes("middleware.name", serverAttributes.middlewareName),
+        "Middleware name is present on all server spans");
+    Assertions.assertEquals(
+        2,
+        traces.countFilteredAttributes("middleware.version", serverAttributes.middlewareVersion),
+        "Middleware version is present on all server spans");
   }
 
   protected void assertServerHandler(ExpectedServerAttributes serverAttributes)

@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<weblogic-web-app>
+    <context-root>/app</context-root>
+</weblogic-web-app>

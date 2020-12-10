@@ -19,21 +19,12 @@ package com.splunk.opentelemetry;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
-import com.google.protobuf.ByteString;
-import io.opentelemetry.api.trace.TraceId;
-import io.opentelemetry.proto.trace.v1.Span;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Set;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import okhttp3.Request;
-import okhttp3.Response;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.testcontainers.DockerClientFactory;
 
 /**
  * This is the smoke test for OpenTelemetry Java agent with Oracle WebLogic. The test is ignored if
@@ -42,118 +33,50 @@ import org.testcontainers.DockerClientFactory;
  */
 class WebLogicSmokeTest extends AppServerTest {
 
+  // FIXME: awaiting https://github.com/open-telemetry/opentelemetry-java-instrumentation/pull/1630
+  private static final ExpectedServerAttributes WEBLOGIC_ATTRIBUTES =
+      new ExpectedServerAttributes("", "", "");
+
   private static Stream<Arguments> supportedWlsConfigurations() {
     return Stream.of(
-        arguments(new WebLogicConfiguration(12, 8)),
-        arguments(new WebLogicConfiguration(14, 8)),
-        arguments(new WebLogicConfiguration(14, 11)));
+        arguments("splunk-weblogic:12.2.1.4-jdkdeveloper"),
+        arguments("splunk-weblogic:14.1.1.0-jdkdeveloper-8"),
+        arguments("splunk-weblogic:14.1.1.0-jdkdeveloper-11"));
   }
 
   @ParameterizedTest
   @MethodSource("supportedWlsConfigurations")
-  public void webLogicSmokeTest(WebLogicConfiguration wlsConfig)
-      throws IOException, InterruptedException {
+  public void webLogicSmokeTest(String imageName) throws IOException, InterruptedException {
     assumeTrue(
-        wlsConfig.localDockerImageIsPresent(),
-        "Local docker image " + wlsConfig.toString() + " is present");
+        localDockerImageIsPresent(imageName), "Local docker image " + imageName + " is present");
 
-    startTarget(wlsConfig.getImageName());
+    startTarget(imageName);
 
     // FIXME: APMI-1300
-    //    assertServerHandler(new ExpectedServerAttributes("HandlerCollection.handle", "weblogic",
-    // "12.1"));
+    //    assertServerHandler(....)
 
-    assertWebAppTrace(null);
+    assertWebAppTrace(WEBLOGIC_ATTRIBUTES);
 
     stopTarget();
   }
 
   @Override
-  protected void assertWebAppTrace(ExpectedServerAttributes serverAttributes)
-      throws IOException, InterruptedException {
-    String url =
-        String.format(
-            "http://localhost:%d/wls-demo/greetingRemote?url=http://localhost:8080/wls-demo/headers",
-            target.getMappedPort(8080));
-
-    Request request = new Request.Builder().get().url(url).build();
-    Response response = client.newCall(request).execute();
-
-    TraceInspector traces = waitForTraces();
-
-    Set<String> traceIds =
-        traces
-            .getSpanStream()
-            .map(Span::getTraceId)
-            .map(ByteString::toByteArray)
-            .map(TraceId::bytesToHex)
-            .collect(Collectors.toSet());
-
-    Assertions.assertEquals(traceIds.size(), 1, "There is one trace");
-    String theOneTraceId = new ArrayList<>(traceIds).get(0);
-
-    String responseBody = response.body().string();
-    Assertions.assertTrue(
-        responseBody.contains("bytes read by weblogic.net.http.SOAPHttpURLConnection"),
-        "HTTP Call is made using weblogic own url connection");
-    Assertions.assertTrue(
-        responseBody.contains(theOneTraceId),
-        "trace id is present in the HTTP headers as reported by the called endpoint");
-
+  protected void additionalWebAppTraceAssertions(
+      TraceInspector traces, ExpectedServerAttributes serverAttributes) {
     Assertions.assertEquals(
-        1,
-        traces.countSpansByName("/wls-demo/greetingRemote"),
-        "The span for the initial web request");
-    Assertions.assertEquals(
-        1,
-        traces.countSpansByName("/wls-demo/headers"),
-        "The span for the web request called from the controller");
-    Assertions.assertEquals(
-        1,
-        traces.countSpansByName("TheController.showRequestHeaders"),
-        "The span for the web framework controller");
-    Assertions.assertEquals(
-        1,
-        traces.countSpansByName("TheController.sayRemoteHello"),
-        "The span for the web framework controller");
-    Assertions.assertEquals(
-        1, traces.countSpansByName("TheController.withSpan"), "Spans for the annotated methods");
-    Assertions.assertEquals(
-        6,
-        traces.countFilteredAttributes("otel.library.version", getCurrentAgentVersion()),
-        "Number of spans tagged with current otel library version");
+        1, traces.countSpansByName("GreetingServlet.withSpan"), "Span for the annotated method");
   }
 
-  static class WebLogicConfiguration {
-    final int jdk;
-    final int wlsMajorVersion;
+  @Override
+  protected int totalNumberOfSpansInWebappTrace() {
+    // test app in proprietary images also has one additional span for WithSpan annotation.
+    return super.totalNumberOfSpansInWebappTrace() + 1;
+  }
 
-    public WebLogicConfiguration(int wlsMajorVersion, int jdk) {
-      this.jdk = jdk;
-      this.wlsMajorVersion = wlsMajorVersion;
-    }
-
-    @Override
-    public String toString() {
-      return "WebLogic " + wlsMajorVersion + " on Java " + jdk;
-    }
-
-    public String getImageName() {
-      return "open-telemetry-docker-dev.bintray.io/java/smoke-weblogic"
-          + wlsMajorVersion
-          + "-jdk"
-          + jdk
-          + "-demo:latest";
-    }
-
-    private boolean localDockerImageIsPresent() {
-      try {
-        DockerClientFactory.lazyClient().inspectImageCmd(getImageName()).exec();
-        return true;
-      } catch (Exception e) {
-        System.out.println(e.getMessage());
-        return false;
-      }
-    }
+  @Override
+  protected void assertMiddlewareAttributesInWebAppTrace(
+      ExpectedServerAttributes serverAttributes, TraceInspector traces) {
+    // FIXME: waiting for
+    // https://github.com/open-telemetry/opentelemetry-java-instrumentation/pull/1630
   }
 }

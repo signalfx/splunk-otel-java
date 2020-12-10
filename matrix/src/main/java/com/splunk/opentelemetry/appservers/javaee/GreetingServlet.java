@@ -33,7 +33,8 @@ public class GreetingServlet extends HttpServlet {
 
   @Override
   protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-    URL url = new URL(req.getParameter("url"));
+    String path = (req.getContextPath() + "/headers").replace("//", "/");
+    URL url = new URL("http", "localhost", req.getLocalPort(), path);
     URLConnection urlConnection = url.openConnection();
     ByteArrayOutputStream buffer = new ByteArrayOutputStream();
     try (InputStream remoteInputStream = urlConnection.getInputStream()) {

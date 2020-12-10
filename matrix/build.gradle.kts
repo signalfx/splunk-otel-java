@@ -24,35 +24,16 @@ fun dockerFileName(template: String) = template.replace("-dockerfile.template", 
 
 val dockerWorkingDir = project.buildDir.resolve("docker")
 
-val buildTestImagesTask = tasks.create("buildTestImages") {
+val buildProprietaryTestImagesTask = tasks.create("buildProprietaryTestImages") {
   group = "build"
-  description = "Builds all Docker images for the test matrix"
+  description = "Builds all Docker images for the test matrix for proprietary app servers"
 }
 
 val targets = mapOf(
-    "jetty" to mapOf(
-        "9.4" to listOf("8", "11", "15"),
-        "10.0.0.beta3" to listOf("11", "15")
-        // "11.0.0.beta3" to listOf("11", "15") TODO - enable when out of beta
-    ),
-    "tomcat" to mapOf(
-        "7" to listOf("8"),
-        "8" to listOf("8", "11"),
-        "9" to listOf("8", "11")
-        // "10" to listOf("8", "11")  TODO - enable when out of beta
-    ),
-    "payara" to mapOf(
-        "5.2020.6" to listOf("8"),
-        "5.2020.6-jdk11" to listOf("11")
-    ),
-    "wildfly" to mapOf(
-        "13.0.0.Final" to listOf("8", "11", "15"),
-        "17.0.1.Final" to listOf("8", "11", "15"),
-        "21.0.0.Final" to listOf("8", "11", "15")
-    ),
-    "liberty" to mapOf(
-        "20.0.0.12" to listOf("8", "11", "15", "8-jdk-openj9", "11-jdk-openj9", "15-jdk-openj9")
-    )
+   "weblogic" to mapOf(
+        "12.2.1.4" to listOf("developer"),
+        "14.1.1.0" to listOf("developer-8", "developer-11")
+   )
 )
 
 targets.forEach { (server, data) ->
@@ -83,7 +64,7 @@ targets.forEach { (server, data) ->
         dockerFile.set(dockerWorkingDir.resolve(dockerFileName(template)))
       }
 
-      buildTestImagesTask.dependsOn(buildTask)
+      buildProprietaryTestImagesTask.dependsOn(buildTask)
     }
   }
 }

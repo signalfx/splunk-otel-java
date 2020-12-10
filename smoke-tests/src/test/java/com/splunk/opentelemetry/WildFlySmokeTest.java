@@ -61,7 +61,7 @@ public class WildFlySmokeTest extends AppServerTest {
             WILDFLY_21_SERVER_ATTRIBUTES));
   }
 
-  @ParameterizedTest
+  @ParameterizedTest(name = "[{index}] {0}")
   @MethodSource("supportedConfigurations")
   void wildflySmokeTest(String imageName, ExpectedServerAttributes expectedServerAttributes)
       throws IOException, InterruptedException {

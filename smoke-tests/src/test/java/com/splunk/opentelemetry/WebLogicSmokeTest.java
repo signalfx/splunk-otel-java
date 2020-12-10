@@ -21,6 +21,7 @@ import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 import java.io.IOException;
 import java.util.stream.Stream;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -60,6 +61,19 @@ class WebLogicSmokeTest extends AppServerTest {
     assertWebAppTrace(WEBLOGIC_ATTRIBUTES);
 
     stopTarget();
+  }
+
+  @Override
+  protected void additionalWebAppTraceAssertions(
+      TraceInspector traces, ExpectedServerAttributes serverAttributes) {
+    Assertions.assertEquals(
+        1, traces.countSpansByName("GreetingServlet.withSpan"), "Span for the annotated method");
+  }
+
+  @Override
+  protected int totalNumberOfSpansInWebappTrace() {
+    // test app in proprietary images also has one additional span for WithSpan annotation.
+    return super.totalNumberOfSpansInWebappTrace() + 1;
   }
 
   @Override

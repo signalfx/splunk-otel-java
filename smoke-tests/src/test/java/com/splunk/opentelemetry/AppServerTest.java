@@ -71,9 +71,18 @@ public abstract class AppServerTest extends SmokeTest {
         "Client and server spans for the remote call");
 
     Assertions.assertEquals(
-        3,
+        totalNumberOfSpansInWebappTrace(),
         traces.countFilteredAttributes("otel.library.version", getCurrentAgentVersion()),
         "Number of spans tagged with current otel library version");
+
+    additionalWebAppTraceAssertions(traces, serverAttributes);
+  }
+
+  protected void additionalWebAppTraceAssertions(
+      TraceInspector traces, ExpectedServerAttributes serverAttributes) {}
+
+  protected int totalNumberOfSpansInWebappTrace() {
+    return 3;
   }
 
   protected void assertMiddlewareAttributesInWebAppTrace(

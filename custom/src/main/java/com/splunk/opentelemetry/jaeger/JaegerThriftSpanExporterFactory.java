@@ -16,23 +16,47 @@
 
 package com.splunk.opentelemetry.jaeger;
 
+import io.jaegertracing.thrift.internal.senders.HttpSender;
 import io.opentelemetry.exporter.jaeger.thrift.JaegerThriftSpanExporter;
 import io.opentelemetry.javaagent.spi.exporter.SpanExporterFactory;
 import io.opentelemetry.sdk.trace.export.SpanExporter;
 import java.util.Collections;
 import java.util.Properties;
 import java.util.Set;
+import okhttp3.OkHttpClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-// TODO remove when https://github.com/open-telemetry/opentelemetry-java-instrumentation/issues/1609
-// is implemented
 public class JaegerThriftSpanExporterFactory implements SpanExporterFactory {
+  private static final Logger log = LoggerFactory.getLogger(JaegerThriftSpanExporterFactory.class);
+
+  static final String SIGNALFX_AUTH_TOKEN = "signalfx.auth.token";
+  static final String OTEL_EXPORTER_JAEGER_ENDPOINT = "otel.exporter.jaeger.endpoint";
+
   @Override
   public SpanExporter fromConfig(Properties config) {
-    return JaegerThriftSpanExporter.builder().readProperties(config).build();
+    JaegerThriftSpanExporter.Builder builder =
+        JaegerThriftSpanExporter.builder().readProperties(config);
+
+    String token = config.getProperty(SIGNALFX_AUTH_TOKEN, "");
+    if (!token.isEmpty()) {
+      log.debug("Using authenticated jaeger-thrift exporter");
+      builder.setThriftSender(
+          new HttpSender.Builder(config.getProperty(OTEL_EXPORTER_JAEGER_ENDPOINT))
+              .withClient(
+                  new OkHttpClient.Builder()
+                      .addInterceptor(new AuthTokenInterceptor(token))
+                      .build())
+              .build());
+    } else {
+      log.debug("Using jaeger-thrift exporter without authentication");
+    }
+
+    return builder.build();
   }
 
   @Override
   public Set<String> getNames() {
-    return Collections.singleton("jaeger-thrift");
+    return Collections.singleton("jaeger-thrift-splunk");
   }
 }

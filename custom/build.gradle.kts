@@ -10,6 +10,7 @@ dependencies {
   implementation("io.opentelemetry:opentelemetry-sdk:${versions["opentelemetry"]}")
   implementation("io.opentelemetry:opentelemetry-exporter-jaeger-thrift:${versions["opentelemetry"]}")
   implementation("io.opentelemetry.javaagent:opentelemetry-javaagent-spi:${versions["opentelemetryJavaagent"]}")
+  implementation("io.jaegertracing:jaeger-client:1.5.0")
   annotationProcessor("com.google.auto.service:auto-service:1.0-rc3")
   annotationProcessor("com.google.auto:auto-common:0.8")
   implementation("com.google.auto.service:auto-service:1.0-rc3")

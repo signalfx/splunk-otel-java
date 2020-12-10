@@ -26,7 +26,7 @@ public class SplunkConfiguration implements PropertySource {
   @Override
   public Map<String, String> getProperties() {
     Map<String, String> config = new HashMap<>();
-    config.put("otel.exporter", "jaeger-thrift");
+    config.put("otel.exporter", "jaeger-thrift-splunk");
     // http://localhost:9080/v1/trace is the default endpoint for SmartAgent
     // http://localhost:14268/api/traces is the default endpoint for otel-collector
     config.put("otel.exporter.jaeger.endpoint", "http://localhost:9080/v1/trace");

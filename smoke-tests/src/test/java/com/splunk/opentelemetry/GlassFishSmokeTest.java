@@ -54,7 +54,7 @@ public class GlassFishSmokeTest extends AppServerTest {
   @Override
   protected WaitStrategy getWaitStrategy() {
     return Wait.forLogMessage(".*app was successfully deployed.*", 1)
-        .withStartupTimeout(Duration.ofMinutes(15));
+        .withStartupTimeout(Duration.ofMinutes(5));
   }
 
   @ParameterizedTest

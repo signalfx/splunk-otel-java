@@ -27,7 +27,7 @@ public class AuthTokenInterceptor implements Interceptor {
   private final String signalfxAuthToken;
 
   public AuthTokenInterceptor(String token) {
-    signalfxAuthToken = token;
+    this.signalfxAuthToken = token;
   }
 
   @Override

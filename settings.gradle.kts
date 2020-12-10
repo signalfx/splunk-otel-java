@@ -18,5 +18,6 @@ include("agent",
   "instrumentation:glassfish",
   "instrumentation:liberty",
   "instrumentation:tomcat",
+  "instrumentation:wildfly",
   "smoke-tests",
   "matrix")

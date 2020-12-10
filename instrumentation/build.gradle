@@ -25,8 +25,11 @@ subprojects {
                 options.release.set(8)
             }
 
-            instr_project.dependencies {
-                implementation(project(subProj.getPath()))
+            // exclude stub projects, they are only compile time dependencies
+            if (!subProj.getName().endsWith("-stub")) {
+                instr_project.dependencies {
+                    implementation(project(subProj.getPath()))
+                }
             }
         }
     }

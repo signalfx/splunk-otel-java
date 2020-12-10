@@ -2,14 +2,15 @@
 
 This project builds docker images for the test matrix used by tests from the `smoke-test` sub-project.
 
-There are two types of images - fully open source and proprietary. Fully open-source images can be
-built in any environment right after cloning the project. Proprietary images require some steps
-to be performed manually by a developer before images can be built. These manual steps usually mean
-that some files for the image must be downloaded manually after agreeing to the terms of use of
-the proprietor. Such proprietary images include Oracle WebLogic and JBoss EAS. Find a relevant section
-with details for each supported proprietary app server below.
+Mostly smoke tests use test images built by the test matrix in `opentelemetry-java-instrumentation`.
+However, some tests in Splunk distribution also test compatibility with proprietary app servers.
+Images for proprietary app-servers require some steps to be performed manually by a developer
+before images can be built. These manual steps usually mean that some files for the image must be
+downloaded manually after agreeing to the terms of use of the proprietor. Such proprietary images
+include Oracle WebLogic and JBoss EAS. Find a relevant section with details for each supported
+proprietary app server below.
 
-## Building Images for the Oracle WebLogic
+## Oracle WebLogic
 
 ### Prerequisites
 To package the demo into WebLogic you need Docker _development_ images from the official Oracle GitHub repo:

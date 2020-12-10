@@ -28,7 +28,7 @@ public class SplunkAgent {
   }
 
   public static void agentmain(final String agentArgs, final Instrumentation inst) {
-    setDefaultConfig("otel.exporter", "jaeger-thrift");
+    setDefaultConfig("otel.exporter", "jaeger-thrift-splunk");
     // http://localhost:9080/v1/trace is the default endpoint for SmartAgent
     // http://localhost:14268/api/traces is the default endpoint for otel-collector
     setDefaultConfig("otel.exporter.jaeger.endpoint", "http://localhost:9080/v1/trace");

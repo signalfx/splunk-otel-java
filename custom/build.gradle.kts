@@ -9,6 +9,7 @@ dependencies {
   implementation("io.opentelemetry:opentelemetry-sdk:${versions["opentelemetry"]}")
   implementation("io.opentelemetry:opentelemetry-exporter-jaeger-thrift:${versions["opentelemetry"]}")
   implementation("io.opentelemetry.javaagent:opentelemetry-javaagent-spi:${versions["opentelemetryJavaagent"]}")
+  implementation("io.jaegertracing:jaeger-client:1.5.0")
 }
 
 tasks {

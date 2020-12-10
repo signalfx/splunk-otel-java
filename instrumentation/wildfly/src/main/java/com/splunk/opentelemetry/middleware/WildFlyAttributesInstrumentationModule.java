@@ -17,12 +17,12 @@
 package com.splunk.opentelemetry.middleware;
 
 import static io.opentelemetry.javaagent.tooling.ClassLoaderMatcher.hasClassesNamed;
-import static net.bytebuddy.matcher.ElementMatchers.isMethod;
-import static net.bytebuddy.matcher.ElementMatchers.isStatic;
+import static net.bytebuddy.matcher.ElementMatchers.isConstructor;
 import static net.bytebuddy.matcher.ElementMatchers.named;
 
 import com.google.auto.service.AutoService;
 import com.splunk.opentelemetry.javaagent.bootstrap.MiddlewareHolder;
+import io.opentelemetry.javaagent.instrumentation.api.CallDepthThreadLocalMap;
 import io.opentelemetry.javaagent.tooling.InstrumentationModule;
 import io.opentelemetry.javaagent.tooling.TypeInstrumentation;
 import java.util.Collections;
@@ -55,22 +55,28 @@ public class WildFlyAttributesInstrumentationModule extends InstrumentationModul
 
     @Override
     public ElementMatcher<? super TypeDescription> typeMatcher() {
-      return named("org.jboss.as.version.ProductConfig");
+      return named("org.jboss.as.server.ServerEnvironment");
     }
 
     @Override
     public Map<? extends ElementMatcher<? super MethodDescription>, String> transformers() {
       return Collections.singletonMap(
-          isMethod().and(isStatic()).and(named("fromFilesystemSlot")),
+          isConstructor(),
           WildFlyAttributesInstrumentationModule.class.getName() + "$MiddlewareInitializedAdvice");
     }
   }
 
   @SuppressWarnings("unused")
   public static class MiddlewareInitializedAdvice {
+    @Advice.OnMethodEnter
+    public static void onEnter() {
+      CallDepthThreadLocalMap.incrementCallDepth(ProductConfig.class);
+    }
+
     @Advice.OnMethodExit(suppress = Throwable.class)
-    public static void onExit(@Advice.Return ProductConfig productConfig) {
-      if (productConfig != null) {
+    public static void onExit(@Advice.FieldValue("productConfig") ProductConfig productConfig) {
+      if (CallDepthThreadLocalMap.decrementCallDepth(ProductConfig.class) == 0
+          && productConfig != null) {
         MiddlewareHolder.trySetName(productConfig.resolveName());
         MiddlewareHolder.trySetVersion(productConfig.resolveVersion());
       }

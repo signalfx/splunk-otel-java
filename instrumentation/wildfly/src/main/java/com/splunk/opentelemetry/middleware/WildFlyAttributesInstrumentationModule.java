@@ -62,8 +62,7 @@ public class WildFlyAttributesInstrumentationModule extends InstrumentationModul
     public Map<? extends ElementMatcher<? super MethodDescription>, String> transformers() {
       return Collections.singletonMap(
           isMethod().and(isStatic()).and(named("fromFilesystemSlot")),
-          WildFlyAttributesInstrumentationModule.class.getName()
-          + "$MiddlewareInitializedAdvice");
+          WildFlyAttributesInstrumentationModule.class.getName() + "$MiddlewareInitializedAdvice");
     }
   }
 

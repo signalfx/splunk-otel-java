@@ -67,8 +67,8 @@ public class WildFlySmokeTest extends AppServerTest {
       throws IOException, InterruptedException {
     startTarget(imageName);
 
-    //TODO support 404
-//    assertServerHandler(expectedServerAttributes);
+    // TODO support 404
+    //    assertServerHandler(expectedServerAttributes);
     assertWebAppTrace(expectedServerAttributes);
   }
 }

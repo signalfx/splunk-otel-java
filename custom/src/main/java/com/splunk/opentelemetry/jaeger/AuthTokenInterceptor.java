@@ -16,18 +16,20 @@
 
 package com.splunk.opentelemetry.jaeger;
 
+import static java.util.Objects.requireNonNull;
+
 import java.io.IOException;
 import okhttp3.Interceptor;
 import okhttp3.Request;
 import okhttp3.Response;
 
-public class AuthTokenInterceptor implements Interceptor {
+class AuthTokenInterceptor implements Interceptor {
   static final String TOKEN_HEADER = "X-SF-TOKEN";
 
   private final String signalfxAuthToken;
 
-  public AuthTokenInterceptor(String token) {
-    this.signalfxAuthToken = token;
+  AuthTokenInterceptor(String token) {
+    this.signalfxAuthToken = requireNonNull(token);
   }
 
   @Override

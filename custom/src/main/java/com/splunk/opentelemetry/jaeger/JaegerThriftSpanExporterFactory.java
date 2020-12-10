@@ -24,8 +24,12 @@ import java.util.Collections;
 import java.util.Properties;
 import java.util.Set;
 import okhttp3.OkHttpClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class JaegerThriftSpanExporterFactory implements SpanExporterFactory {
+  private static final Logger log = LoggerFactory.getLogger(JaegerThriftSpanExporterFactory.class);
+
   static final String SIGNALFX_AUTH_TOKEN = "signalfx.auth.token";
   static final String OTEL_EXPORTER_JAEGER_ENDPOINT = "otel.exporter.jaeger.endpoint";
 
@@ -36,6 +40,7 @@ public class JaegerThriftSpanExporterFactory implements SpanExporterFactory {
 
     String token = config.getProperty(SIGNALFX_AUTH_TOKEN, "");
     if (!token.isEmpty()) {
+      log.debug("Using authenticated jaeger-thrift exporter");
       builder.setThriftSender(
           new HttpSender.Builder(config.getProperty(OTEL_EXPORTER_JAEGER_ENDPOINT))
               .withClient(
@@ -43,6 +48,8 @@ public class JaegerThriftSpanExporterFactory implements SpanExporterFactory {
                       .addInterceptor(new AuthTokenInterceptor(token))
                       .build())
               .build());
+    } else {
+      log.debug("Using jaeger-thrift exporter without authentication");
     }
 
     return builder.build();

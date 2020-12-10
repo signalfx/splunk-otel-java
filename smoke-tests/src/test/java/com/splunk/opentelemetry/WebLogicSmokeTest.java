@@ -25,7 +25,6 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.testcontainers.DockerClientFactory;
 
 /**
  * This is the smoke test for OpenTelemetry Java agent with Oracle WebLogic. The test is ignored if
@@ -40,20 +39,18 @@ class WebLogicSmokeTest extends AppServerTest {
 
   private static Stream<Arguments> supportedWlsConfigurations() {
     return Stream.of(
-        arguments(new WebLogicConfiguration("12.2.1.4", "developer")),
-        arguments(new WebLogicConfiguration("14.1.1.0", "developer-8")),
-        arguments(new WebLogicConfiguration("14.1.1.0", "developer-11")));
+        arguments("splunk-weblogic:12.2.1.4-jdkdeveloper"),
+        arguments("splunk-weblogic:14.1.1.0-jdkdeveloper-8"),
+        arguments("splunk-weblogic:14.1.1.0-jdkdeveloper-11"));
   }
 
   @ParameterizedTest
   @MethodSource("supportedWlsConfigurations")
-  public void webLogicSmokeTest(WebLogicConfiguration wlsConfig)
-      throws IOException, InterruptedException {
+  public void webLogicSmokeTest(String imageName) throws IOException, InterruptedException {
     assumeTrue(
-        wlsConfig.localDockerImageIsPresent(),
-        "Local docker image " + wlsConfig.toString() + " is present");
+        localDockerImageIsPresent(imageName), "Local docker image " + imageName + " is present");
 
-    startTarget(wlsConfig.getImageName());
+    startTarget(imageName);
 
     // FIXME: APMI-1300
     //    assertServerHandler(....)
@@ -81,34 +78,5 @@ class WebLogicSmokeTest extends AppServerTest {
       ExpectedServerAttributes serverAttributes, TraceInspector traces) {
     // FIXME: waiting for
     // https://github.com/open-telemetry/opentelemetry-java-instrumentation/pull/1630
-  }
-
-  static class WebLogicConfiguration {
-    final String jdk;
-    final String wlsVersion;
-
-    public WebLogicConfiguration(String wlsVersion, String jdk) {
-      this.jdk = jdk;
-      this.wlsVersion = wlsVersion;
-    }
-
-    @Override
-    public String toString() {
-      return "WebLogic " + wlsVersion + " on Java " + jdk;
-    }
-
-    public String getImageName() {
-      return "splunk-weblogic:" + wlsVersion + "-jdk" + jdk;
-    }
-
-    private boolean localDockerImageIsPresent() {
-      try {
-        DockerClientFactory.lazyClient().inspectImageCmd(getImageName()).exec();
-        return true;
-      } catch (Exception e) {
-        System.out.println(e.getMessage());
-        return false;
-      }
-    }
   }
 }

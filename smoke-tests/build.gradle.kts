@@ -1,5 +1,6 @@
 plugins {
   java
+  id("org.gradle.test-retry") version "1.2.0"
 }
 
 dependencies {
@@ -16,11 +17,17 @@ dependencies {
 
 tasks.test {
   useJUnitPlatform()
+  maxParallelForks = 2
+  retry {
+    // You can see tests that were retried by this mechanism in the collected test reports and build scans.
+    maxRetries.set(if (System.getenv("CI") != null) 5 else 0)
+  }
+
   reports {
     junitXml.isOutputPerTestCase = true
   }
 
-  val shadowTask : Jar = project(":agent").tasks.named<Jar>("shadowJar").get()
+  val shadowTask: Jar = project(":agent").tasks.named<Jar>("shadowJar").get()
   inputs.files(layout.files(shadowTask))
 
   doFirst {

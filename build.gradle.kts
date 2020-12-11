@@ -21,7 +21,7 @@ subprojects {
 
   extra.set("versions", mapOf(
       "opentelemetry" to "0.12.0",
-      "opentelemetryJavaagent" to "0.13.0-SNAPSHOT"
+      "opentelemetryJavaagent" to "0.12.0"
   ))
 
   repositories {

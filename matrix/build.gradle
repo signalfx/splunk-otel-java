@@ -1,0 +1,71 @@
+import com.bmuschko.gradle.docker.tasks.image.DockerBuildImage
+import org.apache.tools.ant.filters.ReplaceTokens
+
+plugins {
+  id 'war'
+  id "com.bmuschko.docker-remote-api" version "6.6.1"
+}
+
+tasks {
+  compileJava {
+    options.release.set(8)
+  }
+}
+
+def versions = ext['versions']
+
+dependencies {
+  implementation("javax.servlet:javax.servlet-api:3.0.1")
+  implementation("io.opentelemetry:opentelemetry-extension-annotations:${versions["opentelemetry"]}")
+}
+
+def dockerFileName(String template) {
+  template.replace("-dockerfile.template", ".dockerfile")
+}
+
+def dockerWorkingDir = new File(project.buildDir, "docker")
+
+def buildProprietaryTestImagesTask = tasks.create("buildProprietaryTestImages") {
+  group = "build"
+  description = "Builds all Docker images for the test matrix for proprietary app servers"
+}
+
+def targets = [
+   "weblogic" : [
+        "12.2.1.4" : ["developer"],
+        "14.1.1.0" : ["developer-8", "developer-11"]
+   ]
+]
+
+targets.forEach { server, data ->
+  data.forEach { version, jdks ->
+    jdks.forEach { jdk ->
+      def template = "$server-dockerfile.template"
+
+      def prepareTask = tasks.register("${server}ImagePrepare-$version-jdk$jdk", Copy) {
+        def warTask = project.tasks.named("war").get()
+        it.dependsOn(warTask)
+        it.into(dockerWorkingDir)
+        it.from("src") {
+          it.filter(ReplaceTokens, "tokens" : ["version" : version, "jdk" : jdk])
+          it.rename { f -> dockerFileName(f) }
+        }
+        it.from(warTask.archiveFile) {
+          rename { _ -> "app.war" }
+        }
+      }
+
+      def buildTask = tasks.register("${server}Image-$version-jdk$jdk", DockerBuildImage) {
+        it.dependsOn(prepareTask)
+        group = "build"
+        description = "Builds Docker image with $server $version on JDK $jdk"
+
+        it.inputDir = dockerWorkingDir
+        it.images.add "splunk-$server:$version-jdk$jdk"
+        it.dockerFile = new File(dockerWorkingDir, dockerFileName(template))
+      }
+
+      buildProprietaryTestImagesTask.dependsOn(buildTask)
+    }
+  }
+}

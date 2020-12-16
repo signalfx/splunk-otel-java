@@ -1,9 +1,9 @@
 import nebula.plugin.release.git.opinion.Strategies
 
 plugins {
-  java
-  id("com.diffplug.spotless") version "5.2.0" apply false
-  id("nebula.release") version "15.0.1"
+  id "java"
+  id "com.diffplug.spotless" version "5.2.0" apply false
+  id "nebula.release" version "15.0.1"
 }
 
 release {
@@ -15,14 +15,14 @@ group = "com.splunk.public"
 subprojects {
   version = rootProject.version
 
-  apply<JavaPlugin>()
-  apply(plugin = "com.diffplug.spotless")
-  apply(from = "$rootDir/gradle/spotless.gradle")
+  apply plugin: 'java'
+  apply plugin: 'com.diffplug.spotless'
+  apply from: "$rootDir/gradle/spotless.gradle"
 
-  extra.set("versions", mapOf(
-      "opentelemetry" to "0.12.0",
-      "opentelemetryJavaagent" to "0.12.0"
-  ))
+  it.ext['versions'] = [
+      'opentelemetry' : "0.12.0",
+      'opentelemetryJavaagent' : '0.12.0'
+  ]
 
   repositories {
     jcenter()
@@ -49,7 +49,7 @@ subprojects {
     test {
       useJUnitPlatform()
       reports {
-        junitXml.isOutputPerTestCase = true
+        junitXml.outputPerTestCase = true
       }
     }
   }

@@ -20,7 +20,6 @@ import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 import java.io.IOException;
 import java.util.stream.Stream;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -53,23 +52,22 @@ public class TomcatSmokeTest extends AppServerTest {
             TOMCAT9_SERVER_ATTRIBUTES));
   }
 
-  @Disabled("Test fails with non-root context of test app. Pending investigation")
   @ParameterizedTest(name = "[{index}] {0}")
   @MethodSource("supportedConfigurations")
   void tomcatSmokeTest(String imageName, ExpectedServerAttributes expectedServerAttributes)
       throws IOException, InterruptedException {
     startTarget(imageName);
 
-    assertServerHandler(expectedServerAttributes);
+    // TODO: Uncomment when
+    // https://github.com/open-telemetry/opentelemetry-java-instrumentation/pull/1902 is released
+    // upstream.
+    //    assertServerHandler(expectedServerAttributes);
     assertWebAppTrace(expectedServerAttributes);
   }
 
   public static class TomcatAttributes extends ExpectedServerAttributes {
     public TomcatAttributes(String version) {
-      super(
-          "/this-is-definitely-not-there-but-there-should-be-a-trace-nevertheless",
-          "tomcat",
-          version);
+      super("CoyoteAdapter.service", "tomcat", version);
     }
   }
 }

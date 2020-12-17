@@ -1,5 +1,4 @@
 import com.bmuschko.gradle.docker.tasks.image.DockerBuildImage
-import org.apache.tools.ant.filters.ReplaceTokens
 
 plugins {
   id 'war'
@@ -19,10 +18,6 @@ dependencies {
   implementation("io.opentelemetry:opentelemetry-extension-annotations:${versions["opentelemetry"]}")
 }
 
-def dockerFileName(String template) {
-  template.replace("-dockerfile.template", ".dockerfile")
-}
-
 def dockerWorkingDir = new File(project.buildDir, "docker")
 
 def buildProprietaryTestImagesTask = tasks.create("buildProprietaryTestImages") {
@@ -34,22 +29,23 @@ def targets = [
    "weblogic" : [
         "12.2.1.4" : ["developer"],
         "14.1.1.0" : ["developer-8", "developer-11"]
-   ]
+   ],
+    "jboss-eap" : [
+        "7.1.0" : ["8"],
+        "7.3.0" : ["8", "11"]
+    ]
 ]
 
 targets.forEach { server, data ->
+  String dockerFileName = "${server}.dockerfile"
   data.forEach { version, jdks ->
     jdks.forEach { jdk ->
-      def template = "$server-dockerfile.template"
-
       def prepareTask = tasks.register("${server}ImagePrepare-$version-jdk$jdk", Copy) {
         def warTask = project.tasks.named("war").get()
         it.dependsOn(warTask)
         it.into(dockerWorkingDir)
-        it.from("src") {
-          it.filter(ReplaceTokens, "tokens" : ["version" : version, "jdk" : jdk])
-          it.rename { f -> dockerFileName(f) }
-        }
+        it.from("src/${dockerFileName}")
+        it.from("src/main/docker/${server}")
         it.from(warTask.archiveFile) {
           rename { _ -> "app.war" }
         }
@@ -62,7 +58,9 @@ targets.forEach { server, data ->
 
         it.inputDir = dockerWorkingDir
         it.images.add "splunk-$server:$version-jdk$jdk"
-        it.dockerFile = new File(dockerWorkingDir, dockerFileName(template))
+        it.buildArgs.set(["version": version, "jdk": jdk])
+
+        it.dockerFile = new File(dockerWorkingDir, dockerFileName)
       }
 
       buildProprietaryTestImagesTask.dependsOn(buildTask)

@@ -34,6 +34,9 @@ $ sh buildDockerImage.sh -v 12.2.1.4 -d -s
 ```
 This will build the docker image `oracle/weblogic:12.2.1.4-developer`
 
+Now, when the Base WebLogic Image is built, you can run `./gradlew weblogicImage-12.2.1.4-jdkdeveloper` to build the
+image with the test app deployed which can be used by SmokeTests.
+
 #### WebLogic 14
 Follow these instructions and build _developer_ (`-d` flag) image of
 [WebLogic 14.1.1.0](https://github.com/oracle/docker-images/tree/master/OracleWebLogic/dockerfiles/14.1.1.0)
@@ -48,3 +51,15 @@ $ sh buildDockerImage.sh -v 14.1.1.0 -d -s -j 11
 ```
 
 This will build docker images `oracle/weblogic:14.1.1.0-developer-8` and `oracle/weblogic:14.1.1.0-developer-11` respectively.
+
+Now, when the Base WebLogic Image is built, you can run `./gradlew weblogicImage-14.1.1.0-jdkdeveloper-8` and
+`weblogicImage-14.1.1.0-jdkdeveloper-11` to build images with the test app deployed which can be used by SmokeTests.
+
+### JBoss EAP
+To build JBoss EAP images you need to download following files to the `src/main/docker/jboss-eap` directory:
+
+* [jboss-eap-7.1.0.zip](https://developers.redhat.com/download-manager/file/jboss-eap-7.1.0.zip)
+* [jboss-eap-7.3.0.zip](https://developers.redhat.com/download-manager/file/jboss-eap-7.3.0.zip)
+
+Now you can run gradle targets `jboss-eapImage-7.1.0-jdk8`, `jboss-eapImage-7.3.0-jdk11`, `jboss-eapImage-7.3.0-jdk8`
+to build Docker images with the test app deployed which can be used by SmokeTests.

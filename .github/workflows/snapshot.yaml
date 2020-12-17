@@ -1,0 +1,20 @@
+name: Build with upstream snapshot
+
+on:
+  schedule:
+    # Run 2 hours after opentelemetry-java-instrumentation nightly runs
+    - cron: "24 5 * * *"
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up JDK 11 for running Gradle
+        uses: actions/setup-java@v1
+        with:
+          java-version: 11
+
+      - name: Build and test
+        run: ./gradlew -Psnapshot=yes build --scan --no-daemon

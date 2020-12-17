@@ -12,6 +12,13 @@ release {
 
 group = "com.splunk.public"
 
+boolean snapshot = getProperty("snapshot") == 'yes'
+
+def versions = [
+    'opentelemetry'         : snapshot ? "0.13.0-SNAPSHOT" : "0.12.0",
+    'opentelemetryJavaagent': snapshot ? "0.13.0-SNAPSHOT" : '0.12.0'
+]
+
 subprojects {
   version = rootProject.version
 
@@ -19,10 +26,7 @@ subprojects {
   apply plugin: 'com.diffplug.spotless'
   apply from: "$rootDir/gradle/spotless.gradle"
 
-  it.ext['versions'] = [
-      'opentelemetry' : "0.12.0",
-      'opentelemetryJavaagent' : '0.12.0'
-  ]
+  it.ext['versions'] = versions
 
   repositories {
     jcenter()

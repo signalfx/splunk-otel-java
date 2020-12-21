@@ -44,7 +44,7 @@ Then the runtime parameters would be updated to:
 ```bash
 $ curl -L https://github.com/signalfx/splunk-otel-java/releases/latest/download/splunk-otel-javaagent-all.jar \
     -o splunk-otel-javaagent.jar
-$ java -javaagent:./splunk-otel-javaagent.jar -Dotel.zipkin.service.name=my-java-app \
+$ java -javaagent:./splunk-otel-javaagent.jar -Dotel.jaeger.service.name=my-java-app \
     -jar target/java-agent-example-1.0-SNAPSHOT-shaded.jar https://google.com
 ```
 
@@ -87,14 +87,14 @@ System property values take priority over corresponding environment variables.
 
 ### Jaeger exporter
 
-A simple wrapper for the Jaeger exporter of opentelemetry-java. gRPC is currently the only supported communications protocol.
+A simple wrapper for the Jaeger exporter of [opentelemetry-java](https://github.com/open-telemetry/opentelemetry-java). Apache Thrift is the default communications protocol.
 
 | System property                   | Environment variable              | Description                                                                                                         |
 |-----------------------------------|-----------------------------------|---------------------------------------------------------------------------------------------------------------------|
-| otel.exporter=jaeger              | OTEL_EXPORTER=jaeger              | Select the Jaeger exporter                                                                                          |
-| otel.exporter.jaeger.endpoint     | OTEL_EXPORTER_JAEGER_ENDPOINT     | The Jaeger endpoint to connect to. Default is `localhost:14250`. Currently only gRPC is supported.                  |
-| otel.exporter.jaeger.service.name | OTEL_EXPORTER_JAEGER_SERVICE_NAME | The service name of this JVM instance. Default is `unknown`.                                                        |
-| signalfx.auth.token               | SIGNALFX_AUTH_TOKEN               | Auth token allowing to communicate directly with the Splunk cloud, passed as `X-SF-TOKEN` header. Default is empty. |
+| otel.exporter=jaeger-thrift       | OTEL_EXPORTER=jaeger-thrift              | Select the Jaeger exporter. This is the default value.                                                                                          
+| otel.exporter.jaeger.endpoint     | OTEL_EXPORTER_JAEGER_ENDPOINT     | The Jaeger endpoint to connect to. Default is `localhost:14250`.
+| otel.exporter.jaeger.service.name | OTEL_EXPORTER_JAEGER_SERVICE_NAME | The service name of this JVM instance. Default is `unknown`.                                                        
+| signalfx.auth.token               | SIGNALFX_AUTH_TOKEN               | (Optional) Auth token allowing to communicate directly with the Splunk cloud, passed as `X-SF-TOKEN` header. Default is empty. |
 
 ### Trace configuration
 
@@ -111,6 +111,9 @@ A simple wrapper for the Jaeger exporter of opentelemetry-java. gRPC is currentl
 | otel.trace.enabled                  | OTEL_TRACE_ENABLED                 | `true`         | Globally enables tracer creation and auto-instrumentation.                                                                                                                                                                                                                                                                                                                                                |
 | otel.trace.methods                  | OTEL_TRACE_METHODS                 | unset          | Same as adding `@WithSpan` annotation functionality for the target method string. <details><summary>Format</summary>`my.package.MyClass1[method1,method2];my.package.MyClass2[method3]`</details>                                                                                                                                                                                                            |
 | otel.trace.annotated.methods.exclude     | OTEL_TRACE_ANNOTATED_METHODS_EXCLUDE    | unset          | Suppress `@WithSpan` instrumentation for specific methods. <details><summary>Format</summary>`my.package.MyClass1[method1,method2];my.package.MyClass2[method3]`</details>                                                                                                                                                                                                                                |
+
+### More options
+For more options see [here](https://github.com/open-telemetry/opentelemetry-java-instrumentation#configuration-parameters-subject-to-change)
 
 ## Manually instrument a Java application
 

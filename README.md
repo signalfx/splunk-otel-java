@@ -44,7 +44,7 @@ Then the runtime parameters would be updated to:
 ```bash
 $ curl -L https://github.com/signalfx/splunk-otel-java/releases/latest/download/splunk-otel-javaagent-all.jar \
     -o splunk-otel-javaagent.jar
-$ java -javaagent:./splunk-otel-javaagent.jar -Dotel.zipkin.service.name=my-java-app \
+$ java -javaagent:./splunk-otel-javaagent.jar -Dotel.jaeger.service.name=my-java-app \
     -jar target/java-agent-example-1.0-SNAPSHOT-shaded.jar https://google.com
 ```
 

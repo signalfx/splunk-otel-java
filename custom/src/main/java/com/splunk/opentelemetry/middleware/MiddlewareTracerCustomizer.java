@@ -18,13 +18,13 @@ package com.splunk.opentelemetry.middleware;
 
 import com.google.auto.service.AutoService;
 import io.opentelemetry.javaagent.spi.TracerCustomizer;
-import io.opentelemetry.sdk.trace.TracerSdkManagement;
+import io.opentelemetry.sdk.trace.SdkTracerManagement;
 
 @AutoService(TracerCustomizer.class)
 public class MiddlewareTracerCustomizer implements TracerCustomizer {
 
   @Override
-  public void configure(TracerSdkManagement tracerManagement) {
+  public void configure(SdkTracerManagement tracerManagement) {
     tracerManagement.addSpanProcessor(new MiddlewareAttributeSpanProcessor());
   }
 }

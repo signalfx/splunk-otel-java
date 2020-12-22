@@ -18,6 +18,7 @@ package com.splunk.opentelemetry.jaeger;
 
 import io.jaegertracing.thrift.internal.senders.HttpSender;
 import io.opentelemetry.exporter.jaeger.thrift.JaegerThriftSpanExporter;
+import io.opentelemetry.exporter.jaeger.thrift.JaegerThriftSpanExporterBuilder;
 import io.opentelemetry.javaagent.spi.exporter.SpanExporterFactory;
 import io.opentelemetry.sdk.trace.export.SpanExporter;
 import java.util.Collections;
@@ -35,7 +36,7 @@ public class JaegerThriftSpanExporterFactory implements SpanExporterFactory {
 
   @Override
   public SpanExporter fromConfig(Properties config) {
-    JaegerThriftSpanExporter.Builder builder =
+    JaegerThriftSpanExporterBuilder builder =
         JaegerThriftSpanExporter.builder().readProperties(config);
 
     String token = config.getProperty(SIGNALFX_AUTH_TOKEN, "");

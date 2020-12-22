@@ -17,13 +17,13 @@
 package com.splunk.opentelemetry;
 
 import io.opentelemetry.javaagent.spi.TracerCustomizer;
-import io.opentelemetry.sdk.trace.TracerSdkManagement;
+import io.opentelemetry.sdk.trace.SdkTracerManagement;
 import io.opentelemetry.sdk.trace.samplers.Sampler;
 
 public class SplunkTracerCustomizer implements TracerCustomizer {
 
   @Override
-  public void configure(TracerSdkManagement tracerManagement) {
+  public void configure(SdkTracerManagement tracerManagement) {
     tracerManagement.updateActiveTraceConfig(
         tracerManagement.getActiveTraceConfig().toBuilder().setSampler(Sampler.alwaysOn()).build());
   }

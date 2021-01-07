@@ -120,6 +120,11 @@ For more options see [here](https://github.com/open-telemetry/opentelemetry-java
 Documentation on how to manually instrument a Java application are available
 [here](https://github.com/open-telemetry/opentelemetry-java-instrumentation#manually-instrumenting).
 
+To extend the instrumentation with the OpenTelemetry Instrumentation for Java,
+you have to use a compatible API version. The Splunk distribution of 
+OpenTelemetry Java Instrumentation version 0.4.0 is compatible with the
+OpenTelemetry Instrumentation for Java version 0.12.0 and 0.12.1.
+
 ## Inject trace and span ID into logs
 
 Documentation on how to inject trace context into logs is available

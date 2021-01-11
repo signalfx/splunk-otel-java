@@ -70,7 +70,7 @@ so you can support existing custom instrumentation or add custom
 instrumentation to your application later.
 
 To see the Java Agent in action with sample applications, see our
-[examples](https://github.com/signalfx/tracing-examples/tree/master/signalfx-tracing/splunk-otel-java).
+[examples](https://github.com/signalfx/tracing-examples/tree/master/opentelemetry-tracing/opentelemetry-java-tracing).
 
 > :warning: Specify the agent as the only JVM agent for your application.
 > Multiple agents may result in unpredictable results, broken instrumentation,

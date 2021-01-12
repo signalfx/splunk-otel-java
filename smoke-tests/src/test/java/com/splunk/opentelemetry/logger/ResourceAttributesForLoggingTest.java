@@ -20,8 +20,6 @@ import com.splunk.opentelemetry.SmokeTest;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Assumptions;
@@ -61,7 +59,7 @@ public class ResourceAttributesForLoggingTest {
 
   private Process startProcessWithJavaagent() throws IOException {
     File javaBinary = new File(System.getProperty("java.home"), "bin/java");
-    String javaagent = "-javaagent:s" + SmokeTest.agentPath;
+    String javaagent = "-javaagent:" + SmokeTest.agentPath;
     String resourceAttributes =
         "-Dotel.resource.attributes=service.name=MyService,environment=development";
     String classpath = System.getProperty("java.class.path");
@@ -77,13 +75,5 @@ public class ResourceAttributesForLoggingTest {
     System.out.println(String.join(" ", strings));
     processBuilder.command(strings);
     return processBuilder.start();
-  }
-
-  private void transfer(InputStream from, OutputStream to) throws IOException {
-    byte[] buffer = new byte[65535];
-    int read;
-    while ((read = from.read(buffer, 0, buffer.length)) >= 0) {
-      to.write(buffer, 0, read);
-    }
   }
 }

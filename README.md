@@ -125,10 +125,27 @@ you have to use a compatible API version. The Splunk distribution of
 OpenTelemetry Java Instrumentation version 0.5.0 is compatible with the
 OpenTelemetry Instrumentation for Java version 0.13.0 and API version 0.13.1.
 
-## Inject trace and span ID into logs
+## Correlating traces with logs
+
+To correlate traces with logs it is possible to add both trace (`traceId` and `spanId`) and 
+resource (e.g., `service.name` and `environment` attributes of the 
+[Resource](https://github.com/open-telemetry/opentelemetry-specification/blob/master/specification/resource/sdk.md)) contexts.
 
 Documentation on how to inject trace context into logs is available
 [here](https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/master/docs/logger-mdc-instrumentation.md).
+
+To log resource context, Splunk distribution exposes resource attributes as system properties prefixed with `otel.resource.`
+which can be used in logger configuration.
+Example configuration for log4j pattern:
+```xml
+<PatternLayout>
+  <pattern>service: ${sys:otel.resource.service.name}, env: ${sys:otel.resource.environment} %m%n</pattern>
+</PatternLayout>
+```
+or logback pattern:
+```xml
+<pattern>service: %property{otel.resource.service.name}, env: %property{otel.resource.environment}: %m%n</pattern>
+```
 
 ## Troubleshooting
 

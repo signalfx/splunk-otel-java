@@ -41,17 +41,17 @@ public class ResourceAttributesForLoggingTest {
     Process process = startProcessWithJavaagent();
 
     ByteArrayOutputStream out = new ByteArrayOutputStream();
-    transfer(process.getInputStream(), out);
+    process.getInputStream().transferTo(out);
     ByteArrayOutputStream err = new ByteArrayOutputStream();
-    transfer(process.getErrorStream(), err);
+    process.getErrorStream().transferTo(err);
 
     Assertions.assertTrue(process.waitFor(30L, TimeUnit.SECONDS), "Process exited");
 
-    int exitValue = process.exitValue();
-    if (exitValue != 0) {
-      System.err.println(err.toString());
-    }
-    Assertions.assertEquals(0, exitValue, "Process exited normally");
+    Assertions.assertEquals(
+        0,
+        process.exitValue(),
+        "Unexpected exit code. Process exited with stderr: \n" + err.toString());
+
     String stdout = out.toString();
     Assertions.assertTrue(
         stdout.contains(
@@ -61,7 +61,7 @@ public class ResourceAttributesForLoggingTest {
 
   private Process startProcessWithJavaagent() throws IOException {
     File javaBinary = new File(System.getProperty("java.home"), "bin/java");
-    String javaagent = "-javaagent:" + SmokeTest.agentPath;
+    String javaagent = "-javaagent:s" + SmokeTest.agentPath;
     String resourceAttributes =
         "-Dotel.resource.attributes=service.name=MyService,environment=development";
     String classpath = System.getProperty("java.class.path");

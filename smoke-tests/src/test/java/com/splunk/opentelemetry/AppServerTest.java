@@ -48,7 +48,7 @@ public abstract class AppServerTest extends SmokeTest {
 
     Set<String> traceIds = traces.getTraceIds();
 
-    Assertions.assertEquals(traceIds.size(), 1, "There is one trace");
+    Assertions.assertEquals(1, traceIds.size(), "There is one trace");
     String theOneTraceId = new ArrayList<>(traceIds).get(0);
 
     String responseBody = response.body().string();

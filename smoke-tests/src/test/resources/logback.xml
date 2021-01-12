@@ -7,10 +7,22 @@
     </encoder>
   </appender>
 
+  <!-- used by com.splunk.opentelemetry.logger.LoggerTestMain -->
+  <appender name="consoleWithResource" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder>
+      <pattern>%logger - service=%property{otel.resource.service.name}, env=%property{otel.resource.environment}: %m%n</pattern>
+    </encoder>
+  </appender>
+
+  <logger name="LoggerIntegrationTest" level="trace">
+    <appender-ref ref="consoleWithResource"/>
+  </logger>
+
   <root level="INFO">
     <appender-ref ref="console"/>
   </root>
 
+  <logger name="LoggerIntegrationTest" level="trace"/>
   <logger name="io.opentelemetry" level="debug"/>
   <logger name="com.splunk" level="debug"/>
 

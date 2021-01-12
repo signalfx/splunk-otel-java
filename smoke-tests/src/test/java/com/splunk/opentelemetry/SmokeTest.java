@@ -51,7 +51,7 @@ import org.testcontainers.containers.wait.strategy.WaitStrategy;
 import org.testcontainers.utility.DockerImageName;
 import org.testcontainers.utility.MountableFile;
 
-abstract class SmokeTest {
+public abstract class SmokeTest {
   private static final Logger logger = LoggerFactory.getLogger(SmokeTest.class);
 
   private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
@@ -59,7 +59,7 @@ abstract class SmokeTest {
   protected static OkHttpClient client = OkHttpUtils.client();
 
   private static final Network network = Network.newNetwork();
-  protected static final String agentPath =
+  public static final String agentPath =
       System.getProperty("io.opentelemetry.smoketest.agent.shadowJar.path");
 
   protected boolean localDockerImageIsPresent(String imageName) {

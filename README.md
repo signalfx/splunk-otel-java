@@ -91,7 +91,7 @@ A simple wrapper for the Jaeger exporter of [opentelemetry-java](https://github.
 
 | System property                   | Environment variable              | Description                                                                                                         |
 |-----------------------------------|-----------------------------------|---------------------------------------------------------------------------------------------------------------------|
-| otel.exporter=jaeger-thrift       | OTEL_EXPORTER=jaeger-thrift-splunk              | Select the Jaeger exporter. This is the default value.                                                                                          
+| otel.exporter=jaeger-thrift-splunk | OTEL_EXPORTER=jaeger-thrift-splunk              | Select the Jaeger exporter. This is the default value.                                                                                          
 | otel.exporter.jaeger.endpoint     | OTEL_EXPORTER_JAEGER_ENDPOINT     | The Jaeger endpoint to connect to. Default is `localhost:14250`.
 | otel.exporter.jaeger.service.name | OTEL_EXPORTER_JAEGER_SERVICE_NAME | The service name of this JVM instance. Default is `unknown`.                                                        
 | signalfx.auth.token               | SIGNALFX_AUTH_TOKEN               | (Optional) Auth token allowing to communicate directly with the Splunk cloud, passed as `X-SF-TOKEN` header. Default is empty. |

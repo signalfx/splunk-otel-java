@@ -25,16 +25,6 @@ compileJava {
     options.release.set(8)
 }
 
-CopySpec isolateSpec(Collection<Project> projectsWithShadowJar) {
-    return copySpec {
-        from({ projectsWithShadowJar.tasks.shadowJar.collect { zipTree(it.archiveFile) } }) {
-            // important to keep prefix 'inst' short, as it is prefixed to lots of strings in runtime mem
-            into 'inst'
-            rename '(^.*)\\.class$', '$1.classdata'
-        }
-    }
-}
-
 CopySpec isolateSpec() {
     return copySpec {
         configurations.customShadow.files.each {

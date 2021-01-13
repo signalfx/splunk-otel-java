@@ -1,20 +1,38 @@
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+
 plugins {
     id("com.github.johnrengelman.shadow") version "6.0.0"
 }
 configurations {
+    // dependencies that are moved to inst
     customShadow
+    // dependencies that need package relocation
+    customShadowInclude
+    // dependencies that are not moved to inst and don't need package relocation
+    mainShadow
+    compileOnly.extendsFrom(mainShadow)
 }
 dependencies {
     customShadow project(path: ":custom", configuration: "shadow")
     customShadow project(path: ":instrumentation", configuration: "shadow")
-    implementation "io.opentelemetry.javaagent:opentelemetry-javaagent:${versions.opentelemetryJavaagent}:all"
-    implementation project(":bootstrap")
+    mainShadow "io.opentelemetry.javaagent:opentelemetry-javaagent:${versions.opentelemetryJavaagent}:all"
+    customShadowInclude project(":bootstrap")
 }
 
 archivesBaseName = "splunk-otel-javaagent"
 
 compileJava {
     options.release.set(8)
+}
+
+CopySpec isolateSpec(Collection<Project> projectsWithShadowJar) {
+    return copySpec {
+        from({ projectsWithShadowJar.tasks.shadowJar.collect { zipTree(it.archiveFile) } }) {
+            // important to keep prefix 'inst' short, as it is prefixed to lots of strings in runtime mem
+            into 'inst'
+            rename '(^.*)\\.class$', '$1.classdata'
+        }
+    }
 }
 
 CopySpec isolateSpec() {
@@ -28,33 +46,44 @@ CopySpec isolateSpec() {
     }
 }
 
-tasks {
-    shadowJar {
-        dependsOn ':custom:shadowJar'
-        dependsOn ':instrumentation:shadowJar'
-        dependsOn ':bootstrap:jar'
-        with isolateSpec()
+// includes everything except otel agent
+task customShadow(type: ShadowJar) {
+    from sourceSets.main.output
 
-        /// TODO - with this set to EXCLUDE, service files will not be merged between instrumentation and custom
-        duplicatesStrategy = DuplicatesStrategy.INCLUDE
+    configurations = [project.configurations.customShadowInclude]
+
+    dependsOn ':custom:shadowJar'
+    dependsOn ':instrumentation:shadowJar'
+    dependsOn ':bootstrap:jar'
+    with isolateSpec()
+
+    mergeServiceFiles()
+    exclude("**/module-info.class")
+
+    // Prevents conflict with other SLF4J instances. Important for premain.
+    relocate("org.slf4j", "io.opentelemetry.javaagent.slf4j")
+    // rewrite dependencies calling Logger.getLogger
+    relocate("java.util.logging.Logger", "io.opentelemetry.javaagent.bootstrap.PatchLogger")
+
+    // prevents conflict with library instrumentation
+    relocate("io.opentelemetry.instrumentation.api", "io.opentelemetry.javaagent.shaded.instrumentation.api")
+
+    // relocate OpenTelemetry API
+    relocate("io.opentelemetry.api", "io.opentelemetry.javaagent.shaded.io.opentelemetry.api")
+    relocate("io.opentelemetry.spi", "io.opentelemetry.javaagent.shaded.io.opentelemetry.spi")
+    relocate("io.opentelemetry.context", "io.opentelemetry.javaagent.shaded.io.opentelemetry.context")
+}
+
+tasks {
+    // merge otel agent with our agent
+    shadowJar {
+        from tasks.customShadow.outputs
+
+        configurations = [project.configurations.mainShadow]
 
         mergeServiceFiles {
             include("inst/META-INF/services/*")
         }
-        exclude("**/module-info.class")
-
-        // Prevents conflict with other SLF4J instances. Important for premain.
-        relocate("org.slf4j", "io.opentelemetry.javaagent.slf4j")
-        // rewrite dependencies calling Logger.getLogger
-        relocate("java.util.logging.Logger", "io.opentelemetry.javaagent.bootstrap.PatchLogger")
-
-        // prevents conflict with library instrumentation
-        relocate("io.opentelemetry.instrumentation.api", "io.opentelemetry.javaagent.shaded.instrumentation.api")
-
-        // relocate OpenTelemetry API
-        relocate("io.opentelemetry.api", "io.opentelemetry.javaagent.shaded.io.opentelemetry.api")
-        relocate("io.opentelemetry.spi", "io.opentelemetry.javaagent.shaded.io.opentelemetry.spi")
-        relocate("io.opentelemetry.context", "io.opentelemetry.javaagent.shaded.io.opentelemetry.context")
 
         manifest {
             attributes.put("Main-Class", "io.opentelemetry.javaagent.OpenTelemetryAgent")

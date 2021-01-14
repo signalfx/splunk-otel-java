@@ -16,6 +16,7 @@
 
 package com.splunk.opentelemetry.jaeger;
 
+import com.google.auto.service.AutoService;
 import io.jaegertracing.thrift.internal.senders.HttpSender;
 import io.opentelemetry.exporter.jaeger.thrift.JaegerThriftSpanExporter;
 import io.opentelemetry.exporter.jaeger.thrift.JaegerThriftSpanExporterBuilder;
@@ -28,6 +29,7 @@ import okhttp3.OkHttpClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@AutoService(SpanExporterFactory.class)
 public class JaegerThriftSpanExporterFactory implements SpanExporterFactory {
   private static final Logger log = LoggerFactory.getLogger(JaegerThriftSpanExporterFactory.class);
 

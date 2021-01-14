@@ -70,5 +70,7 @@ public class WildFlySmokeTest extends AppServerTest {
     // TODO support 404
     //    assertServerHandler(expectedServerAttributes);
     assertWebAppTrace(expectedServerAttributes);
+
+    stopTarget();
   }
 }

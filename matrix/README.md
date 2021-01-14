@@ -22,20 +22,23 @@ first step) and first build
 [OracleJava 11](https://github.com/oracle/docker-images/blob/master/OracleJava/11/Dockerfile) and
 then respective WebLogic versions.
 
-#### WebLogic 12
+#### WebLogic 12.1 and 12.2]
 Follow these instructions and build _developer_ (`-d` flag) image of
-[WebLogic 12.2.1.4 on Java 8](https://github.com/oracle/docker-images/tree/master/OracleWebLogic/dockerfiles/12.2.1.4)
+[WebLogic 12.2.1.4 on Java 8](https://github.com/oracle/docker-images/tree/master/OracleWebLogic/dockerfiles/12.2.1.4) and
+[WebLogic 12.1.3 on Java 8](https://github.com/oracle/docker-images/tree/master/OracleWebLogic/dockerfiles/12.1.3)
 
 *NB!* On MacOS run the build script without checksum verification (`-s` flag), as it uses missing MD5 checksum utility.
 
 ```
 $ cd OracleWebLogic/dockerfiles
 $ sh buildDockerImage.sh -v 12.2.1.4 -d -s
+$ sh buildDockerImage.sh -v 12.1.3 -d -s
 ```
-This will build the docker image `oracle/weblogic:12.2.1.4-developer`
+This will build the docker image `oracle/weblogic:12.2.1.4-developer` and `oracle/weblogic:12.1.3-developer`
 
-Now, when the Base WebLogic Image is built, you can run `./gradlew weblogicImage-12.2.1.4-jdkdeveloper` to build the
-image with the test app deployed which can be used by SmokeTests.
+Now, when the Base WebLogic Image is built, you can run
+`./gradlew weblogicImage-12.2.1.4-jdkdeveloper weblogicImage-12.1.3-jdkdeveloper` to build the
+images with the test app deployed that can be used by SmokeTests.
 
 #### WebLogic 14
 Follow these instructions and build _developer_ (`-d` flag) image of

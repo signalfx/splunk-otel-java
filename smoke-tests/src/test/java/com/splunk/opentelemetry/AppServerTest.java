@@ -20,6 +20,7 @@ import io.opentelemetry.proto.trace.v1.Span;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import okhttp3.Request;
 import okhttp3.Response;
 import org.junit.jupiter.api.Assertions;
@@ -42,7 +43,7 @@ public abstract class AppServerTest extends SmokeTest {
     String url = String.format("http://localhost:%d/app/greeting", target.getMappedPort(8080));
 
     Request request = new Request.Builder().get().url(url).build();
-    Response response = client.newCall(request).execute();
+    String responseBody = tryGetResponse(request);
 
     TraceInspector traces = waitForTraces();
 
@@ -50,8 +51,6 @@ public abstract class AppServerTest extends SmokeTest {
 
     Assertions.assertEquals(1, traceIds.size(), "There is one trace");
     String theOneTraceId = new ArrayList<>(traceIds).get(0);
-
-    String responseBody = response.body().string();
 
     Assertions.assertTrue(
         responseBody.contains(theOneTraceId),
@@ -76,6 +75,29 @@ public abstract class AppServerTest extends SmokeTest {
         "Number of spans tagged with current otel library version");
 
     additionalWebAppTraceAssertions(traces, serverAttributes);
+  }
+
+  /*
+   * Some app servers, e.g. WebLogic 12.1.3 open their HTTP listen port before
+   * an application gets deployed. Which results in all kinds of response codes
+   * ranging from 404 to 503 to be returned instead of expected response.
+   * This method retries for 30 seconds to get a 200 response after the container's
+   * port is open and docker thinks the container is good for use.
+   */
+  private String tryGetResponse(Request request) throws IOException {
+    long startTime = System.currentTimeMillis();
+    Response response;
+    String responseBody;
+    do {
+      response = client.newCall(request).execute();
+      responseBody = response.body().string();
+      System.out.println("Got response code " + response.code());
+    } while (response.code() != 200
+        && System.currentTimeMillis() - startTime < TimeUnit.SECONDS.toMillis(30));
+
+    Assertions.assertEquals(
+        200, response.code(), "Unexpected response code. Got this response: " + responseBody);
+    return responseBody;
   }
 
   protected void additionalWebAppTraceAssertions(

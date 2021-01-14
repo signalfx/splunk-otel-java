@@ -27,7 +27,8 @@ def buildProprietaryTestImagesTask = tasks.create("buildProprietaryTestImages") 
 
 def targets = [
    "weblogic" : [
-        "12.2.1.4" : ["developer"],
+       "12.1.3" : ["developer"],
+       "12.2.1.4" : ["developer"],
         "14.1.1.0" : ["developer-8", "developer-11"]
    ],
     "jboss-eap" : [

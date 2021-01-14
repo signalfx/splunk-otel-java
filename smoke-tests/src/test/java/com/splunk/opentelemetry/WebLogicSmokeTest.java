@@ -38,6 +38,7 @@ class WebLogicSmokeTest extends ProprietaryAppServerTest {
 
   private static Stream<Arguments> supportedWlsConfigurations() {
     return Stream.of(
+        arguments("splunk-weblogic:12.1.3-jdkdeveloper"),
         arguments("splunk-weblogic:12.2.1.4-jdkdeveloper"),
         arguments("splunk-weblogic:14.1.1.0-jdkdeveloper-8"),
         arguments("splunk-weblogic:14.1.1.0-jdkdeveloper-11"));

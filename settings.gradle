@@ -18,6 +18,7 @@ include("agent",
   "instrumentation:glassfish",
   "instrumentation:liberty",
   "instrumentation:tomcat",
+  "instrumentation:weblogic",
   "instrumentation:wildfly",
   "smoke-tests",
   "matrix")

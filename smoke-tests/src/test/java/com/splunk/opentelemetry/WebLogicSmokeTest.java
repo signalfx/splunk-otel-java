@@ -46,15 +46,18 @@ class WebLogicSmokeTest extends AppServerTest {
         arguments(proprietaryLinuxImage("splunk-weblogic:12.1.3-jdkdeveloper"), V12_1_ATTRIBUTES),
         arguments(proprietaryLinuxImage("splunk-weblogic:12.2.1.4-jdkdeveloper"), V12_2_ATTRIBUTES),
         arguments(proprietaryLinuxImage("splunk-weblogic:14.1.1.0-jdkdeveloper-8"), V14_ATTRIBUTES),
-        arguments(proprietaryLinuxImage("splunk-weblogic:14.1.1.0-jdkdeveloper-11"), V14_ATTRIBUTES));
+        arguments(
+            proprietaryLinuxImage("splunk-weblogic:14.1.1.0-jdkdeveloper-11"), V14_ATTRIBUTES));
   }
 
   @ParameterizedTest
   @MethodSource("supportedWlsConfigurations")
-  public void webLogicSmokeTest(TestImage image, ExpectedServerAttributes serverAttributes) throws IOException, InterruptedException {
+  public void webLogicSmokeTest(TestImage image, ExpectedServerAttributes serverAttributes)
+      throws IOException, InterruptedException {
     startTargetOrSkipTest(image);
 
-    // No assertServerHandler as there are no current plans to have a WebLogic server handler that creates spans
+    // No assertServerHandler as there are no current plans to have a WebLogic server handler that
+    // creates spans
     assertWebAppTrace(serverAttributes, image);
 
     stopTarget();

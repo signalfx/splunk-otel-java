@@ -16,6 +16,16 @@
 
 package com.splunk.opentelemetry.middleware.weblogic;
 
+import static io.opentelemetry.javaagent.tooling.bytebuddy.matcher.AgentElementMatchers.extendsClass;
+import static io.opentelemetry.javaagent.tooling.bytebuddy.matcher.ClassLoaderMatcher.hasClassesNamed;
+import static java.util.Collections.singletonMap;
+import static net.bytebuddy.matcher.ElementMatchers.isPrivate;
+import static net.bytebuddy.matcher.ElementMatchers.isProtected;
+import static net.bytebuddy.matcher.ElementMatchers.isPublic;
+import static net.bytebuddy.matcher.ElementMatchers.nameStartsWith;
+import static net.bytebuddy.matcher.ElementMatchers.named;
+import static net.bytebuddy.matcher.ElementMatchers.takesArgument;
+
 import com.google.auto.service.AutoService;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.javaagent.instrumentation.api.Java8BytecodeBridge;
@@ -29,16 +39,6 @@ import net.bytebuddy.asm.Advice;
 import net.bytebuddy.description.method.MethodDescription;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.matcher.ElementMatcher;
-
-import static io.opentelemetry.javaagent.tooling.bytebuddy.matcher.AgentElementMatchers.extendsClass;
-import static io.opentelemetry.javaagent.tooling.bytebuddy.matcher.ClassLoaderMatcher.hasClassesNamed;
-import static java.util.Collections.singletonMap;
-import static net.bytebuddy.matcher.ElementMatchers.isPrivate;
-import static net.bytebuddy.matcher.ElementMatchers.isProtected;
-import static net.bytebuddy.matcher.ElementMatchers.isPublic;
-import static net.bytebuddy.matcher.ElementMatchers.nameStartsWith;
-import static net.bytebuddy.matcher.ElementMatchers.named;
-import static net.bytebuddy.matcher.ElementMatchers.takesArgument;
 
 /**
  * Adds an instrumentation to collect middleware attributes for WebLogic Server 12 and 14. As span
@@ -54,16 +54,14 @@ public class WebLogicInstrumentationModule extends InstrumentationModule {
 
   @Override
   public int getOrder() {
-    // Make sure this runs after default servlet instrumentations so that server span would already be available.
+    // Make sure this runs after default servlet instrumentations so that server span would already
+    // be available.
     return 1;
   }
 
   @Override
   public List<TypeInstrumentation> typeInstrumentations() {
-    return Arrays.asList(
-        new MiddlewareInstrumentation(),
-        new ServletInstrumentation()
-    );
+    return Arrays.asList(new MiddlewareInstrumentation(), new ServletInstrumentation());
   }
 
   private static class MiddlewareInstrumentation implements TypeInstrumentation {
@@ -137,12 +135,12 @@ public class WebLogicInstrumentationModule extends InstrumentationModule {
     String packageName = this.getClass().getPackage().getName();
 
     return new String[] {
-        packageName + ".WebLogicAttributeCollector",
-        packageName + ".WebLogicEntity",
-        packageName + ".WebLogicEntity$Request",
-        packageName + ".WebLogicEntity$Context",
-        packageName + ".WebLogicEntity$Server",
-        packageName + ".WebLogicEntity$Bean"
+      packageName + ".WebLogicAttributeCollector",
+      packageName + ".WebLogicEntity",
+      packageName + ".WebLogicEntity$Request",
+      packageName + ".WebLogicEntity$Context",
+      packageName + ".WebLogicEntity$Server",
+      packageName + ".WebLogicEntity$Bean"
     };
   }
 }

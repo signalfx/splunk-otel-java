@@ -232,8 +232,8 @@ public class WebLogicEntity {
 
     public static Bean wrap(Object instance) {
       return instance != null
-          && MBEAN_CLASS != null
-          && MBEAN_CLASS.isAssignableFrom(instance.getClass())
+              && MBEAN_CLASS != null
+              && MBEAN_CLASS.isAssignableFrom(instance.getClass())
           ? new Bean(instance)
           : NULL;
     }

@@ -63,6 +63,8 @@ public class TomcatSmokeTest extends AppServerTest {
     // upstream.
     //    assertServerHandler(expectedServerAttributes);
     assertWebAppTrace(expectedServerAttributes);
+
+    stopTarget();
   }
 
   public static class TomcatAttributes extends ExpectedServerAttributes {

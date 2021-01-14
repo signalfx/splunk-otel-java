@@ -60,6 +60,8 @@ public class LibertySmokeTest extends AppServerTest {
     // TODO: not implemented
     //    assertServerHandler(expectedServerAttributes);
     assertWebAppTrace(expectedServerAttributes);
+
+    stopTarget();
   }
 
   public static class LibertyAttributes extends ExpectedServerAttributes {

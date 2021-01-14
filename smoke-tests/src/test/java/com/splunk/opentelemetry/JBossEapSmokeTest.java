@@ -54,5 +54,7 @@ public class JBossEapSmokeTest extends ProprietaryAppServerTest {
     // TODO support 404
     //    assertServerHandler(expectedServerAttributes);
     assertWebAppTrace(expectedServerAttributes);
+
+    stopTarget();
   }
 }

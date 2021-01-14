@@ -58,5 +58,7 @@ public class JettySmokeTest extends AppServerTest {
 
     assertServerHandler(expectedServerAttributes);
     assertWebAppTrace(expectedServerAttributes);
+
+    stopTarget();
   }
 }

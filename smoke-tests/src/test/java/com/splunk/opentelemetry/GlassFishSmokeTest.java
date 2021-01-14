@@ -65,5 +65,7 @@ public class GlassFishSmokeTest extends AppServerTest {
 
     assertServerHandler(expectedServerAttributes);
     assertWebAppTrace(expectedServerAttributes);
+
+    stopTarget();
   }
 }

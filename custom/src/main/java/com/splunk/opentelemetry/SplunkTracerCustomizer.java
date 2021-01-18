@@ -16,10 +16,12 @@
 
 package com.splunk.opentelemetry;
 
+import com.google.auto.service.AutoService;
 import io.opentelemetry.javaagent.spi.TracerCustomizer;
 import io.opentelemetry.sdk.trace.SdkTracerManagement;
 import io.opentelemetry.sdk.trace.samplers.Sampler;
 
+@AutoService(TracerCustomizer.class)
 public class SplunkTracerCustomizer implements TracerCustomizer {
 
   @Override

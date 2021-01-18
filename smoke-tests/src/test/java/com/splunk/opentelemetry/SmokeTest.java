@@ -66,12 +66,16 @@ public abstract class SmokeTest {
     containerManager.startEnvironment();
   }
 
-  void startTargetOrAbort(TestImage image) {
+  void startTargetOrSkipTest(TestImage image) {
+    // Skip the test if the current OS and image are incompatible (Windows images on Linux host or
+    // vice versa).
     assumeTrue(
         containerManager.isImageCompatible(image),
         "Current Docker environment can run image " + image);
 
     if (image.isProprietaryImage) {
+      // Proprietary images have to be built locally, therefore if they are not present, the test
+      // will be skipped as they are not expected to be found in a remote repository.
       assumeTrue(containerManager.isImagePresent(image), "Proprietary image is present: " + image);
     }
 

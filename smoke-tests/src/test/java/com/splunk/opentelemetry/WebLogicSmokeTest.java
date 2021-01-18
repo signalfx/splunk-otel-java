@@ -16,7 +16,7 @@
 
 package com.splunk.opentelemetry;
 
-import static com.splunk.opentelemetry.helper.TestImage.linuxImage;
+import static com.splunk.opentelemetry.helper.TestImage.proprietaryLinuxImage;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 import com.splunk.opentelemetry.helper.TestImage;
@@ -39,16 +39,16 @@ class WebLogicSmokeTest extends ProprietaryAppServerTest {
 
   private static Stream<Arguments> supportedWlsConfigurations() {
     return Stream.of(
-        arguments("splunk-weblogic:12.1.3-jdkdeveloper"),
-        arguments(linuxImage("splunk-weblogic:12.2.1.4-jdkdeveloper")),
-        arguments(linuxImage("splunk-weblogic:14.1.1.0-jdkdeveloper-8")),
-        arguments(linuxImage("splunk-weblogic:14.1.1.0-jdkdeveloper-11")));
+        arguments(proprietaryLinuxImage("splunk-weblogic:12.1.3-jdkdeveloper")),
+        arguments(proprietaryLinuxImage("splunk-weblogic:12.2.1.4-jdkdeveloper")),
+        arguments(proprietaryLinuxImage("splunk-weblogic:14.1.1.0-jdkdeveloper-8")),
+        arguments(proprietaryLinuxImage("splunk-weblogic:14.1.1.0-jdkdeveloper-11")));
   }
 
   @ParameterizedTest
   @MethodSource("supportedWlsConfigurations")
   public void webLogicSmokeTest(TestImage image) throws IOException, InterruptedException {
-    startTargetOrAbort(image);
+    startTargetOrSkipTest(image);
 
     // FIXME: APMI-1300
     //    assertServerHandler(....)

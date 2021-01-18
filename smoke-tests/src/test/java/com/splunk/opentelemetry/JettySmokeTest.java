@@ -74,7 +74,7 @@ public class JettySmokeTest extends AppServerTest {
   @MethodSource("supportedConfigurations")
   void jettySmokeTest(TestImage image, ExpectedServerAttributes expectedServerAttributes)
       throws IOException, InterruptedException {
-    startTargetOrAbort(image);
+    startTargetOrSkipTest(image);
 
     assertServerHandler(expectedServerAttributes);
     assertWebAppTrace(expectedServerAttributes, image);

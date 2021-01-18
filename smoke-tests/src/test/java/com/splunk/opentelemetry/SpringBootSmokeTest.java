@@ -40,7 +40,7 @@ class SpringBootSmokeTest extends SmokeTest {
   public void springBootSmokeTestOnJDK(int jdk) throws IOException, InterruptedException {
     TestImage image = getTargetImage(jdk);
 
-    startTargetOrAbort(image);
+    startTargetOrSkipTest(image);
 
     String url =
         String.format("http://localhost:%d/greeting", containerManager.getTargetMappedPort(8080));

@@ -66,7 +66,7 @@ public class WildFlySmokeTest extends AppServerTest {
   @MethodSource("supportedConfigurations")
   void wildflySmokeTest(TestImage image, ExpectedServerAttributes expectedServerAttributes)
       throws IOException, InterruptedException {
-    startTargetOrAbort(image);
+    startTargetOrSkipTest(image);
 
     assertServerHandler(expectedServerAttributes);
     assertWebAppTrace(expectedServerAttributes, image);

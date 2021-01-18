@@ -60,4 +60,9 @@ subprojects {
       }
     }
   }
+
+  tasks.withType(JavaCompile) {
+    options.deprecation = true
+  }
 }
+

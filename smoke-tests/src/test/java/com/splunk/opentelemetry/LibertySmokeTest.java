@@ -16,8 +16,10 @@
 
 package com.splunk.opentelemetry;
 
+import static com.splunk.opentelemetry.helper.TestImage.linuxImage;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
+import com.splunk.opentelemetry.helper.TestImage;
 import java.io.IOException;
 import java.util.stream.Stream;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -32,33 +34,39 @@ public class LibertySmokeTest extends AppServerTest {
   private static Stream<Arguments> supportedConfigurations() {
     return Stream.of(
         arguments(
-            "ghcr.io/open-telemetry/java-test-containers:liberty-20.0.0.12-jdk8-20201209.410207048",
+            linuxImage(
+                "ghcr.io/open-telemetry/java-test-containers:liberty-20.0.0.12-jdk8-20201209.410207048"),
             LIBERTY20_SERVER_ATTRIBUTES),
         arguments(
-            "ghcr.io/open-telemetry/java-test-containers:liberty-20.0.0.12-jdk11-20201209.410207048",
+            linuxImage(
+                "ghcr.io/open-telemetry/java-test-containers:liberty-20.0.0.12-jdk11-20201209.410207048"),
             LIBERTY20_SERVER_ATTRIBUTES),
         arguments(
-            "ghcr.io/open-telemetry/java-test-containers:liberty-20.0.0.12-jdk15-20201209.410207048",
+            linuxImage(
+                "ghcr.io/open-telemetry/java-test-containers:liberty-20.0.0.12-jdk15-20201209.410207048"),
             LIBERTY20_SERVER_ATTRIBUTES),
         arguments(
-            "ghcr.io/open-telemetry/java-test-containers:liberty-20.0.0.12-jdk8-jdk-openj9-20201209.410207048",
+            linuxImage(
+                "ghcr.io/open-telemetry/java-test-containers:liberty-20.0.0.12-jdk8-jdk-openj9-20201209.410207048"),
             LIBERTY20_SERVER_ATTRIBUTES),
         arguments(
-            "ghcr.io/open-telemetry/java-test-containers:liberty-20.0.0.12-jdk11-jdk-openj9-20201209.410207048",
+            linuxImage(
+                "ghcr.io/open-telemetry/java-test-containers:liberty-20.0.0.12-jdk11-jdk-openj9-20201209.410207048"),
             LIBERTY20_SERVER_ATTRIBUTES),
         arguments(
-            "ghcr.io/open-telemetry/java-test-containers:liberty-20.0.0.12-jdk15-jdk-openj9-20201209.410207048",
+            linuxImage(
+                "ghcr.io/open-telemetry/java-test-containers:liberty-20.0.0.12-jdk15-jdk-openj9-20201209.410207048"),
             LIBERTY20_SERVER_ATTRIBUTES));
   }
 
   @ParameterizedTest(name = "[{index}] {0}")
   @MethodSource("supportedConfigurations")
-  void libertySmokeTest(String imageName, ExpectedServerAttributes expectedServerAttributes)
+  void libertySmokeTest(TestImage image, ExpectedServerAttributes expectedServerAttributes)
       throws IOException, InterruptedException {
-    startTarget(imageName);
+    startTargetOrAbort(image);
 
     assertServerHandler(expectedServerAttributes);
-    assertWebAppTrace(expectedServerAttributes);
+    assertWebAppTrace(expectedServerAttributes, image);
 
     stopTarget();
   }

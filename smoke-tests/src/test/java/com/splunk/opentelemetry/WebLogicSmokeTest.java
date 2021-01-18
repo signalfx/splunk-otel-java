@@ -16,9 +16,10 @@
 
 package com.splunk.opentelemetry;
 
-import static org.junit.jupiter.api.Assumptions.assumeTrue;
+import static com.splunk.opentelemetry.helper.TestImage.linuxImage;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
+import com.splunk.opentelemetry.helper.TestImage;
 import java.io.IOException;
 import java.util.stream.Stream;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -39,23 +40,20 @@ class WebLogicSmokeTest extends ProprietaryAppServerTest {
   private static Stream<Arguments> supportedWlsConfigurations() {
     return Stream.of(
         arguments("splunk-weblogic:12.1.3-jdkdeveloper"),
-        arguments("splunk-weblogic:12.2.1.4-jdkdeveloper"),
-        arguments("splunk-weblogic:14.1.1.0-jdkdeveloper-8"),
-        arguments("splunk-weblogic:14.1.1.0-jdkdeveloper-11"));
+        arguments(linuxImage("splunk-weblogic:12.2.1.4-jdkdeveloper")),
+        arguments(linuxImage("splunk-weblogic:14.1.1.0-jdkdeveloper-8")),
+        arguments(linuxImage("splunk-weblogic:14.1.1.0-jdkdeveloper-11")));
   }
 
   @ParameterizedTest
   @MethodSource("supportedWlsConfigurations")
-  public void webLogicSmokeTest(String imageName) throws IOException, InterruptedException {
-    assumeTrue(
-        localDockerImageIsPresent(imageName), "Local docker image " + imageName + " is present");
-
-    startTarget(imageName);
+  public void webLogicSmokeTest(TestImage image) throws IOException, InterruptedException {
+    startTargetOrAbort(image);
 
     // FIXME: APMI-1300
     //    assertServerHandler(....)
 
-    assertWebAppTrace(WEBLOGIC_ATTRIBUTES);
+    assertWebAppTrace(WEBLOGIC_ATTRIBUTES, image);
 
     stopTarget();
   }

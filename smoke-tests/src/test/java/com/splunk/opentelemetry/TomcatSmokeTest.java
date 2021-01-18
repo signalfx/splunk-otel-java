@@ -16,8 +16,11 @@
 
 package com.splunk.opentelemetry;
 
+import static com.splunk.opentelemetry.helper.TestImage.linuxImage;
+import static com.splunk.opentelemetry.helper.TestImage.proprietaryWindowsImage;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
+import com.splunk.opentelemetry.helper.TestImage;
 import java.io.IOException;
 import java.util.stream.Stream;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -30,36 +33,60 @@ public class TomcatSmokeTest extends AppServerTest {
       new TomcatAttributes("7.0.107.0");
   public static final ExpectedServerAttributes TOMCAT8_SERVER_ATTRIBUTES =
       new TomcatAttributes("8.5.60.0");
+  public static final ExpectedServerAttributes TOMCAT8561_SERVER_ATTRIBUTES =
+      new TomcatAttributes("8.5.61.0");
   public static final ExpectedServerAttributes TOMCAT9_SERVER_ATTRIBUTES =
       new TomcatAttributes("9.0.40.0");
+  public static final ExpectedServerAttributes TOMCAT9041_SERVER_ATTRIBUTES =
+      new TomcatAttributes("9.0.41.0");
 
   private static Stream<Arguments> supportedConfigurations() {
     return Stream.of(
         arguments(
-            "ghcr.io/open-telemetry/java-test-containers:tomcat-7.0.107-jdk8-20201207.405832649",
+            linuxImage(
+                "ghcr.io/open-telemetry/java-test-containers:tomcat-7.0.107-jdk8-20201207.405832649"),
             TOMCAT7_SERVER_ATTRIBUTES),
         arguments(
-            "ghcr.io/open-telemetry/java-test-containers:tomcat-8.5.60-jdk8-20201207.405832649",
+            linuxImage(
+                "ghcr.io/open-telemetry/java-test-containers:tomcat-8.5.60-jdk8-20201207.405832649"),
             TOMCAT8_SERVER_ATTRIBUTES),
         arguments(
-            "ghcr.io/open-telemetry/java-test-containers:tomcat-8.5.60-jdk11-20201207.405832649",
+            linuxImage(
+                "ghcr.io/open-telemetry/java-test-containers:tomcat-8.5.60-jdk11-20201207.405832649"),
             TOMCAT8_SERVER_ATTRIBUTES),
         arguments(
-            "ghcr.io/open-telemetry/java-test-containers:tomcat-9.0.40-jdk8-20201207.405832649",
+            linuxImage(
+                "ghcr.io/open-telemetry/java-test-containers:tomcat-9.0.40-jdk8-20201207.405832649"),
             TOMCAT9_SERVER_ATTRIBUTES),
         arguments(
-            "ghcr.io/open-telemetry/java-test-containers:tomcat-9.0.40-jdk11-20201207.405832649",
-            TOMCAT9_SERVER_ATTRIBUTES));
+            linuxImage(
+                "ghcr.io/open-telemetry/java-test-containers:tomcat-9.0.40-jdk11-20201207.405832649"),
+            TOMCAT9_SERVER_ATTRIBUTES),
+        arguments(
+            proprietaryWindowsImage("splunk-tomcat:7.0.107-jdk8-windows"),
+            TOMCAT7_SERVER_ATTRIBUTES),
+        arguments(
+            proprietaryWindowsImage("splunk-tomcat:8.5.61-jdk8-windows"),
+            TOMCAT8561_SERVER_ATTRIBUTES),
+        arguments(
+            proprietaryWindowsImage("splunk-tomcat:8.5.61-jdk11-windows"),
+            TOMCAT8561_SERVER_ATTRIBUTES),
+        arguments(
+            proprietaryWindowsImage("splunk-tomcat:9.0.41-jdk8-windows"),
+            TOMCAT9041_SERVER_ATTRIBUTES),
+        arguments(
+            proprietaryWindowsImage("splunk-tomcat:9.0.41-jdk11-windows"),
+            TOMCAT9041_SERVER_ATTRIBUTES));
   }
 
   @ParameterizedTest(name = "[{index}] {0}")
   @MethodSource("supportedConfigurations")
-  void tomcatSmokeTest(String imageName, ExpectedServerAttributes expectedServerAttributes)
+  void tomcatSmokeTest(TestImage image, ExpectedServerAttributes expectedServerAttributes)
       throws IOException, InterruptedException {
-    startTarget(imageName);
+    startTargetOrAbort(image);
 
     assertServerHandler(expectedServerAttributes);
-    assertWebAppTrace(expectedServerAttributes);
+    assertWebAppTrace(expectedServerAttributes, image);
 
     stopTarget();
   }

@@ -14,10 +14,17 @@
  * limitations under the License.
  */
 
-package com.splunk.opentelemetry;
+package com.splunk.opentelemetry.helper.windows;
 
-/**
- * This is the base class for smoke test for OpenTelemetry Java agent with proprietary app-servers.
- * See the manual in `matrix` sub-project for instructions on how to build required images.
- */
-abstract class ProprietaryAppServerTest extends AppServerTest {}
+public interface ContainerLogHandler {
+  void addListener(Listener listener);
+
+  interface Listener {
+    void accept(LineType type, String text);
+  }
+
+  enum LineType {
+    STDOUT,
+    STDERR
+  }
+}

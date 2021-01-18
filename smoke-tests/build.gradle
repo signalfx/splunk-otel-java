@@ -3,6 +3,8 @@ plugins {
   id "org.gradle.test-retry" version "1.2.0"
 }
 
+def dockerJavaVersion = "3.2.5"
+
 dependencies {
   testImplementation("org.testcontainers:testcontainers:1.15.0-rc2")
   testImplementation("com.fasterxml.jackson.core:jackson-databind:2.11.2")
@@ -13,6 +15,9 @@ dependencies {
 
   testImplementation("ch.qos.logback:logback-classic:1.2.3")
   testImplementation("org.junit.jupiter:junit-jupiter-params:5.7.0")
+
+  testImplementation("com.github.docker-java:docker-java-core:$dockerJavaVersion")
+  testImplementation("com.github.docker-java:docker-java-transport-httpclient5:$dockerJavaVersion")
 }
 
 tasks.test {

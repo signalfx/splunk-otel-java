@@ -16,8 +16,11 @@
 
 package com.splunk.opentelemetry;
 
+import static com.splunk.opentelemetry.helper.TestImage.linuxImage;
+import static com.splunk.opentelemetry.helper.TestImage.proprietaryWindowsImage;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
+import com.splunk.opentelemetry.helper.TestImage;
 import java.io.IOException;
 import java.util.stream.Stream;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -34,30 +37,47 @@ public class JettySmokeTest extends AppServerTest {
   private static Stream<Arguments> supportedConfigurations() {
     return Stream.of(
         arguments(
-            "ghcr.io/open-telemetry/java-test-containers:jetty-9.4.35-jdk8-20201207.405832649",
+            linuxImage(
+                "ghcr.io/open-telemetry/java-test-containers:jetty-9.4.35-jdk8-20201207.405832649"),
             JETTY9_SERVER_ATTRIBUTES),
         arguments(
-            "ghcr.io/open-telemetry/java-test-containers:jetty-9.4.35-jdk11-20201207.405832649",
+            linuxImage(
+                "ghcr.io/open-telemetry/java-test-containers:jetty-9.4.35-jdk11-20201207.405832649"),
             JETTY9_SERVER_ATTRIBUTES),
         arguments(
-            "ghcr.io/open-telemetry/java-test-containers:jetty-9.4.35-jdk15-20201207.405832649",
+            linuxImage(
+                "ghcr.io/open-telemetry/java-test-containers:jetty-9.4.35-jdk15-20201207.405832649"),
             JETTY9_SERVER_ATTRIBUTES),
         arguments(
-            "ghcr.io/open-telemetry/java-test-containers:jetty-10.0.0.beta3-jdk11-20201207.405832649",
+            linuxImage(
+                "ghcr.io/open-telemetry/java-test-containers:jetty-10.0.0.beta3-jdk11-20201207.405832649"),
             JETTY10_SERVER_ATTRIBUTES),
         arguments(
-            "ghcr.io/open-telemetry/java-test-containers:jetty-10.0.0.beta3-jdk15-20201207.405832649",
+            linuxImage(
+                "ghcr.io/open-telemetry/java-test-containers:jetty-10.0.0.beta3-jdk15-20201207.405832649"),
+            JETTY10_SERVER_ATTRIBUTES),
+        arguments(
+            proprietaryWindowsImage("splunk-jetty:9.4.35-jdk8-windows"), JETTY9_SERVER_ATTRIBUTES),
+        arguments(
+            proprietaryWindowsImage("splunk-jetty:9.4.35-jdk11-windows"), JETTY9_SERVER_ATTRIBUTES),
+        arguments(
+            proprietaryWindowsImage("splunk-jetty:9.4.35-jdk15-windows"), JETTY9_SERVER_ATTRIBUTES),
+        arguments(
+            proprietaryWindowsImage("splunk-jetty:10.0.0-jdk11-windows"),
+            JETTY10_SERVER_ATTRIBUTES),
+        arguments(
+            proprietaryWindowsImage("splunk-jetty:10.0.0-jdk15-windows"),
             JETTY10_SERVER_ATTRIBUTES));
   }
 
   @ParameterizedTest(name = "[{index}] {0}")
   @MethodSource("supportedConfigurations")
-  void jettySmokeTest(String imageName, ExpectedServerAttributes expectedServerAttributes)
+  void jettySmokeTest(TestImage image, ExpectedServerAttributes expectedServerAttributes)
       throws IOException, InterruptedException {
-    startTarget(imageName);
+    startTargetOrAbort(image);
 
     assertServerHandler(expectedServerAttributes);
-    assertWebAppTrace(expectedServerAttributes);
+    assertWebAppTrace(expectedServerAttributes, image);
 
     stopTarget();
   }

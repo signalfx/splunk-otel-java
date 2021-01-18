@@ -16,9 +16,10 @@
 
 package com.splunk.opentelemetry;
 
-import static org.junit.jupiter.api.Assumptions.assumeTrue;
+import static com.splunk.opentelemetry.helper.TestImage.proprietaryLinuxImage;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
+import com.splunk.opentelemetry.helper.TestImage;
 import java.io.IOException;
 import java.util.stream.Stream;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -41,20 +42,23 @@ public class JBossEapSmokeTest extends ProprietaryAppServerTest {
 
   private static Stream<Arguments> jboss() {
     return Stream.of(
-        arguments("splunk-jboss-eap:7.1.0-jdk8", JBOSS_EAP_7_1_SERVER_ATTRIBUTES),
-        arguments("splunk-jboss-eap:7.3.0-jdk8", JBOSS_EAP_7_3_SERVER_ATTRIBUTES),
-        arguments("splunk-jboss-eap:7.3.0-jdk11", JBOSS_EAP_7_3_SERVER_ATTRIBUTES));
+        arguments(
+            proprietaryLinuxImage("splunk-jboss-eap:7.1.0-jdk8"), JBOSS_EAP_7_1_SERVER_ATTRIBUTES),
+        arguments(
+            proprietaryLinuxImage("splunk-jboss-eap:7.3.0-jdk8"), JBOSS_EAP_7_3_SERVER_ATTRIBUTES),
+        arguments(
+            proprietaryLinuxImage("splunk-jboss-eap:7.3.0-jdk11"),
+            JBOSS_EAP_7_3_SERVER_ATTRIBUTES));
   }
 
   @ParameterizedTest(name = "[{index}] {0}")
   @MethodSource("jboss")
-  void jbossSmokeTest(String imageName, ExpectedServerAttributes expectedServerAttributes)
+  void jbossSmokeTest(TestImage image, ExpectedServerAttributes expectedServerAttributes)
       throws IOException, InterruptedException {
-    assumeTrue(localDockerImageIsPresent(imageName));
-    startTarget(imageName);
+    startTargetOrAbort(image);
 
     assertServerHandler(expectedServerAttributes);
-    assertWebAppTrace(expectedServerAttributes);
+    assertWebAppTrace(expectedServerAttributes, image);
 
     stopTarget();
   }

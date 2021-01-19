@@ -28,11 +28,11 @@ jobs:
         with:
           java-version: 11
 
-      - name: Build Windows-specific images for collector and fake backend
+      - name: Build Windows images for test backend
         working-directory: ./smoke-tests/fake-backend
         run: ./gradlew windowsBackendImageBuild windowsCollectorImageBuild --no-daemon
 
-      - name: Build Windows-specific images used for tests
+      - name: Build Windows images for test targets
         run: ./gradlew :matrix:buildWindowsTestImages --no-daemon
 
       - name: Build and test

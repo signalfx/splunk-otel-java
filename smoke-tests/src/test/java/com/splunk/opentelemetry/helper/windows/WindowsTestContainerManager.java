@@ -20,6 +20,7 @@ import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.command.CreateContainerCmd;
 import com.github.dockerjava.api.command.InspectContainerResponse;
 import com.github.dockerjava.api.command.PullImageResultCallback;
+import com.github.dockerjava.api.exception.NotFoundException;
 import com.github.dockerjava.api.model.ExposedPort;
 import com.github.dockerjava.api.model.HostConfig;
 import com.github.dockerjava.api.model.PortBinding;
@@ -129,29 +130,17 @@ public class WindowsTestContainerManager extends AbstractTestContainerManager {
 
   @Override
   public void stopEnvironment() {
-    try {
-      stopTarget();
+    stopTarget();
 
-      if (collector != null) {
-        client.killContainerCmd(collector.containerId).exec();
-        collector = null;
-      }
+    killContainer(collector);
+    collector = null;
 
-      if (backend != null) {
-        client.killContainerCmd(backend.containerId).exec();
-        backend = null;
-      }
+    killContainer(backend);
+    backend = null;
 
-      if (natNetworkId != null) {
-        client.removeNetworkCmd(natNetworkId);
-        natNetworkId = null;
-      }
-    } finally {
-      try {
-        client.close();
-      } catch (IOException e) {
-        throw new RuntimeException(e);
-      }
+    if (natNetworkId != null) {
+      client.removeNetworkCmd(natNetworkId);
+      natNetworkId = null;
     }
   }
 
@@ -224,10 +213,8 @@ public class WindowsTestContainerManager extends AbstractTestContainerManager {
 
   @Override
   public void stopTarget() {
-    if (target != null) {
-      client.killContainerCmd(target.containerId).exec();
-      target = null;
-    }
+    killContainer(target);
+    target = null;
   }
 
   private void pullImage(String imageName) {
@@ -330,6 +317,16 @@ public class WindowsTestContainerManager extends AbstractTestContainerManager {
 
     waiter.waitFor(container);
     return container;
+  }
+
+  private void killContainer(Container container) {
+    if (container != null) {
+      try {
+        client.killContainerCmd(container.containerId).exec();
+      } catch (NotFoundException e) {
+        // The containers are flagged as remove-on-exit, so not finding them can be expected
+      }
+    }
   }
 
   private static class Container {

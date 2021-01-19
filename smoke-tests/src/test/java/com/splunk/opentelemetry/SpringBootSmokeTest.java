@@ -26,7 +26,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-class SpringBootSmokeTest extends SmokeTest {
+class SpringBootSmokeTest extends AppServerTest {
 
   private TestImage getTargetImage(int jdk) {
     return linuxImage(
@@ -38,13 +38,9 @@ class SpringBootSmokeTest extends SmokeTest {
   @ParameterizedTest(name = "{index} => SpringBoot SmokeTest On JDK{0}.")
   @ValueSource(ints = {8, 11, 15})
   public void springBootSmokeTestOnJDK(int jdk) throws IOException, InterruptedException {
-    TestImage image = getTargetImage(jdk);
+    startTargetOrSkipTest(getTargetImage(jdk));
 
-    startTargetOrSkipTest(image);
-
-    String url =
-        String.format("http://localhost:%d/greeting", containerManager.getTargetMappedPort(8080));
-    Request request = new Request.Builder().url(url).get().build();
+    Request request = new Request.Builder().url(getUrl("/app/greeting", false)).get().build();
 
     String currentAgentVersion = getCurrentAgentVersion();
 

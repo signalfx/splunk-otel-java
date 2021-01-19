@@ -6,7 +6,7 @@ ARG version
 FROM mcr.microsoft.com/windows/servercore:1809 as builder
 ARG majorVersion
 ARG version
-ADD https://downloads.apache.org/tomcat/tomcat-${majorVersion}/v${version}/bin/apache-tomcat-${version}-windows-x64.zip /server.zip
+ADD https://archive.apache.org/dist/tomcat/tomcat-${majorVersion}/v${version}/bin/apache-tomcat-${version}-windows-x64.zip /server.zip
 RUN ["powershell", "-Command", "expand-archive -Path /server.zip -DestinationPath /server"]
 
 FROM winamd64/openjdk:${jdk}-jdk-windowsservercore-1809

@@ -33,12 +33,8 @@ public class TomcatSmokeTest extends AppServerTest {
       new TomcatAttributes("7.0.107.0");
   public static final ExpectedServerAttributes TOMCAT8_SERVER_ATTRIBUTES =
       new TomcatAttributes("8.5.60.0");
-  public static final ExpectedServerAttributes TOMCAT8561_SERVER_ATTRIBUTES =
-      new TomcatAttributes("8.5.61.0");
   public static final ExpectedServerAttributes TOMCAT9_SERVER_ATTRIBUTES =
       new TomcatAttributes("9.0.40.0");
-  public static final ExpectedServerAttributes TOMCAT9041_SERVER_ATTRIBUTES =
-      new TomcatAttributes("9.0.41.0");
 
   private static Stream<Arguments> supportedConfigurations() {
     return Stream.of(
@@ -66,17 +62,17 @@ public class TomcatSmokeTest extends AppServerTest {
             proprietaryWindowsImage("splunk-tomcat:7.0.107-jdk8-windows"),
             TOMCAT7_SERVER_ATTRIBUTES),
         arguments(
-            proprietaryWindowsImage("splunk-tomcat:8.5.61-jdk8-windows"),
-            TOMCAT8561_SERVER_ATTRIBUTES),
+            proprietaryWindowsImage("splunk-tomcat:8.5.60-jdk8-windows"),
+            TOMCAT8_SERVER_ATTRIBUTES),
         arguments(
-            proprietaryWindowsImage("splunk-tomcat:8.5.61-jdk11-windows"),
-            TOMCAT8561_SERVER_ATTRIBUTES),
+            proprietaryWindowsImage("splunk-tomcat:8.5.60-jdk11-windows"),
+            TOMCAT8_SERVER_ATTRIBUTES),
         arguments(
-            proprietaryWindowsImage("splunk-tomcat:9.0.41-jdk8-windows"),
-            TOMCAT9041_SERVER_ATTRIBUTES),
+            proprietaryWindowsImage("splunk-tomcat:9.0.40-jdk8-windows"),
+            TOMCAT9_SERVER_ATTRIBUTES),
         arguments(
-            proprietaryWindowsImage("splunk-tomcat:9.0.41-jdk11-windows"),
-            TOMCAT9041_SERVER_ATTRIBUTES));
+            proprietaryWindowsImage("splunk-tomcat:9.0.40-jdk11-windows"),
+            TOMCAT9_SERVER_ATTRIBUTES));
   }
 
   @ParameterizedTest(name = "[{index}] {0}")

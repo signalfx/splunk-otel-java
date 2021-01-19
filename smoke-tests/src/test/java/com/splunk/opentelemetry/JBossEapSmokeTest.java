@@ -31,7 +31,7 @@ import org.junit.jupiter.params.provider.MethodSource;
  * are no JBoss EAP images installed locally. See the manual in `matrix` sub-project for
  * instructions on how to build required images.
  */
-public class JBossEapSmokeTest extends ProprietaryAppServerTest {
+public class JBossEapSmokeTest extends AppServerTest {
 
   public static final ExpectedServerAttributes JBOSS_EAP_7_1_SERVER_ATTRIBUTES =
       new ExpectedServerAttributes(

@@ -76,11 +76,9 @@ public abstract class AppServerTest extends SmokeTest {
     }
 
     Assertions.assertEquals(
-        totalNumberOfSpansInWebappTrace(serverAttributes, testImage),
+        totalNumberOfSpansInWebappTrace(testImage),
         traces.countFilteredAttributes("otel.library.version", getCurrentAgentVersion()),
         "Number of spans tagged with current otel library version");
-
-    additionalWebAppTraceAssertions(traces, testImage);
   }
 
   /*
@@ -106,10 +104,7 @@ public abstract class AppServerTest extends SmokeTest {
     return responseBody;
   }
 
-  protected void additionalWebAppTraceAssertions(TraceInspector traces, TestImage testImage) {}
-
-  protected int totalNumberOfSpansInWebappTrace(
-      ExpectedServerAttributes serverAttributes, TestImage testImage) {
+  private int totalNumberOfSpansInWebappTrace(TestImage testImage) {
     // 1) Incoming /greeting
     // 2) Outgoing /headers
     // 3) Incoming /headers

@@ -31,7 +31,7 @@ import org.junit.jupiter.params.provider.MethodSource;
  * there are no WebLogic images installed locally. See the manual in `matrix` sub-project for
  * instructions on how to build required images.
  */
-class WebLogicSmokeTest extends ProprietaryAppServerTest {
+class WebLogicSmokeTest extends AppServerTest {
 
   // FIXME: awaiting https://github.com/open-telemetry/opentelemetry-java-instrumentation/pull/1630
   private static final AppServerTest.ExpectedServerAttributes WEBLOGIC_ATTRIBUTES =

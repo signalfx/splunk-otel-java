@@ -43,6 +43,9 @@ public class SplunkConfiguration implements PropertySource {
     // -1 here means no attribute length limit
     config.put("otel.config.max.attr.length", "-1");
 
+    // enable experimental instrumentation
+    config.put("otel.instrumentation.spring-batch.enabled", "true");
+
     return config;
   }
 }

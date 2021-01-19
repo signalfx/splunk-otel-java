@@ -28,19 +28,13 @@ public class WildFlySmokeTest extends AppServerTest {
 
   public static final ExpectedServerAttributes WILDFLY_13_SERVER_ATTRIBUTES =
       new ExpectedServerAttributes(
-          "/this-is-definitely-not-there-but-there-should-be-a-trace-nevertheless",
-          "WildFly Full",
-          "13.0.0.Final");
+          "DisallowedMethodsHandler.handleRequest", "WildFly Full", "13.0.0.Final");
   public static final ExpectedServerAttributes WILDFLY_17_SERVER_ATTRIBUTES =
       new ExpectedServerAttributes(
-          "/this-is-definitely-not-there-but-there-should-be-a-trace-nevertheless",
-          "WildFly Full",
-          "17.0.1.Final");
+          "DisallowedMethodsHandler.handleRequest", "WildFly Full", "17.0.1.Final");
   public static final ExpectedServerAttributes WILDFLY_21_SERVER_ATTRIBUTES =
       new ExpectedServerAttributes(
-          "/this-is-definitely-not-there-but-there-should-be-a-trace-nevertheless",
-          "WildFly Full",
-          "21.0.0.Final");
+          "DisallowedMethodsHandler.handleRequest", "WildFly Full", "21.0.0.Final");
 
   private static Stream<Arguments> supportedConfigurations() {
     return Stream.of(
@@ -67,8 +61,7 @@ public class WildFlySmokeTest extends AppServerTest {
       throws IOException, InterruptedException {
     startTarget(imageName);
 
-    // TODO support 404
-    //    assertServerHandler(expectedServerAttributes);
+    assertServerHandler(expectedServerAttributes);
     assertWebAppTrace(expectedServerAttributes);
 
     stopTarget();

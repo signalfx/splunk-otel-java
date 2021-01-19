@@ -15,8 +15,8 @@ group = "com.splunk.public"
 boolean snapshot = getProperty("snapshot") == 'yes'
 
 def versions = [
-    'opentelemetry'         : snapshot ? "0.14.0-SNAPSHOT" : "0.13.1",
-    'opentelemetryJavaagent': snapshot ? "0.14.0-SNAPSHOT" : '0.13.1'
+    'opentelemetry'         : snapshot ? "0.15.0-SNAPSHOT" : "0.14.1",
+    'opentelemetryJavaagent': snapshot ? "0.15.0-SNAPSHOT" : '0.14.0'
 ]
 
 subprojects {
@@ -38,10 +38,8 @@ subprojects {
       url = uri("https://oss.jfrog.org/artifactory/oss-snapshot-local")
     }
     mavenCentral()
-    if(snapshot){
-      maven {
-        url = uri("https://oss.sonatype.org/content/repositories/snapshots")
-      }
+    maven {
+      url = uri("https://oss.sonatype.org/content/repositories/snapshots")
     }
   }
 
@@ -62,4 +60,9 @@ subprojects {
       }
     }
   }
+
+  tasks.withType(JavaCompile) {
+    options.deprecation = true
+  }
 }
+

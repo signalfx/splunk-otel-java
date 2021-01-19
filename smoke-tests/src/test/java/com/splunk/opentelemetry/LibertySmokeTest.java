@@ -57,8 +57,7 @@ public class LibertySmokeTest extends AppServerTest {
       throws IOException, InterruptedException {
     startTarget(imageName);
 
-    // TODO: not implemented
-    //    assertServerHandler(expectedServerAttributes);
+    assertServerHandler(expectedServerAttributes);
     assertWebAppTrace(expectedServerAttributes);
 
     stopTarget();
@@ -66,10 +65,7 @@ public class LibertySmokeTest extends AppServerTest {
 
   public static class LibertyAttributes extends ExpectedServerAttributes {
     public LibertyAttributes(String version) {
-      super(
-          "/this-is-definitely-not-there-but-there-should-be-a-trace-nevertheless",
-          "websphere liberty",
-          version);
+      super("HTTP GET", "websphere liberty", version);
     }
   }
 }

@@ -33,9 +33,11 @@ import org.junit.jupiter.params.provider.MethodSource;
 public class JBossEapSmokeTest extends ProprietaryAppServerTest {
 
   public static final ExpectedServerAttributes JBOSS_EAP_7_1_SERVER_ATTRIBUTES =
-      new ExpectedServerAttributes("TODO", "JBoss EAP", "7.1.0.GA");
+      new ExpectedServerAttributes(
+          "DisallowedMethodsHandler.handleRequest", "JBoss EAP", "7.1.0.GA");
   public static final ExpectedServerAttributes JBOSS_EAP_7_3_SERVER_ATTRIBUTES =
-      new ExpectedServerAttributes("TODO", "JBoss EAP", "7.3.0.GA");
+      new ExpectedServerAttributes(
+          "DisallowedMethodsHandler.handleRequest", "JBoss EAP", "7.3.0.GA");
 
   private static Stream<Arguments> jboss() {
     return Stream.of(
@@ -51,8 +53,7 @@ public class JBossEapSmokeTest extends ProprietaryAppServerTest {
     assumeTrue(localDockerImageIsPresent(imageName));
     startTarget(imageName);
 
-    // TODO support 404
-    //    assertServerHandler(expectedServerAttributes);
+    assertServerHandler(expectedServerAttributes);
     assertWebAppTrace(expectedServerAttributes);
 
     stopTarget();

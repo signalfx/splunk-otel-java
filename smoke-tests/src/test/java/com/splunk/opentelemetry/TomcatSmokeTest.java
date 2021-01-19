@@ -58,10 +58,7 @@ public class TomcatSmokeTest extends AppServerTest {
       throws IOException, InterruptedException {
     startTarget(imageName);
 
-    // TODO: Uncomment when
-    // https://github.com/open-telemetry/opentelemetry-java-instrumentation/pull/1902 is released
-    // upstream.
-    //    assertServerHandler(expectedServerAttributes);
+    assertServerHandler(expectedServerAttributes);
     assertWebAppTrace(expectedServerAttributes);
 
     stopTarget();

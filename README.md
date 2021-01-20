@@ -115,7 +115,7 @@ A simple wrapper for the Jaeger exporter of [opentelemetry-java](https://github.
 ### More options
 For more options see [here](https://github.com/open-telemetry/opentelemetry-java-instrumentation#configuration-parameters-subject-to-change)
 
-## Span tags the Splunk distribution adds
+## Span tags the Splunk distribution automatically creates
 
 This Splunk distribution automatically adds context to `SERVER` spans for application servers with span tags. These are the span tags:
 

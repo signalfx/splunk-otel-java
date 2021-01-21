@@ -117,7 +117,7 @@ For more options see [here](https://github.com/open-telemetry/opentelemetry-java
 
 ## Span tags the Splunk distribution automatically creates
 
-This Splunk distribution automatically adds context to `SERVER` spans for application servers with span tags. These are the span tags:
+This Splunk distribution automatically adds context to `SERVER` spans for known application servers using these span tags:
 
 | Span tag             | Example     | Description                            |
 | -------------------- | ----------- | -------------------------------------- |

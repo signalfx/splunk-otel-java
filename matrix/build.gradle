@@ -18,53 +18,85 @@ dependencies {
   implementation("io.opentelemetry:opentelemetry-extension-annotations:${versions["opentelemetry"]}")
 }
 
-def dockerWorkingDir = new File(project.buildDir, "docker")
-
 def buildProprietaryTestImagesTask = tasks.create("buildProprietaryTestImages") {
   group = "build"
   description = "Builds all Docker images for the test matrix for proprietary app servers"
 }
 
-def targets = [
-   "weblogic" : [
+def proprietaryTargets = [
+    "weblogic" : [
        "12.1.3" : ["developer"],
        "12.2.1.4" : ["developer"],
         "14.1.1.0" : ["developer-8", "developer-11"]
-   ],
+    ],
     "jboss-eap" : [
         "7.1.0" : ["8"],
         "7.3.0" : ["8", "11"]
     ]
 ]
 
-targets.forEach { server, data ->
-  String dockerFileName = "${server}.dockerfile"
-  data.forEach { version, jdks ->
-    jdks.forEach { jdk ->
-      def prepareTask = tasks.register("${server}ImagePrepare-$version-jdk$jdk", Copy) {
-        def warTask = project.tasks.named("war").get()
-        it.dependsOn(warTask)
-        it.into(dockerWorkingDir)
-        it.from("src/${dockerFileName}")
-        it.from("src/main/docker/${server}")
-        it.from(warTask.archiveFile) {
-          rename { _ -> "app.war" }
+createDockerTasks(buildProprietaryTestImagesTask, proprietaryTargets, false)
+
+def buildWindowsTestImagesTask = tasks.create("buildWindowsTestImages") {
+  group = "build"
+  description = "Builds all Windows Docker images for the test matrix"
+}
+
+def windowsTargets = [
+    "tomcat" : [
+        [version: "7.0.107", majorVersion: "7"]: ["8"],
+        [version: "8.5.60", majorVersion: "8"]: ["8", "11"],
+        [version: "9.0.40", majorVersion: "9"]: ["8", "11"]
+    ],
+    "jetty" : [
+        [version: "9.4.35", sourceVersion: "9.4.35.v20201120"]: ["8", "11", "15"],
+        [version: "10.0.0", sourceVersion: "10.0.0.beta3", classifier: "split"]: ["11", "15"]
+    ],
+    "payara": [
+        "5.2020.6": ["8", "11"]
+    ]
+]
+
+createDockerTasks(buildWindowsTestImagesTask, windowsTargets, true)
+
+def createDockerTasks(parentTask, targets, isWindows) {
+  def dockerWorkingDir = new File(project.buildDir, "docker")
+
+  targets.forEach { server, data ->
+    data.forEach { versionKey, jdks ->
+      jdks.forEach { jdk ->
+        def versionInfo = versionKey instanceof Map ? versionKey : [version: versionKey.toString()]
+        def version = versionInfo["version"]
+
+        def classifier = versionInfo["classifier"] ? "-" + versionInfo["classifier"] : ""
+        def dockerFileName = isWindows ? "${server}${classifier}.windows.dockerfile" : "${server}${classifier}.dockerfile"
+
+        def prepareTask = tasks.register("${server}ImagePrepare-$version-jdk$jdk", Copy) {
+          def warTask = project.tasks.named("war").get()
+          it.dependsOn(warTask)
+          it.into(dockerWorkingDir)
+          it.from("src/${dockerFileName}")
+          it.from("src/main/docker/${server}")
+          it.from(warTask.archiveFile) {
+            rename { _ -> "app.war" }
+          }
         }
+
+        def buildTask = tasks.register("${server}Image-$version-jdk$jdk", DockerBuildImage) {
+          it.dependsOn(prepareTask)
+          group = "build"
+          description = "Builds Docker image with $server $version on JDK $jdk"
+
+          it.inputDir = dockerWorkingDir
+          it.images.add("splunk-$server:$version-jdk$jdk" + (isWindows ? "-windows" : ""))
+
+          it.buildArgs.set(["jdk": jdk] + versionInfo)
+
+          it.dockerFile = new File(dockerWorkingDir, dockerFileName)
+        }
+
+        parentTask.dependsOn(buildTask)
       }
-
-      def buildTask = tasks.register("${server}Image-$version-jdk$jdk", DockerBuildImage) {
-        it.dependsOn(prepareTask)
-        group = "build"
-        description = "Builds Docker image with $server $version on JDK $jdk"
-
-        it.inputDir = dockerWorkingDir
-        it.images.add "splunk-$server:$version-jdk$jdk"
-        it.buildArgs.set(["version": version, "jdk": jdk])
-
-        it.dockerFile = new File(dockerWorkingDir, dockerFileName)
-      }
-
-      buildProprietaryTestImagesTask.dependsOn(buildTask)
     }
   }
 }

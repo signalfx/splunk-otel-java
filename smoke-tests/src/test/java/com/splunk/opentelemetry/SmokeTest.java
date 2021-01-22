@@ -16,15 +16,21 @@
 
 package com.splunk.opentelemetry;
 
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.util.JsonFormat;
+import com.splunk.opentelemetry.helper.LinuxTestContainerManager;
+import com.splunk.opentelemetry.helper.TargetWaitStrategy;
+import com.splunk.opentelemetry.helper.TestContainerManager;
+import com.splunk.opentelemetry.helper.TestImage;
+import com.splunk.opentelemetry.helper.windows.WindowsTestContainerManager;
 import io.opentelemetry.proto.collector.trace.v1.ExportTraceServiceRequest;
 import io.opentelemetry.proto.common.v1.AnyValue;
 import io.opentelemetry.proto.common.v1.KeyValue;
 import java.io.IOException;
-import java.time.Duration;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
@@ -40,95 +46,43 @@ import okhttp3.ResponseBody;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.testcontainers.DockerClientFactory;
-import org.testcontainers.containers.GenericContainer;
-import org.testcontainers.containers.Network;
-import org.testcontainers.containers.output.Slf4jLogConsumer;
-import org.testcontainers.containers.wait.strategy.Wait;
-import org.testcontainers.containers.wait.strategy.WaitStrategy;
-import org.testcontainers.utility.DockerImageName;
-import org.testcontainers.utility.MountableFile;
 
 public abstract class SmokeTest {
-  private static final Logger logger = LoggerFactory.getLogger(SmokeTest.class);
-
   private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
   protected static OkHttpClient client = OkHttpUtils.client();
+  protected static TestContainerManager containerManager = createContainerManager();
 
-  private static final Network network = Network.newNetwork();
   public static final String agentPath =
       System.getProperty("io.opentelemetry.smoketest.agent.shadowJar.path");
-
-  protected boolean localDockerImageIsPresent(String imageName) {
-    try {
-      DockerClientFactory.lazyClient().inspectImageCmd(imageName).exec();
-      return true;
-    } catch (Exception e) {
-      System.out.println(e.getMessage());
-      return false;
-    }
-  }
 
   /** Subclasses can override this method to customise target application's environment */
   protected Map<String, String> getExtraEnv() {
     return Collections.emptyMap();
   }
 
-  private static GenericContainer backend;
-  private static GenericContainer collector;
-
   @BeforeAll
   static void setupSpec() {
-    backend =
-        new GenericContainer<>(
-                DockerImageName.parse(
-                    "open-telemetry-docker-dev.bintray.io/java/smoke-fake-backend:latest"))
-            .withExposedPorts(8080)
-            .waitingFor(Wait.forHttp("/health").forPort(8080))
-            .withNetwork(network)
-            .withNetworkAliases("backend")
-            .withLogConsumer(new Slf4jLogConsumer(logger));
-    backend.start();
-
-    collector =
-        new GenericContainer<>(DockerImageName.parse("otel/opentelemetry-collector-dev:latest"))
-            .dependsOn(backend)
-            .withNetwork(network)
-            .withNetworkAliases("collector")
-            .withLogConsumer(new Slf4jLogConsumer(logger))
-            .withCopyFileToContainer(
-                MountableFile.forClasspathResource("/otel.yaml"), "/etc/otel.yaml")
-            .withCommand("--config /etc/otel.yaml");
-    collector.start();
+    containerManager.startEnvironment();
   }
 
-  protected GenericContainer target;
+  void startTargetOrSkipTest(TestImage image) {
+    // Skip the test if the current OS and image are incompatible (Windows images on Linux host or
+    // vice versa).
+    assumeTrue(
+        containerManager.isImageCompatible(image),
+        "Current Docker environment can run image " + image);
 
-  void startTarget(String targetImageName) {
-    target =
-        new GenericContainer<>(DockerImageName.parse(targetImageName))
-            .withStartupTimeout(Duration.ofMinutes(5))
-            .withExposedPorts(8080)
-            .withNetwork(network)
-            .withLogConsumer(new Slf4jLogConsumer(logger))
-            .withCopyFileToContainer(
-                MountableFile.forHostPath(agentPath), "/opentelemetry-javaagent.jar")
-            .withEnv("JAVA_TOOL_OPTIONS", "-javaagent:/opentelemetry-javaagent.jar")
-            .withEnv("OTEL_BSP_MAX_EXPORT_BATCH", "1")
-            .withEnv("OTEL_BSP_SCHEDULE_DELAY", "10")
-            .withEnv("OTEL_EXPORTER_JAEGER_ENDPOINT", "http://collector:14268/api/traces")
-            .withEnv(getExtraEnv());
-    WaitStrategy waitStrategy = getWaitStrategy();
-    if (waitStrategy != null) {
-      target = target.waitingFor(waitStrategy);
+    if (image.isProprietaryImage) {
+      // Proprietary images have to be built locally, therefore if they are not present, the test
+      // will be skipped as they are not expected to be found in a remote repository.
+      assumeTrue(containerManager.isImagePresent(image), "Proprietary image is present: " + image);
     }
-    target.start();
+
+    containerManager.startTarget(image.imageName, agentPath, getExtraEnv(), getWaitStrategy());
   }
 
-  protected WaitStrategy getWaitStrategy() {
+  protected TargetWaitStrategy getWaitStrategy() {
     return null;
   }
 
@@ -143,20 +97,20 @@ public abstract class SmokeTest {
             new Request.Builder()
                 .url(
                     String.format(
-                        "http://localhost:%d/clear-requests", backend.getMappedPort(8080)))
+                        "http://localhost:%d/clear-requests",
+                        containerManager.getBackendMappedPort()))
                 .build())
         .execute()
         .close();
   }
 
   void stopTarget() {
-    target.stop();
+    containerManager.stopTarget();
   }
 
   @AfterAll
   static void cleanupSpec() {
-    backend.stop();
-    collector.stop();
+    containerManager.stopEnvironment();
   }
 
   protected static Stream<AnyValue> findResourceAttribute(
@@ -197,7 +151,9 @@ public abstract class SmokeTest {
 
       Request request =
           new Request.Builder()
-              .url(String.format("http://localhost:%d/get-requests", backend.getMappedPort(8080)))
+              .url(
+                  String.format(
+                      "http://localhost:%d/get-requests", containerManager.getBackendMappedPort()))
               .build();
 
       try (ResponseBody body = client.newCall(request).execute().body()) {
@@ -221,5 +177,15 @@ public abstract class SmokeTest {
         .getMainAttributes()
         .get(Attributes.Name.IMPLEMENTATION_VERSION)
         .toString();
+  }
+
+  private static TestContainerManager createContainerManager() {
+    boolean isWindows = System.getProperty("os.name").toLowerCase().contains("windows");
+
+    if (isWindows && !"1".equals(System.getenv("USE_LINUX_CONTAINERS"))) {
+      return new WindowsTestContainerManager();
+    } else {
+      return new LinuxTestContainerManager();
+    }
   }
 }

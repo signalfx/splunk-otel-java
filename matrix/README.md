@@ -66,3 +66,8 @@ To build JBoss EAP images you need to download following files to the `src/main/
 
 Now you can run gradle targets `jboss-eapImage-7.1.0-jdk8`, `jboss-eapImage-7.3.0-jdk11`, `jboss-eapImage-7.3.0-jdk8`
 to build Docker images with the test app deployed which can be used by SmokeTests.
+
+## Windows Images
+
+This project builds Windows equivalents for some images that OpenTelemetry repository only builds Linux images for.
+These images are built with the `buildWindowsTestImages` task.

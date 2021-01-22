@@ -16,8 +16,10 @@
 
 package com.splunk.opentelemetry;
 
+import static com.splunk.opentelemetry.helper.TestImage.linuxImage;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
+import com.splunk.opentelemetry.helper.TestImage;
 import java.io.IOException;
 import java.util.stream.Stream;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -39,30 +41,35 @@ public class WildFlySmokeTest extends AppServerTest {
   private static Stream<Arguments> supportedConfigurations() {
     return Stream.of(
         arguments(
-            "ghcr.io/open-telemetry/java-test-containers:wildfly-13.0.0.Final-jdk8-20201207.405832649",
+            linuxImage(
+                "ghcr.io/open-telemetry/java-test-containers:wildfly-13.0.0.Final-jdk8-20201207.405832649"),
             WILDFLY_13_SERVER_ATTRIBUTES),
         arguments(
-            "ghcr.io/open-telemetry/java-test-containers:wildfly-17.0.1.Final-jdk8-20201207.405832649",
+            linuxImage(
+                "ghcr.io/open-telemetry/java-test-containers:wildfly-17.0.1.Final-jdk8-20201207.405832649"),
             WILDFLY_17_SERVER_ATTRIBUTES),
         arguments(
-            "ghcr.io/open-telemetry/java-test-containers:wildfly-17.0.1.Final-jdk11-20201207.405832649",
+            linuxImage(
+                "ghcr.io/open-telemetry/java-test-containers:wildfly-17.0.1.Final-jdk11-20201207.405832649"),
             WILDFLY_17_SERVER_ATTRIBUTES),
         arguments(
-            "ghcr.io/open-telemetry/java-test-containers:wildfly-21.0.0.Final-jdk8-20201207.405832649",
+            linuxImage(
+                "ghcr.io/open-telemetry/java-test-containers:wildfly-21.0.0.Final-jdk8-20201207.405832649"),
             WILDFLY_21_SERVER_ATTRIBUTES),
         arguments(
-            "ghcr.io/open-telemetry/java-test-containers:wildfly-21.0.0.Final-jdk11-20201207.405832649",
+            linuxImage(
+                "ghcr.io/open-telemetry/java-test-containers:wildfly-21.0.0.Final-jdk11-20201207.405832649"),
             WILDFLY_21_SERVER_ATTRIBUTES));
   }
 
   @ParameterizedTest(name = "[{index}] {0}")
   @MethodSource("supportedConfigurations")
-  void wildflySmokeTest(String imageName, ExpectedServerAttributes expectedServerAttributes)
+  void wildflySmokeTest(TestImage image, ExpectedServerAttributes expectedServerAttributes)
       throws IOException, InterruptedException {
-    startTarget(imageName);
+    startTargetOrSkipTest(image);
 
     assertServerHandler(expectedServerAttributes);
-    assertWebAppTrace(expectedServerAttributes);
+    assertWebAppTrace(expectedServerAttributes, image);
 
     stopTarget();
   }

@@ -1,0 +1,77 @@
+import com.bmuschko.gradle.docker.tasks.image.DockerBuildImage
+
+plugins {
+  id 'java'
+  id 'com.google.cloud.tools.jib' version '2.5.0'
+  id 'com.github.johnrengelman.shadow' version '6.1.0'
+  id "com.bmuschko.docker-remote-api" version "6.6.1"
+  id "de.undercouch.download" version "4.1.1"
+}
+
+group = 'com.splunk.public'
+version = '0.0.1-SNAPSHOT'
+
+repositories {
+  mavenCentral()
+  jcenter()
+}
+
+compileJava {
+  options.release = 11
+}
+
+dependencies {
+  implementation("com.linecorp.armeria:armeria-grpc:1.0.0")
+  implementation("io.opentelemetry:opentelemetry-proto:0.10.0")
+  implementation("org.slf4j:slf4j-simple:1.7.30")
+}
+
+shadowJar {
+  manifest {
+    attributes 'Main-Class': 'com.splunk.opentelemetry.smoketest.fakebackend.FakeBackendMain'
+  }
+}
+
+def backendDockerBuildDir = new File(project.buildDir, "docker-backend")
+
+task windowsBackendImagePrepare(type: Copy) {
+  dependsOn(shadowJar)
+  into(backendDockerBuildDir)
+  from("src/docker/backend")
+  from(shadowJar.outputs) {
+    rename { _ -> "fake-backend.jar" }
+  }
+}
+
+task windowsBackendImageBuild(type: DockerBuildImage) {
+  dependsOn(windowsBackendImagePrepare)
+  inputDir = backendDockerBuildDir
+
+  it.images.add "splunk-fake-backend:windows"
+  it.dockerFile = new File(backendDockerBuildDir, "windows.dockerfile")
+}
+
+def collectorDockerBuildDir = new File(project.buildDir, "docker-collector")
+
+task windowsCollectorBinaryDownload(type: Download) {
+  doFirst {
+    collectorDockerBuildDir.mkdirs()
+  }
+
+  src("https://github.com/open-telemetry/opentelemetry-collector/releases/download/v0.18.0/otelcol_windows_amd64.exe")
+  dest(collectorDockerBuildDir)
+}
+
+task windowsCollectorImagePrepare(type: Copy) {
+  dependsOn(windowsCollectorBinaryDownload)
+  into(collectorDockerBuildDir)
+  from("src/docker/collector")
+}
+
+task windowsCollectorImageBuild(type: DockerBuildImage) {
+  dependsOn(windowsCollectorImagePrepare)
+  inputDir = collectorDockerBuildDir
+
+  it.images.add "splunk-otel-collector:windows"
+  it.dockerFile = new File(collectorDockerBuildDir, "windows.dockerfile")
+}

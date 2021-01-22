@@ -16,6 +16,7 @@
 
 package com.splunk.opentelemetry;
 
+import com.splunk.opentelemetry.helper.TestImage;
 import io.opentelemetry.proto.trace.v1.Span;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -38,9 +39,9 @@ public abstract class AppServerTest extends SmokeTest {
    *   3. Server http span for http://localhost:8080/headers
    * </code>
    */
-  protected void assertWebAppTrace(ExpectedServerAttributes serverAttributes)
+  protected void assertWebAppTrace(ExpectedServerAttributes serverAttributes, TestImage testImage)
       throws IOException, InterruptedException {
-    String url = String.format("http://localhost:%d/app/greeting", target.getMappedPort(8080));
+    String url = getUrl("/app/greeting", false);
 
     Request request = new Request.Builder().get().url(url).build();
     String responseBody = tryGetResponse(request);
@@ -66,15 +67,18 @@ public abstract class AppServerTest extends SmokeTest {
         1, traces.countFilteredAttributes("http.url", url), "The span for the initial web request");
     Assertions.assertEquals(
         2,
-        traces.countFilteredAttributes("http.url", "http://localhost:8080/app/headers"),
+        traces.countFilteredAttributes("http.url", getUrl("/app/headers", true)),
         "Client and server spans for the remote call");
 
+    if (testImage.isProprietaryImage) {
+      Assertions.assertEquals(
+          1, traces.countSpansByName("GreetingServlet.withSpan"), "Span for the annotated method");
+    }
+
     Assertions.assertEquals(
-        totalNumberOfSpansInWebappTrace(),
+        totalNumberOfSpansInWebappTrace(testImage),
         traces.countFilteredAttributes("otel.library.version", getCurrentAgentVersion()),
         "Number of spans tagged with current otel library version");
-
-    additionalWebAppTraceAssertions(traces, serverAttributes);
   }
 
   /*
@@ -100,11 +104,12 @@ public abstract class AppServerTest extends SmokeTest {
     return responseBody;
   }
 
-  protected void additionalWebAppTraceAssertions(
-      TraceInspector traces, ExpectedServerAttributes serverAttributes) {}
-
-  protected int totalNumberOfSpansInWebappTrace() {
-    return 3;
+  private int totalNumberOfSpansInWebappTrace(TestImage testImage) {
+    // 1) Incoming /greeting
+    // 2) Outgoing /headers
+    // 3) Incoming /headers
+    // 4) Splunk WAR in proprietary images adds a @WithSpan span
+    return 3 + (testImage.isProprietaryImage ? 1 : 0);
   }
 
   protected void assertMiddlewareAttributesInWebAppTrace(
@@ -122,9 +127,7 @@ public abstract class AppServerTest extends SmokeTest {
   protected void assertServerHandler(ExpectedServerAttributes serverAttributes)
       throws IOException, InterruptedException {
     String url =
-        String.format(
-            "http://localhost:%d/this-is-definitely-not-there-but-there-should-be-a-trace-nevertheless",
-            target.getMappedPort(8080));
+        getUrl("/this-is-definitely-not-there-but-there-should-be-a-trace-nevertheless", false);
 
     Request request = new Request.Builder().get().url(url).build();
     Response response = client.newCall(request).execute();
@@ -152,6 +155,11 @@ public abstract class AppServerTest extends SmokeTest {
         "Middleware version tag on server span");
 
     resetBackend();
+  }
+
+  protected String getUrl(String path, boolean originalPort) {
+    int port = originalPort ? 8080 : containerManager.getTargetMappedPort(8080);
+    return String.format("http://localhost:%d%s", port, path);
   }
 
   protected static class ExpectedServerAttributes {

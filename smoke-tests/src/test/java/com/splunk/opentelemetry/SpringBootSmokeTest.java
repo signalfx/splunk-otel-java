@@ -40,7 +40,7 @@ class SpringBootSmokeTest extends AppServerTest {
   public void springBootSmokeTestOnJDK(int jdk) throws IOException, InterruptedException {
     startTargetOrSkipTest(getTargetImage(jdk));
 
-    Request request = new Request.Builder().url(getUrl("/app/greeting", false)).get().build();
+    Request request = new Request.Builder().url(getUrl("/greeting", false)).get().build();
 
     String currentAgentVersion = getCurrentAgentVersion();
 

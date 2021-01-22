@@ -89,6 +89,7 @@ public class TomcatSmokeTest extends AppServerTest {
 
   public static class TomcatAttributes extends ExpectedServerAttributes {
     public TomcatAttributes(String version) {
+      // This handler span name is only received if default webapps are removed
       super("CoyoteAdapter.service", "tomcat", version);
     }
   }

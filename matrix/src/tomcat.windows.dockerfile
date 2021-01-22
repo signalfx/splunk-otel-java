@@ -13,6 +13,9 @@ FROM winamd64/openjdk:${jdk}-jdk-windowsservercore-1809
 ARG version
 # Make /server the base directory to simplify all further paths
 COPY --from=builder /server/apache-tomcat-${version} /server
+# Delete default webapps to match the behavior of the official Linux Tomcat image
+RUN ["powershell", "-Command", "Remove-Item -Recurse -Path /server/webapps"]
+RUN ["powershell", "-Command", "New-Item -ItemType directory -Path /server/webapps"]
 COPY app.war /server/webapps/
 WORKDIR /server/bin
 CMD /server/bin/catalina.bat run

@@ -17,6 +17,7 @@
 package com.splunk.opentelemetry;
 
 import static com.splunk.opentelemetry.helper.TestImage.linuxImage;
+import static com.splunk.opentelemetry.helper.TestImage.proprietaryWindowsImage;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 import com.splunk.opentelemetry.helper.TestImage;
@@ -59,6 +60,21 @@ public class WildFlySmokeTest extends AppServerTest {
         arguments(
             linuxImage(
                 "ghcr.io/open-telemetry/java-test-containers:wildfly-21.0.0.Final-jdk11-20201207.405832649"),
+            WILDFLY_21_SERVER_ATTRIBUTES),
+        arguments(
+            proprietaryWindowsImage("splunk-wildfly:13.0.0.Final-jdk8-windows"),
+            WILDFLY_13_SERVER_ATTRIBUTES),
+        arguments(
+            proprietaryWindowsImage("splunk-wildfly:17.0.1.Final-jdk8-windows"),
+            WILDFLY_17_SERVER_ATTRIBUTES),
+        arguments(
+            proprietaryWindowsImage("splunk-wildfly:17.0.1.Final-jdk11-windows"),
+            WILDFLY_17_SERVER_ATTRIBUTES),
+        arguments(
+            proprietaryWindowsImage("splunk-wildfly:21.0.0.Final-jdk8-windows"),
+            WILDFLY_21_SERVER_ATTRIBUTES),
+        arguments(
+            proprietaryWindowsImage("splunk-wildfly:21.0.0.Final-jdk11-windows"),
             WILDFLY_21_SERVER_ATTRIBUTES));
   }
 

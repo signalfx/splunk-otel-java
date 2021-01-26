@@ -17,6 +17,7 @@
 package com.splunk.opentelemetry;
 
 import static com.splunk.opentelemetry.helper.TestImage.linuxImage;
+import static com.splunk.opentelemetry.helper.TestImage.proprietaryWindowsImage;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 import com.splunk.opentelemetry.helper.TestImage;
@@ -56,6 +57,15 @@ public class LibertySmokeTest extends AppServerTest {
         arguments(
             linuxImage(
                 "ghcr.io/open-telemetry/java-test-containers:liberty-20.0.0.12-jdk15-jdk-openj9-20201209.410207048"),
+            LIBERTY20_SERVER_ATTRIBUTES),
+        arguments(
+            proprietaryWindowsImage("splunk-openliberty:20.0.0.12-jdk8-windows"),
+            LIBERTY20_SERVER_ATTRIBUTES),
+        arguments(
+            proprietaryWindowsImage("splunk-openliberty:20.0.0.12-jdk11-windows"),
+            LIBERTY20_SERVER_ATTRIBUTES),
+        arguments(
+            proprietaryWindowsImage("splunk-openliberty:20.0.0.12-jdk15-windows"),
             LIBERTY20_SERVER_ATTRIBUTES));
   }
 

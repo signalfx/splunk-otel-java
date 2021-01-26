@@ -22,6 +22,7 @@ import static org.junit.jupiter.params.provider.Arguments.arguments;
 import com.splunk.opentelemetry.helper.TestImage;
 import java.io.IOException;
 import java.util.stream.Stream;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -33,27 +34,31 @@ import org.junit.jupiter.params.provider.MethodSource;
  */
 class WebLogicSmokeTest extends AppServerTest {
 
-  // FIXME: awaiting https://github.com/open-telemetry/opentelemetry-java-instrumentation/pull/1630
-  private static final AppServerTest.ExpectedServerAttributes WEBLOGIC_ATTRIBUTES =
-      new AppServerTest.ExpectedServerAttributes("", "", "");
+  private static final AppServerTest.ExpectedServerAttributes V12_1_ATTRIBUTES =
+      new AppServerTest.ExpectedServerAttributes("", "WebLogic Server", "12.1.3.0.0");
+  private static final AppServerTest.ExpectedServerAttributes V12_2_ATTRIBUTES =
+      new AppServerTest.ExpectedServerAttributes("", "WebLogic Server", "12.2.1.4.0");
+  private static final AppServerTest.ExpectedServerAttributes V14_ATTRIBUTES =
+      new AppServerTest.ExpectedServerAttributes("", "WebLogic Server", "14.1.1.0.0");
 
   private static Stream<Arguments> supportedWlsConfigurations() {
     return Stream.of(
-        arguments(proprietaryLinuxImage("splunk-weblogic:12.1.3-jdkdeveloper")),
-        arguments(proprietaryLinuxImage("splunk-weblogic:12.2.1.4-jdkdeveloper")),
-        arguments(proprietaryLinuxImage("splunk-weblogic:14.1.1.0-jdkdeveloper-8")),
-        arguments(proprietaryLinuxImage("splunk-weblogic:14.1.1.0-jdkdeveloper-11")));
+        arguments(proprietaryLinuxImage("splunk-weblogic:12.1.3-jdkdeveloper"), V12_1_ATTRIBUTES),
+        arguments(proprietaryLinuxImage("splunk-weblogic:12.2.1.4-jdkdeveloper"), V12_2_ATTRIBUTES),
+        arguments(proprietaryLinuxImage("splunk-weblogic:14.1.1.0-jdkdeveloper-8"), V14_ATTRIBUTES),
+        arguments(
+            proprietaryLinuxImage("splunk-weblogic:14.1.1.0-jdkdeveloper-11"), V14_ATTRIBUTES));
   }
 
   @ParameterizedTest
   @MethodSource("supportedWlsConfigurations")
-  public void webLogicSmokeTest(TestImage image) throws IOException, InterruptedException {
+  public void webLogicSmokeTest(TestImage image, ExpectedServerAttributes serverAttributes)
+      throws IOException, InterruptedException {
     startTargetOrSkipTest(image);
 
-    // FIXME: APMI-1300
-    //    assertServerHandler(....)
-
-    assertWebAppTrace(WEBLOGIC_ATTRIBUTES, image);
+    // No assertServerHandler as there are no current plans to have a WebLogic server handler that
+    // creates spans
+    assertWebAppTrace(serverAttributes, image);
 
     stopTarget();
   }
@@ -61,7 +66,21 @@ class WebLogicSmokeTest extends AppServerTest {
   @Override
   protected void assertMiddlewareAttributesInWebAppTrace(
       ExpectedServerAttributes serverAttributes, TraceInspector traces) {
-    // FIXME: waiting for
-    // https://github.com/open-telemetry/opentelemetry-java-instrumentation/pull/1630
+    super.assertMiddlewareAttributesInWebAppTrace(serverAttributes, traces);
+
+    Assertions.assertEquals(
+        "domain1",
+        traces.getServerSpanAttribute("middleware.weblogic.domain"),
+        "WebLogic Domain attribute present");
+
+    Assertions.assertEquals(
+        "admin-server",
+        traces.getServerSpanAttribute("middleware.weblogic.server"),
+        "WebLogic Server attribute present");
+
+    Assertions.assertEquals(
+        "app",
+        traces.getServerSpanAttribute("middleware.weblogic.application"),
+        "WebLogic Application attribute present");
   }
 }

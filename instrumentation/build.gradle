@@ -9,19 +9,6 @@ subprojects {
             // Make it so all instrumentation subproject tests can be run with a single command.
             instr_project.tasks.test.dependsOn(subProj.tasks.test)
 
-            dependencies {
-                compileOnly("io.opentelemetry:opentelemetry-sdk:${versions.opentelemetry}")
-                compileOnly("io.opentelemetry.javaagent:opentelemetry-javaagent-tooling:${versions.opentelemetryJavaagent}")
-                compileOnly("io.opentelemetry.javaagent:opentelemetry-javaagent-api:${versions.opentelemetryJavaagent}")
-                compileOnly("io.opentelemetry.javaagent:opentelemetry-javaagent-spi:${versions.opentelemetryJavaagent}")
-                compileOnly("net.bytebuddy:byte-buddy:1.10.10")
-                annotationProcessor("com.google.auto.service:auto-service:1.0-rc3")
-                annotationProcessor("com.google.auto:auto-common:0.8")
-                implementation("com.google.auto.service:auto-service:1.0-rc3")
-                implementation("com.google.auto:auto-common:0.8")
-                compileOnly(project(":bootstrap"))
-            }
-
             compileJava {
                 options.release.set(8)
             }

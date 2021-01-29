@@ -1,6 +1,4 @@
-plugins {
-    id "java"
-}
+apply from: "$rootDir/gradle/instrumentation.gradle"
 
 dependencies {
     compileOnly('org.apache.tomcat:tomcat-catalina:9.0.40')

@@ -1,6 +1,4 @@
-plugins {
-    id "java"
-}
+apply from: "$rootDir/gradle/instrumentation.gradle"
 
 dependencies {
     compileOnly('org.glassfish.main.common:common-util:5.0')

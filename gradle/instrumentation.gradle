@@ -1,0 +1,74 @@
+apply plugin: 'java'
+apply plugin: 'com.github.johnrengelman.shadow'
+
+configurations {
+    testInstrumentation
+    testAgent
+}
+
+dependencies {
+    compileOnly("io.opentelemetry:opentelemetry-sdk:${versions.opentelemetry}")
+    compileOnly("io.opentelemetry.instrumentation:opentelemetry-instrumentation-api:${versions.opentelemetryJavaagent}")
+    compileOnly("io.opentelemetry.javaagent:opentelemetry-javaagent-tooling:${versions.opentelemetryJavaagent}")
+    compileOnly("io.opentelemetry.javaagent:opentelemetry-javaagent-api:${versions.opentelemetryJavaagent}")
+    compileOnly("io.opentelemetry.javaagent:opentelemetry-javaagent-spi:${versions.opentelemetryJavaagent}")
+    compileOnly("net.bytebuddy:byte-buddy:1.10.10")
+    annotationProcessor("com.google.auto.service:auto-service:1.0-rc3")
+    annotationProcessor("com.google.auto:auto-common:0.8")
+    implementation("com.google.auto.service:auto-service:1.0-rc3")
+    implementation("com.google.auto:auto-common:0.8")
+    compileOnly(project(":bootstrap"))
+
+    // test
+    // TODO: these should use versions.opentelemetryJavaagent once distro is updated to 0.15
+//    testAgent("io.opentelemetry.javaagent:opentelemetry-agent-for-testing:${versions.opentelemetryJavaagent}")
+//    testImplementation("io.opentelemetry.javaagent:opentelemetry-testing-common:${versions.opentelemetryJavaagent}")
+    testAgent("io.opentelemetry.javaagent:opentelemetry-agent-for-testing:0.15.0")
+    testImplementation("io.opentelemetry.javaagent:opentelemetry-testing-common:0.15.0")
+}
+
+shadowJar {
+    configurations = [project.configurations.runtimeClasspath, project.configurations.testInstrumentation]
+    mergeServiceFiles()
+
+    archiveFileName = 'agent-testing.jar'
+
+    // rewrite library instrumentation dependencies
+    relocate "io.opentelemetry.instrumentation", "io.opentelemetry.javaagent.shaded.instrumentation"
+
+    // Prevents conflict with other SLF4J instances. Important for premain.
+    relocate 'org.slf4j', 'io.opentelemetry.javaagent.slf4j'
+    // rewrite dependencies calling Logger.getLogger
+    relocate 'java.util.logging.Logger', 'io.opentelemetry.javaagent.bootstrap.PatchLogger'
+
+    // prevents conflict with library instrumentation
+    relocate 'io.opentelemetry.instrumentation.api', 'io.opentelemetry.javaagent.shaded.instrumentation.api'
+
+    // relocate OpenTelemetry API usage
+    relocate "io.opentelemetry.api", "io.opentelemetry.javaagent.shaded.io.opentelemetry.api"
+    relocate "io.opentelemetry.semconv", "io.opentelemetry.javaagent.shaded.io.opentelemetry.semconv"
+    relocate "io.opentelemetry.spi", "io.opentelemetry.javaagent.shaded.io.opentelemetry.spi"
+    relocate "io.opentelemetry.context", "io.opentelemetry.javaagent.shaded.io.opentelemetry.context"
+
+    // relocate OpenTelemetry extensions
+    relocate "io.opentelemetry.extension.kotlin", "io.opentelemetry.javaagent.shaded.io.opentelemetry.extension.kotlin"
+    relocate "io.opentelemetry.extension.trace.propagation", "io.opentelemetry.javaagent.shaded.io.opentelemetry.extension.trace.propagation"
+}
+
+tasks.withType(Test).configureEach {
+    jvmArgs "-Dotel.javaagent.debug=true"
+    jvmArgs "-javaagent:${configurations.testAgent.files.first().absolutePath}"
+    jvmArgs "-Dotel.initializer.jar=${shadowJar.archiveFile.get().asFile.absolutePath}"
+    jvmArgs "-Dinternal.testing.disable.global.library.ignores=true"
+
+    dependsOn shadowJar
+
+    // The sources are packaged into the testing jar so we need to make sure to exclude from the test
+    // classpath, which automatically inherits them, to ensure our shaded versions are used.
+    classpath = classpath.filter {
+        if (file("$buildDir/resources/main").equals(it) || file("$buildDir/classes/java/main").equals(it)) {
+            return false
+        }
+        return true
+    }
+}

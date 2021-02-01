@@ -115,6 +115,15 @@ A simple wrapper for the Jaeger exporter of [opentelemetry-java](https://github.
 ### More options
 For more options see [here](https://github.com/open-telemetry/opentelemetry-java-instrumentation#configuration-parameters-subject-to-change)
 
+## Span tags the Splunk distribution automatically creates
+
+This Splunk distribution automatically adds context to `SERVER` spans for known application servers using these span tags:
+
+| Span tag             | Example     | Description                            |
+| -------------------- | ----------- | -------------------------------------- |
+| `middleware.name`    | `tomcat`    | The name of the application server.    |
+| `middleware.version` | `7.0.107.0` | The version of the application server. |
+
 ## Manually instrument a Java application
 
 Documentation on how to manually instrument a Java application are available

@@ -16,6 +16,9 @@
 
 package com.splunk.opentelemetry;
 
+import static com.splunk.opentelemetry.helper.TestImage.linuxImage;
+
+import com.splunk.opentelemetry.helper.TestImage;
 import java.io.IOException;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -23,21 +26,21 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-class SpringBootSmokeTest extends SmokeTest {
+class SpringBootSmokeTest extends AppServerTest {
 
-  private String getTargetImage(int jdk) {
-    return "open-telemetry-docker-dev.bintray.io/java/smoke-springboot-jdk"
-        + jdk
-        + ":20201105.347264626";
+  private TestImage getTargetImage(int jdk) {
+    return linuxImage(
+        "open-telemetry-docker-dev.bintray.io/java/smoke-springboot-jdk"
+            + jdk
+            + ":20201105.347264626");
   }
 
   @ParameterizedTest(name = "{index} => SpringBoot SmokeTest On JDK{0}.")
   @ValueSource(ints = {8, 11, 15})
   public void springBootSmokeTestOnJDK(int jdk) throws IOException, InterruptedException {
-    startTarget(getTargetImage(jdk));
+    startTargetOrSkipTest(getTargetImage(jdk));
 
-    String url = String.format("http://localhost:%d/greeting", target.getMappedPort(8080));
-    Request request = new Request.Builder().url(url).get().build();
+    Request request = new Request.Builder().url(getUrl("/greeting", false)).get().build();
 
     String currentAgentVersion = getCurrentAgentVersion();
 

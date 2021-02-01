@@ -16,8 +16,12 @@
 
 package com.splunk.opentelemetry;
 
+import static com.splunk.opentelemetry.helper.TestImage.linuxImage;
+import static com.splunk.opentelemetry.helper.TestImage.proprietaryWindowsImage;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
+import com.splunk.opentelemetry.helper.TargetWaitStrategy;
+import com.splunk.opentelemetry.helper.TestImage;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.Map;
@@ -25,8 +29,6 @@ import java.util.stream.Stream;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.testcontainers.containers.wait.strategy.Wait;
-import org.testcontainers.containers.wait.strategy.WaitStrategy;
 
 public class GlassFishSmokeTest extends AppServerTest {
 
@@ -39,10 +41,18 @@ public class GlassFishSmokeTest extends AppServerTest {
   private static Stream<Arguments> supportedConfigurations() {
     return Stream.of(
         arguments(
-            "ghcr.io/open-telemetry/java-test-containers:payara-5.2020.6-jdk11-jdk11-20201207.405832649",
+            linuxImage(
+                "ghcr.io/open-telemetry/java-test-containers:payara-5.2020.6-jdk11-jdk11-20201207.405832649"),
             PAYARA_SERVER_ATTRIBUTES),
         arguments(
-            "ghcr.io/open-telemetry/java-test-containers:payara-5.2020.6-jdk8-20201207.405832649",
+            linuxImage(
+                "ghcr.io/open-telemetry/java-test-containers:payara-5.2020.6-jdk8-20201207.405832649"),
+            PAYARA_SERVER_ATTRIBUTES),
+        arguments(
+            proprietaryWindowsImage("splunk-payara:5.2020.6-jdk8-windows"),
+            PAYARA_SERVER_ATTRIBUTES),
+        arguments(
+            proprietaryWindowsImage("splunk-payara:5.2020.6-jdk11-windows"),
             PAYARA_SERVER_ATTRIBUTES));
   }
 
@@ -52,19 +62,18 @@ public class GlassFishSmokeTest extends AppServerTest {
   }
 
   @Override
-  protected WaitStrategy getWaitStrategy() {
-    return Wait.forLogMessage(".*app was successfully deployed.*", 1)
-        .withStartupTimeout(Duration.ofMinutes(5));
+  protected TargetWaitStrategy getWaitStrategy() {
+    return new TargetWaitStrategy.Log(Duration.ofMinutes(5), ".*app was successfully deployed.*");
   }
 
   @ParameterizedTest
   @MethodSource("supportedConfigurations")
-  void payaraSmokeTest(String imageName, ExpectedServerAttributes expectedServerAttributes)
+  void payaraSmokeTest(TestImage image, ExpectedServerAttributes expectedServerAttributes)
       throws IOException, InterruptedException {
-    startTarget(imageName);
+    startTargetOrSkipTest(image);
 
     assertServerHandler(expectedServerAttributes);
-    assertWebAppTrace(expectedServerAttributes);
+    assertWebAppTrace(expectedServerAttributes, image);
 
     stopTarget();
   }

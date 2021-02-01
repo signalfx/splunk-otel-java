@@ -1,6 +1,4 @@
-plugins {
-    id "java"
-}
+apply from: "$rootDir/gradle/instrumentation.gradle"
 
 dependencies {
     compileOnly('org.eclipse.jetty:jetty-server:9.4.35.v20201120')

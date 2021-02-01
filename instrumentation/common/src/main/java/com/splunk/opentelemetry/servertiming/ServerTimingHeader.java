@@ -48,7 +48,7 @@ public final class ServerTimingHeader {
   private static String toHeaderValue(Context context) {
     Map<String, String> traceContextHeaders = new HashMap<>();
     W3CTraceContextPropagator.getInstance().inject(context, traceContextHeaders, Map::put);
-    return String.format("traceparent;desc=\"%s\"", traceContextHeaders.get("traceparent"));
+    return "traceparent;desc=\"" + traceContextHeaders.get("traceparent") + "\"";
   }
 
   private ServerTimingHeader() {}

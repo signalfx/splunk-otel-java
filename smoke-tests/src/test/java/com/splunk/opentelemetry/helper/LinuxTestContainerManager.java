@@ -41,7 +41,7 @@ public class LinuxTestContainerManager extends AbstractTestContainerManager {
     backend =
         new GenericContainer<>(
                 DockerImageName.parse(
-                    "open-telemetry-docker-dev.bintray.io/java/smoke-fake-backend:latest"))
+                        "ghcr.io/open-telemetry/java-test-containers:smoke-fake-backend-20210126.1126194"))
             .withExposedPorts(BACKEND_PORT)
             .waitingFor(Wait.forHttp("/health").forPort(BACKEND_PORT))
             .withNetwork(network)
@@ -50,7 +50,7 @@ public class LinuxTestContainerManager extends AbstractTestContainerManager {
     backend.start();
 
     collector =
-        new GenericContainer<>(DockerImageName.parse("otel/opentelemetry-collector-contrib:0.18.0"))
+        new GenericContainer<>(DockerImageName.parse("otel/opentelemetry-collector-contrib:0.19.0"))
             .dependsOn(backend)
             .withNetwork(network)
             .withNetworkAliases(COLLECTOR_ALIAS)

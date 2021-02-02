@@ -16,9 +16,11 @@
 
 package com.splunk.opentelemetry.middleware;
 
+import com.google.auto.service.AutoService;
 import io.opentelemetry.sdk.autoconfigure.spi.SdkTracerProviderConfigurer;
 import io.opentelemetry.sdk.trace.SdkTracerProviderBuilder;
 
+@AutoService(SdkTracerProviderConfigurer.class)
 public class MiddlewareTracerProviderConfigurer implements SdkTracerProviderConfigurer {
   @Override
   public void configure(SdkTracerProviderBuilder tracerProvider) {

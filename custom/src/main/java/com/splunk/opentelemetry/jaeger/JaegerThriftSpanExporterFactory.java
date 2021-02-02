@@ -49,12 +49,12 @@ public class JaegerThriftSpanExporterFactory implements ConfigurableSpanExporter
     if (token != null && !token.isEmpty()) {
       log.debug("Using authenticated jaeger-thrift exporter");
       builder.setThriftSender(
-              new HttpSender.Builder(endpoint)
-                      .withClient(
-                              new OkHttpClient.Builder()
-                                      .addInterceptor(new AuthTokenInterceptor(token))
-                                      .build())
-                      .build());
+          new HttpSender.Builder(endpoint)
+              .withClient(
+                  new OkHttpClient.Builder()
+                      .addInterceptor(new AuthTokenInterceptor(token))
+                      .build())
+              .build());
     } else {
       log.debug("Using jaeger-thrift exporter without authentication");
       builder.setEndpoint(endpoint);

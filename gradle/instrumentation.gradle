@@ -20,11 +20,8 @@ dependencies {
     compileOnly(project(":bootstrap"))
 
     // test
-    // TODO: these should use versions.opentelemetryJavaagent once distro is updated to 0.15
-//    testAgent("io.opentelemetry.javaagent:opentelemetry-agent-for-testing:${versions.opentelemetryJavaagent}")
-//    testImplementation("io.opentelemetry.javaagent:opentelemetry-testing-common:${versions.opentelemetryJavaagent}")
-    testAgent("io.opentelemetry.javaagent:opentelemetry-agent-for-testing:0.15.0")
-    testImplementation("io.opentelemetry.javaagent:opentelemetry-testing-common:0.15.0")
+    testAgent("io.opentelemetry.javaagent:opentelemetry-agent-for-testing:${versions.opentelemetryJavaagent}")
+    testImplementation("io.opentelemetry.javaagent:opentelemetry-testing-common:${versions.opentelemetryJavaagent}")
 }
 
 shadowJar {

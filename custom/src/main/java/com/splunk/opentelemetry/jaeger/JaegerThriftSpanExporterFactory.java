@@ -20,46 +20,51 @@ import com.google.auto.service.AutoService;
 import io.jaegertracing.thrift.internal.senders.HttpSender;
 import io.opentelemetry.exporter.jaeger.thrift.JaegerThriftSpanExporter;
 import io.opentelemetry.exporter.jaeger.thrift.JaegerThriftSpanExporterBuilder;
-import io.opentelemetry.javaagent.spi.exporter.SpanExporterFactory;
+import io.opentelemetry.sdk.autoconfigure.ConfigProperties;
+import io.opentelemetry.sdk.autoconfigure.spi.ConfigurableSpanExporterProvider;
 import io.opentelemetry.sdk.trace.export.SpanExporter;
-import java.util.Collections;
-import java.util.Properties;
-import java.util.Set;
 import okhttp3.OkHttpClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@AutoService(SpanExporterFactory.class)
-public class JaegerThriftSpanExporterFactory implements SpanExporterFactory {
+@AutoService(ConfigurableSpanExporterProvider.class)
+public class JaegerThriftSpanExporterFactory implements ConfigurableSpanExporterProvider {
   private static final Logger log = LoggerFactory.getLogger(JaegerThriftSpanExporterFactory.class);
 
   static final String SIGNALFX_AUTH_TOKEN = "signalfx.auth.token";
-  static final String OTEL_EXPORTER_JAEGER_ENDPOINT = "otel.exporter.jaeger.endpoint";
+  public static final String OTEL_EXPORTER_JAEGER_ENDPOINT = "otel.exporter.jaeger.endpoint";
+  static final String OTEL_EXPORTER_JAEGER_SERVICE_NAME = "otel.exporter.jaeger.service.name";
 
   @Override
-  public SpanExporter fromConfig(Properties config) {
-    JaegerThriftSpanExporterBuilder builder =
-        JaegerThriftSpanExporter.builder().readProperties(config);
+  public SpanExporter createExporter(ConfigProperties config) {
+    JaegerThriftSpanExporterBuilder builder = JaegerThriftSpanExporter.builder();
 
-    String token = config.getProperty(SIGNALFX_AUTH_TOKEN, "");
-    if (!token.isEmpty()) {
+    String serviceName = config.getString(OTEL_EXPORTER_JAEGER_SERVICE_NAME);
+    if (serviceName != null && !serviceName.isEmpty()) {
+      builder.setServiceName(serviceName);
+    }
+
+    String endpoint = config.getString(OTEL_EXPORTER_JAEGER_ENDPOINT);
+    String token = config.getString(SIGNALFX_AUTH_TOKEN);
+    if (token != null && !token.isEmpty()) {
       log.debug("Using authenticated jaeger-thrift exporter");
       builder.setThriftSender(
-          new HttpSender.Builder(config.getProperty(OTEL_EXPORTER_JAEGER_ENDPOINT))
-              .withClient(
-                  new OkHttpClient.Builder()
-                      .addInterceptor(new AuthTokenInterceptor(token))
-                      .build())
-              .build());
+              new HttpSender.Builder(endpoint)
+                      .withClient(
+                              new OkHttpClient.Builder()
+                                      .addInterceptor(new AuthTokenInterceptor(token))
+                                      .build())
+                      .build());
     } else {
       log.debug("Using jaeger-thrift exporter without authentication");
+      builder.setEndpoint(endpoint);
     }
 
     return builder.build();
   }
 
   @Override
-  public Set<String> getNames() {
-    return Collections.singleton("jaeger-thrift-splunk");
+  public String getName() {
+    return "jaeger-thrift-splunk";
   }
 }

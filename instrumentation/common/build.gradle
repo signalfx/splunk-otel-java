@@ -6,7 +6,6 @@ dependencies {
     compileOnly("io.opentelemetry.instrumentation:opentelemetry-instrumentation-api:${versions.opentelemetryJavaagent}")
     compileOnly("io.opentelemetry:opentelemetry-api:${versions.opentelemetry}")
 
-    // TODO: use versions.opentelemetryJavaagent once distro is updated to 0.15
-    testImplementation("io.opentelemetry.javaagent:opentelemetry-testing-common:0.15.0")
+    testImplementation("io.opentelemetry.javaagent:opentelemetry-testing-common:${versions.opentelemetryJavaagent}")
 }
 

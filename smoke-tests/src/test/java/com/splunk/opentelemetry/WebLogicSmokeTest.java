@@ -58,7 +58,7 @@ class WebLogicSmokeTest extends AppServerTest {
 
     // No assertServerHandler as there are no current plans to have a WebLogic server handler that
     // creates spans
-    assertWebAppTrace(serverAttributes, image);
+    assertWebAppTrace(serverAttributes);
 
     stopTarget();
   }

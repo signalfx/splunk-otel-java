@@ -50,9 +50,9 @@ public abstract class AppServerTest extends SmokeTest {
 
     TraceInspector traces = waitForTraces();
 
-    Set<String> traceIds = traces.getTraceIds();
+    assertEquals(1, traces.countTraceIds(), "There is one trace");
 
-    assertEquals(1, traceIds.size(), "There is one trace");
+    Set<String> traceIds = traces.getTraceIds();
     String theOneTraceId = new ArrayList<>(traceIds).get(0);
 
     assertTrue(
@@ -140,8 +140,8 @@ public abstract class AppServerTest extends SmokeTest {
         "404 response code is expected from the app-server for a request to a non-existing page.");
     var traces = waitForTraces();
 
-    var numberOfTraceIds = traces.getSpanStream().map(Span::getTraceId).distinct().count();
-    assertEquals(1L, numberOfTraceIds, "There is one trace from server handler");
+    var numberOfTraceIds = traces.countTraceIds();
+    assertEquals(1, numberOfTraceIds, "There is one trace from server handler");
 
     assertEquals(
         1,

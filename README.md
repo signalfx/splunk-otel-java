@@ -112,6 +112,12 @@ A simple wrapper for the Jaeger exporter of [opentelemetry-java](https://github.
 | otel.trace.methods                  | OTEL_TRACE_METHODS                 | unset          | Same as adding `@WithSpan` annotation functionality for the target method string. <details><summary>Format</summary>`my.package.MyClass1[method1,method2];my.package.MyClass2[method3]`</details>                                                                                                                                                                                                            |
 | otel.trace.annotated.methods.exclude     | OTEL_TRACE_ANNOTATED_METHODS_EXCLUDE    | unset          | Suppress `@WithSpan` instrumentation for specific methods. <details><summary>Format</summary>`my.package.MyClass1[method1,method2];my.package.MyClass2[method3]`</details>                                                                                                                                                                                                                                |
 
+### Splunk distribution configuration
+
+| System property                      | Environment variable                 | Default value  | Purpose                                                  |
+| ------------------------------------ | ----------------------------------   | -------------- | -------------------------------------------------------- |
+| splunk.context.server-timing.enabled | SPLUNK_CONTEXT_SERVER_TIMING_ENABLED | false          | Enables adding `Server-Timing` header to HTTP responses. |
+
 ### More options
 For more options see [here](https://github.com/open-telemetry/opentelemetry-java-instrumentation#configuration-parameters-subject-to-change)
 

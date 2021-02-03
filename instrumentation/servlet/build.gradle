@@ -1,0 +1,28 @@
+apply from: "$rootDir/gradle/instrumentation.gradle"
+
+dependencies {
+    compileOnly group: 'javax.servlet', name: 'servlet-api', version: '2.2'
+
+    implementation project(':instrumentation:common')
+
+    testInstrumentation group: 'io.opentelemetry.javaagent.instrumentation', name: 'opentelemetry-javaagent-servlet-common', version: versions.opentelemetryJavaagent
+    testInstrumentation group: 'io.opentelemetry.javaagent.instrumentation', name: 'opentelemetry-javaagent-servlet-2.2', version: versions.opentelemetryJavaagent
+    testInstrumentation group: 'io.opentelemetry.javaagent.instrumentation', name: 'opentelemetry-javaagent-servlet-3.0', version: versions.opentelemetryJavaagent
+
+    // TODO: use versions.opentelemetryJavaagent once distro is updated to 0.15
+    testImplementation("io.opentelemetry.javaagent:opentelemetry-testing-common:0.15.0") {
+        exclude group: 'org.eclipse.jetty', module: 'jetty-server'
+    }
+
+    testImplementation group: 'javax.servlet', name: 'servlet-api', version: '2.2'
+    testImplementation group: 'org.eclipse.jetty', name: 'jetty-servlet', version: '7.0.0.v20091005'
+    testImplementation(group: 'org.eclipse.jetty', name: 'jetty-server')  {
+        version {
+            strictly '7.0.0.v20091005'
+        }
+    }
+}
+
+tasks.withType(Test) {
+    jvmArgs '-Dsplunk.context.server-timing.enabled=true'
+}

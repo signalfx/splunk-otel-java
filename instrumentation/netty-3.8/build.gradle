@@ -1,0 +1,16 @@
+apply from: "$rootDir/gradle/instrumentation.gradle"
+
+dependencies {
+    compileOnly group: 'io.netty', name: 'netty', version: '3.8.0.Final'
+    compileOnly group: 'io.opentelemetry.javaagent.instrumentation', name: 'opentelemetry-javaagent-netty-3.8', version: versions.opentelemetryJavaagent
+
+    implementation project(':instrumentation:common')
+
+    testInstrumentation group: 'io.opentelemetry.javaagent.instrumentation', name: 'opentelemetry-javaagent-netty-3.8', version: versions.opentelemetryJavaagent
+
+    testImplementation group: 'io.netty', name: 'netty', version: '3.8.0.Final'
+}
+
+tasks.withType(Test) {
+    jvmArgs '-Dsplunk.context.server-timing.enabled=true'
+}

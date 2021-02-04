@@ -43,11 +43,11 @@ class WebLogicSmokeTest extends AppServerTest {
 
   private static Stream<Arguments> supportedWlsConfigurations() {
     return Stream.of(
-        arguments(proprietaryLinuxImage("splunk-weblogic:12.1.3-jdkdeveloper"), V12_1_ATTRIBUTES),
-        arguments(proprietaryLinuxImage("splunk-weblogic:12.2.1.4-jdkdeveloper"), V12_2_ATTRIBUTES),
-        arguments(proprietaryLinuxImage("splunk-weblogic:14.1.1.0-jdkdeveloper-8"), V14_ATTRIBUTES),
+        arguments(proprietaryLinuxImage("ghcr.io/signalfx/splunk-otel-weblogic:12.1.3-jdkdeveloper"), V12_1_ATTRIBUTES),
+        arguments(proprietaryLinuxImage("ghcr.io/signalfx/splunk-otel-weblogic:12.2.1.4-jdkdeveloper"), V12_2_ATTRIBUTES),
+        arguments(proprietaryLinuxImage("ghcr.io/signalfx/splunk-otel-weblogic:14.1.1.0-jdkdeveloper-8"), V14_ATTRIBUTES),
         arguments(
-            proprietaryLinuxImage("splunk-weblogic:14.1.1.0-jdkdeveloper-11"), V14_ATTRIBUTES));
+            proprietaryLinuxImage("ghcr.io/signalfx/splunk-otel-weblogic:14.1.1.0-jdkdeveloper-11"), V14_ATTRIBUTES));
   }
 
   @ParameterizedTest

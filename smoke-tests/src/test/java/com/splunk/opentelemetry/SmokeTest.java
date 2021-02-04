@@ -73,6 +73,12 @@ public abstract class SmokeTest {
         containerManager.isImageCompatible(image),
         "Current Docker environment can run image " + image);
 
+    if (image.isProprietaryImage) {
+      // Proprietary images are private, therefore if they are not present, the test
+      // will be skipped as not everybody can pull them from a remote repository.
+      assumeTrue(containerManager.isImagePresent(image), "Proprietary image is present: " + image);
+    }
+
     containerManager.startTarget(image.imageName, agentPath, getExtraEnv(), getWaitStrategy());
   }
 

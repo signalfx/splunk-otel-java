@@ -18,7 +18,8 @@ jobs:
           java-version: 11
 
       - name: Build and test
-        run: ./gradlew build --scan --no-daemon
+        run: ./gradlew pullProprietaryTestImages build --scan --no-daemon
+
   build_windows:
     runs-on: windows-latest
     steps:

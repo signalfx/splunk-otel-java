@@ -1,4 +1,5 @@
 import com.bmuschko.gradle.docker.tasks.image.DockerBuildImage
+import com.bmuschko.gradle.docker.tasks.image.DockerPullImage
 
 plugins {
   id 'war'
@@ -20,6 +21,9 @@ def buildProprietaryTestImagesTask = tasks.create("buildProprietaryTestImages") 
   description = "Builds all Docker images for the test matrix for proprietary app servers"
 }
 
+//Intentially left without group to remain hidden
+def pullProprietaryTestImagesTask = tasks.create("pullProprietaryTestImages")
+
 def proprietaryTargets = [
     "weblogic" : [
        "12.1.3" : ["developer"],
@@ -32,7 +36,7 @@ def proprietaryTargets = [
     ]
 ]
 
-createDockerTasks(buildProprietaryTestImagesTask, proprietaryTargets, false)
+createDockerTasks(buildProprietaryTestImagesTask, pullProprietaryTestImagesTask, proprietaryTargets, false)
 
 def buildWindowsTestImagesTask = tasks.create("buildWindowsTestImages") {
   group = "build"
@@ -62,9 +66,9 @@ def windowsTargets = [
     ]
 ]
 
-createDockerTasks(buildWindowsTestImagesTask, windowsTargets, true)
+createDockerTasks(buildWindowsTestImagesTask, null, windowsTargets, true)
 
-def createDockerTasks(parentTask, targets, isWindows) {
+def createDockerTasks(parentTask, Task parentPullTask, targets, isWindows) {
   def dockerWorkingDir = new File(project.buildDir, "docker")
 
   targets.forEach { server, data ->
@@ -87,20 +91,30 @@ def createDockerTasks(parentTask, targets, isWindows) {
           }
         }
 
+        def fullDockerImageName = "ghcr.io/signalfx/splunk-otel-$server:$version-jdk$jdk" + (isWindows ? "-windows" : "")
+
         def buildTask = tasks.register("${server}Image-$version-jdk$jdk", DockerBuildImage) {
           it.dependsOn(prepareTask)
           group = "build"
           description = "Builds Docker image with $server $version on JDK $jdk"
 
-          it.inputDir = dockerWorkingDir
-          it.images.add("ghcr.io/signalfx/splunk-otel-$server:$version-jdk$jdk" + (isWindows ? "-windows" : ""))
+          it.inputDir.set(dockerWorkingDir)
+          it.images.add(fullDockerImageName)
 
           it.buildArgs.set(["jdk": jdk] + versionInfo)
 
-          it.dockerFile = new File(dockerWorkingDir, dockerFileName)
+          it.dockerFile.set(new File(dockerWorkingDir, dockerFileName))
         }
 
         parentTask.dependsOn(buildTask)
+
+        if(parentPullTask != null){
+          def pullTask = tasks.register("${server}ImagePull-$version-jdk$jdk", DockerPullImage) {
+            it.image.set(fullDockerImageName)
+          }
+
+          parentPullTask.dependsOn(pullTask)
+        }
       }
     }
   }

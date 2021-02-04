@@ -37,8 +37,12 @@ public class TomeeSmokeTest extends AppServerTest {
     return Stream.of(
         arguments(
             linuxImage(
-                "ghcr.io/open-telemetry/java-test-containers:tomee-7.0.0-jdk8-20210202.1321194"),
-            TOMEE7_SERVER_ATTRIBUTES));
+                "ghcr.io/open-telemetry/java-test-containers:tomee-7.0.0-jdk8-20210202.531569197"),
+            TOMEE7_SERVER_ATTRIBUTES),
+        arguments(
+            linuxImage(
+                "ghcr.io/open-telemetry/java-test-containers:tomee-8.0.6-jdk8-20210202.531569197"),
+            TOMEE8_SERVER_ATTRIBUTES));
   }
 
   @ParameterizedTest(name = "[{index}] {0}")

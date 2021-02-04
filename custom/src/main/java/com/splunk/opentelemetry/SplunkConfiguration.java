@@ -40,6 +40,7 @@ public class SplunkConfiguration implements PropertySource {
 
     // enable experimental instrumentation
     config.put("otel.instrumentation.spring-batch.enabled", "true");
+    config.put("otel.instrumentation.spring-batch.item.enabled", "true");
 
     return config;
   }

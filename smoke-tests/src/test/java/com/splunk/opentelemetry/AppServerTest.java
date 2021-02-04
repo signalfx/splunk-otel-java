@@ -19,7 +19,6 @@ package com.splunk.opentelemetry;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.splunk.opentelemetry.helper.TestImage;
 import io.opentelemetry.proto.trace.v1.Span;
 import java.io.IOException;
 import java.util.ArrayList;

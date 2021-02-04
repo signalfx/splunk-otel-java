@@ -74,8 +74,8 @@ public abstract class SmokeTest {
         "Current Docker environment can run image " + image);
 
     if (image.isProprietaryImage) {
-      // Proprietary images have to be built locally, therefore if they are not present, the test
-      // will be skipped as they are not expected to be found in a remote repository.
+      // Proprietary images are private, therefore if they are not present, the test
+      // will be skipped as not everybody can pull them from a remote repository.
       assumeTrue(containerManager.isImagePresent(image), "Proprietary image is present: " + image);
     }
 

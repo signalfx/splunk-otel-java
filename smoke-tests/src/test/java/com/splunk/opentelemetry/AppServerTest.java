@@ -19,7 +19,6 @@ package com.splunk.opentelemetry;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.splunk.opentelemetry.helper.TestImage;
 import io.opentelemetry.proto.trace.v1.Span;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -41,7 +40,7 @@ public abstract class AppServerTest extends SmokeTest {
    *   3. Server http span for http://localhost:8080/headers
    * </code>
    */
-  protected void assertWebAppTrace(ExpectedServerAttributes serverAttributes, TestImage testImage)
+  protected void assertWebAppTrace(ExpectedServerAttributes serverAttributes)
       throws IOException, InterruptedException {
     String url = getUrl("/app/greeting", false);
 
@@ -72,13 +71,8 @@ public abstract class AppServerTest extends SmokeTest {
         traces.countFilteredAttributes("http.url", getUrl("/app/headers", true)),
         "Client and server spans for the remote call");
 
-    if (testImage.isProprietaryImage) {
-      assertEquals(
-          1, traces.countSpansByName("GreetingServlet.withSpan"), "Span for the annotated method");
-    }
-
     assertEquals(
-        totalNumberOfSpansInWebappTrace(testImage),
+        totalNumberOfSpansInWebappTrace(),
         traces.countFilteredAttributes("otel.library.version", getCurrentAgentVersion()),
         "Number of spans tagged with current otel library version");
   }
@@ -106,12 +100,11 @@ public abstract class AppServerTest extends SmokeTest {
     return responseBody;
   }
 
-  private int totalNumberOfSpansInWebappTrace(TestImage testImage) {
+  private int totalNumberOfSpansInWebappTrace() {
     // 1) Incoming /greeting
     // 2) Outgoing /headers
     // 3) Incoming /headers
-    // 4) Splunk WAR in proprietary images adds a @WithSpan span
-    return 3 + (testImage.isProprietaryImage ? 1 : 0);
+    return 3;
   }
 
   protected void assertMiddlewareAttributesInWebAppTrace(

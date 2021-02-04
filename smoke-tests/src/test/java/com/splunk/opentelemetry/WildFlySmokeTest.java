@@ -85,7 +85,7 @@ public class WildFlySmokeTest extends AppServerTest {
     startTargetOrSkipTest(image);
 
     assertServerHandler(expectedServerAttributes);
-    assertWebAppTrace(expectedServerAttributes, image);
+    assertWebAppTrace(expectedServerAttributes);
 
     stopTarget();
   }

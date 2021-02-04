@@ -43,11 +43,13 @@ public class JBossEapSmokeTest extends AppServerTest {
   private static Stream<Arguments> jboss() {
     return Stream.of(
         arguments(
-            proprietaryLinuxImage("splunk-jboss-eap:7.1.0-jdk8"), JBOSS_EAP_7_1_SERVER_ATTRIBUTES),
+            proprietaryLinuxImage("ghcr.io/signalfx/splunk-otel-jboss-eap:7.1.0-jdk8"),
+            JBOSS_EAP_7_1_SERVER_ATTRIBUTES),
         arguments(
-            proprietaryLinuxImage("splunk-jboss-eap:7.3.0-jdk8"), JBOSS_EAP_7_3_SERVER_ATTRIBUTES),
+            proprietaryLinuxImage("ghcr.io/signalfx/splunk-otel-jboss-eap:7.3.0-jdk8"),
+            JBOSS_EAP_7_3_SERVER_ATTRIBUTES),
         arguments(
-            proprietaryLinuxImage("splunk-jboss-eap:7.3.0-jdk11"),
+            proprietaryLinuxImage("ghcr.io/signalfx/splunk-otel-jboss-eap:7.3.0-jdk11"),
             JBOSS_EAP_7_3_SERVER_ATTRIBUTES));
   }
 
@@ -58,7 +60,7 @@ public class JBossEapSmokeTest extends AppServerTest {
     startTargetOrSkipTest(image);
 
     assertServerHandler(expectedServerAttributes);
-    assertWebAppTrace(expectedServerAttributes, image);
+    assertWebAppTrace(expectedServerAttributes);
 
     stopTarget();
   }

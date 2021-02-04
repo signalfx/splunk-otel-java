@@ -16,7 +16,6 @@
 
 package com.splunk.opentelemetry.appservers.javaee;
 
-import io.opentelemetry.extension.annotations.WithSpan;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -42,19 +41,9 @@ public class GreetingServlet extends HttpServlet {
       String responseBody = buffer.toString("UTF-8");
       ServletOutputStream outputStream = resp.getOutputStream();
       outputStream.print(
-          withSpan(
-              bytesRead
-                  + " bytes read by "
-                  + urlConnection.getClass().getName()
-                  + "\n"
-                  + responseBody));
+          bytesRead + " bytes read by " + urlConnection.getClass().getName() + "\n" + responseBody);
       outputStream.flush();
     }
-  }
-
-  @WithSpan
-  public String withSpan(String responseBody) {
-    return responseBody;
   }
 
   // We have to run on Java 8, so no Java 9 stream transfer goodies for us.

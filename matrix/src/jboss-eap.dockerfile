@@ -10,18 +10,15 @@ RUN groupadd -r jboss -g 1000 && useradd -u 1000 -r -g jboss -m -d /opt/jboss -s
     apt-get update && \
     apt-get install unzip
 
-# Set the working directory to jboss' user home directory
-
-# Specify the user which should be used to execute all commands below
-#USER jboss
-
 # Set the JBOSS_EAP_VERSION env variable
 ARG version
 ENV JBOSS_EAP_VERSION=${version}
+# Set the working directory to jboss' user home directory
 ENV JBOSS_HOME /opt/jboss/jboss-eap
 ENV JBOSS_INSTALL_DIR /opt/jboss
 
-#USER root
+# Specify the user which should be used to execute all commands below
+USER jboss
 COPY jboss-eap-${JBOSS_EAP_VERSION}.zip $JBOSS_INSTALL_DIR
 
 # Add the EAS distribution to /opt, and make wildfly the owner of the extracted tar content
@@ -30,13 +27,6 @@ COPY jboss-eap-${JBOSS_EAP_VERSION}.zip $JBOSS_INSTALL_DIR
 RUN unzip $JBOSS_INSTALL_DIR/jboss-eap-${JBOSS_EAP_VERSION}.zip -d $JBOSS_INSTALL_DIR \
     && rm $JBOSS_INSTALL_DIR/jboss-eap-${JBOSS_EAP_VERSION}.zip \
     && mv $JBOSS_INSTALL_DIR/jboss-eap-* $JBOSS_HOME
-
-COPY app.war ${JBOSS_HOME}/standalone/deployments/
-
-RUN chown -R jboss:0 ${JBOSS_HOME} \
-    && chmod -R g+rw ${JBOSS_HOME}
-
-USER jboss
 
 # Ensure signals are forwarded to the JVM process correctly for graceful shutdown
 ENV LAUNCH_JBOSS_IN_BACKGROUND true
@@ -50,3 +40,4 @@ EXPOSE 8080
 # This will boot WildFly in the standalone mode and bind to all interface
 CMD ["./bin/standalone.sh", "-b", "0.0.0.0"]
 
+COPY app.war ${JBOSS_HOME}/standalone/deployments/

@@ -36,7 +36,9 @@ public class NettyInstrumentationModule extends InstrumentationModule {
     return new String[] {
       ServerTimingHeader.class.getName(),
       getClass().getPackage().getName() + ".ServerTimingHandler",
-      getClass().getPackage().getName() + ".ServerTimingHandler$HeadersSetter"
+      getClass().getPackage().getName() + ".ServerTimingHandler$HeadersSetter",
+      getClass().getPackage().getName()
+          + ".NettyChannelPipelineInstrumentation$ChannelPipelineUtil",
     };
   }
 

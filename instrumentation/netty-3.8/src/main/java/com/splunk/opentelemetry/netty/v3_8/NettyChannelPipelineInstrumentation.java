@@ -72,15 +72,7 @@ public class NettyChannelPipelineInstrumentation implements TypeInstrumentation 
     @Advice.OnMethodEnter(suppress = Throwable.class)
     public static int checkDepth(
         @Advice.This ChannelPipeline pipeline, @Advice.Argument(1) ChannelHandler handler) {
-      // Pipelines are created once as a factory and then copied multiple times using the same add
-      // methods as we are hooking. If our handler has already been added we need to remove it so we
-      // don't end up with duplicates (this throws an exception)
-      if (pipeline.get(handler.getClass().getName()) != null) {
-        pipeline.remove(handler.getClass().getName());
-      }
-      // CallDepth does not allow just getting the depth value, so to avoid interfering with the
-      // upstream netty implementation we do the same count but with our class
-      return CallDepthThreadLocalMap.incrementCallDepth(ServerTimingHandler.class);
+      return ChannelPipelineUtil.removeDuplicatesAndIncrementDepth(pipeline, handler);
     }
 
     @Advice.OnMethodExit(onThrowable = Throwable.class, suppress = Throwable.class)
@@ -95,14 +87,7 @@ public class NettyChannelPipelineInstrumentation implements TypeInstrumentation 
       ContextStore<Channel, ChannelTraceContext> contextStore =
           InstrumentationContext.get(Channel.class, ChannelTraceContext.class);
 
-      try {
-        if (handler instanceof HttpServerCodec || handler instanceof HttpResponseEncoder) {
-          pipeline.addLast(
-              ServerTimingHandler.class.getName(), new ServerTimingHandler(contextStore));
-        }
-      } finally {
-        CallDepthThreadLocalMap.reset(ServerTimingHandler.class);
-      }
+      ChannelPipelineUtil.addServerTimingHandler(pipeline, handler, contextStore);
     }
   }
 
@@ -110,15 +95,7 @@ public class NettyChannelPipelineInstrumentation implements TypeInstrumentation 
     @Advice.OnMethodEnter(suppress = Throwable.class)
     public static int checkDepth(
         @Advice.This ChannelPipeline pipeline, @Advice.Argument(2) ChannelHandler handler) {
-      // Pipelines are created once as a factory and then copied multiple times using the same add
-      // methods as we are hooking. If our handler has already been added we need to remove it so we
-      // don't end up with duplicates (this throws an exception)
-      if (pipeline.get(handler.getClass().getName()) != null) {
-        pipeline.remove(handler.getClass().getName());
-      }
-      // CallDepth does not allow just getting the depth value, so to avoid interfering with the
-      // upstream netty implementation we do the same count but with our class
-      return CallDepthThreadLocalMap.incrementCallDepth(ServerTimingHandler.class);
+      return ChannelPipelineUtil.removeDuplicatesAndIncrementDepth(pipeline, handler);
     }
 
     @Advice.OnMethodExit(onThrowable = Throwable.class, suppress = Throwable.class)
@@ -133,6 +110,28 @@ public class NettyChannelPipelineInstrumentation implements TypeInstrumentation 
       ContextStore<Channel, ChannelTraceContext> contextStore =
           InstrumentationContext.get(Channel.class, ChannelTraceContext.class);
 
+      ChannelPipelineUtil.addServerTimingHandler(pipeline, handler, contextStore);
+    }
+  }
+
+  public static final class ChannelPipelineUtil {
+    public static int removeDuplicatesAndIncrementDepth(
+        ChannelPipeline pipeline, ChannelHandler handler) {
+      // Pipelines are created once as a factory and then copied multiple times using the same add
+      // methods as we are hooking. If our handler has already been added we need to remove it so we
+      // don't end up with duplicates (this throws an exception)
+      if (pipeline.get(handler.getClass().getName()) != null) {
+        pipeline.remove(handler.getClass().getName());
+      }
+      // CallDepth does not allow just getting the depth value, so to avoid interfering with the
+      // upstream netty implementation we do the same count but with our class
+      return CallDepthThreadLocalMap.incrementCallDepth(ServerTimingHandler.class);
+    }
+
+    public static void addServerTimingHandler(
+        ChannelPipeline pipeline,
+        ChannelHandler handler,
+        ContextStore<Channel, ChannelTraceContext> contextStore) {
       try {
         if (handler instanceof HttpServerCodec || handler instanceof HttpResponseEncoder) {
           pipeline.addLast(
@@ -142,5 +141,7 @@ public class NettyChannelPipelineInstrumentation implements TypeInstrumentation 
         CallDepthThreadLocalMap.reset(ServerTimingHandler.class);
       }
     }
+
+    private ChannelPipelineUtil() {}
   }
 }

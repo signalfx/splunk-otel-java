@@ -9,8 +9,7 @@ dependencies {
     testInstrumentation group: 'io.opentelemetry.javaagent.instrumentation', name: 'opentelemetry-javaagent-servlet-2.2', version: versions.opentelemetryJavaagent
     testInstrumentation group: 'io.opentelemetry.javaagent.instrumentation', name: 'opentelemetry-javaagent-servlet-3.0', version: versions.opentelemetryJavaagent
 
-    // TODO: use versions.opentelemetryJavaagent once distro is updated to 0.15
-    testImplementation("io.opentelemetry.javaagent:opentelemetry-testing-common:0.15.0") {
+    testImplementation("io.opentelemetry.javaagent:opentelemetry-testing-common:${versions.opentelemetryJavaagent}") {
         exclude group: 'org.eclipse.jetty', module: 'jetty-server'
     }
 

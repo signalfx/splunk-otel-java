@@ -16,6 +16,9 @@
 
 package com.splunk.opentelemetry;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import com.splunk.opentelemetry.helper.TestImage;
 import io.opentelemetry.proto.trace.v1.Span;
 import java.io.IOException;
@@ -24,7 +27,6 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import okhttp3.Request;
 import okhttp3.Response;
-import org.junit.jupiter.api.Assertions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,38 +46,38 @@ public abstract class AppServerTest extends SmokeTest {
     String url = getUrl("/app/greeting", false);
 
     Request request = new Request.Builder().get().url(url).build();
-    String responseBody = tryGetResponse(request);
+    String responseHeadersAndBody = tryGetResponse(request);
 
     TraceInspector traces = waitForTraces();
 
-    Set<String> traceIds = traces.getTraceIds();
+    assertEquals(1, traces.countTraceIds(), "There is one trace");
 
-    Assertions.assertEquals(1, traceIds.size(), "There is one trace");
+    Set<String> traceIds = traces.getTraceIds();
     String theOneTraceId = new ArrayList<>(traceIds).get(0);
 
-    Assertions.assertTrue(
-        responseBody.contains(theOneTraceId),
+    assertTrue(
+        responseHeadersAndBody.contains(theOneTraceId),
         "trace id is present in the HTTP headers as reported by the called endpoint");
 
-    Assertions.assertEquals(
+    assertEquals(
         2,
         traces.countSpansByKind(Span.SpanKind.SPAN_KIND_SERVER),
         "Server spans in the distributed trace");
     assertMiddlewareAttributesInWebAppTrace(serverAttributes, traces);
 
-    Assertions.assertEquals(
+    assertEquals(
         1, traces.countFilteredAttributes("http.url", url), "The span for the initial web request");
-    Assertions.assertEquals(
+    assertEquals(
         2,
         traces.countFilteredAttributes("http.url", getUrl("/app/headers", true)),
         "Client and server spans for the remote call");
 
     if (testImage.isProprietaryImage) {
-      Assertions.assertEquals(
+      assertEquals(
           1, traces.countSpansByName("GreetingServlet.withSpan"), "Span for the annotated method");
     }
 
-    Assertions.assertEquals(
+    assertEquals(
         totalNumberOfSpansInWebappTrace(testImage),
         traces.countFilteredAttributes("otel.library.version", getCurrentAgentVersion()),
         "Number of spans tagged with current otel library version");
@@ -99,7 +101,7 @@ public abstract class AppServerTest extends SmokeTest {
     } while (response.code() != 200
         && System.currentTimeMillis() - startTime < TimeUnit.SECONDS.toMillis(30));
 
-    Assertions.assertEquals(
+    assertEquals(
         200, response.code(), "Unexpected response code. Got this response: " + responseBody);
     return responseBody;
   }
@@ -114,11 +116,11 @@ public abstract class AppServerTest extends SmokeTest {
 
   protected void assertMiddlewareAttributesInWebAppTrace(
       ExpectedServerAttributes serverAttributes, TraceInspector traces) {
-    Assertions.assertEquals(
+    assertEquals(
         2,
         traces.countFilteredAttributes("middleware.name", serverAttributes.middlewareName),
         "Middleware name is present on all server spans");
-    Assertions.assertEquals(
+    assertEquals(
         2,
         traces.countFilteredAttributes("middleware.version", serverAttributes.middlewareVersion),
         "Middleware version is present on all server spans");
@@ -132,24 +134,25 @@ public abstract class AppServerTest extends SmokeTest {
     Request request = new Request.Builder().get().url(url).build();
     Response response = client.newCall(request).execute();
     log.debug("Response for non-existing page: {}", response.body().string());
-    Assertions.assertEquals(
+    assertEquals(
         404,
         response.code(),
         "404 response code is expected from the app-server for a request to a non-existing page.");
     var traces = waitForTraces();
 
-    Assertions.assertEquals(1, traces.size(), "There is one trace from server handler");
+    var numberOfTraceIds = traces.countTraceIds();
+    assertEquals(1, numberOfTraceIds, "There is one trace from server handler");
 
-    Assertions.assertEquals(
+    assertEquals(
         1,
         traces.countSpansByName(serverAttributes.handlerSpanName),
         "Server span has expected name");
 
-    Assertions.assertEquals(
+    assertEquals(
         serverAttributes.middlewareName,
         traces.getServerSpanAttribute("middleware.name"),
         "Middleware name tag on server span");
-    Assertions.assertEquals(
+    assertEquals(
         serverAttributes.middlewareVersion,
         traces.getServerSpanAttribute("middleware.version"),
         "Middleware version tag on server span");

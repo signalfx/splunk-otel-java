@@ -16,6 +16,8 @@
 
 package com.splunk.opentelemetry;
 
+import static com.splunk.opentelemetry.jaeger.JaegerThriftSpanExporterFactory.OTEL_EXPORTER_JAEGER_ENDPOINT;
+
 import com.google.auto.service.AutoService;
 import io.opentelemetry.javaagent.spi.config.PropertySource;
 import java.util.HashMap;
@@ -26,22 +28,15 @@ public class SplunkConfiguration implements PropertySource {
   @Override
   public Map<String, String> getProperties() {
     Map<String, String> config = new HashMap<>();
-    config.put("otel.exporter", "jaeger-thrift-splunk");
+
+    // by default no metrics are exported
+    config.put("otel.metrics.exporter", "none");
+
+    config.put("otel.trace.exporter", "jaeger-thrift-splunk");
     // http://localhost:9080/v1/trace is the default endpoint for SmartAgent
     // http://localhost:14268/api/traces is the default endpoint for otel-collector
-    config.put("otel.exporter.jaeger.endpoint", "http://localhost:9080/v1/trace");
+    config.put(OTEL_EXPORTER_JAEGER_ENDPOINT, "http://localhost:9080/v1/trace");
     config.put("otel.propagators", "b3multi");
-
-    String max = String.valueOf(Integer.MAX_VALUE);
-    config.put("otel.config.max.attrs", max);
-    config.put("otel.config.max.event.attrs", max);
-    config.put("otel.config.max.link.attrs", max);
-
-    // events and links create collections with provided sizes, so we shouldn't set them too high
-    config.put("otel.config.max.events", "256");
-    config.put("otel.config.max.links", "256");
-    // -1 here means no attribute length limit
-    config.put("otel.config.max.attr.length", "-1");
 
     // enable experimental instrumentation
     config.put("otel.instrumentation.spring-batch.enabled", "true");

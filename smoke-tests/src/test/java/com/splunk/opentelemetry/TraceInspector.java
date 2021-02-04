@@ -61,6 +61,10 @@ public class TraceInspector {
     return traces.size();
   }
 
+  public int countTraceIds() {
+    return getTraceIds().size();
+  }
+
   public Set<String> getTraceIds() {
     return getSpanStream()
         .map(Span::getTraceId)

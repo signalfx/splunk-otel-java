@@ -7,7 +7,7 @@ dependencies {
     testInstrumentation project(':instrumentation:servlet')
 
     testImplementation project(':instrumentation:common')
-    testImplementation("io.opentelemetry.javaagent:opentelemetry-testing-common:0.15.0-SNAPSHOT") {
+    testImplementation("io.opentelemetry.javaagent:opentelemetry-testing-common:${versions.opentelemetryJavaagent}") {
         exclude group: 'org.eclipse.jetty', module: 'jetty-server'
     }
 

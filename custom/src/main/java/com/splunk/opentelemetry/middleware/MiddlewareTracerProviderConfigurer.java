@@ -14,19 +14,16 @@
  * limitations under the License.
  */
 
-package com.splunk.opentelemetry;
+package com.splunk.opentelemetry.middleware;
 
 import com.google.auto.service.AutoService;
-import io.opentelemetry.javaagent.spi.TracerCustomizer;
-import io.opentelemetry.sdk.trace.SdkTracerManagement;
-import io.opentelemetry.sdk.trace.samplers.Sampler;
+import io.opentelemetry.sdk.autoconfigure.spi.SdkTracerProviderConfigurer;
+import io.opentelemetry.sdk.trace.SdkTracerProviderBuilder;
 
-@AutoService(TracerCustomizer.class)
-public class SplunkTracerCustomizer implements TracerCustomizer {
-
+@AutoService(SdkTracerProviderConfigurer.class)
+public class MiddlewareTracerProviderConfigurer implements SdkTracerProviderConfigurer {
   @Override
-  public void configure(SdkTracerManagement tracerManagement) {
-    tracerManagement.updateActiveTraceConfig(
-        tracerManagement.getActiveTraceConfig().toBuilder().setSampler(Sampler.alwaysOn()).build());
+  public void configure(SdkTracerProviderBuilder tracerProvider) {
+    tracerProvider.addSpanProcessor(new MiddlewareAttributeSpanProcessor());
   }
 }

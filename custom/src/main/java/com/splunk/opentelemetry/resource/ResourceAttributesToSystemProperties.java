@@ -17,10 +17,16 @@
 package com.splunk.opentelemetry.resource;
 
 import com.google.auto.service.AutoService;
+import io.opentelemetry.api.GlobalOpenTelemetry;
 import io.opentelemetry.api.common.AttributeType;
 import io.opentelemetry.api.common.Attributes;
+import io.opentelemetry.api.trace.TracerProvider;
 import io.opentelemetry.javaagent.spi.ComponentInstaller;
+import io.opentelemetry.sdk.OpenTelemetrySdk;
 import io.opentelemetry.sdk.resources.Resource;
+import io.opentelemetry.sdk.trace.SdkTracerProvider;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 
 /**
  * This component exposes String resource attributes as system properties with <code>otel.resource.
@@ -36,12 +42,43 @@ public class ResourceAttributesToSystemProperties implements ComponentInstaller 
 
   @Override
   public void afterByteBuddyAgent() {
-    Attributes attributes = Resource.getDefault().getAttributes();
+    Attributes attributes = getResource().getAttributes();
     attributes.forEach(
         (k, v) -> {
           if (k.getType() == AttributeType.STRING) {
             System.setProperty("otel.resource." + k.getKey(), v.toString());
           }
         });
+  }
+
+  private static Resource getResource() {
+    Method unobfuscate = null;
+    Field sharedStateField = null;
+    Field resourceField = null;
+    try {
+      OpenTelemetrySdk openTelemetry = (OpenTelemetrySdk) GlobalOpenTelemetry.get();
+      TracerProvider obfuscated = openTelemetry.getTracerProvider();
+      unobfuscate = obfuscated.getClass().getDeclaredMethod("unobfuscate");
+      unobfuscate.setAccessible(true);
+      SdkTracerProvider tracerProvider = (SdkTracerProvider) unobfuscate.invoke(obfuscated);
+      sharedStateField = SdkTracerProvider.class.getDeclaredField("sharedState");
+      sharedStateField.setAccessible(true);
+      Object sharedState = sharedStateField.get(tracerProvider);
+      resourceField = sharedState.getClass().getDeclaredField("resource");
+      resourceField.setAccessible(true);
+      return (Resource) resourceField.get(sharedState);
+    } catch (Exception e) {
+      return Resource.getDefault();
+    } finally {
+      if (unobfuscate != null) {
+        unobfuscate.setAccessible(false);
+      }
+      if (sharedStateField != null) {
+        unobfuscate.setAccessible(false);
+      }
+      if (resourceField != null) {
+        unobfuscate.setAccessible(false);
+      }
+    }
   }
 }

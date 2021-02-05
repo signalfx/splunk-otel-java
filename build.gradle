@@ -17,7 +17,7 @@ boolean snapshot = getProperty("snapshot") == 'yes'
 def versions = [
     'opentelemetry'         : snapshot ? "0.16.0-SNAPSHOT"       : "0.15.0",
     'opentelemetryAlpha'    : snapshot ? "0.16.0-alpha-SNAPSHOT" : "0.15.0-alpha",
-    'opentelemetryJavaagent': snapshot ? "0.16.0-SNAPSHOT"       : '0.15.0'
+    'opentelemetryJavaagent': snapshot ? "0.16.0-SNAPSHOT"       : '0.15.1'
 ]
 
 subprojects {

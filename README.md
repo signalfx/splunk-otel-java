@@ -91,21 +91,18 @@ A simple wrapper for the Jaeger exporter of [opentelemetry-java](https://github.
 
 | System property                   | Environment variable              | Description                                                                                                         |
 |-----------------------------------|-----------------------------------|---------------------------------------------------------------------------------------------------------------------|
-| otel.exporter=jaeger-thrift-splunk | OTEL_EXPORTER=jaeger-thrift-splunk              | Select the Jaeger exporter. This is the default value.                                                                                          
+| otel.trace.exporter=jaeger-thrift-splunk | OTEL_EXPORTER=jaeger-thrift-splunk              | Select the Jaeger exporter. This is the default value.                                                                                          
 | otel.exporter.jaeger.endpoint     | OTEL_EXPORTER_JAEGER_ENDPOINT     | The Jaeger endpoint to connect to. Default is `http://localhost:9080/v1/trace`.
-| otel.exporter.jaeger.service.name | OTEL_EXPORTER_JAEGER_SERVICE_NAME | The service name of this JVM instance. Default is `unknown`.                                                        
+| otel.exporter.jaeger.service.name | OTEL_EXPORTER_JAEGER_SERVICE_NAME | The service name of this JVM instance. Default is `unknown_service:java`.                                                        
 | signalfx.auth.token               | SIGNALFX_AUTH_TOKEN               | (Optional) Auth token allowing to communicate directly with the Splunk cloud, passed as `X-SF-TOKEN` header. Default is empty. |
 
 ### Trace configuration
 
 | System property                     | Environment variable               | Default value  | Purpose                                                                                                                                                                                                                                                                                                                                                                                                   |
 | ----------------------------------- | ---------------------------------- | -------------- | ------------------------------------------------------------------------------------                                                                                                                                                                                                                                                                                                                      |
-| otel.config.max.attrs               | OTEL_CONFIG_MAX_ATTRS              | unlimited      | Maximum number of attributes per span.                                                                                                                                                                                                                                                                                                                                                                    |
-| otel.config.max.attr.length         | OTEL_CONFIG_MAX_ATTR_LENGTH        | unlimited      | Maximum length of string attribute value in characters. Longer values are truncated.                                                                                                                                                                                                                                                                                                                      |
-| otel.config.max.events              | OTEL_CONFIG_MAX_EVENTS             | `256`          | Maximum number of events per span.                                                                                                                                                                                                                                                                                                                                                                        |
-| otel.config.max.links               | OTEL_CONFIG_MAX_LINKS              | `256`          | Maximum number of links per span.                                                                                                                                                                                                                                                                                                                                                                         |
-| otel.config.max.event.attrs         | OTEL_CONFIG_MAX_EVENT_ATTRS        | unlimited      | Maximum number of attributes per event.                                                                                                                                                                                                                                                                                                                                                                   |
-| otel.config.max.link.attrs          | OTEL_CONFIG_MAX_LINK_ATTRS         | unlimited      | Maximum number of attributes per link.                                                                                                                                                                                                                                                                                                                                                                    |
+| otel.span.attribute.count.limit     | OTEL_SPAN_ATTRIBUTE_COUNT_LIMIT    | unlimited      | Maximum number of attributes per span.                                                                                                                                                                                                                                                                                                                                                                    |
+| otel.span.event.count.limit         | OTEL_SPAN_EVENT_COUNT_LIMIT        | unlimited      | Maximum number of events per span.                                                                                                                                                                                                                                                                                                                                                                        |
+| otel.span.link.count.limit          | OTEL_SPAN_LINK_COUNT_LIMIT         | `1000`         | Maximum number of links per span.                                                                                                                                                                                                                                                                                                                                                                         |
 | otel.endpoint.peer.service.mapping  | OTEL_ENDPOINT_PEER_SERVICE_MAPPING | unset          | Used to add a `peer.service` attribute by specifing a comma separated list of mapping from hostnames or IP addresses. <details><summary>Example</summary>If set to `1.2.3.4=cats-service,dogs-service.serverlessapis.com=dogs-api`, requests to `1.2.3.4` will have a `peer.service` attribute of `cats-service` and requests to `dogs-service.serverlessapis.com` will have one of `dogs-api`.</details> |
 | otel.resource.attributes            | OTEL_RESOURCE_ATTRIBUTES           | unset          | Comma-separated list of resource attributes added to every reported span. <details><summary>Example</summary>`key1=val1,key2=val2`</details>
 | otel.trace.enabled                  | OTEL_TRACE_ENABLED                 | `true`         | Globally enables tracer creation and auto-instrumentation.                                                                                                                                                                                                                                                                                                                                                |
@@ -137,8 +134,8 @@ Documentation on how to manually instrument a Java application are available
 
 To extend the instrumentation with the OpenTelemetry Instrumentation for Java,
 you have to use a compatible API version. The Splunk distribution of 
-OpenTelemetry Java Instrumentation version 0.6.0 is compatible with the
-OpenTelemetry Instrumentation for Java version 0.14.0 and API version 0.14.1.
+OpenTelemetry Java Instrumentation version 0.7.0 is compatible with the
+OpenTelemetry Instrumentation for Java version 0.15.1 and API version 0.15.0.
 
 ## Correlating traces with logs
 
@@ -166,7 +163,7 @@ or logback pattern:
 
 To turn on the agent's internal debug logging:
 
-`-Dio.opentelemetry.javaagent.slf4j.simpleLogger.defaultLogLevel=debug`
+`-Dotel.javaagent.debug=true`
 
 > :warning: Debug logging is extremely verbose and resource intensive. Enable
 > debug logging only when needed and disable when done.

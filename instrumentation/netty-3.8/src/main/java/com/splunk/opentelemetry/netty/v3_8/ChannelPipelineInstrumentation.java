@@ -40,7 +40,7 @@ import org.jboss.netty.channel.ChannelPipeline;
 import org.jboss.netty.handler.codec.http.HttpResponseEncoder;
 import org.jboss.netty.handler.codec.http.HttpServerCodec;
 
-public class NettyChannelPipelineInstrumentation implements TypeInstrumentation {
+public class ChannelPipelineInstrumentation implements TypeInstrumentation {
 
   @Override
   public ElementMatcher<ClassLoader> classLoaderOptimization() {

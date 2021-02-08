@@ -36,6 +36,7 @@ public abstract class AbstractTestContainerManager implements TestContainerManag
     environment.put("OTEL_IMR_EXPORT_INTERVAL", "1000");
     environment.put(
         "OTEL_EXPORTER_JAEGER_ENDPOINT", "http://" + COLLECTOR_ALIAS + ":14268/api/traces");
+    environment.put("OTEL_RESOURCE_ATTRIBUTES", "service.name=smoke-test");
     return environment;
   }
 }

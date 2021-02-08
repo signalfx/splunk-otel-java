@@ -44,7 +44,7 @@ Then the runtime parameters would be updated to:
 ```bash
 $ curl -L https://github.com/signalfx/splunk-otel-java/releases/latest/download/splunk-otel-javaagent-all.jar \
     -o splunk-otel-javaagent.jar
-$ java -javaagent:./splunk-otel-javaagent.jar -Dotel.jaeger.service.name=my-java-app \
+$ java -javaagent:./splunk-otel-javaagent.jar -Dotel.resource.attributes=service.name=my-java-app \
     -jar target/java-agent-example-1.0-SNAPSHOT-shaded.jar https://google.com
 ```
 
@@ -53,14 +53,17 @@ $ java -javaagent:./splunk-otel-javaagent.jar -Dotel.jaeger.service.name=my-java
 > information, see the [Oracle
 > documentation](https://docs.oracle.com/javase/8/docs/technotes/tools/windows/java.html).
 
-The service name is the only configuration option that typically needs to be
-specified. A couple other configuration options that may need to be changed or
+The service name resource attribute is the only configuration option
+that typically needs to be specified. You can set it by adding a `service.name`
+attribute to the [OpenTelemetry Resource](https://github.com/open-telemetry/opentelemetry-java-instrumentation#opentelemetry-resource).
+
+A couple other configuration options that may need to be changed or
 set are:
 
 * Endpoint if not sending to a locally running Smart Agent with default
   configuration
-* Environment attribute (example:
-  `-Dotel.resource.attributes=environment=production`) to specify what
+* Environment resource attribute (example:
+  `-Dotel.resource.attributes=service.name=my-service,environment=production`) to specify what
   environment the span originated from.
 
 The agent instruments supported libraries and frameworks with bytecode
@@ -80,8 +83,8 @@ To see the Java Agent in action with sample applications, see our
 
 The agent can be configured in the following ways:
 
-* System property (example: `-Dotel.exporter.jaeger.service.name=my-java-app`)
-* Environment variable (example: `export OTEL_EXPORTER_JAEGER_SERVICE_NAME=my-java-app`)
+* System property (example: `-Dotel.resource.attributes=service.name=my-java-app`)
+* Environment variable (example: `export OTEL_RESOURCE_ATTRIBUTES=service.name=my-java-app`)
 
 System property values take priority over corresponding environment variables.
 
@@ -93,7 +96,6 @@ A simple wrapper for the Jaeger exporter of [opentelemetry-java](https://github.
 |-----------------------------------|-----------------------------------|---------------------------------------------------------------------------------------------------------------------|
 | otel.trace.exporter=jaeger-thrift-splunk | OTEL_TRACE_EXPORTER=jaeger-thrift-splunk              | Select the span exporter to use. `jaeger-thrift-splunk` is the default value.                                                                                          
 | otel.exporter.jaeger.endpoint     | OTEL_EXPORTER_JAEGER_ENDPOINT     | The Jaeger endpoint to connect to. Default is `http://localhost:9080/v1/trace`.
-| otel.exporter.jaeger.service.name | OTEL_EXPORTER_JAEGER_SERVICE_NAME | The service name of this JVM instance. Default is `unknown_service:java`, but any `service.name` provided via other means will supercede this value.
 | signalfx.auth.token               | SIGNALFX_AUTH_TOKEN               | (Optional) Auth token allowing to communicate directly with the Splunk cloud, passed as `X-SF-TOKEN` header. Default is empty. |
 
 ### Trace configuration

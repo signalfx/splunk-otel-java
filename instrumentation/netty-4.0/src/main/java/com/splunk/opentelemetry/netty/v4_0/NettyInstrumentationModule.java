@@ -14,38 +14,38 @@
  * limitations under the License.
  */
 
-package com.splunk.opentelemetry.netty.v3_8;
+package com.splunk.opentelemetry.netty.v4_0;
 
 import static io.opentelemetry.javaagent.tooling.bytebuddy.matcher.ClassLoaderMatcher.hasClassesNamed;
+import static net.bytebuddy.matcher.ElementMatchers.not;
 
 import com.google.auto.service.AutoService;
 import com.splunk.opentelemetry.servertiming.ServerTimingHeader;
-import io.opentelemetry.javaagent.instrumentation.netty.v3_8.ChannelTraceContext;
 import io.opentelemetry.javaagent.tooling.InstrumentationModule;
 import io.opentelemetry.javaagent.tooling.TypeInstrumentation;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import net.bytebuddy.matcher.ElementMatcher;
 
 @AutoService(InstrumentationModule.class)
 public class NettyInstrumentationModule extends InstrumentationModule {
   public NettyInstrumentationModule() {
-    super("netty", "netty-3.8");
+    super("netty", "netty-4.0");
   }
 
   @Override
   public ElementMatcher.Junction<ClassLoader> classLoaderMatcher() {
-    return hasClassesNamed("org.jboss.netty.channel.ChannelPipeline");
+    // Class added in 4.1.0 and not in 4.0.56 to avoid resolving this instrumentation completely
+    // when using 4.1.
+    return not(hasClassesNamed("io.netty.handler.codec.http.CombinedHttpHeaders"));
   }
 
   @Override
   protected String[] additionalHelperClassNames() {
     return new String[] {
       ServerTimingHeader.class.getName(),
-      getClass().getPackage().getName() + ".ServerTimingHandler",
-      getClass().getPackage().getName() + ".ServerTimingHandler$HeadersSetter",
-      getClass().getPackage().getName() + ".ChannelPipelineInstrumentation$ChannelPipelineUtil",
+      this.getClass().getPackage().getName() + ".ServerTimingHandler",
+      this.getClass().getPackage().getName() + ".ServerTimingHandler$HeadersSetter"
     };
   }
 
@@ -59,12 +59,6 @@ public class NettyInstrumentationModule extends InstrumentationModule {
   @Override
   protected boolean defaultEnabled() {
     return super.defaultEnabled() && ServerTimingHeader.shouldEmitServerTimingHeader();
-  }
-
-  @Override
-  public Map<String, String> contextStore() {
-    return Collections.singletonMap(
-        "org.jboss.netty.channel.Channel", ChannelTraceContext.class.getName());
   }
 
   @Override

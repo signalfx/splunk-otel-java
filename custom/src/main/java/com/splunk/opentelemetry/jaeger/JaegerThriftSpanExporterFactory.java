@@ -33,16 +33,10 @@ public class JaegerThriftSpanExporterFactory implements ConfigurableSpanExporter
 
   static final String SIGNALFX_AUTH_TOKEN = "signalfx.auth.token";
   public static final String OTEL_EXPORTER_JAEGER_ENDPOINT = "otel.exporter.jaeger.endpoint";
-  static final String OTEL_EXPORTER_JAEGER_SERVICE_NAME = "otel.exporter.jaeger.service.name";
 
   @Override
   public SpanExporter createExporter(ConfigProperties config) {
     JaegerThriftSpanExporterBuilder builder = JaegerThriftSpanExporter.builder();
-
-    String serviceName = config.getString(OTEL_EXPORTER_JAEGER_SERVICE_NAME);
-    if (serviceName != null && !serviceName.isEmpty()) {
-      builder.setServiceName(serviceName);
-    }
 
     String endpoint = config.getString(OTEL_EXPORTER_JAEGER_ENDPOINT);
     String token = config.getString(SIGNALFX_AUTH_TOKEN);

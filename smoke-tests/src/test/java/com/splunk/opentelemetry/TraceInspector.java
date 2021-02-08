@@ -19,6 +19,7 @@ package com.splunk.opentelemetry;
 import com.google.protobuf.ByteString;
 import io.opentelemetry.api.trace.TraceId;
 import io.opentelemetry.proto.collector.trace.v1.ExportTraceServiceRequest;
+import io.opentelemetry.proto.trace.v1.ResourceSpans;
 import io.opentelemetry.proto.trace.v1.Span;
 import java.util.Collection;
 import java.util.NoSuchElementException;
@@ -55,6 +56,14 @@ public class TraceInspector {
 
   protected int countSpansByKind(Span.SpanKind spanKind) {
     return (int) getSpanStream().filter(it -> it.getKind().equals(spanKind)).count();
+  }
+
+  public boolean resourceExists(String key, String value) {
+    return traces.stream()
+        .flatMap(it -> it.getResourceSpansList().stream())
+        .map(ResourceSpans::getResource)
+        .flatMap(resource -> resource.getAttributesList().stream())
+        .anyMatch(kv -> kv.getKey().equals(key) && kv.getValue().getStringValue().equals(value));
   }
 
   public int size() {

@@ -52,6 +52,7 @@ class SpringBootSmokeTest extends AppServerTest {
     Assertions.assertEquals(1, traces.countSpansByName("WebController.greeting"));
     Assertions.assertEquals(
         2, traces.countFilteredAttributes("otel.library.version", currentAgentVersion));
+    Assertions.assertTrue(traces.resourceExists("service.name", "smoke-test"));
 
     stopTarget();
   }

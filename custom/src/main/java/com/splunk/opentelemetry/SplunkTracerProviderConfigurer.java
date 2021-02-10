@@ -36,7 +36,6 @@ public class SplunkTracerProviderConfigurer implements SdkTracerProviderConfigur
                 .setMaxNumberOfAttributesPerEvent(Integer.MAX_VALUE)
                 .setMaxNumberOfAttributesPerLink(Integer.MAX_VALUE)
                 .setMaxLengthOfAttributeValues(SpanLimits.UNLIMITED_ATTRIBUTE_LENGTH)
-                .build())
-        .setSampler(Sampler.alwaysOn());
+                .build());
   }
 }

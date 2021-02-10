@@ -38,7 +38,7 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.http.DefaultFullHttpResponse;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpServerCodec;
-import io.opentelemetry.instrumentation.test.AgentTestRunner;
+import io.opentelemetry.instrumentation.test.InMemoryExporter;
 import io.opentelemetry.instrumentation.test.utils.OkHttpUtils;
 import io.opentelemetry.instrumentation.test.utils.PortUtils;
 import java.util.concurrent.TimeoutException;
@@ -51,11 +51,12 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-public class NettyInstrumentationTest extends AgentTestRunner {
+public class NettyInstrumentationTest {
   private static final OkHttpClient httpClient = OkHttpUtils.client();
 
   private static int port;
   private static EventLoopGroup server;
+  private static final InMemoryExporter exporter = new InMemoryExporter();
 
   @BeforeAll
   static void startServer() throws InterruptedException {
@@ -119,9 +120,9 @@ public class NettyInstrumentationTest extends AgentTestRunner {
 
   private static void assertServerTimingHeaderContainsTraceId(String serverTimingHeader)
       throws InterruptedException, TimeoutException {
-    TEST_WRITER.waitForTraces(1);
+    exporter.waitForTraces(1);
 
-    var traces = TEST_WRITER.getTraces();
+    var traces = exporter.getTraces();
     assertEquals(1, traces.size());
 
     var spans = traces.get(0);

@@ -15,9 +15,9 @@ group = "com.splunk.public"
 boolean snapshot = getProperty("snapshot") == 'yes'
 
 def versions = [
-    'opentelemetry'         : snapshot ? "0.16.0-SNAPSHOT"       : "0.15.0",
-    'opentelemetryAlpha'    : snapshot ? "0.16.0-alpha-SNAPSHOT" : "0.15.0-alpha",
-    'opentelemetryJavaagent': snapshot ? "0.16.0-SNAPSHOT"       : '0.15.1'
+    'opentelemetry'         : snapshot ? "0.17.0-SNAPSHOT"       : "0.16.0",
+    'opentelemetryAlpha'    : snapshot ? "0.17.0-alpha-SNAPSHOT" : "0.16.0-alpha",
+    'opentelemetryJavaagent': snapshot ? "0.17.0-SNAPSHOT"       : '0.16.0'
 ]
 
 subprojects {

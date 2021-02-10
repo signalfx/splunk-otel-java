@@ -21,7 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.splunk.opentelemetry.servertiming.ServerTimingHeader;
-import io.opentelemetry.instrumentation.test.AgentTestRunner;
+import io.opentelemetry.instrumentation.test.InMemoryExporter;
 import io.opentelemetry.instrumentation.test.utils.OkHttpUtils;
 import io.opentelemetry.instrumentation.test.utils.PortUtils;
 import java.io.IOException;
@@ -49,12 +49,13 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-class Servlet3InstrumentationTest extends AgentTestRunner {
+class Servlet3InstrumentationTest {
 
   private static final OkHttpClient httpClient = OkHttpUtils.client();
 
   private static int port;
   private static Server server;
+  private static final InMemoryExporter exporter = new InMemoryExporter();
 
   @BeforeAll
   static void startServer() throws Exception {
@@ -81,7 +82,7 @@ class Servlet3InstrumentationTest extends AgentTestRunner {
 
   @AfterEach
   void clearTraces() {
-    TEST_WRITER.clear();
+    exporter.clear();
   }
 
   @Test
@@ -134,9 +135,9 @@ class Servlet3InstrumentationTest extends AgentTestRunner {
 
   private static void assertServerTimingHeaderContainsTraceId(String serverTimingHeader)
       throws InterruptedException, TimeoutException {
-    TEST_WRITER.waitForTraces(1);
+    exporter.waitForTraces(1);
 
-    var traces = TEST_WRITER.getTraces();
+    var traces = exporter.getTraces();
     assertEquals(1, traces.size());
 
     var spans = traces.get(0);

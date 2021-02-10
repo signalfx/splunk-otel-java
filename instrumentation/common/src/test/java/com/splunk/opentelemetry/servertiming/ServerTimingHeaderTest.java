@@ -65,9 +65,9 @@ class ServerTimingHeaderTest {
 
     var serverTimingHeaderValue =
         "traceparent;desc=\"00-"
-            + spanContext.getTraceIdAsHexString()
+            + spanContext.getTraceId()
             + "-"
-            + spanContext.getSpanIdAsHexString()
+            + spanContext.getSpanId()
             + "-01\"";
     assertEquals(serverTimingHeaderValue, headers.get(ServerTimingHeader.SERVER_TIMING));
     assertEquals(ServerTimingHeader.SERVER_TIMING, headers.get(ServerTimingHeader.EXPOSE_HEADERS));

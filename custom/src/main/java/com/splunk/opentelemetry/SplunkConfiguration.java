@@ -32,7 +32,7 @@ public class SplunkConfiguration implements PropertySource {
     // by default no metrics are exported
     config.put("otel.metrics.exporter", "none");
 
-    config.put("otel.trace.exporter", "jaeger-thrift-splunk");
+    config.put("otel.traces.exporter", "jaeger-thrift-splunk");
     // http://localhost:9080/v1/trace is the default endpoint for SmartAgent
     // http://localhost:14268/api/traces is the default endpoint for otel-collector
     config.put(OTEL_EXPORTER_JAEGER_ENDPOINT, "http://localhost:9080/v1/trace");

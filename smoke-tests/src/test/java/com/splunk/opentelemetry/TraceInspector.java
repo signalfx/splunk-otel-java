@@ -78,7 +78,7 @@ public class TraceInspector {
     return getSpanStream()
         .map(Span::getTraceId)
         .map(ByteString::toByteArray)
-        .map(TraceId::bytesToHex)
+        .map(TraceId::fromBytes)
         .collect(Collectors.toSet());
   }
 

@@ -94,7 +94,7 @@ A simple wrapper for the Jaeger exporter of [opentelemetry-java](https://github.
 
 | System property                   | Environment variable              | Description                                                                                                         |
 |-----------------------------------|-----------------------------------|---------------------------------------------------------------------------------------------------------------------|
-| otel.trace.exporter=jaeger-thrift-splunk | OTEL_TRACE_EXPORTER=jaeger-thrift-splunk              | Select the span exporter to use. `jaeger-thrift-splunk` is the default value.                                                                                          
+| otel.traces.exporter=jaeger-thrift-splunk | OTEL_TRACES_EXPORTER=jaeger-thrift-splunk              | Select the span exporter to use. `jaeger-thrift-splunk` is the default value.                                                                                          
 | otel.exporter.jaeger.endpoint     | OTEL_EXPORTER_JAEGER_ENDPOINT     | The Jaeger endpoint to connect to. Default is `http://localhost:9080/v1/trace`.
 | signalfx.auth.token               | SIGNALFX_AUTH_TOKEN               | (Optional) Auth token allowing to communicate directly with the Splunk cloud, passed as `X-SF-TOKEN` header. Default is empty. |
 
@@ -136,8 +136,8 @@ Documentation on how to manually instrument a Java application are available
 
 To extend the instrumentation with the OpenTelemetry Instrumentation for Java,
 you have to use a compatible API version. The Splunk distribution of 
-OpenTelemetry Java Instrumentation version 0.7.0 is compatible with the
-OpenTelemetry Instrumentation for Java version 0.15.1 and API version 0.15.0.
+OpenTelemetry Java Instrumentation version 0.8.0 is compatible with the
+OpenTelemetry Instrumentation for Java version 0.16.1 and API version 0.16.0.
 
 ## Correlating traces with logs
 

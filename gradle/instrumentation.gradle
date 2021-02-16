@@ -1,6 +1,10 @@
 apply plugin: 'java'
 apply plugin: 'com.github.johnrengelman.shadow'
 
+apply from: "$rootDir/gradle/shadow.gradle"
+
+def relocatePackages = ext.relocatePackages
+
 configurations {
     testInstrumentation
     testAgent
@@ -30,26 +34,7 @@ shadowJar {
 
     archiveFileName = 'agent-testing.jar'
 
-    // rewrite library instrumentation dependencies
-    relocate "io.opentelemetry.instrumentation", "io.opentelemetry.javaagent.shaded.instrumentation"
-
-    // Prevents conflict with other SLF4J instances. Important for premain.
-    relocate 'org.slf4j', 'io.opentelemetry.javaagent.slf4j'
-    // rewrite dependencies calling Logger.getLogger
-    relocate 'java.util.logging.Logger', 'io.opentelemetry.javaagent.bootstrap.PatchLogger'
-
-    // prevents conflict with library instrumentation
-    relocate 'io.opentelemetry.instrumentation.api', 'io.opentelemetry.javaagent.shaded.instrumentation.api'
-
-    // relocate OpenTelemetry API usage
-    relocate "io.opentelemetry.api", "io.opentelemetry.javaagent.shaded.io.opentelemetry.api"
-    relocate "io.opentelemetry.semconv", "io.opentelemetry.javaagent.shaded.io.opentelemetry.semconv"
-    relocate "io.opentelemetry.spi", "io.opentelemetry.javaagent.shaded.io.opentelemetry.spi"
-    relocate "io.opentelemetry.context", "io.opentelemetry.javaagent.shaded.io.opentelemetry.context"
-
-    // relocate OpenTelemetry extensions
-    relocate "io.opentelemetry.extension.kotlin", "io.opentelemetry.javaagent.shaded.io.opentelemetry.extension.kotlin"
-    relocate "io.opentelemetry.extension.trace.propagation", "io.opentelemetry.javaagent.shaded.io.opentelemetry.extension.trace.propagation"
+    relocatePackages(it)
 }
 
 tasks.withType(Test).configureEach {

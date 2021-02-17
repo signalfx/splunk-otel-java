@@ -26,6 +26,8 @@ import static net.bytebuddy.matcher.ElementMatchers.takesArgument;
 
 import com.google.auto.service.AutoService;
 import com.splunk.opentelemetry.servertiming.ServerTimingHeader;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.Metrics;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.context.propagation.TextMapPropagator;
 import io.opentelemetry.javaagent.instrumentation.api.Java8BytecodeBridge;
@@ -54,7 +56,9 @@ public class ServletInstrumentationModule extends InstrumentationModule {
 
   protected String[] additionalHelperClassNames() {
     return new String[] {
-      ServerTimingHeader.class.getName(), getClass().getName() + "$HeadersSetter"
+      ServerTimingHeader.class.getName(),
+      getClass().getName() + "$HeadersSetter",
+      getClass().getName() + "$RequestCounter"
     };
   }
 
@@ -93,6 +97,14 @@ public class ServletInstrumentationModule extends InstrumentationModule {
     public static class AddHeadersAdvice {
       @Advice.OnMethodEnter(suppress = Throwable.class)
       public static void onEnter(@Advice.Argument(1) ServletResponse response) {
+        RequestCounter.increment();
+        // TODO: tests fails on ClassNotFound ^^ shared MeterRegistry
+        // 1. otel javaagent does not include micrometer, shaded or not
+        // 2. micrometer added in testImplementation is not shaded
+        // I need to add shaded micrometer somewhere to make it work
+        // to fix this I need to create our own testing agent with micrometer added and use it in
+        // tests instead of the otel one
+
         if (response instanceof HttpServletResponse) {
           HttpServletResponse httpResponse = (HttpServletResponse) response;
           Context context = Java8BytecodeBridge.currentContext();
@@ -109,5 +121,15 @@ public class ServletInstrumentationModule extends InstrumentationModule {
     public void set(HttpServletResponse carrier, String key, String value) {
       carrier.addHeader(key, value);
     }
+  }
+
+  public static final class RequestCounter {
+    private static final Counter REQUEST_COUNT = Metrics.counter("http.request.count");
+
+    public static void increment() {
+      REQUEST_COUNT.increment();
+    }
+
+    private RequestCounter() {}
   }
 }

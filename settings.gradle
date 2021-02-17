@@ -26,5 +26,6 @@ include("agent",
   "instrumentation:tomee",
   "instrumentation:weblogic",
   "instrumentation:wildfly",
+  "matrix",
   "smoke-tests",
-  "matrix")
+  "testing:agent-metrics")

@@ -25,9 +25,9 @@ import static net.bytebuddy.matcher.ElementMatchers.named;
 import static net.bytebuddy.matcher.ElementMatchers.takesArgument;
 
 import com.google.auto.service.AutoService;
+import com.splunk.opentelemetry.javaagent.bootstrap.MetricsBridge;
 import com.splunk.opentelemetry.servertiming.ServerTimingHeader;
 import io.micrometer.core.instrument.Counter;
-import io.micrometer.core.instrument.Metrics;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.context.propagation.TextMapPropagator;
 import io.opentelemetry.javaagent.instrumentation.api.Java8BytecodeBridge;
@@ -124,7 +124,7 @@ public class ServletInstrumentationModule extends InstrumentationModule {
   }
 
   public static final class RequestCounter {
-    private static final Counter REQUEST_COUNT = Metrics.counter("http.request.count");
+    private static final Counter REQUEST_COUNT = MetricsBridge.counter("http.request.count");
 
     public static void increment() {
       REQUEST_COUNT.increment();

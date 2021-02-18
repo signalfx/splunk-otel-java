@@ -56,7 +56,7 @@ $ java -javaagent:./splunk-otel-javaagent.jar -Dotel.resource.attributes=service
 To see the Java Agent in action with sample applications, see our
 [examples](https://github.com/signalfx/tracing-examples/tree/master/opentelemetry-tracing/opentelemetry-java-tracing).
 
-### Configuration
+### Basic Configuration
 
 The service name resource attribute is the only configuration option
 that typically needs to be specified. You can set it by adding a `service.name`

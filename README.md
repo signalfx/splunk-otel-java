@@ -18,16 +18,12 @@ This Splunk distribution comes with the following defaults:
   configured to send spans to a locally running [SignalFx Smart
   Agent](https://docs.signalfx.com/en/latest/apm/apm-getting-started/apm-smart-agent.html)
   (`http://localhost:9080/v1/trace`).
-- Unlimited default limits for [configuration options](#trace-configuration) to support full-fidelity traces.
+- Unlimited default limits for [configuration options](#trace-configuration) to
+  support full-fidelity traces.
 
 > :construction: This project is currently in **BETA**.
 
 ## Getting Started
-
-The agent works with Java runtimes version 8 and higher and supports all
-JVM-based languages (for example, Clojure, Groovy, Kotlin, Scala). Supported
-libraries and versions are listed
-[here](https://github.com/open-telemetry/opentelemetry-java-instrumentation#supported-java-libraries-and-frameworks).
 
 To get started, download the JAR for the agent's [latest
 version](https://github.com/signalfx/splunk-otel-java/releases/latest/download/splunk-otel-javaagent-all.jar)
@@ -48,53 +44,58 @@ $ java -javaagent:./splunk-otel-javaagent.jar -Dotel.resource.attributes=service
     -jar target/java-agent-example-1.0-SNAPSHOT-shaded.jar https://google.com
 ```
 
-> :information_source: The `-javaagent` needs to be run before the `-jar` file,
+> The `-javaagent` needs to be run before the `-jar` file,
 > adding it as a JVM option, not as an application argument. For more
 > information, see the [Oracle
 > documentation](https://docs.oracle.com/javase/8/docs/technotes/tools/windows/java.html).
-
-The service name resource attribute is the only configuration option
-that typically needs to be specified. You can set it by adding a `service.name`
-attribute to the [OpenTelemetry Resource](https://github.com/open-telemetry/opentelemetry-java-instrumentation#opentelemetry-resource).
-
-A couple other configuration options that may need to be changed or
-set are:
-
-* Endpoint if not sending to a locally running Smart Agent with default
-  configuration
-* Environment resource attribute (example:
-  `-Dotel.resource.attributes=service.name=my-service,environment=production`) to specify what
-  environment the span originated from.
-
-The agent instruments supported libraries and frameworks with bytecode
-manipulation and configures an OpenTelemetry-compatible tracer to capture
-and export trace spans. The agent also registers an OpenTelemetry `getTracer`
-so you can support existing custom instrumentation or add custom
-instrumentation to your application later.
-
-To see the Java Agent in action with sample applications, see our
-[examples](https://github.com/signalfx/tracing-examples/tree/master/opentelemetry-tracing/opentelemetry-java-tracing).
 
 > :warning: Specify the agent as the only JVM agent for your application.
 > Multiple agents may result in unpredictable results, broken instrumentation,
 > and in some cases might crash your application.
 
-## All configuration options
+To see the Java Agent in action with sample applications, see our
+[examples](https://github.com/signalfx/tracing-examples/tree/master/opentelemetry-tracing/opentelemetry-java-tracing).
+
+### Configuration
+
+The service name resource attribute is the only configuration option
+that typically needs to be specified. You can set it by adding a `service.name`
+attribute as shown in the [example above](#getting-started).
+
+A couple other configuration options that may need to be changed or set are:
+
+- Endpoint if not sending to a locally running Smart Agent with default
+  configuration. See the [Jaeger exporter](#jaeger-exporter) section for more information.
+- Environment resource attribute (example:
+  `-Dotel.resource.attributes=service.name=my-service,environment=production`) to specify what
+  environment the span originated from.
+
+### Supported Java Versions
+
+The agent works with Java runtimes version 8 and higher and supports all
+JVM-based languages (for example, Clojure, Groovy, Kotlin, Scala). Supported
+libraries and versions are listed
+[here](https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/docs/supported-libraries.md).
+
+## Advanced Configuration
+
+> For the majority of users, the [Getting Started](#getting-started) section is
+> all you need. The follow section contains advanced configuration options.
 
 The agent can be configured in the following ways:
 
 * System property (example: `-Dotel.resource.attributes=service.name=my-java-app`)
 * Environment variable (example: `export OTEL_RESOURCE_ATTRIBUTES=service.name=my-java-app`)
 
-System property values take priority over corresponding environment variables.
+> System property values take priority over corresponding environment variables.
+
+Below you will find all the configuration options supported by this distribution.
 
 ### Jaeger exporter
 
-A simple wrapper for the Jaeger exporter of [opentelemetry-java](https://github.com/open-telemetry/opentelemetry-java). Apache Thrift is the default communications protocol.
-
 | System property                   | Environment variable              | Description                                                                                                         |
 |-----------------------------------|-----------------------------------|---------------------------------------------------------------------------------------------------------------------|
-| otel.traces.exporter=jaeger-thrift-splunk | OTEL_TRACES_EXPORTER=jaeger-thrift-splunk              | Select the span exporter to use. `jaeger-thrift-splunk` is the default value.                                                                                          
+| otel.traces.exporter | OTEL_TRACES_EXPORTER              | Select the span exporter to use. `jaeger-thrift-splunk` is the default value.
 | otel.exporter.jaeger.endpoint     | OTEL_EXPORTER_JAEGER_ENDPOINT     | The Jaeger endpoint to connect to. Default is `http://localhost:9080/v1/trace`.
 | signalfx.auth.token               | SIGNALFX_AUTH_TOKEN               | (Optional) Auth token allowing to communicate directly with the Splunk cloud, passed as `X-SF-TOKEN` header. Default is empty. |
 
@@ -117,46 +118,41 @@ A simple wrapper for the Jaeger exporter of [opentelemetry-java](https://github.
 | ------------------------------------ | ----------------------------------   | -------------- | -------------------------------------------------------- |
 | splunk.context.server-timing.enabled | SPLUNK_CONTEXT_SERVER_TIMING_ENABLED | false          | Enables adding `Server-Timing` header to HTTP responses. |
 
-### More options
-For more options see [here](https://github.com/open-telemetry/opentelemetry-java-instrumentation#configuration-parameters-subject-to-change)
-
-## Span tags the Splunk distribution automatically creates
-
-This Splunk distribution automatically adds context to `SERVER` spans for known application servers using these span tags:
-
-| Span tag             | Example     | Description                            |
-| -------------------- | ----------- | -------------------------------------- |
-| `middleware.name`    | `tomcat`    | The name of the application server.    |
-| `middleware.version` | `7.0.107.0` | The version of the application server. |
-
 ## Manually instrument a Java application
 
 Documentation on how to manually instrument a Java application are available
 [here](https://github.com/open-telemetry/opentelemetry-java-instrumentation#manually-instrumenting).
 
 To extend the instrumentation with the OpenTelemetry Instrumentation for Java,
-you have to use a compatible API version. The Splunk distribution of 
+you have to use a compatible API version. The Splunk distribution of
 OpenTelemetry Java Instrumentation version 0.8.0 is compatible with the
 OpenTelemetry Instrumentation for Java version 0.16.1 and API version 0.16.0.
 
 ## Correlating traces with logs
 
-To correlate traces with logs it is possible to add both trace (`traceId` and `spanId`) and 
-resource (e.g., `service.name` and `environment` attributes of the 
-[Resource](https://github.com/open-telemetry/opentelemetry-specification/blob/master/specification/resource/sdk.md)) contexts.
+To correlate traces with logs it is possible to add both trace (`traceId` and
+`spanId`) and resource (e.g., `service.name` and `environment` attributes of
+the
+[Resource](https://github.com/open-telemetry/opentelemetry-specification/blob/master/specification/resource/sdk.md))
+contexts.
 
 Documentation on how to inject trace context into logs is available
 [here](https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/master/docs/logger-mdc-instrumentation.md).
 
-To log resource context, Splunk distribution exposes resource attributes as system properties prefixed with `otel.resource.`
-which can be used in logger configuration.
+To log resource context, Splunk distribution exposes resource attributes as
+system properties prefixed with `otel.resource.` which can be used in logger
+configuration.
+
 Example configuration for log4j pattern:
+
 ```xml
 <PatternLayout>
   <pattern>service: ${sys:otel.resource.service.name}, env: ${sys:otel.resource.environment} %m%n</pattern>
 </PatternLayout>
 ```
+
 or logback pattern:
+
 ```xml
 <pattern>service: %property{otel.resource.service.name}, env: %property{otel.resource.environment}: %m%n</pattern>
 ```

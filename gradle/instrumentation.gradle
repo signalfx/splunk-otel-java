@@ -12,10 +12,10 @@ configurations {
 
 dependencies {
     compileOnly("io.opentelemetry:opentelemetry-sdk:${versions.opentelemetry}")
-    compileOnly("io.opentelemetry.instrumentation:opentelemetry-instrumentation-api:${versions.opentelemetryJavaagent}")
-    compileOnly("io.opentelemetry.javaagent:opentelemetry-javaagent-tooling:${versions.opentelemetryJavaagent}")
-    compileOnly("io.opentelemetry.javaagent:opentelemetry-javaagent-api:${versions.opentelemetryJavaagent}")
-    compileOnly("io.opentelemetry.javaagent:opentelemetry-javaagent-spi:${versions.opentelemetryJavaagent}")
+    compileOnly("io.opentelemetry.instrumentation:opentelemetry-instrumentation-api:${versions.opentelemetryJavaagentAlpha}")
+    compileOnly("io.opentelemetry.javaagent:opentelemetry-javaagent-tooling:${versions.opentelemetryJavaagentAlpha}")
+    compileOnly("io.opentelemetry.javaagent:opentelemetry-javaagent-api:${versions.opentelemetryJavaagentAlpha}")
+    compileOnly("io.opentelemetry.javaagent:opentelemetry-javaagent-spi:${versions.opentelemetryJavaagentAlpha}")
     compileOnly("net.bytebuddy:byte-buddy:1.10.10")
     annotationProcessor("com.google.auto.service:auto-service:1.0-rc3")
     annotationProcessor("com.google.auto:auto-common:0.8")
@@ -24,8 +24,8 @@ dependencies {
     compileOnly(project(":bootstrap"))
 
     // test
-    testAgent("io.opentelemetry.javaagent:opentelemetry-agent-for-testing:${versions.opentelemetryJavaagent}")
-    testImplementation("io.opentelemetry.javaagent:opentelemetry-testing-common:${versions.opentelemetryJavaagent}")
+    testAgent("io.opentelemetry.javaagent:opentelemetry-agent-for-testing:${versions.opentelemetryJavaagentAlpha}")
+    testImplementation("io.opentelemetry.javaagent:opentelemetry-testing-common:${versions.opentelemetryJavaagentAlpha}")
 }
 
 shadowJar {

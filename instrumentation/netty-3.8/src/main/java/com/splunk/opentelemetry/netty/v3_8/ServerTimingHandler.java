@@ -20,7 +20,7 @@ import static io.opentelemetry.javaagent.instrumentation.netty.v3_8.server.Netty
 
 import com.splunk.opentelemetry.servertiming.ServerTimingHeader;
 import io.opentelemetry.context.Context;
-import io.opentelemetry.context.propagation.TextMapPropagator.Setter;
+import io.opentelemetry.context.propagation.TextMapSetter;
 import io.opentelemetry.javaagent.instrumentation.api.ContextStore;
 import io.opentelemetry.javaagent.instrumentation.netty.v3_8.ChannelTraceContext;
 import org.jboss.netty.channel.Channel;
@@ -53,7 +53,7 @@ public class ServerTimingHandler extends SimpleChannelDownstreamHandler {
     ctx.sendDownstream(msg);
   }
 
-  public static final class HeadersSetter implements Setter<HttpHeaders> {
+  public static final class HeadersSetter implements TextMapSetter<HttpHeaders> {
     private static final HeadersSetter INSTANCE = new HeadersSetter();
 
     @Override

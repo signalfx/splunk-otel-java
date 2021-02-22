@@ -38,9 +38,9 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.http.DefaultFullHttpResponse;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpServerCodec;
-import io.opentelemetry.instrumentation.test.InMemoryExporter;
 import io.opentelemetry.instrumentation.test.utils.OkHttpUtils;
 import io.opentelemetry.instrumentation.test.utils.PortUtils;
+import io.opentelemetry.instrumentation.testing.junit.AgentInstrumentationExtension;
 import java.util.concurrent.TimeoutException;
 import okhttp3.HttpUrl;
 import okhttp3.OkHttpClient;
@@ -50,13 +50,17 @@ import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 public class NettyInstrumentationTest {
-  private static final OkHttpClient httpClient = OkHttpUtils.client();
+  @RegisterExtension
+  static final AgentInstrumentationExtension instrumentation =
+      AgentInstrumentationExtension.create();
 
-  private static int port;
-  private static EventLoopGroup server;
-  private static final InMemoryExporter exporter = new InMemoryExporter();
+  static final OkHttpClient httpClient = OkHttpUtils.client();
+
+  static int port;
+  static EventLoopGroup server;
 
   @BeforeAll
   static void startServer() throws InterruptedException {
@@ -120,15 +124,9 @@ public class NettyInstrumentationTest {
 
   private static void assertServerTimingHeaderContainsTraceId(String serverTimingHeader)
       throws InterruptedException, TimeoutException {
-    exporter.waitForTraces(1);
+    instrumentation.waitForTraces(1);
 
-    var traces = exporter.getTraces();
-    assertEquals(1, traces.size());
-
-    var spans = traces.get(0);
-    assertEquals(1, spans.size());
-
-    var serverSpan = spans.get(0);
+    var serverSpan = instrumentation.spans().get(0);
     assertTrue(serverTimingHeader.contains(serverSpan.getTraceId()));
   }
 }

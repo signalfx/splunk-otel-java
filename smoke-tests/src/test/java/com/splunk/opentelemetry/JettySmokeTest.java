@@ -26,7 +26,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 public class JettySmokeTest extends AppServerTest {
 
   public static final ExpectedServerAttributes JETTY9_SERVER_ATTRIBUTES =
-      new ExpectedServerAttributes("HandlerCollection.handle", "jetty", "9.4.35.v20201120");
+      new ExpectedServerAttributes("HandlerWrapper.handle", "jetty", "9.4.35.v20201120");
   public static final ExpectedServerAttributes JETTY10_SERVER_ATTRIBUTES =
       new ExpectedServerAttributes("HandlerList.handle", "jetty", "10.0.0");
   public static final ExpectedServerAttributes JETTY10_BETA_SERVER_ATTRIBUTES =
@@ -37,7 +37,8 @@ public class JettySmokeTest extends AppServerTest {
         .otelLinux("9.4.35", JETTY9_SERVER_ATTRIBUTES, VMS_ALL, "8", "11", "15")
         .otelLinux("10.0.0", JETTY10_SERVER_ATTRIBUTES, VMS_ALL, "11", "15")
         .splunkWindows("9.4.35", JETTY9_SERVER_ATTRIBUTES, VMS_ALL, "8", "11", "15")
-        .splunkWindows("10.0.0", JETTY10_BETA_SERVER_ATTRIBUTES, VMS_ALL, "11", "15").stream();
+        .splunkWindows("10.0.0", JETTY10_BETA_SERVER_ATTRIBUTES, VMS_ALL, "11", "15")
+        .stream();
   }
 
   @ParameterizedTest(name = "[{index}] {0}")

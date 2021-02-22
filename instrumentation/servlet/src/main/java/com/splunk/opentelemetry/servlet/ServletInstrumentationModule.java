@@ -27,7 +27,7 @@ import static net.bytebuddy.matcher.ElementMatchers.takesArgument;
 import com.google.auto.service.AutoService;
 import com.splunk.opentelemetry.servertiming.ServerTimingHeader;
 import io.opentelemetry.context.Context;
-import io.opentelemetry.context.propagation.TextMapPropagator;
+import io.opentelemetry.context.propagation.TextMapSetter;
 import io.opentelemetry.javaagent.instrumentation.api.Java8BytecodeBridge;
 import io.opentelemetry.javaagent.tooling.InstrumentationModule;
 import io.opentelemetry.javaagent.tooling.TypeInstrumentation;
@@ -102,7 +102,7 @@ public class ServletInstrumentationModule extends InstrumentationModule {
     }
   }
 
-  public static final class HeadersSetter implements TextMapPropagator.Setter<HttpServletResponse> {
+  public static final class HeadersSetter implements TextMapSetter<HttpServletResponse> {
     public static final HeadersSetter INSTANCE = new HeadersSetter();
 
     @Override

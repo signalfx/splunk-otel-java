@@ -27,7 +27,7 @@ import static net.bytebuddy.matcher.ElementMatchers.takesArgument;
 import com.google.auto.service.AutoService;
 import com.splunk.opentelemetry.javaagent.bootstrap.MetricsBridge;
 import com.splunk.opentelemetry.servertiming.ServerTimingHeader;
-import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.Tag;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.context.propagation.TextMapPropagator;
 import io.opentelemetry.javaagent.instrumentation.api.Java8BytecodeBridge;
@@ -36,7 +36,9 @@ import io.opentelemetry.javaagent.tooling.TypeInstrumentation;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import net.bytebuddy.asm.Advice;
 import net.bytebuddy.description.method.MethodDescription;
@@ -96,8 +98,12 @@ public class ServletInstrumentationModule extends InstrumentationModule {
 
     public static class AddHeadersAdvice {
       @Advice.OnMethodEnter(suppress = Throwable.class)
-      public static void onEnter(@Advice.Argument(1) ServletResponse response) {
-        RequestCounter.increment();
+      public static void onEnter(
+          @Advice.Argument(0) ServletRequest request,
+          @Advice.Argument(1) ServletResponse response) {
+        if (request instanceof HttpServletRequest) {
+          RequestCounter.increment(((HttpServletRequest) request).getMethod());
+        }
         // TODO: tests fails on ClassNotFound ^^ shared MeterRegistry
         // 1. otel javaagent does not include micrometer, shaded or not
         // 2. micrometer added in testImplementation is not shaded
@@ -124,10 +130,8 @@ public class ServletInstrumentationModule extends InstrumentationModule {
   }
 
   public static final class RequestCounter {
-    private static final Counter REQUEST_COUNT = MetricsBridge.counter("http.request.count");
-
-    public static void increment() {
-      REQUEST_COUNT.increment();
+    public static void increment(String method) {
+      MetricsBridge.counter("http.request.count", Tag.of("method", method)).increment();
     }
 
     private RequestCounter() {}

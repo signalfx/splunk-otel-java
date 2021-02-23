@@ -31,6 +31,8 @@ import org.slf4j.LoggerFactory;
 public class JaegerThriftSpanExporterFactory implements ConfigurableSpanExporterProvider {
   private static final Logger log = LoggerFactory.getLogger(JaegerThriftSpanExporterFactory.class);
 
+  @Deprecated
+  static final String SPLUNK_ACCESS_TOKEN_OLD = "signalfx.auth.token";
   static final String SPLUNK_ACCESS_TOKEN = "splk.access.token";
   public static final String OTEL_EXPORTER_JAEGER_ENDPOINT = "otel.exporter.jaeger.endpoint";
 
@@ -40,6 +42,9 @@ public class JaegerThriftSpanExporterFactory implements ConfigurableSpanExporter
 
     String endpoint = config.getString(OTEL_EXPORTER_JAEGER_ENDPOINT);
     String token = config.getString(SPLUNK_ACCESS_TOKEN);
+    if (token == null) {
+      token = config.getString(SPLUNK_ACCESS_TOKEN_OLD);
+    }
     if (token != null && !token.isEmpty()) {
       log.debug("Using authenticated jaeger-thrift exporter");
       builder.setThriftSender(

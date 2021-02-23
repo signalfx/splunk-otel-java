@@ -17,6 +17,7 @@
 package com.splunk.opentelemetry;
 
 import static com.splunk.opentelemetry.helper.TestImage.linuxImage;
+import static com.splunk.opentelemetry.helper.TestImage.proprietaryWindowsImage;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 import com.splunk.opentelemetry.helper.TestImage;
@@ -42,6 +43,15 @@ public class TomeeSmokeTest extends AppServerTest {
         arguments(
             linuxImage(
                 "ghcr.io/open-telemetry/java-test-containers:tomee-8.0.6-jdk8-20210202.531569197"),
+            TOMEE8_SERVER_ATTRIBUTES),
+        arguments(
+            proprietaryWindowsImage("ghcr.io/signalfx/splunk-otel-tomee:7.0.0-jdk8-windows"),
+            TOMEE7_SERVER_ATTRIBUTES),
+        arguments(
+            proprietaryWindowsImage("ghcr.io/signalfx/splunk-otel-tomee:8.0.6-jdk8-windows"),
+            TOMEE8_SERVER_ATTRIBUTES),
+        arguments(
+            proprietaryWindowsImage("ghcr.io/signalfx/splunk-otel-tomee:8.0.6-jdk11-windows"),
             TOMEE8_SERVER_ATTRIBUTES));
   }
 
@@ -59,7 +69,7 @@ public class TomeeSmokeTest extends AppServerTest {
 
   public static class TomeeAttributes extends ExpectedServerAttributes {
     public TomeeAttributes(String version) {
-      // This handler span name is only received if default webapps are removed
+      // This handler span name is only received if default webapps are present
       super(
           "/this-is-definitely-not-there-but-there-should-be-a-trace-nevertheless",
           "tomee",

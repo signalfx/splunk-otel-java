@@ -45,7 +45,7 @@ public class JaegerThriftSpanExporterFactory implements ConfigurableSpanExporter
       token = config.getString(SPLUNK_ACCESS_TOKEN_OLD);
       if (token != null) {
         log.warn(
-            "Deprecated property '{}' was set; consider using '{}' instead",
+            "Deprecated property '{}' was set; please use '{}' instead. Support for the deprecated property will be removed in future versions.",
             SPLUNK_ACCESS_TOKEN_OLD,
             SPLUNK_ACCESS_TOKEN);
       }

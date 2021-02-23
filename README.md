@@ -139,7 +139,7 @@ contexts.
 Documentation on how to inject trace context into logs is available
 [here](https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/master/docs/logger-mdc-instrumentation.md).
 
-To log resource context, Splunk distribution exposes resource attributes as
+To log resource context, the Splunk distribution exposes resource attributes as
 system properties prefixed with `otel.resource.` which can be used in logger
 configuration.
 

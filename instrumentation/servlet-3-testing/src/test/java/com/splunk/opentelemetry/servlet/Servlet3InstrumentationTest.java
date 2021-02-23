@@ -132,9 +132,13 @@ class Servlet3InstrumentationTest {
 
   private static void assertServerTimingHeaderContainsTraceId(String serverTimingHeader)
       throws InterruptedException, TimeoutException {
-    instrumentation.waitForTraces(1);
+    var traces = instrumentation.waitForTraces(1);
+    assertEquals(1, traces.size());
 
-    var serverSpan = instrumentation.spans().get(0);
+    var spans = traces.get(0);
+    assertEquals(1, spans.size());
+
+    var serverSpan = spans.get(0);
     assertTrue(serverTimingHeader.contains(serverSpan.getTraceId()));
   }
 

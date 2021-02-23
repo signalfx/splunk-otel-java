@@ -130,11 +130,10 @@ OpenTelemetry Instrumentation for Java version 0.16.1 and API version 0.16.0.
 
 ## Correlating traces with logs
 
-To correlate traces with logs it is possible to add both trace (`traceId` and
-`spanId`) and resource (e.g., `service.name` and `environment` attributes of
-the
-[Resource](https://github.com/open-telemetry/opentelemetry-specification/blob/master/specification/resource/sdk.md))
-contexts.
+To correlate traces with logs it is possible to add the following metadata from traces to logs:
+
+ - Trace: `traceId` and `spanId`
+ - Resource: `service.name` and `environment`
 
 Documentation on how to inject trace context into logs is available
 [here](https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/master/docs/logger-mdc-instrumentation.md).

@@ -16,10 +16,6 @@
 
 package com.splunk.opentelemetry;
 
-import static com.splunk.opentelemetry.helper.TestImage.linuxImage;
-import static com.splunk.opentelemetry.helper.TestImage.proprietaryWindowsImage;
-import static org.junit.jupiter.params.provider.Arguments.arguments;
-
 import com.splunk.opentelemetry.helper.TestImage;
 import java.io.IOException;
 import java.util.stream.Stream;
@@ -32,42 +28,17 @@ public class JettySmokeTest extends AppServerTest {
   public static final ExpectedServerAttributes JETTY9_SERVER_ATTRIBUTES =
       new ExpectedServerAttributes("HandlerCollection.handle", "jetty", "9.4.35.v20201120");
   public static final ExpectedServerAttributes JETTY10_SERVER_ATTRIBUTES =
+      new ExpectedServerAttributes("HandlerList.handle", "jetty", "10.0.0");
+  public static final ExpectedServerAttributes JETTY10_BETA_SERVER_ATTRIBUTES =
       new ExpectedServerAttributes("HandlerList.handle", "jetty", "10.0.0.beta3");
 
   private static Stream<Arguments> supportedConfigurations() {
-    return Stream.of(
-        arguments(
-            linuxImage(
-                "ghcr.io/open-telemetry/java-test-containers:jetty-9.4.35-jdk8-20201207.405832649"),
-            JETTY9_SERVER_ATTRIBUTES),
-        arguments(
-            linuxImage(
-                "ghcr.io/open-telemetry/java-test-containers:jetty-9.4.35-jdk11-20201207.405832649"),
-            JETTY9_SERVER_ATTRIBUTES),
-        arguments(
-            linuxImage(
-                "ghcr.io/open-telemetry/java-test-containers:jetty-9.4.35-jdk15-20201207.405832649"),
-            JETTY9_SERVER_ATTRIBUTES),
-        arguments(
-            linuxImage(
-                "ghcr.io/open-telemetry/java-test-containers:jetty-10.0.0.beta3-jdk11-20201207.405832649"),
-            JETTY10_SERVER_ATTRIBUTES),
-        arguments(
-            linuxImage(
-                "ghcr.io/open-telemetry/java-test-containers:jetty-10.0.0.beta3-jdk15-20201207.405832649"),
-            JETTY10_SERVER_ATTRIBUTES),
-        arguments(
-            proprietaryWindowsImage("splunk-jetty:9.4.35-jdk8-windows"), JETTY9_SERVER_ATTRIBUTES),
-        arguments(
-            proprietaryWindowsImage("splunk-jetty:9.4.35-jdk11-windows"), JETTY9_SERVER_ATTRIBUTES),
-        arguments(
-            proprietaryWindowsImage("splunk-jetty:9.4.35-jdk15-windows"), JETTY9_SERVER_ATTRIBUTES),
-        arguments(
-            proprietaryWindowsImage("splunk-jetty:10.0.0-jdk11-windows"),
-            JETTY10_SERVER_ATTRIBUTES),
-        arguments(
-            proprietaryWindowsImage("splunk-jetty:10.0.0-jdk15-windows"),
-            JETTY10_SERVER_ATTRIBUTES));
+    return configurations("jetty")
+        .otelLinux("9.4.35", JETTY9_SERVER_ATTRIBUTES, VMS_ALL, "8", "11", "15")
+        .otelLinux("10.0.0", JETTY10_SERVER_ATTRIBUTES, VMS_ALL, "11", "15")
+        .splunkWindows("9.4.35", JETTY9_SERVER_ATTRIBUTES, VMS_HOTSPOT, "8", "11", "15")
+        .splunkWindows("10.0.0", JETTY10_BETA_SERVER_ATTRIBUTES, VMS_HOTSPOT, "11", "15")
+        .stream();
   }
 
   @ParameterizedTest(name = "[{index}] {0}")

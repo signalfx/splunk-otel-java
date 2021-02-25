@@ -16,10 +16,6 @@
 
 package com.splunk.opentelemetry;
 
-import static com.splunk.opentelemetry.helper.TestImage.linuxImage;
-import static com.splunk.opentelemetry.helper.TestImage.proprietaryWindowsImage;
-import static org.junit.jupiter.params.provider.Arguments.arguments;
-
 import com.splunk.opentelemetry.helper.TestImage;
 import java.io.IOException;
 import java.util.stream.Stream;
@@ -37,42 +33,14 @@ public class TomcatSmokeTest extends AppServerTest {
       new TomcatAttributes("9.0.40.0");
 
   private static Stream<Arguments> supportedConfigurations() {
-    return Stream.of(
-        arguments(
-            linuxImage(
-                "ghcr.io/open-telemetry/java-test-containers:tomcat-7.0.107-jdk8-20201207.405832649"),
-            TOMCAT7_SERVER_ATTRIBUTES),
-        arguments(
-            linuxImage(
-                "ghcr.io/open-telemetry/java-test-containers:tomcat-8.5.60-jdk8-20201207.405832649"),
-            TOMCAT8_SERVER_ATTRIBUTES),
-        arguments(
-            linuxImage(
-                "ghcr.io/open-telemetry/java-test-containers:tomcat-8.5.60-jdk11-20201207.405832649"),
-            TOMCAT8_SERVER_ATTRIBUTES),
-        arguments(
-            linuxImage(
-                "ghcr.io/open-telemetry/java-test-containers:tomcat-9.0.40-jdk8-20201207.405832649"),
-            TOMCAT9_SERVER_ATTRIBUTES),
-        arguments(
-            linuxImage(
-                "ghcr.io/open-telemetry/java-test-containers:tomcat-9.0.40-jdk11-20201207.405832649"),
-            TOMCAT9_SERVER_ATTRIBUTES),
-        arguments(
-            proprietaryWindowsImage("splunk-tomcat:7.0.107-jdk8-windows"),
-            TOMCAT7_SERVER_ATTRIBUTES),
-        arguments(
-            proprietaryWindowsImage("splunk-tomcat:8.5.60-jdk8-windows"),
-            TOMCAT8_SERVER_ATTRIBUTES),
-        arguments(
-            proprietaryWindowsImage("splunk-tomcat:8.5.60-jdk11-windows"),
-            TOMCAT8_SERVER_ATTRIBUTES),
-        arguments(
-            proprietaryWindowsImage("splunk-tomcat:9.0.40-jdk8-windows"),
-            TOMCAT9_SERVER_ATTRIBUTES),
-        arguments(
-            proprietaryWindowsImage("splunk-tomcat:9.0.40-jdk11-windows"),
-            TOMCAT9_SERVER_ATTRIBUTES));
+    return configurations("tomcat")
+        .otelLinux("7.0.107", TOMCAT7_SERVER_ATTRIBUTES, VMS_ALL, "8")
+        .otelLinux("8.5.60", TOMCAT8_SERVER_ATTRIBUTES, VMS_ALL, "8", "11")
+        .otelLinux("9.0.40", TOMCAT9_SERVER_ATTRIBUTES, VMS_ALL, "8", "11")
+        .splunkWindows("7.0.107", TOMCAT7_SERVER_ATTRIBUTES, VMS_HOTSPOT, "8")
+        .splunkWindows("8.5.60", TOMCAT8_SERVER_ATTRIBUTES, VMS_HOTSPOT, "8", "11")
+        .splunkWindows("9.0.40", TOMCAT9_SERVER_ATTRIBUTES, VMS_HOTSPOT, "8", "11")
+        .stream();
   }
 
   @ParameterizedTest(name = "[{index}] {0}")

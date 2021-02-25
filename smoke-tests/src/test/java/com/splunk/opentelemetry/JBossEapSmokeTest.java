@@ -16,9 +16,6 @@
 
 package com.splunk.opentelemetry;
 
-import static com.splunk.opentelemetry.helper.TestImage.proprietaryLinuxImage;
-import static org.junit.jupiter.params.provider.Arguments.arguments;
-
 import com.splunk.opentelemetry.helper.TestImage;
 import java.io.IOException;
 import java.util.stream.Stream;
@@ -42,8 +39,8 @@ public class JBossEapSmokeTest extends AppServerTest {
 
   private static Stream<Arguments> jboss() {
     return configurations("jboss")
-        .splunkLinux("7.1.0", JBOSS_EAP_7_1_SERVER_ATTRIBUTES, VMS_HOTSPOT, "8")
-        .splunkLinux("7.3.0", JBOSS_EAP_7_3_SERVER_ATTRIBUTES, VMS_HOTSPOT, "8", "11")
+        .splunkLinux("7.1.0", JBOSS_EAP_7_1_SERVER_ATTRIBUTES, VMS_ALL, "8")
+        .splunkLinux("7.3.0", JBOSS_EAP_7_3_SERVER_ATTRIBUTES, VMS_ALL, "8", "11")
         .stream();
   }
 

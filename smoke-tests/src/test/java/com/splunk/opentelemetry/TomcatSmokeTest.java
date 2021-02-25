@@ -33,14 +33,12 @@ public class TomcatSmokeTest extends AppServerTest {
       new TomcatAttributes("9.0.40.0");
 
   private static Stream<Arguments> supportedConfigurations() {
-    return configurations("tomcat")
-        .otelLinux("7.0.107", TOMCAT7_SERVER_ATTRIBUTES, VMS_ALL, "8")
+    return configurations("tomcat").otelLinux("7.0.107", TOMCAT7_SERVER_ATTRIBUTES, VMS_ALL, "8")
         .otelLinux("8.5.60", TOMCAT8_SERVER_ATTRIBUTES, VMS_ALL, "8", "11")
         .otelLinux("9.0.40", TOMCAT9_SERVER_ATTRIBUTES, VMS_ALL, "8", "11")
         .splunkWindows("7.0.107", TOMCAT7_SERVER_ATTRIBUTES, VMS_ALL, "8")
         .splunkWindows("8.5.60", TOMCAT8_SERVER_ATTRIBUTES, VMS_ALL, "8", "11")
-        .splunkWindows("9.0.40", TOMCAT9_SERVER_ATTRIBUTES, VMS_ALL, "8", "11")
-        .stream();
+        .splunkWindows("9.0.40", TOMCAT9_SERVER_ATTRIBUTES, VMS_ALL, "8", "11").stream();
   }
 
   @ParameterizedTest(name = "[{index}] {0}")

@@ -182,10 +182,13 @@ public abstract class AppServerTest extends SmokeTest {
   }
 
   protected static final String OTEL_IMAGE_VERSION = "20210223.592806654";
+  protected static final String OTEL_REPO = "ghcr.io/open-telemetry/java-test-containers";
+  protected static final String SPLUNK_REPO_PREFIX = "ghcr.io/signalfx/splunk-otel-";
 
   protected static final List<String> VMS_HOTSPOT = Collections.singletonList("hotspot");
   protected static final List<String> VMS_OPENJ9 = Collections.singletonList("openj9");
-  protected static final List<String> VMS_ALL = Arrays.asList(VMS_HOTSPOT.get(0), VMS_OPENJ9.get(0));
+  protected static final List<String> VMS_ALL =
+      Arrays.asList(VMS_HOTSPOT.get(0), VMS_OPENJ9.get(0));
 
   protected static class Configurations {
     private final String serverName;
@@ -196,28 +199,60 @@ public abstract class AppServerTest extends SmokeTest {
       this.items = new ArrayList<>();
     }
 
-    public Configurations otelLinux(String version, String tag, ExpectedServerAttributes serverAttributes, List<String> vms, String... jdks) {
-      addItems(serverAttributes, vms, jdks, (jdk) ->
-          linuxImage("ghcr.io/open-telemetry/java-test-containers:" + serverName + "-" + version + "-jdk" + jdk + "-" + tag));
+    public Configurations otelLinux(
+        String version,
+        String tag,
+        ExpectedServerAttributes serverAttributes,
+        List<String> vms,
+        String... jdks) {
+      ImageFactory imageFactory =
+          (jdk) -> {
+            String name = OTEL_REPO + ":" + serverName + "-" + version + "-jdk" + jdk + "-" + tag;
+            return linuxImage(name);
+          };
 
+      addItems(serverAttributes, vms, jdks, imageFactory);
       return this;
     }
 
-    public Configurations otelLinux(String version, ExpectedServerAttributes serverAttributes, List<String> vms, String... jdks) {
+    public Configurations otelLinux(
+        String version,
+        ExpectedServerAttributes serverAttributes,
+        List<String> vms,
+        String... jdks) {
       return otelLinux(version, OTEL_IMAGE_VERSION, serverAttributes, vms, jdks);
     }
 
-    public Configurations splunkLinux(String version, ExpectedServerAttributes serverAttributes, List<String> vms, String... jdks) {
-      addItems(serverAttributes, vms, jdks, (jdk) ->
-          proprietaryLinuxImage("ghcr.io/signalfx/splunk-otel-" + serverName + ":" + version + "-jdk" + jdk));
+    public Configurations splunkLinux(
+        String version,
+        ExpectedServerAttributes serverAttributes,
+        List<String> vms,
+        String... jdks) {
 
+      ImageFactory imageFactory =
+          (jdk) -> {
+            String name = SPLUNK_REPO_PREFIX + serverName + ":" + version + "-jdk" + jdk;
+            return proprietaryLinuxImage(name);
+          };
+
+      addItems(serverAttributes, vms, jdks, imageFactory);
       return this;
     }
 
-    public Configurations splunkWindows(String version, ExpectedServerAttributes serverAttributes, List<String> vms, String... jdks) {
-      addItems(serverAttributes, vms, jdks, (jdk) ->
-          proprietaryWindowsImage("ghcr.io/signalfx/splunk-otel-" + serverName + ":" + version + "-jdk" + jdk + "-windows"));
+    public Configurations splunkWindows(
+        String version,
+        ExpectedServerAttributes serverAttributes,
+        List<String> vms,
+        String... jdks) {
 
+      ImageFactory imageFactory =
+          (jdk) -> {
+            String name =
+                SPLUNK_REPO_PREFIX + serverName + ":" + version + "-jdk" + jdk + "-windows";
+            return proprietaryWindowsImage(name);
+          };
+
+      addItems(serverAttributes, vms, jdks, imageFactory);
       return this;
     }
 
@@ -225,17 +260,21 @@ public abstract class AppServerTest extends SmokeTest {
       return items.stream();
     }
 
-    private void addItems(ExpectedServerAttributes serverAttributes, List<String> vms, String[] jdks, Formatter formatter) {
+    private void addItems(
+        ExpectedServerAttributes serverAttributes,
+        List<String> vms,
+        String[] jdks,
+        ImageFactory imageFactory) {
       for (String vm : vms) {
         for (String jdk : jdks) {
           String jdkFull = jdk + ("hotspot".equals(vm) ? "" : "-" + vm);
-          items.add(arguments(formatter.format(jdkFull), serverAttributes));
+          items.add(arguments(imageFactory.create(jdkFull), serverAttributes));
         }
       }
     }
 
-    private interface Formatter {
-      TestImage format(String jdk);
+    private interface ImageFactory {
+      TestImage create(String jdk);
     }
   }
 

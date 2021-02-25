@@ -40,8 +40,7 @@ public class JBossEapSmokeTest extends AppServerTest {
   private static Stream<Arguments> jboss() {
     return configurations("jboss")
         .splunkLinux("7.1.0", JBOSS_EAP_7_1_SERVER_ATTRIBUTES, VMS_ALL, "8")
-        .splunkLinux("7.3.0", JBOSS_EAP_7_3_SERVER_ATTRIBUTES, VMS_ALL, "8", "11")
-        .stream();
+        .splunkLinux("7.3.0", JBOSS_EAP_7_3_SERVER_ATTRIBUTES, VMS_ALL, "8", "11").stream();
   }
 
   @ParameterizedTest(name = "[{index}] {0}")

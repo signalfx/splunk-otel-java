@@ -34,8 +34,8 @@ public class TomeeSmokeTest extends AppServerTest {
     return configurations("tomee")
         .otelLinux("7.0.0", TOMEE7_SERVER_ATTRIBUTES, VMS_ALL, "8")
         .otelLinux("8.0.6", TOMEE8_SERVER_ATTRIBUTES, VMS_ALL, "8", "11")
-        .splunkWindows("7.0.0", TOMEE7_SERVER_ATTRIBUTES, VMS_HOTSPOT, "8")
-        .splunkWindows("8.0.6", TOMEE8_SERVER_ATTRIBUTES, VMS_HOTSPOT, "8", "11")
+        .splunkWindows("7.0.0", TOMEE7_SERVER_ATTRIBUTES, VMS_ALL, "8")
+        .splunkWindows("8.0.6", TOMEE8_SERVER_ATTRIBUTES, VMS_ALL, "8", "11")
         .stream();
   }
 

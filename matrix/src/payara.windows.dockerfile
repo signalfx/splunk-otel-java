@@ -1,4 +1,5 @@
 ARG jdk
+ARG vm
 ARG version
 
 # Unzip in a separate container so that zip file layer is not part of final image
@@ -8,7 +9,7 @@ ADD https://s3-eu-west-1.amazonaws.com/payara.fish/Payara+Downloads/${version}/p
 RUN ["powershell", "-Command", "expand-archive -Path /server.zip -DestinationPath /server"]
 RUN ["powershell", "-Command", "remove-item -Path /server/payara5/glassfish/modules/phonehome-bootstrap.jar"]
 
-FROM winamd64/openjdk:${jdk}-jdk-windowsservercore-1809
+FROM adoptopenjdk:${jdk}-jdk-${vm}-windowsservercore-1809
 ARG version
 # Make /server the base directory to simplify all further paths
 COPY --from=builder /server/payara5 /server

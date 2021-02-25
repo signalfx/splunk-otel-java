@@ -37,7 +37,7 @@ public class GlassFishSmokeTest extends AppServerTest {
   private static Stream<Arguments> supportedConfigurations() {
     return configurations("payara")
         .otelLinux("5.2020.6", PAYARA_SERVER_ATTRIBUTES, VMS_ALL, "8", "11")
-        .splunkWindows("5.2020.6", PAYARA_SERVER_ATTRIBUTES, VMS_HOTSPOT, "8", "11")
+        .splunkWindows("5.2020.6", PAYARA_SERVER_ATTRIBUTES, VMS_ALL, "8", "11")
         .stream();
   }
 

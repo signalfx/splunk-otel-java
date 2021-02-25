@@ -16,9 +16,6 @@
 
 package com.splunk.opentelemetry;
 
-import static com.splunk.opentelemetry.helper.TestImage.proprietaryLinuxImage;
-import static org.junit.jupiter.params.provider.Arguments.arguments;
-
 import com.splunk.opentelemetry.helper.TestImage;
 import java.io.IOException;
 import java.util.stream.Stream;
@@ -42,19 +39,10 @@ class WebLogicSmokeTest extends AppServerTest {
       new AppServerTest.ExpectedServerAttributes("", "WebLogic Server", "14.1.1.0.0");
 
   private static Stream<Arguments> supportedWlsConfigurations() {
-    return Stream.of(
-        arguments(
-            proprietaryLinuxImage("ghcr.io/signalfx/splunk-otel-weblogic:12.1.3-jdkdeveloper"),
-            V12_1_ATTRIBUTES),
-        arguments(
-            proprietaryLinuxImage("ghcr.io/signalfx/splunk-otel-weblogic:12.2.1.4-jdkdeveloper"),
-            V12_2_ATTRIBUTES),
-        arguments(
-            proprietaryLinuxImage("ghcr.io/signalfx/splunk-otel-weblogic:14.1.1.0-jdkdeveloper-8"),
-            V14_ATTRIBUTES),
-        arguments(
-            proprietaryLinuxImage("ghcr.io/signalfx/splunk-otel-weblogic:14.1.1.0-jdkdeveloper-11"),
-            V14_ATTRIBUTES));
+    return configurations("weblogic")
+        .splunkLinux("12.1.3", V12_1_ATTRIBUTES, VMS_HOTSPOT, "8")
+        .splunkLinux("12.2.1.4", V12_2_ATTRIBUTES, VMS_HOTSPOT, "8")
+        .splunkLinux("14.1.1.0", V14_ATTRIBUTES, VMS_HOTSPOT, "8", "11").stream();
   }
 
   @ParameterizedTest

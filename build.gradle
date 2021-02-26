@@ -17,7 +17,9 @@ boolean snapshot = getProperty("snapshot") == 'yes'
 def versions = [
     'opentelemetry'         : snapshot ? "0.17.0-SNAPSHOT"       : "0.16.0",
     'opentelemetryAlpha'    : snapshot ? "0.17.0-alpha-SNAPSHOT" : "0.16.0-alpha",
-    'opentelemetryJavaagent': snapshot ? "0.17.0-SNAPSHOT"       : '0.16.1'
+    'opentelemetryJavaagent': snapshot ? "0.17.0-SNAPSHOT"       : '0.16.1',
+    'mockito'               : '3.8.0',
+    'jupiter'               : '5.7.1'
 ]
 
 subprojects {
@@ -44,12 +46,12 @@ subprojects {
   }
 
   dependencies {
-    testImplementation("org.mockito:mockito-core:3.8.0")
-    testImplementation("org.mockito:mockito-junit-jupiter:3.8.0")
-    testImplementation("org.junit.jupiter:junit-jupiter-api:5.7.1")
-    testImplementation("org.junit.jupiter:junit-jupiter-params:5.7.1")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.7.1")
-    testImplementation("org.junit.jupiter:junit-jupiter-params:5.7.1")
+    testImplementation("org.mockito:mockito-core:${versions.mockito}")
+    testImplementation("org.mockito:mockito-junit-jupiter:${versions.mockito}")
+    testImplementation("org.junit.jupiter:junit-jupiter-api:${versions.jupiter}")
+    testImplementation("org.junit.jupiter:junit-jupiter-params:${versions.jupiter}")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${versions.jupiter}")
+    testImplementation("org.junit.jupiter:junit-jupiter-params:${versions.jupiter}")
   }
 
   tasks {

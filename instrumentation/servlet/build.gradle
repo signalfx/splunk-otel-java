@@ -23,5 +23,5 @@ dependencies {
 }
 
 tasks.withType(Test) {
-    jvmArgs '-Dsplk.context.server-timing.enabled=true'
+    jvmArgs '-Dsplunk.context.server-timing.enabled=true'
 }

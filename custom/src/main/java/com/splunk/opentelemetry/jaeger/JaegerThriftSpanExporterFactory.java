@@ -32,7 +32,7 @@ public class JaegerThriftSpanExporterFactory implements ConfigurableSpanExporter
   private static final Logger log = LoggerFactory.getLogger(JaegerThriftSpanExporterFactory.class);
 
   @Deprecated static final String SPLUNK_ACCESS_TOKEN_OLD = "signalfx.auth.token";
-  static final String SPLUNK_ACCESS_TOKEN = "splk.access.token";
+  static final String SPLUNK_ACCESS_TOKEN = "splunk.access.token";
   public static final String OTEL_EXPORTER_JAEGER_ENDPOINT = "otel.exporter.jaeger.endpoint";
 
   @Override

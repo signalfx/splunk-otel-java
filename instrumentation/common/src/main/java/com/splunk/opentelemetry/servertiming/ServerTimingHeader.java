@@ -33,7 +33,7 @@ public final class ServerTimingHeader {
   public static final String EXPOSE_HEADERS = "Access-Control-Expose-Headers";
 
   public static boolean shouldEmitServerTimingHeader() {
-    return Config.get().getBooleanProperty("splk.context.server-timing.enabled", false);
+    return Config.get().getBooleanProperty("splunk.context.server-timing.enabled", false);
   }
 
   public static <RS> void setHeaders(Context context, RS response, Setter<RS> headerSetter) {

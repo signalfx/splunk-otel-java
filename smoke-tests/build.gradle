@@ -3,6 +3,7 @@ plugins {
   id "org.gradle.test-retry" version "1.2.0"
 }
 
+def versions = ext['versions']
 def dockerJavaVersion = "3.2.5"
 
 dependencies {
@@ -14,7 +15,7 @@ dependencies {
   testImplementation("io.opentelemetry:opentelemetry-api:0.16.0")
 
   testImplementation("ch.qos.logback:logback-classic:1.2.3")
-  testImplementation("org.junit.jupiter:junit-jupiter-params:5.7.0")
+  testImplementation("org.junit.jupiter:junit-jupiter-params:${versions.jupiter}")
 
   testImplementation("com.github.docker-java:docker-java-core:$dockerJavaVersion")
   testImplementation("com.github.docker-java:docker-java-transport-httpclient5:$dockerJavaVersion")

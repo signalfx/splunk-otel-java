@@ -1,6 +1,6 @@
-ARG jdk
+ARG tagSuffix
 ARG version
-FROM oracle/weblogic:$version-$jdk
+FROM oracle/weblogic:$version-$tagSuffix
 
 ARG APPLICATION_NAME
 ARG APPLICATION_FILE

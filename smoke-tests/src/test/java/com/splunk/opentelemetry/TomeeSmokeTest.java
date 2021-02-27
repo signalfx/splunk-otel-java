@@ -16,10 +16,6 @@
 
 package com.splunk.opentelemetry;
 
-import static com.splunk.opentelemetry.helper.TestImage.linuxImage;
-import static com.splunk.opentelemetry.helper.TestImage.proprietaryWindowsImage;
-import static org.junit.jupiter.params.provider.Arguments.arguments;
-
 import com.splunk.opentelemetry.helper.TestImage;
 import java.io.IOException;
 import java.util.stream.Stream;
@@ -35,24 +31,10 @@ public class TomeeSmokeTest extends AppServerTest {
       new TomeeAttributes("8.0.6");
 
   private static Stream<Arguments> supportedConfigurations() {
-    return Stream.of(
-        arguments(
-            linuxImage(
-                "ghcr.io/open-telemetry/java-test-containers:tomee-7.0.0-jdk8-20210202.531569197"),
-            TOMEE7_SERVER_ATTRIBUTES),
-        arguments(
-            linuxImage(
-                "ghcr.io/open-telemetry/java-test-containers:tomee-8.0.6-jdk8-20210202.531569197"),
-            TOMEE8_SERVER_ATTRIBUTES),
-        arguments(
-            proprietaryWindowsImage("ghcr.io/signalfx/splunk-otel-tomee:7.0.0-jdk8-windows"),
-            TOMEE7_SERVER_ATTRIBUTES),
-        arguments(
-            proprietaryWindowsImage("ghcr.io/signalfx/splunk-otel-tomee:8.0.6-jdk8-windows"),
-            TOMEE8_SERVER_ATTRIBUTES),
-        arguments(
-            proprietaryWindowsImage("ghcr.io/signalfx/splunk-otel-tomee:8.0.6-jdk11-windows"),
-            TOMEE8_SERVER_ATTRIBUTES));
+    return configurations("tomee").otelLinux("7.0.0", TOMEE7_SERVER_ATTRIBUTES, VMS_ALL, "8")
+        .otelLinux("8.0.6", TOMEE8_SERVER_ATTRIBUTES, VMS_ALL, "8", "11")
+        .splunkWindows("7.0.0", TOMEE7_SERVER_ATTRIBUTES, VMS_ALL, "8")
+        .splunkWindows("8.0.6", TOMEE8_SERVER_ATTRIBUTES, VMS_ALL, "8", "11").stream();
   }
 
   @ParameterizedTest(name = "[{index}] {0}")

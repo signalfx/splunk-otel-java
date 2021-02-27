@@ -16,9 +16,6 @@
 
 package com.splunk.opentelemetry;
 
-import static com.splunk.opentelemetry.helper.TestImage.proprietaryLinuxImage;
-import static org.junit.jupiter.params.provider.Arguments.arguments;
-
 import com.splunk.opentelemetry.helper.TestImage;
 import java.io.IOException;
 import java.util.stream.Stream;
@@ -41,16 +38,9 @@ public class JBossEapSmokeTest extends AppServerTest {
           "DisallowedMethodsHandler.handleRequest", "JBoss EAP", "7.3.0.GA");
 
   private static Stream<Arguments> jboss() {
-    return Stream.of(
-        arguments(
-            proprietaryLinuxImage("ghcr.io/signalfx/splunk-otel-jboss-eap:7.1.0-jdk8"),
-            JBOSS_EAP_7_1_SERVER_ATTRIBUTES),
-        arguments(
-            proprietaryLinuxImage("ghcr.io/signalfx/splunk-otel-jboss-eap:7.3.0-jdk8"),
-            JBOSS_EAP_7_3_SERVER_ATTRIBUTES),
-        arguments(
-            proprietaryLinuxImage("ghcr.io/signalfx/splunk-otel-jboss-eap:7.3.0-jdk11"),
-            JBOSS_EAP_7_3_SERVER_ATTRIBUTES));
+    return configurations("jboss")
+        .splunkLinux("7.1.0", JBOSS_EAP_7_1_SERVER_ATTRIBUTES, VMS_ALL, "8")
+        .splunkLinux("7.3.0", JBOSS_EAP_7_3_SERVER_ATTRIBUTES, VMS_ALL, "8", "11").stream();
   }
 
   @ParameterizedTest(name = "[{index}] {0}")

@@ -16,10 +16,6 @@
 
 package com.splunk.opentelemetry;
 
-import static com.splunk.opentelemetry.helper.TestImage.linuxImage;
-import static com.splunk.opentelemetry.helper.TestImage.proprietaryWindowsImage;
-import static org.junit.jupiter.params.provider.Arguments.arguments;
-
 import com.splunk.opentelemetry.helper.TargetWaitStrategy;
 import com.splunk.opentelemetry.helper.TestImage;
 import java.io.IOException;
@@ -39,21 +35,9 @@ public class GlassFishSmokeTest extends AppServerTest {
           "5.2020.6");
 
   private static Stream<Arguments> supportedConfigurations() {
-    return Stream.of(
-        arguments(
-            linuxImage(
-                "ghcr.io/open-telemetry/java-test-containers:payara-5.2020.6-jdk11-jdk11-20201207.405832649"),
-            PAYARA_SERVER_ATTRIBUTES),
-        arguments(
-            linuxImage(
-                "ghcr.io/open-telemetry/java-test-containers:payara-5.2020.6-jdk8-20201207.405832649"),
-            PAYARA_SERVER_ATTRIBUTES),
-        arguments(
-            proprietaryWindowsImage("splunk-payara:5.2020.6-jdk8-windows"),
-            PAYARA_SERVER_ATTRIBUTES),
-        arguments(
-            proprietaryWindowsImage("splunk-payara:5.2020.6-jdk11-windows"),
-            PAYARA_SERVER_ATTRIBUTES));
+    return configurations("payara")
+        .otelLinux("5.2020.6", PAYARA_SERVER_ATTRIBUTES, VMS_ALL, "8", "11")
+        .splunkWindows("5.2020.6", PAYARA_SERVER_ATTRIBUTES, VMS_ALL, "8", "11").stream();
   }
 
   @Override
@@ -63,7 +47,8 @@ public class GlassFishSmokeTest extends AppServerTest {
 
   @Override
   protected TargetWaitStrategy getWaitStrategy() {
-    return new TargetWaitStrategy.Log(Duration.ofMinutes(5), ".*app was successfully deployed.*");
+    return new TargetWaitStrategy.Log(
+        Duration.ofMinutes(5), ".*(app was successfully deployed|deployed with name app).*");
   }
 
   @ParameterizedTest

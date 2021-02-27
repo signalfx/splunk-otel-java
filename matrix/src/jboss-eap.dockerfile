@@ -1,5 +1,6 @@
 ARG jdk
-FROM adoptopenjdk:${jdk}-hotspot-focal
+ARG vm
+FROM adoptopenjdk:${jdk}-${vm}-focal
 
 # Create a user and group used to launch processes
 # The user ID 1000 is the default for the first "regular" user on Fedora/RHEL,

@@ -16,10 +16,6 @@
 
 package com.splunk.opentelemetry;
 
-import static com.splunk.opentelemetry.helper.TestImage.linuxImage;
-import static com.splunk.opentelemetry.helper.TestImage.proprietaryWindowsImage;
-import static org.junit.jupiter.params.provider.Arguments.arguments;
-
 import com.splunk.opentelemetry.helper.TestImage;
 import java.io.IOException;
 import java.util.stream.Stream;
@@ -33,40 +29,9 @@ public class LibertySmokeTest extends AppServerTest {
       new LibertyAttributes("20.0.0.12");
 
   private static Stream<Arguments> supportedConfigurations() {
-    return Stream.of(
-        arguments(
-            linuxImage(
-                "ghcr.io/open-telemetry/java-test-containers:liberty-20.0.0.12-jdk8-20201209.410207048"),
-            LIBERTY20_SERVER_ATTRIBUTES),
-        arguments(
-            linuxImage(
-                "ghcr.io/open-telemetry/java-test-containers:liberty-20.0.0.12-jdk11-20201209.410207048"),
-            LIBERTY20_SERVER_ATTRIBUTES),
-        arguments(
-            linuxImage(
-                "ghcr.io/open-telemetry/java-test-containers:liberty-20.0.0.12-jdk15-20201209.410207048"),
-            LIBERTY20_SERVER_ATTRIBUTES),
-        arguments(
-            linuxImage(
-                "ghcr.io/open-telemetry/java-test-containers:liberty-20.0.0.12-jdk8-jdk-openj9-20201209.410207048"),
-            LIBERTY20_SERVER_ATTRIBUTES),
-        arguments(
-            linuxImage(
-                "ghcr.io/open-telemetry/java-test-containers:liberty-20.0.0.12-jdk11-jdk-openj9-20201209.410207048"),
-            LIBERTY20_SERVER_ATTRIBUTES),
-        arguments(
-            linuxImage(
-                "ghcr.io/open-telemetry/java-test-containers:liberty-20.0.0.12-jdk15-jdk-openj9-20201209.410207048"),
-            LIBERTY20_SERVER_ATTRIBUTES),
-        arguments(
-            proprietaryWindowsImage("splunk-openliberty:20.0.0.12-jdk8-windows"),
-            LIBERTY20_SERVER_ATTRIBUTES),
-        arguments(
-            proprietaryWindowsImage("splunk-openliberty:20.0.0.12-jdk11-windows"),
-            LIBERTY20_SERVER_ATTRIBUTES),
-        arguments(
-            proprietaryWindowsImage("splunk-openliberty:20.0.0.12-jdk15-windows"),
-            LIBERTY20_SERVER_ATTRIBUTES));
+    return configurations("liberty")
+        .otelLinux("20.0.0.12", LIBERTY20_SERVER_ATTRIBUTES, VMS_ALL, "8", "11", "15")
+        .splunkWindows("20.0.0.12", LIBERTY20_SERVER_ATTRIBUTES, VMS_ALL, "8", "11", "15").stream();
   }
 
   @ParameterizedTest(name = "[{index}] {0}")

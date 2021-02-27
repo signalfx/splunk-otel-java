@@ -31,7 +31,8 @@ import org.slf4j.LoggerFactory;
 public class JaegerThriftSpanExporterFactory implements ConfigurableSpanExporterProvider {
   private static final Logger log = LoggerFactory.getLogger(JaegerThriftSpanExporterFactory.class);
 
-  static final String SIGNALFX_AUTH_TOKEN = "signalfx.auth.token";
+  @Deprecated static final String SPLUNK_ACCESS_TOKEN_OLD = "signalfx.auth.token";
+  static final String SPLUNK_ACCESS_TOKEN = "splunk.access.token";
   public static final String OTEL_EXPORTER_JAEGER_ENDPOINT = "otel.exporter.jaeger.endpoint";
 
   @Override
@@ -39,7 +40,16 @@ public class JaegerThriftSpanExporterFactory implements ConfigurableSpanExporter
     JaegerThriftSpanExporterBuilder builder = JaegerThriftSpanExporter.builder();
 
     String endpoint = config.getString(OTEL_EXPORTER_JAEGER_ENDPOINT);
-    String token = config.getString(SIGNALFX_AUTH_TOKEN);
+    String token = config.getString(SPLUNK_ACCESS_TOKEN);
+    if (token == null) {
+      token = config.getString(SPLUNK_ACCESS_TOKEN_OLD);
+      if (token != null) {
+        log.warn(
+            "Deprecated property '{}' was set; please use '{}' instead. Support for the deprecated property will be removed in future versions.",
+            SPLUNK_ACCESS_TOKEN_OLD,
+            SPLUNK_ACCESS_TOKEN);
+      }
+    }
     if (token != null && !token.isEmpty()) {
       log.debug("Using authenticated jaeger-thrift exporter");
       builder.setThriftSender(

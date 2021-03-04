@@ -32,14 +32,14 @@ distribution of Splunk Distribution of OpenTelemetry Java Instrumentation:
    variable. This is how you can set it with an environment variable with a
    service name of `yourServiceName`:
    ```
-   $ EXPORT OTEL_EXPORTER_ZIPKIN_SERVICE_NAME="yourServiceName"
+   $ EXPORT OTEL_RESOURCE_ATTRIBUTES="service.name=yourServiceName"
    ```
 3. Specify the endpoint of the SignalFx Smart Agent or OpenTelemetry Collector
    you're exporting traces to. You can set the endpoint with a system property
    or environment variable. This is how you can set it with an environment
    variable with an endpoint of `http://yourEndpoint:9080/v1/trace`:
    ```
-   $ EXPORT OTEL_EXPORTER_ZIPKIN_ENDPOINT="http://yourEndpoint:9080/v1/trace"
+   $ EXPORT OTEL_EXPORTER_JAEGER_ENDPOINT="http://yourEndpoint:9080/v1/trace"
    ```
    The default value is `http://localhost:9080/v1/trace`. If you're exporting
    traces to a local Smart Agent, you don't have to modify this configuration
@@ -68,8 +68,8 @@ OpenTelemetry system properties:
 
 | SignalFx system property | OpenTelemetry system property |
 | ------------------------ | ----------------------------- |
-| `signalfx.service.name` | `otel.exporter.zipkin.service.name` |
-| `signalfx.endpoint.url` | `otel.exporter.zipkin.endpoint` |
+| `signalfx.service.name` | `otel.resource.attributes="service.name=<service-name>"` |
+| `signalfx.endpoint.url` | `otel.exporter.jaeger.endpoint` |
 | `signalfx.tracing.enabled` | `otel.trace.enabled` |
 | `signalfx.span.tags` | `otel.resource.attributes` |
 | `signalfx.recorded.value.max.length` | `otel.config.max.attr.length` |
@@ -83,8 +83,8 @@ OpenTelemetry environment variables:
 
 | SignalFx environment variable | OpenTelemetry environment variable |
 | ----------------------------- | ---------------------------------- |
-| `SIGNALFX_SERVICE_NAME` | `OTEL_EXPORTER_ZIPKIN_SERVICE_NAME` |
-| `SIGNALFX_ENDPOINT_URL` |`OTEL_EXPORTER_ZIPKIN_ENDPOINT` |
+| `SIGNALFX_SERVICE_NAME` | `OTEL_RESOURCE_ATTRIBUTES="service.name=<service-name>"` |
+| `SIGNALFX_ENDPOINT_URL` |`OTEL_EXPORTER_JAEGER_ENDPOINT` |
 | `SIGNALFX_TRACING_ENABLED` | `OTEL_TRACE_ENABLED` |
 | `SIGNALFX_SPAN_TAGS` | `OTEL_RESOURCE_ATTRIBUTES` |
 | `SIGNALFX_RECORDED_VALUE_MAX_LENGTH` | `OTEL_CONFIG_MAX_ATTR_LENGTH` |

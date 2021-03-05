@@ -137,13 +137,3 @@ annotation instead of the `@Trace` annotation. For more information, see
 [Configure a WithSpan annotation](https://github.com/open-telemetry/opentelemetry-java-instrumentation#configure-a-withspan-annotation).
 
 The `@TraceSetting` annotation to allow an exception isn't supported.
-
-### SignalFX Agent Configuration changes
-
-The previous Java Agent used `zipkin` as the trace exporter format.  In order to start using the OpenTelemetry Java Instrumentation agent, you will need to add the following to the SignalFX Smart Agent configuration:
-
-```
-writer:
-  traceExportFormat: sapm
-```
-

@@ -97,7 +97,7 @@ Below you will find all the configuration options supported by this distribution
 |-----------------------------------|-----------------------------------|---------------------------------------------------------------------------------------------------------------------|
 | otel.traces.exporter | OTEL_TRACES_EXPORTER              | Select the span exporter to use. `jaeger-thrift-splunk` is the default value.
 | otel.exporter.jaeger.endpoint     | OTEL_EXPORTER_JAEGER_ENDPOINT     | The Jaeger endpoint to connect to. Default is `http://localhost:9080/v1/trace`.
-| signalfx.auth.token               | SIGNALFX_AUTH_TOKEN               | (Optional) Auth token allowing to communicate directly with the Splunk cloud, passed as `X-SF-TOKEN` header. Default is empty. |
+| splunk.access.token               | SPLUNK_ACCESS_TOKEN               | (Optional) Auth token allowing to communicate directly with the Splunk cloud, passed as `X-SF-TOKEN` header. Default is empty. |
 
 ### Trace configuration
 
@@ -106,11 +106,16 @@ Below you will find all the configuration options supported by this distribution
 | otel.span.attribute.count.limit     | OTEL_SPAN_ATTRIBUTE_COUNT_LIMIT    | unlimited      | Maximum number of attributes per span.                                                                                                                                                                                                                                                                                                                                                                    |
 | otel.span.event.count.limit         | OTEL_SPAN_EVENT_COUNT_LIMIT        | unlimited      | Maximum number of events per span.                                                                                                                                                                                                                                                                                                                                                                        |
 | otel.span.link.count.limit          | OTEL_SPAN_LINK_COUNT_LIMIT         | `1000`         | Maximum number of links per span.                                                                                                                                                                                                                                                                                                                                                                         |
-| otel.endpoint.peer.service.mapping  | OTEL_ENDPOINT_PEER_SERVICE_MAPPING | unset          | Used to add a `peer.service` attribute by specifing a comma separated list of mapping from hostnames or IP addresses. <details><summary>Example</summary>If set to `1.2.3.4=cats-service,dogs-service.serverlessapis.com=dogs-api`, requests to `1.2.3.4` will have a `peer.service` attribute of `cats-service` and requests to `dogs-service.serverlessapis.com` will have one of `dogs-api`.</details> |
 | otel.resource.attributes            | OTEL_RESOURCE_ATTRIBUTES           | unset          | Comma-separated list of resource attributes added to every reported span. <details><summary>Example</summary>`key1=val1,key2=val2`</details>
-| otel.trace.enabled                  | OTEL_TRACE_ENABLED                 | `true`         | Globally enables tracer creation and auto-instrumentation.                                                                                                                                                                                                                                                                                                                                                |
-| otel.trace.methods                  | OTEL_TRACE_METHODS                 | unset          | Same as adding `@WithSpan` annotation functionality for the target method string. <details><summary>Format</summary>`my.package.MyClass1[method1,method2];my.package.MyClass2[method3]`</details>                                                                                                                                                                                                            |
-| otel.trace.annotated.methods.exclude     | OTEL_TRACE_ANNOTATED_METHODS_EXCLUDE    | unset          | Suppress `@WithSpan` instrumentation for specific methods. <details><summary>Format</summary>`my.package.MyClass1[method1,method2];my.package.MyClass2[method3]`</details>                                                                                                                                                                                                                                |
+| otel.instrumentation.common.peer-service-mapping | OTEL_INSTRUMENTATION_COMMON_PEER_SERVICE_MAPPING | unset          | Used to add a `peer.service` attribute by specifying a comma separated list of mapping from hostnames or IP addresses. <details><summary>Example</summary>If set to `1.2.3.4=cats-service,dogs-service.serverlessapis.com=dogs-api`, requests to `1.2.3.4` will have a `peer.service` attribute of `cats-service` and requests to `dogs-service.serverlessapis.com` will have one of `dogs-api`.</details> |
+| otel.instrumentation.methods.include | OTEL_INSTRUMENTATION_METHODS_INCLUDE                 | unset          | Same as adding `@WithSpan` annotation functionality for the target method string. <details><summary>Format</summary>`my.package.MyClass1[method1,method2];my.package.MyClass2[method3]`</details>                                                                                                                                                                                                            |
+| otel.instrumentation.opentelemetry-annotations.exclude-methods | OTEL_INSTRUMENTATION_OPENTELEMETRY_ANNOTATIONS_EXCLUDE_METHODS | unset          | Suppress `@WithSpan` instrumentation for specific methods. <details><summary>Format</summary>`my.package.MyClass1[method1,method2];my.package.MyClass2[method3]`</details>                                                                                                                                                                                                                                |
+
+### Java agent configuration
+
+| System property        | Environment variable   | Default value  | Purpose                                          |
+| ---------------------- | ---------------------- | -------------- | -------------------------------------------------|
+| otel.javaagent.enabled | OTEL_JAVAAGENT_ENABLED | `true`         | Globally enables javaagent auto-instrumentation. |
 
 ### Splunk distribution configuration
 
@@ -121,22 +126,22 @@ Below you will find all the configuration options supported by this distribution
 ## Manually instrument a Java application
 
 Documentation on how to manually instrument a Java application are available
-[here](https://github.com/open-telemetry/opentelemetry-java-instrumentation#manually-instrumenting).
+[here](https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/docs/manual-instrumentation.md).
 
 To extend the instrumentation with the OpenTelemetry Instrumentation for Java,
 you have to use a compatible API version. The Splunk distribution of
-OpenTelemetry Java Instrumentation version 0.8.0 is compatible with the
-OpenTelemetry Instrumentation for Java version 0.16.1 and API version 0.16.0.
+OpenTelemetry Java Instrumentation version 0.9.0 is compatible with the
+OpenTelemetry Instrumentation for Java version 1.0.0 and API version 1.0.0.
 
 ## Correlating traces with logs
 
 To correlate traces with logs it is possible to add the following metadata from traces to logs:
 
- - Trace: `traceId` and `spanId`
+ - Trace: `trace_id` and `span_id`
  - Resource: `service.name` and `environment`
 
 Documentation on how to inject trace context into logs is available
-[here](https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/master/docs/logger-mdc-instrumentation.md).
+[here](https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/docs/logger-mdc-instrumentation.md).
 
 To log resource context, the Splunk distribution exposes resource attributes as
 system properties prefixed with `otel.resource.` which can be used in logger

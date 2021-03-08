@@ -19,7 +19,7 @@ package com.splunk.opentelemetry.servertiming;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.propagation.W3CTraceContextPropagator;
 import io.opentelemetry.context.Context;
-import io.opentelemetry.context.propagation.TextMapPropagator.Setter;
+import io.opentelemetry.context.propagation.TextMapSetter;
 import io.opentelemetry.instrumentation.api.config.Config;
 import java.util.HashMap;
 import java.util.Map;
@@ -36,7 +36,7 @@ public final class ServerTimingHeader {
     return Config.get().getBooleanProperty("splunk.context.server-timing.enabled", false);
   }
 
-  public static <RS> void setHeaders(Context context, RS response, Setter<RS> headerSetter) {
+  public static <RS> void setHeaders(Context context, RS response, TextMapSetter<RS> headerSetter) {
     if (!Span.fromContext(context).getSpanContext().isValid()) {
       return;
     }

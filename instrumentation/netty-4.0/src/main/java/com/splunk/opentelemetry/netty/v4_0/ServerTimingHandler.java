@@ -25,7 +25,7 @@ import io.netty.channel.ChannelPromise;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpResponse;
 import io.opentelemetry.context.Context;
-import io.opentelemetry.context.propagation.TextMapPropagator;
+import io.opentelemetry.context.propagation.TextMapSetter;
 
 public class ServerTimingHandler extends ChannelOutboundHandlerAdapter {
   @Override
@@ -41,7 +41,7 @@ public class ServerTimingHandler extends ChannelOutboundHandlerAdapter {
     ctx.write(msg, prm);
   }
 
-  public static final class HeadersSetter implements TextMapPropagator.Setter<HttpHeaders> {
+  public static final class HeadersSetter implements TextMapSetter<HttpHeaders> {
     private static final HeadersSetter INSTANCE = new HeadersSetter();
 
     @Override

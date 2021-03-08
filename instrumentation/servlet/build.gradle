@@ -5,11 +5,11 @@ dependencies {
 
     implementation project(':instrumentation:common')
 
-    testInstrumentation group: 'io.opentelemetry.javaagent.instrumentation', name: 'opentelemetry-javaagent-servlet-common', version: versions.opentelemetryJavaagent
-    testInstrumentation group: 'io.opentelemetry.javaagent.instrumentation', name: 'opentelemetry-javaagent-servlet-2.2', version: versions.opentelemetryJavaagent
-    testInstrumentation group: 'io.opentelemetry.javaagent.instrumentation', name: 'opentelemetry-javaagent-servlet-3.0', version: versions.opentelemetryJavaagent
+    testInstrumentation group: 'io.opentelemetry.javaagent.instrumentation', name: 'opentelemetry-javaagent-servlet-common', version: versions.opentelemetryJavaagentAlpha
+    testInstrumentation group: 'io.opentelemetry.javaagent.instrumentation', name: 'opentelemetry-javaagent-servlet-2.2', version: versions.opentelemetryJavaagentAlpha
+    testInstrumentation group: 'io.opentelemetry.javaagent.instrumentation', name: 'opentelemetry-javaagent-servlet-3.0', version: versions.opentelemetryJavaagentAlpha
 
-    testImplementation("io.opentelemetry.javaagent:opentelemetry-testing-common:${versions.opentelemetryJavaagent}") {
+    testImplementation("io.opentelemetry.javaagent:opentelemetry-testing-common:${versions.opentelemetryJavaagentAlpha}") {
         exclude group: 'org.eclipse.jetty', module: 'jetty-server'
     }
 

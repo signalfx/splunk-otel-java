@@ -2,13 +2,13 @@ apply from: "$rootDir/gradle/instrumentation.gradle"
 
 dependencies {
     compileOnly group: 'io.netty', name: 'netty', version: '3.8.0.Final'
-    compileOnly group: 'io.opentelemetry.javaagent.instrumentation', name: 'opentelemetry-javaagent-netty-3.8', version: versions.opentelemetryJavaagent
+    compileOnly group: 'io.opentelemetry.javaagent.instrumentation', name: 'opentelemetry-javaagent-netty-3.8', version: versions.opentelemetryJavaagentAlpha
 
     implementation project(':instrumentation:common')
 
-    testInstrumentation group: 'io.opentelemetry.javaagent.instrumentation', name: 'opentelemetry-javaagent-netty-3.8', version: versions.opentelemetryJavaagent
-    testInstrumentation group: 'io.opentelemetry.javaagent.instrumentation', name: 'opentelemetry-javaagent-netty-4.0', version: versions.opentelemetryJavaagent
-    testInstrumentation group: 'io.opentelemetry.javaagent.instrumentation', name: 'opentelemetry-javaagent-netty-4.1', version: versions.opentelemetryJavaagent
+    testInstrumentation group: 'io.opentelemetry.javaagent.instrumentation', name: 'opentelemetry-javaagent-netty-3.8', version: versions.opentelemetryJavaagentAlpha
+    testInstrumentation group: 'io.opentelemetry.javaagent.instrumentation', name: 'opentelemetry-javaagent-netty-4.0', version: versions.opentelemetryJavaagentAlpha
+    testInstrumentation group: 'io.opentelemetry.javaagent.instrumentation', name: 'opentelemetry-javaagent-netty-4.1', version: versions.opentelemetryJavaagentAlpha
     testInstrumentation project(':instrumentation:netty-4.0')
 
     testImplementation group: 'io.netty', name: 'netty', version: '3.8.0.Final'

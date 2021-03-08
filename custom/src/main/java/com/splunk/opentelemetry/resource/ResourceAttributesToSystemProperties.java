@@ -20,7 +20,7 @@ import com.google.auto.service.AutoService;
 import io.opentelemetry.api.common.AttributeType;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.javaagent.spi.ComponentInstaller;
-import io.opentelemetry.sdk.resources.Resource;
+import io.opentelemetry.sdk.autoconfigure.OpenTelemetrySdkAutoConfiguration;
 
 /**
  * This component exposes String resource attributes as system properties with <code>otel.resource.
@@ -36,7 +36,7 @@ public class ResourceAttributesToSystemProperties implements ComponentInstaller 
 
   @Override
   public void afterByteBuddyAgent() {
-    Attributes attributes = Resource.getDefault().getAttributes();
+    Attributes attributes = OpenTelemetrySdkAutoConfiguration.getResource().getAttributes();
     attributes.forEach(
         (k, v) -> {
           if (k.getType() == AttributeType.STRING) {

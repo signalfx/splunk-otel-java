@@ -26,11 +26,11 @@ import org.junit.jupiter.params.provider.MethodSource;
 public class JettySmokeTest extends AppServerTest {
 
   public static final ExpectedServerAttributes JETTY9_SERVER_ATTRIBUTES =
-      new ExpectedServerAttributes("HandlerCollection.handle", "jetty", "9.4.35.v20201120");
+      new ExpectedServerAttributes("HTTP GET", "jetty", "9.4.35.v20201120");
   public static final ExpectedServerAttributes JETTY10_SERVER_ATTRIBUTES =
-      new ExpectedServerAttributes("HandlerList.handle", "jetty", "10.0.0");
+      new ExpectedServerAttributes("HTTP GET", "jetty", "10.0.0");
   public static final ExpectedServerAttributes JETTY10_BETA_SERVER_ATTRIBUTES =
-      new ExpectedServerAttributes("HandlerList.handle", "jetty", "10.0.0.beta3");
+      new ExpectedServerAttributes("HTTP GET", "jetty", "10.0.0.beta3");
 
   private static Stream<Arguments> supportedConfigurations() {
     return configurations("jetty")

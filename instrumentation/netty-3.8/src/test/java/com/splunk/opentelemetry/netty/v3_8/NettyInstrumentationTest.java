@@ -25,9 +25,9 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.splunk.opentelemetry.servertiming.ServerTimingHeader;
-import io.opentelemetry.instrumentation.test.InMemoryExporter;
 import io.opentelemetry.instrumentation.test.utils.OkHttpUtils;
 import io.opentelemetry.instrumentation.test.utils.PortUtils;
+import io.opentelemetry.instrumentation.testing.junit.AgentInstrumentationExtension;
 import java.net.InetSocketAddress;
 import java.util.concurrent.TimeoutException;
 import okhttp3.HttpUrl;
@@ -50,14 +50,17 @@ import org.jboss.netty.handler.codec.http.HttpServerCodec;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 class NettyInstrumentationTest {
+  @RegisterExtension
+  static final AgentInstrumentationExtension instrumentation =
+      AgentInstrumentationExtension.create();
 
-  private static final OkHttpClient httpClient = OkHttpUtils.client();
+  static final OkHttpClient httpClient = OkHttpUtils.client();
 
-  private static int port;
-  private static ServerBootstrap server;
-  private static final InMemoryExporter exporter = new InMemoryExporter();
+  static int port;
+  static ServerBootstrap server;
 
   @BeforeAll
   static void startServer() {
@@ -125,9 +128,7 @@ class NettyInstrumentationTest {
 
   private static void assertServerTimingHeaderContainsTraceId(String serverTimingHeader)
       throws InterruptedException, TimeoutException {
-    exporter.waitForTraces(1);
-
-    var traces = exporter.getTraces();
+    var traces = instrumentation.waitForTraces(1);
     assertEquals(1, traces.size());
 
     var spans = traces.get(0);

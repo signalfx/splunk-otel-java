@@ -53,7 +53,7 @@ public class TomeeSmokeTest extends AppServerTest {
     public TomeeAttributes(String version) {
       // This handler span name is only received if default webapps are present
       super(
-          "/this-is-definitely-not-there-but-there-should-be-a-trace-nevertheless",
+          "/*",
           "tomee",
           version);
     }

@@ -30,7 +30,7 @@ public class GlassFishSmokeTest extends AppServerTest {
 
   public static final ExpectedServerAttributes PAYARA_SERVER_ATTRIBUTES =
       new ExpectedServerAttributes(
-          "/this-is-definitely-not-there-but-there-should-be-a-trace-nevertheless",
+          "/*",
           "Payara Server",
           "5.2020.6");
 

@@ -27,13 +27,13 @@ public class WildFlySmokeTest extends AppServerTest {
 
   public static final ExpectedServerAttributes WILDFLY_13_SERVER_ATTRIBUTES =
       new ExpectedServerAttributes(
-          "DisallowedMethodsHandler.handleRequest", "WildFly Full", "13.0.0.Final");
+          "HTTP GET", "WildFly Full", "13.0.0.Final");
   public static final ExpectedServerAttributes WILDFLY_17_SERVER_ATTRIBUTES =
       new ExpectedServerAttributes(
-          "DisallowedMethodsHandler.handleRequest", "WildFly Full", "17.0.1.Final");
+          "HTTP GET", "WildFly Full", "17.0.1.Final");
   public static final ExpectedServerAttributes WILDFLY_21_SERVER_ATTRIBUTES =
       new ExpectedServerAttributes(
-          "DisallowedMethodsHandler.handleRequest", "WildFly Full", "21.0.0.Final");
+          "HTTP GET", "WildFly Full", "21.0.0.Final");
 
   private static Stream<Arguments> supportedConfigurations() {
     return configurations("wildfly")

@@ -32,10 +32,10 @@ public class JBossEapSmokeTest extends AppServerTest {
 
   public static final ExpectedServerAttributes JBOSS_EAP_7_1_SERVER_ATTRIBUTES =
       new ExpectedServerAttributes(
-          "DisallowedMethodsHandler.handleRequest", "JBoss EAP", "7.1.0.GA");
+          "HTTP GET", "JBoss EAP", "7.1.0.GA");
   public static final ExpectedServerAttributes JBOSS_EAP_7_3_SERVER_ATTRIBUTES =
       new ExpectedServerAttributes(
-          "DisallowedMethodsHandler.handleRequest", "JBoss EAP", "7.3.0.GA");
+          "HTTP GET", "JBoss EAP", "7.3.0.GA");
 
   private static Stream<Arguments> jboss() {
     return configurations("jboss")

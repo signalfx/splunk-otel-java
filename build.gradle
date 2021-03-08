@@ -15,10 +15,10 @@ group = "com.splunk.public"
 boolean snapshot = getProperty("snapshot") == 'yes'
 
 def versions = [
-    'opentelemetry'              : snapshot ? "0.18.0-SNAPSHOT"       : "1.0.0",
-    'opentelemetryAlpha'         : snapshot ? "0.18.0-alpha-SNAPSHOT" : "1.0.0-alpha",
-    'opentelemetryJavaagent'     : snapshot ? "0.18.0-SNAPSHOT"       : '1.0.0',
-    'opentelemetryJavaagentAlpha': snapshot ? "0.18.0-alpha-SNAPSHOT" : '1.0.0-alpha',
+    'opentelemetry'              : snapshot ? "1.1.0-SNAPSHOT"       : "1.0.0",
+    'opentelemetryAlpha'         : snapshot ? "1.1.0-alpha-SNAPSHOT" : "1.0.0-alpha",
+    'opentelemetryJavaagent'     : snapshot ? "1.1.0-SNAPSHOT"       : '1.0.0',
+    'opentelemetryJavaagentAlpha': snapshot ? "1.1.0-alpha-SNAPSHOT" : '1.0.0-alpha',
     'mockito'                    : '3.8.0',
     'jupiter'                    : '5.7.1'
 ]

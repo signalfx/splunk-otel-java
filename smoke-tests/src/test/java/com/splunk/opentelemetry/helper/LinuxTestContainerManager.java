@@ -72,6 +72,8 @@ public class LinuxTestContainerManager extends AbstractTestContainerManager {
       collector.stop();
       collector = null;
     }
+
+    network.close();
   }
 
   @Override

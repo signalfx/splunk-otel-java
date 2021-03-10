@@ -37,9 +37,6 @@ subprojects {
     maven {
       url = uri("https://dl.bintray.com/open-telemetry/maven")
     }
-    maven {
-      url = uri("https://oss.jfrog.org/artifactory/oss-snapshot-local")
-    }
     mavenCentral()
     maven {
       url = uri("https://oss.sonatype.org/content/repositories/snapshots")

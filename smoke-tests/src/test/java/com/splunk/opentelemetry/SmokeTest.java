@@ -43,15 +43,15 @@ import java.util.stream.StreamSupport;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.ResponseBody;
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 
 public abstract class SmokeTest {
   private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
-  protected static OkHttpClient client = OkHttpUtils.client();
-  protected static TestContainerManager containerManager = createContainerManager();
+  protected static final OkHttpClient client = OkHttpUtils.client();
+  protected static final TestContainerManager containerManager = createContainerManager();
+  private static boolean containerManagerStarted = false;
 
   public static final String agentPath =
       System.getProperty("io.opentelemetry.smoketest.agent.shadowJar.path");
@@ -63,7 +63,22 @@ public abstract class SmokeTest {
 
   @BeforeAll
   static void setupSpec() {
+    // TestContainerManager starts backend and collector, we want to start them only once
+    // and reuse for all tests
+    if (containerManagerStarted) {
+      return;
+    }
+
+    containerManagerStarted = true;
     containerManager.startEnvironment();
+    Runtime.getRuntime()
+        .addShutdownHook(
+            new Thread() {
+              @Override
+              public void run() {
+                containerManager.stopEnvironment();
+              }
+            });
   }
 
   void startTargetOrSkipTest(TestImage image) {
@@ -106,11 +121,6 @@ public abstract class SmokeTest {
 
   void stopTarget() {
     containerManager.stopTarget();
-  }
-
-  @AfterAll
-  static void cleanupSpec() {
-    containerManager.stopEnvironment();
   }
 
   protected static Stream<AnyValue> findResourceAttribute(

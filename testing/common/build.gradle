@@ -1,0 +1,9 @@
+plugins {
+  id 'java-library'
+}
+
+def versions = ext.versions
+
+dependencies {
+  api("io.opentelemetry.javaagent:opentelemetry-testing-common:${versions.opentelemetryJavaagentAlpha}")
+}

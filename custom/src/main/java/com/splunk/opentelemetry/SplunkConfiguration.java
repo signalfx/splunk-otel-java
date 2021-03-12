@@ -31,6 +31,8 @@ public class SplunkConfiguration implements PropertySource {
 
     // by default no metrics are exported
     config.put("otel.metrics.exporter", "none");
+    // disable otel runtime-metrics instrumentation; we use micrometer metrics instead
+    config.put("otel.instrumentation.runtime-metrics.enabled", "false");
 
     config.put("otel.traces.exporter", "jaeger-thrift-splunk");
     // http://localhost:9080/v1/trace is the default endpoint for SmartAgent

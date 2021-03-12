@@ -7,5 +7,8 @@ compileJava {
 }
 
 dependencies {
-    implementation "org.slf4j:slf4j-api:1.7.30"
+    // slf4j is included in the otel javaagent, no need to add it here too
+    compileOnly "org.slf4j:slf4j-api:1.7.30"
+    // add micrometer to the bootstrap classloader so that it's available in instrumentations
+    implementation "io.micrometer:micrometer-core:${versions.micrometer}"
 }

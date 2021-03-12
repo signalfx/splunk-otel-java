@@ -1,0 +1,33 @@
+plugins {
+  id 'java'
+  id "com.github.johnrengelman.shadow" version "6.0.0"
+}
+
+apply from: "$rootDir/gradle/shadow.gradle"
+
+def versions = ext.versions
+def relocatePackages = ext.relocatePackages
+
+dependencies {
+  annotationProcessor("com.google.auto.service:auto-service:1.0-rc7")
+  annotationProcessor("com.google.auto:auto-common:0.8")
+  compileOnly("com.google.auto.service:auto-service:1.0-rc7")
+  compileOnly("com.google.auto:auto-common:0.8")
+
+  compileOnly("io.opentelemetry.javaagent:opentelemetry-javaagent-spi:${versions.opentelemetryJavaagentAlpha}")
+  compileOnly("io.micrometer:micrometer-core:${versions.micrometer}")
+}
+
+tasks {
+  compileJava {
+    options.release.set(8)
+  }
+
+  shadowJar {
+    mergeServiceFiles()
+
+    exclude("**/module-info.class")
+
+    relocatePackages(it)
+  }
+}

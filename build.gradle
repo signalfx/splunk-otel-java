@@ -20,7 +20,8 @@ def versions = [
     'opentelemetryJavaagent'     : snapshot ? "1.1.0-SNAPSHOT"       : '1.0.0',
     'opentelemetryJavaagentAlpha': snapshot ? "1.1.0-alpha-SNAPSHOT" : '1.0.0-alpha',
     'mockito'                    : '3.8.0',
-    'jupiter'                    : '5.7.1'
+    'jupiter'                    : '5.7.1',
+    'micrometer'                 : '1.6.4'
 ]
 
 subprojects {

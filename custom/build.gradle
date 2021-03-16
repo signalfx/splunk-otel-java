@@ -10,23 +10,28 @@ def relocatePackages = ext.relocatePackages
 
 dependencies {
   compileOnly(project(":bootstrap"))
-  implementation("io.opentelemetry:opentelemetry-sdk:${versions.opentelemetry}")
-  implementation("io.opentelemetry:opentelemetry-sdk-extension-autoconfigure:${versions.opentelemetryAlpha}")
-  implementation("io.opentelemetry:opentelemetry-semconv:${versions.opentelemetryAlpha}")
-  implementation("io.opentelemetry:opentelemetry-exporter-jaeger-thrift:${versions.opentelemetry}")
-  implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-api:${versions.opentelemetryJavaagentAlpha}")
-  implementation("io.opentelemetry.javaagent:opentelemetry-javaagent-spi:${versions.opentelemetryJavaagentAlpha}")
-  implementation("io.jaegertracing:jaeger-client:1.5.0")
+  compileOnly("io.opentelemetry:opentelemetry-sdk:${versions.opentelemetry}")
+  compileOnly("io.opentelemetry:opentelemetry-sdk-extension-autoconfigure:${versions.opentelemetryAlpha}")
+  compileOnly("io.opentelemetry:opentelemetry-semconv:${versions.opentelemetryAlpha}")
+  compileOnly("io.opentelemetry.instrumentation:opentelemetry-instrumentation-api:${versions.opentelemetryJavaagentAlpha}")
+  compileOnly("io.opentelemetry.javaagent:opentelemetry-javaagent-spi:${versions.opentelemetryJavaagentAlpha}")
   annotationProcessor("com.google.auto.service:auto-service:1.0-rc7")
   annotationProcessor("com.google.auto:auto-common:0.8")
-  implementation("com.google.auto.service:auto-service:1.0-rc7")
-  implementation("com.google.auto:auto-common:0.8")
+  compileOnly("com.google.auto.service:auto-service:1.0-rc7")
+  compileOnly("com.google.auto:auto-common:0.8")
+
+  implementation("io.opentelemetry:opentelemetry-exporter-jaeger-thrift:${versions.opentelemetry}")
+  implementation("io.jaegertracing:jaeger-client:1.5.0")
 
   compileOnly("io.micrometer:micrometer-core:${versions.micrometer}")
   implementation("io.micrometer:micrometer-registry-signalfx:${versions.micrometer}") {
     // bootstrap already has micrometer-core
     exclude(group: 'io.micrometer', module: 'micrometer-core')
   }
+
+  testImplementation("io.opentelemetry:opentelemetry-sdk:${versions.opentelemetry}")
+  testImplementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-api:${versions.opentelemetryJavaagentAlpha}")
+  testImplementation("io.micrometer:micrometer-core:${versions.micrometer}")
 }
 
 tasks {

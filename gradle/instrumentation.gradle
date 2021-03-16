@@ -7,6 +7,7 @@ def relocatePackages = ext.relocatePackages
 
 configurations {
     testInstrumentation
+    testAgent
 }
 
 dependencies {
@@ -25,6 +26,7 @@ dependencies {
 
     // test
     testImplementation(project(":testing:common"))
+    testAgent(project(path: ":testing:agent-for-testing", configuration: "shadow"))
 }
 
 shadowJar {
@@ -43,7 +45,7 @@ tasks.withType(Test).configureEach {
     dependsOn ":testing:agent-for-testing:shadowJar"
 
     jvmArgs "-Dotel.javaagent.debug=true"
-    jvmArgs "-javaagent:${project(":testing:agent-for-testing").tasks.shadowJar.archiveFile.get().asFile.absolutePath}"
+    jvmArgs "-javaagent:${configurations.testAgent.files.first().absolutePath}"
     jvmArgs "-Dotel.javaagent.experimental.initializer.jar=${shadowJar.archiveFile.get().asFile.absolutePath}"
     jvmArgs "-Dotel.javaagent.testing.additional-library-ignores.enabled=false"
     jvmArgs "-Dotel.javaagent.testing.fail-on-context-leak=true"

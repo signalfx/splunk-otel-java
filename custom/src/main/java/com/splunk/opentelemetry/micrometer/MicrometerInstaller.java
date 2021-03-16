@@ -20,52 +20,25 @@ import com.google.auto.service.AutoService;
 import com.splunk.opentelemetry.javaagent.bootstrap.GlobalMetricsTags;
 import io.micrometer.core.instrument.Clock;
 import io.micrometer.core.instrument.Metrics;
-import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.config.NamingConvention;
 import io.micrometer.signalfx.SignalFxMeterRegistry;
-import io.opentelemetry.api.common.AttributeKey;
-import io.opentelemetry.api.common.Attributes;
+import io.opentelemetry.instrumentation.api.config.Config;
 import io.opentelemetry.javaagent.spi.ComponentInstaller;
 import io.opentelemetry.sdk.autoconfigure.OpenTelemetrySdkAutoConfiguration;
-import io.opentelemetry.semconv.resource.attributes.ResourceAttributes;
-import java.util.ArrayList;
-import java.util.List;
+import io.opentelemetry.sdk.resources.Resource;
 
 @AutoService(ComponentInstaller.class)
 public class MicrometerInstaller implements ComponentInstaller {
   @Override
   public void beforeByteBuddyAgent() {
-    List<Tag> tags = getGlobalTags();
-    GlobalMetricsTags.set(tags);
-    Metrics.addRegistry(createSplunkMeterRegistry());
+    Resource resource = OpenTelemetrySdkAutoConfiguration.getResource();
+    GlobalMetricsTags.set(new GlobalTagsBuilder(resource).build());
+    Metrics.addRegistry(createSplunkMeterRegistry(resource));
   }
 
-  private static List<Tag> getGlobalTags() {
-    Attributes resourceAttributes = OpenTelemetrySdkAutoConfiguration.getResource().getAttributes();
-    String environment = resourceAttributes.get(AttributeKey.stringKey("environment"));
-    String service = resourceAttributes.get(ResourceAttributes.SERVICE_NAME);
-    String runtime = resourceAttributes.get(ResourceAttributes.PROCESS_RUNTIME_NAME);
-    Long pid = resourceAttributes.get(ResourceAttributes.PROCESS_PID);
-
-    List<Tag> globalTags = new ArrayList<>(4);
-    if (environment != null) {
-      globalTags.add(Tag.of("deployment.environment", environment));
-    }
-    if (service != null) {
-      globalTags.add(Tag.of("service", service));
-    }
-    if (runtime != null) {
-      globalTags.add(Tag.of("runtime", runtime));
-    }
-    if (pid != null) {
-      globalTags.add(Tag.of("process.pid", pid.toString()));
-    }
-    return globalTags;
-  }
-
-  private static SignalFxMeterRegistry createSplunkMeterRegistry() {
+  private static SignalFxMeterRegistry createSplunkMeterRegistry(Resource resource) {
     SignalFxMeterRegistry signalFxRegistry =
-        new SignalFxMeterRegistry(new SplunkMetricsConfig(), Clock.SYSTEM);
+        new SignalFxMeterRegistry(new SplunkMetricsConfig(Config.get(), resource), Clock.SYSTEM);
     NamingConvention signalFxNamingConvention = signalFxRegistry.config().namingConvention();
     signalFxRegistry.config().namingConvention(new OtelNamingConvention(signalFxNamingConvention));
     return signalFxRegistry;

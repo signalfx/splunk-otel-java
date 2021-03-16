@@ -32,25 +32,27 @@ import io.micrometer.core.instrument.config.NamingConvention;
  * </ol>
  */
 class OtelNamingConvention implements NamingConvention {
-  private final NamingConvention signalfxNamingConvention;
+  private final NamingConvention delegate;
 
-  OtelNamingConvention(NamingConvention signalfxNamingConvention) {
-    this.signalfxNamingConvention = signalfxNamingConvention;
+  OtelNamingConvention(NamingConvention delegate) {
+    this.delegate = delegate;
   }
 
   @Override
   public String name(String name, Meter.Type type, String baseUnit) {
-    String metricName = signalfxNamingConvention.name(name, type, baseUnit);
-    return metricName.startsWith("jvm.") ? "runtime." + metricName : metricName;
+    if (name.startsWith("jvm.")) {
+      name = "runtime." + name;
+    }
+    return delegate.name(name, type, baseUnit);
   }
 
   @Override
   public String tagKey(String key) {
-    return signalfxNamingConvention.tagKey(key);
+    return delegate.tagKey(key);
   }
 
   @Override
   public String tagValue(String value) {
-    return signalfxNamingConvention.tagValue(value);
+    return delegate.tagValue(value);
   }
 }

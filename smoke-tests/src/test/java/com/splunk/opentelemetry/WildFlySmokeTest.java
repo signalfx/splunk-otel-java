@@ -40,7 +40,8 @@ public class WildFlySmokeTest extends AppServerTest {
         .otelLinux("21.0.0.Final", WILDFLY_21_SERVER_ATTRIBUTES, VMS_ALL, "8", "11")
         .splunkWindows("13.0.0.Final", WILDFLY_13_SERVER_ATTRIBUTES, VMS_ALL, "8")
         .splunkWindows("17.0.1.Final", WILDFLY_17_SERVER_ATTRIBUTES, VMS_ALL, "8", "11")
-        .splunkWindows("21.0.0.Final", WILDFLY_21_SERVER_ATTRIBUTES, VMS_ALL, "8", "11").stream();
+        .splunkWindows("21.0.0.Final", WILDFLY_21_SERVER_ATTRIBUTES, VMS_ALL, "8", "11")
+        .stream();
   }
 
   // openj9 JDK8 does not have JFR classes, which causes all ComponentInstallers to run

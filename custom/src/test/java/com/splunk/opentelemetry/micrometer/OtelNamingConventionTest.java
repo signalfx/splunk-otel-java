@@ -21,7 +21,6 @@ import static org.mockito.BDDMockito.given;
 
 import io.micrometer.core.instrument.Meter;
 import io.micrometer.core.instrument.config.NamingConvention;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -31,19 +30,14 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class OtelNamingConventionTest {
   @Mock NamingConvention namingConventionMock;
 
-  NamingConvention otelNamingConvention;
-
-  @BeforeEach
-  void setUp() {
-    otelNamingConvention = new OtelNamingConvention(namingConventionMock);
-  }
-
   @Test
   void shouldPrependJvmMetricsWithRuntime() {
     // given
     var finalMeterName = "sf_runtime.jvm.test.meter";
     given(namingConventionMock.name("runtime.jvm.test.meter", Meter.Type.OTHER, "unit"))
         .willReturn(finalMeterName);
+
+    var otelNamingConvention = new OtelNamingConvention(namingConventionMock);
 
     // when
     var result = otelNamingConvention.name("jvm.test.meter", Meter.Type.OTHER, "unit");
@@ -58,6 +52,8 @@ class OtelNamingConventionTest {
     var finalMeterName = "sf_other.meter";
     given(namingConventionMock.name("other.meter", Meter.Type.OTHER, "unit"))
         .willReturn(finalMeterName);
+
+    var otelNamingConvention = new OtelNamingConvention(namingConventionMock);
 
     // when
     var result = otelNamingConvention.name("other.meter", Meter.Type.OTHER, "unit");

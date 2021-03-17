@@ -29,6 +29,7 @@ import org.junit.jupiter.api.Test;
 class GlobalTagsBuilderTest {
   @Test
   void shouldBuildEmptyTagsList() {
+    // given
     var resource = Resource.create(Attributes.empty());
 
     // when

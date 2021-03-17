@@ -34,6 +34,22 @@ import java.util.List;
 public class JvmMetricsInstaller implements ComponentInstaller {
   @Override
   public void afterByteBuddyAgent() {
+    // TODO: test code
+    System.out.printf(
+        "Running on Java %s. JVM %s - %s - %s%n",
+        System.getProperty("java.version"),
+        System.getProperty("java.vm.name"),
+        System.getProperty("java.vm.vendor"),
+        System.getProperty("java.vm.version"));
+    String jfrClassResourceName = "jdk.jfr.Recording".replace('.', '/') + ".class";
+    System.out.println(
+        jfrClassResourceName
+            + " is present: "
+            + (JvmMetricsInstaller.class.getClassLoader().getResource(jfrClassResourceName)
+                != null));
+    System.getProperties().forEach((k, v) -> System.out.println("SYS property " + k + " = " + v));
+    System.out.println(System.getProperty(""));
+
     if (!Config.get()
         .isInstrumentationEnabled(
             singleton("jvm-metrics"),

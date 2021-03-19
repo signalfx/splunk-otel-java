@@ -1,0 +1,81 @@
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+
+plugins {
+  id("com.github.johnrengelman.shadow") version "6.0.0"
+}
+
+apply from: "$rootDir/gradle/shadow.gradle"
+
+def versions = ext.versions
+def relocatePackages = ext.relocatePackages
+
+configurations {
+  // dependencies that already are relocated and will be moved to inst/ (agent classloader isolation)
+  isolateLibs
+  // dependencies that will be relocated
+  relocateLibs
+  // dependencies that will be included as they are
+  includeAsIs
+}
+
+dependencies {
+  // include micrometer-core API
+  relocateLibs(project(":bootstrap"))
+  // include testing micrometer MetricsRegistry
+  isolateLibs(project(path: ":testing:agent-metrics", configuration: "shadow"))
+
+  // and finally include everything from otel agent for testing
+  includeAsIs("io.opentelemetry.javaagent:opentelemetry-agent-for-testing:${versions.opentelemetryJavaagentAlpha}")
+}
+
+CopySpec isolateAgentClasses(Iterable<File> jars) {
+  return copySpec {
+    jars.each {
+      from(zipTree(it)) {
+        into("inst")
+        rename("(^.*)\\.class\$", "\$1.classdata")
+      }
+    }
+  }
+}
+
+task relocateAndIsolate(type: ShadowJar) {
+  dependsOn ':testing:agent-metrics:shadowJar'
+
+  configurations = [project.configurations.relocateLibs]
+
+  with isolateAgentClasses(project.configurations.isolateLibs.files)
+
+  mergeServiceFiles()
+  exclude("**/module-info.class")
+
+  relocatePackages(it)
+}
+
+shadowJar {
+  from project.configurations.includeAsIs.files
+  from tasks.relocateAndIsolate.outputs.files
+
+  manifest {
+    attributes(
+        "Main-Class": "io.opentelemetry.javaagent.OpenTelemetryAgent",
+        "Agent-Class": "io.opentelemetry.javaagent.OpenTelemetryAgent",
+        "Premain-Class": "io.opentelemetry.javaagent.OpenTelemetryAgent",
+        "Can-Redefine-Classes": true,
+        "Can-Retransform-Classes": true,
+    )
+  }
+
+  mergeServiceFiles {
+    include("inst/META-INF/services/**")
+  }
+  exclude("**/module-info.class")
+
+  relocatePackages(it)
+}
+
+jar {
+  enabled = false
+}
+
+tasks.assemble.dependsOn(tasks.shadowJar)

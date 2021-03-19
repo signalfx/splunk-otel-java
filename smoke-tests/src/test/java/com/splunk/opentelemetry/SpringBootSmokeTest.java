@@ -17,12 +17,13 @@
 package com.splunk.opentelemetry;
 
 import static com.splunk.opentelemetry.helper.TestImage.linuxImage;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.splunk.opentelemetry.helper.TestImage;
 import java.io.IOException;
 import okhttp3.Request;
 import okhttp3.Response;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
@@ -42,17 +43,28 @@ class SpringBootSmokeTest extends AppServerTest {
 
     Request request = new Request.Builder().url(getUrl("/greeting", false)).get().build();
 
-    String currentAgentVersion = getCurrentAgentVersion();
-
     Response response = client.newCall(request).execute();
-    TraceInspector traces = waitForTraces();
 
-    Assertions.assertEquals(response.body().string(), "Hi!");
-    Assertions.assertEquals(1, traces.countSpansByName("/greeting"));
-    Assertions.assertEquals(1, traces.countSpansByName("WebController.greeting"));
-    Assertions.assertEquals(
-        2, traces.countFilteredAttributes("otel.library.version", currentAgentVersion));
-    Assertions.assertTrue(traces.resourceExists("service.name", "smoke-test"));
+    TraceInspector traces = waitForTraces();
+    MetricsInspector metrics = waitForMetrics();
+
+    // verify spans are exported
+    assertEquals(response.body().string(), "Hi!");
+    assertEquals(1, traces.countSpansByName("/greeting"));
+    assertEquals(1, traces.countSpansByName("WebController.greeting"));
+
+    // verify that correct agent version is set in the resource
+    String currentAgentVersion = getCurrentAgentVersion();
+    assertEquals(2, traces.countFilteredAttributes("otel.library.version", currentAgentVersion));
+
+    // verify that correct service name is set in the resource
+    assertTrue(traces.resourceExists("service.name", "smoke-test"));
+
+    // verify that JVM metrics are exported
+    assertTrue(metrics.hasMetricsNamed("runtime.jvm.classes.loaded"));
+    assertTrue(metrics.hasMetricsNamed("runtime.jvm.gc.memory.allocated"));
+    assertTrue(metrics.hasMetricsNamed("runtime.jvm.memory.used"));
+    assertTrue(metrics.hasMetricsNamed("runtime.jvm.threads.peak"));
 
     stopTarget();
   }

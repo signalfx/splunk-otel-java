@@ -35,6 +35,7 @@ import okhttp3.ResponseBody;
 
 class TelemetryRetriever {
   private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+  private static final String EMPTY_CONTENT = "[]";
 
   private final OkHttpClient client;
   private final int backendPort;
@@ -81,8 +82,6 @@ class TelemetryRetriever {
   }
 
   private void deserializeIntoBuilder(JsonNode it, GeneratedMessageV3.Builder<?> builder) {
-    // TODO(anuraaga): Register parser into object mapper to avoid de -> re ->
-    // deserialize.
     try {
       JsonFormat.parser().merge(OBJECT_MAPPER.writeValueAsString(it), builder);
     } catch (InvalidProtocolBufferException | JsonProcessingException e) {
@@ -93,7 +92,7 @@ class TelemetryRetriever {
   private Stream<JsonNode> waitForContent(String path) throws IOException, InterruptedException {
     long previousSize = 0;
     long deadline = System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(30);
-    String content = "[]";
+    String content = EMPTY_CONTENT;
     while (System.currentTimeMillis() < deadline) {
 
       Request request =
@@ -105,7 +104,7 @@ class TelemetryRetriever {
         content = body.string();
       }
 
-      if (content.length() > 2 && content.length() == previousSize) {
+      if (content.length() > EMPTY_CONTENT.length() && content.length() == previousSize) {
         break;
       }
       previousSize = content.length();

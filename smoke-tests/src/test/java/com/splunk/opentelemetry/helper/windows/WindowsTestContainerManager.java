@@ -65,6 +65,8 @@ public class WindowsTestContainerManager extends AbstractTestContainerManager {
 
   private static final String NPIPE_URI = "npipe:////./pipe/docker_engine";
   private static final String COLLECTOR_CONFIG_FILE_PATH = "/collector-config.yml";
+  // TODO: Windows has to have a separate config file for the time being
+  private static final String WINDOWS_COLLECTOR_CONFIG_RESOURCE = "/otelcol-windows.yaml";
 
   private final DockerClient client =
       DockerClientImpl.getInstance(
@@ -117,7 +119,7 @@ public class WindowsTestContainerManager extends AbstractTestContainerManager {
             },
             containerId -> {
               try (InputStream configFileStream =
-                  this.getClass().getResourceAsStream(COLLECTOR_CONFIG_RESOURCE)) {
+                  this.getClass().getResourceAsStream(WINDOWS_COLLECTOR_CONFIG_RESOURCE)) {
                 copyFileToContainer(
                     containerId, IOUtils.toByteArray(configFileStream), COLLECTOR_CONFIG_FILE_PATH);
               } catch (IOException e) {
@@ -183,6 +185,8 @@ public class WindowsTestContainerManager extends AbstractTestContainerManager {
     List<String> environment = new ArrayList<>();
     getAgentEnvironment().forEach((key, value) -> environment.add(key + "=" + value));
     extraEnv.forEach((key, value) -> environment.add(key + "=" + value));
+    // TODO: Windows collector image cannot accept signalfx metrics right now, turning them off
+    environment.add("SPLUNK_METRICS_ENABLED=false");
 
     target =
         startContainer(

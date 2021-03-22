@@ -160,7 +160,7 @@ public abstract class AppServerTest extends SmokeTest {
         traces.getServerSpanAttribute("middleware.version"),
         "Middleware version tag on server span");
 
-    resetBackend();
+    clearTelemetry();
   }
 
   protected String getUrl(String path, boolean originalPort) {

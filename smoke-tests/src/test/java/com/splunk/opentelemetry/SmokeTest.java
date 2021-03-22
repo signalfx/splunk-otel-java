@@ -18,43 +18,30 @@ package com.splunk.opentelemetry;
 
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.protobuf.InvalidProtocolBufferException;
-import com.google.protobuf.util.JsonFormat;
 import com.splunk.opentelemetry.helper.LinuxTestContainerManager;
 import com.splunk.opentelemetry.helper.TargetWaitStrategy;
 import com.splunk.opentelemetry.helper.TestContainerManager;
 import com.splunk.opentelemetry.helper.TestImage;
 import com.splunk.opentelemetry.helper.windows.WindowsTestContainerManager;
-import io.opentelemetry.proto.collector.trace.v1.ExportTraceServiceRequest;
-import io.opentelemetry.proto.common.v1.AnyValue;
-import io.opentelemetry.proto.common.v1.KeyValue;
 import java.io.IOException;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.ResponseBody;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 
 public abstract class SmokeTest {
-  private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
-
   protected static final OkHttpClient client = OkHttpUtils.client();
   protected static final TestContainerManager containerManager = createContainerManager();
   private static boolean containerManagerStarted = false;
 
   public static final String agentPath =
       System.getProperty("io.opentelemetry.smoketest.agent.shadowJar.path");
+
+  private TelemetryRetriever telemetryRetriever;
 
   /** Subclasses can override this method to customise target application's environment */
   protected Map<String, String> getExtraEnv() {
@@ -101,84 +88,26 @@ public abstract class SmokeTest {
     return null;
   }
 
-  @AfterEach
-  void cleanup() throws IOException {
-    resetBackend();
+  @BeforeEach
+  void setUpTelemetryRetriever() {
+    telemetryRetriever = new TelemetryRetriever(client, containerManager.getBackendMappedPort());
   }
 
-  protected void resetBackend() throws IOException {
-    client
-        .newCall(
-            new Request.Builder()
-                .url(
-                    String.format(
-                        "http://localhost:%d/clear-requests",
-                        containerManager.getBackendMappedPort()))
-                .build())
-        .execute()
-        .close();
+  @AfterEach
+  void clearTelemetry() throws IOException {
+    telemetryRetriever.clearTelemetry();
   }
 
   void stopTarget() {
     containerManager.stopTarget();
   }
 
-  protected static Stream<AnyValue> findResourceAttribute(
-      Collection<ExportTraceServiceRequest> traces, String attributeKey) {
-    return traces.stream()
-        .flatMap(it -> it.getResourceSpansList().stream())
-        .flatMap(it -> it.getResource().getAttributesList().stream())
-        .filter(it -> it.getKey().equals(attributeKey))
-        .map(KeyValue::getValue);
-  }
-
   protected TraceInspector waitForTraces() throws IOException, InterruptedException {
-    String content = waitForContent();
-
-    return new TraceInspector(
-        StreamSupport.stream(OBJECT_MAPPER.readTree(content).spliterator(), false)
-            .map(
-                it -> {
-                  ExportTraceServiceRequest.Builder builder =
-                      ExportTraceServiceRequest.newBuilder();
-                  // TODO(anuraaga): Register parser into object mapper to avoid de -> re ->
-                  // deserialize.
-                  try {
-                    JsonFormat.parser().merge(OBJECT_MAPPER.writeValueAsString(it), builder);
-                  } catch (InvalidProtocolBufferException | JsonProcessingException e) {
-                    e.printStackTrace();
-                  }
-                  return builder.build();
-                })
-            .collect(Collectors.toList()));
+    return telemetryRetriever.waitForTraces();
   }
 
-  private String waitForContent() throws IOException, InterruptedException {
-    long previousSize = 0;
-    long deadline = System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(30);
-    String content = "[]";
-    while (System.currentTimeMillis() < deadline) {
-
-      Request request =
-          new Request.Builder()
-              .url(
-                  String.format(
-                      "http://localhost:%d/get-requests", containerManager.getBackendMappedPort()))
-              .build();
-
-      try (ResponseBody body = client.newCall(request).execute().body()) {
-        content = body.string();
-      }
-
-      if (content.length() > 2 && content.length() == previousSize) {
-        break;
-      }
-      previousSize = content.length();
-      System.out.printf("Current content size %d%n", previousSize);
-      TimeUnit.MILLISECONDS.sleep(500);
-    }
-
-    return content;
+  protected MetricsInspector waitForMetrics() throws IOException, InterruptedException {
+    return telemetryRetriever.waitForMetrics();
   }
 
   protected String getCurrentAgentVersion() throws IOException {

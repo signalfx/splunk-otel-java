@@ -10,7 +10,6 @@ receivers:
     protocols:
       grpc:
       thrift_http:
-  signalfx:
 
 processors:
   batch:
@@ -28,9 +27,5 @@ service:
       receivers: [ jaeger ]
       processors: [ batch ]
       exporters: [ logging, otlp ]
-    metrics:
-      receivers: [ signalfx ]
-      processors: [ batch ]
-      exporters: [ otlp ]
 
   extensions: [ health_check, pprof, zpages ]

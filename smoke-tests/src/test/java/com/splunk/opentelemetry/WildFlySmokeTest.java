@@ -43,6 +43,7 @@ public class WildFlySmokeTest extends AppServerTest {
         .splunkWindows("21.0.0.Final", WILDFLY_21_SERVER_ATTRIBUTES, VMS_ALL, "8", "11").stream();
   }
 
+  // TODO: this method can be removed after upstream javaagent 1.1.0 release
   // openj9 JDK8 does not have JFR classes, which causes all ComponentInstallers to run
   // synchronously, not after LogManager is loaded - see
   // AgentInstaller#installComponentsAfterByteBuddy()

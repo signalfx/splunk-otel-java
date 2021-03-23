@@ -73,9 +73,8 @@ class GlobalTagsBuilderTest {
             Attributes.of(
                 AttributeKey.stringKey("deployment.environment"),
                 "gauntlet",
-                  AttributeKey.stringKey("environment"),
-                "oldstyle"
-            ));
+                AttributeKey.stringKey("environment"),
+                "oldstyle"));
 
     // when
     var tags = new GlobalTagsBuilder(resource).build();

@@ -64,4 +64,24 @@ class GlobalTagsBuilderTest {
     assertEquals(Tag.of("runtime", "OpenJDK Runtime Environment"), tags.get(2));
     assertEquals(Tag.of("process.pid", "12345"), tags.get(3));
   }
+
+  @Test
+  void preferDeploymentEnvironment() {
+    // given
+    var resource =
+        Resource.create(
+            Attributes.of(
+                AttributeKey.stringKey("deployment.environment"),
+                "gauntlet",
+                  AttributeKey.stringKey("environment"),
+                "oldstyle"
+            ));
+
+    // when
+    var tags = new GlobalTagsBuilder(resource).build();
+
+    // then
+    assertEquals(1, tags.size());
+    assertEquals(Tag.of("deployment.environment", "gauntlet"), tags.get(0));
+  }
 }

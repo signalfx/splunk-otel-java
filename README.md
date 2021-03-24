@@ -67,7 +67,7 @@ A couple other configuration options that may need to be changed or set are:
 - Endpoint if not sending to a locally running Smart Agent with default
   configuration. See the [Jaeger exporter](#jaeger-exporter) section for more information.
 - Environment resource attribute (example:
-  `-Dotel.resource.attributes=service.name=my-service,environment=production`) to specify what
+  `-Dotel.resource.attributes=service.name=my-service,deployment.environment=production`) to specify what
   environment the span originated from.
 
 ### Supported Java Versions
@@ -138,7 +138,7 @@ OpenTelemetry Instrumentation for Java version 1.0.0 and API version 1.0.0.
 To correlate traces with logs it is possible to add the following metadata from traces to logs:
 
  - Trace: `trace_id` and `span_id`
- - Resource: `service.name` and `environment`
+ - Resource: `service.name` and `deployment.environment`
 
 Documentation on how to inject trace context into logs is available
 [here](https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/docs/logger-mdc-instrumentation.md).

@@ -181,7 +181,7 @@ public abstract class AppServerTest extends SmokeTest {
     }
   }
 
-  protected static final String OTEL_IMAGE_VERSION = "20210223.592806654";
+  protected static final String OTEL_IMAGE_VERSION = "20210316.657616194";
   protected static final String OTEL_REPO = "ghcr.io/open-telemetry/java-test-containers";
   protected static final String SPLUNK_REPO_PREFIX = "ghcr.io/signalfx/splunk-otel-";
 

@@ -38,9 +38,9 @@ public class WildFlySmokeTest extends AppServerTest {
         .otelLinux("13.0.0.Final", WILDFLY_13_SERVER_ATTRIBUTES, VMS_ALL, "8")
         .otelLinux("17.0.1.Final", WILDFLY_17_SERVER_ATTRIBUTES, VMS_ALL, "8", "11")
         .otelLinux("21.0.0.Final", WILDFLY_21_SERVER_ATTRIBUTES, VMS_ALL, "8", "11")
-        .splunkWindows("13.0.0.Final", WILDFLY_13_SERVER_ATTRIBUTES, VMS_ALL, "8")
-        .splunkWindows("17.0.1.Final", WILDFLY_17_SERVER_ATTRIBUTES, VMS_ALL, "8", "11")
-        .splunkWindows("21.0.0.Final", WILDFLY_21_SERVER_ATTRIBUTES, VMS_ALL, "8", "11").stream();
+        .otelWindows("13.0.0.Final", WILDFLY_13_SERVER_ATTRIBUTES, VMS_ALL, "8")
+        .otelWindows("17.0.1.Final", WILDFLY_17_SERVER_ATTRIBUTES, VMS_ALL, "8", "11")
+        .otelWindows("21.0.0.Final", WILDFLY_21_SERVER_ATTRIBUTES, VMS_ALL, "8", "11").stream();
   }
 
   // TODO: this method can be removed after upstream javaagent 1.1.0 release

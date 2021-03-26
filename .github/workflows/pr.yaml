@@ -25,12 +25,5 @@ jobs:
         with:
           java-version: 11
 
-      - name: Build Windows images for test backend
-        working-directory: ./smoke-tests/fake-backend
-        run: ./gradlew windowsBackendImageBuild windowsCollectorImageBuild --no-daemon
-
-      - name: Build Windows images for test targets
-        run: ./gradlew :matrix:buildWindowsTestImages --no-daemon
-
       - name: Build and test
         run: ./gradlew build --scan --no-daemon

@@ -36,8 +36,8 @@ public class JettySmokeTest extends AppServerTest {
     return configurations("jetty")
         .otelLinux("9.4.35", JETTY9_SERVER_ATTRIBUTES, VMS_ALL, "8", "11", "15")
         .otelLinux("10.0.0", JETTY10_SERVER_ATTRIBUTES, VMS_ALL, "11", "15")
-        .splunkWindows("9.4.35", JETTY9_SERVER_ATTRIBUTES, VMS_ALL, "8", "11", "15")
-        .splunkWindows("10.0.0", JETTY10_BETA_SERVER_ATTRIBUTES, VMS_ALL, "11", "15").stream();
+        .otelWindows("9.4.35", JETTY9_SERVER_ATTRIBUTES, VMS_ALL, "8", "11", "15")
+        .otelWindows("10.0.0", JETTY10_BETA_SERVER_ATTRIBUTES, VMS_ALL, "11", "15").stream();
   }
 
   @ParameterizedTest(name = "[{index}] {0}")

@@ -103,7 +103,7 @@ public abstract class AppServerTest extends SmokeTest {
       responseBody = response.body().string();
       System.out.println("Got response code " + response.code());
     } while (response.code() != 200
-             && System.currentTimeMillis() - startTime < TimeUnit.SECONDS.toMillis(30));
+        && System.currentTimeMillis() - startTime < TimeUnit.SECONDS.toMillis(30));
 
     assertEquals(
         200, response.code(), "Unexpected response code. Got this response: " + responseBody);
@@ -247,7 +247,17 @@ public abstract class AppServerTest extends SmokeTest {
 
       ImageFactory imageFactory =
           (jdk) -> {
-            String name = OTEL_REPO + ":" + serverName + "-" + version + "-jdk" + jdk + "-windows" + "-" + OTEL_IMAGE_VERSION;
+            String name =
+                OTEL_REPO
+                    + ":"
+                    + serverName
+                    + "-"
+                    + version
+                    + "-jdk"
+                    + jdk
+                    + "-windows"
+                    + "-"
+                    + OTEL_IMAGE_VERSION;
             return windowsImage(name);
           };
 

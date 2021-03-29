@@ -88,35 +88,49 @@ public class WindowsTestContainerManager extends AbstractTestContainerManager {
             .exec()
             .getId();
 
+    String backendSuffix = "-windows-20210324.684269693";
+    String backendImageName =
+        "ghcr.io/open-telemetry/java-test-containers:smoke-fake-backend" + backendSuffix;
+
+    if (!imageExists(backendImageName)) {
+      pullImage(backendImageName);
+    }
+
     backend =
         startContainer(
-            "splunk-fake-backend:windows",
-            command -> {
-              command
-                  .withAliases(BACKEND_ALIAS)
-                  .withExposedPorts(ExposedPort.tcp(BACKEND_PORT))
-                  .withHostConfig(
-                      HostConfig.newHostConfig()
-                          .withAutoRemove(true)
-                          .withNetworkMode(natNetworkId)
-                          .withPortBindings(
-                              new PortBinding(
-                                  new Ports.Binding(null, null), ExposedPort.tcp(BACKEND_PORT))));
-            },
+            backendImageName,
+            command ->
+                command
+                    .withAliases(BACKEND_ALIAS)
+                    .withExposedPorts(ExposedPort.tcp(BACKEND_PORT))
+                    .withHostConfig(
+                        HostConfig.newHostConfig()
+                            .withAutoRemove(true)
+                            .withNetworkMode(natNetworkId)
+                            .withPortBindings(
+                                new PortBinding(
+                                    new Ports.Binding(null, null), ExposedPort.tcp(BACKEND_PORT)))),
             containerId -> {},
             new HttpWaiter(BACKEND_PORT, "/health", Duration.ofSeconds(60)),
             true);
 
+    String collectorImageName =
+        "ghcr.io/open-telemetry/java-test-containers:collector" + backendSuffix;
+    if (!imageExists(collectorImageName)) {
+      pullImage(collectorImageName);
+    }
+
     collector =
         startContainer(
-            "splunk-otel-collector:windows",
-            command -> {
-              command
-                  .withAliases(COLLECTOR_ALIAS)
-                  .withHostConfig(
-                      HostConfig.newHostConfig().withAutoRemove(true).withNetworkMode(natNetworkId))
-                  .withCmd("--config", COLLECTOR_CONFIG_FILE_PATH);
-            },
+            collectorImageName,
+            command ->
+                command
+                    .withAliases(COLLECTOR_ALIAS)
+                    .withHostConfig(
+                        HostConfig.newHostConfig()
+                            .withAutoRemove(true)
+                            .withNetworkMode(natNetworkId))
+                    .withCmd("--config", COLLECTOR_CONFIG_FILE_PATH),
             containerId -> {
               try (InputStream configFileStream =
                   this.getClass().getResourceAsStream(WINDOWS_COLLECTOR_CONFIG_RESOURCE)) {

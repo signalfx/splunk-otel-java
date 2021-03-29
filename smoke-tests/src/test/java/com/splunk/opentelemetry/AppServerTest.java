@@ -18,7 +18,7 @@ package com.splunk.opentelemetry;
 
 import static com.splunk.opentelemetry.helper.TestImage.linuxImage;
 import static com.splunk.opentelemetry.helper.TestImage.proprietaryLinuxImage;
-import static com.splunk.opentelemetry.helper.TestImage.proprietaryWindowsImage;
+import static com.splunk.opentelemetry.helper.TestImage.windowsImage;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
@@ -45,9 +45,9 @@ public abstract class AppServerTest extends SmokeTest {
 
   /**
    * The test case is expected to create and verify the following trace: <code>
-   *   1. Server span for the initial request to http://localhost:%d/greeting?url=http://localhost:8080/headers
-   *   2. Client http span to http://localhost:8080/headers
-   *   3. Server http span for http://localhost:8080/headers
+   * 1. Server span for the initial request to http://localhost:%d/greeting?url=http://localhost:8080/headers
+   * 2. Client http span to http://localhost:8080/headers
+   * 3. Server http span for http://localhost:8080/headers
    * </code>
    */
   protected void assertWebAppTrace(ExpectedServerAttributes serverAttributes)
@@ -181,7 +181,7 @@ public abstract class AppServerTest extends SmokeTest {
     }
   }
 
-  protected static final String OTEL_IMAGE_VERSION = "20210223.592806654";
+  protected static final String OTEL_IMAGE_VERSION = "20210316.657616194";
   protected static final String OTEL_REPO = "ghcr.io/open-telemetry/java-test-containers";
   protected static final String SPLUNK_REPO_PREFIX = "ghcr.io/signalfx/splunk-otel-";
 
@@ -239,7 +239,7 @@ public abstract class AppServerTest extends SmokeTest {
       return this;
     }
 
-    public Configurations splunkWindows(
+    public Configurations otelWindows(
         String version,
         ExpectedServerAttributes serverAttributes,
         List<String> vms,
@@ -248,8 +248,17 @@ public abstract class AppServerTest extends SmokeTest {
       ImageFactory imageFactory =
           (jdk) -> {
             String name =
-                SPLUNK_REPO_PREFIX + serverName + ":" + version + "-jdk" + jdk + "-windows";
-            return proprietaryWindowsImage(name);
+                OTEL_REPO
+                    + ":"
+                    + serverName
+                    + "-"
+                    + version
+                    + "-jdk"
+                    + jdk
+                    + "-windows"
+                    + "-"
+                    + OTEL_IMAGE_VERSION;
+            return windowsImage(name);
           };
 
       addItems(serverAttributes, vms, jdks, imageFactory);

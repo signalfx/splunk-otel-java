@@ -36,47 +36,13 @@ def proprietaryTargets = [
     ]
 ]
 
-createDockerTasks(buildProprietaryTestImagesTask, pullProprietaryTestImagesTask, proprietaryTargets, false)
+createDockerTasks(buildProprietaryTestImagesTask, pullProprietaryTestImagesTask, proprietaryTargets)
 
-def buildWindowsTestImagesTask = tasks.create("buildWindowsTestImages") {
-  group = "build"
-  description = "Builds all Windows Docker images for the test matrix"
-}
-
-def windowsTargets = [
-    "tomcat" : [
-        [version: ["7.0.107"], vm: ["hotspot", "openj9"], jdk: ["8"], args: [majorVersion: "7"]],
-        [version: ["8.5.60"], vm: ["hotspot", "openj9"], jdk: ["8", "11"], args: [majorVersion: "8"]],
-        [version: ["9.0.40"], vm: ["hotspot", "openj9"], jdk: ["8", "11"], args: [majorVersion: "9"]]
-    ],
-    "tomee" : [
-        [version: ["7.0.0"], vm: ["hotspot", "openj9"], jdk: ["8"]],
-        [version: ["8.0.6"], vm: ["hotspot", "openj9"], jdk: ["8", "11"]]
-    ],
-    "jetty" : [
-        [version: ["9.4.35"], vm: ["hotspot", "openj9"], jdk: ["8", "11", "15"], args: [sourceVersion: "9.4.35.v20201120"]],
-        [version: ["10.0.0"], vm: ["hotspot", "openj9"], jdk: ["11", "15"], dockerfile: "jetty-split", args: [sourceVersion: "10.0.0.beta3"]]
-    ],
-    "payara": [
-        [version: ["5.2020.6"], vm: ["hotspot", "openj9"], jdk: ["8", "11"]]
-    ],
-    "wildfly" : [
-        [version: ["13.0.0.Final"], vm: ["hotspot", "openj9"], jdk: ["8"]],
-        [version: ["17.0.1.Final", "21.0.0.Final"], vm: ["hotspot", "openj9"], jdk: ["8", "11"]]
-    ],
-    "openliberty" : [
-        [version: ["20.0.0.12"], vm: ["hotspot", "openj9"], jdk: ["8", "11", "15"], args: [release: "2020-11-11_0736"]]
-    ]
-]
-
-createDockerTasks(buildWindowsTestImagesTask, null, windowsTargets, true)
-
-def configureImage(Task parentTask, Task parentPullTask, server, dockerfile, version, vm, jdk, Map<String, String> extraArgs, isWindows) {
+def configureImage(Task parentTask, Task parentPullTask, server, dockerfile, version, vm, jdk, Map<String, String> extraArgs) {
   def dockerWorkingDir = new File(project.buildDir, "docker")
-  def dockerFileName = isWindows ? "${dockerfile}.windows.dockerfile" : "${dockerfile}.dockerfile"
-  def platformSuffix = isWindows ? "-windows" : ""
+  def dockerFileName = "${dockerfile}.dockerfile"
 
-  def prepareTask = tasks.register("${server}ImagePrepare-$version-jdk$jdk-$vm$platformSuffix", Copy) {
+  def prepareTask = tasks.register("${server}ImagePrepare-$version-jdk$jdk-$vm", Copy) {
     def warTask = project.tasks.named("war").get()
     it.dependsOn(warTask)
     it.into(dockerWorkingDir)
@@ -88,9 +54,9 @@ def configureImage(Task parentTask, Task parentPullTask, server, dockerfile, ver
   }
 
   def vmSuffix = vm == "hotspot" ? "" : "-$vm"
-  def fullDockerImageName = "ghcr.io/signalfx/splunk-otel-$server:$version-jdk$jdk$vmSuffix$platformSuffix"
+  def fullDockerImageName = "ghcr.io/signalfx/splunk-otel-$server:$version-jdk$jdk$vmSuffix"
 
-  def buildTask = tasks.register("${server}Image-$version-jdk$jdk-$vm$platformSuffix", DockerBuildImage) {
+  def buildTask = tasks.register("${server}Image-$version-jdk$jdk-$vm", DockerBuildImage) {
     it.dependsOn(prepareTask)
     group = "build"
     description = "Builds Docker image with $server $version on JDK $jdk-$vm"
@@ -104,7 +70,7 @@ def configureImage(Task parentTask, Task parentPullTask, server, dockerfile, ver
   parentTask.dependsOn(buildTask)
 
   if(parentPullTask != null){
-    def pullTask = tasks.register("${server}ImagePull-$version-jdk$jdk-$vm$platformSuffix", DockerPullImage) {
+    def pullTask = tasks.register("${server}ImagePull-$version-jdk$jdk-$vm", DockerPullImage) {
       it.image.set(fullDockerImageName)
     }
 
@@ -112,7 +78,7 @@ def configureImage(Task parentTask, Task parentPullTask, server, dockerfile, ver
   }
 }
 
-def createDockerTasks(Task parentTask, Task parentPullTask, targets, isWindows) {
+def createDockerTasks(Task parentTask, Task parentPullTask, targets) {
   targets.each { server, matrices ->
     matrices.forEach { entry ->
       def dockerfile = entry["dockerfile"]?.toString() ?: server
@@ -121,7 +87,7 @@ def createDockerTasks(Task parentTask, Task parentPullTask, targets, isWindows) 
       entry.version.forEach { version ->
         entry.vm.forEach { vm ->
           entry.jdk.forEach { jdk ->
-            configureImage(parentTask, parentPullTask, server, dockerfile, version, vm, jdk, extraArgs, isWindows)
+            configureImage(parentTask, parentPullTask, server, dockerfile, version, vm, jdk, extraArgs)
           }
         }
       }

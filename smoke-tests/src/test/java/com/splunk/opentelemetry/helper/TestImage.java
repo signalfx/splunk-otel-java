@@ -40,8 +40,8 @@ public class TestImage {
     return new TestImage(Platform.LINUX_X86_64, imageName, true);
   }
 
-  public static TestImage proprietaryWindowsImage(String imageName) {
-    return new TestImage(Platform.WINDOWS_X86_64, imageName, true);
+  public static TestImage windowsImage(String imageName) {
+    return new TestImage(Platform.WINDOWS_X86_64, imageName, false);
   }
 
   public enum Platform {

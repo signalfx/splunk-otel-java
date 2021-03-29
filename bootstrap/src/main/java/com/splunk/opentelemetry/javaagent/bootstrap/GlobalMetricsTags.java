@@ -18,6 +18,7 @@ package com.splunk.opentelemetry.javaagent.bootstrap;
 
 import io.micrometer.core.instrument.Tag;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
@@ -43,6 +44,14 @@ public final class GlobalMetricsTags {
 
   public static List<Tag> get() {
     return INSTANCE.get();
+  }
+
+  public static List<Tag> concat(Tag... otherTags) {
+    List<Tag> globalTags = get();
+    List<Tag> result = new ArrayList<>(globalTags.size() + otherTags.length);
+    result.addAll(globalTags);
+    result.addAll(Arrays.asList(otherTags));
+    return result;
   }
 
   private GlobalMetricsTags() {}

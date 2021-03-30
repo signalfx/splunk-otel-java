@@ -66,9 +66,11 @@ public class CommonsDbcp2InstrumentationTest {
             () ->
                 assertThat(TestMetricsAccess.getMeterNames())
                     .containsExactlyInAnyOrder(
+                        "db.pool.connections",
                         "db.pool.connections.active",
                         "db.pool.connections.idle",
-                        "db.pool.connections.min",
+                        "db.pool.connections.idle.min",
+                        "db.pool.connections.idle.max",
                         "db.pool.connections.max"));
   }
 
@@ -94,9 +96,11 @@ public class CommonsDbcp2InstrumentationTest {
             () ->
                 assertThat(TestMetricsAccess.getMeterNames())
                     .containsExactlyInAnyOrder(
+                        "db.pool.connections",
                         "db.pool.connections.active",
                         "db.pool.connections.idle",
-                        "db.pool.connections.min",
+                        "db.pool.connections.idle.min",
+                        "db.pool.connections.idle.max",
                         "db.pool.connections.max"));
   }
 }

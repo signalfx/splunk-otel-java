@@ -27,13 +27,29 @@ import javax.management.ObjectName;
 import org.apache.commons.dbcp2.BasicDataSourceMXBean;
 
 public final class DataSourceMetrics {
+
+  /** The number of open connections. */
+  private static final String CONNECTIONS_TOTAL = "db.pool.connections";
+  /** The number of open connections that are currently in use. */
+  private static final String CONNECTIONS_ACTIVE = "db.pool.connections.active";
+  /** The number of open connections that are currently idle. */
+  private static final String CONNECTIONS_IDLE = "db.pool.connections.idle";
+  /** The minimum number of idle open connections allowed. */
+  private static final String CONNECTIONS_IDLE_MIN = "db.pool.connections.idle.min";
+  /** The maximum number of idle open connections allowed. */
+  private static final String CONNECTIONS_IDLE_MAX = "db.pool.connections.idle.max";
+  /** The maximum number of open connections allowed. */
+  private static final String CONNECTIONS_MAX = "db.pool.connections.max";
+
   public static void registerMetrics(BasicDataSourceMXBean dataSource, ObjectName objectName) {
     List<Tag> tags = getTags(objectName);
 
-    gauge("db.pool.connections.active", tags, dataSource::getNumActive);
-    gauge("db.pool.connections.idle", tags, dataSource::getNumIdle);
-    gauge("db.pool.connections.min", tags, dataSource::getMinIdle);
-    gauge("db.pool.connections.max", tags, dataSource::getMaxTotal);
+    gauge(CONNECTIONS_TOTAL, tags, new TotalConnectionsUsed(dataSource));
+    gauge(CONNECTIONS_ACTIVE, tags, dataSource::getNumActive);
+    gauge(CONNECTIONS_IDLE, tags, dataSource::getNumIdle);
+    gauge(CONNECTIONS_IDLE_MIN, tags, dataSource::getMinIdle);
+    gauge(CONNECTIONS_IDLE_MAX, tags, dataSource::getMaxIdle);
+    gauge(CONNECTIONS_MAX, tags, dataSource::getMaxTotal);
   }
 
   private static List<Tag> getTags(ObjectName objectName) {
@@ -43,7 +59,7 @@ public final class DataSourceMetrics {
     if (name == null) {
       name = objectName.toString();
     }
-    return GlobalMetricsTags.concat(Tag.of("type", "dbcp2"), Tag.of("name", name));
+    return GlobalMetricsTags.concat(Tag.of("pool.type", "dbcp2"), Tag.of("pool.name", name));
   }
 
   private static void gauge(String name, Iterable<Tag> tags, Supplier<Number> function) {
@@ -51,6 +67,19 @@ public final class DataSourceMetrics {
         .tags(tags)
         .baseUnit(BaseUnits.CONNECTIONS)
         .register(Metrics.globalRegistry);
+  }
+
+  private static final class TotalConnectionsUsed implements Supplier<Number> {
+    private final BasicDataSourceMXBean dataSource;
+
+    private TotalConnectionsUsed(BasicDataSourceMXBean dataSource) {
+      this.dataSource = dataSource;
+    }
+
+    @Override
+    public Number get() {
+      return dataSource.getNumIdle() + dataSource.getNumActive();
+    }
   }
 
   private DataSourceMetrics() {}

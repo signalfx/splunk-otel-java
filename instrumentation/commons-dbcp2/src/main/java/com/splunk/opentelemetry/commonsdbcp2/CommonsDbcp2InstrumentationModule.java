@@ -49,7 +49,10 @@ public class CommonsDbcp2InstrumentationModule extends InstrumentationModule {
 
   @Override
   protected String[] additionalHelperClassNames() {
-    return new String[] {"com.splunk.opentelemetry.commonsdbcp2.DataSourceMetrics"};
+    return new String[] {
+      "com.splunk.opentelemetry.commonsdbcp2.DataSourceMetrics",
+      "com.splunk.opentelemetry.commonsdbcp2.DataSourceMetrics$TotalConnectionsUsed"
+    };
   }
 
   @Override

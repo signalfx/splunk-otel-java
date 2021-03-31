@@ -28,20 +28,17 @@ import io.micrometer.core.instrument.binder.jvm.JvmMemoryMetrics;
 import io.micrometer.core.instrument.binder.jvm.JvmThreadMetrics;
 import io.opentelemetry.instrumentation.api.config.Config;
 import io.opentelemetry.javaagent.spi.ComponentInstaller;
-import java.util.List;
 
 @AutoService(ComponentInstaller.class)
 public class JvmMetricsInstaller implements ComponentInstaller {
   @Override
   public void afterByteBuddyAgent() {
-    if (!Config.get()
-        .isInstrumentationEnabled(
-            singleton("jvm-metrics"),
-            Config.get().getBooleanProperty("splunk.metrics.enabled", true))) {
+    boolean metricsRegistryPresent = !Metrics.globalRegistry.getRegistries().isEmpty();
+    if (!Config.get().isInstrumentationEnabled(singleton("jvm-metrics"), metricsRegistryPresent)) {
       return;
     }
 
-    List<Tag> tags = GlobalMetricsTags.get();
+    Iterable<Tag> tags = GlobalMetricsTags.get();
     new ClassLoaderMetrics(tags).bindTo(Metrics.globalRegistry);
     new JvmGcMetrics(tags).bindTo(Metrics.globalRegistry);
     new JvmMemoryMetrics(tags).bindTo(Metrics.globalRegistry);

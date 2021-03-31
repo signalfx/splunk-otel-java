@@ -16,13 +16,13 @@
 
 package com.splunk.opentelemetry.testing;
 
-import static java.util.stream.Collectors.toMap;
-
 import io.opentelemetry.javaagent.testing.common.AgentClassLoaderAccess;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public final class TestMetricsAccess {
   private static final MethodHandle getMeters;
@@ -35,7 +35,7 @@ public final class TestMetricsAccess {
               .loadClass("com.splunk.opentelemetry.testing.TestMetrics");
       MethodHandles.Lookup lookup = MethodHandles.lookup();
       getMeters =
-          lookup.findStatic(testMetricsClass, "getMeters", MethodType.methodType(Map.class));
+          lookup.findStatic(testMetricsClass, "getMeters", MethodType.methodType(Set.class));
       clearMetrics =
           lookup.findStatic(testMetricsClass, "clearMetrics", MethodType.methodType(void.class));
     } catch (Exception e) {
@@ -44,12 +44,10 @@ public final class TestMetricsAccess {
   }
 
   @SuppressWarnings("unchecked")
-  public static Map<String, MeterData> getMeters() {
+  public static Set<MeterData> getMeters() {
     try {
-      Map<String, Map<String, Object>> rawMeters =
-          (Map<String, Map<String, Object>>) getMeters.invokeExact();
-      return rawMeters.entrySet().stream()
-          .collect(toMap(Map.Entry::getKey, e -> MeterData.fromMap(e.getValue())));
+      Set<Map<String, Object>> rawMeters = (Set<Map<String, Object>>) getMeters.invokeExact();
+      return rawMeters.stream().map(MeterData::fromMap).collect(Collectors.toSet());
     } catch (Throwable throwable) {
       throw new AssertionError("Could not invoke getMeterNames", throwable);
     }

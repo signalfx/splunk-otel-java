@@ -20,11 +20,13 @@ import java.util.Map;
 import java.util.Objects;
 
 public final class MeterData {
+  private final String name;
   private final String type;
   private final String unit;
   private final Map<String, String> tags;
 
-  public MeterData(String type, String unit, Map<String, String> tags) {
+  public MeterData(String name, String type, String unit, Map<String, String> tags) {
+    this.name = name;
     this.type = type;
     this.unit = unit;
     this.tags = tags;
@@ -33,7 +35,14 @@ public final class MeterData {
   @SuppressWarnings("unchecked")
   public static MeterData fromMap(Map<String, Object> raw) {
     return new MeterData(
-        (String) raw.get("type"), (String) raw.get("unit"), (Map<String, String>) raw.get("tags"));
+        (String) raw.get("name"),
+        (String) raw.get("type"),
+        (String) raw.get("unit"),
+        (Map<String, String>) raw.get("tags"));
+  }
+
+  public String getName() {
+    return name;
   }
 
   public String getType() {
@@ -53,13 +62,14 @@ public final class MeterData {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
     MeterData meterData = (MeterData) o;
-    return type.equals(meterData.type)
+    return name.equals(meterData.name)
+        && type.equals(meterData.type)
         && unit.equals(meterData.unit)
         && tags.equals(meterData.tags);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(type, unit, tags);
+    return Objects.hash(name, type, unit, tags);
   }
 }

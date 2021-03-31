@@ -94,30 +94,30 @@ public class CommonsDbcp2InstrumentationTest {
     // then
     await()
         .atMost(20, TimeUnit.SECONDS)
-        .untilAsserted(
-            () ->
-                assertThat(TestMetricsAccess.getMeters().keySet())
-                    .doesNotContain(
-                        "db.pool.connections",
-                        "db.pool.connections.active",
-                        "db.pool.connections.idle",
-                        "db.pool.connections.idle.min",
-                        "db.pool.connections.idle.max",
-                        "db.pool.connections.max"));
+        .untilAsserted(CommonsDbcp2InstrumentationTest::assertNoConnectionPoolMetrics);
   }
 
   private static void assertConnectionPoolMetrics(String poolName) {
     var tags = Map.of("pool.name", poolName, "pool.type", "dbcp2");
-    var meterData = new MeterData("gauge", "connections", tags);
 
     assertThat(TestMetricsAccess.getMeters())
-        .containsExactlyInAnyOrderEntriesOf(
-            Map.of(
-                "db.pool.connections", meterData,
-                "db.pool.connections.active", meterData,
-                "db.pool.connections.idle", meterData,
-                "db.pool.connections.idle.min", meterData,
-                "db.pool.connections.idle.max", meterData,
-                "db.pool.connections.max", meterData));
+        .containsExactlyInAnyOrder(
+            new MeterData("db.pool.connections", "gauge", "connections", tags),
+            new MeterData("db.pool.connections.active", "gauge", "connections", tags),
+            new MeterData("db.pool.connections.idle", "gauge", "connections", tags),
+            new MeterData("db.pool.connections.idle.min", "gauge", "connections", tags),
+            new MeterData("db.pool.connections.idle.max", "gauge", "connections", tags),
+            new MeterData("db.pool.connections.max", "gauge", "connections", tags));
+  }
+
+  private static void assertNoConnectionPoolMetrics() {
+    assertThat(TestMetricsAccess.getMeters().stream().map(MeterData::getName).distinct())
+        .doesNotContain(
+            "db.pool.connections",
+            "db.pool.connections.active",
+            "db.pool.connections.idle",
+            "db.pool.connections.idle.min",
+            "db.pool.connections.idle.max",
+            "db.pool.connections.max");
   }
 }

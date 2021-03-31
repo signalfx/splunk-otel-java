@@ -29,5 +29,9 @@ public final class TestMetrics {
         .collect(Collectors.toSet());
   }
 
+  public static void clearMetrics() {
+    Metrics.globalRegistry.clear();
+  }
+
   private TestMetrics() {}
 }

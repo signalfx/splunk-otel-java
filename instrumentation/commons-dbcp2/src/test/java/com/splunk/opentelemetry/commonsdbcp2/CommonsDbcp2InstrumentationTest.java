@@ -30,7 +30,7 @@ import java.sql.Driver;
 import java.util.concurrent.TimeUnit;
 import javax.management.ObjectName;
 import org.apache.commons.dbcp2.BasicDataSource;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -42,8 +42,10 @@ public class CommonsDbcp2InstrumentationTest {
   @Mock Driver driverMock;
   @Mock Connection connectionMock;
 
-  @BeforeEach
-  void setUpMocks() {}
+  @AfterEach
+  void clearMetrics() {
+    TestMetricsAccess.clearMetrics();
+  }
 
   @Test
   void shouldReportMetricsForConnectionPool() throws Exception {
@@ -83,11 +85,11 @@ public class CommonsDbcp2InstrumentationTest {
     connectionPool.setDriver(driverMock);
     connectionPool.setUrl("db:///url");
 
+    ObjectName objectName =
+        new ObjectName("org.apache.commons.dbcp2.BasicDataSource:name=dataSource");
+
     // when
-    ManagementFactory.getPlatformMBeanServer()
-        .registerMBean(
-            connectionPool,
-            new ObjectName("org.apache.commons.dbcp2.BasicDataSource:name=dataSource"));
+    ManagementFactory.getPlatformMBeanServer().registerMBean(connectionPool, objectName);
 
     // then
     await()
@@ -96,6 +98,23 @@ public class CommonsDbcp2InstrumentationTest {
             () ->
                 assertThat(TestMetricsAccess.getMeterNames())
                     .containsExactlyInAnyOrder(
+                        "db.pool.connections",
+                        "db.pool.connections.active",
+                        "db.pool.connections.idle",
+                        "db.pool.connections.idle.min",
+                        "db.pool.connections.idle.max",
+                        "db.pool.connections.max"));
+
+    // when
+    ManagementFactory.getPlatformMBeanServer().unregisterMBean(objectName);
+
+    // then
+    await()
+        .atMost(20, TimeUnit.SECONDS)
+        .untilAsserted(
+            () ->
+                assertThat(TestMetricsAccess.getMeterNames())
+                    .doesNotContain(
                         "db.pool.connections",
                         "db.pool.connections.active",
                         "db.pool.connections.idle",

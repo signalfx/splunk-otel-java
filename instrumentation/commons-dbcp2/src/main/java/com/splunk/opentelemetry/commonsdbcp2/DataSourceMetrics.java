@@ -18,10 +18,15 @@ package com.splunk.opentelemetry.commonsdbcp2;
 
 import com.splunk.opentelemetry.javaagent.bootstrap.GlobalMetricsTags;
 import io.micrometer.core.instrument.Gauge;
+import io.micrometer.core.instrument.Meter;
 import io.micrometer.core.instrument.Metrics;
 import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.Tags;
 import io.micrometer.core.instrument.binder.BaseUnits;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 import javax.management.ObjectName;
 import org.apache.commons.dbcp2.BasicDataSourceMXBean;
@@ -41,15 +46,29 @@ public final class DataSourceMetrics {
   /** The maximum number of open connections allowed. */
   private static final String CONNECTIONS_MAX = "db.pool.connections.max";
 
+  // a weak map does not make sense here because each Meter holds a reference to the dataSource
+  private static final Map<BasicDataSourceMXBean, List<Meter>> dataSourceMetrics =
+      new ConcurrentHashMap<>();
+
   public static void registerMetrics(BasicDataSourceMXBean dataSource, ObjectName objectName) {
     Tags tags = getTags(objectName);
 
-    gauge(CONNECTIONS_TOTAL, tags, new TotalConnectionsUsed(dataSource));
-    gauge(CONNECTIONS_ACTIVE, tags, dataSource::getNumActive);
-    gauge(CONNECTIONS_IDLE, tags, dataSource::getNumIdle);
-    gauge(CONNECTIONS_IDLE_MIN, tags, dataSource::getMinIdle);
-    gauge(CONNECTIONS_IDLE_MAX, tags, dataSource::getMaxIdle);
-    gauge(CONNECTIONS_MAX, tags, dataSource::getMaxTotal);
+    List<Meter> meters =
+        Arrays.asList(
+            gauge(CONNECTIONS_TOTAL, tags, new TotalConnectionsUsed(dataSource)),
+            gauge(CONNECTIONS_ACTIVE, tags, dataSource::getNumActive),
+            gauge(CONNECTIONS_IDLE, tags, dataSource::getNumIdle),
+            gauge(CONNECTIONS_IDLE_MIN, tags, dataSource::getMinIdle),
+            gauge(CONNECTIONS_IDLE_MAX, tags, dataSource::getMaxIdle),
+            gauge(CONNECTIONS_MAX, tags, dataSource::getMaxTotal));
+    dataSourceMetrics.put(dataSource, meters);
+  }
+
+  public static void unregisterMetrics(BasicDataSourceMXBean dataSource) {
+    List<Meter> meters = dataSourceMetrics.remove(dataSource);
+    for (Meter meter : meters) {
+      Metrics.globalRegistry.remove(meter);
+    }
   }
 
   private static Tags getTags(ObjectName objectName) {
@@ -62,8 +81,8 @@ public final class DataSourceMetrics {
     return GlobalMetricsTags.get().and(Tag.of("pool.type", "dbcp2"), Tag.of("pool.name", name));
   }
 
-  private static void gauge(String name, Iterable<Tag> tags, Supplier<Number> function) {
-    Gauge.builder(name, function)
+  private static Meter gauge(String name, Iterable<Tag> tags, Supplier<Number> function) {
+    return Gauge.builder(name, function)
         .tags(tags)
         .baseUnit(BaseUnits.CONNECTIONS)
         .register(Metrics.globalRegistry);

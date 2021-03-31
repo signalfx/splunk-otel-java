@@ -17,6 +17,7 @@
 package com.splunk.opentelemetry.micrometer;
 
 import io.micrometer.core.instrument.Tag;
+import io.micrometer.core.instrument.Tags;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.sdk.resources.Resource;
 import io.opentelemetry.semconv.resource.attributes.ResourceAttributes;
@@ -30,18 +31,18 @@ class GlobalTagsBuilder {
     this.resource = resource;
   }
 
-  List<Tag> build() {
+  Tags build() {
     List<Tag> globalTags = new ArrayList<>(4);
     // Use deployment.environment if it's there, otherwise fall back to environment
     addTag(
         globalTags,
         "deployment.environment",
-        AttributeKey.stringKey("deployment.environment"),
+        ResourceAttributes.DEPLOYMENT_ENVIRONMENT,
         AttributeKey.stringKey("environment"));
     addTag(globalTags, "service", ResourceAttributes.SERVICE_NAME);
     addTag(globalTags, "runtime", ResourceAttributes.PROCESS_RUNTIME_NAME);
     addTag(globalTags, "process.pid", ResourceAttributes.PROCESS_PID);
-    return globalTags;
+    return Tags.of(globalTags);
   }
 
   private void addTag(List<Tag> tags, String tagName, AttributeKey<?>... resourceAttributeKeys) {

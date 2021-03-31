@@ -16,8 +16,7 @@
 
 package com.splunk.opentelemetry.micrometer;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import io.micrometer.core.instrument.Tag;
 import io.opentelemetry.api.common.AttributeKey;
@@ -36,7 +35,7 @@ class GlobalTagsBuilderTest {
     var tags = new GlobalTagsBuilder(resource).build();
 
     // then
-    assertTrue(tags.isEmpty());
+    assertThat(tags.stream()).isEmpty();
   }
 
   @Test
@@ -58,11 +57,13 @@ class GlobalTagsBuilderTest {
     var tags = new GlobalTagsBuilder(resource).build();
 
     // then
-    assertEquals(4, tags.size());
-    assertEquals(Tag.of("deployment.environment", "prod"), tags.get(0));
-    assertEquals(Tag.of("service", "my-service"), tags.get(1));
-    assertEquals(Tag.of("runtime", "OpenJDK Runtime Environment"), tags.get(2));
-    assertEquals(Tag.of("process.pid", "12345"), tags.get(3));
+    assertThat(tags.stream())
+        .hasSize(4)
+        .containsExactlyInAnyOrder(
+            Tag.of("deployment.environment", "prod"),
+            Tag.of("service", "my-service"),
+            Tag.of("runtime", "OpenJDK Runtime Environment"),
+            Tag.of("process.pid", "12345"));
   }
 
   @Test
@@ -80,7 +81,8 @@ class GlobalTagsBuilderTest {
     var tags = new GlobalTagsBuilder(resource).build();
 
     // then
-    assertEquals(1, tags.size());
-    assertEquals(Tag.of("deployment.environment", "gauntlet"), tags.get(0));
+    assertThat(tags.stream())
+        .hasSize(1)
+        .containsExactly(Tag.of("deployment.environment", "gauntlet"));
   }
 }

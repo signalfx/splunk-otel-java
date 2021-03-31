@@ -17,7 +17,6 @@
 package com.splunk.opentelemetry.commonsdbcp2;
 
 import static java.util.Collections.singletonList;
-import static java.util.Collections.singletonMap;
 import static net.bytebuddy.matcher.ElementMatchers.isPublic;
 import static net.bytebuddy.matcher.ElementMatchers.named;
 import static net.bytebuddy.matcher.ElementMatchers.takesArguments;
@@ -26,6 +25,7 @@ import com.google.auto.service.AutoService;
 import io.micrometer.core.instrument.Metrics;
 import io.opentelemetry.javaagent.tooling.InstrumentationModule;
 import io.opentelemetry.javaagent.tooling.TypeInstrumentation;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import javax.management.ObjectName;
@@ -68,9 +68,16 @@ public class CommonsDbcp2InstrumentationModule extends InstrumentationModule {
 
     @Override
     public Map<? extends ElementMatcher<? super MethodDescription>, String> transformers() {
-      return singletonMap(
+      Map<ElementMatcher<MethodDescription>, String> transformers = new HashMap<>();
+
+      transformers.put(
           isPublic().and(named("preRegister")).and(takesArguments(2)),
           this.getClass().getName() + "$PreRegisterAdvice");
+      transformers.put(
+          isPublic().and(named("postDeregister")),
+          this.getClass().getName() + "$PostDeregisterAdvice");
+
+      return transformers;
     }
 
     public static class PreRegisterAdvice {
@@ -78,6 +85,13 @@ public class CommonsDbcp2InstrumentationModule extends InstrumentationModule {
       public static void onExit(
           @Advice.This BasicDataSource dataSource, @Advice.Return ObjectName objectName) {
         DataSourceMetrics.registerMetrics(dataSource, objectName);
+      }
+    }
+
+    public static class PostDeregisterAdvice {
+      @Advice.OnMethodExit(suppress = Throwable.class)
+      public static void onExit(@Advice.This BasicDataSource dataSource) {
+        DataSourceMetrics.unregisterMetrics(dataSource);
       }
     }
   }

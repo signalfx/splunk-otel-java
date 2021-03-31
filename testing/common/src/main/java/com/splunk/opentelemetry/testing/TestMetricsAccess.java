@@ -24,6 +24,7 @@ import java.util.Set;
 
 public final class TestMetricsAccess {
   private static final MethodHandle getMeterNames;
+  private static final MethodHandle clearMetrics;
 
   static {
     try {
@@ -33,6 +34,8 @@ public final class TestMetricsAccess {
       MethodHandles.Lookup lookup = MethodHandles.lookup();
       getMeterNames =
           lookup.findStatic(testMetricsClass, "getMeterNames", MethodType.methodType(Set.class));
+      clearMetrics =
+          lookup.findStatic(testMetricsClass, "clearMetrics", MethodType.methodType(void.class));
     } catch (Exception e) {
       throw new Error("Error accessing fields with reflection.", e);
     }
@@ -44,6 +47,14 @@ public final class TestMetricsAccess {
       return (Set<String>) getMeterNames.invokeExact();
     } catch (Throwable throwable) {
       throw new AssertionError("Could not invoke getMeterNames", throwable);
+    }
+  }
+
+  public static void clearMetrics() {
+    try {
+      clearMetrics.invokeExact();
+    } catch (Throwable throwable) {
+      throw new AssertionError("Could not invoke clearMetrics", throwable);
     }
   }
 

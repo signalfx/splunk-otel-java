@@ -27,15 +27,15 @@ import org.junit.jupiter.api.extension.ExtendWith;
 class JvmMetricsTest {
   @Test
   void shouldRegisterJvmMeters() {
-    var meterNames = TestMetricsAccess.getMeterNames();
+    var meters = TestMetricsAccess.getMeters();
 
     // classloader metrics
-    assertTrue(meterNames.contains("jvm.classes.loaded"));
+    assertTrue(meters.containsKey("jvm.classes.loaded"));
     // GC metrics
-    assertTrue(meterNames.contains("jvm.gc.memory.allocated"));
+    assertTrue(meters.containsKey("jvm.gc.memory.allocated"));
     // memory metrics
-    assertTrue(meterNames.contains("jvm.memory.used"));
+    assertTrue(meters.containsKey("jvm.memory.used"));
     // thread metrics
-    assertTrue(meterNames.contains("jvm.threads.peak"));
+    assertTrue(meters.containsKey("jvm.threads.peak"));
   }
 }

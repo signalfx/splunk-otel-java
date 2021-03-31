@@ -23,7 +23,7 @@ import static net.bytebuddy.matcher.ElementMatchers.named;
 import static net.bytebuddy.matcher.ElementMatchers.takesArguments;
 
 import com.google.auto.service.AutoService;
-import io.opentelemetry.instrumentation.api.config.Config;
+import io.micrometer.core.instrument.Metrics;
 import io.opentelemetry.javaagent.tooling.InstrumentationModule;
 import io.opentelemetry.javaagent.tooling.TypeInstrumentation;
 import java.util.List;
@@ -43,8 +43,8 @@ public class CommonsDbcp2InstrumentationModule extends InstrumentationModule {
 
   @Override
   protected boolean defaultEnabled() {
-    return Config.get().getBooleanProperty("splunk.metrics.enabled", true)
-        && super.defaultEnabled();
+    boolean metricsRegistryPresent = !Metrics.globalRegistry.getRegistries().isEmpty();
+    return metricsRegistryPresent && super.defaultEnabled();
   }
 
   @Override

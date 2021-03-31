@@ -29,6 +29,7 @@ dependencies {
     exclude(group: 'io.micrometer', module: 'micrometer-core')
   }
 
+  testImplementation "org.assertj:assertj-core:3.19.0"
   testImplementation("io.opentelemetry:opentelemetry-sdk:${versions.opentelemetry}")
   testImplementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-api:${versions.opentelemetryJavaagentAlpha}")
   testImplementation("io.micrometer:micrometer-core:${versions.micrometer}")

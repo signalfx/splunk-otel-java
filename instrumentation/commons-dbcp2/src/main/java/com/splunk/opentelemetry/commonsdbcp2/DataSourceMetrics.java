@@ -47,6 +47,8 @@ public final class DataSourceMetrics {
   private static final String CONNECTIONS_MAX = "db.pool.connections.max";
 
   // a weak map does not make sense here because each Meter holds a reference to the dataSource
+  // all instrumented/known implementations of BasicDataSourceMXBean do not implement
+  // equals()/hashCode(), so it's safe to keep them in a plain ConcurrentHashMap
   private static final Map<BasicDataSourceMXBean, List<Meter>> dataSourceMetrics =
       new ConcurrentHashMap<>();
 

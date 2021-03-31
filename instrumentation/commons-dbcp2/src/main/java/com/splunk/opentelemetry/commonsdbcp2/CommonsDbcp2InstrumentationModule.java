@@ -25,6 +25,7 @@ import com.google.auto.service.AutoService;
 import io.micrometer.core.instrument.Metrics;
 import io.opentelemetry.javaagent.tooling.InstrumentationModule;
 import io.opentelemetry.javaagent.tooling.TypeInstrumentation;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import javax.management.ObjectName;
@@ -67,7 +68,7 @@ public class CommonsDbcp2InstrumentationModule extends InstrumentationModule {
 
     @Override
     public Map<? extends ElementMatcher<? super MethodDescription>, String> transformers() {
-      Map<ElementMatcher<MethodDescription>, String> transformers = new java.util.HashMap<>();
+      Map<ElementMatcher<MethodDescription>, String> transformers = new HashMap<>();
 
       transformers.put(
           isPublic().and(named("preRegister")).and(takesArguments(2)),

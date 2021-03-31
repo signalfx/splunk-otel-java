@@ -32,13 +32,16 @@ public class MicrometerInstaller implements ComponentInstaller {
   @Override
   public void beforeByteBuddyAgent() {
     Resource resource = OpenTelemetrySdkAutoConfiguration.getResource();
-    GlobalMetricsTags.set(new GlobalTagsBuilder(resource).build());
-    Metrics.addRegistry(createSplunkMeterRegistry(resource));
+    SplunkMetricsConfig splunkMetricsConfig = new SplunkMetricsConfig(Config.get(), resource);
+
+    if (splunkMetricsConfig.enabled()) {
+      GlobalMetricsTags.set(new GlobalTagsBuilder(resource).build());
+      Metrics.addRegistry(createSplunkMeterRegistry(splunkMetricsConfig));
+    }
   }
 
-  private static SignalFxMeterRegistry createSplunkMeterRegistry(Resource resource) {
-    SignalFxMeterRegistry signalFxRegistry =
-        new SignalFxMeterRegistry(new SplunkMetricsConfig(Config.get(), resource), Clock.SYSTEM);
+  private static SignalFxMeterRegistry createSplunkMeterRegistry(SplunkMetricsConfig config) {
+    SignalFxMeterRegistry signalFxRegistry = new SignalFxMeterRegistry(config, Clock.SYSTEM);
     NamingConvention signalFxNamingConvention = signalFxRegistry.config().namingConvention();
     signalFxRegistry.config().namingConvention(new OtelNamingConvention(signalFxNamingConvention));
     return signalFxRegistry;

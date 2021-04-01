@@ -5,7 +5,6 @@ plugins {
 
 apply from: "$rootDir/gradle/shadow.gradle"
 
-def versions = ext['versions']
 def relocatePackages = ext.relocatePackages
 
 dependencies {
@@ -15,10 +14,8 @@ dependencies {
   compileOnly("io.opentelemetry:opentelemetry-semconv:${versions.opentelemetryAlpha}")
   compileOnly("io.opentelemetry.instrumentation:opentelemetry-instrumentation-api:${versions.opentelemetryJavaagentAlpha}")
   compileOnly("io.opentelemetry.javaagent:opentelemetry-javaagent-spi:${versions.opentelemetryJavaagentAlpha}")
-  annotationProcessor("com.google.auto.service:auto-service:1.0-rc7")
-  annotationProcessor("com.google.auto:auto-common:0.8")
-  compileOnly("com.google.auto.service:auto-service:1.0-rc7")
-  compileOnly("com.google.auto:auto-common:0.8")
+  annotationProcessor deps.autoservice
+  compileOnly deps.autoservice
 
   implementation("io.opentelemetry:opentelemetry-exporter-jaeger-thrift:${versions.opentelemetry}")
   implementation("io.jaegertracing:jaeger-client:1.5.0")
@@ -29,7 +26,6 @@ dependencies {
     exclude(group: 'io.micrometer', module: 'micrometer-core')
   }
 
-  testImplementation "org.assertj:assertj-core:3.19.0"
   testImplementation("io.opentelemetry:opentelemetry-sdk:${versions.opentelemetry}")
   testImplementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-api:${versions.opentelemetryJavaagentAlpha}")
   testImplementation("io.micrometer:micrometer-core:${versions.micrometer}")

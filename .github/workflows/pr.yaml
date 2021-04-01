@@ -14,10 +14,15 @@ jobs:
           java-version: 11
 
       - name: Build and test
-        run: ./gradlew build --scan --no-daemon
+        run: ./gradlew build -x :smoke-tests:test --scan --no-daemon
 
-  build_windows:
-    runs-on: windows-latest
+  smoke-test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os: [ windows-latest, ubuntu-latest ]
+        suite: [ "glassfish", "jboss", "jetty", "liberty", "tomcat", "tomee", "weblogic", "wildfly", "other" ]
+      fail-fast: false
     steps:
       - uses: actions/checkout@v2
       - name: Set up JDK 11 for running Gradle
@@ -25,5 +30,5 @@ jobs:
         with:
           java-version: 11
 
-      - name: Build and test
-        run: ./gradlew build --scan --no-daemon
+      - name: Test
+        run: ./gradlew :smoke-tests:test -PsmokeTestSuite=${{ matrix.suite }} --scan --no-daemon

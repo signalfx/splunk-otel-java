@@ -16,18 +16,16 @@ jobs:
         with:
           java-version: 11
 
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v1
-        with:
-          registry: ghcr.io
-          username: ${{ github.repository_owner }}
-          password: ${{ secrets.GHCR_TOKEN }}
-
       - name: Build and test
-        run: ./gradlew pullProprietaryTestImages build --scan --no-daemon
+        run: ./gradlew build -x :smoke-tests:test --scan --no-daemon
 
-  build_windows:
-    runs-on: windows-latest
+  smoke-test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os: [ windows-latest, ubuntu-latest ]
+        suite: [ "glassfish", "jboss", "jetty", "liberty", "tomcat", "tomee", "weblogic", "wildfly", "other" ]
+      fail-fast: false
     steps:
       - uses: actions/checkout@v2
       - name: Set up JDK 11 for running Gradle
@@ -35,5 +33,17 @@ jobs:
         with:
           java-version: 11
 
-      - name: Build and test
-        run: ./gradlew build --scan --no-daemon
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v1
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GHCR_TOKEN }}
+        if: matrix.os == 'ubuntu-latest'
+
+      - name: Pull proprietary images
+        run: ./gradlew pullProprietaryTestImages --scan --no-daemon
+        if: matrix.os == 'ubuntu-latest'
+
+      - name: Test
+        run: ./gradlew :smoke-tests:test -PsmokeTestSuite=${{ matrix.suite }} --scan --no-daemon

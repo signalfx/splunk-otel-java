@@ -21,7 +21,7 @@ def buildProprietaryTestImagesTask = tasks.create("buildProprietaryTestImages") 
   description = "Builds all Docker images for the test matrix for proprietary app servers"
 }
 
-//Intentially left without group to remain hidden
+//Intentionally left without group to remain hidden
 def pullProprietaryTestImagesTask = tasks.create("pullProprietaryTestImages")
 
 def proprietaryTargets = [

@@ -33,6 +33,30 @@ tasks.test {
     junitXml.outputPerTestCase = true
   }
 
+  def suites = [
+      "glassfish": ["**/GlassFishSmokeTest.*"],
+      "jboss"    : ["**/JBossEapSmokeTest.*"],
+      "jetty"    : ["**/JettySmokeTest.*"],
+      "liberty"  : ["**/LibertySmokeTest.*"],
+      "tomcat"   : ["**/TomcatSmokeTest.*"],
+      "tomee"    : ["**/TomeeSmokeTest.*"],
+      "weblogic" : ["**/WebLogicSmokeTest.*"],
+      "wildfly"  : ["**/WildflySmokeTest.*"]
+  ]
+
+  def suite = findProperty('smokeTestSuite')
+  if (suite != null) {
+    if ('other' == suite) {
+      suites.values().each {
+        exclude it
+      }
+    } else if (suites.containsKey(suite)) {
+      include suites.get(suite)
+    } else {
+      throw new GradleException('Unknown smoke test suite: ' + suite)
+    }
+  }
+
   def shadowTask = project(":agent").tasks.named("shadowJar").get()
   inputs.files(layout.files(shadowTask))
 

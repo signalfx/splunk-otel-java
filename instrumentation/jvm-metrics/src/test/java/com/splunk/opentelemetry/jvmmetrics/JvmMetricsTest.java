@@ -29,9 +29,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 class JvmMetricsTest {
   @Test
   void shouldRegisterJvmMeters() {
-    var meters = TestMetricsAccess.getMeters().stream()
-        .map(MeterData::getName)
-        .collect(toSet());
+    var meters = TestMetricsAccess.getMeters().stream().map(MeterData::getName).collect(toSet());
 
     // classloader metrics
     assertTrue(meters.contains("jvm.classes.loaded"));

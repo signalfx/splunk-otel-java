@@ -121,7 +121,7 @@ Below you will find all the configuration options supported by this distribution
 
 | System property                      | Environment variable                 | Default value  | Purpose                                                  |
 | ------------------------------------ | ----------------------------------   | -------------- | -------------------------------------------------------- |
-| splunk.context.server-timing.enabled | SPLUNK_CONTEXT_SERVER_TIMING_ENABLED | false          | Enables adding `Server-Timing` header to HTTP responses. |
+| splunk.context.server-timing.enabled | SPLUNK_CONTEXT_SERVER_TIMING_ENABLED | false          | Enables adding `Server-Timing` header to HTTP responses. See [this document](docs/server-timing.md) for more information. |
 
 ## Manually instrument a Java application
 

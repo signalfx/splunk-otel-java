@@ -9,10 +9,8 @@ def versions = ext.versions
 def relocatePackages = ext.relocatePackages
 
 dependencies {
-  annotationProcessor("com.google.auto.service:auto-service:1.0-rc7")
-  annotationProcessor("com.google.auto:auto-common:0.8")
-  compileOnly("com.google.auto.service:auto-service:1.0-rc7")
-  compileOnly("com.google.auto:auto-common:0.8")
+  annotationProcessor deps.autoservice
+  compileOnly deps.autoservice
 
   compileOnly("io.opentelemetry.javaagent:opentelemetry-javaagent-spi:${versions.opentelemetryJavaagentAlpha}")
   compileOnly("io.micrometer:micrometer-core:${versions.micrometer}")

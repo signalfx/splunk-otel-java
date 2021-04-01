@@ -29,6 +29,8 @@ tasks.test {
     maxRetries = System.getenv("CI") != null ? 5 : 0
   }
 
+  testLogging.showStandardStreams = true
+
   reports {
     junitXml.outputPerTestCase = true
   }

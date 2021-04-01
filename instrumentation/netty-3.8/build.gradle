@@ -1,7 +1,7 @@
 apply from: "$rootDir/gradle/instrumentation.gradle"
 
 dependencies {
-    compileOnly group: 'io.netty', name: 'netty', version: '3.8.0.Final'
+    compileOnly group: 'io.netty', name: 'netty', version: '3.10.6.Final'
     compileOnly group: 'io.opentelemetry.javaagent.instrumentation', name: 'opentelemetry-javaagent-netty-3.8', version: versions.opentelemetryJavaagentAlpha
 
     implementation project(':instrumentation:common')

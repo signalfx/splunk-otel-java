@@ -22,11 +22,13 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.BDDMockito.given;
 
+import com.splunk.opentelemetry.testing.MeterData;
 import com.splunk.opentelemetry.testing.TestMetricsAccess;
 import io.opentelemetry.instrumentation.testing.junit.AgentInstrumentationExtension;
 import java.lang.management.ManagementFactory;
 import java.sql.Connection;
 import java.sql.Driver;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import javax.management.ObjectName;
 import org.apache.commons.dbcp2.BasicDataSource;
@@ -64,16 +66,7 @@ public class CommonsDbcp2InstrumentationTest {
     // then
     await()
         .atMost(20, TimeUnit.SECONDS)
-        .untilAsserted(
-            () ->
-                assertThat(TestMetricsAccess.getMeterNames())
-                    .containsExactlyInAnyOrder(
-                        "db.pool.connections",
-                        "db.pool.connections.active",
-                        "db.pool.connections.idle",
-                        "db.pool.connections.idle.min",
-                        "db.pool.connections.idle.max",
-                        "db.pool.connections.max"));
+        .untilAsserted(() -> assertConnectionPoolMetrics(connectionPool.getJmxName()));
   }
 
   // Spring does not rely on BasicDataSource's built-in JMX registration - it registers each MXBean
@@ -85,8 +78,7 @@ public class CommonsDbcp2InstrumentationTest {
     connectionPool.setDriver(driverMock);
     connectionPool.setUrl("db:///url");
 
-    ObjectName objectName =
-        new ObjectName("org.apache.commons.dbcp2.BasicDataSource:name=dataSource");
+    var objectName = new ObjectName("org.apache.commons.dbcp2.BasicDataSource:name=dataSource");
 
     // when
     ManagementFactory.getPlatformMBeanServer().registerMBean(connectionPool, objectName);
@@ -94,16 +86,7 @@ public class CommonsDbcp2InstrumentationTest {
     // then
     await()
         .atMost(20, TimeUnit.SECONDS)
-        .untilAsserted(
-            () ->
-                assertThat(TestMetricsAccess.getMeterNames())
-                    .containsExactlyInAnyOrder(
-                        "db.pool.connections",
-                        "db.pool.connections.active",
-                        "db.pool.connections.idle",
-                        "db.pool.connections.idle.min",
-                        "db.pool.connections.idle.max",
-                        "db.pool.connections.max"));
+        .untilAsserted(() -> assertConnectionPoolMetrics("dataSource"));
 
     // when
     ManagementFactory.getPlatformMBeanServer().unregisterMBean(objectName);
@@ -111,15 +94,30 @@ public class CommonsDbcp2InstrumentationTest {
     // then
     await()
         .atMost(20, TimeUnit.SECONDS)
-        .untilAsserted(
-            () ->
-                assertThat(TestMetricsAccess.getMeterNames())
-                    .doesNotContain(
-                        "db.pool.connections",
-                        "db.pool.connections.active",
-                        "db.pool.connections.idle",
-                        "db.pool.connections.idle.min",
-                        "db.pool.connections.idle.max",
-                        "db.pool.connections.max"));
+        .untilAsserted(CommonsDbcp2InstrumentationTest::assertNoConnectionPoolMetrics);
+  }
+
+  private static void assertConnectionPoolMetrics(String poolName) {
+    var tags = Map.of("pool.name", poolName, "pool.type", "dbcp2");
+
+    assertThat(TestMetricsAccess.getMeters())
+        .containsExactlyInAnyOrder(
+            new MeterData("db.pool.connections", "gauge", "connections", tags),
+            new MeterData("db.pool.connections.active", "gauge", "connections", tags),
+            new MeterData("db.pool.connections.idle", "gauge", "connections", tags),
+            new MeterData("db.pool.connections.idle.min", "gauge", "connections", tags),
+            new MeterData("db.pool.connections.idle.max", "gauge", "connections", tags),
+            new MeterData("db.pool.connections.max", "gauge", "connections", tags));
+  }
+
+  private static void assertNoConnectionPoolMetrics() {
+    assertThat(TestMetricsAccess.getMeters().stream().map(MeterData::getName).distinct())
+        .doesNotContain(
+            "db.pool.connections",
+            "db.pool.connections.active",
+            "db.pool.connections.idle",
+            "db.pool.connections.idle.min",
+            "db.pool.connections.idle.max",
+            "db.pool.connections.max");
   }
 }

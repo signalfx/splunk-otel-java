@@ -31,10 +31,12 @@ public class TomeeSmokeTest extends AppServerTest {
       new TomeeAttributes("8.0.6");
 
   private static Stream<Arguments> supportedConfigurations() {
-    return configurations("tomee").otelLinux("7.0.0", TOMEE7_SERVER_ATTRIBUTES, VMS_ALL, "8")
+    return configurations("tomee")
+        .otelLinux("7.0.0", TOMEE7_SERVER_ATTRIBUTES, VMS_ALL, "8")
         .otelLinux("8.0.6", TOMEE8_SERVER_ATTRIBUTES, VMS_ALL, "8", "11")
         .otelWindows("7.0.0", TOMEE7_SERVER_ATTRIBUTES, VMS_ALL, "8")
-        .otelWindows("8.0.6", TOMEE8_SERVER_ATTRIBUTES, VMS_ALL, "8", "11").stream();
+        .otelWindows("8.0.6", TOMEE8_SERVER_ATTRIBUTES, VMS_ALL, "8", "11")
+        .stream();
   }
 
   @ParameterizedTest(name = "[{index}] {0}")

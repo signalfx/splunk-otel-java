@@ -31,7 +31,8 @@ public class LibertySmokeTest extends AppServerTest {
   private static Stream<Arguments> supportedConfigurations() {
     return configurations("liberty")
         .otelLinux("20.0.0.12", LIBERTY20_SERVER_ATTRIBUTES, VMS_ALL, "8", "11", "15")
-        .otelWindows("20.0.0.12", LIBERTY20_SERVER_ATTRIBUTES, VMS_ALL, "8", "11", "15").stream();
+        .otelWindows("20.0.0.12", LIBERTY20_SERVER_ATTRIBUTES, VMS_ALL, "8", "11", "15")
+        .stream();
   }
 
   @ParameterizedTest(name = "[{index}] {0}")

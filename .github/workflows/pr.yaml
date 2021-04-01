@@ -17,7 +17,7 @@ jobs:
         run: ./gradlew build -x :smoke-tests:test --scan --no-daemon
 
   smoke-test:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         os: [ windows-latest, ubuntu-latest ]

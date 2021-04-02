@@ -52,7 +52,8 @@ public class JBossEapSmokeTest extends AppServerTest {
   // AFAIK only openj9 (IBM) JDK 8 has this problem, all other JDKs don't use JUL in MBeans
   @Override
   protected Map<String, String> getExtraEnv() {
-    return Map.of("SPLUNK_METRICS_ENABLED", "false");
+    return Map.of(
+        "SPLUNK_METRICS_ENABLED", "false", "OTEL_INSTRUMENTATION_RUNTIME_METRICS_ENABLED", "true");
   }
 
   @ParameterizedTest(name = "[{index}] {0}")

@@ -76,7 +76,7 @@ To see the Java Agent in action with sample applications, see our
 ### Basic Configuration
 
 The service name resource attribute is the only configuration option
-that is required by the javaagent. You can set it by adding a `service.name`
+that needs to be specified. You can set it by adding a `service.name`
 attribute as shown in the [example above](#getting-started).
 
 A couple other configuration options that may need to be changed or set are:

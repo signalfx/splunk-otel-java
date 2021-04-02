@@ -41,5 +41,7 @@ Below you will find all the configuration options supported by this distribution
 | ------------------------ | ------------------------ | -------------- | -------------------------------------------------|
 | `otel.javaagent.enabled` | `OTEL_JAVAAGENT_ENABLED` | `true`         | Globally enables javaagent auto-instrumentation. |
 
-You can find more Java agent configuration
-options [here](https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/docs/agent-config.md).
+## Other OpenTelemetry Java agent configuration
+
+You can find all other Java agent configuration options
+described [here](https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/docs/agent-config.md).

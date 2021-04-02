@@ -1,3 +1,5 @@
+# Release Process
+
 ## Releasing a new version
 
 [This GitHub Action](.github/workflows/release.yaml) builds, uploads and releases a new version of
@@ -15,3 +17,10 @@ Unless you have a specific reason to do otherwise, new to-be-released version sh
 by incrementing the minor version of [the last released version](https://github.com/signalfx/splunk-otel-java/releases)
 * Push newly created tag by running `git push origin <tagname>`.
 * GitHub Action will kick in and do the rest.
+
+## Post-release
+
+* Update the release notes for the latest release.
+* Update README.md with all changes (new configuration options, new upstream versions, etc)
+that happened in the latest release.
+* Update CHANGELOG.md and change the Unreleased section to reflect the latest tag.

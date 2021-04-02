@@ -22,7 +22,7 @@ distributed traces to Splunk APM.
 
 If you're currently using the SignalFx Java Agent and want to
 migrate to the Splunk Distribution of OpenTelemetry Java Instrumentation,
-see [Migrate from the SignalFx Java Agent](migration.md).
+see [Migrate from the SignalFx Java Agent](MIGRATING.md).
 
 This Splunk distribution comes with the following defaults:
 

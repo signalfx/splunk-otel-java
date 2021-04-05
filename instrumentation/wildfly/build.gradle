@@ -1,5 +1,5 @@
 apply from: "$rootDir/gradle/instrumentation.gradle"
 
 dependencies {
-    compileOnly('org.wildfly.core:wildfly-version:13.0.0.Final')
+    compileOnly('org.wildfly.core:wildfly-version:15.0.1.Final')
 }

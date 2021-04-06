@@ -14,6 +14,7 @@ jobs:
       - name: Set up JDK 11 for running Gradle
         uses: actions/setup-java@v2
         with:
+          distribution: adopt
           java-version: 11
 
       - name: Build and test
@@ -31,6 +32,7 @@ jobs:
       - name: Set up JDK 11 for running Gradle
         uses: actions/setup-java@v2
         with:
+          distribution: adopt
           java-version: 11
 
       - name: Login to GitHub Container Registry

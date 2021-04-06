@@ -1,5 +1,5 @@
 apply from: "$rootDir/gradle/instrumentation.gradle"
 
 dependencies {
-    compileOnly('org.glassfish.main.common:common-util:5.0')
+    compileOnly('org.glassfish.main.common:common-util:6.0.0')
 }

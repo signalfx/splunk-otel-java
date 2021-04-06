@@ -21,7 +21,3 @@ dependencies {
         }
     }
 }
-
-tasks.withType(Test) {
-    jvmArgs '-Dsplunk.context.server-timing.enabled=true'
-}

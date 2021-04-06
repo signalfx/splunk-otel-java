@@ -3,20 +3,22 @@
 The Splunk Distribution of OpenTelemetry Java Instrumentation replaces the
 [SignalFx Java Agent](https://github.com/signalfx/signalfx-java-tracing).
 If you're using the SignalFx Java Agent, migrate to the Splunk Distribution of
-OpenTelemetry Java Instrumentation to use OpenTelemetry's instrumentation to
-send traces to Splunk APM. The Splunk Distribution of OpenTelemetry Java
-Instrumentation uses OpenTelemetry to instrument applications, which is an
-open-source API to gather telemetry data, and has a smaller footprint.
+OpenTelemetry Java Instrumentation.
+
+The distribution uses [OpenTelemetry Java Instrumentation](https://github.com/open-telemetry/opentelemetry-java-instrumentation) 
+to instrument applications, which in open-source, robust and has a smaller memory footprint.
+
+## Tracing data
 
 Because the SignalFx Java Agent uses OpenTracing and the Splunk Distribution
 of OpenTelemetry Java Instrumentation uses OpenTelemetry, the semantic
 conventions for span tag names change when you migrate. For more information,
 see [Migrate from OpenTracing to OpenTelemetry](https://docs.signalfx.com/en/latest/apm/apm-getting-started/apm-opentelemetry-collector.html#apm-opentelemetry-migration).
 
-The SignalFx Java Agent and the Splunk Distribution of OpenTelemetry Java
-Instrumentation could export trace data in different formats. This would
-result in your application sending different or incomplete data to SignalFx.
-To address this, you could run a pilot test to compare the trace data you
+Depending on the configuration, the SignalFx Java Agent and the Splunk Distribution of OpenTelemetry Java
+Instrumentation may export trace data in different formats. Such a situation would
+result in your application sending different data to Splunk APM.
+To address this, please run a pilot test to compare the trace data you
 receive with the Splunk Distribution of OpenTelemetry Java Instrumentation
 against the data you used to receive from the SignalFx Java Agent.
 
@@ -25,21 +27,34 @@ against the data you used to receive from the SignalFx Java Agent.
 Follow these steps to migrate from the SignalFx Java Agent to the Splunk
 distribution of Splunk Distribution of OpenTelemetry Java Instrumentation:
 
-1. Download the [latest release](https://github.com/signalfx/splunk-otel-java/releases)
-   of the Splunk Distribution of OpenTelemetry Java Instrumentation.
-2. Set the service name. This is how you can identify the service in APM.
-   You can set the service name with a system property or environment
-   variable. This is how you can set it with an environment variable with a
-   service name of `yourServiceName`:
+1. Download the [latest release](https://github.com/signalfx/splunk-otel-java/releases/latest/download/splunk-otel-javaagent-all.jar)
+   of the Splunk Distribution of OpenTelemetry Java Instrumentation. For example use: 
+   ```bash
+   $ # download the newest version of the agent
+   $ sudo curl -vsSL -o splunk-otel-javaagent-all.jar 'https://github.com/signalfx/splunk-otel-java/releases/latest/download/splunk-otel-javaagent-all.jar'
    ```
+2. Set the service name. This is how you can identify the service in Splunk APM.
+
+   Example how you can set it with an environment variable with a
+   service name of `yourServiceName` with environment variable:
+   ```bash
    $ EXPORT OTEL_RESOURCE_ATTRIBUTES=service.name=my-java-app
+   ```
+   or with system property:
+   ```
+   -Dotel.resource.attributes=service.name=my-java-app
    ```
 3. Specify the endpoint of the SignalFx Smart Agent or OpenTelemetry Collector
    you're exporting traces to. You can set the endpoint with a system property
-   or environment variable. This is how you can set it with an environment
-   variable with an endpoint of `http://yourEndpoint:9080/v1/trace`:
+   or environment variable. 
+   
+   Example how you can set it with an environment variable with an endpoint of `http://yourEndpoint:9080/v1/trace`:
    ```
    $ EXPORT OTEL_EXPORTER_JAEGER_ENDPOINT="http://yourEndpoint:9080/v1/trace"
+   ```
+   or with system property:
+   ```
+   -Dotel.exporter.jaeger.endpoint=http://yourEndpoint:9080/v1/trace
    ```
    The default value is `http://localhost:9080/v1/trace`. If you're exporting
    traces to a local Smart Agent, you don't have to modify this configuration
@@ -64,19 +79,22 @@ OpenTelemetry Java Instrumentation.
 ### Configuration setting changes
 
 These SignalFx Java Agent system properties correspond to the following
-OpenTelemetry system properties:
+OpenTelemetry system properties (NOTE: for exporter - specific properties we use `jaeger` as an example):
 
 | SignalFx system property | OpenTelemetry system property |
 | ------------------------ | ----------------------------- |
-| `signalfx.service.name` | `otel.resource.attributes=service.name=my-java-app` |
+| `signalfx.service.name` | `otel.resource.attributes=service.name=<name of the service>` |
+| `signalfx.env` | `otel.resource.attributes=deployment.environment=<name of the environment>` |
 | `signalfx.endpoint.url` | `otel.exporter.jaeger.endpoint` |
-| `signalfx.tracing.enabled` | `otel.trace.enabled` |
-| `signalfx.span.tags` | `otel.resource.attributes` |
-| `signalfx.recorded.value.max.length` | `otel.config.max.attr.length` |
-| `signalfx.db.statement.max.length` | `otel.config.max.attr.length` | 
+| `signalfx.tracing.enabled` | `otel.javaagent.enabled` |
+| `signalfx.integration.<name>.enabled=false` | `otel.instrumentation.[id].enabled=false` | 
+| `signalfx.span.tags` | `otel.resource.attributes=<comma separated key=value pairs>` |
 | `signalfx.trace.annotated.method.blacklist` | `otel.trace.annotated.methods.exclude` |
 | `signalfx.trace.methods` | `otel.trace.methods` |
-| `signalfx.integration.<name>.enabled=true` | `otel.integration.[id].enabled=false` | 
+| `signalfx.server.timing.context` | `splunk.context.server-timing.enabled` |
+
+
+Additional info about disabling a particular instrumentations can be found in the [OpenTelemetry Java Instrumentation docs](https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/docs/suppressing-instrumentation.md)
 
 These SignalFx Java Agent environment variables correspond to the following
 OpenTelemetry environment variables:
@@ -84,12 +102,14 @@ OpenTelemetry environment variables:
 | SignalFx environment variable | OpenTelemetry environment variable |
 | ----------------------------- | ---------------------------------- |
 | `SIGNALFX_SERVICE_NAME` | `OTEL_RESOURCE_ATTRIBUTES=service.name=my-java-app` |
+| `SIGNALFX_ENV` | `OTEL_RESOURCE_ATTRIBUTES=deployment.environment=<name of the environment>` |
 | `SIGNALFX_ENDPOINT_URL` |`OTEL_EXPORTER_JAEGER_ENDPOINT` |
-| `SIGNALFX_TRACING_ENABLED` | `OTEL_TRACE_ENABLED` |
+| `SIGNALFX_TRACING_ENABLED` | `OTEL_JAVAAGENT_ENABLED` |
+| `SIGNALFX_INTEGRATION_<name>_ENABLED=false` | `OTEL_INSTRUMENTATION_[id]_ENABLED=false` |
 | `SIGNALFX_SPAN_TAGS` | `OTEL_RESOURCE_ATTRIBUTES` |
-| `SIGNALFX_RECORDED_VALUE_MAX_LENGTH` | `OTEL_CONFIG_MAX_ATTR_LENGTH` |
 | `SIGNALFX_TRACE_ANNOTATED_METHOD_BLACKLIST` | `OTEL_TRACE_ANNOTATED_METHODS_EXCLUDE` |
 | `SIGNALFX_TRACE_METHODS` | `OTEL_TRACE_METHODS` |
+| `SIGNALFX_SERVER_TIMING_CONTEXT` | `SPLUNK_CONTEXT_SERVER-TIMING_ENABLED` |
 
 These SignalFx Java Agent system properties and environment variables don't
 have corresponding configuration options with the Spunk Distribution for
@@ -99,6 +119,8 @@ OpenTelemetry Java Instrumentation:
 | --------------- | -------------------- |
 | `signalfx.agent.host` | `SIGNALFX_AGENT_HOST` |
 | `signalfx.db.statement.max.length` | `SIGNALFX_DB_STATEMENT_MAX_LENGTH` |
+| `signalfx.recorded.value.max.length` | `SIGNALFX_RECORDED_VALUE_MAX_LENGTH` |
+| `signalfx.max.spans.per.trace` | `SIGNALFX_MAX_SPANS_PER_TRACE` |
 | `signalfx.max.continuation.depth` | `SIGNALFX_MAX_CONTINUATION_DEPTH` |
 
 ### Log injection changes

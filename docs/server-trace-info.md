@@ -1,6 +1,6 @@
-# Server Trace Context
+# Server trace information
 
-Setting `SPLUNK_CONTEXT_SERVER_TIMING_ENABLED` to `true` results in the
+Setting `SPLUNK_TRACE_RESPONSE_HEADER_ENABLED` to `true` results in the
 following headers being added to HTTP responses produced by the
 instrumented application:
 

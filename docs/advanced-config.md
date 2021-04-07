@@ -62,6 +62,14 @@ export OTEL_EXPORTER_JAEGER_ENDPOINT=https://ingest.us0.signalfx.com/v2/trace
 | ------------------------ | ------------------------ | -------------- | -------------------------------------------------|
 | `otel.javaagent.enabled` | `OTEL_JAVAAGENT_ENABLED` | `true`         | Globally enables javaagent auto-instrumentation. |
 
+## Deprecated configuration
+
+These configuration options will be removed in the future; if you're still using one of them please migrate!
+
+| Deprecated configuration option        | Replacement                            | Migration instructions |
+| -------------------------------------- | -------------------------------------- | ---------------------- |
+| `splunk.context.server-timing.enabled` | `splunk.trace-response-header.enabled` | The old property was renamed, the value and the way it works is exactly the same as it had been before.
+
 ## Other OpenTelemetry Java agent configuration
 
 You can find all other Java agent configuration options

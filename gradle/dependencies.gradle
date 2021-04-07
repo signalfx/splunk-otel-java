@@ -16,6 +16,7 @@ ext {
           "com.google.auto.service:auto-service:1.0-rc7",
           "com.google.auto:auto-common:0.8"
       ],
+      slf4j      : "org.slf4j:slf4j-api:1.7.30",
 
       // test
       assertj    : "org.assertj:assertj-core:3.19.0",

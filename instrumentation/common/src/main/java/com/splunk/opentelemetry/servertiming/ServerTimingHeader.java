@@ -23,17 +23,24 @@ import io.opentelemetry.context.propagation.TextMapSetter;
 import io.opentelemetry.instrumentation.api.config.Config;
 import java.util.HashMap;
 import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Adds {@code Server-Timing} header (and {@code Access-Control-Expose-Headers}) to the HTTP
  * response. The {@code Server-Timing} header contains the traceId and spanId of the server span.
  */
 public final class ServerTimingHeader {
+  private static final Logger log = LoggerFactory.getLogger(ServerTimingHeader.class);
+
   public static final String SERVER_TIMING = "Server-Timing";
   public static final String EXPOSE_HEADERS = "Access-Control-Expose-Headers";
 
+  private static final String EMIT_RESPONSE_HEADERS_OLD = "splunk.context.server-timing.enabled";
+  private static final String EMIT_RESPONSE_HEADERS = "splunk.trace-response-header.enabled";
+
   public static boolean shouldEmitServerTimingHeader() {
-    return Config.get().getBooleanProperty("splunk.context.server-timing.enabled", false);
+    return ConfigHolder.SHOULD_EMIT_RESPONSE_HEADERS;
   }
 
   public static <RS> void setHeaders(Context context, RS response, TextMapSetter<RS> headerSetter) {
@@ -52,4 +59,22 @@ public final class ServerTimingHeader {
   }
 
   private ServerTimingHeader() {}
+
+  // tests didn't like using Config in ServerTimingHeader.<clinit>
+  static class ConfigHolder {
+    private static final boolean SHOULD_EMIT_RESPONSE_HEADERS;
+
+    static {
+      Config config = Config.get();
+      if (config.getProperty(EMIT_RESPONSE_HEADERS_OLD) != null) {
+        log.warn(
+            "Deprecated property '{}' was set; please use '{}' instead. Support for the deprecated property will be removed in future versions.",
+            EMIT_RESPONSE_HEADERS_OLD,
+            EMIT_RESPONSE_HEADERS);
+      }
+      SHOULD_EMIT_RESPONSE_HEADERS =
+          config.getBooleanProperty(
+              EMIT_RESPONSE_HEADERS, config.getBooleanProperty(EMIT_RESPONSE_HEADERS_OLD, true));
+    }
+  }
 }

@@ -13,7 +13,3 @@ dependencies {
 
     testImplementation group: 'io.netty', name: 'netty-codec-http', version: '4.0.0.Final'
 }
-
-tasks.withType(Test) {
-    jvmArgs '-Dsplunk.context.server-timing.enabled=true'
-}

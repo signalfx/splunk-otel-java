@@ -23,6 +23,15 @@ Below you will find all the configuration options supported by this distribution
 | `otel.traces.exporter`          | `OTEL_TRACES_EXPORTER`            | `jaeger-thrift-splunk`           | Select the span exporter to use.
 | `otel.exporter.jaeger.endpoint` | `OTEL_EXPORTER_JAEGER_ENDPOINT`   | `http://localhost:9080/v1/trace` | The Jaeger endpoint to connect to.
 
+The Jaeger exporter can be configured to export traces directly to Splunk ingest.
+To achieve that, you need to set the `splunk.access.token` configuration property
+and set the `otel.exporter.jaeger.endpoint` to Splunk ingest URL. For example:
+
+```bash
+export SPLUNK_ACCESS_TOKEN=my_splunk_token
+export OTELK_EXPORTER_JAEGER_ENDPOINT=https://ingest.us0.signalfx.com/v2/trace
+```
+
 ## Trace configuration
 
 | System property                                                  | Environment variable                                             | Default value | Purpose |

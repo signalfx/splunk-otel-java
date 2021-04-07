@@ -1,19 +1,40 @@
 ---
 
 <p align="center">
+  <strong>
+    <a href="#getting-started">Getting Started</a>
+    &nbsp;&nbsp;&bull;&nbsp;&nbsp;
+    <a href="CONTRIBUTING.md">Getting Involved</a>
+    &nbsp;&nbsp;&bull;&nbsp;&nbsp;
+    <a href="MIGRATING.md">Migrating from SignalFx Java Agent</a>
+  </strong>
+</p>
+
+<p align="center">
   <a href="https://github.com/signalfx/splunk-otel-java/actions?query=workflow%3A%22CI+build%22">
     <img alt="Build Status" src="https://img.shields.io/github/workflow/status/signalfx/splunk-otel-java/CI%20build?style=for-the-badge">
   </a>
   <a href="https://github.com/signalfx/splunk-otel-java/releases">
     <img alt="GitHub release (latest by date)" src="https://img.shields.io/github/v/release/signalfx/splunk-otel-java?include_prereleases&style=for-the-badge">
   </a>
+  <img alt="Beta" src="https://img.shields.io/badge/status-beta-informational?style=for-the-badge">
+</p>
+
+<p align="center">
+  <strong>
+    <a href="docs/supported-libraries.md">Supported Libraries</a>
+    &nbsp;&nbsp;&bull;&nbsp;&nbsp;
+    <a href="SECURITY.md">Security</a>
+    &nbsp;&nbsp;&bull;&nbsp;&nbsp;
+    <a href="docs/troubleshooting.md">Troubleshooting</a>
+  </strong>
 </p>
 
 ---
 
-# Splunk distribution of OpenTelemetry Java Instrumentation
+# Splunk Distribution of OpenTelemetry Java Instrumentation
 
-The Splunk distribution of [OpenTelemetry Java
+The Splunk Distribution of [OpenTelemetry Java
 Instrumentation](https://github.com/open-telemetry/opentelemetry-java-instrumentation)
 provides a [Java Virtual Machine (JVM)
 agent](https://docs.oracle.com/javase/7/docs/api/java/lang/instrument/package-summary.html)
@@ -24,7 +45,7 @@ If you're currently using the SignalFx Java Agent and want to
 migrate to the Splunk Distribution of OpenTelemetry Java Instrumentation,
 see [Migrate from the SignalFx Java Agent](MIGRATING.md).
 
-This Splunk distribution comes with the following defaults:
+This distribution comes with the following defaults:
 
 - [B3 context propagation](https://github.com/openzipkin/b3-propagation).
 - [Jaeger-Thrift exporter](https://www.jaegertracing.io)
@@ -97,8 +118,7 @@ The `otel.resource.attributes` syntax is described in detail in the
 
 The agent works with Java runtimes version 8 and higher and supports all
 JVM-based languages (for example, Clojure, Groovy, Kotlin, Scala). Supported
-libraries and versions are listed
-[here](https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/docs/supported-libraries.md).
+libraries and versions are listed [here](docs/supported-libraries.md).
 
 ## Advanced Configuration
 
@@ -107,57 +127,25 @@ all you need. Advanced configuration documentation can be found [here](docs/adva
 
 ## Manually instrument a Java application
 
-Documentation on how to manually instrument a Java application are available
+Documentation on how to manually instrument a Java application is available
 [here](https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/docs/manual-instrumentation.md).
 
 To extend the instrumentation with the OpenTelemetry Instrumentation for Java,
 you have to use a compatible API version.
 
-The Splunk distribution of OpenTelemetry Java Instrumentation version 0.9.0 is compatible with:
+The Splunk Distribution of OpenTelemetry Java Instrumentation version 0.9.0 is compatible with:
 
 * OpenTelemetry API version 1.0.0
 * OpenTelemetry Instrumentation for Java version 1.0.0
 
 ## Correlating traces with logs
 
-To correlate traces with logs it is possible to add the following metadata from traces to logs:
-
- - Trace: `trace_id` and `span_id`
- - Resource: `service.name` and `deployment.environment`
-
-Documentation on how to inject trace context into logs is available
-[here](https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/docs/logger-mdc-instrumentation.md).
-
-To log resource context, the Splunk distribution exposes resource attributes as
-system properties prefixed with `otel.resource.` which can be used in logger
-configuration.
-
-Example configuration for log4j pattern:
-
-```xml
-<PatternLayout>
-  <pattern>service: ${sys:otel.resource.service.name}, env: ${sys:otel.resource.environment} %m%n</pattern>
-</PatternLayout>
-```
-
-or logback pattern:
-
-```xml
-<pattern>service: %property{otel.resource.service.name}, env: %property{otel.resource.environment}: %m%n</pattern>
-```
-
-## Troubleshooting
-
-To turn on the agent's internal debug logging:
-
-`-Dotel.javaagent.debug=true`
-
-> :warning: Debug logging is extremely verbose and resource intensive. Enable
-> debug logging only when needed and disable when done.
+The Splunk Distribution of OpenTelemetry Java Instrumentation provides a way
+to correlate traces with logs. It is described in detail [here](docs/correlating-traces-with-logs.md).
 
 # License and versioning
 
-The Splunk distribution of OpenTelemetry Java Instrumentation is a distribution
+The Splunk Distribution of OpenTelemetry Java Instrumentation is a distribution
 of the [OpenTelemetry Java Instrumentation
 project](https://github.com/open-telemetry/opentelemetry-java-instrumentation).
 It is released under the terms of the Apache Software License version 2.0. See

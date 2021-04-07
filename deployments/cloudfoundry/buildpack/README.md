@@ -1,7 +1,7 @@
-# Splunk distribution of OpenTelemetry Java Instrumentation Buildpack
+# Splunk Distribution of OpenTelemetry Java Instrumentation Buildpack
 
 A [CloudFoundry buildpack](https://docs.run.pivotal.io/buildpacks/) to install
-and run the Splunk distribution of the OpenTelemetry Java Instrumentation agent in CloudFoundry apps.
+and run the Splunk Distribution of the OpenTelemetry Java Instrumentation agent in CloudFoundry apps.
 
 > :construction: This project is currently in **BETA**.
 

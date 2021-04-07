@@ -90,3 +90,20 @@ All `apache-dbcp2` metrics have the following tags:
 | ----------- | --------- |
 | `pool.type` | `dbcp2`
 | `pool.name` | The name of the connection pool: Spring bean name if Spring is used, the JMX object name otherwise.
+
+## Troubleshooting
+
+If you see the following warning:
+
+```
+[signalfx-metrics-publisher] WARN com.splunk.javaagent.shaded.io.micrometer.signalfx.SignalFxMeterRegistry - failed to send metrics: Unable to send datapoints
+```
+
+in your logs it means that the javaagent cannot send metrics to your Smart Agent
+or OpenTelemetry Collector instance.
+
+Please double check your Agent/Collector configuration and make sure that the
+`signalfx` metrics receiver is added to the pipeline. Make sure that the javaagent
+configuration (`SPLUNK_METRICS_ENDPOINT`) points to the correct host and port:
+Smart Agent and Otel Collector by default use different ports for the `signalfx`
+receiver.

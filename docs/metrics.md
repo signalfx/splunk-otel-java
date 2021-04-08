@@ -2,7 +2,7 @@
 
 > :construction: This feature is experimental - exported metric data and configuration properties may change.
 
-The Splunk distribution of OpenTelemetry Java agent is also gathering basic application metrics. We
+The Splunk Distribution of OpenTelemetry Java agent gathers basic application metrics. We
 use [Micrometer](https://micrometer.io/)
 and [Micrometer SignalFx registry](https://micrometer.io/docs/registry/signalFx)
 to gather and export metrics to either [SignalFx SmartAgent](https://github.com/signalfx/signalfx-agent/)
@@ -14,7 +14,7 @@ The following dimensions are automatically added to all metrics exported by the 
 
 | Tag name                 | Tag value |
 | ------------------------ | --------- |
-| `deployment.environment` | The value of the `deployment.environment` resource attribute.
+| `deployment.environment` | The value of the `deployment.environment` resource attribute, if present.
 | `service`                | The value of the `service.name` resource attribute.
 | `runtime`                | The value of the `process.runtime.name` resource attribute, e.g. `OpenJDK Runtime Environment`.
 | `process.pid`            | The Java process identifier (PID).
@@ -84,7 +84,7 @@ All memory pool metrics have the following tags:
 | `db.pool.connections.idle.max` | The maximum number of idle open connections allowed.
 | `db.pool.connections.max`      | The maximum number of open connections allowed.
 
-All `apache-dbcp2` metrics have the following tags:
+All Apache DBCP2 metrics have the following tags:
 
 | Tag name    | Tag value |
 | ----------- | --------- |

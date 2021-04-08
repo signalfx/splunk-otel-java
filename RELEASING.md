@@ -3,7 +3,7 @@
 ## Releasing a new version
 
 [This GitHub Action](.github/workflows/release.yaml) builds, uploads and releases a new version of
-Splunk distribution of OpenTelemetry Java Instrumentation
+Splunk Distribution of OpenTelemetry Java Instrumentation
 whenever a new tag of the specific format is pushed to the repository.
 
 If you want to release a new version, do the following:

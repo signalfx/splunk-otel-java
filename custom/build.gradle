@@ -27,8 +27,15 @@ dependencies {
   }
 
   testImplementation("io.opentelemetry:opentelemetry-sdk:${versions.opentelemetry}")
+  testImplementation("io.opentelemetry:opentelemetry-sdk-testing:${versions.opentelemetry}")
+  testImplementation("io.opentelemetry:opentelemetry-sdk-extension-autoconfigure:${versions.opentelemetryAlpha}")
   testImplementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-api:${versions.opentelemetryJavaagentAlpha}")
   testImplementation("io.micrometer:micrometer-core:${versions.micrometer}")
+
+  testImplementation(project(':testing:common'))
+  testImplementation group: 'javax.servlet', name: 'javax.servlet-api', version: '3.0.1'
+  testImplementation group: 'org.eclipse.jetty', name: 'jetty-server', version: '8.0.0.v20110901'
+  testImplementation group: 'org.eclipse.jetty', name: 'jetty-servlet', version: '8.0.0.v20110901'
 }
 
 tasks {

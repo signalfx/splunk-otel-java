@@ -29,7 +29,7 @@ and set the `otel.exporter.jaeger.endpoint` to Splunk ingest URL. For example:
 
 ```bash
 export SPLUNK_ACCESS_TOKEN=my_splunk_token
-export OTELK_EXPORTER_JAEGER_ENDPOINT=https://ingest.us0.signalfx.com/v2/trace
+export OTEL_EXPORTER_JAEGER_ENDPOINT=https://ingest.us0.signalfx.com/v2/trace
 ```
 
 ## Trace configuration

@@ -6,8 +6,8 @@ You can use the following information to correlate traces with logs:
 - Trace information: `trace_id` and `span_id`;
 - Resource attributes: `service.name` and `deployment.environment`.
 
-Injecting trace context information is described in detail on
-[this page](https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/docs/supported-libraries.md).
+Injecting trace context is described in detail on
+[this page](https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/docs/logger-mdc-instrumentation.md).
 
 To log resource context, the Splunk distribution exposes resource attributes as
 system properties prefixed with `otel.resource.` which can be used in logger

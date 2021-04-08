@@ -2,6 +2,8 @@
 
 <p align="center">
   <strong>
+    <a href="https://github.com/signalfx/tracing-examples/tree/master/opentelemetry-tracing/opentelemetry-java-tracing">Examples</a>
+    &nbsp;&nbsp;&bull;&nbsp;&nbsp;
     <a href="#getting-started">Getting Started</a>
     &nbsp;&nbsp;&bull;&nbsp;&nbsp;
     <a href="CONTRIBUTING.md">Getting Involved</a>
@@ -22,6 +24,8 @@
 
 <p align="center">
   <strong>
+    <a href="docs/faq.md">FAQ</a>
+    &nbsp;&nbsp;&bull;&nbsp;&nbsp;
     <a href="docs/supported-libraries.md">Supported Libraries</a>
     &nbsp;&nbsp;&bull;&nbsp;&nbsp;
     <a href="SECURITY.md">Security</a>

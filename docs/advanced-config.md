@@ -19,6 +19,15 @@ Below you will find all the configuration options supported by this distribution
 | `splunk.metrics.endpoint`              | `SPLUNK_METRICS_ENDPOINT`              | `http://localhost:9080/v2/datapoint` | The SignalFx metrics endpoint to connect to.
 | `splunk.metrics.export.interval`       | `SPLUNK_METRICS_EXPORT_INTERVAL`       | `10000`                              | The interval between pushing metrics, in milliseconds.
 
+The SignalFx exporter can be configured to export metrics directly to Splunk ingest.
+To achieve that, you need to set the `splunk.access.token` configuration property
+and set the `splunk.metrics.endpoint` to Splunk ingest URL. For example:
+
+```bash
+export SPLUNK_ACCESS_TOKEN=my_splunk_token
+export SPLUNK_METRICS_ENDPOINT=https://ingest.us0.signalfx.com
+```
+
 ## Jaeger exporter
 
 | System property                 | Environment variable              | Default value                    | Description |

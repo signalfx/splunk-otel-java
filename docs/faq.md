@@ -9,6 +9,6 @@ JVM parameter.
 
 ## How often do you release?
 
-We strive to release the Splunk distribution at most 2 days after the
+We strive to release the Splunk distribution at most 2 working days after the
 [upstream project](https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases)
 releases. We release a new version every 2-4 weeks.

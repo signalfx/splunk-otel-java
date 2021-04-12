@@ -29,7 +29,7 @@ If you find something wrong with a particular instrumentation (or suspect that
 there's something wrong with it) you can suppress it by following steps
 described [here](https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/docs/suppressing-instrumentation.md#suppressing-specific-agent-instrumentation).
 
-If you find that any instrumentation is broken please do not hesitate to file a bug.
+If you find that any instrumentation is broken please do not hesitate to [file a bug](https://github.com/signalfx/splunk-otel-java/issues/new).
 
 ## Trace exporter issues
 

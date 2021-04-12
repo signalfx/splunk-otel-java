@@ -3,7 +3,7 @@ plugins {
   id "org.gradle.test-retry" version "1.2.1"
 }
 
-def dockerJavaVersion = "3.2.7"
+def dockerJavaVersion = "3.2.8"
 
 dependencies {
   testImplementation("org.testcontainers:testcontainers:1.15.2")

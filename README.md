@@ -26,9 +26,9 @@
     &nbsp;&nbsp;&bull;&nbsp;&nbsp;
     <a href="docs/faq.md">FAQ</a>
     &nbsp;&nbsp;&bull;&nbsp;&nbsp;
-    <a href="docs/supported-libraries.md">Supported Libraries</a>
-    &nbsp;&nbsp;&bull;&nbsp;&nbsp;
     <a href="SECURITY.md">Security</a>
+    &nbsp;&nbsp;&bull;&nbsp;&nbsp;
+    <a href="docs/supported-libraries.md">Supported Libraries</a>
     &nbsp;&nbsp;&bull;&nbsp;&nbsp;
     <a href="docs/troubleshooting.md">Troubleshooting</a>
   </strong>

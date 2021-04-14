@@ -13,7 +13,7 @@ Below you will find all the configuration options supported by this distribution
 
 | System property                        | Environment variable                   | Default value                        | Purpose |
 | -------------------------------------- | -------------------------------------- | ------------------------------------ | ------- |
-| `splunk.context.server-timing.enabled` | `SPLUNK_CONTEXT_SERVER_TIMING_ENABLED` | `false`                              | Enables adding `Server-Timing` header to HTTP responses. See [this document](server-timing.md) for more information.
+| `splunk.trace-response-header.enabled` | `SPLUNK_TRACE_RESPONSE_HEADER_ENABLED` | `true`                               | Enables adding server trace information to HTTP response headers. See [this document](server-trace-info.md) for more information.
 | `splunk.access.token`                  | `SPLUNK_ACCESS_TOKEN`                  | unset                                | (Optional) Auth token allowing exporters to communicate directly with the Splunk cloud, passed as `X-SF-TOKEN` header. Currently only the [Jaeger span exporter](#jaeger-exporter) and [SignalFx metrics exporter](metrics.md) support this property.
 | `splunk.metrics.enabled`               | `SPLUNK_METRICS_ENABLED`               | `true`                               | Enables exporting metrics. See [this document](metrics.md) for more information.
 | `splunk.metrics.endpoint`              | `SPLUNK_METRICS_ENDPOINT`              | `http://localhost:9080/v2/datapoint` | The SignalFx metrics endpoint to connect to.
@@ -61,6 +61,14 @@ export OTEL_EXPORTER_JAEGER_ENDPOINT=https://ingest.us0.signalfx.com/v2/trace
 | System property          | Environment variable     | Default value  | Purpose                                          |
 | ------------------------ | ------------------------ | -------------- | -------------------------------------------------|
 | `otel.javaagent.enabled` | `OTEL_JAVAAGENT_ENABLED` | `true`         | Globally enables javaagent auto-instrumentation. |
+
+## Deprecated configuration
+
+These configuration options will be removed in the future; if you're still using one of them please migrate!
+
+| Deprecated configuration option        | Replacement                            | Migration instructions |
+| -------------------------------------- | -------------------------------------- | ---------------------- |
+| `splunk.context.server-timing.enabled` | `splunk.trace-response-header.enabled` | The old property was renamed, the value and the way it works is exactly the same as it had been before.
 
 ## Other OpenTelemetry Java agent configuration
 

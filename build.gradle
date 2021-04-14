@@ -22,9 +22,6 @@ subprojects {
 
   repositories {
     mavenLocal()
-    maven {
-      url = uri("https://dl.bintray.com/open-telemetry/maven")
-    }
     mavenCentral()
     maven {
       url = uri("https://oss.sonatype.org/content/repositories/snapshots")

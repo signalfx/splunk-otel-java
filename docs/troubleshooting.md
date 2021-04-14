@@ -59,3 +59,26 @@ Assuming you're using the default Jaeger Thrift exporter:
 4. Smart Agent and OpenTelemetry Collector by default use different ports (and paths)
    for the Jaeger receiver: the Agent uses `http://<host>:9080/v1/trace` and the Collector
    uses `http://<host>:14268/api/traces`. Verify that your URL is correct.
+
+## Metrics exporter issues
+
+If you see the following warning:
+
+```
+[signalfx-metrics-publisher] WARN com.splunk.javaagent.shaded.io.micrometer.signalfx.SignalFxMeterRegistry - failed to send metrics: Unable to send datapoints
+```
+
+in your logs it means that the javaagent cannot send metrics to your Smart Agent, OpenTelemetry Collector
+or the Splunk backend.
+
+1. Please make sure that `splunk.metrics.endpoint` points to the correct host:
+   a Smart Agent or OpenTelemetry Collector instance, or the Splunk ingest URL.
+2. If you're using the Agent or Collector, verify that the instance is up.
+3. Please make sure that your Agent/Collector instance is properly configured
+   and the SignalFx receiver is enabled and plugged into the metrics pipeline.
+4. Smart Agent and OpenTelemetry Collector by default use different ports
+   for the SignalFx receiver: the Agent uses `http://<host>:9080/v2/datapoint`
+   and the Collector uses `http://<host>:9943`. Verify that your URL is correct.
+5. Metrics feature is still experimental - if you can't make it work or encounter
+   any unexpected issues you can [turn it off](advanced-config.md#splunk-distribution-configuration)
+   and [file a bug](https://github.com/signalfx/splunk-otel-java/issues/new).

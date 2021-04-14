@@ -11,10 +11,22 @@ Below you will find all the configuration options supported by this distribution
 
 ## Splunk distribution configuration
 
-| System property                        | Environment variable                   | Default value  | Purpose |
-| -------------------------------------- | -------------------------------------- | -------------- | ------- |
-| `splunk.context.server-timing.enabled` | `SPLUNK_CONTEXT_SERVER_TIMING_ENABLED` | `false`        | Enables adding `Server-Timing` header to HTTP responses. See [this document](server-timing.md) for more information.
-| `splunk.access.token`                  | `SPLUNK_ACCESS_TOKEN`                  | unset          | (Optional) Auth token allowing exporters to communicate directly with the Splunk cloud, passed as `X-SF-TOKEN` header. Currently only the [Jaeger exporter](#jaeger-exporter) supports this property.
+| System property                        | Environment variable                   | Default value                        | Purpose |
+| -------------------------------------- | -------------------------------------- | ------------------------------------ | ------- |
+| `splunk.context.server-timing.enabled` | `SPLUNK_CONTEXT_SERVER_TIMING_ENABLED` | `false`                              | Enables adding `Server-Timing` header to HTTP responses. See [this document](server-timing.md) for more information.
+| `splunk.access.token`                  | `SPLUNK_ACCESS_TOKEN`                  | unset                                | (Optional) Auth token allowing exporters to communicate directly with the Splunk cloud, passed as `X-SF-TOKEN` header. Currently only the [Jaeger span exporter](#jaeger-exporter) and [SignalFx metrics exporter](metrics.md) support this property.
+| `splunk.metrics.enabled`               | `SPLUNK_METRICS_ENABLED`               | `true`                               | Enables exporting metrics. See [this document](metrics.md) for more information.
+| `splunk.metrics.endpoint`              | `SPLUNK_METRICS_ENDPOINT`              | `http://localhost:9080/v2/datapoint` | The SignalFx metrics endpoint to connect to.
+| `splunk.metrics.export.interval`       | `SPLUNK_METRICS_EXPORT_INTERVAL`       | `10000`                              | The interval between pushing metrics, in milliseconds.
+
+The SignalFx exporter can be configured to export metrics directly to Splunk ingest.
+To achieve that, you need to set the `splunk.access.token` configuration property
+and set the `splunk.metrics.endpoint` to Splunk ingest URL. For example:
+
+```bash
+export SPLUNK_ACCESS_TOKEN=my_splunk_token
+export SPLUNK_METRICS_ENDPOINT=https://ingest.us0.signalfx.com
+```
 
 ## Jaeger exporter
 

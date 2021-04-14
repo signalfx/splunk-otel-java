@@ -61,8 +61,9 @@ public class NettyInstrumentationModule extends InstrumentationModule {
     return super.defaultEnabled() && ServerTimingHeader.shouldEmitServerTimingHeader();
   }
 
+  // we don't have muzzle in our distro
   @Override
-  public Map<String, String> contextStore() {
+  public Map<String, String> getMuzzleContextStoreClasses() {
     return Collections.singletonMap(
         "org.jboss.netty.channel.Channel", ChannelTraceContext.class.getName());
   }

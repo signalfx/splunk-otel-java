@@ -32,9 +32,9 @@ import io.opentelemetry.javaagent.spi.ComponentInstaller;
 @AutoService(ComponentInstaller.class)
 public class JvmMetricsInstaller implements ComponentInstaller {
   @Override
-  public void afterByteBuddyAgent() {
+  public void afterByteBuddyAgent(Config config) {
     boolean metricsRegistryPresent = !Metrics.globalRegistry.getRegistries().isEmpty();
-    if (!Config.get().isInstrumentationEnabled(singleton("jvm-metrics"), metricsRegistryPresent)) {
+    if (!config.isInstrumentationEnabled(singleton("jvm-metrics"), metricsRegistryPresent)) {
       return;
     }
 

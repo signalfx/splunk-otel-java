@@ -66,7 +66,7 @@ public class WebLogicInstrumentationModule extends InstrumentationModule {
 
   private static class MiddlewareInstrumentation implements TypeInstrumentation {
     @Override
-    public ElementMatcher<? super TypeDescription> typeMatcher() {
+    public ElementMatcher<TypeDescription> typeMatcher() {
       return named("weblogic.servlet.internal.WebAppServletContext$ServletInvocationAction");
     }
 

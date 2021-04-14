@@ -76,7 +76,7 @@ public class ServletInstrumentationModule extends InstrumentationModule {
   private static final class ServletAndFilterInstrumentation implements TypeInstrumentation {
 
     @Override
-    public ElementMatcher<? super TypeDescription> typeMatcher() {
+    public ElementMatcher<TypeDescription> typeMatcher() {
       return safeHasSuperType(namedOneOf("javax.servlet.Filter", "javax.servlet.http.HttpServlet"));
     }
 

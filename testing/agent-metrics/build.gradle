@@ -12,6 +12,7 @@ dependencies {
   annotationProcessor deps.autoservice
   compileOnly deps.autoservice
 
+  compileOnly("io.opentelemetry.instrumentation:opentelemetry-instrumentation-api:${versions.opentelemetryJavaagentAlpha}")
   compileOnly("io.opentelemetry.javaagent:opentelemetry-javaagent-spi:${versions.opentelemetryJavaagentAlpha}")
   compileOnly("io.micrometer:micrometer-core:${versions.micrometer}")
 }

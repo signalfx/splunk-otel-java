@@ -60,7 +60,7 @@ class ServletInstrumentationTest {
 
   @BeforeAll
   static void startServer() throws Exception {
-    port = PortUtils.randomOpenPort();
+    port = PortUtils.findOpenPort();
     server = new Server(port);
     for (var connector : server.getConnectors()) {
       connector.setHost("localhost");

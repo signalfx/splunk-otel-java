@@ -19,6 +19,7 @@ package com.splunk.opentelemetry.resource;
 import com.google.auto.service.AutoService;
 import io.opentelemetry.api.common.AttributeType;
 import io.opentelemetry.api.common.Attributes;
+import io.opentelemetry.instrumentation.api.config.Config;
 import io.opentelemetry.javaagent.spi.ComponentInstaller;
 import io.opentelemetry.sdk.autoconfigure.OpenTelemetrySdkAutoConfiguration;
 
@@ -32,10 +33,10 @@ import io.opentelemetry.sdk.autoconfigure.OpenTelemetrySdkAutoConfiguration;
 public class ResourceAttributesToSystemProperties implements ComponentInstaller {
 
   @Override
-  public void beforeByteBuddyAgent() {}
+  public void beforeByteBuddyAgent(Config config) {}
 
   @Override
-  public void afterByteBuddyAgent() {
+  public void afterByteBuddyAgent(Config config) {
     Attributes attributes = OpenTelemetrySdkAutoConfiguration.getResource().getAttributes();
     attributes.forEach(
         (k, v) -> {

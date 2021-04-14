@@ -30,9 +30,9 @@ import io.opentelemetry.sdk.resources.Resource;
 @AutoService(ComponentInstaller.class)
 public class MicrometerInstaller implements ComponentInstaller {
   @Override
-  public void beforeByteBuddyAgent() {
+  public void beforeByteBuddyAgent(Config config) {
     Resource resource = OpenTelemetrySdkAutoConfiguration.getResource();
-    SplunkMetricsConfig splunkMetricsConfig = new SplunkMetricsConfig(Config.get(), resource);
+    SplunkMetricsConfig splunkMetricsConfig = new SplunkMetricsConfig(config, resource);
 
     if (splunkMetricsConfig.enabled()) {
       GlobalMetricsTags.set(new GlobalTagsBuilder(resource).build());

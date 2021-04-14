@@ -137,10 +137,10 @@ Documentation on how to manually instrument a Java application is available
 To extend the instrumentation with the OpenTelemetry Instrumentation for Java,
 you have to use a compatible API version.
 
-The Splunk Distribution of OpenTelemetry Java Instrumentation version 0.9.0 is compatible with:
+The Splunk Distribution of OpenTelemetry Java Instrumentation version 0.10.0 is compatible with:
 
-* OpenTelemetry API version 1.0.0
-* OpenTelemetry Instrumentation for Java version 1.0.0
+* OpenTelemetry API version 1.1.0
+* OpenTelemetry Instrumentation for Java version 1.1.0
 
 ## Correlating traces with logs
 

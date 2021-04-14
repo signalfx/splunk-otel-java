@@ -18,7 +18,6 @@ package com.splunk.opentelemetry;
 
 import com.splunk.opentelemetry.helper.TestImage;
 import java.io.IOException;
-import java.util.Map;
 import java.util.stream.Stream;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -41,18 +40,6 @@ public class JBossEapSmokeTest extends AppServerTest {
         .splunkLinux("7.1.0", JBOSS_EAP_7_1_SERVER_ATTRIBUTES, VMS_ALL, "8")
         .splunkLinux("7.3.0", JBOSS_EAP_7_3_SERVER_ATTRIBUTES, VMS_ALL, "8", "11")
         .stream();
-  }
-
-  // TODO: this method can be removed after upstream javaagent 1.1.0 release
-  // openj9 JDK8 does not have JFR classes, which causes all ComponentInstallers to run
-  // synchronously, not after LogManager is loaded - see
-  // AgentInstaller#installComponentsAfterByteBuddy()
-  // micrometer's JvmGcMetrics references (indirectly) NotificationBroadcasterSupport which uses
-  // ClassLogger which uses JUL and this causes JVM LogManager to load before the JBoss one
-  // AFAIK only openj9 (IBM) JDK 8 has this problem, all other JDKs don't use JUL in MBeans
-  @Override
-  protected Map<String, String> getExtraEnv() {
-    return Map.of("SPLUNK_METRICS_ENABLED", "false");
   }
 
   @ParameterizedTest(name = "[{index}] {0}")

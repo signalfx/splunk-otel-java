@@ -62,7 +62,7 @@ public class CommonsDbcp2InstrumentationModule extends InstrumentationModule {
 
   private static class BasicDataSourceInstrumentation implements TypeInstrumentation {
     @Override
-    public ElementMatcher<? super TypeDescription> typeMatcher() {
+    public ElementMatcher<TypeDescription> typeMatcher() {
       return named("org.apache.commons.dbcp2.BasicDataSource");
     }
 

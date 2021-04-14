@@ -64,7 +64,7 @@ public class NettyInstrumentationTest {
 
   @BeforeAll
   static void startServer() throws InterruptedException {
-    port = PortUtils.randomOpenPort();
+    port = PortUtils.findOpenPort();
     server = new NioEventLoopGroup();
 
     new ServerBootstrap()

@@ -64,7 +64,7 @@ class NettyInstrumentationTest {
 
   @BeforeAll
   static void startServer() {
-    port = PortUtils.randomOpenPort();
+    port = PortUtils.findOpenPort();
 
     server = new ServerBootstrap(new NioServerSocketChannelFactory());
     server.setPipelineFactory(

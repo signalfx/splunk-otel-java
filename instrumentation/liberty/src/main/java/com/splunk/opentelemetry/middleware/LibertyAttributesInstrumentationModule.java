@@ -17,7 +17,9 @@
 package com.splunk.opentelemetry.middleware;
 
 import static io.opentelemetry.javaagent.tooling.bytebuddy.matcher.ClassLoaderMatcher.hasClassesNamed;
-import static net.bytebuddy.matcher.ElementMatchers.*;
+import static net.bytebuddy.matcher.ElementMatchers.isMethod;
+import static net.bytebuddy.matcher.ElementMatchers.isPublic;
+import static net.bytebuddy.matcher.ElementMatchers.named;
 
 import com.google.auto.service.AutoService;
 import com.ibm.ws.kernel.productinfo.ProductInfo;
@@ -52,7 +54,7 @@ public class LibertyAttributesInstrumentationModule extends InstrumentationModul
   public static class Instrumentation implements TypeInstrumentation {
 
     @Override
-    public ElementMatcher<? super TypeDescription> typeMatcher() {
+    public ElementMatcher<TypeDescription> typeMatcher() {
       return named("com.ibm.ws.kernel.boot.internal.KernelBootstrap");
     }
 

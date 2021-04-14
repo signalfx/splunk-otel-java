@@ -19,12 +19,13 @@ package com.splunk.opentelemetry.testing;
 import com.google.auto.service.AutoService;
 import io.micrometer.core.instrument.Metrics;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
+import io.opentelemetry.instrumentation.api.config.Config;
 import io.opentelemetry.javaagent.spi.ComponentInstaller;
 
 @AutoService(ComponentInstaller.class)
 public class TestMicrometerInstaller implements ComponentInstaller {
   @Override
-  public void beforeByteBuddyAgent() {
+  public void beforeByteBuddyAgent(Config config) {
     Metrics.addRegistry(new SimpleMeterRegistry());
   }
 }

@@ -37,3 +37,4 @@ jobs:
         with:
           name: Release ${{ steps.get_version.outputs.VERSION }}
           files: splunk-otel-javaagent-all.jar
+          draft: true

@@ -22,7 +22,7 @@
 
 <p align="center">
   <strong>
-    <a href="https://github.com/signalfx/tracing-examples/tree/master/opentelemetry-tracing/opentelemetry-java-tracing">Examples</a>
+    <a href="https://github.com/signalfx/tracing-examples/tree/main/opentelemetry-tracing/opentelemetry-java-tracing">Examples</a>
     &nbsp;&nbsp;&bull;&nbsp;&nbsp;
     <a href="docs/faq.md">FAQ</a>
     &nbsp;&nbsp;&bull;&nbsp;&nbsp;
@@ -96,7 +96,7 @@ java -javaagent:./splunk-otel-javaagent.jar \
 > and in some cases might crash your application.
 
 To see the Java Agent in action with sample applications, see our
-[examples](https://github.com/signalfx/tracing-examples/tree/master/opentelemetry-tracing/opentelemetry-java-tracing).
+[examples](https://github.com/signalfx/tracing-examples/tree/main/opentelemetry-tracing/opentelemetry-java-tracing).
 
 ### Basic Configuration
 

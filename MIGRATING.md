@@ -64,11 +64,11 @@ distribution of Splunk Distribution of OpenTelemetry Java Instrumentation:
 5. If you manually instrumented any code with an OpenTracing tracer, expose
    the OpenTelemetry tracer as an implementation of an OpenTracing tracer with
    the OpenTracing Shim. For more information, see
-   [OpenTelemetry - OpenTracing Shim](https://github.com/open-telemetry/opentelemetry-java/tree/master/opentracing-shim).
+   [OpenTelemetry - OpenTracing Shim](https://github.com/open-telemetry/opentelemetry-java/tree/main/opentracing-shim).
    If you use another API for manual instrumentation, such as for the `@Trace`
    annotation in the SignalFx Java Agent, ensure it's in your application's
    `classpath` as well. For an example of what this looks like, see this
-   [SignalFx Java Agent example application](https://github.com/signalfx/tracing-examples/blob/master/signalfx-tracing/signalfx-java-tracing/okhttp-and-jedis/src/main/java/com/signalfx/tracing/examples/javaagent/App.java).
+   [SignalFx Java Agent example application](https://github.com/signalfx/tracing-examples/blob/main/signalfx-tracing/signalfx-java-tracing/okhttp-and-jedis/src/main/java/com/signalfx/tracing/examples/javaagent/App.java).
 
 ## Changes in functionality
 

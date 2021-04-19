@@ -59,7 +59,7 @@ This distribution comes with the following defaults:
 - Unlimited default limits for [configuration options](docs/advanced-config.md#trace-configuration) to
   support full-fidelity traces.
 
-> :construction: This project is currently in **BETA**.
+> :construction: This project is currently in **BETA**. It is **officially supported** by Splunk. However, breaking changes **MAY** be introduced.
 
 ## Getting Started
 

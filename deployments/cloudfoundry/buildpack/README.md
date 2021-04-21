@@ -3,7 +3,7 @@
 A [CloudFoundry buildpack](https://docs.run.pivotal.io/buildpacks/) to install
 and run the Splunk Distribution of the OpenTelemetry Java Instrumentation agent in CloudFoundry apps.
 
-> :construction: This project is currently in **BETA**.
+> :construction: This project is currently in **BETA**. It is **officially supported** by Splunk. However, breaking changes **MAY** be introduced.
 
 ## Installation
 
@@ -32,16 +32,17 @@ $ cf push my-app -b splunk_otel_java_buildpack -b https://github.com/cloudfoundr
 
 ## Configuration
 
-You can configure the Java instrumentation agent using environment variables listed in the [main README.md](../../../README.md).
-All configuration options listed there are supported by this buildpack.
+Please read the [Getting Started](../../../README.md#getting-started) to learn how to configure the Splunk Distribution
+of OpenTelemetry Java Instrumentation.
+[All javaagent configuration options](../../../docs/advanced-config.md) there are supported by this buildpack.
 
 If you want to use a specific version of the Java agent in your application, you can set the `SPLUNK_OTEL_JAVA_VERSION`
 environment variable before application deployment, either using `cf set-env` or the `manifest.yml` file:
 
 ```sh
-$ cf set-env SPLUNK_OTEL_JAVA_VERSION "0.1.0"
+$ cf set-env SPLUNK_OTEL_JAVA_VERSION "0.10.0"
 ```
 
-By default the latest available agent version is used.
+By default the [latest](https://github.com/signalfx/splunk-otel-java/releases/latest) available agent version is used.
 
 Note: the latest version won't use the buildpack cache, so if you want your deployments to be a bit quicker you may want to specify a concrete version.

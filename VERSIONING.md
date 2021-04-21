@@ -23,10 +23,9 @@ All the changes are to be communicated in the [changelog](CHANGELOG.md).
 
 ### Old versions support
 
-Splunk is committed to support the customers using this distribution. All versions will get critical (eg security) patches up to **one year** after the release date. 
+Splunk is committed to support the customers using this distribution. All major versions will get critical (eg security) patches for **one year** after the release date. 
 
 ## Release cadence
 
-Currently, the upstream is released on a **monthly** cadence. This distribution will be updated no later than **2 weeks** after an upstream release.
-
+Currently, the `OpenTelemetry Java Instrumentation` is released on a **monthly** cadence. We strive to release the Splunk distribution at most 2 working days after the upstream.
 

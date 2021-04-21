@@ -31,15 +31,19 @@ public class TomcatSmokeTest extends AppServerTest {
       new TomcatAttributes("8.5.60.0");
   public static final ExpectedServerAttributes TOMCAT9_SERVER_ATTRIBUTES =
       new TomcatAttributes("9.0.40.0");
+  public static final ExpectedServerAttributes TOMCAT10_SERVER_ATTRIBUTES =
+      new TomcatAttributes("10.0.4.0");
 
   private static Stream<Arguments> supportedConfigurations() {
     return configurations("tomcat")
         .otelLinux("7.0.107", TOMCAT7_SERVER_ATTRIBUTES, VMS_ALL, "8")
         .otelLinux("8.5.60", TOMCAT8_SERVER_ATTRIBUTES, VMS_ALL, "8", "11")
         .otelLinux("9.0.40", TOMCAT9_SERVER_ATTRIBUTES, VMS_ALL, "8", "11")
+        .otelLinux("10.0.4", TOMCAT10_SERVER_ATTRIBUTES, VMS_ALL, "11", "15")
         .otelWindows("7.0.107", TOMCAT7_SERVER_ATTRIBUTES, VMS_ALL, "8")
         .otelWindows("8.5.60", TOMCAT8_SERVER_ATTRIBUTES, VMS_ALL, "8", "11")
         .otelWindows("9.0.40", TOMCAT9_SERVER_ATTRIBUTES, VMS_ALL, "8", "11")
+        .otelWindows("10.0.4", TOMCAT10_SERVER_ATTRIBUTES, VMS_ALL, "11", "15")
         .stream();
   }
 

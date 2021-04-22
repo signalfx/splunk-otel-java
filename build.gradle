@@ -2,7 +2,7 @@ import nebula.plugin.release.git.opinion.Strategies
 
 plugins {
   id "java"
-  id "com.diffplug.spotless" version "5.12.2" apply false
+  id "com.diffplug.spotless" version "5.12.4" apply false
   id "nebula.release" version "15.3.1"
 }
 

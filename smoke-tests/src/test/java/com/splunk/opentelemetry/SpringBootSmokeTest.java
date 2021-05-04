@@ -31,9 +31,9 @@ class SpringBootSmokeTest extends AppServerTest {
 
   private TestImage getTargetImage(int jdk) {
     return linuxImage(
-        "open-telemetry-docker-dev.bintray.io/java/smoke-springboot-jdk"
+        "ghcr.io/open-telemetry/java-test-containers:smoke-springboot-jdk"
             + jdk
-            + ":20201105.347264626");
+            + "-20210218.577304949");
   }
 
   @ParameterizedTest(name = "{index} => SpringBoot SmokeTest On JDK{0}.")
@@ -52,10 +52,11 @@ class SpringBootSmokeTest extends AppServerTest {
     assertEquals(response.body().string(), "Hi!");
     assertEquals(1, traces.countSpansByName("/greeting"));
     assertEquals(1, traces.countSpansByName("WebController.greeting"));
+    assertEquals(1, traces.countSpansByName("WebController.withSpan"));
 
     // verify that correct agent version is set in the resource
     String currentAgentVersion = getCurrentAgentVersion();
-    assertEquals(2, traces.countFilteredAttributes("otel.library.version", currentAgentVersion));
+    assertEquals(3, traces.countFilteredAttributes("otel.library.version", currentAgentVersion));
 
     // verify that correct service name is set in the resource
     assertTrue(traces.resourceExists("service.name", "smoke-test"));

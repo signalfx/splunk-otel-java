@@ -8,7 +8,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
       - name: Set up JDK 11 for running Gradle
@@ -24,7 +24,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ windows-latest, ubuntu-latest ]
+        os: [ windows-2019, ubuntu-20.04 ]
         suite: [ "glassfish", "jboss", "jetty", "liberty", "tomcat", "tomee", "weblogic", "wildfly", "other" ]
       fail-fast: false
     steps:
@@ -46,7 +46,7 @@ jobs:
 #
 #      - name: Pull proprietary images
 #        run: ./gradlew pullProprietaryTestImages --scan --no-daemon
-#        if: matrix.os == 'ubuntu-latest'
+#        if: startsWith(matrix.os, 'ubuntu')
 
       - name: Test
         run: ./gradlew :smoke-tests:test -PsmokeTestSuite=${{ matrix.suite }} --scan --no-daemon

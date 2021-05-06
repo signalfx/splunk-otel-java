@@ -29,8 +29,9 @@ class SplunkMetricsConfig implements SignalFxConfig {
   static final String METRICS_ENDPOINT_PROPERTY = "splunk.metrics.endpoint";
   static final String METRICS_EXPORT_INTERVAL_PROPERTY = "splunk.metrics.export.interval";
 
-  // right now the default value points to SmartAgent endpoint
-  static final String DEFAULT_METRICS_ENDPOINT = "http://localhost:9080/v2/datapoint";
+  // SmartAgent default endpoint: http://localhost:9080/v2/datapoint
+  // OTel collector default endpoint: http://localhost:9943
+  static final String DEFAULT_METRICS_ENDPOINT = "http://localhost:9943";
   private static final String DEFAULT_METRICS_EXPORT_INTERVAL_MILLIS = "30000";
 
   private final Config config;

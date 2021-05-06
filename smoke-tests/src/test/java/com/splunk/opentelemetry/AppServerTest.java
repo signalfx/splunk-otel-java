@@ -19,6 +19,7 @@ package com.splunk.opentelemetry;
 import static com.splunk.opentelemetry.helper.TestImage.linuxImage;
 import static com.splunk.opentelemetry.helper.TestImage.proprietaryLinuxImage;
 import static com.splunk.opentelemetry.helper.TestImage.windowsImage;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
@@ -81,10 +82,9 @@ public abstract class AppServerTest extends SmokeTest {
         traces.countFilteredAttributes("http.url", getUrl("/app/headers", true)),
         "Client and server spans for the remote call");
 
-    assertEquals(
-        totalNumberOfSpansInWebappTrace(),
-        traces.countFilteredAttributes("otel.library.version", getCurrentAgentVersion()),
-        "Number of spans tagged with current otel library version");
+    assertThat(traces.getInstrumentationLibraryVersions())
+        .as("All spans are tagged with current otel library version")
+        .containsExactly(getCurrentAgentVersion());
   }
 
   /*

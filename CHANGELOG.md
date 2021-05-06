@@ -7,6 +7,23 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Breaking Changes
+
+- The Splunk Distribution of OpenTelemetry Java Instrumentation now uses the OTLP span exporter as the default. The OTLP
+  exporter supports the `splunk.access.token` configuration option and can be used to send spans directly to Splunk
+  cloud. The default OTLP exporter endpoint is `http://localhost:4317`. You can still use the Jaeger exporter by
+  setting `OTEL_TRACES_EXPORTER=jaeger-thrift-splunk`.
+- We have also changed the default endpoint of the SignalFx metrics exporter: it now points to `http://localhost:9943`,
+  which is the default endpoint of [Splunk OpenTelemetry Connector](https://github.com/signalfx/splunk-otel-collector)
+  deployed on `localhost`.
+- The agent now uses W3C `tracecontext` as the default trace propagation
+  mechanism; [OpenTelemetry Baggage propagation](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/baggage/api.md#propagation)
+  is also enabled by default. You can switch to the previous B3 propagator by setting `OTEL_PROPAGATORS=b3multi`.
+
+### Enhancements
+
+- The agent will now log a warning when the `service.name` resource attribute is not provided.
+
 ## [v0.10.0]
 
 ### Added

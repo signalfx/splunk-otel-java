@@ -26,6 +26,7 @@ public class JaegerAndB3SpringBootSmokeTest extends SpringBootSmokeTest {
   protected Map<String, String> getExtraEnv() {
     return Map.of(
         "OTEL_TRACES_EXPORTER", "jaeger-thrift-splunk",
+        "OTEL_EXPORTER_JAEGER_ENDPOINT", "http://collector:14268/api/traces",
         "OTEL_PROPAGATORS", "b3multi");
   }
 

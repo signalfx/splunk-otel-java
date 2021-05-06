@@ -43,10 +43,10 @@ jobs:
 #          username: ${{ github.repository_owner }}
 #          password: ${{ secrets.GHCR_TOKEN }}
 #        if: matrix.os == 'ubuntu-latest'
-
-      - name: Pull proprietary images
-        run: ./gradlew pullProprietaryTestImages --scan --no-daemon
-        if: matrix.os == 'ubuntu-latest'
+#
+#      - name: Pull proprietary images
+#        run: ./gradlew pullProprietaryTestImages --scan --no-daemon
+#        if: matrix.os == 'ubuntu-latest'
 
       - name: Test
         run: ./gradlew :smoke-tests:test -PsmokeTestSuite=${{ matrix.suite }} --scan --no-daemon

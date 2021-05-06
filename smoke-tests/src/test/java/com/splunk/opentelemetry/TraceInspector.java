@@ -50,6 +50,14 @@ public class TraceInspector {
         .count();
   }
 
+  public Set<String> getInstrumentationLibraryVersions() {
+    return traces.stream()
+        .flatMap(it -> it.getResourceSpansList().stream())
+        .flatMap(it -> it.getInstrumentationLibrarySpansList().stream())
+        .map(it -> it.getInstrumentationLibrary().getVersion())
+        .collect(Collectors.toSet());
+  }
+
   protected int countSpansByName(String spanName) {
     return (int) getSpanStream().filter(it -> it.getName().equals(spanName)).count();
   }
@@ -64,10 +72,6 @@ public class TraceInspector {
         .map(ResourceSpans::getResource)
         .flatMap(resource -> resource.getAttributesList().stream())
         .anyMatch(kv -> kv.getKey().equals(key) && kv.getValue().getStringValue().equals(value));
-  }
-
-  public int size() {
-    return traces.size();
   }
 
   public int countTraceIds() {

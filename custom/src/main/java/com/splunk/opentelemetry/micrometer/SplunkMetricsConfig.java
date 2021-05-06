@@ -16,6 +16,8 @@
 
 package com.splunk.opentelemetry.micrometer;
 
+import static com.splunk.opentelemetry.SplunkConfiguration.SPLUNK_ACCESS_TOKEN;
+
 import io.micrometer.signalfx.SignalFxConfig;
 import io.opentelemetry.instrumentation.api.config.Config;
 import io.opentelemetry.sdk.resources.Resource;
@@ -24,7 +26,6 @@ import java.time.Duration;
 
 class SplunkMetricsConfig implements SignalFxConfig {
   static final String METRICS_ENABLED_PROPERTY = "splunk.metrics.enabled";
-  static final String ACCESS_TOKEN_PROPERTY = "splunk.access.token";
   static final String METRICS_ENDPOINT_PROPERTY = "splunk.metrics.endpoint";
   static final String METRICS_EXPORT_INTERVAL_PROPERTY = "splunk.metrics.export.interval";
 
@@ -43,7 +44,7 @@ class SplunkMetricsConfig implements SignalFxConfig {
 
     // non-empty token MUST be provided; we can just send anything because collector/SmartAgent will
     // use the real one
-    accessToken = config.getProperty(ACCESS_TOKEN_PROPERTY, "no-token");
+    accessToken = config.getProperty(SPLUNK_ACCESS_TOKEN, "no-token");
     source = resource.getAttributes().get(ResourceAttributes.SERVICE_NAME);
     step =
         Duration.ofMillis(

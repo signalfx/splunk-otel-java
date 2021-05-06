@@ -17,17 +17,20 @@
 package com.splunk.opentelemetry;
 
 import static com.splunk.opentelemetry.helper.TestImage.linuxImage;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.splunk.opentelemetry.helper.TestImage;
 import java.io.IOException;
+import java.util.Set;
 import okhttp3.Request;
 import okhttp3.Response;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-class SpringBootSmokeTest extends AppServerTest {
+public class SpringBootSmokeTest extends AppServerTest {
 
   private TestImage getTargetImage(int jdk) {
     return linuxImage(
@@ -38,35 +41,65 @@ class SpringBootSmokeTest extends AppServerTest {
 
   @ParameterizedTest(name = "{index} => SpringBoot SmokeTest On JDK{0}.")
   @ValueSource(ints = {8, 11, 15})
-  public void springBootSmokeTestOnJDK(int jdk) throws IOException, InterruptedException {
+  void springBootSmokeTestOnJDK(int jdk) throws IOException, InterruptedException {
+    // given
     startTargetOrSkipTest(getTargetImage(jdk));
 
     Request request = new Request.Builder().url(getUrl("/greeting", false)).get().build();
 
+    // when
     Response response = client.newCall(request).execute();
 
-    TraceInspector traces = waitForTraces();
-    MetricsInspector metrics = waitForMetrics();
-
-    // verify spans are exported
+    // then
     assertEquals(response.body().string(), "Hi!");
+
+    assertTraces(waitForTraces());
+    assertMetrics(waitForMetrics());
+
+    // cleanup
+    stopTarget();
+  }
+
+  protected void assertTraces(TraceInspector traces) throws IOException {
+    // verify spans are exported
     assertEquals(1, traces.countSpansByName("/greeting"));
     assertEquals(1, traces.countSpansByName("WebController.greeting"));
     assertEquals(1, traces.countSpansByName("WebController.withSpan"));
 
     // verify that correct agent version is set in the resource
     String currentAgentVersion = getCurrentAgentVersion();
-    assertEquals(3, traces.countFilteredAttributes("otel.library.version", currentAgentVersion));
+    assertThat(traces.getInstrumentationLibraryVersions()).containsExactly(currentAgentVersion);
 
     // verify that correct service name is set in the resource
     assertTrue(traces.resourceExists("service.name", "smoke-test"));
+  }
 
+  protected void assertMetrics(MetricsInspector metrics) {
     // verify that JVM metrics are exported
     assertTrue(metrics.hasMetricsNamed("runtime.jvm.classes.loaded"));
     assertTrue(metrics.hasMetricsNamed("runtime.jvm.gc.memory.allocated"));
     assertTrue(metrics.hasMetricsNamed("runtime.jvm.memory.used"));
     assertTrue(metrics.hasMetricsNamed("runtime.jvm.threads.peak"));
+  }
 
+  @Test
+  void shouldPropagateContextThroughHttp() throws IOException, InterruptedException {
+    // given
+    startTargetOrSkipTest(getTargetImage(11));
+
+    Request request = new Request.Builder().url(getUrl("/front", false)).get().build();
+
+    // when
+    Response response = client.newCall(request).execute();
+    Set<String> traceIds = waitForTraces().getTraceIds();
+
+    // then
+    assertThat(traceIds).hasSize(1);
+
+    var traceId = traceIds.iterator().next();
+    assertEquals(response.body().string(), traceId + ";" + traceId);
+
+    // cleanup
     stopTarget();
   }
 }

@@ -16,7 +16,7 @@
 
 package com.splunk.opentelemetry.micrometer;
 
-import static com.splunk.opentelemetry.micrometer.SplunkMetricsConfig.ACCESS_TOKEN_PROPERTY;
+import static com.splunk.opentelemetry.SplunkConfiguration.SPLUNK_ACCESS_TOKEN;
 import static com.splunk.opentelemetry.micrometer.SplunkMetricsConfig.DEFAULT_METRICS_ENDPOINT;
 import static com.splunk.opentelemetry.micrometer.SplunkMetricsConfig.METRICS_ENABLED_PROPERTY;
 import static com.splunk.opentelemetry.micrometer.SplunkMetricsConfig.METRICS_ENDPOINT_PROPERTY;
@@ -55,10 +55,14 @@ class SplunkMetricsConfigTest {
     var javaagentConfig =
         Config.create(
             Map.of(
-                METRICS_ENABLED_PROPERTY, "false",
-                ACCESS_TOKEN_PROPERTY, "token",
-                METRICS_ENDPOINT_PROPERTY, "http://my-endpoint:42",
-                METRICS_EXPORT_INTERVAL_PROPERTY, "60000"));
+                METRICS_ENABLED_PROPERTY,
+                "false",
+                SPLUNK_ACCESS_TOKEN,
+                "token",
+                METRICS_ENDPOINT_PROPERTY,
+                "http://my-endpoint:42",
+                METRICS_EXPORT_INTERVAL_PROPERTY,
+                "60000"));
     var resource = Resource.create(Attributes.of(ResourceAttributes.SERVICE_NAME, "test-service"));
     var splunkMetricsConfig = new SplunkMetricsConfig(javaagentConfig, resource);
 

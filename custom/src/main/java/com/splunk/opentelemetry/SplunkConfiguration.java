@@ -16,8 +16,6 @@
 
 package com.splunk.opentelemetry;
 
-import static com.splunk.opentelemetry.jaeger.JaegerThriftSpanExporterFactory.OTEL_EXPORTER_JAEGER_ENDPOINT;
-
 import com.google.auto.service.AutoService;
 import io.opentelemetry.javaagent.spi.config.PropertySource;
 import java.util.HashMap;
@@ -25,6 +23,9 @@ import java.util.Map;
 
 @AutoService(PropertySource.class)
 public class SplunkConfiguration implements PropertySource {
+  public static final String SPLUNK_ACCESS_TOKEN = "splunk.access.token";
+  public static final String OTEL_EXPORTER_JAEGER_ENDPOINT = "otel.exporter.jaeger.endpoint";
+
   @Override
   public Map<String, String> getProperties() {
     Map<String, String> config = new HashMap<>();
@@ -34,11 +35,11 @@ public class SplunkConfiguration implements PropertySource {
     // disable otel runtime-metrics instrumentation; we use micrometer metrics instead
     config.put("otel.instrumentation.runtime-metrics.enabled", "false");
 
-    config.put("otel.traces.exporter", "jaeger-thrift-splunk");
+    config.put("otel.traces.exporter", "otlp");
     // http://localhost:9080/v1/trace is the default endpoint for SmartAgent
     // http://localhost:14268/api/traces is the default endpoint for otel-collector
     config.put(OTEL_EXPORTER_JAEGER_ENDPOINT, "http://localhost:9080/v1/trace");
-    config.put("otel.propagators", "b3multi");
+    config.put("otel.propagators", "tracecontext,baggage");
 
     // enable experimental instrumentation
     config.put("otel.instrumentation.spring-batch.enabled", "true");

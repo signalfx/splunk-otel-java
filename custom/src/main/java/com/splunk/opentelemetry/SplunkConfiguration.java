@@ -35,11 +35,9 @@ public class SplunkConfiguration implements PropertySource {
     // disable otel runtime-metrics instrumentation; we use micrometer metrics instead
     config.put("otel.instrumentation.runtime-metrics.enabled", "false");
 
-    config.put("otel.traces.exporter", "otlp");
     // http://localhost:9080/v1/trace is the default endpoint for SmartAgent
     // http://localhost:14268/api/traces is the default endpoint for otel-collector
     config.put(OTEL_EXPORTER_JAEGER_ENDPOINT, "http://localhost:9080/v1/trace");
-    config.put("otel.propagators", "tracecontext,baggage");
 
     // enable experimental instrumentation
     config.put("otel.instrumentation.spring-batch.enabled", "true");

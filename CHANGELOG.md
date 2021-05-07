@@ -16,9 +16,9 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - We have also changed the default endpoint of the SignalFx metrics exporter: it now points to `http://localhost:9943`,
   which is the default endpoint of [Splunk OpenTelemetry Connector](https://github.com/signalfx/splunk-otel-collector)
   deployed on `localhost`.
-- The agent now uses W3C `tracecontext` as the default trace propagation
-  mechanism; [OpenTelemetry Baggage propagation](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/baggage/api.md#propagation)
-  is also enabled by default. You can switch to the previous B3 propagator by setting `OTEL_PROPAGATORS=b3multi`.
+- The agent now uses [W3C `tracecontext`](https://www.w3.org/TR/trace-context/) as the default trace propagation
+  mechanism; [W3C Baggage](https://w3c.github.io/baggage/) is also enabled by default. You can switch to the previous B3
+  propagator by setting `OTEL_PROPAGATORS=b3multi`.
 
 ### Enhancements
 

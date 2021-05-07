@@ -29,36 +29,51 @@ Follow these steps to migrate from the SignalFx Java Agent to the Splunk
 distribution of Splunk Distribution of OpenTelemetry Java Instrumentation:
 
 1. Download the [latest release](https://github.com/signalfx/splunk-otel-java/releases/latest/download/splunk-otel-javaagent-all.jar)
-   of the Splunk Distribution of OpenTelemetry Java Instrumentation. For example use: 
+   of the Splunk Distribution of OpenTelemetry Java Instrumentation. For example use:
    ```bash
-   $ # download the newest version of the agent
-   $ curl -vsSL -o splunk-otel-javaagent-all.jar 'https://github.com/signalfx/splunk-otel-java/releases/latest/download/splunk-otel-javaagent-all.jar'
+   curl -vsSL -o splunk-otel-javaagent-all.jar 'https://github.com/signalfx/splunk-otel-java/releases/latest/download/splunk-otel-javaagent-all.jar'
    ```
 2. Set the service name. This is how you can identify the service in Splunk APM.
 
    An example how to set it using an environment variable:
    ```bash
-   $ EXPORT OTEL_RESOURCE_ATTRIBUTES=service.name=my-java-app
+   export OTEL_RESOURCE_ATTRIBUTES=service.name=my-java-app
    ```
    or a system property:
    ```
    -Dotel.resource.attributes=service.name=my-java-app
    ```
-3. Specify the endpoint of the SignalFx Smart Agent or OpenTelemetry Collector
-   you're exporting traces to. You can set the endpoint with a system property
-   or environment variable. 
-   
-   An example how to set it using an environment variable:
-   ```
-   $ EXPORT OTEL_EXPORTER_JAEGER_ENDPOINT="http://yourEndpoint:9080/v1/trace"
+3. Specify the endpoint of the OpenTelemetry Collector or SignalFx Smart Agent you're exporting traces to.
+   Depending on which one you use, you might have to switch the trace exporter. The Splunk Distribution of
+   OpenTelemetry Java Instrumentation uses the OTLP traces exporter as the default - which is only supported by the
+   OpenTelemetry Collector. If you wish to use the SignalFx Smart Agent, you have to switch to the Jaeger exporter.
+
+   You can configure the trace exporter with a system property or environment variable.
+
+   An example of setting the OTLP endpoint using an environment variable:
+   ```bash
+   export OTEL_EXPORTER_OTLP_ENDPOINT="http://yourEndpoint:4317"
    ```
    or a system property:
    ```
-   -Dotel.exporter.jaeger.endpoint=http://yourEndpoint:9080/v1/trace
+   -Dotel.exporter.jaeger.endpoint=http://yourEndpoint:4317
    ```
-   The default value is `http://localhost:9080/v1/trace`. If you're exporting
-   traces to a local Smart Agent, you don't have to modify this configuration
-   setting.
+   The default value is `http://localhost:4317/v1/trace`. If you're exporting traces to an OpenTelemetry Collector
+   deployed on localhost, you don't have to modify this configuration setting.
+
+   To use the Jaeger exporter you must additionally set the `otel.traces.exporter` configuration option.
+
+   An example of how to do that using an environment variable:
+   ```bash
+   export OTEL_TRACES_EXPORTER="jaeger-thrift-splunk"
+   export OTEL_EXPORTER_JAEGER_ENDPOINT="http://yourEndpoint:9080/v1/trace"
+   ```
+   or a system property:
+   ```
+   -Dotel.traces.exporter=jaeger-thrift-splunk -Dotel.exporter.jaeger.endpoint=http://yourEndpoint:9080/v1/trace
+   ```
+   The default value for the Jaeger endpoint is `http://localhost:9080/v1/trace`. If you're exporting traces to a local
+   Smart Agent, you don't have to modify this configuration setting.
 4. In your application startup script, replace `-javaagent:./signalfx-tracing.jar`
    with `-javaagent:/path/to/splunk-otel-javaagent-all.jar`.
 5. If you manually instrumented any code with an OpenTracing tracer, expose
@@ -78,52 +93,51 @@ OpenTelemetry Java Instrumentation.
 
 ### Configuration setting changes
 
-These SignalFx Java Agent system properties correspond to the following
-OpenTelemetry system properties (NOTE: some properites are exporter-specific, the default is `jaeger`):
+These SignalFx Java Agent system properties correspond to the following OpenTelemetry system properties:
 
-| SignalFx system property | OpenTelemetry system property |
-| ------------------------ | ----------------------------- |
-| `signalfx.service.name` | `otel.resource.attributes=service.name=<name of the service>` |
-| `signalfx.env` | `otel.resource.attributes=deployment.environment=<name of the environment>` |
-| `signalfx.endpoint.url` | `otel.exporter.jaeger.endpoint` |
-| `signalfx.tracing.enabled` | `otel.javaagent.enabled` |
-| `signalfx.integration.<name>.enabled=false` | `otel.instrumentation.<id>.enabled=false` | 
-| `signalfx.span.tags` | `otel.resource.attributes=<comma separated key=value pairs>` |
-| `signalfx.trace.annotated.method.blacklist` | `otel.trace.annotated.methods.exclude` |
-| `signalfx.trace.methods` | `otel.trace.methods` |
-| `signalfx.server.timing.context` | `splunk.context.server-timing.enabled` |
+| SignalFx system property                    | OpenTelemetry system property |
+| ------------------------------------------- | ----------------------------- |
+| `signalfx.service.name`                     | `otel.resource.attributes=service.name=<name of the service>`
+| `signalfx.env`                              | `otel.resource.attributes=deployment.environment=<name of the environment>`
+| `signalfx.endpoint.url`                     | `otel.exporter.otlp.endpoint` or `otel.exporter.jaeger.endpoint`, depending on which trace exporter you're using (OTLP is the default one)
+| `signalfx.tracing.enabled`                  | `otel.javaagent.enabled`
+| `signalfx.integration.<name>.enabled=false` | `otel.instrumentation.<id>.enabled=false`
+| `signalfx.span.tags`                        | `otel.resource.attributes=<comma separated key=value pairs>`
+| `signalfx.trace.annotated.method.blacklist` | `otel.trace.annotated.methods.exclude`
+| `signalfx.trace.methods`                    | `otel.trace.methods`
+| `signalfx.server.timing.context`            | `splunk.trace-response-header.enabled`
 
-Note: when setting both `service name` and `environment` appropriate `otel.resource.attributes` property setting will 
-look like this: `otel.resource.attributes=service.name=myService,deployment.environment=myEnvironment` 
+Note: when setting both `service name` and `environment` appropriate `otel.resource.attributes` property setting will
+look like this: `otel.resource.attributes=service.name=myService,deployment.environment=myEnvironment`
 
 Additional info about disabling a particular instrumentation can be found in the [OpenTelemetry Java Instrumentation docs](https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/docs/suppressing-instrumentation.md).
 
 These SignalFx Java Agent environment variables correspond to the following
 OpenTelemetry environment variables:
 
-| SignalFx environment variable | OpenTelemetry environment variable |
-| ----------------------------- | ---------------------------------- |
-| `SIGNALFX_SERVICE_NAME` | `OTEL_RESOURCE_ATTRIBUTES=service.name=<name of the service>` |
-| `SIGNALFX_ENV` | `OTEL_RESOURCE_ATTRIBUTES=deployment.environment=<name of the environment>` |
-| `SIGNALFX_ENDPOINT_URL` |`OTEL_EXPORTER_JAEGER_ENDPOINT` |
-| `SIGNALFX_TRACING_ENABLED` | `OTEL_JAVAAGENT_ENABLED` |
-| `SIGNALFX_INTEGRATION_<name>_ENABLED=false` | `OTEL_INSTRUMENTATION_<id>_ENABLED=false` |
-| `SIGNALFX_SPAN_TAGS` | `OTEL_RESOURCE_ATTRIBUTES` |
-| `SIGNALFX_TRACE_ANNOTATED_METHOD_BLACKLIST` | `OTEL_TRACE_ANNOTATED_METHODS_EXCLUDE` |
-| `SIGNALFX_TRACE_METHODS` | `OTEL_TRACE_METHODS` |
-| `SIGNALFX_SERVER_TIMING_CONTEXT` | `SPLUNK_CONTEXT_SERVER_TIMING_ENABLED` |
+| SignalFx environment variable               | OpenTelemetry environment variable |
+| ------------------------------------------- | ---------------------------------- |
+| `SIGNALFX_SERVICE_NAME`                     | `OTEL_RESOURCE_ATTRIBUTES=service.name=<name of the service>`
+| `SIGNALFX_ENV`                              | `OTEL_RESOURCE_ATTRIBUTES=deployment.environment=<name of the environment>`
+| `SIGNALFX_ENDPOINT_URL`                     | `OTEL_EXPORTER_OTLP_ENDPOINT` or `OTEL_EXPORTER_JAEGER_ENDPOINT`, depending on which trace exporter you're using (OTLP is the default one)
+| `SIGNALFX_TRACING_ENABLED`                  | `OTEL_JAVAAGENT_ENABLED`
+| `SIGNALFX_INTEGRATION_<name>_ENABLED=false` | `OTEL_INSTRUMENTATION_<id>_ENABLED=false`
+| `SIGNALFX_SPAN_TAGS`                        | `OTEL_RESOURCE_ATTRIBUTES`
+| `SIGNALFX_TRACE_ANNOTATED_METHOD_BLACKLIST` | `OTEL_TRACE_ANNOTATED_METHODS_EXCLUDE`
+| `SIGNALFX_TRACE_METHODS`                    | `OTEL_TRACE_METHODS`
+| `SIGNALFX_SERVER_TIMING_CONTEXT`            | `SPLUNK_TRACE_RESPONSE_HEADER_ENABLED`
 
 These SignalFx Java Agent system properties and environment variables don't
 have corresponding configuration options with the Spunk Distribution for
 OpenTelemetry Java Instrumentation:
 
-| System property | Environment variable |
-| --------------- | -------------------- |
-| `signalfx.agent.host` | `SIGNALFX_AGENT_HOST` |
-| `signalfx.db.statement.max.length` | `SIGNALFX_DB_STATEMENT_MAX_LENGTH` |
-| `signalfx.recorded.value.max.length` | `SIGNALFX_RECORDED_VALUE_MAX_LENGTH` |
-| `signalfx.max.spans.per.trace` | `SIGNALFX_MAX_SPANS_PER_TRACE` |
-| `signalfx.max.continuation.depth` | `SIGNALFX_MAX_CONTINUATION_DEPTH` |
+| System property                      | Environment variable |
+| ------------------------------------ | -------------------- |
+| `signalfx.agent.host`                | `SIGNALFX_AGENT_HOST`
+| `signalfx.db.statement.max.length`   | `SIGNALFX_DB_STATEMENT_MAX_LENGTH`
+| `signalfx.recorded.value.max.length` | `SIGNALFX_RECORDED_VALUE_MAX_LENGTH`
+| `signalfx.max.spans.per.trace`       | `SIGNALFX_MAX_SPANS_PER_TRACE`
+| `signalfx.max.continuation.depth`    | `SIGNALFX_MAX_CONTINUATION_DEPTH`
 
 ### Log injection changes
 
@@ -152,7 +166,7 @@ Distribution of OpenTelemetry Java Instrumentation, see
 The `@Trace` annotation that the SignalFx Java Agent uses is compatible with
 the Splunk Distribution of OpenTelemetry Java Instrumentation. If you're using
 the `@Trace` annotation for custom instrumentation, you don't have to make any
-changes to maintain existing functionality. 
+changes to maintain existing functionality.
 
 If you want to configure new custom instrumentation and don't want to use the
 OpenTelemetry `getTracer` and API directly, use the OpenTelemetry `@WithSpan`

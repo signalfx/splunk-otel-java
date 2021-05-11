@@ -10,6 +10,9 @@ receivers:
     protocols:
       grpc:
       thrift_http:
+  otlp:
+    protocols:
+      grpc:
 
 processors:
   batch:
@@ -24,7 +27,7 @@ exporters:
 service:
   pipelines:
     traces:
-      receivers: [ jaeger ]
+      receivers: [ jaeger, otlp ]
       processors: [ batch ]
       exporters: [ logging, otlp ]
 

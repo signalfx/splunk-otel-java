@@ -20,6 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.BDDMockito.given;
 
+import com.splunk.opentelemetry.SplunkConfiguration;
 import io.opentelemetry.api.trace.SpanKind;
 import io.opentelemetry.instrumentation.test.utils.PortUtils;
 import io.opentelemetry.sdk.autoconfigure.ConfigProperties;
@@ -78,9 +79,8 @@ class JaegerThriftSpanExporterFactoryTest {
   @Test
   void shouldCreateExporterWithSplunkAccessToken() {
     // given
-    given(config.getString(JaegerThriftSpanExporterFactory.SPLUNK_ACCESS_TOKEN))
-        .willReturn("token");
-    given(config.getString(JaegerThriftSpanExporterFactory.OTEL_EXPORTER_JAEGER_ENDPOINT))
+    given(config.getString(SplunkConfiguration.SPLUNK_ACCESS_TOKEN)).willReturn("token");
+    given(config.getString(SplunkConfiguration.OTEL_EXPORTER_JAEGER_ENDPOINT))
         .willReturn("http://localhost:" + port + "/v1/trace");
 
     // when
@@ -94,7 +94,7 @@ class JaegerThriftSpanExporterFactoryTest {
   @Test
   void shouldCreateExporterWithoutSplunkAccessToken() {
     // given
-    given(config.getString(JaegerThriftSpanExporterFactory.OTEL_EXPORTER_JAEGER_ENDPOINT))
+    given(config.getString(SplunkConfiguration.OTEL_EXPORTER_JAEGER_ENDPOINT))
         .willReturn("http://localhost:" + port + "/v1/trace");
 
     // when

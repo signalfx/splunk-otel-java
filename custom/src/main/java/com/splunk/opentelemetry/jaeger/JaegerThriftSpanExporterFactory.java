@@ -16,6 +16,9 @@
 
 package com.splunk.opentelemetry.jaeger;
 
+import static com.splunk.opentelemetry.SplunkConfiguration.OTEL_EXPORTER_JAEGER_ENDPOINT;
+import static com.splunk.opentelemetry.SplunkConfiguration.SPLUNK_ACCESS_TOKEN;
+
 import com.google.auto.service.AutoService;
 import io.jaegertracing.thrift.internal.senders.HttpSender;
 import io.opentelemetry.exporter.jaeger.thrift.JaegerThriftSpanExporter;
@@ -30,9 +33,6 @@ import org.slf4j.LoggerFactory;
 @AutoService(ConfigurableSpanExporterProvider.class)
 public class JaegerThriftSpanExporterFactory implements ConfigurableSpanExporterProvider {
   private static final Logger log = LoggerFactory.getLogger(JaegerThriftSpanExporterFactory.class);
-
-  static final String SPLUNK_ACCESS_TOKEN = "splunk.access.token";
-  public static final String OTEL_EXPORTER_JAEGER_ENDPOINT = "otel.exporter.jaeger.endpoint";
 
   @Override
   public SpanExporter createExporter(ConfigProperties config) {

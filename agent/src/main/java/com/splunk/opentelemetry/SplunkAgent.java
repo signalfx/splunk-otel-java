@@ -18,6 +18,7 @@ package com.splunk.opentelemetry;
 
 import io.opentelemetry.javaagent.OpenTelemetryAgent;
 import java.lang.instrument.Instrumentation;
+import java.util.Locale;
 
 public class SplunkAgent {
   public static void premain(final String agentArgs, final Instrumentation inst) {
@@ -25,6 +26,26 @@ public class SplunkAgent {
   }
 
   public static void agentmain(final String agentArgs, final Instrumentation inst) {
+    addSplunkAccessTokenToOtlpHeaders();
+
     OpenTelemetryAgent.agentmain(agentArgs, inst);
+  }
+
+  private static void addSplunkAccessTokenToOtlpHeaders() {
+    String accessToken = getConfig("splunk.access.token");
+    if (accessToken != null) {
+      String userOtlpHeaders = getConfig("otel.exporter.otlp.headers");
+      String otlpHeaders =
+          (userOtlpHeaders == null ? "" : userOtlpHeaders + ",") + "X-SF-TOKEN=" + accessToken;
+      System.setProperty("otel.exporter.otlp.headers", otlpHeaders);
+    }
+  }
+
+  private static String getConfig(String propertyName) {
+    String value = System.getProperty(propertyName);
+    if (value != null) {
+      return value;
+    }
+    return System.getenv(propertyName.replace('.', '_').toUpperCase(Locale.ROOT));
   }
 }

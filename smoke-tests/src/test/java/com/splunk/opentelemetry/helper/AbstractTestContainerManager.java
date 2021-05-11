@@ -33,8 +33,7 @@ public abstract class AbstractTestContainerManager implements TestContainerManag
     environment.put("JAVA_TOOL_OPTIONS", "-javaagent:/" + TARGET_AGENT_FILENAME);
     environment.put("OTEL_BSP_MAX_EXPORT_BATCH_SIZE", "1");
     environment.put("OTEL_BSP_SCHEDULE_DELAY", "10ms");
-    environment.put(
-        "OTEL_EXPORTER_JAEGER_ENDPOINT", "http://" + COLLECTOR_ALIAS + ":14268/api/traces");
+    environment.put("OTEL_EXPORTER_OTLP_ENDPOINT", "http://" + COLLECTOR_ALIAS + ":4317");
     // export metrics every 1s
     environment.put("SPLUNK_METRICS_EXPORT_INTERVAL", "1000");
     environment.put("SPLUNK_METRICS_ENDPOINT", "http://" + COLLECTOR_ALIAS + ":9943/v2/datapoint");

@@ -11,6 +11,7 @@ jobs:
     runs-on: ubuntu-20.04
     permissions:
       pull-requests: write
+      contents: read
     steps:
       - name: Add signalfx/gdi-java-approvers as reviewers
         env:

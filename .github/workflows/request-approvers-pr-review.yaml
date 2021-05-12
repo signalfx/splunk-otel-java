@@ -3,15 +3,15 @@ name: Request PR review from signalfx/gdi-java-approvers
 on:
   pull_request:
     # TOTO: test
-    types: [ opened, reopened ]
+    #types: [ opened ]
 
 jobs:
   request:
     name: Request PR review from signalfx/gdi-java-approvers
     runs-on: ubuntu-20.04
-    permissions:
-      pull-requests: write
-      contents: read
+#    permissions:
+#      pull-requests: write
+#      contents: read
     steps:
       - name: Add signalfx/gdi-java-approvers as reviewers
         env:

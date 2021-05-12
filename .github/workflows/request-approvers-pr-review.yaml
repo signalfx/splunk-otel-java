@@ -9,7 +9,7 @@ jobs:
     name: Request PR review from signalfx/gdi-java-approvers
     runs-on: ubuntu-20.04
     permissions:
-      issues: write
+      pull-requests: write
     steps:
       - name: Add signalfx/gdi-java-approvers as reviewers
         env:

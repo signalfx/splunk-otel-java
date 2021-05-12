@@ -2,7 +2,8 @@ name: Request PR review from signalfx/gdi-java-approvers
 
 on:
   pull_request:
-    types: [ opened ]
+    # TOTO: test
+    types: [ opened, reopened ]
 
 jobs:
   request:

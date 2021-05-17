@@ -33,6 +33,30 @@ If you find that any instrumentation is broken please do not hesitate to [file a
 
 ## Trace exporter issues
 
+If you're unsure which trace exporter you are using, most likely it's the OTLP exporter - it's the default trace
+exporter in the Splunk Distribution of OpenTelemetry Java Instrumentation.
+
+### OTLP exporter
+
+If you're seeing the following error in your logs:
+
+```
+[BatchSpanProcessor_WorkerThread-1] ERROR io.opentelemetry.exporter.otlp.trace.OtlpGrpcSpanExporter - Failed to export spans. Server is UNAVAILABLE. Make sure your collector is running and reachable from this network. Full error message:UNAVAILABLE: io exception
+```
+
+then it means that the javaagent cannot send trace data to the OpenTelemetry Collector or Splunk cloud.
+
+1. Please make sure that `otel.exporter.otlp.endpoint` points to the correct host: an OpenTelemetry Collector instance
+   or the Splunk ingest URL.
+2. If you're using the OpenTelemetry Collector, verify that the instance is up.
+3. Please make sure that your OpenTelemetry Collector instance is properly configured and that the OTLP gRPC receiver is
+   enabled and plugged into the traces pipeline.
+4. The OpenTelemetry Collector listens on the following address: `http://<host>:4317`. Verify that your URL is correct.
+5. If you're sending traces directly to the Splunk cloud, please verify that the `SPLUNK_ACCESS_TOKEN` is configured and
+   contains a valid access token.
+
+### Jaeger exporter
+
 If you're seeing the following warnings in your logs:
 
 ```
@@ -47,9 +71,7 @@ Caused by: java.net.ConnectException: Connection refused (Connection refused)
 	...
 ```
 
-then it means that the javaagent cannot send trace data to the Smart Agent/Collector/Splunk backend.
-
-Assuming you're using the default Jaeger Thrift exporter:
+then it means that the javaagent cannot send trace data to the Smart Agent/OpenTelemetry Collector/Splunk cloud.
 
 1. Please make sure that `otel.exporter.jaeger.endpoint` points to the correct host:
    a Smart Agent or OpenTelemetry Collector instance, or the Splunk ingest URL.
@@ -59,6 +81,18 @@ Assuming you're using the default Jaeger Thrift exporter:
 4. Smart Agent and OpenTelemetry Collector by default use different ports (and paths)
    for the Jaeger receiver: the Agent uses `http://<host>:9080/v1/trace` and the Collector
    uses `http://<host>:14268/api/traces`. Verify that your URL is correct.
+
+If you're sending spans directly to the Splunk cloud and getting the following errors:
+
+```
+[BatchSpanProcessor_WorkerThread-1] WARN io.opentelemetry.exporter.jaeger.thrift.JaegerThriftSpanExporter - Failed to export spans
+io.jaegertracing.internal.exceptions.SenderException: Could not send 40 spans, response 401: Unauthorized
+	at io.jaegertracing.thrift.internal.senders.HttpSender.send(HttpSender.java:86)
+	...
+```
+
+then it means that your `SPLUNK_ACCESS_TOKEN` setting is either missing or invalid. Please make sure that you use a
+valid Splunk access token when sending telemetry directly to the Splunk cloud.
 
 ## Metrics exporter issues
 
@@ -79,6 +113,8 @@ or the Splunk backend.
 4. Smart Agent and OpenTelemetry Collector by default use different ports
    for the SignalFx receiver: the Agent uses `http://<host>:9080/v2/datapoint`
    and the Collector uses `http://<host>:9943`. Verify that your URL is correct.
-5. Metrics feature is still experimental - if you can't make it work or encounter
+5. If you're sending metrics directly to the Splunk cloud, please verify that the `SPLUNK_ACCESS_TOKEN` is configured
+   and contains a valid access token.
+6. Metrics feature is still experimental - if you can't make it work or encounter
    any unexpected issues you can [turn it off](advanced-config.md#splunk-distribution-configuration)
    and [file a bug](https://github.com/signalfx/splunk-otel-java/issues/new).

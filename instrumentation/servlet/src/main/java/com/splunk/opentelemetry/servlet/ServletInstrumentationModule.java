@@ -16,9 +16,9 @@
 
 package com.splunk.opentelemetry.servlet;
 
-import static io.opentelemetry.javaagent.tooling.bytebuddy.matcher.AgentElementMatchers.safeHasSuperType;
-import static io.opentelemetry.javaagent.tooling.bytebuddy.matcher.ClassLoaderMatcher.hasClassesNamed;
-import static io.opentelemetry.javaagent.tooling.bytebuddy.matcher.NameMatchers.namedOneOf;
+import static io.opentelemetry.javaagent.extension.matcher.AgentElementMatchers.safeHasSuperType;
+import static io.opentelemetry.javaagent.extension.matcher.ClassLoaderMatcher.hasClassesNamed;
+import static io.opentelemetry.javaagent.extension.matcher.NameMatchers.namedOneOf;
 import static java.util.Collections.singletonMap;
 import static net.bytebuddy.matcher.ElementMatchers.isPublic;
 import static net.bytebuddy.matcher.ElementMatchers.named;
@@ -28,9 +28,9 @@ import com.google.auto.service.AutoService;
 import com.splunk.opentelemetry.servertiming.ServerTimingHeader;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.context.propagation.TextMapSetter;
+import io.opentelemetry.javaagent.extension.instrumentation.InstrumentationModule;
+import io.opentelemetry.javaagent.extension.instrumentation.TypeInstrumentation;
 import io.opentelemetry.javaagent.instrumentation.api.Java8BytecodeBridge;
-import io.opentelemetry.javaagent.tooling.InstrumentationModule;
-import io.opentelemetry.javaagent.tooling.TypeInstrumentation;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -52,18 +52,21 @@ public class ServletInstrumentationModule extends InstrumentationModule {
     return hasClassesNamed("javax.servlet.Filter", "javax.servlet.http.HttpServlet");
   }
 
-  protected String[] additionalHelperClassNames() {
+  @Override
+  public String[] getMuzzleHelperClassNames() {
     return new String[] {
       ServerTimingHeader.class.getName(), getClass().getName() + "$HeadersSetter"
     };
   }
 
   // run after the upstream servlet instrumentation - server span needs to be accessible here
-  public int getOrder() {
+  @Override
+  public int order() {
     return 1;
   }
 
   // enable the instrumentation only if the server-timing header flag is on
+  @Override
   protected boolean defaultEnabled() {
     return super.defaultEnabled() && ServerTimingHeader.shouldEmitServerTimingHeader();
   }

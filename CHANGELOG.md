@@ -7,6 +7,8 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [v0.11.0] - 2021-05-17
+
 ### General Notes
 
 - OpenTelemetry Java SDK and OpenTelemetry Java Instrumentation dependencies were updated to version 1.2.0.
@@ -82,7 +84,9 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 - Instrument Netty 4.0 to add Server-Timing header.
 
-[Unreleased]: https://github.com/signalfx/splunk-otel-java/compare/v0.10.0...HEAD
+[Unreleased]: https://github.com/signalfx/splunk-otel-java/compare/v0.11.0...HEAD
+
+[v0.11.0]: https://github.com/signalfx/splunk-otel-java/compare/v0.10.0...v0.11.0
 
 [v0.10.0]: https://github.com/signalfx/splunk-otel-java/compare/v0.9.0...v0.10.0
 

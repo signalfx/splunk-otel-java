@@ -16,13 +16,13 @@
 
 package com.splunk.opentelemetry.netty.v3_8;
 
-import static io.opentelemetry.javaagent.tooling.bytebuddy.matcher.ClassLoaderMatcher.hasClassesNamed;
+import static io.opentelemetry.javaagent.extension.matcher.ClassLoaderMatcher.hasClassesNamed;
 
 import com.google.auto.service.AutoService;
 import com.splunk.opentelemetry.servertiming.ServerTimingHeader;
+import io.opentelemetry.javaagent.extension.instrumentation.InstrumentationModule;
+import io.opentelemetry.javaagent.extension.instrumentation.TypeInstrumentation;
 import io.opentelemetry.javaagent.instrumentation.netty.v3_8.ChannelTraceContext;
-import io.opentelemetry.javaagent.tooling.InstrumentationModule;
-import io.opentelemetry.javaagent.tooling.TypeInstrumentation;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -40,7 +40,7 @@ public class NettyInstrumentationModule extends InstrumentationModule {
   }
 
   @Override
-  protected String[] additionalHelperClassNames() {
+  public String[] getMuzzleHelperClassNames() {
     return new String[] {
       ServerTimingHeader.class.getName(),
       getClass().getPackage().getName() + ".ServerTimingHandler",
@@ -51,7 +51,7 @@ public class NettyInstrumentationModule extends InstrumentationModule {
 
   // run after the upstream netty instrumentation
   @Override
-  public int getOrder() {
+  public int order() {
     return 1;
   }
 

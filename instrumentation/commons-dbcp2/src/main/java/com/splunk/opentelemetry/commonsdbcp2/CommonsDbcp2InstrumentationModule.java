@@ -23,8 +23,8 @@ import static net.bytebuddy.matcher.ElementMatchers.takesArguments;
 
 import com.google.auto.service.AutoService;
 import io.micrometer.core.instrument.Metrics;
-import io.opentelemetry.javaagent.tooling.InstrumentationModule;
-import io.opentelemetry.javaagent.tooling.TypeInstrumentation;
+import io.opentelemetry.javaagent.extension.instrumentation.InstrumentationModule;
+import io.opentelemetry.javaagent.extension.instrumentation.TypeInstrumentation;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -48,7 +48,7 @@ public class CommonsDbcp2InstrumentationModule extends InstrumentationModule {
   }
 
   @Override
-  protected String[] additionalHelperClassNames() {
+  public String[] getMuzzleHelperClassNames() {
     return new String[] {
       "com.splunk.opentelemetry.commonsdbcp2.DataSourceMetrics",
       "com.splunk.opentelemetry.commonsdbcp2.DataSourceMetrics$TotalConnectionsUsed"

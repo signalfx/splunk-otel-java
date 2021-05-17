@@ -16,8 +16,8 @@
 
 package com.splunk.opentelemetry.middleware.weblogic;
 
-import static io.opentelemetry.javaagent.tooling.bytebuddy.matcher.AgentElementMatchers.extendsClass;
-import static io.opentelemetry.javaagent.tooling.bytebuddy.matcher.ClassLoaderMatcher.hasClassesNamed;
+import static io.opentelemetry.javaagent.extension.matcher.AgentElementMatchers.extendsClass;
+import static io.opentelemetry.javaagent.extension.matcher.ClassLoaderMatcher.hasClassesNamed;
 import static java.util.Collections.singletonMap;
 import static net.bytebuddy.matcher.ElementMatchers.isPrivate;
 import static net.bytebuddy.matcher.ElementMatchers.isProtected;
@@ -28,9 +28,9 @@ import static net.bytebuddy.matcher.ElementMatchers.takesArgument;
 
 import com.google.auto.service.AutoService;
 import io.opentelemetry.api.trace.Span;
+import io.opentelemetry.javaagent.extension.instrumentation.InstrumentationModule;
+import io.opentelemetry.javaagent.extension.instrumentation.TypeInstrumentation;
 import io.opentelemetry.javaagent.instrumentation.api.Java8BytecodeBridge;
-import io.opentelemetry.javaagent.tooling.InstrumentationModule;
-import io.opentelemetry.javaagent.tooling.TypeInstrumentation;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -53,7 +53,7 @@ public class WebLogicInstrumentationModule extends InstrumentationModule {
   }
 
   @Override
-  public int getOrder() {
+  public int order() {
     // Make sure this runs after default servlet instrumentations so that server span would already
     // be available.
     return 1;
@@ -131,7 +131,7 @@ public class WebLogicInstrumentationModule extends InstrumentationModule {
   }
 
   @Override
-  protected String[] additionalHelperClassNames() {
+  public String[] getMuzzleHelperClassNames() {
     String packageName = this.getClass().getPackage().getName();
 
     return new String[] {

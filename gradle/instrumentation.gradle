@@ -14,9 +14,8 @@ configurations {
 dependencies {
     compileOnly("io.opentelemetry:opentelemetry-sdk:${versions.opentelemetry}")
     compileOnly("io.opentelemetry.instrumentation:opentelemetry-instrumentation-api:${versions.opentelemetryJavaagentAlpha}")
-    compileOnly("io.opentelemetry.javaagent:opentelemetry-javaagent-tooling:${versions.opentelemetryJavaagentAlpha}")
+    compileOnly("io.opentelemetry.javaagent:opentelemetry-javaagent-extension-api:${versions.opentelemetryJavaagentAlpha}")
     compileOnly("io.opentelemetry.javaagent:opentelemetry-javaagent-api:${versions.opentelemetryJavaagentAlpha}")
-    compileOnly("io.opentelemetry.javaagent:opentelemetry-javaagent-spi:${versions.opentelemetryJavaagentAlpha}")
     compileOnly("net.bytebuddy:byte-buddy:1.10.10")
     annotationProcessor deps.autoservice
     compileOnly deps.autoservice

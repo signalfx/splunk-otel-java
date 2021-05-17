@@ -7,6 +7,11 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### General Notes
+
+- OpenTelemetry Java SDK and OpenTelemetry Java Instrumentation dependencies were updated to version 1.2.0.
+- Micrometer dependency was updated to version 1.7.0.
+
 ### Breaking Changes
 
 - The Splunk Distribution of OpenTelemetry Java Instrumentation now uses the OTLP span exporter as the default. The OTLP

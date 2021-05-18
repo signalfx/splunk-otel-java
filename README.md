@@ -15,7 +15,7 @@
   <a href="https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/tag/v1.2.0">
     <img alt="OpenTelemetry Java Instrumentation Version" src="https://img.shields.io/badge/otel-1.2.0-blueviolet?style=for-the-badge">
   </a>
-  <a href="https://github.com/signalfx/splunk-otel-java-instrumentation/releases">
+  <a href="https://github.com/signalfx/splunk-otel-java/releases">
     <img alt="GitHub release (latest SemVer)" src="https://img.shields.io/github/v/release/signalfx/splunk-otel-java?include_prereleases&style=for-the-badge">
   </a>
   <a href="https://mvnrepository.com/artifact/io.opentelemetry/opentelemetry-api">

@@ -44,7 +44,7 @@
 
 The documentation below refers to the in development version of this package. Docs for the latest version ([v0.11.0](https://github.com/signalfx/splunk-otel-java/releases/tag/v0.11.0)) can be found [here](https://github.com/signalfx/splunk-otel-java/blob/v0.11.0/README.md).
 
--------
+---
 
 # Splunk Distribution of OpenTelemetry Java
 

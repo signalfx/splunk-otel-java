@@ -4,7 +4,7 @@ Splunk Distribution of OpenTelemetry Java pulls in the the OpenTelemetry Java
 Instrumentation repository. As a result it cannot and will not mark anything
 stable, meaning supported without breaking changes, unless OpenTelemetry has
 marked it as stable or it is not specific to OpenTelemetry and is marked stable
-from by some other means (for example the GDI specification).
+by some other means (for example the GDI specification).
 
 As a concrete example, the 1.0 Splunk Distribution of OpenTelemetry Java
 release will apply to the tracing signal and the tracing components

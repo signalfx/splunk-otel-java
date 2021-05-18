@@ -18,9 +18,6 @@
   <a href="https://github.com/signalfx/splunk-otel-java/releases">
     <img alt="GitHub release (latest SemVer)" src="https://img.shields.io/github/v/release/signalfx/splunk-otel-java?include_prereleases&style=for-the-badge">
   </a>
-  <a href="https://mvnrepository.com/artifact/io.opentelemetry/opentelemetry-api">
-    <img alt="Maven Central" src="https://img.shields.io/maven-central/v/io.opentelemetry/opentelemetry-api?style=for-the-badge">
-  </a>
   <a href="https://github.com/signalfx/splunk-otel-java/actions?query=workflow%3A%22CI+build%22">
     <img alt="Build Status" src="https://img.shields.io/github/workflow/status/signalfx/splunk-otel-java/CI%20build?style=for-the-badge">
   </a>

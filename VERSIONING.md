@@ -41,6 +41,8 @@ This can occur in situations including:
 
 In the latter case, we will first **deprecate** (at least one release earlier)
 before introducing the change, so that customers can prepare accordingly.
+Experimental features, such as metrics, MAY be changed in a backwards
+incompatible way between `MINOR` versions.
 
 All the changes are to be communicated in the [changelog](CHANGELOG.md).
 
@@ -48,8 +50,8 @@ All the changes are to be communicated in the [changelog](CHANGELOG.md).
 
 Splunk is committed to support the customers using this distribution. All major
 versions will get critical (for example security) patches for **one year**
-after the release date. Feature development will stop on a major release once a
-new major release is introduced.
+after the next major release. Feature development will stop on a major release
+once the next major release is introduced.
 
 ## Release cadence
 

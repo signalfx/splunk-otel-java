@@ -3,10 +3,10 @@
 - **Can upstream opentelemetry-java or opentelemetry-java-instrumentation be
   used instead?** Definitely, however Splunk only provides best-effort support.
 - **What’s different between Splunk Distribution of OpenTelemetry Java and
-  OpenTelemetry Java?** Supported by Splunk, better defaults for Splunk
-  products, access to other open-source projects including Micrometer. Note, we
-  take an upstream-first approach, Splunk Distribution of OpenTelemetry Java
-  allow us to move fast.
+  OpenTelemetry Java Instrumentation?** Supported by Splunk, better defaults
+  for Splunk products, access to other open-source projects including
+  Micrometer. Note, we take an upstream-first approach, Splunk Distribution of
+  OpenTelemetry Java allow us to move fast.
 - **Why don't you publish the javaagent jar to a Maven repository?** It would
   make it very easy to accidentally put the agent on the application runtime
   classpath, which may cause all sorts of problems and confusion - and the

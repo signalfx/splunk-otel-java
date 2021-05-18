@@ -11,13 +11,16 @@
 </p>
 
 <p align="center">
+  <img alt="Beta" src="https://img.shields.io/badge/status-beta-informational?style=for-the-badge">
+  <a href="https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/tag/v1.2.0">
+    <img alt="OpenTelemetry Java Instrumentation Version" src="https://img.shields.io/badge/otel-1.2.0-blueviolet?style=for-the-badge">
+  </a>
+  <a href="https://github.com/signalfx/splunk-otel-java/releases">
+    <img alt="GitHub release (latest SemVer)" src="https://img.shields.io/github/v/release/signalfx/splunk-otel-java?include_prereleases&style=for-the-badge">
+  </a>
   <a href="https://github.com/signalfx/splunk-otel-java/actions?query=workflow%3A%22CI+build%22">
     <img alt="Build Status" src="https://img.shields.io/github/workflow/status/signalfx/splunk-otel-java/CI%20build?style=for-the-badge">
   </a>
-  <a href="https://github.com/signalfx/splunk-otel-java/releases">
-    <img alt="GitHub release (latest by date)" src="https://img.shields.io/github/v/release/signalfx/splunk-otel-java?include_prereleases&style=for-the-badge">
-  </a>
-  <img alt="Beta" src="https://img.shields.io/badge/status-beta-informational?style=for-the-badge">
 </p>
 
 <p align="center">
@@ -36,7 +39,11 @@
 
 ---
 
-# Splunk Distribution of OpenTelemetry Java Instrumentation
+The documentation below refers to the in development version of this package. Docs for the latest version ([v0.11.0](https://github.com/signalfx/splunk-otel-java/releases/tag/v0.11.0)) can be found [here](https://github.com/signalfx/splunk-otel-java/blob/v0.11.0/README.md).
+
+---
+
+# Splunk Distribution of OpenTelemetry Java
 
 The Splunk Distribution of [OpenTelemetry Java
 Instrumentation](https://github.com/open-telemetry/opentelemetry-java-instrumentation)
@@ -51,11 +58,17 @@ see [Migrate from the SignalFx Java Agent](MIGRATING.md).
 
 This distribution comes with the following defaults:
 
-- [W3C `tracecontext` context propagation](https://www.w3.org/TR/trace-context/).
-- [OTLP traces exporter](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/protocol/README.md)
-  configured to send spans to a locally
-  running [Splunk OpenTelemetry Connector](https://github.com/signalfx/splunk-otel-collector)
-  (`http://localhost:4317`).
+- [W3C `tracecontext`](https://www.w3.org/TR/trace-context/) context
+  propagation; [B3](https://github.com/openzipkin/b3-propagation) can also be
+  [configured](https://github.com/signalfx/splunk-otel-java/blob/main/docs/advanced-config.md#trace-propagation-configuration).
+- [OTLP
+  exporter](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/protocol/README.md)
+  configured to send spans to a locally running [Splunk OpenTelemetry
+  Connector](https://github.com/signalfx/splunk-otel-collector)
+  (`http://localhost:4317`); [Jaeger Thrift
+  exporter](https://github.com/signalfx/splunk-otel-java/blob/main/docs/advanced-config.md#trace-exporters)
+  available for [Smart Agent](https://github.com/signalfx/signalfx-agent)
+  (`http://localhost:9080/v1/trace`).
 - Unlimited default limits for [configuration options](docs/advanced-config.md#trace-configuration) to support
   full-fidelity traces.
 
@@ -71,11 +84,12 @@ curl -L https://github.com/signalfx/splunk-otel-java/releases/latest/download/sp
      -o splunk-otel-javaagent.jar
 ```
 
-Enable the Java agent by adding the `-javaagent` flag to the runtime JVM parameters.
-For example, if the runtime parameters were:
+Enable the Java agent by adding the `-javaagent` flag to the runtime JVM
+parameters and set the `service.name`. For example, if the runtime parameters
+were:
 
 ```bash
-java -jar myapp.jar https://google.com
+java -jar myapp.jar https://splunk.com
 ```
 
 Then the runtime parameters would be updated to:
@@ -83,7 +97,7 @@ Then the runtime parameters would be updated to:
 ```bash
 java -javaagent:./splunk-otel-javaagent.jar \
      -Dotel.resource.attributes=service.name=my-java-app \
-     -jar myapp.jar https://google.com
+     -jar myapp.jar https://splunk.com
 ```
 
 > The `-javaagent` needs to appear before the `-jar` file,
@@ -106,22 +120,24 @@ attribute as shown in the [example above](#getting-started).
 
 A couple other configuration options that may need to be changed or set are:
 
-- Endpoint if not sending to a locally running Splunk OpenTelemetry Connector with default
-  configuration. See the [exporters](docs/advanced-config.md#trace-exporters)
-  configuration documentation for more information.
-- Environment resource attribute `deployment.environment` to specify what environment
-  the span originated from. For example:
+- Endpoint if not sending to a locally running Splunk OpenTelemetry Connector
+  with default configuration. See the
+  [exporters](docs/advanced-config.md#trace-exporters) configuration
+  documentation for more information.
+- Environment resource attribute `deployment.environment` to specify what
+  environment the span originated from. For example:
   ```
   -Dotel.resource.attributes=service.name=my-java-app,deployment.environment=production
   ```
-- Service version resource attribute `service.version` to specify the version of your instrumented application. For
-  example:
+- Service version resource attribute `service.version` to specify the version
+  of your instrumented application. For example:
   ```
   -Dotel.resource.attributes=service.name=my-java-app,service.version=1.2.3
   ```
 
-The `deployment.environment` and `service.version` resource attributes are not strictly required by the agent, but we
-recommend setting them if they are available.
+The `deployment.environment` and `service.version` resource attributes are not
+strictly required by the agent, but recommended to be set if they are
+available.
 
 The `otel.resource.attributes` syntax is described in detail in the
 [trace configuration](docs/advanced-config.md#trace-configuration) section.

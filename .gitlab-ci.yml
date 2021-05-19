@@ -21,7 +21,7 @@ stages:
 build:
   stage: build
   script:
-    - ./gradlew build -x :smoke-tests:test --scan --no-daemon
+    - ./gradlew build -x :smoke-tests:test --scan --no-daemon --stacktrace
 
 # TODO: temporarily commented out
 #generate-smoke-test-pipeline:
@@ -42,8 +42,11 @@ build:
 
 smoke-test-linux-other:
   stage: test
+  artifacts:
+    paths:
+      - smoke-tests/build/reports/
   script:
-    - ./gradlew :smoke-tests:test -PsmokeTestSuite="other" --scan --no-daemon
+    - ./gradlew :smoke-tests:test -PsmokeTestSuite="other" --scan --no-daemon --stacktrace
   image: "openjdk:11.0.11-9-jdk"
 
 release:

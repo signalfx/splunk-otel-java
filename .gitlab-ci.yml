@@ -11,21 +11,28 @@ build:
   script:
     - ./gradlew build -x :smoke-tests:test --scan --no-daemon
 
-generate-smoke-test-pipeline:
-  stage: build
-  script:
-    - ./.gitlab/generate-smoke-test-pipeline.sh > smoke-tests.yml
-  artifacts:
-    paths:
-      - smoke-tests.yml
+# TODO: temporarily commented out
+#generate-smoke-test-pipeline:
+#  stage: build
+#  script:
+#    - ./.gitlab/generate-smoke-test-pipeline.sh > smoke-tests.yml
+#  artifacts:
+#    paths:
+#      - smoke-tests.yml
+#
+#smoke-tests:
+#  stage: test
+#  trigger:
+#    include:
+#      - artifact: smoke-tests.yml
+#        job: generate-smoke-test-pipeline
+#    strategy: depend
 
-smoke-tests:
+smoke-test-linux-other:
   stage: test
-  trigger:
-    include:
-      - artifact: smoke-tests.yml
-        job: generate-smoke-test-pipeline
-    strategy: depend
+  script:
+    - ./gradlew :smoke-tests:test -PsmokeTestSuite="other" --scan --no-daemon
+  image: "openjdk:11.0.11-9-jdk"
 
 release:
   stage: release

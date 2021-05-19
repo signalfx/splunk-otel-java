@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 
-SYSTEMS=("linux" "windows")
+# windows images are currently not supported by gitlab runners
+#SYSTEMS=("linux" "windows")
+SYSTEMS=("linux")
 SUITES=("glassfish" "jboss" "jetty" "liberty" "tomcat" "tomee" "weblogic" "wildfly" "other")
 
 cat << EOF

@@ -1,55 +1,14 @@
 image:
   name: "openjdk:11.0.11-9-jdk"
 
-# https://www.testcontainers.org/supported_docker_environment/continuous_integration/gitlab_ci/
-services:
-  - name: docker:dind
-    alias: docker
-    entrypoint: [ "env", "-u", "DOCKER_HOST" ]
-    command: [ "dockerd-entrypoint.sh" ]
-variables:
-  # Instruct Testcontainers to use the daemon of DinD.
-  DOCKER_HOST: "tcp://docker:2375"
-  # Instruct Docker not to start over TLS.
-  DOCKER_TLS_CERTDIR: ""
-  # Improve performance with overlayfs.
-  DOCKER_DRIVER: overlay2
-
 stages:
   - build
-  - test
   - release
 
 build:
   stage: build
   script:
     - ./gradlew build -x :smoke-tests:test --scan --no-daemon --stacktrace
-
-# TODO: temporarily commented out
-#generate-smoke-test-pipeline:
-#  stage: build
-#  script:
-#    - ./.gitlab/generate-smoke-test-pipeline.sh > smoke-tests.yml
-#  artifacts:
-#    paths:
-#      - smoke-tests.yml
-#
-#smoke-tests:
-#  stage: test
-#  trigger:
-#    include:
-#      - artifact: smoke-tests.yml
-#        job: generate-smoke-test-pipeline
-#    strategy: depend
-
-smoke-test-linux-other:
-  stage: test
-  artifacts:
-    paths:
-      - smoke-tests/build/reports/
-  script:
-    - ./gradlew :smoke-tests:test -PsmokeTestSuite="other" --scan --no-daemon --stacktrace
-  image: "openjdk:11.0.11-9-jdk"
 
 release:
   stage: release

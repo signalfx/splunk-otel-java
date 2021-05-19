@@ -42,7 +42,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ### Enhancements
 
 - The Splunk Distribution of OpenTelemetry Java now gathers basic application and JVM metrics. By default, this feature
-  is enabled and is sending metrics to a localhost SmartAgent instance:
+  is enabled and is sending metrics to a SmartAgent instance running on localhost:
   you can change the endpoint
   by [setting an appropriate configuration option](docs/advanced-config.md#splunk-distribution-configuration). You can
   find a more detailed explanation about the feature [here](docs/metrics.md).

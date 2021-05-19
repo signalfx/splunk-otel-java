@@ -13,7 +13,7 @@
 <p align="center">
   <img alt="Beta" src="https://img.shields.io/badge/status-beta-informational?style=for-the-badge">
   <a href="https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/tag/v1.2.0">
-    <img alt="OpenTelemetry Java Instrumentation Version" src="https://img.shields.io/badge/otel-1.2.0-blueviolet?style=for-the-badge">
+    <img alt="OpenTelemetry Instrumentation for Java Version" src="https://img.shields.io/badge/otel-1.2.0-blueviolet?style=for-the-badge">
   </a>
   <a href="https://github.com/signalfx/splunk-otel-java/releases">
     <img alt="GitHub release (latest SemVer)" src="https://img.shields.io/github/v/release/signalfx/splunk-otel-java?include_prereleases&style=for-the-badge">
@@ -45,15 +45,15 @@ The documentation below refers to the in development version of this package. Do
 
 # Splunk Distribution of OpenTelemetry Java
 
-The Splunk Distribution of [OpenTelemetry Java
-Instrumentation](https://github.com/open-telemetry/opentelemetry-java-instrumentation)
+The Splunk Distribution of [OpenTelemetry Instrumentation for
+Java](https://github.com/open-telemetry/opentelemetry-java-instrumentation)
 provides a [Java Virtual Machine (JVM)
 agent](https://docs.oracle.com/javase/7/docs/api/java/lang/instrument/package-summary.html)
 that automatically instruments your Java application to capture and report
 distributed traces to Splunk APM.
 
 If you're currently using the SignalFx Java Agent and want to
-migrate to the Splunk Distribution of OpenTelemetry Java Instrumentation,
+migrate to the Splunk Distribution of OpenTelemetry Java,
 see [Migrate from the SignalFx Java Agent](MIGRATING.md).
 
 This distribution comes with the following defaults:
@@ -161,20 +161,20 @@ Documentation on how to manually instrument a Java application is available
 To extend the instrumentation with the OpenTelemetry Instrumentation for Java,
 you have to use a compatible API version.
 
-The Splunk Distribution of OpenTelemetry Java Instrumentation version 0.11.0 is compatible with:
+The Splunk Distribution of OpenTelemetry Java version 0.11.0 is compatible with:
 
 * OpenTelemetry API version 1.2.0
 * OpenTelemetry Instrumentation for Java version 1.2.0
 
 ## Correlating traces with logs
 
-The Splunk Distribution of OpenTelemetry Java Instrumentation provides a way
+The Splunk Distribution of OpenTelemetry Java provides a way
 to correlate traces with logs. It is described in detail [here](docs/correlating-traces-with-logs.md).
 
 # License and versioning
 
-The Splunk Distribution of OpenTelemetry Java Instrumentation is a distribution
-of the [OpenTelemetry Java Instrumentation
+The Splunk Distribution of OpenTelemetry Java is a distribution
+of the [OpenTelemetry Instrumentation for Java
 project](https://github.com/open-telemetry/opentelemetry-java-instrumentation).
 It is released under the terms of the Apache Software License version 2.0. See
 [the license file](./LICENSE) for more details.

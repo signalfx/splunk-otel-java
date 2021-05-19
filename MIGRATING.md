@@ -1,18 +1,18 @@
 # Migrate from the SignalFx Java Agent
 
-The Splunk Distribution of OpenTelemetry Java Instrumentation replaces the
+The Splunk Distribution of OpenTelemetry Java replaces the
 [SignalFx Java Agent](https://github.com/signalfx/signalfx-java-tracing).
 If you're using the SignalFx Java Agent, migrate to the Splunk Distribution of
-OpenTelemetry Java Instrumentation.
+OpenTelemetry Java.
 
-The distribution is based on the [OpenTelemetry Java Instrumentation](https://github.com/open-telemetry/opentelemetry-java-instrumentation):
+The distribution is based on the [OpenTelemetry Instrumentation for Java](https://github.com/open-telemetry/opentelemetry-java-instrumentation):
 an open-source project that uses the OpenTelemetry API and has a smaller memory
 footprint than the SignalFx Java Agent.
 
 ## Telemetry data
 
 Because the SignalFx Java Agent uses OpenTracing and the Splunk Distribution
-of OpenTelemetry Java Instrumentation uses OpenTelemetry, the semantic
+of OpenTelemetry Java uses OpenTelemetry, the semantic
 conventions for span tag names change when you migrate. For more information,
 see [Migrate from OpenTracing to OpenTelemetry](https://docs.signalfx.com/en/latest/apm/apm-getting-started/apm-opentelemetry-collector.html#apm-opentelemetry-migration).
 
@@ -20,16 +20,16 @@ Depending on the configuration, the SignalFx Java Agent and the Splunk Distribut
 Instrumentation may export trace data in different formats. Such a situation would
 result in your application sending different data to Splunk APM.
 To address this, please run a pilot test to compare the trace data you
-receive with the Splunk Distribution of OpenTelemetry Java Instrumentation
+receive with the Splunk Distribution of OpenTelemetry Java
 against the data you used to receive from the SignalFx Java Agent.
 
 ## Steps to migrate
 
 Follow these steps to migrate from the SignalFx Java Agent to the Splunk
-distribution of Splunk Distribution of OpenTelemetry Java Instrumentation:
+Distribution of OpenTelemetry Java Instrumentation:
 
 1. Download the [latest release](https://github.com/signalfx/splunk-otel-java/releases/latest/download/splunk-otel-javaagent-all.jar)
-   of the Splunk Distribution of OpenTelemetry Java Instrumentation. For example use:
+   of the Splunk Distribution of OpenTelemetry Java. For example use:
    ```bash
    curl -vsSL -o splunk-otel-javaagent-all.jar 'https://github.com/signalfx/splunk-otel-java/releases/latest/download/splunk-otel-javaagent-all.jar'
    ```
@@ -45,7 +45,7 @@ distribution of Splunk Distribution of OpenTelemetry Java Instrumentation:
    ```
 3. Specify the endpoint of the OpenTelemetry Collector or SignalFx Smart Agent you're exporting traces to.
    Depending on which one you use, you might have to switch the trace exporter. The Splunk Distribution of
-   OpenTelemetry Java Instrumentation uses the OTLP traces exporter as the default - which is only supported by the
+   OpenTelemetry Java uses the OTLP traces exporter as the default - which is only supported by the
    OpenTelemetry Collector. If you wish to use the SignalFx Smart Agent, you have to switch to the Jaeger exporter.
 
    You can configure the trace exporter with a system property or environment variable.
@@ -89,7 +89,7 @@ distribution of Splunk Distribution of OpenTelemetry Java Instrumentation:
 
 Each of the following sections describe any changes in functionality as you
 migrate from the SignalFx Java Agent to the Splunk Distribution of
-OpenTelemetry Java Instrumentation.
+OpenTelemetry Java.
 
 ### Configuration setting changes
 
@@ -110,7 +110,8 @@ These SignalFx Java Agent system properties correspond to the following OpenTele
 Note: when setting both `service name` and `environment` appropriate `otel.resource.attributes` property setting will
 look like this: `otel.resource.attributes=service.name=myService,deployment.environment=myEnvironment`
 
-Additional info about disabling a particular instrumentation can be found in the [OpenTelemetry Java Instrumentation docs](https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/docs/suppressing-instrumentation.md).
+Additional info about disabling a particular instrumentation can be found in the [OpenTelemetry Instrumentation for
+Java docs](https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/docs/suppressing-instrumentation.md).
 
 These SignalFx Java Agent environment variables correspond to the following
 OpenTelemetry environment variables:
@@ -129,7 +130,7 @@ OpenTelemetry environment variables:
 
 These SignalFx Java Agent system properties and environment variables don't
 have corresponding configuration options with the Spunk Distribution for
-OpenTelemetry Java Instrumentation:
+OpenTelemetry Java:
 
 | System property                      | Environment variable |
 | ------------------------------------ | -------------------- |
@@ -158,13 +159,13 @@ different:
 | `logback` | 1.0+ |
 
 For more information about injecting trace IDs in logs with the Splunk
-Distribution of OpenTelemetry Java Instrumentation, see
+Distribution of OpenTelemetry Java, see
 [Logger MDC auto-instrumentation](https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/master/docs/logger-mdc-instrumentation.md).
 
 ### Trace annotation changes
 
 The `@Trace` annotation that the SignalFx Java Agent uses is compatible with
-the Splunk Distribution of OpenTelemetry Java Instrumentation. If you're using
+the Splunk Distribution of OpenTelemetry Java. If you're using
 the `@Trace` annotation for custom instrumentation, you don't have to make any
 changes to maintain existing functionality.
 

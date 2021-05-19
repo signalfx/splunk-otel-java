@@ -25,16 +25,18 @@ To turn on the agent's internal debug logging:
 
 ## Instrumentation issues
 
-If you find something wrong with a particular instrumentation (or suspect that
-there's something wrong with it) you can suppress it by following steps
-described [here](https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/docs/suppressing-instrumentation.md#suppressing-specific-agent-instrumentation).
+If you find something wrong with a particular instrumentation (or suspect that there's something wrong with it) you can
+suppress it by following steps
+described [here](https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/docs/suppressing-instrumentation.md#suppressing-specific-agent-instrumentation)
+.
 
-If you find that any instrumentation is broken please do not hesitate to [file a bug](https://github.com/signalfx/splunk-otel-java/issues/new).
+If you find that any instrumentation is broken please do not hesitate
+to [file a bug](https://github.com/signalfx/splunk-otel-java/issues/new).
 
 ## Trace exporter issues
 
 If you're unsure which trace exporter you are using, most likely it's the OTLP exporter - it's the default trace
-exporter in the Splunk Distribution of OpenTelemetry Java Instrumentation.
+exporter in the Splunk Distribution of OpenTelemetry Java.
 
 ### OTLP exporter
 
@@ -102,19 +104,19 @@ If you see the following warning:
 [signalfx-metrics-publisher] WARN com.splunk.javaagent.shaded.io.micrometer.signalfx.SignalFxMeterRegistry - failed to send metrics: Unable to send datapoints
 ```
 
-in your logs it means that the javaagent cannot send metrics to your Smart Agent, OpenTelemetry Collector
-or the Splunk backend.
+in your logs it means that the javaagent cannot send metrics to your Smart Agent, OpenTelemetry Collector or the Splunk
+backend.
 
 1. Please make sure that `splunk.metrics.endpoint` points to the correct host:
    a Smart Agent or OpenTelemetry Collector instance, or the Splunk ingest URL.
 2. If you're using the Agent or Collector, verify that the instance is up.
-3. Please make sure that your Agent/Collector instance is properly configured
-   and the SignalFx receiver is enabled and plugged into the metrics pipeline.
-4. Smart Agent and OpenTelemetry Collector by default use different ports
-   for the SignalFx receiver: the Agent uses `http://<host>:9080/v2/datapoint`
+3. Please make sure that your Agent/Collector instance is properly configured and the SignalFx receiver is enabled and
+   plugged into the metrics pipeline.
+4. Smart Agent and OpenTelemetry Collector by default use different ports for the SignalFx receiver: the Agent
+   uses `http://<host>:9080/v2/datapoint`
    and the Collector uses `http://<host>:9943`. Verify that your URL is correct.
 5. If you're sending metrics directly to the Splunk cloud, please verify that the `SPLUNK_ACCESS_TOKEN` is configured
    and contains a valid access token.
-6. Metrics feature is still experimental - if you can't make it work or encounter
-   any unexpected issues you can [turn it off](advanced-config.md#splunk-distribution-configuration)
+6. Metrics feature is still experimental - if you can't make it work or encounter any unexpected issues you
+   can [turn it off](advanced-config.md#splunk-distribution-configuration)
    and [file a bug](https://github.com/signalfx/splunk-otel-java/issues/new).

@@ -34,7 +34,7 @@ are necessary, the `MAJOR` version of the artifact will be incremented.
 
 This can occur in situations including:
 
-- OpenTelemetry Java Instrumentation breaking change - please see [upstream
+- OpenTelemetry Instrumentation for Java breaking change - please see [upstream
   repository](https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/VERSIONING.md)
   for their versioning policy
 - Change in a Splunk-managed configuration property or code
@@ -55,6 +55,6 @@ once the next major release is introduced.
 
 ## Release cadence
 
-Currently, the `OpenTelemetry Java Instrumentation` is released on a
+Currently, the `OpenTelemetry Instrumentation for Java` is released on a
 **monthly** cadence. We strive to release the Splunk distribution with 2
 working days after the upstream.

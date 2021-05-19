@@ -43,7 +43,7 @@ class SplunkMetricsConfigTest {
     var splunkMetricsConfig = new SplunkMetricsConfig(javaagentConfig, resource);
 
     // when & then
-    assertTrue(splunkMetricsConfig.enabled());
+    assertFalse(splunkMetricsConfig.enabled());
     assertFalse(splunkMetricsConfig.accessToken().isBlank());
     assertEquals(DEFAULT_METRICS_ENDPOINT, splunkMetricsConfig.uri());
     assertEquals("test-service", splunkMetricsConfig.source());
@@ -56,7 +56,7 @@ class SplunkMetricsConfigTest {
         Config.create(
             Map.of(
                 METRICS_ENABLED_PROPERTY,
-                "false",
+                "true",
                 SPLUNK_ACCESS_TOKEN,
                 "token",
                 METRICS_ENDPOINT_PROPERTY,
@@ -67,7 +67,7 @@ class SplunkMetricsConfigTest {
     var splunkMetricsConfig = new SplunkMetricsConfig(javaagentConfig, resource);
 
     // when & then
-    assertFalse(splunkMetricsConfig.enabled());
+    assertTrue(splunkMetricsConfig.enabled());
     assertEquals("token", splunkMetricsConfig.accessToken());
     assertEquals("http://my-endpoint:42", splunkMetricsConfig.uri());
     assertEquals("test-service", splunkMetricsConfig.source());

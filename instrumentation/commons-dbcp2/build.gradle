@@ -6,3 +6,7 @@ dependencies {
   testImplementation "org.apache.commons:commons-dbcp2:2.0"
   testImplementation deps.awaitility
 }
+
+tasks.withType(Test).configureEach {
+  jvmArgs "-Dsplunk.metrics.enabled=true"
+}

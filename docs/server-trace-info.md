@@ -1,5 +1,7 @@
 # Server trace information
 
+> :construction: &nbsp;Status: Experimental
+
 Setting `SPLUNK_TRACE_RESPONSE_HEADER_ENABLED` to `true` results in the
 following headers being added to HTTP responses produced by the
 instrumented application:
@@ -18,9 +20,9 @@ Also see the following documents for more information about `Server-Timing` head
 * https://www.w3.org/TR/server-timing/
 * https://www.w3.org/TR/trace-context/#traceparent-header
 
-## Supported frameworks and libraries
+## Frameworks and libraries
 
-The following server frameworks and libraries are supported:
+The following server frameworks and libraries add `Server-Timing` information:
 
 | Framework/Library | Versions                            |
 |-------------------|-------------------------------------|

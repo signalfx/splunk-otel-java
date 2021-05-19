@@ -56,7 +56,7 @@ class SplunkMetricsConfig implements SignalFxConfig {
 
   @Override
   public boolean enabled() {
-    return config.getBooleanProperty(METRICS_ENABLED_PROPERTY, true);
+    return config.getBooleanProperty(METRICS_ENABLED_PROPERTY, false);
   }
 
   @Override

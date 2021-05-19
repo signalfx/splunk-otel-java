@@ -1,6 +1,18 @@
 image:
   name: "openjdk:11.0.11-9-jdk"
 
+# https://www.testcontainers.org/supported_docker_environment/continuous_integration/gitlab_ci/
+services:
+  - name: docker:dind
+    alias: docker
+variables:
+  # Instruct Testcontainers to use the daemon of DinD.
+  DOCKER_HOST: "tcp://docker:2375"
+  # Instruct Docker not to start over TLS.
+  DOCKER_TLS_CERTDIR: ""
+  # Improve performance with overlayfs.
+  DOCKER_DRIVER: overlay2
+
 stages:
   - build
   - test

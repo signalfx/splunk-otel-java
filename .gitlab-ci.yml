@@ -5,6 +5,8 @@ image:
 services:
   - name: docker:dind
     alias: docker
+    entrypoint: [ "env", "-u", "DOCKER_HOST" ]
+    command: [ "dockerd-entrypoint.sh" ]
 variables:
   # Instruct Testcontainers to use the daemon of DinD.
   DOCKER_HOST: "tcp://docker:2375"

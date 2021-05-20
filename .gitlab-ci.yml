@@ -1,0 +1,25 @@
+image:
+  name: "openjdk:11.0.11-9-jdk"
+
+stages:
+  - build
+  - release
+
+build:
+  stage: build
+  script:
+    - ./gradlew build -x :smoke-tests:test --scan --no-daemon --stacktrace
+
+release:
+  stage: release
+  artifacts:
+    paths:
+      - dist/
+  only:
+    - tags
+    - /^v[0-9]+\.[0-9]+\.[0-9]+.*/
+  script:
+    - ./gradlew -Prelease.useLastTag=true build final -x test --no-daemon
+    - mkdir -p dist
+    - mv agent/build/libs/splunk-otel-javaagent-*-all.jar dist/splunk-otel-javaagent-all.jar
+    - shasum -a 256 dist/* > dist/checksums.txt

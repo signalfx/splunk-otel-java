@@ -42,7 +42,7 @@ tasks.test {
       "tomcat"   : ["**/TomcatSmokeTest.*"],
       "tomee"    : ["**/TomeeSmokeTest.*"],
       "weblogic" : ["**/WebLogicSmokeTest.*"],
-      "wildfly"  : ["**/WildflySmokeTest.*"]
+      "wildfly"  : ["**/WildFlySmokeTest.*"]
   ]
 
   def suite = findProperty('smokeTestSuite')

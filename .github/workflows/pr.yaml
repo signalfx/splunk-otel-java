@@ -32,5 +32,19 @@ jobs:
           distribution: adopt
           java-version: 11.0.11+9
 
+      # TODO: those 2 steps below are just to test that this works; they'll be removed
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v1
+        permissions:
+          packages: read
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+        if: startsWith(matrix.os, 'ubuntu')
+      - name: Pull proprietary images
+        run: ./gradlew pullProprietaryTestImages --scan --no-daemon
+        if: startsWith(matrix.os, 'ubuntu')
+
       - name: Test
         run: ./gradlew :smoke-tests:test -PsmokeTestSuite=${{ matrix.suite }} --scan --no-daemon

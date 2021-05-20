@@ -27,7 +27,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   mechanism; [W3C Baggage](https://w3c.github.io/baggage/) is also enabled by default. You can switch to the previous B3
   propagator by setting `OTEL_PROPAGATORS=b3multi`.
 - Deprecated configuration property `splunk.context.server-timing.enabled` has been removed. You can use
-  `splunk.context.server-timing.enabled` instead.
+  `splunk.trace-response-header.enabled` instead.
 
 ### Enhancements
 

@@ -35,8 +35,6 @@ jobs:
       # TODO: those 2 steps below are just to test that this works; they'll be removed
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v1
-        permissions:
-          packages: read
         with:
           registry: ghcr.io
           username: ${{ github.repository_owner }}

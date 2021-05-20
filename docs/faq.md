@@ -3,7 +3,7 @@
 - **Can upstream opentelemetry-java or opentelemetry-java-instrumentation be
   used instead?** Definitely, however Splunk only provides best-effort support.
 - **What’s different between Splunk Distribution of OpenTelemetry Java and
-  OpenTelemetry Java Instrumentation?** Supported by Splunk, better defaults
+  OpenTelemetry Instrumentation for Java?** Supported by Splunk, better defaults
   for Splunk products, access to other open-source projects including
   Micrometer. Note, we take an upstream-first approach, Splunk Distribution of
   OpenTelemetry Java allow us to move fast.

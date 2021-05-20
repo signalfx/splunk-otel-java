@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 
-from sys import argv as ARGV
+import os
+import shutil
 from os import makedirs, environ as ENV
 from pathlib import Path
+from sys import argv as ARGV
 from urllib.request import build_opener, HTTPRedirectHandler
-import shutil
-import os
 
 LATEST_VERSION = "latest"
 JAVA_AGENT_VERSION = ENV.get("SPLUNK_OTEL_JAVA_VERSION", default=LATEST_VERSION)
@@ -67,7 +67,7 @@ def write_config_yml(agent_jar, deps_dir, deps_idx):
         ])
 
 def main(app_dir, cache_dir, deps_dir, deps_idx):
-    log_op("Splunk OpenTelemetry Java Instrumentation Buildpack")
+    log_op("Splunk OpenTelemetry Java Buildpack")
     agent_jar = download_agent_jar(cache_dir)
     agent_jar = copy_agent_to_app(agent_jar, app_dir)
     write_config_yml(agent_jar, deps_dir, deps_idx)

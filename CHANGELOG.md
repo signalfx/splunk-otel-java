@@ -11,14 +11,14 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### General Notes
 
-- OpenTelemetry Java SDK and OpenTelemetry Java Instrumentation dependencies were updated to version 1.2.0.
+- OpenTelemetry Java SDK and OpenTelemetry Instrumentation for Java dependencies were updated to version 1.2.0.
 - Micrometer dependency was updated to version 1.7.0.
 
 ### Breaking Changes
 
-- The Splunk Distribution of OpenTelemetry Java Instrumentation now uses the OTLP span exporter as the default. The OTLP
-  exporter supports the `splunk.access.token` configuration option and can be used to send spans directly to Splunk
-  cloud. The default OTLP exporter endpoint is `http://localhost:4317`. You can still use the Jaeger exporter by
+- The Splunk Distribution of OpenTelemetry Java now uses the OTLP span exporter as the default. The OTLP exporter
+  supports the `splunk.access.token` configuration option and can be used to send spans directly to Splunk cloud. The
+  default OTLP exporter endpoint is `http://localhost:4317`. You can still use the Jaeger exporter by
   setting `OTEL_TRACES_EXPORTER=jaeger-thrift-splunk`.
 - We have also changed the default endpoint of the SignalFx metrics exporter: it now points to `http://localhost:9943`,
   which is the default endpoint of [Splunk OpenTelemetry Connector](https://github.com/signalfx/splunk-otel-collector)
@@ -37,12 +37,12 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### General Notes
 
-- Updated OpenTelemetry and OpenTelemetry Java Instrumentation versions to 1.1.0.
+- Updated OpenTelemetry and OpenTelemetry Instrumentation for Java versions to 1.1.0.
 
 ### Enhancements
 
-- The Splunk Distribution of OpenTelemetry Java Instrumentation now gathers basic application and JVM metrics. By
-  default, this feature is enabled and is sending metrics to a localhost SmartAgent instance:
+- The Splunk Distribution of OpenTelemetry Java now gathers basic application and JVM metrics. By default, this feature
+  is enabled and is sending metrics to a SmartAgent instance running on localhost:
   you can change the endpoint
   by [setting an appropriate configuration option](docs/advanced-config.md#splunk-distribution-configuration). You can
   find a more detailed explanation about the feature [here](docs/metrics.md).
@@ -52,7 +52,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - The SignalFx Java Agent migration guide has been brought up-to-date.
 - The repo README and documentation was significantly revamped. You'll now find much more information about the features
   and configuration of this project. We've also added a FAQ and troubleshooting sections that aim to answer the most
-  common problems that may arise while using the Splunk Distribution of OpenTelemetry Java Instrumentation.
+  common problems that may arise while using the Splunk Distribution of OpenTelemetry Java.
 
 ### Breaking Changes
 
@@ -68,7 +68,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### General Notes
 
-- Updated OpenTelemetry Java Instrumentation versions to 1.0.0.
+- Updated OpenTelemetry Instrumentation for Java versions to 1.0.0.
 
 ### Deprecations
 
@@ -78,7 +78,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### General Notes
 
-- Updated OpenTelemetry Java Instrumentation versions to 0.16.1.
+- Updated OpenTelemetry Instrumentation for Java versions to 0.16.1.
 
 ### Enhancements
 

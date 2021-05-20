@@ -7,6 +7,10 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Enhancements
+
+- The agent will now set a resource attribute `splunk.distro.version` with its own version.
+
 ## [v0.11.0] - 2021-05-17
 
 ### General Notes

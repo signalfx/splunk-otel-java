@@ -9,7 +9,7 @@ def relocatePackages = ext.relocatePackages
 dependencies {
     compileOnly("io.opentelemetry:opentelemetry-sdk:${versions.opentelemetry}")
     compileOnly("io.opentelemetry:opentelemetry-sdk-extension-autoconfigure:${versions.opentelemetryAlpha}")
-    compileOnly("io.opentelemetry.javaagent:opentelemetry-javaagent-spi:${versions.opentelemetryJavaagentAlpha}")
+    compileOnly("io.opentelemetry.javaagent:opentelemetry-javaagent-extension-api:${versions.opentelemetryJavaagentAlpha}")
     compileOnly("io.opentelemetry.instrumentation:opentelemetry-instrumentation-api:${versions.opentelemetryJavaagentAlpha}")
     compileOnly("io.opentelemetry:opentelemetry-semconv:1.0.1-alpha")
     compileOnly deps.slf4j

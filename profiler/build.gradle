@@ -14,10 +14,8 @@ dependencies {
     compileOnly("io.opentelemetry:opentelemetry-semconv:1.0.1-alpha")
     compileOnly deps.slf4j
 
-    annotationProcessor("com.google.auto.service:auto-service:1.0-rc7")
-    annotationProcessor("com.google.auto:auto-common:0.8")
-    implementation("com.google.auto.service:auto-service:1.0-rc7")
-    implementation("com.google.auto:auto-common:0.8")
+    annotationProcessor deps.autoservice
+    implementation deps.autoservice
 }
 
 shadowJar {

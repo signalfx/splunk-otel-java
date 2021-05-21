@@ -31,7 +31,7 @@ public class JfrActivator implements ComponentInstaller {
 
   @Override
   public void afterByteBuddyAgent(Config config) {
-    if ("false".equals(config.getProperty(CONFIG_KEY_ENABLE_PROFILER))) {
+    if (config.getBooleanProperty(CONFIG_KEY_ENABLE_PROFILER, true)) {
       logger.debug("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
       logger.debug("xxxxxxxxx  JFR PROFILER DISABLED!  xxxxxxxxx");
       logger.debug("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");

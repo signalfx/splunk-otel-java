@@ -19,7 +19,12 @@ release:
     - tags
     - /^v[0-9]+\.[0-9]+\.[0-9]+.*/
   script:
-    - ./gradlew -Prelease.useLastTag=true build final -x test --no-daemon
     - mkdir -p dist
+    # build the javaagent
+    - ./gradlew -Prelease.useLastTag=true build final -x test --no-daemon
     - mv agent/build/libs/splunk-otel-javaagent-*-all.jar dist/splunk-otel-javaagent-all.jar
+    # build the cloudfoundry buildpack
+    - ./deployments/cloudfoundry/buildpack/build.sh
+    - mv deployments/cloudfoundry/buildpack/splunk_otel_java_buildpack-linux.zip dist/
+    # calculate checksums
     - shasum -a 256 dist/* > dist/checksums.txt

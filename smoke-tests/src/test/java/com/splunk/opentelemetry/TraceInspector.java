@@ -24,6 +24,7 @@ import io.opentelemetry.proto.trace.v1.Span;
 import java.util.Collection;
 import java.util.NoSuchElementException;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -67,11 +68,16 @@ public class TraceInspector {
   }
 
   public boolean resourceExists(String key, String value) {
+    return resourceExists(key, v -> v.equals(value));
+  }
+
+  public boolean resourceExists(String key, Predicate<String> valuePredicate) {
     return traces.stream()
         .flatMap(it -> it.getResourceSpansList().stream())
         .map(ResourceSpans::getResource)
         .flatMap(resource -> resource.getAttributesList().stream())
-        .anyMatch(kv -> kv.getKey().equals(key) && kv.getValue().getStringValue().equals(value));
+        .anyMatch(
+            kv -> kv.getKey().equals(key) && valuePredicate.test(kv.getValue().getStringValue()));
   }
 
   public int countTraceIds() {

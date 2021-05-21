@@ -44,6 +44,12 @@ tasks {
     options.release.set(8)
   }
 
+  processResources {
+    expand([
+        'version': project.version
+    ])
+  }
+
   shadowJar {
     mergeServiceFiles()
 

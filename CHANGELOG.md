@@ -7,9 +7,18 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [v1.0.0-rc1] - 2021-05-24
+
+### Breaking Changes
+
+- The [metrics](docs/metrics.md) component will now be turned off by default. You can re-enable it by setting
+  `SPLUNK_METRICS_ENABLED` to `true`.
+
 ### Enhancements
 
 - The agent will now set a resource attribute `splunk.distro.version` with its own version.
+- The CloudFoundry buildpack file for Splunk Distribution of OpenTelemetry Java will now be built as a part of the
+  release process and will be attached to the GitHub release.
 
 ## [v0.11.0] - 2021-05-17
 
@@ -88,7 +97,9 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 - Instrument Netty 4.0 to add Server-Timing header.
 
-[Unreleased]: https://github.com/signalfx/splunk-otel-java/compare/v0.11.0...HEAD
+[Unreleased]: https://github.com/signalfx/splunk-otel-java/compare/v1.0.0-rc1...HEAD
+
+[v1.0.0-rc1]: https://github.com/signalfx/splunk-otel-java/compare/v0.11.0...v1.0.0-rc1
 
 [v0.11.0]: https://github.com/signalfx/splunk-otel-java/compare/v0.10.0...v0.11.0
 

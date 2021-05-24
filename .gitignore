@@ -20,3 +20,6 @@ hs_err_pid*
 .gradle
 .idea
 **/build/
+
+# temporary files
+*.md.tmp

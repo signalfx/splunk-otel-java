@@ -4,6 +4,22 @@ on:
   pull_request:
 
 jobs:
+  check-links:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+      - name: Check all links in *.md files
+        id: lychee
+        uses: lycheeverse/lychee-action@v1.0.6
+        with:
+          args: >-
+            -v -n "*.md" "**/*.md"
+            --exclude "https://developers.redhat.com/download-manager/file/jboss-eap-.*.zip"
+            --exclude "http://yourendpoint.*"
+            --exclude "https://ingest.us0.signalfx.com.*"
+      - name: Fail if there were link errors
+        run: exit ${{ steps.lychee.outputs.exit_code }}
+
   build:
     runs-on: ubuntu-20.04
     steps:

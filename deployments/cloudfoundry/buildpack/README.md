@@ -23,7 +23,7 @@ Now you can use the buildpack when running your apps:
 
 ```sh
 # app configuration
-$ cf set-env my-app OTEL_ZIPKIN_SERVICE_NAME <application name>
+$ cf set-env my-app OTEL_RESOURCE_ATTRIBUTES "service.name=<application name>"
 # ...
 
 # java_buildpack is the main buildpack for JVM apps, it needs to be the final one
@@ -43,7 +43,7 @@ environment variable before application deployment, either using `cf set-env` or
 $ cf set-env SPLUNK_OTEL_JAVA_VERSION "0.11.0"
 ```
 
-By default the [latest](https://github.com/signalfx/splunk-otel-java/releases/latest) available agent version is used.
+By default, the [latest](https://github.com/signalfx/splunk-otel-java/releases/latest) available agent version is used.
 
 Note: the latest version won't use the buildpack cache, so if you want your deployments to be a bit quicker you may want
 to specify a concrete version.

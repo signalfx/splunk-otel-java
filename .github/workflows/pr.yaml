@@ -13,10 +13,10 @@ jobs:
         uses: lycheeverse/lychee-action@v1.0.6
         with:
           args: >-
-            -v -n '*.md' '**/*.md'
-            --exclude 'https://developers.redhat.com/download-manager/file/jboss-eap-.*.zip'
-            --exclude 'http://yourendpoint.*'
-            --exclude 'https://ingest.us0.signalfx.com.*'
+            -v -n "*.md" "**/*.md"
+            --exclude "https://developers.redhat.com/download-manager/file/jboss-eap-.*.zip"
+            --exclude "http://yourendpoint.*"
+            --exclude "https://ingest.us0.signalfx.com.*"
       - name: Fail if there were link errors
         run: exit ${{ steps.lychee.outputs.exit_code }}
 

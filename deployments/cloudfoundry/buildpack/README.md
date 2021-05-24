@@ -1,6 +1,6 @@
 # Splunk Distribution of OpenTelemetry Java Buildpack
 
-A [CloudFoundry buildpack](https://docs.run.pivotal.io/buildpacks/) to install and run the Splunk Distribution of the
+A [CloudFoundry buildpack](https://docs.cloudfoundry.org/buildpacks/) to install and run the Splunk Distribution of the
 OpenTelemetry Java agent in CloudFoundry apps.
 
 > :construction: This project is currently in **BETA**. It is **officially supported** by Splunk. However, breaking changes **MAY** be introduced.

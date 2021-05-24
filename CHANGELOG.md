@@ -7,9 +7,16 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Breaking Changes
+
+- The [metrics](docs/metrics.md) component will now be turned off by default. You can re-enable it by setting
+  `SPLUNK_METRICS_ENABLED` to `true`.
+
 ### Enhancements
 
 - The agent will now set a resource attribute `splunk.distro.version` with its own version.
+- The CloudFoundry buildpack file for Splunk Distribution of OpenTelemetry Java will now be built as a part of the
+  release process and will be attached to the GitHub release.
 
 ## [v0.11.0] - 2021-05-17
 

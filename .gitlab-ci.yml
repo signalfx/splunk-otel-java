@@ -19,9 +19,9 @@ release:
     - tags
     - /^v[0-9]+\.[0-9]+\.[0-9]+.*/
   script:
-    # make sure zip is available
+    # make sure zip is available - it's necessary to execute the buildpack script
     - apt-get update
-    - apt-get -y install zip unzip
+    - apt-get -y install zip
     # create release dir
     - mkdir -p dist
     # build the javaagent

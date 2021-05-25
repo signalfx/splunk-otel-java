@@ -43,6 +43,13 @@ public class SplunkConfiguration implements PropertySource {
     config.put("otel.instrumentation.spring-batch.enabled", "true");
     config.put("otel.instrumentation.spring-batch.item.enabled", "true");
 
+    // metrics exporter sometimes logs "Broken pipe (Write failed)" at INFO; usually in docker-based environments
+    // most likely docker resets long-running connections and the exporter has to retry, and it always succeeds after
+    // retrying and metrics are exported correctly
+    config.put(
+        "io.opentelemetry.javaagent.slf4j.simpleLogger.log.com.signalfx.shaded.apache.http.impl.execchain.RetryExec",
+        "WARN");
+
     return config;
   }
 }

@@ -2,10 +2,17 @@
 
 set -e
 
+print_usage() {
+  cat <<EOF
+Usage: $(basename $0) splunk_new_version"
+
+All versions MUST NOT begin with 'v'. Example: 1.2.3".
+EOF
+}
+
 if [[ $# != 1 ]]
 then
-  echo "Usage $(basename $0) splunk_new_version"
-  echo "  splunk_new_version must not begin with letter 'v'. Example: 1.2.3"
+  print_usage
   exit 1
 fi
 

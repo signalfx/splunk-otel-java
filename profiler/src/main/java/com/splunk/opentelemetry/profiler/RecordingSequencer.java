@@ -48,7 +48,8 @@ public class RecordingSequencer {
 
   public void start() {
     int period = (int) (recordingDuration.toMillis() * OVERLAP_FACTOR);
-    executor.scheduleAtFixedRate(this::handleInterval, 0, period, TimeUnit.MILLISECONDS);
+      recorder.start();
+      executor.scheduleAtFixedRate(this::handleInterval, 0, period, TimeUnit.MILLISECONDS);
   }
 
   @VisibleForTesting

@@ -26,8 +26,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Responsible for periodically generating a sequence of JFR recording files. Prior to starting a
- * recording, it consults with a RecordingEscapeHatch to make sure that it is safe/relevant to
- * do.
+ * recording, it consults with a RecordingEscapeHatch to make sure that it is safe/relevant to do.
  */
 public class RecordingSequencer {
   private static final Logger logger = LoggerFactory.getLogger(RecordingSequencer.class.getName());
@@ -56,12 +55,12 @@ public class RecordingSequencer {
   void handleInterval() {
     if (!recordingEscapeHatch.jfrCanContinue()) {
       logger.warn("JFR recordings cannot proceed.");
-      if(recorder.isStarted()){
+      if (recorder.isStarted()) {
         recorder.stop();
       }
       return;
     }
-    if(!recorder.isStarted()) {
+    if (!recorder.isStarted()) {
       recorder.start();
       return;
     }

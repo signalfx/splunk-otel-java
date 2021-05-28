@@ -35,6 +35,5 @@ public class JfrRecorder {
     return false;
   }
 
-  public void stop() {
-  }
+  public void stop() {}
 }

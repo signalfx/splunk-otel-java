@@ -16,24 +16,100 @@
 
 package com.splunk.opentelemetry.profiler;
 
+import com.google.common.annotations.VisibleForTesting;
+import jdk.jfr.Recording;
+import jdk.jfr.RecordingState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/** Responsible for starting a single JFR recording. */
+import java.io.IOException;
+import java.nio.file.Path;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.Map;
+
+/**
+ * Responsible for starting a single JFR recording.
+ */
 public class JfrRecorder {
-  private static final Logger logger = LoggerFactory.getLogger(JfrRecorder.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(JfrRecorder.class.getName());
+    static final String RECORDING_NAME = "otel_agent_jfr_profiler";
+    private final JfrSettingsReader settingsReader;
+    private final Duration maxAgeDuration;
+    private final JFR jfr;
+    private Recording recording;
 
-  public void start() {
-    logger.debug("Profiler is starting a JFR recording");
-  }
+    JfrRecorder(Builder builder) {
+        this.settingsReader = builder.settingsReader;
+        this.maxAgeDuration = builder.maxAgeDuration;
+        this.jfr = builder.jfr;
+    }
 
-  public void flushSnapshot() {
-    logger.debug("Flushing a snapshot");
-  }
+    public void start() {
+        logger.debug("Profiler is starting a JFR recording");
+        recording = newRecording();
+        Map<String, String> settings = settingsReader.read();
+        recording.setSettings(settings);
+        recording.setToDisk(false);
+        recording.setName(RECORDING_NAME);
+        recording.setDuration(null);    // record forever
+        recording.setMaxAge(maxAgeDuration);
+        recording.start();
+    }
 
-  public boolean isStarted() {
-    return false;
-  }
+    @VisibleForTesting
+    Recording newRecording() {
+        return new Recording();
+    }
 
-  public void stop() {}
+    public void flushSnapshot() {
+        try {
+            logger.debug("Flushing a snapshot");
+            Recording snap = jfr.takeSnapshot();
+            Path path = Path.of(Instant.now().toString() + ".jfr");
+            snap.dump(path);
+            snap.close();
+        } catch (IOException e) {
+            logger.error("Error flushing JFR snapshot data to disk", e);
+        }
+    }
+
+    public boolean isStarted() {
+        return (recording != null) && RecordingState.RUNNING.equals(recording.getState());
+    }
+
+    public void stop() {
+        recording.stop();
+        recording = null;
+    }
+
+    public static Builder builder(){
+        return new Builder();
+    }
+
+    public static class Builder {
+        private JfrSettingsReader settingsReader;
+        private Duration maxAgeDuration;
+        private JFR jfr = JFR.instance;
+
+        public Builder settingsReader(JfrSettingsReader settingsReader){
+            this.settingsReader = settingsReader;
+            return this;
+        }
+
+        public Builder maxAgeDuration(Duration recordingDuration){
+            this.maxAgeDuration = recordingDuration;
+            return this;
+        }
+
+        public Builder jfr(JFR jfr){
+            this.jfr = jfr;
+            return this;
+        }
+
+        public JfrRecorder build(){
+            return new JfrRecorder(this);
+        }
+
+    }
 }

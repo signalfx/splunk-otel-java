@@ -166,6 +166,7 @@ class RecordingSequencerTest {
     boolean started;
 
     public MockRecorder(CountDownLatch flushLatch) {
+      super(new Builder());
       this.flushLatch = flushLatch;
       started = false;
     }

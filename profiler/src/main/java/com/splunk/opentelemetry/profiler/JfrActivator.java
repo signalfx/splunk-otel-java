@@ -50,12 +50,12 @@ public class JfrActivator implements ComponentInstaller {
   private void activateJfrAndRunForever(Config config) {
     String recordingDurationStr = config.getProperty(CONFIG_KEY_RECORDING_DURATION_SECONDS, "20");
     Duration recordingDuration = Duration.ofSeconds(Integer.parseInt(recordingDurationStr));
-    RecordingStartPredicate recordingStartPredicate = new RecordingStartPredicate();
+    RecordingEscapeHatch recordingEscapeHatch = new RecordingEscapeHatch();
     JfrRecorder recorder = new JfrRecorder();
     RecordingSequencer sequencer =
         RecordingSequencer.builder()
             .recordingDuration(recordingDuration)
-            .recordingStartPredicate(recordingStartPredicate)
+            .recordingEscapeHatch(recordingEscapeHatch)
             .recorder(recorder)
             .build();
     sequencer.start();

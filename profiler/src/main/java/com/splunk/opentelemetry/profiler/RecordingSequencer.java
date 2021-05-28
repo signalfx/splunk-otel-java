@@ -16,6 +16,7 @@
 
 package com.splunk.opentelemetry.profiler;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.splunk.opentelemetry.profiler.util.HelpfulExecutors;
 import java.time.Duration;
 import java.util.concurrent.ScheduledExecutorService;
@@ -25,7 +26,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Responsible for periodically generating a sequence of JFR recording files. Prior to starting a
- * recording, it consults with a RecordingStartPredicate to make sure that it is safe/relevant to
+ * recording, it consults with a RecordingEscapeHatch to make sure that it is safe/relevant to
  * do.
  */
 public class RecordingSequencer {
@@ -37,27 +38,34 @@ public class RecordingSequencer {
   private final ScheduledExecutorService executor =
       HelpfulExecutors.newSingleThreadedScheduledExecutor("JFR Recording Sequencer");
   private final Duration recordingDuration;
-  private final RecordingStartPredicate recordingStartPredicate;
+  private final RecordingEscapeHatch recordingEscapeHatch;
   private final JfrRecorder recorder;
 
   public RecordingSequencer(Builder builder) {
     this.recordingDuration = builder.recordingDuration;
-    this.recordingStartPredicate = builder.recordingStartPredicate;
+    this.recordingEscapeHatch = builder.recordingEscapeHatch;
     this.recorder = builder.recorder;
   }
 
   public void start() {
     int period = (int) (recordingDuration.toMillis() * OVERLAP_FACTOR);
-    recorder.start();
-    executor.scheduleAtFixedRate(this::createRecording, period, period, TimeUnit.MILLISECONDS);
+    executor.scheduleAtFixedRate(this::handleInterval, 0, period, TimeUnit.MILLISECONDS);
   }
 
-  private void createRecording() {
-    if (recordingStartPredicate.canStart()) {
-      recorder.flushSnapshot();
+  @VisibleForTesting
+  void handleInterval() {
+    if (!recordingEscapeHatch.jfrCanContinue()) {
+      logger.warn("JFR recordings cannot proceed.");
+      if(recorder.isStarted()){
+        recorder.stop();
+      }
       return;
     }
-    logger.warn("JFR recordings cannot start.");
+    if(!recorder.isStarted()) {
+      recorder.start();
+      return;
+    }
+    recorder.flushSnapshot();
   }
 
   public static Builder builder() {
@@ -66,7 +74,7 @@ public class RecordingSequencer {
 
   public static class Builder {
     private Duration recordingDuration;
-    private RecordingStartPredicate recordingStartPredicate;
+    private RecordingEscapeHatch recordingEscapeHatch;
     private JfrRecorder recorder;
 
     public Builder recordingDuration(Duration duration) {
@@ -74,8 +82,8 @@ public class RecordingSequencer {
       return this;
     }
 
-    public Builder recordingStartPredicate(RecordingStartPredicate prediate) {
-      this.recordingStartPredicate = prediate;
+    public Builder recordingEscapeHatch(RecordingEscapeHatch prediate) {
+      this.recordingEscapeHatch = prediate;
       return this;
     }
 

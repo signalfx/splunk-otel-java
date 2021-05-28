@@ -16,9 +16,9 @@
 
 package com.splunk.opentelemetry.profiler;
 
-public class RecordingStartPredicate {
+public class RecordingEscapeHatch {
 
-  public boolean canStart() {
+  public boolean jfrCanContinue() {
     return false;
   }
 }

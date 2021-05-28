@@ -30,4 +30,11 @@ public class JfrRecorder {
   public void flushSnapshot() {
     logger.debug("Flushing a snapshot");
   }
+
+  public boolean isStarted() {
+    return false;
+  }
+
+  public void stop() {
+  }
 }

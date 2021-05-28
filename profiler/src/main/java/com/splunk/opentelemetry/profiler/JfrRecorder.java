@@ -64,9 +64,9 @@ public class JfrRecorder {
 
     public void flushSnapshot() {
         try {
-            logger.debug("Flushing a snapshot");
             Recording snap = jfr.takeSnapshot();
             Path path = Path.of(Instant.now().toString() + ".jfr");
+            logger.debug("Flushing a JFR snapshot: " + path);
             snap.dump(path);
             snap.close();
         } catch (IOException e) {

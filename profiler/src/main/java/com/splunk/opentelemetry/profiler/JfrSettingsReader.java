@@ -25,31 +25,28 @@ public class JfrSettingsReader {
 
     public Map<String, String> read(String resourceName) {
         Map<String, String> result = new HashMap<>();
-        BufferedReader reader = openResource(resourceName);
-        if(reader == null){
-            return emptyMap();
-        }
-        reader.lines()
-                .filter(line -> !line.trim().startsWith("#"))   // ignore commented lines
-                .forEach(line -> {
-                    String[] kv = line.split("=");
-                    result.put(kv[0], kv[1]);
-                });
-        closeSafely(reader);
-        return result;
-    }
-
-    private void closeSafely(BufferedReader reader) {
-        try {
-            reader.close();
+        try(BufferedReader reader = openResource(resourceName)){
+            if(reader == null){
+                return emptyMap();
+            }
+            reader.lines()
+                    .filter(line -> !line.trim().startsWith("#"))   // ignore commented lines
+                    .forEach(line -> {
+                        String[] kv = line.split("=");
+                        result.put(kv[0], kv[1]);
+                    });
+            logger.debug("Read " + result.size() + " JFR settings entries.");
+            return result;
         } catch (IOException e) {
-            logger.warn("Error closing settings reader", e);
+            logger.warn("Error handling settings", e);
+            return emptyMap();
         }
     }
 
     @VisibleForTesting
     BufferedReader openResource(String resourceName) {
-        InputStream in = getClass().getResourceAsStream(resourceName);
+        InputStream in = Thread.currentThread().getContextClassLoader()
+                .getResourceAsStream(resourceName);
         if(in == null){
             logger.error("Error reading jfr settings, resource " + resourceName + " not found!");
             return null;

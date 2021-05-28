@@ -59,16 +59,13 @@ agent](https://docs.oracle.com/javase/7/docs/api/java/lang/instrument/package-su
 that automatically instruments your Java application to capture and report
 distributed traces to Splunk APM.
 
-If you're currently using the SignalFx Java Agent and want to
-migrate to the Splunk Distribution of OpenTelemetry Java,
-see [Migrate from the SignalFx Java Agent](MIGRATING.md).
-
 This distribution comes with the following defaults:
 
-- [W3C `tracecontext`](https://www.w3.org/TR/trace-context/) context
-  propagation; [B3](https://github.com/openzipkin/b3-propagation) can also be
+- [W3C `tracecontext`](https://www.w3.org/TR/trace-context/) and [W3C
+  baggage](https://www.w3.org/TR/baggage/) context propagation;
+  [B3](https://github.com/openzipkin/b3-propagation) can also be
   [configured](https://github.com/signalfx/splunk-otel-java/blob/main/docs/advanced-config.md#trace-propagation-configuration).
-- [OTLP
+- [OTLP gRPC
   exporter](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/protocol/README.md)
   configured to send spans to a locally running [Splunk OpenTelemetry
   Connector](https://github.com/signalfx/splunk-otel-collector)
@@ -76,8 +73,13 @@ This distribution comes with the following defaults:
   exporter](https://github.com/signalfx/splunk-otel-java/blob/main/docs/advanced-config.md#trace-exporters)
   available for [Smart Agent](https://github.com/signalfx/signalfx-agent)
   (`http://localhost:9080/v1/trace`).
-- Unlimited default limits for [configuration options](docs/advanced-config.md#trace-configuration) to support
+- Unlimited default limits for [configuration
+  options](docs/advanced-config.md#trace-configuration) to support
   full-fidelity traces.
+
+If you're currently using the SignalFx Java Agent and want to
+migrate to the Splunk Distribution of OpenTelemetry Java,
+see [Migrate from the SignalFx Java Agent](MIGRATING.md).
 
 > :construction: This project is currently in **BETA**. It is **officially supported** by Splunk. However, breaking changes **MAY** be introduced.
 
@@ -125,11 +127,16 @@ The service name resource attribute is the only configuration option
 that needs to be specified. You can set it by adding a `service.name`
 attribute as shown in the [example above](#getting-started).
 
-A couple other configuration options that may need to be changed or set are:
+A few other configuration options that may need to be changed or set are:
 
+- Trace propagation format if not sending to other applications using W3C
+  trace-context. For example, if other applications are instrumented with
+  `signalfx-*-tracing` instrumentation. See the [trace
+  propagation](docs/advanced-config.md#trace-propagation-configuration)
+  configuration documentation for more information.
 - Endpoint if not sending to a locally running Splunk OpenTelemetry Connector
-  with default configuration. See the
-  [exporters](docs/advanced-config.md#trace-exporters) configuration
+  with default configuration. For example, if the SignalFx Smart Agent is used.
+  See the [exporters](docs/advanced-config.md#trace-exporters) configuration
   documentation for more information.
 - Environment resource attribute `deployment.environment` to specify what
   environment the span originated from. For example:

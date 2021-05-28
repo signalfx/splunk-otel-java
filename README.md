@@ -42,6 +42,14 @@
 
 ---
 
+<!-- Comments, spacing, empty and new lines in the section below are intentional, please do not modify them! -->
+<!--DEV_DOCS_WARNING-->
+<!--DEV_DOCS_WARNING_START-->
+The documentation below refers to the in development version of this package. Docs for the latest version ([v0.12.0](https://github.com/signalfx/splunk-otel-java/releases/tag/v0.12.0)) can be found [here](https://github.com/signalfx/splunk-otel-java/blob/v0.12.0/README.md).
+
+---
+<!--DEV_DOCS_WARNING_END-->
+
 # Splunk Distribution of OpenTelemetry Java
 
 The Splunk Distribution of [OpenTelemetry Instrumentation for
@@ -160,10 +168,12 @@ Documentation on how to manually instrument a Java application is available
 To extend the instrumentation with the OpenTelemetry Instrumentation for Java,
 you have to use a compatible API version.
 
-The Splunk Distribution of OpenTelemetry Java version 0.12.0 is compatible with:
+<!-- IMPORTANT: do not change comments or break those lines below -->
+The Splunk Distribution of OpenTelemetry Java version <!--SPLUNK_VERSION-->0.12.0<!--SPLUNK_VERSION--> is compatible
+with:
 
-* OpenTelemetry API version 1.2.0
-* OpenTelemetry Instrumentation for Java version 1.2.0
+* OpenTelemetry API version <!--OTEL_VERSION-->1.2.0<!--OTEL_VERSION-->
+* OpenTelemetry Instrumentation for Java version <!--OTEL_INSTRUMENTATION_VERSION-->1.2.0<!--OTEL_INSTRUMENTATION_VERSION-->
 
 ## Correlating traces with logs
 

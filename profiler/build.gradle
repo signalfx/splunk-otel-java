@@ -16,6 +16,8 @@ dependencies {
 
     annotationProcessor deps.autoservice
     implementation deps.autoservice
+
+    testCompile deps.slf4j
 }
 
 shadowJar {

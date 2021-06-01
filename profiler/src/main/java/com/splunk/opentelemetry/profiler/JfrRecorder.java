@@ -16,22 +16,24 @@
 
 package com.splunk.opentelemetry.profiler;
 
-import com.google.auto.service.AutoService;
-import io.opentelemetry.javaagent.spi.config.PropertySource;
-import java.util.HashMap;
-import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-@AutoService(PropertySource.class)
-public class Configuration implements PropertySource {
+/** Responsible for starting a single JFR recording. */
+public class JfrRecorder {
+  private static final Logger logger = LoggerFactory.getLogger(JfrRecorder.class.getName());
 
-  public static final String CONFIG_KEY_ENABLE_PROFILER = "splunk.profiler.enabled";
-  public static final String CONFIG_KEY_RECORDING_DURATION_SECONDS =
-      "splunk.profiler.recording.duration";
-
-  @Override
-  public Map<String, String> getProperties() {
-    HashMap<String, String> config = new HashMap<>();
-    config.put(CONFIG_KEY_ENABLE_PROFILER, "false");
-    return config;
+  public void start() {
+    logger.debug("Profiler is starting a JFR recording");
   }
+
+  public void flushSnapshot() {
+    logger.debug("Flushing a snapshot");
+  }
+
+  public boolean isStarted() {
+    return false;
+  }
+
+  public void stop() {}
 }

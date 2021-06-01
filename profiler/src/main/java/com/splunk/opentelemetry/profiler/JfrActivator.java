@@ -17,10 +17,15 @@
 package com.splunk.opentelemetry.profiler;
 
 import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_ENABLE_PROFILER;
+import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_RECORDING_DURATION_SECONDS;
+import static com.splunk.opentelemetry.profiler.util.HelpfulExecutors.logUncaught;
 
 import com.google.auto.service.AutoService;
+import com.splunk.opentelemetry.profiler.util.HelpfulExecutors;
 import io.opentelemetry.instrumentation.api.config.Config;
 import io.opentelemetry.javaagent.spi.ComponentInstaller;
+import java.time.Duration;
+import java.util.concurrent.ExecutorService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,6 +33,7 @@ import org.slf4j.LoggerFactory;
 public class JfrActivator implements ComponentInstaller {
 
   private static final Logger logger = LoggerFactory.getLogger(JfrActivator.class.getName());
+  private final ExecutorService executor = HelpfulExecutors.newSingleThreadExecutor("JFR Profiler");
 
   @Override
   public void afterByteBuddyAgent(Config config) {
@@ -38,5 +44,20 @@ public class JfrActivator implements ComponentInstaller {
       return;
     }
     logger.info("JFR profiler is active.");
+    executor.submit(logUncaught(() -> activateJfrAndRunForever(config)));
+  }
+
+  private void activateJfrAndRunForever(Config config) {
+    String recordingDurationStr = config.getProperty(CONFIG_KEY_RECORDING_DURATION_SECONDS, "20");
+    Duration recordingDuration = Duration.ofSeconds(Integer.parseInt(recordingDurationStr));
+    RecordingEscapeHatch recordingEscapeHatch = new RecordingEscapeHatch();
+    JfrRecorder recorder = new JfrRecorder();
+    RecordingSequencer sequencer =
+        RecordingSequencer.builder()
+            .recordingDuration(recordingDuration)
+            .recordingEscapeHatch(recordingEscapeHatch)
+            .recorder(recorder)
+            .build();
+    sequencer.start();
   }
 }

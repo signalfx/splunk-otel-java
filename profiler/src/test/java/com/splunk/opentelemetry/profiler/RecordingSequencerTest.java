@@ -105,31 +105,6 @@ class RecordingSequencerTest {
     CountDownLatch flushLatch = new CountDownLatch(3);
     when(escapeHatch.jfrCanContinue()).thenReturn(true);
     MockRecorder recorder = new MockRecorder(flushLatch);
-    RecordingSequencer sequencer = buildSequencer(recorder);
-    // First time through we start
-    sequencer.handleInterval();
-    verify(recorder).start();
-    verify(recorder, never()).flushSnapshot();
-    when(recorder.isStarted()).thenReturn(true);
-
-    // Second time through we flush
-    sequencer.handleInterval();
-    verify(recorder).flushSnapshot();
-    verify(recorder, never()).stop();
-
-    // Now we are broken, so we call stop()
-    when(escapeHatch.jfrCanContinue()).thenReturn(false);
-    sequencer.handleInterval();
-    verify(recorder).stop();
-    verify(recorder, times(1)).flushSnapshot();
-    verify(recorder, times(1)).start();
-  }
-
-  @Test
-  void testRecoversAfterSkipping() throws Exception {
-    CountDownLatch flushLatch = new CountDownLatch(3);
-    when(escapeHatch.jfrCanContinue()).thenReturn(true);
-    MockRecorder recorder = new MockRecorder(flushLatch);
     RecordingSequencer sequencer = buildSequencer(recorder);sequencer.start();
     assertTrue(flushLatch.await(5, SECONDS));
     assertEquals(1, recorder.stopLatch.getCount());

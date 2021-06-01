@@ -105,7 +105,8 @@ class RecordingSequencerTest {
     CountDownLatch flushLatch = new CountDownLatch(3);
     when(escapeHatch.jfrCanContinue()).thenReturn(true);
     MockRecorder recorder = new MockRecorder(flushLatch);
-    RecordingSequencer sequencer = buildSequencer(recorder);sequencer.start();
+    RecordingSequencer sequencer = buildSequencer(recorder);
+    sequencer.start();
     assertTrue(flushLatch.await(5, SECONDS));
     assertEquals(1, recorder.stopLatch.getCount());
     assertTrue(recorder.isStarted());

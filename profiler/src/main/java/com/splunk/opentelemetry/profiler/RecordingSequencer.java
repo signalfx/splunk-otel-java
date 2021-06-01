@@ -40,7 +40,7 @@ public class RecordingSequencer {
   private final RecordingEscapeHatch recordingEscapeHatch;
   private final JfrRecorder recorder;
 
-  public RecordingSequencer(Builder builder) {
+  private RecordingSequencer(Builder builder) {
     this.recordingDuration = builder.recordingDuration;
     this.recordingEscapeHatch = builder.recordingEscapeHatch;
     this.recorder = builder.recorder;

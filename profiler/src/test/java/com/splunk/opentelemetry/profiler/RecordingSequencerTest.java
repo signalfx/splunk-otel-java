@@ -137,7 +137,7 @@ class RecordingSequencerTest {
   }
 
   private static class MockRecorder extends JfrRecorder {
-    private CountDownLatch flushLatch;
+    private volatile CountDownLatch flushLatch;
     final CountDownLatch stopLatch = new CountDownLatch(1);
     boolean started;
 

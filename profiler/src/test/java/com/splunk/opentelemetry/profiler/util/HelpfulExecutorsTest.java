@@ -97,9 +97,9 @@ class HelpfulExecutorsTest {
   @Test
   void testScheduledSingleThreadedExecutor() throws Exception {
     ScheduledExecutorService exec = HelpfulExecutors.newSingleThreadedScheduledExecutor("test!!!");
-    ArrayBlockingQueue<String> seenNames = new ArrayBlockingQueue<>(10);
-    ArrayBlockingQueue<Boolean> seenIsDaemon = new ArrayBlockingQueue<>(10);
-    CountDownLatch latch = new CountDownLatch(3);
+    final ArrayBlockingQueue<String> seenNames = new ArrayBlockingQueue<>(10);
+    final ArrayBlockingQueue<Boolean> seenIsDaemon = new ArrayBlockingQueue<>(10);
+    final CountDownLatch latch = new CountDownLatch(3);
     exec.scheduleAtFixedRate(
         () -> {
           try {

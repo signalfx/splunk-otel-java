@@ -120,7 +120,10 @@ class HelpfulExecutorsTest {
     seenNames.drainTo(resultNames);
     List<Boolean> resultDaemons = new ArrayList<>();
     seenIsDaemon.drainTo(resultDaemons);
-    assertEquals(Arrays.asList("test!!!", "test!!!", "test!!!"), resultNames);
+    assertEquals(3, resultNames.size());
+    assertEquals("test!!!", resultNames.get(0));
+    assertEquals("test!!!", resultNames.get(1));
+    assertEquals("test!!!", resultNames.get(2));
     assertEquals(Arrays.asList(true, true, true), resultDaemons);
   }
 }

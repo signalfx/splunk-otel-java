@@ -3,10 +3,10 @@
 > :construction: &nbsp;Status: Experimental - exported metric data and
 > configuration properties may change.
 
-The Splunk Distribution of OpenTelemetry Java agent gathers basic application metrics. We
-use [Micrometer](https://micrometer.io/)
+The Splunk Distribution of OpenTelemetry Java agent gathers basic application metrics.
+[Micrometer](https://micrometer.io/)
 and [Micrometer SignalFx registry](https://micrometer.io/docs/registry/signalFx)
-to gather and export metrics to either [SignalFx SmartAgent](https://github.com/signalfx/signalfx-agent/)
+gather and export metrics to either [SignalFx SmartAgent](https://github.com/signalfx/signalfx-agent/)
 or the [Splunk distribution of OpenTelemetry Collector](https://github.com/signalfx/splunk-otel-collector).
 
 ## Default metric tags

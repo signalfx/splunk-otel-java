@@ -16,21 +16,18 @@
 
 package com.splunk.opentelemetry.profiler;
 
+import static java.util.Objects.requireNonNull;
+
 import com.google.common.annotations.VisibleForTesting;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Map;
-import java.util.Objects;
-
 import jdk.jfr.Recording;
 import jdk.jfr.RecordingState;
-import org.checkerframework.checker.nullness.qual.RequiresNonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import static java.util.Objects.requireNonNull;
 
 /** Responsible for starting a single JFR recording. */
 public class JfrRecorder {
@@ -65,7 +62,7 @@ public class JfrRecorder {
   }
 
   public void flushSnapshot() {
-    try (Recording snap = jfr.takeSnapshot()){
+    try (Recording snap = jfr.takeSnapshot()) {
       Path path = Path.of(Instant.now().toString() + ".jfr");
       logger.debug("Flushing a JFR snapshot: {}", path);
       snap.dump(path);

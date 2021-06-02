@@ -51,7 +51,7 @@ public class JfrSettingsReader {
                 String[] kv = line.split("=");
                 result.put(kv[0], kv[1]);
               });
-      logger.debug("Read " + result.size() + " JFR settings entries.");
+      logger.debug("Read {} JFR settings entries.", result.size());
       return result;
     } catch (IOException e) {
       logger.warn("Error handling settings", e);
@@ -64,7 +64,7 @@ public class JfrSettingsReader {
     InputStream in =
         Thread.currentThread().getContextClassLoader().getResourceAsStream(resourceName);
     if (in == null) {
-      logger.error("Error reading jfr settings, resource " + resourceName + " not found!");
+      logger.error("Error reading jfr settings, resource {} not found!", resourceName);
       return null;
     }
     return new BufferedReader(new InputStreamReader(in));

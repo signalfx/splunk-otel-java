@@ -43,6 +43,10 @@ public class JfrActivator implements ComponentInstaller {
       logger.debug("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
       return;
     }
+    if (!JFR.instance.isAvailable()) {
+      logger.warn("Java Flight Recorder is not available in this JVM. Profiling is disabled.");
+      return;
+    }
     logger.info("JFR profiler is active.");
     executor.submit(logUncaught(() -> activateJfrAndRunForever(config)));
   }
@@ -51,7 +55,13 @@ public class JfrActivator implements ComponentInstaller {
     String recordingDurationStr = config.getProperty(CONFIG_KEY_RECORDING_DURATION_SECONDS, "20");
     Duration recordingDuration = Duration.ofSeconds(Integer.parseInt(recordingDurationStr));
     RecordingEscapeHatch recordingEscapeHatch = new RecordingEscapeHatch();
-    JfrRecorder recorder = new JfrRecorder();
+    JfrSettingsReader settingsReader = new JfrSettingsReader();
+    JfrRecorder recorder =
+        JfrRecorder.builder()
+            .settingsReader(settingsReader)
+            .maxAgeDuration(recordingDuration.multipliedBy(10))
+            .jfr(JFR.instance)
+            .build();
     RecordingSequencer sequencer =
         RecordingSequencer.builder()
             .recordingDuration(recordingDuration)

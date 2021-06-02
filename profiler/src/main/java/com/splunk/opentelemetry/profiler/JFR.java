@@ -16,9 +16,19 @@
 
 package com.splunk.opentelemetry.profiler;
 
-public class RecordingEscapeHatch {
+import jdk.jfr.FlightRecorder;
+import jdk.jfr.Recording;
 
-  public boolean jfrCanContinue() {
-    return true;
+/** Abstraction around the Java Flight Recorder subsystem. */
+public class JFR {
+
+  public static final JFR instance = new JFR();
+
+  public boolean isAvailable() {
+    return FlightRecorder.isAvailable();
+  }
+
+  public Recording takeSnapshot() {
+    return FlightRecorder.getFlightRecorder().takeSnapshot();
   }
 }

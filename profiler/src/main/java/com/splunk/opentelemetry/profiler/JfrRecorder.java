@@ -34,7 +34,7 @@ public class JfrRecorder {
   private final JfrSettingsReader settingsReader;
   private final Duration maxAgeDuration;
   private final JFR jfr;
-  private Recording recording;
+  private volatile Recording recording;
 
   JfrRecorder(Builder builder) {
     this.settingsReader = builder.settingsReader;

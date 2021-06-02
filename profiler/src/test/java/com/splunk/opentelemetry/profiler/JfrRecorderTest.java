@@ -115,10 +115,10 @@ class JfrRecorderTest {
   private JfrRecorder buildJfrRecorder(JFR jfr) {
     JfrRecorder.Builder builder =
         JfrRecorder.builder()
-                .maxAgeDuration(maxAge)
-                .settingsReader(settingsReader)
-                .outputDir(OUTDIR)
-                .jfr(jfr);
+            .maxAgeDuration(maxAge)
+            .settingsReader(settingsReader)
+            .outputDir(OUTDIR)
+            .jfr(jfr);
 
     return new JfrRecorder(builder) {
       @Override

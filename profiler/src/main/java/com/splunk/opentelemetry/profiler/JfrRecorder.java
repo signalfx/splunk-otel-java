@@ -109,7 +109,7 @@ public class JfrRecorder {
       return this;
     }
 
-    public Builder outputDir(Path outputDir){
+    public Builder outputDir(Path outputDir) {
       this.outputDir = outputDir;
       return this;
     }

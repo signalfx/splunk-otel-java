@@ -23,7 +23,6 @@ import com.google.auto.service.AutoService;
 import com.splunk.opentelemetry.profiler.util.HelpfulExecutors;
 import io.opentelemetry.instrumentation.api.config.Config;
 import io.opentelemetry.javaagent.spi.ComponentInstaller;
-
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;

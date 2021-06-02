@@ -8,6 +8,12 @@ and this repository adheres to [Semantic Versioning](https://semver.org/spec/v2.
 
 ## Unreleased
 
+### General
+
+- First stable release of the Splunk Distribution of OpenTelemetry Java.
+
+## v1.0.0 - 2021-06-02
+
 ## v0.12.0 (RC) - 2021-05-24
 
 ### Breaking Changes

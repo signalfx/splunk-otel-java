@@ -25,6 +25,7 @@ import java.util.Map;
 public class Configuration implements PropertySource {
 
   public static final String CONFIG_KEY_ENABLE_PROFILER = "splunk.profiler.enabled";
+  public static final String CONFIG_KEY_PROFILER_DIRECTORY = "splunk.profiler.directory";
   public static final String CONFIG_KEY_RECORDING_DURATION_SECONDS =
       "splunk.profiler.recording.duration";
 

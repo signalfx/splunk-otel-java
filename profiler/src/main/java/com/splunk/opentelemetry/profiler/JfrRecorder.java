@@ -21,6 +21,7 @@ import static java.util.Objects.requireNonNull;
 import com.google.common.annotations.VisibleForTesting;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Map;
@@ -36,12 +37,14 @@ public class JfrRecorder {
   private final JfrSettingsReader settingsReader;
   private final Duration maxAgeDuration;
   private final JFR jfr;
+  private final Path outputDir;
   private volatile Recording recording;
 
   JfrRecorder(Builder builder) {
     this.settingsReader = requireNonNull(builder.settingsReader);
     this.maxAgeDuration = requireNonNull(builder.maxAgeDuration);
     this.jfr = requireNonNull(builder.jfr);
+    this.outputDir = requireNonNull(builder.outputDir);
   }
 
   public void start() {
@@ -63,7 +66,8 @@ public class JfrRecorder {
 
   public void flushSnapshot() {
     try (Recording snap = jfr.takeSnapshot()) {
-      Path path = Path.of(Instant.now().toString() + ".jfr");
+      Path file = Paths.get(Instant.now().toString() + ".jfr");
+      Path path = outputDir.resolve(file);
       logger.debug("Flushing a JFR snapshot: {}", path);
       snap.dump(path);
     } catch (IOException e) {
@@ -85,6 +89,7 @@ public class JfrRecorder {
   }
 
   public static class Builder {
+    private Path outputDir;
     private JfrSettingsReader settingsReader;
     private Duration maxAgeDuration;
     private JFR jfr = JFR.instance;
@@ -101,6 +106,11 @@ public class JfrRecorder {
 
     public Builder jfr(JFR jfr) {
       this.jfr = jfr;
+      return this;
+    }
+
+    public Builder outputDir(Path outputDir){
+      this.outputDir = outputDir;
       return this;
     }
 

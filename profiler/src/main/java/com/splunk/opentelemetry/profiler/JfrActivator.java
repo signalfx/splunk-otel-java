@@ -16,14 +16,16 @@
 
 package com.splunk.opentelemetry.profiler;
 
-import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_ENABLE_PROFILER;
-import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_RECORDING_DURATION_SECONDS;
+import static com.splunk.opentelemetry.profiler.Configuration.*;
 import static com.splunk.opentelemetry.profiler.util.HelpfulExecutors.logUncaught;
 
 import com.google.auto.service.AutoService;
 import com.splunk.opentelemetry.profiler.util.HelpfulExecutors;
 import io.opentelemetry.instrumentation.api.config.Config;
 import io.opentelemetry.javaagent.spi.ComponentInstaller;
+
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.concurrent.ExecutorService;
 import org.slf4j.Logger;
@@ -56,11 +58,13 @@ public class JfrActivator implements ComponentInstaller {
     Duration recordingDuration = Duration.ofSeconds(Integer.parseInt(recordingDurationStr));
     RecordingEscapeHatch recordingEscapeHatch = new RecordingEscapeHatch();
     JfrSettingsReader settingsReader = new JfrSettingsReader();
+    Path outputDir = Paths.get(config.getProperty(CONFIG_KEY_PROFILER_DIRECTORY, "."));
     JfrRecorder recorder =
         JfrRecorder.builder()
             .settingsReader(settingsReader)
             .maxAgeDuration(recordingDuration.multipliedBy(10))
             .jfr(JFR.instance)
+            .outputDir(outputDir)
             .build();
     RecordingSequencer sequencer =
         RecordingSequencer.builder()

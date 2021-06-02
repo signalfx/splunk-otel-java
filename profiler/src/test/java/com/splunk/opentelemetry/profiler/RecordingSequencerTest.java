@@ -142,7 +142,7 @@ class RecordingSequencerTest {
     boolean started;
 
     public MockRecorder(CountDownLatch flushLatch) {
-      super(new Builder());
+      super(new Builder().settingsReader(mock(JfrSettingsReader.class)).maxAgeDuration(Duration.ofSeconds(10)));
       this.flushLatch = flushLatch;
       started = false;
     }

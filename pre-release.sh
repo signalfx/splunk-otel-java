@@ -93,6 +93,18 @@ fi
 
 sed ${sed_flag} "${readme_sed_args[@]}" README.md
 
+# CHANGELOG.md
+cat > changelog_new_release.md.tmp <<EOF
+
+## v${splunk_new_version} - $(date "+%Y-%m-%d")
+EOF
+
+sed ${sed_flag} \
+  -e "/## Unreleased/r changelog_new_release.md.tmp" \
+  CHANGELOG.md
+
+rm changelog_new_release.md.tmp
+
 # deployments/cloudfoundry/buildpack/README.md
 sed ${sed_flag} \
   -e "s/SPLUNK_OTEL_JAVA_VERSION ${splunk_old_version}/SPLUNK_OTEL_JAVA_VERSION ${splunk_new_version}/g" \

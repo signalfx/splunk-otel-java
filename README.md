@@ -11,12 +11,12 @@
 </p>
 
 <p align="center">
-  <img alt="Beta" src="https://img.shields.io/badge/status-beta-informational?style=for-the-badge">
+  <img alt="Beta" src="https://img.shields.io/badge/status-stable-informational?style=for-the-badge">
   <a href="https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/tag/v1.2.0">
     <img alt="OpenTelemetry Instrumentation for Java Version" src="https://img.shields.io/badge/otel-1.2.0-blueviolet?style=for-the-badge">
   </a>
-  <a href="https://github.com/signalfx/gdi-specification/releases/tag/v1.0.0-rc.2">
-    <img alt="Splunk GDI specification" src="https://img.shields.io/badge/GDI-1.0.0--rc.2-blueviolet?style=for-the-badge">
+  <a href="https://github.com/signalfx/gdi-specification/releases/tag/v1.0.0">
+    <img alt="Splunk GDI specification" src="https://img.shields.io/badge/GDI-1.0.0-blueviolet?style=for-the-badge">
   </a>
   <a href="https://github.com/signalfx/splunk-otel-java/releases">
     <img alt="GitHub release (latest SemVer)" src="https://img.shields.io/github/v/release/signalfx/splunk-otel-java?include_prereleases&style=for-the-badge">
@@ -44,11 +44,6 @@
 
 <!-- Comments, spacing, empty and new lines in the section below are intentional, please do not modify them! -->
 <!--DEV_DOCS_WARNING-->
-<!--DEV_DOCS_WARNING_START-->
-The documentation below refers to the in development version of this package. Docs for the latest version ([v0.12.0](https://github.com/signalfx/splunk-otel-java/releases/tag/v0.12.0)) can be found [here](https://github.com/signalfx/splunk-otel-java/blob/v0.12.0/README.md).
-
----
-<!--DEV_DOCS_WARNING_END-->
 
 # Splunk Distribution of OpenTelemetry Java
 
@@ -80,8 +75,6 @@ This distribution comes with the following defaults:
 If you're currently using the SignalFx Java Agent and want to
 migrate to the Splunk Distribution of OpenTelemetry Java,
 see [Migrate from the SignalFx Java Agent](MIGRATING.md).
-
-> :construction: This project is currently in **BETA**. It is **officially supported** by Splunk. However, breaking changes **MAY** be introduced.
 
 ## Getting Started
 
@@ -176,7 +169,7 @@ To extend the instrumentation with the OpenTelemetry Instrumentation for Java,
 you have to use a compatible API version.
 
 <!-- IMPORTANT: do not change comments or break those lines below -->
-The Splunk Distribution of OpenTelemetry Java version <!--SPLUNK_VERSION-->0.12.0<!--SPLUNK_VERSION--> is compatible
+The Splunk Distribution of OpenTelemetry Java version <!--SPLUNK_VERSION-->1.0.0<!--SPLUNK_VERSION--> is compatible
 with:
 
 * OpenTelemetry API version <!--OTEL_VERSION-->1.2.0<!--OTEL_VERSION-->

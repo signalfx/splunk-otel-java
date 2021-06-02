@@ -60,12 +60,10 @@ public class JfrRecorder {
   }
 
   public void flushSnapshot() {
-    try {
-      Recording snap = jfr.takeSnapshot();
+    try (Recording snap = jfr.takeSnapshot()){
       Path path = Path.of(Instant.now().toString() + ".jfr");
       logger.debug("Flushing a JFR snapshot: {}", path);
       snap.dump(path);
-      snap.close();
     } catch (IOException e) {
       logger.error("Error flushing JFR snapshot data to disk", e);
     }

@@ -2,12 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
-The format is roughly inspired by [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres
-to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+The format is based on
+the [Splunk GDI specification](https://github.com/signalfx/gdi-specification/blob/v1.0.0/specification/repository.md),
+and this repository adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## Unreleased
 
-## [v0.12.0] (RC) - 2021-05-24
+## v0.12.0 (RC) - 2021-05-24
 
 ### Breaking Changes
 
@@ -20,7 +21,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - The CloudFoundry buildpack file for Splunk Distribution of OpenTelemetry Java will now be built as a part of the
   release process and will be attached to the GitHub release.
 
-## [v0.11.0] - 2021-05-17
+## v0.11.0 - 2021-05-17
 
 ### General Notes
 
@@ -46,7 +47,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 - The agent will now log a warning when the `service.name` resource attribute is not provided.
 
-## [v0.10.0] - 2021-04-14
+## v0.10.0 - 2021-04-14
 
 ### General Notes
 
@@ -77,7 +78,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Configuration property `splunk.context.server-timing.enabled` was renamed to `splunk.trace-response-header.enabled`.
   The old property name still works, but it will be removed in the next release.
 
-## [v0.9.0] - 2021-03-08
+## v0.9.0 - 2021-03-08
 
 ### General Notes
 
@@ -87,7 +88,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 - Property `signalfx.auth.token` has been renamed to `splunk.access.token`.
 
-## [v0.8.0] - 2021-02-12
+## v0.8.0 - 2021-02-12
 
 ### General Notes
 
@@ -96,15 +97,3 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ### Enhancements
 
 - Instrument Netty 4.0 to add Server-Timing header.
-
-[Unreleased]: https://github.com/signalfx/splunk-otel-java/compare/v0.12.0...HEAD
-
-[v0.12.0]: https://github.com/signalfx/splunk-otel-java/compare/v0.11.0...v0.12.0
-
-[v0.11.0]: https://github.com/signalfx/splunk-otel-java/compare/v0.10.0...v0.11.0
-
-[v0.10.0]: https://github.com/signalfx/splunk-otel-java/compare/v0.9.0...v0.10.0
-
-[v0.9.0]: https://github.com/signalfx/splunk-otel-java/compare/v0.8.0...v0.9.0
-
-[v0.8.0]: https://github.com/signalfx/splunk-otel-java/compare/v0.7.0...v0.8.0

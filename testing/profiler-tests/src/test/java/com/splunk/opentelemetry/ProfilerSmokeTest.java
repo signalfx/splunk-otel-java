@@ -90,7 +90,7 @@ public class ProfilerSmokeTest {
       dirStream.forEach(
           item -> {
             System.out.println("Found " + item);
-            if (item.toFile().isFile() && item.getFileName().toString().endsWith(".jfr")) {
+            if (Files.isRegularFile(item) && item.getFileName().toString().endsWith(".jfr")) {
               done.set(true);
             }
           });

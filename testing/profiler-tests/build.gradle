@@ -4,6 +4,7 @@ plugins {
 
 dependencies {
   testImplementation("org.testcontainers:testcontainers:1.15.3")
+  testImplementation deps.awaitility
 }
 
 

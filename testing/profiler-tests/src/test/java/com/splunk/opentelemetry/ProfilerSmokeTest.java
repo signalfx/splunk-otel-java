@@ -16,16 +16,18 @@
 
 package com.splunk.opentelemetry;
 
-import static org.junit.jupiter.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.time.Duration;
-import java.time.Instant;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -62,33 +64,32 @@ public class ProfilerSmokeTest {
             .withFileSystemBind(
                 tempDir.toAbsolutePath().toString(), "/app/jfr", BindMode.READ_WRITE)
             .waitingFor(Wait.forHttp("/petclinic/api/vets"));
+    petclinic.start();
+  }
+
+  @AfterAll
+  static void teardown() {
+    petclinic.stop();
   }
 
   @Test
   void ensureJfrFilesCreated() throws Exception {
-    petclinic.start();
     System.out.println("Petclinic has been started.");
 
-    Instant start = Instant.now();
-    AtomicBoolean done = new AtomicBoolean(false);
-    while (!done.get()) {
+    await()
+        .atMost(60, TimeUnit.SECONDS)
+        .pollInterval(1, TimeUnit.SECONDS)
+        .untilAsserted(() -> assertThat(findJfrFilesInOutputDir()).isNotEmpty());
+  }
 
-      System.out.println("Opening dir to look for jfr files...");
-      try (DirectoryStream<Path> dirStream = Files.newDirectoryStream(tempDir)) {
+  private List<Path> findJfrFilesInOutputDir() throws Exception {
+    System.out.println("Opening dir to look for jfr files...");
+    try (DirectoryStream<Path> dirStream = Files.newDirectoryStream(tempDir)) {
 
-        dirStream.forEach(
-            item -> {
-              System.out.println("Found " + item);
-              if (Files.isRegularFile(item) && item.getFileName().toString().endsWith(".jfr")) {
-                done.set(true);
-              }
-            });
-        if (Duration.between(start, Instant.now()).toSeconds() > 60) {
-          petclinic.stop();
-          fail("No output within time.");
-        }
-        TimeUnit.SECONDS.sleep(1);
-      }
+      return StreamSupport.stream(dirStream.spliterator(), false)
+          .filter(Files::isRegularFile)
+          .filter(item -> item.getFileName().toString().endsWith(".jfr"))
+          .collect(Collectors.toList());
     }
   }
 }

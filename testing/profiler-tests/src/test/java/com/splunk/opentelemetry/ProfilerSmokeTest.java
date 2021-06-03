@@ -21,12 +21,11 @@ import static org.junit.jupiter.api.Assertions.fail;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Spliterator;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.stream.StreamSupport;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -38,13 +37,16 @@ import org.testcontainers.utility.MountableFile;
 
 public class ProfilerSmokeTest {
 
+  public static final Path agentPath =
+      Paths.get(System.getProperty("io.opentelemetry.smoketest.agent.shadowJar.path"));
+
   static GenericContainer<?> petclinic;
 
   @TempDir static Path tempDir;
 
   @BeforeAll
   static void setup() {
-    MountableFile agentJar = MountableFile.forHostPath(findAgentJar());
+    MountableFile agentJar = MountableFile.forHostPath(agentPath);
     petclinic =
         new GenericContainer<>(new ImageFromDockerfile().withDockerfile(Path.of("./Dockerfile")))
             .withExposedPorts(9966)
@@ -60,22 +62,6 @@ public class ProfilerSmokeTest {
             .withFileSystemBind(
                 tempDir.toAbsolutePath().toString(), "/app/jfr", BindMode.READ_WRITE)
             .waitingFor(Wait.forHttp("/petclinic/api/vets"));
-  }
-
-  static Path findAgentJar() {
-    try {
-      Spliterator<Path> spliterator = Files.newDirectoryStream(Path.of("build/")).spliterator();
-      return StreamSupport.stream(spliterator, false)
-          .filter(path -> path.toFile().isFile())
-          .filter(path -> path.getFileName().toString().startsWith("splunk-otel-javaagent"))
-          .filter(path -> path.getFileName().toString().endsWith(".jar"))
-          .sorted()
-          .findFirst()
-          .orElseThrow();
-    } catch (Exception e) {
-      fail(e);
-      return null;
-    }
   }
 
   @Test

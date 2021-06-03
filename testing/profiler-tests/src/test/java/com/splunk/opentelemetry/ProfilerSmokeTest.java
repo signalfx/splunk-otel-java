@@ -85,20 +85,21 @@ public class ProfilerSmokeTest {
     while (!done.get()) {
 
       System.out.println("Opening dir to look for jfr files...");
-      DirectoryStream<Path> dirStream = Files.newDirectoryStream(outputDir);
+      try (DirectoryStream<Path> dirStream = Files.newDirectoryStream(outputDir)) {
 
-      dirStream.forEach(
-          item -> {
-            System.out.println("Found " + item);
-            if (Files.isRegularFile(item) && item.getFileName().toString().endsWith(".jfr")) {
-              done.set(true);
-            }
-          });
-      if (Duration.between(start, Instant.now()).toSeconds() > 60) {
-        petclinic.stop();
-        fail("No output within time.");
+        dirStream.forEach(
+            item -> {
+              System.out.println("Found " + item);
+              if (Files.isRegularFile(item) && item.getFileName().toString().endsWith(".jfr")) {
+                done.set(true);
+              }
+            });
+        if (Duration.between(start, Instant.now()).toSeconds() > 60) {
+          petclinic.stop();
+          fail("No output within time.");
+        }
+        TimeUnit.SECONDS.sleep(1);
       }
-      TimeUnit.SECONDS.sleep(1);
     }
   }
 }

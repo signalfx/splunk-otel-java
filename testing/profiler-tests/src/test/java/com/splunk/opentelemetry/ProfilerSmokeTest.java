@@ -27,8 +27,9 @@ import java.util.Spliterator;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.StreamSupport;
-import org.junit.ClassRule;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import org.testcontainers.containers.BindMode;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.wait.strategy.Wait;
@@ -37,9 +38,12 @@ import org.testcontainers.utility.MountableFile;
 
 public class ProfilerSmokeTest {
 
-  @ClassRule public static GenericContainer<?> petclinic;
+  static GenericContainer<?> petclinic;
 
-  static {
+  @TempDir static Path tempDir;
+
+  @BeforeAll
+  static void setup() {
     MountableFile agentJar = MountableFile.forHostPath(findAgentJar());
     petclinic =
         new GenericContainer<>(new ImageFromDockerfile().withDockerfile(Path.of("./Dockerfile")))
@@ -53,7 +57,8 @@ public class ProfilerSmokeTest {
                 "-Dsplunk.profiler.directory=/app/jfr",
                 "-jar",
                 "/app/spring-petclinic-rest.jar")
-            .withFileSystemBind("build/test/output", "/app/jfr", BindMode.READ_WRITE)
+            .withFileSystemBind(
+                tempDir.toAbsolutePath().toString(), "/app/jfr", BindMode.READ_WRITE)
             .waitingFor(Wait.forHttp("/petclinic/api/vets"));
   }
 
@@ -75,8 +80,6 @@ public class ProfilerSmokeTest {
 
   @Test
   void ensureJfrFilesCreated() throws Exception {
-    Path outputDir = Path.of("build/test/output");
-    Files.createDirectories(outputDir);
     petclinic.start();
     System.out.println("Petclinic has been started.");
 
@@ -85,7 +88,7 @@ public class ProfilerSmokeTest {
     while (!done.get()) {
 
       System.out.println("Opening dir to look for jfr files...");
-      try (DirectoryStream<Path> dirStream = Files.newDirectoryStream(outputDir)) {
+      try (DirectoryStream<Path> dirStream = Files.newDirectoryStream(tempDir)) {
 
         dirStream.forEach(
             item -> {

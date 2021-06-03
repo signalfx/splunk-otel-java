@@ -78,7 +78,6 @@ public class ProfilerSmokeTest {
     Path outputDir = Path.of("build/test/output");
     Files.createDirectories(outputDir);
     petclinic.start();
-    Wait.forHttp("/petclinic/api/vets");
     System.out.println("Petclinic has been started.");
 
     Instant start = Instant.now();

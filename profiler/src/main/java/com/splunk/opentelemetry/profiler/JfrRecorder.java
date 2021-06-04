@@ -23,7 +23,9 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
-import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.Map;
 import jdk.jfr.Recording;
 import jdk.jfr.RecordingState;
@@ -66,7 +68,10 @@ public class JfrRecorder {
 
   public void flushSnapshot() {
     try (Recording snap = jfr.takeSnapshot()) {
-      Path file = Paths.get(Instant.now().toString() + ".jfr");
+      String prefix =
+          DateTimeFormatter.ISO_DATE_TIME.format(
+              LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS));
+      Path file = Paths.get(prefix + ".jfr");
       Path path = outputDir.resolve(file);
       logger.debug("Flushing a JFR snapshot: {}", path);
       snap.dump(path);

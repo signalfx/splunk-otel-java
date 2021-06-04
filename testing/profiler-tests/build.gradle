@@ -1,0 +1,31 @@
+plugins {
+  id 'java'
+}
+
+dependencies {
+  testImplementation("org.testcontainers:testcontainers:1.15.3")
+  testImplementation deps.awaitility
+}
+
+
+tasks.register('copyProfilingAgentJar', Copy) {
+  from "../../agent/build/libs/"
+  include "splunk-otel-javaagent-*-all.jar"
+  into "build"
+}
+
+tasks.test {
+  def shadowTask = project(":agent").tasks.named("shadowJar").get()
+  inputs.files(layout.files(shadowTask))
+
+  doFirst {
+    jvmArgs("-Dio.opentelemetry.smoketest.agent.shadowJar.path=${shadowTask.archiveFile.get()}")
+  }
+}
+
+copyProfilingAgentJar.dependsOn(':agent:assemble')
+test.dependsOn(copyProfilingAgentJar)
+
+jar {
+  enabled = false
+}

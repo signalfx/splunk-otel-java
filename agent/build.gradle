@@ -20,9 +20,7 @@ configurations {
 dependencies {
     customShadow project(path: ":custom", configuration: "shadow")
     customShadow project(path: ":instrumentation", configuration: "shadow")
-    if(project.hasProperty('profiler')) {
-        customShadow project(path: ":profiler", configuration: "shadow")
-    }
+    customShadow project(path: ":profiler", configuration: "shadow")
     mainShadow "io.opentelemetry.javaagent:opentelemetry-javaagent:${versions.opentelemetryJavaagent}:all"
     customShadowInclude project(":bootstrap")
 }
@@ -52,9 +50,7 @@ task customShadow(type: ShadowJar) {
 
     dependsOn ':custom:shadowJar'
     dependsOn ':instrumentation:shadowJar'
-    if(project.hasProperty('profiler')){
-        dependsOn ':profiler:shadowJar'
-    }
+    dependsOn ':profiler:shadowJar'
     dependsOn ':bootstrap:jar'
     with isolateSpec()
 

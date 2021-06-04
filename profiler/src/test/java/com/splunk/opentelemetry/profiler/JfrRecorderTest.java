@@ -31,12 +31,14 @@ import jdk.jfr.RecordingState;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class JfrRecorderTest {
 
+  static final Path OUTDIR = Path.of("/some/path");
   Duration maxAge = Duration.ofMinutes(13);
   Map<String, String> settings;
   @Mock JfrSettingsReader settingsReader;
@@ -65,10 +67,15 @@ class JfrRecorderTest {
   void testFlushSnapshot() throws Exception {
     JFR jfr = mock(JFR.class);
     Recording snap = mock(Recording.class);
+    ArgumentCaptor<Path> pathCaptor = ArgumentCaptor.forClass(Path.class);
+    doNothing().when(snap).dump(pathCaptor.capture());
     when(jfr.takeSnapshot()).thenReturn(snap);
     JfrRecorder jfrRecorder = buildJfrRecorder(jfr);
+
     jfrRecorder.flushSnapshot();
+
     verify(snap).dump(isA(Path.class));
+    assertTrue(pathCaptor.getValue().startsWith(OUTDIR));
     verify(snap).close();
   }
 
@@ -107,7 +114,11 @@ class JfrRecorderTest {
 
   private JfrRecorder buildJfrRecorder(JFR jfr) {
     JfrRecorder.Builder builder =
-        JfrRecorder.builder().maxAgeDuration(maxAge).settingsReader(settingsReader).jfr(jfr);
+        JfrRecorder.builder()
+            .maxAgeDuration(maxAge)
+            .settingsReader(settingsReader)
+            .outputDir(OUTDIR)
+            .jfr(jfr);
 
     return new JfrRecorder(builder) {
       @Override

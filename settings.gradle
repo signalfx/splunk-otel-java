@@ -32,5 +32,6 @@ include("agent",
   "profiler",
   "smoke-tests",
   "testing:agent-for-testing",
+  "testing:profiler-tests",
   "testing:agent-metrics",
   "testing:common")

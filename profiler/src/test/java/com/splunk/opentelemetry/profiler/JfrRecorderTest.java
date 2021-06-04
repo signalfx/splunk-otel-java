@@ -27,7 +27,6 @@ import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
-
 import jdk.jfr.Recording;
 import jdk.jfr.RecordingState;
 import org.junit.jupiter.api.BeforeEach;

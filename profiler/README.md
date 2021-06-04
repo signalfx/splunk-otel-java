@@ -10,3 +10,4 @@ It should be considered experimental and is completely unsupported.
 |`splunk.profiler.enabled`            | false   | set to true to enable the profiler   |
 |`splunk.profiler.directory`          | "."     | location of jfr files                |
 |`splunk.profiler.recording.duration` | 20      | number of seconds per recording unit |
+|`splunk.profiler.keepfiles`          | false   | leave JFR files on disk id `true`    |

@@ -16,9 +16,24 @@
 
 package com.splunk.opentelemetry.profiler;
 
-public class JfrException extends RuntimeException {
+import java.nio.file.Path;
+import java.util.function.Consumer;
 
-  public JfrException(String message, Exception e) {
-    super(message, e);
+public class JfrFileLifecycleEvents {
+
+  public static Consumer<Path> buildOnNewRecording(
+      Consumer<Path> jfrPathHandler, JfrDirCleanup dirCleanup) {
+    return path -> {
+      dirCleanup.recordingCreated(path);
+      jfrPathHandler.accept(path);
+    };
+  }
+
+  public static Consumer<Path> buildOnFileFinished(
+      Consumer<Path> deleter, JfrDirCleanup dirCleanup) {
+    return path -> {
+      deleter.accept(path);
+      dirCleanup.recordingDeleted(path);
+    };
   }
 }

@@ -28,7 +28,6 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.Map;
 import java.util.function.Consumer;
-
 import jdk.jfr.Recording;
 import jdk.jfr.RecordingState;
 import org.slf4j.Logger;
@@ -125,7 +124,7 @@ public class JfrRecorder {
       return this;
     }
 
-    public Builder onNewRecordingFile(Consumer<Path> onNewRecordingFile){
+    public Builder onNewRecordingFile(Consumer<Path> onNewRecordingFile) {
       this.onNewRecordingFile = onNewRecordingFile;
       return this;
     }

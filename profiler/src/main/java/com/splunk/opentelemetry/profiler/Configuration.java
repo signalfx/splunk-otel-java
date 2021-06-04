@@ -28,11 +28,13 @@ public class Configuration implements PropertySource {
   public static final String CONFIG_KEY_PROFILER_DIRECTORY = "splunk.profiler.directory";
   public static final String CONFIG_KEY_RECORDING_DURATION_SECONDS =
       "splunk.profiler.recording.duration";
+  public static final String CONFIG_KEY_KEEP_FILES = "splunk.profiler.keepfiles";
 
   @Override
   public Map<String, String> getProperties() {
     HashMap<String, String> config = new HashMap<>();
     config.put(CONFIG_KEY_ENABLE_PROFILER, "false");
+    config.put(CONFIG_KEY_KEEP_FILES, "false");
     return config;
   }
 }

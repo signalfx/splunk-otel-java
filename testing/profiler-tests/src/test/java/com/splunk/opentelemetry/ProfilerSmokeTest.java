@@ -59,6 +59,7 @@ public class ProfilerSmokeTest {
                 "-Dotel.javaagent.debug=true",
                 "-Dsplunk.profiler.enabled=true",
                 "-Dsplunk.profiler.directory=/app/jfr",
+                "-Dsplunk.profiler.keepfiles=true",
                 "-jar",
                 "/app/spring-petclinic-rest.jar")
             .withFileSystemBind(

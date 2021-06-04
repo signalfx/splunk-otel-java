@@ -74,7 +74,7 @@ public class ProfilerSmokeTest {
   }
 
   @Test
-  void ensureJfrFilesCreated() throws Exception {
+  void ensureJfrFilesCreated() {
     System.out.println("Petclinic has been started.");
 
     await()

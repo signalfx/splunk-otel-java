@@ -29,6 +29,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.concurrent.ExecutorService;
+import java.util.function.Consumer;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -60,19 +62,34 @@ public class JfrActivator implements ComponentInstaller {
     RecordingEscapeHatch recordingEscapeHatch = new RecordingEscapeHatch();
     JfrSettingsReader settingsReader = new JfrSettingsReader();
     Path outputDir = Paths.get(config.getProperty(CONFIG_KEY_PROFILER_DIRECTORY, "."));
-    JfrRecorder recorder =
+
+      RecordedEventStream.Factory recordedEventStreamFactory = () -> new BasicJfrRecordingFile(JFR.instance);
+      EventProcessingChain eventProcessingChain = new EventProcessingChain();
+      Consumer<Path> onFileFinished = path -> {
+
+      };
+      JfrPathHandler jfrPathHandler = JfrPathHandler.builder()
+            .recordedEventStreamFactory(recordedEventStreamFactory)
+            .eventProcessingChain(eventProcessingChain)
+            .onFileFinished(onFileFinished)
+            .build();
+
+      JfrRecorder recorder =
         JfrRecorder.builder()
             .settingsReader(settingsReader)
             .maxAgeDuration(recordingDuration.multipliedBy(10))
             .jfr(JFR.instance)
             .outputDir(outputDir)
+            .onNewRecordingFile(jfrPathHandler)
             .build();
+
     RecordingSequencer sequencer =
         RecordingSequencer.builder()
             .recordingDuration(recordingDuration)
             .recordingEscapeHatch(recordingEscapeHatch)
             .recorder(recorder)
             .build();
+
     sequencer.start();
   }
 }

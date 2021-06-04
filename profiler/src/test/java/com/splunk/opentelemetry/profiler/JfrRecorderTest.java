@@ -26,6 +26,8 @@ import java.nio.file.Path;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Consumer;
+
 import jdk.jfr.Recording;
 import jdk.jfr.RecordingState;
 import org.junit.jupiter.api.BeforeEach;
@@ -43,6 +45,7 @@ class JfrRecorderTest {
   Map<String, String> settings;
   @Mock JfrSettingsReader settingsReader;
   @Mock Recording recording;
+  @Mock Consumer<Path> onNewRecordingFile;
 
   @BeforeEach
   void setup() {
@@ -73,10 +76,12 @@ class JfrRecorderTest {
     JfrRecorder jfrRecorder = buildJfrRecorder(jfr);
 
     jfrRecorder.flushSnapshot();
+    Path outputPath = pathCaptor.getValue();
 
     verify(snap).dump(isA(Path.class));
-    assertTrue(pathCaptor.getValue().startsWith(OUTDIR));
+    assertTrue(outputPath.startsWith(OUTDIR));
     verify(snap).close();
+    verify(onNewRecordingFile).accept(outputPath);
   }
 
   @Test
@@ -118,6 +123,7 @@ class JfrRecorderTest {
             .maxAgeDuration(maxAge)
             .settingsReader(settingsReader)
             .outputDir(OUTDIR)
+            .onNewRecordingFile(onNewRecordingFile)
             .jfr(jfr);
 
     return new JfrRecorder(builder) {

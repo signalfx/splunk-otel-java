@@ -25,7 +25,8 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Responsible for processing a single jfr file snapshot. It streams events from the
- * RecordedEventStream into the processing chain and, once complete, calls the onComplete callback.
+ * RecordedEventStream into the processing chain and, once complete, calls the onFileFinished
+ * callback.
  */
 class JfrPathHandler implements Consumer<Path> {
 

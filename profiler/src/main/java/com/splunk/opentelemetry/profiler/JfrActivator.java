@@ -62,9 +62,17 @@ public class JfrActivator implements ComponentInstaller {
   private void activateJfrAndRunForever(Config config) {
     String recordingDurationStr = config.getProperty(CONFIG_KEY_RECORDING_DURATION_SECONDS, "20");
     Duration recordingDuration = Duration.ofSeconds(Integer.parseInt(recordingDurationStr));
-    RecordingEscapeHatch recordingEscapeHatch = new RecordingEscapeHatch();
-    JfrSettingsReader settingsReader = new JfrSettingsReader();
+
     Path outputDir = Paths.get(config.getProperty(CONFIG_KEY_PROFILER_DIRECTORY, "."));
+    RecordingFileNamingConvention namingConvention = new RecordingFileNamingConvention(outputDir);
+
+    RecordingEscapeHatch recordingEscapeHatch =
+        RecordingEscapeHatch.builder()
+            .namingConvention(namingConvention)
+            .configKeepsFilesOnDisk(keepFiles(config))
+            .recordingDuration(recordingDuration)
+            .build();
+    JfrSettingsReader settingsReader = new JfrSettingsReader();
 
     RecordedEventStream.Factory recordedEventStreamFactory =
         () -> new BasicJfrRecordingFile(JFR.instance);
@@ -82,8 +90,6 @@ public class JfrActivator implements ComponentInstaller {
             .build();
 
     Consumer<Path> onNewRecording = buildOnNewRecording(jfrPathHandler, dirCleanup);
-
-    RecordingFileNamingConvention namingConvention = new RecordingFileNamingConvention(outputDir);
 
     JfrRecorder recorder =
         JfrRecorder.builder()
@@ -106,10 +112,14 @@ public class JfrActivator implements ComponentInstaller {
   }
 
   private Consumer<Path> buildFileDeleter(Config config) {
-    if (config.getBooleanProperty(CONFIG_KEY_KEEP_FILES, false)) {
+    if (keepFiles(config)) {
       logger.warn("{} is enabled, leaving JFR files on disk.", CONFIG_KEY_KEEP_FILES);
       return FileDeleter.noopFileDeleter();
     }
     return FileDeleter.newDeleter();
+  }
+
+  private boolean keepFiles(Config config) {
+    return config.getBooleanProperty(CONFIG_KEY_KEEP_FILES, false);
   }
 }

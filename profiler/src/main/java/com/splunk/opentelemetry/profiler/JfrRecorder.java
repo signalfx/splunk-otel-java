@@ -21,11 +21,7 @@ import static java.util.Objects.requireNonNull;
 import com.google.common.annotations.VisibleForTesting;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.time.Duration;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoUnit;
 import java.util.Map;
 import java.util.function.Consumer;
 import jdk.jfr.Recording;
@@ -120,9 +116,9 @@ class JfrRecorder {
       return this;
     }
 
-    public Builder namingConvention(RecordingFileNamingConvention namingConvention){
-       this.namingConvention = namingConvention;
-       return this;
+    public Builder namingConvention(RecordingFileNamingConvention namingConvention) {
+      this.namingConvention = namingConvention;
+      return this;
     }
 
     public JfrRecorder build() {

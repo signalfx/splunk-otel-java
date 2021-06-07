@@ -1,5 +1,9 @@
 name: CI build
 
+concurrency:
+  group: ci
+  cancel-in-progress: true
+
 on:
   workflow_dispatch:
   push:

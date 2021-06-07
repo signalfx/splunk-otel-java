@@ -42,7 +42,7 @@ public class JfrPathHandler implements Consumer<Path> {
 
   @Override
   public void accept(Path path) {
-    logger.info("New jfr file detected: " + path);
+    logger.info("New jfr file detected: {}", path);
     RecordedEventStream recordingFile = recordedEventStreamFactory.get();
     Stream<RecordedEvent> events = recordingFile.open(path);
     events.forEach(event -> eventProcessingChain.accept(path, event));

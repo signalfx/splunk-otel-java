@@ -32,14 +32,14 @@ public interface FileDeleter extends Consumer<Path> {
       try {
         Files.delete(path);
       } catch (IOException e) {
-        logger.warn("Could not delete: " + path, e);
+        logger.warn("Could not delete: {}", path, e);
       }
     };
   }
 
   static FileDeleter noopFileDeleter() {
     return path -> {
-      logger.warn("Leaving " + path + " on disk.");
+      logger.warn("Leaving {} on disk.", path);
     };
   }
 }

@@ -53,14 +53,13 @@ public class JfrDirCleanup {
         .keySet()
         .forEach(
             path -> {
-              logger.warn("Shutdown :: JfrDirCleanup deleting " + path);
+              logger.warn("Shutdown :: JfrDirCleanup deleting {}", path);
               fileDeleter.accept(path);
             });
   }
 
   public void registerShutdownHook() {
     getRuntime().addShutdownHook(new Thread(logUncaught(this::cleanUp)));
-    ;
   }
 
   @VisibleForTesting

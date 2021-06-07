@@ -27,19 +27,21 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.Map;
+import java.util.function.Consumer;
 import jdk.jfr.Recording;
 import jdk.jfr.RecordingState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /** Responsible for starting a single JFR recording. */
-public class JfrRecorder {
+class JfrRecorder {
   private static final Logger logger = LoggerFactory.getLogger(JfrRecorder.class.getName());
   static final String RECORDING_NAME = "otel_agent_jfr_profiler";
   private final JfrSettingsReader settingsReader;
   private final Duration maxAgeDuration;
   private final JFR jfr;
   private final Path outputDir;
+  private final Consumer<Path> onNewRecordingFile;
   private volatile Recording recording;
 
   JfrRecorder(Builder builder) {
@@ -47,6 +49,7 @@ public class JfrRecorder {
     this.maxAgeDuration = requireNonNull(builder.maxAgeDuration);
     this.jfr = requireNonNull(builder.jfr);
     this.outputDir = requireNonNull(builder.outputDir);
+    this.onNewRecordingFile = requireNonNull(builder.onNewRecordingFile);
   }
 
   public void start() {
@@ -75,6 +78,7 @@ public class JfrRecorder {
       Path path = outputDir.resolve(file);
       logger.debug("Flushing a JFR snapshot: {}", path);
       snap.dump(path);
+      onNewRecordingFile.accept(path);
     } catch (IOException e) {
       logger.error("Error flushing JFR snapshot data to disk", e);
     }
@@ -98,6 +102,7 @@ public class JfrRecorder {
     private JfrSettingsReader settingsReader;
     private Duration maxAgeDuration;
     private JFR jfr = JFR.instance;
+    public Consumer<Path> onNewRecordingFile;
 
     public Builder settingsReader(JfrSettingsReader settingsReader) {
       this.settingsReader = settingsReader;
@@ -116,6 +121,11 @@ public class JfrRecorder {
 
     public Builder outputDir(Path outputDir) {
       this.outputDir = outputDir;
+      return this;
+    }
+
+    public Builder onNewRecordingFile(Consumer<Path> onNewRecordingFile) {
+      this.onNewRecordingFile = onNewRecordingFile;
       return this;
     }
 

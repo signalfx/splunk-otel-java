@@ -59,6 +59,7 @@ public class ProfilerSmokeTest {
                 "-Dotel.javaagent.debug=true",
                 "-Dsplunk.profiler.enabled=true",
                 "-Dsplunk.profiler.directory=/app/jfr",
+                "-Dsplunk.profiler.keep-files=true",
                 "-jar",
                 "/app/spring-petclinic-rest.jar")
             .withFileSystemBind(
@@ -73,7 +74,7 @@ public class ProfilerSmokeTest {
   }
 
   @Test
-  void ensureJfrFilesCreated() throws Exception {
+  void ensureJfrFilesCreated() {
     System.out.println("Petclinic has been started.");
 
     await()

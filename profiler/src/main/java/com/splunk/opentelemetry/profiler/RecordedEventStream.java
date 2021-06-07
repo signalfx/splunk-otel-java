@@ -16,9 +16,14 @@
 
 package com.splunk.opentelemetry.profiler;
 
-class RecordingEscapeHatch {
+import java.nio.file.Path;
+import java.util.function.Supplier;
+import java.util.stream.Stream;
+import jdk.jfr.consumer.RecordedEvent;
 
-  public boolean jfrCanContinue() {
-    return true;
-  }
+/** Tag interface for turning a file path into a stream of JFR RecordedEvent instances. */
+interface RecordedEventStream {
+  Stream<RecordedEvent> open(Path path);
+
+  interface Factory extends Supplier<RecordedEventStream> {}
 }

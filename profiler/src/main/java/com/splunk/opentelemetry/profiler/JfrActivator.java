@@ -17,11 +17,15 @@
 package com.splunk.opentelemetry.profiler;
 
 import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_ENABLE_PROFILER;
+import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_KEEP_FILES;
 import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_PROFILER_DIRECTORY;
 import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_RECORDING_DURATION_SECONDS;
+import static com.splunk.opentelemetry.profiler.JfrFileLifecycleEvents.buildOnFileFinished;
+import static com.splunk.opentelemetry.profiler.JfrFileLifecycleEvents.buildOnNewRecording;
 import static com.splunk.opentelemetry.profiler.util.HelpfulExecutors.logUncaught;
 
 import com.google.auto.service.AutoService;
+import com.splunk.opentelemetry.profiler.util.FileDeleter;
 import com.splunk.opentelemetry.profiler.util.HelpfulExecutors;
 import io.opentelemetry.instrumentation.api.config.Config;
 import io.opentelemetry.javaagent.spi.ComponentInstaller;
@@ -29,6 +33,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.concurrent.ExecutorService;
+import java.util.function.Consumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -60,19 +65,49 @@ public class JfrActivator implements ComponentInstaller {
     RecordingEscapeHatch recordingEscapeHatch = new RecordingEscapeHatch();
     JfrSettingsReader settingsReader = new JfrSettingsReader();
     Path outputDir = Paths.get(config.getProperty(CONFIG_KEY_PROFILER_DIRECTORY, "."));
+
+    RecordedEventStream.Factory recordedEventStreamFactory =
+        () -> new BasicJfrRecordingFile(JFR.instance);
+    EventProcessingChain eventProcessingChain = new EventProcessingChain();
+    Consumer<Path> deleter = buildFileDeleter(config);
+    JfrDirCleanup dirCleanup = new JfrDirCleanup(deleter);
+
+    Consumer<Path> onFileFinished = buildOnFileFinished(deleter, dirCleanup);
+
+    JfrPathHandler jfrPathHandler =
+        JfrPathHandler.builder()
+            .recordedEventStreamFactory(recordedEventStreamFactory)
+            .eventProcessingChain(eventProcessingChain)
+            .onFileFinished(onFileFinished)
+            .build();
+
+    Consumer<Path> onNewRecording = buildOnNewRecording(jfrPathHandler, dirCleanup);
+
     JfrRecorder recorder =
         JfrRecorder.builder()
             .settingsReader(settingsReader)
             .maxAgeDuration(recordingDuration.multipliedBy(10))
             .jfr(JFR.instance)
             .outputDir(outputDir)
+            .onNewRecordingFile(onNewRecording)
             .build();
+
     RecordingSequencer sequencer =
         RecordingSequencer.builder()
             .recordingDuration(recordingDuration)
             .recordingEscapeHatch(recordingEscapeHatch)
             .recorder(recorder)
             .build();
+
     sequencer.start();
+    dirCleanup.registerShutdownHook();
+  }
+
+  private Consumer<Path> buildFileDeleter(Config config) {
+    if (config.getBooleanProperty(CONFIG_KEY_KEEP_FILES, false)) {
+      logger.warn("{} is enabled, leaving JFR files on disk.", CONFIG_KEY_KEEP_FILES);
+      return FileDeleter.noopFileDeleter();
+    }
+    return FileDeleter.newDeleter();
   }
 }

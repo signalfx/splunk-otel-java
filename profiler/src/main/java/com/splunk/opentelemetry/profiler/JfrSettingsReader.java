@@ -28,7 +28,7 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class JfrSettingsReader {
+class JfrSettingsReader {
 
   private static final Logger logger = LoggerFactory.getLogger(JfrSettingsReader.class);
   private static final String DEFAULT_JFR_SETTINGS = "jfr.settings";

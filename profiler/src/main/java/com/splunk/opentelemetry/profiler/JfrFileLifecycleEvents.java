@@ -16,9 +16,24 @@
 
 package com.splunk.opentelemetry.profiler;
 
-class RecordingEscapeHatch {
+import java.nio.file.Path;
+import java.util.function.Consumer;
 
-  public boolean jfrCanContinue() {
-    return true;
+class JfrFileLifecycleEvents {
+
+  public static Consumer<Path> buildOnNewRecording(
+      Consumer<Path> jfrPathHandler, JfrDirCleanup dirCleanup) {
+    return path -> {
+      dirCleanup.recordingCreated(path);
+      jfrPathHandler.accept(path);
+    };
+  }
+
+  public static Consumer<Path> buildOnFileFinished(
+      Consumer<Path> deleter, JfrDirCleanup dirCleanup) {
+    return path -> {
+      deleter.accept(path);
+      dirCleanup.recordingDeleted(path);
+    };
   }
 }

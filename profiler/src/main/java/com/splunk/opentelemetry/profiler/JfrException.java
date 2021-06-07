@@ -16,9 +16,9 @@
 
 package com.splunk.opentelemetry.profiler;
 
-class RecordingEscapeHatch {
+class JfrException extends RuntimeException {
 
-  public boolean jfrCanContinue() {
-    return true;
+  public JfrException(String message, Exception e) {
+    super(message, e);
   }
 }

@@ -16,9 +16,12 @@
 
 package com.splunk.opentelemetry.profiler;
 
-class RecordingEscapeHatch {
+import java.nio.file.Path;
+import jdk.jfr.consumer.RecordedEvent;
 
-  public boolean jfrCanContinue() {
-    return true;
+class EventProcessingChain {
+
+  public void accept(Path path, RecordedEvent event) {
+    // NO-OP for now....
   }
 }

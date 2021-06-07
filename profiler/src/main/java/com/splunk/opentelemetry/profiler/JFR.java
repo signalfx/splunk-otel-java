@@ -16,11 +16,15 @@
 
 package com.splunk.opentelemetry.profiler;
 
+import java.io.IOException;
+import java.nio.file.Path;
 import jdk.jfr.FlightRecorder;
 import jdk.jfr.Recording;
+import jdk.jfr.consumer.RecordedEvent;
+import jdk.jfr.consumer.RecordingFile;
 
 /** Abstraction around the Java Flight Recorder subsystem. */
-public class JFR {
+class JFR {
 
   public static final JFR instance = new JFR();
 
@@ -30,5 +34,21 @@ public class JFR {
 
   public Recording takeSnapshot() {
     return FlightRecorder.getFlightRecorder().takeSnapshot();
+  }
+
+  public RecordingFile openRecordingFile(Path path) {
+    try {
+      return new RecordingFile(path);
+    } catch (IOException e) {
+      throw new JfrException("Error opening recording file", e);
+    }
+  }
+
+  public RecordedEvent readEvent(RecordingFile file, Path path) {
+    try {
+      return file.readEvent();
+    } catch (IOException e) {
+      throw new JfrException("Error reading events from " + path, e);
+    }
   }
 }

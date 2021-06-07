@@ -23,6 +23,7 @@ import static org.mockito.Mockito.*;
 import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.concurrent.CountDownLatch;
+import java.util.function.Consumer;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -147,6 +148,7 @@ class RecordingSequencerTest {
           new Builder()
               .settingsReader(mock(JfrSettingsReader.class))
               .maxAgeDuration(Duration.ofSeconds(10))
+              .onNewRecordingFile(mock(Consumer.class))
               .outputDir(Paths.get(".")));
       this.flushLatch = flushLatch;
       started = false;

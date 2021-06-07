@@ -30,7 +30,7 @@ import org.slf4j.LoggerFactory;
  * This class is responsible for cleaning up jfr files that might not have otherwise been cleaned
  * up. It can register a VM shutdown hook to remove its list of pending files at shutdown.
  */
-public class JfrDirCleanup {
+class JfrDirCleanup {
 
   private static final Logger logger = LoggerFactory.getLogger(JfrDirCleanup.class);
   private final Consumer<Path> fileDeleter;

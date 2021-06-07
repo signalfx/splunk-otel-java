@@ -22,7 +22,7 @@ import java.util.stream.Stream;
 import jdk.jfr.consumer.RecordedEvent;
 
 /** Tag interface for turning a file path into a stream of JFR RecordedEvent instances. */
-public interface RecordedEventStream {
+interface RecordedEventStream {
   Stream<RecordedEvent> open(Path path);
 
   interface Factory extends Supplier<RecordedEventStream> {}

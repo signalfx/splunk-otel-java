@@ -19,7 +19,7 @@ package com.splunk.opentelemetry.profiler;
 import java.nio.file.Path;
 import java.util.function.Consumer;
 
-public class JfrFileLifecycleEvents {
+class JfrFileLifecycleEvents {
 
   public static Consumer<Path> buildOnNewRecording(
       Consumer<Path> jfrPathHandler, JfrDirCleanup dirCleanup) {

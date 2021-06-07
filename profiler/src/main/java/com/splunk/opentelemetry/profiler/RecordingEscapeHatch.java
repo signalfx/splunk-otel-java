@@ -16,7 +16,7 @@
 
 package com.splunk.opentelemetry.profiler;
 
-public class RecordingEscapeHatch {
+class RecordingEscapeHatch {
 
   public boolean jfrCanContinue() {
     return true;

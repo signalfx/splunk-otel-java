@@ -28,7 +28,7 @@ import org.slf4j.LoggerFactory;
  * Responsible for periodically generating a sequence of JFR recording files. Prior to starting a
  * recording, it consults with a RecordingEscapeHatch to make sure that it is safe/relevant to do.
  */
-public class RecordingSequencer {
+class RecordingSequencer {
   private static final Logger logger = LoggerFactory.getLogger(RecordingSequencer.class.getName());
   // The overlap factor causes recordings to be shorter than the requested duration.
   // This forces overlap between recordings and ensures data is continuous when deduplicated.

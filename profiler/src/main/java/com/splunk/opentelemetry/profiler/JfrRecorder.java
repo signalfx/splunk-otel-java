@@ -34,7 +34,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /** Responsible for starting a single JFR recording. */
-public class JfrRecorder {
+class JfrRecorder {
   private static final Logger logger = LoggerFactory.getLogger(JfrRecorder.class.getName());
   static final String RECORDING_NAME = "otel_agent_jfr_profiler";
   private final JfrSettingsReader settingsReader;

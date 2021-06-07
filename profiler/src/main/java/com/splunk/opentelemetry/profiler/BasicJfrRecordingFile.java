@@ -26,7 +26,7 @@ import jdk.jfr.consumer.RecordedEvent;
 import jdk.jfr.consumer.RecordingFile;
 
 /** Simple/basic abstraction around a recording file. Can open and get a stream of events. */
-public class BasicJfrRecordingFile implements RecordedEventStream {
+class BasicJfrRecordingFile implements RecordedEventStream {
 
   private final JFR jfr;
 

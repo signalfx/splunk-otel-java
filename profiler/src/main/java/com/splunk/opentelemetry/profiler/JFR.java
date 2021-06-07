@@ -24,7 +24,7 @@ import jdk.jfr.consumer.RecordedEvent;
 import jdk.jfr.consumer.RecordingFile;
 
 /** Abstraction around the Java Flight Recorder subsystem. */
-public class JFR {
+class JFR {
 
   public static final JFR instance = new JFR();
 

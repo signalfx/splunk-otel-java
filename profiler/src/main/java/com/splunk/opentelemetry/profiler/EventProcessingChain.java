@@ -19,7 +19,7 @@ package com.splunk.opentelemetry.profiler;
 import java.nio.file.Path;
 import jdk.jfr.consumer.RecordedEvent;
 
-public class EventProcessingChain {
+class EventProcessingChain {
 
   public void accept(Path path, RecordedEvent event) {
     // NO-OP for now....

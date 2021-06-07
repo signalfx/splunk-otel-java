@@ -40,16 +40,16 @@ class JfrRecorder {
   private final JfrSettingsReader settingsReader;
   private final Duration maxAgeDuration;
   private final JFR jfr;
-  private final Path outputDir;
   private final Consumer<Path> onNewRecordingFile;
+  private final RecordingFileNamingConvention namingConvention;
   private volatile Recording recording;
 
   JfrRecorder(Builder builder) {
     this.settingsReader = requireNonNull(builder.settingsReader);
     this.maxAgeDuration = requireNonNull(builder.maxAgeDuration);
     this.jfr = requireNonNull(builder.jfr);
-    this.outputDir = requireNonNull(builder.outputDir);
     this.onNewRecordingFile = requireNonNull(builder.onNewRecordingFile);
+    this.namingConvention = requireNonNull(builder.namingConvention);
   }
 
   public void start() {
@@ -71,11 +71,7 @@ class JfrRecorder {
 
   public void flushSnapshot() {
     try (Recording snap = jfr.takeSnapshot()) {
-      String prefix =
-          DateTimeFormatter.ISO_DATE_TIME.format(
-              LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS));
-      Path file = Paths.get(prefix + ".jfr");
-      Path path = outputDir.resolve(file);
+      Path path = namingConvention.newOutputPath();
       logger.debug("Flushing a JFR snapshot: {}", path);
       snap.dump(path);
       onNewRecordingFile.accept(path);
@@ -98,7 +94,7 @@ class JfrRecorder {
   }
 
   public static class Builder {
-    private Path outputDir;
+    private RecordingFileNamingConvention namingConvention;
     private JfrSettingsReader settingsReader;
     private Duration maxAgeDuration;
     private JFR jfr = JFR.instance;
@@ -119,14 +115,14 @@ class JfrRecorder {
       return this;
     }
 
-    public Builder outputDir(Path outputDir) {
-      this.outputDir = outputDir;
-      return this;
-    }
-
     public Builder onNewRecordingFile(Consumer<Path> onNewRecordingFile) {
       this.onNewRecordingFile = onNewRecordingFile;
       return this;
+    }
+
+    public Builder namingConvention(RecordingFileNamingConvention namingConvention){
+       this.namingConvention = namingConvention;
+       return this;
     }
 
     public JfrRecorder build() {

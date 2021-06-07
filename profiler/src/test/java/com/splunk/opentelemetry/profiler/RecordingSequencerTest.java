@@ -149,7 +149,7 @@ class RecordingSequencerTest {
               .settingsReader(mock(JfrSettingsReader.class))
               .maxAgeDuration(Duration.ofSeconds(10))
               .onNewRecordingFile(mock(Consumer.class))
-              .outputDir(Paths.get(".")));
+              .namingConvention(new RecordingFileNamingConvention(Paths.get("."))));
       this.flushLatch = flushLatch;
       started = false;
     }

@@ -83,12 +83,14 @@ public class JfrActivator implements ComponentInstaller {
 
     Consumer<Path> onNewRecording = buildOnNewRecording(jfrPathHandler, dirCleanup);
 
+    RecordingFileNamingConvention namingConvention = new RecordingFileNamingConvention(outputDir);
+
     JfrRecorder recorder =
         JfrRecorder.builder()
             .settingsReader(settingsReader)
             .maxAgeDuration(recordingDuration.multipliedBy(10))
             .jfr(JFR.instance)
-            .outputDir(outputDir)
+            .namingConvention(namingConvention)
             .onNewRecordingFile(onNewRecording)
             .build();
 

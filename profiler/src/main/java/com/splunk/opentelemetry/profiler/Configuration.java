@@ -28,7 +28,7 @@ public class Configuration implements PropertySource {
   public static final String CONFIG_KEY_PROFILER_DIRECTORY = "splunk.profiler.directory";
   public static final String CONFIG_KEY_RECORDING_DURATION_SECONDS =
       "splunk.profiler.recording.duration";
-  public static final String CONFIG_KEY_KEEP_FILES = "splunk.profiler.keepfiles";
+  public static final String CONFIG_KEY_KEEP_FILES = "splunk.profiler.keep-files";
 
   @Override
   public Map<String, String> getProperties() {

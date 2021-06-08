@@ -67,7 +67,7 @@ public class JfrActivator implements ComponentInstaller {
     Path outputDir = Paths.get(config.getProperty(CONFIG_KEY_PROFILER_DIRECTORY, "."));
 
     RecordedEventStream.Factory recordedEventStreamFactory =
-        () -> new BasicJfrRecordingFile(JFR.instance);
+        () -> new FilterSortedRecordingFile(() -> new BasicJfrRecordingFile(JFR.instance));
     EventProcessingChain eventProcessingChain = new EventProcessingChain();
     Consumer<Path> deleter = buildFileDeleter(config);
     JfrDirCleanup dirCleanup = new JfrDirCleanup(deleter);

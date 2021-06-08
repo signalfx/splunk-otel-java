@@ -17,9 +17,12 @@
 package com.splunk.opentelemetry.profiler;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
@@ -41,7 +44,7 @@ class BasicJfrRecordingFileTest {
   Path path = Paths.get("/path/to/file.jfr");
 
   @Test
-  void testOpen() {
+  void testOpen() throws Exception {
     RecordedEvent e1 = mock(RecordedEvent.class);
     RecordedEvent e2 = mock(RecordedEvent.class);
     RecordedEvent e3 = mock(RecordedEvent.class);
@@ -49,11 +52,28 @@ class BasicJfrRecordingFileTest {
     when(recordingFile.hasMoreEvents()).thenReturn(true, true, true, false);
     when(jfr.openRecordingFile(path)).thenReturn(recordingFile);
     when(jfr.readEvent(recordingFile, path)).thenReturn(e1, e2, e3);
-    BasicJfrRecordingFile recordingFile = new BasicJfrRecordingFile(jfr);
+    BasicJfrRecordingFile basicJfrRecordingFile = new BasicJfrRecordingFile(jfr);
 
-    Stream<RecordedEvent> stream = recordingFile.open(path);
+    Stream<RecordedEvent> stream = basicJfrRecordingFile.open(path);
     List<RecordedEvent> result = stream.collect(Collectors.toList());
     List<RecordedEvent> expected = Arrays.asList(e1, e2, e3);
     assertEquals(expected, result);
+    verify(recordingFile).close();
+  }
+
+  @Test
+  void testCloseException() throws Exception {
+    RecordedEvent ev = mock(RecordedEvent.class);
+
+    when(recordingFile.hasMoreEvents()).thenReturn(true, true, true, false);
+    when(jfr.openRecordingFile(path)).thenReturn(recordingFile);
+    when(jfr.readEvent(recordingFile, path)).thenReturn(ev);
+    doThrow(new IOException("it hurts")).when(recordingFile).close();
+    BasicJfrRecordingFile basicJfrRecordingFile = new BasicJfrRecordingFile(jfr);
+
+    Stream<RecordedEvent> stream = basicJfrRecordingFile.open(path);
+    stream.collect(Collectors.toList());
+    verify(recordingFile).close();
+    // no exception thrown, success
   }
 }

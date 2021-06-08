@@ -16,6 +16,7 @@
 
 package com.splunk.opentelemetry.profiler;
 
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Spliterator;
 import java.util.Spliterators;
@@ -24,9 +25,12 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 import jdk.jfr.consumer.RecordedEvent;
 import jdk.jfr.consumer.RecordingFile;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /** Simple/basic abstraction around a recording file. Can open and get a stream of events. */
 class BasicJfrRecordingFile implements RecordedEventStream {
+  private static final Logger logger = LoggerFactory.getLogger(BasicJfrRecordingFile.class);
 
   private final JFR jfr;
 
@@ -44,6 +48,7 @@ class BasicJfrRecordingFile implements RecordedEventStream {
               action.accept(jfr.readEvent(file, path));
               return true;
             }
+            closeSafely(file);
             return false;
           }
 
@@ -51,8 +56,17 @@ class BasicJfrRecordingFile implements RecordedEventStream {
             while (file.hasMoreEvents()) {
               action.accept(jfr.readEvent(file, path));
             }
+            closeSafely(file);
           }
         },
         false);
+  }
+
+  private void closeSafely(RecordingFile file) {
+    try {
+      file.close();
+    } catch (IOException e) {
+      logger.warn("Error closing JFR file", e);
+    }
   }
 }

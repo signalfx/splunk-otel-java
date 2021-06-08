@@ -27,12 +27,12 @@ class RecordingFileNamingConvention {
   private static final String PREFIX = "otel-profiler";
   private final Path outputDir;
 
-  public RecordingFileNamingConvention(Path outputDir) {
+  RecordingFileNamingConvention(Path outputDir) {
     this.outputDir = outputDir;
   }
 
   /** Constructs a full path for a new jfr file using the current time. */
-  public Path newOutputPath() {
+  Path newOutputPath() {
     return newOutputPath(LocalDateTime.now());
   }
 
@@ -51,7 +51,7 @@ class RecordingFileNamingConvention {
   }
 
   /** Determines if the path represents a file that we would have recorded to. */
-  public boolean matches(Path path) {
+  boolean matches(Path path) {
     return outputDir.equals(path.getParent()) && filenameMatches(path);
   }
 
@@ -62,7 +62,7 @@ class RecordingFileNamingConvention {
         && filename.matches("^" + PREFIX + "-\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.jfr$");
   }
 
-  public Path getOutputPath() {
+  Path getOutputPath() {
     return outputDir;
   }
 }

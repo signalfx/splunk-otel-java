@@ -59,10 +59,9 @@ class RecordingEscapeHatch {
       boolean result = usableSpace > MIN_FREE_SPACE_BYTES;
       if (!result) {
         logger.warn(
-            "** NOT STARTING RECORDING, only "
-                + usableSpace
-                + " bytes free, require "
-                + MIN_FREE_SPACE_BYTES);
+            "** NOT STARTING RECORDING, only {} bytes free, require {}",
+            usableSpace,
+            MIN_FREE_SPACE_BYTES);
       }
       return result;
     } catch (IOException e) {
@@ -91,11 +90,9 @@ class RecordingEscapeHatch {
   /** Returns the number of jfr files in the output directory that match our pattern */
   private long pendingFileCount() throws IOException {
     Path outputPath = namingConvention.getOutputPath();
-    return filesShim
-        .list(outputPath)
-        .filter(filesShim::isRegularFile)
-        .filter(namingConvention::matches)
-        .count();
+    try (Stream<Path> files = filesShim.list(outputPath)) {
+      return files.filter(filesShim::isRegularFile).filter(namingConvention::matches).count();
+    }
   }
 
   static Builder builder() {

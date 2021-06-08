@@ -28,6 +28,8 @@ import java.nio.file.FileStore;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
@@ -64,9 +66,12 @@ class RecordingEscapeHatchTest {
   void testCanContinueHappyPath() throws Exception {
     when(fileStore.getUsableSpace()).thenReturn(PLENTY_OF_SPACE);
     Stream<Path> outputFiles = makeFiles(5);
+    CountDownLatch closeLatch = new CountDownLatch(1);
+    outputFiles = outputFiles.onClose(closeLatch::countDown);
     when(filesShim.list(outputPath)).thenReturn(outputFiles);
     RecordingEscapeHatch escapeHatch = buildEscapeHatch(false);
     assertTrue(escapeHatch.jfrCanContinue());
+    assertTrue(closeLatch.await(5, TimeUnit.SECONDS));
   }
 
   @Test

@@ -21,10 +21,14 @@ import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
+import java.util.regex.Pattern;
 
 class RecordingFileNamingConvention {
 
   private static final String PREFIX = "otel-profiler";
+  // ISO_DATE_TIME format is like 2021-12-03T10:15:30
+  private final Pattern filenamePattern =
+      Pattern.compile("^" + PREFIX + "-\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.jfr$");
   private final Path outputDir;
 
   RecordingFileNamingConvention(Path outputDir) {
@@ -56,10 +60,8 @@ class RecordingFileNamingConvention {
   }
 
   private boolean filenameMatches(Path path) {
-    String filename = path.getFileName().toFile().getName();
-    // ISO_DATE_TIME format is like 2021-12-03T10:15:30
-    return filename.startsWith(PREFIX)
-        && filename.matches("^" + PREFIX + "-\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.jfr$");
+    String filename = path.getFileName().toString();
+    return filenamePattern.matcher(filename).matches();
   }
 
   Path getOutputPath() {

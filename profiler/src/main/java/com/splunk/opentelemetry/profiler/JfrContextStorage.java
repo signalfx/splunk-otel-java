@@ -37,18 +37,18 @@ class JfrContextStorage implements ContextStorage {
     this(delegate, Span::fromContext, JfrContextStorage::newEvent);
   }
 
-  static ContextAttached newEvent(SpanContext spanContext, byte direction) {
-    return new ContextAttached(spanContext.getTraceId(), spanContext.getSpanId(), direction);
-  }
-
   @VisibleForTesting
   JfrContextStorage(
-      ContextStorage delegate,
-      Function<Context, Span> spanFromContext,
-      BiFunction<SpanContext, Byte, ContextAttached> newEvent) {
+          ContextStorage delegate,
+          Function<Context, Span> spanFromContext,
+          BiFunction<SpanContext, Byte, ContextAttached> newEvent) {
     this.delegate = delegate;
     this.spanFromContext = spanFromContext;
     this.newEvent = newEvent;
+  }
+
+  static ContextAttached newEvent(SpanContext spanContext, byte direction) {
+    return new ContextAttached(spanContext.getTraceId(), spanContext.getSpanId(), direction);
   }
 
   @Override

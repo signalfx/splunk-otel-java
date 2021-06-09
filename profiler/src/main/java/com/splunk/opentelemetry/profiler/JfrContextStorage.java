@@ -39,9 +39,9 @@ class JfrContextStorage implements ContextStorage {
 
   @VisibleForTesting
   JfrContextStorage(
-          ContextStorage delegate,
-          Function<Context, Span> spanFromContext,
-          BiFunction<SpanContext, Byte, ContextAttached> newEvent) {
+      ContextStorage delegate,
+      Function<Context, Span> spanFromContext,
+      BiFunction<SpanContext, Byte, ContextAttached> newEvent) {
     this.delegate = delegate;
     this.spanFromContext = spanFromContext;
     this.newEvent = newEvent;

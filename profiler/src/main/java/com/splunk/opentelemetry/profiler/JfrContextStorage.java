@@ -24,26 +24,21 @@ import io.opentelemetry.context.Context;
 import io.opentelemetry.context.ContextStorage;
 import io.opentelemetry.context.Scope;
 import java.util.function.BiFunction;
-import java.util.function.Function;
 import javax.annotation.Nullable;
 
 class JfrContextStorage implements ContextStorage {
 
   private final ContextStorage delegate;
-  private final Function<Context, Span> spanFromContext;
   private final BiFunction<SpanContext, Byte, ContextAttached> newEvent;
 
   JfrContextStorage(ContextStorage delegate) {
-    this(delegate, Span::fromContext, JfrContextStorage::newEvent);
+    this(delegate, JfrContextStorage::newEvent);
   }
 
   @VisibleForTesting
   JfrContextStorage(
-      ContextStorage delegate,
-      Function<Context, Span> spanFromContext,
-      BiFunction<SpanContext, Byte, ContextAttached> newEvent) {
+      ContextStorage delegate, BiFunction<SpanContext, Byte, ContextAttached> newEvent) {
     this.delegate = delegate;
-    this.spanFromContext = spanFromContext;
     this.newEvent = newEvent;
   }
 
@@ -54,7 +49,7 @@ class JfrContextStorage implements ContextStorage {
   @Override
   public Scope attach(Context toAttach) {
     Scope delegatedScope = delegate.attach(toAttach);
-    Span span = spanFromContext.apply(toAttach);
+    Span span = Span.fromContext(toAttach);
     generateEvent(span, ContextAttached.IN);
     return () -> {
       generateEvent(span, ContextAttached.OUT);

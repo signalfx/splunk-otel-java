@@ -26,11 +26,11 @@ import jdk.jfr.consumer.RecordedEvent;
  * Limits a delegate stream to just the events that we care about and returns them sorted by start
  * time.
  */
-public class FilterSortedRecordingFile implements RecordedEventStream {
+class FilterSortedRecordingFile implements RecordedEventStream {
 
   private final RecordedEventStream.Factory delegateStreamFactory;
 
-  public FilterSortedRecordingFile(RecordedEventStream.Factory delegateStreamFactory) {
+  FilterSortedRecordingFile(RecordedEventStream.Factory delegateStreamFactory) {
     this.delegateStreamFactory = delegateStreamFactory;
   }
 

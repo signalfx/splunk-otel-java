@@ -96,7 +96,7 @@ class JfrContextStorageTest {
   }
 
   @Test
-  void testAttachInvalidContext() {
+  void testAttachWithInvalidContextDoesNotCreateAnyEvents() {
     BiFunction<SpanContext, Byte, ContextAttached> newEvent =
         (sc, b) -> {
           fail("Should not have attempted to create events");
@@ -114,7 +114,7 @@ class JfrContextStorageTest {
   }
 
   @Test
-  void testCurrent() {
+  void testCurrentSimplyDelegates() {
     Context expected = mock(Context.class);
     ContextStorage delegate = mock(JfrContextStorage.class);
 

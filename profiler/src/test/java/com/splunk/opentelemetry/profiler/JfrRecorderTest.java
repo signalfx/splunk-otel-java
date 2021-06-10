@@ -121,7 +121,7 @@ class JfrRecorderTest {
         JfrRecorder.builder()
             .maxAgeDuration(maxAge)
             .settingsReader(settingsReader)
-            .outputDir(OUTDIR)
+            .namingConvention(new RecordingFileNamingConvention(OUTDIR))
             .onNewRecordingFile(onNewRecordingFile)
             .jfr(jfr);
 

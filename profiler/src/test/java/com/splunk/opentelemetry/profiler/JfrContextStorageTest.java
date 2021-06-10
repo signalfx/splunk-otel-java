@@ -45,6 +45,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class JfrContextStorageTest {
 
+  String traceId;
+  String spanId;
   Span span;
   Context newContext;
   SpanContext spanContext;
@@ -53,27 +55,17 @@ class JfrContextStorageTest {
 
   @BeforeEach
   void setup() {
+    traceId = TraceId.fromLongs(123, 455);
+    spanId = SpanId.fromLong(23498);
     spanContext =
-        SpanContext.create(
-            TraceId.fromLongs(123, 455),
-            SpanId.fromLong(23498),
-            TraceFlags.getDefault(),
-            TraceState.getDefault());
+        SpanContext.create(traceId, spanId, TraceFlags.getDefault(), TraceState.getDefault());
     span = Span.wrap(spanContext);
     newContext = Context.root().with(span);
   }
 
   @Test
   void testNewEvent() {
-    String traceId = "nter108y";
-    String spanId = "abc123";
-
-    SpanContext context = mock(SpanContext.class);
-
-    when(context.getSpanId()).thenReturn(spanId);
-    when(context.getTraceId()).thenReturn(traceId);
-
-    ContextAttached result = JfrContextStorage.newEvent(context, ContextAttached.OUT);
+    ContextAttached result = JfrContextStorage.newEvent(spanContext, ContextAttached.OUT);
     assertEquals(traceId, result.getTraceId());
     assertEquals(spanId, result.getSpanId());
     assertEquals(ContextAttached.OUT, result.getDirection());

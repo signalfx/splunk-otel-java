@@ -23,6 +23,15 @@ import jdk.jfr.consumer.RecordedEvent;
 
 /** Tag interface for turning a file path into a stream of JFR RecordedEvent instances. */
 interface RecordedEventStream {
+
+  /**
+   * Opens a path to a jfr recording file and turns it into a stream of RecordedEvents from that
+   * file. It is the callers responsibility to call close() on the stream when finished, and failing
+   * to do so might result in resources being leaked or held open.
+   *
+   * @param path - path to a jfr recording file
+   * @return Stream of all RecordedEvents from the given file
+   */
   Stream<RecordedEvent> open(Path path);
 
   interface Factory extends Supplier<RecordedEventStream> {}

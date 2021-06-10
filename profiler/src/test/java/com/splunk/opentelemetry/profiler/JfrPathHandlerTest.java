@@ -16,6 +16,7 @@
 
 package com.splunk.opentelemetry.profiler;
 
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -23,6 +24,7 @@ import static org.mockito.Mockito.when;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 import jdk.jfr.consumer.RecordedEvent;
@@ -41,9 +43,11 @@ class JfrPathHandlerTest {
     RecordedEvent e1 = mock(RecordedEvent.class);
     RecordedEvent e2 = mock(RecordedEvent.class);
     RecordedEvent e3 = mock(RecordedEvent.class);
+    AtomicBoolean closeWasCalled = new AtomicBoolean(false);
+    Stream<RecordedEvent> stream = Stream.of(e1, e2, e3).onClose(() -> closeWasCalled.set(true));
 
     when(eventStreamFactory.get()).thenReturn(recordedEventStream);
-    when(recordedEventStream.open(path)).thenReturn(Stream.of(e1, e2, e3));
+    when(recordedEventStream.open(path)).thenReturn(stream);
 
     JfrPathHandler jfrPathHandler =
         JfrPathHandler.builder()
@@ -59,5 +63,6 @@ class JfrPathHandlerTest {
     verify(chain).accept(path, e3);
     verifyNoMoreInteractions(chain);
     verify(onFileFinished).accept(path);
+    assertTrue(closeWasCalled.get());
   }
 }

@@ -42,24 +42,26 @@ class BasicJfrRecordingFile implements RecordedEventStream {
   public Stream<RecordedEvent> open(Path path) {
     RecordingFile file = jfr.openRecordingFile(path);
     return StreamSupport.stream(
-        new Spliterators.AbstractSpliterator<RecordedEvent>(Long.MAX_VALUE, Spliterator.ORDERED) {
-          public boolean tryAdvance(Consumer<? super RecordedEvent> action) {
-            if (file.hasMoreEvents()) {
-              action.accept(jfr.readEvent(file, path));
-              return true;
-            }
-            closeSafely(file);
-            return false;
-          }
+            new Spliterators.AbstractSpliterator<RecordedEvent>(
+                Long.MAX_VALUE, Spliterator.ORDERED) {
+              public boolean tryAdvance(Consumer<? super RecordedEvent> action) {
+                if (file.hasMoreEvents()) {
+                  action.accept(jfr.readEvent(file, path));
+                  return true;
+                }
+                closeSafely(file);
+                return false;
+              }
 
-          public void forEachRemaining(Consumer<? super RecordedEvent> action) {
-            while (file.hasMoreEvents()) {
-              action.accept(jfr.readEvent(file, path));
-            }
-            closeSafely(file);
-          }
-        },
-        false);
+              public void forEachRemaining(Consumer<? super RecordedEvent> action) {
+                while (file.hasMoreEvents()) {
+                  action.accept(jfr.readEvent(file, path));
+                }
+                closeSafely(file);
+              }
+            },
+            false)
+        .onClose(() -> closeSafely(file));
   }
 
   private void closeSafely(RecordingFile file) {

@@ -74,13 +74,13 @@ public class SpanContextualizer {
 
     // This thread has a span happening, augment with span details
     if (inFlightSpansForThisThread.size() > 1) {
-      logger.warn("!! Nested spans detected: We will only use the last span for now...");
-      logger.info(
+      logger.debug("!! Nested spans detected: We will only use the last span for now...");
+      logger.debug(
           "trace for thread -> {}",
           inFlightSpansForThisThread.stream()
               .map(SpanLinkage::getTraceId)
               .collect(Collectors.joining(" ")));
-      logger.info(
+      logger.debug(
           "spans for thread -> {}",
           inFlightSpansForThisThread.stream()
               .map(SpanLinkage::getSpanId)

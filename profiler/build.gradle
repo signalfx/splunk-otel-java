@@ -23,6 +23,9 @@ dependencies {
     implementation deps.autoservice
 
     testCompile deps.slf4j
+    testImplementation "io.opentelemetry:opentelemetry-context:${versions.opentelemetry}"
+    testImplementation "io.opentelemetry:opentelemetry-api:${versions.opentelemetry}"
+
 }
 
 shadowJar {

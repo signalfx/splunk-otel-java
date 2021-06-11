@@ -48,6 +48,7 @@ public class ProfilerSmokeTest {
 
   public static final Path agentPath =
       Paths.get(System.getProperty("io.opentelemetry.smoketest.agent.shadowJar.path"));
+  public static final int PETCLINIC_PORT = 9966;
 
   static GenericContainer<?> petclinic;
 
@@ -58,7 +59,7 @@ public class ProfilerSmokeTest {
     MountableFile agentJar = MountableFile.forHostPath(agentPath);
     petclinic =
         new GenericContainer<>(new ImageFromDockerfile().withDockerfile(Path.of("./Dockerfile")))
-            .withExposedPorts(9966)
+            .withExposedPorts(PETCLINIC_PORT)
             .withCopyFileToContainer(agentJar, "/app/javaagent.jar")
             .withCreateContainerCmdModifier(cmd -> cmd.withEntrypoint("java"))
             .withCommand(
@@ -114,7 +115,7 @@ public class ProfilerSmokeTest {
   private void generateSomeSpans() throws Exception {
     System.out.println("Generating some spans...");
     OkHttpClient client = buildClient();
-    int port = petclinic.getMappedPort(9966);
+    int port = petclinic.getMappedPort(PETCLINIC_PORT);
     doGetRequest(client, "http://localhost:" + port + "/petclinic/api/vets");
     doGetRequest(client, "http://localhost:" + port + "/petclinic/api/visits");
   }
@@ -127,13 +128,11 @@ public class ProfilerSmokeTest {
   }
 
   private OkHttpClient buildClient() {
-    OkHttpClient client =
-        new OkHttpClient.Builder()
-            .connectTimeout(10, TimeUnit.SECONDS)
-            .writeTimeout(10, TimeUnit.SECONDS)
-            .readTimeout(10, TimeUnit.SECONDS)
-            .build();
-    return client;
+    return new OkHttpClient.Builder()
+        .connectTimeout(10, TimeUnit.SECONDS)
+        .writeTimeout(10, TimeUnit.SECONDS)
+        .readTimeout(10, TimeUnit.SECONDS)
+        .build();
   }
 
   private List<Path> findJfrFilesInOutputDir() throws Exception {

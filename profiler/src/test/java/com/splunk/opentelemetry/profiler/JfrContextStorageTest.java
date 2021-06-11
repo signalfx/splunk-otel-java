@@ -122,7 +122,7 @@ class JfrContextStorageTest {
   @Test
   void testCurrentSimplyDelegates() {
     Context expected = mock(Context.class);
-    ContextStorage delegate = mock(JfrContextStorage.class);
+    ContextStorage delegate = mock(ContextStorage.class);
 
     when(delegate.current()).thenReturn(expected);
 

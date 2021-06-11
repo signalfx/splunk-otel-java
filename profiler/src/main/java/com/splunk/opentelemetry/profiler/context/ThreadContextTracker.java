@@ -32,7 +32,7 @@ class ThreadContextTracker {
   private final Map<Long, Stack<SpanLinkage>> inFlightSpansByThreadId = new HashMap<>();
   private final Map<String, Stack<Long>> inFlightSpansToThreadId = new HashMap<>();
 
-  List<SpanLinkage> getInfLightSpansForThread(long threadId) {
+  List<SpanLinkage> getInFlightSpansForThread(long threadId) {
     Stack<SpanLinkage> result = inFlightSpansByThreadId.get(threadId);
     return result == null ? Collections.emptyList() : result;
   }

@@ -32,7 +32,7 @@ class ThreadContextTrackerTest {
   @Test
   void testDefaultStateNoLinkFound() {
     ThreadContextTracker tracker = new ThreadContextTracker();
-    List<SpanLinkage> inFlight = tracker.getInfLightSpansForThread(threadId);
+    List<SpanLinkage> inFlight = tracker.getInFlightSpansForThread(threadId);
     assertTrue(inFlight.isEmpty());
   }
 
@@ -43,7 +43,7 @@ class ThreadContextTrackerTest {
 
     ThreadContextTracker tracker = new ThreadContextTracker();
     tracker.addLinkage(linkage);
-    List<SpanLinkage> inFlight = tracker.getInfLightSpansForThread(threadId);
+    List<SpanLinkage> inFlight = tracker.getInFlightSpansForThread(threadId);
 
     assertEquals(1, inFlight.size());
     assertEquals(traceId, inFlight.get(0).getTraceId());
@@ -64,9 +64,9 @@ class ThreadContextTrackerTest {
     tracker.addLinkage(makeLinkage("abc4", 14));
     tracker.addLinkage(makeLinkage("abc5", 12));
 
-    assertEquals(3, tracker.getInfLightSpansForThread(12).size());
-    assertEquals(1, tracker.getInfLightSpansForThread(13).size());
-    assertEquals(1, tracker.getInfLightSpansForThread(14).size());
+    assertEquals(3, tracker.getInFlightSpansForThread(12).size());
+    assertEquals(1, tracker.getInFlightSpansForThread(13).size());
+    assertEquals(1, tracker.getInFlightSpansForThread(14).size());
   }
 
   private SpanLinkage makeLinkage(String spanId, long threadId) {

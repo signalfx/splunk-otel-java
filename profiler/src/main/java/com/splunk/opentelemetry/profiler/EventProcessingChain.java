@@ -37,7 +37,7 @@ class EventProcessingChain {
       case ContextAttached.EVENT_NAME:
         spanContextualizer.updateContext(event);
         break;
-      case "jdk.ThreadDump":
+      case ThreadDumpProcessor.EVENT_NAME:
         threadDumpProcessor.accept(event);
         break;
     }

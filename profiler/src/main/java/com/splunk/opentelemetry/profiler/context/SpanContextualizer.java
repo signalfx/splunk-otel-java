@@ -65,7 +65,7 @@ public class SpanContextualizer {
   /** Links the raw stack with the span info for the given thread. */
   StackToSpanLinkage link(String rawStack, long threadId) {
     List<SpanLinkage> inFlightSpansForThisThread =
-        threadContextTracker.getInfLightSpansForThread(threadId);
+        threadContextTracker.getInFlightSpansForThread(threadId);
 
     if (inFlightSpansForThisThread.isEmpty()) {
       // We don't know about any in-flight spans for this stack
@@ -76,7 +76,7 @@ public class SpanContextualizer {
     if (inFlightSpansForThisThread.size() > 1) {
       logger.debug("!! Nested spans detected: We will only use the last span for now...");
       logger.debug(
-          "trace for thread -> {}",
+          "traceIds for thread -> {}",
           inFlightSpansForThisThread.stream()
               .map(SpanLinkage::getTraceId)
               .collect(Collectors.joining(" ")));
@@ -90,6 +90,10 @@ public class SpanContextualizer {
     return new StackToSpanLinkage(rawStack, spanLinkage);
   }
 
+  /**
+   * The first line is a meta/descriptor that has information about the following call stack. This
+   * method parses out the thread id, which is the second field (space separated).
+   */
   private long parseThreadIdFromDescriptor(String descriptorLine) {
     int secondQuote = descriptorLine.indexOf('"', 1);
     int firstSpaceAfterSecondQuote = secondQuote + 1;

@@ -16,16 +16,19 @@
 
 package com.splunk.opentelemetry.profiler.events;
 
+import static com.splunk.opentelemetry.profiler.events.ContextAttached.EVENT_NAME;
+
 import jdk.jfr.Category;
 import jdk.jfr.Event;
 import jdk.jfr.Label;
 import jdk.jfr.Name;
 
-@Name("otel.ContextAttached")
+@Name(EVENT_NAME)
 @Label("otel context attached")
 @Category("opentelemetry")
 public class ContextAttached extends Event {
 
+  public static final String EVENT_NAME = "otel.ContextAttached";
   // Context is starting
   public static final byte IN = 0;
   // Context is ending/closing

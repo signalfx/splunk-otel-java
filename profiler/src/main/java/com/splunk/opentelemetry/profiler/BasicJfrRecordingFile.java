@@ -16,6 +16,7 @@
 
 package com.splunk.opentelemetry.profiler;
 
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Spliterator;
 import java.util.Spliterators;
@@ -24,9 +25,12 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 import jdk.jfr.consumer.RecordedEvent;
 import jdk.jfr.consumer.RecordingFile;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /** Simple/basic abstraction around a recording file. Can open and get a stream of events. */
 class BasicJfrRecordingFile implements RecordedEventStream {
+  private static final Logger logger = LoggerFactory.getLogger(BasicJfrRecordingFile.class);
 
   private final JFR jfr;
 
@@ -38,21 +42,33 @@ class BasicJfrRecordingFile implements RecordedEventStream {
   public Stream<RecordedEvent> open(Path path) {
     RecordingFile file = jfr.openRecordingFile(path);
     return StreamSupport.stream(
-        new Spliterators.AbstractSpliterator<RecordedEvent>(Long.MAX_VALUE, Spliterator.ORDERED) {
-          public boolean tryAdvance(Consumer<? super RecordedEvent> action) {
-            if (file.hasMoreEvents()) {
-              action.accept(jfr.readEvent(file, path));
-              return true;
-            }
-            return false;
-          }
+            new Spliterators.AbstractSpliterator<RecordedEvent>(
+                Long.MAX_VALUE, Spliterator.ORDERED) {
+              public boolean tryAdvance(Consumer<? super RecordedEvent> action) {
+                if (file.hasMoreEvents()) {
+                  action.accept(jfr.readEvent(file, path));
+                  return true;
+                }
+                closeSafely(file);
+                return false;
+              }
 
-          public void forEachRemaining(Consumer<? super RecordedEvent> action) {
-            while (file.hasMoreEvents()) {
-              action.accept(jfr.readEvent(file, path));
-            }
-          }
-        },
-        false);
+              public void forEachRemaining(Consumer<? super RecordedEvent> action) {
+                while (file.hasMoreEvents()) {
+                  action.accept(jfr.readEvent(file, path));
+                }
+                closeSafely(file);
+              }
+            },
+            false)
+        .onClose(() -> closeSafely(file));
+  }
+
+  private void closeSafely(RecordingFile file) {
+    try {
+      file.close();
+    } catch (IOException e) {
+      logger.warn("Error closing JFR file", e);
+    }
   }
 }

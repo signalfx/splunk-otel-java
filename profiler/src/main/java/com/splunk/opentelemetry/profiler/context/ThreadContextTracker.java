@@ -62,15 +62,15 @@ class ThreadContextTracker {
     Stack<SpanLinkage> inFlightForThread = inFlightSpansByThreadId.get(threadId);
     if (inFlightForThread == null) {
       // No spans in flight for this thread....shouldn't happen
-      logger.warn("No spans in flight for thread {}", threadId);
+      logger.debug("!!! No spans in flight for thread {}", threadId);
       return;
     }
     SpanLinkage spanInfo = findLinkage(inFlightForThread, traceId, spanId);
     if (spanInfo == null || !inFlightForThread.remove(spanInfo)) {
       // We arrived in a bad state where we can't find our span info to remove from our tracked
       // "in-flight" spans.
-      logger.warn("!!!! Could not find our started span! trace = {} span = {}", traceId, spanId);
-      logger.warn("!!!! tried to find thread {} => {} {}", threadId, traceId, spanId);
+      logger.debug("!!! Could not find our started span! trace = {} span = {}", traceId, spanId);
+      logger.debug("!!! tried to find thread {} => {} {}", threadId, traceId, spanId);
     }
     if (inFlightForThread.isEmpty()) {
       inFlightSpansByThreadId.remove(threadId);

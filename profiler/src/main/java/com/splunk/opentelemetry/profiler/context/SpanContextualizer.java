@@ -41,7 +41,8 @@ public class SpanContextualizer {
   private final StackDescriptorLineParser descriptorParser = new StackDescriptorLineParser();
 
   /**
-   * This updates the tracked context for a This must only be called with ContextAttached events.
+   * This updates the tracked thread context for a given span. This must only be called with
+   * ContextAttached events.
    */
   public void updateContext(RecordedEvent event) {
     if (event.getByte("direction") == ContextAttached.IN) {

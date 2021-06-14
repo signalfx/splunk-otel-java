@@ -35,6 +35,8 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.testcontainers.containers.BindMode;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.wait.strategy.Wait;
@@ -46,6 +48,7 @@ import org.testcontainers.utility.MountableFile;
 
 public class ProfilerSmokeTest {
 
+  private static final Logger logger = LoggerFactory.getLogger(ProfilerSmokeTest.class);
   public static final Path agentPath =
       Paths.get(System.getProperty("io.opentelemetry.smoketest.agent.shadowJar.path"));
   public static final int PETCLINIC_PORT = 9966;
@@ -83,7 +86,7 @@ public class ProfilerSmokeTest {
 
   @Test
   void ensureJfrFilesContainContextChangeEvents() throws Exception {
-    System.out.println("Petclinic has been started.");
+    logger.info("Petclinic has been started.");
 
     generateSomeSpans();
 
@@ -113,7 +116,7 @@ public class ProfilerSmokeTest {
   }
 
   private void generateSomeSpans() throws Exception {
-    System.out.println("Generating some spans...");
+    logger.info("Generating some spans...");
     OkHttpClient client = buildClient();
     int port = petclinic.getMappedPort(PETCLINIC_PORT);
     doGetRequest(client, "http://localhost:" + port + "/petclinic/api/vets");
@@ -136,7 +139,7 @@ public class ProfilerSmokeTest {
   }
 
   private List<Path> findJfrFilesInOutputDir() throws Exception {
-    System.out.println("Opening dir to look for jfr files...");
+    logger.info("Opening dir to look for jfr files...");
     try (DirectoryStream<Path> dirStream = Files.newDirectoryStream(tempDir)) {
 
       return StreamSupport.stream(dirStream.spliterator(), false)

@@ -77,7 +77,7 @@ public class SpanContextualizer {
     }
 
     // This thread has a span happening, augment with span details
-    if (inFlightSpansForThisThread.size() > 1) {
+    if ((inFlightSpansForThisThread.size() > 1) && logger.isDebugEnabled()) {
       logger.debug("!! Nested spans detected: We will only use the last span for now...");
       logger.debug(
           "traceIds for thread -> {}",

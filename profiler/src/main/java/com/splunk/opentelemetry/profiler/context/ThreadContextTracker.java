@@ -18,13 +18,17 @@ package com.splunk.opentelemetry.profiler.context;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Stack;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/** Keeps track of what threads are working on which spans when replaying an event stream. */
+/**
+ * Keeps track of what threads are working on which spans when replaying an event stream. This class
+ * is not threadsafe -- it should only be used by a single thread.
+ */
 class ThreadContextTracker {
 
   private static final Logger logger = LoggerFactory.getLogger(ThreadContextTracker.class);
@@ -55,36 +59,40 @@ class ThreadContextTracker {
         inFlightSpansToThreadId.remove(spanId);
       }
     }
-    removeFromInFlight(threadId, spanId, traceId);
+    removeFromInFlight(threadId, traceId, spanId);
   }
 
-  private void removeFromInFlight(long threadId, String spanId, String traceId) {
+  private void removeFromInFlight(long threadId, String traceId, String spanId) {
     Stack<SpanLinkage> inFlightForThread = inFlightSpansByThreadId.get(threadId);
     if (inFlightForThread == null) {
       // No spans in flight for this thread....shouldn't happen
       logger.debug("!!! No spans in flight for thread {}", threadId);
       return;
     }
-    SpanLinkage spanInfo = findLinkage(inFlightForThread, traceId, spanId);
-    if (spanInfo == null || !inFlightForThread.remove(spanInfo)) {
+
+    boolean removed = remove(inFlightForThread, traceId, spanId);
+    if (!removed) {
       // We arrived in a bad state where we can't find our span info to remove from our tracked
       // "in-flight" spans.
       logger.debug("!!! Could not find our started span! trace = {} span = {}", traceId, spanId);
       logger.debug("!!! tried to find thread {} => {} {}", threadId, traceId, spanId);
     }
+
     if (inFlightForThread.isEmpty()) {
       inFlightSpansByThreadId.remove(threadId);
     }
   }
 
-  // TODO: This is inefficient and we might want to have an additional structure/map for doing a
-  // fast lookup rather than iterating
-  private SpanLinkage findLinkage(
-      List<SpanLinkage> inFlightForThread, String traceId, String spanId) {
-    return inFlightForThread.stream()
-        .filter(s -> s.matches(traceId, spanId))
-        .findFirst()
-        .orElse(null);
+  private boolean remove(Stack<SpanLinkage> inFlightForThread, String traceId, String spanId) {
+    Iterator<SpanLinkage> it = inFlightForThread.iterator();
+    while (it.hasNext()) {
+      SpanLinkage linkage = it.next();
+      if (linkage.matches(traceId, spanId)) {
+        it.remove();
+        return true;
+      }
+    }
+    return false;
   }
 
   public int getNumberOfInFlightThreads() {

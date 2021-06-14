@@ -16,6 +16,8 @@
 
 package com.splunk.opentelemetry.profiler.context;
 
+import static com.splunk.opentelemetry.profiler.context.StackDescriptorLineParser.CANT_PARSE_THREAD_ID;
+
 import com.splunk.opentelemetry.profiler.events.ContextAttached;
 import java.util.Arrays;
 import java.util.List;
@@ -33,9 +35,10 @@ import org.slf4j.LoggerFactory;
 public class SpanContextualizer {
 
   private static final Logger logger = LoggerFactory.getLogger(SpanContextualizer.class);
-  private final long CANT_PARSE_THREAD_ID = Long.MIN_VALUE;
+
   private final Pattern lineSplitter = Pattern.compile("\n");
   private final ThreadContextTracker threadContextTracker = new ThreadContextTracker();
+  private final StackDescriptorLineParser descriptorParser = new StackDescriptorLineParser();
 
   /**
    * This updates the tracked context for a This must only be called with ContextAttached events.
@@ -55,7 +58,7 @@ public class SpanContextualizer {
       // Many GC and other VM threads don't actually have a stack...
       return StackToSpanLinkage.withoutLinkage(rawStack);
     }
-    long threadId = parseThreadIdFromDescriptor(frames.get(0));
+    long threadId = descriptorParser.parseThreadId(frames.get(0));
     if (threadId == CANT_PARSE_THREAD_ID) {
       return StackToSpanLinkage.withoutLinkage(rawStack);
     }
@@ -88,21 +91,6 @@ public class SpanContextualizer {
     }
     SpanLinkage spanLinkage = inFlightSpansForThisThread.get(inFlightSpansForThisThread.size() - 1);
     return new StackToSpanLinkage(rawStack, spanLinkage);
-  }
-
-  /**
-   * The first line is a meta/descriptor that has information about the following call stack. This
-   * method parses out the thread id, which is the second field (space separated).
-   */
-  private long parseThreadIdFromDescriptor(String descriptorLine) {
-    int secondQuote = descriptorLine.indexOf('"', 1);
-    int firstSpaceAfterSecondQuote = secondQuote + 1;
-    if (descriptorLine.charAt(firstSpaceAfterSecondQuote + 1) != '#') {
-      // Unexpected format, fail to parse
-      return CANT_PARSE_THREAD_ID;
-    }
-    int secondSpace = descriptorLine.indexOf(' ', firstSpaceAfterSecondQuote + 1);
-    return Long.parseLong(descriptorLine.substring(firstSpaceAfterSecondQuote + 2, secondSpace));
   }
 
   private void threadContextStarting(RecordedEvent event) {

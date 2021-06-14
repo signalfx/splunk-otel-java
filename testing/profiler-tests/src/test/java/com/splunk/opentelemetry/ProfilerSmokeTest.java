@@ -18,7 +18,9 @@ package com.splunk.opentelemetry;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.io.IOException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -27,20 +29,29 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
+import jdk.jfr.consumer.RecordedEvent;
+import jdk.jfr.consumer.RecordingFile;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.testcontainers.containers.BindMode;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.images.builder.ImageFromDockerfile;
+import org.testcontainers.shaded.okhttp3.OkHttpClient;
+import org.testcontainers.shaded.okhttp3.Request;
+import org.testcontainers.shaded.okhttp3.Response;
 import org.testcontainers.utility.MountableFile;
 
 public class ProfilerSmokeTest {
 
+  private static final Logger logger = LoggerFactory.getLogger(ProfilerSmokeTest.class);
   public static final Path agentPath =
       Paths.get(System.getProperty("io.opentelemetry.smoketest.agent.shadowJar.path"));
+  public static final int PETCLINIC_PORT = 9966;
 
   static GenericContainer<?> petclinic;
 
@@ -51,7 +62,7 @@ public class ProfilerSmokeTest {
     MountableFile agentJar = MountableFile.forHostPath(agentPath);
     petclinic =
         new GenericContainer<>(new ImageFromDockerfile().withDockerfile(Path.of("./Dockerfile")))
-            .withExposedPorts(9966)
+            .withExposedPorts(PETCLINIC_PORT)
             .withCopyFileToContainer(agentJar, "/app/javaagent.jar")
             .withCreateContainerCmdModifier(cmd -> cmd.withEntrypoint("java"))
             .withCommand(
@@ -74,17 +85,61 @@ public class ProfilerSmokeTest {
   }
 
   @Test
-  void ensureJfrFilesCreated() {
-    System.out.println("Petclinic has been started.");
+  void ensureJfrFilesContainContextChangeEvents() throws Exception {
+    logger.info("Petclinic has been started.");
+
+    generateSomeSpans();
 
     await()
         .atMost(60, TimeUnit.SECONDS)
         .pollInterval(1, TimeUnit.SECONDS)
-        .untilAsserted(() -> assertThat(findJfrFilesInOutputDir()).isNotEmpty());
+        .untilAsserted(() -> assertThat(spanThreadContextEventsFound()).isTrue());
+  }
+
+  private boolean spanThreadContextEventsFound() throws Exception {
+    List<Path> files = findJfrFilesInOutputDir();
+    return files.stream().anyMatch(this::containsContextAttached);
+  }
+
+  private boolean containsContextAttached(Path path) {
+    try (RecordingFile file = new RecordingFile(path)) {
+      while (file.hasMoreEvents()) {
+        RecordedEvent event = file.readEvent();
+        if ("otel.ContextAttached".equals(event.getEventType().getName())) {
+          return true;
+        }
+      }
+    } catch (IOException e) {
+      return false;
+    }
+    return false;
+  }
+
+  private void generateSomeSpans() throws Exception {
+    logger.info("Generating some spans...");
+    OkHttpClient client = buildClient();
+    int port = petclinic.getMappedPort(PETCLINIC_PORT);
+    doGetRequest(client, "http://localhost:" + port + "/petclinic/api/vets");
+    doGetRequest(client, "http://localhost:" + port + "/petclinic/api/visits");
+  }
+
+  private void doGetRequest(OkHttpClient client, String url) throws Exception {
+    Request request = new Request.Builder().url(url).build();
+    try (Response response = client.newCall(request).execute()) {
+      assertEquals(200, response.code());
+    }
+  }
+
+  private OkHttpClient buildClient() {
+    return new OkHttpClient.Builder()
+        .connectTimeout(10, TimeUnit.SECONDS)
+        .writeTimeout(10, TimeUnit.SECONDS)
+        .readTimeout(10, TimeUnit.SECONDS)
+        .build();
   }
 
   private List<Path> findJfrFilesInOutputDir() throws Exception {
-    System.out.println("Opening dir to look for jfr files...");
+    logger.info("Opening dir to look for jfr files...");
     try (DirectoryStream<Path> dirStream = Files.newDirectoryStream(tempDir)) {
 
       return StreamSupport.stream(dirStream.spliterator(), false)

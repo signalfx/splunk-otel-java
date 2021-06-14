@@ -18,10 +18,9 @@ package com.splunk.opentelemetry.servlet;
 
 import static io.opentelemetry.javaagent.extension.matcher.AgentElementMatchers.safeHasSuperType;
 import static io.opentelemetry.javaagent.extension.matcher.ClassLoaderMatcher.hasClassesNamed;
-import static io.opentelemetry.javaagent.extension.matcher.NameMatchers.namedOneOf;
-import static java.util.Collections.singletonMap;
 import static net.bytebuddy.matcher.ElementMatchers.isPublic;
 import static net.bytebuddy.matcher.ElementMatchers.named;
+import static net.bytebuddy.matcher.ElementMatchers.namedOneOf;
 import static net.bytebuddy.matcher.ElementMatchers.takesArgument;
 
 import com.google.auto.service.AutoService;
@@ -30,14 +29,14 @@ import io.opentelemetry.context.Context;
 import io.opentelemetry.context.propagation.TextMapSetter;
 import io.opentelemetry.javaagent.extension.instrumentation.InstrumentationModule;
 import io.opentelemetry.javaagent.extension.instrumentation.TypeInstrumentation;
+import io.opentelemetry.javaagent.extension.instrumentation.TypeTransformer;
 import io.opentelemetry.javaagent.instrumentation.api.Java8BytecodeBridge;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletResponse;
 import net.bytebuddy.asm.Advice;
-import net.bytebuddy.description.method.MethodDescription;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.matcher.ElementMatcher;
 
@@ -53,10 +52,9 @@ public class ServletInstrumentationModule extends InstrumentationModule {
   }
 
   @Override
-  public String[] getMuzzleHelperClassNames() {
-    return new String[] {
-      ServerTimingHeader.class.getName(), getClass().getName() + "$HeadersSetter"
-    };
+  public List<String> getMuzzleHelperClassNames() {
+    return Arrays.asList(
+        ServerTimingHeader.class.getName(), getClass().getName() + "$HeadersSetter");
   }
 
   // run after the upstream servlet instrumentation - server span needs to be accessible here
@@ -84,8 +82,8 @@ public class ServletInstrumentationModule extends InstrumentationModule {
     }
 
     @Override
-    public Map<? extends ElementMatcher<? super MethodDescription>, String> transformers() {
-      return singletonMap(
+    public void transform(TypeTransformer typeTransformer) {
+      typeTransformer.applyAdviceToMethod(
           namedOneOf("doFilter", "service")
               .and(takesArgument(0, named("javax.servlet.ServletRequest")))
               .and(takesArgument(1, named("javax.servlet.ServletResponse")))

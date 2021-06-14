@@ -24,14 +24,12 @@ import static net.bytebuddy.matcher.ElementMatchers.named;
 import static net.bytebuddy.matcher.ElementMatchers.takesArgument;
 
 import io.opentelemetry.javaagent.extension.instrumentation.TypeInstrumentation;
+import io.opentelemetry.javaagent.extension.instrumentation.TypeTransformer;
 import io.opentelemetry.javaagent.instrumentation.api.CallDepthThreadLocalMap;
 import io.opentelemetry.javaagent.instrumentation.api.ContextStore;
 import io.opentelemetry.javaagent.instrumentation.api.InstrumentationContext;
 import io.opentelemetry.javaagent.instrumentation.netty.v3_8.ChannelTraceContext;
-import java.util.HashMap;
-import java.util.Map;
 import net.bytebuddy.asm.Advice;
-import net.bytebuddy.description.method.MethodDescription;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.matcher.ElementMatcher;
 import org.jboss.netty.channel.Channel;
@@ -53,19 +51,17 @@ public class ChannelPipelineInstrumentation implements TypeInstrumentation {
   }
 
   @Override
-  public Map<? extends ElementMatcher<? super MethodDescription>, String> transformers() {
-    Map<ElementMatcher<? super MethodDescription>, String> transformers = new HashMap<>();
-    transformers.put(
+  public void transform(TypeTransformer typeTransformer) {
+    typeTransformer.applyAdviceToMethod(
         isMethod()
             .and(nameStartsWith("add"))
             .and(takesArgument(1, named("org.jboss.netty.channel.ChannelHandler"))),
         this.getClass().getName() + "$ChannelPipelineAdd2ArgsAdvice");
-    transformers.put(
+    typeTransformer.applyAdviceToMethod(
         isMethod()
             .and(nameStartsWith("add"))
             .and(takesArgument(2, named("org.jboss.netty.channel.ChannelHandler"))),
         this.getClass().getName() + "$ChannelPipelineAdd3ArgsAdvice");
-    return transformers;
   }
 
   public static class ChannelPipelineAdd2ArgsAdvice {

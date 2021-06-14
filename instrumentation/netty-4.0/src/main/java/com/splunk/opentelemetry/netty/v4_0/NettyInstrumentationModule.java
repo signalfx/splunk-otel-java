@@ -23,6 +23,7 @@ import com.google.auto.service.AutoService;
 import com.splunk.opentelemetry.servertiming.ServerTimingHeader;
 import io.opentelemetry.javaagent.extension.instrumentation.InstrumentationModule;
 import io.opentelemetry.javaagent.extension.instrumentation.TypeInstrumentation;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import net.bytebuddy.matcher.ElementMatcher;
@@ -41,12 +42,11 @@ public class NettyInstrumentationModule extends InstrumentationModule {
   }
 
   @Override
-  public String[] getMuzzleHelperClassNames() {
-    return new String[] {
-      ServerTimingHeader.class.getName(),
-      this.getClass().getPackage().getName() + ".ServerTimingHandler",
-      this.getClass().getPackage().getName() + ".ServerTimingHandler$HeadersSetter"
-    };
+  public List<String> getMuzzleHelperClassNames() {
+    return Arrays.asList(
+        ServerTimingHeader.class.getName(),
+        this.getClass().getPackage().getName() + ".ServerTimingHandler",
+        this.getClass().getPackage().getName() + ".ServerTimingHandler$HeadersSetter");
   }
 
   // run after the upstream netty instrumentation

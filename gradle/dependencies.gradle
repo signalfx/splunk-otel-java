@@ -2,10 +2,10 @@ boolean snapshot = findProperty("snapshot") == 'yes'
 
 ext {
   versions = [
-      opentelemetry              : snapshot ? "1.3.0-SNAPSHOT" : "1.2.0",
-      opentelemetryAlpha         : snapshot ? "1.3.0-alpha-SNAPSHOT" : "1.2.0-alpha",
-      opentelemetryJavaagent     : snapshot ? "1.3.0-SNAPSHOT" : '1.2.0',
-      opentelemetryJavaagentAlpha: snapshot ? "1.3.0-alpha-SNAPSHOT" : '1.2.0-alpha',
+      opentelemetry              : snapshot ? "1.4.0-SNAPSHOT" : "1.3.0",
+      opentelemetryAlpha         : snapshot ? "1.4.0-alpha-SNAPSHOT" : "1.3.0-alpha",
+      opentelemetryJavaagent     : snapshot ? "1.3.0-SNAPSHOT" : "1.3.0-SNAPSHOT",
+      opentelemetryJavaagentAlpha: snapshot ? "1.3.0-alpha-SNAPSHOT" : "1.3.0-alpha-SNAPSHOT",
       mockito                    : '3.8.0',
       jupiter                    : '5.7.1',
       micrometer                 : '1.7.0'

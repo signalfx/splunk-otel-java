@@ -25,6 +25,7 @@ import static com.splunk.opentelemetry.profiler.JfrFileLifecycleEvents.buildOnNe
 import static com.splunk.opentelemetry.profiler.util.HelpfulExecutors.logUncaught;
 
 import com.google.auto.service.AutoService;
+import com.splunk.opentelemetry.profiler.context.SpanContextualizer;
 import com.splunk.opentelemetry.profiler.util.FileDeleter;
 import com.splunk.opentelemetry.profiler.util.HelpfulExecutors;
 import io.opentelemetry.instrumentation.api.config.Config;
@@ -40,7 +41,7 @@ import org.slf4j.LoggerFactory;
 @AutoService(ComponentInstaller.class)
 public class JfrActivator implements ComponentInstaller {
 
-  private static final Logger logger = LoggerFactory.getLogger(JfrActivator.class.getName());
+  private static final Logger logger = LoggerFactory.getLogger(JfrActivator.class);
   private final ExecutorService executor = HelpfulExecutors.newSingleThreadExecutor("JFR Profiler");
 
   @Override
@@ -76,7 +77,11 @@ public class JfrActivator implements ComponentInstaller {
 
     RecordedEventStream.Factory recordedEventStreamFactory =
         () -> new FilterSortedRecordingFile(() -> new BasicJfrRecordingFile(JFR.instance));
-    EventProcessingChain eventProcessingChain = new EventProcessingChain();
+
+    SpanContextualizer spanContextualizer = new SpanContextualizer();
+    ThreadDumpProcessor threadDumpProcessor = new ThreadDumpProcessor(spanContextualizer);
+    EventProcessingChain eventProcessingChain =
+        new EventProcessingChain(spanContextualizer, threadDumpProcessor);
     Consumer<Path> deleter = buildFileDeleter(config);
     JfrDirCleanup dirCleanup = new JfrDirCleanup(deleter);
 

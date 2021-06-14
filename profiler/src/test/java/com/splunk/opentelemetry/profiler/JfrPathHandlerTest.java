@@ -58,9 +58,9 @@ class JfrPathHandlerTest {
 
     jfrPathHandler.accept(path);
 
-    verify(chain).accept(path, e1);
-    verify(chain).accept(path, e2);
-    verify(chain).accept(path, e3);
+    verify(chain).accept(e1);
+    verify(chain).accept(e2);
+    verify(chain).accept(e3);
     verifyNoMoreInteractions(chain);
     verify(onFileFinished).accept(path);
     assertTrue(closeWasCalled.get());

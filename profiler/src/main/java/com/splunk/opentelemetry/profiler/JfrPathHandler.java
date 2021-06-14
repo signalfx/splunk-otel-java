@@ -46,7 +46,7 @@ class JfrPathHandler implements Consumer<Path> {
     logger.info("New jfr file detected: {}", path);
     RecordedEventStream recordingFile = recordedEventStreamFactory.get();
     try (Stream<RecordedEvent> events = recordingFile.open(path)) {
-      events.forEach(event -> eventProcessingChain.accept(path, event));
+      events.forEach(eventProcessingChain::accept);
     }
     onFileFinished.accept(path);
   }

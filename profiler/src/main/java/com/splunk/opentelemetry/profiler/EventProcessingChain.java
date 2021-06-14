@@ -16,12 +16,30 @@
 
 package com.splunk.opentelemetry.profiler;
 
-import java.nio.file.Path;
+import com.splunk.opentelemetry.profiler.context.SpanContextualizer;
+import com.splunk.opentelemetry.profiler.events.ContextAttached;
 import jdk.jfr.consumer.RecordedEvent;
 
 class EventProcessingChain {
 
-  public void accept(Path path, RecordedEvent event) {
-    // NO-OP for now....
+  private final SpanContextualizer spanContextualizer;
+  private final ThreadDumpProcessor threadDumpProcessor;
+
+  EventProcessingChain(
+      SpanContextualizer spanContextualizer, ThreadDumpProcessor threadDumpProcessor) {
+    this.spanContextualizer = spanContextualizer;
+    this.threadDumpProcessor = threadDumpProcessor;
+  }
+
+  void accept(RecordedEvent event) {
+    String eventName = event.getEventType().getName();
+    switch (eventName) {
+      case ContextAttached.EVENT_NAME:
+        spanContextualizer.updateContext(event);
+        break;
+      case ThreadDumpProcessor.EVENT_NAME:
+        threadDumpProcessor.accept(event);
+        break;
+    }
   }
 }

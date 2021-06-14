@@ -28,7 +28,7 @@ import com.google.auto.service.AutoService;
 import com.splunk.opentelemetry.profiler.util.FileDeleter;
 import com.splunk.opentelemetry.profiler.util.HelpfulExecutors;
 import io.opentelemetry.instrumentation.api.config.Config;
-import io.opentelemetry.javaagent.spi.ComponentInstaller;
+import io.opentelemetry.javaagent.extension.AgentListener;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
@@ -37,14 +37,14 @@ import java.util.function.Consumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@AutoService(ComponentInstaller.class)
-public class JfrActivator implements ComponentInstaller {
+@AutoService(AgentListener.class)
+public class JfrActivator implements AgentListener {
 
   private static final Logger logger = LoggerFactory.getLogger(JfrActivator.class.getName());
   private final ExecutorService executor = HelpfulExecutors.newSingleThreadExecutor("JFR Profiler");
 
   @Override
-  public void afterByteBuddyAgent(Config config) {
+  public void afterAgent(Config config) {
     if (!config.getBooleanProperty(CONFIG_KEY_ENABLE_PROFILER, false)) {
       logger.debug("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
       logger.debug("xxxxxxxxx  JFR PROFILER DISABLED!  xxxxxxxxx");

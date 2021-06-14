@@ -20,12 +20,12 @@ import com.google.auto.service.AutoService;
 import io.micrometer.core.instrument.Metrics;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import io.opentelemetry.instrumentation.api.config.Config;
-import io.opentelemetry.javaagent.spi.ComponentInstaller;
+import io.opentelemetry.javaagent.extension.AgentListener;
 
-@AutoService(ComponentInstaller.class)
-public class TestMicrometerInstaller implements ComponentInstaller {
+@AutoService(AgentListener.class)
+public class TestMicrometerInstaller implements AgentListener {
   @Override
-  public void beforeByteBuddyAgent(Config config) {
+  public void beforeAgent(Config config) {
     Metrics.addRegistry(new SimpleMeterRegistry());
   }
 }

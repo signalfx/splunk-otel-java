@@ -20,7 +20,7 @@ import com.google.auto.service.AutoService;
 import io.opentelemetry.api.common.AttributeType;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.instrumentation.api.config.Config;
-import io.opentelemetry.javaagent.spi.ComponentInstaller;
+import io.opentelemetry.javaagent.extension.AgentListener;
 import io.opentelemetry.sdk.autoconfigure.OpenTelemetrySdkAutoConfiguration;
 
 /**
@@ -29,14 +29,11 @@ import io.opentelemetry.sdk.autoconfigure.OpenTelemetrySdkAutoConfiguration;
  * logging frameworks to add resource attributes to logs without any additional instrumentation or
  * integration code by just using standard ways to access system properties in logging patterns.
  */
-@AutoService(ComponentInstaller.class)
-public class ResourceAttributesToSystemProperties implements ComponentInstaller {
+@AutoService(AgentListener.class)
+public class ResourceAttributesToSystemProperties implements AgentListener {
 
   @Override
-  public void beforeByteBuddyAgent(Config config) {}
-
-  @Override
-  public void afterByteBuddyAgent(Config config) {
+  public void afterAgent(Config config) {
     Attributes attributes = OpenTelemetrySdkAutoConfiguration.getResource().getAttributes();
     attributes.forEach(
         (k, v) -> {

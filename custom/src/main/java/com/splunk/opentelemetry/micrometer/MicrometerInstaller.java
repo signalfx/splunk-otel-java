@@ -23,14 +23,14 @@ import io.micrometer.core.instrument.Metrics;
 import io.micrometer.core.instrument.config.NamingConvention;
 import io.micrometer.signalfx.SignalFxMeterRegistry;
 import io.opentelemetry.instrumentation.api.config.Config;
-import io.opentelemetry.javaagent.spi.ComponentInstaller;
+import io.opentelemetry.javaagent.extension.AgentListener;
 import io.opentelemetry.sdk.autoconfigure.OpenTelemetrySdkAutoConfiguration;
 import io.opentelemetry.sdk.resources.Resource;
 
-@AutoService(ComponentInstaller.class)
-public class MicrometerInstaller implements ComponentInstaller {
+@AutoService(AgentListener.class)
+public class MicrometerInstaller implements AgentListener {
   @Override
-  public void beforeByteBuddyAgent(Config config) {
+  public void beforeAgent(Config config) {
     Resource resource = OpenTelemetrySdkAutoConfiguration.getResource();
     SplunkMetricsConfig splunkMetricsConfig = new SplunkMetricsConfig(config, resource);
 

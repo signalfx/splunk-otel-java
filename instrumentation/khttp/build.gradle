@@ -1,0 +1,15 @@
+apply plugin: 'groovy'
+apply from: "$rootDir/gradle/instrumentation.gradle"
+
+repositories {
+  maven { url 'https://jitpack.io' }
+}
+
+dependencies {
+  compileOnly 'com.github.jkcclemens:khttp:0.1.0'
+
+  testImplementation 'com.github.jkcclemens:khttp:0.1.0'
+
+  testRuntimeOnly "org.junit.vintage:junit-vintage-engine:5.7.1"
+  testRuntimeOnly "io.opentelemetry.javaagent:opentelemetry-armeria-shaded-for-testing:${versions.opentelemetryJavaagentAlpha}:all"
+}

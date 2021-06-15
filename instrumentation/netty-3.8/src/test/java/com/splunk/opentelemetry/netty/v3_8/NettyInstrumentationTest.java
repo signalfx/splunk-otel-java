@@ -25,7 +25,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.splunk.opentelemetry.servertiming.ServerTimingHeader;
-import io.opentelemetry.instrumentation.test.utils.OkHttpUtils;
 import io.opentelemetry.instrumentation.test.utils.PortUtils;
 import io.opentelemetry.instrumentation.testing.junit.AgentInstrumentationExtension;
 import java.net.InetSocketAddress;
@@ -57,7 +56,7 @@ class NettyInstrumentationTest {
   static final AgentInstrumentationExtension instrumentation =
       AgentInstrumentationExtension.create();
 
-  static final OkHttpClient httpClient = OkHttpUtils.client();
+  static final OkHttpClient httpClient = new OkHttpClient();
 
   static int port;
   static ServerBootstrap server;

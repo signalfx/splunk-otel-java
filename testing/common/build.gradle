@@ -6,4 +6,5 @@ def versions = ext.versions
 
 dependencies {
   api("io.opentelemetry.javaagent:opentelemetry-testing-common:${versions.opentelemetryJavaagentAlpha}")
+  api("com.squareup.okhttp3:okhttp:3.12.12")
 }

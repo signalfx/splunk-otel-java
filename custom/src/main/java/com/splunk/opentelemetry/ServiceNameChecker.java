@@ -18,18 +18,18 @@ package com.splunk.opentelemetry;
 
 import com.google.auto.service.AutoService;
 import io.opentelemetry.instrumentation.api.config.Config;
-import io.opentelemetry.javaagent.spi.ComponentInstaller;
+import io.opentelemetry.javaagent.extension.AgentListener;
 import io.opentelemetry.semconv.resource.attributes.ResourceAttributes;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@AutoService(ComponentInstaller.class)
-public class ServiceNameChecker implements ComponentInstaller {
+@AutoService(AgentListener.class)
+public class ServiceNameChecker implements AgentListener {
   private static final Logger log = LoggerFactory.getLogger(ServiceNameChecker.class);
 
   @Override
-  public void beforeByteBuddyAgent(Config config) {
+  public void beforeAgent(Config config) {
     Map<String, String> resourceAttributes = config.getMapProperty("otel.resource.attributes");
     if (!resourceAttributes.containsKey(ResourceAttributes.SERVICE_NAME.getKey())) {
       log.warn(

@@ -38,7 +38,6 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.http.DefaultFullHttpResponse;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpServerCodec;
-import io.opentelemetry.instrumentation.test.utils.OkHttpUtils;
 import io.opentelemetry.instrumentation.test.utils.PortUtils;
 import io.opentelemetry.instrumentation.testing.junit.AgentInstrumentationExtension;
 import java.util.concurrent.TimeoutException;
@@ -46,7 +45,6 @@ import okhttp3.HttpUrl;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -57,7 +55,7 @@ public class NettyInstrumentationTest {
   static final AgentInstrumentationExtension instrumentation =
       AgentInstrumentationExtension.create();
 
-  static final OkHttpClient httpClient = OkHttpUtils.client();
+  static final OkHttpClient httpClient = new OkHttpClient();
 
   static int port;
   static EventLoopGroup server;
@@ -72,7 +70,7 @@ public class NettyInstrumentationTest {
         .childHandler(
             new ChannelInitializer<>() {
               @Override
-              protected void initChannel(@NotNull Channel ch) {
+              protected void initChannel(Channel ch) {
                 var pipeline = ch.pipeline();
                 pipeline.addLast(new HttpServerCodec());
                 pipeline.addLast(

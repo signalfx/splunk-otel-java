@@ -18,7 +18,6 @@ package com.splunk.opentelemetry.middleware.weblogic;
 
 import static io.opentelemetry.javaagent.extension.matcher.AgentElementMatchers.extendsClass;
 import static io.opentelemetry.javaagent.extension.matcher.ClassLoaderMatcher.hasClassesNamed;
-import static java.util.Collections.singletonMap;
 import static net.bytebuddy.matcher.ElementMatchers.isPrivate;
 import static net.bytebuddy.matcher.ElementMatchers.isProtected;
 import static net.bytebuddy.matcher.ElementMatchers.isPublic;
@@ -30,13 +29,13 @@ import com.google.auto.service.AutoService;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.javaagent.extension.instrumentation.InstrumentationModule;
 import io.opentelemetry.javaagent.extension.instrumentation.TypeInstrumentation;
+import io.opentelemetry.javaagent.extension.instrumentation.TypeTransformer;
 import io.opentelemetry.javaagent.instrumentation.api.Java8BytecodeBridge;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import net.bytebuddy.asm.Advice;
-import net.bytebuddy.description.method.MethodDescription;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.matcher.ElementMatcher;
 
@@ -71,8 +70,8 @@ public class WebLogicInstrumentationModule extends InstrumentationModule {
     }
 
     @Override
-    public Map<? extends ElementMatcher<? super MethodDescription>, String> transformers() {
-      return singletonMap(
+    public void transform(TypeTransformer typeTransformer) {
+      typeTransformer.applyAdviceToMethod(
           named("wrapRun")
               .and(takesArgument(1, named("javax.servlet.http.HttpServletRequest")))
               .and(isPrivate()),
@@ -99,8 +98,8 @@ public class WebLogicInstrumentationModule extends InstrumentationModule {
     }
 
     @Override
-    public Map<? extends ElementMatcher<? super MethodDescription>, String> transformers() {
-      return singletonMap(
+    public void transform(TypeTransformer typeTransformer) {
+      typeTransformer.applyAdviceToMethod(
           named("service")
               .or(nameStartsWith("do")) // doGet, doPost, etc
               .and(takesArgument(0, named("javax.servlet.http.HttpServletRequest")))
@@ -131,16 +130,15 @@ public class WebLogicInstrumentationModule extends InstrumentationModule {
   }
 
   @Override
-  public String[] getMuzzleHelperClassNames() {
+  public List<String> getMuzzleHelperClassNames() {
     String packageName = this.getClass().getPackage().getName();
 
-    return new String[] {
-      packageName + ".WebLogicAttributeCollector",
-      packageName + ".WebLogicEntity",
-      packageName + ".WebLogicEntity$Request",
-      packageName + ".WebLogicEntity$Context",
-      packageName + ".WebLogicEntity$Server",
-      packageName + ".WebLogicEntity$Bean"
-    };
+    return Arrays.asList(
+        packageName + ".WebLogicAttributeCollector",
+        packageName + ".WebLogicEntity",
+        packageName + ".WebLogicEntity$Request",
+        packageName + ".WebLogicEntity$Context",
+        packageName + ".WebLogicEntity$Server",
+        packageName + ".WebLogicEntity$Bean");
   }
 }

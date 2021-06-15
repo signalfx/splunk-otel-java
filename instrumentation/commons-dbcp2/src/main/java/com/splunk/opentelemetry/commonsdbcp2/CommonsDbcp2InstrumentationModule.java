@@ -25,12 +25,11 @@ import com.google.auto.service.AutoService;
 import io.micrometer.core.instrument.Metrics;
 import io.opentelemetry.javaagent.extension.instrumentation.InstrumentationModule;
 import io.opentelemetry.javaagent.extension.instrumentation.TypeInstrumentation;
-import java.util.HashMap;
+import io.opentelemetry.javaagent.extension.instrumentation.TypeTransformer;
+import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import javax.management.ObjectName;
 import net.bytebuddy.asm.Advice;
-import net.bytebuddy.description.method.MethodDescription;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.matcher.ElementMatcher;
 import org.apache.commons.dbcp2.BasicDataSource;
@@ -48,11 +47,10 @@ public class CommonsDbcp2InstrumentationModule extends InstrumentationModule {
   }
 
   @Override
-  public String[] getMuzzleHelperClassNames() {
-    return new String[] {
-      "com.splunk.opentelemetry.commonsdbcp2.DataSourceMetrics",
-      "com.splunk.opentelemetry.commonsdbcp2.DataSourceMetrics$TotalConnectionsUsed"
-    };
+  public List<String> getMuzzleHelperClassNames() {
+    return Arrays.asList(
+        "com.splunk.opentelemetry.commonsdbcp2.DataSourceMetrics",
+        "com.splunk.opentelemetry.commonsdbcp2.DataSourceMetrics$TotalConnectionsUsed");
   }
 
   @Override
@@ -67,17 +65,14 @@ public class CommonsDbcp2InstrumentationModule extends InstrumentationModule {
     }
 
     @Override
-    public Map<? extends ElementMatcher<? super MethodDescription>, String> transformers() {
-      Map<ElementMatcher<MethodDescription>, String> transformers = new HashMap<>();
-
-      transformers.put(
+    public void transform(TypeTransformer typeTransformer) {
+      typeTransformer.applyAdviceToMethod(
           isPublic().and(named("preRegister")).and(takesArguments(2)),
           this.getClass().getName() + "$PreRegisterAdvice");
-      transformers.put(
+
+      typeTransformer.applyAdviceToMethod(
           isPublic().and(named("postDeregister")),
           this.getClass().getName() + "$PostDeregisterAdvice");
-
-      return transformers;
     }
 
     public static class PreRegisterAdvice {

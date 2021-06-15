@@ -27,12 +27,12 @@ import io.micrometer.core.instrument.binder.jvm.JvmGcMetrics;
 import io.micrometer.core.instrument.binder.jvm.JvmMemoryMetrics;
 import io.micrometer.core.instrument.binder.jvm.JvmThreadMetrics;
 import io.opentelemetry.instrumentation.api.config.Config;
-import io.opentelemetry.javaagent.spi.ComponentInstaller;
+import io.opentelemetry.javaagent.extension.AgentListener;
 
-@AutoService(ComponentInstaller.class)
-public class JvmMetricsInstaller implements ComponentInstaller {
+@AutoService(AgentListener.class)
+public class JvmMetricsInstaller implements AgentListener {
   @Override
-  public void afterByteBuddyAgent(Config config) {
+  public void afterAgent(Config config) {
     boolean metricsRegistryPresent = !Metrics.globalRegistry.getRegistries().isEmpty();
     if (!config.isInstrumentationEnabled(singleton("jvm-metrics"), metricsRegistryPresent)) {
       return;

@@ -23,6 +23,7 @@ import com.splunk.opentelemetry.servertiming.ServerTimingHeader;
 import io.opentelemetry.javaagent.extension.instrumentation.InstrumentationModule;
 import io.opentelemetry.javaagent.extension.instrumentation.TypeInstrumentation;
 import io.opentelemetry.javaagent.instrumentation.netty.v3_8.ChannelTraceContext;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -40,13 +41,12 @@ public class NettyInstrumentationModule extends InstrumentationModule {
   }
 
   @Override
-  public String[] getMuzzleHelperClassNames() {
-    return new String[] {
-      ServerTimingHeader.class.getName(),
-      getClass().getPackage().getName() + ".ServerTimingHandler",
-      getClass().getPackage().getName() + ".ServerTimingHandler$HeadersSetter",
-      getClass().getPackage().getName() + ".ChannelPipelineInstrumentation$ChannelPipelineUtil",
-    };
+  public List<String> getMuzzleHelperClassNames() {
+    return Arrays.asList(
+        ServerTimingHeader.class.getName(),
+        getClass().getPackage().getName() + ".ServerTimingHandler",
+        getClass().getPackage().getName() + ".ServerTimingHandler$HeadersSetter",
+        getClass().getPackage().getName() + ".ChannelPipelineInstrumentation$ChannelPipelineUtil");
   }
 
   // run after the upstream netty instrumentation

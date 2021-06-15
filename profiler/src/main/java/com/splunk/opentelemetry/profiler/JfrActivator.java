@@ -25,6 +25,9 @@ import static com.splunk.opentelemetry.profiler.JfrFileLifecycleEvents.buildOnNe
 import static com.splunk.opentelemetry.profiler.util.HelpfulExecutors.logUncaught;
 
 import com.google.auto.service.AutoService;
+import com.splunk.opentelemetry.logs.BatchingLogsProcessor;
+import com.splunk.opentelemetry.logs.LogEntry;
+import com.splunk.opentelemetry.logs.LogsExporter;
 import com.splunk.opentelemetry.profiler.context.SpanContextualizer;
 import com.splunk.opentelemetry.profiler.util.FileDeleter;
 import com.splunk.opentelemetry.profiler.util.HelpfulExecutors;
@@ -33,6 +36,7 @@ import io.opentelemetry.javaagent.spi.ComponentInstaller;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Consumer;
 import org.slf4j.Logger;
@@ -40,6 +44,9 @@ import org.slf4j.LoggerFactory;
 
 @AutoService(ComponentInstaller.class)
 public class JfrActivator implements ComponentInstaller {
+
+  private static final String OTEL_INSTRUMENTATION_NAME = "otel.profiling";
+  private static final String OTEL_INSTRUMENTATION_VERSION = "0.1.0";
 
   private static final Logger logger = LoggerFactory.getLogger(JfrActivator.class);
   private final ExecutorService executor = HelpfulExecutors.newSingleThreadExecutor("JFR Profiler");
@@ -79,7 +86,16 @@ public class JfrActivator implements ComponentInstaller {
         () -> new FilterSortedRecordingFile(() -> new BasicJfrRecordingFile(JFR.instance));
 
     SpanContextualizer spanContextualizer = new SpanContextualizer();
-    ThreadDumpProcessor threadDumpProcessor = new ThreadDumpProcessor(spanContextualizer);
+    LogEntryCreator logEntryCreator = new LogEntryCreator();
+    LogsExporter logsExporter = buildExporter();
+    Consumer<List<LogEntry>> exportAction = logsExporter::export;
+    BatchingLogsProcessor batchingLogsProcessor =
+        new BatchingLogsProcessor(Duration.ofSeconds(10), 5000, exportAction);
+    StackToSpanLinkageProcessor processor =
+        new StackToSpanLinkageProcessor(logEntryCreator, batchingLogsProcessor);
+
+    ThreadDumpProcessor threadDumpProcessor =
+        new ThreadDumpProcessor(spanContextualizer, processor);
     EventProcessingChain eventProcessingChain =
         new EventProcessingChain(spanContextualizer, threadDumpProcessor);
     Consumer<Path> deleter = buildFileDeleter(config);
@@ -114,6 +130,16 @@ public class JfrActivator implements ComponentInstaller {
 
     sequencer.start();
     dirCleanup.registerShutdownHook();
+  }
+
+  private LogsExporter buildExporter() {
+    return new LogsExporter() {
+      @Override
+      public void export(List<LogEntry> logs) {
+        // stubbed for now!
+        logger.debug("Not exporting {} logs (stubbed)", logs.size());
+      }
+    };
   }
 
   private Consumer<Path> buildFileDeleter(Config config) {

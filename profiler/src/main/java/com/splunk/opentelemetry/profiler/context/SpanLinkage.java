@@ -16,20 +16,22 @@
 
 package com.splunk.opentelemetry.profiler.context;
 
+import javax.annotation.Nullable;
+import jdk.jfr.consumer.RecordedEvent;
 import jdk.jfr.consumer.RecordedThread;
 
-class SpanLinkage {
+public class SpanLinkage {
 
-  static final SpanLinkage NONE = new SpanLinkage(null, null, null);
+  public static final SpanLinkage NONE = new SpanLinkage(null, null, null);
 
-  private final String spanId;
-  private final String traceId;
-  private final RecordedThread recordedThread;
+  @Nullable private final String spanId;
+  @Nullable private final String traceId;
+  private final RecordedEvent recordedEvent;
 
-  SpanLinkage(String spanId, String traceId, RecordedThread recordedThread) {
+  public SpanLinkage(String traceId, String spanId, RecordedEvent recordedEvent) {
     this.spanId = spanId;
     this.traceId = traceId;
-    this.recordedThread = recordedThread;
+    this.recordedEvent = recordedEvent;
   }
 
   String getSpanId() {
@@ -41,11 +43,11 @@ class SpanLinkage {
   }
 
   RecordedThread getRecordedThread() {
-    return recordedThread;
+    return recordedEvent.getThread();
   }
 
   Long getThreadId() {
-    return recordedThread.getJavaThreadId();
+    return getRecordedThread().getJavaThreadId();
   }
 
   boolean matches(String traceId, String spanId) {
@@ -53,5 +55,9 @@ class SpanLinkage {
         && this.traceId.equals(traceId)
         && this.spanId != null
         && this.spanId.equals(spanId);
+  }
+
+  public String getSourceEventName() {
+    return recordedEvent.getEventType().getName();
   }
 }

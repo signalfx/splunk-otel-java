@@ -16,10 +16,11 @@
 
 package com.splunk.opentelemetry.logs;
 
+import com.splunk.opentelemetry.profiler.util.HelpfulExecutors;
 import java.time.Duration;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
 import java.util.function.Consumer;
 
 /**
@@ -31,6 +32,8 @@ public class BatchingLogsProcessor implements LogsProcessor {
   private final Duration maxTimeBetweenBatches;
   private final List<LogEntry> batch;
   private final Consumer<List<LogEntry>> batchAction;
+  private final ExecutorService executorService =
+      HelpfulExecutors.newSingleThreadExecutor("BatchingLogsProcessor action");
   private final Object lock = new Object();
   private WatchdogTimer watchdog;
 
@@ -79,7 +82,8 @@ public class BatchingLogsProcessor implements LogsProcessor {
       if (batch.isEmpty()) {
         return;
       }
-      batchAction.accept(Collections.unmodifiableList(batch));
+      List<LogEntry> batchCopy = new ArrayList<>(batch);
+      executorService.submit(() -> batchAction.accept(batchCopy));
       batch.clear();
     }
   }

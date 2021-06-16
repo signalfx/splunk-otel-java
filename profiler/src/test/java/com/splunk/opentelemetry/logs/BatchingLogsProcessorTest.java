@@ -105,7 +105,7 @@ class BatchingLogsProcessorTest {
   }
 
   @Test
-  void testStopDoesAction() {
+  void testStopDoesAction() throws Exception {
     List<LogEntry> seen = new ArrayList<>();
     CountDownLatch latch = new CountDownLatch(1);
     Consumer<List<LogEntry>> action =
@@ -119,6 +119,7 @@ class BatchingLogsProcessorTest {
     processor.log(log1);
     processor.log(log2);
     processor.stop();
+    assertTrue(latch.await(5, SECONDS));
     assertEquals(Arrays.asList(log1, log2), seen);
   }
 

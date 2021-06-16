@@ -69,6 +69,6 @@ public class KHttpTracer extends HttpClientTracer<RequestWrapper, Map<String, St
 
   @Override
   protected String getInstrumentationName() {
-    return "io.opentelemetry.javaagent.khttp-0.1";
+    return "com.splunk.javaagent.khttp-0.1";
   }
 }

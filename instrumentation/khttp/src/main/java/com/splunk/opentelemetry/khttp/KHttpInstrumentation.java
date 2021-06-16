@@ -16,6 +16,7 @@
 
 package com.splunk.opentelemetry.khttp;
 
+import static com.splunk.opentelemetry.khttp.KHttpTracer.tracer;
 import static io.opentelemetry.javaagent.extension.matcher.AgentElementMatchers.extendsClass;
 import static io.opentelemetry.javaagent.extension.matcher.ClassLoaderMatcher.hasClassesNamed;
 import static io.opentelemetry.javaagent.instrumentation.api.Java8BytecodeBridge.currentContext;
@@ -70,14 +71,13 @@ public class KHttpInstrumentation implements TypeInstrumentation {
         @Advice.Local("otelContext") Context context,
         @Advice.Local("otelScope") Scope scope) {
       Context parentContext = currentContext();
-      if (!KHttpTracer.tracer().shouldStartSpan(parentContext)) {
+      if (!tracer().shouldStartSpan(parentContext)) {
         return;
       }
 
       headers = KHttpHeadersInjectAdapter.asWritable(headers);
       context =
-          KHttpTracer.tracer()
-              .startSpan(parentContext, new RequestWrapper(method, uri, headers), headers);
+          tracer().startSpan(parentContext, new RequestWrapper(method, uri, headers), headers);
       scope = context.makeCurrent();
     }
 
@@ -92,7 +92,7 @@ public class KHttpInstrumentation implements TypeInstrumentation {
       }
 
       scope.close();
-      KHttpTracer.tracer().endMaybeExceptionally(context, response, throwable);
+      tracer().endMaybeExceptionally(context, response, throwable);
     }
   }
 }

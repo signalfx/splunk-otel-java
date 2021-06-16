@@ -60,11 +60,17 @@ class BatchingLogsProcessorTest {
   void testSimpleActionWhenSizeReached() throws Exception {
     List<LogEntry> seen = new ArrayList<>();
     CountDownLatch latch = new CountDownLatch(1);
-    Consumer<List<LogEntry>> action = logs -> {
-      seen.addAll(logs);
-      latch.countDown();
-    };
-    BatchingLogsProcessor processor = new BatchingLogsProcessor(Duration.ofHours(15), 3, action);
+    Consumer<List<LogEntry>> action =
+        logs -> {
+          seen.addAll(logs);
+          latch.countDown();
+        };
+    BatchingLogsProcessor processor =
+        BatchingLogsProcessor.builder()
+            .maxTimeBetweenBatches(Duration.ofHours(15))
+            .maxBatchSize(3)
+            .batchAction(action)
+            .build();
     processor.start();
     processor.log(log1);
     assertTrue(seen.isEmpty());
@@ -84,8 +90,14 @@ class BatchingLogsProcessorTest {
           seen.addAll(logs);
           latch.countDown();
         };
+
     BatchingLogsProcessor processor =
-        new BatchingLogsProcessor(Duration.ofMillis(50), 3000, action);
+        BatchingLogsProcessor.builder()
+            .maxTimeBetweenBatches(Duration.ofMillis(50))
+            .maxBatchSize(3000)
+            .batchAction(action)
+            .build();
+
     processor.start();
     processor.log(log1);
     processor.log(log2);
@@ -103,7 +115,13 @@ class BatchingLogsProcessorTest {
           seen.addAll(logs);
           latch.countDown();
         };
-    BatchingLogsProcessor processor = new BatchingLogsProcessor(Duration.ofMillis(1), 3000, action);
+    BatchingLogsProcessor processor =
+        BatchingLogsProcessor.builder()
+            .maxTimeBetweenBatches(Duration.ofMillis(1))
+            .maxBatchSize(3000)
+            .batchAction(action)
+            .build();
+
     processor.start();
     assertFalse(latch.await(1, SECONDS));
     assertTrue(seen.isEmpty());
@@ -119,7 +137,12 @@ class BatchingLogsProcessorTest {
           latch.countDown();
         };
     BatchingLogsProcessor processor =
-        new BatchingLogsProcessor(Duration.ofSeconds(60), 3000, action);
+        BatchingLogsProcessor.builder()
+            .maxTimeBetweenBatches(Duration.ofSeconds(60))
+            .maxBatchSize(3000)
+            .batchAction(action)
+            .build();
+
     processor.start();
     processor.log(log1);
     processor.log(log2);
@@ -132,7 +155,12 @@ class BatchingLogsProcessorTest {
   void testStopBeforeStart() {
     Consumer<List<LogEntry>> action = logs -> {};
     BatchingLogsProcessor processor =
-        new BatchingLogsProcessor(Duration.ofSeconds(60), 3000, action);
+        BatchingLogsProcessor.builder()
+            .maxTimeBetweenBatches(Duration.ofSeconds(60))
+            .maxBatchSize(3000)
+            .batchAction(action)
+            .build();
+
     assertThrows(IllegalStateException.class, processor::stop);
   }
 
@@ -140,7 +168,12 @@ class BatchingLogsProcessorTest {
   void testMultipleStarts() {
     Consumer<List<LogEntry>> action = logs -> {};
     BatchingLogsProcessor processor =
-        new BatchingLogsProcessor(Duration.ofSeconds(60), 3000, action);
+        BatchingLogsProcessor.builder()
+            .maxTimeBetweenBatches(Duration.ofSeconds(60))
+            .maxBatchSize(3000)
+            .batchAction(action)
+            .build();
+
     processor.start();
     assertThrows(IllegalStateException.class, processor::start);
   }

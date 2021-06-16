@@ -20,7 +20,7 @@ import com.splunk.opentelemetry.profiler.util.HelpfulExecutors;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.function.Consumer;
 
 /**
@@ -28,21 +28,23 @@ import java.util.function.Consumer;
  * which ever comes first.
  */
 public class BatchingLogsProcessor implements LogsProcessor {
+
+  private static final int DEFAULT_MAX_BATCH_SIZE = 250;
+
   private final int maxBatchSize;
   private final Duration maxTimeBetweenBatches;
   private final List<LogEntry> batch;
   private final Consumer<List<LogEntry>> batchAction;
-  private final ExecutorService executorService =
-      HelpfulExecutors.newSingleThreadExecutor("BatchingLogsProcessor action");
+  private final ScheduledExecutorService executorService;
   private final Object lock = new Object();
   private WatchdogTimer watchdog;
 
-  public BatchingLogsProcessor(
-      Duration maxTimeBetweenBatches, int maxBatchSize, Consumer<List<LogEntry>> batchAction) {
-    this.maxTimeBetweenBatches = maxTimeBetweenBatches;
-    this.maxBatchSize = maxBatchSize;
-    this.batchAction = batchAction;
-    this.batch = new ArrayList<>(maxBatchSize);
+  public BatchingLogsProcessor(Builder builder) {
+    this.maxTimeBetweenBatches = builder.maxTimeBetweenBatches;
+    this.maxBatchSize = builder.maxBatchSize;
+    this.batchAction = builder.batchAction;
+    this.executorService = builder.executorService;
+    batch = new ArrayList<>(maxBatchSize);
   }
 
   public void start() {
@@ -50,7 +52,7 @@ public class BatchingLogsProcessor implements LogsProcessor {
       if (watchdog != null) {
         throw new IllegalStateException("Already running");
       }
-      watchdog = new WatchdogTimer(maxTimeBetweenBatches, this::doAction);
+      watchdog = new WatchdogTimer(maxTimeBetweenBatches, this::doAction, executorService);
       watchdog.start();
     }
   }
@@ -60,9 +62,9 @@ public class BatchingLogsProcessor implements LogsProcessor {
       if (watchdog == null) {
         throw new IllegalStateException("Not running");
       }
+      doAction();
       watchdog.stop();
       watchdog = null;
-      doAction();
     }
   }
 
@@ -85,6 +87,42 @@ public class BatchingLogsProcessor implements LogsProcessor {
       List<LogEntry> batchCopy = new ArrayList<>(batch);
       executorService.submit(() -> batchAction.accept(batchCopy));
       batch.clear();
+    }
+  }
+
+  public static Builder builder() {
+    return new Builder();
+  }
+
+  public static class Builder {
+    private int maxBatchSize = DEFAULT_MAX_BATCH_SIZE;
+    private Duration maxTimeBetweenBatches;
+    private Consumer<List<LogEntry>> batchAction = logs -> {};
+    private ScheduledExecutorService executorService =
+        HelpfulExecutors.newSingleThreadedScheduledExecutor("BatchingLogsProcessor action");
+
+    public Builder maxBatchSize(int maxBatchSize) {
+      this.maxBatchSize = maxBatchSize;
+      return this;
+    }
+
+    public Builder maxTimeBetweenBatches(Duration maxTimeBetweenBatches) {
+      this.maxTimeBetweenBatches = maxTimeBetweenBatches;
+      return this;
+    }
+
+    public Builder batchAction(Consumer<List<LogEntry>> batchAction) {
+      this.batchAction = batchAction;
+      return this;
+    }
+
+    public Builder executorService(ScheduledExecutorService executorService) {
+      this.executorService = executorService;
+      return this;
+    }
+
+    public BatchingLogsProcessor build() {
+      return new BatchingLogsProcessor(this);
     }
   }
 }

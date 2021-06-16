@@ -18,19 +18,34 @@ package com.splunk.opentelemetry.logs;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.splunk.opentelemetry.profiler.util.HelpfulExecutors;
 import java.time.Duration;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 class WatchdogTimerTest {
+  ScheduledExecutorService executorService;
+
+  @BeforeEach
+  void setup() {
+    executorService = HelpfulExecutors.newSingleThreadedScheduledExecutor("Logs Batch Watchdog");
+  }
+
+  @AfterEach
+  void tearDown() {
+    executorService.shutdown();
+  }
 
   @Test
   void testSimpleWatchdog() throws Exception {
     CountDownLatch latch = new CountDownLatch(5);
     Runnable cb = latch::countDown;
-    WatchdogTimer watchdog = new WatchdogTimer(Duration.ofMillis(10), cb);
+    WatchdogTimer watchdog = new WatchdogTimer(Duration.ofMillis(10), cb, executorService);
     watchdog.start();
     assertTrue(latch.await(5, TimeUnit.SECONDS));
   }
@@ -38,7 +53,7 @@ class WatchdogTimerTest {
   @Test
   void testCannotStartTwice() {
     Runnable cb = () -> {};
-    WatchdogTimer watchdog = new WatchdogTimer(Duration.ofMillis(10), cb);
+    WatchdogTimer watchdog = new WatchdogTimer(Duration.ofMillis(10), cb, executorService);
     watchdog.start();
     assertThrows(IllegalStateException.class, watchdog::start);
   }
@@ -50,7 +65,7 @@ class WatchdogTimerTest {
         () -> {
           run.set(true);
         };
-    WatchdogTimer watchdog = new WatchdogTimer(Duration.ofMillis(50), cb);
+    WatchdogTimer watchdog = new WatchdogTimer(Duration.ofMillis(50), cb, executorService);
     watchdog.start();
     long start = System.currentTimeMillis();
     while (System.currentTimeMillis() - start < 250) {
@@ -65,14 +80,14 @@ class WatchdogTimerTest {
   @Test
   void testResetBeforeStart() {
     Runnable cb = () -> {};
-    WatchdogTimer watchdog = new WatchdogTimer(Duration.ofMillis(10), cb);
+    WatchdogTimer watchdog = new WatchdogTimer(Duration.ofMillis(10), cb, executorService);
     assertThrows(IllegalStateException.class, watchdog::reset);
   }
 
   @Test
   void testStopBeforeStart() {
     Runnable cb = () -> {};
-    WatchdogTimer watchdog = new WatchdogTimer(Duration.ofMillis(10), cb);
+    WatchdogTimer watchdog = new WatchdogTimer(Duration.ofMillis(10), cb, executorService);
     assertThrows(IllegalStateException.class, watchdog::stop);
   }
 }

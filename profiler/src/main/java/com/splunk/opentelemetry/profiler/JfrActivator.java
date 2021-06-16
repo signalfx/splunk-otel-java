@@ -38,6 +38,7 @@ import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.function.Consumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -88,8 +89,15 @@ public class JfrActivator implements ComponentInstaller {
     LogEntryCreator logEntryCreator = new LogEntryCreator();
     LogsExporter logsExporter = buildExporter();
     Consumer<List<LogEntry>> exportAction = logsExporter::export;
+    ScheduledExecutorService exportExecutorService =
+        HelpfulExecutors.newSingleThreadedScheduledExecutor("Batched Logs Exporter");
     BatchingLogsProcessor batchingLogsProcessor =
-        new BatchingLogsProcessor(MAX_TIME_BETWEEN_BATCHES, MAX_BATCH_SIZE, exportAction);
+        BatchingLogsProcessor.builder()
+            .maxTimeBetweenBatches(MAX_TIME_BETWEEN_BATCHES)
+            .maxBatchSize(MAX_BATCH_SIZE)
+            .batchAction(exportAction)
+            .executorService(exportExecutorService)
+            .build();
     batchingLogsProcessor.start();
     StackToSpanLinkageProcessor processor =
         new StackToSpanLinkageProcessor(logEntryCreator, batchingLogsProcessor);

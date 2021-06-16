@@ -18,7 +18,6 @@ package com.splunk.opentelemetry.logs;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
-import com.splunk.opentelemetry.profiler.util.HelpfulExecutors;
 import java.time.Duration;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -29,16 +28,16 @@ import java.util.concurrent.ScheduledFuture;
  */
 class WatchdogTimer {
 
-  private final ScheduledExecutorService threadPool =
-      HelpfulExecutors.newSingleThreadedScheduledExecutor("Logs Batch Watchdog");
+  private final ScheduledExecutorService executorService;
   private final Duration interval;
   private final Runnable callback;
   private final Object lock = new Object();
   private ScheduledFuture<?> future;
 
-  WatchdogTimer(Duration interval, Runnable callback) {
+  WatchdogTimer(Duration interval, Runnable callback, ScheduledExecutorService executorService) {
     this.interval = interval;
     this.callback = callback;
+    this.executorService = executorService;
   }
 
   void start() {
@@ -67,13 +66,13 @@ class WatchdogTimer {
       }
       future.cancel(false);
       future = null;
-      threadPool.shutdownNow();
+      executorService.shutdown();
     }
   }
 
   private void reschedule() {
     future =
-        threadPool.scheduleAtFixedRate(
+        executorService.scheduleAtFixedRate(
             callback, interval.toMillis(), interval.toMillis(), MILLISECONDS);
   }
 }

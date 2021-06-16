@@ -18,8 +18,8 @@ package com.splunk.opentelemetry.logs;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
+import com.splunk.opentelemetry.profiler.util.HelpfulExecutors;
 import java.time.Duration;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 
@@ -29,7 +29,8 @@ import java.util.concurrent.ScheduledFuture;
  */
 class WatchdogTimer {
 
-  private final ScheduledExecutorService threadPool = Executors.newScheduledThreadPool(1);
+  private final ScheduledExecutorService threadPool =
+      HelpfulExecutors.newSingleThreadedScheduledExecutor("Logs Batch Watchdog");
   private final Duration interval;
   private final Runnable callback;
   private final Object lock = new Object();

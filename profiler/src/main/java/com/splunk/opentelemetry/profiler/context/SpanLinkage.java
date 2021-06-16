@@ -26,7 +26,7 @@ public class SpanLinkage {
 
   @Nullable private final String spanId;
   @Nullable private final String traceId;
-  private final RecordedEvent recordedEvent;
+  @Nullable private final RecordedEvent recordedEvent;
 
   public SpanLinkage(String traceId, String spanId, RecordedEvent recordedEvent) {
     this.spanId = spanId;
@@ -43,11 +43,11 @@ public class SpanLinkage {
   }
 
   RecordedThread getRecordedThread() {
-    return recordedEvent.getThread();
+    return recordedEvent == null ? null : recordedEvent.getThread();
   }
 
   Long getThreadId() {
-    return getRecordedThread().getJavaThreadId();
+    return recordedEvent == null ? Long.MIN_VALUE : getRecordedThread().getJavaThreadId();
   }
 
   boolean matches(String traceId, String spanId) {
@@ -58,6 +58,6 @@ public class SpanLinkage {
   }
 
   public String getSourceEventName() {
-    return recordedEvent.getEventType().getName();
+    return recordedEvent == null ? null : recordedEvent.getEventType().getName();
   }
 }

@@ -27,7 +27,6 @@ import java.util.function.Consumer;
  * which ever comes first.
  */
 public class BatchingLogsProcessor implements LogsProcessor {
-
   private final int maxBatchSize;
   private final Duration maxTimeBetweenBatches;
   private final List<LogEntry> batch;
@@ -43,7 +42,7 @@ public class BatchingLogsProcessor implements LogsProcessor {
     this.batch = new ArrayList<>(maxBatchSize);
   }
 
-  void start() {
+  public void start() {
     synchronized (lock) {
       if (watchdog != null) {
         throw new IllegalStateException("Already running");
@@ -70,6 +69,7 @@ public class BatchingLogsProcessor implements LogsProcessor {
       batch.add(log);
       if (batch.size() >= maxBatchSize) {
         doAction();
+        watchdog.reset();
       }
     }
   }

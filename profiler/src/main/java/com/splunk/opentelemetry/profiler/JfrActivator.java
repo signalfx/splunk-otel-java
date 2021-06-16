@@ -90,7 +90,8 @@ public class JfrActivator implements ComponentInstaller {
     LogsExporter logsExporter = buildExporter();
     Consumer<List<LogEntry>> exportAction = logsExporter::export;
     BatchingLogsProcessor batchingLogsProcessor =
-        new BatchingLogsProcessor(Duration.ofSeconds(10), 5000, exportAction);
+        new BatchingLogsProcessor(Duration.ofSeconds(10), 250, exportAction);
+    batchingLogsProcessor.start();
     StackToSpanLinkageProcessor processor =
         new StackToSpanLinkageProcessor(logEntryCreator, batchingLogsProcessor);
 

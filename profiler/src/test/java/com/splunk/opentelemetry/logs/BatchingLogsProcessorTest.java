@@ -76,7 +76,6 @@ class BatchingLogsProcessorTest {
     processor.log(log2);
     assertTrue(seen.isEmpty());
     processor.log(log3);
-    assertTrue(latch.await(5, SECONDS));
     assertEquals(Arrays.asList(log1, log2, log3), seen);
   }
 

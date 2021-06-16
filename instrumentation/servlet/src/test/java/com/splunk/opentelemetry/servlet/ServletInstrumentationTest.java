@@ -130,10 +130,7 @@ class ServletInstrumentationTest {
   void shouldAddOnlyOneTraceParentHeader() throws Exception {
     // given
     var request =
-        new Request.Builder()
-            .url(HttpUrl.get("http://localhost:" + port + "/deep"))
-            .get()
-            .build();
+        new Request.Builder().url(HttpUrl.get("http://localhost:" + port + "/deep")).get().build();
 
     // when
     var response = httpClient.newCall(request).execute();

@@ -51,6 +51,9 @@ import org.slf4j.LoggerFactory;
 @AutoService(AgentListener.class)
 public class JfrActivator implements AgentListener {
 
+  private static final String OTEL_INSTRUMENTATION_NAME = "otel.profiling";
+  private static final String OTEL_INSTRUMENTATION_VERSION = "0.1.0";
+
   private static final Logger logger = LoggerFactory.getLogger(JfrActivator.class);
   private static final int MAX_BATCH_SIZE = 250;
   private static final Duration MAX_TIME_BETWEEN_BATCHES = Duration.ofSeconds(10);

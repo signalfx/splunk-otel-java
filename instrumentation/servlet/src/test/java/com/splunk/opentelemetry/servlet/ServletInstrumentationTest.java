@@ -29,6 +29,7 @@ import java.util.concurrent.TimeoutException;
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
 import javax.servlet.FilterConfig;
+import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServlet;
@@ -69,6 +70,9 @@ class ServletInstrumentationTest {
     servletContext.addServlet(DefaultServlet.class, "/");
     servletContext.addServlet(TestServlet.class, "/servlet");
     servletContext.addFilter(TestFilter.class, "/filter", FilterMapping.REQUEST);
+    servletContext.addFilter(PassThroughFilter.class, "/deep", FilterMapping.REQUEST);
+    servletContext.addFilter(PassThroughFilter.class, "/deep", FilterMapping.REQUEST);
+    servletContext.addServlet(TestServlet.class, "/deep");
     server.setHandler(servletContext);
 
     server.start();
@@ -122,6 +126,25 @@ class ServletInstrumentationTest {
     assertServerTimingHeaderContainsTraceId(serverTimingHeader);
   }
 
+  @Test
+  void shouldAddOnlyOneTraceParentHeader() throws Exception {
+    // given
+    var request =
+        new Request.Builder().url(HttpUrl.get("http://localhost:" + port + "/deep")).get().build();
+
+    // when
+    var response = httpClient.newCall(request).execute();
+
+    // then
+    assertEquals(200, response.code());
+    assertEquals("result", response.body().string());
+
+    var serverTimingHeaders = response.headers(ServerTimingHeader.SERVER_TIMING);
+    assertEquals(1, serverTimingHeaders.size());
+    assertHeaders(response, serverTimingHeaders.get(0));
+    assertServerTimingHeaderContainsTraceId(serverTimingHeaders.get(0));
+  }
+
   private static void assertHeaders(Response response, String serverTimingHeader) {
     assertNotNull(serverTimingHeader);
     assertEquals(
@@ -162,6 +185,20 @@ class ServletInstrumentationTest {
         writer.write("result");
         httpResponse.setStatus(200);
       }
+    }
+
+    @Override
+    public void destroy() {}
+  }
+
+  public static class PassThroughFilter implements Filter {
+    @Override
+    public void init(FilterConfig filterConfig) {}
+
+    @Override
+    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
+        throws IOException, ServletException {
+      chain.doFilter(request, response);
     }
 
     @Override

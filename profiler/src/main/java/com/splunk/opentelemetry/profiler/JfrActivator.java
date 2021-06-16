@@ -46,6 +46,8 @@ import org.slf4j.LoggerFactory;
 public class JfrActivator implements ComponentInstaller {
 
   private static final Logger logger = LoggerFactory.getLogger(JfrActivator.class);
+  private static final int MAX_BATCH_SIZE = 250;
+  private static final Duration MAX_TIME_BETWEEN_BATCHES = Duration.ofSeconds(10);
   private final ExecutorService executor = HelpfulExecutors.newSingleThreadExecutor("JFR Profiler");
 
   @Override
@@ -87,7 +89,7 @@ public class JfrActivator implements ComponentInstaller {
     LogsExporter logsExporter = buildExporter();
     Consumer<List<LogEntry>> exportAction = logsExporter::export;
     BatchingLogsProcessor batchingLogsProcessor =
-        new BatchingLogsProcessor(Duration.ofSeconds(10), 250, exportAction);
+        new BatchingLogsProcessor(MAX_TIME_BETWEEN_BATCHES, MAX_BATCH_SIZE, exportAction);
     batchingLogsProcessor.start();
     StackToSpanLinkageProcessor processor =
         new StackToSpanLinkageProcessor(logEntryCreator, batchingLogsProcessor);

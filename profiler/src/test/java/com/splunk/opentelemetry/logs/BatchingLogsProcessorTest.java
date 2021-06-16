@@ -57,9 +57,13 @@ class BatchingLogsProcessorTest {
   }
 
   @Test
-  void testSimpleActionWhenSizeReached() {
+  void testSimpleActionWhenSizeReached() throws Exception {
     List<LogEntry> seen = new ArrayList<>();
-    Consumer<List<LogEntry>> action = seen::addAll;
+    CountDownLatch latch = new CountDownLatch(1);
+    Consumer<List<LogEntry>> action = logs -> {
+      seen.addAll(logs);
+      latch.countDown();
+    };
     BatchingLogsProcessor processor = new BatchingLogsProcessor(Duration.ofHours(15), 3, action);
     processor.start();
     processor.log(log1);
@@ -67,6 +71,7 @@ class BatchingLogsProcessorTest {
     processor.log(log2);
     assertTrue(seen.isEmpty());
     processor.log(log3);
+    assertTrue(latch.await(5, SECONDS));
     assertEquals(Arrays.asList(log1, log2, log3), seen);
   }
 

@@ -45,9 +45,6 @@ import org.slf4j.LoggerFactory;
 @AutoService(ComponentInstaller.class)
 public class JfrActivator implements ComponentInstaller {
 
-  private static final String OTEL_INSTRUMENTATION_NAME = "otel.profiling";
-  private static final String OTEL_INSTRUMENTATION_VERSION = "0.1.0";
-
   private static final Logger logger = LoggerFactory.getLogger(JfrActivator.class);
   private final ExecutorService executor = HelpfulExecutors.newSingleThreadExecutor("JFR Profiler");
 

@@ -38,7 +38,6 @@ import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.function.Consumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -89,6 +88,8 @@ public class JfrActivator implements AgentListener {
     LogEntryCreator logEntryCreator = new LogEntryCreator();
     LogsExporter logsExporter = buildExporter();
 
+    ScheduledExecutorService exportExecutorService =
+        HelpfulExecutors.newSingleThreadedScheduledExecutor("Batched Logs Exporter");
     ScheduledExecutorService exportExecutorService =
         HelpfulExecutors.newSingleThreadedScheduledExecutor("Batched Logs Exporter");
     BatchingLogsProcessor batchingLogsProcessor =

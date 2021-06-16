@@ -108,7 +108,7 @@ public class ServletInstrumentationModule extends InstrumentationModule {
 
     @Override
     public void set(HttpServletResponse carrier, String key, String value) {
-      carrier.addHeader(key, value);
+      carrier.setHeader(key, value);
     }
   }
 }

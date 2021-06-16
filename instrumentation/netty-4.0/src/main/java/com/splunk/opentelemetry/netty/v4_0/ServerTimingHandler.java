@@ -46,7 +46,7 @@ public class ServerTimingHandler extends ChannelOutboundHandlerAdapter {
 
     @Override
     public void set(HttpHeaders carrier, String key, String value) {
-      carrier.add(key, value);
+      carrier.set(key, value);
     }
   }
 }

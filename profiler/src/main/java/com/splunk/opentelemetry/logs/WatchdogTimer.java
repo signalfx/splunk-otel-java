@@ -16,6 +16,8 @@
 
 package com.splunk.opentelemetry.logs;
 
+import com.splunk.opentelemetry.profiler.util.HelpfulExecutors;
+
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 import java.time.Duration;

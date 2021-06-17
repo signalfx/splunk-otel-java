@@ -85,7 +85,8 @@ public class BatchingLogsProcessor implements LogsProcessor {
   private void asyncDoExport() {
     List<LogEntry> batchCopy = copyClearBatch();
     if (batchCopy != null) {
-      executorService.submit(() -> exporter.export(batchCopy));
+      Runnable task = HelpfulExecutors.logUncaught(() -> exporter.export(batchCopy));
+      executorService.submit(task);
     }
   }
 

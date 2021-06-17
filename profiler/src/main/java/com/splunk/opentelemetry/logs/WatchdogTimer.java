@@ -16,6 +16,7 @@
 
 package com.splunk.opentelemetry.logs;
 
+import static com.splunk.opentelemetry.profiler.util.HelpfulExecutors.logUncaught;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 import java.time.Duration;
@@ -74,6 +75,6 @@ class WatchdogTimer {
   private void reschedule() {
     future =
         executorService.scheduleAtFixedRate(
-            callback, interval.toMillis(), interval.toMillis(), MILLISECONDS);
+            logUncaught(callback), interval.toMillis(), interval.toMillis(), MILLISECONDS);
   }
 }

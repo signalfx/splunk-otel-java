@@ -7,7 +7,7 @@ ext {
       opentelemetryJavaagent     : snapshot ? "1.3.0-SNAPSHOT" : "1.3.0-SNAPSHOT",
       opentelemetryJavaagentAlpha: snapshot ? "1.3.0-alpha-SNAPSHOT" : "1.3.0-alpha-SNAPSHOT",
       mockito                    : '3.8.0',
-      jupiter                    : '5.7.1',
+      jupiter                    : '5.7.2',
       micrometer                 : '1.7.0'
   ]
 

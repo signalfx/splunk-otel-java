@@ -26,7 +26,6 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.IntStream;
-
 import org.junit.jupiter.api.Test;
 
 class LogEntryAdapterTest {
@@ -78,10 +77,11 @@ class LogEntryAdapterTest {
         .attributes(attributes);
   }
 
-  private static String toHexString(byte[] bytes){
+  private static String toHexString(byte[] bytes) {
     return IntStream.range(0, bytes.length)
-            .mapToObj(i -> bytes[i]).map(b -> String.format("%02X", b)).reduce(
-            "", (s1, s2) -> s1 + s2
-    ).toLowerCase();
+        .mapToObj(i -> bytes[i])
+        .map(b -> String.format("%02X", b))
+        .reduce("", (s1, s2) -> s1 + s2)
+        .toLowerCase();
   }
 }

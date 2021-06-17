@@ -16,6 +16,8 @@
 
 package com.splunk.opentelemetry.logs;
 
+import static com.google.protobuf.UnsafeByteOperations.unsafeWrap;
+
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.internal.OtelEncodingUtils;
 import io.opentelemetry.api.trace.SpanId;
@@ -27,8 +29,6 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
-import static com.google.protobuf.UnsafeByteOperations.unsafeWrap;
 
 /** Turns a LogEntry into a protobuf LogRecord, ready for exporting */
 public class LogEntryAdapter implements Function<LogEntry, LogRecord> {
@@ -52,11 +52,13 @@ public class LogEntryAdapter implements Function<LogEntry, LogRecord> {
       builder.setName(logEntry.getName());
     }
     if (logEntry.getTraceId() != null) {
-      byte[] traceIdBytes = OtelEncodingUtils.bytesFromBase16(logEntry.getTraceId(), TraceId.getLength());
+      byte[] traceIdBytes =
+          OtelEncodingUtils.bytesFromBase16(logEntry.getTraceId(), TraceId.getLength());
       builder.setTraceId(unsafeWrap(traceIdBytes));
     }
     if (logEntry.getSpanId() != null) {
-      byte[] spanIdBytes = OtelEncodingUtils.bytesFromBase16(logEntry.getSpanId(), SpanId.getLength());
+      byte[] spanIdBytes =
+          OtelEncodingUtils.bytesFromBase16(logEntry.getSpanId(), SpanId.getLength());
       builder.setSpanId(unsafeWrap(spanIdBytes));
     }
     return builder.build();

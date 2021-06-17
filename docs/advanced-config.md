@@ -13,7 +13,7 @@ Below you will find all the configuration options supported by this distribution
 
 | System property                        | Environment variable                   | Default value           | Support      | Description |
 | -------------------------------------- | -------------------------------------- | ----------------------- | ------------ | ----------- |
-| `splunk.access.token`                  | `SPLUNK_ACCESS_TOKEN`                  | unset                   | Stable       | (Optional) Auth token allowing exporters to communicate directly with the Splunk cloud, passed as `X-SF-TOKEN` header. Currently, the [Jaeger and OTLP trace exporters](#trace-exporters) as well as the [SignalFx metrics exporter](metrics.md) support this property.
+| `splunk.access.token`                  | `SPLUNK_ACCESS_TOKEN`                  | unset                   | Stable       | (Optional) Auth token allowing exporters to communicate directly with the Splunk cloud, passed as `X-SF-TOKEN` header. Currently, the [Jaeger trace exporter](#trace-exporters) as well as the [SignalFx metrics exporter](metrics.md) support this property.
 | `splunk.metrics.enabled`               | `SPLUNK_METRICS_ENABLED`               | `false`                 | Experimental | Enables exporting metrics. See [this document](metrics.md) for more information.
 | `splunk.metrics.endpoint`              | `SPLUNK_METRICS_ENDPOINT`              | `http://localhost:9943` | Experimental | The SignalFx metrics endpoint to connect to.
 | `splunk.metrics.export.interval`       | `SPLUNK_METRICS_EXPORT_INTERVAL`       | `30000`                 | Experimental | The interval between pushing metrics, in milliseconds.
@@ -37,26 +37,19 @@ export SPLUNK_METRICS_ENDPOINT=https://ingest.us0.signalfx.com
 | `otel.traces.exporter`          | `OTEL_TRACES_EXPORTER`            | `otlp`                           | Stable  | Select the traces exporter to use. We recommend using either the OTLP exporter (`otlp`) or the Jaeger exporter (`jaeger-thrift-splunk`).
 
 The Splunk Distribution of OpenTelemetry Java uses the OTLP traces exporter as the default setting. Please note that the
-OTLP format is not supported by the (now deprecated) [SignalFx Smart Agent](https://github.com/signalfx/signalfx-agent).
-If you wish to use the Jaeger exporter instead, you can set it by using the `otel.traces.exporter` configuration option.
-For example:
+OTLP format is neither supported by the (now
+deprecated) [SignalFx Smart Agent](https://github.com/signalfx/signalfx-agent) nor by the Splunk ingest. If you're still
+using the Smart Agent, or if you wish to send traces directly to the Splunk Ingest, please use the Jaeger exporter. To
+use the Jaeger exporter set the `otel.traces.exporter` configuration option to `jaeger-thrift-splunk`. For example:
 
 ```bash
 export OTEL_TRACES_EXPORTER=jaeger-thrift-splunk
 ```
 
-Both OTLP and Jaeger exporters can be configured to export traces directly to Splunk ingest. To achieve that, you need
-to set the `splunk.access.token` configuration property and set the `otel.exporter.otlp.endpoint` (
-or `otel.exporter.jaeger.endpoint`) to Splunk ingest URL.
+Jaeger exporter can be configured to export traces directly to the Splunk ingest. To achieve that, you need to set
+the `splunk.access.token` configuration property and set the `otel.exporter.jaeger.endpoint` to Splunk ingest URL.
 
-OTLP example:
-
-```bash
-export SPLUNK_ACCESS_TOKEN=my_splunk_token
-export OTEL_EXPORTER_OTLP_ENDPOINT=https://ingest.us0.signalfx.com/v2/trace
-```
-
-Jaeger example:
+Example:
 
 ```bash
 export SPLUNK_ACCESS_TOKEN=my_splunk_token

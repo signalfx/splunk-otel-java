@@ -16,7 +16,6 @@
 
 package com.splunk.opentelemetry.profiler;
 
-import com.splunk.opentelemetry.logs.BatchingLogsProcessor;
 import com.splunk.opentelemetry.logs.LogEntry;
 import com.splunk.opentelemetry.logs.LogsProcessor;
 import com.splunk.opentelemetry.profiler.context.StackToSpanLinkage;
@@ -30,8 +29,7 @@ public class StackToSpanLinkageProcessor implements Consumer<StackToSpanLinkage>
   private final LogEntryCreator logEntryCreator;
   private final LogsProcessor processor;
 
-  public StackToSpanLinkageProcessor(
-      LogEntryCreator logEntryCreator, LogsProcessor processor) {
+  public StackToSpanLinkageProcessor(LogEntryCreator logEntryCreator, LogsProcessor processor) {
     this.logEntryCreator = logEntryCreator;
     this.processor = processor;
   }

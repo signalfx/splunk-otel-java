@@ -34,10 +34,12 @@ public class SpanLinkage {
     this.recordedEvent = recordedEvent;
   }
 
+  @Nullable
   String getSpanId() {
     return spanId;
   }
 
+  @Nullable
   String getTraceId() {
     return traceId;
   }

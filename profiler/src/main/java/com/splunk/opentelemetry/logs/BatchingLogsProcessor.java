@@ -16,6 +16,8 @@
 
 package com.splunk.opentelemetry.logs;
 
+import static java.util.Objects.requireNonNull;
+
 import com.splunk.opentelemetry.profiler.util.HelpfulExecutors;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -30,6 +32,7 @@ import java.util.function.Consumer;
 public class BatchingLogsProcessor implements LogsProcessor {
 
   private static final int DEFAULT_MAX_BATCH_SIZE = 250;
+  private static final Duration DEFAULT_MAX_TIME_BETWEEN_BATCHES = Duration.ofSeconds(10);
 
   private final int maxBatchSize;
   private final Duration maxTimeBetweenBatches;
@@ -96,8 +99,8 @@ public class BatchingLogsProcessor implements LogsProcessor {
 
   public static class Builder {
     private int maxBatchSize = DEFAULT_MAX_BATCH_SIZE;
-    private Duration maxTimeBetweenBatches;
-    private Consumer<List<LogEntry>> batchAction = logs -> {};
+    private Duration maxTimeBetweenBatches = DEFAULT_MAX_TIME_BETWEEN_BATCHES;
+    private Consumer<List<LogEntry>> batchAction;
     private ScheduledExecutorService executorService;
 
     public Builder maxBatchSize(int maxBatchSize) {
@@ -125,6 +128,7 @@ public class BatchingLogsProcessor implements LogsProcessor {
         executorService =
             HelpfulExecutors.newSingleThreadedScheduledExecutor("BatchingLogsProcessor action");
       }
+      requireNonNull(batchAction);
       return new BatchingLogsProcessor(this);
     }
   }

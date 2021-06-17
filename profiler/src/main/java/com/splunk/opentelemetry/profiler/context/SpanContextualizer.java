@@ -53,27 +53,27 @@ public class SpanContextualizer {
   }
 
   /** Parses thread info from the raw stack string and links it to a span (if available). */
-  public StackToSpanLinkage link(Instant time, String rawStack) {
+  public StackToSpanLinkage link(Instant time, String eventName, String rawStack) {
     List<String> frames = Arrays.asList(lineSplitter.split(rawStack));
     if (frames.size() < 2) {
       // Many GC and other VM threads don't actually have a stack...
-      return StackToSpanLinkage.withoutLinkage(time, rawStack);
+      return StackToSpanLinkage.withoutLinkage(time, eventName, rawStack);
     }
     long threadId = descriptorParser.parseThreadId(frames.get(0));
     if (threadId == CANT_PARSE_THREAD_ID) {
-      return StackToSpanLinkage.withoutLinkage(time, rawStack);
+      return StackToSpanLinkage.withoutLinkage(time, eventName, rawStack);
     }
-    return link(time, rawStack, threadId);
+    return link(time, eventName, rawStack, threadId);
   }
 
   /** Links the raw stack with the span info for the given thread. */
-  StackToSpanLinkage link(Instant time, String rawStack, long threadId) {
+  StackToSpanLinkage link(Instant time, String eventName, String rawStack, long threadId) {
     List<SpanLinkage> inFlightSpansForThisThread =
         threadContextTracker.getInFlightSpansForThread(threadId);
 
     if (inFlightSpansForThisThread.isEmpty()) {
       // We don't know about any in-flight spans for this stack
-      return StackToSpanLinkage.withoutLinkage(time, rawStack);
+      return StackToSpanLinkage.withoutLinkage(time, eventName, rawStack);
     }
 
     // This thread has a span happening, augment with span details
@@ -91,7 +91,7 @@ public class SpanContextualizer {
               .collect(Collectors.joining(" ")));
     }
     SpanLinkage spanLinkage = inFlightSpansForThisThread.get(inFlightSpansForThisThread.size() - 1);
-    return new StackToSpanLinkage(time, rawStack, spanLinkage);
+    return new StackToSpanLinkage(time, eventName, rawStack, spanLinkage);
   }
 
   private void threadContextStarting(RecordedEvent event) {

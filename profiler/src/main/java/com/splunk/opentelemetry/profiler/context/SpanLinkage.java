@@ -58,8 +58,4 @@ public class SpanLinkage {
         && this.spanId != null
         && this.spanId.equals(spanId);
   }
-
-  public String getSourceEventName() {
-    return recordedEvent == null ? null : recordedEvent.getEventType().getName();
-  }
 }

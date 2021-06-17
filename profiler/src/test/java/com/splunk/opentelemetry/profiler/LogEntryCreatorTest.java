@@ -61,7 +61,7 @@ class LogEntryCreatorTest {
             .attributes(attributes)
             .build();
 
-    StackToSpanLinkage linkedSpan = new StackToSpanLinkage(time, stack, linkage);
+    StackToSpanLinkage linkedSpan = new StackToSpanLinkage(time, "GoodEventHere", stack, linkage);
 
     LogEntryCreator creator = new LogEntryCreator();
     LogEntry result = creator.apply(linkedSpan);

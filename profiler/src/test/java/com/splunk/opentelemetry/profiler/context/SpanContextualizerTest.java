@@ -276,14 +276,14 @@ class SpanContextualizerTest {
   }
 
   private void assertLinkage(SpanContextualizer testClass, Events events, String stack) {
-    StackToSpanLinkage result = testClass.link(time, stack, events.threadId);
+    StackToSpanLinkage result = testClass.link(time, "ignored", stack, events.threadId);
     assertEquals(events.spanId, result.getSpanId());
     assertEquals(traceId, result.getTraceId());
     assertEquals(stack, result.getRawStack());
   }
 
   private void assertNoLinkage(SpanContextualizer testClass, Events events) {
-    StackToSpanLinkage result = testClass.link(time, rawStack, events.threadId);
+    StackToSpanLinkage result = testClass.link(time, "any", rawStack, events.threadId);
     assertNull(result.getSpanId());
   }
 

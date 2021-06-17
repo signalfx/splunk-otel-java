@@ -22,11 +22,13 @@ import jdk.jfr.consumer.RecordedThread;
 /** A wrapper for a RecordedEvent that may or may not have accompanying span information. */
 public class StackToSpanLinkage {
   private final Instant time;
+  private final String eventName;
   private final String rawStack;
   private final SpanLinkage spanLinkage;
 
-  public StackToSpanLinkage(Instant time, String rawStack, SpanLinkage spanLinkage) {
+  public StackToSpanLinkage(Instant time, String eventName, String rawStack, SpanLinkage spanLinkage) {
     this.time = time;
+    this.eventName = eventName;
     this.rawStack = rawStack;
     this.spanLinkage = spanLinkage;
   }
@@ -56,10 +58,10 @@ public class StackToSpanLinkage {
   }
 
   public String getSourceEventName() {
-    return spanLinkage.getSourceEventName();
+    return eventName;
   }
 
-  static StackToSpanLinkage withoutLinkage(Instant time, String rawStack) {
-    return new StackToSpanLinkage(time, rawStack, SpanLinkage.NONE);
+  static StackToSpanLinkage withoutLinkage(Instant time, String eventName, String rawStack) {
+    return new StackToSpanLinkage(time, eventName, rawStack, SpanLinkage.NONE);
   }
 }

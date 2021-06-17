@@ -16,7 +16,6 @@
 
 package com.splunk.opentelemetry.profiler;
 
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -33,7 +32,7 @@ class StackToSpanLinkageProcessorTest {
   @Test
   void testProcessor() {
     Instant time = Instant.now();
-    StackToSpanLinkage linkedSpan = new StackToSpanLinkage(time, "some stack", SpanLinkage.NONE);
+    StackToSpanLinkage linkedSpan = new StackToSpanLinkage(time,"any", "some stack", SpanLinkage.NONE);
     LogEntryCreator logCreator = mock(LogEntryCreator.class);
     BatchingLogsProcessor exportProcessor = mock(BatchingLogsProcessor.class);
 

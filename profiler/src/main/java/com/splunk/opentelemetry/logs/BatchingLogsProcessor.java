@@ -98,8 +98,7 @@ public class BatchingLogsProcessor implements LogsProcessor {
     private int maxBatchSize = DEFAULT_MAX_BATCH_SIZE;
     private Duration maxTimeBetweenBatches;
     private Consumer<List<LogEntry>> batchAction = logs -> {};
-    private ScheduledExecutorService executorService =
-        HelpfulExecutors.newSingleThreadedScheduledExecutor("BatchingLogsProcessor action");
+    private ScheduledExecutorService executorService;
 
     public Builder maxBatchSize(int maxBatchSize) {
       this.maxBatchSize = maxBatchSize;
@@ -122,6 +121,10 @@ public class BatchingLogsProcessor implements LogsProcessor {
     }
 
     public BatchingLogsProcessor build() {
+      if (executorService == null) {
+        executorService =
+            HelpfulExecutors.newSingleThreadedScheduledExecutor("BatchingLogsProcessor action");
+      }
       return new BatchingLogsProcessor(this);
     }
   }

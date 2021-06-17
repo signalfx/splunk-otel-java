@@ -46,7 +46,7 @@ public class ThreadDumpProcessor {
     // TODO: Filter out all the VM and GC entries without real stack traces?
     Stream.of(stacks)
         .filter(stack -> stack.charAt(0) == '"') // omit non-stack entries
-        .map(stack -> contextualizer.link(event.getStartTime(), eventName, stack))
+        .map(stack -> contextualizer.link(event.getStartTime(), stack, event))
         .forEach(processor);
   }
 }

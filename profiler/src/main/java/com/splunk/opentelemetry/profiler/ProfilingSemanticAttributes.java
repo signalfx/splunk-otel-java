@@ -23,6 +23,12 @@ import io.opentelemetry.api.common.AttributeKey;
 
 public class ProfilingSemanticAttributes {
 
+  public static final AttributeKey<String> LINKED_SPAN_ID = stringKey("spanId");
+  public static final AttributeKey<String> LINKED_TRACE_ID = stringKey("traceId");
+
+  /** This is a HEC field that shows up in the Logging UI. */
+  public static final AttributeKey<String> SOURCE_TYPE = stringKey("sourcetype");
+
   /** The name of the originating event that generated this profiling event */
   public static final AttributeKey<String> SOURCE_EVENT_NAME = stringKey("source.event.name");
 

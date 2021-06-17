@@ -40,6 +40,7 @@ class ThreadDumpProcessorTest {
     String traceId = "abc123";
     String spanId = "xxxxxxyyyyyyyzyzzz";
     SpanContextualizer contextualizer = new SpanContextualizer();
+    long idOfThreadRunningTheSpan = 3L;
 
     RecordedEvent event = mock(RecordedEvent.class);
     RecordedEvent threadStartingSpan = mock(RecordedEvent.class);
@@ -49,7 +50,7 @@ class ThreadDumpProcessorTest {
     when(threadStartingSpan.getString("traceId")).thenReturn(traceId);
     when(threadStartingSpan.getString("spanId")).thenReturn(spanId);
     when(threadStartingSpan.getThread()).thenReturn(threadRunningSpan);
-    when(threadRunningSpan.getJavaThreadId()).thenReturn(3L);
+    when(threadRunningSpan.getJavaThreadId()).thenReturn(idOfThreadRunningTheSpan);
 
     contextualizer.updateContext(threadStartingSpan);
     EventType eventType = mock(EventType.class);
@@ -71,7 +72,7 @@ class ThreadDumpProcessorTest {
     assertTrue(results.get(1).hasSpanInfo());
     assertEquals(spanId, results.get(1).getSpanId());
     assertEquals(traceId, results.get(1).getTraceId());
-    assertEquals(threadRunningSpan, results.get(1).getSpanStartThread());
+    assertEquals(idOfThreadRunningTheSpan, results.get(1).getSpanStartThread());
     assertTrue(results.get(1).getRawStack().contains("AwesomeThinger.overHereDoingSpanThings"));
 
     assertFalse(results.get(2).hasSpanInfo());

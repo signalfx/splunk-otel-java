@@ -17,8 +17,6 @@
 package com.splunk.opentelemetry.profiler.context;
 
 import javax.annotation.Nullable;
-import jdk.jfr.consumer.RecordedEvent;
-import jdk.jfr.consumer.RecordedThread;
 
 public class SpanLinkage {
 
@@ -26,12 +24,12 @@ public class SpanLinkage {
 
   @Nullable private final String spanId;
   @Nullable private final String traceId;
-  @Nullable private final RecordedEvent recordedEvent;
+  @Nullable private final Long threadId;
 
-  public SpanLinkage(String traceId, String spanId, RecordedEvent recordedEvent) {
+  public SpanLinkage(@Nullable String traceId, @Nullable String spanId, @Nullable Long threadId) {
     this.spanId = spanId;
     this.traceId = traceId;
-    this.recordedEvent = recordedEvent;
+    this.threadId = threadId;
   }
 
   @Nullable
@@ -44,12 +42,9 @@ public class SpanLinkage {
     return traceId;
   }
 
-  RecordedThread getRecordedThread() {
-    return recordedEvent == null ? null : recordedEvent.getThread();
-  }
-
+  @Nullable
   Long getThreadId() {
-    return recordedEvent == null ? Long.MIN_VALUE : getRecordedThread().getJavaThreadId();
+    return threadId;
   }
 
   boolean matches(String traceId, String spanId) {

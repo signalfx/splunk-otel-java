@@ -17,6 +17,7 @@
 package com.splunk.opentelemetry.profiler.context;
 
 import static com.splunk.opentelemetry.profiler.context.StackDescriptorLineParser.CANT_PARSE_THREAD_ID;
+import static com.splunk.opentelemetry.profiler.context.StackToSpanLinkage.withoutLinkage;
 
 import com.splunk.opentelemetry.profiler.events.ContextAttached;
 import java.time.Instant;
@@ -53,27 +54,27 @@ public class SpanContextualizer {
   }
 
   /** Parses thread info from the raw stack string and links it to a span (if available). */
-  public StackToSpanLinkage link(Instant time, String eventName, String rawStack) {
+  public StackToSpanLinkage link(Instant time, String rawStack, RecordedEvent event) {
     List<String> frames = Arrays.asList(lineSplitter.split(rawStack));
     if (frames.size() < 2) {
       // Many GC and other VM threads don't actually have a stack...
-      return StackToSpanLinkage.withoutLinkage(time, eventName, rawStack);
+      return withoutLinkage(time, rawStack, event);
     }
     long threadId = descriptorParser.parseThreadId(frames.get(0));
     if (threadId == CANT_PARSE_THREAD_ID) {
-      return StackToSpanLinkage.withoutLinkage(time, eventName, rawStack);
+      return withoutLinkage(time, rawStack, event);
     }
-    return link(time, eventName, rawStack, threadId);
+    return link(time, rawStack, threadId, event);
   }
 
   /** Links the raw stack with the span info for the given thread. */
-  StackToSpanLinkage link(Instant time, String eventName, String rawStack, long threadId) {
+  StackToSpanLinkage link(Instant time, String rawStack, long threadId, RecordedEvent event) {
     List<SpanLinkage> inFlightSpansForThisThread =
         threadContextTracker.getInFlightSpansForThread(threadId);
 
     if (inFlightSpansForThisThread.isEmpty()) {
       // We don't know about any in-flight spans for this stack
-      return StackToSpanLinkage.withoutLinkage(time, eventName, rawStack);
+      return withoutLinkage(time, rawStack, event);
     }
 
     // This thread has a span happening, augment with span details
@@ -91,20 +92,27 @@ public class SpanContextualizer {
               .collect(Collectors.joining(" ")));
     }
     SpanLinkage spanLinkage = inFlightSpansForThisThread.get(inFlightSpansForThisThread.size() - 1);
-    return new StackToSpanLinkage(time, eventName, rawStack, spanLinkage);
+    logger.warn(
+        "!!!!! LINKED IT UP!! thread={} span={} trace={}",
+        threadId,
+        spanLinkage.getSpanId(),
+        spanLinkage.getTraceId());
+    //    logger.warn(rawStack);
+    return new StackToSpanLinkage(time, rawStack, event, spanLinkage);
   }
 
   private void threadContextStarting(RecordedEvent event) {
     String spanId = event.getString("spanId");
     String traceId = event.getString("traceId");
+    long javaThreadId = event.getThread().getJavaThreadId();
     logger.debug(
         "SPAN THREAD CONTEXT START : [{}] {} {} at {}",
-        event.getThread().getJavaThreadId(),
+        javaThreadId,
         traceId,
         spanId,
         event.getStartTime());
 
-    SpanLinkage linkage = new SpanLinkage(traceId, spanId, event);
+    SpanLinkage linkage = new SpanLinkage(traceId, spanId, javaThreadId);
 
     threadContextTracker.addLinkage(linkage);
   }

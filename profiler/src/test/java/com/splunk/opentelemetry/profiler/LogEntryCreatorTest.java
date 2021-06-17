@@ -17,8 +17,11 @@
 package com.splunk.opentelemetry.profiler;
 
 import static com.splunk.opentelemetry.profiler.LogEntryCreator.PROFILING_SOURCE;
+import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.LINKED_SPAN_ID;
+import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.LINKED_TRACE_ID;
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.SOURCE_EVENT_NAME;
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.SOURCE_EVENT_PERIOD;
+import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.SOURCE_TYPE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -42,15 +45,24 @@ class LogEntryCreatorTest {
     String spanId = "zzzyyyzzz";
     String traceId = "abc123";
 
-    RecordedEvent event = mock(RecordedEvent.class);
+    long threadId = 987L;
     EventType eventType = mock(EventType.class);
+    RecordedEvent sourceEvent = mock(RecordedEvent.class);
 
-    when(event.getEventType()).thenReturn(eventType);
+    when(sourceEvent.getEventType()).thenReturn(eventType);
     when(eventType.getName()).thenReturn("GoodEventHere");
 
-    SpanLinkage linkage = new SpanLinkage(traceId, spanId, event);
+    SpanLinkage linkage = new SpanLinkage(traceId, spanId, threadId);
     Attributes attributes =
-        Attributes.of(SOURCE_EVENT_NAME, "GoodEventHere", SOURCE_EVENT_PERIOD, -999L);
+        Attributes.of(
+            LINKED_TRACE_ID, traceId,
+            LINKED_SPAN_ID, spanId,
+            SOURCE_EVENT_NAME,
+            "GoodEventHere",
+            SOURCE_EVENT_PERIOD,
+            -999L,
+            SOURCE_TYPE,
+            "otel.profiling");
     LogEntry expected =
         LogEntry.builder()
             .traceId(traceId)
@@ -61,7 +73,7 @@ class LogEntryCreatorTest {
             .attributes(attributes)
             .build();
 
-    StackToSpanLinkage linkedSpan = new StackToSpanLinkage(time, "GoodEventHere", stack, linkage);
+    StackToSpanLinkage linkedSpan = new StackToSpanLinkage(time, "the.stack", sourceEvent, linkage);
 
     LogEntryCreator creator = new LogEntryCreator();
     LogEntry result = creator.apply(linkedSpan);

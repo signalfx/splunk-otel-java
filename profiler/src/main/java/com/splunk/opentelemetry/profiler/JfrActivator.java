@@ -27,7 +27,6 @@ import static com.splunk.opentelemetry.profiler.util.HelpfulExecutors.logUncaugh
 import com.google.auto.service.AutoService;
 import com.splunk.opentelemetry.logs.BatchingLogsProcessor;
 import com.splunk.opentelemetry.logs.InstrumentationLibraryLogsAdapter;
-import com.splunk.opentelemetry.logs.LogEntry;
 import com.splunk.opentelemetry.logs.LogEntryAdapter;
 import com.splunk.opentelemetry.logs.LogsExporter;
 import com.splunk.opentelemetry.logs.OtlpLogsExporter;
@@ -42,7 +41,6 @@ import io.opentelemetry.sdk.resources.Resource;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
-import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Consumer;
 import org.slf4j.Logger;

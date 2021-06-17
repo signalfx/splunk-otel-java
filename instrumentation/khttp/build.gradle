@@ -10,6 +10,6 @@ dependencies {
 
   testImplementation 'com.github.jkcclemens:khttp:0.1.0'
 
-  testRuntimeOnly "org.junit.vintage:junit-vintage-engine:5.7.1"
+  testRuntimeOnly "org.junit.vintage:junit-vintage-engine:5.7.2"
   testRuntimeOnly "io.opentelemetry.javaagent:opentelemetry-armeria-shaded-for-testing:${versions.opentelemetryJavaagentAlpha}:all"
 }

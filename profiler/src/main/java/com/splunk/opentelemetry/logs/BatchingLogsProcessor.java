@@ -36,7 +36,7 @@ public class BatchingLogsProcessor implements LogsProcessor {
   private final int maxBatchSize;
   private final Duration maxTimeBetweenBatches;
   private final List<LogEntry> batch;
-  private final LogsExporter batchAction;
+  private final LogsExporter exporter;
   private final ScheduledExecutorService executorService;
   private final Object lock = new Object();
   private WatchdogTimer watchdog;
@@ -44,7 +44,7 @@ public class BatchingLogsProcessor implements LogsProcessor {
   public BatchingLogsProcessor(Builder builder) {
     this.maxTimeBetweenBatches = builder.maxTimeBetweenBatches;
     this.maxBatchSize = builder.maxBatchSize;
-    this.batchAction = builder.batchAction;
+    this.exporter = builder.batchAction;
     this.executorService = builder.executorService;
     batch = new ArrayList<>(maxBatchSize);
   }
@@ -54,7 +54,7 @@ public class BatchingLogsProcessor implements LogsProcessor {
       if (watchdog != null) {
         throw new IllegalStateException("Already running");
       }
-      watchdog = new WatchdogTimer(maxTimeBetweenBatches, this::doAction, executorService);
+      watchdog = new WatchdogTimer(maxTimeBetweenBatches, this::syncDoExport, executorService);
       watchdog.start();
     }
   }
@@ -64,7 +64,7 @@ public class BatchingLogsProcessor implements LogsProcessor {
       if (watchdog == null) {
         throw new IllegalStateException("Not running");
       }
-      doAction();
+      asyncDoExport();
       watchdog.stop();
       watchdog = null;
     }
@@ -75,20 +75,36 @@ public class BatchingLogsProcessor implements LogsProcessor {
     synchronized (lock) {
       batch.add(log);
       if (batch.size() >= maxBatchSize) {
-        doAction();
+        asyncDoExport();
         watchdog.reset();
       }
     }
   }
 
-  private void doAction() {
+  /** Async export. Batch is copied and cleared and export is scheduled. */
+  private void asyncDoExport() {
+    List<LogEntry> batchCopy = copyClearBatch();
+    if (batchCopy != null) {
+      executorService.submit(() -> exporter.export(batchCopy));
+    }
+  }
+
+  /** Synchronous export, to be called from the watchdog thread */
+  private void syncDoExport() {
+    List<LogEntry> batchCopy = copyClearBatch();
+    if (batchCopy != null) {
+      exporter.export(batchCopy);
+    }
+  }
+
+  private List<LogEntry> copyClearBatch() {
     synchronized (lock) {
       if (batch.isEmpty()) {
-        return;
+        return null;
       }
       List<LogEntry> batchCopy = new ArrayList<>(batch);
-      executorService.submit(() -> batchAction.export(batchCopy));
       batch.clear();
+      return batchCopy;
     }
   }
 

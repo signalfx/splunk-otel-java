@@ -88,14 +88,14 @@ public class JfrActivator implements ComponentInstaller {
     SpanContextualizer spanContextualizer = new SpanContextualizer();
     LogEntryCreator logEntryCreator = new LogEntryCreator();
     LogsExporter logsExporter = buildExporter();
-    Consumer<List<LogEntry>> exportAction = logsExporter::export;
+
     ScheduledExecutorService exportExecutorService =
         HelpfulExecutors.newSingleThreadedScheduledExecutor("Batched Logs Exporter");
     BatchingLogsProcessor batchingLogsProcessor =
         BatchingLogsProcessor.builder()
             .maxTimeBetweenBatches(MAX_TIME_BETWEEN_BATCHES)
             .maxBatchSize(MAX_BATCH_SIZE)
-            .batchAction(exportAction)
+            .batchAction(logsExporter)
             .executorService(exportExecutorService)
             .build();
     batchingLogsProcessor.start();

@@ -29,7 +29,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
-import java.util.function.Consumer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -60,7 +59,7 @@ class BatchingLogsProcessorTest {
   void testSimpleActionWhenSizeReached() throws Exception {
     List<LogEntry> seen = new ArrayList<>();
     CountDownLatch latch = new CountDownLatch(1);
-    Consumer<List<LogEntry>> action =
+    LogsExporter exporter =
         logs -> {
           seen.addAll(logs);
           latch.countDown();
@@ -69,7 +68,7 @@ class BatchingLogsProcessorTest {
         BatchingLogsProcessor.builder()
             .maxTimeBetweenBatches(Duration.ofHours(15))
             .maxBatchSize(3)
-            .batchAction(action)
+            .batchAction(exporter)
             .build();
     processor.start();
     processor.log(log1);
@@ -85,7 +84,7 @@ class BatchingLogsProcessorTest {
   void testSimpleActionWhenTimeReached() throws Exception {
     List<LogEntry> seen = new ArrayList<>();
     CountDownLatch latch = new CountDownLatch(1);
-    Consumer<List<LogEntry>> action =
+    LogsExporter exporter =
         logs -> {
           seen.addAll(logs);
           latch.countDown();
@@ -95,7 +94,7 @@ class BatchingLogsProcessorTest {
         BatchingLogsProcessor.builder()
             .maxTimeBetweenBatches(Duration.ofMillis(50))
             .maxBatchSize(3000)
-            .batchAction(action)
+            .batchAction(exporter)
             .build();
 
     processor.start();
@@ -110,7 +109,7 @@ class BatchingLogsProcessorTest {
   void testActionNotCalledWhenEmptyAfterTime() throws Exception {
     List<LogEntry> seen = new ArrayList<>();
     CountDownLatch latch = new CountDownLatch(1);
-    Consumer<List<LogEntry>> action =
+    LogsExporter exporter =
         logs -> {
           seen.addAll(logs);
           latch.countDown();
@@ -119,7 +118,7 @@ class BatchingLogsProcessorTest {
         BatchingLogsProcessor.builder()
             .maxTimeBetweenBatches(Duration.ofMillis(1))
             .maxBatchSize(3000)
-            .batchAction(action)
+            .batchAction(exporter)
             .build();
 
     processor.start();
@@ -131,7 +130,7 @@ class BatchingLogsProcessorTest {
   void testStopDoesAction() throws Exception {
     List<LogEntry> seen = new ArrayList<>();
     CountDownLatch latch = new CountDownLatch(1);
-    Consumer<List<LogEntry>> action =
+    LogsExporter exporter =
         logs -> {
           seen.addAll(logs);
           latch.countDown();
@@ -140,7 +139,7 @@ class BatchingLogsProcessorTest {
         BatchingLogsProcessor.builder()
             .maxTimeBetweenBatches(Duration.ofSeconds(60))
             .maxBatchSize(3000)
-            .batchAction(action)
+            .batchAction(exporter)
             .build();
 
     processor.start();
@@ -153,12 +152,12 @@ class BatchingLogsProcessorTest {
 
   @Test
   void testStopBeforeStart() {
-    Consumer<List<LogEntry>> action = logs -> {};
+    LogsExporter exporter = logs -> {};
     BatchingLogsProcessor processor =
         BatchingLogsProcessor.builder()
             .maxTimeBetweenBatches(Duration.ofSeconds(60))
             .maxBatchSize(3000)
-            .batchAction(action)
+            .batchAction(exporter)
             .build();
 
     assertThrows(IllegalStateException.class, processor::stop);
@@ -166,12 +165,12 @@ class BatchingLogsProcessorTest {
 
   @Test
   void testMultipleStarts() {
-    Consumer<List<LogEntry>> action = logs -> {};
+    LogsExporter exporter = logs -> {};
     BatchingLogsProcessor processor =
         BatchingLogsProcessor.builder()
             .maxTimeBetweenBatches(Duration.ofSeconds(60))
             .maxBatchSize(3000)
-            .batchAction(action)
+            .batchAction(exporter)
             .build();
 
     processor.start();

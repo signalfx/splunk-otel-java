@@ -23,7 +23,6 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.function.Consumer;
 
 /**
  * A log processor that batches logs until a max number are buffered or a time limit has passed,
@@ -37,7 +36,7 @@ public class BatchingLogsProcessor implements LogsProcessor {
   private final int maxBatchSize;
   private final Duration maxTimeBetweenBatches;
   private final List<LogEntry> batch;
-  private final Consumer<List<LogEntry>> batchAction;
+  private final LogsExporter batchAction;
   private final ScheduledExecutorService executorService;
   private final Object lock = new Object();
   private WatchdogTimer watchdog;
@@ -88,7 +87,7 @@ public class BatchingLogsProcessor implements LogsProcessor {
         return;
       }
       List<LogEntry> batchCopy = new ArrayList<>(batch);
-      executorService.submit(() -> batchAction.accept(batchCopy));
+      executorService.submit(() -> batchAction.export(batchCopy));
       batch.clear();
     }
   }
@@ -100,7 +99,7 @@ public class BatchingLogsProcessor implements LogsProcessor {
   public static class Builder {
     private int maxBatchSize = DEFAULT_MAX_BATCH_SIZE;
     private Duration maxTimeBetweenBatches = DEFAULT_MAX_TIME_BETWEEN_BATCHES;
-    private Consumer<List<LogEntry>> batchAction;
+    private LogsExporter batchAction;
     private ScheduledExecutorService executorService;
 
     public Builder maxBatchSize(int maxBatchSize) {
@@ -113,7 +112,7 @@ public class BatchingLogsProcessor implements LogsProcessor {
       return this;
     }
 
-    public Builder batchAction(Consumer<List<LogEntry>> batchAction) {
+    public Builder batchAction(LogsExporter batchAction) {
       this.batchAction = batchAction;
       return this;
     }

@@ -55,8 +55,10 @@ class LogEntryCreatorTest {
     SpanLinkage linkage = new SpanLinkage(traceId, spanId, threadId);
     Attributes attributes =
         Attributes.of(
-            LINKED_TRACE_ID, traceId,
-            LINKED_SPAN_ID, spanId,
+            LINKED_TRACE_ID,
+            traceId,
+            LINKED_SPAN_ID,
+            spanId,
             SOURCE_EVENT_NAME,
             "GoodEventHere",
             SOURCE_EVENT_PERIOD,

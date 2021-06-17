@@ -17,7 +17,6 @@
 package com.splunk.opentelemetry.profiler;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
@@ -27,15 +26,20 @@ import com.splunk.opentelemetry.profiler.events.ContextAttached;
 import jdk.jfr.EventType;
 import jdk.jfr.consumer.RecordedEvent;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
+@ExtendWith(MockitoExtension.class)
 class EventProcessingChainTest {
+
+  @Mock RecordedEvent event;
+  @Mock SpanContextualizer contextualizer;
+  @Mock ThreadDumpProcessor threadDumpProcessor;
+  @Mock EventType eventType;
 
   @Test
   void testContextEvent() {
-    RecordedEvent event = mock(RecordedEvent.class);
-    SpanContextualizer contextualizer = mock(SpanContextualizer.class);
-    ThreadDumpProcessor threadDumpProcessor = mock(ThreadDumpProcessor.class);
-    EventType eventType = mock(EventType.class);
 
     when(event.getEventType()).thenReturn(eventType);
     when(eventType.getName()).thenReturn(ContextAttached.EVENT_NAME);
@@ -48,10 +52,6 @@ class EventProcessingChainTest {
 
   @Test
   void testThreadDumpEvent() {
-    RecordedEvent event = mock(RecordedEvent.class);
-    SpanContextualizer contextualizer = mock(SpanContextualizer.class);
-    ThreadDumpProcessor threadDumpProcessor = mock(ThreadDumpProcessor.class);
-    EventType eventType = mock(EventType.class);
 
     when(event.getEventType()).thenReturn(eventType);
     when(eventType.getName()).thenReturn(ThreadDumpProcessor.EVENT_NAME);

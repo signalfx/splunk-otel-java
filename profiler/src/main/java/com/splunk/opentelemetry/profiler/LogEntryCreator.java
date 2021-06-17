@@ -44,7 +44,7 @@ public class LogEntryCreator implements Function<StackToSpanLinkage, LogEntry> {
 
   private Attributes buildAttributes(StackToSpanLinkage stackToSpanLinkage) {
     String sourceEvent = stackToSpanLinkage.getSourceEventName();
-    String eventPeriodMs = "tbd";
+    long eventPeriodMs = -999; // tbd
     return Attributes.of(
         SOURCE_EVENT_NAME, sourceEvent,
         SOURCE_EVENT_PERIOD, eventPeriodMs);

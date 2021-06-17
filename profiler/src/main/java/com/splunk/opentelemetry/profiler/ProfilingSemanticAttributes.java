@@ -16,6 +16,7 @@
 
 package com.splunk.opentelemetry.profiler;
 
+import static io.opentelemetry.api.common.AttributeKey.longKey;
 import static io.opentelemetry.api.common.AttributeKey.stringKey;
 
 import io.opentelemetry.api.common.AttributeKey;
@@ -26,5 +27,5 @@ public class ProfilingSemanticAttributes {
   public static final AttributeKey<String> SOURCE_EVENT_NAME = stringKey("source.event.name");
 
   /** The period of the source event, in ms. */
-  public static final AttributeKey<String> SOURCE_EVENT_PERIOD = stringKey("source.event.period");
+  public static final AttributeKey<Long> SOURCE_EVENT_PERIOD = longKey("source.event.period");
 }

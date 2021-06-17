@@ -52,7 +52,7 @@ class LogEntryCreatorTest {
     Attributes attributes =
         Attributes.of(
             SOURCE_EVENT_NAME, "GoodEventHere",
-            SOURCE_EVENT_PERIOD, "tbd");
+            SOURCE_EVENT_PERIOD, -999L);
     LogEntry expected =
         LogEntry.builder()
             .traceId(traceId)

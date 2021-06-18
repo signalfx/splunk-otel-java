@@ -92,12 +92,11 @@ public class SpanContextualizer {
               .collect(Collectors.joining(" ")));
     }
     SpanLinkage spanLinkage = inFlightSpansForThisThread.get(inFlightSpansForThisThread.size() - 1);
-    logger.warn(
-        "!!!!! LINKED IT UP!! thread={} span={} trace={}",
+    logger.debug(
+        "Stack trace was linked! thread={} span={} trace={}",
         threadId,
         spanLinkage.getSpanId(),
         spanLinkage.getTraceId());
-    //    logger.warn(rawStack);
     return new StackToSpanLinkage(time, rawStack, event, spanLinkage);
   }
 

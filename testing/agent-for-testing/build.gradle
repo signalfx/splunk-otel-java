@@ -21,8 +21,8 @@ configurations {
 dependencies {
   // include micrometer-core API
   relocateLibs(project(":bootstrap"))
-  // include testing micrometer MetricsRegistry
-  isolateLibs(project(path: ":testing:agent-metrics", configuration: "shadow"))
+  // include testing extensions, e.g. micrometer
+  isolateLibs(project(path: ":testing:agent-test-extension", configuration: "shadow"))
 
   // and finally include everything from otel agent for testing
   includeAsIs("io.opentelemetry.javaagent:opentelemetry-agent-for-testing:${versions.opentelemetryJavaagentAlpha}")
@@ -40,7 +40,7 @@ CopySpec isolateAgentClasses(Iterable<File> jars) {
 }
 
 task relocateAndIsolate(type: ShadowJar) {
-  dependsOn ':testing:agent-metrics:shadowJar'
+  dependsOn ':testing:agent-test-extension:shadowJar'
 
   configurations = [project.configurations.relocateLibs]
 

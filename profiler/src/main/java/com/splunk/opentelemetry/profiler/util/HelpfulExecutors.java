@@ -16,18 +16,12 @@
 
 package com.splunk.opentelemetry.profiler.util;
 
-import com.google.common.annotations.VisibleForTesting;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
-import java.util.function.Function;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class HelpfulExecutors {
-
-  @VisibleForTesting static Function<String, Logger> createLogger = LoggerFactory::getLogger;
 
   public static ScheduledExecutorService newSingleThreadedScheduledExecutor(String threadName) {
     return Executors.newSingleThreadScheduledExecutor(new HelpfulThreadFactory(threadName));
@@ -35,18 +29,6 @@ public class HelpfulExecutors {
 
   public static ExecutorService newSingleThreadExecutor(String name) {
     return Executors.newSingleThreadExecutor(new HelpfulThreadFactory(name));
-  }
-
-  public static Runnable logUncaught(Runnable delegate) {
-    return () -> {
-      try {
-        delegate.run();
-      } catch (Exception e) {
-        String threadName = Thread.currentThread().getName();
-        Logger logger = createLogger.apply(threadName);
-        logger.error("Uncaught exception in thread " + threadName, e);
-      }
-    };
   }
 
   private static class HelpfulThreadFactory implements ThreadFactory {

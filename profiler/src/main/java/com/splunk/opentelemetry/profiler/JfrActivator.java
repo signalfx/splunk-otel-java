@@ -22,7 +22,7 @@ import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_PROFILE
 import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_RECORDING_DURATION_SECONDS;
 import static com.splunk.opentelemetry.profiler.JfrFileLifecycleEvents.buildOnFileFinished;
 import static com.splunk.opentelemetry.profiler.JfrFileLifecycleEvents.buildOnNewRecording;
-import static com.splunk.opentelemetry.profiler.util.HelpfulExecutors.logUncaught;
+import static com.splunk.opentelemetry.profiler.util.Runnables.logUncaught;
 
 import com.google.auto.service.AutoService;
 import com.splunk.opentelemetry.logs.BatchingLogsProcessor;

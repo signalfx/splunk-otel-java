@@ -49,7 +49,7 @@ public class BatchingLogsProcessor implements LogsProcessor {
     batch = new ArrayList<>(maxBatchSize);
   }
 
-  void start() {
+  public void start() {
     synchronized (lock) {
       if (watchdog != null) {
         throw new IllegalStateException("Already running");

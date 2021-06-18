@@ -23,6 +23,10 @@ import io.opentelemetry.api.common.AttributeKey;
 
 public class ProfilingSemanticAttributes {
 
+  // NOTE: When we update to upstream 1.4.0+ this can be found on ResourceAttributes and this can be
+  // removed
+  public static final String SCHEMA_URL = "https://opentelemetry.io/schemas/1.4.0";
+
   public static final AttributeKey<String> LINKED_SPAN_ID = stringKey("spanId");
   public static final AttributeKey<String> LINKED_TRACE_ID = stringKey("traceId");
 

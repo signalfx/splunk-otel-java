@@ -16,6 +16,7 @@
 
 package com.splunk.opentelemetry.logs;
 
+import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.SCHEMA_URL;
 import static io.opentelemetry.semconv.trace.attributes.SemanticAttributes.HTTP_METHOD;
 import static java.time.temporal.ChronoUnit.MINUTES;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -28,7 +29,7 @@ import java.util.Arrays;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
-class InstrumentationLibraryLogEntryAdapterTest {
+class InstrumentationLibraryLogAdapterTest {
 
   @Test
   void testApply() {
@@ -64,6 +65,7 @@ class InstrumentationLibraryLogEntryAdapterTest {
 
     List<LogRecord> resultLogs = result.getLogsList();
     assertEquals("otel-profiling", result.getInstrumentationLibrary().getName());
+    assertEquals(SCHEMA_URL, result.getSchemaUrl());
     assertEquals("1.2.3", result.getInstrumentationLibrary().getVersion());
     assertEquals(3, resultLogs.size());
     assertLog(resultLogs.get(0), now.plus(0, MINUTES), "get", "log1");

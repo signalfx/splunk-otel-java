@@ -16,6 +16,7 @@
 
 package com.splunk.opentelemetry.logs;
 
+import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.SCHEMA_URL;
 import static io.opentelemetry.semconv.trace.attributes.SemanticAttributes.ENDUSER_ID;
 import static java.time.temporal.ChronoUnit.SECONDS;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -31,7 +32,7 @@ import java.util.Arrays;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
-class ResourceLogEntryAdapterTest {
+class ResourceLogAdapterTest {
 
   @Test
   void testApply() {
@@ -67,6 +68,7 @@ class ResourceLogEntryAdapterTest {
     ResourceLogsAdapter adapter = new ResourceLogsAdapter(instLogsAdapter, resourceAttrs);
     ResourceLogs result = adapter.apply(sourceLogs);
 
+    assertEquals(SCHEMA_URL, result.getSchemaUrl());
     List<KeyValue> resultResourceAttrs = result.getResource().getAttributesList();
     assertEquals(2, resultResourceAttrs.size());
     assertEquals("service.name", resultResourceAttrs.get(0).getKey());

@@ -16,6 +16,7 @@
 
 package com.splunk.opentelemetry.logs;
 
+import com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes;
 import io.opentelemetry.proto.common.v1.KeyValue;
 import io.opentelemetry.proto.logs.v1.InstrumentationLibraryLogs;
 import io.opentelemetry.proto.logs.v1.ResourceLogs;
@@ -55,6 +56,7 @@ public class ResourceLogsAdapter implements Function<List<LogEntry>, ResourceLog
             .build();
     return ResourceLogs.newBuilder()
         .setResource(protoResource)
+        .setSchemaUrl(ProfilingSemanticAttributes.SCHEMA_URL)
         .addInstrumentationLibraryLogs(instrumentationLibraryLogs)
         .build();
   }

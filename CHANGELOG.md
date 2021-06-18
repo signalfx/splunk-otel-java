@@ -10,9 +10,20 @@ and this repository adheres to [Semantic Versioning](https://semver.org/spec/v2.
 
 ### General
 
-- First stable release of the Splunk Distribution of OpenTelemetry Java.
+- OpenTelemetry Java SDK and OpenTelemetry Instrumentation for Java dependencies were updated to version 1.3.0.
 
 ## v1.0.0 - 2021-06-02
+
+### General
+
+- First stable release of the Splunk Distribution of OpenTelemetry Java.
+- [khttp](https://khttp.readthedocs.io/) instrumentation was moved from the upstream OpenTelemetry Instrumentation for
+  Java repo to this one. We are now responsible for maintaining this instrumentation.
+
+### Bugfixes
+
+- The agent will always set exactly one `Server-Timing` header value; the bug where multiple copies of the same header
+  value were set was fixed.
 
 ## v0.12.0 (RC) - 2021-05-24
 

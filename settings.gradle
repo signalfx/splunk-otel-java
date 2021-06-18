@@ -33,6 +33,6 @@ include("agent",
   "profiler",
   "smoke-tests",
   "testing:agent-for-testing",
+  "testing:agent-test-extension",
   "testing:profiler-tests",
-  "testing:agent-metrics",
   "testing:common")

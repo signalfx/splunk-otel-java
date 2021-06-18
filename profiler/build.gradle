@@ -12,11 +12,13 @@ compileJava {
 }
 
 dependencies {
-    compileOnly("io.opentelemetry:opentelemetry-sdk:${versions.opentelemetry}")
-    compileOnly("io.opentelemetry:opentelemetry-sdk-extension-autoconfigure:${versions.opentelemetryAlpha}")
-    compileOnly("io.opentelemetry.javaagent:opentelemetry-javaagent-extension-api:${versions.opentelemetryJavaagentAlpha}")
-    compileOnly("io.opentelemetry.instrumentation:opentelemetry-instrumentation-api:${versions.opentelemetryJavaagentAlpha}")
-    compileOnly("io.opentelemetry:opentelemetry-semconv:${versions.opentelemetryAlpha}")
+    compileOnly "io.opentelemetry:opentelemetry-sdk:${versions.opentelemetry}"
+    compileOnly "io.opentelemetry:opentelemetry-sdk-extension-autoconfigure:${versions.opentelemetryAlpha}"
+    compileOnly "io.opentelemetry.javaagent:opentelemetry-javaagent-extension-api:${versions.opentelemetryJavaagentAlpha}"
+    compileOnly "io.opentelemetry.instrumentation:opentelemetry-instrumentation-api:${versions.opentelemetryJavaagentAlpha}"
+    compileOnly "io.opentelemetry:opentelemetry-semconv:${versions.opentelemetryAlpha}"
+    compileOnly "io.opentelemetry:opentelemetry-proto:${versions.opentelemetryAlpha}"
+
     compileOnly deps.slf4j
 
     annotationProcessor deps.autoservice
@@ -25,7 +27,9 @@ dependencies {
     testImplementation deps.slf4j
     testImplementation "io.opentelemetry:opentelemetry-context:${versions.opentelemetry}"
     testImplementation "io.opentelemetry:opentelemetry-api:${versions.opentelemetry}"
-
+    testImplementation "io.opentelemetry:opentelemetry-proto:${versions.opentelemetryAlpha}"
+    testImplementation "io.opentelemetry:opentelemetry-semconv:${versions.opentelemetryAlpha}"
+    testImplementation "io.opentelemetry:opentelemetry-sdk:${versions.opentelemetry}"
 }
 
 shadowJar {

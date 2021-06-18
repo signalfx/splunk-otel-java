@@ -27,6 +27,7 @@ import com.splunk.opentelemetry.profiler.context.StackToSpanLinkage;
 import com.splunk.opentelemetry.profiler.events.ContextAttached;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 import jdk.jfr.EventType;
 import jdk.jfr.consumer.RecordedEvent;
 import jdk.jfr.consumer.RecordedThread;
@@ -57,13 +58,8 @@ class ThreadDumpProcessorTest {
     when(event.getString("result")).thenReturn(WALL_OF_STACKS);
 
     List<StackToSpanLinkage> results = new ArrayList<>();
-    ThreadDumpProcessor processor =
-        new ThreadDumpProcessor(contextualizer) {
-          @Override
-          void export(StackToSpanLinkage linkedStack) {
-            results.add(linkedStack);
-          }
-        };
+    Consumer<StackToSpanLinkage> exportProcessor = results::add;
+    ThreadDumpProcessor processor = new ThreadDumpProcessor(contextualizer, exportProcessor);
 
     processor.accept(event);
     assertEquals(3, results.size());

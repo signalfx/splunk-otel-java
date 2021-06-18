@@ -25,6 +25,9 @@ import static com.splunk.opentelemetry.profiler.JfrFileLifecycleEvents.buildOnNe
 import static com.splunk.opentelemetry.profiler.util.HelpfulExecutors.logUncaught;
 
 import com.google.auto.service.AutoService;
+import com.splunk.opentelemetry.logs.BatchingLogsProcessor;
+import com.splunk.opentelemetry.logs.LogEntry;
+import com.splunk.opentelemetry.logs.LogsExporter;
 import com.splunk.opentelemetry.profiler.context.SpanContextualizer;
 import com.splunk.opentelemetry.profiler.util.FileDeleter;
 import com.splunk.opentelemetry.profiler.util.HelpfulExecutors;
@@ -33,7 +36,9 @@ import io.opentelemetry.javaagent.extension.AgentListener;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.function.Consumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,6 +47,8 @@ import org.slf4j.LoggerFactory;
 public class JfrActivator implements AgentListener {
 
   private static final Logger logger = LoggerFactory.getLogger(JfrActivator.class);
+  private static final int MAX_BATCH_SIZE = 250;
+  private static final Duration MAX_TIME_BETWEEN_BATCHES = Duration.ofSeconds(10);
   private final ExecutorService executor = HelpfulExecutors.newSingleThreadExecutor("JFR Profiler");
 
   @Override
@@ -79,7 +86,24 @@ public class JfrActivator implements AgentListener {
         () -> new FilterSortedRecordingFile(() -> new BasicJfrRecordingFile(JFR.instance));
 
     SpanContextualizer spanContextualizer = new SpanContextualizer();
-    ThreadDumpProcessor threadDumpProcessor = new ThreadDumpProcessor(spanContextualizer);
+    LogEntryCreator logEntryCreator = new LogEntryCreator();
+    LogsExporter logsExporter = buildExporter();
+
+    ScheduledExecutorService exportExecutorService =
+        HelpfulExecutors.newSingleThreadedScheduledExecutor("Batched Logs Exporter");
+    BatchingLogsProcessor batchingLogsProcessor =
+        BatchingLogsProcessor.builder()
+            .maxTimeBetweenBatches(MAX_TIME_BETWEEN_BATCHES)
+            .maxBatchSize(MAX_BATCH_SIZE)
+            .batchAction(logsExporter)
+            .executorService(exportExecutorService)
+            .build();
+    batchingLogsProcessor.start();
+    StackToSpanLinkageProcessor processor =
+        new StackToSpanLinkageProcessor(logEntryCreator, batchingLogsProcessor);
+
+    ThreadDumpProcessor threadDumpProcessor =
+        new ThreadDumpProcessor(spanContextualizer, processor);
     EventProcessingChain eventProcessingChain =
         new EventProcessingChain(spanContextualizer, threadDumpProcessor);
     Consumer<Path> deleter = buildFileDeleter(config);
@@ -114,6 +138,16 @@ public class JfrActivator implements AgentListener {
 
     sequencer.start();
     dirCleanup.registerShutdownHook();
+  }
+
+  private LogsExporter buildExporter() {
+    return new LogsExporter() {
+      @Override
+      public void export(List<LogEntry> logs) {
+        // stubbed for now!
+        logger.debug("Not exporting {} logs (stubbed)", logs.size());
+      }
+    };
   }
 
   private Consumer<Path> buildFileDeleter(Config config) {

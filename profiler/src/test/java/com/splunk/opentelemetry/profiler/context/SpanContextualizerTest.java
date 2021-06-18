@@ -22,6 +22,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.splunk.opentelemetry.profiler.events.ContextAttached;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -37,6 +38,7 @@ class SpanContextualizerTest {
   private final String spanId = "abc123";
   private final String traceId = "23489uasdpfoiajsdfph23oij";
   private final String rawStack = "raw is raw";
+  private final Instant time = Instant.now();
 
   @Test
   void testSimplePath() {
@@ -274,14 +276,14 @@ class SpanContextualizerTest {
   }
 
   private void assertLinkage(SpanContextualizer testClass, Events events, String stack) {
-    StackToSpanLinkage result = testClass.link(stack, events.threadId);
+    StackToSpanLinkage result = testClass.link(time, stack, events.threadId);
     assertEquals(events.spanId, result.getSpanId());
     assertEquals(traceId, result.getTraceId());
     assertEquals(stack, result.getRawStack());
   }
 
   private void assertNoLinkage(SpanContextualizer testClass, Events events) {
-    StackToSpanLinkage result = testClass.link(rawStack, events.threadId);
+    StackToSpanLinkage result = testClass.link(time, rawStack, events.threadId);
     assertNull(result.getSpanId());
   }
 

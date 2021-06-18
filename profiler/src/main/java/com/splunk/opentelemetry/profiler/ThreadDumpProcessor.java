@@ -18,6 +18,7 @@ package com.splunk.opentelemetry.profiler;
 
 import com.splunk.opentelemetry.profiler.context.SpanContextualizer;
 import com.splunk.opentelemetry.profiler.context.StackToSpanLinkage;
+import java.util.function.Consumer;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 import jdk.jfr.consumer.RecordedEvent;
@@ -29,9 +30,12 @@ public class ThreadDumpProcessor {
   private static final Logger logger = LoggerFactory.getLogger(ThreadDumpProcessor.class);
   private final Pattern stackSeparator = Pattern.compile("\n\n");
   private final SpanContextualizer contextualizer;
+  private final Consumer<StackToSpanLinkage> processor;
 
-  public ThreadDumpProcessor(SpanContextualizer contextualizer) {
+  public ThreadDumpProcessor(
+      SpanContextualizer contextualizer, Consumer<StackToSpanLinkage> processor) {
     this.contextualizer = contextualizer;
+    this.processor = processor;
   }
 
   public void accept(RecordedEvent event) {
@@ -42,11 +46,7 @@ public class ThreadDumpProcessor {
     // TODO: Filter out all the VM and GC entries without real stack traces?
     Stream.of(stacks)
         .filter(stack -> stack.charAt(0) == '"') // omit non-stack entries
-        .map(contextualizer::link)
-        .forEach(this::export);
-  }
-
-  void export(StackToSpanLinkage linkedStack) {
-    // NOP - placeholder for now
+        .map(stack -> contextualizer.link(event.getStartTime(), stack))
+        .forEach(processor);
   }
 }

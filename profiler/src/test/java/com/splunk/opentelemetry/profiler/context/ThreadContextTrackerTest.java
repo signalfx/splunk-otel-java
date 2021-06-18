@@ -21,6 +21,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
+import jdk.jfr.consumer.RecordedEvent;
 import jdk.jfr.consumer.RecordedThread;
 import org.junit.jupiter.api.Test;
 
@@ -71,7 +72,9 @@ class ThreadContextTrackerTest {
 
   private SpanLinkage makeLinkage(String spanId, long threadId) {
     RecordedThread thread = mock(RecordedThread.class);
+    RecordedEvent event = mock(RecordedEvent.class);
+    when(event.getThread()).thenReturn(thread);
     when(thread.getJavaThreadId()).thenReturn(threadId);
-    return new SpanLinkage(spanId, traceId, thread);
+    return new SpanLinkage(traceId, spanId, event);
   }
 }

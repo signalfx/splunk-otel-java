@@ -20,21 +20,18 @@ import com.google.auto.service.AutoService;
 import io.opentelemetry.sdk.autoconfigure.spi.SdkTracerProviderConfigurer;
 import io.opentelemetry.sdk.trace.SdkTracerProviderBuilder;
 import io.opentelemetry.sdk.trace.SpanLimits;
-import io.opentelemetry.sdk.trace.samplers.Sampler;
 
 @AutoService(SdkTracerProviderConfigurer.class)
 public class SplunkTracerProviderConfigurer implements SdkTracerProviderConfigurer {
   @Override
   public void configure(SdkTracerProviderBuilder tracerProvider) {
-    tracerProvider
-        .setSampler(Sampler.alwaysOn())
-        .setSpanLimits(
-            SpanLimits.builder()
-                .setMaxNumberOfAttributes(Integer.MAX_VALUE)
-                .setMaxNumberOfEvents(Integer.MAX_VALUE)
-                .setMaxNumberOfLinks(1000)
-                .setMaxNumberOfAttributesPerEvent(Integer.MAX_VALUE)
-                .setMaxNumberOfAttributesPerLink(Integer.MAX_VALUE)
-                .build());
+    tracerProvider.setSpanLimits(
+        SpanLimits.builder()
+            .setMaxNumberOfAttributes(Integer.MAX_VALUE)
+            .setMaxNumberOfEvents(Integer.MAX_VALUE)
+            .setMaxNumberOfLinks(1000)
+            .setMaxNumberOfAttributesPerEvent(Integer.MAX_VALUE)
+            .setMaxNumberOfAttributesPerLink(Integer.MAX_VALUE)
+            .build());
   }
 }

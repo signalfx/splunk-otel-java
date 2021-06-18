@@ -8,15 +8,11 @@ and this repository adheres to [Semantic Versioning](https://semver.org/spec/v2.
 
 ## Unreleased
 
+## v1.1.0 - 2021-06-18
+
 ### General
 
 - OpenTelemetry Java SDK and OpenTelemetry Instrumentation for Java dependencies were updated to version 1.3.0.
-
-## v1.0.0 - 2021-06-02
-
-### General
-
-- First stable release of the Splunk Distribution of OpenTelemetry Java.
 - [khttp](https://khttp.readthedocs.io/) instrumentation was moved from the upstream OpenTelemetry Instrumentation for
   Java repo to this one. We are now responsible for maintaining this instrumentation.
 
@@ -24,6 +20,18 @@ and this repository adheres to [Semantic Versioning](https://semver.org/spec/v2.
 
 - The agent will always set exactly one `Server-Timing` header value; the bug where multiple copies of the same header
   value were set was fixed.
+
+### Enhancements
+
+- Added `internal_root_off` sampler that will drop all traces that start with `INTERNAL`, `CLIENT` or `PRODUCER` span -
+  the only top-level span kinds allowed are `SERVER` and `CONSUMER`. You can use this sampler by setting
+  the `otel.traces.sampler` configuration property.
+
+## v1.0.0 - 2021-06-02
+
+### General
+
+- First stable release of the Splunk Distribution of OpenTelemetry Java.
 
 ## v0.12.0 (RC) - 2021-05-24
 

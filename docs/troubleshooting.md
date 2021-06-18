@@ -46,16 +46,23 @@ If you're seeing the following error in your logs:
 [BatchSpanProcessor_WorkerThread-1] ERROR io.opentelemetry.exporter.otlp.trace.OtlpGrpcSpanExporter - Failed to export spans. Server is UNAVAILABLE. Make sure your collector is running and reachable from this network. Full error message:UNAVAILABLE: io exception
 ```
 
-then it means that the javaagent cannot send trace data to the OpenTelemetry Collector or Splunk cloud.
+then it means that the javaagent cannot send trace data to the OpenTelemetry Collector.
 
-1. Please make sure that `otel.exporter.otlp.endpoint` points to the correct host: an OpenTelemetry Collector instance
-   or the Splunk ingest URL.
-2. If you're using the OpenTelemetry Collector, verify that the instance is up.
+1. Please make sure that `otel.exporter.otlp.endpoint` points to the correct OpenTelemetry Collector instance host.
+2. Please verify that your Collector instance is up.
 3. Please make sure that your OpenTelemetry Collector instance is properly configured and that the OTLP gRPC receiver is
    enabled and plugged into the traces pipeline.
 4. The OpenTelemetry Collector listens on the following address: `http://<host>:4317`. Verify that your URL is correct.
-5. If you're sending traces directly to the Splunk cloud, please verify that the `SPLUNK_ACCESS_TOKEN` is configured and
-   contains a valid access token.
+
+If you're seeing the following error in your logs:
+
+```
+[grpc-default-executor-1] ERROR io.opentelemetry.exporter.otlp.trace.OtlpGrpcSpanExporter - Failed to export spans. Server is UNAVAILABLE. Make sure your collector is running and reachable from this network. Full error message:UNAVAILABLE: io exception
+Channel Pipeline: [SslHandler#0, ProtocolNegotiators$ClientTlsHandler#0, WriteBufferingAndExceptionHandler#0, DefaultChannelPipeline$TailContext#0]
+```
+
+then you're probably trying to send traces directly to the Splunk ingest; unfortunately, the OTLP span exporter does not
+support this scenario yet. Please use the [Jaeger exporter](advanced-config.md#trace-exporters) instead.
 
 ### Jaeger exporter
 

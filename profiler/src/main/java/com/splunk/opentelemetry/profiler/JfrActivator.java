@@ -22,21 +22,25 @@ import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_PROFILE
 import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_RECORDING_DURATION_SECONDS;
 import static com.splunk.opentelemetry.profiler.JfrFileLifecycleEvents.buildOnFileFinished;
 import static com.splunk.opentelemetry.profiler.JfrFileLifecycleEvents.buildOnNewRecording;
-import static com.splunk.opentelemetry.profiler.util.HelpfulExecutors.logUncaught;
+import static com.splunk.opentelemetry.profiler.util.Runnables.logUncaught;
 
 import com.google.auto.service.AutoService;
 import com.splunk.opentelemetry.logs.BatchingLogsProcessor;
-import com.splunk.opentelemetry.logs.LogEntry;
+import com.splunk.opentelemetry.logs.InstrumentationLibraryLogsAdapter;
+import com.splunk.opentelemetry.logs.LogEntryAdapter;
 import com.splunk.opentelemetry.logs.LogsExporter;
+import com.splunk.opentelemetry.logs.OtlpLogsExporter;
+import com.splunk.opentelemetry.logs.ResourceLogsAdapter;
 import com.splunk.opentelemetry.profiler.context.SpanContextualizer;
 import com.splunk.opentelemetry.profiler.util.FileDeleter;
 import com.splunk.opentelemetry.profiler.util.HelpfulExecutors;
 import io.opentelemetry.instrumentation.api.config.Config;
 import io.opentelemetry.javaagent.extension.AgentListener;
+import io.opentelemetry.sdk.autoconfigure.OpenTelemetrySdkAutoConfiguration;
+import io.opentelemetry.sdk.resources.Resource;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
-import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.function.Consumer;
@@ -45,6 +49,9 @@ import org.slf4j.LoggerFactory;
 
 @AutoService(AgentListener.class)
 public class JfrActivator implements AgentListener {
+
+  private static final String OTEL_INSTRUMENTATION_NAME = "otel.profiling";
+  private static final String OTEL_INSTRUMENTATION_VERSION = "0.1.0";
 
   private static final Logger logger = LoggerFactory.getLogger(JfrActivator.class);
   private static final int MAX_BATCH_SIZE = 250;
@@ -141,13 +148,24 @@ public class JfrActivator implements AgentListener {
   }
 
   private LogsExporter buildExporter() {
-    return new LogsExporter() {
-      @Override
-      public void export(List<LogEntry> logs) {
-        // stubbed for now!
-        logger.debug("Not exporting {} logs (stubbed)", logs.size());
-      }
-    };
+
+    ResourceLogsAdapter adapter = buildResourceLogsAdapter();
+    return OtlpLogsExporter.builder()
+        .setAdapter(adapter)
+        .addHeader("Extra-Content-Type", "otel-profiling-stacktraces")
+        .build();
+  }
+
+  private ResourceLogsAdapter buildResourceLogsAdapter() {
+    Resource resource = OpenTelemetrySdkAutoConfiguration.getResource();
+    LogEntryAdapter logEntryAdapter = new LogEntryAdapter();
+    InstrumentationLibraryLogsAdapter instLibraryLogsAdapter =
+        InstrumentationLibraryLogsAdapter.builder()
+            .logEntryAdapter(logEntryAdapter)
+            .instrumentationName(OTEL_INSTRUMENTATION_NAME)
+            .instrumentationVersion(OTEL_INSTRUMENTATION_VERSION)
+            .build();
+    return new ResourceLogsAdapter(instLibraryLogsAdapter, resource);
   }
 
   private Consumer<Path> buildFileDeleter(Config config) {

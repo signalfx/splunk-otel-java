@@ -16,8 +16,11 @@
 
 package com.splunk.opentelemetry.profiler;
 
+import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.LINKED_SPAN_ID;
+import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.LINKED_TRACE_ID;
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.SOURCE_EVENT_NAME;
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.SOURCE_EVENT_PERIOD;
+import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.SOURCE_TYPE;
 
 import com.splunk.opentelemetry.logs.LogEntry;
 import com.splunk.opentelemetry.profiler.context.StackToSpanLinkage;
@@ -32,21 +35,36 @@ public class LogEntryCreator implements Function<StackToSpanLinkage, LogEntry> {
   @Override
   public LogEntry apply(StackToSpanLinkage linkedStack) {
     Attributes attributes = buildAttributes(linkedStack);
-    return LogEntry.builder()
-        .name(PROFILING_SOURCE)
-        .time(linkedStack.getTime())
-        .body(linkedStack.getRawStack())
-        .traceId(linkedStack.getTraceId())
-        .spanId(linkedStack.getSpanId())
-        .attributes(attributes)
-        .build();
+    LogEntry.Builder builder =
+        LogEntry.builder()
+            .name(PROFILING_SOURCE)
+            .time(linkedStack.getTime())
+            .body(linkedStack.getRawStack())
+            .attributes(attributes);
+    if (linkedStack.hasSpanInfo()) {
+      builder.traceId(linkedStack.getTraceId()).spanId(linkedStack.getSpanId());
+    }
+    return builder.build();
   }
 
-  private Attributes buildAttributes(StackToSpanLinkage stackToSpanLinkage) {
-    String sourceEvent = stackToSpanLinkage.getSourceEventName();
+  private Attributes buildAttributes(StackToSpanLinkage linkedStack) {
+    String sourceEvent = linkedStack.getSourceEventName();
     long eventPeriodMs = -999; // tbd
+
+    // Note: It is currently believed that the span id and trace id on the LogRecord itself
+    // do not get ingested correctly. Placing them here as attributes is a temporary workaround
+    // until the collector/ingest can be remedied.
+
     return Attributes.of(
-        SOURCE_EVENT_NAME, sourceEvent,
-        SOURCE_EVENT_PERIOD, eventPeriodMs);
+        LINKED_TRACE_ID,
+        linkedStack.getTraceId(),
+        LINKED_SPAN_ID,
+        linkedStack.getSpanId(),
+        SOURCE_TYPE,
+        PROFILING_SOURCE,
+        SOURCE_EVENT_NAME,
+        sourceEvent,
+        SOURCE_EVENT_PERIOD,
+        eventPeriodMs);
   }
 }

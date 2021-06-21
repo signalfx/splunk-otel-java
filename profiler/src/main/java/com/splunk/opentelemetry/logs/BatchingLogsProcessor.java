@@ -19,6 +19,7 @@ package com.splunk.opentelemetry.logs;
 import static java.util.Objects.requireNonNull;
 
 import com.splunk.opentelemetry.profiler.util.HelpfulExecutors;
+import com.splunk.opentelemetry.profiler.util.Runnables;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
@@ -85,7 +86,8 @@ public class BatchingLogsProcessor implements LogsProcessor {
   private void asyncDoExport() {
     List<LogEntry> batchCopy = copyClearBatch();
     if (batchCopy != null) {
-      executorService.submit(() -> exporter.export(batchCopy));
+      Runnable task = Runnables.logUncaught(() -> exporter.export(batchCopy));
+      executorService.submit(task);
     }
   }
 

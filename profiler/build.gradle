@@ -18,13 +18,21 @@ dependencies {
     compileOnly "io.opentelemetry.instrumentation:opentelemetry-instrumentation-api:${versions.opentelemetryJavaagentAlpha}"
     compileOnly "io.opentelemetry:opentelemetry-semconv:${versions.opentelemetryAlpha}"
     compileOnly "io.opentelemetry:opentelemetry-proto:${versions.opentelemetryAlpha}"
-
     compileOnly deps.slf4j
+    compileOnly "io.grpc:grpc-netty:${versions.grpc}"
+    compileOnly "io.grpc:grpc-netty-shaded:${versions.grpc}"
+    compileOnly("io.grpc:grpc-api:${versions.grpc}")
+    compileOnly("io.grpc:grpc-protobuf:${versions.grpc}")
+    compileOnly("io.grpc:grpc-stub:${versions.grpc}")
+    compileOnly("com.google.protobuf:protobuf-java:3.17.3")
+
 
     annotationProcessor deps.autoservice
     implementation deps.autoservice
 
     testImplementation deps.slf4j
+    testImplementation "io.opentelemetry:opentelemetry-proto:${versions.opentelemetryAlpha}"
+    testImplementation "io.opentelemetry:opentelemetry-semconv:${versions.opentelemetryAlpha}"
     testImplementation "io.opentelemetry:opentelemetry-context:${versions.opentelemetry}"
     testImplementation "io.opentelemetry:opentelemetry-api:${versions.opentelemetry}"
     testImplementation "io.opentelemetry:opentelemetry-proto:${versions.opentelemetryAlpha}"

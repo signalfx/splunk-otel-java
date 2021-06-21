@@ -25,58 +25,9 @@ import java.util.List;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Function;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.slf4j.Logger;
 
 class HelpfulExecutorsTest {
-
-  Function<String, Logger> originalLoggerSupplier;
-
-  @BeforeEach
-  void setup() {
-    originalLoggerSupplier = HelpfulExecutors.createLogger;
-  }
-
-  @AfterEach
-  void teardown() {
-    HelpfulExecutors.createLogger = originalLoggerSupplier;
-  }
-
-  @Test
-  void testLogUncaught() {
-    Logger logger = mock(Logger.class);
-    HelpfulExecutors.createLogger = x -> logger;
-    AtomicBoolean hasRun = new AtomicBoolean(false);
-    RuntimeException exception = new RuntimeException("Kaboom");
-    Runnable runnable =
-        HelpfulExecutors.logUncaught(
-            () -> {
-              hasRun.set(true);
-              throw exception;
-            });
-    runnable.run();
-    assertTrue(hasRun.get());
-    verify(logger)
-        .error("Uncaught exception in thread " + Thread.currentThread().getName(), exception);
-  }
-
-  @Test
-  void testLogUncaught_nothingThrown() {
-    Logger logger = mock(Logger.class);
-    HelpfulExecutors.createLogger = x -> logger;
-    AtomicBoolean hasRun = new AtomicBoolean(false);
-    Runnable runnable =
-        HelpfulExecutors.logUncaught(
-            () -> {
-              hasRun.set(true);
-            });
-    runnable.run();
-    assertTrue(hasRun.get());
-    verifyNoInteractions(logger);
-  }
 
   @Test
   void testSingleThreadedExecutor() throws Exception {

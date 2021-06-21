@@ -276,14 +276,15 @@ class SpanContextualizerTest {
   }
 
   private void assertLinkage(SpanContextualizer testClass, Events events, String stack) {
-    StackToSpanLinkage result = testClass.link(time, stack, events.threadId);
+    StackToSpanLinkage result = testClass.link(time, stack, events.threadId, events.sourceEvent);
     assertEquals(events.spanId, result.getSpanId());
     assertEquals(traceId, result.getTraceId());
     assertEquals(stack, result.getRawStack());
+    assertEquals(result.getSourceEventName(), "GreatSourceEventHere");
   }
 
   private void assertNoLinkage(SpanContextualizer testClass, Events events) {
-    StackToSpanLinkage result = testClass.link(time, rawStack, events.threadId);
+    StackToSpanLinkage result = testClass.link(time, rawStack, events.threadId, events.sourceEvent);
     assertNull(result.getSpanId());
   }
 
@@ -291,6 +292,10 @@ class SpanContextualizerTest {
     Events result = new Events(spanId, threadId);
     result.scopeStart = contextEventIn(spanId, threadId);
     result.scopeEnd = contextEventOut(spanId, threadId);
+    result.sourceEvent = mock(RecordedEvent.class);
+    EventType eventType = mock(EventType.class);
+    when(result.sourceEvent.getEventType()).thenReturn(eventType);
+    when(eventType.getName()).thenReturn("GreatSourceEventHere");
     return result;
   }
 
@@ -299,6 +304,7 @@ class SpanContextualizerTest {
     private final long threadId;
     public RecordedEvent scopeStart;
     public RecordedEvent scopeEnd;
+    public RecordedEvent sourceEvent;
 
     Events(String spanId, long threadId) {
       this.spanId = spanId;

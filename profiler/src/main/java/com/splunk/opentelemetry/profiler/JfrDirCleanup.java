@@ -16,7 +16,7 @@
 
 package com.splunk.opentelemetry.profiler;
 
-import static com.splunk.opentelemetry.profiler.util.HelpfulExecutors.logUncaught;
+import static com.splunk.opentelemetry.profiler.util.Runnables.logUncaught;
 
 import com.google.common.annotations.VisibleForTesting;
 import java.nio.file.Path;

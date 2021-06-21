@@ -32,7 +32,7 @@ public class Runnables {
       } catch (Exception e) {
         String threadName = Thread.currentThread().getName();
         Logger logger = createLogger.apply(threadName);
-        logger.error("Uncaught exception in thread " + threadName, e);
+        logger.error("Uncaught exception in thread {}", threadName, e);
       }
     };
   }

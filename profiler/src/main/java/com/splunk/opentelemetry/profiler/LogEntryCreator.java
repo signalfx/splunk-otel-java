@@ -51,7 +51,7 @@ public class LogEntryCreator implements Function<StackToSpanLinkage, LogEntry> {
     String sourceEvent = linkedStack.getSourceEventName();
     long eventPeriodMs = -999; // tbd
 
-    // Note: It is currently believed that he span id and trace id on the LogRecord itself
+    // Note: It is currently believed that the span id and trace id on the LogRecord itself
     // do not get ingested correctly. Placing them here as attributes is a temporary workaround
     // until the collector/ingest can be remedied.
 

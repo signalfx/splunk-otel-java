@@ -57,7 +57,7 @@ class RunnablesTest {
     runnable.run();
     assertTrue(hasRun.get());
     verify(logger)
-        .error("Uncaught exception in thread " + Thread.currentThread().getName(), exception);
+        .error("Uncaught exception in thread {}", Thread.currentThread().getName(), exception);
   }
 
   @Test

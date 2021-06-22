@@ -33,7 +33,8 @@ import org.slf4j.LoggerFactory;
 class JfrRecorder {
   private static final Logger logger = LoggerFactory.getLogger(JfrRecorder.class.getName());
   static final String RECORDING_NAME = "otel_agent_jfr_profiler";
-  private final JfrSettingsReader settingsReader;
+  private final Map<String, String> settings;
+
   private final Duration maxAgeDuration;
   private final JFR jfr;
   private final Consumer<Path> onNewRecordingFile;
@@ -41,7 +42,7 @@ class JfrRecorder {
   private volatile Recording recording;
 
   JfrRecorder(Builder builder) {
-    this.settingsReader = requireNonNull(builder.settingsReader);
+    this.settings = requireNonNull(builder.settings);
     this.maxAgeDuration = requireNonNull(builder.maxAgeDuration);
     this.jfr = requireNonNull(builder.jfr);
     this.onNewRecordingFile = requireNonNull(builder.onNewRecordingFile);
@@ -51,7 +52,6 @@ class JfrRecorder {
   public void start() {
     logger.debug("Profiler is starting a JFR recording");
     recording = newRecording();
-    Map<String, String> settings = settingsReader.read();
     recording.setSettings(settings);
     recording.setToDisk(false);
     recording.setName(RECORDING_NAME);
@@ -91,13 +91,13 @@ class JfrRecorder {
 
   public static class Builder {
     private RecordingFileNamingConvention namingConvention;
-    private JfrSettingsReader settingsReader;
+    private Map<String, String> settings;
     private Duration maxAgeDuration;
     private JFR jfr = JFR.instance;
     public Consumer<Path> onNewRecordingFile;
 
-    public Builder settingsReader(JfrSettingsReader settingsReader) {
-      this.settingsReader = settingsReader;
+    public Builder settings(Map<String, String> settings) {
+      this.settings = settings;
       return this;
     }
 

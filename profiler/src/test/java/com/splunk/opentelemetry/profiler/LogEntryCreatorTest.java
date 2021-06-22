@@ -29,7 +29,9 @@ import static org.mockito.Mockito.when;
 import com.splunk.opentelemetry.logs.LogEntry;
 import com.splunk.opentelemetry.profiler.context.SpanLinkage;
 import com.splunk.opentelemetry.profiler.context.StackToSpanLinkage;
+import com.splunk.opentelemetry.profiler.events.EventPeriods;
 import io.opentelemetry.api.common.Attributes;
+import java.time.Duration;
 import java.time.Instant;
 import jdk.jfr.EventType;
 import jdk.jfr.consumer.RecordedEvent;
@@ -48,9 +50,11 @@ class LogEntryCreatorTest {
     long threadId = 987L;
     EventType eventType = mock(EventType.class);
     RecordedEvent sourceEvent = mock(RecordedEvent.class);
+    EventPeriods periods = mock(EventPeriods.class);
 
     when(sourceEvent.getEventType()).thenReturn(eventType);
     when(eventType.getName()).thenReturn("GoodEventHere");
+    when(periods.getDuration("GoodEventHere")).thenReturn(Duration.ofMillis(606));
 
     SpanLinkage linkage = new SpanLinkage(traceId, spanId, threadId);
     Attributes attributes =
@@ -62,7 +66,7 @@ class LogEntryCreatorTest {
             SOURCE_EVENT_NAME,
             "GoodEventHere",
             SOURCE_EVENT_PERIOD,
-            -999L,
+            606L,
             SOURCE_TYPE,
             "otel.profiling");
     LogEntry expected =
@@ -77,7 +81,7 @@ class LogEntryCreatorTest {
 
     StackToSpanLinkage linkedSpan = new StackToSpanLinkage(time, "the.stack", sourceEvent, linkage);
 
-    LogEntryCreator creator = new LogEntryCreator();
+    LogEntryCreator creator = new LogEntryCreator(periods);
     LogEntry result = creator.apply(linkedSpan);
     assertEquals(expected, result);
   }

@@ -64,3 +64,12 @@ jobs:
 
       - name: Test
         run: ./gradlew :smoke-tests:test -PsmokeTestSuite=${{ matrix.suite }} --scan --no-daemon
+
+  profiler-smoke-tests:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2.3.4
+        with:
+          fetch-depth: 0
+      - name: Profiler smoke tests
+        run: ./gradlew :testing:profiler-tests:test --scan --no-daemon

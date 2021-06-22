@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package com.splunk.opentelemetry;
+package com.splunk.opentelemetry.profiler;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import java.io.IOException;
+import com.splunk.opentelemetry.profiler.events.ContextAttached;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -28,9 +28,9 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 import jdk.jfr.consumer.RecordedEvent;
-import jdk.jfr.consumer.RecordingFile;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -52,6 +52,7 @@ public class ProfilerSmokeTest {
   public static final Path agentPath =
       Paths.get(System.getProperty("io.opentelemetry.smoketest.agent.shadowJar.path"));
   public static final int PETCLINIC_PORT = 9966;
+  private final RecordedEventStream eventStream = new BasicJfrRecordingFile(JFR.instance);
 
   static GenericContainer<?> petclinic;
 
@@ -96,6 +97,21 @@ public class ProfilerSmokeTest {
         .atMost(60, TimeUnit.SECONDS)
         .pollInterval(1, TimeUnit.SECONDS)
         .untilAsserted(() -> assertThat(spanThreadContextEventsFound()).isTrue());
+
+    assertThat(contextEventsHaveStackTraces()).isFalse();
+  }
+
+  private boolean contextEventsHaveStackTraces() throws Exception {
+    List<Path> files = findJfrFilesInOutputDir();
+    return files.stream().anyMatch(this::contextEventHasStackTrace);
+  }
+
+  private boolean contextEventHasStackTrace(Path path) {
+    try (Stream<RecordedEvent> events = eventStream.open(path)) {
+      return events
+          .filter(this::isContextAttachedEvent)
+          .anyMatch(event -> event.getStackTrace() != null);
+    }
   }
 
   private boolean spanThreadContextEventsFound() throws Exception {
@@ -104,17 +120,13 @@ public class ProfilerSmokeTest {
   }
 
   private boolean containsContextAttached(Path path) {
-    try (RecordingFile file = new RecordingFile(path)) {
-      while (file.hasMoreEvents()) {
-        RecordedEvent event = file.readEvent();
-        if ("otel.ContextAttached".equals(event.getEventType().getName())) {
-          return true;
-        }
-      }
-    } catch (IOException e) {
-      return false;
+    try (Stream<RecordedEvent> open = eventStream.open(path)) {
+      return open.anyMatch(this::isContextAttachedEvent);
     }
-    return false;
+  }
+
+  private boolean isContextAttachedEvent(RecordedEvent event) {
+    return ContextAttached.EVENT_NAME.equals(event.getEventType().getName());
   }
 
   private void generateSomeSpans() throws Exception {

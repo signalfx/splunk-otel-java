@@ -22,10 +22,12 @@ import jdk.jfr.Category;
 import jdk.jfr.Event;
 import jdk.jfr.Label;
 import jdk.jfr.Name;
+import jdk.jfr.StackTrace;
 
 @Name(EVENT_NAME)
 @Label("otel context attached")
 @Category("opentelemetry")
+@StackTrace(false)
 public class ContextAttached extends Event {
 
   public static final String EVENT_NAME = "otel.ContextAttached";

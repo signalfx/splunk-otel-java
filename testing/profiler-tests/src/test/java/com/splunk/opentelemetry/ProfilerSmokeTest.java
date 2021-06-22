@@ -40,10 +40,10 @@ import org.slf4j.LoggerFactory;
 import org.testcontainers.containers.BindMode;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.wait.strategy.Wait;
-import org.testcontainers.images.builder.ImageFromDockerfile;
 import org.testcontainers.shaded.okhttp3.OkHttpClient;
 import org.testcontainers.shaded.okhttp3.Request;
 import org.testcontainers.shaded.okhttp3.Response;
+import org.testcontainers.utility.DockerImageName;
 import org.testcontainers.utility.MountableFile;
 
 public class ProfilerSmokeTest {
@@ -61,7 +61,9 @@ public class ProfilerSmokeTest {
   static void setup() {
     MountableFile agentJar = MountableFile.forHostPath(agentPath);
     petclinic =
-        new GenericContainer<>(new ImageFromDockerfile().withDockerfile(Path.of("./Dockerfile")))
+        new GenericContainer<>(
+                DockerImageName.parse(
+                    "ghcr.io/signalfx/splunk-otel-java/profiling-petclinic-base:latest"))
             .withExposedPorts(PETCLINIC_PORT)
             .withCopyFileToContainer(agentJar, "/app/javaagent.jar")
             .withCreateContainerCmdModifier(cmd -> cmd.withEntrypoint("java"))

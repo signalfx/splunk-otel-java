@@ -64,3 +64,6 @@ jobs:
 
       - name: Test
         run: ./gradlew :smoke-tests:test -PsmokeTestSuite=${{ matrix.suite }} --scan --no-daemon
+
+      - name: Profiler smoke tests
+        run: ./gradlew :testing:profiler-tests:test --scan --no-daemon

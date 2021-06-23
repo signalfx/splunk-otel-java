@@ -5,9 +5,10 @@ It should be considered experimental and is completely unsupported.
 
 # configuration
 
-| name                                | default | description                          |
-|-------------------------------------|---------|--------------------------------------|
-|`splunk.profiler.enabled`            | false   | set to true to enable the profiler   |
-|`splunk.profiler.directory`          | "."     | location of jfr files                |
-|`splunk.profiler.recording.duration` | 20      | number of seconds per recording unit |
-|`splunk.profiler.keep-files`         | false   | leave JFR files on disk id `true`    |
+| name                                | default                | description                          |
+|-------------------------------------|------------------------|--------------------------------------|
+|`splunk.profiler.enabled`            | false                  | set to true to enable the profiler   |
+|`splunk.profiler.directory`          | "."                    | location of jfr files                |
+|`splunk.profiler.recording.duration` | 20                     | number of seconds per recording unit |
+|`splunk.profiler.keep-files`         | false                  | leave JFR files on disk id `true`    |
+|`splunk.profiler.logs-endpoint`      | http://localhost:4317  | where to send OTLP logs              |

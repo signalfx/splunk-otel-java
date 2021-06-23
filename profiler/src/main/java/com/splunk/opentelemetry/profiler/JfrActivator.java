@@ -17,6 +17,7 @@
 package com.splunk.opentelemetry.profiler;
 
 import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_ENABLE_PROFILER;
+import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_INGEST_URL;
 import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_KEEP_FILES;
 import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_PROFILER_DIRECTORY;
 import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_RECORDING_DURATION_SECONDS;
@@ -30,6 +31,7 @@ import com.splunk.opentelemetry.logs.InstrumentationLibraryLogsAdapter;
 import com.splunk.opentelemetry.logs.LogEntryAdapter;
 import com.splunk.opentelemetry.logs.LogsExporter;
 import com.splunk.opentelemetry.logs.OtlpLogsExporter;
+import com.splunk.opentelemetry.logs.OtlpLogsExporterBuilder;
 import com.splunk.opentelemetry.logs.ResourceLogsAdapter;
 import com.splunk.opentelemetry.profiler.context.SpanContextualizer;
 import com.splunk.opentelemetry.profiler.events.EventPeriods;
@@ -98,7 +100,7 @@ public class JfrActivator implements AgentListener {
     SpanContextualizer spanContextualizer = new SpanContextualizer();
     EventPeriods periods = new EventPeriods(jfrSettings::get);
     LogEntryCreator logEntryCreator = new LogEntryCreator(periods);
-    LogsExporter logsExporter = buildExporter();
+    LogsExporter logsExporter = buildExporter(config);
 
     ScheduledExecutorService exportExecutorService =
         HelpfulExecutors.newSingleThreadedScheduledExecutor("Batched Logs Exporter");
@@ -151,13 +153,19 @@ public class JfrActivator implements AgentListener {
     dirCleanup.registerShutdownHook();
   }
 
-  private LogsExporter buildExporter() {
-
+  private LogsExporter buildExporter(Config config) {
     ResourceLogsAdapter adapter = buildResourceLogsAdapter();
-    return OtlpLogsExporter.builder()
-        .setAdapter(adapter)
-        .addHeader("Extra-Content-Type", "otel-profiling-stacktraces")
-        .build();
+
+    OtlpLogsExporterBuilder builder =
+        OtlpLogsExporter.builder()
+            .setAdapter(adapter)
+            .addHeader("Extra-Content-Type", "otel-profiling-stacktraces");
+
+    String ingestUrl = config.getProperty(CONFIG_KEY_INGEST_URL);
+    if (ingestUrl != null) {
+      builder.setEndpoint(ingestUrl);
+    }
+    return builder.build();
   }
 
   private ResourceLogsAdapter buildResourceLogsAdapter() {

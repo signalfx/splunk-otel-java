@@ -17,7 +17,6 @@
 package com.splunk.opentelemetry.profiler;
 
 import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_ENABLE_PROFILER;
-import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_INGEST_URL;
 import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_KEEP_FILES;
 import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_PROFILER_DIRECTORY;
 import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_RECORDING_DURATION_SECONDS;
@@ -27,20 +26,13 @@ import static com.splunk.opentelemetry.profiler.util.Runnables.logUncaught;
 
 import com.google.auto.service.AutoService;
 import com.splunk.opentelemetry.logs.BatchingLogsProcessor;
-import com.splunk.opentelemetry.logs.InstrumentationLibraryLogsAdapter;
-import com.splunk.opentelemetry.logs.LogEntryAdapter;
 import com.splunk.opentelemetry.logs.LogsExporter;
-import com.splunk.opentelemetry.logs.OtlpLogsExporter;
-import com.splunk.opentelemetry.logs.OtlpLogsExporterBuilder;
-import com.splunk.opentelemetry.logs.ResourceLogsAdapter;
 import com.splunk.opentelemetry.profiler.context.SpanContextualizer;
 import com.splunk.opentelemetry.profiler.events.EventPeriods;
 import com.splunk.opentelemetry.profiler.util.FileDeleter;
 import com.splunk.opentelemetry.profiler.util.HelpfulExecutors;
 import io.opentelemetry.instrumentation.api.config.Config;
 import io.opentelemetry.javaagent.extension.AgentListener;
-import io.opentelemetry.sdk.autoconfigure.OpenTelemetrySdkAutoConfiguration;
-import io.opentelemetry.sdk.resources.Resource;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
@@ -53,9 +45,6 @@ import org.slf4j.LoggerFactory;
 
 @AutoService(AgentListener.class)
 public class JfrActivator implements AgentListener {
-
-  private static final String OTEL_INSTRUMENTATION_NAME = "otel.profiling";
-  private static final String OTEL_INSTRUMENTATION_VERSION = "0.1.0";
 
   private static final Logger logger = LoggerFactory.getLogger(JfrActivator.class);
   private static final int MAX_BATCH_SIZE = 250;
@@ -100,7 +89,7 @@ public class JfrActivator implements AgentListener {
     SpanContextualizer spanContextualizer = new SpanContextualizer();
     EventPeriods periods = new EventPeriods(jfrSettings::get);
     LogEntryCreator logEntryCreator = new LogEntryCreator(periods);
-    LogsExporter logsExporter = buildExporter(config);
+    LogsExporter logsExporter = LogsExporterBuilder.fromConfig(config);
 
     ScheduledExecutorService exportExecutorService =
         HelpfulExecutors.newSingleThreadedScheduledExecutor("Batched Logs Exporter");
@@ -152,33 +141,33 @@ public class JfrActivator implements AgentListener {
     sequencer.start();
     dirCleanup.registerShutdownHook();
   }
-
-  private LogsExporter buildExporter(Config config) {
-    ResourceLogsAdapter adapter = buildResourceLogsAdapter();
-
-    OtlpLogsExporterBuilder builder =
-        OtlpLogsExporter.builder()
-            .setAdapter(adapter)
-            .addHeader("Extra-Content-Type", "otel-profiling-stacktraces");
-
-    String ingestUrl = config.getProperty(CONFIG_KEY_INGEST_URL);
-    if (ingestUrl != null) {
-      builder.setEndpoint(ingestUrl);
-    }
-    return builder.build();
-  }
-
-  private ResourceLogsAdapter buildResourceLogsAdapter() {
-    Resource resource = OpenTelemetrySdkAutoConfiguration.getResource();
-    LogEntryAdapter logEntryAdapter = new LogEntryAdapter();
-    InstrumentationLibraryLogsAdapter instLibraryLogsAdapter =
-        InstrumentationLibraryLogsAdapter.builder()
-            .logEntryAdapter(logEntryAdapter)
-            .instrumentationName(OTEL_INSTRUMENTATION_NAME)
-            .instrumentationVersion(OTEL_INSTRUMENTATION_VERSION)
-            .build();
-    return new ResourceLogsAdapter(instLibraryLogsAdapter, resource);
-  }
+  //
+  //  private static LogsExporter buildExporter(Config config) {
+  //    ResourceLogsAdapter adapter = buildResourceLogsAdapter();
+  //
+  //    OtlpLogsExporterBuilder builder =
+  //        OtlpLogsExporter.builder()
+  //            .setAdapter(adapter)
+  //            .addHeader("Extra-Content-Type", "otel-profiling-stacktraces");
+  //
+  //    String ingestUrl = config.getProperty(CONFIG_KEY_INGEST_URL);
+  //    if (ingestUrl != null) {
+  //      builder.setEndpoint(ingestUrl);
+  //    }
+  //    return builder.build();
+  //  }
+  //
+  //  private static ResourceLogsAdapter buildResourceLogsAdapter() {
+  //    Resource resource = OpenTelemetrySdkAutoConfiguration.getResource();
+  //    LogEntryAdapter logEntryAdapter = new LogEntryAdapter();
+  //    InstrumentationLibraryLogsAdapter instLibraryLogsAdapter =
+  //        InstrumentationLibraryLogsAdapter.builder()
+  //            .logEntryAdapter(logEntryAdapter)
+  //            .instrumentationName(OTEL_INSTRUMENTATION_NAME)
+  //            .instrumentationVersion(OTEL_INSTRUMENTATION_VERSION)
+  //            .build();
+  //    return new ResourceLogsAdapter(instLibraryLogsAdapter, resource);
+  //  }
 
   private Consumer<Path> buildFileDeleter(Config config) {
     if (keepFiles(config)) {

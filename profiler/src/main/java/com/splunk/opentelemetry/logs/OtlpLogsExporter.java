@@ -51,6 +51,14 @@ public class OtlpLogsExporter implements LogsExporter {
     Futures.addCallback(client.export(request), responseHandler, directExecutor());
   }
 
+  public String getEndpoint() {
+    return client.getChannel().authority();
+  }
+
+  public ResourceLogsAdapter getAdapter() {
+    return adapter;
+  }
+
   public static OtlpLogsExporterBuilder builder() {
     return new OtlpLogsExporterBuilder();
   }

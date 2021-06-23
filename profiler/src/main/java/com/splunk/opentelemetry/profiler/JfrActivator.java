@@ -141,33 +141,6 @@ public class JfrActivator implements AgentListener {
     sequencer.start();
     dirCleanup.registerShutdownHook();
   }
-  //
-  //  private static LogsExporter buildExporter(Config config) {
-  //    ResourceLogsAdapter adapter = buildResourceLogsAdapter();
-  //
-  //    OtlpLogsExporterBuilder builder =
-  //        OtlpLogsExporter.builder()
-  //            .setAdapter(adapter)
-  //            .addHeader("Extra-Content-Type", "otel-profiling-stacktraces");
-  //
-  //    String ingestUrl = config.getProperty(CONFIG_KEY_INGEST_URL);
-  //    if (ingestUrl != null) {
-  //      builder.setEndpoint(ingestUrl);
-  //    }
-  //    return builder.build();
-  //  }
-  //
-  //  private static ResourceLogsAdapter buildResourceLogsAdapter() {
-  //    Resource resource = OpenTelemetrySdkAutoConfiguration.getResource();
-  //    LogEntryAdapter logEntryAdapter = new LogEntryAdapter();
-  //    InstrumentationLibraryLogsAdapter instLibraryLogsAdapter =
-  //        InstrumentationLibraryLogsAdapter.builder()
-  //            .logEntryAdapter(logEntryAdapter)
-  //            .instrumentationName(OTEL_INSTRUMENTATION_NAME)
-  //            .instrumentationVersion(OTEL_INSTRUMENTATION_VERSION)
-  //            .build();
-  //    return new ResourceLogsAdapter(instLibraryLogsAdapter, resource);
-  //  }
 
   private Consumer<Path> buildFileDeleter(Config config) {
     if (keepFiles(config)) {

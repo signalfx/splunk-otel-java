@@ -28,7 +28,7 @@ import io.opentelemetry.instrumentation.api.config.Config;
 import io.opentelemetry.sdk.autoconfigure.OpenTelemetrySdkAutoConfiguration;
 import io.opentelemetry.sdk.resources.Resource;
 
-public class LogsExporterBuilder {
+class LogsExporterBuilder {
 
   private static final String OTEL_INSTRUMENTATION_NAME = "otel.profiling";
   private static final String OTEL_INSTRUMENTATION_VERSION = "0.1.0";

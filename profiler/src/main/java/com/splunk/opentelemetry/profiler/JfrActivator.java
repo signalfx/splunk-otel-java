@@ -32,6 +32,7 @@ import com.splunk.opentelemetry.logs.LogsExporter;
 import com.splunk.opentelemetry.logs.OtlpLogsExporter;
 import com.splunk.opentelemetry.logs.ResourceLogsAdapter;
 import com.splunk.opentelemetry.profiler.context.SpanContextualizer;
+import com.splunk.opentelemetry.profiler.events.EventPeriods;
 import com.splunk.opentelemetry.profiler.util.FileDeleter;
 import com.splunk.opentelemetry.profiler.util.HelpfulExecutors;
 import io.opentelemetry.instrumentation.api.config.Config;
@@ -41,6 +42,7 @@ import io.opentelemetry.sdk.resources.Resource;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.function.Consumer;
@@ -88,12 +90,14 @@ public class JfrActivator implements AgentListener {
             .recordingDuration(recordingDuration)
             .build();
     JfrSettingsReader settingsReader = new JfrSettingsReader();
+    Map<String, String> jfrSettings = settingsReader.read();
 
     RecordedEventStream.Factory recordedEventStreamFactory =
         () -> new FilterSortedRecordingFile(() -> new BasicJfrRecordingFile(JFR.instance));
 
     SpanContextualizer spanContextualizer = new SpanContextualizer();
-    LogEntryCreator logEntryCreator = new LogEntryCreator();
+    EventPeriods periods = new EventPeriods(jfrSettings::get);
+    LogEntryCreator logEntryCreator = new LogEntryCreator(periods);
     LogsExporter logsExporter = buildExporter();
 
     ScheduledExecutorService exportExecutorService =
@@ -129,7 +133,7 @@ public class JfrActivator implements AgentListener {
 
     JfrRecorder recorder =
         JfrRecorder.builder()
-            .settingsReader(settingsReader)
+            .settings(jfrSettings)
             .maxAgeDuration(recordingDuration.multipliedBy(10))
             .jfr(JFR.instance)
             .namingConvention(namingConvention)

@@ -42,7 +42,6 @@ class JfrRecorderTest {
   static final Path OUTDIR = Path.of("/some/path");
   Duration maxAge = Duration.ofMinutes(13);
   Map<String, String> settings;
-  @Mock JfrSettingsReader settingsReader;
   @Mock Recording recording;
   @Mock Consumer<Path> onNewRecordingFile;
 
@@ -54,7 +53,6 @@ class JfrRecorderTest {
 
   @Test
   void testStart() {
-    when(settingsReader.read()).thenReturn(settings);
     JfrRecorder jfrRecorder = buildJfrRecorder(mock(JFR.class));
     jfrRecorder.start();
     verify(recording).setSettings(settings);
@@ -120,7 +118,7 @@ class JfrRecorderTest {
     JfrRecorder.Builder builder =
         JfrRecorder.builder()
             .maxAgeDuration(maxAge)
-            .settingsReader(settingsReader)
+            .settings(settings)
             .namingConvention(new RecordingFileNamingConvention(OUTDIR))
             .onNewRecordingFile(onNewRecordingFile)
             .jfr(jfr);

@@ -24,10 +24,10 @@ jobs:
         with:
           args: >-
             -v -n "*.md" "**/*.md"
-            --exclude-link-local
             --exclude "https://developers.redhat.com/download-manager/file/jboss-eap-.*.zip"
             --exclude "http://yourendpoint.*"
             --exclude "https://ingest.us0.signalfx.com.*"
+            --exclude "http://localhost*"
 
       - name: Fail if there were link errors
         run: exit ${{ steps.lychee.outputs.exit_code }}

@@ -34,6 +34,8 @@ dependencies {
     testImplementation "io.grpc:grpc-netty:${versions.grpc}"
     testImplementation "io.opentelemetry.instrumentation:opentelemetry-instrumentation-api:${versions.opentelemetryJavaagentAlpha}"
     testImplementation "io.opentelemetry:opentelemetry-sdk-extension-autoconfigure:${versions.opentelemetryAlpha}"
+    testImplementation "io.opentelemetry.instrumentation:opentelemetry-instrumentation-api:${versions.opentelemetryJavaagentAlpha}"
+    testImplementation "io.opentelemetry:opentelemetry-sdk-extension-autoconfigure:${versions.opentelemetryAlpha}"
     testImplementation "io.opentelemetry:opentelemetry-proto:${versions.opentelemetryAlpha}"
     testImplementation "io.opentelemetry:opentelemetry-semconv:${versions.opentelemetryAlpha}"
     testImplementation "io.opentelemetry:opentelemetry-context:${versions.opentelemetry}"

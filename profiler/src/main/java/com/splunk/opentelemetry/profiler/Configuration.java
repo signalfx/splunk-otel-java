@@ -30,6 +30,7 @@ public class Configuration implements PropertySource {
       "splunk.profiler.recording.duration";
   public static final String CONFIG_KEY_KEEP_FILES = "splunk.profiler.keep-files";
   public static final String CONFIG_KEY_INGEST_URL = "splunk.profiler.logs-endpoint";
+  public static final String CONFIG_KEY_PERIOD_PREFIX = "splunk.profiler.period";
 
   @Override
   public Map<String, String> getProperties() {

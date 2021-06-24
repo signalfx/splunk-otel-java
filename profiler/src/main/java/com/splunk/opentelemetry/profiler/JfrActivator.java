@@ -80,8 +80,7 @@ public class JfrActivator implements AgentListener {
             .configKeepsFilesOnDisk(keepFiles(config))
             .recordingDuration(recordingDuration)
             .build();
-    JfrSettingsReader settingsReader = new JfrSettingsReader();
-    Map<String, String> jfrSettings = settingsReader.read();
+    Map<String, String> jfrSettings = buildJfrSettings(config);
 
     RecordedEventStream.Factory recordedEventStreamFactory =
         () -> new FilterSortedRecordingFile(() -> new BasicJfrRecordingFile(JFR.instance));
@@ -140,6 +139,13 @@ public class JfrActivator implements AgentListener {
 
     sequencer.start();
     dirCleanup.registerShutdownHook();
+  }
+
+  private Map<String, String> buildJfrSettings(Config config) {
+    JfrSettingsReader settingsReader = new JfrSettingsReader();
+    Map<String, String> jfrSettings = settingsReader.read();
+    JfrSettingsOverrides overrides = new JfrSettingsOverrides(config);
+    return overrides.apply(jfrSettings);
   }
 
   private Consumer<Path> buildFileDeleter(Config config) {

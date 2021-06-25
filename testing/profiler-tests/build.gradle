@@ -4,7 +4,9 @@ plugins {
 
 dependencies {
   testImplementation project(":profiler")
-  testImplementation("org.testcontainers:testcontainers:1.15.3")
+  testImplementation "io.opentelemetry:opentelemetry-proto:${versions.opentelemetryAlpha}"
+  testImplementation "com.google.protobuf:protobuf-java-util:3.17.3"
+  testImplementation "org.testcontainers:testcontainers:1.15.3"
   testImplementation deps.awaitility
 }
 

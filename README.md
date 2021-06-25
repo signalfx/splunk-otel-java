@@ -11,7 +11,7 @@
 </p>
 
 <p align="center">
-  <img alt="Beta" src="https://img.shields.io/badge/status-stable-informational?style=for-the-badge">
+  <img alt="Stable" src="https://img.shields.io/badge/status-stable-informational?style=for-the-badge">
   <a href="https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/tag/v1.3.0">
     <img alt="OpenTelemetry Instrumentation for Java Version" src="https://img.shields.io/badge/otel-1.3.0-blueviolet?style=for-the-badge">
   </a>

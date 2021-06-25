@@ -16,8 +16,6 @@
 
 package com.splunk.opentelemetry.profiler;
 
-import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.LINKED_SPAN_ID;
-import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.LINKED_TRACE_ID;
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.SOURCE_EVENT_NAME;
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.SOURCE_EVENT_PERIOD;
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.SOURCE_TYPE;
@@ -65,11 +63,7 @@ public class LogEntryCreator implements Function<StackToSpanLinkage, LogEntry> {
     // until the collector/ingest can be remedied.
 
     AttributesBuilder builder =
-        Attributes.builder()
-            .put(LINKED_TRACE_ID, linkedStack.getTraceId())
-            .put(LINKED_SPAN_ID, linkedStack.getSpanId())
-            .put(SOURCE_TYPE, PROFILING_SOURCE)
-            .put(SOURCE_EVENT_NAME, sourceEvent);
+        Attributes.builder().put(SOURCE_TYPE, PROFILING_SOURCE).put(SOURCE_EVENT_NAME, sourceEvent);
 
     if (!EventPeriods.UNKNOWN.equals(eventPeriod)) {
       builder.put(SOURCE_EVENT_PERIOD, eventPeriod.toMillis());

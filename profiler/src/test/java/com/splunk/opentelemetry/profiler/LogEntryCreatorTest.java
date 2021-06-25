@@ -17,8 +17,6 @@
 package com.splunk.opentelemetry.profiler;
 
 import static com.splunk.opentelemetry.profiler.LogEntryCreator.PROFILING_SOURCE;
-import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.LINKED_SPAN_ID;
-import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.LINKED_TRACE_ID;
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.SOURCE_EVENT_NAME;
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.SOURCE_EVENT_PERIOD;
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.SOURCE_TYPE;
@@ -59,10 +57,6 @@ class LogEntryCreatorTest {
     SpanLinkage linkage = new SpanLinkage(traceId, spanId, threadId);
     Attributes attributes =
         Attributes.of(
-            LINKED_TRACE_ID,
-            traceId,
-            LINKED_SPAN_ID,
-            spanId,
             SOURCE_EVENT_NAME,
             "GoodEventHere",
             SOURCE_EVENT_PERIOD,

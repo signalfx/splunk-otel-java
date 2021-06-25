@@ -16,17 +16,26 @@
 
 package com.splunk.opentelemetry.profiler;
 
+import static com.splunk.opentelemetry.profiler.TestHelpers.flattenToLogRecords;
+import static com.splunk.opentelemetry.profiler.TestHelpers.getLongAttr;
+import static com.splunk.opentelemetry.profiler.TestHelpers.getStringAttr;
+import static com.splunk.opentelemetry.profiler.TestHelpers.parseToExportLogsServiceRequests;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.splunk.opentelemetry.profiler.events.ContextAttached;
+import io.opentelemetry.proto.collector.logs.v1.ExportLogsServiceRequest;
+import io.opentelemetry.proto.logs.v1.LogRecord;
+import java.io.IOException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -39,33 +48,68 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testcontainers.containers.BindMode;
 import org.testcontainers.containers.GenericContainer;
+import org.testcontainers.containers.Network;
+import org.testcontainers.containers.output.Slf4jLogConsumer;
 import org.testcontainers.containers.wait.strategy.Wait;
+import org.testcontainers.shaded.com.fasterxml.jackson.databind.ObjectMapper;
 import org.testcontainers.shaded.okhttp3.OkHttpClient;
 import org.testcontainers.shaded.okhttp3.Request;
 import org.testcontainers.shaded.okhttp3.Response;
+import org.testcontainers.shaded.okhttp3.ResponseBody;
 import org.testcontainers.utility.DockerImageName;
 import org.testcontainers.utility.MountableFile;
 
 public class ProfilerSmokeTest {
 
   private static final Logger logger = LoggerFactory.getLogger(ProfilerSmokeTest.class);
-  public static final Path agentPath =
+  private static final Path AGENT_PATH =
       Paths.get(System.getProperty("io.opentelemetry.smoketest.agent.shadowJar.path"));
+  private static final Network NETWORK = Network.newNetwork();
   public static final int PETCLINIC_PORT = 9966;
+  public static final int BACKEND_PORT = 8080;
+  private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
   private final RecordedEventStream eventStream = new BasicJfrRecordingFile(JFR.instance);
 
-  static GenericContainer<?> petclinic;
+  private static GenericContainer<?> backend;
+  private static GenericContainer<?> collector;
+  private static GenericContainer<?> petclinic;
 
   @TempDir static Path tempDir;
 
   @BeforeAll
-  static void setup() {
-    MountableFile agentJar = MountableFile.forHostPath(agentPath);
+  static void setup() throws Exception {
+    MountableFile agentJar = MountableFile.forHostPath(AGENT_PATH);
+
+    backend =
+        new GenericContainer<>(
+                DockerImageName.parse(
+                    "ghcr.io/open-telemetry/java-test-containers:smoke-fake-backend-20210624.967200357"))
+            .withExposedPorts(BACKEND_PORT)
+            .waitingFor(Wait.forHttp("/health").forPort(BACKEND_PORT))
+            .withNetwork(NETWORK)
+            .withNetworkAliases("backend")
+            .withLogConsumer(new Slf4jLogConsumer(logger));
+    backend.start();
+
+    collector =
+        new GenericContainer<>(DockerImageName.parse("otel/opentelemetry-collector-contrib:latest"))
+            .dependsOn(backend)
+            .withNetwork(NETWORK)
+            .withNetworkAliases("collector")
+            .withLogConsumer(new Slf4jLogConsumer(logger))
+            .withCopyFileToContainer(
+                MountableFile.forClasspathResource("collector.yaml"), "/etc/otel.yaml")
+            .withCommand("--config /etc/otel.yaml");
+    collector.start();
+
     petclinic =
         new GenericContainer<>(
                 DockerImageName.parse(
                     "ghcr.io/signalfx/splunk-otel-java/profiling-petclinic-base:latest"))
             .withExposedPorts(PETCLINIC_PORT)
+            .withNetwork(NETWORK)
+            .withNetworkAliases("petclinic")
+            .withLogConsumer(new Slf4jLogConsumer(logger))
             .withCopyFileToContainer(agentJar, "/app/javaagent.jar")
             .withCreateContainerCmdModifier(cmd -> cmd.withEntrypoint("java"))
             .withCommand(
@@ -74,31 +118,73 @@ public class ProfilerSmokeTest {
                 "-Dsplunk.profiler.enabled=true",
                 "-Dsplunk.profiler.directory=/app/jfr",
                 "-Dsplunk.profiler.keep-files=true",
+                "-Dsplunk.profiler.period.threaddump=1001",
+                "-Dsplunk.profiler.logs-endpoint=http://collector:4317",
                 "-jar",
                 "/app/spring-petclinic-rest.jar")
             .withFileSystemBind(
                 tempDir.toAbsolutePath().toString(), "/app/jfr", BindMode.READ_WRITE)
             .waitingFor(Wait.forHttp("/petclinic/api/vets"));
     petclinic.start();
+    logger.info("Petclinic has been started.");
+    generateSomeSpans();
   }
 
   @AfterAll
   static void teardown() {
     petclinic.stop();
+    collector.stop();
+    backend.stop();
   }
 
   @Test
   void ensureJfrFilesContainContextChangeEvents() throws Exception {
-    logger.info("Petclinic has been started.");
-
-    generateSomeSpans();
-
     await()
-        .atMost(60, TimeUnit.SECONDS)
+        .atMost(1, TimeUnit.MINUTES)
         .pollInterval(1, TimeUnit.SECONDS)
         .untilAsserted(() -> assertThat(spanThreadContextEventsFound()).isTrue());
 
     assertThat(contextEventsHaveStackTraces()).isFalse();
+  }
+
+  @Test
+  void verifyIngestedLogContent() throws Exception {
+    await()
+        .atMost(2, TimeUnit.MINUTES)
+        .pollInterval(1, TimeUnit.SECONDS)
+        .untilAsserted(() -> assertThat(fetchResourceLogs()).isNotEmpty());
+
+    List<ExportLogsServiceRequest> resourceLogs = fetchResourceLogs();
+    List<LogRecord> logs = flattenToLogRecords(resourceLogs);
+    assertAllThreadDumps(logs, log -> 1001 == getLongAttr(log, "source.event.period"));
+    assertAllThreadDumps(logs, log -> "otel.profiling".equals(getStringAttr(log, "sourcetype")));
+    Optional<LogRecord> jfrThread =
+        logs.stream()
+            .filter(log -> log.getBody().getStringValue().startsWith("\"JFR Recording Scheduler\""))
+            .findFirst();
+    assertThat(jfrThread).isNotEmpty();
+    Optional<LogRecord> mainThread =
+        logs.stream()
+            .filter(log -> log.getBody().getStringValue().startsWith("\"main\""))
+            .findFirst();
+    assertThat(mainThread).isNotEmpty();
+  }
+
+  private boolean assertAllThreadDumps(List<LogRecord> logs, Predicate<LogRecord> predicate) {
+    return logs.stream().filter(TestHelpers::isThreadDumpEvent).allMatch(predicate);
+  }
+
+  private List<ExportLogsServiceRequest> fetchResourceLogs() throws IOException {
+    OkHttpClient client = buildClient();
+    int port = backend.getMappedPort(BACKEND_PORT);
+    Request request = new Request.Builder().url("http://localhost:" + port + "/get-logs").build();
+    try (Response response = client.newCall(request).execute()) {
+      assertEquals(200, response.code());
+      try (ResponseBody body = response.body()) {
+        String bodyContent = new String(body.byteStream().readAllBytes());
+        return parseToExportLogsServiceRequests(bodyContent);
+      }
+    }
   }
 
   private boolean contextEventsHaveStackTraces() throws Exception {
@@ -129,7 +215,7 @@ public class ProfilerSmokeTest {
     return ContextAttached.EVENT_NAME.equals(event.getEventType().getName());
   }
 
-  private void generateSomeSpans() throws Exception {
+  private static void generateSomeSpans() throws Exception {
     logger.info("Generating some spans...");
     OkHttpClient client = buildClient();
     int port = petclinic.getMappedPort(PETCLINIC_PORT);
@@ -137,14 +223,14 @@ public class ProfilerSmokeTest {
     doGetRequest(client, "http://localhost:" + port + "/petclinic/api/visits");
   }
 
-  private void doGetRequest(OkHttpClient client, String url) throws Exception {
+  private static void doGetRequest(OkHttpClient client, String url) throws Exception {
     Request request = new Request.Builder().url(url).build();
     try (Response response = client.newCall(request).execute()) {
       assertEquals(200, response.code());
     }
   }
 
-  private OkHttpClient buildClient() {
+  private static OkHttpClient buildClient() {
     return new OkHttpClient.Builder()
         .connectTimeout(10, TimeUnit.SECONDS)
         .writeTimeout(10, TimeUnit.SECONDS)

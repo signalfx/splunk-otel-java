@@ -26,7 +26,7 @@ jobs:
   issue:
     name: Open issue on failure
     needs: [ build ]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     if: always()
     steps:
       # run this action to get workflow conclusion

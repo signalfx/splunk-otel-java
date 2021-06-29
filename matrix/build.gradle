@@ -3,7 +3,7 @@ import com.bmuschko.gradle.docker.tasks.image.DockerPullImage
 
 plugins {
   id 'war'
-  id "com.bmuschko.docker-remote-api" version "7.0.1"
+  id "com.bmuschko.docker-remote-api" version "7.1.0"
 }
 
 tasks {

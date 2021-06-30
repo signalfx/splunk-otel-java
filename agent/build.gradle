@@ -52,6 +52,7 @@ task customShadow(type: ShadowJar) {
     dependsOn ':instrumentation:shadowJar'
     dependsOn ':profiler:shadowJar'
     dependsOn ':bootstrap:jar'
+    dependsOn ':agent:jar'
     with isolateSpec()
 
     mergeServiceFiles()
@@ -63,8 +64,6 @@ task customShadow(type: ShadowJar) {
 tasks {
     // merge otel agent with our agent
     shadowJar {
-        dependsOn ':agent:jar'
-
         from project.configurations.mainShadow.files
         from tasks.customShadow.outputs
 

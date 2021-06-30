@@ -2,12 +2,12 @@ import nebula.plugin.release.git.opinion.Strategies
 
 plugins {
   id "java"
-  id "com.diffplug.spotless" version "5.14.0" apply false
-  id "nebula.release" version "15.3.1"
+  id "com.diffplug.spotless" apply false
+  id "nebula.release"
 }
 
 release {
-  defaultVersionStrategy = Strategies.getSNAPSHOT()
+  defaultVersionStrategy = Strategies.SNAPSHOT
 }
 
 group = "com.splunk.public"
@@ -44,7 +44,7 @@ subprojects {
     }
   }
 
-  tasks.withType(JavaCompile) {
+  tasks.withType(JavaCompile).configureEach {
     options.deprecation = true
   }
 }

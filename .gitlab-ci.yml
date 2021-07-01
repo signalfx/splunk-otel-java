@@ -15,6 +15,13 @@ build:
   script:
     - ./gradlew build -x :smoke-tests:test -x :testing:profiler-tests:test --scan --no-daemon --stacktrace
 
+snapshot:
+  stage: release
+  rules:
+    - if: '$CI_COMMIT_REF_NAME == "main"'
+  script:
+    - ./gradlew snapshot --no-daemon --stacktrace
+
 release:
   stage: release
   artifacts:
@@ -26,7 +33,7 @@ release:
     # create release dir
     - mkdir -p dist
     # build the javaagent
-    - ./gradlew -Prelease.useLastTag=true build final -x test --no-daemon
+    - ./gradlew -Prelease.useLastTag=true build final closeAndReleaseSonatypeStagingRepository -x test --no-daemon
     - mv agent/build/libs/splunk-otel-javaagent-*-all.jar dist/splunk-otel-javaagent-all.jar
     # build the cloudfoundry buildpack
     - ./deployments/cloudfoundry/buildpack/build.sh

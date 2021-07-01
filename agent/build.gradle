@@ -1,7 +1,14 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
 plugins {
-    id("com.github.johnrengelman.shadow")
+  id("com.github.johnrengelman.shadow")
+  id("maven-publish")
+  id("signing")
+}
+
+java {
+  withJavadocJar()
+  withSourcesJar()
 }
 
 apply from: "$rootDir/gradle/shadow.gradle"
@@ -9,80 +16,135 @@ apply from: "$rootDir/gradle/shadow.gradle"
 def relocatePackages = ext.relocatePackages
 
 configurations {
-    // dependencies that are moved to inst
-    customShadow
-    // dependencies that need package relocation
-    customShadowInclude
-    // dependencies that are not moved to inst and don't need package relocation
-    mainShadow
-    compileOnly.extendsFrom(mainShadow)
+  // dependencies that are moved to inst
+  customShadow
+  // dependencies that need package relocation
+  customShadowInclude
+  // dependencies that are not moved to inst and don't need package relocation
+  mainShadow
+  compileOnly.extendsFrom(mainShadow)
 }
+
 dependencies {
-    customShadow project(path: ":custom", configuration: "shadow")
-    customShadow project(path: ":instrumentation", configuration: "shadow")
-    customShadow project(path: ":profiler", configuration: "shadow")
-    mainShadow "io.opentelemetry.javaagent:opentelemetry-javaagent:${versions.opentelemetryJavaagent}:all"
-    customShadowInclude project(":bootstrap")
+  customShadow project(path: ":custom", configuration: "shadow")
+  customShadow project(path: ":instrumentation", configuration: "shadow")
+  customShadow project(path: ":profiler", configuration: "shadow")
+  mainShadow "io.opentelemetry.javaagent:opentelemetry-javaagent:${versions.opentelemetryJavaagent}:all"
+  customShadowInclude project(":bootstrap")
 }
 
 archivesBaseName = "splunk-otel-javaagent"
 
 compileJava {
-    options.release.set(8)
+  options.release.set(8)
 }
 
 CopySpec isolateSpec() {
-    return copySpec {
-        configurations.customShadow.files.each {
-            from(zipTree(it)) {
-                into("inst")
-                rename("(^.*)\\.class\$", "\$1.classdata")
-            }
-        }
+  return copySpec {
+    configurations.customShadow.files.each {
+      from(zipTree(it)) {
+        into("inst")
+        rename("(^.*)\\.class\$", "\$1.classdata")
+      }
     }
+  }
 }
 
 // includes everything except otel agent
 task customShadow(type: ShadowJar) {
-    from sourceSets.main.output
+  from sourceSets.main.output
 
-    configurations = [project.configurations.customShadowInclude]
+  configurations = [project.configurations.customShadowInclude]
 
-    dependsOn ':custom:shadowJar'
-    dependsOn ':instrumentation:shadowJar'
-    dependsOn ':profiler:shadowJar'
-    dependsOn ':bootstrap:jar'
-    dependsOn ':agent:jar'
-    with isolateSpec()
+  dependsOn ':custom:shadowJar'
+  dependsOn ':instrumentation:shadowJar'
+  dependsOn ':profiler:shadowJar'
+  dependsOn ':bootstrap:jar'
+  dependsOn ':agent:jar'
+  with isolateSpec()
 
-    mergeServiceFiles()
-    exclude("**/module-info.class")
+  mergeServiceFiles()
+  exclude("**/module-info.class")
 
-    relocatePackages(it)
+  relocatePackages(it)
 }
 
 tasks {
-    // merge otel agent with our agent
-    shadowJar {
-        from project.configurations.mainShadow.files
-        from tasks.customShadow.outputs
+  // merge otel agent with our agent
+  shadowJar {
+    archiveClassifier.set("all")
 
-        mergeServiceFiles {
-            include("inst/META-INF/services/*")
-        }
+    from project.configurations.mainShadow.files
+    from tasks.customShadow.outputs
 
-        manifest {
-            attributes.put("Main-Class", "io.opentelemetry.javaagent.OpenTelemetryAgent")
-            attributes.put("Agent-Class", "com.splunk.opentelemetry.SplunkAgent")
-            attributes.put("Premain-Class", "com.splunk.opentelemetry.SplunkAgent")
-            attributes.put("Can-Redefine-Classes", "true")
-            attributes.put("Can-Retransform-Classes", "true")
-            attributes.put("Implementation-Vendor", "Splunk")
-            attributes.put("Implementation-Version", "splunk-${project.version}-otel-${versions["opentelemetryJavaagent"]}")
-        }
+    mergeServiceFiles {
+      include("inst/META-INF/services/*")
     }
 
-    assemble {
-        dependsOn(shadowJar)
+    manifest {
+      attributes.put("Main-Class", "io.opentelemetry.javaagent.OpenTelemetryAgent")
+      attributes.put("Agent-Class", "com.splunk.opentelemetry.SplunkAgent")
+      attributes.put("Premain-Class", "com.splunk.opentelemetry.SplunkAgent")
+      attributes.put("Can-Redefine-Classes", "true")
+      attributes.put("Can-Retransform-Classes", "true")
+      attributes.put("Implementation-Vendor", "Splunk")
+      attributes.put("Implementation-Version", "splunk-${project.version}-otel-${versions["opentelemetryJavaagent"]}")
     }
+  }
+
+  assemble {
+    dependsOn(shadowJar)
+  }
+}
+
+rootProject.tasks.named("release").configure {
+  finalizedBy(tasks["publishToSonatype"])
+}
+
+publishing {
+  publications {
+    maven(MavenPublication) {
+      artifactId = "splunk-otel-javaagent"
+      groupId = "com.splunk"
+      version = project.version
+
+      artifact(shadowJar)
+      artifact(sourcesJar)
+      artifact(javadocJar)
+
+      pom {
+        name = "Splunk Distribution of OpenTelemetry Java"
+        description = "A distribution of the OpenTelemetry Instrumentation for Java project"
+        url = "https://github.com/signalfx/splunk-otel-java"
+        licenses {
+          license {
+            name = "The Apache License, Version 2.0"
+            url = "http://www.apache.org/licenses/LICENSE-2.0.txt"
+          }
+        }
+        developers {
+          developer {
+            id = "splunk"
+            name = "Splunk Instrumentation Authors"
+            email = "support+sonatype@signalfx.com"
+            organization = "Splunk"
+            organizationUrl = "https://www.splunk.com"
+          }
+        }
+        scm {
+          connection = "https://github.com/signalfx/splunk-otel-java.git"
+          developerConnection = "https://github.com/signalfx/splunk-otel-java.git"
+          url = "https://github.com/signalfx/splunk-otel-java"
+        }
+      }
+    }
+  }
+}
+
+signing {
+  required {
+    System.getenv("CI") != null
+  }
+  useInMemoryPgpKeys(System.getenv("GPG_SECRET_KEY"), System.getenv("GPG_PASSWORD"))
+  sign(publishing.publications["maven"])
 }

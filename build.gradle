@@ -4,13 +4,29 @@ plugins {
   id "java"
   id "com.diffplug.spotless" apply false
   id "nebula.release"
+  id "io.github.gradle-nexus.publish-plugin"
 }
 
 release {
   defaultVersionStrategy = Strategies.SNAPSHOT
 }
 
-group = "com.splunk.public"
+nebulaRelease {
+  addReleaseBranchPattern(/v\d+\.\d+\.x/)
+}
+
+nexusPublishing {
+  packageGroup = "com.splunk"
+
+  repositories {
+    sonatype {
+      username = System.getenv('SONATYPE_USERNAME')
+      password = System.getenv('SONATYPE_PASSWORD')
+    }
+  }
+}
+
+group = "com.splunk"
 
 subprojects {
   version = rootProject.version

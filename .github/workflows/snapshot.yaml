@@ -27,6 +27,8 @@ jobs:
     name: Open issue on failure
     needs: [ build ]
     runs-on: ubuntu-20.04
+    permissions:
+      issues: write
     if: always()
     steps:
       # run this action to get workflow conclusion

@@ -52,6 +52,7 @@ task customShadow(type: ShadowJar) {
     dependsOn ':instrumentation:shadowJar'
     dependsOn ':profiler:shadowJar'
     dependsOn ':bootstrap:jar'
+    dependsOn ':agent:jar'
     with isolateSpec()
 
     mergeServiceFiles()

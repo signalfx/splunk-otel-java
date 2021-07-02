@@ -6,7 +6,6 @@ plugins {
 
 apply from: "$rootDir/gradle/shadow.gradle"
 
-def versions = ext.versions
 def relocatePackages = ext.relocatePackages
 
 configurations {
@@ -25,7 +24,7 @@ dependencies {
   isolateLibs(project(path: ":testing:agent-test-extension", configuration: "shadow"))
 
   // and finally include everything from otel agent for testing
-  includeAsIs("io.opentelemetry.javaagent:opentelemetry-agent-for-testing:${versions.opentelemetryJavaagentAlpha}")
+  includeAsIs("io.opentelemetry.javaagent:opentelemetry-agent-for-testing")
 }
 
 CopySpec isolateAgentClasses(Iterable<File> jars) {

@@ -29,7 +29,7 @@ dependencies {
   customShadow project(path: ":custom", configuration: "shadow")
   customShadow project(path: ":instrumentation", configuration: "shadow")
   customShadow project(path: ":profiler", configuration: "shadow")
-  mainShadow "io.opentelemetry.javaagent:opentelemetry-javaagent:${versions.opentelemetryJavaagent}:all"
+  mainShadow "io.opentelemetry.javaagent:opentelemetry-javaagent:${otelInstrumentationVersion}:all"
   customShadowInclude project(":bootstrap")
 }
 
@@ -88,7 +88,7 @@ tasks {
       attributes.put("Can-Redefine-Classes", "true")
       attributes.put("Can-Retransform-Classes", "true")
       attributes.put("Implementation-Vendor", "Splunk")
-      attributes.put("Implementation-Version", "splunk-${project.version}-otel-${versions["opentelemetryJavaagent"]}")
+      attributes.put("Implementation-Version", "splunk-${project.version}-otel-${otelInstrumentationVersion}")
     }
   }
 

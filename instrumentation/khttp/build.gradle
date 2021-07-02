@@ -2,6 +2,11 @@ apply plugin: 'groovy'
 apply from: "$rootDir/gradle/instrumentation.gradle"
 
 repositories {
+  mavenLocal()
+  mavenCentral()
+  maven {
+    url = uri("https://oss.sonatype.org/content/repositories/snapshots")
+  }
   maven { url 'https://jitpack.io' }
 }
 
@@ -10,6 +15,6 @@ dependencies {
 
   testImplementation 'com.github.jkcclemens:khttp:0.1.0'
 
-  testRuntimeOnly "org.junit.vintage:junit-vintage-engine:5.7.2"
-  testRuntimeOnly "io.opentelemetry.javaagent:opentelemetry-armeria-shaded-for-testing:${versions.opentelemetryJavaagentAlpha}:all"
+  testRuntimeOnly "org.junit.vintage:junit-vintage-engine"
+  testRuntimeOnly "io.opentelemetry.javaagent:opentelemetry-armeria-shaded-for-testing:${otelInstrumentationAlphaVersion}:all"
 }

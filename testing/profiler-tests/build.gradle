@@ -4,10 +4,10 @@ plugins {
 
 dependencies {
   testImplementation project(":profiler")
-  testImplementation "io.opentelemetry:opentelemetry-proto:${versions.opentelemetryAlpha}"
-  testImplementation "com.google.protobuf:protobuf-java-util:3.17.3"
-  testImplementation "org.testcontainers:testcontainers:1.15.3"
-  testImplementation deps.awaitility
+  testImplementation "io.opentelemetry:opentelemetry-proto"
+  testImplementation "com.google.protobuf:protobuf-java-util"
+  testImplementation "org.testcontainers:testcontainers"
+  testImplementation("org.awaitility:awaitility")
 }
 
 tasks.test {

@@ -1,10 +1,6 @@
 plugins {
-    id("com.github.johnrengelman.shadow")
+    id("splunk.shadow-conventions")
 }
-
-apply from: "$rootDir/gradle/shadow.gradle"
-
-def relocatePackages = ext.relocatePackages
 
 Project instr_project = project
 subprojects {
@@ -28,11 +24,5 @@ subprojects {
 }
 
 shadowJar {
-    mergeServiceFiles()
-
-    exclude '**/module-info.class'
-
     duplicatesStrategy = DuplicatesStrategy.FAIL
-
-    relocatePackages(it)
 }

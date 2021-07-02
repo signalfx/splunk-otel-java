@@ -1,19 +1,15 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
 plugins {
-  id("com.github.johnrengelman.shadow")
   id("maven-publish")
   id("signing")
+  id("splunk.shadow-conventions")
 }
 
 java {
   withJavadocJar()
   withSourcesJar()
 }
-
-apply from: "$rootDir/gradle/shadow.gradle"
-
-def relocatePackages = ext.relocatePackages
 
 configurations {
   // dependencies that are moved to inst
@@ -62,11 +58,6 @@ task customShadow(type: ShadowJar) {
   dependsOn ':bootstrap:jar'
   dependsOn ':agent:jar'
   with isolateSpec()
-
-  mergeServiceFiles()
-  exclude("**/module-info.class")
-
-  relocatePackages(it)
 }
 
 tasks {

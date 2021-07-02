@@ -18,7 +18,7 @@ dependencies {
   compileOnly("io.micrometer:micrometer-core")
   implementation("io.micrometer:micrometer-registry-signalfx") {
     // bootstrap already has micrometer-core
-    exclude(group: 'io.micrometer', module: 'micrometer-core')
+    exclude("io.micrometer", "micrometer-core")
   }
 
   testImplementation("io.opentelemetry:opentelemetry-sdk")
@@ -28,10 +28,10 @@ dependencies {
   testImplementation("io.opentelemetry.javaagent:opentelemetry-javaagent-extension-api")
   testImplementation("io.micrometer:micrometer-core")
 
-  testImplementation(project(':testing:common'))
-  testImplementation 'javax.servlet:javax.servlet-api:3.0.1'
-  testImplementation 'org.eclipse.jetty:jetty-server:8.0.0.v20110901'
-  testImplementation 'org.eclipse.jetty:jetty-servlet:8.0.0.v20110901'
+  testImplementation(project(":testing:common"))
+  testImplementation("javax.servlet:javax.servlet-api:3.0.1")
+  testImplementation("org.eclipse.jetty:jetty-server:8.0.0.v20110901")
+  testImplementation("org.eclipse.jetty:jetty-servlet:8.0.0.v20110901")
 }
 
 tasks {
@@ -40,8 +40,8 @@ tasks {
   }
 
   processResources {
-    expand([
-        'version': project.version
-    ])
+    expand(mapOf(
+        "version" to project.version
+    ))
   }
 }

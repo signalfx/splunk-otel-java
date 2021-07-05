@@ -9,34 +9,34 @@ def relocatePackages = ext.relocatePackages
 
 dependencies {
   compileOnly(project(":bootstrap"))
-  compileOnly("io.opentelemetry:opentelemetry-sdk:${versions.opentelemetry}")
-  compileOnly("io.opentelemetry:opentelemetry-sdk-extension-autoconfigure:${versions.opentelemetryAlpha}")
-  compileOnly("io.opentelemetry:opentelemetry-semconv:${versions.opentelemetryAlpha}")
-  compileOnly("io.opentelemetry.instrumentation:opentelemetry-instrumentation-api:${versions.opentelemetryJavaagentAlpha}")
-  compileOnly("io.opentelemetry.javaagent:opentelemetry-javaagent-extension-api:${versions.opentelemetryJavaagentAlpha}")
-  annotationProcessor deps.autoservice
-  compileOnly deps.autoservice
+  compileOnly("io.opentelemetry:opentelemetry-sdk")
+  compileOnly("io.opentelemetry:opentelemetry-sdk-extension-autoconfigure")
+  compileOnly("io.opentelemetry:opentelemetry-semconv")
+  compileOnly("io.opentelemetry.instrumentation:opentelemetry-instrumentation-api")
+  compileOnly("io.opentelemetry.javaagent:opentelemetry-javaagent-extension-api")
+  annotationProcessor("com.google.auto.service:auto-service")
+  compileOnly("com.google.auto.service:auto-service")
 
-  implementation("io.opentelemetry:opentelemetry-exporter-jaeger-thrift:${versions.opentelemetry}")
+  implementation("io.opentelemetry:opentelemetry-exporter-jaeger-thrift")
   implementation("io.jaegertracing:jaeger-client:1.5.0")
 
-  compileOnly("io.micrometer:micrometer-core:${versions.micrometer}")
-  implementation("io.micrometer:micrometer-registry-signalfx:${versions.micrometer}") {
+  compileOnly("io.micrometer:micrometer-core")
+  implementation("io.micrometer:micrometer-registry-signalfx") {
     // bootstrap already has micrometer-core
     exclude(group: 'io.micrometer', module: 'micrometer-core')
   }
 
-  testImplementation("io.opentelemetry:opentelemetry-sdk:${versions.opentelemetry}")
-  testImplementation("io.opentelemetry:opentelemetry-sdk-testing:${versions.opentelemetry}")
-  testImplementation("io.opentelemetry:opentelemetry-sdk-extension-autoconfigure:${versions.opentelemetryAlpha}")
-  testImplementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-api:${versions.opentelemetryJavaagentAlpha}")
-  testImplementation("io.opentelemetry.javaagent:opentelemetry-javaagent-extension-api:${versions.opentelemetryJavaagentAlpha}")
-  testImplementation("io.micrometer:micrometer-core:${versions.micrometer}")
+  testImplementation("io.opentelemetry:opentelemetry-sdk")
+  testImplementation("io.opentelemetry:opentelemetry-sdk-testing")
+  testImplementation("io.opentelemetry:opentelemetry-sdk-extension-autoconfigure")
+  testImplementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-api")
+  testImplementation("io.opentelemetry.javaagent:opentelemetry-javaagent-extension-api")
+  testImplementation("io.micrometer:micrometer-core")
 
   testImplementation(project(':testing:common'))
-  testImplementation group: 'javax.servlet', name: 'javax.servlet-api', version: '3.0.1'
-  testImplementation group: 'org.eclipse.jetty', name: 'jetty-server', version: '8.0.0.v20110901'
-  testImplementation group: 'org.eclipse.jetty', name: 'jetty-servlet', version: '8.0.0.v20110901'
+  testImplementation 'javax.servlet:javax.servlet-api:3.0.1'
+  testImplementation 'org.eclipse.jetty:jetty-server:8.0.0.v20110901'
+  testImplementation 'org.eclipse.jetty:jetty-servlet:8.0.0.v20110901'
 }
 
 tasks {

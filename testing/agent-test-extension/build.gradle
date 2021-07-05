@@ -5,16 +5,15 @@ plugins {
 
 apply from: "$rootDir/gradle/shadow.gradle"
 
-def versions = ext.versions
 def relocatePackages = ext.relocatePackages
 
 dependencies {
-  annotationProcessor deps.autoservice
-  compileOnly deps.autoservice
+  annotationProcessor("com.google.auto.service:auto-service")
+  compileOnly("com.google.auto.service:auto-service")
 
-  compileOnly("io.opentelemetry.instrumentation:opentelemetry-instrumentation-api:${versions.opentelemetryJavaagentAlpha}")
-  compileOnly("io.opentelemetry.javaagent:opentelemetry-javaagent-extension-api:${versions.opentelemetryJavaagentAlpha}")
-  compileOnly("io.micrometer:micrometer-core:${versions.micrometer}")
+  compileOnly("io.opentelemetry.instrumentation:opentelemetry-instrumentation-api")
+  compileOnly("io.opentelemetry.javaagent:opentelemetry-javaagent-extension-api")
+  compileOnly("io.micrometer:micrometer-core")
 }
 
 tasks {

@@ -3,20 +3,18 @@ plugins {
   id "org.gradle.test-retry"
 }
 
-def dockerJavaVersion = "3.2.11"
-
 dependencies {
-  testImplementation("org.testcontainers:testcontainers:1.15.3")
+  testImplementation("org.testcontainers:testcontainers")
   testImplementation("com.fasterxml.jackson.core:jackson-databind:2.12.3")
-  testImplementation("com.google.protobuf:protobuf-java-util:3.17.3")
-  testImplementation("com.squareup.okhttp3:okhttp:3.12.12")
-  testImplementation("io.opentelemetry:opentelemetry-proto:${versions.opentelemetryAlpha}")
-  testImplementation("io.opentelemetry:opentelemetry-api:${versions.opentelemetry}")
+  testImplementation("com.google.protobuf:protobuf-java-util")
+  testImplementation("com.squareup.okhttp3:okhttp")
+  testImplementation("io.opentelemetry:opentelemetry-proto")
+  testImplementation("io.opentelemetry:opentelemetry-api")
 
   testImplementation("ch.qos.logback:logback-classic:1.2.3")
 
-  testImplementation("com.github.docker-java:docker-java-core:$dockerJavaVersion")
-  testImplementation("com.github.docker-java:docker-java-transport-httpclient5:$dockerJavaVersion")
+  testImplementation("com.github.docker-java:docker-java-core")
+  testImplementation("com.github.docker-java:docker-java-transport-httpclient5")
 }
 
 tasks.test {

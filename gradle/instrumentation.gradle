@@ -2,7 +2,6 @@ apply plugin: 'java'
 apply plugin: 'com.github.johnrengelman.shadow'
 
 apply from: "$rootDir/gradle/shadow.gradle"
-apply from: "$rootDir/gradle/dependencies.gradle"
 
 def relocatePackages = ext.relocatePackages
 
@@ -12,15 +11,14 @@ configurations {
 }
 
 dependencies {
-    compileOnly("io.opentelemetry:opentelemetry-sdk:${versions.opentelemetry}")
-    compileOnly("io.opentelemetry.instrumentation:opentelemetry-instrumentation-api:${versions.opentelemetryJavaagentAlpha}")
-    compileOnly("io.opentelemetry.javaagent:opentelemetry-javaagent-extension-api:${versions.opentelemetryJavaagentAlpha}")
-    compileOnly("io.opentelemetry.javaagent:opentelemetry-javaagent-api:${versions.opentelemetryJavaagentAlpha}")
-    compileOnly("net.bytebuddy:byte-buddy:1.10.10")
-    annotationProcessor deps.autoservice
-    compileOnly deps.autoservice
+    compileOnly("io.opentelemetry:opentelemetry-sdk")
+    compileOnly("io.opentelemetry.instrumentation:opentelemetry-instrumentation-api")
+    compileOnly("io.opentelemetry.javaagent:opentelemetry-javaagent-extension-api")
+    compileOnly("io.opentelemetry.javaagent:opentelemetry-javaagent-api")
+    annotationProcessor("com.google.auto.service:auto-service")
+    compileOnly("com.google.auto.service:auto-service")
     compileOnly(project(":bootstrap"))
-    compileOnly("io.micrometer:micrometer-core:${versions.micrometer}")
+    compileOnly("io.micrometer:micrometer-core")
 
     // test
     testImplementation(project(":testing:common"))

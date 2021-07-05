@@ -4,6 +4,7 @@ pluginManagement {
     id("com.diffplug.spotless") version "5.14.0"
     id("com.github.johnrengelman.shadow") version "6.1.0"
     id("io.github.gradle-nexus.publish-plugin") version "1.1.0"
+    id("io.spring.dependency-management") version "1.0.11.RELEASE"
     id("nebula.release") version "15.3.1"
     id("org.gradle.test-retry") version "1.3.1"
   }
@@ -21,7 +22,8 @@ gradleEnterprise {
 }
 
 rootProject.name = "splunk-otel-java"
-include("agent",
+include(
+    "agent",
     "bootstrap",
     "custom",
     "instrumentation",

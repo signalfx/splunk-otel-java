@@ -4,7 +4,7 @@ dependencies {
   compileOnly "org.apache.commons:commons-dbcp2:2.0"
 
   testImplementation "org.apache.commons:commons-dbcp2:2.0"
-  testImplementation deps.awaitility
+  testImplementation("org.awaitility:awaitility")
 }
 
 tasks.withType(Test).configureEach {

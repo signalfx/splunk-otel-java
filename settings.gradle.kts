@@ -10,16 +10,6 @@ pluginManagement {
   }
 }
 
-dependencyResolutionManagement {
-  repositories {
-    mavenCentral()
-    mavenLocal()
-    maven {
-      url = uri("https://oss.sonatype.org/content/repositories/snapshots")
-    }
-  }
-}
-
 plugins {
   id("com.gradle.enterprise") version "3.4.1"
 }

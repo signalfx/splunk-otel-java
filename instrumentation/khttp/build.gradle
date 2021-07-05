@@ -2,11 +2,6 @@ apply plugin: 'groovy'
 apply from: "$rootDir/gradle/instrumentation.gradle"
 
 repositories {
-  mavenLocal()
-  mavenCentral()
-  maven {
-    url = uri("https://oss.sonatype.org/content/repositories/snapshots")
-  }
   maven { url 'https://jitpack.io' }
 }
 

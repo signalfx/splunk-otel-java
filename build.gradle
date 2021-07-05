@@ -59,7 +59,7 @@ subprojects {
     dependencies {
       dependency("com.google.auto.service:auto-service:1.0-rc7")
       dependency("com.squareup.okhttp3:okhttp:3.12.12")
-      dependency("org.assertj:assertj-core:3.19.0")
+      dependency("org.assertj:assertj-core:3.20.2")
       dependency("org.awaitility:awaitility:4.0.3")
       dependency("org.slf4j:slf4j-api:1.7.30")
       dependency("org.testcontainers:testcontainers:1.15.3")

@@ -30,8 +30,7 @@ public class MicrometerBootstrapPackagesProvider implements BootstrapPackagesCon
     builder.addAll(
         Arrays.asList(
             // IMPORTANT: must be io.micrometer.core, because io.micrometer.signalfx needs to be in
-            // the
-            // agent classloader
+            // the agent classloader
             "io.micrometer.core", "org.HdrHistogram", "org.LatencyUtils"));
   }
 }

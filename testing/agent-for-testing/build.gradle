@@ -1,12 +1,8 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
 plugins {
-  id("com.github.johnrengelman.shadow")
+  id("splunk.shadow-conventions")
 }
-
-apply from: "$rootDir/gradle/shadow.gradle"
-
-def relocatePackages = ext.relocatePackages
 
 configurations {
   // dependencies that already are relocated and will be moved to inst/ (agent classloader isolation)
@@ -44,11 +40,6 @@ task relocateAndIsolate(type: ShadowJar) {
   configurations = [project.configurations.relocateLibs]
 
   with isolateAgentClasses(project.configurations.isolateLibs.files)
-
-  mergeServiceFiles()
-  exclude("**/module-info.class")
-
-  relocatePackages(it)
 }
 
 shadowJar {
@@ -68,9 +59,6 @@ shadowJar {
   mergeServiceFiles {
     include("inst/META-INF/services/**")
   }
-  exclude("**/module-info.class")
-
-  relocatePackages(it)
 }
 
 jar {

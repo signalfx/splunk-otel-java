@@ -1,5 +1,7 @@
-apply plugin: 'groovy'
-apply from: "$rootDir/gradle/instrumentation.gradle"
+plugins {
+  id("groovy")
+  id("splunk.instrumentation-conventions")
+}
 
 repositories {
   maven { url 'https://jitpack.io' }

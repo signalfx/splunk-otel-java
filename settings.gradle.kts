@@ -2,7 +2,7 @@ pluginManagement {
   plugins {
     id("com.bmuschko.docker-remote-api") version "7.1.0"
     id("com.diffplug.spotless") version "5.14.0"
-    id("com.github.johnrengelman.shadow") version "6.1.0"
+    id("com.github.johnrengelman.shadow") version "7.0.0"
     id("io.github.gradle-nexus.publish-plugin") version "1.1.0"
     id("io.spring.dependency-management") version "1.0.11.RELEASE"
     id("nebula.release") version "15.3.1"

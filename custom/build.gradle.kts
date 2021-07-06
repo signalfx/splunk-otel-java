@@ -34,14 +34,23 @@ dependencies {
   testImplementation("org.eclipse.jetty:jetty-servlet:8.0.0.v20110901")
 }
 
+sourceSets {
+  main {
+    output.dir("build/generated/properties", "builtBy" to "generateVersionResource")
+  }
+}
+
 tasks {
   compileJava {
     options.release.set(8)
   }
 
-  processResources {
-    expand(mapOf(
-        "version" to project.version
-    ))
+  register("generateVersionResource") {
+    val propertiesDir = file("build/generated/properties")
+    outputs.dir(propertiesDir)
+
+    doLast {
+      File(propertiesDir, "splunk.properties").writeText("splunk.distro.version=${project.version}")
+    }
   }
 }

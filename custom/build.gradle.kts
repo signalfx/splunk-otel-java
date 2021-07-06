@@ -45,6 +45,7 @@ tasks {
     options.release.set(8)
   }
 
+  // TODO: investigate why adding to processResources throws UnsupportedOperationException, but only in GHA
   register("generateVersionResource") {
     val propertiesDir = file("build/generated/properties")
     outputs.dir(propertiesDir)

@@ -1,11 +1,6 @@
 plugins {
-  id 'java'
-  id "com.github.johnrengelman.shadow"
+  id("splunk.shadow-conventions")
 }
-
-apply from: "$rootDir/gradle/shadow.gradle"
-
-def relocatePackages = ext.relocatePackages
 
 dependencies {
   compileOnly(project(":bootstrap"))
@@ -48,13 +43,5 @@ tasks {
     expand([
         'version': project.version
     ])
-  }
-
-  shadowJar {
-    mergeServiceFiles()
-
-    exclude("**/module-info.class")
-
-    relocatePackages(it)
   }
 }

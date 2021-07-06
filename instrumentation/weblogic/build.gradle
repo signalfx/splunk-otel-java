@@ -1,4 +1,6 @@
-apply from: "$rootDir/gradle/instrumentation.gradle"
+plugins {
+  id("splunk.instrumentation-conventions")
+}
 
 dependencies {
   compileOnly('javax.servlet:servlet-api:2.2')

@@ -29,11 +29,10 @@ nexusPublishing {
 
 group = "com.splunk"
 
-boolean snapshot = findProperty("snapshot") == 'yes'
-def otelVersion = snapshot ? "1.4.0-SNAPSHOT" : "1.3.0"
-def otelAlphaVersion = snapshot ? "1.4.0-alpha-SNAPSHOT" : "1.3.0-alpha"
-def otelInstrumentationVersion = snapshot ? "1.4.0-SNAPSHOT" : "1.3.0"
-def otelInstrumentationAlphaVersion = snapshot ? "1.4.0-alpha-SNAPSHOT" : "1.3.0-alpha"
+def otelVersion = "1.3.0"
+def otelAlphaVersion = "1.3.0-alpha"
+def otelInstrumentationVersion = "1.4.0-SNAPSHOT"
+def otelInstrumentationAlphaVersion = "1.4.0-alpha-SNAPSHOT"
 
 // dependencyManagement can't into qualifiers, we have to pass version the old way for deps with qualifiers
 ext.otelInstrumentationVersion = otelInstrumentationVersion
@@ -49,7 +48,6 @@ subprojects {
 
   repositories {
     mavenCentral()
-    mavenLocal()
     maven {
       url = uri("https://oss.sonatype.org/content/repositories/snapshots")
     }

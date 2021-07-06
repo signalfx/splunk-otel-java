@@ -17,12 +17,12 @@
 package com.splunk.opentelemetry;
 
 import com.google.auto.service.AutoService;
-import io.opentelemetry.javaagent.spi.config.PropertySource;
+import io.opentelemetry.javaagent.extension.config.ConfigPropertySource;
 import java.util.HashMap;
 import java.util.Map;
 
-@AutoService(PropertySource.class)
-public class SplunkConfiguration implements PropertySource {
+@AutoService(ConfigPropertySource.class)
+public class SplunkConfiguration implements ConfigPropertySource {
   public static final String SPLUNK_ACCESS_TOKEN = "splunk.access.token";
   public static final String OTEL_EXPORTER_JAEGER_ENDPOINT = "otel.exporter.jaeger.endpoint";
 

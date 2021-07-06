@@ -18,15 +18,15 @@ package com.splunk.opentelemetry.middleware;
 
 import com.google.auto.service.AutoService;
 import com.splunk.opentelemetry.javaagent.bootstrap.MiddlewareHolder;
-import io.opentelemetry.javaagent.spi.BootstrapPackagesProvider;
-import java.util.Collections;
-import java.util.List;
+import io.opentelemetry.instrumentation.api.config.Config;
+import io.opentelemetry.javaagent.extension.bootstrap.BootstrapPackagesBuilder;
+import io.opentelemetry.javaagent.extension.bootstrap.BootstrapPackagesConfigurer;
 
-@AutoService(BootstrapPackagesProvider.class)
-public class MiddlewareBootstrapPackagesProvider implements BootstrapPackagesProvider {
+@AutoService(BootstrapPackagesConfigurer.class)
+public class MiddlewareBootstrapPackagesProvider implements BootstrapPackagesConfigurer {
 
   @Override
-  public List<String> getPackagePrefixes() {
-    return Collections.singletonList(MiddlewareHolder.class.getPackage().getName());
+  public void configure(Config config, BootstrapPackagesBuilder builder) {
+    builder.add(MiddlewareHolder.class.getPackage().getName());
   }
 }

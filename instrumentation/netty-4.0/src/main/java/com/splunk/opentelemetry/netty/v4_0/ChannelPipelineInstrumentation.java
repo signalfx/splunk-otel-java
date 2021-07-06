@@ -29,7 +29,7 @@ import io.netty.handler.codec.http.HttpResponseEncoder;
 import io.netty.handler.codec.http.HttpServerCodec;
 import io.opentelemetry.javaagent.extension.instrumentation.TypeInstrumentation;
 import io.opentelemetry.javaagent.extension.instrumentation.TypeTransformer;
-import io.opentelemetry.javaagent.instrumentation.api.CallDepthThreadLocalMap;
+import io.opentelemetry.javaagent.instrumentation.api.CallDepth;
 import net.bytebuddy.asm.Advice;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.matcher.ElementMatcher;
@@ -57,7 +57,7 @@ public class ChannelPipelineInstrumentation implements TypeInstrumentation {
   public static class ChannelPipelineAddAdvice {
     @Advice.OnMethodEnter
     public static int trackCallDepth() {
-      return CallDepthThreadLocalMap.incrementCallDepth(ServerTimingHandler.class);
+      return CallDepth.forClass(ServerTimingHandler.class).getAndIncrement();
     }
 
     @Advice.OnMethodExit(onThrowable = Throwable.class, suppress = Throwable.class)
@@ -68,7 +68,7 @@ public class ChannelPipelineInstrumentation implements TypeInstrumentation {
       if (callDepth > 0) {
         return;
       }
-      CallDepthThreadLocalMap.reset(ServerTimingHandler.class);
+      CallDepth.forClass(ServerTimingHandler.class).reset();
 
       try {
         if (handler instanceof HttpServerCodec || handler instanceof HttpResponseEncoder) {

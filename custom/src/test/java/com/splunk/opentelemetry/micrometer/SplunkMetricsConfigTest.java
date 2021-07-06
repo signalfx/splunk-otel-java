@@ -30,7 +30,6 @@ import io.opentelemetry.instrumentation.api.config.Config;
 import io.opentelemetry.sdk.resources.Resource;
 import io.opentelemetry.semconv.resource.attributes.ResourceAttributes;
 import java.time.Duration;
-import java.util.Collections;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 
@@ -38,7 +37,7 @@ class SplunkMetricsConfigTest {
   @Test
   void testDefaultValues() {
     // given
-    var javaagentConfig = Config.create(Collections.emptyMap());
+    var javaagentConfig = Config.newBuilder().build();
     var resource = Resource.create(Attributes.of(ResourceAttributes.SERVICE_NAME, "test-service"));
     var splunkMetricsConfig = new SplunkMetricsConfig(javaagentConfig, resource);
 
@@ -53,16 +52,18 @@ class SplunkMetricsConfigTest {
   @Test
   void testCustomValues() {
     var javaagentConfig =
-        Config.create(
-            Map.of(
-                METRICS_ENABLED_PROPERTY,
-                "true",
-                SPLUNK_ACCESS_TOKEN,
-                "token",
-                METRICS_ENDPOINT_PROPERTY,
-                "http://my-endpoint:42",
-                METRICS_EXPORT_INTERVAL_PROPERTY,
-                "60000"));
+        Config.newBuilder()
+            .readProperties(
+                Map.of(
+                    METRICS_ENABLED_PROPERTY,
+                    "true",
+                    SPLUNK_ACCESS_TOKEN,
+                    "token",
+                    METRICS_ENDPOINT_PROPERTY,
+                    "http://my-endpoint:42",
+                    METRICS_EXPORT_INTERVAL_PROPERTY,
+                    "60000"))
+            .build();
     var resource = Resource.create(Attributes.of(ResourceAttributes.SERVICE_NAME, "test-service"));
     var splunkMetricsConfig = new SplunkMetricsConfig(javaagentConfig, resource);
 

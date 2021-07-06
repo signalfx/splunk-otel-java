@@ -25,7 +25,7 @@ import com.splunk.opentelemetry.javaagent.bootstrap.MiddlewareHolder;
 import io.opentelemetry.javaagent.extension.instrumentation.InstrumentationModule;
 import io.opentelemetry.javaagent.extension.instrumentation.TypeInstrumentation;
 import io.opentelemetry.javaagent.extension.instrumentation.TypeTransformer;
-import io.opentelemetry.javaagent.instrumentation.api.CallDepthThreadLocalMap;
+import io.opentelemetry.javaagent.instrumentation.api.CallDepth;
 import java.util.Collections;
 import java.util.List;
 import net.bytebuddy.asm.Advice;
@@ -69,12 +69,12 @@ public class WildFlyAttributesInstrumentationModule extends InstrumentationModul
   public static class MiddlewareInitializedAdvice {
     @Advice.OnMethodEnter
     public static void onEnter() {
-      CallDepthThreadLocalMap.incrementCallDepth(ProductConfig.class);
+      CallDepth.forClass(ProductConfig.class).getAndIncrement();
     }
 
     @Advice.OnMethodExit(suppress = Throwable.class)
     public static void onExit(@Advice.FieldValue("productConfig") ProductConfig productConfig) {
-      if (CallDepthThreadLocalMap.decrementCallDepth(ProductConfig.class) == 0
+      if (CallDepth.forClass(ProductConfig.class).decrementAndGet() == 0
           && productConfig != null) {
         MiddlewareHolder.trySetName(productConfig.resolveName());
         MiddlewareHolder.trySetVersion(productConfig.resolveVersion());

@@ -17,17 +17,20 @@
 package com.splunk.opentelemetry.micrometer;
 
 import com.google.auto.service.AutoService;
-import io.opentelemetry.javaagent.spi.BootstrapPackagesProvider;
+import io.opentelemetry.instrumentation.api.config.Config;
+import io.opentelemetry.javaagent.extension.bootstrap.BootstrapPackagesBuilder;
+import io.opentelemetry.javaagent.extension.bootstrap.BootstrapPackagesConfigurer;
 import java.util.Arrays;
-import java.util.List;
 
-@AutoService(BootstrapPackagesProvider.class)
-public class MicrometerBootstrapPackagesProvider implements BootstrapPackagesProvider {
+@AutoService(BootstrapPackagesConfigurer.class)
+public class MicrometerBootstrapPackagesProvider implements BootstrapPackagesConfigurer {
+
   @Override
-  public List<String> getPackagePrefixes() {
-    return Arrays.asList(
-        // IMPORTANT: must be io.micrometer.core, because io.micrometer.signalfx needs to be in the
-        // agent classloader
-        "io.micrometer.core", "org.HdrHistogram", "org.LatencyUtils");
+  public void configure(Config config, BootstrapPackagesBuilder builder) {
+    builder.addAll(
+        Arrays.asList(
+            // IMPORTANT: must be io.micrometer.core, because io.micrometer.signalfx needs to be in
+            // the agent classloader
+            "io.micrometer.core", "org.HdrHistogram", "org.LatencyUtils"));
   }
 }

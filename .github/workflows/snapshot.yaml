@@ -21,7 +21,7 @@ jobs:
           java-version: 11.0.11+9
 
       - name: Build and test
-        run: ./gradlew -Psnapshot=yes build --scan --no-daemon
+        run: ./gradlew build --scan --no-daemon
 
   issue:
     name: Open issue on failure

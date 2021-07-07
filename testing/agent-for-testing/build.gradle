@@ -20,7 +20,8 @@ dependencies {
   isolateLibs(project(path: ":testing:agent-test-extension", configuration: "shadow"))
 
   // and finally include everything from otel agent for testing
-  includeAsIs("io.opentelemetry.javaagent:opentelemetry-agent-for-testing")
+  //TODO remove this `@jar` when upstream sorts its publishing
+  includeAsIs("io.opentelemetry.javaagent:opentelemetry-agent-for-testing@jar")
 }
 
 CopySpec isolateAgentClasses(Iterable<File> jars) {

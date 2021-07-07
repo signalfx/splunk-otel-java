@@ -45,6 +45,9 @@ tasks.withType<Test>().configureEach {
   jvmArgs("-Dotel.javaagent.testing.fail-on-context-leak=true")
   // prevent sporadic gradle deadlocks, see SafeLogger for more details
   jvmArgs("-Dotel.javaagent.testing.transform-safe-logging.enabled=true")
+  // Reduce noise in assertion messages since we don't need to verify this in most tests. We check
+  // in smoke tests instead.
+  jvmArgs("-Dotel.javaagent.add-thread-details=false")
 
   val trustStore = project(":testing:common").file("src/misc/testing-keystore.p12")
   inputs.file(trustStore)

@@ -25,7 +25,7 @@ import static net.bytebuddy.matcher.ElementMatchers.takesArgument;
 
 import io.opentelemetry.javaagent.extension.instrumentation.TypeInstrumentation;
 import io.opentelemetry.javaagent.extension.instrumentation.TypeTransformer;
-import io.opentelemetry.javaagent.instrumentation.api.CallDepthThreadLocalMap;
+import io.opentelemetry.javaagent.instrumentation.api.CallDepth;
 import io.opentelemetry.javaagent.instrumentation.api.ContextStore;
 import io.opentelemetry.javaagent.instrumentation.api.InstrumentationContext;
 import io.opentelemetry.javaagent.instrumentation.netty.v3_8.ChannelTraceContext;
@@ -121,7 +121,7 @@ public class ChannelPipelineInstrumentation implements TypeInstrumentation {
       }
       // CallDepth does not allow just getting the depth value, so to avoid interfering with the
       // upstream netty implementation we do the same count but with our class
-      return CallDepthThreadLocalMap.incrementCallDepth(ServerTimingHandler.class);
+      return CallDepth.forClass(ServerTimingHandler.class).getAndIncrement();
     }
 
     public static void addServerTimingHandler(
@@ -134,7 +134,7 @@ public class ChannelPipelineInstrumentation implements TypeInstrumentation {
               ServerTimingHandler.class.getName(), new ServerTimingHandler(contextStore));
         }
       } finally {
-        CallDepthThreadLocalMap.reset(ServerTimingHandler.class);
+        CallDepth.forClass(ServerTimingHandler.class).reset();
       }
     }
 

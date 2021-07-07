@@ -17,12 +17,12 @@
 package com.splunk.opentelemetry.profiler;
 
 import com.google.auto.service.AutoService;
-import io.opentelemetry.javaagent.spi.config.PropertySource;
+import io.opentelemetry.javaagent.extension.config.ConfigPropertySource;
 import java.util.HashMap;
 import java.util.Map;
 
-@AutoService(PropertySource.class)
-public class Configuration implements PropertySource {
+@AutoService(ConfigPropertySource.class)
+public class Configuration implements ConfigPropertySource {
 
   public static final String CONFIG_KEY_ENABLE_PROFILER = "splunk.profiler.enabled";
   public static final String CONFIG_KEY_PROFILER_DIRECTORY = "splunk.profiler.directory";

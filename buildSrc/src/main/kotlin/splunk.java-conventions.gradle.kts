@@ -14,11 +14,10 @@ repositories {
   }
 }
 
-val snapshot = findProperty("snapshot") == "yes"
-val otelVersion = if (snapshot) "1.4.0-SNAPSHOT" else "1.3.0"
-val otelAlphaVersion = if (snapshot) "1.4.0-alpha-SNAPSHOT" else "1.3.0-alpha"
-val otelInstrumentationVersion = if (snapshot) "1.4.0-SNAPSHOT" else "1.3.0"
-val otelInstrumentationAlphaVersion = if (snapshot) "1.4.0-alpha-SNAPSHOT" else "1.3.0-alpha"
+val otelVersion = "1.3.0"
+val otelAlphaVersion = "1.3.0-alpha"
+val otelInstrumentationVersion = "1.4.0-SNAPSHOT"
+val otelInstrumentationAlphaVersion = "1.4.0-alpha-SNAPSHOT"
 
 // dependencyManagement can't into classifiers, we have to pass version the old way for deps with qualifiers
 extra["otelInstrumentationVersion"] = otelInstrumentationVersion

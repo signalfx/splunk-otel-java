@@ -2,6 +2,10 @@
 
 set -e
 
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+ROOT_DIR="${SCRIPT_DIR}/../"
+cd ${ROOT_DIR}
+
 print_usage() {
   cat <<EOF
 Usage: $(basename $0) splunk_new_version"

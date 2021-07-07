@@ -1,7 +1,0 @@
-plugins {
-  id("splunk.instrumentation-conventions")
-}
-
-tasks.withType(Test).configureEach {
-  jvmArgs "-Dsplunk.metrics.enabled=true"
-}

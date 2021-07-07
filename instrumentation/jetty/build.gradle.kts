@@ -3,5 +3,5 @@ plugins {
 }
 
 dependencies {
-  compileOnly('javax.servlet:servlet-api:2.2')
+  compileOnly("org.eclipse.jetty:jetty-server:9.4.35.v20201120")
 }

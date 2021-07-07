@@ -28,6 +28,8 @@ configurations {
 
 val otelInstrumentationVersion: String by extra
 
+evaluationDependsOn(":custom")
+
 dependencies {
   isolateLibs(project(":custom", configuration = "shadow"))
   isolateLibs(project(":instrumentation", configuration = "shadow"))

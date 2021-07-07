@@ -29,6 +29,8 @@ configurations {
 val otelInstrumentationVersion: String by extra
 
 evaluationDependsOn(":custom")
+evaluationDependsOn(":instrumentation")
+evaluationDependsOn(":profiler")
 
 dependencies {
   isolateLibs(project(":custom", configuration = "shadow"))

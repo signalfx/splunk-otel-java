@@ -20,7 +20,6 @@ val otelInstrumentationAlphaVersion = "1.4.0-alpha-SNAPSHOT"
 
 // dependencyManagement can't into classifiers, we have to pass version the old way for deps with qualifiers
 extra["otelInstrumentationVersion"] = otelInstrumentationVersion
-extra["otelInstrumentationAlphaVersion"] = otelInstrumentationAlphaVersion
 
 extensions.configure<DependencyManagementExtension>("dependencyManagement") {
   dependencies {

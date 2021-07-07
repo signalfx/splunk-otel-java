@@ -6,7 +6,7 @@ plugins {
 
 dependencies {
   testImplementation("org.testcontainers:testcontainers")
-  testImplementation("com.fasterxml.jackson.core:jackson-databind:2.12.3")
+  testImplementation("com.fasterxml.jackson.core:jackson-databind:2.12.4")
   testImplementation("com.google.protobuf:protobuf-java-util")
   testImplementation("com.squareup.okhttp3:okhttp")
   testImplementation("io.opentelemetry:opentelemetry-proto")

@@ -68,13 +68,16 @@ public class WildFlyAttributesInstrumentationModule extends InstrumentationModul
   @SuppressWarnings("unused")
   public static class MiddlewareInitializedAdvice {
     @Advice.OnMethodEnter
-    public static void onEnter() {
-      CallDepth.forClass(ProductConfig.class).getAndIncrement();
+    public static void onEnter(@Advice.Local("splunkCallDepth") CallDepth callDepth) {
+      callDepth = CallDepth.forClass(ProductConfig.class);
+      callDepth.getAndIncrement();
     }
 
     @Advice.OnMethodExit(suppress = Throwable.class)
-    public static void onExit(@Advice.FieldValue("productConfig") ProductConfig productConfig) {
-      if (CallDepth.forClass(ProductConfig.class).decrementAndGet() == 0 && productConfig != null) {
+    public static void onExit(
+        @Advice.Local("splunkCallDepth") CallDepth callDepth,
+        @Advice.FieldValue("productConfig") ProductConfig productConfig) {
+      if (callDepth.decrementAndGet() == 0 && productConfig != null) {
         MiddlewareHolder.trySetName(productConfig.resolveName());
         MiddlewareHolder.trySetVersion(productConfig.resolveVersion());
       }

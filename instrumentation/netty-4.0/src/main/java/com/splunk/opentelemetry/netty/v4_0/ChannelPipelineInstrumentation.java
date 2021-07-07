@@ -56,19 +56,20 @@ public class ChannelPipelineInstrumentation implements TypeInstrumentation {
 
   public static class ChannelPipelineAddAdvice {
     @Advice.OnMethodEnter
-    public static int trackCallDepth() {
-      return CallDepth.forClass(ServerTimingHandler.class).getAndIncrement();
+    public static void trackCallDepth(@Advice.Local("splunkCallDepth") CallDepth callDepth) {
+      callDepth = CallDepth.forClass(ServerTimingHandler.class);
+      callDepth.getAndIncrement();
     }
 
     @Advice.OnMethodExit(onThrowable = Throwable.class, suppress = Throwable.class)
     public static void addHandler(
-        @Advice.Enter int callDepth,
+        @Advice.Local("splunkCallDepth") CallDepth callDepth,
         @Advice.This ChannelPipeline pipeline,
         @Advice.Argument(2) ChannelHandler handler) {
-      if (callDepth > 0) {
+      if (callDepth.decrementAndGet() > 0) {
         return;
       }
-      CallDepth.forClass(ServerTimingHandler.class).reset();
+      callDepth.reset();
 
       try {
         if (handler instanceof HttpServerCodec || handler instanceof HttpResponseEncoder) {

@@ -74,8 +74,7 @@ public class WildFlyAttributesInstrumentationModule extends InstrumentationModul
 
     @Advice.OnMethodExit(suppress = Throwable.class)
     public static void onExit(@Advice.FieldValue("productConfig") ProductConfig productConfig) {
-      if (CallDepth.forClass(ProductConfig.class).decrementAndGet() == 0
-          && productConfig != null) {
+      if (CallDepth.forClass(ProductConfig.class).decrementAndGet() == 0 && productConfig != null) {
         MiddlewareHolder.trySetName(productConfig.resolveName());
         MiddlewareHolder.trySetVersion(productConfig.resolveVersion());
       }

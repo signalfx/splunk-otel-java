@@ -28,6 +28,10 @@ configurations {
 
 val otelInstrumentationVersion: String by extra
 
+// TODO: remove those three lines after shadowJar plugin fixes its afterEvaluate() calls
+// since gradle 7.0 calling afterEvaluate() on already configured project throws an error, and this is exactly
+// what the shadowJar plugin seems to do - calling evaluationDependsOn() for all shadowed projects seems to delay
+// the configuration until after the plugin is applied
 evaluationDependsOn(":custom")
 evaluationDependsOn(":instrumentation")
 evaluationDependsOn(":profiler")

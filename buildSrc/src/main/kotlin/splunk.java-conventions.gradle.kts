@@ -28,6 +28,7 @@ extensions.configure<DependencyManagementExtension>("dependencyManagement") {
     dependency("org.assertj:assertj-core:3.20.2")
     dependency("org.awaitility:awaitility:4.1.0")
     dependency("org.testcontainers:testcontainers:1.15.3")
+    dependency("io.jaegertracing:jaeger-client:1.6.0")
 
     dependencySet("com.github.docker-java:3.2.11") {
       entry("docker-java-core")

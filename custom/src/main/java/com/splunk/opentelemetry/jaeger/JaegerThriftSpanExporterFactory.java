@@ -27,6 +27,7 @@ import io.opentelemetry.sdk.autoconfigure.ConfigProperties;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigurableSpanExporterProvider;
 import io.opentelemetry.sdk.trace.export.SpanExporter;
 import okhttp3.OkHttpClient;
+import org.apache.thrift.transport.TTransportException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,19 +43,24 @@ public class JaegerThriftSpanExporterFactory implements ConfigurableSpanExporter
     String token = config.getString(SPLUNK_ACCESS_TOKEN);
     if (token != null && !token.isEmpty()) {
       log.debug("Using authenticated jaeger-thrift exporter");
-      builder.setThriftSender(
-          new HttpSender.Builder(endpoint)
-              .withClient(
-                  new OkHttpClient.Builder()
-                      .addInterceptor(new AuthTokenInterceptor(token))
-                      .build())
-              .build());
+      builder.setThriftSender(createHttpSender(endpoint, token));
     } else {
       log.debug("Using jaeger-thrift exporter without authentication");
       builder.setEndpoint(endpoint);
     }
 
     return builder.build();
+  }
+
+  private HttpSender createHttpSender(String endpoint, String token) {
+    try {
+      return new HttpSender.Builder(endpoint)
+          .withClient(
+              new OkHttpClient.Builder().addInterceptor(new AuthTokenInterceptor(token)).build())
+          .build();
+    } catch (TTransportException e) {
+      throw new IllegalStateException("Could not create jaeger-thrift HttpSender", e);
+    }
   }
 
   @Override

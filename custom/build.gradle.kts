@@ -13,7 +13,7 @@ dependencies {
   compileOnly("com.google.auto.service:auto-service")
 
   implementation("io.opentelemetry:opentelemetry-exporter-jaeger-thrift")
-  implementation("io.jaegertracing:jaeger-client:1.5.0")
+  implementation("io.jaegertracing:jaeger-client:1.6.0")
 
   compileOnly("io.micrometer:micrometer-core")
   implementation("io.micrometer:micrometer-registry-signalfx") {

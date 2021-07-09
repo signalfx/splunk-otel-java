@@ -16,8 +16,8 @@
 
 package com.splunk.opentelemetry.netty.v3_8;
 
+import static io.opentelemetry.javaagent.extension.matcher.AgentElementMatchers.hasClassesNamed;
 import static io.opentelemetry.javaagent.extension.matcher.AgentElementMatchers.implementsInterface;
-import static io.opentelemetry.javaagent.extension.matcher.ClassLoaderMatcher.hasClassesNamed;
 import static net.bytebuddy.matcher.ElementMatchers.isMethod;
 import static net.bytebuddy.matcher.ElementMatchers.nameStartsWith;
 import static net.bytebuddy.matcher.ElementMatchers.named;
@@ -64,19 +64,27 @@ public class ChannelPipelineInstrumentation implements TypeInstrumentation {
         this.getClass().getName() + "$ChannelPipelineAdd3ArgsAdvice");
   }
 
+  @SuppressWarnings("unused")
   public static class ChannelPipelineAdd2ArgsAdvice {
     @Advice.OnMethodEnter(suppress = Throwable.class)
-    public static int checkDepth(
-        @Advice.This ChannelPipeline pipeline, @Advice.Argument(1) ChannelHandler handler) {
-      return ChannelPipelineUtil.removeDuplicatesAndIncrementDepth(pipeline, handler);
+    public static void checkDepth(
+        @Advice.This ChannelPipeline pipeline,
+        @Advice.Argument(1) ChannelHandler handler,
+        @Advice.Local("splunkCallDepth") CallDepth callDepth) {
+      ChannelPipelineUtil.removeDuplicatesAndIncrementDepth(pipeline, handler);
+
+      // CallDepth does not allow just getting the depth value, so to avoid interfering with the
+      // upstream netty implementation we do the same count but with our class
+      callDepth = CallDepth.forClass(ServerTimingHandler.class);
+      callDepth.getAndIncrement();
     }
 
     @Advice.OnMethodExit(onThrowable = Throwable.class, suppress = Throwable.class)
     public static void addHandler(
-        @Advice.Enter int depth,
         @Advice.This ChannelPipeline pipeline,
-        @Advice.Argument(1) ChannelHandler handler) {
-      if (depth > 0) {
+        @Advice.Argument(1) ChannelHandler handler,
+        @Advice.Local("splunkCallDepth") CallDepth callDepth) {
+      if (callDepth.decrementAndGet() > 0) {
         return;
       }
 
@@ -87,19 +95,27 @@ public class ChannelPipelineInstrumentation implements TypeInstrumentation {
     }
   }
 
+  @SuppressWarnings("unused")
   public static class ChannelPipelineAdd3ArgsAdvice {
     @Advice.OnMethodEnter(suppress = Throwable.class)
-    public static int checkDepth(
-        @Advice.This ChannelPipeline pipeline, @Advice.Argument(2) ChannelHandler handler) {
-      return ChannelPipelineUtil.removeDuplicatesAndIncrementDepth(pipeline, handler);
+    public static void checkDepth(
+        @Advice.This ChannelPipeline pipeline,
+        @Advice.Argument(2) ChannelHandler handler,
+        @Advice.Local("splunkCallDepth") CallDepth callDepth) {
+      ChannelPipelineUtil.removeDuplicatesAndIncrementDepth(pipeline, handler);
+
+      // CallDepth does not allow just getting the depth value, so to avoid interfering with the
+      // upstream netty implementation we do the same count but with our class
+      callDepth = CallDepth.forClass(ServerTimingHandler.class);
+      callDepth.getAndIncrement();
     }
 
     @Advice.OnMethodExit(onThrowable = Throwable.class, suppress = Throwable.class)
     public static void addHandler(
-        @Advice.Enter int depth,
         @Advice.This ChannelPipeline pipeline,
-        @Advice.Argument(2) ChannelHandler handler) {
-      if (depth > 0) {
+        @Advice.Argument(2) ChannelHandler handler,
+        @Advice.Local("splunkCallDepth") CallDepth callDepth) {
+      if (callDepth.decrementAndGet() > 0) {
         return;
       }
 
@@ -111,7 +127,7 @@ public class ChannelPipelineInstrumentation implements TypeInstrumentation {
   }
 
   public static final class ChannelPipelineUtil {
-    public static int removeDuplicatesAndIncrementDepth(
+    public static void removeDuplicatesAndIncrementDepth(
         ChannelPipeline pipeline, ChannelHandler handler) {
       // Pipelines are created once as a factory and then copied multiple times using the same add
       // methods as we are hooking. If our handler has already been added we need to remove it so we
@@ -119,22 +135,15 @@ public class ChannelPipelineInstrumentation implements TypeInstrumentation {
       if (pipeline.get(handler.getClass().getName()) != null) {
         pipeline.remove(handler.getClass().getName());
       }
-      // CallDepth does not allow just getting the depth value, so to avoid interfering with the
-      // upstream netty implementation we do the same count but with our class
-      return CallDepth.forClass(ServerTimingHandler.class).getAndIncrement();
     }
 
     public static void addServerTimingHandler(
         ChannelPipeline pipeline,
         ChannelHandler handler,
         ContextStore<Channel, ChannelTraceContext> contextStore) {
-      try {
-        if (handler instanceof HttpServerCodec || handler instanceof HttpResponseEncoder) {
-          pipeline.addLast(
-              ServerTimingHandler.class.getName(), new ServerTimingHandler(contextStore));
-        }
-      } finally {
-        CallDepth.forClass(ServerTimingHandler.class).reset();
+      if (handler instanceof HttpServerCodec || handler instanceof HttpResponseEncoder) {
+        pipeline.addLast(
+            ServerTimingHandler.class.getName(), new ServerTimingHandler(contextStore));
       }
     }
 

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.splunk.opentelemetry.commonsdbcp2;
+package com.splunk.opentelemetry.hikaricp;
 
 import static java.util.Collections.singletonList;
 
@@ -26,9 +26,9 @@ import java.util.Arrays;
 import java.util.List;
 
 @AutoService(InstrumentationModule.class)
-public class CommonsDbcp2InstrumentationModule extends InstrumentationModule {
-  public CommonsDbcp2InstrumentationModule() {
-    super("commons-dbcp2");
+public class HikariInstrumentationModule extends InstrumentationModule {
+  public HikariInstrumentationModule() {
+    super("hikari", "hikaricp");
   }
 
   @Override
@@ -40,12 +40,12 @@ public class CommonsDbcp2InstrumentationModule extends InstrumentationModule {
   @Override
   public List<String> getMuzzleHelperClassNames() {
     return Arrays.asList(
-        "com.splunk.opentelemetry.commonsdbcp2.DataSourceMetrics",
-        "com.splunk.opentelemetry.commonsdbcp2.DataSourceMetrics$TotalConnectionsUsed");
+        "com.splunk.opentelemetry.hikaricp.MicrometerMetricsTrackerFactory",
+        "com.splunk.opentelemetry.hikaricp.MicrometerMetricsTracker");
   }
 
   @Override
   public List<TypeInstrumentation> typeInstrumentations() {
-    return singletonList(new BasicDataSourceInstrumentation());
+    return singletonList(new HikariDataSourceInstrumentation());
   }
 }

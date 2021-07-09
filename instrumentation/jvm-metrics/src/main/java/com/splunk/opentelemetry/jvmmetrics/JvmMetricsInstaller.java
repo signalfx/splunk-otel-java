@@ -19,7 +19,7 @@ package com.splunk.opentelemetry.jvmmetrics;
 import static java.util.Collections.singleton;
 
 import com.google.auto.service.AutoService;
-import com.splunk.opentelemetry.javaagent.bootstrap.GlobalMetricsTags;
+import com.splunk.opentelemetry.javaagent.bootstrap.metrics.GlobalMetricsTags;
 import io.micrometer.core.instrument.Metrics;
 import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.binder.jvm.ClassLoaderMetrics;

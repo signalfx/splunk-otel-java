@@ -18,7 +18,7 @@ package com.splunk.opentelemetry.khttp;
 
 import static com.splunk.opentelemetry.khttp.KHttpTracer.tracer;
 import static io.opentelemetry.javaagent.extension.matcher.AgentElementMatchers.extendsClass;
-import static io.opentelemetry.javaagent.extension.matcher.ClassLoaderMatcher.hasClassesNamed;
+import static io.opentelemetry.javaagent.extension.matcher.AgentElementMatchers.hasClassesNamed;
 import static io.opentelemetry.javaagent.instrumentation.api.Java8BytecodeBridge.currentContext;
 import static net.bytebuddy.matcher.ElementMatchers.isAbstract;
 import static net.bytebuddy.matcher.ElementMatchers.isMethod;

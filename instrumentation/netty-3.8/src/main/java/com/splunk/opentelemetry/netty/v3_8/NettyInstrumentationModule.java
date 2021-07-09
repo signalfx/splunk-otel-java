@@ -16,7 +16,7 @@
 
 package com.splunk.opentelemetry.netty.v3_8;
 
-import static io.opentelemetry.javaagent.extension.matcher.ClassLoaderMatcher.hasClassesNamed;
+import static io.opentelemetry.javaagent.extension.matcher.AgentElementMatchers.hasClassesNamed;
 
 import com.google.auto.service.AutoService;
 import com.splunk.opentelemetry.servertiming.ServerTimingHeader;

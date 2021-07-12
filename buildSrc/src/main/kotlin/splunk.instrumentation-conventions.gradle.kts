@@ -3,6 +3,7 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 plugins {
   id("splunk.java-conventions")
   id("splunk.shadow-conventions")
+  id("io.opentelemetry.instrumentation.javaagent-codegen")
 }
 
 val testInstrumentation by configurations.creating
@@ -17,6 +18,7 @@ dependencies {
   compileOnly(project(":bootstrap"))
   compileOnly("io.micrometer:micrometer-core")
 
+//  add("codegen", "net.bytebuddy:byte-buddy-gradle-plugin")
   // test
   testImplementation(project(":testing:common"))
 }

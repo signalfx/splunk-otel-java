@@ -5,6 +5,7 @@ plugins {
 dependencies {
   compileOnly("io.netty:netty:3.8.0.Final")
   compileOnly("io.opentelemetry.javaagent.instrumentation:opentelemetry-javaagent-netty-3.8")
+  codegen("io.opentelemetry.javaagent.instrumentation:opentelemetry-javaagent-netty-3.8")
 
   implementation(project(":instrumentation:common"))
 

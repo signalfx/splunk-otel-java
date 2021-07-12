@@ -31,6 +31,7 @@ include(
     "instrumentation:commons-dbcp2",
     "instrumentation:compile-stub",
     "instrumentation:glassfish",
+    "instrumentation:hikaricp",
     "instrumentation:jetty",
     "instrumentation:jvm-metrics",
     "instrumentation:khttp",

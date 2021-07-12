@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.splunk.opentelemetry.javaagent.bootstrap;
+package com.splunk.opentelemetry.javaagent.bootstrap.metrics;
 
 import io.micrometer.core.instrument.Tags;
 import java.util.concurrent.atomic.AtomicReference;

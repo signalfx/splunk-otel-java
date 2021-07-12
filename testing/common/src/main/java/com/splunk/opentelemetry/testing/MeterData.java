@@ -72,4 +72,21 @@ public final class MeterData {
   public int hashCode() {
     return Objects.hash(name, type, unit, tags);
   }
+
+  @Override
+  public String toString() {
+    return "MeterData{"
+        + "name='"
+        + name
+        + '\''
+        + ", type='"
+        + type
+        + '\''
+        + ", unit='"
+        + unit
+        + '\''
+        + ", tags="
+        + tags
+        + '}';
+  }
 }

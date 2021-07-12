@@ -46,6 +46,6 @@ public class HikariInstrumentationModule extends InstrumentationModule {
 
   @Override
   public List<TypeInstrumentation> typeInstrumentations() {
-    return singletonList(new HikariDataSourceInstrumentation());
+    return singletonList(new HikariPoolInstrumentation());
   }
 }

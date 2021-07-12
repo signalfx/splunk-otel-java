@@ -19,10 +19,19 @@ package com.splunk.opentelemetry.hikaricp;
 import com.zaxxer.hikari.metrics.IMetricsTracker;
 import com.zaxxer.hikari.metrics.MetricsTrackerFactory;
 import com.zaxxer.hikari.metrics.PoolStats;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 public class MicrometerMetricsTrackerFactory implements MetricsTrackerFactory {
+  @Nullable private final MetricsTrackerFactory userMetricsFactory;
+
+  public MicrometerMetricsTrackerFactory(@Nullable MetricsTrackerFactory userMetricsFactory) {
+    this.userMetricsFactory = userMetricsFactory;
+  }
+
   @Override
   public IMetricsTracker create(String poolName, PoolStats poolStats) {
-    return new MicrometerMetricsTracker(poolName, poolStats);
+    IMetricsTracker userMetrics =
+        userMetricsFactory == null ? null : userMetricsFactory.create(poolName, poolStats);
+    return new MicrometerMetricsTracker(userMetrics, poolName, poolStats);
   }
 }

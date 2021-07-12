@@ -16,37 +16,39 @@
 
 package com.splunk.opentelemetry.hikaricp;
 
-import static net.bytebuddy.matcher.ElementMatchers.isConstructor;
 import static net.bytebuddy.matcher.ElementMatchers.named;
+import static net.bytebuddy.matcher.ElementMatchers.takesArgument;
+import static net.bytebuddy.matcher.ElementMatchers.takesArguments;
 
-import com.zaxxer.hikari.HikariDataSource;
+import com.zaxxer.hikari.metrics.MetricsTrackerFactory;
 import io.opentelemetry.javaagent.extension.instrumentation.TypeInstrumentation;
 import io.opentelemetry.javaagent.extension.instrumentation.TypeTransformer;
 import net.bytebuddy.asm.Advice;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.matcher.ElementMatcher;
-import org.slf4j.LoggerFactory;
 
-class HikariDataSourceInstrumentation implements TypeInstrumentation {
+class HikariPoolInstrumentation implements TypeInstrumentation {
   @Override
   public ElementMatcher<TypeDescription> typeMatcher() {
-    return named("com.zaxxer.hikari.HikariDataSource");
+    return named("com.zaxxer.hikari.pool.HikariPool");
   }
 
   @Override
   public void transform(TypeTransformer transformer) {
     transformer.applyAdviceToMethod(
-        isConstructor(), this.getClass().getName() + "$ConstructorAdvice");
+        named("setMetricsTrackerFactory")
+            .and(takesArguments(1))
+            .and(takesArgument(0, named("com.zaxxer.hikari.metrics.MetricsTrackerFactory"))),
+        this.getClass().getName() + "$SetMetricsTrackerFactoryAdvice");
   }
 
-  public static class ConstructorAdvice {
-    @Advice.OnMethodExit(suppress = Throwable.class)
-    public static void onExit(@Advice.This HikariDataSource dataSource) {
-      try {
-        dataSource.setMetricsTrackerFactory(new MicrometerMetricsTrackerFactory());
-      } catch (IllegalStateException e) {
-        LoggerFactory.getLogger(HikariDataSource.class)
-            .debug("Failed to add metrics to data source {}", dataSource, e);
+  @SuppressWarnings("unused")
+  public static class SetMetricsTrackerFactoryAdvice {
+    @Advice.OnMethodEnter(suppress = Throwable.class)
+    public static void onEnter(
+        @Advice.Argument(value = 0, readOnly = false) MetricsTrackerFactory metricsTrackerFactory) {
+      if (!(metricsTrackerFactory instanceof MicrometerMetricsTrackerFactory)) {
+        metricsTrackerFactory = new MicrometerMetricsTrackerFactory(metricsTrackerFactory);
       }
     }
   }

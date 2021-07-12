@@ -18,12 +18,16 @@ package com.splunk.opentelemetry.hikaricp;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.verify;
 
 import com.splunk.opentelemetry.testing.MeterData;
 import com.splunk.opentelemetry.testing.TestMetricsAccess;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import com.zaxxer.hikari.metrics.IMetricsTracker;
 import io.opentelemetry.instrumentation.testing.junit.AgentInstrumentationExtension;
 import java.sql.Connection;
 import java.util.Map;
@@ -40,6 +44,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 public class HikariInstrumentationTest {
   @Mock DataSource dataSourceMock;
   @Mock Connection connectionMock;
+  @Mock IMetricsTracker userMetricsMock;
 
   @AfterEach
   void clearMetrics() {
@@ -66,6 +71,33 @@ public class HikariInstrumentationTest {
     await()
         .atMost(20, TimeUnit.SECONDS)
         .untilAsserted(HikariInstrumentationTest::assertConnectionPoolMetrics);
+  }
+
+  @Test
+  void shouldNotBreakCustomUserMetrics() throws Exception {
+    // given
+    given(dataSourceMock.getConnection()).willReturn(connectionMock);
+
+    var hikariConfig = new HikariConfig();
+    hikariConfig.setPoolName("testPool");
+    hikariConfig.setDataSource(dataSourceMock);
+
+    var hikariDataSource = new HikariDataSource(hikariConfig);
+    hikariDataSource.setMetricsTrackerFactory(((poolName, poolStats) -> userMetricsMock));
+
+    // when
+    var hikariConnection = hikariDataSource.getConnection();
+    TimeUnit.MILLISECONDS.sleep(10);
+    hikariConnection.close();
+
+    // then
+    await()
+        .atMost(20, TimeUnit.SECONDS)
+        .untilAsserted(HikariInstrumentationTest::assertConnectionPoolMetrics);
+
+    verify(userMetricsMock, atLeastOnce()).recordConnectionCreatedMillis(anyLong());
+    verify(userMetricsMock, atLeastOnce()).recordConnectionAcquiredNanos(anyLong());
+    verify(userMetricsMock, atLeastOnce()).recordConnectionUsageMillis(anyLong());
   }
 
   private static void assertConnectionPoolMetrics() {

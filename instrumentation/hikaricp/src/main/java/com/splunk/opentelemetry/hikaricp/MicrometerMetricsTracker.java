@@ -40,15 +40,21 @@ import io.micrometer.core.instrument.Tags;
 import io.micrometer.core.instrument.Timer;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 public class MicrometerMetricsTracker implements IMetricsTracker {
+  @Nullable private final IMetricsTracker userMetricsTracker;
+
   private final Counter timeouts;
   private final Timer createTime;
   private final Timer waitTime;
   private final Timer useTime;
   private final List<Meter> allMeters;
 
-  public MicrometerMetricsTracker(String poolName, PoolStats poolStats) {
+  public MicrometerMetricsTracker(
+      @Nullable IMetricsTracker userMetricsTracker, String poolName, PoolStats poolStats) {
+    this.userMetricsTracker = userMetricsTracker;
+
     Tags tags = poolTags(poolName);
 
     timeouts = CONNECTIONS_TIMEOUTS.create(tags);
@@ -77,27 +83,42 @@ public class MicrometerMetricsTracker implements IMetricsTracker {
   @Override
   public void recordConnectionCreatedMillis(long connectionCreatedMillis) {
     createTime.record(connectionCreatedMillis, TimeUnit.MILLISECONDS);
+    if (userMetricsTracker != null) {
+      userMetricsTracker.recordConnectionCreatedMillis(connectionCreatedMillis);
+    }
   }
 
   @Override
   public void recordConnectionAcquiredNanos(long elapsedAcquiredNanos) {
     waitTime.record(elapsedAcquiredNanos, TimeUnit.NANOSECONDS);
+    if (userMetricsTracker != null) {
+      userMetricsTracker.recordConnectionAcquiredNanos(elapsedAcquiredNanos);
+    }
   }
 
   @Override
   public void recordConnectionUsageMillis(long elapsedBorrowedMillis) {
     useTime.record(elapsedBorrowedMillis, TimeUnit.MILLISECONDS);
+    if (userMetricsTracker != null) {
+      userMetricsTracker.recordConnectionUsageMillis(elapsedBorrowedMillis);
+    }
   }
 
   @Override
   public void recordConnectionTimeout() {
     timeouts.increment();
+    if (userMetricsTracker != null) {
+      userMetricsTracker.recordConnectionTimeout();
+    }
   }
 
   @Override
   public void close() {
     for (Meter meter : allMeters) {
       Metrics.globalRegistry.remove(meter);
+    }
+    if (userMetricsTracker != null) {
+      userMetricsTracker.close();
     }
   }
 }

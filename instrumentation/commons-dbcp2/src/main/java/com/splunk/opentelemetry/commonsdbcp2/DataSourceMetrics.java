@@ -25,7 +25,6 @@ import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.DataSourceSem
 import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.DataSourceSemanticConventions.POOL_NAME;
 import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.DataSourceSemanticConventions.POOL_TYPE;
 
-import com.splunk.opentelemetry.javaagent.bootstrap.metrics.GlobalMetricsTags;
 import io.micrometer.core.instrument.Meter;
 import io.micrometer.core.instrument.Metrics;
 import io.micrometer.core.instrument.Tag;
@@ -74,7 +73,7 @@ public final class DataSourceMetrics {
     if (name == null) {
       name = objectName.toString();
     }
-    return GlobalMetricsTags.get().and(Tag.of(POOL_TYPE, "dbcp2"), Tag.of(POOL_NAME, name));
+    return Tags.of(Tag.of(POOL_TYPE, "dbcp2"), Tag.of(POOL_NAME, name));
   }
 
   private static final class TotalConnectionsUsed implements Supplier<Number> {

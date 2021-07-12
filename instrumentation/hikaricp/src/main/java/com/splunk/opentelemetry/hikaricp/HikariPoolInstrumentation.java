@@ -35,6 +35,7 @@ class HikariPoolInstrumentation implements TypeInstrumentation {
 
   @Override
   public void transform(TypeTransformer transformer) {
+    // this method is always called in the HikariPool constructor, even if the user does not configure anything
     transformer.applyAdviceToMethod(
         named("setMetricsTrackerFactory")
             .and(takesArguments(1))

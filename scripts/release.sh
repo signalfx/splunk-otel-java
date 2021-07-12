@@ -33,7 +33,7 @@ EOF
 
   echo ">>> Importing secret key ..."
   echo "$GPG_SECRET_KEY" > seckey.gpg
-  trap "rm seckey.gpg" EXIT KILL
+  trap "rm seckey.gpg" EXIT INT KILL STOP TERM
   gpg --batch --allow-secret-key-import --import seckey.gpg
 }
 

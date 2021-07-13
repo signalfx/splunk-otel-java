@@ -1,0 +1,32 @@
+name: Build splunk-otel-collector Windows docker image
+
+on:
+  push:
+    paths:
+      - 'smoke-tests/splunk-otel-collector-windows/**'
+      - '.github/workflows/splunk-otel-collector-windows.yaml'
+    branches: [ 'main' ]
+  workflow_dispatch:
+
+jobs:
+  publish:
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Support longpaths
+        run: git config --system core.longpaths true
+
+      - uses: actions/checkout@v2
+
+      - name: Login to GitHub Package Registry
+        uses: azure/docker-login@v1
+        with:
+          login-server: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GHCR_TOKEN }}
+
+      - name: Build Docker Image
+        run: ./build.sh "$GITHUB_RUN_ID"
+        working-directory: smoke-tests/splunk-otel-collector-windows

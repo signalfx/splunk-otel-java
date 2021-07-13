@@ -3,7 +3,7 @@ plugins {
 }
 
 dependencies {
-  compileOnly("com.zaxxer:HikariCP:3.0.0")
+  compileOnly("com.zaxxer:HikariCP:4.0.3")
 
   testImplementation("com.zaxxer:HikariCP:3.0.0")
   testImplementation("org.awaitility:awaitility")

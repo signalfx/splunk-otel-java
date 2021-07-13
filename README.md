@@ -103,7 +103,7 @@ Then the runtime parameters would be updated to:
 
 ```bash
 java -javaagent:./splunk-otel-javaagent.jar \
-     -Dotel.resource.attributes=service.name=my-java-app \
+     -Dotel.service.name=my-java-app \
      -jar myapp.jar https://splunk.com
 ```
 
@@ -121,9 +121,9 @@ To see the Java Agent in action with sample applications, see our
 
 ### Basic Configuration
 
-The service name resource attribute is the only configuration option
-that needs to be specified. You can set it by adding a `service.name`
-attribute as shown in the [example above](#getting-started).
+The service name is the only configuration option that is required. You can
+specify it by setting the `otel.service.name` system property as shown in the
+[example above](#getting-started).
 
 A few other configuration options that may need to be changed or set are:
 
@@ -139,12 +139,12 @@ A few other configuration options that may need to be changed or set are:
 - Environment resource attribute `deployment.environment` to specify what
   environment the span originated from. For example:
   ```
-  -Dotel.resource.attributes=service.name=my-java-app,deployment.environment=production
+  -Dotel.resource.attributes=deployment.environment=production
   ```
 - Service version resource attribute `service.version` to specify the version
   of your instrumented application. For example:
   ```
-  -Dotel.resource.attributes=service.name=my-java-app,service.version=1.2.3
+  -Dotel.resource.attributes=deployment.environment=production,service.version=1.2.3
   ```
 
 The `deployment.environment` and `service.version` resource attributes are not

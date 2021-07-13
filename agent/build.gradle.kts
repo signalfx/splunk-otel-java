@@ -138,7 +138,7 @@ tasks {
             developer {
               id.set("splunk")
               name.set("Splunk Instrumentation Authors")
-              email.set("support+sonatype@signalfx.com")
+              email.set("support+java@signalfx.com")
               organization.set("Splunk")
               organizationUrl.set("https://www.splunk.com")
             }
@@ -154,9 +154,11 @@ tasks {
     }
   }
 
-  if (System.getenv("CI") != null) {
+  val gpgSecretKey = System.getenv("GPG_SECRET_KEY")
+  val gpgPassword = System.getenv("GPG_PASSWORD")
+  if (gpgSecretKey != null && gpgPassword != null) {
     signing {
-      useInMemoryPgpKeys(System.getenv("GPG_SECRET_KEY"), System.getenv("GPG_PASSWORD"))
+      useInMemoryPgpKeys(gpgSecretKey, gpgPassword)
       sign(publishing.publications["maven"])
     }
   }

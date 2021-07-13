@@ -1,11 +1,6 @@
 image:
   name: "openjdk:11.0.11-9-jdk"
 
-before_script:
-  # make sure zip is available - it's necessary to execute the buildpack script
-  - apt-get update
-  - apt-get -y install zip
-
 stages:
   - build
   - release
@@ -29,14 +24,11 @@ release:
       - dist/
   rules:
     - if: '$CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+.*/'
+  before_script:
+    # make sure necessary dependencies are installed
+    - apt-key adv --keyserver keyserver.ubuntu.com --recv-key C99B11DEB97541F0
+    - apt-add-repository https://cli.github.com/packages
+    - apt-get update
+    - apt-get -y install zip gh
   script:
-    # create release dir
-    - mkdir -p dist
-    # build the javaagent
-    - ./gradlew -Prelease.useLastTag=true build final closeAndReleaseSonatypeStagingRepository -x test --no-daemon
-    - mv agent/build/libs/splunk-otel-javaagent-*-all.jar dist/splunk-otel-javaagent-all.jar
-    # build the cloudfoundry buildpack
-    - ./deployments/cloudfoundry/buildpack/build.sh
-    - mv deployments/cloudfoundry/buildpack/splunk_otel_java_buildpack-linux.zip dist/
-    # calculate checksums
-    - shasum -a 256 dist/* > dist/checksums.txt
+    - ./scripts/release.sh "$CI_COMMIT_TAG"

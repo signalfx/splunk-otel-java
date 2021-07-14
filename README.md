@@ -121,9 +121,8 @@ To see the Java Agent in action with sample applications, see our
 
 ### Basic Configuration
 
-The service name is the only configuration option that is required. You can
-specify it by setting the `otel.service.name` system property as shown in the
-[example above](#getting-started).
+`service.name` is the only required setting. You can specify it by setting
+`otel.service.name` as in the [example above](#getting-started).
 
 A few other configuration options that may need to be changed or set are:
 

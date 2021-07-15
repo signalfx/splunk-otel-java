@@ -82,6 +82,7 @@ Splunk Distribution of OpenTelemetry Java instruments several JDBC connection po
 
 * [Apache DBCP2](https://commons.apache.org/proper/commons-dbcp/)
 * [HikariCP](https://github.com/brettwooldridge/HikariCP)
+* [Tomcat JDBC](https://tomcat.apache.org/tomcat-8.5-doc/jdbc-pool.html)
 
 Each of the supported connection pools reports a subset of the following metrics:
 
@@ -104,4 +105,4 @@ All connection pool metrics have the following tags:
 | Tag name    | Tag value |
 | ----------- | --------- |
 | `pool.name` | The name of the connection pool: Spring bean name if Spring is used, the JMX object name otherwise.
-| `pool.type` | The type/implementation of the connection pool: e.g. `dbcp2`, `hikari`
+| `pool.type` | The type/implementation of the connection pool: e.g. `dbcp2`, `hikari`, `tomcat-jdbc`

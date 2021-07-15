@@ -23,11 +23,9 @@ import static org.mockito.BDDMockito.given;
 import com.splunk.opentelemetry.testing.MeterData;
 import com.splunk.opentelemetry.testing.TestMetricsAccess;
 import io.opentelemetry.instrumentation.testing.junit.AgentInstrumentationExtension;
-import java.lang.management.ManagementFactory;
 import java.sql.Connection;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-import javax.management.ObjectName;
 import org.apache.tomcat.jdbc.pool.DataSource;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -54,13 +52,9 @@ public class TomcatJdbcInstrumentationTest {
     var tomcatDataSource = new DataSource();
     tomcatDataSource.setDataSource(dataSourceMock);
 
-    // this is the recommended way to setup the connection pool outside of tomcat:
-    // https://tomcat.apache.org/tomcat-8.5-doc/jdbc-pool.html#JMX
+    // there shouldn't be any problems if this methods gets called more than once
     tomcatDataSource.createPool();
-    var objectName =
-        new ObjectName("org.apache.tomcat.jdbc.pool.jmx.ConnectionPool:name=testConnectionPool");
-    ManagementFactory.getPlatformMBeanServer()
-        .registerMBean(tomcatDataSource.getPool().getJmxPool(), objectName);
+    tomcatDataSource.createPool();
 
     // when
     var connection = tomcatDataSource.getConnection();
@@ -72,7 +66,9 @@ public class TomcatJdbcInstrumentationTest {
         .untilAsserted(() -> assertConnectionPoolMetrics(tomcatDataSource.getPoolName()));
 
     // when
-    ManagementFactory.getPlatformMBeanServer().unregisterMBean(objectName);
+    // this one too shouldn't cause any problems when called more than once
+    tomcatDataSource.close();
+    tomcatDataSource.close();
 
     // then
     await()

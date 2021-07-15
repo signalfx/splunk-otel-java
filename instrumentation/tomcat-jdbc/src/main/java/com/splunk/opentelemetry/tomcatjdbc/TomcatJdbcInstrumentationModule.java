@@ -43,6 +43,6 @@ public class TomcatJdbcInstrumentationModule extends InstrumentationModule {
 
   @Override
   public List<TypeInstrumentation> typeInstrumentations() {
-    return singletonList(new ConnectionPoolInstrumentation());
+    return singletonList(new DataSourceProxyInstrumentation());
   }
 }

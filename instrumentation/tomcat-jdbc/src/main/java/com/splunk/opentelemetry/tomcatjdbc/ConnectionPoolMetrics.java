@@ -34,41 +34,44 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import org.apache.tomcat.jdbc.pool.jmx.ConnectionPool;
+import org.apache.tomcat.jdbc.pool.DataSourceProxy;
 
 public final class ConnectionPoolMetrics {
 
-  // a weak map does not make sense here because each Meter holds a reference to the connectionPool
-  // ConnectionPool does not implement equals()/hashCode(), so it's safe to keep them in a plain
+  // a weak map does not make sense here because each Meter holds a reference to the dataSource
+  // DataSourceProxy does not implement equals()/hashCode(), so it's safe to keep them in a plain
   // ConcurrentHashMap
-  private static final Map<ConnectionPool, List<Meter>> connectionPoolMetrics =
+  private static final Map<DataSourceProxy, List<Meter>> dataSourceMetrics =
       new ConcurrentHashMap<>();
 
-  public static void registerMetrics(ConnectionPool connectionPool) {
-    Tags tags = poolTags(connectionPool);
-
-    List<Meter> meters =
-        Arrays.asList(
-            CONNECTIONS_TOTAL.create(tags, connectionPool::getSize),
-            CONNECTIONS_ACTIVE.create(tags, connectionPool::getActive),
-            CONNECTIONS_IDLE.create(tags, connectionPool::getIdle),
-            CONNECTIONS_IDLE_MIN.create(tags, connectionPool::getMinIdle),
-            CONNECTIONS_IDLE_MAX.create(tags, connectionPool::getMaxIdle),
-            CONNECTIONS_MAX.create(tags, connectionPool::getMaxActive),
-            CONNECTIONS_PENDING_THREADS.create(tags, connectionPool::getWaitCount));
-    connectionPoolMetrics.put(connectionPool, meters);
+  public static void registerMetrics(DataSourceProxy dataSource) {
+    dataSourceMetrics.computeIfAbsent(dataSource, ConnectionPoolMetrics::createMeters);
   }
 
-  public static void unregisterMetrics(ConnectionPool connectionPool) {
-    List<Meter> meters = connectionPoolMetrics.remove(connectionPool);
-    for (Meter meter : meters) {
-      Metrics.globalRegistry.remove(meter);
+  private static List<Meter> createMeters(DataSourceProxy dataSource) {
+    Tags tags = poolTags(dataSource);
+
+    return Arrays.asList(
+        CONNECTIONS_TOTAL.create(tags, dataSource::getSize),
+        CONNECTIONS_ACTIVE.create(tags, dataSource::getActive),
+        CONNECTIONS_IDLE.create(tags, dataSource::getIdle),
+        CONNECTIONS_IDLE_MIN.create(tags, dataSource::getMinIdle),
+        CONNECTIONS_IDLE_MAX.create(tags, dataSource::getMaxIdle),
+        CONNECTIONS_MAX.create(tags, dataSource::getMaxActive),
+        CONNECTIONS_PENDING_THREADS.create(tags, dataSource::getWaitCount));
+  }
+
+  public static void unregisterMetrics(DataSourceProxy dataSource) {
+    List<Meter> meters = dataSourceMetrics.remove(dataSource);
+    if (meters != null) {
+      for (Meter meter : meters) {
+        Metrics.globalRegistry.remove(meter);
+      }
     }
   }
 
-  private static Tags poolTags(ConnectionPool connectionPool) {
-    return Tags.of(
-        Tag.of(POOL_TYPE, "tomcat-jdbc"), Tag.of(POOL_NAME, connectionPool.getPoolName()));
+  private static Tags poolTags(DataSourceProxy dataSource) {
+    return Tags.of(Tag.of(POOL_TYPE, "tomcat-jdbc"), Tag.of(POOL_NAME, dataSource.getPoolName()));
   }
 
   private ConnectionPoolMetrics() {}

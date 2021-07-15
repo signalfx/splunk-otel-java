@@ -71,6 +71,14 @@ public class HikariInstrumentationTest {
     await()
         .atMost(20, TimeUnit.SECONDS)
         .untilAsserted(HikariInstrumentationTest::assertConnectionPoolMetrics);
+
+    // when
+    hikariDataSource.close();
+
+    // then
+    await()
+        .atMost(20, TimeUnit.SECONDS)
+        .untilAsserted(HikariInstrumentationTest::assertNoConnectionPoolMetrics);
   }
 
   @Test
@@ -115,5 +123,20 @@ public class HikariInstrumentationTest {
             new MeterData("db.pool.connections.create_time", "timer", "seconds", tags),
             new MeterData("db.pool.connections.wait_time", "timer", "seconds", tags),
             new MeterData("db.pool.connections.use_time", "timer", "seconds", tags));
+  }
+
+  private static void assertNoConnectionPoolMetrics() {
+    assertThat(TestMetricsAccess.getMeters().stream().map(MeterData::getName).distinct())
+        .doesNotContain(
+            "db.pool.connections",
+            "db.pool.connections.active",
+            "db.pool.connections.idle",
+            "db.pool.connections.idle.min",
+            "db.pool.connections.max",
+            "db.pool.connections.pending_threads",
+            "db.pool.connections.timeouts",
+            "db.pool.connections.create_time",
+            "db.pool.connections.wait_time",
+            "db.pool.connections.use_time");
   }
 }

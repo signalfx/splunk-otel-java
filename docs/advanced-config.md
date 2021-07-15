@@ -87,7 +87,7 @@ export OTEL_PROPAGATORS=b3multi
 
 | System property          | Environment variable     | Default value  | Support | Description |
 | ------------------------ | ------------------------ | -------------- | ------- | ----------- |
-| `otel.traces.sampler`    | `OTEL_TRACE_SAMPLER` | `always_on`    | Stable  | The sampler to use for tracing.	|
+| `otel.traces.sampler`    | `OTEL_TRACE_SAMPLER`     | `always_on`    | Stable  | The sampler to use for tracing.	|
 
 Set `otel.traces.sampler` to `internal_root_off` to drop all traces with root spans where `spanKind` is `INTERNAL`, `CLIENT` or `PRODUCER`. This setting only keeps root spans where `spanKind` is `SERVER` and `CONSUMER`.
 

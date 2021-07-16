@@ -3,7 +3,7 @@ plugins {
 }
 
 dependencies {
-  compileOnly("org.apache.tomcat:tomcat-jdbc:8.5.0")
+  compileOnly("org.apache.tomcat:tomcat-jdbc:10.0.8")
 
   testImplementation("org.apache.tomcat:tomcat-jdbc:8.5.0")
   testImplementation("org.awaitility:awaitility")

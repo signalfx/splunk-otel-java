@@ -41,6 +41,7 @@ include(
     "instrumentation:servlet",
     "instrumentation:servlet-3-testing",
     "instrumentation:tomcat",
+    "instrumentation:tomcat-jdbc",
     "instrumentation:tomee",
     "instrumentation:weblogic",
     "instrumentation:wildfly",

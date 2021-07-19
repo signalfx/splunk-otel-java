@@ -12,7 +12,7 @@ dependencies {
   testImplementation("io.opentelemetry:opentelemetry-proto")
   testImplementation("io.opentelemetry:opentelemetry-api")
 
-  testImplementation("ch.qos.logback:logback-classic:1.2.3")
+  testImplementation("ch.qos.logback:logback-classic:1.2.4")
 
   testImplementation("com.github.docker-java:docker-java-core")
   testImplementation("com.github.docker-java:docker-java-transport-httpclient5")

@@ -22,7 +22,7 @@ first step) and first build
 [OracleJava 11](https://github.com/oracle/docker-images/blob/master/OracleJava/11/Dockerfile) and
 then respective WebLogic versions.
 
-#### WebLogic 12.1 and 12.2]
+#### WebLogic 12.1 and 12.2
 Follow these instructions and build _developer_ (`-d` flag) image of
 [WebLogic 12.2.1.4 on Java 8](https://github.com/oracle/docker-images/tree/master/OracleWebLogic/dockerfiles/12.2.1.4) and
 [WebLogic 12.1.3 on Java 8](https://github.com/oracle/docker-images/tree/master/OracleWebLogic/dockerfiles/12.1.3)

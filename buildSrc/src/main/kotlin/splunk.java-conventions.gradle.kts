@@ -13,10 +13,10 @@ repositories {
   }
 }
 
-val otelVersion = "1.3.0"
-val otelAlphaVersion = "1.3.0-alpha"
-val otelInstrumentationVersion = "1.4.0-SNAPSHOT"
-val otelInstrumentationAlphaVersion = "1.4.0-alpha-SNAPSHOT"
+val otelVersion = "1.4.0"
+val otelAlphaVersion = "1.4.0-alpha"
+val otelInstrumentationVersion = "1.5.0-SNAPSHOT"
+val otelInstrumentationAlphaVersion = "1.5.0-alpha-SNAPSHOT"
 
 // dependencyManagement can't into classifiers, we have to pass version the old way for deps with qualifiers
 extra["otelInstrumentationVersion"] = otelInstrumentationVersion
@@ -51,7 +51,7 @@ extensions.configure<DependencyManagementExtension>("dependencyManagement") {
     dependency("io.opentelemetry.instrumentation:opentelemetry-instrumentation-api:${otelInstrumentationAlphaVersion}")
     dependencySet("io.opentelemetry.javaagent:${otelInstrumentationAlphaVersion}") {
       entry("opentelemetry-agent-for-testing")
-      entry("opentelemetry-javaagent-api")
+      entry("opentelemetry-javaagent-instrumentation-api")
       entry("opentelemetry-javaagent-extension-api")
       entry("opentelemetry-testing-common")
     }

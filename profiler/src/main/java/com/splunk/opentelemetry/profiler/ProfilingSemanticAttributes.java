@@ -31,7 +31,7 @@ public class ProfilingSemanticAttributes {
   public static final AttributeKey<String> LINKED_TRACE_ID = stringKey("trace_id");
 
   /** This is a HEC field that shows up in the Logging UI. */
-  public static final AttributeKey<String> SOURCE_TYPE = stringKey("sourcetype");
+  public static final AttributeKey<String> SOURCE_TYPE = stringKey("com.splunk.sourcetype");
 
   /** The name of the originating event that generated this profiling event */
   public static final AttributeKey<String> SOURCE_EVENT_NAME = stringKey("source.event.name");

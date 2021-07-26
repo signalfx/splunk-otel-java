@@ -33,8 +33,13 @@ EOF
 
   echo ">>> Importing secret key ..."
   echo "$GPG_SECRET_KEY" > seckey.gpg
-  trap "rm seckey.gpg" EXIT INT KILL STOP TERM
-  gpg --batch --allow-secret-key-import --import seckey.gpg
+  if (gpg --batch --allow-secret-key-import --import seckey.gpg)
+  then
+    rm seckey.gpg
+  else
+    rm seckey.gpg
+    exit 1
+  fi
 }
 
 build_project() {

@@ -95,7 +95,7 @@ Each of the supported connection pools reports a subset of the following metrics
 | `db.pool.connections.idle.min`        | The minimum number of idle open connections allowed.
 | `db.pool.connections.max`             | The maximum number of open connections allowed.
 | `db.pool.connections.pending_threads` | The number of threads that are currently waiting for an open connection.
-| `db.pool.connections.timeouts`        | The number of threads that are currently waiting for an open connection.
+| `db.pool.connections.timeouts`        | The number of connection timeouts that have happened since the application start.
 | `db.pool.connections.create_time`     | The time it took to create a new connection.
 | `db.pool.connections.wait_time`       | The time it took to get an open connection from the pool.
 | `db.pool.connections.use_time`        | The time between borrowing a connection and returning it to the pool.
@@ -105,4 +105,4 @@ All connection pool metrics have the following tags:
 | Tag name    | Tag value |
 | ----------- | --------- |
 | `pool.name` | The name of the connection pool: Spring bean name if Spring is used, the JMX object name otherwise.
-| `pool.type` | The type/implementation of the connection pool: e.g. `dbcp2`, `hikari`, `tomcat-jdbc`
+| `pool.type` | The type/implementation of the connection pool: e.g. `dbcp2`, `hikari`, `tomcat-jdbc`.

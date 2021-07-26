@@ -8,6 +8,19 @@ and this repository adheres to [Semantic Versioning](https://semver.org/spec/v2.
 
 ## Unreleased
 
+## v1.2.0 - 2021-07-26
+
+### General
+
+- OpenTelemetry Java SDK and OpenTelemetry Instrumentation for Java dependencies have been updated to version 1.4.0.
+
+### Enhancements
+
+- We have added instrumentation for [HikariCP](https://github.com/brettwooldridge/HikariCP)
+  and [Tomcat JDBC](https://tomcat.apache.org/tomcat-8.5-doc/jdbc-pool.html) connection pools. The agent now
+  collects and exports metrics for both JDBC connection pools.
+- You can now set the service name using the `OTEL_SERVICE_NAME` environment variable and the `otel.service.name` system property. This removes the need of using `OTEL_RESOURCE_ATTRIBUTES` to set the service name.
+
 ## v1.1.0 - 2021-06-18
 
 ### General

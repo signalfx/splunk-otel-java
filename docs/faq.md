@@ -1,3 +1,5 @@
+> The official Splunk documentation for this page is [](https://docs.splunk.com/Observability/).
+
 # Frequently Asked Questions
 
 - **Can upstream opentelemetry-java or opentelemetry-java-instrumentation be

@@ -1,4 +1,4 @@
-> The official Splunk documentation for this page is [](https://docs.splunk.com/Observability/).
+> The official Splunk documentation for this page is [About the Splunk Distribution of OpenTelemetry Java](https://docs.splunk.com/Observability/gdi/get-data-in/application/java/splunk-java-otel-distribution.html#nav-About-Splunk-OTel-Java).
 
 # Frequently Asked Questions
 

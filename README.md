@@ -2,11 +2,11 @@
 
 <p align="center">
   <strong>
-    <a href="#getting-started">Getting Started</a>
+    <a href="#get-started">Get Started</a>
     &nbsp;&nbsp;&bull;&nbsp;&nbsp;
-    <a href="CONTRIBUTING.md">Getting Involved</a>
+    <a href="CONTRIBUTING.md">Get Involved</a>
     &nbsp;&nbsp;&bull;&nbsp;&nbsp;
-    <a href="MIGRATING.md">Migrating from SignalFx Java Agent</a>
+    <a href="https://docs.splunk.com/Observability/gdi/get-data-in/application/java/troubleshooting/migrate-signalfx-java-agent-to-otel.html">Migrate from SignalFx Java Agent</a>
   </strong>
 </p>
 
@@ -30,13 +30,13 @@
   <strong>
     <a href="https://github.com/signalfx/tracing-examples/tree/main/opentelemetry-tracing/opentelemetry-java-tracing">Examples</a>
     &nbsp;&nbsp;&bull;&nbsp;&nbsp;
-    <a href="docs/faq.md">FAQ</a>
+    <a href="https://docs.splunk.com/Observability/gdi/get-data-in/application/java/splunk-java-otel-distribution.html">About the distribution</a>
     &nbsp;&nbsp;&bull;&nbsp;&nbsp;
     <a href="SECURITY.md">Security</a>
     &nbsp;&nbsp;&bull;&nbsp;&nbsp;
-    <a href="docs/supported-libraries.md">Supported Libraries</a>
+    <a href="https://docs.splunk.com/Observability/gdi/get-data-in/application/java/java-otel-requirements.html">Supported Libraries</a>
     &nbsp;&nbsp;&bull;&nbsp;&nbsp;
-    <a href="docs/troubleshooting.md">Troubleshooting</a>
+    <a href="https://docs.splunk.com/Observability/gdi/get-data-in/application/java/troubleshooting/common-java-troubleshooting.html">Troubleshooting</a>
   </strong>
 </p>
 
@@ -52,7 +52,7 @@ Java](https://github.com/open-telemetry/opentelemetry-java-instrumentation)
 provides a [Java Virtual Machine (JVM)
 agent](https://docs.oracle.com/javase/7/docs/api/java/lang/instrument/package-summary.html)
 that automatically instruments your Java application to capture and report
-distributed traces to Splunk APM.
+distributed traces to [Splunk APM](https://docs.splunk.com/Observability/apm/intro-to-apm.html).
 
 This distribution comes with the following defaults:
 
@@ -74,95 +74,29 @@ This distribution comes with the following defaults:
 
 If you're currently using the SignalFx Java Agent and want to
 migrate to the Splunk Distribution of OpenTelemetry Java,
-see [Migrate from the SignalFx Java Agent](MIGRATING.md).
+see [Migrate from the SignalFx Java Agent](https://docs.splunk.com/Observability/gdi/get-data-in/application/java/troubleshooting/migrate-signalfx-java-agent-to-otel.html).
 
-## Getting Started
+## Requirements
 
-To get started, download the JAR for the agent's [latest
-version](https://github.com/signalfx/splunk-otel-java/releases/latest/download/splunk-otel-javaagent-all.jar):
+The agent works with Java runtimes version 8 and higher. For the full list of requirements and supported libraries and versions, see [Requirements for the Java agent](https://docs.splunk.com/Observability/gdi/get-data-in/application/java/java-otel-requirements.html) in the official Splunk documentation.
 
-```bash
-curl -L https://github.com/signalfx/splunk-otel-java/releases/latest/download/splunk-otel-javaagent-all.jar \
-     -o splunk-otel-javaagent.jar
-```
+## Get started
 
-Enable the Java agent by adding the `-javaagent` flag to the runtime JVM
-parameters and set the `service.name`. For example, if the runtime parameters
-were:
-
-```bash
-java -jar myapp.jar https://splunk.com
-```
-
-Then the runtime parameters would be updated to:
-
-```bash
-java -javaagent:./splunk-otel-javaagent.jar \
-     -Dotel.service.name=my-java-app \
-     -jar myapp.jar https://splunk.com
-```
-
-> The `-javaagent` needs to appear before the `-jar` file,
-> adding it as a JVM option, not as an application argument. For more
-> information, see the [Oracle
-> documentation](https://docs.oracle.com/javase/8/docs/technotes/tools/windows/java.html).
-
-> :warning: Specify the agent as the only JVM agent for your application.
-> Multiple agents may result in unpredictable results, broken instrumentation,
-> and in some cases might crash your application.
+To get started, see [Instrument Java services for Observability Cloud](https://docs.splunk.com/Observability/gdi/get-data-in/application/java/get-started.html) in the official Splunk documentation.
 
 To see the Java Agent in action with sample applications, see our
 [examples](https://github.com/signalfx/tracing-examples/tree/main/opentelemetry-tracing/opentelemetry-java-tracing).
 
-### Basic Configuration
+> You can generate a snippet that includes all the install commands for your environment by opening the the Observability Cloud wizard in **Data Setup > APM Instrumentation > Java**.
 
-`service.name` is the only required setting. You can specify it by setting
-`otel.service.name` as in the [example above](#getting-started).
+## Advanced configuration
 
-A few other configuration options that may need to be changed or set are:
-
-- Trace propagation format if not sending to other applications using W3C
-  trace-context. For example, if other applications are instrumented with
-  `signalfx-*-tracing` instrumentation. See the [trace
-  propagation](docs/advanced-config.md#trace-propagation-configuration)
-  configuration documentation for more information.
-- Endpoint if not sending to a locally running Splunk OpenTelemetry Connector
-  with default configuration. For example, if the SignalFx Smart Agent is used.
-  See the [exporters](docs/advanced-config.md#trace-exporters) configuration
-  documentation for more information.
-- Environment resource attribute `deployment.environment` to specify what
-  environment the span originated from. For example:
-  ```
-  -Dotel.resource.attributes=deployment.environment=production
-  ```
-- Service version resource attribute `service.version` to specify the version
-  of your instrumented application. For example:
-  ```
-  -Dotel.resource.attributes=deployment.environment=production,service.version=1.2.3
-  ```
-
-The `deployment.environment` and `service.version` resource attributes are not
-strictly required by the agent, but recommended to be set if they are
-available.
-
-The `otel.resource.attributes` syntax is described in detail in the
-[trace configuration](docs/advanced-config.md#trace-configuration) section.
-
-### Supported Java Versions
-
-The agent works with Java runtimes version 8 and higher and supports all
-JVM-based languages (for example, Clojure, Groovy, Kotlin, Scala). Supported
-libraries and versions are listed [here](docs/supported-libraries.md).
-
-## Advanced Configuration
-
-For the majority of users, the [Getting Started](#getting-started) section is
-all you need. Advanced configuration documentation can be found [here](docs/advanced-config.md).
+To fully configure the agent of the Splunk Distribution of OpenTelemetry Java, see [Configure the Java agent](https://docs.splunk.com/Observability/gdi/get-data-in/application/java/configuration/advanced-java-otel-configuration.html) in the official Splunk documentation.
 
 ## Manually instrument a Java application
 
-Documentation on how to manually instrument a Java application is available
-[here](https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/docs/manual-instrumentation.md).
+Documentation on how to manually instrument a Java application is available in the 
+[OpenTelemetry official documentation](https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/docs/manual-instrumentation.md).
 
 To extend the instrumentation with the OpenTelemetry Instrumentation for Java,
 you have to use a compatible API version.
@@ -174,10 +108,9 @@ with:
 * OpenTelemetry API version <!--OTEL_VERSION-->1.4.1<!--OTEL_VERSION-->
 * OpenTelemetry Instrumentation for Java version <!--OTEL_INSTRUMENTATION_VERSION-->1.4.0<!--OTEL_INSTRUMENTATION_VERSION-->
 
-## Correlating traces with logs
+## Troubleshooting
 
-The Splunk Distribution of OpenTelemetry Java provides a way
-to correlate traces with logs. It is described in detail [here](docs/correlating-traces-with-logs.md).
+For troubleshooting information and known issues, see [Troubleshooting Java instrumentation](https://docs.splunk.com/Observability/gdi/get-data-in/application/java/troubleshooting/common-java-troubleshooting.html) in the official Splunk documentation.
 
 # License and versioning
 

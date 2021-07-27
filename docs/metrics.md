@@ -1,3 +1,5 @@
+> The official Splunk documentation for this page is [Metrics and attributes of the Java agent](https://docs.splunk.com/Observability/gdi/get-data-in/application/java/configuration/java-otel-metrics-attributes.html).
+
 # Metrics
 
 > :construction: &nbsp;Status: Experimental - exported metric data and

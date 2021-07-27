@@ -1,3 +1,5 @@
+> The official Splunk documentation for this page is [Connect Java application trace data with logs](https://docs.splunk.com/Observability/gdi/get-data-in/application/java/instrumentation/connect-traces-logs.html#nav-Connect-trace-data-with-logs).
+
 # Correlating traces with logs
 
 The Java Agent injects several pieces of metadata into the logger MDC.

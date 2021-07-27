@@ -1,3 +1,5 @@
+> The official Splunk documentation for this page is [Server trace information](https://docs.splunk.com/Observability/gdi/get-data-in/application/java/configuration/advanced-java-otel-configuration.html#server-trace-information).
+
 # Server trace information
 
 > :construction: &nbsp;Status: Experimental

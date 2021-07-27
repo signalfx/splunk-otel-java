@@ -1,7 +1,3 @@
-plugins {
-  id("splunk.shadow-conventions")
-}
-
 dependencies {
   compileOnly("io.opentelemetry:opentelemetry-sdk")
   compileOnly("io.opentelemetry:opentelemetry-sdk-extension-autoconfigure")
@@ -37,9 +33,5 @@ tasks {
   java {
     sourceCompatibility = JavaVersion.VERSION_1_8
     targetCompatibility = JavaVersion.VERSION_1_8
-  }
-
-  shadowJar {
-    duplicatesStrategy = DuplicatesStrategy.FAIL
   }
 }

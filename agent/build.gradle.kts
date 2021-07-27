@@ -13,98 +13,81 @@ java {
   withSourcesJar()
 }
 
-// dependencies that already are relocated and will be moved to inst/ (agent classloader isolation)
-val isolateLibs by configurations.creating
-// dependencies that will be relocated
-val relocateLibs by configurations.creating
-// dependencies that will be included as they are
-val includeAsIs by configurations.creating
-
-configurations {
-  named("compileOnly") {
-    extendsFrom(includeAsIs)
-  }
+// this configuration collects libs that will be placed in the bootstrap classloader
+val bootstrapLibs by configurations.creating {
+  isCanBeResolved = true
+  isCanBeConsumed = false
+}
+// this configuration collects libs that will be placed in the agent classloader, isolated from the instrumented application code
+val javaagentLibs by configurations.creating {
+  isCanBeResolved = true
+  isCanBeConsumed = false
+}
+// this configuration stores the upstream agent dep that's extended by this project
+val upstreamAgent by configurations.creating {
+  isCanBeResolved = true
+  isCanBeConsumed = false
 }
 
 val otelInstrumentationVersion: String by extra
 
-// TODO: remove those three lines after shadowJar plugin fixes its afterEvaluate() calls
-// since gradle 7.0 calling afterEvaluate() on already configured project throws an error, and this is exactly
-// what the shadowJar plugin seems to do - calling evaluationDependsOn() for all shadowed projects seems to delay
-// the configuration until after the plugin is applied
-evaluationDependsOn(":custom")
-evaluationDependsOn(":instrumentation")
-evaluationDependsOn(":profiler")
-
 dependencies {
-  isolateLibs(project(":custom", configuration = "shadow"))
-  isolateLibs(project(":instrumentation", configuration = "shadow"))
-  isolateLibs(project(":profiler", configuration = "shadow"))
+  bootstrapLibs(project(":bootstrap"))
 
-  relocateLibs(project(":bootstrap"))
+  javaagentLibs(project(":custom"))
+  javaagentLibs(project(":instrumentation"))
+  javaagentLibs(project(":profiler"))
 
-  includeAsIs("io.opentelemetry.javaagent:opentelemetry-javaagent:${otelInstrumentationVersion}:all")
-}
-
-fun isolateAgentClasses (jars: Iterable<File>): CopySpec {
-  return copySpec {
-    jars.forEach {
-      from(zipTree(it)) {
-        into("inst")
-        rename("(^.*)\\.class\$", "\$1.classdata")
-      }
-    }
-  }
+  upstreamAgent("io.opentelemetry.javaagent:opentelemetry-javaagent:${otelInstrumentationVersion}:all")
 }
 
 tasks {
-  compileJava {
-    options.release.set(8)
-  }
-
   jar {
     enabled = false
   }
 
-  // includes everything except otel agent
-  val relocateAndIsolate by registering(ShadowJar::class) {
-    dependsOn(":custom:shadowJar")
-    dependsOn(":instrumentation:shadowJar")
-    dependsOn(":profiler:shadowJar")
-    dependsOn(":bootstrap:jar")
-    dependsOn(":agent:jar")
+  val relocateJavaagentLibs by registering(ShadowJar::class) {
+    configurations = listOf(javaagentLibs)
 
-    configurations = listOf(relocateLibs)
+    duplicatesStrategy = DuplicatesStrategy.FAIL
 
-    from(sourceSets.main.get().output)
-
-    with(isolateAgentClasses(isolateLibs.files))
+    archiveFileName.set("javaagentLibs-relocated.jar")
   }
 
-  // merge otel agent with our agent
+  // having a separate task for isolating javaagent libs is required to avoid duplicates
+  // duplicatesStrategy in shadowJar won't be applied when adding files with with(CopySpec)
+  val isolateJavaagentLibs by registering(Copy::class) {
+    dependsOn(relocateJavaagentLibs)
+    isolateClasses(relocateJavaagentLibs.get().outputs.files)
+
+    into("$buildDir/isolated/javaagentLibs")
+  }
+
   shadowJar {
+    configurations = listOf(bootstrapLibs, upstreamAgent)
+
+    dependsOn(isolateJavaagentLibs)
+    from(isolateJavaagentLibs.get().outputs)
+
     archiveClassifier.set("all")
 
-    from(includeAsIs.files)
-    from(relocateAndIsolate.get().outputs)
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 
     manifest {
       attributes(mapOf(
           "Main-Class" to "io.opentelemetry.javaagent.OpenTelemetryAgent",
-          "Agent-Class" to "com.splunk.opentelemetry.SplunkAgent",
-          "Premain-Class" to "com.splunk.opentelemetry.SplunkAgent",
+          "Agent-Class" to "com.splunk.opentelemetry.javaagent.SplunkAgent",
+          "Premain-Class" to "com.splunk.opentelemetry.javaagent.SplunkAgent",
           "Can-Redefine-Classes" to true,
           "Can-Retransform-Classes" to true,
           "Implementation-Vendor" to "Splunk",
           "Implementation-Version" to "splunk-${project.version}-otel-${otelInstrumentationVersion}"
       ))
     }
-
-    mergeServiceFiles {
-      include("inst/META-INF/services/*")
-    }
   }
 
+  // create a no-classifier jar that's exactly the same as the -all one
+  // a no-classifier (main) jar is required by sonatype
   val mainShadowJar by registering(Jar::class) {
     archiveClassifier.set("")
 
@@ -116,8 +99,7 @@ tasks {
   }
 
   assemble {
-    dependsOn(shadowJar)
-    dependsOn(mainShadowJar)
+    dependsOn(shadowJar, mainShadowJar)
   }
 
   val t = this
@@ -178,4 +160,13 @@ tasks {
 
 rootProject.tasks.named("release") {
   finalizedBy(tasks["publishToSonatype"])
+}
+
+fun CopySpec.isolateClasses(jars: Iterable<File>) {
+  jars.forEach {
+    from(zipTree(it)) {
+      into("inst")
+      rename("(^.*)\\.class\$", "\$1.classdata")
+    }
+  }
 }

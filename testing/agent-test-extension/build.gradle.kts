@@ -1,7 +1,3 @@
-plugins {
-  id("splunk.shadow-conventions")
-}
-
 dependencies {
   annotationProcessor("com.google.auto.service:auto-service")
   compileOnly("com.google.auto.service:auto-service")

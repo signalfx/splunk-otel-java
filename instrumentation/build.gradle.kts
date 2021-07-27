@@ -1,7 +1,3 @@
-plugins {
-  id("splunk.shadow-conventions")
-}
-
 val instrumentationTest = tasks.named("test")
 val instrumentationDeps = dependencies
 
@@ -26,11 +22,5 @@ subprojects {
     compileJava {
       options.release.set(8)
     }
-  }
-}
-
-tasks {
-  shadowJar {
-    duplicatesStrategy = DuplicatesStrategy.FAIL
   }
 }

@@ -4,33 +4,31 @@ plugins {
   id("splunk.shadow-conventions")
 }
 
-// dependencies that already are relocated and will be moved to inst/ (agent classloader isolation)
-val isolateLibs by configurations.creating
-// dependencies that will be relocated
-val relocateLibs by configurations.creating
-// dependencies that will be included as they are
-val includeAsIs by configurations.creating
+// this configuration collects libs that will be placed in the bootstrap classloader
+val bootstrapLibs by configurations.creating {
+  isCanBeResolved = true
+  isCanBeConsumed = false
+}
+// this configuration collects libs that will be placed in the agent classloader, isolated from the instrumented application code
+val javaagentLibs by configurations.creating {
+  isCanBeResolved = true
+  isCanBeConsumed = false
+}
+// this configuration stores the upstream agent dep that's extended by this project
+val upstreamAgent by configurations.creating {
+  isCanBeResolved = true
+  isCanBeConsumed = false
+}
 
 dependencies {
   // include micrometer-core API
-  relocateLibs(project(":bootstrap"))
+  bootstrapLibs(project(":bootstrap"))
   // include testing extensions, e.g. micrometer
-  isolateLibs(project(":testing:agent-test-extension", configuration = "shadow"))
+  javaagentLibs(project(":testing:agent-test-extension"))
 
   // and finally include everything from otel agent for testing
   //TODO remove this `@jar` when upstream sorts its publishing
-  includeAsIs("io.opentelemetry.javaagent:opentelemetry-agent-for-testing@jar")
-}
-
-fun isolateAgentClasses (jars: Iterable<File>): CopySpec {
-  return copySpec {
-    jars.forEach {
-      from(zipTree(it)) {
-        into("inst")
-        rename("(^.*)\\.class\$", "\$1.classdata")
-      }
-    }
-  }
+  upstreamAgent("io.opentelemetry.javaagent:opentelemetry-agent-for-testing@jar")
 }
 
 tasks {
@@ -38,17 +36,28 @@ tasks {
     enabled = false
   }
 
-  val relocateAndIsolate by registering(ShadowJar::class) {
-    dependsOn(":testing:agent-test-extension:shadowJar")
+  val relocateJavaagentLibs by registering(ShadowJar::class) {
+    configurations = listOf(javaagentLibs)
 
-    configurations = listOf(relocateLibs)
+    archiveFileName.set("javaagentLibs-relocated.jar")
+  }
 
-    with(isolateAgentClasses(isolateLibs.files))
+  // having a separate task for isolating javaagent libs is required to avoid duplicates
+  // duplicatesStrategy in shadowJar won't be applied when adding files with with(CopySpec)
+  val isolateJavaagentLibs by registering(Copy::class) {
+    dependsOn(relocateJavaagentLibs)
+    isolateClasses(relocateJavaagentLibs.get().outputs.files)
+
+    into("$buildDir/isolated/javaagentLibs")
   }
 
   shadowJar {
-    from(includeAsIs.files)
-    from(relocateAndIsolate.get().outputs)
+    configurations = listOf(bootstrapLibs, upstreamAgent)
+
+    dependsOn(isolateJavaagentLibs)
+    from(isolateJavaagentLibs.get().outputs)
+
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 
     manifest {
       attributes(mapOf(
@@ -59,13 +68,18 @@ tasks {
           "Can-Retransform-Classes" to true,
       ))
     }
-
-    mergeServiceFiles {
-      include("inst/META-INF/services/**")
-    }
   }
 
   assemble {
     dependsOn(shadowJar)
+  }
+}
+
+fun CopySpec.isolateClasses(jars: Iterable<File>) {
+  jars.forEach {
+    from(zipTree(it)) {
+      into("inst")
+      rename("(^.*)\\.class\$", "\$1.classdata")
+    }
   }
 }

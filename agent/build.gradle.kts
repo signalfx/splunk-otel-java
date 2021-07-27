@@ -105,8 +105,19 @@ tasks {
     }
   }
 
+  val mainShadowJar by registering(Jar::class) {
+    archiveClassifier.set("")
+
+    from(zipTree(shadowJar.get().archiveFile))
+
+    manifest {
+      attributes(shadowJar.get().manifest.attributes)
+    }
+  }
+
   assemble {
     dependsOn(shadowJar)
+    dependsOn(mainShadowJar)
   }
 
   val t = this
@@ -118,6 +129,7 @@ tasks {
         version = project.version.toString()
 
         artifact(shadowJar)
+        artifact(mainShadowJar)
         artifact(t.named("sourcesJar"))
         artifact(t.named("javadocJar"))
 

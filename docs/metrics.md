@@ -24,10 +24,12 @@ The following dimensions are automatically added to all metrics exported by the 
 
 The following metrics are currently gathered by the agent:
 
-| Library/Framework                                                     | Instrumentation name | Versions |
-| --------------------------------------------------------------------- | -------------------- | -------- |
-| [JVM metrics](#jvm)                                                   | `jvm-metrics`        | [Java runtimes version 8 and higher](../README.md#supported-java-versions)
-| [Apache DBCP2 connection pool metrics](#apache-dbcp2-connection-pool) | `commons-dbcp2`      | 2.+
+| Library/Framework                                                | Instrumentation name | Versions |
+| ---------------------------------------------------------------- | -------------------- | -------- |
+| [JVM metrics](#jvm)                                              | `jvm-metrics`        | [Java runtimes version 8 and higher](../README.md#supported-java-versions)
+| [Apache DBCP2 connection pool metrics](#connection-pool-metrics) | `commons-dbcp2`      | 2.0 and higher
+| [HikariCP connection pool metrics](#connection-pool-metrics)     | `hikaricp`           | 3.0 and higher
+| [Tomcat JDBC connection pool metrics](#connection-pool-metrics)  | `tomcat-jdbc`        | 8.5 and higher
 
 ### JVM
 

@@ -18,7 +18,6 @@ class KHttpClientTest extends HttpClientTest<Void> implements AgentTestTrait {
 
   @Override
   int sendRequest(Void request, String method, URI uri, Map<String, String> headers) {
-    headers.put("User-Agent", "khttp")
     // khttp applies the same timeout for both connect and read
     def timeoutSeconds = CONNECT_TIMEOUT_MS / 1000
     def response = KHttp.request(method, uri.toString(), headers, Collections.emptyMap(), null, null, null, null, timeoutSeconds)
@@ -41,8 +40,4 @@ class KHttpClientTest extends HttpClientTest<Void> implements AgentTestTrait {
     return false
   }
 
-  @Override
-  String userAgent() {
-    return "khttp"
-  }
 }

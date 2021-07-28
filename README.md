@@ -93,6 +93,10 @@ To see the Java Agent in action with sample applications, see our
 
 To fully configure the agent of the Splunk Distribution of OpenTelemetry Java, see [Configure the Java agent](https://docs.splunk.com/Observability/gdi/get-data-in/application/java/configuration/advanced-java-otel-configuration.html) in the official Splunk documentation.
 
+## Correlating traces with logs
+
+The Splunk Distribution of OpenTelemetry Java provides a way to correlate traces with logs. For more information see [Connect Java application trace data with logs](https://docs.splunk.com/Observability/gdi/get-data-in/application/java/instrumentation/connect-traces-logs.html) in the official Splunk documentation.
+
 ## Manually instrument a Java application
 
 Documentation on how to manually instrument a Java application is available in the 
@@ -114,8 +118,4 @@ For troubleshooting information and known issues, see [Troubleshooting Java inst
 
 # License and versioning
 
-The Splunk Distribution of OpenTelemetry Java is a distribution
-of the [OpenTelemetry Instrumentation for Java
-project](https://github.com/open-telemetry/opentelemetry-java-instrumentation).
-It is released under the terms of the Apache Software License version 2.0. See
-[the license file](./LICENSE) for more details.
+The Splunk Distribution of OpenTelemetry Java is a distribution of the [OpenTelemetry Instrumentation for Java project](https://github.com/open-telemetry/opentelemetry-java-instrumentation). It is released under the terms of the Apache Software License version 2.0. For more details, see [the license file](./LICENSE).

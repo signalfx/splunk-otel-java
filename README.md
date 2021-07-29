@@ -124,7 +124,7 @@ Follow these steps to automatically instrument your application using the Java (
       -jar <myapp>.jar
     ```
 
-    Insert the `-javaagent` flag before the -jar file, adding it as a JVM option, not as an application argument.
+    Insert the `-javaagent` flag before the `-jar` file, adding it as a JVM option, not as an application argument.
 
 > To generate a snippet that includes all the basic install commands for your environment and service, open the Observability Cloud
 wizard in **Data Setup > APM Instrumentation > Java > Add Connection**.

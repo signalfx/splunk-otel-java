@@ -21,7 +21,7 @@ import io.micrometer.core.instrument.Metrics;
 import io.micrometer.core.instrument.Tags;
 import java.util.function.Supplier;
 
-public final class GaugeSemanticConvention {
+public final class GaugeSemanticConvention implements MeterSemanticConvention {
   private final String name;
   private final String baseUnit;
 
@@ -40,5 +40,15 @@ public final class GaugeSemanticConvention {
         .tags(additionalTags)
         .baseUnit(baseUnit)
         .register(Metrics.globalRegistry);
+  }
+
+  @Override
+  public String name() {
+    return name;
+  }
+
+  @Override
+  public String baseUnit() {
+    return baseUnit;
   }
 }

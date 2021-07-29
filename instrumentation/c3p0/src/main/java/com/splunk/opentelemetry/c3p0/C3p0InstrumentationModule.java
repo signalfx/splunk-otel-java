@@ -41,6 +41,7 @@ public class C3p0InstrumentationModule extends InstrumentationModule {
   public List<String> getMuzzleHelperClassNames() {
     return Arrays.asList(
         "com.splunk.opentelemetry.c3p0.ConnectionPoolMetrics",
+        "com.splunk.opentelemetry.c3p0.ConnectionPoolMetrics$IdentityDataSourceKey",
         "com.splunk.opentelemetry.c3p0.ConnectionPoolMetrics$SqlExceptionHandlingSupplier");
   }
 

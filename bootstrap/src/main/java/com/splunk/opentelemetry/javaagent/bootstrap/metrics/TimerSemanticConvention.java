@@ -20,7 +20,7 @@ import io.micrometer.core.instrument.Metrics;
 import io.micrometer.core.instrument.Tags;
 import io.micrometer.core.instrument.Timer;
 
-public final class TimerSemanticConvention {
+public final class TimerSemanticConvention implements MeterSemanticConvention {
   private final String name;
 
   private TimerSemanticConvention(String name) {
@@ -36,5 +36,15 @@ public final class TimerSemanticConvention {
         .tags(GlobalMetricsTags.get())
         .tags(additionalTags)
         .register(Metrics.globalRegistry);
+  }
+
+  @Override
+  public String name() {
+    return name;
+  }
+
+  @Override
+  public String baseUnit() {
+    return "seconds";
   }
 }

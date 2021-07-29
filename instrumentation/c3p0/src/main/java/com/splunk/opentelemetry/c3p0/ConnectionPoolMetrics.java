@@ -35,20 +35,26 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 public final class ConnectionPoolMetrics {
 
   // a weak map does not make sense here because each Meter holds a reference to the dataSource
-  // DataSourceProxy does not implement equals()/hashCode(), so it's safe to keep them in a plain
-  // ConcurrentHashMap
-  private static final Map<AbstractPoolBackedDataSource, List<Meter>> dataSourceMetrics =
+  // AbstractPoolBackedDataSource implements equals() & hashCode() in IdentityTokenResolvable,
+  // that's why we wrap it with IdentityDataSourceKey that uses identity comparison instead
+  private static final Map<IdentityDataSourceKey, List<Meter>> dataSourceMetrics =
       new ConcurrentHashMap<>();
 
   public static void registerMetrics(AbstractPoolBackedDataSource dataSource) {
-    dataSourceMetrics.computeIfAbsent(dataSource, ConnectionPoolMetrics::createMeters);
+    dataSourceMetrics.compute(
+        new IdentityDataSourceKey(dataSource), ConnectionPoolMetrics::createMeters);
   }
 
-  private static List<Meter> createMeters(AbstractPoolBackedDataSource dataSource) {
+  private static List<Meter> createMeters(IdentityDataSourceKey key, List<Meter> oldMeters) {
+    // remove old meters from the registry in case they were already there
+    removeMetersFromRegistry(oldMeters);
+
+    AbstractPoolBackedDataSource dataSource = key.dataSource;
     Tags tags = poolTags(dataSource);
 
     return Arrays.asList(
@@ -62,7 +68,11 @@ public final class ConnectionPoolMetrics {
   }
 
   public static void unregisterMetrics(AbstractPoolBackedDataSource dataSource) {
-    List<Meter> meters = dataSourceMetrics.remove(dataSource);
+    List<Meter> meters = dataSourceMetrics.remove(new IdentityDataSourceKey(dataSource));
+    removeMetersFromRegistry(meters);
+  }
+
+  private static void removeMetersFromRegistry(@Nullable List<Meter> meters) {
     if (meters != null) {
       for (Meter meter : meters) {
         Metrics.globalRegistry.remove(meter);
@@ -79,8 +89,33 @@ public final class ConnectionPoolMetrics {
     return convention.create(tags, supplier);
   }
 
+  /**
+   * A wrapper over {@link AbstractPoolBackedDataSource} that implements identity comparison in its
+   * {@link #equals(Object)} and {@link #hashCode()} methods.
+   */
+  static final class IdentityDataSourceKey {
+    final AbstractPoolBackedDataSource dataSource;
+
+    IdentityDataSourceKey(AbstractPoolBackedDataSource dataSource) {
+      this.dataSource = dataSource;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) return true;
+      if (o == null || getClass() != o.getClass()) return false;
+      IdentityDataSourceKey that = (IdentityDataSourceKey) o;
+      return dataSource == that.dataSource;
+    }
+
+    @Override
+    public int hashCode() {
+      return System.identityHashCode(dataSource);
+    }
+  }
+
   @FunctionalInterface
-  public interface SqlExceptionHandlingSupplier extends Supplier<Number> {
+  interface SqlExceptionHandlingSupplier extends Supplier<Number> {
 
     Number unsafeGet() throws SQLException;
 

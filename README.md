@@ -120,8 +120,8 @@ Follow these steps to automatically instrument your application using the Java (
 5.  Enable the Java agent.
 
     ```bash
-    java -javaagent:./splunk-otel-javaagent.jar  
-    -jar <myapp>.jar
+    java -javaagent:./splunk-otel-javaagent.jar \
+      -jar <myapp>.jar
     ```
 
     Insert the `-javaagent` flag before the -jar file, adding it as a JVM option, not as an application argument.

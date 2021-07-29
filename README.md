@@ -82,12 +82,60 @@ The agent works with Java runtimes version 8 and higher. For the full list of re
 
 ## Get started
 
-To get started, see [Instrument Java services for Observability Cloud](https://docs.splunk.com/Observability/gdi/get-data-in/application/java/get-started.html) in the official Splunk documentation.
+Follow these steps to automatically instrument your application using the Java (or JVM) agent.
+
+1.  Check that you meet the [requirements](#requirements).
+
+2.  Make sure that the collector you set up to receive trace data is installed and configured.
+
+3.  Download the JAR file for the latest version of the agent.
+
+    -   On Linux, run:
+
+        ```bash
+        curl -L https://github.com/signalfx/splunk-otel-java/releases/latest/download/splunk-otel-javaagent-all.jar \
+        -o splunk-otel-javaagent.jar
+        ```
+
+    -   On Windows (PowerShell), run:
+
+        ```powershell
+        Invoke-WebRequest -Uri https://github.com/signalfx/splunk-otel-java/releases/latest/download/splunk-otel-javaagent-all.jar -OutFile splunk-otel-javaagent.jar
+        ```
+
+4.  Set the `OTEL_SERVICE_NAME` environment variable.
+
+    -   On Linux, run:
+
+        ```bash
+        export OTEL_SERVICE_NAME=<yourServiceName>
+        ```
+
+    -   On Windows (PowerShell), run:
+
+        ```powershell
+        $env:OTEL_SERVICE_NAME=<yourServiceName>
+        ```
+
+5.  Enable the Java agent.
+
+    ```bash
+    java -javaagent:./splunk-otel-javaagent.jar  
+    -jar <myapp>.jar
+    ```
+
+    Insert the `-javaagent` flag before the -jar file, adding it as a JVM option, not as an application argument.
+
+> To generate a snippet that includes all the basic install commands for your environment and service, open the Observability Cloud
+wizard in **Data Setup > APM Instrumentation > Java > Add Connection**.
+
+When you run your application with the Java agent, trace data goes to Observability Cloud through the Splunk OTel connector. If no data
+appears in **Observability > APM**, see [Troubleshooting](#troubleshooting).
+
+For full install instructions, including K8s and Lambda snippets, see [Instrument Java services for Observability Cloud](https://docs.splunk.com/Observability/gdi/get-data-in/application/java/get-started.html) in the official Splunk documentation.
 
 To see the Java Agent in action with sample applications, see our
 [examples](https://github.com/signalfx/tracing-examples/tree/main/opentelemetry-tracing/opentelemetry-java-tracing).
-
-> You can generate a snippet that includes all the install commands for your environment by opening the the Observability Cloud wizard in **Data Setup > APM Instrumentation > Java**.
 
 ## Advanced configuration
 

@@ -1,3 +1,5 @@
+> The official Splunk documentation for this page is [Requirements for the Java agent](https://docs.splunk.com/Observability/gdi/get-data-in/application/java/java-otel-requirements.html).
+
 # Supported libraries, frameworks, application servers, and JVMs
 
 The Java Agent instruments numerous libraries, frameworks, application servers. You can find a list of

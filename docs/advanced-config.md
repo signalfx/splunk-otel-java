@@ -1,3 +1,5 @@
+> The official Splunk documentation for this page is [Configure the Java agent](https://docs.splunk.com/Observability/gdi/get-data-in/application/java/configuration/advanced-java-otel-configuration.html).
+
 # Advanced Configuration
 
 The agent can be configured in the following ways:

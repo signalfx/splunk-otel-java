@@ -1,3 +1,5 @@
+> The official Splunk documentation for this page is [Middleware attributes](https://docs.splunk.com/Observability/gdi/get-data-in/application/java/configuration/java-otel-metrics-attributes.html#middleware-attributes-java-otel).
+
 # Middleware Attributes
 
 > :construction: &nbsp;Status: Experimental

@@ -1,3 +1,5 @@
+> The official Splunk documentation for this page is [Troubleshooting Java instrumentation](https://docs.splunk.com/Observability/gdi/get-data-in/application/java/troubleshooting/common-java-troubleshooting.html).
+
 # Troubleshooting
 
 Before you create an issue or open a support request, please try to gather as much information about your situation as

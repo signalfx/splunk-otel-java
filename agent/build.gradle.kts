@@ -182,7 +182,7 @@ fun CopySpec.isolateClasses(jars: Iterable<File>) {
   jars.forEach {
     from(zipTree(it)) {
       into("inst")
-      rename("(^.*)\\.class\$", "\$1.classdata")
+      rename("^(.*)\\.class\$", "\$1.classdata")
     }
   }
 }

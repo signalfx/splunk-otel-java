@@ -14,17 +14,17 @@ java {
 }
 
 // this configuration collects libs that will be placed in the bootstrap classloader
-val bootstrapLibs by configurations.creating {
+val bootstrapLibs: Configuration by configurations.creating {
   isCanBeResolved = true
   isCanBeConsumed = false
 }
 // this configuration collects libs that will be placed in the agent classloader, isolated from the instrumented application code
-val javaagentLibs by configurations.creating {
+val javaagentLibs: Configuration by configurations.creating {
   isCanBeResolved = true
   isCanBeConsumed = false
 }
 // this configuration stores the upstream agent dep that's extended by this project
-val upstreamAgent by configurations.creating {
+val upstreamAgent: Configuration by configurations.creating {
   isCanBeResolved = true
   isCanBeConsumed = false
 }
@@ -46,6 +46,9 @@ tasks {
     enabled = false
   }
 
+  // building the final javaagent jar is done in 3 steps:
+
+  // 1. all Splunk-specific javaagent libs are relocated (by the splunk.shadow-conventions plugin)
   val relocateJavaagentLibs by registering(ShadowJar::class) {
     configurations = listOf(javaagentLibs)
 
@@ -54,8 +57,10 @@ tasks {
     archiveFileName.set("javaagentLibs-relocated.jar")
   }
 
-  // having a separate task for isolating javaagent libs is required to avoid duplicates
-  // duplicatesStrategy in shadowJar won't be applied when adding files with with(CopySpec)
+  // 2. the Splunk javaagent libs are then isolated - moved to the inst/ directory
+  // having a separate task for isolating javaagent libs is required to avoid duplicates with the upstream javaagent
+  // duplicatesStrategy in shadowJar won't be applied when adding files with with(CopySpec) because each CopySpec has
+  // its own duplicatesStrategy
   val isolateJavaagentLibs by registering(Copy::class) {
     dependsOn(relocateJavaagentLibs)
     isolateClasses(relocateJavaagentLibs.get().outputs.files)
@@ -63,6 +68,8 @@ tasks {
     into("$buildDir/isolated/javaagentLibs")
   }
 
+  // 3. the relocated and isolated javaagent libs are merged together with the bootstrap libs (which undergo relocation
+  // in this task) and the upstream javaagent jar; duplicates are removed
   shadowJar {
     configurations = listOf(bootstrapLibs, upstreamAgent)
 
@@ -86,8 +93,8 @@ tasks {
     }
   }
 
-  // create a no-classifier jar that's exactly the same as the -all one
-  // a no-classifier (main) jar is required by sonatype
+  // a separate task to create a no-classifier jar that's exactly the same as the -all one
+  // because a no-classifier (main) jar is required by sonatype
   val mainShadowJar by registering(Jar::class) {
     archiveClassifier.set("")
 

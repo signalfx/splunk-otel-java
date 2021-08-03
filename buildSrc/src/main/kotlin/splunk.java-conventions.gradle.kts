@@ -76,6 +76,7 @@ extensions.configure<DependencyManagementExtension>("dependencyManagement") {
 
 dependencies {
   add("testImplementation", "org.assertj:assertj-core")
+  add("testImplementation", "org.awaitility:awaitility")
   add("testImplementation", "org.mockito:mockito-core")
   add("testImplementation", "org.mockito:mockito-junit-jupiter")
   add("testImplementation", "org.junit.jupiter:junit-jupiter-api")

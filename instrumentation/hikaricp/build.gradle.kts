@@ -6,7 +6,6 @@ dependencies {
   compileOnly("com.zaxxer:HikariCP:3.0.0")
 
   testImplementation("com.zaxxer:HikariCP:3.0.0")
-  testImplementation("org.awaitility:awaitility")
 }
 
 tasks {

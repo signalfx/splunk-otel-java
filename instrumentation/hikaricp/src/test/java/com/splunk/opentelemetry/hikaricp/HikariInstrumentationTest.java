@@ -16,6 +16,16 @@
 
 package com.splunk.opentelemetry.hikaricp;
 
+import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.DataSourceSemanticConventions.CONNECTIONS_ACTIVE;
+import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.DataSourceSemanticConventions.CONNECTIONS_CREATE_TIME;
+import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.DataSourceSemanticConventions.CONNECTIONS_IDLE;
+import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.DataSourceSemanticConventions.CONNECTIONS_IDLE_MIN;
+import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.DataSourceSemanticConventions.CONNECTIONS_MAX;
+import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.DataSourceSemanticConventions.CONNECTIONS_PENDING_THREADS;
+import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.DataSourceSemanticConventions.CONNECTIONS_TIMEOUTS;
+import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.DataSourceSemanticConventions.CONNECTIONS_TOTAL;
+import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.DataSourceSemanticConventions.CONNECTIONS_USE_TIME;
+import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.DataSourceSemanticConventions.CONNECTIONS_WAIT_TIME;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -113,30 +123,30 @@ public class HikariInstrumentationTest {
 
     assertThat(TestMetricsAccess.getMeters())
         .containsExactlyInAnyOrder(
-            new MeterData("db.pool.connections", "gauge", "connections", tags),
-            new MeterData("db.pool.connections.active", "gauge", "connections", tags),
-            new MeterData("db.pool.connections.idle", "gauge", "connections", tags),
-            new MeterData("db.pool.connections.idle.min", "gauge", "connections", tags),
-            new MeterData("db.pool.connections.max", "gauge", "connections", tags),
-            new MeterData("db.pool.connections.pending_threads", "gauge", "threads", tags),
-            new MeterData("db.pool.connections.timeouts", "counter", "timeouts", tags),
-            new MeterData("db.pool.connections.create_time", "timer", "seconds", tags),
-            new MeterData("db.pool.connections.wait_time", "timer", "seconds", tags),
-            new MeterData("db.pool.connections.use_time", "timer", "seconds", tags));
+            MeterData.from(CONNECTIONS_TOTAL, tags),
+            MeterData.from(CONNECTIONS_ACTIVE, tags),
+            MeterData.from(CONNECTIONS_IDLE, tags),
+            MeterData.from(CONNECTIONS_IDLE_MIN, tags),
+            MeterData.from(CONNECTIONS_MAX, tags),
+            MeterData.from(CONNECTIONS_PENDING_THREADS, tags),
+            MeterData.from(CONNECTIONS_TIMEOUTS, tags),
+            MeterData.from(CONNECTIONS_CREATE_TIME, tags),
+            MeterData.from(CONNECTIONS_WAIT_TIME, tags),
+            MeterData.from(CONNECTIONS_USE_TIME, tags));
   }
 
   private static void assertNoConnectionPoolMetrics() {
     assertThat(TestMetricsAccess.getMeters().stream().map(MeterData::getName).distinct())
         .doesNotContain(
-            "db.pool.connections",
-            "db.pool.connections.active",
-            "db.pool.connections.idle",
-            "db.pool.connections.idle.min",
-            "db.pool.connections.max",
-            "db.pool.connections.pending_threads",
-            "db.pool.connections.timeouts",
-            "db.pool.connections.create_time",
-            "db.pool.connections.wait_time",
-            "db.pool.connections.use_time");
+            CONNECTIONS_TOTAL.name(),
+            CONNECTIONS_ACTIVE.name(),
+            CONNECTIONS_IDLE.name(),
+            CONNECTIONS_IDLE.name(),
+            CONNECTIONS_MAX.name(),
+            CONNECTIONS_PENDING_THREADS.name(),
+            CONNECTIONS_TIMEOUTS.name(),
+            CONNECTIONS_CREATE_TIME.name(),
+            CONNECTIONS_WAIT_TIME.name(),
+            CONNECTIONS_USE_TIME.name());
   }
 }

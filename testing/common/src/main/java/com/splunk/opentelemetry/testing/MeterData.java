@@ -16,6 +16,10 @@
 
 package com.splunk.opentelemetry.testing;
 
+import com.splunk.opentelemetry.javaagent.bootstrap.metrics.CounterSemanticConvention;
+import com.splunk.opentelemetry.javaagent.bootstrap.metrics.GaugeSemanticConvention;
+import com.splunk.opentelemetry.javaagent.bootstrap.metrics.MeterSemanticConvention;
+import com.splunk.opentelemetry.javaagent.bootstrap.metrics.TimerSemanticConvention;
 import java.util.Map;
 import java.util.Objects;
 
@@ -39,6 +43,22 @@ public final class MeterData {
         (String) raw.get("type"),
         (String) raw.get("unit"),
         (Map<String, String>) raw.get("tags"));
+  }
+
+  public static MeterData from(MeterSemanticConvention convention, Map<String, String> tags) {
+    String type;
+    if (convention.getClass() == GaugeSemanticConvention.class) {
+      type = "gauge";
+    } else if (convention.getClass() == CounterSemanticConvention.class) {
+      type = "counter";
+    } else if (convention.getClass() == TimerSemanticConvention.class) {
+      type = "timer";
+    } else {
+      throw new IllegalArgumentException(
+          "Unsupported semantic convention: " + convention.getClass().getSimpleName());
+    }
+
+    return new MeterData(convention.name(), type, convention.baseUnit(), tags);
   }
 
   public String getName() {

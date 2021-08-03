@@ -27,6 +27,7 @@ include(
     "bootstrap",
     "custom",
     "instrumentation",
+    "instrumentation:c3p0",
     "instrumentation:common",
     "instrumentation:commons-dbcp2",
     "instrumentation:compile-stub",

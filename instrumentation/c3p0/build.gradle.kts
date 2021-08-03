@@ -3,7 +3,7 @@ plugins {
 }
 
 dependencies {
-  compileOnly("com.mchange:c3p0:0.9.5")
+  compileOnly("com.mchange:c3p0:0.9.5.5")
 
   testImplementation("com.mchange:c3p0:0.9.5")
 }

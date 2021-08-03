@@ -33,6 +33,7 @@ The following metrics are currently gathered by the agent:
 | [c3p0 connection pool metrics](#connection-pool-metrics)         | `c3p0`               | 0.9.5 and higher
 | [HikariCP connection pool metrics](#connection-pool-metrics)     | `hikaricp`           | 3.0 and higher
 | [Tomcat JDBC connection pool metrics](#connection-pool-metrics)  | `tomcat-jdbc`        | 8.5 and higher
+| [Vibur DBCP connection pool metrics](#connection-pool-metrics)   | `vibur-dbcp`         | 20.0 and higher
 
 ### JVM
 
@@ -89,6 +90,7 @@ Splunk Distribution of OpenTelemetry Java instruments several JDBC connection po
 * [c3p0](https://www.mchange.com/projects/c3p0/)
 * [HikariCP](https://github.com/brettwooldridge/HikariCP)
 * [Tomcat JDBC](https://tomcat.apache.org/tomcat-8.5-doc/jdbc-pool.html)
+* [Vibur DBCP](https://github.com/vibur/vibur-dbcp)
 
 Each of the supported connection pools reports a subset of the following metrics:
 
@@ -111,4 +113,4 @@ All connection pool metrics have the following tags:
 | Tag name    | Tag value |
 | ----------- | --------- |
 | `pool.name` | The name of the connection pool: Spring bean name if Spring is used, the JMX object name otherwise.
-| `pool.type` | The type/implementation of the connection pool: e.g. `c3p0`, `dbcp2`, `hikari`, `tomcat-jdbc`.
+| `pool.type` | The type/implementation of the connection pool: e.g. `c3p0`, `dbcp2`, `hikari`, `tomcat-jdbc`, `vibur-dbcp`.

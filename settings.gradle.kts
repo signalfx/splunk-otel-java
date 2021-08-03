@@ -44,6 +44,7 @@ include(
     "instrumentation:tomcat",
     "instrumentation:tomcat-jdbc",
     "instrumentation:tomee",
+    "instrumentation:vibur-dbcp",
     "instrumentation:weblogic",
     "instrumentation:wildfly",
     "matrix",

@@ -10,7 +10,6 @@ dependencies {
   testImplementation("io.opentelemetry:opentelemetry-proto")
   testImplementation("com.google.protobuf:protobuf-java-util")
   testImplementation("org.testcontainers:testcontainers")
-  testImplementation("org.awaitility:awaitility")
 }
 
 tasks {

@@ -16,6 +16,13 @@
 
 package com.splunk.opentelemetry.tomcatjdbc;
 
+import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.DataSourceSemanticConventions.CONNECTIONS_ACTIVE;
+import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.DataSourceSemanticConventions.CONNECTIONS_IDLE;
+import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.DataSourceSemanticConventions.CONNECTIONS_IDLE_MAX;
+import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.DataSourceSemanticConventions.CONNECTIONS_IDLE_MIN;
+import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.DataSourceSemanticConventions.CONNECTIONS_MAX;
+import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.DataSourceSemanticConventions.CONNECTIONS_PENDING_THREADS;
+import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.DataSourceSemanticConventions.CONNECTIONS_TOTAL;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.mockito.BDDMockito.given;
@@ -85,24 +92,24 @@ public class TomcatJdbcInstrumentationTest {
 
     assertThat(TestMetricsAccess.getMeters())
         .containsExactlyInAnyOrder(
-            new MeterData("db.pool.connections", "gauge", "connections", tags),
-            new MeterData("db.pool.connections.active", "gauge", "connections", tags),
-            new MeterData("db.pool.connections.idle", "gauge", "connections", tags),
-            new MeterData("db.pool.connections.idle.min", "gauge", "connections", tags),
-            new MeterData("db.pool.connections.idle.max", "gauge", "connections", tags),
-            new MeterData("db.pool.connections.max", "gauge", "connections", tags),
-            new MeterData("db.pool.connections.pending_threads", "gauge", "threads", tags));
+            MeterData.from(CONNECTIONS_TOTAL, tags),
+            MeterData.from(CONNECTIONS_ACTIVE, tags),
+            MeterData.from(CONNECTIONS_IDLE, tags),
+            MeterData.from(CONNECTIONS_IDLE_MIN, tags),
+            MeterData.from(CONNECTIONS_IDLE_MAX, tags),
+            MeterData.from(CONNECTIONS_MAX, tags),
+            MeterData.from(CONNECTIONS_PENDING_THREADS, tags));
   }
 
   private static void assertNoConnectionPoolMetrics() {
     assertThat(TestMetricsAccess.getMeters().stream().map(MeterData::getName).distinct())
         .doesNotContain(
-            "db.pool.connections",
-            "db.pool.connections.active",
-            "db.pool.connections.idle",
-            "db.pool.connections.idle.min",
-            "db.pool.connections.idle.max",
-            "db.pool.connections.max",
-            "db.pool.connections.pending_threads");
+            CONNECTIONS_TOTAL.name(),
+            CONNECTIONS_ACTIVE.name(),
+            CONNECTIONS_IDLE.name(),
+            CONNECTIONS_IDLE_MIN.name(),
+            CONNECTIONS_IDLE_MAX.name(),
+            CONNECTIONS_MAX.name(),
+            CONNECTIONS_PENDING_THREADS.name());
   }
 }

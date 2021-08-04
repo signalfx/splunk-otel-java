@@ -3,7 +3,7 @@ plugins {
 }
 
 dependencies {
-  compileOnly("org.vibur:vibur-dbcp:20.0")
+  compileOnly("org.vibur:vibur-dbcp:25.0")
 
   testImplementation("org.vibur:vibur-dbcp:20.0")
 }

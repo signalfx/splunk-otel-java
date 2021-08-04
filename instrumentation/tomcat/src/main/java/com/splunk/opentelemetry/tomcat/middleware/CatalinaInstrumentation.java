@@ -39,7 +39,7 @@ final class CatalinaInstrumentation implements TypeInstrumentation {
   public void transform(TypeTransformer typeTransformer) {
     typeTransformer.applyAdviceToMethod(
         isMethod().and(isPublic()).and(named("start")),
-        TomcatAttributesInstrumentationModule.class.getName() + "$MiddlewareInitializedAdvice");
+        CatalinaInstrumentation.class.getName() + "$MiddlewareInitializedAdvice");
   }
 
   @SuppressWarnings("unused")

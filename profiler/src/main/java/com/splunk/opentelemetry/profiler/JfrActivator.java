@@ -50,8 +50,7 @@ public class JfrActivator implements AgentListener {
   private static final Logger logger = LoggerFactory.getLogger(JfrActivator.class);
   private static final int MAX_BATCH_SIZE = 250;
   private static final Duration MAX_TIME_BETWEEN_BATCHES = Duration.ofSeconds(10);
-  private static final String DEFAULT_RECORDING_DURATION_MS =
-      String.valueOf(TimeUnit.SECONDS.toMillis(20));
+  private static final long DEFAULT_RECORDING_DURATION_MS = TimeUnit.SECONDS.toMillis(20);
   private final ExecutorService executor = HelpfulExecutors.newSingleThreadExecutor("JFR Profiler");
 
   @Override
@@ -71,9 +70,9 @@ public class JfrActivator implements AgentListener {
   }
 
   private void activateJfrAndRunForever(Config config) {
-    String recordingDurationStr =
-        config.getProperty(CONFIG_KEY_RECORDING_DURATION_MS, DEFAULT_RECORDING_DURATION_MS);
-    Duration recordingDuration = Duration.ofMillis(Long.parseLong(recordingDurationStr));
+    long recordingDurationMillis =
+        config.getLongProperty(CONFIG_KEY_RECORDING_DURATION_MS, DEFAULT_RECORDING_DURATION_MS);
+    Duration recordingDuration = Duration.ofMillis(recordingDurationMillis);
 
     Path outputDir = Paths.get(config.getProperty(CONFIG_KEY_PROFILER_DIRECTORY, "."));
     RecordingFileNamingConvention namingConvention = new RecordingFileNamingConvention(outputDir);

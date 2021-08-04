@@ -28,6 +28,9 @@ import org.apache.tomcat.util.net.AbstractEndpoint;
 
 final class AbstractEndpointInstrumentation implements TypeInstrumentation {
 
+  // AbstractEndpoint encapsulates socket and worker pool management - the thread pools that you
+  // configure in server.xml inside the <Connector/> tag are managed by AbstractEndpoint
+  // tomcat also exposes AbstractEndpoint objects in JMX with type=ThreadPool
   @Override
   public ElementMatcher<TypeDescription> typeMatcher() {
     return named("org.apache.tomcat.util.net.AbstractEndpoint");

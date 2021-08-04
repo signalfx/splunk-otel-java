@@ -53,7 +53,6 @@ public final class ThreadPoolMetrics {
   }
 
   private static List<Meter> createMeters(AbstractEndpoint<?, ?> endpoint) {
-    // remove old meters from the registry in case they were already there
     Tags tags = executorTags(endpoint);
 
     Suppliers suppliers = new Suppliers(endpoint);

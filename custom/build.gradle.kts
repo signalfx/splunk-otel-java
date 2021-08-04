@@ -1,7 +1,3 @@
-plugins {
-  id("splunk.shadow-conventions")
-}
-
 dependencies {
   compileOnly(project(":bootstrap"))
   compileOnly("io.opentelemetry:opentelemetry-sdk")
@@ -12,7 +8,9 @@ dependencies {
   annotationProcessor("com.google.auto.service:auto-service")
   compileOnly("com.google.auto.service:auto-service")
 
-  implementation("io.opentelemetry:opentelemetry-exporter-jaeger-thrift")
+  implementation("io.opentelemetry:opentelemetry-exporter-jaeger-thrift") {
+    exclude("io.opentelemetry", "opentelemetry-sdk")
+  }
   implementation("io.jaegertracing:jaeger-client")
 
   compileOnly("io.micrometer:micrometer-core")

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.splunk.opentelemetry;
+package com.splunk.opentelemetry.javaagent;
 
 import io.opentelemetry.javaagent.OpenTelemetryAgent;
 import java.lang.instrument.Instrumentation;

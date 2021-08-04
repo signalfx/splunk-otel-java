@@ -51,8 +51,9 @@ extensions.configure<DependencyManagementExtension>("dependencyManagement") {
     dependency("io.opentelemetry.instrumentation:opentelemetry-instrumentation-api:${otelInstrumentationAlphaVersion}")
     dependencySet("io.opentelemetry.javaagent:${otelInstrumentationAlphaVersion}") {
       entry("opentelemetry-agent-for-testing")
-      entry("opentelemetry-javaagent-instrumentation-api")
+      entry("opentelemetry-javaagent-bootstrap")
       entry("opentelemetry-javaagent-extension-api")
+      entry("opentelemetry-javaagent-instrumentation-api")
       entry("opentelemetry-testing-common")
     }
     dependencySet("io.opentelemetry.javaagent.instrumentation:${otelInstrumentationAlphaVersion}") {

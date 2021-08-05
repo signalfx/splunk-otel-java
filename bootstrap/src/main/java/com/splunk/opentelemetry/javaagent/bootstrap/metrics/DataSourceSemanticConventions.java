@@ -62,7 +62,12 @@ public final class DataSourceSemanticConventions {
 
   /** The name of the DB connection pool, as named by the instrumented application developer. */
   public static final String POOL_NAME = "pool.name";
-  /** Type/implementation of the DB connection pool. */
+  /**
+   * Type/implementation of the DB connection pool.
+   *
+   * <p>In the future, once we start using OTel metrics API, will be replaced by {@code
+   * InstrumentationLibrary}.
+   */
   public static final String POOL_TYPE = "pool.type";
 
   private DataSourceSemanticConventions() {}

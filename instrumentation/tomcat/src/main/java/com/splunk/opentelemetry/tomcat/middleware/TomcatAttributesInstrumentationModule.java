@@ -14,24 +14,16 @@
  * limitations under the License.
  */
 
-package com.splunk.opentelemetry.middleware;
+package com.splunk.opentelemetry.tomcat.middleware;
 
 import static io.opentelemetry.javaagent.extension.matcher.AgentElementMatchers.hasClassesNamed;
-import static net.bytebuddy.matcher.ElementMatchers.isMethod;
-import static net.bytebuddy.matcher.ElementMatchers.isPublic;
-import static net.bytebuddy.matcher.ElementMatchers.named;
 
 import com.google.auto.service.AutoService;
-import com.splunk.opentelemetry.javaagent.bootstrap.MiddlewareHolder;
 import io.opentelemetry.javaagent.extension.instrumentation.InstrumentationModule;
 import io.opentelemetry.javaagent.extension.instrumentation.TypeInstrumentation;
-import io.opentelemetry.javaagent.extension.instrumentation.TypeTransformer;
 import java.util.Collections;
 import java.util.List;
-import net.bytebuddy.asm.Advice;
-import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.matcher.ElementMatcher;
-import org.apache.catalina.util.ServerInfo;
 
 @AutoService(InstrumentationModule.class)
 public class TomcatAttributesInstrumentationModule extends InstrumentationModule {
@@ -48,30 +40,6 @@ public class TomcatAttributesInstrumentationModule extends InstrumentationModule
 
   @Override
   public List<TypeInstrumentation> typeInstrumentations() {
-    return Collections.singletonList(new Instrumentation());
-  }
-
-  public static class Instrumentation implements TypeInstrumentation {
-
-    @Override
-    public ElementMatcher<TypeDescription> typeMatcher() {
-      return named("org.apache.catalina.startup.Catalina");
-    }
-
-    @Override
-    public void transform(TypeTransformer typeTransformer) {
-      typeTransformer.applyAdviceToMethod(
-          isMethod().and(isPublic()).and(named("start")),
-          TomcatAttributesInstrumentationModule.class.getName() + "$MiddlewareInitializedAdvice");
-    }
-  }
-
-  @SuppressWarnings("unused")
-  public static class MiddlewareInitializedAdvice {
-    @Advice.OnMethodEnter(suppress = Throwable.class)
-    public static void onEnter() {
-      MiddlewareHolder.trySetVersion(ServerInfo.getServerNumber());
-      MiddlewareHolder.trySetName("tomcat");
-    }
+    return Collections.singletonList(new CatalinaInstrumentation());
   }
 }

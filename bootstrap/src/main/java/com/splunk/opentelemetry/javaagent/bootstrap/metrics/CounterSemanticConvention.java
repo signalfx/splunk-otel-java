@@ -17,8 +17,10 @@
 package com.splunk.opentelemetry.javaagent.bootstrap.metrics;
 
 import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.FunctionCounter;
 import io.micrometer.core.instrument.Metrics;
 import io.micrometer.core.instrument.Tags;
+import java.util.function.Supplier;
 
 public final class CounterSemanticConvention implements MeterSemanticConvention {
   private final String name;
@@ -35,6 +37,14 @@ public final class CounterSemanticConvention implements MeterSemanticConvention 
 
   public Counter create(Tags additionalTags) {
     return Counter.builder(name)
+        .tags(GlobalMetricsTags.get())
+        .tags(additionalTags)
+        .baseUnit(baseUnit)
+        .register(Metrics.globalRegistry);
+  }
+
+  public FunctionCounter create(Tags additionalTags, Supplier<Number> function) {
+    return FunctionCounter.builder(name, function, f -> function.get().doubleValue())
         .tags(GlobalMetricsTags.get())
         .tags(additionalTags)
         .baseUnit(baseUnit)

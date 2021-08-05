@@ -120,11 +120,11 @@ public final class ThreadPoolMetrics {
       Executor executor = endpoint.getExecutor();
       if (executor instanceof ThreadPoolExecutor) {
         return threadPoolExecutorFunc.apply((ThreadPoolExecutor) executor);
-      } else if (executor instanceof ResizableExecutor) {
-        return resizableExecutorFunc.apply((ResizableExecutor) executor);
-      } else {
-        return Double.NaN;
       }
+      if (executor instanceof ResizableExecutor) {
+        return resizableExecutorFunc.apply((ResizableExecutor) executor);
+      }
+      return Double.NaN;
     }
   }
 

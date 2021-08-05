@@ -16,6 +16,7 @@
 
 package com.splunk.opentelemetry.javaagent.bootstrap.metrics;
 
+import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.CounterSemanticConvention.counter;
 import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.GaugeSemanticConvention.gauge;
 import static io.micrometer.core.instrument.binder.BaseUnits.TASKS;
 import static io.micrometer.core.instrument.binder.BaseUnits.THREADS;
@@ -36,11 +37,11 @@ public final class ThreadPoolSemanticConventions {
   /** The maximum number of threads in the pool. */
   public static final GaugeSemanticConvention THREADS_MAX = gauge("executor.threads.max", THREADS);
   /** The total number of tasks that were submitted to this executor. */
-  public static final GaugeSemanticConvention TASKS_SUBMITTED =
-      gauge("executor.tasks.submitted", TASKS);
+  public static final CounterSemanticConvention TASKS_SUBMITTED =
+      counter("executor.tasks.submitted", TASKS);
   /** The total number of tasks completed by this executor. */
-  public static final GaugeSemanticConvention TASKS_COMPLETED =
-      gauge("executor.tasks.completed", TASKS);
+  public static final CounterSemanticConvention TASKS_COMPLETED =
+      counter("executor.tasks.completed", TASKS);
 
   /** The name of the thread pool, as named by the instrumented application developer. */
   public static final String EXECUTOR_NAME = "executor.name";

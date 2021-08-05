@@ -60,23 +60,23 @@ class WebLogicSmokeTest extends AppServerTest {
   }
 
   @Override
-  protected void assertMiddlewareAttributesInWebAppTrace(
+  protected void assertWebengineAttributesInWebAppTrace(
       ExpectedServerAttributes serverAttributes, TraceInspector traces) {
-    super.assertMiddlewareAttributesInWebAppTrace(serverAttributes, traces);
+    super.assertWebengineAttributesInWebAppTrace(serverAttributes, traces);
 
     Assertions.assertEquals(
         "domain1",
-        traces.getServerSpanAttribute("middleware.weblogic.domain"),
+        traces.getServerSpanAttribute("webengine.weblogic.domain"),
         "WebLogic Domain attribute present");
 
     Assertions.assertEquals(
         "admin-server",
-        traces.getServerSpanAttribute("middleware.weblogic.server"),
+        traces.getServerSpanAttribute("webengine.weblogic.server"),
         "WebLogic Server attribute present");
 
     Assertions.assertEquals(
         "app",
-        traces.getServerSpanAttribute("middleware.weblogic.application"),
+        traces.getServerSpanAttribute("webengine.weblogic.application"),
         "WebLogic Application attribute present");
   }
 }

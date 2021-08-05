@@ -20,23 +20,23 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class MiddlewareHolder {
+public class WebengineHolder {
 
-  private static final Logger log = LoggerFactory.getLogger(MiddlewareHolder.class);
+  private static final Logger log = LoggerFactory.getLogger(WebengineHolder.class);
 
-  public static final AtomicReference<String> middlewareName = new AtomicReference<>();
-  public static final AtomicReference<String> middlewareVersion = new AtomicReference<>();
+  public static final AtomicReference<String> webengineName = new AtomicReference<>();
+  public static final AtomicReference<String> webengineVersion = new AtomicReference<>();
 
   public static void trySetName(String name) {
-    if (!middlewareName.compareAndSet(null, name)) {
-      log.debug("Trying to re-set middleware name from {} to {}", middlewareName.get(), name);
+    if (!webengineName.compareAndSet(null, name)) {
+      log.debug("Trying to re-set webengine name from {} to {}", webengineName.get(), name);
     }
   }
 
   public static void trySetVersion(String version) {
-    if (!middlewareVersion.compareAndSet(null, version)) {
+    if (!webengineVersion.compareAndSet(null, version)) {
       log.debug(
-          "Trying to re-set middleware version from {} to {}", middlewareVersion.get(), version);
+          "Trying to re-set webengine version from {} to {}", webengineVersion.get(), version);
     }
   }
 }

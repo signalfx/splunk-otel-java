@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.splunk.opentelemetry.middleware.weblogic;
+package com.splunk.opentelemetry.webengine.weblogic;
 
 import static io.opentelemetry.javaagent.extension.matcher.AgentElementMatchers.extendsClass;
 import static io.opentelemetry.javaagent.extension.matcher.AgentElementMatchers.hasClassesNamed;
@@ -40,7 +40,7 @@ import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.matcher.ElementMatcher;
 
 /**
- * Adds an instrumentation to collect middleware attributes for WebLogic Server 12 and 14. As span
+ * Adds an instrumentation to collect webengine attributes for WebLogic Server 12 and 14. As span
  * detection on WebLogic does not require any special logic, this does not initiate servlet spans by
  * itself, but saves the special attributes as a map to a servlet request attribute, which is then
  * later read when span is started by generic servlet instrumentation.
@@ -60,10 +60,10 @@ public class WebLogicInstrumentationModule extends InstrumentationModule {
 
   @Override
   public List<TypeInstrumentation> typeInstrumentations() {
-    return Arrays.asList(new MiddlewareInstrumentation(), new ServletInstrumentation());
+    return Arrays.asList(new WebengineInstrumentation(), new ServletInstrumentation());
   }
 
-  private static class MiddlewareInstrumentation implements TypeInstrumentation {
+  private static class WebengineInstrumentation implements TypeInstrumentation {
     @Override
     public ElementMatcher<TypeDescription> typeMatcher() {
       return named("weblogic.servlet.internal.WebAppServletContext$ServletInvocationAction");
@@ -75,14 +75,14 @@ public class WebLogicInstrumentationModule extends InstrumentationModule {
           named("wrapRun")
               .and(takesArgument(1, named("javax.servlet.http.HttpServletRequest")))
               .and(isPrivate()),
-          WebLogicInstrumentationModule.class.getName() + "$MiddlewareAdvice");
+          WebLogicInstrumentationModule.class.getName() + "$WebengineAdvice");
     }
   }
 
-  private static class MiddlewareAdvice {
+  private static class WebengineAdvice {
     @Advice.OnMethodEnter(suppress = Throwable.class)
     public static void start(@Advice.Argument(1) HttpServletRequest servletRequest) {
-      WebLogicAttributeCollector.attachMiddlewareAttributes(servletRequest);
+      WebLogicAttributeCollector.attachWebengineAttributes(servletRequest);
     }
   }
 
@@ -113,7 +113,7 @@ public class WebLogicInstrumentationModule extends InstrumentationModule {
     @Advice.OnMethodEnter(suppress = Throwable.class)
     public static void start(
         @Advice.Argument(value = 0, readOnly = false) HttpServletRequest request) {
-      Object value = request.getAttribute("otel.middleware");
+      Object value = request.getAttribute("otel.webengine");
 
       if (value instanceof Map<?, ?>) {
         Span span = Java8BytecodeBridge.currentSpan();

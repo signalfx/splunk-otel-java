@@ -10,7 +10,7 @@ additional custom features:
 
 * We instrument [several HTTP server frameworks](server-trace-info.md#supported-frameworks-and-libraries)
   and return server trace information in the HTTP response;
-* We collect information about [application servers](middleware-attributes.md) that are being used and store it in
+* We collect information about [application servers](webengine-attributes.md) that are being used and store it in
   server span attributes;
 * We gather [basic application and JVM metrics](metrics.md) and export it to the Smart Agent, the OpenTelemetry
   Collector or Splunk ingest.

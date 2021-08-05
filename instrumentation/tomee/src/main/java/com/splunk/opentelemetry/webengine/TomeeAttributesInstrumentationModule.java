@@ -14,15 +14,13 @@
  * limitations under the License.
  */
 
-package com.splunk.opentelemetry.middleware;
+package com.splunk.opentelemetry.webengine;
 
-import static io.opentelemetry.javaagent.extension.matcher.AgentElementMatchers.hasClassesNamed;
 import static net.bytebuddy.matcher.ElementMatchers.isMethod;
-import static net.bytebuddy.matcher.ElementMatchers.isPublic;
 import static net.bytebuddy.matcher.ElementMatchers.named;
 
 import com.google.auto.service.AutoService;
-import com.splunk.opentelemetry.javaagent.bootstrap.MiddlewareHolder;
+import com.splunk.opentelemetry.javaagent.bootstrap.WebengineHolder;
 import io.opentelemetry.javaagent.extension.instrumentation.InstrumentationModule;
 import io.opentelemetry.javaagent.extension.instrumentation.TypeInstrumentation;
 import io.opentelemetry.javaagent.extension.instrumentation.TypeTransformer;
@@ -31,19 +29,13 @@ import java.util.List;
 import net.bytebuddy.asm.Advice;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.matcher.ElementMatcher;
-import org.apache.catalina.util.ServerInfo;
+import org.apache.openejb.util.OpenEjbVersion;
 
 @AutoService(InstrumentationModule.class)
-public class TomcatAttributesInstrumentationModule extends InstrumentationModule {
+public class TomeeAttributesInstrumentationModule extends InstrumentationModule {
 
-  public TomcatAttributesInstrumentationModule() {
-    super("tomcat");
-  }
-
-  @Override
-  public ElementMatcher.Junction<ClassLoader> classLoaderMatcher() {
-    return hasClassesNamed(
-        "org.apache.catalina.startup.Catalina", "org.apache.catalina.util.ServerInfo");
+  public TomeeAttributesInstrumentationModule() {
+    super("tomee");
   }
 
   @Override
@@ -55,23 +47,24 @@ public class TomcatAttributesInstrumentationModule extends InstrumentationModule
 
     @Override
     public ElementMatcher<TypeDescription> typeMatcher() {
-      return named("org.apache.catalina.startup.Catalina");
+      return named("org.apache.tomee.catalina.ServerListener");
     }
 
     @Override
     public void transform(TypeTransformer typeTransformer) {
       typeTransformer.applyAdviceToMethod(
-          isMethod().and(isPublic()).and(named("start")),
-          TomcatAttributesInstrumentationModule.class.getName() + "$MiddlewareInitializedAdvice");
+          isMethod().and(named("installServerInfo")),
+          TomeeAttributesInstrumentationModule.class.getName() + "$WebengineInitializedAdvice");
     }
   }
 
   @SuppressWarnings("unused")
-  public static class MiddlewareInitializedAdvice {
+  public static class WebengineInitializedAdvice {
     @Advice.OnMethodEnter(suppress = Throwable.class)
     public static void onEnter() {
-      MiddlewareHolder.trySetVersion(ServerInfo.getServerNumber());
-      MiddlewareHolder.trySetName("tomcat");
+      String version = OpenEjbVersion.get().getVersion();
+      WebengineHolder.trySetVersion(version);
+      WebengineHolder.trySetName("tomee");
     }
   }
 }

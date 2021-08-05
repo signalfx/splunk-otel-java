@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package com.splunk.opentelemetry.middleware;
+package com.splunk.opentelemetry.webengine;
 
-import com.splunk.opentelemetry.javaagent.bootstrap.MiddlewareHolder;
+import com.splunk.opentelemetry.javaagent.bootstrap.WebengineHolder;
 import io.opentelemetry.api.trace.SpanKind;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.sdk.common.CompletableResultCode;
@@ -24,23 +24,22 @@ import io.opentelemetry.sdk.trace.ReadWriteSpan;
 import io.opentelemetry.sdk.trace.ReadableSpan;
 import io.opentelemetry.sdk.trace.SpanProcessor;
 
-public class MiddlewareAttributeSpanProcessor implements SpanProcessor {
+public class WebengineAttributeSpanProcessor implements SpanProcessor {
 
   @Override
   public void onStart(Context parentContext, ReadWriteSpan span) {
-    String middlewareName = MiddlewareHolder.middlewareName.get();
-    String middlewareVersion = MiddlewareHolder.middlewareVersion.get();
+    String webengineName = WebengineHolder.webengineName.get();
+    String webengineVersion = WebengineHolder.webengineVersion.get();
 
-    if ((middlewareName == null && middlewareVersion == null)
-        || span.getKind() != SpanKind.SERVER) {
+    if ((webengineName == null && webengineVersion == null) || span.getKind() != SpanKind.SERVER) {
       return;
     }
 
-    if (middlewareName != null) {
-      span.setAttribute(MiddlewareAttributes.MIDDLEWARE_NAME.key, middlewareName);
+    if (webengineName != null) {
+      span.setAttribute(WebengineAttributes.WEBENGINE_NAME.key, webengineName);
     }
-    if (middlewareVersion != null) {
-      span.setAttribute(MiddlewareAttributes.MIDDLEWARE_VERSION.key, middlewareVersion);
+    if (webengineVersion != null) {
+      span.setAttribute(WebengineAttributes.WEBENGINE_VERSION.key, webengineVersion);
     }
   }
 

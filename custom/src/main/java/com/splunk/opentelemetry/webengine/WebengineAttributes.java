@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-package com.splunk.opentelemetry.middleware;
+package com.splunk.opentelemetry.webengine;
 
-public enum MiddlewareAttributes {
-  MIDDLEWARE_NAME("middleware.name"),
-  MIDDLEWARE_VERSION("middleware.version");
+public enum WebengineAttributes {
+  WEBENGINE_NAME("webengine.name"),
+  WEBENGINE_VERSION("webengine.version");
 
   public final String key;
 
-  MiddlewareAttributes(String key) {
+  WebengineAttributes(String key) {
     this.key = key;
   }
 }

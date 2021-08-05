@@ -14,35 +14,35 @@
  * limitations under the License.
  */
 
-package com.splunk.opentelemetry.middleware;
+package com.splunk.opentelemetry.webengine;
 
 import static io.opentelemetry.javaagent.extension.matcher.AgentElementMatchers.hasClassesNamed;
-import static net.bytebuddy.matcher.ElementMatchers.isMethod;
-import static net.bytebuddy.matcher.ElementMatchers.isPublic;
+import static net.bytebuddy.matcher.ElementMatchers.isConstructor;
 import static net.bytebuddy.matcher.ElementMatchers.named;
 
 import com.google.auto.service.AutoService;
-import com.ibm.ws.kernel.productinfo.ProductInfo;
-import com.splunk.opentelemetry.javaagent.bootstrap.MiddlewareHolder;
+import com.splunk.opentelemetry.javaagent.bootstrap.WebengineHolder;
 import io.opentelemetry.javaagent.extension.instrumentation.InstrumentationModule;
 import io.opentelemetry.javaagent.extension.instrumentation.TypeInstrumentation;
 import io.opentelemetry.javaagent.extension.instrumentation.TypeTransformer;
+import io.opentelemetry.javaagent.instrumentation.api.CallDepth;
 import java.util.Collections;
 import java.util.List;
 import net.bytebuddy.asm.Advice;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.matcher.ElementMatcher;
+import org.jboss.as.version.ProductConfig;
 
 @AutoService(InstrumentationModule.class)
-public class LibertyAttributesInstrumentationModule extends InstrumentationModule {
+public class WildFlyAttributesInstrumentationModule extends InstrumentationModule {
 
-  public LibertyAttributesInstrumentationModule() {
-    super("liberty");
+  public WildFlyAttributesInstrumentationModule() {
+    super("wildfly");
   }
 
   @Override
   public ElementMatcher.Junction<ClassLoader> classLoaderMatcher() {
-    return hasClassesNamed("com.ibm.ws.kernel.boot.internal.KernelBootstrap");
+    return hasClassesNamed("org.jboss.as.version.ProductConfig");
   }
 
   @Override
@@ -54,35 +54,33 @@ public class LibertyAttributesInstrumentationModule extends InstrumentationModul
 
     @Override
     public ElementMatcher<TypeDescription> typeMatcher() {
-      return named("com.ibm.ws.kernel.boot.internal.KernelBootstrap");
+      return named("org.jboss.as.server.ServerEnvironment");
     }
 
     @Override
     public void transform(TypeTransformer typeTransformer) {
       typeTransformer.applyAdviceToMethod(
-          isMethod().and(isPublic()).and(named("go")),
-          LibertyAttributesInstrumentationModule.class.getName() + "$MiddlewareInitializedAdvice");
+          isConstructor(),
+          WildFlyAttributesInstrumentationModule.class.getName() + "$WebengineInitializedAdvice");
     }
   }
 
   @SuppressWarnings("unused")
-  public static class MiddlewareInitializedAdvice {
-    @Advice.OnMethodEnter(suppress = Throwable.class)
-    public static void onEnter() {
-      String version = null;
-      for (ProductInfo p : ProductInfo.getAllProductInfo().values()) {
-        // older versions have only WebSphereApplicationServer.properties
-        // openliberty distribution only has openliberty.properties
-        // ibm distribution has both
-        if ("openliberty.properties".equals(p.getFile().getName())
-            || "WebSphereApplicationServer.properties".equals(p.getFile().getName())) {
-          version = p.getVersion();
-          break;
-        }
-      }
+  public static class WebengineInitializedAdvice {
+    @Advice.OnMethodEnter
+    public static void onEnter(@Advice.Local("splunkCallDepth") CallDepth callDepth) {
+      callDepth = CallDepth.forClass(ProductConfig.class);
+      callDepth.getAndIncrement();
+    }
 
-      MiddlewareHolder.trySetVersion(version);
-      MiddlewareHolder.trySetName("websphere liberty");
+    @Advice.OnMethodExit(suppress = Throwable.class)
+    public static void onExit(
+        @Advice.Local("splunkCallDepth") CallDepth callDepth,
+        @Advice.FieldValue("productConfig") ProductConfig productConfig) {
+      if (callDepth.decrementAndGet() == 0 && productConfig != null) {
+        WebengineHolder.trySetName(productConfig.resolveName());
+        WebengineHolder.trySetVersion(productConfig.resolveVersion());
+      }
     }
   }
 }

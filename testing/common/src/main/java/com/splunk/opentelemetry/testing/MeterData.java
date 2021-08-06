@@ -23,6 +23,8 @@ import com.splunk.opentelemetry.javaagent.bootstrap.metrics.TimerSemanticConvent
 import java.util.Map;
 import java.util.Objects;
 
+// TODO: rename to MeterId or something similar, "Data" suggests that this class contains
+// measurements - and it doesn't
 public final class MeterData {
   private final String name;
   private final String type;

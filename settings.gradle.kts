@@ -37,6 +37,8 @@ include(
     "instrumentation:jvm-metrics",
     "instrumentation:khttp",
     "instrumentation:liberty",
+    "instrumentation:micrometer",
+    "instrumentation:micrometer-shaded-for-instrumenting",
     "instrumentation:netty-3.8",
     "instrumentation:netty-4.0",
     "instrumentation:servlet",

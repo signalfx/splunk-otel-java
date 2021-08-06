@@ -35,10 +35,21 @@ dependencies {
   bootstrapLibs(project(":bootstrap"))
 
   javaagentLibs(project(":custom"))
-  javaagentLibs(project(":instrumentation"))
   javaagentLibs(project(":profiler"))
 
   upstreamAgent("io.opentelemetry.javaagent:opentelemetry-javaagent:${otelInstrumentationVersion}:all")
+}
+
+val javaagentDependencies = dependencies
+
+// collect all instrumentation sub projects
+project(":instrumentation").subprojects {
+  val subProj = this
+  plugins.withId("splunk.instrumentation-conventions") {
+    javaagentDependencies.run {
+      add(javaagentLibs.name, project(subProj.path))
+    }
+  }
 }
 
 tasks {

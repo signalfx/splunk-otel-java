@@ -19,12 +19,15 @@ package com.splunk.opentelemetry.testing;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
 
+import io.micrometer.core.instrument.Measurement;
 import io.micrometer.core.instrument.Meter;
 import io.micrometer.core.instrument.Metrics;
 import io.micrometer.core.instrument.Tag;
+import io.micrometer.core.instrument.search.Search;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.StreamSupport;
 
 /** This class is used in instrumentation tests; accessed via agent classloader bridging. */
 @SuppressWarnings("unused")
@@ -43,6 +46,16 @@ public final class TestMetrics {
     serialized.put(
         "tags", meter.getId().getTags().stream().collect(toMap(Tag::getKey, Tag::getValue)));
     return serialized;
+  }
+
+  public static double[] getMeasurements(String meterName) {
+    Meter meter = Search.in(Metrics.globalRegistry).name(meterName).meter();
+    if (meter == null) {
+      return new double[0];
+    }
+    return StreamSupport.stream(meter.measure().spliterator(), false)
+        .mapToDouble(Measurement::getValue)
+        .toArray();
   }
 
   public static void clearMetrics() {

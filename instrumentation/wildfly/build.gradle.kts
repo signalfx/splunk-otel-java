@@ -1,5 +1,15 @@
 plugins {
   id("splunk.instrumentation-conventions")
+  id("splunk.muzzle-conventions")
+}
+
+muzzle {
+  pass {
+    group.set("org.wildfly.core")
+    module.set("wildfly-version")
+    versions.set("(,)")
+    assertInverse.set(true)
+  }
 }
 
 dependencies {

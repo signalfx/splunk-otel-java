@@ -19,6 +19,9 @@ dependencies {
 
   // test
   testImplementation(project(":testing:common"))
+  // the bootstrap module is provided by the javaagent in the instrumentation test runtime, no need to include it
+  // (especially when it's not being shaded)
+  testCompileOnly(project(":bootstrap"))
 }
 
 tasks.named<ShadowJar>("shadowJar").configure {

@@ -1,5 +1,6 @@
 plugins {
   id("splunk.instrumentation-conventions")
+  // TODO: make this module work with muzzle
 }
 
 dependencies {

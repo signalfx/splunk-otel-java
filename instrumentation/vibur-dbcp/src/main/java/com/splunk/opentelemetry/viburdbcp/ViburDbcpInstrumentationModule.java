@@ -37,8 +37,8 @@ public class ViburDbcpInstrumentationModule extends InstrumentationModule {
   }
 
   @Override
-  public List<String> getMuzzleHelperClassNames() {
-    return singletonList("com.splunk.opentelemetry.viburdbcp.ConnectionPoolMetrics");
+  public boolean isHelperClass(String className) {
+    return className.startsWith("com.splunk.opentelemetry.viburdbcp");
   }
 
   @Override

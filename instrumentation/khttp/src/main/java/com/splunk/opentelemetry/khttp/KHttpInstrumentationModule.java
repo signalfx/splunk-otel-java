@@ -21,7 +21,6 @@ import static java.util.Collections.singletonList;
 import com.google.auto.service.AutoService;
 import io.opentelemetry.javaagent.extension.instrumentation.InstrumentationModule;
 import io.opentelemetry.javaagent.extension.instrumentation.TypeInstrumentation;
-import java.util.Arrays;
 import java.util.List;
 
 @AutoService(InstrumentationModule.class)
@@ -37,10 +36,7 @@ public class KHttpInstrumentationModule extends InstrumentationModule {
   }
 
   @Override
-  public List<String> getMuzzleHelperClassNames() {
-    return Arrays.asList(
-        "com.splunk.opentelemetry.khttp.KHttpTracer",
-        "com.splunk.opentelemetry.khttp.KHttpHeadersInjectAdapter",
-        "com.splunk.opentelemetry.khttp.RequestWrapper");
+  public boolean isHelperClass(String className) {
+    return className.startsWith("com.splunk.opentelemetry.khttp");
   }
 }

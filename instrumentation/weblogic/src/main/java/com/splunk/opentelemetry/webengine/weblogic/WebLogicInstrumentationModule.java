@@ -59,6 +59,11 @@ public class WebLogicInstrumentationModule extends InstrumentationModule {
   }
 
   @Override
+  public boolean isHelperClass(String className) {
+    return className.startsWith("com.splunk.opentelemetry.middleware");
+  }
+
+  @Override
   public List<TypeInstrumentation> typeInstrumentations() {
     return Arrays.asList(new WebengineInstrumentation(), new ServletInstrumentation());
   }
@@ -127,18 +132,5 @@ public class WebLogicInstrumentationModule extends InstrumentationModule {
         }
       }
     }
-  }
-
-  @Override
-  public List<String> getMuzzleHelperClassNames() {
-    String packageName = this.getClass().getPackage().getName();
-
-    return Arrays.asList(
-        packageName + ".WebLogicAttributeCollector",
-        packageName + ".WebLogicEntity",
-        packageName + ".WebLogicEntity$Request",
-        packageName + ".WebLogicEntity$Context",
-        packageName + ".WebLogicEntity$Server",
-        packageName + ".WebLogicEntity$Bean");
   }
 }

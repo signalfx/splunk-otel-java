@@ -3,7 +3,7 @@ plugins {
   id("splunk.muzzle-conventions")
 }
 
-// TODO: out netty instrumentation depends on the upstream netty instrumentation and muzzle-check does not like it
+// TODO: our netty instrumentation depends on the upstream netty instrumentation and muzzle-check does not like it
 // enable muzzle once it's somehow fixed
 
 dependencies {

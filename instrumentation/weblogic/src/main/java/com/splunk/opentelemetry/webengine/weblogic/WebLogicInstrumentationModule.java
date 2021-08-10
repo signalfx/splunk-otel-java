@@ -60,7 +60,7 @@ public class WebLogicInstrumentationModule extends InstrumentationModule {
 
   @Override
   public boolean isHelperClass(String className) {
-    return className.startsWith("com.splunk.opentelemetry.middleware");
+    return className.startsWith("com.splunk.opentelemetry.webengine");
   }
 
   @Override

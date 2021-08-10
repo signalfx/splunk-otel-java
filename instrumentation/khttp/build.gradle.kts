@@ -15,7 +15,6 @@ muzzle {
     group.set("com.github.jkcclemens")
     module.set("khttp")
     versions.set("(,)")
-    assertInverse.set(true)
   }
 }
 

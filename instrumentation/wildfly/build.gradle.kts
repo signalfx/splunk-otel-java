@@ -8,7 +8,6 @@ muzzle {
     group.set("org.wildfly.core")
     module.set("wildfly-version")
     versions.set("(,)")
-    assertInverse.set(true)
   }
 }
 

@@ -14,13 +14,15 @@
  * limitations under the License.
  */
 
-package com.splunk.opentelemetry.middleware;
+package com.splunk.opentelemetry.webengine;
 
-import static net.bytebuddy.matcher.ElementMatchers.isMethod;
+import static io.opentelemetry.javaagent.extension.matcher.AgentElementMatchers.hasClassesNamed;
+import static net.bytebuddy.matcher.ElementMatchers.isTypeInitializer;
 import static net.bytebuddy.matcher.ElementMatchers.named;
 
 import com.google.auto.service.AutoService;
-import com.splunk.opentelemetry.javaagent.bootstrap.MiddlewareHolder;
+import com.splunk.opentelemetry.javaagent.bootstrap.WebengineHolder;
+import com.sun.appserv.server.util.Version;
 import io.opentelemetry.javaagent.extension.instrumentation.InstrumentationModule;
 import io.opentelemetry.javaagent.extension.instrumentation.TypeInstrumentation;
 import io.opentelemetry.javaagent.extension.instrumentation.TypeTransformer;
@@ -29,13 +31,17 @@ import java.util.List;
 import net.bytebuddy.asm.Advice;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.matcher.ElementMatcher;
-import org.apache.openejb.util.OpenEjbVersion;
 
 @AutoService(InstrumentationModule.class)
-public class TomeeAttributesInstrumentationModule extends InstrumentationModule {
+public class GlassfishAttributesInstrumentationModule extends InstrumentationModule {
 
-  public TomeeAttributesInstrumentationModule() {
-    super("tomee");
+  public GlassfishAttributesInstrumentationModule() {
+    super("glassfish");
+  }
+
+  @Override
+  public ElementMatcher.Junction<ClassLoader> classLoaderMatcher() {
+    return hasClassesNamed("com.sun.appserv.server.util.Version");
   }
 
   @Override
@@ -47,24 +53,23 @@ public class TomeeAttributesInstrumentationModule extends InstrumentationModule 
 
     @Override
     public ElementMatcher<TypeDescription> typeMatcher() {
-      return named("org.apache.tomee.catalina.ServerListener");
+      return named("com.sun.appserv.server.util.Version");
     }
 
     @Override
     public void transform(TypeTransformer typeTransformer) {
       typeTransformer.applyAdviceToMethod(
-          isMethod().and(named("installServerInfo")),
-          TomeeAttributesInstrumentationModule.class.getName() + "$MiddlewareInitializedAdvice");
+          isTypeInitializer(),
+          GlassfishAttributesInstrumentationModule.class.getName() + "$WebengineInitializedAdvice");
     }
   }
 
   @SuppressWarnings("unused")
-  public static class MiddlewareInitializedAdvice {
-    @Advice.OnMethodEnter(suppress = Throwable.class)
-    public static void onEnter() {
-      String version = OpenEjbVersion.get().getVersion();
-      MiddlewareHolder.trySetVersion(version);
-      MiddlewareHolder.trySetName("tomee");
+  public static class WebengineInitializedAdvice {
+    @Advice.OnMethodExit(suppress = Throwable.class)
+    public static void onExit() {
+      WebengineHolder.trySetName(Version.getProductName());
+      WebengineHolder.trySetVersion(Version.getVersionNumber());
     }
   }
 }

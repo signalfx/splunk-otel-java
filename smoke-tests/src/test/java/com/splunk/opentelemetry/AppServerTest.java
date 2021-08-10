@@ -73,7 +73,7 @@ public abstract class AppServerTest extends SmokeTest {
         2,
         traces.countSpansByKind(Span.SpanKind.SPAN_KIND_SERVER),
         "Server spans in the distributed trace");
-    assertMiddlewareAttributesInWebAppTrace(serverAttributes, traces);
+    assertWebengineAttributesInWebAppTrace(serverAttributes, traces);
 
     assertEquals(
         1, traces.countFilteredAttributes("http.url", url), "The span for the initial web request");
@@ -117,16 +117,16 @@ public abstract class AppServerTest extends SmokeTest {
     return 3;
   }
 
-  protected void assertMiddlewareAttributesInWebAppTrace(
+  protected void assertWebengineAttributesInWebAppTrace(
       ExpectedServerAttributes serverAttributes, TraceInspector traces) {
     assertEquals(
         2,
-        traces.countFilteredAttributes("middleware.name", serverAttributes.middlewareName),
-        "Middleware name is present on all server spans");
+        traces.countFilteredAttributes("webengine.name", serverAttributes.webengineName),
+        "Webengine name is present on all server spans");
     assertEquals(
         2,
-        traces.countFilteredAttributes("middleware.version", serverAttributes.middlewareVersion),
-        "Middleware version is present on all server spans");
+        traces.countFilteredAttributes("webengine.version", serverAttributes.webengineVersion),
+        "Webengine version is present on all server spans");
   }
 
   protected void assertServerHandler(ExpectedServerAttributes serverAttributes)
@@ -152,13 +152,13 @@ public abstract class AppServerTest extends SmokeTest {
         "Server span has expected name");
 
     assertEquals(
-        serverAttributes.middlewareName,
-        traces.getServerSpanAttribute("middleware.name"),
-        "Middleware name tag on server span");
+        serverAttributes.webengineName,
+        traces.getServerSpanAttribute("webengine.name"),
+        "Webengine name tag on server span");
     assertEquals(
-        serverAttributes.middlewareVersion,
-        traces.getServerSpanAttribute("middleware.version"),
-        "Middleware version tag on server span");
+        serverAttributes.webengineVersion,
+        traces.getServerSpanAttribute("webengine.version"),
+        "Webengine version tag on server span");
 
     clearTelemetry();
   }
@@ -170,14 +170,14 @@ public abstract class AppServerTest extends SmokeTest {
 
   protected static class ExpectedServerAttributes {
     final String handlerSpanName;
-    final String middlewareName;
-    final String middlewareVersion;
+    final String webengineName;
+    final String webengineVersion;
 
     public ExpectedServerAttributes(
-        String handlerSpanName, String middlewareName, String middlewareVersion) {
+        String handlerSpanName, String webengineName, String webengineVersion) {
       this.handlerSpanName = handlerSpanName;
-      this.middlewareName = middlewareName;
-      this.middlewareVersion = middlewareVersion;
+      this.webengineName = webengineName;
+      this.webengineVersion = webengineVersion;
     }
   }
 

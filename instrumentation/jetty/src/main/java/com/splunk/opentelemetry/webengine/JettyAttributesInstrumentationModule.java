@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-package com.splunk.opentelemetry.middleware;
+package com.splunk.opentelemetry.webengine;
 
 import static io.opentelemetry.javaagent.extension.matcher.AgentElementMatchers.hasClassesNamed;
-import static net.bytebuddy.matcher.ElementMatchers.isTypeInitializer;
+import static net.bytebuddy.matcher.ElementMatchers.isMethod;
+import static net.bytebuddy.matcher.ElementMatchers.isProtected;
 import static net.bytebuddy.matcher.ElementMatchers.named;
 
 import com.google.auto.service.AutoService;
-import com.splunk.opentelemetry.javaagent.bootstrap.MiddlewareHolder;
-import com.sun.appserv.server.util.Version;
+import com.splunk.opentelemetry.javaagent.bootstrap.WebengineHolder;
 import io.opentelemetry.javaagent.extension.instrumentation.InstrumentationModule;
 import io.opentelemetry.javaagent.extension.instrumentation.TypeInstrumentation;
 import io.opentelemetry.javaagent.extension.instrumentation.TypeTransformer;
@@ -31,17 +31,18 @@ import java.util.List;
 import net.bytebuddy.asm.Advice;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.matcher.ElementMatcher;
+import org.eclipse.jetty.server.Server;
 
 @AutoService(InstrumentationModule.class)
-public class GlassfishAttributesInstrumentationModule extends InstrumentationModule {
+public class JettyAttributesInstrumentationModule extends InstrumentationModule {
 
-  public GlassfishAttributesInstrumentationModule() {
-    super("glassfish");
+  public JettyAttributesInstrumentationModule() {
+    super("jetty");
   }
 
   @Override
   public ElementMatcher.Junction<ClassLoader> classLoaderMatcher() {
-    return hasClassesNamed("com.sun.appserv.server.util.Version");
+    return hasClassesNamed("org.eclipse.jetty.server.Server");
   }
 
   @Override
@@ -53,24 +54,23 @@ public class GlassfishAttributesInstrumentationModule extends InstrumentationMod
 
     @Override
     public ElementMatcher<TypeDescription> typeMatcher() {
-      return named("com.sun.appserv.server.util.Version");
+      return named("org.eclipse.jetty.server.Server");
     }
 
     @Override
     public void transform(TypeTransformer typeTransformer) {
       typeTransformer.applyAdviceToMethod(
-          isTypeInitializer(),
-          GlassfishAttributesInstrumentationModule.class.getName()
-              + "$MiddlewareInitializedAdvice");
+          isMethod().and(isProtected()).and(named("doStart")),
+          JettyAttributesInstrumentationModule.class.getName() + "$WebengineInitializedAdvice");
     }
   }
 
   @SuppressWarnings("unused")
-  public static class MiddlewareInitializedAdvice {
-    @Advice.OnMethodExit(suppress = Throwable.class)
-    public static void onExit() {
-      MiddlewareHolder.trySetName(Version.getProductName());
-      MiddlewareHolder.trySetVersion(Version.getVersionNumber());
+  public static class WebengineInitializedAdvice {
+    @Advice.OnMethodEnter(suppress = Throwable.class)
+    public static void onEnter() {
+      WebengineHolder.trySetVersion(Server.getVersion());
+      WebengineHolder.trySetName("jetty");
     }
   }
 }

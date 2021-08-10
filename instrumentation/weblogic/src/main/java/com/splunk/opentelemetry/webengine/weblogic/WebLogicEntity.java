@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.splunk.opentelemetry.middleware.weblogic;
+package com.splunk.opentelemetry.webengine.weblogic;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;

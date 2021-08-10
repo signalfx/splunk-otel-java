@@ -14,19 +14,16 @@
  * limitations under the License.
  */
 
-package com.splunk.opentelemetry.middleware;
+package com.splunk.opentelemetry.webengine;
 
 import com.google.auto.service.AutoService;
-import com.splunk.opentelemetry.javaagent.bootstrap.MiddlewareHolder;
-import io.opentelemetry.instrumentation.api.config.Config;
-import io.opentelemetry.javaagent.extension.bootstrap.BootstrapPackagesBuilder;
-import io.opentelemetry.javaagent.extension.bootstrap.BootstrapPackagesConfigurer;
+import io.opentelemetry.sdk.autoconfigure.spi.SdkTracerProviderConfigurer;
+import io.opentelemetry.sdk.trace.SdkTracerProviderBuilder;
 
-@AutoService(BootstrapPackagesConfigurer.class)
-public class MiddlewareBootstrapPackagesProvider implements BootstrapPackagesConfigurer {
-
+@AutoService(SdkTracerProviderConfigurer.class)
+public class WebengineTracerProviderConfigurer implements SdkTracerProviderConfigurer {
   @Override
-  public void configure(Config config, BootstrapPackagesBuilder builder) {
-    builder.add(MiddlewareHolder.class.getPackage().getName());
+  public void configure(SdkTracerProviderBuilder tracerProvider) {
+    tracerProvider.addSpanProcessor(new WebengineAttributeSpanProcessor());
   }
 }

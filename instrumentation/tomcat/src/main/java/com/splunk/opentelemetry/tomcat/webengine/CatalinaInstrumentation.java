@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package com.splunk.opentelemetry.tomcat.middleware;
+package com.splunk.opentelemetry.tomcat.webengine;
 
 import static net.bytebuddy.matcher.ElementMatchers.isMethod;
 import static net.bytebuddy.matcher.ElementMatchers.isPublic;
 import static net.bytebuddy.matcher.ElementMatchers.named;
 
-import com.splunk.opentelemetry.javaagent.bootstrap.MiddlewareHolder;
+import com.splunk.opentelemetry.javaagent.bootstrap.WebengineHolder;
 import io.opentelemetry.javaagent.extension.instrumentation.TypeInstrumentation;
 import io.opentelemetry.javaagent.extension.instrumentation.TypeTransformer;
 import net.bytebuddy.asm.Advice;
@@ -39,16 +39,16 @@ final class CatalinaInstrumentation implements TypeInstrumentation {
   public void transform(TypeTransformer typeTransformer) {
     typeTransformer.applyAdviceToMethod(
         isMethod().and(isPublic()).and(named("start")),
-        CatalinaInstrumentation.class.getName() + "$MiddlewareInitializedAdvice");
+        CatalinaInstrumentation.class.getName() + "$WebengineInitializedAdvice");
   }
 
   @SuppressWarnings("unused")
-  public static class MiddlewareInitializedAdvice {
+  public static class WebengineInitializedAdvice {
 
     @Advice.OnMethodEnter(suppress = Throwable.class)
     public static void onEnter() {
-      MiddlewareHolder.trySetVersion(ServerInfo.getServerNumber());
-      MiddlewareHolder.trySetName("tomcat");
+      WebengineHolder.trySetVersion(ServerInfo.getServerNumber());
+      WebengineHolder.trySetName("tomcat");
     }
   }
 }

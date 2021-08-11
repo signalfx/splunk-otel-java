@@ -9,13 +9,6 @@ subprojects {
     instrumentationTest.configure {
       dependsOn(subProj.tasks.named("test"))
     }
-
-    // exclude stub projects, they are only compile time dependencies
-    if (!subProj.name.endsWith("-stub")) {
-      instrumentationDeps.run {
-        implementation(project(subProj.path))
-      }
-    }
   }
 
   tasks {

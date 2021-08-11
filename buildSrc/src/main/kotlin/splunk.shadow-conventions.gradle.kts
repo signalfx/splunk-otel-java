@@ -35,4 +35,7 @@ tasks.withType<ShadowJar>().configureEach {
   // micrometer dependencies
   relocate("org.HdrHistogram", "com.splunk.javaagent.shaded.org.hdrhistogram")
   relocate("org.LatencyUtils", "com.splunk.javaagent.shaded.org.latencyutils")
+
+  // relocate micrometer instrumentation packages
+  relocate("application.io.micrometer", "io.micrometer")
 }

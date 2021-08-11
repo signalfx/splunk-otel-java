@@ -26,6 +26,7 @@ import java.util.stream.Collectors;
 
 public final class TestMetricsAccess {
   private static final MethodHandle getMeters;
+  private static final MethodHandle getMeasurements;
   private static final MethodHandle clearMetrics;
 
   static {
@@ -36,6 +37,11 @@ public final class TestMetricsAccess {
       MethodHandles.Lookup lookup = MethodHandles.lookup();
       getMeters =
           lookup.findStatic(testMetricsClass, "getMeters", MethodType.methodType(Set.class));
+      getMeasurements =
+          lookup.findStatic(
+              testMetricsClass,
+              "getMeasurements",
+              MethodType.methodType(double[].class, String.class));
       clearMetrics =
           lookup.findStatic(testMetricsClass, "clearMetrics", MethodType.methodType(void.class));
     } catch (Exception e) {
@@ -48,6 +54,19 @@ public final class TestMetricsAccess {
     try {
       Set<Map<String, Object>> rawMeters = (Set<Map<String, Object>>) getMeters.invokeExact();
       return rawMeters.stream().map(MeterData::fromMap).collect(Collectors.toSet());
+    } catch (Throwable throwable) {
+      throw new AssertionError("Could not invoke getMeterNames", throwable);
+    }
+  }
+
+  // TODO: use that method in other metrics tests
+  public static Set<String> getMeterNames() {
+    return getMeters().stream().map(MeterData::getName).collect(Collectors.toSet());
+  }
+
+  public static double[] getMeasurements(String meterName) {
+    try {
+      return (double[]) getMeasurements.invokeExact(meterName);
     } catch (Throwable throwable) {
       throw new AssertionError("Could not invoke getMeterNames", throwable);
     }

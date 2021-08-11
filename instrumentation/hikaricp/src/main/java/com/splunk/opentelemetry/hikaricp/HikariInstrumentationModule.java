@@ -22,7 +22,6 @@ import com.google.auto.service.AutoService;
 import io.micrometer.core.instrument.Metrics;
 import io.opentelemetry.javaagent.extension.instrumentation.InstrumentationModule;
 import io.opentelemetry.javaagent.extension.instrumentation.TypeInstrumentation;
-import java.util.Arrays;
 import java.util.List;
 
 @AutoService(InstrumentationModule.class)
@@ -38,10 +37,8 @@ public class HikariInstrumentationModule extends InstrumentationModule {
   }
 
   @Override
-  public List<String> getMuzzleHelperClassNames() {
-    return Arrays.asList(
-        "com.splunk.opentelemetry.hikaricp.MicrometerMetricsTrackerFactory",
-        "com.splunk.opentelemetry.hikaricp.MicrometerMetricsTracker");
+  public boolean isHelperClass(String className) {
+    return className.startsWith("com.splunk.opentelemetry.hikaricp");
   }
 
   @Override

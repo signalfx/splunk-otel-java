@@ -23,7 +23,6 @@ import com.google.auto.service.AutoService;
 import com.splunk.opentelemetry.servertiming.ServerTimingHeader;
 import io.opentelemetry.javaagent.extension.instrumentation.InstrumentationModule;
 import io.opentelemetry.javaagent.extension.instrumentation.TypeInstrumentation;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import net.bytebuddy.matcher.ElementMatcher;
@@ -32,21 +31,6 @@ import net.bytebuddy.matcher.ElementMatcher;
 public class NettyInstrumentationModule extends InstrumentationModule {
   public NettyInstrumentationModule() {
     super("netty", "netty-4.0");
-  }
-
-  @Override
-  public ElementMatcher.Junction<ClassLoader> classLoaderMatcher() {
-    // Class added in 4.1.0 and not in 4.0.56 to avoid resolving this instrumentation completely
-    // when using 4.1.
-    return not(hasClassesNamed("io.netty.handler.codec.http.CombinedHttpHeaders"));
-  }
-
-  @Override
-  public List<String> getMuzzleHelperClassNames() {
-    return Arrays.asList(
-        ServerTimingHeader.class.getName(),
-        this.getClass().getPackage().getName() + ".ServerTimingHandler",
-        this.getClass().getPackage().getName() + ".ServerTimingHandler$HeadersSetter");
   }
 
   // run after the upstream netty instrumentation
@@ -59,6 +43,19 @@ public class NettyInstrumentationModule extends InstrumentationModule {
   @Override
   protected boolean defaultEnabled() {
     return super.defaultEnabled() && ServerTimingHeader.shouldEmitServerTimingHeader();
+  }
+
+  @Override
+  public ElementMatcher.Junction<ClassLoader> classLoaderMatcher() {
+    // Class added in 4.1.0 and not in 4.0.56 to avoid resolving this instrumentation completely
+    // when using 4.1.
+    return not(hasClassesNamed("io.netty.handler.codec.http.CombinedHttpHeaders"));
+  }
+
+  @Override
+  public boolean isHelperClass(String className) {
+    return className.startsWith("com.splunk.opentelemetry.netty")
+        || className.startsWith("com.splunk.opentelemetry.servertiming");
   }
 
   @Override

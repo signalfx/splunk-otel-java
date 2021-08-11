@@ -20,7 +20,6 @@ import com.google.auto.service.AutoService;
 import io.micrometer.core.instrument.Metrics;
 import io.opentelemetry.javaagent.extension.instrumentation.InstrumentationModule;
 import io.opentelemetry.javaagent.extension.instrumentation.TypeInstrumentation;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -38,11 +37,8 @@ public class C3p0InstrumentationModule extends InstrumentationModule {
   }
 
   @Override
-  public List<String> getMuzzleHelperClassNames() {
-    return Arrays.asList(
-        "com.splunk.opentelemetry.c3p0.ConnectionPoolMetrics",
-        "com.splunk.opentelemetry.c3p0.ConnectionPoolMetrics$IdentityDataSourceKey",
-        "com.splunk.opentelemetry.c3p0.ConnectionPoolMetrics$SqlExceptionHandlingSupplier");
+  public boolean isHelperClass(String className) {
+    return className.startsWith("com.splunk.opentelemetry.c3p0");
   }
 
   @Override

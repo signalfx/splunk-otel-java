@@ -1,5 +1,6 @@
 plugins {
   id("splunk.instrumentation-conventions")
+  // TODO: adding muzzle makes glasfish webengine attributes disappear
 }
 
 dependencies {

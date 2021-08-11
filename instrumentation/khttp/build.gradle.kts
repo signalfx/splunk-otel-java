@@ -1,11 +1,20 @@
 plugins {
   id("groovy")
   id("splunk.instrumentation-conventions")
+  id("splunk.muzzle-conventions")
 }
 
 repositories {
   maven {
     url = uri("https://jitpack.io")
+  }
+}
+
+muzzle {
+  pass {
+    group.set("com.github.jkcclemens")
+    module.set("khttp")
+    versions.set("(,)")
   }
 }
 

@@ -22,7 +22,6 @@ import com.google.auto.service.AutoService;
 import io.micrometer.core.instrument.Metrics;
 import io.opentelemetry.javaagent.extension.instrumentation.InstrumentationModule;
 import io.opentelemetry.javaagent.extension.instrumentation.TypeInstrumentation;
-import java.util.Arrays;
 import java.util.List;
 
 // metrics are still experimental and can't be enabled by default - that's why we need a separate
@@ -40,10 +39,8 @@ public class TomcatMetricsInstrumentationModule extends InstrumentationModule {
   }
 
   @Override
-  public List<String> getMuzzleHelperClassNames() {
-    return Arrays.asList(
-        "com.splunk.opentelemetry.tomcat.metrics.ThreadPoolMetrics",
-        "com.splunk.opentelemetry.tomcat.metrics.ThreadPoolMetrics$Suppliers");
+  public boolean isHelperClass(String className) {
+    return className.startsWith("com.splunk.opentelemetry.tomcat");
   }
 
   @Override

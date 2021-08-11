@@ -31,7 +31,6 @@ import io.opentelemetry.javaagent.extension.instrumentation.InstrumentationModul
 import io.opentelemetry.javaagent.extension.instrumentation.TypeInstrumentation;
 import io.opentelemetry.javaagent.extension.instrumentation.TypeTransformer;
 import io.opentelemetry.javaagent.instrumentation.api.Java8BytecodeBridge;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import javax.servlet.ServletResponse;
@@ -46,17 +45,6 @@ public class ServletInstrumentationModule extends InstrumentationModule {
     super("servlet");
   }
 
-  @Override
-  public ElementMatcher.Junction<ClassLoader> classLoaderMatcher() {
-    return hasClassesNamed("javax.servlet.Filter", "javax.servlet.http.HttpServlet");
-  }
-
-  @Override
-  public List<String> getMuzzleHelperClassNames() {
-    return Arrays.asList(
-        ServerTimingHeader.class.getName(), getClass().getName() + "$HeadersSetter");
-  }
-
   // run after the upstream servlet instrumentation - server span needs to be accessible here
   @Override
   public int order() {
@@ -67,6 +55,17 @@ public class ServletInstrumentationModule extends InstrumentationModule {
   @Override
   protected boolean defaultEnabled() {
     return super.defaultEnabled() && ServerTimingHeader.shouldEmitServerTimingHeader();
+  }
+
+  @Override
+  public ElementMatcher.Junction<ClassLoader> classLoaderMatcher() {
+    return hasClassesNamed("javax.servlet.Filter", "javax.servlet.http.HttpServlet");
+  }
+
+  @Override
+  public boolean isHelperClass(String className) {
+    return className.startsWith("com.splunk.opentelemetry.servlet")
+        || className.startsWith("com.splunk.opentelemetry.servertiming");
   }
 
   @Override

@@ -1,5 +1,15 @@
 plugins {
   id("splunk.instrumentation-conventions")
+  id("splunk.muzzle-conventions")
+}
+
+muzzle {
+  pass {
+    group.set("org.apache.tomcat")
+    module.set("tomcat-catalina")
+    versions.set("[8,)")
+    // no assertInverse because metrics and attributes instrumentations support different version ranges
+  }
 }
 
 dependencies {

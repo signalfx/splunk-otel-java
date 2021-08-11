@@ -37,8 +37,8 @@ public class TomcatJdbcInstrumentationModule extends InstrumentationModule {
   }
 
   @Override
-  public List<String> getMuzzleHelperClassNames() {
-    return singletonList("com.splunk.opentelemetry.tomcatjdbc.ConnectionPoolMetrics");
+  public boolean isHelperClass(String className) {
+    return className.startsWith("com.splunk.opentelemetry.tomcatjdbc");
   }
 
   @Override

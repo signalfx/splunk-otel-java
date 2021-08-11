@@ -38,21 +38,8 @@ public class MicrometerInstrumentationModule extends InstrumentationModule {
   }
 
   @Override
-  public List<String> getMuzzleHelperClassNames() {
-    return Arrays.asList(
-        // Application Meter has to be the first one, other instruments extend it
-        "com.splunk.opentelemetry.micrometer.ApplicationMeter",
-        "com.splunk.opentelemetry.micrometer.ApplicationClock",
-        "com.splunk.opentelemetry.micrometer.ApplicationCounter",
-        "com.splunk.opentelemetry.micrometer.ApplicationDistributionSummary",
-        "com.splunk.opentelemetry.micrometer.ApplicationFunctionCounter",
-        "com.splunk.opentelemetry.micrometer.ApplicationFunctionTimer",
-        "com.splunk.opentelemetry.micrometer.ApplicationGauge",
-        "com.splunk.opentelemetry.micrometer.ApplicationLongTaskTimer",
-        "com.splunk.opentelemetry.micrometer.ApplicationLongTaskTimer$ApplicationSample",
-        "com.splunk.opentelemetry.micrometer.ApplicationMeterRegistry",
-        "com.splunk.opentelemetry.micrometer.ApplicationTimer",
-        "com.splunk.opentelemetry.micrometer.Bridging");
+  public boolean isHelperClass(String className) {
+    return className.startsWith("com.splunk.opentelemetry.micrometer");
   }
 
   @Override

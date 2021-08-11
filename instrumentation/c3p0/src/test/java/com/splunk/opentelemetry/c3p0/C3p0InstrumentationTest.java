@@ -24,7 +24,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 
 import com.mchange.v2.c3p0.ComboPooledDataSource;
-import com.splunk.opentelemetry.testing.MeterData;
+import com.splunk.opentelemetry.testing.MeterId;
 import com.splunk.opentelemetry.testing.TestMetricsAccess;
 import io.opentelemetry.instrumentation.testing.junit.AgentInstrumentationExtension;
 import java.sql.SQLException;
@@ -133,7 +133,7 @@ public class C3p0InstrumentationTest {
         .untilAsserted(C3p0InstrumentationTest::assertNoConnectionPoolMetrics);
   }
 
-  private static void assertConnectionPoolMetrics(Set<MeterData> meters, String poolName) {
+  private static void assertConnectionPoolMetrics(Set<MeterId> meters, String poolName) {
     assertThat(poolName)
         .as("c3p0 generates a unique pool name if it's not explicitly provided")
         .isNotEmpty();
@@ -142,14 +142,14 @@ public class C3p0InstrumentationTest {
 
     assertThat(meters)
         .contains(
-            MeterData.from(CONNECTIONS_TOTAL, tags),
-            MeterData.from(CONNECTIONS_ACTIVE, tags),
-            MeterData.from(CONNECTIONS_IDLE, tags),
-            MeterData.from(CONNECTIONS_PENDING_THREADS, tags));
+            MeterId.from(CONNECTIONS_TOTAL, tags),
+            MeterId.from(CONNECTIONS_ACTIVE, tags),
+            MeterId.from(CONNECTIONS_IDLE, tags),
+            MeterId.from(CONNECTIONS_PENDING_THREADS, tags));
   }
 
   private static void assertNoConnectionPoolMetrics() {
-    assertThat(TestMetricsAccess.getMeters().stream().map(MeterData::getName).distinct())
+    assertThat(TestMetricsAccess.getMeterNames())
         .doesNotContain(
             CONNECTIONS_TOTAL.name(),
             CONNECTIONS_ACTIVE.name(),

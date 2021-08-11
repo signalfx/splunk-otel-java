@@ -16,12 +16,11 @@
 
 package com.splunk.opentelemetry.jvmmetrics;
 
-import static java.util.stream.Collectors.toSet;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.splunk.opentelemetry.testing.MeterData;
 import com.splunk.opentelemetry.testing.TestMetricsAccess;
 import io.opentelemetry.instrumentation.testing.junit.AgentInstrumentationExtension;
+import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -29,15 +28,15 @@ import org.junit.jupiter.api.extension.ExtendWith;
 class JvmMetricsTest {
   @Test
   void shouldRegisterJvmMeters() {
-    var meters = TestMetricsAccess.getMeters().stream().map(MeterData::getName).collect(toSet());
+    Set<String> meterNames = TestMetricsAccess.getMeterNames();
 
     // classloader metrics
-    assertTrue(meters.contains("jvm.classes.loaded"));
+    assertTrue(meterNames.contains("jvm.classes.loaded"));
     // GC metrics
-    assertTrue(meters.contains("jvm.gc.memory.allocated"));
+    assertTrue(meterNames.contains("jvm.gc.memory.allocated"));
     // memory metrics
-    assertTrue(meters.contains("jvm.memory.used"));
+    assertTrue(meterNames.contains("jvm.memory.used"));
     // thread metrics
-    assertTrue(meters.contains("jvm.threads.peak"));
+    assertTrue(meterNames.contains("jvm.threads.peak"));
   }
 }

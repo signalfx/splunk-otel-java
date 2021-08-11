@@ -18,7 +18,7 @@ package com.splunk.opentelemetry.micrometer;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.splunk.opentelemetry.testing.MeterData;
+import com.splunk.opentelemetry.testing.MeterId;
 import com.splunk.opentelemetry.testing.TestMetricsAccess;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.DistributionSummary;
@@ -60,7 +60,7 @@ public class MicrometerBridgeTest {
     // then
     assertThat(TestMetricsAccess.getMeters())
         .containsExactlyInAnyOrder(
-            new MeterData("testCounter", "counter", "items", Map.of("tag", "value")));
+            new MeterId("testCounter", "counter", "items", Map.of("tag", "value")));
 
     // assert both application and agent measurements
     assertThat(counter.count()).isEqualTo(3);
@@ -91,7 +91,7 @@ public class MicrometerBridgeTest {
     // then
     assertThat(TestMetricsAccess.getMeters())
         .containsExactlyInAnyOrder(
-            new MeterData(
+            new MeterId(
                 "testDistributionSummary",
                 "distribution_summary",
                 "items",
@@ -122,7 +122,7 @@ public class MicrometerBridgeTest {
     // then
     assertThat(TestMetricsAccess.getMeters())
         .containsExactlyInAnyOrder(
-            new MeterData("testFunctionCounter", "counter", "items", Map.of("tag", "value")));
+            new MeterId("testFunctionCounter", "counter", "items", Map.of("tag", "value")));
 
     // assert both application and agent measurements
     assertThat(counter.count()).isEqualTo(42);
@@ -163,7 +163,7 @@ public class MicrometerBridgeTest {
     // then
     assertThat(TestMetricsAccess.getMeters())
         .containsExactlyInAnyOrder(
-            new MeterData("testFunctionTimer", "timer", "seconds", Map.of("tag", "value")));
+            new MeterId("testFunctionTimer", "timer", "seconds", Map.of("tag", "value")));
 
     // assert both application and agent measurements
     assertThat(timer.count()).isEqualTo(42);
@@ -189,7 +189,7 @@ public class MicrometerBridgeTest {
     // then
     assertThat(TestMetricsAccess.getMeters())
         .containsExactlyInAnyOrder(
-            new MeterData("testGauge", "gauge", "items", Map.of("tag", "value")));
+            new MeterId("testGauge", "gauge", "items", Map.of("tag", "value")));
 
     // assert both application and agent measurements
     assertThat(gauge.value()).isEqualTo(42);
@@ -217,8 +217,7 @@ public class MicrometerBridgeTest {
     // then
     assertThat(TestMetricsAccess.getMeters())
         .containsExactlyInAnyOrder(
-            new MeterData(
-                "testLongTaskTimer", "long_task_timer", "seconds", Map.of("tag", "value")));
+            new MeterId("testLongTaskTimer", "long_task_timer", "seconds", Map.of("tag", "value")));
 
     // assert both application and agent measurements
     assertThat(timer.activeTasks()).isEqualTo(1);
@@ -251,7 +250,7 @@ public class MicrometerBridgeTest {
     // then
     assertThat(TestMetricsAccess.getMeters())
         .containsExactlyInAnyOrder(
-            new MeterData("testTimer", "timer", "seconds", Map.of("tag", "value")));
+            new MeterId("testTimer", "timer", "seconds", Map.of("tag", "value")));
 
     // assert both application and agent measurements
     assertThat(timer.count()).isEqualTo(3);

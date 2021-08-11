@@ -26,7 +26,7 @@ import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.ThreadPoolSem
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 
-import com.splunk.opentelemetry.testing.MeterData;
+import com.splunk.opentelemetry.testing.MeterId;
 import com.splunk.opentelemetry.testing.TestMetricsAccess;
 import io.opentelemetry.instrumentation.test.utils.PortUtils;
 import io.opentelemetry.instrumentation.testing.junit.AgentInstrumentationExtension;
@@ -81,17 +81,17 @@ public class TomcatMetricsTest {
 
     assertThat(TestMetricsAccess.getMeters())
         .containsExactlyInAnyOrder(
-            MeterData.from(THREADS_CURRENT, tags),
-            MeterData.from(THREADS_ACTIVE, tags),
-            MeterData.from(THREADS_IDLE, tags),
-            MeterData.from(THREADS_CORE, tags),
-            MeterData.from(THREADS_MAX, tags),
-            MeterData.from(TASKS_SUBMITTED, tags),
-            MeterData.from(TASKS_COMPLETED, tags));
+            MeterId.from(THREADS_CURRENT, tags),
+            MeterId.from(THREADS_ACTIVE, tags),
+            MeterId.from(THREADS_IDLE, tags),
+            MeterId.from(THREADS_CORE, tags),
+            MeterId.from(THREADS_MAX, tags),
+            MeterId.from(TASKS_SUBMITTED, tags),
+            MeterId.from(TASKS_COMPLETED, tags));
   }
 
   private static void assertNoThreadPoolMetrics() {
-    assertThat(TestMetricsAccess.getMeters().stream().map(MeterData::getName).distinct())
+    assertThat(TestMetricsAccess.getMeterNames())
         .doesNotContain(
             THREADS_CURRENT.name(),
             THREADS_ACTIVE.name(),

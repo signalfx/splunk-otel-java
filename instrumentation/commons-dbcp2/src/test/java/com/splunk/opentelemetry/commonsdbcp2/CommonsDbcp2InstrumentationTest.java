@@ -28,7 +28,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.BDDMockito.given;
 
-import com.splunk.opentelemetry.testing.MeterData;
+import com.splunk.opentelemetry.testing.MeterId;
 import com.splunk.opentelemetry.testing.TestMetricsAccess;
 import io.opentelemetry.instrumentation.testing.junit.AgentInstrumentationExtension;
 import java.lang.management.ManagementFactory;
@@ -108,16 +108,16 @@ public class CommonsDbcp2InstrumentationTest {
 
     assertThat(TestMetricsAccess.getMeters())
         .containsExactlyInAnyOrder(
-            MeterData.from(CONNECTIONS_TOTAL, tags),
-            MeterData.from(CONNECTIONS_ACTIVE, tags),
-            MeterData.from(CONNECTIONS_IDLE, tags),
-            MeterData.from(CONNECTIONS_IDLE_MIN, tags),
-            MeterData.from(CONNECTIONS_IDLE_MAX, tags),
-            MeterData.from(CONNECTIONS_MAX, tags));
+            MeterId.from(CONNECTIONS_TOTAL, tags),
+            MeterId.from(CONNECTIONS_ACTIVE, tags),
+            MeterId.from(CONNECTIONS_IDLE, tags),
+            MeterId.from(CONNECTIONS_IDLE_MIN, tags),
+            MeterId.from(CONNECTIONS_IDLE_MAX, tags),
+            MeterId.from(CONNECTIONS_MAX, tags));
   }
 
   private static void assertNoConnectionPoolMetrics() {
-    assertThat(TestMetricsAccess.getMeters().stream().map(MeterData::getName).distinct())
+    assertThat(TestMetricsAccess.getMeterNames())
         .doesNotContain(
             CONNECTIONS_TOTAL.name(),
             CONNECTIONS_ACTIVE.name(),

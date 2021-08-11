@@ -15,7 +15,7 @@ muzzle {
 }
 
 dependencies {
-  compileOnly("com.mchange:c3p0:0.9.2")
+  compileOnly("com.mchange:c3p0:0.9.5")
 
   testImplementation("com.mchange:c3p0:0.9.2")
 }

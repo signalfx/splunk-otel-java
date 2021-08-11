@@ -23,15 +23,13 @@ import com.splunk.opentelemetry.javaagent.bootstrap.metrics.TimerSemanticConvent
 import java.util.Map;
 import java.util.Objects;
 
-// TODO: rename to MeterId or something similar, "Data" suggests that this class contains
-// measurements - and it doesn't
-public final class MeterData {
+public final class MeterId {
   private final String name;
   private final String type;
   private final String unit;
   private final Map<String, String> tags;
 
-  public MeterData(String name, String type, String unit, Map<String, String> tags) {
+  public MeterId(String name, String type, String unit, Map<String, String> tags) {
     this.name = name;
     this.type = type;
     this.unit = unit;
@@ -39,15 +37,15 @@ public final class MeterData {
   }
 
   @SuppressWarnings("unchecked")
-  public static MeterData fromMap(Map<String, Object> raw) {
-    return new MeterData(
+  public static MeterId fromMap(Map<String, Object> raw) {
+    return new MeterId(
         (String) raw.get("name"),
         (String) raw.get("type"),
         (String) raw.get("unit"),
         (Map<String, String>) raw.get("tags"));
   }
 
-  public static MeterData from(MeterSemanticConvention convention, Map<String, String> tags) {
+  public static MeterId from(MeterSemanticConvention convention, Map<String, String> tags) {
     String type;
     if (convention.getClass() == GaugeSemanticConvention.class) {
       type = "gauge";
@@ -60,7 +58,7 @@ public final class MeterData {
           "Unsupported semantic convention: " + convention.getClass().getSimpleName());
     }
 
-    return new MeterData(convention.name(), type, convention.baseUnit(), tags);
+    return new MeterId(convention.name(), type, convention.baseUnit(), tags);
   }
 
   public String getName() {
@@ -83,11 +81,11 @@ public final class MeterData {
   public boolean equals(Object o) {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
-    MeterData meterData = (MeterData) o;
-    return name.equals(meterData.name)
-        && type.equals(meterData.type)
-        && unit.equals(meterData.unit)
-        && tags.equals(meterData.tags);
+    MeterId meterId = (MeterId) o;
+    return name.equals(meterId.name)
+        && type.equals(meterId.type)
+        && unit.equals(meterId.unit)
+        && tags.equals(meterId.tags);
   }
 
   @Override

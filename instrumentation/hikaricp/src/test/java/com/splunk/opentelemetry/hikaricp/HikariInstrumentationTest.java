@@ -33,7 +33,7 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.verify;
 
-import com.splunk.opentelemetry.testing.MeterData;
+import com.splunk.opentelemetry.testing.MeterId;
 import com.splunk.opentelemetry.testing.TestMetricsAccess;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
@@ -123,20 +123,20 @@ public class HikariInstrumentationTest {
 
     assertThat(TestMetricsAccess.getMeters())
         .containsExactlyInAnyOrder(
-            MeterData.from(CONNECTIONS_TOTAL, tags),
-            MeterData.from(CONNECTIONS_ACTIVE, tags),
-            MeterData.from(CONNECTIONS_IDLE, tags),
-            MeterData.from(CONNECTIONS_IDLE_MIN, tags),
-            MeterData.from(CONNECTIONS_MAX, tags),
-            MeterData.from(CONNECTIONS_PENDING_THREADS, tags),
-            MeterData.from(CONNECTIONS_TIMEOUTS, tags),
-            MeterData.from(CONNECTIONS_CREATE_TIME, tags),
-            MeterData.from(CONNECTIONS_WAIT_TIME, tags),
-            MeterData.from(CONNECTIONS_USE_TIME, tags));
+            MeterId.from(CONNECTIONS_TOTAL, tags),
+            MeterId.from(CONNECTIONS_ACTIVE, tags),
+            MeterId.from(CONNECTIONS_IDLE, tags),
+            MeterId.from(CONNECTIONS_IDLE_MIN, tags),
+            MeterId.from(CONNECTIONS_MAX, tags),
+            MeterId.from(CONNECTIONS_PENDING_THREADS, tags),
+            MeterId.from(CONNECTIONS_TIMEOUTS, tags),
+            MeterId.from(CONNECTIONS_CREATE_TIME, tags),
+            MeterId.from(CONNECTIONS_WAIT_TIME, tags),
+            MeterId.from(CONNECTIONS_USE_TIME, tags));
   }
 
   private static void assertNoConnectionPoolMetrics() {
-    assertThat(TestMetricsAccess.getMeters().stream().map(MeterData::getName).distinct())
+    assertThat(TestMetricsAccess.getMeterNames())
         .doesNotContain(
             CONNECTIONS_TOTAL.name(),
             CONNECTIONS_ACTIVE.name(),

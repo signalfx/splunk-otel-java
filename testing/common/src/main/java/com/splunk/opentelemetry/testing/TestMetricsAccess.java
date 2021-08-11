@@ -50,18 +50,17 @@ public final class TestMetricsAccess {
   }
 
   @SuppressWarnings("unchecked")
-  public static Set<MeterData> getMeters() {
+  public static Set<MeterId> getMeters() {
     try {
       Set<Map<String, Object>> rawMeters = (Set<Map<String, Object>>) getMeters.invokeExact();
-      return rawMeters.stream().map(MeterData::fromMap).collect(Collectors.toSet());
+      return rawMeters.stream().map(MeterId::fromMap).collect(Collectors.toSet());
     } catch (Throwable throwable) {
       throw new AssertionError("Could not invoke getMeterNames", throwable);
     }
   }
 
-  // TODO: use that method in other metrics tests
   public static Set<String> getMeterNames() {
-    return getMeters().stream().map(MeterData::getName).collect(Collectors.toSet());
+    return getMeters().stream().map(MeterId::getName).collect(Collectors.toSet());
   }
 
   public static double[] getMeasurements(String meterName) {

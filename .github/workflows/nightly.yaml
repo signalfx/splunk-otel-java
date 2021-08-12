@@ -1,34 +1,11 @@
-name: PR build
-
-concurrency:
-  group: pr-${{ github.event.pull_request.number }}
-  cancel-in-progress: true
+name: Nightly build
 
 on:
-  pull_request:
+  schedule:
+    - cron: "24 5 * * *"
+  workflow_dispatch:
 
 jobs:
-  check-links:
-    runs-on: ubuntu-20.04
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-
-      - name: Check all links in *.md files
-        id: lychee
-        uses: lycheeverse/lychee-action@v1.0.8
-        with:
-          args: >-
-            -v -n "*.md" "**/*.md"
-            --exclude "https://developers.redhat.com/download-manager/file/jboss-eap-.*.zip"
-            --exclude "http://yourendpoint.*"
-            --exclude "https://ingest.us0.signalfx.com.*"
-            --exclude "http://localhost*"
-
-      - name: Fail if there were link errors
-        run: exit ${{ steps.lychee.outputs.exit_code }}
-
   build:
     runs-on: ubuntu-20.04
     steps:
@@ -43,7 +20,7 @@ jobs:
           java-version: 11.0.11+9
 
       - name: Build and test
-        run: ./gradlew build -x :smoke-tests:test -x :testing:profiler-tests:test --scan --no-daemon
+        run: ./gradlew build --scan --no-daemon
 
   setup-muzzle-matrix:
     runs-on: ubuntu-20.04
@@ -91,39 +68,25 @@ jobs:
           max_attempts: 3
           command: ./gradlew ${{ matrix.module }}:muzzle --stacktrace --no-daemon
 
-  smoke-test:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ windows-2019, ubuntu-20.04 ]
-        suite: [ "glassfish", "jboss", "jetty", "liberty", "tomcat", "tomee", "weblogic", "wildfly", "other" ]
-      fail-fast: false
-    steps:
-      - uses: actions/checkout@v2.3.4
-        with:
-          fetch-depth: 0
-
-      - name: Set up JDK 11 for running Gradle
-        uses: actions/setup-java@v2
-        with:
-          distribution: adopt
-          java-version: 11.0.11+9
-
-      - name: Test
-        run: ./gradlew :smoke-tests:test -PsmokeTestSuite=${{ matrix.suite }} --scan --no-daemon
-
-  profiler-smoke-tests:
+  issue:
+    name: Open issue on failure
+    needs: [ build, muzzle ]
     runs-on: ubuntu-20.04
+    permissions:
+      issues: write
+    if: always()
     steps:
+      # run this action to get workflow conclusion
+      # You can get conclusion by env (env.WORKFLOW_CONCLUSION)
+      - uses: technote-space/workflow-conclusion-action@v2.1.7
+
       - uses: actions/checkout@v2.3.4
         with:
           fetch-depth: 0
 
-      - name: Set up JDK 11 for running Gradle
-        uses: actions/setup-java@v2
+      - uses: JasonEtco/create-an-issue@v2.5.0
+        if: env.WORKFLOW_CONCLUSION == 'failure' # notify only if failure
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          distribution: adopt
-          java-version: 11.0.11+9
-
-      - name: Profiler smoke tests
-        run: ./gradlew :testing:profiler-tests:test --scan --no-daemon
+          filename: .github/workflows/nightly-failed.template

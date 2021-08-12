@@ -12,5 +12,8 @@ dependencies {
 tasks {
   test {
     jvmArgs("-Dsplunk.metrics.enabled=true")
+
+    // set some global metrics tags for testing javaagent
+    jvmArgs("-Dsplunk.testing.metrics.global-tags=food=cheesecake")
   }
 }

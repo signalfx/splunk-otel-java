@@ -17,3 +17,16 @@ subprojects {
     }
   }
 }
+
+tasks {
+  register("listMuzzleInstrumentations") {
+    group = "Help"
+    description = "List all instrumentation modules that use muzzle"
+    doFirst {
+      subprojects
+          .filter { it.plugins.hasPlugin("io.opentelemetry.instrumentation.muzzle-check") }
+          .map { it.path }
+          .forEach { println(it) }
+    }
+  }
+}

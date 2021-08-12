@@ -45,10 +45,13 @@ jobs:
       - name: Build and test
         run: ./gradlew build -x :smoke-tests:test -x :testing:profiler-tests:test --scan --no-daemon
 
-  muzzle:
+  setup-muzzle-matrix:
     runs-on: ubuntu-20.04
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
-      - uses: actions/checkout@v2.3.4
+      - name: Check out repository
+        uses: actions/checkout@v2.3.4
         with:
           fetch-depth: 0
 
@@ -58,8 +61,35 @@ jobs:
           distribution: adopt
           java-version: 11.0.11+9
 
-      - name: Run muzzle checks
-        run: ./gradlew muzzle --stacktrace --no-daemon
+      - id: set-matrix
+        run: echo "::set-output name=matrix::{\"module\":[\"$(./gradlew -q instrumentation:listMuzzleInstrumentations | xargs echo | sed 's/ /","/g')\"]}"
+
+  muzzle:
+    needs: setup-muzzle-matrix
+    runs-on: ubuntu-20.04
+    strategy:
+      matrix: ${{fromJson(needs.setup-muzzle-matrix.outputs.matrix)}}
+      fail-fast: false
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v2.3.4
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK 11 for running Gradle
+        uses: actions/setup-java@v2
+        with:
+          distribution: adopt
+          java-version: 11.0.11+9
+
+      - name: Run muzzle
+        # using retry because of sporadic gradle download failures
+        uses: nick-invision/retry@v2.4.1
+        with:
+          # timing out has not been a problem, these jobs typically finish in 2-3 minutes
+          timeout_minutes: 15
+          max_attempts: 3
+          command: ./gradlew ${{ matrix.module }}:muzzle --stacktrace --no-daemon
 
   smoke-test:
     runs-on: ${{ matrix.os }}

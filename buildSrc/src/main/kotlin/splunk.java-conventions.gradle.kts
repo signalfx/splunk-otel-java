@@ -69,7 +69,7 @@ extensions.configure<DependencyManagementExtension>("dependencyManagement") {
 
   imports {
     mavenBom("io.grpc:grpc-bom:1.38.0")
-    mavenBom("io.micrometer:micrometer-bom:1.7.1")
+    mavenBom("io.micrometer:micrometer-bom:1.7.3")
     mavenBom("io.opentelemetry:opentelemetry-bom-alpha:${otelAlphaVersion}")
     mavenBom("io.opentelemetry:opentelemetry-bom:${otelVersion}")
     mavenBom("org.junit:junit-bom:5.7.2")

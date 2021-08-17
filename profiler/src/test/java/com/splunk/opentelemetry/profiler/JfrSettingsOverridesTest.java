@@ -33,15 +33,20 @@ class JfrSettingsOverridesTest {
     when(config.getProperty("splunk.profiler.period.threaddump")).thenReturn("163");
     when(config.getProperty("splunk.profiler.period.otherevent")).thenReturn("964");
     when(config.getProperty("splunk.profiler.period.extraunused")).thenReturn("111");
+    when(config.getProperty("splunk.profiler.tlab.enabled")).thenReturn("false");
     JfrSettingsOverrides overrides = new JfrSettingsOverrides(config);
     Map<String, String> jfrSettings =
         Map.of(
             "jdk.ThreadDump#period", "12",
             "jdk.ThreadDump#enabled", "true",
-            "jdk.OtherEvent#period", "13");
+            "jdk.OtherEvent#period", "13",
+            "jdk.ObjectAllocationInNewTLAB#enabled", "true",
+            "jdk.ObjectAllocationOutsideTLAB#enabled", "true");
     Map<String, String> result = overrides.apply(jfrSettings);
     assertNotSame(result, jfrSettings);
     assertEquals("163 ms", result.get("jdk.ThreadDump#period"));
     assertEquals("964 ms", result.get("jdk.OtherEvent#period"));
+    assertEquals("false", result.get("jdk.ObjectAllocationInNewTLAB#enabled"));
+    assertEquals("false", result.get("jdk.ObjectAllocationOutsideTLAB#enabled"));
   }
 }

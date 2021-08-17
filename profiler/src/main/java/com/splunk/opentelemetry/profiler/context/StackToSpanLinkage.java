@@ -62,7 +62,12 @@ public class StackToSpanLinkage {
     return sourceEvent.getEventType().getName();
   }
 
-  static StackToSpanLinkage withoutLinkage(Instant time, String rawStack, RecordedEvent event) {
+  public RecordedEvent getSourceEvent() {
+    return sourceEvent;
+  }
+
+  public static StackToSpanLinkage withoutLinkage(
+      Instant time, String rawStack, RecordedEvent event) {
     return new StackToSpanLinkage(time, rawStack, event, SpanLinkage.NONE);
   }
 }

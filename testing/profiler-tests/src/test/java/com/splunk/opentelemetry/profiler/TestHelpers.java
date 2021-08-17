@@ -39,6 +39,12 @@ public class TestHelpers {
     return "jdk.ThreadDump".equals(name);
   }
 
+  public static boolean isTLABEvent(LogRecord log) {
+    String name = getStringAttr(log, "source.event.name");
+    return "jdk.ObjectAllocationInNewTLAB".equals(name)
+        || "jdk.ObjectAllocationOutsideTLAB".equals(name);
+  }
+
   static List<LogRecord> flattenToLogRecords(List<ExportLogsServiceRequest> resourceLogs) {
     return resourceLogs.stream()
         .flatMap(log -> log.getResourceLogsList().stream())

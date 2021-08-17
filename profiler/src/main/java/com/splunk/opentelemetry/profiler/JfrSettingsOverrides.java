@@ -17,6 +17,7 @@
 package com.splunk.opentelemetry.profiler;
 
 import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_PERIOD_PREFIX;
+import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_TLAB_ENABLED;
 
 import io.opentelemetry.instrumentation.api.config.Config;
 import java.util.HashMap;
@@ -56,6 +57,14 @@ class JfrSettingsOverrides {
                 result.put(key, jfrFormattedDuration);
               }
             });
-    return result;
+    return maybeRemoveTLABs(result);
+  }
+
+  private Map<String, String> maybeRemoveTLABs(Map<String, String> settings) {
+    if (!config.getBooleanProperty(CONFIG_KEY_TLAB_ENABLED, true)) {
+      settings.put("jdk.ObjectAllocationInNewTLAB#enabled", "false");
+      settings.put("jdk.ObjectAllocationOutsideTLAB#enabled", "false");
+    }
+    return settings;
   }
 }

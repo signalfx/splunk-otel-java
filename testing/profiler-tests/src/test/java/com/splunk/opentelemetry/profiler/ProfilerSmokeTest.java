@@ -40,8 +40,10 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 import jdk.jfr.consumer.RecordedEvent;
+import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.slf4j.Logger;
@@ -152,12 +154,13 @@ public class ProfilerSmokeTest {
     await()
         .atMost(2, TimeUnit.MINUTES)
         .pollInterval(1, TimeUnit.SECONDS)
-        .untilAsserted(() -> assertThat(fetchResourceLogs()).isNotEmpty());
+        .untilAsserted(() -> assertThat(countThreadDumpsInFakeBackend()).isGreaterThan(0));
 
     List<ExportLogsServiceRequest> resourceLogs = fetchResourceLogs();
     List<LogRecord> logs = flattenToLogRecords(resourceLogs);
     assertAllThreadDumps(logs, log -> 1001 == getLongAttr(log, "source.event.period"));
     assertAllThreadDumps(logs, log -> "otel.profiling".equals(getStringAttr(log, "sourcetype")));
+
     Optional<LogRecord> jfrThread =
         logs.stream()
             .filter(log -> log.getBody().getStringValue().startsWith("\"JFR Recording Scheduler\""))
@@ -168,6 +171,21 @@ public class ProfilerSmokeTest {
             .filter(log -> log.getBody().getStringValue().startsWith("\"main\""))
             .findFirst();
     assertThat(mainThread).isNotEmpty();
+    assertThat(countTLABs(logs)).isGreaterThan(0);
+  }
+
+  private long countThreadDumpsInFakeBackend() throws IOException {
+    List<ExportLogsServiceRequest> resourceLogs = fetchResourceLogs();
+    return flattenToLogRecords(resourceLogs)
+      .stream()
+      .flatMap(log -> log.getAttributesList().stream())
+      .filter(attr -> attr.getKey().equals("source.event.name"))
+      .filter(attr -> attr.getValue().getStringValue().equals("jdk.ThreadDump"))
+      .count();
+  }
+
+  private long countTLABs(List<LogRecord> logs) {
+    return logs.stream().filter(TestHelpers::isTLABEvent).count();
   }
 
   private boolean assertAllThreadDumps(List<LogRecord> logs, Predicate<LogRecord> predicate) {
@@ -195,7 +213,7 @@ public class ProfilerSmokeTest {
   private boolean contextEventHasStackTrace(Path path) {
     try (Stream<RecordedEvent> events = eventStream.open(path)) {
       return events
-          .filter(this::isContextAttachedEvent)
+          .filter(event1 -> isEventType(event1, ContextAttached.EVENT_NAME))
           .anyMatch(event -> event.getStackTrace() != null);
     }
   }
@@ -205,14 +223,27 @@ public class ProfilerSmokeTest {
     return files.stream().anyMatch(this::containsContextAttached);
   }
 
+  private boolean threadDumpEventsFound() throws Exception {
+    List<Path> files = findJfrFilesInOutputDir();
+    return files.stream().anyMatch(this::containsThreadDump);
+  }
+
   private boolean containsContextAttached(Path path) {
+    return anyEventMatches(path, event -> isEventType(event, ContextAttached.EVENT_NAME));
+  }
+
+  private boolean containsThreadDump(Path path) {
+    return anyEventMatches(path, event -> isEventType(event, ThreadDumpProcessor.EVENT_NAME));
+  }
+
+  private boolean anyEventMatches(Path path, Predicate<RecordedEvent> check) {
     try (Stream<RecordedEvent> open = eventStream.open(path)) {
-      return open.anyMatch(this::isContextAttachedEvent);
+      return open.anyMatch(check);
     }
   }
 
-  private boolean isContextAttachedEvent(RecordedEvent event) {
-    return ContextAttached.EVENT_NAME.equals(event.getEventType().getName());
+  private boolean isEventType(RecordedEvent event, String name) {
+    return name.equals(event.getEventType().getName());
   }
 
   private static void generateSomeSpans() throws Exception {

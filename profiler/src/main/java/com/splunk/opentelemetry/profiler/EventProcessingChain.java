@@ -24,11 +24,15 @@ class EventProcessingChain {
 
   private final SpanContextualizer spanContextualizer;
   private final ThreadDumpProcessor threadDumpProcessor;
+  private final TLABProcessor tlabProcessor;
 
   EventProcessingChain(
-      SpanContextualizer spanContextualizer, ThreadDumpProcessor threadDumpProcessor) {
+      SpanContextualizer spanContextualizer,
+      ThreadDumpProcessor threadDumpProcessor,
+      TLABProcessor tlabProcessor) {
     this.spanContextualizer = spanContextualizer;
     this.threadDumpProcessor = threadDumpProcessor;
+    this.tlabProcessor = tlabProcessor;
   }
 
   void accept(RecordedEvent event) {
@@ -39,6 +43,10 @@ class EventProcessingChain {
         break;
       case ThreadDumpProcessor.EVENT_NAME:
         threadDumpProcessor.accept(event);
+        break;
+      case TLABProcessor.NEW_TLAB_EVENT_NAME:
+      case TLABProcessor.OUTSIDE_TLAB_EVENT_NAME:
+        tlabProcessor.accept(event);
         break;
     }
   }

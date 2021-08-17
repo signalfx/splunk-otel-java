@@ -46,4 +46,15 @@ class LogsExporterBuilderTest {
     assertEquals("example.com:9122", endpoint);
     assertNotNull(exporter.getAdapter());
   }
+
+  @Test
+  void defaultEndpoint() {
+    Config config = mock(Config.class);
+    when(config.getProperty(Configuration.CONFIG_KEY_OTEL_OTLP_URL))
+        .thenReturn("http://mycollector.com:4312/");
+    OtlpLogsExporter exporter = (OtlpLogsExporter) LogsExporterBuilder.fromConfig(config);
+    String endpoint = exporter.getEndpoint();
+    assertEquals("mycollector.com:4312", endpoint);
+    assertNotNull(exporter.getAdapter());
+  }
 }

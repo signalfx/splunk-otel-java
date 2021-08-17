@@ -19,12 +19,12 @@ Example configuration for log4j pattern:
 
 ```xml
 <PatternLayout>
-  <pattern>service: ${sys:otel.resource.service.name}, env: ${sys:otel.resource.environment} %m%n</pattern>
+  <pattern>service: ${sys:otel.resource.service.name}, env: ${sys:otel.resource.deployment.environment} %m%n</pattern>
 </PatternLayout>
 ```
 
 or logback pattern:
 
 ```xml
-<pattern>service: %property{otel.resource.service.name}, env: %property{otel.resource.environment}: %m%n</pattern>
+<pattern>service: %property{otel.resource.service.name}, env: %property{otel.resource.deployment.environment}: %m%n</pattern>
 ```

@@ -18,9 +18,7 @@ package com.splunk.opentelemetry.profiler;
 
 import com.splunk.opentelemetry.logs.LogEntry;
 import com.splunk.opentelemetry.profiler.context.StackToSpanLinkage;
-import com.splunk.opentelemetry.profiler.events.EventPeriods;
 import io.opentelemetry.api.common.Attributes;
-
 import java.util.function.Function;
 
 /** Turns a linked stack into a new LogEntry instance */
@@ -48,5 +46,4 @@ public class LogEntryCreator implements Function<StackToSpanLinkage, LogEntry> {
     }
     return builder.build();
   }
-
 }

@@ -40,10 +40,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 import jdk.jfr.consumer.RecordedEvent;
-import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.slf4j.Logger;
@@ -176,12 +174,11 @@ public class ProfilerSmokeTest {
 
   private long countThreadDumpsInFakeBackend() throws IOException {
     List<ExportLogsServiceRequest> resourceLogs = fetchResourceLogs();
-    return flattenToLogRecords(resourceLogs)
-      .stream()
-      .flatMap(log -> log.getAttributesList().stream())
-      .filter(attr -> attr.getKey().equals("source.event.name"))
-      .filter(attr -> attr.getValue().getStringValue().equals("jdk.ThreadDump"))
-      .count();
+    return flattenToLogRecords(resourceLogs).stream()
+        .flatMap(log -> log.getAttributesList().stream())
+        .filter(attr -> attr.getKey().equals("source.event.name"))
+        .filter(attr -> attr.getValue().getStringValue().equals("jdk.ThreadDump"))
+        .count();
   }
 
   private long countTLABs(List<LogRecord> logs) {

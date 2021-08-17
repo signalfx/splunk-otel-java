@@ -26,12 +26,10 @@ import static org.mockito.Mockito.when;
 
 import com.splunk.opentelemetry.logs.LogEntry;
 import com.splunk.opentelemetry.logs.LogsProcessor;
-import com.splunk.opentelemetry.profiler.context.StackToSpanLinkage;
 import com.splunk.opentelemetry.profiler.events.EventPeriods;
 import com.splunk.opentelemetry.profiler.util.StackSerializer;
 import java.time.Instant;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Consumer;
 import jdk.jfr.EventType;
 import jdk.jfr.consumer.RecordedEvent;
 import jdk.jfr.consumer.RecordedStackTrace;
@@ -51,7 +49,7 @@ class TLABProcessorTest {
   @Test
   void testNullStack() {
     RecordedEvent event = mock(RecordedEvent.class);
-    when(event.getStackTrace()).thenReturn(null); //just to be explicit
+    when(event.getStackTrace()).thenReturn(null); // just to be explicit
     TLABProcessor processor = new TLABProcessor(null, null, null);
     processor.accept(event);
     // success, no NPEs
@@ -72,7 +70,8 @@ class TLABProcessorTest {
     StackSerializer serializer = mock(StackSerializer.class);
     RecordedStackTrace stack = mock(RecordedStackTrace.class);
     EventType eventType = mock(EventType.class);
-    LogEntryCommonAttributes commonAttrs = new LogEntryCommonAttributes(new EventPeriods(x -> null));
+    LogEntryCommonAttributes commonAttrs =
+        new LogEntryCommonAttributes(new EventPeriods(x -> null));
 
     when(event.getStartTime()).thenReturn(now);
     when(event.getStackTrace()).thenReturn(stack);
@@ -82,8 +81,7 @@ class TLABProcessorTest {
     when(event.hasField("tlabSize")).thenReturn(tlabSize != null);
     if (tlabSize == null) {
       when(event.getLong("tlabSize")).thenThrow(NullPointerException.class);
-    }
-    else{
+    } else {
       when(event.getLong("tlabSize")).thenReturn(tlabSize);
     }
     when(eventType.getName()).thenReturn("tee-lab");
@@ -97,10 +95,9 @@ class TLABProcessorTest {
     assertEquals("otel.profiling", seenLogEntry.get().getAttributes().get(SOURCE_TYPE));
     assertEquals("tee-lab", seenLogEntry.get().getAttributes().get(SOURCE_EVENT_NAME));
     assertEquals(ONE_MB, seenLogEntry.get().getAttributes().get(ALLOCATION_SIZE_KEY));
-    if(tlabSize == null){
+    if (tlabSize == null) {
       assertNull(seenLogEntry.get().getAttributes().get(TLAB_SIZE_KEY));
-    }
-    else {
+    } else {
       assertEquals(tlabSize, seenLogEntry.get().getAttributes().get(TLAB_SIZE_KEY));
     }
     assertNull(seenLogEntry.get().getSpanId());

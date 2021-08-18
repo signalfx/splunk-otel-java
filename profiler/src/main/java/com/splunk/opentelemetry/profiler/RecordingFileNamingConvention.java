@@ -28,7 +28,7 @@ class RecordingFileNamingConvention {
   private static final String PREFIX = "otel-profiler";
   // ISO_DATE_TIME format is like 2021-12-03T10:15:30
   private final Pattern filenamePattern =
-      Pattern.compile("^" + PREFIX + "-\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.jfr$");
+      Pattern.compile("^" + PREFIX + "-\\d{4}-\\d{2}-\\d{2}T\\d{2}_\\d{2}_\\d{2}\\.jfr$");
   private final Path outputDir;
 
   RecordingFileNamingConvention(Path outputDir) {
@@ -51,7 +51,7 @@ class RecordingFileNamingConvention {
   private Path buildRecordingName(LocalDateTime dateTime) {
     String timestamp =
         DateTimeFormatter.ISO_DATE_TIME.format(dateTime.truncatedTo(ChronoUnit.SECONDS));
-    return Paths.get(PREFIX + "-" + timestamp + ".jfr");
+    return Paths.get(PREFIX + "-" + timestamp.replace(':', '_') + ".jfr");
   }
 
   /** Determines if the path represents a file that we would have recorded to. */

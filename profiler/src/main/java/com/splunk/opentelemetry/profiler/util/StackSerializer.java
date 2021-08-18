@@ -41,12 +41,13 @@ public class StackSerializer {
         .skip(skipNum)
         .limit(maxDepth)
         .reduce(
-            "",
-            (s, recordedFrame) -> {
+            new StringBuilder(),
+            (sb, recordedFrame) -> {
               String frameStr = serializeFrame(recordedFrame);
-              return s.length() == 0 ? frameStr : s + "\n" + frameStr;
+              return sb.length() == 0 ? sb.append(frameStr) : sb.append("\n").append(frameStr);
             },
-            (s, s2) -> s + "\n" + s2);
+            (sb1, sb2) -> sb1.append("\n").append(sb2))
+        .toString();
   }
 
   private String serializeFrame(RecordedFrame frame) {

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.splunk.opentelemetry.instrumentation.liberty;
+package com.splunk.opentelemetry.instrumentation.liberty.metrics;
 
 import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.ThreadPoolSemanticConventions.EXECUTOR_NAME;
 import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.ThreadPoolSemanticConventions.EXECUTOR_TYPE;
@@ -22,38 +22,31 @@ import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.ThreadPoolSem
 import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.ThreadPoolSemanticConventions.THREADS_CURRENT;
 import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.jmx.JmxAttributesHelper.getNumberAttribute;
 import static java.util.Arrays.asList;
-import static java.util.Collections.singleton;
 
-import com.google.auto.service.AutoService;
 import com.splunk.opentelemetry.javaagent.bootstrap.metrics.jmx.JmxMetricsWatcher;
 import com.splunk.opentelemetry.javaagent.bootstrap.metrics.jmx.JmxQuery;
 import io.micrometer.core.instrument.Meter;
-import io.micrometer.core.instrument.Metrics;
 import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.Tags;
-import io.opentelemetry.instrumentation.api.config.Config;
-import io.opentelemetry.javaagent.extension.AgentListener;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
 
-@AutoService(AgentListener.class)
-public class LibertyMetricsInstaller implements AgentListener {
+public final class ThreadPoolMetrics {
 
-  private final JmxMetricsWatcher jmxMetricsWatcher =
+  private static final AtomicBoolean initialized = new AtomicBoolean();
+  private static final JmxMetricsWatcher jmxMetricsWatcher =
       new JmxMetricsWatcher(
-          JmxQuery.create("WebSphere", "type", "ThreadPoolStats"), this::createMeters);
+          JmxQuery.create("WebSphere", "type", "ThreadPoolStats"), ThreadPoolMetrics::createMeters);
 
-  @Override
-  public void afterAgent(Config config) {
-    boolean metricsRegistryPresent = !Metrics.globalRegistry.getRegistries().isEmpty();
-    if (!config.isInstrumentationEnabled(singleton("liberty"), metricsRegistryPresent)) {
-      return;
+  public static void initialize() {
+    if (initialized.compareAndSet(false, true)) {
+      jmxMetricsWatcher.start();
     }
-    jmxMetricsWatcher.start();
   }
 
-  private List<Meter> createMeters(MBeanServer mBeanServer, ObjectName objectName) {
+  private static List<Meter> createMeters(MBeanServer mBeanServer, ObjectName objectName) {
     Tags tags = executorTags(objectName);
     return asList(
         THREADS_CURRENT.create(tags, mBeanServer, getNumberAttribute(objectName, "PoolSize")),
@@ -69,4 +62,6 @@ public class LibertyMetricsInstaller implements AgentListener {
     }
     return Tags.of(Tag.of(EXECUTOR_TYPE, "liberty"), Tag.of(EXECUTOR_NAME, name));
   }
+
+  private ThreadPoolMetrics() {}
 }

@@ -18,7 +18,7 @@ package com.splunk.opentelemetry.javaagent.bootstrap.metrics.jmx;
 
 import static javax.management.MBeanServerNotification.REGISTRATION_NOTIFICATION;
 import static javax.management.MBeanServerNotification.UNREGISTRATION_NOTIFICATION;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -67,7 +67,8 @@ class JmxMetricsWatcherTest {
   @BeforeEach
   void setUp() {
     underTest =
-        new JmxMetricsWatcher(mBeanServer, executorService, meterRegistry, query, metersFactory);
+        new JmxMetricsWatcher(
+            () -> mBeanServer, executorService, meterRegistry, query, metersFactory);
   }
 
   @Test
@@ -88,7 +89,7 @@ class JmxMetricsWatcherTest {
     underTest.start();
 
     // then
-    assertEquals(Set.of(meter1, meter2), underTest.getMeters());
+    assertThat(underTest.getAllMeters()).containsExactlyInAnyOrder(meter1, meter2);
   }
 
   @Test
@@ -148,7 +149,7 @@ class JmxMetricsWatcherTest {
     runnableCaptor.getValue().run();
 
     // then
-    assertEquals(Set.of(meter1, meter2), underTest.getMeters());
+    assertThat(underTest.getAllMeters()).containsExactlyInAnyOrder(meter1, meter2);
   }
 
   @Test
@@ -178,7 +179,7 @@ class JmxMetricsWatcherTest {
     runnableCaptor.getValue().run();
 
     // then
-    assertTrue(underTest.getMeters().isEmpty());
+    assertThat(underTest.getAllMeters()).isEmpty();
   }
 
   @Test
@@ -198,7 +199,7 @@ class JmxMetricsWatcherTest {
             notificationListenerCaptor.capture(),
             any(),
             isNull());
-    assertFalse(underTest.getMeters().isEmpty());
+    assertThat(underTest.getAllMeters()).isNotEmpty();
 
     // when
     underTest.stop();
@@ -208,7 +209,7 @@ class JmxMetricsWatcherTest {
         .removeNotificationListener(
             MBeanServerDelegate.DELEGATE_NAME, notificationListenerCaptor.getValue());
     verify(executorService).shutdown();
-    assertTrue(underTest.getMeters().isEmpty());
+    assertThat(underTest.getAllMeters()).isEmpty();
   }
 
   private static Notification notification(String type, ObjectName objectName) {

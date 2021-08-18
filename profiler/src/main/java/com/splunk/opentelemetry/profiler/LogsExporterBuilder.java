@@ -17,6 +17,7 @@
 package com.splunk.opentelemetry.profiler;
 
 import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_INGEST_URL;
+import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_OTEL_OTLP_URL;
 
 import com.splunk.opentelemetry.logs.InstrumentationLibraryLogsAdapter;
 import com.splunk.opentelemetry.logs.LogEntryAdapter;
@@ -42,6 +43,9 @@ class LogsExporterBuilder {
             .addHeader("Extra-Content-Type", "otel-profiling-stacktraces");
 
     String ingestUrl = config.getProperty(CONFIG_KEY_INGEST_URL);
+    if (ingestUrl == null) {
+      ingestUrl = config.getProperty(CONFIG_KEY_OTEL_OTLP_URL);
+    }
     if (ingestUrl != null) {
       builder.setEndpoint(ingestUrl);
     }

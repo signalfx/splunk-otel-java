@@ -44,6 +44,10 @@ public class TestImage {
     return new TestImage(Platform.WINDOWS_X86_64, imageName, false);
   }
 
+  public boolean isWindows() {
+    return platform == Platform.WINDOWS_X86_64;
+  }
+
   public enum Platform {
     WINDOWS_X86_64,
     LINUX_X86_64,

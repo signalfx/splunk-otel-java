@@ -25,7 +25,7 @@ import com.splunk.opentelemetry.logs.OtlpLogsExporter;
 import com.splunk.opentelemetry.logs.OtlpLogsExporterBuilder;
 import com.splunk.opentelemetry.logs.ResourceLogsAdapter;
 import io.opentelemetry.instrumentation.api.config.Config;
-import io.opentelemetry.sdk.autoconfigure.OpenTelemetrySdkAutoConfiguration;
+import io.opentelemetry.sdk.autoconfigure.OpenTelemetryResourceAutoConfiguration;
 import io.opentelemetry.sdk.resources.Resource;
 
 class LogsExporterBuilder {
@@ -49,7 +49,8 @@ class LogsExporterBuilder {
   }
 
   private static ResourceLogsAdapter buildResourceLogsAdapter() {
-    Resource resource = OpenTelemetrySdkAutoConfiguration.getResource();
+    // TODO: pass Config after upstream #3866 gets merged!
+    Resource resource = OpenTelemetryResourceAutoConfiguration.configureResource();
     LogEntryAdapter logEntryAdapter = new LogEntryAdapter();
     InstrumentationLibraryLogsAdapter instLibraryLogsAdapter =
         InstrumentationLibraryLogsAdapter.builder()

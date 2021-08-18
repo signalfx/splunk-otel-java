@@ -40,7 +40,7 @@ class JfrSettingsOverrides {
   }
 
   Map<String, String> apply(Map<String, String> jfrSettings) {
-    Map<String, String> result = new HashMap<>(jfrSettings);
+    Map<String, String> settings = new HashMap<>(jfrSettings);
     jfrSettings.keySet().stream()
         .filter(key -> key.endsWith("#period"))
         .forEach(
@@ -54,16 +54,16 @@ class JfrSettingsOverrides {
                 String jfrFormattedDuration = customSetting + " ms";
                 logger.info(
                     "Custom JFR period configured for {} :: {}", eventName, jfrFormattedDuration);
-                result.put(key, jfrFormattedDuration);
+                settings.put(key, jfrFormattedDuration);
               }
             });
-    return maybeRemoveTLABs(result);
+    return maybeEnableTLABs(settings);
   }
 
-  private Map<String, String> maybeRemoveTLABs(Map<String, String> settings) {
-    if (!config.getBooleanProperty(CONFIG_KEY_TLAB_ENABLED, true)) {
-      settings.put("jdk.ObjectAllocationInNewTLAB#enabled", "false");
-      settings.put("jdk.ObjectAllocationOutsideTLAB#enabled", "false");
+  private Map<String, String> maybeEnableTLABs(Map<String, String> settings) {
+    if (config.getBooleanProperty(CONFIG_KEY_TLAB_ENABLED, false)) {
+      settings.put("jdk.ObjectAllocationInNewTLAB#enabled", "true");
+      settings.put("jdk.ObjectAllocationOutsideTLAB#enabled", "true");
     }
     return settings;
   }

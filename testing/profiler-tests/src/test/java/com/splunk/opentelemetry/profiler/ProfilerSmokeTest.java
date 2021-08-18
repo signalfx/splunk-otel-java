@@ -114,8 +114,10 @@ public class ProfilerSmokeTest {
             .withCreateContainerCmdModifier(cmd -> cmd.withEntrypoint("java"))
             .withCommand(
                 "-javaagent:/app/javaagent.jar",
+                "-Dotel.resource.attributes=service.name=smoketest,deployment.environment=smokeytown",
                 "-Dotel.javaagent.debug=true",
                 "-Dsplunk.profiler.enabled=true",
+                "-Dsplunk.profiler.tlab.enabled=true",
                 "-Dsplunk.profiler.directory=/app/jfr",
                 "-Dsplunk.profiler.keep-files=true",
                 "-Dsplunk.profiler.period.threaddump=1001",

@@ -165,6 +165,12 @@ with:
 * OpenTelemetry API version <!--OTEL_VERSION-->1.4.1<!--OTEL_VERSION-->
 * OpenTelemetry Instrumentation for Java version <!--OTEL_INSTRUMENTATION_VERSION-->1.4.0<!--OTEL_INSTRUMENTATION_VERSION-->
 
+## Snapshot builds
+
+We publish [bleeding edge snapshot builds](https://oss.sonatype.org/content/repositories/snapshots/com/splunk/splunk-otel-javaagent/1.3.0-SNAPSHOT/)
+with every merge to the `main` branch. Snapshots are primarily intended to test new functionality and are not recommended
+for production use.
+
 ## Troubleshooting
 
 For troubleshooting information and known issues, see [Troubleshooting Java instrumentation](https://docs.splunk.com/Observability/gdi/get-data-in/application/java/troubleshooting/common-java-troubleshooting.html) in the official Splunk documentation.

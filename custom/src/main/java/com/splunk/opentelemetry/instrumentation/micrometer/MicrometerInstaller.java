@@ -24,14 +24,15 @@ import io.micrometer.core.instrument.config.NamingConvention;
 import io.micrometer.signalfx.SignalFxMeterRegistry;
 import io.opentelemetry.instrumentation.api.config.Config;
 import io.opentelemetry.javaagent.extension.AgentListener;
-import io.opentelemetry.sdk.autoconfigure.OpenTelemetrySdkAutoConfiguration;
+import io.opentelemetry.sdk.autoconfigure.OpenTelemetryResourceAutoConfiguration;
 import io.opentelemetry.sdk.resources.Resource;
 
 @AutoService(AgentListener.class)
 public class MicrometerInstaller implements AgentListener {
   @Override
   public void beforeAgent(Config config) {
-    Resource resource = OpenTelemetrySdkAutoConfiguration.getResource();
+    // TODO: pass Config after upstream #3866 gets merged!
+    Resource resource = OpenTelemetryResourceAutoConfiguration.configureResource();
     SplunkMetricsConfig splunkMetricsConfig = new SplunkMetricsConfig(config, resource);
 
     if (splunkMetricsConfig.enabled()) {

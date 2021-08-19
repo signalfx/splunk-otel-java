@@ -41,20 +41,18 @@ public class StackSerializer {
         .skip(skipNum)
         .limit(maxDepth)
         .reduce(
-            new StringBuilder(),
-            (sb, recordedFrame) -> {
-              String frameStr = serializeFrame(recordedFrame);
-              return sb.length() == 0 ? sb.append(frameStr) : sb.append("\n").append(frameStr);
-            },
-            (sb1, sb2) -> sb1.append("\n").append(sb2))
+            new StringBuilder(), this::serializeFrame, (sb1, sb2) -> sb1.append("\n").append(sb2))
         .toString();
   }
 
-  private String serializeFrame(RecordedFrame frame) {
+  private StringBuilder serializeFrame(StringBuilder sb, RecordedFrame frame) {
+    if (sb.length() > 0) {
+      sb.append("\n");
+    }
     RecordedMethod method = frame.getMethod();
     String className = method.getType().getName();
     String methodName = method.getName();
     int lineNumber = frame.getInt("lineNumber");
-    return className + "." + methodName + ":" + lineNumber;
+    return sb.append(className).append(".").append(methodName).append(":").append(lineNumber);
   }
 }

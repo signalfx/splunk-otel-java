@@ -27,9 +27,6 @@ public class ProfilingSemanticAttributes {
   // removed
   public static final String SCHEMA_URL = "https://opentelemetry.io/schemas/1.4.0";
 
-  public static final AttributeKey<String> LINKED_SPAN_ID = stringKey("span_id");
-  public static final AttributeKey<String> LINKED_TRACE_ID = stringKey("trace_id");
-
   /** This is a HEC field that shows up in the Logging UI. */
   public static final AttributeKey<String> SOURCE_TYPE = stringKey("com.splunk.sourcetype");
 

@@ -17,6 +17,7 @@
 package com.splunk.opentelemetry.helper;
 
 import java.time.Duration;
+import java.util.List;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -110,7 +111,7 @@ public class LinuxTestContainerManager extends AbstractTestContainerManager {
       String targetImageName,
       String agentPath,
       Map<String, String> extraEnv,
-      Map<String, String> extraResources,
+      List<ResourceMapping> extraResources,
       TargetWaitStrategy waitStrategy) {
     target =
         new GenericContainer<>(DockerImageName.parse(targetImageName))
@@ -123,9 +124,10 @@ public class LinuxTestContainerManager extends AbstractTestContainerManager {
             .withEnv(getAgentEnvironment())
             .withEnv(extraEnv);
 
-    extraResources.forEach(
-        (file, path) ->
-            target.withCopyFileToContainer(MountableFile.forClasspathResource(file), path));
+    for (ResourceMapping resource : extraResources) {
+      target.withCopyFileToContainer(
+          MountableFile.forClasspathResource(resource.resourcePath()), resource.containerPath());
+    }
 
     if (waitStrategy != null) {
       if (waitStrategy instanceof TargetWaitStrategy.Log) {

@@ -18,8 +18,10 @@ package com.splunk.opentelemetry;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.splunk.opentelemetry.helper.ResourceMapping;
 import com.splunk.opentelemetry.helper.TestImage;
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -38,8 +40,13 @@ public class LibertySmokeTest extends AppServerTest {
         .stream();
   }
 
-  protected Map<String, String> getExtraResources() {
-    return Map.of("liberty-with-monitor.xml", "/config/server.xml");
+  protected List<ResourceMapping> getExtraResources() {
+    return List.of(
+        // server.xml path on linux containers
+        ResourceMapping.of("liberty-with-monitor.xml", "/config/server.xml"),
+        // server.xml path on windows containers
+        ResourceMapping.of(
+            "liberty-with-monitor.xml", "/server/usr/servers/defaultServer/server.xml"));
   }
 
   @ParameterizedTest(name = "[{index}] {0}")

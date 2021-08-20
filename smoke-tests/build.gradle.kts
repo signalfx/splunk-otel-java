@@ -5,6 +5,9 @@ plugins {
 }
 
 dependencies {
+  testCompileOnly("com.google.auto.value:auto-value-annotations")
+  testAnnotationProcessor("com.google.auto.value:auto-value")
+
   testImplementation("org.testcontainers:testcontainers")
   testImplementation("com.fasterxml.jackson.core:jackson-databind:2.12.4")
   testImplementation("com.google.protobuf:protobuf-java-util")

@@ -29,6 +29,7 @@ import com.github.dockerjava.core.DefaultDockerClientConfig;
 import com.github.dockerjava.core.DockerClientImpl;
 import com.github.dockerjava.httpclient5.ApacheDockerHttpClient;
 import com.splunk.opentelemetry.helper.AbstractTestContainerManager;
+import com.splunk.opentelemetry.helper.ResourceMapping;
 import com.splunk.opentelemetry.helper.TargetWaitStrategy;
 import com.splunk.opentelemetry.helper.TestImage;
 import java.io.ByteArrayInputStream;
@@ -189,7 +190,7 @@ public class WindowsTestContainerManager extends AbstractTestContainerManager {
       String targetImageName,
       String agentPath,
       Map<String, String> extraEnv,
-      Map<String, String> extraResources,
+      List<ResourceMapping> extraResources,
       TargetWaitStrategy waitStrategy) {
     stopTarget();
 
@@ -223,8 +224,9 @@ public class WindowsTestContainerManager extends AbstractTestContainerManager {
                 copyFileToContainer(
                     containerId, IOUtils.toByteArray(agentFileStream), "/" + TARGET_AGENT_FILENAME);
 
-                for (Map.Entry<String, String> e : extraResources.entrySet()) {
-                  copyResourceToContainer(containerId, e.getKey(), e.getValue());
+                for (ResourceMapping resource : extraResources) {
+                  copyResourceToContainer(
+                      containerId, resource.resourcePath(), resource.containerPath());
                 }
               } catch (Exception e) {
                 throw new RuntimeException(e);

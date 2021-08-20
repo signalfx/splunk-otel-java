@@ -16,28 +16,15 @@
 
 package com.splunk.opentelemetry.helper;
 
-import java.util.List;
-import java.util.Map;
+import com.google.auto.value.AutoValue;
 
-public interface TestContainerManager {
-  void startEnvironment();
+@AutoValue
+public abstract class ResourceMapping {
+  public static ResourceMapping of(String resourcePath, String containerPath) {
+    return new AutoValue_ResourceMapping(resourcePath, containerPath);
+  }
 
-  void stopEnvironment();
+  public abstract String resourcePath();
 
-  boolean isImageCompatible(TestImage image);
-
-  boolean isImagePresent(TestImage image);
-
-  int getBackendMappedPort();
-
-  int getTargetMappedPort(int originalPort);
-
-  void startTarget(
-      String targetImageName,
-      String agentPath,
-      Map<String, String> extraEnv,
-      List<ResourceMapping> extraResources,
-      TargetWaitStrategy waitStrategy);
-
-  void stopTarget();
+  public abstract String containerPath();
 }

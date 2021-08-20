@@ -23,8 +23,8 @@ import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.ThreadPoolSem
 import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.jmx.JmxAttributesHelper.getNumberAttribute;
 import static java.util.Arrays.asList;
 
+import com.splunk.opentelemetry.javaagent.bootstrap.jmx.JmxQuery;
 import com.splunk.opentelemetry.javaagent.bootstrap.metrics.jmx.JmxMetricsWatcher;
-import com.splunk.opentelemetry.javaagent.bootstrap.metrics.jmx.JmxQuery;
 import io.micrometer.core.instrument.Meter;
 import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.Tags;

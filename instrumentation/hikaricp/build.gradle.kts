@@ -21,8 +21,5 @@ dependencies {
 tasks {
   test {
     jvmArgs("-Dsplunk.metrics.enabled=true")
-
-    // FIXME: temporary change to make debugging hikari tests on CI easier
-    testLogging.showStandardStreams = true
   }
 }

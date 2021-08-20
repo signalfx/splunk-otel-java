@@ -32,7 +32,7 @@ class SplunkMetricsConfig implements SignalFxConfig {
   // SmartAgent default endpoint: http://localhost:9080/v2/datapoint
   // OTel collector default endpoint: http://localhost:9943
   static final String DEFAULT_METRICS_ENDPOINT = "http://localhost:9943";
-  private static final long DEFAULT_METRICS_EXPORT_INTERVAL_MILLIS = 30_000;
+  private static final Duration DEFAULT_METRICS_EXPORT_INTERVAL = Duration.ofSeconds(30);
 
   private final Config config;
   // config values that are retrieved multiple times are cached
@@ -47,10 +47,7 @@ class SplunkMetricsConfig implements SignalFxConfig {
     // use the real one
     accessToken = config.getProperty(SPLUNK_ACCESS_TOKEN, "no-token");
     source = resource.getAttributes().get(ResourceAttributes.SERVICE_NAME);
-    step =
-        Duration.ofMillis(
-            config.getLongProperty(
-                METRICS_EXPORT_INTERVAL_PROPERTY, DEFAULT_METRICS_EXPORT_INTERVAL_MILLIS));
+    step = config.getDuration(METRICS_EXPORT_INTERVAL_PROPERTY, DEFAULT_METRICS_EXPORT_INTERVAL);
   }
 
   @Override

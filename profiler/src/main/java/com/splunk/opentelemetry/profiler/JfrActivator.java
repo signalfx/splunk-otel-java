@@ -69,7 +69,8 @@ public class JfrActivator implements AgentListener {
   }
 
   private void activateJfrAndRunForever(Config config) {
-    Duration recordingDuration = config.getDuration(CONFIG_KEY_RECORDING_DURATION, DEFAULT_RECORDING_DURATION);
+    Duration recordingDuration =
+        config.getDuration(CONFIG_KEY_RECORDING_DURATION, DEFAULT_RECORDING_DURATION);
 
     Path outputDir = Paths.get(config.getProperty(CONFIG_KEY_PROFILER_DIRECTORY, "."));
     RecordingFileNamingConvention namingConvention = new RecordingFileNamingConvention(outputDir);

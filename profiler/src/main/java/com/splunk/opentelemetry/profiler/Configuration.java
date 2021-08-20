@@ -26,8 +26,7 @@ public class Configuration implements ConfigPropertySource {
 
   public static final String CONFIG_KEY_ENABLE_PROFILER = "splunk.profiler.enabled";
   public static final String CONFIG_KEY_PROFILER_DIRECTORY = "splunk.profiler.directory";
-  public static final String CONFIG_KEY_RECORDING_DURATION =
-      "splunk.profiler.recording.duration";
+  public static final String CONFIG_KEY_RECORDING_DURATION = "splunk.profiler.recording.duration";
   public static final String CONFIG_KEY_KEEP_FILES = "splunk.profiler.keep-files";
   public static final String CONFIG_KEY_INGEST_URL = "splunk.profiler.logs-endpoint";
   public static final String CONFIG_KEY_OTEL_OTLP_URL = "otel.exporter.otlp.endpoint";

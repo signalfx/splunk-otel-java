@@ -121,6 +121,7 @@ All connection pool metrics have the following tags:
 Splunk Distribution of OpenTelemetry Java instruments several thread pool implementations:
 
 * [Tomcat connector thread pools](https://tomcat.apache.org/tomcat-8.5-doc/index.html)
+* [WebSphere Liberty web request thread pool](https://www.ibm.com/docs/en/was-liberty/base?topic=10-threadpool-monitoring)
 
 Each of the supported connection pools reports a subset of the following metrics:
 
@@ -139,4 +140,4 @@ All thread pool metrics have the following tags:
 | Tag name        | Tag value |
 | --------------- | --------- |
 | `executor.name` | The name of the thread pool.
-| `executor.type` | The type/implementation of the thread pool: e.g. `tomcat`.
+| `executor.type` | The type/implementation of the thread pool: e.g. `tomcat`, `liberty`.

@@ -43,8 +43,15 @@ public abstract class SmokeTest {
 
   private TelemetryRetriever telemetryRetriever;
 
-  /** Subclasses can override this method to customise target application's environment */
+  /** Subclasses can override this method to customise target application's environment. */
   protected Map<String, String> getExtraEnv() {
+    return Collections.emptyMap();
+  }
+
+  /**
+   * Subclasses can override this method to copy some extra resource files to the target container.
+   */
+  protected Map<String, String> getExtraResources() {
     return Collections.emptyMap();
   }
 
@@ -81,7 +88,8 @@ public abstract class SmokeTest {
       assumeTrue(containerManager.isImagePresent(image), "Proprietary image is present: " + image);
     }
 
-    containerManager.startTarget(image.imageName, agentPath, getExtraEnv(), getWaitStrategy());
+    containerManager.startTarget(
+        image.imageName, agentPath, getExtraEnv(), getExtraResources(), getWaitStrategy());
   }
 
   protected TargetWaitStrategy getWaitStrategy() {

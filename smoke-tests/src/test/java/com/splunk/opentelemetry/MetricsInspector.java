@@ -17,7 +17,13 @@
 package com.splunk.opentelemetry;
 
 import io.opentelemetry.proto.collector.metrics.v1.ExportMetricsServiceRequest;
+import io.opentelemetry.proto.common.v1.KeyValue;
+import io.opentelemetry.proto.common.v1.StringKeyValue;
+import io.opentelemetry.proto.metrics.v1.Metric;
+import io.opentelemetry.proto.metrics.v1.NumberDataPoint;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 
 class MetricsInspector {
@@ -33,5 +39,41 @@ class MetricsInspector {
         .flatMap(list -> list.getInstrumentationLibraryMetricsList().stream())
         .flatMap(list -> list.getMetricsList().stream())
         .anyMatch(metric -> Objects.equals(metric.getName(), metricName));
+  }
+
+  boolean hasGaugeWithAttributes(String name, Map<String, String> attributes) {
+    return requests.stream()
+        .flatMap(list -> list.getResourceMetricsList().stream())
+        .flatMap(list -> list.getInstrumentationLibraryMetricsList().stream())
+        .flatMap(list -> list.getMetricsList().stream())
+        .filter(Metric::hasGauge)
+        .filter(metric -> Objects.equals(metric.getName(), name))
+        .flatMap(metric -> metric.getGauge().getDataPointsList().stream())
+        .anyMatch(dataPoint -> hasAttributes(dataPoint, attributes));
+  }
+
+  private boolean hasAttributes(NumberDataPoint dataPoint, Map<String, String> attributes) {
+    // make it mutable
+    attributes = new HashMap<>(attributes);
+    for (KeyValue kv : dataPoint.getAttributesList()) {
+      String value = attributes.get(kv.getKey());
+      if (Objects.equals(value, kv.getValue().getStringValue())) {
+        attributes.remove(kv.getKey());
+      }
+      if (attributes.isEmpty()) {
+        return true;
+      }
+    }
+    // take the old format into account too
+    for (StringKeyValue kv : dataPoint.getLabelsList()) {
+      String value = attributes.get(kv.getKey());
+      if (Objects.equals(value, kv.getValue())) {
+        attributes.remove(kv.getKey());
+      }
+      if (attributes.isEmpty()) {
+        return true;
+      }
+    }
+    return false;
   }
 }

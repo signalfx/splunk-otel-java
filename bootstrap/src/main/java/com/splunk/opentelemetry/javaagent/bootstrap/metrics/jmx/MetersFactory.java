@@ -14,29 +14,15 @@
  * limitations under the License.
  */
 
-package com.splunk.opentelemetry.helper;
+package com.splunk.opentelemetry.javaagent.bootstrap.metrics.jmx;
 
-import java.util.Map;
+import io.micrometer.core.instrument.Meter;
+import java.util.List;
+import javax.management.JMException;
+import javax.management.MBeanServer;
+import javax.management.ObjectName;
 
-public interface TestContainerManager {
-  void startEnvironment();
-
-  void stopEnvironment();
-
-  boolean isImageCompatible(TestImage image);
-
-  boolean isImagePresent(TestImage image);
-
-  int getBackendMappedPort();
-
-  int getTargetMappedPort(int originalPort);
-
-  void startTarget(
-      String targetImageName,
-      String agentPath,
-      Map<String, String> extraEnv,
-      Map<String, String> extraResources,
-      TargetWaitStrategy waitStrategy);
-
-  void stopTarget();
+@FunctionalInterface
+public interface MetersFactory {
+  List<Meter> createMeters(MBeanServer mBeanServer, ObjectName objectName) throws JMException;
 }

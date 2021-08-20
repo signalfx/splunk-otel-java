@@ -189,6 +189,7 @@ public class WindowsTestContainerManager extends AbstractTestContainerManager {
       String targetImageName,
       String agentPath,
       Map<String, String> extraEnv,
+      Map<String, String> extraResources,
       TargetWaitStrategy waitStrategy) {
     stopTarget();
 
@@ -221,6 +222,10 @@ public class WindowsTestContainerManager extends AbstractTestContainerManager {
               try (InputStream agentFileStream = new FileInputStream(agentPath)) {
                 copyFileToContainer(
                     containerId, IOUtils.toByteArray(agentFileStream), "/" + TARGET_AGENT_FILENAME);
+
+                for (Map.Entry<String, String> e : extraResources.entrySet()) {
+                  copyResourceToContainer(containerId, e.getKey(), e.getValue());
+                }
               } catch (Exception e) {
                 throw new RuntimeException(e);
               }
@@ -251,6 +256,14 @@ public class WindowsTestContainerManager extends AbstractTestContainerManager {
       return true;
     } catch (Exception e) {
       return false;
+    }
+  }
+
+  private void copyResourceToContainer(
+      String containerId, String resourcePath, String containerPath) throws IOException {
+    try (InputStream is =
+        Thread.currentThread().getContextClassLoader().getResourceAsStream(resourcePath)) {
+      copyFileToContainer(containerId, IOUtils.toByteArray(is), containerPath);
     }
   }
 

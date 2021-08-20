@@ -16,8 +16,11 @@
 
 package com.splunk.opentelemetry;
 
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import com.splunk.opentelemetry.helper.TestImage;
 import java.io.IOException;
+import java.util.Map;
 import java.util.stream.Stream;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -35,6 +38,10 @@ public class LibertySmokeTest extends AppServerTest {
         .stream();
   }
 
+  protected Map<String, String> getExtraResources() {
+    return Map.of("liberty-with-monitor.xml", "/config/server.xml");
+  }
+
   @ParameterizedTest(name = "[{index}] {0}")
   @MethodSource("supportedConfigurations")
   void libertySmokeTest(TestImage image, ExpectedServerAttributes expectedServerAttributes)
@@ -44,7 +51,18 @@ public class LibertySmokeTest extends AppServerTest {
     assertServerHandler(expectedServerAttributes);
     assertWebAppTrace(expectedServerAttributes);
 
+    // TODO: Windows collector image cannot accept signalfx metrics right now, don't assert them
+    if (!image.isWindows()) {
+      assertMetrics(waitForMetrics());
+    }
+
     stopTarget();
+  }
+
+  private void assertMetrics(MetricsInspector metrics) {
+    var expectedAttrs = Map.of("executor_type", "liberty");
+    assertTrue(metrics.hasGaugeWithAttributes("executor.threads", expectedAttrs));
+    assertTrue(metrics.hasGaugeWithAttributes("executor.threads.active", expectedAttrs));
   }
 
   public static class LibertyAttributes extends ExpectedServerAttributes {

@@ -46,6 +46,10 @@ extensions.configure<DependencyManagementExtension>("dependencyManagement") {
       entry("slf4j-api")
       entry("slf4j-simple")
     }
+    dependencySet("com.google.auto.value:1.8.1") {
+      entry("auto-value")
+      entry("auto-value-annotations")
+    }
 
     // otel-java-instrumentation
     dependency("io.opentelemetry.instrumentation:opentelemetry-instrumentation-api:${otelInstrumentationAlphaVersion}")

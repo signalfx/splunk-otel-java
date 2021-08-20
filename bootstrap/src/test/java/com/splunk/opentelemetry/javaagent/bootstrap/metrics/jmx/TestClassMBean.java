@@ -14,29 +14,8 @@
  * limitations under the License.
  */
 
-package com.splunk.opentelemetry.helper;
+package com.splunk.opentelemetry.javaagent.bootstrap.metrics.jmx;
 
-import java.util.Map;
-
-public interface TestContainerManager {
-  void startEnvironment();
-
-  void stopEnvironment();
-
-  boolean isImageCompatible(TestImage image);
-
-  boolean isImagePresent(TestImage image);
-
-  int getBackendMappedPort();
-
-  int getTargetMappedPort(int originalPort);
-
-  void startTarget(
-      String targetImageName,
-      String agentPath,
-      Map<String, String> extraEnv,
-      Map<String, String> extraResources,
-      TargetWaitStrategy waitStrategy);
-
-  void stopTarget();
+public interface TestClassMBean {
+  int getValue();
 }

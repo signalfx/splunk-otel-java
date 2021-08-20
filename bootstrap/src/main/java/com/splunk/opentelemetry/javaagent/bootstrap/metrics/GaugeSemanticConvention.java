@@ -20,6 +20,7 @@ import io.micrometer.core.instrument.Gauge;
 import io.micrometer.core.instrument.Metrics;
 import io.micrometer.core.instrument.Tags;
 import java.util.function.Supplier;
+import java.util.function.ToDoubleFunction;
 
 public final class GaugeSemanticConvention implements MeterSemanticConvention {
   private final String name;
@@ -34,8 +35,16 @@ public final class GaugeSemanticConvention implements MeterSemanticConvention {
     return new GaugeSemanticConvention(name, baseUnit);
   }
 
+  public <T> Gauge create(Tags additionalTags, T obj, ToDoubleFunction<T> function) {
+    return build(Gauge.builder(name, obj, function), additionalTags);
+  }
+
   public Gauge create(Tags additionalTags, Supplier<Number> function) {
-    return Gauge.builder(name, function)
+    return build(Gauge.builder(name, function), additionalTags);
+  }
+
+  private <T> Gauge build(Gauge.Builder<T> builder, Tags additionalTags) {
+    return builder
         .tags(GlobalMetricsTags.get())
         .tags(additionalTags)
         .baseUnit(baseUnit)

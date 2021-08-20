@@ -110,6 +110,7 @@ public class LinuxTestContainerManager extends AbstractTestContainerManager {
       String targetImageName,
       String agentPath,
       Map<String, String> extraEnv,
+      Map<String, String> extraResources,
       TargetWaitStrategy waitStrategy) {
     target =
         new GenericContainer<>(DockerImageName.parse(targetImageName))
@@ -121,6 +122,11 @@ public class LinuxTestContainerManager extends AbstractTestContainerManager {
                 MountableFile.forHostPath(agentPath), "/" + TARGET_AGENT_FILENAME)
             .withEnv(getAgentEnvironment())
             .withEnv(extraEnv);
+
+    extraResources.forEach(
+        (file, path) ->
+            target.withCopyFileToContainer(MountableFile.forClasspathResource(file), path));
+
     if (waitStrategy != null) {
       if (waitStrategy instanceof TargetWaitStrategy.Log) {
         target =

@@ -16,134 +16,49 @@
 
 package com.splunk.opentelemetry.javaagent.bootstrap.metrics.jmx;
 
-import static java.util.Arrays.asList;
-
+import com.splunk.opentelemetry.javaagent.bootstrap.jmx.JmxListener;
+import com.splunk.opentelemetry.javaagent.bootstrap.jmx.JmxQuery;
+import com.splunk.opentelemetry.javaagent.bootstrap.jmx.JmxWatcher;
 import io.micrometer.core.instrument.Meter;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Metrics;
-import java.lang.management.ManagementFactory;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Supplier;
 import java.util.stream.Stream;
-import javax.management.InstanceNotFoundException;
 import javax.management.JMException;
-import javax.management.ListenerNotFoundException;
 import javax.management.MBeanServer;
-import javax.management.MBeanServerDelegate;
-import javax.management.MBeanServerFactory;
-import javax.management.MBeanServerNotification;
-import javax.management.Notification;
-import javax.management.NotificationFilter;
-import javax.management.NotificationListener;
 import javax.management.ObjectName;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-public final class JmxMetricsWatcher {
+public final class JmxMetricsWatcher implements JmxListener {
 
-  private static final Logger log = LoggerFactory.getLogger(JmxMetricsWatcher.class);
-
-  private static final AtomicInteger threadIds = new AtomicInteger();
-  private static final ThreadFactory daemonThreadFactory =
-      r -> {
-        Thread t = new Thread(r, "JmxMetricsWatcher-" + threadIds.incrementAndGet());
-        t.setDaemon(true);
-        t.setContextClassLoader(null);
-        return t;
-      };
-
-  private static final Set<String> handledNotificationTypes =
-      new HashSet<>(
-          asList(
-              MBeanServerNotification.REGISTRATION_NOTIFICATION,
-              MBeanServerNotification.UNREGISTRATION_NOTIFICATION));
-
-  // lazy-initialize the MBeanServer to avoid loading JMX classes too early - that could cause JUL
-  // classloading hell in e.g. JBoss deployments
-  private final Supplier<MBeanServer> mBeanServerSupplier;
-  private final ExecutorService executorService;
+  private final JmxWatcher jmxWatcher;
   private final MeterRegistry meterRegistry;
-  private final JmxQuery query;
+  private final Map<ObjectName, List<Meter>> meters = new ConcurrentHashMap<>();
   private final MetersFactory metersFactory;
 
-  private final Map<ObjectName, List<Meter>> meters = new ConcurrentHashMap<>();
-  private volatile MBeanServer mBeanServer;
-  private volatile NotificationListener notificationListener;
-
   public JmxMetricsWatcher(JmxQuery query, MetersFactory metersFactory) {
-    this(
-        JmxMetricsWatcher::findMBeanServer,
-        Executors.newSingleThreadExecutor(daemonThreadFactory),
-        Metrics.globalRegistry,
-        query,
-        metersFactory);
+    this.jmxWatcher = new JmxWatcher(query, this);
+    this.meterRegistry = Metrics.globalRegistry;
+    this.metersFactory = metersFactory;
   }
 
   // visible for tests
   JmxMetricsWatcher(
-      Supplier<MBeanServer> mBeanServerSupplier,
-      ExecutorService executorService,
-      MeterRegistry meterRegistry,
-      JmxQuery query,
-      MetersFactory metersFactory) {
-    this.mBeanServerSupplier = mBeanServerSupplier;
-    this.executorService = executorService;
+      JmxWatcher jmxWatcher, MeterRegistry meterRegistry, MetersFactory metersFactory) {
+    this.jmxWatcher = jmxWatcher;
     this.meterRegistry = meterRegistry;
-    this.query = query;
     this.metersFactory = metersFactory;
   }
 
-  // copied from micrometer CommonsObjectPool2Metrics class
-  private static MBeanServer findMBeanServer() {
-    List<MBeanServer> mBeanServers = MBeanServerFactory.findMBeanServer(null);
-    return mBeanServers.isEmpty()
-        ? ManagementFactory.getPlatformMBeanServer()
-        : mBeanServers.get(0);
-  }
-
   public void start() {
-    try {
-      mBeanServer = mBeanServerSupplier.get();
-
-      // get all mbeans matching the query, register meters for them
-      Set<ObjectName> existingObjects = mBeanServer.queryNames(query.toObjectNameQuery(), null);
-      for (ObjectName existingObject : existingObjects) {
-        meters.compute(existingObject, this::computeMeters);
-      }
-
-      // register a notification listener that'll add and remove meters as they come
-      NotificationFilter filter = this::isNotificationEnabled;
-      notificationListener = this::handleNotificationAsynchronously;
-      mBeanServer.addNotificationListener(
-          MBeanServerDelegate.DELEGATE_NAME, notificationListener, filter, null);
-    } catch (JMException e) {
-      log.warn("Could not start JMX metrics listener", e);
-    }
+    jmxWatcher.start();
   }
 
   public void stop() {
-    if (notificationListener != null) {
-      try {
-        mBeanServer.removeNotificationListener(
-            MBeanServerDelegate.DELEGATE_NAME, notificationListener);
-        notificationListener = null;
-      } catch (InstanceNotFoundException | ListenerNotFoundException e) {
-        log.warn("Could not remove JMX metrics listener from the MBeanServer", e);
-      }
-    }
-
-    executorService.shutdown();
-
+    jmxWatcher.stop();
     getAllMeters().forEach(meterRegistry::remove);
     meters.clear();
   }
@@ -153,7 +68,13 @@ public final class JmxMetricsWatcher {
     return meters.values().stream().flatMap(Collection::stream);
   }
 
-  private List<Meter> computeMeters(ObjectName objectName, List<Meter> meters) {
+  @Override
+  public void onRegister(MBeanServer mBeanServer, ObjectName objectName) {
+    meters.compute(objectName, (name, meters) -> computeMeters(mBeanServer, name, meters));
+  }
+
+  private List<Meter> computeMeters(
+      MBeanServer mBeanServer, ObjectName objectName, List<Meter> meters) {
     if (meters == null) {
       meters = new CopyOnWriteArrayList<>();
     }
@@ -166,33 +87,11 @@ public final class JmxMetricsWatcher {
     return meters;
   }
 
-  private boolean isNotificationEnabled(Notification notification) {
-    if (!handledNotificationTypes.contains(notification.getType())) {
-      return false;
-    }
-    ObjectName objectName = ((MBeanServerNotification) notification).getMBeanName();
-    return query.matches(objectName);
-  }
-
-  private void handleNotificationAsynchronously(Notification notification, Object handback) {
-    // we can't get JMX object attributes in the NotificationListener, so we'll do that
-    // asynchronously on a separate thread
-    executorService.submit(() -> handleNotification(notification));
-  }
-
-  private void handleNotification(Notification notification) {
-    if (!(notification instanceof MBeanServerNotification)) {
-      return;
-    }
-    ObjectName objectName = ((MBeanServerNotification) notification).getMBeanName();
-
-    if (MBeanServerNotification.REGISTRATION_NOTIFICATION.equals(notification.getType())) {
-      meters.compute(objectName, this::computeMeters);
-    } else if (MBeanServerNotification.UNREGISTRATION_NOTIFICATION.equals(notification.getType())) {
-      List<Meter> metersToRemove = meters.remove(objectName);
-      for (Meter meter : metersToRemove) {
-        meterRegistry.remove(meter);
-      }
+  @Override
+  public void onUnregister(MBeanServer mBeanServer, ObjectName objectName) {
+    List<Meter> metersToRemove = meters.remove(objectName);
+    for (Meter meter : metersToRemove) {
+      meterRegistry.remove(meter);
     }
   }
 }

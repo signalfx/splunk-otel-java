@@ -22,6 +22,7 @@ import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.splunk.opentelemetry.javaagent.bootstrap.jmx.JmxQuery;
 import io.micrometer.core.instrument.Gauge;
 import io.micrometer.core.instrument.Meter;
 import io.micrometer.core.instrument.Metrics;
@@ -45,6 +46,8 @@ class JmxMetricsWatcherIntegrationTest {
             JmxQuery.create("com.splunk.test", Map.of("type", "Test")),
             JmxMetricsWatcherIntegrationTest::createMeters);
     watcher.start();
+
+    await().atMost(5, SECONDS).untilAsserted(() -> assertEquals(1, getTestMeters().size()));
 
     var objectName2 = new ObjectName("com.splunk.test:type=Test,name=asdf");
     ManagementFactory.getPlatformMBeanServer().registerMBean(new TestClass(42), objectName2);

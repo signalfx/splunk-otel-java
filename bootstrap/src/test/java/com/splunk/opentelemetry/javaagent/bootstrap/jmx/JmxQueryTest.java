@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.splunk.opentelemetry.javaagent.bootstrap.metrics.jmx;
+package com.splunk.opentelemetry.javaagent.bootstrap.jmx;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;

@@ -19,12 +19,14 @@ package com.splunk.opentelemetry;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import com.splunk.opentelemetry.helper.LinuxTestContainerManager;
+import com.splunk.opentelemetry.helper.ResourceMapping;
 import com.splunk.opentelemetry.helper.TargetWaitStrategy;
 import com.splunk.opentelemetry.helper.TestContainerManager;
 import com.splunk.opentelemetry.helper.TestImage;
 import com.splunk.opentelemetry.helper.windows.WindowsTestContainerManager;
 import java.io.IOException;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
@@ -51,8 +53,8 @@ public abstract class SmokeTest {
   /**
    * Subclasses can override this method to copy some extra resource files to the target container.
    */
-  protected Map<String, String> getExtraResources() {
-    return Collections.emptyMap();
+  protected List<ResourceMapping> getExtraResources() {
+    return List.of();
   }
 
   @BeforeAll

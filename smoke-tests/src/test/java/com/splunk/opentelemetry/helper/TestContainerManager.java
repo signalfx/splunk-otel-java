@@ -16,6 +16,7 @@
 
 package com.splunk.opentelemetry.helper;
 
+import java.util.List;
 import java.util.Map;
 
 public interface TestContainerManager {
@@ -35,7 +36,7 @@ public interface TestContainerManager {
       String targetImageName,
       String agentPath,
       Map<String, String> extraEnv,
-      Map<String, String> extraResources,
+      List<ResourceMapping> extraResources,
       TargetWaitStrategy waitStrategy);
 
   void stopTarget();

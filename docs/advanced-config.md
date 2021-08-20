@@ -18,7 +18,7 @@ Below you will find all the configuration options supported by this distribution
 | `splunk.access.token`                  | `SPLUNK_ACCESS_TOKEN`                  | unset                   | Stable       | (Optional) Auth token allowing exporters to communicate directly with the Splunk cloud, passed as `X-SF-TOKEN` header. Currently, the [Jaeger trace exporter](#trace-exporters) as well as the [SignalFx metrics exporter](metrics.md) support this property.
 | `splunk.metrics.enabled`               | `SPLUNK_METRICS_ENABLED`               | `false`                 | Experimental | Enables exporting metrics. See [this document](metrics.md) for more information.
 | `splunk.metrics.endpoint`              | `SPLUNK_METRICS_ENDPOINT`              | `http://localhost:9943` | Experimental | The SignalFx metrics endpoint to connect to.
-| `splunk.metrics.export.interval`       | `SPLUNK_METRICS_EXPORT_INTERVAL`       | `30000`                 | Experimental | The interval between pushing metrics, in milliseconds.
+| `splunk.metrics.export.interval`       | `SPLUNK_METRICS_EXPORT_INTERVAL`       | `30s`                   | Experimental | The interval between pushing metrics.  <details><summary>Format</summary>Durations can be of the form `{number}{unit}`, where unit is one of `ms`, `s`, `m`, `h`, `d`. If no unit is specified, milliseconds is the assumed duration unit.</details>
 | `splunk.trace-response-header.enabled` | `SPLUNK_TRACE_RESPONSE_HEADER_ENABLED` | `true`                  | Stable       | Enables adding server trace information to HTTP response headers. See [this document](server-trace-info.md) for more information.
 
 The SignalFx exporter can be configured to export metrics directly to Splunk ingest. To achieve that, you need to set

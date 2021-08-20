@@ -199,11 +199,11 @@ public final class ApplicationMeterRegistry extends MeterRegistry {
   protected DistributionStatisticConfig defaultHistogramConfig() {
     // same as StepMeterRegistry - which is a bit hacky because we can't easily access the agent
     // registry config object
-    long exportIntervalMillis =
+    Duration exportInterval =
         io.opentelemetry.instrumentation.api.config.Config.get()
-            .getLongProperty("splunk.metrics.export.interval", 30_000);
+            .getDuration("splunk.metrics.export.interval", Duration.ofSeconds(30));
     return DistributionStatisticConfig.builder()
-        .expiry(Duration.ofMillis(exportIntervalMillis))
+        .expiry(exportInterval)
         .build()
         .merge(DistributionStatisticConfig.DEFAULT);
   }

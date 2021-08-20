@@ -16,16 +16,9 @@
 
 package com.splunk.opentelemetry.profiler;
 
-import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.SOURCE_EVENT_NAME;
-import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.SOURCE_EVENT_PERIOD;
-import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.SOURCE_TYPE;
-
 import com.splunk.opentelemetry.logs.LogEntry;
 import com.splunk.opentelemetry.profiler.context.StackToSpanLinkage;
-import com.splunk.opentelemetry.profiler.events.EventPeriods;
 import io.opentelemetry.api.common.Attributes;
-import io.opentelemetry.api.common.AttributesBuilder;
-import java.time.Duration;
 import java.util.function.Function;
 
 /** Turns a linked stack into a new LogEntry instance */
@@ -33,15 +26,15 @@ public class LogEntryCreator implements Function<StackToSpanLinkage, LogEntry> {
 
   static final String PROFILING_SOURCE = "otel.profiling";
 
-  private final EventPeriods periods;
+  private final LogEntryCommonAttributes commonAttributes;
 
-  public LogEntryCreator(EventPeriods periods) {
-    this.periods = periods;
+  public LogEntryCreator(LogEntryCommonAttributes commonAttributes) {
+    this.commonAttributes = commonAttributes;
   }
 
   @Override
   public LogEntry apply(StackToSpanLinkage linkedStack) {
-    Attributes attributes = buildAttributes(linkedStack);
+    Attributes attributes = commonAttributes.build(linkedStack);
     LogEntry.Builder builder =
         LogEntry.builder()
             .name(PROFILING_SOURCE)
@@ -50,23 +43,6 @@ public class LogEntryCreator implements Function<StackToSpanLinkage, LogEntry> {
             .attributes(attributes);
     if (linkedStack.hasSpanInfo()) {
       builder.traceId(linkedStack.getTraceId()).spanId(linkedStack.getSpanId());
-    }
-    return builder.build();
-  }
-
-  private Attributes buildAttributes(StackToSpanLinkage linkedStack) {
-    String sourceEvent = linkedStack.getSourceEventName();
-    Duration eventPeriod = periods.getDuration(sourceEvent);
-
-    // Note: It is currently believed that the span id and trace id on the LogRecord itself
-    // do not get ingested correctly. Placing them here as attributes is a temporary workaround
-    // until the collector/ingest can be remedied.
-
-    AttributesBuilder builder =
-        Attributes.builder().put(SOURCE_TYPE, PROFILING_SOURCE).put(SOURCE_EVENT_NAME, sourceEvent);
-
-    if (!EventPeriods.UNKNOWN.equals(eventPeriod)) {
-      builder.put(SOURCE_EVENT_PERIOD, eventPeriod.toMillis());
     }
     return builder.build();
   }

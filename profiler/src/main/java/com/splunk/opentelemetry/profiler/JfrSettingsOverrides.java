@@ -17,6 +17,7 @@
 package com.splunk.opentelemetry.profiler;
 
 import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_PERIOD_PREFIX;
+import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_TLAB_ENABLED;
 
 import io.opentelemetry.instrumentation.api.config.Config;
 import java.util.HashMap;
@@ -39,7 +40,7 @@ class JfrSettingsOverrides {
   }
 
   Map<String, String> apply(Map<String, String> jfrSettings) {
-    Map<String, String> result = new HashMap<>(jfrSettings);
+    Map<String, String> settings = new HashMap<>(jfrSettings);
     jfrSettings.keySet().stream()
         .filter(key -> key.endsWith("#period"))
         .forEach(
@@ -53,9 +54,17 @@ class JfrSettingsOverrides {
                 String jfrFormattedDuration = customSetting + " ms";
                 logger.info(
                     "Custom JFR period configured for {} :: {}", eventName, jfrFormattedDuration);
-                result.put(key, jfrFormattedDuration);
+                settings.put(key, jfrFormattedDuration);
               }
             });
-    return result;
+    return maybeEnableTLABs(settings);
+  }
+
+  private Map<String, String> maybeEnableTLABs(Map<String, String> settings) {
+    if (config.getBooleanProperty(CONFIG_KEY_TLAB_ENABLED, false)) {
+      settings.put("jdk.ObjectAllocationInNewTLAB#enabled", "true");
+      settings.put("jdk.ObjectAllocationOutsideTLAB#enabled", "true");
+    }
+    return settings;
   }
 }

@@ -88,7 +88,8 @@ public class JfrActivator implements AgentListener {
 
     SpanContextualizer spanContextualizer = new SpanContextualizer();
     EventPeriods periods = new EventPeriods(jfrSettings::get);
-    LogEntryCreator logEntryCreator = new LogEntryCreator(periods);
+    LogEntryCommonAttributes commonAttributes = new LogEntryCommonAttributes(periods);
+    LogEntryCreator logEntryCreator = new LogEntryCreator(commonAttributes);
     LogsExporter logsExporter = LogsExporterBuilder.fromConfig(config);
 
     ScheduledExecutorService exportExecutorService =
@@ -106,8 +107,9 @@ public class JfrActivator implements AgentListener {
 
     ThreadDumpProcessor threadDumpProcessor =
         new ThreadDumpProcessor(spanContextualizer, processor);
+    TLABProcessor tlabProcessor = new TLABProcessor(batchingLogsProcessor, commonAttributes);
     EventProcessingChain eventProcessingChain =
-        new EventProcessingChain(spanContextualizer, threadDumpProcessor);
+        new EventProcessingChain(spanContextualizer, threadDumpProcessor, tlabProcessor);
     Consumer<Path> deleter = buildFileDeleter(config);
     JfrDirCleanup dirCleanup = new JfrDirCleanup(deleter);
 

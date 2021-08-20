@@ -16,7 +16,6 @@
 
 package com.splunk.opentelemetry.profiler;
 
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
@@ -36,6 +35,7 @@ class EventProcessingChainTest {
   @Mock RecordedEvent event;
   @Mock SpanContextualizer contextualizer;
   @Mock ThreadDumpProcessor threadDumpProcessor;
+  @Mock TLABProcessor tlabProcessor;
   @Mock EventType eventType;
 
   @Test
@@ -44,7 +44,8 @@ class EventProcessingChainTest {
     when(event.getEventType()).thenReturn(eventType);
     when(eventType.getName()).thenReturn(ContextAttached.EVENT_NAME);
 
-    EventProcessingChain chain = new EventProcessingChain(contextualizer, threadDumpProcessor);
+    EventProcessingChain chain =
+        new EventProcessingChain(contextualizer, threadDumpProcessor, tlabProcessor);
     chain.accept(event);
     verify(contextualizer).updateContext(event);
     verifyNoMoreInteractions(threadDumpProcessor);
@@ -56,7 +57,8 @@ class EventProcessingChainTest {
     when(event.getEventType()).thenReturn(eventType);
     when(eventType.getName()).thenReturn(ThreadDumpProcessor.EVENT_NAME);
 
-    EventProcessingChain chain = new EventProcessingChain(contextualizer, threadDumpProcessor);
+    EventProcessingChain chain =
+        new EventProcessingChain(contextualizer, threadDumpProcessor, tlabProcessor);
     chain.accept(event);
     verify(threadDumpProcessor).accept(event);
     verifyNoMoreInteractions(contextualizer);

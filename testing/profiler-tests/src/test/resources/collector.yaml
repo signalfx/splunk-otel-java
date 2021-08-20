@@ -40,6 +40,6 @@ service:
     logs:
       receivers: [ otlp ]
       processors: [ batch ]
-      exporters: [ logging/logging_debug, otlp ]
+      exporters: [ logging/logging_info, otlp ]
 
   extensions: [ health_check, pprof, zpages ]

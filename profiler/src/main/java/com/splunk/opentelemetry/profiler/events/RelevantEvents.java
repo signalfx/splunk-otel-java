@@ -16,6 +16,7 @@
 
 package com.splunk.opentelemetry.profiler.events;
 
+import com.splunk.opentelemetry.profiler.TLABProcessor;
 import com.splunk.opentelemetry.profiler.ThreadDumpProcessor;
 import java.util.Arrays;
 import java.util.Collections;
@@ -25,5 +26,10 @@ import java.util.Set;
 public class RelevantEvents {
   public static Set<String> EVENT_NAMES =
       Collections.unmodifiableSet(
-          new HashSet<>(Arrays.asList(ThreadDumpProcessor.EVENT_NAME, ContextAttached.EVENT_NAME)));
+          new HashSet<>(
+              Arrays.asList(
+                  ThreadDumpProcessor.EVENT_NAME,
+                  ContextAttached.EVENT_NAME,
+                  TLABProcessor.NEW_TLAB_EVENT_NAME,
+                  TLABProcessor.OUTSIDE_TLAB_EVENT_NAME)));
 }

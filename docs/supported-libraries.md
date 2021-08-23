@@ -8,7 +8,7 @@ them [here](https://github.com/open-telemetry/opentelemetry-java-instrumentation
 Aside from the instrumentations listed in the link above, the Splunk Distribution of OpenTelemetry Java provides a few
 additional custom features:
 
-* We instrument [several HTTP server frameworks](server-trace-info.md#supported-frameworks-and-libraries)
+* We instrument [several HTTP server frameworks](server-trace-info.md#frameworks-and-libraries)
   and return server trace information in the HTTP response;
 * We collect information about [application servers](webengine-attributes.md) that are being used and store it in
   server span attributes;

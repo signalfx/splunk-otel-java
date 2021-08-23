@@ -12,14 +12,17 @@
 
 <p align="center">
   <img alt="Stable" src="https://img.shields.io/badge/status-stable-informational?style=for-the-badge">
-  <a href="https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/tag/v1.4.0">
-    <img alt="OpenTelemetry Instrumentation for Java Version" src="https://img.shields.io/badge/otel-1.4.0-blueviolet?style=for-the-badge">
+  <a href="https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/tag/v1.5.0">
+    <img alt="OpenTelemetry Instrumentation for Java Version" src="https://img.shields.io/badge/otel-1.5.0-blueviolet?style=for-the-badge">
   </a>
   <a href="https://github.com/signalfx/gdi-specification/releases/tag/v1.0.0">
     <img alt="Splunk GDI specification" src="https://img.shields.io/badge/GDI-1.0.0-blueviolet?style=for-the-badge">
   </a>
   <a href="https://github.com/signalfx/splunk-otel-java/releases">
     <img alt="GitHub release (latest SemVer)" src="https://img.shields.io/github/v/release/signalfx/splunk-otel-java?include_prereleases&style=for-the-badge">
+  </a>
+  <a href="https://maven-badges.herokuapp.com/maven-central/com.splunk/splunk-otel-javaagent">
+    <img alt="Maven Central" src="https://img.shields.io/maven-central/v/com.splunk/splunk-otel-javaagent?style=for-the-badge">
   </a>
   <a href="https://github.com/signalfx/splunk-otel-java/actions?query=workflow%3A%22CI+build%22">
     <img alt="Build Status" src="https://img.shields.io/github/workflow/status/signalfx/splunk-otel-java/CI%20build?style=for-the-badge">
@@ -44,11 +47,6 @@
 
 <!-- Comments, spacing, empty and new lines in the section below are intentional, please do not modify them! -->
 <!--DEV_DOCS_WARNING-->
-<!--DEV_DOCS_WARNING_START-->
-The documentation below refers to the in development version of this package. Docs for the latest version ([v1.2.0](https://github.com/signalfx/splunk-otel-java/releases/tag/v1.2.0)) can be found [here](https://github.com/signalfx/splunk-otel-java/blob/v1.2.0/README.md).
-
----
-<!--DEV_DOCS_WARNING_END-->
 
 # Splunk Distribution of OpenTelemetry Java
 
@@ -154,16 +152,19 @@ The Splunk Distribution of OpenTelemetry Java provides a way to correlate traces
 
 Documentation on how to manually instrument a Java application is available in the 
 [OpenTelemetry official documentation](https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/docs/manual-instrumentation.md).
+To learn how to add custom metrics to your application please consult [our docs](docs/metrics.md#manual-instrumentation)
+.
 
 To extend the instrumentation with the OpenTelemetry Instrumentation for Java,
 you have to use a compatible API version.
 
 <!-- IMPORTANT: do not change comments or break those lines below -->
-The Splunk Distribution of OpenTelemetry Java version <!--SPLUNK_VERSION-->1.2.0<!--SPLUNK_VERSION--> is compatible
+The Splunk Distribution of OpenTelemetry Java version <!--SPLUNK_VERSION-->1.3.0<!--SPLUNK_VERSION--> is compatible
 with:
 
-* OpenTelemetry API version <!--OTEL_VERSION-->1.4.1<!--OTEL_VERSION-->
-* OpenTelemetry Instrumentation for Java version <!--OTEL_INSTRUMENTATION_VERSION-->1.4.0<!--OTEL_INSTRUMENTATION_VERSION-->
+* OpenTelemetry API version <!--OTEL_VERSION-->1.5.0<!--OTEL_VERSION-->
+* OpenTelemetry Instrumentation for Java version <!--OTEL_INSTRUMENTATION_VERSION-->1.5.0<!--OTEL_INSTRUMENTATION_VERSION-->
+* Micrometer version 1.7.3
 
 ## Snapshot builds
 

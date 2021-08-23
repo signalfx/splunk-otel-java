@@ -22,13 +22,63 @@ The following dimensions are automatically added to all metrics exported by the 
 | `process.pid`            | The Java process identifier (PID).
 | `service`                | The value of the `service.name` resource attribute.
 
+## Manual instrumentation
+
+The Splunk Distribution of OpenTelemetry Java agent detects if the instrumented application is using Micrometer and
+injects a special `MeterRegistry` implementation that allows the agent to pick up custom user-defined meters, as long as
+they're registered in the global `Metrics.globalRegistry` instance provided by the Micrometer library.
+
+### Dependencies
+
+You'll need to add a dependency on the `micrometer-core` library to be able to export custom metrics with the javaagent.
+
+For Maven users:
+
+```xml
+
+<dependency>
+    <groupId>io.micrometer</groupId>
+    <artifactId>micrometer-core</artifactId>
+    <version>1.7.3</version>
+</dependency>
+```
+
+For Gradle users:
+
+```kotlin
+implementation("io.micrometer:micrometer-core:1.7.3")
+```
+
+### Adding custom metrics
+
+You can use one of meter factory methods provided by the `Metrics` class, or use meter builders and refer to
+the `Metrics.globalRegistry` directly:
+
+```java
+class MyClass {
+  Counter myCounter = Metrics.counter("my_custom_counter");
+  Timer myTimer = Timer.builder("my_custom_timer").register(Metrics.globalRegistry);
+
+  int foo() {
+    myCounter.increment();
+    return myTimer.record(this::fooImpl);
+  }
+
+  private int fooImpl() {
+    // ...
+  }
+}
+```
+
+For more details on using the Micrometer API please consult the [Micrometer docs](ohttps://micrometer.io/docs/concepts).
+
 ## Supported libraries
 
 The following metrics are currently gathered by the agent:
 
 | Library/Framework                                                | Instrumentation name | Versions |
 | ---------------------------------------------------------------- | -------------------- | -------- |
-| [JVM metrics](#jvm)                                              | `jvm-metrics`        | [Java runtimes version 8 and higher](../README.md#supported-java-versions)
+| [JVM metrics](#jvm)                                              | `jvm-metrics`        | [Java runtimes version 8 and higher](../README.md#requirements)
 | [Apache DBCP2 connection pool metrics](#connection-pool-metrics) | `commons-dbcp2`      | 2.0 and higher
 | [c3p0 connection pool metrics](#connection-pool-metrics)         | `c3p0`               | 0.9.5 and higher
 | [HikariCP connection pool metrics](#connection-pool-metrics)     | `hikaricp`           | 3.0 and higher

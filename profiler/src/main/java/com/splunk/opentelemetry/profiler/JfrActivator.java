@@ -54,7 +54,7 @@ public class JfrActivator implements AgentListener {
 
   @Override
   public void afterAgent(Config config) {
-    if (!config.getBooleanProperty(CONFIG_KEY_ENABLE_PROFILER, false)) {
+    if (!config.getBoolean(CONFIG_KEY_ENABLE_PROFILER, false)) {
       logger.debug("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
       logger.debug("xxxxxxxxx  JFR PROFILER DISABLED!  xxxxxxxxx");
       logger.debug("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
@@ -72,7 +72,7 @@ public class JfrActivator implements AgentListener {
     Duration recordingDuration =
         config.getDuration(CONFIG_KEY_RECORDING_DURATION, DEFAULT_RECORDING_DURATION);
 
-    Path outputDir = Paths.get(config.getProperty(CONFIG_KEY_PROFILER_DIRECTORY, "."));
+    Path outputDir = Paths.get(config.getString(CONFIG_KEY_PROFILER_DIRECTORY, "."));
     RecordingFileNamingConvention namingConvention = new RecordingFileNamingConvention(outputDir);
 
     RecordingEscapeHatch recordingEscapeHatch =
@@ -160,6 +160,6 @@ public class JfrActivator implements AgentListener {
   }
 
   private boolean keepFiles(Config config) {
-    return config.getBooleanProperty(CONFIG_KEY_KEEP_FILES, false);
+    return config.getBoolean(CONFIG_KEY_KEEP_FILES, false);
   }
 }

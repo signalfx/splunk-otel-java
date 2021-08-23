@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package com.splunk.opentelemetry.instrumentation.micrometer;
+package com.splunk.opentelemetry.micrometer;
 
 import static com.splunk.opentelemetry.SplunkConfiguration.SPLUNK_ACCESS_TOKEN;
-import static com.splunk.opentelemetry.instrumentation.micrometer.SplunkMetricsConfig.DEFAULT_METRICS_ENDPOINT;
-import static com.splunk.opentelemetry.instrumentation.micrometer.SplunkMetricsConfig.METRICS_ENABLED_PROPERTY;
-import static com.splunk.opentelemetry.instrumentation.micrometer.SplunkMetricsConfig.METRICS_ENDPOINT_PROPERTY;
-import static com.splunk.opentelemetry.instrumentation.micrometer.SplunkMetricsConfig.METRICS_EXPORT_INTERVAL_PROPERTY;
+import static com.splunk.opentelemetry.micrometer.SplunkMetricsConfig.DEFAULT_METRICS_ENDPOINT;
+import static com.splunk.opentelemetry.micrometer.SplunkMetricsConfig.METRICS_ENABLED_PROPERTY;
+import static com.splunk.opentelemetry.micrometer.SplunkMetricsConfig.METRICS_ENDPOINT_PROPERTY;
+import static com.splunk.opentelemetry.micrometer.SplunkMetricsConfig.METRICS_EXPORT_INTERVAL_PROPERTY;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;

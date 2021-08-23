@@ -30,10 +30,10 @@ class JfrSettingsOverridesTest {
   @Test
   void testOverrides() {
     Config config = mock(Config.class);
-    when(config.getProperty("splunk.profiler.period.threaddump")).thenReturn("163");
-    when(config.getProperty("splunk.profiler.period.otherevent")).thenReturn("964");
-    when(config.getProperty("splunk.profiler.period.extraunused")).thenReturn("111");
-    when(config.getBooleanProperty("splunk.profiler.tlab.enabled", false)).thenReturn(true);
+    when(config.getString("splunk.profiler.period.threaddump")).thenReturn("163");
+    when(config.getString("splunk.profiler.period.otherevent")).thenReturn("964");
+    when(config.getString("splunk.profiler.period.extraunused")).thenReturn("111");
+    when(config.getBoolean("splunk.profiler.tlab.enabled", false)).thenReturn(true);
     JfrSettingsOverrides overrides = new JfrSettingsOverrides(config);
     Map<String, String> jfrSettings =
         Map.of(

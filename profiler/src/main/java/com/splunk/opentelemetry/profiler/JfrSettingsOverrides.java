@@ -49,7 +49,7 @@ class JfrSettingsOverrides {
               String eventName = parts[0];
               String shortEventName = eventName.replaceFirst("^jdk.", "");
               String configKey = CONFIG_KEY_PERIOD_PREFIX + "." + shortEventName.toLowerCase();
-              String customSetting = config.getProperty(configKey);
+              String customSetting = config.getString(configKey);
               if (customSetting != null) {
                 String jfrFormattedDuration = customSetting + " ms";
                 logger.info(
@@ -61,7 +61,7 @@ class JfrSettingsOverrides {
   }
 
   private Map<String, String> maybeEnableTLABs(Map<String, String> settings) {
-    if (config.getBooleanProperty(CONFIG_KEY_TLAB_ENABLED, false)) {
+    if (config.getBoolean(CONFIG_KEY_TLAB_ENABLED, false)) {
       settings.put("jdk.ObjectAllocationInNewTLAB#enabled", "true");
       settings.put("jdk.ObjectAllocationOutsideTLAB#enabled", "true");
     }

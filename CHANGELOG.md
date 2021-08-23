@@ -50,7 +50,9 @@ and this repository adheres to [Semantic Versioning](https://semver.org/spec/v2.
   and [Tomcat JDBC](https://tomcat.apache.org/tomcat-8.5-doc/jdbc-pool.html) connection pools. The agent now collects
   and exports metrics for both JDBC connection pools.
 - You can now set the service name using the `OTEL_SERVICE_NAME` environment variable and the `otel.service.name` system
-  property. This removes the need of using `OTEL_RESOURCE_ATTRIBUTES` to set the service name.
+  property (see
+  the [OpenTelemetry specification](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/sdk-environment-variables.md#general-sdk-configuration)
+  . This removes the need of using `OTEL_RESOURCE_ATTRIBUTES` to set the service name.
 
 ## v1.1.0 - 2021-06-18
 

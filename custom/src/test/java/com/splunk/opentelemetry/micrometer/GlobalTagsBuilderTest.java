@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.splunk.opentelemetry.instrumentation.micrometer;
+package com.splunk.opentelemetry.micrometer;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

@@ -5,6 +5,7 @@ dependencies {
   compileOnly("io.opentelemetry:opentelemetry-semconv")
   compileOnly("io.opentelemetry.instrumentation:opentelemetry-instrumentation-api")
   compileOnly("io.opentelemetry.javaagent:opentelemetry-javaagent-extension-api")
+  compileOnly("io.opentelemetry.javaagent:opentelemetry-javaagent-tooling")
   annotationProcessor("com.google.auto.service:auto-service")
   compileOnly("com.google.auto.service:auto-service")
 
@@ -24,6 +25,7 @@ dependencies {
   testImplementation("io.opentelemetry:opentelemetry-sdk-extension-autoconfigure")
   testImplementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-api")
   testImplementation("io.opentelemetry.javaagent:opentelemetry-javaagent-extension-api")
+  testImplementation("io.opentelemetry.javaagent:opentelemetry-javaagent-tooling")
   testImplementation("io.micrometer:micrometer-core")
 
   testImplementation(project(":testing:common"))

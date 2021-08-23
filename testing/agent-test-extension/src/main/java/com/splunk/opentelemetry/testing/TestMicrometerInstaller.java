@@ -32,7 +32,7 @@ public class TestMicrometerInstaller implements AgentListener {
     Metrics.addRegistry(new SimpleMeterRegistry());
 
     Tags globalMetricsTags =
-        config.getMapProperty("splunk.testing.metrics.global-tags").entrySet().stream()
+        config.getMap("splunk.testing.metrics.global-tags").entrySet().stream()
             .map(e -> Tag.of(e.getKey(), e.getValue()))
             .reduce(Tags.empty(), Tags::and, Tags::concat);
     GlobalMetricsTags.set(globalMetricsTags);

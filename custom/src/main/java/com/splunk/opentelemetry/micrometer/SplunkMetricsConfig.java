@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.splunk.opentelemetry.instrumentation.micrometer;
+package com.splunk.opentelemetry.micrometer;
 
 import static com.splunk.opentelemetry.SplunkConfiguration.SPLUNK_ACCESS_TOKEN;
 
@@ -45,14 +45,14 @@ class SplunkMetricsConfig implements SignalFxConfig {
 
     // non-empty token MUST be provided; we can just send anything because collector/SmartAgent will
     // use the real one
-    accessToken = config.getProperty(SPLUNK_ACCESS_TOKEN, "no-token");
+    accessToken = config.getString(SPLUNK_ACCESS_TOKEN, "no-token");
     source = resource.getAttributes().get(ResourceAttributes.SERVICE_NAME);
     step = config.getDuration(METRICS_EXPORT_INTERVAL_PROPERTY, DEFAULT_METRICS_EXPORT_INTERVAL);
   }
 
   @Override
   public boolean enabled() {
-    return config.getBooleanProperty(METRICS_ENABLED_PROPERTY, false);
+    return config.getBoolean(METRICS_ENABLED_PROPERTY, false);
   }
 
   @Override
@@ -62,7 +62,7 @@ class SplunkMetricsConfig implements SignalFxConfig {
 
   @Override
   public String uri() {
-    return config.getProperty(METRICS_ENDPOINT_PROPERTY, DEFAULT_METRICS_ENDPOINT);
+    return config.getString(METRICS_ENDPOINT_PROPERTY, DEFAULT_METRICS_ENDPOINT);
   }
 
   @Override
@@ -83,6 +83,6 @@ class SplunkMetricsConfig implements SignalFxConfig {
 
   @Override
   public String get(String key) {
-    return config.getProperty(key);
+    return config.getString(key);
   }
 }

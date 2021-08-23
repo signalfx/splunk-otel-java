@@ -21,6 +21,7 @@ import io.opentelemetry.api.common.AttributeType;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.instrumentation.api.config.Config;
 import io.opentelemetry.javaagent.extension.AgentListener;
+import io.opentelemetry.javaagent.tooling.config.ConfigPropertiesAdapter;
 import io.opentelemetry.sdk.autoconfigure.OpenTelemetryResourceAutoConfiguration;
 
 /**
@@ -34,9 +35,10 @@ public class ResourceAttributesToSystemProperties implements AgentListener {
 
   @Override
   public void afterAgent(Config config) {
-    // TODO: pass Config after upstream #3866 gets merged!
     Attributes attributes =
-        OpenTelemetryResourceAutoConfiguration.configureResource().getAttributes();
+        OpenTelemetryResourceAutoConfiguration.configureResource(
+                new ConfigPropertiesAdapter(config))
+            .getAttributes();
     attributes.forEach(
         (k, v) -> {
           if (k.getType() == AttributeType.STRING) {

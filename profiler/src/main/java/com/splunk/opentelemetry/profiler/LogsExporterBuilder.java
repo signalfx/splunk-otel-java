@@ -26,6 +26,7 @@ import com.splunk.opentelemetry.logs.OtlpLogsExporter;
 import com.splunk.opentelemetry.logs.OtlpLogsExporterBuilder;
 import com.splunk.opentelemetry.logs.ResourceLogsAdapter;
 import io.opentelemetry.instrumentation.api.config.Config;
+import io.opentelemetry.javaagent.tooling.config.ConfigPropertiesAdapter;
 import io.opentelemetry.sdk.autoconfigure.OpenTelemetryResourceAutoConfiguration;
 import io.opentelemetry.sdk.resources.Resource;
 
@@ -35,16 +36,16 @@ class LogsExporterBuilder {
   private static final String OTEL_INSTRUMENTATION_VERSION = "0.1.0";
 
   static LogsExporter fromConfig(Config config) {
-    ResourceLogsAdapter adapter = buildResourceLogsAdapter();
+    ResourceLogsAdapter adapter = buildResourceLogsAdapter(config);
 
     OtlpLogsExporterBuilder builder =
         OtlpLogsExporter.builder()
             .setAdapter(adapter)
             .addHeader("Extra-Content-Type", "otel-profiling-stacktraces");
 
-    String ingestUrl = config.getProperty(CONFIG_KEY_INGEST_URL);
+    String ingestUrl = config.getString(CONFIG_KEY_INGEST_URL);
     if (ingestUrl == null) {
-      ingestUrl = config.getProperty(CONFIG_KEY_OTEL_OTLP_URL);
+      ingestUrl = config.getString(CONFIG_KEY_OTEL_OTLP_URL);
     }
     if (ingestUrl != null) {
       builder.setEndpoint(ingestUrl);
@@ -52,9 +53,10 @@ class LogsExporterBuilder {
     return builder.build();
   }
 
-  private static ResourceLogsAdapter buildResourceLogsAdapter() {
-    // TODO: pass Config after upstream #3866 gets merged!
-    Resource resource = OpenTelemetryResourceAutoConfiguration.configureResource();
+  private static ResourceLogsAdapter buildResourceLogsAdapter(Config config) {
+    Resource resource =
+        OpenTelemetryResourceAutoConfiguration.configureResource(
+            new ConfigPropertiesAdapter(config));
     LogEntryAdapter logEntryAdapter = new LogEntryAdapter();
     InstrumentationLibraryLogsAdapter instLibraryLogsAdapter =
         InstrumentationLibraryLogsAdapter.builder()

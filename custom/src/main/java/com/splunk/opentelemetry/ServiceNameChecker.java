@@ -58,8 +58,8 @@ public class ServiceNameChecker implements AgentListener {
   }
 
   private static boolean serviceNameNotConfigured(Config config) {
-    String serviceName = config.getProperty("otel.service.name");
-    Map<String, String> resourceAttributes = config.getMapProperty("otel.resource.attributes");
+    String serviceName = config.getString("otel.service.name");
+    Map<String, String> resourceAttributes = config.getMap("otel.resource.attributes");
     return serviceName == null
         && !resourceAttributes.containsKey(ResourceAttributes.SERVICE_NAME.getKey());
   }

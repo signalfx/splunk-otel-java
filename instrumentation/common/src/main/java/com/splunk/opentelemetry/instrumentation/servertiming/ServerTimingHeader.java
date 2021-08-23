@@ -35,7 +35,7 @@ public final class ServerTimingHeader {
   private static final String EMIT_RESPONSE_HEADERS = "splunk.trace-response-header.enabled";
 
   public static boolean shouldEmitServerTimingHeader() {
-    return Config.get().getBooleanProperty(EMIT_RESPONSE_HEADERS, true);
+    return Config.get().getBoolean(EMIT_RESPONSE_HEADERS, true);
   }
 
   public static <RS> void setHeaders(Context context, RS response, TextMapSetter<RS> headerSetter) {

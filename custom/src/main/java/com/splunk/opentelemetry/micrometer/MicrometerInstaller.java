@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.splunk.opentelemetry.instrumentation.micrometer;
+package com.splunk.opentelemetry.micrometer;
 
 import com.google.auto.service.AutoService;
 import com.splunk.opentelemetry.javaagent.bootstrap.metrics.GlobalMetricsTags;
@@ -24,6 +24,7 @@ import io.micrometer.core.instrument.config.NamingConvention;
 import io.micrometer.signalfx.SignalFxMeterRegistry;
 import io.opentelemetry.instrumentation.api.config.Config;
 import io.opentelemetry.javaagent.extension.AgentListener;
+import io.opentelemetry.javaagent.tooling.config.ConfigPropertiesAdapter;
 import io.opentelemetry.sdk.autoconfigure.OpenTelemetryResourceAutoConfiguration;
 import io.opentelemetry.sdk.resources.Resource;
 
@@ -31,8 +32,9 @@ import io.opentelemetry.sdk.resources.Resource;
 public class MicrometerInstaller implements AgentListener {
   @Override
   public void beforeAgent(Config config) {
-    // TODO: pass Config after upstream #3866 gets merged!
-    Resource resource = OpenTelemetryResourceAutoConfiguration.configureResource();
+    Resource resource =
+        OpenTelemetryResourceAutoConfiguration.configureResource(
+            new ConfigPropertiesAdapter(config));
     SplunkMetricsConfig splunkMetricsConfig = new SplunkMetricsConfig(config, resource);
 
     if (splunkMetricsConfig.enabled()) {

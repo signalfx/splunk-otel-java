@@ -39,7 +39,7 @@ class LogsExporterBuilderTest {
   @Test
   void testCustomEndpoint() {
     Config config = mock(Config.class);
-    when(config.getProperty(Configuration.CONFIG_KEY_INGEST_URL))
+    when(config.getString(Configuration.CONFIG_KEY_INGEST_URL))
         .thenReturn("http://example.com:9122/");
     OtlpLogsExporter exporter = (OtlpLogsExporter) LogsExporterBuilder.fromConfig(config);
     String endpoint = exporter.getEndpoint();
@@ -50,7 +50,7 @@ class LogsExporterBuilderTest {
   @Test
   void defaultEndpoint() {
     Config config = mock(Config.class);
-    when(config.getProperty(Configuration.CONFIG_KEY_OTEL_OTLP_URL))
+    when(config.getString(Configuration.CONFIG_KEY_OTEL_OTLP_URL))
         .thenReturn("http://mycollector.com:4312/");
     OtlpLogsExporter exporter = (OtlpLogsExporter) LogsExporterBuilder.fromConfig(config);
     String endpoint = exporter.getEndpoint();

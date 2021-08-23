@@ -9,11 +9,6 @@
   for Splunk products, access to other open-source projects including
   Micrometer. Note, we take an upstream-first approach, Splunk Distribution of
   OpenTelemetry Java allow us to move fast.
-- **Why don't you publish the javaagent jar to a Maven repository?** It would
-  make it very easy to accidentally put the agent on the application runtime
-  classpath, which may cause all sorts of problems and confusion - and the
-  agent won't work anyway, because it has to be passed in the `-javaagent` JVM
-  parameter.
 - **How often do you release?** We strive to release the Splunk distribution
   within 2 working days after the [upstream
   project](https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases)

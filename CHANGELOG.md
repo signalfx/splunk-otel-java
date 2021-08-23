@@ -8,9 +8,35 @@ and this repository adheres to [Semantic Versioning](https://semver.org/spec/v2.
 
 ## Unreleased
 
+## v1.3.0 - 2021-08-23
+
 ### General
 
 - OpenTelemetry Java SDK and OpenTelemetry Instrumentation for Java dependencies have been updated to version 1.5.0.
+
+### Enhancements
+
+- Middleware attributes (`middleware.name` and `middleware.version`) have been renamed
+  to [webengine](docs/webengine-attributes.md) attributes (`webengine.name` and `webengine.version`) to follow
+  the [OpenTelemetry specification](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/resource/semantic_conventions/webengine.md)
+  .
+- We have added instrumentations for [c3p0](https://www.mchange.com/projects/c3p0/)
+  and [Vibur DBCP](https://github.com/vibur/vibur-dbcp) connection pools. The agent now collects and exports metrics for
+  both JDBC connection pools.
+- We have also introduced instrumentations for [Tomcat connector](https://tomcat.apache.org/tomcat-8.5-doc/index.html)
+  and [WebSphere Liberty web request](https://www.ibm.com/docs/en/was-liberty/base?topic=10-threadpool-monitoring)
+  thread pools. The agent now collects and exports metrics for these application server thread pools.
+- This release introduces the Micrometer bridge instrumentation. You can now use the Micrometer API inside your
+  application to manually define custom metrics and the javaagent will export them.
+  See [the documentation](docs/metrics.md) for more details.
+- The `splunk.metrics.export.interval` configuration property will now allow specifying time units; and if no units are
+  specified then the value is treated as number of milliseconds. For example `30s` means "30 seconds" and is equivalent
+  to `30000`.
+- This release also introduces
+  the [muzzle](https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/docs/contributing/muzzle.md)
+  safety checks to all Splunk instrumentations. Our instrumentations now offer exactly the same level
+  of [safety](https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/docs/safety-mechanisms.md)
+  as the upstream OpenTelemetry instrumentations.
 
 ## v1.2.0 - 2021-07-26
 
@@ -21,9 +47,10 @@ and this repository adheres to [Semantic Versioning](https://semver.org/spec/v2.
 ### Enhancements
 
 - We have added instrumentation for [HikariCP](https://github.com/brettwooldridge/HikariCP)
-  and [Tomcat JDBC](https://tomcat.apache.org/tomcat-8.5-doc/jdbc-pool.html) connection pools. The agent now
-  collects and exports metrics for both JDBC connection pools.
-- You can now set the service name using the `OTEL_SERVICE_NAME` environment variable and the `otel.service.name` system property. This removes the need of using `OTEL_RESOURCE_ATTRIBUTES` to set the service name.
+  and [Tomcat JDBC](https://tomcat.apache.org/tomcat-8.5-doc/jdbc-pool.html) connection pools. The agent now collects
+  and exports metrics for both JDBC connection pools.
+- You can now set the service name using the `OTEL_SERVICE_NAME` environment variable and the `otel.service.name` system
+  property. This removes the need of using `OTEL_RESOURCE_ATTRIBUTES` to set the service name.
 
 ## v1.1.0 - 2021-06-18
 

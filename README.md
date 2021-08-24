@@ -47,6 +47,11 @@
 
 <!-- Comments, spacing, empty and new lines in the section below are intentional, please do not modify them! -->
 <!--DEV_DOCS_WARNING-->
+<!--DEV_DOCS_WARNING_START-->
+The documentation below refers to the in development version of this package. Docs for the latest version ([v1.3.0](https://github.com/signalfx/splunk-otel-java/releases/tag/v1.3.0)) can be found [here](https://github.com/signalfx/splunk-otel-java/blob/v1.3.0/README.md).
+
+---
+<!--DEV_DOCS_WARNING_END-->
 
 # Splunk Distribution of OpenTelemetry Java
 
@@ -168,7 +173,7 @@ with:
 
 ## Snapshot builds
 
-We publish [bleeding edge snapshot builds](https://oss.sonatype.org/content/repositories/snapshots/com/splunk/splunk-otel-javaagent/1.3.0-SNAPSHOT/)
+We publish [bleeding edge snapshot builds](https://oss.sonatype.org/content/repositories/snapshots/com/splunk/splunk-otel-javaagent/1.4.0-SNAPSHOT/)
 with every merge to the `main` branch. Snapshots are primarily intended to test new functionality and are not recommended
 for production use.
 

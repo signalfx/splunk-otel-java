@@ -6,4 +6,3 @@ dependencies {
   testImplementation("org.slf4j:slf4j-api")
   testImplementation("io.opentelemetry.javaagent:opentelemetry-testing-common")
 }
-

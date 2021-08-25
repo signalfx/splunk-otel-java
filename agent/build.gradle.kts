@@ -37,7 +37,7 @@ dependencies {
   javaagentLibs(project(":custom"))
   javaagentLibs(project(":profiler"))
 
-  upstreamAgent("io.opentelemetry.javaagent:opentelemetry-javaagent:${otelInstrumentationVersion}:all")
+  upstreamAgent("io.opentelemetry.javaagent:opentelemetry-javaagent:$otelInstrumentationVersion:all")
 }
 
 val javaagentDependencies = dependencies
@@ -108,7 +108,7 @@ tasks {
           "Can-Redefine-Classes" to true,
           "Can-Retransform-Classes" to true,
           "Implementation-Vendor" to "Splunk",
-          "Implementation-Version" to "splunk-${project.version}-otel-${otelInstrumentationVersion}"
+          "Implementation-Version" to "splunk-${project.version}-otel-$otelInstrumentationVersion"
       ))
     }
   }

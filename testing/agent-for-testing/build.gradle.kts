@@ -27,7 +27,7 @@ dependencies {
   javaagentLibs(project(":testing:agent-test-extension"))
 
   // and finally include everything from otel agent for testing
-  //TODO remove this `@jar` when upstream sorts its publishing
+  // TODO remove this `@jar` when upstream sorts its publishing
   upstreamAgent("io.opentelemetry.javaagent:opentelemetry-agent-for-testing@jar")
 }
 
@@ -72,7 +72,7 @@ tasks {
           "Agent-Class" to "io.opentelemetry.javaagent.OpenTelemetryAgent",
           "Premain-Class" to "io.opentelemetry.javaagent.OpenTelemetryAgent",
           "Can-Redefine-Classes" to true,
-          "Can-Retransform-Classes" to true,
+          "Can-Retransform-Classes" to true
       ))
     }
   }

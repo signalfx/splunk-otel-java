@@ -21,13 +21,15 @@ val buildProprietaryTestImages by tasks.registering {
   description = "Builds all Docker images for the test matrix for proprietary app servers"
 }
 
-//Intentionally left without group to remain hidden
+// Intentionally left without group to remain hidden
 val pullProprietaryTestImages by tasks.registering
 
-data class Arguments(val versions: List<String>,
-                     val vms: List<String>,
-                     val jdks: List<String>,
-                     val extraArgs: Map<String, String> = emptyMap())
+data class Arguments(
+  val versions: List<String>,
+  val vms: List<String>,
+  val jdks: List<String>,
+  val extraArgs: Map<String, String> = emptyMap()
+)
 
 data class AppServerTarget(val name: String, val args: List<Arguments>)
 
@@ -59,10 +61,9 @@ fun createDockerTasks(targets: List<AppServerTarget>) {
   }
 }
 
-
 fun configureImage(server: String, version: String, vm: String, jdk: String, extraArgs: Map<String, String>) {
   val dockerWorkingDir = File(project.buildDir, "docker")
-  val dockerFileName = "${server}.dockerfile"
+  val dockerFileName = "$server.dockerfile"
 
   val prepareTask = tasks.register("${server}ImagePrepare-$version-jdk$jdk-$vm", Copy::class) {
     val warTask = project.tasks.named("war", War::class).get()

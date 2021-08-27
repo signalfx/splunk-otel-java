@@ -8,6 +8,12 @@ and this repository adheres to [Semantic Versioning](https://semver.org/spec/v2.
 
 ## Unreleased
 
+## v1.3.1 - 2021-08-27
+
+- OpenTelemetry Instrumentation for Java has been updated to version 1.5.2. This fixes
+  the [memory leak](https://github.com/open-telemetry/opentelemetry-java-instrumentation/issues/3962) bug that
+  manifested on 1.5.0 and 1.5.1 when OpenTelemetry metrics exporter wasn't used.
+
 ## v1.3.0 - 2021-08-23
 
 ### General

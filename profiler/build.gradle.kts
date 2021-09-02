@@ -17,6 +17,7 @@ dependencies {
   annotationProcessor("com.google.auto.service:auto-service")
   compileOnly("com.google.auto.service:auto-service")
 
+  testCompileOnly("io.opentelemetry.javaagent:opentelemetry-javaagent-extension-api")
   testImplementation("org.slf4j:slf4j-api")
   testImplementation("io.grpc:grpc-netty")
   testImplementation("io.opentelemetry.javaagent:opentelemetry-javaagent-tooling")

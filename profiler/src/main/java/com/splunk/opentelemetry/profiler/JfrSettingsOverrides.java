@@ -61,7 +61,7 @@ class JfrSettingsOverrides {
   }
 
   private Map<String, String> maybeEnableTLABs(Map<String, String> settings) {
-    if (config.getBoolean(CONFIG_KEY_TLAB_ENABLED, false)) {
+    if (config.getBoolean(CONFIG_KEY_TLAB_ENABLED)) {
       settings.put("jdk.ObjectAllocationInNewTLAB#enabled", "true");
       settings.put("jdk.ObjectAllocationOutsideTLAB#enabled", "true");
     }

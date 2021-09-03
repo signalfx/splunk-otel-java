@@ -17,12 +17,15 @@
 package com.splunk.opentelemetry.profiler;
 
 import com.google.auto.service.AutoService;
+import io.opentelemetry.instrumentation.api.config.Config;
 import io.opentelemetry.javaagent.extension.config.ConfigPropertySource;
 import java.util.HashMap;
 import java.util.Map;
 
 @AutoService(ConfigPropertySource.class)
 public class Configuration implements ConfigPropertySource {
+
+  private static final String DEFAULT_RECORDING_DURATION = "20s";
 
   public static final String CONFIG_KEY_ENABLE_PROFILER = "splunk.profiler.enabled";
   public static final String CONFIG_KEY_PROFILER_DIRECTORY = "splunk.profiler.directory";
@@ -37,7 +40,18 @@ public class Configuration implements ConfigPropertySource {
   public Map<String, String> getProperties() {
     HashMap<String, String> config = new HashMap<>();
     config.put(CONFIG_KEY_ENABLE_PROFILER, "false");
+    config.put(CONFIG_KEY_PROFILER_DIRECTORY, ".");
+    config.put(CONFIG_KEY_RECORDING_DURATION, DEFAULT_RECORDING_DURATION);
     config.put(CONFIG_KEY_KEEP_FILES, "false");
+    config.put(CONFIG_KEY_TLAB_ENABLED, "false");
     return config;
+  }
+
+  public static String getConfigUrl(Config config) {
+    String ingestUrl = config.getString(CONFIG_KEY_INGEST_URL);
+    if (ingestUrl == null) {
+      return config.getString(CONFIG_KEY_OTEL_OTLP_URL);
+    }
+    return ingestUrl;
   }
 }

@@ -33,18 +33,7 @@ import org.slf4j.LoggerFactory;
 /** This class logs the active profiler configuration for debug/troubleshooting purposes. */
 public class ConfigurationLogger {
 
-  private static final Logger configurationLogger = LoggerFactory.getLogger(ConfigurationLogger.class);
-
-  private final Logger logger;
-
-  public ConfigurationLogger() {
-    this(configurationLogger);
-  }
-
-  // Exists for testing
-  ConfigurationLogger(Logger logger) {
-    this.logger = logger;
-  }
+  private static final Logger logger = LoggerFactory.getLogger(ConfigurationLogger.class);
 
   public void log(Config config) {
     logger.info("-----------------------");

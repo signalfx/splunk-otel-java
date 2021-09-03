@@ -50,7 +50,7 @@ public class JfrActivator implements AgentListener {
   private static final int MAX_BATCH_SIZE = 250;
   private static final Duration MAX_TIME_BETWEEN_BATCHES = Duration.ofSeconds(10);
   private final ExecutorService executor = HelpfulExecutors.newSingleThreadExecutor("JFR Profiler");
-  private final ConfigurationLogger configurationLogger = new ConfigurationLogger(logger);
+  private final ConfigurationLogger configurationLogger = new ConfigurationLogger();
 
   @Override
   public void afterAgent(Config config) {

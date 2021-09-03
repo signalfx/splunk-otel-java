@@ -30,6 +30,7 @@ dependencies {
   testImplementation("io.opentelemetry:opentelemetry-proto")
   testImplementation("io.opentelemetry:opentelemetry-semconv")
   testImplementation("io.opentelemetry:opentelemetry-sdk")
+  testImplementation("io.github.netmikey.logunit:logunit-logback:1.1.0")
 }
 
 tasks {

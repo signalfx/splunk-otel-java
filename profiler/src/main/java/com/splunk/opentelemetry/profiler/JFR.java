@@ -29,7 +29,12 @@ class JFR {
   public static final JFR instance = new JFR();
 
   public boolean isAvailable() {
-    return FlightRecorder.isAvailable();
+    try {
+      JFR.class.getClassLoader().loadClass("jdk.jfr.FlightRecorder");
+      return FlightRecorder.isAvailable();
+    } catch (ClassNotFoundException e) {
+      return false;
+    }
   }
 
   public Recording takeSnapshot() {

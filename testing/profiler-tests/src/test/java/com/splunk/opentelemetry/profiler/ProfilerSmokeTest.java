@@ -177,9 +177,9 @@ public class ProfilerSmokeTest {
   @Test
   void ensureEventsResumeAfterRestartingCollector() throws Exception {
     await()
-            .atMost(2, TimeUnit.MINUTES)
-            .pollInterval(1, TimeUnit.SECONDS)
-            .untilAsserted(() -> assertThat(countThreadDumpsInFakeBackend()).isGreaterThan(0));
+        .atMost(2, TimeUnit.MINUTES)
+        .pollInterval(1, TimeUnit.SECONDS)
+        .untilAsserted(() -> assertThat(countThreadDumpsInFakeBackend()).isGreaterThan(0));
     collector.stop();
 
     long threadDumpsAfterCollectorStop = countThreadDumpsInFakeBackend();
@@ -191,9 +191,12 @@ public class ProfilerSmokeTest {
 
     collector.start();
     await()
-            .atMost(2, TimeUnit.MINUTES)
-            .pollInterval(1, TimeUnit.SECONDS)
-            .untilAsserted(() -> assertThat(countThreadDumpsInFakeBackend()).isGreaterThan(threadDumpsAfterCollectorStop));
+        .atMost(2, TimeUnit.MINUTES)
+        .pollInterval(1, TimeUnit.SECONDS)
+        .untilAsserted(
+            () ->
+                assertThat(countThreadDumpsInFakeBackend())
+                    .isGreaterThan(threadDumpsAfterCollectorStop));
   }
 
   private long countThreadDumpsInFakeBackend() throws IOException {

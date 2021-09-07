@@ -27,14 +27,19 @@ import jdk.jfr.consumer.RecordingFile;
 class JFR {
 
   public static final JFR instance = new JFR();
+  private static final boolean jfrAvailable = checkJfr();
 
-  public boolean isAvailable() {
+  private static boolean checkJfr() {
     try {
       JFR.class.getClassLoader().loadClass("jdk.jfr.FlightRecorder");
       return FlightRecorder.isAvailable();
     } catch (ClassNotFoundException e) {
       return false;
     }
+  }
+
+  public boolean isAvailable() {
+    return jfrAvailable;
   }
 
   public Recording takeSnapshot() {

@@ -33,9 +33,17 @@ public class SdkCustomizer implements SdkTracerProviderConfigurer {
 
   @Override
   public void configure(SdkTracerProviderBuilder tracerProvider) {
-    if (Config.get().getBoolean(CONFIG_KEY_ENABLE_PROFILER, false)) {
+    if (jfrIsAvailable() && jfrIsEnabledInConfig()) {
       logger.info("Enabling JfrContextStorage");
       ContextStorage.addWrapper(JfrContextStorage::new);
     }
+  }
+
+  private boolean jfrIsAvailable() {
+    return JFR.instance.isAvailable();
+  }
+
+  private boolean jfrIsEnabledInConfig() {
+    return Config.get().getBoolean(CONFIG_KEY_ENABLE_PROFILER, false);
   }
 }

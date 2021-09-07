@@ -183,7 +183,7 @@ public class ProfilerSmokeTest {
     collector.stop();
 
     long threadDumpsAfterCollectorStop = countThreadDumpsInFakeBackend();
-    logger.info("Thread dump events after collector sop {}", threadDumpsAfterCollectorStop);
+    logger.info("Thread dump events after collector stop {}", threadDumpsAfterCollectorStop);
     Thread.sleep(30_000);
     long threadDumpsBeforeCollectorStart = countThreadDumpsInFakeBackend();
     logger.info("Thread dump events before collector start {}", threadDumpsBeforeCollectorStart);

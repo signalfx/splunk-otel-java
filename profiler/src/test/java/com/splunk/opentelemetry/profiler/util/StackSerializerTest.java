@@ -34,6 +34,7 @@ class StackSerializerTest {
   RecordedFrame frame2 = makeFrame("io.test.MyClass", "silver", 456);
   RecordedFrame frame3 = makeFrame("io.test.Framewerk", "root", 66);
   List<RecordedFrame> frames = Arrays.asList(frame1, frame2, frame3);
+  List<RecordedFrame> framesWithNullMethod = Arrays.asList(frame1, makeFrameWithNullMethod("io.test.MyClass", 456), frame3);
 
   @Test
   void serialize() {
@@ -47,6 +48,20 @@ class StackSerializerTest {
         "io.test.MyClass.action:123\n"
             + "io.test.MyClass.silver:456\n"
             + "io.test.Framewerk.root:66";
+    assertEquals(expected, result);
+  }
+
+  @Test
+  void serializeWithNullMethod() {
+    StackSerializer serializer = new StackSerializer();
+    RecordedStackTrace stack = mock(RecordedStackTrace.class);
+
+    when(stack.getFrames()).thenReturn(framesWithNullMethod);
+
+    String result = serializer.serialize(stack);
+    String expected =
+            "io.test.MyClass.action:123\n"
+                    + "io.test.Framewerk.root:66";
     assertEquals(expected, result);
   }
 
@@ -69,6 +84,15 @@ class StackSerializerTest {
     when(method.getType()).thenReturn(type);
     when(frame.getMethod()).thenReturn(method);
     when(method.getName()).thenReturn(methodName);
+    when(frame.getInt("lineNumber")).thenReturn(line);
+    when(type.getName()).thenReturn(typeName);
+    return frame;
+  }
+
+  private RecordedFrame makeFrameWithNullMethod(String typeName, int line) {
+    RecordedFrame frame = mock(RecordedFrame.class);
+    RecordedClass type = mock(RecordedClass.class);
+    when(frame.getMethod()).thenReturn(null);
     when(frame.getInt("lineNumber")).thenReturn(line);
     when(type.getName()).thenReturn(typeName);
     return frame;

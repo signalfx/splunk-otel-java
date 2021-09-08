@@ -54,18 +54,22 @@ class RecordingSequencer {
 
   @VisibleForTesting
   void handleInterval() {
-    if (!recordingEscapeHatch.jfrCanContinue()) {
-      logger.warn("JFR recordings cannot proceed.");
-      if (recorder.isStarted()) {
-        recorder.stop();
+    try {
+      if (!recordingEscapeHatch.jfrCanContinue()) {
+        logger.warn("JFR recordings cannot proceed.");
+        if (recorder.isStarted()) {
+          recorder.stop();
+        }
+        return;
       }
-      return;
+      if (!recorder.isStarted()) {
+        recorder.start();
+        return;
+      }
+      recorder.flushSnapshot();
+    } catch (Throwable throwable) {
+      logger.error("Profiler periodic task failed.", throwable);
     }
-    if (!recorder.isStarted()) {
-      recorder.start();
-      return;
-    }
-    recorder.flushSnapshot();
   }
 
   public static Builder builder() {

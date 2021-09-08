@@ -34,7 +34,8 @@ class StackSerializerTest {
   RecordedFrame frame2 = makeFrame("io.test.MyClass", "silver", 456);
   RecordedFrame frame3 = makeFrame("io.test.Framewerk", "root", 66);
   List<RecordedFrame> frames = Arrays.asList(frame1, frame2, frame3);
-  List<RecordedFrame> framesWithNullMethod = Arrays.asList(frame1, makeFrameWithNullMethod("io.test.MyClass", 456), frame3);
+  List<RecordedFrame> framesWithNullMethod =
+      Arrays.asList(frame1, makeFrameWithNullMethod("io.test.MyClass", 456), frame3);
 
   @Test
   void serialize() {
@@ -59,9 +60,7 @@ class StackSerializerTest {
     when(stack.getFrames()).thenReturn(framesWithNullMethod);
 
     String result = serializer.serialize(stack);
-    String expected =
-            "io.test.MyClass.action:123\n"
-                    + "io.test.Framewerk.root:66";
+    String expected = "io.test.MyClass.action:123\n" + "io.test.Framewerk.root:66";
     assertEquals(expected, result);
   }
 

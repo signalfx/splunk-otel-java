@@ -163,7 +163,7 @@ public class ProfilerSmokeTest {
 
     Optional<LogRecord> jfrThread =
         logs.stream()
-            .filter(log -> log.getBody().getStringValue().startsWith("\"JFR Recording Scheduler\""))
+            .filter(log -> log.getBody().getStringValue().startsWith("\"Catalina-utility-1\""))
             .findFirst();
     assertThat(jfrThread).isNotEmpty();
     Optional<LogRecord> mainThread =

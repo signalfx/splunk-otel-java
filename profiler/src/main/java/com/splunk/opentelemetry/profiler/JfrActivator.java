@@ -17,6 +17,7 @@
 package com.splunk.opentelemetry.profiler;
 
 import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_ENABLE_PROFILER;
+import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_INCLUDE_INTERNALS;
 import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_KEEP_FILES;
 import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_PROFILER_DIRECTORY;
 import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_RECORDING_DURATION;
@@ -40,6 +41,7 @@ import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -107,7 +109,7 @@ public class JfrActivator implements AgentListener {
         new StackToSpanLinkageProcessor(logEntryCreator, batchingLogsProcessor);
 
     ThreadDumpProcessor threadDumpProcessor =
-        new ThreadDumpProcessor(spanContextualizer, processor);
+        buildThreadDumpProcessor(config, spanContextualizer, processor);
     TLABProcessor tlabProcessor = new TLABProcessor(batchingLogsProcessor, commonAttributes);
     EventProcessingChain eventProcessingChain =
         new EventProcessingChain(spanContextualizer, threadDumpProcessor, tlabProcessor);
@@ -143,6 +145,20 @@ public class JfrActivator implements AgentListener {
 
     sequencer.start();
     dirCleanup.registerShutdownHook();
+  }
+
+  private ThreadDumpProcessor buildThreadDumpProcessor(
+      Config config, SpanContextualizer spanContextualizer, StackToSpanLinkageProcessor processor) {
+    Predicate<String> agentInternalsFilter = buildAgentInternalsFilter(config);
+    return new ThreadDumpProcessor(spanContextualizer, processor, agentInternalsFilter);
+  }
+
+  /** May filter out agent internal call stacks based on the config. */
+  private Predicate<String> buildAgentInternalsFilter(Config config) {
+    if (config.getBoolean(CONFIG_KEY_INCLUDE_INTERNALS, false)) {
+      return x -> true;
+    }
+    return new AgentInternalsFilter();
   }
 
   private Map<String, String> buildJfrSettings(Config config) {

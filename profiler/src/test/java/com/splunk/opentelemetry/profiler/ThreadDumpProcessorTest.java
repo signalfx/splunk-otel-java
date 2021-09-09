@@ -28,6 +28,7 @@ import com.splunk.opentelemetry.profiler.events.ContextAttached;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 import jdk.jfr.EventType;
 import jdk.jfr.consumer.RecordedEvent;
 import jdk.jfr.consumer.RecordedThread;
@@ -41,6 +42,7 @@ class ThreadDumpProcessorTest {
     String spanId = "xxxxxxyyyyyyyzyzzz";
     SpanContextualizer contextualizer = new SpanContextualizer();
     long idOfThreadRunningTheSpan = 3L;
+    Predicate<String> agentInternalsFilter = x -> true;
 
     RecordedEvent event = mock(RecordedEvent.class);
     RecordedEvent threadStartingSpan = mock(RecordedEvent.class);
@@ -60,7 +62,8 @@ class ThreadDumpProcessorTest {
 
     List<StackToSpanLinkage> results = new ArrayList<>();
     Consumer<StackToSpanLinkage> exportProcessor = results::add;
-    ThreadDumpProcessor processor = new ThreadDumpProcessor(contextualizer, exportProcessor);
+    ThreadDumpProcessor processor =
+        new ThreadDumpProcessor(contextualizer, exportProcessor, agentInternalsFilter);
 
     processor.accept(event);
     assertEquals(3, results.size());

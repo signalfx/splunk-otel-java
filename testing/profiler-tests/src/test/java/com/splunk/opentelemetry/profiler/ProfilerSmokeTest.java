@@ -174,6 +174,31 @@ public class ProfilerSmokeTest {
     assertThat(countTLABs(logs)).isGreaterThan(0);
   }
 
+  @Test
+  void ensureEventsResumeAfterRestartingCollector() throws Exception {
+    await()
+        .atMost(2, TimeUnit.MINUTES)
+        .pollInterval(1, TimeUnit.SECONDS)
+        .untilAsserted(() -> assertThat(countThreadDumpsInFakeBackend()).isGreaterThan(0));
+    collector.stop();
+
+    long threadDumpsAfterCollectorStop = countThreadDumpsInFakeBackend();
+    logger.info("Thread dump events after collector stop {}", threadDumpsAfterCollectorStop);
+    Thread.sleep(30_000);
+    long threadDumpsBeforeCollectorStart = countThreadDumpsInFakeBackend();
+    logger.info("Thread dump events before collector start {}", threadDumpsBeforeCollectorStart);
+    assertEquals(threadDumpsAfterCollectorStop, threadDumpsBeforeCollectorStart);
+
+    collector.start();
+    await()
+        .atMost(2, TimeUnit.MINUTES)
+        .pollInterval(1, TimeUnit.SECONDS)
+        .untilAsserted(
+            () ->
+                assertThat(countThreadDumpsInFakeBackend())
+                    .isGreaterThan(threadDumpsAfterCollectorStop));
+  }
+
   private long countThreadDumpsInFakeBackend() throws IOException {
     List<ExportLogsServiceRequest> resourceLogs = fetchResourceLogs();
     return flattenToLogRecords(resourceLogs).stream()

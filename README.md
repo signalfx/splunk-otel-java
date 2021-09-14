@@ -43,16 +43,6 @@
   </strong>
 </p>
 
----
-
-<!-- Comments, spacing, empty and new lines in the section below are intentional, please do not modify them! -->
-<!--DEV_DOCS_WARNING-->
-<!--DEV_DOCS_WARNING_START-->
-The documentation below refers to the in development version of this package. Docs for the latest version ([v1.3.1](https://github.com/signalfx/splunk-otel-java/releases/tag/v1.3.1)) can be found [here](https://github.com/signalfx/splunk-otel-java/blob/v1.3.1/README.md).
-
----
-<!--DEV_DOCS_WARNING_END-->
-
 # Splunk Distribution of OpenTelemetry Java
 
 The Splunk Distribution of [OpenTelemetry Instrumentation for
@@ -83,6 +73,16 @@ This distribution comes with the following defaults:
 If you're currently using the SignalFx Java Agent and want to
 migrate to the Splunk Distribution of OpenTelemetry Java,
 see [Migrate from the SignalFx Java Agent](https://docs.splunk.com/Observability/gdi/get-data-in/application/java/troubleshooting/migrate-signalfx-java-agent-to-otel.html).
+
+---
+
+<!-- Comments, spacing, empty and new lines in the section below are intentional, please do not modify them! -->
+<!--DEV_DOCS_WARNING-->
+<!--DEV_DOCS_WARNING_START-->
+The documentation below refers to the in development version of this package. Docs for the latest version ([v1.3.1](https://github.com/signalfx/splunk-otel-java/releases/tag/v1.3.1)) can be found [here](https://github.com/signalfx/splunk-otel-java/blob/v1.3.1/README.md).
+
+---
+<!--DEV_DOCS_WARNING_END-->
 
 ## Requirements
 

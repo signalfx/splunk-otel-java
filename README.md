@@ -157,8 +157,7 @@ The Splunk Distribution of OpenTelemetry Java provides a way to correlate traces
 
 Documentation on how to manually instrument a Java application is available in the 
 [OpenTelemetry official documentation](https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/docs/manual-instrumentation.md).
-To learn how to add custom metrics to your application please consult [our docs](docs/metrics.md#manual-instrumentation)
-.
+To learn how to add custom metrics to your application please consult [our docs](docs/metrics.md#manual-instrumentation).
 
 To extend the instrumentation with the OpenTelemetry Instrumentation for Java,
 you have to use a compatible API version.

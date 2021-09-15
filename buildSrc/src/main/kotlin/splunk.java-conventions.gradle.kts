@@ -13,8 +13,8 @@ repositories {
   }
 }
 
-val otelVersion = "1.5.0"
-val otelAlphaVersion = "1.5.0-alpha"
+val otelVersion = "1.6.0"
+val otelAlphaVersion = "1.6.0-alpha"
 val otelInstrumentationVersion = "1.6.0-SNAPSHOT"
 val otelInstrumentationAlphaVersion = "1.6.0-alpha-SNAPSHOT"
 val micrometerVersion = "1.7.3";

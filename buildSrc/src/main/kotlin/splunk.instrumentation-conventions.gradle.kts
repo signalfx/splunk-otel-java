@@ -51,6 +51,8 @@ tasks.withType<Test>().configureEach {
   // Reduce noise in assertion messages since we don't need to verify this in most tests. We check
   // in smoke tests instead.
   jvmArgs("-Dotel.javaagent.add-thread-details=false")
+  // needed for proper GlobalMeterProvider registration
+  jvmArgs("-Dotel.metrics.exporter=otlp")
 
   val trustStore = project(":testing:common").file("src/misc/testing-keystore.p12")
   inputs.file(trustStore)

@@ -17,15 +17,17 @@
 package com.splunk.opentelemetry;
 
 import com.google.auto.service.AutoService;
-import io.opentelemetry.sdk.autoconfigure.spi.SdkTracerProviderConfigurer;
+import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
+import io.opentelemetry.sdk.autoconfigure.spi.traces.SdkTracerProviderConfigurer;
 import io.opentelemetry.sdk.trace.SdkTracerProviderBuilder;
 import io.opentelemetry.sdk.trace.SpanLimits;
 
 @AutoService(SdkTracerProviderConfigurer.class)
 public class SplunkTracerProviderConfigurer implements SdkTracerProviderConfigurer {
+
   @Override
-  public void configure(SdkTracerProviderBuilder tracerProvider) {
-    tracerProvider.setSpanLimits(
+  public void configure(SdkTracerProviderBuilder tracerProviderBuilder, ConfigProperties config) {
+    tracerProviderBuilder.setSpanLimits(
         SpanLimits.builder()
             .setMaxNumberOfAttributes(Integer.MAX_VALUE)
             .setMaxNumberOfEvents(Integer.MAX_VALUE)

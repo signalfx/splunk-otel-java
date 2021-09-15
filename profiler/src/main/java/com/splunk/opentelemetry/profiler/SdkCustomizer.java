@@ -21,7 +21,8 @@ import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_ENABLE_
 import com.google.auto.service.AutoService;
 import io.opentelemetry.context.ContextStorage;
 import io.opentelemetry.instrumentation.api.config.Config;
-import io.opentelemetry.sdk.autoconfigure.spi.SdkTracerProviderConfigurer;
+import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
+import io.opentelemetry.sdk.autoconfigure.spi.traces.SdkTracerProviderConfigurer;
 import io.opentelemetry.sdk.trace.SdkTracerProviderBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,7 +33,7 @@ public class SdkCustomizer implements SdkTracerProviderConfigurer {
   private static final Logger logger = LoggerFactory.getLogger(SdkCustomizer.class);
 
   @Override
-  public void configure(SdkTracerProviderBuilder tracerProvider) {
+  public void configure(SdkTracerProviderBuilder tracerProviderBuilder, ConfigProperties config) {
     if (jfrIsAvailable() && jfrIsEnabledInConfig()) {
       logger.info("Enabling JfrContextStorage");
       ContextStorage.addWrapper(JfrContextStorage::new);

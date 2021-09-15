@@ -23,7 +23,7 @@ import static org.mockito.BDDMockito.given;
 import com.splunk.opentelemetry.SplunkConfiguration;
 import io.opentelemetry.api.trace.SpanKind;
 import io.opentelemetry.instrumentation.test.utils.PortUtils;
-import io.opentelemetry.sdk.autoconfigure.ConfigProperties;
+import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import io.opentelemetry.sdk.testing.trace.TestSpanData;
 import io.opentelemetry.sdk.trace.data.StatusData;
 import io.opentelemetry.sdk.trace.export.SpanExporter;

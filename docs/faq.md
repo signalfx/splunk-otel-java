@@ -14,5 +14,7 @@
 - **How often do you release?** We strive to release the Splunk distribution within 2 working days after
   the [upstream project](https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases)
   releases. OpenTelemetry Java generally releases a new version every 4 weeks.
-- **What happens when the exporter endpoint is temporarily unreachable?** Sending telemetry resumes when the endpoint becomes available again. Telemetry collected in the meantime is dropped. To avoid dropping data, 
-  use the [Splunk OpenTelemetry Connector](https://github.com/signalfx/splunk-otel-collector), which supports retrying failed transmissions.
+- **What happens when the exporter endpoint is temporarily unreachable?** Sending telemetry resumes when the endpoint
+  becomes available again. Telemetry collected in the meantime is dropped. To avoid dropping data, use the
+  [Splunk OpenTelemetry Connector](https://github.com/signalfx/splunk-otel-collector), which supports retrying failed
+  transmissions.

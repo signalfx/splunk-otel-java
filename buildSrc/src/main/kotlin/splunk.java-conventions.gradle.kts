@@ -15,8 +15,8 @@ repositories {
 
 val otelVersion = "1.6.0"
 val otelAlphaVersion = "1.6.0-alpha"
-val otelInstrumentationVersion = "1.6.0"
-val otelInstrumentationAlphaVersion = "1.6.0-alpha"
+val otelInstrumentationVersion = "1.7.0-SNAPSHOT"
+val otelInstrumentationAlphaVersion = "1.7.0-alpha-SNAPSHOT"
 val micrometerVersion = "1.7.4"
 
 // dependencyManagement can't into classifiers, we have to pass version the old way for deps with qualifiers

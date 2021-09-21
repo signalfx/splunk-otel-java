@@ -32,7 +32,7 @@ When filing an issue, please do *NOT* include:
 
 ## Documentation
 
-The Splunk Observability documentation is hosted on https://docs.splunk.com/Observability,
+The Splunk Observability documentation is hosted at https://docs.splunk.com/Observability,
 which contains all the prescriptive guidance for Splunk Observability products. 
 Prescriptive guidance consists of step-by-step instructions, conceptual material,
 and decision support for customers. Reference documentation and development 

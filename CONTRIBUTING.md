@@ -38,7 +38,7 @@ Prescriptive guidance consists of step-by-step instructions, conceptual material
 and decision support for customers. Reference documentation and development 
 documentation is hosted on this repository.
 
-You can send feedback about Splunk Observability docs by clicking the Feedback 
+You can send feedback about Splunk Observability docs by clicking the "Feedback" 
 button on any of our documentation pages on the official docs site.
 
 ## Contributing via Pull Requests

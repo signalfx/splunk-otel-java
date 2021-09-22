@@ -1,4 +1,4 @@
-> The official Splunk documentation for this page is [Troubleshooting Java instrumentation](https://docs.splunk.com/Observability/gdi/get-data-in/application/java/troubleshooting/common-java-troubleshooting.html).
+> The official Splunk documentation for this page is [Troubleshooting Java instrumentation](https://docs.splunk.com/Observability/gdi/get-data-in/application/java/troubleshooting/common-java-troubleshooting.html). For instructions on how to contribute to the docs, see [CONTRIBUTING.md](../CONTRIBUTING#documentation.md).
 
 # Troubleshooting
 

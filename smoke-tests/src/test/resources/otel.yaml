@@ -25,7 +25,8 @@ exporters:
     loglevel: info
   otlp:
     endpoint: backend:8080
-    insecure: true
+    tls:
+      insecure: true
 
 service:
   pipelines:

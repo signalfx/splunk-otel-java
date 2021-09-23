@@ -33,8 +33,7 @@ public class WebLogicMetricsInstrumentationModule extends InstrumentationModule 
   @Override
   protected boolean defaultEnabled() {
     boolean metricsRegistryPresent = !Metrics.globalRegistry.getRegistries().isEmpty();
-    // return metricsRegistryPresent && super.defaultEnabled();
-    return true;
+    return metricsRegistryPresent && super.defaultEnabled();
   }
 
   @Override

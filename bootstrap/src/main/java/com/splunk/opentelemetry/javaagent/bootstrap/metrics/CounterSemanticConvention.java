@@ -45,15 +45,15 @@ public final class CounterSemanticConvention implements MeterSemanticConvention 
   }
 
   public FunctionCounter create(Tags additionalTags, Supplier<Number> function) {
-    return FunctionCounter.builder(name, function, f -> function.get().doubleValue())
+    return create(additionalTags, function, (f) -> function.get().doubleValue());
+  }
+
+  public <T> FunctionCounter create(Tags additionalTags, T obj, ToDoubleFunction<T> function) {
+    return FunctionCounter.builder(name, obj, function)
         .tags(GlobalMetricsTags.get())
         .tags(additionalTags)
         .baseUnit(baseUnit)
         .register(Metrics.globalRegistry);
-  }
-
-  public <T> FunctionCounter create(Tags additionalTags, T obj, ToDoubleFunction<T> function) {
-    return create(additionalTags, () -> function.applyAsDouble(obj));
   }
 
   @Override

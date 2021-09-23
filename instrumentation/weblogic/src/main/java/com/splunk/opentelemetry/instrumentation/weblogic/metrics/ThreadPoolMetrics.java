@@ -53,9 +53,7 @@ public final class ThreadPoolMetrics {
         THREADS_CURRENT.create(
             tags, mBeanServer, getNumberAttribute(objectName, "ExecuteThreadTotalCount")),
         TASKS_COMPLETED.create(
-            tags,
-            () ->
-                getNumberAttribute(objectName, "CompletedRequestCount").applyAsDouble(mBeanServer)),
+            tags, mBeanServer, getNumberAttribute(objectName, "CompletedRequestCount")),
         // WebLogic puts threads that are not needed to handle the present work load into a standby
         // pool. Include these
         // in idle thread count.

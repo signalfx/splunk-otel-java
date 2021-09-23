@@ -88,7 +88,9 @@ public class JfrActivator implements AgentListener {
     Map<String, String> jfrSettings = buildJfrSettings(config);
 
     RecordedEventStream.Factory recordedEventStreamFactory =
-        () -> new FilterSortedRecordingFile(() -> new BasicJfrRecordingFile(JFR.instance), RelevantEvents.create(config));
+        () ->
+            new FilterSortedRecordingFile(
+                () -> new BasicJfrRecordingFile(JFR.instance), RelevantEvents.create(config));
 
     SpanContextualizer spanContextualizer = new SpanContextualizer();
     EventPeriods periods = new EventPeriods(jfrSettings::get);

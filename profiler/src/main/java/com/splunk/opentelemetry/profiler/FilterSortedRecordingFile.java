@@ -44,5 +44,4 @@ class FilterSortedRecordingFile implements RecordedEventStream {
         .filter(relevantEvents::isRelevant)
         .sorted(Comparator.comparing(RecordedEvent::getStartTime));
   }
-
 }

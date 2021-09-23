@@ -20,33 +20,30 @@ import com.splunk.opentelemetry.profiler.Configuration;
 import com.splunk.opentelemetry.profiler.TLABProcessor;
 import com.splunk.opentelemetry.profiler.ThreadDumpProcessor;
 import io.opentelemetry.instrumentation.api.config.Config;
-import jdk.jfr.consumer.RecordedEvent;
-
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
+import jdk.jfr.consumer.RecordedEvent;
 
 public class RelevantEvents {
 
-    private final Set<String> eventNames;
+  private final Set<String> eventNames;
 
-    private RelevantEvents(Set<String> eventNames) {
-        this.eventNames = eventNames;
-    }
+  private RelevantEvents(Set<String> eventNames) {
+    this.eventNames = eventNames;
+  }
 
-    public static RelevantEvents create(Config config) {
-        Set<String> eventNames = new HashSet<>(
-                Arrays.asList(
-                        ThreadDumpProcessor.EVENT_NAME,
-                        ContextAttached.EVENT_NAME));
-        if(config.getBoolean(Configuration.CONFIG_KEY_TLAB_ENABLED, false)){
-            eventNames.add(TLABProcessor.NEW_TLAB_EVENT_NAME);
-            eventNames.add(TLABProcessor.OUTSIDE_TLAB_EVENT_NAME);
-        }
-        return new RelevantEvents(eventNames);
+  public static RelevantEvents create(Config config) {
+    Set<String> eventNames =
+        new HashSet<>(Arrays.asList(ThreadDumpProcessor.EVENT_NAME, ContextAttached.EVENT_NAME));
+    if (config.getBoolean(Configuration.CONFIG_KEY_TLAB_ENABLED, false)) {
+      eventNames.add(TLABProcessor.NEW_TLAB_EVENT_NAME);
+      eventNames.add(TLABProcessor.OUTSIDE_TLAB_EVENT_NAME);
     }
+    return new RelevantEvents(eventNames);
+  }
 
-    public boolean isRelevant(RecordedEvent event) {
-        return eventNames.contains(event.getEventType().getName());
-    }
+  public boolean isRelevant(RecordedEvent event) {
+    return eventNames.contains(event.getEventType().getName());
+  }
 }

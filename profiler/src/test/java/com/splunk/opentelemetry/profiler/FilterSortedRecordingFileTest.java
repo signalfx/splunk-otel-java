@@ -28,6 +28,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import com.splunk.opentelemetry.profiler.events.RelevantEvents;
 import jdk.jfr.EventType;
 import jdk.jfr.consumer.RecordedEvent;
 import org.junit.jupiter.api.Test;
@@ -47,9 +49,17 @@ class FilterSortedRecordingFileTest {
     List<RecordedEvent> expected = Arrays.asList(event1, event3, event4, event5);
 
     RecordedEventStream delegate = mock(RecordedEventStream.class);
+    RelevantEvents relevantEvents = mock(RelevantEvents.class);
+
     when(delegate.open(path)).thenReturn(str);
+    when(relevantEvents.isRelevant(event1)).thenReturn(true);
+    when(relevantEvents.isRelevant(event2)).thenReturn(false);
+    when(relevantEvents.isRelevant(event3)).thenReturn(true);
+    when(relevantEvents.isRelevant(event4)).thenReturn(true);
+    when(relevantEvents.isRelevant(event5)).thenReturn(true);
+
     RecordedEventStream.Factory delegateFactory = () -> delegate;
-    FilterSortedRecordingFile recordingFile = new FilterSortedRecordingFile(delegateFactory);
+    FilterSortedRecordingFile recordingFile = new FilterSortedRecordingFile(delegateFactory, relevantEvents);
     List<RecordedEvent> result = recordingFile.open(path).collect(Collectors.toList());
     assertEquals(expected, result);
   }

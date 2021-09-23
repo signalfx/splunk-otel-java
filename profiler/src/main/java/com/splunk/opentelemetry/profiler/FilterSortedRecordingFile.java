@@ -29,9 +29,11 @@ import jdk.jfr.consumer.RecordedEvent;
 class FilterSortedRecordingFile implements RecordedEventStream {
 
   private final RecordedEventStream.Factory delegateStreamFactory;
+  private final RelevantEvents relevantEvents;
 
-  FilterSortedRecordingFile(RecordedEventStream.Factory delegateStreamFactory) {
+  FilterSortedRecordingFile(Factory delegateStreamFactory, RelevantEvents relevantEvents) {
     this.delegateStreamFactory = delegateStreamFactory;
+    this.relevantEvents = relevantEvents;
   }
 
   @Override
@@ -39,7 +41,8 @@ class FilterSortedRecordingFile implements RecordedEventStream {
     return delegateStreamFactory
         .get()
         .open(path)
-        .filter(event -> RelevantEvents.EVENT_NAMES.contains(event.getEventType().getName()))
+        .filter(relevantEvents::isRelevant)
         .sorted(Comparator.comparing(RecordedEvent::getStartTime));
   }
+
 }

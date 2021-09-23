@@ -16,8 +16,11 @@
 
 package com.splunk.opentelemetry;
 
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import com.splunk.opentelemetry.helper.TestImage;
 import java.io.IOException;
+import java.util.Map;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -56,6 +59,11 @@ class WebLogicSmokeTest extends AppServerTest {
     // creates spans
     assertWebAppTrace(serverAttributes);
 
+    // TODO: Windows collector image cannot accept signalfx metrics right now, don't assert them
+    if (!image.isWindows()) {
+      assertMetrics(waitForMetrics());
+    }
+
     stopTarget();
   }
 
@@ -78,5 +86,12 @@ class WebLogicSmokeTest extends AppServerTest {
         "app",
         traces.getServerSpanAttribute("webengine.weblogic.application"),
         "WebLogic Application attribute present");
+  }
+
+  private void assertMetrics(MetricsInspector metrics) {
+    var expectedAttrs = Map.of("executor_type", "weblogic");
+    assertTrue(metrics.hasGaugeWithAttributes("executor.threads", expectedAttrs));
+    assertTrue(metrics.hasGaugeWithAttributes("executor.threads.idle", expectedAttrs));
+    assertTrue(metrics.hasMetricsNamed("executor.tasks.completed"));
   }
 }

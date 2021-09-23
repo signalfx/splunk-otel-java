@@ -45,11 +45,11 @@ public final class ThreadPoolMetrics {
   // a weak map does not make sense here because each Meter holds a reference to the executor
   // AbstractEndpoint does not implement equals()/hashCode(), so it's safe to keep them in a plain
   // ConcurrentHashMap
-  private static final Map<AbstractEndpoint<?, ?>, List<Meter>> dataSourceMetrics =
+  private static final Map<AbstractEndpoint<?, ?>, List<Meter>> threadPoolMetrics =
       new ConcurrentHashMap<>();
 
   public static void registerMetrics(AbstractEndpoint<?, ?> endpoint) {
-    dataSourceMetrics.computeIfAbsent(endpoint, ThreadPoolMetrics::createMeters);
+    threadPoolMetrics.computeIfAbsent(endpoint, ThreadPoolMetrics::createMeters);
   }
 
   private static List<Meter> createMeters(AbstractEndpoint<?, ?> endpoint) {
@@ -67,7 +67,7 @@ public final class ThreadPoolMetrics {
   }
 
   public static void unregisterMetrics(AbstractEndpoint<?, ?> endpoint) {
-    List<Meter> meters = dataSourceMetrics.remove(endpoint);
+    List<Meter> meters = threadPoolMetrics.remove(endpoint);
     if (meters != null) {
       for (Meter meter : meters) {
         Metrics.globalRegistry.remove(meter);

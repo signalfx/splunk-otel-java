@@ -1,6 +1,6 @@
 # Add the JVM agent to Java servers
 
-The following sections show how to add the path to the Splunk OTel agent for Java using the [supported servers](/supported-libraries.md#application-servers).
+The following sections show how to add the path to the Splunk OTel agent for Java using the [supported servers](https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/docs/supported-libraries.md#application-servers).
 
 ## JBoss EAP / WildFly
 

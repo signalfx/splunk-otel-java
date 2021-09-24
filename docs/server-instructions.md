@@ -75,7 +75,7 @@ Add the path to the JVM agent to your Tomcat/TomEE startup script:
 
 Add the path to the JVM agent to your Weblogic domain startup script:
 
-- On Linux and macOS, add the following line to the `bin/startWebLogic.sh` file:
+- On Linux and macOS, add the following line to the `<domain_home>bin/startWebLogic.sh` file:
    ```
    export JAVA_OPTIONS="$JAVA_OPTIONS -javaagent:/path/to/splunk-otel-javaagent.jar"
    ```

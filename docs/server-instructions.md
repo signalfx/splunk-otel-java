@@ -73,7 +73,7 @@ Add the path to the JVM agent to your Tomcat/TomEE startup script:
 
 ## Weblogic
 
-Add the path to the JVM agent to the `startWebLogic` file of your administration server:
+Add the path to the JVM agent to your Weblogic domain startup script:
 
 - On Linux and macOS, add the following line to the `bin/startWebLogic.sh` file:
    ```

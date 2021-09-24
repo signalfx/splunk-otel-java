@@ -84,7 +84,7 @@ Add the path to the JVM agent to your Weblogic domain startup script:
    set JAVA_OPTIONS=%JAVA_OPTIONS% -javaagent:"<Drive>:\path\to\splunk-otel-javaagent.jar"
    ```
 
-> For managed server instances, add the `javaagent` argument using the admin console.
+> For managed server instances, add the `-javaagent` argument using the admin console.
 
 ## Websphere Liberty Profile
 

@@ -79,7 +79,7 @@ Add the path to the JVM agent to your Weblogic domain startup script:
    ```
    export JAVA_OPTIONS="$JAVA_OPTIONS -javaagent:/path/to/splunk-otel-javaagent.jar"
    ```
-- On Windows, add the following line to the `<install_dir>/<config>/<domain_name>/startWebLogic.cmd` file:
+- On Windows, add the following line to the `<domain_home>\bin\startWebLogic.cmd` file:
    ```
    set JAVA_OPTIONS=%JAVA_OPTIONS% -javaagent:"<Drive>:\path\to\splunk-otel-javaagent.jar"
    ```

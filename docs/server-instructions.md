@@ -66,7 +66,7 @@ Add the path to the JVM agent to your Tomcat/TomEE startup script:
    ```
    CATALINA_OPTS="$CATALINA_OPTS -javaagent:/path/to/splunk-otel-javaagent.jar"
    ```
-- On Windows, add the following line to `%CATALINA_BASE%\bin\setenv.bat`:
+- On Windows, add the following line to ``<tomcat_home>\bin\setenv.bat`:
    ```
    set CATALINA_OPTS=%CATALINA_OPTS% -javaagent:"<Drive>:\path\to\splunk-otel-javaagent.jar"
    ```

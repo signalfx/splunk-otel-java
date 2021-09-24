@@ -15,6 +15,7 @@ repositories {
 
 val otelVersion = "1.6.0"
 val otelAlphaVersion = "1.6.0-alpha"
+val otelContribAlphaVersion = "1.6.0-alpha"
 val otelInstrumentationVersion = "1.7.0-SNAPSHOT"
 val otelInstrumentationAlphaVersion = "1.7.0-alpha-SNAPSHOT"
 val micrometerVersion = "1.7.4"
@@ -69,6 +70,9 @@ extensions.configure<DependencyManagementExtension>("dependencyManagement") {
       entry("opentelemetry-javaagent-servlet-2.2")
       entry("opentelemetry-javaagent-servlet-3.0")
       entry("opentelemetry-javaagent-servlet-common")
+    }
+    dependencySet("io.opentelemetry.contrib:${otelContribAlphaVersion}") {
+      entry("opentelemetry-contrib-samplers")
     }
   }
 

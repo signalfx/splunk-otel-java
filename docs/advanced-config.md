@@ -89,10 +89,39 @@ export OTEL_PROPAGATORS=b3multi
 
 | System property          | Environment variable     | Default value  | Support | Description |
 | ------------------------ | ------------------------ | -------------- | ------- | ----------- |
-| `otel.traces.sampler`    | `OTEL_TRACE_SAMPLER`     | `always_on`    | Stable  | The sampler to use for tracing.	|
+| `otel.traces.sampler`    | `OTEL_TRACES_SAMPLER`     | `always_on`    | Stable  | The sampler to use for tracing.	|
 
-Set `otel.traces.sampler` to `internal_root_off` to drop all traces with root spans where `spanKind` is `INTERNAL`, `CLIENT` or `PRODUCER`. This setting only keeps root spans where `spanKind` is `SERVER` and `CONSUMER`.
+Splunk Distribution of OpenTelemetry Java supports all standard samplers as provided by 
+[OpenTelemetry Java SDK Autoconfigure](https://github.com/open-telemetry/opentelemetry-java/tree/main/sdk-extensions/autoconfigure#sampler).
+In addition, we add the following two samplers.
 
+### internal_root_off
+Setting `otel.traces.sampler` to `internal_root_off` will drop all traces with root spans where `spanKind` is `INTERNAL`, `CLIENT` or `PRODUCER`.
+This setting only keeps root spans where `spanKind` is `SERVER` and `CONSUMER`.
+
+### rules
+This sampler allows to ignore individual endpoints and drop all traces that would originate from them.
+Let's take a look at the following example configuration:
+```shell
+export OTEL_TRACES_SAMPLER=rules
+export OTEL_TRACES_SAMPLER_ARG=drop=/healthcheck;default=parentbased_always_on
+```
+
+This configuration will result in all requests to `/healthcheck` endpoint to be excluded from monitoring.
+This includes all requests to downstream services that happen during handling this endpoint by the application.
+
+Formally, the value of `OTEL_TRACES_SAMPLER_ARG` is interpreted as a `;`-separated list of rules.
+Currently, the following two types of rules are supported:
+
+- `drop=<value>` - sampler will drop a span if its `http.url` attribute has a substring equal to the provided value.
+You can provide as many `drop` rules as you wish.
+- `default=sampler` - fallback sampler that will be used if no `drop` rule matched given span.
+Supported fallback samplers are `always_on` and `parentbased_always_on`.
+Probability samplers such as `traceidratio` are explicitly not supported.
+If several `default` rules are provided, only the last one will be in effect.
+  
+If `OTEL_TRACES_SAMPLER_ARG` is not provided or has en empty value, then no `drop` rules will be configured and `parentbased_always_on`
+sampler will be used as a default one.
 
 ## Java agent configuration
 

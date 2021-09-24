@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.splunk.opentelemetry.instrumentation.weblogic;
+package com.splunk.opentelemetry.instrumentation.weblogic.webengine;
 
 import com.splunk.opentelemetry.javaagent.bootstrap.WebengineHolder;
 import java.util.HashMap;

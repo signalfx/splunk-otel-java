@@ -57,11 +57,7 @@ public class LibertySmokeTest extends AppServerTest {
 
     assertServerHandler(expectedServerAttributes);
     assertWebAppTrace(expectedServerAttributes);
-
-    // TODO: Windows collector image cannot accept signalfx metrics right now, don't assert them
-    if (!image.isWindows()) {
-      assertMetrics(waitForMetrics());
-    }
+    assertMetrics(waitForMetrics());
 
     stopTarget();
   }

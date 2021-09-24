@@ -19,8 +19,7 @@ package com.splunk.opentelemetry.profiler;
 import com.splunk.opentelemetry.profiler.context.SpanContextualizer;
 import com.splunk.opentelemetry.profiler.events.ContextAttached;
 import java.util.Comparator;
-import java.util.SortedMap;
-import java.util.TreeMap;
+import java.util.PriorityQueue;
 import java.util.function.Consumer;
 import jdk.jfr.consumer.RecordedEvent;
 
@@ -29,8 +28,8 @@ class EventProcessingChain {
   private final SpanContextualizer spanContextualizer;
   private final ThreadDumpProcessor threadDumpProcessor;
   private final TLABProcessor tlabProcessor;
-  private final SortedMap<RecordedEvent, Void> buffer =
-      new TreeMap<>(Comparator.comparing(RecordedEvent::getStartTime));
+  private final PriorityQueue<RecordedEvent> buffer =
+      new PriorityQueue<>(Comparator.comparing(RecordedEvent::getStartTime));
 
   EventProcessingChain(
       SpanContextualizer spanContextualizer,
@@ -46,7 +45,7 @@ class EventProcessingChain {
     switch (eventName) {
       case ContextAttached.EVENT_NAME:
       case ThreadDumpProcessor.EVENT_NAME:
-        buffer.put(event, null);
+        buffer.add(event);
         break;
       case TLABProcessor.NEW_TLAB_EVENT_NAME:
       case TLABProcessor.OUTSIDE_TLAB_EVENT_NAME:
@@ -60,7 +59,7 @@ class EventProcessingChain {
    * the buffer. After flushing, the buffer will be empty.
    */
   public void flushBuffer() {
-    buffer.keySet().forEach(dispatchContextualizedThreadDumps());
+    buffer.forEach(dispatchContextualizedThreadDumps());
     buffer.clear();
   }
 

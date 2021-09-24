@@ -30,7 +30,6 @@ import com.splunk.opentelemetry.logs.BatchingLogsProcessor;
 import com.splunk.opentelemetry.logs.LogsExporter;
 import com.splunk.opentelemetry.profiler.context.SpanContextualizer;
 import com.splunk.opentelemetry.profiler.events.EventPeriods;
-import com.splunk.opentelemetry.profiler.events.RelevantEvents;
 import com.splunk.opentelemetry.profiler.util.FileDeleter;
 import com.splunk.opentelemetry.profiler.util.HelpfulExecutors;
 import io.opentelemetry.instrumentation.api.config.Config;
@@ -88,9 +87,7 @@ public class JfrActivator implements AgentListener {
     Map<String, String> jfrSettings = buildJfrSettings(config);
 
     RecordedEventStream.Factory recordedEventStreamFactory =
-        () ->
-            new FilterSortedRecordingFile(
-                () -> new BasicJfrRecordingFile(JFR.instance), RelevantEvents.create(config));
+        () -> new BasicJfrRecordingFile(JFR.instance);
 
     SpanContextualizer spanContextualizer = new SpanContextualizer();
     EventPeriods periods = new EventPeriods(jfrSettings::get);

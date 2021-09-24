@@ -18,6 +18,10 @@ package com.splunk.opentelemetry.profiler;
 
 import com.splunk.opentelemetry.profiler.context.SpanContextualizer;
 import com.splunk.opentelemetry.profiler.events.ContextAttached;
+import java.util.Comparator;
+import java.util.SortedMap;
+import java.util.TreeMap;
+import java.util.function.Consumer;
 import jdk.jfr.consumer.RecordedEvent;
 
 class EventProcessingChain {
@@ -25,6 +29,8 @@ class EventProcessingChain {
   private final SpanContextualizer spanContextualizer;
   private final ThreadDumpProcessor threadDumpProcessor;
   private final TLABProcessor tlabProcessor;
+  private final SortedMap<RecordedEvent, Void> buffer =
+      new TreeMap<>(Comparator.comparing(RecordedEvent::getStartTime));
 
   EventProcessingChain(
       SpanContextualizer spanContextualizer,
@@ -39,15 +45,36 @@ class EventProcessingChain {
     String eventName = event.getEventType().getName();
     switch (eventName) {
       case ContextAttached.EVENT_NAME:
-        spanContextualizer.updateContext(event);
-        break;
       case ThreadDumpProcessor.EVENT_NAME:
-        threadDumpProcessor.accept(event);
+        buffer.put(event, null);
         break;
       case TLABProcessor.NEW_TLAB_EVENT_NAME:
       case TLABProcessor.OUTSIDE_TLAB_EVENT_NAME:
         tlabProcessor.accept(event);
         break;
     }
+  }
+
+  /**
+   * Tells the processing chain that a work unit (JFR file) is complete and it can process what's in
+   * the buffer. After flushing, the buffer will be empty.
+   */
+  public void flushBuffer() {
+    buffer.keySet().forEach(dispatchContextualizedThreadDumps());
+    buffer.clear();
+  }
+
+  private Consumer<RecordedEvent> dispatchContextualizedThreadDumps() {
+    return event -> {
+      String eventName = event.getEventType().getName();
+      switch (eventName) {
+        case ContextAttached.EVENT_NAME:
+          spanContextualizer.updateContext(event);
+          break;
+        case ThreadDumpProcessor.EVENT_NAME:
+          threadDumpProcessor.accept(event);
+          break;
+      }
+    };
   }
 }

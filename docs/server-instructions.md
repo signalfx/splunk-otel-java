@@ -45,7 +45,7 @@ Add the path to the JVM agent to the settings using the `asadmin` command-line t
    <server_install_dir>\bin\asadmin.bat create-jvm-options '-javaagent:<Drive>:\path\to\splunk-otel-javaagent.jar'
    ```
 
-You can also instrument your application from the Admin Console:
+You can also add the `-javaagent` argument from the Admin Console:
 
 1. Open the GlassFish Admin Console at http://localhost:4848
 2. Go to **Configurations > server-config > JVM Settings**.
@@ -91,7 +91,7 @@ Add the path to the JVM agent to your Weblogic domain startup script:
 Add the path to the JVM agent to the `jvm.options` file:
 
 - Open the `jvm.options` file:
-   - For a single server, open the server configuration `${server.config.dir}/jvm.options`.
+   - For a single server, create or open `${server.config.dir}/jvm.options`.
    - For all servers, open the common configuration in `${wlp.install.dir}/etc/jvm.options`
 - Add the following line:
    ```

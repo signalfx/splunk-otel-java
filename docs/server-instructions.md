@@ -29,7 +29,7 @@ Alternatively you can add `-javaagent` argument to your `jetty.sh` or `start.ini
    ```
    JAVA_OPTIONS="${JAVA_OPTIONS} -javaagent:/path/to/splunk-otel-javaagent.jar"
    ```
-- If you use the `start.ini` file, add the `javaagent` argument right below the `--exec` option:
+- If you use the `start.ini` file to define JVM arguments, add the `javaagent` argument right below the `--exec` option:
    ```
    #===========================================================
    # Sample Jetty start.ini file

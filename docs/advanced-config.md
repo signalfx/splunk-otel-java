@@ -106,6 +106,8 @@ For example, the following configuration results in all requests to `/healthchec
 ```shell
 export OTEL_TRACES_SAMPLER=rules
 export OTEL_TRACES_SAMPLER_ARG=drop=/healthcheck;default=parentbased_always_on
+```
+All requests to downstream services that happen as a consequence of calling an excluded endpoint are also excluded.
 
 The value of `OTEL_TRACES_SAMPLER_ARG` is interpreted as a semicolon-separated list of rules. The following types of rules are supported:
 

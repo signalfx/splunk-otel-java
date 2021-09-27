@@ -36,14 +36,6 @@ class RuleBasedSamplerProviderConfigTest {
   }
 
   @Test
-  void shouldDropIfInstructed() {
-    RuleBasedSamplerProvider.Config config = new RuleBasedSamplerProvider.Config("drop=qwer,abcd");
-
-    assertThat(config.drop).containsExactly("qwer", "abcd");
-    assertThat(config.fallback).isEqualTo(Sampler.parentBased(Sampler.alwaysOn()));
-  }
-
-  @Test
   void shouldMergeSeveralDrops() {
     RuleBasedSamplerProvider.Config config =
         new RuleBasedSamplerProvider.Config("drop=qwer;drop=/front");
@@ -57,14 +49,13 @@ class RuleBasedSamplerProviderConfigTest {
     RuleBasedSamplerProvider.Config config =
         new RuleBasedSamplerProvider.Config("drop=qwer;fallback=always_off");
 
-    assertThat(config.drop).containsExactly("qwer", "/front");
+    assertThat(config.drop).containsExactly("qwer");
     assertThat(config.fallback).isEqualTo(Sampler.alwaysOff());
   }
 
   @Test
-  void anyExceptionResultsInDefaultConf() {
+  void invalidRulesAreIgnored() {
     assertDefaultConf(new RuleBasedSamplerProvider.Config("drop;fallback=always_off"));
-    assertDefaultConf(new RuleBasedSamplerProvider.Config("allow=we;fallback=always_off"));
     assertDefaultConf(new RuleBasedSamplerProvider.Config("allow=we;fallbackToTricks"));
     assertDefaultConf(new RuleBasedSamplerProvider.Config("allow=fallback"));
   }

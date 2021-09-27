@@ -48,7 +48,7 @@ Add the path to the JVM agent to the settings using the `asadmin` command-line t
    ```
 - On Windows, enter the following command:
    ```
-   <server_install_dir>\bin\asadmin.bat create-jvm-options '-javaagent:<Drive>:\path\to\splunk-otel-javaagent.jar'
+   <server_install_dir>\bin\asadmin.bat create-jvm-options '-javaagent\:<Drive>\:\\path\\to\\splunk-otel-javaagent.jar'
    ```
 
 You can also add the `-javaagent` argument from the Admin Console:

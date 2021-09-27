@@ -97,8 +97,8 @@ Add the path to the JVM agent to your Weblogic domain startup script:
 Add the path to the JVM agent to the `jvm.options` file:
 
 - Open the `jvm.options` file:
-   - For a single server, create or open `${server.config.dir}/jvm.options`.
-   - For all servers, open the common configuration in `${wlp.install.dir}/etc/jvm.options`
+   - For a single server, create or edit the `${server.config.dir}/jvm.options` file.
+   - For all servers, create or edit the `${wlp.install.dir}/etc/jvm.options` file.
 - Add the following line:
    ```
    -javaagent:/path/to/splunk-otel-javaagent.jar

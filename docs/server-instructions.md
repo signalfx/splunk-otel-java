@@ -10,7 +10,7 @@ Add the `javaagent` argument to the `standalone` configuration file:
    ```
    JAVA_OPTS="$JAVA_OPTS -javaagent:/path/to/splunk-otel-javaagent.jar"
    ```
-- On Windows, dd the following line at the end of the `standalone.conf.bat` file:
+- On Windows, add the following line at the end of the `standalone.conf.bat` file:
    ```
    set "JAVA_OPTS=%JAVA_OPTS% -javaagent:<Drive>:\path\to\splunk-otel-javaagent.jar"
    ```

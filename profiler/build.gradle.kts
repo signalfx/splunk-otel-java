@@ -22,7 +22,9 @@ dependencies {
   testImplementation("org.slf4j:slf4j-api")
   testImplementation("io.grpc:grpc-netty")
   testImplementation("io.grpc:grpc-stub")
-  testImplementation("io.opentelemetry.javaagent:opentelemetry-javaagent-tooling")
+  testImplementation("io.opentelemetry.javaagent:opentelemetry-javaagent-tooling") {
+    exclude("io.opentelemetry.javaagent", "opentelemetry-javaagent-tooling-java9")
+  }
   testImplementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-api")
   testImplementation("io.opentelemetry:opentelemetry-sdk-extension-autoconfigure")
   testImplementation("io.opentelemetry:opentelemetry-sdk-extension-autoconfigure-spi")

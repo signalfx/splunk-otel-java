@@ -25,7 +25,7 @@ java -javaagent:/path/to/splunk-otel-javaagent.jar -jar start.jar
 
 Alternatively you can add `-javaagent` argument to your `jetty.sh` or `start.ini` files:
 
--  If you use the `jetty.sh` file, add the `javaagent` argument:
+-  If you use the `jetty.sh` file to start jetty, add the following line to `<jetty_home>/bin/jetty.sh`:
    ```
    JAVA_OPTIONS="${JAVA_OPTIONS} -javaagent:/path/to/splunk-otel-javaagent.jar"
    ```

@@ -20,6 +20,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import com.splunk.opentelemetry.profiler.events.RelevantEvents;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
@@ -47,9 +48,18 @@ class FilterSortedRecordingFileTest {
     List<RecordedEvent> expected = Arrays.asList(event1, event3, event4, event5);
 
     RecordedEventStream delegate = mock(RecordedEventStream.class);
+    RelevantEvents relevantEvents = mock(RelevantEvents.class);
+
     when(delegate.open(path)).thenReturn(str);
+    when(relevantEvents.isRelevant(event1)).thenReturn(true);
+    when(relevantEvents.isRelevant(event2)).thenReturn(false);
+    when(relevantEvents.isRelevant(event3)).thenReturn(true);
+    when(relevantEvents.isRelevant(event4)).thenReturn(true);
+    when(relevantEvents.isRelevant(event5)).thenReturn(true);
+
     RecordedEventStream.Factory delegateFactory = () -> delegate;
-    FilterSortedRecordingFile recordingFile = new FilterSortedRecordingFile(delegateFactory);
+    FilterSortedRecordingFile recordingFile =
+        new FilterSortedRecordingFile(delegateFactory, relevantEvents);
     List<RecordedEvent> result = recordingFile.open(path).collect(Collectors.toList());
     assertEquals(expected, result);
   }

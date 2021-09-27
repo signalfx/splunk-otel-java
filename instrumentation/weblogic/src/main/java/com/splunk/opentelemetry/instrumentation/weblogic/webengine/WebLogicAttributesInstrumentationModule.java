@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.splunk.opentelemetry.instrumentation.weblogic;
+package com.splunk.opentelemetry.instrumentation.weblogic.webengine;
 
 import static io.opentelemetry.javaagent.extension.matcher.AgentElementMatchers.extendsClass;
 import static io.opentelemetry.javaagent.extension.matcher.AgentElementMatchers.hasClassesNamed;
@@ -46,8 +46,8 @@ import net.bytebuddy.matcher.ElementMatcher;
  * later read when span is started by generic servlet instrumentation.
  */
 @AutoService(InstrumentationModule.class)
-public class WebLogicInstrumentationModule extends InstrumentationModule {
-  public WebLogicInstrumentationModule() {
+public class WebLogicAttributesInstrumentationModule extends InstrumentationModule {
+  public WebLogicAttributesInstrumentationModule() {
     super("weblogic");
   }
 
@@ -80,7 +80,7 @@ public class WebLogicInstrumentationModule extends InstrumentationModule {
           named("wrapRun")
               .and(takesArgument(1, named("javax.servlet.http.HttpServletRequest")))
               .and(isPrivate()),
-          WebLogicInstrumentationModule.class.getName() + "$WebengineAdvice");
+          WebLogicAttributesInstrumentationModule.class.getName() + "$WebengineAdvice");
     }
   }
 
@@ -110,7 +110,7 @@ public class WebLogicInstrumentationModule extends InstrumentationModule {
               .and(takesArgument(0, named("javax.servlet.http.HttpServletRequest")))
               .and(takesArgument(1, named("javax.servlet.http.HttpServletResponse")))
               .and(isProtected().or(isPublic())),
-          WebLogicInstrumentationModule.class.getName() + "$ServletAdvice");
+          WebLogicAttributesInstrumentationModule.class.getName() + "$ServletAdvice");
     }
   }
 

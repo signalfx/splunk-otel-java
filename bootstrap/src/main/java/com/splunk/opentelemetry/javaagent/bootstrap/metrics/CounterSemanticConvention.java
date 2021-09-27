@@ -21,6 +21,7 @@ import io.micrometer.core.instrument.FunctionCounter;
 import io.micrometer.core.instrument.Metrics;
 import io.micrometer.core.instrument.Tags;
 import java.util.function.Supplier;
+import java.util.function.ToDoubleFunction;
 
 public final class CounterSemanticConvention implements MeterSemanticConvention {
   private final String name;
@@ -44,7 +45,11 @@ public final class CounterSemanticConvention implements MeterSemanticConvention 
   }
 
   public FunctionCounter create(Tags additionalTags, Supplier<Number> function) {
-    return FunctionCounter.builder(name, function, f -> function.get().doubleValue())
+    return create(additionalTags, function, (f) -> function.get().doubleValue());
+  }
+
+  public <T> FunctionCounter create(Tags additionalTags, T obj, ToDoubleFunction<T> function) {
+    return FunctionCounter.builder(name, obj, function)
         .tags(GlobalMetricsTags.get())
         .tags(additionalTags)
         .baseUnit(baseUnit)

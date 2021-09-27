@@ -14,4 +14,6 @@ dependencies {
   add("muzzleTooling", "ch.qos.logback:logback-classic:1.2.5")
   add("muzzleBootstrap", project(":bootstrap"))
   add("muzzleBootstrap", "io.opentelemetry:opentelemetry-api")
+
+  implementation("io.opentelemetry.javaagent:opentelemetry-muzzle")
 }

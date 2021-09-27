@@ -16,51 +16,72 @@
 
 package com.splunk.opentelemetry.profiler;
 
+import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import com.splunk.opentelemetry.profiler.context.SpanContextualizer;
 import com.splunk.opentelemetry.profiler.events.ContextAttached;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import jdk.jfr.EventType;
 import jdk.jfr.consumer.RecordedEvent;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class EventProcessingChainTest {
 
-  @Mock RecordedEvent event;
+  @Mock RecordedEvent tlab1;
+  @Mock RecordedEvent tlab2;
+  @Mock RecordedEvent contextEvent;
+  @Mock RecordedEvent threadDump;
+
   @Mock SpanContextualizer contextualizer;
   @Mock ThreadDumpProcessor threadDumpProcessor;
   @Mock TLABProcessor tlabProcessor;
-  @Mock EventType eventType;
 
-  @Test
-  void testContextEvent() {
-
-    when(event.getEventType()).thenReturn(eventType);
-    when(eventType.getName()).thenReturn(ContextAttached.EVENT_NAME);
-
-    EventProcessingChain chain =
-        new EventProcessingChain(contextualizer, threadDumpProcessor, tlabProcessor);
-    chain.accept(event);
-    verify(contextualizer).updateContext(event);
-    verifyNoMoreInteractions(threadDumpProcessor);
+  @BeforeEach
+  void setup() {
+    setType(tlab1, TLABProcessor.NEW_TLAB_EVENT_NAME);
+    setType(tlab2, TLABProcessor.NEW_TLAB_EVENT_NAME);
+    setType(contextEvent, ContextAttached.EVENT_NAME);
+    setType(threadDump, ThreadDumpProcessor.EVENT_NAME);
   }
 
   @Test
-  void testThreadDumpEvent() {
-
-    when(event.getEventType()).thenReturn(eventType);
-    when(eventType.getName()).thenReturn(ThreadDumpProcessor.EVENT_NAME);
-
+  void testLifecycle() {
+    Instant now = Instant.now();
+    // context even happens after the thread dump but is seen first
+    when(contextEvent.getStartTime()).thenReturn(now);
+    when(threadDump.getStartTime()).thenReturn(now.minus(250, ChronoUnit.MILLIS));
     EventProcessingChain chain =
         new EventProcessingChain(contextualizer, threadDumpProcessor, tlabProcessor);
-    chain.accept(event);
-    verify(threadDumpProcessor).accept(event);
-    verifyNoMoreInteractions(contextualizer);
+    chain.accept(tlab1);
+    verify(tlabProcessor).accept(tlab1);
+    chain.accept(contextEvent);
+    chain.accept(tlab2);
+    verify(tlabProcessor).accept(tlab2);
+    chain.accept(threadDump);
+
+    verifyNoInteractions(threadDumpProcessor);
+    verifyNoInteractions(contextualizer);
+
+    chain.flushBuffer();
+    InOrder inOrder = inOrder(threadDumpProcessor, contextualizer);
+    inOrder.verify(threadDumpProcessor).accept(threadDump);
+    inOrder.verify(contextualizer).updateContext(contextEvent);
+  }
+
+  private void setType(RecordedEvent event, String name) {
+    EventType type = mock(EventType.class);
+    when(type.getName()).thenReturn(name);
+    when(event.getEventType()).thenReturn(type);
   }
 }

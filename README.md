@@ -90,7 +90,7 @@ The agent works with Java runtimes version 8 and higher. For the full list of re
 
 ## Get started
 
-Follow these steps to automatically instrument your application using the Java (or JVM) agent:
+Follow these steps to automatically instrument your application using the Java agent:
 
 1.  Check that you meet the [requirements](#requirements).
 

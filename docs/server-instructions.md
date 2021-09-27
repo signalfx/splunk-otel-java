@@ -17,8 +17,18 @@ Add the `javaagent` argument to the `standalone` configuration file:
 
 ## Jetty
 
-Configure the path to the JVM agent either in `start.ini` or in `jetty.sh`:
+Add the path to the JVM agent using the `-javaagent` argument:
 
+```
+java -javaagent:/path/to/splunk-otel-javaagent.jar -jar start.jar
+```
+
+(Optional) You can also edit your `jetty.sh` and `start.ini` files:
+
+-  In the `jetty.sh` file, add the `javaagent` argument:
+   ```
+   JAVA_OPTIONS="${JAVA_OPTIONS} -javaagent:/path/to/splunk-otel-javaagent.jar"
+   ```
 - In the `start.ini` file, add the `javaagent` argument right below the `--exec` option:
    ```
    #===========================================================
@@ -26,10 +36,6 @@ Configure the path to the JVM agent either in `start.ini` or in `jetty.sh`:
    #-----------------------------------------------------------
    --exec
    -javaagent:/path/to/splunk-otel-javaagent.jar
-   ```
--  In the `jetty.sh` file, add the `javaagent` argument:
-   ```
-   JAVA_OPTIONS="${JAVA_OPTIONS} -javaagent:/path/to/splunk-otel-javaagent.jar"
    ```
 
 ## Glassfish / Payara

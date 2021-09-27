@@ -23,7 +23,7 @@ Add the path to the JVM agent using the `-javaagent` argument:
 java -javaagent:/path/to/splunk-otel-javaagent.jar -jar start.jar
 ```
 
-Alternatively, depending on how you define JVM arguments, you can edit your `jetty.sh` or `start.ini` files, :
+Alternatively you can add `-javaagent` argument to your `jetty.sh` or `start.ini` files:
 
 -  If you use the `jetty.sh` file, add the `javaagent` argument:
    ```

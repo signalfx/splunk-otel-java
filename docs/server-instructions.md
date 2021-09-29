@@ -2,10 +2,10 @@
 
 The following sections show how to add the path to the Splunk OTel agent for Java using the [supported servers](https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/docs/supported-libraries.md#application-servers).
 
-* [JBoss EAP / WildFly](#jboss-eap---wildfly)
+* [JBoss EAP / WildFly](#jboss-eap--wildfly)
 * [Jetty](#jetty)
-* [Glassfish / Payara](#glassfish---payara)
-* [Tomcat / TomEE](#tomcat---tomee)
+* [Glassfish / Payara](#glassfish--payara)
+* [Tomcat / TomEE](#tomcat--tomee)
 * [Weblogic](#weblogic)
 * [Websphere Liberty Profile](#websphere-liberty-profile)
 

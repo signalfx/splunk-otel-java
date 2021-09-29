@@ -57,7 +57,7 @@ property or as environment variable (by making it uppercase and replacing dots w
 
 The profiler limits its own behavior under two conditions:
 
-* Free disk space is too low (< 100MB free))
+* Free disk space is too low (< 100MB free)
 * More than 5 minutes worth of JFR files are backed up on disk
 
 If a recording is already running when this condition is encountered, it will

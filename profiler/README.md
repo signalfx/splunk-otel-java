@@ -1,18 +1,17 @@
 
-🚨 The profiler is in beta and its use is currently restricted.
+> :construction: The profiler feature is experimental.
 
 # About the Java profiler
 
-The `splunk-otel-java` agent includes an "always-on" profiler that can be enabled with a configuration
+The `splunk-otel-java` agent includes a continuous profiler that can be enabled with a configuration
 setting. This profiler periodically captures the call stack state for all JVM threads and
-saves these to the Splunk Observability Cloud. Users can then view a flamegraph of application
+saves these to the Splunk Observability Cloud. You can then view a flamegraph of application
 call stacks and inspect individual code-level call stacks for relevant traces.
 
-## How?
+## How does the profiler work?
 
 The profiler leverages the JVM's JDK Flight Recorder (JFR) to perform periodic call
-stack sampling. Every recording period, a new JFR recording file is flushed to disk and then
-the events are replayed.
+stack sampling. For every recording period, a new JFR recording file is flushed to disk and events are replayed.
 
 In order to associate `jdk.ThreadDump` events from JFR with OpenTelemetry spans, a custom
 OpenTelemetry `ContextStorage` implementation is used to emit `otel.ContextAttached`
@@ -76,8 +75,8 @@ something like this:
 
 ### How can I see the profiler configuration?
 
-The agent will log the profiling configuration at `INFO` during startup. You can grep for the string
-`com.splunk.opentelemetry.profiler.ConfigurationLogger` to see something like this:
+The agent logs the profiling configuration at `INFO` during startup. You can grep for the string
+`com.splunk.opentelemetry.profiler.ConfigurationLogger` to see entries like the following:
 
 ```
 [otel.javaagent 2021-09-28 18:17:04:237 +0000] [main] INFO <snip> - -----------------------
@@ -103,9 +102,10 @@ You may need to free up some disk space and/or give the JVM more resources.
 
 ### What if I'm on an unsupported JVM?
 
-If your JVM does not support JFR, this is detected by the profiler at startup. It will log
-"Java Flight Recorder (JFR) is not available in this JVM. Profiling is disabled." at `WARN`,
-and you can grep for this in the logs.
+If your JVM does not support JFR, the profiler logs a warning at startup with the
+message `Java Flight Recorder (JFR) is not available in this JVM. Profiling is disabled`.
+If you want to use the profiler and see this in your logs, you must upgrade
+your JVM version to 8u262 or later.
 
 ### Why is the OTLP/logs exporter complaining?
 
@@ -132,4 +132,4 @@ Lastly, double check that the logs _pipeline_ is configured to use the OTLP rece
 ### Can I tell the agent to ignore some threads?
 
 Not yet. Some JVM internal threads are automatically omitted, but there is no user-serviceable mechanism
-for omitting or filtering threads. If you need this, please file an issue.
+for omitting or filtering threads. If you need this, file an issue.

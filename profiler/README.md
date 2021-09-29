@@ -5,7 +5,7 @@
 
 The `splunk-otel-java` agent includes a continuous profiler that can be enabled with a configuration
 setting. This profiler periodically captures the call stack state for all JVM threads and
-saves these to the Splunk Observability Cloud. You can then view a flamegraph of application
+sends these to the Splunk Observability Cloud. You can then view a flamegraph of application
 call stacks and inspect individual code-level call stacks for relevant traces.
 
 ## How does the profiler work?

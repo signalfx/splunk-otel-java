@@ -1,7 +1,7 @@
 
 🚨 The profiler is in beta and its use is currently restricted.
 
-# About
+# About the Java profiler
 
 The `splunk-otel-java` agent includes an "always-on" profiler that can be enabled with a configuration
 setting. This profiler periodically captures the call stack state for all JVM threads and

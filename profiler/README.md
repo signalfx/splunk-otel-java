@@ -10,7 +10,7 @@ call stacks and inspect individual code-level call stacks for relevant traces.
 
 ## How?
 
-The profiler leverages the JVM's Java Flight Recorder (JFR) to perform periodic call
+The profiler leverages the JVM's JDK Flight Recorder (JFR) to perform periodic call
 stack sampling. Every recording period, a new JFR recording file is flushed to disk and then
 the events are replayed.
 

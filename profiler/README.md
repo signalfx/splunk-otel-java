@@ -30,18 +30,18 @@ its ingest path.
 * [Splunk OpenTelemetry Connector](https://github.com/signalfx/splunk-otel-collector) version 0.33.1 or higher
 * Profiler is enabled at startup (disabled by default, see the Configuration section)
 
-# Configuration
+# Enable the profiler
 
-The configuration items below are available. In order for the profiler to be enabled,
-you MUST pass `-Dsplunk.profiler.enabled=true` to your JVM or set the `SPLUNK_PROFILER_ENABLED`
-environment variable to your JVM process.
+To enable the profiler, pass the `-Dsplunk.profiler.enabled=true` argument to your JVM or set the `SPLUNK_PROFILER_ENABLED` environment variable to your JVM process.
 
-We strongly recommend using defaults for all other settings.
+# Configuration settings
 
-Like all other OpenTelemetry Java configurations, the following items can be used as a system
-property or as environment variable (by making it uppercase and replacing dots with underscores).
+Like all other OpenTelemetry Java configurations, the following settings can be used as a system
+property or as environment variables (by making them uppercase and replacing dots with underscores).
 
-| name                                     | default                | description                               |
+> We strongly recommend using defaults for the following settings.
+
+| Setting                                     | Default                | Description                               |
 |------------------------------------------|------------------------|-------------------------------------------|
 |`splunk.profiler.enabled`                 | false                  | set to true to enable the profiler        |
 |`splunk.profiler.directory`               | "."                    | location of jfr files                     |

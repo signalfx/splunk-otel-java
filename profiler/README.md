@@ -15,7 +15,7 @@ stack sampling. Every recording period, a new JFR recording file is flushed to d
 the events are replayed.
 
 In order to associate `jdk.ThreadDump` events from JFR with OpenTelemetry spans, a custom
-OpenTelemetry `ContextStorage` implementation is used to synthesize `otel.ContextAttached`
+OpenTelemetry `ContextStorage` implementation is used to emit `otel.ContextAttached`
 events each time a span context change occurs. These context changes are then tracked
 during replay so that a call stack can be associated with the appropriate span.
 

@@ -26,9 +26,9 @@ its ingest path.
 # Requirements
 
 * Java 8 above 8u262, or Java 11+
-* 100MB free disk space
-* [Splunk OpenTelemetry Connector](https://github.com/signalfx/splunk-otel-collector) > 0.33.1
-* The profiler is enabled at startup (off by default, see Configuration below)
+* 100 MB of free disk space
+* [Splunk OpenTelemetry Connector](https://github.com/signalfx/splunk-otel-collector) version 0.33.1 or higher
+* Profiler is enabled at startup (disabled by default, see the Configuration section)
 
 # Configuration
 

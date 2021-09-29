@@ -59,9 +59,8 @@ The profiler limits its own behavior under two conditions:
 * Free disk space is too low (< 100MB free)
 * More than 5 minutes worth of JFR files are backed up on disk
 
-If a recording is already running when this condition is encountered, it will
-be stopped. Later, when the conditions are no longer applicable, then recording will
-be restarted and the profiler will resume operation.
+If a recording is already running when this condition is met, the recording stops. When
+the conditions are no longer applicable, the recording and the profiler resume operation.
 
 # FAQ / Troubleshooting
 

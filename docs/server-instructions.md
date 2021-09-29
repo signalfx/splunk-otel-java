@@ -2,6 +2,13 @@
 
 The following sections show how to add the path to the Splunk OTel agent for Java using the [supported servers](https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/docs/supported-libraries.md#application-servers).
 
+* [JBoss EAP / WildFly](#jboss-eap---wildfly)
+* [Jetty](#jetty)
+* [Glassfish / Payara](#glassfish---payara)
+* [Tomcat / TomEE](#tomcat---tomee)
+* [Weblogic](#weblogic)
+* [Websphere Liberty Profile](#websphere-liberty-profile)
+
 ## JBoss EAP / WildFly
 
 Add the `javaagent` argument to the `standalone` configuration file:
@@ -38,7 +45,7 @@ Alternatively you can add `-javaagent` argument to your `jetty.sh` or `start.ini
    -javaagent:/path/to/splunk-otel-javaagent.jar
    ```
 
-## Glassfish / Payara
+## Glassfish / Payara
 
 Add the path to the JVM agent to the settings using the `asadmin` command-line tool:
 

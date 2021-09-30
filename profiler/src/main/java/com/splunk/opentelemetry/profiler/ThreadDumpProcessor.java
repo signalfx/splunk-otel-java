@@ -19,9 +19,6 @@ package com.splunk.opentelemetry.profiler;
 import com.splunk.opentelemetry.profiler.context.SpanContextualizer;
 import com.splunk.opentelemetry.profiler.context.StackToSpanLinkage;
 import java.util.function.Consumer;
-import java.util.function.Predicate;
-import java.util.regex.Pattern;
-import java.util.stream.Stream;
 import jdk.jfr.consumer.RecordedEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,30 +26,52 @@ import org.slf4j.LoggerFactory;
 public class ThreadDumpProcessor {
   public static final String EVENT_NAME = "jdk.ThreadDump";
   private static final Logger logger = LoggerFactory.getLogger(ThreadDumpProcessor.class);
-  private final Pattern stackSeparator = Pattern.compile("\n\n");
   private final SpanContextualizer contextualizer;
   private final Consumer<StackToSpanLinkage> processor;
-  private final Predicate<String> agentInternalsFilter;
+  private final ThreadDumpToStacks threadDumpToStacks;
 
-  public ThreadDumpProcessor(
-      SpanContextualizer contextualizer,
-      Consumer<StackToSpanLinkage> processor,
-      Predicate<String> agentInternalsFilter) {
-    this.contextualizer = contextualizer;
-    this.processor = processor;
-    this.agentInternalsFilter = agentInternalsFilter;
+  public ThreadDumpProcessor(Builder builder) {
+    this.contextualizer = builder.contextualizer;
+    this.processor = builder.processor;
+    this.threadDumpToStacks = builder.threadDumpToStacks;
   }
 
   public void accept(RecordedEvent event) {
     String eventName = event.getEventType().getName();
     logger.debug("Processing JFR event {}", eventName);
     String wallOfStacks = event.getString("result");
-    String[] stacks = stackSeparator.split(wallOfStacks);
-    // TODO: Filter out all the VM and GC entries without real stack traces?
-    Stream.of(stacks)
-        .filter(stack -> stack.charAt(0) == '"') // omit non-stack entries
-        .filter(agentInternalsFilter)
+    threadDumpToStacks
+        .toStream(wallOfStacks)
         .map(stack -> contextualizer.link(event.getStartTime(), stack, event))
         .forEach(processor);
+  }
+
+  public static Builder builder() {
+    return new Builder();
+  }
+
+  public static class Builder {
+    private SpanContextualizer contextualizer;
+    private Consumer<StackToSpanLinkage> processor;
+    private ThreadDumpToStacks threadDumpToStacks;
+
+    public Builder spanContextualizer(SpanContextualizer contextualizer) {
+      this.contextualizer = contextualizer;
+      return this;
+    }
+
+    public Builder processor(Consumer<StackToSpanLinkage> consumer) {
+      this.processor = consumer;
+      return this;
+    }
+
+    public Builder threadDumpToStacks(ThreadDumpToStacks threadDumpToStacks) {
+      this.threadDumpToStacks = threadDumpToStacks;
+      return this;
+    }
+
+    public ThreadDumpProcessor build() {
+      return new ThreadDumpProcessor(this);
+    }
   }
 }

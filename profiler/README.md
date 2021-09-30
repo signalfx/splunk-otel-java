@@ -110,7 +110,7 @@ your JVM version to 8u262 or later.
 
 Collector configuration issues may prevent logs from being exported and profiling data from showing in Splunk Observability Cloud.
 
-Things to check:
+Check for the following common issues:
 
 * Look at the values of the agent's configuration: `splunk.profiler.logs-endpoint` and `otel.exporter.otlp.endpoint`. Hint: they are logged
 at startup (see above).

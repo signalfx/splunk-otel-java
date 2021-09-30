@@ -16,29 +16,51 @@
 
 package com.splunk.opentelemetry.profiler;
 
-import java.util.Arrays;
-import java.util.function.Predicate;
+import java.util.stream.Stream;
 
-public class AgentInternalsFilter implements Predicate<String> {
+public class AgentInternalsFilter {
 
-  private static final String[] UNWANTED_PREFIXES =
+  static final String[] UNWANTED_PREFIXES =
       new String[] {
         "\"Batched Logs Exporter\"",
         "\"BatchSpanProcessor_WorkerThread-",
         "\"JFR Recorder Thread\"",
         "\"JFR Periodic Tasks\"",
         "\"JFR Recording Scheduler\"",
-        "\"JFR Recording Sequencer\""
+        "\"JFR Recording Sequencer\"",
+        "\"Reference Handler\"",
+        "\"Finalizer\"",
+        "\"C1 CompilerThread",
+        "\"Common-Cleaner\""
       };
+  private final boolean includeAgentInternals;
 
-  @Override
-  public boolean test(String stack) {
-    if (Arrays.stream(UNWANTED_PREFIXES).anyMatch(stack::startsWith)) {
+  public AgentInternalsFilter(boolean includeAgentInternals) {
+    this.includeAgentInternals = includeAgentInternals;
+  }
+
+  public boolean test(String wallOfStacks, int startIndex, int lastIndex) {
+    if (lastIndex == -1) {
       return false;
     }
-    if (stack.indexOf('\n') == -1) {
+    // Must start with a quote for the thread name
+    if (wallOfStacks.charAt(startIndex) != '"') {
       return false;
     }
-    return true;
+    // If the last newline before next is before the start, that means we have one line, so skip
+    // that
+    int previousNewlineIndex = wallOfStacks.lastIndexOf('\n', lastIndex - 1);
+    if (previousNewlineIndex <= startIndex) {
+      return false;
+    }
+    // two line cases
+    if (wallOfStacks.lastIndexOf('\n', previousNewlineIndex - 1) <= startIndex) {
+      return false;
+    }
+    if (includeAgentInternals) {
+      return true;
+    }
+    return Stream.of(AgentInternalsFilter.UNWANTED_PREFIXES)
+        .noneMatch(prefix -> wallOfStacks.regionMatches(startIndex, prefix, 0, prefix.length()));
   }
 }

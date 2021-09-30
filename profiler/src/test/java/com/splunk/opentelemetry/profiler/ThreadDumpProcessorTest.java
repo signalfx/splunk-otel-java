@@ -62,8 +62,13 @@ class ThreadDumpProcessorTest {
 
     List<StackToSpanLinkage> results = new ArrayList<>();
     Consumer<StackToSpanLinkage> exportProcessor = results::add;
+    ThreadDumpToStacks threadDumpToStacks = new ThreadDumpToStacks(new AgentInternalsFilter(false));
     ThreadDumpProcessor processor =
-        new ThreadDumpProcessor(contextualizer, exportProcessor, agentInternalsFilter);
+        ThreadDumpProcessor.builder()
+            .spanContextualizer(contextualizer)
+            .processor(exportProcessor)
+            .threadDumpToStacks(threadDumpToStacks)
+            .build();
 
     processor.accept(event);
     assertEquals(3, results.size());
@@ -94,7 +99,7 @@ class ThreadDumpProcessorTest {
           + "0x00007fb4860b5000, 0x00007fb491817800, 0x00007fb4859f4800\n"
           + "}\n"
           + "\n"
-          + "\"Reference Handler\" #2 daemon prio=10 os_prio=31 cpu=4.92ms elapsed=50.48s tid=0x00007fb51702b000 nid=0x3403 waiting on condition  [0x000070000c6d6000]\n"
+          + "\"Definitely something\" #2 daemon prio=10 os_prio=31 cpu=4.92ms elapsed=50.48s tid=0x00007fb51702b000 nid=0x3403 waiting on condition  [0x000070000c6d6000]\n"
           + "   java.lang.Thread.State: RUNNABLE\n"
           + "        at java.lang.ref.Reference.waitForReferencePendingList(java.base@11.0.9.1/Native Method)\n"
           + "        at java.lang.ref.Reference.processPendingReferences(java.base@11.0.9.1/Reference.java:241)\n"
@@ -108,7 +113,7 @@ class ThreadDumpProcessorTest {
           + "        - waiting to re-lock in wait() <0x000000060066b908> (a java.lang.ref.ReferenceQueue$Lock)\n"
           + "        at com.something.something.AwesomeThinger.overHereDoingSpanThings(MyServer.java:123)\n"
           + "\n"
-          + "\"JFR Recording Scheduler\" #27 daemon prio=5 os_prio=31 cpu=0.13ms elapsed=48.39s tid=0x00007fb4b74b3000 nid=0x15103 in Object.wait()  [0x000070000ed4b000]\n"
+          + "\"Cool user thread\" #27 daemon prio=5 os_prio=31 cpu=0.13ms elapsed=48.39s tid=0x00007fb4b74b3000 nid=0x15103 in Object.wait()  [0x000070000ed4b000]\n"
           + "   java.lang.Thread.State: WAITING (on object monitor)\n"
           + "        at java.lang.Object.wait(java.base@11.0.9.1/Native Method)\n"
           + "        - waiting on <0x0000000625152778> (a java.util.TaskQueue)\n"

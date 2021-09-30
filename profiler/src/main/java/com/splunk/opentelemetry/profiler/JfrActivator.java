@@ -41,7 +41,6 @@ import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.function.Consumer;
-import java.util.function.Predicate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -108,8 +107,11 @@ public class JfrActivator implements AgentListener {
     StackToSpanLinkageProcessor processor =
         new StackToSpanLinkageProcessor(logEntryCreator, batchingLogsProcessor);
 
+    ThreadDumpToStacks threadDumpToStacks =
+        new ThreadDumpToStacks(buildAgentInternalsFilter(config));
+
     ThreadDumpProcessor threadDumpProcessor =
-        buildThreadDumpProcessor(config, spanContextualizer, processor);
+        buildThreadDumpProcessor(spanContextualizer, processor, threadDumpToStacks);
     TLABProcessor tlabProcessor = new TLABProcessor(batchingLogsProcessor, commonAttributes);
     EventProcessingChain eventProcessingChain =
         new EventProcessingChain(spanContextualizer, threadDumpProcessor, tlabProcessor);
@@ -148,17 +150,19 @@ public class JfrActivator implements AgentListener {
   }
 
   private ThreadDumpProcessor buildThreadDumpProcessor(
-      Config config, SpanContextualizer spanContextualizer, StackToSpanLinkageProcessor processor) {
-    Predicate<String> agentInternalsFilter = buildAgentInternalsFilter(config);
-    return new ThreadDumpProcessor(spanContextualizer, processor, agentInternalsFilter);
+      SpanContextualizer spanContextualizer,
+      StackToSpanLinkageProcessor processor,
+      ThreadDumpToStacks threadDumpToStacks) {
+    return ThreadDumpProcessor.builder()
+        .spanContextualizer(spanContextualizer)
+        .processor(processor)
+        .threadDumpToStacks(threadDumpToStacks)
+        .build();
   }
 
   /** May filter out agent internal call stacks based on the config. */
-  private Predicate<String> buildAgentInternalsFilter(Config config) {
-    if (config.getBoolean(CONFIG_KEY_INCLUDE_INTERNALS, false)) {
-      return x -> true;
-    }
-    return new AgentInternalsFilter();
+  private AgentInternalsFilter buildAgentInternalsFilter(Config config) {
+    return new AgentInternalsFilter(config.getBoolean(CONFIG_KEY_INCLUDE_INTERNALS, false));
   }
 
   private Map<String, String> buildJfrSettings(Config config) {

@@ -108,9 +108,7 @@ your JVM version to 8u262 or later.
 
 ### Why is the OTLP/logs exporter complaining?
 
-This can happen for a number of reasons, but is generally caused by the collector being misconfigured.
-If the logs cannot be exported to the collector, the profiling data will not be available in
-the UI.
+Collector configuration issues may prevent logs from being exported and profiling data from showing in Splunk Observability Cloud.
 
 Things to check:
 

@@ -18,7 +18,7 @@ package com.splunk.opentelemetry.profiler;
 
 import java.util.stream.Stream;
 
-public class AgentInternalsFilter {
+public class StackTraceFilter {
 
   static final String[] UNWANTED_PREFIXES =
       new String[] {
@@ -35,7 +35,7 @@ public class AgentInternalsFilter {
       };
   private final boolean includeAgentInternals;
 
-  public AgentInternalsFilter(boolean includeAgentInternals) {
+  public StackTraceFilter(boolean includeAgentInternals) {
     this.includeAgentInternals = includeAgentInternals;
   }
 
@@ -60,7 +60,7 @@ public class AgentInternalsFilter {
     if (includeAgentInternals) {
       return true;
     }
-    return Stream.of(AgentInternalsFilter.UNWANTED_PREFIXES)
+    return Stream.of(StackTraceFilter.UNWANTED_PREFIXES)
         .noneMatch(prefix -> wallOfStacks.regionMatches(startIndex, prefix, 0, prefix.length()));
   }
 }

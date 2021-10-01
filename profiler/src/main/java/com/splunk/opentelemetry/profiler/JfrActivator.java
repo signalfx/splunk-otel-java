@@ -161,8 +161,8 @@ public class JfrActivator implements AgentListener {
   }
 
   /** May filter out agent internal call stacks based on the config. */
-  private AgentInternalsFilter buildAgentInternalsFilter(Config config) {
-    return new AgentInternalsFilter(config.getBoolean(CONFIG_KEY_INCLUDE_INTERNALS, false));
+  private StackTraceFilter buildAgentInternalsFilter(Config config) {
+    return new StackTraceFilter(config.getBoolean(CONFIG_KEY_INCLUDE_INTERNALS, false));
   }
 
   private Map<String, String> buildJfrSettings(Config config) {

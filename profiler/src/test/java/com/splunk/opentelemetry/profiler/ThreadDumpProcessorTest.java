@@ -62,7 +62,7 @@ class ThreadDumpProcessorTest {
 
     List<StackToSpanLinkage> results = new ArrayList<>();
     Consumer<StackToSpanLinkage> exportProcessor = results::add;
-    ThreadDumpToStacks threadDumpToStacks = new ThreadDumpToStacks(new AgentInternalsFilter(false));
+    ThreadDumpToStacks threadDumpToStacks = new ThreadDumpToStacks(new StackTraceFilter(false));
     ThreadDumpProcessor processor =
         ThreadDumpProcessor.builder()
             .spanContextualizer(contextualizer)

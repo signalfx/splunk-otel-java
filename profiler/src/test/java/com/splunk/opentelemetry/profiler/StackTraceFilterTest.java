@@ -27,7 +27,7 @@ class StackTraceFilterTest {
     StackTraceFilter filter = new StackTraceFilter(false);
     String stack =
         "\"GC Thread#1\" os_prio=0 cpu=1285.69ms elapsed=11333.59s tid=0x00007f43e0001000 nid=0xd0 runnable";
-    assertFalse(filter.test(stack, 0, stack.length()-1));
+    assertFalse(filter.test(stack, 0, stack.length() - 1));
   }
 
   @Test
@@ -39,7 +39,7 @@ class StackTraceFilterTest {
             + "\tat sun.nio.ch.EPollSelectorImpl.doSelect(java.base@11.0.12/EPollSelectorImpl.java:120)\n"
             + "\t[...]";
     StackTraceFilter filter = new StackTraceFilter(false);
-    assertTrue(filter.test(stack, 0, stack.length()-1));
+    assertTrue(filter.test(stack, 0, stack.length() - 1));
   }
 
   @Test
@@ -53,7 +53,7 @@ class StackTraceFilterTest {
             + "        at java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject.awaitNanos(java.base@11.0.12/AbstractQueuedSynchronizer.java:2123)\n"
             + "        [...]";
     StackTraceFilter filter = new StackTraceFilter(false);
-    assertFalse(filter.test(stack, 0, stack.length()-1));
+    assertFalse(filter.test(stack, 0, stack.length() - 1));
   }
 
   @Test
@@ -65,7 +65,7 @@ class StackTraceFilterTest {
             + "        - parking to wait for  <0x00000000c3401f88> (a java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject)\n"
             + "        [...]";
     StackTraceFilter filter = new StackTraceFilter(false);
-    assertFalse(filter.test(stack, 0, stack.length()-1));
+    assertFalse(filter.test(stack, 0, stack.length() - 1));
   }
 
   @Test
@@ -74,43 +74,43 @@ class StackTraceFilterTest {
         "\"JFR Recorder Thread\" #16 daemon prio=5 os_prio=0 cpu=75.99ms elapsed=436.13s tid=0x00007f5194e83800 nid=0xda waiting on condition  [0x0000000000000000]\n"
             + "   java.lang.Thread.State: RUNNABLE\n";
     StackTraceFilter filter = new StackTraceFilter(false);
-    assertFalse(filter.test(stack, 0, stack.length()-1));
+    assertFalse(filter.test(stack, 0, stack.length() - 1));
     stack =
         "\"JFR Periodic Tasks\" #17 daemon prio=5 os_prio=0 cpu=171.78ms elapsed=435.78s tid=0x00007f5194ecd800 nid=0xdb in Object.wait()  [0x00007f5187dfe000]\n"
             + "   java.lang.Thread.State: TIMED_WAITING (on object monitor)\n"
             + "        at java.lang.Object.wait(java.base@11.0.12/Native Method)\n"
             + "        [...]";
-    assertFalse(filter.test(stack, 0, stack.length()-1));
+    assertFalse(filter.test(stack, 0, stack.length() - 1));
   }
 
   @Test
   void includeInternals() {
     String stack =
-            "\"JFR Recording Scheduler\" #28 daemon prio=5 os_prio=31 cpu=0.11ms elapsed=320.50s tid=0x00007fb9cefc2000 nid=0x7203 in Object.wait()  [0x00007000126c5000]\n" +
-                    "   java.lang.Thread.State: WAITING (on object monitor)\n" +
-                    "        at java.lang.Object.wait(java.base@11.0.9.1/Native Method)\n" +
-                    "        - waiting on <0x0000000600ca4e70> (a java.util.TaskQueue)\n" +
-                    "        at java.lang.Object.wait(java.base@11.0.9.1/Object.java:328)\n" +
-                    "        at java.util.TimerThread.mainLoop(java.base@11.0.9.1/Timer.java:527)\n" +
-                    "        - waiting to re-lock in wait() <0x0000000600ca4e70> (a java.util.TaskQueue)\n" +
-                    "        at java.util.TimerThread.run(java.base@11.0.9.1/Timer.java:506)";
+        "\"JFR Recording Scheduler\" #28 daemon prio=5 os_prio=31 cpu=0.11ms elapsed=320.50s tid=0x00007fb9cefc2000 nid=0x7203 in Object.wait()  [0x00007000126c5000]\n"
+            + "   java.lang.Thread.State: WAITING (on object monitor)\n"
+            + "        at java.lang.Object.wait(java.base@11.0.9.1/Native Method)\n"
+            + "        - waiting on <0x0000000600ca4e70> (a java.util.TaskQueue)\n"
+            + "        at java.lang.Object.wait(java.base@11.0.9.1/Object.java:328)\n"
+            + "        at java.util.TimerThread.mainLoop(java.base@11.0.9.1/Timer.java:527)\n"
+            + "        - waiting to re-lock in wait() <0x0000000600ca4e70> (a java.util.TaskQueue)\n"
+            + "        at java.util.TimerThread.run(java.base@11.0.9.1/Timer.java:506)";
     StackTraceFilter filter = new StackTraceFilter(true);
-    assertTrue(filter.test(stack, 0, stack.length()-1));
+    assertTrue(filter.test(stack, 0, stack.length() - 1));
     stack =
-            "\"JFR Periodic Tasks\" #17 daemon prio=5 os_prio=0 cpu=171.78ms elapsed=435.78s tid=0x00007f5194ecd800 nid=0xdb in Object.wait()  [0x00007f5187dfe000]\n"
-                    + "   java.lang.Thread.State: TIMED_WAITING (on object monitor)\n"
-                    + "        at java.lang.Object.wait(java.base@11.0.12/Native Method)\n"
-                    + "        [...]";
-    assertTrue(filter.test(stack, 0, stack.length()-1));
+        "\"JFR Periodic Tasks\" #17 daemon prio=5 os_prio=0 cpu=171.78ms elapsed=435.78s tid=0x00007f5194ecd800 nid=0xdb in Object.wait()  [0x00007f5187dfe000]\n"
+            + "   java.lang.Thread.State: TIMED_WAITING (on object monitor)\n"
+            + "        at java.lang.Object.wait(java.base@11.0.12/Native Method)\n"
+            + "        [...]";
+    assertTrue(filter.test(stack, 0, stack.length() - 1));
   }
 
   @Test
   void twoLines() {
     String stack =
-            "\"G1 Young RemSet Sampling\" os_prio=0 cpu=20.37ms elapsed=67.37s tid=0x00007f2b600eb800 nid=0xc runnable\n" +
-                    "\"VM Periodic Task Thread\" os_prio=0 cpu=29.95ms elapsed=65.02s tid=0x00007f2b60c75800 nid=0x1a waiting on condition\n";
+        "\"G1 Young RemSet Sampling\" os_prio=0 cpu=20.37ms elapsed=67.37s tid=0x00007f2b600eb800 nid=0xc runnable\n"
+            + "\"VM Periodic Task Thread\" os_prio=0 cpu=29.95ms elapsed=65.02s tid=0x00007f2b60c75800 nid=0x1a waiting on condition\n";
     StackTraceFilter filter = new StackTraceFilter(false);
-    assertFalse(filter.test(stack, 0, stack.length()-1));
+    assertFalse(filter.test(stack, 0, stack.length() - 1));
   }
 
   @Test
@@ -123,27 +123,26 @@ class StackTraceFilterTest {
   void lineDoesntStartWithDoubleQuote() {
     String stack = "JNI global refs: 50, weak refs: 0\n";
     StackTraceFilter filter = new StackTraceFilter(false);
-    assertFalse(filter.test(stack, 0, stack.length()-1));
+    assertFalse(filter.test(stack, 0, stack.length() - 1));
   }
 
   @Test
   void extractFromMiddle() {
-    String stack = "\"logback-7\" #75 daemon prio=5 os_prio=31 cpu=0.25ms elapsed=173.79s tid=0x00007fb98f0ad000 nid=0xd30b waiting on condiion  [0x0000700014a2e000]\n" +
-            "   java.lang.Thread.State: WAITING (parking)\n" +
-            "        at jdk.internal.misc.Unsafe.park(java.base@11.0.9.1/Native Method)\n" +
-            "        - parking to wait for  <0x00000006127b80f8> (a java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject)\n" +
-            "        at java.util.concurrent.ThreadPoolExecutor$Worker.run(java.base@11.0.9.1/ThreadPoolExecutor.java:628)\n" +
-            "        at java.lang.Thread.run(java.base@11.0.9.1/Thread.java:834)\n";
+    String stack =
+        "\"logback-7\" #75 daemon prio=5 os_prio=31 cpu=0.25ms elapsed=173.79s tid=0x00007fb98f0ad000 nid=0xd30b waiting on condiion  [0x0000700014a2e000]\n"
+            + "   java.lang.Thread.State: WAITING (parking)\n"
+            + "        at jdk.internal.misc.Unsafe.park(java.base@11.0.9.1/Native Method)\n"
+            + "        - parking to wait for  <0x00000006127b80f8> (a java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject)\n"
+            + "        at java.util.concurrent.ThreadPoolExecutor$Worker.run(java.base@11.0.9.1/ThreadPoolExecutor.java:628)\n"
+            + "        at java.lang.Thread.run(java.base@11.0.9.1/Thread.java:834)\n";
 
     String beforeStack = "something above\n";
     String afterStack = "something below\n";
-    String wallOfStacks = beforeStack +
-            "\n" +
-            stack +
-            "\n" +
-            afterStack;
+    String wallOfStacks = beforeStack + "\n" + stack + "\n" + afterStack;
     StackTraceFilter filter = new StackTraceFilter(false);
-    boolean result = filter.test(wallOfStacks, beforeStack.length()+1, beforeStack.length() + stack.length() + 2);
+    boolean result =
+        filter.test(
+            wallOfStacks, beforeStack.length() + 1, beforeStack.length() + stack.length() + 2);
     assertTrue(result);
   }
 }

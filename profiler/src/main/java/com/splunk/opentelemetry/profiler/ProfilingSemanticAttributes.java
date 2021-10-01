@@ -23,10 +23,6 @@ import io.opentelemetry.api.common.AttributeKey;
 
 public class ProfilingSemanticAttributes {
 
-  // NOTE: When we update to upstream 1.4.0+ this can be found on ResourceAttributes and this can be
-  // removed
-  public static final String SCHEMA_URL = "https://opentelemetry.io/schemas/1.4.0";
-
   /** This is a HEC field that shows up in the Logging UI. */
   public static final AttributeKey<String> SOURCE_TYPE = stringKey("com.splunk.sourcetype");
 

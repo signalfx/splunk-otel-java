@@ -23,11 +23,10 @@ import static net.bytebuddy.matcher.ElementMatchers.nameStartsWith;
 import static net.bytebuddy.matcher.ElementMatchers.named;
 import static net.bytebuddy.matcher.ElementMatchers.takesArgument;
 
+import io.opentelemetry.instrumentation.api.field.VirtualField;
 import io.opentelemetry.javaagent.extension.instrumentation.TypeInstrumentation;
 import io.opentelemetry.javaagent.extension.instrumentation.TypeTransformer;
 import io.opentelemetry.javaagent.instrumentation.api.CallDepth;
-import io.opentelemetry.javaagent.instrumentation.api.ContextStore;
-import io.opentelemetry.javaagent.instrumentation.api.InstrumentationContext;
 import io.opentelemetry.javaagent.instrumentation.netty.v3_8.ChannelTraceContext;
 import net.bytebuddy.asm.Advice;
 import net.bytebuddy.description.type.TypeDescription;
@@ -88,10 +87,10 @@ public class ChannelPipelineInstrumentation implements TypeInstrumentation {
         return;
       }
 
-      ContextStore<Channel, ChannelTraceContext> contextStore =
-          InstrumentationContext.get(Channel.class, ChannelTraceContext.class);
+      VirtualField<Channel, ChannelTraceContext> channelTraceContextField =
+          VirtualField.find(Channel.class, ChannelTraceContext.class);
 
-      ChannelPipelineUtil.addServerTimingHandler(pipeline, handler, contextStore);
+      ChannelPipelineUtil.addServerTimingHandler(pipeline, handler, channelTraceContextField);
     }
   }
 
@@ -119,10 +118,10 @@ public class ChannelPipelineInstrumentation implements TypeInstrumentation {
         return;
       }
 
-      ContextStore<Channel, ChannelTraceContext> contextStore =
-          InstrumentationContext.get(Channel.class, ChannelTraceContext.class);
+      VirtualField<Channel, ChannelTraceContext> channelTraceContextField =
+          VirtualField.find(Channel.class, ChannelTraceContext.class);
 
-      ChannelPipelineUtil.addServerTimingHandler(pipeline, handler, contextStore);
+      ChannelPipelineUtil.addServerTimingHandler(pipeline, handler, channelTraceContextField);
     }
   }
 
@@ -140,10 +139,10 @@ public class ChannelPipelineInstrumentation implements TypeInstrumentation {
     public static void addServerTimingHandler(
         ChannelPipeline pipeline,
         ChannelHandler handler,
-        ContextStore<Channel, ChannelTraceContext> contextStore) {
+        VirtualField<Channel, ChannelTraceContext> channelTraceContextField) {
       if (handler instanceof HttpServerCodec || handler instanceof HttpResponseEncoder) {
         pipeline.addLast(
-            ServerTimingHandler.class.getName(), new ServerTimingHandler(contextStore));
+            ServerTimingHandler.class.getName(), new ServerTimingHandler(channelTraceContextField));
       }
     }
 

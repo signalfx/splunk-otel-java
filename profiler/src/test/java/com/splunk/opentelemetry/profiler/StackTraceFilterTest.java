@@ -82,4 +82,19 @@ class StackTraceFilterTest {
             + "        [...]";
     assertFalse(filter.test(stack, 0, stack.length()));
   }
+
+  @Test
+  void includeInternals() {
+    String stack =
+            "\"JFR Recorder Thread\" #16 daemon prio=5 os_prio=0 cpu=75.99ms elapsed=436.13s tid=0x00007f5194e83800 nid=0xda waiting on condition  [0x0000000000000000]\n"
+                    + "   java.lang.Thread.State: RUNNABLE\n";
+    StackTraceFilter filter = new StackTraceFilter(true);
+    assertTrue(filter.test(stack, 0, stack.length()));
+    stack =
+            "\"JFR Periodic Tasks\" #17 daemon prio=5 os_prio=0 cpu=171.78ms elapsed=435.78s tid=0x00007f5194ecd800 nid=0xdb in Object.wait()  [0x00007f5187dfe000]\n"
+                    + "   java.lang.Thread.State: TIMED_WAITING (on object monitor)\n"
+                    + "        at java.lang.Object.wait(java.base@11.0.12/Native Method)\n"
+                    + "        [...]";
+    assertTrue(filter.test(stack, 0, stack.length()));
+  }
 }

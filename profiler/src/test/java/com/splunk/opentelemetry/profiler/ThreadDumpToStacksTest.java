@@ -18,6 +18,10 @@ package com.splunk.opentelemetry.profiler;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.isA;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import com.google.common.base.Charsets;
 import com.google.common.io.CharStreams;
@@ -51,5 +55,24 @@ class ThreadDumpToStacksTest {
             prefix -> {
               assertThat(result).noneMatch(stack -> stack.contains(prefix));
             });
+  }
+
+  @Test
+  void edgeCase1_simplyHitsEnd() {
+    StackTraceFilter filter = mock(StackTraceFilter.class);
+    when(filter.test(isA(String.class), anyInt(), anyInt())).thenReturn(true);
+
+    ThreadDumpToStacks threadDumpToStacks = new ThreadDumpToStacks(filter);
+    Stream<String> resultStream = threadDumpToStacks.toStream("something\n\n");
+    List<String> result = resultStream.collect(Collectors.toList());
+    assertThat(result).containsExactly("something");
+  }
+
+  @Test
+  void edgeCase2_emptyString() {
+    ThreadDumpToStacks threadDumpToStacks = new ThreadDumpToStacks(null);
+    Stream<String> resultStream = threadDumpToStacks.toStream("");
+    List<String> result = resultStream.collect(Collectors.toList());
+    assertTrue(result.isEmpty());
   }
 }

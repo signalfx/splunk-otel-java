@@ -23,10 +23,9 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 /**
- * This class turns the "wall of stacks" from the jdk.ThreadDump event
- * into Stream<String>, where each String in the Stream is a stack trace.
- * It purposefully avoids String.split("\n\n") in order to help reduce
- * allocations, especially for filtered stacks.
+ * This class turns the "wall of stacks" from the jdk.ThreadDump event into Stream<String>, where
+ * each String in the Stream is a stack trace. It purposefully avoids String.split("\n\n") in order
+ * to help reduce allocations, especially for filtered stacks.
  */
 public class ThreadDumpToStacks {
 

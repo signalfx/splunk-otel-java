@@ -125,4 +125,25 @@ class StackTraceFilterTest {
     StackTraceFilter filter = new StackTraceFilter(false);
     assertFalse(filter.test(stack, 0, stack.length()-1));
   }
+
+  @Test
+  void extractFromMiddle() {
+    String stack = "\"logback-7\" #75 daemon prio=5 os_prio=31 cpu=0.25ms elapsed=173.79s tid=0x00007fb98f0ad000 nid=0xd30b waiting on condiion  [0x0000700014a2e000]\n" +
+            "   java.lang.Thread.State: WAITING (parking)\n" +
+            "        at jdk.internal.misc.Unsafe.park(java.base@11.0.9.1/Native Method)\n" +
+            "        - parking to wait for  <0x00000006127b80f8> (a java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject)\n" +
+            "        at java.util.concurrent.ThreadPoolExecutor$Worker.run(java.base@11.0.9.1/ThreadPoolExecutor.java:628)\n" +
+            "        at java.lang.Thread.run(java.base@11.0.9.1/Thread.java:834)\n";
+
+    String beforeStack = "something above\n";
+    String afterStack = "something below\n";
+    String wallOfStacks = beforeStack +
+            "\n" +
+            stack +
+            "\n" +
+            afterStack;
+    StackTraceFilter filter = new StackTraceFilter(false);
+    boolean result = filter.test(wallOfStacks, beforeStack.length()+1, beforeStack.length() + stack.length() + 2);
+    assertTrue(result);
+  }
 }

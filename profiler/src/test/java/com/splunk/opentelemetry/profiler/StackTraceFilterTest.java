@@ -23,7 +23,7 @@ import org.junit.jupiter.api.Test;
 class StackTraceFilterTest {
 
   @Test
-  void testOneLiners() {
+  void oneLiners() {
     StackTraceFilter filter = new StackTraceFilter(false);
     String stack =
         "\"GC Thread#1\" os_prio=0 cpu=1285.69ms elapsed=11333.59s tid=0x00007f43e0001000 nid=0xd0 runnable";
@@ -31,7 +31,7 @@ class StackTraceFilterTest {
   }
 
   @Test
-  void testRegularStack() {
+  void regularStack() {
     String stack =
         "\"http-nio-8080-BlockPoller\" #31 daemon prio=5 os_prio=0 cpu=1475.30ms elapsed=11327.18s tid=0x00007f4411ca8000 nid=0xe8 runnable  [0x00007f43c9691000]\n"
             + "   java.lang.Thread.State: RUNNABLE\n"
@@ -43,7 +43,7 @@ class StackTraceFilterTest {
   }
 
   @Test
-  void testBatchedLogsExporter() {
+  void batchedLogsExporter() {
     String stack =
         "\"Batched Logs Exporter\" #15 daemon prio=5 os_prio=0 cpu=267.95ms elapsed=436.16s tid=0x00007f5194044800 nid=0xd9 waiting on condition  [0x00007f51d0467000]\n"
             + "   java.lang.Thread.State: TIMED_WAITING (parking)\n"
@@ -57,7 +57,7 @@ class StackTraceFilterTest {
   }
 
   @Test
-  void testBatchSpanProcessor() {
+  void batchSpanProcessor() {
     String stack =
         "\"BatchSpanProcessor_WorkerThread-1\" #12 daemon prio=5 os_prio=0 cpu=21.68ms elapsed=437.90s tid=0x00007f5200a8f000 nid=0xd4 waiting on condition  [0x00007f51d12ab000]\n"
             + "   java.lang.Thread.State: TIMED_WAITING (parking)\n"
@@ -69,7 +69,7 @@ class StackTraceFilterTest {
   }
 
   @Test
-  void testJFRThreads() {
+  void jfrThreads() {
     String stack =
         "\"JFR Recorder Thread\" #16 daemon prio=5 os_prio=0 cpu=75.99ms elapsed=436.13s tid=0x00007f5194e83800 nid=0xda waiting on condition  [0x0000000000000000]\n"
             + "   java.lang.Thread.State: RUNNABLE\n";
@@ -111,5 +111,11 @@ class StackTraceFilterTest {
                     "\"VM Periodic Task Thread\" os_prio=0 cpu=29.95ms elapsed=65.02s tid=0x00007f2b60c75800 nid=0x1a waiting on condition\n";
     StackTraceFilter filter = new StackTraceFilter(false);
     assertFalse(filter.test(stack, 0, stack.length()-1));
+  }
+
+  @Test
+  void badLastIndex() {
+    StackTraceFilter filter = new StackTraceFilter(false);
+    assertFalse(filter.test(null, 0, -1));
   }
 }

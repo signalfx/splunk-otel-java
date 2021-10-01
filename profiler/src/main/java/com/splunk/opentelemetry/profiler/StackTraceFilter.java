@@ -40,7 +40,7 @@ public class StackTraceFilter {
   }
 
   public boolean test(String wallOfStacks, int startIndex, int lastIndex) {
-    if ((lastIndex == -1) || (lastIndex >= wallOfStacks.length())){
+    if ((lastIndex == -1) || (lastIndex >= wallOfStacks.length())) {
       return false;
     }
     // Must start with a quote for the thread name

@@ -16,7 +16,7 @@
 
 package com.splunk.opentelemetry.logs;
 
-import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.SCHEMA_URL;
+import static io.opentelemetry.semconv.resource.attributes.ResourceAttributes.SCHEMA_URL;
 import static io.opentelemetry.semconv.trace.attributes.SemanticAttributes.HTTP_METHOD;
 import static java.time.temporal.ChronoUnit.MINUTES;
 import static org.junit.jupiter.api.Assertions.assertEquals;

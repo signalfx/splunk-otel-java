@@ -118,4 +118,11 @@ class StackTraceFilterTest {
     StackTraceFilter filter = new StackTraceFilter(false);
     assertFalse(filter.test(null, 0, -1));
   }
+
+  @Test
+  void lineDoesntStartWithDoubleQuote() {
+    String stack = "JNI global refs: 50, weak refs: 0\n";
+    StackTraceFilter filter = new StackTraceFilter(false);
+    assertFalse(filter.test(stack, 0, stack.length()-1));
+  }
 }

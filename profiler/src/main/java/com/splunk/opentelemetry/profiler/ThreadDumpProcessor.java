@@ -30,7 +30,7 @@ public class ThreadDumpProcessor {
   private final Consumer<StackToSpanLinkage> processor;
   private final ThreadDumpToStacks threadDumpToStacks;
 
-  public ThreadDumpProcessor(Builder builder) {
+  private ThreadDumpProcessor(Builder builder) {
     this.contextualizer = builder.contextualizer;
     this.processor = builder.processor;
     this.threadDumpToStacks = builder.threadDumpToStacks;

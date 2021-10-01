@@ -42,11 +42,11 @@ class ThreadDumpToStacksTest {
 
   @Test
   void testStream() {
-    ThreadDumpToStacks threadDumpToStacks = new ThreadDumpToStacks(new AgentInternalsFilter(false));
+    ThreadDumpToStacks threadDumpToStacks = new ThreadDumpToStacks(new StackTraceFilter(false));
     Stream<String> resultStream = threadDumpToStacks.toStream(threadDumpResult);
     List<String> result = resultStream.collect(Collectors.toList());
     assertEquals(40, result.size());
-    Stream.of(AgentInternalsFilter.UNWANTED_PREFIXES)
+    Stream.of(StackTraceFilter.UNWANTED_PREFIXES)
         .forEach(
             prefix -> {
               assertThat(result).noneMatch(stack -> stack.contains(prefix));

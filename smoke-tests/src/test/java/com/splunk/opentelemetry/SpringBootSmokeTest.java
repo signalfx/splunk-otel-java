@@ -45,7 +45,7 @@ public class SpringBootSmokeTest extends AppServerTest {
     // given
     startTargetOrSkipTest(getTargetImage(jdk));
 
-    Request request = new Request.Builder().url(getUrl("/greeting", false)).get().build();
+    Request request = new Request.Builder().url(getUrl("/greeting")).get().build();
 
     // when
     Response response = client.newCall(request).execute();
@@ -88,7 +88,7 @@ public class SpringBootSmokeTest extends AppServerTest {
     // given
     startTargetOrSkipTest(getTargetImage(11));
 
-    Request request = new Request.Builder().url(getUrl("/front", false)).get().build();
+    Request request = new Request.Builder().url(getUrl("/front")).get().build();
 
     // when
     Response response = client.newCall(request).execute();

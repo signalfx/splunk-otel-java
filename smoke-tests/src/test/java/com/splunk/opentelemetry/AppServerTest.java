@@ -53,7 +53,7 @@ public abstract class AppServerTest extends SmokeTest {
    */
   protected void assertWebAppTrace(ExpectedServerAttributes serverAttributes)
       throws IOException, InterruptedException {
-    String url = getUrl("/app/greeting", false);
+    String url = getUrl("/app/greeting");
 
     Request request = new Request.Builder().get().url(url).build();
     String responseHeadersAndBody = tryGetResponse(request);
@@ -76,10 +76,12 @@ public abstract class AppServerTest extends SmokeTest {
     assertWebengineAttributesInWebAppTrace(serverAttributes, traces);
 
     assertEquals(
-        1, traces.countFilteredAttributes("http.url", url), "The span for the initial web request");
+        1,
+        traces.countFilteredAttributes("http.target", "/app/greeting"),
+        "The span for the initial web request");
     assertEquals(
         2,
-        traces.countFilteredAttributes("http.url", getUrl("/app/headers", true)),
+        traces.countFilteredAttributes("http.url", "/app/headers"),
         "Client and server spans for the remote call");
 
     assertThat(traces.getInstrumentationLibraryVersions())
@@ -131,8 +133,7 @@ public abstract class AppServerTest extends SmokeTest {
 
   protected void assertServerHandler(ExpectedServerAttributes serverAttributes)
       throws IOException, InterruptedException {
-    String url =
-        getUrl("/this-is-definitely-not-there-but-there-should-be-a-trace-nevertheless", false);
+    String url = getUrl("/this-is-definitely-not-there-but-there-should-be-a-trace-nevertheless");
 
     Request request = new Request.Builder().get().url(url).build();
     Response response = client.newCall(request).execute();
@@ -163,8 +164,8 @@ public abstract class AppServerTest extends SmokeTest {
     clearTelemetry();
   }
 
-  protected String getUrl(String path, boolean originalPort) {
-    int port = originalPort ? 8080 : containerManager.getTargetMappedPort(8080);
+  protected String getUrl(String path) {
+    int port = containerManager.getTargetMappedPort(8080);
     return String.format("http://localhost:%d%s", port, path);
   }
 

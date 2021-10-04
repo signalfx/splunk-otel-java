@@ -16,10 +16,10 @@
 
 package com.splunk.opentelemetry.logs;
 
-import com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes;
 import io.opentelemetry.proto.common.v1.InstrumentationLibrary;
 import io.opentelemetry.proto.logs.v1.InstrumentationLibraryLogs;
 import io.opentelemetry.proto.logs.v1.LogRecord;
+import io.opentelemetry.semconv.resource.attributes.ResourceAttributes;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -53,7 +53,7 @@ public class InstrumentationLibraryLogsAdapter
     List<LogRecord> logs = logEntries.stream().map(logEntryAdapter).collect(Collectors.toList());
 
     return InstrumentationLibraryLogs.newBuilder()
-        .setSchemaUrl(ProfilingSemanticAttributes.SCHEMA_URL)
+        .setSchemaUrl(ResourceAttributes.SCHEMA_URL)
         .setInstrumentationLibrary(library)
         .addAllLogs(logs)
         .build();

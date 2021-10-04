@@ -21,7 +21,7 @@ import static io.opentelemetry.javaagent.instrumentation.netty.v3_8.server.Netty
 import com.splunk.opentelemetry.instrumentation.servertiming.ServerTimingHeader;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.context.propagation.TextMapSetter;
-import io.opentelemetry.javaagent.instrumentation.api.ContextStore;
+import io.opentelemetry.instrumentation.api.field.VirtualField;
 import io.opentelemetry.javaagent.instrumentation.netty.v3_8.ChannelTraceContext;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelHandlerContext;
@@ -31,16 +31,16 @@ import org.jboss.netty.handler.codec.http.HttpHeaders;
 import org.jboss.netty.handler.codec.http.HttpResponse;
 
 public class ServerTimingHandler extends SimpleChannelDownstreamHandler {
-  private final ContextStore<Channel, ChannelTraceContext> contextStore;
+  private final VirtualField<Channel, ChannelTraceContext> channelTraceContextField;
 
-  public ServerTimingHandler(ContextStore<Channel, ChannelTraceContext> contextStore) {
-    this.contextStore = contextStore;
+  public ServerTimingHandler(VirtualField<Channel, ChannelTraceContext> channelTraceContextField) {
+    this.channelTraceContextField = channelTraceContextField;
   }
 
   @Override
   public void writeRequested(ChannelHandlerContext ctx, MessageEvent msg) {
     ChannelTraceContext channelTraceContext =
-        contextStore.putIfAbsent(ctx.getChannel(), ChannelTraceContext.FACTORY);
+        channelTraceContextField.computeIfNull(ctx.getChannel(), ChannelTraceContext.FACTORY);
 
     Context context = tracer().getServerContext(channelTraceContext);
     if (context == null || !(msg.getMessage() instanceof HttpResponse)) {

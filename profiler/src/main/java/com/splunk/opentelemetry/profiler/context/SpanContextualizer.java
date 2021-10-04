@@ -21,7 +21,6 @@ import static com.splunk.opentelemetry.profiler.context.StackToSpanLinkage.witho
 
 import com.splunk.opentelemetry.profiler.events.ContextAttached;
 import java.time.Instant;
-import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -55,16 +54,23 @@ public class SpanContextualizer {
 
   /** Parses thread info from the raw stack string and links it to a span (if available). */
   public StackToSpanLinkage link(Instant time, String rawStack, RecordedEvent event) {
-    List<String> frames = Arrays.asList(lineSplitter.split(rawStack));
-    if (frames.size() < 2) {
-      // Many GC and other VM threads don't actually have a stack...
+
+    // Many GC and other VM threads don't actually have a stack...
+    if (isStacklessThread(rawStack)) {
       return withoutLinkage(time, rawStack, event);
     }
-    long threadId = descriptorParser.parseThreadId(frames.get(0));
+    long threadId = descriptorParser.parseThreadId(rawStack);
     if (threadId == CANT_PARSE_THREAD_ID) {
       return withoutLinkage(time, rawStack, event);
     }
     return link(time, rawStack, threadId, event);
+  }
+
+  private boolean isStacklessThread(String rawStack) {
+    int firstNewline = rawStack.indexOf('\n');
+    return (firstNewline == -1)
+        || (firstNewline == rawStack.length() - 1)
+        || (rawStack.indexOf('\n', firstNewline + 1) == -1);
   }
 
   /** Links the raw stack with the span info for the given thread. */

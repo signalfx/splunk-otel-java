@@ -90,13 +90,13 @@ The agent works with Java runtimes version 8 and higher. For the full list of re
 
 ## Get started
 
-Follow these steps to automatically instrument your application using the Java (or JVM) agent.
+Follow these steps to automatically instrument your application using the Java agent:
 
 1.  Check that you meet the [requirements](#requirements).
 
 2.  Make sure that the collector you set up to receive trace data is installed and configured.
 
-3.  Download the JAR file for the latest version of the agent.
+3.  Download the JAR file for the latest version of the agent:
 
     -   On Linux, run:
 
@@ -111,7 +111,7 @@ Follow these steps to automatically instrument your application using the Java (
         Invoke-WebRequest -Uri https://github.com/signalfx/splunk-otel-java/releases/latest/download/splunk-otel-javaagent-all.jar -OutFile splunk-otel-javaagent.jar
         ```
 
-4.  Set the `OTEL_SERVICE_NAME` environment variable.
+4.  Set the `OTEL_SERVICE_NAME` environment variable:
 
     -   On Linux, run:
 
@@ -125,7 +125,7 @@ Follow these steps to automatically instrument your application using the Java (
         $env:OTEL_SERVICE_NAME=<yourServiceName>
         ```
 
-5.  Enable the Java agent.
+5.  Enable the Java agent:
 
     ```bash
     java -javaagent:./splunk-otel-javaagent.jar \
@@ -134,8 +134,9 @@ Follow these steps to automatically instrument your application using the Java (
 
     Insert the `-javaagent` flag before the `-jar` file, adding it as a JVM option, not as an application argument.
 
-> To generate a snippet that includes all the basic install commands for your environment and service, open the Observability Cloud
-wizard in **Data Setup > APM Instrumentation > Java > Add Connection**.
+> **Note**: Supported java servers may require different steps to add the path to the JVM agent to their configuration. See [Add the JVM agent to Java servers](./docs/server-instructions.md).
+
+> **Tip**: To generate a snippet that includes all the basic install commands for your environment and service, open the Splunk Observability Cloud wizard in **Data Setup > APM Instrumentation > Java > Add Connection**.
 
 When you run your application with the Java agent, trace data goes to Observability Cloud through the Splunk OTel connector. If no data
 appears in **Observability > APM**, see [Troubleshooting](#troubleshooting).

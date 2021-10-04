@@ -48,6 +48,7 @@ class JfrPathHandler implements Consumer<Path> {
     try (Stream<RecordedEvent> events = recordingFile.open(path)) {
       events.forEach(eventProcessingChain::accept);
     }
+    eventProcessingChain.flushBuffer();
     onFileFinished.accept(path);
   }
 

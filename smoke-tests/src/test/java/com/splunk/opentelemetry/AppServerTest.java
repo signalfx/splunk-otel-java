@@ -63,7 +63,7 @@ public abstract class AppServerTest extends SmokeTest {
     assertEquals(1, traces.countTraceIds(), "There is one trace");
 
     Set<String> traceIds = traces.getTraceIds();
-    String theOneTraceId = new ArrayList<>(traceIds).get(0);
+    String theOneTraceId = traceIds.iterator().next();
 
     assertTrue(
         responseHeadersAndBody.contains(theOneTraceId),
@@ -76,11 +76,17 @@ public abstract class AppServerTest extends SmokeTest {
     assertWebengineAttributesInWebAppTrace(serverAttributes, traces);
 
     assertEquals(
-        1, traces.countFilteredAttributes("http.url", url), "The span for the initial web request");
+        1,
+        traces.countFilteredAttributes("http.target", "/app/greeting"),
+        "The span for the initial web request");
     assertEquals(
-        2,
+        1,
         traces.countFilteredAttributes("http.url", getUrl("/app/headers", true)),
-        "Client and server spans for the remote call");
+        "Client span for the remote call");
+    assertEquals(
+        1,
+        traces.countFilteredAttributes("http.target", "/app/headers"),
+        "Server span for the remote call");
 
     assertThat(traces.getInstrumentationLibraryVersions())
         .as("All spans are tagged with current otel library version")

@@ -16,7 +16,9 @@
 
 package com.splunk.opentelemetry;
 
-import static com.splunk.opentelemetry.helper.TestImage.*;
+import static com.splunk.opentelemetry.helper.TestImage.linuxImage;
+import static com.splunk.opentelemetry.helper.TestImage.proprietaryLinuxImage;
+import static com.splunk.opentelemetry.helper.TestImage.windowsImage;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -25,7 +27,11 @@ import static org.junit.jupiter.params.provider.Arguments.arguments;
 import com.splunk.opentelemetry.helper.TestImage;
 import io.opentelemetry.proto.trace.v1.Span;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 import okhttp3.Request;

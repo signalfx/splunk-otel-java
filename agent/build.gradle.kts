@@ -37,7 +37,7 @@ dependencies {
   javaagentLibs(project(":custom"))
   javaagentLibs(project(":profiler"))
 
-  upstreamAgent("io.opentelemetry.javaagent:opentelemetry-javaagent:$otelInstrumentationVersion:all")
+  upstreamAgent("io.opentelemetry.javaagent:opentelemetry-javaagent")
 }
 
 val javaagentDependencies = dependencies

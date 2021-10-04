@@ -30,7 +30,7 @@ public class RulesBasedSamplerSmokeTest extends AppServerTest {
   protected Map<String, String> getExtraEnv() {
     return Map.of(
         "OTEL_TRACES_SAMPLER", "rules",
-        "OTEL_TRACES_SAMPLER_ARG", "drop=/front;default=parentbased_always_on");
+        "OTEL_TRACES_SAMPLER_ARG", "drop=/front;fallback=parentbased_always_on");
   }
 
   @Test

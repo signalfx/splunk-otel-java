@@ -43,7 +43,7 @@ public class RuleBasedSamplerProvider implements ConfigurableSamplerProvider {
 
     RuleBasedRoutingSamplerBuilder builder =
         RuleBasedRoutingSampler.builder(SpanKind.SERVER, samplerConfiguration.fallback);
-    samplerConfiguration.drop.forEach(d -> builder.drop(SemanticAttributes.HTTP_URL, d));
+    samplerConfiguration.drop.forEach(d -> builder.drop(SemanticAttributes.HTTP_TARGET, d));
 
     return builder.build();
   }
@@ -59,6 +59,10 @@ public class RuleBasedSamplerProvider implements ConfigurableSamplerProvider {
     Sampler fallback = Sampler.parentBased(Sampler.alwaysOn());
 
     public Config(String config) {
+      if(config == null){
+        return;
+      }
+
       try {
         String[] parts = config.split(";");
         for (String part : parts) {

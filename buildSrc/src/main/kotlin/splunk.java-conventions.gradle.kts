@@ -20,7 +20,7 @@ val otelInstrumentationVersion = "1.7.0-SNAPSHOT"
 val otelInstrumentationAlphaVersion = "1.7.0-alpha-SNAPSHOT"
 val micrometerVersion = "1.7.4"
 
-// dependencyManagement can't into classifiers, we have to pass version the old way for deps with qualifiers
+// instrumentation version is used to compute Implementation-Version manifest attribute
 extra["otelInstrumentationVersion"] = otelInstrumentationVersion
 
 extensions.configure<DependencyManagementExtension>("dependencyManagement") {
@@ -54,6 +54,7 @@ extensions.configure<DependencyManagementExtension>("dependencyManagement") {
     }
 
     // otel-java-instrumentation
+    dependency("io.opentelemetry.javaagent:opentelemetry-javaagent:${otelInstrumentationVersion}")
     dependency("io.opentelemetry.instrumentation:opentelemetry-instrumentation-api:${otelInstrumentationAlphaVersion}")
     dependencySet("io.opentelemetry.javaagent:${otelInstrumentationAlphaVersion}") {
       entry("opentelemetry-agent-for-testing")

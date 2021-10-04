@@ -59,7 +59,7 @@ public class RuleBasedSamplerProvider implements ConfigurableSamplerProvider {
     Sampler fallback = Sampler.parentBased(Sampler.alwaysOn());
 
     public Config(String config) {
-      if(config == null){
+      if (config == null) {
         return;
       }
 

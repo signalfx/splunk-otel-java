@@ -16,9 +16,7 @@
 
 package com.splunk.opentelemetry;
 
-import static com.splunk.opentelemetry.helper.TestImage.linuxImage;
-import static com.splunk.opentelemetry.helper.TestImage.proprietaryLinuxImage;
-import static com.splunk.opentelemetry.helper.TestImage.windowsImage;
+import static com.splunk.opentelemetry.helper.TestImage.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -27,11 +25,7 @@ import static org.junit.jupiter.params.provider.Arguments.arguments;
 import com.splunk.opentelemetry.helper.TestImage;
 import io.opentelemetry.proto.trace.v1.Span;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 import okhttp3.Request;
@@ -53,7 +47,7 @@ public abstract class AppServerTest extends SmokeTest {
    */
   protected void assertWebAppTrace(ExpectedServerAttributes serverAttributes)
       throws IOException, InterruptedException {
-    String url = getUrl("/app/greeting");
+    String url = getUrl("/app/greeting", false);
 
     Request request = new Request.Builder().get().url(url).build();
     String responseHeadersAndBody = tryGetResponse(request);
@@ -63,7 +57,7 @@ public abstract class AppServerTest extends SmokeTest {
     assertEquals(1, traces.countTraceIds(), "There is one trace");
 
     Set<String> traceIds = traces.getTraceIds();
-    String theOneTraceId = new ArrayList<>(traceIds).get(0);
+    String theOneTraceId = traceIds.iterator().next();
 
     assertTrue(
         responseHeadersAndBody.contains(theOneTraceId),
@@ -80,9 +74,13 @@ public abstract class AppServerTest extends SmokeTest {
         traces.countFilteredAttributes("http.target", "/app/greeting"),
         "The span for the initial web request");
     assertEquals(
-        2,
-        traces.countFilteredAttributes("http.url", "/app/headers"),
-        "Client and server spans for the remote call");
+        1,
+        traces.countFilteredAttributes("http.url", getUrl("/app/headers", true)),
+        "Client span for the remote call");
+    assertEquals(
+        1,
+        traces.countFilteredAttributes("http.target", "/app/headers"),
+        "Server span for the remote call");
 
     assertThat(traces.getInstrumentationLibraryVersions())
         .as("All spans are tagged with current otel library version")
@@ -133,7 +131,8 @@ public abstract class AppServerTest extends SmokeTest {
 
   protected void assertServerHandler(ExpectedServerAttributes serverAttributes)
       throws IOException, InterruptedException {
-    String url = getUrl("/this-is-definitely-not-there-but-there-should-be-a-trace-nevertheless");
+    String url =
+        getUrl("/this-is-definitely-not-there-but-there-should-be-a-trace-nevertheless", false);
 
     Request request = new Request.Builder().get().url(url).build();
     Response response = client.newCall(request).execute();
@@ -164,8 +163,8 @@ public abstract class AppServerTest extends SmokeTest {
     clearTelemetry();
   }
 
-  protected String getUrl(String path) {
-    int port = containerManager.getTargetMappedPort(8080);
+  protected String getUrl(String path, boolean originalPort) {
+    int port = originalPort ? 8080 : containerManager.getTargetMappedPort(8080);
     return String.format("http://localhost:%d%s", port, path);
   }
 

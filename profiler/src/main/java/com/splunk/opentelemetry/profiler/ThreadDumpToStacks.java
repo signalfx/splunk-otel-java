@@ -91,7 +91,7 @@ public class ThreadDumpToStacks {
       if (next >= wallOfStacks.length() - 2) {
         done = true;
       }
-      start = next + 2;
+      start = next + 2; // next chunk starts after the "\n\n"
       next = start;
       return result;
     }

@@ -108,7 +108,7 @@ public class JfrActivator implements AgentListener {
         new StackToSpanLinkageProcessor(logEntryCreator, batchingLogsProcessor);
 
     ThreadDumpToStacks threadDumpToStacks =
-        new ThreadDumpToStacks(buildAgentInternalsFilter(config));
+        new ThreadDumpToStacks(buildStackTraceFilter(config));
 
     ThreadDumpProcessor threadDumpProcessor =
         buildThreadDumpProcessor(spanContextualizer, processor, threadDumpToStacks);
@@ -161,7 +161,7 @@ public class JfrActivator implements AgentListener {
   }
 
   /** May filter out agent internal call stacks based on the config. */
-  private StackTraceFilter buildAgentInternalsFilter(Config config) {
+  private StackTraceFilter buildStackTraceFilter(Config config) {
     return new StackTraceFilter(config.getBoolean(CONFIG_KEY_INCLUDE_INTERNALS, false));
   }
 

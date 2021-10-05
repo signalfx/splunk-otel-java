@@ -110,7 +110,8 @@ public class JfrActivator implements AgentListener {
 
     ThreadDumpProcessor threadDumpProcessor =
         buildThreadDumpProcessor(config, spanContextualizer, processor);
-    TLABProcessor tlabProcessor = new TLABProcessor(batchingLogsProcessor, commonAttributes);
+    TLABProcessor tlabProcessor =
+        new TLABProcessor(config, batchingLogsProcessor, commonAttributes);
     EventProcessingChain eventProcessingChain =
         new EventProcessingChain(spanContextualizer, threadDumpProcessor, tlabProcessor);
     Consumer<Path> deleter = buildFileDeleter(config);

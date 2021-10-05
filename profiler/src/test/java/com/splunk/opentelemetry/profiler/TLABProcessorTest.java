@@ -35,6 +35,8 @@ import jdk.jfr.EventType;
 import jdk.jfr.consumer.RecordedEvent;
 import jdk.jfr.consumer.RecordedStackTrace;
 import org.junit.jupiter.api.Test;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 
 class TLABProcessorTest {
 
@@ -58,6 +60,26 @@ class TLABProcessorTest {
     TLABProcessor processor = new TLABProcessor(config, null, null, null);
     processor.accept(event);
     // success, no NPEs
+  }
+
+  @Test
+  void testProfilingDisabled() {
+    RecordedEvent event =
+        mock(
+            RecordedEvent.class,
+            new Answer<Object>() {
+              @Override
+              public Object answer(InvocationOnMock invocation) throws Throwable {
+                throw new IllegalStateException(
+                    "RecordedEvent methods should not be called when TLAB profiling is not enabled");
+              }
+            });
+
+    Config config = mock(Config.class);
+    when(config.getBoolean(Configuration.CONFIG_KEY_TLAB_ENABLED)).thenReturn(false);
+
+    TLABProcessor processor = new TLABProcessor(config, null, null, null);
+    processor.accept(event);
   }
 
   @Test

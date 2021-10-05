@@ -32,7 +32,7 @@ import java.util.Arrays;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
-class ResourceLogAdapterTest {
+class ResourceLogsAdapterTest {
 
   @Test
   void testApply() {

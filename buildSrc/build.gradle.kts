@@ -14,7 +14,7 @@ repositories {
 dependencies {
   implementation(gradleApi())
 
-  implementation("com.diffplug.spotless:spotless-plugin-gradle:5.14.0")
+  implementation("com.diffplug.spotless:spotless-plugin-gradle:5.16.0")
   implementation("io.opentelemetry.instrumentation:gradle-plugins:0.8.0-SNAPSHOT")
   implementation("io.spring.gradle:dependency-management-plugin:1.0.11.RELEASE")
 

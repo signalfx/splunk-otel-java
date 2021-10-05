@@ -24,9 +24,9 @@ tasks {
     description = "List all instrumentation modules that use muzzle"
     doFirst {
       subprojects
-          .filter { it.plugins.hasPlugin("io.opentelemetry.instrumentation.muzzle-check") }
-          .map { it.path }
-          .forEach { println(it) }
+        .filter { it.plugins.hasPlugin("io.opentelemetry.instrumentation.muzzle-check") }
+        .map { it.path }
+        .forEach { println(it) }
     }
   }
 }

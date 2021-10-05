@@ -101,7 +101,8 @@ tasks {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 
     manifest {
-      attributes(mapOf(
+      attributes(
+        mapOf(
           "Main-Class" to "io.opentelemetry.javaagent.OpenTelemetryAgent",
           "Agent-Class" to "com.splunk.opentelemetry.javaagent.SplunkAgent",
           "Premain-Class" to "com.splunk.opentelemetry.javaagent.SplunkAgent",
@@ -109,7 +110,8 @@ tasks {
           "Can-Retransform-Classes" to true,
           "Implementation-Vendor" to "Splunk",
           "Implementation-Version" to "splunk-${project.version}-otel-$otelInstrumentationVersion"
-      ))
+        )
+      )
     }
   }
 

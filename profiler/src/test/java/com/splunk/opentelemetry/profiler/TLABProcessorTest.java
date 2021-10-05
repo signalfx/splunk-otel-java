@@ -28,6 +28,7 @@ import com.splunk.opentelemetry.logs.LogEntry;
 import com.splunk.opentelemetry.logs.LogsProcessor;
 import com.splunk.opentelemetry.profiler.events.EventPeriods;
 import com.splunk.opentelemetry.profiler.util.StackSerializer;
+import io.opentelemetry.instrumentation.api.config.Config;
 import java.time.Instant;
 import java.util.concurrent.atomic.AtomicReference;
 import jdk.jfr.EventType;
@@ -50,7 +51,11 @@ class TLABProcessorTest {
   void testNullStack() {
     RecordedEvent event = mock(RecordedEvent.class);
     when(event.getStackTrace()).thenReturn(null); // just to be explicit
-    TLABProcessor processor = new TLABProcessor(null, null, null);
+
+    Config config = mock(Config.class);
+    when(config.getBoolean(Configuration.CONFIG_KEY_TLAB_ENABLED)).thenReturn(true);
+
+    TLABProcessor processor = new TLABProcessor(config, null, null, null);
     processor.accept(event);
     // success, no NPEs
   }
@@ -87,7 +92,10 @@ class TLABProcessorTest {
     when(eventType.getName()).thenReturn("tee-lab");
     when(serializer.serialize(stack)).thenReturn(stackAsString);
 
-    TLABProcessor processor = new TLABProcessor(serializer, consumer, commonAttrs);
+    Config config = mock(Config.class);
+    when(config.getBoolean(Configuration.CONFIG_KEY_TLAB_ENABLED)).thenReturn(true);
+
+    TLABProcessor processor = new TLABProcessor(config, serializer, consumer, commonAttrs);
     processor.accept(event);
 
     assertEquals(stackAsString, seenLogEntry.get().getBody());

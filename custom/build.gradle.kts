@@ -10,6 +10,7 @@ dependencies {
   annotationProcessor("com.google.auto.service:auto-service")
   compileOnly("com.google.auto.service:auto-service")
 
+  implementation("io.opentelemetry.contrib:opentelemetry-contrib-samplers")
   implementation("io.opentelemetry:opentelemetry-exporter-jaeger-thrift") {
     exclude("io.opentelemetry", "opentelemetry-sdk")
   }

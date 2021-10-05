@@ -34,15 +34,21 @@ data class Arguments(
 data class AppServerTarget(val name: String, val args: List<Arguments>)
 
 val proprietaryTargets = listOf(
-    AppServerTarget("weblogic", listOf(
-        Arguments(versions = listOf("12.1.3", "12.2.1.4"), vms = listOf("hotspot"), jdks = listOf("8"), extraArgs = mapOf("tagSuffix" to "developer")),
-        Arguments(versions = listOf("14.1.1.0"), vms = listOf("hotspot"), jdks = listOf("8"), extraArgs = mapOf("tagSuffix" to "developer-8")),
-        Arguments(versions = listOf("14.1.1.0"), vms = listOf("hotspot"), jdks = listOf("11"), extraArgs = mapOf("tagSuffix" to "developer-11"))
-    )),
-    AppServerTarget("jboss-eap", listOf(
-        Arguments(versions = listOf("7.1.0"), vms = listOf("hotspot", "openj9"), jdks = listOf("8")),
-        Arguments(versions = listOf("7.3.0"), vms = listOf("hotspot", "openj9"), jdks = listOf("8", "11"))
-    ))
+  AppServerTarget(
+    "weblogic",
+    listOf(
+      Arguments(versions = listOf("12.1.3", "12.2.1.4"), vms = listOf("hotspot"), jdks = listOf("8"), extraArgs = mapOf("tagSuffix" to "developer")),
+      Arguments(versions = listOf("14.1.1.0"), vms = listOf("hotspot"), jdks = listOf("8"), extraArgs = mapOf("tagSuffix" to "developer-8")),
+      Arguments(versions = listOf("14.1.1.0"), vms = listOf("hotspot"), jdks = listOf("11"), extraArgs = mapOf("tagSuffix" to "developer-11"))
+    )
+  ),
+  AppServerTarget(
+    "jboss-eap",
+    listOf(
+      Arguments(versions = listOf("7.1.0"), vms = listOf("hotspot", "openj9"), jdks = listOf("8")),
+      Arguments(versions = listOf("7.3.0"), vms = listOf("hotspot", "openj9"), jdks = listOf("8", "11"))
+    )
+  )
 )
 
 fun createDockerTasks(targets: List<AppServerTarget>) {

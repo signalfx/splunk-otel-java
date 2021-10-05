@@ -33,14 +33,14 @@ tasks {
     }
 
     val suites = mapOf(
-        "glassfish" to listOf("**/GlassFishSmokeTest.*"),
-        "jboss" to listOf("**/JBossEapSmokeTest.*"),
-        "jetty" to listOf("**/JettySmokeTest.*"),
-        "liberty" to listOf("**/LibertySmokeTest.*"),
-        "tomcat" to listOf("**/TomcatSmokeTest.*"),
-        "tomee" to listOf("**/TomeeSmokeTest.*"),
-        "weblogic" to listOf("**/WebLogicSmokeTest.*"),
-        "wildfly" to listOf("**/WildFlySmokeTest.*")
+      "glassfish" to listOf("**/GlassFishSmokeTest.*"),
+      "jboss" to listOf("**/JBossEapSmokeTest.*"),
+      "jetty" to listOf("**/JettySmokeTest.*"),
+      "liberty" to listOf("**/LibertySmokeTest.*"),
+      "tomcat" to listOf("**/TomcatSmokeTest.*"),
+      "tomee" to listOf("**/TomeeSmokeTest.*"),
+      "weblogic" to listOf("**/WebLogicSmokeTest.*"),
+      "wildfly" to listOf("**/WildFlySmokeTest.*")
     )
 
     val smokeTestSuite: String? by project

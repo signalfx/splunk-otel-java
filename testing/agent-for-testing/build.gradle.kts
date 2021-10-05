@@ -66,13 +66,15 @@ tasks {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 
     manifest {
-      attributes(mapOf(
+      attributes(
+        mapOf(
           "Main-Class" to "io.opentelemetry.javaagent.OpenTelemetryAgent",
           "Agent-Class" to "io.opentelemetry.javaagent.OpenTelemetryAgent",
           "Premain-Class" to "io.opentelemetry.javaagent.OpenTelemetryAgent",
           "Can-Redefine-Classes" to true,
           "Can-Retransform-Classes" to true
-      ))
+        )
+      )
     }
   }
 

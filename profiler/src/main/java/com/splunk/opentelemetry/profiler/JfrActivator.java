@@ -107,8 +107,7 @@ public class JfrActivator implements AgentListener {
     StackToSpanLinkageProcessor processor =
         new StackToSpanLinkageProcessor(logEntryCreator, batchingLogsProcessor);
 
-    ThreadDumpToStacks threadDumpToStacks =
-        new ThreadDumpToStacks(buildStackTraceFilter(config));
+    ThreadDumpToStacks threadDumpToStacks = new ThreadDumpToStacks(buildStackTraceFilter(config));
 
     ThreadDumpProcessor threadDumpProcessor =
         buildThreadDumpProcessor(spanContextualizer, processor, threadDumpToStacks);

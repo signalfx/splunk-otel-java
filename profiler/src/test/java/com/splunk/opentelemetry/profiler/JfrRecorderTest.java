@@ -23,7 +23,6 @@ import static org.mockito.Mockito.*;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.util.HashMap;
@@ -31,10 +30,10 @@ import java.util.Map;
 import java.util.function.Consumer;
 import jdk.jfr.Recording;
 import jdk.jfr.RecordingState;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.io.TempDir;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -42,7 +41,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class JfrRecorderTest {
 
-  static Path outdir;
+  @TempDir Path outDir;
   Duration maxAge = Duration.ofMinutes(13);
   Map<String, String> settings;
   @Mock Recording recording;
@@ -52,13 +51,6 @@ class JfrRecorderTest {
   void setup() {
     settings = new HashMap<>();
     settings.put("foo", "bar");
-  }
-
-  @BeforeAll
-  static void setupClass() throws Exception {
-    Path dumpDir = Path.of("build/test-jfr-dump");
-    dumpDir.toFile().mkdirs();
-    outdir = Files.createTempDirectory(dumpDir, "tmp");
   }
 
   @Test
@@ -85,7 +77,7 @@ class JfrRecorderTest {
 
     jfrRecorder.flushSnapshot();
     Path outputPath = pathCaptor.getValue();
-    assertTrue(outputPath.startsWith(outdir));
+    assertTrue(outputPath.startsWith(outDir));
   }
 
   @Test
@@ -126,7 +118,7 @@ class JfrRecorderTest {
         JfrRecorder.builder()
             .maxAgeDuration(maxAge)
             .settings(settings)
-            .namingConvention(new RecordingFileNamingConvention(outdir))
+            .namingConvention(new RecordingFileNamingConvention(outDir))
             .onNewRecordingFile(onNewRecordingFile)
             .jfr(jfr);
 

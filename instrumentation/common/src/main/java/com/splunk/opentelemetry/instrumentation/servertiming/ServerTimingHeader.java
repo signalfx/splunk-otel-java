@@ -21,8 +21,6 @@ import io.opentelemetry.api.trace.propagation.W3CTraceContextPropagator;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.context.propagation.TextMapSetter;
 import io.opentelemetry.instrumentation.api.config.Config;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Adds {@code Server-Timing} header (and {@code Access-Control-Expose-Headers}) to the HTTP
@@ -48,9 +46,20 @@ public final class ServerTimingHeader {
   }
 
   private static String toHeaderValue(Context context) {
-    Map<String, String> traceContextHeaders = new HashMap<>();
-    W3CTraceContextPropagator.getInstance().inject(context, traceContextHeaders, Map::put);
-    return "traceparent;desc=\"" + traceContextHeaders.get("traceparent") + "\"";
+    TraceParentHolder traceParentHolder = new TraceParentHolder();
+    W3CTraceContextPropagator.getInstance()
+        .inject(context, traceParentHolder, TraceParentHolder::set);
+    return "traceparent;desc=\"" + traceParentHolder.traceParent + "\"";
+  }
+
+  private static class TraceParentHolder {
+    String traceParent;
+
+    public void set(String key, String value) {
+      if ("traceparent".equals(key)) {
+        traceParent = value;
+      }
+    }
   }
 
   private ServerTimingHeader() {}

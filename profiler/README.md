@@ -27,7 +27,7 @@ its ingest path.
 
 * Java 8 above 8u262, or Java 11+
 * 100 MB of free disk space
-* [Splunk OpenTelemetry Connector](https://github.com/signalfx/splunk-otel-collector) version 0.33.1 or higher
+* [Splunk OpenTelemetry Connector](https://github.com/signalfx/splunk-otel-collector) version 0.33.1 or higher. _Sending profiling data directly to ingest is not supported at this time_.
 * Profiler is enabled at startup (disabled by default, see the Configuration section)
 
 # Enable the profiler

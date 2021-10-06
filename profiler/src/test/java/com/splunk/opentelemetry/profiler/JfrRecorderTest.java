@@ -21,6 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.time.Duration;
@@ -32,6 +33,7 @@ import jdk.jfr.RecordingState;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.io.TempDir;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -39,7 +41,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class JfrRecorderTest {
 
-  static final Path OUTDIR = Path.of("/some/path");
+  @TempDir Path outDir;
   Duration maxAge = Duration.ofMinutes(13);
   Map<String, String> settings;
   @Mock Recording recording;
@@ -68,17 +70,14 @@ class JfrRecorderTest {
     JFR jfr = mock(JFR.class);
     Recording snap = mock(Recording.class);
     ArgumentCaptor<Path> pathCaptor = ArgumentCaptor.forClass(Path.class);
-    doNothing().when(snap).dump(pathCaptor.capture());
+    doNothing().when(onNewRecordingFile).accept(pathCaptor.capture());
+    when(snap.getStream(any(), any())).thenReturn(new ByteArrayInputStream(new byte[0]));
     when(jfr.takeSnapshot()).thenReturn(snap);
     JfrRecorder jfrRecorder = buildJfrRecorder(jfr);
 
     jfrRecorder.flushSnapshot();
     Path outputPath = pathCaptor.getValue();
-
-    verify(snap).dump(isA(Path.class));
-    assertTrue(outputPath.startsWith(OUTDIR));
-    verify(snap).close();
-    verify(onNewRecordingFile).accept(outputPath);
+    assertTrue(outputPath.startsWith(outDir));
   }
 
   @Test
@@ -87,7 +86,7 @@ class JfrRecorderTest {
     JfrRecorder jfrRecorder = buildJfrRecorder(jfr);
     Recording snap = mock(Recording.class);
     when(jfr.takeSnapshot()).thenReturn(snap);
-    doThrow(new IOException("KABOOM!!!!!!!!")).when(snap).dump(isA(Path.class));
+    doThrow(new IOException("KABOOM!!!!!!!!")).when(snap).getStream(any(), any());
     jfrRecorder.flushSnapshot();
     // No exception propagated
   }
@@ -119,7 +118,7 @@ class JfrRecorderTest {
         JfrRecorder.builder()
             .maxAgeDuration(maxAge)
             .settings(settings)
-            .namingConvention(new RecordingFileNamingConvention(OUTDIR))
+            .namingConvention(new RecordingFileNamingConvention(outDir))
             .onNewRecordingFile(onNewRecordingFile)
             .jfr(jfr);
 

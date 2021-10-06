@@ -20,8 +20,11 @@ import static java.util.Objects.requireNonNull;
 
 import com.google.common.annotations.VisibleForTesting;
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
+import java.time.Instant;
 import java.util.Map;
 import java.util.function.Consumer;
 import jdk.jfr.Recording;
@@ -40,6 +43,7 @@ class JfrRecorder {
   private final Consumer<Path> onNewRecordingFile;
   private final RecordingFileNamingConvention namingConvention;
   private volatile Recording recording;
+  private volatile Instant snapshotStart = Instant.now();
 
   JfrRecorder(Builder builder) {
     this.settings = requireNonNull(builder.settings);
@@ -69,7 +73,12 @@ class JfrRecorder {
     try (Recording snap = jfr.takeSnapshot()) {
       Path path = namingConvention.newOutputPath();
       logger.debug("Flushing a JFR snapshot: {}", path);
-      snap.dump(path);
+      Instant snapshotEnd = snap.getStopTime();
+      try (InputStream in = snap.getStream(snapshotStart, snapshotEnd)) {
+        Files.copy(in, path);
+        logger.debug("Wrote JFR dump {} with size {}", path, path.toFile().length());
+      }
+      snapshotStart = snapshotEnd;
       onNewRecordingFile.accept(path);
     } catch (IOException e) {
       logger.error("Error flushing JFR snapshot data to disk", e);

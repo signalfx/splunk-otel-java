@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.splunk.opentelemetry.profiler;
+package com.splunk.opentelemetry.profiler.old;
 
 import java.util.Arrays;
 import java.util.function.Predicate;

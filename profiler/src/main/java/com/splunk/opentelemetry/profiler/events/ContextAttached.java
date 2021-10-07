@@ -31,19 +31,13 @@ import jdk.jfr.StackTrace;
 public class ContextAttached extends Event {
 
   public static final String EVENT_NAME = "otel.ContextAttached";
-  // Context is starting
-  public static final byte IN = 0;
-  // Context is ending/closing
-  public static final byte OUT = 1;
 
   public final String traceId;
   public final String spanId;
-  public final byte direction;
 
-  public ContextAttached(String traceId, String spanId, byte direction) {
+  public ContextAttached(String traceId, String spanId) {
     this.traceId = traceId;
     this.spanId = spanId;
-    this.direction = direction;
   }
 
   public String getTraceId() {
@@ -52,9 +46,5 @@ public class ContextAttached extends Event {
 
   public String getSpanId() {
     return spanId;
-  }
-
-  public byte getDirection() {
-    return direction;
   }
 }

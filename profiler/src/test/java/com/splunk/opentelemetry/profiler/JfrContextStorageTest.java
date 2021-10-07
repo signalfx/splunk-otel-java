@@ -18,8 +18,6 @@ package com.splunk.opentelemetry.profiler;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -35,7 +33,7 @@ import io.opentelemetry.api.trace.TraceState;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.context.ContextStorage;
 import io.opentelemetry.context.Scope;
-import java.util.function.BiFunction;
+import java.util.function.Function;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -65,30 +63,28 @@ class JfrContextStorageTest {
 
   @Test
   void testNewEvent() {
-    ContextAttached result = JfrContextStorage.newEvent(spanContext, ContextAttached.OUT);
+    ContextAttached result = JfrContextStorage.newEvent(spanContext);
     assertEquals(traceId, result.getTraceId());
     assertEquals(spanId, result.getSpanId());
-    assertEquals(ContextAttached.OUT, result.getDirection());
   }
 
   @Test
   void testAttachLifecycle() {
     ContextAttached inEvent = mock(ContextAttached.class);
     ContextAttached outEvent = mock(ContextAttached.class);
-    BiFunction<SpanContext, Byte, ContextAttached> newEvent = mock(BiFunction.class);
+    Function<SpanContext, ContextAttached> newEvent = mock(Function.class);
 
     when(delegate.attach(newContext)).thenReturn(delegatedScope);
     when(inEvent.shouldCommit()).thenReturn(true);
     when(outEvent.shouldCommit()).thenReturn(true);
-    when(newEvent.apply(spanContext, ContextAttached.IN)).thenReturn(inEvent);
-    when(newEvent.apply(spanContext, ContextAttached.OUT)).thenReturn(outEvent);
+    when(newEvent.apply(spanContext)).thenReturn(inEvent);
+    when(newEvent.apply(SpanContext.getInvalid())).thenReturn(outEvent);
 
     JfrContextStorage contextStorage = new JfrContextStorage(delegate, newEvent);
 
     Scope resultScope = contextStorage.attach(newContext);
     verify(inEvent).begin();
     verify(inEvent).commit();
-    verify(newEvent, never()).apply(isA(SpanContext.class), eq(ContextAttached.OUT));
     verify(outEvent, never()).begin();
     verify(outEvent, never()).commit();
     verify(delegatedScope, never()).close();
@@ -106,8 +102,8 @@ class JfrContextStorageTest {
     span = Span.wrap(spanContext);
     newContext = Context.root().with(span);
 
-    BiFunction<SpanContext, Byte, ContextAttached> newEvent =
-        (sc, b) -> {
+    Function<SpanContext, ContextAttached> newEvent =
+        sc -> {
           fail("Should not have attempted to create events");
           throw new RuntimeException("boom");
         };

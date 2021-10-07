@@ -65,7 +65,7 @@ class SpanContextualizerTest {
     long threadId = 906;
 
     Events parent = buildEvents(spanId, threadId);
-    Events child = buildEvents(childSpanId, threadId);
+    Events child = buildEvents(childSpanId, threadId, parent);
 
     testClass.updateContext(parent.scopeStart);
     assertLinkage(testClass, parent, rawStack1);
@@ -175,7 +175,6 @@ class SpanContextualizerTest {
     assertNoLinkage(testClass, events2);
     assertNoLinkage(testClass, events3);
 
-    assertEquals(0, testClass.inFlightSpanCount());
     assertEquals(0, testClass.inFlightThreadCount());
   }
 
@@ -268,7 +267,6 @@ class SpanContextualizerTest {
     testClass.updateContext(rootEvents.scopeEnd);
     assertNoLinkage(testClass, rootEvents);
     assertEquals(0, testClass.inFlightThreadCount());
-    assertEquals(0, testClass.inFlightSpanCount());
   }
 
   private void assertLinkage(SpanContextualizer testClass, Events events) {
@@ -289,9 +287,13 @@ class SpanContextualizerTest {
   }
 
   private Events buildEvents(String spanId, long threadId) {
+    return buildEvents(spanId, threadId, null);
+  }
+
+  private Events buildEvents(String spanId, long threadId, Events parent) {
     Events result = new Events(spanId, threadId);
     result.scopeStart = contextEventIn(spanId, threadId);
-    result.scopeEnd = contextEventOut(spanId, threadId);
+    result.scopeEnd = contextEventOut(parent, threadId);
     result.sourceEvent = mock(RecordedEvent.class);
     EventType eventType = mock(EventType.class);
     when(result.sourceEvent.getEventType()).thenReturn(eventType);
@@ -313,21 +315,24 @@ class SpanContextualizerTest {
   }
 
   private RecordedEvent contextEventIn(String spanId, long threadId) {
-    return contextEvent(spanId, threadId, ContextAttached.IN);
+    return contextEvent(traceId, spanId, threadId);
   }
 
-  private RecordedEvent contextEventOut(String spanId, long threadId) {
-    return contextEvent(spanId, threadId, ContextAttached.OUT);
+  private RecordedEvent contextEventOut(Events parent, long threadId) {
+    if (parent == null) {
+      return contextEvent(null, null, threadId);
+    } else {
+      return contextEvent(traceId, parent.spanId, threadId);
+    }
   }
 
-  private RecordedEvent contextEvent(String spanId, long threadId, byte direction) {
+  private static RecordedEvent contextEvent(String traceId, String spanId, long threadId) {
     RecordedEvent event = mock(RecordedEvent.class);
     EventType type = mock(EventType.class);
     when(type.getName()).thenReturn(ContextAttached.EVENT_NAME);
     when(event.getEventType()).thenReturn(type);
     when(event.getString("traceId")).thenReturn(traceId);
     when(event.getString("spanId")).thenReturn(spanId);
-    when(event.getByte("direction")).thenReturn(direction);
     RecordedThread thread = mock(RecordedThread.class);
     when(thread.getJavaThreadId()).thenReturn(threadId);
     when(event.getThread()).thenReturn(thread);

@@ -24,11 +24,9 @@ import static org.mockito.Mockito.when;
 
 import com.splunk.opentelemetry.profiler.context.SpanContextualizer;
 import com.splunk.opentelemetry.profiler.context.StackToSpanLinkage;
-import com.splunk.opentelemetry.profiler.events.ContextAttached;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
-import java.util.function.Predicate;
 import jdk.jfr.EventType;
 import jdk.jfr.consumer.RecordedEvent;
 import jdk.jfr.consumer.RecordedThread;
@@ -42,13 +40,11 @@ class ThreadDumpProcessorTest {
     String spanId = "xxxxxxyyyyyyyzyzzz";
     SpanContextualizer contextualizer = new SpanContextualizer();
     long idOfThreadRunningTheSpan = 3L;
-    Predicate<String> agentInternalsFilter = x -> true;
 
     RecordedEvent event = mock(RecordedEvent.class);
     RecordedEvent threadStartingSpan = mock(RecordedEvent.class);
     RecordedThread threadRunningSpan = mock(RecordedThread.class);
 
-    when(threadStartingSpan.getByte("direction")).thenReturn(ContextAttached.IN);
     when(threadStartingSpan.getString("traceId")).thenReturn(traceId);
     when(threadStartingSpan.getString("spanId")).thenReturn(spanId);
     when(threadStartingSpan.getThread()).thenReturn(threadRunningSpan);

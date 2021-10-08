@@ -53,11 +53,11 @@ public class SpanContextualizer {
         spanId,
         event.getStartTime());
 
-    if (traceId != null && spanId != null) {
+    if (traceId == null || spanId == null) {
+      threadSpans.remove(javaThreadId);
+    } else {
       SpanLinkage linkage = new SpanLinkage(traceId, spanId, javaThreadId);
       threadSpans.put(javaThreadId, linkage);
-    } else {
-      threadSpans.remove(javaThreadId);
     }
   }
 

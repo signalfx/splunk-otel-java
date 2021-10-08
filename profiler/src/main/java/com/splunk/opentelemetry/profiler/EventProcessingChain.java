@@ -196,11 +196,12 @@ class EventProcessingChain {
   }
 
   /**
-   * Helper class for detecting when parsing advances to next chunk. We'll sort events only for the current chunk,
-   * similarly how jfr command line tool does when printing events. While jfr command line tool uses an internal method
-   * to detect last event of chunk we do this in a bit roundabout way. As event types are recreated for each chunk we
-   * know that we are in a new chunk when event type of context attach or thread dump event doesn't match what we have
-   * recorded. When chunk change is detected process buffered events and clear the buffer.
+   * Helper class for detecting when parsing advances to next chunk. We'll sort events only for the
+   * current chunk, similarly how jfr command line tool does when printing events. While jfr command
+   * line tool uses an internal method to detect last event of chunk we do this in a bit roundabout
+   * way. As event types are recreated for each chunk we know that we are in a new chunk when event
+   * type of context attach or thread dump event doesn't match what we have recorded. When chunk
+   * change is detected process buffered events and clear the buffer.
    */
   private static class ChunkTracker {
     private EventType contextAttachedEventType = null;

@@ -25,6 +25,7 @@ import com.splunk.opentelemetry.logs.LogEntry;
 import com.splunk.opentelemetry.profiler.context.SpanLinkage;
 import com.splunk.opentelemetry.profiler.context.StackToSpanLinkage;
 import java.time.Instant;
+import jdk.jfr.EventType;
 import jdk.jfr.consumer.RecordedEvent;
 import org.junit.jupiter.api.Test;
 
@@ -34,6 +35,9 @@ class StackToSpanLinkageProcessorTest {
   void testProcessor() {
     Instant time = Instant.now();
     RecordedEvent recordedEvent = mock(RecordedEvent.class);
+    EventType eventType = mock(EventType.class);
+    when(recordedEvent.getEventType()).thenReturn(eventType);
+    when(eventType.getName()).thenReturn("event name");
     StackToSpanLinkage linkedSpan =
         new StackToSpanLinkage(time, "some stack", recordedEvent, SpanLinkage.NONE);
     LogEntryCreator logCreator = mock(LogEntryCreator.class);

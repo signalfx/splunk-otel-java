@@ -75,7 +75,7 @@ public class TLABProcessor implements Consumer<RecordedEvent> {
     Instant time = event.getStartTime();
     String stack = stackSerializer.serialize(stackTrace);
     AttributesBuilder builder =
-        commonAttributes.build(event).toBuilder()
+        commonAttributes.build(event.getEventType().getName()).toBuilder()
             .put(ALLOCATION_SIZE_KEY, event.getLong("allocationSize"));
 
     if (event.hasField("tlabSize")) {

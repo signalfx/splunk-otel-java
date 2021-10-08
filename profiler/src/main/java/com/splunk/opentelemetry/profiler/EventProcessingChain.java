@@ -26,6 +26,7 @@ import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
+import jdk.jfr.EventType;
 import jdk.jfr.consumer.RecordedEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,6 +42,7 @@ class EventProcessingChain {
       new PriorityQueue<>(Comparator.comparing(RecordedEvent::getStartTime));
   private final EventStats eventStats =
       logger.isDebugEnabled() ? new EventStatsImpl() : new NoOpEventStats();
+  private final ChunkTracker chunkTracker = new ChunkTracker();
 
   EventProcessingChain(
       SpanContextualizer spanContextualizer,
@@ -56,7 +58,15 @@ class EventProcessingChain {
     eventStats.incEventCount();
     switch (eventName) {
       case ContextAttached.EVENT_NAME:
+        if (chunkTracker.contextAttached(event)) {
+          flushBuffer();
+        }
+        buffer.add(event);
+        break;
       case ThreadDumpProcessor.EVENT_NAME:
+        if (chunkTracker.threadDump(event)) {
+          flushBuffer();
+        }
         buffer.add(event);
         break;
       case TLABProcessor.NEW_TLAB_EVENT_NAME:
@@ -75,6 +85,7 @@ class EventProcessingChain {
   public void flushBuffer() {
     buffer.forEach(dispatchContextualizedThreadDumps());
     buffer.clear();
+    chunkTracker.reset();
   }
 
   private Consumer<RecordedEvent> dispatchContextualizedThreadDumps() {
@@ -181,6 +192,39 @@ class EventProcessingChain {
     public void close() {
       long end = System.nanoTime();
       counter.timeSpent += end - start;
+    }
+  }
+
+  /**
+   * Helper class for detecting when parsing advances to next chunk. We'll sort events only for the current chunk,
+   * similarly how jfr command line tool does when printing events. While jfr command line tool uses an internal method
+   * to detect last event of chunk we do this in a bit roundabout way. As event types are recreated for each chunk we
+   * know that we are in a new chunk when event type of context attach or thread dump event doesn't match what we have
+   * recorded. When chunk change is detected process buffered events and clear the buffer.
+   */
+  private static class ChunkTracker {
+    private EventType contextAttachedEventType = null;
+    private EventType threadDumpEventType = null;
+
+    boolean contextAttached(RecordedEvent event) {
+      EventType currentEventType = event.getEventType();
+      if (contextAttachedEventType == null) {
+        contextAttachedEventType = currentEventType;
+      }
+      return contextAttachedEventType != currentEventType;
+    }
+
+    boolean threadDump(RecordedEvent event) {
+      EventType currentEventType = event.getEventType();
+      if (threadDumpEventType == null) {
+        threadDumpEventType = currentEventType;
+      }
+      return threadDumpEventType != currentEventType;
+    }
+
+    void reset() {
+      contextAttachedEventType = null;
+      threadDumpEventType = null;
     }
   }
 }

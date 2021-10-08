@@ -23,14 +23,14 @@ import jdk.jfr.consumer.RecordedEvent;
 public class StackToSpanLinkage {
   private final Instant time;
   private final String rawStack;
-  private final RecordedEvent sourceEvent;
+  private final String sourceEventName;
   private final SpanLinkage spanLinkage;
 
   public StackToSpanLinkage(
       Instant time, String rawStack, RecordedEvent sourceEvent, SpanLinkage spanLinkage) {
     this.time = time;
     this.rawStack = rawStack;
-    this.sourceEvent = sourceEvent;
+    this.sourceEventName = sourceEvent.getEventType().getName();
     this.spanLinkage = spanLinkage;
   }
 
@@ -59,11 +59,7 @@ public class StackToSpanLinkage {
   }
 
   public String getSourceEventName() {
-    return sourceEvent.getEventType().getName();
-  }
-
-  public RecordedEvent getSourceEvent() {
-    return sourceEvent;
+    return sourceEventName;
   }
 
   public static StackToSpanLinkage withoutLinkage(

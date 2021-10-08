@@ -53,7 +53,7 @@ class LogEntryCommonAttributesTest {
 
     LogEntryCommonAttributes logEntryAttributes = new LogEntryCommonAttributes(periods);
 
-    Attributes result = logEntryAttributes.build(event);
+    Attributes result = logEntryAttributes.build(event.getEventType().getName());
     assertEquals(expected, result);
   }
 }

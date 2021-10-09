@@ -207,19 +207,23 @@ class EventProcessingChain {
     private EventType contextAttachedEventType = null;
     private EventType threadDumpEventType = null;
 
+    /** @return true when event belongs to a new chunk */
     boolean contextAttached(RecordedEvent event) {
       EventType currentEventType = event.getEventType();
       if (contextAttachedEventType == null) {
         contextAttachedEventType = currentEventType;
       }
+      // each chunk is parsed by a new parser that recreates event type
       return contextAttachedEventType != currentEventType;
     }
 
+    /** @return true when event belongs to a new chunk */
     boolean threadDump(RecordedEvent event) {
       EventType currentEventType = event.getEventType();
       if (threadDumpEventType == null) {
         threadDumpEventType = currentEventType;
       }
+      // each chunk is parsed by a new parser that recreates event type
       return threadDumpEventType != currentEventType;
     }
 

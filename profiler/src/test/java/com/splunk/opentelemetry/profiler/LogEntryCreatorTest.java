@@ -31,8 +31,6 @@ import com.splunk.opentelemetry.profiler.events.EventPeriods;
 import io.opentelemetry.api.common.Attributes;
 import java.time.Duration;
 import java.time.Instant;
-import jdk.jfr.EventType;
-import jdk.jfr.consumer.RecordedEvent;
 import org.junit.jupiter.api.Test;
 
 class LogEntryCreatorTest {
@@ -44,25 +42,16 @@ class LogEntryCreatorTest {
 
     String spanId = "zzzyyyzzz";
     String traceId = "abc123";
-
     long threadId = 987L;
-    EventType eventType = mock(EventType.class);
-    RecordedEvent sourceEvent = mock(RecordedEvent.class);
-    EventPeriods periods = mock(EventPeriods.class);
+    String eventName = "GoodEventHere";
 
-    when(sourceEvent.getEventType()).thenReturn(eventType);
-    when(eventType.getName()).thenReturn("GoodEventHere");
-    when(periods.getDuration("GoodEventHere")).thenReturn(Duration.ofMillis(606));
+    EventPeriods periods = mock(EventPeriods.class);
+    when(periods.getDuration(eventName)).thenReturn(Duration.ofMillis(606));
 
     SpanLinkage linkage = new SpanLinkage(traceId, spanId, threadId);
     Attributes attributes =
         Attributes.of(
-            SOURCE_EVENT_NAME,
-            "GoodEventHere",
-            SOURCE_EVENT_PERIOD,
-            606L,
-            SOURCE_TYPE,
-            "otel.profiling");
+            SOURCE_EVENT_NAME, eventName, SOURCE_EVENT_PERIOD, 606L, SOURCE_TYPE, "otel.profiling");
     LogEntry expected =
         LogEntry.builder()
             .traceId(traceId)
@@ -73,7 +62,7 @@ class LogEntryCreatorTest {
             .attributes(attributes)
             .build();
 
-    StackToSpanLinkage linkedSpan = new StackToSpanLinkage(time, "the.stack", sourceEvent, linkage);
+    StackToSpanLinkage linkedSpan = new StackToSpanLinkage(time, "the.stack", eventName, linkage);
 
     LogEntryCreator creator = new LogEntryCreator(new LogEntryCommonAttributes(periods));
     LogEntry result = creator.apply(linkedSpan);

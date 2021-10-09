@@ -63,14 +63,15 @@ public class SpanContextualizer {
 
   /** Parses thread info from the raw stack string and links it to a span (if available). */
   public StackToSpanLinkage link(Instant time, String rawStack, RecordedEvent event) {
+    String eventName = event.getEventType().getName();
 
     // Many GC and other VM threads don't actually have a stack...
     if (isStacklessThread(rawStack)) {
-      return withoutLinkage(time, rawStack, event);
+      return withoutLinkage(time, rawStack, eventName);
     }
     long threadId = descriptorParser.parseThreadId(rawStack);
     if (threadId == CANT_PARSE_THREAD_ID) {
-      return withoutLinkage(time, rawStack, event);
+      return withoutLinkage(time, rawStack, eventName);
     }
     return link(time, rawStack, threadId, event);
   }
@@ -84,13 +85,14 @@ public class SpanContextualizer {
 
   /** Links the raw stack with the span info for the given thread. */
   StackToSpanLinkage link(Instant time, String rawStack, long threadId, RecordedEvent event) {
+    String eventName = event.getEventType().getName();
     SpanLinkage spanLinkage = threadSpans.get(threadId);
     if (spanLinkage == null) {
       // We don't have an active span for this stack
-      return withoutLinkage(time, rawStack, event);
+      return withoutLinkage(time, rawStack, eventName);
     }
 
-    return new StackToSpanLinkage(time, rawStack, event, spanLinkage);
+    return new StackToSpanLinkage(time, rawStack, eventName, spanLinkage);
   }
 
   // Exists for testing

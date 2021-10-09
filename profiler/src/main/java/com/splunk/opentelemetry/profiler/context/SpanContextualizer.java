@@ -19,11 +19,9 @@ package com.splunk.opentelemetry.profiler.context;
 import static com.splunk.opentelemetry.profiler.context.StackDescriptorLineParser.CANT_PARSE_THREAD_ID;
 import static com.splunk.opentelemetry.profiler.context.StackToSpanLinkage.withoutLinkage;
 
-import com.splunk.opentelemetry.profiler.events.ContextAttached;
 import java.time.Instant;
-import java.util.List;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
+import java.util.HashMap;
+import java.util.Map;
 import jdk.jfr.consumer.RecordedEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,8 +34,7 @@ public class SpanContextualizer {
 
   private static final Logger logger = LoggerFactory.getLogger(SpanContextualizer.class);
 
-  private final Pattern lineSplitter = Pattern.compile("\n");
-  private final ThreadContextTracker threadContextTracker = new ThreadContextTracker();
+  private final Map<Long, SpanLinkage> threadSpans = new HashMap<>();
   private final StackDescriptorLineParser descriptorParser = new StackDescriptorLineParser();
 
   /**
@@ -45,10 +42,22 @@ public class SpanContextualizer {
    * ContextAttached events.
    */
   public void updateContext(RecordedEvent event) {
-    if (event.getByte("direction") == ContextAttached.IN) {
-      threadContextStarting(event);
+    String spanId = event.getString("spanId");
+    String traceId = event.getString("traceId");
+    long javaThreadId = event.getThread().getJavaThreadId();
+
+    logger.debug(
+        "Set thread context: [{}] {} {} at {}",
+        javaThreadId,
+        traceId,
+        spanId,
+        event.getStartTime());
+
+    if (traceId == null || spanId == null) {
+      threadSpans.remove(javaThreadId);
     } else {
-      threadContextEnding(event);
+      SpanLinkage linkage = new SpanLinkage(traceId, spanId, javaThreadId);
+      threadSpans.put(javaThreadId, linkage);
     }
   }
 
@@ -75,74 +84,17 @@ public class SpanContextualizer {
 
   /** Links the raw stack with the span info for the given thread. */
   StackToSpanLinkage link(Instant time, String rawStack, long threadId, RecordedEvent event) {
-    List<SpanLinkage> inFlightSpansForThisThread =
-        threadContextTracker.getInFlightSpansForThread(threadId);
-
-    if (inFlightSpansForThisThread.isEmpty()) {
-      // We don't know about any in-flight spans for this stack
+    SpanLinkage spanLinkage = threadSpans.get(threadId);
+    if (spanLinkage == null) {
+      // We don't have an active span for this stack
       return withoutLinkage(time, rawStack, event);
     }
 
-    // This thread has a span happening, augment with span details
-    if ((inFlightSpansForThisThread.size() > 1) && logger.isDebugEnabled()) {
-      logger.debug("!! Nested spans detected: We will only use the last span for now...");
-      logger.debug(
-          "traceIds for thread -> {}",
-          inFlightSpansForThisThread.stream()
-              .map(SpanLinkage::getTraceId)
-              .collect(Collectors.joining(" ")));
-      logger.debug(
-          "spans for thread -> {}",
-          inFlightSpansForThisThread.stream()
-              .map(SpanLinkage::getSpanId)
-              .collect(Collectors.joining(" ")));
-    }
-    SpanLinkage spanLinkage = inFlightSpansForThisThread.get(inFlightSpansForThisThread.size() - 1);
-    logger.debug(
-        "Stack trace was linked! thread={} span={} trace={}",
-        threadId,
-        spanLinkage.getSpanId(),
-        spanLinkage.getTraceId());
     return new StackToSpanLinkage(time, rawStack, event, spanLinkage);
-  }
-
-  private void threadContextStarting(RecordedEvent event) {
-    String spanId = event.getString("spanId");
-    String traceId = event.getString("traceId");
-    long javaThreadId = event.getThread().getJavaThreadId();
-    logger.debug(
-        "SPAN THREAD CONTEXT START : [{}] {} {} at {}",
-        javaThreadId,
-        traceId,
-        spanId,
-        event.getStartTime());
-
-    SpanLinkage linkage = new SpanLinkage(traceId, spanId, javaThreadId);
-
-    threadContextTracker.addLinkage(linkage);
-  }
-
-  private void threadContextEnding(RecordedEvent event) {
-    String spanId = event.getString("spanId");
-    String traceId = event.getString("traceId");
-    long threadId = event.getThread().getJavaThreadId();
-    logger.debug(
-        "SPAN THREAD CONTEXT END : [{}] {} {} at {}",
-        threadId,
-        traceId,
-        spanId,
-        event.getStartTime());
-
-    threadContextTracker.unlink(traceId, spanId, threadId);
   }
 
   // Exists for testing
   int inFlightThreadCount() {
-    return threadContextTracker.getNumberOfInFlightThreads();
-  }
-
-  // Exists for testing
-  int inFlightSpanCount() {
-    return threadContextTracker.getNumberOfInFlightSpans();
+    return threadSpans.size();
   }
 }

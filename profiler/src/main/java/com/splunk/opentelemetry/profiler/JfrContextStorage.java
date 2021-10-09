@@ -23,45 +23,55 @@ import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.context.ContextStorage;
 import io.opentelemetry.context.Scope;
-import java.util.function.BiFunction;
+import java.util.function.Function;
 import javax.annotation.Nullable;
 
 class JfrContextStorage implements ContextStorage {
 
   private final ContextStorage delegate;
-  private final BiFunction<SpanContext, Byte, ContextAttached> newEvent;
+  private final Function<SpanContext, ContextAttached> newEvent;
+  private final ThreadLocal<Span> activeSpan = ThreadLocal.withInitial(() -> Span.getInvalid());
 
   JfrContextStorage(ContextStorage delegate) {
     this(delegate, JfrContextStorage::newEvent);
   }
 
   @VisibleForTesting
-  JfrContextStorage(
-      ContextStorage delegate, BiFunction<SpanContext, Byte, ContextAttached> newEvent) {
+  JfrContextStorage(ContextStorage delegate, Function<SpanContext, ContextAttached> newEvent) {
     this.delegate = delegate;
     this.newEvent = newEvent;
   }
 
-  static ContextAttached newEvent(SpanContext spanContext, byte direction) {
-    return new ContextAttached(spanContext.getTraceId(), spanContext.getSpanId(), direction);
+  static ContextAttached newEvent(SpanContext spanContext) {
+    if (spanContext.isValid()) {
+      return new ContextAttached(spanContext.getTraceId(), spanContext.getSpanId());
+    }
+    return new ContextAttached(null, null);
   }
 
   @Override
   public Scope attach(Context toAttach) {
     Scope delegatedScope = delegate.attach(toAttach);
     Span span = Span.fromContext(toAttach);
-    generateEvent(span, ContextAttached.IN);
+    Span current = activeSpan.get();
+    // do nothing when active span didn't change
+    if (span == current) {
+      return delegatedScope;
+    }
+
+    // mark new span as active and generate event
+    activeSpan.set(span);
+    generateEvent(span);
     return () -> {
-      generateEvent(span, ContextAttached.OUT);
+      // restore previous active span
+      activeSpan.set(current);
+      generateEvent(current);
       delegatedScope.close();
     };
   }
 
-  private void generateEvent(Span span, byte direction) {
-    if (!span.getSpanContext().isValid()) {
-      return;
-    }
-    ContextAttached event = newEvent.apply(span.getSpanContext(), direction);
+  private void generateEvent(Span span) {
+    ContextAttached event = newEvent.apply(span.getSpanContext());
     event.begin();
     if (event.shouldCommit()) {
       event.commit();

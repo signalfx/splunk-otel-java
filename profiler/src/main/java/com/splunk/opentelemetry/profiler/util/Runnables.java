@@ -29,7 +29,7 @@ public class Runnables {
     return () -> {
       try {
         delegate.run();
-      } catch (Exception e) {
+      } catch (Throwable e) {
         String threadName = Thread.currentThread().getName();
         Logger logger = createLogger.apply(threadName);
         logger.error("Uncaught exception in thread {}", threadName, e);

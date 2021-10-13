@@ -16,13 +16,11 @@
 
 package com.splunk.opentelemetry.instrumentation.netty.v3_8;
 
-import static io.opentelemetry.javaagent.instrumentation.netty.v3_8.server.NettyHttpServerTracer.tracer;
-
 import com.splunk.opentelemetry.instrumentation.servertiming.ServerTimingHeader;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.context.propagation.TextMapSetter;
 import io.opentelemetry.instrumentation.api.field.VirtualField;
-import io.opentelemetry.javaagent.instrumentation.netty.v3_8.ChannelTraceContext;
+import io.opentelemetry.javaagent.instrumentation.netty.v3_8.NettyRequestContexts;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.MessageEvent;
@@ -31,18 +29,20 @@ import org.jboss.netty.handler.codec.http.HttpHeaders;
 import org.jboss.netty.handler.codec.http.HttpResponse;
 
 public class ServerTimingHandler extends SimpleChannelDownstreamHandler {
-  private final VirtualField<Channel, ChannelTraceContext> channelTraceContextField;
+  private final VirtualField<Channel, NettyRequestContexts> requestContextField;
 
-  public ServerTimingHandler(VirtualField<Channel, ChannelTraceContext> channelTraceContextField) {
-    this.channelTraceContextField = channelTraceContextField;
+  public ServerTimingHandler(VirtualField<Channel, NettyRequestContexts> requestContextField) {
+    this.requestContextField = requestContextField;
   }
 
   @Override
   public void writeRequested(ChannelHandlerContext ctx, MessageEvent msg) {
-    ChannelTraceContext channelTraceContext =
-        channelTraceContextField.computeIfNull(ctx.getChannel(), ChannelTraceContext.FACTORY);
+    NettyRequestContexts requestContexts = requestContextField.get(ctx.getChannel());
+    if (requestContexts == null) {
+      return;
+    }
 
-    Context context = tracer().getServerContext(channelTraceContext);
+    Context context = requestContexts.context();
     if (context == null || !(msg.getMessage() instanceof HttpResponse)) {
       ctx.sendDownstream(msg);
       return;

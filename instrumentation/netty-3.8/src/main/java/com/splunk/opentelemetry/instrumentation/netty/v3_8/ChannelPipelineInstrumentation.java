@@ -27,7 +27,7 @@ import io.opentelemetry.instrumentation.api.field.VirtualField;
 import io.opentelemetry.javaagent.extension.instrumentation.TypeInstrumentation;
 import io.opentelemetry.javaagent.extension.instrumentation.TypeTransformer;
 import io.opentelemetry.javaagent.instrumentation.api.CallDepth;
-import io.opentelemetry.javaagent.instrumentation.netty.v3_8.ChannelTraceContext;
+import io.opentelemetry.javaagent.instrumentation.netty.v3_8.NettyRequestContexts;
 import net.bytebuddy.asm.Advice;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.matcher.ElementMatcher;
@@ -70,7 +70,7 @@ public class ChannelPipelineInstrumentation implements TypeInstrumentation {
         @Advice.This ChannelPipeline pipeline,
         @Advice.Argument(1) ChannelHandler handler,
         @Advice.Local("splunkCallDepth") CallDepth callDepth) {
-      ChannelPipelineUtil.removeDuplicatesAndIncrementDepth(pipeline, handler);
+      ChannelPipelineUtil.removeDuplicates(pipeline, handler);
 
       // CallDepth does not allow just getting the depth value, so to avoid interfering with the
       // upstream netty implementation we do the same count but with our class
@@ -87,10 +87,10 @@ public class ChannelPipelineInstrumentation implements TypeInstrumentation {
         return;
       }
 
-      VirtualField<Channel, ChannelTraceContext> channelTraceContextField =
-          VirtualField.find(Channel.class, ChannelTraceContext.class);
+      VirtualField<Channel, NettyRequestContexts> requestContextField =
+          VirtualField.find(Channel.class, NettyRequestContexts.class);
 
-      ChannelPipelineUtil.addServerTimingHandler(pipeline, handler, channelTraceContextField);
+      ChannelPipelineUtil.addServerTimingHandler(pipeline, handler, requestContextField);
     }
   }
 
@@ -101,7 +101,7 @@ public class ChannelPipelineInstrumentation implements TypeInstrumentation {
         @Advice.This ChannelPipeline pipeline,
         @Advice.Argument(2) ChannelHandler handler,
         @Advice.Local("splunkCallDepth") CallDepth callDepth) {
-      ChannelPipelineUtil.removeDuplicatesAndIncrementDepth(pipeline, handler);
+      ChannelPipelineUtil.removeDuplicates(pipeline, handler);
 
       // CallDepth does not allow just getting the depth value, so to avoid interfering with the
       // upstream netty implementation we do the same count but with our class
@@ -118,16 +118,15 @@ public class ChannelPipelineInstrumentation implements TypeInstrumentation {
         return;
       }
 
-      VirtualField<Channel, ChannelTraceContext> channelTraceContextField =
-          VirtualField.find(Channel.class, ChannelTraceContext.class);
+      VirtualField<Channel, NettyRequestContexts> requestContextField =
+          VirtualField.find(Channel.class, NettyRequestContexts.class);
 
-      ChannelPipelineUtil.addServerTimingHandler(pipeline, handler, channelTraceContextField);
+      ChannelPipelineUtil.addServerTimingHandler(pipeline, handler, requestContextField);
     }
   }
 
   public static final class ChannelPipelineUtil {
-    public static void removeDuplicatesAndIncrementDepth(
-        ChannelPipeline pipeline, ChannelHandler handler) {
+    public static void removeDuplicates(ChannelPipeline pipeline, ChannelHandler handler) {
       // Pipelines are created once as a factory and then copied multiple times using the same add
       // methods as we are hooking. If our handler has already been added we need to remove it so we
       // don't end up with duplicates (this throws an exception)
@@ -139,10 +138,10 @@ public class ChannelPipelineInstrumentation implements TypeInstrumentation {
     public static void addServerTimingHandler(
         ChannelPipeline pipeline,
         ChannelHandler handler,
-        VirtualField<Channel, ChannelTraceContext> channelTraceContextField) {
+        VirtualField<Channel, NettyRequestContexts> requestContextField) {
       if (handler instanceof HttpServerCodec || handler instanceof HttpResponseEncoder) {
         pipeline.addLast(
-            ServerTimingHandler.class.getName(), new ServerTimingHandler(channelTraceContextField));
+            ServerTimingHandler.class.getName(), new ServerTimingHandler(requestContextField));
       }
     }
 

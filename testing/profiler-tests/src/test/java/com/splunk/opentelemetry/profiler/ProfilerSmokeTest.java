@@ -122,6 +122,8 @@ public class ProfilerSmokeTest {
                 "-Dsplunk.profiler.keep-files=true",
                 "-Dsplunk.profiler.period.threaddump=1001",
                 "-Dsplunk.profiler.logs-endpoint=http://collector:4317",
+                // uncomment to enable exporting traces
+                // "-Dotel.exporter.otlp.endpoint=http://collector:4317",
                 "-jar",
                 "/app/spring-petclinic-rest.jar")
             .withFileSystemBind(

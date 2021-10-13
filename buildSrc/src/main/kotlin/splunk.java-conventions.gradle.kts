@@ -13,8 +13,8 @@ repositories {
   }
 }
 
-val otelVersion = "1.6.0"
-val otelAlphaVersion = "1.6.0-alpha"
+val otelVersion = "1.7.0"
+val otelAlphaVersion = "1.7.0-alpha"
 val otelContribAlphaVersion = "1.6.0-alpha"
 val otelInstrumentationVersion = "1.7.0-SNAPSHOT"
 val otelInstrumentationAlphaVersion = "1.7.0-alpha-SNAPSHOT"
@@ -36,7 +36,7 @@ extensions.configure<DependencyManagementExtension>("dependencyManagement") {
       entry("docker-java-core")
       entry("docker-java-transport-httpclient5")
     }
-    dependencySet("com.google.protobuf:3.17.3") {
+    dependencySet("com.google.protobuf:3.18.1") {
       entry("protobuf-java")
       entry("protobuf-java-util")
     }
@@ -79,7 +79,7 @@ extensions.configure<DependencyManagementExtension>("dependencyManagement") {
   }
 
   imports {
-    mavenBom("io.grpc:grpc-bom:1.38.0")
+    mavenBom("io.grpc:grpc-bom:1.41.0")
     mavenBom("io.micrometer:micrometer-bom:${micrometerVersion}")
     mavenBom("io.opentelemetry:opentelemetry-bom-alpha:${otelAlphaVersion}")
     mavenBom("io.opentelemetry:opentelemetry-bom:${otelVersion}")

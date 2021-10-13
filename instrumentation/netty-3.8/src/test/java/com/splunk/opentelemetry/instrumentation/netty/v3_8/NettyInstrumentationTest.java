@@ -28,7 +28,6 @@ import com.splunk.opentelemetry.instrumentation.servertiming.ServerTimingHeader;
 import io.opentelemetry.instrumentation.test.utils.PortUtils;
 import io.opentelemetry.instrumentation.testing.junit.AgentInstrumentationExtension;
 import java.net.InetSocketAddress;
-import java.util.concurrent.TimeoutException;
 import okhttp3.HttpUrl;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -125,8 +124,7 @@ class NettyInstrumentationTest {
         ServerTimingHeader.SERVER_TIMING, response.header(ServerTimingHeader.EXPOSE_HEADERS));
   }
 
-  private static void assertServerTimingHeaderContainsTraceId(String serverTimingHeader)
-      throws InterruptedException, TimeoutException {
+  private static void assertServerTimingHeaderContainsTraceId(String serverTimingHeader) {
     var traces = instrumentation.waitForTraces(1);
     assertEquals(1, traces.size());
 

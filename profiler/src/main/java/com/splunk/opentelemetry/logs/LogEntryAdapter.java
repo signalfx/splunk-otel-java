@@ -55,6 +55,7 @@ public class LogEntryAdapter implements Function<LogEntry, LogRecord> {
       byte[] traceIdBytes =
           OtelEncodingUtils.bytesFromBase16(logEntry.getTraceId(), TraceId.getLength());
       builder.setTraceId(unsafeWrap(traceIdBytes));
+      builder.setFlags(logEntry.getTraceFlags());
     }
     if (logEntry.getSpanId() != null) {
       byte[] spanIdBytes =

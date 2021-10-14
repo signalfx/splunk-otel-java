@@ -32,12 +32,22 @@ public class ContextAttached extends Event {
 
   public static final String EVENT_NAME = "otel.ContextAttached";
 
+  public final int traceFlags;
   public final String traceId;
   public final String spanId;
 
   public ContextAttached(String traceId, String spanId) {
+    this(0, traceId, spanId);
+  }
+
+  public ContextAttached(int traceFlags, String traceId, String spanId) {
     this.traceId = traceId;
     this.spanId = spanId;
+    this.traceFlags = traceFlags;
+  }
+
+  public int getTraceFlags() {
+    return traceFlags;
   }
 
   public String getTraceId() {

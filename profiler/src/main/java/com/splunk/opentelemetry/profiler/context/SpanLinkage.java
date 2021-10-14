@@ -20,16 +20,23 @@ import javax.annotation.Nullable;
 
 public class SpanLinkage {
 
-  public static final SpanLinkage NONE = new SpanLinkage(null, null, -1);
+  public static final SpanLinkage NONE = new SpanLinkage(0, null, null, -1);
 
+  private final int traceFlags;
   @Nullable private final String spanId;
   @Nullable private final String traceId;
   private final long threadId;
 
-  public SpanLinkage(@Nullable String traceId, @Nullable String spanId, long threadId) {
+  public SpanLinkage(
+      int traceFlags, @Nullable String traceId, @Nullable String spanId, long threadId) {
+    this.traceFlags = traceFlags;
     this.spanId = spanId;
     this.traceId = traceId;
     this.threadId = threadId;
+  }
+
+  int getTraceFlags() {
+    return traceFlags;
   }
 
   @Nullable

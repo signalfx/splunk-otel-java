@@ -49,6 +49,7 @@ class LogEntryAdapterTest {
     assertEquals(entry.getName(), result.getName());
     assertEquals(entry.getTime().toEpochMilli() * 1_000_000L, result.getTimeUnixNano());
 
+    assertEquals(entry.getTraceFlags(), result.getFlags());
     assertEquals(entry.getTraceId(), toHexString(result.getTraceId().toByteArray()));
     assertEquals(entry.getSpanId(), toHexString(result.getSpanId().toByteArray()));
     assertEquals(entry.getBody(), result.getBody().getStringValue());
@@ -72,6 +73,7 @@ class LogEntryAdapterTest {
         .name("__LOG__")
         .time(time)
         .body(body)
+        .traceFlags(0x42)
         .traceId("c78bda329abae6a6c7111111112ae666")
         .spanId("c78bda329abae6a6")
         .attributes(attributes);

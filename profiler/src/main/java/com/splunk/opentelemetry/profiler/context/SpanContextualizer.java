@@ -44,6 +44,7 @@ public class SpanContextualizer {
   public void updateContext(RecordedEvent event) {
     String spanId = event.getString("spanId");
     String traceId = event.getString("traceId");
+    int traceFlags = event.getInt("traceFlags");
     long javaThreadId = event.getThread().getJavaThreadId();
 
     logger.debug(
@@ -56,7 +57,7 @@ public class SpanContextualizer {
     if (traceId == null || spanId == null) {
       threadSpans.remove(javaThreadId);
     } else {
-      SpanLinkage linkage = new SpanLinkage(traceId, spanId, javaThreadId);
+      SpanLinkage linkage = new SpanLinkage(traceFlags, traceId, spanId, javaThreadId);
       threadSpans.put(javaThreadId, linkage);
     }
   }

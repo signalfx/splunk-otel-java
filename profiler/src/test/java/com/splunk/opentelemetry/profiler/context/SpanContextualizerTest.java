@@ -35,8 +35,9 @@ import org.junit.jupiter.api.Test;
 
 class SpanContextualizerTest {
 
-  private final String spanId = "abc123";
+  private final int traceFlags = 0x42;
   private final String traceId = "23489uasdpfoiajsdfph23oij";
+  private final String spanId = "abc123";
   private final String rawStack = "raw is raw";
   private final Instant time = Instant.now();
 
@@ -277,6 +278,7 @@ class SpanContextualizerTest {
     StackToSpanLinkage result = testClass.link(time, stack, events.threadId, events.sourceEvent);
     assertEquals(events.spanId, result.getSpanId());
     assertEquals(traceId, result.getTraceId());
+    assertEquals(traceFlags, result.getTraceFlags());
     assertEquals(stack, result.getRawStack());
     assertEquals(result.getSourceEventName(), "GreatSourceEventHere");
   }
@@ -315,24 +317,26 @@ class SpanContextualizerTest {
   }
 
   private RecordedEvent contextEventIn(String spanId, long threadId) {
-    return contextEvent(traceId, spanId, threadId);
+    return contextEvent(traceFlags, traceId, spanId, threadId);
   }
 
   private RecordedEvent contextEventOut(Events parent, long threadId) {
     if (parent == null) {
-      return contextEvent(null, null, threadId);
+      return contextEvent(0, null, null, threadId);
     } else {
-      return contextEvent(traceId, parent.spanId, threadId);
+      return contextEvent(traceFlags, traceId, parent.spanId, threadId);
     }
   }
 
-  private static RecordedEvent contextEvent(String traceId, String spanId, long threadId) {
+  private static RecordedEvent contextEvent(
+      int traceFlags, String traceId, String spanId, long threadId) {
     RecordedEvent event = mock(RecordedEvent.class);
     EventType type = mock(EventType.class);
     when(type.getName()).thenReturn(ContextAttached.EVENT_NAME);
     when(event.getEventType()).thenReturn(type);
     when(event.getString("traceId")).thenReturn(traceId);
     when(event.getString("spanId")).thenReturn(spanId);
+    when(event.getInt("traceFlags")).thenReturn(traceFlags);
     RecordedThread thread = mock(RecordedThread.class);
     when(thread.getJavaThreadId()).thenReturn(threadId);
     when(event.getThread()).thenReturn(thread);

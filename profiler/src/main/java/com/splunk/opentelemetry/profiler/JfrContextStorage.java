@@ -44,7 +44,8 @@ class JfrContextStorage implements ContextStorage {
 
   static ContextAttached newEvent(SpanContext spanContext) {
     if (spanContext.isValid()) {
-      return new ContextAttached(spanContext.getTraceId(), spanContext.getSpanId());
+      return new ContextAttached(
+          spanContext.getTraceFlags().asByte(), spanContext.getTraceId(), spanContext.getSpanId());
     }
     return new ContextAttached(null, null);
   }

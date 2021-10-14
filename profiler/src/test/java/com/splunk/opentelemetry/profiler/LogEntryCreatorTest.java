@@ -46,6 +46,7 @@ class LogEntryCreatorTest {
     String traceId = "abc123";
 
     long threadId = 987L;
+    int traceFlags = 0x42;
     EventType eventType = mock(EventType.class);
     RecordedEvent sourceEvent = mock(RecordedEvent.class);
     EventPeriods periods = mock(EventPeriods.class);
@@ -54,7 +55,7 @@ class LogEntryCreatorTest {
     when(eventType.getName()).thenReturn("GoodEventHere");
     when(periods.getDuration("GoodEventHere")).thenReturn(Duration.ofMillis(606));
 
-    SpanLinkage linkage = new SpanLinkage(traceId, spanId, threadId);
+    SpanLinkage linkage = new SpanLinkage(traceFlags, traceId, spanId, threadId);
     Attributes attributes =
         Attributes.of(
             SOURCE_EVENT_NAME,
@@ -65,6 +66,7 @@ class LogEntryCreatorTest {
             "otel.profiling");
     LogEntry expected =
         LogEntry.builder()
+            .traceFlags(traceFlags)
             .traceId(traceId)
             .spanId(spanId)
             .name(PROFILING_SOURCE)

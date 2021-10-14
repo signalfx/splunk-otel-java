@@ -46,6 +46,10 @@ public class StackToSpanLinkage {
     return rawStack;
   }
 
+  public int getTraceFlags() {
+    return spanLinkage.getTraceFlags();
+  }
+
   public String getTraceId() {
     return spanLinkage.getTraceId();
   }

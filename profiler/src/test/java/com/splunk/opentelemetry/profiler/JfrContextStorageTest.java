@@ -43,6 +43,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class JfrContextStorageTest {
 
+  int traceFlags = 0x42;
   String traceId;
   String spanId;
   Span span;
@@ -56,7 +57,11 @@ class JfrContextStorageTest {
     traceId = TraceId.fromLongs(123, 455);
     spanId = SpanId.fromLong(23498);
     spanContext =
-        SpanContext.create(traceId, spanId, TraceFlags.getDefault(), TraceState.getDefault());
+        SpanContext.create(
+            traceId,
+            spanId,
+            TraceFlags.fromByte((byte) (traceFlags & 0xFF)),
+            TraceState.getDefault());
     span = Span.wrap(spanContext);
     newContext = Context.root().with(span);
   }
@@ -64,6 +69,7 @@ class JfrContextStorageTest {
   @Test
   void testNewEvent() {
     ContextAttached result = JfrContextStorage.newEvent(spanContext);
+    assertEquals(traceFlags, result.getTraceFlags());
     assertEquals(traceId, result.getTraceId());
     assertEquals(spanId, result.getSpanId());
   }

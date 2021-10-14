@@ -28,6 +28,7 @@ public class LogEntry {
   private final Attributes attributes;
   private final Instant time;
   private final String body;
+  private final int traceFlags;
   @Nullable private final String traceId;
   @Nullable private final String spanId;
 
@@ -36,6 +37,7 @@ public class LogEntry {
     this.attributes = builder.attributes;
     this.time = builder.time;
     this.body = builder.body;
+    this.traceFlags = builder.traceFlags;
     this.traceId = builder.traceId;
     this.spanId = builder.spanId;
   }
@@ -60,6 +62,10 @@ public class LogEntry {
     return traceId;
   }
 
+  public int getTraceFlags() {
+    return traceFlags;
+  }
+
   public String getSpanId() {
     return spanId;
   }
@@ -73,6 +79,7 @@ public class LogEntry {
     private Attributes attributes = Attributes.empty();
     private Instant time;
     private String body;
+    public int traceFlags = 0;
     private String traceId;
     private String spanId;
 
@@ -93,6 +100,11 @@ public class LogEntry {
 
     public Builder body(String body) {
       this.body = body;
+      return this;
+    }
+
+    public Builder traceFlags(int traceFlags) {
+      this.traceFlags = traceFlags;
       return this;
     }
 

@@ -17,6 +17,7 @@
 package com.splunk.opentelemetry.micrometer;
 
 import static com.splunk.opentelemetry.SplunkConfiguration.SPLUNK_ACCESS_TOKEN;
+import static io.micrometer.core.instrument.config.MeterRegistryConfigValidator.checkAll;
 
 import io.micrometer.core.instrument.config.validate.Validated;
 import io.micrometer.core.instrument.step.StepRegistryConfig;
@@ -89,10 +90,10 @@ class SplunkMetricsConfig implements SignalFxConfig {
   // override default validation check to avoid failing on empty access token
   @Override
   public Validated<?> validate() {
-        return checkAll(this,
-            c -> StepRegistryConfig.validate(c),
-            checkRequired("uri", SignalFxConfig::uri),
-            checkRequired("source", SignalFxConfig::source)
-        );
+    return checkAll(
+        this,
+        c -> StepRegistryConfig.validate(c),
+        c -> Validated.valid("splunk.metrics.endpoint", c.uri()).required().nonBlank(),
+        c -> Validated.valid("otel.service.name", c.source()).required().nonBlank());
   }
 }

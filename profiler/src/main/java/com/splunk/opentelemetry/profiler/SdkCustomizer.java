@@ -24,18 +24,13 @@ import io.opentelemetry.instrumentation.api.config.Config;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import io.opentelemetry.sdk.autoconfigure.spi.traces.SdkTracerProviderConfigurer;
 import io.opentelemetry.sdk.trace.SdkTracerProviderBuilder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @AutoService(SdkTracerProviderConfigurer.class)
 public class SdkCustomizer implements SdkTracerProviderConfigurer {
 
-  private static final Logger logger = LoggerFactory.getLogger(SdkCustomizer.class);
-
   @Override
   public void configure(SdkTracerProviderBuilder tracerProviderBuilder, ConfigProperties config) {
     if (jfrIsAvailable() && jfrIsEnabledInConfig()) {
-      logger.info("Enabling JfrContextStorage");
       ContextStorage.addWrapper(JfrContextStorage::new);
     }
   }

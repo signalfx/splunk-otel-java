@@ -89,6 +89,10 @@ class SplunkMetricsConfig implements SignalFxConfig {
   // override default validation check to avoid failing on empty access token
   @Override
   public Validated<?> validate() {
-    return StepRegistryConfig.validate(this);
+        return checkAll(this,
+            c -> StepRegistryConfig.validate(c),
+            checkRequired("uri", SignalFxConfig::uri),
+            checkRequired("source", SignalFxConfig::source)
+        );
   }
 }

@@ -23,8 +23,10 @@ import static com.splunk.opentelemetry.micrometer.SplunkMetricsConfig.METRICS_EN
 import static com.splunk.opentelemetry.micrometer.SplunkMetricsConfig.METRICS_EXPORT_INTERVAL_PROPERTY;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import io.micrometer.core.instrument.config.validate.Validated;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.instrumentation.api.config.Config;
 import io.opentelemetry.sdk.resources.Resource;
@@ -43,10 +45,11 @@ class SplunkMetricsConfigTest {
 
     // when & then
     assertFalse(splunkMetricsConfig.enabled());
-    assertFalse(splunkMetricsConfig.accessToken().isBlank());
+    assertNull(splunkMetricsConfig.accessToken());
     assertEquals(DEFAULT_METRICS_ENDPOINT, splunkMetricsConfig.uri());
     assertEquals("test-service", splunkMetricsConfig.source());
     assertEquals(Duration.ofSeconds(30), splunkMetricsConfig.step());
+    assertTrue(splunkMetricsConfig.validate().isValid());
   }
 
   @Test
@@ -73,5 +76,35 @@ class SplunkMetricsConfigTest {
     assertEquals("http://my-endpoint:42", splunkMetricsConfig.uri());
     assertEquals("test-service", splunkMetricsConfig.source());
     assertEquals(Duration.ofSeconds(60), splunkMetricsConfig.step());
+    assertTrue(splunkMetricsConfig.validate().isValid());
+  }
+
+  @Test
+  void emptyServiceNameIsNotValid() {
+    // given
+    var javaagentConfig = Config.newBuilder().build();
+    var resource = Resource.empty();
+    var splunkMetricsConfig = new SplunkMetricsConfig(javaagentConfig, resource);
+
+    // when
+    Validated<?> validated = splunkMetricsConfig.validate();
+
+    // then
+    assertFalse(validated.isValid());
+  }
+
+  @Test
+  void emptyEndpointIsNotValid() {
+    // given
+    var javaagentConfig =
+        Config.newBuilder().readProperties(Map.of(METRICS_ENDPOINT_PROPERTY, "")).build();
+    var resource = Resource.create(Attributes.of(ResourceAttributes.SERVICE_NAME, "test-service"));
+    var splunkMetricsConfig = new SplunkMetricsConfig(javaagentConfig, resource);
+
+    // when
+    Validated<?> validated = splunkMetricsConfig.validate();
+
+    // then
+    assertFalse(validated.isValid());
   }
 }

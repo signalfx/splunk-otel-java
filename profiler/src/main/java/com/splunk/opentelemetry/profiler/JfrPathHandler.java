@@ -17,6 +17,8 @@
 package com.splunk.opentelemetry.profiler;
 
 import java.nio.file.Path;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 import jdk.jfr.consumer.RecordedEvent;
@@ -43,13 +45,21 @@ class JfrPathHandler implements Consumer<Path> {
 
   @Override
   public void accept(Path path) {
-    logger.info("New jfr file detected: {}", path);
-    RecordedEventStream recordingFile = recordedEventStreamFactory.get();
-    try (Stream<RecordedEvent> events = recordingFile.open(path)) {
-      events.forEach(eventProcessingChain::accept);
+    logger.info("New jfr file detected: {} size: {}", path, path.toFile().length());
+    Instant start = Instant.now();
+    try {
+      RecordedEventStream recordingFile = recordedEventStreamFactory.get();
+      try (Stream<RecordedEvent> events = recordingFile.open(path)) {
+        events.forEach(eventProcessingChain::accept);
+      }
+      eventProcessingChain.flushBuffer();
+      onFileFinished.accept(path);
+    } finally {
+      Instant end = Instant.now();
+      long timeElapsed = Duration.between(start, end).toMillis();
+      logger.debug("Processed {} in {}ms", path, timeElapsed);
+      eventProcessingChain.logEventStats();
     }
-    eventProcessingChain.flushBuffer();
-    onFileFinished.accept(path);
   }
 
   public static Builder builder() {

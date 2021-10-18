@@ -17,6 +17,7 @@
 package com.splunk.opentelemetry.profiler;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -33,6 +34,7 @@ import io.opentelemetry.api.trace.TraceState;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.context.ContextStorage;
 import io.opentelemetry.context.Scope;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -56,7 +58,7 @@ class JfrContextStorageTest {
     traceId = TraceId.fromLongs(123, 455);
     spanId = SpanId.fromLong(23498);
     spanContext =
-        SpanContext.create(traceId, spanId, TraceFlags.getDefault(), TraceState.getDefault());
+        SpanContext.create(traceId, spanId, TraceFlags.getSampled(), TraceState.getDefault());
     span = Span.wrap(spanContext);
     newContext = Context.root().with(span);
   }
@@ -89,7 +91,7 @@ class JfrContextStorageTest {
     verify(outEvent, never()).commit();
     verify(delegatedScope, never()).close();
 
-    resultScope.close();
+    resultScope.close(); // returns back to the initial/default span
     verify(outEvent).begin();
     verify(outEvent).commit();
     verify(delegatedScope).close();
@@ -125,5 +127,31 @@ class JfrContextStorageTest {
     JfrContextStorage contextStorage = new JfrContextStorage(delegate);
     Context result = contextStorage.current();
     assertEquals(expected, result);
+  }
+
+  @Test
+  void testNotSampled() {
+
+    Scope scope = mock(Scope.class);
+    ContextStorage delegate = mock(ContextStorage.class);
+
+    spanContext =
+        SpanContext.create(traceId, spanId, TraceFlags.getDefault(), TraceState.getDefault());
+    span = Span.wrap(spanContext);
+    newContext = Context.root().with(span);
+
+    when(delegate.attach(newContext)).thenReturn(scope);
+
+    AtomicBoolean newEventWasCalled = new AtomicBoolean(false);
+    Function<SpanContext, ContextAttached> newEvent =
+        x -> {
+          newEventWasCalled.set(true);
+          return null;
+        };
+
+    JfrContextStorage contextStorage = new JfrContextStorage(delegate, newEvent);
+    contextStorage.attach(newContext);
+
+    assertFalse(newEventWasCalled.get());
   }
 }

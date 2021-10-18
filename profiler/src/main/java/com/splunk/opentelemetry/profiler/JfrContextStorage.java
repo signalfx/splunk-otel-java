@@ -30,7 +30,7 @@ class JfrContextStorage implements ContextStorage {
 
   private final ContextStorage delegate;
   private final Function<SpanContext, ContextAttached> newEvent;
-  private final ThreadLocal<Span> activeSpan = ThreadLocal.withInitial(() -> Span.getInvalid());
+  private final ThreadLocal<Span> activeSpan = ThreadLocal.withInitial(Span::getInvalid);
 
   JfrContextStorage(ContextStorage delegate) {
     this(delegate, JfrContextStorage::newEvent);
@@ -55,7 +55,8 @@ class JfrContextStorage implements ContextStorage {
     Span span = Span.fromContext(toAttach);
     Span current = activeSpan.get();
     // do nothing when active span didn't change
-    if (span == current) {
+    // do nothing if the span isn't sampled
+    if (span == current || !span.getSpanContext().isSampled()) {
       return delegatedScope;
     }
 
@@ -71,7 +72,8 @@ class JfrContextStorage implements ContextStorage {
   }
 
   private void generateEvent(Span span) {
-    ContextAttached event = newEvent.apply(span.getSpanContext());
+    SpanContext context = span.getSpanContext();
+    ContextAttached event = newEvent.apply(context);
     event.begin();
     if (event.shouldCommit()) {
       event.commit();

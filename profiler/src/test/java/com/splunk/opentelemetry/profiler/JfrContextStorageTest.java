@@ -150,8 +150,9 @@ class JfrContextStorageTest {
         };
 
     JfrContextStorage contextStorage = new JfrContextStorage(delegate, newEvent);
-    contextStorage.attach(newContext);
+    Scope result = contextStorage.attach(newContext);
 
+    assertEquals(scope, result);
     assertFalse(newEventWasCalled.get());
   }
 }

@@ -19,9 +19,7 @@ package com.splunk.opentelemetry.instrumentation.netty.v3_8;
 import com.splunk.opentelemetry.instrumentation.servertiming.ServerTimingHeader;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.context.propagation.TextMapSetter;
-import io.opentelemetry.instrumentation.api.field.VirtualField;
-import io.opentelemetry.javaagent.instrumentation.netty.v3_8.NettyRequestContexts;
-import org.jboss.netty.channel.Channel;
+import io.opentelemetry.javaagent.instrumentation.netty.v3_8.server.NettyServerContextAccess;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.channel.SimpleChannelDownstreamHandler;
@@ -29,20 +27,10 @@ import org.jboss.netty.handler.codec.http.HttpHeaders;
 import org.jboss.netty.handler.codec.http.HttpResponse;
 
 public class ServerTimingHandler extends SimpleChannelDownstreamHandler {
-  private final VirtualField<Channel, NettyRequestContexts> requestContextField;
-
-  public ServerTimingHandler(VirtualField<Channel, NettyRequestContexts> requestContextField) {
-    this.requestContextField = requestContextField;
-  }
 
   @Override
   public void writeRequested(ChannelHandlerContext ctx, MessageEvent msg) {
-    NettyRequestContexts requestContexts = requestContextField.get(ctx.getChannel());
-    if (requestContexts == null) {
-      return;
-    }
-
-    Context context = requestContexts.context();
+    Context context = NettyServerContextAccess.getServerContext(ctx);
     if (context == null || !(msg.getMessage() instanceof HttpResponse)) {
       ctx.sendDownstream(msg);
       return;

@@ -23,15 +23,12 @@ import static net.bytebuddy.matcher.ElementMatchers.nameStartsWith;
 import static net.bytebuddy.matcher.ElementMatchers.named;
 import static net.bytebuddy.matcher.ElementMatchers.takesArgument;
 
-import io.opentelemetry.instrumentation.api.field.VirtualField;
 import io.opentelemetry.javaagent.extension.instrumentation.TypeInstrumentation;
 import io.opentelemetry.javaagent.extension.instrumentation.TypeTransformer;
 import io.opentelemetry.javaagent.instrumentation.api.CallDepth;
-import io.opentelemetry.javaagent.instrumentation.netty.v3_8.NettyRequestContexts;
 import net.bytebuddy.asm.Advice;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.matcher.ElementMatcher;
-import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelHandler;
 import org.jboss.netty.channel.ChannelPipeline;
 import org.jboss.netty.handler.codec.http.HttpResponseEncoder;
@@ -87,10 +84,7 @@ public class ChannelPipelineInstrumentation implements TypeInstrumentation {
         return;
       }
 
-      VirtualField<Channel, NettyRequestContexts> requestContextField =
-          VirtualField.find(Channel.class, NettyRequestContexts.class);
-
-      ChannelPipelineUtil.addServerTimingHandler(pipeline, handler, requestContextField);
+      ChannelPipelineUtil.addServerTimingHandler(pipeline, handler);
     }
   }
 
@@ -118,10 +112,7 @@ public class ChannelPipelineInstrumentation implements TypeInstrumentation {
         return;
       }
 
-      VirtualField<Channel, NettyRequestContexts> requestContextField =
-          VirtualField.find(Channel.class, NettyRequestContexts.class);
-
-      ChannelPipelineUtil.addServerTimingHandler(pipeline, handler, requestContextField);
+      ChannelPipelineUtil.addServerTimingHandler(pipeline, handler);
     }
   }
 
@@ -135,13 +126,9 @@ public class ChannelPipelineInstrumentation implements TypeInstrumentation {
       }
     }
 
-    public static void addServerTimingHandler(
-        ChannelPipeline pipeline,
-        ChannelHandler handler,
-        VirtualField<Channel, NettyRequestContexts> requestContextField) {
+    public static void addServerTimingHandler(ChannelPipeline pipeline, ChannelHandler handler) {
       if (handler instanceof HttpServerCodec || handler instanceof HttpResponseEncoder) {
-        pipeline.addLast(
-            ServerTimingHandler.class.getName(), new ServerTimingHandler(requestContextField));
+        pipeline.addLast(ServerTimingHandler.class.getName(), new ServerTimingHandler());
       }
     }
 

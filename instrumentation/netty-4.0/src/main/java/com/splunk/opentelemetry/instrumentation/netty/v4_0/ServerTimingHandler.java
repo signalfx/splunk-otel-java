@@ -16,8 +16,6 @@
 
 package com.splunk.opentelemetry.instrumentation.netty.v4_0;
 
-import static io.opentelemetry.javaagent.instrumentation.netty.v4_0.server.NettyHttpServerTracer.tracer;
-
 import com.splunk.opentelemetry.instrumentation.servertiming.ServerTimingHeader;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelOutboundHandlerAdapter;
@@ -26,11 +24,12 @@ import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpResponse;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.context.propagation.TextMapSetter;
+import io.opentelemetry.javaagent.instrumentation.netty.v4_0.AttributeKeys;
 
 public class ServerTimingHandler extends ChannelOutboundHandlerAdapter {
   @Override
   public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise prm) {
-    Context context = tracer().getServerContext(ctx.channel());
+    Context context = ctx.channel().attr(AttributeKeys.SERVER_CONTEXT).get();
     if (context == null || !(msg instanceof HttpResponse)) {
       ctx.write(msg, prm);
       return;

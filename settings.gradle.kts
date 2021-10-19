@@ -39,6 +39,7 @@ include(
     "instrumentation:micrometer-shaded-for-instrumenting",
     "instrumentation:netty-3.8",
     "instrumentation:netty-4.0",
+    "instrumentation:netty-4.1",
     "instrumentation:servlet",
     "instrumentation:servlet-3-testing",
     "instrumentation:tomcat",

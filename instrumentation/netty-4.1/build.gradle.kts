@@ -7,19 +7,19 @@ plugins {
 // enable muzzle once it's somehow fixed
 
 dependencies {
-  compileOnly("io.netty:netty:3.8.0.Final")
-  compileOnly("io.opentelemetry.javaagent.instrumentation:opentelemetry-javaagent-netty-3.8")
+  compileOnly("io.netty:netty-codec-http:4.1.0.Final")
+  compileOnly("io.opentelemetry.javaagent.instrumentation:opentelemetry-javaagent-netty-4.1")
 
   // add as muzzle codegen dependency too
-  add("codegen", "io.opentelemetry.javaagent.instrumentation:opentelemetry-javaagent-netty-3.8")
+  add("codegen", "io.opentelemetry.javaagent.instrumentation:opentelemetry-javaagent-netty-4.1")
 
   implementation(project(":instrumentation:common"))
 
   testInstrumentation("io.opentelemetry.javaagent.instrumentation:opentelemetry-javaagent-netty-3.8")
   testInstrumentation("io.opentelemetry.javaagent.instrumentation:opentelemetry-javaagent-netty-4.0")
   testInstrumentation("io.opentelemetry.javaagent.instrumentation:opentelemetry-javaagent-netty-4.1")
+  testInstrumentation(project(":instrumentation:netty-3.8"))
   testInstrumentation(project(":instrumentation:netty-4.0"))
-  testInstrumentation(project(":instrumentation:netty-4.1"))
 
-  testImplementation("io.netty:netty:3.8.0.Final")
+  testImplementation("io.netty:netty-codec-http:4.1.0.Final")
 }

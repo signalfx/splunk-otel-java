@@ -29,4 +29,4 @@ The following server frameworks and libraries add `Server-Timing` information:
 | Framework/Library | Versions                            |
 |-------------------|-------------------------------------|
 | Servlet API       | 2.2-4.X (5.0+ is not supported yet) |
-| Netty             | 3.8-4.0 (4.1+ is not supported yet) |
+| Netty             | 3.8+                                |

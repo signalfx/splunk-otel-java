@@ -35,7 +35,7 @@ class ServiceNameCheckerTest {
   @Test
   void shouldLogWarnWhenNeitherServiceNameNorResourceAttributeIsConfigured() {
     // given
-    var config = Config.newBuilder().build();
+    var config = Config.builder().build();
 
     var underTest = new ServiceNameChecker(logWarn);
 
@@ -49,7 +49,7 @@ class ServiceNameCheckerTest {
   @Test
   void shouldNotLogWarnWhenServiceNameIsConfigured() {
     // given
-    var config = Config.newBuilder().readProperties(Map.of("otel.service.name", "test")).build();
+    var config = Config.builder().readProperties(Map.of("otel.service.name", "test")).build();
 
     var underTest = new ServiceNameChecker(logWarn);
 
@@ -64,7 +64,7 @@ class ServiceNameCheckerTest {
   void shouldNotLogWarnWhenResourceAttributeIsConfigured() {
     // given
     var config =
-        Config.newBuilder()
+        Config.builder()
             .readProperties(Map.of("otel.resource.attributes", "service.name=test"))
             .build();
 

@@ -12,8 +12,8 @@
 
 <p align="center">
   <img alt="Stable" src="https://img.shields.io/badge/status-stable-informational?style=for-the-badge">
-  <a href="https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/tag/v1.6.0">
-    <img alt="OpenTelemetry Instrumentation for Java Version" src="https://img.shields.io/badge/otel-1.6.0-blueviolet?style=for-the-badge">
+  <a href="https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/tag/v1.7.0">
+    <img alt="OpenTelemetry Instrumentation for Java Version" src="https://img.shields.io/badge/otel-1.7.0-blueviolet?style=for-the-badge">
   </a>
   <a href="https://github.com/signalfx/gdi-specification/releases/tag/v1.0.0">
     <img alt="Splunk GDI specification" src="https://img.shields.io/badge/GDI-1.0.0-blueviolet?style=for-the-badge">
@@ -78,11 +78,6 @@ see [Migrate from the SignalFx Java Agent](https://docs.splunk.com/Observability
 
 <!-- Comments, spacing, empty and new lines in the section below are intentional, please do not modify them! -->
 <!--DEV_DOCS_WARNING-->
-<!--DEV_DOCS_WARNING_START-->
-The documentation below refers to the in development version of this package. Docs for the latest version ([v1.4.0](https://github.com/signalfx/splunk-otel-java/releases/tag/v1.4.0)) can be found [here](https://github.com/signalfx/splunk-otel-java/blob/v1.4.0/README.md).
-
----
-<!--DEV_DOCS_WARNING_END-->
 
 ## Requirements
 
@@ -164,12 +159,12 @@ To extend the instrumentation with the OpenTelemetry Instrumentation for Java,
 you have to use a compatible API version.
 
 <!-- IMPORTANT: do not change comments or break those lines below -->
-The Splunk Distribution of OpenTelemetry Java version <!--SPLUNK_VERSION-->1.4.0<!--SPLUNK_VERSION--> is compatible
+The Splunk Distribution of OpenTelemetry Java version <!--SPLUNK_VERSION-->1.5.0<!--SPLUNK_VERSION--> is compatible
 with:
 
-* OpenTelemetry API version <!--OTEL_VERSION-->1.6.0<!--OTEL_VERSION-->
-* OpenTelemetry Instrumentation for Java version <!--OTEL_INSTRUMENTATION_VERSION-->1.6.0<!--OTEL_INSTRUMENTATION_VERSION-->
-* Micrometer version 1.7.4
+* OpenTelemetry API version <!--OTEL_VERSION-->1.7.0<!--OTEL_VERSION-->
+* OpenTelemetry Instrumentation for Java version <!--OTEL_INSTRUMENTATION_VERSION-->1.7.0<!--OTEL_INSTRUMENTATION_VERSION-->
+* Micrometer version 1.7.5
 
 ## Snapshot builds
 

@@ -8,6 +8,28 @@ and this repository adheres to [Semantic Versioning](https://semver.org/spec/v2.
 
 ## Unreleased
 
+## v1.5.0 - 2021-10-20
+
+### General
+
+- OpenTelemetry Java SDK and OpenTelemetry Instrumentation for Java dependencies have been updated to version 1.7.0.
+- Micrometer dependency has been updated to version 1.7.5.
+
+### Bugfixes
+
+- The Java agent no longer adds a security header to exported metrics when the `SPLUNK_ACCESS_TOKEN` is not configured.
+  This means the agent should now work correctly with a collector that has token passthrough enabled.
+
+### Enhancements
+
+- We have added instrumentation for [WebLogic](https://docs.oracle.com/en/middleware/standalone/weblogic-server/)
+  thread pools. The agent now collects and exports metrics for the WebLogic application server thread pools.
+- We have also added instrumentation for Netty 4.1 that will add the [server trace](docs/server-trace-info.md) headers
+  to the HTTP response.
+- This release introduces the Java profiler. Keep in mind this feature is still experimental, and thus turned off by
+  default; you can enable it by setting the `splunk.profiler.enabled` property to `true`. Find out more about Splunk
+  profiler in its [docs](profiler/README.md).
+
 ## v1.4.0 - 2021-09-20
 
 ### General

@@ -76,15 +76,17 @@ For more details on using the Micrometer API please consult the [Micrometer docs
 
 The following metrics are currently gathered by the agent:
 
-| Library/Framework                                                | Instrumentation name | Versions |
-| ---------------------------------------------------------------- | -------------------- | -------- |
-| [JVM metrics](#jvm)                                              | `jvm-metrics`        | [Java runtimes version 8 and higher](../README.md#requirements)
-| [Apache DBCP2 connection pool metrics](#connection-pool-metrics) | `commons-dbcp2`      | 2.0 and higher
-| [c3p0 connection pool metrics](#connection-pool-metrics)         | `c3p0`               | 0.9.5 and higher
-| [HikariCP connection pool metrics](#connection-pool-metrics)     | `hikaricp`           | 3.0 and higher
-| [Tomcat JDBC connection pool metrics](#connection-pool-metrics)  | `tomcat-jdbc`        | 8.5 and higher
-| [Vibur DBCP connection pool metrics](#connection-pool-metrics)   | `vibur-dbcp`         | 20.0 and higher
-| [Tomcat thread pool metrics](#thread-pool-metrics)               | `tomcat`             | 8.5 and higher
+| Library/Framework                                                 | Instrumentation name | Versions |
+| ----------------------------------------------------------------- | -------------------- | -------- |
+| [JVM metrics](#jvm)                                               | `jvm-metrics`        | [Java runtimes version 8 and higher](../README.md#requirements)
+| [Apache DBCP2 connection pool metrics](#connection-pool-metrics)  | `commons-dbcp2`      | 2.0 and higher
+| [c3p0 connection pool metrics](#connection-pool-metrics)          | `c3p0`               | 0.9.5 and higher
+| [HikariCP connection pool metrics](#connection-pool-metrics)      | `hikaricp`           | 3.0 and higher
+| [Tomcat JDBC connection pool metrics](#connection-pool-metrics)   | `tomcat-jdbc`        | 8.5 and higher
+| [Vibur DBCP connection pool metrics](#connection-pool-metrics)    | `vibur-dbcp`         | 20.0 and higher
+| [Tomcat thread pool metrics](#thread-pool-metrics)                | `tomcat`             | 8.5 and higher
+| [WebSphere Liberty web request thread pool](#thread-pool-metrics) | `liberty`            | 20.0.0.12
+| [WebLogic thread pools](#thread-pool-metrics)                     | `weblogic`           | 12.x and 14.x
 
 ### JVM
 
@@ -172,6 +174,7 @@ Splunk Distribution of OpenTelemetry Java instruments several thread pool implem
 
 * [Tomcat connector thread pools](https://tomcat.apache.org/tomcat-8.5-doc/index.html)
 * [WebSphere Liberty web request thread pool](https://www.ibm.com/docs/en/was-liberty/base?topic=10-threadpool-monitoring)
+* [WebLogic thread pools](https://docs.oracle.com/en/middleware/standalone/weblogic-server/)
 
 Each of the supported connection pools reports a subset of the following metrics:
 
@@ -190,4 +193,4 @@ All thread pool metrics have the following tags:
 | Tag name        | Tag value |
 | --------------- | --------- |
 | `executor.name` | The name of the thread pool.
-| `executor.type` | The type/implementation of the thread pool: e.g. `tomcat`, `liberty`.
+| `executor.type` | The type/implementation of the thread pool: e.g. `tomcat`, `liberty`, `weblogic`.

@@ -8,6 +8,23 @@ and this repository adheres to [Semantic Versioning](https://semver.org/spec/v2.
 
 ## Unreleased
 
+## v1.5.0 - 2021-10-20
+
+### General
+
+- OpenTelemetry Java SDK and OpenTelemetry Instrumentation for Java dependencies have been updated to version 1.7.0.
+- Micrometer dependency was updated to version 1.7.5.
+
+### Bugfixes
+
+- The javaagent will now not add security header to exported metrics when the `SPLUNK_ACCESS_TOKEN` is not configured.
+  This means the agent should now work correctly with a collector that has token passthrough enabled.
+
+### Enhancements
+
+- We have added instrumentation for [WebLogic](https://www.mchange.com/projects/c3p0/)
+  thread pools. The agent now collects and exports metrics for the WebLogic application server thread pools.
+
 ## v1.4.0 - 2021-09-20
 
 ### General

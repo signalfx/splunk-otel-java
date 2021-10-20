@@ -26,6 +26,9 @@ and this repository adheres to [Semantic Versioning](https://semver.org/spec/v2.
   thread pools. The agent now collects and exports metrics for the WebLogic application server thread pools.
 - We have also added instrumentation for Netty 4.1 that will add the [server trace](docs/server-trace-info.md) headers
   to the HTTP response.
+- This release introduces the Java profiler. Keep in mind this feature is still experimental, and thus turned off by
+  default; you can enable it by setting the `splunk.profiler.enabled` property to `true`. Find out more about Splunk
+  profiler in its [docs](profiler/README.md).
 
 ## v1.4.0 - 2021-09-20
 

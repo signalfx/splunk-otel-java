@@ -22,7 +22,7 @@ and this repository adheres to [Semantic Versioning](https://semver.org/spec/v2.
 
 ### Enhancements
 
-- We have added instrumentation for [WebLogic](https://www.mchange.com/projects/c3p0/)
+- We have added instrumentation for [WebLogic](https://docs.oracle.com/en/middleware/standalone/weblogic-server/)
   thread pools. The agent now collects and exports metrics for the WebLogic application server thread pools.
 - We have also added instrumentation for Netty 4.1 that will add the [server trace](docs/server-trace-info.md) headers
   to the HTTP response.

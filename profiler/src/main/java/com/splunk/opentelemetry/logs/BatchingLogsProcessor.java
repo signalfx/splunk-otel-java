@@ -24,12 +24,16 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ScheduledExecutorService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * A log processor that batches logs until a max number are buffered or a time limit has passed,
  * which ever comes first.
  */
 public class BatchingLogsProcessor implements LogsProcessor {
+
+  private static final Logger logger = LoggerFactory.getLogger(BatchingLogsProcessor.class);
 
   private static final int DEFAULT_MAX_BATCH_SIZE = 250;
   private static final Duration DEFAULT_MAX_TIME_BETWEEN_BATCHES = Duration.ofSeconds(10);
@@ -86,6 +90,7 @@ public class BatchingLogsProcessor implements LogsProcessor {
   private void asyncDoExport() {
     List<LogEntry> batchCopy = copyClearBatch();
     if (batchCopy != null) {
+      logger.debug("Async export of batch with size {}.", batchCopy.size());
       Runnable task = Runnables.logUncaught(() -> exporter.export(batchCopy));
       executorService.submit(task);
     }
@@ -95,6 +100,7 @@ public class BatchingLogsProcessor implements LogsProcessor {
   private void syncDoExport() {
     List<LogEntry> batchCopy = copyClearBatch();
     if (batchCopy != null) {
+      logger.debug("Sync export of batch with size {}.", batchCopy.size());
       exporter.export(batchCopy);
     }
   }

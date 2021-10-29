@@ -20,10 +20,18 @@ import static com.splunk.opentelemetry.instrumentation.micrometer.Bridging.toApp
 
 import application.io.micrometer.core.instrument.LongTaskTimer;
 import application.io.micrometer.core.instrument.distribution.HistogramSnapshot;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 
 class ApplicationLongTaskTimer extends ApplicationMeter implements LongTaskTimer {
+
   private final io.micrometer.core.instrument.LongTaskTimer agentTimer;
+
+  // micrometer 1.3 uses a similar pattern for assigning ids to tasks
+  private final ConcurrentMap<Long, ApplicationSample> activeTasks = new ConcurrentHashMap<>();
+  private final AtomicLong nextTask = new AtomicLong(0L);
 
   ApplicationLongTaskTimer(Id id, io.micrometer.core.instrument.LongTaskTimer agentTimer) {
     super(id, agentTimer);
@@ -32,7 +40,31 @@ class ApplicationLongTaskTimer extends ApplicationMeter implements LongTaskTimer
 
   @Override
   public Sample start() {
-    return new ApplicationSample(agentTimer.start());
+    ApplicationSample task = new ApplicationSample(agentTimer.start());
+    activeTasks.put(task.id, task);
+    return task;
+  }
+
+  // we're intentionally implementing deprecated method to support older micrometer versions
+  @SuppressWarnings("deprecation")
+  @Override
+  public long stop(long taskId) {
+    ApplicationSample task = activeTasks.get(taskId);
+    if (task == null) {
+      return -1L;
+    }
+    return task.stop();
+  }
+
+  // we're intentionally implementing deprecated method to support older micrometer versions
+  @SuppressWarnings("deprecation")
+  @Override
+  public double duration(long taskId, TimeUnit unit) {
+    ApplicationSample task = activeTasks.get(taskId);
+    if (task == null) {
+      return -1L;
+    }
+    return task.duration(unit);
   }
 
   @Override
@@ -60,8 +92,9 @@ class ApplicationLongTaskTimer extends ApplicationMeter implements LongTaskTimer
     return toApplication(agentTimer.takeSnapshot());
   }
 
-  private static final class ApplicationSample extends Sample {
+  private final class ApplicationSample extends Sample {
     private final io.micrometer.core.instrument.LongTaskTimer.Sample agentSample;
+    private final long id = nextTask.getAndIncrement();
 
     private ApplicationSample(io.micrometer.core.instrument.LongTaskTimer.Sample agentSample) {
       this.agentSample = agentSample;
@@ -69,6 +102,7 @@ class ApplicationLongTaskTimer extends ApplicationMeter implements LongTaskTimer
 
     @Override
     public long stop() {
+      activeTasks.remove(id);
       return agentSample.stop();
     }
 

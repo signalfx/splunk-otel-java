@@ -127,6 +127,8 @@ final class Bridging {
         .toArray(ValueAtPercentile[]::new);
   }
 
+  // we're intentionally using deprecated constructor to support older micrometer versions
+  @SuppressWarnings("deprecation")
   @Nullable
   static CountAtBucket[] toApplication(
       @Nullable io.micrometer.core.instrument.distribution.CountAtBucket[] agent) {
@@ -134,7 +136,7 @@ final class Bridging {
       return null;
     }
     return Arrays.stream(agent)
-        .map(v -> new CountAtBucket(v.bucket(), v.count()))
+        .map(v -> new CountAtBucket((long) v.bucket(), v.count()))
         .toArray(CountAtBucket[]::new);
   }
 

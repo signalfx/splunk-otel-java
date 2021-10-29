@@ -81,6 +81,18 @@ public final class ApplicationMeterRegistry extends MeterRegistry {
     return new ApplicationCounter(id, agentCounter);
   }
 
+  // we're intentionally implementing deprecated method to support older micrometer versions
+  @SuppressWarnings("deprecation")
+  @Override
+  protected LongTaskTimer newLongTaskTimer(Meter.Id id) {
+    io.micrometer.core.instrument.LongTaskTimer agentLongTaskTimer =
+        io.micrometer.core.instrument.LongTaskTimer.builder(id.getName())
+            .tags(convertAndAddGlobals(id.getTagsAsIterable()))
+            .description(id.getDescription())
+            .register(agentRegistry);
+    return new ApplicationLongTaskTimer(id, agentLongTaskTimer);
+  }
+
   @Override
   protected LongTaskTimer newLongTaskTimer(
       Meter.Id id, DistributionStatisticConfig distributionStats) {

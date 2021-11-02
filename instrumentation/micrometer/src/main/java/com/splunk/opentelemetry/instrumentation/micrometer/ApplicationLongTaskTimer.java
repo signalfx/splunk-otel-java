@@ -40,7 +40,8 @@ class ApplicationLongTaskTimer extends ApplicationMeter implements LongTaskTimer
 
   @Override
   public Sample start() {
-    ApplicationSample task = new ApplicationSample(agentTimer.start());
+    ApplicationSample task =
+        new ApplicationSample(agentTimer.start(), nextTask.getAndIncrement(), activeTasks);
     activeTasks.put(task.id, task);
     return task;
   }
@@ -92,12 +93,18 @@ class ApplicationLongTaskTimer extends ApplicationMeter implements LongTaskTimer
     return toApplication(agentTimer.takeSnapshot());
   }
 
-  private final class ApplicationSample extends Sample {
+  private static final class ApplicationSample extends Sample {
     private final io.micrometer.core.instrument.LongTaskTimer.Sample agentSample;
-    private final long id = nextTask.getAndIncrement();
+    private final long id;
+    private final ConcurrentMap<Long, ApplicationSample> activeTasks;
 
-    private ApplicationSample(io.micrometer.core.instrument.LongTaskTimer.Sample agentSample) {
+    private ApplicationSample(
+        io.micrometer.core.instrument.LongTaskTimer.Sample agentSample,
+        long id,
+        ConcurrentMap<Long, ApplicationSample> activeTasks) {
       this.agentSample = agentSample;
+      this.id = id;
+      this.activeTasks = activeTasks;
     }
 
     @Override

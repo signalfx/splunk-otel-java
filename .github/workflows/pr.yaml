@@ -33,7 +33,7 @@ jobs:
   build:
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v2.3.5
+      - uses: actions/checkout@v2.4.0
         with:
           fetch-depth: 0
 
@@ -52,7 +52,7 @@ jobs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
       - name: Check out repository
-        uses: actions/checkout@v2.3.5
+        uses: actions/checkout@v2.4.0
         with:
           fetch-depth: 0
 
@@ -73,7 +73,7 @@ jobs:
       fail-fast: false
     steps:
       - name: Check out repository
-        uses: actions/checkout@v2.3.5
+        uses: actions/checkout@v2.4.0
         with:
           fetch-depth: 0
 
@@ -100,7 +100,7 @@ jobs:
         suite: [ "glassfish", "jboss", "jetty", "liberty", "tomcat", "tomee", "weblogic", "wildfly", "other" ]
       fail-fast: false
     steps:
-      - uses: actions/checkout@v2.3.5
+      - uses: actions/checkout@v2.4.0
         with:
           fetch-depth: 0
 
@@ -116,7 +116,7 @@ jobs:
   profiler-smoke-tests:
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v2.3.5
+      - uses: actions/checkout@v2.4.0
         with:
           fetch-depth: 0
 

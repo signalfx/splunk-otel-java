@@ -25,6 +25,8 @@ import io.opentelemetry.sdk.trace.SpanLimits;
 @AutoService(SdkTracerProviderConfigurer.class)
 public class SplunkTracerProviderConfigurer implements SdkTracerProviderConfigurer {
 
+  static final int SPLUNK_DEFAULT_ATTRIBUTE_VALUE_LENGTH = 12_000;
+
   @Override
   public void configure(SdkTracerProviderBuilder tracerProviderBuilder, ConfigProperties config) {
     tracerProviderBuilder.setSpanLimits(
@@ -34,6 +36,7 @@ public class SplunkTracerProviderConfigurer implements SdkTracerProviderConfigur
             .setMaxNumberOfLinks(1000)
             .setMaxNumberOfAttributesPerEvent(Integer.MAX_VALUE)
             .setMaxNumberOfAttributesPerLink(Integer.MAX_VALUE)
+            .setMaxAttributeValueLength(SPLUNK_DEFAULT_ATTRIBUTE_VALUE_LENGTH)
             .build());
   }
 }

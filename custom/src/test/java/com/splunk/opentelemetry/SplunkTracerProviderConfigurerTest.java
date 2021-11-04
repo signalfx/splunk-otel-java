@@ -16,7 +16,7 @@
 
 package com.splunk.opentelemetry;
 
-import static com.splunk.opentelemetry.SplunkTracerProviderConfigurer.SPLUNK_DEFAULT_ATTRIBUTE_VALUE_LENGTH;
+import static com.splunk.opentelemetry.SplunkTracerProviderConfigurer.SPLUNK_MAX_ATTRIBUTE_VALUE_LENGTH;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
@@ -46,7 +46,7 @@ class SplunkTracerProviderConfigurerTest {
                 .setMaxNumberOfLinks(1000)
                 .setMaxNumberOfAttributesPerEvent(Integer.MAX_VALUE)
                 .setMaxNumberOfAttributesPerLink(Integer.MAX_VALUE)
-                .setMaxAttributeValueLength(SPLUNK_DEFAULT_ATTRIBUTE_VALUE_LENGTH)
+                .setMaxAttributeValueLength(SPLUNK_MAX_ATTRIBUTE_VALUE_LENGTH)
                 .build());
   }
 }

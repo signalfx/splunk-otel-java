@@ -7,15 +7,4 @@ plugins {
 
 dependencies {
   compileOnly(project(":instrumentation:micrometer-shaded-for-instrumenting", configuration = "shadow"))
-
-  testImplementation("io.micrometer:micrometer-core")
-}
-
-tasks {
-  test {
-    jvmArgs("-Dsplunk.metrics.enabled=true")
-
-    // set some global metrics tags for testing javaagent
-    jvmArgs("-Dsplunk.testing.metrics.global-tags=food=cheesecake")
-  }
 }

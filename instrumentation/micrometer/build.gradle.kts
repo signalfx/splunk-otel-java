@@ -7,6 +7,8 @@ plugins {
 
 dependencies {
   compileOnly(project(":instrumentation:micrometer-shaded-for-instrumenting", configuration = "shadow"))
+
+  testImplementation("io.micrometer:micrometer-core")
 }
 
 tasks {

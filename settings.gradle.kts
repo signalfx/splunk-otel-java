@@ -5,6 +5,7 @@ pluginManagement {
     id("io.github.gradle-nexus.publish-plugin") version "1.1.0"
     id("nebula.release") version "15.3.1"
     id("org.gradle.test-retry") version "1.3.1"
+    id("org.unbroken-dome.test-sets") version "4.0.0"
   }
 }
 
@@ -37,6 +38,7 @@ include(
     "instrumentation:liberty",
     "instrumentation:micrometer",
     "instrumentation:micrometer-shaded-for-instrumenting",
+    "instrumentation:micrometer-testing",
     "instrumentation:netty-3.8",
     "instrumentation:netty-4.0",
     "instrumentation:netty-4.1",

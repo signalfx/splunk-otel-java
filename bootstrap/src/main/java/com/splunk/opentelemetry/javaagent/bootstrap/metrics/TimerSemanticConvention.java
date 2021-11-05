@@ -32,10 +32,7 @@ public final class TimerSemanticConvention implements MeterSemanticConvention {
   }
 
   public Timer create(Tags additionalTags) {
-    return Timer.builder(name)
-        .tags(GlobalMetricsTags.get())
-        .tags(additionalTags)
-        .register(Metrics.globalRegistry);
+    return Timer.builder(name).tags(additionalTags).register(Metrics.globalRegistry);
   }
 
   @Override

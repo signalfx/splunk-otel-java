@@ -19,9 +19,7 @@ package com.splunk.opentelemetry.instrumentation.jvmmetrics;
 import static java.util.Collections.singleton;
 
 import com.google.auto.service.AutoService;
-import com.splunk.opentelemetry.javaagent.bootstrap.metrics.GlobalMetricsTags;
 import io.micrometer.core.instrument.Metrics;
-import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.binder.jvm.ClassLoaderMetrics;
 import io.micrometer.core.instrument.binder.jvm.JvmGcMetrics;
 import io.micrometer.core.instrument.binder.jvm.JvmMemoryMetrics;
@@ -38,10 +36,9 @@ public class JvmMetricsInstaller implements AgentListener {
       return;
     }
 
-    Iterable<Tag> tags = GlobalMetricsTags.get();
-    new ClassLoaderMetrics(tags).bindTo(Metrics.globalRegistry);
-    new JvmGcMetrics(tags).bindTo(Metrics.globalRegistry);
-    new JvmMemoryMetrics(tags).bindTo(Metrics.globalRegistry);
-    new JvmThreadMetrics(tags).bindTo(Metrics.globalRegistry);
+    new ClassLoaderMetrics().bindTo(Metrics.globalRegistry);
+    new JvmGcMetrics().bindTo(Metrics.globalRegistry);
+    new JvmMemoryMetrics().bindTo(Metrics.globalRegistry);
+    new JvmThreadMetrics().bindTo(Metrics.globalRegistry);
   }
 }

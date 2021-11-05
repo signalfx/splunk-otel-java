@@ -21,6 +21,7 @@ import static java.util.stream.Collectors.toSet;
 
 import io.micrometer.core.instrument.Measurement;
 import io.micrometer.core.instrument.Meter;
+import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Metrics;
 import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.search.Search;
@@ -32,10 +33,16 @@ import java.util.stream.StreamSupport;
 /** This class is used in instrumentation tests; accessed via agent classloader bridging. */
 @SuppressWarnings("unused")
 public final class TestMetrics {
+
   public static Set<Map<String, Object>> getMeters() {
-    return Metrics.globalRegistry.getMeters().stream()
-        .map(TestMetrics::serializeMeter)
-        .collect(toSet());
+    // meters retrieved from the global registry would not contain tags added by the agent
+    // registry's MeterFilter - micrometer bridge tests verify that the global tags are properly
+    // added to the custom user metrics
+    MeterRegistry agentRegistry =
+        Metrics.globalRegistry.getRegistries().stream()
+            .findFirst()
+            .orElseThrow(() -> new AssertionError("Could not find agent MeterRegistry"));
+    return agentRegistry.getMeters().stream().map(TestMetrics::serializeMeter).collect(toSet());
   }
 
   private static Map<String, Object> serializeMeter(Meter meter) {

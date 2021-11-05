@@ -44,11 +44,7 @@ public final class GaugeSemanticConvention implements MeterSemanticConvention {
   }
 
   private <T> Gauge build(Gauge.Builder<T> builder, Tags additionalTags) {
-    return builder
-        .tags(GlobalMetricsTags.get())
-        .tags(additionalTags)
-        .baseUnit(baseUnit)
-        .register(Metrics.globalRegistry);
+    return builder.tags(additionalTags).baseUnit(baseUnit).register(Metrics.globalRegistry);
   }
 
   @Override

@@ -38,7 +38,6 @@ public final class CounterSemanticConvention implements MeterSemanticConvention 
 
   public Counter create(Tags additionalTags) {
     return Counter.builder(name)
-        .tags(GlobalMetricsTags.get())
         .tags(additionalTags)
         .baseUnit(baseUnit)
         .register(Metrics.globalRegistry);
@@ -50,7 +49,6 @@ public final class CounterSemanticConvention implements MeterSemanticConvention 
 
   public <T> FunctionCounter create(Tags additionalTags, T obj, ToDoubleFunction<T> function) {
     return FunctionCounter.builder(name, obj, function)
-        .tags(GlobalMetricsTags.get())
         .tags(additionalTags)
         .baseUnit(baseUnit)
         .register(Metrics.globalRegistry);

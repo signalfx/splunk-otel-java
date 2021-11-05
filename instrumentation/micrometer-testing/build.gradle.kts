@@ -18,8 +18,8 @@ dependencies {
   // TODO: uncomment when 1.3 instrumentation is implemented
 //  add("version13TestImplementation", "io.micrometer:micrometer-core:1.3.16")
 //  add("version14TestImplementation", "io.micrometer:micrometer-core:1.4.2")
-  add("version15TestImplementation", "io.micrometer:micrometer-core:1.5.17")
-  add("version16TestImplementation", "io.micrometer:micrometer-core:1.6.12")
+  add("version15TestImplementation", "io.micrometer:micrometer-core:1.7.5")
+  add("version16TestImplementation", "io.micrometer:micrometer-core:1.7.5")
   // use the agent (latest) micrometer version in the default test task
   testImplementation("io.micrometer:micrometer-core")
 }

@@ -32,11 +32,9 @@ import application.io.micrometer.core.instrument.LongTaskTimer;
 import application.io.micrometer.core.instrument.Measurement;
 import application.io.micrometer.core.instrument.Meter;
 import application.io.micrometer.core.instrument.MeterRegistry;
-import application.io.micrometer.core.instrument.Tag;
 import application.io.micrometer.core.instrument.Timer;
 import application.io.micrometer.core.instrument.distribution.DistributionStatisticConfig;
 import application.io.micrometer.core.instrument.distribution.pause.PauseDetector;
-import com.splunk.opentelemetry.javaagent.bootstrap.metrics.GlobalMetricsTags;
 import io.micrometer.core.instrument.Metrics;
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;
@@ -62,7 +60,7 @@ public final class ApplicationMeterRegistry extends MeterRegistry {
   protected <T> Gauge newGauge(Meter.Id id, T t, ToDoubleFunction<T> toDoubleFunction) {
     io.micrometer.core.instrument.Gauge agentGauge =
         io.micrometer.core.instrument.Gauge.builder(id.getName(), t, toDoubleFunction)
-            .tags(convertAndAddGlobals(id.getTagsAsIterable()))
+            .tags(toAgentTags(id.getTagsAsIterable()))
             .baseUnit(id.getBaseUnit())
             .description(id.getDescription())
             .synthetic(toAgent(id.syntheticAssociation()))
@@ -74,7 +72,7 @@ public final class ApplicationMeterRegistry extends MeterRegistry {
   protected Counter newCounter(Meter.Id id) {
     io.micrometer.core.instrument.Counter agentCounter =
         io.micrometer.core.instrument.Counter.builder(id.getName())
-            .tags(convertAndAddGlobals(id.getTagsAsIterable()))
+            .tags(toAgentTags(id.getTagsAsIterable()))
             .baseUnit(id.getBaseUnit())
             .description(id.getDescription())
             .register(agentRegistry);
@@ -86,7 +84,7 @@ public final class ApplicationMeterRegistry extends MeterRegistry {
       Meter.Id id, DistributionStatisticConfig distributionStats) {
     io.micrometer.core.instrument.LongTaskTimer agentLongTaskTimer =
         io.micrometer.core.instrument.LongTaskTimer.builder(id.getName())
-            .tags(convertAndAddGlobals(id.getTagsAsIterable()))
+            .tags(toAgentTags(id.getTagsAsIterable()))
             .description(id.getDescription())
             .serviceLevelObjectives(
                 toDurations(distributionStats.getServiceLevelObjectiveBoundaries()))
@@ -106,7 +104,7 @@ public final class ApplicationMeterRegistry extends MeterRegistry {
       Meter.Id id, DistributionStatisticConfig distributionStats, PauseDetector pauseDetector) {
     io.micrometer.core.instrument.Timer agentTimer =
         io.micrometer.core.instrument.Timer.builder(id.getName())
-            .tags(convertAndAddGlobals(id.getTagsAsIterable()))
+            .tags(toAgentTags(id.getTagsAsIterable()))
             .description(id.getDescription())
             .publishPercentiles(distributionStats.getPercentiles())
             .percentilePrecision(distributionStats.getPercentilePrecision())
@@ -127,7 +125,7 @@ public final class ApplicationMeterRegistry extends MeterRegistry {
       Meter.Id id, DistributionStatisticConfig distributionStats, double scale) {
     io.micrometer.core.instrument.DistributionSummary agentDistributionSummary =
         io.micrometer.core.instrument.DistributionSummary.builder(id.getName())
-            .tags(convertAndAddGlobals(id.getTagsAsIterable()))
+            .tags(toAgentTags(id.getTagsAsIterable()))
             .description(id.getDescription())
             .baseUnit(id.getBaseUnit())
             .publishPercentiles(distributionStats.getPercentiles())
@@ -148,7 +146,7 @@ public final class ApplicationMeterRegistry extends MeterRegistry {
     io.micrometer.core.instrument.Meter agentMeter =
         io.micrometer.core.instrument.Meter.builder(
                 id.getName(), toAgent(id.getType()), toAgentMeasurements(iterable))
-            .tags(convertAndAddGlobals(id.getTagsAsIterable()))
+            .tags(toAgentTags(id.getTagsAsIterable()))
             .baseUnit(id.getBaseUnit())
             .description(id.getDescription())
             .register(agentRegistry);
@@ -165,7 +163,7 @@ public final class ApplicationMeterRegistry extends MeterRegistry {
     io.micrometer.core.instrument.FunctionTimer agentTimer =
         io.micrometer.core.instrument.FunctionTimer.builder(
                 id.getName(), t, toLongFunction, toDoubleFunction, timeUnit)
-            .tags(convertAndAddGlobals(id.getTagsAsIterable()))
+            .tags(toAgentTags(id.getTagsAsIterable()))
             .description(id.getDescription())
             .register(agentRegistry);
     return new ApplicationFunctionTimer(id, agentTimer);
@@ -176,7 +174,7 @@ public final class ApplicationMeterRegistry extends MeterRegistry {
       Meter.Id id, T t, ToDoubleFunction<T> toDoubleFunction) {
     io.micrometer.core.instrument.FunctionCounter agentCounter =
         io.micrometer.core.instrument.FunctionCounter.builder(id.getName(), t, toDoubleFunction)
-            .tags(convertAndAddGlobals(id.getTagsAsIterable()))
+            .tags(toAgentTags(id.getTagsAsIterable()))
             .baseUnit(id.getBaseUnit())
             .description(id.getDescription())
             .register(agentRegistry);
@@ -185,7 +183,7 @@ public final class ApplicationMeterRegistry extends MeterRegistry {
 
   @Override
   public Meter remove(Meter.Id mappedId) {
-    agentRegistry.remove(convertAndAddGlobals(mappedId));
+    agentRegistry.remove(toAgent(mappedId));
     return super.remove(mappedId);
   }
 
@@ -206,15 +204,5 @@ public final class ApplicationMeterRegistry extends MeterRegistry {
         .expiry(exportInterval)
         .build()
         .merge(DistributionStatisticConfig.DEFAULT);
-  }
-
-  private static io.micrometer.core.instrument.Tags convertAndAddGlobals(
-      Iterable<Tag> applicationTags) {
-    return toAgentTags(applicationTags).and(GlobalMetricsTags.get());
-  }
-
-  private static io.micrometer.core.instrument.Meter.Id convertAndAddGlobals(
-      Meter.Id applicationMeterId) {
-    return toAgent(applicationMeterId).withTags(GlobalMetricsTags.get());
   }
 }

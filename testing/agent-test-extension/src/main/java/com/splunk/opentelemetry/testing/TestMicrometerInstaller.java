@@ -17,10 +17,10 @@
 package com.splunk.opentelemetry.testing;
 
 import com.google.auto.service.AutoService;
-import com.splunk.opentelemetry.javaagent.bootstrap.metrics.GlobalMetricsTags;
 import io.micrometer.core.instrument.Metrics;
 import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.Tags;
+import io.micrometer.core.instrument.config.MeterFilter;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import io.opentelemetry.instrumentation.api.config.Config;
 import io.opentelemetry.javaagent.extension.AgentListener;
@@ -29,12 +29,13 @@ import io.opentelemetry.javaagent.extension.AgentListener;
 public class TestMicrometerInstaller implements AgentListener {
   @Override
   public void beforeAgent(Config config) {
-    Metrics.addRegistry(new SimpleMeterRegistry());
-
     Tags globalMetricsTags =
         config.getMap("splunk.testing.metrics.global-tags").entrySet().stream()
             .map(e -> Tag.of(e.getKey(), e.getValue()))
             .reduce(Tags.empty(), Tags::and, Tags::concat);
-    GlobalMetricsTags.set(globalMetricsTags);
+
+    SimpleMeterRegistry registry = new SimpleMeterRegistry();
+    registry.config().meterFilter(MeterFilter.commonTags(globalMetricsTags));
+    Metrics.addRegistry(registry);
   }
 }

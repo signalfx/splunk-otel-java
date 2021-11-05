@@ -17,9 +17,10 @@
 package com.splunk.opentelemetry.micrometer;
 
 import com.google.auto.service.AutoService;
-import com.splunk.opentelemetry.javaagent.bootstrap.metrics.GlobalMetricsTags;
 import io.micrometer.core.instrument.Clock;
 import io.micrometer.core.instrument.Metrics;
+import io.micrometer.core.instrument.Tags;
+import io.micrometer.core.instrument.config.MeterFilter;
 import io.micrometer.core.instrument.config.NamingConvention;
 import io.micrometer.signalfx.SignalFxMeterRegistry;
 import io.opentelemetry.instrumentation.api.config.Config;
@@ -38,15 +39,19 @@ public class MicrometerInstaller implements AgentListener {
     SplunkMetricsConfig splunkMetricsConfig = new SplunkMetricsConfig(config, resource);
 
     if (splunkMetricsConfig.enabled()) {
-      GlobalMetricsTags.set(new GlobalTagsBuilder(resource).build());
-      Metrics.addRegistry(createSplunkMeterRegistry(splunkMetricsConfig));
+      Tags globalTags = new GlobalTagsBuilder(resource).build();
+      Metrics.addRegistry(createSplunkMeterRegistry(splunkMetricsConfig, globalTags));
     }
   }
 
-  private static SignalFxMeterRegistry createSplunkMeterRegistry(SplunkMetricsConfig config) {
+  private static SignalFxMeterRegistry createSplunkMeterRegistry(
+      SplunkMetricsConfig config, Tags globalTags) {
     SignalFxMeterRegistry signalFxRegistry = new SignalFxMeterRegistry(config, Clock.SYSTEM);
     NamingConvention signalFxNamingConvention = signalFxRegistry.config().namingConvention();
-    signalFxRegistry.config().namingConvention(new OtelNamingConvention(signalFxNamingConvention));
+    signalFxRegistry
+        .config()
+        .namingConvention(new OtelNamingConvention(signalFxNamingConvention))
+        .meterFilter(MeterFilter.commonTags(globalTags));
     return signalFxRegistry;
   }
 }

@@ -3,45 +3,35 @@ package com.splunk.opentelemetry.instrumentation.tomcat.metrics;
 import org.apache.tomcat.util.net.AbstractEndpoint;
 import org.apache.tomcat.util.threads.ResizableExecutor;
 
-final class ResizeableExecutorSuppliers implements Suppliers {
+final class ResizeableExecutorSuppliers implements Suppliers<ResizableExecutor> {
 
-    private final AbstractEndpoint<?, ?> endpoint;
-
-    ResizeableExecutorSuppliers(AbstractEndpoint<?, ?> endpoint) {
-        this.endpoint = endpoint;
+    @Override
+    public Number getCurrentThreads(ResizableExecutor executor) {
+        return executor.getPoolSize();
     }
 
     @Override
-    public Number getCurrentThreads() {
-        return executor().getPoolSize();
+    public Number getActiveThreads(ResizableExecutor executor) {
+        return executor.getActiveCount();
     }
 
     @Override
-    public Number getActiveThreads() {
-        return executor().getActiveCount();
-    }
-
-    @Override
-    public Number getCoreThreads() {
+    public Number getCoreThreads(ResizableExecutor executor) {
         return Double.NaN;
     }
 
     @Override
-    public Number getMaxThreads() {
-        return executor().getMaxThreads();
+    public Number getMaxThreads(ResizableExecutor executor) {
+        return executor.getMaxThreads();
     }
 
     @Override
-    public Number getSubmittedTasks() {
+    public Number getSubmittedTasks(ResizableExecutor executor) {
         return Double.NaN;
     }
 
     @Override
-    public Number getCompletedTasks() {
+    public Number getCompletedTasks(ResizableExecutor executor) {
         return Double.NaN;
-    }
-
-    private ResizableExecutor executor() {
-        return (ResizableExecutor) endpoint.getExecutor();
     }
 }

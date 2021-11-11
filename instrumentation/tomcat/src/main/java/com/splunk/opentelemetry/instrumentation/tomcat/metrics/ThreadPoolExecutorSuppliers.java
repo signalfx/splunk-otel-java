@@ -3,45 +3,37 @@ package com.splunk.opentelemetry.instrumentation.tomcat.metrics;
 import org.apache.tomcat.util.net.AbstractEndpoint;
 import org.apache.tomcat.util.threads.ThreadPoolExecutor;
 
-final class ThreadPoolExecutorSuppliers implements Suppliers {
+import java.util.concurrent.Executor;
 
-    private final AbstractEndpoint<?, ?> endpoint;
+final class ThreadPoolExecutorSuppliers implements Suppliers<ThreadPoolExecutor> {
 
-    ThreadPoolExecutorSuppliers(AbstractEndpoint<?, ?> endpoint) {
-        this.endpoint = endpoint;
+    @Override
+    public Number getCurrentThreads(ThreadPoolExecutor executor) {
+        return executor.getPoolSize();
     }
 
     @Override
-    public Number getCurrentThreads() {
-        return executor().getPoolSize();
+    public Number getActiveThreads(ThreadPoolExecutor executor) {
+        return executor.getActiveCount();
     }
 
     @Override
-    public Number getActiveThreads() {
-        return executor().getActiveCount();
+    public Number getCoreThreads(ThreadPoolExecutor executor) {
+        return executor.getCorePoolSize();
     }
 
     @Override
-    public Number getCoreThreads() {
-        return executor().getCorePoolSize();
+    public Number getMaxThreads(ThreadPoolExecutor executor) {
+        return executor.getMaximumPoolSize();
     }
 
     @Override
-    public Number getMaxThreads() {
-        return executor().getMaximumPoolSize();
+    public Number getSubmittedTasks(ThreadPoolExecutor executor) {
+        return executor.getSubmittedCount();
     }
 
     @Override
-    public Number getSubmittedTasks() {
-        return executor().getSubmittedCount();
-    }
-
-    @Override
-    public Number getCompletedTasks() {
-        return executor().getCompletedTaskCount();
-    }
-
-    private ThreadPoolExecutor executor() {
-        return (ThreadPoolExecutor) endpoint.getExecutor();
+    public Number getCompletedTasks(ThreadPoolExecutor executor) {
+        return executor.getCompletedTaskCount();
     }
 }

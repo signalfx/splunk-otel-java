@@ -9,7 +9,7 @@ import java.util.function.Function;
 
 import static java.lang.Double.NaN;
 
-public interface Suppliers {
+public interface Suppliers<T> {
 
     static Function<AbstractEndpoint<?,?>,Suppliers> fromEndpoint(AbstractEndpoint<?, ?> endpoint) {
         Executor executor = endpoint.getExecutor();
@@ -23,50 +23,50 @@ public interface Suppliers {
         return UNHANDLED_TYPE_SUPPLIER;
     }
 
-    Number getCurrentThreads();
+    Number getCurrentThreads(T executor);
 
-    Number getActiveThreads();
+    Number getActiveThreads(T executor);
 
-    default Number getIdleThreads() {
-        return getCurrentThreads().intValue() - getActiveThreads().intValue();
+    default Number getIdleThreads(T executor) {
+        return getCurrentThreads(executor).intValue() - getActiveThreads(executor).intValue();
     }
 
-    Number getCoreThreads();
+    Number getCoreThreads(T executor);
 
-    Number getMaxThreads();
+    Number getMaxThreads(T executor);
 
-    Number getSubmittedTasks();
+    Number getSubmittedTasks(T executor);
 
-    Number getCompletedTasks();
+    Number getCompletedTasks(T executor);
 
-    Suppliers UNHANDLED_TYPE_SUPPLIER = new Suppliers() {
+    Suppliers UNHANDLED_TYPE_SUPPLIER = new Suppliers<Executor>() {
         @Override
-        public Number getCurrentThreads() {
+        public Number getCurrentThreads(Executor exec) {
             return NaN;
         }
 
         @Override
-        public Number getActiveThreads() {
+        public Number getActiveThreads(Executor exec) {
             return NaN;
         }
 
         @Override
-        public Number getCoreThreads() {
+        public Number getCoreThreads(Executor exec) {
             return NaN;
         }
 
         @Override
-        public Number getMaxThreads() {
+        public Number getMaxThreads(Executor exec) {
             return NaN;
         }
 
         @Override
-        public Number getSubmittedTasks() {
+        public Number getSubmittedTasks(Executor exec) {
             return NaN;
         }
 
         @Override
-        public Number getCompletedTasks() {
+        public Number getCompletedTasks(Executor exec) {
             return NaN;
         }
     };

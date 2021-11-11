@@ -16,17 +16,6 @@
 
 package com.splunk.opentelemetry.instrumentation.tomcat.metrics;
 
-import io.micrometer.core.instrument.Meter;
-import io.micrometer.core.instrument.Metrics;
-import io.micrometer.core.instrument.Tag;
-import io.micrometer.core.instrument.Tags;
-import org.apache.tomcat.util.net.AbstractEndpoint;
-
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
 import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.ThreadPoolSemanticConventions.EXECUTOR_NAME;
 import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.ThreadPoolSemanticConventions.EXECUTOR_TYPE;
 import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.ThreadPoolSemanticConventions.TASKS_COMPLETED;
@@ -36,6 +25,16 @@ import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.ThreadPoolSem
 import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.ThreadPoolSemanticConventions.THREADS_CURRENT;
 import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.ThreadPoolSemanticConventions.THREADS_IDLE;
 import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.ThreadPoolSemanticConventions.THREADS_MAX;
+
+import io.micrometer.core.instrument.Meter;
+import io.micrometer.core.instrument.Metrics;
+import io.micrometer.core.instrument.Tag;
+import io.micrometer.core.instrument.Tags;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import org.apache.tomcat.util.net.AbstractEndpoint;
 
 public final class ThreadPoolMetrics {
 
@@ -52,15 +51,16 @@ public final class ThreadPoolMetrics {
   private static List<Meter> createMeters(AbstractEndpoint<?, ?> endpoint) {
     Tags tags = executorTags(endpoint);
 
-    Suppliers suppliers = Suppliers.fromEndpoint(endpoint);
+    LateBindingTomcatThreadPoolMetrics tomcatThreadPoolMetrics =
+        new LateBindingTomcatThreadPoolMetrics(endpoint);
     return Arrays.asList(
-        THREADS_CURRENT.create(tags, suppliers::getCurrentThreads),
-        THREADS_ACTIVE.create(tags, suppliers::getActiveThreads),
-        THREADS_IDLE.create(tags, suppliers::getIdleThreads),
-        THREADS_CORE.create(tags, suppliers::getCoreThreads),
-        THREADS_MAX.create(tags, suppliers::getMaxThreads),
-        TASKS_SUBMITTED.create(tags, suppliers::getSubmittedTasks),
-        TASKS_COMPLETED.create(tags, suppliers::getCompletedTasks));
+        THREADS_CURRENT.create(tags, tomcatThreadPoolMetrics::getCurrentThreads),
+        THREADS_ACTIVE.create(tags, tomcatThreadPoolMetrics::getActiveThreads),
+        THREADS_IDLE.create(tags, tomcatThreadPoolMetrics::getIdleThreads),
+        THREADS_CORE.create(tags, tomcatThreadPoolMetrics::getCoreThreads),
+        THREADS_MAX.create(tags, tomcatThreadPoolMetrics::getMaxThreads),
+        TASKS_SUBMITTED.create(tags, tomcatThreadPoolMetrics::getSubmittedTasks),
+        TASKS_COMPLETED.create(tags, tomcatThreadPoolMetrics::getCompletedTasks));
   }
 
   public static void unregisterMetrics(AbstractEndpoint<?, ?> endpoint) {

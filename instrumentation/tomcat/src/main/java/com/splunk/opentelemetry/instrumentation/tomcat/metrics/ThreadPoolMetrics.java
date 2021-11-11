@@ -16,6 +16,17 @@
 
 package com.splunk.opentelemetry.instrumentation.tomcat.metrics;
 
+import io.micrometer.core.instrument.Meter;
+import io.micrometer.core.instrument.Metrics;
+import io.micrometer.core.instrument.Tag;
+import io.micrometer.core.instrument.Tags;
+import org.apache.tomcat.util.net.AbstractEndpoint;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.ThreadPoolSemanticConventions.EXECUTOR_NAME;
 import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.ThreadPoolSemanticConventions.EXECUTOR_TYPE;
 import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.ThreadPoolSemanticConventions.TASKS_COMPLETED;
@@ -25,20 +36,6 @@ import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.ThreadPoolSem
 import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.ThreadPoolSemanticConventions.THREADS_CURRENT;
 import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.ThreadPoolSemanticConventions.THREADS_IDLE;
 import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.ThreadPoolSemanticConventions.THREADS_MAX;
-
-import io.micrometer.core.instrument.Meter;
-import io.micrometer.core.instrument.Metrics;
-import io.micrometer.core.instrument.Tag;
-import io.micrometer.core.instrument.Tags;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Executor;
-import java.util.function.Function;
-import org.apache.tomcat.util.net.AbstractEndpoint;
-import org.apache.tomcat.util.threads.ResizableExecutor;
-import org.apache.tomcat.util.threads.ThreadPoolExecutor;
 
 public final class ThreadPoolMetrics {
 
@@ -55,7 +52,7 @@ public final class ThreadPoolMetrics {
   private static List<Meter> createMeters(AbstractEndpoint<?, ?> endpoint) {
     Tags tags = executorTags(endpoint);
 
-    Suppliers suppliers = new Suppliers(endpoint);
+    Suppliers suppliers = Suppliers.fromEndpoint(endpoint);
     return Arrays.asList(
         THREADS_CURRENT.create(tags, suppliers::getCurrentThreads),
         THREADS_ACTIVE.create(tags, suppliers::getActiveThreads),
@@ -77,55 +74,6 @@ public final class ThreadPoolMetrics {
 
   private static Tags executorTags(AbstractEndpoint<?, ?> endpoint) {
     return Tags.of(Tag.of(EXECUTOR_TYPE, "tomcat"), Tag.of(EXECUTOR_NAME, endpoint.getName()));
-  }
-
-  private static final class Suppliers {
-    private final AbstractEndpoint<?, ?> endpoint;
-
-    private Suppliers(AbstractEndpoint<?, ?> endpoint) {
-      this.endpoint = endpoint;
-    }
-
-    private Number getCurrentThreads() {
-      return getMetric(ThreadPoolExecutor::getPoolSize, ResizableExecutor::getPoolSize);
-    }
-
-    private Number getActiveThreads() {
-      return getMetric(ThreadPoolExecutor::getActiveCount, ResizableExecutor::getActiveCount);
-    }
-
-    private Number getIdleThreads() {
-      return getCurrentThreads().intValue() - getActiveThreads().intValue();
-    }
-
-    private Number getCoreThreads() {
-      return getMetric(ThreadPoolExecutor::getCorePoolSize, e -> Double.NaN);
-    }
-
-    private Number getMaxThreads() {
-      return getMetric(ThreadPoolExecutor::getMaximumPoolSize, ResizableExecutor::getMaxThreads);
-    }
-
-    private Number getSubmittedTasks() {
-      return getMetric(ThreadPoolExecutor::getSubmittedCount, e -> Double.NaN);
-    }
-
-    private Number getCompletedTasks() {
-      return getMetric(ThreadPoolExecutor::getCompletedTaskCount, e -> Double.NaN);
-    }
-
-    private Number getMetric(
-        Function<ThreadPoolExecutor, Number> threadPoolExecutorFunc,
-        Function<ResizableExecutor, Number> resizableExecutorFunc) {
-      Executor executor = endpoint.getExecutor();
-      if (executor instanceof ThreadPoolExecutor) {
-        return threadPoolExecutorFunc.apply((ThreadPoolExecutor) executor);
-      }
-      if (executor instanceof ResizableExecutor) {
-        return resizableExecutorFunc.apply((ResizableExecutor) executor);
-      }
-      return Double.NaN;
-    }
   }
 
   private ThreadPoolMetrics() {}

@@ -34,11 +34,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Executor;
-import java.util.function.Function;
 import org.apache.tomcat.util.net.AbstractEndpoint;
-import org.apache.tomcat.util.threads.ResizableExecutor;
-import org.apache.tomcat.util.threads.ThreadPoolExecutor;
 
 public final class ThreadPoolMetrics {
 
@@ -55,15 +51,16 @@ public final class ThreadPoolMetrics {
   private static List<Meter> createMeters(AbstractEndpoint<?, ?> endpoint) {
     Tags tags = executorTags(endpoint);
 
-    Suppliers suppliers = new Suppliers(endpoint);
+    LateBindingTomcatThreadPoolMetrics tomcatThreadPoolMetrics =
+        new LateBindingTomcatThreadPoolMetrics(endpoint);
     return Arrays.asList(
-        THREADS_CURRENT.create(tags, suppliers::getCurrentThreads),
-        THREADS_ACTIVE.create(tags, suppliers::getActiveThreads),
-        THREADS_IDLE.create(tags, suppliers::getIdleThreads),
-        THREADS_CORE.create(tags, suppliers::getCoreThreads),
-        THREADS_MAX.create(tags, suppliers::getMaxThreads),
-        TASKS_SUBMITTED.create(tags, suppliers::getSubmittedTasks),
-        TASKS_COMPLETED.create(tags, suppliers::getCompletedTasks));
+        THREADS_CURRENT.create(tags, tomcatThreadPoolMetrics::getCurrentThreads),
+        THREADS_ACTIVE.create(tags, tomcatThreadPoolMetrics::getActiveThreads),
+        THREADS_IDLE.create(tags, tomcatThreadPoolMetrics::getIdleThreads),
+        THREADS_CORE.create(tags, tomcatThreadPoolMetrics::getCoreThreads),
+        THREADS_MAX.create(tags, tomcatThreadPoolMetrics::getMaxThreads),
+        TASKS_SUBMITTED.create(tags, tomcatThreadPoolMetrics::getSubmittedTasks),
+        TASKS_COMPLETED.create(tags, tomcatThreadPoolMetrics::getCompletedTasks));
   }
 
   public static void unregisterMetrics(AbstractEndpoint<?, ?> endpoint) {
@@ -77,55 +74,6 @@ public final class ThreadPoolMetrics {
 
   private static Tags executorTags(AbstractEndpoint<?, ?> endpoint) {
     return Tags.of(Tag.of(EXECUTOR_TYPE, "tomcat"), Tag.of(EXECUTOR_NAME, endpoint.getName()));
-  }
-
-  private static final class Suppliers {
-    private final AbstractEndpoint<?, ?> endpoint;
-
-    private Suppliers(AbstractEndpoint<?, ?> endpoint) {
-      this.endpoint = endpoint;
-    }
-
-    private Number getCurrentThreads() {
-      return getMetric(ThreadPoolExecutor::getPoolSize, ResizableExecutor::getPoolSize);
-    }
-
-    private Number getActiveThreads() {
-      return getMetric(ThreadPoolExecutor::getActiveCount, ResizableExecutor::getActiveCount);
-    }
-
-    private Number getIdleThreads() {
-      return getCurrentThreads().intValue() - getActiveThreads().intValue();
-    }
-
-    private Number getCoreThreads() {
-      return getMetric(ThreadPoolExecutor::getCorePoolSize, e -> Double.NaN);
-    }
-
-    private Number getMaxThreads() {
-      return getMetric(ThreadPoolExecutor::getMaximumPoolSize, ResizableExecutor::getMaxThreads);
-    }
-
-    private Number getSubmittedTasks() {
-      return getMetric(ThreadPoolExecutor::getSubmittedCount, e -> Double.NaN);
-    }
-
-    private Number getCompletedTasks() {
-      return getMetric(ThreadPoolExecutor::getCompletedTaskCount, e -> Double.NaN);
-    }
-
-    private Number getMetric(
-        Function<ThreadPoolExecutor, Number> threadPoolExecutorFunc,
-        Function<ResizableExecutor, Number> resizableExecutorFunc) {
-      Executor executor = endpoint.getExecutor();
-      if (executor instanceof ThreadPoolExecutor) {
-        return threadPoolExecutorFunc.apply((ThreadPoolExecutor) executor);
-      }
-      if (executor instanceof ResizableExecutor) {
-        return resizableExecutorFunc.apply((ResizableExecutor) executor);
-      }
-      return Double.NaN;
-    }
   }
 
   private ThreadPoolMetrics() {}

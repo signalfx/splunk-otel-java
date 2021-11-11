@@ -5,18 +5,19 @@ import org.apache.tomcat.util.threads.ResizableExecutor;
 import org.apache.tomcat.util.threads.ThreadPoolExecutor;
 
 import java.util.concurrent.Executor;
+import java.util.function.Function;
 
 import static java.lang.Double.NaN;
 
 public interface Suppliers {
 
-    static Suppliers fromEndpoint(AbstractEndpoint<?, ?> endpoint) {
+    static Function<AbstractEndpoint<?,?>,Suppliers> fromEndpoint(AbstractEndpoint<?, ?> endpoint) {
         Executor executor = endpoint.getExecutor();
         if (executor instanceof ThreadPoolExecutor) {
-            return new ThreadPoolExecutorSuppliers((ThreadPoolExecutor) executor);
+            return new ThreadPoolExecutorSuppliers(endpoint);
         }
         if (executor instanceof ResizableExecutor) {
-            return new ResizeableExecutorSuppliers((ResizableExecutor) executor);
+            return new ResizeableExecutorSuppliers(endpoint);
         }
         //TODO: Log warning?
         return UNHANDLED_TYPE_SUPPLIER;

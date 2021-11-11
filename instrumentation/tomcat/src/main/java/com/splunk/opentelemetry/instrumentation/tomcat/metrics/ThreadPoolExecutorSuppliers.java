@@ -1,42 +1,47 @@
 package com.splunk.opentelemetry.instrumentation.tomcat.metrics;
 
+import org.apache.tomcat.util.net.AbstractEndpoint;
 import org.apache.tomcat.util.threads.ThreadPoolExecutor;
 
 final class ThreadPoolExecutorSuppliers implements Suppliers {
 
-    private final ThreadPoolExecutor executor;
+    private final AbstractEndpoint<?, ?> endpoint;
 
-    ThreadPoolExecutorSuppliers(ThreadPoolExecutor executor) {
-        this.executor = executor;
+    ThreadPoolExecutorSuppliers(AbstractEndpoint<?, ?> endpoint) {
+        this.endpoint = endpoint;
     }
 
     @Override
     public Number getCurrentThreads() {
-        return executor.getPoolSize();
+        return executor().getPoolSize();
     }
 
     @Override
     public Number getActiveThreads() {
-        return executor.getActiveCount();
+        return executor().getActiveCount();
     }
 
     @Override
     public Number getCoreThreads() {
-        return executor.getCorePoolSize();
+        return executor().getCorePoolSize();
     }
 
     @Override
     public Number getMaxThreads() {
-        return executor.getMaximumPoolSize();
+        return executor().getMaximumPoolSize();
     }
 
     @Override
     public Number getSubmittedTasks() {
-        return executor.getSubmittedCount();
+        return executor().getSubmittedCount();
     }
 
     @Override
     public Number getCompletedTasks() {
-        return executor.getCompletedTaskCount();
+        return executor().getCompletedTaskCount();
+    }
+
+    private ThreadPoolExecutor executor() {
+        return (ThreadPoolExecutor) endpoint.getExecutor();
     }
 }

@@ -1,23 +1,24 @@
 package com.splunk.opentelemetry.instrumentation.tomcat.metrics;
 
+import org.apache.tomcat.util.net.AbstractEndpoint;
 import org.apache.tomcat.util.threads.ResizableExecutor;
 
 final class ResizeableExecutorSuppliers implements Suppliers {
 
-    private final ResizableExecutor executor;
+    private final AbstractEndpoint<?, ?> endpoint;
 
-    ResizeableExecutorSuppliers(ResizableExecutor executor) {
-        this.executor = executor;
+    ResizeableExecutorSuppliers(AbstractEndpoint<?, ?> endpoint) {
+        this.endpoint = endpoint;
     }
 
     @Override
     public Number getCurrentThreads() {
-        return executor.getPoolSize();
+        return executor().getPoolSize();
     }
 
     @Override
     public Number getActiveThreads() {
-        return executor.getActiveCount();
+        return executor().getActiveCount();
     }
 
     @Override
@@ -27,7 +28,7 @@ final class ResizeableExecutorSuppliers implements Suppliers {
 
     @Override
     public Number getMaxThreads() {
-        return executor.getMaxThreads();
+        return executor().getMaxThreads();
     }
 
     @Override
@@ -38,5 +39,9 @@ final class ResizeableExecutorSuppliers implements Suppliers {
     @Override
     public Number getCompletedTasks() {
         return Double.NaN;
+    }
+
+    private ResizableExecutor executor() {
+        return (ResizableExecutor) endpoint.getExecutor();
     }
 }

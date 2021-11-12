@@ -32,11 +32,17 @@ public class LibertySmokeTest extends AppServerTest {
 
   public static final ExpectedServerAttributes LIBERTY20_SERVER_ATTRIBUTES =
       new LibertyAttributes("20.0.0.12");
+  public static final ExpectedServerAttributes LIBERTY21_SERVER_ATTRIBUTES =
+      new LibertyAttributes("21.0.0.10");
 
   private static Stream<Arguments> supportedConfigurations() {
     return configurations("liberty")
-        .otelLinux("20.0.0.12", LIBERTY20_SERVER_ATTRIBUTES, VMS_ALL, "8", "11", "15")
-        .otelWindows("20.0.0.12", LIBERTY20_SERVER_ATTRIBUTES, VMS_ALL, "8", "11", "15")
+        .otelLinux("20.0.0.12", LIBERTY20_SERVER_ATTRIBUTES, VMS_ALL, "8", "11", "16")
+        .otelLinux("21.0.0.10", LIBERTY21_SERVER_ATTRIBUTES, VMS_HOTSPOT, "8", "11", "17")
+        .otelLinux("21.0.0.10", LIBERTY21_SERVER_ATTRIBUTES, VMS_OPENJ9, "8", "11", "16")
+        .otelWindows("20.0.0.12", LIBERTY20_SERVER_ATTRIBUTES, VMS_ALL, "8", "11", "16")
+        .otelWindows("21.0.0.10", LIBERTY21_SERVER_ATTRIBUTES, VMS_HOTSPOT, "8", "11", "17")
+        .otelWindows("21.0.0.10", LIBERTY21_SERVER_ATTRIBUTES, VMS_OPENJ9, "8", "11", "16")
         .stream();
   }
 

@@ -49,6 +49,7 @@ include(
     "instrumentation:tomee",
     "instrumentation:vibur-dbcp",
     "instrumentation:weblogic",
+    "instrumentation:websphere",
     "instrumentation:wildfly",
     "matrix",
     "profiler",

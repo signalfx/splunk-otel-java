@@ -40,6 +40,7 @@ tasks {
       "tomcat" to listOf("**/TomcatSmokeTest.*"),
       "tomee" to listOf("**/TomeeSmokeTest.*"),
       "weblogic" to listOf("**/WebLogicSmokeTest.*"),
+      "websphere" to listOf("**/WebSphereSmokeTest.*"),
       "wildfly" to listOf("**/WildFlySmokeTest.*")
     )
 

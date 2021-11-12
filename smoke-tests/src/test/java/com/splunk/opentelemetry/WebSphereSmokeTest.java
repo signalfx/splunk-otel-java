@@ -23,38 +23,35 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-public class TomeeSmokeTest extends AppServerTest {
+public class WebSphereSmokeTest extends AppServerTest {
 
-  public static final ExpectedServerAttributes TOMEE7_SERVER_ATTRIBUTES =
-      new TomeeAttributes("7.0.9");
-  public static final ExpectedServerAttributes TOMEE8_SERVER_ATTRIBUTES =
-      new TomeeAttributes("8.0.8");
+  public static final ExpectedServerAttributes WEBSPHERE8_SERVER_ATTRIBUTES =
+      new WebsphereAttributes("8.5.5.20");
+  public static final ExpectedServerAttributes WEBSPHERE9_SERVER_ATTRIBUTES =
+      new WebsphereAttributes("9.0.5.9");
 
   private static Stream<Arguments> supportedConfigurations() {
-    return configurations("tomee")
-        .otelLinux("7.0.9", TOMEE7_SERVER_ATTRIBUTES, VMS_ALL, "8")
-        .otelLinux("8.0.8", TOMEE8_SERVER_ATTRIBUTES, VMS_ALL, "8", "11")
-        .otelWindows("7.0.9", TOMEE7_SERVER_ATTRIBUTES, VMS_ALL, "8")
-        .otelWindows("8.0.8", TOMEE8_SERVER_ATTRIBUTES, VMS_ALL, "8", "11")
+    return configurations("websphere")
+        .otelLinux("8.5.5.20", WEBSPHERE8_SERVER_ATTRIBUTES, VMS_OPENJ9, "8")
+        .otelLinux("9.0.5.9", WEBSPHERE9_SERVER_ATTRIBUTES, VMS_OPENJ9, "8")
         .stream();
   }
 
   @ParameterizedTest(name = "[{index}] {0}")
   @MethodSource("supportedConfigurations")
-  void tomeeSmokeTest(TestImage image, ExpectedServerAttributes expectedServerAttributes)
+  void libertySmokeTest(TestImage image, ExpectedServerAttributes expectedServerAttributes)
       throws IOException, InterruptedException {
     startTargetOrSkipTest(image);
 
-    assertServerHandler(expectedServerAttributes);
+    // server handler test not implemented
     assertWebAppTrace(expectedServerAttributes);
 
     stopTarget();
   }
 
-  public static class TomeeAttributes extends ExpectedServerAttributes {
-    public TomeeAttributes(String version) {
-      // This handler span name is only received if default webapps are present
-      super("/*", "tomee", version);
+  public static class WebsphereAttributes extends ExpectedServerAttributes {
+    public WebsphereAttributes(String version) {
+      super("HTTP GET", "websphere", version);
     }
   }
 }

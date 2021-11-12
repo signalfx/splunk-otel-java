@@ -100,7 +100,7 @@ jobs:
         suite: [ "glassfish", "jboss", "jetty", "liberty", "tomcat", "tomee", "weblogic", "websphere", "wildfly", "other" ]
         exclude:
           - os: windows-2019
-            smoke-test-suite: websphere
+            suite: websphere
       fail-fast: false
     steps:
       - uses: actions/checkout@v2.4.0

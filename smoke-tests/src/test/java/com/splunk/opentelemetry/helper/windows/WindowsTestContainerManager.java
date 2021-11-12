@@ -188,6 +188,7 @@ public class WindowsTestContainerManager extends AbstractTestContainerManager {
   public void startTarget(
       String targetImageName,
       String agentPath,
+      String jvmArgsEnvVarName,
       Map<String, String> extraEnv,
       List<ResourceMapping> extraResources,
       TargetWaitStrategy waitStrategy) {
@@ -198,7 +199,8 @@ public class WindowsTestContainerManager extends AbstractTestContainerManager {
     }
 
     List<String> environment = new ArrayList<>();
-    getAgentEnvironment().forEach((key, value) -> environment.add(key + "=" + value));
+    getAgentEnvironment(jvmArgsEnvVarName)
+        .forEach((key, value) -> environment.add(key + "=" + value));
     extraEnv.forEach((key, value) -> environment.add(key + "=" + value));
 
     target =

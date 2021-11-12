@@ -43,6 +43,11 @@ public class GlassFishSmokeTest extends AppServerTest {
   }
 
   @Override
+  protected String getJvmArgsEnvVarName() {
+    return "JVM_ARGS";
+  }
+
+  @Override
   protected Map<String, String> getExtraEnv() {
     return Map.of("HZ_PHONE_HOME_ENABLED", "false");
   }

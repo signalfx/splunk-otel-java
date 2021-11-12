@@ -35,6 +35,7 @@ public interface TestContainerManager {
   void startTarget(
       String targetImageName,
       String agentPath,
+      String jvmArgsEnvVarName,
       Map<String, String> extraEnv,
       List<ResourceMapping> extraResources,
       TargetWaitStrategy waitStrategy);

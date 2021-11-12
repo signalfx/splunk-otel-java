@@ -63,7 +63,7 @@ public class JfrActivator implements AgentListener {
     }
     if (!JFR.instance.isAvailable()) {
       logger.warn(
-          "Java Flight Recorder (JFR) is not available in this JVM. Profiling is disabled.");
+          "JDK Flight Recorder (JFR) is not available in this JVM. Profiling is disabled.");
       return;
     }
     configurationLogger.log(config);

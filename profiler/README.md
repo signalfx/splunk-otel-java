@@ -102,7 +102,7 @@ You may need to free up some disk space and/or give the JVM more resources.
 ### What if I'm on an unsupported JVM?
 
 If your JVM does not support JFR, the profiler logs a warning at startup with the
-message `Java Flight Recorder (JFR) is not available in this JVM. Profiling is disabled`.
+message `JDK Flight Recorder (JFR) is not available in this JVM. Profiling is disabled`.
 If you want to use the profiler and see this in your logs, you must upgrade
 your JVM version to 8u262 or later.
 

@@ -23,7 +23,7 @@ import jdk.jfr.Recording;
 import jdk.jfr.consumer.RecordedEvent;
 import jdk.jfr.consumer.RecordingFile;
 
-/** Abstraction around the Java Flight Recorder subsystem. */
+/** Abstraction around the JDK Flight Recorder subsystem. */
 class JFR {
 
   public static final JFR instance = new JFR();

@@ -28,9 +28,12 @@ public abstract class AbstractTestContainerManager implements TestContainerManag
   protected static final String TARGET_AGENT_FILENAME = "opentelemetry-javaagent.jar";
   protected static final String COLLECTOR_CONFIG_RESOURCE = "/otel.yaml";
 
-  protected Map<String, String> getAgentEnvironment() {
+  protected Map<String, String> getAgentEnvironment(String jvmArgsEnvVarName) {
     Map<String, String> environment = new HashMap<>();
-    environment.put("JAVA_TOOL_OPTIONS", "-javaagent:/" + TARGET_AGENT_FILENAME);
+    // while modern JVMs understand linux container memory limits, they do not understand windows
+    // container memory limits yet, so we need to explicitly set max heap in order to prevent the
+    // JVM from taking too much memory and hitting the windows container memory limit
+    environment.put(jvmArgsEnvVarName, "-Xmx512m -javaagent:/" + TARGET_AGENT_FILENAME);
     environment.put("OTEL_BSP_MAX_EXPORT_BATCH_SIZE", "1");
     environment.put("OTEL_BSP_SCHEDULE_DELAY", "10ms");
     environment.put("OTEL_EXPORTER_OTLP_ENDPOINT", "http://" + COLLECTOR_ALIAS + ":4317");

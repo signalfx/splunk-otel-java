@@ -28,14 +28,23 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 public class GlassFishSmokeTest extends AppServerTest {
 
-  public static final ExpectedServerAttributes PAYARA_SERVER_ATTRIBUTES =
+  public static final ExpectedServerAttributes PAYARA20_SERVER_ATTRIBUTES =
       new ExpectedServerAttributes("/*", "Payara Server", "5.2020.6");
+  public static final ExpectedServerAttributes PAYARA21_SERVER_ATTRIBUTES =
+      new ExpectedServerAttributes("/*", "Payara Server", "5.2021.8");
 
   private static Stream<Arguments> supportedConfigurations() {
     return configurations("payara")
-        .otelLinux("5.2020.6", PAYARA_SERVER_ATTRIBUTES, VMS_ALL, "8", "11")
-        .otelWindows("5.2020.6", PAYARA_SERVER_ATTRIBUTES, VMS_ALL, "8", "11")
+        .otelLinux("5.2020.6", PAYARA20_SERVER_ATTRIBUTES, VMS_ALL, "8", "11")
+        .otelLinux("5.2021.8", PAYARA21_SERVER_ATTRIBUTES, VMS_ALL, "8", "11")
+        .otelWindows("5.2020.6", PAYARA20_SERVER_ATTRIBUTES, VMS_ALL, "8", "11")
+        .otelWindows("5.2021.8", PAYARA21_SERVER_ATTRIBUTES, VMS_ALL, "8", "11")
         .stream();
+  }
+
+  @Override
+  protected String getJvmArgsEnvVarName() {
+    return "JVM_ARGS";
   }
 
   @Override

@@ -31,15 +31,19 @@ public class WildFlySmokeTest extends AppServerTest {
       new ExpectedServerAttributes("HTTP GET", "WildFly Full", "17.0.1.Final");
   public static final ExpectedServerAttributes WILDFLY_21_SERVER_ATTRIBUTES =
       new ExpectedServerAttributes("HTTP GET", "WildFly Full", "21.0.0.Final");
+  public static final ExpectedServerAttributes WILDFLY_25_SERVER_ATTRIBUTES =
+      new ExpectedServerAttributes("HTTP GET", "WildFly Full", "25.0.1.Final");
 
   private static Stream<Arguments> supportedConfigurations() {
     return configurations("wildfly")
         .otelLinux("13.0.0.Final", WILDFLY_13_SERVER_ATTRIBUTES, VMS_ALL, "8")
         .otelLinux("17.0.1.Final", WILDFLY_17_SERVER_ATTRIBUTES, VMS_ALL, "8", "11")
         .otelLinux("21.0.0.Final", WILDFLY_21_SERVER_ATTRIBUTES, VMS_ALL, "8", "11")
+        .otelLinux("25.0.1.Final", WILDFLY_25_SERVER_ATTRIBUTES, VMS_ALL, "8", "11")
         .otelWindows("13.0.0.Final", WILDFLY_13_SERVER_ATTRIBUTES, VMS_ALL, "8")
         .otelWindows("17.0.1.Final", WILDFLY_17_SERVER_ATTRIBUTES, VMS_ALL, "8", "11")
         .otelWindows("21.0.0.Final", WILDFLY_21_SERVER_ATTRIBUTES, VMS_ALL, "8", "11")
+        .otelWindows("25.0.1.Final", WILDFLY_25_SERVER_ATTRIBUTES, VMS_ALL, "8", "11")
         .stream();
   }
 

@@ -26,22 +26,26 @@ import org.junit.jupiter.params.provider.MethodSource;
 public class JettySmokeTest extends AppServerTest {
 
   public static final ExpectedServerAttributes JETTY9_SERVER_ATTRIBUTES =
-      new ExpectedServerAttributes("HTTP GET", "jetty", "9.4.35.v20201120");
+      new ExpectedServerAttributes("HTTP GET", "jetty", "9.4.39.v20210325");
   public static final ExpectedServerAttributes JETTY10_SERVER_ATTRIBUTES =
-      new ExpectedServerAttributes("HTTP GET", "jetty", "10.0.0");
-  public static final ExpectedServerAttributes JETTY10_BETA_SERVER_ATTRIBUTES =
-      new ExpectedServerAttributes("HTTP GET", "jetty", "10.0.0.beta3");
+      new ExpectedServerAttributes("HTTP GET", "jetty", "10.0.7");
   public static final ExpectedServerAttributes JETTY11_SERVER_ATTRIBUTES =
-      new ExpectedServerAttributes("HTTP GET", "jetty", "11.0.1");
+      new ExpectedServerAttributes("HTTP GET", "jetty", "11.0.7");
 
   private static Stream<Arguments> supportedConfigurations() {
     return configurations("jetty")
-        .otelLinux("9.4.35", JETTY9_SERVER_ATTRIBUTES, VMS_ALL, "8", "11", "15")
-        .otelLinux("10.0.0", JETTY10_SERVER_ATTRIBUTES, VMS_ALL, "11", "15")
-        .otelLinux("11.0.1", JETTY11_SERVER_ATTRIBUTES, VMS_ALL, "11", "15")
-        .otelWindows("9.4.35", JETTY9_SERVER_ATTRIBUTES, VMS_ALL, "8", "11", "15")
-        .otelWindows("10.0.0", JETTY10_BETA_SERVER_ATTRIBUTES, VMS_ALL, "11", "15")
-        .otelWindows("11.0.1", JETTY11_SERVER_ATTRIBUTES, VMS_ALL, "11", "15")
+        .otelLinux("9.4.39", JETTY9_SERVER_ATTRIBUTES, VMS_HOTSPOT, "8", "11", "17")
+        .otelLinux("9.4.39", JETTY9_SERVER_ATTRIBUTES, VMS_OPENJ9, "8", "11", "16")
+        .otelLinux("10.0.7", JETTY10_SERVER_ATTRIBUTES, VMS_HOTSPOT, "11", "17")
+        .otelLinux("10.0.7", JETTY10_SERVER_ATTRIBUTES, VMS_OPENJ9, "11", "16")
+        .otelLinux("11.0.7", JETTY11_SERVER_ATTRIBUTES, VMS_HOTSPOT, "11", "17")
+        .otelLinux("11.0.7", JETTY11_SERVER_ATTRIBUTES, VMS_OPENJ9, "11", "16")
+        .otelWindows("9.4.39", JETTY9_SERVER_ATTRIBUTES, VMS_HOTSPOT, "8", "11", "17")
+        .otelWindows("9.4.39", JETTY9_SERVER_ATTRIBUTES, VMS_OPENJ9, "8", "11", "16")
+        .otelWindows("10.0.7", JETTY10_SERVER_ATTRIBUTES, VMS_HOTSPOT, "11", "17")
+        .otelWindows("10.0.7", JETTY10_SERVER_ATTRIBUTES, VMS_OPENJ9, "11", "16")
+        .otelWindows("11.0.7", JETTY11_SERVER_ATTRIBUTES, VMS_HOTSPOT, "11", "17")
+        .otelWindows("11.0.7", JETTY11_SERVER_ATTRIBUTES, VMS_OPENJ9, "11", "16")
         .stream();
   }
 

@@ -45,6 +45,11 @@ public abstract class SmokeTest {
 
   private TelemetryRetriever telemetryRetriever;
 
+  /** Subclasses can override this method to pass jvm arguments in another environment variable */
+  protected String getJvmArgsEnvVarName() {
+    return "JAVA_TOOL_OPTIONS";
+  }
+
   /** Subclasses can override this method to customise target application's environment. */
   protected Map<String, String> getExtraEnv() {
     return Collections.emptyMap();
@@ -91,7 +96,12 @@ public abstract class SmokeTest {
     }
 
     containerManager.startTarget(
-        image.imageName, agentPath, getExtraEnv(), getExtraResources(), getWaitStrategy());
+        image.imageName,
+        agentPath,
+        getJvmArgsEnvVarName(),
+        getExtraEnv(),
+        getExtraResources(),
+        getWaitStrategy());
   }
 
   protected TargetWaitStrategy getWaitStrategy() {

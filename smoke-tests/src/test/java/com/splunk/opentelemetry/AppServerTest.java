@@ -187,8 +187,9 @@ public abstract class AppServerTest extends SmokeTest {
     }
   }
 
-  protected static final String OTEL_IMAGE_VERSION = "20210406.721629261";
-  protected static final String OTEL_REPO = "ghcr.io/open-telemetry/java-test-containers";
+  protected static final String OTEL_IMAGE_VERSION = "20211108.1435776715";
+  protected static final String OTEL_REPO_PREFIX =
+      "ghcr.io/open-telemetry/opentelemetry-java-instrumentation/smoke-test-servlet-";
   protected static final String SPLUNK_REPO_PREFIX = "ghcr.io/signalfx/splunk-otel-";
 
   protected static final List<String> VMS_HOTSPOT = Collections.singletonList("hotspot");
@@ -213,7 +214,7 @@ public abstract class AppServerTest extends SmokeTest {
         String... jdks) {
       ImageFactory imageFactory =
           (jdk) -> {
-            String name = OTEL_REPO + ":" + serverName + "-" + version + "-jdk" + jdk + "-" + tag;
+            String name = OTEL_REPO_PREFIX + serverName + ":" + version + "-jdk" + jdk + "-" + tag;
             return linuxImage(name);
           };
 
@@ -254,15 +255,13 @@ public abstract class AppServerTest extends SmokeTest {
       ImageFactory imageFactory =
           (jdk) -> {
             String name =
-                OTEL_REPO
-                    + ":"
+                OTEL_REPO_PREFIX
                     + serverName
-                    + "-"
+                    + ":"
                     + version
                     + "-jdk"
                     + jdk
-                    + "-windows"
-                    + "-"
+                    + "-windows-"
                     + OTEL_IMAGE_VERSION;
             return windowsImage(name);
           };

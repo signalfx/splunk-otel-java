@@ -18,7 +18,7 @@ val otelAlphaVersion = "1.7.0-alpha"
 val otelContribAlphaVersion = "1.6.0-alpha"
 val otelInstrumentationVersion = "1.8.0-SNAPSHOT"
 val otelInstrumentationAlphaVersion = "1.8.0-alpha-SNAPSHOT"
-val micrometerVersion = "1.7.5"
+val micrometerVersion = "1.8.0"
 
 // instrumentation version is used to compute Implementation-Version manifest attribute
 extra["otelInstrumentationVersion"] = otelInstrumentationVersion

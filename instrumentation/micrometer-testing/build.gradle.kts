@@ -5,7 +5,7 @@ plugins {
 
 testSets {
   // TODO: change to 13..16 when 1.3 instrumentation is implemented
-  (15..16).forEach { ver ->
+  (15..17).forEach { ver ->
     create("version${ver}Test") {
       dirName = "test"
     }
@@ -20,6 +20,7 @@ dependencies {
 //  add("version14TestImplementation", "io.micrometer:micrometer-core:1.4.2")
   add("version15TestImplementation", "io.micrometer:micrometer-core:1.5.17")
   add("version16TestImplementation", "io.micrometer:micrometer-core:1.6.12")
+  add("version17TestImplementation", "io.micrometer:micrometer-core:1.7.5")
   // use the agent (latest) micrometer version in the default test task
   testImplementation("io.micrometer:micrometer-core")
 }
@@ -27,7 +28,7 @@ dependencies {
 tasks {
   test {
     // TODO: change to 13..16 when 1.3 instrumentation is implemented
-    (15..16).forEach { ver ->
+    (15..17).forEach { ver ->
       dependsOn(named("version${ver}Test"))
     }
   }

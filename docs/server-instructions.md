@@ -4,10 +4,11 @@ The following sections show how to add the path to the Splunk OTel agent for Jav
 
 * [JBoss EAP / WildFly](#jboss-eap--wildfly)
 * [Jetty](#jetty)
-* [Glassfish / Payara](#glassfish--payara)
+* [GlassFish / Payara](#glassfish--payara)
 * [Tomcat / TomEE](#tomcat--tomee)
-* [Weblogic](#weblogic)
-* [Websphere Liberty Profile](#websphere-liberty-profile)
+* [WebLogic](#weblogic)
+* [WebSphere Liberty Profile](#websphere-liberty-profile)
+* [WebSphere Traditional](#websphere-traditional)
 
 ## JBoss EAP / WildFly
 
@@ -45,7 +46,7 @@ Alternatively you can add `-javaagent` argument to your `jetty.sh` or `start.ini
    -javaagent:/path/to/splunk-otel-javaagent.jar
    ```
 
-## Glassfish / Payara
+## GlassFish / Payara
 
 Add the path to the JVM agent to the settings using the `asadmin` command-line tool:
 
@@ -64,9 +65,9 @@ You can also add the `-javaagent` argument from the Admin Console:
 2. Go to **Configurations > server-config > JVM Settings**.
 3. Select **JVM Options** and click **Add JVM Option**.
 4. In the blank field, enter the path to `splunk-otel-javaagent.jar`:
-
-   `-javaagent:/path/to/splunk-otel-javaagent.jar`
-
+   ```
+   -javaagent:/path/to/splunk-otel-javaagent.jar
+   ```
 5. Click **Save** and restart the GlassFish server.
 
 > Tip: Check that the `domain.xml` file in your domain directory contains a `<jmv-options>` entry for the agent.
@@ -84,9 +85,9 @@ Add the path to the JVM agent to your Tomcat/TomEE startup script:
    set CATALINA_OPTS=%CATALINA_OPTS% -javaagent:"<Drive>:\path\to\splunk-otel-javaagent.jar"
    ```
 
-## Weblogic
+## WebLogic
 
-Add the path to the JVM agent to your Weblogic domain startup script:
+Add the path to the JVM agent to your WebLogic domain startup script:
 
 - On Linux and macOS, add the following line to the `<domain_home>/bin/startWebLogic.sh` file:
    ```
@@ -99,7 +100,7 @@ Add the path to the JVM agent to your Weblogic domain startup script:
 
 > For managed server instances, add the `-javaagent` argument using the admin console.
 
-## Websphere Liberty Profile
+## WebSphere Liberty Profile
 
 Add the path to the JVM agent to the `jvm.options` file:
 
@@ -111,3 +112,16 @@ Add the path to the JVM agent to the `jvm.options` file:
    -javaagent:/path/to/splunk-otel-javaagent.jar
    ```
 - Save the file and restart the server.
+
+## WebSphere Traditional
+
+1. Open the WebSphere Admin Console
+2. Select **Servers > Server type > WebSphere application servers**.
+3. Click on the desired server.
+4. Select **Java and Process Management > Process Definition**.
+5. Click on **Java Virtual Machine**.
+6. In the **Generic JVM arguments**, enter the path to `splunk-otel-javaagent.jar`:
+   ```
+   -javaagent:/path/to/splunk-otel-javaagent.jar
+   ```
+7. Press **OK**. When asked, save the master configuration and restart the server.

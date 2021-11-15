@@ -7,7 +7,7 @@ plugins {
 dependencies {
   testImplementation(project(":profiler"))
   testImplementation("org.slf4j:slf4j-simple")
-  testImplementation("io.opentelemetry:opentelemetry-proto")
+  testImplementation("io.opentelemetry.proto:opentelemetry-proto")
   testImplementation("com.google.protobuf:protobuf-java-util")
   testImplementation("org.testcontainers:testcontainers")
 }

@@ -12,7 +12,7 @@ dependencies {
   testImplementation("com.fasterxml.jackson.core:jackson-databind:2.13.0")
   testImplementation("com.google.protobuf:protobuf-java-util")
   testImplementation("com.squareup.okhttp3:okhttp")
-  testImplementation("io.opentelemetry:opentelemetry-proto")
+  testImplementation("io.opentelemetry.proto:opentelemetry-proto")
   testImplementation("io.opentelemetry:opentelemetry-api")
 
   testImplementation("ch.qos.logback:logback-classic:1.2.7")

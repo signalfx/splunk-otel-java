@@ -13,8 +13,8 @@ repositories {
   }
 }
 
-val otelVersion = "1.7.0"
-val otelAlphaVersion = "1.7.0-alpha"
+val otelVersion = "1.9.0"
+val otelAlphaVersion = "1.9.0-alpha"
 val otelContribAlphaVersion = "1.6.0-alpha"
 val otelInstrumentationVersion = "1.8.0-SNAPSHOT"
 val otelInstrumentationAlphaVersion = "1.8.0-alpha-SNAPSHOT"
@@ -26,7 +26,7 @@ extra["otelInstrumentationVersion"] = otelInstrumentationVersion
 extensions.configure<DependencyManagementExtension>("dependencyManagement") {
   dependencies {
     dependency("com.google.auto.service:auto-service:1.0")
-    dependency("com.squareup.okhttp3:okhttp:3.12.12")
+    dependency("com.squareup.okhttp3:okhttp:3.14.9")
     dependency("org.assertj:assertj-core:3.20.2")
     dependency("org.awaitility:awaitility:4.1.0")
     dependency("org.testcontainers:testcontainers:1.15.3")
@@ -77,6 +77,8 @@ extensions.configure<DependencyManagementExtension>("dependencyManagement") {
     dependencySet("io.opentelemetry.contrib:${otelContribAlphaVersion}") {
       entry("opentelemetry-contrib-samplers")
     }
+
+    dependency("io.opentelemetry.proto:opentelemetry-proto:0.11.0-alpha")
   }
 
   imports {

@@ -16,8 +16,10 @@
 
 package com.splunk.opentelemetry;
 
+import com.splunk.opentelemetry.helper.TargetWaitStrategy;
 import com.splunk.opentelemetry.helper.TestImage;
 import java.io.IOException;
+import java.time.Duration;
 import java.util.stream.Stream;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -35,6 +37,12 @@ public class WebSphereSmokeTest extends AppServerTest {
         .otelLinux("8.5.5.20", WEBSPHERE8_SERVER_ATTRIBUTES, VMS_OPENJ9, "8")
         .otelLinux("9.0.5.9", WEBSPHERE9_SERVER_ATTRIBUTES, VMS_OPENJ9, "8")
         .stream();
+  }
+
+  @Override
+  protected TargetWaitStrategy getWaitStrategy() {
+    return new TargetWaitStrategy.Log(
+        Duration.ofMinutes(3), ".*Server server1 open for e-business.*");
   }
 
   @ParameterizedTest(name = "[{index}] {0}")

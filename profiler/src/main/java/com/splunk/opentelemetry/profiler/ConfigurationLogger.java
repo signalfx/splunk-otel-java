@@ -45,7 +45,7 @@ public class ConfigurationLogger {
     log(CONFIG_KEY_INGEST_URL, config::getString);
     log(CONFIG_KEY_OTEL_OTLP_URL, config::getString);
     log(CONFIG_KEY_TLAB_ENABLED, config::getBoolean);
-    log(CONFIG_KEY_PERIOD_PREFIX + "." + "jdk.threaddump", config::getString);
+    log(CONFIG_KEY_PERIOD_PREFIX + "." + "threaddump", config::getDuration);
     logger.info("-----------------------");
   }
 

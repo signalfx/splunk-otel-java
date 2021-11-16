@@ -29,6 +29,7 @@ import static org.mockito.Mockito.when;
 
 import io.github.netmikey.logunit.api.LogCapturer;
 import io.opentelemetry.instrumentation.api.config.Config;
+import java.time.Duration;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
@@ -48,7 +49,8 @@ class ConfigurationLoggerTest {
     when(config.getString(CONFIG_KEY_INGEST_URL)).thenReturn("http://example.com");
     when(config.getString(CONFIG_KEY_OTEL_OTLP_URL)).thenReturn("http://otel.example.com");
     when(config.getBoolean(CONFIG_KEY_TLAB_ENABLED)).thenReturn(false);
-    when(config.getString(CONFIG_KEY_PERIOD_PREFIX + ".jdk.threaddump")).thenReturn("500ms");
+    when(config.getDuration(CONFIG_KEY_PERIOD_PREFIX + ".threaddump"))
+        .thenReturn(Duration.ofMillis(500));
 
     ConfigurationLogger configurationLogger = new ConfigurationLogger();
 
@@ -63,6 +65,6 @@ class ConfigurationLoggerTest {
     log.assertContains("          splunk.profiler.logs-endpoint : http://example.com");
     log.assertContains("            otel.exporter.otlp.endpoint : http://otel.example.com");
     log.assertContains("           splunk.profiler.tlab.enabled : false");
-    log.assertContains("  splunk.profiler.period.jdk.threaddump : 500ms");
+    log.assertContains("      splunk.profiler.period.threaddump : PT0.5S");
   }
 }

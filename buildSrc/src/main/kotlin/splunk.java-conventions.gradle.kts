@@ -70,6 +70,7 @@ extensions.configure<DependencyManagementExtension>("dependencyManagement") {
       entry("opentelemetry-javaagent-netty-3.8")
       entry("opentelemetry-javaagent-netty-4.0")
       entry("opentelemetry-javaagent-netty-4.1")
+      entry("opentelemetry-javaagent-netty-4.1-common")
       entry("opentelemetry-javaagent-servlet-2.2")
       entry("opentelemetry-javaagent-servlet-3.0")
       entry("opentelemetry-javaagent-servlet-common")

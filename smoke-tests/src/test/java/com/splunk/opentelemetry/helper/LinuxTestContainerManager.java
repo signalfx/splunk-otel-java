@@ -51,7 +51,7 @@ public class LinuxTestContainerManager extends AbstractTestContainerManager {
     backend.start();
 
     collector =
-        new GenericContainer<>(DockerImageName.parse("otel/opentelemetry-collector-contrib:0.38.0"))
+        new GenericContainer<>(DockerImageName.parse("otel/opentelemetry-collector-contrib:latest"))
             .dependsOn(backend)
             .withNetwork(network)
             .withNetworkAliases(COLLECTOR_ALIAS)

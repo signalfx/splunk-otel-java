@@ -80,14 +80,17 @@ public class LogEntry implements LogData {
     return null;
   }
 
+  @Override
   public String getName() {
     return name;
   }
 
+  @Override
   public Attributes getAttributes() {
     return attributes;
   }
 
+  @Override
   public Body getBody() {
     return body;
   }

@@ -24,6 +24,9 @@ import static org.mockito.Mockito.when;
 
 import com.splunk.opentelemetry.profiler.context.SpanContextualizer;
 import com.splunk.opentelemetry.profiler.context.StackToSpanLinkage;
+import io.opentelemetry.api.trace.SpanContext;
+import io.opentelemetry.api.trace.TraceFlags;
+import io.opentelemetry.api.trace.TraceState;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
@@ -36,10 +39,14 @@ class ThreadDumpProcessorTest {
 
   @Test
   void testProcessEvent() {
-    String traceId = "abc123";
-    String spanId = "xxxxxxyyyyyyyzyzzz";
+    String traceId = "deadbeefdeadbeefdeadbeefdeadbeef";
+    String spanId = "0123012301230123";
+    byte traceFlags = TraceFlags.getSampled().asByte();
     SpanContextualizer contextualizer = new SpanContextualizer();
     long idOfThreadRunningTheSpan = 3L;
+    SpanContext expectedContext =
+        SpanContext.create(
+            traceId, spanId, TraceFlags.fromByte(traceFlags), TraceState.getDefault());
 
     RecordedEvent event = mock(RecordedEvent.class);
     RecordedEvent threadStartingSpan = mock(RecordedEvent.class);
@@ -47,6 +54,7 @@ class ThreadDumpProcessorTest {
 
     when(threadStartingSpan.getString("traceId")).thenReturn(traceId);
     when(threadStartingSpan.getString("spanId")).thenReturn(spanId);
+    when(threadStartingSpan.getByte("traceFlags")).thenReturn(traceFlags);
     when(threadStartingSpan.getThread()).thenReturn(threadRunningSpan);
     when(threadRunningSpan.getJavaThreadId()).thenReturn(idOfThreadRunningTheSpan);
 
@@ -74,8 +82,7 @@ class ThreadDumpProcessorTest {
         results.get(0).getRawStack().contains("at java.lang.ref.Reference$ReferenceHandler"));
 
     assertTrue(results.get(1).hasSpanInfo());
-    assertEquals(spanId, results.get(1).getSpanId());
-    assertEquals(traceId, results.get(1).getTraceId());
+    assertEquals(expectedContext, results.get(1).getSpanContext());
     assertEquals(idOfThreadRunningTheSpan, results.get(1).getSpanStartThread());
     assertTrue(results.get(1).getRawStack().contains("AwesomeThinger.overHereDoingSpanThings"));
 

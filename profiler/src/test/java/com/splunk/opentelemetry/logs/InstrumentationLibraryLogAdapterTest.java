@@ -38,19 +38,19 @@ class InstrumentationLibraryLogAdapterTest {
         LogEntry.builder()
             .time(now.plus(0, MINUTES))
             .attributes(Attributes.of(HTTP_METHOD, "get"))
-            .body("log1")
+            .bodyString("log1")
             .build();
     LogEntry log2 =
         LogEntry.builder()
             .time(now.plus(1, MINUTES))
             .attributes(Attributes.of(HTTP_METHOD, "put"))
-            .body("log2")
+            .bodyString("log2")
             .build();
     LogEntry log3 =
         LogEntry.builder()
             .time(now.plus(2, MINUTES))
             .attributes(Attributes.of(HTTP_METHOD, "patch"))
-            .body("log3")
+            .bodyString("log3")
             .build();
     List<LogEntry> logsEntries = Arrays.asList(log1, log2, log3);
     LogEntryAdapter logEntryAdapter = new LogEntryAdapter();

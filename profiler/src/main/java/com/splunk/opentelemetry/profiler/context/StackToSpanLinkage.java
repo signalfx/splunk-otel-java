@@ -16,6 +16,7 @@
 
 package com.splunk.opentelemetry.profiler.context;
 
+import io.opentelemetry.api.trace.SpanContext;
 import java.time.Instant;
 
 /** A wrapper for a RecordedEvent that may or may not have accompanying span information. */
@@ -34,7 +35,7 @@ public class StackToSpanLinkage {
   }
 
   public boolean hasSpanInfo() {
-    return getSpanId() != null;
+    return getSpanContext().isValid();
   }
 
   public Instant getTime() {
@@ -45,12 +46,8 @@ public class StackToSpanLinkage {
     return rawStack;
   }
 
-  public String getTraceId() {
-    return spanLinkage.getTraceId();
-  }
-
-  public String getSpanId() {
-    return spanLinkage.getSpanId();
+  public SpanContext getSpanContext() {
+    return spanLinkage.getSpanContext();
   }
 
   public Long getSpanStartThread() {

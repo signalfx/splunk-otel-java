@@ -41,17 +41,17 @@ class BatchingLogsProcessorTest {
     log1 =
         LogEntry.builder()
             .attributes(Attributes.of(AttributeKey.stringKey("one"), "one"))
-            .body("foo")
+            .bodyString("foo")
             .build();
     log2 =
         LogEntry.builder()
             .attributes(Attributes.of(AttributeKey.stringKey("two"), "two"))
-            .body("bar")
+            .bodyString("bar")
             .build();
     log3 =
         LogEntry.builder()
             .attributes(Attributes.of(AttributeKey.stringKey("three"), "three"))
-            .body("baz")
+            .bodyString("baz")
             .build();
   }
 

@@ -34,10 +34,12 @@ public class ContextAttached extends Event {
 
   public final String traceId;
   public final String spanId;
+  public final byte traceFlags;
 
-  public ContextAttached(String traceId, String spanId) {
+  public ContextAttached(String traceId, String spanId, byte traceFlags) {
     this.traceId = traceId;
     this.spanId = spanId;
+    this.traceFlags = traceFlags;
   }
 
   public String getTraceId() {
@@ -46,5 +48,9 @@ public class ContextAttached extends Event {
 
   public String getSpanId() {
     return spanId;
+  }
+
+  public byte getTraceFlags() {
+    return traceFlags;
   }
 }

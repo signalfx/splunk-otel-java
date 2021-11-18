@@ -17,27 +17,67 @@
 package com.splunk.opentelemetry.logs;
 
 import io.opentelemetry.api.common.Attributes;
+import io.opentelemetry.api.trace.SpanContext;
+import io.opentelemetry.sdk.common.InstrumentationLibraryInfo;
+import io.opentelemetry.sdk.logs.data.Body;
+import io.opentelemetry.sdk.logs.data.LogData;
+import io.opentelemetry.sdk.logs.data.Severity;
+import io.opentelemetry.sdk.resources.Resource;
 import java.time.Instant;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 import javax.annotation.Nullable;
 
 /** Data object for OpenTelemetry logs */
-public class LogEntry {
+public class LogEntry implements LogData {
 
   private final String name;
   private final Attributes attributes;
   private final Instant time;
-  private final String body;
-  @Nullable private final String traceId;
-  @Nullable private final String spanId;
+  private final Body body;
+  private final SpanContext spanContext;
+  private final Resource resource;
+  private final InstrumentationLibraryInfo instrumentationLibrary;
 
   private LogEntry(Builder builder) {
     this.name = builder.name;
     this.attributes = builder.attributes;
     this.time = builder.time;
     this.body = builder.body;
-    this.traceId = builder.traceId;
-    this.spanId = builder.spanId;
+    this.spanContext = builder.spanContext;
+    this.resource = builder.resource;
+    this.instrumentationLibrary = builder.instrumentationLibrary;
+  }
+
+  @Override
+  public Resource getResource() {
+    return resource;
+  }
+
+  @Override
+  public InstrumentationLibraryInfo getInstrumentationLibraryInfo() {
+    return instrumentationLibrary;
+  }
+
+  @Override
+  public long getEpochNanos() {
+    return TimeUnit.MILLISECONDS.toNanos(time.toEpochMilli());
+  }
+
+  @Override
+  public SpanContext getSpanContext() {
+    return spanContext;
+  }
+
+  @Override
+  public Severity getSeverity() {
+    return null;
+  }
+
+  @Nullable
+  @Override
+  public String getSeverityText() {
+    return null;
   }
 
   public String getName() {
@@ -48,8 +88,12 @@ public class LogEntry {
     return attributes;
   }
 
-  public String getBody() {
+  public Body getBody() {
     return body;
+  }
+
+  public String getBodyAsString() {
+    return body.asString();
   }
 
   public Instant getTime() {
@@ -57,11 +101,11 @@ public class LogEntry {
   }
 
   public String getTraceId() {
-    return traceId;
+    return spanContext.getTraceId();
   }
 
   public String getSpanId() {
-    return spanId;
+    return spanContext.getSpanId();
   }
 
   public static Builder builder() {
@@ -71,10 +115,11 @@ public class LogEntry {
   public static class Builder {
     private String name;
     private Attributes attributes = Attributes.empty();
-    private Instant time;
-    private String body;
-    private String traceId;
-    private String spanId;
+    private Instant time = Instant.EPOCH;
+    private Body body = Body.empty();
+    private SpanContext spanContext = SpanContext.getInvalid();
+    public InstrumentationLibraryInfo instrumentationLibrary = InstrumentationLibraryInfo.empty();
+    public Resource resource = Resource.getDefault();
 
     public Builder name(String name) {
       this.name = name;
@@ -91,18 +136,28 @@ public class LogEntry {
       return this;
     }
 
-    public Builder body(String body) {
+    public Builder body(Body body) {
       this.body = body;
       return this;
     }
 
-    public Builder traceId(String traceId) {
-      this.traceId = traceId;
+    public Builder bodyString(String body) {
+      this.body = Body.string(body);
       return this;
     }
 
-    public Builder spanId(String spanId) {
-      this.spanId = spanId;
+    public Builder spanContext(SpanContext spanContext) {
+      this.spanContext = spanContext;
+      return this;
+    }
+
+    public Builder resource(Resource resource) {
+      this.resource = resource;
+      return this;
+    }
+
+    public Builder instrumentationLibrary(InstrumentationLibraryInfo instrumentationLibrary) {
+      this.instrumentationLibrary = instrumentationLibrary;
       return this;
     }
 
@@ -120,34 +175,11 @@ public class LogEntry {
         && attributes.equals(logEntry.attributes)
         && time.equals(logEntry.time)
         && body.equals(logEntry.body)
-        && Objects.equals(traceId, logEntry.traceId)
-        && Objects.equals(spanId, logEntry.spanId);
+        && Objects.equals(spanContext, logEntry.spanContext);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(name, attributes, time, body, traceId, spanId);
-  }
-
-  @Override
-  public String toString() {
-    return "LogEntry{"
-        + "name='"
-        + name
-        + '\''
-        + ", attributes="
-        + attributes
-        + ", time="
-        + time
-        + ", body='"
-        + body
-        + '\''
-        + ", traceId='"
-        + traceId
-        + '\''
-        + ", spanId='"
-        + spanId
-        + '\''
-        + '}';
+    return Objects.hash(name, attributes, time, body, spanContext);
   }
 }

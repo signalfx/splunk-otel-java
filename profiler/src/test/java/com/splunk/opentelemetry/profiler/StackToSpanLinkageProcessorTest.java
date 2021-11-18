@@ -37,7 +37,7 @@ class StackToSpanLinkageProcessorTest {
     LogEntryCreator logCreator = mock(LogEntryCreator.class);
     BatchingLogsProcessor exportProcessor = mock(BatchingLogsProcessor.class);
 
-    LogEntry log = LogEntry.builder().body("the.body").build();
+    LogEntry log = LogEntry.builder().bodyString("the.body").build();
     when(logCreator.apply(linkedSpan)).thenReturn(log);
 
     StackToSpanLinkageProcessor processor =

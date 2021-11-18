@@ -39,10 +39,10 @@ public class LogEntryCreator implements Function<StackToSpanLinkage, LogEntry> {
         LogEntry.builder()
             .name(PROFILING_SOURCE)
             .time(linkedStack.getTime())
-            .body(linkedStack.getRawStack())
+            .bodyString(linkedStack.getRawStack())
             .attributes(attributes);
     if (linkedStack.hasSpanInfo()) {
-      builder.traceId(linkedStack.getTraceId()).spanId(linkedStack.getSpanId());
+      builder.spanContext(linkedStack.getSpanContext());
     }
     return builder.build();
   }

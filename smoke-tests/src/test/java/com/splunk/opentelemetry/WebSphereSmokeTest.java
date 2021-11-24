@@ -28,9 +28,9 @@ import org.junit.jupiter.params.provider.MethodSource;
 public class WebSphereSmokeTest extends AppServerTest {
 
   public static final ExpectedServerAttributes WEBSPHERE8_SERVER_ATTRIBUTES =
-      new WebsphereAttributes("8.5.5.20");
+      new WebSphereAttributes("8.5.5.20");
   public static final ExpectedServerAttributes WEBSPHERE9_SERVER_ATTRIBUTES =
-      new WebsphereAttributes("9.0.5.9");
+      new WebSphereAttributes("9.0.5.9");
 
   private static Stream<Arguments> supportedConfigurations() {
     return configurations("websphere")
@@ -47,7 +47,7 @@ public class WebSphereSmokeTest extends AppServerTest {
 
   @ParameterizedTest(name = "[{index}] {0}")
   @MethodSource("supportedConfigurations")
-  void libertySmokeTest(TestImage image, ExpectedServerAttributes expectedServerAttributes)
+  void webSphereSmokeTest(TestImage image, ExpectedServerAttributes expectedServerAttributes)
       throws IOException, InterruptedException {
     startTargetOrSkipTest(image);
 
@@ -57,8 +57,8 @@ public class WebSphereSmokeTest extends AppServerTest {
     stopTarget();
   }
 
-  public static class WebsphereAttributes extends ExpectedServerAttributes {
-    public WebsphereAttributes(String version) {
+  public static class WebSphereAttributes extends ExpectedServerAttributes {
+    public WebSphereAttributes(String version) {
       super("HTTP GET", "websphere", version);
     }
   }

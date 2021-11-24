@@ -196,6 +196,11 @@ fun CopySpec.isolateClasses(jars: Iterable<File>) {
     from(zipTree(it)) {
       into("inst")
       rename("^(.*)\\.class\$", "\$1.classdata")
+      // Rename LICENSE file since it clashes with license dir on non-case sensitive FSs (i.e. Mac)
+      rename("""^LICENSE$""", "LICENSE.renamed")
+      exclude("META-INF/INDEX.LIST")
+      exclude("META-INF/*.DSA")
+      exclude("META-INF/*.SF")
     }
   }
 }

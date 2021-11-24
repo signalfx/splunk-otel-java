@@ -9,7 +9,7 @@ dependencies {
   implementation("io.opentelemetry.proto:opentelemetry-proto")
   compileOnly("org.slf4j:slf4j-api")
   compileOnly("io.grpc:grpc-netty")
-  compileOnly("io.grpc:grpc-netty-shaded")
+  implementation("io.grpc:grpc-netty-shaded")
   implementation("io.grpc:grpc-protobuf")
   implementation("io.grpc:grpc-stub")
 

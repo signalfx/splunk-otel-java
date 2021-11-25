@@ -25,7 +25,6 @@ import com.splunk.opentelemetry.profiler.events.EventPeriods;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.common.AttributesBuilder;
 import java.time.Duration;
-import jdk.jfr.consumer.RecordedEvent;
 
 public class LogEntryCommonAttributes {
 
@@ -36,11 +35,10 @@ public class LogEntryCommonAttributes {
   }
 
   Attributes build(StackToSpanLinkage linkedStack) {
-    return build(linkedStack.getSourceEvent());
+    return build(linkedStack.getSourceEventName());
   }
 
-  Attributes build(RecordedEvent sourceEvent) {
-    String eventName = sourceEvent.getEventType().getName();
+  Attributes build(String eventName) {
     Duration eventPeriod = periods.getDuration(eventName);
 
     // Note: It is currently believed that the span id and trace id on the LogRecord itself

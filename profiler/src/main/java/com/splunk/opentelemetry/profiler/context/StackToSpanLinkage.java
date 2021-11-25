@@ -17,20 +17,19 @@
 package com.splunk.opentelemetry.profiler.context;
 
 import java.time.Instant;
-import jdk.jfr.consumer.RecordedEvent;
 
 /** A wrapper for a RecordedEvent that may or may not have accompanying span information. */
 public class StackToSpanLinkage {
   private final Instant time;
   private final String rawStack;
-  private final RecordedEvent sourceEvent;
+  private final String sourceEventName;
   private final SpanLinkage spanLinkage;
 
   public StackToSpanLinkage(
-      Instant time, String rawStack, RecordedEvent sourceEvent, SpanLinkage spanLinkage) {
+      Instant time, String rawStack, String sourceEventName, SpanLinkage spanLinkage) {
     this.time = time;
     this.rawStack = rawStack;
-    this.sourceEvent = sourceEvent;
+    this.sourceEventName = sourceEventName;
     this.spanLinkage = spanLinkage;
   }
 
@@ -59,15 +58,11 @@ public class StackToSpanLinkage {
   }
 
   public String getSourceEventName() {
-    return sourceEvent.getEventType().getName();
-  }
-
-  public RecordedEvent getSourceEvent() {
-    return sourceEvent;
+    return sourceEventName;
   }
 
   public static StackToSpanLinkage withoutLinkage(
-      Instant time, String rawStack, RecordedEvent event) {
-    return new StackToSpanLinkage(time, rawStack, event, SpanLinkage.NONE);
+      Instant time, String rawStack, String sourceEventName) {
+    return new StackToSpanLinkage(time, rawStack, sourceEventName, SpanLinkage.NONE);
   }
 }

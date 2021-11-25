@@ -19,6 +19,12 @@ jobs:
           distribution: adopt
           java-version: 11.0.11+9
 
+      - name: Cache Gradle Wrapper
+        uses: actions/cache@v2
+        with:
+          path: ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-wrapper-cache-${{ hashFiles('gradle/wrapper/gradle-wrapper.properties') }}
+
       - name: Build and test
         run: ./gradlew build --scan --no-daemon
 
@@ -37,6 +43,12 @@ jobs:
         with:
           distribution: adopt
           java-version: 11.0.11+9
+
+      - name: Cache Gradle Wrapper
+        uses: actions/cache@v2
+        with:
+          path: ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-wrapper-cache-${{ hashFiles('gradle/wrapper/gradle-wrapper.properties') }}
 
       - id: set-matrix
         run: echo "::set-output name=matrix::{\"module\":[\"$(./gradlew -q instrumentation:listMuzzleInstrumentations | xargs echo | sed 's/ /","/g')\"]}"
@@ -58,6 +70,12 @@ jobs:
         with:
           distribution: adopt
           java-version: 11.0.11+9
+
+      - name: Cache Gradle Wrapper
+        uses: actions/cache@v2
+        with:
+          path: ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-wrapper-cache-${{ hashFiles('gradle/wrapper/gradle-wrapper.properties') }}
 
       - name: Run muzzle
         # using retry because of sporadic gradle download failures

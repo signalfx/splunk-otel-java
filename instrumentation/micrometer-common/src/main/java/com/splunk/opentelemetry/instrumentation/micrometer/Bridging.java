@@ -31,7 +31,7 @@ import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 import javax.annotation.Nullable;
 
-final class Bridging {
+public final class Bridging {
 
   @Nullable
   static io.micrometer.core.instrument.Meter.Id toAgent(@Nullable Meter.Id application) {
@@ -50,7 +50,7 @@ final class Bridging {
     return io.micrometer.core.instrument.Meter.Type.valueOf(application.name());
   }
 
-  static io.micrometer.core.instrument.Tags toAgentTags(Iterable<Tag> application) {
+  public static io.micrometer.core.instrument.Tags toAgentTags(Iterable<Tag> application) {
     return StreamSupport.stream(application.spliterator(), false)
         .map(Bridging::toAgent)
         .reduce(
@@ -105,7 +105,7 @@ final class Bridging {
     return new io.micrometer.core.instrument.distribution.pause.NoPauseDetector();
   }
 
-  static HistogramSnapshot toApplication(
+  public static HistogramSnapshot toApplication(
       io.micrometer.core.instrument.distribution.HistogramSnapshot agent) {
     return new HistogramSnapshot(
         agent.count(),
@@ -134,12 +134,12 @@ final class Bridging {
       return null;
     }
     return Arrays.stream(agent)
-        .map(v -> new CountAtBucket(v.bucket(), v.count()))
+        .map(v -> new CountAtBucket((long) v.bucket(), v.count()))
         .toArray(CountAtBucket[]::new);
   }
 
   @Nullable
-  static Duration[] toDurations(@Nullable double[] nanoTimes) {
+  public static Duration[] toDurations(@Nullable double[] nanoTimes) {
     if (nanoTimes == null) {
       return null;
     }
@@ -149,7 +149,7 @@ final class Bridging {
   }
 
   @Nullable
-  static Duration toDuration(@Nullable Double nanoTime) {
+  public static Duration toDuration(@Nullable Double nanoTime) {
     return nanoTime == null ? null : Duration.ofNanos(nanoTime.longValue());
   }
 

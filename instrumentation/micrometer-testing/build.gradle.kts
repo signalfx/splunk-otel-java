@@ -4,8 +4,7 @@ plugins {
 }
 
 testSets {
-  // TODO: change to 13..16 when 1.3 instrumentation is implemented
-  (15..17).forEach { ver ->
+  (13..17).forEach { ver ->
     create("version${ver}Test") {
       dirName = "test"
     }
@@ -13,11 +12,11 @@ testSets {
 }
 
 dependencies {
-  testInstrumentation(project(":instrumentation:micrometer"))
+  testInstrumentation(project(":instrumentation:micrometer-1.3"))
+  testInstrumentation(project(":instrumentation:micrometer-1.5"))
 
-  // TODO: uncomment when 1.3 instrumentation is implemented
-//  add("version13TestImplementation", "io.micrometer:micrometer-core:1.3.16")
-//  add("version14TestImplementation", "io.micrometer:micrometer-core:1.4.2")
+  add("version13TestImplementation", "io.micrometer:micrometer-core:1.3.16")
+  add("version14TestImplementation", "io.micrometer:micrometer-core:1.4.2")
   add("version15TestImplementation", "io.micrometer:micrometer-core:1.5.17")
   add("version16TestImplementation", "io.micrometer:micrometer-core:1.6.12")
   add("version17TestImplementation", "io.micrometer:micrometer-core:1.7.5")
@@ -27,8 +26,7 @@ dependencies {
 
 tasks {
   test {
-    // TODO: change to 13..16 when 1.3 instrumentation is implemented
-    (15..17).forEach { ver ->
+    (13..17).forEach { ver ->
       dependsOn(named("version${ver}Test"))
     }
   }

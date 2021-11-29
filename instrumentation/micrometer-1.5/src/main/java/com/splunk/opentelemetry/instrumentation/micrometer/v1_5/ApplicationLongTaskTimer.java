@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-package com.splunk.opentelemetry.instrumentation.micrometer;
+package com.splunk.opentelemetry.instrumentation.micrometer.v1_5;
 
 import static com.splunk.opentelemetry.instrumentation.micrometer.Bridging.toApplication;
 
 import application.io.micrometer.core.instrument.LongTaskTimer;
 import application.io.micrometer.core.instrument.distribution.HistogramSnapshot;
+import com.splunk.opentelemetry.instrumentation.micrometer.ApplicationMeter;
 import java.util.concurrent.TimeUnit;
 
 class ApplicationLongTaskTimer extends ApplicationMeter implements LongTaskTimer {

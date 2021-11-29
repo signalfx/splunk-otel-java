@@ -21,12 +21,12 @@ import static com.splunk.opentelemetry.instrumentation.micrometer.Bridging.toApp
 import application.io.micrometer.core.instrument.Measurement;
 import application.io.micrometer.core.instrument.Meter;
 
-class ApplicationMeter implements Meter {
+public class ApplicationMeter implements Meter {
   final Id id;
   final io.micrometer.core.instrument.Meter agentMeter;
   volatile Iterable<Measurement> measurements = null;
 
-  ApplicationMeter(Id id, io.micrometer.core.instrument.Meter agentMeter) {
+  protected ApplicationMeter(Id id, io.micrometer.core.instrument.Meter agentMeter) {
     this.id = id;
     this.agentMeter = agentMeter;
   }

@@ -6,5 +6,7 @@ plugins {
 // it's not really possible to use the muzzle-check plugin here - we're instrumenting a (temporarily) shaded micrometer
 
 dependencies {
-  compileOnly(project(":instrumentation:micrometer-shaded-for-instrumenting", configuration = "shadow"))
+  implementation(project(":instrumentation:micrometer-common"))
+
+  compileOnly(project(":instrumentation:micrometer-1.5-shaded-for-instrumenting", configuration = "shadow"))
 }

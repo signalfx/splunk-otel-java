@@ -14,20 +14,24 @@
  * limitations under the License.
  */
 
-package com.splunk.opentelemetry.instrumentation.micrometer;
+package com.splunk.opentelemetry.instrumentation.micrometer.v1_3;
 
+import static io.opentelemetry.javaagent.extension.matcher.AgentElementMatchers.hasClassesNamed;
 import static java.util.Collections.singletonList;
+import static net.bytebuddy.matcher.ElementMatchers.not;
 
 import com.google.auto.service.AutoService;
 import io.micrometer.core.instrument.Metrics;
 import io.opentelemetry.javaagent.extension.instrumentation.InstrumentationModule;
 import io.opentelemetry.javaagent.extension.instrumentation.TypeInstrumentation;
 import java.util.List;
+import net.bytebuddy.matcher.ElementMatcher;
 
 @AutoService(InstrumentationModule.class)
 public class MicrometerInstrumentationModule extends InstrumentationModule {
+
   public MicrometerInstrumentationModule() {
-    super("micrometer");
+    super("micrometer", "micrometer-1.3");
   }
 
   @Override
@@ -39,6 +43,12 @@ public class MicrometerInstrumentationModule extends InstrumentationModule {
   @Override
   public boolean isHelperClass(String className) {
     return className.startsWith("com.splunk.opentelemetry.instrumentation");
+  }
+
+  @Override
+  public ElementMatcher.Junction<ClassLoader> classLoaderMatcher() {
+    return not(
+        hasClassesNamed("application.io.micrometer.core.instrument.config.validate.Validated"));
   }
 
   @Override

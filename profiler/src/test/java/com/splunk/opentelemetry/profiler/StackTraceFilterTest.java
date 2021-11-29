@@ -171,23 +171,4 @@ class StackTraceFilterTest {
     boolean result = filter.test(stack, 0, stack.length() - 1);
     assertFalse(result);
   }
-
-  @Test
-  void testDelme() throws Exception {
-    RecordingFile file = new RecordingFile(Paths.get("/Users/jplumb/code/spring-petclinic-rest", "test-recording.jfr"));
-    StackTraceFilter filter = new StackTraceFilter(false);
-    ThreadDumpToStacks toStacks = new ThreadDumpToStacks(filter);
-    while(file.hasMoreEvents()){
-      RecordedEvent event = file.readEvent();
-      String name = event.getEventType().getName();
-      if(name.equals("jdk.ThreadDump")){
-        String wallOfStacks = event.getString("result");
-        toStacks.toStream(wallOfStacks).forEach(stack -> {
-          boolean xxx = filter.test(stack, 0, stack.length() - 1);
-          System.out.println(xxx);
-          System.out.println(stack);
-        });
-      }
-    }
-  }
 }

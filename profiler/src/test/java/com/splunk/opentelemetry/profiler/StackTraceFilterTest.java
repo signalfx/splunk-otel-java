@@ -18,14 +18,7 @@ package com.splunk.opentelemetry.profiler;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import jdk.jfr.consumer.RecordedEvent;
-import jdk.jfr.consumer.RecordingFile;
 import org.junit.jupiter.api.Test;
-
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.List;
-import java.util.stream.Stream;
 
 class StackTraceFilterTest {
 
@@ -155,18 +148,19 @@ class StackTraceFilterTest {
 
   @Test
   void testOmitStacksEntirelyJvmInternal() {
-    String stack = "\"logback-2\" #22 daemon prio=5 os_prio=31 cpu=2.42ms elapsed=563.96s tid=0x00007fd540\n" +
-            "   java.lang.Thread.State: TIMED_WAITING (parking)\n" +
-            "\tat jdk.internal.misc.Unsafe.park(java.base@11.0.9.1/Native Method)\n" +
-            "\t- parking to wait for  <0x0000000600001920> (a java.util.concurrent.locks.Ab\n" +
-            "\tat java.util.concurrent.locks.LockSupport.parkNanos(java.base@11.0.9.1/LockS\n" +
-            "\tat java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject.awa\n" +
-            "\tat java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take(ja\n" +
-            "\tat java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take(ja\n" +
-            "\tat java.util.concurrent.ThreadPoolExecutor.getTask(java.base@11.0.9.1/Thread\n" +
-            "\tat java.util.concurrent.ThreadPoolExecutor.runWorker(java.base@11.0.9.1/Thre\n" +
-            "\tat java.util.concurrent.ThreadPoolExecutor$Worker.run(java.base@11.0.9.1/Thr\n" +
-            "\tat java.lang.Thread.run(java.base@11.0.9.1/Thread.java:834)\n";
+    String stack =
+        "\"logback-2\" #22 daemon prio=5 os_prio=31 cpu=2.42ms elapsed=563.96s tid=0x00007fd540\n"
+            + "   java.lang.Thread.State: TIMED_WAITING (parking)\n"
+            + "\tat jdk.internal.misc.Unsafe.park(java.base@11.0.9.1/Native Method)\n"
+            + "\t- parking to wait for  <0x0000000600001920> (a java.util.concurrent.locks.Ab\n"
+            + "\tat java.util.concurrent.locks.LockSupport.parkNanos(java.base@11.0.9.1/LockS\n"
+            + "\tat java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject.awa\n"
+            + "\tat java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take(ja\n"
+            + "\tat java.util.concurrent.ScheduledThreadPoolExecutor$DelayedWorkQueue.take(ja\n"
+            + "\tat java.util.concurrent.ThreadPoolExecutor.getTask(java.base@11.0.9.1/Thread\n"
+            + "\tat java.util.concurrent.ThreadPoolExecutor.runWorker(java.base@11.0.9.1/Thre\n"
+            + "\tat java.util.concurrent.ThreadPoolExecutor$Worker.run(java.base@11.0.9.1/Thr\n"
+            + "\tat java.lang.Thread.run(java.base@11.0.9.1/Thread.java:834)\n";
     StackTraceFilter filter = new StackTraceFilter(false);
     boolean result = filter.test(stack, 0, stack.length() - 1);
     assertFalse(result);

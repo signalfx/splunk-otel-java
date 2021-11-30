@@ -34,7 +34,7 @@ class StackToSpanLinkageProcessorTest {
     Instant time = Instant.now();
     StackToSpanLinkage linkedSpan =
         new StackToSpanLinkage(time, "some stack", "event name", SpanLinkage.NONE);
-    LogEntryCreator logCreator = mock(LogEntryCreator.class);
+    LogDataCreator logCreator = mock(LogDataCreator.class);
     BatchingLogsProcessor exportProcessor = mock(BatchingLogsProcessor.class);
 
     LogEntry log = LogEntry.builder().bodyString("the.body").build();

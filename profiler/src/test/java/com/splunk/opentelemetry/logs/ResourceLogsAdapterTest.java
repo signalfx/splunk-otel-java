@@ -27,11 +27,10 @@ import io.opentelemetry.proto.common.v1.KeyValue;
 import io.opentelemetry.proto.logs.v1.InstrumentationLibraryLogs;
 import io.opentelemetry.proto.logs.v1.LogRecord;
 import io.opentelemetry.proto.logs.v1.ResourceLogs;
+import io.opentelemetry.sdk.logs.data.LogData;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
-
-import io.opentelemetry.sdk.logs.data.LogData;
 import org.junit.jupiter.api.Test;
 
 class ResourceLogsAdapterTest {
@@ -61,7 +60,7 @@ class ResourceLogsAdapterTest {
     LogDataAdapter logDataAdapter = new LogDataAdapter();
     InstrumentationLibraryLogsAdapter instLogsAdapter =
         InstrumentationLibraryLogsAdapter.builder()
-            .logEntryAdapter(logDataAdapter)
+            .logDataAdapter(logDataAdapter)
             .instrumentationName("a")
             .instrumentationVersion("b")
             .build();

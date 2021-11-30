@@ -26,7 +26,7 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-/** Protobuf converter. Turns a LogEntry into a protobuf LogRecord */
+/** Protobuf converter. Turns a LogData into a protobuf LogRecord */
 public class ResourceLogsAdapter implements Function<List<LogData>, ResourceLogs> {
 
   private final InstrumentationLibraryLogsAdapter logsAdapter;

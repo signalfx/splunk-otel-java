@@ -79,7 +79,7 @@ public class InstrumentationLibraryLogsAdapter
       return this;
     }
 
-    public Builder logEntryAdapter(LogDataAdapter logDataAdapter) {
+    public Builder logDataAdapter(LogDataAdapter logDataAdapter) {
       this.logDataAdapter = logDataAdapter;
       return this;
     }

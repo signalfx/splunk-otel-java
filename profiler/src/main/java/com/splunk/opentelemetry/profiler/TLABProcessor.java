@@ -17,7 +17,7 @@
 package com.splunk.opentelemetry.profiler;
 
 import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_TLAB_ENABLED;
-import static com.splunk.opentelemetry.profiler.LogEntryCreator.PROFILING_SOURCE;
+import static com.splunk.opentelemetry.profiler.LogDataCreator.PROFILING_SOURCE;
 
 import com.splunk.opentelemetry.logs.LogEntry;
 import com.splunk.opentelemetry.logs.LogsProcessor;

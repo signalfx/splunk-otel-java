@@ -24,11 +24,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.proto.logs.v1.InstrumentationLibraryLogs;
 import io.opentelemetry.proto.logs.v1.LogRecord;
+import io.opentelemetry.sdk.logs.data.LogData;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
-
-import io.opentelemetry.sdk.logs.data.LogData;
 import org.junit.jupiter.api.Test;
 
 class InstrumentationLibraryLogAdapterTest {
@@ -61,7 +60,7 @@ class InstrumentationLibraryLogAdapterTest {
         InstrumentationLibraryLogsAdapter.builder()
             .instrumentationName("otel-profiling")
             .instrumentationVersion("1.2.3")
-            .logEntryAdapter(logDataAdapter)
+            .logDataAdapter(logDataAdapter)
             .build();
     InstrumentationLibraryLogs result = adapter.apply(logsEntries);
 

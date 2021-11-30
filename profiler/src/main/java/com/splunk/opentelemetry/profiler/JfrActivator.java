@@ -90,7 +90,6 @@ public class JfrActivator implements AgentListener {
     SpanContextualizer spanContextualizer = new SpanContextualizer();
     EventPeriods periods = new EventPeriods(jfrSettings::get);
     LogDataCommonAttributes commonAttributes = new LogDataCommonAttributes(periods);
-    LogEntryCreator logEntryCreator = new LogEntryCreator(commonAttributes);
     LogsExporter logsExporter = LogsExporterBuilder.fromConfig(config);
 
     ScheduledExecutorService exportExecutorService =
@@ -103,8 +102,11 @@ public class JfrActivator implements AgentListener {
             .executorService(exportExecutorService)
             .build();
     batchingLogsProcessor.start();
+
+    LogDataCreator logDataCreator = LogDataCreator.create(commonAttributes, config);
+
     StackToSpanLinkageProcessor processor =
-        new StackToSpanLinkageProcessor(logEntryCreator, batchingLogsProcessor);
+        new StackToSpanLinkageProcessor(logDataCreator, batchingLogsProcessor);
 
     ThreadDumpToStacks threadDumpToStacks = new ThreadDumpToStacks(buildStackTraceFilter(config));
 

@@ -26,11 +26,11 @@ import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.common.AttributesBuilder;
 import java.time.Duration;
 
-public class LogEntryCommonAttributes {
+public class LogDataCommonAttributes {
 
   private final EventPeriods periods;
 
-  public LogEntryCommonAttributes(EventPeriods periods) {
+  public LogDataCommonAttributes(EventPeriods periods) {
     this.periods = periods;
   }
 

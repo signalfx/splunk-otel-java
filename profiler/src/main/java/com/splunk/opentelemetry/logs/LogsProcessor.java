@@ -16,7 +16,9 @@
 
 package com.splunk.opentelemetry.logs;
 
+import io.opentelemetry.sdk.logs.data.LogData;
+
 public interface LogsProcessor {
 
-  void log(LogEntry log);
+  void log(LogData log);
 }

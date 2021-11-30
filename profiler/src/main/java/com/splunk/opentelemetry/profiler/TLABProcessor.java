@@ -40,12 +40,12 @@ public class TLABProcessor implements Consumer<RecordedEvent> {
   private final boolean enabled;
   private final StackSerializer stackSerializer;
   private final LogsProcessor batchingLogsProcessor;
-  private final LogEntryCommonAttributes commonAttributes;
+  private final LogDataCommonAttributes commonAttributes;
 
   public TLABProcessor(
       Config config,
       LogsProcessor batchingLogsProcessor,
-      LogEntryCommonAttributes commonAttributes) {
+      LogDataCommonAttributes commonAttributes) {
     this(config, new StackSerializer(), batchingLogsProcessor, commonAttributes);
   }
 
@@ -53,7 +53,7 @@ public class TLABProcessor implements Consumer<RecordedEvent> {
       Config config,
       StackSerializer stackSerializer,
       LogsProcessor batchingLogsProcessor,
-      LogEntryCommonAttributes commonAttributes) {
+      LogDataCommonAttributes commonAttributes) {
     this.enabled = config.getBoolean(CONFIG_KEY_TLAB_ENABLED);
     this.stackSerializer = stackSerializer;
     this.batchingLogsProcessor = batchingLogsProcessor;

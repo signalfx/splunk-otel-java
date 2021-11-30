@@ -26,9 +26,9 @@ public class LogEntryCreator implements Function<StackToSpanLinkage, LogEntry> {
 
   static final String PROFILING_SOURCE = "otel.profiling";
 
-  private final LogEntryCommonAttributes commonAttributes;
+  private final LogDataCommonAttributes commonAttributes;
 
-  public LogEntryCreator(LogEntryCommonAttributes commonAttributes) {
+  public LogEntryCreator(LogDataCommonAttributes commonAttributes) {
     this.commonAttributes = commonAttributes;
   }
 

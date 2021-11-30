@@ -30,7 +30,10 @@ import com.splunk.opentelemetry.profiler.events.EventPeriods;
 import com.splunk.opentelemetry.profiler.util.StackSerializer;
 import io.opentelemetry.instrumentation.api.config.Config;
 import java.time.Instant;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
+
+import io.opentelemetry.sdk.logs.data.LogData;
 import jdk.jfr.EventType;
 import jdk.jfr.consumer.RecordedEvent;
 import jdk.jfr.consumer.RecordedStackTrace;
@@ -89,16 +92,16 @@ class TLABProcessorTest {
 
   private void tlabProcessTest(Long tlabSize) {
     Instant now = Instant.now();
-    AtomicReference<LogEntry> seenLogEntry = new AtomicReference<>();
-    LogsProcessor consumer = seenLogEntry::set;
+    AtomicReference<LogData> seenLogData = new AtomicReference<>();
+    LogsProcessor consumer = seenLogData::set;
     String stackAsString = "i am a serialized stack believe me";
 
     RecordedEvent event = mock(RecordedEvent.class);
     StackSerializer serializer = mock(StackSerializer.class);
     RecordedStackTrace stack = mock(RecordedStackTrace.class);
     EventType eventType = mock(EventType.class);
-    LogEntryCommonAttributes commonAttrs =
-        new LogEntryCommonAttributes(new EventPeriods(x -> null));
+    LogDataCommonAttributes commonAttrs =
+        new LogDataCommonAttributes(new EventPeriods(x -> null));
 
     when(event.getStartTime()).thenReturn(now);
     when(event.getStackTrace()).thenReturn(stack);
@@ -120,16 +123,16 @@ class TLABProcessorTest {
     TLABProcessor processor = new TLABProcessor(config, serializer, consumer, commonAttrs);
     processor.accept(event);
 
-    assertEquals(stackAsString, seenLogEntry.get().getBody().asString());
-    assertEquals(now, seenLogEntry.get().getTime());
-    assertEquals("otel.profiling", seenLogEntry.get().getAttributes().get(SOURCE_TYPE));
-    assertEquals("tee-lab", seenLogEntry.get().getAttributes().get(SOURCE_EVENT_NAME));
-    assertEquals(ONE_MB, seenLogEntry.get().getAttributes().get(ALLOCATION_SIZE_KEY));
+    assertEquals(stackAsString, seenLogData.get().getBody().asString());
+    assertEquals(TimeUnit.MILLISECONDS.toNanos(now.toEpochMilli()), seenLogData.get().getEpochNanos());
+    assertEquals("otel.profiling", seenLogData.get().getAttributes().get(SOURCE_TYPE));
+    assertEquals("tee-lab", seenLogData.get().getAttributes().get(SOURCE_EVENT_NAME));
+    assertEquals(ONE_MB, seenLogData.get().getAttributes().get(ALLOCATION_SIZE_KEY));
     if (tlabSize == null) {
-      assertNull(seenLogEntry.get().getAttributes().get(TLAB_SIZE_KEY));
+      assertNull(seenLogData.get().getAttributes().get(TLAB_SIZE_KEY));
     } else {
-      assertEquals(tlabSize, seenLogEntry.get().getAttributes().get(TLAB_SIZE_KEY));
+      assertEquals(tlabSize, seenLogData.get().getAttributes().get(TLAB_SIZE_KEY));
     }
-    assertFalse(seenLogEntry.get().getSpanContext().isValid());
+    assertFalse(seenLogData.get().getSpanContext().isValid());
   }
 }

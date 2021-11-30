@@ -71,7 +71,7 @@ class LogEntryCreatorTest {
 
     StackToSpanLinkage linkedSpan = new StackToSpanLinkage(time, "the.stack", eventName, linkage);
 
-    LogEntryCreator creator = new LogEntryCreator(new LogEntryCommonAttributes(periods));
+    LogEntryCreator creator = new LogEntryCreator(new LogDataCommonAttributes(periods));
     LogEntry result = creator.apply(linkedSpan);
     assertEquals(expected, result);
   }

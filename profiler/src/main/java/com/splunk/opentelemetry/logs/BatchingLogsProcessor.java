@@ -78,7 +78,7 @@ public class BatchingLogsProcessor implements LogsProcessor {
   }
 
   @Override
-  public void log(LogEntry log) {
+  public void log(LogData log) {
     synchronized (lock) {
       batch.add(log);
       if (batch.size() >= maxBatchSize) {

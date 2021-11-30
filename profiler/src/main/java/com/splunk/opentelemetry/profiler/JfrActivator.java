@@ -89,7 +89,7 @@ public class JfrActivator implements AgentListener {
 
     SpanContextualizer spanContextualizer = new SpanContextualizer();
     EventPeriods periods = new EventPeriods(jfrSettings::get);
-    LogEntryCommonAttributes commonAttributes = new LogEntryCommonAttributes(periods);
+    LogDataCommonAttributes commonAttributes = new LogDataCommonAttributes(periods);
     LogEntryCreator logEntryCreator = new LogEntryCreator(commonAttributes);
     LogsExporter logsExporter = LogsExporterBuilder.fromConfig(config);
 

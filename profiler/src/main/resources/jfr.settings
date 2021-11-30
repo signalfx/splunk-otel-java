@@ -1,4 +1,4 @@
 jdk.ThreadDump#enabled=true
-jdk.ThreadDump#period=1 s
+jdk.ThreadDump#period=10 s
 jdk.ObjectAllocationInNewTLAB#enabled=false
 jdk.ObjectAllocationOutsideTLAB#enabled=false

@@ -27,7 +27,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Customizes a configuration with user overrides. The config can contain
- * splunk.profiler.period.{short-event-name} keys whose valuse are the period in milliseconds,
+ * splunk.profiler.period.{short-event-name} keys whose values are the period in milliseconds,
  * without suffix.
  */
 class JfrSettingsOverrides {
@@ -61,7 +61,7 @@ class JfrSettingsOverrides {
   }
 
   private Map<String, String> maybeEnableTLABs(Map<String, String> settings) {
-    if (config.getBoolean(CONFIG_KEY_TLAB_ENABLED)) {
+    if (config.getBoolean(CONFIG_KEY_TLAB_ENABLED, false)) {
       settings.put("jdk.ObjectAllocationInNewTLAB#enabled", "true");
       settings.put("jdk.ObjectAllocationOutsideTLAB#enabled", "true");
     }

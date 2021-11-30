@@ -35,7 +35,7 @@ public class LogEntryAdapter implements Function<LogEntry, LogRecord> {
 
   @Override
   public LogRecord apply(LogEntry logEntry) {
-    AnyValue body = AnyValue.newBuilder().setStringValue(logEntry.getBody()).build();
+    AnyValue body = AnyValue.newBuilder().setStringValue(logEntry.getBodyAsString()).build();
     Attributes sourceAttrs = logEntry.getAttributes();
     List<KeyValue> attributes =
         sourceAttrs.asMap().entrySet().stream()
@@ -60,6 +60,7 @@ public class LogEntryAdapter implements Function<LogEntry, LogRecord> {
       byte[] spanIdBytes =
           OtelEncodingUtils.bytesFromBase16(logEntry.getSpanId(), SpanId.getLength());
       builder.setSpanId(unsafeWrap(spanIdBytes));
+      builder.setFlags(logEntry.getSpanContext().getTraceFlags().asByte());
     }
     return builder.build();
   }

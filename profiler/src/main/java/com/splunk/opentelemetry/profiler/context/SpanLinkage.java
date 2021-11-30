@@ -16,30 +16,22 @@
 
 package com.splunk.opentelemetry.profiler.context;
 
-import javax.annotation.Nullable;
+import io.opentelemetry.api.trace.SpanContext;
 
 public class SpanLinkage {
 
-  public static final SpanLinkage NONE = new SpanLinkage(null, null, -1);
+  public static final SpanLinkage NONE = new SpanLinkage(SpanContext.getInvalid(), -1);
 
-  @Nullable private final String spanId;
-  @Nullable private final String traceId;
+  private final SpanContext spanContext;
   private final long threadId;
 
-  public SpanLinkage(@Nullable String traceId, @Nullable String spanId, long threadId) {
-    this.spanId = spanId;
-    this.traceId = traceId;
+  public SpanLinkage(SpanContext spanContext, long threadId) {
+    this.spanContext = spanContext;
     this.threadId = threadId;
   }
 
-  @Nullable
-  String getSpanId() {
-    return spanId;
-  }
-
-  @Nullable
-  String getTraceId() {
-    return traceId;
+  SpanContext getSpanContext() {
+    return spanContext;
   }
 
   long getThreadId() {

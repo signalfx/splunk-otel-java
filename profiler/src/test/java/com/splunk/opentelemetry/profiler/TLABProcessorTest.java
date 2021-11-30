@@ -120,7 +120,7 @@ class TLABProcessorTest {
     TLABProcessor processor = new TLABProcessor(config, serializer, consumer, commonAttrs);
     processor.accept(event);
 
-    assertEquals(stackAsString, seenLogEntry.get().getBody());
+    assertEquals(stackAsString, seenLogEntry.get().getBody().asString());
     assertEquals(now, seenLogEntry.get().getTime());
     assertEquals("otel.profiling", seenLogEntry.get().getAttributes().get(SOURCE_TYPE));
     assertEquals("tee-lab", seenLogEntry.get().getAttributes().get(SOURCE_EVENT_NAME));
@@ -130,7 +130,6 @@ class TLABProcessorTest {
     } else {
       assertEquals(tlabSize, seenLogEntry.get().getAttributes().get(TLAB_SIZE_KEY));
     }
-    assertNull(seenLogEntry.get().getSpanId());
-    assertNull(seenLogEntry.get().getTraceId());
+    assertFalse(seenLogEntry.get().getSpanContext().isValid());
   }
 }

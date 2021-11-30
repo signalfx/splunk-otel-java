@@ -20,6 +20,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
+import io.opentelemetry.api.trace.SpanContext;
+import io.opentelemetry.api.trace.TraceFlags;
+import io.opentelemetry.api.trace.TraceState;
 import io.opentelemetry.proto.common.v1.KeyValue;
 import io.opentelemetry.proto.logs.v1.LogRecord;
 import java.time.Instant;
@@ -51,7 +54,8 @@ class LogEntryAdapterTest {
 
     assertEquals(entry.getTraceId(), toHexString(result.getTraceId().toByteArray()));
     assertEquals(entry.getSpanId(), toHexString(result.getSpanId().toByteArray()));
-    assertEquals(entry.getBody(), result.getBody().getStringValue());
+    assertEquals(entry.getSpanContext().getTraceFlags().asByte(), result.getFlags());
+    assertEquals(entry.getBody().asString(), result.getBody().getStringValue());
     assertEquals("MyClass.myMethod(line:123)", origination.get().getValue().getStringValue());
   }
 
@@ -71,9 +75,13 @@ class LogEntryAdapterTest {
     return LogEntry.builder()
         .name("__LOG__")
         .time(time)
-        .body(body)
-        .traceId("c78bda329abae6a6c7111111112ae666")
-        .spanId("c78bda329abae6a6")
+        .bodyString(body)
+        .spanContext(
+            SpanContext.create(
+                "c78bda329abae6a6c7111111112ae666",
+                "c78bda329abae6a6",
+                TraceFlags.getSampled(),
+                TraceState.getDefault()))
         .attributes(attributes);
   }
 

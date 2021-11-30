@@ -87,7 +87,7 @@ public class TLABProcessor implements Consumer<RecordedEvent> {
         LogEntry.builder()
             .name(PROFILING_SOURCE)
             .time(time)
-            .body(stack)
+            .bodyString(stack)
             .attributes(attributes)
             .build();
 

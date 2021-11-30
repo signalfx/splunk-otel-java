@@ -41,19 +41,19 @@ class ResourceLogsAdapterTest {
         LogEntry.builder()
             .time(now.plus(0, SECONDS))
             .attributes(Attributes.of(ENDUSER_ID, "jimmy"))
-            .body("test log 1")
+            .bodyString("test log 1")
             .build();
     LogEntry log2 =
         LogEntry.builder()
             .time(now.plus(1, SECONDS))
             .attributes(Attributes.of(ENDUSER_ID, "sally"))
-            .body("test log 2")
+            .bodyString("test log 2")
             .build();
     LogEntry log3 =
         LogEntry.builder()
             .time(now.plus(2, SECONDS))
             .attributes(Attributes.of(ENDUSER_ID, "ward"))
-            .body("test log 3")
+            .bodyString("test log 3")
             .build();
     List<LogEntry> sourceLogs = Arrays.asList(log1, log2, log3);
     LogEntryAdapter logEntryAdapter = new LogEntryAdapter();

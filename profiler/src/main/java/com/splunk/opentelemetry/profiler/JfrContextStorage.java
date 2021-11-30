@@ -20,6 +20,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.splunk.opentelemetry.profiler.events.ContextAttached;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanContext;
+import io.opentelemetry.api.trace.TraceFlags;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.context.ContextStorage;
 import io.opentelemetry.context.Scope;
@@ -44,9 +45,10 @@ class JfrContextStorage implements ContextStorage {
 
   static ContextAttached newEvent(SpanContext spanContext) {
     if (spanContext.isValid()) {
-      return new ContextAttached(spanContext.getTraceId(), spanContext.getSpanId());
+      return new ContextAttached(
+          spanContext.getTraceId(), spanContext.getSpanId(), spanContext.getTraceFlags().asByte());
     }
-    return new ContextAttached(null, null);
+    return new ContextAttached(null, null, TraceFlags.getDefault().asByte());
   }
 
   @Override

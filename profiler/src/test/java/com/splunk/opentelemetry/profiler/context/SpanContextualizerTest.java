@@ -17,7 +17,7 @@
 package com.splunk.opentelemetry.profiler.context;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -35,8 +35,9 @@ import org.junit.jupiter.api.Test;
 
 class SpanContextualizerTest {
 
-  private final String spanId = "abc123";
-  private final String traceId = "23489uasdpfoiajsdfph23oij";
+  private final String traceId = "deadbeefdeadbeefdeadbeefdeadbeef";
+  private final String spanId = "0123012301230123";
+  ;
   private final String rawStack = "raw is raw";
   private final Instant time = Instant.now();
 
@@ -59,7 +60,7 @@ class SpanContextualizerTest {
   void testNestedChildSpanOneThread() {
     SpanContextualizer testClass = new SpanContextualizer();
 
-    String childSpanId = "xyz987";
+    String childSpanId = "0123012301230123";
     String rawStack1 = "raw is raw1";
     String rawStack2 = "raw is raw2";
     long threadId = 906;
@@ -182,9 +183,9 @@ class SpanContextualizerTest {
   void testMultipleChildThreadedSpansEndWithinParent() {
     SpanContextualizer testClass = new SpanContextualizer();
 
-    Events events1 = buildEvents("abc123", 906);
-    Events events2 = buildEvents("xyz666", 907);
-    Events events3 = buildEvents("zzybal", 908);
+    Events events1 = buildEvents("0123012301230123", 906);
+    Events events2 = buildEvents("9999888899998888", 907);
+    Events events3 = buildEvents("5555666655556666", 908);
 
     testClass.updateContext(events1.scopeStart);
     testClass.updateContext(events2.scopeStart);
@@ -275,15 +276,16 @@ class SpanContextualizerTest {
 
   private void assertLinkage(SpanContextualizer testClass, Events events, String stack) {
     StackToSpanLinkage result = testClass.link(time, stack, events.threadId, events.sourceEvent);
-    assertEquals(events.spanId, result.getSpanId());
-    assertEquals(traceId, result.getTraceId());
+    assertEquals(events.spanId, result.getSpanContext().getSpanId());
+    assertEquals(traceId, result.getSpanContext().getTraceId());
     assertEquals(stack, result.getRawStack());
     assertEquals(result.getSourceEventName(), "GreatSourceEventHere");
   }
 
   private void assertNoLinkage(SpanContextualizer testClass, Events events) {
     StackToSpanLinkage result = testClass.link(time, rawStack, events.threadId, events.sourceEvent);
-    assertNull(result.getSpanId());
+    assertFalse(result.hasSpanInfo());
+    assertFalse(result.getSpanContext().isValid());
   }
 
   private Events buildEvents(String spanId, long threadId) {

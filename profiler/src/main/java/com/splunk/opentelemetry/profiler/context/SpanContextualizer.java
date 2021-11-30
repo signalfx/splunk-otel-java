@@ -19,6 +19,9 @@ package com.splunk.opentelemetry.profiler.context;
 import static com.splunk.opentelemetry.profiler.context.StackDescriptorLineParser.CANT_PARSE_THREAD_ID;
 import static com.splunk.opentelemetry.profiler.context.StackToSpanLinkage.withoutLinkage;
 
+import io.opentelemetry.api.trace.SpanContext;
+import io.opentelemetry.api.trace.TraceFlags;
+import io.opentelemetry.api.trace.TraceState;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
@@ -42,8 +45,8 @@ public class SpanContextualizer {
    * ContextAttached events.
    */
   public void updateContext(RecordedEvent event) {
-    String spanId = event.getString("spanId");
     String traceId = event.getString("traceId");
+    String spanId = event.getString("spanId");
     long javaThreadId = event.getThread().getJavaThreadId();
 
     logger.debug(
@@ -56,7 +59,10 @@ public class SpanContextualizer {
     if (traceId == null || spanId == null) {
       threadSpans.remove(javaThreadId);
     } else {
-      SpanLinkage linkage = new SpanLinkage(traceId, spanId, javaThreadId);
+      TraceFlags traceFlags = TraceFlags.fromByte(event.getByte("traceFlags"));
+      SpanContext spanContext =
+          SpanContext.create(traceId, spanId, traceFlags, TraceState.getDefault());
+      SpanLinkage linkage = new SpanLinkage(spanContext, javaThreadId);
       threadSpans.put(javaThreadId, linkage);
     }
   }

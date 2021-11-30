@@ -45,6 +45,9 @@ public class SplunkConfiguration implements ConfigPropertySource {
     config.put("otel.instrumentation.spring-batch.enabled", "true");
     config.put("otel.instrumentation.spring-batch.item.enabled", "true");
 
+    // disable span links in messaging instrumentations
+    config.put("otel.instrumentation.common.experimental.suppress-messaging-receive-spans", "true");
+
     config.put("otel.traces.sampler", "always_on");
     return config;
   }

@@ -19,13 +19,26 @@ package com.splunk.opentelemetry.profiler;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 
 import com.splunk.opentelemetry.logs.OtlpLogsExporter;
+import com.splunk.opentelemetry.resource.ResourceHolder;
+import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.instrumentation.api.config.Config;
+import io.opentelemetry.sdk.resources.Resource;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 class LogsExporterBuilderTest {
+
+  @BeforeAll
+  static void setup() {
+    Resource resource = mock(Resource.class);
+    Attributes attributes = mock(Attributes.class);
+    when(resource.getAttributes()).thenReturn(attributes);
+    mockStatic(ResourceHolder.class).when(ResourceHolder::getResource).thenReturn(resource);
+  }
 
   @Test
   void testBuildSimple() {

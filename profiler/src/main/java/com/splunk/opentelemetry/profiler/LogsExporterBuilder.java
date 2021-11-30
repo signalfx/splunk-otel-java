@@ -22,9 +22,8 @@ import com.splunk.opentelemetry.logs.LogsExporter;
 import com.splunk.opentelemetry.logs.OtlpLogsExporter;
 import com.splunk.opentelemetry.logs.OtlpLogsExporterBuilder;
 import com.splunk.opentelemetry.logs.ResourceLogsAdapter;
+import com.splunk.opentelemetry.resource.ResourceHolder;
 import io.opentelemetry.instrumentation.api.config.Config;
-import io.opentelemetry.javaagent.tooling.config.ConfigPropertiesAdapter;
-import io.opentelemetry.sdk.autoconfigure.OpenTelemetryResourceAutoConfiguration;
 import io.opentelemetry.sdk.resources.Resource;
 
 class LogsExporterBuilder {
@@ -33,7 +32,7 @@ class LogsExporterBuilder {
   private static final String OTEL_INSTRUMENTATION_VERSION = "0.1.0";
 
   static LogsExporter fromConfig(Config config) {
-    ResourceLogsAdapter adapter = buildResourceLogsAdapter(config);
+    ResourceLogsAdapter adapter = buildResourceLogsAdapter();
 
     OtlpLogsExporterBuilder builder =
         OtlpLogsExporter.builder()
@@ -47,10 +46,8 @@ class LogsExporterBuilder {
     return builder.build();
   }
 
-  private static ResourceLogsAdapter buildResourceLogsAdapter(Config config) {
-    Resource resource =
-        OpenTelemetryResourceAutoConfiguration.configureResource(
-            new ConfigPropertiesAdapter(config));
+  private static ResourceLogsAdapter buildResourceLogsAdapter() {
+    Resource resource = ResourceHolder.getResource();
     LogEntryAdapter logEntryAdapter = new LogEntryAdapter();
     InstrumentationLibraryLogsAdapter instLibraryLogsAdapter =
         InstrumentationLibraryLogsAdapter.builder()

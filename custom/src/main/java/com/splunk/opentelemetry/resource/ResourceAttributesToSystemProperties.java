@@ -21,8 +21,6 @@ import io.opentelemetry.api.common.AttributeType;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.instrumentation.api.config.Config;
 import io.opentelemetry.javaagent.extension.AgentListener;
-import io.opentelemetry.javaagent.tooling.config.ConfigPropertiesAdapter;
-import io.opentelemetry.sdk.autoconfigure.OpenTelemetryResourceAutoConfiguration;
 
 /**
  * This component exposes String resource attributes as system properties with <code>otel.resource.
@@ -35,10 +33,7 @@ public class ResourceAttributesToSystemProperties implements AgentListener {
 
   @Override
   public void afterAgent(Config config) {
-    Attributes attributes =
-        OpenTelemetryResourceAutoConfiguration.configureResource(
-                new ConfigPropertiesAdapter(config))
-            .getAttributes();
+    Attributes attributes = ResourceHolder.getResource().getAttributes();
     attributes.forEach(
         (k, v) -> {
           if (k.getType() == AttributeType.STRING) {

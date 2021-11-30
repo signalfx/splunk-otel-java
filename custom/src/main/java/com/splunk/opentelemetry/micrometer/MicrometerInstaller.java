@@ -17,6 +17,7 @@
 package com.splunk.opentelemetry.micrometer;
 
 import com.google.auto.service.AutoService;
+import com.splunk.opentelemetry.resource.ResourceHolder;
 import io.micrometer.core.instrument.Clock;
 import io.micrometer.core.instrument.Metrics;
 import io.micrometer.core.instrument.Tags;
@@ -25,23 +26,23 @@ import io.micrometer.core.instrument.config.NamingConvention;
 import io.micrometer.signalfx.SignalFxMeterRegistry;
 import io.opentelemetry.instrumentation.api.config.Config;
 import io.opentelemetry.javaagent.extension.AgentListener;
-import io.opentelemetry.javaagent.tooling.config.ConfigPropertiesAdapter;
-import io.opentelemetry.sdk.autoconfigure.OpenTelemetryResourceAutoConfiguration;
 import io.opentelemetry.sdk.resources.Resource;
 
 @AutoService(AgentListener.class)
 public class MicrometerInstaller implements AgentListener {
   @Override
   public void beforeAgent(Config config) {
-    Resource resource =
-        OpenTelemetryResourceAutoConfiguration.configureResource(
-            new ConfigPropertiesAdapter(config));
+    Resource resource = ResourceHolder.getResource();
     SplunkMetricsConfig splunkMetricsConfig = new SplunkMetricsConfig(config, resource);
 
     if (splunkMetricsConfig.enabled()) {
       Tags globalTags = new GlobalTagsBuilder(resource).build();
       Metrics.addRegistry(createSplunkMeterRegistry(splunkMetricsConfig, globalTags));
     }
+  }
+
+  public int order() {
+    return 1;
   }
 
   private static SignalFxMeterRegistry createSplunkMeterRegistry(

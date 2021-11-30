@@ -26,6 +26,8 @@ import io.opentelemetry.proto.collector.logs.v1.LogsServiceGrpc;
 import io.opentelemetry.proto.logs.v1.ResourceLogs;
 import java.util.List;
 import javax.annotation.Nullable;
+
+import io.opentelemetry.sdk.logs.data.LogData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,7 +44,7 @@ public class OtlpLogsExporter implements LogsExporter {
   }
 
   @Override
-  public void export(List<LogEntry> logs) {
+  public void export(List<LogData> logs) {
     ResourceLogs resourceLogs = adapter.apply(logs);
     ExportLogsServiceRequest request =
         ExportLogsServiceRequest.newBuilder().addResourceLogs(resourceLogs).build();
@@ -65,9 +67,9 @@ public class OtlpLogsExporter implements LogsExporter {
 
   private static class ResponseHandler implements FutureCallback<ExportLogsServiceResponse> {
 
-    private final List<LogEntry> logs;
+    private final List<LogData> logs;
 
-    public ResponseHandler(List<LogEntry> logs) {
+    public ResponseHandler(List<LogData> logs) {
       this.logs = logs;
     }
 

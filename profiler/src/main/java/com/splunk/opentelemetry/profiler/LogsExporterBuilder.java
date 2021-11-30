@@ -17,7 +17,7 @@
 package com.splunk.opentelemetry.profiler;
 
 import com.splunk.opentelemetry.logs.InstrumentationLibraryLogsAdapter;
-import com.splunk.opentelemetry.logs.LogEntryAdapter;
+import com.splunk.opentelemetry.logs.LogDataAdapter;
 import com.splunk.opentelemetry.logs.LogsExporter;
 import com.splunk.opentelemetry.logs.OtlpLogsExporter;
 import com.splunk.opentelemetry.logs.OtlpLogsExporterBuilder;
@@ -51,10 +51,10 @@ class LogsExporterBuilder {
     Resource resource =
         OpenTelemetryResourceAutoConfiguration.configureResource(
             new ConfigPropertiesAdapter(config));
-    LogEntryAdapter logEntryAdapter = new LogEntryAdapter();
+    LogDataAdapter logDataAdapter = new LogDataAdapter();
     InstrumentationLibraryLogsAdapter instLibraryLogsAdapter =
         InstrumentationLibraryLogsAdapter.builder()
-            .logEntryAdapter(logEntryAdapter)
+            .logEntryAdapter(logDataAdapter)
             .instrumentationName(OTEL_INSTRUMENTATION_NAME)
             .instrumentationVersion(OTEL_INSTRUMENTATION_VERSION)
             .build();

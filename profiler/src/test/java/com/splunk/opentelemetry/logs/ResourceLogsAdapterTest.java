@@ -30,6 +30,8 @@ import io.opentelemetry.proto.logs.v1.ResourceLogs;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
+
+import io.opentelemetry.sdk.logs.data.LogData;
 import org.junit.jupiter.api.Test;
 
 class ResourceLogsAdapterTest {
@@ -55,11 +57,11 @@ class ResourceLogsAdapterTest {
             .attributes(Attributes.of(ENDUSER_ID, "ward"))
             .bodyString("test log 3")
             .build();
-    List<LogEntry> sourceLogs = Arrays.asList(log1, log2, log3);
-    LogEntryAdapter logEntryAdapter = new LogEntryAdapter();
+    List<LogData> sourceLogs = Arrays.asList(log1, log2, log3);
+    LogDataAdapter logDataAdapter = new LogDataAdapter();
     InstrumentationLibraryLogsAdapter instLogsAdapter =
         InstrumentationLibraryLogsAdapter.builder()
-            .logEntryAdapter(logEntryAdapter)
+            .logEntryAdapter(logDataAdapter)
             .instrumentationName("a")
             .instrumentationVersion("b")
             .build();

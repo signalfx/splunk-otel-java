@@ -24,6 +24,8 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ScheduledExecutorService;
+
+import io.opentelemetry.sdk.logs.data.LogData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,7 +42,7 @@ public class BatchingLogsProcessor implements LogsProcessor {
 
   private final int maxBatchSize;
   private final Duration maxTimeBetweenBatches;
-  private final List<LogEntry> batch;
+  private final List<LogData> batch;
   private final LogsExporter exporter;
   private final ScheduledExecutorService executorService;
   private final Object lock = new Object();
@@ -88,7 +90,7 @@ public class BatchingLogsProcessor implements LogsProcessor {
 
   /** Async export. Batch is copied and cleared and export is scheduled. */
   private void asyncDoExport() {
-    List<LogEntry> batchCopy = copyClearBatch();
+    List<LogData> batchCopy = copyClearBatch();
     if (batchCopy != null) {
       logger.debug("Async export of batch with size {}.", batchCopy.size());
       Runnable task = Runnables.logUncaught(() -> exporter.export(batchCopy));
@@ -98,19 +100,19 @@ public class BatchingLogsProcessor implements LogsProcessor {
 
   /** Synchronous export, to be called from the watchdog thread */
   private void syncDoExport() {
-    List<LogEntry> batchCopy = copyClearBatch();
+    List<LogData> batchCopy = copyClearBatch();
     if (batchCopy != null) {
       logger.debug("Sync export of batch with size {}.", batchCopy.size());
       exporter.export(batchCopy);
     }
   }
 
-  private List<LogEntry> copyClearBatch() {
+  private List<LogData> copyClearBatch() {
     synchronized (lock) {
       if (batch.isEmpty()) {
         return null;
       }
-      List<LogEntry> batchCopy = new ArrayList<>(batch);
+      List<LogData> batchCopy = new ArrayList<>(batch);
       batch.clear();
       return batchCopy;
     }

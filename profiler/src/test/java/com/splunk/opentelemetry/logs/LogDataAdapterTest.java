@@ -31,7 +31,7 @@ import java.util.Optional;
 import java.util.stream.IntStream;
 import org.junit.jupiter.api.Test;
 
-class LogEntryAdapterTest {
+class LogDataAdapterTest {
 
   @Test
   void testAdapt() {
@@ -41,7 +41,7 @@ class LogEntryAdapterTest {
     String body = "I am a log message!";
     LogEntry entry = basicBuilder(attributes, time, body).build();
 
-    LogEntryAdapter adapter = new LogEntryAdapter();
+    LogDataAdapter adapter = new LogDataAdapter();
     LogRecord result = adapter.apply(entry);
     assertEquals(body, result.getBody().getStringValue());
 
@@ -66,7 +66,7 @@ class LogEntryAdapterTest {
     Instant time = Instant.now();
     LogEntry entry = basicBuilder(attributes, time, "I am a log message!").name(null).build();
 
-    LogEntryAdapter adapter = new LogEntryAdapter();
+    LogDataAdapter adapter = new LogDataAdapter();
     LogRecord result = adapter.apply(entry);
     assertEquals("", result.getName());
   }

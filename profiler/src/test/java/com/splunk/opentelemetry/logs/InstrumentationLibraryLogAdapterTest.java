@@ -27,6 +27,8 @@ import io.opentelemetry.proto.logs.v1.LogRecord;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
+
+import io.opentelemetry.sdk.logs.data.LogData;
 import org.junit.jupiter.api.Test;
 
 class InstrumentationLibraryLogAdapterTest {
@@ -52,14 +54,14 @@ class InstrumentationLibraryLogAdapterTest {
             .attributes(Attributes.of(HTTP_METHOD, "patch"))
             .bodyString("log3")
             .build();
-    List<LogEntry> logsEntries = Arrays.asList(log1, log2, log3);
-    LogEntryAdapter logEntryAdapter = new LogEntryAdapter();
+    List<LogData> logsEntries = Arrays.asList(log1, log2, log3);
+    LogDataAdapter logDataAdapter = new LogDataAdapter();
 
     InstrumentationLibraryLogsAdapter adapter =
         InstrumentationLibraryLogsAdapter.builder()
             .instrumentationName("otel-profiling")
             .instrumentationVersion("1.2.3")
-            .logEntryAdapter(logEntryAdapter)
+            .logEntryAdapter(logDataAdapter)
             .build();
     InstrumentationLibraryLogs result = adapter.apply(logsEntries);
 

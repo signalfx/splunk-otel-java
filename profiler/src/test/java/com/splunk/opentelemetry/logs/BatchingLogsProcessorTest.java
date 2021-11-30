@@ -29,6 +29,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
+
+import io.opentelemetry.sdk.logs.data.LogData;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -57,7 +59,7 @@ class BatchingLogsProcessorTest {
 
   @Test
   void testSimpleActionWhenSizeReached() throws Exception {
-    List<LogEntry> seen = new ArrayList<>();
+    List<LogData> seen = new ArrayList<>();
     CountDownLatch latch = new CountDownLatch(1);
     LogsExporter exporter =
         logs -> {
@@ -82,7 +84,7 @@ class BatchingLogsProcessorTest {
 
   @Test
   void testSimpleActionWhenTimeReached() throws Exception {
-    List<LogEntry> seen = new ArrayList<>();
+    List<LogData> seen = new ArrayList<>();
     CountDownLatch latch = new CountDownLatch(1);
     LogsExporter exporter =
         logs -> {
@@ -107,7 +109,7 @@ class BatchingLogsProcessorTest {
 
   @Test
   void testActionNotCalledWhenEmptyAfterTime() throws Exception {
-    List<LogEntry> seen = new ArrayList<>();
+    List<LogData> seen = new ArrayList<>();
     CountDownLatch latch = new CountDownLatch(1);
     LogsExporter exporter =
         logs -> {
@@ -128,7 +130,7 @@ class BatchingLogsProcessorTest {
 
   @Test
   void testStopDoesAction() throws Exception {
-    List<LogEntry> seen = new ArrayList<>();
+    List<LogData> seen = new ArrayList<>();
     CountDownLatch latch = new CountDownLatch(1);
     LogsExporter exporter =
         logs -> {

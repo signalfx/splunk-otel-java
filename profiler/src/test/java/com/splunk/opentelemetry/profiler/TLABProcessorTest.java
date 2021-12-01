@@ -16,6 +16,8 @@
 
 package com.splunk.opentelemetry.profiler;
 
+import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_TLAB_ENABLED;
+import static com.splunk.opentelemetry.profiler.LogsExporterBuilder.INSTRUMENTATION_LIBRARY_INFO;
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.SOURCE_EVENT_NAME;
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.SOURCE_TYPE;
 import static com.splunk.opentelemetry.profiler.TLABProcessor.ALLOCATION_SIZE_KEY;
@@ -24,16 +26,17 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import com.splunk.opentelemetry.logs.LogEntry;
 import com.splunk.opentelemetry.logs.LogsProcessor;
 import com.splunk.opentelemetry.profiler.events.EventPeriods;
 import com.splunk.opentelemetry.profiler.util.StackSerializer;
 import io.opentelemetry.instrumentation.api.config.Config;
+import io.opentelemetry.sdk.common.Clock;
+import io.opentelemetry.sdk.logs.data.LogData;
+import io.opentelemetry.sdk.logs.data.LogDataBuilder;
+import io.opentelemetry.sdk.resources.Resource;
 import java.time.Instant;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
-
-import io.opentelemetry.sdk.logs.data.LogData;
 import jdk.jfr.EventType;
 import jdk.jfr.consumer.RecordedEvent;
 import jdk.jfr.consumer.RecordedStackTrace;
@@ -58,9 +61,9 @@ class TLABProcessorTest {
     when(event.getStackTrace()).thenReturn(null); // just to be explicit
 
     Config config = mock(Config.class);
-    when(config.getBoolean(Configuration.CONFIG_KEY_TLAB_ENABLED)).thenReturn(true);
+    when(config.getBoolean(CONFIG_KEY_TLAB_ENABLED, false)).thenReturn(true);
 
-    TLABProcessor processor = new TLABProcessor(config, null, null, null);
+    TLABProcessor processor = TLABProcessor.builder(config).build();
     processor.accept(event);
     // success, no NPEs
   }
@@ -79,9 +82,9 @@ class TLABProcessorTest {
             });
 
     Config config = mock(Config.class);
-    when(config.getBoolean(Configuration.CONFIG_KEY_TLAB_ENABLED)).thenReturn(false);
+    when(config.getBoolean(CONFIG_KEY_TLAB_ENABLED, false)).thenReturn(false);
 
-    TLABProcessor processor = new TLABProcessor(config, null, null, null);
+    TLABProcessor processor = TLABProcessor.builder(config).build();
     processor.accept(event);
   }
 
@@ -100,8 +103,10 @@ class TLABProcessorTest {
     StackSerializer serializer = mock(StackSerializer.class);
     RecordedStackTrace stack = mock(RecordedStackTrace.class);
     EventType eventType = mock(EventType.class);
-    LogDataCommonAttributes commonAttrs =
-        new LogDataCommonAttributes(new EventPeriods(x -> null));
+    LogDataCommonAttributes commonAttrs = new LogDataCommonAttributes(new EventPeriods(x -> null));
+    Clock clock = new MockClock(now);
+    LogDataBuilder logDataBuilder =
+        LogDataBuilder.create(Resource.getDefault(), INSTRUMENTATION_LIBRARY_INFO, clock);
 
     when(event.getStartTime()).thenReturn(now);
     when(event.getStackTrace()).thenReturn(stack);
@@ -118,13 +123,22 @@ class TLABProcessorTest {
     when(serializer.serialize(stack)).thenReturn(stackAsString);
 
     Config config = mock(Config.class);
-    when(config.getBoolean(Configuration.CONFIG_KEY_TLAB_ENABLED)).thenReturn(true);
+    when(config.getBoolean(CONFIG_KEY_TLAB_ENABLED, false)).thenReturn(true);
 
-    TLABProcessor processor = new TLABProcessor(config, serializer, consumer, commonAttrs);
+    TLABProcessor processor =
+        TLABProcessor.builder(config)
+            .stackSerializer(serializer)
+            .logsProcessor(consumer)
+            .commonAttributes(commonAttrs)
+            .logDataBuilder(logDataBuilder)
+            .build();
+
     processor.accept(event);
 
     assertEquals(stackAsString, seenLogData.get().getBody().asString());
-    assertEquals(TimeUnit.MILLISECONDS.toNanos(now.toEpochMilli()), seenLogData.get().getEpochNanos());
+    assertEquals(
+        TimeUnit.SECONDS.toNanos(now.getEpochSecond()) + clock.nanoTime(),
+        seenLogData.get().getEpochNanos());
     assertEquals("otel.profiling", seenLogData.get().getAttributes().get(SOURCE_TYPE));
     assertEquals("tee-lab", seenLogData.get().getAttributes().get(SOURCE_EVENT_NAME));
     assertEquals(ONE_MB, seenLogData.get().getAttributes().get(ALLOCATION_SIZE_KEY));
@@ -134,5 +148,23 @@ class TLABProcessorTest {
       assertEquals(tlabSize, seenLogData.get().getAttributes().get(TLAB_SIZE_KEY));
     }
     assertFalse(seenLogData.get().getSpanContext().isValid());
+  }
+
+  private static class MockClock implements Clock {
+    private final Instant now;
+
+    public MockClock(Instant now) {
+      this.now = now;
+    }
+
+    @Override
+    public long now() {
+      return now.toEpochMilli();
+    }
+
+    @Override
+    public long nanoTime() {
+      return now.getNano();
+    }
   }
 }

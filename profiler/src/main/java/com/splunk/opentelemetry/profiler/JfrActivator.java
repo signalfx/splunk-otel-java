@@ -23,6 +23,7 @@ import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_PROFILE
 import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_RECORDING_DURATION;
 import static com.splunk.opentelemetry.profiler.JfrFileLifecycleEvents.buildOnFileFinished;
 import static com.splunk.opentelemetry.profiler.JfrFileLifecycleEvents.buildOnNewRecording;
+import static com.splunk.opentelemetry.profiler.LogsExporterBuilder.INSTRUMENTATION_LIBRARY_INFO;
 import static com.splunk.opentelemetry.profiler.util.Runnables.logUncaught;
 
 import com.google.auto.service.AutoService;
@@ -34,6 +35,10 @@ import com.splunk.opentelemetry.profiler.util.FileDeleter;
 import com.splunk.opentelemetry.profiler.util.HelpfulExecutors;
 import io.opentelemetry.instrumentation.api.config.Config;
 import io.opentelemetry.javaagent.extension.AgentListener;
+import io.opentelemetry.javaagent.tooling.config.ConfigPropertiesAdapter;
+import io.opentelemetry.sdk.autoconfigure.OpenTelemetryResourceAutoConfiguration;
+import io.opentelemetry.sdk.logs.data.LogDataBuilder;
+import io.opentelemetry.sdk.resources.Resource;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
@@ -103,7 +108,8 @@ public class JfrActivator implements AgentListener {
             .build();
     batchingLogsProcessor.start();
 
-    LogDataCreator logDataCreator = LogDataCreator.create(commonAttributes, config);
+    LogDataBuilder logDataBuilder = createLogDataBuilder(config);
+    LogDataCreator logDataCreator = new LogDataCreator(commonAttributes, logDataBuilder);
 
     StackToSpanLinkageProcessor processor =
         new StackToSpanLinkageProcessor(logDataCreator, batchingLogsProcessor);
@@ -113,7 +119,11 @@ public class JfrActivator implements AgentListener {
     ThreadDumpProcessor threadDumpProcessor =
         buildThreadDumpProcessor(spanContextualizer, processor, threadDumpToStacks);
     TLABProcessor tlabProcessor =
-        new TLABProcessor(config, batchingLogsProcessor, commonAttributes);
+        TLABProcessor.builder(config)
+            .logsProcessor(batchingLogsProcessor)
+            .commonAttributes(commonAttributes)
+            .logDataBuilder(logDataBuilder)
+            .build();
     EventProcessingChain eventProcessingChain =
         new EventProcessingChain(spanContextualizer, threadDumpProcessor, tlabProcessor);
     Consumer<Path> deleter = buildFileDeleter(config);
@@ -148,6 +158,13 @@ public class JfrActivator implements AgentListener {
 
     sequencer.start();
     dirCleanup.registerShutdownHook();
+  }
+
+  public static LogDataBuilder createLogDataBuilder(Config config) {
+    Resource resource =
+        OpenTelemetryResourceAutoConfiguration.configureResource(
+            new ConfigPropertiesAdapter(config));
+    return LogDataBuilder.create(resource, INSTRUMENTATION_LIBRARY_INFO);
   }
 
   private ThreadDumpProcessor buildThreadDumpProcessor(

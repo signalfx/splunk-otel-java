@@ -16,19 +16,13 @@
 
 package com.splunk.opentelemetry.profiler;
 
-import static com.splunk.opentelemetry.profiler.LogsExporterBuilder.INSTRUMENTATION_LIBRARY_INFO;
-
 import com.splunk.opentelemetry.profiler.context.StackToSpanLinkage;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.context.Context;
-import io.opentelemetry.instrumentation.api.config.Config;
-import io.opentelemetry.javaagent.tooling.config.ConfigPropertiesAdapter;
-import io.opentelemetry.sdk.autoconfigure.OpenTelemetryResourceAutoConfiguration;
 import io.opentelemetry.sdk.logs.data.LogData;
 import io.opentelemetry.sdk.logs.data.LogDataBuilder;
-import io.opentelemetry.sdk.resources.Resource;
 import java.util.function.Function;
 
 /** Turns a linked stack into a new LogData instance */
@@ -42,14 +36,6 @@ public class LogDataCreator implements Function<StackToSpanLinkage, LogData> {
   public LogDataCreator(LogDataCommonAttributes commonAttributes, LogDataBuilder logDataBuilder) {
     this.commonAttributes = commonAttributes;
     this.logDataBuilder = logDataBuilder;
-  }
-
-  public static LogDataCreator create(LogDataCommonAttributes commonAttributes, Config config) {
-    Resource resource =
-        OpenTelemetryResourceAutoConfiguration.configureResource(
-            new ConfigPropertiesAdapter(config));
-    LogDataBuilder builder = LogDataBuilder.create(resource, INSTRUMENTATION_LIBRARY_INFO);
-    return new LogDataCreator(commonAttributes, builder);
   }
 
   @Override

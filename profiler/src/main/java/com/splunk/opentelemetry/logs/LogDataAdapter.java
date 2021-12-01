@@ -27,7 +27,6 @@ import io.opentelemetry.proto.common.v1.AnyValue;
 import io.opentelemetry.proto.common.v1.KeyValue;
 import io.opentelemetry.proto.logs.v1.LogRecord;
 import io.opentelemetry.sdk.logs.data.LogData;
-
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
@@ -49,7 +48,9 @@ public class LogDataAdapter implements Function<LogData, LogRecord> {
         LogRecord.newBuilder()
             .addAllAttributes(attributes)
             .setBody(body)
-            .setTimeUnixNano(TimeUnit.MILLISECONDS.toNanos(TimeUnit.NANOSECONDS.toMillis(logData.getEpochNanos())));
+            .setTimeUnixNano(
+                TimeUnit.MILLISECONDS.toNanos(
+                    TimeUnit.NANOSECONDS.toMillis(logData.getEpochNanos())));
 
     if (logData.getName() != null) {
       builder.setName(logData.getName());

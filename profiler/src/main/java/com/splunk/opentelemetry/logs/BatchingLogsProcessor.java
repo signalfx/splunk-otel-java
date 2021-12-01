@@ -20,12 +20,11 @@ import static java.util.Objects.requireNonNull;
 
 import com.splunk.opentelemetry.profiler.util.HelpfulExecutors;
 import com.splunk.opentelemetry.profiler.util.Runnables;
+import io.opentelemetry.sdk.logs.data.LogData;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ScheduledExecutorService;
-
-import io.opentelemetry.sdk.logs.data.LogData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

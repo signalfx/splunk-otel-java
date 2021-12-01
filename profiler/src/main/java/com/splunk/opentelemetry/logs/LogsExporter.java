@@ -17,7 +17,6 @@
 package com.splunk.opentelemetry.logs;
 
 import io.opentelemetry.sdk.logs.data.LogData;
-
 import java.util.List;
 
 /** Sends a list of LogData objects somewhere else, often to the OpenTelemetry collector. */

@@ -24,10 +24,9 @@ import io.opentelemetry.proto.collector.logs.v1.ExportLogsServiceRequest;
 import io.opentelemetry.proto.collector.logs.v1.ExportLogsServiceResponse;
 import io.opentelemetry.proto.collector.logs.v1.LogsServiceGrpc;
 import io.opentelemetry.proto.logs.v1.ResourceLogs;
+import io.opentelemetry.sdk.logs.data.LogData;
 import java.util.List;
 import javax.annotation.Nullable;
-
-import io.opentelemetry.sdk.logs.data.LogData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

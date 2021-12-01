@@ -42,6 +42,7 @@ public class MicrometerInstaller implements AgentListener {
   }
 
   public int order() {
+    // needs to run after OpenTelemetryInstaller
     return 1;
   }
 

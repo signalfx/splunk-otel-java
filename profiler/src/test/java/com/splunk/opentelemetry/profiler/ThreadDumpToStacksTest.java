@@ -49,7 +49,7 @@ class ThreadDumpToStacksTest {
     ThreadDumpToStacks threadDumpToStacks = new ThreadDumpToStacks(new StackTraceFilter(false));
     Stream<String> resultStream = threadDumpToStacks.toStream(threadDumpResult);
     List<String> result = resultStream.collect(Collectors.toList());
-    assertEquals(40, result.size());
+    assertEquals(28, result.size());
     Stream.of(StackTraceFilter.UNWANTED_PREFIXES)
         .forEach(
             prefix -> {

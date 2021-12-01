@@ -60,7 +60,34 @@ public class StackTraceFilter {
     if (includeAgentInternals) {
       return true;
     }
-    return Stream.of(StackTraceFilter.UNWANTED_PREFIXES)
-        .noneMatch(prefix -> wallOfStacks.regionMatches(startIndex, prefix, 0, prefix.length()));
+    if (Stream.of(StackTraceFilter.UNWANTED_PREFIXES)
+        .anyMatch(prefix -> wallOfStacks.regionMatches(startIndex, prefix, 0, prefix.length()))) {
+      return false;
+    }
+
+    return !everyFrameIsJvmInternal(wallOfStacks, startIndex, lastIndex);
+  }
+
+  private boolean everyFrameIsJvmInternal(String wallOfStacks, int startIndex, int lastIndex) {
+    int offsetToThreadState = wallOfStacks.indexOf('\n', startIndex) + 1;
+    if (offsetToThreadState <= 0 || offsetToThreadState >= lastIndex) return false;
+    int offsetToFirstFrame = wallOfStacks.indexOf('\n', offsetToThreadState) + 1;
+    if (offsetToFirstFrame <= 0 || offsetToFirstFrame >= lastIndex) return false;
+    return checkFramesInternal(wallOfStacks, offsetToFirstFrame, lastIndex);
+  }
+
+  private boolean checkFramesInternal(String wallOfStacks, int startOfFrame, int lastIndex) {
+    if (startOfFrame == -1 || (startOfFrame >= lastIndex)) {
+      // reached the bottom, every item is jvm internal
+      return true;
+    }
+    int nextLine = wallOfStacks.indexOf('\n', startOfFrame) + 1;
+    if (wallOfStacks.regionMatches(startOfFrame, "\t-", 0, 2)
+        || wallOfStacks.regionMatches(startOfFrame, "\tat java.", 0, 9)
+        || wallOfStacks.regionMatches(startOfFrame, "\tat jdk.", 0, 8)
+        || wallOfStacks.regionMatches(startOfFrame, "\tat sun.", 0, 8)) {
+      return checkFramesInternal(wallOfStacks, nextLine, lastIndex);
+    }
+    return false;
   }
 }

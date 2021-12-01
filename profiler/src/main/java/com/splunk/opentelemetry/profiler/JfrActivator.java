@@ -23,7 +23,6 @@ import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_PROFILE
 import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_RECORDING_DURATION;
 import static com.splunk.opentelemetry.profiler.JfrFileLifecycleEvents.buildOnFileFinished;
 import static com.splunk.opentelemetry.profiler.JfrFileLifecycleEvents.buildOnNewRecording;
-import static com.splunk.opentelemetry.profiler.LogsExporterBuilder.INSTRUMENTATION_LIBRARY_INFO;
 import static com.splunk.opentelemetry.profiler.util.Runnables.logUncaught;
 
 import com.google.auto.service.AutoService;
@@ -37,7 +36,6 @@ import io.opentelemetry.instrumentation.api.config.Config;
 import io.opentelemetry.javaagent.extension.AgentListener;
 import io.opentelemetry.javaagent.tooling.config.ConfigPropertiesAdapter;
 import io.opentelemetry.sdk.autoconfigure.OpenTelemetryResourceAutoConfiguration;
-import io.opentelemetry.sdk.logs.data.LogDataBuilder;
 import io.opentelemetry.sdk.resources.Resource;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -108,8 +106,8 @@ public class JfrActivator implements AgentListener {
             .build();
     batchingLogsProcessor.start();
 
-    LogDataBuilder logDataBuilder = createLogDataBuilder(config);
-    LogDataCreator logDataCreator = new LogDataCreator(commonAttributes, logDataBuilder);
+    Resource resource = getResource(config);
+    LogDataCreator logDataCreator = new LogDataCreator(commonAttributes, resource);
 
     StackToSpanLinkageProcessor processor =
         new StackToSpanLinkageProcessor(logDataCreator, batchingLogsProcessor);
@@ -122,7 +120,7 @@ public class JfrActivator implements AgentListener {
         TLABProcessor.builder(config)
             .logsProcessor(batchingLogsProcessor)
             .commonAttributes(commonAttributes)
-            .logDataBuilder(logDataBuilder)
+            .resource(resource)
             .build();
     EventProcessingChain eventProcessingChain =
         new EventProcessingChain(spanContextualizer, threadDumpProcessor, tlabProcessor);
@@ -160,11 +158,9 @@ public class JfrActivator implements AgentListener {
     dirCleanup.registerShutdownHook();
   }
 
-  public static LogDataBuilder createLogDataBuilder(Config config) {
-    Resource resource =
-        OpenTelemetryResourceAutoConfiguration.configureResource(
-            new ConfigPropertiesAdapter(config));
-    return LogDataBuilder.create(resource, INSTRUMENTATION_LIBRARY_INFO);
+  private static Resource getResource(Config config) {
+    return OpenTelemetryResourceAutoConfiguration.configureResource(
+        new ConfigPropertiesAdapter(config));
   }
 
   private ThreadDumpProcessor buildThreadDumpProcessor(

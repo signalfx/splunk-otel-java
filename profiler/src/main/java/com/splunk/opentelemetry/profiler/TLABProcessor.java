@@ -18,6 +18,7 @@ package com.splunk.opentelemetry.profiler;
 
 import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_TLAB_ENABLED;
 import static com.splunk.opentelemetry.profiler.LogDataCreator.PROFILING_SOURCE;
+import static com.splunk.opentelemetry.profiler.LogsExporterBuilder.INSTRUMENTATION_LIBRARY_INFO;
 
 import com.splunk.opentelemetry.logs.LogsProcessor;
 import com.splunk.opentelemetry.profiler.util.StackSerializer;
@@ -27,6 +28,7 @@ import io.opentelemetry.api.common.AttributesBuilder;
 import io.opentelemetry.instrumentation.api.config.Config;
 import io.opentelemetry.sdk.logs.data.LogData;
 import io.opentelemetry.sdk.logs.data.LogDataBuilder;
+import io.opentelemetry.sdk.resources.Resource;
 import java.time.Instant;
 import java.util.function.Consumer;
 import jdk.jfr.consumer.RecordedEvent;
@@ -42,14 +44,14 @@ public class TLABProcessor implements Consumer<RecordedEvent> {
   private final StackSerializer stackSerializer;
   private final LogsProcessor logsProcessor;
   private final LogDataCommonAttributes commonAttributes;
-  private final LogDataBuilder logDataBuilder;
+  private final Resource resource;
 
   private TLABProcessor(Builder builder) {
     this.enabled = builder.enabled;
     this.stackSerializer = builder.stackSerializer;
     this.logsProcessor = builder.logsProcessor;
     this.commonAttributes = builder.commonAttributes;
-    this.logDataBuilder = builder.logDataBuilder;
+    this.resource = builder.resource;
   }
 
   @Override
@@ -76,7 +78,7 @@ public class TLABProcessor implements Consumer<RecordedEvent> {
     Attributes attributes = builder.build();
 
     LogData logData =
-        logDataBuilder
+        LogDataBuilder.create(resource, INSTRUMENTATION_LIBRARY_INFO)
             .setName(PROFILING_SOURCE)
             .setEpoch(time)
             .setBody(stack)
@@ -96,7 +98,7 @@ public class TLABProcessor implements Consumer<RecordedEvent> {
     private StackSerializer stackSerializer = new StackSerializer();
     private LogsProcessor logsProcessor;
     private LogDataCommonAttributes commonAttributes;
-    private LogDataBuilder logDataBuilder;
+    private Resource resource;
 
     public Builder(boolean enabled) {
       this.enabled = enabled;
@@ -121,8 +123,8 @@ public class TLABProcessor implements Consumer<RecordedEvent> {
       return this;
     }
 
-    Builder logDataBuilder(LogDataBuilder logDataBuilder) {
-      this.logDataBuilder = logDataBuilder;
+    Builder resource(Resource resource) {
+      this.resource = resource;
       return this;
     }
   }

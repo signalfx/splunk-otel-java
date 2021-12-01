@@ -77,10 +77,8 @@ class LogDataCreatorTest {
 
     StackToSpanLinkage linkedSpan = new StackToSpanLinkage(time, "the.stack", eventName, linkage);
 
-    LogDataBuilder logDataBuilder = LogDataBuilder.create(resource, INSTRUMENTATION_LIBRARY_INFO);
-
     LogDataCreator creator =
-        new LogDataCreator(new LogDataCommonAttributes(periods), logDataBuilder);
+        new LogDataCreator(new LogDataCommonAttributes(periods), Resource.getDefault());
     LogData result = creator.apply(linkedSpan);
     assertEquals(expected, result);
   }

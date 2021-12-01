@@ -17,7 +17,6 @@
 package com.splunk.opentelemetry.profiler;
 
 import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_TLAB_ENABLED;
-import static com.splunk.opentelemetry.profiler.LogsExporterBuilder.INSTRUMENTATION_LIBRARY_INFO;
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.SOURCE_EVENT_NAME;
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.SOURCE_TYPE;
 import static com.splunk.opentelemetry.profiler.TLABProcessor.ALLOCATION_SIZE_KEY;
@@ -32,7 +31,6 @@ import com.splunk.opentelemetry.profiler.util.StackSerializer;
 import io.opentelemetry.instrumentation.api.config.Config;
 import io.opentelemetry.sdk.common.Clock;
 import io.opentelemetry.sdk.logs.data.LogData;
-import io.opentelemetry.sdk.logs.data.LogDataBuilder;
 import io.opentelemetry.sdk.resources.Resource;
 import java.time.Instant;
 import java.util.concurrent.TimeUnit;
@@ -105,8 +103,6 @@ class TLABProcessorTest {
     EventType eventType = mock(EventType.class);
     LogDataCommonAttributes commonAttrs = new LogDataCommonAttributes(new EventPeriods(x -> null));
     Clock clock = new MockClock(now);
-    LogDataBuilder logDataBuilder =
-        LogDataBuilder.create(Resource.getDefault(), INSTRUMENTATION_LIBRARY_INFO, clock);
 
     when(event.getStartTime()).thenReturn(now);
     when(event.getStackTrace()).thenReturn(stack);
@@ -130,7 +126,7 @@ class TLABProcessorTest {
             .stackSerializer(serializer)
             .logsProcessor(consumer)
             .commonAttributes(commonAttrs)
-            .logDataBuilder(logDataBuilder)
+            .resource(Resource.getDefault())
             .build();
 
     processor.accept(event);

@@ -16,6 +16,8 @@
 
 package com.splunk.opentelemetry.profiler;
 
+import static com.splunk.opentelemetry.profiler.LogsExporterBuilder.INSTRUMENTATION_LIBRARY_INFO;
+
 import com.splunk.opentelemetry.profiler.context.StackToSpanLinkage;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.trace.Span;
@@ -23,6 +25,7 @@ import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.sdk.logs.data.LogData;
 import io.opentelemetry.sdk.logs.data.LogDataBuilder;
+import io.opentelemetry.sdk.resources.Resource;
 import java.util.function.Function;
 
 /** Turns a linked stack into a new LogData instance */
@@ -31,22 +34,23 @@ public class LogDataCreator implements Function<StackToSpanLinkage, LogData> {
   static final String PROFILING_SOURCE = "otel.profiling";
 
   private final LogDataCommonAttributes commonAttributes;
-  private final LogDataBuilder logDataBuilder;
+  private final Resource resource;
 
-  public LogDataCreator(LogDataCommonAttributes commonAttributes, LogDataBuilder logDataBuilder) {
+  public LogDataCreator(LogDataCommonAttributes commonAttributes, Resource resource) {
     this.commonAttributes = commonAttributes;
-    this.logDataBuilder = logDataBuilder;
+    this.resource = resource;
   }
 
   @Override
   public LogData apply(StackToSpanLinkage linkedStack) {
     Attributes attributes = commonAttributes.build(linkedStack);
 
-    logDataBuilder
-        .setName(PROFILING_SOURCE)
-        .setEpoch(linkedStack.getTime())
-        .setBody(linkedStack.getRawStack())
-        .setAttributes(attributes);
+    LogDataBuilder logDataBuilder =
+        LogDataBuilder.create(resource, INSTRUMENTATION_LIBRARY_INFO)
+            .setName(PROFILING_SOURCE)
+            .setEpoch(linkedStack.getTime())
+            .setBody(linkedStack.getRawStack())
+            .setAttributes(attributes);
     if (linkedStack.hasSpanInfo()) {
       // TODO: Don't hop through this when upstream supports directly setting the span context on
       // the builder

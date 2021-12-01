@@ -51,9 +51,9 @@ class LogDataCommonAttributesTest {
     when(eventType.getName()).thenReturn(eventName);
     when(periods.getDuration(eventName)).thenReturn(Duration.ofMillis(999));
 
-    LogDataCommonAttributes logEntryAttributes = new LogDataCommonAttributes(periods);
+    LogDataCommonAttributes logDataAttributes = new LogDataCommonAttributes(periods);
 
-    Attributes result = logEntryAttributes.build(event.getEventType().getName());
+    Attributes result = logDataAttributes.build(event.getEventType().getName());
     assertEquals(expected, result);
   }
 }

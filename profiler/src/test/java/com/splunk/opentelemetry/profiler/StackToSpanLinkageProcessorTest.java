@@ -21,9 +21,12 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.splunk.opentelemetry.logs.BatchingLogsProcessor;
-import com.splunk.opentelemetry.logs.LogEntry;
 import com.splunk.opentelemetry.profiler.context.SpanLinkage;
 import com.splunk.opentelemetry.profiler.context.StackToSpanLinkage;
+import io.opentelemetry.sdk.common.InstrumentationLibraryInfo;
+import io.opentelemetry.sdk.logs.data.LogData;
+import io.opentelemetry.sdk.logs.data.LogDataBuilder;
+import io.opentelemetry.sdk.resources.Resource;
 import java.time.Instant;
 import org.junit.jupiter.api.Test;
 
@@ -37,7 +40,11 @@ class StackToSpanLinkageProcessorTest {
     LogDataCreator logCreator = mock(LogDataCreator.class);
     BatchingLogsProcessor exportProcessor = mock(BatchingLogsProcessor.class);
 
-    LogEntry log = LogEntry.builder().bodyString("the.body").build();
+    LogDataBuilder builder =
+        LogDataBuilder.create(
+            Resource.getDefault(), InstrumentationLibraryInfo.create("test", "1.2.3"));
+
+    LogData log = builder.setBody("the.body").build();
     when(logCreator.apply(linkedSpan)).thenReturn(log);
 
     StackToSpanLinkageProcessor processor =

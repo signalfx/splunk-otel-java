@@ -29,12 +29,11 @@ import io.opentelemetry.proto.logs.v1.LogRecord;
 import io.opentelemetry.proto.logs.v1.ResourceLogs;
 import io.opentelemetry.sdk.common.InstrumentationLibraryInfo;
 import io.opentelemetry.sdk.logs.data.LogData;
+import io.opentelemetry.sdk.logs.data.LogDataBuilder;
+import io.opentelemetry.sdk.resources.Resource;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
-
-import io.opentelemetry.sdk.logs.data.LogDataBuilder;
-import io.opentelemetry.sdk.resources.Resource;
 import org.junit.jupiter.api.Test;
 
 class ResourceLogsAdapterTest {
@@ -42,7 +41,9 @@ class ResourceLogsAdapterTest {
   @Test
   void testApply() {
     Instant now = Instant.now();
-    LogDataBuilder builder = LogDataBuilder.create(Resource.getDefault(), InstrumentationLibraryInfo.create("test", "1.2.3"));
+    LogDataBuilder builder =
+        LogDataBuilder.create(
+            Resource.getDefault(), InstrumentationLibraryInfo.create("test", "1.2.3"));
     LogData log1 =
         builder
             .setEpoch(now.plus(0, SECONDS))

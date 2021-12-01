@@ -8,6 +8,27 @@ and this repository adheres to [Semantic Versioning](https://semver.org/spec/v2.
 
 ## Unreleased
 
+## v1.6.0 - 2021-12-01
+
+### General
+
+- OpenTelemetry Java SDK and OpenTelemetry Instrumentation for Java dependencies have been updated to version 1.9.1.
+- Micrometer dependency has been updated to version 1.8.0.
+
+### Bugfixes
+
+- Fix Tomcat thread pool metrics in Tomcat 10.
+- Disabled correlation by span links in messaging instrumentations. Now the `PRODUCER`-`CONSUMER` spans will always have
+  parent-child relationship.
+
+### Enhancements
+
+- The [Micrometer bridge instrumentation](docs/metrics.md#manual-instrumentation) now supports versions starting from
+  1.3.0.
+- A new [Oracle Universal Connection Pool](https://docs.oracle.com/database/121/JJUCP/intro.htm#JJUCP8109)
+  instrumentation has been added. The agent now collects and exports metrics for Oracle UCP connection pools.
+- Profiling: changed the default thread dump rate to 10 seconds (previously 1 second).
+
 ## v1.5.0 - 2021-10-20
 
 ### General

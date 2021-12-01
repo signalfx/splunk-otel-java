@@ -39,15 +39,17 @@ For Maven users:
 <dependency>
     <groupId>io.micrometer</groupId>
     <artifactId>micrometer-core</artifactId>
-    <version>1.7.3</version>
+    <version>1.8.0</version>
 </dependency>
 ```
 
 For Gradle users:
 
 ```kotlin
-implementation("io.micrometer:micrometer-core:1.7.3")
+implementation("io.micrometer:micrometer-core:1.8.0")
 ```
+
+The agent supports all micrometer versions starting from 1.3.
 
 ### Adding custom metrics
 

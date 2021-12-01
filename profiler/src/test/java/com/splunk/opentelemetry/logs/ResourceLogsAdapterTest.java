@@ -34,6 +34,7 @@ import io.opentelemetry.sdk.resources.Resource;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Test;
 
 class ResourceLogsAdapterTest {
@@ -94,7 +95,9 @@ class ResourceLogsAdapterTest {
   }
 
   private void assertLog(LogRecord logRecord, Instant time, String username, String body) {
-    assertEquals(time.toEpochMilli() * 1_000_000L, logRecord.getTimeUnixNano());
+    assertEquals(
+        TimeUnit.SECONDS.toNanos(time.getEpochSecond()) + time.getNano(),
+        logRecord.getTimeUnixNano());
     assertEquals(body, logRecord.getBody().getStringValue());
     assertEquals(ENDUSER_ID.getKey(), logRecord.getAttributes(0).getKey());
     assertEquals(username, logRecord.getAttributes(0).getValue().getStringValue());

@@ -19,21 +19,15 @@ package com.splunk.opentelemetry.instrumentation.commonsdbcp2;
 import static java.util.Collections.singletonList;
 
 import com.google.auto.service.AutoService;
-import io.micrometer.core.instrument.Metrics;
+import com.splunk.opentelemetry.instrumentation.MetricsDependentInstrumentationModule;
 import io.opentelemetry.javaagent.extension.instrumentation.InstrumentationModule;
 import io.opentelemetry.javaagent.extension.instrumentation.TypeInstrumentation;
 import java.util.List;
 
 @AutoService(InstrumentationModule.class)
-public class CommonsDbcp2InstrumentationModule extends InstrumentationModule {
+public class CommonsDbcp2InstrumentationModule extends MetricsDependentInstrumentationModule {
   public CommonsDbcp2InstrumentationModule() {
     super("commons-dbcp2");
-  }
-
-  @Override
-  protected boolean defaultEnabled() {
-    boolean metricsRegistryPresent = !Metrics.globalRegistry.getRegistries().isEmpty();
-    return metricsRegistryPresent && super.defaultEnabled();
   }
 
   @Override

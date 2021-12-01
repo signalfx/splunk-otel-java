@@ -14,6 +14,7 @@ muzzle {
 
 dependencies {
   compileOnly("org.apache.tomcat:tomcat-jdbc:8.5.0")
+  implementation(project(":instrumentation:common"))
 
   testImplementation("org.apache.tomcat:tomcat-jdbc:8.5.0")
 }

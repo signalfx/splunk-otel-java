@@ -14,4 +14,5 @@ muzzle {
 
 dependencies {
   compileOnly("javax.servlet:servlet-api:2.2")
+  implementation(project(":instrumentation:common"))
 }

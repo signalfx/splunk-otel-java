@@ -14,6 +14,7 @@ muzzle {
 
 dependencies {
   compileOnly("org.vibur:vibur-dbcp:11.0")
+  implementation(project(":instrumentation:common"))
 
   testImplementation("org.vibur:vibur-dbcp:11.0")
 }

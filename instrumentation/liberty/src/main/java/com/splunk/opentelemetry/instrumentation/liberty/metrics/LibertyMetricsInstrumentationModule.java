@@ -19,7 +19,7 @@ package com.splunk.opentelemetry.instrumentation.liberty.metrics;
 import static java.util.Collections.singletonList;
 
 import com.google.auto.service.AutoService;
-import io.micrometer.core.instrument.Metrics;
+import com.splunk.opentelemetry.instrumentation.MetricsDependentInstrumentationModule;
 import io.opentelemetry.javaagent.extension.instrumentation.InstrumentationModule;
 import io.opentelemetry.javaagent.extension.instrumentation.TypeInstrumentation;
 import java.util.List;
@@ -27,15 +27,9 @@ import java.util.List;
 // metrics are still experimental and can't be enabled by default - that's why we need a separate
 // InstrumentationModule for them
 @AutoService(InstrumentationModule.class)
-public class LibertyMetricsInstrumentationModule extends InstrumentationModule {
+public class LibertyMetricsInstrumentationModule extends MetricsDependentInstrumentationModule {
   public LibertyMetricsInstrumentationModule() {
     super("liberty", "liberty-metrics");
-  }
-
-  @Override
-  protected boolean defaultEnabled() {
-    boolean metricsRegistryPresent = !Metrics.globalRegistry.getRegistries().isEmpty();
-    return metricsRegistryPresent && super.defaultEnabled();
   }
 
   @Override

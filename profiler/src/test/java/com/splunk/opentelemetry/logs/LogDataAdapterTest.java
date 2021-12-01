@@ -20,11 +20,17 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
+import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.api.trace.TraceFlags;
 import io.opentelemetry.api.trace.TraceState;
+import io.opentelemetry.context.Context;
 import io.opentelemetry.proto.common.v1.KeyValue;
 import io.opentelemetry.proto.logs.v1.LogRecord;
+import io.opentelemetry.sdk.common.InstrumentationLibraryInfo;
+import io.opentelemetry.sdk.logs.data.LogData;
+import io.opentelemetry.sdk.logs.data.LogDataBuilder;
+import io.opentelemetry.sdk.resources.Resource;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -39,23 +45,25 @@ class LogDataAdapterTest {
         Attributes.of(AttributeKey.stringKey("origination"), "MyClass.myMethod(line:123)");
     Instant time = Instant.now();
     String body = "I am a log message!";
-    LogEntry entry = basicBuilder(attributes, time, body).build();
+    LogData logData = basicBuilder(attributes, time, body).build();
 
     LogDataAdapter adapter = new LogDataAdapter();
-    LogRecord result = adapter.apply(entry);
+    LogRecord result = adapter.apply(logData);
     assertEquals(body, result.getBody().getStringValue());
 
     List<KeyValue> resultAttrs = result.getAttributesList();
     Optional<KeyValue> origination =
         resultAttrs.stream().filter(kv -> kv.getKey().equals("origination")).findFirst();
 
-    assertEquals(entry.getName(), result.getName());
-    assertEquals(entry.getTime().toEpochMilli() * 1_000_000L, result.getTimeUnixNano());
+    assertEquals(logData.getName(), result.getName());
+    assertEquals(logData.getEpochNanos(), result.getTimeUnixNano());
 
-    assertEquals(entry.getTraceId(), toHexString(result.getTraceId().toByteArray()));
-    assertEquals(entry.getSpanId(), toHexString(result.getSpanId().toByteArray()));
-    assertEquals(entry.getSpanContext().getTraceFlags().asByte(), result.getFlags());
-    assertEquals(entry.getBody().asString(), result.getBody().getStringValue());
+    assertEquals(
+        logData.getSpanContext().getTraceId(), toHexString(result.getTraceId().toByteArray()));
+    assertEquals(
+        logData.getSpanContext().getSpanId(), toHexString(result.getSpanId().toByteArray()));
+    assertEquals(logData.getSpanContext().getTraceFlags().asByte(), result.getFlags());
+    assertEquals(logData.getBody().asString(), result.getBody().getStringValue());
     assertEquals("MyClass.myMethod(line:123)", origination.get().getValue().getStringValue());
   }
 
@@ -64,25 +72,31 @@ class LogDataAdapterTest {
     Attributes attributes =
         Attributes.of(AttributeKey.stringKey("origination"), "MyClass.myMethod(line:123)");
     Instant time = Instant.now();
-    LogEntry entry = basicBuilder(attributes, time, "I am a log message!").name(null).build();
+    LogData entry = basicBuilder(attributes, time, "I am a log message!").setName(null).build();
 
     LogDataAdapter adapter = new LogDataAdapter();
     LogRecord result = adapter.apply(entry);
     assertEquals("", result.getName());
   }
 
-  private LogEntry.Builder basicBuilder(Attributes attributes, Instant time, String body) {
-    return LogEntry.builder()
-        .name("__LOG__")
-        .time(time)
-        .bodyString(body)
-        .spanContext(
-            SpanContext.create(
-                "c78bda329abae6a6c7111111112ae666",
-                "c78bda329abae6a6",
-                TraceFlags.getSampled(),
-                TraceState.getDefault()))
-        .attributes(attributes);
+  private LogDataBuilder basicBuilder(Attributes attributes, Instant time, String body) {
+    LogDataBuilder builder =
+        LogDataBuilder.create(
+            Resource.getDefault(), InstrumentationLibraryInfo.create("test", "1.2.3"));
+    return builder
+        .setName("__LOG__")
+        .setEpoch(time)
+        .setBody(body)
+        .setContext(
+            Context.root()
+                .with(
+                    Span.wrap(
+                        SpanContext.create(
+                            "c78bda329abae6a6c7111111112ae666",
+                            "c78bda329abae6a6",
+                            TraceFlags.getSampled(),
+                            TraceState.getDefault()))))
+        .setAttributes(attributes);
   }
 
   private static String toHexString(byte[] bytes) {

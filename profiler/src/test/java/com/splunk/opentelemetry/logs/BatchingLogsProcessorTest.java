@@ -16,26 +16,25 @@
 
 package com.splunk.opentelemetry.logs;
 
+import static java.util.concurrent.TimeUnit.SECONDS;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.sdk.common.InstrumentationLibraryInfo;
 import io.opentelemetry.sdk.logs.data.LogData;
 import io.opentelemetry.sdk.logs.data.LogDataBuilder;
 import io.opentelemetry.sdk.resources.Resource;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
-
-import static java.util.concurrent.TimeUnit.SECONDS;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 class BatchingLogsProcessorTest {
 
@@ -43,7 +42,9 @@ class BatchingLogsProcessorTest {
 
   @BeforeEach
   void setup() {
-    LogDataBuilder builder = LogDataBuilder.create(Resource.getDefault(), InstrumentationLibraryInfo.create("test", "1.2.3"));
+    LogDataBuilder builder =
+        LogDataBuilder.create(
+            Resource.getDefault(), InstrumentationLibraryInfo.create("test", "1.2.3"));
     log1 =
         builder
             .setAttributes(Attributes.of(AttributeKey.stringKey("one"), "one"))

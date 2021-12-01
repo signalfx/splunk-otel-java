@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.splunk.opentelemetry.instrumentation.c3p0;
+package com.splunk.opentelemetry.testing.db;
 
 import java.sql.Connection;
 import java.sql.Driver;

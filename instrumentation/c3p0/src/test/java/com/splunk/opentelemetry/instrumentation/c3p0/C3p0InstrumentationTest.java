@@ -26,6 +26,7 @@ import static org.awaitility.Awaitility.await;
 import com.mchange.v2.c3p0.ComboPooledDataSource;
 import com.splunk.opentelemetry.testing.MeterId;
 import com.splunk.opentelemetry.testing.TestMetricsAccess;
+import com.splunk.opentelemetry.testing.db.MockDriver;
 import io.opentelemetry.instrumentation.testing.junit.AgentInstrumentationExtension;
 import java.sql.SQLException;
 import java.util.Map;

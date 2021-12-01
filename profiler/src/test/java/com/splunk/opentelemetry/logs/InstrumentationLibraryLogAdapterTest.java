@@ -24,10 +24,14 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.proto.logs.v1.InstrumentationLibraryLogs;
 import io.opentelemetry.proto.logs.v1.LogRecord;
+import io.opentelemetry.sdk.common.InstrumentationLibraryInfo;
 import io.opentelemetry.sdk.logs.data.LogData;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
+
+import io.opentelemetry.sdk.logs.data.LogDataBuilder;
+import io.opentelemetry.sdk.resources.Resource;
 import org.junit.jupiter.api.Test;
 
 class InstrumentationLibraryLogAdapterTest {
@@ -35,23 +39,24 @@ class InstrumentationLibraryLogAdapterTest {
   @Test
   void testApply() {
     Instant now = Instant.now();
-    LogEntry log1 =
-        LogEntry.builder()
-            .time(now.plus(0, MINUTES))
-            .attributes(Attributes.of(HTTP_METHOD, "get"))
-            .bodyString("log1")
+    LogDataBuilder builder = LogDataBuilder.create(Resource.getDefault(), InstrumentationLibraryInfo.create("test", "1.2.3"));
+    LogData log1 =
+        builder
+            .setEpoch(now.plus(0, MINUTES))
+            .setAttributes(Attributes.of(HTTP_METHOD, "get"))
+            .setBody("log1")
             .build();
-    LogEntry log2 =
-        LogEntry.builder()
-            .time(now.plus(1, MINUTES))
-            .attributes(Attributes.of(HTTP_METHOD, "put"))
-            .bodyString("log2")
+    LogData log2 =
+        builder
+            .setEpoch(now.plus(1, MINUTES))
+            .setAttributes(Attributes.of(HTTP_METHOD, "put"))
+            .setBody("log2")
             .build();
-    LogEntry log3 =
-        LogEntry.builder()
-            .time(now.plus(2, MINUTES))
-            .attributes(Attributes.of(HTTP_METHOD, "patch"))
-            .bodyString("log3")
+    LogData log3 =
+        builder
+            .setEpoch(now.plus(2, MINUTES))
+            .setAttributes(Attributes.of(HTTP_METHOD, "patch"))
+            .setBody("log3")
             .build();
     List<LogData> logsEntries = Arrays.asList(log1, log2, log3);
     LogDataAdapter logDataAdapter = new LogDataAdapter();

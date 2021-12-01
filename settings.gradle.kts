@@ -45,6 +45,7 @@ include(
     "instrumentation:netty-3.8",
     "instrumentation:netty-4.0",
     "instrumentation:netty-4.1",
+    "instrumentation:oracle-ucp",
     "instrumentation:servlet",
     "instrumentation:servlet-3-testing",
     "instrumentation:tomcat",

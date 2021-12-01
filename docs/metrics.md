@@ -76,17 +76,18 @@ For more details on using the Micrometer API please consult the [Micrometer docs
 
 The following metrics are currently gathered by the agent:
 
-| Library/Framework                                                 | Instrumentation name | Versions |
-| ----------------------------------------------------------------- | -------------------- | -------- |
-| [JVM metrics](#jvm)                                               | `jvm-metrics`        | [Java runtimes version 8 and higher](../README.md#requirements)
-| [Apache DBCP2 connection pool metrics](#connection-pool-metrics)  | `commons-dbcp2`      | 2.0 and higher
-| [c3p0 connection pool metrics](#connection-pool-metrics)          | `c3p0`               | 0.9.5 and higher
-| [HikariCP connection pool metrics](#connection-pool-metrics)      | `hikaricp`           | 3.0 and higher
-| [Tomcat JDBC connection pool metrics](#connection-pool-metrics)   | `tomcat-jdbc`        | 8.5 and higher
-| [Vibur DBCP connection pool metrics](#connection-pool-metrics)    | `vibur-dbcp`         | 20.0 and higher
-| [Tomcat thread pool metrics](#thread-pool-metrics)                | `tomcat`             | 8.5 and higher
-| [WebSphere Liberty web request thread pool](#thread-pool-metrics) | `liberty`            | 20.0.0.12
-| [WebLogic thread pools](#thread-pool-metrics)                     | `weblogic`           | 12.x and 14.x
+| Library/Framework                                                    | Instrumentation name | Versions |
+| -------------------------------------------------------------------- | -------------------- | -------- |
+| [JVM metrics](#jvm)                                                  | `jvm-metrics`        | [Java runtimes version 8 and higher](../README.md#requirements)
+| [Apache DBCP2 connection pool metrics](#connection-pool-metrics)     | `commons-dbcp2`      | 2.0 and higher
+| [c3p0 connection pool metrics](#connection-pool-metrics)             | `c3p0`               | 0.9.5 and higher
+| [HikariCP connection pool metrics](#connection-pool-metrics)         | `hikaricp`           | 3.0 and higher
+| [Oracle Universal Connection Pool metrics](#connection-pool-metrics) | `oracle-ucp`         | 11.2.0.4 and higher
+| [Tomcat JDBC connection pool metrics](#connection-pool-metrics)      | `tomcat-jdbc`        | 8.5 and higher
+| [Vibur DBCP connection pool metrics](#connection-pool-metrics)       | `vibur-dbcp`         | 20.0 and higher
+| [Tomcat thread pool metrics](#thread-pool-metrics)                   | `tomcat`             | 8.5 and higher
+| [WebSphere Liberty web request thread pool](#thread-pool-metrics)    | `liberty`            | 20.0.0.12
+| [WebLogic thread pools](#thread-pool-metrics)                        | `weblogic`           | 12.x and 14.x
 
 ### JVM
 
@@ -142,6 +143,7 @@ Splunk Distribution of OpenTelemetry Java instruments several JDBC connection po
 * [Apache DBCP2](https://commons.apache.org/proper/commons-dbcp/)
 * [c3p0](https://www.mchange.com/projects/c3p0/)
 * [HikariCP](https://github.com/brettwooldridge/HikariCP)
+* [Oracle Universal Connection Pool](https://docs.oracle.com/database/121/JJUCP/intro.htm#JJUCP8109)
 * [Tomcat JDBC](https://tomcat.apache.org/tomcat-8.5-doc/jdbc-pool.html)
 * [Vibur DBCP](https://github.com/vibur/vibur-dbcp)
 
@@ -166,7 +168,7 @@ All connection pool metrics have the following tags:
 | Tag name    | Tag value |
 | ----------- | --------- |
 | `pool.name` | The name of the connection pool: Spring bean name if Spring is used, the JMX object name otherwise.
-| `pool.type` | The type/implementation of the connection pool: e.g. `c3p0`, `dbcp2`, `hikari`, `tomcat-jdbc`, `vibur-dbcp`.
+| `pool.type` | The type/implementation of the connection pool: e.g. `c3p0`, `dbcp2`, `hikari`, `oracle-ucp`, `tomcat-jdbc`, `vibur-dbcp`.
 
 ### Thread pool metrics
 

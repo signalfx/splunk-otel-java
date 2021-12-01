@@ -32,6 +32,7 @@ import com.splunk.opentelemetry.profiler.context.SpanContextualizer;
 import com.splunk.opentelemetry.profiler.events.EventPeriods;
 import com.splunk.opentelemetry.profiler.util.FileDeleter;
 import com.splunk.opentelemetry.profiler.util.HelpfulExecutors;
+import com.splunk.opentelemetry.resource.ResourceHolder;
 import io.opentelemetry.instrumentation.api.config.Config;
 import io.opentelemetry.javaagent.extension.AgentListener;
 import java.nio.file.Path;
@@ -91,7 +92,8 @@ public class JfrActivator implements AgentListener {
     EventPeriods periods = new EventPeriods(jfrSettings::get);
     LogEntryCommonAttributes commonAttributes = new LogEntryCommonAttributes(periods);
     LogEntryCreator logEntryCreator = new LogEntryCreator(commonAttributes);
-    LogsExporter logsExporter = LogsExporterBuilder.fromConfig(config);
+    LogsExporter logsExporter =
+        LogsExporterBuilder.fromConfig(config, ResourceHolder.getResource());
 
     ScheduledExecutorService exportExecutorService =
         HelpfulExecutors.newSingleThreadedScheduledExecutor("Batched Logs Exporter");

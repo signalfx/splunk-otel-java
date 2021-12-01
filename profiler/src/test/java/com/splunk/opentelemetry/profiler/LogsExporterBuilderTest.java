@@ -19,31 +19,21 @@ package com.splunk.opentelemetry.profiler;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 
 import com.splunk.opentelemetry.logs.OtlpLogsExporter;
-import com.splunk.opentelemetry.resource.ResourceHolder;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.instrumentation.api.config.Config;
 import io.opentelemetry.sdk.resources.Resource;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 class LogsExporterBuilderTest {
-
-  @BeforeAll
-  static void setup() {
-    Resource resource = mock(Resource.class);
-    Attributes attributes = mock(Attributes.class);
-    when(resource.getAttributes()).thenReturn(attributes);
-    mockStatic(ResourceHolder.class).when(ResourceHolder::getResource).thenReturn(resource);
-  }
+  private static final Resource RESOURCE = buildResource();
 
   @Test
   void testBuildSimple() {
     Config config = mock(Config.class);
-    OtlpLogsExporter exporter = (OtlpLogsExporter) LogsExporterBuilder.fromConfig(config);
+    OtlpLogsExporter exporter = (OtlpLogsExporter) LogsExporterBuilder.fromConfig(config, RESOURCE);
     String endpoint = exporter.getEndpoint();
     assertEquals("localhost:4317", endpoint);
     assertNotNull(exporter.getAdapter());
@@ -54,7 +44,7 @@ class LogsExporterBuilderTest {
     Config config = mock(Config.class);
     when(config.getString(Configuration.CONFIG_KEY_INGEST_URL))
         .thenReturn("http://example.com:9122/");
-    OtlpLogsExporter exporter = (OtlpLogsExporter) LogsExporterBuilder.fromConfig(config);
+    OtlpLogsExporter exporter = (OtlpLogsExporter) LogsExporterBuilder.fromConfig(config, RESOURCE);
     String endpoint = exporter.getEndpoint();
     assertEquals("example.com:9122", endpoint);
     assertNotNull(exporter.getAdapter());
@@ -65,9 +55,17 @@ class LogsExporterBuilderTest {
     Config config = mock(Config.class);
     when(config.getString(Configuration.CONFIG_KEY_OTEL_OTLP_URL))
         .thenReturn("http://mycollector.com:4312/");
-    OtlpLogsExporter exporter = (OtlpLogsExporter) LogsExporterBuilder.fromConfig(config);
+    OtlpLogsExporter exporter = (OtlpLogsExporter) LogsExporterBuilder.fromConfig(config, RESOURCE);
     String endpoint = exporter.getEndpoint();
     assertEquals("mycollector.com:4312", endpoint);
     assertNotNull(exporter.getAdapter());
+  }
+
+  private static Resource buildResource() {
+    Resource resource = mock(Resource.class);
+    Attributes attributes = mock(Attributes.class);
+    when(resource.getAttributes()).thenReturn(attributes);
+
+    return resource;
   }
 }

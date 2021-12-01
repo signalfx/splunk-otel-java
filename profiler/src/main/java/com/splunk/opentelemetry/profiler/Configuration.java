@@ -35,8 +35,10 @@ public class Configuration implements ConfigPropertySource {
   public static final String CONFIG_KEY_OTEL_OTLP_URL = "otel.exporter.otlp.endpoint";
   public static final String CONFIG_KEY_PERIOD_PREFIX = "splunk.profiler.period";
   public static final String CONFIG_KEY_TLAB_ENABLED = "splunk.profiler.tlab.enabled";
-  public static final String CONFIG_KEY_INCLUDE_INTERNALS =
+  public static final String CONFIG_KEY_INCLUDE_AGENT_INTERNALS =
       "splunk.profiler.include.agent.internals";
+  public static final String CONFIG_KEY_INCLUDE_JVM_INTERNALS =
+      "splunk.profiler.include.jvm.internals";
 
   @Override
   public Map<String, String> getProperties() {

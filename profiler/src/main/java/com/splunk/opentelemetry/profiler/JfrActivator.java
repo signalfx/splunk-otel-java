@@ -17,7 +17,8 @@
 package com.splunk.opentelemetry.profiler;
 
 import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_ENABLE_PROFILER;
-import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_INCLUDE_INTERNALS;
+import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_INCLUDE_AGENT_INTERNALS;
+import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_INCLUDE_JVM_INTERNALS;
 import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_KEEP_FILES;
 import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_PROFILER_DIRECTORY;
 import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_RECORDING_DURATION;
@@ -161,7 +162,9 @@ public class JfrActivator implements AgentListener {
 
   /** May filter out agent internal call stacks based on the config. */
   private StackTraceFilter buildStackTraceFilter(Config config) {
-    return new StackTraceFilter(config.getBoolean(CONFIG_KEY_INCLUDE_INTERNALS, false));
+    boolean includeAgentInternals = config.getBoolean(CONFIG_KEY_INCLUDE_AGENT_INTERNALS, false);
+    boolean includeJVMInternals = config.getBoolean(CONFIG_KEY_INCLUDE_JVM_INTERNALS, false);
+    return new StackTraceFilter(includeAgentInternals, includeJVMInternals);
   }
 
   private Map<String, String> buildJfrSettings(Config config) {

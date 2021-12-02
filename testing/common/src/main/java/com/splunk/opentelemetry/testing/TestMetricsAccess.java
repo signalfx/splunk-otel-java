@@ -32,8 +32,7 @@ public final class TestMetricsAccess {
   static {
     try {
       Class<?> testMetricsClass =
-          AgentClassLoaderAccess.getAgentClassLoader()
-              .loadClass("com.splunk.opentelemetry.testing.TestMetrics");
+          AgentClassLoaderAccess.loadClass("com.splunk.opentelemetry.testing.TestMetrics");
       MethodHandles.Lookup lookup = MethodHandles.lookup();
       getMeters =
           lookup.findStatic(testMetricsClass, "getMeters", MethodType.methodType(Set.class));

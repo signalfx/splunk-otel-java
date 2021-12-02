@@ -16,9 +16,10 @@
 
 package com.splunk.opentelemetry.logs;
 
+import io.opentelemetry.sdk.logs.data.LogData;
 import java.util.List;
 
-/** Sends a list of LogEntry objects somewhere else, often to the OpenTelemetry collector. */
+/** Sends a list of LogData objects somewhere else, often to the OpenTelemetry collector. */
 public interface LogsExporter {
-  void export(List<LogEntry> logs);
+  void export(List<LogData> logs);
 }

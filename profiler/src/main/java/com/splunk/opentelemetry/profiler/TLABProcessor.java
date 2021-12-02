@@ -17,15 +17,18 @@
 package com.splunk.opentelemetry.profiler;
 
 import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_TLAB_ENABLED;
-import static com.splunk.opentelemetry.profiler.LogEntryCreator.PROFILING_SOURCE;
+import static com.splunk.opentelemetry.profiler.LogDataCreator.PROFILING_SOURCE;
+import static com.splunk.opentelemetry.profiler.LogsExporterBuilder.INSTRUMENTATION_LIBRARY_INFO;
 
-import com.splunk.opentelemetry.logs.LogEntry;
 import com.splunk.opentelemetry.logs.LogsProcessor;
 import com.splunk.opentelemetry.profiler.util.StackSerializer;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.common.AttributesBuilder;
 import io.opentelemetry.instrumentation.api.config.Config;
+import io.opentelemetry.sdk.logs.data.LogData;
+import io.opentelemetry.sdk.logs.data.LogDataBuilder;
+import io.opentelemetry.sdk.resources.Resource;
 import java.time.Instant;
 import java.util.function.Consumer;
 import jdk.jfr.consumer.RecordedEvent;
@@ -39,25 +42,16 @@ public class TLABProcessor implements Consumer<RecordedEvent> {
 
   private final boolean enabled;
   private final StackSerializer stackSerializer;
-  private final LogsProcessor batchingLogsProcessor;
-  private final LogEntryCommonAttributes commonAttributes;
+  private final LogsProcessor logsProcessor;
+  private final LogDataCommonAttributes commonAttributes;
+  private final Resource resource;
 
-  public TLABProcessor(
-      Config config,
-      LogsProcessor batchingLogsProcessor,
-      LogEntryCommonAttributes commonAttributes) {
-    this(config, new StackSerializer(), batchingLogsProcessor, commonAttributes);
-  }
-
-  public TLABProcessor(
-      Config config,
-      StackSerializer stackSerializer,
-      LogsProcessor batchingLogsProcessor,
-      LogEntryCommonAttributes commonAttributes) {
-    this.enabled = config.getBoolean(CONFIG_KEY_TLAB_ENABLED);
-    this.stackSerializer = stackSerializer;
-    this.batchingLogsProcessor = batchingLogsProcessor;
-    this.commonAttributes = commonAttributes;
+  private TLABProcessor(Builder builder) {
+    this.enabled = builder.enabled;
+    this.stackSerializer = builder.stackSerializer;
+    this.logsProcessor = builder.logsProcessor;
+    this.commonAttributes = builder.commonAttributes;
+    this.resource = builder.resource;
   }
 
   @Override
@@ -83,14 +77,55 @@ public class TLABProcessor implements Consumer<RecordedEvent> {
     }
     Attributes attributes = builder.build();
 
-    LogEntry logEntry =
-        LogEntry.builder()
-            .name(PROFILING_SOURCE)
-            .time(time)
-            .bodyString(stack)
-            .attributes(attributes)
+    LogData logData =
+        LogDataBuilder.create(resource, INSTRUMENTATION_LIBRARY_INFO)
+            .setName(PROFILING_SOURCE)
+            .setEpoch(time)
+            .setBody(stack)
+            .setAttributes(attributes)
             .build();
 
-    batchingLogsProcessor.log(logEntry);
+    logsProcessor.log(logData);
+  }
+
+  static Builder builder(Config config) {
+    boolean enabled = config.getBoolean(CONFIG_KEY_TLAB_ENABLED, false);
+    return new Builder(enabled);
+  }
+
+  static class Builder {
+    private boolean enabled;
+    private StackSerializer stackSerializer = new StackSerializer();
+    private LogsProcessor logsProcessor;
+    private LogDataCommonAttributes commonAttributes;
+    private Resource resource;
+
+    public Builder(boolean enabled) {
+      this.enabled = enabled;
+    }
+
+    TLABProcessor build() {
+      return new TLABProcessor(this);
+    }
+
+    Builder stackSerializer(StackSerializer stackSerializer) {
+      this.stackSerializer = stackSerializer;
+      return this;
+    }
+
+    Builder logsProcessor(LogsProcessor logsProcessor) {
+      this.logsProcessor = logsProcessor;
+      return this;
+    }
+
+    Builder commonAttributes(LogDataCommonAttributes commonAttributes) {
+      this.commonAttributes = commonAttributes;
+      return this;
+    }
+
+    Builder resource(Resource resource) {
+      this.resource = resource;
+      return this;
+    }
   }
 }

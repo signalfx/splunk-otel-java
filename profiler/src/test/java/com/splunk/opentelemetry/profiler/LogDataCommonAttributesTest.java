@@ -30,7 +30,7 @@ import jdk.jfr.EventType;
 import jdk.jfr.consumer.RecordedEvent;
 import org.junit.jupiter.api.Test;
 
-class LogEntryCommonAttributesTest {
+class LogDataCommonAttributesTest {
 
   @Test
   void testBuild() {
@@ -51,9 +51,9 @@ class LogEntryCommonAttributesTest {
     when(eventType.getName()).thenReturn(eventName);
     when(periods.getDuration(eventName)).thenReturn(Duration.ofMillis(999));
 
-    LogEntryCommonAttributes logEntryAttributes = new LogEntryCommonAttributes(periods);
+    LogDataCommonAttributes logDataAttributes = new LogDataCommonAttributes(periods);
 
-    Attributes result = logEntryAttributes.build(event.getEventType().getName());
+    Attributes result = logDataAttributes.build(event.getEventType().getName());
     assertEquals(expected, result);
   }
 }

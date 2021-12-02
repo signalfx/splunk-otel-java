@@ -16,7 +16,8 @@
 
 package com.splunk.opentelemetry.profiler;
 
-import static com.splunk.opentelemetry.profiler.LogEntryCreator.PROFILING_SOURCE;
+import static com.splunk.opentelemetry.profiler.LogDataCreator.PROFILING_SOURCE;
+import static com.splunk.opentelemetry.profiler.LogsExporterBuilder.INSTRUMENTATION_LIBRARY_INFO;
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.SOURCE_EVENT_NAME;
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.SOURCE_EVENT_PERIOD;
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.SOURCE_TYPE;
@@ -24,55 +25,61 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import com.splunk.opentelemetry.logs.LogEntry;
 import com.splunk.opentelemetry.profiler.context.SpanLinkage;
 import com.splunk.opentelemetry.profiler.context.StackToSpanLinkage;
 import com.splunk.opentelemetry.profiler.events.EventPeriods;
 import io.opentelemetry.api.common.Attributes;
+import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.api.trace.TraceFlags;
 import io.opentelemetry.api.trace.TraceState;
-import io.opentelemetry.sdk.logs.data.Body;
+import io.opentelemetry.context.Context;
+import io.opentelemetry.sdk.logs.data.LogData;
+import io.opentelemetry.sdk.logs.data.LogDataBuilder;
+import io.opentelemetry.sdk.resources.Resource;
 import java.time.Duration;
 import java.time.Instant;
 import org.junit.jupiter.api.Test;
 
-class LogEntryCreatorTest {
+class LogDataCreatorTest {
 
   @Test
   void testCreate() {
     Instant time = Instant.now();
     String stack = "the.stack";
 
-    SpanContext context =
+    SpanContext spanContext =
         SpanContext.create(
             "deadbeefdeadbeefdeadbeefdeadbeef",
             "0123012301230123",
             TraceFlags.getSampled(),
             TraceState.getDefault());
+    Context context = Context.root().with(Span.wrap(spanContext));
     long threadId = 987L;
     String eventName = "GoodEventHere";
 
     EventPeriods periods = mock(EventPeriods.class);
     when(periods.getDuration(eventName)).thenReturn(Duration.ofMillis(606));
 
-    SpanLinkage linkage = new SpanLinkage(context, threadId);
+    SpanLinkage linkage = new SpanLinkage(spanContext, threadId);
+    Resource resource = Resource.getDefault();
     Attributes attributes =
         Attributes.of(
             SOURCE_EVENT_NAME, eventName, SOURCE_EVENT_PERIOD, 606L, SOURCE_TYPE, "otel.profiling");
-    LogEntry expected =
-        LogEntry.builder()
-            .spanContext(context)
-            .name(PROFILING_SOURCE)
-            .body(Body.string(stack))
-            .time(time)
-            .attributes(attributes)
+    LogData expected =
+        LogDataBuilder.create(resource, INSTRUMENTATION_LIBRARY_INFO)
+            .setContext(context)
+            .setName(PROFILING_SOURCE)
+            .setBody(stack)
+            .setEpoch(time)
+            .setAttributes(attributes)
             .build();
 
     StackToSpanLinkage linkedSpan = new StackToSpanLinkage(time, "the.stack", eventName, linkage);
 
-    LogEntryCreator creator = new LogEntryCreator(new LogEntryCommonAttributes(periods));
-    LogEntry result = creator.apply(linkedSpan);
+    LogDataCreator creator =
+        new LogDataCreator(new LogDataCommonAttributes(periods), Resource.getDefault());
+    LogData result = creator.apply(linkedSpan);
     assertEquals(expected, result);
   }
 }

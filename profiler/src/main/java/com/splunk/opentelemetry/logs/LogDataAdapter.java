@@ -20,23 +20,24 @@ import static com.google.protobuf.UnsafeByteOperations.unsafeWrap;
 
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.internal.OtelEncodingUtils;
+import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.api.trace.SpanId;
 import io.opentelemetry.api.trace.TraceId;
 import io.opentelemetry.proto.common.v1.AnyValue;
 import io.opentelemetry.proto.common.v1.KeyValue;
 import io.opentelemetry.proto.logs.v1.LogRecord;
+import io.opentelemetry.sdk.logs.data.LogData;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-/** Turns a LogEntry into a protobuf LogRecord, ready for exporting */
-public class LogEntryAdapter implements Function<LogEntry, LogRecord> {
+/** Turns a LogData into a protobuf LogRecord, ready for exporting */
+public class LogDataAdapter implements Function<LogData, LogRecord> {
 
   @Override
-  public LogRecord apply(LogEntry logEntry) {
-    AnyValue body = AnyValue.newBuilder().setStringValue(logEntry.getBodyAsString()).build();
-    Attributes sourceAttrs = logEntry.getAttributes();
+  public LogRecord apply(LogData logData) {
+    AnyValue body = AnyValue.newBuilder().setStringValue(logData.getBody().asString()).build();
+    Attributes sourceAttrs = logData.getAttributes();
     List<KeyValue> attributes =
         sourceAttrs.asMap().entrySet().stream()
             .map(kv -> CommonAdapter.toProtoAttribute(kv.getKey(), kv.getValue()))
@@ -46,21 +47,22 @@ public class LogEntryAdapter implements Function<LogEntry, LogRecord> {
         LogRecord.newBuilder()
             .addAllAttributes(attributes)
             .setBody(body)
-            .setTimeUnixNano(TimeUnit.MILLISECONDS.toNanos(logEntry.getTime().toEpochMilli()));
+            .setTimeUnixNano(logData.getEpochNanos());
 
-    if (logEntry.getName() != null) {
-      builder.setName(logEntry.getName());
+    if (logData.getName() != null) {
+      builder.setName(logData.getName());
     }
-    if (logEntry.getTraceId() != null) {
+    SpanContext spanContext = logData.getSpanContext();
+    if (spanContext.getTraceId() != null) {
       byte[] traceIdBytes =
-          OtelEncodingUtils.bytesFromBase16(logEntry.getTraceId(), TraceId.getLength());
+          OtelEncodingUtils.bytesFromBase16(spanContext.getTraceId(), TraceId.getLength());
       builder.setTraceId(unsafeWrap(traceIdBytes));
     }
-    if (logEntry.getSpanId() != null) {
+    if (spanContext.getSpanId() != null) {
       byte[] spanIdBytes =
-          OtelEncodingUtils.bytesFromBase16(logEntry.getSpanId(), SpanId.getLength());
+          OtelEncodingUtils.bytesFromBase16(spanContext.getSpanId(), SpanId.getLength());
       builder.setSpanId(unsafeWrap(spanIdBytes));
-      builder.setFlags(logEntry.getSpanContext().getTraceFlags().asByte());
+      builder.setFlags(spanContext.getTraceFlags().asByte());
     }
     return builder.build();
   }

@@ -24,6 +24,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
+import io.opentelemetry.sdk.common.InstrumentationLibraryInfo;
+import io.opentelemetry.sdk.logs.data.LogData;
+import io.opentelemetry.sdk.logs.data.LogDataBuilder;
+import io.opentelemetry.sdk.resources.Resource;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -34,30 +38,33 @@ import org.junit.jupiter.api.Test;
 
 class BatchingLogsProcessorTest {
 
-  LogEntry log1, log2, log3;
+  LogData log1, log2, log3;
 
   @BeforeEach
   void setup() {
+    LogDataBuilder builder =
+        LogDataBuilder.create(
+            Resource.getDefault(), InstrumentationLibraryInfo.create("test", "1.2.3"));
     log1 =
-        LogEntry.builder()
-            .attributes(Attributes.of(AttributeKey.stringKey("one"), "one"))
-            .bodyString("foo")
+        builder
+            .setAttributes(Attributes.of(AttributeKey.stringKey("one"), "one"))
+            .setBody("foo")
             .build();
     log2 =
-        LogEntry.builder()
-            .attributes(Attributes.of(AttributeKey.stringKey("two"), "two"))
-            .bodyString("bar")
+        builder
+            .setAttributes(Attributes.of(AttributeKey.stringKey("two"), "two"))
+            .setBody("bar")
             .build();
     log3 =
-        LogEntry.builder()
-            .attributes(Attributes.of(AttributeKey.stringKey("three"), "three"))
-            .bodyString("baz")
+        builder
+            .setAttributes(Attributes.of(AttributeKey.stringKey("three"), "three"))
+            .setBody("baz")
             .build();
   }
 
   @Test
   void testSimpleActionWhenSizeReached() throws Exception {
-    List<LogEntry> seen = new ArrayList<>();
+    List<LogData> seen = new ArrayList<>();
     CountDownLatch latch = new CountDownLatch(1);
     LogsExporter exporter =
         logs -> {
@@ -82,7 +89,7 @@ class BatchingLogsProcessorTest {
 
   @Test
   void testSimpleActionWhenTimeReached() throws Exception {
-    List<LogEntry> seen = new ArrayList<>();
+    List<LogData> seen = new ArrayList<>();
     CountDownLatch latch = new CountDownLatch(1);
     LogsExporter exporter =
         logs -> {
@@ -107,7 +114,7 @@ class BatchingLogsProcessorTest {
 
   @Test
   void testActionNotCalledWhenEmptyAfterTime() throws Exception {
-    List<LogEntry> seen = new ArrayList<>();
+    List<LogData> seen = new ArrayList<>();
     CountDownLatch latch = new CountDownLatch(1);
     LogsExporter exporter =
         logs -> {
@@ -128,7 +135,7 @@ class BatchingLogsProcessorTest {
 
   @Test
   void testStopDoesAction() throws Exception {
-    List<LogEntry> seen = new ArrayList<>();
+    List<LogData> seen = new ArrayList<>();
     CountDownLatch latch = new CountDownLatch(1);
     LogsExporter exporter =
         logs -> {

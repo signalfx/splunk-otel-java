@@ -17,7 +17,7 @@
 package com.splunk.opentelemetry.profiler;
 
 import com.splunk.opentelemetry.logs.InstrumentationLibraryLogsAdapter;
-import com.splunk.opentelemetry.logs.LogEntryAdapter;
+import com.splunk.opentelemetry.logs.LogDataAdapter;
 import com.splunk.opentelemetry.logs.LogsExporter;
 import com.splunk.opentelemetry.logs.OtlpLogsExporter;
 import com.splunk.opentelemetry.logs.OtlpLogsExporterBuilder;
@@ -25,12 +25,15 @@ import com.splunk.opentelemetry.logs.ResourceLogsAdapter;
 import io.opentelemetry.instrumentation.api.config.Config;
 import io.opentelemetry.javaagent.tooling.config.ConfigPropertiesAdapter;
 import io.opentelemetry.sdk.autoconfigure.OpenTelemetryResourceAutoConfiguration;
+import io.opentelemetry.sdk.common.InstrumentationLibraryInfo;
 import io.opentelemetry.sdk.resources.Resource;
 
 class LogsExporterBuilder {
 
   private static final String OTEL_INSTRUMENTATION_NAME = "otel.profiling";
   private static final String OTEL_INSTRUMENTATION_VERSION = "0.1.0";
+  static final InstrumentationLibraryInfo INSTRUMENTATION_LIBRARY_INFO =
+      InstrumentationLibraryInfo.create(OTEL_INSTRUMENTATION_NAME, OTEL_INSTRUMENTATION_VERSION);
 
   static LogsExporter fromConfig(Config config) {
     ResourceLogsAdapter adapter = buildResourceLogsAdapter(config);
@@ -48,16 +51,19 @@ class LogsExporterBuilder {
   }
 
   private static ResourceLogsAdapter buildResourceLogsAdapter(Config config) {
-    Resource resource =
-        OpenTelemetryResourceAutoConfiguration.configureResource(
-            new ConfigPropertiesAdapter(config));
-    LogEntryAdapter logEntryAdapter = new LogEntryAdapter();
+    Resource resource = getResource(config);
+    LogDataAdapter logDataAdapter = new LogDataAdapter();
     InstrumentationLibraryLogsAdapter instLibraryLogsAdapter =
         InstrumentationLibraryLogsAdapter.builder()
-            .logEntryAdapter(logEntryAdapter)
+            .logDataAdapter(logDataAdapter)
             .instrumentationName(OTEL_INSTRUMENTATION_NAME)
             .instrumentationVersion(OTEL_INSTRUMENTATION_VERSION)
             .build();
     return new ResourceLogsAdapter(instLibraryLogsAdapter, resource);
+  }
+
+  private static Resource getResource(Config config) {
+    return OpenTelemetryResourceAutoConfiguration.configureResource(
+        new ConfigPropertiesAdapter(config));
   }
 }

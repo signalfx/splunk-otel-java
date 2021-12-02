@@ -19,30 +19,31 @@ package com.splunk.opentelemetry.logs;
 import io.opentelemetry.proto.common.v1.InstrumentationLibrary;
 import io.opentelemetry.proto.logs.v1.InstrumentationLibraryLogs;
 import io.opentelemetry.proto.logs.v1.LogRecord;
+import io.opentelemetry.sdk.logs.data.LogData;
 import io.opentelemetry.semconv.resource.attributes.ResourceAttributes;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
- * Protobuf converter. Responsible for turning a list of LogEntry instances into an instance of
+ * Protobuf converter. Responsible for turning a list of LogData instances into an instance of
  * InstrumentationLibraryLogs.
  */
 public class InstrumentationLibraryLogsAdapter
-    implements Function<List<LogEntry>, InstrumentationLibraryLogs> {
+    implements Function<List<LogData>, InstrumentationLibraryLogs> {
 
   public final String instrumentationName;
   public final String instrumentationVersion;
-  private final LogEntryAdapter logEntryAdapter;
+  private final LogDataAdapter logDataAdapter;
 
   private InstrumentationLibraryLogsAdapter(Builder builder) {
     this.instrumentationName = builder.instrumentationName;
     this.instrumentationVersion = builder.instrumentationVersion;
-    this.logEntryAdapter = builder.logEntryAdapter;
+    this.logDataAdapter = builder.logDataAdapter;
   }
 
   @Override
-  public InstrumentationLibraryLogs apply(List<LogEntry> logEntries) {
+  public InstrumentationLibraryLogs apply(List<LogData> logEntries) {
 
     InstrumentationLibrary library =
         InstrumentationLibrary.newBuilder()
@@ -50,7 +51,7 @@ public class InstrumentationLibraryLogsAdapter
             .setVersion(instrumentationVersion)
             .build();
 
-    List<LogRecord> logs = logEntries.stream().map(logEntryAdapter).collect(Collectors.toList());
+    List<LogRecord> logs = logEntries.stream().map(logDataAdapter).collect(Collectors.toList());
 
     return InstrumentationLibraryLogs.newBuilder()
         .setSchemaUrl(ResourceAttributes.SCHEMA_URL)
@@ -66,7 +67,7 @@ public class InstrumentationLibraryLogsAdapter
   public static class Builder {
     private String instrumentationName;
     private String instrumentationVersion;
-    private LogEntryAdapter logEntryAdapter;
+    private LogDataAdapter logDataAdapter;
 
     public Builder instrumentationName(String instrumentationName) {
       this.instrumentationName = instrumentationName;
@@ -78,8 +79,8 @@ public class InstrumentationLibraryLogsAdapter
       return this;
     }
 
-    public Builder logEntryAdapter(LogEntryAdapter logEntryAdapter) {
-      this.logEntryAdapter = logEntryAdapter;
+    public Builder logDataAdapter(LogDataAdapter logDataAdapter) {
+      this.logDataAdapter = logDataAdapter;
       return this;
     }
 

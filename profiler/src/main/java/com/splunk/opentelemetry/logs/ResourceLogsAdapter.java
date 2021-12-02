@@ -19,14 +19,15 @@ package com.splunk.opentelemetry.logs;
 import io.opentelemetry.proto.common.v1.KeyValue;
 import io.opentelemetry.proto.logs.v1.InstrumentationLibraryLogs;
 import io.opentelemetry.proto.logs.v1.ResourceLogs;
+import io.opentelemetry.sdk.logs.data.LogData;
 import io.opentelemetry.sdk.resources.Resource;
 import io.opentelemetry.semconv.resource.attributes.ResourceAttributes;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-/** Protobuf converter. Turns a LogEntry into a protobuf LogRecord */
-public class ResourceLogsAdapter implements Function<List<LogEntry>, ResourceLogs> {
+/** Protobuf converter. Turns a LogData into a protobuf LogRecord */
+public class ResourceLogsAdapter implements Function<List<LogData>, ResourceLogs> {
 
   private final InstrumentationLibraryLogsAdapter logsAdapter;
   private final List<KeyValue> resourceAttributes;
@@ -48,8 +49,8 @@ public class ResourceLogsAdapter implements Function<List<LogEntry>, ResourceLog
   }
 
   @Override
-  public ResourceLogs apply(List<LogEntry> logEntry) {
-    InstrumentationLibraryLogs instrumentationLibraryLogs = logsAdapter.apply(logEntry);
+  public ResourceLogs apply(List<LogData> logs) {
+    InstrumentationLibraryLogs instrumentationLibraryLogs = logsAdapter.apply(logs);
     io.opentelemetry.proto.resource.v1.Resource protoResource =
         io.opentelemetry.proto.resource.v1.Resource.newBuilder()
             .addAllAttributes(resourceAttributes)

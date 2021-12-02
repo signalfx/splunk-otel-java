@@ -27,9 +27,14 @@ import io.opentelemetry.proto.common.v1.KeyValue;
 import io.opentelemetry.proto.logs.v1.InstrumentationLibraryLogs;
 import io.opentelemetry.proto.logs.v1.LogRecord;
 import io.opentelemetry.proto.logs.v1.ResourceLogs;
+import io.opentelemetry.sdk.common.InstrumentationLibraryInfo;
+import io.opentelemetry.sdk.logs.data.LogData;
+import io.opentelemetry.sdk.logs.data.LogDataBuilder;
+import io.opentelemetry.sdk.resources.Resource;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Test;
 
 class ResourceLogsAdapterTest {
@@ -37,29 +42,32 @@ class ResourceLogsAdapterTest {
   @Test
   void testApply() {
     Instant now = Instant.now();
-    LogEntry log1 =
-        LogEntry.builder()
-            .time(now.plus(0, SECONDS))
-            .attributes(Attributes.of(ENDUSER_ID, "jimmy"))
-            .bodyString("test log 1")
+    LogDataBuilder builder =
+        LogDataBuilder.create(
+            Resource.getDefault(), InstrumentationLibraryInfo.create("test", "1.2.3"));
+    LogData log1 =
+        builder
+            .setEpoch(now.plus(0, SECONDS))
+            .setAttributes(Attributes.of(ENDUSER_ID, "jimmy"))
+            .setBody("test log 1")
             .build();
-    LogEntry log2 =
-        LogEntry.builder()
-            .time(now.plus(1, SECONDS))
-            .attributes(Attributes.of(ENDUSER_ID, "sally"))
-            .bodyString("test log 2")
+    LogData log2 =
+        builder
+            .setEpoch(now.plus(1, SECONDS))
+            .setAttributes(Attributes.of(ENDUSER_ID, "sally"))
+            .setBody("test log 2")
             .build();
-    LogEntry log3 =
-        LogEntry.builder()
-            .time(now.plus(2, SECONDS))
-            .attributes(Attributes.of(ENDUSER_ID, "ward"))
-            .bodyString("test log 3")
+    LogData log3 =
+        builder
+            .setEpoch(now.plus(2, SECONDS))
+            .setAttributes(Attributes.of(ENDUSER_ID, "ward"))
+            .setBody("test log 3")
             .build();
-    List<LogEntry> sourceLogs = Arrays.asList(log1, log2, log3);
-    LogEntryAdapter logEntryAdapter = new LogEntryAdapter();
+    List<LogData> sourceLogs = Arrays.asList(log1, log2, log3);
+    LogDataAdapter logDataAdapter = new LogDataAdapter();
     InstrumentationLibraryLogsAdapter instLogsAdapter =
         InstrumentationLibraryLogsAdapter.builder()
-            .logEntryAdapter(logEntryAdapter)
+            .logDataAdapter(logDataAdapter)
             .instrumentationName("a")
             .instrumentationVersion("b")
             .build();
@@ -87,7 +95,9 @@ class ResourceLogsAdapterTest {
   }
 
   private void assertLog(LogRecord logRecord, Instant time, String username, String body) {
-    assertEquals(time.toEpochMilli() * 1_000_000L, logRecord.getTimeUnixNano());
+    assertEquals(
+        TimeUnit.SECONDS.toNanos(time.getEpochSecond()) + time.getNano(),
+        logRecord.getTimeUnixNano());
     assertEquals(body, logRecord.getBody().getStringValue());
     assertEquals(ENDUSER_ID.getKey(), logRecord.getAttributes(0).getKey());
     assertEquals(username, logRecord.getAttributes(0).getValue().getStringValue());

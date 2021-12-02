@@ -16,27 +16,27 @@
 
 package com.splunk.opentelemetry.profiler;
 
-import com.splunk.opentelemetry.logs.LogEntry;
 import com.splunk.opentelemetry.logs.LogsProcessor;
 import com.splunk.opentelemetry.profiler.context.StackToSpanLinkage;
+import io.opentelemetry.sdk.logs.data.LogData;
 import java.util.function.Consumer;
 
 /**
- * Glue helper to turn a linked stack into an otel LogEntry instance and pass it to the logs
+ * Glue helper to turn a linked stack into an otel LogData instance and pass it to the logs
  * processor.
  */
 public class StackToSpanLinkageProcessor implements Consumer<StackToSpanLinkage> {
-  private final LogEntryCreator logEntryCreator;
+  private final LogDataCreator logDataCreator;
   private final LogsProcessor processor;
 
-  public StackToSpanLinkageProcessor(LogEntryCreator logEntryCreator, LogsProcessor processor) {
-    this.logEntryCreator = logEntryCreator;
+  public StackToSpanLinkageProcessor(LogDataCreator logDataCreator, LogsProcessor processor) {
+    this.logDataCreator = logDataCreator;
     this.processor = processor;
   }
 
   @Override
   public void accept(StackToSpanLinkage stackToSpanLinkage) {
-    LogEntry log = logEntryCreator.apply(stackToSpanLinkage);
+    LogData log = logDataCreator.apply(stackToSpanLinkage);
     processor.log(log);
   }
 }

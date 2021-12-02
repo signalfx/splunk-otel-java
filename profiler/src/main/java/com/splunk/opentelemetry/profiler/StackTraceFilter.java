@@ -77,6 +77,10 @@ public class StackTraceFilter {
     return !everyFrameIsJvmInternal(wallOfStacks, startIndex, lastIndex);
   }
 
+  /**
+   * Frames are considered JVM internal if every frame in the stack stars with one of "jdk.", "sun."
+   * or "java.".
+   */
   private boolean everyFrameIsJvmInternal(String wallOfStacks, int startIndex, int lastIndex) {
     int offsetToThreadState = wallOfStacks.indexOf('\n', startIndex) + 1;
     if (offsetToThreadState <= 0 || offsetToThreadState >= lastIndex) return false;

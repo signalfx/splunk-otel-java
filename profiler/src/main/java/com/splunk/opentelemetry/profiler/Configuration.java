@@ -37,6 +37,7 @@ public class Configuration implements ConfigPropertySource {
   public static final String CONFIG_KEY_TLAB_ENABLED = "splunk.profiler.tlab.enabled";
   public static final String CONFIG_KEY_INCLUDE_AGENT_INTERNALS =
       "splunk.profiler.include.agent.internals";
+  // Include stacks where every frame starts with jvm/sun/jdk
   public static final String CONFIG_KEY_INCLUDE_JVM_INTERNALS =
       "splunk.profiler.include.jvm.internals";
 

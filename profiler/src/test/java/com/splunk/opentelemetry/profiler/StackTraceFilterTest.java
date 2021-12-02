@@ -23,7 +23,7 @@ import org.junit.jupiter.api.Test;
 class StackTraceFilterTest {
 
   public static final String JVM_INTERNAL_STACK =
-      "\"logback-2\" #22 daemon prio=5 os_prio=31 cpu=2.42ms elapsed=563.96s tid=0x00007fd540\n"
+      "\"jvm-internal-magic\" #22 daemon prio=5 os_prio=31 cpu=2.42ms elapsed=563.96s tid=0x00007fd540\n"
           + "   java.lang.Thread.State: TIMED_WAITING (parking)\n"
           + "\tat jdk.internal.misc.Unsafe.park(java.base@11.0.9.1/Native Method)\n"
           + "\t- parking to wait for  <0x0000000600001920> (a java.util.concurrent.locks.Ab\n"

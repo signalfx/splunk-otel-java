@@ -34,15 +34,15 @@ public class StackTraceFilter {
         "\"Common-Cleaner\""
       };
   private final boolean includeAgentInternals;
-  private final boolean includeJVMInternals;
+  private final boolean includeJvmInternals;
 
   public StackTraceFilter(boolean includeAgentInternals) {
     this(includeAgentInternals, false);
   }
 
-  public StackTraceFilter(boolean includeAgentInternals, boolean includeJVMInternals) {
+  public StackTraceFilter(boolean includeAgentInternals, boolean includeJvmInternals) {
     this.includeAgentInternals = includeAgentInternals;
-    this.includeJVMInternals = includeJVMInternals;
+    this.includeJvmInternals = includeJvmInternals;
   }
 
   public boolean test(String wallOfStacks, int startIndex, int lastIndex) {
@@ -71,7 +71,7 @@ public class StackTraceFilter {
       return false;
     }
 
-    if (includeJVMInternals) {
+    if (includeJvmInternals) {
       return true;
     }
     return !everyFrameIsJvmInternal(wallOfStacks, startIndex, lastIndex);

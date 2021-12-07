@@ -34,9 +34,15 @@ public class StackTraceFilter {
         "\"Common-Cleaner\""
       };
   private final boolean includeAgentInternals;
+  private final boolean includeJvmInternals;
 
   public StackTraceFilter(boolean includeAgentInternals) {
+    this(includeAgentInternals, false);
+  }
+
+  public StackTraceFilter(boolean includeAgentInternals, boolean includeJvmInternals) {
     this.includeAgentInternals = includeAgentInternals;
+    this.includeJvmInternals = includeJvmInternals;
   }
 
   public boolean test(String wallOfStacks, int startIndex, int lastIndex) {
@@ -65,9 +71,16 @@ public class StackTraceFilter {
       return false;
     }
 
+    if (includeJvmInternals) {
+      return true;
+    }
     return !everyFrameIsJvmInternal(wallOfStacks, startIndex, lastIndex);
   }
 
+  /**
+   * Frames are considered JVM internal if every frame in the stack stars with one of "jdk.", "sun."
+   * or "java.".
+   */
   private boolean everyFrameIsJvmInternal(String wallOfStacks, int startIndex, int lastIndex) {
     int offsetToThreadState = wallOfStacks.indexOf('\n', startIndex) + 1;
     if (offsetToThreadState <= 0 || offsetToThreadState >= lastIndex) return false;

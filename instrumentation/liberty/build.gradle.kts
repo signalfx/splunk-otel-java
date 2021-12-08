@@ -5,4 +5,5 @@ plugins {
 
 dependencies {
   compileOnly(project(":instrumentation:compile-stub"))
+  implementation(project(":instrumentation:common"))
 }

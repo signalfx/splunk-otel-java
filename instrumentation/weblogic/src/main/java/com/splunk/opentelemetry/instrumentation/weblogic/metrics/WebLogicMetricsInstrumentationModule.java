@@ -19,21 +19,15 @@ package com.splunk.opentelemetry.instrumentation.weblogic.metrics;
 import static java.util.Collections.singletonList;
 
 import com.google.auto.service.AutoService;
-import io.micrometer.core.instrument.Metrics;
+import com.splunk.opentelemetry.instrumentation.MetricsInstrumentationModule;
 import io.opentelemetry.javaagent.extension.instrumentation.InstrumentationModule;
 import io.opentelemetry.javaagent.extension.instrumentation.TypeInstrumentation;
 import java.util.List;
 
 @AutoService(InstrumentationModule.class)
-public class WebLogicMetricsInstrumentationModule extends InstrumentationModule {
+public class WebLogicMetricsInstrumentationModule extends MetricsInstrumentationModule {
   public WebLogicMetricsInstrumentationModule() {
     super("weblogic", "weblogic-metrics");
-  }
-
-  @Override
-  protected boolean defaultEnabled() {
-    boolean metricsRegistryPresent = !Metrics.globalRegistry.getRegistries().isEmpty();
-    return metricsRegistryPresent && super.defaultEnabled();
   }
 
   @Override

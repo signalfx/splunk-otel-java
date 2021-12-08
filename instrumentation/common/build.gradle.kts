@@ -2,6 +2,8 @@ dependencies {
   compileOnly("org.slf4j:slf4j-api")
   compileOnly("io.opentelemetry.instrumentation:opentelemetry-instrumentation-api")
   compileOnly("io.opentelemetry:opentelemetry-api")
+  compileOnly("io.opentelemetry.javaagent:opentelemetry-javaagent-extension-api")
+  compileOnly("io.micrometer:micrometer-core")
 
   testImplementation("org.slf4j:slf4j-api")
   testImplementation("io.opentelemetry.javaagent:opentelemetry-testing-common")

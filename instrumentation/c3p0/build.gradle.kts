@@ -16,6 +16,7 @@ muzzle {
 
 dependencies {
   compileOnly("com.mchange:c3p0:0.9.2")
+  implementation(project(":instrumentation:common"))
 
   testImplementation("com.mchange:c3p0:0.9.2")
 }

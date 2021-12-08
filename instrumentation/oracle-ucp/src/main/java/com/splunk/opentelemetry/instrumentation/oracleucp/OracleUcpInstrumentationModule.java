@@ -19,7 +19,6 @@ package com.splunk.opentelemetry.instrumentation.oracleucp;
 import static java.util.Collections.singletonList;
 
 import com.google.auto.service.AutoService;
-import io.micrometer.core.instrument.Metrics;
 import io.opentelemetry.javaagent.extension.instrumentation.InstrumentationModule;
 import io.opentelemetry.javaagent.extension.instrumentation.TypeInstrumentation;
 import java.util.List;
@@ -29,12 +28,6 @@ public class OracleUcpInstrumentationModule extends InstrumentationModule {
 
   public OracleUcpInstrumentationModule() {
     super("oracle-ucp");
-  }
-
-  @Override
-  protected boolean defaultEnabled() {
-    boolean metricsRegistryPresent = !Metrics.globalRegistry.getRegistries().isEmpty();
-    return metricsRegistryPresent && super.defaultEnabled();
   }
 
   @Override

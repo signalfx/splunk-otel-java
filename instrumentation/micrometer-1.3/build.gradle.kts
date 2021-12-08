@@ -7,6 +7,7 @@ plugins {
 
 dependencies {
   implementation(project(":instrumentation:micrometer-common"))
+  implementation(project(":instrumentation:common"))
 
   compileOnly(project(":instrumentation:micrometer-1.3-shaded-for-instrumenting", configuration = "shadow"))
 }

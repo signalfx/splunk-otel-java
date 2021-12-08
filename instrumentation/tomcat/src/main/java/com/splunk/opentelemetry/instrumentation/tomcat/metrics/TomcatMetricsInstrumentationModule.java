@@ -19,7 +19,7 @@ package com.splunk.opentelemetry.instrumentation.tomcat.metrics;
 import static java.util.Collections.singletonList;
 
 import com.google.auto.service.AutoService;
-import com.splunk.opentelemetry.instrumentation.MetricsDependentInstrumentationModule;
+import com.splunk.opentelemetry.instrumentation.MetricsInstrumentationModule;
 import io.opentelemetry.javaagent.extension.instrumentation.InstrumentationModule;
 import io.opentelemetry.javaagent.extension.instrumentation.TypeInstrumentation;
 import java.util.List;
@@ -27,7 +27,7 @@ import java.util.List;
 // metrics are still experimental and can't be enabled by default - that's why we need a separate
 // InstrumentationModule for them
 @AutoService(InstrumentationModule.class)
-public class TomcatMetricsInstrumentationModule extends MetricsDependentInstrumentationModule {
+public class TomcatMetricsInstrumentationModule extends MetricsInstrumentationModule {
   public TomcatMetricsInstrumentationModule() {
     super("tomcat", "tomcat-metrics");
   }

@@ -21,14 +21,14 @@ import static java.util.Collections.singletonList;
 import static net.bytebuddy.matcher.ElementMatchers.not;
 
 import com.google.auto.service.AutoService;
-import com.splunk.opentelemetry.instrumentation.MetricsDependentInstrumentationModule;
+import com.splunk.opentelemetry.instrumentation.MetricsInstrumentationModule;
 import io.opentelemetry.javaagent.extension.instrumentation.InstrumentationModule;
 import io.opentelemetry.javaagent.extension.instrumentation.TypeInstrumentation;
 import java.util.List;
 import net.bytebuddy.matcher.ElementMatcher;
 
 @AutoService(InstrumentationModule.class)
-public class MicrometerInstrumentationModule extends MetricsDependentInstrumentationModule {
+public class MicrometerInstrumentationModule extends MetricsInstrumentationModule {
 
   public MicrometerInstrumentationModule() {
     super("micrometer", "micrometer-1.3");

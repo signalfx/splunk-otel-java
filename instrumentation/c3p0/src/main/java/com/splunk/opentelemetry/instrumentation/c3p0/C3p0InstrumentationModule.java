@@ -17,14 +17,14 @@
 package com.splunk.opentelemetry.instrumentation.c3p0;
 
 import com.google.auto.service.AutoService;
-import com.splunk.opentelemetry.instrumentation.MetricsDependentInstrumentationModule;
+import com.splunk.opentelemetry.instrumentation.MetricsInstrumentationModule;
 import io.opentelemetry.javaagent.extension.instrumentation.InstrumentationModule;
 import io.opentelemetry.javaagent.extension.instrumentation.TypeInstrumentation;
 import java.util.Collections;
 import java.util.List;
 
 @AutoService(InstrumentationModule.class)
-public class C3p0InstrumentationModule extends MetricsDependentInstrumentationModule {
+public class C3p0InstrumentationModule extends MetricsInstrumentationModule {
 
   public C3p0InstrumentationModule() {
     super("c3p0");

@@ -23,9 +23,9 @@ import io.opentelemetry.javaagent.extension.instrumentation.InstrumentationModul
  * Instrumentation can extend this class instead of InstrumentationModule if they require metrics to
  * be enabled (and Micrometer has at least one active registry).
  */
-public abstract class MetricsDependentInstrumentationModule extends InstrumentationModule {
+public abstract class MetricsInstrumentationModule extends InstrumentationModule {
 
-  protected MetricsDependentInstrumentationModule(
+  protected MetricsInstrumentationModule(
       String mainInstrumentationName, String... additionalInstrumentationNames) {
     super(mainInstrumentationName, additionalInstrumentationNames);
   }

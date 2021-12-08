@@ -11,7 +11,7 @@
   will not function at all if it's just added to the classpath; it should never be added to the runtime classpath
   directly. The only way to instrument the application automatically with the agent is to use the `-javaagent` command
   line parameter.
-- **How often do you release?** We strive to release the Splunk distribution within 2 working days after
+- **How often do you release?** We strive to release the Splunk distribution within 5 working days after
   the [upstream project](https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases)
   releases. OpenTelemetry Java generally releases a new version every 4 weeks.
 - **What happens when the exporter endpoint is temporarily unreachable?** Sending telemetry resumes when the endpoint

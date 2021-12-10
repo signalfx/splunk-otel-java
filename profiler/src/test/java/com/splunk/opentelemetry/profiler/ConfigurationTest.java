@@ -54,4 +54,31 @@ class ConfigurationTest {
     String result = Configuration.getConfigUrl(config);
     assertNull(result);
   }
+
+  @Test
+  void getTLABEnabled_override() {
+    Config config = mock(Config.class);
+    when(config.getBoolean(Configuration.CONFIG_KEY_MEMORY_ENABLED, false)).thenReturn(false);
+    when(config.getBoolean(Configuration.CONFIG_KEY_TLAB_ENABLED)).thenReturn(true);
+    boolean result = Configuration.getTLABEnabled(config);
+    assertTrue(result);
+  }
+
+  @Test
+  void getTLABEnabled_inheritedTrue() {
+    Config config = mock(Config.class);
+    when(config.getBoolean(Configuration.CONFIG_KEY_MEMORY_ENABLED, false)).thenReturn(true);
+    when(config.getBoolean(Configuration.CONFIG_KEY_TLAB_ENABLED)).thenReturn(null);
+    boolean result = Configuration.getTLABEnabled(config);
+    assertTrue(result);
+  }
+
+  @Test
+  void getTLABEnabled_inheritedFalse() {
+    Config config = mock(Config.class);
+    when(config.getBoolean(Configuration.CONFIG_KEY_MEMORY_ENABLED, false)).thenReturn(false);
+    when(config.getBoolean(Configuration.CONFIG_KEY_TLAB_ENABLED)).thenReturn(null);
+    boolean result = Configuration.getTLABEnabled(config);
+    assertFalse(result);
+  }
 }

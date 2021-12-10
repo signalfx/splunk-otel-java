@@ -50,7 +50,6 @@ public class Configuration implements ConfigPropertySource {
     config.put(CONFIG_KEY_RECORDING_DURATION, DEFAULT_RECORDING_DURATION);
     config.put(CONFIG_KEY_KEEP_FILES, "false");
     config.put(CONFIG_KEY_MEMORY_ENABLED, "false");
-    config.put(CONFIG_KEY_TLAB_ENABLED, "false");
     return config;
   }
 

@@ -19,6 +19,7 @@ package com.splunk.opentelemetry.profiler;
 import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_ENABLE_PROFILER;
 import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_INGEST_URL;
 import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_KEEP_FILES;
+import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_MEMORY_ENABLED;
 import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_OTEL_OTLP_URL;
 import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_PERIOD_PREFIX;
 import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_PROFILER_DIRECTORY;
@@ -42,9 +43,10 @@ public class ConfigurationLogger {
     log(CONFIG_KEY_PROFILER_DIRECTORY, config::getString);
     log(CONFIG_KEY_RECORDING_DURATION, config::getString);
     log(CONFIG_KEY_KEEP_FILES, config::getBoolean);
-    log(CONFIG_KEY_INGEST_URL, config::getString);
+    log(CONFIG_KEY_INGEST_URL, (it) -> Configuration.getConfigUrl(config));
     log(CONFIG_KEY_OTEL_OTLP_URL, config::getString);
-    log(CONFIG_KEY_TLAB_ENABLED, config::getBoolean);
+    log(CONFIG_KEY_MEMORY_ENABLED, config::getBoolean);
+    log(CONFIG_KEY_TLAB_ENABLED, (it) -> Configuration.getTLABEnabled(config));
     log(CONFIG_KEY_PERIOD_PREFIX + "." + "threaddump", config::getDuration);
     logger.info("-----------------------");
   }

@@ -49,7 +49,8 @@ property or as environment variables (by making them uppercase and replacing dot
 |`splunk.profiler.keep-files`              | false                  | leave JFR files on disk id `true`         |
 |`splunk.profiler.logs-endpoint`           | `otel.exporter.otlp.endpoint` or http://localhost:4317  | where to send OTLP logs                   |
 |`splunk.profiler.period.{eventName}`      | n/a                    | customize period (in ms) for a specific jfr event. For example, to set the ThreadDump frequency to 1s (1000ms): `-Dsplunk.profiler.period.threaddump=1000` |
-|`splunk.profiler.tlab.enabled`            | false                  | set to `false` to disable TLAB memory events |
+|`splunk.profiler.memory.enabled`          | false                  | set to `true` to enable all other memory profiling options unless explicitly disabled |
+|`splunk.profiler.tlab.enabled`            | `splunk.profiler.memory.enabled` | set to `true` to enable TLAB events even if `splunk.profiler.memory.enabled` is `false` |
 |`splunk.profiler.include.agent.internals` | false                  | set to `true` to include agent internal call stacks |
 
 # Escape hatch

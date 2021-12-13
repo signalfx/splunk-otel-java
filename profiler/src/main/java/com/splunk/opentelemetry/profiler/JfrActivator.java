@@ -35,8 +35,7 @@ import com.splunk.opentelemetry.profiler.util.FileDeleter;
 import com.splunk.opentelemetry.profiler.util.HelpfulExecutors;
 import io.opentelemetry.instrumentation.api.config.Config;
 import io.opentelemetry.javaagent.extension.AgentListener;
-import io.opentelemetry.javaagent.tooling.config.ConfigPropertiesAdapter;
-import io.opentelemetry.sdk.autoconfigure.OpenTelemetryResourceAutoConfiguration;
+import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 import io.opentelemetry.sdk.resources.Resource;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -58,7 +57,8 @@ public class JfrActivator implements AgentListener {
   private final ConfigurationLogger configurationLogger = new ConfigurationLogger();
 
   @Override
-  public void afterAgent(Config config) {
+  public void afterAgent(
+      Config config, AutoConfiguredOpenTelemetrySdk autoConfiguredOpenTelemetrySdk) {
     if (!config.getBoolean(CONFIG_KEY_ENABLE_PROFILER, false)) {
       logger.debug("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
       logger.debug("xxxxxxxxx  JFR PROFILER DISABLED!  xxxxxxxxx");
@@ -71,10 +71,12 @@ public class JfrActivator implements AgentListener {
     }
     configurationLogger.log(config);
     logger.info("JFR profiler is active.");
-    executor.submit(logUncaught(() -> activateJfrAndRunForever(config)));
+    executor.submit(
+        logUncaught(
+            () -> activateJfrAndRunForever(config, autoConfiguredOpenTelemetrySdk.getResource())));
   }
 
-  private void activateJfrAndRunForever(Config config) {
+  private void activateJfrAndRunForever(Config config, Resource resource) {
     Duration recordingDuration = config.getDuration(CONFIG_KEY_RECORDING_DURATION);
 
     Path outputDir = Paths.get(config.getString(CONFIG_KEY_PROFILER_DIRECTORY));
@@ -94,7 +96,7 @@ public class JfrActivator implements AgentListener {
     SpanContextualizer spanContextualizer = new SpanContextualizer();
     EventPeriods periods = new EventPeriods(jfrSettings::get);
     LogDataCommonAttributes commonAttributes = new LogDataCommonAttributes(periods);
-    LogsExporter logsExporter = LogsExporterBuilder.fromConfig(config);
+    LogsExporter logsExporter = LogsExporterBuilder.fromConfig(config, resource);
 
     ScheduledExecutorService exportExecutorService =
         HelpfulExecutors.newSingleThreadedScheduledExecutor("Batched Logs Exporter");
@@ -107,7 +109,6 @@ public class JfrActivator implements AgentListener {
             .build();
     batchingLogsProcessor.start();
 
-    Resource resource = getResource(config);
     LogDataCreator logDataCreator = new LogDataCreator(commonAttributes, resource);
 
     StackToSpanLinkageProcessor processor =
@@ -157,11 +158,6 @@ public class JfrActivator implements AgentListener {
 
     sequencer.start();
     dirCleanup.registerShutdownHook();
-  }
-
-  private static Resource getResource(Config config) {
-    return OpenTelemetryResourceAutoConfiguration.configureResource(
-        new ConfigPropertiesAdapter(config));
   }
 
   private ThreadDumpProcessor buildThreadDumpProcessor(

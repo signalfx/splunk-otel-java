@@ -24,11 +24,14 @@ import io.micrometer.core.instrument.config.MeterFilter;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import io.opentelemetry.instrumentation.api.config.Config;
 import io.opentelemetry.javaagent.extension.AgentListener;
+import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 
 @AutoService(AgentListener.class)
 public class TestMicrometerInstaller implements AgentListener {
+
   @Override
-  public void beforeAgent(Config config) {
+  public void beforeAgent(
+      Config config, AutoConfiguredOpenTelemetrySdk autoConfiguredOpenTelemetrySdk) {
     Tags globalMetricsTags =
         config.getMap("splunk.testing.metrics.global-tags").entrySet().stream()
             .map(e -> Tag.of(e.getKey(), e.getValue()))

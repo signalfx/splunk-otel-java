@@ -23,6 +23,7 @@ import static org.mockito.Mockito.when;
 
 import com.splunk.opentelemetry.logs.OtlpLogsExporter;
 import io.opentelemetry.instrumentation.api.config.Config;
+import io.opentelemetry.sdk.resources.Resource;
 import org.junit.jupiter.api.Test;
 
 class LogsExporterBuilderTest {
@@ -30,7 +31,8 @@ class LogsExporterBuilderTest {
   @Test
   void testBuildSimple() {
     Config config = mock(Config.class);
-    OtlpLogsExporter exporter = (OtlpLogsExporter) LogsExporterBuilder.fromConfig(config);
+    OtlpLogsExporter exporter =
+        (OtlpLogsExporter) LogsExporterBuilder.fromConfig(config, Resource.empty());
     String endpoint = exporter.getEndpoint();
     assertEquals("localhost:4317", endpoint);
     assertNotNull(exporter.getAdapter());
@@ -41,7 +43,8 @@ class LogsExporterBuilderTest {
     Config config = mock(Config.class);
     when(config.getString(Configuration.CONFIG_KEY_INGEST_URL))
         .thenReturn("http://example.com:9122/");
-    OtlpLogsExporter exporter = (OtlpLogsExporter) LogsExporterBuilder.fromConfig(config);
+    OtlpLogsExporter exporter =
+        (OtlpLogsExporter) LogsExporterBuilder.fromConfig(config, Resource.empty());
     String endpoint = exporter.getEndpoint();
     assertEquals("example.com:9122", endpoint);
     assertNotNull(exporter.getAdapter());
@@ -52,7 +55,8 @@ class LogsExporterBuilderTest {
     Config config = mock(Config.class);
     when(config.getString(Configuration.CONFIG_KEY_OTEL_OTLP_URL))
         .thenReturn("http://mycollector.com:4312/");
-    OtlpLogsExporter exporter = (OtlpLogsExporter) LogsExporterBuilder.fromConfig(config);
+    OtlpLogsExporter exporter =
+        (OtlpLogsExporter) LogsExporterBuilder.fromConfig(config, Resource.empty());
     String endpoint = exporter.getEndpoint();
     assertEquals("mycollector.com:4312", endpoint);
     assertNotNull(exporter.getAdapter());

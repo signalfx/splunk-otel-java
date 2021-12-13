@@ -16,14 +16,9 @@
 
 package com.splunk.opentelemetry.logs;
 
-import static java.time.temporal.ChronoUnit.HOURS;
-import static java.time.temporal.ChronoUnit.MINUTES;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static java.util.Collections.emptyList;
 
 import io.github.netmikey.logunit.api.LogCapturer;
-import java.time.Clock;
-import java.time.Instant;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
@@ -32,20 +27,9 @@ class OtlpLogsExporterTest {
   @RegisterExtension LogCapturer log = LogCapturer.create().captureForType(OtlpLogsExporter.class);
 
   @Test
-  void oncePerHourLogging_debugDisabled() {
-    Clock clock = mock(Clock.class);
-    Instant firstTime = Instant.now();
-    Instant secondTime = firstTime.plus(45, MINUTES);
-    Instant thirdTime = firstTime.plus(1, HOURS);
-    when(clock.instant()).thenReturn(firstTime, secondTime, thirdTime);
-
-    OtlpLogsExporter.OncePerHourLogger perHour = new OtlpLogsExporter.OncePerHourLogger(clock);
-    perHour.log("test1", null);
-    perHour.log("test2", null); // should skip
-    perHour.log("test3", null); // should register
-
-    log.assertContains("test1");
-    log.assertDoesNotContain("test2");
-    log.assertContains("test3");
+  void exportLogs() {
+    OtlpLogsExporter.ResponseHandler handler = new OtlpLogsExporter.ResponseHandler(emptyList());
+    handler.onFailure(new RuntimeException("kaboom"));
+    log.assertContains("failed to export logs");
   }
 }

@@ -26,11 +26,7 @@ import io.opentelemetry.proto.collector.logs.v1.ExportLogsServiceResponse;
 import io.opentelemetry.proto.collector.logs.v1.LogsServiceGrpc;
 import io.opentelemetry.proto.logs.v1.ResourceLogs;
 import io.opentelemetry.sdk.logs.data.LogData;
-import java.time.Clock;
-import java.time.Duration;
-import java.time.Instant;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicReference;
 import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,7 +36,6 @@ public class OtlpLogsExporter implements LogsExporter {
 
   private final ResourceLogsAdapter adapter;
   private final LogsServiceGrpc.LogsServiceFutureStub client;
-  private final OncePerHourLogger errorLogger = new OncePerHourLogger();
 
   public OtlpLogsExporter(
       LogsServiceGrpc.LogsServiceFutureStub client, ResourceLogsAdapter adapter) {
@@ -54,7 +49,7 @@ public class OtlpLogsExporter implements LogsExporter {
     ExportLogsServiceRequest request =
         ExportLogsServiceRequest.newBuilder().addResourceLogs(resourceLogs).build();
 
-    ResponseHandler responseHandler = new ResponseHandler(logs, errorLogger);
+    ResponseHandler responseHandler = new ResponseHandler(logs);
     Futures.addCallback(client.export(request), responseHandler, directExecutor());
   }
 
@@ -70,14 +65,13 @@ public class OtlpLogsExporter implements LogsExporter {
     return new OtlpLogsExporterBuilder();
   }
 
-  private static class ResponseHandler implements FutureCallback<ExportLogsServiceResponse> {
+  @VisibleForTesting
+  static class ResponseHandler implements FutureCallback<ExportLogsServiceResponse> {
 
     private final List<LogData> logs;
-    private final OncePerHourLogger errorLogger;
 
-    public ResponseHandler(List<LogData> logs, OncePerHourLogger errorLogger) {
+    public ResponseHandler(List<LogData> logs) {
       this.logs = logs;
-      this.errorLogger = errorLogger;
     }
 
     @Override
@@ -87,31 +81,7 @@ public class OtlpLogsExporter implements LogsExporter {
 
     @Override
     public void onFailure(Throwable th) {
-      errorLogger.log("Splunk profiling agent failed to export logs", th);
-    }
-  }
-
-  @VisibleForTesting
-  static class OncePerHourLogger {
-    private final AtomicReference<Instant> lastErrorTime = new AtomicReference<>(Instant.EPOCH);
-    private final Clock clock;
-
-    OncePerHourLogger() {
-      this(Clock.systemUTC());
-    }
-
-    OncePerHourLogger(Clock clock) {
-      this.clock = clock;
-    }
-
-    public void log(String message, Throwable th) {
-      Instant now = clock.instant();
-      if (Duration.between(lastErrorTime.get(), now).toHours() > 0) {
-        lastErrorTime.set(now);
-        logger.error(message, th);
-      } else {
-        logger.debug(message, th);
-      }
+      logger.warn("Splunk profiling agent failed to export logs", th);
     }
   }
 }

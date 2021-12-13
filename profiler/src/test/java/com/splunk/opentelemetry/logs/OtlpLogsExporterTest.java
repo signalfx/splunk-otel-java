@@ -22,8 +22,8 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import io.github.netmikey.logunit.api.LogCapturer;
+import java.time.Clock;
 import java.time.Instant;
-import java.util.function.Supplier;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
@@ -33,11 +33,11 @@ class OtlpLogsExporterTest {
 
   @Test
   void oncePerHourLogging_debugDisabled() {
-    Supplier<Instant> clock = mock(Supplier.class);
+    Clock clock = mock(Clock.class);
     Instant firstTime = Instant.now();
     Instant secondTime = firstTime.plus(45, MINUTES);
     Instant thirdTime = firstTime.plus(1, HOURS);
-    when(clock.get()).thenReturn(firstTime, secondTime, thirdTime);
+    when(clock.instant()).thenReturn(firstTime, secondTime, thirdTime);
 
     OtlpLogsExporter.OncePerHourLogger perHour = new OtlpLogsExporter.OncePerHourLogger(clock);
     perHour.log("test1", null);

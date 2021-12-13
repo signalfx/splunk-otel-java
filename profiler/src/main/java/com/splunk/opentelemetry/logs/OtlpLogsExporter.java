@@ -26,11 +26,11 @@ import io.opentelemetry.proto.collector.logs.v1.ExportLogsServiceResponse;
 import io.opentelemetry.proto.collector.logs.v1.LogsServiceGrpc;
 import io.opentelemetry.proto.logs.v1.ResourceLogs;
 import io.opentelemetry.sdk.logs.data.LogData;
+import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Supplier;
 import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -94,18 +94,18 @@ public class OtlpLogsExporter implements LogsExporter {
   @VisibleForTesting
   static class OncePerHourLogger {
     private final AtomicReference<Instant> lastErrorTime = new AtomicReference<>(Instant.EPOCH);
-    private final Supplier<Instant> clock;
+    private final Clock clock;
 
     OncePerHourLogger() {
-      this(Instant::now);
+      this(Clock.systemUTC());
     }
 
-    OncePerHourLogger(Supplier<Instant> clock) {
+    OncePerHourLogger(Clock clock) {
       this.clock = clock;
     }
 
     public void log(String message, Throwable th) {
-      Instant now = clock.get();
+      Instant now = clock.instant();
       if (Duration.between(lastErrorTime.get(), now).toHours() > 0) {
         lastErrorTime.set(now);
         logger.error(message, th);

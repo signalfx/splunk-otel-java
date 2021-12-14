@@ -18,6 +18,7 @@ package com.splunk.opentelemetry.logs;
 
 import static com.google.common.util.concurrent.MoreExecutors.directExecutor;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import io.opentelemetry.proto.collector.logs.v1.ExportLogsServiceRequest;
@@ -64,7 +65,8 @@ public class OtlpLogsExporter implements LogsExporter {
     return new OtlpLogsExporterBuilder();
   }
 
-  private static class ResponseHandler implements FutureCallback<ExportLogsServiceResponse> {
+  @VisibleForTesting
+  static class ResponseHandler implements FutureCallback<ExportLogsServiceResponse> {
 
     private final List<LogData> logs;
 
@@ -79,7 +81,7 @@ public class OtlpLogsExporter implements LogsExporter {
 
     @Override
     public void onFailure(Throwable th) {
-      logger.debug("Failed to export logs", th);
+      logger.warn("Splunk profiling agent failed to export logs", th);
     }
   }
 }

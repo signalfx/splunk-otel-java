@@ -26,6 +26,7 @@ import java.util.Map;
 public class Configuration implements ConfigPropertySource {
 
   private static final String DEFAULT_RECORDING_DURATION = "20s";
+  public static final boolean DEFAULT_MEMORY_ENABLED = false;
 
   public static final String CONFIG_KEY_ENABLE_PROFILER = "splunk.profiler.enabled";
   public static final String CONFIG_KEY_PROFILER_DIRECTORY = "splunk.profiler.directory";
@@ -34,6 +35,7 @@ public class Configuration implements ConfigPropertySource {
   public static final String CONFIG_KEY_INGEST_URL = "splunk.profiler.logs-endpoint";
   public static final String CONFIG_KEY_OTEL_OTLP_URL = "otel.exporter.otlp.endpoint";
   public static final String CONFIG_KEY_PERIOD_PREFIX = "splunk.profiler.period";
+  public static final String CONFIG_KEY_MEMORY_ENABLED = "splunk.profiler.memory.enabled";
   public static final String CONFIG_KEY_TLAB_ENABLED = "splunk.profiler.tlab.enabled";
   public static final String CONFIG_KEY_INCLUDE_AGENT_INTERNALS =
       "splunk.profiler.include.agent.internals";
@@ -48,15 +50,17 @@ public class Configuration implements ConfigPropertySource {
     config.put(CONFIG_KEY_PROFILER_DIRECTORY, ".");
     config.put(CONFIG_KEY_RECORDING_DURATION, DEFAULT_RECORDING_DURATION);
     config.put(CONFIG_KEY_KEEP_FILES, "false");
-    config.put(CONFIG_KEY_TLAB_ENABLED, "false");
+    config.put(CONFIG_KEY_MEMORY_ENABLED, String.valueOf(DEFAULT_MEMORY_ENABLED));
     return config;
   }
 
   public static String getConfigUrl(Config config) {
-    String ingestUrl = config.getString(CONFIG_KEY_INGEST_URL);
-    if (ingestUrl == null) {
-      return config.getString(CONFIG_KEY_OTEL_OTLP_URL);
-    }
-    return ingestUrl;
+    String ingestUrl = config.getString(CONFIG_KEY_OTEL_OTLP_URL, null);
+    return config.getString(CONFIG_KEY_INGEST_URL, ingestUrl);
+  }
+
+  public static boolean getTLABEnabled(Config config) {
+    boolean memoryEnabled = config.getBoolean(CONFIG_KEY_MEMORY_ENABLED, DEFAULT_MEMORY_ENABLED);
+    return config.getBoolean(CONFIG_KEY_TLAB_ENABLED, memoryEnabled);
   }
 }

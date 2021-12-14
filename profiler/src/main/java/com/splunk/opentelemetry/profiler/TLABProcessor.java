@@ -16,7 +16,6 @@
 
 package com.splunk.opentelemetry.profiler;
 
-import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_TLAB_ENABLED;
 import static com.splunk.opentelemetry.profiler.LogDataCreator.PROFILING_SOURCE;
 import static com.splunk.opentelemetry.profiler.LogsExporterBuilder.INSTRUMENTATION_LIBRARY_INFO;
 
@@ -89,7 +88,7 @@ public class TLABProcessor implements Consumer<RecordedEvent> {
   }
 
   static Builder builder(Config config) {
-    boolean enabled = config.getBoolean(CONFIG_KEY_TLAB_ENABLED, false);
+    boolean enabled = Configuration.getTLABEnabled(config);
     return new Builder(enabled);
   }
 

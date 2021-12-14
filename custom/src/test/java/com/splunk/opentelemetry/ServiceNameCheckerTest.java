@@ -21,6 +21,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 
 import io.opentelemetry.instrumentation.api.config.Config;
+import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 import java.util.Map;
 import java.util.function.Consumer;
 import org.junit.jupiter.api.Test;
@@ -31,6 +32,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class ServiceNameCheckerTest {
   @Mock Consumer<String> logWarn;
+  @Mock AutoConfiguredOpenTelemetrySdk autoConfiguredSdk;
 
   @Test
   void shouldLogWarnWhenNeitherServiceNameNorResourceAttributeIsConfigured() {
@@ -40,7 +42,7 @@ class ServiceNameCheckerTest {
     var underTest = new ServiceNameChecker(logWarn);
 
     // when
-    underTest.beforeAgent(config);
+    underTest.beforeAgent(config, autoConfiguredSdk);
 
     // then
     verify(logWarn).accept(anyString());
@@ -54,7 +56,7 @@ class ServiceNameCheckerTest {
     var underTest = new ServiceNameChecker(logWarn);
 
     // when
-    underTest.beforeAgent(config);
+    underTest.beforeAgent(config, autoConfiguredSdk);
 
     // then
     verifyNoInteractions(logWarn);
@@ -71,7 +73,7 @@ class ServiceNameCheckerTest {
     var underTest = new ServiceNameChecker(logWarn);
 
     // when
-    underTest.beforeAgent(config);
+    underTest.beforeAgent(config, autoConfiguredSdk);
 
     // then
     verifyNoInteractions(logWarn);

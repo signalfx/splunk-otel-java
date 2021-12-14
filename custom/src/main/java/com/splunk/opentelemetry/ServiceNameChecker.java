@@ -19,6 +19,7 @@ package com.splunk.opentelemetry;
 import com.google.auto.service.AutoService;
 import io.opentelemetry.instrumentation.api.config.Config;
 import io.opentelemetry.javaagent.extension.AgentListener;
+import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 import io.opentelemetry.semconv.resource.attributes.ResourceAttributes;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -31,6 +32,7 @@ public class ServiceNameChecker implements AgentListener {
 
   private final Consumer<String> logWarn;
 
+  @SuppressWarnings("unused")
   public ServiceNameChecker() {
     this(log::warn);
   }
@@ -41,7 +43,8 @@ public class ServiceNameChecker implements AgentListener {
   }
 
   @Override
-  public void beforeAgent(Config config) {
+  public void beforeAgent(
+      Config config, AutoConfiguredOpenTelemetrySdk autoConfiguredOpenTelemetrySdk) {
     if (serviceNameNotConfigured(config)) {
       logWarn.accept(
           "Resource attribute 'service.name' is not set: your service is unnamed and will be difficult to identify."

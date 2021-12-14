@@ -41,24 +41,14 @@ class LogsExporterBuilderTest {
   @Test
   void testCustomEndpoint() {
     Config config = mock(Config.class);
-    when(config.getString(Configuration.CONFIG_KEY_INGEST_URL))
+    when(config.getString(Configuration.CONFIG_KEY_OTEL_OTLP_URL, null))
+        .thenReturn("http://shadowed.example.com:9122/");
+    when(config.getString(Configuration.CONFIG_KEY_INGEST_URL, "http://shadowed.example.com:9122/"))
         .thenReturn("http://example.com:9122/");
     OtlpLogsExporter exporter =
         (OtlpLogsExporter) LogsExporterBuilder.fromConfig(config, Resource.empty());
     String endpoint = exporter.getEndpoint();
     assertEquals("example.com:9122", endpoint);
-    assertNotNull(exporter.getAdapter());
-  }
-
-  @Test
-  void defaultEndpoint() {
-    Config config = mock(Config.class);
-    when(config.getString(Configuration.CONFIG_KEY_OTEL_OTLP_URL))
-        .thenReturn("http://mycollector.com:4312/");
-    OtlpLogsExporter exporter =
-        (OtlpLogsExporter) LogsExporterBuilder.fromConfig(config, Resource.empty());
-    String endpoint = exporter.getEndpoint();
-    assertEquals("mycollector.com:4312", endpoint);
     assertNotNull(exporter.getAdapter());
   }
 }

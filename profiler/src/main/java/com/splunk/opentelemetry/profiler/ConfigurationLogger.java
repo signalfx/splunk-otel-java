@@ -25,6 +25,7 @@ import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_PERIOD_
 import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_PROFILER_DIRECTORY;
 import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_RECORDING_DURATION;
 import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_TLAB_ENABLED;
+import static com.splunk.opentelemetry.profiler.Configuration.DEFAULT_MEMORY_ENABLED;
 
 import io.opentelemetry.instrumentation.api.config.Config;
 import java.util.function.Function;
@@ -44,8 +45,8 @@ public class ConfigurationLogger {
     log(CONFIG_KEY_RECORDING_DURATION, config::getString);
     log(CONFIG_KEY_KEEP_FILES, config::getBoolean);
     log(CONFIG_KEY_INGEST_URL, (it) -> Configuration.getConfigUrl(config));
-    log(CONFIG_KEY_OTEL_OTLP_URL, config::getString);
-    log(CONFIG_KEY_MEMORY_ENABLED, config::getBoolean);
+    log(CONFIG_KEY_OTEL_OTLP_URL, (it) -> config.getString(it, null));
+    log(CONFIG_KEY_MEMORY_ENABLED, (it) -> config.getBoolean(it, DEFAULT_MEMORY_ENABLED));
     log(CONFIG_KEY_TLAB_ENABLED, (it) -> Configuration.getTLABEnabled(config));
     log(CONFIG_KEY_PERIOD_PREFIX + "." + "threaddump", config::getDuration);
     logger.info("-----------------------");

@@ -54,7 +54,8 @@ class RelevantEventsTest {
   @Test
   void testTlabEnabled() {
     Config config = mock(Config.class);
-    when(config.getBoolean(Configuration.CONFIG_KEY_TLAB_ENABLED)).thenReturn(true);
+    when(config.getBoolean(Configuration.CONFIG_KEY_TLAB_ENABLED, Configuration.DEFAULT_MEMORY_ENABLED))
+        .thenReturn(true);
     RelevantEvents relevantEvents = RelevantEvents.create(config);
     assertTrue(relevantEvents.isRelevant(threadDump));
     assertTrue(relevantEvents.isRelevant(tlab));
@@ -63,7 +64,8 @@ class RelevantEventsTest {
   @Test
   void testTlabNotEnabled() {
     Config config = mock(Config.class);
-    when(config.getBoolean(Configuration.CONFIG_KEY_TLAB_ENABLED)).thenReturn(false);
+    when(config.getBoolean(Configuration.CONFIG_KEY_TLAB_ENABLED, Configuration.DEFAULT_MEMORY_ENABLED))
+        .thenReturn(false);
     RelevantEvents relevantEvents = RelevantEvents.create(config);
     assertTrue(relevantEvents.isRelevant(threadDump));
     assertFalse(relevantEvents.isRelevant(tlab));

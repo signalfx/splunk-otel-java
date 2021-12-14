@@ -25,6 +25,7 @@ import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_PERIOD_
 import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_PROFILER_DIRECTORY;
 import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_RECORDING_DURATION;
 import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_TLAB_ENABLED;
+import static com.splunk.opentelemetry.profiler.Configuration.DEFAULT_MEMORY_ENABLED;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -47,10 +48,10 @@ class ConfigurationLoggerTest {
     when(config.getString(CONFIG_KEY_PROFILER_DIRECTORY)).thenReturn("somedir");
     when(config.getString(CONFIG_KEY_RECORDING_DURATION)).thenReturn("33m");
     when(config.getBoolean(CONFIG_KEY_KEEP_FILES)).thenReturn(true);
-    when(config.getString(CONFIG_KEY_INGEST_URL)).thenReturn("http://example.com");
-    when(config.getString(CONFIG_KEY_OTEL_OTLP_URL)).thenReturn("http://otel.example.com");
-    when(config.getBoolean(CONFIG_KEY_MEMORY_ENABLED)).thenReturn(false);
-    when(config.getBoolean(CONFIG_KEY_TLAB_ENABLED)).thenReturn(false);
+    when(config.getString(CONFIG_KEY_OTEL_OTLP_URL, null)).thenReturn("http://otel.example.com");
+    when(config.getString(CONFIG_KEY_INGEST_URL, "http://otel.example.com")).thenReturn("http://example.com");
+    when(config.getBoolean(CONFIG_KEY_MEMORY_ENABLED, DEFAULT_MEMORY_ENABLED)).thenReturn(false);
+    when(config.getBoolean(CONFIG_KEY_TLAB_ENABLED, false)).thenReturn(true);
     when(config.getDuration(CONFIG_KEY_PERIOD_PREFIX + ".threaddump"))
         .thenReturn(Duration.ofMillis(500));
 
@@ -67,7 +68,7 @@ class ConfigurationLoggerTest {
     log.assertContains("          splunk.profiler.logs-endpoint : http://example.com");
     log.assertContains("            otel.exporter.otlp.endpoint : http://otel.example.com");
     log.assertContains("         splunk.profiler.memory.enabled : false");
-    log.assertContains("           splunk.profiler.tlab.enabled : false");
+    log.assertContains("           splunk.profiler.tlab.enabled : true");
     log.assertContains("      splunk.profiler.period.threaddump : PT0.5S");
   }
 
@@ -75,11 +76,11 @@ class ConfigurationLoggerTest {
   void testLogInheritDefaultValues() {
     Config config = mock(Config.class);
 
-    when(config.getString(CONFIG_KEY_INGEST_URL)).thenReturn(null);
-    when(config.getString(CONFIG_KEY_OTEL_OTLP_URL)).thenReturn("http://otel.example.com");
-    when(config.getBoolean(CONFIG_KEY_MEMORY_ENABLED)).thenReturn(true);
-    when(config.getBoolean(CONFIG_KEY_MEMORY_ENABLED, false)).thenReturn(true);
-    when(config.getBoolean(CONFIG_KEY_TLAB_ENABLED)).thenReturn(null);
+    String inheritedUrl = "http://otel.example.com";
+    when(config.getString(CONFIG_KEY_OTEL_OTLP_URL, null)).thenReturn(inheritedUrl);
+    when(config.getString(CONFIG_KEY_INGEST_URL, inheritedUrl)).thenReturn(inheritedUrl);
+    when(config.getBoolean(CONFIG_KEY_MEMORY_ENABLED, DEFAULT_MEMORY_ENABLED)).thenReturn(true);
+    when(config.getBoolean(CONFIG_KEY_TLAB_ENABLED, true)).thenReturn(false);
 
     ConfigurationLogger configurationLogger = new ConfigurationLogger();
 
@@ -88,6 +89,6 @@ class ConfigurationLoggerTest {
     log.assertContains("          splunk.profiler.logs-endpoint : http://otel.example.com");
     log.assertContains("            otel.exporter.otlp.endpoint : http://otel.example.com");
     log.assertContains("         splunk.profiler.memory.enabled : true");
-    log.assertContains("           splunk.profiler.tlab.enabled : true");
+    log.assertContains("           splunk.profiler.tlab.enabled : false");
   }
 }

@@ -17,6 +17,7 @@
 package com.splunk.opentelemetry.profiler;
 
 import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_TLAB_ENABLED;
+import static com.splunk.opentelemetry.profiler.Configuration.DEFAULT_MEMORY_ENABLED;
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.SOURCE_EVENT_NAME;
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.SOURCE_TYPE;
 import static com.splunk.opentelemetry.profiler.TLABProcessor.ALLOCATION_SIZE_KEY;
@@ -59,7 +60,7 @@ class TLABProcessorTest {
     when(event.getStackTrace()).thenReturn(null); // just to be explicit
 
     Config config = mock(Config.class);
-    when(config.getBoolean(CONFIG_KEY_TLAB_ENABLED, false)).thenReturn(true);
+    when(config.getBoolean(CONFIG_KEY_TLAB_ENABLED, DEFAULT_MEMORY_ENABLED)).thenReturn(true);
 
     TLABProcessor processor = TLABProcessor.builder(config).build();
     processor.accept(event);
@@ -80,7 +81,7 @@ class TLABProcessorTest {
             });
 
     Config config = mock(Config.class);
-    when(config.getBoolean(CONFIG_KEY_TLAB_ENABLED, false)).thenReturn(false);
+    when(config.getBoolean(CONFIG_KEY_TLAB_ENABLED, DEFAULT_MEMORY_ENABLED)).thenReturn(false);
 
     TLABProcessor processor = TLABProcessor.builder(config).build();
     processor.accept(event);
@@ -119,7 +120,7 @@ class TLABProcessorTest {
     when(serializer.serialize(stack)).thenReturn(stackAsString);
 
     Config config = mock(Config.class);
-    when(config.getBoolean(CONFIG_KEY_TLAB_ENABLED, false)).thenReturn(true);
+    when(config.getBoolean(CONFIG_KEY_TLAB_ENABLED, DEFAULT_MEMORY_ENABLED)).thenReturn(true);
 
     TLABProcessor processor =
         TLABProcessor.builder(config)

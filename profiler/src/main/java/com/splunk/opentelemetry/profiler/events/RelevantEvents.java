@@ -36,7 +36,7 @@ public class RelevantEvents {
   public static RelevantEvents create(Config config) {
     Set<String> eventNames =
         new HashSet<>(Arrays.asList(ThreadDumpProcessor.EVENT_NAME, ContextAttached.EVENT_NAME));
-    if (config.getBoolean(Configuration.CONFIG_KEY_TLAB_ENABLED, false)) {
+    if (Configuration.getTLABEnabled(config)) {
       eventNames.add(TLABProcessor.NEW_TLAB_EVENT_NAME);
       eventNames.add(TLABProcessor.OUTSIDE_TLAB_EVENT_NAME);
     }

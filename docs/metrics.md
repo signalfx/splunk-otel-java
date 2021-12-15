@@ -107,12 +107,12 @@ to register JVM measurements.
 
 | Metric name                            | Description |
 | -------------------------------------- | ----------- |
-| `runtime.jvm.gc.concurrent.phase.time` | Time spent in concurrent phase (in ms).
+| `runtime.jvm.gc.concurrent.phase.time` | Time spent in concurrent phase (in milliseconds).
 | `runtime.jvm.gc.live.data.size`        | Size of long-lived heap memory pool after reclamation (in bytes).
 | `runtime.jvm.gc.max.data.size`         | Max size of long-lived heap memory pool (in bytes).
 | `runtime.jvm.gc.memory.allocated`      | Incremented for an increase in the size of the (young) heap memory pool after one GC to before the next.
 | `runtime.jvm.gc.memory.promoted`       | Count of positive increases in the size of the old generation memory pool before GC to after GC.
-| `runtime.jvm.gc.pause`                 | Time spent in GC pause (in ms).
+| `runtime.jvm.gc.pause`                 | Time spent in GC pause (in milliseconds).
 
 #### Memory metrics
 

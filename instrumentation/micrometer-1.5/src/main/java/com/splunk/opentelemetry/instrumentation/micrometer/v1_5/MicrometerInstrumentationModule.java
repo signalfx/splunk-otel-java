@@ -30,7 +30,7 @@ import net.bytebuddy.matcher.ElementMatcher;
 public class MicrometerInstrumentationModule extends MetricsInstrumentationModule {
 
   public MicrometerInstrumentationModule() {
-    super("micrometer", "micrometer-1.5");
+    super("micrometer-splunk", "micrometer-1.5-splunk");
   }
 
   @Override

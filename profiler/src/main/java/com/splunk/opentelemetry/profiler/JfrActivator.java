@@ -77,7 +77,8 @@ public class JfrActivator implements AgentListener {
   }
 
   private void activateJfrAndRunForever(Config config, Resource resource) {
-    Duration recordingDuration = config.getDuration(CONFIG_KEY_RECORDING_DURATION);
+    // can't be null, default value is set in Configuration.getProperties
+    Duration recordingDuration = config.getDuration(CONFIG_KEY_RECORDING_DURATION, null);
 
     Path outputDir = Paths.get(config.getString(CONFIG_KEY_PROFILER_DIRECTORY));
     RecordingFileNamingConvention namingConvention = new RecordingFileNamingConvention(outputDir);
@@ -194,6 +195,6 @@ public class JfrActivator implements AgentListener {
   }
 
   private boolean keepFiles(Config config) {
-    return config.getBoolean(CONFIG_KEY_KEEP_FILES);
+    return config.getBoolean(CONFIG_KEY_KEEP_FILES, false);
   }
 }

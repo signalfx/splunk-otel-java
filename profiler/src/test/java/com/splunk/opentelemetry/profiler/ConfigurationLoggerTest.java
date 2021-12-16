@@ -44,16 +44,16 @@ class ConfigurationLoggerTest {
   void testLog() {
     Config config = mock(Config.class);
 
-    when(config.getBoolean(CONFIG_KEY_ENABLE_PROFILER)).thenReturn(true);
+    when(config.getBoolean(CONFIG_KEY_ENABLE_PROFILER, false)).thenReturn(true);
     when(config.getString(CONFIG_KEY_PROFILER_DIRECTORY)).thenReturn("somedir");
     when(config.getString(CONFIG_KEY_RECORDING_DURATION)).thenReturn("33m");
-    when(config.getBoolean(CONFIG_KEY_KEEP_FILES)).thenReturn(true);
+    when(config.getBoolean(CONFIG_KEY_KEEP_FILES, false)).thenReturn(true);
     when(config.getString(CONFIG_KEY_OTEL_OTLP_URL, null)).thenReturn("http://otel.example.com");
     when(config.getString(CONFIG_KEY_INGEST_URL, "http://otel.example.com"))
         .thenReturn("http://example.com");
     when(config.getBoolean(CONFIG_KEY_MEMORY_ENABLED, DEFAULT_MEMORY_ENABLED)).thenReturn(false);
     when(config.getBoolean(CONFIG_KEY_TLAB_ENABLED, false)).thenReturn(true);
-    when(config.getDuration(CONFIG_KEY_PERIOD_PREFIX + ".threaddump"))
+    when(config.getDuration(CONFIG_KEY_PERIOD_PREFIX + ".threaddump", null))
         .thenReturn(Duration.ofMillis(500));
 
     ConfigurationLogger configurationLogger = new ConfigurationLogger();

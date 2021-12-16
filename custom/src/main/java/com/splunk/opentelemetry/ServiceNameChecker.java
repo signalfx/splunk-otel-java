@@ -16,6 +16,8 @@
 
 package com.splunk.opentelemetry;
 
+import static java.util.Collections.emptyMap;
+
 import com.google.auto.service.AutoService;
 import io.opentelemetry.instrumentation.api.config.Config;
 import io.opentelemetry.javaagent.extension.AgentListener;
@@ -62,7 +64,7 @@ public class ServiceNameChecker implements AgentListener {
 
   private static boolean serviceNameNotConfigured(Config config) {
     String serviceName = config.getString("otel.service.name");
-    Map<String, String> resourceAttributes = config.getMap("otel.resource.attributes");
+    Map<String, String> resourceAttributes = config.getMap("otel.resource.attributes", emptyMap());
     return serviceName == null
         && !resourceAttributes.containsKey(ResourceAttributes.SERVICE_NAME.getKey());
   }

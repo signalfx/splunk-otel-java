@@ -40,15 +40,15 @@ public class ConfigurationLogger {
   public void log(Config config) {
     logger.info("-----------------------");
     logger.info("Profiler configuration:");
-    log(CONFIG_KEY_ENABLE_PROFILER, config::getBoolean);
+    log(CONFIG_KEY_ENABLE_PROFILER, (it) -> config.getBoolean(it, false));
     log(CONFIG_KEY_PROFILER_DIRECTORY, config::getString);
     log(CONFIG_KEY_RECORDING_DURATION, config::getString);
-    log(CONFIG_KEY_KEEP_FILES, config::getBoolean);
+    log(CONFIG_KEY_KEEP_FILES, (it) -> config.getBoolean(it, false));
     log(CONFIG_KEY_INGEST_URL, (it) -> Configuration.getConfigUrl(config));
     log(CONFIG_KEY_OTEL_OTLP_URL, (it) -> config.getString(it, null));
     log(CONFIG_KEY_MEMORY_ENABLED, (it) -> config.getBoolean(it, DEFAULT_MEMORY_ENABLED));
     log(CONFIG_KEY_TLAB_ENABLED, (it) -> Configuration.getTLABEnabled(config));
-    log(CONFIG_KEY_PERIOD_PREFIX + "." + "threaddump", config::getDuration);
+    log(CONFIG_KEY_PERIOD_PREFIX + "." + "threaddump", (it) -> config.getDuration(it, null));
     logger.info("-----------------------");
   }
 

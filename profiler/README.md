@@ -41,17 +41,18 @@ property or as environment variables (by making them uppercase and replacing dot
 
 > We strongly recommend using defaults for the following settings.
 
-| Setting                                     | Default                | Description                               |
+| Setting                                  | Default                | Description                               |
 |------------------------------------------|------------------------|-------------------------------------------|
 |`splunk.profiler.enabled`                 | false                  | set to true to enable the profiler        |
 |`splunk.profiler.directory`               | "."                    | location of jfr files                     |
 |`splunk.profiler.recording.duration`      | 20s                    | recording unit duration                   |
 |`splunk.profiler.keep-files`              | false                  | leave JFR files on disk id `true`         |
 |`splunk.profiler.logs-endpoint`           | `otel.exporter.otlp.endpoint` or http://localhost:4317  | where to send OTLP logs                   |
-|`splunk.profiler.period.{eventName}`      | n/a                    | customize period (in ms) for a specific jfr event. For example, to set the ThreadDump frequency to 1s (1000ms): `-Dsplunk.profiler.period.threaddump=1000` |
+|`splunk.profiler.call.stack.interval`     | 10000ms                | how often to sample call stacks           |
 |`splunk.profiler.memory.enabled`          | false                  | set to `true` to enable all other memory profiling options unless explicitly disabled |
 |`splunk.profiler.tlab.enabled`            | `splunk.profiler.memory.enabled` | set to `true` to enable TLAB events even if `splunk.profiler.memory.enabled` is `false` |
 |`splunk.profiler.include.agent.internals` | false                  | set to `true` to include agent internal call stacks |
+|`splunk.profiler.period.{eventName}`      | n/a                    | DEPRECATED. Use `splunk.profiler.call.stack.interval` instead.
 
 # Escape hatch
 

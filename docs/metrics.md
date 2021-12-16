@@ -107,20 +107,20 @@ to register JVM measurements.
 
 | Metric name                            | Description |
 | -------------------------------------- | ----------- |
-| `runtime.jvm.gc.concurrent.phase.time` | Time spent in concurrent phase.
-| `runtime.jvm.gc.live.data.size`        | Size of long-lived heap memory pool after reclamation.
-| `runtime.jvm.gc.max.data.size`         | Max size of long-lived heap memory pool.
+| `runtime.jvm.gc.concurrent.phase.time` | Time spent in concurrent phase (in milliseconds).
+| `runtime.jvm.gc.live.data.size`        | Size of long-lived heap memory pool after reclamation (in bytes).
+| `runtime.jvm.gc.max.data.size`         | Max size of long-lived heap memory pool (in bytes).
 | `runtime.jvm.gc.memory.allocated`      | Incremented for an increase in the size of the (young) heap memory pool after one GC to before the next.
 | `runtime.jvm.gc.memory.promoted`       | Count of positive increases in the size of the old generation memory pool before GC to after GC.
-| `runtime.jvm.gc.pause`                 | Time spent in GC pause.
+| `runtime.jvm.gc.pause`                 | Time spent in GC pause (in milliseconds).
 
 #### Memory metrics
 
 | Metric name                    | Description |
 | ------------------------------ | ----------- |
-| `runtime.jvm.memory.committed` | The amount of memory in bytes that is committed for the Java virtual machine to use.
-| `runtime.jvm.memory.max`       | The maximum amount of memory in bytes that can be used for memory management.
-| `runtime.jvm.memory.used`      | The amount of used memory.
+| `runtime.jvm.memory.committed` | The amount of memory that is committed for the Java virtual machine to use (in bytes).
+| `runtime.jvm.memory.max`       | The maximum amount of memory that can be used for memory management (in bytes).
+| `runtime.jvm.memory.used`      | The amount of used memory (in bytes).
 
 All memory pool metrics have the following tags:
 

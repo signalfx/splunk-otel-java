@@ -16,16 +16,31 @@
 
 package com.splunk.opentelemetry.instrumentation.khttp;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Map;
 
 public class RequestWrapper {
   final String method;
   final String uri;
   final Map<String, String> headers;
+  final URI parsedUri;
 
   public RequestWrapper(String method, String uri, Map<String, String> headers) {
     this.method = method;
     this.uri = uri;
     this.headers = headers;
+    this.parsedUri = parseUri(uri);
+  }
+
+  private static URI parseUri(String uri) {
+    if (uri == null) {
+      return null;
+    }
+    try {
+      return new URI(uri);
+    } catch (URISyntaxException e) {
+      return null;
+    }
   }
 }

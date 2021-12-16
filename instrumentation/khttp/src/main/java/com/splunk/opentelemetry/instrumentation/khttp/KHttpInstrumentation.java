@@ -16,7 +16,7 @@
 
 package com.splunk.opentelemetry.instrumentation.khttp;
 
-import static com.splunk.opentelemetry.instrumentation.khttp.KHttpTracer.tracer;
+import static com.splunk.opentelemetry.instrumentation.khttp.KHttpSingletons.instrumenter;
 import static io.opentelemetry.javaagent.extension.matcher.AgentElementMatchers.extendsClass;
 import static io.opentelemetry.javaagent.extension.matcher.AgentElementMatchers.hasClassesNamed;
 import static io.opentelemetry.javaagent.instrumentation.api.Java8BytecodeBridge.currentContext;
@@ -31,6 +31,7 @@ import io.opentelemetry.context.Context;
 import io.opentelemetry.context.Scope;
 import io.opentelemetry.javaagent.extension.instrumentation.TypeInstrumentation;
 import io.opentelemetry.javaagent.extension.instrumentation.TypeTransformer;
+import java.util.HashMap;
 import java.util.Map;
 import khttp.responses.Response;
 import net.bytebuddy.asm.Advice;
@@ -68,16 +69,18 @@ public class KHttpInstrumentation implements TypeInstrumentation {
         @Advice.Argument(value = 0) String method,
         @Advice.Argument(value = 1) String uri,
         @Advice.Argument(value = 2, readOnly = false) Map<String, String> headers,
+        @Advice.Local("otelRequest") RequestWrapper request,
         @Advice.Local("otelContext") Context context,
         @Advice.Local("otelScope") Scope scope) {
       Context parentContext = currentContext();
-      if (!tracer().shouldStartSpan(parentContext)) {
+      // Kotlin likes to use read-only data structures, so wrap into new writable map
+      headers = new HashMap<>(headers);
+      request = new RequestWrapper(method, uri, headers);
+      if (!instrumenter().shouldStart(parentContext, request)) {
         return;
       }
 
-      headers = KHttpHeadersInjectAdapter.asWritable(headers);
-      context =
-          tracer().startSpan(parentContext, new RequestWrapper(method, uri, headers), headers);
+      context = instrumenter().start(parentContext, request);
       scope = context.makeCurrent();
     }
 
@@ -85,6 +88,7 @@ public class KHttpInstrumentation implements TypeInstrumentation {
     public static void methodExit(
         @Advice.Return Response response,
         @Advice.Thrown Throwable throwable,
+        @Advice.Local("otelRequest") RequestWrapper request,
         @Advice.Local("otelContext") Context context,
         @Advice.Local("otelScope") Scope scope) {
       if (scope == null) {
@@ -92,7 +96,7 @@ public class KHttpInstrumentation implements TypeInstrumentation {
       }
 
       scope.close();
-      tracer().endMaybeExceptionally(context, response, throwable);
+      instrumenter().end(context, request, response, throwable);
     }
   }
 }

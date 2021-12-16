@@ -16,6 +16,8 @@
 
 package com.splunk.opentelemetry.testing;
 
+import static java.util.Collections.emptyMap;
+
 import com.google.auto.service.AutoService;
 import io.micrometer.core.instrument.Metrics;
 import io.micrometer.core.instrument.Tag;
@@ -33,7 +35,7 @@ public class TestMicrometerInstaller implements AgentListener {
   public void beforeAgent(
       Config config, AutoConfiguredOpenTelemetrySdk autoConfiguredOpenTelemetrySdk) {
     Tags globalMetricsTags =
-        config.getMap("splunk.testing.metrics.global-tags").entrySet().stream()
+        config.getMap("splunk.testing.metrics.global-tags", emptyMap()).entrySet().stream()
             .map(e -> Tag.of(e.getKey(), e.getValue()))
             .reduce(Tags.empty(), Tags::and, Tags::concat);
 

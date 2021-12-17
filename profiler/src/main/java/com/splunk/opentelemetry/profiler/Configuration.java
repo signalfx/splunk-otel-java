@@ -55,7 +55,7 @@ public class Configuration implements ConfigPropertySource {
     config.put(CONFIG_KEY_RECORDING_DURATION, DEFAULT_RECORDING_DURATION);
     config.put(CONFIG_KEY_KEEP_FILES, "false");
     config.put(CONFIG_KEY_MEMORY_ENABLED, String.valueOf(DEFAULT_MEMORY_ENABLED));
-    config.put(CONFIG_KEY_CALL_STACK_INTERVAL, DEFAULT_CALL_STACK_INTERVAL + " ms");
+    config.put(CONFIG_KEY_CALL_STACK_INTERVAL, DEFAULT_CALL_STACK_INTERVAL.toMillis() + " ms");
     return config;
   }
 

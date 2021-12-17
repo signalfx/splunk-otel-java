@@ -88,6 +88,7 @@ extensions.configure<DependencyManagementExtension>("dependencyManagement") {
     mavenBom("io.opentelemetry:opentelemetry-bom-alpha:${otelAlphaVersion}")
     mavenBom("io.opentelemetry:opentelemetry-bom:${otelVersion}")
     mavenBom("org.junit:junit-bom:5.7.2")
+    mavenBom("com.fasterxml.jackson:jackson-bom:2.12.6")
   }
 }
 

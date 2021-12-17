@@ -54,7 +54,14 @@ class JfrSettingsOverrides {
     if (customInterval != Duration.ZERO) {
       return customInterval;
     }
-    return config.getDuration(CONFIG_KEY_DEPRECATED_THREADDUMP_PERIOD, Duration.ZERO);
+    Duration duration = config.getDuration(CONFIG_KEY_DEPRECATED_THREADDUMP_PERIOD, Duration.ZERO);
+    if (duration != Duration.ZERO) {
+      logger.warn(
+          "Using DEPRECATED configuration {}, please switch to {}",
+          CONFIG_KEY_DEPRECATED_THREADDUMP_PERIOD,
+          CONFIG_KEY_CALL_STACK_INTERVAL);
+    }
+    return duration;
   }
 
   private Map<String, String> maybeEnableTLABs(Map<String, String> settings) {

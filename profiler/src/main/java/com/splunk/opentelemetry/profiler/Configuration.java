@@ -19,6 +19,7 @@ package com.splunk.opentelemetry.profiler;
 import com.google.auto.service.AutoService;
 import io.opentelemetry.instrumentation.api.config.Config;
 import io.opentelemetry.javaagent.extension.config.ConfigPropertySource;
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -27,6 +28,7 @@ public class Configuration implements ConfigPropertySource {
 
   private static final String DEFAULT_RECORDING_DURATION = "20s";
   public static final boolean DEFAULT_MEMORY_ENABLED = false;
+  public static final Duration DEFAULT_CALL_STACK_INTERVAL = Duration.ofSeconds(10);
 
   public static final String CONFIG_KEY_ENABLE_PROFILER = "splunk.profiler.enabled";
   public static final String CONFIG_KEY_PROFILER_DIRECTORY = "splunk.profiler.directory";
@@ -34,9 +36,11 @@ public class Configuration implements ConfigPropertySource {
   public static final String CONFIG_KEY_KEEP_FILES = "splunk.profiler.keep-files";
   public static final String CONFIG_KEY_INGEST_URL = "splunk.profiler.logs-endpoint";
   public static final String CONFIG_KEY_OTEL_OTLP_URL = "otel.exporter.otlp.endpoint";
-  public static final String CONFIG_KEY_PERIOD_PREFIX = "splunk.profiler.period";
   public static final String CONFIG_KEY_MEMORY_ENABLED = "splunk.profiler.memory.enabled";
   public static final String CONFIG_KEY_TLAB_ENABLED = "splunk.profiler.tlab.enabled";
+  public static final String CONFIG_KEY_CALL_STACK_INTERVAL = "splunk.profiler.call.stack.interval";
+  public static final String CONFIG_KEY_DEPRECATED_THREADDUMP_PERIOD =
+      "splunk.profiler.period.threaddump";
   public static final String CONFIG_KEY_INCLUDE_AGENT_INTERNALS =
       "splunk.profiler.include.agent.internals";
   // Include stacks where every frame starts with jvm/sun/jdk
@@ -51,6 +55,7 @@ public class Configuration implements ConfigPropertySource {
     config.put(CONFIG_KEY_RECORDING_DURATION, DEFAULT_RECORDING_DURATION);
     config.put(CONFIG_KEY_KEEP_FILES, "false");
     config.put(CONFIG_KEY_MEMORY_ENABLED, String.valueOf(DEFAULT_MEMORY_ENABLED));
+    config.put(CONFIG_KEY_CALL_STACK_INTERVAL, DEFAULT_CALL_STACK_INTERVAL.toMillis() + "ms");
     return config;
   }
 
@@ -62,5 +67,9 @@ public class Configuration implements ConfigPropertySource {
   public static boolean getTLABEnabled(Config config) {
     boolean memoryEnabled = config.getBoolean(CONFIG_KEY_MEMORY_ENABLED, DEFAULT_MEMORY_ENABLED);
     return config.getBoolean(CONFIG_KEY_TLAB_ENABLED, memoryEnabled);
+  }
+
+  public static Duration getCallStackInterval(Config config) {
+    return config.getDuration(CONFIG_KEY_CALL_STACK_INTERVAL, DEFAULT_CALL_STACK_INTERVAL);
   }
 }

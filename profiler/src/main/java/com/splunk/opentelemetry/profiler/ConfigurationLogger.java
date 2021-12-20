@@ -16,12 +16,13 @@
 
 package com.splunk.opentelemetry.profiler;
 
+import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_CALL_STACK_INTERVAL;
+import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_DEPRECATED_THREADDUMP_PERIOD;
 import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_ENABLE_PROFILER;
 import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_INGEST_URL;
 import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_KEEP_FILES;
 import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_MEMORY_ENABLED;
 import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_OTEL_OTLP_URL;
-import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_PERIOD_PREFIX;
 import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_PROFILER_DIRECTORY;
 import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_RECORDING_DURATION;
 import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_TLAB_ENABLED;
@@ -48,7 +49,8 @@ public class ConfigurationLogger {
     log(CONFIG_KEY_OTEL_OTLP_URL, (it) -> config.getString(it, null));
     log(CONFIG_KEY_MEMORY_ENABLED, (it) -> config.getBoolean(it, DEFAULT_MEMORY_ENABLED));
     log(CONFIG_KEY_TLAB_ENABLED, (it) -> Configuration.getTLABEnabled(config));
-    log(CONFIG_KEY_PERIOD_PREFIX + "." + "threaddump", (it) -> config.getDuration(it, null));
+    log(CONFIG_KEY_CALL_STACK_INTERVAL, (it) -> Configuration.getCallStackInterval(config));
+    log(CONFIG_KEY_DEPRECATED_THREADDUMP_PERIOD, (it) -> config.getDuration(it, null));
     logger.info("-----------------------");
   }
 

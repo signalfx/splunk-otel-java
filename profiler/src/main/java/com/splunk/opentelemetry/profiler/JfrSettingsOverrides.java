@@ -16,9 +16,11 @@
 
 package com.splunk.opentelemetry.profiler;
 
-import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_PERIOD_PREFIX;
+import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_CALL_STACK_INTERVAL;
+import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_DEPRECATED_THREADDUMP_PERIOD;
 
 import io.opentelemetry.instrumentation.api.config.Config;
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 import org.slf4j.Logger;
@@ -40,23 +42,26 @@ class JfrSettingsOverrides {
 
   Map<String, String> apply(Map<String, String> jfrSettings) {
     Map<String, String> settings = new HashMap<>(jfrSettings);
-    jfrSettings.keySet().stream()
-        .filter(key -> key.endsWith("#period"))
-        .forEach(
-            key -> {
-              String[] parts = key.split("#");
-              String eventName = parts[0];
-              String shortEventName = eventName.replaceFirst("^jdk.", "");
-              String configKey = CONFIG_KEY_PERIOD_PREFIX + "." + shortEventName.toLowerCase();
-              String customSetting = config.getString(configKey);
-              if (customSetting != null) {
-                String jfrFormattedDuration = customSetting + " ms";
-                logger.info(
-                    "Custom JFR period configured for {} :: {}", eventName, jfrFormattedDuration);
-                settings.put(key, jfrFormattedDuration);
-              }
-            });
+    Duration customInterval = getCustomInterval();
+    if (customInterval != Duration.ZERO) {
+      settings.put("jdk.ThreadDump#period", customInterval.toMillis() + " ms");
+    }
     return maybeEnableTLABs(settings);
+  }
+
+  private Duration getCustomInterval() {
+    Duration customInterval = config.getDuration(CONFIG_KEY_CALL_STACK_INTERVAL, Duration.ZERO);
+    if (customInterval != Duration.ZERO) {
+      return customInterval;
+    }
+    Duration duration = config.getDuration(CONFIG_KEY_DEPRECATED_THREADDUMP_PERIOD, Duration.ZERO);
+    if (duration != Duration.ZERO) {
+      logger.warn(
+          "Using DEPRECATED configuration {}, please switch to {}",
+          CONFIG_KEY_DEPRECATED_THREADDUMP_PERIOD,
+          CONFIG_KEY_CALL_STACK_INTERVAL);
+    }
+    return duration;
   }
 
   private Map<String, String> maybeEnableTLABs(Map<String, String> settings) {

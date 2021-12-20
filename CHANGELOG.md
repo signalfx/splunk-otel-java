@@ -8,6 +8,9 @@ and this repository adheres to [Semantic Versioning](https://semver.org/spec/v2.
 
 ## Unreleased
 
+* DEPRECATE `splunk.profiler.period.threaddump` config setting in favor of GDI-spec 
+  compatible `splunk.profiler.call.stack.interval`.  
+
 ## v1.6.0 - 2021-12-01
 
 ### General

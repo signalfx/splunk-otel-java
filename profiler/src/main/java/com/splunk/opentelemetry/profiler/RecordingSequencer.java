@@ -29,7 +29,7 @@ import org.slf4j.LoggerFactory;
  * recording, it consults with a RecordingEscapeHatch to make sure that it is safe/relevant to do.
  */
 class RecordingSequencer {
-  private static final Logger logger = LoggerFactory.getLogger(RecordingSequencer.class.getName());
+  private static final Logger logger = LoggerFactory.getLogger(RecordingSequencer.class);
   // The overlap factor causes recordings to be shorter than the requested duration.
   // This forces overlap between recordings and ensures data is continuous when deduplicated.
   public static final double OVERLAP_FACTOR = 0.8;

@@ -74,6 +74,24 @@ create_gh_release() {
     --title "Release $release_tag"
 }
 
+build_docker_image() {
+  docker build -t splunk-otel-instrumentation-java .
+  docker tag splunk-otel-instrumentation-java quay.io/signalfx/splunk-otel-instrumentation-java:$release_tag
+  docker tag splunk-otel-instrumentation-java quay.io/signalfx/splunk-otel-instrumentation-java:latest
+}
+
+publish_docker_image() {
+  docker push quay.io/signalfx/splunk-otel-instrumentation-java:latest
+  docker push quay.io/signalfx/splunk-otel-instrumentation-java:$release_tag
+}
+
+login_to_quay_io() {
+  docker login -u $QUAY_USERNAME -p $QUAY_PASSWORD quay.io
+}
+
 import_gpg_keys
 build_project
 create_gh_release
+build_docker_image
+login_to_quay_io
+publish_docker_image

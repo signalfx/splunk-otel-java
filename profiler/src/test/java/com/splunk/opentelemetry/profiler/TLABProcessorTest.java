@@ -21,7 +21,6 @@ import static com.splunk.opentelemetry.profiler.Configuration.DEFAULT_MEMORY_ENA
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.SOURCE_EVENT_NAME;
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.SOURCE_TYPE;
 import static com.splunk.opentelemetry.profiler.TLABProcessor.ALLOCATION_SIZE_KEY;
-import static com.splunk.opentelemetry.profiler.TLABProcessor.TLAB_SIZE_KEY;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -139,11 +138,6 @@ class TLABProcessorTest {
     assertEquals("otel.profiling", seenLogData.get().getAttributes().get(SOURCE_TYPE));
     assertEquals("tee-lab", seenLogData.get().getAttributes().get(SOURCE_EVENT_NAME));
     assertEquals(ONE_MB, seenLogData.get().getAttributes().get(ALLOCATION_SIZE_KEY));
-    if (tlabSize == null) {
-      assertNull(seenLogData.get().getAttributes().get(TLAB_SIZE_KEY));
-    } else {
-      assertEquals(tlabSize, seenLogData.get().getAttributes().get(TLAB_SIZE_KEY));
-    }
     assertFalse(seenLogData.get().getSpanContext().isValid());
   }
 

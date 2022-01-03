@@ -28,6 +28,7 @@ public class Configuration implements ConfigPropertySource {
 
   private static final String DEFAULT_RECORDING_DURATION = "20s";
   public static final boolean DEFAULT_MEMORY_ENABLED = false;
+  public static final int DEFAULT_MEMORY_SAMPLING_INTERVAL = 1;
   public static final Duration DEFAULT_CALL_STACK_INTERVAL = Duration.ofSeconds(10);
 
   public static final String CONFIG_KEY_ENABLE_PROFILER = "splunk.profiler.enabled";
@@ -37,6 +38,8 @@ public class Configuration implements ConfigPropertySource {
   public static final String CONFIG_KEY_INGEST_URL = "splunk.profiler.logs-endpoint";
   public static final String CONFIG_KEY_OTEL_OTLP_URL = "otel.exporter.otlp.endpoint";
   public static final String CONFIG_KEY_MEMORY_ENABLED = "splunk.profiler.memory.enabled";
+  public static final String CONFIG_KEY_MEMORY_SAMPLER_INTERVAL =
+      "splunk.profiler.memory.sampler.interval";
   public static final String CONFIG_KEY_TLAB_ENABLED = "splunk.profiler.tlab.enabled";
   public static final String CONFIG_KEY_CALL_STACK_INTERVAL = "splunk.profiler.call.stack.interval";
   public static final String CONFIG_KEY_DEPRECATED_THREADDUMP_PERIOD =
@@ -55,6 +58,8 @@ public class Configuration implements ConfigPropertySource {
     config.put(CONFIG_KEY_RECORDING_DURATION, DEFAULT_RECORDING_DURATION);
     config.put(CONFIG_KEY_KEEP_FILES, "false");
     config.put(CONFIG_KEY_MEMORY_ENABLED, String.valueOf(DEFAULT_MEMORY_ENABLED));
+    config.put(
+        CONFIG_KEY_MEMORY_SAMPLER_INTERVAL, String.valueOf(DEFAULT_MEMORY_SAMPLING_INTERVAL));
     config.put(CONFIG_KEY_CALL_STACK_INTERVAL, DEFAULT_CALL_STACK_INTERVAL.toMillis() + "ms");
     return config;
   }
@@ -67,6 +72,10 @@ public class Configuration implements ConfigPropertySource {
   public static boolean getTLABEnabled(Config config) {
     boolean memoryEnabled = config.getBoolean(CONFIG_KEY_MEMORY_ENABLED, DEFAULT_MEMORY_ENABLED);
     return config.getBoolean(CONFIG_KEY_TLAB_ENABLED, memoryEnabled);
+  }
+
+  public static int getMemorySamplerInterval(Config config) {
+    return config.getInt(CONFIG_KEY_MEMORY_SAMPLER_INTERVAL, DEFAULT_MEMORY_SAMPLING_INTERVAL);
   }
 
   public static Duration getCallStackInterval(Config config) {

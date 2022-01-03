@@ -20,6 +20,8 @@ import static com.splunk.opentelemetry.profiler.LogDataCreator.PROFILING_SOURCE;
 import static com.splunk.opentelemetry.profiler.LogsExporterBuilder.INSTRUMENTATION_LIBRARY_INFO;
 
 import com.splunk.opentelemetry.logs.LogsProcessor;
+import com.splunk.opentelemetry.profiler.allocationsampler.AllocationEventSampler;
+import com.splunk.opentelemetry.profiler.allocationsampler.SystematicAllocationEventSampler;
 import com.splunk.opentelemetry.profiler.util.StackSerializer;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
@@ -43,6 +45,7 @@ public class TLABProcessor implements Consumer<RecordedEvent> {
   private final LogsProcessor logsProcessor;
   private final LogDataCommonAttributes commonAttributes;
   private final Resource resource;
+  private final AllocationEventSampler sampler;
 
   private TLABProcessor(Builder builder) {
     this.enabled = builder.enabled;
@@ -50,13 +53,13 @@ public class TLABProcessor implements Consumer<RecordedEvent> {
     this.logsProcessor = builder.logsProcessor;
     this.commonAttributes = builder.commonAttributes;
     this.resource = builder.resource;
+    this.sampler = builder.sampler;
   }
 
   @Override
   public void accept(RecordedEvent event) {
     // If there is another JFR recording in progress that has enabled TLAB events we might also get
-    // them because JFR
-    // sends all enabled events to all recordings, if that is the case ignore them.
+    // them because JFR sends all enabled events to all recordings, if that is the case ignore them.
     if (!enabled) {
       return;
     }
@@ -64,11 +67,17 @@ public class TLABProcessor implements Consumer<RecordedEvent> {
     if (stackTrace == null) {
       return;
     }
+    // Discard events not chosen by the sampling strategy
+    if (!sampler.shouldSample(event)) {
+      return;
+    }
+
     Instant time = event.getStartTime();
     String stack = stackSerializer.serialize(stackTrace);
     AttributesBuilder builder =
         commonAttributes.build(event.getEventType().getName()).toBuilder()
             .put(ALLOCATION_SIZE_KEY, event.getLong("allocationSize"));
+    sampler.addAttributes(builder);
     Attributes attributes = builder.build();
 
     LogData logData =
@@ -84,7 +93,12 @@ public class TLABProcessor implements Consumer<RecordedEvent> {
 
   static Builder builder(Config config) {
     boolean enabled = Configuration.getTLABEnabled(config);
-    return new Builder(enabled);
+    Builder builder = new Builder(enabled);
+    int samplerInterval = Configuration.getMemorySamplerInterval(config);
+    if (samplerInterval > 1) {
+      builder.sampler(new SystematicAllocationEventSampler(samplerInterval));
+    }
+    return builder;
   }
 
   static class Builder {
@@ -93,6 +107,7 @@ public class TLABProcessor implements Consumer<RecordedEvent> {
     private LogsProcessor logsProcessor;
     private LogDataCommonAttributes commonAttributes;
     private Resource resource;
+    private AllocationEventSampler sampler = AllocationEventSampler.alwaysOn();
 
     public Builder(boolean enabled) {
       this.enabled = enabled;
@@ -119,6 +134,11 @@ public class TLABProcessor implements Consumer<RecordedEvent> {
 
     Builder resource(Resource resource) {
       this.resource = resource;
+      return this;
+    }
+
+    Builder sampler(AllocationEventSampler sampler) {
+      this.sampler = sampler;
       return this;
     }
   }

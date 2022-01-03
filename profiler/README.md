@@ -53,6 +53,7 @@ property or as environment variables (by making them uppercase and replacing dot
 |`splunk.profiler.tlab.enabled`            | `splunk.profiler.memory.enabled` | set to `true` to enable TLAB events even if `splunk.profiler.memory.enabled` is `false` |
 |`splunk.profiler.include.agent.internals` | false                  | set to `true` to include agent internal call stacks |
 |`splunk.profiler.period.{eventName}`      | n/a                    | DEPRECATED. Use `splunk.profiler.call.stack.interval` instead.
+|`splunk.profiler.memory.sampler.interval` | 1                      | set to `2` or larger to enable sampling every Nth allocation event where N is the value of this property |
 
 # Escape hatch
 

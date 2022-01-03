@@ -22,6 +22,7 @@ import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_ENABLE_
 import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_INGEST_URL;
 import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_KEEP_FILES;
 import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_MEMORY_ENABLED;
+import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_MEMORY_SAMPLER_INTERVAL;
 import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_OTEL_OTLP_URL;
 import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_PROFILER_DIRECTORY;
 import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_RECORDING_DURATION;
@@ -49,8 +50,13 @@ public class ConfigurationLogger {
     log(CONFIG_KEY_OTEL_OTLP_URL, (it) -> config.getString(it, null));
     log(CONFIG_KEY_MEMORY_ENABLED, (it) -> config.getBoolean(it, DEFAULT_MEMORY_ENABLED));
     log(CONFIG_KEY_TLAB_ENABLED, (it) -> Configuration.getTLABEnabled(config));
-    log(CONFIG_KEY_CALL_STACK_INTERVAL, (it) -> Configuration.getCallStackInterval(config));
-    log(CONFIG_KEY_DEPRECATED_THREADDUMP_PERIOD, (it) -> config.getDuration(it, null));
+    log(CONFIG_KEY_MEMORY_SAMPLER_INTERVAL, (it) -> Configuration.getMemorySamplerInterval(config));
+    log(
+        CONFIG_KEY_CALL_STACK_INTERVAL,
+        (it) -> Configuration.getCallStackInterval(config).toMillis() + "ms");
+    log(
+        CONFIG_KEY_DEPRECATED_THREADDUMP_PERIOD,
+        (it) -> config.getDuration(it, null).toMillis() + "ms");
     logger.info("-----------------------");
   }
 
@@ -59,6 +65,6 @@ public class ConfigurationLogger {
   }
 
   private String pad(String str) {
-    return String.format("%38s", str);
+    return String.format("%39s", str);
   }
 }

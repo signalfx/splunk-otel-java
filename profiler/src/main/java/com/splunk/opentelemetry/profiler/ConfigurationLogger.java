@@ -51,12 +51,8 @@ public class ConfigurationLogger {
     log(CONFIG_KEY_MEMORY_ENABLED, (it) -> config.getBoolean(it, DEFAULT_MEMORY_ENABLED));
     log(CONFIG_KEY_TLAB_ENABLED, (it) -> Configuration.getTLABEnabled(config));
     log(CONFIG_KEY_MEMORY_SAMPLER_INTERVAL, (it) -> Configuration.getMemorySamplerInterval(config));
-    log(
-        CONFIG_KEY_CALL_STACK_INTERVAL,
-        (it) -> Configuration.getCallStackInterval(config).toMillis() + "ms");
-    log(
-        CONFIG_KEY_DEPRECATED_THREADDUMP_PERIOD,
-        (it) -> config.getDuration(it, null).toMillis() + "ms");
+    log(CONFIG_KEY_CALL_STACK_INTERVAL, (it) -> Configuration.getCallStackInterval(config));
+    log(CONFIG_KEY_DEPRECATED_THREADDUMP_PERIOD, (it) -> config.getDuration(it, null));
     logger.info("-----------------------");
   }
 

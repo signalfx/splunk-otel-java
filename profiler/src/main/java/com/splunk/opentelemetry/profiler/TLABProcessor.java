@@ -68,7 +68,7 @@ public class TLABProcessor implements Consumer<RecordedEvent> {
       return;
     }
     // Discard events not chosen by the sampling strategy
-    if (!sampler.shouldSample(event)) {
+    if (sampler != null && !sampler.shouldSample(event)) {
       return;
     }
 
@@ -77,7 +77,9 @@ public class TLABProcessor implements Consumer<RecordedEvent> {
     AttributesBuilder builder =
         commonAttributes.build(event.getEventType().getName()).toBuilder()
             .put(ALLOCATION_SIZE_KEY, event.getLong("allocationSize"));
-    sampler.addAttributes(builder);
+    if (sampler != null) {
+      sampler.addAttributes(builder);
+    }
     Attributes attributes = builder.build();
 
     LogData logData =
@@ -107,7 +109,7 @@ public class TLABProcessor implements Consumer<RecordedEvent> {
     private LogsProcessor logsProcessor;
     private LogDataCommonAttributes commonAttributes;
     private Resource resource;
-    private AllocationEventSampler sampler = AllocationEventSampler.alwaysOn();
+    private AllocationEventSampler sampler;
 
     public Builder(boolean enabled) {
       this.enabled = enabled;

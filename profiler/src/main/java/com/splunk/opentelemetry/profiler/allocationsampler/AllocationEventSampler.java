@@ -23,7 +23,8 @@ import jdk.jfr.consumer.RecordedEvent;
 public interface AllocationEventSampler {
 
   /**
-   * @param event allocation event
+   * @param event allocation event (jdk.ObjectAllocationInNewTLAB or
+   *     jdk.ObjectAllocationOutsideTLAB)
    * @return true when given event is sampled
    */
   boolean shouldSample(RecordedEvent event);
@@ -34,9 +35,4 @@ public interface AllocationEventSampler {
    * @param builder attributes of log data
    */
   void addAttributes(AttributesBuilder builder);
-
-  /** @return a sampler that samples all events */
-  static AllocationEventSampler alwaysOn() {
-    return AlwaysOnAllocationEventSampler.INSTANCE;
-  }
 }

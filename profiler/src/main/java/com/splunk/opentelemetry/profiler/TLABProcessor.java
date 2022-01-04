@@ -36,8 +36,7 @@ import jdk.jfr.consumer.RecordedStackTrace;
 public class TLABProcessor implements Consumer<RecordedEvent> {
   public static final String NEW_TLAB_EVENT_NAME = "jdk.ObjectAllocationInNewTLAB";
   public static final String OUTSIDE_TLAB_EVENT_NAME = "jdk.ObjectAllocationOutsideTLAB";
-  static final AttributeKey<Long> ALLOCATION_SIZE_KEY = AttributeKey.longKey("allocationSize");
-  static final AttributeKey<Long> TLAB_SIZE_KEY = AttributeKey.longKey("tlabSize");
+  static final AttributeKey<Long> ALLOCATION_SIZE_KEY = AttributeKey.longKey("memory.allocated");
 
   private final boolean enabled;
   private final StackSerializer stackSerializer;
@@ -70,10 +69,6 @@ public class TLABProcessor implements Consumer<RecordedEvent> {
     AttributesBuilder builder =
         commonAttributes.build(event.getEventType().getName()).toBuilder()
             .put(ALLOCATION_SIZE_KEY, event.getLong("allocationSize"));
-
-    if (event.hasField("tlabSize")) {
-      builder.put(TLAB_SIZE_KEY, event.getLong("tlabSize"));
-    }
     Attributes attributes = builder.build();
 
     LogData logData =

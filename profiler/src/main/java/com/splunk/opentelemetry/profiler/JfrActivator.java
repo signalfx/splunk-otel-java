@@ -121,7 +121,7 @@ public class JfrActivator implements AgentListener {
         buildThreadDumpProcessor(spanContextualizer, processor, threadDumpToStacks);
     TLABProcessor tlabProcessor =
         TLABProcessor.builder(config)
-            .logsProcessor(batchingLogsProcessor)
+            .logProcessor(batchingLogsProcessor)
             .commonAttributes(commonAttributes)
             .resource(resource)
             .build();

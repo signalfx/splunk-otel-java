@@ -78,11 +78,11 @@ class BatchingLogsProcessorTest {
             .batchAction(exporter)
             .build();
     processor.start();
-    processor.log(log1);
+    processor.emit(log1);
     assertTrue(seen.isEmpty());
-    processor.log(log2);
+    processor.emit(log2);
     assertTrue(seen.isEmpty());
-    processor.log(log3);
+    processor.emit(log3);
     assertTrue(latch.await(5, SECONDS));
     assertEquals(Arrays.asList(log1, log2, log3), seen);
   }
@@ -105,9 +105,9 @@ class BatchingLogsProcessorTest {
             .build();
 
     processor.start();
-    processor.log(log1);
-    processor.log(log2);
-    processor.log(log3);
+    processor.emit(log1);
+    processor.emit(log2);
+    processor.emit(log3);
     assertTrue(latch.await(5, SECONDS));
     assertEquals(Arrays.asList(log1, log2, log3), seen);
   }
@@ -150,8 +150,8 @@ class BatchingLogsProcessorTest {
             .build();
 
     processor.start();
-    processor.log(log1);
-    processor.log(log2);
+    processor.emit(log1);
+    processor.emit(log2);
     processor.stop();
     assertTrue(latch.await(5, SECONDS));
     assertEquals(Arrays.asList(log1, log2), seen);

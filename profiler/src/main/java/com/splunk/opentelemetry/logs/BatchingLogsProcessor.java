@@ -20,6 +20,7 @@ import static java.util.Objects.requireNonNull;
 
 import com.splunk.opentelemetry.profiler.util.HelpfulExecutors;
 import com.splunk.opentelemetry.profiler.util.Runnables;
+import io.opentelemetry.sdk.logs.LogProcessor;
 import io.opentelemetry.sdk.logs.data.LogData;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -32,7 +33,7 @@ import org.slf4j.LoggerFactory;
  * A log processor that batches logs until a max number are buffered or a time limit has passed,
  * which ever comes first.
  */
-public class BatchingLogsProcessor implements LogsProcessor {
+public class BatchingLogsProcessor implements LogProcessor {
 
   private static final Logger logger = LoggerFactory.getLogger(BatchingLogsProcessor.class);
 
@@ -77,7 +78,7 @@ public class BatchingLogsProcessor implements LogsProcessor {
   }
 
   @Override
-  public void log(LogData log) {
+  public void emit(LogData log) {
     synchronized (lock) {
       batch.add(log);
       if (batch.size() >= maxBatchSize) {

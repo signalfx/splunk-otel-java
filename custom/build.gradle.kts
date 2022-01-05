@@ -31,6 +31,7 @@ dependencies {
   }
   implementation("com.signalfx.public:signalfx-java")
 
+  testImplementation(project(":bootstrap"))
   testImplementation("io.opentelemetry:opentelemetry-sdk")
   testImplementation("io.opentelemetry:opentelemetry-sdk-testing")
   testImplementation("io.opentelemetry:opentelemetry-sdk-extension-autoconfigure")

@@ -17,6 +17,7 @@
 package com.splunk.opentelemetry.micrometer;
 
 import static com.splunk.opentelemetry.SplunkConfiguration.SPLUNK_ACCESS_TOKEN;
+import static com.splunk.opentelemetry.javaagent.ConfigurationConstants.CONFIG_KEY_ENABLE_PROFILER;
 import static io.micrometer.core.instrument.config.MeterRegistryConfigValidator.checkAll;
 
 import io.micrometer.core.instrument.config.validate.Validated;
@@ -53,7 +54,8 @@ class SplunkMetricsConfig implements SignalFxConfig {
 
   @Override
   public boolean enabled() {
-    return config.getBoolean(METRICS_ENABLED_PROPERTY, false);
+    return config.getBoolean(METRICS_ENABLED_PROPERTY, false)
+        || config.getBoolean(CONFIG_KEY_ENABLE_PROFILER, false);
   }
 
   @Override

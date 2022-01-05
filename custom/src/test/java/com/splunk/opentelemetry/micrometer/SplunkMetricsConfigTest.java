@@ -17,6 +17,7 @@
 package com.splunk.opentelemetry.micrometer;
 
 import static com.splunk.opentelemetry.SplunkConfiguration.SPLUNK_ACCESS_TOKEN;
+import static com.splunk.opentelemetry.javaagent.ConfigurationConstants.CONFIG_KEY_ENABLE_PROFILER;
 import static com.splunk.opentelemetry.micrometer.SplunkMetricsConfig.DEFAULT_METRICS_ENDPOINT;
 import static com.splunk.opentelemetry.micrometer.SplunkMetricsConfig.METRICS_ENABLED_PROPERTY;
 import static com.splunk.opentelemetry.micrometer.SplunkMetricsConfig.METRICS_ENDPOINT_PROPERTY;
@@ -106,5 +107,20 @@ class SplunkMetricsConfigTest {
 
     // then
     assertFalse(validated.isValid());
+  }
+
+  @Test
+  void profilerEnablesMetrics() {
+    var javaagentConfig =
+        Config.builder()
+            .readProperties(
+                Map.of(
+                    METRICS_ENABLED_PROPERTY,
+                    "false",
+                    CONFIG_KEY_ENABLE_PROFILER,
+                    "true"))
+            .build();
+    var config = new SplunkMetricsConfig(javaagentConfig, Resource.getDefault());
+    assertTrue(config.enabled());
   }
 }

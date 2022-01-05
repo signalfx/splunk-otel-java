@@ -17,6 +17,7 @@
 package com.splunk.opentelemetry.profiler;
 
 import com.google.auto.service.AutoService;
+import com.splunk.opentelemetry.javaagent.ConfigurationConstants;
 import io.opentelemetry.instrumentation.api.config.Config;
 import io.opentelemetry.javaagent.extension.config.ConfigPropertySource;
 import java.time.Duration;
@@ -31,7 +32,8 @@ public class Configuration implements ConfigPropertySource {
   public static final int DEFAULT_MEMORY_SAMPLING_INTERVAL = 1;
   public static final Duration DEFAULT_CALL_STACK_INTERVAL = Duration.ofSeconds(10);
 
-  public static final String CONFIG_KEY_ENABLE_PROFILER = "splunk.profiler.enabled";
+  public static final String CONFIG_KEY_ENABLE_PROFILER =
+      ConfigurationConstants.CONFIG_KEY_ENABLE_PROFILER;
   public static final String CONFIG_KEY_PROFILER_DIRECTORY = "splunk.profiler.directory";
   public static final String CONFIG_KEY_RECORDING_DURATION = "splunk.profiler.recording.duration";
   public static final String CONFIG_KEY_KEEP_FILES = "splunk.profiler.keep-files";

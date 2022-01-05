@@ -18,5 +18,5 @@ package com.splunk.opentelemetry.javaagent;
 
 public class ConfigurationConstants {
   public static final String SPLUNK_ACCESS_TOKEN = "splunk.access.token";
-  public static final String CONFIG_KEY_ENABLE_PROFILER = "splunk.profiler.enabled";
+  public static final String PROFILER_ENABLED_PROPERTY = "splunk.profiler.enabled";
 }

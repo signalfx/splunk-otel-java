@@ -33,7 +33,7 @@ public class Configuration implements ConfigPropertySource {
   public static final Duration DEFAULT_CALL_STACK_INTERVAL = Duration.ofSeconds(10);
 
   public static final String CONFIG_KEY_ENABLE_PROFILER =
-      ConfigurationConstants.CONFIG_KEY_ENABLE_PROFILER;
+      ConfigurationConstants.PROFILER_ENABLED_PROPERTY;
   public static final String CONFIG_KEY_PROFILER_DIRECTORY = "splunk.profiler.directory";
   public static final String CONFIG_KEY_RECORDING_DURATION = "splunk.profiler.recording.duration";
   public static final String CONFIG_KEY_KEEP_FILES = "splunk.profiler.keep-files";

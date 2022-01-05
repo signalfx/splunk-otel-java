@@ -51,6 +51,7 @@ property or as environment variables (by making them uppercase and replacing dot
 |`splunk.profiler.call.stack.interval`     | 10000ms                | how often to sample call stacks           |
 |`splunk.profiler.memory.enabled`          | false                  | set to `true` to enable all other memory profiling options unless explicitly disabled |
 |`splunk.profiler.tlab.enabled`            | `splunk.profiler.memory.enabled` | set to `true` to enable TLAB events even if `splunk.profiler.memory.enabled` is `false` |
+|`splunk.profiler.memory.sampler.interval` | 1                      | set to `2` or larger to enable sampling every Nth allocation event where N is the value of this property |
 |`splunk.profiler.include.agent.internals` | false                  | set to `true` to include agent internal call stacks |
 |`splunk.profiler.period.{eventName}`      | n/a                    | DEPRECATED. Use `splunk.profiler.call.stack.interval` instead.
 

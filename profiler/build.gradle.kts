@@ -7,6 +7,7 @@ dependencies {
   compileOnly("io.opentelemetry:opentelemetry-semconv")
   implementation("io.opentelemetry.proto:opentelemetry-proto")
   implementation("io.opentelemetry:opentelemetry-sdk-logs")
+  implementation("io.opentelemetry:opentelemetry-exporter-otlp-logs")
 
   compileOnly("org.slf4j:slf4j-api")
   compileOnly("io.grpc:grpc-netty")

@@ -24,19 +24,24 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
+import io.opentelemetry.sdk.common.CompletableResultCode;
 import io.opentelemetry.sdk.common.InstrumentationLibraryInfo;
 import io.opentelemetry.sdk.logs.data.LogData;
 import io.opentelemetry.sdk.logs.data.LogDataBuilder;
+import io.opentelemetry.sdk.logs.export.LogExporter;
 import io.opentelemetry.sdk.resources.Resource;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 class BatchingLogsProcessorTest {
+
+  MockExporter exporter;
 
   LogData log1, log2, log3;
 
@@ -60,17 +65,11 @@ class BatchingLogsProcessorTest {
             .setAttributes(Attributes.of(AttributeKey.stringKey("three"), "three"))
             .setBody("baz")
             .build();
+    exporter = new MockExporter();
   }
 
   @Test
   void testSimpleActionWhenSizeReached() throws Exception {
-    List<LogData> seen = new ArrayList<>();
-    CountDownLatch latch = new CountDownLatch(1);
-    LogsExporter exporter =
-        logs -> {
-          seen.addAll(logs);
-          latch.countDown();
-        };
     BatchingLogsProcessor processor =
         BatchingLogsProcessor.builder()
             .maxTimeBetweenBatches(Duration.ofHours(15))
@@ -79,23 +78,16 @@ class BatchingLogsProcessorTest {
             .build();
     processor.start();
     processor.emit(log1);
-    assertTrue(seen.isEmpty());
+    assertTrue(exporter.seen.isEmpty());
     processor.emit(log2);
-    assertTrue(seen.isEmpty());
+    assertTrue(exporter.seen.isEmpty());
     processor.emit(log3);
-    assertTrue(latch.await(5, SECONDS));
-    assertEquals(Arrays.asList(log1, log2, log3), seen);
+    assertTrue(exporter.latch.await(5, SECONDS));
+    assertEquals(Arrays.asList(log1, log2, log3), exporter.seen);
   }
 
   @Test
   void testSimpleActionWhenTimeReached() throws Exception {
-    List<LogData> seen = new ArrayList<>();
-    CountDownLatch latch = new CountDownLatch(1);
-    LogsExporter exporter =
-        logs -> {
-          seen.addAll(logs);
-          latch.countDown();
-        };
 
     BatchingLogsProcessor processor =
         BatchingLogsProcessor.builder()
@@ -108,19 +100,12 @@ class BatchingLogsProcessorTest {
     processor.emit(log1);
     processor.emit(log2);
     processor.emit(log3);
-    assertTrue(latch.await(5, SECONDS));
-    assertEquals(Arrays.asList(log1, log2, log3), seen);
+    assertTrue(exporter.latch.await(5, SECONDS));
+    assertEquals(Arrays.asList(log1, log2, log3), exporter.seen);
   }
 
   @Test
   void testActionNotCalledWhenEmptyAfterTime() throws Exception {
-    List<LogData> seen = new ArrayList<>();
-    CountDownLatch latch = new CountDownLatch(1);
-    LogsExporter exporter =
-        logs -> {
-          seen.addAll(logs);
-          latch.countDown();
-        };
     BatchingLogsProcessor processor =
         BatchingLogsProcessor.builder()
             .maxTimeBetweenBatches(Duration.ofMillis(1))
@@ -129,19 +114,12 @@ class BatchingLogsProcessorTest {
             .build();
 
     processor.start();
-    assertFalse(latch.await(1, SECONDS));
-    assertTrue(seen.isEmpty());
+    assertFalse(exporter.latch.await(1, SECONDS));
+    assertTrue(exporter.seen.isEmpty());
   }
 
   @Test
   void testStopDoesAction() throws Exception {
-    List<LogData> seen = new ArrayList<>();
-    CountDownLatch latch = new CountDownLatch(1);
-    LogsExporter exporter =
-        logs -> {
-          seen.addAll(logs);
-          latch.countDown();
-        };
     BatchingLogsProcessor processor =
         BatchingLogsProcessor.builder()
             .maxTimeBetweenBatches(Duration.ofSeconds(60))
@@ -153,13 +131,12 @@ class BatchingLogsProcessorTest {
     processor.emit(log1);
     processor.emit(log2);
     processor.stop();
-    assertTrue(latch.await(5, SECONDS));
-    assertEquals(Arrays.asList(log1, log2), seen);
+    assertTrue(exporter.latch.await(5, SECONDS));
+    assertEquals(Arrays.asList(log1, log2), exporter.seen);
   }
 
   @Test
   void testStopBeforeStart() {
-    LogsExporter exporter = logs -> {};
     BatchingLogsProcessor processor =
         BatchingLogsProcessor.builder()
             .maxTimeBetweenBatches(Duration.ofSeconds(60))
@@ -172,7 +149,6 @@ class BatchingLogsProcessorTest {
 
   @Test
   void testMultipleStarts() {
-    LogsExporter exporter = logs -> {};
     BatchingLogsProcessor processor =
         BatchingLogsProcessor.builder()
             .maxTimeBetweenBatches(Duration.ofSeconds(60))
@@ -182,5 +158,28 @@ class BatchingLogsProcessorTest {
 
     processor.start();
     assertThrows(IllegalStateException.class, processor::start);
+  }
+
+  static class MockExporter implements LogExporter {
+
+    List<LogData> seen = new ArrayList<>();
+    CountDownLatch latch = new CountDownLatch(1);
+
+    @Override
+    public CompletableResultCode export(Collection<LogData> logs) {
+      seen.addAll(logs);
+      latch.countDown();
+      return CompletableResultCode.ofSuccess();
+    }
+
+    @Override
+    public CompletableResultCode flush() {
+      return null;
+    }
+
+    @Override
+    public CompletableResultCode shutdown() {
+      return null;
+    }
   }
 }

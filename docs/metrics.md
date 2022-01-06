@@ -11,6 +11,12 @@ and [Micrometer SignalFx registry](https://micrometer.io/docs/registry/signalFx)
 gather and export metrics to either [SignalFx SmartAgent](https://github.com/signalfx/signalfx-agent/)
 or the [Splunk distribution of OpenTelemetry Collector](https://github.com/signalfx/splunk-otel-collector).
 
+Because this feature is still experimental, metrics are not enabled by default. 
+To enable metrics, add `-Dsplunk.metrics.enabled=true` to the JVM
+arguments or set the environment variable `SPLUNK_METRICS_ENABLED` to `true`. 
+For more information, please see the [advanced configuration](advanced-config.md#splunk-distribution-configuration)
+for details.
+
 ## Default metric tags
 
 The following dimensions are automatically added to all metrics exported by the agent:

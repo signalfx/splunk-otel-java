@@ -30,10 +30,15 @@ import io.opentelemetry.sdk.logs.LogProcessor;
 import io.opentelemetry.sdk.logs.data.LogData;
 import io.opentelemetry.sdk.logs.data.LogDataBuilder;
 import io.opentelemetry.sdk.resources.Resource;
+
+import java.nio.file.FileSystems;
+import java.nio.file.Path;
 import java.time.Instant;
 import java.util.function.Consumer;
 import jdk.jfr.consumer.RecordedEvent;
 import jdk.jfr.consumer.RecordedStackTrace;
+import jdk.jfr.consumer.RecordedThread;
+import jdk.jfr.consumer.RecordingFile;
 
 public class TLABProcessor implements Consumer<RecordedEvent> {
   public static final String NEW_TLAB_EVENT_NAME = "jdk.ObjectAllocationInNewTLAB";
@@ -73,6 +78,7 @@ public class TLABProcessor implements Consumer<RecordedEvent> {
     }
 
     Instant time = event.getStartTime();
+    String threadLine = buildThreadLine(event.getThread());
     String stack = stackSerializer.serialize(stackTrace);
     AttributesBuilder builder =
         commonAttributes.build(event.getEventType().getName()).toBuilder()
@@ -86,11 +92,25 @@ public class TLABProcessor implements Consumer<RecordedEvent> {
         LogDataBuilder.create(resource, INSTRUMENTATION_LIBRARY_INFO)
             .setName(PROFILING_SOURCE)
             .setEpoch(time)
-            .setBody(stack)
+            .setBody(threadLine + "\n" + "   java.lang.Thread.State: UNKNOWN\n" + stack)
             .setAttributes(attributes)
             .build();
 
     logProcessor.emit(logData);
+  }
+
+  private String buildThreadLine(RecordedThread thread) {
+    if (thread == null) {
+      return buildThreadLine("unknown", 0);
+    }
+    return buildThreadLine(thread.getJavaName(), thread.getJavaThreadId());
+  }
+
+  private String buildThreadLine(String name, long id) {
+    String sb = "\"" + name + "\"" +
+            " #" + id +
+            " prio=0 os_prio=0 cpu=0ms elapsed=0s tid=0 nid=0 unknown";
+    return sb;
   }
 
   static Builder builder(Config config) {

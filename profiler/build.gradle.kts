@@ -5,7 +5,6 @@ dependencies {
   compileOnly("io.opentelemetry.javaagent:opentelemetry-javaagent-extension-api")
   compileOnly("io.opentelemetry.instrumentation:opentelemetry-instrumentation-api")
   compileOnly("io.opentelemetry:opentelemetry-semconv")
-  implementation("io.opentelemetry.proto:opentelemetry-proto")
   implementation("io.opentelemetry:opentelemetry-sdk-logs")
   implementation("io.opentelemetry:opentelemetry-exporter-otlp-logs")
 
@@ -16,7 +15,6 @@ dependencies {
 
   testImplementation("io.opentelemetry.javaagent:opentelemetry-javaagent-extension-api")
   testImplementation("org.slf4j:slf4j-api")
-  testImplementation("io.grpc:grpc-netty")
   testImplementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-api")
   testImplementation("io.opentelemetry:opentelemetry-sdk-extension-autoconfigure")
   testImplementation("io.opentelemetry:opentelemetry-sdk-extension-autoconfigure-spi")

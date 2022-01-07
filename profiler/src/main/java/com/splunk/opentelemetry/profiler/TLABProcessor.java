@@ -104,7 +104,7 @@ public class TLABProcessor implements Consumer<RecordedEvent> {
   }
 
   static class Builder {
-    private boolean enabled;
+    private final boolean enabled;
     private StackSerializer stackSerializer = new StackSerializer();
     private LogProcessor logProcessor;
     private LogDataCommonAttributes commonAttributes;

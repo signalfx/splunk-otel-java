@@ -17,15 +17,15 @@
 package com.splunk.opentelemetry;
 
 import com.google.auto.service.AutoService;
-import com.splunk.opentelemetry.javaagent.ConfigurationConstants;
 import io.opentelemetry.javaagent.extension.config.ConfigPropertySource;
 import java.util.HashMap;
 import java.util.Map;
 
 @AutoService(ConfigPropertySource.class)
 public class SplunkConfiguration implements ConfigPropertySource {
-  public static final String SPLUNK_ACCESS_TOKEN = ConfigurationConstants.SPLUNK_ACCESS_TOKEN;
+  public static final String SPLUNK_ACCESS_TOKEN = "splunk.access.token";
   public static final String OTEL_EXPORTER_JAEGER_ENDPOINT = "otel.exporter.jaeger.endpoint";
+  public static final String PROFILER_ENABLED_PROPERTY = "splunk.profiler.enabled";
 
   @Override
   public Map<String, String> getProperties() {

@@ -16,8 +16,8 @@
 
 package com.splunk.opentelemetry.micrometer;
 
+import static com.splunk.opentelemetry.SplunkConfiguration.PROFILER_ENABLED_PROPERTY;
 import static com.splunk.opentelemetry.SplunkConfiguration.SPLUNK_ACCESS_TOKEN;
-import static com.splunk.opentelemetry.javaagent.ConfigurationConstants.PROFILER_ENABLED_PROPERTY;
 import static com.splunk.opentelemetry.micrometer.SplunkMetricsConfig.DEFAULT_METRICS_ENDPOINT;
 import static com.splunk.opentelemetry.micrometer.SplunkMetricsConfig.METRICS_ENABLED_PROPERTY;
 import static com.splunk.opentelemetry.micrometer.SplunkMetricsConfig.METRICS_ENDPOINT_PROPERTY;

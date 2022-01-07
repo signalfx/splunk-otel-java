@@ -1,5 +1,5 @@
 dependencies {
-  compileOnly(project(":bootstrap"))
+  compileOnly(project(":custom"))
   compileOnly("io.opentelemetry:opentelemetry-sdk")
   compileOnly("io.opentelemetry:opentelemetry-sdk-extension-autoconfigure")
   compileOnly("io.opentelemetry:opentelemetry-sdk-extension-autoconfigure-spi")

@@ -10,10 +10,6 @@ dependencies {
   implementation("io.opentelemetry:opentelemetry-exporter-otlp-logs")
 
   compileOnly("org.slf4j:slf4j-api")
-  compileOnly("io.grpc:grpc-netty")
-  implementation("io.grpc:grpc-netty-shaded")
-  implementation("io.grpc:grpc-protobuf")
-  implementation("io.grpc:grpc-stub")
 
   annotationProcessor("com.google.auto.service:auto-service")
   compileOnly("com.google.auto.service:auto-service")
@@ -24,7 +20,6 @@ dependencies {
   testImplementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-api")
   testImplementation("io.opentelemetry:opentelemetry-sdk-extension-autoconfigure")
   testImplementation("io.opentelemetry:opentelemetry-sdk-extension-autoconfigure-spi")
-  testImplementation("io.opentelemetry.proto:opentelemetry-proto")
   testImplementation("io.opentelemetry:opentelemetry-semconv")
   testImplementation("io.opentelemetry:opentelemetry-context")
   testImplementation("io.opentelemetry:opentelemetry-api")
@@ -36,5 +31,9 @@ tasks {
   java {
     sourceCompatibility = JavaVersion.VERSION_1_8
     targetCompatibility = JavaVersion.VERSION_1_8
+  }
+  compileTestJava {
+    sourceCompatibility = JavaVersion.VERSION_11.toString()
+    targetCompatibility = JavaVersion.VERSION_11.toString()
   }
 }

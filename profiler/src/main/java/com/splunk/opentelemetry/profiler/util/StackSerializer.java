@@ -37,24 +37,30 @@ public class StackSerializer {
   public String serialize(RecordedStackTrace stack) {
     List<RecordedFrame> frames = stack.getFrames();
     int skipNum = Math.max(0, frames.size() - maxDepth);
-    StringBuilder sb = new StringBuilder();
-    sb.append("   ");
-    serializeFrame(sb, frames.get(skipNum));
-    for (int i = skipNum + 1; i < frames.size(); i++) {
-      sb.append("\n\tat ");
-      serializeFrame(sb, frames.get(i));
-    }
-    return sb.toString();
+    return frames.stream()
+        .skip(skipNum)
+        .limit(maxDepth)
+        .reduce(
+            new StringBuilder(), this::serializeFrame, (sb1, sb2) -> sb1.append("\n").append(sb2))
+        .toString();
   }
 
   private StringBuilder serializeFrame(StringBuilder sb, RecordedFrame frame) {
     RecordedMethod method = frame.getMethod();
     if (method == null) {
-      return sb.append("unknown.unknown(unknown)");
+      return maybeNewline(sb).append("\tat unknown.unknown(unknown)");
     }
+    maybeNewline(sb);
     String className = method.getType().getName();
     String methodName = method.getName();
     int lineNumber = frame.getInt("lineNumber");
-    return sb.append(className).append(".").append(methodName).append(":").append(lineNumber);
+    return sb.append("\tat ").append(className).append(".").append(methodName).append(":").append(lineNumber);
+  }
+
+  private StringBuilder maybeNewline(StringBuilder sb) {
+    if (sb.length() > 0) {
+      sb.append("\n");
+    }
+    return sb;
   }
 }

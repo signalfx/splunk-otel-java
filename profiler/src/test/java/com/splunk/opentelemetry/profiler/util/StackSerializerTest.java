@@ -46,7 +46,7 @@ class StackSerializerTest {
 
     String result = serializer.serialize(stack);
     String expected =
-        "   io.test.MyClass.action:123\n"
+              "\tat io.test.MyClass.action:123\n"
             + "\tat io.test.MyClass.silver:456\n"
             + "\tat io.test.Framewerk.root:66";
     assertEquals(expected, result);
@@ -60,7 +60,7 @@ class StackSerializerTest {
     when(stack.getFrames()).thenReturn(framesWithNullMethod);
 
     String result = serializer.serialize(stack);
-    String expected = "   io.test.MyClass.action:123\n" +
+    String expected = "\tat io.test.MyClass.action:123\n" +
             "\tat unknown.unknown(unknown)\n" +
             "\tat io.test.Framewerk.root:66";
     assertEquals(expected, result);
@@ -74,7 +74,7 @@ class StackSerializerTest {
     when(stack.getFrames()).thenReturn(frames);
 
     String result = serializer.serialize(stack);
-    String expected = "   io.test.MyClass.silver:456\n" +
+    String expected = "\tat io.test.MyClass.silver:456\n" +
             "\tat io.test.Framewerk.root:66";
     assertEquals(expected, result);
   }

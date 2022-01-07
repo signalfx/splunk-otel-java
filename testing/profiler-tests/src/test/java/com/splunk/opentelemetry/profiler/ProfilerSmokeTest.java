@@ -176,7 +176,8 @@ public class ProfilerSmokeTest {
     assertThat(countTLABs(logs)).isGreaterThan(0);
     assertAllThreadDumps(justTLABs(logs), log -> getLongAttr(log, "memory.allocated") > 0);
     assertAllThreadDumps(justTLABs(logs), log -> log.getBody().getStringValue().startsWith("\""));
-    assertAllThreadDumps(justTLABs(logs), log -> log.getBody().getStringValue().split("\n").length > 2);
+    assertAllThreadDumps(
+        justTLABs(logs), log -> log.getBody().getStringValue().split("\n").length > 2);
   }
 
   @Test

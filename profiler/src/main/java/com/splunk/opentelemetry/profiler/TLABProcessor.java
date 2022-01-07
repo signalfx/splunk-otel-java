@@ -30,15 +30,11 @@ import io.opentelemetry.sdk.logs.LogProcessor;
 import io.opentelemetry.sdk.logs.data.LogData;
 import io.opentelemetry.sdk.logs.data.LogDataBuilder;
 import io.opentelemetry.sdk.resources.Resource;
-
-import java.nio.file.FileSystems;
-import java.nio.file.Path;
 import java.time.Instant;
 import java.util.function.Consumer;
 import jdk.jfr.consumer.RecordedEvent;
 import jdk.jfr.consumer.RecordedStackTrace;
 import jdk.jfr.consumer.RecordedThread;
-import jdk.jfr.consumer.RecordingFile;
 
 public class TLABProcessor implements Consumer<RecordedEvent> {
   public static final String NEW_TLAB_EVENT_NAME = "jdk.ObjectAllocationInNewTLAB";
@@ -107,9 +103,8 @@ public class TLABProcessor implements Consumer<RecordedEvent> {
   }
 
   private String buildThreadLine(String name, long id) {
-    String sb = "\"" + name + "\"" +
-            " #" + id +
-            " prio=0 os_prio=0 cpu=0ms elapsed=0s tid=0 nid=0 unknown";
+    String sb =
+        "\"" + name + "\"" + " #" + id + " prio=0 os_prio=0 cpu=0ms elapsed=0s tid=0 nid=0 unknown";
     return sb;
   }
 

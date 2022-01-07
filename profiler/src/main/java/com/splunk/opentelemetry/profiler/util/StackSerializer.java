@@ -54,8 +54,13 @@ public class StackSerializer {
     String className = method.getType().getName();
     String methodName = method.getName();
     int lineNumber = frame.getInt("lineNumber");
-    return sb.append("\tat ").append(className).append(".").append(methodName)
-            .append("(unknown:").append(lineNumber).append(")");
+    return sb.append("\tat ")
+        .append(className)
+        .append(".")
+        .append(methodName)
+        .append("(unknown:")
+        .append(lineNumber)
+        .append(")");
   }
 
   private StringBuilder maybeNewline(StringBuilder sb) {

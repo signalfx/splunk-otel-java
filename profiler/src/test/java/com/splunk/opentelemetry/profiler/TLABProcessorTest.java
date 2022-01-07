@@ -99,9 +99,10 @@ class TLABProcessorTest {
     Instant now = Instant.now();
     AtomicReference<LogData> seenLogData = new AtomicReference<>();
     LogProcessor consumer = seenLogData::set;
-    String stackAsString = "\"mockingbird\" #606 prio=0 os_prio=0 cpu=0ms elapsed=0s tid=0 nid=0 unknown\n" +
-            "   java.lang.Thread.State: UNKNOWN\n" +
-            "i am a serialized stack believe me";
+    String stackAsString =
+        "\"mockingbird\" #606 prio=0 os_prio=0 cpu=0ms elapsed=0s tid=0 nid=0 unknown\n"
+            + "   java.lang.Thread.State: UNKNOWN\n"
+            + "i am a serialized stack believe me";
 
     StackSerializer serializer = mock(StackSerializer.class);
     LogDataCommonAttributes commonAttrs = new LogDataCommonAttributes(new EventPeriods(x -> null));

@@ -174,6 +174,9 @@ public class ProfilerSmokeTest {
             .findFirst();
     assertThat(mainThread).isNotEmpty();
     assertThat(countTLABs(logs)).isGreaterThan(0);
+    assertAllThreadDumps(justTLABs(logs), log -> getLongAttr(log, "memory.allocated") > 0);
+    assertAllThreadDumps(justTLABs(logs), log -> log.getBody().getStringValue().startsWith("\""));
+    assertAllThreadDumps(justTLABs(logs), log -> log.getBody().getStringValue().split("\n").length > 2);
   }
 
   @Test
@@ -211,11 +214,19 @@ public class ProfilerSmokeTest {
   }
 
   private long countTLABs(List<LogRecord> logs) {
-    return logs.stream().filter(TestHelpers::isTLABEvent).count();
+    return justTLABs(logs).count();
+  }
+
+  private Stream<LogRecord> justTLABs(List<LogRecord> logs) {
+    return logs.stream().filter(TestHelpers::isTLABEvent);
   }
 
   private boolean assertAllThreadDumps(List<LogRecord> logs, Predicate<LogRecord> predicate) {
-    return logs.stream().filter(TestHelpers::isThreadDumpEvent).allMatch(predicate);
+    return assertAllThreadDumps(logs.stream(), predicate);
+  }
+
+  private boolean assertAllThreadDumps(Stream<LogRecord> logs, Predicate<LogRecord> predicate) {
+    return logs.filter(TestHelpers::isThreadDumpEvent).allMatch(predicate);
   }
 
   private List<ExportLogsServiceRequest> fetchResourceLogs() throws IOException {

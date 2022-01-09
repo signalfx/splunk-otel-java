@@ -13,8 +13,8 @@ repositories {
   }
 }
 
-val otelVersion = "1.10.0-rc.1"
-val otelAlphaVersion = "1.10.0-alpha-rc.1"
+val otelVersion = "1.10.0"
+val otelAlphaVersion = "1.10.0-alpha"
 val otelContribAlphaVersion = "1.7.0-alpha"
 val otelInstrumentationVersion = "1.10.0-SNAPSHOT"
 val otelInstrumentationAlphaVersion = "1.10.0-alpha-SNAPSHOT"
@@ -27,7 +27,7 @@ extensions.configure<DependencyManagementExtension>("dependencyManagement") {
   dependencies {
     dependency("com.google.auto.service:auto-service:1.0")
     dependency("com.squareup.okhttp3:okhttp:3.14.9")
-    dependency("org.assertj:assertj-core:3.20.2")
+    dependency("org.assertj:assertj-core:3.22.0")
     dependency("org.awaitility:awaitility:4.1.0")
     dependency("org.testcontainers:testcontainers:1.15.3")
     dependency("io.jaegertracing:jaeger-client:1.6.0")

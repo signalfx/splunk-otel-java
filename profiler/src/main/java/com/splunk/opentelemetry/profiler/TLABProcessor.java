@@ -74,8 +74,9 @@ public class TLABProcessor implements Consumer<RecordedEvent> {
     }
 
     Instant time = event.getStartTime();
-    String threadLine = buildThreadLine(event.getThread());
-    String stack = stackSerializer.serialize(stackTrace);
+
+    String body = buildBody(event, stackTrace);
+
     AttributesBuilder builder =
         commonAttributes.build(event.getEventType().getName()).toBuilder()
             .put(ALLOCATION_SIZE_KEY, event.getLong("allocationSize"));
@@ -88,24 +89,27 @@ public class TLABProcessor implements Consumer<RecordedEvent> {
         LogDataBuilder.create(resource, INSTRUMENTATION_LIBRARY_INFO)
             .setName(PROFILING_SOURCE)
             .setEpoch(time)
-            .setBody(threadLine + "\n" + "   java.lang.Thread.State: UNKNOWN\n" + stack)
+            .setBody(body)
             .setAttributes(attributes)
             .build();
 
     logProcessor.emit(logData);
   }
 
-  private String buildThreadLine(RecordedThread thread) {
-    if (thread == null) {
-      return buildThreadLine("unknown", 0);
-    }
-    return buildThreadLine(thread.getJavaName(), thread.getJavaThreadId());
-  }
-
-  private String buildThreadLine(String name, long id) {
-    String sb =
-        "\"" + name + "\"" + " #" + id + " prio=0 os_prio=0 cpu=0ms elapsed=0s tid=0 nid=0 unknown";
-    return sb;
+  private String buildBody(RecordedEvent event, RecordedStackTrace stackTrace) {
+    String stack = stackSerializer.serialize(stackTrace);
+    RecordedThread thread = event.getThread();
+    String name = thread == null ? "unknown" : thread.getJavaName();
+    long id = thread == null ? 0 : thread.getJavaThreadId();
+    return "\""
+        + name
+        + "\""
+        + " #"
+        + id
+        + " prio=0 os_prio=0 cpu=0ms elapsed=0s tid=0 nid=0 unknown"
+        + "\n"
+        + "   java.lang.Thread.State: UNKNOWN\n"
+        + stack;
   }
 
   static Builder builder(Config config) {

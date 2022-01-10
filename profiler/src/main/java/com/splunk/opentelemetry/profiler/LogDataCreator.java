@@ -16,7 +16,7 @@
 
 package com.splunk.opentelemetry.profiler;
 
-import static com.splunk.opentelemetry.profiler.LogsExporterBuilder.INSTRUMENTATION_LIBRARY_INFO;
+import static com.splunk.opentelemetry.profiler.LogExporterBuilder.INSTRUMENTATION_LIBRARY_INFO;
 
 import com.splunk.opentelemetry.profiler.context.StackToSpanLinkage;
 import io.opentelemetry.api.common.Attributes;

@@ -17,16 +17,15 @@
 package com.splunk.opentelemetry.profiler;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import com.google.common.base.Charsets;
-import com.google.common.io.CharStreams;
 import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -41,7 +40,7 @@ class ThreadDumpToStacksTest {
   void setup() throws Exception {
     InputStream in =
         Thread.currentThread().getContextClassLoader().getResourceAsStream("thread-dump1.txt");
-    threadDumpResult = CharStreams.toString(new InputStreamReader(in, Charsets.UTF_8));
+    threadDumpResult = new String(in.readAllBytes(), StandardCharsets.UTF_8);
   }
 
   @Test

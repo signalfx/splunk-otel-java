@@ -51,6 +51,6 @@ class StackToSpanLinkageProcessorTest {
         new StackToSpanLinkageProcessor(logCreator, exportProcessor);
 
     processor.accept(linkedSpan);
-    verify(exportProcessor).log(log);
+    verify(exportProcessor).emit(log);
   }
 }

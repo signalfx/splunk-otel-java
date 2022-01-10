@@ -27,12 +27,12 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import com.splunk.opentelemetry.logs.LogsProcessor;
 import com.splunk.opentelemetry.profiler.events.EventPeriods;
 import com.splunk.opentelemetry.profiler.util.StackSerializer;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.instrumentation.api.config.Config;
 import io.opentelemetry.sdk.common.Clock;
+import io.opentelemetry.sdk.logs.LogProcessor;
 import io.opentelemetry.sdk.logs.data.LogData;
 import io.opentelemetry.sdk.resources.Resource;
 import java.time.Instant;
@@ -97,7 +97,7 @@ class TLABProcessorTest {
   private void tlabProcessTest(Long tlabSize) {
     Instant now = Instant.now();
     AtomicReference<LogData> seenLogData = new AtomicReference<>();
-    LogsProcessor consumer = seenLogData::set;
+    LogProcessor consumer = seenLogData::set;
     String stackAsString = "i am a serialized stack believe me";
 
     StackSerializer serializer = mock(StackSerializer.class);
@@ -112,7 +112,7 @@ class TLABProcessorTest {
     TLABProcessor processor =
         TLABProcessor.builder(config)
             .stackSerializer(serializer)
-            .logsProcessor(consumer)
+            .logProcessor(consumer)
             .commonAttributes(commonAttrs)
             .resource(Resource.getDefault())
             .build();
@@ -163,7 +163,7 @@ class TLABProcessorTest {
     int samplerInterval = 5;
 
     AtomicReference<LogData> seenLogData = new AtomicReference<>();
-    LogsProcessor consumer = seenLogData::set;
+    LogProcessor consumer = seenLogData::set;
     StackSerializer serializer = mock(StackSerializer.class);
     LogDataCommonAttributes commonAttrs = new LogDataCommonAttributes(new EventPeriods(x -> null));
 
@@ -175,7 +175,7 @@ class TLABProcessorTest {
     TLABProcessor processor =
         TLABProcessor.builder(config)
             .stackSerializer(serializer)
-            .logsProcessor(consumer)
+            .logProcessor(consumer)
             .commonAttributes(commonAttrs)
             .resource(Resource.getDefault())
             .build();

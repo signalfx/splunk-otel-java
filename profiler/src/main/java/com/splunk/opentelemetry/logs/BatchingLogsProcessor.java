@@ -20,7 +20,9 @@ import static java.util.Objects.requireNonNull;
 
 import com.splunk.opentelemetry.profiler.util.HelpfulExecutors;
 import com.splunk.opentelemetry.profiler.util.Runnables;
+import io.opentelemetry.sdk.logs.LogProcessor;
 import io.opentelemetry.sdk.logs.data.LogData;
+import io.opentelemetry.sdk.logs.export.LogExporter;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
@@ -32,7 +34,7 @@ import org.slf4j.LoggerFactory;
  * A log processor that batches logs until a max number are buffered or a time limit has passed,
  * which ever comes first.
  */
-public class BatchingLogsProcessor implements LogsProcessor {
+public class BatchingLogsProcessor implements LogProcessor {
 
   private static final Logger logger = LoggerFactory.getLogger(BatchingLogsProcessor.class);
 
@@ -42,7 +44,7 @@ public class BatchingLogsProcessor implements LogsProcessor {
   private final int maxBatchSize;
   private final Duration maxTimeBetweenBatches;
   private final List<LogData> batch;
-  private final LogsExporter exporter;
+  private final LogExporter exporter;
   private final ScheduledExecutorService executorService;
   private final Object lock = new Object();
   private WatchdogTimer watchdog;
@@ -77,7 +79,7 @@ public class BatchingLogsProcessor implements LogsProcessor {
   }
 
   @Override
-  public void log(LogData log) {
+  public void emit(LogData log) {
     synchronized (lock) {
       batch.add(log);
       if (batch.size() >= maxBatchSize) {
@@ -102,6 +104,7 @@ public class BatchingLogsProcessor implements LogsProcessor {
     List<LogData> batchCopy = copyClearBatch();
     if (batchCopy != null) {
       logger.debug("Sync export of batch with size {}.", batchCopy.size());
+      // TODO: Look at responses from this call.
       exporter.export(batchCopy);
     }
   }
@@ -124,7 +127,7 @@ public class BatchingLogsProcessor implements LogsProcessor {
   public static class Builder {
     private int maxBatchSize = DEFAULT_MAX_BATCH_SIZE;
     private Duration maxTimeBetweenBatches = DEFAULT_MAX_TIME_BETWEEN_BATCHES;
-    private LogsExporter batchAction;
+    private LogExporter batchAction;
     private ScheduledExecutorService executorService;
 
     public Builder maxBatchSize(int maxBatchSize) {
@@ -137,7 +140,7 @@ public class BatchingLogsProcessor implements LogsProcessor {
       return this;
     }
 
-    public Builder batchAction(LogsExporter batchAction) {
+    public Builder batchAction(LogExporter batchAction) {
       this.batchAction = batchAction;
       return this;
     }

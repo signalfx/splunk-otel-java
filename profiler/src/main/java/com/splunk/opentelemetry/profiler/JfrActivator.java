@@ -28,7 +28,6 @@ import static com.splunk.opentelemetry.profiler.util.Runnables.logUncaught;
 
 import com.google.auto.service.AutoService;
 import com.splunk.opentelemetry.logs.BatchingLogsProcessor;
-import com.splunk.opentelemetry.logs.LogsExporter;
 import com.splunk.opentelemetry.profiler.context.SpanContextualizer;
 import com.splunk.opentelemetry.profiler.events.EventPeriods;
 import com.splunk.opentelemetry.profiler.util.FileDeleter;
@@ -36,6 +35,7 @@ import com.splunk.opentelemetry.profiler.util.HelpfulExecutors;
 import io.opentelemetry.instrumentation.api.config.Config;
 import io.opentelemetry.javaagent.extension.AgentListener;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
+import io.opentelemetry.sdk.logs.export.LogExporter;
 import io.opentelemetry.sdk.resources.Resource;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -97,7 +97,7 @@ public class JfrActivator implements AgentListener {
     SpanContextualizer spanContextualizer = new SpanContextualizer();
     EventPeriods periods = new EventPeriods(jfrSettings::get);
     LogDataCommonAttributes commonAttributes = new LogDataCommonAttributes(periods);
-    LogsExporter logsExporter = LogsExporterBuilder.fromConfig(config, resource);
+    LogExporter logsExporter = LogExporterBuilder.fromConfig(config);
 
     ScheduledExecutorService exportExecutorService =
         HelpfulExecutors.newSingleThreadedScheduledExecutor("Batched Logs Exporter");
@@ -121,7 +121,7 @@ public class JfrActivator implements AgentListener {
         buildThreadDumpProcessor(spanContextualizer, processor, threadDumpToStacks);
     TLABProcessor tlabProcessor =
         TLABProcessor.builder(config)
-            .logsProcessor(batchingLogsProcessor)
+            .logProcessor(batchingLogsProcessor)
             .commonAttributes(commonAttributes)
             .resource(resource)
             .build();

@@ -17,9 +17,8 @@
 package com.splunk.opentelemetry.profiler;
 
 import static com.splunk.opentelemetry.profiler.LogDataCreator.PROFILING_SOURCE;
-import static com.splunk.opentelemetry.profiler.LogsExporterBuilder.INSTRUMENTATION_LIBRARY_INFO;
+import static com.splunk.opentelemetry.profiler.LogExporterBuilder.INSTRUMENTATION_LIBRARY_INFO;
 
-import com.splunk.opentelemetry.logs.LogsProcessor;
 import com.splunk.opentelemetry.profiler.allocationsampler.AllocationEventSampler;
 import com.splunk.opentelemetry.profiler.allocationsampler.SystematicAllocationEventSampler;
 import com.splunk.opentelemetry.profiler.util.StackSerializer;
@@ -27,6 +26,7 @@ import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.common.AttributesBuilder;
 import io.opentelemetry.instrumentation.api.config.Config;
+import io.opentelemetry.sdk.logs.LogProcessor;
 import io.opentelemetry.sdk.logs.data.LogData;
 import io.opentelemetry.sdk.logs.data.LogDataBuilder;
 import io.opentelemetry.sdk.resources.Resource;
@@ -42,7 +42,7 @@ public class TLABProcessor implements Consumer<RecordedEvent> {
 
   private final boolean enabled;
   private final StackSerializer stackSerializer;
-  private final LogsProcessor logsProcessor;
+  private final LogProcessor logProcessor;
   private final LogDataCommonAttributes commonAttributes;
   private final Resource resource;
   private final AllocationEventSampler sampler;
@@ -50,7 +50,7 @@ public class TLABProcessor implements Consumer<RecordedEvent> {
   private TLABProcessor(Builder builder) {
     this.enabled = builder.enabled;
     this.stackSerializer = builder.stackSerializer;
-    this.logsProcessor = builder.logsProcessor;
+    this.logProcessor = builder.logProcessor;
     this.commonAttributes = builder.commonAttributes;
     this.resource = builder.resource;
     this.sampler = builder.sampler;
@@ -90,7 +90,7 @@ public class TLABProcessor implements Consumer<RecordedEvent> {
             .setAttributes(attributes)
             .build();
 
-    logsProcessor.log(logData);
+    logProcessor.emit(logData);
   }
 
   static Builder builder(Config config) {
@@ -106,7 +106,7 @@ public class TLABProcessor implements Consumer<RecordedEvent> {
   static class Builder {
     private boolean enabled;
     private StackSerializer stackSerializer = new StackSerializer();
-    private LogsProcessor logsProcessor;
+    private LogProcessor logProcessor;
     private LogDataCommonAttributes commonAttributes;
     private Resource resource;
     private AllocationEventSampler sampler;
@@ -124,8 +124,8 @@ public class TLABProcessor implements Consumer<RecordedEvent> {
       return this;
     }
 
-    Builder logsProcessor(LogsProcessor logsProcessor) {
-      this.logsProcessor = logsProcessor;
+    Builder logProcessor(LogProcessor logsProcessor) {
+      this.logProcessor = logsProcessor;
       return this;
     }
 

@@ -26,12 +26,10 @@ extra["otelInstrumentationVersion"] = otelInstrumentationVersion
 extensions.configure<DependencyManagementExtension>("dependencyManagement") {
   dependencies {
     dependency("com.google.auto.service:auto-service:1.0")
-    dependency("com.squareup.okhttp3:okhttp:3.14.9")
     dependency("org.assertj:assertj-core:3.22.0")
     dependency("org.awaitility:awaitility:4.1.0")
-    dependency("org.testcontainers:testcontainers:1.15.3")
-    dependency("io.jaegertracing:jaeger-client:1.6.0")
-    dependency("com.signalfx.public:signalfx-java:1.0.13")
+    dependency("io.jaegertracing:jaeger-client:1.7.0")
+    dependency("com.signalfx.public:signalfx-java:1.0.14")
 
     dependencySet("com.github.docker-java:3.2.11") {
       entry("docker-java-core")
@@ -41,7 +39,7 @@ extensions.configure<DependencyManagementExtension>("dependencyManagement") {
       entry("protobuf-java")
       entry("protobuf-java-util")
     }
-    dependencySet("org.mockito:3.8.0") {
+    dependencySet("org.mockito:4.2.0") {
       entry("mockito-core")
       entry("mockito-junit-jupiter")
     }
@@ -49,7 +47,7 @@ extensions.configure<DependencyManagementExtension>("dependencyManagement") {
       entry("slf4j-api")
       entry("slf4j-simple")
     }
-    dependencySet("com.google.auto.value:1.8.1") {
+    dependencySet("com.google.auto.value:1.9") {
       entry("auto-value")
       entry("auto-value-annotations")
     }
@@ -83,11 +81,13 @@ extensions.configure<DependencyManagementExtension>("dependencyManagement") {
   }
 
   imports {
+    mavenBom("com.squareup.okhttp3:okhttp-bom:4.9.3")
     mavenBom("io.grpc:grpc-bom:1.41.0")
     mavenBom("io.micrometer:micrometer-bom:${micrometerVersion}")
     mavenBom("io.opentelemetry:opentelemetry-bom-alpha:${otelAlphaVersion}")
     mavenBom("io.opentelemetry:opentelemetry-bom:${otelVersion}")
-    mavenBom("org.junit:junit-bom:5.7.2")
+    mavenBom("org.junit:junit-bom:5.8.2")
+    mavenBom("org.testcontainers:testcontainers-bom:1.16.2")
   }
 }
 

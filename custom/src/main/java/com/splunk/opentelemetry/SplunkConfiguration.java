@@ -26,6 +26,7 @@ public class SplunkConfiguration implements ConfigPropertySource {
   public static final String SPLUNK_ACCESS_TOKEN = "splunk.access.token";
   public static final String OTEL_EXPORTER_JAEGER_ENDPOINT = "otel.exporter.jaeger.endpoint";
   public static final String PROFILER_ENABLED_PROPERTY = "splunk.profiler.enabled";
+  public static final String PROFILER_MEMORY_ENABLED_PROPERTY = "splunk.profiler.memory.enabled";
 
   @Override
   public Map<String, String> getProperties() {

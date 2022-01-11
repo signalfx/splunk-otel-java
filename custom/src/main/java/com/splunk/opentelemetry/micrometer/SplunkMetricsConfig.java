@@ -16,7 +16,7 @@
 
 package com.splunk.opentelemetry.micrometer;
 
-import static com.splunk.opentelemetry.SplunkConfiguration.PROFILER_ENABLED_PROPERTY;
+import static com.splunk.opentelemetry.SplunkConfiguration.PROFILER_MEMORY_ENABLED_PROPERTY;
 import static com.splunk.opentelemetry.SplunkConfiguration.SPLUNK_ACCESS_TOKEN;
 import static io.micrometer.core.instrument.config.MeterRegistryConfigValidator.checkAll;
 
@@ -55,7 +55,7 @@ class SplunkMetricsConfig implements SignalFxConfig {
   @Override
   public boolean enabled() {
     return config.getBoolean(METRICS_ENABLED_PROPERTY, false)
-        || config.getBoolean(PROFILER_ENABLED_PROPERTY, false);
+        || config.getBoolean(PROFILER_MEMORY_ENABLED_PROPERTY, false);
   }
 
   @Override

@@ -16,8 +16,10 @@
 
 package com.splunk.opentelemetry.profiler;
 
+import static com.splunk.opentelemetry.SplunkConfiguration.PROFILER_ENABLED_PROPERTY;
+import static com.splunk.opentelemetry.SplunkConfiguration.PROFILER_MEMORY_ENABLED_PROPERTY;
+
 import com.google.auto.service.AutoService;
-import com.splunk.opentelemetry.SplunkConfiguration;
 import io.opentelemetry.instrumentation.api.config.Config;
 import io.opentelemetry.javaagent.extension.config.ConfigPropertySource;
 import java.time.Duration;
@@ -32,14 +34,13 @@ public class Configuration implements ConfigPropertySource {
   public static final int DEFAULT_MEMORY_SAMPLING_INTERVAL = 1;
   public static final Duration DEFAULT_CALL_STACK_INTERVAL = Duration.ofSeconds(10);
 
-  public static final String CONFIG_KEY_ENABLE_PROFILER =
-      SplunkConfiguration.PROFILER_ENABLED_PROPERTY;
+  public static final String CONFIG_KEY_ENABLE_PROFILER = PROFILER_ENABLED_PROPERTY;
   public static final String CONFIG_KEY_PROFILER_DIRECTORY = "splunk.profiler.directory";
   public static final String CONFIG_KEY_RECORDING_DURATION = "splunk.profiler.recording.duration";
   public static final String CONFIG_KEY_KEEP_FILES = "splunk.profiler.keep-files";
   public static final String CONFIG_KEY_INGEST_URL = "splunk.profiler.logs-endpoint";
   public static final String CONFIG_KEY_OTEL_OTLP_URL = "otel.exporter.otlp.endpoint";
-  public static final String CONFIG_KEY_MEMORY_ENABLED = "splunk.profiler.memory.enabled";
+  public static final String CONFIG_KEY_MEMORY_ENABLED = PROFILER_MEMORY_ENABLED_PROPERTY;
   public static final String CONFIG_KEY_MEMORY_SAMPLER_INTERVAL =
       "splunk.profiler.memory.sampler.interval";
   public static final String CONFIG_KEY_TLAB_ENABLED = "splunk.profiler.tlab.enabled";

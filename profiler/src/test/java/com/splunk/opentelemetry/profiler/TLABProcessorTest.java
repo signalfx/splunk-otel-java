@@ -41,6 +41,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import jdk.jfr.EventType;
 import jdk.jfr.consumer.RecordedEvent;
 import jdk.jfr.consumer.RecordedStackTrace;
+import jdk.jfr.consumer.RecordedThread;
 import org.junit.jupiter.api.Test;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
@@ -98,7 +99,10 @@ class TLABProcessorTest {
     Instant now = Instant.now();
     AtomicReference<LogData> seenLogData = new AtomicReference<>();
     LogProcessor consumer = seenLogData::set;
-    String stackAsString = "i am a serialized stack believe me";
+    String stackAsString =
+        "\"mockingbird\" #606 prio=0 os_prio=0 cpu=0ms elapsed=0s tid=0 nid=0 unknown\n"
+            + "   java.lang.Thread.State: UNKNOWN\n"
+            + "i am a serialized stack believe me";
 
     StackSerializer serializer = mock(StackSerializer.class);
     LogDataCommonAttributes commonAttrs = new LogDataCommonAttributes(new EventPeriods(x -> null));
@@ -135,11 +139,15 @@ class TLABProcessorTest {
     RecordedEvent event = mock(RecordedEvent.class);
     RecordedStackTrace stack = mock(RecordedStackTrace.class);
     EventType eventType = mock(EventType.class);
+    RecordedThread mockThread = mock(RecordedThread.class);
 
     when(event.getStartTime()).thenReturn(now);
     when(event.getStackTrace()).thenReturn(stack);
     when(event.getEventType()).thenReturn(eventType);
     when(event.getLong("allocationSize")).thenReturn(ONE_MB);
+    when(event.getThread()).thenReturn(mockThread);
+    when(mockThread.getJavaThreadId()).thenReturn(606L);
+    when(mockThread.getJavaName()).thenReturn("mockingbird");
 
     when(event.hasField("tlabSize")).thenReturn(tlabSize != null);
     if (tlabSize == null) {

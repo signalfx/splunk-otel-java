@@ -34,6 +34,7 @@ import java.time.Instant;
 import java.util.function.Consumer;
 import jdk.jfr.consumer.RecordedEvent;
 import jdk.jfr.consumer.RecordedStackTrace;
+import jdk.jfr.consumer.RecordedThread;
 
 public class TLABProcessor implements Consumer<RecordedEvent> {
   public static final String NEW_TLAB_EVENT_NAME = "jdk.ObjectAllocationInNewTLAB";
@@ -73,7 +74,9 @@ public class TLABProcessor implements Consumer<RecordedEvent> {
     }
 
     Instant time = event.getStartTime();
-    String stack = stackSerializer.serialize(stackTrace);
+
+    String body = buildBody(event, stackTrace);
+
     AttributesBuilder builder =
         commonAttributes.build(event.getEventType().getName()).toBuilder()
             .put(ALLOCATION_SIZE_KEY, event.getLong("allocationSize"));
@@ -86,11 +89,27 @@ public class TLABProcessor implements Consumer<RecordedEvent> {
         LogDataBuilder.create(resource, INSTRUMENTATION_LIBRARY_INFO)
             .setName(PROFILING_SOURCE)
             .setEpoch(time)
-            .setBody(stack)
+            .setBody(body)
             .setAttributes(attributes)
             .build();
 
     logProcessor.emit(logData);
+  }
+
+  private String buildBody(RecordedEvent event, RecordedStackTrace stackTrace) {
+    String stack = stackSerializer.serialize(stackTrace);
+    RecordedThread thread = event.getThread();
+    String name = thread == null ? "unknown" : thread.getJavaName();
+    long id = thread == null ? 0 : thread.getJavaThreadId();
+    return "\""
+        + name
+        + "\""
+        + " #"
+        + id
+        + " prio=0 os_prio=0 cpu=0ms elapsed=0s tid=0 nid=0 unknown"
+        + "\n"
+        + "   java.lang.Thread.State: UNKNOWN\n"
+        + stack;
   }
 
   static Builder builder(Config config) {
@@ -104,7 +123,7 @@ public class TLABProcessor implements Consumer<RecordedEvent> {
   }
 
   static class Builder {
-    private boolean enabled;
+    private final boolean enabled;
     private StackSerializer stackSerializer = new StackSerializer();
     private LogProcessor logProcessor;
     private LogDataCommonAttributes commonAttributes;

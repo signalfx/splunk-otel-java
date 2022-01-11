@@ -48,14 +48,25 @@ public class StackSerializer {
   private StringBuilder serializeFrame(StringBuilder sb, RecordedFrame frame) {
     RecordedMethod method = frame.getMethod();
     if (method == null) {
-      return sb;
+      return maybeNewline(sb).append("\tat unknown.unknown(unknown)");
     }
-    if (sb.length() > 0) {
-      sb.append("\n");
-    }
+    maybeNewline(sb);
     String className = method.getType().getName();
     String methodName = method.getName();
     int lineNumber = frame.getInt("lineNumber");
-    return sb.append(className).append(".").append(methodName).append(":").append(lineNumber);
+    return sb.append("\tat ")
+        .append(className)
+        .append(".")
+        .append(methodName)
+        .append("(unknown:")
+        .append(lineNumber)
+        .append(")");
+  }
+
+  private StringBuilder maybeNewline(StringBuilder sb) {
+    if (sb.length() > 0) {
+      sb.append("\n");
+    }
+    return sb;
   }
 }

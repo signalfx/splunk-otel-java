@@ -25,9 +25,9 @@ extra["otelInstrumentationVersion"] = otelInstrumentationVersion
 
 extensions.configure<DependencyManagementExtension>("dependencyManagement") {
   dependencies {
-    dependency("com.google.auto.service:auto-service:1.0")
+    dependency("com.google.auto.service:auto-service:1.0.1")
     dependency("org.assertj:assertj-core:3.22.0")
-    dependency("org.awaitility:awaitility:4.1.0")
+    dependency("org.awaitility:awaitility:4.1.1")
     dependency("io.jaegertracing:jaeger-client:1.7.0")
     dependency("com.signalfx.public:signalfx-java:1.0.14")
 
@@ -43,7 +43,7 @@ extensions.configure<DependencyManagementExtension>("dependencyManagement") {
       entry("mockito-core")
       entry("mockito-junit-jupiter")
     }
-    dependencySet("org.slf4j:1.7.30") {
+    dependencySet("org.slf4j:1.7.32") {
       entry("slf4j-api")
       entry("slf4j-simple")
     }

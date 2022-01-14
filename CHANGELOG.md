@@ -8,7 +8,13 @@ and this repository adheres to [Semantic Versioning](https://semver.org/spec/v2.
 
 ## Unreleased
 
-* DEPRECATE `splunk.profiler.period.threaddump` config setting in favor of GDI-spec
+### General
+
+- Micrometer dependency has been updated to version 1.8.2.
+
+### Deprecations
+
+- DEPRECATE `splunk.profiler.period.threaddump` config setting in favor of GDI-spec
   compatible `splunk.profiler.call.stack.interval`.
 
 ## v1.6.1 - 2022-01-12

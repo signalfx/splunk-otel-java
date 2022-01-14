@@ -215,7 +215,7 @@ public class MicrometerBridgeTest {
 
     // when
     var sample = timer.start();
-    Thread.sleep(50);
+    TimeUnit.MILLISECONDS.sleep(50);
 
     // then
     assertThat(TestMetricsAccess.getMeters())
@@ -234,7 +234,7 @@ public class MicrometerBridgeTest {
     double[] agentMeasurements = TestMetricsAccess.getMeasurements("testLongTaskTimer");
     assertThat(agentMeasurements).hasSize(2);
     assertThat(agentMeasurements[0]).isEqualTo(1);
-    assertThat(agentMeasurements[1]).isGreaterThan(TimeUnit.MILLISECONDS.toNanos(50));
+    assertThat(agentMeasurements[1]).isGreaterThan(TimeUnit.MILLISECONDS.toSeconds(50));
 
     // then
     sample.stop();

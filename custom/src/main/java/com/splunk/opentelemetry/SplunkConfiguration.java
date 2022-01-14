@@ -32,25 +32,34 @@ public class SplunkConfiguration implements ConfigPropertySource {
   public Map<String, String> getProperties() {
     Map<String, String> config = new HashMap<>();
 
+    config.put("otel.traces.sampler", "always_on");
+
     // by default no metrics are exported
     config.put("otel.metrics.exporter", "none");
-    // disable otel runtime-metrics instrumentation; we use micrometer metrics instead
-    config.put("otel.instrumentation.runtime-metrics.enabled", "false");
-    // just in case disable oshi metrics too
-    config.put("otel.instrumentation.oshi.enabled", "false");
 
     // http://localhost:9080/v1/trace is the default endpoint for SmartAgent
     // http://localhost:14268/api/traces is the default endpoint for otel-collector
     config.put(OTEL_EXPORTER_JAEGER_ENDPOINT, "http://localhost:9080/v1/trace");
 
-    // enable experimental instrumentation
-    config.put("otel.instrumentation.spring-batch.enabled", "true");
-    config.put("otel.instrumentation.spring-batch.item.enabled", "true");
+    // instrumentation settings
 
     // disable span links in messaging instrumentations
     config.put("otel.instrumentation.common.experimental.suppress-messaging-receive-spans", "true");
 
-    config.put("otel.traces.sampler", "always_on");
+    // disable logging instrumentations - we're not currently sending logs (yet)
+    config.put("otel.instrumentation.java-util-logging.enabled", "false");
+    config.put("otel.instrumentation.log4j-appender.enabled", "false");
+    config.put("otel.instrumentation.logback-appender.enabled", "false");
+    // disable otel micrometer instrumentation, we use our own for now
+    config.put("otel.instrumentation.micrometer.enabled", "false");
+    // disable oshi metrics too, just in case
+    config.put("otel.instrumentation.oshi.enabled", "false");
+    // disable otel runtime-metrics instrumentation; we use micrometer metrics instead
+    config.put("otel.instrumentation.runtime-metrics.enabled", "false");
+    // enable spring batch instrumentation
+    config.put("otel.instrumentation.spring-batch.enabled", "true");
+    config.put("otel.instrumentation.spring-batch.item.enabled", "true");
+
     return config;
   }
 }

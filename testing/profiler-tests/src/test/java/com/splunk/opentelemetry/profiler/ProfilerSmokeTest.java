@@ -51,7 +51,6 @@ import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.Network;
 import org.testcontainers.containers.output.Slf4jLogConsumer;
 import org.testcontainers.containers.wait.strategy.Wait;
-import org.testcontainers.shaded.com.fasterxml.jackson.databind.ObjectMapper;
 import org.testcontainers.shaded.okhttp3.OkHttpClient;
 import org.testcontainers.shaded.okhttp3.Request;
 import org.testcontainers.shaded.okhttp3.Response;
@@ -67,7 +66,6 @@ public class ProfilerSmokeTest {
   private static final Network NETWORK = Network.newNetwork();
   public static final int PETCLINIC_PORT = 9966;
   public static final int BACKEND_PORT = 8080;
-  private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
   private final RecordedEventStream eventStream = new BasicJfrRecordingFile(JFR.instance);
 
   private static GenericContainer<?> backend;

@@ -20,14 +20,18 @@ import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_ENABLE_
 import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_INCLUDE_AGENT_INTERNALS;
 import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_INCLUDE_JVM_INTERNALS;
 import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_KEEP_FILES;
+import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_MEMORY_SAMPLER_INTERVAL;
 import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_PROFILER_DIRECTORY;
 import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_RECORDING_DURATION;
+import static com.splunk.opentelemetry.profiler.Configuration.DEFAULT_MEMORY_SAMPLING_INTERVAL;
 import static com.splunk.opentelemetry.profiler.JfrFileLifecycleEvents.buildOnFileFinished;
 import static com.splunk.opentelemetry.profiler.JfrFileLifecycleEvents.buildOnNewRecording;
 import static com.splunk.opentelemetry.profiler.util.Runnables.logUncaught;
 
 import com.google.auto.service.AutoService;
 import com.splunk.opentelemetry.logs.BatchingLogsProcessor;
+import com.splunk.opentelemetry.profiler.allocationsampler.AllocationEventSampler;
+import com.splunk.opentelemetry.profiler.allocationsampler.SystematicAllocationEventSampler;
 import com.splunk.opentelemetry.profiler.context.SpanContextualizer;
 import com.splunk.opentelemetry.profiler.events.EventPeriods;
 import com.splunk.opentelemetry.profiler.util.FileDeleter;
@@ -120,11 +124,7 @@ public class JfrActivator implements AgentListener {
     ThreadDumpProcessor threadDumpProcessor =
         buildThreadDumpProcessor(spanContextualizer, processor, threadDumpToStacks);
     TLABProcessor tlabProcessor =
-        TLABProcessor.builder(config)
-            .logProcessor(batchingLogsProcessor)
-            .commonAttributes(commonAttributes)
-            .resource(resource)
-            .build();
+        buildTlabProcessor(config, resource, commonAttributes, batchingLogsProcessor);
     EventProcessingChain eventProcessingChain =
         new EventProcessingChain(spanContextualizer, threadDumpProcessor, tlabProcessor);
     Consumer<Path> deleter = buildFileDeleter(config);
@@ -169,6 +169,25 @@ public class JfrActivator implements AgentListener {
         .spanContextualizer(spanContextualizer)
         .processor(processor)
         .threadDumpToStacks(threadDumpToStacks)
+        .build();
+  }
+
+  private TLABProcessor buildTlabProcessor(
+      Config config,
+      Resource resource,
+      LogDataCommonAttributes commonAttributes,
+      BatchingLogsProcessor batchingLogsProcessor) {
+
+    int samplerInterval =
+        config.getInt(CONFIG_KEY_MEMORY_SAMPLER_INTERVAL, DEFAULT_MEMORY_SAMPLING_INTERVAL);
+    AllocationEventSampler sampler =
+        samplerInterval > 1 ? new SystematicAllocationEventSampler(samplerInterval) : null;
+
+    return TLABProcessor.builder(config)
+        .logProcessor(batchingLogsProcessor)
+        .commonAttributes(commonAttributes)
+        .resource(resource)
+        .sampler(sampler)
         .build();
   }
 

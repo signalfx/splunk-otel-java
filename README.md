@@ -96,14 +96,14 @@ Follow these steps to automatically instrument your application using the Java a
     -   On Linux, run:
 
         ```bash
-        curl -L https://github.com/signalfx/splunk-otel-java/releases/latest/download/splunk-otel-javaagent-all.jar \
+        curl -L https://github.com/signalfx/splunk-otel-java/releases/latest/download/splunk-otel-javaagent.jar \
         -o splunk-otel-javaagent.jar
         ```
 
     -   On Windows (PowerShell), run:
 
         ```powershell
-        Invoke-WebRequest -Uri https://github.com/signalfx/splunk-otel-java/releases/latest/download/splunk-otel-javaagent-all.jar -OutFile splunk-otel-javaagent.jar
+        Invoke-WebRequest -Uri https://github.com/signalfx/splunk-otel-java/releases/latest/download/splunk-otel-javaagent.jar -OutFile splunk-otel-javaagent.jar
         ```
 
 4.  Set the `OTEL_SERVICE_NAME` environment variable:

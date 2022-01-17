@@ -10,8 +10,8 @@ from urllib.request import build_opener, HTTPRedirectHandler
 LATEST_VERSION = "latest"
 JAVA_AGENT_VERSION = ENV.get("SPLUNK_OTEL_JAVA_VERSION", default=LATEST_VERSION)
 JAVA_AGENT_JAR_NAME = f"splunk-otel-javaagent-{JAVA_AGENT_VERSION}.jar"
-JAVA_AGENT_URL = f"https://github.com/signalfx/splunk-otel-java/releases/download/v{JAVA_AGENT_VERSION}/splunk-otel-javaagent-all.jar"
-JAVA_AGENT_LATEST_URL = "https://github.com/signalfx/splunk-otel-java/releases/latest/download/splunk-otel-javaagent-all.jar"
+JAVA_AGENT_URL = f"https://github.com/signalfx/splunk-otel-java/releases/download/v{JAVA_AGENT_VERSION}/splunk-otel-javaagent.jar"
+JAVA_AGENT_LATEST_URL = "https://github.com/signalfx/splunk-otel-java/releases/latest/download/splunk-otel-javaagent.jar"
 
 def log_op(msg):
     print(f"-----> {msg}")

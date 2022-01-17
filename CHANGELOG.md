@@ -8,14 +8,24 @@ and this repository adheres to [Semantic Versioning](https://semver.org/spec/v2.
 
 ## Unreleased
 
+## v1.7.0 - 2022-01-17
+
 ### General
 
 - Micrometer dependency has been updated to version 1.8.2.
+- OpenTelemetry Java SDK and OpenTelemetry Instrumentation for Java dependencies have been updated to version 1.10.0.
 
 ### Deprecations
 
 - DEPRECATE `splunk.profiler.period.threaddump` config setting in favor of GDI-spec
   compatible `splunk.profiler.call.stack.interval`.
+
+### Enhancements
+
+- Added a new `splunk.profiler.memory.enabled` property that enables all memory profiling features.
+- Implemented a sampler for allocation-related profiling events. It can be enabled by setting
+  the `splunk.profiler.memory.sampler.interval` property. The default value is 1; set the value to 2 or higher to sample
+  data every nth allocation event.
 
 ## v1.6.1 - 2022-01-12
 

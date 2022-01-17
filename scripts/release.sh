@@ -96,6 +96,6 @@ login_to_quay_io() {
 import_gpg_keys
 build_project
 create_gh_release
-build_docker_image
-login_to_quay_io
-publish_docker_image
+#build_docker_image
+#login_to_quay_io
+#publish_docker_image

@@ -22,8 +22,6 @@ jobs:
         run: git config --system core.longpaths true
 
       - uses: actions/checkout@v2.4.0
-        with:
-          fetch-depth: 0
 
       - name: Login to GitHub Package Registry
         uses: azure/docker-login@v1

@@ -10,8 +10,6 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2.4.0
-        with:
-          fetch-depth: 0
 
       - name: Set up JDK 11 for running Gradle
         uses: actions/setup-java@v2
@@ -35,8 +33,6 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v2.4.0
-        with:
-          fetch-depth: 0
 
       - name: Set up JDK 11 for running Gradle
         uses: actions/setup-java@v2
@@ -62,8 +58,6 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v2.4.0
-        with:
-          fetch-depth: 0
 
       - name: Set up JDK 11 for running Gradle
         uses: actions/setup-java@v2
@@ -99,8 +93,6 @@ jobs:
       - uses: technote-space/workflow-conclusion-action@v2.2
 
       - uses: actions/checkout@v2.4.0
-        with:
-          fetch-depth: 0
 
       - uses: JasonEtco/create-an-issue@v2.6
         if: env.WORKFLOW_CONCLUSION == 'failure' # notify only if failure

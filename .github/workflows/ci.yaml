@@ -16,8 +16,6 @@ jobs:
   #  runs-on: ubuntu-20.04
   #  steps:
   #    - uses: actions/checkout@v2
-  #      with:
-  #        fetch-depth: 0
 
   #    - name: Check all links in *.md files
   #      id: lychee
@@ -37,8 +35,6 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2.4.0
-        with:
-          fetch-depth: 0
 
       - name: Set up JDK 11 for running Gradle
         uses: actions/setup-java@v2
@@ -62,8 +58,6 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v2.4.0
-        with:
-          fetch-depth: 0
 
       - name: Set up JDK 11 for running Gradle
         uses: actions/setup-java@v2
@@ -89,8 +83,6 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v2.4.0
-        with:
-          fetch-depth: 0
 
       - name: Set up JDK 11 for running Gradle
         uses: actions/setup-java@v2
@@ -127,8 +119,6 @@ jobs:
       fail-fast: false
     steps:
       - uses: actions/checkout@v2.4.0
-        with:
-          fetch-depth: 0
 
       - name: Set up JDK 11 for running Gradle
         uses: actions/setup-java@v2
@@ -161,8 +151,6 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2.4.0
-        with:
-          fetch-depth: 0
 
       - name: Set up JDK 11 for running Gradle
         uses: actions/setup-java@v2

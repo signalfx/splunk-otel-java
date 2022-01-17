@@ -28,10 +28,10 @@ against the data you used to receive from the SignalFx Java Agent.
 Follow these steps to migrate from the SignalFx Java Agent to the Splunk
 Distribution of OpenTelemetry Java Instrumentation:
 
-1. Download the [latest release](https://github.com/signalfx/splunk-otel-java/releases/latest/download/splunk-otel-javaagent-all.jar)
+1. Download the [latest release](https://github.com/signalfx/splunk-otel-java/releases/latest/download/splunk-otel-javaagent.jar)
    of the Splunk Distribution of OpenTelemetry Java. For example use:
    ```bash
-   curl -vsSL -o splunk-otel-javaagent-all.jar 'https://github.com/signalfx/splunk-otel-java/releases/latest/download/splunk-otel-javaagent-all.jar'
+   curl -vsSL -o splunk-otel-javaagent.jar 'https://github.com/signalfx/splunk-otel-java/releases/latest/download/splunk-otel-javaagent.jar'
    ```
 2. Set the service name. This is how you can identify the service in Splunk APM.
 
@@ -75,7 +75,7 @@ Distribution of OpenTelemetry Java Instrumentation:
    The default value for the Jaeger endpoint is `http://localhost:9080/v1/trace`. If you're exporting traces to a local
    Smart Agent, you don't have to modify this configuration setting.
 4. In your application startup script, replace `-javaagent:./signalfx-tracing.jar`
-   with `-javaagent:/path/to/splunk-otel-javaagent-all.jar`.
+   with `-javaagent:/path/to/splunk-otel-javaagent.jar`.
 5. If you manually instrumented any code with an OpenTracing tracer, expose
    the OpenTelemetry tracer as an implementation of an OpenTracing tracer with
    the OpenTracing Shim. For more information, see

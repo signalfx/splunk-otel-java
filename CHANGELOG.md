@@ -8,6 +8,12 @@ and this repository adheres to [Semantic Versioning](https://semver.org/spec/v2.
 
 ## Unreleased
 
+## v1.7.1 - 2022-01-18
+
+### Bugfixes
+
+- Fixed the docker image publishing issue in GitLab.
+
 ## v1.7.0 - 2022-01-17
 
 ### General

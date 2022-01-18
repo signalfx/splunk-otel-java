@@ -37,7 +37,7 @@ fi
 # Prepare development version docs warning for the new version
 cat > dev_docs_warning.md.tmp <<EOF
 <!--DEV_DOCS_WARNING_START-->
-The documentation below refers to the in development version of this package. Docs for the latest version ([v${splunk_current_version}](https://github.com/signalfx/splunk-otel-java/releases/latest)) can be found [here](https://github.com/signalfx/splunk-otel-java/blob/v${splunk_current_version}/README.md).
+The following documentation refers to the in-development version of `splunk-otel-java`. Docs for the latest version ([v${splunk_current_version}](https://github.com/signalfx/splunk-otel-java/releases/latest)) can be found [here](https://github.com/signalfx/splunk-otel-java/blob/v${splunk_current_version}/README.md).
 
 ---
 <!--DEV_DOCS_WARNING_END-->

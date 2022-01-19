@@ -42,5 +42,7 @@ public class JvmMetricsInstaller implements AgentListener {
     new JvmGcMetrics().bindTo(Metrics.globalRegistry);
     new JvmMemoryMetrics().bindTo(Metrics.globalRegistry);
     new JvmThreadMetrics().bindTo(Metrics.globalRegistry);
+    new AllocatedMemoryMetrics().bindTo(Metrics.globalRegistry);
+    new GcMemoryMetrics().bindTo(Metrics.globalRegistry);
   }
 }

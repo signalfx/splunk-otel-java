@@ -21,18 +21,16 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.context.Context;
-import io.opentelemetry.instrumentation.test.utils.TraceUtils;
-import io.opentelemetry.sdk.OpenTelemetrySdk;
+import io.opentelemetry.instrumentation.testing.junit.InstrumentationExtension;
+import io.opentelemetry.instrumentation.testing.junit.LibraryInstrumentationExtension;
 import java.util.HashMap;
 import java.util.Map;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 class ServerTimingHeaderTest {
-  @BeforeAll
-  static void setUpOpenTelemetry() {
-    OpenTelemetrySdk.builder().buildAndRegisterGlobal();
-  }
+
+  @RegisterExtension InstrumentationExtension testing = LibraryInstrumentationExtension.create();
 
   @Test
   void shouldNotSetAnyHeadersWithoutValidCurrentSpan() {
@@ -40,7 +38,7 @@ class ServerTimingHeaderTest {
     var headers = new HashMap<String, String>();
 
     // when
-    ServerTimingHeader.setHeaders(Context.current(), headers, Map::put);
+    ServerTimingHeader.setHeaders(Context.root(), headers, Map::put);
 
     // then
     assertTrue(headers.isEmpty());
@@ -53,7 +51,7 @@ class ServerTimingHeaderTest {
 
     // when
     var spanContext =
-        TraceUtils.runUnderTrace(
+        testing.runWithSpan(
             "server",
             () -> {
               ServerTimingHeader.setHeaders(Context.current(), headers, Map::put);

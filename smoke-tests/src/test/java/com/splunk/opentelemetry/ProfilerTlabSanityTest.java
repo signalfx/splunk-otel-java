@@ -23,9 +23,7 @@ import static org.junit.jupiter.api.Assumptions.assumeFalse;
 import io.opentelemetry.proto.trace.v1.Span;
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,24 +39,45 @@ class ProfilerTlabSanityTest {
 
   private static final Logger logger = LoggerFactory.getLogger(ProfilerTlabSanityTest.class);
 
-  private static final Network NETWORK = Network.newNetwork();
   private static final int BACKEND_PORT = 8080;
 
-  private static GenericContainer<?> backend;
-  private static GenericContainer<?> collector;
+  private Network network;
+  private GenericContainer<?> backend;
+  private GenericContainer<?> collector;
   private GenericContainer<?> app;
 
-  private static TelemetryRetriever telemetryRetriever;
+  private TelemetryRetriever telemetryRetriever;
 
-  @BeforeAll
-  static void setupEnv() {
+  @AfterEach
+  void stopApp() {
+    if (app != null) {
+      app.stop();
+    }
+    if (backend != null) {
+      backend.stop();
+    }
+    if (collector != null) {
+      collector.stop();
+    }
+    if (network != null) {
+      network.close();
+    }
+  }
+
+  @Test
+  void verifyThatTlabLogsHaveCorrectLinkage() {
+    // skip this on windows for now
+    assumeFalse(System.getProperty("os.name").toLowerCase().contains("windows"));
+
+    // given
+    network = Network.newNetwork();
     backend =
         new GenericContainer<>(
                 DockerImageName.parse(
                     "ghcr.io/open-telemetry/java-test-containers:smoke-fake-backend-20210624.967200357"))
             .withExposedPorts(BACKEND_PORT)
             .waitingFor(Wait.forHttp("/health").forPort(BACKEND_PORT))
-            .withNetwork(NETWORK)
+            .withNetwork(network)
             .withNetworkAliases("backend")
             .withLogConsumer(new Slf4jLogConsumer(logger));
     backend.start();
@@ -69,40 +88,19 @@ class ProfilerTlabSanityTest {
     collector =
         new GenericContainer<>(DockerImageName.parse("otel/opentelemetry-collector-contrib:latest"))
             .dependsOn(backend)
-            .withNetwork(NETWORK)
+            .withNetwork(network)
             .withNetworkAliases("collector")
             .withLogConsumer(new Slf4jLogConsumer(logger))
             .withCopyFileToContainer(
                 MountableFile.forClasspathResource("otel.yaml"), "/etc/otel.yaml")
             .withCommand("--config /etc/otel.yaml");
     collector.start();
-  }
 
-  @AfterAll
-  static void stopEnv() {
-    backend.stop();
-    collector.stop();
-    NETWORK.close();
-  }
-
-  @AfterEach
-  void stopApp() {
-    if (app != null) {
-      app.stop();
-    }
-  }
-
-  @Test
-  void verifyThatTlabLogsHaveCorrectLinkage() {
-    // skip this on windows for now
-    assumeFalse(System.getProperty("os.name").toLowerCase().contains("windows"));
-
-    // given
     app =
         new GenericContainer<>(DockerImageName.parse("eclipse-temurin:11-alpine"))
             .withStartupTimeout(Duration.ofMinutes(1))
             .dependsOn(collector)
-            .withNetwork(NETWORK)
+            .withNetwork(network)
             .withNetworkAliases("tlab-sanity-test-app")
             .withLogConsumer(new Slf4jLogConsumer(logger))
             .withCopyFileToContainer(

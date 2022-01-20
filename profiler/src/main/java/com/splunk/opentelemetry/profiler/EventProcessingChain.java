@@ -190,51 +190,22 @@ class EventProcessingChain {
    * change is detected process buffered events and clear the buffer.
    */
   private static class ChunkTracker {
-    private final EventTypeHolder contextAttached = new EventTypeHolder();
-    private final EventTypeHolder threadDump = new EventTypeHolder();
-    private final EventTypeHolder newTlab = new EventTypeHolder();
-    private final EventTypeHolder outsideTlab = new EventTypeHolder();
+
+    private final Map<String, EventType> eventTypes = new HashMap<>();
 
     /** @return true when event belongs to a new chunk */
     boolean isNewChunk(RecordedEvent event) {
       EventType currentEventType = event.getEventType();
       String eventName = currentEventType.getName();
 
-      switch (eventName) {
-        case ContextAttached.EVENT_NAME:
-          return contextAttached.isNewEventType(currentEventType);
-        case ThreadDumpProcessor.EVENT_NAME:
-          return threadDump.isNewEventType(currentEventType);
-        case TLABProcessor.NEW_TLAB_EVENT_NAME:
-          return newTlab.isNewEventType(currentEventType);
-        case TLABProcessor.OUTSIDE_TLAB_EVENT_NAME:
-          return outsideTlab.isNewEventType(currentEventType);
-      }
-      return false;
-    }
-
-    void reset() {
-      contextAttached.reset();
-      threadDump.reset();
-      newTlab.reset();
-      outsideTlab.reset();
-    }
-  }
-
-  private static class EventTypeHolder {
-    private EventType value = null;
-
-    /** @return true when event belongs to a new chunk */
-    boolean isNewEventType(EventType currentEventType) {
-      if (value == null) {
-        value = currentEventType;
-      }
+      eventTypes.putIfAbsent(eventName, currentEventType);
+      EventType oldEventType = eventTypes.get(eventName);
       // each chunk is parsed by a new parser that recreates event type
-      return value != currentEventType;
+      return oldEventType != currentEventType;
     }
 
     void reset() {
-      value = null;
+      eventTypes.clear();
     }
   }
 }

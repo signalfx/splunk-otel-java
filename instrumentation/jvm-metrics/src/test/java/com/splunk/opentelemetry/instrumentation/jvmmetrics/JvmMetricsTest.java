@@ -41,6 +41,6 @@ class JvmMetricsTest {
     // allocated memory metrics
     assertTrue(meterNames.contains("jvm.experimental.memory.allocated"));
     // Our custom GC metrics
-    assertTrue(meterNames.contains("jvm.experimental.gc.memory.delta.sum"));
+    assertTrue(meterNames.contains("jvm.experimental.gc.memory.reclaimed"));
   }
 }

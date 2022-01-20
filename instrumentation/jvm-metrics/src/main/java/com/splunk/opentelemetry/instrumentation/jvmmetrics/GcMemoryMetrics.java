@@ -44,8 +44,7 @@ public class GcMemoryMetrics implements MeterBinder, AutoCloseable {
 
   private final List<Runnable> notificationListenerCleanUpRunnables = new CopyOnWriteArrayList<>();
   private final Set<String> heapPoolNames = new HashSet<>();
-  private AtomicLong deltaSum = new AtomicLong();
-  private GcMetricsNotificationListener gcNotificationListener;
+  private final AtomicLong deltaSum = new AtomicLong();
 
   @Override
   public void bindTo(MeterRegistry registry) {
@@ -53,9 +52,10 @@ public class GcMemoryMetrics implements MeterBinder, AutoCloseable {
       return;
     }
 
-    gcNotificationListener = new GcMetricsNotificationListener(registry);
+    GcMetricsNotificationListener gcNotificationListener =
+        new GcMetricsNotificationListener(registry);
 
-    Gauge.builder("jvm.experimental.gc.memory.delta.sum", deltaSum, AtomicLong::get)
+    Gauge.builder("jvm.experimental.gc.memory.reclaimed", deltaSum, AtomicLong::get)
         .description("Sum of heap size differences before and after gc")
         .baseUnit(BaseUnits.BYTES)
         .register(registry);

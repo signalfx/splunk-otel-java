@@ -16,6 +16,7 @@
 
 package com.splunk.opentelemetry.instrumentation.jvmmetrics;
 
+import static com.splunk.opentelemetry.SplunkConfiguration.PROFILER_MEMORY_ENABLED_PROPERTY;
 import static java.util.Collections.singleton;
 
 import com.google.auto.service.AutoService;
@@ -42,7 +43,12 @@ public class JvmMetricsInstaller implements AgentListener {
     new JvmGcMetrics().bindTo(Metrics.globalRegistry);
     new JvmMemoryMetrics().bindTo(Metrics.globalRegistry);
     new JvmThreadMetrics().bindTo(Metrics.globalRegistry);
-    new AllocatedMemoryMetrics().bindTo(Metrics.globalRegistry);
-    new GcMemoryMetrics().bindTo(Metrics.globalRegistry);
+
+    // Following metrics are experimental, we'll enable them only when memory profiling is enabled
+    if (config.getBoolean(PROFILER_MEMORY_ENABLED_PROPERTY, false)
+        || config.getBoolean("splunk.metrics.experimental.enabled", false)) {
+      new AllocatedMemoryMetrics().bindTo(Metrics.globalRegistry);
+      new GcMemoryMetrics().bindTo(Metrics.globalRegistry);
+    }
   }
 }

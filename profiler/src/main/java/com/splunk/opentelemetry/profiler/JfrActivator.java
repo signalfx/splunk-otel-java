@@ -124,6 +124,7 @@ public class JfrActivator implements AgentListener {
             .logProcessor(batchingLogsProcessor)
             .commonAttributes(commonAttributes)
             .resource(resource)
+            .spanContextualizer(spanContextualizer)
             .build();
     EventProcessingChain eventProcessingChain =
         new EventProcessingChain(spanContextualizer, threadDumpProcessor, tlabProcessor);

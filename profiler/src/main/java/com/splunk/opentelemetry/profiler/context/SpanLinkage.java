@@ -30,7 +30,7 @@ public class SpanLinkage {
     this.threadId = threadId;
   }
 
-  SpanContext getSpanContext() {
+  public SpanContext getSpanContext() {
     return spanContext;
   }
 

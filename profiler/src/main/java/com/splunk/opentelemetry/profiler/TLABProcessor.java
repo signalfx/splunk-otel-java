@@ -21,13 +21,17 @@ import static com.splunk.opentelemetry.profiler.LogExporterBuilder.INSTRUMENTATI
 
 import com.splunk.opentelemetry.profiler.allocationsampler.AllocationEventSampler;
 import com.splunk.opentelemetry.profiler.allocationsampler.SystematicAllocationEventSampler;
+import com.splunk.opentelemetry.profiler.context.SpanContextualizer;
+import com.splunk.opentelemetry.profiler.context.SpanLinkage;
 import com.splunk.opentelemetry.profiler.util.StackSerializer;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.common.AttributesBuilder;
+import io.opentelemetry.api.trace.Span;
+import io.opentelemetry.api.trace.SpanContext;
+import io.opentelemetry.context.Context;
 import io.opentelemetry.instrumentation.api.config.Config;
 import io.opentelemetry.sdk.logs.LogProcessor;
-import io.opentelemetry.sdk.logs.data.LogData;
 import io.opentelemetry.sdk.logs.data.LogDataBuilder;
 import io.opentelemetry.sdk.resources.Resource;
 import java.time.Instant;
@@ -47,6 +51,7 @@ public class TLABProcessor implements Consumer<RecordedEvent> {
   private final LogDataCommonAttributes commonAttributes;
   private final Resource resource;
   private final AllocationEventSampler sampler;
+  private final SpanContextualizer spanContextualizer;
 
   private TLABProcessor(Builder builder) {
     this.enabled = builder.enabled;
@@ -55,6 +60,7 @@ public class TLABProcessor implements Consumer<RecordedEvent> {
     this.commonAttributes = builder.commonAttributes;
     this.resource = builder.resource;
     this.sampler = builder.sampler;
+    this.spanContextualizer = builder.spanContextualizer;
   }
 
   @Override
@@ -85,15 +91,24 @@ public class TLABProcessor implements Consumer<RecordedEvent> {
     }
     Attributes attributes = builder.build();
 
-    LogData logData =
+    LogDataBuilder logDataBuilder =
         LogDataBuilder.create(resource, INSTRUMENTATION_LIBRARY_INFO)
             .setName(PROFILING_SOURCE)
             .setEpoch(time)
             .setBody(body)
-            .setAttributes(attributes)
-            .build();
+            .setAttributes(attributes);
 
-    logProcessor.emit(logData);
+    RecordedThread thread = event.getThread();
+    if (thread != null) {
+      SpanLinkage spanLinkage = spanContextualizer.link(thread.getJavaThreadId());
+      if (spanLinkage != null) {
+        SpanContext spanContext = spanLinkage.getSpanContext();
+        Context context = Context.root().with(Span.wrap(spanContext));
+        logDataBuilder.setContext(context);
+      }
+    }
+
+    logProcessor.emit(logDataBuilder.build());
   }
 
   private String buildBody(RecordedEvent event, RecordedStackTrace stackTrace) {
@@ -129,6 +144,7 @@ public class TLABProcessor implements Consumer<RecordedEvent> {
     private LogDataCommonAttributes commonAttributes;
     private Resource resource;
     private AllocationEventSampler sampler;
+    private SpanContextualizer spanContextualizer;
 
     public Builder(boolean enabled) {
       this.enabled = enabled;
@@ -160,6 +176,11 @@ public class TLABProcessor implements Consumer<RecordedEvent> {
 
     Builder sampler(AllocationEventSampler sampler) {
       this.sampler = sampler;
+      return this;
+    }
+
+    Builder spanContextualizer(SpanContextualizer spanContextualizer) {
+      this.spanContextualizer = spanContextualizer;
       return this;
     }
   }

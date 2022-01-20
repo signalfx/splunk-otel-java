@@ -23,13 +23,21 @@ import static com.splunk.opentelemetry.profiler.Configuration.DEFAULT_MEMORY_SAM
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.SOURCE_EVENT_NAME;
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.SOURCE_TYPE;
 import static com.splunk.opentelemetry.profiler.TLABProcessor.ALLOCATION_SIZE_KEY;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import com.splunk.opentelemetry.profiler.context.SpanContextualizer;
+import com.splunk.opentelemetry.profiler.context.SpanLinkage;
 import com.splunk.opentelemetry.profiler.events.EventPeriods;
 import com.splunk.opentelemetry.profiler.util.StackSerializer;
 import io.opentelemetry.api.common.AttributeKey;
+import io.opentelemetry.api.trace.SpanContext;
+import io.opentelemetry.api.trace.SpanId;
+import io.opentelemetry.api.trace.TraceFlags;
+import io.opentelemetry.api.trace.TraceId;
+import io.opentelemetry.api.trace.TraceState;
 import io.opentelemetry.instrumentation.api.config.Config;
 import io.opentelemetry.sdk.common.Clock;
 import io.opentelemetry.sdk.logs.LogProcessor;
@@ -50,6 +58,7 @@ class TLABProcessorTest {
 
   public static final long ONE_MB = 1024 * 1024L;
   public static final long FIVE_MB = 5 * 1024 * 1024L;
+  public static final long THREAD_ID = 606L;
 
   @Test
   void testProcess() {
@@ -113,12 +122,22 @@ class TLABProcessorTest {
     Config config = mock(Config.class);
     when(config.getBoolean(CONFIG_KEY_TLAB_ENABLED, DEFAULT_MEMORY_ENABLED)).thenReturn(true);
 
+    SpanContext spanContext =
+        SpanContext.create(
+            TraceId.fromLongs(123, 456),
+            SpanId.fromLong(123),
+            TraceFlags.getSampled(),
+            TraceState.getDefault());
+    SpanContextualizer spanContextualizer = mock(SpanContextualizer.class);
+    when(spanContextualizer.link(THREAD_ID)).thenReturn(new SpanLinkage(spanContext, THREAD_ID));
+
     TLABProcessor processor =
         TLABProcessor.builder(config)
             .stackSerializer(serializer)
             .logProcessor(consumer)
             .commonAttributes(commonAttrs)
             .resource(Resource.getDefault())
+            .spanContextualizer(spanContextualizer)
             .build();
 
     processor.accept(event);
@@ -130,7 +149,7 @@ class TLABProcessorTest {
     assertEquals("otel.profiling", seenLogData.get().getAttributes().get(SOURCE_TYPE));
     assertEquals("tee-lab", seenLogData.get().getAttributes().get(SOURCE_EVENT_NAME));
     assertEquals(ONE_MB, seenLogData.get().getAttributes().get(ALLOCATION_SIZE_KEY));
-    assertFalse(seenLogData.get().getSpanContext().isValid());
+    assertEquals(spanContext, seenLogData.get().getSpanContext());
   }
 
   private RecordedEvent createMockEvent(StackSerializer serializer, Instant now, Long tlabSize) {
@@ -146,7 +165,7 @@ class TLABProcessorTest {
     when(event.getEventType()).thenReturn(eventType);
     when(event.getLong("allocationSize")).thenReturn(ONE_MB);
     when(event.getThread()).thenReturn(mockThread);
-    when(mockThread.getJavaThreadId()).thenReturn(606L);
+    when(mockThread.getJavaThreadId()).thenReturn(THREAD_ID);
     when(mockThread.getJavaName()).thenReturn("mockingbird");
 
     when(event.hasField("tlabSize")).thenReturn(tlabSize != null);
@@ -174,6 +193,7 @@ class TLABProcessorTest {
     LogProcessor consumer = seenLogData::set;
     StackSerializer serializer = mock(StackSerializer.class);
     LogDataCommonAttributes commonAttrs = new LogDataCommonAttributes(new EventPeriods(x -> null));
+    SpanContextualizer spanContextualizer = mock(SpanContextualizer.class);
 
     Config config = mock(Config.class);
     when(config.getBoolean(CONFIG_KEY_TLAB_ENABLED, DEFAULT_MEMORY_ENABLED)).thenReturn(true);
@@ -186,6 +206,7 @@ class TLABProcessorTest {
             .logProcessor(consumer)
             .commonAttributes(commonAttrs)
             .resource(Resource.getDefault())
+            .spanContextualizer(spanContextualizer)
             .build();
 
     RecordedEvent event = createMockEvent(serializer, Instant.now(), null);

@@ -58,12 +58,12 @@ class EventProcessingChain {
     eventStats.incEventCount();
     switch (eventName) {
       case ContextAttached.EVENT_NAME:
-        if (chunkTracker.contextAttached(event)) {
-          flushBuffer();
+        try (EventTimer eventTimer = eventStats.time(eventName)) {
+          spanContextualizer.updateContext(event);
         }
-        buffer.add(event);
         break;
       case ThreadDumpProcessor.EVENT_NAME:
+        // TODO: is that correct?
         if (chunkTracker.threadDump(event)) {
           flushBuffer();
         }

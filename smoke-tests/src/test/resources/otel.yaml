@@ -38,5 +38,9 @@ service:
       receivers: [ signalfx ]
       processors: [ batch ]
       exporters: [ logging/logging_info, otlp ]
+    logs:
+      receivers: [ otlp ]
+      processors: [ batch ]
+      exporters: [ logging/logging_info, otlp ]
 
   extensions: [ health_check, pprof, zpages ]

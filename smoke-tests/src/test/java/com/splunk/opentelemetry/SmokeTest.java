@@ -130,6 +130,10 @@ public abstract class SmokeTest {
     return telemetryRetriever.waitForMetrics();
   }
 
+  protected LogsInspector waitForLogs() throws IOException, InterruptedException {
+    return telemetryRetriever.waitForLogs();
+  }
+
   protected String getCurrentAgentVersion() throws IOException {
     return new JarFile(agentPath)
         .getManifest()

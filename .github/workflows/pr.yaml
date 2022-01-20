@@ -107,7 +107,7 @@ jobs:
     strategy:
       matrix:
         os: [ windows-2019, ubuntu-20.04 ]
-        suite: [ "glassfish", "jboss", "jetty", "liberty", "tomcat", "tomee", "weblogic", "websphere", "wildfly", "other" ]
+        suite: [ "glassfish", "jboss", "jetty", "liberty", "profiler", "tomcat", "tomee", "weblogic", "websphere", "wildfly", "other" ]
         exclude:
           - os: windows-2019
             suite: websphere

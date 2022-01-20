@@ -20,7 +20,17 @@ extensions.configure<SpotlessExtension>("spotless") {
   }
   format("misc") {
     // not using "**/..." to help keep spotless fast
-    target(".gitignore", "*.md", "src/**/.md", "*.sh")
+    target(
+      ".gitignore",
+      ".gitattributes",
+      ".gitconfig",
+      ".editorconfig",
+      "*.md",
+      "src/**/*.md",
+      "docs/**/*.md",
+      "*.sh",
+      "src/**/*.properties"
+    )
     indentWithSpaces()
     trimTrailingWhitespace()
     endWithNewline()

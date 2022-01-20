@@ -53,9 +53,9 @@ extensions.configure<DependencyManagementExtension>("dependencyManagement") {
     }
 
     // otel-java-instrumentation
-    dependency("io.opentelemetry.javaagent:opentelemetry-javaagent:${otelInstrumentationVersion}")
-    dependency("io.opentelemetry.instrumentation:opentelemetry-instrumentation-api:${otelInstrumentationAlphaVersion}")
-    dependencySet("io.opentelemetry.javaagent:${otelInstrumentationAlphaVersion}") {
+    dependency("io.opentelemetry.javaagent:opentelemetry-javaagent:$otelInstrumentationVersion")
+    dependency("io.opentelemetry.instrumentation:opentelemetry-instrumentation-api:$otelInstrumentationAlphaVersion")
+    dependencySet("io.opentelemetry.javaagent:$otelInstrumentationAlphaVersion") {
       entry("opentelemetry-agent-for-testing")
       entry("opentelemetry-javaagent-bootstrap")
       entry("opentelemetry-javaagent-extension-api")
@@ -64,7 +64,7 @@ extensions.configure<DependencyManagementExtension>("dependencyManagement") {
       entry("opentelemetry-muzzle")
       entry("opentelemetry-testing-common")
     }
-    dependencySet("io.opentelemetry.javaagent.instrumentation:${otelInstrumentationAlphaVersion}") {
+    dependencySet("io.opentelemetry.javaagent.instrumentation:$otelInstrumentationAlphaVersion") {
       entry("opentelemetry-javaagent-netty-3.8")
       entry("opentelemetry-javaagent-netty-4.0")
       entry("opentelemetry-javaagent-netty-4.1")
@@ -73,7 +73,7 @@ extensions.configure<DependencyManagementExtension>("dependencyManagement") {
       entry("opentelemetry-javaagent-servlet-3.0")
       entry("opentelemetry-javaagent-servlet-common")
     }
-    dependencySet("io.opentelemetry.contrib:${otelContribAlphaVersion}") {
+    dependencySet("io.opentelemetry.contrib:$otelContribAlphaVersion") {
       entry("opentelemetry-contrib-samplers")
     }
 
@@ -83,9 +83,9 @@ extensions.configure<DependencyManagementExtension>("dependencyManagement") {
   imports {
     mavenBom("com.squareup.okhttp3:okhttp-bom:4.9.3")
     mavenBom("io.grpc:grpc-bom:1.41.0")
-    mavenBom("io.micrometer:micrometer-bom:${micrometerVersion}")
-    mavenBom("io.opentelemetry:opentelemetry-bom-alpha:${otelAlphaVersion}")
-    mavenBom("io.opentelemetry:opentelemetry-bom:${otelVersion}")
+    mavenBom("io.micrometer:micrometer-bom:$micrometerVersion")
+    mavenBom("io.opentelemetry:opentelemetry-bom-alpha:$otelAlphaVersion")
+    mavenBom("io.opentelemetry:opentelemetry-bom:$otelVersion")
     mavenBom("org.junit:junit-bom:5.8.2")
     mavenBom("org.testcontainers:testcontainers-bom:1.16.2")
   }

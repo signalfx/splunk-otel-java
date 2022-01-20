@@ -25,7 +25,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
 import jdk.jfr.EventType;
 import jdk.jfr.consumer.RecordedEvent;
 import org.slf4j.Logger;
@@ -54,8 +53,25 @@ class EventProcessingChain {
   }
 
   void accept(RecordedEvent event) {
-    String eventName = event.getEventType().getName();
     eventStats.incEventCount();
+    if (chunkTracker.isNewChunk(event)) {
+      flushBuffer();
+    }
+    buffer.add(event);
+  }
+
+  /**
+   * Tells the processing chain that a work unit (JFR file) is complete and it can process what's in
+   * the buffer. After flushing, the buffer will be empty.
+   */
+  public void flushBuffer() {
+    buffer.forEach(this::dispatchEvent);
+    buffer.clear();
+    chunkTracker.reset();
+  }
+
+  private void dispatchEvent(RecordedEvent event) {
+    String eventName = event.getEventType().getName();
     switch (eventName) {
       case ContextAttached.EVENT_NAME:
         try (EventTimer eventTimer = eventStats.time(eventName)) {
@@ -63,11 +79,9 @@ class EventProcessingChain {
         }
         break;
       case ThreadDumpProcessor.EVENT_NAME:
-        // TODO: is that correct?
-        if (chunkTracker.threadDump(event)) {
-          flushBuffer();
+        try (EventTimer eventTimer = eventStats.time(eventName)) {
+          threadDumpProcessor.accept(event);
         }
-        buffer.add(event);
         break;
       case TLABProcessor.NEW_TLAB_EVENT_NAME:
       case TLABProcessor.OUTSIDE_TLAB_EVENT_NAME:
@@ -76,34 +90,6 @@ class EventProcessingChain {
         }
         break;
     }
-  }
-
-  /**
-   * Tells the processing chain that a work unit (JFR file) is complete and it can process what's in
-   * the buffer. After flushing, the buffer will be empty.
-   */
-  public void flushBuffer() {
-    buffer.forEach(dispatchContextualizedThreadDumps());
-    buffer.clear();
-    chunkTracker.reset();
-  }
-
-  private Consumer<RecordedEvent> dispatchContextualizedThreadDumps() {
-    return event -> {
-      String eventName = event.getEventType().getName();
-      switch (eventName) {
-        case ContextAttached.EVENT_NAME:
-          try (EventTimer eventTimer = eventStats.time(eventName)) {
-            spanContextualizer.updateContext(event);
-          }
-          break;
-        case ThreadDumpProcessor.EVENT_NAME:
-          try (EventTimer eventTimer = eventStats.time(eventName)) {
-            threadDumpProcessor.accept(event);
-          }
-          break;
-      }
-    };
   }
 
   public void logEventStats() {
@@ -204,32 +190,51 @@ class EventProcessingChain {
    * change is detected process buffered events and clear the buffer.
    */
   private static class ChunkTracker {
-    private EventType contextAttachedEventType = null;
-    private EventType threadDumpEventType = null;
+    private final EventTypeHolder contextAttached = new EventTypeHolder();
+    private final EventTypeHolder threadDump = new EventTypeHolder();
+    private final EventTypeHolder newTlab = new EventTypeHolder();
+    private final EventTypeHolder outsideTlab = new EventTypeHolder();
 
     /** @return true when event belongs to a new chunk */
-    boolean contextAttached(RecordedEvent event) {
+    boolean isNewChunk(RecordedEvent event) {
       EventType currentEventType = event.getEventType();
-      if (contextAttachedEventType == null) {
-        contextAttachedEventType = currentEventType;
-      }
-      // each chunk is parsed by a new parser that recreates event type
-      return contextAttachedEventType != currentEventType;
-    }
+      String eventName = currentEventType.getName();
 
-    /** @return true when event belongs to a new chunk */
-    boolean threadDump(RecordedEvent event) {
-      EventType currentEventType = event.getEventType();
-      if (threadDumpEventType == null) {
-        threadDumpEventType = currentEventType;
+      switch (eventName) {
+        case ContextAttached.EVENT_NAME:
+          return contextAttached.isNewEventType(currentEventType);
+        case ThreadDumpProcessor.EVENT_NAME:
+          return threadDump.isNewEventType(currentEventType);
+        case TLABProcessor.NEW_TLAB_EVENT_NAME:
+          return newTlab.isNewEventType(currentEventType);
+        case TLABProcessor.OUTSIDE_TLAB_EVENT_NAME:
+          return outsideTlab.isNewEventType(currentEventType);
       }
-      // each chunk is parsed by a new parser that recreates event type
-      return threadDumpEventType != currentEventType;
+      return false;
     }
 
     void reset() {
-      contextAttachedEventType = null;
-      threadDumpEventType = null;
+      contextAttached.reset();
+      threadDump.reset();
+      newTlab.reset();
+      outsideTlab.reset();
+    }
+  }
+
+  private static class EventTypeHolder {
+    private EventType value = null;
+
+    /** @return true when event belongs to a new chunk */
+    boolean isNewEventType(EventType currentEventType) {
+      if (value == null) {
+        value = currentEventType;
+      }
+      // each chunk is parsed by a new parser that recreates event type
+      return value != currentEventType;
+    }
+
+    void reset() {
+      value = null;
     }
   }
 }

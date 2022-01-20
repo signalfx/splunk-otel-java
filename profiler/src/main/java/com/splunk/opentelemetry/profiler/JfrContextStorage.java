@@ -24,9 +24,8 @@ import io.opentelemetry.api.trace.TraceFlags;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.context.ContextStorage;
 import io.opentelemetry.context.Scope;
-
-import javax.annotation.Nullable;
 import java.util.function.Function;
+import javax.annotation.Nullable;
 
 class JfrContextStorage implements ContextStorage {
 

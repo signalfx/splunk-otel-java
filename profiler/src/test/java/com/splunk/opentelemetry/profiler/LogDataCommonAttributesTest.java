@@ -53,7 +53,7 @@ class LogDataCommonAttributesTest {
 
     LogDataCommonAttributes logDataAttributes = new LogDataCommonAttributes(periods);
 
-    Attributes result = logDataAttributes.build(event.getEventType().getName());
+    Attributes result = logDataAttributes.builder(event.getEventType().getName()).build();
     assertEquals(expected, result);
   }
 }

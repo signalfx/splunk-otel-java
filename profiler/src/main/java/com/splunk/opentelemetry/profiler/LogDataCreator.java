@@ -43,7 +43,7 @@ public class LogDataCreator implements Function<StackToSpanLinkage, LogData> {
 
   @Override
   public LogData apply(StackToSpanLinkage linkedStack) {
-    Attributes attributes = commonAttributes.build(linkedStack);
+    Attributes attributes = commonAttributes.builder(linkedStack).build();
 
     LogDataBuilder logDataBuilder =
         LogDataBuilder.create(resource, INSTRUMENTATION_LIBRARY_INFO)

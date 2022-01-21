@@ -83,7 +83,8 @@ public class TLABProcessor implements Consumer<RecordedEvent> {
     String body = buildBody(event, stackTrace);
 
     AttributesBuilder builder =
-        commonAttributes.build(event.getEventType().getName()).toBuilder()
+        commonAttributes
+            .builder(event.getEventType().getName())
             .put(ALLOCATION_SIZE_KEY, event.getLong("allocationSize"));
     if (sampler != null) {
       sampler.addAttributes(builder);

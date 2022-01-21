@@ -53,8 +53,8 @@ class EventProcessingChainTest {
 
     Instant now = Instant.now();
 
-    RecordedEvent tlab1 = newEvent(tlabType, null);
-    RecordedEvent tlab2 = newEvent(tlabType, null);
+    RecordedEvent tlab1 = newEvent(tlabType, now.minus(100, ChronoUnit.MILLIS));
+    RecordedEvent tlab2 = newEvent(tlabType, now.plus(100, ChronoUnit.MILLIS));
     // context even happens after the thread dump but is seen first
     RecordedEvent contextEvent = newEvent(contextAttachedType, now);
     RecordedEvent threadDump = newEvent(threadDumpType, now.minus(250, ChronoUnit.MILLIS));
@@ -62,19 +62,19 @@ class EventProcessingChainTest {
     EventProcessingChain chain =
         new EventProcessingChain(contextualizer, threadDumpProcessor, tlabProcessor);
     chain.accept(tlab1);
-    verify(tlabProcessor).accept(tlab1);
     chain.accept(contextEvent);
     chain.accept(tlab2);
-    verify(tlabProcessor).accept(tlab2);
     chain.accept(threadDump);
 
-    verifyNoInteractions(threadDumpProcessor);
-    verifyNoInteractions(contextualizer);
+    verifyNoInteractions(contextualizer, threadDumpProcessor, tlabProcessor);
 
     chain.flushBuffer();
-    InOrder inOrder = inOrder(threadDumpProcessor, contextualizer);
+    InOrder inOrder = inOrder(contextualizer, threadDumpProcessor, tlabProcessor);
     inOrder.verify(threadDumpProcessor).accept(threadDump);
+    inOrder.verify(tlabProcessor).accept(tlab1);
+    inOrder.verify(tlabProcessor).accept(tlab2);
     inOrder.verify(contextualizer).updateContext(contextEvent);
+    inOrder.verifyNoMoreInteractions();
   }
 
   @Test

@@ -25,7 +25,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
 import jdk.jfr.EventType;
 import jdk.jfr.consumer.RecordedEvent;
 import org.slf4j.Logger;
@@ -54,20 +53,35 @@ class EventProcessingChain {
   }
 
   void accept(RecordedEvent event) {
-    String eventName = event.getEventType().getName();
     eventStats.incEventCount();
+    if (chunkTracker.isNewChunk(event)) {
+      flushBuffer();
+    }
+    buffer.add(event);
+  }
+
+  /**
+   * Tells the processing chain that a work unit (JFR file) is complete and it can process what's in
+   * the buffer. After flushing, the buffer will be empty.
+   */
+  public void flushBuffer() {
+    buffer.forEach(this::dispatchEvent);
+    buffer.clear();
+    chunkTracker.reset();
+  }
+
+  private void dispatchEvent(RecordedEvent event) {
+    String eventName = event.getEventType().getName();
     switch (eventName) {
       case ContextAttached.EVENT_NAME:
-        if (chunkTracker.contextAttached(event)) {
-          flushBuffer();
+        try (EventTimer eventTimer = eventStats.time(eventName)) {
+          spanContextualizer.updateContext(event);
         }
-        buffer.add(event);
         break;
       case ThreadDumpProcessor.EVENT_NAME:
-        if (chunkTracker.threadDump(event)) {
-          flushBuffer();
+        try (EventTimer eventTimer = eventStats.time(eventName)) {
+          threadDumpProcessor.accept(event);
         }
-        buffer.add(event);
         break;
       case TLABProcessor.NEW_TLAB_EVENT_NAME:
       case TLABProcessor.OUTSIDE_TLAB_EVENT_NAME:
@@ -78,36 +92,37 @@ class EventProcessingChain {
     }
   }
 
-  /**
-   * Tells the processing chain that a work unit (JFR file) is complete and it can process what's in
-   * the buffer. After flushing, the buffer will be empty.
-   */
-  public void flushBuffer() {
-    buffer.forEach(dispatchContextualizedThreadDumps());
-    buffer.clear();
-    chunkTracker.reset();
-  }
-
-  private Consumer<RecordedEvent> dispatchContextualizedThreadDumps() {
-    return event -> {
-      String eventName = event.getEventType().getName();
-      switch (eventName) {
-        case ContextAttached.EVENT_NAME:
-          try (EventTimer eventTimer = eventStats.time(eventName)) {
-            spanContextualizer.updateContext(event);
-          }
-          break;
-        case ThreadDumpProcessor.EVENT_NAME:
-          try (EventTimer eventTimer = eventStats.time(eventName)) {
-            threadDumpProcessor.accept(event);
-          }
-          break;
-      }
-    };
-  }
-
   public void logEventStats() {
     eventStats.logEventStats();
+  }
+
+  /**
+   * Helper class for detecting when parsing advances to next chunk. We'll sort events only for the
+   * current chunk, similarly how jfr command line tool does when printing events. While jfr command
+   * line tool uses an internal method to detect last event of chunk we do this in a bit roundabout
+   * way. As event types are recreated for each chunk we know that we are in a new chunk when event
+   * type of context attach or thread dump event doesn't match what we have recorded. When chunk
+   * change is detected process buffered events and clear the buffer.
+   */
+  private static class ChunkTracker {
+
+    private final Map<String, EventType> eventTypes = new HashMap<>();
+
+    /** @return true when event belongs to a new chunk */
+    boolean isNewChunk(RecordedEvent event) {
+      EventType currentEventType = event.getEventType();
+      String eventName = currentEventType.getName();
+
+      eventTypes.putIfAbsent(eventName, currentEventType);
+      EventType oldEventType = eventTypes.get(eventName);
+      // each chunk is parsed by a new parser that recreates EventType - so the actual EventType
+      // instances end up being different, even though they represent the same thing
+      return oldEventType != currentEventType;
+    }
+
+    void reset() {
+      eventTypes.clear();
+    }
   }
 
   private interface EventStats {
@@ -192,44 +207,6 @@ class EventProcessingChain {
     public void close() {
       long end = System.nanoTime();
       counter.timeSpent += end - start;
-    }
-  }
-
-  /**
-   * Helper class for detecting when parsing advances to next chunk. We'll sort events only for the
-   * current chunk, similarly how jfr command line tool does when printing events. While jfr command
-   * line tool uses an internal method to detect last event of chunk we do this in a bit roundabout
-   * way. As event types are recreated for each chunk we know that we are in a new chunk when event
-   * type of context attach or thread dump event doesn't match what we have recorded. When chunk
-   * change is detected process buffered events and clear the buffer.
-   */
-  private static class ChunkTracker {
-    private EventType contextAttachedEventType = null;
-    private EventType threadDumpEventType = null;
-
-    /** @return true when event belongs to a new chunk */
-    boolean contextAttached(RecordedEvent event) {
-      EventType currentEventType = event.getEventType();
-      if (contextAttachedEventType == null) {
-        contextAttachedEventType = currentEventType;
-      }
-      // each chunk is parsed by a new parser that recreates event type
-      return contextAttachedEventType != currentEventType;
-    }
-
-    /** @return true when event belongs to a new chunk */
-    boolean threadDump(RecordedEvent event) {
-      EventType currentEventType = event.getEventType();
-      if (threadDumpEventType == null) {
-        threadDumpEventType = currentEventType;
-      }
-      // each chunk is parsed by a new parser that recreates event type
-      return threadDumpEventType != currentEventType;
-    }
-
-    void reset() {
-      contextAttachedEventType = null;
-      threadDumpEventType = null;
     }
   }
 }

@@ -92,13 +92,17 @@ public class SpanContextualizer {
   /** Links the raw stack with the span info for the given thread. */
   StackToSpanLinkage link(Instant time, String rawStack, long threadId, RecordedEvent event) {
     String eventName = event.getEventType().getName();
-    SpanLinkage spanLinkage = threadSpans.get(threadId);
+    SpanLinkage spanLinkage = link(threadId);
     if (spanLinkage == null) {
       // We don't have an active span for this stack
       return withoutLinkage(time, rawStack, eventName);
     }
 
     return new StackToSpanLinkage(time, rawStack, eventName, spanLinkage);
+  }
+
+  public SpanLinkage link(long threadId) {
+    return threadSpans.getOrDefault(threadId, SpanLinkage.NONE);
   }
 
   // Exists for testing

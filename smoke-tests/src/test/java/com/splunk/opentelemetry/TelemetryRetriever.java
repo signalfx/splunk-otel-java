@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.protobuf.GeneratedMessageV3;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.util.JsonFormat;
+import io.opentelemetry.proto.collector.logs.v1.ExportLogsServiceRequest;
 import io.opentelemetry.proto.collector.metrics.v1.ExportMetricsServiceRequest;
 import io.opentelemetry.proto.collector.trace.v1.ExportTraceServiceRequest;
 import java.io.IOException;
@@ -69,6 +70,13 @@ class TelemetryRetriever {
         content.map(this::deserializeMetricsRequest).collect(Collectors.toList()));
   }
 
+  LogsInspector waitForLogs() throws IOException, InterruptedException {
+    Stream<JsonNode> content = waitForContent("get-logs");
+
+    return new LogsInspector(
+        content.map(this::deserializeLogsRequest).collect(Collectors.toList()));
+  }
+
   private ExportTraceServiceRequest deserializeTraceRequest(JsonNode it) {
     var builder = ExportTraceServiceRequest.newBuilder();
     deserializeIntoBuilder(it, builder);
@@ -77,6 +85,12 @@ class TelemetryRetriever {
 
   private ExportMetricsServiceRequest deserializeMetricsRequest(JsonNode it) {
     var builder = ExportMetricsServiceRequest.newBuilder();
+    deserializeIntoBuilder(it, builder);
+    return builder.build();
+  }
+
+  private ExportLogsServiceRequest deserializeLogsRequest(JsonNode it) {
+    var builder = ExportLogsServiceRequest.newBuilder();
     deserializeIntoBuilder(it, builder);
     return builder.build();
   }

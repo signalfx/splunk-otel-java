@@ -16,13 +16,13 @@
 
 package com.splunk.opentelemetry.instrumentation.khttp;
 
-import io.opentelemetry.instrumentation.api.instrumenter.net.NetClientAttributesExtractor;
+import io.opentelemetry.instrumentation.api.instrumenter.net.NetClientAttributesGetter;
 import io.opentelemetry.semconv.trace.attributes.SemanticAttributes;
 import khttp.responses.Response;
 import org.jetbrains.annotations.Nullable;
 
-final class KHttpHttpClientNetAttributesExtractor
-    extends NetClientAttributesExtractor<RequestWrapper, Response> {
+final class KHttpHttpClientNetAttributesGetter
+    implements NetClientAttributesGetter<RequestWrapper, Response> {
   @Override
   public String transport(RequestWrapper requestWrapper, @Nullable Response response) {
     return SemanticAttributes.NetTransportValues.IP_TCP;

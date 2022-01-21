@@ -25,6 +25,7 @@ import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.SOUR
 import static com.splunk.opentelemetry.profiler.TLABProcessor.ALLOCATION_SIZE_KEY;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -194,6 +195,7 @@ class TLABProcessorTest {
     StackSerializer serializer = mock(StackSerializer.class);
     LogDataCommonAttributes commonAttrs = new LogDataCommonAttributes(new EventPeriods(x -> null));
     SpanContextualizer spanContextualizer = mock(SpanContextualizer.class);
+    when(spanContextualizer.link(anyLong())).thenReturn(SpanLinkage.NONE);
 
     Config config = mock(Config.class);
     when(config.getBoolean(CONFIG_KEY_TLAB_ENABLED, DEFAULT_MEMORY_ENABLED)).thenReturn(true);

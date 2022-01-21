@@ -96,6 +96,35 @@ class EventProcessingChain {
     eventStats.logEventStats();
   }
 
+  /**
+   * Helper class for detecting when parsing advances to next chunk. We'll sort events only for the
+   * current chunk, similarly how jfr command line tool does when printing events. While jfr command
+   * line tool uses an internal method to detect last event of chunk we do this in a bit roundabout
+   * way. As event types are recreated for each chunk we know that we are in a new chunk when event
+   * type of context attach or thread dump event doesn't match what we have recorded. When chunk
+   * change is detected process buffered events and clear the buffer.
+   */
+  private static class ChunkTracker {
+
+    private final Map<String, EventType> eventTypes = new HashMap<>();
+
+    /** @return true when event belongs to a new chunk */
+    boolean isNewChunk(RecordedEvent event) {
+      EventType currentEventType = event.getEventType();
+      String eventName = currentEventType.getName();
+
+      eventTypes.putIfAbsent(eventName, currentEventType);
+      EventType oldEventType = eventTypes.get(eventName);
+      // each chunk is parsed by a new parser that recreates EventType - so the actual EventType
+      // instances end up being different, even though they represent the same thing
+      return oldEventType != currentEventType;
+    }
+
+    void reset() {
+      eventTypes.clear();
+    }
+  }
+
   private interface EventStats {
     void incEventCount();
 
@@ -178,34 +207,6 @@ class EventProcessingChain {
     public void close() {
       long end = System.nanoTime();
       counter.timeSpent += end - start;
-    }
-  }
-
-  /**
-   * Helper class for detecting when parsing advances to next chunk. We'll sort events only for the
-   * current chunk, similarly how jfr command line tool does when printing events. While jfr command
-   * line tool uses an internal method to detect last event of chunk we do this in a bit roundabout
-   * way. As event types are recreated for each chunk we know that we are in a new chunk when event
-   * type of context attach or thread dump event doesn't match what we have recorded. When chunk
-   * change is detected process buffered events and clear the buffer.
-   */
-  private static class ChunkTracker {
-
-    private final Map<String, EventType> eventTypes = new HashMap<>();
-
-    /** @return true when event belongs to a new chunk */
-    boolean isNewChunk(RecordedEvent event) {
-      EventType currentEventType = event.getEventType();
-      String eventName = currentEventType.getName();
-
-      eventTypes.putIfAbsent(eventName, currentEventType);
-      EventType oldEventType = eventTypes.get(eventName);
-      // each chunk is parsed by a new parser that recreates event type
-      return oldEventType != currentEventType;
-    }
-
-    void reset() {
-      eventTypes.clear();
     }
   }
 }

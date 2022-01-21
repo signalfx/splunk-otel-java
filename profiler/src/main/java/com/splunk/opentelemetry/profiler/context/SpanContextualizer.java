@@ -102,7 +102,7 @@ public class SpanContextualizer {
   }
 
   public SpanLinkage link(long threadId) {
-    return threadSpans.get(threadId);
+    return threadSpans.getOrDefault(threadId, SpanLinkage.NONE);
   }
 
   // Exists for testing

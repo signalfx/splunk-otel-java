@@ -22,7 +22,6 @@ import static com.splunk.opentelemetry.profiler.LogExporterBuilder.INSTRUMENTATI
 import com.splunk.opentelemetry.profiler.allocationsampler.AllocationEventSampler;
 import com.splunk.opentelemetry.profiler.allocationsampler.SystematicAllocationEventSampler;
 import com.splunk.opentelemetry.profiler.context.SpanContextualizer;
-import com.splunk.opentelemetry.profiler.context.SpanLinkage;
 import com.splunk.opentelemetry.profiler.util.StackSerializer;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
@@ -100,9 +99,8 @@ public class TLABProcessor implements Consumer<RecordedEvent> {
 
     RecordedThread thread = event.getThread();
     if (thread != null) {
-      SpanLinkage spanLinkage = spanContextualizer.link(thread.getJavaThreadId());
-      if (spanLinkage != null) {
-        SpanContext spanContext = spanLinkage.getSpanContext();
+      SpanContext spanContext = spanContextualizer.link(thread.getJavaThreadId()).getSpanContext();
+      if (spanContext.isValid()) {
         Context context = Context.root().with(Span.wrap(spanContext));
         logDataBuilder.setContext(context);
       }

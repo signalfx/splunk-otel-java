@@ -32,17 +32,19 @@ import org.testcontainers.utility.MountableFile;
 public class LinuxTestContainerManager extends AbstractTestContainerManager {
   private static final Logger logger = LoggerFactory.getLogger(LinuxTestContainerManager.class);
 
-  private final Network network = Network.newNetwork();
-  private GenericContainer<?> backend = null;
-  private GenericContainer<?> collector = null;
-  private GenericContainer<?> target = null;
+  private Network network;
+  private GenericContainer<?> backend;
+  private GenericContainer<?> collector;
+  private GenericContainer<?> target;
 
   @Override
   public void startEnvironment() {
+    network = Network.newNetwork();
+
     backend =
         new GenericContainer<>(
                 DockerImageName.parse(
-                    "ghcr.io/open-telemetry/java-test-containers:smoke-fake-backend-20210614.934907903"))
+                    "ghcr.io/open-telemetry/java-test-containers:smoke-fake-backend-20210624.967200357"))
             .withExposedPorts(BACKEND_PORT)
             .waitingFor(Wait.forHttp("/health").forPort(BACKEND_PORT))
             .withNetwork(network)
@@ -68,13 +70,14 @@ public class LinuxTestContainerManager extends AbstractTestContainerManager {
       backend.stop();
       backend = null;
     }
-
     if (collector != null) {
       collector.stop();
       collector = null;
     }
-
-    network.close();
+    if (network != null) {
+      network.close();
+      network = null;
+    }
   }
 
   @Override
@@ -147,5 +150,13 @@ public class LinuxTestContainerManager extends AbstractTestContainerManager {
       target.stop();
       target = null;
     }
+  }
+
+  @Override
+  public GenericContainer<?> newContainer(TestImage image) {
+    return new GenericContainer<>(DockerImageName.parse(image.imageName))
+        .dependsOn(collector)
+        .withNetwork(network)
+        .withLogConsumer(new Slf4jLogConsumer(logger));
   }
 }

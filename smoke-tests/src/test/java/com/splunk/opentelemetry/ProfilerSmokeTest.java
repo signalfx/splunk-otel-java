@@ -173,9 +173,9 @@ public class ProfilerSmokeTest {
 
     assertThat(logs.getLogStream())
         .describedAs("Contains JFR thread")
-        .anyMatch(hasThreadName("\"Catalina-utility-1\""));
+        .anyMatch(hasThreadName("Catalina-utility-1"));
 
-    assertThat(logs.getLogStream()).anyMatch(hasThreadName("\"main\""));
+    assertThat(logs.getLogStream()).anyMatch(hasThreadName("main"));
 
     assertThat(logs.getTlabEvents())
         .isNotEmpty()

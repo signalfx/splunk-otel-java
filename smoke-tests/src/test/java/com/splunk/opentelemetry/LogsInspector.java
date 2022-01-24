@@ -63,9 +63,14 @@ public final class LogsInspector {
         || "jdk.ObjectAllocationOutsideTLAB".equals(name);
   }
 
-  private static String getStringAttr(LogRecord log, String name) {
+  static String getStringAttr(LogRecord log, String name) {
     Optional<KeyValue> foundAttr = findAttr(log, name);
     return foundAttr.map(attr -> attr.getValue().getStringValue()).orElse(null);
+  }
+
+  static Long getLongAttr(LogRecord log, String name) {
+    Optional<KeyValue> foundAttr = findAttr(log, name);
+    return foundAttr.map(attr -> attr.getValue().getIntValue()).orElse(null);
   }
 
   private static Optional<KeyValue> findAttr(LogRecord log, String name) {

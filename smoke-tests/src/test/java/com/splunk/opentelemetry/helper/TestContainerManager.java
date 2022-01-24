@@ -18,6 +18,7 @@ package com.splunk.opentelemetry.helper;
 
 import java.util.List;
 import java.util.Map;
+import org.testcontainers.containers.GenericContainer;
 
 public interface TestContainerManager {
   void startEnvironment();
@@ -41,4 +42,6 @@ public interface TestContainerManager {
       TargetWaitStrategy waitStrategy);
 
   void stopTarget();
+
+  GenericContainer<?> newContainer(TestImage image);
 }

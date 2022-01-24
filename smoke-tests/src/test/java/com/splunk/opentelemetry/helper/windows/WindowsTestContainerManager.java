@@ -60,6 +60,7 @@ import org.rnorth.ducttape.ratelimits.RateLimiterBuilder;
 import org.rnorth.ducttape.unreliables.Unreliables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.testcontainers.containers.GenericContainer;
 
 public class WindowsTestContainerManager extends AbstractTestContainerManager {
   private static final Logger logger = LoggerFactory.getLogger(WindowsTestContainerManager.class);
@@ -239,6 +240,12 @@ public class WindowsTestContainerManager extends AbstractTestContainerManager {
   public void stopTarget() {
     killContainer(target);
     target = null;
+  }
+
+  @Override
+  public GenericContainer<?> newContainer(TestImage image) {
+    throw new UnsupportedOperationException(
+        "Windows container manager does not support testcontainers");
   }
 
   private void pullImage(String imageName) {

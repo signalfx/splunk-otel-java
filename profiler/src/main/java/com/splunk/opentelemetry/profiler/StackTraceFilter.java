@@ -18,7 +18,7 @@ package com.splunk.opentelemetry.profiler;
 
 import java.util.stream.Stream;
 
-public class StackTraceFilter {
+public class StackTraceFilter implements StackTracePredicate {
 
   static final String[] UNWANTED_PREFIXES =
       new String[] {
@@ -45,6 +45,7 @@ public class StackTraceFilter {
     this.includeJvmInternalStacks = includeJvmInternalStacks;
   }
 
+  @Override
   public boolean test(String wallOfStacks, int startIndex, int lastIndex) {
     if ((lastIndex == -1) || (lastIndex >= wallOfStacks.length())) {
       return false;

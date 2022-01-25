@@ -27,9 +27,11 @@ import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_OTEL_OT
 import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_PROFILER_DIRECTORY;
 import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_RECORDING_DURATION;
 import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_TLAB_ENABLED;
+import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_TRACING_STACKS_ONLY;
 import static com.splunk.opentelemetry.profiler.Configuration.DEFAULT_CALL_STACK_INTERVAL;
 import static com.splunk.opentelemetry.profiler.Configuration.DEFAULT_INCLUDE_INTERNAL_STACKS;
 import static com.splunk.opentelemetry.profiler.Configuration.DEFAULT_MEMORY_ENABLED;
+import static com.splunk.opentelemetry.profiler.Configuration.DEFAULT_TRACING_STACKS_ONLY;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -61,6 +63,8 @@ class ConfigurationLoggerTest {
         .thenReturn(Duration.ofSeconds(21));
     when(config.getBoolean(CONFIG_KEY_INCLUDE_INTERNAL_STACKS, DEFAULT_INCLUDE_INTERNAL_STACKS))
         .thenReturn(true);
+    when(config.getBoolean(CONFIG_KEY_TRACING_STACKS_ONLY, DEFAULT_TRACING_STACKS_ONLY))
+        .thenReturn(true);
     when(config.getDuration(CONFIG_KEY_DEPRECATED_THREADDUMP_PERIOD, null))
         .thenReturn(Duration.ofMillis(500));
 
@@ -80,6 +84,7 @@ class ConfigurationLoggerTest {
     log.assertContains("           splunk.profiler.tlab.enabled : true");
     log.assertContains("    splunk.profiler.call.stack.interval : PT21S");
     log.assertContains("splunk.profiler.include.internal.stacks : true");
+    log.assertContains("    splunk.profiler.tracing.stacks.only : true");
     log.assertContains("      splunk.profiler.period.threaddump : PT0.5S");
   }
 

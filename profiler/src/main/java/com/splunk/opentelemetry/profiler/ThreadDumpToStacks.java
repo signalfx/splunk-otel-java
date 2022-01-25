@@ -29,28 +29,28 @@ import java.util.stream.StreamSupport;
  */
 public class ThreadDumpToStacks {
 
-  private final StackTraceFilter stackTraceFilter;
+  private final StackTracePredicate stackTracePredicate;
 
-  public ThreadDumpToStacks(StackTraceFilter stackTraceFilter) {
-    this.stackTraceFilter = stackTraceFilter;
+  public ThreadDumpToStacks(StackTracePredicate stackTracePredicate) {
+    this.stackTracePredicate = stackTracePredicate;
   }
 
   public Stream<String> toStream(String wallOfStacks) {
-    Spliterator<String> spliterator = new StackSpliterator(wallOfStacks, stackTraceFilter);
+    Spliterator<String> spliterator = new StackSpliterator(wallOfStacks, stackTracePredicate);
     return StreamSupport.stream(spliterator, false);
   }
 
   private static class StackSpliterator extends Spliterators.AbstractSpliterator<String> {
     private final String wallOfStacks;
-    private final StackTraceFilter stackTraceFilter;
+    private final StackTracePredicate stackTracePredicate;
     private int start = 0;
     private int next = 0;
     private boolean done = false;
 
-    public StackSpliterator(String wallOfStacks, StackTraceFilter stackTraceFilter) {
+    public StackSpliterator(String wallOfStacks, StackTracePredicate stackTracePredicate) {
       super(Long.MAX_VALUE, Spliterator.IMMUTABLE | Spliterator.ORDERED);
       this.wallOfStacks = wallOfStacks;
-      this.stackTraceFilter = stackTraceFilter;
+      this.stackTracePredicate = stackTracePredicate;
     }
 
     @Override
@@ -71,7 +71,7 @@ public class ThreadDumpToStacks {
         if (next < start) {
           next = wallOfStacks.length() - 1;
         }
-        if (stackTraceFilter.test(wallOfStacks, start, next)) {
+        if (stackTracePredicate.test(wallOfStacks, start, next)) {
           action.accept(advanceNextStack());
           return true;
         }

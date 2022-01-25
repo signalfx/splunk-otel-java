@@ -27,6 +27,7 @@ import static com.splunk.opentelemetry.profiler.util.Runnables.logUncaught;
 import com.google.auto.service.AutoService;
 import com.splunk.opentelemetry.logs.BatchingLogsProcessor;
 import com.splunk.opentelemetry.profiler.context.SpanContextualizer;
+import com.splunk.opentelemetry.profiler.context.TracingStacksOnlyFilter;
 import com.splunk.opentelemetry.profiler.events.EventPeriods;
 import com.splunk.opentelemetry.profiler.util.FileDeleter;
 import com.splunk.opentelemetry.profiler.util.HelpfulExecutors;
@@ -113,7 +114,8 @@ public class JfrActivator implements AgentListener {
     StackToSpanLinkageProcessor processor =
         new StackToSpanLinkageProcessor(logDataCreator, batchingLogsProcessor);
 
-    ThreadDumpToStacks threadDumpToStacks = new ThreadDumpToStacks(buildStackTraceFilter(config));
+    ThreadDumpToStacks threadDumpToStacks =
+        new ThreadDumpToStacks(buildStackTraceFilter(config, spanContextualizer));
 
     ThreadDumpProcessor threadDumpProcessor =
         buildThreadDumpProcessor(spanContextualizer, processor, threadDumpToStacks);
@@ -171,11 +173,22 @@ public class JfrActivator implements AgentListener {
         .build();
   }
 
-  /** May filter out agent internal call stacks based on the config. */
-  private StackTraceFilter buildStackTraceFilter(Config config) {
+  /**
+   * Based on config, filters out agent internal stacks, JVM internal stacks and/or stacks with no
+   * trace context
+   */
+  private StackTracePredicate buildStackTraceFilter(
+      Config config, SpanContextualizer contextualizer) {
     boolean includeAgentInternalStacks = Configuration.getIncludeAgentInternalStacks(config);
     boolean includeJVMInternalStacks = Configuration.getIncludeJvmInternalStacks(config);
-    return new StackTraceFilter(includeAgentInternalStacks, includeJVMInternalStacks);
+    StackTraceFilter contentFilter =
+        new StackTraceFilter(includeAgentInternalStacks, includeJVMInternalStacks);
+
+    if (Configuration.getTracingStacksOnly(config)) {
+      return new TracingStacksOnlyFilter(contentFilter, contextualizer);
+    } else {
+      return contentFilter;
+    }
   }
 
   private Map<String, String> buildJfrSettings(Config config) {

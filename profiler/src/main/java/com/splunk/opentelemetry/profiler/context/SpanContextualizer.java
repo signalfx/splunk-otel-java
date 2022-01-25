@@ -17,7 +17,6 @@
 package com.splunk.opentelemetry.profiler.context;
 
 import static com.splunk.opentelemetry.profiler.context.StackDescriptorLineParser.CANT_PARSE_THREAD_ID;
-import static com.splunk.opentelemetry.profiler.context.StackToSpanLinkage.withoutLinkage;
 
 import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.api.trace.TraceFlags;
@@ -70,39 +69,37 @@ public class SpanContextualizer {
   /** Parses thread info from the raw stack string and links it to a span (if available). */
   public StackToSpanLinkage link(Instant time, String rawStack, RecordedEvent event) {
     String eventName = event.getEventType().getName();
-
-    // Many GC and other VM threads don't actually have a stack...
-    if (isStacklessThread(rawStack)) {
-      return withoutLinkage(time, rawStack, eventName);
-    }
-    long threadId = descriptorParser.parseThreadId(rawStack);
-    if (threadId == CANT_PARSE_THREAD_ID) {
-      return withoutLinkage(time, rawStack, eventName);
-    }
-    return link(time, rawStack, threadId, event);
-  }
-
-  private boolean isStacklessThread(String rawStack) {
-    int firstNewline = rawStack.indexOf('\n');
-    return (firstNewline == -1)
-        || (firstNewline == rawStack.length() - 1)
-        || (rawStack.indexOf('\n', firstNewline + 1) == -1);
-  }
-
-  /** Links the raw stack with the span info for the given thread. */
-  StackToSpanLinkage link(Instant time, String rawStack, long threadId, RecordedEvent event) {
-    String eventName = event.getEventType().getName();
-    SpanLinkage spanLinkage = link(threadId);
-    if (spanLinkage == null) {
-      // We don't have an active span for this stack
-      return withoutLinkage(time, rawStack, eventName);
-    }
-
+    SpanLinkage spanLinkage = link(rawStack, 0, rawStack.length());
     return new StackToSpanLinkage(time, rawStack, eventName, spanLinkage);
+  }
+
+  /**
+   * Parses the thread info from the specified range of the wall of stacks, and returns the linkage
+   * info for the thread referenced by that stack.
+   */
+  public SpanLinkage link(String wallOfStacks, int stackStartIndex, int stackEndIndex) {
+    // Many GC and other VM threads don't actually have a stack...
+    if (isStacklessThread(wallOfStacks, stackStartIndex, stackEndIndex)) {
+      return SpanLinkage.NONE;
+    }
+    long threadId = descriptorParser.parseThreadId(wallOfStacks, stackStartIndex, stackEndIndex);
+    if (threadId == CANT_PARSE_THREAD_ID) {
+      return SpanLinkage.NONE;
+    }
+    return link(threadId);
   }
 
   public SpanLinkage link(long threadId) {
     return threadSpans.getOrDefault(threadId, SpanLinkage.NONE);
+  }
+
+  private boolean isStacklessThread(String wallOfStacks, int stackStartIndex, int stackEndIndex) {
+    int firstNewline =
+        StackWallHelper.indexOfWithinStack(wallOfStacks, '\n', stackStartIndex, stackEndIndex);
+    return (firstNewline == -1)
+        || (firstNewline == stackEndIndex - 1)
+        || (StackWallHelper.indexOfWithinStack(wallOfStacks, '\n', firstNewline + 1, stackEndIndex)
+            == -1);
   }
 
   // Exists for testing

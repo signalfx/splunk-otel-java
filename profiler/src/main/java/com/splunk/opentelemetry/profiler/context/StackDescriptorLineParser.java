@@ -16,6 +16,8 @@
 
 package com.splunk.opentelemetry.profiler.context;
 
+import static com.splunk.opentelemetry.profiler.context.StackWallHelper.indexOfWithinStack;
+
 /**
  * Class that parses the "descriptor" line from a stack trace. At the moment, it only parses out the
  * thread ID.
@@ -28,30 +30,31 @@ class StackDescriptorLineParser {
    * The first line is a meta/descriptor that has information about the following call stack. This
    * method parses out the thread id, which is the second field (space separated).
    */
-  long parseThreadId(String descriptorLine) {
+  long parseThreadId(String wallOfStacks, int descriptorLineIndex, int stackEndIndex) {
     // Require a quoted thread name field at the start
-    if (descriptorLine.charAt(0) != '"') {
+    if (descriptorLineIndex >= stackEndIndex || wallOfStacks.charAt(descriptorLineIndex) != '"') {
       return CANT_PARSE_THREAD_ID;
     }
-    int secondQuote = descriptorLine.indexOf('"', 1);
+    int secondQuote = indexOfWithinStack(wallOfStacks, '"', descriptorLineIndex + 1, stackEndIndex);
     if (secondQuote == -1) {
       return CANT_PARSE_THREAD_ID;
     }
     int firstSpaceAfterSecondQuote = secondQuote + 1;
-    if (firstSpaceAfterSecondQuote >= descriptorLine.length() - 2
-        || descriptorLine.charAt(firstSpaceAfterSecondQuote) != ' ') {
+    if (firstSpaceAfterSecondQuote >= stackEndIndex - 2
+        || wallOfStacks.charAt(firstSpaceAfterSecondQuote) != ' ') {
       return CANT_PARSE_THREAD_ID;
     }
-    if (descriptorLine.charAt(firstSpaceAfterSecondQuote + 1) != '#') {
+    if (wallOfStacks.charAt(firstSpaceAfterSecondQuote + 1) != '#') {
       // Unexpected format, fail to parse
       return CANT_PARSE_THREAD_ID;
     }
-    int secondSpace = descriptorLine.indexOf(' ', firstSpaceAfterSecondQuote + 1);
+    int secondSpace =
+        indexOfWithinStack(wallOfStacks, ' ', firstSpaceAfterSecondQuote + 1, stackEndIndex);
     if (secondSpace == -1) {
       return CANT_PARSE_THREAD_ID;
     }
     try {
-      return Long.parseLong(descriptorLine.substring(firstSpaceAfterSecondQuote + 2, secondSpace));
+      return Long.parseLong(wallOfStacks.substring(firstSpaceAfterSecondQuote + 2, secondSpace));
     } catch (NumberFormatException e) {
       return CANT_PARSE_THREAD_ID;
     }

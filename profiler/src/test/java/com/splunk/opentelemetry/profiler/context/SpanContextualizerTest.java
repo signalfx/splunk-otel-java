@@ -16,8 +16,10 @@
 
 package com.splunk.opentelemetry.profiler.context;
 
+import static com.splunk.opentelemetry.profiler.context.StackDescriptorLineParserTest.DISRUPTIVE_AFFIXES;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -28,6 +30,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 import jdk.jfr.EventType;
 import jdk.jfr.consumer.RecordedEvent;
 import jdk.jfr.consumer.RecordedThread;
@@ -274,18 +277,40 @@ class SpanContextualizerTest {
     assertLinkage(testClass, events, rawStack);
   }
 
-  private void assertLinkage(SpanContextualizer testClass, Events events, String stack) {
-    StackToSpanLinkage result = testClass.link(time, stack, events.threadId, events.sourceEvent);
+  private void assertLinkage(SpanContextualizer testClass, Events events, String stackBody) {
+    String stack = assembleParseableStack(stackBody, events.threadId);
+
+    StackToSpanLinkage result = testClass.link(time, stack, events.sourceEvent);
     assertEquals(events.spanId, result.getSpanContext().getSpanId());
     assertEquals(traceId, result.getSpanContext().getTraceId());
     assertEquals(stack, result.getRawStack());
     assertEquals(result.getSourceEventName(), "GreatSourceEventHere");
+
+    // Test consistency with link method that finds the link using a region within a string.
+    Stream.of(DISRUPTIVE_AFFIXES)
+        .forEach(
+            affix -> {
+              String combined = affix + stack + affix;
+              SpanLinkage linkage =
+                  testClass.link(combined, affix.length(), stack.length() + affix.length());
+              assertTrue(linkage.getSpanContext().isValid());
+              assertEquals(events.threadId, linkage.getThreadId());
+              assertEquals(traceId, linkage.getSpanContext().getTraceId());
+            });
   }
 
   private void assertNoLinkage(SpanContextualizer testClass, Events events) {
-    StackToSpanLinkage result = testClass.link(time, rawStack, events.threadId, events.sourceEvent);
+    String stack = assembleParseableStack(rawStack, events.threadId);
+
+    StackToSpanLinkage result = testClass.link(time, stack, events.sourceEvent);
     assertFalse(result.hasSpanInfo());
     assertFalse(result.getSpanContext().isValid());
+
+    assertFalse(testClass.link(stack, 0, stack.length()).getSpanContext().isValid());
+  }
+
+  private String assembleParseableStack(String stackBody, long threadId) {
+    return "\"pool-thread-1\" #" + threadId + " daemon\n" + stackBody + "\n";
   }
 
   private Events buildEvents(String spanId, long threadId) {

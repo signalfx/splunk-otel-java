@@ -49,7 +49,7 @@ jobs:
           key: ${{ runner.os }}-gradle-wrapper-cache-${{ hashFiles('gradle/wrapper/gradle-wrapper.properties') }}
 
       - name: Build and test
-        run: ./gradlew build -x :smoke-tests:test -x :testing:profiler-tests:test --scan --no-daemon
+        run: ./gradlew build -x :smoke-tests:test --scan --no-daemon
 
   setup-muzzle-matrix:
     runs-on: ubuntu-20.04
@@ -116,6 +116,8 @@ jobs:
         exclude:
           - os: windows-2019
             suite: websphere
+          - os: windows-2019
+            suite: profiler
       fail-fast: false
     steps:
       - uses: actions/checkout@v2.4.0
@@ -146,23 +148,3 @@ jobs:
 
       - name: Test
         run: ./gradlew :smoke-tests:test -PsmokeTestSuite=${{ matrix.suite }} --scan --no-daemon
-
-  profiler-smoke-tests:
-    runs-on: ubuntu-20.04
-    steps:
-      - uses: actions/checkout@v2.4.0
-
-      - name: Set up JDK 11 for running Gradle
-        uses: actions/setup-java@v2
-        with:
-          distribution: adopt
-          java-version: 11.0.11+9
-
-      - name: Cache Gradle Wrapper
-        uses: actions/cache@v2
-        with:
-          path: ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-wrapper-cache-${{ hashFiles('gradle/wrapper/gradle-wrapper.properties') }}
-
-      - name: Profiler smoke tests
-        run: ./gradlew :testing:profiler-tests:test --scan --no-daemon

@@ -61,5 +61,4 @@ include(
     "testing:agent-for-testing",
     "testing:agent-test-extension",
     "testing:jmh-benchmarks",
-    "testing:profiler-tests",
     "testing:common")

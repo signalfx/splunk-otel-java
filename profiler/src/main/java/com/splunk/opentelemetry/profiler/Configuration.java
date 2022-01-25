@@ -33,6 +33,7 @@ public class Configuration implements ConfigPropertySource {
   public static final boolean DEFAULT_MEMORY_ENABLED = false;
   public static final int DEFAULT_MEMORY_SAMPLING_INTERVAL = 1;
   public static final Duration DEFAULT_CALL_STACK_INTERVAL = Duration.ofSeconds(10);
+  public static final boolean DEFAULT_INCLUDE_INTERNAL_STACKS = false;
 
   public static final String CONFIG_KEY_ENABLE_PROFILER = PROFILER_ENABLED_PROPERTY;
   public static final String CONFIG_KEY_PROFILER_DIRECTORY = "splunk.profiler.directory";
@@ -52,6 +53,8 @@ public class Configuration implements ConfigPropertySource {
   // Include stacks where every frame starts with jvm/sun/jdk
   public static final String CONFIG_KEY_INCLUDE_JVM_INTERNALS =
       "splunk.profiler.include.jvm.internals";
+  public static final String CONFIG_KEY_INCLUDE_INTERNAL_STACKS =
+      "splunk.profiler.include.internal.stacks";
 
   @Override
   public Map<String, String> getProperties() {
@@ -83,5 +86,17 @@ public class Configuration implements ConfigPropertySource {
 
   public static Duration getCallStackInterval(Config config) {
     return config.getDuration(CONFIG_KEY_CALL_STACK_INTERVAL, DEFAULT_CALL_STACK_INTERVAL);
+  }
+
+  public static boolean getIncludeAgentInternalStacks(Config config) {
+    boolean includeInternals =
+        config.getBoolean(CONFIG_KEY_INCLUDE_INTERNAL_STACKS, DEFAULT_INCLUDE_INTERNAL_STACKS);
+    return config.getBoolean(CONFIG_KEY_INCLUDE_AGENT_INTERNALS, includeInternals);
+  }
+
+  public static boolean getIncludeJvmInternalStacks(Config config) {
+    boolean includeInternals =
+        config.getBoolean(CONFIG_KEY_INCLUDE_INTERNAL_STACKS, DEFAULT_INCLUDE_INTERNAL_STACKS);
+    return config.getBoolean(CONFIG_KEY_INCLUDE_JVM_INTERNALS, includeInternals);
   }
 }

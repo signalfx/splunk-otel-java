@@ -33,16 +33,16 @@ public class StackTraceFilter {
         "\"C1 CompilerThread",
         "\"Common-Cleaner\""
       };
-  private final boolean includeAgentInternals;
-  private final boolean includeJvmInternals;
+  private final boolean includeAgentInternalStacks;
+  private final boolean includeJvmInternalStacks;
 
-  public StackTraceFilter(boolean includeAgentInternals) {
-    this(includeAgentInternals, false);
+  public StackTraceFilter(boolean includeAgentInternalStacks) {
+    this(includeAgentInternalStacks, false);
   }
 
-  public StackTraceFilter(boolean includeAgentInternals, boolean includeJvmInternals) {
-    this.includeAgentInternals = includeAgentInternals;
-    this.includeJvmInternals = includeJvmInternals;
+  public StackTraceFilter(boolean includeAgentInternalStacks, boolean includeJvmInternalStacks) {
+    this.includeAgentInternalStacks = includeAgentInternalStacks;
+    this.includeJvmInternalStacks = includeJvmInternalStacks;
   }
 
   public boolean test(String wallOfStacks, int startIndex, int lastIndex) {
@@ -63,18 +63,18 @@ public class StackTraceFilter {
     if (wallOfStacks.lastIndexOf('\n', previousNewlineIndex - 1) <= startIndex) {
       return false;
     }
-    if (includeAgentInternals) {
-      return true;
+    if (!includeAgentInternalStacks) {
+      if (Stream.of(StackTraceFilter.UNWANTED_PREFIXES)
+          .anyMatch(prefix -> wallOfStacks.regionMatches(startIndex, prefix, 0, prefix.length()))) {
+        return false;
+      }
     }
-    if (Stream.of(StackTraceFilter.UNWANTED_PREFIXES)
-        .anyMatch(prefix -> wallOfStacks.regionMatches(startIndex, prefix, 0, prefix.length()))) {
-      return false;
+    if (!includeJvmInternalStacks) {
+      if (everyFrameIsJvmInternal(wallOfStacks, startIndex, lastIndex)) {
+        return false;
+      }
     }
-
-    if (includeJvmInternals) {
-      return true;
-    }
-    return !everyFrameIsJvmInternal(wallOfStacks, startIndex, lastIndex);
+    return true;
   }
 
   /**

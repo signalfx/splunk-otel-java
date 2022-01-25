@@ -23,6 +23,8 @@ fi
 release_tag="$1"
 # without the starting 'v'
 release_version=$(echo "$release_tag" | cut -c2-)
+# v1 from v1.2.3
+major_version=$(echo "$release_tag" | awk -F'.' '{print $1}')
 
 import_gpg_keys() {
   echo ">>> Setting GnuPG configuration ..."
@@ -81,12 +83,14 @@ create_gh_release() {
 build_docker_image() {
   docker build -t splunk-otel-instrumentation-java .
   docker tag splunk-otel-instrumentation-java quay.io/signalfx/splunk-otel-instrumentation-java:$release_tag
+  docker tag splunk-otel-instrumentation-java quay.io/signalfx/splunk-otel-instrumentation-java:$major_version
   docker tag splunk-otel-instrumentation-java quay.io/signalfx/splunk-otel-instrumentation-java:latest
 }
 
 publish_docker_image() {
   docker push quay.io/signalfx/splunk-otel-instrumentation-java:latest
   docker push quay.io/signalfx/splunk-otel-instrumentation-java:$release_tag
+  docker push quay.io/signalfx/splunk-otel-instrumentation-java:$major_version
 }
 
 login_to_quay_io() {

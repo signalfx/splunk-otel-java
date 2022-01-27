@@ -80,6 +80,14 @@ public class TraceInspector {
             kv -> kv.getKey().equals(key) && valuePredicate.test(kv.getValue().getStringValue()));
   }
 
+  public boolean resourceDoesNotExist(String key) {
+    return traces.stream()
+        .flatMap(it -> it.getResourceSpansList().stream())
+        .map(ResourceSpans::getResource)
+        .flatMap(resource -> resource.getAttributesList().stream())
+        .noneMatch(kv -> kv.getKey().equals(key));
+  }
+
   public int countTraceIds() {
     return getTraceIds().size();
   }

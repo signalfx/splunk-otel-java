@@ -73,6 +73,9 @@ public class SpringBootSmokeTest extends AppServerTest {
     // verify that correct service name is set in the resource
     assertTrue(traces.resourceExists("service.name", "smoke-test"));
     assertTrue(traces.resourceExists("splunk.distro.version", v -> !v.isEmpty()));
+
+    // verify that host.name is removed
+    assertTrue(traces.resourceDoesNotExist("host.name"));
   }
 
   protected void assertMetrics(MetricsInspector metrics) {

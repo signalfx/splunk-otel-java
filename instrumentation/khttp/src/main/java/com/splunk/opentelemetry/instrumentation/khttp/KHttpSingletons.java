@@ -20,6 +20,7 @@ import io.opentelemetry.api.GlobalOpenTelemetry;
 import io.opentelemetry.instrumentation.api.instrumenter.Instrumenter;
 import io.opentelemetry.instrumentation.api.instrumenter.PeerServiceAttributesExtractor;
 import io.opentelemetry.instrumentation.api.instrumenter.http.HttpClientAttributesExtractor;
+import io.opentelemetry.instrumentation.api.instrumenter.http.HttpClientAttributesGetter;
 import io.opentelemetry.instrumentation.api.instrumenter.http.HttpClientMetrics;
 import io.opentelemetry.instrumentation.api.instrumenter.http.HttpSpanNameExtractor;
 import io.opentelemetry.instrumentation.api.instrumenter.http.HttpSpanStatusExtractor;
@@ -32,18 +33,18 @@ public final class KHttpSingletons {
   private static final Instrumenter<RequestWrapper, Response> INSTRUMENTER;
 
   static {
-    HttpClientAttributesExtractor<RequestWrapper, Response> httpAttributesExtractor =
-        new KHttpHttpClientHttpAttributesExtractor();
     KHttpHttpClientNetAttributesGetter netAttributesGetter =
         new KHttpHttpClientNetAttributesGetter();
+    HttpClientAttributesGetter<RequestWrapper, Response> httpAttributesGetter =
+        new KHttpHttpClientHttpAttributesGetter();
 
     INSTRUMENTER =
         Instrumenter.<RequestWrapper, Response>builder(
                 GlobalOpenTelemetry.get(),
                 INSTRUMENTATION_NAME,
-                HttpSpanNameExtractor.create(httpAttributesExtractor))
-            .setSpanStatusExtractor(HttpSpanStatusExtractor.create(httpAttributesExtractor))
-            .addAttributesExtractor(httpAttributesExtractor)
+                HttpSpanNameExtractor.create(httpAttributesGetter))
+            .setSpanStatusExtractor(HttpSpanStatusExtractor.create(httpAttributesGetter))
+            .addAttributesExtractor(HttpClientAttributesExtractor.create(httpAttributesGetter))
             .addAttributesExtractor(NetClientAttributesExtractor.create(netAttributesGetter))
             .addAttributesExtractor(PeerServiceAttributesExtractor.create(netAttributesGetter))
             .addRequestMetrics(HttpClientMetrics.get())

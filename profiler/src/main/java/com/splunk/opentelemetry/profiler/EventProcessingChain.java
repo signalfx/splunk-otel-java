@@ -16,14 +16,15 @@
 
 package com.splunk.opentelemetry.profiler;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.splunk.opentelemetry.profiler.context.SpanContextualizer;
 import com.splunk.opentelemetry.profiler.events.ContextAttached;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.PriorityQueue;
 import java.util.concurrent.TimeUnit;
 import jdk.jfr.EventType;
 import jdk.jfr.consumer.RecordedEvent;
@@ -37,19 +38,27 @@ class EventProcessingChain {
   private final SpanContextualizer spanContextualizer;
   private final ThreadDumpProcessor threadDumpProcessor;
   private final TLABProcessor tlabProcessor;
-  private final PriorityQueue<RecordedEvent> buffer =
-      new PriorityQueue<>(Comparator.comparing(RecordedEvent::getStartTime));
+  private final List<RecordedEvent> buffer = new LinkedList<>();
   private final EventStats eventStats =
       logger.isDebugEnabled() ? new EventStatsImpl() : new NoOpEventStats();
-  private final ChunkTracker chunkTracker = new ChunkTracker();
+  private final ChunkTracker chunkTracker;
 
   EventProcessingChain(
       SpanContextualizer spanContextualizer,
       ThreadDumpProcessor threadDumpProcessor,
       TLABProcessor tlabProcessor) {
+    this(spanContextualizer, threadDumpProcessor, tlabProcessor, new ChunkTracker());
+  }
+
+  EventProcessingChain(
+      SpanContextualizer spanContextualizer,
+      ThreadDumpProcessor threadDumpProcessor,
+      TLABProcessor tlabProcessor,
+      ChunkTracker chunkTracker) {
     this.spanContextualizer = spanContextualizer;
     this.threadDumpProcessor = threadDumpProcessor;
     this.tlabProcessor = tlabProcessor;
+    this.chunkTracker = chunkTracker;
   }
 
   void accept(RecordedEvent event) {
@@ -65,7 +74,9 @@ class EventProcessingChain {
    * the buffer. After flushing, the buffer will be empty.
    */
   public void flushBuffer() {
-    buffer.forEach(this::dispatchEvent);
+    buffer.stream()
+        .sorted(Comparator.comparing(RecordedEvent::getStartTime))
+        .forEach(this::dispatchEvent);
     buffer.clear();
     chunkTracker.reset();
   }
@@ -104,7 +115,8 @@ class EventProcessingChain {
    * type of context attach or thread dump event doesn't match what we have recorded. When chunk
    * change is detected process buffered events and clear the buffer.
    */
-  private static class ChunkTracker {
+  @VisibleForTesting
+  static class ChunkTracker {
 
     private final Map<String, EventType> eventTypes = new HashMap<>();
 

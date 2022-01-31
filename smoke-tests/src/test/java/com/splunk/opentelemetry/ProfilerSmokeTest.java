@@ -181,7 +181,7 @@ public class ProfilerSmokeTest {
         .isNotEmpty()
         .allMatch(log -> getLongAttr(log, "memory.allocated") > 0)
         .allMatch(log -> log.getBody().getStringValue().startsWith("\""))
-        .allMatch(log -> log.getBody().getStringValue().split("\n").length > 2);
+        .allMatch(log -> log.getBody().getStringValue().split("\n").length >= 2);
   }
 
   @Test

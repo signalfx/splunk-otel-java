@@ -22,7 +22,6 @@ import com.splunk.opentelemetry.profiler.events.ContextAttached;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -38,7 +37,7 @@ class EventProcessingChain {
   private final SpanContextualizer spanContextualizer;
   private final ThreadDumpProcessor threadDumpProcessor;
   private final TLABProcessor tlabProcessor;
-  private final List<RecordedEvent> buffer = new LinkedList<>();
+  private final List<RecordedEvent> buffer = new ArrayList<>();
   private final EventStats eventStats =
       logger.isDebugEnabled() ? new EventStatsImpl() : new NoOpEventStats();
   private final ChunkTracker chunkTracker;

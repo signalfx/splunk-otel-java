@@ -16,7 +16,9 @@
 
 package com.splunk.opentelemetry.profiler;
 
+import static java.time.temporal.ChronoUnit.SECONDS;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -72,8 +74,8 @@ class EventProcessingChainTest {
     InOrder inOrder = inOrder(contextualizer, threadDumpProcessor, tlabProcessor);
     inOrder.verify(threadDumpProcessor).accept(threadDump);
     inOrder.verify(tlabProcessor).accept(tlab1);
-    inOrder.verify(tlabProcessor).accept(tlab2);
     inOrder.verify(contextualizer).updateContext(contextEvent);
+    inOrder.verify(tlabProcessor).accept(tlab2);
     inOrder.verifyNoMoreInteractions();
   }
 
@@ -155,6 +157,38 @@ class EventProcessingChainTest {
     }
   }
 
+  @Test
+  void eventsDispatchedInTimeOrder() {
+    EventType contextAttachedType = newEventType(ContextAttached.EVENT_NAME);
+    EventType threadDumpType = newEventType(ThreadDumpProcessor.EVENT_NAME);
+    Instant now = Instant.now();
+    RecordedEvent event1 = newEvent(contextAttachedType, now.plus(1, SECONDS));
+    RecordedEvent event2 = newEvent(contextAttachedType, now.plus(2, SECONDS));
+    RecordedEvent event3 = newEvent(threadDumpType, now.plus(3, SECONDS));
+    RecordedEvent event4 = newEvent(null, null);
+
+    // Our events are in time order: context1, context2, threadDump1, threadDump2.
+    // However, we will send them to the chain out of order: context2, context1, threadDump.
+    // Expectation is that we see them dispatched in the correct order.
+    // The "chunk" is finished only after event4, and event4 is part of a new chunk so is not
+    // dispatched.
+
+    EventProcessingChain.ChunkTracker chunkTracker = mock(EventProcessingChain.ChunkTracker.class);
+    when(chunkTracker.isNewChunk(isA(RecordedEvent.class))).thenReturn(false, false, false, true);
+    EventProcessingChain chain =
+        new EventProcessingChain(contextualizer, threadDumpProcessor, tlabProcessor, chunkTracker);
+    chain.accept(event2); // Out of order
+    chain.accept(event1); // Out of order
+    chain.accept(event3);
+    chain.accept(event4);
+
+    InOrder ordered = inOrder(contextualizer, threadDumpProcessor);
+    ordered.verify(contextualizer).updateContext(event1);
+    ordered.verify(contextualizer).updateContext(event2);
+    ordered.verify(threadDumpProcessor).accept(event3);
+    ordered.verifyNoMoreInteractions();
+  }
+
   private EventType newEventType(String name) {
     EventType type = mock(EventType.class);
     when(type.getName()).thenReturn(name);
@@ -163,7 +197,9 @@ class EventProcessingChainTest {
 
   private RecordedEvent newEvent(EventType eventType, Instant startTime) {
     RecordedEvent event = mock(RecordedEvent.class);
-    when(event.getEventType()).thenReturn(eventType);
+    if (eventType != null) {
+      when(event.getEventType()).thenReturn(eventType);
+    }
     if (startTime != null) {
       when(event.getStartTime()).thenReturn(startTime);
     }

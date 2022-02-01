@@ -74,8 +74,8 @@ class EventProcessingChainTest {
     InOrder inOrder = inOrder(contextualizer, threadDumpProcessor, tlabProcessor);
     inOrder.verify(threadDumpProcessor).accept(threadDump);
     inOrder.verify(tlabProcessor).accept(tlab1);
-    inOrder.verify(tlabProcessor).accept(tlab2);
     inOrder.verify(contextualizer).updateContext(contextEvent);
+    inOrder.verify(tlabProcessor).accept(tlab2);
     inOrder.verifyNoMoreInteractions();
   }
 

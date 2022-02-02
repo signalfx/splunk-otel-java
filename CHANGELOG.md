@@ -8,6 +8,12 @@ and this repository adheres to [Semantic Versioning](https://semver.org/spec/v2.
 
 ## Unreleased
 
+## v1.7.3 - 2022-02-02
+
+### Bugfixes
+
+- Fixed a bug that caused JFR events to appear out of order.
+
 ## v1.7.2 - 2022-01-31
 
 ### General

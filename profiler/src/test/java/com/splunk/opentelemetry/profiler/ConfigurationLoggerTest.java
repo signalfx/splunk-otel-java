@@ -19,6 +19,7 @@ package com.splunk.opentelemetry.profiler;
 import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_CALL_STACK_INTERVAL;
 import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_DEPRECATED_THREADDUMP_PERIOD;
 import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_ENABLE_PROFILER;
+import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_INCLUDE_INTERNAL_STACKS;
 import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_INGEST_URL;
 import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_KEEP_FILES;
 import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_MEMORY_ENABLED;
@@ -27,6 +28,7 @@ import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_PROFILE
 import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_RECORDING_DURATION;
 import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_TLAB_ENABLED;
 import static com.splunk.opentelemetry.profiler.Configuration.DEFAULT_CALL_STACK_INTERVAL;
+import static com.splunk.opentelemetry.profiler.Configuration.DEFAULT_INCLUDE_INTERNAL_STACKS;
 import static com.splunk.opentelemetry.profiler.Configuration.DEFAULT_MEMORY_ENABLED;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -57,6 +59,8 @@ class ConfigurationLoggerTest {
     when(config.getBoolean(CONFIG_KEY_TLAB_ENABLED, false)).thenReturn(true);
     when(config.getDuration(CONFIG_KEY_CALL_STACK_INTERVAL, DEFAULT_CALL_STACK_INTERVAL))
         .thenReturn(Duration.ofSeconds(21));
+    when(config.getBoolean(CONFIG_KEY_INCLUDE_INTERNAL_STACKS, DEFAULT_INCLUDE_INTERNAL_STACKS))
+        .thenReturn(true);
     when(config.getDuration(CONFIG_KEY_DEPRECATED_THREADDUMP_PERIOD, null))
         .thenReturn(Duration.ofMillis(500));
 
@@ -75,6 +79,7 @@ class ConfigurationLoggerTest {
     log.assertContains("         splunk.profiler.memory.enabled : false");
     log.assertContains("           splunk.profiler.tlab.enabled : true");
     log.assertContains("    splunk.profiler.call.stack.interval : PT21S");
+    log.assertContains("splunk.profiler.include.internal.stacks : true");
     log.assertContains("      splunk.profiler.period.threaddump : PT0.5S");
   }
 

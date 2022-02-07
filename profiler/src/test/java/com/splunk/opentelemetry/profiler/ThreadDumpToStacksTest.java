@@ -16,37 +16,18 @@
 
 package com.splunk.opentelemetry.profiler;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.isA;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
-import com.splunk.opentelemetry.profiler.context.SpanContextualizer;
-import com.splunk.opentelemetry.profiler.context.TracingStacksOnlyFilter;
-import com.splunk.opentelemetry.profiler.events.ContextAttached;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-import jdk.jfr.EventType;
-import jdk.jfr.consumer.RecordedEvent;
-import jdk.jfr.consumer.RecordedThread;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 class ThreadDumpToStacksTest {
-
-  // Some handpicked entries of thread ID to name from threadDumpResult to test filtering
-  static List<SampleThread> sampleThreadsFromDump =
-      Arrays.asList(
-          new SampleThread(46, "grpc-nio-worker-ELG-1-2"),
-          new SampleThread(48, "grpc-nio-worker-ELG-1-3"),
-          new SampleThread(56, "http-nio-9966-exec-5"));
 
   String threadDumpResult;
 
@@ -59,75 +40,41 @@ class ThreadDumpToStacksTest {
 
   @Test
   void testStream() {
-    ThreadDumpToStacks threadDumpToStacks = new ThreadDumpToStacks(new StackTraceFilter(false));
-    Stream<String> resultStream = threadDumpToStacks.toStream(threadDumpResult);
-    List<String> result = resultStream.collect(Collectors.toList());
-    assertEquals(28, result.size());
-    Stream.of(StackTraceFilter.UNWANTED_PREFIXES)
-        .forEach(
-            prefix -> {
-              assertThat(result).noneMatch(stack -> stack.contains(prefix));
-            });
+    ThreadDumpToStacks threadDumpToStacks = new ThreadDumpToStacks();
+    ThreadDumpRegion region = new ThreadDumpRegion(threadDumpResult, 0, 0);
+    List<String> result = new ArrayList<>();
+
+    while (threadDumpToStacks.findNext(region)) {
+      result.add(region.toString());
+    }
+
+    assertEquals(77, result.size());
   }
 
   @Test
-  void testFilterStacksWithoutSpans() {
-    SpanContextualizer contextualizer = new SpanContextualizer();
-    sampleThreadsFromDump.forEach(
-        it -> contextualizer.updateContext(threadContextStartEvent(it.threadId)));
+  void skipClustersWithoutDoubleQuote() {
+    ThreadDumpToStacks threadDumpToStacks = new ThreadDumpToStacks();
 
-    ThreadDumpToStacks threadDumpToStacks =
-        new ThreadDumpToStacks(
-            new TracingStacksOnlyFilter(
-                (wallOfStacks, startIndex, lastIndex) -> true, contextualizer));
-
-    Stream<String> resultStream = threadDumpToStacks.toStream(threadDumpResult);
-    List<String> result = resultStream.collect(Collectors.toList());
-    assertEquals(sampleThreadsFromDump.size(), result.size());
-
-    sampleThreadsFromDump.forEach(
-        sample -> assertThat(result).anyMatch(stack -> stack.contains(sample.threadName)));
+    ThreadDumpRegion region = new ThreadDumpRegion("something\n\n\"else\"", 0, 0);
+    assertTrue(threadDumpToStacks.findNext(region));
+    assertEquals(region.toString(), "\"else\"");
+    assertFalse(threadDumpToStacks.findNext(region));
   }
 
   @Test
   void edgeCase1_simplyHitsEnd() {
-    StackTraceFilter filter = mock(StackTraceFilter.class);
-    when(filter.test(isA(String.class), anyInt(), anyInt())).thenReturn(true);
+    ThreadDumpToStacks threadDumpToStacks = new ThreadDumpToStacks();
 
-    ThreadDumpToStacks threadDumpToStacks = new ThreadDumpToStacks(filter);
-    Stream<String> resultStream = threadDumpToStacks.toStream("something\n\n");
-    List<String> result = resultStream.collect(Collectors.toList());
-    assertThat(result).containsExactly("something");
+    ThreadDumpRegion region = new ThreadDumpRegion("\"something\"\n\n", 0, 0);
+    assertTrue(threadDumpToStacks.findNext(region));
+    assertEquals(region.toString(), "\"something\"");
+    assertFalse(threadDumpToStacks.findNext(region));
   }
 
   @Test
   void edgeCase2_emptyString() {
-    ThreadDumpToStacks threadDumpToStacks = new ThreadDumpToStacks(null);
-    Stream<String> resultStream = threadDumpToStacks.toStream("");
-    List<String> result = resultStream.collect(Collectors.toList());
-    assertTrue(result.isEmpty());
-  }
-
-  private static RecordedEvent threadContextStartEvent(long threadId) {
-    RecordedEvent event = mock(RecordedEvent.class);
-    EventType type = mock(EventType.class);
-    when(type.getName()).thenReturn(ContextAttached.EVENT_NAME);
-    when(event.getEventType()).thenReturn(type);
-    when(event.getString("traceId")).thenReturn("deadbeefdeadbeefdeadbeefdeadbeef");
-    when(event.getString("spanId")).thenReturn("0123012301230123");
-    RecordedThread thread = mock(RecordedThread.class);
-    when(thread.getJavaThreadId()).thenReturn(threadId);
-    when(event.getThread()).thenReturn(thread);
-    return event;
-  }
-
-  static class SampleThread {
-    final long threadId;
-    final String threadName;
-
-    SampleThread(long threadId, String threadName) {
-      this.threadId = threadId;
-      this.threadName = threadName;
-    }
+    ThreadDumpToStacks threadDumpToStacks = new ThreadDumpToStacks();
+    ThreadDumpRegion region = new ThreadDumpRegion("", 0, 0);
+    assertFalse(threadDumpToStacks.findNext(region));
   }
 }

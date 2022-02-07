@@ -19,6 +19,7 @@ package com.splunk.opentelemetry.profiler.context;
 import static com.splunk.opentelemetry.profiler.context.StackDescriptorLineParser.CANT_PARSE_THREAD_ID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import com.splunk.opentelemetry.profiler.ThreadDumpRegion;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 
@@ -120,7 +121,8 @@ class StackDescriptorLineParserTest {
 
   long parseAndAssertWithAffixes(String descriptorLine) {
     StackDescriptorLineParser parser = new StackDescriptorLineParser();
-    long result = parser.parseThreadId(descriptorLine, 0, descriptorLine.length());
+    ThreadDumpRegion region = new ThreadDumpRegion(descriptorLine, 0, descriptorLine.length());
+    long result = parser.parseThreadId(region);
 
     Stream.of(DISRUPTIVE_AFFIXES)
         .forEach(
@@ -139,8 +141,9 @@ class StackDescriptorLineParserTest {
       String prefix,
       String suffix) {
     String combined = prefix + descriptorLine + suffix;
-    long result =
-        parser.parseThreadId(combined, prefix.length(), prefix.length() + descriptorLine.length());
+    ThreadDumpRegion region =
+        new ThreadDumpRegion(combined, prefix.length(), prefix.length() + descriptorLine.length());
+    long result = parser.parseThreadId(region);
     assertEquals(baseResult, result, "stable with prefix " + prefix + ", suffix " + suffix);
   }
 }

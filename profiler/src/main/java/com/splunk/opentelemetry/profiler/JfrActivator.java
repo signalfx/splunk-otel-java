@@ -27,7 +27,6 @@ import static com.splunk.opentelemetry.profiler.util.Runnables.logUncaught;
 import com.google.auto.service.AutoService;
 import com.splunk.opentelemetry.logs.BatchingLogsProcessor;
 import com.splunk.opentelemetry.profiler.context.SpanContextualizer;
-import com.splunk.opentelemetry.profiler.context.TracingStacksOnlyFilter;
 import com.splunk.opentelemetry.profiler.events.EventPeriods;
 import com.splunk.opentelemetry.profiler.util.FileDeleter;
 import com.splunk.opentelemetry.profiler.util.HelpfulExecutors;
@@ -114,11 +113,15 @@ public class JfrActivator implements AgentListener {
     StackToSpanLinkageProcessor processor =
         new StackToSpanLinkageProcessor(logDataCreator, batchingLogsProcessor);
 
-    ThreadDumpToStacks threadDumpToStacks =
-        new ThreadDumpToStacks(buildStackTraceFilter(config, spanContextualizer));
+    ThreadDumpToStacks threadDumpToStacks = new ThreadDumpToStacks();
 
     ThreadDumpProcessor threadDumpProcessor =
-        buildThreadDumpProcessor(spanContextualizer, processor, threadDumpToStacks);
+        buildThreadDumpProcessor(
+            spanContextualizer,
+            processor,
+            threadDumpToStacks,
+            buildStackTraceFilter(config),
+            config);
     TLABProcessor tlabProcessor =
         TLABProcessor.builder(config)
             .logProcessor(batchingLogsProcessor)
@@ -165,30 +168,23 @@ public class JfrActivator implements AgentListener {
   private ThreadDumpProcessor buildThreadDumpProcessor(
       SpanContextualizer spanContextualizer,
       StackToSpanLinkageProcessor processor,
-      ThreadDumpToStacks threadDumpToStacks) {
+      ThreadDumpToStacks threadDumpToStacks,
+      StackTraceFilter stackTraceFilter,
+      Config config) {
     return ThreadDumpProcessor.builder()
         .spanContextualizer(spanContextualizer)
         .processor(processor)
         .threadDumpToStacks(threadDumpToStacks)
+        .stackTraceFilter(stackTraceFilter)
+        .onlyTracingSpans(Configuration.getTracingStacksOnly(config))
         .build();
   }
 
-  /**
-   * Based on config, filters out agent internal stacks, JVM internal stacks and/or stacks with no
-   * trace context
-   */
-  private StackTracePredicate buildStackTraceFilter(
-      Config config, SpanContextualizer contextualizer) {
+  /** Based on config, filters out agent internal stacks and/or JVM internal stacks */
+  private StackTraceFilter buildStackTraceFilter(Config config) {
     boolean includeAgentInternalStacks = Configuration.getIncludeAgentInternalStacks(config);
     boolean includeJVMInternalStacks = Configuration.getIncludeJvmInternalStacks(config);
-    StackTraceFilter contentFilter =
-        new StackTraceFilter(includeAgentInternalStacks, includeJVMInternalStacks);
-
-    if (Configuration.getTracingStacksOnly(config)) {
-      return new TracingStacksOnlyFilter(contentFilter, contextualizer);
-    } else {
-      return contentFilter;
-    }
+    return new StackTraceFilter(includeAgentInternalStacks, includeJVMInternalStacks);
   }
 
   private Map<String, String> buildJfrSettings(Config config) {

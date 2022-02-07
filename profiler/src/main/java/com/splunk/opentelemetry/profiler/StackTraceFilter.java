@@ -18,7 +18,7 @@ package com.splunk.opentelemetry.profiler;
 
 import java.util.stream.Stream;
 
-public class StackTraceFilter implements StackTracePredicate {
+public class StackTraceFilter {
 
   static final String[] UNWANTED_PREFIXES =
       new String[] {
@@ -45,33 +45,35 @@ public class StackTraceFilter implements StackTracePredicate {
     this.includeJvmInternalStacks = includeJvmInternalStacks;
   }
 
-  @Override
-  public boolean test(String wallOfStacks, int startIndex, int lastIndex) {
-    if ((lastIndex == -1) || (lastIndex >= wallOfStacks.length())) {
+  public boolean test(ThreadDumpRegion region) {
+    if (region.startIndex >= region.endIndex) {
       return false;
     }
+    String wallOfStacks = region.threadDump;
     // Must start with a quote for the thread name
-    if (wallOfStacks.charAt(startIndex) != '"') {
+    if (wallOfStacks.charAt(region.startIndex) != '"') {
       return false;
     }
     // If the last newline before next is before the start, that means we have one line, so skip
     // that
-    int previousNewlineIndex = wallOfStacks.lastIndexOf('\n', lastIndex - 1);
-    if (previousNewlineIndex <= startIndex) {
+    int previousNewlineIndex = wallOfStacks.lastIndexOf('\n', region.endIndex - 2);
+    if (previousNewlineIndex <= region.startIndex) {
       return false;
     }
     // two line cases
-    if (wallOfStacks.lastIndexOf('\n', previousNewlineIndex - 1) <= startIndex) {
+    if (wallOfStacks.lastIndexOf('\n', previousNewlineIndex - 1) <= region.startIndex) {
       return false;
     }
     if (!includeAgentInternalStacks) {
       if (Stream.of(StackTraceFilter.UNWANTED_PREFIXES)
-          .anyMatch(prefix -> wallOfStacks.regionMatches(startIndex, prefix, 0, prefix.length()))) {
+          .anyMatch(
+              prefix ->
+                  wallOfStacks.regionMatches(region.startIndex, prefix, 0, prefix.length()))) {
         return false;
       }
     }
     if (!includeJvmInternalStacks) {
-      if (everyFrameIsJvmInternal(wallOfStacks, startIndex, lastIndex)) {
+      if (everyFrameIsJvmInternal(wallOfStacks, region.startIndex, region.endIndex - 1)) {
         return false;
       }
     }

@@ -16,84 +16,50 @@
 
 package com.splunk.opentelemetry.profiler;
 
-import java.util.Spliterator;
-import java.util.Spliterators;
-import java.util.function.Consumer;
-import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
-
 /**
  * This class turns the "wall of stacks" from the jdk.ThreadDump event into Stream<String>, where
  * each String in the Stream is a stack trace. It purposefully avoids String.split("\n\n") in order
  * to help reduce allocations, especially for filtered stacks.
  */
 public class ThreadDumpToStacks {
-
-  private final StackTracePredicate stackTracePredicate;
-
-  public ThreadDumpToStacks(StackTracePredicate stackTracePredicate) {
-    this.stackTracePredicate = stackTracePredicate;
-  }
-
-  public Stream<String> toStream(String wallOfStacks) {
-    Spliterator<String> spliterator = new StackSpliterator(wallOfStacks, stackTracePredicate);
-    return StreamSupport.stream(spliterator, false);
-  }
-
-  private static class StackSpliterator extends Spliterators.AbstractSpliterator<String> {
-    private final String wallOfStacks;
-    private final StackTracePredicate stackTracePredicate;
-    private int start = 0;
-    private int next = 0;
-    private boolean done = false;
-
-    public StackSpliterator(String wallOfStacks, StackTracePredicate stackTracePredicate) {
-      super(Long.MAX_VALUE, Spliterator.IMMUTABLE | Spliterator.ORDERED);
-      this.wallOfStacks = wallOfStacks;
-      this.stackTracePredicate = stackTracePredicate;
-    }
-
-    @Override
-    public boolean tryAdvance(Consumer<? super String> action) {
-      while (true) {
-        if (done) {
-          return false;
-        }
-        next = wallOfStacks.indexOf("\n\n", start);
-        if (next == -1) {
-          next = wallOfStacks.lastIndexOf('\n', start);
-        }
-        if (next == -1) {
-          done = true;
-          return false;
-        }
-        // Reached the end of the wall, so just set next to the end
-        if (next < start) {
-          next = wallOfStacks.length() - 1;
-        }
-        if (stackTracePredicate.test(wallOfStacks, start, next)) {
-          action.accept(advanceNextStack());
-          return true;
-        }
-        start = next + 1;
-        while ((start < wallOfStacks.length()) && (wallOfStacks.charAt(start) == '\n')) {
-          start++;
-        }
-        if (start >= wallOfStacks.length()) {
-          done = true;
-          return false;
-        }
+  public boolean findNext(ThreadDumpRegion region) {
+    while (findNextCandidate(region)) {
+      if (region.threadDump.charAt(region.startIndex) == '"') {
+        return true;
       }
     }
 
-    private String advanceNextStack() {
-      String result = wallOfStacks.substring(start, next);
-      if (next >= wallOfStacks.length() - 2) {
-        done = true;
+    return false;
+  }
+
+  private boolean findNextCandidate(ThreadDumpRegion region) {
+    String threadDump = region.threadDump;
+    int start = region.endIndex;
+
+    // skip over any newlines, returning failure in case we reach end of string this way
+    while (true) {
+      if (start >= threadDump.length()) {
+        return false;
+      } else if (threadDump.charAt(start) != '\n') {
+        break;
       }
-      start = next + 2; // next chunk starts after the "\n\n"
-      next = start;
-      return result;
+      start++;
     }
+
+    int end = threadDump.indexOf("\n\n", start);
+    if (end == -1) {
+      end = threadDump.lastIndexOf('\n', start);
+    }
+    if (end == -1) {
+      return false;
+    }
+    // Reached the end of the wall, so just set next to the end
+    if (end < start) {
+      end = region.threadDump.length();
+    }
+
+    region.startIndex = start;
+    region.endIndex = end;
+    return true;
   }
 }

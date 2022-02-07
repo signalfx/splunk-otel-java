@@ -62,9 +62,8 @@ public class ThreadDumpProcessorBenchmark {
 
   private static ThreadDumpProcessor buildNewThreadDumpProcessor() {
     SpanContextualizer contextualizer = new SpanContextualizer();
-    StackTraceFilter filter = new StackTraceFilter(false);
     Consumer<StackToSpanLinkage> processor = x -> {};
-    ThreadDumpToStacks threadDumpToStacks = new ThreadDumpToStacks(filter);
+    ThreadDumpToStacks threadDumpToStacks = new ThreadDumpToStacks();
     return ThreadDumpProcessor.builder()
         .processor(processor)
         .spanContextualizer(contextualizer)

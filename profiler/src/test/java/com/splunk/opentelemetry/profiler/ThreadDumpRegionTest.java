@@ -14,25 +14,25 @@
  * limitations under the License.
  */
 
-package com.splunk.opentelemetry.profiler.context;
+package com.splunk.opentelemetry.profiler;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.Test;
 
-class StackWallHelperTest {
+class ThreadDumpRegionTest {
   @Test
   void testFindsMatchInRange() {
-    assertEquals(3, StackWallHelper.indexOfWithinStack("abcdef", 'd', 2, 4));
+    assertEquals(3, new ThreadDumpRegion("abcdef", 0, 4).indexOf('d', 2));
   }
 
   @Test
   void testDoesNotFindBeforeRange() {
-    assertEquals(-1, StackWallHelper.indexOfWithinStack("abcdef", 'b', 2, 4));
+    assertEquals(-1, new ThreadDumpRegion("abcdef", 0, 4).indexOf('b', 2));
   }
 
   @Test
   void testDoesNotFindAfterRange() {
-    assertEquals(-1, StackWallHelper.indexOfWithinStack("abcdef", 'e', 2, 4));
+    assertEquals(-1, new ThreadDumpRegion("abcdef", 0, 4).indexOf('e', 2));
   }
 }

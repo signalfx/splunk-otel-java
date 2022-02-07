@@ -50,7 +50,7 @@ class StackTraceFilterTest {
     StackTraceFilter filter = new StackTraceFilter(false);
     String stack =
         "\"GC Thread#1\" os_prio=0 cpu=1285.69ms elapsed=11333.59s tid=0x00007f43e0001000 nid=0xd0 runnable";
-    assertFalse(filter.test(stack, 0, stack.length() - 1));
+    assertFalse(filter.test(new ThreadDumpRegion(stack)));
   }
 
   @Test
@@ -62,7 +62,7 @@ class StackTraceFilterTest {
             + "\tat sun.nio.ch.EPollSelectorImpl.doSelect(java.base@11.0.12/EPollSelectorImpl.java:120)\n"
             + "\t[...]";
     StackTraceFilter filter = new StackTraceFilter(false);
-    assertTrue(filter.test(stack, 0, stack.length() - 1));
+    assertTrue(filter.test(new ThreadDumpRegion(stack)));
   }
 
   @Test
@@ -76,7 +76,7 @@ class StackTraceFilterTest {
             + "\tat java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject.awaitNanos(java.base@11.0.12/AbstractQueuedSynchronizer.java:2123)\n"
             + "\t[...]";
     StackTraceFilter filter = new StackTraceFilter(false);
-    assertFalse(filter.test(stack, 0, stack.length() - 1));
+    assertFalse(filter.test(new ThreadDumpRegion(stack)));
   }
 
   @Test
@@ -88,7 +88,7 @@ class StackTraceFilterTest {
             + "\t- parking to wait for  <0x00000000c3401f88> (a java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject)\n"
             + "\t[...]";
     StackTraceFilter filter = new StackTraceFilter(false);
-    assertFalse(filter.test(stack, 0, stack.length() - 1));
+    assertFalse(filter.test(new ThreadDumpRegion(stack)));
   }
 
   @Test
@@ -97,13 +97,13 @@ class StackTraceFilterTest {
         "\"JFR Recorder Thread\" #16 daemon prio=5 os_prio=0 cpu=75.99ms elapsed=436.13s tid=0x00007f5194e83800 nid=0xda waiting on condition  [0x0000000000000000]\n"
             + "   java.lang.Thread.State: RUNNABLE\n";
     StackTraceFilter filter = new StackTraceFilter(false);
-    assertFalse(filter.test(stack, 0, stack.length() - 1));
+    assertFalse(filter.test(new ThreadDumpRegion(stack)));
     stack =
         "\"JFR Periodic Tasks\" #17 daemon prio=5 os_prio=0 cpu=171.78ms elapsed=435.78s tid=0x00007f5194ecd800 nid=0xdb in Object.wait()  [0x00007f5187dfe000]\n"
             + "   java.lang.Thread.State: TIMED_WAITING (on object monitor)\n"
             + "\tat java.lang.Object.wait(java.base@11.0.12/Native Method)\n"
             + "\t[...]";
-    assertFalse(filter.test(stack, 0, stack.length() - 1));
+    assertFalse(filter.test(new ThreadDumpRegion(stack)));
   }
 
   @Test
@@ -118,13 +118,13 @@ class StackTraceFilterTest {
             + "\t- waiting to re-lock in wait() <0x0000000600ca4e70> (a java.util.TaskQueue)\n"
             + "\tat java.util.TimerThread.run(java.base@11.0.9.1/Timer.java:506)";
     StackTraceFilter filter = new StackTraceFilter(true, true);
-    assertTrue(filter.test(stack, 0, stack.length() - 1));
+    assertTrue(filter.test(new ThreadDumpRegion(stack)));
     stack =
         "\"JFR Periodic Tasks\" #17 daemon prio=5 os_prio=0 cpu=171.78ms elapsed=435.78s tid=0x00007f5194ecd800 nid=0xdb in Object.wait()  [0x00007f5187dfe000]\n"
             + "   java.lang.Thread.State: TIMED_WAITING (on object monitor)\n"
             + "\tat java.lang.Object.wait(java.base@11.0.12/Native Method)\n"
             + "\t[...]";
-    assertTrue(filter.test(stack, 0, stack.length() - 1));
+    assertTrue(filter.test(new ThreadDumpRegion(stack)));
   }
 
   @Test
@@ -133,20 +133,20 @@ class StackTraceFilterTest {
         "\"G1 Young RemSet Sampling\" os_prio=0 cpu=20.37ms elapsed=67.37s tid=0x00007f2b600eb800 nid=0xc runnable\n"
             + "\"VM Periodic Task Thread\" os_prio=0 cpu=29.95ms elapsed=65.02s tid=0x00007f2b60c75800 nid=0x1a waiting on condition\n";
     StackTraceFilter filter = new StackTraceFilter(false);
-    assertFalse(filter.test(stack, 0, stack.length() - 1));
+    assertFalse(filter.test(new ThreadDumpRegion(stack)));
   }
 
   @Test
   void badLastIndex() {
     StackTraceFilter filter = new StackTraceFilter(false);
-    assertFalse(filter.test(null, 0, -1));
+    assertFalse(filter.test(new ThreadDumpRegion("", 0, -1)));
   }
 
   @Test
   void lineDoesntStartWithDoubleQuote() {
     String stack = "JNI global refs: 50, weak refs: 0\n";
     StackTraceFilter filter = new StackTraceFilter(false);
-    assertFalse(filter.test(stack, 0, stack.length() - 1));
+    assertFalse(filter.test(new ThreadDumpRegion(stack)));
   }
 
   @Test
@@ -162,10 +162,11 @@ class StackTraceFilterTest {
     String beforeStack = "something above\n";
     String afterStack = "something below\n";
     String wallOfStacks = beforeStack + "\n" + stack + "\n" + afterStack;
-    StackTraceFilter filter = new StackTraceFilter(false);
+    StackTraceFilter filter = new StackTraceFilter(false, true);
     boolean result =
         filter.test(
-            wallOfStacks, beforeStack.length() + 1, beforeStack.length() + stack.length() + 2);
+            new ThreadDumpRegion(
+                wallOfStacks, beforeStack.length() + 1, beforeStack.length() + stack.length() + 2));
     assertTrue(result);
   }
 
@@ -173,7 +174,7 @@ class StackTraceFilterTest {
   void canIncludeOnlyAgentInternalStacks() {
     String stack = AGENT_INTERNAL_STACK;
     StackTraceFilter filter = new StackTraceFilter(true, false);
-    boolean result = filter.test(stack, 0, stack.length() - 1);
+    boolean result = filter.test(new ThreadDumpRegion(stack));
     assertTrue(result);
   }
 
@@ -181,7 +182,7 @@ class StackTraceFilterTest {
   void canExcludeOnlyAgentInternalStacks() {
     String stack = AGENT_INTERNAL_STACK;
     StackTraceFilter filter = new StackTraceFilter(false, true);
-    boolean result = filter.test(stack, 0, stack.length() - 1);
+    boolean result = filter.test(new ThreadDumpRegion(stack));
     assertFalse(result);
   }
 
@@ -189,7 +190,7 @@ class StackTraceFilterTest {
   void canIncludeOnlyJvmInternalStacks() {
     String stack = JVM_INTERNAL_STACK;
     StackTraceFilter filter = new StackTraceFilter(false, true);
-    boolean result = filter.test(stack, 0, stack.length() - 1);
+    boolean result = filter.test(new ThreadDumpRegion(stack));
     assertTrue(result);
   }
 
@@ -197,7 +198,7 @@ class StackTraceFilterTest {
   void canExcludeOnlyJvmInternalStacks() {
     String stack = JVM_INTERNAL_STACK;
     StackTraceFilter filter = new StackTraceFilter(true, false);
-    boolean result = filter.test(stack, 0, stack.length() - 1);
+    boolean result = filter.test(new ThreadDumpRegion(stack));
     assertFalse(result);
   }
 }

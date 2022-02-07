@@ -18,10 +18,10 @@ package com.splunk.opentelemetry.profiler.context;
 
 import static com.splunk.opentelemetry.profiler.context.StackDescriptorLineParser.CANT_PARSE_THREAD_ID;
 
+import com.splunk.opentelemetry.profiler.ThreadDumpRegion;
 import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.api.trace.TraceFlags;
 import io.opentelemetry.api.trace.TraceState;
-import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 import jdk.jfr.consumer.RecordedEvent;
@@ -66,23 +66,16 @@ public class SpanContextualizer {
     }
   }
 
-  /** Parses thread info from the raw stack string and links it to a span (if available). */
-  public StackToSpanLinkage link(Instant time, String rawStack, RecordedEvent event) {
-    String eventName = event.getEventType().getName();
-    SpanLinkage spanLinkage = link(rawStack, 0, rawStack.length());
-    return new StackToSpanLinkage(time, rawStack, eventName, spanLinkage);
-  }
-
   /**
    * Parses the thread info from the specified range of the wall of stacks, and returns the linkage
    * info for the thread referenced by that stack.
    */
-  public SpanLinkage link(String wallOfStacks, int stackStartIndex, int stackEndIndex) {
+  public SpanLinkage link(ThreadDumpRegion stack) {
     // Many GC and other VM threads don't actually have a stack...
-    if (isStacklessThread(wallOfStacks, stackStartIndex, stackEndIndex)) {
+    if (isStacklessThread(stack)) {
       return SpanLinkage.NONE;
     }
-    long threadId = descriptorParser.parseThreadId(wallOfStacks, stackStartIndex, stackEndIndex);
+    long threadId = descriptorParser.parseThreadId(stack);
     if (threadId == CANT_PARSE_THREAD_ID) {
       return SpanLinkage.NONE;
     }
@@ -93,13 +86,11 @@ public class SpanContextualizer {
     return threadSpans.getOrDefault(threadId, SpanLinkage.NONE);
   }
 
-  private boolean isStacklessThread(String wallOfStacks, int stackStartIndex, int stackEndIndex) {
-    int firstNewline =
-        StackWallHelper.indexOfWithinStack(wallOfStacks, '\n', stackStartIndex, stackEndIndex);
+  private boolean isStacklessThread(ThreadDumpRegion stack) {
+    int firstNewline = stack.indexOf('\n', stack.startIndex);
     return (firstNewline == -1)
-        || (firstNewline == stackEndIndex - 1)
-        || (StackWallHelper.indexOfWithinStack(wallOfStacks, '\n', firstNewline + 1, stackEndIndex)
-            == -1);
+        || (firstNewline == stack.endIndex - 1)
+        || (stack.indexOf('\n', firstNewline + 1) == -1);
   }
 
   // Exists for testing

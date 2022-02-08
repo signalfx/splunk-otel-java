@@ -59,7 +59,7 @@ public class ThreadDumpProcessor {
                     event.getStartTime(),
                     stack,
                     event.getEventType().getName(),
-                    contextualizer.link(new ThreadDumpRegion(stack))))
+                    contextualizer.link(new ThreadDumpRegion(stack, 0, stack.length()))))
         .forEach(processor);
   }
 }

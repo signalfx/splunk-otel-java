@@ -17,10 +17,52 @@
 package com.splunk.opentelemetry.profiler;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 import org.junit.jupiter.api.Test;
 
 class ThreadDumpRegionTest {
+  @Test
+  void testAllStacksFound() {
+    ThreadDumpRegion region = new ThreadDumpRegion(readDumpFromResource("thread-dump1.txt"), 0, 0);
+    List<String> result = new ArrayList<>();
+
+    while (region.findNextStack()) {
+      result.add(region.getCurrentRegion());
+    }
+
+    assertEquals(77, result.size());
+  }
+
+  @Test
+  void skipClustersWithoutDoubleQuote() {
+    ThreadDumpRegion region = new ThreadDumpRegion("something\n\n\"else\"", 0, 0);
+    assertTrue(region.findNextStack());
+    assertEquals(region.getCurrentRegion(), "\"else\"");
+    assertFalse(region.findNextStack());
+  }
+
+  @Test
+  void edgeCase1_simplyHitsEnd() {
+    ThreadDumpRegion region = new ThreadDumpRegion("\"something\"\n\n", 0, 0);
+    assertTrue(region.findNextStack());
+    assertEquals(region.getCurrentRegion(), "\"something\"");
+    assertFalse(region.findNextStack());
+  }
+
+  @Test
+  void edgeCase2_emptyString() {
+    ThreadDumpRegion region = new ThreadDumpRegion("", 0, 0);
+    assertFalse(region.findNextStack());
+  }
+
   @Test
   void testFindsMatchInRange() {
     assertEquals(3, new ThreadDumpRegion("abcdef", 0, 4).indexOf('d', 2));
@@ -34,5 +76,15 @@ class ThreadDumpRegionTest {
   @Test
   void testDoesNotFindAfterRange() {
     assertEquals(-1, new ThreadDumpRegion("abcdef", 0, 4).indexOf('e', 2));
+  }
+
+  static String readDumpFromResource(String resourcePath) {
+    try {
+      InputStream in =
+          Thread.currentThread().getContextClassLoader().getResourceAsStream(resourcePath);
+      return new String(Objects.requireNonNull(in).readAllBytes(), StandardCharsets.UTF_8);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
   }
 }

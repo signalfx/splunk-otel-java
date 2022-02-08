@@ -113,15 +113,9 @@ public class JfrActivator implements AgentListener {
     StackToSpanLinkageProcessor processor =
         new StackToSpanLinkageProcessor(logDataCreator, batchingLogsProcessor);
 
-    ThreadDumpToStacks threadDumpToStacks = new ThreadDumpToStacks();
-
     ThreadDumpProcessor threadDumpProcessor =
         buildThreadDumpProcessor(
-            spanContextualizer,
-            processor,
-            threadDumpToStacks,
-            buildStackTraceFilter(config),
-            config);
+            spanContextualizer, processor, buildStackTraceFilter(config), config);
     TLABProcessor tlabProcessor =
         TLABProcessor.builder(config)
             .logProcessor(batchingLogsProcessor)
@@ -168,13 +162,11 @@ public class JfrActivator implements AgentListener {
   private ThreadDumpProcessor buildThreadDumpProcessor(
       SpanContextualizer spanContextualizer,
       StackToSpanLinkageProcessor processor,
-      ThreadDumpToStacks threadDumpToStacks,
       StackTraceFilter stackTraceFilter,
       Config config) {
     return ThreadDumpProcessor.builder()
         .spanContextualizer(spanContextualizer)
         .processor(processor)
-        .threadDumpToStacks(threadDumpToStacks)
         .stackTraceFilter(stackTraceFilter)
         .onlyTracingSpans(Configuration.getTracingStacksOnly(config))
         .build();

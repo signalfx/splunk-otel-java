@@ -29,14 +29,12 @@ public class ThreadDumpProcessor {
   private static final Logger logger = LoggerFactory.getLogger(ThreadDumpProcessor.class);
   private final SpanContextualizer contextualizer;
   private final Consumer<StackToSpanLinkage> processor;
-  private final ThreadDumpToStacks threadDumpToStacks;
   private final StackTraceFilter stackTraceFilter;
   private final boolean onlyTracingSpans;
 
   private ThreadDumpProcessor(Builder builder) {
     this.contextualizer = builder.contextualizer;
     this.processor = builder.processor;
-    this.threadDumpToStacks = builder.threadDumpToStacks;
     this.stackTraceFilter = builder.stackTraceFilter;
     this.onlyTracingSpans = builder.onlyTracingSpans;
   }
@@ -48,7 +46,7 @@ public class ThreadDumpProcessor {
 
     ThreadDumpRegion stack = new ThreadDumpRegion(wallOfStacks, 0, 0);
 
-    while (threadDumpToStacks.findNext(stack)) {
+    while (stack.findNextStack()) {
       if (!stackTraceFilter.test(stack)) {
         continue;
       }
@@ -57,7 +55,8 @@ public class ThreadDumpProcessor {
         continue;
       }
       StackToSpanLinkage spanWithLinkage =
-          new StackToSpanLinkage(event.getStartTime(), stack.toString(), eventName, linkage);
+          new StackToSpanLinkage(
+              event.getStartTime(), stack.getCurrentRegion(), eventName, linkage);
       processor.accept(spanWithLinkage);
     }
   }
@@ -69,7 +68,6 @@ public class ThreadDumpProcessor {
   public static class Builder {
     private SpanContextualizer contextualizer;
     private Consumer<StackToSpanLinkage> processor;
-    private ThreadDumpToStacks threadDumpToStacks;
     private StackTraceFilter stackTraceFilter;
     private boolean onlyTracingSpans;
 
@@ -80,11 +78,6 @@ public class ThreadDumpProcessor {
 
     public Builder processor(Consumer<StackToSpanLinkage> consumer) {
       this.processor = consumer;
-      return this;
-    }
-
-    public Builder threadDumpToStacks(ThreadDumpToStacks threadDumpToStacks) {
-      this.threadDumpToStacks = threadDumpToStacks;
       return this;
     }
 

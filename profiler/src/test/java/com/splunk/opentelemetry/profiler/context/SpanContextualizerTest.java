@@ -274,7 +274,7 @@ class SpanContextualizerTest {
 
   private void assertLinkage(SpanContextualizer testClass, Events events, String stackBody) {
     String stack = assembleParseableStack(stackBody, events.threadId);
-    ThreadDumpRegion region = new ThreadDumpRegion(stack);
+    ThreadDumpRegion region = new ThreadDumpRegion(stack, 0, stack.length());
 
     SpanLinkage result = testClass.link(region);
     assertEquals(events.spanId, result.getSpanContext().getSpanId());
@@ -287,7 +287,7 @@ class SpanContextualizerTest {
 
   private void assertNoLinkage(SpanContextualizer testClass, Events events) {
     String stack = assembleParseableStack(rawStack, events.threadId);
-    ThreadDumpRegion region = new ThreadDumpRegion(stack);
+    ThreadDumpRegion region = new ThreadDumpRegion(stack, 0, stack.length());
 
     assertFalse(testClass.link(region).getSpanContext().isValid());
     assertFalse(testClass.link(events.threadId).getSpanContext().isValid());

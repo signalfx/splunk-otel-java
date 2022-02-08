@@ -135,12 +135,10 @@ class ThreadDumpProcessorTest {
       SpanContextualizer contextualizer, String threadDump, boolean onlyTracingSpans) {
     List<StackToSpanLinkage> results = new ArrayList<>();
     Consumer<StackToSpanLinkage> exportProcessor = results::add;
-    ThreadDumpToStacks threadDumpToStacks = new ThreadDumpToStacks();
     ThreadDumpProcessor processor =
         ThreadDumpProcessor.builder()
             .spanContextualizer(contextualizer)
             .processor(exportProcessor)
-            .threadDumpToStacks(threadDumpToStacks)
             .stackTraceFilter(new StackTraceFilter(false))
             .onlyTracingSpans(onlyTracingSpans)
             .build();

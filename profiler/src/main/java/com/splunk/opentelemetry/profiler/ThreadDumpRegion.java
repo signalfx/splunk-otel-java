@@ -16,19 +16,23 @@
 
 package com.splunk.opentelemetry.profiler;
 
+/**
+ * Points to region within a thread dump, currently intended for accessing stack traces within it
+ * without extracting them as separate strings.
+ */
 public class ThreadDumpRegion {
   public final String threadDump;
   public int startIndex;
   public int endIndex;
 
-  public ThreadDumpRegion(String threadDump) {
-    this(threadDump, 0, threadDump.length());
-  }
-
   public ThreadDumpRegion(String threadDump, int startIndex, int endIndex) {
     this.threadDump = threadDump;
     this.startIndex = startIndex;
     this.endIndex = endIndex;
+  }
+
+  public String getCurrentRegion() {
+    return threadDump.substring(startIndex, endIndex);
   }
 
   /**
@@ -45,8 +49,48 @@ public class ThreadDumpRegion {
     return result;
   }
 
-  @Override
-  public String toString() {
-    return threadDump.substring(startIndex, endIndex);
+  /**
+   * Find next stack trace in the thread dump this region is using. Modifies the region this
+   * instance points to, to that stack trace. Returns false if no more stacks were found, in which
+   * case the region it points to afterwards is undefined.
+   */
+  public boolean findNextStack() {
+    while (findNextSection()) {
+      if (threadDump.charAt(startIndex) == '"') {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  private boolean findNextSection() {
+    int start = endIndex;
+
+    // skip over any newlines, returning failure in case we reach end of string this way
+    while (true) {
+      if (start >= threadDump.length()) {
+        return false;
+      } else if (threadDump.charAt(start) != '\n') {
+        break;
+      }
+      start++;
+    }
+
+    int end = threadDump.indexOf("\n\n", start);
+    if (end == -1) {
+      end = threadDump.lastIndexOf('\n', start);
+    }
+    if (end == -1) {
+      return false;
+    }
+    // Reached the end of the wall, so just set next to the end
+    if (end < start) {
+      end = threadDump.length();
+    }
+
+    startIndex = start;
+    endIndex = end;
+    return true;
   }
 }

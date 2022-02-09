@@ -16,6 +16,7 @@
 
 package com.splunk.opentelemetry.profiler;
 
+import static com.splunk.opentelemetry.profiler.ThreadDumpRegionTest.readDumpFromResource;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -29,13 +30,9 @@ import com.splunk.opentelemetry.profiler.events.ContextAttached;
 import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.api.trace.TraceFlags;
 import io.opentelemetry.api.trace.TraceState;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 import jdk.jfr.EventType;
@@ -151,16 +148,6 @@ class ThreadDumpProcessorTest {
 
     processor.accept(event);
     return results;
-  }
-
-  private static String readDumpFromResource(String resourcePath) {
-    try {
-      InputStream in =
-          Thread.currentThread().getContextClassLoader().getResourceAsStream(resourcePath);
-      return new String(Objects.requireNonNull(in).readAllBytes(), StandardCharsets.UTF_8);
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
   }
 
   static class SampleThread {

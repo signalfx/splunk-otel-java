@@ -30,9 +30,6 @@ import org.slf4j.LoggerFactory;
  */
 class RecordingSequencer {
   private static final Logger logger = LoggerFactory.getLogger(RecordingSequencer.class);
-  // The overlap factor causes recordings to be shorter than the requested duration.
-  // This forces overlap between recordings and ensures data is continuous when deduplicated.
-  public static final double OVERLAP_FACTOR = 0.8;
 
   private final ScheduledExecutorService executor =
       HelpfulExecutors.newSingleThreadedScheduledExecutor("JFR Recording Sequencer");
@@ -47,9 +44,9 @@ class RecordingSequencer {
   }
 
   public void start() {
-    int period = (int) (recordingDuration.toMillis() * OVERLAP_FACTOR);
     recorder.start();
-    executor.scheduleAtFixedRate(this::handleInterval, 0, period, TimeUnit.MILLISECONDS);
+    executor.scheduleAtFixedRate(
+        this::handleInterval, 0, recordingDuration.toMillis(), TimeUnit.MILLISECONDS);
   }
 
   @VisibleForTesting

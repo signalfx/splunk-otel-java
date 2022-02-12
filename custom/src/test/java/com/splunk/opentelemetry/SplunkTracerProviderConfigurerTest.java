@@ -32,10 +32,9 @@ class SplunkTracerProviderConfigurerTest {
     // given
     var tracerProviderBuilder = mock(SdkTracerProviderBuilder.class);
     var config = mock(ConfigProperties.class);
-    var underTest = new SplunkTracerProviderConfigurer();
 
     // when
-    underTest.configure(tracerProviderBuilder, config);
+    SplunkTracerProviderConfigurer.configure(tracerProviderBuilder, config);
 
     // then
     verify(tracerProviderBuilder)

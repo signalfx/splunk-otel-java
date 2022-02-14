@@ -17,18 +17,27 @@
 package com.splunk.opentelemetry;
 
 import com.google.auto.service.AutoService;
+import com.google.common.annotations.VisibleForTesting;
+import io.opentelemetry.sdk.autoconfigure.spi.AutoConfigurationCustomizer;
+import io.opentelemetry.sdk.autoconfigure.spi.AutoConfigurationCustomizerProvider;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
-import io.opentelemetry.sdk.autoconfigure.spi.traces.SdkTracerProviderConfigurer;
 import io.opentelemetry.sdk.trace.SdkTracerProviderBuilder;
 import io.opentelemetry.sdk.trace.SpanLimits;
 
-@AutoService(SdkTracerProviderConfigurer.class)
-public class SplunkTracerProviderConfigurer implements SdkTracerProviderConfigurer {
+@AutoService(AutoConfigurationCustomizerProvider.class)
+public class SplunkTracerProviderConfigurer implements AutoConfigurationCustomizerProvider {
 
   static final int SPLUNK_MAX_ATTRIBUTE_VALUE_LENGTH = 12_000;
 
   @Override
-  public void configure(SdkTracerProviderBuilder tracerProviderBuilder, ConfigProperties config) {
+  public void customize(AutoConfigurationCustomizer autoConfigurationCustomizer) {
+    autoConfigurationCustomizer.addTracerProviderCustomizer(
+        SplunkTracerProviderConfigurer::configure);
+  }
+
+  @VisibleForTesting
+  static SdkTracerProviderBuilder configure(
+      SdkTracerProviderBuilder tracerProviderBuilder, ConfigProperties config) {
     tracerProviderBuilder.setSpanLimits(
         SpanLimits.builder()
             .setMaxNumberOfAttributes(Integer.MAX_VALUE)
@@ -38,5 +47,7 @@ public class SplunkTracerProviderConfigurer implements SdkTracerProviderConfigur
             .setMaxNumberOfAttributesPerLink(Integer.MAX_VALUE)
             .setMaxAttributeValueLength(SPLUNK_MAX_ATTRIBUTE_VALUE_LENGTH)
             .build());
+
+    return tracerProviderBuilder;
   }
 }

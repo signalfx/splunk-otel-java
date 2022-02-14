@@ -17,15 +17,24 @@
 package com.splunk.opentelemetry.webengine;
 
 import com.google.auto.service.AutoService;
+import io.opentelemetry.sdk.autoconfigure.spi.AutoConfigurationCustomizer;
+import io.opentelemetry.sdk.autoconfigure.spi.AutoConfigurationCustomizerProvider;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
-import io.opentelemetry.sdk.autoconfigure.spi.traces.SdkTracerProviderConfigurer;
 import io.opentelemetry.sdk.trace.SdkTracerProviderBuilder;
 
-@AutoService(SdkTracerProviderConfigurer.class)
-public class WebengineTracerProviderConfigurer implements SdkTracerProviderConfigurer {
+@AutoService(AutoConfigurationCustomizerProvider.class)
+public class WebengineTracerProviderConfigurer implements AutoConfigurationCustomizerProvider {
 
   @Override
-  public void configure(SdkTracerProviderBuilder tracerProviderBuilder, ConfigProperties config) {
+  public void customize(AutoConfigurationCustomizer autoConfigurationCustomizer) {
+    autoConfigurationCustomizer.addTracerProviderCustomizer(
+        WebengineTracerProviderConfigurer::configure);
+  }
+
+  private static SdkTracerProviderBuilder configure(
+      SdkTracerProviderBuilder tracerProviderBuilder, ConfigProperties config) {
     tracerProviderBuilder.addSpanProcessor(new WebengineAttributeSpanProcessor());
+
+    return tracerProviderBuilder;
   }
 }

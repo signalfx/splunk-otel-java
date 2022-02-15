@@ -8,6 +8,16 @@ and this repository adheres to [Semantic Versioning](https://semver.org/spec/v2.
 
 ## Unreleased
 
+## v1.8.0 - 2022-02-15
+
+### General
+
+- OpenTelemetry Java SDK and OpenTelemetry Instrumentation for Java dependencies have been updated to version 1.11.0.
+
+### Deprecations
+
+- DEPRECATE `splunk-otel-javaagent-all.jar` use `splunk-otel-javaagent.jar` instead.
+
 ## v1.7.3 - 2022-02-02
 
 ### Bugfixes

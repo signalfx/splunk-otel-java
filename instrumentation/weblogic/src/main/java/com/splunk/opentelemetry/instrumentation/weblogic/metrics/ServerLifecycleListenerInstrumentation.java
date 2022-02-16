@@ -39,7 +39,7 @@ public class ServerLifecycleListenerInstrumentation implements TypeInstrumentati
 
   @SuppressWarnings("unused")
   public static class InitializeAdvice {
-    @Advice.OnMethodExit(suppress = Throwable.class)
+    @Advice.OnMethodEnter(suppress = Throwable.class)
     public static void onEnter() {
       ThreadPoolMetrics.initialize();
     }

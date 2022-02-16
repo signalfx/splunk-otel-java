@@ -18,8 +18,10 @@ package com.splunk.opentelemetry;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.splunk.opentelemetry.helper.TargetWaitStrategy;
 import com.splunk.opentelemetry.helper.TestImage;
 import java.io.IOException;
+import java.time.Duration;
 import java.util.Map;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Assertions;
@@ -47,6 +49,12 @@ class WebLogicSmokeTest extends AppServerTest {
         .splunkLinux("12.2.1.4", V12_2_ATTRIBUTES, VMS_HOTSPOT, "8")
         .splunkLinux("14.1.1.0", V14_ATTRIBUTES, VMS_HOTSPOT, "8", "11")
         .stream();
+  }
+
+  @Override
+  protected TargetWaitStrategy getWaitStrategy() {
+    return new TargetWaitStrategy.Log(
+        Duration.ofMinutes(5), ".*<Server state changed to RUNNING.>.*");
   }
 
   @ParameterizedTest

@@ -102,8 +102,7 @@ public class TLABProcessor implements Consumer<RecordedEvent> {
     if (thread != null) {
       SpanContext spanContext = spanContextualizer.link(thread.getJavaThreadId()).getSpanContext();
       if (spanContext.isValid()) {
-        Context context = Context.root().with(Span.wrap(spanContext));
-        logDataBuilder.setContext(context);
+        logDataBuilder.setSpanContext(spanContext);
       }
     }
 

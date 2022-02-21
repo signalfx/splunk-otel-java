@@ -16,7 +16,7 @@ and this repository adheres to [Semantic Versioning](https://semver.org/spec/v2.
 
 ### Bugfixes
 
-- Fixed regression in loading the prometheus exporter.
+- Fixed regression in loading the Prometheus exporter.
 
 ## v1.8.0 - 2022-02-15
 

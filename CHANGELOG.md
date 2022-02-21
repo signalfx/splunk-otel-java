@@ -8,6 +8,16 @@ and this repository adheres to [Semantic Versioning](https://semver.org/spec/v2.
 
 ## Unreleased
 
+## v1.8.1 - 2022-02-21
+
+### General
+
+- OpenTelemetry Instrumentation for Java has been updated to version 1.11.1.
+
+### Bugfixes
+
+- Fixed regression in loading the prometheus exporter.
+
 ## v1.8.0 - 2022-02-15
 
 ### General

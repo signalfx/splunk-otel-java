@@ -22,13 +22,12 @@ import static io.micrometer.core.instrument.config.MeterRegistryConfigValidator.
 
 import io.micrometer.core.instrument.config.validate.Validated;
 import io.micrometer.core.instrument.step.StepRegistryConfig;
-import io.micrometer.signalfx.SignalFxConfig;
 import io.opentelemetry.instrumentation.api.config.Config;
 import io.opentelemetry.sdk.resources.Resource;
 import io.opentelemetry.semconv.resource.attributes.ResourceAttributes;
 import java.time.Duration;
 
-class SplunkMetricsConfig implements SignalFxConfig {
+class SplunkMetricsConfig implements CustomSignalFxConfig {
   static final String METRICS_ENABLED_PROPERTY = "splunk.metrics.enabled";
   static final String METRICS_ENDPOINT_PROPERTY = "splunk.metrics.endpoint";
   static final String METRICS_EXPORT_INTERVAL_PROPERTY = "splunk.metrics.export.interval";

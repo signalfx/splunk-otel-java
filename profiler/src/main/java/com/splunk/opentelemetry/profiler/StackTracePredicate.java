@@ -17,8 +17,6 @@
 package com.splunk.opentelemetry.profiler;
 
 public interface StackTracePredicate {
-  /**
-   * If it returns true, the stack trace will be included.
-   */
+  /** If it returns true, the stack trace will be included. */
   boolean test(String wallOfStacks, int startIndex, int lastIndex);
 }

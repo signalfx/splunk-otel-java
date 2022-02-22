@@ -51,6 +51,12 @@ sourceSets {
   }
 }
 
+spotless {
+  java {
+    targetExclude("**/*/CustomSignalFxConfig.java", "**/*/CustomSignalFxMeterRegistry.java")
+  }
+}
+
 tasks {
   compileJava {
     options.release.set(8)

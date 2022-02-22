@@ -20,9 +20,6 @@ import static com.splunk.opentelemetry.profiler.LogExporterBuilder.INSTRUMENTATI
 
 import com.splunk.opentelemetry.profiler.context.StackToSpanLinkage;
 import io.opentelemetry.api.common.Attributes;
-import io.opentelemetry.api.trace.Span;
-import io.opentelemetry.api.trace.SpanContext;
-import io.opentelemetry.context.Context;
 import io.opentelemetry.sdk.logs.data.LogData;
 import io.opentelemetry.sdk.logs.data.LogDataBuilder;
 import io.opentelemetry.sdk.resources.Resource;
@@ -52,11 +49,7 @@ public class LogDataCreator implements Function<StackToSpanLinkage, LogData> {
             .setBody(linkedStack.getRawStack())
             .setAttributes(attributes);
     if (linkedStack.hasSpanInfo()) {
-      // TODO: Don't hop through this when upstream supports directly setting the span context on
-      // the builder
-      SpanContext spanContext = linkedStack.getSpanContext();
-      Context context = Context.root().with(Span.wrap(spanContext));
-      logDataBuilder.setContext(context);
+      logDataBuilder.setSpanContext(linkedStack.getSpanContext());
     }
     return logDataBuilder.build();
   }

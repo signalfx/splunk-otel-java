@@ -8,6 +8,12 @@ and this repository adheres to [Semantic Versioning](https://semver.org/spec/v2.
 
 ## Unreleased
 
+## v1.8.2 - 2022-02-22
+
+### Bugfixes
+
+- Fixed exporting histograms with fixed buckets.
+
 ## v1.8.1 - 2022-02-21
 
 ### General

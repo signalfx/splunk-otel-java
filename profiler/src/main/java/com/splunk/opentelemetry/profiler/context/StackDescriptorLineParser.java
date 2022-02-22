@@ -16,6 +16,8 @@
 
 package com.splunk.opentelemetry.profiler.context;
 
+import com.splunk.opentelemetry.profiler.ThreadDumpRegion;
+
 /**
  * Class that parses the "descriptor" line from a stack trace. At the moment, it only parses out the
  * thread ID.
@@ -28,30 +30,31 @@ class StackDescriptorLineParser {
    * The first line is a meta/descriptor that has information about the following call stack. This
    * method parses out the thread id, which is the second field (space separated).
    */
-  long parseThreadId(String descriptorLine) {
+  long parseThreadId(ThreadDumpRegion stack) {
+    String threadDump = stack.threadDump;
     // Require a quoted thread name field at the start
-    if (descriptorLine.charAt(0) != '"') {
+    if (stack.startIndex >= stack.endIndex || threadDump.charAt(stack.startIndex) != '"') {
       return CANT_PARSE_THREAD_ID;
     }
-    int secondQuote = descriptorLine.indexOf('"', 1);
+    int secondQuote = stack.indexOf('"', stack.startIndex + 1);
     if (secondQuote == -1) {
       return CANT_PARSE_THREAD_ID;
     }
     int firstSpaceAfterSecondQuote = secondQuote + 1;
-    if (firstSpaceAfterSecondQuote >= descriptorLine.length() - 2
-        || descriptorLine.charAt(firstSpaceAfterSecondQuote) != ' ') {
+    if (firstSpaceAfterSecondQuote >= stack.endIndex - 2
+        || threadDump.charAt(firstSpaceAfterSecondQuote) != ' ') {
       return CANT_PARSE_THREAD_ID;
     }
-    if (descriptorLine.charAt(firstSpaceAfterSecondQuote + 1) != '#') {
+    if (threadDump.charAt(firstSpaceAfterSecondQuote + 1) != '#') {
       // Unexpected format, fail to parse
       return CANT_PARSE_THREAD_ID;
     }
-    int secondSpace = descriptorLine.indexOf(' ', firstSpaceAfterSecondQuote + 1);
+    int secondSpace = stack.indexOf(' ', firstSpaceAfterSecondQuote + 1);
     if (secondSpace == -1) {
       return CANT_PARSE_THREAD_ID;
     }
     try {
-      return Long.parseLong(descriptorLine.substring(firstSpaceAfterSecondQuote + 2, secondSpace));
+      return Long.parseLong(threadDump.substring(firstSpaceAfterSecondQuote + 2, secondSpace));
     } catch (NumberFormatException e) {
       return CANT_PARSE_THREAD_ID;
     }

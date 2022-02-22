@@ -28,6 +28,7 @@ import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_OTEL_OT
 import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_PROFILER_DIRECTORY;
 import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_RECORDING_DURATION;
 import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_TLAB_ENABLED;
+import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_TRACING_STACKS_ONLY;
 import static com.splunk.opentelemetry.profiler.Configuration.DEFAULT_INCLUDE_INTERNAL_STACKS;
 import static com.splunk.opentelemetry.profiler.Configuration.DEFAULT_MEMORY_ENABLED;
 
@@ -57,6 +58,7 @@ public class ConfigurationLogger {
     log(
         CONFIG_KEY_INCLUDE_INTERNAL_STACKS,
         (it) -> config.getBoolean(it, DEFAULT_INCLUDE_INTERNAL_STACKS));
+    log(CONFIG_KEY_TRACING_STACKS_ONLY, (it) -> Configuration.getTracingStacksOnly(config));
     log(CONFIG_KEY_DEPRECATED_THREADDUMP_PERIOD, (it) -> config.getDuration(it, null));
     logger.info("-----------------------");
   }

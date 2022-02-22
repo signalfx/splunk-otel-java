@@ -1,0 +1,33 @@
+2021-06-07 16:02:56
+Full thread dump OpenJDK 64-Bit Server VM (11.0.9.1+1 mixed mode):
+
+Threads class SMR info:
+_java_thread_list=0x00007fb484055190, length=55, elements={
+0x00007fb51702b000, 0x00007fb517030000, 0x00007fb507828000, 0x00007fb50701d800,
+(truncated)
+0x00007fb486067000, 0x00007fb517031000, 0x00007fb507547800, 0x00007fb4918f3000,
+0x00007fb4860b5000, 0x00007fb491817800, 0x00007fb4859f4800
+}
+
+"Definitely something" #2 daemon prio=10 os_prio=31 cpu=4.92ms elapsed=50.48s tid=0x00007fb51702b000 nid=0x3403 waiting on condition  [0x000070000c6d6000]
+   java.lang.Thread.State: RUNNABLE
+        at java.lang.ref.Reference.waitForReferencePendingList(java.base@11.0.9.1/Native Method)
+        at java.lang.ref.Reference.processPendingReferences(java.base@11.0.9.1/Reference.java:241)
+        at java.lang.ref.Reference$ReferenceHandler.run(java.base@11.0.9.1/Reference.java:213)
+
+"AwesomeSpanHere" #3 daemon prio=8 os_prio=31 cpu=0.41ms elapsed=50.48s tid=0x00007fb517030000 nid=0x3703 in Object.wait()  [0x000070000c7d9000]
+   java.lang.Thread.State: WAITING (on object monitor)
+        at java.lang.Object.wait(java.base@11.0.9.1/Native Method)
+        - waiting on <0x000000060066b908> (a java.lang.ref.ReferenceQueue$Lock)
+        at java.lang.ref.ReferenceQueue.remove(java.base@11.0.9.1/ReferenceQueue.java:155)
+        - waiting to re-lock in wait() <0x000000060066b908> (a java.lang.ref.ReferenceQueue$Lock)
+        at com.something.something.AwesomeThinger.overHereDoingSpanThings(MyServer.java:123)
+
+"Cool user thread" #27 daemon prio=5 os_prio=31 cpu=0.13ms elapsed=48.39s tid=0x00007fb4b74b3000 nid=0x15103 in Object.wait()  [0x000070000ed4b000]
+   java.lang.Thread.State: WAITING (on object monitor)
+        at java.lang.Object.wait(java.base@11.0.9.1/Native Method)
+        - waiting on <0x0000000625152778> (a java.util.TaskQueue)
+        at java.lang.Object.wait(java.base@11.0.9.1/Object.java:328)
+        at java.util.TimerThread.mainLoop(java.base@11.0.9.1/Timer.java:527)
+        - waiting to re-lock in wait() <0x0000000625152778> (a java.util.TaskQueue)
+        at java.util.TimerThread.run(java.base@11.0.9.1/Timer.java:506)

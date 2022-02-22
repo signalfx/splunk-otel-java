@@ -113,10 +113,9 @@ public class JfrActivator implements AgentListener {
     StackToSpanLinkageProcessor processor =
         new StackToSpanLinkageProcessor(logDataCreator, batchingLogsProcessor);
 
-    ThreadDumpToStacks threadDumpToStacks = new ThreadDumpToStacks(buildStackTraceFilter(config));
-
     ThreadDumpProcessor threadDumpProcessor =
-        buildThreadDumpProcessor(spanContextualizer, processor, threadDumpToStacks);
+        buildThreadDumpProcessor(
+            spanContextualizer, processor, buildStackTraceFilter(config), config);
     TLABProcessor tlabProcessor =
         TLABProcessor.builder(config)
             .logProcessor(batchingLogsProcessor)
@@ -163,15 +162,17 @@ public class JfrActivator implements AgentListener {
   private ThreadDumpProcessor buildThreadDumpProcessor(
       SpanContextualizer spanContextualizer,
       StackToSpanLinkageProcessor processor,
-      ThreadDumpToStacks threadDumpToStacks) {
+      StackTraceFilter stackTraceFilter,
+      Config config) {
     return ThreadDumpProcessor.builder()
         .spanContextualizer(spanContextualizer)
         .processor(processor)
-        .threadDumpToStacks(threadDumpToStacks)
+        .stackTraceFilter(stackTraceFilter)
+        .onlyTracingSpans(Configuration.getTracingStacksOnly(config))
         .build();
   }
 
-  /** May filter out agent internal call stacks based on the config. */
+  /** Based on config, filters out agent internal stacks and/or JVM internal stacks */
   private StackTraceFilter buildStackTraceFilter(Config config) {
     boolean includeAgentInternalStacks = Configuration.getIncludeAgentInternalStacks(config);
     boolean includeJVMInternalStacks = Configuration.getIncludeJvmInternalStacks(config);

@@ -17,12 +17,11 @@
 package com.splunk.opentelemetry.profiler.context;
 
 import static com.splunk.opentelemetry.profiler.context.StackDescriptorLineParser.CANT_PARSE_THREAD_ID;
-import static com.splunk.opentelemetry.profiler.context.StackToSpanLinkage.withoutLinkage;
 
+import com.splunk.opentelemetry.profiler.ThreadDumpRegion;
 import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.api.trace.TraceFlags;
 import io.opentelemetry.api.trace.TraceState;
-import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 import jdk.jfr.consumer.RecordedEvent;
@@ -67,42 +66,31 @@ public class SpanContextualizer {
     }
   }
 
-  /** Parses thread info from the raw stack string and links it to a span (if available). */
-  public StackToSpanLinkage link(Instant time, String rawStack, RecordedEvent event) {
-    String eventName = event.getEventType().getName();
-
+  /**
+   * Parses the thread info from the specified range of the wall of stacks, and returns the linkage
+   * info for the thread referenced by that stack.
+   */
+  public SpanLinkage link(ThreadDumpRegion stack) {
     // Many GC and other VM threads don't actually have a stack...
-    if (isStacklessThread(rawStack)) {
-      return withoutLinkage(time, rawStack, eventName);
+    if (isStacklessThread(stack)) {
+      return SpanLinkage.NONE;
     }
-    long threadId = descriptorParser.parseThreadId(rawStack);
+    long threadId = descriptorParser.parseThreadId(stack);
     if (threadId == CANT_PARSE_THREAD_ID) {
-      return withoutLinkage(time, rawStack, eventName);
+      return SpanLinkage.NONE;
     }
-    return link(time, rawStack, threadId, event);
-  }
-
-  private boolean isStacklessThread(String rawStack) {
-    int firstNewline = rawStack.indexOf('\n');
-    return (firstNewline == -1)
-        || (firstNewline == rawStack.length() - 1)
-        || (rawStack.indexOf('\n', firstNewline + 1) == -1);
-  }
-
-  /** Links the raw stack with the span info for the given thread. */
-  StackToSpanLinkage link(Instant time, String rawStack, long threadId, RecordedEvent event) {
-    String eventName = event.getEventType().getName();
-    SpanLinkage spanLinkage = link(threadId);
-    if (spanLinkage == null) {
-      // We don't have an active span for this stack
-      return withoutLinkage(time, rawStack, eventName);
-    }
-
-    return new StackToSpanLinkage(time, rawStack, eventName, spanLinkage);
+    return link(threadId);
   }
 
   public SpanLinkage link(long threadId) {
     return threadSpans.getOrDefault(threadId, SpanLinkage.NONE);
+  }
+
+  private boolean isStacklessThread(ThreadDumpRegion stack) {
+    int firstNewline = stack.indexOf('\n', stack.startIndex);
+    return (firstNewline == -1)
+        || (firstNewline == stack.endIndex - 1)
+        || (stack.indexOf('\n', firstNewline + 1) == -1);
   }
 
   // Exists for testing

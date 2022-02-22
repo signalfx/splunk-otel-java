@@ -21,8 +21,8 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import com.splunk.opentelemetry.profiler.ThreadDumpRegion;
 import com.splunk.opentelemetry.profiler.events.ContextAttached;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -37,9 +37,7 @@ class SpanContextualizerTest {
 
   private final String traceId = "deadbeefdeadbeefdeadbeefdeadbeef";
   private final String spanId = "0123012301230123";
-  ;
   private final String rawStack = "raw is raw";
-  private final Instant time = Instant.now();
 
   @Test
   void testSimplePath() {
@@ -274,18 +272,29 @@ class SpanContextualizerTest {
     assertLinkage(testClass, events, rawStack);
   }
 
-  private void assertLinkage(SpanContextualizer testClass, Events events, String stack) {
-    StackToSpanLinkage result = testClass.link(time, stack, events.threadId, events.sourceEvent);
+  private void assertLinkage(SpanContextualizer testClass, Events events, String stackBody) {
+    String stack = assembleParseableStack(stackBody, events.threadId);
+    ThreadDumpRegion region = new ThreadDumpRegion(stack, 0, stack.length());
+
+    SpanLinkage result = testClass.link(region);
     assertEquals(events.spanId, result.getSpanContext().getSpanId());
     assertEquals(traceId, result.getSpanContext().getTraceId());
-    assertEquals(stack, result.getRawStack());
-    assertEquals(result.getSourceEventName(), "GreatSourceEventHere");
+
+    SpanLinkage resultFromThread = testClass.link(result.getThreadId());
+    assertEquals(events.spanId, resultFromThread.getSpanContext().getSpanId());
+    assertEquals(traceId, resultFromThread.getSpanContext().getTraceId());
   }
 
   private void assertNoLinkage(SpanContextualizer testClass, Events events) {
-    StackToSpanLinkage result = testClass.link(time, rawStack, events.threadId, events.sourceEvent);
-    assertFalse(result.hasSpanInfo());
-    assertFalse(result.getSpanContext().isValid());
+    String stack = assembleParseableStack(rawStack, events.threadId);
+    ThreadDumpRegion region = new ThreadDumpRegion(stack, 0, stack.length());
+
+    assertFalse(testClass.link(region).getSpanContext().isValid());
+    assertFalse(testClass.link(events.threadId).getSpanContext().isValid());
+  }
+
+  private String assembleParseableStack(String stackBody, long threadId) {
+    return "\"pool-thread-1\" #" + threadId + " daemon\n" + stackBody + "\n";
   }
 
   private Events buildEvents(String spanId, long threadId) {

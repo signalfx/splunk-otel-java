@@ -17,8 +17,10 @@
 package com.splunk.opentelemetry.profiler.context;
 
 import static com.splunk.opentelemetry.profiler.context.StackDescriptorLineParser.CANT_PARSE_THREAD_ID;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import com.splunk.opentelemetry.profiler.ThreadDumpRegion;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 
 class StackDescriptorLineParserTest {
@@ -28,79 +30,120 @@ class StackDescriptorLineParserTest {
   static final String NO_QUOTES_DESC =
       "MissingQuotesHere #31 daemon prio=8 os_prio=31 cpu=0.41ms elapsed=50.48s tid=0x00007fb517030000 nid=0x3703 in Object.wait()  [0x000070000c7d9000]\n";
 
+  /**
+   * Prefixes or suffixes which could cause the result of parsing to change if they were erroneously
+   * also processed. Used to test when processing a range within a wall of stacks to trigger
+   * failures in case string regions out of the specified range are included in parsing.
+   */
+  static final String[] DISRUPTIVE_AFFIXES =
+      new String[] {
+        "", // space included so the simple case could be tested together with others in the same
+        // loop
+        "\"",
+        "\" #77 ",
+        "\"fake\" #77 ",
+        "\"fake\" #none ",
+        "\n",
+        "\n\n"
+      };
+
   @Test
   void testHappyPathParses() {
-    StackDescriptorLineParser parser = new StackDescriptorLineParser();
-    long result = parser.parseThreadId(GOOD_DESC);
+    long result = parseAndAssertWithAffixes(GOOD_DESC);
     assertEquals(31, result);
   }
 
   @Test
   void testHappyPathSimplerInput() {
-    StackDescriptorLineParser parser = new StackDescriptorLineParser();
-    long result = parser.parseThreadId("\"test\" #33 ");
+    long result = parseAndAssertWithAffixes("\"test\" #33 ");
     assertEquals(33, result);
   }
 
   @Test
   void testMissingQuotes() {
-    StackDescriptorLineParser parser = new StackDescriptorLineParser();
-    long result = parser.parseThreadId(NO_QUOTES_DESC);
+    long result = parseAndAssertWithAffixes(NO_QUOTES_DESC);
     assertEquals(CANT_PARSE_THREAD_ID, result);
   }
 
   @Test
   void testPurposefullyDeviantInput() {
-    StackDescriptorLineParser parser = new StackDescriptorLineParser();
-    long result = parser.parseThreadId(".#31 daemon x");
+    long result = parseAndAssertWithAffixes(".#31 daemon x");
     assertEquals(CANT_PARSE_THREAD_ID, result);
   }
 
   @Test
   void testQuoteAtEnd() {
-    StackDescriptorLineParser parser = new StackDescriptorLineParser();
     long result =
-        parser.parseThreadId(
+        parseAndAssertWithAffixes(
             ".#31 daemon prio=8 os_prio=31 cpu=0.41ms elapsed=50.48s tid=0x00007fb517030000\"");
     assertEquals(CANT_PARSE_THREAD_ID, result);
   }
 
   @Test
   void testEntireLineQuoted() {
-    StackDescriptorLineParser parser = new StackDescriptorLineParser();
     long result =
-        parser.parseThreadId(
+        parseAndAssertWithAffixes(
             "\".#31 daemon prio=8 os_prio=31 cpu=0.41ms elapsed=50.48s tid=0x00007fb517030000\"");
     assertEquals(CANT_PARSE_THREAD_ID, result);
   }
 
   @Test
   void testFallOffTheEnd() {
-    StackDescriptorLineParser parser = new StackDescriptorLineParser();
     long result =
-        parser.parseThreadId(
+        parseAndAssertWithAffixes(
             "\".#31 daemon prio=8 os_prio=31 cpu=0.41ms elapsed=50.48s tid=0x00007fb517030000\" ");
     assertEquals(CANT_PARSE_THREAD_ID, result);
   }
 
   @Test
   void testFallOffTheEndWithHash() {
-    StackDescriptorLineParser parser = new StackDescriptorLineParser();
-    long result = parser.parseThreadId("\"test\" #");
+    long result = parseAndAssertWithAffixes("\"test\" #");
     assertEquals(CANT_PARSE_THREAD_ID, result);
   }
 
   @Test
   void testSecondSpaceMissing() {
-    StackDescriptorLineParser parser = new StackDescriptorLineParser();
-    long result = parser.parseThreadId("\"test\" #33");
+    long result = parseAndAssertWithAffixes("\"test\" #33");
     assertEquals(CANT_PARSE_THREAD_ID, result);
   }
 
   @Test
   void testNotNumeric() {
-    StackDescriptorLineParser parser = new StackDescriptorLineParser();
-    long result = parser.parseThreadId("\"test\" #zoinks ");
+    long result = parseAndAssertWithAffixes("\"test\" #zoinks ");
     assertEquals(CANT_PARSE_THREAD_ID, result);
+  }
+
+  @Test
+  void testEmptyString() {
+    long result = parseAndAssertWithAffixes("");
+    assertEquals(CANT_PARSE_THREAD_ID, result);
+  }
+
+  long parseAndAssertWithAffixes(String descriptorLine) {
+    StackDescriptorLineParser parser = new StackDescriptorLineParser();
+    ThreadDumpRegion region = new ThreadDumpRegion(descriptorLine, 0, descriptorLine.length());
+    long result = parser.parseThreadId(region);
+
+    Stream.of(DISRUPTIVE_AFFIXES)
+        .forEach(
+            it -> {
+              assertEqualsWithAffixes(result, parser, descriptorLine, "", it);
+              assertEqualsWithAffixes(result, parser, descriptorLine, it, "");
+            });
+
+    return result;
+  }
+
+  void assertEqualsWithAffixes(
+      long baseResult,
+      StackDescriptorLineParser parser,
+      String descriptorLine,
+      String prefix,
+      String suffix) {
+    String combined = prefix + descriptorLine + suffix;
+    ThreadDumpRegion region =
+        new ThreadDumpRegion(combined, prefix.length(), prefix.length() + descriptorLine.length());
+    long result = parser.parseThreadId(region);
+    assertEquals(baseResult, result, "stable with prefix " + prefix + ", suffix " + suffix);
   }
 }

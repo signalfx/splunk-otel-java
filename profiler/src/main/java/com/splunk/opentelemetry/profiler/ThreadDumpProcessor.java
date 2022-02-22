@@ -17,6 +17,7 @@
 package com.splunk.opentelemetry.profiler;
 
 import com.splunk.opentelemetry.profiler.context.SpanContextualizer;
+import com.splunk.opentelemetry.profiler.context.SpanLinkage;
 import com.splunk.opentelemetry.profiler.context.StackToSpanLinkage;
 import java.util.function.Consumer;
 import jdk.jfr.consumer.RecordedEvent;
@@ -28,22 +29,36 @@ public class ThreadDumpProcessor {
   private static final Logger logger = LoggerFactory.getLogger(ThreadDumpProcessor.class);
   private final SpanContextualizer contextualizer;
   private final Consumer<StackToSpanLinkage> processor;
-  private final ThreadDumpToStacks threadDumpToStacks;
+  private final StackTraceFilter stackTraceFilter;
+  private final boolean onlyTracingSpans;
 
   private ThreadDumpProcessor(Builder builder) {
     this.contextualizer = builder.contextualizer;
     this.processor = builder.processor;
-    this.threadDumpToStacks = builder.threadDumpToStacks;
+    this.stackTraceFilter = builder.stackTraceFilter;
+    this.onlyTracingSpans = builder.onlyTracingSpans;
   }
 
   public void accept(RecordedEvent event) {
     String eventName = event.getEventType().getName();
     logger.debug("Processing JFR event {}", eventName);
     String wallOfStacks = event.getString("result");
-    threadDumpToStacks
-        .toStream(wallOfStacks)
-        .map(stack -> contextualizer.link(event.getStartTime(), stack, event))
-        .forEach(processor);
+
+    ThreadDumpRegion stack = new ThreadDumpRegion(wallOfStacks, 0, 0);
+
+    while (stack.findNextStack()) {
+      if (!stackTraceFilter.test(stack)) {
+        continue;
+      }
+      SpanLinkage linkage = contextualizer.link(stack);
+      if (onlyTracingSpans && !linkage.getSpanContext().isValid()) {
+        continue;
+      }
+      StackToSpanLinkage spanWithLinkage =
+          new StackToSpanLinkage(
+              event.getStartTime(), stack.getCurrentRegion(), eventName, linkage);
+      processor.accept(spanWithLinkage);
+    }
   }
 
   public static Builder builder() {
@@ -53,7 +68,8 @@ public class ThreadDumpProcessor {
   public static class Builder {
     private SpanContextualizer contextualizer;
     private Consumer<StackToSpanLinkage> processor;
-    private ThreadDumpToStacks threadDumpToStacks;
+    private StackTraceFilter stackTraceFilter;
+    private boolean onlyTracingSpans;
 
     public Builder spanContextualizer(SpanContextualizer contextualizer) {
       this.contextualizer = contextualizer;
@@ -65,8 +81,13 @@ public class ThreadDumpProcessor {
       return this;
     }
 
-    public Builder threadDumpToStacks(ThreadDumpToStacks threadDumpToStacks) {
-      this.threadDumpToStacks = threadDumpToStacks;
+    public Builder stackTraceFilter(StackTraceFilter stackTraceFilter) {
+      this.stackTraceFilter = stackTraceFilter;
+      return this;
+    }
+
+    public Builder onlyTracingSpans(boolean onlyTracingSpans) {
+      this.onlyTracingSpans = onlyTracingSpans;
       return this;
     }
 

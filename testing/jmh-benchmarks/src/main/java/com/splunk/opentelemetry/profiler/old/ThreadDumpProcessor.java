@@ -16,6 +16,7 @@
 
 package com.splunk.opentelemetry.profiler.old;
 
+import com.splunk.opentelemetry.profiler.ThreadDumpRegion;
 import com.splunk.opentelemetry.profiler.context.SpanContextualizer;
 import com.splunk.opentelemetry.profiler.context.StackToSpanLinkage;
 import java.util.function.Consumer;
@@ -52,7 +53,13 @@ public class ThreadDumpProcessor {
     Stream.of(stacks)
         .filter(stack -> stack.charAt(0) == '"') // omit non-stack entries
         .filter(agentInternalsFilter)
-        .map(stack -> contextualizer.link(event.getStartTime(), stack, event))
+        .map(
+            stack ->
+                new StackToSpanLinkage(
+                    event.getStartTime(),
+                    stack,
+                    event.getEventType().getName(),
+                    contextualizer.link(new ThreadDumpRegion(stack, 0, stack.length()))))
         .forEach(processor);
   }
 }

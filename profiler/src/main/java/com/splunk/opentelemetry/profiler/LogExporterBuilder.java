@@ -24,11 +24,11 @@ import io.opentelemetry.sdk.common.InstrumentationLibraryInfo;
 import io.opentelemetry.sdk.logs.export.LogExporter;
 import java.util.function.Supplier;
 
-class LogExporterBuilder {
+public class LogExporterBuilder {
 
   private static final String OTEL_INSTRUMENTATION_NAME = "otel.profiling";
   private static final String OTEL_INSTRUMENTATION_VERSION = "0.1.0";
-  static final InstrumentationLibraryInfo INSTRUMENTATION_LIBRARY_INFO =
+  public static final InstrumentationLibraryInfo INSTRUMENTATION_LIBRARY_INFO =
       InstrumentationLibraryInfo.create(OTEL_INSTRUMENTATION_NAME, OTEL_INSTRUMENTATION_VERSION);
   static final String EXTRA_CONTENT_TYPE = "Extra-Content-Type";
   static final String STACKTRACES_HEADER_VALUE = "otel-profiling-stacktraces";

@@ -24,6 +24,7 @@ import io.opentelemetry.instrumentation.api.config.Config;
 import io.opentelemetry.javaagent.extension.config.ConfigPropertySource;
 import java.time.Duration;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 @AutoService(ConfigPropertySource.class)
@@ -45,6 +46,7 @@ public class Configuration implements ConfigPropertySource {
   public static final String CONFIG_KEY_MEMORY_ENABLED = PROFILER_MEMORY_ENABLED_PROPERTY;
   public static final String CONFIG_KEY_MEMORY_SAMPLER_INTERVAL =
       "splunk.profiler.memory.sampler.interval";
+  public static final String CONFIG_KEY_MEMORY_DATA_FORMAT = "splunk.profiler.memory.data.format";
   public static final String CONFIG_KEY_TLAB_ENABLED = "splunk.profiler.tlab.enabled";
   public static final String CONFIG_KEY_CALL_STACK_INTERVAL = "splunk.profiler.call.stack.interval";
   public static final String CONFIG_KEY_DEPRECATED_THREADDUMP_PERIOD =
@@ -104,5 +106,18 @@ public class Configuration implements ConfigPropertySource {
 
   public static boolean getTracingStacksOnly(Config config) {
     return config.getBoolean(CONFIG_KEY_TRACING_STACKS_ONLY, DEFAULT_TRACING_STACKS_ONLY);
+  }
+
+  public static AllocationDataFormat getAllocationDataFormat(Config config) {
+    String value = config.getString(CONFIG_KEY_MEMORY_DATA_FORMAT, "text");
+    return AllocationDataFormat.valueOf(value.toUpperCase(Locale.ROOT).replace('-', '_'));
+  }
+
+  public enum AllocationDataFormat {
+    TEXT,
+    PPROF,
+    PPROF_BASE64,
+    PPROF_GZIP,
+    PPROF_GZIP_BASE64
   }
 }

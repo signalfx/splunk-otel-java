@@ -26,6 +26,10 @@ import static com.splunk.opentelemetry.profiler.util.Runnables.logUncaught;
 
 import com.google.auto.service.AutoService;
 import com.splunk.opentelemetry.logs.BatchingLogsProcessor;
+import com.splunk.opentelemetry.profiler.Configuration.AllocationDataFormat;
+import com.splunk.opentelemetry.profiler.allocation.exporter.AllocationEventExporter;
+import com.splunk.opentelemetry.profiler.allocation.exporter.PlainTextAllocationEventExporter;
+import com.splunk.opentelemetry.profiler.allocation.exporter.PprofAllocationEventExporter;
 import com.splunk.opentelemetry.profiler.context.SpanContextualizer;
 import com.splunk.opentelemetry.profiler.events.EventPeriods;
 import com.splunk.opentelemetry.profiler.util.FileDeleter;
@@ -34,6 +38,7 @@ import io.opentelemetry.instrumentation.api.config.Config;
 import io.opentelemetry.javaagent.extension.AgentListener;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 import io.opentelemetry.sdk.logs.export.LogExporter;
+import io.opentelemetry.sdk.logs.export.SimpleLogProcessor;
 import io.opentelemetry.sdk.resources.Resource;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -116,11 +121,28 @@ public class JfrActivator implements AgentListener {
     ThreadDumpProcessor threadDumpProcessor =
         buildThreadDumpProcessor(
             spanContextualizer, processor, buildStackTraceFilter(config), config);
+
+    AllocationDataFormat allocationDataFormat = Configuration.getAllocationDataFormat(config);
+    AllocationEventExporter allocationEventExporter;
+    if (allocationDataFormat == AllocationDataFormat.TEXT) {
+      allocationEventExporter =
+          PlainTextAllocationEventExporter.builder()
+              .logProcessor(batchingLogsProcessor)
+              .commonAttributes(commonAttributes)
+              .resource(resource)
+              .build();
+    } else {
+      allocationEventExporter =
+          PprofAllocationEventExporter.builder()
+              .logProcessor(SimpleLogProcessor.create(logsExporter))
+              .resource(resource)
+              .allocationDataFormat(allocationDataFormat)
+              .build();
+    }
+
     TLABProcessor tlabProcessor =
         TLABProcessor.builder(config)
-            .logProcessor(batchingLogsProcessor)
-            .commonAttributes(commonAttributes)
-            .resource(resource)
+            .allocationEventExporter(allocationEventExporter)
             .spanContextualizer(spanContextualizer)
             .build();
     EventProcessingChain eventProcessingChain =

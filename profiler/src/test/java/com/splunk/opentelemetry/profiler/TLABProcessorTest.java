@@ -29,6 +29,8 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import com.splunk.opentelemetry.profiler.allocation.exporter.AllocationEventExporter;
+import com.splunk.opentelemetry.profiler.allocation.exporter.PlainTextAllocationEventExporter;
 import com.splunk.opentelemetry.profiler.context.SpanContextualizer;
 import com.splunk.opentelemetry.profiler.context.SpanLinkage;
 import com.splunk.opentelemetry.profiler.events.EventPeriods;
@@ -132,12 +134,17 @@ class TLABProcessorTest {
     SpanContextualizer spanContextualizer = mock(SpanContextualizer.class);
     when(spanContextualizer.link(THREAD_ID)).thenReturn(new SpanLinkage(spanContext, THREAD_ID));
 
-    TLABProcessor processor =
-        TLABProcessor.builder(config)
+    AllocationEventExporter allocationEventExporter =
+        PlainTextAllocationEventExporter.builder()
             .stackSerializer(serializer)
             .logProcessor(consumer)
             .commonAttributes(commonAttrs)
             .resource(Resource.getDefault())
+            .build();
+
+    TLABProcessor processor =
+        TLABProcessor.builder(config)
+            .allocationEventExporter(allocationEventExporter)
             .spanContextualizer(spanContextualizer)
             .build();
 
@@ -202,12 +209,17 @@ class TLABProcessorTest {
     when(config.getInt(CONFIG_KEY_MEMORY_SAMPLER_INTERVAL, DEFAULT_MEMORY_SAMPLING_INTERVAL))
         .thenReturn(samplerInterval);
 
-    TLABProcessor processor =
-        TLABProcessor.builder(config)
+    AllocationEventExporter allocationEventExporter =
+        PlainTextAllocationEventExporter.builder()
             .stackSerializer(serializer)
             .logProcessor(consumer)
             .commonAttributes(commonAttrs)
             .resource(Resource.getDefault())
+            .build();
+
+    TLABProcessor processor =
+        TLABProcessor.builder(config)
+            .allocationEventExporter(allocationEventExporter)
             .spanContextualizer(spanContextualizer)
             .build();
 

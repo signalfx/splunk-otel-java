@@ -39,7 +39,7 @@ public class LogDataCommonAttributes {
     return builder(linkedStack.getSourceEventName());
   }
 
-  AttributesBuilder builder(String eventName) {
+  public AttributesBuilder builder(String eventName) {
     Duration eventPeriod = periods.getDuration(eventName);
 
     // Note: It is currently believed that the span id and trace id on the LogRecord itself

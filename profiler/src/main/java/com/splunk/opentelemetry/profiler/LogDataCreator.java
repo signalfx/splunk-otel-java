@@ -28,7 +28,7 @@ import java.util.function.Function;
 /** Turns a linked stack into a new LogData instance */
 public class LogDataCreator implements Function<StackToSpanLinkage, LogData> {
 
-  static final String PROFILING_SOURCE = "otel.profiling";
+  public static final String PROFILING_SOURCE = "otel.profiling";
 
   private final LogDataCommonAttributes commonAttributes;
   private final Resource resource;

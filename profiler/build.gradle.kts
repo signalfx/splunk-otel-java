@@ -1,3 +1,17 @@
+import com.google.protobuf.gradle.*
+
+plugins {
+  id("com.google.protobuf") version "0.8.18"
+}
+
+val protobufVersion = "3.19.4"
+
+protobuf {
+  protoc {
+    artifact = "com.google.protobuf:protoc:$protobufVersion"
+  }
+}
+
 dependencies {
   compileOnly(project(":custom"))
   compileOnly("io.opentelemetry:opentelemetry-sdk")
@@ -8,6 +22,7 @@ dependencies {
   compileOnly("io.opentelemetry:opentelemetry-semconv")
   implementation("io.opentelemetry:opentelemetry-sdk-logs")
   implementation("io.opentelemetry:opentelemetry-exporter-otlp-logs")
+  implementation("com.google.protobuf:protobuf-java:$protobufVersion")
 
   compileOnly("org.slf4j:slf4j-api")
 

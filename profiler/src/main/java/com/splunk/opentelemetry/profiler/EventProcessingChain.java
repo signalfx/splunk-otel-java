@@ -78,6 +78,7 @@ class EventProcessingChain {
         .forEach(this::dispatchEvent);
     buffer.clear();
     chunkTracker.reset();
+    tlabProcessor.flush();
   }
 
   private void dispatchEvent(RecordedEvent event) {

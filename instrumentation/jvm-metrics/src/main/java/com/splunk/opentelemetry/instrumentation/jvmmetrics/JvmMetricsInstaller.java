@@ -23,6 +23,7 @@ import com.google.auto.service.AutoService;
 import io.micrometer.core.instrument.Metrics;
 import io.micrometer.core.instrument.binder.jvm.ClassLoaderMetrics;
 import io.micrometer.core.instrument.binder.jvm.JvmGcMetrics;
+import io.micrometer.core.instrument.binder.jvm.JvmHeapPressureMetrics;
 import io.micrometer.core.instrument.binder.jvm.JvmMemoryMetrics;
 import io.micrometer.core.instrument.binder.jvm.JvmThreadMetrics;
 import io.opentelemetry.instrumentation.api.config.Config;
@@ -41,6 +42,7 @@ public class JvmMetricsInstaller implements AgentListener {
 
     new ClassLoaderMetrics().bindTo(Metrics.globalRegistry);
     new JvmGcMetrics().bindTo(Metrics.globalRegistry);
+    new JvmHeapPressureMetrics().bindTo(Metrics.globalRegistry);
     new JvmMemoryMetrics().bindTo(Metrics.globalRegistry);
     new JvmThreadMetrics().bindTo(Metrics.globalRegistry);
 

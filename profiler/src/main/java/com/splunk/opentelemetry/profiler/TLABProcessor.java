@@ -112,14 +112,7 @@ public class TLABProcessor implements Consumer<RecordedEvent> {
     RecordedThread thread = event.getThread();
     String name = thread == null ? "unknown" : thread.getJavaName();
     long id = thread == null ? 0 : thread.getJavaThreadId();
-    return "\""
-        + name
-        + "\""
-        + " #"
-        + id
-        + "\n"
-        + "   java.lang.Thread.State: UNKNOWN\n"
-        + stack;
+    return "\"" + name + "\"" + " #" + id + "\n" + "   java.lang.Thread.State: UNKNOWN\n" + stack;
   }
 
   static Builder builder(Config config) {

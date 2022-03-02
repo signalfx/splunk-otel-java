@@ -21,7 +21,7 @@ jobs:
       - name: Support longpaths
         run: git config --system core.longpaths true
 
-      - uses: actions/checkout@v2.4.0
+      - uses: actions/checkout@v3
 
       - name: Login to GitHub Package Registry
         uses: azure/docker-login@v1

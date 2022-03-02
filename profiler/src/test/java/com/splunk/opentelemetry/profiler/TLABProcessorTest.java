@@ -190,8 +190,8 @@ class TLABProcessorTest {
 
   private static final AttributeKey<String> SAMPLER_NAME_KEY =
       AttributeKey.stringKey("sampler.name");
-  private static final AttributeKey<Long> SAMPLER_INTERVAL_KEY =
-      AttributeKey.longKey("sampler.interval");
+  private static final AttributeKey<String> SAMPLER_INTERVAL_KEY =
+      AttributeKey.stringKey("sampler.interval");
 
   @Test
   void testSampling() {
@@ -233,7 +233,7 @@ class TLABProcessorTest {
         assertEquals("tee-lab", seenLogData.get().getAttributes().get(SOURCE_EVENT_NAME));
         assertEquals("Systematic sampler", seenLogData.get().getAttributes().get(SAMPLER_NAME_KEY));
         assertEquals(
-            Long.valueOf(samplerInterval),
+            String.valueOf(samplerInterval),
             seenLogData.get().getAttributes().get(SAMPLER_INTERVAL_KEY));
       } else {
         assertNull(seenLogData.get());

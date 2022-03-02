@@ -117,7 +117,6 @@ public class TLABProcessor implements Consumer<RecordedEvent> {
         + "\""
         + " #"
         + id
-        + " prio=0 os_prio=0 cpu=0ms elapsed=0s tid=0 nid=0 unknown"
         + "\n"
         + "   java.lang.Thread.State: UNKNOWN\n"
         + stack;

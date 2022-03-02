@@ -16,14 +16,13 @@
 
 package com.splunk.opentelemetry.profiler.allocation.sampler;
 
-import io.opentelemetry.api.common.AttributeKey;
-import io.opentelemetry.api.common.AttributesBuilder;
+import java.util.function.BiConsumer;
 import jdk.jfr.consumer.RecordedEvent;
 
 /** A sampler that samples every Nth element, where N is the sampling interval. */
 public class SystematicAllocationEventSampler implements AllocationEventSampler {
-  static final AttributeKey<String> SAMPLER_NAME_KEY = AttributeKey.stringKey("sampler.name");
-  static final AttributeKey<Long> SAMPLER_INTERVAL_KEY = AttributeKey.longKey("sampler.interval");
+  private static final String SAMPLER_NAME_KEY = "sampler.name";
+  private static final String SAMPLER_INTERVAL_KEY = "sampler.interval";
 
   private final int samplingInterval;
   private int counter;
@@ -48,8 +47,8 @@ public class SystematicAllocationEventSampler implements AllocationEventSampler 
   }
 
   @Override
-  public void addAttributes(AttributesBuilder builder) {
-    builder.put(SAMPLER_NAME_KEY, "Systematic sampler");
-    builder.put(SAMPLER_INTERVAL_KEY, samplingInterval);
+  public void addAttributes(BiConsumer<String, String> attributeAdder) {
+    attributeAdder.accept(SAMPLER_NAME_KEY, "Systematic sampler");
+    attributeAdder.accept(SAMPLER_INTERVAL_KEY, String.valueOf(samplingInterval));
   }
 }

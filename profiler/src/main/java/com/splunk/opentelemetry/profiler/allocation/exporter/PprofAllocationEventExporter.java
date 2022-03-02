@@ -19,11 +19,14 @@ package com.splunk.opentelemetry.profiler.allocation.exporter;
 import static com.google.perftools.profiles.ProfileProto.*;
 import static com.splunk.opentelemetry.profiler.LogDataCreator.PROFILING_SOURCE;
 import static com.splunk.opentelemetry.profiler.LogExporterBuilder.INSTRUMENTATION_LIBRARY_INFO;
+import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.SOURCE_EVENT_NAME;
+import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.SOURCE_EVENT_PERIOD;
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.SOURCE_TYPE;
 import static io.opentelemetry.api.common.AttributeKey.stringKey;
 
 import com.splunk.opentelemetry.profiler.Configuration.AllocationDataFormat;
 import com.splunk.opentelemetry.profiler.allocation.sampler.AllocationEventSampler;
+import com.splunk.opentelemetry.profiler.events.EventPeriods;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.trace.SpanContext;
@@ -34,6 +37,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.Base64;
 import java.util.HashMap;
@@ -44,6 +48,7 @@ import jdk.jfr.consumer.RecordedEvent;
 import jdk.jfr.consumer.RecordedFrame;
 import jdk.jfr.consumer.RecordedMethod;
 import jdk.jfr.consumer.RecordedStackTrace;
+import jdk.jfr.consumer.RecordedThread;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -53,12 +58,14 @@ public class PprofAllocationEventExporter implements AllocationEventExporter {
   private final LogProcessor logProcessor;
   private final Resource resource;
   private final AllocationDataFormat allocationDataFormat;
+  private final EventPeriods eventPeriods;
   private ProfileData profileData = new ProfileData();
 
   private PprofAllocationEventExporter(Builder builder) {
     this.logProcessor = builder.logProcessor;
     this.resource = builder.resource;
     this.allocationDataFormat = builder.allocationDataFormat;
+    this.eventPeriods = builder.eventPeriods;
   }
 
   @Override
@@ -72,7 +79,6 @@ public class PprofAllocationEventExporter implements AllocationEventExporter {
     LocationTable locationTable = profileData.locationTable;
     StringTable stringTable = profileData.stringTable;
 
-    // XXX jdk mission control "TLAB allocations" view seems to use tlabSize as allocation size
     long allocationSize = event.getLong("allocationSize");
 
     Sample.Builder sample = Sample.newBuilder();
@@ -91,26 +97,39 @@ public class PprofAllocationEventExporter implements AllocationEventExporter {
                 frame.getLineNumber()));
       }
     }
+
+    String eventName = event.getEventType().getName();
+    addLabel(sample, SOURCE_EVENT_NAME.getKey(), event.getEventType().getName());
+    Duration eventPeriod = eventPeriods.getDuration(eventName);
+    if (!EventPeriods.UNKNOWN.equals(eventPeriod)) {
+      addLabel(sample, SOURCE_EVENT_PERIOD.getKey(), String.valueOf(eventPeriod.toMillis()));
+    }
+    Instant time = event.getStartTime();
+    addLabel(sample, "source.event.time", String.valueOf(time.toEpochMilli()));
+
+    RecordedThread thread = event.getThread();
+    addLabel(sample, "thread.id", String.valueOf(thread.getJavaThreadId()));
+    addLabel(sample, "thread.name", thread.getJavaName());
+
     if (spanContext != null && spanContext.isValid()) {
-      Label.Builder traceIdLabel = Label.newBuilder();
-      traceIdLabel.setKey(stringTable.get("trace_id"));
-      traceIdLabel.setStr(stringTable.get(spanContext.getTraceId()));
-      sample.addLabel(traceIdLabel.build());
-
-      Label.Builder spanIdLabel = Label.newBuilder();
-      spanIdLabel.setKey(stringTable.get("span_id"));
-      spanIdLabel.setStr(stringTable.get(spanContext.getSpanId()));
-      sample.addLabel(spanIdLabel.build());
-
-      Label.Builder eventTypeLabel = Label.newBuilder();
-      eventTypeLabel.setKey(stringTable.get("event_type"));
-      eventTypeLabel.setStr(stringTable.get(event.getEventType().getName()));
-      sample.addLabel(eventTypeLabel.build());
+      addLabel(sample, "trace_id", spanContext.getTraceId());
+      addLabel(sample, "span_id", spanContext.getSpanId());
+    }
+    if (sampler != null) {
+      sampler.addAttributes((k, v) -> addLabel(sample, k, v));
     }
     // XXX are there any more attributes that should be added to the sample?
-    // XXX PlainTextAllocationEventExporter adds attributes from the used AllocationEventSampler
 
     profile.addSample(sample);
+  }
+
+  private void addLabel(Sample.Builder sample, String name, String value) {
+    StringTable stringTable = profileData.stringTable;
+
+    Label.Builder label = Label.newBuilder();
+    label.setKey(stringTable.get(name));
+    label.setStr(stringTable.get(value));
+    sample.addLabel(label.build());
   }
 
   private byte[] serializePprof() {
@@ -136,23 +155,24 @@ public class PprofAllocationEventExporter implements AllocationEventExporter {
     }
   }
 
-  public static final AttributeKey<String> DATA_TYPE = stringKey("com.splunk.datatype");
-  public static final AttributeKey<String> ENCODING = stringKey("com.splunk.encoding");
+  public static final AttributeKey<String> DATA_TYPE = stringKey("com.splunk.profiling.data.type");
+  public static final AttributeKey<String> DATA_FORMAT =
+      stringKey("com.splunk.profiling.data.format");
 
   @Override
   public void flush() {
     // Flush is called after each JFR chunk, hopefully this will keep batch sizes small enough.
     byte[] bytes = serializePprof();
-    String encoding = allocationDataFormat.toString().toLowerCase(Locale.ROOT).replace('_', '-');
+    String format = allocationDataFormat.toString().toLowerCase(Locale.ROOT).replace('_', '-');
 
     // XXX just to give an overview of exported data size
-    logger.info("Exporting {}, size {}", encoding, bytes.length);
+    logger.info("Exporting {}, size {}", format, bytes.length);
 
     Attributes attributes =
         Attributes.builder()
             .put(SOURCE_TYPE, PROFILING_SOURCE)
             .put(DATA_TYPE, "allocation") // tells that this message is about allocation samples
-            .put(ENCODING, encoding) // data encoding
+            .put(DATA_FORMAT, format) // data format
             .build();
 
     String body = new String(bytes, StandardCharsets.ISO_8859_1);
@@ -173,6 +193,7 @@ public class PprofAllocationEventExporter implements AllocationEventExporter {
     private LogProcessor logProcessor;
     private Resource resource;
     private AllocationDataFormat allocationDataFormat;
+    private EventPeriods eventPeriods;
 
     public PprofAllocationEventExporter build() {
       return new PprofAllocationEventExporter(this);
@@ -190,6 +211,11 @@ public class PprofAllocationEventExporter implements AllocationEventExporter {
 
     public Builder allocationDataFormat(AllocationDataFormat allocationDataFormat) {
       this.allocationDataFormat = allocationDataFormat;
+      return this;
+    }
+
+    public Builder eventPeriods(EventPeriods eventPeriods) {
+      this.eventPeriods = eventPeriods;
       return this;
     }
   }

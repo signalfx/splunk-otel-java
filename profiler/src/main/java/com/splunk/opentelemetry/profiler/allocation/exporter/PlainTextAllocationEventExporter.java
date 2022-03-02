@@ -64,7 +64,7 @@ public class PlainTextAllocationEventExporter implements AllocationEventExporter
             .builder(event.getEventType().getName())
             .put(ALLOCATION_SIZE_KEY, event.getLong("allocationSize"));
     if (sampler != null) {
-      sampler.addAttributes(builder);
+      sampler.addAttributes((k, v) -> builder.put(k, v));
     }
     Attributes attributes = builder.build();
 
@@ -86,15 +86,7 @@ public class PlainTextAllocationEventExporter implements AllocationEventExporter
     RecordedThread thread = event.getThread();
     String name = thread == null ? "unknown" : thread.getJavaName();
     long id = thread == null ? 0 : thread.getJavaThreadId();
-    return "\""
-        + name
-        + "\""
-        + " #"
-        + id
-        + " prio=0 os_prio=0 cpu=0ms elapsed=0s tid=0 nid=0 unknown"
-        + "\n"
-        + "   java.lang.Thread.State: UNKNOWN\n"
-        + stack;
+    return "\"" + name + "\"" + " #" + id + "\n" + "   java.lang.Thread.State: UNKNOWN\n" + stack;
   }
 
   public static Builder builder() {

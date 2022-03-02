@@ -16,7 +16,7 @@
 
 package com.splunk.opentelemetry.profiler.allocation.sampler;
 
-import io.opentelemetry.api.common.AttributesBuilder;
+import java.util.function.BiConsumer;
 import jdk.jfr.consumer.RecordedEvent;
 
 /** A sampler that decides whether given allocation event should be sampled or discarded. */
@@ -30,9 +30,9 @@ public interface AllocationEventSampler {
   boolean shouldSample(RecordedEvent event);
 
   /**
-   * Add attributes describing the sampling strategy to log data.
+   * Add attributes describing the sampling strategy to data.
    *
-   * @param builder attributes of log data
+   * @param attributeAdder operation for adding attributes to data
    */
-  void addAttributes(AttributesBuilder builder);
+  void addAttributes(BiConsumer<String, String> attributeAdder);
 }

@@ -64,7 +64,7 @@ public class PlainTextAllocationEventExporter implements AllocationEventExporter
             .builder(event.getEventType().getName())
             .put(ALLOCATION_SIZE_KEY, event.getLong("allocationSize"));
     if (sampler != null) {
-      sampler.addAttributes((k, v) -> builder.put(k, v));
+      sampler.addAttributes((k, v) -> builder.put(k, v), (k, v) -> builder.put(k, v));
     }
     Attributes attributes = builder.build();
 

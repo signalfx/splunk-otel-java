@@ -43,6 +43,7 @@ import java.util.Base64;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.zip.GZIPOutputStream;
 import jdk.jfr.consumer.RecordedEvent;
 import jdk.jfr.consumer.RecordedFrame;
@@ -102,13 +103,13 @@ public class PprofAllocationEventExporter implements AllocationEventExporter {
     addLabel(sample, SOURCE_EVENT_NAME.getKey(), event.getEventType().getName());
     Duration eventPeriod = eventPeriods.getDuration(eventName);
     if (!EventPeriods.UNKNOWN.equals(eventPeriod)) {
-      addLabel(sample, SOURCE_EVENT_PERIOD.getKey(), String.valueOf(eventPeriod.toMillis()));
+      addLabel(sample, SOURCE_EVENT_PERIOD.getKey(), eventPeriod.toMillis());
     }
     Instant time = event.getStartTime();
-    addLabel(sample, "source.event.time", String.valueOf(time.toEpochMilli()));
+    addLabel(sample, "source.event.time", time.toEpochMilli());
 
     RecordedThread thread = event.getThread();
-    addLabel(sample, "thread.id", String.valueOf(thread.getJavaThreadId()));
+    addLabel(sample, "thread.id", thread.getJavaThreadId());
     addLabel(sample, "thread.name", thread.getJavaName());
 
     if (spanContext != null && spanContext.isValid()) {
@@ -116,7 +117,7 @@ public class PprofAllocationEventExporter implements AllocationEventExporter {
       addLabel(sample, "span_id", spanContext.getSpanId());
     }
     if (sampler != null) {
-      sampler.addAttributes((k, v) -> addLabel(sample, k, v));
+      sampler.addAttributes((k, v) -> addLabel(sample, k, v), (k, v) -> addLabel(sample, k, v));
     }
     // XXX are there any more attributes that should be added to the sample?
 
@@ -126,9 +127,19 @@ public class PprofAllocationEventExporter implements AllocationEventExporter {
   private void addLabel(Sample.Builder sample, String name, String value) {
     StringTable stringTable = profileData.stringTable;
 
+    addLabel(sample, name, label -> label.setStr(stringTable.get(value)));
+  }
+
+  private void addLabel(Sample.Builder sample, String name, long value) {
+    addLabel(sample, name, label -> label.setNum(value));
+  }
+
+  private void addLabel(Sample.Builder sample, String name, Consumer<Label.Builder> valueSetter) {
+    StringTable stringTable = profileData.stringTable;
+
     Label.Builder label = Label.newBuilder();
     label.setKey(stringTable.get(name));
-    label.setStr(stringTable.get(value));
+    valueSetter.accept(label);
     sample.addLabel(label.build());
   }
 

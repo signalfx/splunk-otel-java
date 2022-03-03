@@ -47,7 +47,9 @@ public class SystematicAllocationEventSampler implements AllocationEventSampler 
   }
 
   @Override
-  public void addAttributes(BiConsumer<String, String> stringAttributeAdder, BiConsumer<String, Long> longAttributeAdder) {
+  public void addAttributes(
+      BiConsumer<String, String> stringAttributeAdder,
+      BiConsumer<String, Long> longAttributeAdder) {
     stringAttributeAdder.accept(SAMPLER_NAME_KEY, "Systematic sampler");
     longAttributeAdder.accept(SAMPLER_INTERVAL_KEY, (long) samplingInterval);
   }

@@ -35,5 +35,6 @@ public interface AllocationEventSampler {
    * @param stringAttributeAdder operation for adding String attributes to data
    * @param longAttributeAdder operation for adding Long attributes to data
    */
-  void addAttributes(BiConsumer<String, String> stringAttributeAdder, BiConsumer<String, Long> longAttributeAdder);
+  void addAttributes(
+      BiConsumer<String, String> stringAttributeAdder, BiConsumer<String, Long> longAttributeAdder);
 }

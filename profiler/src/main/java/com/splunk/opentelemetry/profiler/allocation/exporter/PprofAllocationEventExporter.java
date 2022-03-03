@@ -92,7 +92,7 @@ public class PprofAllocationEventExporter implements AllocationEventExporter {
       } else {
         sample.addLocationId(
             locationTable.get(
-                "", // file name is not known
+                "unknown", // file name is not known
                 method.getType().getName() + "." + method.getName(),
                 frame.getLineNumber()));
       }

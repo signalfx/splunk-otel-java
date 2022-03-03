@@ -78,7 +78,6 @@ public class PprofAllocationEventExporter implements AllocationEventExporter {
 
     Profile.Builder profile = profileData.profile;
     LocationTable locationTable = profileData.locationTable;
-    StringTable stringTable = profileData.stringTable;
 
     long allocationSize = event.getLong("allocationSize");
 
@@ -89,7 +88,7 @@ public class PprofAllocationEventExporter implements AllocationEventExporter {
     for (RecordedFrame frame : stackTrace.getFrames()) {
       RecordedMethod method = frame.getMethod();
       if (method == null) {
-        sample.addLocationId(locationTable.get("", "unknown.unknown", -1));
+        sample.addLocationId(locationTable.get("unknown", "unknown.unknown", -1));
       } else {
         sample.addLocationId(
             locationTable.get(

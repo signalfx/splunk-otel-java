@@ -1,6 +1,7 @@
 import nebula.plugin.release.git.opinion.Strategies
 
 plugins {
+  id("idea")
   id("nebula.release")
   id("io.github.gradle-nexus.publish-plugin")
 }

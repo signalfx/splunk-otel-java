@@ -34,6 +34,8 @@ class JvmMetricsTest {
     assertTrue(meterNames.contains("jvm.classes.loaded"));
     // GC metrics
     assertTrue(meterNames.contains("jvm.gc.memory.allocated"));
+    // GC pressure metrics
+    assertTrue(meterNames.contains("jvm.gc.overhead"));
     // memory metrics
     assertTrue(meterNames.contains("jvm.memory.used"));
     // thread metrics

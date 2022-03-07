@@ -30,6 +30,7 @@ import io.opentelemetry.context.propagation.TextMapSetter;
 import io.opentelemetry.javaagent.extension.instrumentation.InstrumentationModule;
 import io.opentelemetry.javaagent.extension.instrumentation.TypeInstrumentation;
 import io.opentelemetry.javaagent.extension.instrumentation.TypeTransformer;
+import io.opentelemetry.javaagent.instrumentation.api.CallDepth;
 import io.opentelemetry.javaagent.instrumentation.api.Java8BytecodeBridge;
 import java.util.Collections;
 import java.util.List;
@@ -91,11 +92,35 @@ public class ServletInstrumentationModule extends InstrumentationModule {
 
     public static class AddHeadersAdvice {
       @Advice.OnMethodEnter(suppress = Throwable.class)
-      public static void onEnter(@Advice.Argument(1) ServletResponse response) {
+      public static void onEnter(
+          @Advice.Argument(1) ServletResponse response,
+          @Advice.Local("splunkCallDepth") CallDepth callDepth) {
         if (response instanceof HttpServletResponse) {
           HttpServletResponse httpResponse = (HttpServletResponse) response;
           Context context = Java8BytecodeBridge.currentContext();
+
+          // Make sure call depth is only increased if we actually have a span. Otherwise, in the
+          // corner case where the outermost invocation does not have a valid context yet, but an
+          // inner one does, no headers would be set.
+          if (!Java8BytecodeBridge.spanFromContext(context).getSpanContext().isValid()) {
+            return;
+          }
+
+          // Only set headers in the outermost invocation, otherwise an inner one could overwrite it
+          // with a child span (such as Spring INTERNAL span).
+          callDepth = CallDepth.forClass(CallDepthKey.class);
+          if (callDepth.getAndIncrement() > 0) {
+            return;
+          }
+
           ServerTimingHeader.setHeaders(context, httpResponse, HeadersSetter.INSTANCE);
+        }
+      }
+
+      @Advice.OnMethodExit(suppress = Throwable.class)
+      public static void onExit(@Advice.Local("splunkCallDepth") CallDepth callDepth) {
+        if (callDepth != null) {
+          callDepth.decrementAndGet();
         }
       }
     }
@@ -109,4 +134,6 @@ public class ServletInstrumentationModule extends InstrumentationModule {
       carrier.setHeader(key, value);
     }
   }
+
+  public static class CallDepthKey {}
 }

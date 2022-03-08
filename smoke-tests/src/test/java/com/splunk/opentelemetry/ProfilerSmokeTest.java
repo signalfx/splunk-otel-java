@@ -88,7 +88,7 @@ public abstract class ProfilerSmokeTest {
   static void setupEnvironment(@TempDir Path tempDir) {
     ProfilerSmokeTest.tempDir = tempDir;
 
-    containerManager = new WindowsTestContainerManager();
+    containerManager = SmokeTest.createContainerManager();
     containerManager.startEnvironment();
 
     telemetryRetriever = new TelemetryRetriever(client, containerManager.getBackendMappedPort());

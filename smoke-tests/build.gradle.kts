@@ -9,7 +9,7 @@ dependencies {
   testAnnotationProcessor("com.google.auto.value:auto-value")
 
   testImplementation("org.testcontainers:testcontainers")
-  testImplementation("com.fasterxml.jackson.core:jackson-databind:2.13.1")
+  testImplementation("com.fasterxml.jackson.core:jackson-databind:2.13.2")
   testImplementation("com.google.protobuf:protobuf-java-util")
   testImplementation("com.squareup.okhttp3:okhttp")
   testImplementation("io.opentelemetry.proto:opentelemetry-proto")

@@ -16,7 +16,6 @@
 
 package com.splunk.opentelemetry.profiler;
 
-import static com.splunk.opentelemetry.profiler.LogDataCreator.PROFILING_SOURCE;
 import static com.splunk.opentelemetry.profiler.LogExporterBuilder.INSTRUMENTATION_LIBRARY_INFO;
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.SOURCE_EVENT_NAME;
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.SOURCE_EVENT_PERIOD;
@@ -69,7 +68,6 @@ class LogDataCreatorTest {
     LogData expected =
         LogDataBuilder.create(resource, INSTRUMENTATION_LIBRARY_INFO)
             .setContext(context)
-            .setName(PROFILING_SOURCE)
             .setBody(stack)
             .setEpoch(time)
             .setAttributes(attributes)

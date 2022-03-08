@@ -16,7 +16,6 @@
 
 package com.splunk.opentelemetry.profiler;
 
-import static com.splunk.opentelemetry.profiler.LogDataCreator.PROFILING_SOURCE;
 import static com.splunk.opentelemetry.profiler.LogExporterBuilder.INSTRUMENTATION_LIBRARY_INFO;
 
 import com.splunk.opentelemetry.profiler.allocationsampler.AllocationEventSampler;
@@ -91,7 +90,6 @@ public class TLABProcessor implements Consumer<RecordedEvent> {
 
     LogDataBuilder logDataBuilder =
         LogDataBuilder.create(resource, INSTRUMENTATION_LIBRARY_INFO)
-            .setName(PROFILING_SOURCE)
             .setEpoch(time)
             .setBody(body)
             .setAttributes(attributes);

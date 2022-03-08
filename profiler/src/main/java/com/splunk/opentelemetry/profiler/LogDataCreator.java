@@ -44,7 +44,6 @@ public class LogDataCreator implements Function<StackToSpanLinkage, LogData> {
 
     LogDataBuilder logDataBuilder =
         LogDataBuilder.create(resource, INSTRUMENTATION_LIBRARY_INFO)
-            .setName(PROFILING_SOURCE)
             .setEpoch(linkedStack.getTime())
             .setBody(linkedStack.getRawStack())
             .setAttributes(attributes);

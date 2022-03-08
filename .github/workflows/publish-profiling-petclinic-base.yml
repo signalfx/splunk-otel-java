@@ -24,7 +24,7 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           push: true
-          file: smoke-tests/profiling-petclinic-base/linux/Dockerfile
+          file: smoke-tests/profiling-base-petclinic/linux/Dockerfile
           build-args: |
             jdkVersion=${{ matrix.jdk_version }}
           tags: ghcr.io/signalfx/splunk-otel-java/profiling-petclinic-base-linux-jdk${{ matrix.jdk_version }}:latest

@@ -1,9 +1,12 @@
 name: publish-profiling-petclinic-base-image
 on: workflow_dispatch
 jobs:
-  push_to_registry:
-    name: publish custom spring-petclinic base image for profiling
+  push_to_registry_linux:
+    name: publish custom linux spring-petclinic base image for profiling
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        jdk_version: [8, 11, 17]
     permissions:
       packages: write
       contents: read
@@ -21,5 +24,33 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           push: true
-          file: smoke-tests/profiling-petclinic-base/Dockerfile
-          tags: ghcr.io/signalfx/splunk-otel-java/profiling-petclinic-base:latest
+          file: smoke-tests/profiling-petclinic-base/linux/Dockerfile
+          build-args: |
+            jdkVersion=${{ matrix.jdk_version }}
+          tags: ghcr.io/signalfx/splunk-otel-java/profiling-petclinic-base-linux-jdk${{ matrix.jdk_version }}:latest
+  push_to_registry_windows:
+    name: publish custom windows spring-petclinic base image for profiling
+    runs-on: windows-2019
+    strategy:
+      matrix:
+        jdk_version: [8, 11, 17]
+    defaults:
+      run:
+        shell: bash
+    permissions:
+      packages: write
+      contents: read
+    steps:
+      - name: Support longpaths
+        run: git config --system core.longpaths true
+      - name: check out the repo
+        uses: actions/checkout@v2.4.0
+      - name: Login to GitHub Container Registry
+        uses: azure/docker-login@v1
+        with:
+          login-server: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build & push docker image
+        run: ./build.sh ${{ matrix.jdk_version }}
+        working-directory: smoke-tests/profiling-base-petclinic/windows

@@ -91,7 +91,6 @@ public class TLABProcessor implements Consumer<RecordedEvent> {
 
     LogDataBuilder logDataBuilder =
         LogDataBuilder.create(resource, INSTRUMENTATION_LIBRARY_INFO)
-            .setName(PROFILING_SOURCE)
             .setEpoch(time)
             .setBody(body)
             .setAttributes(attributes);

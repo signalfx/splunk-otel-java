@@ -69,7 +69,6 @@ class LogDataCreatorTest {
     LogData expected =
         LogDataBuilder.create(resource, INSTRUMENTATION_LIBRARY_INFO)
             .setContext(context)
-            .setName(PROFILING_SOURCE)
             .setBody(stack)
             .setEpoch(time)
             .setAttributes(attributes)

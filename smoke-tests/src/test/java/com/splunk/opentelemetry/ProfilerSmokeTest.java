@@ -27,7 +27,6 @@ import static org.junit.jupiter.api.Assumptions.assumeFalse;
 import com.splunk.opentelemetry.helper.TargetContainerBuilder;
 import com.splunk.opentelemetry.helper.TargetWaitStrategy;
 import com.splunk.opentelemetry.helper.TestContainerManager;
-import com.splunk.opentelemetry.helper.windows.WindowsTestContainerManager;
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;

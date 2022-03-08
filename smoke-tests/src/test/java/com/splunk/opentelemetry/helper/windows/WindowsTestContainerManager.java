@@ -21,15 +21,19 @@ import com.github.dockerjava.api.command.CreateContainerCmd;
 import com.github.dockerjava.api.command.InspectContainerResponse;
 import com.github.dockerjava.api.command.PullImageResultCallback;
 import com.github.dockerjava.api.exception.NotFoundException;
+import com.github.dockerjava.api.model.AccessMode;
+import com.github.dockerjava.api.model.Bind;
 import com.github.dockerjava.api.model.ExposedPort;
 import com.github.dockerjava.api.model.HostConfig;
 import com.github.dockerjava.api.model.PortBinding;
 import com.github.dockerjava.api.model.Ports;
+import com.github.dockerjava.api.model.Volume;
 import com.github.dockerjava.core.DefaultDockerClientConfig;
 import com.github.dockerjava.core.DockerClientImpl;
 import com.github.dockerjava.httpclient5.ApacheDockerHttpClient;
 import com.splunk.opentelemetry.helper.AbstractTestContainerManager;
 import com.splunk.opentelemetry.helper.ResourceMapping;
+import com.splunk.opentelemetry.helper.TargetContainerBuilder;
 import com.splunk.opentelemetry.helper.TargetWaitStrategy;
 import com.splunk.opentelemetry.helper.TestImage;
 import java.io.ByteArrayInputStream;
@@ -42,12 +46,12 @@ import java.net.URI;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -61,6 +65,7 @@ import org.rnorth.ducttape.unreliables.Unreliables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testcontainers.containers.GenericContainer;
+import org.testcontainers.utility.MountableFile;
 
 public class WindowsTestContainerManager extends AbstractTestContainerManager {
   private static final Logger logger = LoggerFactory.getLogger(WindowsTestContainerManager.class);
@@ -96,7 +101,7 @@ public class WindowsTestContainerManager extends AbstractTestContainerManager {
     }
 
     backend =
-        startContainer(
+        createAndStartContainer(
             backendImageName,
             command ->
                 command
@@ -122,15 +127,20 @@ public class WindowsTestContainerManager extends AbstractTestContainerManager {
     }
 
     collector =
-        startContainer(
+        createAndStartContainer(
             collectorImageName,
             command ->
                 command
                     .withAliases(COLLECTOR_ALIAS)
+                    .withExposedPorts(ExposedPort.tcp(COLLECTOR_PORT))
                     .withHostConfig(
                         HostConfig.newHostConfig()
                             .withAutoRemove(true)
-                            .withNetworkMode(natNetworkId))
+                            .withNetworkMode(natNetworkId)
+                            .withPortBindings(
+                                new PortBinding(
+                                    new Ports.Binding(null, null),
+                                    ExposedPort.tcp(COLLECTOR_PORT))))
                     .withCmd("--config", COLLECTOR_CONFIG_FILE_PATH),
             containerId -> {
               try (InputStream configFileStream =
@@ -141,8 +151,8 @@ public class WindowsTestContainerManager extends AbstractTestContainerManager {
                 throw new RuntimeException(e);
               }
             },
-            new NoOpWaiter(),
-            false);
+            new PortWaiter(COLLECTOR_PORT, Duration.ofMinutes(1)),
+            true);
   }
 
   @Override
@@ -159,6 +169,16 @@ public class WindowsTestContainerManager extends AbstractTestContainerManager {
       client.removeNetworkCmd(natNetworkId);
       natNetworkId = null;
     }
+  }
+
+  @Override
+  public void startCollector() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public void stopCollector() {
+    throw new UnsupportedOperationException();
   }
 
   @Override
@@ -186,45 +206,84 @@ public class WindowsTestContainerManager extends AbstractTestContainerManager {
   }
 
   @Override
-  public void startTarget(
-      String targetImageName,
-      String agentPath,
-      String jvmArgsEnvVarName,
-      Map<String, String> extraEnv,
-      List<ResourceMapping> extraResources,
-      TargetWaitStrategy waitStrategy) {
+  public void startTarget(TargetContainerBuilder builder) {
     stopTarget();
 
-    if (!imageExists(targetImageName)) {
-      pullImage(targetImageName);
+    if (!imageExists(builder.targetImageName)) {
+      pullImage(builder.targetImageName);
     }
 
     List<String> environment = new ArrayList<>();
-    getAgentEnvironment(jvmArgsEnvVarName)
-        .forEach((key, value) -> environment.add(key + "=" + value));
-    extraEnv.forEach((key, value) -> environment.add(key + "=" + value));
+
+    if (builder.useDefaultAgentConfiguration) {
+      getAgentEnvironment(builder.jvmArgsEnvVarName)
+          .forEach((key, value) -> environment.add(key + "=" + value));
+    }
+
+    builder.extraEnv.forEach((key, value) -> environment.add(key + "=" + value));
 
     target =
-        startContainer(
-            targetImageName,
+        createAndStartContainer(
+            builder.targetImageName,
             command -> {
+              HostConfig hostConfig =
+                  HostConfig.newHostConfig()
+                      .withAutoRemove(false)
+                      .withNetworkMode(natNetworkId)
+                      .withPortBindings(
+                          new PortBinding(
+                              new Ports.Binding(null, null), ExposedPort.tcp(builder.targetPort)));
+
+              if (!builder.fileSystemBinds.isEmpty()) {
+                List<Bind> binds =
+                    builder.fileSystemBinds.stream()
+                        .map(
+                            bind -> {
+                              MountableFile file = MountableFile.forHostPath(bind.hostPath);
+                              String pathWithDisk =
+                                  bind.containerPath.startsWith("/")
+                                      ? "C:" + bind.containerPath
+                                      : bind.containerPath;
+                              String pathWithBackSlashes = pathWithDisk.replace("/", "\\");
+                              return new Bind(
+                                  file.getResolvedPath(),
+                                  new Volume(pathWithBackSlashes),
+                                  bind.isReadOnly ? AccessMode.ro : AccessMode.rw);
+                            })
+                        .collect(Collectors.toList());
+
+                hostConfig.withBinds(binds);
+              }
+
               command
-                  .withExposedPorts(ExposedPort.tcp(TARGET_PORT))
-                  .withHostConfig(
-                      HostConfig.newHostConfig()
-                          .withAutoRemove(true)
-                          .withNetworkMode(natNetworkId)
-                          .withPortBindings(
-                              new PortBinding(
-                                  new Ports.Binding(null, null), ExposedPort.tcp(TARGET_PORT))))
+                  .withExposedPorts(ExposedPort.tcp(builder.targetPort))
+                  .withHostConfig(hostConfig)
                   .withEnv(environment);
+
+              if (!builder.networkAliases.isEmpty()) {
+                command.withAliases(builder.networkAliases);
+              }
+
+              if (builder.entrypoint != null) {
+                command.withEntrypoint(builder.entrypoint);
+              }
+
+              if (builder.command != null) {
+                command.withCmd(builder.command);
+              }
             },
             (containerId) -> {
-              try (InputStream agentFileStream = new FileInputStream(agentPath)) {
-                copyFileToContainer(
-                    containerId, IOUtils.toByteArray(agentFileStream), "/" + TARGET_AGENT_FILENAME);
+              try {
+                if (builder.agentPath != null) {
+                  try (InputStream agentFileStream = new FileInputStream(builder.agentPath)) {
+                    copyFileToContainer(
+                        containerId,
+                        IOUtils.toByteArray(agentFileStream),
+                        "/" + TARGET_AGENT_FILENAME);
+                  }
+                }
 
-                for (ResourceMapping resource : extraResources) {
+                for (ResourceMapping resource : builder.extraResources) {
                   copyResourceToContainer(
                       containerId, resource.resourcePath(), resource.containerPath());
                 }
@@ -232,7 +291,7 @@ public class WindowsTestContainerManager extends AbstractTestContainerManager {
                 throw new RuntimeException(e);
               }
             },
-            createTargetWaiter(waitStrategy),
+            createTargetWaiter(builder.waitStrategy, builder.targetPort),
             true);
   }
 
@@ -329,23 +388,33 @@ public class WindowsTestContainerManager extends AbstractTestContainerManager {
     }
   }
 
-  private Container startContainer(
+  private Container createAndStartContainer(
       String imageName,
       Consumer<CreateContainerCmd> createAction,
       Consumer<String> prepareAction,
       Waiter waiter,
       boolean inspect) {
 
-    if (waiter == null) {
-      waiter = new NoOpWaiter();
-    }
+    String containerId = createContainer(imageName, createAction, prepareAction);
+    return startContainer(imageName, containerId, waiter, inspect);
+  }
 
+  private String createContainer(
+      String imageName, Consumer<CreateContainerCmd> createAction, Consumer<String> prepareAction) {
     CreateContainerCmd createCommand = client.createContainerCmd(imageName);
     createAction.accept(createCommand);
 
     String containerId = createCommand.exec().getId();
 
     prepareAction.accept(containerId);
+    return containerId;
+  }
+
+  private Container startContainer(
+      String imageName, String containerId, Waiter waiter, boolean inspect) {
+    if (waiter == null) {
+      waiter = new NoOpWaiter();
+    }
 
     client.startContainerCmd(containerId).exec();
     ContainerLogHandler logHandler = consumeLogs(containerId, waiter);
@@ -386,15 +455,15 @@ public class WindowsTestContainerManager extends AbstractTestContainerManager {
     }
   }
 
-  private Waiter createTargetWaiter(TargetWaitStrategy strategy) {
+  private Waiter createTargetWaiter(TargetWaitStrategy strategy, int targetPort) {
     if (strategy instanceof TargetWaitStrategy.Log) {
       TargetWaitStrategy.Log details = (TargetWaitStrategy.Log) strategy;
       return new LogWaiter(Pattern.compile(details.regex), details.timeout);
     } else if (strategy instanceof TargetWaitStrategy.Http) {
       TargetWaitStrategy.Http details = (TargetWaitStrategy.Http) strategy;
-      return new HttpWaiter(TARGET_PORT, details.path, details.timeout);
+      return new HttpWaiter(targetPort, details.path, details.timeout);
     } else {
-      return new PortWaiter(TARGET_PORT, Duration.ofSeconds(60));
+      return new PortWaiter(targetPort, Duration.ofSeconds(60));
     }
   }
 

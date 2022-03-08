@@ -16,14 +16,18 @@
 
 package com.splunk.opentelemetry.helper;
 
-import java.util.List;
-import java.util.Map;
 import org.testcontainers.containers.GenericContainer;
 
 public interface TestContainerManager {
+  String TARGET_AGENT_FILENAME = "opentelemetry-javaagent.jar";
+
   void startEnvironment();
 
   void stopEnvironment();
+
+  void startCollector();
+
+  void stopCollector();
 
   boolean isImageCompatible(TestImage image);
 
@@ -33,13 +37,7 @@ public interface TestContainerManager {
 
   int getTargetMappedPort(int originalPort);
 
-  void startTarget(
-      String targetImageName,
-      String agentPath,
-      String jvmArgsEnvVarName,
-      Map<String, String> extraEnv,
-      List<ResourceMapping> extraResources,
-      TargetWaitStrategy waitStrategy);
+  void startTarget(TargetContainerBuilder builder);
 
   void stopTarget();
 

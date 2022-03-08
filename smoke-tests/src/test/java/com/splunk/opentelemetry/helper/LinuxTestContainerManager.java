@@ -17,11 +17,10 @@
 package com.splunk.opentelemetry.helper;
 
 import java.time.Duration;
-import java.util.List;
-import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testcontainers.DockerClientFactory;
+import org.testcontainers.containers.BindMode;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.Network;
 import org.testcontainers.containers.output.Slf4jLogConsumer;
@@ -82,6 +81,20 @@ public class LinuxTestContainerManager extends AbstractTestContainerManager {
   }
 
   @Override
+  public void startCollector() {
+    if (collector != null) {
+      collector.start();
+    }
+  }
+
+  @Override
+  public void stopCollector() {
+    if (collector != null) {
+      collector.stop();
+    }
+  }
+
+  @Override
   public boolean isImageCompatible(TestImage image) {
     return image.platform == TestImage.Platform.LINUX_X86_64;
   }
@@ -111,34 +124,62 @@ public class LinuxTestContainerManager extends AbstractTestContainerManager {
   }
 
   @Override
-  public void startTarget(
-      String targetImageName,
-      String agentPath,
-      String jvmArgsEnvVarName,
-      Map<String, String> extraEnv,
-      List<ResourceMapping> extraResources,
-      TargetWaitStrategy waitStrategy) {
+  public void startTarget(TargetContainerBuilder builder) {
     target =
-        new GenericContainer<>(DockerImageName.parse(targetImageName))
+        new GenericContainer<>(DockerImageName.parse(builder.targetImageName))
             .withStartupTimeout(Duration.ofMinutes(5))
-            .withExposedPorts(TARGET_PORT)
+            .withExposedPorts(builder.targetPort)
             .withNetwork(network)
-            .withLogConsumer(new Slf4jLogConsumer(logger))
-            .withCopyFileToContainer(
-                MountableFile.forHostPath(agentPath), "/" + TARGET_AGENT_FILENAME)
-            .withEnv(getAgentEnvironment(jvmArgsEnvVarName))
-            .withEnv(extraEnv);
+            .withLogConsumer(new Slf4jLogConsumer(logger));
 
-    for (ResourceMapping resource : extraResources) {
+    if (builder.agentPath != null) {
+      target.withCopyFileToContainer(
+          MountableFile.forHostPath(builder.agentPath), "/" + TARGET_AGENT_FILENAME);
+    }
+
+    if (builder.useDefaultAgentConfiguration) {
+      target.withEnv(getAgentEnvironment(builder.jvmArgsEnvVarName));
+    }
+
+    builder.fileSystemBinds.forEach(
+        it ->
+            target.withFileSystemBind(
+                it.hostPath,
+                it.containerPath,
+                it.isReadOnly ? BindMode.READ_ONLY : BindMode.READ_WRITE));
+
+    if (builder.command != null) {
+      builder.withCommand(builder.command);
+    }
+
+    if (builder.entrypoint != null) {
+      builder.withCommand(builder.entrypoint);
+    }
+
+    if (!builder.networkAliases.isEmpty()) {
+      builder.withNetworkAliases(builder.networkAliases);
+    }
+
+    target.withEnv(builder.extraEnv);
+
+    for (ResourceMapping resource : builder.extraResources) {
       target.withCopyFileToContainer(
           MountableFile.forClasspathResource(resource.resourcePath()), resource.containerPath());
     }
+
+    TargetWaitStrategy waitStrategy = builder.waitStrategy;
 
     if (waitStrategy != null) {
       if (waitStrategy instanceof TargetWaitStrategy.Log) {
         target =
             target.waitingFor(
                 Wait.forLogMessage(((TargetWaitStrategy.Log) waitStrategy).regex, 1)
+                    .withStartupTimeout(waitStrategy.timeout));
+      }
+      if (waitStrategy instanceof TargetWaitStrategy.Http) {
+        target =
+            target.waitingFor(
+                Wait.forHttp(((TargetWaitStrategy.Http) waitStrategy).path)
                     .withStartupTimeout(waitStrategy.timeout));
       }
     }

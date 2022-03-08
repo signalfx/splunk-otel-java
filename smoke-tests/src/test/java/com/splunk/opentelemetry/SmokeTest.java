@@ -20,6 +20,7 @@ import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import com.splunk.opentelemetry.helper.LinuxTestContainerManager;
 import com.splunk.opentelemetry.helper.ResourceMapping;
+import com.splunk.opentelemetry.helper.TargetContainerBuilder;
 import com.splunk.opentelemetry.helper.TargetWaitStrategy;
 import com.splunk.opentelemetry.helper.TestContainerManager;
 import com.splunk.opentelemetry.helper.TestImage;
@@ -98,12 +99,12 @@ public abstract class SmokeTest {
     }
 
     containerManager.startTarget(
-        image.imageName,
-        agentPath,
-        getJvmArgsEnvVarName(),
-        getExtraEnv(),
-        getExtraResources(),
-        getWaitStrategy());
+        new TargetContainerBuilder(image.imageName)
+            .withAgentPath(agentPath)
+            .withJvmArgsEnvVarName(getJvmArgsEnvVarName())
+            .withExtraEnv(getExtraEnv())
+            .withExtraResources(getExtraResources())
+            .withWaitStrategy(getWaitStrategy()));
   }
 
   protected TargetWaitStrategy getWaitStrategy() {
@@ -150,7 +151,7 @@ public abstract class SmokeTest {
     }
   }
 
-  private static TestContainerManager createContainerManager() {
+  public static TestContainerManager createContainerManager() {
     boolean isWindows = System.getProperty("os.name").toLowerCase().contains("windows");
 
     if (isWindows && !"1".equals(System.getenv("USE_LINUX_CONTAINERS"))) {

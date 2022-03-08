@@ -92,6 +92,7 @@ jobs:
           - os: windows-2019
             suite: websphere
           - os: windows-2019
+            # FIXME: remove this exclusion once Windows profiler images are pushed
             suite: profiler
       fail-fast: false
     steps:

@@ -21,6 +21,11 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.splunk.opentelemetry.instrumentation.servertiming.ServerTimingHeader;
+import io.opentelemetry.api.GlobalOpenTelemetry;
+import io.opentelemetry.api.trace.Span;
+import io.opentelemetry.api.trace.SpanKind;
+import io.opentelemetry.api.trace.Tracer;
+import io.opentelemetry.context.Scope;
 import io.opentelemetry.instrumentation.test.utils.PortUtils;
 import io.opentelemetry.instrumentation.testing.junit.AgentInstrumentationExtension;
 import java.io.IOException;
@@ -73,6 +78,8 @@ class ServletInstrumentationTest {
     servletContext.addFilter(PassThroughFilter.class, "/deep", FilterMapping.REQUEST);
     servletContext.addFilter(PassThroughFilter.class, "/deep", FilterMapping.REQUEST);
     servletContext.addServlet(TestServlet.class, "/deep");
+    servletContext.addFilter(InternalSpanFilter.class, "/nested", FilterMapping.REQUEST);
+    servletContext.addServlet(TestServlet.class, "/nested");
     server.setHandler(servletContext);
 
     server.start();
@@ -145,6 +152,47 @@ class ServletInstrumentationTest {
     assertServerTimingHeaderContainsTraceId(serverTimingHeaders.get(0));
   }
 
+  @Test
+  void shouldAddOnlyServerSpanAsTraceParentHeader() throws Exception {
+    // given
+    var request =
+        new Request.Builder()
+            .url(HttpUrl.get("http://localhost:" + port + "/nested"))
+            .get()
+            .build();
+
+    // when
+    var response = httpClient.newCall(request).execute();
+
+    // then
+    assertEquals(200, response.code());
+    assertEquals("result", response.body().string());
+
+    var serverTimingHeaders = response.headers(ServerTimingHeader.SERVER_TIMING);
+    assertEquals(1, serverTimingHeaders.size());
+
+    var serverTimingHeader = serverTimingHeaders.get(0);
+    assertHeaders(response, serverTimingHeader);
+
+    var traces = instrumentation.waitForTraces(1);
+    assertEquals(1, traces.size());
+
+    var spans = traces.get(0);
+    assertEquals(2, spans.size());
+
+    var serverSpan =
+        spans.stream().filter(it -> it.getKind() == SpanKind.SERVER).findFirst().orElse(null);
+    assertNotNull(serverSpan);
+
+    var internalSpan =
+        spans.stream().filter(it -> it.getKind() == SpanKind.INTERNAL).findFirst().orElse(null);
+    assertNotNull(internalSpan);
+
+    assertEquals(internalSpan.getParentSpanId(), serverSpan.getSpanId());
+    assertTrue(serverTimingHeader.contains(serverSpan.getTraceId()));
+    assertTrue(serverTimingHeader.contains(serverSpan.getSpanId()));
+  }
+
   private static void assertHeaders(Response response, String serverTimingHeader) {
     assertNotNull(serverTimingHeader);
     assertEquals(
@@ -199,6 +247,29 @@ class ServletInstrumentationTest {
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
         throws IOException, ServletException {
       chain.doFilter(request, response);
+    }
+
+    @Override
+    public void destroy() {}
+  }
+
+  public static class InternalSpanFilter implements Filter {
+    private final Tracer tracer = GlobalOpenTelemetry.getTracer("test-custom");
+
+    @Override
+    public void init(FilterConfig filterConfig) {}
+
+    @Override
+    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
+        throws IOException, ServletException {
+
+      Span span = tracer.spanBuilder("inner").startSpan();
+
+      try (Scope scope = span.makeCurrent()) {
+        chain.doFilter(request, response);
+      } finally {
+        span.end();
+      }
     }
 
     @Override

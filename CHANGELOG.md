@@ -8,6 +8,21 @@ and this repository adheres to [Semantic Versioning](https://semver.org/spec/v2.
 
 ## Unreleased
 
+## v1.9.0 - 2022-03-14
+
+### General
+
+- OpenTelemetry Instrumentation for Java has been updated to version 1.12.0.
+
+### Bugfixes
+
+- Fix servlet instrumentation to prevent overwriting `Server-Timing` header for internal spans - [#694](https://github.com/signalfx/splunk-otel-java/pull/694)
+
+### Enhancements
+
+- `JvmHeapPressureMetrics` are now part of exported JVM metrics - [#686](https://github.com/signalfx/splunk-otel-java/pull/686).
+- Size reduction for call stack payloads for profiling TLAB events - [#687](https://github.com/signalfx/splunk-otel-java/pull/687)
+
 ## v1.8.2 - 2022-02-22
 
 ### Bugfixes

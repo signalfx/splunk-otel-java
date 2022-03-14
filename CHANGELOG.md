@@ -23,7 +23,6 @@ and this repository adheres to [Semantic Versioning](https://semver.org/spec/v2.
 - `JvmHeapPressureMetrics` are now part of exported JVM metrics - [#686](https://github.com/signalfx/splunk-otel-java/pull/686).
 - Size reduction for call stack payloads for profiling TLAB events - [#687](https://github.com/signalfx/splunk-otel-java/pull/687)
 
-
 ## v1.8.2 - 2022-02-22
 
 ### Bugfixes

@@ -15,11 +15,11 @@ dependencies {
   testInstrumentation(project(":instrumentation:micrometer-1.3"))
   testInstrumentation(project(":instrumentation:micrometer-1.5"))
 
-  add("version13TestImplementation", "io.micrometer:micrometer-core:1.3.16")
-  add("version14TestImplementation", "io.micrometer:micrometer-core:1.4.2")
-  add("version15TestImplementation", "io.micrometer:micrometer-core:1.5.17")
-  add("version16TestImplementation", "io.micrometer:micrometer-core:1.6.12")
-  add("version17TestImplementation", "io.micrometer:micrometer-core:1.7.5")
+  add("version13TestImplementation", "io.micrometer:micrometer-core:1.8.4")
+  add("version14TestImplementation", "io.micrometer:micrometer-core:1.8.4")
+  add("version15TestImplementation", "io.micrometer:micrometer-core:1.8.4")
+  add("version16TestImplementation", "io.micrometer:micrometer-core:1.8.4")
+  add("version17TestImplementation", "io.micrometer:micrometer-core:1.8.4")
   // use the agent (latest) micrometer version in the default test task
   testImplementation("io.micrometer:micrometer-core")
 }

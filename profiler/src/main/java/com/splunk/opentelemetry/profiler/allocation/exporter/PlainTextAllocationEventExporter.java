@@ -16,7 +16,6 @@
 
 package com.splunk.opentelemetry.profiler.allocation.exporter;
 
-import static com.splunk.opentelemetry.profiler.LogDataCreator.PROFILING_SOURCE;
 import static com.splunk.opentelemetry.profiler.LogExporterBuilder.INSTRUMENTATION_LIBRARY_INFO;
 
 import com.splunk.opentelemetry.profiler.LogDataCommonAttributes;

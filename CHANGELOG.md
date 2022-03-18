@@ -8,6 +8,17 @@ and this repository adheres to [Semantic Versioning](https://semver.org/spec/v2.
 
 ## Unreleased
 
+## v1.9.1 - 2022-03-18
+
+### General
+
+- OpenTelemetry Instrumentation for Java has been updated to version 1.12.1.
+
+### Bugfixes
+
+- Fixed Elasticsearch rest client using high cardinality span name.
+- Fixed a possible deadlock.
+
 ## v1.9.0 - 2022-03-14
 
 ### General

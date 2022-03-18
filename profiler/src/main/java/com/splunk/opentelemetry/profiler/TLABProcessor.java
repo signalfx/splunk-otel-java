@@ -16,16 +16,9 @@
 
 package com.splunk.opentelemetry.profiler;
 
-<<<<<<< HEAD
-import static com.splunk.opentelemetry.profiler.LogExporterBuilder.INSTRUMENTATION_LIBRARY_INFO;
-
-import com.splunk.opentelemetry.profiler.allocationsampler.AllocationEventSampler;
-import com.splunk.opentelemetry.profiler.allocationsampler.SystematicAllocationEventSampler;
-=======
 import com.splunk.opentelemetry.profiler.allocation.exporter.AllocationEventExporter;
 import com.splunk.opentelemetry.profiler.allocation.sampler.AllocationEventSampler;
 import com.splunk.opentelemetry.profiler.allocation.sampler.SystematicAllocationEventSampler;
->>>>>>> Prototype sending allocation stacks as pprof
 import com.splunk.opentelemetry.profiler.context.SpanContextualizer;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.trace.SpanContext;

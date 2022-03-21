@@ -16,10 +16,10 @@
 
 package com.splunk.opentelemetry.instrumentation.viburdbcp;
 
-import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.DataSourceSemanticConventions.CONNECTIONS_ACTIVE;
-import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.DataSourceSemanticConventions.CONNECTIONS_IDLE;
-import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.DataSourceSemanticConventions.CONNECTIONS_MAX;
-import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.DataSourceSemanticConventions.CONNECTIONS_TOTAL;
+import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.ConnectionPoolSemanticConventions.CONNECTIONS_ACTIVE;
+import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.ConnectionPoolSemanticConventions.CONNECTIONS_IDLE;
+import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.ConnectionPoolSemanticConventions.CONNECTIONS_MAX;
+import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.ConnectionPoolSemanticConventions.CONNECTIONS_TOTAL;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.mockito.BDDMockito.given;

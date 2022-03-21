@@ -36,6 +36,7 @@ public final class ThreadPoolSemanticConventions {
       gauge("executor.threads.core", THREADS);
   /** The maximum number of threads in the pool. */
   public static final GaugeSemanticConvention THREADS_MAX = gauge("executor.threads.max", THREADS);
+
   /** The total number of tasks that were submitted to this executor. */
   public static final CounterSemanticConvention TASKS_SUBMITTED =
       counter("executor.tasks.submitted", TASKS);

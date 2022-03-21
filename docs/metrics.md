@@ -104,29 +104,29 @@ to register JVM measurements.
 
 #### Classloader metrics
 
-| Metric name                    | Description |
-| ------------------------------ | ----------- |
-| `runtime.jvm.classes.loaded`   | The number of loaded classes.
-| `runtime.jvm.classes.unloaded` | The total number of unloaded classes since process start.
+| Metric name                    | Instrument   | Description |
+| ------------------------------ | ------------ | ----------- |
+| `runtime.jvm.classes.loaded`   | [Gauge][g]   | The number of loaded classes.
+| `runtime.jvm.classes.unloaded` | [Counter][c] | The total number of unloaded classes since the process started.
 
 #### GC metrics
 
-| Metric name                            | Description |
-| -------------------------------------- | ----------- |
-| `runtime.jvm.gc.concurrent.phase.time` | Time spent in concurrent phase (in milliseconds).
-| `runtime.jvm.gc.live.data.size`        | Size of long-lived heap memory pool after reclamation (in bytes).
-| `runtime.jvm.gc.max.data.size`         | Max size of long-lived heap memory pool (in bytes).
-| `runtime.jvm.gc.memory.allocated`      | Incremented for an increase in the size of the (young) heap memory pool after one GC to before the next.
-| `runtime.jvm.gc.memory.promoted`       | Count of positive increases in the size of the old generation memory pool before GC to after GC.
-| `runtime.jvm.gc.pause`                 | Time spent in GC pause (in milliseconds).
+| Metric name                            | Instrument   | Description |
+| -------------------------------------- | ------------ | ----------- |
+| `runtime.jvm.gc.concurrent.phase.time` | [Timer][t]   | Time spent in concurrent phase, in milliseconds.
+| `runtime.jvm.gc.live.data.size`        | [Gauge][g]   | Size of long-lived heap memory pool after reclamation, in bytes.
+| `runtime.jvm.gc.max.data.size`         | [Gauge][g]   | Max size of long-lived heap memory pool, in bytes.
+| `runtime.jvm.gc.memory.allocated`      | [Counter][c] | Incremented for an increase in the size of the young heap memory pool after one garbage collection to before the next.
+| `runtime.jvm.gc.memory.promoted`       | [Counter][c] | Count of positive increases in the size of the old generation memory pool before garbage collection to after garbage collection.
+| `runtime.jvm.gc.pause`                 | [Timer][t]   | Time spent in garbage collection pause, in milliseconds.
 
 #### Memory metrics
 
-| Metric name                    | Description |
-| ------------------------------ | ----------- |
-| `runtime.jvm.memory.committed` | The amount of memory that is committed for the Java virtual machine to use (in bytes).
-| `runtime.jvm.memory.max`       | The maximum amount of memory that can be used for memory management (in bytes).
-| `runtime.jvm.memory.used`      | The amount of used memory (in bytes).
+| Metric name                    | Instrument | Description |
+| ------------------------------ | ---------- | ----------- |
+| `runtime.jvm.memory.committed` | [Gauge][g] | The amount of memory guaranteed to be available for use to the Java virtual machine, in bytes.
+| `runtime.jvm.memory.max`       | [Gauge][g] | The maximum amount of memory that can be used for memory management, in bytes.
+| `runtime.jvm.memory.used`      | [Gauge][g] | The amount of used memory, in bytes.
 
 All memory pool metrics have the following tags:
 
@@ -137,12 +137,12 @@ All memory pool metrics have the following tags:
 
 #### Thread metrics
 
-| Metric name                  | Description |
-| ---------------------------- | ----------- |
-| `runtime.jvm.threads.daemon` | The current number of live daemon threads.
-| `runtime.jvm.threads.live`   | The current number of live threads including both daemon and non-daemon threads.
-| `runtime.jvm.threads.peak`   | The peak live thread count since the Java virtual machine started or peak was reset.
-| `runtime.jvm.threads.states` | The current number of threads per `state` (metric tag).
+| Metric name                  | Instrument | Description |
+| ---------------------------- | ---------- | ----------- |
+| `runtime.jvm.threads.daemon` | [Gauge][g] | The current number of live daemon threads.
+| `runtime.jvm.threads.live`   | [Gauge][g] | The current number of live threads, including both daemon and non-daemon threads.
+| `runtime.jvm.threads.peak`   | [Gauge][g] | The peak live thread count since the Java virtual machine started or the peak was reset.
+| `runtime.jvm.threads.states` | [Gauge][g] | The current number of threads per `state` (metric tag).
 
 ### Connection pool metrics
 
@@ -157,19 +157,19 @@ Splunk Distribution of OpenTelemetry Java instruments several JDBC connection po
 
 Each of the supported connection pools reports a subset of the following metrics:
 
-| Metric name                           | Description |
-| ------------------------------------- | ----------- |
-| `db.pool.connections`                 | The number of open connections.
-| `db.pool.connections.active`          | The number of open connections that are currently in use.
-| `db.pool.connections.idle`            | The number of open connections that are currently idle.
-| `db.pool.connections.idle.max`        | The maximum number of idle open connections allowed.
-| `db.pool.connections.idle.min`        | The minimum number of idle open connections allowed.
-| `db.pool.connections.max`             | The maximum number of open connections allowed.
-| `db.pool.connections.pending_threads` | The number of threads that are currently waiting for an open connection.
-| `db.pool.connections.timeouts`        | The number of connection timeouts that have happened since the application start.
-| `db.pool.connections.create_time`     | The time it took to create a new connection.
-| `db.pool.connections.wait_time`       | The time it took to get an open connection from the pool.
-| `db.pool.connections.use_time`        | The time between borrowing a connection and returning it to the pool.
+| Metric name                           | Instrument   | Description |
+| ------------------------------------- | ------------ | ----------- |
+| `db.pool.connections`                 | [Gauge][g]   | The number of open connections.
+| `db.pool.connections.active`          | [Gauge][g]   | The number of open connections that are currently in use.
+| `db.pool.connections.idle`            | [Gauge][g]   | The number of open connections that are currently idle.
+| `db.pool.connections.idle.max`        | [Gauge][g]   | The maximum number of idle open connections allowed.
+| `db.pool.connections.idle.min`        | [Gauge][g]   | The minimum number of idle open connections allowed.
+| `db.pool.connections.max`             | [Gauge][g]   | The maximum number of open connections allowed.
+| `db.pool.connections.pending_threads` | [Gauge][g]   | The number of threads that are currently waiting for an open connection.
+| `db.pool.connections.timeouts`        | [Counter][c] | The number of connection timeouts that have happened since the application start.
+| `db.pool.connections.create_time`     | [Timer][t]   | The time it took to create a new connection.
+| `db.pool.connections.wait_time`       | [Timer][t]   | The time it took to get an open connection from the pool.
+| `db.pool.connections.use_time`        | [Timer][t]   | The time between borrowing a connection and returning it to the pool.
 
 All connection pool metrics have the following tags:
 
@@ -188,15 +188,15 @@ Splunk Distribution of OpenTelemetry Java instruments several thread pool implem
 
 Each of the supported connection pools reports a subset of the following metrics:
 
-| Metric name                | Description |
-| -------------------------- | ----------- |
-| `executor.threads`         | The current number of threads in the pool.
-| `executor.threads.active`  | The number of threads that are currently busy.
-| `executor.threads.idle`    | The number of threads that are currently idle.
-| `executor.threads.core`    | Core thread pool size - the number of threads that are always kept in the pool.
-| `executor.threads.max`     | The maximum number of threads in the pool.
-| `executor.tasks.submitted` | The total number of tasks that were submitted to this executor.
-| `executor.tasks.completed` | The total number of tasks completed by this executor.
+| Metric name                | Instrument   | Description |
+| -------------------------- | ------------ | ----------- |
+| `executor.threads`         | [Gauge][g]   | The current number of threads in the pool.
+| `executor.threads.active`  | [Gauge][g]   | The number of threads that are currently busy.
+| `executor.threads.idle`    | [Gauge][g]   | The number of threads that are currently idle.
+| `executor.threads.core`    | [Gauge][g]   | Core thread pool size - the number of threads that are always kept in the pool.
+| `executor.threads.max`     | [Gauge][g]   | The maximum number of threads in the pool.
+| `executor.tasks.submitted` | [Counter][c] | The total number of tasks that were submitted to this executor.
+| `executor.tasks.completed` | [Counter][c] | The total number of tasks completed by this executor.
 
 All thread pool metrics have the following tags:
 
@@ -204,3 +204,7 @@ All thread pool metrics have the following tags:
 | --------------- | --------- |
 | `executor.name` | The name of the thread pool.
 | `executor.type` | The type/implementation of the thread pool: e.g. `tomcat`, `liberty`, `weblogic`.
+
+[c]: https://micrometer.io/docs/concepts#_counters
+[g]: https://micrometer.io/docs/concepts#_gauges
+[t]: https://micrometer.io/docs/concepts#_timers

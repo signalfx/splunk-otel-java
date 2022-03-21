@@ -22,7 +22,7 @@ import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.TimerSemantic
 import static io.micrometer.core.instrument.binder.BaseUnits.CONNECTIONS;
 import static io.micrometer.core.instrument.binder.BaseUnits.THREADS;
 
-public final class DataSourceSemanticConventions {
+public final class ConnectionPoolSemanticConventions {
 
   /** The number of open connections. */
   public static final GaugeSemanticConvention CONNECTIONS_TOTAL =
@@ -70,5 +70,5 @@ public final class DataSourceSemanticConventions {
    */
   public static final String POOL_TYPE = "pool.type";
 
-  private DataSourceSemanticConventions() {}
+  private ConnectionPoolSemanticConventions() {}
 }

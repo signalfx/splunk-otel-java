@@ -16,10 +16,10 @@
 
 package com.splunk.opentelemetry.instrumentation.c3p0;
 
-import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.DataSourceSemanticConventions.CONNECTIONS_ACTIVE;
-import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.DataSourceSemanticConventions.CONNECTIONS_IDLE;
-import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.DataSourceSemanticConventions.CONNECTIONS_PENDING_THREADS;
-import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.DataSourceSemanticConventions.CONNECTIONS_TOTAL;
+import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.ConnectionPoolSemanticConventions.CONNECTIONS_ACTIVE;
+import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.ConnectionPoolSemanticConventions.CONNECTIONS_IDLE;
+import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.ConnectionPoolSemanticConventions.CONNECTIONS_PENDING_THREADS;
+import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.ConnectionPoolSemanticConventions.CONNECTIONS_TOTAL;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 

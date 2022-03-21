@@ -124,9 +124,9 @@ to register JVM measurements.
 
 | Metric name                    | Instrument | Description |
 | ------------------------------ | ---------- | ----------- |
-| `runtime.jvm.memory.committed` | [Gauge][g] | The amount of memory that is committed for the Java virtual machine to use (in bytes).
-| `runtime.jvm.memory.max`       | [Gauge][g] | The maximum amount of memory that can be used for memory management (in bytes).
-| `runtime.jvm.memory.used`      | [Gauge][g] | The amount of used memory (in bytes).
+| `runtime.jvm.memory.committed` | [Gauge][g] | The amount of memory guaranteed to be available for use to the Java virtual machine, in bytes.
+| `runtime.jvm.memory.max`       | [Gauge][g] | The maximum amount of memory that can be used for memory management, in bytes.
+| `runtime.jvm.memory.used`      | [Gauge][g] | The amount of used memory, in bytes.
 
 All memory pool metrics have the following tags:
 

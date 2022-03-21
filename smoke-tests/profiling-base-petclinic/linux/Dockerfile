@@ -2,7 +2,7 @@
 # Builds petclinic-rest using the specified JDK version (minimum is 8 for JFR)
 ARG jdkVersion=8
 
-FROM adoptopenjdk:${jdkVersion}
+FROM eclipse-temurin:${jdkVersion}
 
 RUN apt update && apt install -y git
 RUN git clone https://github.com/spring-petclinic/spring-petclinic-rest.git /src

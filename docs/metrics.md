@@ -107,18 +107,18 @@ to register JVM measurements.
 | Metric name                    | Instrument   | Description |
 | ------------------------------ | ------------ | ----------- |
 | `runtime.jvm.classes.loaded`   | [Gauge][g]   | The number of loaded classes.
-| `runtime.jvm.classes.unloaded` | [Counter][c] | The total number of unloaded classes since process start.
+| `runtime.jvm.classes.unloaded` | [Counter][c] | The total number of unloaded classes since the process started.
 
 #### GC metrics
 
 | Metric name                            | Instrument   | Description |
 | -------------------------------------- | ------------ | ----------- |
-| `runtime.jvm.gc.concurrent.phase.time` | [Timer][t]   | Time spent in concurrent phase (in milliseconds).
-| `runtime.jvm.gc.live.data.size`        | [Gauge][g]   | Size of long-lived heap memory pool after reclamation (in bytes).
-| `runtime.jvm.gc.max.data.size`         | [Gauge][g]   | Max size of long-lived heap memory pool (in bytes).
-| `runtime.jvm.gc.memory.allocated`      | [Counter][c] | Incremented for an increase in the size of the (young) heap memory pool after one GC to before the next.
-| `runtime.jvm.gc.memory.promoted`       | [Counter][c] | Count of positive increases in the size of the old generation memory pool before GC to after GC.
-| `runtime.jvm.gc.pause`                 | [Timer][t]   | Time spent in GC pause (in milliseconds).
+| `runtime.jvm.gc.concurrent.phase.time` | [Timer][t]   | Time spent in concurrent phase, in milliseconds.
+| `runtime.jvm.gc.live.data.size`        | [Gauge][g]   | Size of long-lived heap memory pool after reclamation, in bytes.
+| `runtime.jvm.gc.max.data.size`         | [Gauge][g]   | Max size of long-lived heap memory pool, in bytes.
+| `runtime.jvm.gc.memory.allocated`      | [Counter][c] | Incremented for an increase in the size of the young heap memory pool after one garbage collection to before the next.
+| `runtime.jvm.gc.memory.promoted`       | [Counter][c] | Count of positive increases in the size of the old generation memory pool before garbage collection to after garbage collection.
+| `runtime.jvm.gc.pause`                 | [Timer][t]   | Time spent in garbage collection pause, in milliseconds.
 
 #### Memory metrics
 
@@ -140,8 +140,8 @@ All memory pool metrics have the following tags:
 | Metric name                  | Instrument | Description |
 | ---------------------------- | ---------- | ----------- |
 | `runtime.jvm.threads.daemon` | [Gauge][g] | The current number of live daemon threads.
-| `runtime.jvm.threads.live`   | [Gauge][g] | The current number of live threads including both daemon and non-daemon threads.
-| `runtime.jvm.threads.peak`   | [Gauge][g] | The peak live thread count since the Java virtual machine started or peak was reset.
+| `runtime.jvm.threads.live`   | [Gauge][g] | The current number of live threads, including both daemon and non-daemon threads.
+| `runtime.jvm.threads.peak`   | [Gauge][g] | The peak live thread count since the Java virtual machine started or the peak was reset.
 | `runtime.jvm.threads.states` | [Gauge][g] | The current number of threads per `state` (metric tag).
 
 ### Connection pool metrics

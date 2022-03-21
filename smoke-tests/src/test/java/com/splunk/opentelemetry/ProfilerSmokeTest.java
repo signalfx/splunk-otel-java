@@ -35,6 +35,8 @@ import java.nio.file.Path;
 import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 import jdk.jfr.consumer.RecordedEvent;
@@ -54,6 +56,8 @@ public abstract class ProfilerSmokeTest {
   private static final Logger logger = LoggerFactory.getLogger(ProfilerSmokeTest.class);
   private static final okhttp3.OkHttpClient client = OkHttpUtils.client();
   private static final int PETCLINIC_PORT = 9966;
+  // Make sure we are not trying to run multiple test classes in parallel in the same JVM
+  private static final Lock noParallelTestsLock = new ReentrantLock();
 
   private static TestContainerManager containerManager;
   private static TelemetryRetriever telemetryRetriever;
@@ -84,6 +88,8 @@ public abstract class ProfilerSmokeTest {
 
   @BeforeAll
   static void setupEnvironment(@TempDir Path tempDir) {
+    noParallelTestsLock.lock();
+
     ProfilerSmokeTest.tempDir = tempDir;
 
     containerManager = SmokeTest.createContainerManager();
@@ -95,6 +101,7 @@ public abstract class ProfilerSmokeTest {
   @AfterAll
   static void teardown() {
     containerManager.stopEnvironment();
+    noParallelTestsLock.unlock();
   }
 
   static String getPetclinicImageName(String jdkVersion) {

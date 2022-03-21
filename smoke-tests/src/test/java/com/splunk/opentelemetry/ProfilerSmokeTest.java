@@ -27,6 +27,7 @@ import static org.junit.jupiter.api.Assumptions.assumeFalse;
 import com.splunk.opentelemetry.helper.TargetContainerBuilder;
 import com.splunk.opentelemetry.helper.TargetWaitStrategy;
 import com.splunk.opentelemetry.helper.TestContainerManager;
+import com.splunk.opentelemetry.helper.TestImage;
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
@@ -65,7 +66,6 @@ public abstract class ProfilerSmokeTest {
     }
   }
 
-  // FIXME: remove ignore when images for other versions are pushed
   @Ignore
   public static class TestJdk11 extends ProfilerSmokeTest {
     @BeforeAll
@@ -74,7 +74,6 @@ public abstract class ProfilerSmokeTest {
     }
   }
 
-  // FIXME: remove ignore when images for other versions are pushed
   @Ignore
   public static class TestJdk17 extends ProfilerSmokeTest {
     @BeforeAll
@@ -99,8 +98,15 @@ public abstract class ProfilerSmokeTest {
   }
 
   static String getPetclinicImageName(String jdkVersion) {
-    // FIXME: add JDK and OS parts to the image name once images are pushed
-    return "ghcr.io/signalfx/splunk-otel-java/profiling-petclinic-base:latest";
+    String prefix = "ghcr.io/signalfx/splunk-otel-java/profiling-petclinic-base-";
+    String suffix = "-jdk" + jdkVersion + ":latest";
+
+    TestImage linuxImage = TestImage.linuxImage(prefix + "linux" + suffix);
+    // Allows testing with Linux containers on Windows if that option is enabled
+    if (containerManager.isImageCompatible(linuxImage)) {
+      return linuxImage.imageName;
+    }
+    return prefix + "windows" + suffix;
   }
 
   @Test

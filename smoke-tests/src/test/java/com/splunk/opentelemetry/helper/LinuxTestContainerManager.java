@@ -149,15 +149,15 @@ public class LinuxTestContainerManager extends AbstractTestContainerManager {
                 it.isReadOnly ? BindMode.READ_ONLY : BindMode.READ_WRITE));
 
     if (builder.command != null) {
-      builder.withCommand(builder.command);
+      target.withCommand(builder.command.toArray(new String[0]));
     }
 
     if (builder.entrypoint != null) {
-      builder.withCommand(builder.entrypoint);
+      target.withCreateContainerCmdModifier(cmd -> cmd.withEntrypoint(builder.entrypoint));
     }
 
     if (!builder.networkAliases.isEmpty()) {
-      builder.withNetworkAliases(builder.networkAliases);
+      target.withNetworkAliases(builder.networkAliases.toArray(new String[0]));
     }
 
     target.withEnv(builder.extraEnv);

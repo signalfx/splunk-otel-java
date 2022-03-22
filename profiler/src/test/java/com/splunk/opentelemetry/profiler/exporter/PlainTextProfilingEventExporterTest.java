@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.splunk.opentelemetry.profiler;
+package com.splunk.opentelemetry.profiler.exporter;
 
 import static com.splunk.opentelemetry.profiler.LogExporterBuilder.INSTRUMENTATION_LIBRARY_INFO;
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.SOURCE_EVENT_NAME;
@@ -24,6 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import com.splunk.opentelemetry.profiler.LogDataCommonAttributes;
 import com.splunk.opentelemetry.profiler.context.SpanLinkage;
 import com.splunk.opentelemetry.profiler.context.StackToSpanLinkage;
 import com.splunk.opentelemetry.profiler.events.EventPeriods;
@@ -33,6 +34,7 @@ import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.api.trace.TraceFlags;
 import io.opentelemetry.api.trace.TraceState;
 import io.opentelemetry.context.Context;
+import io.opentelemetry.sdk.logs.LogProcessor;
 import io.opentelemetry.sdk.logs.data.LogData;
 import io.opentelemetry.sdk.logs.data.LogDataBuilder;
 import io.opentelemetry.sdk.resources.Resource;
@@ -40,7 +42,7 @@ import java.time.Duration;
 import java.time.Instant;
 import org.junit.jupiter.api.Test;
 
-class LogDataCreatorTest {
+class PlainTextProfilingEventExporterTest {
 
   @Test
   void testCreate() {
@@ -60,6 +62,23 @@ class LogDataCreatorTest {
     EventPeriods periods = mock(EventPeriods.class);
     when(periods.getDuration(eventName)).thenReturn(Duration.ofMillis(606));
 
+    class TestLogProcessor implements LogProcessor {
+      LogData logData;
+
+      @Override
+      public void emit(LogData logData) {
+        this.logData = logData;
+      }
+    }
+    TestLogProcessor testLogProcessor = new TestLogProcessor();
+
+    PlainTextProfilingEventExporter profilingEventExporter =
+        PlainTextProfilingEventExporter.builder()
+            .logProcessor(testLogProcessor)
+            .commonAttributes(new LogDataCommonAttributes(periods))
+            .resource(Resource.getDefault())
+            .build();
+
     SpanLinkage linkage = new SpanLinkage(spanContext, threadId);
     Resource resource = Resource.getDefault();
     Attributes attributes =
@@ -75,9 +94,8 @@ class LogDataCreatorTest {
 
     StackToSpanLinkage linkedSpan = new StackToSpanLinkage(time, "the.stack", eventName, linkage);
 
-    LogDataCreator creator =
-        new LogDataCreator(new LogDataCommonAttributes(periods), Resource.getDefault());
-    LogData result = creator.apply(linkedSpan);
+    profilingEventExporter.export(linkedSpan);
+    LogData result = testLogProcessor.logData;
     assertEquals(expected, result);
   }
 }

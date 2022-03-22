@@ -31,4 +31,6 @@ public class ProfilingSemanticAttributes {
 
   /** The period of the source event, in ms. */
   public static final AttributeKey<Long> SOURCE_EVENT_PERIOD = longKey("source.event.period");
+
+  public static final String PROFILING_SOURCE = "otel.profiling";
 }

@@ -56,6 +56,11 @@ property or as environment variables (by making them uppercase and replacing dot
 |`splunk.profiler.tracing.stacks.only`     | false                  | set to `true` to include only stack traces that are linked to a span context |
 |`splunk.profiler.period.{eventName}`      | n/a                    | DEPRECATED. Use `splunk.profiler.call.stack.interval` instead.
 
+If `splunk.profiler.enabled` option is not set to `true`, all profiling features will be disabled,
+even if something else is explicitly enabled. For example, setting `splunk.profiler.memory.enabled`
+to `true` will have no effect in that case. There is no separate toggle for periodic collection of
+call stacks (thread dumps) - this is always enabled when profiler is enabled.
+
 # Escape hatch
 
 The profiler limits its own behavior under two conditions:

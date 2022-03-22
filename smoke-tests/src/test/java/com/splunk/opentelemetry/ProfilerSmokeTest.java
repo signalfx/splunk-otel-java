@@ -223,7 +223,6 @@ public abstract class ProfilerSmokeTest {
 
   private static void generateSomeSpans() throws Exception {
     logger.info("Generating some spans...");
-    // int port = petclinic.getMappedPort(PETCLINIC_PORT);
     int port = containerManager.getTargetMappedPort(PETCLINIC_PORT);
     doGetRequest("http://localhost:" + port + "/petclinic/api/vets");
     doGetRequest("http://localhost:" + port + "/petclinic/api/visits");

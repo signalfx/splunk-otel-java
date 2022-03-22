@@ -26,17 +26,21 @@ import static com.splunk.opentelemetry.profiler.util.Runnables.logUncaught;
 
 import com.google.auto.service.AutoService;
 import com.splunk.opentelemetry.logs.BatchingLogsProcessor;
-import com.splunk.opentelemetry.profiler.Configuration.AllocationDataFormat;
+import com.splunk.opentelemetry.profiler.Configuration.DataFormat;
 import com.splunk.opentelemetry.profiler.allocation.exporter.AllocationEventExporter;
 import com.splunk.opentelemetry.profiler.allocation.exporter.PlainTextAllocationEventExporter;
 import com.splunk.opentelemetry.profiler.allocation.exporter.PprofAllocationEventExporter;
 import com.splunk.opentelemetry.profiler.context.SpanContextualizer;
 import com.splunk.opentelemetry.profiler.events.EventPeriods;
+import com.splunk.opentelemetry.profiler.exporter.PlainTextProfilingEventExporter;
+import com.splunk.opentelemetry.profiler.exporter.PprofProfilingEventExporter;
+import com.splunk.opentelemetry.profiler.exporter.ProfilingEventExporter;
 import com.splunk.opentelemetry.profiler.util.FileDeleter;
 import com.splunk.opentelemetry.profiler.util.HelpfulExecutors;
 import io.opentelemetry.instrumentation.api.config.Config;
 import io.opentelemetry.javaagent.extension.AgentListener;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
+import io.opentelemetry.sdk.logs.LogProcessor;
 import io.opentelemetry.sdk.logs.export.LogExporter;
 import io.opentelemetry.sdk.logs.export.SimpleLogProcessor;
 import io.opentelemetry.sdk.resources.Resource;
@@ -102,32 +106,35 @@ public class JfrActivator implements AgentListener {
     LogDataCommonAttributes commonAttributes = new LogDataCommonAttributes(periods);
     LogExporter logsExporter = LogExporterBuilder.fromConfig(config);
 
-    ScheduledExecutorService exportExecutorService =
-        HelpfulExecutors.newSingleThreadedScheduledExecutor("Batched Logs Exporter");
-    BatchingLogsProcessor batchingLogsProcessor =
-        BatchingLogsProcessor.builder()
-            .maxTimeBetweenBatches(MAX_TIME_BETWEEN_BATCHES)
-            .maxBatchSize(MAX_BATCH_SIZE)
-            .batchAction(logsExporter)
-            .executorService(exportExecutorService)
-            .build();
-    batchingLogsProcessor.start();
-
-    LogDataCreator logDataCreator = new LogDataCreator(commonAttributes, resource);
-
-    StackToSpanLinkageProcessor processor =
-        new StackToSpanLinkageProcessor(logDataCreator, batchingLogsProcessor);
+    DataFormat profilerDataFormat = Configuration.getProfilerDataFormat(config);
+    ProfilingEventExporter profilingEventExporter;
+    if (profilerDataFormat == DataFormat.TEXT) {
+      profilingEventExporter =
+          PlainTextProfilingEventExporter.builder()
+              .logProcessor(BatchLogProcessorHolder.get(logsExporter))
+              .commonAttributes(commonAttributes)
+              .resource(resource)
+              .build();
+    } else {
+      profilingEventExporter =
+          PprofProfilingEventExporter.builder()
+              .logProcessor(SimpleLogProcessor.create(logsExporter))
+              .resource(resource)
+              .profilingDataFormat(profilerDataFormat)
+              .eventPeriods(periods)
+              .build();
+    }
 
     ThreadDumpProcessor threadDumpProcessor =
         buildThreadDumpProcessor(
-            spanContextualizer, processor, buildStackTraceFilter(config), config);
+            spanContextualizer, profilingEventExporter, buildStackTraceFilter(config), config);
 
-    AllocationDataFormat allocationDataFormat = Configuration.getAllocationDataFormat(config);
+    DataFormat allocationDataFormat = Configuration.getAllocationDataFormat(config);
     AllocationEventExporter allocationEventExporter;
-    if (allocationDataFormat == AllocationDataFormat.TEXT) {
+    if (allocationDataFormat == DataFormat.TEXT) {
       allocationEventExporter =
           PlainTextAllocationEventExporter.builder()
-              .logProcessor(batchingLogsProcessor)
+              .logProcessor(BatchLogProcessorHolder.get(logsExporter))
               .commonAttributes(commonAttributes)
               .resource(resource)
               .build();
@@ -184,12 +191,12 @@ public class JfrActivator implements AgentListener {
 
   private ThreadDumpProcessor buildThreadDumpProcessor(
       SpanContextualizer spanContextualizer,
-      StackToSpanLinkageProcessor processor,
+      ProfilingEventExporter profilingEventExporter,
       StackTraceFilter stackTraceFilter,
       Config config) {
     return ThreadDumpProcessor.builder()
         .spanContextualizer(spanContextualizer)
-        .processor(processor)
+        .profilingEventExporter(profilingEventExporter)
         .stackTraceFilter(stackTraceFilter)
         .onlyTracingSpans(Configuration.getTracingStacksOnly(config))
         .build();
@@ -219,5 +226,26 @@ public class JfrActivator implements AgentListener {
 
   private boolean keepFiles(Config config) {
     return config.getBoolean(CONFIG_KEY_KEEP_FILES, false);
+  }
+
+  private static class BatchLogProcessorHolder {
+    private static LogProcessor INSTANCE;
+
+    static LogProcessor get(LogExporter logsExporter) {
+      if (INSTANCE == null) {
+        ScheduledExecutorService exportExecutorService =
+            HelpfulExecutors.newSingleThreadedScheduledExecutor("Batched Logs Exporter");
+        BatchingLogsProcessor batchingLogsProcessor =
+            BatchingLogsProcessor.builder()
+                .maxTimeBetweenBatches(MAX_TIME_BETWEEN_BATCHES)
+                .maxBatchSize(MAX_BATCH_SIZE)
+                .batchAction(logsExporter)
+                .executorService(exportExecutorService)
+                .build();
+        batchingLogsProcessor.start();
+        INSTANCE = batchingLogsProcessor;
+      }
+      return INSTANCE;
+    }
   }
 }

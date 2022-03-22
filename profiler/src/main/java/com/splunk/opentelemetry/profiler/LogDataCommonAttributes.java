@@ -35,7 +35,7 @@ public class LogDataCommonAttributes {
     this.periods = periods;
   }
 
-  AttributesBuilder builder(StackToSpanLinkage linkedStack) {
+  public AttributesBuilder builder(StackToSpanLinkage linkedStack) {
     return builder(linkedStack.getSourceEventName());
   }
 

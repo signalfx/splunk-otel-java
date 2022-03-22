@@ -25,6 +25,7 @@ import java.util.function.Consumer;
  * Glue helper to turn a linked stack into an otel LogData instance and pass it to the logs
  * processor.
  */
+// XXX delete
 public class StackToSpanLinkageProcessor implements Consumer<StackToSpanLinkage> {
   private final LogDataCreator logDataCreator;
   private final LogProcessor processor;

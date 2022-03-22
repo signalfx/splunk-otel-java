@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.splunk.opentelemetry.profiler.allocation.exporter;
+package com.splunk.opentelemetry.profiler.exporter;
 
 import static com.splunk.opentelemetry.profiler.LogDataCreator.PROFILING_SOURCE;
 import static com.splunk.opentelemetry.profiler.LogExporterBuilder.INSTRUMENTATION_LIBRARY_INFO;
@@ -24,11 +24,10 @@ import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.SOUR
 import static com.splunk.opentelemetry.profiler.pprof.PprofAttributeKeys.DATA_FORMAT;
 import static com.splunk.opentelemetry.profiler.pprof.PprofAttributeKeys.DATA_TYPE;
 
-import com.google.perftools.profiles.ProfileProto;
-import com.google.perftools.profiles.ProfileProto.Profile;
+import com.google.perftools.profiles.ProfileProto.Label;
 import com.google.perftools.profiles.ProfileProto.Sample;
 import com.splunk.opentelemetry.profiler.Configuration.DataFormat;
-import com.splunk.opentelemetry.profiler.allocation.sampler.AllocationEventSampler;
+import com.splunk.opentelemetry.profiler.context.StackToSpanLinkage;
 import com.splunk.opentelemetry.profiler.events.EventPeriods;
 import com.splunk.opentelemetry.profiler.pprof.Pprof;
 import io.opentelemetry.api.common.Attributes;
@@ -39,96 +38,154 @@ import io.opentelemetry.sdk.resources.Resource;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
-import jdk.jfr.consumer.RecordedEvent;
-import jdk.jfr.consumer.RecordedFrame;
-import jdk.jfr.consumer.RecordedMethod;
-import jdk.jfr.consumer.RecordedStackTrace;
-import jdk.jfr.consumer.RecordedThread;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class PprofAllocationEventExporter implements AllocationEventExporter {
-  private static final Logger logger = LoggerFactory.getLogger(PprofAllocationEventExporter.class);
+public class PprofProfilingEventExporter implements ProfilingEventExporter {
+  private static final Logger logger = LoggerFactory.getLogger(PprofProfilingEventExporter.class);
 
   private final LogProcessor logProcessor;
   private final Resource resource;
-  private final DataFormat allocationDataFormat;
+  private final DataFormat profilingDataFormat;
   private final EventPeriods eventPeriods;
   private Pprof pprof = createPprof();
 
-  private PprofAllocationEventExporter(Builder builder) {
+  private PprofProfilingEventExporter(Builder builder) {
     this.logProcessor = builder.logProcessor;
     this.resource = builder.resource;
-    this.allocationDataFormat = builder.allocationDataFormat;
+    this.profilingDataFormat = builder.profilingDataFormat;
     this.eventPeriods = builder.eventPeriods;
   }
 
   @Override
-  public void export(RecordedEvent event, AllocationEventSampler sampler, SpanContext spanContext) {
-    RecordedStackTrace stackTrace = event.getStackTrace();
-    if (stackTrace == null) {
+  public void export(StackToSpanLinkage stackToSpanLinkage) {
+    StackTrace st = handleStackTrace(stackToSpanLinkage.getRawStack());
+    if (st.stackTraceLines.isEmpty()) {
       return;
     }
 
-    long allocationSize = event.getLong("allocationSize");
-
     Sample.Builder sample = Sample.newBuilder();
-    sample.addValue(allocationSize);
-    // XXX StackSerializer limits stack depth. Although I believe jfr also limits it should we
-    // attempt to limit the depth here too?
-    for (RecordedFrame frame : stackTrace.getFrames()) {
-      RecordedMethod method = frame.getMethod();
-      if (method == null) {
-        sample.addLocationId(pprof.getLocationId("unknown", "unknown.unknown", -1));
-      } else {
-        sample.addLocationId(
-            pprof.getLocationId(
-                "unknown", // file name is not known
-                method.getType().getName() + "." + method.getName(),
-                frame.getLineNumber()));
-      }
+    {
+      Label.Builder label = Label.newBuilder();
+      // XXX should we attempt to extract relevant attributes here?
+      label.setKey(pprof.getStringId("thread.header"));
+      label.setStr(pprof.getStringId(st.header));
     }
 
-    String eventName = event.getEventType().getName();
+    {
+      // XXX is this needed
+      Label.Builder label = Label.newBuilder();
+      label.setKey(pprof.getStringId("thread.status"));
+      label.setStr(pprof.getStringId(st.status));
+    }
+
+    for (StackTraceLine stl : st.stackTraceLines) {
+      sample.addLocationId(pprof.getLocationId(stl.location, stl.classAndMethod, stl.lineNumber));
+    }
+
+    String eventName = stackToSpanLinkage.getSourceEventName();
     pprof.addLabel(sample, SOURCE_EVENT_NAME.getKey(), eventName);
     Duration eventPeriod = eventPeriods.getDuration(eventName);
     if (!EventPeriods.UNKNOWN.equals(eventPeriod)) {
       pprof.addLabel(sample, SOURCE_EVENT_PERIOD.getKey(), eventPeriod.toMillis());
     }
-    Instant time = event.getStartTime();
+    Instant time = stackToSpanLinkage.getTime();
     pprof.addLabel(sample, "source.event.time", time.toEpochMilli());
 
-    RecordedThread thread = event.getThread();
-    pprof.addLabel(sample, "thread.id", thread.getJavaThreadId());
-    pprof.addLabel(sample, "thread.name", thread.getJavaName());
-
+    SpanContext spanContext = stackToSpanLinkage.getSpanContext();
     if (spanContext != null && spanContext.isValid()) {
       pprof.addLabel(sample, "trace_id", spanContext.getTraceId());
       pprof.addLabel(sample, "span_id", spanContext.getSpanId());
-    }
-    if (sampler != null) {
-      sampler.addAttributes(
-          (k, v) -> pprof.addLabel(sample, k, v), (k, v) -> pprof.addLabel(sample, k, v));
     }
 
     pprof.getProfileBuilder().addSample(sample);
   }
 
-  private static Pprof createPprof() {
-    Pprof pprof = new Pprof();
-    Profile.Builder profile = pprof.getProfileBuilder();
-    profile.addSampleType(
-        ProfileProto.ValueType.newBuilder()
-            .setType(pprof.getStringId("allocationSize"))
-            .setUnit(pprof.getStringId("bytes"))
-            .build());
+  private static StackTrace handleStackTrace(String stackTrace) {
+    // \\R - Any Unicode linebreak sequence
+    String[] lines = stackTrace.split("\\R");
+    String header = lines[0];
+    String status = lines[1];
+    List<StackTraceLine> stackTraceLines = new ArrayList<>();
+    for (int i = 2; i < lines.length; i++) {
+      StackTraceLine stl = handleStackTraceLine(lines[i]);
+      if (stl != null) {
+        stackTraceLines.add(stl);
+      }
+    }
 
-    return pprof;
+    return new StackTrace(header, status, stackTraceLines);
+  }
+
+  private static StackTraceLine handleStackTraceLine(String line) {
+    // we expect the stack trace line to look like
+    // at java.lang.Thread.run(java.base@11.0.9.1/Thread.java:834)
+    if (!line.startsWith("\tat ")) {
+      return null;
+    }
+    if (!line.endsWith(")")) {
+      return null;
+    }
+    // remove "\tat " and trailing ")"
+    line = line.substring(4, line.length() - 1);
+    int i = line.lastIndexOf('(');
+    if (i == -1) {
+      return null;
+    }
+    String classAndMethod = line.substring(0, i);
+    String location = line.substring(i + 1);
+
+    i = location.indexOf('/');
+    if (i != -1) {
+      location = location.substring(i + 1);
+    }
+
+    int lineNumber = -1;
+    i = location.indexOf(':');
+    if (i != -1) {
+      try {
+        lineNumber = Integer.parseInt(location.substring(i + 1));
+      } catch (NumberFormatException ignored) {
+      }
+      location = location.substring(0, i);
+    }
+
+    return new StackTraceLine(classAndMethod, location, lineNumber);
+  }
+
+  private static class StackTrace {
+    final String header;
+    final String status;
+    final List<StackTraceLine> stackTraceLines;
+
+    StackTrace(String header, String status, List<StackTraceLine> stackTraceLines) {
+      this.header = header;
+      this.status = status;
+      this.stackTraceLines = stackTraceLines;
+    }
+  }
+
+  private static class StackTraceLine {
+    final String classAndMethod;
+    final String location;
+    final int lineNumber;
+
+    StackTraceLine(String classAndMethod, String location, int lineNumber) {
+      this.classAndMethod = classAndMethod;
+      this.location = location;
+      this.lineNumber = lineNumber;
+    }
+  }
+
+  private static Pprof createPprof() {
+    return new Pprof();
   }
 
   private byte[] serializePprof() {
-    byte[] result = pprof.serialize(allocationDataFormat);
+    byte[] result = pprof.serialize(profilingDataFormat);
     pprof = createPprof();
     return result;
   }
@@ -137,7 +194,7 @@ public class PprofAllocationEventExporter implements AllocationEventExporter {
   public void flush() {
     // Flush is called after each JFR chunk, hopefully this will keep batch sizes small enough.
     byte[] bytes = serializePprof();
-    String format = allocationDataFormat.toString().toLowerCase(Locale.ROOT).replace('_', '-');
+    String format = profilingDataFormat.toString().toLowerCase(Locale.ROOT).replace('_', '-');
 
     // XXX just to give an overview of exported data size
     logger.info("Exporting {}, size {}", format, bytes.length);
@@ -145,7 +202,7 @@ public class PprofAllocationEventExporter implements AllocationEventExporter {
     Attributes attributes =
         Attributes.builder()
             .put(SOURCE_TYPE, PROFILING_SOURCE)
-            .put(DATA_TYPE, "allocation") // tells that this message is about allocation samples
+            .put(DATA_TYPE, "profiling") // tells that this message is about allocation samples
             .put(DATA_FORMAT, format) // data format
             .build();
 
@@ -166,11 +223,11 @@ public class PprofAllocationEventExporter implements AllocationEventExporter {
   public static class Builder {
     private LogProcessor logProcessor;
     private Resource resource;
-    private DataFormat allocationDataFormat;
+    private DataFormat profilingDataFormat;
     private EventPeriods eventPeriods;
 
-    public PprofAllocationEventExporter build() {
-      return new PprofAllocationEventExporter(this);
+    public PprofProfilingEventExporter build() {
+      return new PprofProfilingEventExporter(this);
     }
 
     public Builder logProcessor(LogProcessor logsProcessor) {
@@ -183,8 +240,8 @@ public class PprofAllocationEventExporter implements AllocationEventExporter {
       return this;
     }
 
-    public Builder allocationDataFormat(DataFormat allocationDataFormat) {
-      this.allocationDataFormat = allocationDataFormat;
+    public Builder profilingDataFormat(DataFormat profilingDataFormat) {
+      this.profilingDataFormat = profilingDataFormat;
       return this;
     }
 

@@ -14,33 +14,31 @@
  * limitations under the License.
  */
 
-package com.splunk.opentelemetry.profiler;
+package com.splunk.opentelemetry.profiler.exporter;
 
 import static com.splunk.opentelemetry.profiler.LogExporterBuilder.INSTRUMENTATION_LIBRARY_INFO;
 
+import com.splunk.opentelemetry.profiler.LogDataCommonAttributes;
 import com.splunk.opentelemetry.profiler.context.StackToSpanLinkage;
 import io.opentelemetry.api.common.Attributes;
+import io.opentelemetry.sdk.logs.LogProcessor;
 import io.opentelemetry.sdk.logs.data.LogData;
 import io.opentelemetry.sdk.logs.data.LogDataBuilder;
 import io.opentelemetry.sdk.resources.Resource;
-import java.util.function.Function;
 
-/** Turns a linked stack into a new LogData instance */
-// XXX delete
-public class LogDataCreator implements Function<StackToSpanLinkage, LogData> {
-
-  public static final String PROFILING_SOURCE = "otel.profiling";
-
+public class PlainTextProfilingEventExporter implements ProfilingEventExporter {
+  private final LogProcessor logProcessor;
   private final LogDataCommonAttributes commonAttributes;
   private final Resource resource;
 
-  public LogDataCreator(LogDataCommonAttributes commonAttributes, Resource resource) {
-    this.commonAttributes = commonAttributes;
-    this.resource = resource;
+  private PlainTextProfilingEventExporter(Builder builder) {
+    this.logProcessor = builder.logProcessor;
+    this.commonAttributes = builder.commonAttributes;
+    this.resource = builder.resource;
   }
 
   @Override
-  public LogData apply(StackToSpanLinkage linkedStack) {
+  public void export(StackToSpanLinkage linkedStack) {
     Attributes attributes = commonAttributes.builder(linkedStack).build();
 
     LogDataBuilder logDataBuilder =
@@ -51,6 +49,37 @@ public class LogDataCreator implements Function<StackToSpanLinkage, LogData> {
     if (linkedStack.hasSpanInfo()) {
       logDataBuilder.setSpanContext(linkedStack.getSpanContext());
     }
-    return logDataBuilder.build();
+
+    LogData log = logDataBuilder.build();
+    logProcessor.emit(log);
+  }
+
+  public static Builder builder() {
+    return new Builder();
+  }
+
+  public static class Builder {
+    private LogProcessor logProcessor;
+    private LogDataCommonAttributes commonAttributes;
+    private Resource resource;
+
+    public PlainTextProfilingEventExporter build() {
+      return new PlainTextProfilingEventExporter(this);
+    }
+
+    public Builder logProcessor(LogProcessor logsProcessor) {
+      this.logProcessor = logsProcessor;
+      return this;
+    }
+
+    public Builder commonAttributes(LogDataCommonAttributes commonAttributes) {
+      this.commonAttributes = commonAttributes;
+      return this;
+    }
+
+    public Builder resource(Resource resource) {
+      this.resource = resource;
+      return this;
+    }
   }
 }

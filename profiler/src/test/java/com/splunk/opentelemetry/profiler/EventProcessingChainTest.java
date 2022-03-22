@@ -77,6 +77,7 @@ class EventProcessingChainTest {
     inOrder.verify(contextualizer).updateContext(contextEvent);
     inOrder.verify(tlabProcessor).accept(tlab2);
     inOrder.verify(tlabProcessor).flush();
+    inOrder.verify(threadDumpProcessor).flush();
     inOrder.verifyNoMoreInteractions();
   }
 
@@ -187,6 +188,7 @@ class EventProcessingChainTest {
     ordered.verify(contextualizer).updateContext(event1);
     ordered.verify(contextualizer).updateContext(event2);
     ordered.verify(threadDumpProcessor).accept(event3);
+    ordered.verify(threadDumpProcessor).flush();
     ordered.verifyNoMoreInteractions();
   }
 

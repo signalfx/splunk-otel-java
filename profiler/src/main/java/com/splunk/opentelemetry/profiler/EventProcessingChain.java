@@ -79,6 +79,7 @@ class EventProcessingChain {
     buffer.clear();
     chunkTracker.reset();
     tlabProcessor.flush();
+    threadDumpProcessor.flush();
   }
 
   private void dispatchEvent(RecordedEvent event) {

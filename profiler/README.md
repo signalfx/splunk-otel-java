@@ -57,9 +57,10 @@ property or as environment variables (by making them uppercase and replacing dot
 |`splunk.profiler.period.{eventName}`      | n/a                    | DEPRECATED. Use `splunk.profiler.call.stack.interval` instead.
 
 If the `splunk.profiler.enabled` option is not enabled, all profiling features are disabled. For 
-example, setting `splunk.profiler.memory.enabled` to `true`has no effect if `splunk.profiler.enabled`
-is set to `false`. Similarly, there is no separate toggle for periodic collection of call stacks (thread dumps),
-as this feature is enabled only when the profiler is enabled.
+example, setting `splunk.profiler.memory.enabled` to `true` has no effect if 
+`splunk.profiler.enabled` is set to `false`. Similarly, there is no separate toggle for periodic 
+collection of call stacks (thread dumps), as this feature is enabled only when the profiler is 
+enabled.
 
 # Escape hatch
 

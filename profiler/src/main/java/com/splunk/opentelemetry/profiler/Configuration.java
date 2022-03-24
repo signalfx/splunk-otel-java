@@ -127,6 +127,16 @@ public class Configuration implements ConfigPropertySource {
     PPROF,
     PPROF_BASE64,
     PPROF_GZIP,
-    PPROF_GZIP_BASE64
+    PPROF_GZIP_BASE64;
+
+    private String value;
+
+    DataFormat() {
+      value = name().toLowerCase(Locale.ROOT).replace('_', '-');
+    }
+
+    public String value() {
+      return value;
+    }
   }
 }

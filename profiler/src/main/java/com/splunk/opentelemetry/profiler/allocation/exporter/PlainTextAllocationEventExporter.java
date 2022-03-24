@@ -17,8 +17,12 @@
 package com.splunk.opentelemetry.profiler.allocation.exporter;
 
 import static com.splunk.opentelemetry.profiler.LogExporterBuilder.INSTRUMENTATION_LIBRARY_INFO;
+import static com.splunk.opentelemetry.profiler.pprof.PprofAttributeKeys.DATA_FORMAT;
+import static com.splunk.opentelemetry.profiler.pprof.PprofAttributeKeys.DATA_TYPE;
 
+import com.splunk.opentelemetry.profiler.Configuration.DataFormat;
 import com.splunk.opentelemetry.profiler.LogDataCommonAttributes;
+import com.splunk.opentelemetry.profiler.ProfilingDataType;
 import com.splunk.opentelemetry.profiler.allocation.sampler.AllocationEventSampler;
 import com.splunk.opentelemetry.profiler.util.StackSerializer;
 import io.opentelemetry.api.common.AttributeKey;
@@ -61,6 +65,8 @@ public class PlainTextAllocationEventExporter implements AllocationEventExporter
     AttributesBuilder builder =
         commonAttributes
             .builder(event.getEventType().getName())
+            .put(DATA_TYPE, ProfilingDataType.ALLOCATION.value())
+            .put(DATA_FORMAT, DataFormat.TEXT.value())
             .put(ALLOCATION_SIZE_KEY, event.getLong("allocationSize"));
     if (sampler != null) {
       sampler.addAttributes((k, v) -> builder.put(k, v), (k, v) -> builder.put(k, v));
@@ -85,7 +91,13 @@ public class PlainTextAllocationEventExporter implements AllocationEventExporter
     RecordedThread thread = event.getThread();
     String name = thread == null ? "unknown" : thread.getJavaName();
     long id = thread == null ? 0 : thread.getJavaThreadId();
-    return "\"" + name + "\"" + " #" + id + "\n" + "   java.lang.Thread.State: UNKNOWN\n" + stack;
+    String result = "\"" + name + "\"" + " #" + id;
+    if (thread != null) {
+      result += " nid=0x" + Long.toHexString(thread.getOSThreadId());
+    }
+    result += "\n";
+    result += "   java.lang.Thread.State: UNKNOWN\n" + stack;
+    return result;
   }
 
   public static Builder builder() {

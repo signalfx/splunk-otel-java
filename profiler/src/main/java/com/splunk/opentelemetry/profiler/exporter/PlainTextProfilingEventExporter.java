@@ -17,8 +17,12 @@
 package com.splunk.opentelemetry.profiler.exporter;
 
 import static com.splunk.opentelemetry.profiler.LogExporterBuilder.INSTRUMENTATION_LIBRARY_INFO;
+import static com.splunk.opentelemetry.profiler.pprof.PprofAttributeKeys.DATA_FORMAT;
+import static com.splunk.opentelemetry.profiler.pprof.PprofAttributeKeys.DATA_TYPE;
 
+import com.splunk.opentelemetry.profiler.Configuration;
 import com.splunk.opentelemetry.profiler.LogDataCommonAttributes;
+import com.splunk.opentelemetry.profiler.ProfilingDataType;
 import com.splunk.opentelemetry.profiler.context.StackToSpanLinkage;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.sdk.logs.LogProcessor;
@@ -39,7 +43,12 @@ public class PlainTextProfilingEventExporter implements ProfilingEventExporter {
 
   @Override
   public void export(StackToSpanLinkage linkedStack) {
-    Attributes attributes = commonAttributes.builder(linkedStack).build();
+    Attributes attributes =
+        commonAttributes
+            .builder(linkedStack)
+            .put(DATA_TYPE, ProfilingDataType.PROFILING.value())
+            .put(DATA_FORMAT, Configuration.DataFormat.TEXT.value())
+            .build();
 
     LogDataBuilder logDataBuilder =
         LogDataBuilder.create(resource, INSTRUMENTATION_LIBRARY_INFO)

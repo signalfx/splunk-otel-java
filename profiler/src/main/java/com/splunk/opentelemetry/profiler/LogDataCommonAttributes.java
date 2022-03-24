@@ -42,10 +42,6 @@ public class LogDataCommonAttributes {
   public AttributesBuilder builder(String eventName) {
     Duration eventPeriod = periods.getDuration(eventName);
 
-    // Note: It is currently believed that the span id and trace id on the LogRecord itself
-    // do not get ingested correctly. Placing them here as attributes is a temporary workaround
-    // until the collector/ingest can be remedied.
-
     AttributesBuilder builder =
         Attributes.builder().put(SOURCE_TYPE, PROFILING_SOURCE).put(SOURCE_EVENT_NAME, eventName);
 

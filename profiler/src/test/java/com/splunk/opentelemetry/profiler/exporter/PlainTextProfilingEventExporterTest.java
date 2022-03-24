@@ -20,11 +20,13 @@ import static com.splunk.opentelemetry.profiler.LogExporterBuilder.INSTRUMENTATI
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.SOURCE_EVENT_NAME;
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.SOURCE_EVENT_PERIOD;
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.SOURCE_TYPE;
+import static com.splunk.opentelemetry.profiler.pprof.PprofAttributeKeys.DATA_TYPE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.splunk.opentelemetry.profiler.LogDataCommonAttributes;
+import com.splunk.opentelemetry.profiler.ProfilingDataType;
 import com.splunk.opentelemetry.profiler.context.SpanLinkage;
 import com.splunk.opentelemetry.profiler.context.StackToSpanLinkage;
 import com.splunk.opentelemetry.profiler.events.EventPeriods;
@@ -83,7 +85,14 @@ class PlainTextProfilingEventExporterTest {
     Resource resource = Resource.getDefault();
     Attributes attributes =
         Attributes.of(
-            SOURCE_EVENT_NAME, eventName, SOURCE_EVENT_PERIOD, 606L, SOURCE_TYPE, "otel.profiling");
+            SOURCE_EVENT_NAME,
+            eventName,
+            SOURCE_EVENT_PERIOD,
+            606L,
+            SOURCE_TYPE,
+            "otel.profiling",
+            DATA_TYPE,
+            ProfilingDataType.PROFILING.value());
     LogData expected =
         LogDataBuilder.create(resource, INSTRUMENTATION_LIBRARY_INFO)
             .setContext(context)

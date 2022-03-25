@@ -58,7 +58,6 @@ public class ThreadDumpProcessor {
           new StackToSpanLinkage(
               event.getStartTime(), stack.getCurrentRegion(), eventName, linkage);
       profilingEventExporter.export(spanWithLinkage);
-      // processor.accept(spanWithLinkage);
     }
   }
 

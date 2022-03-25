@@ -18,6 +18,13 @@ package com.splunk.opentelemetry.profiler.exporter;
 
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.SOURCE_EVENT_NAME;
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.SOURCE_EVENT_PERIOD;
+import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.SOURCE_EVENT_TIME;
+import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.SPAN_ID;
+import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.THREAD_ID;
+import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.THREAD_NAME;
+import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.THREAD_NATIVE_ID;
+import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.THREAD_STATUS;
+import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.TRACE_ID;
 
 import com.google.perftools.profiles.ProfileProto.Sample;
 import com.splunk.opentelemetry.profiler.Configuration.DataFormat;
@@ -52,36 +59,37 @@ public class PprofProfilingEventExporter implements ProfilingEventExporter {
   @Override
   public void export(StackToSpanLinkage stackToSpanLinkage) {
     StackTrace stackTrace = StackTraceParser.parse(stackToSpanLinkage.getRawStack());
-    if (stackTrace == null || stackTrace.stackTraceLines.isEmpty()) {
+    if (stackTrace == null || stackTrace.getStackTraceLines().isEmpty()) {
       return;
     }
 
     Sample.Builder sample = Sample.newBuilder();
 
-    if (stackTrace.threadId != -1) {
-      pprof.addLabel(sample, "thread.id", stackTrace.threadId);
-      pprof.addLabel(sample, "thread.name", stackTrace.threadName);
+    if (stackTrace.getThreadId() != -1) {
+      pprof.addLabel(sample, THREAD_ID, stackTrace.getThreadId());
+      pprof.addLabel(sample, THREAD_NAME, stackTrace.getThreadName());
     }
-    pprof.addLabel(sample, "thread.native.id", stackTrace.nativeThreadId);
-    pprof.addLabel(sample, "thread.status", stackTrace.threadStatus);
+    pprof.addLabel(sample, THREAD_NATIVE_ID, stackTrace.getNativeThreadId());
+    pprof.addLabel(sample, THREAD_STATUS, stackTrace.getThreadStatus());
 
-    for (StackTraceParser.StackTraceLine stl : stackTrace.stackTraceLines) {
-      sample.addLocationId(pprof.getLocationId(stl.location, stl.classAndMethod, stl.lineNumber));
+    for (StackTraceParser.StackTraceLine stl : stackTrace.getStackTraceLines()) {
+      sample.addLocationId(
+          pprof.getLocationId(stl.getLocation(), stl.getClassAndMethod(), stl.getLineNumber()));
     }
 
     String eventName = stackToSpanLinkage.getSourceEventName();
-    pprof.addLabel(sample, SOURCE_EVENT_NAME.getKey(), eventName);
+    pprof.addLabel(sample, SOURCE_EVENT_NAME, eventName);
     Duration eventPeriod = eventPeriods.getDuration(eventName);
     if (!EventPeriods.UNKNOWN.equals(eventPeriod)) {
-      pprof.addLabel(sample, SOURCE_EVENT_PERIOD.getKey(), eventPeriod.toMillis());
+      pprof.addLabel(sample, SOURCE_EVENT_PERIOD, eventPeriod.toMillis());
     }
     Instant time = stackToSpanLinkage.getTime();
-    pprof.addLabel(sample, "source.event.time", time.toEpochMilli());
+    pprof.addLabel(sample, SOURCE_EVENT_TIME, time.toEpochMilli());
 
     SpanContext spanContext = stackToSpanLinkage.getSpanContext();
     if (spanContext != null && spanContext.isValid()) {
-      pprof.addLabel(sample, "trace_id", spanContext.getTraceId());
-      pprof.addLabel(sample, "span_id", spanContext.getSpanId());
+      pprof.addLabel(sample, TRACE_ID, spanContext.getTraceId());
+      pprof.addLabel(sample, SPAN_ID, spanContext.getSpanId());
     }
 
     pprof.getProfileBuilder().addSample(sample);

@@ -19,6 +19,7 @@ package com.splunk.opentelemetry.profiler.pprof;
 import static com.google.perftools.profiles.ProfileProto.*;
 
 import com.splunk.opentelemetry.profiler.Configuration;
+import io.opentelemetry.api.common.AttributeKey;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -50,8 +51,16 @@ public class Pprof {
     return locationTable.get(file, function, line);
   }
 
+  public void addLabel(Sample.Builder sample, AttributeKey<String> key, String value) {
+    addLabel(sample, key.getKey(), value);
+  }
+
   public void addLabel(Sample.Builder sample, String name, String value) {
     addLabel(sample, name, label -> label.setStr(stringTable.get(value)));
+  }
+
+  public void addLabel(Sample.Builder sample, AttributeKey<Long> key, long value) {
+    addLabel(sample, key.getKey(), value);
   }
 
   public void addLabel(Sample.Builder sample, String name, long value) {

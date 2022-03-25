@@ -34,11 +34,11 @@ class StackTraceParser {
     StackTraceBuilder builder = new StackTraceBuilder();
 
     parseHeader(builder, lines[0]);
-    builder.threadStatus = parseThreadStatus(lines[1]);
+    builder.setThreadStatus(parseThreadStatus(lines[1]));
     for (int i = 2; i < lines.length; i++) {
-      StackTraceLine stl = parseStackTraceLine(lines[i]);
-      if (stl != null) {
-        builder.stackTraceLines.add(stl);
+      StackTraceLine stackTraceLine = parseStackTraceLine(lines[i]);
+      if (stackTraceLine != null) {
+        builder.addStackTraceLine(stackTraceLine);
       }
     }
 
@@ -53,7 +53,7 @@ class StackTraceParser {
     if (nameEnd == 0) {
       return;
     }
-    builder.threadName = header.substring(1, nameEnd);
+    builder.setThreadName(header.substring(1, nameEnd));
 
     // some threads don't have an id
     int idEnd = nameEnd;
@@ -64,7 +64,7 @@ class StackTraceParser {
         return;
       }
       try {
-        builder.threadId = Integer.parseInt(header.substring(idStart + 1, idEnd));
+        builder.setThreadId(Integer.parseInt(header.substring(idStart + 1, idEnd)));
       } catch (NumberFormatException ignore) {
       }
     }
@@ -76,9 +76,9 @@ class StackTraceParser {
         return;
       }
       try {
-        builder.nativeThreadId =
+        builder.setNativeThreadId(
             Integer.parseInt(
-                header.substring(nidStart + THREAD_NATIVE_ID_PREFIX.length(), nidEnd), 16);
+                header.substring(nidStart + THREAD_NATIVE_ID_PREFIX.length(), nidEnd), 16));
       } catch (NumberFormatException ignore) {
       }
     }
@@ -130,42 +130,114 @@ class StackTraceParser {
   }
 
   private static class StackTraceBuilder {
-    int threadId = -1;
-    String threadName;
-    int nativeThreadId = -1;
-    String threadStatus;
-    List<StackTraceLine> stackTraceLines = new ArrayList<>();
+    private int threadId = -1;
+    private String threadName;
+    private int nativeThreadId = -1;
+    private String threadStatus;
+    private List<StackTraceLine> stackTraceLines = new ArrayList<>();
 
     StackTrace build() {
       return new StackTrace(this);
     }
+
+    int getThreadId() {
+      return threadId;
+    }
+
+    void setThreadId(int threadId) {
+      this.threadId = threadId;
+    }
+
+    String getThreadName() {
+      return threadName;
+    }
+
+    void setThreadName(String threadName) {
+      this.threadName = threadName;
+    }
+
+    int getNativeThreadId() {
+      return nativeThreadId;
+    }
+
+    void setNativeThreadId(int nativeThreadId) {
+      this.nativeThreadId = nativeThreadId;
+    }
+
+    String getThreadStatus() {
+      return threadStatus;
+    }
+
+    void setThreadStatus(String threadStatus) {
+      this.threadStatus = threadStatus;
+    }
+
+    List<StackTraceLine> getStackTraceLines() {
+      return stackTraceLines;
+    }
+
+    void addStackTraceLine(StackTraceLine stackTraceLine) {
+      stackTraceLines.add(stackTraceLine);
+    }
   }
 
   static class StackTrace {
-    final int threadId;
-    final String threadName;
-    final int nativeThreadId;
-    final String threadStatus;
-    final List<StackTraceLine> stackTraceLines;
+    private final int threadId;
+    private final String threadName;
+    private final int nativeThreadId;
+    private final String threadStatus;
+    private final List<StackTraceLine> stackTraceLines;
 
     StackTrace(StackTraceBuilder builder) {
-      this.threadId = builder.threadId;
-      this.threadName = builder.threadName;
-      this.nativeThreadId = builder.nativeThreadId;
-      this.threadStatus = builder.threadStatus;
-      this.stackTraceLines = builder.stackTraceLines;
+      this.threadId = builder.getThreadId();
+      this.threadName = builder.getThreadName();
+      this.nativeThreadId = builder.getNativeThreadId();
+      this.threadStatus = builder.getThreadStatus();
+      this.stackTraceLines = builder.getStackTraceLines();
+    }
+
+    int getThreadId() {
+      return threadId;
+    }
+
+    String getThreadName() {
+      return threadName;
+    }
+
+    int getNativeThreadId() {
+      return nativeThreadId;
+    }
+
+    String getThreadStatus() {
+      return threadStatus;
+    }
+
+    List<StackTraceLine> getStackTraceLines() {
+      return stackTraceLines;
     }
   }
 
   static class StackTraceLine {
-    final String classAndMethod;
-    final String location;
-    final int lineNumber;
+    private final String classAndMethod;
+    private final String location;
+    private final int lineNumber;
 
     StackTraceLine(String classAndMethod, String location, int lineNumber) {
       this.classAndMethod = classAndMethod;
       this.location = location;
       this.lineNumber = lineNumber;
+    }
+
+    String getClassAndMethod() {
+      return classAndMethod;
+    }
+
+    String getLocation() {
+      return location;
+    }
+
+    int getLineNumber() {
+      return lineNumber;
     }
   }
 }

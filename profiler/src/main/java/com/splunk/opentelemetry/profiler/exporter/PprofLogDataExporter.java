@@ -16,11 +16,11 @@
 
 package com.splunk.opentelemetry.profiler.exporter;
 
-import static com.splunk.opentelemetry.profiler.LogExporterBuilder.INSTRUMENTATION_LIBRARY_INFO;
+import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.DATA_FORMAT;
+import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.DATA_TYPE;
+import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.INSTRUMENTATION_LIBRARY_INFO;
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.PROFILING_SOURCE;
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.SOURCE_TYPE;
-import static com.splunk.opentelemetry.profiler.pprof.PprofAttributeKeys.DATA_FORMAT;
-import static com.splunk.opentelemetry.profiler.pprof.PprofAttributeKeys.DATA_TYPE;
 
 import com.splunk.opentelemetry.profiler.Configuration.DataFormat;
 import com.splunk.opentelemetry.profiler.ProfilingDataType;

@@ -39,25 +39,25 @@ class StackTraceParserTest {
         continue;
       }
       System.err.println(
-          stackTrace.threadName
+          stackTrace.getThreadName()
               + " "
-              + stackTrace.threadId
+              + stackTrace.getThreadId()
               + " "
-              + stackTrace.nativeThreadId
+              + stackTrace.getNativeThreadId()
               + " "
-              + stackTrace.stackTraceLines.size());
-      Assertions.assertNotNull(stackTrace.threadName);
-      if (!stackTrace.stackTraceLines.isEmpty()) {
-        Assertions.assertNotEquals(-1, stackTrace.threadId);
-        Assertions.assertNotNull(stackTrace.threadStatus);
+              + stackTrace.getStackTraceLines().size());
+      Assertions.assertNotNull(stackTrace.getThreadName());
+      if (!stackTrace.getStackTraceLines().isEmpty()) {
+        Assertions.assertNotEquals(-1, stackTrace.getThreadId());
+        Assertions.assertNotNull(stackTrace.getThreadStatus());
       }
-      Assertions.assertNotEquals(-1, stackTrace.nativeThreadId);
+      Assertions.assertNotEquals(-1, stackTrace.getNativeThreadId());
 
-      if (stackTrace.threadId == 39) {
-        Assertions.assertEquals("container-0", stackTrace.threadName);
-        Assertions.assertEquals(0xaa03, stackTrace.nativeThreadId);
-        Assertions.assertEquals("TIMED_WAITING (sleeping)", stackTrace.threadStatus);
-        Assertions.assertEquals(3, stackTrace.stackTraceLines.size());
+      if (stackTrace.getThreadId() == 39) {
+        Assertions.assertEquals("container-0", stackTrace.getThreadName());
+        Assertions.assertEquals(0xaa03, stackTrace.getNativeThreadId());
+        Assertions.assertEquals("TIMED_WAITING (sleeping)", stackTrace.getThreadStatus());
+        Assertions.assertEquals(3, stackTrace.getStackTraceLines().size());
         found = true;
       }
     }

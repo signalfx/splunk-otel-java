@@ -18,6 +18,12 @@ package com.splunk.opentelemetry.profiler.allocation.exporter;
 
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.SOURCE_EVENT_NAME;
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.SOURCE_EVENT_PERIOD;
+import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.SOURCE_EVENT_TIME;
+import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.SPAN_ID;
+import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.THREAD_ID;
+import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.THREAD_NAME;
+import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.THREAD_NATIVE_ID;
+import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.TRACE_ID;
 
 import com.google.perftools.profiles.ProfileProto;
 import com.google.perftools.profiles.ProfileProto.Profile;
@@ -87,24 +93,24 @@ public class PprofAllocationEventExporter implements AllocationEventExporter {
     }
 
     String eventName = event.getEventType().getName();
-    pprof.addLabel(sample, SOURCE_EVENT_NAME.getKey(), eventName);
+    pprof.addLabel(sample, SOURCE_EVENT_NAME, eventName);
     Duration eventPeriod = eventPeriods.getDuration(eventName);
     if (!EventPeriods.UNKNOWN.equals(eventPeriod)) {
-      pprof.addLabel(sample, SOURCE_EVENT_PERIOD.getKey(), eventPeriod.toMillis());
+      pprof.addLabel(sample, SOURCE_EVENT_PERIOD, eventPeriod.toMillis());
     }
     Instant time = event.getStartTime();
-    pprof.addLabel(sample, "source.event.time", time.toEpochMilli());
+    pprof.addLabel(sample, SOURCE_EVENT_TIME, time.toEpochMilli());
 
     RecordedThread thread = event.getThread();
     if (thread.getJavaThreadId() != -1) {
-      pprof.addLabel(sample, "thread.id", thread.getJavaThreadId());
-      pprof.addLabel(sample, "thread.name", thread.getJavaName());
+      pprof.addLabel(sample, THREAD_ID, thread.getJavaThreadId());
+      pprof.addLabel(sample, THREAD_NAME, thread.getJavaName());
     }
-    pprof.addLabel(sample, "thread.native.id", thread.getOSThreadId());
+    pprof.addLabel(sample, THREAD_NATIVE_ID, thread.getOSThreadId());
 
     if (spanContext != null && spanContext.isValid()) {
-      pprof.addLabel(sample, "trace_id", spanContext.getTraceId());
-      pprof.addLabel(sample, "span_id", spanContext.getSpanId());
+      pprof.addLabel(sample, TRACE_ID, spanContext.getTraceId());
+      pprof.addLabel(sample, SPAN_ID, spanContext.getSpanId());
     }
     if (sampler != null) {
       sampler.addAttributes(

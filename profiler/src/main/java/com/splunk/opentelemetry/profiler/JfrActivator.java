@@ -144,7 +144,6 @@ public class JfrActivator implements AgentListener {
               .logProcessor(SimpleLogProcessor.create(logsExporter))
               .resource(resource)
               .allocationDataFormat(allocationDataFormat)
-              .eventPeriods(periods)
               .build();
     }
 

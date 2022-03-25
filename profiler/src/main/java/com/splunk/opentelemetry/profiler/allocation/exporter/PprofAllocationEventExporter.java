@@ -17,7 +17,6 @@
 package com.splunk.opentelemetry.profiler.allocation.exporter;
 
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.SOURCE_EVENT_NAME;
-import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.SOURCE_EVENT_PERIOD;
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.SOURCE_EVENT_TIME;
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.SPAN_ID;
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.THREAD_ID;
@@ -31,13 +30,11 @@ import com.google.perftools.profiles.ProfileProto.Sample;
 import com.splunk.opentelemetry.profiler.Configuration.DataFormat;
 import com.splunk.opentelemetry.profiler.ProfilingDataType;
 import com.splunk.opentelemetry.profiler.allocation.sampler.AllocationEventSampler;
-import com.splunk.opentelemetry.profiler.events.EventPeriods;
 import com.splunk.opentelemetry.profiler.exporter.PprofLogDataExporter;
 import com.splunk.opentelemetry.profiler.pprof.Pprof;
 import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.sdk.logs.LogProcessor;
 import io.opentelemetry.sdk.resources.Resource;
-import java.time.Duration;
 import java.time.Instant;
 import jdk.jfr.consumer.RecordedEvent;
 import jdk.jfr.consumer.RecordedFrame;
@@ -49,7 +46,6 @@ public class PprofAllocationEventExporter implements AllocationEventExporter {
   private final LogProcessor logProcessor;
   private final Resource resource;
   private final DataFormat allocationDataFormat;
-  private final EventPeriods eventPeriods;
   private final PprofLogDataExporter pprofLogDataExporter;
   private Pprof pprof = createPprof();
 
@@ -57,7 +53,6 @@ public class PprofAllocationEventExporter implements AllocationEventExporter {
     this.logProcessor = builder.logProcessor;
     this.resource = builder.resource;
     this.allocationDataFormat = builder.allocationDataFormat;
-    this.eventPeriods = builder.eventPeriods;
     this.pprofLogDataExporter =
         new PprofLogDataExporter(
             builder.logProcessor,
@@ -94,10 +89,6 @@ public class PprofAllocationEventExporter implements AllocationEventExporter {
 
     String eventName = event.getEventType().getName();
     pprof.addLabel(sample, SOURCE_EVENT_NAME, eventName);
-    Duration eventPeriod = eventPeriods.getDuration(eventName);
-    if (!EventPeriods.UNKNOWN.equals(eventPeriod)) {
-      pprof.addLabel(sample, SOURCE_EVENT_PERIOD, eventPeriod.toMillis());
-    }
     Instant time = event.getStartTime();
     pprof.addLabel(sample, SOURCE_EVENT_TIME, time.toEpochMilli());
 
@@ -153,7 +144,6 @@ public class PprofAllocationEventExporter implements AllocationEventExporter {
     private LogProcessor logProcessor;
     private Resource resource;
     private DataFormat allocationDataFormat;
-    private EventPeriods eventPeriods;
 
     public PprofAllocationEventExporter build() {
       return new PprofAllocationEventExporter(this);
@@ -171,11 +161,6 @@ public class PprofAllocationEventExporter implements AllocationEventExporter {
 
     public Builder allocationDataFormat(DataFormat allocationDataFormat) {
       this.allocationDataFormat = allocationDataFormat;
-      return this;
-    }
-
-    public Builder eventPeriods(EventPeriods eventPeriods) {
-      this.eventPeriods = eventPeriods;
       return this;
     }
   }

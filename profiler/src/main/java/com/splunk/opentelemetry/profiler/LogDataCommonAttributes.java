@@ -45,6 +45,7 @@ public class LogDataCommonAttributes {
     AttributesBuilder builder =
         Attributes.builder().put(SOURCE_TYPE, PROFILING_SOURCE).put(SOURCE_EVENT_NAME, eventName);
 
+    // for periodic events e.g. jdk.ThreadDump
     if (!EventPeriods.UNKNOWN.equals(eventPeriod)) {
       builder.put(SOURCE_EVENT_PERIOD, eventPeriod.toMillis());
     }

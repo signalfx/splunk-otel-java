@@ -19,20 +19,18 @@ package com.splunk.opentelemetry.profiler.exporter;
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.SOURCE_EVENT_NAME;
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.SOURCE_EVENT_PERIOD;
 
-import com.google.perftools.profiles.ProfileProto.Label;
 import com.google.perftools.profiles.ProfileProto.Sample;
 import com.splunk.opentelemetry.profiler.Configuration.DataFormat;
 import com.splunk.opentelemetry.profiler.ProfilingDataType;
 import com.splunk.opentelemetry.profiler.context.StackToSpanLinkage;
 import com.splunk.opentelemetry.profiler.events.EventPeriods;
+import com.splunk.opentelemetry.profiler.exporter.StackTraceParser.StackTrace;
 import com.splunk.opentelemetry.profiler.pprof.Pprof;
 import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.sdk.logs.LogProcessor;
 import io.opentelemetry.sdk.resources.Resource;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
 
 public class PprofProfilingEventExporter implements ProfilingEventExporter {
   private final DataFormat profilingDataFormat;
@@ -53,27 +51,21 @@ public class PprofProfilingEventExporter implements ProfilingEventExporter {
 
   @Override
   public void export(StackToSpanLinkage stackToSpanLinkage) {
-    StackTrace st = handleStackTrace(stackToSpanLinkage.getRawStack());
-    if (st.stackTraceLines.isEmpty()) {
+    StackTrace stackTrace = StackTraceParser.parse(stackToSpanLinkage.getRawStack());
+    if (stackTrace == null || stackTrace.stackTraceLines.isEmpty()) {
       return;
     }
 
     Sample.Builder sample = Sample.newBuilder();
-    {
-      Label.Builder label = Label.newBuilder();
-      // XXX should we attempt to extract relevant attributes here?
-      label.setKey(pprof.getStringId("thread.header"));
-      label.setStr(pprof.getStringId(st.header));
-    }
 
-    {
-      // XXX is this needed
-      Label.Builder label = Label.newBuilder();
-      label.setKey(pprof.getStringId("thread.status"));
-      label.setStr(pprof.getStringId(st.status));
+    if (stackTrace.threadId != -1) {
+      pprof.addLabel(sample, "thread.id", stackTrace.threadId);
+      pprof.addLabel(sample, "thread.name", stackTrace.threadName);
     }
+    pprof.addLabel(sample, "thread.native.id", stackTrace.nativeThreadId);
+    pprof.addLabel(sample, "thread.status", stackTrace.threadStatus);
 
-    for (StackTraceLine stl : st.stackTraceLines) {
+    for (StackTraceParser.StackTraceLine stl : stackTrace.stackTraceLines) {
       sample.addLocationId(pprof.getLocationId(stl.location, stl.classAndMethod, stl.lineNumber));
     }
 
@@ -93,82 +85,6 @@ public class PprofProfilingEventExporter implements ProfilingEventExporter {
     }
 
     pprof.getProfileBuilder().addSample(sample);
-  }
-
-  private static StackTrace handleStackTrace(String stackTrace) {
-    // \\R - Any Unicode linebreak sequence
-    String[] lines = stackTrace.split("\\R");
-    String header = lines[0];
-    String status = lines[1];
-    List<StackTraceLine> stackTraceLines = new ArrayList<>();
-    for (int i = 2; i < lines.length; i++) {
-      StackTraceLine stl = handleStackTraceLine(lines[i]);
-      if (stl != null) {
-        stackTraceLines.add(stl);
-      }
-    }
-
-    return new StackTrace(header, status, stackTraceLines);
-  }
-
-  private static StackTraceLine handleStackTraceLine(String line) {
-    // we expect the stack trace line to look like
-    // at java.lang.Thread.run(java.base@11.0.9.1/Thread.java:834)
-    if (!line.startsWith("\tat ")) {
-      return null;
-    }
-    if (!line.endsWith(")")) {
-      return null;
-    }
-    // remove "\tat " and trailing ")"
-    line = line.substring(4, line.length() - 1);
-    int i = line.lastIndexOf('(');
-    if (i == -1) {
-      return null;
-    }
-    String classAndMethod = line.substring(0, i);
-    String location = line.substring(i + 1);
-
-    i = location.indexOf('/');
-    if (i != -1) {
-      location = location.substring(i + 1);
-    }
-
-    int lineNumber = -1;
-    i = location.indexOf(':');
-    if (i != -1) {
-      try {
-        lineNumber = Integer.parseInt(location.substring(i + 1));
-      } catch (NumberFormatException ignored) {
-      }
-      location = location.substring(0, i);
-    }
-
-    return new StackTraceLine(classAndMethod, location, lineNumber);
-  }
-
-  private static class StackTrace {
-    final String header;
-    final String status;
-    final List<StackTraceLine> stackTraceLines;
-
-    StackTrace(String header, String status, List<StackTraceLine> stackTraceLines) {
-      this.header = header;
-      this.status = status;
-      this.stackTraceLines = stackTraceLines;
-    }
-  }
-
-  private static class StackTraceLine {
-    final String classAndMethod;
-    final String location;
-    final int lineNumber;
-
-    StackTraceLine(String classAndMethod, String location, int lineNumber) {
-      this.classAndMethod = classAndMethod;
-      this.location = location;
-      this.lineNumber = lineNumber;
-    }
   }
 
   private static Pprof createPprof() {

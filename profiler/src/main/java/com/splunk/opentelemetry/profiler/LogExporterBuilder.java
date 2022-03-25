@@ -23,7 +23,7 @@ import io.opentelemetry.instrumentation.api.config.Config;
 import io.opentelemetry.sdk.logs.export.LogExporter;
 import java.util.function.Supplier;
 
-public class LogExporterBuilder {
+class LogExporterBuilder {
 
   static final String EXTRA_CONTENT_TYPE = "Extra-Content-Type";
   static final String STACKTRACES_HEADER_VALUE = "otel-profiling-stacktraces";

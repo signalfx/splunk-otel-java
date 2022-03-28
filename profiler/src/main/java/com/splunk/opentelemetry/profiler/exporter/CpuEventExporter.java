@@ -18,7 +18,7 @@ package com.splunk.opentelemetry.profiler.exporter;
 
 import com.splunk.opentelemetry.profiler.context.StackToSpanLinkage;
 
-public interface ProfilingEventExporter {
+public interface CpuEventExporter {
 
   void export(StackToSpanLinkage stackToSpanLinkage);
 

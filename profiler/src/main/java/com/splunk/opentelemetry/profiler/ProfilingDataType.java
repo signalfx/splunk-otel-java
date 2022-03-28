@@ -20,7 +20,7 @@ import java.util.Locale;
 
 public enum ProfilingDataType {
   ALLOCATION,
-  PROFILING;
+  CPU;
 
   private final String value;
 

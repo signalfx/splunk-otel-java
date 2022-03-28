@@ -18,7 +18,7 @@ package com.splunk.opentelemetry.profiler;
 
 import com.splunk.opentelemetry.profiler.context.SpanContextualizer;
 import com.splunk.opentelemetry.profiler.context.StackToSpanLinkage;
-import com.splunk.opentelemetry.profiler.exporter.ProfilingEventExporter;
+import com.splunk.opentelemetry.profiler.exporter.CpuEventExporter;
 import com.splunk.opentelemetry.profiler.old.AgentInternalsFilter;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -63,9 +63,9 @@ public class ThreadDumpProcessorBenchmark {
 
   private static ThreadDumpProcessor buildNewThreadDumpProcessor() {
     SpanContextualizer contextualizer = new SpanContextualizer();
-    ProfilingEventExporter profilingEventExporter = x -> {};
+    CpuEventExporter cpuEventExporter = x -> {};
     return ThreadDumpProcessor.builder()
-        .profilingEventExporter(profilingEventExporter)
+        .cpuEventExporter(cpuEventExporter)
         .spanContextualizer(contextualizer)
         .build();
   }

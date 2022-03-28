@@ -46,7 +46,7 @@ import java.time.Duration;
 import java.time.Instant;
 import org.junit.jupiter.api.Test;
 
-class PlainTextProfilingEventExporterTest {
+class PlainTextCpuEventExporterTest {
 
   @Test
   void testCreate() {
@@ -76,8 +76,8 @@ class PlainTextProfilingEventExporterTest {
     }
     TestLogProcessor testLogProcessor = new TestLogProcessor();
 
-    PlainTextProfilingEventExporter profilingEventExporter =
-        PlainTextProfilingEventExporter.builder()
+    PlainTextCpuEventExporter cpuEventExporter =
+        PlainTextCpuEventExporter.builder()
             .logProcessor(testLogProcessor)
             .commonAttributes(new LogDataCommonAttributes(periods))
             .resource(Resource.getDefault())
@@ -94,7 +94,7 @@ class PlainTextProfilingEventExporterTest {
             SOURCE_TYPE,
             "otel.profiling",
             DATA_TYPE,
-            ProfilingDataType.PROFILING.value(),
+            ProfilingDataType.CPU.value(),
             DATA_FORMAT,
             Configuration.DataFormat.TEXT.value());
     LogData expected =
@@ -107,7 +107,7 @@ class PlainTextProfilingEventExporterTest {
 
     StackToSpanLinkage linkedSpan = new StackToSpanLinkage(time, "the.stack", eventName, linkage);
 
-    profilingEventExporter.export(linkedSpan);
+    cpuEventExporter.export(linkedSpan);
     LogData result = testLogProcessor.logData;
     assertEquals(expected, result);
   }

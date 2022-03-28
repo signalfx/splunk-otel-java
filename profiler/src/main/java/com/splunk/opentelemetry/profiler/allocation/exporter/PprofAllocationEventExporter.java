@@ -43,22 +43,18 @@ import jdk.jfr.consumer.RecordedStackTrace;
 import jdk.jfr.consumer.RecordedThread;
 
 public class PprofAllocationEventExporter implements AllocationEventExporter {
-  private final LogProcessor logProcessor;
-  private final Resource resource;
-  private final DataFormat allocationDataFormat;
+  private final DataFormat dataFormat;
   private final PprofLogDataExporter pprofLogDataExporter;
   private Pprof pprof = createPprof();
 
   private PprofAllocationEventExporter(Builder builder) {
-    this.logProcessor = builder.logProcessor;
-    this.resource = builder.resource;
-    this.allocationDataFormat = builder.allocationDataFormat;
+    this.dataFormat = builder.dataFormat;
     this.pprofLogDataExporter =
         new PprofLogDataExporter(
             builder.logProcessor,
             builder.resource,
             ProfilingDataType.ALLOCATION,
-            builder.allocationDataFormat);
+            builder.dataFormat);
   }
 
   @Override
@@ -124,7 +120,7 @@ public class PprofAllocationEventExporter implements AllocationEventExporter {
   }
 
   private byte[] serializePprof() {
-    byte[] result = pprof.serialize(allocationDataFormat);
+    byte[] result = pprof.serialize(dataFormat);
     pprof = createPprof();
     return result;
   }
@@ -143,7 +139,7 @@ public class PprofAllocationEventExporter implements AllocationEventExporter {
   public static class Builder {
     private LogProcessor logProcessor;
     private Resource resource;
-    private DataFormat allocationDataFormat;
+    private DataFormat dataFormat;
 
     public PprofAllocationEventExporter build() {
       return new PprofAllocationEventExporter(this);
@@ -159,8 +155,8 @@ public class PprofAllocationEventExporter implements AllocationEventExporter {
       return this;
     }
 
-    public Builder allocationDataFormat(DataFormat allocationDataFormat) {
-      this.allocationDataFormat = allocationDataFormat;
+    public Builder dataFormat(DataFormat dataFormat) {
+      this.dataFormat = dataFormat;
       return this;
     }
   }

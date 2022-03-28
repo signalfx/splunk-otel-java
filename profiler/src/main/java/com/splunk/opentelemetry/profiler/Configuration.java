@@ -46,7 +46,7 @@ public class Configuration implements ConfigPropertySource {
   public static final String CONFIG_KEY_MEMORY_ENABLED = PROFILER_MEMORY_ENABLED_PROPERTY;
   public static final String CONFIG_KEY_MEMORY_SAMPLER_INTERVAL =
       "splunk.profiler.memory.sampler.interval";
-  public static final String CONFIG_KEY_PROFILER_DATA_FORMAT = "splunk.profiler.data.format";
+  public static final String CONFIG_KEY_CPU_DATA_FORMAT = "splunk.profiler.cpu.data.format";
   public static final String CONFIG_KEY_MEMORY_DATA_FORMAT = "splunk.profiler.memory.data.format";
   public static final String CONFIG_KEY_TLAB_ENABLED = "splunk.profiler.tlab.enabled";
   public static final String CONFIG_KEY_CALL_STACK_INTERVAL = "splunk.profiler.call.stack.interval";
@@ -109,24 +109,22 @@ public class Configuration implements ConfigPropertySource {
     return config.getBoolean(CONFIG_KEY_TRACING_STACKS_ONLY, DEFAULT_TRACING_STACKS_ONLY);
   }
 
-  public static DataFormat getProfilerDataFormat(Config config) {
-    return getProfilerDataFormat(config, CONFIG_KEY_PROFILER_DATA_FORMAT);
+  public static DataFormat getCpuDataFormat(Config config) {
+    String value = config.getString(CONFIG_KEY_CPU_DATA_FORMAT, "text");
+    return getDataFormat(value);
   }
 
   public static DataFormat getAllocationDataFormat(Config config) {
-    return getProfilerDataFormat(config, CONFIG_KEY_MEMORY_DATA_FORMAT);
+    String value = config.getString(CONFIG_KEY_MEMORY_DATA_FORMAT, "pprof-gzip-base64");
+    return getDataFormat(value);
   }
 
-  public static DataFormat getProfilerDataFormat(Config config, String property) {
-    String value = config.getString(property, "text");
+  private static DataFormat getDataFormat(String value) {
     return DataFormat.valueOf(value.toUpperCase(Locale.ROOT).replace('-', '_'));
   }
 
   public enum DataFormat {
     TEXT,
-    PPROF,
-    PPROF_BASE64,
-    PPROF_GZIP,
     PPROF_GZIP_BASE64;
 
     private String value;

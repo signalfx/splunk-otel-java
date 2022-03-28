@@ -32,9 +32,9 @@ import com.splunk.opentelemetry.profiler.allocation.exporter.PlainTextAllocation
 import com.splunk.opentelemetry.profiler.allocation.exporter.PprofAllocationEventExporter;
 import com.splunk.opentelemetry.profiler.context.SpanContextualizer;
 import com.splunk.opentelemetry.profiler.events.EventPeriods;
-import com.splunk.opentelemetry.profiler.exporter.PlainTextProfilingEventExporter;
-import com.splunk.opentelemetry.profiler.exporter.PprofProfilingEventExporter;
-import com.splunk.opentelemetry.profiler.exporter.ProfilingEventExporter;
+import com.splunk.opentelemetry.profiler.exporter.CpuEventExporter;
+import com.splunk.opentelemetry.profiler.exporter.PlainTextCpuEventExporter;
+import com.splunk.opentelemetry.profiler.exporter.PprofCpuEventExporter;
 import com.splunk.opentelemetry.profiler.util.FileDeleter;
 import com.splunk.opentelemetry.profiler.util.HelpfulExecutors;
 import io.opentelemetry.instrumentation.api.config.Config;
@@ -106,28 +106,28 @@ public class JfrActivator implements AgentListener {
     LogDataCommonAttributes commonAttributes = new LogDataCommonAttributes(periods);
     LogExporter logsExporter = LogExporterBuilder.fromConfig(config);
 
-    DataFormat profilerDataFormat = Configuration.getProfilerDataFormat(config);
-    ProfilingEventExporter profilingEventExporter;
-    if (profilerDataFormat == DataFormat.TEXT) {
-      profilingEventExporter =
-          PlainTextProfilingEventExporter.builder()
+    DataFormat cpuDataFormat = Configuration.getCpuDataFormat(config);
+    CpuEventExporter cpuEventExporter;
+    if (cpuDataFormat == DataFormat.TEXT) {
+      cpuEventExporter =
+          PlainTextCpuEventExporter.builder()
               .logProcessor(BatchLogProcessorHolder.get(logsExporter))
               .commonAttributes(commonAttributes)
               .resource(resource)
               .build();
     } else {
-      profilingEventExporter =
-          PprofProfilingEventExporter.builder()
+      cpuEventExporter =
+          PprofCpuEventExporter.builder()
               .logProcessor(SimpleLogProcessor.create(logsExporter))
               .resource(resource)
-              .profilingDataFormat(profilerDataFormat)
+              .dataFormat(cpuDataFormat)
               .eventPeriods(periods)
               .build();
     }
 
     ThreadDumpProcessor threadDumpProcessor =
         buildThreadDumpProcessor(
-            spanContextualizer, profilingEventExporter, buildStackTraceFilter(config), config);
+            spanContextualizer, cpuEventExporter, buildStackTraceFilter(config), config);
 
     DataFormat allocationDataFormat = Configuration.getAllocationDataFormat(config);
     AllocationEventExporter allocationEventExporter;
@@ -143,7 +143,7 @@ public class JfrActivator implements AgentListener {
           PprofAllocationEventExporter.builder()
               .logProcessor(SimpleLogProcessor.create(logsExporter))
               .resource(resource)
-              .allocationDataFormat(allocationDataFormat)
+              .dataFormat(allocationDataFormat)
               .build();
     }
 
@@ -190,12 +190,12 @@ public class JfrActivator implements AgentListener {
 
   private ThreadDumpProcessor buildThreadDumpProcessor(
       SpanContextualizer spanContextualizer,
-      ProfilingEventExporter profilingEventExporter,
+      CpuEventExporter profilingEventExporter,
       StackTraceFilter stackTraceFilter,
       Config config) {
     return ThreadDumpProcessor.builder()
         .spanContextualizer(spanContextualizer)
-        .profilingEventExporter(profilingEventExporter)
+        .cpuEventExporter(profilingEventExporter)
         .stackTraceFilter(stackTraceFilter)
         .onlyTracingSpans(Configuration.getTracingStacksOnly(config))
         .build();

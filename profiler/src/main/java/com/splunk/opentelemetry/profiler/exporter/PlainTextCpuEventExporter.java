@@ -30,12 +30,12 @@ import io.opentelemetry.sdk.logs.data.LogData;
 import io.opentelemetry.sdk.logs.data.LogDataBuilder;
 import io.opentelemetry.sdk.resources.Resource;
 
-public class PlainTextProfilingEventExporter implements ProfilingEventExporter {
+public class PlainTextCpuEventExporter implements CpuEventExporter {
   private final LogProcessor logProcessor;
   private final LogDataCommonAttributes commonAttributes;
   private final Resource resource;
 
-  private PlainTextProfilingEventExporter(Builder builder) {
+  private PlainTextCpuEventExporter(Builder builder) {
     this.logProcessor = builder.logProcessor;
     this.commonAttributes = builder.commonAttributes;
     this.resource = builder.resource;
@@ -46,7 +46,7 @@ public class PlainTextProfilingEventExporter implements ProfilingEventExporter {
     Attributes attributes =
         commonAttributes
             .builder(linkedStack)
-            .put(DATA_TYPE, ProfilingDataType.PROFILING.value())
+            .put(DATA_TYPE, ProfilingDataType.CPU.value())
             .put(DATA_FORMAT, Configuration.DataFormat.TEXT.value())
             .build();
 
@@ -72,8 +72,8 @@ public class PlainTextProfilingEventExporter implements ProfilingEventExporter {
     private LogDataCommonAttributes commonAttributes;
     private Resource resource;
 
-    public PlainTextProfilingEventExporter build() {
-      return new PlainTextProfilingEventExporter(this);
+    public PlainTextCpuEventExporter build() {
+      return new PlainTextCpuEventExporter(this);
     }
 
     public Builder logProcessor(LogProcessor logsProcessor) {

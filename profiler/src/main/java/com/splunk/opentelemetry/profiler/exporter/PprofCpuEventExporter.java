@@ -39,21 +39,18 @@ import io.opentelemetry.sdk.resources.Resource;
 import java.time.Duration;
 import java.time.Instant;
 
-public class PprofProfilingEventExporter implements ProfilingEventExporter {
-  private final DataFormat profilingDataFormat;
+public class PprofCpuEventExporter implements CpuEventExporter {
+  private final DataFormat dataFormat;
   private final EventPeriods eventPeriods;
   private final PprofLogDataExporter pprofLogDataExporter;
   private Pprof pprof = createPprof();
 
-  private PprofProfilingEventExporter(Builder builder) {
-    this.profilingDataFormat = builder.profilingDataFormat;
+  private PprofCpuEventExporter(Builder builder) {
+    this.dataFormat = builder.dataFormat;
     this.eventPeriods = builder.eventPeriods;
     this.pprofLogDataExporter =
         new PprofLogDataExporter(
-            builder.logProcessor,
-            builder.resource,
-            ProfilingDataType.PROFILING,
-            builder.profilingDataFormat);
+            builder.logProcessor, builder.resource, ProfilingDataType.CPU, builder.dataFormat);
   }
 
   @Override
@@ -100,7 +97,7 @@ public class PprofProfilingEventExporter implements ProfilingEventExporter {
   }
 
   private byte[] serializePprof() {
-    byte[] result = pprof.serialize(profilingDataFormat);
+    byte[] result = pprof.serialize(dataFormat);
     pprof = createPprof();
     return result;
   }
@@ -119,11 +116,11 @@ public class PprofProfilingEventExporter implements ProfilingEventExporter {
   public static class Builder {
     private LogProcessor logProcessor;
     private Resource resource;
-    private DataFormat profilingDataFormat;
+    private DataFormat dataFormat;
     private EventPeriods eventPeriods;
 
-    public PprofProfilingEventExporter build() {
-      return new PprofProfilingEventExporter(this);
+    public PprofCpuEventExporter build() {
+      return new PprofCpuEventExporter(this);
     }
 
     public Builder logProcessor(LogProcessor logsProcessor) {
@@ -136,8 +133,8 @@ public class PprofProfilingEventExporter implements ProfilingEventExporter {
       return this;
     }
 
-    public Builder profilingDataFormat(DataFormat profilingDataFormat) {
-      this.profilingDataFormat = profilingDataFormat;
+    public Builder dataFormat(DataFormat dataFormat) {
+      this.dataFormat = dataFormat;
       return this;
     }
 

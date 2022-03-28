@@ -75,28 +75,18 @@ public class Pprof {
   }
 
   public byte[] serialize(Configuration.DataFormat dataFormat) {
-    if (dataFormat != Configuration.DataFormat.PPROF_GZIP
-        && dataFormat != Configuration.DataFormat.PPROF_GZIP_BASE64
-        && dataFormat != Configuration.DataFormat.PPROF_BASE64
-        && dataFormat != Configuration.DataFormat.PPROF_GZIP_BASE64) {
+    if (dataFormat != Configuration.DataFormat.PPROF_GZIP_BASE64) {
       throw new IllegalArgumentException("Unsupported data format " + dataFormat);
     }
 
     Profile profile = profileBuilder.build();
     try {
       ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
-      boolean gzip =
-          dataFormat == Configuration.DataFormat.PPROF_GZIP
-              || dataFormat == Configuration.DataFormat.PPROF_GZIP_BASE64;
-      try (OutputStream outputStream = gzip ? new GZIPOutputStream(byteStream) : byteStream) {
+      try (OutputStream outputStream = new GZIPOutputStream(byteStream)) {
         profile.writeTo(outputStream);
       }
       byte[] bytes = byteStream.toByteArray();
-      if (dataFormat == Configuration.DataFormat.PPROF_BASE64
-          || dataFormat == Configuration.DataFormat.PPROF_GZIP_BASE64) {
-        bytes = Base64.getEncoder().encode(bytes);
-      }
-      return bytes;
+      return Base64.getEncoder().encode(bytes);
     } catch (IOException exception) {
       throw new IllegalStateException("Failed to serialize pprof", exception);
     }

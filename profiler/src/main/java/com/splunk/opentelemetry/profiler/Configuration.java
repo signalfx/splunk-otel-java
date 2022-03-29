@@ -127,7 +127,7 @@ public class Configuration implements ConfigPropertySource {
     TEXT,
     PPROF_GZIP_BASE64;
 
-    private String value;
+    private final String value;
 
     DataFormat() {
       value = name().toLowerCase(Locale.ROOT).replace('_', '-');

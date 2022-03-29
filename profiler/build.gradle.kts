@@ -12,6 +12,16 @@ protobuf {
   }
 }
 
+// https://youtrack.jetbrains.com/issue/IDEA-209418
+// sometimes intellij doesn't detect generated protobuf classes
+sourceSets {
+  main {
+    java {
+      srcDirs("build/generated/source/proto/main/java")
+    }
+  }
+}
+
 dependencies {
   compileOnly(project(":custom"))
   compileOnly("io.opentelemetry:opentelemetry-sdk")

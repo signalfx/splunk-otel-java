@@ -43,7 +43,7 @@ public class ProfilingSemanticAttributes {
   public static final AttributeKey<Long> THREAD_ID = longKey("thread.id");
   public static final AttributeKey<String> THREAD_NAME = stringKey("thread.name");
   public static final AttributeKey<Long> THREAD_NATIVE_ID = longKey("thread.native.id");
-  public static final AttributeKey<String> THREAD_STATUS = stringKey("thread.status");
+  public static final AttributeKey<String> THREAD_STATE = stringKey("thread.state");
 
   public static final AttributeKey<String> TRACE_ID = stringKey("trace_id");
   public static final AttributeKey<String> SPAN_ID = stringKey("span_id");

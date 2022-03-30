@@ -34,7 +34,7 @@ class StackTraceParser {
     StackTraceBuilder builder = new StackTraceBuilder();
 
     parseHeader(builder, lines[0]);
-    builder.setThreadStatus(parseThreadStatus(lines[1]));
+    builder.setThreadState(parseThreadState(lines[1]));
     for (int i = 2; i < lines.length; i++) {
       StackTraceLine stackTraceLine = parseStackTraceLine(lines[i]);
       if (stackTraceLine != null) {
@@ -84,7 +84,7 @@ class StackTraceParser {
     }
   }
 
-  private static String parseThreadStatus(String status) {
+  private static String parseThreadState(String status) {
     int i = status.indexOf(THREAD_STATE_PREFIX);
     if (i == -1) {
       return null;
@@ -133,7 +133,7 @@ class StackTraceParser {
     private int threadId = -1;
     private String threadName;
     private int nativeThreadId = -1;
-    private String threadStatus;
+    private String threadState;
     private List<StackTraceLine> stackTraceLines = new ArrayList<>();
 
     StackTrace build() {
@@ -164,12 +164,12 @@ class StackTraceParser {
       this.nativeThreadId = nativeThreadId;
     }
 
-    String getThreadStatus() {
-      return threadStatus;
+    String getThreadState() {
+      return threadState;
     }
 
-    void setThreadStatus(String threadStatus) {
-      this.threadStatus = threadStatus;
+    void setThreadState(String threadState) {
+      this.threadState = threadState;
     }
 
     List<StackTraceLine> getStackTraceLines() {
@@ -185,14 +185,14 @@ class StackTraceParser {
     private final int threadId;
     private final String threadName;
     private final int nativeThreadId;
-    private final String threadStatus;
+    private final String threadState;
     private final List<StackTraceLine> stackTraceLines;
 
     StackTrace(StackTraceBuilder builder) {
       this.threadId = builder.getThreadId();
       this.threadName = builder.getThreadName();
       this.nativeThreadId = builder.getNativeThreadId();
-      this.threadStatus = builder.getThreadStatus();
+      this.threadState = builder.getThreadState();
       this.stackTraceLines = builder.getStackTraceLines();
     }
 
@@ -208,8 +208,8 @@ class StackTraceParser {
       return nativeThreadId;
     }
 
-    String getThreadStatus() {
-      return threadStatus;
+    String getThreadState() {
+      return threadState;
     }
 
     List<StackTraceLine> getStackTraceLines() {

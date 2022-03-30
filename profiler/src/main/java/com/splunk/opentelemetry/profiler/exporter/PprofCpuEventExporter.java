@@ -23,7 +23,7 @@ import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.SPAN
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.THREAD_ID;
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.THREAD_NAME;
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.THREAD_NATIVE_ID;
-import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.THREAD_STATUS;
+import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.THREAD_STATE;
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.TRACE_ID;
 
 import com.google.perftools.profiles.ProfileProto.Sample;
@@ -67,7 +67,7 @@ public class PprofCpuEventExporter implements CpuEventExporter {
       pprof.addLabel(sample, THREAD_NAME, stackTrace.getThreadName());
     }
     pprof.addLabel(sample, THREAD_NATIVE_ID, stackTrace.getNativeThreadId());
-    pprof.addLabel(sample, THREAD_STATUS, stackTrace.getThreadStatus());
+    pprof.addLabel(sample, THREAD_STATE, stackTrace.getThreadState());
 
     for (StackTraceParser.StackTraceLine stl : stackTrace.getStackTraceLines()) {
       sample.addLocationId(

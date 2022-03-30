@@ -49,14 +49,14 @@ class StackTraceParserTest {
       Assertions.assertNotNull(stackTrace.getThreadName());
       if (!stackTrace.getStackTraceLines().isEmpty()) {
         Assertions.assertNotEquals(-1, stackTrace.getThreadId());
-        Assertions.assertNotNull(stackTrace.getThreadStatus());
+        Assertions.assertNotNull(stackTrace.getThreadState());
       }
       Assertions.assertNotEquals(-1, stackTrace.getNativeThreadId());
 
       if (stackTrace.getThreadId() == 39) {
         Assertions.assertEquals("container-0", stackTrace.getThreadName());
         Assertions.assertEquals(0xaa03, stackTrace.getNativeThreadId());
-        Assertions.assertEquals("TIMED_WAITING (sleeping)", stackTrace.getThreadStatus());
+        Assertions.assertEquals("TIMED_WAITING (sleeping)", stackTrace.getThreadState());
         Assertions.assertEquals(3, stackTrace.getStackTraceLines().size());
         found = true;
       }

@@ -104,6 +104,9 @@ public class PprofCpuEventExporter implements CpuEventExporter {
 
   @Override
   public void flush() {
+    if (!pprof.hasSamples()) {
+      return;
+    }
     // Flush is called after each JFR chunk, hopefully this will keep batch sizes small enough.
     byte[] bytes = serializePprof();
     pprofLogDataExporter.export(bytes);

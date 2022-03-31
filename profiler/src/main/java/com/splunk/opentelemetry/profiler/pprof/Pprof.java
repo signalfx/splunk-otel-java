@@ -74,6 +74,10 @@ public class Pprof {
     sample.addLabel(label.build());
   }
 
+  public boolean hasSamples() {
+    return profileBuilder.getSampleCount() > 0;
+  }
+
   public byte[] serialize(Configuration.DataFormat dataFormat) {
     if (dataFormat != Configuration.DataFormat.PPROF_GZIP_BASE64) {
       throw new IllegalArgumentException("Unsupported data format " + dataFormat);

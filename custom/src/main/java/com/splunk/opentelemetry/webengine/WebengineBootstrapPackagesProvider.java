@@ -19,8 +19,8 @@ package com.splunk.opentelemetry.webengine;
 import com.google.auto.service.AutoService;
 import com.splunk.opentelemetry.javaagent.bootstrap.WebengineHolder;
 import io.opentelemetry.instrumentation.api.config.Config;
-import io.opentelemetry.javaagent.extension.bootstrap.BootstrapPackagesBuilder;
-import io.opentelemetry.javaagent.extension.bootstrap.BootstrapPackagesConfigurer;
+import io.opentelemetry.javaagent.tooling.bootstrap.BootstrapPackagesBuilder;
+import io.opentelemetry.javaagent.tooling.bootstrap.BootstrapPackagesConfigurer;
 
 @AutoService(BootstrapPackagesConfigurer.class)
 public class WebengineBootstrapPackagesProvider implements BootstrapPackagesConfigurer {

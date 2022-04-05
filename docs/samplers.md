@@ -8,10 +8,10 @@ Splunk Distribution of OpenTelemetry Java supports all standard samplers as prov
 [OpenTelemetry Java SDK Autoconfigure](https://github.com/open-telemetry/opentelemetry-java/tree/main/sdk-extensions/autoconfigure#sampler).
 In addition, the distribution adds the following samplers:
 
-### internal_root_off
+### `internal_root_off`
 Setting `otel.traces.sampler` to `internal_root_off` drops all traces with root spans where `spanKind` is `INTERNAL`, `CLIENT` or `PRODUCER`. This setting only keeps root spans where `spanKind` is `SERVER` and `CONSUMER`.
 
-### rules
+### `rules`
 This sampler allows to ignore individual endpoints and drop all traces that originate from them.
 It applies only to spans with `SERVER` kind.
 

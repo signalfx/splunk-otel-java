@@ -67,7 +67,7 @@ public class SpringBootSmokeTest extends AppServerTest {
     assertEquals(1, traces.countSpansByName("WebController.withSpan"));
 
     // verify that correct agent version is set in the resource
-    String currentAgentVersion = getCurrentAgentVersion();
+    String currentAgentVersion = getOtelInstrumentationVersion();
     assertThat(traces.getInstrumentationLibraryVersions()).containsExactly(currentAgentVersion);
 
     // verify that correct service name is set in the resource

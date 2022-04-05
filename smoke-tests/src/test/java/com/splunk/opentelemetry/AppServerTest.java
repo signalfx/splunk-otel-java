@@ -90,7 +90,7 @@ public abstract class AppServerTest extends SmokeTest {
 
     assertThat(traces.getInstrumentationLibraryVersions())
         .as("All spans are tagged with current otel library version")
-        .containsExactly(getCurrentAgentVersion());
+        .containsExactly(getOtelInstrumentationVersion());
   }
 
   /*

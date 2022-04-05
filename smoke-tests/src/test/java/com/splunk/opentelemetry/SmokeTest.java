@@ -25,11 +25,13 @@ import com.splunk.opentelemetry.helper.TestContainerManager;
 import com.splunk.opentelemetry.helper.TestImage;
 import com.splunk.opentelemetry.helper.windows.WindowsTestContainerManager;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.jar.Attributes;
+import java.util.Properties;
 import java.util.jar.JarFile;
+import java.util.zip.ZipEntry;
 import okhttp3.OkHttpClient;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -134,12 +136,18 @@ public abstract class SmokeTest {
     return telemetryRetriever.waitForLogs();
   }
 
-  protected String getCurrentAgentVersion() throws IOException {
-    return new JarFile(agentPath)
-        .getManifest()
-        .getMainAttributes()
-        .get(Attributes.Name.IMPLEMENTATION_VERSION)
-        .toString();
+  protected String getOtelInstrumentationVersion() throws IOException {
+    try (JarFile agentJar = new JarFile(agentPath)) {
+      // any instrumentation properties file will do, they all should contain the same version
+      ZipEntry instrumentationPropsEntry =
+          agentJar.getEntry(
+              "inst/META-INF/io/opentelemetry/instrumentation/io.opentelemetry.servlet-common.properties");
+      try (InputStream in = agentJar.getInputStream(instrumentationPropsEntry)) {
+        Properties props = new Properties();
+        props.load(in);
+        return props.getProperty("version");
+      }
+    }
   }
 
   private static TestContainerManager createContainerManager() {

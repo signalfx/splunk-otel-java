@@ -21,7 +21,7 @@ import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.SOUR
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.SPAN_ID;
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.THREAD_ID;
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.THREAD_NAME;
-import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.THREAD_NATIVE_ID;
+import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.THREAD_OS_ID;
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.THREAD_STATE;
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.TRACE_ID;
 
@@ -94,7 +94,7 @@ public class PprofAllocationEventExporter implements AllocationEventExporter {
       pprof.addLabel(sample, THREAD_ID, thread.getJavaThreadId());
       pprof.addLabel(sample, THREAD_NAME, thread.getJavaName());
     }
-    pprof.addLabel(sample, THREAD_NATIVE_ID, thread.getOSThreadId());
+    pprof.addLabel(sample, THREAD_OS_ID, thread.getOSThreadId());
     pprof.addLabel(sample, THREAD_STATE, "RUNNABLE");
 
     if (spanContext != null && spanContext.isValid()) {

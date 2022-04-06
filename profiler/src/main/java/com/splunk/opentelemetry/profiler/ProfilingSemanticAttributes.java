@@ -35,14 +35,12 @@ public class ProfilingSemanticAttributes {
 
   public static final AttributeKey<Long> SOURCE_EVENT_TIME = longKey("source.event.time");
 
-  public static final AttributeKey<String> DATA_TYPE = stringKey("com.splunk.profiling.data.type");
-
-  public static final AttributeKey<String> DATA_FORMAT =
-      stringKey("com.splunk.profiling.data.format");
+  public static final AttributeKey<String> DATA_TYPE = stringKey("profiling.data.type");
+  public static final AttributeKey<String> DATA_FORMAT = stringKey("profiling.data.format");
 
   public static final AttributeKey<Long> THREAD_ID = longKey("thread.id");
   public static final AttributeKey<String> THREAD_NAME = stringKey("thread.name");
-  public static final AttributeKey<Long> THREAD_NATIVE_ID = longKey("thread.native.id");
+  public static final AttributeKey<Long> THREAD_OS_ID = longKey("thread.os.id");
   public static final AttributeKey<String> THREAD_STATE = stringKey("thread.state");
 
   public static final AttributeKey<String> TRACE_ID = stringKey("trace_id");

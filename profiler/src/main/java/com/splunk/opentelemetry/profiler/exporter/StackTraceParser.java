@@ -76,7 +76,7 @@ class StackTraceParser {
         return;
       }
       try {
-        builder.setNativeThreadId(
+        builder.setOsThreadId(
             Integer.parseInt(
                 header.substring(nidStart + THREAD_NATIVE_ID_PREFIX.length(), nidEnd), 16));
       } catch (NumberFormatException ignore) {
@@ -132,7 +132,7 @@ class StackTraceParser {
   private static class StackTraceBuilder {
     private int threadId = -1;
     private String threadName;
-    private int nativeThreadId = -1;
+    private int osThreadId = -1;
     private String threadState;
     private List<StackTraceLine> stackTraceLines = new ArrayList<>();
 
@@ -156,12 +156,12 @@ class StackTraceParser {
       this.threadName = threadName;
     }
 
-    int getNativeThreadId() {
-      return nativeThreadId;
+    int getOsThreadId() {
+      return osThreadId;
     }
 
-    void setNativeThreadId(int nativeThreadId) {
-      this.nativeThreadId = nativeThreadId;
+    void setOsThreadId(int osThreadId) {
+      this.osThreadId = osThreadId;
     }
 
     String getThreadState() {
@@ -184,14 +184,14 @@ class StackTraceParser {
   static class StackTrace {
     private final int threadId;
     private final String threadName;
-    private final int nativeThreadId;
+    private final int osThreadId;
     private final String threadState;
     private final List<StackTraceLine> stackTraceLines;
 
     StackTrace(StackTraceBuilder builder) {
       this.threadId = builder.getThreadId();
       this.threadName = builder.getThreadName();
-      this.nativeThreadId = builder.getNativeThreadId();
+      this.osThreadId = builder.getOsThreadId();
       this.threadState = builder.getThreadState();
       this.stackTraceLines = builder.getStackTraceLines();
     }
@@ -204,8 +204,8 @@ class StackTraceParser {
       return threadName;
     }
 
-    int getNativeThreadId() {
-      return nativeThreadId;
+    int getOsThreadId() {
+      return osThreadId;
     }
 
     String getThreadState() {

@@ -4,6 +4,7 @@ plugins {
 
 dependencies {
   compileOnly(project(":custom"))
+  compileOnly("io.opentelemetry.javaagent:opentelemetry-javaagent-tooling")
 }
 
 tasks {

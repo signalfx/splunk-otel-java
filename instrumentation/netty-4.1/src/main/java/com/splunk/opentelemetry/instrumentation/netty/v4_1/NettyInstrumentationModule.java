@@ -40,7 +40,7 @@ public class NettyInstrumentationModule extends InstrumentationModule {
 
   // enable the instrumentation only if the server-timing header flag is on
   @Override
-  protected boolean defaultEnabled() {
+  public boolean defaultEnabled() {
     return super.defaultEnabled() && ServerTimingHeader.shouldEmitServerTimingHeader();
   }
 

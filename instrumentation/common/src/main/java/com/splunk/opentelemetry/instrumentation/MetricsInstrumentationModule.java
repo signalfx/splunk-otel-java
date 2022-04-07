@@ -31,7 +31,7 @@ public abstract class MetricsInstrumentationModule extends InstrumentationModule
   }
 
   @Override
-  protected boolean defaultEnabled() {
+  public boolean defaultEnabled() {
     boolean metricsRegistryPresent = !Metrics.globalRegistry.getRegistries().isEmpty();
     return metricsRegistryPresent && super.defaultEnabled();
   }

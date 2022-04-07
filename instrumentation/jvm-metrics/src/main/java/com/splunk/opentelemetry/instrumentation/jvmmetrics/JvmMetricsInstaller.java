@@ -28,6 +28,7 @@ import io.micrometer.core.instrument.binder.jvm.JvmMemoryMetrics;
 import io.micrometer.core.instrument.binder.jvm.JvmThreadMetrics;
 import io.opentelemetry.instrumentation.api.config.Config;
 import io.opentelemetry.javaagent.extension.AgentListener;
+import io.opentelemetry.javaagent.tooling.config.AgentConfig;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 
 @AutoService(AgentListener.class)
@@ -36,7 +37,8 @@ public class JvmMetricsInstaller implements AgentListener {
   public void afterAgent(
       Config config, AutoConfiguredOpenTelemetrySdk autoConfiguredOpenTelemetrySdk) {
     boolean metricsRegistryPresent = !Metrics.globalRegistry.getRegistries().isEmpty();
-    if (!config.isInstrumentationEnabled(singleton("jvm-metrics"), metricsRegistryPresent)) {
+    AgentConfig agentConfig = new AgentConfig(config);
+    if (!agentConfig.isInstrumentationEnabled(singleton("jvm-metrics"), metricsRegistryPresent)) {
       return;
     }
 

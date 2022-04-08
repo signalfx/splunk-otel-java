@@ -51,19 +51,25 @@ class GlobalTagsBuilderTest {
                 ResourceAttributes.PROCESS_RUNTIME_NAME,
                 "OpenJDK Runtime Environment",
                 ResourceAttributes.PROCESS_PID,
-                12345L));
+                12345L,
+                ResourceAttributes.HOST_NAME,
+                "astronaut",
+                ResourceAttributes.CONTAINER_ID,
+                "abcd90210"));
 
     // when
     var tags = new GlobalTagsBuilder(resource).build();
 
     // then
     assertThat(tags.stream())
-        .hasSize(4)
+        .hasSize(6)
         .containsExactlyInAnyOrder(
             Tag.of("deployment.environment", "prod"),
             Tag.of("service", "my-service"),
             Tag.of("runtime", "OpenJDK Runtime Environment"),
-            Tag.of("process.pid", "12345"));
+            Tag.of("process.pid", "12345"),
+            Tag.of("host.name", "astronaut"),
+            Tag.of("container.id", "abcd90210"));
   }
 
   @Test

@@ -16,11 +16,17 @@
 
 package com.splunk.opentelemetry.micrometer;
 
+import static io.opentelemetry.semconv.resource.attributes.ResourceAttributes.CONTAINER_ID;
+import static io.opentelemetry.semconv.resource.attributes.ResourceAttributes.DEPLOYMENT_ENVIRONMENT;
+import static io.opentelemetry.semconv.resource.attributes.ResourceAttributes.HOST_NAME;
+import static io.opentelemetry.semconv.resource.attributes.ResourceAttributes.PROCESS_PID;
+import static io.opentelemetry.semconv.resource.attributes.ResourceAttributes.PROCESS_RUNTIME_NAME;
+import static io.opentelemetry.semconv.resource.attributes.ResourceAttributes.SERVICE_NAME;
+
 import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.Tags;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.sdk.resources.Resource;
-import io.opentelemetry.semconv.resource.attributes.ResourceAttributes;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -37,11 +43,13 @@ class GlobalTagsBuilder {
     addTag(
         globalTags,
         "deployment.environment",
-        ResourceAttributes.DEPLOYMENT_ENVIRONMENT,
+        DEPLOYMENT_ENVIRONMENT,
         AttributeKey.stringKey("environment"));
-    addTag(globalTags, "service", ResourceAttributes.SERVICE_NAME);
-    addTag(globalTags, "runtime", ResourceAttributes.PROCESS_RUNTIME_NAME);
-    addTag(globalTags, "process.pid", ResourceAttributes.PROCESS_PID);
+    addTag(globalTags, "service", SERVICE_NAME);
+    addTag(globalTags, "runtime", PROCESS_RUNTIME_NAME);
+    addTag(globalTags, PROCESS_PID.getKey(), PROCESS_PID);
+    addTag(globalTags, CONTAINER_ID.getKey(), CONTAINER_ID);
+    addTag(globalTags, HOST_NAME.getKey(), HOST_NAME);
     return Tags.of(globalTags);
   }
 

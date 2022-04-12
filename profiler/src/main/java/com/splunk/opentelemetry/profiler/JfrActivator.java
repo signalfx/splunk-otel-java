@@ -230,6 +230,8 @@ public class JfrActivator implements AgentListener {
   private static class BatchLogProcessorHolder {
     private static LogProcessor INSTANCE;
 
+    // initialize BatchingLogsProcessor only if it is needed and if it is needed initialize it only
+    // once
     static LogProcessor get(LogExporter logsExporter) {
       if (INSTANCE == null) {
         ScheduledExecutorService exportExecutorService =

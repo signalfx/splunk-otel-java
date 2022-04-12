@@ -18,6 +18,7 @@ package com.splunk.opentelemetry.profiler.exporter;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 class StackTraceParser {
   private static final String STACK_LINE_PREFIX = "\tat ";
@@ -55,33 +56,43 @@ class StackTraceParser {
     }
     builder.setThreadName(header.substring(1, nameEnd));
 
-    // some threads don't have an id
-    int idEnd = nameEnd;
-    int idStart = header.indexOf('#', nameEnd);
-    if (idStart != -1) {
-      idEnd = header.indexOf(' ', idStart);
-      if (idEnd < 0) {
-        return;
-      }
-      try {
-        builder.setThreadId(Integer.parseInt(header.substring(idStart + 1, idEnd)));
-      } catch (NumberFormatException ignore) {
-      }
+    int idEnd =
+        parseId(
+            header,
+            "#",
+            nameEnd,
+            s -> {
+              try {
+                builder.setThreadId(Integer.parseInt(s));
+              } catch (NumberFormatException ignore) {
+              }
+            });
+    if (idEnd < 0) {
+      return;
     }
 
-    int nidStart = header.indexOf(THREAD_NATIVE_ID_PREFIX, idEnd);
-    if (nidStart != -1) {
-      int nidEnd = header.indexOf(' ', nidStart);
-      if (nidEnd < 0) {
-        return;
-      }
-      try {
-        builder.setOsThreadId(
-            Integer.parseInt(
-                header.substring(nidStart + THREAD_NATIVE_ID_PREFIX.length(), nidEnd), 16));
-      } catch (NumberFormatException ignore) {
+    parseId(
+        header,
+        THREAD_NATIVE_ID_PREFIX,
+        idEnd,
+        s -> {
+          try {
+            builder.setOsThreadId(Integer.parseInt(s, 16));
+          } catch (NumberFormatException ignore) {
+          }
+        });
+  }
+
+  private static int parseId(String text, String prefix, int startFrom, Consumer<String> consumer) {
+    int idEnd = startFrom;
+    int idStart = text.indexOf(prefix, startFrom);
+    if (idStart != -1) {
+      idEnd = text.indexOf(' ', idStart);
+      if (idEnd != -1) {
+        consumer.accept(text.substring(idStart + prefix.length(), idEnd));
       }
     }
+    return idEnd;
   }
 
   private static String parseThreadState(String status) {

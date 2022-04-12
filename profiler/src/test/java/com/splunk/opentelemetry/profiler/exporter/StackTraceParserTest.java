@@ -18,6 +18,7 @@ package com.splunk.opentelemetry.profiler.exporter;
 
 import com.splunk.opentelemetry.profiler.ThreadDumpRegion;
 import com.splunk.opentelemetry.profiler.exporter.StackTraceParser.StackTrace;
+import com.splunk.opentelemetry.profiler.exporter.StackTraceParser.StackTraceLine;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -38,14 +39,7 @@ class StackTraceParserTest {
       if (stackTrace == null) {
         continue;
       }
-      System.err.println(
-          stackTrace.getThreadName()
-              + " "
-              + stackTrace.getThreadId()
-              + " "
-              + stackTrace.getOsThreadId()
-              + " "
-              + stackTrace.getStackTraceLines().size());
+
       Assertions.assertNotNull(stackTrace.getThreadName());
       if (!stackTrace.getStackTraceLines().isEmpty()) {
         Assertions.assertNotEquals(-1, stackTrace.getThreadId());
@@ -53,11 +47,34 @@ class StackTraceParserTest {
       }
       Assertions.assertNotEquals(-1, stackTrace.getOsThreadId());
 
+      // for one stack trace verify exact values
       if (stackTrace.getThreadId() == 39) {
         Assertions.assertEquals("container-0", stackTrace.getThreadName());
         Assertions.assertEquals(0xaa03, stackTrace.getOsThreadId());
         Assertions.assertEquals("TIMED_WAITING (sleeping)", stackTrace.getThreadState());
         Assertions.assertEquals(3, stackTrace.getStackTraceLines().size());
+        {
+          StackTraceLine stackTraceLine = stackTrace.getStackTraceLines().get(0);
+          Assertions.assertEquals("java.lang.Thread.sleep", stackTraceLine.getClassAndMethod());
+          Assertions.assertEquals("Native Method", stackTraceLine.getLocation());
+          Assertions.assertEquals(-1, stackTraceLine.getLineNumber());
+        }
+        {
+          StackTraceLine stackTraceLine = stackTrace.getStackTraceLines().get(1);
+          Assertions.assertEquals(
+              "org.apache.catalina.core.StandardServer.await", stackTraceLine.getClassAndMethod());
+          Assertions.assertEquals("StandardServer.java", stackTraceLine.getLocation());
+          Assertions.assertEquals(570, stackTraceLine.getLineNumber());
+        }
+        {
+          StackTraceLine stackTraceLine = stackTrace.getStackTraceLines().get(2);
+          Assertions.assertEquals(
+              "org.springframework.boot.web.embedded.tomcat.TomcatWebServer$1.run",
+              stackTraceLine.getClassAndMethod());
+          Assertions.assertEquals("TomcatWebServer.java", stackTraceLine.getLocation());
+          Assertions.assertEquals(197, stackTraceLine.getLineNumber());
+        }
+
         found = true;
       }
     }

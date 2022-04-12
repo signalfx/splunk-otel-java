@@ -51,17 +51,12 @@ public class PprofLogDataExporter {
     this.resource = resource;
     this.dataType = dataType;
     this.dataFormat = dataFormat;
-    this.commonAttributes = buildAttributes(dataType, dataFormat);
-  }
-
-  private static Attributes buildAttributes(ProfilingDataType dataType, DataFormat dataFormat) {
-    Attributes attributes =
+    this.commonAttributes =
         Attributes.builder()
             .put(SOURCE_TYPE, PROFILING_SOURCE)
             .put(DATA_TYPE, dataType.value())
             .put(DATA_FORMAT, dataFormat.value())
             .build();
-    return attributes;
   }
 
   public void export(byte[] bytes) {

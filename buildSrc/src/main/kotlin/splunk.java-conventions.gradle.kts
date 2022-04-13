@@ -81,7 +81,7 @@ extensions.configure<DependencyManagementExtension>("dependencyManagement") {
       entry("opentelemetry-samplers")
     }
 
-    dependency("io.opentelemetry.proto:opentelemetry-proto:0.11.0-alpha")
+    dependency("io.opentelemetry.proto:opentelemetry-proto:0.16.0-alpha")
   }
 
   imports {

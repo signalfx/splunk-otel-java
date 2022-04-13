@@ -35,8 +35,8 @@ public final class LogsInspector {
   public Stream<LogRecord> getLogStream() {
     return logRequests.stream()
         .flatMap(log -> log.getResourceLogsList().stream())
-        .flatMap(log -> log.getInstrumentationLibraryLogsList().stream())
-        .flatMap(log -> log.getLogsList().stream());
+        .flatMap(log -> log.getScopeLogsList().stream())
+        .flatMap(log -> log.getLogRecordsList().stream());
   }
 
   public Stream<LogRecord> getThreadDumpEvents() {

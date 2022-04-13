@@ -16,6 +16,11 @@
 
 package com.splunk.opentelemetry.profiler.exporter;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import com.splunk.opentelemetry.profiler.ThreadDumpRegion;
 import com.splunk.opentelemetry.profiler.exporter.StackTraceParser.StackTrace;
 import com.splunk.opentelemetry.profiler.exporter.StackTraceParser.StackTraceLine;
@@ -23,7 +28,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 class StackTraceParserTest {
@@ -40,45 +44,45 @@ class StackTraceParserTest {
         continue;
       }
 
-      Assertions.assertNotNull(stackTrace.getThreadName());
+      assertNotNull(stackTrace.getThreadName());
       if (!stackTrace.getStackTraceLines().isEmpty()) {
-        Assertions.assertNotEquals(-1, stackTrace.getThreadId());
-        Assertions.assertNotNull(stackTrace.getThreadState());
+        assertNotEquals(-1, stackTrace.getThreadId());
+        assertNotNull(stackTrace.getThreadState());
       }
-      Assertions.assertNotEquals(-1, stackTrace.getOsThreadId());
+      assertNotEquals(-1, stackTrace.getOsThreadId());
 
       // for one stack trace verify exact values
       if (stackTrace.getThreadId() == 39) {
-        Assertions.assertEquals("container-0", stackTrace.getThreadName());
-        Assertions.assertEquals(0xaa03, stackTrace.getOsThreadId());
-        Assertions.assertEquals("TIMED_WAITING (sleeping)", stackTrace.getThreadState());
-        Assertions.assertEquals(3, stackTrace.getStackTraceLines().size());
+        assertEquals("container-0", stackTrace.getThreadName());
+        assertEquals(0xaa03, stackTrace.getOsThreadId());
+        assertEquals("TIMED_WAITING (sleeping)", stackTrace.getThreadState());
+        assertEquals(3, stackTrace.getStackTraceLines().size());
         {
           StackTraceLine stackTraceLine = stackTrace.getStackTraceLines().get(0);
-          Assertions.assertEquals("java.lang.Thread.sleep", stackTraceLine.getClassAndMethod());
-          Assertions.assertEquals("Native Method", stackTraceLine.getLocation());
-          Assertions.assertEquals(-1, stackTraceLine.getLineNumber());
+          assertEquals("java.lang.Thread.sleep", stackTraceLine.getClassAndMethod());
+          assertEquals("Native Method", stackTraceLine.getLocation());
+          assertEquals(-1, stackTraceLine.getLineNumber());
         }
         {
           StackTraceLine stackTraceLine = stackTrace.getStackTraceLines().get(1);
-          Assertions.assertEquals(
+          assertEquals(
               "org.apache.catalina.core.StandardServer.await", stackTraceLine.getClassAndMethod());
-          Assertions.assertEquals("StandardServer.java", stackTraceLine.getLocation());
-          Assertions.assertEquals(570, stackTraceLine.getLineNumber());
+          assertEquals("StandardServer.java", stackTraceLine.getLocation());
+          assertEquals(570, stackTraceLine.getLineNumber());
         }
         {
           StackTraceLine stackTraceLine = stackTrace.getStackTraceLines().get(2);
-          Assertions.assertEquals(
+          assertEquals(
               "org.springframework.boot.web.embedded.tomcat.TomcatWebServer$1.run",
               stackTraceLine.getClassAndMethod());
-          Assertions.assertEquals("TomcatWebServer.java", stackTraceLine.getLocation());
-          Assertions.assertEquals(197, stackTraceLine.getLineNumber());
+          assertEquals("TomcatWebServer.java", stackTraceLine.getLocation());
+          assertEquals(197, stackTraceLine.getLineNumber());
         }
 
         found = true;
       }
     }
-    Assertions.assertTrue(found);
+    assertTrue(found);
   }
 
   static String readDumpFromResource(String resourcePath) {

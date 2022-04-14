@@ -57,7 +57,7 @@ class SplunkMetricsConfigTest {
   void testCustomValues() {
     var javaagentConfig =
         Config.builder()
-            .readProperties(
+            .addProperties(
                 Map.of(
                     METRICS_ENABLED_PROPERTY,
                     "true",
@@ -97,8 +97,7 @@ class SplunkMetricsConfigTest {
   @Test
   void emptyEndpointIsNotValid() {
     // given
-    var javaagentConfig =
-        Config.builder().readProperties(Map.of(METRICS_ENDPOINT_PROPERTY, "")).build();
+    var javaagentConfig = Config.builder().addProperty(METRICS_ENDPOINT_PROPERTY, "").build();
     var resource = Resource.create(Attributes.of(ResourceAttributes.SERVICE_NAME, "test-service"));
     var splunkMetricsConfig = new SplunkMetricsConfig(javaagentConfig, resource);
 
@@ -113,7 +112,7 @@ class SplunkMetricsConfigTest {
   void profilerEnablesMetrics() {
     var javaagentConfig =
         Config.builder()
-            .readProperties(
+            .addProperties(
                 Map.of(METRICS_ENABLED_PROPERTY, "false", PROFILER_MEMORY_ENABLED_PROPERTY, "true"))
             .build();
     var config = new SplunkMetricsConfig(javaagentConfig, Resource.getDefault());

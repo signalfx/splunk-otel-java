@@ -102,6 +102,7 @@ public class WindowsTestContainerManager extends AbstractTestContainerManager {
                 command
                     .withAliases(BACKEND_ALIAS)
                     .withExposedPorts(ExposedPort.tcp(BACKEND_PORT))
+                    .withEnv("JAVA_TOOL_OPTIONS=-Xmx128m")
                     .withHostConfig(
                         HostConfig.newHostConfig()
                             .withAutoRemove(true)

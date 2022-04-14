@@ -38,7 +38,7 @@ public class TraceInspector {
   public Stream<Span> getSpanStream() {
     return traces.stream()
         .flatMap(it -> it.getResourceSpansList().stream())
-        .flatMap(it -> it.getInstrumentationLibrarySpansList().stream())
+        .flatMap(it -> it.getScopeSpansList().stream())
         .flatMap(it -> it.getSpansList().stream());
   }
 
@@ -54,8 +54,8 @@ public class TraceInspector {
   public Set<String> getInstrumentationLibraryVersions() {
     return traces.stream()
         .flatMap(it -> it.getResourceSpansList().stream())
-        .flatMap(it -> it.getInstrumentationLibrarySpansList().stream())
-        .map(it -> it.getInstrumentationLibrary().getVersion())
+        .flatMap(it -> it.getScopeSpansList().stream())
+        .map(it -> it.getScope().getVersion())
         .collect(Collectors.toSet());
   }
 

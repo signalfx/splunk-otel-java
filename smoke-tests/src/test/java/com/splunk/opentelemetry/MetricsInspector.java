@@ -18,7 +18,6 @@ package com.splunk.opentelemetry;
 
 import io.opentelemetry.proto.collector.metrics.v1.ExportMetricsServiceRequest;
 import io.opentelemetry.proto.common.v1.KeyValue;
-import io.opentelemetry.proto.common.v1.StringKeyValue;
 import io.opentelemetry.proto.metrics.v1.Metric;
 import io.opentelemetry.proto.metrics.v1.NumberDataPoint;
 import java.util.Collection;
@@ -36,7 +35,7 @@ class MetricsInspector {
   boolean hasMetricsNamed(String metricName) {
     return requests.stream()
         .flatMap(list -> list.getResourceMetricsList().stream())
-        .flatMap(list -> list.getInstrumentationLibraryMetricsList().stream())
+        .flatMap(list -> list.getScopeMetricsList().stream())
         .flatMap(list -> list.getMetricsList().stream())
         .anyMatch(metric -> Objects.equals(metric.getName(), metricName));
   }
@@ -44,7 +43,7 @@ class MetricsInspector {
   boolean hasGaugeWithAttributes(String name, Map<String, String> attributes) {
     return requests.stream()
         .flatMap(list -> list.getResourceMetricsList().stream())
-        .flatMap(list -> list.getInstrumentationLibraryMetricsList().stream())
+        .flatMap(list -> list.getScopeMetricsList().stream())
         .flatMap(list -> list.getMetricsList().stream())
         .filter(Metric::hasGauge)
         .filter(metric -> Objects.equals(metric.getName(), name))
@@ -58,16 +57,6 @@ class MetricsInspector {
     for (KeyValue kv : dataPoint.getAttributesList()) {
       String value = attributes.get(kv.getKey());
       if (Objects.equals(value, kv.getValue().getStringValue())) {
-        attributes.remove(kv.getKey());
-      }
-      if (attributes.isEmpty()) {
-        return true;
-      }
-    }
-    // take the old format into account too
-    for (StringKeyValue kv : dataPoint.getLabelsList()) {
-      String value = attributes.get(kv.getKey());
-      if (Objects.equals(value, kv.getValue())) {
         attributes.remove(kv.getKey());
       }
       if (attributes.isEmpty()) {

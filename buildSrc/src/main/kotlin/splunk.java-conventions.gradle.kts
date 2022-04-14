@@ -13,8 +13,8 @@ repositories {
   }
 }
 
-val otelVersion = "1.12.0"
-val otelAlphaVersion = "1.12.0-alpha"
+val otelVersion = "1.13.0"
+val otelAlphaVersion = "1.13.0-alpha"
 val otelContribAlphaVersion = "1.12.0-alpha"
 val otelInstrumentationVersion = "1.13.0-SNAPSHOT"
 val otelInstrumentationAlphaVersion = "1.13.0-alpha-SNAPSHOT"
@@ -81,7 +81,7 @@ extensions.configure<DependencyManagementExtension>("dependencyManagement") {
       entry("opentelemetry-samplers")
     }
 
-    dependency("io.opentelemetry.proto:opentelemetry-proto:0.11.0-alpha")
+    dependency("io.opentelemetry.proto:opentelemetry-proto:0.16.0-alpha")
   }
 
   imports {

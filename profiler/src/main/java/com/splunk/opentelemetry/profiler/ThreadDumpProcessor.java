@@ -19,7 +19,7 @@ package com.splunk.opentelemetry.profiler;
 import com.splunk.opentelemetry.profiler.context.SpanContextualizer;
 import com.splunk.opentelemetry.profiler.context.SpanLinkage;
 import com.splunk.opentelemetry.profiler.context.StackToSpanLinkage;
-import java.util.function.Consumer;
+import com.splunk.opentelemetry.profiler.exporter.CpuEventExporter;
 import jdk.jfr.consumer.RecordedEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,13 +28,13 @@ public class ThreadDumpProcessor {
   public static final String EVENT_NAME = "jdk.ThreadDump";
   private static final Logger logger = LoggerFactory.getLogger(ThreadDumpProcessor.class);
   private final SpanContextualizer contextualizer;
-  private final Consumer<StackToSpanLinkage> processor;
+  private final CpuEventExporter cpuEventExporter;
   private final StackTraceFilter stackTraceFilter;
   private final boolean onlyTracingSpans;
 
   private ThreadDumpProcessor(Builder builder) {
     this.contextualizer = builder.contextualizer;
-    this.processor = builder.processor;
+    this.cpuEventExporter = builder.cpuEventExporter;
     this.stackTraceFilter = builder.stackTraceFilter;
     this.onlyTracingSpans = builder.onlyTracingSpans;
   }
@@ -57,8 +57,12 @@ public class ThreadDumpProcessor {
       StackToSpanLinkage spanWithLinkage =
           new StackToSpanLinkage(
               event.getStartTime(), stack.getCurrentRegion(), eventName, linkage);
-      processor.accept(spanWithLinkage);
+      cpuEventExporter.export(spanWithLinkage);
     }
+  }
+
+  public void flush() {
+    cpuEventExporter.flush();
   }
 
   public static Builder builder() {
@@ -67,7 +71,7 @@ public class ThreadDumpProcessor {
 
   public static class Builder {
     private SpanContextualizer contextualizer;
-    private Consumer<StackToSpanLinkage> processor;
+    private CpuEventExporter cpuEventExporter;
     private StackTraceFilter stackTraceFilter;
     private boolean onlyTracingSpans;
 
@@ -76,8 +80,8 @@ public class ThreadDumpProcessor {
       return this;
     }
 
-    public Builder processor(Consumer<StackToSpanLinkage> consumer) {
-      this.processor = consumer;
+    public Builder cpuEventExporter(CpuEventExporter cpuEventExporter) {
+      this.cpuEventExporter = cpuEventExporter;
       return this;
     }
 

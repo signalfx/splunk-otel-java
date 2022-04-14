@@ -27,13 +27,13 @@ import static org.mockito.Mockito.when;
 import com.splunk.opentelemetry.profiler.context.SpanContextualizer;
 import com.splunk.opentelemetry.profiler.context.StackToSpanLinkage;
 import com.splunk.opentelemetry.profiler.events.ContextAttached;
+import com.splunk.opentelemetry.profiler.exporter.CpuEventExporter;
 import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.api.trace.TraceFlags;
 import io.opentelemetry.api.trace.TraceState;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.function.Consumer;
 import java.util.stream.Stream;
 import jdk.jfr.EventType;
 import jdk.jfr.consumer.RecordedEvent;
@@ -131,11 +131,11 @@ class ThreadDumpProcessorTest {
   private static List<StackToSpanLinkage> collectResults(
       SpanContextualizer contextualizer, String threadDump, boolean onlyTracingSpans) {
     List<StackToSpanLinkage> results = new ArrayList<>();
-    Consumer<StackToSpanLinkage> exportProcessor = results::add;
+    CpuEventExporter profilingEventExporter = results::add;
     ThreadDumpProcessor processor =
         ThreadDumpProcessor.builder()
             .spanContextualizer(contextualizer)
-            .processor(exportProcessor)
+            .cpuEventExporter(profilingEventExporter)
             .stackTraceFilter(new StackTraceFilter(false))
             .onlyTracingSpans(onlyTracingSpans)
             .build();

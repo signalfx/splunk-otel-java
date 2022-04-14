@@ -16,7 +16,7 @@ extensions.configure<SpotlessExtension>("spotless") {
     licenseHeaderFile(rootProject.file("gradle/spotless.license.java"), "(package|import|public)")
   }
   kotlinGradle {
-    ktlint().userData(mapOf("indent_size" to "2", "continuation_indent_size" to "2"))
+    ktlint().userData(mapOf("indent_size" to "2", "continuation_indent_size" to "2", "disabled_rules" to "no-wildcard-imports"))
   }
   format("misc") {
     // not using "**/..." to help keep spotless fast

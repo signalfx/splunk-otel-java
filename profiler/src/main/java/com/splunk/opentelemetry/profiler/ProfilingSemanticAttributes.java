@@ -20,6 +20,7 @@ import static io.opentelemetry.api.common.AttributeKey.longKey;
 import static io.opentelemetry.api.common.AttributeKey.stringKey;
 
 import io.opentelemetry.api.common.AttributeKey;
+import io.opentelemetry.sdk.common.InstrumentationLibraryInfo;
 
 public class ProfilingSemanticAttributes {
 
@@ -31,4 +32,24 @@ public class ProfilingSemanticAttributes {
 
   /** The period of the source event, in ms. */
   public static final AttributeKey<Long> SOURCE_EVENT_PERIOD = longKey("source.event.period");
+
+  public static final AttributeKey<Long> SOURCE_EVENT_TIME = longKey("source.event.time");
+
+  public static final AttributeKey<String> DATA_TYPE = stringKey("profiling.data.type");
+  public static final AttributeKey<String> DATA_FORMAT = stringKey("profiling.data.format");
+
+  public static final AttributeKey<Long> THREAD_ID = longKey("thread.id");
+  public static final AttributeKey<String> THREAD_NAME = stringKey("thread.name");
+  public static final AttributeKey<Long> THREAD_OS_ID = longKey("thread.os.id");
+  public static final AttributeKey<String> THREAD_STATE = stringKey("thread.state");
+
+  public static final AttributeKey<String> TRACE_ID = stringKey("trace_id");
+  public static final AttributeKey<String> SPAN_ID = stringKey("span_id");
+
+  public static final String PROFILING_SOURCE = "otel.profiling";
+
+  private static final String OTEL_INSTRUMENTATION_NAME = "otel.profiling";
+  private static final String OTEL_INSTRUMENTATION_VERSION = "0.1.0";
+  public static final InstrumentationLibraryInfo INSTRUMENTATION_LIBRARY_INFO =
+      InstrumentationLibraryInfo.create(OTEL_INSTRUMENTATION_NAME, OTEL_INSTRUMENTATION_VERSION);
 }

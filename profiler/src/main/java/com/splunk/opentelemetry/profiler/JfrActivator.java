@@ -26,14 +26,23 @@ import static com.splunk.opentelemetry.profiler.util.Runnables.logUncaught;
 
 import com.google.auto.service.AutoService;
 import com.splunk.opentelemetry.logs.BatchingLogsProcessor;
+import com.splunk.opentelemetry.profiler.Configuration.DataFormat;
+import com.splunk.opentelemetry.profiler.allocation.exporter.AllocationEventExporter;
+import com.splunk.opentelemetry.profiler.allocation.exporter.PlainTextAllocationEventExporter;
+import com.splunk.opentelemetry.profiler.allocation.exporter.PprofAllocationEventExporter;
 import com.splunk.opentelemetry.profiler.context.SpanContextualizer;
 import com.splunk.opentelemetry.profiler.events.EventPeriods;
+import com.splunk.opentelemetry.profiler.exporter.CpuEventExporter;
+import com.splunk.opentelemetry.profiler.exporter.PlainTextCpuEventExporter;
+import com.splunk.opentelemetry.profiler.exporter.PprofCpuEventExporter;
 import com.splunk.opentelemetry.profiler.util.FileDeleter;
 import com.splunk.opentelemetry.profiler.util.HelpfulExecutors;
 import io.opentelemetry.instrumentation.api.config.Config;
 import io.opentelemetry.javaagent.extension.AgentListener;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
+import io.opentelemetry.sdk.logs.LogProcessor;
 import io.opentelemetry.sdk.logs.export.LogExporter;
+import io.opentelemetry.sdk.logs.export.SimpleLogProcessor;
 import io.opentelemetry.sdk.resources.Resource;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -97,30 +106,50 @@ public class JfrActivator implements AgentListener {
     LogDataCommonAttributes commonAttributes = new LogDataCommonAttributes(periods);
     LogExporter logsExporter = LogExporterBuilder.fromConfig(config);
 
-    ScheduledExecutorService exportExecutorService =
-        HelpfulExecutors.newSingleThreadedScheduledExecutor("Batched Logs Exporter");
-    BatchingLogsProcessor batchingLogsProcessor =
-        BatchingLogsProcessor.builder()
-            .maxTimeBetweenBatches(MAX_TIME_BETWEEN_BATCHES)
-            .maxBatchSize(MAX_BATCH_SIZE)
-            .batchAction(logsExporter)
-            .executorService(exportExecutorService)
-            .build();
-    batchingLogsProcessor.start();
-
-    LogDataCreator logDataCreator = new LogDataCreator(commonAttributes, resource);
-
-    StackToSpanLinkageProcessor processor =
-        new StackToSpanLinkageProcessor(logDataCreator, batchingLogsProcessor);
+    DataFormat cpuDataFormat = Configuration.getCpuDataFormat(config);
+    CpuEventExporter cpuEventExporter;
+    if (cpuDataFormat == DataFormat.TEXT) {
+      cpuEventExporter =
+          PlainTextCpuEventExporter.builder()
+              .logProcessor(BatchLogProcessorHolder.get(logsExporter))
+              .commonAttributes(commonAttributes)
+              .resource(resource)
+              .build();
+    } else {
+      cpuEventExporter =
+          PprofCpuEventExporter.builder()
+              .logProcessor(SimpleLogProcessor.create(logsExporter))
+              .resource(resource)
+              .dataFormat(cpuDataFormat)
+              .eventPeriods(periods)
+              .build();
+    }
 
     ThreadDumpProcessor threadDumpProcessor =
         buildThreadDumpProcessor(
-            spanContextualizer, processor, buildStackTraceFilter(config), config);
+            spanContextualizer, cpuEventExporter, buildStackTraceFilter(config), config);
+
+    DataFormat allocationDataFormat = Configuration.getAllocationDataFormat(config);
+    AllocationEventExporter allocationEventExporter;
+    if (allocationDataFormat == DataFormat.TEXT) {
+      allocationEventExporter =
+          PlainTextAllocationEventExporter.builder()
+              .logProcessor(BatchLogProcessorHolder.get(logsExporter))
+              .commonAttributes(commonAttributes)
+              .resource(resource)
+              .build();
+    } else {
+      allocationEventExporter =
+          PprofAllocationEventExporter.builder()
+              .logProcessor(SimpleLogProcessor.create(logsExporter))
+              .resource(resource)
+              .dataFormat(allocationDataFormat)
+              .build();
+    }
+
     TLABProcessor tlabProcessor =
         TLABProcessor.builder(config)
-            .logProcessor(batchingLogsProcessor)
-            .commonAttributes(commonAttributes)
-            .resource(resource)
+            .allocationEventExporter(allocationEventExporter)
             .spanContextualizer(spanContextualizer)
             .build();
     EventProcessingChain eventProcessingChain =
@@ -161,12 +190,12 @@ public class JfrActivator implements AgentListener {
 
   private ThreadDumpProcessor buildThreadDumpProcessor(
       SpanContextualizer spanContextualizer,
-      StackToSpanLinkageProcessor processor,
+      CpuEventExporter profilingEventExporter,
       StackTraceFilter stackTraceFilter,
       Config config) {
     return ThreadDumpProcessor.builder()
         .spanContextualizer(spanContextualizer)
-        .processor(processor)
+        .cpuEventExporter(profilingEventExporter)
         .stackTraceFilter(stackTraceFilter)
         .onlyTracingSpans(Configuration.getTracingStacksOnly(config))
         .build();
@@ -196,5 +225,28 @@ public class JfrActivator implements AgentListener {
 
   private boolean keepFiles(Config config) {
     return config.getBoolean(CONFIG_KEY_KEEP_FILES, false);
+  }
+
+  private static class BatchLogProcessorHolder {
+    private static LogProcessor INSTANCE;
+
+    // initialize BatchingLogsProcessor only if it is needed and if it is needed initialize it only
+    // once
+    static LogProcessor get(LogExporter logsExporter) {
+      if (INSTANCE == null) {
+        ScheduledExecutorService exportExecutorService =
+            HelpfulExecutors.newSingleThreadedScheduledExecutor("Batched Logs Exporter");
+        BatchingLogsProcessor batchingLogsProcessor =
+            BatchingLogsProcessor.builder()
+                .maxTimeBetweenBatches(MAX_TIME_BETWEEN_BATCHES)
+                .maxBatchSize(MAX_BATCH_SIZE)
+                .batchAction(logsExporter)
+                .executorService(exportExecutorService)
+                .build();
+        batchingLogsProcessor.start();
+        INSTANCE = batchingLogsProcessor;
+      }
+      return INSTANCE;
+    }
   }
 }

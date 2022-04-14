@@ -29,6 +29,8 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import com.splunk.opentelemetry.profiler.allocation.exporter.AllocationEventExporter;
+import com.splunk.opentelemetry.profiler.allocation.exporter.PlainTextAllocationEventExporter;
 import com.splunk.opentelemetry.profiler.context.SpanContextualizer;
 import com.splunk.opentelemetry.profiler.context.SpanLinkage;
 import com.splunk.opentelemetry.profiler.events.EventPeriods;
@@ -60,6 +62,7 @@ class TLABProcessorTest {
   public static final long ONE_MB = 1024 * 1024L;
   public static final long FIVE_MB = 5 * 1024 * 1024L;
   public static final long THREAD_ID = 606L;
+  public static final long OS_THREAD_ID = 0x707L;
 
   @Test
   void testProcess() {
@@ -110,7 +113,7 @@ class TLABProcessorTest {
     AtomicReference<LogData> seenLogData = new AtomicReference<>();
     LogProcessor consumer = seenLogData::set;
     String stackAsString =
-        "\"mockingbird\" #606\n"
+        "\"mockingbird\" #606 nid=0x707\n"
             + "   java.lang.Thread.State: UNKNOWN\n"
             + "i am a serialized stack believe me";
 
@@ -132,12 +135,17 @@ class TLABProcessorTest {
     SpanContextualizer spanContextualizer = mock(SpanContextualizer.class);
     when(spanContextualizer.link(THREAD_ID)).thenReturn(new SpanLinkage(spanContext, THREAD_ID));
 
-    TLABProcessor processor =
-        TLABProcessor.builder(config)
+    AllocationEventExporter allocationEventExporter =
+        PlainTextAllocationEventExporter.builder()
             .stackSerializer(serializer)
             .logProcessor(consumer)
             .commonAttributes(commonAttrs)
             .resource(Resource.getDefault())
+            .build();
+
+    TLABProcessor processor =
+        TLABProcessor.builder(config)
+            .allocationEventExporter(allocationEventExporter)
             .spanContextualizer(spanContextualizer)
             .build();
 
@@ -167,6 +175,7 @@ class TLABProcessorTest {
     when(event.getLong("allocationSize")).thenReturn(ONE_MB);
     when(event.getThread()).thenReturn(mockThread);
     when(mockThread.getJavaThreadId()).thenReturn(THREAD_ID);
+    when(mockThread.getOSThreadId()).thenReturn(OS_THREAD_ID);
     when(mockThread.getJavaName()).thenReturn("mockingbird");
 
     when(event.hasField("tlabSize")).thenReturn(tlabSize != null);
@@ -202,12 +211,17 @@ class TLABProcessorTest {
     when(config.getInt(CONFIG_KEY_MEMORY_SAMPLER_INTERVAL, DEFAULT_MEMORY_SAMPLING_INTERVAL))
         .thenReturn(samplerInterval);
 
-    TLABProcessor processor =
-        TLABProcessor.builder(config)
+    AllocationEventExporter allocationEventExporter =
+        PlainTextAllocationEventExporter.builder()
             .stackSerializer(serializer)
             .logProcessor(consumer)
             .commonAttributes(commonAttrs)
             .resource(Resource.getDefault())
+            .build();
+
+    TLABProcessor processor =
+        TLABProcessor.builder(config)
+            .allocationEventExporter(allocationEventExporter)
             .spanContextualizer(spanContextualizer)
             .build();
 

@@ -16,21 +16,13 @@
 
 package com.splunk.opentelemetry.profiler;
 
-import static com.splunk.opentelemetry.profiler.LogExporterBuilder.INSTRUMENTATION_LIBRARY_INFO;
-
-import com.splunk.opentelemetry.profiler.allocationsampler.AllocationEventSampler;
-import com.splunk.opentelemetry.profiler.allocationsampler.SystematicAllocationEventSampler;
+import com.splunk.opentelemetry.profiler.allocation.exporter.AllocationEventExporter;
+import com.splunk.opentelemetry.profiler.allocation.sampler.AllocationEventSampler;
+import com.splunk.opentelemetry.profiler.allocation.sampler.SystematicAllocationEventSampler;
 import com.splunk.opentelemetry.profiler.context.SpanContextualizer;
-import com.splunk.opentelemetry.profiler.util.StackSerializer;
 import io.opentelemetry.api.common.AttributeKey;
-import io.opentelemetry.api.common.Attributes;
-import io.opentelemetry.api.common.AttributesBuilder;
 import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.instrumentation.api.config.Config;
-import io.opentelemetry.sdk.logs.LogProcessor;
-import io.opentelemetry.sdk.logs.data.LogDataBuilder;
-import io.opentelemetry.sdk.resources.Resource;
-import java.time.Instant;
 import java.util.function.Consumer;
 import jdk.jfr.consumer.RecordedEvent;
 import jdk.jfr.consumer.RecordedStackTrace;
@@ -42,19 +34,13 @@ public class TLABProcessor implements Consumer<RecordedEvent> {
   static final AttributeKey<Long> ALLOCATION_SIZE_KEY = AttributeKey.longKey("memory.allocated");
 
   private final boolean enabled;
-  private final StackSerializer stackSerializer;
-  private final LogProcessor logProcessor;
-  private final LogDataCommonAttributes commonAttributes;
-  private final Resource resource;
+  private final AllocationEventExporter allocationEventExporter;
   private final AllocationEventSampler sampler;
   private final SpanContextualizer spanContextualizer;
 
   private TLABProcessor(Builder builder) {
     this.enabled = builder.enabled;
-    this.stackSerializer = builder.stackSerializer;
-    this.logProcessor = builder.logProcessor;
-    this.commonAttributes = builder.commonAttributes;
-    this.resource = builder.resource;
+    this.allocationEventExporter = builder.allocationEventExporter;
     this.sampler = builder.sampler;
     this.spanContextualizer = builder.spanContextualizer;
   }
@@ -75,42 +61,17 @@ public class TLABProcessor implements Consumer<RecordedEvent> {
       return;
     }
 
-    Instant time = event.getStartTime();
-
-    String body = buildBody(event, stackTrace);
-
-    AttributesBuilder builder =
-        commonAttributes
-            .builder(event.getEventType().getName())
-            .put(ALLOCATION_SIZE_KEY, event.getLong("allocationSize"));
-    if (sampler != null) {
-      sampler.addAttributes(builder);
-    }
-    Attributes attributes = builder.build();
-
-    LogDataBuilder logDataBuilder =
-        LogDataBuilder.create(resource, INSTRUMENTATION_LIBRARY_INFO)
-            .setEpoch(time)
-            .setBody(body)
-            .setAttributes(attributes);
-
+    SpanContext spanContext = null;
     RecordedThread thread = event.getThread();
     if (thread != null) {
-      SpanContext spanContext = spanContextualizer.link(thread.getJavaThreadId()).getSpanContext();
-      if (spanContext.isValid()) {
-        logDataBuilder.setSpanContext(spanContext);
-      }
+      spanContext = spanContextualizer.link(thread.getJavaThreadId()).getSpanContext();
     }
 
-    logProcessor.emit(logDataBuilder.build());
+    allocationEventExporter.export(event, sampler, spanContext);
   }
 
-  private String buildBody(RecordedEvent event, RecordedStackTrace stackTrace) {
-    String stack = stackSerializer.serialize(stackTrace);
-    RecordedThread thread = event.getThread();
-    String name = thread == null ? "unknown" : thread.getJavaName();
-    long id = thread == null ? 0 : thread.getJavaThreadId();
-    return "\"" + name + "\"" + " #" + id + "\n" + "   java.lang.Thread.State: UNKNOWN\n" + stack;
+  public void flush() {
+    allocationEventExporter.flush();
   }
 
   static Builder builder(Config config) {
@@ -125,10 +86,7 @@ public class TLABProcessor implements Consumer<RecordedEvent> {
 
   static class Builder {
     private final boolean enabled;
-    private StackSerializer stackSerializer = new StackSerializer();
-    private LogProcessor logProcessor;
-    private LogDataCommonAttributes commonAttributes;
-    private Resource resource;
+    private AllocationEventExporter allocationEventExporter;
     private AllocationEventSampler sampler;
     private SpanContextualizer spanContextualizer;
 
@@ -140,23 +98,8 @@ public class TLABProcessor implements Consumer<RecordedEvent> {
       return new TLABProcessor(this);
     }
 
-    Builder stackSerializer(StackSerializer stackSerializer) {
-      this.stackSerializer = stackSerializer;
-      return this;
-    }
-
-    Builder logProcessor(LogProcessor logsProcessor) {
-      this.logProcessor = logsProcessor;
-      return this;
-    }
-
-    Builder commonAttributes(LogDataCommonAttributes commonAttributes) {
-      this.commonAttributes = commonAttributes;
-      return this;
-    }
-
-    Builder resource(Resource resource) {
-      this.resource = resource;
+    Builder allocationEventExporter(AllocationEventExporter allocationEventExporter) {
+      this.allocationEventExporter = allocationEventExporter;
       return this;
     }
 

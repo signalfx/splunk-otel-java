@@ -18,7 +18,7 @@ package com.splunk.opentelemetry.profiler.exporter;
 
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.DATA_FORMAT;
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.DATA_TYPE;
-import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.INSTRUMENTATION_LIBRARY_INFO;
+import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.INSTRUMENTATION_SCOPE_INFO;
 
 import com.splunk.opentelemetry.profiler.Configuration;
 import com.splunk.opentelemetry.profiler.LogDataCommonAttributes;
@@ -51,7 +51,7 @@ public class PlainTextCpuEventExporter implements CpuEventExporter {
             .build();
 
     LogDataBuilder logDataBuilder =
-        LogDataBuilder.create(resource, INSTRUMENTATION_LIBRARY_INFO)
+        LogDataBuilder.create(resource, INSTRUMENTATION_SCOPE_INFO)
             .setEpoch(linkedStack.getTime())
             .setBody(linkedStack.getRawStack())
             .setAttributes(attributes);

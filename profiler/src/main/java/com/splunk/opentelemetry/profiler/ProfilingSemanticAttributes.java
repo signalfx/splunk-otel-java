@@ -20,7 +20,7 @@ import static io.opentelemetry.api.common.AttributeKey.longKey;
 import static io.opentelemetry.api.common.AttributeKey.stringKey;
 
 import io.opentelemetry.api.common.AttributeKey;
-import io.opentelemetry.sdk.common.InstrumentationLibraryInfo;
+import io.opentelemetry.sdk.common.InstrumentationScopeInfo;
 
 public class ProfilingSemanticAttributes {
 
@@ -50,6 +50,7 @@ public class ProfilingSemanticAttributes {
 
   private static final String OTEL_INSTRUMENTATION_NAME = "otel.profiling";
   private static final String OTEL_INSTRUMENTATION_VERSION = "0.1.0";
-  public static final InstrumentationLibraryInfo INSTRUMENTATION_LIBRARY_INFO =
-      InstrumentationLibraryInfo.create(OTEL_INSTRUMENTATION_NAME, OTEL_INSTRUMENTATION_VERSION);
+  public static final InstrumentationScopeInfo INSTRUMENTATION_SCOPE_INFO =
+      InstrumentationScopeInfo.create(
+          OTEL_INSTRUMENTATION_NAME, OTEL_INSTRUMENTATION_VERSION, null);
 }

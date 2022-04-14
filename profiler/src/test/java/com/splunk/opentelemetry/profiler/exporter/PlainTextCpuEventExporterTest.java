@@ -18,7 +18,7 @@ package com.splunk.opentelemetry.profiler.exporter;
 
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.DATA_FORMAT;
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.DATA_TYPE;
-import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.INSTRUMENTATION_LIBRARY_INFO;
+import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.INSTRUMENTATION_SCOPE_INFO;
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.SOURCE_EVENT_NAME;
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.SOURCE_EVENT_PERIOD;
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.SOURCE_TYPE;
@@ -98,7 +98,7 @@ class PlainTextCpuEventExporterTest {
             DATA_FORMAT,
             Configuration.DataFormat.TEXT.value());
     LogData expected =
-        LogDataBuilder.create(resource, INSTRUMENTATION_LIBRARY_INFO)
+        LogDataBuilder.create(resource, INSTRUMENTATION_SCOPE_INFO)
             .setContext(context)
             .setBody(stack)
             .setEpoch(time)

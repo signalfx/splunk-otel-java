@@ -22,7 +22,6 @@ import static org.mockito.Mockito.verifyNoInteractions;
 
 import io.opentelemetry.instrumentation.api.config.Config;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
-import java.util.Map;
 import java.util.function.Consumer;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -51,7 +50,7 @@ class ServiceNameCheckerTest {
   @Test
   void shouldNotLogWarnWhenServiceNameIsConfigured() {
     // given
-    var config = Config.builder().readProperties(Map.of("otel.service.name", "test")).build();
+    var config = Config.builder().addProperty("otel.service.name", "test").build();
 
     var underTest = new ServiceNameChecker(logWarn);
 
@@ -66,9 +65,7 @@ class ServiceNameCheckerTest {
   void shouldNotLogWarnWhenResourceAttributeIsConfigured() {
     // given
     var config =
-        Config.builder()
-            .readProperties(Map.of("otel.resource.attributes", "service.name=test"))
-            .build();
+        Config.builder().addProperty("otel.resource.attributes", "service.name=test").build();
 
     var underTest = new ServiceNameChecker(logWarn);
 

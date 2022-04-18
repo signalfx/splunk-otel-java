@@ -53,7 +53,8 @@ public class PlainTextAllocationEventExporter implements AllocationEventExporter
     this.commonAttributes = builder.commonAttributes;
     this.resource = builder.resource;
     this.stackDepth = builder.stackDepth;
-    this.stackSerializer = builder.stackSerializer != null ? builder.stackSerializer : new StackSerializer(stackDepth);
+    this.stackSerializer =
+        builder.stackSerializer != null ? builder.stackSerializer : new StackSerializer(stackDepth);
   }
 
   @Override

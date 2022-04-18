@@ -61,7 +61,7 @@ public class Configuration implements ConfigPropertySource {
   public static final String CONFIG_KEY_INCLUDE_INTERNAL_STACKS =
       "splunk.profiler.include.internal.stacks";
   public static final String CONFIG_KEY_TRACING_STACKS_ONLY = "splunk.profiler.tracing.stacks.only";
-  private static final String CONFIG_KEY_STACK_DEPTH = "splunk.profiler.stack.depth";
+  private static final String CONFIG_KEY_STACK_DEPTH = "splunk.profiler.stack.max.depth";
 
   @Override
   public Map<String, String> getProperties() {

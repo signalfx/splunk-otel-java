@@ -53,7 +53,7 @@ public class PlainTextAllocationEventExporter implements AllocationEventExporter
     this.commonAttributes = builder.commonAttributes;
     this.resource = builder.resource;
     this.stackDepth = builder.stackDepth;
-    this.stackSerializer = new StackSerializer(stackDepth);
+    this.stackSerializer = builder.stackSerializer != null ? builder.stackSerializer : new StackSerializer(stackDepth);
   }
 
   @Override
@@ -112,6 +112,7 @@ public class PlainTextAllocationEventExporter implements AllocationEventExporter
   }
 
   public static class Builder {
+    private StackSerializer stackSerializer;
     private LogProcessor logProcessor;
     private LogDataCommonAttributes commonAttributes;
     private Resource resource;
@@ -119,6 +120,11 @@ public class PlainTextAllocationEventExporter implements AllocationEventExporter
 
     public PlainTextAllocationEventExporter build() {
       return new PlainTextAllocationEventExporter(this);
+    }
+
+    public Builder stackSerializer(StackSerializer stackSerializer) {
+      this.stackSerializer = stackSerializer;
+      return this;
     }
 
     public Builder logProcessor(LogProcessor logsProcessor) {

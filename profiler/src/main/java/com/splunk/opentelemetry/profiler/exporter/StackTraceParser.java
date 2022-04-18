@@ -25,7 +25,7 @@ class StackTraceParser {
   private static final String THREAD_STATE_PREFIX = "java.lang.Thread.State: ";
   private static final String THREAD_NATIVE_ID_PREFIX = "nid=0x";
 
-  public static StackTrace parse(String stackTrace) {
+  public static StackTrace parse(String stackTrace, int stackDepth) {
     // \\R - Any Unicode linebreak sequence
     String[] lines = stackTrace.split("\\R");
     if (lines.length < 2) {
@@ -37,6 +37,10 @@ class StackTraceParser {
     parseHeader(builder, lines[0]);
     builder.setThreadState(parseThreadState(lines[1]));
     for (int i = 2; i < lines.length; i++) {
+      if (i > stackDepth + 2) {
+        builder.setTruncated();
+        break;
+      }
       StackTraceLine stackTraceLine = parseStackTraceLine(lines[i]);
       if (stackTraceLine != null) {
         builder.addStackTraceLine(stackTraceLine);
@@ -146,6 +150,7 @@ class StackTraceParser {
     private int osThreadId = -1;
     private String threadState;
     private List<StackTraceLine> stackTraceLines = new ArrayList<>();
+    private boolean truncated;
 
     StackTrace build() {
       return new StackTrace(this);
@@ -190,6 +195,14 @@ class StackTraceParser {
     void addStackTraceLine(StackTraceLine stackTraceLine) {
       stackTraceLines.add(stackTraceLine);
     }
+
+    boolean isTruncated() {
+      return truncated;
+    }
+
+    void setTruncated() {
+      this.truncated = true;
+    }
   }
 
   static class StackTrace {
@@ -198,6 +211,7 @@ class StackTraceParser {
     private final int osThreadId;
     private final String threadState;
     private final List<StackTraceLine> stackTraceLines;
+    private final boolean truncated;
 
     StackTrace(StackTraceBuilder builder) {
       this.threadId = builder.getThreadId();
@@ -205,6 +219,7 @@ class StackTraceParser {
       this.osThreadId = builder.getOsThreadId();
       this.threadState = builder.getThreadState();
       this.stackTraceLines = builder.getStackTraceLines();
+      this.truncated = builder.isTruncated();
     }
 
     int getThreadId() {
@@ -225,6 +240,10 @@ class StackTraceParser {
 
     List<StackTraceLine> getStackTraceLines() {
       return stackTraceLines;
+    }
+
+    boolean isTruncated() {
+      return truncated;
     }
   }
 

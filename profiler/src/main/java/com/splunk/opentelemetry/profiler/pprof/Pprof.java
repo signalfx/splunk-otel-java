@@ -55,6 +55,10 @@ public class Pprof {
     addLabel(sample, key.getKey(), value);
   }
 
+  public void addLabel(Sample.Builder sample, AttributeKey<Boolean> key, boolean value) {
+    addLabel(sample, key.getKey(), Boolean.toString(value));
+  }
+
   public void addLabel(Sample.Builder sample, String name, String value) {
     addLabel(sample, name, label -> label.setStr(stringTable.get(value)));
   }

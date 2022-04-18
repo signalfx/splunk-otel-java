@@ -77,6 +77,8 @@ public class PprofAllocationEventExporter implements AllocationEventExporter {
     }
 
     stackTrace.getFrames().stream()
+        // limit the number of stack frames in case jfr stack depth is greater than our stack depth
+        // truncate the bottom stack frames the same way as jfr
         .limit(stackDepth)
         .forEachOrdered(
             frame -> {

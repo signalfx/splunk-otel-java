@@ -32,6 +32,8 @@ public class StackSerializer {
   public String serialize(RecordedStackTrace stack) {
     List<RecordedFrame> frames = stack.getFrames();
     return frames.stream()
+        // limit the number of stack frames in case jfr stack depth is greater than our stack depth
+        // truncate the bottom stack frames the same way as jfr
         .limit(maxDepth)
         .reduce(
             new StringBuilder(), this::serializeFrame, (sb1, sb2) -> sb1.append("\n").append(sb2))

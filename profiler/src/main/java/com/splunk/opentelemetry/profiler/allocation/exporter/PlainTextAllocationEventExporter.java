@@ -75,6 +75,8 @@ public class PlainTextAllocationEventExporter implements AllocationEventExporter
     if (sampler != null) {
       sampler.addAttributes((k, v) -> builder.put(k, v), (k, v) -> builder.put(k, v));
     }
+
+    // stack trace is truncated either by jfr or in StackSerializer
     if (stackTrace.isTruncated() || stackTrace.getFrames().size() > stackDepth) {
       builder.put(THREAD_STACK_TRUNCATED, true);
     }
@@ -117,7 +119,7 @@ public class PlainTextAllocationEventExporter implements AllocationEventExporter
     private LogProcessor logProcessor;
     private LogDataCommonAttributes commonAttributes;
     private Resource resource;
-    int stackDepth;
+    private int stackDepth;
 
     public PlainTextAllocationEventExporter build() {
       return new PlainTextAllocationEventExporter(this);

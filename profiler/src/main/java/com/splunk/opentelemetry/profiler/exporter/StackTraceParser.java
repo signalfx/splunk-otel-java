@@ -37,6 +37,7 @@ class StackTraceParser {
     parseHeader(builder, lines[0]);
     builder.setThreadState(parseThreadState(lines[1]));
     for (int i = 2; i < lines.length; i++) {
+      // truncate the bottom stack frames the same way as jfr stack frame limiting does
       if (i > stackDepth + 2) {
         builder.setTruncated();
         break;

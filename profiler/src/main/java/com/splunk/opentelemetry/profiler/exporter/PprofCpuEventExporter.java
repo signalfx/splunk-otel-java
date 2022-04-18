@@ -23,6 +23,7 @@ import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.SPAN
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.THREAD_ID;
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.THREAD_NAME;
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.THREAD_OS_ID;
+import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.THREAD_STACK_TRUNCATED;
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.THREAD_STATE;
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.TRACE_ID;
 
@@ -70,6 +71,10 @@ public class PprofCpuEventExporter implements CpuEventExporter {
     }
     pprof.addLabel(sample, THREAD_OS_ID, stackTrace.getOsThreadId());
     pprof.addLabel(sample, THREAD_STATE, stackTrace.getThreadState());
+
+    if (stackTrace.isTruncated()) {
+      pprof.addLabel(sample, THREAD_STACK_TRUNCATED, true);
+    }
 
     for (StackTraceParser.StackTraceLine stl : stackTrace.getStackTraceLines()) {
       sample.addLocationId(

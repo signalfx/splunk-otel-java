@@ -25,7 +25,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.sdk.common.CompletableResultCode;
-import io.opentelemetry.sdk.common.InstrumentationLibraryInfo;
+import io.opentelemetry.sdk.common.InstrumentationScopeInfo;
 import io.opentelemetry.sdk.logs.data.LogData;
 import io.opentelemetry.sdk.logs.data.LogDataBuilder;
 import io.opentelemetry.sdk.logs.export.LogExporter;
@@ -49,7 +49,7 @@ class BatchingLogsProcessorTest {
   void setup() {
     LogDataBuilder builder =
         LogDataBuilder.create(
-            Resource.getDefault(), InstrumentationLibraryInfo.create("test", "1.2.3"));
+            Resource.getDefault(), InstrumentationScopeInfo.create("test", "1.2.3", null));
     log1 =
         builder
             .setAttributes(Attributes.of(AttributeKey.stringKey("one"), "one"))

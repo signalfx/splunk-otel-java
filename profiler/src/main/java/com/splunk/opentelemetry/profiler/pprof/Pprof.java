@@ -56,6 +56,9 @@ public class Pprof {
   }
 
   public void addLabel(Sample.Builder sample, String name, String value) {
+    if (value == null) {
+      return;
+    }
     addLabel(sample, name, label -> label.setStr(stringTable.get(value)));
   }
 

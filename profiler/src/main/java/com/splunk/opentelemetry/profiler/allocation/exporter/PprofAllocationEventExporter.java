@@ -90,11 +90,13 @@ public class PprofAllocationEventExporter implements AllocationEventExporter {
     pprof.addLabel(sample, SOURCE_EVENT_TIME, time.toEpochMilli());
 
     RecordedThread thread = event.getThread();
-    if (thread.getJavaThreadId() != -1) {
-      pprof.addLabel(sample, THREAD_ID, thread.getJavaThreadId());
-      pprof.addLabel(sample, THREAD_NAME, thread.getJavaName());
+    if (thread != null) {
+      if (thread.getJavaThreadId() != -1) {
+        pprof.addLabel(sample, THREAD_ID, thread.getJavaThreadId());
+        pprof.addLabel(sample, THREAD_NAME, thread.getJavaName());
+      }
+      pprof.addLabel(sample, THREAD_OS_ID, thread.getOSThreadId());
     }
-    pprof.addLabel(sample, THREAD_OS_ID, thread.getOSThreadId());
     pprof.addLabel(sample, THREAD_STATE, "RUNNABLE");
 
     if (spanContext != null && spanContext.isValid()) {

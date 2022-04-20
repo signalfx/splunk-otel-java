@@ -66,7 +66,9 @@ public class PprofCpuEventExporter implements CpuEventExporter {
       pprof.addLabel(sample, THREAD_ID, stackTrace.getThreadId());
       pprof.addLabel(sample, THREAD_NAME, stackTrace.getThreadName());
     }
-    pprof.addLabel(sample, THREAD_OS_ID, stackTrace.getOsThreadId());
+    if (stackTrace.getOsThreadId() != -1) {
+      pprof.addLabel(sample, THREAD_OS_ID, stackTrace.getOsThreadId());
+    }
     pprof.addLabel(sample, THREAD_STATE, stackTrace.getThreadState());
 
     for (StackTraceParser.StackTraceLine stl : stackTrace.getStackTraceLines()) {

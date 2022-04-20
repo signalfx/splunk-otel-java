@@ -23,12 +23,7 @@ import jdk.jfr.consumer.RecordedStackTrace;
 
 public class StackSerializer {
 
-  private static final int DEFAULT_MAX_DEPTH = 128;
   private final int maxDepth;
-
-  public StackSerializer() {
-    this(DEFAULT_MAX_DEPTH);
-  }
 
   public StackSerializer(int maxDepth) {
     this.maxDepth = maxDepth;
@@ -36,9 +31,9 @@ public class StackSerializer {
 
   public String serialize(RecordedStackTrace stack) {
     List<RecordedFrame> frames = stack.getFrames();
-    int skipNum = Math.max(0, frames.size() - maxDepth);
     return frames.stream()
-        .skip(skipNum)
+        // limit the number of stack frames in case jfr stack depth is greater than our stack depth
+        // truncate the bottom stack frames the same way as jfr
         .limit(maxDepth)
         .reduce(
             new StringBuilder(), this::serializeFrame, (sb1, sb2) -> sb1.append("\n").append(sb2))

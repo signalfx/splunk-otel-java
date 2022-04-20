@@ -39,7 +39,7 @@ class StackTraceParserTest {
 
     boolean found = false;
     while (stack.findNextStack()) {
-      StackTrace stackTrace = StackTraceParser.parse(stack.getCurrentRegion());
+      StackTrace stackTrace = StackTraceParser.parse(stack.getCurrentRegion(), 128);
       if (stackTrace == null) {
         continue;
       }

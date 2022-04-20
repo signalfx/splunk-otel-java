@@ -36,6 +36,7 @@ public class Configuration implements ConfigPropertySource {
   public static final Duration DEFAULT_CALL_STACK_INTERVAL = Duration.ofSeconds(10);
   public static final boolean DEFAULT_INCLUDE_INTERNAL_STACKS = false;
   public static final boolean DEFAULT_TRACING_STACKS_ONLY = false;
+  private static final int DEFAULT_STACK_DEPTH = 1024;
 
   public static final String CONFIG_KEY_ENABLE_PROFILER = PROFILER_ENABLED_PROPERTY;
   public static final String CONFIG_KEY_PROFILER_DIRECTORY = "splunk.profiler.directory";
@@ -46,8 +47,8 @@ public class Configuration implements ConfigPropertySource {
   public static final String CONFIG_KEY_MEMORY_ENABLED = PROFILER_MEMORY_ENABLED_PROPERTY;
   public static final String CONFIG_KEY_MEMORY_SAMPLER_INTERVAL =
       "splunk.profiler.memory.sampler.interval";
-  public static final String CONFIG_KEY_CPU_DATA_FORMAT = "splunk.profiler.cpu.data.format";
-  public static final String CONFIG_KEY_MEMORY_DATA_FORMAT = "splunk.profiler.memory.data.format";
+  private static final String CONFIG_KEY_CPU_DATA_FORMAT = "splunk.profiler.cpu.data.format";
+  private static final String CONFIG_KEY_MEMORY_DATA_FORMAT = "splunk.profiler.memory.data.format";
   public static final String CONFIG_KEY_TLAB_ENABLED = "splunk.profiler.tlab.enabled";
   public static final String CONFIG_KEY_CALL_STACK_INTERVAL = "splunk.profiler.call.stack.interval";
   public static final String CONFIG_KEY_DEPRECATED_THREADDUMP_PERIOD =
@@ -60,6 +61,7 @@ public class Configuration implements ConfigPropertySource {
   public static final String CONFIG_KEY_INCLUDE_INTERNAL_STACKS =
       "splunk.profiler.include.internal.stacks";
   public static final String CONFIG_KEY_TRACING_STACKS_ONLY = "splunk.profiler.tracing.stacks.only";
+  private static final String CONFIG_KEY_STACK_DEPTH = "splunk.profiler.max.stack.depth";
 
   @Override
   public Map<String, String> getProperties() {
@@ -107,6 +109,10 @@ public class Configuration implements ConfigPropertySource {
 
   public static boolean getTracingStacksOnly(Config config) {
     return config.getBoolean(CONFIG_KEY_TRACING_STACKS_ONLY, DEFAULT_TRACING_STACKS_ONLY);
+  }
+
+  public static int getStackDepth(Config config) {
+    return config.getInt(CONFIG_KEY_STACK_DEPTH, DEFAULT_STACK_DEPTH);
   }
 
   public static DataFormat getCpuDataFormat(Config config) {

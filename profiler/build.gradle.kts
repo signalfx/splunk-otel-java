@@ -30,6 +30,8 @@ dependencies {
   compileOnly("io.opentelemetry.javaagent:opentelemetry-javaagent-extension-api")
   compileOnly("io.opentelemetry.instrumentation:opentelemetry-instrumentation-api")
   compileOnly("io.opentelemetry:opentelemetry-semconv")
+  // required to access InstrumentationHolder
+  compileOnly("io.opentelemetry.javaagent:opentelemetry-javaagent-bootstrap")
   implementation("io.opentelemetry:opentelemetry-sdk-logs")
   implementation("io.opentelemetry:opentelemetry-exporter-otlp-logs")
   implementation("com.google.protobuf:protobuf-java:$protobufVersion")

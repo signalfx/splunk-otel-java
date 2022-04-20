@@ -29,6 +29,7 @@ import jdk.jfr.consumer.RecordedStackTrace;
 import org.junit.jupiter.api.Test;
 
 class StackSerializerTest {
+  private static final int STACK_DEPTH = 128;
 
   RecordedFrame frame1 = makeFrame("io.test.MyClass", "action", 123);
   RecordedFrame frame2 = makeFrame("io.test.MyClass", "silver", 456);
@@ -39,7 +40,7 @@ class StackSerializerTest {
 
   @Test
   void serialize() {
-    StackSerializer serializer = new StackSerializer();
+    StackSerializer serializer = new StackSerializer(STACK_DEPTH);
     RecordedStackTrace stack = mock(RecordedStackTrace.class);
 
     when(stack.getFrames()).thenReturn(frames);
@@ -54,7 +55,7 @@ class StackSerializerTest {
 
   @Test
   void serializeWithNullMethod() {
-    StackSerializer serializer = new StackSerializer();
+    StackSerializer serializer = new StackSerializer(STACK_DEPTH);
     RecordedStackTrace stack = mock(RecordedStackTrace.class);
 
     when(stack.getFrames()).thenReturn(framesWithNullMethod);
@@ -76,7 +77,7 @@ class StackSerializerTest {
 
     String result = serializer.serialize(stack);
     String expected =
-        "\tat io.test.MyClass.silver(unknown:456)\n" + "\tat io.test.Framewerk.root(unknown:66)";
+        "\tat io.test.MyClass.action(unknown:123)\n" + "\tat io.test.MyClass.silver(unknown:456)";
     assertEquals(expected, result);
   }
 

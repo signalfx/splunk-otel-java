@@ -90,6 +90,9 @@ public class JfrActivator implements AgentListener {
     Path outputDir = Paths.get(config.getString(CONFIG_KEY_PROFILER_DIRECTORY));
     RecordingFileNamingConvention namingConvention = new RecordingFileNamingConvention(outputDir);
 
+    int stackDepth = Configuration.getStackDepth(config);
+    JFR.instance.setStackDepth(stackDepth);
+
     RecordingEscapeHatch recordingEscapeHatch =
         RecordingEscapeHatch.builder()
             .namingConvention(namingConvention)
@@ -122,6 +125,7 @@ public class JfrActivator implements AgentListener {
               .resource(resource)
               .dataFormat(cpuDataFormat)
               .eventPeriods(periods)
+              .stackDepth(stackDepth)
               .build();
     }
 
@@ -137,6 +141,7 @@ public class JfrActivator implements AgentListener {
               .logProcessor(BatchLogProcessorHolder.get(logsExporter))
               .commonAttributes(commonAttributes)
               .resource(resource)
+              .stackDepth(stackDepth)
               .build();
     } else {
       allocationEventExporter =
@@ -144,6 +149,7 @@ public class JfrActivator implements AgentListener {
               .logProcessor(SimpleLogProcessor.create(logsExporter))
               .resource(resource)
               .dataFormat(allocationDataFormat)
+              .stackDepth(stackDepth)
               .build();
     }
 

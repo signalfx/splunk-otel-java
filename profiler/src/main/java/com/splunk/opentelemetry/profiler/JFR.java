@@ -16,15 +16,24 @@
 
 package com.splunk.opentelemetry.profiler;
 
+import io.opentelemetry.javaagent.bootstrap.InstrumentationHolder;
 import java.io.IOException;
+import java.lang.instrument.Instrumentation;
 import java.nio.file.Path;
+import java.util.Collections;
 import jdk.jfr.FlightRecorder;
 import jdk.jfr.Recording;
 import jdk.jfr.consumer.RecordedEvent;
 import jdk.jfr.consumer.RecordingFile;
+import jdk.jfr.internal.Options;
+import net.bytebuddy.dynamic.loading.ClassInjector;
+import net.bytebuddy.utility.JavaModule;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /** Abstraction around the JDK Flight Recorder subsystem. */
 class JFR {
+  private static final Logger logger = LoggerFactory.getLogger(JFR.class);
 
   public static final JFR instance = new JFR();
   private static final boolean jfrAvailable = checkJfr();
@@ -60,5 +69,41 @@ class JFR {
     } catch (IOException e) {
       throw new JfrException("Error reading events from " + path, e);
     }
+  }
+
+  public void setStackDepth(int stackDepth) {
+    try {
+      JfrAccess.init();
+      int currentDepth = Options.getStackDepth();
+      // we only increase stack depth
+      if (currentDepth < stackDepth) {
+        Options.setStackDepth(stackDepth);
+      }
+    } catch (Throwable throwable) {
+      logger.warn("Failed to set JFR stack depth to {}", stackDepth, throwable);
+    }
+  }
+
+  private static class JfrAccess {
+    static {
+      Instrumentation instrumentation = InstrumentationHolder.getInstrumentation();
+      if (instrumentation != null && JavaModule.isSupported()) {
+        // ensure that we have access to jdk.jfr.internal.Options.setStackDepth
+        JavaModule currentModule = JavaModule.ofType(JFR.class);
+        JavaModule flightRecorder = JavaModule.ofType(FlightRecorder.class);
+        if (flightRecorder != null && flightRecorder.isNamed() && currentModule != null) {
+          ClassInjector.UsingInstrumentation.redefineModule(
+              instrumentation,
+              flightRecorder,
+              Collections.emptySet(),
+              Collections.emptyMap(),
+              Collections.singletonMap("jdk.jfr.internal", Collections.singleton(currentModule)),
+              Collections.emptySet(),
+              Collections.emptyMap());
+        }
+      }
+    }
+
+    static void init() {}
   }
 }

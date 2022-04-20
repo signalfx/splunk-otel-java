@@ -23,6 +23,7 @@ import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.SPAN
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.THREAD_ID;
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.THREAD_NAME;
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.THREAD_OS_ID;
+import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.THREAD_STACK_TRUNCATED;
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.THREAD_STATE;
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.TRACE_ID;
 
@@ -42,12 +43,14 @@ import java.time.Instant;
 public class PprofCpuEventExporter implements CpuEventExporter {
   private final DataFormat dataFormat;
   private final EventPeriods eventPeriods;
+  private final int stackDepth;
   private final PprofLogDataExporter pprofLogDataExporter;
   private Pprof pprof = createPprof();
 
   private PprofCpuEventExporter(Builder builder) {
     this.dataFormat = builder.dataFormat;
     this.eventPeriods = builder.eventPeriods;
+    this.stackDepth = builder.stackDepth;
     this.pprofLogDataExporter =
         new PprofLogDataExporter(
             builder.logProcessor, builder.resource, ProfilingDataType.CPU, builder.dataFormat);
@@ -55,7 +58,7 @@ public class PprofCpuEventExporter implements CpuEventExporter {
 
   @Override
   public void export(StackToSpanLinkage stackToSpanLinkage) {
-    StackTrace stackTrace = StackTraceParser.parse(stackToSpanLinkage.getRawStack());
+    StackTrace stackTrace = StackTraceParser.parse(stackToSpanLinkage.getRawStack(), stackDepth);
     if (stackTrace == null || stackTrace.getStackTraceLines().isEmpty()) {
       return;
     }
@@ -70,6 +73,10 @@ public class PprofCpuEventExporter implements CpuEventExporter {
       pprof.addLabel(sample, THREAD_OS_ID, stackTrace.getOsThreadId());
     }
     pprof.addLabel(sample, THREAD_STATE, stackTrace.getThreadState());
+
+    if (stackTrace.isTruncated()) {
+      pprof.addLabel(sample, THREAD_STACK_TRUNCATED, true);
+    }
 
     for (StackTraceParser.StackTraceLine stl : stackTrace.getStackTraceLines()) {
       sample.addLocationId(
@@ -123,6 +130,7 @@ public class PprofCpuEventExporter implements CpuEventExporter {
     private Resource resource;
     private DataFormat dataFormat;
     private EventPeriods eventPeriods;
+    private int stackDepth;
 
     public PprofCpuEventExporter build() {
       return new PprofCpuEventExporter(this);
@@ -145,6 +153,11 @@ public class PprofCpuEventExporter implements CpuEventExporter {
 
     public Builder eventPeriods(EventPeriods eventPeriods) {
       this.eventPeriods = eventPeriods;
+      return this;
+    }
+
+    public Builder stackDepth(int stackDepth) {
+      this.stackDepth = stackDepth;
       return this;
     }
   }

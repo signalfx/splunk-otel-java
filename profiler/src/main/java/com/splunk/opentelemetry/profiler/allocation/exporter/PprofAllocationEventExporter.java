@@ -22,6 +22,7 @@ import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.SPAN
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.THREAD_ID;
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.THREAD_NAME;
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.THREAD_OS_ID;
+import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.THREAD_STACK_TRUNCATED;
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.THREAD_STATE;
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.TRACE_ID;
 
@@ -38,7 +39,6 @@ import io.opentelemetry.sdk.logs.LogProcessor;
 import io.opentelemetry.sdk.resources.Resource;
 import java.time.Instant;
 import jdk.jfr.consumer.RecordedEvent;
-import jdk.jfr.consumer.RecordedFrame;
 import jdk.jfr.consumer.RecordedMethod;
 import jdk.jfr.consumer.RecordedStackTrace;
 import jdk.jfr.consumer.RecordedThread;
@@ -46,10 +46,12 @@ import jdk.jfr.consumer.RecordedThread;
 public class PprofAllocationEventExporter implements AllocationEventExporter {
   private final DataFormat dataFormat;
   private final PprofLogDataExporter pprofLogDataExporter;
+  private final int stackDepth;
   private Pprof pprof = createPprof();
 
   private PprofAllocationEventExporter(Builder builder) {
     this.dataFormat = builder.dataFormat;
+    this.stackDepth = builder.stackDepth;
     this.pprofLogDataExporter =
         new PprofLogDataExporter(
             builder.logProcessor,
@@ -69,20 +71,28 @@ public class PprofAllocationEventExporter implements AllocationEventExporter {
 
     Sample.Builder sample = Sample.newBuilder();
     sample.addValue(allocationSize);
-    // XXX StackSerializer limits stack depth. Although I believe jfr also limits it should we
-    // attempt to limit the depth here too?
-    for (RecordedFrame frame : stackTrace.getFrames()) {
-      RecordedMethod method = frame.getMethod();
-      if (method == null) {
-        sample.addLocationId(pprof.getLocationId("unknown", "unknown.unknown", -1));
-      } else {
-        sample.addLocationId(
-            pprof.getLocationId(
-                "unknown", // file name is not known
-                method.getType().getName() + "." + method.getName(),
-                frame.getLineNumber()));
-      }
+
+    if (stackTrace.isTruncated() || stackTrace.getFrames().size() > stackDepth) {
+      pprof.addLabel(sample, THREAD_STACK_TRUNCATED, true);
     }
+
+    stackTrace.getFrames().stream()
+        // limit the number of stack frames in case jfr stack depth is greater than our stack depth
+        // truncate the bottom stack frames the same way as jfr
+        .limit(stackDepth)
+        .forEachOrdered(
+            frame -> {
+              RecordedMethod method = frame.getMethod();
+              if (method == null) {
+                sample.addLocationId(pprof.getLocationId("unknown", "unknown.unknown", -1));
+              } else {
+                sample.addLocationId(
+                    pprof.getLocationId(
+                        "unknown", // file name is not known
+                        method.getType().getName() + "." + method.getName(),
+                        frame.getLineNumber()));
+              }
+            });
 
     String eventName = event.getEventType().getName();
     pprof.addLabel(sample, SOURCE_EVENT_NAME, eventName);
@@ -147,6 +157,7 @@ public class PprofAllocationEventExporter implements AllocationEventExporter {
     private LogProcessor logProcessor;
     private Resource resource;
     private DataFormat dataFormat;
+    private int stackDepth;
 
     public PprofAllocationEventExporter build() {
       return new PprofAllocationEventExporter(this);
@@ -164,6 +175,11 @@ public class PprofAllocationEventExporter implements AllocationEventExporter {
 
     public Builder dataFormat(DataFormat dataFormat) {
       this.dataFormat = dataFormat;
+      return this;
+    }
+
+    public Builder stackDepth(int stackDepth) {
+      this.stackDepth = stackDepth;
       return this;
     }
   }

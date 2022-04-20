@@ -19,6 +19,7 @@ package com.splunk.opentelemetry.profiler.allocation.exporter;
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.DATA_FORMAT;
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.DATA_TYPE;
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.INSTRUMENTATION_SCOPE_INFO;
+import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.THREAD_STACK_TRUNCATED;
 
 import com.splunk.opentelemetry.profiler.Configuration.DataFormat;
 import com.splunk.opentelemetry.profiler.LogDataCommonAttributes;
@@ -42,15 +43,18 @@ public class PlainTextAllocationEventExporter implements AllocationEventExporter
       AttributeKey.longKey("memory.allocated");
 
   private final StackSerializer stackSerializer;
+  private final int stackDepth;
   private final LogProcessor logProcessor;
   private final LogDataCommonAttributes commonAttributes;
   private final Resource resource;
 
   private PlainTextAllocationEventExporter(Builder builder) {
-    this.stackSerializer = builder.stackSerializer;
     this.logProcessor = builder.logProcessor;
     this.commonAttributes = builder.commonAttributes;
     this.resource = builder.resource;
+    this.stackDepth = builder.stackDepth;
+    this.stackSerializer =
+        builder.stackSerializer != null ? builder.stackSerializer : new StackSerializer(stackDepth);
   }
 
   @Override
@@ -71,6 +75,12 @@ public class PlainTextAllocationEventExporter implements AllocationEventExporter
     if (sampler != null) {
       sampler.addAttributes((k, v) -> builder.put(k, v), (k, v) -> builder.put(k, v));
     }
+
+    // stack trace is truncated either by jfr or in StackSerializer
+    if (stackTrace.isTruncated() || stackTrace.getFrames().size() > stackDepth) {
+      builder.put(THREAD_STACK_TRUNCATED, true);
+    }
+
     Attributes attributes = builder.build();
 
     LogDataBuilder logDataBuilder =
@@ -105,10 +115,11 @@ public class PlainTextAllocationEventExporter implements AllocationEventExporter
   }
 
   public static class Builder {
-    private StackSerializer stackSerializer = new StackSerializer();
+    private StackSerializer stackSerializer;
     private LogProcessor logProcessor;
     private LogDataCommonAttributes commonAttributes;
     private Resource resource;
+    private int stackDepth;
 
     public PlainTextAllocationEventExporter build() {
       return new PlainTextAllocationEventExporter(this);
@@ -131,6 +142,11 @@ public class PlainTextAllocationEventExporter implements AllocationEventExporter
 
     public Builder resource(Resource resource) {
       this.resource = resource;
+      return this;
+    }
+
+    public Builder stackDepth(int stackDepth) {
+      this.stackDepth = stackDepth;
       return this;
     }
   }

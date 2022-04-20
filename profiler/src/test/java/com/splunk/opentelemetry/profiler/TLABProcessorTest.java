@@ -141,6 +141,7 @@ class TLABProcessorTest {
             .logProcessor(consumer)
             .commonAttributes(commonAttrs)
             .resource(Resource.getDefault())
+            .stackDepth(128)
             .build();
 
     TLABProcessor processor =
@@ -217,6 +218,7 @@ class TLABProcessorTest {
             .logProcessor(consumer)
             .commonAttributes(commonAttrs)
             .resource(Resource.getDefault())
+            .stackDepth(128)
             .build();
 
     TLABProcessor processor =

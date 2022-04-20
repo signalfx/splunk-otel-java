@@ -16,6 +16,7 @@
 
 package com.splunk.opentelemetry.profiler;
 
+import static io.opentelemetry.api.common.AttributeKey.booleanKey;
 import static io.opentelemetry.api.common.AttributeKey.longKey;
 import static io.opentelemetry.api.common.AttributeKey.stringKey;
 
@@ -42,6 +43,8 @@ public class ProfilingSemanticAttributes {
   public static final AttributeKey<String> THREAD_NAME = stringKey("thread.name");
   public static final AttributeKey<Long> THREAD_OS_ID = longKey("thread.os.id");
   public static final AttributeKey<String> THREAD_STATE = stringKey("thread.state");
+  public static final AttributeKey<Boolean> THREAD_STACK_TRUNCATED =
+      booleanKey("thread.stack.truncated");
 
   public static final AttributeKey<String> TRACE_ID = stringKey("trace_id");
   public static final AttributeKey<String> SPAN_ID = stringKey("span_id");

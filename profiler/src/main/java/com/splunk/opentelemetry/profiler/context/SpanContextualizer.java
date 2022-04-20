@@ -44,6 +44,10 @@ public class SpanContextualizer {
    * ContextAttached events.
    */
   public void updateContext(RecordedEvent event) {
+    // jdk 17 doesn't report thread for events that happened on a thread that has terminated by now
+    if (event.getThread() == null) {
+      return;
+    }
     String traceId = event.getString("traceId");
     String spanId = event.getString("spanId");
     long javaThreadId = event.getThread().getJavaThreadId();

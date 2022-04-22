@@ -15,7 +15,7 @@ repositories {
 
 val otelVersion = "1.13.0"
 val otelAlphaVersion = "1.13.0-alpha"
-val otelContribAlphaVersion = "1.12.0-alpha"
+val otelContribAlphaVersion = "1.13.0-alpha"
 val otelInstrumentationVersion = "1.13.0"
 val otelInstrumentationAlphaVersion = "1.13.0-alpha"
 val micrometerVersion = "1.8.5"

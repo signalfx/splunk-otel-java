@@ -8,6 +8,23 @@ and this repository adheres to [Semantic Versioning](https://semver.org/spec/v2.
 
 ## Unreleased
 
+## v1.10.0 - 2022-04-22
+
+### General
+
+- OpenTelemetry Java SDK and OpenTelemetry Instrumentation for Java dependencies have been updated to version 1.13.0.
+- Micrometer dependency has been updated to version 1.8.5.
+
+### Bugfixes
+
+- Fix `NullPointerException` on context tracking when JFR event on JDK 17 provides no thread - [#743](https://github.com/signalfx/splunk-otel-java/pull/743)
+
+### Enhancements
+
+- Added `host.name` and `container.id` tags to Micrometer metrics - [#726](https://github.com/signalfx/splunk-otel-java/pull/726)
+- Added support for exporting events in profiler in pprof format which can be enabled using the `splunk.profiler.cpu.data.format` setting - [#684](https://github.com/signalfx/splunk-otel-java/pull/684)
+- Added profiler setting `splunk.profiler.max.stack.depth` to limit maximum depth of exported stack traces - [#739](https://github.com/signalfx/splunk-otel-java/pull/739)
+
 ## v1.9.1 - 2022-03-18
 
 ### General

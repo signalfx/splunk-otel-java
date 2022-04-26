@@ -8,7 +8,7 @@ cd ${ROOT_DIR}
 
 print_usage() {
   cat <<EOF
-Usage: $(basename $0) splunk_current_version splunk_next_version"
+Usage: $(basename $0) splunk_current_version splunk_next_version
 
 The splunk_current_version parameter denotes the current, freshly released version.
 The splunk_next_version parameter denotes the next release after that.

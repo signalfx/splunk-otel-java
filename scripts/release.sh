@@ -106,9 +106,6 @@ publish_docker_image() {
   docker push quay.io/signalfx/splunk-otel-instrumentation-java:v$major_version
 }
 
-# TODO: add it to o11y-gdi env vars
-GITHUB_BOT_GPG_KEY_ID="A2581E631864FD064"
-
 setup_git() {
   git config --global user.name release-bot
   git config --global user.email ssg-srv-gh-o11y-gdi@splunk.com

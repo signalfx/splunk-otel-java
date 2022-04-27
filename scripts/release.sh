@@ -148,7 +148,8 @@ create_post_release_pr() {
 create_overhead_test_pr() {
   local repo="signalfx/splunk-otel-java-overhead-test"
   local repo_url="https://srv-gh-o11y-gdi:${GITHUB_TOKEN}@github.com/${repo}.git"
-  local update_version_branch="update-agent-version-$release_tag"
+  local update_version_branch="agent-version-update-$release_tag"
+  local message="[automated][agent-version-update] Update agent version to $release_tag"
 
   echo ">>> Cloning the splunk-otel-java-overhead-test repository ..."
   git clone "$repo_url" overhead-test-mirror
@@ -157,11 +158,10 @@ create_overhead_test_pr() {
   cd overhead-test-mirror
   git checkout -b "$update_version_branch"
   ./scripts/update-version.sh "$release_version"
-  git commit -S -am "Update agent version to $release_tag"
+  git commit -S -am "$message"
   git push "$repo_url" "$update_version_branch"
 
   echo ">>> Creating the agent version update PR ..."
-  local message="[automated] Update agent version to $release_tag"
   gh pr create \
     --repo "$repo" \
     --title "$message" \

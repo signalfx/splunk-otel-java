@@ -124,6 +124,7 @@ create_post_release_pr() {
   local repo_url="https://srv-gh-o11y-gdi:${GITHUB_TOKEN}@github.com/${repo}.git"
   local next_version="${major_version}.$((minor_version + 1)).0"
   local post_release_branch="post-release-changes-$release_tag"
+  local message="$release_tag post release changes"
 
   echo ">>> Cloning the splunk-otel-java repository ..."
   git clone "$repo_url" javaagent-mirror
@@ -132,15 +133,15 @@ create_post_release_pr() {
   cd javaagent-mirror
   git checkout -b "$post_release_branch"
   ./scripts/post-release.sh "$release_version" "$next_version"
-  git commit -S -am "$release_tag post release changes"
+  git commit -S -am "[automated] $message"
   git push "$repo_url" "$post_release_branch"
 
   echo ">>> Creating the $release_tag post release PR ..."
-  local message="[automated] $release_tag post release changes"
   gh pr create \
     --repo "$repo" \
     --title "$message" \
     --body "$message" \
+    --label automated \
     --base main \
     --head "$post_release_branch"
 }
@@ -149,7 +150,7 @@ create_overhead_test_pr() {
   local repo="signalfx/splunk-otel-java-overhead-test"
   local repo_url="https://srv-gh-o11y-gdi:${GITHUB_TOKEN}@github.com/${repo}.git"
   local update_version_branch="agent-version-update-$release_tag"
-  local message="[automated][agent-version-update] Update agent version to $release_tag"
+  local message="[agent-version-update] Update agent version to $release_tag"
 
   echo ">>> Cloning the splunk-otel-java-overhead-test repository ..."
   git clone "$repo_url" overhead-test-mirror
@@ -158,7 +159,7 @@ create_overhead_test_pr() {
   cd overhead-test-mirror
   git checkout -b "$update_version_branch"
   ./scripts/update-version.sh "$release_version"
-  git commit -S -am "$message"
+  git commit -S -am "[automated] $message"
   git push "$repo_url" "$update_version_branch"
 
   echo ">>> Creating the agent version update PR ..."
@@ -166,6 +167,7 @@ create_overhead_test_pr() {
     --repo "$repo" \
     --title "$message" \
     --body "$message" \
+    --label automated \
     --base main \
     --head "$update_version_branch"
 }

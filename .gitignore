@@ -23,3 +23,6 @@ hs_err_pid*
 
 # temporary files
 *.md.tmp
+
+# other
+.DS_Store

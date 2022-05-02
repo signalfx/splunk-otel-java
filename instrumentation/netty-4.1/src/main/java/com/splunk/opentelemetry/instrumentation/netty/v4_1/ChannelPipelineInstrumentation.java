@@ -54,6 +54,7 @@ public class ChannelPipelineInstrumentation implements TypeInstrumentation {
         this.getClass().getName() + "$ChannelPipelineAddAdvice");
   }
 
+  @SuppressWarnings("unused")
   public static class ChannelPipelineAddAdvice {
     @Advice.OnMethodEnter
     public static void trackCallDepth(@Advice.Local("splunkCallDepth") CallDepth callDepth) {

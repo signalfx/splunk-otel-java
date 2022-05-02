@@ -90,6 +90,7 @@ public class ServletInstrumentationModule extends InstrumentationModule {
           getClass().getName() + "$AddHeadersAdvice");
     }
 
+    @SuppressWarnings("unused")
     public static class AddHeadersAdvice {
       @Advice.OnMethodEnter(suppress = Throwable.class)
       public static void onEnter(

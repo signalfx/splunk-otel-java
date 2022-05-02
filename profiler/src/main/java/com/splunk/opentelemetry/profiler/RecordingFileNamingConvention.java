@@ -44,8 +44,11 @@ class RecordingFileNamingConvention {
   Path newOutputPath(LocalDateTime dateTime) throws IOException {
     String timestamp =
         DateTimeFormatter.ISO_DATE_TIME.format(dateTime.truncatedTo(ChronoUnit.SECONDS));
-    return Files.createTempFile(
-        outputDir, PREFIX + "-" + timestamp.replace(':', '_') + "-", ".jfr");
+    Path path =
+        Files.createTempFile(outputDir, PREFIX + "-" + timestamp.replace(':', '_') + "-", ".jfr");
+    System.err.println("created path" + path);
+    new Exception().printStackTrace();
+    return path;
   }
 
   /** Determines if the path represents a file that we would have recorded to. */

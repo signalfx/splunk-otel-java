@@ -209,6 +209,7 @@ public abstract class ProfilerSmokeTest {
   }
 
   private boolean containsContextAttached(Path path) {
+    logger.info("Reading file {}, is readable {}", path, Files.isReadable(path));
     try {
       return RecordingFile.readAllEvents(path).stream()
           .anyMatch(ProfilerSmokeTest::isContextAttachedEvent);
@@ -241,6 +242,7 @@ public abstract class ProfilerSmokeTest {
 
       return StreamSupport.stream(dirStream.spliterator(), false)
           .filter(Files::isRegularFile)
+          // .filter(Files::isReadable)
           .filter(item -> item.getFileName().toString().endsWith(".jfr"))
           .collect(Collectors.toList());
     }

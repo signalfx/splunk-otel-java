@@ -209,7 +209,11 @@ public abstract class ProfilerSmokeTest {
   }
 
   private boolean containsContextAttached(Path path) {
-    logger.info("Reading file {}, is readable {}", path, Files.isReadable(path));
+    logger.info("Reading file {}, is readable {} {}", path, Files.isReadable(path),
+        Files.isReadable(path.getParent()));
+    if (!Files.isReadable(path)) {
+      return false;
+    }
     try {
       return RecordingFile.readAllEvents(path).stream()
           .anyMatch(ProfilerSmokeTest::isContextAttachedEvent);

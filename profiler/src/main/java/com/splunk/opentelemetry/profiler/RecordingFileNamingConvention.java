@@ -46,7 +46,7 @@ class RecordingFileNamingConvention {
         DateTimeFormatter.ISO_DATE_TIME.format(dateTime.truncatedTo(ChronoUnit.SECONDS));
     Path path =
         Files.createTempFile(outputDir, PREFIX + "-" + timestamp.replace(':', '_') + "-", ".jfr");
-    System.err.println("created path" + path);
+    System.err.println("created path" + path + " " + Files.isReadable(path));
     new Exception().printStackTrace();
     return path;
   }

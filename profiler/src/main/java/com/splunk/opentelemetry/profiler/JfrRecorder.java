@@ -71,7 +71,7 @@ class JfrRecorder {
 
   public void flushSnapshot() {
     try (Recording snap = jfr.takeSnapshot()) {
-      Path path = namingConvention.newOutputPath();
+      Path path = namingConvention.newOutputPath().toAbsolutePath();
       logger.debug("Flushing a JFR snapshot: {}", path);
       Instant snapshotEnd = snap.getStopTime();
       try (InputStream in = snap.getStream(snapshotStart, snapshotEnd)) {
@@ -103,7 +103,7 @@ class JfrRecorder {
     private Map<String, String> settings;
     private Duration maxAgeDuration;
     private JFR jfr = JFR.instance;
-    public Consumer<Path> onNewRecordingFile;
+    private Consumer<Path> onNewRecordingFile;
 
     public Builder settings(Map<String, String> settings) {
       this.settings = settings;

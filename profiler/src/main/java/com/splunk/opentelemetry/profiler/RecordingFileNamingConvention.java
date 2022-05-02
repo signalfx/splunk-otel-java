@@ -16,8 +16,9 @@
 
 package com.splunk.opentelemetry.profiler;
 
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
@@ -28,7 +29,7 @@ class RecordingFileNamingConvention {
   private static final String PREFIX = "otel-profiler";
   // ISO_DATE_TIME format is like 2021-12-03T10:15:30
   private final Pattern filenamePattern =
-      Pattern.compile("^" + PREFIX + "-\\d{4}-\\d{2}-\\d{2}T\\d{2}_\\d{2}_\\d{2}\\.jfr$");
+      Pattern.compile("^" + PREFIX + "-\\d{4}-\\d{2}-\\d{2}T\\d{2}_\\d{2}_\\d{2}-\\d+\\.jfr$");
   private final Path outputDir;
 
   RecordingFileNamingConvention(Path outputDir) {
@@ -36,22 +37,15 @@ class RecordingFileNamingConvention {
   }
 
   /** Constructs a full path for a new jfr file using the current time. */
-  Path newOutputPath() {
+  Path newOutputPath() throws IOException {
     return newOutputPath(LocalDateTime.now());
   }
 
-  Path newOutputPath(LocalDateTime dateTime) {
-    return newOutputPath(buildRecordingName(dateTime));
-  }
-
-  private Path newOutputPath(Path recordingFile) {
-    return outputDir.resolve(recordingFile);
-  }
-
-  private Path buildRecordingName(LocalDateTime dateTime) {
+  Path newOutputPath(LocalDateTime dateTime) throws IOException {
     String timestamp =
         DateTimeFormatter.ISO_DATE_TIME.format(dateTime.truncatedTo(ChronoUnit.SECONDS));
-    return Paths.get(PREFIX + "-" + timestamp.replace(':', '_') + ".jfr");
+    return Files.createTempFile(
+        outputDir, PREFIX + "-" + timestamp.replace(':', '_') + "-", ".jfr");
   }
 
   /** Determines if the path represents a file that we would have recorded to. */

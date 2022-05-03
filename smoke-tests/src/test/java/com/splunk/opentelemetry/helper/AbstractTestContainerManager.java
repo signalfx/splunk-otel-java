@@ -20,12 +20,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 public abstract class AbstractTestContainerManager implements TestContainerManager {
-  protected static final int TARGET_PORT = 8080;
   protected static final int BACKEND_PORT = 8080;
+  protected static final int COLLECTOR_PORT = 4317;
 
   protected static final String BACKEND_ALIAS = "backend";
   protected static final String COLLECTOR_ALIAS = "collector";
-  protected static final String TARGET_AGENT_FILENAME = "opentelemetry-javaagent.jar";
   protected static final String COLLECTOR_CONFIG_RESOURCE = "/otel.yaml";
 
   protected Map<String, String> getAgentEnvironment(String jvmArgsEnvVarName) {
@@ -36,7 +35,8 @@ public abstract class AbstractTestContainerManager implements TestContainerManag
     environment.put(jvmArgsEnvVarName, "-Xmx512m -javaagent:/" + TARGET_AGENT_FILENAME);
     environment.put("OTEL_BSP_MAX_EXPORT_BATCH_SIZE", "1");
     environment.put("OTEL_BSP_SCHEDULE_DELAY", "10ms");
-    environment.put("OTEL_EXPORTER_OTLP_ENDPOINT", "http://" + COLLECTOR_ALIAS + ":4317");
+    environment.put(
+        "OTEL_EXPORTER_OTLP_ENDPOINT", "http://" + COLLECTOR_ALIAS + ":" + COLLECTOR_PORT);
     environment.put("SPLUNK_METRICS_ENABLED", "true");
     // export metrics every 1s
     environment.put("SPLUNK_METRICS_EXPORT_INTERVAL", "1000");

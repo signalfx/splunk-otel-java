@@ -24,128 +24,96 @@ import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assumptions.assumeFalse;
 
+import com.splunk.opentelemetry.helper.TargetContainerBuilder;
+import com.splunk.opentelemetry.helper.TargetWaitStrategy;
+import com.splunk.opentelemetry.helper.TestContainerManager;
+import com.splunk.opentelemetry.helper.TestImage;
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 import jdk.jfr.consumer.RecordedEvent;
 import jdk.jfr.consumer.RecordingFile;
 import okhttp3.Request;
 import okhttp3.Response;
+import org.junit.Ignore;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.testcontainers.containers.BindMode;
-import org.testcontainers.containers.GenericContainer;
-import org.testcontainers.containers.Network;
-import org.testcontainers.containers.output.Slf4jLogConsumer;
-import org.testcontainers.containers.wait.strategy.Wait;
-import org.testcontainers.utility.DockerImageName;
-import org.testcontainers.utility.MountableFile;
 
-public class ProfilerSmokeTest {
+public abstract class ProfilerSmokeTest {
 
   private static final Logger logger = LoggerFactory.getLogger(ProfilerSmokeTest.class);
   private static final okhttp3.OkHttpClient client = OkHttpUtils.client();
   private static final int PETCLINIC_PORT = 9966;
-  private static final int BACKEND_PORT = 8080;
+  // Make sure we are not trying to run multiple test classes in parallel in the same JVM
+  private static final Lock noParallelTestsLock = new ReentrantLock();
 
-  private static Network network;
-  private static GenericContainer<?> backend;
-  private static GenericContainer<?> collector;
-  private static GenericContainer<?> petclinic;
-
+  private static TestContainerManager containerManager;
   private static TelemetryRetriever telemetryRetriever;
+  private static Path tempDir;
 
-  @TempDir static Path tempDir;
+  public static class TestJdk8 extends ProfilerSmokeTest {
+    @BeforeAll
+    static void setup() {
+      startPetclinic("8");
+    }
+  }
+
+  @Ignore
+  public static class TestJdk11 extends ProfilerSmokeTest {
+    @BeforeAll
+    static void setup() {
+      startPetclinic("11");
+    }
+  }
+
+  @Ignore
+  public static class TestJdk17 extends ProfilerSmokeTest {
+    @BeforeAll
+    static void setup() {
+      startPetclinic("17");
+    }
+  }
 
   @BeforeAll
-  static void setup() throws Exception {
-    boolean isWindows = System.getProperty("os.name").toLowerCase().contains("windows");
-    assumeFalse(isWindows);
+  static void setupEnvironment(@TempDir Path tempDir) {
+    noParallelTestsLock.lock();
 
-    network = Network.newNetwork();
+    ProfilerSmokeTest.tempDir = tempDir;
 
-    backend =
-        new GenericContainer<>(
-                DockerImageName.parse(
-                    "ghcr.io/open-telemetry/opentelemetry-java-instrumentation/smoke-test-fake-backend:20220411.2147767274"))
-            .withExposedPorts(BACKEND_PORT)
-            .waitingFor(Wait.forHttp("/health").forPort(BACKEND_PORT))
-            .withNetwork(network)
-            .withNetworkAliases("backend")
-            .withLogConsumer(new Slf4jLogConsumer(logger));
-    backend.start();
+    containerManager = SmokeTest.createContainerManager();
+    containerManager.startEnvironment();
 
-    telemetryRetriever = new TelemetryRetriever(client, backend.getMappedPort(BACKEND_PORT));
-
-    collector =
-        new GenericContainer<>(DockerImageName.parse("otel/opentelemetry-collector-contrib:latest"))
-            .dependsOn(backend)
-            .withNetwork(network)
-            .withNetworkAliases("collector")
-            .withLogConsumer(new Slf4jLogConsumer(logger))
-            .withCopyFileToContainer(
-                MountableFile.forClasspathResource("otel.yaml"), "/etc/otel.yaml")
-            .withCommand("--config /etc/otel.yaml");
-    collector.start();
-
-    petclinic =
-        new GenericContainer<>(
-                DockerImageName.parse(
-                    "ghcr.io/signalfx/splunk-otel-java/profiling-petclinic-base:latest"))
-            .dependsOn(collector)
-            .withNetwork(network)
-            .withExposedPorts(PETCLINIC_PORT)
-            .withNetworkAliases("petclinic")
-            .withLogConsumer(new Slf4jLogConsumer(logger))
-            .withCopyFileToContainer(
-                MountableFile.forHostPath(SmokeTest.agentPath), "/app/javaagent.jar")
-            .withCreateContainerCmdModifier(cmd -> cmd.withEntrypoint("java"))
-            .withCommand(
-                "-javaagent:/app/javaagent.jar",
-                "-Dotel.resource.attributes=service.name=smoketest,deployment.environment=smokeytown",
-                "-Dotel.javaagent.debug=true",
-                "-Dsplunk.profiler.enabled=true",
-                "-Dsplunk.profiler.tlab.enabled=true",
-                "-Dsplunk.profiler.memory.data.format=text",
-                "-Dsplunk.profiler.directory=/app/jfr",
-                "-Dsplunk.profiler.keep-files=true",
-                "-Dsplunk.profiler.call.stack.interval=1001",
-                "-Dsplunk.profiler.logs-endpoint=http://collector:4317",
-                // uncomment to enable exporting traces
-                // "-Dotel.exporter.otlp.endpoint=http://collector:4317",
-                "-jar",
-                "/app/spring-petclinic-rest.jar")
-            .withFileSystemBind(
-                tempDir.toAbsolutePath().toString(), "/app/jfr", BindMode.READ_WRITE)
-            .waitingFor(Wait.forHttp("/petclinic/api/vets"));
-    petclinic.start();
-    logger.info("Petclinic has been started.");
-    generateSomeSpans();
+    telemetryRetriever = new TelemetryRetriever(client, containerManager.getBackendMappedPort());
   }
 
   @AfterAll
   static void teardown() {
-    if (petclinic != null) {
-      petclinic.stop();
+    containerManager.stopEnvironment();
+    noParallelTestsLock.unlock();
+  }
+
+  static String getPetclinicImageName(String jdkVersion) {
+    String prefix = "ghcr.io/signalfx/splunk-otel-java/profiling-petclinic-base-";
+    String suffix = "-jdk" + jdkVersion + ":latest";
+
+    TestImage linuxImage = TestImage.linuxImage(prefix + "linux" + suffix);
+    // Allows testing with Linux containers on Windows if that option is enabled
+    if (containerManager.isImageCompatible(linuxImage)) {
+      return linuxImage.imageName;
     }
-    if (collector != null) {
-      collector.stop();
-    }
-    if (backend != null) {
-      backend.stop();
-    }
-    if (network != null) {
-      network.close();
-    }
+    return prefix + "windows" + suffix;
   }
 
   @Test
@@ -187,11 +155,16 @@ public class ProfilerSmokeTest {
 
   @Test
   void ensureEventsResumeAfterRestartingCollector() throws Exception {
+    // Petclinic can no longer access collector on Windows after restarting the container
+    boolean isWindows = System.getProperty("os.name").toLowerCase().contains("windows");
+    assumeFalse(isWindows);
+
     await()
         .atMost(2, TimeUnit.MINUTES)
         .pollInterval(1, TimeUnit.SECONDS)
         .untilAsserted(() -> assertThat(countThreadDumpsInFakeBackend()).isGreaterThan(0));
-    collector.stop();
+
+    containerManager.stopCollector();
 
     long threadDumpsAfterCollectorStop = countThreadDumpsInFakeBackend();
     logger.info("Thread dump events after collector stop {}", threadDumpsAfterCollectorStop);
@@ -200,7 +173,8 @@ public class ProfilerSmokeTest {
     logger.info("Thread dump events before collector start {}", threadDumpsBeforeCollectorStart);
     assertEquals(threadDumpsAfterCollectorStop, threadDumpsBeforeCollectorStart);
 
-    collector.start();
+    containerManager.startCollector();
+
     await()
         .atMost(2, TimeUnit.MINUTES)
         .pollInterval(1, TimeUnit.SECONDS)
@@ -249,7 +223,7 @@ public class ProfilerSmokeTest {
 
   private static void generateSomeSpans() throws Exception {
     logger.info("Generating some spans...");
-    int port = petclinic.getMappedPort(PETCLINIC_PORT);
+    int port = containerManager.getTargetMappedPort(PETCLINIC_PORT);
     doGetRequest("http://localhost:" + port + "/petclinic/api/vets");
     doGetRequest("http://localhost:" + port + "/petclinic/api/visits");
   }
@@ -269,6 +243,44 @@ public class ProfilerSmokeTest {
           .filter(Files::isRegularFile)
           .filter(item -> item.getFileName().toString().endsWith(".jfr"))
           .collect(Collectors.toList());
+    }
+  }
+
+  private static void startPetclinic(String jdkVersion) {
+    containerManager.startTarget(
+        new TargetContainerBuilder(getPetclinicImageName(jdkVersion))
+            .withTargetPort(PETCLINIC_PORT)
+            .withNetworkAliases("petclinic")
+            .withAgentPath(SmokeTest.agentPath)
+            .withEntrypoint("java")
+            .withFileSystemBinds(
+                new TargetContainerBuilder.FileSystemBind(
+                    tempDir.toAbsolutePath().toString(), "/app/jfr", false))
+            .withWaitStrategy(
+                new TargetWaitStrategy.Http(Duration.ofMinutes(5), "/petclinic/api/vets"))
+            .withUseDefaultAgentConfiguration(false)
+            .withCommand(
+                "-javaagent:/" + TestContainerManager.TARGET_AGENT_FILENAME,
+                "-Dotel.resource.attributes=service.name=smoketest,deployment.environment=smokeytown",
+                "-Dotel.javaagent.debug=true",
+                "-Dsplunk.profiler.enabled=true",
+                "-Dsplunk.profiler.tlab.enabled=true",
+                "-Dsplunk.profiler.memory.data.format=text",
+                "-Dsplunk.profiler.directory=/app/jfr",
+                "-Dsplunk.profiler.keep-files=true",
+                "-Dsplunk.profiler.call.stack.interval=1001",
+                "-Dsplunk.profiler.logs-endpoint=http://collector:4317",
+                // uncomment to enable exporting traces
+                // "-Dotel.exporter.otlp.endpoint=http://collector:4317",
+                "-jar",
+                "/app/spring-petclinic-rest.jar"));
+
+    logger.info("Petclinic has been started.");
+
+    try {
+      generateSomeSpans();
+    } catch (Exception e) {
+      throw new RuntimeException(e);
     }
   }
 }

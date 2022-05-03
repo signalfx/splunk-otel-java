@@ -51,6 +51,7 @@ import org.junit.jupiter.api.io.TempDir;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testcontainers.containers.BindMode;
+import org.testcontainers.containers.Container;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.Network;
 import org.testcontainers.containers.output.Slf4jLogConsumer;
@@ -216,16 +217,8 @@ public abstract class ProfilerSmokeTest {
   }
 
   private boolean containsContextAttached(Path path) {
-    /*
     if (!Files.isReadable(path)) {
       makeReadable(path);
-    }
-
-     */
-    logger.info("Reading file {}, is readable {} {}", path, Files.isReadable(path),
-        Files.isReadable(path.getParent()));
-    if (!Files.isReadable(path)) {
-      return false;
     }
     try {
       return RecordingFile.readAllEvents(path).stream()
@@ -259,13 +252,6 @@ public abstract class ProfilerSmokeTest {
 
       return StreamSupport.stream(dirStream.spliterator(), false)
           .filter(Files::isRegularFile)
-          .filter(path -> {
-            if (!Files.isReadable(path)) {
-              path.toFile().setReadable(true, false);
-            }
-            // makeReadable(path);
-            return true;
-          })
           .filter(item -> item.getFileName().toString().endsWith(".jfr"))
           .collect(Collectors.toList());
     }
@@ -309,17 +295,20 @@ public abstract class ProfilerSmokeTest {
     }
   }
 
-  /*
   private void makeReadable(Path path) {
     try {
-      Container.ExecResult result = petclinic.execInContainer("chmod", "a+r", "/app/jfr/" + path.getFileName().toString());
-      System.err.println("exec result " + result.getExitCode());
-      System.err.println("stdout " + result.getStdout());
-      System.err.println("stderr " + result.getStderr());
+      // on linux host jfr files created inside the container are not readable from the host
+      Container.ExecResult result =
+          petclinic.execInContainer("chmod", "a+r", "/app/jfr/" + path.getFileName().toString());
+      if (result.getExitCode() != 0) {
+        logger.error(
+            "Failed to make file readable, chmod exited with {} stdout: {} stderr: {}",
+            result.getExitCode(),
+            result.getStdout(),
+            result.getStderr());
+      }
     } catch (IOException | InterruptedException exception) {
       throw new IllegalStateException(exception);
     }
   }
-
-   */
 }

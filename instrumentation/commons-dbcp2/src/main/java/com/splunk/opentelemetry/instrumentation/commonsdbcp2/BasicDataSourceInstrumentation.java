@@ -45,6 +45,7 @@ class BasicDataSourceInstrumentation implements TypeInstrumentation {
         this.getClass().getName() + "$PostDeregisterAdvice");
   }
 
+  @SuppressWarnings("unused")
   public static class PreRegisterAdvice {
     @Advice.OnMethodExit(suppress = Throwable.class)
     public static void onExit(
@@ -53,6 +54,7 @@ class BasicDataSourceInstrumentation implements TypeInstrumentation {
     }
   }
 
+  @SuppressWarnings("unused")
   public static class PostDeregisterAdvice {
     @Advice.OnMethodExit(suppress = Throwable.class)
     public static void onExit(@Advice.This BasicDataSource dataSource) {

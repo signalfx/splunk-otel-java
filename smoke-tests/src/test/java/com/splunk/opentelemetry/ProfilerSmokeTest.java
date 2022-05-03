@@ -51,7 +51,6 @@ import org.junit.jupiter.api.io.TempDir;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testcontainers.containers.BindMode;
-import org.testcontainers.containers.Container;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.Network;
 import org.testcontainers.containers.output.Slf4jLogConsumer;
@@ -217,9 +216,12 @@ public abstract class ProfilerSmokeTest {
   }
 
   private boolean containsContextAttached(Path path) {
+    /*
     if (!Files.isReadable(path)) {
       makeReadable(path);
     }
+
+     */
     logger.info("Reading file {}, is readable {} {}", path, Files.isReadable(path),
         Files.isReadable(path.getParent()));
     if (!Files.isReadable(path)) {
@@ -259,9 +261,9 @@ public abstract class ProfilerSmokeTest {
           .filter(Files::isRegularFile)
           .filter(path -> {
             if (!Files.isReadable(path)) {
-
+              path.toFile().setReadable(true, false);
             }
-            makeReadable(path);
+            // makeReadable(path);
             return true;
           })
           .filter(item -> item.getFileName().toString().endsWith(".jfr"))
@@ -307,6 +309,7 @@ public abstract class ProfilerSmokeTest {
     }
   }
 
+  /*
   private void makeReadable(Path path) {
     try {
       Container.ExecResult result = petclinic.execInContainer("chmod", "a+r", "/app/jfr/" + path.getFileName().toString());
@@ -317,4 +320,6 @@ public abstract class ProfilerSmokeTest {
       throw new IllegalStateException(exception);
     }
   }
+
+   */
 }

@@ -18,6 +18,8 @@ package com.splunk.opentelemetry.micrometer;
 
 import static com.splunk.opentelemetry.SplunkConfiguration.PROFILER_MEMORY_ENABLED_PROPERTY;
 import static com.splunk.opentelemetry.SplunkConfiguration.SPLUNK_ACCESS_TOKEN;
+import static com.splunk.opentelemetry.SplunkConfiguration.SPLUNK_REALM_NONE;
+import static com.splunk.opentelemetry.SplunkConfiguration.SPLUNK_REALM_PROPERTY;
 import static com.splunk.opentelemetry.micrometer.SplunkMetricsConfig.DEFAULT_METRICS_ENDPOINT;
 import static com.splunk.opentelemetry.micrometer.SplunkMetricsConfig.METRICS_ENABLED_PROPERTY;
 import static com.splunk.opentelemetry.micrometer.SplunkMetricsConfig.METRICS_ENDPOINT_PROPERTY;
@@ -117,5 +119,23 @@ class SplunkMetricsConfigTest {
             .build();
     var config = new SplunkMetricsConfig(javaagentConfig, Resource.getDefault());
     assertTrue(config.enabled());
+  }
+
+  @Test
+  void usesRealmUrlDefaultIfRealmDefined() {
+    var javaagentConfig =
+        Config.builder().addProperties(Map.of(SPLUNK_REALM_PROPERTY, "test0")).build();
+    var config = new SplunkMetricsConfig(javaagentConfig, Resource.getDefault());
+
+    assertEquals(config.uri(), "https://ingest.test0.signalfx.com");
+  }
+
+  @Test
+  void usesLocalUrlDefaultIfRealmIsNone() {
+    var javaagentConfig =
+        Config.builder().addProperties(Map.of(SPLUNK_REALM_PROPERTY, SPLUNK_REALM_NONE)).build();
+    var config = new SplunkMetricsConfig(javaagentConfig, Resource.getDefault());
+
+    assertEquals(config.uri(), DEFAULT_METRICS_ENDPOINT);
   }
 }

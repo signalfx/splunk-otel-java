@@ -195,6 +195,11 @@ public class LinuxTestContainerManager extends AbstractTestContainerManager {
   }
 
   @Override
+  public GenericContainer<?> getTargetContainer() {
+    return target;
+  }
+
+  @Override
   public GenericContainer<?> newContainer(TestImage image) {
     return new GenericContainer<>(DockerImageName.parse(image.imageName))
         .dependsOn(collector)

@@ -302,6 +302,12 @@ public class WindowsTestContainerManager extends AbstractTestContainerManager {
   }
 
   @Override
+  public GenericContainer<?> getTargetContainer() {
+    throw new UnsupportedOperationException(
+        "Windows container manager does not support testcontainers");
+  }
+
+  @Override
   public GenericContainer<?> newContainer(TestImage image) {
     throw new UnsupportedOperationException(
         "Windows container manager does not support testcontainers");

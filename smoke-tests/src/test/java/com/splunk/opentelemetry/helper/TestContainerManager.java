@@ -41,5 +41,7 @@ public interface TestContainerManager {
 
   void stopTarget();
 
+  GenericContainer<?> getTargetContainer();
+
   GenericContainer<?> newContainer(TestImage image);
 }

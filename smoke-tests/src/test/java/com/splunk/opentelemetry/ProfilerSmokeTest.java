@@ -28,6 +28,7 @@ import com.splunk.opentelemetry.helper.TargetContainerBuilder;
 import com.splunk.opentelemetry.helper.TargetWaitStrategy;
 import com.splunk.opentelemetry.helper.TestContainerManager;
 import com.splunk.opentelemetry.helper.TestImage;
+import com.splunk.opentelemetry.helper.windows.WindowsTestContainerManager;
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
@@ -50,14 +51,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.testcontainers.containers.BindMode;
 import org.testcontainers.containers.Container;
-import org.testcontainers.containers.GenericContainer;
-import org.testcontainers.containers.Network;
-import org.testcontainers.containers.output.Slf4jLogConsumer;
-import org.testcontainers.containers.wait.strategy.Wait;
-import org.testcontainers.utility.DockerImageName;
-import org.testcontainers.utility.MountableFile;
 
 public abstract class ProfilerSmokeTest {
 
@@ -296,10 +290,16 @@ public abstract class ProfilerSmokeTest {
   }
 
   private void makeReadable(Path path) {
+    if (containerManager instanceof WindowsTestContainerManager) {
+      return;
+    }
+
     try {
       // on linux host jfr files created inside the container are not readable from the host
       Container.ExecResult result =
-          petclinic.execInContainer("chmod", "a+r", "/app/jfr/" + path.getFileName().toString());
+          containerManager
+              .getTargetContainer()
+              .execInContainer("chmod", "a+r", "/app/jfr/" + path.getFileName().toString());
       if (result.getExitCode() != 0) {
         logger.error(
             "Failed to make file readable, chmod exited with {} stdout: {} stderr: {}",

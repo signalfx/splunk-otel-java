@@ -59,6 +59,9 @@ We recommend following these best practices in order to reduce upgrade risk:
 * While advanced users with sophisticated build pipelines _may_ maintain compatibility with 
   bleeding-edge snapshot builds, a snapshot build should really never be deployed to production
   unless absolutely necessary. This should be quite uncommon.
+* Give special consideration to breaking changes in the release notes. While the community tries
+  to minimize breaking changes, they are sometimes present to fix problems or to make the
+  code better in the long term.
 
 ## What Do These Version Numbers Mean?
 

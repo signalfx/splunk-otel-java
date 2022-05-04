@@ -28,6 +28,7 @@ import com.splunk.opentelemetry.helper.TargetContainerBuilder;
 import com.splunk.opentelemetry.helper.TargetWaitStrategy;
 import com.splunk.opentelemetry.helper.TestContainerManager;
 import com.splunk.opentelemetry.helper.TestImage;
+import com.splunk.opentelemetry.helper.windows.WindowsTestContainerManager;
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
@@ -50,6 +51,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.testcontainers.containers.Container;
 
 public abstract class ProfilerSmokeTest {
 
@@ -209,6 +211,9 @@ public abstract class ProfilerSmokeTest {
   }
 
   private boolean containsContextAttached(Path path) {
+    if (!Files.isReadable(path)) {
+      makeReadable(path);
+    }
     try {
       return RecordingFile.readAllEvents(path).stream()
           .anyMatch(ProfilerSmokeTest::isContextAttachedEvent);
@@ -281,6 +286,29 @@ public abstract class ProfilerSmokeTest {
       generateSomeSpans();
     } catch (Exception e) {
       throw new RuntimeException(e);
+    }
+  }
+
+  private void makeReadable(Path path) {
+    if (containerManager instanceof WindowsTestContainerManager) {
+      return;
+    }
+
+    try {
+      // on linux host jfr files created inside the container are not readable from the host
+      Container.ExecResult result =
+          containerManager
+              .getTargetContainer()
+              .execInContainer("chmod", "a+r", "/app/jfr/" + path.getFileName().toString());
+      if (result.getExitCode() != 0) {
+        logger.error(
+            "Failed to make file readable, chmod exited with {} stdout: {} stderr: {}",
+            result.getExitCode(),
+            result.getStdout(),
+            result.getStderr());
+      }
+    } catch (IOException | InterruptedException exception) {
+      throw new IllegalStateException(exception);
     }
   }
 }

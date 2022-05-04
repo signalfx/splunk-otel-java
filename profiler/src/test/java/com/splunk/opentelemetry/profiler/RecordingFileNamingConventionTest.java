@@ -16,38 +16,39 @@
 
 package com.splunk.opentelemetry.profiler;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.Month;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 class RecordingFileNamingConventionTest {
 
-  Path outputDir = Paths.get("/path/to/outdir");
+  @TempDir Path outputDir;
 
   @Test
-  void testNewPath() {
+  void testNewPath() throws IOException {
     RecordingFileNamingConvention convention = new RecordingFileNamingConvention(outputDir);
     LocalDateTime now = LocalDateTime.of(1999, Month.FEBRUARY, 12, 17, 3, 21);
-    Path expected = Paths.get("/path/to/outdir/otel-profiler-1999-02-12T17_03_21.jfr");
+    Path expected = outputDir.resolve("otel-profiler-1999-02-12T17_03_21");
 
     Path path = convention.newOutputPath(now);
 
-    assertEquals(expected, path);
+    assertThat(path.toString()).startsWith(expected.toString()).endsWith(".jfr");
   }
 
   @Test
   void testMatches() {
     RecordingFileNamingConvention convention = new RecordingFileNamingConvention(outputDir);
-    LocalDateTime now = LocalDateTime.of(1999, Month.FEBRUARY, 12, 17, 3, 21);
-    Path doesMatch = Paths.get("/path/to/outdir/otel-profiler-1999-02-12T17_03_21.jfr");
-    Path differentDir = Paths.get("/no/way/out/otel-profiler-1999-02-12T17_03_21.jfr");
-    Path badFilename = Paths.get("/path/to/outdir/tugboat-1999-02-12T17_03_21.jfr");
+    Path doesMatch = outputDir.resolve("otel-profiler-1999-02-12T17_03_21-123.jfr");
+    Path differentDir = Paths.get("/no/way/out/otel-profiler-1999-02-12T17_03_21-123.jfr");
+    Path badFilename = outputDir.resolve("tugboat-1999-02-12T17_03_21-123.jfr");
 
     assertTrue(convention.matches(doesMatch));
     assertFalse(convention.matches(differentDir));

@@ -45,7 +45,7 @@ class JfrPathHandler implements Consumer<Path> {
 
   @Override
   public void accept(Path path) {
-    logger.info("New jfr file detected: {} size: {}", path, path.toFile().length());
+    logger.debug("New jfr file detected: {} size: {}", path, path.toFile().length());
     Instant start = Instant.now();
     try {
       RecordedEventStream recordingFile = recordedEventStreamFactory.get();

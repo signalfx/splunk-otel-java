@@ -21,6 +21,7 @@ import static java.util.Objects.requireNonNull;
 import com.google.common.annotations.VisibleForTesting;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
@@ -35,6 +36,8 @@ import org.slf4j.LoggerFactory;
 /** Responsible for starting a single JFR recording. */
 class JfrRecorder {
   private static final Logger logger = LoggerFactory.getLogger(JfrRecorder.class);
+
+  private static final int BUFFER_SIZE = 8192;
   static final String RECORDING_NAME = "otel_agent_jfr_profiler";
   private final Map<String, String> settings;
 
@@ -71,17 +74,27 @@ class JfrRecorder {
 
   public void flushSnapshot() {
     try (Recording snap = jfr.takeSnapshot()) {
-      Path path = namingConvention.newOutputPath();
+      Path path = namingConvention.newOutputPath().toAbsolutePath();
       logger.debug("Flushing a JFR snapshot: {}", path);
       Instant snapshotEnd = snap.getStopTime();
       try (InputStream in = snap.getStream(snapshotStart, snapshotEnd)) {
-        Files.copy(in, path);
-        logger.debug("Wrote JFR dump {} with size {}", path, path.toFile().length());
+        try (OutputStream out = Files.newOutputStream(path)) {
+          copy(in, out);
+          logger.debug("Wrote JFR dump {} with size {}", path, path.toFile().length());
+        }
       }
       snapshotStart = snapshotEnd;
       onNewRecordingFile.accept(path);
     } catch (IOException e) {
       logger.error("Error flushing JFR snapshot data to disk", e);
+    }
+  }
+
+  private static void copy(InputStream in, OutputStream out) throws IOException {
+    byte[] buffer = new byte[BUFFER_SIZE];
+    int read;
+    while ((read = in.read(buffer, 0, BUFFER_SIZE)) >= 0) {
+      out.write(buffer, 0, read);
     }
   }
 
@@ -103,7 +116,7 @@ class JfrRecorder {
     private Map<String, String> settings;
     private Duration maxAgeDuration;
     private JFR jfr = JFR.instance;
-    public Consumer<Path> onNewRecordingFile;
+    private Consumer<Path> onNewRecordingFile;
 
     public Builder settings(Map<String, String> settings) {
       this.settings = settings;

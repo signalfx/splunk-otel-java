@@ -26,7 +26,6 @@ import org.junit.jupiter.api.Test;
 
 class SplunkConfigurationTest {
   private static final String TEST_REALM = "test0";
-  private static final String OTLP_PROTOCOL = "otel.exporter.otlp.traces.protocol";
   private static final String OTLP_ENDPOINT = "otel.exporter.otlp.traces.endpoint";
 
   @Test
@@ -54,12 +53,11 @@ class SplunkConfigurationTest {
     assertEquals(
         "https://ingest.test1.signalfx.com/v2/trace",
         properties.get(OTEL_EXPORTER_JAEGER_ENDPOINT));
-    assertEquals("https://ingest.test1.signalfx.com/v2/trace/otlp", properties.get(OTLP_ENDPOINT));
+    assertEquals("https://ingest.test1.signalfx.com", properties.get(OTLP_ENDPOINT));
   }
 
   private static void assertLocalDefaults(Map<String, String> properties) {
     assertEquals("http://localhost:9080/v1/trace", properties.get(OTEL_EXPORTER_JAEGER_ENDPOINT));
-    assertNull(properties.get(OTLP_PROTOCOL));
     assertNull(properties.get(OTLP_ENDPOINT));
   }
 
@@ -67,8 +65,7 @@ class SplunkConfigurationTest {
     assertEquals(
         "https://ingest.test0.signalfx.com/v2/trace",
         properties.get(OTEL_EXPORTER_JAEGER_ENDPOINT));
-    assertEquals("http/protobuf", properties.get(OTLP_PROTOCOL));
-    assertEquals("https://ingest.test0.signalfx.com/v2/trace/otlp", properties.get(OTLP_ENDPOINT));
+    assertEquals("https://ingest.test0.signalfx.com", properties.get(OTLP_ENDPOINT));
   }
 
   private static Map<String, String> configuration(String envValue, String propertyValue) {

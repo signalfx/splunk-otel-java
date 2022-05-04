@@ -57,10 +57,9 @@ public class SplunkConfiguration implements ConfigPropertySource {
 
     String realm = getRealm();
     if (!SPLUNK_REALM_NONE.equals(realm)) {
-      config.put("otel.exporter.otlp.traces.protocol", "http/protobuf");
       config.put(
           "otel.exporter.otlp.traces.endpoint",
-          "https://ingest." + realm + ".signalfx.com/v2/trace/otlp");
+          "https://ingest." + realm + ".signalfx.com");
       config.put(
           OTEL_EXPORTER_JAEGER_ENDPOINT, "https://ingest." + realm + ".signalfx.com/v2/trace");
     } else {

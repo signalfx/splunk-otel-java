@@ -29,7 +29,7 @@ class RecordingFileNamingConvention {
   private static final String PREFIX = "otel-profiler";
   // ISO_DATE_TIME format is like 2021-12-03T10:15:30
   private final Pattern filenamePattern =
-      Pattern.compile("^" + PREFIX + "-\\d{4}-\\d{2}-\\d{2}T\\d{2}_\\d{2}_\\d{2}-\\d+\\.jfr$");
+      Pattern.compile("^" + PREFIX + "-\\d{4}-\\d{2}-\\d{2}T\\d{2}_\\d{2}_\\d{2}-.*\\.jfr$");
   private final Path outputDir;
 
   RecordingFileNamingConvention(Path outputDir) {

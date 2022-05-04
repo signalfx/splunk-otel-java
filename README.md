@@ -177,6 +177,10 @@ We publish [snapshot builds](https://oss.sonatype.org/content/repositories/snaps
 with every merge to the `main` branch. Snapshots are primarily intended to test new functionality and are not recommended
 for production use.
 
+# Upgrades
+
+For information and best practices around upgrades, please see the [Upgrading documentation](docs/upgrading.md).
+
 ## Troubleshooting
 
 For troubleshooting information and known issues, see [Troubleshooting Java instrumentation](https://docs.splunk.com/Observability/gdi/get-data-in/application/java/troubleshooting/common-java-troubleshooting.html) in the official Splunk documentation.

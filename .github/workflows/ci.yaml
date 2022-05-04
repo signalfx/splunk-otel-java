@@ -116,8 +116,6 @@ jobs:
         exclude:
           - os: windows-2019
             suite: websphere
-          - os: windows-2019
-            suite: profiler
       fail-fast: false
     steps:
       - uses: actions/checkout@v3

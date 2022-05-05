@@ -1,4 +1,4 @@
-# Upgrading the Agent
+# Upgrading the agent
 
 Upgrade the agent on a cycle that lets you pick up enhancements while giving you time to 
 test the changes.

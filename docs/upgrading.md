@@ -37,12 +37,13 @@ version will be 100% compatible in every deployment.
 
 Users should verify the upgrade with each new version.
 
-## Best Practices
+## Best practices
 
-We recommend following these best practices in order to reduce upgrade risk:
+To reduce the risk of problems with an upgrade, do the following:
 
-* Read the release notes and changelog for each release. This should help you to determine when
-  a given release has specific changes that are relevant to your software stack.
+* Read the release notes and changelog for each release, to help you determine when the release has
+  changes that might affect your software stack. Give special consideration to specific mentions of 
+  libraries, frameworks, and tools that your software uses.
 * Never put untested code into production! This should be obvious, but you should first verify that 
   a new build works in a staging or pre-production environment before promoting it to production.
 * Use canary instances. Let the canaries operate with the code before releasing the code to 

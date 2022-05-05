@@ -26,6 +26,7 @@ import java.io.OutputStream;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.zip.GZIPOutputStream;
 
@@ -41,10 +42,6 @@ public class Pprof {
 
   public long getStringId(String str) {
     return stringTable.get(str);
-  }
-
-  public long getFunctionId(String file, String function) {
-    return functionTable.get(file, function);
   }
 
   public long getLocationId(String file, String function, long line) {
@@ -128,7 +125,7 @@ public class Pprof {
   private static class FunctionTable {
     final Profile.Builder profile;
     final StringTable stringTable;
-    final Map<String, Long> table = new HashMap<>();
+    final Map<FunctionKey, Long> table = new HashMap<>();
     long index = 1; // 0 is reserved
 
     FunctionTable(Profile.Builder profile, StringTable stringTable) {
@@ -136,15 +133,15 @@ public class Pprof {
       this.stringTable = stringTable;
     }
 
-    long get(String file, String function) {
+    long get(FunctionKey functionKey) {
       return table.computeIfAbsent(
-          file + "#" + function,
+          functionKey,
           key -> {
             Function fn =
                 Function.newBuilder()
                     .setId(index)
-                    .setFilename(stringTable.get(file))
-                    .setName(stringTable.get(function))
+                    .setFilename(stringTable.get(key.file))
+                    .setName(stringTable.get(key.function))
                     .build();
             profile.addFunction(fn);
             return index++;
@@ -152,10 +149,33 @@ public class Pprof {
     }
   }
 
+  private static class FunctionKey {
+    private final String file;
+    private final String function;
+
+    FunctionKey(String file, String function) {
+      this.file = file;
+      this.function = function;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) return true;
+      if (o == null || getClass() != o.getClass()) return false;
+      FunctionKey that = (FunctionKey) o;
+      return Objects.equals(file, that.file) && Objects.equals(function, that.function);
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hash(file, function);
+    }
+  }
+
   private static class LocationTable {
     final Profile.Builder profile;
     final FunctionTable functionTable;
-    final Map<String, Long> table = new HashMap<>();
+    final Map<LocationKey, Long> table = new HashMap<>();
     long index = 1; // 0 is reserved
 
     LocationTable(Profile.Builder profile, FunctionTable functionTable) {
@@ -164,21 +184,46 @@ public class Pprof {
     }
 
     long get(String file, String function, long line) {
+      FunctionKey functionKey = new FunctionKey(file, function);
+      LocationKey locationKey = new LocationKey(functionKey, line);
       return table.computeIfAbsent(
-          file + "#" + function + "#" + line,
+          locationKey,
           key -> {
             Location location =
                 Location.newBuilder()
                     .setId(index)
                     .addLine(
                         Line.newBuilder()
-                            .setFunctionId(functionTable.get(file, function))
+                            .setFunctionId(functionTable.get(functionKey))
                             .setLine(line)
                             .build())
                     .build();
             profile.addLocation(location);
             return index++;
           });
+    }
+  }
+
+  private static class LocationKey {
+    private final FunctionKey functionKey;
+    private final long line;
+
+    LocationKey(FunctionKey functionKey, long line) {
+      this.functionKey = functionKey;
+      this.line = line;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) return true;
+      if (o == null || getClass() != o.getClass()) return false;
+      LocationKey that = (LocationKey) o;
+      return line == that.line && Objects.equals(functionKey, that.functionKey);
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hash(functionKey, line);
     }
   }
 }

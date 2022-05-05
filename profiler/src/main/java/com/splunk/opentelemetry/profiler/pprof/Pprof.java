@@ -44,10 +44,6 @@ public class Pprof {
     return stringTable.get(str);
   }
 
-  public long getFunctionId(String file, String function) {
-    return functionTable.get(file, function);
-  }
-
   public long getLocationId(String file, String function, long line) {
     return locationTable.get(file, function, line);
   }
@@ -137,15 +133,15 @@ public class Pprof {
       this.stringTable = stringTable;
     }
 
-    long get(String file, String function) {
+    long get(FunctionKey functionKey) {
       return table.computeIfAbsent(
-          new FunctionKey(file, function),
+          functionKey,
           key -> {
             Function fn =
                 Function.newBuilder()
                     .setId(index)
-                    .setFilename(stringTable.get(file))
-                    .setName(stringTable.get(function))
+                    .setFilename(stringTable.get(key.file))
+                    .setName(stringTable.get(key.function))
                     .build();
             profile.addFunction(fn);
             return index++;
@@ -188,15 +184,17 @@ public class Pprof {
     }
 
     long get(String file, String function, long line) {
+      FunctionKey functionKey = new FunctionKey(file, function);
+      LocationKey locationKey = new LocationKey(functionKey, line);
       return table.computeIfAbsent(
-          new LocationKey(file, function, line),
+          locationKey,
           key -> {
             Location location =
                 Location.newBuilder()
                     .setId(index)
                     .addLine(
                         Line.newBuilder()
-                            .setFunctionId(functionTable.get(file, function))
+                            .setFunctionId(functionTable.get(functionKey))
                             .setLine(line)
                             .build())
                     .build();
@@ -207,13 +205,11 @@ public class Pprof {
   }
 
   private static class LocationKey {
-    private final String file;
-    private final String function;
+    private final FunctionKey functionKey;
     private final long line;
 
-    LocationKey(String file, String function, long line) {
-      this.file = file;
-      this.function = function;
+    LocationKey(FunctionKey functionKey, long line) {
+      this.functionKey = functionKey;
       this.line = line;
     }
 
@@ -222,14 +218,12 @@ public class Pprof {
       if (this == o) return true;
       if (o == null || getClass() != o.getClass()) return false;
       LocationKey that = (LocationKey) o;
-      return line == that.line
-          && Objects.equals(file, that.file)
-          && Objects.equals(function, that.function);
+      return line == that.line && Objects.equals(functionKey, that.functionKey);
     }
 
     @Override
     public int hashCode() {
-      return Objects.hash(file, function, line);
+      return Objects.hash(functionKey, line);
     }
   }
 }

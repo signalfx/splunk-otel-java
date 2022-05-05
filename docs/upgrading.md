@@ -1,11 +1,9 @@
 # Upgrading the Agent
 
-This document provides user guidance around agent upgrades and versioning.
-Like every other piece of software included in your project, the agent 
-should be upgraded frequently enough to pick up ongoing enhancements 
-while allowing room for testing. 
+Upgrade the agent on a cycle that lets you pick up enhancements while giving you time to 
+test the changes.
 
-## Watching for new releases
+## Watch for new releases
 
 How can you find out about new releases? The best way is to "Watch" this repo
 from the "Watch" button in the upper-right corner of the main repository 
@@ -56,9 +54,7 @@ We recommend following these best practices in order to reduce upgrade risk:
 * Minimize the number of dependencies (including instrumentation!) changing in a given release.
   It becomes significantly more difficult to determine the root cause of a problem when multiple
   dependencies have been upgraded at the same time.
-* While advanced users with sophisticated build pipelines _may_ maintain compatibility with 
-  bleeding-edge snapshot builds, a snapshot build should really never be deployed to production
-  unless absolutely necessary. This should be quite uncommon.
+* Don't use snapshot builds in production.
 * Look closely at the release notes to identify breaking changes. The OpenTelemetry tries to
   minimize breaking changes, but sometimes they're needed to fix problems or improve the code in the
   long term.

@@ -1,4 +1,4 @@
-# Upgrading the agent
+# Upgrading the Splunk Distribution of OpenTelemetry Java
 
 Upgrade the agent on a cycle that lets you pick up enhancements while giving you time to 
 test the changes.

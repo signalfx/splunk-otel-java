@@ -5,16 +5,12 @@ test the changes.
 
 ## Watch for new releases
 
-How can you find out about new releases? The best way is to "Watch" this repo
-from the "Watch" button in the upper-right corner of the main repository 
-page. If you don't want to be notified for every pull request and issue, you can 
-choose "Custom" under "Watch" and select just the "Releases" checkbox.
+To find out about new [releases](https://github.com/signalfx/splunk-otel-java/releases), add
+yourself to the main repository watch list. To do this, click Watch on the main repository page. If
+you don't want notifications for every pull request and issue, choose Custom and clear all options
+except Release.
 
-Another approach is to just check in regularly with the GitHub 
-[releases page](https://github.com/signalfx/splunk-otel-java/releases) for this 
-project. 
-
-## When Does Splunk Release?
+## When does Splunk Distribution of OpenTelemetry Java release?
 
 Because we are a downstream distribution of [OpenTelemetry Java Instrumentation](https://github.com/open-telemetry/opentelemetry-java-instrumentation),
 we generally release within a few working days of every upstream release. We also release when we 
@@ -24,7 +20,7 @@ We contribute to upstream OpenTelemetry and are typically aware of the release c
 over there. As a result, depending on the timing of certain patch releases, we may sometimes
 skip a release to reduce the "release thrash" from our distribution.
 
-## When To Upgrade
+## When to upgrade?
 
 In general, we recommend that you upgrade to each new version shortly after it is released. Ideally,
 you should upgrade within a few weeks of a release. Given that OpenTelemetry is a very active 
@@ -32,7 +28,7 @@ community, consistent, frequent upgrades will help limit the number of changes b
 
 Upgrades should be intentional and version numbers should be pinned in your build pipeline.
 
-## Upgrade Verification
+## Upgrade verification
 
 The Java Instrumentation is a piece of code that runs alongside your code. Because of the rich 
 diversity across user deployment environments and the massive number of frameworks and libraries

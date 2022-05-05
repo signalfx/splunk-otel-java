@@ -5,7 +5,7 @@ Like every other piece of software included in your project, the agent
 should be upgraded frequently enough to pick up ongoing enhancements 
 while allowing room for testing. 
 
-## Watching For New Releases
+## Watching for new releases
 
 How can you find out about new releases? The best way is to "Watch" this repo
 from the "Watch" button in the upper-right corner of the main repository 
@@ -51,8 +51,8 @@ We recommend following these best practices in order to reduce upgrade risk:
   a given release has specific changes that are relevant to your software stack.
 * Never put untested code into production! This should be obvious, but you should first verify that 
   a new build works in a staging or pre-production environment before promoting it to production.
-* Use canaries. Let a couple of instances cook with the new code for a few hours or few
-  days before promoting to production.
+* Use canary instances. Let the canaries operate with the code before releasing the code to 
+  production. Run the canaries for at least a few hours, and preferably for a few days.
 * Minimize the number of dependencies (including instrumentation!) changing in a given release.
   It becomes significantly more difficult to determine the root cause of a problem when multiple
   dependencies have been upgraded at the same time.
@@ -63,11 +63,12 @@ We recommend following these best practices in order to reduce upgrade risk:
   to minimize breaking changes, they are sometimes present to fix problems or to make the
   code better in the long term.
 
-## What Do These Version Numbers Mean?
+## Understanding version numbers
 
-We have a [versioning document](https://github.com/signalfx/splunk-otel-java/blob/main/VERSIONING.md)
-that provides more detail. Please note that major versions will contain a greater number of
-changes which results in increased risk. Minor versions are the most common releases and contain
-modest number of changes, and patch releases are infrequent and usually contain only pinpoint
-specific fixes or enhancements.
+Refer to
+the [versioning document](https://github.com/signalfx/splunk-otel-java/blob/main/VERSIONING.md) to
+learn more about version numbers. Major versions contain a large number of changes, which might
+result in increased risk to your production environment. The most common releases are marked with a
+minor version, and they contain a modest number of changes. Patch releases are infrequent, and they
+pinpoint specific fixes or enhancements.
 

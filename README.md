@@ -180,7 +180,7 @@ for production use.
 
 # Upgrades
 
-For information and best practices around upgrades, please see the [Upgrading documentation](docs/upgrading.md).
+For information and best practices around upgrades, see the [Upgrading documentation](docs/upgrading.md).
 
 ## Troubleshooting
 

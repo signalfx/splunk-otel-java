@@ -30,7 +30,7 @@ Upgrades should be intentional and version numbers should be pinned in your buil
 
 ## Upgrade verification
 
-The Java Instrumentation is a piece of code that runs alongside your code. Because of the rich 
+The Java Instrumentation is code that runs alongside your code. Because of the rich 
 diversity across user deployment environments and the massive number of frameworks and libraries
 (and versions!) that are covered, we simply cannot universally guarantee that every release
 version will be 100% compatible in every deployment.

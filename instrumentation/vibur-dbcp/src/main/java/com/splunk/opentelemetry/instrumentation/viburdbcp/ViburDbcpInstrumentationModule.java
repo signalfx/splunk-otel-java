@@ -27,7 +27,7 @@ import java.util.List;
 @AutoService(InstrumentationModule.class)
 public class ViburDbcpInstrumentationModule extends MetricsInstrumentationModule {
   public ViburDbcpInstrumentationModule() {
-    super("vibur-dbcp");
+    super("vibur-dbcp-splunk");
   }
 
   @Override

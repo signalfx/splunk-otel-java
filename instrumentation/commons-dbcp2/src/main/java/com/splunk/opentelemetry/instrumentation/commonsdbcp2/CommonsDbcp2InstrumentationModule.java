@@ -27,7 +27,7 @@ import java.util.List;
 @AutoService(InstrumentationModule.class)
 public class CommonsDbcp2InstrumentationModule extends MetricsInstrumentationModule {
   public CommonsDbcp2InstrumentationModule() {
-    super("commons-dbcp2");
+    super("commons-dbcp2-splunk");
   }
 
   @Override

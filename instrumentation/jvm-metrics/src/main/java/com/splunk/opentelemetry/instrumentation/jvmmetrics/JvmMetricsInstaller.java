@@ -38,7 +38,8 @@ public class JvmMetricsInstaller implements AgentListener {
       Config config, AutoConfiguredOpenTelemetrySdk autoConfiguredOpenTelemetrySdk) {
     boolean metricsRegistryPresent = !Metrics.globalRegistry.getRegistries().isEmpty();
     AgentConfig agentConfig = new AgentConfig(config);
-    if (!agentConfig.isInstrumentationEnabled(singleton("jvm-metrics"), metricsRegistryPresent)) {
+    if (!agentConfig.isInstrumentationEnabled(
+        singleton("jvm-metrics-splunk"), metricsRegistryPresent)) {
       return;
     }
 

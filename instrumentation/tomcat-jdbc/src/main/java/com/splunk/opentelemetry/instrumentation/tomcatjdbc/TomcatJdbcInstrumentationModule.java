@@ -27,7 +27,7 @@ import java.util.List;
 @AutoService(InstrumentationModule.class)
 public class TomcatJdbcInstrumentationModule extends MetricsInstrumentationModule {
   public TomcatJdbcInstrumentationModule() {
-    super("tomcat-jdbc");
+    super("tomcat-jdbc-splunk");
   }
 
   @Override

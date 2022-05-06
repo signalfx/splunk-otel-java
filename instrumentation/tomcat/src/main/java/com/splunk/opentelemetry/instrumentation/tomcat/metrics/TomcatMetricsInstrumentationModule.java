@@ -29,7 +29,7 @@ import java.util.List;
 @AutoService(InstrumentationModule.class)
 public class TomcatMetricsInstrumentationModule extends MetricsInstrumentationModule {
   public TomcatMetricsInstrumentationModule() {
-    super("tomcat", "tomcat-metrics");
+    super("tomcat", "tomcat-metrics-splunk");
   }
 
   @Override

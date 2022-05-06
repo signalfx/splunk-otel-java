@@ -6,9 +6,9 @@ test the changes.
 ## Watch for new releases
 
 To find out about new [releases](https://github.com/signalfx/splunk-otel-java/releases), add
-yourself to the main repository watch list. To do this, click Watch on the main repository page. If
-you don't want notifications for every pull request and issue, choose Custom and clear all options
-except Release.
+yourself to the main repository watch list. To do this, click **Watch** on the main repository page. If
+you don't want notifications for every pull request and issue, choose **Custom** and clear all options
+except **Release**.
 
 ## When does Splunk Distribution of OpenTelemetry Java release?
 

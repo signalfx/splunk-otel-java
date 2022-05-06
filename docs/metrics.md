@@ -84,18 +84,18 @@ For more details on using the Micrometer API please consult the [Micrometer docs
 
 The following metrics are currently gathered by the agent:
 
-| Library/Framework                                                    | Instrumentation name | Versions |
-| -------------------------------------------------------------------- | -------------------- | -------- |
-| [JVM metrics](#jvm)                                                  | `jvm-metrics`        | [Java runtimes version 8 and higher](../README.md#requirements)
-| [Apache DBCP2 connection pool metrics](#connection-pool-metrics)     | `commons-dbcp2`      | 2.0 and higher
-| [c3p0 connection pool metrics](#connection-pool-metrics)             | `c3p0`               | 0.9.5 and higher
-| [HikariCP connection pool metrics](#connection-pool-metrics)         | `hikaricp`           | 3.0 and higher
-| [Oracle Universal Connection Pool metrics](#connection-pool-metrics) | `oracle-ucp`         | 11.2.0.4 and higher
-| [Tomcat JDBC connection pool metrics](#connection-pool-metrics)      | `tomcat-jdbc`        | 8.5 and higher
-| [Vibur DBCP connection pool metrics](#connection-pool-metrics)       | `vibur-dbcp`         | 20.0 and higher
-| [Tomcat thread pool metrics](#thread-pool-metrics)                   | `tomcat`             | 8.5 and higher
-| [WebSphere Liberty web request thread pool](#thread-pool-metrics)    | `liberty`            | 20.0.0.12
-| [WebLogic thread pools](#thread-pool-metrics)                        | `weblogic`           | 12.x and 14.x
+| Library/Framework                                                    | Instrumentation name   | Versions |
+| -------------------------------------------------------------------- |------------------------| -------- |
+| [JVM metrics](#jvm)                                                  | `jvm-metrics-splunk`   | [Java runtimes version 8 and higher](../README.md#requirements)
+| [Apache DBCP2 connection pool metrics](#connection-pool-metrics)     | `commons-dbcp2-splunk` | 2.0 and higher
+| [c3p0 connection pool metrics](#connection-pool-metrics)             | `c3p0-splunk`          | 0.9.5 and higher
+| [HikariCP connection pool metrics](#connection-pool-metrics)         | `hikaricp-splunk`      | 3.0 and higher
+| [Oracle Universal Connection Pool metrics](#connection-pool-metrics) | `oracle-ucp-splunk`    | 11.2.0.4 and higher
+| [Tomcat JDBC connection pool metrics](#connection-pool-metrics)      | `tomcat-jdbc-splunk`   | 8.5 and higher
+| [Vibur DBCP connection pool metrics](#connection-pool-metrics)       | `vibur-dbcp-splunk`    | 20.0 and higher
+| [Tomcat thread pool metrics](#thread-pool-metrics)                   | `tomcat`               | 8.5 and higher
+| [WebSphere Liberty web request thread pool](#thread-pool-metrics)    | `liberty`              | 20.0.0.12
+| [WebLogic thread pools](#thread-pool-metrics)                        | `weblogic`             | 12.x and 14.x
 
 ### JVM
 

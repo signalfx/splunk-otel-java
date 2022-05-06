@@ -29,7 +29,7 @@ import java.util.List;
 @AutoService(InstrumentationModule.class)
 public class LibertyMetricsInstrumentationModule extends MetricsInstrumentationModule {
   public LibertyMetricsInstrumentationModule() {
-    super("liberty", "liberty-metrics");
+    super("liberty", "liberty-metrics-splunk");
   }
 
   @Override

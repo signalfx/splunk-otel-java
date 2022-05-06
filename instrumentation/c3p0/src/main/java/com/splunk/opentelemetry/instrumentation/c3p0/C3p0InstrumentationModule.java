@@ -27,7 +27,7 @@ import java.util.List;
 public class C3p0InstrumentationModule extends MetricsInstrumentationModule {
 
   public C3p0InstrumentationModule() {
-    super("c3p0");
+    super("c3p0-splunk");
   }
 
   @Override

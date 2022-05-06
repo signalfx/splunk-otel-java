@@ -27,7 +27,7 @@ import java.util.List;
 @AutoService(InstrumentationModule.class)
 public class WebLogicMetricsInstrumentationModule extends MetricsInstrumentationModule {
   public WebLogicMetricsInstrumentationModule() {
-    super("weblogic", "weblogic-metrics");
+    super("weblogic", "weblogic-metrics-splunk");
   }
 
   @Override

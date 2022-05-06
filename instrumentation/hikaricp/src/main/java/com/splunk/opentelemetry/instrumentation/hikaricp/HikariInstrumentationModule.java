@@ -26,7 +26,7 @@ import java.util.List;
 @AutoService(InstrumentationModule.class)
 public class HikariInstrumentationModule extends InstrumentationModule {
   public HikariInstrumentationModule() {
-    super("hikari", "hikaricp");
+    super("hikari-splunk", "hikaricp-splunk");
   }
 
   @Override

@@ -18,8 +18,10 @@ package com.splunk.opentelemetry.micrometer;
 
 import static com.splunk.opentelemetry.SplunkConfiguration.PROFILER_MEMORY_ENABLED_PROPERTY;
 import static com.splunk.opentelemetry.SplunkConfiguration.SPLUNK_ACCESS_TOKEN;
+import static com.splunk.opentelemetry.SplunkConfiguration.SPLUNK_REALM_NONE;
 import static io.micrometer.core.instrument.config.MeterRegistryConfigValidator.checkAll;
 
+import com.splunk.opentelemetry.SplunkConfiguration;
 import io.micrometer.core.instrument.config.validate.Validated;
 import io.micrometer.core.instrument.step.StepRegistryConfig;
 import io.opentelemetry.instrumentation.api.config.Config;
@@ -64,7 +66,7 @@ class SplunkMetricsConfig implements CustomSignalFxConfig {
 
   @Override
   public String uri() {
-    return config.getString(METRICS_ENDPOINT_PROPERTY, DEFAULT_METRICS_ENDPOINT);
+    return config.getString(METRICS_ENDPOINT_PROPERTY, getDefaultEndpoint());
   }
 
   @Override
@@ -96,5 +98,13 @@ class SplunkMetricsConfig implements CustomSignalFxConfig {
         c -> StepRegistryConfig.validate(c),
         c -> Validated.valid("splunk.metrics.endpoint", c.uri()).required().nonBlank(),
         c -> Validated.valid("otel.service.name", c.source()).required().nonBlank());
+  }
+
+  private String getDefaultEndpoint() {
+    String realm = config.getString(SplunkConfiguration.SPLUNK_REALM_PROPERTY, SPLUNK_REALM_NONE);
+    if (SPLUNK_REALM_NONE.equals(realm)) {
+      return DEFAULT_METRICS_ENDPOINT;
+    }
+    return "https://ingest." + realm + ".signalfx.com";
   }
 }

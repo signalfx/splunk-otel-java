@@ -20,6 +20,7 @@ import com.google.auto.service.AutoService;
 import io.opentelemetry.javaagent.extension.config.ConfigPropertySource;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Function;
 
 @AutoService(ConfigPropertySource.class)
 public class SplunkConfiguration implements ConfigPropertySource {
@@ -27,6 +28,23 @@ public class SplunkConfiguration implements ConfigPropertySource {
   public static final String OTEL_EXPORTER_JAEGER_ENDPOINT = "otel.exporter.jaeger.endpoint";
   public static final String PROFILER_ENABLED_PROPERTY = "splunk.profiler.enabled";
   public static final String PROFILER_MEMORY_ENABLED_PROPERTY = "splunk.profiler.memory.enabled";
+  public static final String SPLUNK_REALM_PROPERTY = "splunk.realm";
+  public static final String SPLUNK_REALM_NONE = "none";
+
+  private final Function<String, String> systemPropertyProvider;
+  private final Function<String, String> envVariableProvider;
+
+  public SplunkConfiguration() {
+    this(System::getProperty, System::getenv);
+  }
+
+  // visible for tests
+  SplunkConfiguration(
+      Function<String, String> systemPropertyProvider,
+      Function<String, String> envVariableProvider) {
+    this.systemPropertyProvider = systemPropertyProvider;
+    this.envVariableProvider = envVariableProvider;
+  }
 
   @Override
   public Map<String, String> getProperties() {
@@ -37,9 +55,16 @@ public class SplunkConfiguration implements ConfigPropertySource {
     // by default no metrics are exported
     config.put("otel.metrics.exporter", "none");
 
-    // http://localhost:9080/v1/trace is the default endpoint for SmartAgent
-    // http://localhost:14268/api/traces is the default endpoint for otel-collector
-    config.put(OTEL_EXPORTER_JAEGER_ENDPOINT, "http://localhost:9080/v1/trace");
+    String realm = getRealm();
+    if (!SPLUNK_REALM_NONE.equals(realm)) {
+      config.put("otel.exporter.otlp.traces.endpoint", "https://ingest." + realm + ".signalfx.com");
+      config.put(
+          OTEL_EXPORTER_JAEGER_ENDPOINT, "https://ingest." + realm + ".signalfx.com/v2/trace");
+    } else {
+      // http://localhost:9080/v1/trace is the default endpoint for SmartAgent
+      // http://localhost:14268/api/traces is the default endpoint for otel-collector
+      config.put(OTEL_EXPORTER_JAEGER_ENDPOINT, "http://localhost:9080/v1/trace");
+    }
 
     // instrumentation settings
 
@@ -61,5 +86,16 @@ public class SplunkConfiguration implements ConfigPropertySource {
     config.put("otel.instrumentation.spring-batch.item.enabled", "true");
 
     return config;
+  }
+
+  private String getRealm() {
+    String value = systemPropertyProvider.apply(SPLUNK_REALM_PROPERTY);
+    if (value == null) {
+      value = envVariableProvider.apply("SPLUNK_REALM");
+    }
+    if (value == null) {
+      return SPLUNK_REALM_NONE;
+    }
+    return value;
   }
 }

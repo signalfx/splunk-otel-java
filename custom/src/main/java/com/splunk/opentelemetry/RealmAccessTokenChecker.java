@@ -18,14 +18,14 @@ package com.splunk.opentelemetry;
 
 import com.google.auto.service.AutoService;
 import io.opentelemetry.instrumentation.api.config.Config;
-import io.opentelemetry.javaagent.extension.AgentListener;
+import io.opentelemetry.javaagent.tooling.BeforeAgentListener;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 import java.util.function.Consumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@AutoService(AgentListener.class)
-public class RealmAccessTokenChecker implements AgentListener {
+@AutoService(BeforeAgentListener.class)
+public class RealmAccessTokenChecker implements BeforeAgentListener {
   private static final Logger log = LoggerFactory.getLogger(RealmAccessTokenChecker.class);
 
   private final Consumer<String> logWarn;

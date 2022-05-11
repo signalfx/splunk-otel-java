@@ -39,6 +39,7 @@ dependencies {
   testImplementation("io.opentelemetry:opentelemetry-sdk-extension-autoconfigure-spi")
   testImplementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-api")
   testImplementation("io.opentelemetry.javaagent:opentelemetry-javaagent-extension-api")
+  testImplementation("io.opentelemetry.javaagent:opentelemetry-javaagent-tooling")
   testImplementation("io.micrometer:micrometer-core")
 
   testImplementation(project(":testing:common"))

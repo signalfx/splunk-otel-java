@@ -20,7 +20,7 @@ import static java.util.Collections.emptyMap;
 
 import com.google.auto.service.AutoService;
 import io.opentelemetry.instrumentation.api.config.Config;
-import io.opentelemetry.javaagent.extension.AgentListener;
+import io.opentelemetry.javaagent.tooling.BeforeAgentListener;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 import io.opentelemetry.semconv.resource.attributes.ResourceAttributes;
 import java.util.Map;
@@ -28,8 +28,8 @@ import java.util.function.Consumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@AutoService(AgentListener.class)
-public class ServiceNameChecker implements AgentListener {
+@AutoService(BeforeAgentListener.class)
+public class ServiceNameChecker implements BeforeAgentListener {
   private static final Logger log = LoggerFactory.getLogger(ServiceNameChecker.class);
 
   private final Consumer<String> logWarn;

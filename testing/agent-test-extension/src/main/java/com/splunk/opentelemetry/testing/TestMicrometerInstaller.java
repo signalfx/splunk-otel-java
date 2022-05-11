@@ -25,11 +25,11 @@ import io.micrometer.core.instrument.Tags;
 import io.micrometer.core.instrument.config.MeterFilter;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import io.opentelemetry.instrumentation.api.config.Config;
-import io.opentelemetry.javaagent.extension.AgentListener;
+import io.opentelemetry.javaagent.tooling.BeforeAgentListener;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 
-@AutoService(AgentListener.class)
-public class TestMicrometerInstaller implements AgentListener {
+@AutoService(BeforeAgentListener.class)
+public class TestMicrometerInstaller implements BeforeAgentListener {
 
   @Override
   public void beforeAgent(

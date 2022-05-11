@@ -16,9 +16,10 @@
 
 package com.splunk.opentelemetry;
 
-import static com.splunk.opentelemetry.LogsInspector.getLongAttr;
 import static com.splunk.opentelemetry.LogsInspector.getStringAttr;
 import static com.splunk.opentelemetry.LogsInspector.hasThreadName;
+import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.DATA_FORMAT;
+import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.SOURCE_TYPE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -36,8 +37,6 @@ import java.nio.file.Path;
 import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 import jdk.jfr.consumer.RecordedEvent;
@@ -48,65 +47,72 @@ import org.junit.Ignore;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.io.TempDir;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testcontainers.containers.Container;
 
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public abstract class ProfilerSmokeTest {
 
   private static final Logger logger = LoggerFactory.getLogger(ProfilerSmokeTest.class);
   private static final okhttp3.OkHttpClient client = OkHttpUtils.client();
   private static final int PETCLINIC_PORT = 9966;
-  // Make sure we are not trying to run multiple test classes in parallel in the same JVM
-  private static final Lock noParallelTestsLock = new ReentrantLock();
+  @TempDir private static Path tempDir;
 
-  private static TestContainerManager containerManager;
-  private static TelemetryRetriever telemetryRetriever;
-  private static Path tempDir;
+  private TestContainerManager containerManager;
+  private TelemetryRetriever telemetryRetriever;
+  private final String jdkVersion;
+  private final String dataFormat;
 
-  public static class TestJdk8 extends ProfilerSmokeTest {
-    @BeforeAll
-    static void setup() {
-      startPetclinic("8");
+  ProfilerSmokeTest(String jdkVersion, String dataFormat) {
+    this.jdkVersion = jdkVersion;
+    this.dataFormat = dataFormat;
+  }
+
+  public static class TestTextJdk8 extends ProfilerSmokeTest {
+    TestTextJdk8() {
+      super("8", "text");
+    }
+  }
+
+  public static class TestPprofJdk8 extends ProfilerSmokeTest {
+    TestPprofJdk8() {
+      super("8", "pprof-gzip-base64");
     }
   }
 
   @Ignore
   public static class TestJdk11 extends ProfilerSmokeTest {
-    @BeforeAll
-    static void setup() {
-      startPetclinic("11");
+    TestJdk11() {
+      super("11", "pprof-gzip-base64");
     }
   }
 
   @Ignore
   public static class TestJdk17 extends ProfilerSmokeTest {
-    @BeforeAll
-    static void setup() {
-      startPetclinic("17");
+    TestJdk17() {
+      super("17", "pprof-gzip-base64");
     }
   }
 
   @BeforeAll
-  static void setupEnvironment(@TempDir Path tempDir) {
-    noParallelTestsLock.lock();
-
-    ProfilerSmokeTest.tempDir = tempDir;
-
+  void setupEnvironment() {
     containerManager = SmokeTest.createContainerManager();
     containerManager.startEnvironment();
 
     telemetryRetriever = new TelemetryRetriever(client, containerManager.getBackendMappedPort());
+
+    startPetclinic();
   }
 
   @AfterAll
-  static void teardown() {
+  void teardown() {
     containerManager.stopEnvironment();
-    noParallelTestsLock.unlock();
   }
 
-  static String getPetclinicImageName(String jdkVersion) {
+  String getPetclinicImageName() {
     String prefix = "ghcr.io/signalfx/splunk-otel-java/profiling-petclinic-base-";
     String suffix = "-jdk" + jdkVersion + ":latest";
 
@@ -137,22 +143,24 @@ public abstract class ProfilerSmokeTest {
 
     LogsInspector logs = telemetryRetriever.waitForLogs();
 
-    assertThat(logs.getThreadDumpEvents())
-        .isNotEmpty()
-        .allMatch(log -> 1001 == getLongAttr(log, "source.event.period"))
-        .allMatch(log -> "otel.profiling".equals(getStringAttr(log, "com.splunk.sourcetype")));
-
     assertThat(logs.getLogStream())
+        .allMatch(log -> "otel.profiling".equals(getStringAttr(log, SOURCE_TYPE.getKey())))
+        .allMatch(log -> dataFormat.equals(getStringAttr(log, DATA_FORMAT.getKey())));
+
+    assertThat(logs.getCpuSamples())
+        .isNotEmpty()
+        .allMatch(sample -> 1001 == sample.getSourceEventPeriod());
+
+    assertThat(logs.getCpuSamples())
         .describedAs("Contains JFR thread")
         .anyMatch(hasThreadName("Catalina-utility-1"));
 
-    assertThat(logs.getLogStream()).anyMatch(hasThreadName("main"));
+    assertThat(logs.getCpuSamples()).anyMatch(hasThreadName("main"));
 
-    assertThat(logs.getTlabEvents())
+    assertThat(logs.getMemorySamples())
         .isNotEmpty()
-        .allMatch(log -> getLongAttr(log, "memory.allocated") > 0)
-        .allMatch(log -> log.getBody().getStringValue().startsWith("\""))
-        .allMatch(log -> log.getBody().getStringValue().split("\n").length >= 2);
+        .allMatch(sample -> sample.getAllocated() > 0)
+        .allMatch(sample -> sample.getThreadName() != null);
   }
 
   @Test
@@ -187,7 +195,7 @@ public abstract class ProfilerSmokeTest {
   }
 
   private long countThreadDumpsInFakeBackend() throws IOException, InterruptedException {
-    return telemetryRetriever.waitForLogs().getThreadDumpEvents().count();
+    return telemetryRetriever.waitForLogs().getCpuSamples().size();
   }
 
   private boolean contextEventsHaveStackTraces() throws Exception {
@@ -226,7 +234,7 @@ public abstract class ProfilerSmokeTest {
     return "otel.ContextAttached".equals(event.getEventType().getName());
   }
 
-  private static void generateSomeSpans() throws Exception {
+  private void generateSomeSpans() throws Exception {
     logger.info("Generating some spans...");
     int port = containerManager.getTargetMappedPort(PETCLINIC_PORT);
     doGetRequest("http://localhost:" + port + "/petclinic/api/vets");
@@ -251,9 +259,9 @@ public abstract class ProfilerSmokeTest {
     }
   }
 
-  private static void startPetclinic(String jdkVersion) {
+  private void startPetclinic() {
     containerManager.startTarget(
-        new TargetContainerBuilder(getPetclinicImageName(jdkVersion))
+        new TargetContainerBuilder(getPetclinicImageName())
             .withTargetPort(PETCLINIC_PORT)
             .withNetworkAliases("petclinic")
             .withAgentPath(SmokeTest.agentPath)
@@ -270,7 +278,8 @@ public abstract class ProfilerSmokeTest {
                 "-Dotel.javaagent.debug=true",
                 "-Dsplunk.profiler.enabled=true",
                 "-Dsplunk.profiler.tlab.enabled=true",
-                "-Dsplunk.profiler.memory.data.format=text",
+                "-Dsplunk.profiler.cpu.data.format=" + dataFormat,
+                "-Dsplunk.profiler.memory.data.format=" + dataFormat,
                 "-Dsplunk.profiler.directory=/app/jfr",
                 "-Dsplunk.profiler.keep-files=true",
                 "-Dsplunk.profiler.call.stack.interval=1001",

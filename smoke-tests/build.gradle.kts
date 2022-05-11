@@ -8,15 +8,14 @@ dependencies {
   testCompileOnly("com.google.auto.value:auto-value-annotations")
   testAnnotationProcessor("com.google.auto.value:auto-value")
 
+  testImplementation(project(":profiler"))
   testImplementation("org.testcontainers:testcontainers")
   testImplementation("com.fasterxml.jackson.core:jackson-databind:2.13.2.2")
   testImplementation("com.google.protobuf:protobuf-java-util")
   testImplementation("com.squareup.okhttp3:okhttp")
   testImplementation("io.opentelemetry.proto:opentelemetry-proto")
   testImplementation("io.opentelemetry:opentelemetry-api")
-
   testImplementation("ch.qos.logback:logback-classic:1.2.11")
-
   testImplementation("com.github.docker-java:docker-java-core")
   testImplementation("com.github.docker-java:docker-java-transport-httpclient5")
 }

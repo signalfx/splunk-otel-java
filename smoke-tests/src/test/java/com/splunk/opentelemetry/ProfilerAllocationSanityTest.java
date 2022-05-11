@@ -21,6 +21,8 @@ import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import com.splunk.opentelemetry.helper.TestImage;
+import io.opentelemetry.api.trace.SpanId;
+import io.opentelemetry.api.trace.TraceId;
 import io.opentelemetry.proto.trace.v1.Span;
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;
@@ -29,9 +31,26 @@ import org.junit.jupiter.api.Test;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.utility.MountableFile;
 
-class ProfilerTlabSanityTest extends SmokeTest {
+abstract class ProfilerAllocationSanityTest extends SmokeTest {
 
   private GenericContainer<?> app;
+  private final String dataFormat;
+
+  ProfilerAllocationSanityTest(String dataFormat) {
+    this.dataFormat = dataFormat;
+  }
+
+  public static class TestPprof extends ProfilerAllocationSanityTest {
+    TestPprof() {
+      super("pprof-gzip-base64");
+    }
+  }
+
+  public static class TestText extends ProfilerAllocationSanityTest {
+    TestText() {
+      super("text");
+    }
+  }
 
   @AfterEach
   void stopApp() {
@@ -66,7 +85,7 @@ class ProfilerTlabSanityTest extends SmokeTest {
                 "OTEL_INSTRUMENTATION_METHODS_INCLUDE", "TlabSanityTestApp[instrumentedMethod]")
             .withEnv("SPLUNK_PROFILER_ENABLED", "true")
             .withEnv("SPLUNK_PROFILER_TLAB_ENABLED", "true")
-            .withEnv("SPLUNK_PROFILER_MEMORY_DATA_FORMAT", "text")
+            .withEnv("SPLUNK_PROFILER_MEMORY_DATA_FORMAT", dataFormat)
             .withEnv("SPLUNK_PROFILER_CALL_STACK_INTERVAL", "1000")
             .withEnv("SPLUNK_PROFILER_LOGS_ENDPOINT", "http://collector:4317")
             .withEnv("OTEL_EXPORTER_OTLP_ENDPOINT", "http://collector:4317")
@@ -91,13 +110,17 @@ class ProfilerTlabSanityTest extends SmokeTest {
                       .orElseThrow(() -> new AssertionError("Did not find any span"));
 
               var logs = waitForLogs();
-              assertThat(logs.getTlabEvents())
+              assertThat(logs.getMemorySamples())
                   .filteredOn(LogsInspector.hasThreadName("tlab-test-thread"))
                   // can't verify that all events match, but most of them definitely should
                   .anyMatch(
-                      record ->
-                          record.getTraceId().equals(span.getTraceId())
-                              && record.getSpanId().equals(span.getSpanId()));
+                      sample ->
+                          sample
+                                  .getTraceId()
+                                  .equals(TraceId.fromBytes(span.getTraceId().toByteArray()))
+                              && sample
+                                  .getSpanId()
+                                  .equals(SpanId.fromBytes(span.getSpanId().toByteArray())));
             });
   }
 }

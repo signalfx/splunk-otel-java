@@ -8,6 +8,10 @@ and this repository adheres to [Semantic Versioning](https://semver.org/spec/v2.
 
 ## Unreleased
 
+## v1.10.2 - 2022-05-12
+
+- SignalFx metrics exporter has been updated to version 1.0.18.
+
 ## v1.10.1 - 2022-04-26
 
 ### General

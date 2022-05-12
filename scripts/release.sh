@@ -75,7 +75,7 @@ build_project() {
 sign_file() {
   local file="$1"
   echo "$GPG_PASSWORD" | \
-    gpg --batch --passphrase-fd 0 --armor --default-key="$GPG_KEY_ID" --detach-sign "$file"
+    gpg --batch --passphrase-fd 0 --armor --local-user="$GPG_KEY_ID" --detach-sign "$file"
 }
 
 create_gh_release() {

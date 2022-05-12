@@ -22,6 +22,7 @@ import io.micrometer.core.instrument.Metrics;
 import io.micrometer.core.instrument.Tags;
 import io.micrometer.core.instrument.config.MeterFilter;
 import io.micrometer.core.instrument.config.NamingConvention;
+import io.micrometer.signalfx.SignalFxMeterRegistry;
 import io.opentelemetry.instrumentation.api.config.Config;
 import io.opentelemetry.javaagent.tooling.BeforeAgentListener;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
@@ -42,10 +43,9 @@ public class MicrometerInstaller implements BeforeAgentListener {
     }
   }
 
-  private static CustomSignalFxMeterRegistry createSplunkMeterRegistry(
+  private static SignalFxMeterRegistry createSplunkMeterRegistry(
       SplunkMetricsConfig config, Tags globalTags) {
-    CustomSignalFxMeterRegistry signalFxRegistry =
-        new CustomSignalFxMeterRegistry(config, Clock.SYSTEM);
+    SignalFxMeterRegistry signalFxRegistry = new SignalFxMeterRegistry(config, Clock.SYSTEM);
     NamingConvention signalFxNamingConvention = signalFxRegistry.config().namingConvention();
     signalFxRegistry
         .config()

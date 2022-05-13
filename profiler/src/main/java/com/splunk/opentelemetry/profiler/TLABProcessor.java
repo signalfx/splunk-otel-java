@@ -59,7 +59,7 @@ public class TLABProcessor implements Consumer<RecordedEvent> {
       return;
     }
 
-    if (!stackTraceFilter.test(event)) {
+    if (stackTraceFilter != null && !stackTraceFilter.test(event)) {
       return;
     }
     // Discard events not chosen by the sampling strategy

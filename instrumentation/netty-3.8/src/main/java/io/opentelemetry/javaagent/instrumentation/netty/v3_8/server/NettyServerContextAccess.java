@@ -17,7 +17,7 @@
 package io.opentelemetry.javaagent.instrumentation.netty.v3_8.server;
 
 import io.opentelemetry.context.Context;
-import io.opentelemetry.instrumentation.api.field.VirtualField;
+import io.opentelemetry.instrumentation.api.util.VirtualField;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelHandlerContext;
 

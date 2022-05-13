@@ -17,7 +17,19 @@
 package com.splunk.opentelemetry.profiler;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import jdk.jfr.EventType;
+import jdk.jfr.consumer.RecordedClass;
+import jdk.jfr.consumer.RecordedEvent;
+import jdk.jfr.consumer.RecordedFrame;
+import jdk.jfr.consumer.RecordedMethod;
+import jdk.jfr.consumer.RecordedStackTrace;
+import jdk.jfr.consumer.RecordedThread;
 import org.junit.jupiter.api.Test;
 
 class StackTraceFilterTest {
@@ -204,5 +216,63 @@ class StackTraceFilterTest {
 
   private static ThreadDumpRegion regionFromStackTrace(String stack) {
     return new ThreadDumpRegion(stack, 0, stack.length());
+  }
+
+  @Test
+  void filterByThreadName() {
+    RecordedEvent agentEvent1 = createMockEvent("JFR Recorder Thread");
+    RecordedEvent agentEvent2 = createMockEvent("BatchSpanProcessor_WorkerThread-1");
+    RecordedEvent applicationEvent = createMockEvent("My Thread");
+    StackTraceFilter filter = new StackTraceFilter(false, true);
+    assertFalse(filter.test(agentEvent1));
+    assertFalse(filter.test(agentEvent2));
+    assertTrue(filter.test(applicationEvent));
+  }
+
+  @Test
+  void filterByStackTrace() {
+    RecordedFrame frame1 = createMockFrame("java.lang.Thread", "run", 1);
+    RecordedFrame frame2 = createMockFrame("jdk.Foo", "foo", 2);
+    RecordedFrame frame3 = createMockFrame("sun.Bar", "bar", 3);
+    RecordedFrame frame4 = createMockFrame("baz.baz", "baz", 4);
+
+    RecordedEvent vmEvent = createMockEvent("VM Thread", Arrays.asList(frame3, frame2, frame1));
+    RecordedEvent applicationEvent =
+        createMockEvent("My Thread", Arrays.asList(frame4, frame3, frame2, frame1));
+
+    StackTraceFilter filter = new StackTraceFilter(true, false);
+    assertFalse(filter.test(vmEvent));
+    assertTrue(filter.test(applicationEvent));
+  }
+
+  private RecordedEvent createMockEvent(String threadName) {
+    return createMockEvent(threadName, Collections.emptyList());
+  }
+
+  private RecordedEvent createMockEvent(String threadName, List<RecordedFrame> frames) {
+    RecordedEvent event = mock(RecordedEvent.class);
+    RecordedStackTrace stack = mock(RecordedStackTrace.class);
+    EventType eventType = mock(EventType.class);
+    RecordedThread mockThread = mock(RecordedThread.class);
+
+    when(event.getStackTrace()).thenReturn(stack);
+    when(event.getEventType()).thenReturn(eventType);
+    when(event.getThread()).thenReturn(mockThread);
+    when(mockThread.getJavaName()).thenReturn(threadName);
+    when(stack.getFrames()).thenReturn(frames);
+
+    return event;
+  }
+
+  private RecordedFrame createMockFrame(String typeName, String methodName, int line) {
+    RecordedFrame frame = mock(RecordedFrame.class);
+    RecordedMethod method = mock(RecordedMethod.class);
+    RecordedClass type = mock(RecordedClass.class);
+    when(method.getType()).thenReturn(type);
+    when(frame.getMethod()).thenReturn(method);
+    when(method.getName()).thenReturn(methodName);
+    when(frame.getInt("lineNumber")).thenReturn(line);
+    when(type.getName()).thenReturn(typeName);
+    return frame;
   }
 }

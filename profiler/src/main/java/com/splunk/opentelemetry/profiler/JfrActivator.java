@@ -129,9 +129,9 @@ public class JfrActivator implements AgentListener {
               .build();
     }
 
+    StackTraceFilter stackTraceFilter = buildStackTraceFilter(config);
     ThreadDumpProcessor threadDumpProcessor =
-        buildThreadDumpProcessor(
-            spanContextualizer, cpuEventExporter, buildStackTraceFilter(config), config);
+        buildThreadDumpProcessor(spanContextualizer, cpuEventExporter, stackTraceFilter, config);
 
     DataFormat allocationDataFormat = Configuration.getAllocationDataFormat(config);
     AllocationEventExporter allocationEventExporter;
@@ -157,6 +157,7 @@ public class JfrActivator implements AgentListener {
         TLABProcessor.builder(config)
             .allocationEventExporter(allocationEventExporter)
             .spanContextualizer(spanContextualizer)
+            .stackTraceFilter(stackTraceFilter)
             .build();
     EventProcessingChain eventProcessingChain =
         new EventProcessingChain(spanContextualizer, threadDumpProcessor, tlabProcessor);

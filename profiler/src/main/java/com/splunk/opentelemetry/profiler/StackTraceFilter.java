@@ -17,6 +17,12 @@
 package com.splunk.opentelemetry.profiler;
 
 import java.util.stream.Stream;
+import jdk.jfr.consumer.RecordedClass;
+import jdk.jfr.consumer.RecordedEvent;
+import jdk.jfr.consumer.RecordedFrame;
+import jdk.jfr.consumer.RecordedMethod;
+import jdk.jfr.consumer.RecordedStackTrace;
+import jdk.jfr.consumer.RecordedThread;
 
 public class StackTraceFilter {
 
@@ -80,11 +86,42 @@ public class StackTraceFilter {
     return true;
   }
 
+  public boolean test(RecordedEvent event) {
+    RecordedThread thread = event.getThread();
+    if (thread == null || thread.getJavaName() == null) {
+      return true;
+    }
+
+    if (!includeAgentInternalStacks) {
+      String threadName = thread.getJavaName();
+      for (String prefix : UNWANTED_PREFIXES) {
+        // if prefix ends with " we expect it to match thread name
+        if (prefix.endsWith("\"")) {
+          // prefix is surrounded by "
+          if (threadName.equals(prefix.substring(1, prefix.length() - 1))) {
+            return false;
+          }
+          // prefix starts with "
+        } else if (threadName.startsWith(prefix.substring(1))) {
+          return false;
+        }
+      }
+    }
+    if (!includeJvmInternalStacks) {
+      if (everyFrameIsJvmInternal(event.getStackTrace())) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
   /**
    * Frames are considered JVM internal if every frame in the stack stars with one of "jdk.", "sun."
    * or "java.".
    */
-  private boolean everyFrameIsJvmInternal(String wallOfStacks, int startIndex, int lastIndex) {
+  private static boolean everyFrameIsJvmInternal(
+      String wallOfStacks, int startIndex, int lastIndex) {
     int offsetToThreadState = wallOfStacks.indexOf('\n', startIndex) + 1;
     if (offsetToThreadState <= 0 || offsetToThreadState >= lastIndex) return false;
     int offsetToFirstFrame = wallOfStacks.indexOf('\n', offsetToThreadState) + 1;
@@ -92,7 +129,7 @@ public class StackTraceFilter {
     return checkFramesInternal(wallOfStacks, offsetToFirstFrame, lastIndex);
   }
 
-  private boolean checkFramesInternal(String wallOfStacks, int startOfFrame, int lastIndex) {
+  private static boolean checkFramesInternal(String wallOfStacks, int startOfFrame, int lastIndex) {
     if (startOfFrame == -1 || (startOfFrame >= lastIndex)) {
       // reached the bottom, every item is jvm internal
       return true;
@@ -105,5 +142,28 @@ public class StackTraceFilter {
       return checkFramesInternal(wallOfStacks, nextLine, lastIndex);
     }
     return false;
+  }
+
+  private static boolean everyFrameIsJvmInternal(RecordedStackTrace stackTrace) {
+    if (stackTrace == null) {
+      return false;
+    }
+    for (RecordedFrame frame : stackTrace.getFrames()) {
+      RecordedMethod method = frame.getMethod();
+      if (method == null) {
+        continue;
+      }
+      RecordedClass type = method.getType();
+      if (type == null) {
+        continue;
+      }
+      String className = type.getName();
+      if (!className.startsWith("java.")
+          && !className.startsWith("jdk.")
+          && !className.startsWith("sun.")) {
+        return false;
+      }
+    }
+    return true;
   }
 }

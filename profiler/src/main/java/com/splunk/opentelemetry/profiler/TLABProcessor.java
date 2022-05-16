@@ -37,12 +37,14 @@ public class TLABProcessor implements Consumer<RecordedEvent> {
   private final AllocationEventExporter allocationEventExporter;
   private final AllocationEventSampler sampler;
   private final SpanContextualizer spanContextualizer;
+  private final StackTraceFilter stackTraceFilter;
 
   private TLABProcessor(Builder builder) {
     this.enabled = builder.enabled;
     this.allocationEventExporter = builder.allocationEventExporter;
     this.sampler = builder.sampler;
     this.spanContextualizer = builder.spanContextualizer;
+    this.stackTraceFilter = builder.stackTraceFilter;
   }
 
   @Override
@@ -54,6 +56,10 @@ public class TLABProcessor implements Consumer<RecordedEvent> {
     }
     RecordedStackTrace stackTrace = event.getStackTrace();
     if (stackTrace == null) {
+      return;
+    }
+
+    if (stackTraceFilter != null && !stackTraceFilter.test(event)) {
       return;
     }
     // Discard events not chosen by the sampling strategy
@@ -89,6 +95,7 @@ public class TLABProcessor implements Consumer<RecordedEvent> {
     private AllocationEventExporter allocationEventExporter;
     private AllocationEventSampler sampler;
     private SpanContextualizer spanContextualizer;
+    private StackTraceFilter stackTraceFilter;
 
     public Builder(boolean enabled) {
       this.enabled = enabled;
@@ -110,6 +117,11 @@ public class TLABProcessor implements Consumer<RecordedEvent> {
 
     Builder spanContextualizer(SpanContextualizer spanContextualizer) {
       this.spanContextualizer = spanContextualizer;
+      return this;
+    }
+
+    Builder stackTraceFilter(StackTraceFilter stackTraceFilter) {
+      this.stackTraceFilter = stackTraceFilter;
       return this;
     }
   }

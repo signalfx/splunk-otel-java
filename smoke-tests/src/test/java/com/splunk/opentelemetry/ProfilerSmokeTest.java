@@ -204,6 +204,9 @@ public abstract class ProfilerSmokeTest {
   }
 
   private boolean contextEventHasStackTrace(Path path) {
+    if (!Files.isReadable(path)) {
+      makeReadable(path);
+    }
     try {
       return RecordingFile.readAllEvents(path).stream()
           .filter(ProfilerSmokeTest::isContextAttachedEvent)

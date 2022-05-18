@@ -21,14 +21,14 @@ import static com.splunk.opentelemetry.SplunkConfiguration.PROFILER_MEMORY_ENABL
 
 import com.google.auto.service.AutoService;
 import io.opentelemetry.instrumentation.api.config.Config;
-import io.opentelemetry.javaagent.extension.config.ConfigPropertySource;
+import io.opentelemetry.javaagent.extension.config.ConfigCustomizer;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
-@AutoService(ConfigPropertySource.class)
-public class Configuration implements ConfigPropertySource {
+@AutoService(ConfigCustomizer.class)
+public class Configuration implements ConfigCustomizer {
 
   private static final String DEFAULT_RECORDING_DURATION = "20s";
   public static final boolean DEFAULT_MEMORY_ENABLED = false;
@@ -64,7 +64,7 @@ public class Configuration implements ConfigPropertySource {
   private static final String CONFIG_KEY_STACK_DEPTH = "splunk.profiler.max.stack.depth";
 
   @Override
-  public Map<String, String> getProperties() {
+  public Map<String, String> defaultProperties() {
     HashMap<String, String> config = new HashMap<>();
     config.put(CONFIG_KEY_ENABLE_PROFILER, "false");
     config.put(CONFIG_KEY_PROFILER_DIRECTORY, ".");

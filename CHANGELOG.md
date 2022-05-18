@@ -8,6 +8,24 @@ and this repository adheres to [Semantic Versioning](https://semver.org/spec/v2.
 
 ## Unreleased
 
+## v1.11.0 - 2022-05-18
+
+### General
+
+- OpenTelemetry Java SDK and OpenTelemetry Instrumentation for Java dependencies have been updated to version 1.14.0.
+- Micrometer dependency has been updated to version 1.9.0.
+- SignalFx metrics exporter has been updated to version 1.0.19.
+
+### Bugfixes
+
+- Fixed a bug where multiple Profiler instances on a single host would generate temporary files with the same name.
+
+### Enhancements
+
+- Implemented support for the `splunk.realm` configuration property, which allows easy configuration of exporter
+  endpoints when sending data directly to the Splunk cloud.
+- Implemented internal stack trace filtering for the allocation profiler.
+
 ## v1.10.2 - 2022-05-12
 
 ### General

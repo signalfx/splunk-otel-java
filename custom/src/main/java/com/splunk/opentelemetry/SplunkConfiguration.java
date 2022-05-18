@@ -17,13 +17,13 @@
 package com.splunk.opentelemetry;
 
 import com.google.auto.service.AutoService;
-import io.opentelemetry.javaagent.extension.config.ConfigPropertySource;
+import io.opentelemetry.javaagent.extension.config.ConfigCustomizer;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
-@AutoService(ConfigPropertySource.class)
-public class SplunkConfiguration implements ConfigPropertySource {
+@AutoService(ConfigCustomizer.class)
+public class SplunkConfiguration implements ConfigCustomizer {
   public static final String SPLUNK_ACCESS_TOKEN = "splunk.access.token";
   public static final String OTEL_EXPORTER_JAEGER_ENDPOINT = "otel.exporter.jaeger.endpoint";
   public static final String PROFILER_ENABLED_PROPERTY = "splunk.profiler.enabled";
@@ -47,7 +47,7 @@ public class SplunkConfiguration implements ConfigPropertySource {
   }
 
   @Override
-  public Map<String, String> getProperties() {
+  public Map<String, String> defaultProperties() {
     Map<String, String> config = new HashMap<>();
 
     config.put("otel.traces.sampler", "always_on");
@@ -55,6 +55,7 @@ public class SplunkConfiguration implements ConfigPropertySource {
     // by default no metrics are exported
     config.put("otel.metrics.exporter", "none");
 
+    // TODO: use the customize(Config) method for this instead
     String realm = getRealm();
     if (!SPLUNK_REALM_NONE.equals(realm)) {
       config.put("otel.exporter.otlp.traces.endpoint", "https://ingest." + realm + ".signalfx.com");
@@ -68,13 +69,13 @@ public class SplunkConfiguration implements ConfigPropertySource {
 
     // instrumentation settings
 
-    // disable span links in messaging instrumentations
-    config.put("otel.instrumentation.common.experimental.suppress-messaging-receive-spans", "true");
-
     // disable logging instrumentations - we're not currently sending logs (yet)
     config.put("otel.instrumentation.java-util-logging.enabled", "false");
+    config.put("otel.instrumentation.jboss-logmanager.enabled", "false");
     config.put("otel.instrumentation.log4j-appender.enabled", "false");
     config.put("otel.instrumentation.logback-appender.enabled", "false");
+    // disable otel hikari instrumentation, we use our own for now
+    config.put("otel.instrumentation.hikaricp.enabled", "false");
     // disable otel micrometer instrumentation, we use our own for now
     config.put("otel.instrumentation.micrometer.enabled", "false");
     // disable oshi metrics too, just in case

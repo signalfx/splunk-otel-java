@@ -9,7 +9,7 @@ plugins {
 dependencies {
   compileOnly("io.netty:netty-codec-http:4.1.0.Final")
   compileOnly("io.opentelemetry.javaagent.instrumentation:opentelemetry-javaagent-netty-4.1")
-  compileOnly("io.opentelemetry.javaagent.instrumentation:opentelemetry-javaagent-netty-4.1-common")
+  compileOnly("io.opentelemetry.javaagent.instrumentation:opentelemetry-javaagent-netty-4-common")
 
   // add as muzzle codegen dependency too
   add("codegen", "io.opentelemetry.javaagent.instrumentation:opentelemetry-javaagent-netty-4.1")

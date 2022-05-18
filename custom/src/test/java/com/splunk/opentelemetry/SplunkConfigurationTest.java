@@ -72,6 +72,6 @@ class SplunkConfigurationTest {
     return new SplunkConfiguration(
             name -> SplunkConfiguration.SPLUNK_REALM_PROPERTY.equals(name) ? propertyValue : null,
             name -> "SPLUNK_REALM".equals(name) ? envValue : null)
-        .getProperties();
+        .defaultProperties();
   }
 }

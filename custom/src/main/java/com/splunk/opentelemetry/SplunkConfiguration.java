@@ -17,10 +17,11 @@
 package com.splunk.opentelemetry;
 
 import com.google.auto.service.AutoService;
+import io.opentelemetry.instrumentation.api.config.Config;
+import io.opentelemetry.instrumentation.api.config.ConfigBuilder;
 import io.opentelemetry.javaagent.extension.config.ConfigCustomizer;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.Function;
 
 @AutoService(ConfigCustomizer.class)
 public class SplunkConfiguration implements ConfigCustomizer {
@@ -31,21 +32,6 @@ public class SplunkConfiguration implements ConfigCustomizer {
   public static final String SPLUNK_REALM_PROPERTY = "splunk.realm";
   public static final String SPLUNK_REALM_NONE = "none";
 
-  private final Function<String, String> systemPropertyProvider;
-  private final Function<String, String> envVariableProvider;
-
-  public SplunkConfiguration() {
-    this(System::getProperty, System::getenv);
-  }
-
-  // visible for tests
-  SplunkConfiguration(
-      Function<String, String> systemPropertyProvider,
-      Function<String, String> envVariableProvider) {
-    this.systemPropertyProvider = systemPropertyProvider;
-    this.envVariableProvider = envVariableProvider;
-  }
-
   @Override
   public Map<String, String> defaultProperties() {
     Map<String, String> config = new HashMap<>();
@@ -54,18 +40,6 @@ public class SplunkConfiguration implements ConfigCustomizer {
 
     // by default no metrics are exported
     config.put("otel.metrics.exporter", "none");
-
-    // TODO: use the customize(Config) method for this instead
-    String realm = getRealm();
-    if (!SPLUNK_REALM_NONE.equals(realm)) {
-      config.put("otel.exporter.otlp.traces.endpoint", "https://ingest." + realm + ".signalfx.com");
-      config.put(
-          OTEL_EXPORTER_JAEGER_ENDPOINT, "https://ingest." + realm + ".signalfx.com/v2/trace");
-    } else {
-      // http://localhost:9080/v1/trace is the default endpoint for SmartAgent
-      // http://localhost:14268/api/traces is the default endpoint for otel-collector
-      config.put(OTEL_EXPORTER_JAEGER_ENDPOINT, "http://localhost:9080/v1/trace");
-    }
 
     // instrumentation settings
 
@@ -89,14 +63,40 @@ public class SplunkConfiguration implements ConfigCustomizer {
     return config;
   }
 
-  private String getRealm() {
-    String value = systemPropertyProvider.apply(SPLUNK_REALM_PROPERTY);
-    if (value == null) {
-      value = envVariableProvider.apply("SPLUNK_REALM");
+  @Override
+  public Config customize(Config config) {
+    ConfigBuilder builder = config.toBuilder();
+
+    String realm = config.getString(SPLUNK_REALM_PROPERTY, SPLUNK_REALM_NONE);
+    if (SPLUNK_REALM_NONE.equals(realm)) {
+      addIfAbsent(builder, config, OTEL_EXPORTER_JAEGER_ENDPOINT, "http://localhost:9080/v1/trace");
+    } else {
+      addIfAbsent(
+          builder,
+          config,
+          "otel.exporter.otlp.traces.endpoint",
+          "https://ingest." + realm + ".signalfx.com");
+      addIfAbsent(
+          builder,
+          config,
+          OTEL_EXPORTER_JAEGER_ENDPOINT,
+          "https://ingest." + realm + ".signalfx.com/v2/trace");
     }
-    if (value == null) {
-      return SPLUNK_REALM_NONE;
+
+    String accessToken = config.getString(SPLUNK_ACCESS_TOKEN);
+    if (accessToken != null) {
+      String userOtlpHeaders = config.getString("otel.exporter.otlp.headers");
+      String otlpHeaders =
+          (userOtlpHeaders == null ? "" : userOtlpHeaders + ",") + "X-SF-TOKEN=" + accessToken;
+      builder.addProperty("otel.exporter.otlp.headers", otlpHeaders);
     }
-    return value;
+
+    return builder.build();
+  }
+
+  private static void addIfAbsent(ConfigBuilder builder, Config config, String key, String value) {
+    if (config.getString(key) == null) {
+      builder.addProperty(key, value);
+    }
   }
 }

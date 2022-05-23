@@ -74,7 +74,7 @@ public class SplunkConfiguration implements ConfigCustomizer {
       addIfAbsent(
           builder,
           config,
-          "otel.exporter.otlp.traces.endpoint",
+          "otel.exporter.otlp.endpoint",
           "https://ingest." + realm + ".signalfx.com");
       addIfAbsent(
           builder,

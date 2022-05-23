@@ -21,7 +21,7 @@ import static com.splunk.opentelemetry.SplunkConfiguration.SPLUNK_REALM_NONE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
-import java.util.Map;
+import io.opentelemetry.instrumentation.api.config.Config;
 import org.junit.jupiter.api.Test;
 
 class SplunkConfigurationTest {
@@ -30,48 +30,72 @@ class SplunkConfigurationTest {
 
   @Test
   void usesRealmIngestUrlsIfRealmDefined() {
-    assertRealmDefaults(configuration(TEST_REALM, null));
-    assertRealmDefaults(configuration(null, TEST_REALM));
-  }
-
-  @Test
-  void systemPropertyTakesPrecedence() {
-    assertRealmDefaults(configuration("test1", TEST_REALM));
+    assertRealmDefaults(configuration(TEST_REALM));
   }
 
   @Test
   void usesLocalIngestIfRealmIsNullOrNone() {
-    assertLocalDefaults(configuration(null, null));
-    assertLocalDefaults(configuration(null, SPLUNK_REALM_NONE));
-    assertLocalDefaults(configuration(SPLUNK_REALM_NONE, null));
-    assertLocalDefaults(configuration(SPLUNK_REALM_NONE, SPLUNK_REALM_NONE));
+    assertLocalDefaults(configuration(null));
+    assertLocalDefaults(configuration(SPLUNK_REALM_NONE));
   }
 
   @Test
   void realmIsNotHardcoded() {
-    var properties = configuration("test1", null);
+    var config = configuration("test1");
     assertEquals(
         "https://ingest.test1.signalfx.com/v2/trace",
-        properties.get(OTEL_EXPORTER_JAEGER_ENDPOINT));
-    assertEquals("https://ingest.test1.signalfx.com", properties.get(OTLP_ENDPOINT));
+        config.getString(OTEL_EXPORTER_JAEGER_ENDPOINT));
+    assertEquals("https://ingest.test1.signalfx.com", config.getString(OTLP_ENDPOINT));
   }
 
-  private static void assertLocalDefaults(Map<String, String> properties) {
-    assertEquals("http://localhost:9080/v1/trace", properties.get(OTEL_EXPORTER_JAEGER_ENDPOINT));
-    assertNull(properties.get(OTLP_ENDPOINT));
+  @Test
+  void shouldSetOtlpHeader() {
+    SplunkConfiguration splunkConfiguration = new SplunkConfiguration();
+    Config config =
+        Config.builder()
+            .addProperties(splunkConfiguration.defaultProperties())
+            .addProperty(SplunkConfiguration.SPLUNK_ACCESS_TOKEN, "token")
+            .build();
+
+    config = splunkConfiguration.customize(config);
+
+    assertEquals("X-SF-TOKEN=token", config.getString("otel.exporter.otlp.headers"));
   }
 
-  private static void assertRealmDefaults(Map<String, String> properties) {
+  @Test
+  void shouldAppendToOtlpHeaders() {
+    SplunkConfiguration splunkConfiguration = new SplunkConfiguration();
+    Config config =
+        Config.builder()
+            .addProperties(splunkConfiguration.defaultProperties())
+            .addProperty(SplunkConfiguration.SPLUNK_ACCESS_TOKEN, "token")
+            .addProperty("otel.exporter.otlp.headers", "key=value")
+            .build();
+
+    config = splunkConfiguration.customize(config);
+
+    assertEquals("key=value,X-SF-TOKEN=token", config.getString("otel.exporter.otlp.headers"));
+  }
+
+  private static void assertLocalDefaults(Config config) {
+    assertEquals("http://localhost:9080/v1/trace", config.getString(OTEL_EXPORTER_JAEGER_ENDPOINT));
+    assertNull(config.getString(OTLP_ENDPOINT));
+  }
+
+  private static void assertRealmDefaults(Config config) {
     assertEquals(
         "https://ingest.test0.signalfx.com/v2/trace",
-        properties.get(OTEL_EXPORTER_JAEGER_ENDPOINT));
-    assertEquals("https://ingest.test0.signalfx.com", properties.get(OTLP_ENDPOINT));
+        config.getString(OTEL_EXPORTER_JAEGER_ENDPOINT));
+    assertEquals("https://ingest.test0.signalfx.com", config.getString(OTLP_ENDPOINT));
   }
 
-  private static Map<String, String> configuration(String envValue, String propertyValue) {
-    return new SplunkConfiguration(
-            name -> SplunkConfiguration.SPLUNK_REALM_PROPERTY.equals(name) ? propertyValue : null,
-            name -> "SPLUNK_REALM".equals(name) ? envValue : null)
-        .defaultProperties();
+  private static Config configuration(String realm) {
+    SplunkConfiguration splunkConfiguration = new SplunkConfiguration();
+    Config config =
+        Config.builder()
+            .addProperties(splunkConfiguration.defaultProperties())
+            .addProperty(SplunkConfiguration.SPLUNK_REALM_PROPERTY, realm)
+            .build();
+    return splunkConfiguration.customize(config);
   }
 }

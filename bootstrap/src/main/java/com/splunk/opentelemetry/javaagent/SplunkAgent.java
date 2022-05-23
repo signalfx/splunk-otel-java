@@ -18,7 +18,6 @@ package com.splunk.opentelemetry.javaagent;
 
 import io.opentelemetry.javaagent.OpenTelemetryAgent;
 import java.lang.instrument.Instrumentation;
-import java.util.Locale;
 
 public class SplunkAgent {
   public static void premain(final String agentArgs, final Instrumentation inst) {
@@ -26,20 +25,9 @@ public class SplunkAgent {
   }
 
   public static void agentmain(final String agentArgs, final Instrumentation inst) {
-    addSplunkAccessTokenToOtlpHeaders();
     addCustomLoggingConfiguration();
 
     OpenTelemetryAgent.agentmain(agentArgs, inst);
-  }
-
-  private static void addSplunkAccessTokenToOtlpHeaders() {
-    String accessToken = getConfig("splunk.access.token");
-    if (accessToken != null) {
-      String userOtlpHeaders = getConfig("otel.exporter.otlp.headers");
-      String otlpHeaders =
-          (userOtlpHeaders == null ? "" : userOtlpHeaders + ",") + "X-SF-TOKEN=" + accessToken;
-      System.setProperty("otel.exporter.otlp.headers", otlpHeaders);
-    }
   }
 
   private static final String METRICS_RETRY_LOGGER_PROPERTY =
@@ -58,14 +46,10 @@ public class SplunkAgent {
   }
 
   private static boolean isDebugMode() {
-    return Boolean.parseBoolean(getConfig("otel.javaagent.debug"));
-  }
-
-  private static String getConfig(String propertyName) {
-    String value = System.getProperty(propertyName);
-    if (value != null) {
-      return value;
+    String value = System.getProperty("otel.javaagent.debug");
+    if (value == null) {
+      value = System.getenv("OTEL_JAVAAGENT_DEBUG");
     }
-    return System.getenv(propertyName.replace('.', '_').toUpperCase(Locale.ROOT));
+    return Boolean.parseBoolean(value);
   }
 }

@@ -18,7 +18,6 @@ package com.splunk.opentelemetry.javaagent;
 
 import io.opentelemetry.javaagent.OpenTelemetryAgent;
 import java.lang.instrument.Instrumentation;
-import java.util.Locale;
 
 public class SplunkAgent {
   public static void premain(final String agentArgs, final Instrumentation inst) {

@@ -18,6 +18,8 @@ package com.splunk.opentelemetry.micrometer;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.when;
 
 import io.micrometer.core.instrument.Meter;
 import io.micrometer.core.instrument.config.NamingConvention;
@@ -60,5 +62,23 @@ class OtelNamingConventionTest {
 
     // then
     assertEquals(finalMeterName, result);
+  }
+
+  @Test
+  void keepsProfilingCumulativeMemoryNames() {
+    String unit = "unit";
+    String allocated = "process.runtime.jvm.memory.allocated.cumulative";
+    String sourceAllocated = "jvm." + allocated;
+    String reclaimed = "process.runtime.jvm.memory.reclaimed.cumulative";
+    String sourceReclaimed = "jvm." + reclaimed;
+
+    doReturn("allocated").when(namingConventionMock).name(allocated, Meter.Type.OTHER, unit);
+    doReturn("reclaimed").when(namingConventionMock).name(reclaimed, Meter.Type.OTHER, unit);
+
+    var otelNamingConvention = new OtelNamingConvention(namingConventionMock);
+
+    // when
+    assertEquals("allocated", otelNamingConvention.name(sourceAllocated, Meter.Type.OTHER, unit));
+    assertEquals("reclaimed", otelNamingConvention.name(sourceReclaimed, Meter.Type.OTHER, unit));
   }
 }

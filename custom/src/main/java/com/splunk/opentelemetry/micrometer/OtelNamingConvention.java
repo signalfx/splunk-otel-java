@@ -40,10 +40,17 @@ class OtelNamingConvention implements NamingConvention {
 
   @Override
   public String name(String name, Meter.Type type, String baseUnit) {
+    if(shouldStripJvmToKeepName(name)){
+      return delegate.name(name.substring(4), type, baseUnit);
+    }
     if (name.startsWith("jvm.")) {
       name = "runtime." + name;
     }
     return delegate.name(name, type, baseUnit);
+  }
+
+  private boolean shouldStripJvmToKeepName(String name) {
+    return name.startsWith("jvm.process.runtime.jvm.memory.") && name.endsWith(".cumulative");
   }
 
   @Override

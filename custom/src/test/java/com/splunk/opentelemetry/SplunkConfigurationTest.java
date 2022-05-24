@@ -26,7 +26,7 @@ import org.junit.jupiter.api.Test;
 
 class SplunkConfigurationTest {
   private static final String TEST_REALM = "test0";
-  private static final String OTLP_ENDPOINT = "otel.exporter.otlp.traces.endpoint";
+  private static final String OTLP_ENDPOINT = "otel.exporter.otlp.endpoint";
 
   @Test
   void usesRealmIngestUrlsIfRealmDefined() {

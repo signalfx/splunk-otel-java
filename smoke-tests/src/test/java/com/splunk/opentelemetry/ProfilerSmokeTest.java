@@ -39,6 +39,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
+import com.splunk.opentelemetry.profiler.Configuration;
 import jdk.jfr.consumer.RecordedEvent;
 import jdk.jfr.consumer.RecordingFile;
 import okhttp3.Request;
@@ -79,21 +80,21 @@ public abstract class ProfilerSmokeTest {
 
   public static class TestPprofJdk8 extends ProfilerSmokeTest {
     TestPprofJdk8() {
-      super("8", "pprof-gzip-base64");
+      super("8", Configuration.DataFormat.PPROF_GZIP_BASE64.value());
     }
   }
 
   @Ignore
   public static class TestJdk11 extends ProfilerSmokeTest {
     TestJdk11() {
-      super("11", "pprof-gzip-base64");
+      super("11", Configuration.DataFormat.PPROF_GZIP_BASE64.value());
     }
   }
 
   @Ignore
   public static class TestJdk17 extends ProfilerSmokeTest {
     TestJdk17() {
-      super("17", "pprof-gzip-base64");
+      super("17", Configuration.DataFormat.PPROF_GZIP_BASE64.value());
     }
   }
 

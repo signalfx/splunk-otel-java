@@ -16,11 +16,14 @@
 
 package com.splunk.opentelemetry;
 
+import static com.splunk.opentelemetry.profiler.Configuration.DataFormat.PPROF_GZIP_BASE64;
+import static com.splunk.opentelemetry.profiler.Configuration.DataFormat.TEXT;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import com.splunk.opentelemetry.helper.TestImage;
+import com.splunk.opentelemetry.profiler.Configuration;
 import io.opentelemetry.api.trace.SpanId;
 import io.opentelemetry.api.trace.TraceId;
 import io.opentelemetry.proto.trace.v1.Span;
@@ -34,21 +37,21 @@ import org.testcontainers.utility.MountableFile;
 abstract class ProfilerAllocationSanityTest extends SmokeTest {
 
   private GenericContainer<?> app;
-  private final String dataFormat;
+  private final Configuration.DataFormat dataFormat;
 
-  ProfilerAllocationSanityTest(String dataFormat) {
+  ProfilerAllocationSanityTest(Configuration.DataFormat dataFormat) {
     this.dataFormat = dataFormat;
   }
 
   public static class TestPprof extends ProfilerAllocationSanityTest {
     TestPprof() {
-      super("pprof-gzip-base64");
+      super(PPROF_GZIP_BASE64);
     }
   }
 
   public static class TestText extends ProfilerAllocationSanityTest {
     TestText() {
-      super("text");
+      super(TEXT);
     }
   }
 
@@ -85,7 +88,7 @@ abstract class ProfilerAllocationSanityTest extends SmokeTest {
                 "OTEL_INSTRUMENTATION_METHODS_INCLUDE", "TlabSanityTestApp[instrumentedMethod]")
             .withEnv("SPLUNK_PROFILER_ENABLED", "true")
             .withEnv("SPLUNK_PROFILER_TLAB_ENABLED", "true")
-            .withEnv("SPLUNK_PROFILER_MEMORY_DATA_FORMAT", dataFormat)
+            .withEnv("SPLUNK_PROFILER_MEMORY_DATA_FORMAT", dataFormat.value())
             .withEnv("SPLUNK_PROFILER_CALL_STACK_INTERVAL", "1000")
             .withEnv("SPLUNK_PROFILER_LOGS_ENDPOINT", "http://collector:4317")
             .withEnv("OTEL_EXPORTER_OTLP_ENDPOINT", "http://collector:4317")

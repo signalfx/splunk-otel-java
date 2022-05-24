@@ -40,7 +40,7 @@ class OtelNamingConvention implements NamingConvention {
 
   @Override
   public String name(String name, Meter.Type type, String baseUnit) {
-    if(shouldStripJvmToKeepName(name)){
+    if (shouldStripJvmToKeepName(name)) {
       return delegate.name(name.substring(4), type, baseUnit);
     }
     if (name.startsWith("jvm.")) {

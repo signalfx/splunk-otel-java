@@ -30,6 +30,7 @@ import com.splunk.opentelemetry.helper.TargetWaitStrategy;
 import com.splunk.opentelemetry.helper.TestContainerManager;
 import com.splunk.opentelemetry.helper.TestImage;
 import com.splunk.opentelemetry.helper.windows.WindowsTestContainerManager;
+import com.splunk.opentelemetry.profiler.Configuration;
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
@@ -79,21 +80,21 @@ public abstract class ProfilerSmokeTest {
 
   public static class TestPprofJdk8 extends ProfilerSmokeTest {
     TestPprofJdk8() {
-      super("8", "pprof-gzip-base64");
+      super("8", Configuration.DataFormat.PPROF_GZIP_BASE64.value());
     }
   }
 
   @Ignore
   public static class TestJdk11 extends ProfilerSmokeTest {
     TestJdk11() {
-      super("11", "pprof-gzip-base64");
+      super("11", Configuration.DataFormat.PPROF_GZIP_BASE64.value());
     }
   }
 
   @Ignore
   public static class TestJdk17 extends ProfilerSmokeTest {
     TestJdk17() {
-      super("17", "pprof-gzip-base64");
+      super("17", Configuration.DataFormat.PPROF_GZIP_BASE64.value());
     }
   }
 

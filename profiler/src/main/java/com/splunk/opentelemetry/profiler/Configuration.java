@@ -116,17 +116,15 @@ public class Configuration implements ConfigCustomizer {
   }
 
   public static DataFormat getCpuDataFormat(Config config) {
-    String value = config.getString(CONFIG_KEY_CPU_DATA_FORMAT, "text");
-    return getDataFormat(value);
+    String value =
+        config.getString(CONFIG_KEY_CPU_DATA_FORMAT, DataFormat.PPROF_GZIP_BASE64.value());
+    return DataFormat.fromString(value);
   }
 
   public static DataFormat getAllocationDataFormat(Config config) {
-    String value = config.getString(CONFIG_KEY_MEMORY_DATA_FORMAT, "pprof-gzip-base64");
-    return getDataFormat(value);
-  }
-
-  private static DataFormat getDataFormat(String value) {
-    return DataFormat.valueOf(value.toUpperCase(Locale.ROOT).replace('-', '_'));
+    String value =
+        config.getString(CONFIG_KEY_MEMORY_DATA_FORMAT, DataFormat.PPROF_GZIP_BASE64.value());
+    return DataFormat.fromString(value);
   }
 
   public enum DataFormat {
@@ -137,6 +135,10 @@ public class Configuration implements ConfigCustomizer {
 
     DataFormat() {
       value = name().toLowerCase(Locale.ROOT).replace('_', '-');
+    }
+
+    public static DataFormat fromString(String value) {
+      return DataFormat.valueOf(value.toUpperCase(Locale.ROOT).replace('-', '_'));
     }
 
     public String value() {

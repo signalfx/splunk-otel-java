@@ -25,6 +25,7 @@ import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.THRE
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.TRACE_ID;
 
 import com.google.perftools.profiles.ProfileProto;
+import com.splunk.opentelemetry.profiler.Configuration;
 import com.splunk.opentelemetry.profiler.ProfilingDataType;
 import com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes;
 import io.opentelemetry.api.common.AttributeKey;
@@ -80,11 +81,12 @@ public final class LogsInspector {
         ProfilingDataType.valueOf(dataType.toUpperCase(Locale.ROOT));
     List<ProfilerSample> samples = getSamplesList(profilingDataType);
 
-    String dataFormat = getStringAttr(logRecord, ProfilingSemanticAttributes.DATA_FORMAT);
-    Objects.requireNonNull(dataFormat, "Data format not set");
+    String dataFormatAttr = getStringAttr(logRecord, ProfilingSemanticAttributes.DATA_FORMAT);
+    Objects.requireNonNull(dataFormatAttr, "Data format not set");
+    Configuration.DataFormat dataFormat = Configuration.DataFormat.fromString(dataFormatAttr);
 
     switch (dataFormat) {
-      case "pprof-gzip-base64":
+      case PPROF_GZIP_BASE64:
         try {
           ProfileProto.Profile profile = parsePprof(logRecord.getBody().getStringValue());
           for (ProfileProto.Sample sample : profile.getSampleList()) {
@@ -94,7 +96,7 @@ public final class LogsInspector {
           throw new IllegalStateException("Failed to parse pprof", exception);
         }
         break;
-      case "text":
+      case TEXT:
         samples.add(new TextProfilerSample(logRecord));
         break;
       default:

@@ -101,7 +101,9 @@ class ConfigurationTest {
 
   @Test
   void testFromString() {
-      assertEquals(Configuration.DataFormat.PPROF_GZIP_BASE64, Configuration.DataFormat.fromString("pprof-gzip-base64"));
-      assertEquals(Configuration.DataFormat.TEXT, Configuration.DataFormat.fromString("text"));
+    assertEquals(
+        Configuration.DataFormat.PPROF_GZIP_BASE64,
+        Configuration.DataFormat.fromString("pprof-gzip-base64"));
+    assertEquals(Configuration.DataFormat.TEXT, Configuration.DataFormat.fromString("text"));
   }
 }

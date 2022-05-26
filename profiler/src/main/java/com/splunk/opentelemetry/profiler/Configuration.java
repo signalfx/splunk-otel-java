@@ -116,12 +116,14 @@ public class Configuration implements ConfigCustomizer {
   }
 
   public static DataFormat getCpuDataFormat(Config config) {
-    String value = config.getString(CONFIG_KEY_CPU_DATA_FORMAT, DataFormat.PPROF_GZIP_BASE64.value());
+    String value =
+        config.getString(CONFIG_KEY_CPU_DATA_FORMAT, DataFormat.PPROF_GZIP_BASE64.value());
     return DataFormat.fromString(value);
   }
 
   public static DataFormat getAllocationDataFormat(Config config) {
-    String value = config.getString(CONFIG_KEY_MEMORY_DATA_FORMAT, DataFormat.PPROF_GZIP_BASE64.value());
+    String value =
+        config.getString(CONFIG_KEY_MEMORY_DATA_FORMAT, DataFormat.PPROF_GZIP_BASE64.value());
     return DataFormat.fromString(value);
   }
 

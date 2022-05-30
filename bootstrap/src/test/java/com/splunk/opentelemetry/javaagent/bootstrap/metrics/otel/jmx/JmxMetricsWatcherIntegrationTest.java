@@ -44,7 +44,7 @@ class JmxMetricsWatcherIntegrationTest {
 
   @Test
   void test() throws Exception {
-    var objectName1 = new ObjectName("com.splunk.test:type=Test,name=fgsfds");
+    var objectName1 = new ObjectName("com.splunk.test:type=Test,name=otel-watcher-test-1");
     ManagementFactory.getPlatformMBeanServer().registerMBean(new TestClass(12), objectName1);
 
     var watcher =
@@ -55,7 +55,7 @@ class JmxMetricsWatcherIntegrationTest {
 
     await().atMost(5, SECONDS).untilAsserted(() -> assertEquals(1, getTestMeters().size()));
 
-    var objectName2 = new ObjectName("com.splunk.test:type=Test,name=asdf");
+    var objectName2 = new ObjectName("com.splunk.test:type=Test,name=otel-watcher-test-2");
     ManagementFactory.getPlatformMBeanServer().registerMBean(new TestClass(42), objectName2);
 
     await().atMost(5, SECONDS).untilAsserted(() -> assertEquals(2, getTestMeters().size()));
@@ -67,6 +67,8 @@ class JmxMetricsWatcherIntegrationTest {
     watcher.stop();
 
     await().atMost(5, SECONDS).untilAsserted(() -> assertTrue(getTestMeters().isEmpty()));
+
+    ManagementFactory.getPlatformMBeanServer().unregisterMBean(objectName1);
   }
 
   private static List<AutoCloseable> createMeters(MBeanServer mBeanServer, ObjectName objectName) {

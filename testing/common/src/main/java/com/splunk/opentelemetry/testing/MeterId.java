@@ -16,10 +16,10 @@
 
 package com.splunk.opentelemetry.testing;
 
-import com.splunk.opentelemetry.javaagent.bootstrap.metrics.CounterSemanticConvention;
-import com.splunk.opentelemetry.javaagent.bootstrap.metrics.GaugeSemanticConvention;
-import com.splunk.opentelemetry.javaagent.bootstrap.metrics.MeterSemanticConvention;
-import com.splunk.opentelemetry.javaagent.bootstrap.metrics.TimerSemanticConvention;
+import com.splunk.opentelemetry.javaagent.bootstrap.metrics.micrometer.CounterSemanticConvention;
+import com.splunk.opentelemetry.javaagent.bootstrap.metrics.micrometer.GaugeSemanticConvention;
+import com.splunk.opentelemetry.javaagent.bootstrap.metrics.micrometer.MeterSemanticConvention;
+import com.splunk.opentelemetry.javaagent.bootstrap.metrics.micrometer.TimerSemanticConvention;
 import java.util.Map;
 import java.util.Objects;
 

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.splunk.opentelemetry.javaagent.bootstrap.metrics.jmx;
+package com.splunk.opentelemetry.javaagent.bootstrap.metrics.otel.jmx;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -22,8 +22,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.splunk.opentelemetry.javaagent.bootstrap.jmx.JmxWatcher;
-import io.micrometer.core.instrument.Meter;
-import io.micrometer.core.instrument.MeterRegistry;
 import java.util.List;
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
@@ -36,8 +34,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class JmxMetricsWatcherTest {
   @Mock JmxWatcher jmxWatcher;
-  @Mock MeterRegistry meterRegistry;
-  @Mock MetersFactory metersFactory;
+  @Mock OtelMetersFactory metersFactory;
   @Mock MBeanServer mBeanServer;
 
   @InjectMocks JmxMetricsWatcher underTest;
@@ -46,8 +43,8 @@ class JmxMetricsWatcherTest {
   void shouldAddMetersOnJmxRegister() throws Exception {
     // given
     var objectName = new ObjectName("com.splunk.test:type=Test");
-    var meter1 = mock(Meter.class);
-    var meter2 = mock(Meter.class);
+    var meter1 = mock(AutoCloseable.class);
+    var meter2 = mock(AutoCloseable.class);
     when(metersFactory.createMeters(mBeanServer, objectName)).thenReturn(List.of(meter1, meter2));
 
     // when
@@ -62,8 +59,8 @@ class JmxMetricsWatcherTest {
     // given
     var objectName1 = new ObjectName("com.splunk.test:type=Test,name=1");
     var objectName2 = new ObjectName("com.splunk.test:type=Test,name=2");
-    var meter1 = mock(Meter.class);
-    var meter2 = mock(Meter.class);
+    var meter1 = mock(AutoCloseable.class);
+    var meter2 = mock(AutoCloseable.class);
     when(metersFactory.createMeters(mBeanServer, objectName1)).thenReturn(List.of(meter1));
     when(metersFactory.createMeters(mBeanServer, objectName2)).thenReturn(List.of(meter2));
 
@@ -76,8 +73,6 @@ class JmxMetricsWatcherTest {
     underTest.onUnregister(mBeanServer, objectName1);
 
     // then
-    verify(meterRegistry).remove(meter1);
-
     assertThat(underTest.getAllMeters()).contains(meter2);
   }
 
@@ -86,8 +81,8 @@ class JmxMetricsWatcherTest {
     // given
     var objectName1 = new ObjectName("com.splunk.test:type=Test,name=1");
     var objectName2 = new ObjectName("com.splunk.test:type=Test,name=2");
-    var meter1 = mock(Meter.class);
-    var meter2 = mock(Meter.class);
+    var meter1 = mock(AutoCloseable.class);
+    var meter2 = mock(AutoCloseable.class);
     when(metersFactory.createMeters(mBeanServer, objectName1)).thenReturn(List.of(meter1));
     when(metersFactory.createMeters(mBeanServer, objectName2)).thenReturn(List.of(meter2));
 
@@ -101,8 +96,6 @@ class JmxMetricsWatcherTest {
 
     // then
     verify(jmxWatcher).stop();
-    verify(meterRegistry).remove(meter1);
-    verify(meterRegistry).remove(meter2);
 
     assertThat(underTest.getAllMeters()).isEmpty();
   }

@@ -19,9 +19,6 @@ package com.splunk.opentelemetry.javaagent.bootstrap.metrics.jmx;
 import com.splunk.opentelemetry.javaagent.bootstrap.jmx.JmxListener;
 import com.splunk.opentelemetry.javaagent.bootstrap.jmx.JmxQuery;
 import com.splunk.opentelemetry.javaagent.bootstrap.jmx.JmxWatcher;
-import io.micrometer.core.instrument.Meter;
-import io.micrometer.core.instrument.MeterRegistry;
-import io.micrometer.core.instrument.Metrics;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -32,24 +29,19 @@ import javax.management.JMException;
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
 
-public final class JmxMetricsWatcher implements JmxListener {
+public abstract class AbstractJmxMetricsWatcher<T> implements JmxListener {
 
   private final JmxWatcher jmxWatcher;
-  private final MeterRegistry meterRegistry;
-  private final Map<ObjectName, List<Meter>> meters = new ConcurrentHashMap<>();
-  private final MetersFactory metersFactory;
+  private final Map<ObjectName, List<T>> meters = new ConcurrentHashMap<>();
+  private final MetersFactory<T> metersFactory;
 
-  public JmxMetricsWatcher(JmxQuery query, MetersFactory metersFactory) {
+  protected AbstractJmxMetricsWatcher(JmxQuery query, MetersFactory<T> metersFactory) {
     this.jmxWatcher = new JmxWatcher(query, this);
-    this.meterRegistry = Metrics.globalRegistry;
     this.metersFactory = metersFactory;
   }
 
-  // visible for tests
-  JmxMetricsWatcher(
-      JmxWatcher jmxWatcher, MeterRegistry meterRegistry, MetersFactory metersFactory) {
+  protected AbstractJmxMetricsWatcher(JmxWatcher jmxWatcher, MetersFactory<T> metersFactory) {
     this.jmxWatcher = jmxWatcher;
-    this.meterRegistry = meterRegistry;
     this.metersFactory = metersFactory;
   }
 
@@ -59,12 +51,12 @@ public final class JmxMetricsWatcher implements JmxListener {
 
   public void stop() {
     jmxWatcher.stop();
-    getAllMeters().forEach(meterRegistry::remove);
+    getAllMeters().forEach(this::unregister);
     meters.clear();
   }
 
   // visible for tests
-  Stream<Meter> getAllMeters() {
+  public Stream<T> getAllMeters() {
     return meters.values().stream().flatMap(Collection::stream);
   }
 
@@ -73,8 +65,7 @@ public final class JmxMetricsWatcher implements JmxListener {
     meters.compute(objectName, (name, meters) -> computeMeters(mBeanServer, name, meters));
   }
 
-  private List<Meter> computeMeters(
-      MBeanServer mBeanServer, ObjectName objectName, List<Meter> meters) {
+  private List<T> computeMeters(MBeanServer mBeanServer, ObjectName objectName, List<T> meters) {
     if (meters == null) {
       meters = new CopyOnWriteArrayList<>();
     }
@@ -89,9 +80,11 @@ public final class JmxMetricsWatcher implements JmxListener {
 
   @Override
   public void onUnregister(MBeanServer mBeanServer, ObjectName objectName) {
-    List<Meter> metersToRemove = meters.remove(objectName);
-    for (Meter meter : metersToRemove) {
-      meterRegistry.remove(meter);
+    List<T> metersToRemove = meters.remove(objectName);
+    for (T meter : metersToRemove) {
+      unregister(meter);
     }
   }
+
+  protected abstract void unregister(T meter);
 }

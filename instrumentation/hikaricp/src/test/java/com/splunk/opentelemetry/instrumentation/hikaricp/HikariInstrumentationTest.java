@@ -16,16 +16,16 @@
 
 package com.splunk.opentelemetry.instrumentation.hikaricp;
 
-import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.ConnectionPoolSemanticConventions.CONNECTIONS_ACTIVE;
-import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.ConnectionPoolSemanticConventions.CONNECTIONS_CREATE_TIME;
-import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.ConnectionPoolSemanticConventions.CONNECTIONS_IDLE;
-import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.ConnectionPoolSemanticConventions.CONNECTIONS_IDLE_MIN;
-import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.ConnectionPoolSemanticConventions.CONNECTIONS_MAX;
-import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.ConnectionPoolSemanticConventions.CONNECTIONS_PENDING_THREADS;
-import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.ConnectionPoolSemanticConventions.CONNECTIONS_TIMEOUTS;
-import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.ConnectionPoolSemanticConventions.CONNECTIONS_TOTAL;
-import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.ConnectionPoolSemanticConventions.CONNECTIONS_USE_TIME;
-import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.ConnectionPoolSemanticConventions.CONNECTIONS_WAIT_TIME;
+import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.micrometer.ConnectionPoolSemanticConventions.CONNECTIONS_ACTIVE;
+import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.micrometer.ConnectionPoolSemanticConventions.CONNECTIONS_CREATE_TIME;
+import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.micrometer.ConnectionPoolSemanticConventions.CONNECTIONS_IDLE;
+import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.micrometer.ConnectionPoolSemanticConventions.CONNECTIONS_IDLE_MIN;
+import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.micrometer.ConnectionPoolSemanticConventions.CONNECTIONS_MAX;
+import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.micrometer.ConnectionPoolSemanticConventions.CONNECTIONS_PENDING_THREADS;
+import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.micrometer.ConnectionPoolSemanticConventions.CONNECTIONS_TIMEOUTS;
+import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.micrometer.ConnectionPoolSemanticConventions.CONNECTIONS_TOTAL;
+import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.micrometer.ConnectionPoolSemanticConventions.CONNECTIONS_USE_TIME;
+import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.micrometer.ConnectionPoolSemanticConventions.CONNECTIONS_WAIT_TIME;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.anyLong;

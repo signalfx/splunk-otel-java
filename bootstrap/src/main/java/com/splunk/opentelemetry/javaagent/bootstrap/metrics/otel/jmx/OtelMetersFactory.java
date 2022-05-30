@@ -14,14 +14,9 @@
  * limitations under the License.
  */
 
-package com.splunk.opentelemetry.javaagent.bootstrap.metrics.jmx;
+package com.splunk.opentelemetry.javaagent.bootstrap.metrics.otel.jmx;
 
-import java.util.List;
-import javax.management.JMException;
-import javax.management.MBeanServer;
-import javax.management.ObjectName;
+import com.splunk.opentelemetry.javaagent.bootstrap.metrics.jmx.MetersFactory;
 
 @FunctionalInterface
-public interface MetersFactory<T> {
-  List<T> createMeters(MBeanServer mBeanServer, ObjectName objectName) throws JMException;
-}
+public interface OtelMetersFactory extends MetersFactory<AutoCloseable> {}

@@ -16,12 +16,12 @@
 
 package com.splunk.opentelemetry.instrumentation.viburdbcp;
 
-import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.ConnectionPoolSemanticConventions.CONNECTIONS_ACTIVE;
-import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.ConnectionPoolSemanticConventions.CONNECTIONS_IDLE;
-import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.ConnectionPoolSemanticConventions.CONNECTIONS_MAX;
-import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.ConnectionPoolSemanticConventions.CONNECTIONS_TOTAL;
-import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.ConnectionPoolSemanticConventions.POOL_NAME;
-import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.ConnectionPoolSemanticConventions.POOL_TYPE;
+import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.micrometer.ConnectionPoolSemanticConventions.CONNECTIONS_ACTIVE;
+import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.micrometer.ConnectionPoolSemanticConventions.CONNECTIONS_IDLE;
+import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.micrometer.ConnectionPoolSemanticConventions.CONNECTIONS_MAX;
+import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.micrometer.ConnectionPoolSemanticConventions.CONNECTIONS_TOTAL;
+import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.micrometer.ConnectionPoolSemanticConventions.POOL_NAME;
+import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.micrometer.ConnectionPoolSemanticConventions.POOL_TYPE;
 
 import io.micrometer.core.instrument.Meter;
 import io.micrometer.core.instrument.Metrics;

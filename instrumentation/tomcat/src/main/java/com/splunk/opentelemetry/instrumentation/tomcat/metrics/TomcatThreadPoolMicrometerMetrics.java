@@ -16,15 +16,15 @@
 
 package com.splunk.opentelemetry.instrumentation.tomcat.metrics;
 
-import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.ThreadPoolSemanticConventions.EXECUTOR_NAME;
-import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.ThreadPoolSemanticConventions.EXECUTOR_TYPE;
-import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.ThreadPoolSemanticConventions.TASKS_COMPLETED;
-import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.ThreadPoolSemanticConventions.TASKS_SUBMITTED;
-import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.ThreadPoolSemanticConventions.THREADS_ACTIVE;
-import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.ThreadPoolSemanticConventions.THREADS_CORE;
-import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.ThreadPoolSemanticConventions.THREADS_CURRENT;
-import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.ThreadPoolSemanticConventions.THREADS_IDLE;
-import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.ThreadPoolSemanticConventions.THREADS_MAX;
+import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.micrometer.ThreadPoolSemanticConventions.EXECUTOR_NAME;
+import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.micrometer.ThreadPoolSemanticConventions.EXECUTOR_TYPE;
+import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.micrometer.ThreadPoolSemanticConventions.TASKS_COMPLETED;
+import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.micrometer.ThreadPoolSemanticConventions.TASKS_SUBMITTED;
+import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.micrometer.ThreadPoolSemanticConventions.THREADS_ACTIVE;
+import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.micrometer.ThreadPoolSemanticConventions.THREADS_CORE;
+import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.micrometer.ThreadPoolSemanticConventions.THREADS_CURRENT;
+import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.micrometer.ThreadPoolSemanticConventions.THREADS_IDLE;
+import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.micrometer.ThreadPoolSemanticConventions.THREADS_MAX;
 
 import io.micrometer.core.instrument.Meter;
 import io.micrometer.core.instrument.Metrics;
@@ -36,7 +36,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import org.apache.tomcat.util.net.AbstractEndpoint;
 
-public final class ThreadPoolMetrics {
+final class TomcatThreadPoolMicrometerMetrics {
 
   // a weak map does not make sense here because each Meter holds a reference to the executor
   // AbstractEndpoint does not implement equals()/hashCode(), so it's safe to keep them in a plain
@@ -45,7 +45,7 @@ public final class ThreadPoolMetrics {
       new ConcurrentHashMap<>();
 
   public static void registerMetrics(AbstractEndpoint<?, ?> endpoint) {
-    threadPoolMetrics.computeIfAbsent(endpoint, ThreadPoolMetrics::createMeters);
+    threadPoolMetrics.computeIfAbsent(endpoint, TomcatThreadPoolMicrometerMetrics::createMeters);
   }
 
   private static List<Meter> createMeters(AbstractEndpoint<?, ?> endpoint) {
@@ -76,5 +76,5 @@ public final class ThreadPoolMetrics {
     return Tags.of(Tag.of(EXECUTOR_TYPE, "tomcat"), Tag.of(EXECUTOR_NAME, endpoint.getName()));
   }
 
-  private ThreadPoolMetrics() {}
+  private TomcatThreadPoolMicrometerMetrics() {}
 }

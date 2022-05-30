@@ -16,15 +16,15 @@
 
 package com.splunk.opentelemetry.instrumentation.liberty.metrics;
 
-import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.ThreadPoolSemanticConventions.EXECUTOR_NAME;
-import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.ThreadPoolSemanticConventions.EXECUTOR_TYPE;
-import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.ThreadPoolSemanticConventions.THREADS_ACTIVE;
-import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.ThreadPoolSemanticConventions.THREADS_CURRENT;
 import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.jmx.JmxAttributesHelper.getNumberAttribute;
+import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.micrometer.ThreadPoolSemanticConventions.EXECUTOR_NAME;
+import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.micrometer.ThreadPoolSemanticConventions.EXECUTOR_TYPE;
+import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.micrometer.ThreadPoolSemanticConventions.THREADS_ACTIVE;
+import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.micrometer.ThreadPoolSemanticConventions.THREADS_CURRENT;
 import static java.util.Arrays.asList;
 
 import com.splunk.opentelemetry.javaagent.bootstrap.jmx.JmxQuery;
-import com.splunk.opentelemetry.javaagent.bootstrap.metrics.jmx.JmxMetricsWatcher;
+import com.splunk.opentelemetry.javaagent.bootstrap.metrics.micrometer.jmx.JmxMetricsWatcher;
 import io.micrometer.core.instrument.Meter;
 import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.Tags;
@@ -33,12 +33,13 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
 
-public final class ThreadPoolMetrics {
+final class LibertyThreadPoolMicrometerMetrics {
 
   private static final AtomicBoolean initialized = new AtomicBoolean();
   private static final JmxMetricsWatcher jmxMetricsWatcher =
       new JmxMetricsWatcher(
-          JmxQuery.create("WebSphere", "type", "ThreadPoolStats"), ThreadPoolMetrics::createMeters);
+          JmxQuery.create("WebSphere", "type", "ThreadPoolStats"),
+          LibertyThreadPoolMicrometerMetrics::createMeters);
 
   public static void initialize() {
     if (initialized.compareAndSet(false, true)) {
@@ -63,5 +64,5 @@ public final class ThreadPoolMetrics {
     return Tags.of(Tag.of(EXECUTOR_TYPE, "liberty"), Tag.of(EXECUTOR_NAME, name));
   }
 
-  private ThreadPoolMetrics() {}
+  private LibertyThreadPoolMicrometerMetrics() {}
 }

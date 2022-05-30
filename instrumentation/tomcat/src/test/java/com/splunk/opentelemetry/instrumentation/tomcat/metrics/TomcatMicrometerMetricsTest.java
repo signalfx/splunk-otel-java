@@ -16,13 +16,13 @@
 
 package com.splunk.opentelemetry.instrumentation.tomcat.metrics;
 
-import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.ThreadPoolSemanticConventions.TASKS_COMPLETED;
-import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.ThreadPoolSemanticConventions.TASKS_SUBMITTED;
-import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.ThreadPoolSemanticConventions.THREADS_ACTIVE;
-import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.ThreadPoolSemanticConventions.THREADS_CORE;
-import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.ThreadPoolSemanticConventions.THREADS_CURRENT;
-import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.ThreadPoolSemanticConventions.THREADS_IDLE;
-import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.ThreadPoolSemanticConventions.THREADS_MAX;
+import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.micrometer.ThreadPoolSemanticConventions.TASKS_COMPLETED;
+import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.micrometer.ThreadPoolSemanticConventions.TASKS_SUBMITTED;
+import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.micrometer.ThreadPoolSemanticConventions.THREADS_ACTIVE;
+import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.micrometer.ThreadPoolSemanticConventions.THREADS_CORE;
+import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.micrometer.ThreadPoolSemanticConventions.THREADS_CURRENT;
+import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.micrometer.ThreadPoolSemanticConventions.THREADS_IDLE;
+import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.micrometer.ThreadPoolSemanticConventions.THREADS_MAX;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 
@@ -39,7 +39,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 @ExtendWith(AgentInstrumentationExtension.class)
-public class TomcatMetricsTest {
+public class TomcatMicrometerMetricsTest {
 
   @AfterEach
   void clearMetrics() {
@@ -73,7 +73,7 @@ public class TomcatMetricsTest {
     // then
     await()
         .atMost(20, TimeUnit.SECONDS)
-        .untilAsserted(TomcatMetricsTest::assertNoThreadPoolMetrics);
+        .untilAsserted(TomcatMicrometerMetricsTest::assertNoThreadPoolMetrics);
   }
 
   private static void assertThreadPoolMetrics(String name) {

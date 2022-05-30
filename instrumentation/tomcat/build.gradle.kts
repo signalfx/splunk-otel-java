@@ -22,5 +22,6 @@ dependencies {
 tasks {
   test {
     jvmArgs("-Dsplunk.metrics.enabled=true")
+    jvmArgs("-Dsplunk.metrics.otel.enabled=true")
   }
 }

@@ -93,7 +93,21 @@ class WebLogicSmokeTest extends AppServerTest {
   }
 
   private void assertMetrics(MetricsInspector metrics) {
+    assertMicrometerMetrics(metrics);
+    assertOtelMetrics(metrics);
+  }
+
+  private void assertMicrometerMetrics(MetricsInspector metrics) {
     var expectedAttrs = Map.of("executor_type", "weblogic");
+    assertMetrics(metrics, expectedAttrs);
+  }
+
+  private void assertOtelMetrics(MetricsInspector metrics) {
+    var expectedAttrs = Map.of("executor.type", "weblogic");
+    assertMetrics(metrics, expectedAttrs);
+  }
+
+  private void assertMetrics(MetricsInspector metrics, Map<String, String> expectedAttrs) {
     assertTrue(metrics.hasGaugeWithAttributes("executor.threads", expectedAttrs));
     assertTrue(metrics.hasGaugeWithAttributes("executor.threads.idle", expectedAttrs));
     assertTrue(metrics.hasMetricsNamed("executor.tasks.completed"));

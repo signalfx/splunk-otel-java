@@ -152,7 +152,8 @@ To fully configure the agent of the Splunk Distribution of OpenTelemetry Java, s
 
 ## Correlating traces with logs
 
-The Splunk Distribution of OpenTelemetry Java provides a way to correlate traces with logs. For more information see [Connect Java application trace data with logs](https://docs.splunk.com/Observability/gdi/get-data-in/application/java/instrumentation/connect-traces-logs.html) in the official Splunk documentation.
+The Splunk Distribution of OpenTelemetry Java provides a way to correlate traces with logs. For more information see [Connect Java application trace data with logs](https://docs.splunk.com/Observability/gdi/get-data-in/application/java/instrumentation/connect-traces-logs.html) 
+in the Splunk Observability Cloud user documentation.
 
 ## Manually instrument a Java application
 
@@ -177,9 +178,14 @@ We publish [snapshot builds](https://oss.sonatype.org/content/repositories/snaps
 with every merge to the `main` branch. Snapshots are primarily intended to test new functionality and are not recommended
 for production use.
 
+# Upgrades
+
+For information and best practices around upgrades, see the [Upgrading documentation](docs/upgrading.md).
+
 ## Troubleshooting
 
-For troubleshooting information and known issues, see [Troubleshooting Java instrumentation](https://docs.splunk.com/Observability/gdi/get-data-in/application/java/troubleshooting/common-java-troubleshooting.html) in the official Splunk documentation.
+For troubleshooting information and known issues, see [Troubleshooting Java instrumentation](https://docs.splunk.com/Observability/gdi/get-data-in/application/java/troubleshooting/common-java-troubleshooting.html) 
+in the Splunk Observability Cloud user documentation.
 
 # License and versioning
 

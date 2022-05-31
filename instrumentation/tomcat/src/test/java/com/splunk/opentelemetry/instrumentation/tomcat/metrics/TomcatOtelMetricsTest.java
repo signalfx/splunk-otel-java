@@ -19,7 +19,6 @@ package com.splunk.opentelemetry.instrumentation.tomcat.metrics;
 import static io.opentelemetry.api.common.AttributeKey.stringKey;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.splunk.opentelemetry.testing.TestMetricsAccess;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.instrumentation.test.utils.PortUtils;
 import io.opentelemetry.instrumentation.testing.junit.AgentInstrumentationExtension;
@@ -27,7 +26,6 @@ import io.opentelemetry.instrumentation.testing.junit.InstrumentationExtension;
 import io.opentelemetry.sdk.testing.assertj.OpenTelemetryAssertions;
 import java.nio.file.Files;
 import org.apache.catalina.startup.Tomcat;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.extension.RegisterExtension;
@@ -39,11 +37,6 @@ public class TomcatOtelMetricsTest {
 
   @RegisterExtension
   static final InstrumentationExtension testing = AgentInstrumentationExtension.create();
-
-  @AfterEach
-  void clearMetrics() {
-    TestMetricsAccess.clearMetrics();
-  }
 
   @Test
   void shouldReportMetrics() throws Exception {

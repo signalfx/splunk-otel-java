@@ -20,9 +20,9 @@ import io.opentelemetry.instrumentation.api.config.Config;
 
 public final class WebLogicThreadPoolMetrics {
   private static boolean useOtelMetrics =
-      Config.get().getBoolean("splunk.metrics.otel.enabled", true);
+      Config.get().getBoolean("splunk.metrics.otel.enabled", false);
   private static boolean useMicrometerMetrics =
-      Config.get().getBoolean("splunk.metrics.micrometer.enabled", false);
+      Config.get().getBoolean("splunk.metrics.micrometer.enabled", true);
 
   public static void initialize() {
     if (useOtelMetrics) {

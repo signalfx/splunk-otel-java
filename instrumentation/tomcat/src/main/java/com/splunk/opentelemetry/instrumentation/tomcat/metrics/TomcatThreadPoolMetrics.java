@@ -20,9 +20,9 @@ import io.opentelemetry.instrumentation.api.config.Config;
 import org.apache.tomcat.util.net.AbstractEndpoint;
 
 public final class TomcatThreadPoolMetrics {
-  private static boolean useOtelMetrics =
+  private static final boolean useOtelMetrics =
       Config.get().getBoolean("splunk.metrics.otel.enabled", false);
-  private static boolean useMicrometerMetrics =
+  private static final boolean useMicrometerMetrics =
       Config.get().getBoolean("splunk.metrics.micrometer.enabled", true);
 
   public static void registerMetrics(AbstractEndpoint<?, ?> endpoint) {

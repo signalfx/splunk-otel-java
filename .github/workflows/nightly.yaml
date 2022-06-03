@@ -134,7 +134,7 @@ jobs:
     steps:
       # run this action to get workflow conclusion
       # You can get conclusion by env (env.WORKFLOW_CONCLUSION)
-      - uses: technote-space/workflow-conclusion-action@v2.2
+      - uses: technote-space/workflow-conclusion-action@v3.0
 
       - uses: actions/checkout@v3
 

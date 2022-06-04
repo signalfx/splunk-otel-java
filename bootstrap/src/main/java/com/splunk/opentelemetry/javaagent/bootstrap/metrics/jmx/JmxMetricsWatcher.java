@@ -87,7 +87,7 @@ public class JmxMetricsWatcher<T> implements JmxListener {
   public void onUnregister(MBeanServer mBeanServer, ObjectName objectName) {
     List<T> metersToRemove = meters.remove(objectName);
     for (T meter : metersToRemove) {
-      unregister.accept(meter);
+      unregister(meter);
     }
   }
 

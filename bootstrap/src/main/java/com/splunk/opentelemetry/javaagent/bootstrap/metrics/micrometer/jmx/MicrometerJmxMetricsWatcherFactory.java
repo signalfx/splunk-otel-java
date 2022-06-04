@@ -18,29 +18,23 @@ package com.splunk.opentelemetry.javaagent.bootstrap.metrics.micrometer.jmx;
 
 import com.splunk.opentelemetry.javaagent.bootstrap.jmx.JmxQuery;
 import com.splunk.opentelemetry.javaagent.bootstrap.jmx.JmxWatcher;
-import com.splunk.opentelemetry.javaagent.bootstrap.metrics.jmx.AbstractJmxMetricsWatcher;
+import com.splunk.opentelemetry.javaagent.bootstrap.metrics.jmx.JmxMetricsWatcher;
 import io.micrometer.core.instrument.Meter;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Metrics;
 
-public final class JmxMetricsWatcher extends AbstractJmxMetricsWatcher<Meter> {
+public final class MicrometerJmxMetricsWatcherFactory {
 
-  private final MeterRegistry meterRegistry;
-
-  public JmxMetricsWatcher(JmxQuery query, MicrometerMetersFactory metersFactory) {
-    super(query, metersFactory);
-    this.meterRegistry = Metrics.globalRegistry;
+  public static JmxMetricsWatcher<Meter> create(
+      JmxQuery query, MicrometerMetersFactory metersFactory) {
+    return new JmxMetricsWatcher<>(
+        query, metersFactory, (meter) -> Metrics.globalRegistry.remove(meter));
   }
 
   // visible for tests
-  JmxMetricsWatcher(
+  static JmxMetricsWatcher<Meter> create(
       JmxWatcher jmxWatcher, MeterRegistry meterRegistry, MicrometerMetersFactory metersFactory) {
-    super(jmxWatcher, metersFactory);
-    this.meterRegistry = meterRegistry;
-  }
-
-  @Override
-  protected void unregister(Meter meter) {
-    meterRegistry.remove(meter);
+    return new JmxMetricsWatcher<>(
+        jmxWatcher, metersFactory, (meter) -> meterRegistry.remove(meter));
   }
 }

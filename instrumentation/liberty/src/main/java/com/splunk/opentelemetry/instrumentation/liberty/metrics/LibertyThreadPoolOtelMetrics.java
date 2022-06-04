@@ -19,8 +19,9 @@ package com.splunk.opentelemetry.instrumentation.liberty.metrics;
 import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.jmx.JmxAttributesHelper.getNumberAttribute;
 
 import com.splunk.opentelemetry.javaagent.bootstrap.jmx.JmxQuery;
+import com.splunk.opentelemetry.javaagent.bootstrap.metrics.jmx.JmxMetricsWatcher;
 import com.splunk.opentelemetry.javaagent.bootstrap.metrics.otel.ThreadPoolMetrics;
-import com.splunk.opentelemetry.javaagent.bootstrap.metrics.otel.jmx.JmxMetricsWatcher;
+import com.splunk.opentelemetry.javaagent.bootstrap.metrics.otel.jmx.OtelJmxMetricsWatcherFactory;
 import io.opentelemetry.api.GlobalOpenTelemetry;
 import io.opentelemetry.api.OpenTelemetry;
 import java.util.Arrays;
@@ -34,8 +35,8 @@ final class LibertyThreadPoolOtelMetrics {
       "com.splunk.javaagent.liberty-thread-pool-metrics";
 
   private static final AtomicBoolean initialized = new AtomicBoolean();
-  private static final JmxMetricsWatcher jmxMetricsWatcher =
-      new JmxMetricsWatcher(
+  private static final JmxMetricsWatcher<AutoCloseable> jmxMetricsWatcher =
+      OtelJmxMetricsWatcherFactory.create(
           JmxQuery.create("WebSphere", "type", "ThreadPoolStats"),
           LibertyThreadPoolOtelMetrics::createMeters);
 

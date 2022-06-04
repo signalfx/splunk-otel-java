@@ -25,7 +25,8 @@ import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.micrometer.Th
 import static java.util.Arrays.asList;
 
 import com.splunk.opentelemetry.javaagent.bootstrap.jmx.JmxQuery;
-import com.splunk.opentelemetry.javaagent.bootstrap.metrics.micrometer.jmx.JmxMetricsWatcher;
+import com.splunk.opentelemetry.javaagent.bootstrap.metrics.jmx.JmxMetricsWatcher;
+import com.splunk.opentelemetry.javaagent.bootstrap.metrics.micrometer.jmx.MicrometerJmxMetricsWatcherFactory;
 import io.micrometer.core.instrument.Meter;
 import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.Tags;
@@ -37,8 +38,8 @@ import javax.management.ObjectName;
 final class WebLogicThreadPoolMicrometerMetrics {
 
   private static final AtomicBoolean initialized = new AtomicBoolean();
-  private static final JmxMetricsWatcher jmxMetricsWatcher =
-      new JmxMetricsWatcher(
+  private static final JmxMetricsWatcher<Meter> jmxMetricsWatcher =
+      MicrometerJmxMetricsWatcherFactory.create(
           JmxQuery.create("com.bea", "Name", "ThreadPoolRuntime"),
           WebLogicThreadPoolMicrometerMetrics::createMeters);
 

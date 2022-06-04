@@ -18,23 +18,23 @@ package com.splunk.opentelemetry.javaagent.bootstrap.metrics.otel.jmx;
 
 import com.splunk.opentelemetry.javaagent.bootstrap.jmx.JmxQuery;
 import com.splunk.opentelemetry.javaagent.bootstrap.jmx.JmxWatcher;
-import com.splunk.opentelemetry.javaagent.bootstrap.metrics.jmx.AbstractJmxMetricsWatcher;
+import com.splunk.opentelemetry.javaagent.bootstrap.metrics.jmx.JmxMetricsWatcher;
 
-public final class JmxMetricsWatcher extends AbstractJmxMetricsWatcher<AutoCloseable> {
+public final class OtelJmxMetricsWatcherFactory {
 
-  public JmxMetricsWatcher(JmxQuery query, OtelMetersFactory metersFactory) {
-    super(query, metersFactory);
+  public static JmxMetricsWatcher<AutoCloseable> create(
+      JmxQuery query, OtelMetersFactory metersFactory) {
+    return new JmxMetricsWatcher<>(query, metersFactory, OtelJmxMetricsWatcherFactory::unregister);
   }
 
   // visible for tests
-  // this constructor has a trailing unused argument to make sure @InjectMocks chooses it over
-  // the other constructor
-  JmxMetricsWatcher(JmxWatcher jmxWatcher, OtelMetersFactory metersFactory, Object unused) {
-    super(jmxWatcher, metersFactory);
+  static JmxMetricsWatcher<AutoCloseable> create(
+      JmxWatcher jmxWatcher, OtelMetersFactory metersFactory) {
+    return new JmxMetricsWatcher<>(
+        jmxWatcher, metersFactory, OtelJmxMetricsWatcherFactory::unregister);
   }
 
-  @Override
-  protected void unregister(AutoCloseable instrument) {
+  private static void unregister(AutoCloseable instrument) {
     try {
       instrument.close();
     } catch (Exception exception) {

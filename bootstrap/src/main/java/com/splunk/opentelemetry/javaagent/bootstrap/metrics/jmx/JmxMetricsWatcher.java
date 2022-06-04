@@ -24,25 +24,30 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.function.Consumer;
 import java.util.stream.Stream;
 import javax.management.JMException;
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
 
-public abstract class AbstractJmxMetricsWatcher<T> implements JmxListener {
+public class JmxMetricsWatcher<T> implements JmxListener {
 
   private final JmxWatcher jmxWatcher;
   private final Map<ObjectName, List<T>> meters = new ConcurrentHashMap<>();
   private final MetersFactory<T> metersFactory;
+  private final Consumer<T> unregister;
 
-  protected AbstractJmxMetricsWatcher(JmxQuery query, MetersFactory<T> metersFactory) {
+  public JmxMetricsWatcher(JmxQuery query, MetersFactory<T> metersFactory, Consumer<T> unregister) {
     this.jmxWatcher = new JmxWatcher(query, this);
     this.metersFactory = metersFactory;
+    this.unregister = unregister;
   }
 
-  protected AbstractJmxMetricsWatcher(JmxWatcher jmxWatcher, MetersFactory<T> metersFactory) {
+  public JmxMetricsWatcher(
+      JmxWatcher jmxWatcher, MetersFactory<T> metersFactory, Consumer<T> unregister) {
     this.jmxWatcher = jmxWatcher;
     this.metersFactory = metersFactory;
+    this.unregister = unregister;
   }
 
   public void start() {
@@ -82,9 +87,11 @@ public abstract class AbstractJmxMetricsWatcher<T> implements JmxListener {
   public void onUnregister(MBeanServer mBeanServer, ObjectName objectName) {
     List<T> metersToRemove = meters.remove(objectName);
     for (T meter : metersToRemove) {
-      unregister(meter);
+      unregister.accept(meter);
     }
   }
 
-  protected abstract void unregister(T meter);
+  private void unregister(T meter) {
+    unregister.accept(meter);
+  }
 }

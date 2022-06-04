@@ -48,7 +48,7 @@ class JmxMetricsWatcherIntegrationTest {
     ManagementFactory.getPlatformMBeanServer().registerMBean(new TestClass(12), objectName1);
 
     var watcher =
-        new JmxMetricsWatcher(
+        OtelJmxMetricsWatcherFactory.create(
             JmxQuery.create("com.splunk.test", Map.of("type", "Test")),
             JmxMetricsWatcherIntegrationTest::createMeters);
     watcher.start();

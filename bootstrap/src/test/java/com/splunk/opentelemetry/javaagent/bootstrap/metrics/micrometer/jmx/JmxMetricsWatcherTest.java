@@ -22,14 +22,15 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.splunk.opentelemetry.javaagent.bootstrap.jmx.JmxWatcher;
+import com.splunk.opentelemetry.javaagent.bootstrap.metrics.jmx.JmxMetricsWatcher;
 import io.micrometer.core.instrument.Meter;
 import io.micrometer.core.instrument.MeterRegistry;
 import java.util.List;
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -40,7 +41,12 @@ class JmxMetricsWatcherTest {
   @Mock MicrometerMetersFactory metersFactory;
   @Mock MBeanServer mBeanServer;
 
-  @InjectMocks JmxMetricsWatcher underTest;
+  JmxMetricsWatcher<Meter> underTest;
+
+  @BeforeEach
+  void setUp() {
+    underTest = MicrometerJmxMetricsWatcherFactory.create(jmxWatcher, meterRegistry, metersFactory);
+  }
 
   @Test
   void shouldAddMetersOnJmxRegister() throws Exception {

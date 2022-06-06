@@ -50,8 +50,8 @@ class OtelNamingConvention implements NamingConvention {
   }
 
   private boolean shouldStripJvmToKeepName(String name) {
-    return "jvm.process.runtime.jvm.memory.reclaimed".equals(name) ||
-          "jvm.process.runtime.jvm.memory.allocated".equals(name);
+    return "jvm.process.runtime.jvm.memory.reclaimed".equals(name)
+        || "jvm.process.runtime.jvm.memory.allocated".equals(name);
   }
 
   @Override

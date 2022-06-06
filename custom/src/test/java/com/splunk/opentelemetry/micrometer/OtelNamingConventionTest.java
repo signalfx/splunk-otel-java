@@ -66,9 +66,9 @@ class OtelNamingConventionTest {
   @Test
   void keepsProfilingCumulativeMemoryNames() {
     String unit = "unit";
-    String allocated = "process.runtime.jvm.memory.allocated.cumulative";
+    String allocated = "process.runtime.jvm.memory.allocated";
     String sourceAllocated = "jvm." + allocated;
-    String reclaimed = "process.runtime.jvm.memory.reclaimed.cumulative";
+    String reclaimed = "process.runtime.jvm.memory.reclaimed";
     String sourceReclaimed = "jvm." + reclaimed;
 
     doReturn("allocated").when(namingConventionMock).name(allocated, Meter.Type.OTHER, unit);

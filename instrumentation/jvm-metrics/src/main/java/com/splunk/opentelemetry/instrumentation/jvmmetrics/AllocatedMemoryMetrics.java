@@ -28,7 +28,7 @@ import java.util.Map;
 import java.util.Set;
 
 public class AllocatedMemoryMetrics implements MeterBinder {
-  public static final String METRIC_NAME = "process.runtime.jvm.memory.allocated.cumulative";
+  public static final String METRIC_NAME = "process.runtime.jvm.memory.allocated";
   private final boolean hasComSunThreadMXBean = hasComSunThreadMXBean();
 
   @Override

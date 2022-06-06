@@ -40,7 +40,7 @@ import javax.management.NotificationListener;
 import javax.management.openmbean.CompositeData;
 
 public class GcMemoryMetrics implements MeterBinder, AutoCloseable {
-  public static final String METRIC_NAME = "process.runtime.jvm.memory.reclaimed.cumulative";
+  public static final String METRIC_NAME = "process.runtime.jvm.memory.reclaimed";
   private final boolean managementExtensionsPresent = isManagementExtensionsPresent();
 
   private final List<Runnable> notificationListenerCleanUpRunnables = new CopyOnWriteArrayList<>();

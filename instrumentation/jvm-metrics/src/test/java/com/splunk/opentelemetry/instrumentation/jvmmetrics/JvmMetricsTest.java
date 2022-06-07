@@ -41,8 +41,8 @@ class JvmMetricsTest {
     // thread metrics
     assertTrue(meterNames.contains("jvm.threads.peak"));
     // allocated memory metrics
-    assertTrue(meterNames.contains("jvm.experimental.memory.allocated"));
+    assertTrue(meterNames.contains(AllocatedMemoryMetrics.METRIC_NAME));
     // Our custom GC metrics
-    assertTrue(meterNames.contains("jvm.experimental.gc.memory.reclaimed"));
+    assertTrue(meterNames.contains(GcMemoryMetrics.METRIC_NAME));
   }
 }

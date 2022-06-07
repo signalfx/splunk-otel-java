@@ -28,6 +28,7 @@ import java.util.Map;
 import java.util.Set;
 
 public class AllocatedMemoryMetrics implements MeterBinder {
+  public static final String METRIC_NAME = "process.runtime.jvm.memory.allocated";
   private final boolean hasComSunThreadMXBean = hasComSunThreadMXBean();
 
   @Override
@@ -41,9 +42,10 @@ public class AllocatedMemoryMetrics implements MeterBinder {
     }
 
     AllocationTracker allocationTracker = new AllocationTracker();
-    Gauge.builder("jvm.experimental.memory.allocated", allocationTracker::getAllocated)
+    Gauge.builder(METRIC_NAME, allocationTracker::getCumulativeAllocationTotal)
         .description("Approximate sum of heap allocations")
         .baseUnit(BaseUnits.BYTES)
+        .tag("type", "heap")
         .register(registry);
   }
 
@@ -78,7 +80,7 @@ public class AllocatedMemoryMetrics implements MeterBinder {
     // allocated bytes by threads that have terminated
     private long allocatedByDeadThreads = 0;
 
-    long getAllocated() {
+    long getCumulativeAllocationTotal() {
       Set<Long> threads = new HashSet<>();
       long allocatedByLiveThreads = 0;
       long[] threadIds = threadBean.getAllThreadIds();

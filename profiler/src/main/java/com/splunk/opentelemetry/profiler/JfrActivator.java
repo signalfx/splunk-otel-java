@@ -25,7 +25,6 @@ import static com.splunk.opentelemetry.profiler.JfrFileLifecycleEvents.buildOnNe
 import static com.splunk.opentelemetry.profiler.util.Runnables.logUncaught;
 
 import com.google.auto.service.AutoService;
-import com.splunk.opentelemetry.logs.BatchingLogsProcessor;
 import com.splunk.opentelemetry.profiler.Configuration.DataFormat;
 import com.splunk.opentelemetry.profiler.allocation.exporter.AllocationEventExporter;
 import com.splunk.opentelemetry.profiler.allocation.exporter.PlainTextAllocationEventExporter;
@@ -41,6 +40,7 @@ import io.opentelemetry.instrumentation.api.config.Config;
 import io.opentelemetry.javaagent.extension.AgentListener;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 import io.opentelemetry.sdk.logs.LogProcessor;
+import io.opentelemetry.sdk.logs.export.BatchLogProcessor;
 import io.opentelemetry.sdk.logs.export.LogExporter;
 import io.opentelemetry.sdk.logs.export.SimpleLogProcessor;
 import io.opentelemetry.sdk.resources.Resource;
@@ -49,7 +49,6 @@ import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.function.Consumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -237,22 +236,19 @@ public class JfrActivator implements AgentListener {
   private static class BatchLogProcessorHolder {
     private static LogProcessor INSTANCE;
 
-    // initialize BatchingLogsProcessor only if it is needed and if it is needed initialize it only
+    // initialize BatchLogProcessor only if it is needed and if it is needed initialize it only
     // once
     static LogProcessor get(LogExporter logsExporter) {
+
       if (INSTANCE == null) {
-        ScheduledExecutorService exportExecutorService =
-            HelpfulExecutors.newSingleThreadedScheduledExecutor("Batched Logs Exporter");
-        BatchingLogsProcessor batchingLogsProcessor =
-            BatchingLogsProcessor.builder()
-                .maxTimeBetweenBatches(MAX_TIME_BETWEEN_BATCHES)
-                .maxBatchSize(MAX_BATCH_SIZE)
-                .batchAction(logsExporter)
-                .executorService(exportExecutorService)
+        INSTANCE =
+            BatchLogProcessor.builder(logsExporter)
+                .setScheduleDelay(MAX_TIME_BETWEEN_BATCHES)
+                .setMaxExportBatchSize(MAX_BATCH_SIZE)
                 .build();
-        batchingLogsProcessor.start();
-        INSTANCE = batchingLogsProcessor;
+        // BatchLogProcessor auto-starts in constructor. No need to invoke start()
       }
+
       return INSTANCE;
     }
   }

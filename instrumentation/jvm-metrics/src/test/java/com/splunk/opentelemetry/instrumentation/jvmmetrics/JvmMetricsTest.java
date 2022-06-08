@@ -20,12 +20,20 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.splunk.opentelemetry.testing.TestMetricsAccess;
 import io.opentelemetry.instrumentation.testing.junit.AgentInstrumentationExtension;
+import io.opentelemetry.instrumentation.testing.junit.InstrumentationExtension;
+import io.opentelemetry.sdk.testing.assertj.OpenTelemetryAssertions;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 @ExtendWith(AgentInstrumentationExtension.class)
 class JvmMetricsTest {
+  private static final String INSTRUMENTATION_NAME = "com.splunk.javaagent.jvm-metrics-splunk";
+
+  @RegisterExtension
+  static final InstrumentationExtension testing = AgentInstrumentationExtension.create();
+
   @Test
   void shouldRegisterJvmMeters() {
     Set<String> meterNames = TestMetricsAccess.getMeterNames();
@@ -44,5 +52,25 @@ class JvmMetricsTest {
     assertTrue(meterNames.contains(AllocatedMemoryMetrics.METRIC_NAME));
     // Our custom GC metrics
     assertTrue(meterNames.contains(GcMemoryMetrics.METRIC_NAME));
+  }
+
+  @Test
+  void shouldRegisterOtelJvmMeters() {
+    // GC metrics
+    assertOtelMetricPresent("runtime.jvm.gc.memory.allocated", "bytes");
+    // GC pressure metrics
+    assertOtelMetricPresent("runtime.jvm.gc.overhead", "percent");
+    // memory metrics
+    assertOtelMetricPresent("runtime.jvm.memory.used", "bytes");
+    // thread metrics
+    assertOtelMetricPresent("runtime.jvm.threads.peak", "threads");
+  }
+
+  private void assertOtelMetricPresent(String name, String unit) {
+    testing.waitAndAssertMetrics(
+        INSTRUMENTATION_NAME,
+        name,
+        metrics ->
+            metrics.anySatisfy(metric -> OpenTelemetryAssertions.assertThat(metric).hasUnit(unit)));
   }
 }

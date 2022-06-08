@@ -24,8 +24,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import org.apache.tomcat.util.net.AbstractEndpoint;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 final class TomcatThreadPoolOtelMetrics {
+  private static final Logger log = LoggerFactory.getLogger(TomcatThreadPoolOtelMetrics.class);
+
   private static final String INSTRUMENTATION_NAME =
       "com.splunk.javaagent.tomcat-thread-pool-metrics";
 
@@ -63,7 +67,7 @@ final class TomcatThreadPoolOtelMetrics {
         try {
           observable.close();
         } catch (Exception exception) {
-          throw new IllegalStateException("Failed to close instrument", exception);
+          log.warn("Failed to close instrument", exception);
         }
       }
     }

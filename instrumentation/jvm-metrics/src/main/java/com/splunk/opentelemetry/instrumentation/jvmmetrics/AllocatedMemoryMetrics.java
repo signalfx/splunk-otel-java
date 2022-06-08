@@ -17,7 +17,7 @@
 package com.splunk.opentelemetry.instrumentation.jvmmetrics;
 
 import com.sun.management.ThreadMXBean;
-import io.micrometer.core.instrument.Gauge;
+import io.micrometer.core.instrument.FunctionCounter;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.binder.BaseUnits;
 import io.micrometer.core.instrument.binder.MeterBinder;
@@ -42,7 +42,8 @@ public class AllocatedMemoryMetrics implements MeterBinder {
     }
 
     AllocationTracker allocationTracker = new AllocationTracker();
-    Gauge.builder(METRIC_NAME, allocationTracker::getCumulativeAllocationTotal)
+    FunctionCounter.builder(
+            METRIC_NAME, allocationTracker, AllocationTracker::getCumulativeAllocationTotal)
         .description("Approximate sum of heap allocations")
         .baseUnit(BaseUnits.BYTES)
         .tag("type", "heap")

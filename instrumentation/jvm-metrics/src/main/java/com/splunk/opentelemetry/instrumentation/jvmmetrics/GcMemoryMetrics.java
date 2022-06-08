@@ -18,7 +18,7 @@ package com.splunk.opentelemetry.instrumentation.jvmmetrics;
 
 import com.sun.management.GarbageCollectionNotificationInfo;
 import com.sun.management.GcInfo;
-import io.micrometer.core.instrument.Gauge;
+import io.micrometer.core.instrument.FunctionCounter;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.binder.BaseUnits;
 import io.micrometer.core.instrument.binder.MeterBinder;
@@ -56,7 +56,7 @@ public class GcMemoryMetrics implements MeterBinder, AutoCloseable {
     GcMetricsNotificationListener gcNotificationListener =
         new GcMetricsNotificationListener(registry);
 
-    Gauge.builder(METRIC_NAME, deltaSum, AtomicLong::get)
+    FunctionCounter.builder(METRIC_NAME, deltaSum, AtomicLong::get)
         .description("Sum of heap size differences before and after gc")
         .baseUnit(BaseUnits.BYTES)
         .register(registry);

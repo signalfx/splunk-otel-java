@@ -42,8 +42,13 @@ public class AllocatedMemoryMetrics implements MeterBinder {
     }
 
     AllocationTracker allocationTracker = new AllocationTracker();
+    // FunctionCounter keeps a weak reference to allocationTracker. To ensure it is not collected
+    // we pass a capturing lambda as the function instead of method reference
+    // AllocationTracker::getCumulativeAllocationTotal
     FunctionCounter.builder(
-            METRIC_NAME, allocationTracker, AllocationTracker::getCumulativeAllocationTotal)
+            METRIC_NAME,
+            allocationTracker,
+            (unused) -> allocationTracker.getCumulativeAllocationTotal())
         .description("Approximate sum of heap allocations")
         .baseUnit(BaseUnits.BYTES)
         .tag("type", "heap")

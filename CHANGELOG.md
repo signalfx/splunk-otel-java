@@ -8,6 +8,16 @@ and this repository adheres to [Semantic Versioning](https://semver.org/spec/v2.
 
 ## Unreleased
 
+## v1.12.0 - 2022-06-09
+
+- Compliance with [GDI spec version 1.3.0](https://github.com/signalfx/gdi-specification/releases/tag/v1.3.0)
+- Bug fix for `OTEL_EXPORTER_OTLP_ENDPOINT` not overriding the `splunk.realm` property (#795)
+- Profiling stack trace data defaults to pprof format (#799)
+- Change metric names used by memory profiling:
+  - `jvm.experimental.memory.allocated` -> `process.runtime.jvm.memory.allocated`
+  - `jvm.experimental.memory.reclaimed` -> `process.runtime.jvm.memory.reclaimed`
+    (these two have also been migrated from Gauge to Counter)
+
 ## v1.11.0 - 2022-05-18
 
 ### General

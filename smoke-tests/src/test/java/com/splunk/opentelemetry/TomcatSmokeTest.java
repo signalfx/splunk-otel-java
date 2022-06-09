@@ -16,8 +16,11 @@
 
 package com.splunk.opentelemetry;
 
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import com.splunk.opentelemetry.helper.TestImage;
 import java.io.IOException;
+import java.util.Map;
 import java.util.stream.Stream;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -38,7 +41,7 @@ public class TomcatSmokeTest extends AppServerTest {
     return configurations("tomcat")
         .otelLinux("7.0.109", TOMCAT7_SERVER_ATTRIBUTES, VMS_ALL, "8")
         .otelLinux("8.5.72", TOMCAT8_SERVER_ATTRIBUTES, VMS_ALL, "8", "11")
-        .otelLinux("9.0.54", TOMCAT9_SERVER_ATTRIBUTES, VMS_ALL, "8", "11")
+        .otelLinux("9.0.54", TOMCAT9_SERVER_ATTRIBUTES, VMS_HOTSPOT, "8", "11")
         .otelLinux("10.0.12", TOMCAT10_SERVER_ATTRIBUTES, VMS_HOTSPOT, "11", "17")
         .otelLinux("10.0.12", TOMCAT10_SERVER_ATTRIBUTES, VMS_OPENJ9, "11")
         .otelWindows("7.0.109", TOMCAT7_SERVER_ATTRIBUTES, VMS_ALL, "8")
@@ -57,11 +60,37 @@ public class TomcatSmokeTest extends AppServerTest {
 
     assertServerHandler(expectedServerAttributes);
     assertWebAppTrace(expectedServerAttributes);
+    assertMetrics(waitForMetrics());
 
     stopTarget();
   }
 
-  public static class TomcatAttributes extends ExpectedServerAttributes {
+  private void assertMetrics(MetricsInspector metrics) {
+    assertMicrometerMetrics(metrics);
+    assertOtelMetrics(metrics);
+  }
+
+  private void assertMicrometerMetrics(MetricsInspector metrics) {
+    var expectedAttrs = Map.of("executor_type", "tomcat");
+    assertMetrics(metrics, expectedAttrs);
+  }
+
+  private void assertOtelMetrics(MetricsInspector metrics) {
+    var expectedAttrs = Map.of("executor.type", "tomcat");
+    assertMetrics(metrics, expectedAttrs);
+  }
+
+  private void assertMetrics(MetricsInspector metrics, Map<String, String> expectedAttrs) {
+    assertTrue(metrics.hasGaugeWithAttributes("executor.threads", expectedAttrs));
+    assertTrue(metrics.hasGaugeWithAttributes("executor.threads.active", expectedAttrs));
+    assertTrue(metrics.hasGaugeWithAttributes("executor.threads.idle", expectedAttrs));
+    assertTrue(metrics.hasGaugeWithAttributes("executor.threads.core", expectedAttrs));
+    assertTrue(metrics.hasGaugeWithAttributes("executor.threads.max", expectedAttrs));
+    assertTrue(metrics.hasSumWithAttributes("executor.tasks.submitted", expectedAttrs));
+    assertTrue(metrics.hasSumWithAttributes("executor.tasks.completed", expectedAttrs));
+  }
+
+  private static class TomcatAttributes extends ExpectedServerAttributes {
     public TomcatAttributes(String version) {
       // This handler span name is only received if default webapps are removed
       super("HTTP GET", "tomcat", version);

@@ -40,6 +40,16 @@ class MetricsInspector {
         .anyMatch(metric -> Objects.equals(metric.getName(), metricName));
   }
 
+  boolean hasSumWithAttributes(String metricName, Map<String, String> attributes) {
+    return requests.stream()
+        .flatMap(list -> list.getResourceMetricsList().stream())
+        .flatMap(list -> list.getScopeMetricsList().stream())
+        .flatMap(list -> list.getMetricsList().stream())
+        .filter(metric -> Objects.equals(metric.getName(), metricName))
+        .flatMap(metric -> metric.getSum().getDataPointsList().stream())
+        .anyMatch(dataPoint -> hasAttributes(dataPoint, attributes));
+  }
+
   boolean hasGaugeWithAttributes(String name, Map<String, String> attributes) {
     return requests.stream()
         .flatMap(list -> list.getResourceMetricsList().stream())

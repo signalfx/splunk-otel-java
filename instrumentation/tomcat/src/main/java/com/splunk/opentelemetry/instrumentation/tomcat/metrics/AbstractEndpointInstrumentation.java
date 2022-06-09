@@ -49,7 +49,7 @@ final class AbstractEndpointInstrumentation implements TypeInstrumentation {
 
     @Advice.OnMethodExit(suppress = Throwable.class)
     public static void onExit(@Advice.This AbstractEndpoint<?, ?> endpoint) {
-      ThreadPoolMetrics.registerMetrics(endpoint);
+      TomcatThreadPoolMetrics.registerMetrics(endpoint);
     }
   }
 
@@ -58,7 +58,7 @@ final class AbstractEndpointInstrumentation implements TypeInstrumentation {
 
     @Advice.OnMethodExit(suppress = Throwable.class, onThrowable = Throwable.class)
     public static void onExit(@Advice.This AbstractEndpoint<?, ?> endpoint) {
-      ThreadPoolMetrics.unregisterMetrics(endpoint);
+      TomcatThreadPoolMetrics.unregisterMetrics(endpoint);
     }
   }
 }

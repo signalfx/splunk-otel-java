@@ -14,14 +14,11 @@
  * limitations under the License.
  */
 
-package com.splunk.opentelemetry.javaagent.bootstrap.metrics.jmx;
+package com.splunk.opentelemetry.javaagent.bootstrap.metrics.micrometer;
 
-import java.util.List;
-import javax.management.JMException;
-import javax.management.MBeanServer;
-import javax.management.ObjectName;
+public interface MeterSemanticConvention {
 
-@FunctionalInterface
-public interface MetersFactory<T> {
-  List<T> createMeters(MBeanServer mBeanServer, ObjectName objectName) throws JMException;
+  String name();
+
+  String baseUnit();
 }

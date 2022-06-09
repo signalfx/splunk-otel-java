@@ -16,16 +16,17 @@
 
 package com.splunk.opentelemetry.instrumentation.weblogic.metrics;
 
-import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.ThreadPoolSemanticConventions.EXECUTOR_NAME;
-import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.ThreadPoolSemanticConventions.EXECUTOR_TYPE;
-import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.ThreadPoolSemanticConventions.TASKS_COMPLETED;
-import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.ThreadPoolSemanticConventions.THREADS_CURRENT;
-import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.ThreadPoolSemanticConventions.THREADS_IDLE;
 import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.jmx.JmxAttributesHelper.getNumberAttribute;
+import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.micrometer.ThreadPoolSemanticConventions.EXECUTOR_NAME;
+import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.micrometer.ThreadPoolSemanticConventions.EXECUTOR_TYPE;
+import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.micrometer.ThreadPoolSemanticConventions.TASKS_COMPLETED;
+import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.micrometer.ThreadPoolSemanticConventions.THREADS_CURRENT;
+import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.micrometer.ThreadPoolSemanticConventions.THREADS_IDLE;
 import static java.util.Arrays.asList;
 
 import com.splunk.opentelemetry.javaagent.bootstrap.jmx.JmxQuery;
 import com.splunk.opentelemetry.javaagent.bootstrap.metrics.jmx.JmxMetricsWatcher;
+import com.splunk.opentelemetry.javaagent.bootstrap.metrics.micrometer.jmx.MicrometerJmxMetricsWatcherFactory;
 import io.micrometer.core.instrument.Meter;
 import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.Tags;
@@ -34,12 +35,13 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
 
-public final class ThreadPoolMetrics {
+final class WebLogicThreadPoolMicrometerMetrics {
 
   private static final AtomicBoolean initialized = new AtomicBoolean();
-  private static final JmxMetricsWatcher jmxMetricsWatcher =
-      new JmxMetricsWatcher(
-          JmxQuery.create("com.bea", "Name", "ThreadPoolRuntime"), ThreadPoolMetrics::createMeters);
+  private static final JmxMetricsWatcher<Meter> jmxMetricsWatcher =
+      MicrometerJmxMetricsWatcherFactory.create(
+          JmxQuery.create("com.bea", "Name", "ThreadPoolRuntime"),
+          WebLogicThreadPoolMicrometerMetrics::createMeters);
 
   public static void initialize() {
     if (initialized.compareAndSet(false, true)) {
@@ -55,8 +57,7 @@ public final class ThreadPoolMetrics {
         TASKS_COMPLETED.create(
             tags, mBeanServer, getNumberAttribute(objectName, "CompletedRequestCount")),
         // WebLogic puts threads that are not needed to handle the present work load into a standby
-        // pool. Include these
-        // in idle thread count.
+        // pool. Include these in idle thread count.
         THREADS_IDLE.create(
             tags,
             () ->
@@ -69,5 +70,5 @@ public final class ThreadPoolMetrics {
     return Tags.of(Tag.of(EXECUTOR_TYPE, "weblogic"), Tag.of(EXECUTOR_NAME, objectName.toString()));
   }
 
-  private ThreadPoolMetrics() {}
+  private WebLogicThreadPoolMicrometerMetrics() {}
 }

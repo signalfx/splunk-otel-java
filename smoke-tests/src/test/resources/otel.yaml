@@ -35,7 +35,7 @@ service:
       processors: [ batch ]
       exporters: [ logging/logging_debug, otlp ]
     metrics:
-      receivers: [ signalfx ]
+      receivers: [ signalfx, otlp ]
       processors: [ batch ]
       exporters: [ logging/logging_info, otlp ]
     logs:

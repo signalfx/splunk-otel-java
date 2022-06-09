@@ -43,7 +43,7 @@ final class LauncherDelegateImplInstrumentation implements TypeInstrumentation {
   public static class LaunchFrameworkAdvice {
     @Advice.OnMethodEnter(suppress = Throwable.class)
     public static void onEnter() {
-      ThreadPoolMetrics.initialize();
+      LibertyThreadPoolMetrics.initialize();
     }
   }
 }

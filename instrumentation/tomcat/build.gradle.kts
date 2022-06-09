@@ -15,6 +15,7 @@ muzzle {
 dependencies {
   compileOnly("org.apache.tomcat:tomcat-catalina:9.0.40")
   implementation(project(":instrumentation:common"))
+  compileOnly("org.slf4j:slf4j-api")
 
   testImplementation("org.apache.tomcat.embed:tomcat-embed-core:9.0.40")
 }
@@ -22,5 +23,6 @@ dependencies {
 tasks {
   test {
     jvmArgs("-Dsplunk.metrics.enabled=true")
+    jvmArgs("-Dsplunk.metrics.otel.enabled=true")
   }
 }

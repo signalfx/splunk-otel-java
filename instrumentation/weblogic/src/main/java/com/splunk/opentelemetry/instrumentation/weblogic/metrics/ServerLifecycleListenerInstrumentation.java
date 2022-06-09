@@ -41,7 +41,7 @@ public class ServerLifecycleListenerInstrumentation implements TypeInstrumentati
   public static class InitializeAdvice {
     @Advice.OnMethodEnter(suppress = Throwable.class)
     public static void onEnter() {
-      ThreadPoolMetrics.initialize();
+      WebLogicThreadPoolMetrics.initialize();
     }
   }
 }

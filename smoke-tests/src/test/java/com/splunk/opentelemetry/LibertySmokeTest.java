@@ -77,7 +77,21 @@ public class LibertySmokeTest extends AppServerTest {
   }
 
   private void assertMetrics(MetricsInspector metrics) {
+    assertMicrometerMetrics(metrics);
+    assertOtelMetrics(metrics);
+  }
+
+  private void assertMicrometerMetrics(MetricsInspector metrics) {
     var expectedAttrs = Map.of("executor_type", "liberty");
+    assertMetrics(metrics, expectedAttrs);
+  }
+
+  private void assertOtelMetrics(MetricsInspector metrics) {
+    var expectedAttrs = Map.of("executor.type", "liberty");
+    assertMetrics(metrics, expectedAttrs);
+  }
+
+  private void assertMetrics(MetricsInspector metrics, Map<String, String> expectedAttrs) {
     assertTrue(metrics.hasGaugeWithAttributes("executor.threads", expectedAttrs));
     assertTrue(metrics.hasGaugeWithAttributes("executor.threads.active", expectedAttrs));
   }

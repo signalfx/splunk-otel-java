@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package com.splunk.opentelemetry.javaagent.bootstrap.metrics;
+package com.splunk.opentelemetry.javaagent.bootstrap.metrics.micrometer;
 
-import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.CounterSemanticConvention.counter;
-import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.GaugeSemanticConvention.gauge;
+import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.micrometer.CounterSemanticConvention.counter;
+import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.micrometer.GaugeSemanticConvention.gauge;
 import static io.micrometer.core.instrument.binder.BaseUnits.TASKS;
 import static io.micrometer.core.instrument.binder.BaseUnits.THREADS;
 

@@ -16,29 +16,29 @@
 
 package com.splunk.opentelemetry.instrumentation.liberty.metrics;
 
-import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.ThreadPoolSemanticConventions.EXECUTOR_NAME;
-import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.ThreadPoolSemanticConventions.EXECUTOR_TYPE;
-import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.ThreadPoolSemanticConventions.THREADS_ACTIVE;
-import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.ThreadPoolSemanticConventions.THREADS_CURRENT;
 import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.jmx.JmxAttributesHelper.getNumberAttribute;
-import static java.util.Arrays.asList;
 
 import com.splunk.opentelemetry.javaagent.bootstrap.jmx.JmxQuery;
 import com.splunk.opentelemetry.javaagent.bootstrap.metrics.jmx.JmxMetricsWatcher;
-import io.micrometer.core.instrument.Meter;
-import io.micrometer.core.instrument.Tag;
-import io.micrometer.core.instrument.Tags;
+import com.splunk.opentelemetry.javaagent.bootstrap.metrics.otel.ThreadPoolMetrics;
+import com.splunk.opentelemetry.javaagent.bootstrap.metrics.otel.jmx.OtelJmxMetricsWatcherFactory;
+import io.opentelemetry.api.GlobalOpenTelemetry;
+import io.opentelemetry.api.OpenTelemetry;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
 
-public final class ThreadPoolMetrics {
+final class LibertyThreadPoolOtelMetrics {
+  private static final String INSTRUMENTATION_NAME =
+      "com.splunk.javaagent.liberty-thread-pool-metrics";
 
   private static final AtomicBoolean initialized = new AtomicBoolean();
-  private static final JmxMetricsWatcher jmxMetricsWatcher =
-      new JmxMetricsWatcher(
-          JmxQuery.create("WebSphere", "type", "ThreadPoolStats"), ThreadPoolMetrics::createMeters);
+  private static final JmxMetricsWatcher<AutoCloseable> jmxMetricsWatcher =
+      OtelJmxMetricsWatcherFactory.create(
+          JmxQuery.create("WebSphere", "type", "ThreadPoolStats"),
+          LibertyThreadPoolOtelMetrics::createMeters);
 
   public static void initialize() {
     if (initialized.compareAndSet(false, true)) {
@@ -46,22 +46,25 @@ public final class ThreadPoolMetrics {
     }
   }
 
-  private static List<Meter> createMeters(MBeanServer mBeanServer, ObjectName objectName) {
-    Tags tags = executorTags(objectName);
-    return asList(
-        THREADS_CURRENT.create(tags, mBeanServer, getNumberAttribute(objectName, "PoolSize")),
-        THREADS_ACTIVE.create(tags, mBeanServer, getNumberAttribute(objectName, "ActiveThreads")));
-  }
+  private static List<AutoCloseable> createMeters(MBeanServer mBeanServer, ObjectName objectName) {
+    OpenTelemetry openTelemetry = GlobalOpenTelemetry.get();
 
-  private static Tags executorTags(ObjectName objectName) {
     // use the "name" property if available
     String name = objectName.getKeyProperty("name");
     // if its unavailable just use the whole mbean name
     if (name == null) {
       name = objectName.toString();
     }
-    return Tags.of(Tag.of(EXECUTOR_TYPE, "liberty"), Tag.of(EXECUTOR_NAME, name));
+
+    ThreadPoolMetrics metrics =
+        ThreadPoolMetrics.create(openTelemetry, INSTRUMENTATION_NAME, "liberty", name);
+
+    return Arrays.asList(
+        metrics.currentThreads(
+            () -> getNumberAttribute(objectName, "PoolSize").applyAsDouble(mBeanServer)),
+        metrics.activeThreads(
+            () -> getNumberAttribute(objectName, "ActiveThreads").applyAsDouble(mBeanServer)));
   }
 
-  private ThreadPoolMetrics() {}
+  private LibertyThreadPoolOtelMetrics() {}
 }

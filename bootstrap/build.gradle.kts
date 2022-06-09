@@ -10,7 +10,11 @@ dependencies {
   // add micrometer to the bootstrap classloader so that it's available in instrumentations
   implementation("io.micrometer:micrometer-core")
 
+  compileOnly("io.opentelemetry:opentelemetry-api")
+  compileOnly("io.opentelemetry.instrumentation:opentelemetry-instrumentation-api")
+
   testImplementation("org.slf4j:slf4j-api")
+  testImplementation("io.opentelemetry:opentelemetry-api")
 }
 
 tasks {

@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-package com.splunk.opentelemetry.javaagent.bootstrap.metrics;
+package com.splunk.opentelemetry.javaagent.bootstrap.metrics.micrometer.jmx;
 
-public interface MeterSemanticConvention {
+import com.splunk.opentelemetry.javaagent.bootstrap.metrics.jmx.MetersFactory;
+import io.micrometer.core.instrument.Meter;
 
-  String name();
-
-  String baseUnit();
-}
+@FunctionalInterface
+public interface MicrometerMetersFactory extends MetersFactory<Meter> {}

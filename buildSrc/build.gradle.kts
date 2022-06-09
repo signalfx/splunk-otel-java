@@ -26,7 +26,7 @@ dependencies {
 
   implementation("com.diffplug.spotless:spotless-plugin-gradle:6.4.2")
   // TODO: remove the snapshot version once 1.15 is released
-  implementation("io.opentelemetry.instrumentation:gradle-plugins:1.14.0-alpha")
+  implementation("io.opentelemetry.instrumentation:gradle-plugins:1.15.0-alpha-SNAPSHOT")
   implementation("io.spring.gradle:dependency-management-plugin:1.0.11.RELEASE")
 
   // keep these versions in sync with settings.gradle.kts

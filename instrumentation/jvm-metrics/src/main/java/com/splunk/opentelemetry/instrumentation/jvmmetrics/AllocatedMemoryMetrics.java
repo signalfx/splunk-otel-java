@@ -17,22 +17,19 @@
 package com.splunk.opentelemetry.instrumentation.jvmmetrics;
 
 import com.sun.management.ThreadMXBean;
-import io.micrometer.core.instrument.FunctionCounter;
-import io.micrometer.core.instrument.MeterRegistry;
-import io.micrometer.core.instrument.binder.BaseUnits;
-import io.micrometer.core.instrument.binder.MeterBinder;
 import java.lang.management.ManagementFactory;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.BiConsumer;
+import java.util.function.LongSupplier;
 
-public class AllocatedMemoryMetrics implements MeterBinder {
+public class AllocatedMemoryMetrics {
   public static final String METRIC_NAME = "process.runtime.jvm.memory.allocated";
   private final boolean hasComSunThreadMXBean = hasComSunThreadMXBean();
 
-  @Override
-  public void bindTo(MeterRegistry registry) {
+  public void install(BiConsumer<Object, LongSupplier> meterFactory) {
     if (!hasComSunThreadMXBean) {
       return;
     }
@@ -42,17 +39,7 @@ public class AllocatedMemoryMetrics implements MeterBinder {
     }
 
     AllocationTracker allocationTracker = new AllocationTracker();
-    // FunctionCounter keeps a weak reference to allocationTracker. To ensure it is not collected
-    // we pass a capturing lambda as the function instead of method reference
-    // AllocationTracker::getCumulativeAllocationTotal
-    FunctionCounter.builder(
-            METRIC_NAME,
-            allocationTracker,
-            (unused) -> allocationTracker.getCumulativeAllocationTotal())
-        .description("Approximate sum of heap allocations")
-        .baseUnit(BaseUnits.BYTES)
-        .tag("type", "heap")
-        .register(registry);
+    meterFactory.accept(allocationTracker, allocationTracker::getCumulativeAllocationTotal);
   }
 
   private static boolean hasComSunThreadMXBean() {

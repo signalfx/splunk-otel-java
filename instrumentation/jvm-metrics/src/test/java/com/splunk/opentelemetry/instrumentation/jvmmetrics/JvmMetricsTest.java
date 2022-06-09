@@ -64,6 +64,10 @@ class JvmMetricsTest {
     assertOtelMetricPresent("runtime.jvm.memory.used", "bytes");
     // thread metrics
     assertOtelMetricPresent("runtime.jvm.threads.peak", "threads");
+    // allocated memory metrics
+    assertOtelMetricPresent(AllocatedMemoryMetrics.METRIC_NAME, "bytes");
+    // Our custom GC metrics
+    assertOtelMetricPresent(GcMemoryMetrics.METRIC_NAME, "bytes");
   }
 
   private void assertOtelMetricPresent(String name, String unit) {

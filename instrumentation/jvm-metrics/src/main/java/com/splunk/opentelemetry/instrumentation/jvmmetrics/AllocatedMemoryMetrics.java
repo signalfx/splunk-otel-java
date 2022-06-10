@@ -22,24 +22,25 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.BiConsumer;
-import java.util.function.LongSupplier;
 
 public class AllocatedMemoryMetrics {
   public static final String METRIC_NAME = "process.runtime.jvm.memory.allocated";
   private final boolean hasComSunThreadMXBean = hasComSunThreadMXBean();
+  private final AllocationTracker allocationTracker = createAllocationTracker();
 
-  public void install(BiConsumer<Object, LongSupplier> meterFactory) {
-    if (!hasComSunThreadMXBean) {
-      return;
+  public boolean isAvailable() {
+    return allocationTracker != null;
+  }
+
+  public long getCumulativeAllocationTotal() {
+    return allocationTracker.getCumulativeAllocationTotal();
+  }
+
+  private AllocationTracker createAllocationTracker() {
+    if (hasComSunThreadMXBean && isThreadAllocatedMemoryEnabled()) {
+      return new AllocationTracker();
     }
-
-    if (!isThreadAllocatedMemoryEnabled()) {
-      return;
-    }
-
-    AllocationTracker allocationTracker = new AllocationTracker();
-    meterFactory.accept(allocationTracker, allocationTracker::getCumulativeAllocationTotal);
+    return null;
   }
 
   private static boolean hasComSunThreadMXBean() {

@@ -29,7 +29,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.function.Consumer;
 import javax.management.ListenerNotFoundException;
 import javax.management.Notification;
 import javax.management.NotificationEmitter;
@@ -44,20 +43,21 @@ public class GcMemoryMetrics implements AutoCloseable {
   private final Set<String> heapPoolNames = new HashSet<>();
   private final AtomicLong deltaSum = new AtomicLong();
 
-  public void install(Consumer<AtomicLong> meterFactory) {
-    if (!this.managementExtensionsPresent) {
-      return;
-    }
+  public long getDeltaSum() {
+    return deltaSum.get();
+  }
 
-    GcMetricsNotificationListener gcNotificationListener = new GcMetricsNotificationListener();
+  public boolean isAvailable() {
+    return managementExtensionsPresent;
+  }
 
-    meterFactory.accept(deltaSum);
-
+  public void registerListener() {
     ManagementFactory.getMemoryPoolMXBeans().stream()
         .filter(pool -> MemoryType.HEAP.equals(pool.getType()))
         .map(MemoryPoolMXBean::getName)
         .forEach(heapPoolNames::add);
 
+    GcMetricsNotificationListener gcNotificationListener = new GcMetricsNotificationListener();
     for (GarbageCollectorMXBean gcBean : ManagementFactory.getGarbageCollectorMXBeans()) {
       if (!(gcBean instanceof NotificationEmitter)) {
         continue;

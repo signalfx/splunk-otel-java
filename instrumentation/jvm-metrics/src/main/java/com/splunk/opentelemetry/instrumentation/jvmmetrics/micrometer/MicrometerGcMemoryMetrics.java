@@ -23,19 +23,22 @@ import io.micrometer.core.instrument.FunctionCounter;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.binder.BaseUnits;
 import io.micrometer.core.instrument.binder.MeterBinder;
-import java.util.concurrent.atomic.AtomicLong;
 
 public class MicrometerGcMemoryMetrics implements MeterBinder, AutoCloseable {
   private final GcMemoryMetrics gcMemoryMetrics = new GcMemoryMetrics();
 
   @Override
   public void bindTo(MeterRegistry registry) {
-    gcMemoryMetrics.install(
-        deltaSum ->
-            FunctionCounter.builder(METRIC_NAME, deltaSum, AtomicLong::get)
-                .description("Sum of heap size differences before and after gc")
-                .baseUnit(BaseUnits.BYTES)
-                .register(registry));
+    if (!gcMemoryMetrics.isAvailable()) {
+      return;
+    }
+
+    FunctionCounter.builder(METRIC_NAME, gcMemoryMetrics, GcMemoryMetrics::getDeltaSum)
+        .description("Sum of heap size differences before and after gc")
+        .baseUnit(BaseUnits.BYTES)
+        .register(registry);
+
+    gcMemoryMetrics.registerListener();
   }
 
   @Override

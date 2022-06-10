@@ -29,12 +29,17 @@ public class MicrometerAllocatedMemoryMetrics implements MeterBinder {
 
   @Override
   public void bindTo(MeterRegistry registry) {
-    allocatedMemoryMetrics.install(
-        (object, supplier) ->
-            FunctionCounter.builder(METRIC_NAME, object, (unused) -> supplier.getAsLong())
-                .description("Approximate sum of heap allocations")
-                .baseUnit(BaseUnits.BYTES)
-                .tag("type", "heap")
-                .register(registry));
+    if (!allocatedMemoryMetrics.isAvailable()) {
+      return;
+    }
+
+    FunctionCounter.builder(
+            METRIC_NAME,
+            allocatedMemoryMetrics,
+            AllocatedMemoryMetrics::getCumulativeAllocationTotal)
+        .description("Approximate sum of heap allocations")
+        .baseUnit(BaseUnits.BYTES)
+        .tag("type", "heap")
+        .register(registry);
   }
 }

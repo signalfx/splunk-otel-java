@@ -27,17 +27,20 @@ public class OtelAllocatedMemoryMetrics extends AllocatedMemoryMetrics {
   private static final AttributeKey<String> TYPE = stringKey("type");
 
   public void install() {
-    new AllocatedMemoryMetrics()
-        .install(
-            (object, supplier) -> {
-              Meter meter = OtelMeterProvider.get();
-              Attributes attributes = Attributes.of(TYPE, "heap");
-              meter
-                  .counterBuilder(METRIC_NAME)
-                  .setUnit("bytes")
-                  .setDescription("Approximate sum of heap allocations.")
-                  .buildWithCallback(
-                      measurement -> measurement.record(supplier.getAsLong(), attributes));
-            });
+    AllocatedMemoryMetrics allocatedMemoryMetrics = new AllocatedMemoryMetrics();
+    if (!allocatedMemoryMetrics.isAvailable()) {
+      return;
+    }
+
+    Meter meter = OtelMeterProvider.get();
+    Attributes attributes = Attributes.of(TYPE, "heap");
+    meter
+        .counterBuilder(METRIC_NAME)
+        .setUnit("bytes")
+        .setDescription("Approximate sum of heap allocations.")
+        .buildWithCallback(
+            measurement ->
+                measurement.record(
+                    allocatedMemoryMetrics.getCumulativeAllocationTotal(), attributes));
   }
 }

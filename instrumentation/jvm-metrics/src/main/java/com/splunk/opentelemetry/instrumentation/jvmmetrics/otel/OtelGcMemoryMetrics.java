@@ -24,15 +24,18 @@ import io.opentelemetry.api.metrics.Meter;
 public class OtelGcMemoryMetrics {
 
   public void install() {
-    new GcMemoryMetrics()
-        .install(
-            deltaSum -> {
-              Meter meter = OtelMeterProvider.get();
-              meter
-                  .counterBuilder(METRIC_NAME)
-                  .setUnit("bytes")
-                  .setDescription("Sum of heap size differences before and after gc.")
-                  .buildWithCallback(measurement -> measurement.record(deltaSum.get()));
-            });
+    GcMemoryMetrics gcMemoryMetrics = new GcMemoryMetrics();
+    if (!gcMemoryMetrics.isAvailable()) {
+      return;
+    }
+
+    Meter meter = OtelMeterProvider.get();
+    meter
+        .counterBuilder(METRIC_NAME)
+        .setUnit("bytes")
+        .setDescription("Sum of heap size differences before and after gc.")
+        .buildWithCallback(measurement -> measurement.record(gcMemoryMetrics.getDeltaSum()));
+
+    gcMemoryMetrics.registerListener();
   }
 }

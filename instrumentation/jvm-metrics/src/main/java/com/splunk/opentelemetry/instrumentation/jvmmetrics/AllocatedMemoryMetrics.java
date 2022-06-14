@@ -25,7 +25,7 @@ import java.util.Set;
 
 public class AllocatedMemoryMetrics {
   public static final String METRIC_NAME = "process.runtime.jvm.memory.allocated";
-  private final boolean hasComSunThreadMXBean = hasComSunThreadMXBean();
+  private static final boolean hasComSunThreadMXBean = hasComSunThreadMXBean();
   private final AllocationTracker allocationTracker = createAllocationTracker();
 
   public boolean isAvailable() {
@@ -33,7 +33,7 @@ public class AllocatedMemoryMetrics {
   }
 
   public long getCumulativeAllocationTotal() {
-    return allocationTracker.getCumulativeAllocationTotal();
+    return allocationTracker != null ? allocationTracker.getCumulativeAllocationTotal() : 0;
   }
 
   private AllocationTracker createAllocationTracker() {

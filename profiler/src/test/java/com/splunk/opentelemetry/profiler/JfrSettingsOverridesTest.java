@@ -17,7 +17,6 @@
 package com.splunk.opentelemetry.profiler;
 
 import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_CALL_STACK_INTERVAL;
-import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_DEPRECATED_THREADDUMP_PERIOD;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.mockito.Mockito.mock;
@@ -48,20 +47,5 @@ class JfrSettingsOverridesTest {
     assertEquals("163 ms", result.get("jdk.ThreadDump#period"));
     assertEquals("true", result.get("jdk.ObjectAllocationInNewTLAB#enabled"));
     assertEquals("true", result.get("jdk.ObjectAllocationOutsideTLAB#enabled"));
-  }
-
-  @Test
-  void fallBackToDeprecatedConfig() {
-    Config config = mock(Config.class);
-    when(config.getDuration(CONFIG_KEY_DEPRECATED_THREADDUMP_PERIOD, Duration.ZERO))
-        .thenReturn(Duration.ofMillis(999));
-    JfrSettingsOverrides overrides = new JfrSettingsOverrides(config);
-    Map<String, String> jfrSettings =
-        Map.of(
-            "jdk.ThreadDump#period", "12",
-            "jdk.ThreadDump#enabled", "true");
-    Map<String, String> result = overrides.apply(jfrSettings);
-    assertNotSame(result, jfrSettings);
-    assertEquals("999 ms", result.get("jdk.ThreadDump#period"));
   }
 }

@@ -17,7 +17,6 @@
 package com.splunk.opentelemetry.profiler;
 
 import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_CALL_STACK_INTERVAL;
-import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_DEPRECATED_THREADDUMP_PERIOD;
 import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_ENABLE_PROFILER;
 import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_INCLUDE_INTERNAL_STACKS;
 import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_INGEST_URL;
@@ -65,8 +64,6 @@ class ConfigurationLoggerTest {
         .thenReturn(true);
     when(config.getBoolean(CONFIG_KEY_TRACING_STACKS_ONLY, DEFAULT_TRACING_STACKS_ONLY))
         .thenReturn(true);
-    when(config.getDuration(CONFIG_KEY_DEPRECATED_THREADDUMP_PERIOD, null))
-        .thenReturn(Duration.ofMillis(500));
 
     ConfigurationLogger configurationLogger = new ConfigurationLogger();
 
@@ -85,7 +82,6 @@ class ConfigurationLoggerTest {
     log.assertContains("    splunk.profiler.call.stack.interval : PT21S");
     log.assertContains("splunk.profiler.include.internal.stacks : true");
     log.assertContains("    splunk.profiler.tracing.stacks.only : true");
-    log.assertContains("      splunk.profiler.period.threaddump : PT0.5S");
   }
 
   @Test

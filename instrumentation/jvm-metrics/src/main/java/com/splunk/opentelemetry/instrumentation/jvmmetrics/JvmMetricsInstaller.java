@@ -20,6 +20,10 @@ import static com.splunk.opentelemetry.SplunkConfiguration.PROFILER_MEMORY_ENABL
 import static java.util.Collections.singleton;
 
 import com.google.auto.service.AutoService;
+import com.splunk.opentelemetry.instrumentation.jvmmetrics.micrometer.MicrometerAllocatedMemoryMetrics;
+import com.splunk.opentelemetry.instrumentation.jvmmetrics.micrometer.MicrometerGcMemoryMetrics;
+import com.splunk.opentelemetry.instrumentation.jvmmetrics.otel.OtelAllocatedMemoryMetrics;
+import com.splunk.opentelemetry.instrumentation.jvmmetrics.otel.OtelGcMemoryMetrics;
 import com.splunk.opentelemetry.instrumentation.jvmmetrics.otel.OtelJvmGcMetrics;
 import com.splunk.opentelemetry.instrumentation.jvmmetrics.otel.OtelJvmHeapPressureMetrics;
 import com.splunk.opentelemetry.instrumentation.jvmmetrics.otel.OtelJvmMemoryMetrics;
@@ -70,8 +74,12 @@ public class JvmMetricsInstaller implements AgentListener {
     if (config.getBoolean(PROFILER_MEMORY_ENABLED_PROPERTY, false)
         || config.getBoolean("splunk.metrics.experimental.enabled", false)) {
       if (useMicrometerMetrics) {
-        new AllocatedMemoryMetrics().bindTo(Metrics.globalRegistry);
-        new GcMemoryMetrics().bindTo(Metrics.globalRegistry);
+        new MicrometerAllocatedMemoryMetrics().bindTo(Metrics.globalRegistry);
+        new MicrometerGcMemoryMetrics().bindTo(Metrics.globalRegistry);
+      }
+      if (useOtelMetrics) {
+        new OtelAllocatedMemoryMetrics().install();
+        new OtelGcMemoryMetrics().install();
       }
     }
   }

@@ -17,42 +17,30 @@
 package com.splunk.opentelemetry.instrumentation.jvmmetrics;
 
 import com.sun.management.ThreadMXBean;
-import io.micrometer.core.instrument.FunctionCounter;
-import io.micrometer.core.instrument.MeterRegistry;
-import io.micrometer.core.instrument.binder.BaseUnits;
-import io.micrometer.core.instrument.binder.MeterBinder;
 import java.lang.management.ManagementFactory;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-public class AllocatedMemoryMetrics implements MeterBinder {
+public class AllocatedMemoryMetrics {
   public static final String METRIC_NAME = "process.runtime.jvm.memory.allocated";
-  private final boolean hasComSunThreadMXBean = hasComSunThreadMXBean();
+  private static final boolean hasComSunThreadMXBean = hasComSunThreadMXBean();
+  private final AllocationTracker allocationTracker = createAllocationTracker();
 
-  @Override
-  public void bindTo(MeterRegistry registry) {
-    if (!hasComSunThreadMXBean) {
-      return;
+  public boolean isAvailable() {
+    return allocationTracker != null;
+  }
+
+  public long getCumulativeAllocationTotal() {
+    return allocationTracker != null ? allocationTracker.getCumulativeAllocationTotal() : 0;
+  }
+
+  private AllocationTracker createAllocationTracker() {
+    if (hasComSunThreadMXBean && isThreadAllocatedMemoryEnabled()) {
+      return new AllocationTracker();
     }
-
-    if (!isThreadAllocatedMemoryEnabled()) {
-      return;
-    }
-
-    AllocationTracker allocationTracker = new AllocationTracker();
-    // FunctionCounter keeps a weak reference to allocationTracker. To ensure it is not collected
-    // we pass a capturing lambda as the function instead of method reference
-    // AllocationTracker::getCumulativeAllocationTotal
-    FunctionCounter.builder(
-            METRIC_NAME,
-            allocationTracker,
-            (unused) -> allocationTracker.getCumulativeAllocationTotal())
-        .description("Approximate sum of heap allocations")
-        .baseUnit(BaseUnits.BYTES)
-        .tag("type", "heap")
-        .register(registry);
+    return null;
   }
 
   private static boolean hasComSunThreadMXBean() {

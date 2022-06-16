@@ -18,10 +18,6 @@ package com.splunk.opentelemetry.instrumentation.jvmmetrics;
 
 import com.sun.management.GarbageCollectionNotificationInfo;
 import com.sun.management.GcInfo;
-import io.micrometer.core.instrument.FunctionCounter;
-import io.micrometer.core.instrument.MeterRegistry;
-import io.micrometer.core.instrument.binder.BaseUnits;
-import io.micrometer.core.instrument.binder.MeterBinder;
 import java.lang.management.GarbageCollectorMXBean;
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryPoolMXBean;
@@ -39,7 +35,7 @@ import javax.management.NotificationEmitter;
 import javax.management.NotificationListener;
 import javax.management.openmbean.CompositeData;
 
-public class GcMemoryMetrics implements MeterBinder, AutoCloseable {
+public class GcMemoryMetrics implements AutoCloseable {
   public static final String METRIC_NAME = "process.runtime.jvm.memory.reclaimed";
   private final boolean managementExtensionsPresent = isManagementExtensionsPresent();
 
@@ -47,25 +43,21 @@ public class GcMemoryMetrics implements MeterBinder, AutoCloseable {
   private final Set<String> heapPoolNames = new HashSet<>();
   private final AtomicLong deltaSum = new AtomicLong();
 
-  @Override
-  public void bindTo(MeterRegistry registry) {
-    if (!this.managementExtensionsPresent) {
-      return;
-    }
+  public long getDeltaSum() {
+    return deltaSum.get();
+  }
 
-    GcMetricsNotificationListener gcNotificationListener =
-        new GcMetricsNotificationListener(registry);
+  public boolean isAvailable() {
+    return managementExtensionsPresent;
+  }
 
-    FunctionCounter.builder(METRIC_NAME, deltaSum, AtomicLong::get)
-        .description("Sum of heap size differences before and after gc")
-        .baseUnit(BaseUnits.BYTES)
-        .register(registry);
-
+  public void registerListener() {
     ManagementFactory.getMemoryPoolMXBeans().stream()
         .filter(pool -> MemoryType.HEAP.equals(pool.getType()))
         .map(MemoryPoolMXBean::getName)
         .forEach(heapPoolNames::add);
 
+    GcMetricsNotificationListener gcNotificationListener = new GcMetricsNotificationListener();
     for (GarbageCollectorMXBean gcBean : ManagementFactory.getGarbageCollectorMXBeans()) {
       if (!(gcBean instanceof NotificationEmitter)) {
         continue;
@@ -94,11 +86,6 @@ public class GcMemoryMetrics implements MeterBinder, AutoCloseable {
   }
 
   class GcMetricsNotificationListener implements NotificationListener {
-    private final MeterRegistry registry;
-
-    GcMetricsNotificationListener(MeterRegistry registry) {
-      this.registry = registry;
-    }
 
     @Override
     public void handleNotification(Notification notification, Object ref) {

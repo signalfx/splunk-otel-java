@@ -17,7 +17,6 @@
 package com.splunk.opentelemetry.profiler;
 
 import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_CALL_STACK_INTERVAL;
-import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_DEPRECATED_THREADDUMP_PERIOD;
 
 import io.opentelemetry.instrumentation.api.config.Config;
 import java.time.Duration;
@@ -54,14 +53,7 @@ class JfrSettingsOverrides {
     if (customInterval != Duration.ZERO) {
       return customInterval;
     }
-    Duration duration = config.getDuration(CONFIG_KEY_DEPRECATED_THREADDUMP_PERIOD, Duration.ZERO);
-    if (duration != Duration.ZERO) {
-      logger.warn(
-          "Using DEPRECATED configuration {}, please switch to {}",
-          CONFIG_KEY_DEPRECATED_THREADDUMP_PERIOD,
-          CONFIG_KEY_CALL_STACK_INTERVAL);
-    }
-    return duration;
+    return Duration.ZERO;
   }
 
   private Map<String, String> maybeEnableTLABs(Map<String, String> settings) {

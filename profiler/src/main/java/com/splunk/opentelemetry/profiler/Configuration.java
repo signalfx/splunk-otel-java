@@ -51,8 +51,6 @@ public class Configuration implements ConfigCustomizer {
   private static final String CONFIG_KEY_MEMORY_DATA_FORMAT = "splunk.profiler.memory.data.format";
   public static final String CONFIG_KEY_TLAB_ENABLED = "splunk.profiler.tlab.enabled";
   public static final String CONFIG_KEY_CALL_STACK_INTERVAL = "splunk.profiler.call.stack.interval";
-  public static final String CONFIG_KEY_DEPRECATED_THREADDUMP_PERIOD =
-      "splunk.profiler.period.threaddump";
   public static final String CONFIG_KEY_INCLUDE_AGENT_INTERNALS =
       "splunk.profiler.include.agent.internals";
   // Include stacks where every frame starts with jvm/sun/jdk

@@ -8,18 +8,35 @@ and this repository adheres to [Semantic Versioning](https://semver.org/spec/v2.
 
 ## Unreleased
 
+## v1.13.0 - 2022-06-17
+
+### General
+
 - OpenTelemetry Java SDK and OpenTelemetry Instrumentation for Java dependencies have been updated to version 1.15.0.
 - Micrometer dependency has been updated to version 1.9.1.
 
+### Breaking Changes
+
+- Deprecated configuration property `splunk.profiler.period.{eventName}` has been removed. You can use
+  `splunk.profiler.call.stack.interval` instead.
+
 ## v1.12.0 - 2022-06-09
 
+### General
+
 - Compliance with [GDI spec version 1.3.0](https://github.com/signalfx/gdi-specification/releases/tag/v1.3.0)
-- Bug fix for `OTEL_EXPORTER_OTLP_ENDPOINT` not overriding the `splunk.realm` property (#795)
-- Profiling stack trace data defaults to pprof format (#799)
 - Change metric names used by memory profiling:
   - `jvm.experimental.memory.allocated` -> `process.runtime.jvm.memory.allocated`
   - `jvm.experimental.memory.reclaimed` -> `process.runtime.jvm.memory.reclaimed`
     (these two have also been migrated from Gauge to Counter)
+
+### Bugfixes
+
+- Fixed `OTEL_EXPORTER_OTLP_ENDPOINT` not overriding the `splunk.realm` property (#795)
+
+### Enhancements
+
+- Profiling stack trace data defaults to pprof format (#799)
 
 ## v1.11.0 - 2022-05-18
 

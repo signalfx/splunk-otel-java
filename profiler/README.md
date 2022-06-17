@@ -19,7 +19,7 @@ events each time a span context change occurs. These context changes are then tr
 during replay so that a call stack can be associated with the appropriate span.
 
 Stack trace data is embedded as a string inside of an OTLP logs payload. The
-[Splunk OpenTelemetry Connector](https://github.com/signalfx/splunk-otel-collector)
+[Splunk OpenTelemetry Collector](https://github.com/signalfx/splunk-otel-collector)
 will detect this profiling data inside of OTLP logs and will help it along
 its ingest path.
 
@@ -27,7 +27,7 @@ its ingest path.
 
 * Java 8 above 8u262, or Java 11+
 * 100 MB of free disk space
-* [Splunk OpenTelemetry Connector](https://github.com/signalfx/splunk-otel-collector) version 0.33.1 or higher. _Sending profiling data directly to ingest is not supported at this time_.
+* [Splunk OpenTelemetry Collector](https://github.com/signalfx/splunk-otel-collector) version 0.33.1 or higher. _Sending profiling data directly to ingest is not supported at this time_.
 * Profiler is enabled at startup (disabled by default, see the Configuration section)
 
 # Enable the profiler
@@ -127,11 +127,11 @@ Check for the following common issues:
 at startup (see above).
 * Verify that a collector is actually running at that endpoint and that the
 application host/container can resolve any hostnames and actually connect to the given OTLP port (default: 4317)
-* Make sure you are running the [Splunk OpenTelemetry Connector](https://github.com/signalfx/splunk-otel-collector)
+* Make sure you are running the [Splunk OpenTelemetry Collector](https://github.com/signalfx/splunk-otel-collector)
 and that the version is 0.33.1 or greater. Other collector distributions may not be able to route the log
 data containing profiles correctly.
 * Make sure that the collector is configured correctly to handle profiling data. By default, the
-[Splunk OpenTelemetry Connector](https://github.com/signalfx/splunk-otel-collector) handles this, but
+[Splunk OpenTelemetry Collector](https://github.com/signalfx/splunk-otel-collector) handles this, but
 a custom configuration might have overridden some settings. Make sure that an OTLP _receiver_ is configured in the collector
 and that an exporter is configured for `splunk_hec` export. Ensure that the `token` and `endpoint` fields
 are [correctly configured](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/receiver/splunkhecreceiver#configuration).

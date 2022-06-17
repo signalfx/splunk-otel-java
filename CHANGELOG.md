@@ -338,7 +338,7 @@ and this repository adheres to [Semantic Versioning](https://semver.org/spec/v2.
   default OTLP exporter endpoint is `http://localhost:4317`. You can still use the Jaeger exporter by
   setting `OTEL_TRACES_EXPORTER=jaeger-thrift-splunk`.
 - We have also changed the default endpoint of the SignalFx metrics exporter: it now points to `http://localhost:9943`,
-  which is the default endpoint of [Splunk OpenTelemetry Connector](https://github.com/signalfx/splunk-otel-collector)
+  which is the default endpoint of [Splunk OpenTelemetry Collector](https://github.com/signalfx/splunk-otel-collector)
   deployed on `localhost`.
 - The agent now uses [W3C `tracecontext`](https://www.w3.org/TR/trace-context/) as the default trace propagation
   mechanism; [W3C Baggage](https://w3c.github.io/baggage/) is also enabled by default. You can switch to the previous B3

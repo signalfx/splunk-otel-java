@@ -61,7 +61,7 @@ This distribution comes with the following defaults:
 - [OTLP gRPC
   exporter](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/protocol/README.md)
   configured to send spans to a locally running [Splunk OpenTelemetry
-  Connector](https://github.com/signalfx/splunk-otel-collector)
+  Collector](https://github.com/signalfx/splunk-otel-collector)
   (`http://localhost:4317`); [Jaeger Thrift
   exporter](https://github.com/signalfx/splunk-otel-java/blob/main/docs/advanced-config.md#trace-exporters)
   available for [Smart Agent](https://github.com/signalfx/signalfx-agent)
@@ -138,7 +138,7 @@ Follow these steps to automatically instrument your application using the Java a
 
 > **Tip**: To generate a snippet that includes all the basic install commands for your environment and service, open the Splunk Observability Cloud wizard in **Data Setup > APM Instrumentation > Java > Add Connection**.
 
-When you run your application with the Java agent, trace data goes to Observability Cloud through the Splunk OTel connector. If no data
+When you run your application with the Java agent, trace data goes to Observability Cloud through the Splunk OTel collector. If no data
 appears in **Observability > APM**, see [Troubleshooting](#troubleshooting).
 
 For full install instructions, including K8s and Lambda snippets, see [Instrument Java services for Observability Cloud](https://docs.splunk.com/Observability/gdi/get-data-in/application/java/get-started.html) in the official Splunk documentation.

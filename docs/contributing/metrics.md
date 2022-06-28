@@ -3,8 +3,8 @@
 This short doc aims to describe the current (legacy) metrics solution in the Splunk distro: how we use Micrometer, which
 parts are placed where (and in which class loader), and how they interact.
 
-Since we're currently not using the OpenTelemetry metrics API & SDK (this will change in the future), we're disabling by
-default the OTel metrics exporter and all known metrics instrumentations in the `SplunkConfiguration` class.
+Since we're currently not using the OpenTelemetry metrics API & SDK (this will change in the future), we're disabling
+the OTel metrics exporter and all known metrics instrumentations by default in the `SplunkConfiguration` class.
 
 The `micrometer-core` library is used as a metrics API, and it's placed in the `bootstrap` module; and thus loaded by
 the bootstrap class loader. To make sure that we do not conflict with the Micrometer version that might be included in
@@ -19,7 +19,7 @@ implementation) builds the meter registry configuration, and if metrics are enab
 created `SignalFxMeterRegistry` in the `Metrics.globalRegistry`, so that it's visible from all classloaders (and all
 metrics instrumentations).
 
-Micrometer metrics are experimental feature, and are not enabled by default: you have to manually enable them.
+Micrometer metrics is an experimental feature, and is not enabled by default: you have to manually enable it.
 
 We have several metrics instrumentations (metric instruments are described in more detail
 in [the main metrics doc](../metrics.md)): almost all of them use `MetricsInstrumentationModule` as the base class (
@@ -27,11 +27,10 @@ which disables the instrumentation if metrics are not enabled), the only excepti
 instrumentation, which uses a custom `AgentListener` to install itself.
 
 To make it possible to add custom metrics from the instrumented application, the Splunk distro includes a Micrometer
-bridge instrumentation for that. It utilizes a similar strategy as the upstream `opentelemetry-api` bridge, that is we
-have a separate "application" shaded Micrometer (in `:instrumenter:micrometer-1.5-shaded-for-instrumenting`) that
-prefixes all the class names with `application.`. This shaded Micrometer is only used to compile the bridge
-instrumentation; the prefix is removed when the agent is assembled. The bridge instrumentation itself is fairly
-straightforward (even if it's a lot of code): it translates all calls to the application `MeterRegistry` to our
-own `MeterRegistry` (the shaded one present in the bootstrap). The combination of shading + muzzle ensures the safety of
-the bridge instrumentation; it won't be installed in applications containing an incompatible (old, or modified)
-Micrometer version.
+bridge instrumentation. It utilizes a similar strategy as the upstream `opentelemetry-api` bridge, that is we have a
+separate "application" shaded Micrometer (in `:instrumenter:micrometer-1.5-shaded-for-instrumenting`) that prefixes all
+the class names with `application.`. This shaded Micrometer is only used to compile the bridge instrumentation; the
+prefix is removed when the agent is assembled. The bridge instrumentation itself is fairly straightforward (even if it's
+a lot of code): it translates all calls to the application `MeterRegistry` to our own `MeterRegistry` (the shaded one
+present in the bootstrap). The combination of shading + muzzle ensures the safety of the bridge instrumentation; it
+won't be installed in applications containing an incompatible (old, or modified) Micrometer version.

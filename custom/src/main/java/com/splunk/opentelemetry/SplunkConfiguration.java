@@ -48,14 +48,18 @@ public class SplunkConfiguration implements ConfigCustomizer {
     config.put("otel.instrumentation.jboss-logmanager.enabled", "false");
     config.put("otel.instrumentation.log4j-appender.enabled", "false");
     config.put("otel.instrumentation.logback-appender.enabled", "false");
-    // disable otel hikari instrumentation, we use our own for now
+
+    // disable metrics instrumentations, we're still on the micrometer based implementation
+    config.put("otel.instrumentation.apache-dbcp.enabled", "false");
+    config.put("otel.instrumentation.c3p0.enabled", "false");
     config.put("otel.instrumentation.hikaricp.enabled", "false");
-    // disable otel micrometer instrumentation, we use our own for now
     config.put("otel.instrumentation.micrometer.enabled", "false");
-    // disable oshi metrics too, just in case
+    config.put("otel.instrumentation.oracle-ucp.enabled", "false");
     config.put("otel.instrumentation.oshi.enabled", "false");
-    // disable otel runtime-metrics instrumentation; we use micrometer metrics instead
     config.put("otel.instrumentation.runtime-metrics.enabled", "false");
+    config.put("otel.instrumentation.tomcat-jdbc.enabled", "false");
+    config.put("otel.instrumentation.vibur-dbcp.enabled", "false");
+
     // enable spring batch instrumentation
     config.put("otel.instrumentation.spring-batch.enabled", "true");
     config.put("otel.instrumentation.spring-batch.item.enabled", "true");

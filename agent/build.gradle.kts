@@ -71,7 +71,6 @@ tasks {
     dependencies {
       exclude(dependency("org.slf4j:slf4j-api"))
       exclude(dependency("io.opentelemetry:opentelemetry-api"))
-      exclude(dependency("io.opentelemetry:opentelemetry-api-metrics"))
       exclude(dependency("io.opentelemetry:opentelemetry-context"))
       exclude(dependency("io.opentelemetry:opentelemetry-semconv"))
     }

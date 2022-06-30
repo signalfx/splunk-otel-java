@@ -1,7 +1,7 @@
 import com.google.protobuf.gradle.*
 
 plugins {
-  id("com.google.protobuf") version "0.8.18"
+  id("com.google.protobuf") version "0.8.19"
 }
 
 val protobufVersion = "3.21.2"

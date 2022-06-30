@@ -62,10 +62,7 @@ This distribution comes with the following defaults:
   exporter](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/protocol/README.md)
   configured to send spans to a locally running [Splunk OpenTelemetry
   Collector](https://github.com/signalfx/splunk-otel-collector)
-  (`http://localhost:4317`); [Jaeger Thrift
-  exporter](https://github.com/signalfx/splunk-otel-java/blob/main/docs/advanced-config.md#trace-exporters)
-  available for [Smart Agent](https://github.com/signalfx/signalfx-agent)
-  (`http://localhost:9080/v1/trace`).
+  (`http://localhost:4317`)
 - Unlimited default limits for [configuration
   options](docs/advanced-config.md#trace-configuration) to support
   full-fidelity traces.

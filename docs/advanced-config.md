@@ -39,6 +39,8 @@ export SPLUNK_METRICS_ENDPOINT=https://ingest.us0.signalfx.com
 | `otel.exporter.jaeger.endpoint` | `OTEL_EXPORTER_JAEGER_ENDPOINT` | `http://localhost:9080/v1/trace` | Stable  | The Jaeger endpoint to connect to. Setting this will override the `splunk.realm` property.                                               |
 | `otel.traces.exporter`          | `OTEL_TRACES_EXPORTER`          | `otlp`                           | Stable  | Select the traces exporter to use. We recommend using either the OTLP exporter (`otlp`) or the Jaeger exporter (`jaeger-thrift-splunk`). |
 
+:warning: **Support for the `jaeger-thrift-splunk` exporter will be removed after December 17th, 2022. See the [deprecation notice](https://github.com/signalfx/signalfx-agent/blob/main/docs/smartagent-deprecation-notice.md) on the SmartAgent for details. ** :warning:
+
 The Splunk Distribution of OpenTelemetry Java uses the OTLP traces exporter as the default setting. Please note that the
 OTLP format is neither supported by the (now
 deprecated) [SignalFx Smart Agent](https://github.com/signalfx/signalfx-agent) nor by the Splunk ingest. If you're still

@@ -7,7 +7,7 @@ include:
     file: '/templates/.whitesource.yml'
 
 image:
-  name: "openjdk:11.0.11-9-jdk"
+  name: "docker-hub.repo.splunkdev.net/openjdk:11.0.11-9-jdk"
 
 stages:
   - build

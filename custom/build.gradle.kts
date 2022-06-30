@@ -23,7 +23,6 @@ dependencies {
     // https://issues.apache.org/jira/browse/THRIFT-5375
     exclude("org.apache.tomcat.embed", "tomcat-embed-core")
     exclude("com.google.code.gson", "gson")
-    exclude("com.google.code.gson", "gson-parent")
   }
 
   compileOnly("io.micrometer:micrometer-core")

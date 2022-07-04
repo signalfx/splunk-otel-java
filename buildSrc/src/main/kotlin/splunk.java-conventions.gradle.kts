@@ -29,7 +29,7 @@ extensions.configure<DependencyManagementExtension>("dependencyManagement") {
     dependency("org.assertj:assertj-core:3.22.0")
     dependency("org.awaitility:awaitility:4.2.0")
     dependency("io.jaegertracing:jaeger-client:1.8.1")
-    dependency("com.signalfx.public:signalfx-java:1.0.19")
+    dependency("com.signalfx.public:signalfx-java:1.0.20")
 
     dependencySet("com.github.docker-java:3.2.11") {
       entry("docker-java-core")

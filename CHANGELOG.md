@@ -8,6 +8,14 @@ and this repository adheres to [Semantic Versioning](https://semver.org/spec/v2.
 
 ## Unreleased
 
+## v1.13.1 - 2022-07-04
+
+### General
+
+- signalfx-java has been updated to version 1.0.20
+- jaeger-client has been updated to version 1.8.1 (#833)
+- gson dependency has been excluded from agent (#829)
+
 ## v1.13.0 - 2022-06-17
 
 ### General

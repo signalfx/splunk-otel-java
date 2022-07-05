@@ -130,6 +130,14 @@ public class SplunkConfiguration implements ConfigCustomizer {
           config,
           OTEL_EXPORTER_JAEGER_ENDPOINT,
           "https://ingest." + realm + ".signalfx.com/v2/trace");
+
+      // metrics ingest doesn't currently accept grpc
+      addIfAbsent(builder, config, "otel.exporter.otlp.metrics.protocol", "http/protobuf");
+      addIfAbsent(
+          builder,
+          config,
+          "otel.exporter.otlp.metrics.endpoint",
+          "https://ingest." + realm + ".signalfx.com/v2/datapoint/otlp");
     }
 
     String accessToken = config.getString(SPLUNK_ACCESS_TOKEN);

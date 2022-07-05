@@ -71,7 +71,7 @@ public class LibertySmokeTest extends AppServerTest {
       ExpectedServerAttributes expectedServerAttributes,
       String metricsImplementation)
       throws IOException, InterruptedException {
-    startTargetOrSkipTest(image);
+    startTargetOrSkipTest(image, metricsImplementation);
 
     assertServerHandler(expectedServerAttributes);
     assertWebAppTrace(expectedServerAttributes);

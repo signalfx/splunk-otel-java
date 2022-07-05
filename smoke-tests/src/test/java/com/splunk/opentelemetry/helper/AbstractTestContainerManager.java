@@ -48,11 +48,6 @@ public abstract class AbstractTestContainerManager implements TestContainerManag
     // sampler
     environment.put("OTEL_TRACES_SAMPLER", "internal_root_off");
 
-    // enable both micrometer and otel based metrics
-    // micrometer metrics use _ instead of . in metric tags
-    environment.put("SPLUNK_METRICS_MICROMETER_ENABLED", "true");
-    environment.put("SPLUNK_METRICS_OTEL_ENABLED", "true");
-
     return environment;
   }
 }

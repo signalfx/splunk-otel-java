@@ -39,9 +39,9 @@ public class TomcatSmokeTest extends AppServerTest {
 
   private static Stream<Arguments> supportedConfigurations() {
     return configurations("tomcat")
-        .otelLinux("7.0.109", TOMCAT7_SERVER_ATTRIBUTES, VMS_ALL, "8")
+        .otelLinux("7.0.109", TOMCAT7_SERVER_ATTRIBUTES, VMS_HOTSPOT, "8")
         .otelLinux("8.5.72", TOMCAT8_SERVER_ATTRIBUTES, VMS_ALL, "8", "11")
-        .otelLinux("9.0.54", TOMCAT9_SERVER_ATTRIBUTES, VMS_HOTSPOT, "8", "11")
+        .otelLinux("9.0.54", TOMCAT9_SERVER_ATTRIBUTES, VMS_HOTSPOT, METRICS_ALL, "8", "11")
         .otelLinux("10.0.12", TOMCAT10_SERVER_ATTRIBUTES, VMS_HOTSPOT, "11", "17")
         .otelLinux("10.0.12", TOMCAT10_SERVER_ATTRIBUTES, VMS_OPENJ9, "11")
         .otelWindows("7.0.109", TOMCAT7_SERVER_ATTRIBUTES, VMS_ALL, "8")
@@ -54,20 +54,28 @@ public class TomcatSmokeTest extends AppServerTest {
 
   @ParameterizedTest(name = "[{index}] {0}")
   @MethodSource("supportedConfigurations")
-  void tomcatSmokeTest(TestImage image, ExpectedServerAttributes expectedServerAttributes)
+  void tomcatSmokeTest(
+      TestImage image,
+      ExpectedServerAttributes expectedServerAttributes,
+      String metricsImplementation)
       throws IOException, InterruptedException {
-    startTargetOrSkipTest(image);
+    startTargetOrSkipTest(image, metricsImplementation);
 
     assertServerHandler(expectedServerAttributes);
     assertWebAppTrace(expectedServerAttributes);
-    assertMetrics(waitForMetrics());
+    assertMetrics(waitForMetrics(), metricsImplementation);
 
     stopTarget();
   }
 
-  private void assertMetrics(MetricsInspector metrics) {
-    assertMicrometerMetrics(metrics);
-    assertOtelMetrics(metrics);
+  private void assertMetrics(MetricsInspector metrics, String metricsImplementation) {
+    if ("micrometer".equals(metricsImplementation)) {
+      assertMicrometerMetrics(metrics);
+    } else if ("opentelemetry".equals(metricsImplementation)) {
+      assertOtelMetrics(metrics);
+    } else {
+      throw new IllegalStateException("invalid metrics implementation " + metricsImplementation);
+    }
   }
 
   private void assertMicrometerMetrics(MetricsInspector metrics) {

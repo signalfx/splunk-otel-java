@@ -22,9 +22,13 @@ import io.opentelemetry.instrumentation.api.config.ConfigBuilder;
 import io.opentelemetry.javaagent.extension.config.ConfigCustomizer;
 import java.util.HashMap;
 import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @AutoService(ConfigCustomizer.class)
 public class SplunkConfiguration implements ConfigCustomizer {
+  private static final Logger log = LoggerFactory.getLogger(SplunkConfiguration.class);
+
   public static final String SPLUNK_ACCESS_TOKEN = "splunk.access.token";
   public static final String OTEL_EXPORTER_JAEGER_ENDPOINT = "otel.exporter.jaeger.endpoint";
   public static final String PROFILER_ENABLED_PROPERTY = "splunk.profiler.enabled";
@@ -32,33 +36,22 @@ public class SplunkConfiguration implements ConfigCustomizer {
   public static final String SPLUNK_REALM_PROPERTY = "splunk.realm";
   public static final String SPLUNK_REALM_NONE = "none";
 
+  public static final String METRICS_ENABLED_PROPERTY = "splunk.metrics.enabled";
+  public static final String METRICS_ENDPOINT_PROPERTY = "splunk.metrics.endpoint";
+  public static final String METRICS_EXPORT_INTERVAL_PROPERTY = "splunk.metrics.export.interval";
+  public static final String METRICS_IMPLEMENTATION = "splunk.metrics.implementation";
+
   @Override
   public Map<String, String> defaultProperties() {
     Map<String, String> config = new HashMap<>();
 
     config.put("otel.traces.sampler", "always_on");
 
-    // by default no metrics are exported
-    config.put("otel.metrics.exporter", "none");
-
-    // instrumentation settings
-
     // disable logging instrumentations - we're not currently sending logs (yet)
     config.put("otel.instrumentation.java-util-logging.enabled", "false");
     config.put("otel.instrumentation.jboss-logmanager.enabled", "false");
     config.put("otel.instrumentation.log4j-appender.enabled", "false");
     config.put("otel.instrumentation.logback-appender.enabled", "false");
-
-    // disable metrics instrumentations, we're still on the micrometer based implementation
-    config.put("otel.instrumentation.apache-dbcp.enabled", "false");
-    config.put("otel.instrumentation.c3p0.enabled", "false");
-    config.put("otel.instrumentation.hikaricp.enabled", "false");
-    config.put("otel.instrumentation.micrometer.enabled", "false");
-    config.put("otel.instrumentation.oracle-ucp.enabled", "false");
-    config.put("otel.instrumentation.oshi.enabled", "false");
-    config.put("otel.instrumentation.runtime-metrics.enabled", "false");
-    config.put("otel.instrumentation.tomcat-jdbc.enabled", "false");
-    config.put("otel.instrumentation.vibur-dbcp.enabled", "false");
 
     // enable spring batch instrumentation
     config.put("otel.instrumentation.spring-batch.enabled", "true");
@@ -70,6 +63,58 @@ public class SplunkConfiguration implements ConfigCustomizer {
   @Override
   public Config customize(Config config) {
     ConfigBuilder builder = config.toBuilder();
+
+    String metricsImplementation = config.getString(METRICS_IMPLEMENTATION);
+    if (metricsImplementation == null) {
+      metricsImplementation = "micrometer";
+      builder.addProperty(METRICS_IMPLEMENTATION, "micrometer");
+    }
+
+    if ("micrometer".equals(metricsImplementation)) {
+      log.info(
+          "Micrometer metrics are deprecated, OpenTelemetry metrics will become the default implementation in the next release.");
+
+      // by default no otel metrics are exported
+      addIfAbsent(builder, config, "otel.metrics.exporter", "none");
+
+      // disable metrics instrumentations, we're still on the micrometer based implementation
+      addIfAbsent(builder, config, "otel.instrumentation.apache-dbcp.enabled", "false");
+      addIfAbsent(builder, config, "otel.instrumentation.c3p0.enabled", "false");
+      addIfAbsent(builder, config, "otel.instrumentation.hikaricp.enabled", "false");
+      addIfAbsent(builder, config, "otel.instrumentation.micrometer.enabled", "false");
+      addIfAbsent(builder, config, "otel.instrumentation.oracle-ucp.enabled", "false");
+      addIfAbsent(builder, config, "otel.instrumentation.oshi.enabled", "false");
+      addIfAbsent(builder, config, "otel.instrumentation.runtime-metrics.enabled", "false");
+      addIfAbsent(builder, config, "otel.instrumentation.tomcat-jdbc.enabled", "false");
+      addIfAbsent(builder, config, "otel.instrumentation.vibur-dbcp.enabled", "false");
+    } else if ("opentelemetry".equals(metricsImplementation)) {
+      String splunkMetricsEndpoint = config.getString(METRICS_ENDPOINT_PROPERTY);
+      if (splunkMetricsEndpoint != null) {
+        log.warn(
+            "splunk.metrics.endpoint is deprecate, use otel.exporter.otlp.metrics.endpoint instead.");
+
+        String otlpMetricsEndpoint = config.getString("otel.exporter.otlp.metrics.endpoint");
+        String otlpEndpoint = config.getString("otel.exporter.otlp.endpoint");
+        // If neither otel.exporter.otlp.metrics.endpoint nor otel.exporter.otlp.endpoint are
+        // configured, the value of splunk.metrics.endpoint should be used as the exporter endpoint.
+        if (otlpMetricsEndpoint == null && otlpEndpoint == null) {
+          builder.addProperty("otel.exporter.otlp.metrics.endpoint", splunkMetricsEndpoint);
+        }
+      }
+
+      String splunkMetricsInterval = config.getString(METRICS_EXPORT_INTERVAL_PROPERTY);
+      if (splunkMetricsInterval != null) {
+        log.warn(
+            "splunk.metrics.export.interval is deprecate, use otel.metric.export.interval instead.");
+
+        addIfAbsent(builder, config, "otel.metric.export.interval", splunkMetricsInterval);
+      }
+    } else {
+      throw new IllegalStateException(
+          "Invalid metrics implementation: '"
+              + metricsImplementation
+              + "', expected either 'micrometer' or 'opentelemetry'.");
+    }
 
     String realm = config.getString(SPLUNK_REALM_PROPERTY, SPLUNK_REALM_NONE);
     if (SPLUNK_REALM_NONE.equals(realm)) {

@@ -16,6 +16,10 @@
 
 package com.splunk.opentelemetry.micrometer;
 
+import static com.splunk.opentelemetry.SplunkConfiguration.METRICS_ENABLED_PROPERTY;
+import static com.splunk.opentelemetry.SplunkConfiguration.METRICS_ENDPOINT_PROPERTY;
+import static com.splunk.opentelemetry.SplunkConfiguration.METRICS_EXPORT_INTERVAL_PROPERTY;
+import static com.splunk.opentelemetry.SplunkConfiguration.METRICS_IMPLEMENTATION;
 import static com.splunk.opentelemetry.SplunkConfiguration.PROFILER_MEMORY_ENABLED_PROPERTY;
 import static com.splunk.opentelemetry.SplunkConfiguration.SPLUNK_ACCESS_TOKEN;
 import static com.splunk.opentelemetry.SplunkConfiguration.SPLUNK_REALM_NONE;
@@ -31,10 +35,6 @@ import io.opentelemetry.semconv.resource.attributes.ResourceAttributes;
 import java.time.Duration;
 
 class SplunkMetricsConfig implements SignalFxConfig {
-  static final String METRICS_ENABLED_PROPERTY = "splunk.metrics.enabled";
-  static final String METRICS_ENDPOINT_PROPERTY = "splunk.metrics.endpoint";
-  static final String METRICS_EXPORT_INTERVAL_PROPERTY = "splunk.metrics.export.interval";
-
   // SmartAgent default endpoint: http://localhost:9080/v2/datapoint
   // OTel collector default endpoint: http://localhost:9943
   static final String DEFAULT_METRICS_ENDPOINT = "http://localhost:9943";
@@ -56,8 +56,9 @@ class SplunkMetricsConfig implements SignalFxConfig {
 
   @Override
   public boolean enabled() {
-    return config.getBoolean(METRICS_ENABLED_PROPERTY, false)
-        || config.getBoolean(PROFILER_MEMORY_ENABLED_PROPERTY, false);
+    return "micrometer".equals(config.getString(METRICS_IMPLEMENTATION))
+        && (config.getBoolean(METRICS_ENABLED_PROPERTY, false)
+            || config.getBoolean(PROFILER_MEMORY_ENABLED_PROPERTY, false));
   }
 
   @Override

@@ -89,7 +89,7 @@ public class JvmMetricsInstaller implements AgentListener {
     // if default is disabled, we want to disable individually.
     boolean anyEnabled = defaultEnabled;
     for (String name : instrumentationNames) {
-      String propertyName = "otel.instrumentation." + name + ".enabled";
+      String propertyName = "otel.instrumentation." + name.replace('-', '.') + ".enabled";
       boolean enabled = config.getBoolean(propertyName, defaultEnabled);
 
       if (defaultEnabled) {

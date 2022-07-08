@@ -31,7 +31,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.micrometer.core.instrument.config.validate.Validated;
 import io.opentelemetry.api.common.Attributes;
-import io.opentelemetry.instrumentation.api.config.Config;
+import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 import io.opentelemetry.sdk.resources.Resource;
 import io.opentelemetry.semconv.resource.attributes.ResourceAttributes;
 import java.time.Duration;
@@ -42,9 +42,10 @@ class SplunkMetricsConfigTest {
   @Test
   void testDefaultValues() {
     // given
-    var javaagentConfig = Config.builder().build();
+    var autoConfiguredSdk =
+        AutoConfiguredOpenTelemetrySdk.builder().setResultAsGlobal(false).build();
     var resource = Resource.create(Attributes.of(ResourceAttributes.SERVICE_NAME, "test-service"));
-    var splunkMetricsConfig = new SplunkMetricsConfig(javaagentConfig, resource);
+    var splunkMetricsConfig = new SplunkMetricsConfig(autoConfiguredSdk.getConfig(), resource);
 
     // when & then
     assertFalse(splunkMetricsConfig.enabled());
@@ -57,21 +58,24 @@ class SplunkMetricsConfigTest {
 
   @Test
   void testCustomValues() {
-    var javaagentConfig =
-        Config.builder()
-            .addProperties(
-                Map.of(
-                    METRICS_ENABLED_PROPERTY,
-                    "true",
-                    SPLUNK_ACCESS_TOKEN,
-                    "token",
-                    METRICS_ENDPOINT_PROPERTY,
-                    "http://my-endpoint:42",
-                    METRICS_EXPORT_INTERVAL_PROPERTY,
-                    "60000"))
+    var autoConfiguredSdk =
+        AutoConfiguredOpenTelemetrySdk.builder()
+            .setResultAsGlobal(false)
+            .addPropertiesSupplier(
+                () ->
+                    Map.of(
+                        METRICS_ENABLED_PROPERTY,
+                        "true",
+                        SPLUNK_ACCESS_TOKEN,
+                        "token",
+                        METRICS_ENDPOINT_PROPERTY,
+                        "http://my-endpoint:42",
+                        METRICS_EXPORT_INTERVAL_PROPERTY,
+                        "60000"))
             .build();
+
     var resource = Resource.create(Attributes.of(ResourceAttributes.SERVICE_NAME, "test-service"));
-    var splunkMetricsConfig = new SplunkMetricsConfig(javaagentConfig, resource);
+    var splunkMetricsConfig = new SplunkMetricsConfig(autoConfiguredSdk.getConfig(), resource);
 
     // when & then
     assertTrue(splunkMetricsConfig.enabled());
@@ -85,9 +89,10 @@ class SplunkMetricsConfigTest {
   @Test
   void emptyServiceNameIsNotValid() {
     // given
-    var javaagentConfig = Config.builder().build();
+    var autoConfiguredSdk =
+        AutoConfiguredOpenTelemetrySdk.builder().setResultAsGlobal(false).build();
     var resource = Resource.empty();
-    var splunkMetricsConfig = new SplunkMetricsConfig(javaagentConfig, resource);
+    var splunkMetricsConfig = new SplunkMetricsConfig(autoConfiguredSdk.getConfig(), resource);
 
     // when
     Validated<?> validated = splunkMetricsConfig.validate();
@@ -99,9 +104,13 @@ class SplunkMetricsConfigTest {
   @Test
   void emptyEndpointIsNotValid() {
     // given
-    var javaagentConfig = Config.builder().addProperty(METRICS_ENDPOINT_PROPERTY, "").build();
+    var autoConfiguredSdk =
+        AutoConfiguredOpenTelemetrySdk.builder()
+            .setResultAsGlobal(false)
+            .addPropertiesSupplier(() -> Map.of(METRICS_ENDPOINT_PROPERTY, ""))
+            .build();
     var resource = Resource.create(Attributes.of(ResourceAttributes.SERVICE_NAME, "test-service"));
-    var splunkMetricsConfig = new SplunkMetricsConfig(javaagentConfig, resource);
+    var splunkMetricsConfig = new SplunkMetricsConfig(autoConfiguredSdk.getConfig(), resource);
 
     // when
     Validated<?> validated = splunkMetricsConfig.validate();
@@ -112,29 +121,41 @@ class SplunkMetricsConfigTest {
 
   @Test
   void profilerEnablesMetrics() {
-    var javaagentConfig =
-        Config.builder()
-            .addProperties(
-                Map.of(METRICS_ENABLED_PROPERTY, "false", PROFILER_MEMORY_ENABLED_PROPERTY, "true"))
+    var autoConfiguredSdk =
+        AutoConfiguredOpenTelemetrySdk.builder()
+            .setResultAsGlobal(false)
+            .addPropertiesSupplier(
+                () ->
+                    Map.of(
+                        METRICS_ENABLED_PROPERTY,
+                        "false",
+                        PROFILER_MEMORY_ENABLED_PROPERTY,
+                        "true"))
             .build();
-    var config = new SplunkMetricsConfig(javaagentConfig, Resource.getDefault());
+    var config = new SplunkMetricsConfig(autoConfiguredSdk.getConfig(), Resource.getDefault());
     assertTrue(config.enabled());
   }
 
   @Test
   void usesRealmUrlDefaultIfRealmDefined() {
-    var javaagentConfig =
-        Config.builder().addProperties(Map.of(SPLUNK_REALM_PROPERTY, "test0")).build();
-    var config = new SplunkMetricsConfig(javaagentConfig, Resource.getDefault());
+    var autoConfiguredSdk =
+        AutoConfiguredOpenTelemetrySdk.builder()
+            .setResultAsGlobal(false)
+            .addPropertiesSupplier(() -> Map.of(SPLUNK_REALM_PROPERTY, "test0"))
+            .build();
+    var config = new SplunkMetricsConfig(autoConfiguredSdk.getConfig(), Resource.getDefault());
 
     assertEquals(config.uri(), "https://ingest.test0.signalfx.com");
   }
 
   @Test
   void usesLocalUrlDefaultIfRealmIsNone() {
-    var javaagentConfig =
-        Config.builder().addProperties(Map.of(SPLUNK_REALM_PROPERTY, SPLUNK_REALM_NONE)).build();
-    var config = new SplunkMetricsConfig(javaagentConfig, Resource.getDefault());
+    var autoConfiguredSdk =
+        AutoConfiguredOpenTelemetrySdk.builder()
+            .setResultAsGlobal(false)
+            .addPropertiesSupplier(() -> Map.of(SPLUNK_REALM_PROPERTY, SPLUNK_REALM_NONE))
+            .build();
+    var config = new SplunkMetricsConfig(autoConfiguredSdk.getConfig(), Resource.getDefault());
 
     assertEquals(config.uri(), DEFAULT_METRICS_ENDPOINT);
   }

@@ -36,8 +36,8 @@ import io.micrometer.core.instrument.binder.jvm.JvmMemoryMetrics;
 import io.micrometer.core.instrument.binder.jvm.JvmThreadMetrics;
 import io.opentelemetry.instrumentation.api.config.Config;
 import io.opentelemetry.javaagent.extension.AgentListener;
-import io.opentelemetry.javaagent.tooling.config.AgentConfig;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
+import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 
 @AutoService(AgentListener.class)
 public class JvmMetricsInstaller implements AgentListener {
@@ -47,12 +47,11 @@ public class JvmMetricsInstaller implements AgentListener {
       Config.get().getBoolean("splunk.metrics.micrometer.enabled", true);
 
   @Override
-  public void afterAgent(
-      Config config, AutoConfiguredOpenTelemetrySdk autoConfiguredOpenTelemetrySdk) {
+  public void afterAgent(AutoConfiguredOpenTelemetrySdk autoConfiguredOpenTelemetrySdk) {
+    ConfigProperties config = autoConfiguredOpenTelemetrySdk.getConfig();
     boolean metricsRegistryPresent = !Metrics.globalRegistry.getRegistries().isEmpty();
-    AgentConfig agentConfig = new AgentConfig(config);
-    if (!agentConfig.isInstrumentationEnabled(
-        singleton("jvm-metrics-splunk"), metricsRegistryPresent)) {
+    if (!isInstrumentationEnabled(
+        config, singleton("jvm-metrics-splunk"), metricsRegistryPresent)) {
       return;
     }
 
@@ -82,5 +81,23 @@ public class JvmMetricsInstaller implements AgentListener {
         new OtelGcMemoryMetrics().install();
       }
     }
+  }
+
+  private static boolean isInstrumentationEnabled(
+      ConfigProperties config, Iterable<String> instrumentationNames, boolean defaultEnabled) {
+    // If default is enabled, we want to enable individually,
+    // if default is disabled, we want to disable individually.
+    boolean anyEnabled = defaultEnabled;
+    for (String name : instrumentationNames) {
+      String propertyName = "otel.instrumentation." + name.replace('-', '.') + ".enabled";
+      boolean enabled = config.getBoolean(propertyName, defaultEnabled);
+
+      if (defaultEnabled) {
+        anyEnabled &= enabled;
+      } else {
+        anyEnabled |= enabled;
+      }
+    }
+    return anyEnabled;
   }
 }

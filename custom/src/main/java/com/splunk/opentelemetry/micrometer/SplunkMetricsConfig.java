@@ -25,7 +25,7 @@ import com.splunk.opentelemetry.SplunkConfiguration;
 import io.micrometer.core.instrument.config.validate.Validated;
 import io.micrometer.core.instrument.step.StepRegistryConfig;
 import io.micrometer.signalfx.SignalFxConfig;
-import io.opentelemetry.instrumentation.api.config.Config;
+import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import io.opentelemetry.sdk.resources.Resource;
 import io.opentelemetry.semconv.resource.attributes.ResourceAttributes;
 import java.time.Duration;
@@ -40,13 +40,13 @@ class SplunkMetricsConfig implements SignalFxConfig {
   static final String DEFAULT_METRICS_ENDPOINT = "http://localhost:9943";
   private static final Duration DEFAULT_METRICS_EXPORT_INTERVAL = Duration.ofSeconds(30);
 
-  private final Config config;
+  private final ConfigProperties config;
   // config values that are retrieved multiple times are cached
   private final String accessToken;
   private final String source;
   private final Duration step;
 
-  SplunkMetricsConfig(Config config, Resource resource) {
+  SplunkMetricsConfig(ConfigProperties config, Resource resource) {
     this.config = config;
 
     accessToken = config.getString(SPLUNK_ACCESS_TOKEN);

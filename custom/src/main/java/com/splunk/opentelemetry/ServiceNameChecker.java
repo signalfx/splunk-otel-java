@@ -19,9 +19,9 @@ package com.splunk.opentelemetry;
 import static java.util.Collections.emptyMap;
 
 import com.google.auto.service.AutoService;
-import io.opentelemetry.instrumentation.api.config.Config;
 import io.opentelemetry.javaagent.tooling.BeforeAgentListener;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
+import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import io.opentelemetry.semconv.resource.attributes.ResourceAttributes;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -45,8 +45,8 @@ public class ServiceNameChecker implements BeforeAgentListener {
   }
 
   @Override
-  public void beforeAgent(
-      Config config, AutoConfiguredOpenTelemetrySdk autoConfiguredOpenTelemetrySdk) {
+  public void beforeAgent(AutoConfiguredOpenTelemetrySdk autoConfiguredOpenTelemetrySdk) {
+    ConfigProperties config = autoConfiguredOpenTelemetrySdk.getConfig();
     if (serviceNameNotConfigured(config)) {
       logWarn.accept(
           "Resource attribute 'service.name' is not set: your service is unnamed and will be difficult to identify."
@@ -62,7 +62,7 @@ public class ServiceNameChecker implements BeforeAgentListener {
     return -100;
   }
 
-  private static boolean serviceNameNotConfigured(Config config) {
+  private static boolean serviceNameNotConfigured(ConfigProperties config) {
     String serviceName = config.getString("otel.service.name");
     Map<String, String> resourceAttributes = config.getMap("otel.resource.attributes", emptyMap());
     return serviceName == null

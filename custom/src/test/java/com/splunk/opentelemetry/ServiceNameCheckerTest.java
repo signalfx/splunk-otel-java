@@ -20,8 +20,8 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 
-import io.opentelemetry.instrumentation.api.config.Config;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
+import java.util.Map;
 import java.util.function.Consumer;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -31,17 +31,17 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class ServiceNameCheckerTest {
   @Mock Consumer<String> logWarn;
-  @Mock AutoConfiguredOpenTelemetrySdk autoConfiguredSdk;
 
   @Test
   void shouldLogWarnWhenNeitherServiceNameNorResourceAttributeIsConfigured() {
     // given
-    var config = Config.builder().build();
+    var autoConfiguredSdk =
+        AutoConfiguredOpenTelemetrySdk.builder().setResultAsGlobal(false).build();
 
     var underTest = new ServiceNameChecker(logWarn);
 
     // when
-    underTest.beforeAgent(config, autoConfiguredSdk);
+    underTest.beforeAgent(autoConfiguredSdk);
 
     // then
     verify(logWarn).accept(anyString());
@@ -50,12 +50,16 @@ class ServiceNameCheckerTest {
   @Test
   void shouldNotLogWarnWhenServiceNameIsConfigured() {
     // given
-    var config = Config.builder().addProperty("otel.service.name", "test").build();
+    var autoConfiguredSdk =
+        AutoConfiguredOpenTelemetrySdk.builder()
+            .setResultAsGlobal(false)
+            .addPropertiesSupplier(() -> Map.of("otel.service.name", "test"))
+            .build();
 
     var underTest = new ServiceNameChecker(logWarn);
 
     // when
-    underTest.beforeAgent(config, autoConfiguredSdk);
+    underTest.beforeAgent(autoConfiguredSdk);
 
     // then
     verifyNoInteractions(logWarn);
@@ -64,13 +68,16 @@ class ServiceNameCheckerTest {
   @Test
   void shouldNotLogWarnWhenResourceAttributeIsConfigured() {
     // given
-    var config =
-        Config.builder().addProperty("otel.resource.attributes", "service.name=test").build();
+    var autoConfiguredSdk =
+        AutoConfiguredOpenTelemetrySdk.builder()
+            .setResultAsGlobal(false)
+            .addPropertiesSupplier(() -> Map.of("otel.resource.attributes", "service.name=test"))
+            .build();
 
     var underTest = new ServiceNameChecker(logWarn);
 
     // when
-    underTest.beforeAgent(config, autoConfiguredSdk);
+    underTest.beforeAgent(autoConfiguredSdk);
 
     // then
     verifyNoInteractions(logWarn);

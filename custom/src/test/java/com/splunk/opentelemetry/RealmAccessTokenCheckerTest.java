@@ -23,8 +23,8 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 
-import io.opentelemetry.instrumentation.api.config.Config;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
+import java.util.Map;
 import java.util.function.Consumer;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -39,11 +39,12 @@ class RealmAccessTokenCheckerTest {
   @Test
   void shouldNotLogWarnWhenNoRealmSet() {
     // given
-    var config = Config.builder().build();
+    var autoConfiguredSdk =
+        AutoConfiguredOpenTelemetrySdk.builder().setResultAsGlobal(false).build();
     var underTest = new RealmAccessTokenChecker(logWarn);
 
     // when
-    underTest.beforeAgent(config, autoConfiguredSdk);
+    underTest.beforeAgent(autoConfiguredSdk);
 
     // then
     verifyNoInteractions(logWarn);
@@ -52,11 +53,15 @@ class RealmAccessTokenCheckerTest {
   @Test
   void shouldNotLogWarnWhenRealmIsNone() {
     // given
-    var config = Config.builder().addProperty(SPLUNK_REALM_PROPERTY, SPLUNK_REALM_NONE).build();
+    var autoConfiguredSdk =
+        AutoConfiguredOpenTelemetrySdk.builder()
+            .setResultAsGlobal(false)
+            .addPropertiesSupplier(() -> Map.of(SPLUNK_REALM_PROPERTY, SPLUNK_REALM_NONE))
+            .build();
     var underTest = new RealmAccessTokenChecker(logWarn);
 
     // when
-    underTest.beforeAgent(config, autoConfiguredSdk);
+    underTest.beforeAgent(autoConfiguredSdk);
 
     // then
     verifyNoInteractions(logWarn);
@@ -65,15 +70,16 @@ class RealmAccessTokenCheckerTest {
   @Test
   void shouldNotLogWarnWhenAccessTokenIsConfigured() {
     // given
-    var config =
-        Config.builder()
-            .addProperty(SPLUNK_REALM_PROPERTY, "test0")
-            .addProperty(SPLUNK_ACCESS_TOKEN, "token")
+    var autoConfiguredSdk =
+        AutoConfiguredOpenTelemetrySdk.builder()
+            .setResultAsGlobal(false)
+            .addPropertiesSupplier(
+                () -> Map.of(SPLUNK_REALM_PROPERTY, "test0", SPLUNK_ACCESS_TOKEN, "token"))
             .build();
     var underTest = new RealmAccessTokenChecker(logWarn);
 
     // when
-    underTest.beforeAgent(config, autoConfiguredSdk);
+    underTest.beforeAgent(autoConfiguredSdk);
 
     // then
     verifyNoInteractions(logWarn);
@@ -82,11 +88,15 @@ class RealmAccessTokenCheckerTest {
   @Test
   void shouldLogWarnWhenOnlyRealmIsConfigured() {
     // given
-    var config = Config.builder().addProperty(SPLUNK_REALM_PROPERTY, "test0").build();
+    var autoConfiguredSdk =
+        AutoConfiguredOpenTelemetrySdk.builder()
+            .setResultAsGlobal(false)
+            .addPropertiesSupplier(() -> Map.of(SPLUNK_REALM_PROPERTY, "test0"))
+            .build();
     var underTest = new RealmAccessTokenChecker(logWarn);
 
     // when
-    underTest.beforeAgent(config, autoConfiguredSdk);
+    underTest.beforeAgent(autoConfiguredSdk);
 
     // then
     verify(logWarn).accept(anyString());

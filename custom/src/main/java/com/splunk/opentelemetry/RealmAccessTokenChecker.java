@@ -17,9 +17,9 @@
 package com.splunk.opentelemetry;
 
 import com.google.auto.service.AutoService;
-import io.opentelemetry.instrumentation.api.config.Config;
 import io.opentelemetry.javaagent.tooling.BeforeAgentListener;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
+import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import java.util.function.Consumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,8 +41,9 @@ public class RealmAccessTokenChecker implements BeforeAgentListener {
   }
 
   @Override
-  public void beforeAgent(
-      Config config, AutoConfiguredOpenTelemetrySdk autoConfiguredOpenTelemetrySdk) {
+  public void beforeAgent(AutoConfiguredOpenTelemetrySdk autoConfiguredOpenTelemetrySdk) {
+    ConfigProperties config = autoConfiguredOpenTelemetrySdk.getConfig();
+
     if (isRealmConfigured(config) && !isAccessTokenConfigured(config)) {
       logWarn.accept(
           "Splunk realm is defined, which sets the default endpoint URLs to Splunk ingest URLs. However, access token is not defined, which is required for those endpoints. Please set the access token using the 'SPLUNK_ACCESS_TOKEN' environment variable or the 'splunk.access.token' system property.");
@@ -55,14 +56,14 @@ public class RealmAccessTokenChecker implements BeforeAgentListener {
     return -100;
   }
 
-  private static boolean isRealmConfigured(Config config) {
+  private static boolean isRealmConfigured(ConfigProperties config) {
     String realm =
         config.getString(
             SplunkConfiguration.SPLUNK_REALM_PROPERTY, SplunkConfiguration.SPLUNK_REALM_NONE);
     return !realm.equals(SplunkConfiguration.SPLUNK_REALM_NONE);
   }
 
-  private static boolean isAccessTokenConfigured(Config config) {
+  private static boolean isAccessTokenConfigured(ConfigProperties config) {
     return config.getString(SplunkConfiguration.SPLUNK_ACCESS_TOKEN, null) != null;
   }
 }

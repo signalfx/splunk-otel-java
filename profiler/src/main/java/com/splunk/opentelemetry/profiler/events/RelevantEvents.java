@@ -19,7 +19,7 @@ package com.splunk.opentelemetry.profiler.events;
 import com.splunk.opentelemetry.profiler.Configuration;
 import com.splunk.opentelemetry.profiler.TLABProcessor;
 import com.splunk.opentelemetry.profiler.ThreadDumpProcessor;
-import io.opentelemetry.instrumentation.api.config.Config;
+import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
@@ -33,7 +33,7 @@ public class RelevantEvents {
     this.eventNames = eventNames;
   }
 
-  public static RelevantEvents create(Config config) {
+  public static RelevantEvents create(ConfigProperties config) {
     Set<String> eventNames =
         new HashSet<>(Arrays.asList(ThreadDumpProcessor.EVENT_NAME, ContextAttached.EVENT_NAME));
     if (Configuration.getTLABEnabled(config)) {

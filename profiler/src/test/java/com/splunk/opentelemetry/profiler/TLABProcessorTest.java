@@ -41,7 +41,7 @@ import io.opentelemetry.api.trace.SpanId;
 import io.opentelemetry.api.trace.TraceFlags;
 import io.opentelemetry.api.trace.TraceId;
 import io.opentelemetry.api.trace.TraceState;
-import io.opentelemetry.instrumentation.api.config.Config;
+import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import io.opentelemetry.sdk.common.Clock;
 import io.opentelemetry.sdk.logs.LogProcessor;
 import io.opentelemetry.sdk.logs.data.LogData;
@@ -75,7 +75,7 @@ class TLABProcessorTest {
     RecordedEvent event = mock(RecordedEvent.class);
     when(event.getStackTrace()).thenReturn(null); // just to be explicit
 
-    Config config = mock(Config.class);
+    ConfigProperties config = mock(ConfigProperties.class);
     when(config.getBoolean(CONFIG_KEY_TLAB_ENABLED, DEFAULT_MEMORY_ENABLED)).thenReturn(true);
 
     TLABProcessor processor = TLABProcessor.builder(config).build();
@@ -96,7 +96,7 @@ class TLABProcessorTest {
               }
             });
 
-    Config config = mock(Config.class);
+    ConfigProperties config = mock(ConfigProperties.class);
     when(config.getBoolean(CONFIG_KEY_TLAB_ENABLED, DEFAULT_MEMORY_ENABLED)).thenReturn(false);
 
     TLABProcessor processor = TLABProcessor.builder(config).build();
@@ -123,7 +123,7 @@ class TLABProcessorTest {
 
     RecordedEvent event = createMockEvent(serializer, now, tlabSize);
 
-    Config config = mock(Config.class);
+    ConfigProperties config = mock(ConfigProperties.class);
     when(config.getBoolean(CONFIG_KEY_TLAB_ENABLED, DEFAULT_MEMORY_ENABLED)).thenReturn(true);
 
     SpanContext spanContext =
@@ -207,7 +207,7 @@ class TLABProcessorTest {
     SpanContextualizer spanContextualizer = mock(SpanContextualizer.class);
     when(spanContextualizer.link(anyLong())).thenReturn(SpanLinkage.NONE);
 
-    Config config = mock(Config.class);
+    ConfigProperties config = mock(ConfigProperties.class);
     when(config.getBoolean(CONFIG_KEY_TLAB_ENABLED, DEFAULT_MEMORY_ENABLED)).thenReturn(true);
     when(config.getInt(CONFIG_KEY_MEMORY_SAMPLER_INTERVAL, DEFAULT_MEMORY_SAMPLING_INTERVAL))
         .thenReturn(samplerInterval);

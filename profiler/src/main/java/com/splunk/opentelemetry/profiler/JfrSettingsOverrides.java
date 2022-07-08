@@ -18,7 +18,7 @@ package com.splunk.opentelemetry.profiler;
 
 import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_CALL_STACK_INTERVAL;
 
-import io.opentelemetry.instrumentation.api.config.Config;
+import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
@@ -33,9 +33,9 @@ import org.slf4j.LoggerFactory;
 class JfrSettingsOverrides {
 
   private static final Logger logger = LoggerFactory.getLogger(JfrSettingsOverrides.class);
-  private final Config config;
+  private final ConfigProperties config;
 
-  JfrSettingsOverrides(Config config) {
+  JfrSettingsOverrides(ConfigProperties config) {
     this.config = config;
   }
 

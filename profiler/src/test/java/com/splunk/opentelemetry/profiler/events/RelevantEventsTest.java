@@ -23,7 +23,7 @@ import static org.mockito.Mockito.when;
 import com.splunk.opentelemetry.profiler.Configuration;
 import com.splunk.opentelemetry.profiler.TLABProcessor;
 import com.splunk.opentelemetry.profiler.ThreadDumpProcessor;
-import io.opentelemetry.instrumentation.api.config.Config;
+import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import jdk.jfr.EventType;
 import jdk.jfr.consumer.RecordedEvent;
 import org.junit.jupiter.api.BeforeEach;
@@ -53,7 +53,7 @@ class RelevantEventsTest {
 
   @Test
   void testTlabEnabled() {
-    Config config = mock(Config.class);
+    ConfigProperties config = mock(ConfigProperties.class);
     when(config.getBoolean(
             Configuration.CONFIG_KEY_TLAB_ENABLED, Configuration.DEFAULT_MEMORY_ENABLED))
         .thenReturn(true);
@@ -64,7 +64,7 @@ class RelevantEventsTest {
 
   @Test
   void testTlabNotEnabled() {
-    Config config = mock(Config.class);
+    ConfigProperties config = mock(ConfigProperties.class);
     when(config.getBoolean(
             Configuration.CONFIG_KEY_TLAB_ENABLED, Configuration.DEFAULT_MEMORY_ENABLED))
         .thenReturn(false);

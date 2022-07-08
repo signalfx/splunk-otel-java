@@ -28,7 +28,7 @@ import static org.mockito.Mockito.when;
 
 import io.opentelemetry.exporter.otlp.logs.OtlpGrpcLogExporter;
 import io.opentelemetry.exporter.otlp.logs.OtlpGrpcLogExporterBuilder;
-import io.opentelemetry.instrumentation.api.config.Config;
+import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import io.opentelemetry.sdk.logs.export.LogExporter;
 import org.junit.jupiter.api.Test;
 
@@ -36,7 +36,7 @@ class LogExporterBuilderTest {
 
   @Test
   void testBuildSimple() {
-    Config config = mock(Config.class);
+    ConfigProperties config = mock(ConfigProperties.class);
     OtlpGrpcLogExporterBuilder builder = mock(OtlpGrpcLogExporterBuilder.class);
     OtlpGrpcLogExporter expected = mock(OtlpGrpcLogExporter.class);
 
@@ -52,7 +52,7 @@ class LogExporterBuilderTest {
   void testCustomEndpoint() {
     String endpoint = "http://example.com:9122/";
 
-    Config config = mock(Config.class);
+    ConfigProperties config = mock(ConfigProperties.class);
     OtlpGrpcLogExporterBuilder builder = mock(OtlpGrpcLogExporterBuilder.class);
     OtlpGrpcLogExporter expected = mock(OtlpGrpcLogExporter.class);
 

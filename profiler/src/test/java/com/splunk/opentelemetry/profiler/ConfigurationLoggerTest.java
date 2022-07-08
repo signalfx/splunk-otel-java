@@ -35,7 +35,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import io.github.netmikey.logunit.api.LogCapturer;
-import io.opentelemetry.instrumentation.api.config.Config;
+import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import java.time.Duration;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
@@ -47,7 +47,7 @@ class ConfigurationLoggerTest {
 
   @Test
   void testLog() {
-    Config config = mock(Config.class);
+    ConfigProperties config = mock(ConfigProperties.class);
 
     when(config.getBoolean(CONFIG_KEY_ENABLE_PROFILER, false)).thenReturn(true);
     when(config.getString(CONFIG_KEY_PROFILER_DIRECTORY)).thenReturn("somedir");
@@ -86,7 +86,7 @@ class ConfigurationLoggerTest {
 
   @Test
   void testLogInheritDefaultValues() {
-    Config config = mock(Config.class);
+    ConfigProperties config = mock(ConfigProperties.class);
 
     String inheritedUrl = "http://otel.example.com";
     when(config.getString(CONFIG_KEY_OTEL_OTLP_URL, null)).thenReturn(inheritedUrl);

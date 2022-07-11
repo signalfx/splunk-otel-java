@@ -71,8 +71,10 @@ public class SplunkConfiguration implements ConfigCustomizer {
     }
 
     if ("micrometer".equals(metricsImplementation)) {
-      log.info(
-          "Micrometer metrics are deprecated, OpenTelemetry metrics will become the default implementation in the next release.");
+      // TODO: warn that micrometer metrics are deprecated
+      // log.info(
+      //     "Micrometer metrics are deprecated, OpenTelemetry metrics will become the default
+      // implementation in the next release.");
 
       // by default no otel metrics are exported
       addIfAbsent(builder, config, "otel.metrics.exporter", "none");

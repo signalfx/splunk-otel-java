@@ -32,7 +32,7 @@ public abstract class MetricsInstrumentationModule extends InstrumentationModule
 
   @Override
   public boolean defaultEnabled() {
-    boolean metricsEnabled = Config.get().getBoolean("splunk.metrics.enabled", true);
+    boolean metricsEnabled = Config.get().getBoolean("splunk.metrics.enabled", false);
     return metricsEnabled && super.defaultEnabled();
   }
 }

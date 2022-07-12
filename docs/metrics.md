@@ -45,14 +45,14 @@ For Maven users:
 <dependency>
     <groupId>io.micrometer</groupId>
     <artifactId>micrometer-core</artifactId>
-    <version>1.9.1</version>
+    <version>1.9.2</version>
 </dependency>
 ```
 
 For Gradle users:
 
 ```kotlin
-implementation("io.micrometer:micrometer-core:1.9.1")
+implementation("io.micrometer:micrometer-core:1.9.2")
 ```
 
 The agent supports all micrometer versions starting from 1.3.

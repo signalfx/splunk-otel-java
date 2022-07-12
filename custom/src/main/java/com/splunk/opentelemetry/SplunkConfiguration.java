@@ -47,6 +47,13 @@ public class SplunkConfiguration implements ConfigCustomizer {
 
     config.put("otel.traces.sampler", "always_on");
 
+    // by default no metrics are exported
+    config.put("otel.metrics.exporter", "none");
+    // by default metrics are disabled
+    config.put(METRICS_ENABLED_PROPERTY, "false");
+    // micrometer is the default implementation
+    config.put(METRICS_IMPLEMENTATION, "micrometer");
+
     // disable logging instrumentations - we're not currently sending logs (yet)
     config.put("otel.instrumentation.java-util-logging.enabled", "false");
     config.put("otel.instrumentation.jboss-logmanager.enabled", "false");
@@ -64,22 +71,12 @@ public class SplunkConfiguration implements ConfigCustomizer {
   public Config customize(Config config) {
     ConfigBuilder builder = config.toBuilder();
 
+    boolean metricsEnabled = config.getBoolean(METRICS_ENABLED_PROPERTY, false);
     String metricsImplementation = config.getString(METRICS_IMPLEMENTATION);
-    if (metricsImplementation == null) {
-      metricsImplementation = "micrometer";
-      builder.addProperty(METRICS_IMPLEMENTATION, "micrometer");
-    }
 
-    if ("micrometer".equals(metricsImplementation)) {
-      // TODO: warn that micrometer metrics are deprecated
-      // log.info(
-      //     "Micrometer metrics are deprecated, OpenTelemetry metrics will become the default
-      // implementation in the next release.");
-
-      // by default no otel metrics are exported
-      addIfAbsent(builder, config, "otel.metrics.exporter", "none");
-
-      // disable metrics instrumentations, we're still on the micrometer based implementation
+    if (!metricsEnabled || "micrometer".equals(metricsImplementation)) {
+      // disable upstream metrics instrumentations
+      // metrics are disabled, or we're still on the micrometer based implementation
       addIfAbsent(builder, config, "otel.instrumentation.apache-dbcp.enabled", "false");
       addIfAbsent(builder, config, "otel.instrumentation.c3p0.enabled", "false");
       addIfAbsent(builder, config, "otel.instrumentation.hikaricp.enabled", "false");
@@ -89,6 +86,12 @@ public class SplunkConfiguration implements ConfigCustomizer {
       addIfAbsent(builder, config, "otel.instrumentation.runtime-metrics.enabled", "false");
       addIfAbsent(builder, config, "otel.instrumentation.tomcat-jdbc.enabled", "false");
       addIfAbsent(builder, config, "otel.instrumentation.vibur-dbcp.enabled", "false");
+    }
+    if ("micrometer".equals(metricsImplementation)) {
+      // TODO: warn that micrometer metrics are deprecated
+      // log.info(
+      //     "Micrometer metrics are deprecated, OpenTelemetry metrics will become the default
+      // implementation in the next release.");
     } else if ("opentelemetry".equals(metricsImplementation)) {
       String splunkMetricsEndpoint = config.getString(METRICS_ENDPOINT_PROPERTY);
       if (splunkMetricsEndpoint != null) {
@@ -111,6 +114,15 @@ public class SplunkConfiguration implements ConfigCustomizer {
 
         addIfAbsent(builder, config, "otel.metric.export.interval", splunkMetricsInterval);
       }
+
+      // disable micrometer metrics, we'll be using the equivalent otel metrics from the upstream
+      // agent
+      addIfAbsent(builder, config, "otel.instrumentation.c3p0-splunk.enabled", "false");
+      addIfAbsent(builder, config, "otel.instrumentation.commons-dbcp2-splunk.enabled", "false");
+      addIfAbsent(builder, config, "otel.instrumentation.hikari-splunk.enabled", "false");
+      addIfAbsent(builder, config, "otel.instrumentation.oracle-ucp-splunk.enabled", "false");
+      addIfAbsent(builder, config, "otel.instrumentation.tomcat-jdbc-splunk.enabled", "false");
+      addIfAbsent(builder, config, "otel.instrumentation.vibur-dbcp-splunk.enabled", "false");
     } else {
       throw new IllegalStateException(
           "Invalid metrics implementation: '"

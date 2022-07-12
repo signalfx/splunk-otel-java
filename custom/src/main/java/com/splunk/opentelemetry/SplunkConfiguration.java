@@ -120,6 +120,7 @@ public class SplunkConfiguration implements ConfigCustomizer {
       addIfAbsent(builder, config, "otel.instrumentation.c3p0-splunk.enabled", "false");
       addIfAbsent(builder, config, "otel.instrumentation.commons-dbcp2-splunk.enabled", "false");
       addIfAbsent(builder, config, "otel.instrumentation.hikari-splunk.enabled", "false");
+      addIfAbsent(builder, config, "otel.instrumentation.micrometer-splunk.enabled", "false");
       addIfAbsent(builder, config, "otel.instrumentation.oracle-ucp-splunk.enabled", "false");
       addIfAbsent(builder, config, "otel.instrumentation.tomcat-jdbc-splunk.enabled", "false");
       addIfAbsent(builder, config, "otel.instrumentation.vibur-dbcp-splunk.enabled", "false");

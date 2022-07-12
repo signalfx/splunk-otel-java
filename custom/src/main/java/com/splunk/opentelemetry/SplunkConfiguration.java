@@ -47,8 +47,6 @@ public class SplunkConfiguration implements ConfigCustomizer {
 
     config.put("otel.traces.sampler", "always_on");
 
-    // by default no metrics are exported
-    config.put("otel.metrics.exporter", "none");
     // by default metrics are disabled
     config.put(METRICS_ENABLED_PROPERTY, "false");
     // micrometer is the default implementation
@@ -75,6 +73,9 @@ public class SplunkConfiguration implements ConfigCustomizer {
     String metricsImplementation = config.getString(METRICS_IMPLEMENTATION);
 
     if (!metricsEnabled || "micrometer".equals(metricsImplementation)) {
+      // by default no otel metrics are exported
+      addIfAbsent(builder, config, "otel.metrics.exporter", "none");
+
       // disable upstream metrics instrumentations
       // metrics are disabled, or we're still on the micrometer based implementation
       addIfAbsent(builder, config, "otel.instrumentation.apache-dbcp.enabled", "false");

@@ -35,7 +35,6 @@ public abstract class AbstractTestContainerManager implements TestContainerManag
     environment.put(jvmArgsEnvVarName, "-Xmx512m -javaagent:/" + TARGET_AGENT_FILENAME);
     environment.put("OTEL_BSP_MAX_EXPORT_BATCH_SIZE", "1");
     environment.put("OTEL_BSP_SCHEDULE_DELAY", "10ms");
-    environment.put("OTEL_METRICS_EXPORTER", "otlp");
     environment.put(
         "OTEL_EXPORTER_OTLP_ENDPOINT", "http://" + COLLECTOR_ALIAS + ":" + COLLECTOR_PORT);
     environment.put("SPLUNK_METRICS_ENABLED", "true");

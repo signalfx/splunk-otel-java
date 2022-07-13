@@ -37,6 +37,7 @@ class JfrPathHandlerTest {
     Path path = Paths.get("/path/to/something.jfr");
 
     EventProcessingChain chain = mock(EventProcessingChain.class);
+    @SuppressWarnings("unchecked")
     Consumer<Path> onFileFinished = mock(Consumer.class);
     RecordedEventStream.Factory eventStreamFactory = mock(RecordedEventStream.Factory.class);
     RecordedEventStream recordedEventStream = mock(RecordedEventStream.class);

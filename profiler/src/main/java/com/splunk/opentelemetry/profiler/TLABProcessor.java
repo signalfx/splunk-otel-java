@@ -22,7 +22,7 @@ import com.splunk.opentelemetry.profiler.allocation.sampler.SystematicAllocation
 import com.splunk.opentelemetry.profiler.context.SpanContextualizer;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.trace.SpanContext;
-import io.opentelemetry.instrumentation.api.config.Config;
+import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import java.util.function.Consumer;
 import jdk.jfr.consumer.RecordedEvent;
 import jdk.jfr.consumer.RecordedStackTrace;
@@ -80,7 +80,7 @@ public class TLABProcessor implements Consumer<RecordedEvent> {
     allocationEventExporter.flush();
   }
 
-  static Builder builder(Config config) {
+  static Builder builder(ConfigProperties config) {
     boolean enabled = Configuration.getTLABEnabled(config);
     Builder builder = new Builder(enabled);
     int samplerInterval = Configuration.getMemorySamplerInterval(config);

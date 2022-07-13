@@ -36,9 +36,9 @@ import com.splunk.opentelemetry.profiler.exporter.PlainTextCpuEventExporter;
 import com.splunk.opentelemetry.profiler.exporter.PprofCpuEventExporter;
 import com.splunk.opentelemetry.profiler.util.FileDeleter;
 import com.splunk.opentelemetry.profiler.util.HelpfulExecutors;
-import io.opentelemetry.instrumentation.api.config.Config;
 import io.opentelemetry.javaagent.extension.AgentListener;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
+import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import io.opentelemetry.sdk.logs.LogProcessor;
 import io.opentelemetry.sdk.logs.export.BatchLogProcessor;
 import io.opentelemetry.sdk.logs.export.LogExporter;
@@ -63,8 +63,8 @@ public class JfrActivator implements AgentListener {
   private final ConfigurationLogger configurationLogger = new ConfigurationLogger();
 
   @Override
-  public void afterAgent(
-      Config config, AutoConfiguredOpenTelemetrySdk autoConfiguredOpenTelemetrySdk) {
+  public void afterAgent(AutoConfiguredOpenTelemetrySdk autoConfiguredOpenTelemetrySdk) {
+    ConfigProperties config = autoConfiguredOpenTelemetrySdk.getConfig();
     if (!config.getBoolean(CONFIG_KEY_ENABLE_PROFILER, false)) {
       logger.debug("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
       logger.debug("xxxxxxxxx  JFR PROFILER DISABLED!  xxxxxxxxx");
@@ -82,7 +82,7 @@ public class JfrActivator implements AgentListener {
             () -> activateJfrAndRunForever(config, autoConfiguredOpenTelemetrySdk.getResource())));
   }
 
-  private void activateJfrAndRunForever(Config config, Resource resource) {
+  private void activateJfrAndRunForever(ConfigProperties config, Resource resource) {
     // can't be null, default value is set in Configuration.getProperties
     Duration recordingDuration = config.getDuration(CONFIG_KEY_RECORDING_DURATION, null);
 
@@ -198,7 +198,7 @@ public class JfrActivator implements AgentListener {
       SpanContextualizer spanContextualizer,
       CpuEventExporter profilingEventExporter,
       StackTraceFilter stackTraceFilter,
-      Config config) {
+      ConfigProperties config) {
     return ThreadDumpProcessor.builder()
         .spanContextualizer(spanContextualizer)
         .cpuEventExporter(profilingEventExporter)
@@ -208,20 +208,20 @@ public class JfrActivator implements AgentListener {
   }
 
   /** Based on config, filters out agent internal stacks and/or JVM internal stacks */
-  private StackTraceFilter buildStackTraceFilter(Config config) {
+  private StackTraceFilter buildStackTraceFilter(ConfigProperties config) {
     boolean includeAgentInternalStacks = Configuration.getIncludeAgentInternalStacks(config);
     boolean includeJVMInternalStacks = Configuration.getIncludeJvmInternalStacks(config);
     return new StackTraceFilter(includeAgentInternalStacks, includeJVMInternalStacks);
   }
 
-  private Map<String, String> buildJfrSettings(Config config) {
+  private Map<String, String> buildJfrSettings(ConfigProperties config) {
     JfrSettingsReader settingsReader = new JfrSettingsReader();
     Map<String, String> jfrSettings = settingsReader.read();
     JfrSettingsOverrides overrides = new JfrSettingsOverrides(config);
     return overrides.apply(jfrSettings);
   }
 
-  private Consumer<Path> buildFileDeleter(Config config) {
+  private Consumer<Path> buildFileDeleter(ConfigProperties config) {
     if (keepFiles(config)) {
       logger.warn("{} is enabled, leaving JFR files on disk.", CONFIG_KEY_KEEP_FILES);
       return FileDeleter.noopFileDeleter();
@@ -229,7 +229,7 @@ public class JfrActivator implements AgentListener {
     return FileDeleter.newDeleter();
   }
 
-  private boolean keepFiles(Config config) {
+  private boolean keepFiles(ConfigProperties config) {
     return config.getBoolean(CONFIG_KEY_KEEP_FILES, false);
   }
 

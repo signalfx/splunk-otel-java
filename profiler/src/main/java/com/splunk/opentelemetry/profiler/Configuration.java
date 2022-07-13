@@ -20,8 +20,8 @@ import static com.splunk.opentelemetry.SplunkConfiguration.PROFILER_ENABLED_PROP
 import static com.splunk.opentelemetry.SplunkConfiguration.PROFILER_MEMORY_ENABLED_PROPERTY;
 
 import com.google.auto.service.AutoService;
-import io.opentelemetry.instrumentation.api.config.Config;
 import io.opentelemetry.javaagent.extension.config.ConfigCustomizer;
+import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.Locale;
@@ -75,51 +75,51 @@ public class Configuration implements ConfigCustomizer {
     return config;
   }
 
-  public static String getConfigUrl(Config config) {
+  public static String getConfigUrl(ConfigProperties config) {
     String ingestUrl = config.getString(CONFIG_KEY_OTEL_OTLP_URL, null);
     return config.getString(CONFIG_KEY_INGEST_URL, ingestUrl);
   }
 
-  public static boolean getTLABEnabled(Config config) {
+  public static boolean getTLABEnabled(ConfigProperties config) {
     boolean memoryEnabled = config.getBoolean(CONFIG_KEY_MEMORY_ENABLED, DEFAULT_MEMORY_ENABLED);
     return config.getBoolean(CONFIG_KEY_TLAB_ENABLED, memoryEnabled);
   }
 
-  public static int getMemorySamplerInterval(Config config) {
+  public static int getMemorySamplerInterval(ConfigProperties config) {
     return config.getInt(CONFIG_KEY_MEMORY_SAMPLER_INTERVAL, DEFAULT_MEMORY_SAMPLING_INTERVAL);
   }
 
-  public static Duration getCallStackInterval(Config config) {
+  public static Duration getCallStackInterval(ConfigProperties config) {
     return config.getDuration(CONFIG_KEY_CALL_STACK_INTERVAL, DEFAULT_CALL_STACK_INTERVAL);
   }
 
-  public static boolean getIncludeAgentInternalStacks(Config config) {
+  public static boolean getIncludeAgentInternalStacks(ConfigProperties config) {
     boolean includeInternals =
         config.getBoolean(CONFIG_KEY_INCLUDE_INTERNAL_STACKS, DEFAULT_INCLUDE_INTERNAL_STACKS);
     return config.getBoolean(CONFIG_KEY_INCLUDE_AGENT_INTERNALS, includeInternals);
   }
 
-  public static boolean getIncludeJvmInternalStacks(Config config) {
+  public static boolean getIncludeJvmInternalStacks(ConfigProperties config) {
     boolean includeInternals =
         config.getBoolean(CONFIG_KEY_INCLUDE_INTERNAL_STACKS, DEFAULT_INCLUDE_INTERNAL_STACKS);
     return config.getBoolean(CONFIG_KEY_INCLUDE_JVM_INTERNALS, includeInternals);
   }
 
-  public static boolean getTracingStacksOnly(Config config) {
+  public static boolean getTracingStacksOnly(ConfigProperties config) {
     return config.getBoolean(CONFIG_KEY_TRACING_STACKS_ONLY, DEFAULT_TRACING_STACKS_ONLY);
   }
 
-  public static int getStackDepth(Config config) {
+  public static int getStackDepth(ConfigProperties config) {
     return config.getInt(CONFIG_KEY_STACK_DEPTH, DEFAULT_STACK_DEPTH);
   }
 
-  public static DataFormat getCpuDataFormat(Config config) {
+  public static DataFormat getCpuDataFormat(ConfigProperties config) {
     String value =
         config.getString(CONFIG_KEY_CPU_DATA_FORMAT, DataFormat.PPROF_GZIP_BASE64.value());
     return DataFormat.fromString(value);
   }
 
-  public static DataFormat getAllocationDataFormat(Config config) {
+  public static DataFormat getAllocationDataFormat(ConfigProperties config) {
     String value =
         config.getString(CONFIG_KEY_MEMORY_DATA_FORMAT, DataFormat.PPROF_GZIP_BASE64.value());
     return DataFormat.fromString(value);

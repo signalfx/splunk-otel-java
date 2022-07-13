@@ -31,7 +31,7 @@ import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_TRACING
 import static com.splunk.opentelemetry.profiler.Configuration.DEFAULT_INCLUDE_INTERNAL_STACKS;
 import static com.splunk.opentelemetry.profiler.Configuration.DEFAULT_MEMORY_ENABLED;
 
-import io.opentelemetry.instrumentation.api.config.Config;
+import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import java.util.function.Function;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,7 +41,7 @@ public class ConfigurationLogger {
 
   private static final Logger logger = LoggerFactory.getLogger(ConfigurationLogger.class);
 
-  public void log(Config config) {
+  public void log(ConfigProperties config) {
     logger.info("-----------------------");
     logger.info("Profiler configuration:");
     log(CONFIG_KEY_ENABLE_PROFILER, (it) -> config.getBoolean(it, false));

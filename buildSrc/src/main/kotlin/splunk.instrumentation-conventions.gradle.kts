@@ -55,6 +55,9 @@ tasks.withType<Test>().configureEach {
   jvmArgs("-Dotel.javaagent.add-thread-details=false")
   // needed for proper GlobalMeterProvider registration
   jvmArgs("-Dotel.metrics.exporter=otlp")
+  // suppress repeated logging of "No metric data to export - skipping export."
+  // since PeriodicMetricReader is configured with a short interval
+  jvmArgs("-Dio.opentelemetry.javaagent.slf4j.simpleLogger.log.io.opentelemetry.sdk.metrics.export.PeriodicMetricReader=INFO")
 
   val trustStore = project(":testing:common").file("src/misc/testing-keystore.p12")
   inputs.file(trustStore)

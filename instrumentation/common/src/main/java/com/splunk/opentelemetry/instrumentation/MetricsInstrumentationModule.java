@@ -16,7 +16,7 @@
 
 package com.splunk.opentelemetry.instrumentation;
 
-import io.micrometer.core.instrument.Metrics;
+import io.opentelemetry.instrumentation.api.config.Config;
 import io.opentelemetry.javaagent.extension.instrumentation.InstrumentationModule;
 
 /**
@@ -32,7 +32,7 @@ public abstract class MetricsInstrumentationModule extends InstrumentationModule
 
   @Override
   public boolean defaultEnabled() {
-    boolean metricsRegistryPresent = !Metrics.globalRegistry.getRegistries().isEmpty();
-    return metricsRegistryPresent && super.defaultEnabled();
+    boolean metricsEnabled = Config.get().getBoolean("splunk.metrics.enabled", false);
+    return metricsEnabled && super.defaultEnabled();
   }
 }

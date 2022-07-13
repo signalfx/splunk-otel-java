@@ -16,6 +16,8 @@
 
 package com.splunk.opentelemetry.instrumentation.jvmmetrics;
 
+import static com.splunk.opentelemetry.SplunkConfiguration.METRICS_ENABLED_PROPERTY;
+import static com.splunk.opentelemetry.SplunkConfiguration.METRICS_IMPLEMENTATION;
 import static com.splunk.opentelemetry.SplunkConfiguration.PROFILER_MEMORY_ENABLED_PROPERTY;
 import static java.util.Collections.singleton;
 
@@ -41,17 +43,16 @@ import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 
 @AutoService(AgentListener.class)
 public class JvmMetricsInstaller implements AgentListener {
-  private static final boolean useOtelMetrics =
-      Config.get().getBoolean("splunk.metrics.otel.enabled", false);
-  private static final boolean useMicrometerMetrics =
-      Config.get().getBoolean("splunk.metrics.micrometer.enabled", true);
+  private static final String metricsImplementation =
+      Config.get().getString(METRICS_IMPLEMENTATION);
+  private static final boolean useOtelMetrics = "opentelemetry".equals(metricsImplementation);
+  private static final boolean useMicrometerMetrics = "micrometer".equals(metricsImplementation);
 
   @Override
   public void afterAgent(AutoConfiguredOpenTelemetrySdk autoConfiguredOpenTelemetrySdk) {
     ConfigProperties config = autoConfiguredOpenTelemetrySdk.getConfig();
-    boolean metricsRegistryPresent = !Metrics.globalRegistry.getRegistries().isEmpty();
-    if (!isInstrumentationEnabled(
-        config, singleton("jvm-metrics-splunk"), metricsRegistryPresent)) {
+    boolean metricsEnabled = config.getBoolean(METRICS_ENABLED_PROPERTY, false);
+    if (!isInstrumentationEnabled(config, singleton("jvm-metrics-splunk"), metricsEnabled)) {
       return;
     }
 

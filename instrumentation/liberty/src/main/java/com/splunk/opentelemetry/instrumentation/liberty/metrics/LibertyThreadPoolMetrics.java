@@ -19,10 +19,10 @@ package com.splunk.opentelemetry.instrumentation.liberty.metrics;
 import io.opentelemetry.instrumentation.api.config.Config;
 
 public final class LibertyThreadPoolMetrics {
-  private static final boolean useOtelMetrics =
-      Config.get().getBoolean("splunk.metrics.otel.enabled", false);
-  private static final boolean useMicrometerMetrics =
-      Config.get().getBoolean("splunk.metrics.micrometer.enabled", true);
+  private static final String metricsImplementation =
+      Config.get().getString("splunk.metrics.implementation");
+  private static final boolean useOtelMetrics = "opentelemetry".equals(metricsImplementation);
+  private static final boolean useMicrometerMetrics = "micrometer".equals(metricsImplementation);
 
   public static void initialize() {
     if (useOtelMetrics) {

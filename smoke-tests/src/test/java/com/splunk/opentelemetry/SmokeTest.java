@@ -28,6 +28,7 @@ import com.splunk.opentelemetry.helper.windows.WindowsTestContainerManager;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -86,6 +87,10 @@ public abstract class SmokeTest {
   }
 
   void startTargetOrSkipTest(TestImage image) {
+    startTargetOrSkipTest(image, null);
+  }
+
+  void startTargetOrSkipTest(TestImage image, String metricsImplementation) {
     // Skip the test if the current OS and image are incompatible (Windows images on Linux host or
     // vice versa).
     assumeTrue(
@@ -98,11 +103,17 @@ public abstract class SmokeTest {
       assumeTrue(containerManager.isImagePresent(image), "Proprietary image is present: " + image);
     }
 
+    Map<String, String> extraEnv = new HashMap<>();
+    extraEnv.putAll(getExtraEnv());
+    if (metricsImplementation != null) {
+      extraEnv.put("SPLUNK_METRICS_IMPLEMENTATION", metricsImplementation);
+    }
+
     containerManager.startTarget(
         new TargetContainerBuilder(image.imageName)
             .withAgentPath(agentPath)
             .withJvmArgsEnvVarName(getJvmArgsEnvVarName())
-            .withExtraEnv(getExtraEnv())
+            .withExtraEnv(extraEnv)
             .withExtraResources(getExtraResources())
             .withWaitStrategy(getWaitStrategy()));
   }

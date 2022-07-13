@@ -35,7 +35,6 @@ public abstract class AbstractTestContainerManager implements TestContainerManag
     environment.put(jvmArgsEnvVarName, "-Xmx512m -javaagent:/" + TARGET_AGENT_FILENAME);
     environment.put("OTEL_BSP_MAX_EXPORT_BATCH_SIZE", "1");
     environment.put("OTEL_BSP_SCHEDULE_DELAY", "10ms");
-    environment.put("OTEL_METRICS_EXPORTER", "otlp");
     environment.put(
         "OTEL_EXPORTER_OTLP_ENDPOINT", "http://" + COLLECTOR_ALIAS + ":" + COLLECTOR_PORT);
     environment.put("SPLUNK_METRICS_ENABLED", "true");
@@ -47,11 +46,6 @@ public abstract class AbstractTestContainerManager implements TestContainerManag
     // This does not affect tests in any way but serves to verify that agent can actually load this
     // sampler
     environment.put("OTEL_TRACES_SAMPLER", "internal_root_off");
-
-    // enable both micrometer and otel based metrics
-    // micrometer metrics use _ instead of . in metric tags
-    environment.put("SPLUNK_METRICS_MICROMETER_ENABLED", "true");
-    environment.put("SPLUNK_METRICS_OTEL_ENABLED", "true");
 
     return environment;
   }

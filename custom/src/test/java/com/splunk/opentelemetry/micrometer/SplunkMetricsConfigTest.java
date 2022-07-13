@@ -16,14 +16,15 @@
 
 package com.splunk.opentelemetry.micrometer;
 
+import static com.splunk.opentelemetry.SplunkConfiguration.METRICS_ENABLED_PROPERTY;
+import static com.splunk.opentelemetry.SplunkConfiguration.METRICS_ENDPOINT_PROPERTY;
+import static com.splunk.opentelemetry.SplunkConfiguration.METRICS_EXPORT_INTERVAL_PROPERTY;
+import static com.splunk.opentelemetry.SplunkConfiguration.METRICS_IMPLEMENTATION;
 import static com.splunk.opentelemetry.SplunkConfiguration.PROFILER_MEMORY_ENABLED_PROPERTY;
 import static com.splunk.opentelemetry.SplunkConfiguration.SPLUNK_ACCESS_TOKEN;
 import static com.splunk.opentelemetry.SplunkConfiguration.SPLUNK_REALM_NONE;
 import static com.splunk.opentelemetry.SplunkConfiguration.SPLUNK_REALM_PROPERTY;
 import static com.splunk.opentelemetry.micrometer.SplunkMetricsConfig.DEFAULT_METRICS_ENDPOINT;
-import static com.splunk.opentelemetry.micrometer.SplunkMetricsConfig.METRICS_ENABLED_PROPERTY;
-import static com.splunk.opentelemetry.micrometer.SplunkMetricsConfig.METRICS_ENDPOINT_PROPERTY;
-import static com.splunk.opentelemetry.micrometer.SplunkMetricsConfig.METRICS_EXPORT_INTERVAL_PROPERTY;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -66,6 +67,8 @@ class SplunkMetricsConfigTest {
                     Map.of(
                         METRICS_ENABLED_PROPERTY,
                         "true",
+                        METRICS_IMPLEMENTATION,
+                        "micrometer",
                         SPLUNK_ACCESS_TOKEN,
                         "token",
                         METRICS_ENDPOINT_PROPERTY,
@@ -130,7 +133,9 @@ class SplunkMetricsConfigTest {
                         METRICS_ENABLED_PROPERTY,
                         "false",
                         PROFILER_MEMORY_ENABLED_PROPERTY,
-                        "true"))
+                        "true",
+                        METRICS_IMPLEMENTATION,
+                        "micrometer"))
             .build();
     var config = new SplunkMetricsConfig(autoConfiguredSdk.getConfig(), Resource.getDefault());
     assertTrue(config.enabled());

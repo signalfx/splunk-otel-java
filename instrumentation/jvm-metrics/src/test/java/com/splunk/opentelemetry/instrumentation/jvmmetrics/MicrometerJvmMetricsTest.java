@@ -27,9 +27,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
 @ExtendWith(AgentInstrumentationExtension.class)
-class JvmMetricsTest {
-  private static final String INSTRUMENTATION_NAME = "com.splunk.javaagent.jvm-metrics-splunk";
-
+class MicrometerJvmMetricsTest {
   @RegisterExtension
   static final InstrumentationExtension testing = AgentInstrumentationExtension.create();
 
@@ -51,25 +49,5 @@ class JvmMetricsTest {
     assertTrue(meterNames.contains(AllocatedMemoryMetrics.METRIC_NAME));
     // Our custom GC metrics
     assertTrue(meterNames.contains(GcMemoryMetrics.METRIC_NAME));
-  }
-
-  @Test
-  void shouldRegisterOtelJvmMeters() {
-    // GC metrics
-    assertOtelMetricPresent("runtime.jvm.gc.memory.allocated");
-    // GC pressure metrics
-    assertOtelMetricPresent("runtime.jvm.gc.overhead");
-    // memory metrics
-    assertOtelMetricPresent("runtime.jvm.memory.used");
-    // thread metrics
-    assertOtelMetricPresent("runtime.jvm.threads.peak");
-    // allocated memory metrics
-    assertOtelMetricPresent(AllocatedMemoryMetrics.METRIC_NAME);
-    // Our custom GC metrics
-    assertOtelMetricPresent(GcMemoryMetrics.METRIC_NAME);
-  }
-
-  private void assertOtelMetricPresent(String name) {
-    testing.waitAndAssertMetrics(INSTRUMENTATION_NAME, name, metrics -> metrics.isNotEmpty());
   }
 }

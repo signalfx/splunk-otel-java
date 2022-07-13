@@ -197,6 +197,13 @@ public abstract class AppServerTest extends SmokeTest {
   protected static final List<String> VMS_ALL =
       Arrays.asList(VMS_HOTSPOT.get(0), VMS_OPENJ9.get(0));
 
+  protected static final List<String> METRICS_MICROMETER = Collections.singletonList("micrometer");
+  protected static final List<String> METRICS_OPENTELEMETRY =
+      Collections.singletonList("opentelemetry");
+  protected static final List<String> METRICS_ALL =
+      Arrays.asList(METRICS_MICROMETER.get(0), METRICS_OPENTELEMETRY.get(0));
+  protected static final List<String> METRICS_DEFAULT = METRICS_MICROMETER;
+
   protected static class Configurations {
     private final String serverName;
     private final List<Arguments> items;
@@ -211,6 +218,7 @@ public abstract class AppServerTest extends SmokeTest {
         String tag,
         ExpectedServerAttributes serverAttributes,
         List<String> vms,
+        List<String> metrics,
         String... jdks) {
       ImageFactory imageFactory =
           (jdk) -> {
@@ -218,7 +226,7 @@ public abstract class AppServerTest extends SmokeTest {
             return linuxImage(name);
           };
 
-      addItems(serverAttributes, vms, jdks, imageFactory);
+      addItems(serverAttributes, vms, metrics, jdks, imageFactory);
       return this;
     }
 
@@ -227,13 +235,31 @@ public abstract class AppServerTest extends SmokeTest {
         ExpectedServerAttributes serverAttributes,
         List<String> vms,
         String... jdks) {
-      return otelLinux(version, OTEL_IMAGE_VERSION, serverAttributes, vms, jdks);
+      return otelLinux(version, serverAttributes, vms, METRICS_DEFAULT, jdks);
+    }
+
+    public Configurations otelLinux(
+        String version,
+        ExpectedServerAttributes serverAttributes,
+        List<String> vms,
+        List<String> metrics,
+        String... jdks) {
+      return otelLinux(version, OTEL_IMAGE_VERSION, serverAttributes, vms, metrics, jdks);
     }
 
     public Configurations splunkLinux(
         String version,
         ExpectedServerAttributes serverAttributes,
         List<String> vms,
+        String... jdks) {
+      return splunkLinux(version, serverAttributes, vms, METRICS_DEFAULT, jdks);
+    }
+
+    public Configurations splunkLinux(
+        String version,
+        ExpectedServerAttributes serverAttributes,
+        List<String> vms,
+        List<String> metrics,
         String... jdks) {
 
       ImageFactory imageFactory =
@@ -242,7 +268,7 @@ public abstract class AppServerTest extends SmokeTest {
             return proprietaryLinuxImage(name);
           };
 
-      addItems(serverAttributes, vms, jdks, imageFactory);
+      addItems(serverAttributes, vms, metrics, jdks, imageFactory);
       return this;
     }
 
@@ -250,6 +276,15 @@ public abstract class AppServerTest extends SmokeTest {
         String version,
         ExpectedServerAttributes serverAttributes,
         List<String> vms,
+        String... jdks) {
+      return otelWindows(version, serverAttributes, vms, METRICS_DEFAULT, jdks);
+    }
+
+    public Configurations otelWindows(
+        String version,
+        ExpectedServerAttributes serverAttributes,
+        List<String> vms,
+        List<String> metrics,
         String... jdks) {
 
       ImageFactory imageFactory =
@@ -266,7 +301,7 @@ public abstract class AppServerTest extends SmokeTest {
             return windowsImage(name);
           };
 
-      addItems(serverAttributes, vms, jdks, imageFactory);
+      addItems(serverAttributes, vms, metrics, jdks, imageFactory);
       return this;
     }
 
@@ -277,12 +312,16 @@ public abstract class AppServerTest extends SmokeTest {
     private void addItems(
         ExpectedServerAttributes serverAttributes,
         List<String> vms,
+        List<String> metrics,
         String[] jdks,
         ImageFactory imageFactory) {
       for (String vm : vms) {
         for (String jdk : jdks) {
           String jdkFull = jdk + ("hotspot".equals(vm) ? "" : "-" + vm);
-          items.add(arguments(imageFactory.create(jdkFull), serverAttributes));
+          for (String metricsImplementation : metrics) {
+            items.add(
+                arguments(imageFactory.create(jdkFull), serverAttributes, metricsImplementation));
+          }
         }
       }
     }

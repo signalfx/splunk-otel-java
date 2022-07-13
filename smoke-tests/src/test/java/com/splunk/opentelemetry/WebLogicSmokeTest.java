@@ -47,7 +47,7 @@ class WebLogicSmokeTest extends AppServerTest {
     return configurations("weblogic")
         .splunkLinux("12.1.3", V12_1_ATTRIBUTES, VMS_HOTSPOT, "8")
         .splunkLinux("12.2.1.4", V12_2_ATTRIBUTES, VMS_HOTSPOT, "8")
-        .splunkLinux("14.1.1.0", V14_ATTRIBUTES, VMS_HOTSPOT, "8", "11")
+        .splunkLinux("14.1.1.0", V14_ATTRIBUTES, VMS_HOTSPOT, METRICS_ALL, "8", "11")
         .stream();
   }
 
@@ -59,14 +59,15 @@ class WebLogicSmokeTest extends AppServerTest {
 
   @ParameterizedTest
   @MethodSource("supportedWlsConfigurations")
-  public void webLogicSmokeTest(TestImage image, ExpectedServerAttributes serverAttributes)
+  public void webLogicSmokeTest(
+      TestImage image, ExpectedServerAttributes serverAttributes, String metricsImplementation)
       throws IOException, InterruptedException {
-    startTargetOrSkipTest(image);
+    startTargetOrSkipTest(image, metricsImplementation);
 
     // No assertServerHandler as there are no current plans to have a WebLogic server handler that
     // creates spans
     assertWebAppTrace(serverAttributes);
-    assertMetrics(waitForMetrics());
+    assertMetrics(waitForMetrics(), metricsImplementation);
 
     stopTarget();
   }
@@ -92,9 +93,14 @@ class WebLogicSmokeTest extends AppServerTest {
         "WebLogic Application attribute present");
   }
 
-  private void assertMetrics(MetricsInspector metrics) {
-    assertMicrometerMetrics(metrics);
-    assertOtelMetrics(metrics);
+  private void assertMetrics(MetricsInspector metrics, String metricsImplementation) {
+    if ("micrometer".equals(metricsImplementation)) {
+      assertMicrometerMetrics(metrics);
+    } else if ("opentelemetry".equals(metricsImplementation)) {
+      assertOtelMetrics(metrics);
+    } else {
+      throw new IllegalStateException("invalid metrics implementation " + metricsImplementation);
+    }
   }
 
   private void assertMicrometerMetrics(MetricsInspector metrics) {

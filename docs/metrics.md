@@ -120,13 +120,23 @@ to register JVM measurements.
 | `runtime.jvm.gc.memory.promoted`       | [Counter][c] | Count of positive increases in the size of the old generation memory pool before garbage collection to after garbage collection.
 | `runtime.jvm.gc.pause`                 | [Timer][t]   | Time spent in garbage collection pause, in milliseconds.
 
+#### Heap pressure metrics
+
+| Metric name                         | Instrument   | Description |
+|-------------------------------------| ------------ | ----------- |
+| `runtime.jvm.gc.overhead`           | [Gauge][g]   | An approximation of the percent of CPU time used by GC activities over the last lookback period or since monitoring began, whichever is shorter, in the range [0..1].
+| `runtime.jvm.memory.usage.after.gc` | [Gauge][g]   | The percentage of long-lived heap pool used after the last GC event, in the range [0..1].
+
 #### Memory metrics
 
-| Metric name                    | Instrument | Description |
-| ------------------------------ | ---------- | ----------- |
-| `runtime.jvm.memory.committed` | [Gauge][g] | The amount of memory guaranteed to be available for use to the Java virtual machine, in bytes.
-| `runtime.jvm.memory.max`       | [Gauge][g] | The maximum amount of memory that can be used for memory management, in bytes.
-| `runtime.jvm.memory.used`      | [Gauge][g] | The amount of used memory, in bytes.
+| Metric name                         | Instrument | Description |
+|-------------------------------------| ---------- | ----------- |
+| `runtime.jvm.buffer.count`          | [Gauge][g] | An estimate of the number of buffers in the pool.
+| `runtime.jvm.buffer.memory.used`    | [Gauge][g] | An estimate of the memory that the Java virtual machine is using for this buffer pool, in bytes.
+| `runtime.jvm.buffer.total.capacity` | [Gauge][g] | An estimate of the total capacity of the buffers in this pool, in bytes.
+| `runtime.jvm.memory.committed`      | [Gauge][g] | The amount of memory guaranteed to be available for use to the Java virtual machine, in bytes.
+| `runtime.jvm.memory.max`            | [Gauge][g] | The maximum amount of memory that can be used for memory management, in bytes.
+| `runtime.jvm.memory.used`           | [Gauge][g] | The amount of used memory, in bytes.
 
 All memory pool metrics have the following tags:
 

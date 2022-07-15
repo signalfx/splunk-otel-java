@@ -124,7 +124,7 @@ to register JVM measurements.
 
 | Metric name                         | Instrument   | Description |
 |-------------------------------------| ------------ | ----------- |
-| `runtime.jvm.gc.overhead`           | [Gauge][g]   | An approximation of the percent of CPU time used by GC activities over the last lookback period or since monitoring began, whichever is shorter, in the range [0..1].
+| `runtime.jvm.gc.overhead`           | [Gauge][g]   | An approximation of the percentage of CPU time used by GC activities over the last lookback period or since monitoring began, whichever is shorter, in the range [0..1].
 | `runtime.jvm.memory.usage.after.gc` | [Gauge][g]   | The percentage of long-lived heap pool used after the last GC event, in the range [0..1].
 
 #### Memory metrics

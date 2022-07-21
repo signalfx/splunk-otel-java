@@ -16,8 +16,8 @@
 
 package com.splunk.opentelemetry.instrumentation;
 
-import io.opentelemetry.instrumentation.api.config.Config;
 import io.opentelemetry.javaagent.extension.instrumentation.InstrumentationModule;
+import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 
 /**
  * Instrumentation can extend this class instead of InstrumentationModule if they require metrics to
@@ -31,8 +31,8 @@ public abstract class MetricsInstrumentationModule extends InstrumentationModule
   }
 
   @Override
-  public boolean defaultEnabled() {
-    boolean metricsEnabled = Config.get().getBoolean("splunk.metrics.enabled", false);
-    return metricsEnabled && super.defaultEnabled();
+  public boolean defaultEnabled(ConfigProperties config) {
+    boolean metricsEnabled = config.getBoolean("splunk.metrics.enabled", false);
+    return metricsEnabled && super.defaultEnabled(config);
   }
 }

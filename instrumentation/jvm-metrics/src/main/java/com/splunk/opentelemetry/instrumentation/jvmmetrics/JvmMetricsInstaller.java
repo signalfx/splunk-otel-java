@@ -36,7 +36,7 @@ import io.micrometer.core.instrument.binder.jvm.JvmGcMetrics;
 import io.micrometer.core.instrument.binder.jvm.JvmHeapPressureMetrics;
 import io.micrometer.core.instrument.binder.jvm.JvmMemoryMetrics;
 import io.micrometer.core.instrument.binder.jvm.JvmThreadMetrics;
-import io.opentelemetry.instrumentation.api.config.Config;
+import io.opentelemetry.javaagent.bootstrap.internal.InstrumentationConfig;
 import io.opentelemetry.javaagent.extension.AgentListener;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
@@ -44,7 +44,7 @@ import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 @AutoService(AgentListener.class)
 public class JvmMetricsInstaller implements AgentListener {
   private static final String metricsImplementation =
-      Config.get().getString(METRICS_IMPLEMENTATION);
+      InstrumentationConfig.get().getString(METRICS_IMPLEMENTATION);
   private static final boolean useOtelMetrics = "opentelemetry".equals(metricsImplementation);
   private static final boolean useMicrometerMetrics = "micrometer".equals(metricsImplementation);
 

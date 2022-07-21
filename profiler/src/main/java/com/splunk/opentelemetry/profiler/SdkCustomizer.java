@@ -20,7 +20,7 @@ import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_ENABLE_
 
 import com.google.auto.service.AutoService;
 import io.opentelemetry.context.ContextStorage;
-import io.opentelemetry.instrumentation.api.config.Config;
+import io.opentelemetry.instrumentation.api.internal.ConfigPropertiesUtil;
 import io.opentelemetry.sdk.autoconfigure.spi.AutoConfigurationCustomizer;
 import io.opentelemetry.sdk.autoconfigure.spi.AutoConfigurationCustomizerProvider;
 
@@ -39,6 +39,6 @@ public class SdkCustomizer implements AutoConfigurationCustomizerProvider {
   }
 
   private boolean jfrIsEnabledInConfig() {
-    return Config.get().getBoolean(CONFIG_KEY_ENABLE_PROFILER, false);
+    return ConfigPropertiesUtil.getBoolean(CONFIG_KEY_ENABLE_PROFILER, false);
   }
 }

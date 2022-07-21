@@ -16,11 +16,11 @@
 
 package com.splunk.opentelemetry.instrumentation.weblogic.metrics;
 
-import io.opentelemetry.instrumentation.api.config.Config;
+import io.opentelemetry.javaagent.bootstrap.internal.InstrumentationConfig;
 
 public final class WebLogicThreadPoolMetrics {
   private static final String metricsImplementation =
-      Config.get().getString("splunk.metrics.implementation");
+      InstrumentationConfig.get().getString("splunk.metrics.implementation");
   private static final boolean useOtelMetrics = "opentelemetry".equals(metricsImplementation);
   private static final boolean useMicrometerMetrics = "micrometer".equals(metricsImplementation);
 

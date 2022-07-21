@@ -33,6 +33,7 @@ import application.io.micrometer.core.instrument.MeterRegistry;
 import application.io.micrometer.core.instrument.Timer;
 import application.io.micrometer.core.instrument.distribution.DistributionStatisticConfig;
 import application.io.micrometer.core.instrument.distribution.pause.PauseDetector;
+import io.opentelemetry.javaagent.bootstrap.internal.InstrumentationConfig;
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 import java.util.function.ToDoubleFunction;
@@ -171,7 +172,7 @@ public abstract class AbstractApplicationMeterRegistry extends MeterRegistry {
     // same as StepMeterRegistry - which is a bit hacky because we can't easily access the agent
     // registry config object
     Duration exportInterval =
-        io.opentelemetry.instrumentation.api.config.Config.get()
+        InstrumentationConfig.get()
             .getDuration("splunk.metrics.export.interval", Duration.ofSeconds(30));
     return DistributionStatisticConfig.builder()
         .expiry(exportInterval)

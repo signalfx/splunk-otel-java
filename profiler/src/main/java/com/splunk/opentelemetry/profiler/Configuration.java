@@ -27,6 +27,7 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
+@SuppressWarnings("deprecation") // we'll need to wait for the SDK config customization
 @AutoService(ConfigCustomizer.class)
 public class Configuration implements ConfigCustomizer {
 

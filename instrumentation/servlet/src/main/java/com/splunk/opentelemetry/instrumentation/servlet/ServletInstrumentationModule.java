@@ -25,6 +25,7 @@ import static net.bytebuddy.matcher.ElementMatchers.takesArgument;
 
 import com.google.auto.service.AutoService;
 import com.splunk.opentelemetry.instrumentation.servertiming.ServerTimingHeader;
+import com.splunk.opentelemetry.instrumentation.servertiming.ServerTimingHeaderConfig;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.context.propagation.TextMapSetter;
 import io.opentelemetry.javaagent.bootstrap.CallDepth;
@@ -56,7 +57,8 @@ public class ServletInstrumentationModule extends InstrumentationModule {
   // enable the instrumentation only if the server-timing header flag is on
   @Override
   public boolean defaultEnabled(ConfigProperties config) {
-    return super.defaultEnabled(config) && ServerTimingHeader.shouldEmitServerTimingHeader(config);
+    return super.defaultEnabled(config)
+        && ServerTimingHeaderConfig.shouldEmitServerTimingHeader(config);
   }
 
   @Override

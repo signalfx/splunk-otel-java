@@ -20,7 +20,7 @@ import static io.opentelemetry.javaagent.extension.matcher.AgentElementMatchers.
 import static net.bytebuddy.matcher.ElementMatchers.not;
 
 import com.google.auto.service.AutoService;
-import com.splunk.opentelemetry.instrumentation.servertiming.ServerTimingHeader;
+import com.splunk.opentelemetry.instrumentation.servertiming.ServerTimingHeaderConfig;
 import io.opentelemetry.javaagent.extension.instrumentation.InstrumentationModule;
 import io.opentelemetry.javaagent.extension.instrumentation.TypeInstrumentation;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
@@ -43,7 +43,8 @@ public class NettyInstrumentationModule extends InstrumentationModule {
   // enable the instrumentation only if the server-timing header flag is on
   @Override
   public boolean defaultEnabled(ConfigProperties config) {
-    return super.defaultEnabled(config) && ServerTimingHeader.shouldEmitServerTimingHeader(config);
+    return super.defaultEnabled(config)
+        && ServerTimingHeaderConfig.shouldEmitServerTimingHeader(config);
   }
 
   @Override

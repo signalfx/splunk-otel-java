@@ -7,9 +7,21 @@ the [Splunk GDI specification](https://github.com/signalfx/gdi-specification/blo
 and this repository adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
+- tbd
+
+## v1.14.0 - 2022-07-22
+
+### Bugfixes
+- Exclude transitive gson dependency (mitigates [CVE-2022-25647](https://nvd.nist.gov/vuln/detail/CVE-2022-25647)) (#829)
+
+### Enhancements
+- Add `splunk.metrics.implementation` config property to allow switching metrics implementation (#836)
+- Several instrumentation additions, including C3P0 connection pool metrics, Kafka client metrics, JVM buffer pool metrics, and more!
+  - See the upstream [1.16.0 release notes](https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/tag/v1.16.0) for additional details.
 
 ### General
 
+- OpenTelemetry Java SDK and OpenTelemetry Instrumentation for Java dependencies have been updated to version 1.16.0.
 - Micrometer dependency has been updated to version 1.9.2.
 
 ## v1.13.1 - 2022-07-04

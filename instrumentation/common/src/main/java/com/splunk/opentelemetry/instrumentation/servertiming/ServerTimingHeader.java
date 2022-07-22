@@ -20,7 +20,6 @@ import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.propagation.W3CTraceContextPropagator;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.context.propagation.TextMapSetter;
-import io.opentelemetry.instrumentation.api.config.Config;
 
 /**
  * Adds {@code Server-Timing} header (and {@code Access-Control-Expose-Headers}) to the HTTP
@@ -29,12 +28,6 @@ import io.opentelemetry.instrumentation.api.config.Config;
 public final class ServerTimingHeader {
   public static final String SERVER_TIMING = "Server-Timing";
   public static final String EXPOSE_HEADERS = "Access-Control-Expose-Headers";
-
-  private static final String EMIT_RESPONSE_HEADERS = "splunk.trace-response-header.enabled";
-
-  public static boolean shouldEmitServerTimingHeader() {
-    return Config.get().getBoolean(EMIT_RESPONSE_HEADERS, true);
-  }
 
   public static <RS> void setHeaders(Context context, RS response, TextMapSetter<RS> headerSetter) {
     if (!Span.fromContext(context).getSpanContext().isValid()) {

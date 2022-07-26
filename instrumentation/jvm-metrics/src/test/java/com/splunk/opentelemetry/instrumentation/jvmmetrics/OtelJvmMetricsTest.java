@@ -18,6 +18,7 @@ package com.splunk.opentelemetry.instrumentation.jvmmetrics;
 
 import io.opentelemetry.instrumentation.testing.junit.AgentInstrumentationExtension;
 import io.opentelemetry.instrumentation.testing.junit.InstrumentationExtension;
+import org.assertj.core.api.AbstractIterableAssert;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.extension.RegisterExtension;
@@ -35,8 +36,6 @@ class OtelJvmMetricsTest {
     assertOtelMetricPresent("runtime.jvm.gc.memory.allocated");
     // GC pressure metrics
     assertOtelMetricPresent("runtime.jvm.gc.overhead");
-    // memory metrics
-    assertOtelMetricPresent("runtime.jvm.memory.used");
     // thread metrics
     assertOtelMetricPresent("runtime.jvm.threads.peak");
     // allocated memory metrics
@@ -46,6 +45,6 @@ class OtelJvmMetricsTest {
   }
 
   private void assertOtelMetricPresent(String name) {
-    testing.waitAndAssertMetrics(INSTRUMENTATION_NAME, name, metrics -> metrics.isNotEmpty());
+    testing.waitAndAssertMetrics(INSTRUMENTATION_NAME, name, AbstractIterableAssert::isNotEmpty);
   }
 }

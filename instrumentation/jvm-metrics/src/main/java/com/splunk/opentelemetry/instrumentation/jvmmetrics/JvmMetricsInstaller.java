@@ -27,7 +27,6 @@ import com.splunk.opentelemetry.instrumentation.jvmmetrics.otel.OtelAllocatedMem
 import com.splunk.opentelemetry.instrumentation.jvmmetrics.otel.OtelGcMemoryMetrics;
 import com.splunk.opentelemetry.instrumentation.jvmmetrics.otel.OtelJvmGcMetrics;
 import com.splunk.opentelemetry.instrumentation.jvmmetrics.otel.OtelJvmHeapPressureMetrics;
-import com.splunk.opentelemetry.instrumentation.jvmmetrics.otel.OtelJvmMemoryMetrics;
 import com.splunk.opentelemetry.instrumentation.jvmmetrics.otel.OtelJvmThreadMetrics;
 import io.micrometer.core.instrument.Metrics;
 import io.micrometer.core.instrument.binder.jvm.ClassLoaderMetrics;
@@ -62,7 +61,6 @@ public class JvmMetricsInstaller implements AgentListener {
     if (useOtelMetrics(metricsImplementation)) {
       new OtelJvmGcMetrics().install();
       new OtelJvmHeapPressureMetrics().install();
-      new OtelJvmMemoryMetrics().install();
       new OtelJvmThreadMetrics().install();
     }
 

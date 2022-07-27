@@ -25,6 +25,7 @@ import io.opentelemetry.instrumentation.api.instrumenter.http.HttpClientMetrics;
 import io.opentelemetry.instrumentation.api.instrumenter.http.HttpSpanNameExtractor;
 import io.opentelemetry.instrumentation.api.instrumenter.http.HttpSpanStatusExtractor;
 import io.opentelemetry.instrumentation.api.instrumenter.net.NetClientAttributesExtractor;
+import io.opentelemetry.javaagent.bootstrap.internal.CommonConfig;
 import khttp.responses.Response;
 
 public final class KHttpSingletons {
@@ -46,9 +47,11 @@ public final class KHttpSingletons {
             .setSpanStatusExtractor(HttpSpanStatusExtractor.create(httpAttributesGetter))
             .addAttributesExtractor(HttpClientAttributesExtractor.create(httpAttributesGetter))
             .addAttributesExtractor(NetClientAttributesExtractor.create(netAttributesGetter))
-            .addAttributesExtractor(PeerServiceAttributesExtractor.create(netAttributesGetter))
+            .addAttributesExtractor(
+                PeerServiceAttributesExtractor.create(
+                    netAttributesGetter, CommonConfig.get().getPeerServiceMapping()))
             .addOperationMetrics(HttpClientMetrics.get())
-            .newClientInstrumenter(KHttpHttpHeaderSetter.INSTANCE);
+            .buildClientInstrumenter(KHttpHttpHeaderSetter.INSTANCE);
   }
 
   public static Instrumenter<RequestWrapper, Response> instrumenter() {

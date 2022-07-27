@@ -17,16 +17,16 @@
 package com.splunk.opentelemetry.micrometer;
 
 import com.google.auto.service.AutoService;
-import io.opentelemetry.instrumentation.api.config.Config;
 import io.opentelemetry.javaagent.tooling.bootstrap.BootstrapPackagesBuilder;
 import io.opentelemetry.javaagent.tooling.bootstrap.BootstrapPackagesConfigurer;
+import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import java.util.Arrays;
 
 @AutoService(BootstrapPackagesConfigurer.class)
 public class MicrometerBootstrapPackagesProvider implements BootstrapPackagesConfigurer {
 
   @Override
-  public void configure(Config config, BootstrapPackagesBuilder builder) {
+  public void configure(BootstrapPackagesBuilder builder, ConfigProperties config) {
     builder.addAll(
         Arrays.asList(
             // IMPORTANT: must be io.micrometer.core, because io.micrometer.signalfx needs to be in

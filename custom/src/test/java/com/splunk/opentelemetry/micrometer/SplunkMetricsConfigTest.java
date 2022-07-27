@@ -20,7 +20,6 @@ import static com.splunk.opentelemetry.SplunkConfiguration.METRICS_ENABLED_PROPE
 import static com.splunk.opentelemetry.SplunkConfiguration.METRICS_ENDPOINT_PROPERTY;
 import static com.splunk.opentelemetry.SplunkConfiguration.METRICS_EXPORT_INTERVAL_PROPERTY;
 import static com.splunk.opentelemetry.SplunkConfiguration.METRICS_IMPLEMENTATION;
-import static com.splunk.opentelemetry.SplunkConfiguration.PROFILER_MEMORY_ENABLED_PROPERTY;
 import static com.splunk.opentelemetry.SplunkConfiguration.SPLUNK_ACCESS_TOKEN;
 import static com.splunk.opentelemetry.SplunkConfiguration.SPLUNK_REALM_NONE;
 import static com.splunk.opentelemetry.SplunkConfiguration.SPLUNK_REALM_PROPERTY;
@@ -120,25 +119,6 @@ class SplunkMetricsConfigTest {
 
     // then
     assertFalse(validated.isValid());
-  }
-
-  @Test
-  void profilerEnablesMetrics() {
-    var autoConfiguredSdk =
-        AutoConfiguredOpenTelemetrySdk.builder()
-            .setResultAsGlobal(false)
-            .addPropertiesSupplier(
-                () ->
-                    Map.of(
-                        METRICS_ENABLED_PROPERTY,
-                        "false",
-                        PROFILER_MEMORY_ENABLED_PROPERTY,
-                        "true",
-                        METRICS_IMPLEMENTATION,
-                        "micrometer"))
-            .build();
-    var config = new SplunkMetricsConfig(autoConfiguredSdk.getConfig(), Resource.getDefault());
-    assertTrue(config.enabled());
   }
 
   @Test

@@ -16,32 +16,51 @@
 
 package com.splunk.opentelemetry;
 
+import static com.splunk.opentelemetry.SplunkConfiguration.METRICS_ENABLED_PROPERTY;
+import static com.splunk.opentelemetry.SplunkConfiguration.METRICS_IMPLEMENTATION;
 import static com.splunk.opentelemetry.SplunkConfiguration.OTEL_EXPORTER_JAEGER_ENDPOINT;
+import static com.splunk.opentelemetry.SplunkConfiguration.PROFILER_MEMORY_ENABLED_PROPERTY;
 import static com.splunk.opentelemetry.SplunkConfiguration.SPLUNK_REALM_NONE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.opentelemetry.instrumentation.api.config.Config;
+import io.opentelemetry.instrumentation.api.config.ConfigBuilder;
+import java.util.function.Consumer;
 import org.junit.jupiter.api.Test;
 
 class SplunkConfigurationTest {
-  private static final String TEST_REALM = "test0";
+
   private static final String OTLP_ENDPOINT = "otel.exporter.otlp.endpoint";
 
   @Test
-  void usesRealmIngestUrlsIfRealmDefined() {
-    assertRealmDefaults(configuration(TEST_REALM));
+  void usesLocalIngestIfNoRealmIsConfigured() {
+    Config config = configuration();
+
+    assertEquals("http://localhost:9080/v1/trace", config.getString(OTEL_EXPORTER_JAEGER_ENDPOINT));
+    assertNull(config.getString(OTLP_ENDPOINT));
   }
 
   @Test
-  void usesLocalIngestIfRealmIsNullOrNone() {
-    assertLocalDefaults(configuration(null));
-    assertLocalDefaults(configuration(SPLUNK_REALM_NONE));
+  void usesLocalIngestIfRealmIsNone() {
+    Config config =
+        configuration(
+            builder ->
+                builder.addProperty(SplunkConfiguration.SPLUNK_REALM_PROPERTY, SPLUNK_REALM_NONE));
+
+    assertEquals("http://localhost:9080/v1/trace", config.getString(OTEL_EXPORTER_JAEGER_ENDPOINT));
+    assertNull(config.getString(OTLP_ENDPOINT));
   }
 
   @Test
   void realmIsNotHardcoded() {
-    var config = configuration("test1");
+    var config =
+        configuration(
+            builder -> builder.addProperty(SplunkConfiguration.SPLUNK_REALM_PROPERTY, "test1"));
+
     assertEquals(
         "https://ingest.test1.signalfx.com/v2/trace",
         config.getString(OTEL_EXPORTER_JAEGER_ENDPOINT));
@@ -50,52 +69,101 @@ class SplunkConfigurationTest {
 
   @Test
   void shouldSetOtlpHeader() {
-    SplunkConfiguration splunkConfiguration = new SplunkConfiguration();
     Config config =
-        Config.builder()
-            .addProperties(splunkConfiguration.defaultProperties())
-            .addProperty(SplunkConfiguration.SPLUNK_ACCESS_TOKEN, "token")
-            .build();
-
-    config = splunkConfiguration.customize(config);
+        configuration(
+            builder -> builder.addProperty(SplunkConfiguration.SPLUNK_ACCESS_TOKEN, "token"));
 
     assertEquals("X-SF-TOKEN=token", config.getString("otel.exporter.otlp.headers"));
   }
 
   @Test
   void shouldAppendToOtlpHeaders() {
-    SplunkConfiguration splunkConfiguration = new SplunkConfiguration();
     Config config =
-        Config.builder()
-            .addProperties(splunkConfiguration.defaultProperties())
-            .addProperty(SplunkConfiguration.SPLUNK_ACCESS_TOKEN, "token")
-            .addProperty("otel.exporter.otlp.headers", "key=value")
-            .build();
-
-    config = splunkConfiguration.customize(config);
+        configuration(
+            builder ->
+                builder
+                    .addProperty(SplunkConfiguration.SPLUNK_ACCESS_TOKEN, "token")
+                    .addProperty("otel.exporter.otlp.headers", "key=value"));
 
     assertEquals("key=value,X-SF-TOKEN=token", config.getString("otel.exporter.otlp.headers"));
   }
 
-  private static void assertLocalDefaults(Config config) {
-    assertEquals("http://localhost:9080/v1/trace", config.getString(OTEL_EXPORTER_JAEGER_ENDPOINT));
-    assertNull(config.getString(OTLP_ENDPOINT));
-  }
-
-  private static void assertRealmDefaults(Config config) {
-    assertEquals(
-        "https://ingest.test0.signalfx.com/v2/trace",
-        config.getString(OTEL_EXPORTER_JAEGER_ENDPOINT));
-    assertEquals("https://ingest.test0.signalfx.com", config.getString(OTLP_ENDPOINT));
-  }
-
-  private static Config configuration(String realm) {
-    SplunkConfiguration splunkConfiguration = new SplunkConfiguration();
+  @Test
+  void memoryProfilerEnablesMetrics() {
     Config config =
-        Config.builder()
-            .addProperties(splunkConfiguration.defaultProperties())
-            .addProperty(SplunkConfiguration.SPLUNK_REALM_PROPERTY, realm)
-            .build();
-    return splunkConfiguration.customize(config);
+        configuration(builder -> builder.addProperty(PROFILER_MEMORY_ENABLED_PROPERTY, "true"));
+
+    assertTrue(config.getBoolean(METRICS_ENABLED_PROPERTY, false));
+  }
+
+  @Test
+  void shouldDisableMetricsByDefault() {
+    Config config = configuration();
+
+    assertFalse(config.getBoolean(METRICS_ENABLED_PROPERTY, false));
+    assertEquals("none", config.getString("otel.metrics.exporter"));
+
+    verifyThatOtelMetricsInstrumentationsAreDisabled(config);
+  }
+
+  @Test
+  void shouldChooseMicrometerAsTheDefaultMetricsImplementation() {
+    Config config = configuration(builder -> builder.addProperty(METRICS_ENABLED_PROPERTY, "true"));
+
+    assertTrue(config.getBoolean(METRICS_ENABLED_PROPERTY, false));
+    assertEquals("micrometer", config.getString(METRICS_IMPLEMENTATION));
+    assertEquals("none", config.getString("otel.metrics.exporter"));
+
+    verifyThatOtelMetricsInstrumentationsAreDisabled(config);
+  }
+
+  @Test
+  void shouldDisableMicrometerMetricsIfOtelImplementationIsChosen() {
+    Config config =
+        configuration(
+            builder ->
+                builder
+                    .addProperty(METRICS_ENABLED_PROPERTY, "true")
+                    .addProperty(METRICS_IMPLEMENTATION, "opentelemetry"));
+
+    assertTrue(config.getBoolean(METRICS_ENABLED_PROPERTY, false));
+    assertEquals("opentelemetry", config.getString(METRICS_IMPLEMENTATION));
+    assertNotEquals("none", config.getString("otel.metrics.exporter"));
+
+    verifyThatMicrometerInstrumentationsAreDisabled(config);
+  }
+
+  private static Config configuration() {
+    return configuration(b -> {});
+  }
+
+  private static Config configuration(Consumer<ConfigBuilder> customizer) {
+    SplunkConfiguration splunkConfiguration = new SplunkConfiguration();
+    ConfigBuilder configBuilder =
+        Config.builder().addProperties(splunkConfiguration.defaultProperties());
+    customizer.accept(configBuilder);
+    return splunkConfiguration.customize(configBuilder.build());
+  }
+
+  private static void verifyThatOtelMetricsInstrumentationsAreDisabled(Config config) {
+    assertFalse(config.getBoolean("otel.instrumentation.apache-dbcp.enabled", false));
+    assertFalse(config.getBoolean("otel.instrumentation.c3p0.enabled", false));
+    assertFalse(config.getBoolean("otel.instrumentation.hikaricp.enabled", false));
+    assertFalse(config.getBoolean("otel.instrumentation.micrometer.enabled", false));
+    assertFalse(config.getBoolean("otel.instrumentation.oracle-ucp.enabled", false));
+    assertFalse(config.getBoolean("otel.instrumentation.oshi.enabled", false));
+    assertFalse(config.getBoolean("otel.instrumentation.runtime-metrics.enabled", false));
+    assertFalse(config.getBoolean("otel.instrumentation.tomcat-jdbc.enabled", false));
+    assertFalse(config.getBoolean("otel.instrumentation.vibur-dbcp.enabled", false));
+  }
+
+  private static void verifyThatMicrometerInstrumentationsAreDisabled(Config config) {
+    assertFalse(config.getBoolean("otel.instrumentation.c3p0-splunk.enabled", false));
+    assertFalse(config.getBoolean("otel.instrumentation.commons-dbcp2-splunk.enabled", false));
+    assertFalse(config.getBoolean("otel.instrumentation.hikari-splunk.enabled", false));
+    assertFalse(config.getBoolean("otel.instrumentation.micrometer-splunk.enabled", false));
+    assertFalse(config.getBoolean("otel.instrumentation.oracle-ucp-splunk.enabled", false));
+    assertFalse(config.getBoolean("otel.instrumentation.tomcat-jdbc-splunk.enabled", false));
+    assertFalse(config.getBoolean("otel.instrumentation.vibur-dbcp-splunk.enabled", false));
   }
 }

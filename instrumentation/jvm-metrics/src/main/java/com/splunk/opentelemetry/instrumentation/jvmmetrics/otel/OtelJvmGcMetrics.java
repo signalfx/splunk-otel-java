@@ -45,6 +45,7 @@ import com.sun.management.GcInfo;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.metrics.LongCounter;
+import io.opentelemetry.api.metrics.LongHistogram;
 import io.opentelemetry.api.metrics.Meter;
 import java.lang.management.GarbageCollectorMXBean;
 import java.lang.management.ManagementFactory;
@@ -153,10 +154,24 @@ public class OtelJvmGcMetrics {
 
   private class GcMetricsNotificationListener implements NotificationListener {
 
-    private final Meter meter;
+    private final LongHistogram concurrentPhaseHistogram;
+    private final LongHistogram pauseHistogram;
 
     GcMetricsNotificationListener(Meter meter) {
-      this.meter = meter;
+      concurrentPhaseHistogram =
+          meter
+              .histogramBuilder("runtime.jvm.gc.concurrent.phase.time")
+              .ofLongs()
+              .setUnit("ms")
+              .setDescription("Time spent in concurrent phase.")
+              .build();
+      pauseHistogram =
+          meter
+              .histogramBuilder("runtime.jvm.gc.pause")
+              .ofLongs()
+              .setUnit("ms")
+              .setDescription("Time spent in GC pause.")
+              .build();
     }
 
     @Override
@@ -171,21 +186,9 @@ public class OtelJvmGcMetrics {
       long duration = gcInfo.getDuration();
       Attributes attributes = Attributes.of(ACTION, gcAction, CAUSE, gcCause);
       if (isConcurrentPhase(gcCause, notificationInfo.getGcName())) {
-        meter
-            .histogramBuilder("runtime.jvm.gc.concurrent.phase.time")
-            .ofLongs()
-            .setUnit("ms")
-            .setDescription("Time spent in concurrent phase.")
-            .build()
-            .record(duration, attributes);
+        concurrentPhaseHistogram.record(duration, attributes);
       } else {
-        meter
-            .histogramBuilder("runtime.jvm.gc.pause")
-            .ofLongs()
-            .setUnit("ms")
-            .setDescription("Time spent in GC pause.")
-            .build()
-            .record(duration, attributes);
+        pauseHistogram.record(duration, attributes);
       }
 
       final Map<String, MemoryUsage> before = gcInfo.getMemoryUsageBeforeGc();

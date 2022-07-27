@@ -7,9 +7,15 @@ the [Splunk GDI specification](https://github.com/signalfx/gdi-specification/blo
 and this repository adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
-- tbd
+
+## v1.14.1 - 2022-07-27
+
+### Bugfixes
+- Metrics are once again enabled when memory profiling is turned on (#857)
 
 ## v1.14.0 - 2022-07-22
+
+_This release is superseded by v1.14.1, please use that version._
 
 ### Bugfixes
 - Exclude transitive gson dependency (mitigates [CVE-2022-25647](https://nvd.nist.gov/vuln/detail/CVE-2022-25647)) (#829)

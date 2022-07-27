@@ -70,7 +70,13 @@ public class SplunkConfiguration implements ConfigCustomizer {
   public Config customize(Config config) {
     ConfigBuilder builder = config.toBuilder();
 
-    boolean metricsEnabled = config.getBoolean(METRICS_ENABLED_PROPERTY, false);
+    boolean memoryProfilerEnabled = config.getBoolean(PROFILER_MEMORY_ENABLED_PROPERTY, false);
+    // memory profiler implies metrics
+    if (memoryProfilerEnabled) {
+      builder.addProperty(METRICS_ENABLED_PROPERTY, "true");
+    }
+
+    boolean metricsEnabled = config.getBoolean(METRICS_ENABLED_PROPERTY, memoryProfilerEnabled);
     String metricsImplementation = config.getString(METRICS_IMPLEMENTATION);
 
     if (!metricsEnabled || "micrometer".equals(metricsImplementation)) {

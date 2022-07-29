@@ -21,6 +21,7 @@ import static com.splunk.opentelemetry.SplunkConfiguration.METRICS_IMPLEMENTATIO
 import static com.splunk.opentelemetry.SplunkConfiguration.OTEL_EXPORTER_JAEGER_ENDPOINT;
 import static com.splunk.opentelemetry.SplunkConfiguration.PROFILER_MEMORY_ENABLED_PROPERTY;
 import static com.splunk.opentelemetry.SplunkConfiguration.SPLUNK_REALM_NONE;
+import static java.util.Arrays.asList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -146,24 +147,37 @@ class SplunkConfigurationTest {
   }
 
   private static void verifyThatOtelMetricsInstrumentationsAreDisabled(Config config) {
-    assertFalse(config.getBoolean("otel.instrumentation.apache-dbcp.enabled", false));
-    assertFalse(config.getBoolean("otel.instrumentation.c3p0.enabled", false));
-    assertFalse(config.getBoolean("otel.instrumentation.hikaricp.enabled", false));
-    assertFalse(config.getBoolean("otel.instrumentation.micrometer.enabled", false));
-    assertFalse(config.getBoolean("otel.instrumentation.oracle-ucp.enabled", false));
-    assertFalse(config.getBoolean("otel.instrumentation.oshi.enabled", false));
-    assertFalse(config.getBoolean("otel.instrumentation.runtime-metrics.enabled", false));
-    assertFalse(config.getBoolean("otel.instrumentation.tomcat-jdbc.enabled", false));
-    assertFalse(config.getBoolean("otel.instrumentation.vibur-dbcp.enabled", false));
+    for (String instrumentationName :
+        asList(
+            "apache-dbcp",
+            "c3p0",
+            "hikaricp",
+            "micrometer",
+            "oracle-ucp",
+            "oshi",
+            "runtime-metrics",
+            "spring-boot-autoconfigure",
+            "tomcat-jdbc",
+            "vibur-dbcp")) {
+      assertInstrumentationDisabled(config, instrumentationName);
+    }
   }
 
   private static void verifyThatMicrometerInstrumentationsAreDisabled(Config config) {
-    assertFalse(config.getBoolean("otel.instrumentation.c3p0-splunk.enabled", false));
-    assertFalse(config.getBoolean("otel.instrumentation.commons-dbcp2-splunk.enabled", false));
-    assertFalse(config.getBoolean("otel.instrumentation.hikari-splunk.enabled", false));
-    assertFalse(config.getBoolean("otel.instrumentation.micrometer-splunk.enabled", false));
-    assertFalse(config.getBoolean("otel.instrumentation.oracle-ucp-splunk.enabled", false));
-    assertFalse(config.getBoolean("otel.instrumentation.tomcat-jdbc-splunk.enabled", false));
-    assertFalse(config.getBoolean("otel.instrumentation.vibur-dbcp-splunk.enabled", false));
+    for (String instrumentationName :
+        asList(
+            "c3p0-splunk",
+            "commons-dbcp2-splunk",
+            "hikari-splunk",
+            "micrometer-splunk",
+            "oracle-ucp-splunk",
+            "tomcat-jdbc-splunk",
+            "vibut-dbcp-splunk")) {
+      assertInstrumentationDisabled(config, instrumentationName);
+    }
+  }
+
+  private static void assertInstrumentationDisabled(Config config, String name) {
+    assertFalse(config.getBoolean("otel.instrumentation." + name + ".enabled", false));
   }
 }

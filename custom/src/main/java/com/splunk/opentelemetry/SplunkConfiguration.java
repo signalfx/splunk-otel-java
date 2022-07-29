@@ -16,6 +16,8 @@
 
 package com.splunk.opentelemetry;
 
+import static java.util.Arrays.asList;
+
 import com.google.auto.service.AutoService;
 import io.opentelemetry.instrumentation.api.config.Config;
 import io.opentelemetry.instrumentation.api.config.ConfigBuilder;
@@ -85,15 +87,20 @@ public class SplunkConfiguration implements ConfigCustomizer {
 
       // disable upstream metrics instrumentations
       // metrics are disabled, or we're still on the micrometer based implementation
-      addIfAbsent(builder, config, "otel.instrumentation.apache-dbcp.enabled", "false");
-      addIfAbsent(builder, config, "otel.instrumentation.c3p0.enabled", "false");
-      addIfAbsent(builder, config, "otel.instrumentation.hikaricp.enabled", "false");
-      addIfAbsent(builder, config, "otel.instrumentation.micrometer.enabled", "false");
-      addIfAbsent(builder, config, "otel.instrumentation.oracle-ucp.enabled", "false");
-      addIfAbsent(builder, config, "otel.instrumentation.oshi.enabled", "false");
-      addIfAbsent(builder, config, "otel.instrumentation.runtime-metrics.enabled", "false");
-      addIfAbsent(builder, config, "otel.instrumentation.tomcat-jdbc.enabled", "false");
-      addIfAbsent(builder, config, "otel.instrumentation.vibur-dbcp.enabled", "false");
+      for (String otelInstrumentationName :
+          asList(
+              "apache-dbcp",
+              "c3p0",
+              "hikaricp",
+              "micrometer",
+              "oracle-ucp",
+              "oshi",
+              "spring-boot-actuator-autoconfigure",
+              "runtime-metrics",
+              "tomcat-jdbc",
+              "vibur-dbcp")) {
+        disableInstrumentation(builder, config, otelInstrumentationName);
+      }
     }
     if ("micrometer".equals(metricsImplementation)) {
       // TODO: warn that micrometer metrics are deprecated
@@ -125,13 +132,17 @@ public class SplunkConfiguration implements ConfigCustomizer {
 
       // disable micrometer metrics, we'll be using the equivalent otel metrics from the upstream
       // agent
-      addIfAbsent(builder, config, "otel.instrumentation.c3p0-splunk.enabled", "false");
-      addIfAbsent(builder, config, "otel.instrumentation.commons-dbcp2-splunk.enabled", "false");
-      addIfAbsent(builder, config, "otel.instrumentation.hikari-splunk.enabled", "false");
-      addIfAbsent(builder, config, "otel.instrumentation.micrometer-splunk.enabled", "false");
-      addIfAbsent(builder, config, "otel.instrumentation.oracle-ucp-splunk.enabled", "false");
-      addIfAbsent(builder, config, "otel.instrumentation.tomcat-jdbc-splunk.enabled", "false");
-      addIfAbsent(builder, config, "otel.instrumentation.vibur-dbcp-splunk.enabled", "false");
+      for (String micrometerInstrumentationName :
+          asList(
+              "c3p0-splunk",
+              "commons-dbcp2-splunk",
+              "hikari-splunk",
+              "micrometer-splunk",
+              "oracle-ucp-splunk",
+              "tomcat-jdbc-splunk",
+              "vibur-dbcp-splunk")) {
+        disableInstrumentation(builder, config, micrometerInstrumentationName);
+      }
     } else {
       throw new IllegalStateException(
           "Invalid metrics implementation: '"
@@ -172,6 +183,12 @@ public class SplunkConfiguration implements ConfigCustomizer {
     }
 
     return builder.build();
+  }
+
+  private static void disableInstrumentation(
+      ConfigBuilder builder, Config config, String instrumentationName) {
+    addIfAbsent(
+        builder, config, "otel.instrumentation." + instrumentationName + ".enabled", "false");
   }
 
   private static void addIfAbsent(ConfigBuilder builder, Config config, String key, String value) {

@@ -9,6 +9,11 @@ and this repository adheres to [Semantic Versioning](https://semver.org/spec/v2.
 ## Unreleased
 - tbd
 
+## v1.14.1 - 2022-07-27
+
+### Bugfixes
+- Metrics are once again enabled when memory profiling is turned on (#857)
+
 ## v1.14.0 - 2022-07-22
 
 ### Bugfixes

@@ -25,10 +25,10 @@ import io.micrometer.core.instrument.binder.BaseUnits;
 import io.micrometer.core.instrument.binder.MeterBinder;
 
 public class MicrometerAllocatedMemoryMetrics implements MeterBinder {
-  private final AllocatedMemoryMetrics allocatedMemoryMetrics = new AllocatedMemoryMetrics();
 
   @Override
   public void bindTo(MeterRegistry registry) {
+    AllocatedMemoryMetrics allocatedMemoryMetrics = new AllocatedMemoryMetrics();
     if (!allocatedMemoryMetrics.isAvailable()) {
       return;
     }

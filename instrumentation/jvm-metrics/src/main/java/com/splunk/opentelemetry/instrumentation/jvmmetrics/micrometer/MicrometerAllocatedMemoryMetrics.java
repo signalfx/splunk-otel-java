@@ -25,18 +25,21 @@ import io.micrometer.core.instrument.binder.BaseUnits;
 import io.micrometer.core.instrument.binder.MeterBinder;
 
 public class MicrometerAllocatedMemoryMetrics implements MeterBinder {
-  private final AllocatedMemoryMetrics allocatedMemoryMetrics = new AllocatedMemoryMetrics();
 
   @Override
   public void bindTo(MeterRegistry registry) {
+    AllocatedMemoryMetrics allocatedMemoryMetrics = new AllocatedMemoryMetrics();
     if (!allocatedMemoryMetrics.isAvailable()) {
       return;
     }
 
+    // FunctionCounter keeps a weak reference to allocatedMemoryMetrics. To ensure it is not
+    // collected we pass a capturing lambda as the function instead of method reference
+    // AllocatedMemoryMetrics::getCumulativeAllocationTotal
     FunctionCounter.builder(
             METRIC_NAME,
             allocatedMemoryMetrics,
-            AllocatedMemoryMetrics::getCumulativeAllocationTotal)
+            (unused) -> allocatedMemoryMetrics.getCumulativeAllocationTotal())
         .description("Approximate sum of heap allocations")
         .baseUnit(BaseUnits.BYTES)
         .tag("type", "heap")

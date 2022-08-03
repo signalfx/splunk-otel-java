@@ -33,10 +33,13 @@ public class MicrometerAllocatedMemoryMetrics implements MeterBinder {
       return;
     }
 
+    // FunctionCounter keeps a weak reference to allocatedMemoryMetrics. To ensure it is not
+    // collected we pass a capturing lambda as the function instead of method reference
+    // AllocatedMemoryMetrics::getCumulativeAllocationTotal
     FunctionCounter.builder(
             METRIC_NAME,
             allocatedMemoryMetrics,
-            AllocatedMemoryMetrics::getCumulativeAllocationTotal)
+            (unused) -> allocatedMemoryMetrics.getCumulativeAllocationTotal())
         .description("Approximate sum of heap allocations")
         .baseUnit(BaseUnits.BYTES)
         .tag("type", "heap")

@@ -16,6 +16,7 @@
 
 package com.splunk.opentelemetry.instrumentation.jvmmetrics.otel;
 
+import static com.splunk.opentelemetry.instrumentation.jvmmetrics.AllocatedMemoryMetrics.METRIC_NAME;
 import static io.opentelemetry.api.common.AttributeKey.stringKey;
 
 import com.splunk.opentelemetry.instrumentation.jvmmetrics.AllocatedMemoryMetrics;
@@ -23,7 +24,7 @@ import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.metrics.Meter;
 
-public class OtelAllocatedMemoryMetrics extends AllocatedMemoryMetrics {
+public class OtelAllocatedMemoryMetrics {
   private static final AttributeKey<String> TYPE = stringKey("type");
 
   public void install() {

@@ -32,7 +32,7 @@ public class OtelGcMemoryMetrics {
     Meter meter = OtelMeterProvider.get();
     meter
         .counterBuilder(METRIC_NAME)
-        .setUnit("bytes")
+        .setUnit("By")
         .setDescription("Sum of heap size differences before and after gc.")
         .buildWithCallback(measurement -> measurement.record(gcMemoryMetrics.getDeltaSum()));
 

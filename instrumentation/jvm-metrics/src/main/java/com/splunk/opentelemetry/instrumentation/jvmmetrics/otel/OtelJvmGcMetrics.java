@@ -107,21 +107,21 @@ public class OtelJvmGcMetrics {
     maxDataSize = new AtomicLong((long) maxLongLivedPoolBytes);
     meter
         .gaugeBuilder("runtime.jvm.gc.max.data.size")
-        .setUnit("bytes")
+        .setUnit("By")
         .setDescription("Max size of long-lived heap memory pool.")
         .buildWithCallback(measurement -> measurement.record(maxDataSize.get()));
 
     liveDataSize = new AtomicLong();
     meter
         .gaugeBuilder("runtime.jvm.gc.live.data.size")
-        .setUnit("bytes")
+        .setUnit("By")
         .setDescription("Size of long-lived heap memory pool after reclamation.")
         .buildWithCallback(measurement -> measurement.record(liveDataSize.get()));
 
     allocatedBytes =
         meter
             .counterBuilder("runtime.jvm.gc.memory.allocated")
-            .setUnit("bytes")
+            .setUnit("By")
             .setDescription("Size of long-lived heap memory pool after reclamation.")
             .build();
 
@@ -129,7 +129,7 @@ public class OtelJvmGcMetrics {
       promotedBytes =
           meter
               .counterBuilder("runtime.jvm.gc.memory.promoted")
-              .setUnit("bytes")
+              .setUnit("By")
               .setDescription(
                   "Count of positive increases in the size of the old generation memory pool before GC to after GC.")
               .build();

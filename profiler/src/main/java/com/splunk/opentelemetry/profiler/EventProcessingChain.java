@@ -121,7 +121,9 @@ class EventProcessingChain {
 
     private final Map<String, EventType> eventTypes = new HashMap<>();
 
-    /** @return true when event belongs to a new chunk */
+    /**
+     * @return true when event belongs to a new chunk
+     */
     boolean isNewChunk(RecordedEvent event) {
       EventType currentEventType = event.getEventType();
       String eventName = currentEventType.getName();

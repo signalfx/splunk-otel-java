@@ -81,7 +81,9 @@ class TimeWindowSum {
     }
   }
 
-  /** @return The sum, in milliseconds. */
+  /**
+   * @return The sum, in milliseconds.
+   */
   public double poll() {
     rotate();
     synchronized (this) {

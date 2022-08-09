@@ -7,7 +7,10 @@ the [Splunk GDI specification](https://github.com/signalfx/gdi-specification/blo
 and this repository adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
-- tbd
+
+### General
+
+- Micrometer dependency has been updated to version 1.9.3.
 
 ## v1.14.1 - 2022-07-27
 

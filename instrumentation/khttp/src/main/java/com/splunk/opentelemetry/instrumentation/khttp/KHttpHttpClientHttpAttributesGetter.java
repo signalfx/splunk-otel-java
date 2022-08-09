@@ -27,13 +27,13 @@ import org.jetbrains.annotations.Nullable;
 
 final class KHttpHttpClientHttpAttributesGetter
     implements HttpClientAttributesGetter<RequestWrapper, Response> {
+
   @Nullable
   @Override
   public String url(RequestWrapper requestWrapper) {
     return requestWrapper.uri;
   }
 
-  @Nullable
   @Override
   public String flavor(RequestWrapper requestWrapper, @Nullable Response response) {
     return SemanticAttributes.HttpFlavorValues.HTTP_1_1;
@@ -51,34 +51,9 @@ final class KHttpHttpClientHttpAttributesGetter
     return header != null ? singletonList(header) : emptyList();
   }
 
-  @Nullable
-  @Override
-  public Long requestContentLength(RequestWrapper requestWrapper, @Nullable Response response) {
-    return null;
-  }
-
-  @Nullable
-  @Override
-  public Long requestContentLengthUncompressed(
-      RequestWrapper requestWrapper, @Nullable Response response) {
-    return null;
-  }
-
   @Override
   public Integer statusCode(RequestWrapper requestWrapper, Response response) {
     return response.getStatusCode();
-  }
-
-  @Nullable
-  @Override
-  public Long responseContentLength(RequestWrapper requestWrapper, Response response) {
-    return null;
-  }
-
-  @Nullable
-  @Override
-  public Long responseContentLengthUncompressed(RequestWrapper requestWrapper, Response response) {
-    return null;
   }
 
   @Override

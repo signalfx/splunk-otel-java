@@ -9,8 +9,7 @@ and this repository adheres to [Semantic Versioning](https://semver.org/spec/v2.
 ## Unreleased
 
 ## v1.14.2 - 2022-08-12
-
-
+- Fix allocated memory metrics by preventing `WeakReference` from GCing (#864)
 
 ## v1.14.1 - 2022-07-27
 

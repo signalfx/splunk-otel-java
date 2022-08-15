@@ -12,6 +12,10 @@ and this repository adheres to [Semantic Versioning](https://semver.org/spec/v2.
 
 - Micrometer dependency has been updated to version 1.9.3.
 
+## v1.14.2 - 2022-08-11
+
+- Fix allocated memory metrics by preventing WeakReference from GCing (#864)
+
 ## v1.14.1 - 2022-07-27
 
 ### Bugfixes

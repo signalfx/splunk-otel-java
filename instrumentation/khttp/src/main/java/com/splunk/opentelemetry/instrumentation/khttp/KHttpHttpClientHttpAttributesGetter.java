@@ -52,7 +52,8 @@ final class KHttpHttpClientHttpAttributesGetter
   }
 
   @Override
-  public Integer statusCode(RequestWrapper requestWrapper, Response response) {
+  public Integer statusCode(
+      RequestWrapper requestWrapper, Response response, @Nullable Throwable error) {
     return response.getStatusCode();
   }
 

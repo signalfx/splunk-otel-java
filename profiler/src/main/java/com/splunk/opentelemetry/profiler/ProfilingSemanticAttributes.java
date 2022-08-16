@@ -51,8 +51,8 @@ public class ProfilingSemanticAttributes {
 
   public static final String PROFILING_SOURCE = "otel.profiling";
 
-  private static final String OTEL_INSTRUMENTATION_NAME = "otel.profiling";
-  private static final String OTEL_INSTRUMENTATION_VERSION = "0.1.0";
+  public static final String OTEL_INSTRUMENTATION_NAME = "otel.profiling";
+  public static final String OTEL_INSTRUMENTATION_VERSION = "0.1.0";
   public static final InstrumentationScopeInfo INSTRUMENTATION_SCOPE_INFO =
       InstrumentationScopeInfo.create(
           OTEL_INSTRUMENTATION_NAME, OTEL_INSTRUMENTATION_VERSION, null);

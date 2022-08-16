@@ -39,7 +39,9 @@ import com.splunk.opentelemetry.profiler.util.HelpfulExecutors;
 import io.opentelemetry.javaagent.extension.AgentListener;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
+import io.opentelemetry.sdk.logs.LogEmitter;
 import io.opentelemetry.sdk.logs.LogProcessor;
+import io.opentelemetry.sdk.logs.SdkLogEmitterProvider;
 import io.opentelemetry.sdk.logs.export.BatchLogProcessor;
 import io.opentelemetry.sdk.logs.export.LogExporter;
 import io.opentelemetry.sdk.logs.export.SimpleLogProcessor;
@@ -113,15 +115,13 @@ public class JfrActivator implements AgentListener {
     if (cpuDataFormat == DataFormat.TEXT) {
       cpuEventExporter =
           PlainTextCpuEventExporter.builder()
-              .logProcessor(BatchLogProcessorHolder.get(logsExporter))
+              .logEmitter(buildLogEmitter(BatchLogProcessorHolder.get(logsExporter), resource))
               .commonAttributes(commonAttributes)
-              .resource(resource)
               .build();
     } else {
       cpuEventExporter =
           PprofCpuEventExporter.builder()
-              .logProcessor(SimpleLogProcessor.create(logsExporter))
-              .resource(resource)
+              .logEmitter(buildLogEmitter(SimpleLogProcessor.create(logsExporter), resource))
               .dataFormat(cpuDataFormat)
               .eventPeriods(periods)
               .stackDepth(stackDepth)
@@ -137,16 +137,14 @@ public class JfrActivator implements AgentListener {
     if (allocationDataFormat == DataFormat.TEXT) {
       allocationEventExporter =
           PlainTextAllocationEventExporter.builder()
-              .logProcessor(BatchLogProcessorHolder.get(logsExporter))
+              .logEmitter(buildLogEmitter(BatchLogProcessorHolder.get(logsExporter), resource))
               .commonAttributes(commonAttributes)
-              .resource(resource)
               .stackDepth(stackDepth)
               .build();
     } else {
       allocationEventExporter =
           PprofAllocationEventExporter.builder()
-              .logProcessor(SimpleLogProcessor.create(logsExporter))
-              .resource(resource)
+              .logEmitter(buildLogEmitter(SimpleLogProcessor.create(logsExporter), resource))
               .dataFormat(allocationDataFormat)
               .stackDepth(stackDepth)
               .build();
@@ -192,6 +190,16 @@ public class JfrActivator implements AgentListener {
 
     sequencer.start();
     dirCleanup.registerShutdownHook();
+  }
+
+  private LogEmitter buildLogEmitter(LogProcessor logProcessor, Resource resource) {
+    return SdkLogEmitterProvider.builder()
+        .addLogProcessor(logProcessor)
+        .setResource(resource)
+        .build()
+        .logEmitterBuilder(ProfilingSemanticAttributes.OTEL_INSTRUMENTATION_NAME)
+        .setInstrumentationVersion(ProfilingSemanticAttributes.OTEL_INSTRUMENTATION_VERSION)
+        .build();
   }
 
   private ThreadDumpProcessor buildThreadDumpProcessor(

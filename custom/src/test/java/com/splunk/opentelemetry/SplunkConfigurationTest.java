@@ -28,9 +28,10 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import io.opentelemetry.instrumentation.api.config.Config;
-import io.opentelemetry.instrumentation.api.config.ConfigBuilder;
-import java.util.function.Consumer;
+import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
+import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
+import java.util.Map;
+import java.util.function.Supplier;
 import org.junit.jupiter.api.Test;
 
 class SplunkConfigurationTest {
@@ -39,7 +40,7 @@ class SplunkConfigurationTest {
 
   @Test
   void usesLocalIngestIfNoRealmIsConfigured() {
-    Config config = configuration();
+    ConfigProperties config = configuration();
 
     assertEquals("http://localhost:9080/v1/trace", config.getString(OTEL_EXPORTER_JAEGER_ENDPOINT));
     assertNull(config.getString(OTLP_ENDPOINT));
@@ -47,10 +48,8 @@ class SplunkConfigurationTest {
 
   @Test
   void usesLocalIngestIfRealmIsNone() {
-    Config config =
-        configuration(
-            builder ->
-                builder.addProperty(SplunkConfiguration.SPLUNK_REALM_PROPERTY, SPLUNK_REALM_NONE));
+    ConfigProperties config =
+        configuration(() -> Map.of(SplunkConfiguration.SPLUNK_REALM_PROPERTY, SPLUNK_REALM_NONE));
 
     assertEquals("http://localhost:9080/v1/trace", config.getString(OTEL_EXPORTER_JAEGER_ENDPOINT));
     assertNull(config.getString(OTLP_ENDPOINT));
@@ -58,9 +57,7 @@ class SplunkConfigurationTest {
 
   @Test
   void realmIsNotHardcoded() {
-    var config =
-        configuration(
-            builder -> builder.addProperty(SplunkConfiguration.SPLUNK_REALM_PROPERTY, "test1"));
+    var config = configuration(() -> Map.of(SplunkConfiguration.SPLUNK_REALM_PROPERTY, "test1"));
 
     assertEquals(
         "https://ingest.test1.signalfx.com/v2/trace",
@@ -70,36 +67,36 @@ class SplunkConfigurationTest {
 
   @Test
   void shouldSetOtlpHeader() {
-    Config config =
-        configuration(
-            builder -> builder.addProperty(SplunkConfiguration.SPLUNK_ACCESS_TOKEN, "token"));
+    ConfigProperties config =
+        configuration(() -> Map.of(SplunkConfiguration.SPLUNK_ACCESS_TOKEN, "token"));
 
     assertEquals("X-SF-TOKEN=token", config.getString("otel.exporter.otlp.headers"));
   }
 
   @Test
   void shouldAppendToOtlpHeaders() {
-    Config config =
+    ConfigProperties config =
         configuration(
-            builder ->
-                builder
-                    .addProperty(SplunkConfiguration.SPLUNK_ACCESS_TOKEN, "token")
-                    .addProperty("otel.exporter.otlp.headers", "key=value"));
+            () ->
+                Map.of(
+                    SplunkConfiguration.SPLUNK_ACCESS_TOKEN,
+                    "token",
+                    "otel.exporter.otlp.headers",
+                    "key=value"));
 
     assertEquals("key=value,X-SF-TOKEN=token", config.getString("otel.exporter.otlp.headers"));
   }
 
   @Test
   void memoryProfilerEnablesMetrics() {
-    Config config =
-        configuration(builder -> builder.addProperty(PROFILER_MEMORY_ENABLED_PROPERTY, "true"));
+    ConfigProperties config = configuration(() -> Map.of(PROFILER_MEMORY_ENABLED_PROPERTY, "true"));
 
     assertTrue(config.getBoolean(METRICS_ENABLED_PROPERTY, false));
   }
 
   @Test
   void shouldDisableMetricsByDefault() {
-    Config config = configuration();
+    ConfigProperties config = configuration();
 
     assertFalse(config.getBoolean(METRICS_ENABLED_PROPERTY, false));
     assertEquals("none", config.getString("otel.metrics.exporter"));
@@ -109,7 +106,7 @@ class SplunkConfigurationTest {
 
   @Test
   void shouldChooseMicrometerAsTheDefaultMetricsImplementation() {
-    Config config = configuration(builder -> builder.addProperty(METRICS_ENABLED_PROPERTY, "true"));
+    ConfigProperties config = configuration(() -> Map.of(METRICS_ENABLED_PROPERTY, "true"));
 
     assertTrue(config.getBoolean(METRICS_ENABLED_PROPERTY, false));
     assertEquals("micrometer", config.getString(METRICS_IMPLEMENTATION));
@@ -120,12 +117,10 @@ class SplunkConfigurationTest {
 
   @Test
   void shouldDisableMicrometerMetricsIfOtelImplementationIsChosen() {
-    Config config =
+    ConfigProperties config =
         configuration(
-            builder ->
-                builder
-                    .addProperty(METRICS_ENABLED_PROPERTY, "true")
-                    .addProperty(METRICS_IMPLEMENTATION, "opentelemetry"));
+            () ->
+                Map.of(METRICS_ENABLED_PROPERTY, "true", METRICS_IMPLEMENTATION, "opentelemetry"));
 
     assertTrue(config.getBoolean(METRICS_ENABLED_PROPERTY, false));
     assertEquals("opentelemetry", config.getString(METRICS_IMPLEMENTATION));
@@ -134,19 +129,24 @@ class SplunkConfigurationTest {
     verifyThatMicrometerInstrumentationsAreDisabled(config);
   }
 
-  private static Config configuration() {
-    return configuration(b -> {});
+  private static ConfigProperties configuration() {
+    return configuration(Map::of);
   }
 
-  private static Config configuration(Consumer<ConfigBuilder> customizer) {
-    SplunkConfiguration splunkConfiguration = new SplunkConfiguration();
-    ConfigBuilder configBuilder =
-        Config.builder().addProperties(splunkConfiguration.defaultProperties());
-    customizer.accept(configBuilder);
-    return splunkConfiguration.customize(configBuilder.build());
+  private static ConfigProperties configuration(
+      Supplier<Map<String, String>> testPropertiesSupplier) {
+    return AutoConfiguredOpenTelemetrySdk.builder()
+        .setResultAsGlobal(false)
+        // don't create the SDK
+        .addPropertiesSupplier(() -> Map.of("otel.experimental.sdk.enabled", "false"))
+        // run in a customizer so that it executes after SplunkConfiguration#defaultProperties()
+        .addPropertiesCustomizer(config -> testPropertiesSupplier.get())
+        // implicitly loads SplunkConfiguration through SPI
+        .build()
+        .getConfig();
   }
 
-  private static void verifyThatOtelMetricsInstrumentationsAreDisabled(Config config) {
+  private static void verifyThatOtelMetricsInstrumentationsAreDisabled(ConfigProperties config) {
     for (String instrumentationName :
         asList(
             "apache-dbcp",
@@ -163,7 +163,7 @@ class SplunkConfigurationTest {
     }
   }
 
-  private static void verifyThatMicrometerInstrumentationsAreDisabled(Config config) {
+  private static void verifyThatMicrometerInstrumentationsAreDisabled(ConfigProperties config) {
     for (String instrumentationName :
         asList(
             "c3p0-splunk",
@@ -177,7 +177,7 @@ class SplunkConfigurationTest {
     }
   }
 
-  private static void assertInstrumentationDisabled(Config config, String name) {
+  private static void assertInstrumentationDisabled(ConfigProperties config, String name) {
     assertFalse(config.getBoolean("otel.instrumentation." + name + ".enabled", false));
   }
 }

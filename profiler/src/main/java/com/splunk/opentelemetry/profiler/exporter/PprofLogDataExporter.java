@@ -18,37 +18,28 @@ package com.splunk.opentelemetry.profiler.exporter;
 
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.DATA_FORMAT;
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.DATA_TYPE;
-import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.INSTRUMENTATION_SCOPE_INFO;
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.PROFILING_SOURCE;
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.SOURCE_TYPE;
 
 import com.splunk.opentelemetry.profiler.Configuration.DataFormat;
 import com.splunk.opentelemetry.profiler.ProfilingDataType;
 import io.opentelemetry.api.common.Attributes;
-import io.opentelemetry.sdk.logs.LogProcessor;
-import io.opentelemetry.sdk.logs.data.LogDataBuilder;
-import io.opentelemetry.sdk.resources.Resource;
+import io.opentelemetry.sdk.logs.LogEmitter;
 import java.nio.charset.StandardCharsets;
-import java.time.Instant;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class PprofLogDataExporter {
   private static final Logger logger = LoggerFactory.getLogger(PprofLogDataExporter.class);
 
-  private final LogProcessor logProcessor;
-  private final Resource resource;
+  private final LogEmitter logEmitter;
   private final ProfilingDataType dataType;
   private final DataFormat dataFormat;
   private final Attributes commonAttributes;
 
   public PprofLogDataExporter(
-      LogProcessor logProcessor,
-      Resource resource,
-      ProfilingDataType dataType,
-      DataFormat dataFormat) {
-    this.logProcessor = logProcessor;
-    this.resource = resource;
+      LogEmitter logEmitter, ProfilingDataType dataType, DataFormat dataFormat) {
+    this.logEmitter = logEmitter;
     this.dataType = dataType;
     this.dataFormat = dataFormat;
     this.commonAttributes =
@@ -64,12 +55,7 @@ public class PprofLogDataExporter {
         "Exporting {} data as {}, size {}.", dataType.value(), dataFormat.value(), bytes.length);
 
     String body = new String(bytes, StandardCharsets.ISO_8859_1);
-    LogDataBuilder logDataBuilder =
-        LogDataBuilder.create(resource, INSTRUMENTATION_SCOPE_INFO)
-            .setEpoch(Instant.now())
-            .setBody(body)
-            .setAttributes(commonAttributes);
 
-    logProcessor.emit(logDataBuilder.build());
+    logEmitter.logRecordBuilder().setBody(body).setAllAttributes(commonAttributes).emit();
   }
 }

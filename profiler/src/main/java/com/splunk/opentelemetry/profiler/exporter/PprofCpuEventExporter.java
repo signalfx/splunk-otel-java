@@ -35,8 +35,7 @@ import com.splunk.opentelemetry.profiler.events.EventPeriods;
 import com.splunk.opentelemetry.profiler.exporter.StackTraceParser.StackTrace;
 import com.splunk.opentelemetry.profiler.pprof.Pprof;
 import io.opentelemetry.api.trace.SpanContext;
-import io.opentelemetry.sdk.logs.LogProcessor;
-import io.opentelemetry.sdk.resources.Resource;
+import io.opentelemetry.sdk.logs.LogEmitter;
 import java.time.Duration;
 import java.time.Instant;
 
@@ -52,8 +51,7 @@ public class PprofCpuEventExporter implements CpuEventExporter {
     this.eventPeriods = builder.eventPeriods;
     this.stackDepth = builder.stackDepth;
     this.pprofLogDataExporter =
-        new PprofLogDataExporter(
-            builder.logProcessor, builder.resource, ProfilingDataType.CPU, builder.dataFormat);
+        new PprofLogDataExporter(builder.logEmitter, ProfilingDataType.CPU, builder.dataFormat);
   }
 
   @Override
@@ -126,8 +124,7 @@ public class PprofCpuEventExporter implements CpuEventExporter {
   }
 
   public static class Builder {
-    private LogProcessor logProcessor;
-    private Resource resource;
+    private LogEmitter logEmitter;
     private DataFormat dataFormat;
     private EventPeriods eventPeriods;
     private int stackDepth;
@@ -136,13 +133,8 @@ public class PprofCpuEventExporter implements CpuEventExporter {
       return new PprofCpuEventExporter(this);
     }
 
-    public Builder logProcessor(LogProcessor logsProcessor) {
-      this.logProcessor = logsProcessor;
-      return this;
-    }
-
-    public Builder resource(Resource resource) {
-      this.resource = resource;
+    public Builder logEmitter(LogEmitter logEmitter) {
+      this.logEmitter = logEmitter;
       return this;
     }
 

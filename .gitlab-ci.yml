@@ -13,6 +13,7 @@ stages:
   - build
   - verify
   - release
+  - post-release
 
 build:
   stage: build
@@ -50,6 +51,24 @@ release:
   rules:
     - if: '$CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+.*/'
   before_script:
-    - ./scripts/install-release-deps.sh
+    - ./scripts/install-gh-deps.sh
   script:
     - ./scripts/release.sh "$CI_COMMIT_TAG"
+
+publish-docker-image:
+  stage: post-release
+  rules:
+    - if: '$CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+.*/'
+  before_script:
+    - ./scripts/install-docker-deps.sh
+  script:
+    - ./scripts/publish-docker-image.sh "$CI_COMMIT_TAG"
+
+propagate-version:
+  stage: post-release
+  rules:
+    - if: '$CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+.*/'
+  before_script:
+    - ./scripts/install-gh-deps.sh
+  script:
+    - ./scripts/propagate-version.sh "$CI_COMMIT_TAG"

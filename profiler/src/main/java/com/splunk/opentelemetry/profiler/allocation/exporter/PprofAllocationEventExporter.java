@@ -35,8 +35,7 @@ import com.splunk.opentelemetry.profiler.allocation.sampler.AllocationEventSampl
 import com.splunk.opentelemetry.profiler.exporter.PprofLogDataExporter;
 import com.splunk.opentelemetry.profiler.pprof.Pprof;
 import io.opentelemetry.api.trace.SpanContext;
-import io.opentelemetry.sdk.logs.LogProcessor;
-import io.opentelemetry.sdk.resources.Resource;
+import io.opentelemetry.sdk.logs.LogEmitter;
 import java.time.Instant;
 import jdk.jfr.consumer.RecordedEvent;
 import jdk.jfr.consumer.RecordedMethod;
@@ -54,10 +53,7 @@ public class PprofAllocationEventExporter implements AllocationEventExporter {
     this.stackDepth = builder.stackDepth;
     this.pprofLogDataExporter =
         new PprofLogDataExporter(
-            builder.logProcessor,
-            builder.resource,
-            ProfilingDataType.ALLOCATION,
-            builder.dataFormat);
+            builder.logEmitter, ProfilingDataType.ALLOCATION, builder.dataFormat);
   }
 
   @Override
@@ -154,8 +150,7 @@ public class PprofAllocationEventExporter implements AllocationEventExporter {
   }
 
   public static class Builder {
-    private LogProcessor logProcessor;
-    private Resource resource;
+    private LogEmitter logEmitter;
     private DataFormat dataFormat;
     private int stackDepth;
 
@@ -163,13 +158,8 @@ public class PprofAllocationEventExporter implements AllocationEventExporter {
       return new PprofAllocationEventExporter(this);
     }
 
-    public Builder logProcessor(LogProcessor logsProcessor) {
-      this.logProcessor = logsProcessor;
-      return this;
-    }
-
-    public Builder resource(Resource resource) {
-      this.resource = resource;
+    public Builder logEmitter(LogEmitter logEmitter) {
+      this.logEmitter = logEmitter;
       return this;
     }
 

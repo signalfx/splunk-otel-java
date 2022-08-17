@@ -19,17 +19,16 @@ package com.splunk.opentelemetry;
 import static java.util.Arrays.asList;
 
 import com.google.auto.service.AutoService;
-import io.opentelemetry.instrumentation.api.config.Config;
-import io.opentelemetry.instrumentation.api.config.ConfigBuilder;
-import io.opentelemetry.javaagent.extension.config.ConfigCustomizer;
+import io.opentelemetry.sdk.autoconfigure.spi.AutoConfigurationCustomizer;
+import io.opentelemetry.sdk.autoconfigure.spi.AutoConfigurationCustomizerProvider;
+import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import java.util.HashMap;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@SuppressWarnings("deprecation") // we'll need to wait for the SDK config customization
-@AutoService(ConfigCustomizer.class)
-public class SplunkConfiguration implements ConfigCustomizer {
+@AutoService(AutoConfigurationCustomizerProvider.class)
+public class SplunkConfiguration implements AutoConfigurationCustomizerProvider {
   private static final Logger log = LoggerFactory.getLogger(SplunkConfiguration.class);
 
   public static final String SPLUNK_ACCESS_TOKEN = "splunk.access.token";
@@ -45,7 +44,13 @@ public class SplunkConfiguration implements ConfigCustomizer {
   public static final String METRICS_IMPLEMENTATION = "splunk.metrics.implementation";
 
   @Override
-  public Map<String, String> defaultProperties() {
+  public void customize(AutoConfigurationCustomizer autoConfiguration) {
+    autoConfiguration
+        .addPropertiesSupplier(this::defaultProperties)
+        .addPropertiesCustomizer(this::customize);
+  }
+
+  Map<String, String> defaultProperties() {
     Map<String, String> config = new HashMap<>();
 
     config.put("otel.traces.sampler", "always_on");
@@ -68,14 +73,13 @@ public class SplunkConfiguration implements ConfigCustomizer {
     return config;
   }
 
-  @Override
-  public Config customize(Config config) {
-    ConfigBuilder builder = config.toBuilder();
+  Map<String, String> customize(ConfigProperties config) {
+    Map<String, String> customized = new HashMap<>();
 
     boolean memoryProfilerEnabled = config.getBoolean(PROFILER_MEMORY_ENABLED_PROPERTY, false);
     // memory profiler implies metrics
     if (memoryProfilerEnabled) {
-      builder.addProperty(METRICS_ENABLED_PROPERTY, "true");
+      customized.put(METRICS_ENABLED_PROPERTY, "true");
     }
 
     boolean metricsEnabled = config.getBoolean(METRICS_ENABLED_PROPERTY, memoryProfilerEnabled);
@@ -83,7 +87,7 @@ public class SplunkConfiguration implements ConfigCustomizer {
 
     if (!metricsEnabled || "micrometer".equals(metricsImplementation)) {
       // by default no otel metrics are exported
-      addIfAbsent(builder, config, "otel.metrics.exporter", "none");
+      addIfAbsent(customized, config, "otel.metrics.exporter", "none");
 
       // disable upstream metrics instrumentations
       // metrics are disabled, or we're still on the micrometer based implementation
@@ -99,7 +103,7 @@ public class SplunkConfiguration implements ConfigCustomizer {
               "runtime-metrics",
               "tomcat-jdbc",
               "vibur-dbcp")) {
-        disableInstrumentation(builder, config, otelInstrumentationName);
+        disableInstrumentation(customized, config, otelInstrumentationName);
       }
     }
     if ("micrometer".equals(metricsImplementation)) {
@@ -118,7 +122,7 @@ public class SplunkConfiguration implements ConfigCustomizer {
         // If neither otel.exporter.otlp.metrics.endpoint nor otel.exporter.otlp.endpoint are
         // configured, the value of splunk.metrics.endpoint should be used as the exporter endpoint.
         if (otlpMetricsEndpoint == null && otlpEndpoint == null) {
-          builder.addProperty("otel.exporter.otlp.metrics.endpoint", splunkMetricsEndpoint);
+          customized.put("otel.exporter.otlp.metrics.endpoint", splunkMetricsEndpoint);
         }
       }
 
@@ -127,7 +131,7 @@ public class SplunkConfiguration implements ConfigCustomizer {
         log.warn(
             "splunk.metrics.export.interval is deprecate, use otel.metric.export.interval instead.");
 
-        addIfAbsent(builder, config, "otel.metric.export.interval", splunkMetricsInterval);
+        addIfAbsent(customized, config, "otel.metric.export.interval", splunkMetricsInterval);
       }
 
       // disable micrometer metrics, we'll be using the equivalent otel metrics from the upstream
@@ -141,7 +145,7 @@ public class SplunkConfiguration implements ConfigCustomizer {
               "oracle-ucp-splunk",
               "tomcat-jdbc-splunk",
               "vibur-dbcp-splunk")) {
-        disableInstrumentation(builder, config, micrometerInstrumentationName);
+        disableInstrumentation(customized, config, micrometerInstrumentationName);
       }
     } else {
       throw new IllegalStateException(
@@ -152,23 +156,24 @@ public class SplunkConfiguration implements ConfigCustomizer {
 
     String realm = config.getString(SPLUNK_REALM_PROPERTY, SPLUNK_REALM_NONE);
     if (SPLUNK_REALM_NONE.equals(realm)) {
-      addIfAbsent(builder, config, OTEL_EXPORTER_JAEGER_ENDPOINT, "http://localhost:9080/v1/trace");
+      addIfAbsent(
+          customized, config, OTEL_EXPORTER_JAEGER_ENDPOINT, "http://localhost:9080/v1/trace");
     } else {
       addIfAbsent(
-          builder,
+          customized,
           config,
           "otel.exporter.otlp.endpoint",
           "https://ingest." + realm + ".signalfx.com");
       addIfAbsent(
-          builder,
+          customized,
           config,
           OTEL_EXPORTER_JAEGER_ENDPOINT,
           "https://ingest." + realm + ".signalfx.com/v2/trace");
 
       // metrics ingest doesn't currently accept grpc
-      addIfAbsent(builder, config, "otel.exporter.otlp.metrics.protocol", "http/protobuf");
+      addIfAbsent(customized, config, "otel.exporter.otlp.metrics.protocol", "http/protobuf");
       addIfAbsent(
-          builder,
+          customized,
           config,
           "otel.exporter.otlp.metrics.endpoint",
           "https://ingest." + realm + ".signalfx.com/v2/datapoint/otlp");
@@ -179,21 +184,22 @@ public class SplunkConfiguration implements ConfigCustomizer {
       String userOtlpHeaders = config.getString("otel.exporter.otlp.headers");
       String otlpHeaders =
           (userOtlpHeaders == null ? "" : userOtlpHeaders + ",") + "X-SF-TOKEN=" + accessToken;
-      builder.addProperty("otel.exporter.otlp.headers", otlpHeaders);
+      customized.put("otel.exporter.otlp.headers", otlpHeaders);
     }
 
-    return builder.build();
+    return customized;
   }
 
   private static void disableInstrumentation(
-      ConfigBuilder builder, Config config, String instrumentationName) {
+      Map<String, String> customized, ConfigProperties config, String instrumentationName) {
     addIfAbsent(
-        builder, config, "otel.instrumentation." + instrumentationName + ".enabled", "false");
+        customized, config, "otel.instrumentation." + instrumentationName + ".enabled", "false");
   }
 
-  private static void addIfAbsent(ConfigBuilder builder, Config config, String key, String value) {
+  private static void addIfAbsent(
+      Map<String, String> customized, ConfigProperties config, String key, String value) {
     if (config.getString(key) == null) {
-      builder.addProperty(key, value);
+      customized.put(key, value);
     }
   }
 }

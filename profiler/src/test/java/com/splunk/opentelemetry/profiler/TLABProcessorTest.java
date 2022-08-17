@@ -20,11 +20,13 @@ import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_MEMORY_
 import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_TLAB_ENABLED;
 import static com.splunk.opentelemetry.profiler.Configuration.DEFAULT_MEMORY_ENABLED;
 import static com.splunk.opentelemetry.profiler.Configuration.DEFAULT_MEMORY_SAMPLING_INTERVAL;
+import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.DATA_FORMAT;
+import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.DATA_TYPE;
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.SOURCE_EVENT_NAME;
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.SOURCE_TYPE;
 import static com.splunk.opentelemetry.profiler.TLABProcessor.ALLOCATION_SIZE_KEY;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static io.opentelemetry.sdk.testing.assertj.LogAssertions.assertThat;
+import static org.assertj.core.api.Assertions.entry;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -43,16 +45,17 @@ import io.opentelemetry.api.trace.TraceId;
 import io.opentelemetry.api.trace.TraceState;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import io.opentelemetry.sdk.common.Clock;
-import io.opentelemetry.sdk.logs.LogProcessor;
-import io.opentelemetry.sdk.logs.data.LogData;
-import io.opentelemetry.sdk.resources.Resource;
+import io.opentelemetry.sdk.logs.LogEmitter;
+import io.opentelemetry.sdk.logs.SdkLogEmitterProvider;
+import io.opentelemetry.sdk.logs.export.InMemoryLogExporter;
+import io.opentelemetry.sdk.logs.export.SimpleLogProcessor;
 import java.time.Instant;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicReference;
 import jdk.jfr.EventType;
 import jdk.jfr.consumer.RecordedEvent;
 import jdk.jfr.consumer.RecordedStackTrace;
 import jdk.jfr.consumer.RecordedThread;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
@@ -63,6 +66,18 @@ class TLABProcessorTest {
   public static final long FIVE_MB = 5 * 1024 * 1024L;
   public static final long THREAD_ID = 606L;
   public static final long OS_THREAD_ID = 0x707L;
+
+  static final InMemoryLogExporter logExporter = InMemoryLogExporter.create();
+  static final LogEmitter logEmitter =
+      SdkLogEmitterProvider.builder()
+          .addLogProcessor(SimpleLogProcessor.create(logExporter))
+          .build()
+          .get("test");
+
+  @BeforeEach
+  void reset() {
+    logExporter.reset();
+  }
 
   @Test
   void testProcess() {
@@ -110,8 +125,6 @@ class TLABProcessorTest {
 
   private void tlabProcessTest(Long tlabSize) {
     Instant now = Instant.now();
-    AtomicReference<LogData> seenLogData = new AtomicReference<>();
-    LogProcessor consumer = seenLogData::set;
     String stackAsString =
         "\"mockingbird\" #606 nid=0x707\n"
             + "   java.lang.Thread.State: UNKNOWN\n"
@@ -138,9 +151,8 @@ class TLABProcessorTest {
     AllocationEventExporter allocationEventExporter =
         PlainTextAllocationEventExporter.builder()
             .stackSerializer(serializer)
-            .logProcessor(consumer)
+            .logEmitter(logEmitter)
             .commonAttributes(commonAttrs)
-            .resource(Resource.getDefault())
             .stackDepth(128)
             .build();
 
@@ -152,14 +164,20 @@ class TLABProcessorTest {
 
     processor.accept(event);
 
-    assertEquals(stackAsString, seenLogData.get().getBody().asString());
-    assertEquals(
-        TimeUnit.SECONDS.toNanos(now.getEpochSecond()) + clock.nanoTime(),
-        seenLogData.get().getEpochNanos());
-    assertEquals("otel.profiling", seenLogData.get().getAttributes().get(SOURCE_TYPE));
-    assertEquals("tee-lab", seenLogData.get().getAttributes().get(SOURCE_EVENT_NAME));
-    assertEquals(ONE_MB, seenLogData.get().getAttributes().get(ALLOCATION_SIZE_KEY));
-    assertEquals(spanContext, seenLogData.get().getSpanContext());
+    assertThat(logExporter.getFinishedLogItems())
+        .satisfiesExactly(
+            log ->
+                assertThat(log)
+                    .hasSpanContext(spanContext)
+                    .hasBody(stackAsString)
+                    .hasEpochNanos(
+                        TimeUnit.SECONDS.toNanos(now.getEpochSecond()) + clock.nanoTime())
+                    .hasAttributes(
+                        entry(SOURCE_TYPE, "otel.profiling"),
+                        entry(SOURCE_EVENT_NAME, "tee-lab"),
+                        entry(ALLOCATION_SIZE_KEY, ONE_MB),
+                        entry(DATA_TYPE, ProfilingDataType.ALLOCATION.value()),
+                        entry(DATA_FORMAT, Configuration.DataFormat.TEXT.value())));
   }
 
   private RecordedEvent createMockEvent(StackSerializer serializer, Instant now, Long tlabSize) {
@@ -200,8 +218,6 @@ class TLABProcessorTest {
   void testSampling() {
     int samplerInterval = 5;
 
-    AtomicReference<LogData> seenLogData = new AtomicReference<>();
-    LogProcessor consumer = seenLogData::set;
     StackSerializer serializer = mock(StackSerializer.class);
     LogDataCommonAttributes commonAttrs = new LogDataCommonAttributes(new EventPeriods(x -> null));
     SpanContextualizer spanContextualizer = mock(SpanContextualizer.class);
@@ -215,9 +231,8 @@ class TLABProcessorTest {
     AllocationEventExporter allocationEventExporter =
         PlainTextAllocationEventExporter.builder()
             .stackSerializer(serializer)
-            .logProcessor(consumer)
+            .logEmitter(logEmitter)
             .commonAttributes(commonAttrs)
-            .resource(Resource.getDefault())
             .stackDepth(128)
             .build();
 
@@ -233,16 +248,23 @@ class TLABProcessorTest {
       processor.accept(event);
 
       if (i % samplerInterval == 0) {
-        assertEquals("otel.profiling", seenLogData.get().getAttributes().get(SOURCE_TYPE));
-        assertEquals("tee-lab", seenLogData.get().getAttributes().get(SOURCE_EVENT_NAME));
-        assertEquals("Systematic sampler", seenLogData.get().getAttributes().get(SAMPLER_NAME_KEY));
-        assertEquals(
-            Long.valueOf(samplerInterval),
-            seenLogData.get().getAttributes().get(SAMPLER_INTERVAL_KEY));
+        assertThat(logExporter.getFinishedLogItems())
+            .satisfiesExactly(
+                log ->
+                    assertThat(log)
+                        .hasAttributes(
+                            entry(SOURCE_TYPE, "otel.profiling"),
+                            entry(SOURCE_EVENT_NAME, "tee-lab"),
+                            entry(SAMPLER_NAME_KEY, "Systematic sampler"),
+                            entry(SAMPLER_INTERVAL_KEY, (long) samplerInterval),
+                            entry(ALLOCATION_SIZE_KEY, ONE_MB),
+                            entry(DATA_TYPE, ProfilingDataType.ALLOCATION.value()),
+                            entry(DATA_FORMAT, Configuration.DataFormat.TEXT.value())));
       } else {
-        assertNull(seenLogData.get());
+        assertThat(logExporter.getFinishedLogItems()).isEmpty();
       }
-      seenLogData.set(null);
+
+      logExporter.reset();
     }
   }
 

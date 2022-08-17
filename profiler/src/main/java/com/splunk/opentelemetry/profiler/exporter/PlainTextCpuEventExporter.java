@@ -18,27 +18,25 @@ package com.splunk.opentelemetry.profiler.exporter;
 
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.DATA_FORMAT;
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.DATA_TYPE;
-import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.INSTRUMENTATION_SCOPE_INFO;
 
 import com.splunk.opentelemetry.profiler.Configuration;
 import com.splunk.opentelemetry.profiler.LogDataCommonAttributes;
 import com.splunk.opentelemetry.profiler.ProfilingDataType;
 import com.splunk.opentelemetry.profiler.context.StackToSpanLinkage;
 import io.opentelemetry.api.common.Attributes;
-import io.opentelemetry.sdk.logs.LogProcessor;
-import io.opentelemetry.sdk.logs.data.LogData;
-import io.opentelemetry.sdk.logs.data.LogDataBuilder;
-import io.opentelemetry.sdk.resources.Resource;
+import io.opentelemetry.api.trace.Span;
+import io.opentelemetry.context.Context;
+import io.opentelemetry.sdk.logs.LogEmitter;
+import io.opentelemetry.sdk.logs.LogRecordBuilder;
 
 public class PlainTextCpuEventExporter implements CpuEventExporter {
-  private final LogProcessor logProcessor;
+
+  private final LogEmitter logEmitter;
   private final LogDataCommonAttributes commonAttributes;
-  private final Resource resource;
 
   private PlainTextCpuEventExporter(Builder builder) {
-    this.logProcessor = builder.logProcessor;
-    this.commonAttributes = builder.commonAttributes;
-    this.resource = builder.resource;
+    logEmitter = builder.logEmitter;
+    commonAttributes = builder.commonAttributes;
   }
 
   @Override
@@ -50,17 +48,16 @@ public class PlainTextCpuEventExporter implements CpuEventExporter {
             .put(DATA_FORMAT, Configuration.DataFormat.TEXT.value())
             .build();
 
-    LogDataBuilder logDataBuilder =
-        LogDataBuilder.create(resource, INSTRUMENTATION_SCOPE_INFO)
+    LogRecordBuilder logRecordBuilder =
+        logEmitter
+            .logRecordBuilder()
             .setEpoch(linkedStack.getTime())
             .setBody(linkedStack.getRawStack())
-            .setAttributes(attributes);
+            .setAllAttributes(attributes);
     if (linkedStack.hasSpanInfo()) {
-      logDataBuilder.setSpanContext(linkedStack.getSpanContext());
+      logRecordBuilder.setContext(Context.root().with(Span.wrap(linkedStack.getSpanContext())));
     }
-
-    LogData log = logDataBuilder.build();
-    logProcessor.emit(log);
+    logRecordBuilder.emit();
   }
 
   public static Builder builder() {
@@ -68,26 +65,20 @@ public class PlainTextCpuEventExporter implements CpuEventExporter {
   }
 
   public static class Builder {
-    private LogProcessor logProcessor;
+    private LogEmitter logEmitter;
     private LogDataCommonAttributes commonAttributes;
-    private Resource resource;
 
     public PlainTextCpuEventExporter build() {
       return new PlainTextCpuEventExporter(this);
     }
 
-    public Builder logProcessor(LogProcessor logsProcessor) {
-      this.logProcessor = logsProcessor;
+    public Builder logEmitter(LogEmitter logEmitter) {
+      this.logEmitter = logEmitter;
       return this;
     }
 
     public Builder commonAttributes(LogDataCommonAttributes commonAttributes) {
       this.commonAttributes = commonAttributes;
-      return this;
-    }
-
-    public Builder resource(Resource resource) {
-      this.resource = resource;
       return this;
     }
   }

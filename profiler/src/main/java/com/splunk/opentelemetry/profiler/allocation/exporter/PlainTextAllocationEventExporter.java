@@ -18,7 +18,6 @@ package com.splunk.opentelemetry.profiler.allocation.exporter;
 
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.DATA_FORMAT;
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.DATA_TYPE;
-import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.INSTRUMENTATION_SCOPE_INFO;
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.THREAD_STACK_TRUNCATED;
 
 import com.splunk.opentelemetry.profiler.Configuration.DataFormat;
@@ -29,10 +28,11 @@ import com.splunk.opentelemetry.profiler.util.StackSerializer;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.common.AttributesBuilder;
+import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanContext;
-import io.opentelemetry.sdk.logs.LogProcessor;
-import io.opentelemetry.sdk.logs.data.LogDataBuilder;
-import io.opentelemetry.sdk.resources.Resource;
+import io.opentelemetry.context.Context;
+import io.opentelemetry.sdk.logs.LogEmitter;
+import io.opentelemetry.sdk.logs.LogRecordBuilder;
 import java.time.Instant;
 import jdk.jfr.consumer.RecordedEvent;
 import jdk.jfr.consumer.RecordedStackTrace;
@@ -44,14 +44,12 @@ public class PlainTextAllocationEventExporter implements AllocationEventExporter
 
   private final StackSerializer stackSerializer;
   private final int stackDepth;
-  private final LogProcessor logProcessor;
+  private final LogEmitter logEmitter;
   private final LogDataCommonAttributes commonAttributes;
-  private final Resource resource;
 
   private PlainTextAllocationEventExporter(Builder builder) {
-    this.logProcessor = builder.logProcessor;
+    this.logEmitter = builder.logEmitter;
     this.commonAttributes = builder.commonAttributes;
-    this.resource = builder.resource;
     this.stackDepth = builder.stackDepth;
     this.stackSerializer =
         builder.stackSerializer != null ? builder.stackSerializer : new StackSerializer(stackDepth);
@@ -83,17 +81,14 @@ public class PlainTextAllocationEventExporter implements AllocationEventExporter
 
     Attributes attributes = builder.build();
 
-    LogDataBuilder logDataBuilder =
-        LogDataBuilder.create(resource, INSTRUMENTATION_SCOPE_INFO)
-            .setEpoch(time)
-            .setBody(body)
-            .setAttributes(attributes);
+    LogRecordBuilder logRecordBuilder =
+        logEmitter.logRecordBuilder().setEpoch(time).setBody(body).setAllAttributes(attributes);
 
     if (spanContext != null && spanContext.isValid()) {
-      logDataBuilder.setSpanContext(spanContext);
+      logRecordBuilder.setContext(Context.root().with(Span.wrap(spanContext)));
     }
 
-    logProcessor.emit(logDataBuilder.build());
+    logRecordBuilder.emit();
   }
 
   private String buildBody(RecordedEvent event, RecordedStackTrace stackTrace) {
@@ -116,9 +111,8 @@ public class PlainTextAllocationEventExporter implements AllocationEventExporter
 
   public static class Builder {
     private StackSerializer stackSerializer;
-    private LogProcessor logProcessor;
+    private LogEmitter logEmitter;
     private LogDataCommonAttributes commonAttributes;
-    private Resource resource;
     private int stackDepth;
 
     public PlainTextAllocationEventExporter build() {
@@ -130,18 +124,13 @@ public class PlainTextAllocationEventExporter implements AllocationEventExporter
       return this;
     }
 
-    public Builder logProcessor(LogProcessor logsProcessor) {
-      this.logProcessor = logsProcessor;
+    public Builder logEmitter(LogEmitter logEmitter) {
+      this.logEmitter = logEmitter;
       return this;
     }
 
     public Builder commonAttributes(LogDataCommonAttributes commonAttributes) {
       this.commonAttributes = commonAttributes;
-      return this;
-    }
-
-    public Builder resource(Resource resource) {
-      this.resource = resource;
       return this;
     }
 

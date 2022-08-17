@@ -28,8 +28,8 @@ build_docker_image() {
   echo ">>> Building the operator docker image ..."
   docker build -t splunk-otel-instrumentation-java .
   docker tag splunk-otel-instrumentation-java quay.io/signalfx/splunk-otel-instrumentation-java:latest
-  docker tag "splunk-otel-instrumentation-java quay.io/signalfx/splunk-otel-instrumentation-java:$release_tag"
   docker tag "splunk-otel-instrumentation-java quay.io/signalfx/splunk-otel-instrumentation-java:v$(get_major_version $release_tag)"
+  docker tag "splunk-otel-instrumentation-java quay.io/signalfx/splunk-otel-instrumentation-java:$release_tag"
 }
 
 login_to_quay_io() {
@@ -40,8 +40,8 @@ login_to_quay_io() {
 publish_docker_image() {
   echo ">>> Publishing the operator docker image ..."
   docker push quay.io/signalfx/splunk-otel-instrumentation-java:latest
-  docker push "quay.io/signalfx/splunk-otel-instrumentation-java:$release_tag"
   docker push "quay.io/signalfx/splunk-otel-instrumentation-java:v$(get_major_version $release_tag)"
+  docker push "quay.io/signalfx/splunk-otel-instrumentation-java:$release_tag"
 }
 
 build_docker_image

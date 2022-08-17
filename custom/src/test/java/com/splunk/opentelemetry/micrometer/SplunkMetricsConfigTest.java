@@ -61,8 +61,9 @@ class SplunkMetricsConfigTest {
     var autoConfiguredSdk =
         AutoConfiguredOpenTelemetrySdk.builder()
             .setResultAsGlobal(false)
-            .addPropertiesSupplier(
-                () ->
+            // make it a customizer so that it overrides SplunkConfiguration
+            .addPropertiesCustomizer(
+                config ->
                     Map.of(
                         METRICS_ENABLED_PROPERTY,
                         "true",

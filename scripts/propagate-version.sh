@@ -37,7 +37,7 @@ create_post_release_pr() {
   local post_release_branch="post-release-changes-$release_tag"
   local message="$release_tag post release changes"
 
-  echo ">>> Cloning the splunk-otel-java repository ..."
+  echo ">>> Cloning the $repo repository ..."
   git clone "$repo_url" javaagent-mirror
 
   echo ">>> Applying the post-release.sh script and pushing changes ..."
@@ -63,7 +63,7 @@ create_overhead_test_pr() {
   local update_version_branch="agent-version-update-$release_tag"
   local message="[agent-version-update] Update agent version to $release_tag"
 
-  echo ">>> Cloning the splunk-otel-java-overhead-test repository ..."
+  echo ">>> Cloning the $repo repository ..."
   git clone "$repo_url" overhead-test-mirror
 
   echo ">>> Applying the update-version.sh script and pushing changes ..."
@@ -89,7 +89,7 @@ create_collector_pr() {
   local update_version_branch="javaagent-version-update-$release_tag"
   local message="[javaagent-version-update] Update javaagent version to $release_tag"
 
-  echo ">>> Cloning the splunk-otel-collector repository ..."
+  echo ">>> Cloning the $repo repository ..."
   git clone "$repo_url" collector-mirror
 
   echo ">>> Updating the version and pushing changes ..."

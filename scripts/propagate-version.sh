@@ -83,8 +83,34 @@ create_overhead_test_pr() {
     --head "$update_version_branch"
 }
 
+create_collector_pr() {
+  local repo="signalfx/splunk-otel-collector"
+  local repo_url="https://srv-gh-o11y-gdi:${GITHUB_TOKEN}@github.com/${repo}.git"
+  local update_version_branch="javaagent-version-update-$release_tag"
+  local message="[javaagent-version-update] Update javaagent version to $release_tag"
+
+  echo ">>> Cloning the splunk-otel-collector repository ..."
+  git clone "$repo_url" collector-mirror
+
+  echo ">>> Updating the version and pushing changes ..."
+  cd collector-mirror
+  git checkout -b "$update_version_branch"
+  echo "$release_tag" > instrumentation/packaging/java-agent-release.txt
+  git commit -S -am "[automated] $message"
+  git push "$repo_url" "$update_version_branch"
+
+  echo ">>> Creating the agent version update PR ..."
+  gh pr create \
+    --repo "$repo" \
+    --title "$message" \
+    --body "$message" \
+    --base main \
+    --head "$update_version_branch"
+}
+
 setup_gpg
 import_gpg_secret_key "$GITHUB_BOT_GPG_KEY"
 setup_git
 create_post_release_pr
 create_overhead_test_pr
+create_collector_pr

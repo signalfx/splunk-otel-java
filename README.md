@@ -75,11 +75,6 @@ see [Migrate from the SignalFx Java Agent](https://docs.splunk.com/Observability
 
 <!-- Comments, spacing, empty and new lines in the section below are intentional, please do not modify them! -->
 <!--DEV_DOCS_WARNING_END-->
-<!--DEV_DOCS_WARNING_START-->
-The following documentation refers to the in-development version of `splunk-otel-java`. Docs for the latest version ([v1.14.2](https://github.com/signalfx/splunk-otel-java/releases/latest)) can be found [here](https://github.com/signalfx/splunk-otel-java/blob/v1.14.2/README.md).
-
----
-<!--DEV_DOCS_WARNING_END-->
 
 ## Requirements
 
@@ -162,7 +157,7 @@ To extend the instrumentation with the OpenTelemetry Instrumentation for Java,
 you have to use a compatible API version.
 
 <!-- IMPORTANT: do not change comments or break those lines below -->
-The Splunk Distribution of OpenTelemetry Java version <!--SPLUNK_VERSION-->1.14.2<!--SPLUNK_VERSION--> is compatible
+The Splunk Distribution of OpenTelemetry Java version <!--SPLUNK_VERSION-->1.15.0<!--SPLUNK_VERSION--> is compatible
 with:
 
 * OpenTelemetry API version <!--OTEL_VERSION-->1.16.0<!--OTEL_VERSION-->

@@ -33,6 +33,7 @@ public abstract class ServiceNameDetector {
     detectors.add(new TomeeServiceNameDetector(locator));
     detectors.add(new TomcatServiceNameDetector(locator));
     detectors.add(new JettyServiceNameDetector(locator));
+    detectors.add(new LibertyServiceNameDetector(locator));
   }
 
   abstract String detect() throws Exception;

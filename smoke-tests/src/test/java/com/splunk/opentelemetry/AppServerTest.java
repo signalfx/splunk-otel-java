@@ -91,6 +91,11 @@ public abstract class AppServerTest extends SmokeTest {
     assertThat(traces.getInstrumentationLibraryVersions())
         .as("All spans are tagged with current otel library version")
         .containsExactly(getOtelInstrumentationVersion());
+
+    // verify that correct service name is set in the resource
+    assertTrue(
+        traces.resourceExists(
+            "service.name", getAutodetectServiceName() ? "auto-detected-name" : "smoke-test"));
   }
 
   /*

@@ -19,6 +19,7 @@ package com.splunk.opentelemetry;
 import static java.util.Arrays.asList;
 
 import com.google.auto.service.AutoService;
+import com.splunk.opentelemetry.servicename.ServiceNameDetector;
 import io.opentelemetry.sdk.autoconfigure.spi.AutoConfigurationCustomizer;
 import io.opentelemetry.sdk.autoconfigure.spi.AutoConfigurationCustomizerProvider;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
@@ -36,6 +37,7 @@ public class SplunkConfiguration implements AutoConfigurationCustomizerProvider 
   public static final String PROFILER_MEMORY_ENABLED_PROPERTY = "splunk.profiler.memory.enabled";
   public static final String SPLUNK_REALM_PROPERTY = "splunk.realm";
   public static final String SPLUNK_REALM_NONE = "none";
+  private static final String SPLUNK_AUTO_DETECT_SERVICE_NAME = "splunk.auto-detect.service-name";
 
   public static final String METRICS_ENABLED_PROPERTY = "splunk.metrics.enabled";
   public static final String METRICS_ENDPOINT_PROPERTY = "splunk.metrics.endpoint";
@@ -184,6 +186,16 @@ public class SplunkConfiguration implements AutoConfigurationCustomizerProvider 
       String otlpHeaders =
           (userOtlpHeaders == null ? "" : userOtlpHeaders + ",") + "X-SF-TOKEN=" + accessToken;
       customized.put("otel.exporter.otlp.headers", otlpHeaders);
+    }
+
+    if (config.getBoolean(SPLUNK_AUTO_DETECT_SERVICE_NAME, true)) {
+      if (ServiceNameDetector.serviceNameNotConfigured(config)) {
+        String serviceName = ServiceNameDetector.detectServiceName();
+        if (serviceName != null) {
+          log.info("Auto-detected service name '{}'.", serviceName);
+          customized.put("otel.service.name", serviceName);
+        }
+      }
     }
 
     return customized;

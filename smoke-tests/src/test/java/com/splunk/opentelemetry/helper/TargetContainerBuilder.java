@@ -34,6 +34,7 @@ public class TargetContainerBuilder {
   public List<String> command = null;
   public List<FileSystemBind> fileSystemBinds = Collections.emptyList();
   public boolean useDefaultAgentConfiguration = true;
+  public boolean autodetectServiceName = false;
 
   public TargetContainerBuilder(String targetImageName) {
     this.targetImageName = targetImageName;
@@ -112,6 +113,11 @@ public class TargetContainerBuilder {
   public TargetContainerBuilder withUseDefaultAgentConfiguration(
       boolean useDefaultAgentConfiguration) {
     this.useDefaultAgentConfiguration = useDefaultAgentConfiguration;
+    return this;
+  }
+
+  public TargetContainerBuilder autodetectServiceName(boolean autodetectServiceName) {
+    this.autodetectServiceName = autodetectServiceName;
     return this;
   }
 

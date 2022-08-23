@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.splunk.opentelemetry;
+package com.splunk.opentelemetry.servicename;
 
 import static java.util.Collections.emptyMap;
 
@@ -61,7 +61,7 @@ public class ServiceNameChecker implements BeforeAgentListener {
     return -100;
   }
 
-  private static boolean serviceNameNotConfigured(ConfigProperties config) {
+  static boolean serviceNameNotConfigured(ConfigProperties config) {
     String serviceName = config.getString("otel.service.name");
     Map<String, String> resourceAttributes = config.getMap("otel.resource.attributes", emptyMap());
     return serviceName == null

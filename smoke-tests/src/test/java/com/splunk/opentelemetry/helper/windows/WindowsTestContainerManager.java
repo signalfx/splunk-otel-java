@@ -216,7 +216,7 @@ public class WindowsTestContainerManager extends AbstractTestContainerManager {
     List<String> environment = new ArrayList<>();
 
     if (builder.useDefaultAgentConfiguration) {
-      getAgentEnvironment(builder.jvmArgsEnvVarName)
+      getAgentEnvironment(builder.jvmArgsEnvVarName, !builder.autodetectServiceName)
           .forEach((key, value) -> environment.add(key + "=" + value));
     }
 

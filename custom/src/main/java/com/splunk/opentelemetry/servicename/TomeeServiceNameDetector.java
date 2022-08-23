@@ -29,6 +29,8 @@ class TomeeServiceNameDetector extends AppServerServiceNameDetector {
 
   TomeeServiceNameDetector(ResourceLocator locator) {
     // tomee deployment directory is configurable, we'll only look at the default 'apps' directory
+    // tomee also deploys applications from webapps directory, detecting them is handled by
+    // TomcatServiceNameDetector
     this(locator, "apps");
   }
 

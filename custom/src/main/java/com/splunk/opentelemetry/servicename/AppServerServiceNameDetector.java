@@ -37,17 +37,6 @@ import org.xml.sax.helpers.DefaultHandler;
 abstract class AppServerServiceNameDetector extends ServiceNameDetector {
   private static final Logger log = LoggerFactory.getLogger(AppServerServiceNameDetector.class);
 
-  private static final SAXParserFactory saxParserFactory = getSaxParserFactory();
-
-  private static SAXParserFactory getSaxParserFactory() {
-    try {
-      return SAXParserFactory.newInstance();
-    } catch (Throwable throwable) {
-      log.warn("XML parser not available.", throwable);
-    }
-    return null;
-  }
-
   /** Use to ignore default applications that are bundled with the app server. */
   boolean isValidAppName(String name) {
     return true;
@@ -178,18 +167,18 @@ abstract class AppServerServiceNameDetector extends ServiceNameDetector {
     return null;
   }
 
-  private interface InputStreamSupplier {
-    InputStream supply() throws IOException;
-  }
-
   private static String parseDescriptor(InputStream inputStream, DescriptorHandler handler)
       throws ParserConfigurationException, SAXException, IOException {
-    if (saxParserFactory == null) {
+    if (SaxParserFactoryHolder.saxParserFactory == null) {
       return null;
     }
-    SAXParser saxParser = saxParserFactory.newSAXParser();
+    SAXParser saxParser = SaxParserFactoryHolder.saxParserFactory.newSAXParser();
     saxParser.parse(inputStream, handler);
     return handler.displayName;
+  }
+
+  private interface InputStreamSupplier {
+    InputStream supply() throws IOException;
   }
 
   private static class WebXmlHandler extends DescriptorHandler {
@@ -243,6 +232,19 @@ abstract class AppServerServiceNameDetector extends ServiceNameDetector {
       if (setDisplayName) {
         displayName = new String(ch, start, length);
       }
+    }
+  }
+
+  private static class SaxParserFactoryHolder {
+    private static final SAXParserFactory saxParserFactory = getSaxParserFactory();
+
+    private static SAXParserFactory getSaxParserFactory() {
+      try {
+        return SAXParserFactory.newInstance();
+      } catch (Throwable throwable) {
+        log.warn("XML parser not available.", throwable);
+      }
+      return null;
     }
   }
 }

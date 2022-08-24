@@ -49,6 +49,7 @@ public class LibertySmokeTest extends AppServerTest {
         .stream();
   }
 
+  @Override
   protected List<ResourceMapping> getExtraResources() {
     return List.of(
         // server.xml path on linux containers
@@ -62,6 +63,11 @@ public class LibertySmokeTest extends AppServerTest {
   protected TargetWaitStrategy getWaitStrategy() {
     return new TargetWaitStrategy.Log(
         Duration.ofMinutes(3), ".*server is ready to run a smarter planet.*");
+  }
+
+  @Override
+  protected boolean getAutodetectServiceName() {
+    return true;
   }
 
   @ParameterizedTest(name = "[{index}] {0}")

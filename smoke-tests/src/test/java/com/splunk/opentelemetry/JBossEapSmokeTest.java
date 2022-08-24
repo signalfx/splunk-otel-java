@@ -42,6 +42,11 @@ public class JBossEapSmokeTest extends AppServerTest {
         .stream();
   }
 
+  @Override
+  protected boolean getAutodetectServiceName() {
+    return true;
+  }
+
   @ParameterizedTest(name = "[{index}] {0}")
   @MethodSource("jboss")
   void jbossSmokeTest(TestImage image, ExpectedServerAttributes expectedServerAttributes)

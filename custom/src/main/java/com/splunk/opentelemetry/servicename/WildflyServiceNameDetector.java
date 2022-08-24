@@ -21,38 +21,28 @@ import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-class TomcatServiceNameDetector extends AppServerServiceNameDetector {
+class WildflyServiceNameDetector extends AppServerServiceNameDetector {
   private final ResourceLocator locator;
   private final Class<?> serverClass;
 
-  TomcatServiceNameDetector(ResourceLocator locator) {
+  WildflyServiceNameDetector(ResourceLocator locator) {
     this.locator = locator;
-    serverClass = locator.findClass("org.apache.catalina.startup.Bootstrap");
+    serverClass = locator.findClass("org.jboss.modules.Main");
   }
 
   @Override
-  boolean isValidAppName(String name) {
-    return !"docs".equals(name)
-        && !"examples".equals(name)
-        && !"host-manager".equals(name)
-        && !"manager".equals(name);
-  }
-
-  @Override
-  boolean isValidResult(String name, String result) {
-    return !"ROOT".equals(name) || !"Welcome to Tomcat".equals(result);
+  boolean supportsEar() {
+    return true;
   }
 
   @Override
   Path getDeploymentDir() throws URISyntaxException {
-    if (serverClass == null) {
+    if (serverClass == null || System.getProperty("[Standalone]") == null) {
       return null;
     }
 
     URL jarUrl = locator.getClassLocation(serverClass);
     Path jarPath = Paths.get(jarUrl.toURI());
-    // jar is in bin/. First call to getParent strips jar name and the second bin/. We'll end up
-    // with a path to server root to which we append the autodeploy directory.
-    return jarPath.getParent().getParent().resolve("webapps");
+    return jarPath.getParent().resolve("standalone/deployments");
   }
 }

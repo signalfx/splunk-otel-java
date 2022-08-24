@@ -23,11 +23,11 @@ import java.nio.file.Paths;
 
 class JettyServiceNameDetector extends AppServerServiceNameDetector {
   private final ResourceLocator locator;
-  private final Class<?> jettyMainClass;
+  private final Class<?> serverClass;
 
   JettyServiceNameDetector(ResourceLocator locator) {
     this.locator = locator;
-    jettyMainClass = locator.findClass("org.eclipse.jetty.start.Main");
+    serverClass = locator.findClass("org.eclipse.jetty.start.Main");
   }
 
   @Override
@@ -38,12 +38,14 @@ class JettyServiceNameDetector extends AppServerServiceNameDetector {
 
   @Override
   Path getDeploymentDir() throws URISyntaxException {
-    if (jettyMainClass == null) {
+    if (serverClass == null) {
       return null;
     }
 
-    URL bootstrapJarUrl = locator.getClassLocation(jettyMainClass);
-    Path bootstrapJarPath = Paths.get(bootstrapJarUrl.toURI());
-    return bootstrapJarPath.getParent().getParent().resolve("webapps");
+    URL jarUrl = locator.getClassLocation(serverClass);
+    Path jarPath = Paths.get(jarUrl.toURI());
+    // jar is in server root. Call to getParent strips jar name. We'll end up with a path to server
+    // root to which we append the autodeploy directory.
+    return jarPath.getParent().resolve("webapps");
   }
 }

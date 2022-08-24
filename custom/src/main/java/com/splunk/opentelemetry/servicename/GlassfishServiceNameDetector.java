@@ -19,13 +19,13 @@ package com.splunk.opentelemetry.servicename;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-class LibertyServiceNameDetector extends AppServerServiceNameDetector {
+class GlassfishServiceNameDetector extends AppServerServiceNameDetector {
   private final ResourceLocator locator;
   private final Class<?> serverClass;
 
-  LibertyServiceNameDetector(ResourceLocator locator) {
+  GlassfishServiceNameDetector(ResourceLocator locator) {
     this.locator = locator;
-    serverClass = locator.findClass("com.ibm.ws.kernel.boot.cmdline.EnvCheck");
+    serverClass = locator.findClass("com.sun.enterprise.glassfish.bootstrap.ASMain");
   }
 
   @Override
@@ -35,12 +35,11 @@ class LibertyServiceNameDetector extends AppServerServiceNameDetector {
 
   @Override
   Path getDeploymentDir() {
-    if (serverClass == null) {
+    String instanceRoot = System.getProperty("com.sun.aas.instanceRoot");
+    if (serverClass == null || instanceRoot == null) {
       return null;
     }
 
-    // we rely on liberty startup script switching directory to the root dir of the launched server
-    // if the launched server is server1 then we expect to be in liberty_dir/usr/servers/server1
-    return Paths.get("dropins").toAbsolutePath();
+    return Paths.get(instanceRoot, "autodeploy");
   }
 }

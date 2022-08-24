@@ -39,6 +39,11 @@ public class TomeeSmokeTest extends AppServerTest {
         .stream();
   }
 
+  @Override
+  protected boolean getAutodetectServiceName() {
+    return true;
+  }
+
   @ParameterizedTest(name = "[{index}] {0}")
   @MethodSource("supportedConfigurations")
   void tomeeSmokeTest(TestImage image, ExpectedServerAttributes expectedServerAttributes)

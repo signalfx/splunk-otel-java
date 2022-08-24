@@ -34,6 +34,8 @@ public abstract class ServiceNameDetector {
     detectors.add(new TomcatServiceNameDetector(locator));
     detectors.add(new JettyServiceNameDetector(locator));
     detectors.add(new LibertyServiceNameDetector(locator));
+    detectors.add(new WildflyServiceNameDetector(locator));
+    detectors.add(new GlassfishServiceNameDetector(locator));
   }
 
   abstract String detect() throws Exception;

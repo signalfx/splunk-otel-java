@@ -24,7 +24,7 @@ import java.nio.file.Paths;
 class TomeeServiceNameDetector extends AppServerServiceNameDetector {
   private final ResourceLocator locator;
   private final String appsDir;
-  private final Class<?> tomcatMainClass;
+  private final Class<?> serverClass;
   private final boolean isTomee;
 
   TomeeServiceNameDetector(ResourceLocator locator) {
@@ -37,7 +37,7 @@ class TomeeServiceNameDetector extends AppServerServiceNameDetector {
   TomeeServiceNameDetector(ResourceLocator locator, String appsDir) {
     this.locator = locator;
     this.appsDir = appsDir;
-    tomcatMainClass = locator.findClass("org.apache.catalina.startup.Bootstrap");
+    serverClass = locator.findClass("org.apache.catalina.startup.Bootstrap");
     isTomee = locator.findClass("org.apache.tomee.catalina.ServerListener") != null;
   }
 
@@ -48,12 +48,14 @@ class TomeeServiceNameDetector extends AppServerServiceNameDetector {
 
   @Override
   Path getDeploymentDir() throws URISyntaxException {
-    if (tomcatMainClass == null || !isTomee) {
+    if (serverClass == null || !isTomee) {
       return null;
     }
 
-    URL bootstrapJarUrl = locator.getClassLocation(tomcatMainClass);
-    Path bootstrapJarPath = Paths.get(bootstrapJarUrl.toURI());
-    return bootstrapJarPath.getParent().getParent().resolve(appsDir);
+    URL jarUrl = locator.getClassLocation(serverClass);
+    Path jarPath = Paths.get(jarUrl.toURI());
+    // jar is in bin/. First call to getParent strips jar name and the second bin/. We'll end up
+    // with a path to server root to which we append the autodeploy directory.
+    return jarPath.getParent().getParent().resolve(appsDir);
   }
 }

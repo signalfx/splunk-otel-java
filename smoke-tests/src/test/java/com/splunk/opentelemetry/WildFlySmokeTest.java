@@ -47,6 +47,11 @@ public class WildFlySmokeTest extends AppServerTest {
         .stream();
   }
 
+  @Override
+  protected boolean getAutodetectServiceName() {
+    return true;
+  }
+
   @ParameterizedTest(name = "[{index}] {0}")
   @MethodSource("supportedConfigurations")
   void wildflySmokeTest(TestImage image, ExpectedServerAttributes expectedServerAttributes)

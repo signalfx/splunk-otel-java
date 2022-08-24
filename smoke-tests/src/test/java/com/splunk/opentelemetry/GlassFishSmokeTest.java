@@ -58,6 +58,11 @@ public class GlassFishSmokeTest extends AppServerTest {
         Duration.ofMinutes(5), ".*(app was successfully deployed|deployed with name app).*");
   }
 
+  @Override
+  protected boolean getAutodetectServiceName() {
+    return true;
+  }
+
   @ParameterizedTest
   @MethodSource("supportedConfigurations")
   void payaraSmokeTest(TestImage image, ExpectedServerAttributes expectedServerAttributes)

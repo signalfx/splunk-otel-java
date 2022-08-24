@@ -62,6 +62,7 @@ abstract class AppServerServiceNameDetector extends ServiceNameDetector {
     }
 
     if (Files.exists(deploymentDir)) {
+      log.debug("Looking for deployments in '{}'.", deploymentDir);
       for (Path path : Files.list(deploymentDir).collect(Collectors.toList())) {
         String name = detectName(path);
         if (name != null) {

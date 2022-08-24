@@ -39,8 +39,26 @@ class LibertyServiceNameDetector extends AppServerServiceNameDetector {
       return null;
     }
 
-    // we rely on liberty startup script switching directory to the root dir of the launched server
-    // if the launched server is server1 then we expect to be in liberty_dir/usr/servers/server1
-    return Paths.get("dropins").toAbsolutePath();
+    // default installation has
+    // WLP_OUTPUT_DIR - libertyDir/usr/servers
+    // WLP_USER_DIR - libertyDir/usr
+    // docker image has
+    // WLP_USER_DIR - /opt/ol/wlp/usr
+    // WLP_OUTPUT_DIR - /opt/ol/wlp/output
+
+    // liberty server sets current directory to $WLP_OUTPUT_DIR/serverName we need
+    // $WLP_USER_DIR/servers/serverName
+    // in default installation we already have the right directory and don't need to do anything
+    Path serverDir = Paths.get("").toAbsolutePath();
+    String wlpUserDir = System.getenv("WLP_USER_DIR");
+    String wlpOutputDir = System.getenv("WLP_OUTPUT_DIR");
+    if (wlpUserDir != null
+        && wlpOutputDir != null
+        && !Paths.get(wlpOutputDir).equals(Paths.get(wlpUserDir, "servers"))) {
+      Path serverName = Paths.get(wlpOutputDir).getFileName();
+      serverDir = Paths.get(wlpUserDir).resolve(serverName);
+    }
+
+    return serverDir.resolve("dropins");
   }
 }

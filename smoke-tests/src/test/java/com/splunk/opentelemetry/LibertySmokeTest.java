@@ -67,7 +67,8 @@ public class LibertySmokeTest extends AppServerTest {
 
   @Override
   protected boolean getAutodetectServiceName() {
-    return true;
+    // test app isn't deployed through dropins directory
+    return false;
   }
 
   @ParameterizedTest(name = "[{index}] {0}")

@@ -16,8 +16,6 @@
 
 package com.splunk.opentelemetry.servicename;
 
-import java.net.URISyntaxException;
-import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -37,15 +35,15 @@ class JettyServiceNameDetector extends AppServerServiceNameDetector {
   }
 
   @Override
-  Path getDeploymentDir() throws URISyntaxException {
+  Path getDeploymentDir() {
     if (serverClass == null) {
       return null;
     }
 
-    URL jarUrl = locator.getClassLocation(serverClass);
-    Path jarPath = Paths.get(jarUrl.toURI());
-    // jar is in server root. Call to getParent strips jar name. We'll end up with a path to server
-    // root to which we append the autodeploy directory.
-    return jarPath.getParent().resolve("webapps");
+    // Jetty expects the webapps directory to be in the directory where jetty was started from.
+    // Alternatively the location of webapps directory can be specified by providing jetty base
+    // directory as an argument to jetty e.g. java -jar start.jar jetty.base=/dir where webapps
+    // would be located in /dir/webapps. We don't handle jetty.base yet.
+    return Paths.get("webapps").toAbsolutePath();
   }
 }

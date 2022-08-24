@@ -60,7 +60,9 @@ public class GlassFishSmokeTest extends AppServerTest {
 
   @Override
   protected boolean getAutodetectServiceName() {
-    return true;
+    // payara in docker container is set up so that application is deployed only after payara has
+    // been started, so we can't autodetect the service name based on deployed application
+    return false;
   }
 
   @ParameterizedTest

@@ -20,25 +20,27 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 class WildflyServiceNameDetector extends AppServerServiceNameDetector {
-  private final ResourceLocator locator;
-  private final Class<?> serverClass;
+  private static final Logger log = LoggerFactory.getLogger(WildflyServiceNameDetector.class);
 
   WildflyServiceNameDetector(ResourceLocator locator) {
-    this.locator = locator;
-    serverClass = locator.findClass("org.jboss.modules.Main");
-  }
-
-  @Override
-  boolean supportsEar() {
-    return true;
+    super(locator, "org.jboss.modules.Main", true);
   }
 
   @Override
   Path getDeploymentDir() throws URISyntaxException {
-    if (serverClass == null || System.getProperty("[Standalone]") == null) {
+    // only standalone mode is supported
+    if (System.getProperty("[Standalone]") == null) {
       return null;
+    }
+
+    String jbossBaseDir = System.getenv("JBOSS_BASE_DIR");
+    if (jbossBaseDir != null) {
+      log.debug("Using JBOSS_BASE_DIR '{}'.");
+      return Paths.get(jbossBaseDir, "standalone", "deployments");
     }
 
     URL jarUrl = locator.getClassLocation(serverClass);

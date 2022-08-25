@@ -22,12 +22,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 class TomcatServiceNameDetector extends AppServerServiceNameDetector {
-  private final ResourceLocator locator;
-  private final Class<?> serverClass;
 
   TomcatServiceNameDetector(ResourceLocator locator) {
-    this.locator = locator;
-    serverClass = locator.findClass("org.apache.catalina.startup.Bootstrap");
+    super(locator, "org.apache.catalina.startup.Bootstrap", false);
   }
 
   @Override
@@ -45,8 +42,9 @@ class TomcatServiceNameDetector extends AppServerServiceNameDetector {
 
   @Override
   Path getDeploymentDir() throws URISyntaxException {
-    if (serverClass == null) {
-      return null;
+    String catalinaBase = System.getProperty("catalina.base");
+    if (catalinaBase != null) {
+      return Paths.get(catalinaBase, "webapps");
     }
 
     URL jarUrl = locator.getClassLocation(serverClass);

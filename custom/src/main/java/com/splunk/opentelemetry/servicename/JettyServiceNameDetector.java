@@ -20,12 +20,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 class JettyServiceNameDetector extends AppServerServiceNameDetector {
-  private final ResourceLocator locator;
-  private final Class<?> serverClass;
 
   JettyServiceNameDetector(ResourceLocator locator) {
-    this.locator = locator;
-    serverClass = locator.findClass("org.eclipse.jetty.start.Main");
+    super(locator, "org.eclipse.jetty.start.Main", false);
   }
 
   @Override
@@ -36,10 +33,6 @@ class JettyServiceNameDetector extends AppServerServiceNameDetector {
 
   @Override
   Path getDeploymentDir() {
-    if (serverClass == null) {
-      return null;
-    }
-
     // Jetty expects the webapps directory to be in the directory where jetty was started from.
     // Alternatively the location of webapps directory can be specified by providing jetty base
     // directory as an argument to jetty e.g. java -jar start.jar jetty.base=/dir where webapps

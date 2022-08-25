@@ -18,27 +18,18 @@ package com.splunk.opentelemetry.servicename;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 class LibertyServiceNameDetector extends AppServerServiceNameDetector {
-  private final ResourceLocator locator;
-  private final Class<?> serverClass;
+  private static final Logger log = LoggerFactory.getLogger(LibertyServiceNameDetector.class);
 
   LibertyServiceNameDetector(ResourceLocator locator) {
-    this.locator = locator;
-    serverClass = locator.findClass("com.ibm.ws.kernel.boot.cmdline.EnvCheck");
-  }
-
-  @Override
-  boolean supportsEar() {
-    return true;
+    super(locator, "com.ibm.ws.kernel.boot.cmdline.EnvCheck", true);
   }
 
   @Override
   Path getDeploymentDir() {
-    if (serverClass == null) {
-      return null;
-    }
-
     // default installation has
     // WLP_OUTPUT_DIR - libertyDir/usr/servers
     // WLP_USER_DIR - libertyDir/usr
@@ -52,6 +43,7 @@ class LibertyServiceNameDetector extends AppServerServiceNameDetector {
     Path serverDir = Paths.get("").toAbsolutePath();
     String wlpUserDir = System.getenv("WLP_USER_DIR");
     String wlpOutputDir = System.getenv("WLP_OUTPUT_DIR");
+    log.debug("Using WLP_USER_DIR '{}', WLP_OUTPUT_DIR '{}'.", wlpUserDir, wlpOutputDir);
     if (wlpUserDir != null
         && wlpOutputDir != null
         && !Paths.get(wlpOutputDir).equals(Paths.get(wlpUserDir, "servers"))) {

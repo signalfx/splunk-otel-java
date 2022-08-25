@@ -22,7 +22,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 class TomeeServiceNameDetector extends AppServerServiceNameDetector {
-  private final ResourceLocator locator;
   private final String appsDir;
   private final Class<?> serverClass;
   private final boolean isTomee;
@@ -35,21 +34,21 @@ class TomeeServiceNameDetector extends AppServerServiceNameDetector {
   }
 
   TomeeServiceNameDetector(ResourceLocator locator, String appsDir) {
-    this.locator = locator;
+    super(locator, "org.apache.tomee.catalina.ServerListener", true);
     this.appsDir = appsDir;
     serverClass = locator.findClass("org.apache.catalina.startup.Bootstrap");
     isTomee = locator.findClass("org.apache.tomee.catalina.ServerListener") != null;
   }
 
   @Override
-  boolean supportsEar() {
-    return true;
-  }
-
-  @Override
   Path getDeploymentDir() throws URISyntaxException {
     if (serverClass == null || !isTomee) {
       return null;
+    }
+
+    String catalinaBase = System.getProperty("catalina.base");
+    if (catalinaBase != null) {
+      return Paths.get(catalinaBase, appsDir);
     }
 
     URL jarUrl = locator.getClassLocation(serverClass);

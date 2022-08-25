@@ -26,18 +26,6 @@ import org.slf4j.LoggerFactory;
 public abstract class ServiceNameDetector {
   private static final Logger log = LoggerFactory.getLogger(ServiceNameDetector.class);
 
-  private static final List<ServiceNameDetector> detectors = new ArrayList<>();
-
-  static {
-    ResourceLocator locator = new ResourceLocatorImpl();
-    detectors.add(new TomeeServiceNameDetector(locator));
-    detectors.add(new TomcatServiceNameDetector(locator));
-    detectors.add(new JettyServiceNameDetector(locator));
-    detectors.add(new LibertyServiceNameDetector(locator));
-    detectors.add(new WildflyServiceNameDetector(locator));
-    detectors.add(new GlassfishServiceNameDetector(locator));
-  }
-
   abstract String detect() throws Exception;
 
   public static boolean serviceNameNotConfigured(ConfigProperties config) {
@@ -45,7 +33,7 @@ public abstract class ServiceNameDetector {
   }
 
   public static String detectServiceName() {
-    for (ServiceNameDetector detector : detectors) {
+    for (ServiceNameDetector detector : detectors()) {
       try {
         String name = detector.detect();
         if (name != null) {
@@ -60,6 +48,21 @@ public abstract class ServiceNameDetector {
     }
 
     return null;
+  }
+
+  private static List<ServiceNameDetector> detectors() {
+    ResourceLocator locator = new ResourceLocatorImpl();
+
+    List<ServiceNameDetector> detectors = new ArrayList<>();
+    detectors.add(new TomeeServiceNameDetector(locator));
+    detectors.add(new TomcatServiceNameDetector(locator));
+    detectors.add(new JettyServiceNameDetector(locator));
+    detectors.add(new LibertyServiceNameDetector(locator));
+    detectors.add(new WildflyServiceNameDetector(locator));
+    detectors.add(new GlassfishServiceNameDetector(locator));
+    detectors.add(new WebSphereServiceNameDetector(locator));
+
+    return detectors;
   }
 
   private static class ResourceLocatorImpl implements ResourceLocator {

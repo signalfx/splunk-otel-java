@@ -20,23 +20,15 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 class GlassfishServiceNameDetector extends AppServerServiceNameDetector {
-  private final ResourceLocator locator;
-  private final Class<?> serverClass;
 
   GlassfishServiceNameDetector(ResourceLocator locator) {
-    this.locator = locator;
-    serverClass = locator.findClass("com.sun.enterprise.glassfish.bootstrap.ASMain");
-  }
-
-  @Override
-  boolean supportsEar() {
-    return true;
+    super(locator, "com.sun.enterprise.glassfish.bootstrap.ASMain", true);
   }
 
   @Override
   Path getDeploymentDir() {
     String instanceRoot = System.getProperty("com.sun.aas.instanceRoot");
-    if (serverClass == null || instanceRoot == null) {
+    if (instanceRoot == null) {
       return null;
     }
 

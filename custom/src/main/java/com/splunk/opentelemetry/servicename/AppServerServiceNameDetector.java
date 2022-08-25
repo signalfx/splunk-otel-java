@@ -37,6 +37,17 @@ import org.xml.sax.helpers.DefaultHandler;
 abstract class AppServerServiceNameDetector extends ServiceNameDetector {
   private static final Logger log = LoggerFactory.getLogger(AppServerServiceNameDetector.class);
 
+  final ResourceLocator locator;
+  final Class<?> serverClass;
+  final boolean supportsEar;
+
+  AppServerServiceNameDetector(
+      ResourceLocator locator, String serverClassName, boolean supportsEar) {
+    this.locator = locator;
+    this.serverClass = locator.findClass(serverClassName);
+    this.supportsEar = supportsEar;
+  }
+
   /** Use to ignore default applications that are bundled with the app server. */
   boolean isValidAppName(String name) {
     return true;
@@ -47,15 +58,15 @@ abstract class AppServerServiceNameDetector extends ServiceNameDetector {
     return true;
   }
 
-  boolean supportsEar() {
-    return false;
-  }
-
   /** Path to directory to be scanned for deployments. */
   abstract Path getDeploymentDir() throws Exception;
 
   @Override
   String detect() throws Exception {
+    if (serverClass == null) {
+      return null;
+    }
+
     Path deploymentDir = getDeploymentDir();
     if (deploymentDir == null) {
       return null;
@@ -84,7 +95,6 @@ abstract class AppServerServiceNameDetector extends ServiceNameDetector {
     }
 
     log.debug("Attempting service name detection in '{}'.", path);
-    boolean supportsEar = supportsEar();
     if (Files.isDirectory(path)) {
       return handleExplodedApp(path, name, supportsEar);
     } else if (name.endsWith(".war")) {
@@ -98,15 +108,13 @@ abstract class AppServerServiceNameDetector extends ServiceNameDetector {
 
   private String handleExplodedApp(Path path, String name, boolean handleEar) {
     {
-      Path webXmlPath = path.resolve("WEB-INF/web.xml");
-      String result = handleExplodedWar(webXmlPath, name);
+      String result = handleExplodedWar(path, name);
       if (result != null) {
         return result;
       }
     }
     if (handleEar) {
-      Path applicationXmlPath = path.resolve("META-INF/application.xml");
-      String result = handleExplodedEar(applicationXmlPath, name);
+      String result = handleExplodedEar(path, name);
       if (result != null) {
         return result;
       }
@@ -137,12 +145,13 @@ abstract class AppServerServiceNameDetector extends ServiceNameDetector {
     return null;
   }
 
-  private String handleExplodedWar(Path webXmlPath, String name) {
-    return handleExploded(webXmlPath, name, new WebXmlHandler());
+  String handleExplodedWar(Path path, String name) {
+    return handleExploded(path.resolve("WEB-INF/web.xml"), name, new WebXmlHandler());
   }
 
-  private String handleExplodedEar(Path applicationXmlPath, String name) {
-    return handleExploded(applicationXmlPath, name, new ApplicationXmlHandler());
+  String handleExplodedEar(Path path, String name) {
+    return handleExploded(
+        path.resolve("META-INF/application.xml"), name, new ApplicationXmlHandler());
   }
 
   private String handleExploded(Path descriptor, String name, DescriptorHandler handler) {

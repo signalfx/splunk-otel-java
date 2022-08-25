@@ -32,19 +32,24 @@ class WildflyServiceNameDetector extends AppServerServiceNameDetector {
 
   @Override
   Path getDeploymentDir() throws URISyntaxException {
+    log.info("called getDeploymentDir");
     // only standalone mode is supported
     if (System.getProperty("[Standalone]") == null) {
       return null;
     }
+    log.info("is standalone");
 
     String jbossBaseDir = System.getenv("JBOSS_BASE_DIR");
+    log.info("JBOSS_BASE_DIR {}", jbossBaseDir);
     if (jbossBaseDir != null) {
       log.debug("Using JBOSS_BASE_DIR '{}'.");
+      log.info("result {}", Paths.get(jbossBaseDir, "standalone", "deployments"));
       return Paths.get(jbossBaseDir, "standalone", "deployments");
     }
 
     URL jarUrl = locator.getClassLocation(serverClass);
     Path jarPath = Paths.get(jarUrl.toURI());
+    log.info("result {}", jarPath.getParent().resolve("standalone/deployments"));
     return jarPath.getParent().resolve("standalone/deployments");
   }
 }

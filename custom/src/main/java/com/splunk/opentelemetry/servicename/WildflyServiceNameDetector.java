@@ -33,7 +33,7 @@ class WildflyServiceNameDetector extends AppServerServiceNameDetector {
   @Override
   Path getDeploymentDir() throws URISyntaxException {
     String programArguments = System.getProperty("sun.java.command");
-    log.debug("Started with arguments '{}'.");
+    log.info("Started with arguments '{}'.", programArguments);
     if (programArguments == null) {
       return null;
     }
@@ -44,12 +44,13 @@ class WildflyServiceNameDetector extends AppServerServiceNameDetector {
 
     String jbossBaseDir = System.getenv("JBOSS_BASE_DIR");
     if (jbossBaseDir != null) {
-      log.debug("Using JBOSS_BASE_DIR '{}'.");
+      log.info("Using JBOSS_BASE_DIR '{}'.", jbossBaseDir);
       return Paths.get(jbossBaseDir, "standalone", "deployments");
     }
 
     URL jarUrl = locator.getClassLocation(serverClass);
     Path jarPath = Paths.get(jarUrl.toURI());
+    log.info("deployment directory '{}'.", jarPath.getParent().resolve("standalone/deployments"));
     return jarPath.getParent().resolve("standalone/deployments");
   }
 }

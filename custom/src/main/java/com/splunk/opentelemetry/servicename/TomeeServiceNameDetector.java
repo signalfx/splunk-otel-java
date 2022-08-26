@@ -37,7 +37,7 @@ class TomeeServiceNameDetector extends AppServerServiceNameDetector {
 
     // check for presence of tomee configuration file, if it doesn't exist then we have tomcat not
     // tomee
-    if (!Files.exists(rootDir.resolve("conf/tomee.xml"))) {
+    if (!Files.isRegularFile(rootDir.resolve("conf/tomee.xml"))) {
       return null;
     }
 

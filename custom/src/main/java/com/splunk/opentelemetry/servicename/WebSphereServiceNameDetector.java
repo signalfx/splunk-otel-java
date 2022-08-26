@@ -68,7 +68,7 @@ class WebSphereServiceNameDetector extends AppServerServiceNameDetector {
 
     // in docker image it is /opt/IBM/WebSphere/AppServer/profiles/AppSrv01/config
     Path configDirectory = Paths.get(matcher.group(2));
-    if (!Files.exists(configDirectory)) {
+    if (!Files.isDirectory(configDirectory)) {
       log.debug("Missing configuration directory '{}'.");
       return null;
     }
@@ -87,7 +87,7 @@ class WebSphereServiceNameDetector extends AppServerServiceNameDetector {
     // construct installedApps directory path based on the config path
     // in docker image it is
     // /opt/IBM/WebSphere/AppServer/profiles/AppSrv01/installedApps/DefaultCell01
-    Path cellApplications = configDirectory.resolve("../installedApps/" + cell);
+    Path cellApplications = configDirectory.getParent().resolve("installedApps").resolve(cell);
     if (Files.exists(cellApplications)) {
       log.debug("Looking for deployments in '{}'.", cellApplications);
 

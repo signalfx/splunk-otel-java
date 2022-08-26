@@ -40,7 +40,7 @@ public abstract class ServiceNameDetector {
           return name;
         }
       } catch (Exception exception) {
-        log.warn(
+        log.debug(
             "Service name detector '{}' failed with",
             detector.getClass().getSimpleName(),
             exception);

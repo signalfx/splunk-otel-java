@@ -72,7 +72,7 @@ abstract class AppServerServiceNameDetector extends ServiceNameDetector {
       return null;
     }
 
-    if (Files.exists(deploymentDir)) {
+    if (Files.isDirectory(deploymentDir)) {
       log.debug("Looking for deployments in '{}'.", deploymentDir);
       for (Path path : Files.list(deploymentDir).collect(Collectors.toList())) {
         String name = detectName(path);
@@ -132,8 +132,7 @@ abstract class AppServerServiceNameDetector extends ServiceNameDetector {
 
   private String handlePackaged(
       Path path, String name, String descriptorPath, DescriptorHandler handler) {
-    try {
-      ZipFile zip = new ZipFile(path.toFile());
+    try (ZipFile zip = new ZipFile(path.toFile())) {
       ZipEntry zipEntry = zip.getEntry(descriptorPath);
       if (zipEntry != null) {
         return handle(() -> zip.getInputStream(zipEntry), name, handler);
@@ -155,7 +154,7 @@ abstract class AppServerServiceNameDetector extends ServiceNameDetector {
   }
 
   private String handleExploded(Path descriptor, String name, DescriptorHandler handler) {
-    if (Files.exists(descriptor)) {
+    if (Files.isRegularFile(descriptor)) {
       return handle(() -> Files.newInputStream(descriptor), name, handler);
     }
 
@@ -252,7 +251,7 @@ abstract class AppServerServiceNameDetector extends ServiceNameDetector {
       try {
         return SAXParserFactory.newInstance();
       } catch (Throwable throwable) {
-        log.warn("XML parser not available.", throwable);
+        log.debug("XML parser not available.", throwable);
       }
       return null;
     }

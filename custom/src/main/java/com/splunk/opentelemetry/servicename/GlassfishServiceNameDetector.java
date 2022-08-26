@@ -32,6 +32,8 @@ class GlassfishServiceNameDetector extends AppServerServiceNameDetector {
       return null;
     }
 
+    // besides autodeploy directory it is possible to deploy applications through admin console and
+    // asadmin script, to detect those we would need to parse config/domain.xml
     return Paths.get(instanceRoot, "autodeploy");
   }
 }

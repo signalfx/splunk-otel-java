@@ -51,6 +51,9 @@ class LibertyServiceNameDetector extends AppServerServiceNameDetector {
       serverDir = Paths.get(wlpUserDir).resolve(serverName);
     }
 
+    // besides dropins applications can also be deployed via server.xml using <webApplication>,
+    // <enterpriseApplication> and <application> tags, see
+    // https://openliberty.io/docs/latest/reference/config/server-configuration-overview.html
     return serverDir.resolve("dropins");
   }
 }

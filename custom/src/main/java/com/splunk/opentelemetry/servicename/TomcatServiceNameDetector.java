@@ -47,6 +47,13 @@ class TomcatServiceNameDetector extends AppServerServiceNameDetector {
       return Paths.get(catalinaBase, "webapps");
     }
 
+    String catalinaHome = System.getProperty("catalina.home");
+    if (catalinaHome != null) {
+      return Paths.get(catalinaHome, "webapps");
+    }
+
+    // if neither catalina.base nor catalina.home is set try to deduce the location of webapps based
+    // on the loaded server class.
     URL jarUrl = locator.getClassLocation(serverClass);
     Path jarPath = Paths.get(jarUrl.toURI());
     // jar is in bin/. First call to getParent strips jar name and the second bin/. We'll end up

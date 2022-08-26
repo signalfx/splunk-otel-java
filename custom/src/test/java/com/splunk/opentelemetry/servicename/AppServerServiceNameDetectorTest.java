@@ -20,10 +20,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.function.Consumer;
 import java.util.jar.Attributes;
 import java.util.jar.JarEntry;
@@ -32,25 +32,23 @@ import java.util.jar.Manifest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-class TomcatServiceNameDetectorTest {
+public class AppServerServiceNameDetectorTest {
 
   @Test
   void simpleServiceName() throws Exception {
-    var detector = new TomcatServiceNameDetector(new TestResourceLocator("simple-service-name"));
+    var detector = detector("simple-service-name");
     assertEquals("test-service-name", detector.detect());
   }
 
   @Test
   void multiLangServiceName() throws Exception {
-    var detector =
-        new TomcatServiceNameDetector(new TestResourceLocator("multi-lang-service-name"));
+    var detector = detector("multi-lang-service-name");
     assertEquals("test-service-name", detector.detect());
   }
 
   @Test
   void ignoreTomcatDefaultApps() throws Exception {
-    var detector =
-        new TomcatServiceNameDetector(new TestResourceLocator("ignore-tomcat-default-apps"));
+    var detector = detector("ignore-tomcat-default-apps");
     assertNull(detector.detect());
   }
 
@@ -74,7 +72,37 @@ class TomcatServiceNameDetectorTest {
           }
         });
 
-    var detector = new TomcatServiceNameDetector(new TestResourceLocator(outputDir));
+    var detector = detector(outputDir);
+    assertEquals("test-service-name", detector.detect());
+  }
+
+  @Test
+  void simpleServiceNameEar() throws Exception {
+    var detector = detector("simple-service-name-ear");
+    assertEquals("test-service-name", detector.detect());
+  }
+
+  @Test
+  void simpleServiceNamePackagedEar(@TempDir Path outputDir) throws Exception {
+    Path webappsPath = outputDir.resolve("webapps");
+    Files.createDirectory(webappsPath);
+    createJar(
+        "testapp.ear",
+        webappsPath,
+        jarOutputStream -> {
+          try {
+            jarOutputStream.putNextEntry(new JarEntry("META-INF/application.xml"));
+            jarOutputStream.write(
+                Files.readAllBytes(
+                    Path.of(
+                        "src/test/resources/servicename/simple-service-name-ear/webapps/testapp/META-INF/application.xml")));
+            jarOutputStream.closeEntry();
+          } catch (IOException exception) {
+            throw new IllegalStateException(exception);
+          }
+        });
+
+    var detector = detector(outputDir);
     assertEquals("test-service-name", detector.detect());
   }
 
@@ -93,16 +121,42 @@ class TomcatServiceNameDetectorTest {
     }
   }
 
-  static class TestResourceLocator implements ResourceLocator {
-    private final String basePath;
+  private static TestServiceNameDetector detector(Path testPath) {
+    return new TestServiceNameDetector(new TestResourceLocator(), testPath);
+  }
 
-    TestResourceLocator(String testName) {
-      basePath = "src/test/resources/servicename/" + testName;
+  private static TestServiceNameDetector detector(String testName) {
+    return detector(Paths.get("src/test/resources/servicename/" + testName));
+  }
+
+  private static class TestServiceNameDetector extends AppServerServiceNameDetector {
+    private final Path testPath;
+
+    TestServiceNameDetector(ResourceLocator locator, Path testPath) {
+      super(locator, null, true);
+      this.testPath = testPath;
     }
 
-    TestResourceLocator(Path path) {
-      basePath = path.toString();
+    @Override
+    Path getDeploymentDir() {
+      return testPath.resolve("webapps");
     }
+
+    @Override
+    boolean isValidAppName(String name) {
+      return !"docs".equals(name)
+          && !"examples".equals(name)
+          && !"host-manager".equals(name)
+          && !"manager".equals(name);
+    }
+
+    @Override
+    boolean isValidResult(String name, String result) {
+      return !"ROOT".equals(name) || !"Welcome to Tomcat".equals(result);
+    }
+  }
+
+  private static class TestResourceLocator implements ResourceLocator {
 
     @Override
     public Class<?> findClass(String className) {
@@ -112,13 +166,7 @@ class TomcatServiceNameDetectorTest {
 
     @Override
     public URL getClassLocation(Class<?> clazz) {
-      try {
-        // TomcatServiceNameDetector calls getParent twice on the returned path so "a" and "b" will
-        // get stripped from the path before webapps is appended
-        return Path.of(basePath, "a", "b").toUri().toURL();
-      } catch (MalformedURLException exception) {
-        throw new IllegalStateException(exception);
-      }
+      throw new IllegalStateException("shouldn't be called");
     }
   }
 }

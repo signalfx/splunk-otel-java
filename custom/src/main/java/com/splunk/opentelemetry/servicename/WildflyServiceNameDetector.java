@@ -42,6 +42,8 @@ class WildflyServiceNameDetector extends AppServerServiceNameDetector {
       return null;
     }
 
+    // base dir is also passed as program argument (not vm argument) -Djboss.server.base.dir we use
+    // environment variable JBOSS_BASE_DIR to avoid parsing program arguments
     String jbossBaseDir = System.getenv("JBOSS_BASE_DIR");
     if (jbossBaseDir != null) {
       log.debug("Using JBOSS_BASE_DIR '{}'.", jbossBaseDir);
@@ -50,7 +52,6 @@ class WildflyServiceNameDetector extends AppServerServiceNameDetector {
 
     URL jarUrl = locator.getClassLocation(serverClass);
     Path jarPath = Paths.get(jarUrl.toURI());
-    log.info("deployment directory '{}'.", jarPath.getParent().resolve("standalone/deployments"));
     return jarPath.getParent().resolve("standalone/deployments");
   }
 }

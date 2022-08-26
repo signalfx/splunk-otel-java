@@ -16,6 +16,7 @@
 
 package com.splunk.opentelemetry.servicename;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import org.slf4j.Logger;
@@ -47,8 +48,8 @@ class LibertyServiceNameDetector extends AppServerServiceNameDetector {
     if (wlpUserDir != null
         && wlpOutputDir != null
         && !Paths.get(wlpOutputDir).equals(Paths.get(wlpUserDir, "servers"))) {
-      Path serverName = Paths.get(wlpOutputDir).getFileName();
-      serverDir = Paths.get(wlpUserDir).resolve(serverName);
+      Path serverName = serverDir.getFileName();
+      serverDir = Paths.get(wlpUserDir, "servers").resolve(serverName);
     }
 
     // besides dropins applications can also be deployed via server.xml using <webApplication>,

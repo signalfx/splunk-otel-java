@@ -34,8 +34,9 @@ class WebSphereServiceNameDetector extends AppServerServiceNameDetector {
   }
 
   @Override
-  boolean isValidAppName(String name) {
+  boolean isValidAppName(Path path) {
     // query.ear is bundled with websphere
+    String name = path.getFileName().toString();
     return !"query.ear".equals(name);
   }
 
@@ -52,7 +53,7 @@ class WebSphereServiceNameDetector extends AppServerServiceNameDetector {
     }
 
     String programArguments = System.getProperty("sun.java.command");
-    log.debug("Started with arguments '{}'.");
+    log.debug("Started with arguments '{}'.", programArguments);
     if (programArguments == null) {
       return null;
     }
@@ -69,7 +70,7 @@ class WebSphereServiceNameDetector extends AppServerServiceNameDetector {
     // in docker image it is /opt/IBM/WebSphere/AppServer/profiles/AppSrv01/config
     Path configDirectory = Paths.get(matcher.group(2));
     if (!Files.isDirectory(configDirectory)) {
-      log.debug("Missing configuration directory '{}'.");
+      log.debug("Missing configuration directory '{}'.", configDirectory);
       return null;
     }
 
@@ -87,14 +88,15 @@ class WebSphereServiceNameDetector extends AppServerServiceNameDetector {
     // construct installedApps directory path based on the config path
     // in docker image it is
     // /opt/IBM/WebSphere/AppServer/profiles/AppSrv01/installedApps/DefaultCell01
+    // NOTE: installedApps directory location is configurable
     Path cellApplications = configDirectory.getParent().resolve("installedApps").resolve(cell);
-    if (Files.exists(cellApplications)) {
+    if (Files.isDirectory(cellApplications)) {
       log.debug("Looking for deployments in '{}'.", cellApplications);
 
       for (Path path : Files.list(cellApplications).collect(Collectors.toList())) {
         String fullName = path.getFileName().toString();
         // websphere deploys all applications as ear
-        if (!fullName.endsWith(".ear") || !isValidAppName(fullName)) {
+        if (!fullName.endsWith(".ear") || !isValidAppName(path)) {
           log.debug("Skipping '{}'.", path);
           continue;
         }
@@ -111,12 +113,12 @@ class WebSphereServiceNameDetector extends AppServerServiceNameDetector {
         boolean maybeWarDeployment =
             wars.size() == 1 && wars.get(0).getFileName().toString().equals(name + ".war");
         if (maybeWarDeployment) {
-          String result = handleExplodedWar(wars.get(0), name + ".war");
+          String result = handleExplodedWar(wars.get(0));
           if (result != null) {
             return result;
           }
         }
-        String result = handleExplodedEar(path, fullName);
+        String result = handleExplodedEar(path);
         // Auto-generated display-name in our testapp is app182ceb797ea, ignore similar names
         if (result != null && (!maybeWarDeployment || !result.startsWith(name))) {
           return result;

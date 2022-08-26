@@ -31,6 +31,15 @@ class WildflyServiceNameDetector extends AppServerServiceNameDetector {
   }
 
   @Override
+  boolean isValidAppName(Path path) {
+    // For exploded applications we should be checking for the presence of ".dodeploy" or
+    // ".deployed" marker files to ensure that we are scanning only applications that are actually
+    // deployed, see
+    // https://access.redhat.com/documentation/en-us/jboss_enterprise_application_platform/6/html/administration_and_configuration_guide/reference_for_deployment_scanner_marker_files1
+    return super.isValidAppName(path);
+  }
+
+  @Override
   Path getDeploymentDir() throws URISyntaxException {
     String programArguments = System.getProperty("sun.java.command");
     log.debug("Started with arguments '{}'.", programArguments);

@@ -25,6 +25,7 @@ import java.util.Deque;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
+import javax.annotation.Nullable;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
@@ -49,12 +50,12 @@ abstract class AppServerServiceNameDetector extends ServiceNameDetector {
   }
 
   /** Use to ignore default applications that are bundled with the app server. */
-  boolean isValidAppName(String name) {
+  boolean isValidAppName(Path path) {
     return true;
   }
 
   /** Use to ignore default applications that are bundled with the app server. */
-  boolean isValidResult(String name, String result) {
+  boolean isValidResult(Path path, @Nullable String result) {
     return true;
   }
 
@@ -88,33 +89,33 @@ abstract class AppServerServiceNameDetector extends ServiceNameDetector {
   }
 
   private String detectName(Path path) {
-    String name = path.getFileName().toString();
-    if (!isValidAppName(name)) {
+    if (!isValidAppName(path)) {
       log.debug("Skipping '{}'.", path);
       return null;
     }
 
     log.debug("Attempting service name detection in '{}'.", path);
+    String name = path.getFileName().toString();
     if (Files.isDirectory(path)) {
-      return handleExplodedApp(path, name, supportsEar);
+      return handleExplodedApp(path, supportsEar);
     } else if (name.endsWith(".war")) {
-      return handlePackagedWar(path, name);
+      return handlePackagedWar(path);
     } else if (supportsEar && name.endsWith(".ear")) {
-      return handlePackagedEar(path, name);
+      return handlePackagedEar(path);
     }
 
     return null;
   }
 
-  private String handleExplodedApp(Path path, String name, boolean handleEar) {
+  private String handleExplodedApp(Path path, boolean handleEar) {
     {
-      String result = handleExplodedWar(path, name);
+      String result = handleExplodedWar(path);
       if (result != null) {
         return result;
       }
     }
     if (handleEar) {
-      String result = handleExplodedEar(path, name);
+      String result = handleExplodedEar(path);
       if (result != null) {
         return result;
       }
@@ -122,20 +123,19 @@ abstract class AppServerServiceNameDetector extends ServiceNameDetector {
     return null;
   }
 
-  private String handlePackagedWar(Path path, String name) {
-    return handlePackaged(path, name, "WEB-INF/web.xml", new WebXmlHandler());
+  private String handlePackagedWar(Path path) {
+    return handlePackaged(path, "WEB-INF/web.xml", new WebXmlHandler());
   }
 
-  private String handlePackagedEar(Path path, String name) {
-    return handlePackaged(path, name, "META-INF/application.xml", new ApplicationXmlHandler());
+  private String handlePackagedEar(Path path) {
+    return handlePackaged(path, "META-INF/application.xml", new ApplicationXmlHandler());
   }
 
-  private String handlePackaged(
-      Path path, String name, String descriptorPath, DescriptorHandler handler) {
+  private String handlePackaged(Path path, String descriptorPath, DescriptorHandler handler) {
     try (ZipFile zip = new ZipFile(path.toFile())) {
       ZipEntry zipEntry = zip.getEntry(descriptorPath);
       if (zipEntry != null) {
-        return handle(() -> zip.getInputStream(zipEntry), name, handler);
+        return handle(() -> zip.getInputStream(zipEntry), path, handler);
       }
     } catch (IOException exception) {
       log.warn("Failed to read '{}' from zip '{}'.", descriptorPath, path, exception);
@@ -144,28 +144,28 @@ abstract class AppServerServiceNameDetector extends ServiceNameDetector {
     return null;
   }
 
-  String handleExplodedWar(Path path, String name) {
-    return handleExploded(path.resolve("WEB-INF/web.xml"), name, new WebXmlHandler());
+  String handleExplodedWar(Path path) {
+    return handleExploded(path, path.resolve("WEB-INF/web.xml"), new WebXmlHandler());
   }
 
-  String handleExplodedEar(Path path, String name) {
+  String handleExplodedEar(Path path) {
     return handleExploded(
-        path.resolve("META-INF/application.xml"), name, new ApplicationXmlHandler());
+        path, path.resolve("META-INF/application.xml"), new ApplicationXmlHandler());
   }
 
-  private String handleExploded(Path descriptor, String name, DescriptorHandler handler) {
+  private String handleExploded(Path path, Path descriptor, DescriptorHandler handler) {
     if (Files.isRegularFile(descriptor)) {
-      return handle(() -> Files.newInputStream(descriptor), name, handler);
+      return handle(() -> Files.newInputStream(descriptor), path, handler);
     }
 
     return null;
   }
 
-  private String handle(InputStreamSupplier supplier, String name, DescriptorHandler handler) {
+  private String handle(InputStreamSupplier supplier, Path path, DescriptorHandler handler) {
     try {
       try (InputStream inputStream = supplier.supply()) {
         String candidate = parseDescriptor(inputStream, handler);
-        if (isValidResult(name, candidate)) {
+        if (isValidResult(path, candidate)) {
           return candidate;
         }
       }

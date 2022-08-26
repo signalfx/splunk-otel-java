@@ -18,6 +18,7 @@ package com.splunk.opentelemetry.servicename;
 
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -28,15 +29,20 @@ class TomcatServiceNameDetector extends AppServerServiceNameDetector {
   }
 
   @Override
-  boolean isValidAppName(String name) {
-    return !"docs".equals(name)
-        && !"examples".equals(name)
-        && !"host-manager".equals(name)
-        && !"manager".equals(name);
+  boolean isValidAppName(Path path) {
+    if (Files.isDirectory(path)) {
+      String name = path.getFileName().toString();
+      return !"docs".equals(name)
+          && !"examples".equals(name)
+          && !"host-manager".equals(name)
+          && !"manager".equals(name);
+    }
+    return true;
   }
 
   @Override
-  boolean isValidResult(String name, String result) {
+  boolean isValidResult(Path path, String result) {
+    String name = path.getFileName().toString();
     return !"ROOT".equals(name) || !"Welcome to Tomcat".equals(result);
   }
 

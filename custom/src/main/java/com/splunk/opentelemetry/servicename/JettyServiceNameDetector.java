@@ -16,6 +16,7 @@
 
 package com.splunk.opentelemetry.servicename;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -26,9 +27,12 @@ class JettyServiceNameDetector extends AppServerServiceNameDetector {
   }
 
   @Override
-  boolean isValidAppName(String name) {
+  boolean isValidAppName(Path path) {
     // jetty deployer ignores directories ending with ".d"
-    return !name.endsWith(".d");
+    if (Files.isDirectory(path)) {
+      return !path.getFileName().toString().endsWith(".d");
+    }
+    return true;
   }
 
   @Override

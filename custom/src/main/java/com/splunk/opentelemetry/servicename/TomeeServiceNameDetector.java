@@ -31,9 +31,6 @@ class TomeeServiceNameDetector extends AppServerServiceNameDetector {
   @Override
   Path getDeploymentDir() throws URISyntaxException {
     Path rootDir = getRootDir();
-    if (rootDir == null) {
-      return null;
-    }
 
     // check for presence of tomee configuration file, if it doesn't exist then we have tomcat not
     // tomee

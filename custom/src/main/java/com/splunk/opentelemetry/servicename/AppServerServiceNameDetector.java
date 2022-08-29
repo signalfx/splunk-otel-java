@@ -23,6 +23,7 @@ import java.nio.file.Path;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import javax.annotation.Nullable;
@@ -75,10 +76,12 @@ abstract class AppServerServiceNameDetector extends ServiceNameDetector {
 
     if (Files.isDirectory(deploymentDir)) {
       log.debug("Looking for deployments in '{}'.", deploymentDir);
-      for (Path path : Files.list(deploymentDir).collect(Collectors.toList())) {
-        String name = detectName(path);
-        if (name != null) {
-          return name;
+      try (Stream<Path> stream = Files.list(deploymentDir)) {
+        for (Path path : stream.collect(Collectors.toList())) {
+          String name = detectName(path);
+          if (name != null) {
+            return name;
+          }
         }
       }
     } else {
@@ -97,7 +100,7 @@ abstract class AppServerServiceNameDetector extends ServiceNameDetector {
     log.debug("Attempting service name detection in '{}'.", path);
     String name = path.getFileName().toString();
     if (Files.isDirectory(path)) {
-      return handleExplodedApp(path, supportsEar);
+      return handleExplodedApp(path);
     } else if (name.endsWith(".war")) {
       return handlePackagedWar(path);
     } else if (supportsEar && name.endsWith(".ear")) {
@@ -107,14 +110,14 @@ abstract class AppServerServiceNameDetector extends ServiceNameDetector {
     return null;
   }
 
-  private String handleExplodedApp(Path path, boolean handleEar) {
+  private String handleExplodedApp(Path path) {
     {
       String result = handleExplodedWar(path);
       if (result != null) {
         return result;
       }
     }
-    if (handleEar) {
+    if (supportsEar) {
       String result = handleExplodedEar(path);
       if (result != null) {
         return result;

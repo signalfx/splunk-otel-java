@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -93,35 +94,40 @@ class WebSphereServiceNameDetector extends AppServerServiceNameDetector {
     if (Files.isDirectory(cellApplications)) {
       log.debug("Looking for deployments in '{}'.", cellApplications);
 
-      for (Path path : Files.list(cellApplications).collect(Collectors.toList())) {
-        String fullName = path.getFileName().toString();
-        // websphere deploys all applications as ear
-        if (!fullName.endsWith(".ear") || !isValidAppName(path)) {
-          log.debug("Skipping '{}'.", path);
-          continue;
-        }
-        log.debug("Attempting service name detection in '{}'.", path);
+      try (Stream<Path> stream = Files.list(cellApplications)) {
+        for (Path path : stream.collect(Collectors.toList())) {
+          String fullName = path.getFileName().toString();
+          // websphere deploys all applications as ear
+          if (!fullName.endsWith(".ear") || !isValidAppName(path)) {
+            log.debug("Skipping '{}'.", path);
+            continue;
+          }
+          log.debug("Attempting service name detection in '{}'.", path);
 
-        // strip ear suffix
-        String name = fullName.substring(0, fullName.length() - 4);
-        // if there is only one war file with the same name as the ear then the app was probably
-        // really a war file and the surrounding ear was generated during deployment
-        List<Path> wars =
-            Files.list(path)
-                .filter(p -> p.getFileName().toString().endsWith(".war"))
-                .collect(Collectors.toList());
-        boolean maybeWarDeployment =
-            wars.size() == 1 && wars.get(0).getFileName().toString().equals(name + ".war");
-        if (maybeWarDeployment) {
-          String result = handleExplodedWar(wars.get(0));
-          if (result != null) {
+          // strip ear suffix
+          String name = fullName.substring(0, fullName.length() - 4);
+          // if there is only one war file with the same name as the ear then the app was probably
+          // really a war file and the surrounding ear was generated during deployment
+          List<Path> wars;
+          try (Stream<Path> warStream = Files.list(path)) {
+            wars =
+                warStream
+                    .filter(p -> p.getFileName().toString().endsWith(".war"))
+                    .collect(Collectors.toList());
+          }
+          boolean maybeWarDeployment =
+              wars.size() == 1 && wars.get(0).getFileName().toString().equals(name + ".war");
+          if (maybeWarDeployment) {
+            String result = handleExplodedWar(wars.get(0));
+            if (result != null) {
+              return result;
+            }
+          }
+          String result = handleExplodedEar(path);
+          // Auto-generated display-name in our testapp is app182ceb797ea, ignore similar names
+          if (result != null && (!maybeWarDeployment || !result.startsWith(name))) {
             return result;
           }
-        }
-        String result = handleExplodedEar(path);
-        // Auto-generated display-name in our testapp is app182ceb797ea, ignore similar names
-        if (result != null && (!maybeWarDeployment || !result.startsWith(name))) {
-          return result;
         }
       }
     }

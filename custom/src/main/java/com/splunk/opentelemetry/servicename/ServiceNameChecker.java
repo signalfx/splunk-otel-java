@@ -22,6 +22,7 @@ import com.google.auto.service.AutoService;
 import io.opentelemetry.javaagent.tooling.BeforeAgentListener;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
+import io.opentelemetry.sdk.resources.Resource;
 import io.opentelemetry.semconv.resource.attributes.ResourceAttributes;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -46,7 +47,8 @@ public class ServiceNameChecker implements BeforeAgentListener {
   @Override
   public void beforeAgent(AutoConfiguredOpenTelemetrySdk autoConfiguredOpenTelemetrySdk) {
     ConfigProperties config = autoConfiguredOpenTelemetrySdk.getConfig();
-    if (serviceNameNotConfigured(config)) {
+    Resource resource = autoConfiguredOpenTelemetrySdk.getResource();
+    if (serviceNameNotConfigured(config, resource)) {
       logWarn.accept(
           "Resource attribute 'service.name' is not set: your service is unnamed and will be difficult to identify."
               + " Please Set your service name using the 'OTEL_RESOURCE_ATTRIBUTES' environment variable"
@@ -62,9 +64,16 @@ public class ServiceNameChecker implements BeforeAgentListener {
   }
 
   static boolean serviceNameNotConfigured(ConfigProperties config) {
+    return serviceNameNotConfigured(config, null);
+  }
+
+  private static boolean serviceNameNotConfigured(ConfigProperties config, Resource resource) {
     String serviceName = config.getString("otel.service.name");
     Map<String, String> resourceAttributes = config.getMap("otel.resource.attributes", emptyMap());
     return serviceName == null
-        && !resourceAttributes.containsKey(ResourceAttributes.SERVICE_NAME.getKey());
+        && !resourceAttributes.containsKey(ResourceAttributes.SERVICE_NAME.getKey())
+        && (resource == null
+            || "unknown_service:java"
+                .equals(resource.getAttribute(ResourceAttributes.SERVICE_NAME)));
   }
 }

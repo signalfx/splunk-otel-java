@@ -23,7 +23,7 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public abstract class ServiceNameDetector {
+abstract class ServiceNameDetector {
   private static final Logger log = LoggerFactory.getLogger(ServiceNameDetector.class);
 
   abstract String detect() throws Exception;

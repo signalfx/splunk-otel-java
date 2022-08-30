@@ -26,14 +26,14 @@ import io.opentelemetry.exporter.jaeger.thrift.JaegerThriftSpanExporterBuilder;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import io.opentelemetry.sdk.autoconfigure.spi.traces.ConfigurableSpanExporterProvider;
 import io.opentelemetry.sdk.trace.export.SpanExporter;
+import java.util.logging.Logger;
 import okhttp3.OkHttpClient;
 import org.apache.thrift.transport.TTransportException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @AutoService(ConfigurableSpanExporterProvider.class)
 public class JaegerThriftSpanExporterFactory implements ConfigurableSpanExporterProvider {
-  private static final Logger log = LoggerFactory.getLogger(JaegerThriftSpanExporterFactory.class);
+  private static final Logger logger =
+      Logger.getLogger(JaegerThriftSpanExporterFactory.class.getName());
 
   @Override
   public SpanExporter createExporter(ConfigProperties config) {
@@ -42,10 +42,10 @@ public class JaegerThriftSpanExporterFactory implements ConfigurableSpanExporter
     String endpoint = config.getString(OTEL_EXPORTER_JAEGER_ENDPOINT);
     String token = config.getString(SPLUNK_ACCESS_TOKEN);
     if (token != null && !token.isEmpty()) {
-      log.debug("Using authenticated jaeger-thrift exporter");
+      logger.fine("Using authenticated jaeger-thrift exporter");
       builder.setThriftSender(createHttpSender(endpoint, token));
     } else {
-      log.debug("Using jaeger-thrift exporter without authentication");
+      logger.fine("Using jaeger-thrift exporter without authentication");
       builder.setEndpoint(endpoint);
     }
 

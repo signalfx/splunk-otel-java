@@ -16,6 +16,8 @@
 
 package com.splunk.opentelemetry.instrumentation.tomcat.metrics;
 
+import static java.util.logging.Level.WARNING;
+
 import com.splunk.opentelemetry.javaagent.bootstrap.metrics.otel.ThreadPoolMetrics;
 import io.opentelemetry.api.GlobalOpenTelemetry;
 import io.opentelemetry.api.OpenTelemetry;
@@ -23,12 +25,12 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Logger;
 import org.apache.tomcat.util.net.AbstractEndpoint;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 final class TomcatThreadPoolOtelMetrics {
-  private static final Logger log = LoggerFactory.getLogger(TomcatThreadPoolOtelMetrics.class);
+  private static final Logger logger =
+      Logger.getLogger(TomcatThreadPoolOtelMetrics.class.getName());
 
   private static final String INSTRUMENTATION_NAME =
       "com.splunk.javaagent.tomcat-thread-pool-metrics";
@@ -67,7 +69,7 @@ final class TomcatThreadPoolOtelMetrics {
         try {
           observable.close();
         } catch (Exception exception) {
-          log.warn("Failed to close instrument", exception);
+          logger.log(WARNING, "Failed to close instrument", exception);
         }
       }
     }

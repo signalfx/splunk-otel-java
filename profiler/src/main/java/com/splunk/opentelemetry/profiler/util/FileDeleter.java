@@ -16,30 +16,31 @@
 
 package com.splunk.opentelemetry.profiler.util;
 
+import static java.util.logging.Level.WARNING;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.function.Consumer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.logging.Logger;
 
 public interface FileDeleter extends Consumer<Path> {
 
-  Logger logger = LoggerFactory.getLogger(FileDeleter.class);
+  Logger logger = Logger.getLogger(FileDeleter.class.getName());
 
   static FileDeleter newDeleter() {
     return path -> {
       try {
         Files.delete(path);
       } catch (IOException e) {
-        logger.warn("Could not delete: {}", path, e);
+        logger.log(WARNING, "Could not delete: " + path, e);
       }
     };
   }
 
   static FileDeleter noopFileDeleter() {
     return path -> {
-      logger.warn("Leaving {} on disk.", path);
+      logger.log(WARNING, "Leaving {0} on disk.", path);
     };
   }
 }

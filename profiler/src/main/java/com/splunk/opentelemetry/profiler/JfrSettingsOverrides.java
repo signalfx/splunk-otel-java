@@ -22,8 +22,6 @@ import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Customizes a configuration with user overrides. The config can contain
@@ -32,7 +30,6 @@ import org.slf4j.LoggerFactory;
  */
 class JfrSettingsOverrides {
 
-  private static final Logger logger = LoggerFactory.getLogger(JfrSettingsOverrides.class);
   private final ConfigProperties config;
 
   JfrSettingsOverrides(ConfigProperties config) {

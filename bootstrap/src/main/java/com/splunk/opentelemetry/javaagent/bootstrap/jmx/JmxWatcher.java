@@ -17,6 +17,7 @@
 package com.splunk.opentelemetry.javaagent.bootstrap.jmx;
 
 import static java.util.Arrays.asList;
+import static java.util.logging.Level.WARNING;
 
 import java.lang.management.ManagementFactory;
 import java.util.HashSet;
@@ -27,6 +28,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
+import java.util.logging.Logger;
 import javax.management.InstanceNotFoundException;
 import javax.management.JMException;
 import javax.management.ListenerNotFoundException;
@@ -38,12 +40,10 @@ import javax.management.Notification;
 import javax.management.NotificationFilter;
 import javax.management.NotificationListener;
 import javax.management.ObjectName;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public final class JmxWatcher {
 
-  private static final Logger log = LoggerFactory.getLogger(JmxWatcher.class);
+  private static final Logger logger = Logger.getLogger(JmxWatcher.class.getName());
 
   private static final AtomicInteger threadIds = new AtomicInteger();
   private static final ThreadFactory daemonThreadFactory =
@@ -115,7 +115,7 @@ public final class JmxWatcher {
       mBeanServer.addNotificationListener(
           MBeanServerDelegate.DELEGATE_NAME, notificationListener, filter, null);
     } catch (JMException e) {
-      log.warn("Could not start the JmxWatcher", e);
+      logger.log(WARNING, "Could not start the JmxWatcher", e);
     }
   }
 
@@ -126,7 +126,7 @@ public final class JmxWatcher {
             MBeanServerDelegate.DELEGATE_NAME, notificationListener);
         notificationListener = null;
       } catch (InstanceNotFoundException | ListenerNotFoundException e) {
-        log.warn("Could not remove the NotificationListener from the MBeanServer", e);
+        logger.log(WARNING, "Could not remove the NotificationListener from the MBeanServer", e);
       }
     }
 
@@ -161,7 +161,7 @@ public final class JmxWatcher {
         listener.onUnregister(mBeanServer, objectName);
       }
     } catch (JMException e) {
-      log.warn("JMX exception thrown in JmxListener", e);
+      logger.log(WARNING, "JMX exception thrown in JmxListener", e);
     }
   }
 }

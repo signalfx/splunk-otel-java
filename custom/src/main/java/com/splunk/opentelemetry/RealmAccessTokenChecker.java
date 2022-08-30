@@ -21,18 +21,17 @@ import io.opentelemetry.javaagent.tooling.BeforeAgentListener;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import java.util.function.Consumer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.logging.Logger;
 
 @AutoService(BeforeAgentListener.class)
 public class RealmAccessTokenChecker implements BeforeAgentListener {
-  private static final Logger log = LoggerFactory.getLogger(RealmAccessTokenChecker.class);
+  private static final Logger logger = Logger.getLogger(RealmAccessTokenChecker.class.getName());
 
   private final Consumer<String> logWarn;
 
   @SuppressWarnings("unused")
   public RealmAccessTokenChecker() {
-    this(log::warn);
+    this(logger::warning);
   }
 
   // visible for tests
@@ -64,6 +63,6 @@ public class RealmAccessTokenChecker implements BeforeAgentListener {
   }
 
   private static boolean isAccessTokenConfigured(ConfigProperties config) {
-    return config.getString(SplunkConfiguration.SPLUNK_ACCESS_TOKEN, null) != null;
+    return config.getString(SplunkConfiguration.SPLUNK_ACCESS_TOKEN) != null;
   }
 }

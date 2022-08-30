@@ -24,12 +24,11 @@ import io.opentelemetry.sdk.autoconfigure.spi.AutoConfigurationCustomizerProvide
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import java.util.HashMap;
 import java.util.Map;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.logging.Logger;
 
 @AutoService(AutoConfigurationCustomizerProvider.class)
 public class SplunkConfiguration implements AutoConfigurationCustomizerProvider {
-  private static final Logger log = LoggerFactory.getLogger(SplunkConfiguration.class);
+  private static final Logger logger = Logger.getLogger(SplunkConfiguration.class.getName());
 
   public static final String SPLUNK_ACCESS_TOKEN = "splunk.access.token";
   public static final String OTEL_EXPORTER_JAEGER_ENDPOINT = "otel.exporter.jaeger.endpoint";
@@ -114,7 +113,7 @@ public class SplunkConfiguration implements AutoConfigurationCustomizerProvider 
     } else if ("opentelemetry".equals(metricsImplementation)) {
       String splunkMetricsEndpoint = config.getString(METRICS_ENDPOINT_PROPERTY);
       if (splunkMetricsEndpoint != null) {
-        log.warn(
+        logger.warning(
             "splunk.metrics.endpoint is deprecate, use otel.exporter.otlp.metrics.endpoint instead.");
 
         String otlpMetricsEndpoint = config.getString("otel.exporter.otlp.metrics.endpoint");
@@ -128,7 +127,7 @@ public class SplunkConfiguration implements AutoConfigurationCustomizerProvider 
 
       String splunkMetricsInterval = config.getString(METRICS_EXPORT_INTERVAL_PROPERTY);
       if (splunkMetricsInterval != null) {
-        log.warn(
+        logger.warning(
             "splunk.metrics.export.interval is deprecate, use otel.metric.export.interval instead.");
 
         addIfAbsent(customized, config, "otel.metric.export.interval", splunkMetricsInterval);

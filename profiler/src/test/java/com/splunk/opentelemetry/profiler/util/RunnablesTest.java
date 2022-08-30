@@ -16,6 +16,7 @@
 
 package com.splunk.opentelemetry.profiler.util;
 
+import static java.util.logging.Level.SEVERE;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -23,10 +24,10 @@ import static org.mockito.Mockito.verifyNoInteractions;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
+import java.util.logging.Logger;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.slf4j.Logger;
 
 class RunnablesTest {
 
@@ -57,7 +58,7 @@ class RunnablesTest {
     runnable.run();
     assertTrue(hasRun.get());
     verify(logger)
-        .error("Uncaught exception in thread {}", Thread.currentThread().getName(), exception);
+        .log(SEVERE, "Uncaught exception in thread " + Thread.currentThread().getName(), exception);
   }
 
   @Test

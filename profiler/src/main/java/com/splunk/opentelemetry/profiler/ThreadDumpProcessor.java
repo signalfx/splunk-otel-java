@@ -16,17 +16,18 @@
 
 package com.splunk.opentelemetry.profiler;
 
+import static java.util.logging.Level.FINE;
+
 import com.splunk.opentelemetry.profiler.context.SpanContextualizer;
 import com.splunk.opentelemetry.profiler.context.SpanLinkage;
 import com.splunk.opentelemetry.profiler.context.StackToSpanLinkage;
 import com.splunk.opentelemetry.profiler.exporter.CpuEventExporter;
+import java.util.logging.Logger;
 import jdk.jfr.consumer.RecordedEvent;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class ThreadDumpProcessor {
   public static final String EVENT_NAME = "jdk.ThreadDump";
-  private static final Logger logger = LoggerFactory.getLogger(ThreadDumpProcessor.class);
+  private static final Logger logger = Logger.getLogger(ThreadDumpProcessor.class.getName());
   private final SpanContextualizer contextualizer;
   private final CpuEventExporter cpuEventExporter;
   private final StackTraceFilter stackTraceFilter;
@@ -41,7 +42,7 @@ public class ThreadDumpProcessor {
 
   public void accept(RecordedEvent event) {
     String eventName = event.getEventType().getName();
-    logger.debug("Processing JFR event {}", eventName);
+    logger.log(FINE, "Processing JFR event {0}", eventName);
     String wallOfStacks = event.getString("result");
 
     ThreadDumpRegion stack = new ThreadDumpRegion(wallOfStacks, 0, 0);

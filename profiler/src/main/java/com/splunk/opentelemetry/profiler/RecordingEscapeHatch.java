@@ -16,19 +16,21 @@
 
 package com.splunk.opentelemetry.profiler;
 
+import static java.util.logging.Level.SEVERE;
+import static java.util.logging.Level.WARNING;
+
 import java.io.IOException;
 import java.nio.file.FileStore;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
+import java.util.logging.Logger;
 import java.util.stream.Stream;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 class RecordingEscapeHatch {
 
   private static final long MIN_FREE_SPACE_BYTES = 100 * 1024 * 1024; // 100MiB
-  private static final Logger logger = LoggerFactory.getLogger(RecordingEscapeHatch.class);
+  private static final Logger logger = Logger.getLogger(RecordingEscapeHatch.class.getName());
   private static final Duration MAX_PENDING_DURATION = Duration.ofMinutes(5);
 
   private final RecordingFileNamingConvention namingConvention;
@@ -46,7 +48,7 @@ class RecordingEscapeHatch {
   public boolean jfrCanContinue() {
     boolean result = freeSpaceIsOk() && notFileBacklogged();
     if (!result) {
-      logger.warn("** THIS WILL RESULT IN LOSS OF PROFILING DATA **");
+      logger.warning("** THIS WILL RESULT IN LOSS OF PROFILING DATA **");
     }
     return result;
   }
@@ -58,14 +60,14 @@ class RecordingEscapeHatch {
       long usableSpace = store.getUsableSpace();
       boolean result = usableSpace > MIN_FREE_SPACE_BYTES;
       if (!result) {
-        logger.warn(
+        logger.log(
+            WARNING,
             "** NOT STARTING RECORDING, only {} bytes free, require {}",
-            usableSpace,
-            MIN_FREE_SPACE_BYTES);
+            new Object[] {usableSpace, MIN_FREE_SPACE_BYTES});
       }
       return result;
     } catch (IOException e) {
-      logger.error("Could not check free space, assuming everything is bad", e);
+      logger.log(SEVERE, "Could not check free space, assuming everything is bad", e);
       return false;
     }
   }
@@ -82,7 +84,7 @@ class RecordingEscapeHatch {
     try {
       return pendingFileCount() < maxFileCount;
     } catch (IOException e) {
-      logger.warn("Error listing files in output directory, assuming everything is bad");
+      logger.warning("Error listing files in output directory, assuming everything is bad");
       return false;
     }
   }

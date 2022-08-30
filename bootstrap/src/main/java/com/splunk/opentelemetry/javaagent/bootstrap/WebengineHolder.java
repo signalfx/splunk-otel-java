@@ -16,27 +16,33 @@
 
 package com.splunk.opentelemetry.javaagent.bootstrap;
 
+import static java.util.logging.Level.FINE;
+
 import java.util.concurrent.atomic.AtomicReference;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.logging.Logger;
 
 public class WebengineHolder {
 
-  private static final Logger log = LoggerFactory.getLogger(WebengineHolder.class);
+  private static final Logger logger = Logger.getLogger(WebengineHolder.class.getName());
 
   public static final AtomicReference<String> webengineName = new AtomicReference<>();
   public static final AtomicReference<String> webengineVersion = new AtomicReference<>();
 
   public static void trySetName(String name) {
-    if (!webengineName.compareAndSet(null, name)) {
-      log.debug("Trying to re-set webengine name from {} to {}", webengineName.get(), name);
+    if (!webengineName.compareAndSet(null, name) && logger.isLoggable(FINE)) {
+      logger.log(
+          FINE,
+          "Trying to re-set webengine name from {0} to {1}",
+          new Object[] {webengineName.get(), name});
     }
   }
 
   public static void trySetVersion(String version) {
-    if (!webengineVersion.compareAndSet(null, version)) {
-      log.debug(
-          "Trying to re-set webengine version from {} to {}", webengineVersion.get(), version);
+    if (!webengineVersion.compareAndSet(null, version) && logger.isLoggable(FINE)) {
+      logger.log(
+          FINE,
+          "Trying to re-set webengine version from {0} to {1}",
+          new Object[] {webengineVersion.get(), version});
     }
   }
 }

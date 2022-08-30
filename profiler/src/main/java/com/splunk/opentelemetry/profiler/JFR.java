@@ -16,11 +16,14 @@
 
 package com.splunk.opentelemetry.profiler;
 
+import static java.util.logging.Level.WARNING;
+
 import io.opentelemetry.javaagent.bootstrap.InstrumentationHolder;
 import java.io.IOException;
 import java.lang.instrument.Instrumentation;
 import java.nio.file.Path;
 import java.util.Collections;
+import java.util.logging.Logger;
 import jdk.jfr.FlightRecorder;
 import jdk.jfr.Recording;
 import jdk.jfr.consumer.RecordedEvent;
@@ -28,12 +31,10 @@ import jdk.jfr.consumer.RecordingFile;
 import jdk.jfr.internal.Options;
 import net.bytebuddy.dynamic.loading.ClassInjector;
 import net.bytebuddy.utility.JavaModule;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /** Abstraction around the JDK Flight Recorder subsystem. */
 class JFR {
-  private static final Logger logger = LoggerFactory.getLogger(JFR.class);
+  private static final Logger logger = Logger.getLogger(JFR.class.getName());
 
   public static final JFR instance = new JFR();
   private static final boolean jfrAvailable = checkJfr();
@@ -80,7 +81,7 @@ class JFR {
         Options.setStackDepth(stackDepth);
       }
     } catch (Throwable throwable) {
-      logger.warn("Failed to set JFR stack depth to {}", stackDepth, throwable);
+      logger.log(WARNING, "Failed to set JFR stack depth to " + stackDepth, throwable);
     }
   }
 

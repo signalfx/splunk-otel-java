@@ -16,6 +16,9 @@
 
 package com.splunk.opentelemetry;
 
+import static java.util.logging.Level.INFO;
+import static java.util.logging.Level.WARNING;
+
 import com.google.auto.service.AutoService;
 import io.opentelemetry.api.trace.SpanKind;
 import io.opentelemetry.contrib.samplers.RuleBasedRoutingSampler;
@@ -26,12 +29,11 @@ import io.opentelemetry.sdk.trace.samplers.Sampler;
 import io.opentelemetry.semconv.trace.attributes.SemanticAttributes;
 import java.util.ArrayList;
 import java.util.List;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.logging.Logger;
 
 @AutoService(ConfigurableSamplerProvider.class)
 public class RuleBasedSamplerProvider implements ConfigurableSamplerProvider {
-  private static final Logger log = LoggerFactory.getLogger(RuleBasedSamplerProvider.class);
+  private static final Logger logger = Logger.getLogger(RuleBasedSamplerProvider.class.getName());
   public static final String SAMPLER_ARG = "otel.traces.sampler.arg";
 
   @Override
@@ -39,7 +41,7 @@ public class RuleBasedSamplerProvider implements ConfigurableSamplerProvider {
     String configString = config.getString(SAMPLER_ARG);
     Config samplerConfiguration = new Config(configString);
 
-    log.info("Received following rules: {}", samplerConfiguration);
+    logger.log(INFO, "Received following rules: {0}", samplerConfiguration);
 
     RuleBasedRoutingSamplerBuilder builder =
         RuleBasedRoutingSampler.builder(SpanKind.SERVER, samplerConfiguration.fallback);
@@ -73,7 +75,10 @@ public class RuleBasedSamplerProvider implements ConfigurableSamplerProvider {
           }
         }
       } catch (RuntimeException ex) {
-        log.warn("Failed to parse {} configuration option. Using default conf", SAMPLER_ARG, ex);
+        logger.log(
+            WARNING,
+            "Failed to parse " + SAMPLER_ARG + " configuration option. Using default conf",
+            ex);
       }
     }
 

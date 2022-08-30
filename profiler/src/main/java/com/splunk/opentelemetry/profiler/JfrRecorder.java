@@ -17,6 +17,8 @@
 package com.splunk.opentelemetry.profiler;
 
 import static java.util.Objects.requireNonNull;
+import static java.util.logging.Level.FINE;
+import static java.util.logging.Level.SEVERE;
 
 import com.google.common.annotations.VisibleForTesting;
 import java.io.IOException;
@@ -28,14 +30,13 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Map;
 import java.util.function.Consumer;
+import java.util.logging.Logger;
 import jdk.jfr.Recording;
 import jdk.jfr.RecordingState;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /** Responsible for starting a single JFR recording. */
 class JfrRecorder {
-  private static final Logger logger = LoggerFactory.getLogger(JfrRecorder.class);
+  private static final Logger logger = Logger.getLogger(JfrRecorder.class.getName());
 
   private static final int BUFFER_SIZE = 8192;
   static final String RECORDING_NAME = "otel_agent_jfr_profiler";
@@ -57,7 +58,7 @@ class JfrRecorder {
   }
 
   public void start() {
-    logger.debug("Profiler is starting a JFR recording");
+    logger.fine("Profiler is starting a JFR recording");
     recording = newRecording();
     recording.setSettings(settings);
     recording.setToDisk(false);
@@ -75,18 +76,23 @@ class JfrRecorder {
   public void flushSnapshot() {
     try (Recording snap = jfr.takeSnapshot()) {
       Path path = namingConvention.newOutputPath().toAbsolutePath();
-      logger.debug("Flushing a JFR snapshot: {}", path);
+      logger.log(FINE, "Flushing a JFR snapshot: {0}", path);
       Instant snapshotEnd = snap.getStopTime();
       try (InputStream in = snap.getStream(snapshotStart, snapshotEnd)) {
         try (OutputStream out = Files.newOutputStream(path)) {
           copy(in, out);
-          logger.debug("Wrote JFR dump {} with size {}", path, path.toFile().length());
+          if (logger.isLoggable(FINE)) {
+            logger.log(
+                FINE,
+                "Wrote JFR dump {} with size {}",
+                new Object[] {path, path.toFile().length()});
+          }
         }
       }
       snapshotStart = snapshotEnd;
       onNewRecordingFile.accept(path);
     } catch (IOException e) {
-      logger.error("Error flushing JFR snapshot data to disk", e);
+      logger.log(SEVERE, "Error flushing JFR snapshot data to disk", e);
     }
   }
 

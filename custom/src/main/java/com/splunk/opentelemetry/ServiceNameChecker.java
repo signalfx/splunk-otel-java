@@ -25,18 +25,17 @@ import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import io.opentelemetry.semconv.resource.attributes.ResourceAttributes;
 import java.util.Map;
 import java.util.function.Consumer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.logging.Logger;
 
 @AutoService(BeforeAgentListener.class)
 public class ServiceNameChecker implements BeforeAgentListener {
-  private static final Logger log = LoggerFactory.getLogger(ServiceNameChecker.class);
+  private static final Logger logger = Logger.getLogger(ServiceNameChecker.class.getName());
 
   private final Consumer<String> logWarn;
 
   @SuppressWarnings("unused")
   public ServiceNameChecker() {
-    this(log::warn);
+    this(logger::warning);
   }
 
   // visible for tests

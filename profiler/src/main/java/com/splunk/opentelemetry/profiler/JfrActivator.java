@@ -23,6 +23,7 @@ import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_RECORDI
 import static com.splunk.opentelemetry.profiler.JfrFileLifecycleEvents.buildOnFileFinished;
 import static com.splunk.opentelemetry.profiler.JfrFileLifecycleEvents.buildOnNewRecording;
 import static com.splunk.opentelemetry.profiler.util.Runnables.logUncaught;
+import static java.util.logging.Level.WARNING;
 
 import com.google.auto.service.AutoService;
 import com.splunk.opentelemetry.profiler.Configuration.DataFormat;
@@ -52,13 +53,12 @@ import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Consumer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.logging.Logger;
 
 @AutoService(AgentListener.class)
 public class JfrActivator implements AgentListener {
 
-  private static final Logger logger = LoggerFactory.getLogger(JfrActivator.class);
+  private static final Logger logger = Logger.getLogger(JfrActivator.class.getName());
   private static final int MAX_BATCH_SIZE = 250;
   private static final Duration MAX_TIME_BETWEEN_BATCHES = Duration.ofSeconds(10);
   private final ExecutorService executor = HelpfulExecutors.newSingleThreadExecutor("JFR Profiler");
@@ -68,13 +68,14 @@ public class JfrActivator implements AgentListener {
   public void afterAgent(AutoConfiguredOpenTelemetrySdk autoConfiguredOpenTelemetrySdk) {
     ConfigProperties config = autoConfiguredOpenTelemetrySdk.getConfig();
     if (!config.getBoolean(CONFIG_KEY_ENABLE_PROFILER, false)) {
-      logger.debug("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
-      logger.debug("xxxxxxxxx  JFR PROFILER DISABLED!  xxxxxxxxx");
-      logger.debug("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
+      logger.fine("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
+      logger.fine("xxxxxxxxx  JFR PROFILER DISABLED!  xxxxxxxxx");
+      logger.fine("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
       return;
     }
     if (!JFR.instance.isAvailable()) {
-      logger.warn("JDK Flight Recorder (JFR) is not available in this JVM. Profiling is disabled.");
+      logger.warning(
+          "JDK Flight Recorder (JFR) is not available in this JVM. Profiling is disabled.");
       return;
     }
     configurationLogger.log(config);
@@ -231,7 +232,7 @@ public class JfrActivator implements AgentListener {
 
   private Consumer<Path> buildFileDeleter(ConfigProperties config) {
     if (keepFiles(config)) {
-      logger.warn("{} is enabled, leaving JFR files on disk.", CONFIG_KEY_KEEP_FILES);
+      logger.log(WARNING, "{0} is enabled, leaving JFR files on disk.", CONFIG_KEY_KEEP_FILES);
       return FileDeleter.noopFileDeleter();
     }
     return FileDeleter.newDeleter();

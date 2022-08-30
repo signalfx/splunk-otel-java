@@ -17,6 +17,7 @@
 package com.splunk.opentelemetry.profiler.context;
 
 import static com.splunk.opentelemetry.profiler.context.StackDescriptorLineParser.CANT_PARSE_THREAD_ID;
+import static java.util.logging.Level.FINE;
 
 import com.splunk.opentelemetry.profiler.ThreadDumpRegion;
 import io.opentelemetry.api.trace.SpanContext;
@@ -24,9 +25,8 @@ import io.opentelemetry.api.trace.TraceFlags;
 import io.opentelemetry.api.trace.TraceState;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Logger;
 import jdk.jfr.consumer.RecordedEvent;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Keeps track of span scope changes and, when applicable, can wrap the RecordedEvent with span
@@ -34,7 +34,7 @@ import org.slf4j.LoggerFactory;
  */
 public class SpanContextualizer {
 
-  private static final Logger logger = LoggerFactory.getLogger(SpanContextualizer.class);
+  private static final Logger logger = Logger.getLogger(SpanContextualizer.class.getName());
 
   private final Map<Long, SpanLinkage> threadSpans = new HashMap<>();
   private final StackDescriptorLineParser descriptorParser = new StackDescriptorLineParser();
@@ -52,12 +52,12 @@ public class SpanContextualizer {
     String spanId = event.getString("spanId");
     long javaThreadId = event.getThread().getJavaThreadId();
 
-    logger.debug(
-        "Set thread context: [{}] {} {} at {}",
-        javaThreadId,
-        traceId,
-        spanId,
-        event.getStartTime());
+    if (logger.isLoggable(FINE)) {
+      logger.log(
+          FINE,
+          "Set thread context: [{0}] {1} {2} at {3}",
+          new Object[] {javaThreadId, traceId, spanId, event.getStartTime()});
+    }
 
     if (traceId == null || spanId == null) {
       threadSpans.remove(javaThreadId);

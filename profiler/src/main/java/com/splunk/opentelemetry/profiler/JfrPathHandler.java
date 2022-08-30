@@ -16,14 +16,15 @@
 
 package com.splunk.opentelemetry.profiler;
 
+import static java.util.logging.Level.FINE;
+
 import java.nio.file.Path;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.function.Consumer;
+import java.util.logging.Logger;
 import java.util.stream.Stream;
 import jdk.jfr.consumer.RecordedEvent;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Responsible for processing a single jfr file snapshot. It streams events from the
@@ -32,7 +33,7 @@ import org.slf4j.LoggerFactory;
  */
 class JfrPathHandler implements Consumer<Path> {
 
-  private static final Logger logger = LoggerFactory.getLogger(JfrPathHandler.class);
+  private static final Logger logger = Logger.getLogger(JfrPathHandler.class.getName());
   private final EventProcessingChain eventProcessingChain;
   private final Consumer<Path> onFileFinished;
   private final RecordedEventStream.Factory recordedEventStreamFactory;
@@ -45,7 +46,12 @@ class JfrPathHandler implements Consumer<Path> {
 
   @Override
   public void accept(Path path) {
-    logger.debug("New jfr file detected: {} size: {}", path, path.toFile().length());
+    if (logger.isLoggable(FINE)) {
+      logger.log(
+          FINE,
+          "New jfr file detected: {0} size: {1}",
+          new Object[] {path, path.toFile().length()});
+    }
     Instant start = Instant.now();
     try {
       RecordedEventStream recordingFile = recordedEventStreamFactory.get();
@@ -57,7 +63,9 @@ class JfrPathHandler implements Consumer<Path> {
     } finally {
       Instant end = Instant.now();
       long timeElapsed = Duration.between(start, end).toMillis();
-      logger.debug("Processed {} in {}ms", path, timeElapsed);
+      if (logger.isLoggable(FINE)) {
+        logger.log(FINE, "Processed {0} in {1}ms", new Object[] {path, timeElapsed});
+      }
       eventProcessingChain.logEventStats();
     }
   }

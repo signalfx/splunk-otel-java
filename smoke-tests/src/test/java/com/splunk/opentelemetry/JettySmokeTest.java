@@ -50,7 +50,7 @@ public class JettySmokeTest extends AppServerTest {
   }
 
   @Override
-  protected boolean getAutodetectServiceName() {
+  protected boolean shouldAutodetectServiceName() {
     return true;
   }
 

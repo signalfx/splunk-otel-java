@@ -46,7 +46,7 @@ public class WebSphereSmokeTest extends AppServerTest {
   }
 
   @Override
-  protected boolean getAutodetectServiceName() {
+  protected boolean shouldAutodetectServiceName() {
     return true;
   }
 

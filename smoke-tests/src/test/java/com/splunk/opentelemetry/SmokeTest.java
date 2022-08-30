@@ -66,7 +66,7 @@ public abstract class SmokeTest {
     return List.of();
   }
 
-  protected boolean getAutodetectServiceName() {
+  protected boolean shouldAutodetectServiceName() {
     return false;
   }
 
@@ -120,7 +120,7 @@ public abstract class SmokeTest {
             .withExtraEnv(extraEnv)
             .withExtraResources(getExtraResources())
             .withWaitStrategy(getWaitStrategy())
-            .autodetectServiceName(getAutodetectServiceName()));
+            .autodetectServiceName(shouldAutodetectServiceName()));
   }
 
   protected TargetWaitStrategy getWaitStrategy() {

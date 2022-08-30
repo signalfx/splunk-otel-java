@@ -95,7 +95,7 @@ public abstract class AppServerTest extends SmokeTest {
     // verify that correct service name is set in the resource
     assertTrue(
         traces.resourceExists(
-            "service.name", getAutodetectServiceName() ? "smoke-test-app" : "smoke-test"));
+            "service.name", shouldAutodetectServiceName() ? "smoke-test-app" : "smoke-test"));
   }
 
   /*

@@ -36,7 +36,6 @@ public class ServiceNameResourceProvider implements ResourceProvider {
       String serviceName = ServiceNameDetector.detectServiceName();
       if (serviceName != null) {
         log.info("Auto-detected service name '{}'.", serviceName);
-        // customized.put("otel.service.name", serviceName);
         return Resource.create(Attributes.of(SERVICE_NAME, serviceName));
       }
     }

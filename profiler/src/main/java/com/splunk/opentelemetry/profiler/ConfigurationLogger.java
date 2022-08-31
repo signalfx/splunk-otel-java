@@ -30,7 +30,6 @@ import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_TLAB_EN
 import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_TRACING_STACKS_ONLY;
 import static com.splunk.opentelemetry.profiler.Configuration.DEFAULT_INCLUDE_INTERNAL_STACKS;
 import static com.splunk.opentelemetry.profiler.Configuration.DEFAULT_MEMORY_ENABLED;
-import static java.util.logging.Level.INFO;
 
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import java.util.function.Function;
@@ -62,7 +61,7 @@ public class ConfigurationLogger {
   }
 
   private void log(String key, Function<String, Object> getter) {
-    logger.log(INFO, " {0} : {1}", new Object[] {pad(key), getter.apply(key)});
+    logger.info(" " + pad(key) + " : " + getter.apply(key));
   }
 
   private String pad(String str) {

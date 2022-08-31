@@ -62,7 +62,7 @@ class RecordingEscapeHatch {
       if (!result) {
         logger.log(
             WARNING,
-            "** NOT STARTING RECORDING, only {} bytes free, require {}",
+            "** NOT STARTING RECORDING, only {0} bytes free, require {1}",
             new Object[] {usableSpace, MIN_FREE_SPACE_BYTES});
       }
       return result;

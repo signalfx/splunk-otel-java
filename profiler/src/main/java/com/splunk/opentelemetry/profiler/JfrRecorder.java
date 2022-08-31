@@ -84,7 +84,7 @@ class JfrRecorder {
           if (logger.isLoggable(FINE)) {
             logger.log(
                 FINE,
-                "Wrote JFR dump {} with size {}",
+                "Wrote JFR dump {0} with size {1}",
                 new Object[] {path, path.toFile().length()});
           }
         }

@@ -150,7 +150,7 @@ in the Splunk Observability Cloud user documentation.
 ## Manually instrument a Java application
 
 Documentation on how to manually instrument a Java application is available in the 
-[OpenTelemetry official documentation](https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/docs/manual-instrumentation.md).
+[OpenTelemetry official documentation](https://opentelemetry.io/docs/instrumentation/java/manual/).
 To learn how to add custom metrics to your application please consult [our docs](docs/metrics.md#manual-instrumentation).
 
 To extend the instrumentation with the OpenTelemetry Instrumentation for Java,

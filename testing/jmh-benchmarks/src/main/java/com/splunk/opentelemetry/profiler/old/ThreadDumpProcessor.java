@@ -16,20 +16,21 @@
 
 package com.splunk.opentelemetry.profiler.old;
 
+import static java.util.logging.Level.FINE;
+
 import com.splunk.opentelemetry.profiler.ThreadDumpRegion;
 import com.splunk.opentelemetry.profiler.context.SpanContextualizer;
 import com.splunk.opentelemetry.profiler.context.StackToSpanLinkage;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
+import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 import jdk.jfr.consumer.RecordedEvent;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class ThreadDumpProcessor {
   public static final String EVENT_NAME = "jdk.ThreadDump";
-  private static final Logger logger = LoggerFactory.getLogger(ThreadDumpProcessor.class);
+  private static final Logger logger = Logger.getLogger(ThreadDumpProcessor.class.getName());
   private final Pattern stackSeparator = Pattern.compile("\n\n");
   private final SpanContextualizer contextualizer;
   private final Consumer<StackToSpanLinkage> processor;
@@ -46,7 +47,7 @@ public class ThreadDumpProcessor {
 
   public void accept(RecordedEvent event) {
     String eventName = event.getEventType().getName();
-    logger.debug("Processing JFR event {}", eventName);
+    logger.log(FINE, "Processing JFR event {0}", eventName);
     String wallOfStacks = event.getString("result");
     String[] stacks = stackSeparator.split(wallOfStacks);
     // TODO: Filter out all the VM and GC entries without real stack traces?

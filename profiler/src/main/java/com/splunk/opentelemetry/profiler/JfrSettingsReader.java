@@ -17,6 +17,9 @@
 package com.splunk.opentelemetry.profiler;
 
 import static java.util.Collections.emptyMap;
+import static java.util.logging.Level.FINE;
+import static java.util.logging.Level.SEVERE;
+import static java.util.logging.Level.WARNING;
 
 import com.google.common.annotations.VisibleForTesting;
 import java.io.BufferedReader;
@@ -25,12 +28,11 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.Map;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.logging.Logger;
 
 class JfrSettingsReader {
 
-  private static final Logger logger = LoggerFactory.getLogger(JfrSettingsReader.class);
+  private static final Logger logger = Logger.getLogger(JfrSettingsReader.class.getName());
   private static final String DEFAULT_JFR_SETTINGS = "jfr.settings";
 
   public Map<String, String> read() {
@@ -51,10 +53,10 @@ class JfrSettingsReader {
                 String[] kv = line.split("=");
                 result.put(kv[0], kv[1]);
               });
-      logger.debug("Read {} JFR settings entries.", result.size());
+      logger.log(FINE, "Read {0} JFR settings entries.", result.size());
       return result;
     } catch (IOException e) {
-      logger.warn("Error handling settings", e);
+      logger.log(WARNING, "Error handling settings", e);
       return emptyMap();
     }
   }
@@ -64,7 +66,7 @@ class JfrSettingsReader {
     InputStream in =
         Thread.currentThread().getContextClassLoader().getResourceAsStream(resourceName);
     if (in == null) {
-      logger.error("Error reading jfr settings, resource {} not found!", resourceName);
+      logger.log(SEVERE, "Error reading jfr settings, resource {0} not found!", resourceName);
       return null;
     }
     return new BufferedReader(new InputStreamReader(in));

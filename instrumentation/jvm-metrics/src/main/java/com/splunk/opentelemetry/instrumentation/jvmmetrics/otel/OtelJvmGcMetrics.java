@@ -56,15 +56,14 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.logging.Logger;
 import javax.management.Notification;
 import javax.management.NotificationEmitter;
 import javax.management.NotificationListener;
 import javax.management.openmbean.CompositeData;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class OtelJvmGcMetrics {
-  private static final Logger logger = LoggerFactory.getLogger(OtelJvmGcMetrics.class);
+  private static final Logger logger = Logger.getLogger(OtelJvmGcMetrics.class.getName());
 
   private static final AttributeKey<String> ACTION = stringKey("action");
   private static final AttributeKey<String> CAUSE = stringKey("cause");
@@ -260,7 +259,7 @@ public class OtelJvmGcMetrics {
   private static boolean isManagementExtensionsPresent() {
     if (ManagementFactory.getMemoryPoolMXBeans().isEmpty()) {
       // Substrate VM, for example, doesn't provide or support these beans (yet)
-      logger.warn(
+      logger.warning(
           "GC notifications will not be available because MemoryPoolMXBeans are not provided by the JVM");
       return false;
     }
@@ -273,7 +272,7 @@ public class OtelJvmGcMetrics {
       return true;
     } catch (Throwable e) {
       // We are operating in a JVM without access to this level of detail
-      logger.warn(
+      logger.warning(
           "GC notifications will not be available because "
               + "com.sun.management.GarbageCollectionNotificationInfo is not present");
       return false;

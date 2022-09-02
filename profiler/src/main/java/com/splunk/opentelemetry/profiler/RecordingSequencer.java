@@ -16,20 +16,21 @@
 
 package com.splunk.opentelemetry.profiler;
 
+import static java.util.logging.Level.SEVERE;
+
 import com.google.common.annotations.VisibleForTesting;
 import com.splunk.opentelemetry.profiler.util.HelpfulExecutors;
 import java.time.Duration;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.logging.Logger;
 
 /**
  * Responsible for periodically generating a sequence of JFR recording files. Prior to starting a
  * recording, it consults with a RecordingEscapeHatch to make sure that it is safe/relevant to do.
  */
 class RecordingSequencer {
-  private static final Logger logger = LoggerFactory.getLogger(RecordingSequencer.class);
+  private static final Logger logger = Logger.getLogger(RecordingSequencer.class.getName());
 
   private final ScheduledExecutorService executor =
       HelpfulExecutors.newSingleThreadedScheduledExecutor("JFR Recording Sequencer");
@@ -53,7 +54,7 @@ class RecordingSequencer {
   void handleInterval() {
     try {
       if (!recordingEscapeHatch.jfrCanContinue()) {
-        logger.warn("JFR recordings cannot proceed.");
+        logger.warning("JFR recordings cannot proceed.");
         if (recorder.isStarted()) {
           recorder.stop();
         }
@@ -65,7 +66,7 @@ class RecordingSequencer {
       }
       recorder.flushSnapshot();
     } catch (Throwable throwable) {
-      logger.error("Profiler periodic task failed.", throwable);
+      logger.log(SEVERE, "Profiler periodic task failed.", throwable);
     }
   }
 

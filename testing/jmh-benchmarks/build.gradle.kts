@@ -9,8 +9,6 @@ repositories {
 
 dependencies {
   implementation(project(":profiler"))
-  implementation("org.slf4j:slf4j-api")
-  testImplementation("org.slf4j:slf4j-api")
   testImplementation("org.junit.jupiter:junit-jupiter-api")
   testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
 }

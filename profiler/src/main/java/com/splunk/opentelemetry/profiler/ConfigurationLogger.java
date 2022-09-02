@@ -33,13 +33,12 @@ import static com.splunk.opentelemetry.profiler.Configuration.DEFAULT_MEMORY_ENA
 
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import java.util.function.Function;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.logging.Logger;
 
 /** This class logs the active profiler configuration for debug/troubleshooting purposes. */
 public class ConfigurationLogger {
 
-  private static final Logger logger = LoggerFactory.getLogger(ConfigurationLogger.class);
+  private static final Logger logger = Logger.getLogger(ConfigurationLogger.class.getName());
 
   public void log(ConfigProperties config) {
     logger.info("-----------------------");
@@ -62,7 +61,7 @@ public class ConfigurationLogger {
   }
 
   private void log(String key, Function<String, Object> getter) {
-    logger.info(" {} : {}", pad(key), getter.apply(key));
+    logger.info(" " + pad(key) + " : " + getter.apply(key));
   }
 
   private String pad(String str) {

@@ -16,14 +16,15 @@
 
 package com.splunk.opentelemetry.profiler.util;
 
+import static java.util.logging.Level.SEVERE;
+
 import com.google.common.annotations.VisibleForTesting;
 import java.util.function.Function;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.logging.Logger;
 
 public class Runnables {
 
-  @VisibleForTesting static Function<String, Logger> createLogger = LoggerFactory::getLogger;
+  @VisibleForTesting static Function<String, Logger> createLogger = Logger::getLogger;
 
   public static Runnable logUncaught(Runnable delegate) {
     return () -> {
@@ -32,7 +33,7 @@ public class Runnables {
       } catch (Throwable e) {
         String threadName = Thread.currentThread().getName();
         Logger logger = createLogger.apply(threadName);
-        logger.error("Uncaught exception in thread {}", threadName, e);
+        logger.log(SEVERE, "Uncaught exception in thread " + threadName, e);
       }
     };
   }

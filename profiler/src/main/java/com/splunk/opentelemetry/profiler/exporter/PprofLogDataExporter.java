@@ -20,17 +20,17 @@ import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.DATA
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.DATA_TYPE;
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.PROFILING_SOURCE;
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.SOURCE_TYPE;
+import static java.util.logging.Level.FINE;
 
 import com.splunk.opentelemetry.profiler.Configuration.DataFormat;
 import com.splunk.opentelemetry.profiler.ProfilingDataType;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.sdk.logs.LogEmitter;
 import java.nio.charset.StandardCharsets;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.logging.Logger;
 
 public class PprofLogDataExporter {
-  private static final Logger logger = LoggerFactory.getLogger(PprofLogDataExporter.class);
+  private static final Logger logger = Logger.getLogger(PprofLogDataExporter.class.getName());
 
   private final LogEmitter logEmitter;
   private final ProfilingDataType dataType;
@@ -51,8 +51,12 @@ public class PprofLogDataExporter {
   }
 
   public void export(byte[] bytes) {
-    logger.debug(
-        "Exporting {} data as {}, size {}.", dataType.value(), dataFormat.value(), bytes.length);
+    if (logger.isLoggable(FINE)) {
+      logger.log(
+          FINE,
+          "Exporting {0} data as {1}, size {2}.",
+          new Object[] {dataType.value(), dataFormat.value(), bytes.length});
+    }
 
     String body = new String(bytes, StandardCharsets.ISO_8859_1);
 

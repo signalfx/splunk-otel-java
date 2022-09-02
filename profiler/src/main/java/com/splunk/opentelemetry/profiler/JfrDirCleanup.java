@@ -17,14 +17,14 @@
 package com.splunk.opentelemetry.profiler;
 
 import static com.splunk.opentelemetry.profiler.util.Runnables.logUncaught;
+import static java.util.logging.Level.WARNING;
 
 import com.google.common.annotations.VisibleForTesting;
 import java.nio.file.Path;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.logging.Logger;
 
 /**
  * This class is responsible for cleaning up jfr files that might not have otherwise been cleaned
@@ -32,7 +32,7 @@ import org.slf4j.LoggerFactory;
  */
 class JfrDirCleanup {
 
-  private static final Logger logger = LoggerFactory.getLogger(JfrDirCleanup.class);
+  private static final Logger logger = Logger.getLogger(JfrDirCleanup.class.getName());
   private final Consumer<Path> fileDeleter;
   private final Map<Path, Integer> pending = new ConcurrentHashMap<>();
 
@@ -53,7 +53,7 @@ class JfrDirCleanup {
         .keySet()
         .forEach(
             path -> {
-              logger.warn("Shutdown :: JfrDirCleanup deleting {}", path);
+              logger.log(WARNING, "Shutdown :: JfrDirCleanup deleting {0}", path);
               fileDeleter.accept(path);
             });
   }

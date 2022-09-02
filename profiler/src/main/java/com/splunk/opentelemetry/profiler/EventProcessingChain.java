@@ -16,6 +16,8 @@
 
 package com.splunk.opentelemetry.profiler;
 
+import static java.util.logging.Level.FINE;
+
 import com.google.common.annotations.VisibleForTesting;
 import com.splunk.opentelemetry.profiler.context.SpanContextualizer;
 import com.splunk.opentelemetry.profiler.events.ContextAttached;
@@ -25,21 +27,20 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Logger;
 import jdk.jfr.EventType;
 import jdk.jfr.consumer.RecordedEvent;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 class EventProcessingChain {
 
-  private static final Logger logger = LoggerFactory.getLogger(EventProcessingChain.class);
+  private static final Logger logger = Logger.getLogger(EventProcessingChain.class.getName());
 
   private final SpanContextualizer spanContextualizer;
   private final ThreadDumpProcessor threadDumpProcessor;
   private final TLABProcessor tlabProcessor;
   private final List<RecordedEvent> buffer = new ArrayList<>();
   private final EventStats eventStats =
-      logger.isDebugEnabled() ? new EventStatsImpl() : new NoOpEventStats();
+      logger.isLoggable(FINE) ? new EventStatsImpl() : new NoOpEventStats();
   private final ChunkTracker chunkTracker;
 
   EventProcessingChain(
@@ -189,17 +190,24 @@ class EventProcessingChain {
       events.sort(Comparator.comparingLong(entry -> -entry.getValue().timeSpent));
       long totalTime = 0;
       for (Map.Entry<String, EventCounter> entry : events) {
-        logger.debug(
-            "Handled {} {} events in {}ms",
-            entry.getValue().count,
-            entry.getKey(),
-            TimeUnit.NANOSECONDS.toMillis(entry.getValue().timeSpent));
+        if (logger.isLoggable(FINE)) {
+          logger.log(
+              FINE,
+              "Handled {0} {1} events in {2}ms",
+              new Object[] {
+                entry.getValue().count,
+                entry.getKey(),
+                TimeUnit.NANOSECONDS.toMillis(entry.getValue().timeSpent)
+              });
+        }
         totalTime += entry.getValue().timeSpent;
       }
-      logger.debug(
-          "In total handled {} events in {}ms",
-          eventCount,
-          TimeUnit.NANOSECONDS.toMillis(totalTime));
+      if (logger.isLoggable(FINE)) {
+        logger.log(
+            FINE,
+            "In total handled {0} events in {1}ms",
+            new Object[] {eventCount, TimeUnit.NANOSECONDS.toMillis(totalTime)});
+      }
       reset();
     }
   }

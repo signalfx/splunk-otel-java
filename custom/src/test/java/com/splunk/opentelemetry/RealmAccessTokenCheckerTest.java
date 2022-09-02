@@ -34,7 +34,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class RealmAccessTokenCheckerTest {
   @Mock Consumer<String> logWarn;
-  @Mock AutoConfiguredOpenTelemetrySdk autoConfiguredSdk;
 
   @Test
   void shouldNotLogWarnWhenNoRealmSet() {

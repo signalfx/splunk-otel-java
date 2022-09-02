@@ -36,13 +36,10 @@ dependencies {
   implementation("io.opentelemetry:opentelemetry-exporter-otlp-logs")
   implementation("com.google.protobuf:protobuf-java:$protobufVersion")
 
-  compileOnly("org.slf4j:slf4j-api")
-
   annotationProcessor("com.google.auto.service:auto-service")
   compileOnly("com.google.auto.service:auto-service")
 
   testImplementation("io.opentelemetry.javaagent:opentelemetry-javaagent-extension-api")
-  testImplementation("org.slf4j:slf4j-api")
   testImplementation("io.grpc:grpc-netty")
   testImplementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-api")
   testImplementation("io.opentelemetry:opentelemetry-sdk-extension-autoconfigure")
@@ -52,7 +49,7 @@ dependencies {
   testImplementation("io.opentelemetry:opentelemetry-api")
   testImplementation("io.opentelemetry:opentelemetry-sdk")
   testImplementation("io.opentelemetry:opentelemetry-sdk-logs-testing")
-  testImplementation("io.github.netmikey.logunit:logunit-logback:1.1.3")
+  testImplementation("io.github.netmikey.logunit:logunit-jul:1.1.3")
 }
 
 tasks {

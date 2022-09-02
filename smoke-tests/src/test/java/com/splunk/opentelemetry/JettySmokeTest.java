@@ -49,6 +49,11 @@ public class JettySmokeTest extends AppServerTest {
         .stream();
   }
 
+  @Override
+  protected boolean shouldAutodetectServiceName() {
+    return true;
+  }
+
   @ParameterizedTest(name = "[{index}] {0}")
   @MethodSource("supportedConfigurations")
   void jettySmokeTest(TestImage image, ExpectedServerAttributes expectedServerAttributes)

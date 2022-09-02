@@ -27,7 +27,8 @@ public abstract class AbstractTestContainerManager implements TestContainerManag
   protected static final String COLLECTOR_ALIAS = "collector";
   protected static final String COLLECTOR_CONFIG_RESOURCE = "/otel.yaml";
 
-  protected Map<String, String> getAgentEnvironment(String jvmArgsEnvVarName) {
+  protected Map<String, String> getAgentEnvironment(
+      String jvmArgsEnvVarName, boolean setServiceName) {
     Map<String, String> environment = new HashMap<>();
     // while modern JVMs understand linux container memory limits, they do not understand windows
     // container memory limits yet, so we need to explicitly set max heap in order to prevent the
@@ -42,7 +43,9 @@ public abstract class AbstractTestContainerManager implements TestContainerManag
     environment.put("SPLUNK_METRICS_EXPORT_INTERVAL", "1000");
     environment.put("OTEL_METRIC_EXPORT_INTERVAL", "1000");
     environment.put("SPLUNK_METRICS_ENDPOINT", "http://" + COLLECTOR_ALIAS + ":9943/v2/datapoint");
-    environment.put("OTEL_RESOURCE_ATTRIBUTES", "service.name=smoke-test");
+    if (setServiceName) {
+      environment.put("OTEL_RESOURCE_ATTRIBUTES", "service.name=smoke-test");
+    }
     // This does not affect tests in any way but serves to verify that agent can actually load this
     // sampler
     environment.put("OTEL_TRACES_SAMPLER", "internal_root_off");

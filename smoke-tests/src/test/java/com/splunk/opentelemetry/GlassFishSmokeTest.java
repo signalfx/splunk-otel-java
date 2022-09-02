@@ -58,6 +58,13 @@ public class GlassFishSmokeTest extends AppServerTest {
         Duration.ofMinutes(5), ".*(app was successfully deployed|deployed with name app).*");
   }
 
+  @Override
+  protected boolean shouldAutodetectServiceName() {
+    // payara in docker container is set up so that application is deployed only after payara has
+    // been started, so we can't autodetect the service name based on deployed application
+    return false;
+  }
+
   @ParameterizedTest
   @MethodSource("supportedConfigurations")
   void payaraSmokeTest(TestImage image, ExpectedServerAttributes expectedServerAttributes)

@@ -138,7 +138,8 @@ public class LinuxTestContainerManager extends AbstractTestContainerManager {
     }
 
     if (builder.useDefaultAgentConfiguration) {
-      target.withEnv(getAgentEnvironment(builder.jvmArgsEnvVarName));
+      target.withEnv(
+          getAgentEnvironment(builder.jvmArgsEnvVarName, !builder.autodetectServiceName));
     }
 
     builder.fileSystemBinds.forEach(

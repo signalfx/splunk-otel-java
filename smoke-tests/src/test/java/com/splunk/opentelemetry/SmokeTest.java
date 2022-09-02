@@ -66,6 +66,10 @@ public abstract class SmokeTest {
     return List.of();
   }
 
+  protected boolean shouldAutodetectServiceName() {
+    return false;
+  }
+
   @BeforeAll
   static void setupSpec() {
     // TestContainerManager starts backend and collector, we want to start them only once
@@ -115,7 +119,8 @@ public abstract class SmokeTest {
             .withJvmArgsEnvVarName(getJvmArgsEnvVarName())
             .withExtraEnv(extraEnv)
             .withExtraResources(getExtraResources())
-            .withWaitStrategy(getWaitStrategy()));
+            .withWaitStrategy(getWaitStrategy())
+            .autodetectServiceName(shouldAutodetectServiceName()));
   }
 
   protected TargetWaitStrategy getWaitStrategy() {

@@ -28,13 +28,13 @@ import org.junit.jupiter.params.provider.MethodSource;
 public class WebSphereSmokeTest extends AppServerTest {
 
   public static final ExpectedServerAttributes WEBSPHERE8_SERVER_ATTRIBUTES =
-      new WebSphereAttributes("8.5.5.20");
+      new WebSphereAttributes("8.5.5.19");
   public static final ExpectedServerAttributes WEBSPHERE9_SERVER_ATTRIBUTES =
       new WebSphereAttributes("9.0.5.9");
 
   private static Stream<Arguments> supportedConfigurations() {
     return configurations("websphere")
-        .otelLinux("8.5.5.20", WEBSPHERE8_SERVER_ATTRIBUTES, VMS_OPENJ9, "8")
+        .otelLinux("8.5.5.19", WEBSPHERE8_SERVER_ATTRIBUTES, VMS_OPENJ9, "8")
         .otelLinux("9.0.5.9", WEBSPHERE9_SERVER_ATTRIBUTES, VMS_OPENJ9, "8")
         .stream();
   }
@@ -43,6 +43,11 @@ public class WebSphereSmokeTest extends AppServerTest {
   protected TargetWaitStrategy getWaitStrategy() {
     return new TargetWaitStrategy.Log(
         Duration.ofMinutes(3), ".*Server server1 open for e-business.*");
+  }
+
+  @Override
+  protected boolean shouldAutodetectServiceName() {
+    return true;
   }
 
   @ParameterizedTest(name = "[{index}] {0}")

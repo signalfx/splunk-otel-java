@@ -91,6 +91,11 @@ public abstract class AppServerTest extends SmokeTest {
     assertThat(traces.getInstrumentationLibraryVersions())
         .as("All spans are tagged with current otel library version")
         .containsExactly(getOtelInstrumentationVersion());
+
+    // verify that correct service name is set in the resource
+    assertTrue(
+        traces.resourceExists(
+            "service.name", shouldAutodetectServiceName() ? "smoke-test-app" : "smoke-test"));
   }
 
   /*
@@ -187,7 +192,7 @@ public abstract class AppServerTest extends SmokeTest {
     }
   }
 
-  protected static final String OTEL_IMAGE_VERSION = "20211108.1435776715";
+  protected static final String OTEL_IMAGE_VERSION = "20220824.2917166903";
   protected static final String OTEL_REPO_PREFIX =
       "ghcr.io/open-telemetry/opentelemetry-java-instrumentation/smoke-test-servlet-";
   protected static final String SPLUNK_REPO_PREFIX = "ghcr.io/signalfx/splunk-otel-";

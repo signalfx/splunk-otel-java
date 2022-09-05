@@ -179,7 +179,7 @@ For information and best practices around upgrades, see the [Upgrading documenta
 For troubleshooting information and known issues, see [Troubleshooting Java instrumentation](https://docs.splunk.com/Observability/gdi/get-data-in/application/java/troubleshooting/common-java-troubleshooting.html) 
 in the Splunk Observability Cloud user documentation.
 
-# License and versioning
+# License
 
 The Splunk Distribution of OpenTelemetry Java is a distribution of the [OpenTelemetry Instrumentation for Java project](https://github.com/open-telemetry/opentelemetry-java-instrumentation). It is released under the terms of the Apache Software License version 2.0. For more details, see [the license file](./LICENSE).
 

@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+# NOTE: this script is meant to be run on the GitLab CI, it depends on GitLab CI variables
+
 set -e
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"

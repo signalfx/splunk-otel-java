@@ -28,6 +28,9 @@ splunk_old_version=$1
 splunk_new_version=$2
 shift 2
 
+validate_version "$splunk_current_version"
+validate_version "$splunk_next_version"
+
 bump_otel_instrumentation_version=0
 otel_instrumentation_old_version=''
 otel_instrumentation_new_version=''

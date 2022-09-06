@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -e
 
+# NOTE: this script is meant to be run on the GitLab CI, it depends on GitLab CI variables
+
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 source "${SCRIPT_DIR}/common.sh"
@@ -25,7 +27,7 @@ fi
 release_tag="$1"
 
 create_post_release_pr() {
-  if [[ $patch_version != 0 ]]
+  if [[ "$(get_patch_version $release_tag)" != 0 ]]
   then
     echo ">>> Patch release detected, skipping the post-release.sh script ..."
     return

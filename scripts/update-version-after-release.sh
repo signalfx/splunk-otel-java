@@ -3,6 +3,9 @@
 set -e
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+source "${SCRIPT_DIR}/common.sh"
+
 ROOT_DIR="${SCRIPT_DIR}/../"
 cd ${ROOT_DIR}
 
@@ -13,7 +16,7 @@ Usage: $(basename $0) splunk_current_version splunk_next_version
 The splunk_current_version parameter denotes the current, freshly released version.
 The splunk_next_version parameter denotes the next release after that.
 
-All versions MUST NOT begin with 'v'. Example: 1.2.3".
+All versions MUST NOT begin with 'v', and MUST NOT contain '-SNAPSHOT' suffix. Example: 1.2.3.
 EOF
 }
 
@@ -25,6 +28,9 @@ fi
 
 splunk_current_version=$1
 splunk_next_version=$2
+
+validate_version "$splunk_current_version"
+validate_version "$splunk_next_version"
 
 # MacOS requires passing backup file extension to in-place sed
 if [[ $(uname -s) == "Darwin" ]]

@@ -119,9 +119,7 @@ public class WindowsTestContainerManager extends AbstractTestContainerManager {
             new HttpWaiter(BACKEND_PORT, "/health", Duration.ofSeconds(60)),
             true);
 
-    String collectorTag = "20210922.1261663546";
-    String collectorImageName =
-        "ghcr.io/signalfx/splunk-otel-java/otel-collector-contrib-windows:" + collectorTag;
+    String collectorImageName = "quay.io/signalfx/splunk-otel-collector-windows:latest";
     if (!imageExists(collectorImageName)) {
       pullImage(collectorImageName);
     }

@@ -42,13 +42,6 @@ public class JBossEapSmokeTest extends AppServerTest {
         .stream();
   }
 
-  @Override
-  protected boolean shouldAutodetectServiceName() {
-    // web.xml in jboss eap test image doesn't have a display-name tag, enable after
-    // matrix/src/main/webapp/WEB-INF/web.xml is updated and image is rebuilt
-    return false;
-  }
-
   @ParameterizedTest(name = "[{index}] {0}")
   @MethodSource("jboss")
   void jbossSmokeTest(TestImage image, ExpectedServerAttributes expectedServerAttributes)

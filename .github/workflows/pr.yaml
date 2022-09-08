@@ -104,6 +104,8 @@ jobs:
 
   smoke-test:
     runs-on: ${{ matrix.os }}
+    permissions:
+      packages: read
     strategy:
       matrix:
         os: [ windows-2019, ubuntu-20.04 ]
@@ -128,6 +130,20 @@ jobs:
         with:
           path: ~/.gradle/wrapper
           key: ${{ runner.os }}-gradle-wrapper-cache-${{ hashFiles('gradle/wrapper/gradle-wrapper.properties') }}
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v2.0.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+        # only run this step if 'test proprietary app servers' is present on the PR
+        if: ${{ startsWith(matrix.os, 'ubuntu') && contains(github.event.pull_request.labels.*.name, 'test proprietary app servers') }}
+
+      - name: Pull proprietary images
+        run: ./gradlew pullProprietaryTestImages --scan --no-daemon
+        # only run this step if 'test proprietary app servers' is present on the PR
+        if: ${{ startsWith(matrix.os, 'ubuntu') && contains(github.event.pull_request.labels.*.name, 'test proprietary app servers') }}
 
       - name: Test
         run: ./gradlew :smoke-tests:test -PsmokeTestSuite=${{ matrix.suite }} --scan --no-daemon

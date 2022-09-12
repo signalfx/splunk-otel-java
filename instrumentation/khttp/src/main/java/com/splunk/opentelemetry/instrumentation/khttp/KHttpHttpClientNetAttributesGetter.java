@@ -45,10 +45,4 @@ final class KHttpHttpClientNetAttributesGetter
     }
     return null;
   }
-
-  @Nullable
-  @Override
-  public String peerIp(RequestWrapper requestWrapper, @Nullable Response response) {
-    return null;
-  }
 }

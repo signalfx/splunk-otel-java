@@ -16,7 +16,6 @@
 
 package com.splunk.opentelemetry.servicename;
 
-import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -27,10 +26,6 @@ abstract class ServiceNameDetector {
   private static final Logger log = LoggerFactory.getLogger(ServiceNameDetector.class);
 
   abstract String detect() throws Exception;
-
-  public static boolean serviceNameNotConfigured(ConfigProperties config) {
-    return ServiceNameChecker.serviceNameNotConfigured(config);
-  }
 
   public static String detectServiceName() {
     for (ServiceNameDetector detector : detectors()) {

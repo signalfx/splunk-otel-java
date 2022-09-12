@@ -16,8 +16,6 @@
 
 package com.splunk.opentelemetry.servicename;
 
-import static java.util.Collections.emptyMap;
-
 import com.google.auto.service.AutoService;
 import io.opentelemetry.javaagent.tooling.BeforeAgentListener;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
@@ -63,17 +61,11 @@ public class ServiceNameChecker implements BeforeAgentListener {
     return -100;
   }
 
-  static boolean serviceNameNotConfigured(ConfigProperties config) {
-    return serviceNameNotConfigured(config, null);
-  }
-
-  private static boolean serviceNameNotConfigured(ConfigProperties config, Resource resource) {
+  static boolean serviceNameNotConfigured(ConfigProperties config, Resource resource) {
     String serviceName = config.getString("otel.service.name");
-    Map<String, String> resourceAttributes = config.getMap("otel.resource.attributes", emptyMap());
+    Map<String, String> resourceAttributes = config.getMap("otel.resource.attributes");
     return serviceName == null
         && !resourceAttributes.containsKey(ResourceAttributes.SERVICE_NAME.getKey())
-        && (resource == null
-            || "unknown_service:java"
-                .equals(resource.getAttribute(ResourceAttributes.SERVICE_NAME)));
+        && "unknown_service:java".equals(resource.getAttribute(ResourceAttributes.SERVICE_NAME));
   }
 }

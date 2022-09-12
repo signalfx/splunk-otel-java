@@ -22,28 +22,33 @@ import com.google.auto.service.AutoService;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import io.opentelemetry.sdk.autoconfigure.spi.ResourceProvider;
+import io.opentelemetry.sdk.autoconfigure.spi.internal.ConditionalResourceProvider;
 import io.opentelemetry.sdk.resources.Resource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @AutoService(ResourceProvider.class)
-public class ServiceNameResourceProvider implements ResourceProvider {
+public class ServiceNameResourceProvider implements ConditionalResourceProvider {
   private static final Logger log = LoggerFactory.getLogger(ServiceNameResourceProvider.class);
 
   @Override
   public Resource createResource(ConfigProperties config) {
-    if (ServiceNameDetector.serviceNameNotConfigured(config)) {
-      String serviceName = ServiceNameDetector.detectServiceName();
-      if (serviceName != null) {
-        log.info("Auto-detected service name '{}'.", serviceName);
-        return Resource.create(Attributes.of(SERVICE_NAME, serviceName));
-      }
+    String serviceName = ServiceNameDetector.detectServiceName();
+    if (serviceName != null) {
+      log.info("Auto-detected service name '{}'.", serviceName);
+      return Resource.create(Attributes.of(SERVICE_NAME, serviceName));
     }
     return Resource.empty();
   }
 
   @Override
+  public boolean shouldApply(ConfigProperties config, Resource existing) {
+    return ServiceNameChecker.serviceNameNotConfigured(config, existing);
+  }
+
+  @Override
   public int order() {
-    return 1000;
+    // make it run later than the spring boot resource provider (100)
+    return 200;
   }
 }

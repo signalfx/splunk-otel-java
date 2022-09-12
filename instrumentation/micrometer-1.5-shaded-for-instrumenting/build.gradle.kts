@@ -3,7 +3,7 @@ plugins {
 }
 
 dependencies {
-  implementation("io.micrometer:micrometer-core:1.5.17")
+  implementation("io.micrometer:micrometer-core:1.9.4")
 }
 
 // we need to shade the micrometer API to be able to instrument it - it's similar to how OTel bridge works

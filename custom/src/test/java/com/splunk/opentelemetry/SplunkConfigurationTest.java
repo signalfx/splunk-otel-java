@@ -22,11 +22,7 @@ import static com.splunk.opentelemetry.SplunkConfiguration.OTEL_EXPORTER_JAEGER_
 import static com.splunk.opentelemetry.SplunkConfiguration.PROFILER_MEMORY_ENABLED_PROPERTY;
 import static com.splunk.opentelemetry.SplunkConfiguration.SPLUNK_REALM_NONE;
 import static java.util.Arrays.asList;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
@@ -42,8 +38,9 @@ class SplunkConfigurationTest {
   void usesLocalIngestIfNoRealmIsConfigured() {
     ConfigProperties config = configuration();
 
-    assertEquals("http://localhost:9080/v1/trace", config.getString(OTEL_EXPORTER_JAEGER_ENDPOINT));
-    assertNull(config.getString(OTLP_ENDPOINT));
+    assertThat(config.getString(OTEL_EXPORTER_JAEGER_ENDPOINT))
+        .isEqualTo("http://localhost:9080/v1/trace");
+    assertThat(config.getString(OTLP_ENDPOINT)).isNull();
   }
 
   @Test
@@ -51,18 +48,18 @@ class SplunkConfigurationTest {
     ConfigProperties config =
         configuration(() -> Map.of(SplunkConfiguration.SPLUNK_REALM_PROPERTY, SPLUNK_REALM_NONE));
 
-    assertEquals("http://localhost:9080/v1/trace", config.getString(OTEL_EXPORTER_JAEGER_ENDPOINT));
-    assertNull(config.getString(OTLP_ENDPOINT));
+    assertThat(config.getString(OTEL_EXPORTER_JAEGER_ENDPOINT))
+        .isEqualTo("http://localhost:9080/v1/trace");
+    assertThat(config.getString(OTLP_ENDPOINT)).isNull();
   }
 
   @Test
   void realmIsNotHardcoded() {
     var config = configuration(() -> Map.of(SplunkConfiguration.SPLUNK_REALM_PROPERTY, "test1"));
 
-    assertEquals(
-        "https://ingest.test1.signalfx.com/v2/trace",
-        config.getString(OTEL_EXPORTER_JAEGER_ENDPOINT));
-    assertEquals("https://ingest.test1.signalfx.com", config.getString(OTLP_ENDPOINT));
+    assertThat(config.getString(OTEL_EXPORTER_JAEGER_ENDPOINT))
+        .isEqualTo("https://ingest.test1.signalfx.com/v2/trace");
+    assertThat(config.getString(OTLP_ENDPOINT)).isEqualTo("https://ingest.test1.signalfx.com");
   }
 
   @Test
@@ -70,7 +67,7 @@ class SplunkConfigurationTest {
     ConfigProperties config =
         configuration(() -> Map.of(SplunkConfiguration.SPLUNK_ACCESS_TOKEN, "token"));
 
-    assertEquals("X-SF-TOKEN=token", config.getString("otel.exporter.otlp.headers"));
+    assertThat(config.getString("otel.exporter.otlp.headers")).isEqualTo("X-SF-TOKEN=token");
   }
 
   @Test
@@ -84,22 +81,23 @@ class SplunkConfigurationTest {
                     "otel.exporter.otlp.headers",
                     "key=value"));
 
-    assertEquals("key=value,X-SF-TOKEN=token", config.getString("otel.exporter.otlp.headers"));
+    assertThat(config.getString("otel.exporter.otlp.headers"))
+        .isEqualTo("key=value,X-SF-TOKEN=token");
   }
 
   @Test
   void memoryProfilerEnablesMetrics() {
     ConfigProperties config = configuration(() -> Map.of(PROFILER_MEMORY_ENABLED_PROPERTY, "true"));
 
-    assertTrue(config.getBoolean(METRICS_ENABLED_PROPERTY, false));
+    assertThat(config.getBoolean(METRICS_ENABLED_PROPERTY)).isTrue();
   }
 
   @Test
   void shouldDisableMetricsByDefault() {
     ConfigProperties config = configuration();
 
-    assertFalse(config.getBoolean(METRICS_ENABLED_PROPERTY, false));
-    assertEquals("none", config.getString("otel.metrics.exporter"));
+    assertThat(config.getBoolean(METRICS_ENABLED_PROPERTY)).isFalse();
+    assertThat(config.getString("otel.metrics.exporter")).isEqualTo("none");
 
     verifyThatOtelMetricsInstrumentationsAreDisabled(config);
   }
@@ -108,9 +106,9 @@ class SplunkConfigurationTest {
   void shouldChooseMicrometerAsTheDefaultMetricsImplementation() {
     ConfigProperties config = configuration(() -> Map.of(METRICS_ENABLED_PROPERTY, "true"));
 
-    assertTrue(config.getBoolean(METRICS_ENABLED_PROPERTY, false));
-    assertEquals("micrometer", config.getString(METRICS_IMPLEMENTATION));
-    assertEquals("none", config.getString("otel.metrics.exporter"));
+    assertThat(config.getBoolean(METRICS_ENABLED_PROPERTY)).isTrue();
+    assertThat(config.getString(METRICS_IMPLEMENTATION)).isEqualTo("micrometer");
+    assertThat(config.getString("otel.metrics.exporter")).isEqualTo("none");
 
     verifyThatOtelMetricsInstrumentationsAreDisabled(config);
   }
@@ -122,9 +120,9 @@ class SplunkConfigurationTest {
             () ->
                 Map.of(METRICS_ENABLED_PROPERTY, "true", METRICS_IMPLEMENTATION, "opentelemetry"));
 
-    assertTrue(config.getBoolean(METRICS_ENABLED_PROPERTY, false));
-    assertEquals("opentelemetry", config.getString(METRICS_IMPLEMENTATION));
-    assertNotEquals("none", config.getString("otel.metrics.exporter"));
+    assertThat(config.getBoolean(METRICS_ENABLED_PROPERTY)).isTrue();
+    assertThat(config.getString(METRICS_IMPLEMENTATION)).isEqualTo("opentelemetry");
+    assertThat(config.getString("otel.metrics.exporter")).isNotEqualTo("none");
 
     verifyThatMicrometerInstrumentationsAreDisabled(config);
   }
@@ -156,11 +154,14 @@ class SplunkConfigurationTest {
             "oracle-ucp",
             "oshi",
             "runtime-metrics",
-            "spring-boot-autoconfigure",
+            "spring-boot-actuator-autoconfigure",
             "tomcat-jdbc",
             "vibur-dbcp")) {
       assertInstrumentationDisabled(config, instrumentationName);
     }
+    assertThat(config.getBoolean("otel.instrumentation.kafka.metric-reporter.enabled"))
+        .as("Kafka metric reporter is turned off")
+        .isFalse();
   }
 
   private static void verifyThatMicrometerInstrumentationsAreDisabled(ConfigProperties config) {
@@ -172,12 +173,14 @@ class SplunkConfigurationTest {
             "micrometer-splunk",
             "oracle-ucp-splunk",
             "tomcat-jdbc-splunk",
-            "vibut-dbcp-splunk")) {
+            "vibur-dbcp-splunk")) {
       assertInstrumentationDisabled(config, instrumentationName);
     }
   }
 
   private static void assertInstrumentationDisabled(ConfigProperties config, String name) {
-    assertFalse(config.getBoolean("otel.instrumentation." + name + ".enabled", false));
+    assertThat(config.getBoolean("otel.instrumentation." + name + ".enabled"))
+        .as("Instrumentation %s is turned off", name)
+        .isFalse();
   }
 }

@@ -104,6 +104,9 @@ public class SplunkConfiguration implements AutoConfigurationCustomizerProvider 
               "vibur-dbcp")) {
         disableInstrumentation(customized, config, otelInstrumentationName);
       }
+      // disable Kafka metric reporter
+      addIfAbsent(
+          customized, config, "otel.instrumentation.kafka.metric-reporter.enabled", "false");
     }
     if ("micrometer".equals(metricsImplementation)) {
       // TODO: warn that micrometer metrics are deprecated

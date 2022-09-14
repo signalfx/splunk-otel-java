@@ -59,3 +59,7 @@ readme_sed_args=(
 sed ${sed_flag} "${readme_sed_args[@]}" README.md
 
 rm dev_docs_warning.md.tmp
+
+# update main cloudfoundry buildpack index with new released version
+CF_INDEX=deployments/cloudfoundry/index.yml
+echo "${splunk_current_version}: https://github.com/signalfx/splunk-otel-java/releases/download/v${splunk_current_version}/splunk-otel-javaagent-all.jar" >> "${CF_INDEX}"

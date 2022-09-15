@@ -10,7 +10,7 @@ dependencies {
 
   testImplementation(project(":profiler"))
   testImplementation("org.testcontainers:testcontainers")
-  testImplementation("com.fasterxml.jackson.core:jackson-databind:2.13.4")
+  testImplementation("com.fasterxml.jackson.core:jackson-databind")
   testImplementation("com.google.protobuf:protobuf-java-util")
   testImplementation("com.squareup.okhttp3:okhttp")
   testImplementation("io.opentelemetry.proto:opentelemetry-proto")

@@ -8,6 +8,18 @@ and this repository adheres to [Semantic Versioning](https://semver.org/spec/v2.
 
 ## Unreleased
 
+## v1.16.0 - 2022-09-15
+
+### General
+
+- OpenTelemetry Java SDK and OpenTelemetry Instrumentation for Java dependencies have been updated to version 1.18.0.
+- Micrometer dependency has been updated to version 1.9.4.
+
+### Enhancements
+- Implemented automatic service name detection for servlet applications. The agent will now look for
+  the value of the top-level `display-name` tag in the `web.xml` file and use it as
+  the `service.name` resource attribute, in case the user hasn't provided it.
+
 ## v1.15.0 - 2022-08-22
 
 ### General

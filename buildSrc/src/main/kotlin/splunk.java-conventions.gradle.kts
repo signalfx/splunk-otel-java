@@ -16,8 +16,8 @@ repositories {
 val otelVersion = "1.18.0"
 val otelAlphaVersion = "1.18.0-alpha"
 val otelContribAlphaVersion = "1.17.0-alpha"
-val otelInstrumentationVersion = "1.18.0-SNAPSHOT"
-val otelInstrumentationAlphaVersion = "1.18.0-alpha-SNAPSHOT"
+val otelInstrumentationVersion = "1.18.0"
+val otelInstrumentationAlphaVersion = "1.18.0-alpha"
 val micrometerVersion = "1.9.4"
 
 // instrumentation version is used to compute Implementation-Version manifest attribute
@@ -29,13 +29,13 @@ extensions.configure<DependencyManagementExtension>("dependencyManagement") {
     dependency("org.assertj:assertj-core:3.23.1")
     dependency("org.awaitility:awaitility:4.2.0")
     dependency("io.jaegertracing:jaeger-client:1.8.1")
-    dependency("com.signalfx.public:signalfx-java:1.0.21")
+    dependency("com.signalfx.public:signalfx-java:1.0.23")
 
     dependencySet("com.github.docker-java:3.2.11") {
       entry("docker-java-core")
       entry("docker-java-transport-httpclient5")
     }
-    dependencySet("org.mockito:4.6.1") {
+    dependencySet("org.mockito:4.7.0") {
       entry("mockito-core")
       entry("mockito-junit-jupiter")
     }
@@ -50,11 +50,8 @@ extensions.configure<DependencyManagementExtension>("dependencyManagement") {
 
     // otel-java-instrumentation
     dependency("io.opentelemetry.javaagent:opentelemetry-javaagent:$otelInstrumentationVersion")
-    dependencySet("io.opentelemetry.instrumentation:$otelInstrumentationAlphaVersion") {
-      entry("opentelemetry-instrumentation-api")
-      entry("opentelemetry-instrumentation-api-semconv")
-    }
-    dependency("io.opentelemetry.instrumentation:opentelemetry-instrumentation-api:$otelInstrumentationAlphaVersion")
+    dependency("io.opentelemetry.instrumentation:opentelemetry-instrumentation-api:$otelInstrumentationVersion")
+    dependency("io.opentelemetry.instrumentation:opentelemetry-instrumentation-api-semconv:$otelInstrumentationAlphaVersion")
     dependencySet("io.opentelemetry.javaagent:$otelInstrumentationAlphaVersion") {
       entry("opentelemetry-agent-for-testing")
       entry("opentelemetry-javaagent-bootstrap")
@@ -77,17 +74,18 @@ extensions.configure<DependencyManagementExtension>("dependencyManagement") {
       entry("opentelemetry-samplers")
     }
 
-    dependency("io.opentelemetry.proto:opentelemetry-proto:0.18.0-alpha")
+    dependency("io.opentelemetry.proto:opentelemetry-proto:0.19.0-alpha")
   }
 
   imports {
-    mavenBom("com.google.protobuf:protobuf-bom:3.21.2")
+    mavenBom("com.fasterxml.jackson:jackson-bom:2.13.4")
+    mavenBom("com.google.protobuf:protobuf-bom:3.21.5")
     mavenBom("com.squareup.okhttp3:okhttp-bom:4.10.0")
-    mavenBom("io.grpc:grpc-bom:1.47.0")
+    mavenBom("io.grpc:grpc-bom:1.49.0")
     mavenBom("io.micrometer:micrometer-bom:$micrometerVersion")
     mavenBom("io.opentelemetry:opentelemetry-bom-alpha:$otelAlphaVersion")
     mavenBom("io.opentelemetry:opentelemetry-bom:$otelVersion")
-    mavenBom("org.junit:junit-bom:5.8.2")
+    mavenBom("org.junit:junit-bom:5.9.0")
     mavenBom("org.testcontainers:testcontainers-bom:1.17.3")
   }
 }

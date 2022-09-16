@@ -28,10 +28,9 @@ import io.opentelemetry.sdk.resources.Resource;
 import java.util.logging.Logger;
 
 @AutoService(ResourceProvider.class)
-public class ServiceNameResourceProvider implements ConditionalResourceProvider {
+public class ServletServiceNameProvider implements ConditionalResourceProvider {
 
-  private static final Logger logger =
-      Logger.getLogger(ServiceNameResourceProvider.class.getName());
+  private static final Logger logger = Logger.getLogger(ServletServiceNameProvider.class.getName());
 
   @Override
   public Resource createResource(ConfigProperties config) {

@@ -16,13 +16,15 @@
 
 package com.splunk.opentelemetry.servicename;
 
+import static java.util.logging.Level.FINE;
+
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.logging.Logger;
 
 class LibertyServiceNameDetector extends AppServerServiceNameDetector {
-  private static final Logger log = LoggerFactory.getLogger(LibertyServiceNameDetector.class);
+
+  private static final Logger logger = Logger.getLogger(LibertyServiceNameDetector.class.getName());
 
   LibertyServiceNameDetector(ResourceLocator locator) {
     super(locator, "com.ibm.ws.kernel.boot.cmdline.EnvCheck", true);
@@ -43,7 +45,12 @@ class LibertyServiceNameDetector extends AppServerServiceNameDetector {
     Path serverDir = Paths.get("").toAbsolutePath();
     String wlpUserDir = System.getenv("WLP_USER_DIR");
     String wlpOutputDir = System.getenv("WLP_OUTPUT_DIR");
-    log.debug("Using WLP_USER_DIR '{}', WLP_OUTPUT_DIR '{}'.", wlpUserDir, wlpOutputDir);
+    if (logger.isLoggable(FINE)) {
+      logger.log(
+          FINE,
+          "Using WLP_USER_DIR '{0}', WLP_OUTPUT_DIR '{1}'.",
+          new Object[] {wlpUserDir, wlpOutputDir});
+    }
     if (wlpUserDir != null
         && wlpOutputDir != null
         && !Paths.get(wlpOutputDir).equals(Paths.get(wlpUserDir, "servers"))) {

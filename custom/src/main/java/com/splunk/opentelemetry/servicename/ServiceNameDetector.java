@@ -16,14 +16,16 @@
 
 package com.splunk.opentelemetry.servicename;
 
+import static java.util.logging.Level.FINE;
+
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.logging.Logger;
 
 abstract class ServiceNameDetector {
-  private static final Logger log = LoggerFactory.getLogger(ServiceNameDetector.class);
+
+  private static final Logger logger = Logger.getLogger(ServiceNameDetector.class.getName());
 
   abstract String detect() throws Exception;
 
@@ -35,10 +37,12 @@ abstract class ServiceNameDetector {
           return name;
         }
       } catch (Exception exception) {
-        log.debug(
-            "Service name detector '{}' failed with",
-            detector.getClass().getSimpleName(),
-            exception);
+        if (logger.isLoggable(FINE)) {
+          logger.log(
+              FINE,
+              "Service name detector '" + detector.getClass().getSimpleName() + "' failed with",
+              exception);
+        }
       }
     }
 

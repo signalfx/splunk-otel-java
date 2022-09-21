@@ -40,7 +40,7 @@ import javax.annotation.Nullable;
 @AutoService(ResourceProvider.class)
 public class JarServiceNameProvider implements ConditionalResourceProvider {
 
-  private static final Logger logger = Logger.getLogger(ServletServiceNameProvider.class.getName());
+  private static final Logger logger = Logger.getLogger(WebXmlServiceNameProvider.class.getName());
 
   private final Supplier<String[]> getProcessHandleArguments;
   private final Function<String, String> getSystemProperty;

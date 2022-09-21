@@ -84,7 +84,7 @@ public class JarServiceNameProvider implements ConditionalResourceProvider {
   private Path getJarPathFromProcessHandle() {
     String[] javaArgs = getProcessHandleArguments.get();
     for (int i = 0; i < javaArgs.length; ++i) {
-      if ("-jar".equals(javaArgs[i]) && i < javaArgs.length - 1) {
+      if ("-jar".equals(javaArgs[i]) && (i < javaArgs.length - 1)) {
         return Paths.get(javaArgs[i + 1]);
       }
     }

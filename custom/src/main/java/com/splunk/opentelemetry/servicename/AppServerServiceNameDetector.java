@@ -16,12 +16,16 @@
 
 package com.splunk.opentelemetry.servicename;
 
+import static java.util.logging.Level.FINE;
+import static java.util.logging.Level.WARNING;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayDeque;
 import java.util.Deque;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
@@ -30,14 +34,14 @@ import javax.annotation.Nullable;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
 abstract class AppServerServiceNameDetector extends ServiceNameDetector {
-  private static final Logger log = LoggerFactory.getLogger(AppServerServiceNameDetector.class);
+
+  private static final Logger logger =
+      Logger.getLogger(AppServerServiceNameDetector.class.getName());
 
   final ResourceLocator locator;
   final Class<?> serverClass;
@@ -75,7 +79,7 @@ abstract class AppServerServiceNameDetector extends ServiceNameDetector {
     }
 
     if (Files.isDirectory(deploymentDir)) {
-      log.debug("Looking for deployments in '{}'.", deploymentDir);
+      logger.log(FINE, "Looking for deployments in '{0}'.", deploymentDir);
       try (Stream<Path> stream = Files.list(deploymentDir)) {
         for (Path path : stream.collect(Collectors.toList())) {
           String name = detectName(path);
@@ -85,7 +89,7 @@ abstract class AppServerServiceNameDetector extends ServiceNameDetector {
         }
       }
     } else {
-      log.debug("Deployment dir '{}' doesn't exist.", deploymentDir);
+      logger.log(FINE, "Deployment dir '{0}' doesn't exist.", deploymentDir);
     }
 
     return null;
@@ -93,11 +97,11 @@ abstract class AppServerServiceNameDetector extends ServiceNameDetector {
 
   private String detectName(Path path) {
     if (!isValidAppName(path)) {
-      log.debug("Skipping '{}'.", path);
+      logger.log(FINE, "Skipping '{0}'.", path);
       return null;
     }
 
-    log.debug("Attempting service name detection in '{}'.", path);
+    logger.log(FINE, "Attempting service name detection in '{0}'.", path);
     String name = path.getFileName().toString();
     if (Files.isDirectory(path)) {
       return handleExplodedApp(path);
@@ -141,7 +145,10 @@ abstract class AppServerServiceNameDetector extends ServiceNameDetector {
         return handle(() -> zip.getInputStream(zipEntry), path, handler);
       }
     } catch (IOException exception) {
-      log.warn("Failed to read '{}' from zip '{}'.", descriptorPath, path, exception);
+      if (logger.isLoggable(WARNING)) {
+        logger.log(
+            WARNING, "Failed to read '" + descriptorPath + "' from zip '" + path + "'.", exception);
+      }
     }
 
     return null;
@@ -173,7 +180,7 @@ abstract class AppServerServiceNameDetector extends ServiceNameDetector {
         }
       }
     } catch (Exception exception) {
-      log.warn("Failed to parse descriptor", exception);
+      logger.log(WARNING, "Failed to parse descriptor", exception);
     }
 
     return null;
@@ -254,7 +261,7 @@ abstract class AppServerServiceNameDetector extends ServiceNameDetector {
       try {
         return SAXParserFactory.newInstance();
       } catch (Throwable throwable) {
-        log.debug("XML parser not available.", throwable);
+        logger.log(FINE, "XML parser not available.", throwable);
       }
       return null;
     }

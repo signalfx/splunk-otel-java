@@ -16,15 +16,17 @@
 
 package com.splunk.opentelemetry.servicename;
 
+import static java.util.logging.Level.FINE;
+
 import com.google.common.annotations.VisibleForTesting;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.logging.Logger;
 
 class JettyServiceNameDetector extends AppServerServiceNameDetector {
-  private static final Logger log = LoggerFactory.getLogger(JettyServiceNameDetector.class);
+
+  private static final Logger logger = Logger.getLogger(JettyServiceNameDetector.class.getName());
 
   JettyServiceNameDetector(ResourceLocator locator) {
     super(locator, "org.eclipse.jetty.start.Main", false);
@@ -77,11 +79,11 @@ class JettyServiceNameDetector extends AppServerServiceNameDetector {
     // would be located in /dir/webapps.
 
     String programArguments = System.getProperty("sun.java.command");
-    log.debug("Started with arguments '{}'.", programArguments);
+    logger.log(FINE, "Started with arguments '{0}'.", programArguments);
     if (programArguments != null) {
       Path jettyBase = parseJettyBase(programArguments);
       if (jettyBase != null) {
-        log.debug("Using jetty.base '{}'.", jettyBase);
+        logger.log(FINE, "Using jetty.base '{0}'.", jettyBase);
         return jettyBase.resolve("webapps");
       }
     }

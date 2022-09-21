@@ -16,15 +16,17 @@
 
 package com.splunk.opentelemetry.servicename;
 
+import static java.util.logging.Level.FINE;
+
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.logging.Logger;
 
 class WildflyServiceNameDetector extends AppServerServiceNameDetector {
-  private static final Logger log = LoggerFactory.getLogger(WildflyServiceNameDetector.class);
+
+  private static final Logger logger = Logger.getLogger(WildflyServiceNameDetector.class.getName());
 
   WildflyServiceNameDetector(ResourceLocator locator) {
     super(locator, "org.jboss.modules.Main", true);
@@ -42,7 +44,7 @@ class WildflyServiceNameDetector extends AppServerServiceNameDetector {
   @Override
   Path getDeploymentDir() throws URISyntaxException {
     String programArguments = System.getProperty("sun.java.command");
-    log.debug("Started with arguments '{}'.", programArguments);
+    logger.log(FINE, "Started with arguments '{0}'.", programArguments);
     if (programArguments == null) {
       return null;
     }
@@ -55,7 +57,7 @@ class WildflyServiceNameDetector extends AppServerServiceNameDetector {
     // environment variable JBOSS_BASE_DIR to avoid parsing program arguments
     String jbossBaseDir = System.getenv("JBOSS_BASE_DIR");
     if (jbossBaseDir != null) {
-      log.debug("Using JBOSS_BASE_DIR '{}'.", jbossBaseDir);
+      logger.log(FINE, "Using JBOSS_BASE_DIR '{0}'.", jbossBaseDir);
       return Paths.get(jbossBaseDir, "deployments");
     }
 

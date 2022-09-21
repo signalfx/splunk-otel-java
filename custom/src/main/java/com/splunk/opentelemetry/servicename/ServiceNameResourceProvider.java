@@ -17,6 +17,7 @@
 package com.splunk.opentelemetry.servicename;
 
 import static io.opentelemetry.semconv.resource.attributes.ResourceAttributes.SERVICE_NAME;
+import static java.util.logging.Level.INFO;
 
 import com.google.auto.service.AutoService;
 import io.opentelemetry.api.common.Attributes;
@@ -24,18 +25,19 @@ import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import io.opentelemetry.sdk.autoconfigure.spi.ResourceProvider;
 import io.opentelemetry.sdk.autoconfigure.spi.internal.ConditionalResourceProvider;
 import io.opentelemetry.sdk.resources.Resource;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.logging.Logger;
 
 @AutoService(ResourceProvider.class)
 public class ServiceNameResourceProvider implements ConditionalResourceProvider {
-  private static final Logger log = LoggerFactory.getLogger(ServiceNameResourceProvider.class);
+
+  private static final Logger logger =
+      Logger.getLogger(ServiceNameResourceProvider.class.getName());
 
   @Override
   public Resource createResource(ConfigProperties config) {
     String serviceName = ServiceNameDetector.detectServiceName();
     if (serviceName != null) {
-      log.info("Auto-detected service name '{}'.", serviceName);
+      logger.log(INFO, "Auto-detected service name '{0}'.", serviceName);
       return Resource.create(Attributes.of(SERVICE_NAME, serviceName));
     }
     return Resource.empty();

@@ -16,19 +16,22 @@
 
 package com.splunk.opentelemetry.servicename;
 
+import static java.util.logging.Level.FINE;
+
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 class WebSphereServiceNameDetector extends AppServerServiceNameDetector {
-  private static final Logger log = LoggerFactory.getLogger(WebSphereServiceNameDetector.class);
+
+  private static final Logger logger =
+      Logger.getLogger(WebSphereServiceNameDetector.class.getName());
 
   WebSphereServiceNameDetector(ResourceLocator locator) {
     super(locator, "com.ibm.wsspi.bootstrap.WSPreLauncher", true);
@@ -54,7 +57,7 @@ class WebSphereServiceNameDetector extends AppServerServiceNameDetector {
     }
 
     String programArguments = System.getProperty("sun.java.command");
-    log.debug("Started with arguments '{}'.", programArguments);
+    logger.log(FINE, "Started with arguments '{0}'.", programArguments);
     if (programArguments == null) {
       return null;
     }
@@ -64,14 +67,14 @@ class WebSphereServiceNameDetector extends AppServerServiceNameDetector {
             "com\\.ibm\\.wsspi\\.bootstrap\\.WSPreLauncher (.*) com\\.ibm\\.ws\\.runtime\\.WsServer (.+) ([^ ]+) ([^ ]+) ([^ ]+)");
     Matcher matcher = pattern.matcher(programArguments);
     if (!matcher.matches()) {
-      log.debug("Failed to parse arguments.");
+      logger.fine("Failed to parse arguments.");
       return null;
     }
 
     // in docker image it is /opt/IBM/WebSphere/AppServer/profiles/AppSrv01/config
     Path configDirectory = Paths.get(matcher.group(2));
     if (!Files.isDirectory(configDirectory)) {
-      log.debug("Missing configuration directory '{}'.", configDirectory);
+      logger.log(FINE, "Missing configuration directory '{0}'.", configDirectory);
       return null;
     }
 
@@ -79,12 +82,12 @@ class WebSphereServiceNameDetector extends AppServerServiceNameDetector {
     String node = matcher.group(4);
     String server = matcher.group(5);
 
-    log.debug(
-        "Parsed arguments: cell '{}', node '{}', server '{}', configuration directory '{}'.",
-        cell,
-        node,
-        server,
-        configDirectory);
+    if (logger.isLoggable(FINE)) {
+      logger.log(
+          FINE,
+          "Parsed arguments: cell '{0}', node '{1}', server '{2}', configuration directory '{3}'.",
+          new Object[] {cell, node, server, configDirectory});
+    }
 
     // construct installedApps directory path based on the config path
     // in docker image it is
@@ -92,17 +95,17 @@ class WebSphereServiceNameDetector extends AppServerServiceNameDetector {
     // NOTE: installedApps directory location is configurable
     Path cellApplications = configDirectory.getParent().resolve("installedApps").resolve(cell);
     if (Files.isDirectory(cellApplications)) {
-      log.debug("Looking for deployments in '{}'.", cellApplications);
+      logger.log(FINE, "Looking for deployments in '{0}'.", cellApplications);
 
       try (Stream<Path> stream = Files.list(cellApplications)) {
         for (Path path : stream.collect(Collectors.toList())) {
           String fullName = path.getFileName().toString();
           // websphere deploys all applications as ear
           if (!fullName.endsWith(".ear") || !isValidAppName(path)) {
-            log.debug("Skipping '{}'.", path);
+            logger.log(FINE, "Skipping '{0}'.", path);
             continue;
           }
-          log.debug("Attempting service name detection in '{}'.", path);
+          logger.log(FINE, "Attempting service name detection in '{0}'.", path);
 
           // strip ear suffix
           String name = fullName.substring(0, fullName.length() - 4);

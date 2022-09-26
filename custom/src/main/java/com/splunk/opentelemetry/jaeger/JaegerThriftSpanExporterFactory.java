@@ -31,12 +31,14 @@ import okhttp3.OkHttpClient;
 import org.apache.thrift.transport.TTransportException;
 
 @AutoService(ConfigurableSpanExporterProvider.class)
+@Deprecated
 public class JaegerThriftSpanExporterFactory implements ConfigurableSpanExporterProvider {
   private static final Logger logger =
       Logger.getLogger(JaegerThriftSpanExporterFactory.class.getName());
 
   @Override
   public SpanExporter createExporter(ConfigProperties config) {
+    logDeprecationWarning();
     JaegerThriftSpanExporterBuilder builder = JaegerThriftSpanExporter.builder();
 
     String endpoint = config.getString(OTEL_EXPORTER_JAEGER_ENDPOINT);
@@ -50,6 +52,15 @@ public class JaegerThriftSpanExporterFactory implements ConfigurableSpanExporter
     }
 
     return builder.build();
+  }
+
+  private void logDeprecationWarning() {
+    logger.warning(
+    "jaeger-thrift-splunk trace exporter is deprecated and may be removed in a future\n" +
+         "major release. Use the default OTLP exporter instead, or set the SPLUNK_REALM\n" +
+         "and SPLUNK_ACCESS_TOKEN environment variables to send telemetry directly to \n" +
+         "Splunk Observability Cloud."
+    );
   }
 
   private HttpSender createHttpSender(String endpoint, String token) {

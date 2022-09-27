@@ -58,7 +58,7 @@ public class JaegerThriftSpanExporterFactory implements ConfigurableSpanExporter
     logger.warning(
         "jaeger-thrift-splunk trace exporter is deprecated and may be removed in a future\n"
             + "major release. Use the default OTLP exporter instead, or set the SPLUNK_REALM\n"
-            + "and SPLUNK_ACCESS_TOKEN environment variables to send telemetry directly to \n"
+            + "and SPLUNK_ACCESS_TOKEN environment variables to send telemetry directly to\n"
             + "Splunk Observability Cloud.");
   }
 

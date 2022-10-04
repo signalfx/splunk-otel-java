@@ -31,7 +31,7 @@ jobs:
   build:
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v3.0.2
+      - uses: actions/checkout@v3.1.0
 
       - name: Set up JDK 11 for running Gradle
         uses: actions/setup-java@v3.5.1
@@ -54,7 +54,7 @@ jobs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
       - name: Check out repository
-        uses: actions/checkout@v3.0.2
+        uses: actions/checkout@v3.1.0
 
       - name: Set up JDK 11 for running Gradle
         uses: actions/setup-java@v3.5.1
@@ -79,7 +79,7 @@ jobs:
       fail-fast: false
     steps:
       - name: Check out repository
-        uses: actions/checkout@v3.0.2
+        uses: actions/checkout@v3.1.0
 
       - name: Set up JDK 11 for running Gradle
         uses: actions/setup-java@v3.5.1
@@ -117,7 +117,7 @@ jobs:
             suite: profiler
       fail-fast: false
     steps:
-      - uses: actions/checkout@v3.0.2
+      - uses: actions/checkout@v3.1.0
 
       - name: Set up JDK 11 for running Gradle
         uses: actions/setup-java@v3.5.1

@@ -70,7 +70,7 @@ public class Configuration implements AutoConfigurationCustomizerProvider {
   Map<String, String> defaultProperties() {
     HashMap<String, String> config = new HashMap<>();
     config.put(CONFIG_KEY_ENABLE_PROFILER, "false");
-    config.put(CONFIG_KEY_PROFILER_DIRECTORY, ".");
+    config.put(CONFIG_KEY_PROFILER_DIRECTORY, System.getProperty("java.io.tmpdir"));
     config.put(CONFIG_KEY_RECORDING_DURATION, DEFAULT_RECORDING_DURATION);
     config.put(CONFIG_KEY_KEEP_FILES, "false");
     config.put(CONFIG_KEY_MEMORY_ENABLED, String.valueOf(DEFAULT_MEMORY_ENABLED));

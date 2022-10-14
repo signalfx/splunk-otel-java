@@ -46,14 +46,12 @@ abstract class AppServerServiceNameDetector extends ServiceNameDetector {
   final AppServer appServer;
   final ResourceLocator locator;
   final Class<?> serverClass;
-  final boolean supportsEar;
 
   AppServerServiceNameDetector(AppServer appServer,
       ResourceLocator locator, String serverClassName, boolean supportsEar) {
     this.appServer = appServer;
     this.locator = locator;
     this.serverClass = locator.findClass(serverClassName);
-    this.supportsEar = supportsEar;
   }
 
   @Override
@@ -96,7 +94,7 @@ abstract class AppServerServiceNameDetector extends ServiceNameDetector {
       return handleExplodedApp(path);
     } else if (name.endsWith(".war")) {
       return handlePackagedWar(path);
-    } else if (supportsEar && name.endsWith(".ear")) {
+    } else if (appServer.supportsEar() && name.endsWith(".ear")) {
       return handlePackagedEar(path);
     }
 
@@ -110,7 +108,7 @@ abstract class AppServerServiceNameDetector extends ServiceNameDetector {
         return result;
       }
     }
-    if (supportsEar) {
+    if (appServer.supportsEar()) {
       String result = handleExplodedEar(path);
       if (result != null) {
         return result;

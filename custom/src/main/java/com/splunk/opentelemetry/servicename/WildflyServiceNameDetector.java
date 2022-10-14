@@ -20,9 +20,7 @@ import java.util.logging.Logger;
 
 class WildflyServiceNameDetector extends AppServerServiceNameDetector {
 
-  private static final Logger logger = Logger.getLogger(WildflyServiceNameDetector.class.getName());
-
-  WildflyServiceNameDetector(ResourceLocator locator, WildflyAppServer appServer) {
+  WildflyServiceNameDetector(WildflyAppServer appServer) {
     super(appServer);
   }
 

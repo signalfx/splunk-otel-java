@@ -20,9 +20,7 @@ import java.util.logging.Logger;
 
 class JettyServiceNameDetector extends AppServerServiceNameDetector {
 
-  private static final Logger logger = Logger.getLogger(JettyServiceNameDetector.class.getName());
-
-  JettyServiceNameDetector(ResourceLocator locator, JettyAppServer appServer) {
+  JettyServiceNameDetector(JettyAppServer appServer) {
     super(appServer);
   }
 

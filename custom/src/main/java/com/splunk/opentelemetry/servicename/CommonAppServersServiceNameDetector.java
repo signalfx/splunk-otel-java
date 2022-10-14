@@ -26,13 +26,13 @@ final class CommonAppServersServiceNameDetector implements ServiceNameDetector {
     ResourceLocator locator = new ResourceLocatorImpl();
 
     List<ServiceNameDetector> detectors = new ArrayList<>();
-    detectors.add(new TomeeServiceNameDetector(locator, new TomeeAppServer(locator)));
-    detectors.add(new TomcatServiceNameDetector(locator, new TomcatAppServer(locator)));
-    detectors.add(new JettyServiceNameDetector(locator, new JettyAppServer(locator)));
-    detectors.add(new LibertyServiceNameDetector(locator, new LibertyAppService(locator)));
-    detectors.add(new WildflyServiceNameDetector(locator, new WildflyAppServer(locator)));
-    detectors.add(new GlassfishServiceNameDetector(locator, new GlassfishAppServer(locator)));
-    detectors.add(new WebSphereServiceNameDetector(locator, new WebSphereAppServer(locator)));
+    detectors.add(new TomeeServiceNameDetector(new TomeeAppServer(locator)));
+    detectors.add(new TomcatServiceNameDetector(new TomcatAppServer(locator)));
+    detectors.add(new JettyServiceNameDetector(new JettyAppServer(locator)));
+    detectors.add(new LibertyServiceNameDetector(new LibertyAppService(locator)));
+    detectors.add(new WildflyServiceNameDetector(new WildflyAppServer(locator)));
+    detectors.add(new GlassfishServiceNameDetector(new GlassfishAppServer(locator)));
+    detectors.add(new WebSphereServiceNameDetector(new WebSphereAppServer(locator)));
 
     return detectors;
   }

@@ -22,7 +22,7 @@ class LibertyServiceNameDetector extends AppServerServiceNameDetector {
 
   private static final Logger logger = Logger.getLogger(LibertyServiceNameDetector.class.getName());
 
-  LibertyServiceNameDetector(ResourceLocator locator, LibertyAppService appService) {
+  LibertyServiceNameDetector(LibertyAppService appService) {
     super(appService);
   }
 }

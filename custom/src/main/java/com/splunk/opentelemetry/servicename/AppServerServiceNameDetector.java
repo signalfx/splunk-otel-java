@@ -30,7 +30,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
-import javax.annotation.Nullable;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
@@ -38,7 +37,7 @@ import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
-abstract class AppServerServiceNameDetector extends ServiceNameDetector {
+abstract class AppServerServiceNameDetector extends DelegatingServiceNameDetector {
 
   private static final Logger logger =
       Logger.getLogger(AppServerServiceNameDetector.class.getName());
@@ -50,7 +49,7 @@ abstract class AppServerServiceNameDetector extends ServiceNameDetector {
   }
 
   @Override
-  String detect() throws Exception {
+  public String detect() throws Exception {
     if (appServer.getServerClass() == null) {
       return null;
     }

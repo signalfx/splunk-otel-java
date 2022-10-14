@@ -34,7 +34,7 @@ public class WebXmlServiceNameProvider implements ConditionalResourceProvider {
 
   @Override
   public Resource createResource(ConfigProperties config) {
-    String serviceName = ServiceNameDetector.detectServiceName();
+    String serviceName = DelegatingServiceNameDetector.detectServiceName();
     if (serviceName != null) {
       logger.log(INFO, "Auto-detected service name '{0}'.", serviceName);
       return Resource.create(Attributes.of(SERVICE_NAME, serviceName));

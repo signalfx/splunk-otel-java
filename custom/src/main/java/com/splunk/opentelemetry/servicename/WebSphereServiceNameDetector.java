@@ -38,7 +38,7 @@ class WebSphereServiceNameDetector extends AppServerServiceNameDetector {
   }
 
   @Override
-  String detect() throws Exception {
+  public String detect() throws Exception {
     if (appServer.getServerClass() == null) {
       return null;
     }

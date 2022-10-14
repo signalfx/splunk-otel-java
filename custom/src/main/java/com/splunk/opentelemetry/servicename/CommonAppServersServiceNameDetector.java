@@ -2,6 +2,7 @@ package com.splunk.opentelemetry.servicename;
 
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 final class CommonAppServersServiceNameDetector implements ServiceNameDetector {
@@ -24,17 +25,19 @@ final class CommonAppServersServiceNameDetector implements ServiceNameDetector {
 
   private static List<ServiceNameDetector> detectors() {
     ResourceLocator locator = new ResourceLocatorImpl();
+    return Arrays.asList(
+      detectorFor(new TomeeAppServer(locator)),
+      detectorFor(new TomcatAppServer(locator)),
+      detectorFor(new JettyAppServer(locator)),
+      detectorFor(new LibertyAppService(locator)),
+      detectorFor(new WildflyAppServer(locator)),
+      detectorFor(new GlassfishAppServer(locator)),
+      detectorFor(new WebSphereAppServer(locator))
+    );
+  }
 
-    List<ServiceNameDetector> detectors = new ArrayList<>();
-    detectors.add(new TomeeServiceNameDetector(new TomeeAppServer(locator)));
-    detectors.add(new TomcatServiceNameDetector(new TomcatAppServer(locator)));
-    detectors.add(new JettyServiceNameDetector(new JettyAppServer(locator)));
-    detectors.add(new LibertyServiceNameDetector(new LibertyAppService(locator)));
-    detectors.add(new WildflyServiceNameDetector(new WildflyAppServer(locator)));
-    detectors.add(new GlassfishServiceNameDetector(new GlassfishAppServer(locator)));
-    detectors.add(new WebSphereServiceNameDetector(new WebSphereAppServer(locator)));
-
-    return detectors;
+  private static AppServerServiceNameDetector detectorFor(AppServer appServer){
+    return new AppServerServiceNameDetector(appServer);
   }
 
   private static class ResourceLocatorImpl implements ResourceLocator {

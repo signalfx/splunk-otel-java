@@ -21,19 +21,7 @@ import java.nio.file.Paths;
 
 class GlassfishServiceNameDetector extends AppServerServiceNameDetector {
 
-  GlassfishServiceNameDetector(ResourceLocator locator) {
-    super(locator, "com.sun.enterprise.glassfish.bootstrap.ASMain", true);
-  }
-
-  @Override
-  Path getDeploymentDir() {
-    String instanceRoot = System.getProperty("com.sun.aas.instanceRoot");
-    if (instanceRoot == null) {
-      return null;
-    }
-
-    // besides autodeploy directory it is possible to deploy applications through admin console and
-    // asadmin script, to detect those we would need to parse config/domain.xml
-    return Paths.get(instanceRoot, "autodeploy");
+  GlassfishServiceNameDetector(ResourceLocator locator, GlassfishAppServer appServer) {
+    super(appServer, locator, "com.sun.enterprise.glassfish.bootstrap.ASMain", true);
   }
 }

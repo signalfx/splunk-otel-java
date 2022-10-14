@@ -16,54 +16,9 @@
 
 package com.splunk.opentelemetry.servicename;
 
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-
 class TomcatServiceNameDetector extends AppServerServiceNameDetector {
 
-  TomcatServiceNameDetector(ResourceLocator locator) {
-    super(locator, "org.apache.catalina.startup.Bootstrap", false);
-  }
-
-  @Override
-  boolean isValidAppName(Path path) {
-    if (Files.isDirectory(path)) {
-      String name = path.getFileName().toString();
-      return !"docs".equals(name)
-          && !"examples".equals(name)
-          && !"host-manager".equals(name)
-          && !"manager".equals(name);
-    }
-    return true;
-  }
-
-  @Override
-  boolean isValidResult(Path path, String result) {
-    String name = path.getFileName().toString();
-    return !"ROOT".equals(name) || !"Welcome to Tomcat".equals(result);
-  }
-
-  @Override
-  Path getDeploymentDir() throws URISyntaxException {
-    String catalinaBase = System.getProperty("catalina.base");
-    if (catalinaBase != null) {
-      return Paths.get(catalinaBase, "webapps");
-    }
-
-    String catalinaHome = System.getProperty("catalina.home");
-    if (catalinaHome != null) {
-      return Paths.get(catalinaHome, "webapps");
-    }
-
-    // if neither catalina.base nor catalina.home is set try to deduce the location of webapps based
-    // on the loaded server class.
-    URL jarUrl = locator.getClassLocation(serverClass);
-    Path jarPath = Paths.get(jarUrl.toURI());
-    // jar is in bin/. First call to getParent strips jar name and the second bin/. We'll end up
-    // with a path to server root to which we append the autodeploy directory.
-    return jarPath.getParent().getParent().resolve("webapps");
+  TomcatServiceNameDetector(ResourceLocator locator, TomcatAppServer tomcatAppServer) {
+    super(tomcatAppServer, locator, "org.apache.catalina.startup.Bootstrap", false);
   }
 }

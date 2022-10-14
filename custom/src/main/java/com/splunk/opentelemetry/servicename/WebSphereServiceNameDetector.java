@@ -33,21 +33,8 @@ class WebSphereServiceNameDetector extends AppServerServiceNameDetector {
   private static final Logger logger =
       Logger.getLogger(WebSphereServiceNameDetector.class.getName());
 
-  WebSphereServiceNameDetector(ResourceLocator locator) {
-    super(locator, "com.ibm.wsspi.bootstrap.WSPreLauncher", true);
-  }
-
-  @Override
-  boolean isValidAppName(Path path) {
-    // query.ear is bundled with websphere
-    String name = path.getFileName().toString();
-    return !"query.ear".equals(name);
-  }
-
-  @Override
-  Path getDeploymentDir() {
-    // not used
-    return null;
+  WebSphereServiceNameDetector(ResourceLocator locator, WebSphereAppServer appServer) {
+    super(appServer, locator, "com.ibm.wsspi.bootstrap.WSPreLauncher", true);
   }
 
   @Override
@@ -101,7 +88,7 @@ class WebSphereServiceNameDetector extends AppServerServiceNameDetector {
         for (Path path : stream.collect(Collectors.toList())) {
           String fullName = path.getFileName().toString();
           // websphere deploys all applications as ear
-          if (!fullName.endsWith(".ear") || !isValidAppName(path)) {
+          if (!fullName.endsWith(".ear") || !appServer.isValidAppName(path)) {
             logger.log(FINE, "Skipping '{0}'.", path);
             continue;
           }

@@ -24,45 +24,7 @@ import java.nio.file.Paths;
 
 class TomeeServiceNameDetector extends AppServerServiceNameDetector {
 
-  TomeeServiceNameDetector(ResourceLocator locator) {
-    super(locator, "org.apache.catalina.startup.Bootstrap", true);
-  }
-
-  @Override
-  Path getDeploymentDir() throws URISyntaxException {
-    Path rootDir = getRootDir();
-
-    // check for presence of tomee configuration file, if it doesn't exist then we have tomcat not
-    // tomee
-    if (!Files.isRegularFile(rootDir.resolve("conf/tomee.xml"))) {
-      return null;
-    }
-
-    // tomee deployment directory is configurable, we'll only look at the default 'apps' directory
-    // to get the actual deployment directory (or see whether it is enabled at all) we would need to
-    // parse conf/tomee.xml
-    // tomee also deploys applications from webapps directory, detecting them is handled by
-    // TomcatServiceNameDetector
-    return rootDir.resolve("apps");
-  }
-
-  private Path getRootDir() throws URISyntaxException {
-    String catalinaBase = System.getProperty("catalina.base");
-    if (catalinaBase != null) {
-      return Paths.get(catalinaBase);
-    }
-
-    String catalinaHome = System.getProperty("catalina.home");
-    if (catalinaHome != null) {
-      return Paths.get(catalinaHome);
-    }
-
-    // if neither catalina.base nor catalina.home is set try to deduce the location of based on the
-    // loaded server class.
-    URL jarUrl = locator.getClassLocation(serverClass);
-    Path jarPath = Paths.get(jarUrl.toURI());
-    // jar is in bin/. First call to getParent strips jar name and the second bin/. We'll end up
-    // with a path to server root.
-    return jarPath.getParent().getParent();
+  TomeeServiceNameDetector(ResourceLocator locator, TomeeAppServer appServer) {
+    super(appServer, locator, "org.apache.catalina.startup.Bootstrap", true);
   }
 }

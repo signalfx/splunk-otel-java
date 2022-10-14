@@ -133,31 +133,45 @@ public class AppServerServiceNameDetectorTest {
     private final Path testPath;
 
     TestServiceNameDetector(ResourceLocator locator, Path testPath) {
-      super(locator, null, true);
+      super(new TestAppServer(testPath), locator, null, true);
       this.testPath = testPath;
     }
 
-    @Override
-    Path getDeploymentDir() {
-      return testPath.resolve("webapps");
-    }
+    private static class TestAppServer implements AppServer {
+      private final Path testPath;
 
-    @Override
-    boolean isValidAppName(Path path) {
-      if (Files.isDirectory(path)) {
-        String name = path.getFileName().toString();
-        return !"docs".equals(name)
-            && !"examples".equals(name)
-            && !"host-manager".equals(name)
-            && !"manager".equals(name);
+      public TestAppServer(Path testPath) {
+        this.testPath = testPath;
       }
-      return true;
-    }
 
-    @Override
-    boolean isValidResult(Path path, String result) {
-      String name = path.getFileName().toString();
-      return !"ROOT".equals(name) || !"Welcome to Tomcat".equals(result);
+      @Override
+      public Path getDeploymentDir() throws Exception {
+        return testPath.resolve("webapps");
+      }
+
+      @Override
+      public Class<?> getServerClass() {
+        return null;
+      }
+
+
+      @Override
+      public boolean isValidAppName(Path path) {
+        if (Files.isDirectory(path)) {
+          String name = path.getFileName().toString();
+          return !"docs".equals(name)
+              && !"examples".equals(name)
+              && !"host-manager".equals(name)
+              && !"manager".equals(name);
+        }
+        return true;
+      }
+
+      @Override
+      public boolean isValidResult(Path path, String result) {
+        String name = path.getFileName().toString();
+        return !"ROOT".equals(name) || !"Welcome to Tomcat".equals(result);
+      }
     }
   }
 

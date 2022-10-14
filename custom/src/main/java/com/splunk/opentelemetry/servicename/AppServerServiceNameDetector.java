@@ -43,29 +43,18 @@ abstract class AppServerServiceNameDetector extends ServiceNameDetector {
   private static final Logger logger =
       Logger.getLogger(AppServerServiceNameDetector.class.getName());
 
+  final AppServer appServer;
   final ResourceLocator locator;
   final Class<?> serverClass;
   final boolean supportsEar;
 
-  AppServerServiceNameDetector(
+  AppServerServiceNameDetector(AppServer appServer,
       ResourceLocator locator, String serverClassName, boolean supportsEar) {
+    this.appServer = appServer;
     this.locator = locator;
     this.serverClass = locator.findClass(serverClassName);
     this.supportsEar = supportsEar;
   }
-
-  /** Use to ignore default applications that are bundled with the app server. */
-  boolean isValidAppName(Path path) {
-    return true;
-  }
-
-  /** Use to ignore default applications that are bundled with the app server. */
-  boolean isValidResult(Path path, @Nullable String result) {
-    return true;
-  }
-
-  /** Path to directory to be scanned for deployments. */
-  abstract Path getDeploymentDir() throws Exception;
 
   @Override
   String detect() throws Exception {
@@ -73,7 +62,7 @@ abstract class AppServerServiceNameDetector extends ServiceNameDetector {
       return null;
     }
 
-    Path deploymentDir = getDeploymentDir();
+    Path deploymentDir = appServer.getDeploymentDir();
     if (deploymentDir == null) {
       return null;
     }
@@ -96,7 +85,7 @@ abstract class AppServerServiceNameDetector extends ServiceNameDetector {
   }
 
   private String detectName(Path path) {
-    if (!isValidAppName(path)) {
+    if (!appServer.isValidAppName(path)) {
       logger.log(FINE, "Skipping '{0}'.", path);
       return null;
     }
@@ -175,7 +164,7 @@ abstract class AppServerServiceNameDetector extends ServiceNameDetector {
     try {
       try (InputStream inputStream = supplier.supply()) {
         String candidate = parseDescriptor(inputStream, handler);
-        if (isValidResult(path, candidate)) {
+        if (appServer.isValidResult(path, candidate)) {
           return candidate;
         }
       }

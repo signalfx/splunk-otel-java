@@ -28,66 +28,8 @@ class JettyServiceNameDetector extends AppServerServiceNameDetector {
 
   private static final Logger logger = Logger.getLogger(JettyServiceNameDetector.class.getName());
 
-  JettyServiceNameDetector(ResourceLocator locator) {
-    super(locator, "org.eclipse.jetty.start.Main", false);
+  JettyServiceNameDetector(ResourceLocator locator, JettyAppServer appServer) {
+    super(appServer, locator, "org.eclipse.jetty.start.Main", false);
   }
 
-  @Override
-  boolean isValidAppName(Path path) {
-    // jetty deployer ignores directories ending with ".d"
-    if (Files.isDirectory(path)) {
-      return !path.getFileName().toString().endsWith(".d");
-    }
-    return true;
-  }
-
-  @VisibleForTesting
-  static Path parseJettyBase(String programArguments) {
-    if (programArguments == null) {
-      return null;
-    }
-    int start = programArguments.indexOf("jetty.base=");
-    if (start == -1) {
-      return null;
-    }
-    start += "jetty.base=".length();
-    if (start == programArguments.length()) {
-      return null;
-    }
-    // Take the path until the first space. If the path doesn't exist extend it up to the next
-    // space. Repeat until a path that exists is found or input runs out.
-    int next = start;
-    while (true) {
-      int nextSpace = programArguments.indexOf(' ', next);
-      if (nextSpace == -1) {
-        Path candidate = Paths.get(programArguments.substring(start));
-        return Files.exists(candidate) ? candidate : null;
-      }
-      Path candidate = Paths.get(programArguments.substring(start, nextSpace));
-      next = nextSpace + 1;
-      if (Files.exists(candidate)) {
-        return candidate;
-      }
-    }
-  }
-
-  @Override
-  Path getDeploymentDir() {
-    // Jetty expects the webapps directory to be in the directory where jetty was started from.
-    // Alternatively the location of webapps directory can be specified by providing jetty base
-    // directory as an argument to jetty e.g. java -jar start.jar jetty.base=/dir where webapps
-    // would be located in /dir/webapps.
-
-    String programArguments = System.getProperty("sun.java.command");
-    logger.log(FINE, "Started with arguments '{0}'.", programArguments);
-    if (programArguments != null) {
-      Path jettyBase = parseJettyBase(programArguments);
-      if (jettyBase != null) {
-        logger.log(FINE, "Using jetty.base '{0}'.", jettyBase);
-        return jettyBase.resolve("webapps");
-      }
-    }
-
-    return Paths.get("webapps").toAbsolutePath();
-  }
 }

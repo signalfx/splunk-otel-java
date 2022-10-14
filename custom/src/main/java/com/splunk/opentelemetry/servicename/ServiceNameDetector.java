@@ -53,13 +53,13 @@ abstract class ServiceNameDetector {
     ResourceLocator locator = new ResourceLocatorImpl();
 
     List<ServiceNameDetector> detectors = new ArrayList<>();
-    detectors.add(new TomeeServiceNameDetector(locator));
-    detectors.add(new TomcatServiceNameDetector(locator));
-    detectors.add(new JettyServiceNameDetector(locator));
-    detectors.add(new LibertyServiceNameDetector(locator));
-    detectors.add(new WildflyServiceNameDetector(locator));
-    detectors.add(new GlassfishServiceNameDetector(locator));
-    detectors.add(new WebSphereServiceNameDetector(locator));
+    detectors.add(new TomeeServiceNameDetector(locator, new TomeeAppServer(locator)));
+    detectors.add(new TomcatServiceNameDetector(locator, new TomcatAppServer(locator)));
+    detectors.add(new JettyServiceNameDetector(locator, new JettyAppServer(locator)));
+    detectors.add(new LibertyServiceNameDetector(locator, new LibertyAppService(locator)));
+    detectors.add(new WildflyServiceNameDetector(locator, new WildflyAppServer(locator)));
+    detectors.add(new GlassfishServiceNameDetector(locator, new GlassfishAppServer(locator)));
+    detectors.add(new WebSphereServiceNameDetector(locator, new WebSphereAppServer(locator)));
 
     return detectors;
   }

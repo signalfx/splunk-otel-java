@@ -130,50 +130,51 @@ public class AppServerServiceNameDetectorTest {
   }
 
   private static class TestServiceNameDetector extends AppServerServiceNameDetector {
-    private final Path testPath;
 
     TestServiceNameDetector(ResourceLocator locator, Path testPath) {
-      super(new TestAppServer(testPath));
+      super(new TestAppServer(locator, testPath));
+    }
+  }
+
+  private static class TestAppServer implements AppServer {
+    private final ResourceLocator locator;
+    private final Path testPath;
+
+    public TestAppServer(ResourceLocator locator, Path testPath) {
+      this.locator = locator;
       this.testPath = testPath;
     }
 
-    private static class TestAppServer implements AppServer {
-      private final Path testPath;
+    @Override
+    public Path getDeploymentDir() throws Exception {
+      return testPath.resolve("webapps");
+    }
 
-      public TestAppServer(Path testPath) {
-        this.testPath = testPath;
-      }
-
-      @Override
-      public Path getDeploymentDir() throws Exception {
-        return testPath.resolve("webapps");
-      }
-
-      @Override
-      public Class<?> getServerClass() {
-        return null;
-      }
+    @Override
+    public Class<?> getServerClass() {
+      return locator.findClass("ignored");
+    }
 
 
-      @Override
-      public boolean isValidAppName(Path path) {
-        if (Files.isDirectory(path)) {
-          String name = path.getFileName().toString();
-          return !"docs".equals(name)
-              && !"examples".equals(name)
-              && !"host-manager".equals(name)
-              && !"manager".equals(name);
-        }
-        return true;
-      }
-
-      @Override
-      public boolean isValidResult(Path path, String result) {
+    @Override
+    public boolean isValidAppName(Path path) {
+      if (Files.isDirectory(path)) {
         String name = path.getFileName().toString();
-        return !"ROOT".equals(name) || !"Welcome to Tomcat".equals(result);
+        return !"docs".equals(name)
+            && !"examples".equals(name)
+            && !"host-manager".equals(name)
+            && !"manager".equals(name);
       }
+      return true;
+    }
+
+    @Override
+    public boolean isValidResult(Path path, String result) {
+      String name = path.getFileName().toString();
+      return !"ROOT".equals(name) || !"Welcome to Tomcat".equals(result);
     }
   }
+
 
   private static class TestResourceLocator implements ResourceLocator {
 

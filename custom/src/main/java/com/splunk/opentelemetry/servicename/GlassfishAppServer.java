@@ -44,4 +44,9 @@ class GlassfishAppServer implements AppServer {
   public Class<?> getServerClass() {
     return locator.findClass(SERVICE_CLASS_NAME);
   }
+
+  @Override
+  public boolean supportsEar() {
+    return true;
+  }
 }

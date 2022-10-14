@@ -18,18 +18,24 @@ package com.splunk.opentelemetry.servicename;
 
 import static java.util.logging.Level.FINE;
 
-import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.logging.Logger;
 
-abstract class DelegatingServiceNameDetector implements ServiceNameDetector {
+final class DelegatingServiceNameDetector implements ServiceNameDetector {
 
   private static final Logger logger = Logger.getLogger(DelegatingServiceNameDetector.class.getName());
 
+  private final List<ServiceNameDetector> delegates;
 
-  public static String detectServiceName() {
-    for (DelegatingServiceNameDetector detector : detectors()) {
+  DelegatingServiceNameDetector(List<ServiceNameDetector> delegates) {
+    this.delegates = Collections.unmodifiableList(new ArrayList<>(delegates));
+  }
+
+  @Override
+  public String detect() throws Exception {
+    for (ServiceNameDetector detector : delegates) {
       try {
         String name = detector.detect();
         if (name != null) {
@@ -48,35 +54,4 @@ abstract class DelegatingServiceNameDetector implements ServiceNameDetector {
     return null;
   }
 
-  private static List<DelegatingServiceNameDetector> detectors() {
-    ResourceLocator locator = new ResourceLocatorImpl();
-
-    List<DelegatingServiceNameDetector> detectors = new ArrayList<>();
-    detectors.add(new TomeeServiceNameDetector(locator, new TomeeAppServer(locator)));
-    detectors.add(new TomcatServiceNameDetector(locator, new TomcatAppServer(locator)));
-    detectors.add(new JettyServiceNameDetector(locator, new JettyAppServer(locator)));
-    detectors.add(new LibertyServiceNameDetector(locator, new LibertyAppService(locator)));
-    detectors.add(new WildflyServiceNameDetector(locator, new WildflyAppServer(locator)));
-    detectors.add(new GlassfishServiceNameDetector(locator, new GlassfishAppServer(locator)));
-    detectors.add(new WebSphereServiceNameDetector(locator, new WebSphereAppServer(locator)));
-
-    return detectors;
-  }
-
-  private static class ResourceLocatorImpl implements ResourceLocator {
-
-    @Override
-    public Class<?> findClass(String className) {
-      try {
-        return Class.forName(className, false, ClassLoader.getSystemClassLoader());
-      } catch (ClassNotFoundException | LinkageError exception) {
-        return null;
-      }
-    }
-
-    @Override
-    public URL getClassLocation(Class<?> clazz) {
-      return clazz.getProtectionDomain().getCodeSource().getLocation();
-    }
-  }
 }

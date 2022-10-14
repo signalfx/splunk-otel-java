@@ -37,7 +37,7 @@ import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
-abstract class AppServerServiceNameDetector extends DelegatingServiceNameDetector {
+class AppServerServiceNameDetector implements ServiceNameDetector {
 
   private static final Logger logger =
       Logger.getLogger(AppServerServiceNameDetector.class.getName());

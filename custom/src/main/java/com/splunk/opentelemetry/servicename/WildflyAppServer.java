@@ -24,10 +24,6 @@ import java.util.logging.Logger;
 
 import static java.util.logging.Level.FINE;
 
-// For exploded applications we should be checking for the presence of ".dodeploy" or
-// ".deployed" marker files to ensure that we are scanning only applications that are actually
-// deployed, see
-// https://access.redhat.com/documentation/en-us/jboss_enterprise_application_platform/6/html/administration_and_configuration_guide/reference_for_deployment_scanner_marker_files1
 class WildflyAppServer implements AppServer {
 
   private static final Logger logger = Logger.getLogger(WildflyAppServer.class.getName());
@@ -62,6 +58,15 @@ class WildflyAppServer implements AppServer {
     URL jarUrl = locator.getClassLocation(getServerClass());
     Path jarPath = Paths.get(jarUrl.toURI());
     return jarPath.getParent().resolve("standalone/deployments");
+  }
+
+  @Override
+  public boolean isValidAppName(Path path) {
+    // For exploded applications we should be checking for the presence of ".dodeploy" or
+    // ".deployed" marker files to ensure that we are scanning only applications that are actually
+    // deployed, see
+    // https://access.redhat.com/documentation/en-us/jboss_enterprise_application_platform/6/html/administration_and_configuration_guide/reference_for_deployment_scanner_marker_files1
+    return AppServer.super.isValidAppName(path);
   }
 
   @Override

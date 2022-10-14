@@ -16,12 +16,6 @@
 
 package com.splunk.opentelemetry.servicename;
 
-import static java.util.logging.Level.FINE;
-
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.logging.Logger;
 
 class WildflyServiceNameDetector extends AppServerServiceNameDetector {

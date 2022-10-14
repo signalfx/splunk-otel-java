@@ -28,13 +28,14 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-class WebSphereServiceNameDetector extends AppServerServiceNameDetector {
+class WebSphereServiceNameDetector implements ServiceNameDetector {
 
   private static final Logger logger =
       Logger.getLogger(WebSphereServiceNameDetector.class.getName());
+  private final WebSphereAppServer appServer;
 
   WebSphereServiceNameDetector(WebSphereAppServer appServer) {
-    super(appServer);
+    this.appServer = appServer;
   }
 
   @Override
@@ -107,13 +108,14 @@ class WebSphereServiceNameDetector extends AppServerServiceNameDetector {
           }
           boolean maybeWarDeployment =
               wars.size() == 1 && wars.get(0).getFileName().toString().equals(name + ".war");
+          ParseBuddy parseBuddy = new ParseBuddy(appServer);
           if (maybeWarDeployment) {
-            String result = handleExplodedWar(wars.get(0));
+            String result = parseBuddy.handleExplodedWar(wars.get(0));
             if (result != null) {
               return result;
             }
           }
-          String result = handleExplodedEar(path);
+          String result = parseBuddy.handleExplodedEar(path);
           // Auto-generated display-name in our testapp is app182ceb797ea, ignore similar names
           if (result != null && (!maybeWarDeployment || !result.startsWith(name))) {
             return result;

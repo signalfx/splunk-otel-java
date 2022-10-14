@@ -121,18 +121,18 @@ public class AppServerServiceNameDetectorTest {
     }
   }
 
-  private static TestServiceNameDetector detector(Path testPath) {
-    return new TestServiceNameDetector(new TestResourceLocator(), testPath);
+  private static ServiceNameDetector detector(Path testPath) {
+    return TestServiceNameDetector.create(new TestResourceLocator(), testPath);
   }
 
-  private static TestServiceNameDetector detector(String testName) {
+  private static ServiceNameDetector detector(String testName) {
     return detector(Paths.get("src/test/resources/servicename/" + testName));
   }
 
-  private static class TestServiceNameDetector extends AppServerServiceNameDetector {
+  private static class TestServiceNameDetector {
 
-    TestServiceNameDetector(ResourceLocator locator, Path testPath) {
-      super(new TestAppServer(locator, testPath));
+    static ServiceNameDetector create(ResourceLocator locator, Path testPath) {
+      return new AppServerServiceNameDetector(new TestAppServer(locator, testPath));
     }
   }
 

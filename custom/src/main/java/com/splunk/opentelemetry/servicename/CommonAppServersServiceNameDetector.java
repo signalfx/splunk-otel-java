@@ -32,7 +32,7 @@ final class CommonAppServersServiceNameDetector implements ServiceNameDetector {
       detectorFor(new LibertyAppService(locator)),
       detectorFor(new WildflyAppServer(locator)),
       detectorFor(new GlassfishAppServer(locator)),
-      detectorFor(new WebSphereAppServer(locator))
+      new WebSphereServiceNameDetector(new WebSphereAppServer(locator))
     );
   }
 

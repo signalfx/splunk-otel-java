@@ -57,7 +57,8 @@ import java.util.function.Consumer;
 @AutoService(AgentListener.class)
 public class JfrActivator implements AgentListener {
 
-  private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(JfrActivator.class.getName());
+  private static final java.util.logging.Logger logger =
+      java.util.logging.Logger.getLogger(JfrActivator.class.getName());
   private static final int MAX_BATCH_SIZE = 250;
   private static final Duration MAX_TIME_BETWEEN_BATCHES = Duration.ofSeconds(10);
   private final ExecutorService executor = HelpfulExecutors.newSingleThreadExecutor("JFR Profiler");

@@ -38,10 +38,10 @@ import io.opentelemetry.api.trace.TraceFlags;
 import io.opentelemetry.api.trace.TraceState;
 import io.opentelemetry.sdk.logs.SdkLoggerProvider;
 import io.opentelemetry.sdk.logs.export.InMemoryLogRecordExporter;
+import io.opentelemetry.sdk.logs.export.SimpleLogRecordProcessor;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.concurrent.TimeUnit;
-import io.opentelemetry.sdk.logs.export.SimpleLogRecordProcessor;
 import org.junit.jupiter.api.Test;
 
 class PlainTextCpuEventExporterTest {

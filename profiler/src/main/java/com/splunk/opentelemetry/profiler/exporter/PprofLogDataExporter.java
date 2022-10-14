@@ -29,7 +29,8 @@ import io.opentelemetry.api.logs.Logger;
 import java.nio.charset.StandardCharsets;
 
 public class PprofLogDataExporter {
-  private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(PprofLogDataExporter.class.getName());
+  private static final java.util.logging.Logger logger =
+      java.util.logging.Logger.getLogger(PprofLogDataExporter.class.getName());
 
   private final Logger otelLogger;
   private final ProfilingDataType dataType;

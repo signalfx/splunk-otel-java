@@ -20,7 +20,6 @@ import com.google.common.annotations.VisibleForTesting;
 import io.opentelemetry.exporter.otlp.logs.OtlpGrpcLogRecordExporter;
 import io.opentelemetry.exporter.otlp.logs.OtlpGrpcLogRecordExporterBuilder;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
-import io.opentelemetry.api.logs.Logger;
 import io.opentelemetry.sdk.logs.export.LogRecordExporter;
 import java.util.function.Supplier;
 

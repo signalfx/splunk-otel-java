@@ -24,10 +24,10 @@ import com.splunk.opentelemetry.profiler.LogDataCommonAttributes;
 import com.splunk.opentelemetry.profiler.ProfilingDataType;
 import com.splunk.opentelemetry.profiler.context.StackToSpanLinkage;
 import io.opentelemetry.api.common.Attributes;
+import io.opentelemetry.api.logs.LogRecordBuilder;
+import io.opentelemetry.api.logs.Logger;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.context.Context;
-import io.opentelemetry.api.logs.Logger;
-import io.opentelemetry.api.logs.LogRecordBuilder;
 
 public class PlainTextCpuEventExporter implements CpuEventExporter {
 

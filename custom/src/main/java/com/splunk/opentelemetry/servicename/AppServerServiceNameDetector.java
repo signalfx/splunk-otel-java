@@ -48,7 +48,7 @@ abstract class AppServerServiceNameDetector extends ServiceNameDetector {
   final Class<?> serverClass;
 
   AppServerServiceNameDetector(AppServer appServer,
-      ResourceLocator locator, String serverClassName, boolean supportsEar) {
+      ResourceLocator locator, String serverClassName) {
     this.appServer = appServer;
     this.locator = locator;
     this.serverClass = locator.findClass(serverClassName);

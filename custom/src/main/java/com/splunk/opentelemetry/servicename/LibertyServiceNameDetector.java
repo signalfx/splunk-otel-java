@@ -16,10 +16,6 @@
 
 package com.splunk.opentelemetry.servicename;
 
-import static java.util.logging.Level.FINE;
-
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.logging.Logger;
 
 class LibertyServiceNameDetector extends AppServerServiceNameDetector {
@@ -27,6 +23,6 @@ class LibertyServiceNameDetector extends AppServerServiceNameDetector {
   private static final Logger logger = Logger.getLogger(LibertyServiceNameDetector.class.getName());
 
   LibertyServiceNameDetector(ResourceLocator locator, LibertyAppService appService) {
-    super(appService, locator, "com.ibm.ws.kernel.boot.cmdline.EnvCheck", true);
+    super(appService, locator, "com.ibm.ws.kernel.boot.cmdline.EnvCheck");
   }
 }

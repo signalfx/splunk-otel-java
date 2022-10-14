@@ -133,7 +133,7 @@ public class AppServerServiceNameDetectorTest {
     private final Path testPath;
 
     TestServiceNameDetector(ResourceLocator locator, Path testPath) {
-      super(new TestAppServer(testPath), locator, null, true);
+      super(new TestAppServer(testPath), locator, null);
       this.testPath = testPath;
     }
 

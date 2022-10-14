@@ -16,12 +16,9 @@
 
 package com.splunk.opentelemetry.servicename;
 
-import java.nio.file.Path;
-import java.nio.file.Paths;
-
 class GlassfishServiceNameDetector extends AppServerServiceNameDetector {
 
   GlassfishServiceNameDetector(ResourceLocator locator, GlassfishAppServer appServer) {
-    super(appServer, locator, "com.sun.enterprise.glassfish.bootstrap.ASMain", true);
+    super(appServer, locator, "com.sun.enterprise.glassfish.bootstrap.ASMain");
   }
 }

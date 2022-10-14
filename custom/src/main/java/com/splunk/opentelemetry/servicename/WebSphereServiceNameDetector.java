@@ -34,7 +34,7 @@ class WebSphereServiceNameDetector extends AppServerServiceNameDetector {
       Logger.getLogger(WebSphereServiceNameDetector.class.getName());
 
   WebSphereServiceNameDetector(ResourceLocator locator, WebSphereAppServer appServer) {
-    super(appServer, locator, "com.ibm.wsspi.bootstrap.WSPreLauncher", true);
+    super(appServer, locator, "com.ibm.wsspi.bootstrap.WSPreLauncher");
   }
 
   @Override

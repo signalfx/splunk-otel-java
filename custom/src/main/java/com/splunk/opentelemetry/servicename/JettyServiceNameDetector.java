@@ -16,12 +16,6 @@
 
 package com.splunk.opentelemetry.servicename;
 
-import static java.util.logging.Level.FINE;
-
-import com.google.common.annotations.VisibleForTesting;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.logging.Logger;
 
 class JettyServiceNameDetector extends AppServerServiceNameDetector {
@@ -29,7 +23,7 @@ class JettyServiceNameDetector extends AppServerServiceNameDetector {
   private static final Logger logger = Logger.getLogger(JettyServiceNameDetector.class.getName());
 
   JettyServiceNameDetector(ResourceLocator locator, JettyAppServer appServer) {
-    super(appServer, locator, "org.eclipse.jetty.start.Main", false);
+    super(appServer, locator, "org.eclipse.jetty.start.Main");
   }
 
 }

@@ -16,15 +16,9 @@
 
 package com.splunk.opentelemetry.servicename;
 
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-
 class TomeeServiceNameDetector extends AppServerServiceNameDetector {
 
   TomeeServiceNameDetector(ResourceLocator locator, TomeeAppServer appServer) {
-    super(appServer, locator, "org.apache.catalina.startup.Bootstrap", true);
+    super(appServer, locator, "org.apache.catalina.startup.Bootstrap");
   }
 }

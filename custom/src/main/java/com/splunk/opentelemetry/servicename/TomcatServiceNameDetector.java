@@ -19,6 +19,6 @@ package com.splunk.opentelemetry.servicename;
 class TomcatServiceNameDetector extends AppServerServiceNameDetector {
 
   TomcatServiceNameDetector(ResourceLocator locator, TomcatAppServer tomcatAppServer) {
-    super(tomcatAppServer, locator, "org.apache.catalina.startup.Bootstrap", false);
+    super(tomcatAppServer, locator, "org.apache.catalina.startup.Bootstrap");
   }
 }

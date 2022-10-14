@@ -45,18 +45,15 @@ abstract class AppServerServiceNameDetector extends ServiceNameDetector {
 
   final AppServer appServer;
   final ResourceLocator locator;
-  final Class<?> serverClass;
 
-  AppServerServiceNameDetector(AppServer appServer,
-      ResourceLocator locator, String serverClassName) {
+  AppServerServiceNameDetector(AppServer appServer, ResourceLocator locator, String serverClassName) {
     this.appServer = appServer;
     this.locator = locator;
-    this.serverClass = locator.findClass(serverClassName);
   }
 
   @Override
   String detect() throws Exception {
-    if (serverClass == null) {
+    if (appServer.getServerClass() == null) {
       return null;
     }
 

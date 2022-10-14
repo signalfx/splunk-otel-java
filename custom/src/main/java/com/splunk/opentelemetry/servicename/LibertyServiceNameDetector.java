@@ -23,6 +23,6 @@ class LibertyServiceNameDetector extends AppServerServiceNameDetector {
   private static final Logger logger = Logger.getLogger(LibertyServiceNameDetector.class.getName());
 
   LibertyServiceNameDetector(ResourceLocator locator, LibertyAppService appService) {
-    super(appService, locator, "com.ibm.ws.kernel.boot.cmdline.EnvCheck");
+    super(appService, locator);
   }
 }

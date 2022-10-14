@@ -40,11 +40,6 @@ class WildflyAppServer implements AppServer {
   }
 
   @Override
-  public boolean supportsEar() {
-    return true;
-  }
-
-  @Override
   public Path getDeploymentDir() throws URISyntaxException {
     String programArguments = System.getProperty("sun.java.command");
     logger.log(FINE, "Started with arguments '{0}'.", programArguments);

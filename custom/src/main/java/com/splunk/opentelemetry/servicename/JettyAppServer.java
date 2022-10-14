@@ -97,4 +97,9 @@ class JettyAppServer implements AppServer {
       }
     }
   }
+
+  @Override
+  public boolean supportsEar() {
+    return false;
+  }
 }

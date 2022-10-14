@@ -73,9 +73,4 @@ class TomeeAppServer implements AppServer {
     // with a path to server root.
     return jarPath.getParent().getParent();
   }
-
-  @Override
-  public boolean supportsEar() {
-    return true;
-  }
 }

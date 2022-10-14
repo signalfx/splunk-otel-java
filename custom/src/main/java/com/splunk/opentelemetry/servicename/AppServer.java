@@ -10,7 +10,7 @@ public interface AppServer {
   Class<?> getServerClass();
 
   default boolean supportsEar(){
-    return false;
+    return true;
   };
 
   /** Use to ignore default applications that are bundled with the app server. */

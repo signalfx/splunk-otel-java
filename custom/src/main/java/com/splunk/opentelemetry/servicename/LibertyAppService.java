@@ -34,11 +34,6 @@ class LibertyAppService implements AppServer {
   }
 
   @Override
-  public boolean supportsEar() {
-    return true;
-  }
-
-  @Override
   public Path getDeploymentDir() {
     // default installation has
     // WLP_OUTPUT_DIR - libertyDir/usr/servers

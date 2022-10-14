@@ -74,4 +74,9 @@ class TomcatAppServer implements AppServer {
   public Class<?> getServerClass() {
     return locator.findClass(SERVER_CLASS_NAME);
   }
+
+  @Override
+  public boolean supportsEar() {
+    return false;
+  }
 }

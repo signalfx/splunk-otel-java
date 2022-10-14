@@ -28,11 +28,11 @@ import com.splunk.opentelemetry.profiler.util.StackSerializer;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.common.AttributesBuilder;
+import io.opentelemetry.api.logs.LogRecordBuilder;
+import io.opentelemetry.api.logs.Logger;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.context.Context;
-import io.opentelemetry.sdk.logs.LogEmitter;
-import io.opentelemetry.sdk.logs.LogRecordBuilder;
 import java.time.Instant;
 import jdk.jfr.consumer.RecordedEvent;
 import jdk.jfr.consumer.RecordedStackTrace;
@@ -44,11 +44,11 @@ public class PlainTextAllocationEventExporter implements AllocationEventExporter
 
   private final StackSerializer stackSerializer;
   private final int stackDepth;
-  private final LogEmitter logEmitter;
+  private final Logger otelLogger;
   private final LogDataCommonAttributes commonAttributes;
 
   private PlainTextAllocationEventExporter(Builder builder) {
-    this.logEmitter = builder.logEmitter;
+    this.otelLogger = builder.otelLogger;
     this.commonAttributes = builder.commonAttributes;
     this.stackDepth = builder.stackDepth;
     this.stackSerializer =
@@ -82,7 +82,7 @@ public class PlainTextAllocationEventExporter implements AllocationEventExporter
     Attributes attributes = builder.build();
 
     LogRecordBuilder logRecordBuilder =
-        logEmitter.logRecordBuilder().setEpoch(time).setBody(body).setAllAttributes(attributes);
+        otelLogger.logRecordBuilder().setEpoch(time).setBody(body).setAllAttributes(attributes);
 
     if (spanContext != null && spanContext.isValid()) {
       logRecordBuilder.setContext(Context.root().with(Span.wrap(spanContext)));
@@ -111,7 +111,7 @@ public class PlainTextAllocationEventExporter implements AllocationEventExporter
 
   public static class Builder {
     private StackSerializer stackSerializer;
-    private LogEmitter logEmitter;
+    private Logger otelLogger;
     private LogDataCommonAttributes commonAttributes;
     private int stackDepth;
 
@@ -124,8 +124,8 @@ public class PlainTextAllocationEventExporter implements AllocationEventExporter
       return this;
     }
 
-    public Builder logEmitter(LogEmitter logEmitter) {
-      this.logEmitter = logEmitter;
+    public Builder logEmitter(Logger otelLogger) {
+      this.otelLogger = otelLogger;
       return this;
     }
 

@@ -24,7 +24,7 @@ import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpResponse;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.context.propagation.TextMapSetter;
-import io.opentelemetry.javaagent.instrumentation.netty.v4_1.AttributeKeys;
+import io.opentelemetry.instrumentation.netty.v4_1.internal.AttributeKeys;
 
 public class ServerTimingHandler extends ChannelOutboundHandlerAdapter {
   @Override

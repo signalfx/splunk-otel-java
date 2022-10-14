@@ -34,8 +34,8 @@ import com.splunk.opentelemetry.profiler.context.StackToSpanLinkage;
 import com.splunk.opentelemetry.profiler.events.EventPeriods;
 import com.splunk.opentelemetry.profiler.exporter.StackTraceParser.StackTrace;
 import com.splunk.opentelemetry.profiler.pprof.Pprof;
+import io.opentelemetry.api.logs.Logger;
 import io.opentelemetry.api.trace.SpanContext;
-import io.opentelemetry.sdk.logs.LogEmitter;
 import java.time.Duration;
 import java.time.Instant;
 
@@ -51,7 +51,7 @@ public class PprofCpuEventExporter implements CpuEventExporter {
     this.eventPeriods = builder.eventPeriods;
     this.stackDepth = builder.stackDepth;
     this.pprofLogDataExporter =
-        new PprofLogDataExporter(builder.logEmitter, ProfilingDataType.CPU, builder.dataFormat);
+        new PprofLogDataExporter(builder.otelLogger, ProfilingDataType.CPU, builder.dataFormat);
   }
 
   @Override
@@ -124,7 +124,7 @@ public class PprofCpuEventExporter implements CpuEventExporter {
   }
 
   public static class Builder {
-    private LogEmitter logEmitter;
+    private Logger otelLogger;
     private DataFormat dataFormat;
     private EventPeriods eventPeriods;
     private int stackDepth;
@@ -133,8 +133,8 @@ public class PprofCpuEventExporter implements CpuEventExporter {
       return new PprofCpuEventExporter(this);
     }
 
-    public Builder logEmitter(LogEmitter logEmitter) {
-      this.logEmitter = logEmitter;
+    public Builder otelLogger(Logger otelLogger) {
+      this.otelLogger = otelLogger;
       return this;
     }
 

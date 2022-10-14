@@ -26,16 +26,16 @@ import com.splunk.opentelemetry.profiler.context.StackToSpanLinkage;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.context.Context;
-import io.opentelemetry.sdk.logs.LogEmitter;
-import io.opentelemetry.sdk.logs.LogRecordBuilder;
+import io.opentelemetry.api.logs.Logger;
+import io.opentelemetry.api.logs.LogRecordBuilder;
 
 public class PlainTextCpuEventExporter implements CpuEventExporter {
 
-  private final LogEmitter logEmitter;
+  private final Logger otelLogger;
   private final LogDataCommonAttributes commonAttributes;
 
   private PlainTextCpuEventExporter(Builder builder) {
-    logEmitter = builder.logEmitter;
+    otelLogger = builder.otelLogger;
     commonAttributes = builder.commonAttributes;
   }
 
@@ -49,7 +49,7 @@ public class PlainTextCpuEventExporter implements CpuEventExporter {
             .build();
 
     LogRecordBuilder logRecordBuilder =
-        logEmitter
+        otelLogger
             .logRecordBuilder()
             .setEpoch(linkedStack.getTime())
             .setBody(linkedStack.getRawStack())
@@ -65,15 +65,15 @@ public class PlainTextCpuEventExporter implements CpuEventExporter {
   }
 
   public static class Builder {
-    private LogEmitter logEmitter;
+    private Logger otelLogger;
     private LogDataCommonAttributes commonAttributes;
 
     public PlainTextCpuEventExporter build() {
       return new PlainTextCpuEventExporter(this);
     }
 
-    public Builder logEmitter(LogEmitter logEmitter) {
-      this.logEmitter = logEmitter;
+    public Builder otelLogger(Logger otelLogger) {
+      this.otelLogger = otelLogger;
       return this;
     }
 

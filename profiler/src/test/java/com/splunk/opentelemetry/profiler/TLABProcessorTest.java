@@ -45,12 +45,12 @@ import io.opentelemetry.api.trace.TraceId;
 import io.opentelemetry.api.trace.TraceState;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import io.opentelemetry.sdk.common.Clock;
-import io.opentelemetry.sdk.logs.LogEmitter;
-import io.opentelemetry.sdk.logs.SdkLogEmitterProvider;
-import io.opentelemetry.sdk.logs.export.InMemoryLogExporter;
-import io.opentelemetry.sdk.logs.export.SimpleLogProcessor;
+import io.opentelemetry.api.logs.Logger;
+import io.opentelemetry.sdk.logs.SdkLoggerProvider;
+import io.opentelemetry.sdk.logs.export.InMemoryLogRecordExporter;
 import java.time.Instant;
 import java.util.concurrent.TimeUnit;
+import io.opentelemetry.sdk.logs.export.SimpleLogRecordProcessor;
 import jdk.jfr.EventType;
 import jdk.jfr.consumer.RecordedEvent;
 import jdk.jfr.consumer.RecordedStackTrace;
@@ -67,10 +67,10 @@ class TLABProcessorTest {
   public static final long THREAD_ID = 606L;
   public static final long OS_THREAD_ID = 0x707L;
 
-  static final InMemoryLogExporter logExporter = InMemoryLogExporter.create();
-  static final LogEmitter logEmitter =
-      SdkLogEmitterProvider.builder()
-          .addLogProcessor(SimpleLogProcessor.create(logExporter))
+  static final InMemoryLogRecordExporter logExporter = InMemoryLogRecordExporter.create();
+  static final Logger otelLogger =
+      SdkLoggerProvider.builder()
+          .addLogRecordProcessor(SimpleLogRecordProcessor.create(logExporter))
           .build()
           .get("test");
 
@@ -151,7 +151,7 @@ class TLABProcessorTest {
     AllocationEventExporter allocationEventExporter =
         PlainTextAllocationEventExporter.builder()
             .stackSerializer(serializer)
-            .logEmitter(logEmitter)
+            .logEmitter(otelLogger)
             .commonAttributes(commonAttrs)
             .stackDepth(128)
             .build();
@@ -231,7 +231,7 @@ class TLABProcessorTest {
     AllocationEventExporter allocationEventExporter =
         PlainTextAllocationEventExporter.builder()
             .stackSerializer(serializer)
-            .logEmitter(logEmitter)
+            .logEmitter(otelLogger)
             .commonAttributes(commonAttrs)
             .stackDepth(128)
             .build();

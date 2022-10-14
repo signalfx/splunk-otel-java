@@ -37,15 +37,15 @@ import com.splunk.opentelemetry.profiler.exporter.PlainTextCpuEventExporter;
 import com.splunk.opentelemetry.profiler.exporter.PprofCpuEventExporter;
 import com.splunk.opentelemetry.profiler.util.FileDeleter;
 import com.splunk.opentelemetry.profiler.util.HelpfulExecutors;
+import io.opentelemetry.api.logs.Logger;
 import io.opentelemetry.javaagent.extension.AgentListener;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
-import io.opentelemetry.sdk.logs.LogEmitter;
-import io.opentelemetry.sdk.logs.LogProcessor;
-import io.opentelemetry.sdk.logs.SdkLogEmitterProvider;
-import io.opentelemetry.sdk.logs.export.BatchLogProcessor;
-import io.opentelemetry.sdk.logs.export.LogExporter;
-import io.opentelemetry.sdk.logs.export.SimpleLogProcessor;
+import io.opentelemetry.sdk.logs.LogRecordProcessor;
+import io.opentelemetry.sdk.logs.SdkLoggerProvider;
+import io.opentelemetry.sdk.logs.export.BatchLogRecordProcessor;
+import io.opentelemetry.sdk.logs.export.LogRecordExporter;
+import io.opentelemetry.sdk.logs.export.SimpleLogRecordProcessor;
 import io.opentelemetry.sdk.resources.Resource;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -53,12 +53,11 @@ import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Consumer;
-import java.util.logging.Logger;
 
 @AutoService(AgentListener.class)
 public class JfrActivator implements AgentListener {
 
-  private static final Logger logger = Logger.getLogger(JfrActivator.class.getName());
+  private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(JfrActivator.class.getName());
   private static final int MAX_BATCH_SIZE = 250;
   private static final Duration MAX_TIME_BETWEEN_BATCHES = Duration.ofSeconds(10);
   private final ExecutorService executor = HelpfulExecutors.newSingleThreadExecutor("JFR Profiler");
@@ -109,20 +108,20 @@ public class JfrActivator implements AgentListener {
     SpanContextualizer spanContextualizer = new SpanContextualizer();
     EventPeriods periods = new EventPeriods(jfrSettings::get);
     LogDataCommonAttributes commonAttributes = new LogDataCommonAttributes(periods);
-    LogExporter logsExporter = LogExporterBuilder.fromConfig(config);
+    LogRecordExporter logsExporter = LogExporterBuilder.fromConfig(config);
 
     DataFormat cpuDataFormat = Configuration.getCpuDataFormat(config);
     CpuEventExporter cpuEventExporter;
     if (cpuDataFormat == DataFormat.TEXT) {
       cpuEventExporter =
           PlainTextCpuEventExporter.builder()
-              .logEmitter(buildLogEmitter(BatchLogProcessorHolder.get(logsExporter), resource))
+              .otelLogger(buildOtelLogger(BatchLogProcessorHolder.get(logsExporter), resource))
               .commonAttributes(commonAttributes)
               .build();
     } else {
       cpuEventExporter =
           PprofCpuEventExporter.builder()
-              .logEmitter(buildLogEmitter(SimpleLogProcessor.create(logsExporter), resource))
+              .otelLogger(buildOtelLogger(SimpleLogRecordProcessor.create(logsExporter), resource))
               .dataFormat(cpuDataFormat)
               .eventPeriods(periods)
               .stackDepth(stackDepth)
@@ -138,14 +137,14 @@ public class JfrActivator implements AgentListener {
     if (allocationDataFormat == DataFormat.TEXT) {
       allocationEventExporter =
           PlainTextAllocationEventExporter.builder()
-              .logEmitter(buildLogEmitter(BatchLogProcessorHolder.get(logsExporter), resource))
+              .logEmitter(buildOtelLogger(BatchLogProcessorHolder.get(logsExporter), resource))
               .commonAttributes(commonAttributes)
               .stackDepth(stackDepth)
               .build();
     } else {
       allocationEventExporter =
           PprofAllocationEventExporter.builder()
-              .logEmitter(buildLogEmitter(SimpleLogProcessor.create(logsExporter), resource))
+              .otelLogger(buildOtelLogger(SimpleLogRecordProcessor.create(logsExporter), resource))
               .dataFormat(allocationDataFormat)
               .stackDepth(stackDepth)
               .build();
@@ -193,12 +192,12 @@ public class JfrActivator implements AgentListener {
     dirCleanup.registerShutdownHook();
   }
 
-  private LogEmitter buildLogEmitter(LogProcessor logProcessor, Resource resource) {
-    return SdkLogEmitterProvider.builder()
-        .addLogProcessor(logProcessor)
+  private Logger buildOtelLogger(LogRecordProcessor logProcessor, Resource resource) {
+    return SdkLoggerProvider.builder()
+        .addLogRecordProcessor(logProcessor)
         .setResource(resource)
         .build()
-        .logEmitterBuilder(ProfilingSemanticAttributes.OTEL_INSTRUMENTATION_NAME)
+        .loggerBuilder(ProfilingSemanticAttributes.OTEL_INSTRUMENTATION_NAME)
         .setInstrumentationVersion(ProfilingSemanticAttributes.OTEL_INSTRUMENTATION_VERSION)
         .build();
   }
@@ -243,15 +242,15 @@ public class JfrActivator implements AgentListener {
   }
 
   private static class BatchLogProcessorHolder {
-    private static LogProcessor INSTANCE;
+    private static LogRecordProcessor INSTANCE;
 
     // initialize BatchLogProcessor only if it is needed and if it is needed initialize it only
     // once
-    static LogProcessor get(LogExporter logsExporter) {
+    static LogRecordProcessor get(LogRecordExporter logsExporter) {
 
       if (INSTANCE == null) {
         INSTANCE =
-            BatchLogProcessor.builder(logsExporter)
+            BatchLogRecordProcessor.builder(logsExporter)
                 .setScheduleDelay(MAX_TIME_BETWEEN_BATCHES)
                 .setMaxExportBatchSize(MAX_BATCH_SIZE)
                 .build();

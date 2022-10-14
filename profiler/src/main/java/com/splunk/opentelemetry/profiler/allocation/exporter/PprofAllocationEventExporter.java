@@ -34,8 +34,8 @@ import com.splunk.opentelemetry.profiler.ProfilingDataType;
 import com.splunk.opentelemetry.profiler.allocation.sampler.AllocationEventSampler;
 import com.splunk.opentelemetry.profiler.exporter.PprofLogDataExporter;
 import com.splunk.opentelemetry.profiler.pprof.Pprof;
+import io.opentelemetry.api.logs.Logger;
 import io.opentelemetry.api.trace.SpanContext;
-import io.opentelemetry.sdk.logs.LogEmitter;
 import java.time.Instant;
 import jdk.jfr.consumer.RecordedEvent;
 import jdk.jfr.consumer.RecordedMethod;
@@ -53,7 +53,7 @@ public class PprofAllocationEventExporter implements AllocationEventExporter {
     this.stackDepth = builder.stackDepth;
     this.pprofLogDataExporter =
         new PprofLogDataExporter(
-            builder.logEmitter, ProfilingDataType.ALLOCATION, builder.dataFormat);
+            builder.otelLogger, ProfilingDataType.ALLOCATION, builder.dataFormat);
   }
 
   @Override
@@ -150,7 +150,7 @@ public class PprofAllocationEventExporter implements AllocationEventExporter {
   }
 
   public static class Builder {
-    private LogEmitter logEmitter;
+    private Logger otelLogger;
     private DataFormat dataFormat;
     private int stackDepth;
 
@@ -158,8 +158,8 @@ public class PprofAllocationEventExporter implements AllocationEventExporter {
       return new PprofAllocationEventExporter(this);
     }
 
-    public Builder logEmitter(LogEmitter logEmitter) {
-      this.logEmitter = logEmitter;
+    public Builder otelLogger(Logger otelLogger) {
+      this.otelLogger = otelLogger;
       return this;
     }
 

@@ -23,7 +23,7 @@ class WildflyServiceNameDetector extends AppServerServiceNameDetector {
   private static final Logger logger = Logger.getLogger(WildflyServiceNameDetector.class.getName());
 
   WildflyServiceNameDetector(ResourceLocator locator, WildflyAppServer appServer) {
-    super(appServer, locator);
+    super(appServer);
   }
 
 }

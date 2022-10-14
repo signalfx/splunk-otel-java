@@ -23,7 +23,7 @@ class JettyServiceNameDetector extends AppServerServiceNameDetector {
   private static final Logger logger = Logger.getLogger(JettyServiceNameDetector.class.getName());
 
   JettyServiceNameDetector(ResourceLocator locator, JettyAppServer appServer) {
-    super(appServer, locator);
+    super(appServer);
   }
 
 }

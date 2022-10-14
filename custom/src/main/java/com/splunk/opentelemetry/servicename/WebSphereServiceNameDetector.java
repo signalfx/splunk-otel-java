@@ -34,7 +34,7 @@ class WebSphereServiceNameDetector extends AppServerServiceNameDetector {
       Logger.getLogger(WebSphereServiceNameDetector.class.getName());
 
   WebSphereServiceNameDetector(ResourceLocator locator, WebSphereAppServer appServer) {
-    super(appServer, locator);
+    super(appServer);
   }
 
   @Override

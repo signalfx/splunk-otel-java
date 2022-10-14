@@ -19,6 +19,6 @@ package com.splunk.opentelemetry.servicename;
 class TomeeServiceNameDetector extends AppServerServiceNameDetector {
 
   TomeeServiceNameDetector(ResourceLocator locator, TomeeAppServer appServer) {
-    super(appServer, locator);
+    super(appServer);
   }
 }

@@ -19,6 +19,6 @@ package com.splunk.opentelemetry.servicename;
 class GlassfishServiceNameDetector extends AppServerServiceNameDetector {
 
   GlassfishServiceNameDetector(ResourceLocator locator, GlassfishAppServer appServer) {
-    super(appServer, locator);
+    super(appServer);
   }
 }

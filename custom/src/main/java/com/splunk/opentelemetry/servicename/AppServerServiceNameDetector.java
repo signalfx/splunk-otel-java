@@ -44,11 +44,9 @@ abstract class AppServerServiceNameDetector extends ServiceNameDetector {
       Logger.getLogger(AppServerServiceNameDetector.class.getName());
 
   final AppServer appServer;
-  final ResourceLocator locator;
 
-  AppServerServiceNameDetector(AppServer appServer, ResourceLocator locator) {
+  AppServerServiceNameDetector(AppServer appServer) {
     this.appServer = appServer;
-    this.locator = locator;
   }
 
   @Override

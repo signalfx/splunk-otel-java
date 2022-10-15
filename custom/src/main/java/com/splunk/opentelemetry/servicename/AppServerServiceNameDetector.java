@@ -23,6 +23,7 @@ import java.nio.file.Path;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import javax.annotation.Nullable;
 
 final class AppServerServiceNameDetector implements ServiceNameDetector {
 
@@ -36,7 +37,7 @@ final class AppServerServiceNameDetector implements ServiceNameDetector {
   }
 
   @Override
-  public String detect() throws Exception {
+  public @Nullable String detect() throws Exception {
     if (appServer.getServerClass() == null) {
       return null;
     }

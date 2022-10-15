@@ -27,6 +27,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import javax.annotation.Nullable;
 
 class WebSphereServiceNameDetector implements ServiceNameDetector {
 
@@ -39,7 +40,7 @@ class WebSphereServiceNameDetector implements ServiceNameDetector {
   }
 
   @Override
-  public String detect() throws Exception {
+  public @Nullable String detect() throws Exception {
     if (appServer.getServerClass() == null) {
       return null;
     }

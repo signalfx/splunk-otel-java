@@ -19,6 +19,7 @@ package com.splunk.opentelemetry.servicename;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.List;
+import javax.annotation.Nullable;
 
 /**
  * This class provides a ServiceNameDetector that knows how to find and parse the most common
@@ -38,7 +39,7 @@ final class CommonAppServersServiceNameDetector implements ServiceNameDetector {
   }
 
   @Override
-  public String detect() throws Exception {
+  public @Nullable String detect() throws Exception {
     return delegate.detect();
   }
 

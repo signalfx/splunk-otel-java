@@ -1,10 +1,13 @@
 package com.splunk.opentelemetry.servicename;
 
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * This class provides a ServiceNameDetector that knows how to find and parse the
+ * most common application server configuration files.
+ */
 final class CommonAppServersServiceNameDetector implements ServiceNameDetector {
 
   private final DelegatingServiceNameDetector delegate;

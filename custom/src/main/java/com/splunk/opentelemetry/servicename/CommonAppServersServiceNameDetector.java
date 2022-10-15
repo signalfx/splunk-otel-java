@@ -19,29 +19,18 @@ package com.splunk.opentelemetry.servicename;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.List;
-import javax.annotation.Nullable;
 
 /**
- * This class provides a ServiceNameDetector that knows how to find and parse the most common
- * application server configuration files.
+ * This class is just a factory that provides a ServiceNameDetector that knows how to find and parse
+ * the most common application server configuration files.
  */
-final class CommonAppServersServiceNameDetector implements ServiceNameDetector {
-
-  private final DelegatingServiceNameDetector delegate;
+final class CommonAppServersServiceNameDetector {
 
   static ServiceNameDetector create() {
-    DelegatingServiceNameDetector delegate = new DelegatingServiceNameDetector(detectors());
-    return new CommonAppServersServiceNameDetector(delegate);
+    return new DelegatingServiceNameDetector(detectors());
   }
 
-  private CommonAppServersServiceNameDetector(DelegatingServiceNameDetector delegate) {
-    this.delegate = delegate;
-  }
-
-  @Override
-  public @Nullable String detect() throws Exception {
-    return delegate.detect();
-  }
+  private CommonAppServersServiceNameDetector() {}
 
   private static List<ServiceNameDetector> detectors() {
     ResourceLocator locator = new ResourceLocatorImpl();

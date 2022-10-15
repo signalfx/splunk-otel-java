@@ -16,21 +16,11 @@
 
 package com.splunk.opentelemetry.servicename;
 
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.List;
-import java.util.logging.Logger;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import static java.util.logging.Level.FINE;
 
 class WebSphereAppServer implements AppServer {
 
-  private final static String SERVER_CLASS_NAME = "com.ibm.wsspi.bootstrap.WSPreLauncher";
+  private static final String SERVER_CLASS_NAME = "com.ibm.wsspi.bootstrap.WSPreLauncher";
   private final ResourceLocator locator;
 
   WebSphereAppServer(ResourceLocator locator) {

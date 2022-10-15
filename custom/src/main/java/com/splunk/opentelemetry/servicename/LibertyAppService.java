@@ -16,11 +16,11 @@
 
 package com.splunk.opentelemetry.servicename;
 
+import static java.util.logging.Level.FINE;
+
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.logging.Logger;
-
-import static java.util.logging.Level.FINE;
 
 class LibertyAppService implements AppServer {
 

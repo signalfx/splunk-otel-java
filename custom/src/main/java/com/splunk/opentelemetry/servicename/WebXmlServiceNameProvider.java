@@ -17,7 +17,6 @@
 package com.splunk.opentelemetry.servicename;
 
 import static io.opentelemetry.semconv.resource.attributes.ResourceAttributes.SERVICE_NAME;
-import static java.util.logging.Level.FINER;
 import static java.util.logging.Level.INFO;
 
 import com.google.auto.service.AutoService;
@@ -26,8 +25,8 @@ import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import io.opentelemetry.sdk.autoconfigure.spi.ResourceProvider;
 import io.opentelemetry.sdk.autoconfigure.spi.internal.ConditionalResourceProvider;
 import io.opentelemetry.sdk.resources.Resource;
-import javax.annotation.Nullable;
 import java.util.logging.Logger;
+import javax.annotation.Nullable;
 
 @AutoService(ResourceProvider.class)
 public class WebXmlServiceNameProvider implements ConditionalResourceProvider {
@@ -50,7 +49,8 @@ public class WebXmlServiceNameProvider implements ConditionalResourceProvider {
     try {
       return detector.detect();
     } catch (Exception e) {
-      logger.log(INFO, "Failed to find a service name using common application server strategies: ", e);
+      logger.log(
+          INFO, "Failed to find a service name using common application server strategies: ", e);
     }
     return null;
   }

@@ -25,7 +25,8 @@ import java.util.logging.Logger;
 
 final class DelegatingServiceNameDetector implements ServiceNameDetector {
 
-  private static final Logger logger = Logger.getLogger(DelegatingServiceNameDetector.class.getName());
+  private static final Logger logger =
+      Logger.getLogger(DelegatingServiceNameDetector.class.getName());
 
   private final List<ServiceNameDetector> delegates;
 
@@ -53,5 +54,4 @@ final class DelegatingServiceNameDetector implements ServiceNameDetector {
 
     return null;
   }
-
 }

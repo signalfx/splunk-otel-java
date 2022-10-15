@@ -155,7 +155,6 @@ public class AppServerServiceNameDetectorTest {
       return locator.findClass("ignored");
     }
 
-
     @Override
     public boolean isValidAppName(Path path) {
       if (Files.isDirectory(path)) {
@@ -174,7 +173,6 @@ public class AppServerServiceNameDetectorTest {
       return !"ROOT".equals(name) || !"Welcome to Tomcat".equals(result);
     }
   }
-
 
   private static class TestResourceLocator implements ResourceLocator {
 

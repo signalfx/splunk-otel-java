@@ -16,18 +16,18 @@
 
 package com.splunk.opentelemetry.servicename;
 
+import static java.util.logging.Level.FINE;
+
 import com.google.common.annotations.VisibleForTesting;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.logging.Logger;
 
-import static java.util.logging.Level.FINE;
-
 class JettyAppServer implements AppServer {
 
   private static final Logger logger = Logger.getLogger(JettyAppServer.class.getName());
-  private final static String SERVER_CLASS_NAME = "org.eclipse.jetty.start.Main";
+  private static final String SERVER_CLASS_NAME = "org.eclipse.jetty.start.Main";
   private final ResourceLocator locator;
 
   JettyAppServer(ResourceLocator locator) {

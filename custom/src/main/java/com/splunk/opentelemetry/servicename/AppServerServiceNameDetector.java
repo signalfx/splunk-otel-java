@@ -82,5 +82,4 @@ final class AppServerServiceNameDetector implements ServiceNameDetector {
 
     return null;
   }
-
 }

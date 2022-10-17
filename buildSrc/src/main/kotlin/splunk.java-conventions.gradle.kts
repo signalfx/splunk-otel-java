@@ -13,11 +13,11 @@ repositories {
   }
 }
 
-val otelVersion = "1.18.0"
-val otelAlphaVersion = "1.18.0-alpha"
-val otelContribAlphaVersion = "1.17.0-alpha"
-val otelInstrumentationVersion = "1.18.0"
-val otelInstrumentationAlphaVersion = "1.18.0-alpha"
+val otelVersion = "1.19.0"
+val otelAlphaVersion = "1.19.0-alpha"
+val otelContribAlphaVersion = "1.19.0-alpha"
+val otelInstrumentationVersion = "1.19.0"
+val otelInstrumentationAlphaVersion = "1.19.0-alpha"
 val micrometerVersion = "1.9.5"
 
 // instrumentation version is used to compute Implementation-Version manifest attribute
@@ -61,6 +61,9 @@ extensions.configure<DependencyManagementExtension>("dependencyManagement") {
       entry("opentelemetry-muzzle")
       entry("opentelemetry-testing-common")
     }
+    dependencySet("io.opentelemetry.instrumentation:$otelInstrumentationAlphaVersion") {
+      entry("opentelemetry-netty-4.1")
+    }
     dependencySet("io.opentelemetry.javaagent.instrumentation:$otelInstrumentationAlphaVersion") {
       entry("opentelemetry-javaagent-netty-3.8")
       entry("opentelemetry-javaagent-netty-4.0")
@@ -98,6 +101,7 @@ dependencies {
   add("testImplementation", "org.junit.jupiter:junit-jupiter-api")
   add("testImplementation", "org.junit.jupiter:junit-jupiter-params")
   add("testRuntimeOnly", "org.junit.jupiter:junit-jupiter-engine")
+  add("testRuntimeOnly", "org.slf4j:slf4j-api:2.0.3")
 }
 
 tasks.withType<Test>().configureEach {

@@ -32,13 +32,13 @@ import com.splunk.opentelemetry.profiler.ProfilingDataType;
 import com.splunk.opentelemetry.profiler.context.SpanLinkage;
 import com.splunk.opentelemetry.profiler.context.StackToSpanLinkage;
 import com.splunk.opentelemetry.profiler.events.EventPeriods;
+import io.opentelemetry.api.logs.Logger;
 import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.api.trace.TraceFlags;
 import io.opentelemetry.api.trace.TraceState;
-import io.opentelemetry.sdk.logs.LogEmitter;
-import io.opentelemetry.sdk.logs.SdkLogEmitterProvider;
-import io.opentelemetry.sdk.logs.export.InMemoryLogExporter;
-import io.opentelemetry.sdk.logs.export.SimpleLogProcessor;
+import io.opentelemetry.sdk.logs.SdkLoggerProvider;
+import io.opentelemetry.sdk.logs.export.InMemoryLogRecordExporter;
+import io.opentelemetry.sdk.logs.export.SimpleLogRecordProcessor;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.concurrent.TimeUnit;
@@ -46,10 +46,10 @@ import org.junit.jupiter.api.Test;
 
 class PlainTextCpuEventExporterTest {
 
-  static final InMemoryLogExporter logExporter = InMemoryLogExporter.create();
-  static final LogEmitter logEmitter =
-      SdkLogEmitterProvider.builder()
-          .addLogProcessor(SimpleLogProcessor.create(logExporter))
+  static final InMemoryLogRecordExporter logExporter = InMemoryLogRecordExporter.create();
+  static final Logger otelLogger =
+      SdkLoggerProvider.builder()
+          .addLogRecordProcessor(SimpleLogRecordProcessor.create(logExporter))
           .build()
           .get("test");
 
@@ -72,7 +72,7 @@ class PlainTextCpuEventExporterTest {
 
     PlainTextCpuEventExporter cpuEventExporter =
         PlainTextCpuEventExporter.builder()
-            .logEmitter(logEmitter)
+            .otelLogger(otelLogger)
             .commonAttributes(new LogDataCommonAttributes(periods))
             .build();
 

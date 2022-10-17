@@ -17,10 +17,10 @@
 package com.splunk.opentelemetry.profiler;
 
 import com.google.common.annotations.VisibleForTesting;
-import io.opentelemetry.exporter.otlp.logs.OtlpGrpcLogExporter;
-import io.opentelemetry.exporter.otlp.logs.OtlpGrpcLogExporterBuilder;
+import io.opentelemetry.exporter.otlp.logs.OtlpGrpcLogRecordExporter;
+import io.opentelemetry.exporter.otlp.logs.OtlpGrpcLogRecordExporterBuilder;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
-import io.opentelemetry.sdk.logs.export.LogExporter;
+import io.opentelemetry.sdk.logs.export.LogRecordExporter;
 import java.util.function.Supplier;
 
 class LogExporterBuilder {
@@ -28,14 +28,14 @@ class LogExporterBuilder {
   static final String EXTRA_CONTENT_TYPE = "Extra-Content-Type";
   static final String STACKTRACES_HEADER_VALUE = "otel-profiling-stacktraces";
 
-  static LogExporter fromConfig(ConfigProperties config) {
-    return fromConfig(config, OtlpGrpcLogExporter::builder);
+  static LogRecordExporter fromConfig(ConfigProperties config) {
+    return fromConfig(config, OtlpGrpcLogRecordExporter::builder);
   }
 
   @VisibleForTesting
-  static LogExporter fromConfig(
-      ConfigProperties config, Supplier<OtlpGrpcLogExporterBuilder> makeBuilder) {
-    OtlpGrpcLogExporterBuilder builder = makeBuilder.get();
+  static LogRecordExporter fromConfig(
+      ConfigProperties config, Supplier<OtlpGrpcLogRecordExporterBuilder> makeBuilder) {
+    OtlpGrpcLogRecordExporterBuilder builder = makeBuilder.get();
     String ingestUrl = Configuration.getConfigUrl(config);
     if (ingestUrl != null) {
       builder.setEndpoint(ingestUrl);

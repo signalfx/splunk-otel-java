@@ -26,10 +26,10 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import io.opentelemetry.exporter.otlp.logs.OtlpGrpcLogExporter;
-import io.opentelemetry.exporter.otlp.logs.OtlpGrpcLogExporterBuilder;
+import io.opentelemetry.exporter.otlp.logs.OtlpGrpcLogRecordExporter;
+import io.opentelemetry.exporter.otlp.logs.OtlpGrpcLogRecordExporterBuilder;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
-import io.opentelemetry.sdk.logs.export.LogExporter;
+import io.opentelemetry.sdk.logs.export.LogRecordExporter;
 import org.junit.jupiter.api.Test;
 
 class LogExporterBuilderTest {
@@ -37,13 +37,13 @@ class LogExporterBuilderTest {
   @Test
   void testBuildSimple() {
     ConfigProperties config = mock(ConfigProperties.class);
-    OtlpGrpcLogExporterBuilder builder = mock(OtlpGrpcLogExporterBuilder.class);
-    OtlpGrpcLogExporter expected = mock(OtlpGrpcLogExporter.class);
+    OtlpGrpcLogRecordExporterBuilder builder = mock(OtlpGrpcLogRecordExporterBuilder.class);
+    OtlpGrpcLogRecordExporter expected = mock(OtlpGrpcLogRecordExporter.class);
 
     when(builder.addHeader(EXTRA_CONTENT_TYPE, STACKTRACES_HEADER_VALUE)).thenReturn(builder);
     when(builder.build()).thenReturn(expected);
 
-    LogExporter exporter = LogExporterBuilder.fromConfig(config, () -> builder);
+    LogRecordExporter exporter = LogExporterBuilder.fromConfig(config, () -> builder);
     assertSame(expected, exporter);
     verify(builder, never()).setEndpoint(anyString());
   }
@@ -53,8 +53,8 @@ class LogExporterBuilderTest {
     String endpoint = "http://example.com:9122/";
 
     ConfigProperties config = mock(ConfigProperties.class);
-    OtlpGrpcLogExporterBuilder builder = mock(OtlpGrpcLogExporterBuilder.class);
-    OtlpGrpcLogExporter expected = mock(OtlpGrpcLogExporter.class);
+    OtlpGrpcLogRecordExporterBuilder builder = mock(OtlpGrpcLogRecordExporterBuilder.class);
+    OtlpGrpcLogRecordExporter expected = mock(OtlpGrpcLogRecordExporter.class);
 
     when(builder.addHeader(EXTRA_CONTENT_TYPE, STACKTRACES_HEADER_VALUE)).thenReturn(builder);
     when(builder.build()).thenReturn(expected);
@@ -63,7 +63,7 @@ class LogExporterBuilderTest {
         .thenReturn("http://shadowed.example.com:9122/");
     when(config.getString(Configuration.CONFIG_KEY_INGEST_URL, "http://shadowed.example.com:9122/"))
         .thenReturn(endpoint);
-    LogExporter exporter = LogExporterBuilder.fromConfig(config, () -> builder);
+    LogRecordExporter exporter = LogExporterBuilder.fromConfig(config, () -> builder);
 
     assertNotNull(exporter);
     verify(builder).setEndpoint(endpoint);

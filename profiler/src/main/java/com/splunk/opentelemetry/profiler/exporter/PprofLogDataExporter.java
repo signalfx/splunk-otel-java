@@ -25,21 +25,21 @@ import static java.util.logging.Level.FINE;
 import com.splunk.opentelemetry.profiler.Configuration.DataFormat;
 import com.splunk.opentelemetry.profiler.ProfilingDataType;
 import io.opentelemetry.api.common.Attributes;
-import io.opentelemetry.sdk.logs.LogEmitter;
+import io.opentelemetry.api.logs.Logger;
 import java.nio.charset.StandardCharsets;
-import java.util.logging.Logger;
 
 public class PprofLogDataExporter {
-  private static final Logger logger = Logger.getLogger(PprofLogDataExporter.class.getName());
+  private static final java.util.logging.Logger logger =
+      java.util.logging.Logger.getLogger(PprofLogDataExporter.class.getName());
 
-  private final LogEmitter logEmitter;
+  private final Logger otelLogger;
   private final ProfilingDataType dataType;
   private final DataFormat dataFormat;
   private final Attributes commonAttributes;
 
   public PprofLogDataExporter(
-      LogEmitter logEmitter, ProfilingDataType dataType, DataFormat dataFormat) {
-    this.logEmitter = logEmitter;
+      Logger otelLogger, ProfilingDataType dataType, DataFormat dataFormat) {
+    this.otelLogger = otelLogger;
     this.dataType = dataType;
     this.dataFormat = dataFormat;
     this.commonAttributes =
@@ -60,6 +60,6 @@ public class PprofLogDataExporter {
 
     String body = new String(bytes, StandardCharsets.ISO_8859_1);
 
-    logEmitter.logRecordBuilder().setBody(body).setAllAttributes(commonAttributes).emit();
+    otelLogger.logRecordBuilder().setBody(body).setAllAttributes(commonAttributes).emit();
   }
 }

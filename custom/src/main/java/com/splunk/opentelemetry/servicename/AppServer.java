@@ -40,7 +40,6 @@ public interface AppServer {
   default boolean supportsEar() {
     return true;
   }
-  ;
 
   /** Use to ignore default applications that are bundled with the app server. */
   default boolean isValidAppName(Path path) {

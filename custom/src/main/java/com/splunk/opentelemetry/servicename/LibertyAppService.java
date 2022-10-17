@@ -22,16 +22,19 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.logging.Logger;
 
-class LibertyServiceNameDetector extends AppServerServiceNameDetector {
+class LibertyAppService implements AppServer {
 
-  private static final Logger logger = Logger.getLogger(LibertyServiceNameDetector.class.getName());
+  private final String SERVICE_CLASS_NAME = "com.ibm.ws.kernel.boot.cmdline.EnvCheck";
 
-  LibertyServiceNameDetector(ResourceLocator locator) {
-    super(locator, "com.ibm.ws.kernel.boot.cmdline.EnvCheck", true);
+  private static final Logger logger = Logger.getLogger(LibertyAppService.class.getName());
+  private final ResourceLocator locator;
+
+  LibertyAppService(ResourceLocator locator) {
+    this.locator = locator;
   }
 
   @Override
-  Path getDeploymentDir() {
+  public Path getDeploymentDir() {
     // default installation has
     // WLP_OUTPUT_DIR - libertyDir/usr/servers
     // WLP_USER_DIR - libertyDir/usr
@@ -62,5 +65,10 @@ class LibertyServiceNameDetector extends AppServerServiceNameDetector {
     // <enterpriseApplication> and <application> tags, see
     // https://openliberty.io/docs/latest/reference/config/server-configuration-overview.html
     return serverDir.resolve("dropins");
+  }
+
+  @Override
+  public Class<?> getServerClass() {
+    return locator.findClass(SERVICE_CLASS_NAME);
   }
 }

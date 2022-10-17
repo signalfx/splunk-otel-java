@@ -22,14 +22,17 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-class TomcatServiceNameDetector extends AppServerServiceNameDetector {
+class TomcatAppServer implements AppServer {
 
-  TomcatServiceNameDetector(ResourceLocator locator) {
-    super(locator, "org.apache.catalina.startup.Bootstrap", false);
+  private static final String SERVER_CLASS_NAME = "org.apache.catalina.startup.Bootstrap";
+  private final ResourceLocator locator;
+
+  TomcatAppServer(ResourceLocator locator) {
+    this.locator = locator;
   }
 
   @Override
-  boolean isValidAppName(Path path) {
+  public boolean isValidAppName(Path path) {
     if (Files.isDirectory(path)) {
       String name = path.getFileName().toString();
       return !"docs".equals(name)
@@ -41,13 +44,13 @@ class TomcatServiceNameDetector extends AppServerServiceNameDetector {
   }
 
   @Override
-  boolean isValidResult(Path path, String result) {
+  public boolean isValidResult(Path path, String result) {
     String name = path.getFileName().toString();
     return !"ROOT".equals(name) || !"Welcome to Tomcat".equals(result);
   }
 
   @Override
-  Path getDeploymentDir() throws URISyntaxException {
+  public Path getDeploymentDir() throws URISyntaxException {
     String catalinaBase = System.getProperty("catalina.base");
     if (catalinaBase != null) {
       return Paths.get(catalinaBase, "webapps");
@@ -60,10 +63,20 @@ class TomcatServiceNameDetector extends AppServerServiceNameDetector {
 
     // if neither catalina.base nor catalina.home is set try to deduce the location of webapps based
     // on the loaded server class.
-    URL jarUrl = locator.getClassLocation(serverClass);
+    URL jarUrl = locator.getClassLocation(getServerClass());
     Path jarPath = Paths.get(jarUrl.toURI());
     // jar is in bin/. First call to getParent strips jar name and the second bin/. We'll end up
     // with a path to server root to which we append the autodeploy directory.
     return jarPath.getParent().getParent().resolve("webapps");
+  }
+
+  @Override
+  public Class<?> getServerClass() {
+    return locator.findClass(SERVER_CLASS_NAME);
+  }
+
+  @Override
+  public boolean supportsEar() {
+    return false;
   }
 }

@@ -26,6 +26,7 @@ import io.opentelemetry.sdk.autoconfigure.spi.ResourceProvider;
 import io.opentelemetry.sdk.autoconfigure.spi.internal.ConditionalResourceProvider;
 import io.opentelemetry.sdk.resources.Resource;
 import java.util.logging.Logger;
+import javax.annotation.Nullable;
 
 @AutoService(ResourceProvider.class)
 public class WebXmlServiceNameProvider implements ConditionalResourceProvider {
@@ -34,12 +35,24 @@ public class WebXmlServiceNameProvider implements ConditionalResourceProvider {
 
   @Override
   public Resource createResource(ConfigProperties config) {
-    String serviceName = ServiceNameDetector.detectServiceName();
+    String serviceName = detectServiceName();
     if (serviceName != null) {
       logger.log(INFO, "Auto-detected service name '{0}'.", serviceName);
       return Resource.create(Attributes.of(SERVICE_NAME, serviceName));
     }
     return Resource.empty();
+  }
+
+  @Nullable
+  private String detectServiceName() {
+    ServiceNameDetector detector = CommonAppServersServiceNameDetector.create();
+    try {
+      return detector.detect();
+    } catch (Exception e) {
+      logger.log(
+          INFO, "Failed to find a service name using common application server strategies: ", e);
+    }
+    return null;
   }
 
   @Override

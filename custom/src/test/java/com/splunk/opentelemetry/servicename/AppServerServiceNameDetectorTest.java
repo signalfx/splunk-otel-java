@@ -121,29 +121,42 @@ public class AppServerServiceNameDetectorTest {
     }
   }
 
-  private static TestServiceNameDetector detector(Path testPath) {
-    return new TestServiceNameDetector(new TestResourceLocator(), testPath);
+  private static ServiceNameDetector detector(Path testPath) {
+    return TestServiceNameDetector.create(new TestResourceLocator(), testPath);
   }
 
-  private static TestServiceNameDetector detector(String testName) {
+  private static ServiceNameDetector detector(String testName) {
     return detector(Paths.get("src/test/resources/servicename/" + testName));
   }
 
-  private static class TestServiceNameDetector extends AppServerServiceNameDetector {
+  private static class TestServiceNameDetector {
+
+    static ServiceNameDetector create(ResourceLocator locator, Path testPath) {
+      return new AppServerServiceNameDetector(new TestAppServer(locator, testPath));
+    }
+  }
+
+  private static class TestAppServer implements AppServer {
+    private final ResourceLocator locator;
     private final Path testPath;
 
-    TestServiceNameDetector(ResourceLocator locator, Path testPath) {
-      super(locator, null, true);
+    public TestAppServer(ResourceLocator locator, Path testPath) {
+      this.locator = locator;
       this.testPath = testPath;
     }
 
     @Override
-    Path getDeploymentDir() {
+    public Path getDeploymentDir() throws Exception {
       return testPath.resolve("webapps");
     }
 
     @Override
-    boolean isValidAppName(Path path) {
+    public Class<?> getServerClass() {
+      return locator.findClass("ignored");
+    }
+
+    @Override
+    public boolean isValidAppName(Path path) {
       if (Files.isDirectory(path)) {
         String name = path.getFileName().toString();
         return !"docs".equals(name)
@@ -155,7 +168,7 @@ public class AppServerServiceNameDetectorTest {
     }
 
     @Override
-    boolean isValidResult(Path path, String result) {
+    public boolean isValidResult(Path path, String result) {
       String name = path.getFileName().toString();
       return !"ROOT".equals(name) || !"Welcome to Tomcat".equals(result);
     }

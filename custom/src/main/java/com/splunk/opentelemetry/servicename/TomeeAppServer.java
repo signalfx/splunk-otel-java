@@ -22,14 +22,17 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-class TomeeServiceNameDetector extends AppServerServiceNameDetector {
+class TomeeAppServer implements AppServer {
 
-  TomeeServiceNameDetector(ResourceLocator locator) {
-    super(locator, "org.apache.catalina.startup.Bootstrap", true);
+  private static final String SERVER_CLASS_NAME = "org.apache.catalina.startup.Bootstrap";
+  private final ResourceLocator locator;
+
+  TomeeAppServer(ResourceLocator locator) {
+    this.locator = locator;
   }
 
   @Override
-  Path getDeploymentDir() throws URISyntaxException {
+  public Path getDeploymentDir() throws URISyntaxException {
     Path rootDir = getRootDir();
 
     // check for presence of tomee configuration file, if it doesn't exist then we have tomcat not
@@ -46,6 +49,11 @@ class TomeeServiceNameDetector extends AppServerServiceNameDetector {
     return rootDir.resolve("apps");
   }
 
+  @Override
+  public Class<?> getServerClass() {
+    return locator.findClass(SERVER_CLASS_NAME);
+  }
+
   private Path getRootDir() throws URISyntaxException {
     String catalinaBase = System.getProperty("catalina.base");
     if (catalinaBase != null) {
@@ -59,7 +67,7 @@ class TomeeServiceNameDetector extends AppServerServiceNameDetector {
 
     // if neither catalina.base nor catalina.home is set try to deduce the location of based on the
     // loaded server class.
-    URL jarUrl = locator.getClassLocation(serverClass);
+    URL jarUrl = locator.getClassLocation(getServerClass());
     Path jarPath = Paths.get(jarUrl.toURI());
     // jar is in bin/. First call to getParent strips jar name and the second bin/. We'll end up
     // with a path to server root.

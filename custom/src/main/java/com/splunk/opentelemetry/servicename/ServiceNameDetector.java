@@ -16,68 +16,13 @@
 
 package com.splunk.opentelemetry.servicename;
 
-import static java.util.logging.Level.FINE;
+import javax.annotation.Nullable;
 
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.logging.Logger;
-
-abstract class ServiceNameDetector {
-
-  private static final Logger logger = Logger.getLogger(ServiceNameDetector.class.getName());
-
-  abstract String detect() throws Exception;
-
-  public static String detectServiceName() {
-    for (ServiceNameDetector detector : detectors()) {
-      try {
-        String name = detector.detect();
-        if (name != null) {
-          return name;
-        }
-      } catch (Exception exception) {
-        if (logger.isLoggable(FINE)) {
-          logger.log(
-              FINE,
-              "Service name detector '" + detector.getClass().getSimpleName() + "' failed with",
-              exception);
-        }
-      }
-    }
-
-    return null;
-  }
-
-  private static List<ServiceNameDetector> detectors() {
-    ResourceLocator locator = new ResourceLocatorImpl();
-
-    List<ServiceNameDetector> detectors = new ArrayList<>();
-    detectors.add(new TomeeServiceNameDetector(locator));
-    detectors.add(new TomcatServiceNameDetector(locator));
-    detectors.add(new JettyServiceNameDetector(locator));
-    detectors.add(new LibertyServiceNameDetector(locator));
-    detectors.add(new WildflyServiceNameDetector(locator));
-    detectors.add(new GlassfishServiceNameDetector(locator));
-    detectors.add(new WebSphereServiceNameDetector(locator));
-
-    return detectors;
-  }
-
-  private static class ResourceLocatorImpl implements ResourceLocator {
-
-    @Override
-    public Class<?> findClass(String className) {
-      try {
-        return Class.forName(className, false, ClassLoader.getSystemClassLoader());
-      } catch (ClassNotFoundException | LinkageError exception) {
-        return null;
-      }
-    }
-
-    @Override
-    public URL getClassLocation(Class<?> clazz) {
-      return clazz.getProtectionDomain().getCodeSource().getLocation();
-    }
-  }
+/**
+ * Functional interface for implementations that know how to detect a service name for a specific
+ * application server type.
+ */
+public interface ServiceNameDetector {
+  @Nullable
+  String detect() throws Exception;
 }

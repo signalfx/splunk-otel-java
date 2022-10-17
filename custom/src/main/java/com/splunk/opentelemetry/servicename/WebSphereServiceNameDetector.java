@@ -27,32 +27,21 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import javax.annotation.Nullable;
 
-class WebSphereServiceNameDetector extends AppServerServiceNameDetector {
+class WebSphereServiceNameDetector implements ServiceNameDetector {
 
   private static final Logger logger =
       Logger.getLogger(WebSphereServiceNameDetector.class.getName());
+  private final WebSphereAppServer appServer;
 
-  WebSphereServiceNameDetector(ResourceLocator locator) {
-    super(locator, "com.ibm.wsspi.bootstrap.WSPreLauncher", true);
+  WebSphereServiceNameDetector(WebSphereAppServer appServer) {
+    this.appServer = appServer;
   }
 
   @Override
-  boolean isValidAppName(Path path) {
-    // query.ear is bundled with websphere
-    String name = path.getFileName().toString();
-    return !"query.ear".equals(name);
-  }
-
-  @Override
-  Path getDeploymentDir() {
-    // not used
-    return null;
-  }
-
-  @Override
-  String detect() throws Exception {
-    if (serverClass == null) {
+  public @Nullable String detect() throws Exception {
+    if (appServer.getServerClass() == null) {
       return null;
     }
 
@@ -101,7 +90,7 @@ class WebSphereServiceNameDetector extends AppServerServiceNameDetector {
         for (Path path : stream.collect(Collectors.toList())) {
           String fullName = path.getFileName().toString();
           // websphere deploys all applications as ear
-          if (!fullName.endsWith(".ear") || !isValidAppName(path)) {
+          if (!fullName.endsWith(".ear") || !appServer.isValidAppName(path)) {
             logger.log(FINE, "Skipping '{0}'.", path);
             continue;
           }
@@ -120,13 +109,14 @@ class WebSphereServiceNameDetector extends AppServerServiceNameDetector {
           }
           boolean maybeWarDeployment =
               wars.size() == 1 && wars.get(0).getFileName().toString().equals(name + ".war");
+          ParseBuddy parseBuddy = new ParseBuddy(appServer);
           if (maybeWarDeployment) {
-            String result = handleExplodedWar(wars.get(0));
+            String result = parseBuddy.handleExplodedWar(wars.get(0));
             if (result != null) {
               return result;
             }
           }
-          String result = handleExplodedEar(path);
+          String result = parseBuddy.handleExplodedEar(path);
           // Auto-generated display-name in our testapp is app182ceb797ea, ignore similar names
           if (result != null && (!maybeWarDeployment || !result.startsWith(name))) {
             return result;

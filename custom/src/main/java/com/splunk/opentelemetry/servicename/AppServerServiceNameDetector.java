@@ -17,63 +17,32 @@
 package com.splunk.opentelemetry.servicename;
 
 import static java.util.logging.Level.FINE;
-import static java.util.logging.Level.WARNING;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayDeque;
-import java.util.Deque;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
 import javax.annotation.Nullable;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.parsers.SAXParser;
-import javax.xml.parsers.SAXParserFactory;
-import org.xml.sax.Attributes;
-import org.xml.sax.SAXException;
-import org.xml.sax.helpers.DefaultHandler;
 
-abstract class AppServerServiceNameDetector extends ServiceNameDetector {
+final class AppServerServiceNameDetector implements ServiceNameDetector {
 
   private static final Logger logger =
       Logger.getLogger(AppServerServiceNameDetector.class.getName());
 
-  final ResourceLocator locator;
-  final Class<?> serverClass;
-  final boolean supportsEar;
+  final AppServer appServer;
 
-  AppServerServiceNameDetector(
-      ResourceLocator locator, String serverClassName, boolean supportsEar) {
-    this.locator = locator;
-    this.serverClass = locator.findClass(serverClassName);
-    this.supportsEar = supportsEar;
+  AppServerServiceNameDetector(AppServer appServer) {
+    this.appServer = appServer;
   }
-
-  /** Use to ignore default applications that are bundled with the app server. */
-  boolean isValidAppName(Path path) {
-    return true;
-  }
-
-  /** Use to ignore default applications that are bundled with the app server. */
-  boolean isValidResult(Path path, @Nullable String result) {
-    return true;
-  }
-
-  /** Path to directory to be scanned for deployments. */
-  abstract Path getDeploymentDir() throws Exception;
 
   @Override
-  String detect() throws Exception {
-    if (serverClass == null) {
+  public @Nullable String detect() throws Exception {
+    if (appServer.getServerClass() == null) {
       return null;
     }
 
-    Path deploymentDir = getDeploymentDir();
+    Path deploymentDir = appServer.getDeploymentDir();
     if (deploymentDir == null) {
       return null;
     }
@@ -96,174 +65,22 @@ abstract class AppServerServiceNameDetector extends ServiceNameDetector {
   }
 
   private String detectName(Path path) {
-    if (!isValidAppName(path)) {
+    if (!appServer.isValidAppName(path)) {
       logger.log(FINE, "Skipping '{0}'.", path);
       return null;
     }
 
     logger.log(FINE, "Attempting service name detection in '{0}'.", path);
     String name = path.getFileName().toString();
+    ParseBuddy parseBuddy = new ParseBuddy(appServer);
     if (Files.isDirectory(path)) {
-      return handleExplodedApp(path);
+      return parseBuddy.handleExplodedApp(path);
     } else if (name.endsWith(".war")) {
-      return handlePackagedWar(path);
-    } else if (supportsEar && name.endsWith(".ear")) {
-      return handlePackagedEar(path);
+      return parseBuddy.handlePackagedWar(path);
+    } else if (appServer.supportsEar() && name.endsWith(".ear")) {
+      return parseBuddy.handlePackagedEar(path);
     }
 
     return null;
-  }
-
-  private String handleExplodedApp(Path path) {
-    {
-      String result = handleExplodedWar(path);
-      if (result != null) {
-        return result;
-      }
-    }
-    if (supportsEar) {
-      String result = handleExplodedEar(path);
-      if (result != null) {
-        return result;
-      }
-    }
-    return null;
-  }
-
-  private String handlePackagedWar(Path path) {
-    return handlePackaged(path, "WEB-INF/web.xml", new WebXmlHandler());
-  }
-
-  private String handlePackagedEar(Path path) {
-    return handlePackaged(path, "META-INF/application.xml", new ApplicationXmlHandler());
-  }
-
-  private String handlePackaged(Path path, String descriptorPath, DescriptorHandler handler) {
-    try (ZipFile zip = new ZipFile(path.toFile())) {
-      ZipEntry zipEntry = zip.getEntry(descriptorPath);
-      if (zipEntry != null) {
-        return handle(() -> zip.getInputStream(zipEntry), path, handler);
-      }
-    } catch (IOException exception) {
-      if (logger.isLoggable(WARNING)) {
-        logger.log(
-            WARNING, "Failed to read '" + descriptorPath + "' from zip '" + path + "'.", exception);
-      }
-    }
-
-    return null;
-  }
-
-  String handleExplodedWar(Path path) {
-    return handleExploded(path, path.resolve("WEB-INF/web.xml"), new WebXmlHandler());
-  }
-
-  String handleExplodedEar(Path path) {
-    return handleExploded(
-        path, path.resolve("META-INF/application.xml"), new ApplicationXmlHandler());
-  }
-
-  private String handleExploded(Path path, Path descriptor, DescriptorHandler handler) {
-    if (Files.isRegularFile(descriptor)) {
-      return handle(() -> Files.newInputStream(descriptor), path, handler);
-    }
-
-    return null;
-  }
-
-  private String handle(InputStreamSupplier supplier, Path path, DescriptorHandler handler) {
-    try {
-      try (InputStream inputStream = supplier.supply()) {
-        String candidate = parseDescriptor(inputStream, handler);
-        if (isValidResult(path, candidate)) {
-          return candidate;
-        }
-      }
-    } catch (Exception exception) {
-      logger.log(WARNING, "Failed to parse descriptor", exception);
-    }
-
-    return null;
-  }
-
-  private static String parseDescriptor(InputStream inputStream, DescriptorHandler handler)
-      throws ParserConfigurationException, SAXException, IOException {
-    if (SaxParserFactoryHolder.saxParserFactory == null) {
-      return null;
-    }
-    SAXParser saxParser = SaxParserFactoryHolder.saxParserFactory.newSAXParser();
-    saxParser.parse(inputStream, handler);
-    return handler.displayName;
-  }
-
-  private interface InputStreamSupplier {
-    InputStream supply() throws IOException;
-  }
-
-  private static class WebXmlHandler extends DescriptorHandler {
-
-    WebXmlHandler() {
-      super("web-app");
-    }
-  }
-
-  private static class ApplicationXmlHandler extends DescriptorHandler {
-
-    ApplicationXmlHandler() {
-      super("application");
-    }
-  }
-
-  private static class DescriptorHandler extends DefaultHandler {
-    private final String rootElementName;
-    private final Deque<String> currentElement = new ArrayDeque<>();
-    private boolean setDisplayName;
-    String displayName;
-
-    DescriptorHandler(String rootElementName) {
-      this.rootElementName = rootElementName;
-    }
-
-    @Override
-    public void startElement(String uri, String localName, String qName, Attributes attributes) {
-      if (displayName == null
-          && rootElementName.equals(currentElement.peek())
-          && "display-name".equals(qName)) {
-        String lang = attributes.getValue("xml:lang");
-        if (lang == null || "".equals(lang)) {
-          lang = "en"; // en is the default language
-        }
-        if ("en".equals(lang)) {
-          setDisplayName = true;
-        }
-      }
-      currentElement.push(qName);
-    }
-
-    @Override
-    public void endElement(String uri, String localName, String qName) {
-      currentElement.pop();
-      setDisplayName = false;
-    }
-
-    @Override
-    public void characters(char[] ch, int start, int length) {
-      if (setDisplayName) {
-        displayName = new String(ch, start, length);
-      }
-    }
-  }
-
-  private static class SaxParserFactoryHolder {
-    private static final SAXParserFactory saxParserFactory = getSaxParserFactory();
-
-    private static SAXParserFactory getSaxParserFactory() {
-      try {
-        return SAXParserFactory.newInstance();
-      } catch (Throwable throwable) {
-        logger.log(FINE, "XML parser not available.", throwable);
-      }
-      return null;
-    }
   }
 }

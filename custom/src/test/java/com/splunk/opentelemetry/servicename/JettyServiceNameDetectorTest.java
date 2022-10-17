@@ -16,7 +16,7 @@
 
 package com.splunk.opentelemetry.servicename;
 
-import static com.splunk.opentelemetry.servicename.JettyServiceNameDetector.parseJettyBase;
+import static com.splunk.opentelemetry.servicename.JettyAppServer.parseJettyBase;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 

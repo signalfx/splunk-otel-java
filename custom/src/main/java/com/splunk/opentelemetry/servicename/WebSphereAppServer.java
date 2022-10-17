@@ -17,23 +17,31 @@
 package com.splunk.opentelemetry.servicename;
 
 import java.nio.file.Path;
-import java.nio.file.Paths;
 
-class GlassfishServiceNameDetector extends AppServerServiceNameDetector {
+class WebSphereAppServer implements AppServer {
 
-  GlassfishServiceNameDetector(ResourceLocator locator) {
-    super(locator, "com.sun.enterprise.glassfish.bootstrap.ASMain", true);
+  private static final String SERVER_CLASS_NAME = "com.ibm.wsspi.bootstrap.WSPreLauncher";
+  private final ResourceLocator locator;
+
+  WebSphereAppServer(ResourceLocator locator) {
+    this.locator = locator;
   }
 
   @Override
-  Path getDeploymentDir() {
-    String instanceRoot = System.getProperty("com.sun.aas.instanceRoot");
-    if (instanceRoot == null) {
-      return null;
-    }
+  public boolean isValidAppName(Path path) {
+    // query.ear is bundled with websphere
+    String name = path.getFileName().toString();
+    return !"query.ear".equals(name);
+  }
 
-    // besides autodeploy directory it is possible to deploy applications through admin console and
-    // asadmin script, to detect those we would need to parse config/domain.xml
-    return Paths.get(instanceRoot, "autodeploy");
+  @Override
+  public Path getDeploymentDir() {
+    // not used
+    return null;
+  }
+
+  @Override
+  public Class<?> getServerClass() {
+    return locator.findClass(SERVER_CLASS_NAME);
   }
 }

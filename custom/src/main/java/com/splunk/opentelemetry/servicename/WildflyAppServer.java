@@ -24,25 +24,19 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.logging.Logger;
 
-class WildflyServiceNameDetector extends AppServerServiceNameDetector {
+class WildflyAppServer implements AppServer {
 
-  private static final Logger logger = Logger.getLogger(WildflyServiceNameDetector.class.getName());
+  private static final Logger logger = Logger.getLogger(WildflyAppServer.class.getName());
+  private static final String SERVICE_CLASS_NAME = "org.jboss.modules.Main";
 
-  WildflyServiceNameDetector(ResourceLocator locator) {
-    super(locator, "org.jboss.modules.Main", true);
+  private final ResourceLocator locator;
+
+  WildflyAppServer(ResourceLocator locator) {
+    this.locator = locator;
   }
 
   @Override
-  boolean isValidAppName(Path path) {
-    // For exploded applications we should be checking for the presence of ".dodeploy" or
-    // ".deployed" marker files to ensure that we are scanning only applications that are actually
-    // deployed, see
-    // https://access.redhat.com/documentation/en-us/jboss_enterprise_application_platform/6/html/administration_and_configuration_guide/reference_for_deployment_scanner_marker_files1
-    return super.isValidAppName(path);
-  }
-
-  @Override
-  Path getDeploymentDir() throws URISyntaxException {
+  public Path getDeploymentDir() throws URISyntaxException {
     String programArguments = System.getProperty("sun.java.command");
     logger.log(FINE, "Started with arguments '{0}'.", programArguments);
     if (programArguments == null) {
@@ -61,8 +55,22 @@ class WildflyServiceNameDetector extends AppServerServiceNameDetector {
       return Paths.get(jbossBaseDir, "deployments");
     }
 
-    URL jarUrl = locator.getClassLocation(serverClass);
+    URL jarUrl = locator.getClassLocation(getServerClass());
     Path jarPath = Paths.get(jarUrl.toURI());
     return jarPath.getParent().resolve("standalone/deployments");
+  }
+
+  @Override
+  public boolean isValidAppName(Path path) {
+    // For exploded applications we should be checking for the presence of ".dodeploy" or
+    // ".deployed" marker files to ensure that we are scanning only applications that are actually
+    // deployed, see
+    // https://access.redhat.com/documentation/en-us/jboss_enterprise_application_platform/6/html/administration_and_configuration_guide/reference_for_deployment_scanner_marker_files1
+    return AppServer.super.isValidAppName(path);
+  }
+
+  @Override
+  public Class<?> getServerClass() {
+    return locator.findClass(SERVICE_CLASS_NAME);
   }
 }

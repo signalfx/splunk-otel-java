@@ -7,7 +7,7 @@ plugins {
 
 spotless {
   kotlinGradle {
-    ktlint().editorConfigOverride(mapOf("indent_size" to "2", "continuation_indent_size" to "2", "disabled_rules" to "no-wildcard-imports"))
+    ktlint().editorConfigOverride(mapOf("indent_size" to "2", "continuation_indent_size" to "2"))
     target("**/*.gradle.kts")
   }
 }
@@ -24,7 +24,7 @@ repositories {
 dependencies {
   implementation(gradleApi())
 
-  implementation("com.diffplug.spotless:spotless-plugin-gradle:6.9.0")
+  implementation("com.diffplug.spotless:spotless-plugin-gradle:6.11.0")
   implementation("io.opentelemetry.instrumentation:gradle-plugins:1.20.0-alpha-SNAPSHOT")
   implementation("io.spring.gradle:dependency-management-plugin:1.0.14.RELEASE")
 

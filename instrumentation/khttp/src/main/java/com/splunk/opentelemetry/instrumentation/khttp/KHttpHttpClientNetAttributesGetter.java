@@ -30,7 +30,7 @@ final class KHttpHttpClientNetAttributesGetter
 
   @Nullable
   @Override
-  public String peerName(RequestWrapper requestWrapper, @Nullable Response response) {
+  public String peerName(RequestWrapper requestWrapper) {
     if (requestWrapper.parsedUri != null) {
       return requestWrapper.parsedUri.getHost();
     }
@@ -39,7 +39,7 @@ final class KHttpHttpClientNetAttributesGetter
 
   @Nullable
   @Override
-  public Integer peerPort(RequestWrapper requestWrapper, @Nullable Response response) {
+  public Integer peerPort(RequestWrapper requestWrapper) {
     if (requestWrapper.parsedUri != null && requestWrapper.parsedUri.getPort() > 0) {
       return requestWrapper.parsedUri.getPort();
     }

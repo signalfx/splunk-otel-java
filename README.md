@@ -186,6 +186,6 @@ in the Splunk Observability Cloud user documentation.
 
 # License
 
-The Splunk Distribution of OpenTelemetry Java is a distribution of the [OpenTelemetry Instrumentation for Java project](https://github.com/open-telemetry/opentelemetry-java-instrumentation). It is released under the terms of the Apache Software License version 2.0. For more details, see [the license file](./LICENSE).
+The Splunk Distribution of OpenTelemetry Java is a distribution of [OpenTelemetry Instrumentation for Java](https://github.com/open-telemetry/opentelemetry-java-instrumentation). It is licensed under the terms of the Apache Software License version 2.0. For more details, see [the license file](./LICENSE).
 
 >ℹ️&nbsp;&nbsp;SignalFx was acquired by Splunk in October 2019. See [Splunk SignalFx](https://www.splunk.com/en_us/investor-relations/acquisitions/signalfx.html) for more information.

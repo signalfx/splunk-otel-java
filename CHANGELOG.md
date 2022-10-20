@@ -21,6 +21,7 @@ and this repository adheres to [Semantic Versioning](https://semver.org/spec/v2.
 
 - OpenTelemetry Java SDK and OpenTelemetry Instrumentation for Java dependencies have been updated to version 1.19.1.
 - Micrometer dependency has been updated to version 1.9.5. (#947)
+- Update to [signalfx-java](https://github.com/signalfx/signalfx-java) 1.0.25, which updates `jackson-databind` and mitigates GHSA-jjjh-jjxp-wpff and GHSA-rgv9-q543-rqg4 (#968)
 
 ## v1.16.0 - 2022-09-15
 

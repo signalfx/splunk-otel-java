@@ -3,7 +3,7 @@ plugins {
   id("com.google.protobuf") version "0.9.1"
 }
 
-val protobufVersion = "3.21.8"
+val protobufVersion = "3.21.9"
 
 protobuf {
   protoc {

@@ -13,12 +13,10 @@ plugins {
   id("com.gradle.enterprise") version "3.11.3"
 }
 
-if (System.getenv("CI") != null) {
-  gradleEnterprise {
-    buildScan {
-      termsOfServiceUrl = "https://gradle.com/terms-of-service"
-      termsOfServiceAgree = "yes"
-    }
+gradleEnterprise {
+  buildScan {
+    termsOfServiceUrl = "https://gradle.com/terms-of-service"
+    termsOfServiceAgree = if (System.getenv("CI") != null) "yes" else "no"
   }
 }
 

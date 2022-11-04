@@ -47,6 +47,7 @@ import io.opentelemetry.sdk.logs.export.BatchLogRecordProcessor;
 import io.opentelemetry.sdk.logs.export.LogRecordExporter;
 import io.opentelemetry.sdk.logs.export.SimpleLogRecordProcessor;
 import io.opentelemetry.sdk.resources.Resource;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
@@ -67,17 +68,10 @@ public class JfrActivator implements AgentListener {
   @Override
   public void afterAgent(AutoConfiguredOpenTelemetrySdk autoConfiguredOpenTelemetrySdk) {
     ConfigProperties config = autoConfiguredOpenTelemetrySdk.getConfig();
-    if (!config.getBoolean(CONFIG_KEY_ENABLE_PROFILER, false)) {
-      logger.fine("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
-      logger.fine("xxxxxxxxx  JFR PROFILER DISABLED!  xxxxxxxxx");
-      logger.fine("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
+    if (notClearForTakeoff(config)) {
       return;
     }
-    if (!JFR.instance.isAvailable()) {
-      logger.warning(
-          "JDK Flight Recorder (JFR) is not available in this JVM. Profiling is disabled.");
-      return;
-    }
+
     configurationLogger.log(config);
     logger.info("JFR profiler is active.");
     executor.submit(
@@ -85,9 +79,32 @@ public class JfrActivator implements AgentListener {
             () -> activateJfrAndRunForever(config, autoConfiguredOpenTelemetrySdk.getResource())));
   }
 
+  private boolean notClearForTakeoff(ConfigProperties config) {
+    if (!config.getBoolean(CONFIG_KEY_ENABLE_PROFILER, false)) {
+      logger.fine("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
+      logger.fine("xxxxxxxxx  JFR PROFILER DISABLED!  xxxxxxxxx");
+      logger.fine("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
+      return true;
+    }
+    if (!JFR.instance.isAvailable()) {
+      logger.warning(
+          "JDK Flight Recorder (JFR) is not available in this JVM. Profiling is disabled.");
+      return true;
+    }
+
+    Path outputDir = Paths.get(config.getString(CONFIG_KEY_PROFILER_DIRECTORY));
+    if (!Files.isDirectory(outputDir) || !Files.isWritable(outputDir)) {
+      logger.warning(
+          "PROFILER WILL NOT BE STARTED: The configured output directory "
+              + outputDir
+              + " is not writable");
+      return true;
+    }
+    return false;
+  }
+
   private void activateJfrAndRunForever(ConfigProperties config, Resource resource) {
     // can't be null, default value is set in Configuration.getProperties
-    Duration recordingDuration = config.getDuration(CONFIG_KEY_RECORDING_DURATION, null);
 
     Path outputDir = Paths.get(config.getString(CONFIG_KEY_PROFILER_DIRECTORY));
     RecordingFileNamingConvention namingConvention = new RecordingFileNamingConvention(outputDir);
@@ -95,6 +112,7 @@ public class JfrActivator implements AgentListener {
     int stackDepth = Configuration.getStackDepth(config);
     JFR.instance.setStackDepth(stackDepth);
 
+    Duration recordingDuration = config.getDuration(CONFIG_KEY_RECORDING_DURATION, null);
     RecordingEscapeHatch recordingEscapeHatch =
         RecordingEscapeHatch.builder()
             .namingConvention(namingConvention)

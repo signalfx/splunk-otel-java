@@ -47,6 +47,7 @@ import io.opentelemetry.sdk.logs.export.BatchLogRecordProcessor;
 import io.opentelemetry.sdk.logs.export.LogRecordExporter;
 import io.opentelemetry.sdk.logs.export.SimpleLogRecordProcessor;
 import io.opentelemetry.sdk.resources.Resource;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -93,14 +94,32 @@ public class JfrActivator implements AgentListener {
     }
 
     Path outputDir = Paths.get(config.getString(CONFIG_KEY_PROFILER_DIRECTORY));
-    if (!Files.isDirectory(outputDir) || !Files.isWritable(outputDir)) {
-      logger.warning(
-          "PROFILER WILL NOT BE STARTED: The configured output directory "
-              + outputDir
-              + " is not writable");
-      return true;
+    if (!Files.exists(outputDir)) {
+      // Try creating the directory for the user...
+      try {
+        Files.createDirectories(outputDir);
+      } catch (IOException e) {
+        return outdirWarn(outputDir, "does not exist and could not be created");
+      }
+    }
+    if (!Files.isDirectory(outputDir)) {
+      return outdirWarn(outputDir, "exists but is not a directory");
+    }
+
+    if (!Files.isWritable(outputDir)) {
+      return outdirWarn(outputDir, "exists but is not writable.");
     }
     return false;
+  }
+
+  private boolean outdirWarn(Path dir, String suffix) {
+    logger.warning(
+        "PROFILER WILL NOT BE STARTED: The configured output directory "
+            + dir
+            + " "
+            + suffix
+            + ".");
+    return true;
   }
 
   private void activateJfrAndRunForever(ConfigProperties config, Resource resource) {

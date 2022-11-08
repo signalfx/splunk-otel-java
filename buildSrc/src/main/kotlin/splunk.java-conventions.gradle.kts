@@ -18,7 +18,7 @@ val otelAlphaVersion = "1.19.0-alpha"
 val otelContribAlphaVersion = "1.20.0-alpha-SNAPSHOT"
 val otelInstrumentationVersion = "1.20.0-SNAPSHOT"
 val otelInstrumentationAlphaVersion = "1.20.0-alpha-SNAPSHOT"
-val micrometerVersion = "1.9.5"
+val micrometerVersion = "1.10.0"
 
 // instrumentation version is used to compute Implementation-Version manifest attribute
 extra["otelInstrumentationVersion"] = otelInstrumentationVersion
@@ -81,7 +81,7 @@ extensions.configure<DependencyManagementExtension>("dependencyManagement") {
   }
 
   imports {
-    mavenBom("com.fasterxml.jackson:jackson-bom:2.13.4")
+    mavenBom("com.fasterxml.jackson:jackson-bom:2.14.0")
     mavenBom("com.google.protobuf:protobuf-bom:3.21.9")
     mavenBom("com.squareup.okhttp3:okhttp-bom:4.10.0")
     mavenBom("io.grpc:grpc-bom:1.49.0")

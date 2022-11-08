@@ -113,12 +113,10 @@ public class JfrActivator implements AgentListener {
   }
 
   private boolean outdirWarn(Path dir, String suffix) {
-    logger.warning(
-        "PROFILER WILL NOT BE STARTED: The configured output directory "
-            + dir
-            + " "
-            + suffix
-            + ".");
+    logger.log(
+        WARNING,
+        "PROFILER WILL NOT BE STARTED: The configured output directory {0} {1}.",
+        new Object[] {dir, suffix});
     return true;
   }
 

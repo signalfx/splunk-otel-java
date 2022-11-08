@@ -47,6 +47,8 @@ import io.opentelemetry.sdk.logs.export.BatchLogRecordProcessor;
 import io.opentelemetry.sdk.logs.export.LogRecordExporter;
 import io.opentelemetry.sdk.logs.export.SimpleLogRecordProcessor;
 import io.opentelemetry.sdk.resources.Resource;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
@@ -67,17 +69,10 @@ public class JfrActivator implements AgentListener {
   @Override
   public void afterAgent(AutoConfiguredOpenTelemetrySdk autoConfiguredOpenTelemetrySdk) {
     ConfigProperties config = autoConfiguredOpenTelemetrySdk.getConfig();
-    if (!config.getBoolean(CONFIG_KEY_ENABLE_PROFILER, false)) {
-      logger.fine("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
-      logger.fine("xxxxxxxxx  JFR PROFILER DISABLED!  xxxxxxxxx");
-      logger.fine("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
+    if (notClearForTakeoff(config)) {
       return;
     }
-    if (!JFR.instance.isAvailable()) {
-      logger.warning(
-          "JDK Flight Recorder (JFR) is not available in this JVM. Profiling is disabled.");
-      return;
-    }
+
     configurationLogger.log(config);
     logger.info("JFR profiler is active.");
     executor.submit(
@@ -85,16 +80,55 @@ public class JfrActivator implements AgentListener {
             () -> activateJfrAndRunForever(config, autoConfiguredOpenTelemetrySdk.getResource())));
   }
 
-  private void activateJfrAndRunForever(ConfigProperties config, Resource resource) {
-    // can't be null, default value is set in Configuration.getProperties
-    Duration recordingDuration = config.getDuration(CONFIG_KEY_RECORDING_DURATION, null);
+  private boolean notClearForTakeoff(ConfigProperties config) {
+    if (!config.getBoolean(CONFIG_KEY_ENABLE_PROFILER, false)) {
+      logger.fine("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
+      logger.fine("xxxxxxxxx  JFR PROFILER DISABLED!  xxxxxxxxx");
+      logger.fine("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
+      return true;
+    }
+    if (!JFR.instance.isAvailable()) {
+      logger.warning(
+          "JDK Flight Recorder (JFR) is not available in this JVM. Profiling is disabled.");
+      return true;
+    }
 
+    Path outputDir = Paths.get(config.getString(CONFIG_KEY_PROFILER_DIRECTORY));
+    if (!Files.exists(outputDir)) {
+      // Try creating the directory for the user...
+      try {
+        Files.createDirectories(outputDir);
+      } catch (IOException e) {
+        return outdirWarn(outputDir, "does not exist and could not be created");
+      }
+    }
+    if (!Files.isDirectory(outputDir)) {
+      return outdirWarn(outputDir, "exists but is not a directory");
+    }
+
+    if (!Files.isWritable(outputDir)) {
+      return outdirWarn(outputDir, "exists but is not writable.");
+    }
+    return false;
+  }
+
+  private boolean outdirWarn(Path dir, String suffix) {
+    logger.log(
+        WARNING,
+        "PROFILER WILL NOT BE STARTED: The configured output directory {0} {1}.",
+        new Object[] {dir, suffix});
+    return true;
+  }
+
+  private void activateJfrAndRunForever(ConfigProperties config, Resource resource) {
     Path outputDir = Paths.get(config.getString(CONFIG_KEY_PROFILER_DIRECTORY));
     RecordingFileNamingConvention namingConvention = new RecordingFileNamingConvention(outputDir);
 
     int stackDepth = Configuration.getStackDepth(config);
     JFR.instance.setStackDepth(stackDepth);
 
+    // can't be null, default value is set in Configuration.getProperties
+    Duration recordingDuration = config.getDuration(CONFIG_KEY_RECORDING_DURATION, null);
     RecordingEscapeHatch recordingEscapeHatch =
         RecordingEscapeHatch.builder()
             .namingConvention(namingConvention)

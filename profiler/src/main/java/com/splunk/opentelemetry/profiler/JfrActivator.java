@@ -121,14 +121,13 @@ public class JfrActivator implements AgentListener {
   }
 
   private void activateJfrAndRunForever(ConfigProperties config, Resource resource) {
-    // can't be null, default value is set in Configuration.getProperties
-
     Path outputDir = Paths.get(config.getString(CONFIG_KEY_PROFILER_DIRECTORY));
     RecordingFileNamingConvention namingConvention = new RecordingFileNamingConvention(outputDir);
 
     int stackDepth = Configuration.getStackDepth(config);
     JFR.instance.setStackDepth(stackDepth);
 
+    // can't be null, default value is set in Configuration.getProperties
     Duration recordingDuration = config.getDuration(CONFIG_KEY_RECORDING_DURATION, null);
     RecordingEscapeHatch recordingEscapeHatch =
         RecordingEscapeHatch.builder()

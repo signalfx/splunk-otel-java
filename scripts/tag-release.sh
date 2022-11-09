@@ -4,20 +4,21 @@ set -e
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
+# shellcheck source-path=SCRIPTDIR
 source "${SCRIPT_DIR}/common.sh"
 
 ROOT_DIR="${SCRIPT_DIR}/../"
-cd ${ROOT_DIR}
+cd "${ROOT_DIR}"
 
 print_usage() {
   cat <<EOF
-Usage: $(basename $0) release_version
+Usage: $(basename "$0") release_version
 
 All versions MUST NOT begin with 'v'. Example: 1.2.3.
 EOF
 }
 
-if [[ $# < 1 ]]
+if [[ $# -lt 1 ]]
 then
   print_usage
   exit 1

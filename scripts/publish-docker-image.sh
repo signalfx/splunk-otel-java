@@ -5,14 +5,15 @@ set -e
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
+# shellcheck source-path=SCRIPTDIR
 source "${SCRIPT_DIR}/common.sh"
 
 ROOT_DIR="${SCRIPT_DIR}/../"
-cd ${ROOT_DIR}
+cd "${ROOT_DIR}"
 
 print_usage() {
   cat <<EOF
-Usage: $(basename $0) tag"
+Usage: $(basename "$0") tag"
 
 Tag example: v1.2.3
 EOF
@@ -30,19 +31,19 @@ build_docker_image() {
   echo ">>> Building the operator docker image ..."
   docker build -t splunk-otel-instrumentation-java .
   docker tag splunk-otel-instrumentation-java quay.io/signalfx/splunk-otel-instrumentation-java:latest
-  docker tag splunk-otel-instrumentation-java "quay.io/signalfx/splunk-otel-instrumentation-java:v$(get_major_version $release_tag)"
+  docker tag splunk-otel-instrumentation-java "quay.io/signalfx/splunk-otel-instrumentation-java:v$(get_major_version "$release_tag")"
   docker tag splunk-otel-instrumentation-java "quay.io/signalfx/splunk-otel-instrumentation-java:$release_tag"
 }
 
 login_to_quay_io() {
   echo ">>> Logging into quay.io ..."
-  docker login -u $QUAY_USERNAME -p $QUAY_PASSWORD quay.io
+  docker login -u "$QUAY_USERNAME" -p "$QUAY_PASSWORD" quay.io
 }
 
 publish_docker_image() {
   echo ">>> Publishing the operator docker image ..."
   docker push quay.io/signalfx/splunk-otel-instrumentation-java:latest
-  docker push "quay.io/signalfx/splunk-otel-instrumentation-java:v$(get_major_version $release_tag)"
+  docker push "quay.io/signalfx/splunk-otel-instrumentation-java:v$(get_major_version "$release_tag")"
   docker push "quay.io/signalfx/splunk-otel-instrumentation-java:$release_tag"
 }
 
@@ -59,7 +60,7 @@ create_operator_pr() {
   cd operator-mirror
   git checkout -b "$update_version_branch"
   echo "$release_tag" > instrumentation/packaging/java-agent-release.txt
-  ./.ci/update-javaagent-version.sh "$(get_release_version $release_tag)"
+  ./.ci/update-javaagent-version.sh "$(get_release_version "$release_tag")"
   git commit -S -am "[automated] $message"
   git push "$repo_url" "$update_version_branch"
 

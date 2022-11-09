@@ -50,15 +50,15 @@ get_release_version() {
 # 1 from v1.2.3
 get_major_version() {
   local release_tag="$1"
-  echo "$(get_release_version $release_tag)" | awk -F'.' '{print $1}'
+  get_release_version "$release_tag" | awk -F'.' '{print $1}'
 }
 get_minor_version() {
   local release_tag="$1"
-  echo "$(get_release_version $release_tag)" | awk -F'.' '{print $2}'
+  get_release_version "$release_tag" | awk -F'.' '{print $2}'
 }
 get_patch_version() {
   local release_tag="$1"
-  echo "$(get_release_version $release_tag)" | awk -F'.' '{print $3}'
+  get_release_version "$release_tag" | awk -F'.' '{print $3}'
 }
 
 validate_version() {

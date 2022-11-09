@@ -155,3 +155,14 @@ jobs:
             --label automated \
             --assignee agoallikmaa,breedx-splk,laurit,mateuszrzeszutek \
             --body-file body.txt
+
+  shellcheck:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v3.1.0
+
+      - name: Run ShellCheck on the release scripts
+        uses: ludeeus/action-shellcheck@1.1.0
+        with:
+          check_together: 'yes'
+          scandir: './scripts'

@@ -6,14 +6,15 @@ set -e
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
+# shellcheck source-path=SCRIPTDIR
 source "${SCRIPT_DIR}/common.sh"
 
 ROOT_DIR="${SCRIPT_DIR}/../"
-cd ${ROOT_DIR}
+cd "${ROOT_DIR}"
 
 print_usage() {
   cat <<EOF
-Usage: $(basename $0) tag"
+Usage: $(basename "$0") tag"
 
 Tag example: v1.2.3
 EOF
@@ -28,16 +29,17 @@ fi
 release_tag="$1"
 
 build_project() {
-  local release_version=$(get_release_version $release_tag)
+  local release_version
+  release_version="$(get_release_version "$release_tag")"
 
   mkdir -p dist
 
   echo ">>> Building the javaagent ..."
   ./gradlew -Prelease.useLastTag=true build final closeAndReleaseSonatypeStagingRepository -x test --no-daemon
-  mv agent/build/libs/splunk-otel-javaagent-${release_version}.jar dist/splunk-otel-javaagent.jar
-  mv agent/build/libs/splunk-otel-javaagent-${release_version}.jar.asc dist/splunk-otel-javaagent.jar.asc
-  mv agent/build/libs/splunk-otel-javaagent-${release_version}-all.jar dist/splunk-otel-javaagent-all.jar
-  mv agent/build/libs/splunk-otel-javaagent-${release_version}-all.jar.asc dist/splunk-otel-javaagent-all.jar.asc
+  mv "agent/build/libs/splunk-otel-javaagent-${release_version}.jar" dist/splunk-otel-javaagent.jar
+  mv "agent/build/libs/splunk-otel-javaagent-${release_version}.jar.asc" dist/splunk-otel-javaagent.jar.asc
+  mv "agent/build/libs/splunk-otel-javaagent-${release_version}-all.jar" dist/splunk-otel-javaagent-all.jar
+  mv "agent/build/libs/splunk-otel-javaagent-${release_version}-all.jar.asc" dist/splunk-otel-javaagent-all.jar.asc
 
   echo ">>> Building the cloudfoundry buildpack ..."
   ./deployments/cloudfoundry/buildpack/build.sh

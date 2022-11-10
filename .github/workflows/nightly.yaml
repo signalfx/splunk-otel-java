@@ -165,4 +165,4 @@ jobs:
         run: wget -qO- "https://github.com/koalaman/shellcheck/releases/download/v0.8.0/shellcheck-v0.8.0.linux.x86_64.tar.xz" | tar -xJv
 
       - name: Run shellcheck
-        run: shellcheck-v0.8.0/shellcheck $(find scripts -name '*.sh')
+        run: shellcheck-v0.8.0/shellcheck --format=gcc $(find scripts -name '*.sh')

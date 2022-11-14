@@ -23,6 +23,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.splunk.opentelemetry.helper.TestImage;
 import java.io.IOException;
+import java.util.Map;
 import java.util.Set;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -37,6 +38,16 @@ public class SpringBootSmokeTest extends AppServerTest {
         "ghcr.io/open-telemetry/java-test-containers:smoke-springboot-jdk"
             + jdk
             + "-20210218.577304949");
+  }
+
+  @Override
+  protected Map<String, String> getExtraEnv() {
+    return Map.of("SPRING_APPLICATION_NAME", "smoke-test-app");
+  }
+
+  @Override
+  protected boolean shouldAutodetectServiceName() {
+    return true;
   }
 
   @ParameterizedTest(name = "{index} => SpringBoot SmokeTest On JDK{0}.")

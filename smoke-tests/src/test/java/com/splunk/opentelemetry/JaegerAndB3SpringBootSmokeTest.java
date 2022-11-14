@@ -20,14 +20,16 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
 
 public class JaegerAndB3SpringBootSmokeTest extends SpringBootSmokeTest {
   protected Map<String, String> getExtraEnv() {
-    return Map.of(
-        "OTEL_TRACES_EXPORTER", "jaeger-thrift-splunk",
-        "OTEL_EXPORTER_JAEGER_ENDPOINT", "http://collector:14268/api/traces",
-        "OTEL_PROPAGATORS", "b3multi");
+    Map<String, String> extraEnv = new HashMap<>(super.getExtraEnv());
+    extraEnv.put("OTEL_TRACES_EXPORTER", "jaeger-thrift-splunk");
+    extraEnv.put("OTEL_EXPORTER_JAEGER_ENDPOINT", "http://collector:14268/api/traces");
+    extraEnv.put("OTEL_PROPAGATORS", "b3multi");
+    return extraEnv;
   }
 
   protected void assertTraces(TraceInspector traces) throws IOException {
@@ -41,6 +43,6 @@ public class JaegerAndB3SpringBootSmokeTest extends SpringBootSmokeTest {
     assertEquals(3, traces.countFilteredAttributes("otel.library.version", currentAgentVersion));
 
     // verify that correct service name is set in the resource
-    assertTrue(traces.resourceExists("service.name", "smoke-test"));
+    assertTrue(traces.resourceExists("service.name", "smoke-test-app"));
   }
 }

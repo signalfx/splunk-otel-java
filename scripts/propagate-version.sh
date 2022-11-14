@@ -5,14 +5,15 @@ set -e
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
+# shellcheck source-path=SCRIPTDIR
 source "${SCRIPT_DIR}/common.sh"
 
 ROOT_DIR="${SCRIPT_DIR}/../"
-cd ${ROOT_DIR}
+cd "${ROOT_DIR}"
 
 print_usage() {
   cat <<EOF
-Usage: $(basename $0) tag"
+Usage: $(basename "$0") tag"
 
 Tag example: v1.2.3
 EOF
@@ -27,7 +28,7 @@ fi
 release_tag="$1"
 
 create_post_release_pr() {
-  if [[ "$(get_patch_version $release_tag)" != 0 ]]
+  if [[ "$(get_patch_version "$release_tag")" != 0 ]]
   then
     echo ">>> Patch release detected, skipping the post-release.sh script ..."
     return
@@ -35,9 +36,10 @@ create_post_release_pr() {
 
   local repo="signalfx/splunk-otel-java"
   local repo_url="https://srv-gh-o11y-gdi:${GITHUB_TOKEN}@github.com/${repo}.git"
-  local next_version="$(get_major_version $release_tag).$(($(get_minor_version $release_tag) + 1)).0"
   local post_release_branch="post-release-changes-$release_tag"
   local message="$release_tag post release changes"
+  local next_version
+  next_version="$(get_major_version "$release_tag").$(($(get_minor_version "$release_tag") + 1)).0"
 
   echo ">>> Cloning the $repo repository ..."
   git clone "$repo_url" javaagent-mirror
@@ -45,7 +47,7 @@ create_post_release_pr() {
   echo ">>> Applying the post-release.sh script and pushing changes ..."
   cd javaagent-mirror
   git checkout -b "$post_release_branch"
-  ./scripts/update-version-after-release.sh "$(get_release_version $release_tag)" "$next_version"
+  ./scripts/update-version-after-release.sh "$(get_release_version "$release_tag")" "$next_version"
   git commit -S -am "[automated] $message"
   git push "$repo_url" "$post_release_branch"
 
@@ -71,7 +73,7 @@ create_overhead_test_pr() {
   echo ">>> Applying the update-version.sh script and pushing changes ..."
   cd overhead-test-mirror
   git checkout -b "$update_version_branch"
-  ./scripts/update-version.sh "$(get_release_version $release_tag)"
+  ./scripts/update-version.sh "$(get_release_version "$release_tag")"
   git commit -S -am "[automated] $message"
   git push "$repo_url" "$update_version_branch"
 

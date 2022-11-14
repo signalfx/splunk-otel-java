@@ -4,14 +4,15 @@ set -e
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
+# shellcheck source-path=SCRIPTDIR
 source "${SCRIPT_DIR}/common.sh"
 
 ROOT_DIR="${SCRIPT_DIR}/../"
-cd ${ROOT_DIR}
+cd "${ROOT_DIR}"
 
 print_usage() {
   cat <<EOF
-Usage: $(basename $0) splunk_old_version splunk_new_version
+Usage: $(basename "$0") splunk_old_version splunk_new_version
     [--otel-instrumentation otel_instrumentation_old_version otel_instrumentation_new_version]
     [--otel otel_old_version otel_new_version]
 
@@ -21,7 +22,7 @@ All versions MUST NOT begin with 'v'. Example: 1.2.3".
 EOF
 }
 
-if [[ $# < 2 ]]
+if [[ $# -lt 2 ]]
 then
   print_usage
   exit 1

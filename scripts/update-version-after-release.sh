@@ -4,14 +4,15 @@ set -e
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
+# shellcheck source-path=SCRIPTDIR
 source "${SCRIPT_DIR}/common.sh"
 
 ROOT_DIR="${SCRIPT_DIR}/../"
-cd ${ROOT_DIR}
+cd "${ROOT_DIR}"
 
 print_usage() {
   cat <<EOF
-Usage: $(basename $0) splunk_current_version splunk_next_version
+Usage: $(basename "$0") splunk_current_version splunk_next_version
 
 The splunk_current_version parameter denotes the current, freshly released version.
 The splunk_next_version parameter denotes the next release after that.
@@ -20,7 +21,7 @@ All versions MUST NOT begin with 'v', and MUST NOT contain '-SNAPSHOT' suffix. E
 EOF
 }
 
-if [[ $# < 2 ]]
+if [[ $# -lt 2 ]]
 then
   print_usage
   exit 1

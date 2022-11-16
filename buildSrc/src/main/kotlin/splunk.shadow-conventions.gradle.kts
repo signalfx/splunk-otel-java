@@ -17,7 +17,11 @@ tasks.withType<ShadowJar>().configureEach {
   relocate("java.util.logging.Logger", "io.opentelemetry.javaagent.bootstrap.PatchLogger")
 
   // rewrite library instrumentation dependencies
-  relocate("io.opentelemetry.instrumentation", "io.opentelemetry.javaagent.shaded.instrumentation")
+  relocate("io.opentelemetry.instrumentation", "io.opentelemetry.javaagent.shaded.instrumentation") {
+    // Exclude resource providers since they live in the agent class loader
+    exclude("io.opentelemetry.instrumentation.resources.*")
+    exclude("io.opentelemetry.instrumentation.spring.resources.*")
+  }
 
   // relocate OpenTelemetry API usage
   relocate("io.opentelemetry.api", "io.opentelemetry.javaagent.shaded.io.opentelemetry.api")

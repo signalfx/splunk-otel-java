@@ -12,6 +12,7 @@ dependencies {
   compileOnly("com.google.auto.service:auto-service")
 
   implementation("io.opentelemetry.contrib:opentelemetry-samplers")
+  implementation("io.opentelemetry.contrib:opentelemetry-resource-providers")
   implementation("io.opentelemetry:opentelemetry-exporter-jaeger-thrift") {
     exclude("io.opentelemetry", "opentelemetry-sdk")
     // exclude unwanted dependency

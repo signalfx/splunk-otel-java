@@ -75,6 +75,7 @@ extensions.configure<DependencyManagementExtension>("dependencyManagement") {
     }
     dependencySet("io.opentelemetry.contrib:$otelContribAlphaVersion") {
       entry("opentelemetry-samplers")
+      entry("opentelemetry-resource-providers")
     }
 
     dependency("io.opentelemetry.proto:opentelemetry-proto:0.19.0-alpha")

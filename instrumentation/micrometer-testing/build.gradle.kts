@@ -22,7 +22,7 @@ dependencies {
   add("version17TestImplementation", "io.micrometer:micrometer-core:1.7.5")
   add("version18TestImplementation", "io.micrometer:micrometer-core:1.8.11")
   add("version19TestImplementation", "io.micrometer:micrometer-core:1.9.5")
-  add("version110TestImplementation", "io.micrometer:micrometer-core:1.10.0")
+  add("version110TestImplementation", "io.micrometer:micrometer-core:1.10.1")
   // use the agent (latest) micrometer version in the default test task
   testImplementation("io.micrometer:micrometer-core")
 }

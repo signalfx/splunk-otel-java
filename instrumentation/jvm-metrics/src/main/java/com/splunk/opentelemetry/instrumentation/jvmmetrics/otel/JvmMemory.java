@@ -33,7 +33,7 @@
 
 package com.splunk.opentelemetry.instrumentation.jvmmetrics.otel;
 
-import io.micrometer.core.lang.Nullable;
+import javax.annotation.Nullable;
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryPoolMXBean;
 import java.lang.management.MemoryType;

@@ -33,24 +33,13 @@
 
 package com.splunk.opentelemetry.instrumentation.jvmmetrics.otel;
 
-import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryPoolMXBean;
 import java.lang.management.MemoryType;
-import java.lang.management.MemoryUsage;
-import java.util.function.ToLongFunction;
-import java.util.stream.Stream;
-import javax.annotation.Nullable;
 
 /** This class is copied from micrometer. */
 class JvmMemory {
 
   private JvmMemory() {}
-
-  static Stream<MemoryPoolMXBean> getLongLivedHeapPools() {
-    return ManagementFactory.getMemoryPoolMXBeans().stream()
-        .filter(JvmMemory::isHeap)
-        .filter(mem -> isLongLivedPool(mem.getName()));
-  }
 
   static boolean isConcurrentPhase(String cause, String name) {
     return "No GC".equals(cause) || "Shenandoah Cycles".equals(name) || "ZGC Cycles".equals(name);
@@ -83,27 +72,5 @@ class JvmMemory {
 
   static boolean isHeap(MemoryPoolMXBean memoryPoolBean) {
     return MemoryType.HEAP.equals(memoryPoolBean.getType());
-  }
-
-  static double getUsageValue(
-      MemoryPoolMXBean memoryPoolMXBean, ToLongFunction<MemoryUsage> getter) {
-    MemoryUsage usage = getUsage(memoryPoolMXBean);
-    if (usage == null) {
-      return Double.NaN;
-    }
-    return getter.applyAsLong(usage);
-  }
-
-  @Nullable
-  private static MemoryUsage getUsage(MemoryPoolMXBean memoryPoolMXBean) {
-    try {
-      return memoryPoolMXBean.getUsage();
-    } catch (InternalError e) {
-      // Defensive for potential InternalError with some specific JVM options. Based
-      // on its Javadoc,
-      // MemoryPoolMXBean.getUsage() should return null, not throwing InternalError,
-      // so it seems to be a JVM bug.
-      return null;
-    }
   }
 }

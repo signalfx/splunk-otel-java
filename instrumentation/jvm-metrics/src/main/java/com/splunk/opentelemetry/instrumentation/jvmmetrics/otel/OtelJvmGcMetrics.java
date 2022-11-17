@@ -33,25 +33,17 @@
 
 package com.splunk.opentelemetry.instrumentation.jvmmetrics.otel;
 
-import static com.splunk.opentelemetry.instrumentation.jvmmetrics.otel.JvmMemory.getLongLivedHeapPools;
-import static com.splunk.opentelemetry.instrumentation.jvmmetrics.otel.JvmMemory.getUsageValue;
 import static com.splunk.opentelemetry.instrumentation.jvmmetrics.otel.JvmMemory.isAllocationPool;
-import static com.splunk.opentelemetry.instrumentation.jvmmetrics.otel.JvmMemory.isConcurrentPhase;
 import static com.splunk.opentelemetry.instrumentation.jvmmetrics.otel.JvmMemory.isLongLivedPool;
-import static io.opentelemetry.api.common.AttributeKey.stringKey;
 
 import com.sun.management.GarbageCollectionNotificationInfo;
 import com.sun.management.GcInfo;
-import io.opentelemetry.api.common.AttributeKey;
-import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.metrics.LongCounter;
-import io.opentelemetry.api.metrics.LongHistogram;
 import io.opentelemetry.api.metrics.Meter;
 import java.lang.management.GarbageCollectorMXBean;
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryPoolMXBean;
 import java.lang.management.MemoryUsage;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -65,9 +57,6 @@ import javax.management.openmbean.CompositeData;
 public class OtelJvmGcMetrics {
   private static final Logger logger = Logger.getLogger(OtelJvmGcMetrics.class.getName());
 
-  private static final AttributeKey<String> ACTION = stringKey("action");
-  private static final AttributeKey<String> CAUSE = stringKey("cause");
-
   private final boolean managementExtensionsPresent = isManagementExtensionsPresent();
   private final boolean isGenerationalGc = isGenerationalGcConfigured();
   private String allocationPoolName;
@@ -76,8 +65,6 @@ public class OtelJvmGcMetrics {
   private LongCounter allocatedBytes;
   private LongCounter promotedBytes;
   private AtomicLong allocationPoolSizeAfter;
-  private AtomicLong liveDataSize;
-  private AtomicLong maxDataSize;
 
   public OtelJvmGcMetrics() {
     for (MemoryPoolMXBean mbean : ManagementFactory.getMemoryPoolMXBeans()) {
@@ -98,24 +85,13 @@ public class OtelJvmGcMetrics {
 
     Meter meter = OtelMeterProvider.get();
 
-    GcMetricsNotificationListener gcNotificationListener = new GcMetricsNotificationListener(meter);
+    GcMetricsNotificationListener gcNotificationListener = new GcMetricsNotificationListener();
 
-    double maxLongLivedPoolBytes =
-        getLongLivedHeapPools().mapToDouble(mem -> getUsageValue(mem, MemoryUsage::getMax)).sum();
+    // runtime.jvm.gc.max.data.size is replaced by OTel
+    //   process.runtime.jvm.memory.limit{pool=<long lived pools>}
 
-    maxDataSize = new AtomicLong((long) maxLongLivedPoolBytes);
-    meter
-        .gaugeBuilder("runtime.jvm.gc.max.data.size")
-        .setUnit("bytes")
-        .setDescription("Max size of long-lived heap memory pool.")
-        .buildWithCallback(measurement -> measurement.record(maxDataSize.get()));
-
-    liveDataSize = new AtomicLong();
-    meter
-        .gaugeBuilder("runtime.jvm.gc.live.data.size")
-        .setUnit("bytes")
-        .setDescription("Size of long-lived heap memory pool after reclamation.")
-        .buildWithCallback(measurement -> measurement.record(liveDataSize.get()));
+    // runtime.jvm.gc.live.data.size is replaced by OTel
+    //   process.runtime.jvm.memory.usage_after_last_gc{pool=<long lived pools>}
 
     allocatedBytes =
         meter
@@ -153,25 +129,10 @@ public class OtelJvmGcMetrics {
 
   private class GcMetricsNotificationListener implements NotificationListener {
 
-    private final LongHistogram concurrentPhaseHistogram;
-    private final LongHistogram pauseHistogram;
-
-    GcMetricsNotificationListener(Meter meter) {
-      concurrentPhaseHistogram =
-          meter
-              .histogramBuilder("runtime.jvm.gc.concurrent.phase.time")
-              .ofLongs()
-              .setUnit("ms")
-              .setDescription("Time spent in concurrent phase.")
-              .build();
-      pauseHistogram =
-          meter
-              .histogramBuilder("runtime.jvm.gc.pause")
-              .ofLongs()
-              .setUnit("ms")
-              .setDescription("Time spent in GC pause.")
-              .build();
-    }
+    // runtime.jvm.gc.concurrent.phase.time is replaced by OTel
+    //   process.runtime.jvm.gc.duration{gc=<concurrent gcs>}
+    // runtime.jvm.gc.pause is replaced by OTel
+    //   process.runtime.jvm.gc.duration{gc!=<concurrent gcs>}
 
     @Override
     public void handleNotification(Notification notification, Object ref) {
@@ -179,17 +140,7 @@ public class OtelJvmGcMetrics {
       GarbageCollectionNotificationInfo notificationInfo =
           GarbageCollectionNotificationInfo.from(cd);
 
-      String gcCause = notificationInfo.getGcCause();
-      String gcAction = notificationInfo.getGcAction();
       GcInfo gcInfo = notificationInfo.getGcInfo();
-      long duration = gcInfo.getDuration();
-      Attributes attributes = Attributes.of(ACTION, gcAction, CAUSE, gcCause);
-      if (isConcurrentPhase(gcCause, notificationInfo.getGcName())) {
-        concurrentPhaseHistogram.record(duration, attributes);
-      } else {
-        pauseHistogram.record(duration, attributes);
-      }
-
       final Map<String, MemoryUsage> before = gcInfo.getMemoryUsageBeforeGc();
       final Map<String, MemoryUsage> after = gcInfo.getMemoryUsageAfterGc();
 
@@ -205,16 +156,6 @@ public class OtelJvmGcMetrics {
           promotedBytes.add(delta);
         }
       }
-
-      // Some GC implementations such as G1 can reduce the old gen size as part of a minor GC. To
-      // track the live data size we record the value if we see a reduction in the long-lived heap
-      // size or after a major/non-generational GC.
-      if (longLivedAfter < longLivedBefore
-          || shouldUpdateDataSizeMetrics(notificationInfo.getGcName())) {
-        liveDataSize.set(longLivedAfter);
-        maxDataSize.set(
-            longLivedPoolNames.stream().mapToLong(pool -> after.get(pool).getMax()).sum());
-      }
     }
 
     private void countPoolSizeDelta(
@@ -229,21 +170,6 @@ public class OtelJvmGcMetrics {
       if (delta > 0L) {
         allocatedBytes.add(delta);
       }
-    }
-
-    private boolean shouldUpdateDataSizeMetrics(String gcName) {
-      return nonGenerationalGcShouldUpdateDataSize(gcName) || isMajorGenerationalGc(gcName);
-    }
-
-    private boolean isMajorGenerationalGc(String gcName) {
-      return GcGenerationAge.fromGcName(gcName) == GcGenerationAge.OLD;
-    }
-
-    private boolean nonGenerationalGcShouldUpdateDataSize(String gcName) {
-      return !isGenerationalGc
-          // Skip Shenandoah and ZGC gc notifications with the name Pauses due
-          // to missing memory pool size info
-          && !gcName.endsWith("Pauses");
     }
   }
 
@@ -276,39 +202,6 @@ public class OtelJvmGcMetrics {
           "GC notifications will not be available because "
               + "com.sun.management.GarbageCollectionNotificationInfo is not present");
       return false;
-    }
-  }
-
-  /**
-   * Generalization of which parts of the heap are considered "young" or "old" for multiple GC
-   * implementations
-   */
-  enum GcGenerationAge {
-    OLD,
-    YOUNG,
-    UNKNOWN;
-
-    private static final Map<String, GcGenerationAge> knownCollectors =
-        new HashMap<String, GcGenerationAge>() {
-          {
-            put("ConcurrentMarkSweep", OLD);
-            put("Copy", YOUNG);
-            put("G1 Old Generation", OLD);
-            put("G1 Young Generation", YOUNG);
-            put("MarkSweepCompact", OLD);
-            put("PS MarkSweep", OLD);
-            put("PS Scavenge", YOUNG);
-            put("ParNew", YOUNG);
-            put("global", OLD);
-            put("scavenge", YOUNG);
-            put("partial gc", YOUNG);
-            put("global garbage collect", OLD);
-            put("Epsilon", OLD);
-          }
-        };
-
-    static GcGenerationAge fromGcName(String gcName) {
-      return knownCollectors.getOrDefault(gcName, UNKNOWN);
     }
   }
 }

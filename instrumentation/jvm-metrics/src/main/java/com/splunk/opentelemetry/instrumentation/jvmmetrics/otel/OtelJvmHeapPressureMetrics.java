@@ -33,35 +33,20 @@
 
 package com.splunk.opentelemetry.instrumentation.jvmmetrics.otel;
 
-import static io.opentelemetry.api.common.AttributeKey.stringKey;
-
 import com.sun.management.GarbageCollectionNotificationInfo;
 import com.sun.management.GcInfo;
-import io.opentelemetry.api.common.AttributeKey;
-import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.metrics.Meter;
 import java.lang.management.GarbageCollectorMXBean;
 import java.lang.management.ManagementFactory;
-import java.lang.management.MemoryPoolMXBean;
-import java.lang.management.MemoryUsage;
 import java.time.Duration;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.stream.Collectors;
 import javax.management.NotificationEmitter;
 import javax.management.NotificationListener;
 import javax.management.openmbean.CompositeData;
 
 public class OtelJvmHeapPressureMetrics {
-  private static final AttributeKey<String> AREA = stringKey("area");
-  private static final AttributeKey<String> POOL = stringKey("pool");
-
   private final long startOfMonitoring = System.nanoTime();
   private final Duration lookback;
   private final TimeWindowSum gcPauseSum;
-  private final AtomicReference<Double> lastLongLivedPoolUsageAfterGc = new AtomicReference<>(0.0);
-  private final Set<String> longLivedPoolNames;
 
   public OtelJvmHeapPressureMetrics() {
     this(Duration.ofMinutes(5), Duration.ofMinutes(1));
@@ -72,28 +57,15 @@ public class OtelJvmHeapPressureMetrics {
     this.gcPauseSum =
         new TimeWindowSum((int) lookback.dividedBy(testEvery.toMillis()).toMillis(), testEvery);
 
-    longLivedPoolNames =
-        JvmMemory.getLongLivedHeapPools()
-            .map(MemoryPoolMXBean::getName)
-            .collect(Collectors.toSet());
-
     monitor();
   }
 
   public void install() {
     Meter meter = OtelMeterProvider.get();
 
-    if (!longLivedPoolNames.isEmpty()) {
-      Attributes attributes = Attributes.of(AREA, "heap", POOL, "long-lived");
-
-      meter
-          .gaugeBuilder("runtime.jvm.memory.usage.after.gc")
-          .setUnit("percent")
-          .setDescription(
-              "The percentage of long-lived heap pool used after the last GC event, in the range [0..1].")
-          .buildWithCallback(
-              measurement -> measurement.record(lastLongLivedPoolUsageAfterGc.get(), attributes));
-    }
+    // runtime.jvm.memory.usage.after.gc is replaced by OTel
+    //   process.runtime.jvm.memory.usage_after_last_gc{pool=<long lived pools>,type=heap} /
+    //   process.runtime.jvm.memory.limit{pool=<long lived pools>,type=heap}
 
     meter
         .gaugeBuilder("runtime.jvm.gc.overhead")
@@ -125,16 +97,6 @@ public class OtelJvmHeapPressureMetrics {
 
             if (!JvmMemory.isConcurrentPhase(gcCause, notificationInfo.getGcName())) {
               gcPauseSum.record(duration);
-            }
-
-            Map<String, MemoryUsage> after = gcInfo.getMemoryUsageAfterGc();
-
-            if (!longLivedPoolNames.isEmpty()) {
-              final long usedAfter =
-                  longLivedPoolNames.stream().mapToLong(pool -> after.get(pool).getUsed()).sum();
-              double maxAfter =
-                  longLivedPoolNames.stream().mapToLong(pool -> after.get(pool).getMax()).sum();
-              lastLongLivedPoolUsageAfterGc.set(usedAfter / maxAfter);
             }
           };
       NotificationEmitter notificationEmitter = (NotificationEmitter) mbean;

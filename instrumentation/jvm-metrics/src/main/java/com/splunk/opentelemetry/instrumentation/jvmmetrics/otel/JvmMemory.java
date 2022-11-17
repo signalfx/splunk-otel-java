@@ -33,13 +33,13 @@
 
 package com.splunk.opentelemetry.instrumentation.jvmmetrics.otel;
 
-import io.micrometer.core.lang.Nullable;
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryPoolMXBean;
 import java.lang.management.MemoryType;
 import java.lang.management.MemoryUsage;
 import java.util.function.ToLongFunction;
 import java.util.stream.Stream;
+import javax.annotation.Nullable;
 
 /** This class is copied from micrometer. */
 class JvmMemory {

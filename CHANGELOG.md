@@ -8,6 +8,20 @@ and this repository adheres to [Semantic Versioning](https://semver.org/spec/v2.
 
 ## Unreleased
 
+## v1.18.0 - 2022-11-23
+
+### Enhancements
+
+- Profiler checks for storage writability on startup, and logs an error and disables profiling if it is not. (#984)
+
+### General
+
+- OpenTelemetry Java SDK and OpenTelemetry Instrumentation for Java dependencies have been updated to versions 1.20.1 and 1.20.2 respectively.
+- Micrometer dependency has been updated to version 1.10.1. (#1001)
+- Protobuf dependency has been updated to version 3.21.9, which mitigates CVE-2022-3171. (#978)
+- Service name detection moved to upstream OpenTelemetry Instrumentation.
+- [signalfx-java](https://github.com/signalfx/signalfx-java) dependency has been updated to version 1.0.26.
+
 ## v1.17.0 - 2022-10-19
 
 ### Deprecations

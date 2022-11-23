@@ -82,7 +82,7 @@ extensions.configure<DependencyManagementExtension>("dependencyManagement") {
   }
 
   imports {
-    mavenBom("com.fasterxml.jackson:jackson-bom:2.14.0")
+    mavenBom("com.fasterxml.jackson:jackson-bom:2.14.1")
     mavenBom("com.google.protobuf:protobuf-bom:3.21.9")
     mavenBom("com.squareup.okhttp3:okhttp-bom:4.10.0")
     mavenBom("io.grpc:grpc-bom:1.49.0")

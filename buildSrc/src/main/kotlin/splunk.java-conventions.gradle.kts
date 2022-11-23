@@ -29,7 +29,7 @@ extensions.configure<DependencyManagementExtension>("dependencyManagement") {
     dependency("org.assertj:assertj-core:3.23.1")
     dependency("org.awaitility:awaitility:4.2.0")
     dependency("io.jaegertracing:jaeger-client:1.8.1")
-    dependency("com.signalfx.public:signalfx-java:1.0.25")
+    dependency("com.signalfx.public:signalfx-java:1.0.26")
 
     dependencySet("com.github.docker-java:3.2.11") {
       entry("docker-java-core")
@@ -82,7 +82,7 @@ extensions.configure<DependencyManagementExtension>("dependencyManagement") {
   }
 
   imports {
-    mavenBom("com.fasterxml.jackson:jackson-bom:2.14.0")
+    mavenBom("com.fasterxml.jackson:jackson-bom:2.14.1")
     mavenBom("com.google.protobuf:protobuf-bom:3.21.9")
     mavenBom("com.squareup.okhttp3:okhttp-bom:4.10.0")
     mavenBom("io.grpc:grpc-bom:1.49.0")

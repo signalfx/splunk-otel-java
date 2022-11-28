@@ -69,7 +69,7 @@ jobs:
           key: ${{ runner.os }}-gradle-wrapper-cache-${{ hashFiles('gradle/wrapper/gradle-wrapper.properties') }}
 
       - id: set-matrix
-        run: echo "::set-output name=matrix::{\"module\":[\"$(./gradlew -q instrumentation:listMuzzleInstrumentations | xargs echo | sed 's/ /","/g')\"]}"
+        run: echo "matrix={\"module\":[\"$(./gradlew -q instrumentation:listMuzzleInstrumentations | xargs echo | sed 's/ /","/g')\"]}" >> $GITHUB_OUTPUT
 
   muzzle:
     needs: setup-muzzle-matrix

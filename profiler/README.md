@@ -49,7 +49,7 @@ property or as environment variables (by making them uppercase and replacing dot
 | `splunk.profiler.keep-files`              | false                                                  | leave JFR files on disk id `true`                                                                                          |
 | `splunk.profiler.logs-endpoint`           | `otel.exporter.otlp.endpoint` or http://localhost:4317 | where to send OTLP logs                                                                                                    |
 | `splunk.profiler.call.stack.interval`     | 10000ms                                                | how often to sample call stacks                                                                                            |
-| `splunk.profiler.memory.enabled`          | false                                                  | set to `true` to enable all other memory profiling options unless explicitly disabled                                      |
+| `splunk.profiler.memory.enabled`          | false                                                  | set to `true` to enable all other memory profiling options unless explicitly disabled. Setting to `true` enables metrics.  |
 | `splunk.profiler.tlab.enabled`            | `splunk.profiler.memory.enabled`                       | set to `true` to enable TLAB events even if `splunk.profiler.memory.enabled` is `false`                                    |
 | `splunk.profiler.memory.sampler.interval` | 1                                                      | set to `2` or larger to enable sampling every Nth allocation event where N is the value of this property                   |
 | `splunk.profiler.include.internal.stacks` | false                                                  | set to `true` to include stack traces of agent internal threads and stack traces with only JDK internal frames             |
@@ -62,6 +62,9 @@ example, setting `splunk.profiler.memory.enabled` to `true` has no effect if
 `splunk.profiler.enabled` is set to `false`. Similarly, there is no separate toggle for periodic
 collection of call stacks (thread dumps), as this feature is enabled only when the profiler is
 enabled.
+
+Note: Setting `splunk.profiler.memory.enabled` to `true` will automatically enable the metrics subsystem.
+Furthermore, this setting takes precedence over `splunk.metrics.enabled`.
 
 # Escape hatch
 

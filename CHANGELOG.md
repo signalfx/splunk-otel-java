@@ -8,6 +8,9 @@ and this repository adheres to [Semantic Versioning](https://semver.org/spec/v2.
 
 ## Unreleased
 
+- Micrometer dependency has been updated to version 1.10.2. (#1018)
+
+
 ## v1.18.0 - 2022-11-23
 
 ### Enhancements

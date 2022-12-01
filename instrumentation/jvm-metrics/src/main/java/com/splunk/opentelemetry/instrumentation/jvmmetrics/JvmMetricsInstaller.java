@@ -25,8 +25,6 @@ import com.splunk.opentelemetry.instrumentation.jvmmetrics.micrometer.Micrometer
 import com.splunk.opentelemetry.instrumentation.jvmmetrics.micrometer.MicrometerGcMemoryMetrics;
 import com.splunk.opentelemetry.instrumentation.jvmmetrics.otel.OtelAllocatedMemoryMetrics;
 import com.splunk.opentelemetry.instrumentation.jvmmetrics.otel.OtelGcMemoryMetrics;
-import com.splunk.opentelemetry.instrumentation.jvmmetrics.otel.OtelJvmGcMetrics;
-import com.splunk.opentelemetry.instrumentation.jvmmetrics.otel.OtelJvmHeapPressureMetrics;
 import com.splunk.opentelemetry.instrumentation.jvmmetrics.otel.OtelJvmThreadMetrics;
 import io.micrometer.core.instrument.Metrics;
 import io.micrometer.core.instrument.binder.jvm.ClassLoaderMetrics;
@@ -59,8 +57,25 @@ public class JvmMetricsInstaller implements AgentListener {
       new JvmThreadMetrics().bindTo(Metrics.globalRegistry);
     }
     if (useOtelMetrics(metricsImplementation)) {
-      new OtelJvmGcMetrics().install();
-      new OtelJvmHeapPressureMetrics().install();
+      // gc metrics were removed:
+      //   runtime.jvm.gc.concurrent.phase.time is replaced by OTel
+      //     process.runtime.jvm.gc.duration{gc=<concurrent gcs>}
+      //   runtime.jvm.gc.pause is replaced by OTel
+      //     process.runtime.jvm.gc.duration{gc!=<concurrent gcs>}
+      //   runtime.jvm.gc.max.data.size is replaced by OTel
+      //     process.runtime.jvm.memory.limit{pool=<long lived pools>}
+      //   runtime.jvm.gc.live.data.size is replaced by OTel
+      //     process.runtime.jvm.memory.usage_after_last_gc{pool=<long lived pools>}
+      //   runtime.jvm.gc.memory.allocated is replaced by memory profiling metric
+      //     process.runtime.jvm.memory.allocated
+      //   runtime.jvm.gc.memory.promoted is removed with no direct replacement
+
+      // heap pressure metrics were removed:
+      //   runtime.jvm.memory.usage.after.gc is replaced by OTel
+      //     process.runtime.jvm.memory.usage_after_last_gc{pool=<long lived pools>,type=heap} /
+      //     process.runtime.jvm.memory.limit{pool=<long lived pools>,type=heap}
+      //   runtime.jvm.gc.overhead is something that should to done in a dashboard, not here
+
       new OtelJvmThreadMetrics().install();
     }
 

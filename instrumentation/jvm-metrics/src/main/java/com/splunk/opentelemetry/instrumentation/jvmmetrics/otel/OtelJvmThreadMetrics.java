@@ -50,25 +50,10 @@ public class OtelJvmThreadMetrics {
     Meter meter = OtelMeterProvider.get();
     ThreadMXBean threadBean = ManagementFactory.getThreadMXBean();
 
-    meter
-        .gaugeBuilder("runtime.jvm.threads.peak")
-        .setUnit("threads")
-        .setDescription(
-            "The peak live thread count since the Java virtual machine started or peak was reset.")
-        .buildWithCallback(measurement -> measurement.record(threadBean.getPeakThreadCount()));
-
-    meter
-        .gaugeBuilder("runtime.jvm.threads.daemon")
-        .setUnit("threads")
-        .setDescription("The current number of live daemon threads.")
-        .buildWithCallback(measurement -> measurement.record(threadBean.getDaemonThreadCount()));
-
-    meter
-        .gaugeBuilder("runtime.jvm.threads.live")
-        .setUnit("threads")
-        .setDescription(
-            "The current number of live threads including both daemon and non-daemon threads.")
-        .buildWithCallback(measurement -> measurement.record(threadBean.getThreadCount()));
+    // runtime.jvm.threads.peak was removed; easy to replace with
+    //   max(process.runtime.jvm.threads.count)
+    // runtime.jvm.threads.daemon is replaced by OTel process.runtime.jvm.threads.count{daemon=true}
+    // runtime.jvm.threads.live is replaced by OTel process.runtime.jvm.threads.count{daemon=false}
 
     try {
       threadBean.getAllThreadIds();

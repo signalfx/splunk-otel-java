@@ -18,6 +18,8 @@ package com.splunk.opentelemetry.instrumentation.jvmmetrics;
 
 import io.opentelemetry.instrumentation.testing.junit.AgentInstrumentationExtension;
 import io.opentelemetry.instrumentation.testing.junit.InstrumentationExtension;
+import java.util.ArrayList;
+import java.util.List;
 import org.assertj.core.api.AbstractIterableAssert;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -32,12 +34,18 @@ class OtelJvmMetricsTest {
 
   @Test
   void shouldRegisterOtelJvmMeters() {
-    // GC metrics
-    assertOtelMetricPresent("runtime.jvm.gc.memory.allocated");
-    // GC pressure metrics
-    assertOtelMetricPresent("runtime.jvm.gc.overhead");
+    // exercise the GC for a bit
+    {
+      List<Long[]> garbage = new ArrayList<>();
+      for (int i = 0; i < 10_000; ++i) {
+        garbage.add(new Long[i]);
+      }
+      garbage.clear();
+    }
+    System.gc();
+
     // thread metrics
-    assertOtelMetricPresent("runtime.jvm.threads.peak");
+    assertOtelMetricPresent("runtime.jvm.threads.states");
     // allocated memory metrics
     assertOtelMetricPresent(AllocatedMemoryMetrics.METRIC_NAME);
     // Our custom GC metrics

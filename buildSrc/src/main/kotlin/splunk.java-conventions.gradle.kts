@@ -13,11 +13,11 @@ repositories {
   }
 }
 
-val otelVersion = "1.20.1"
-val otelAlphaVersion = "1.20.1-alpha"
+val otelVersion = "1.21.0"
+val otelAlphaVersion = "1.21.0-alpha"
 val otelContribAlphaVersion = "1.20.1-alpha"
-val otelInstrumentationVersion = "1.20.2"
-val otelInstrumentationAlphaVersion = "1.20.2-alpha"
+val otelInstrumentationVersion = "1.21.0"
+val otelInstrumentationAlphaVersion = "1.21.0-alpha"
 val micrometerVersion = "1.10.2"
 
 // instrumentation version is used to compute Implementation-Version manifest attribute

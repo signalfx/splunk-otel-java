@@ -80,7 +80,7 @@ class ThreadDumpRegionTest {
 
   static String readDumpFromResource(String resourcePath) {
     try (InputStream in =
-        Thread.currentThread().getContextClassLoader().getResourceAsStream(resourcePath)) {
+        ThreadDumpRegionTest.class.getClassLoader().getResourceAsStream(resourcePath)) {
       return new String(Objects.requireNonNull(in).readAllBytes(), StandardCharsets.UTF_8);
     } catch (IOException e) {
       throw new RuntimeException(e);

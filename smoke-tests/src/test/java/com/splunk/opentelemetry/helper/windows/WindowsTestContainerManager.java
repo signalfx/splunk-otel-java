@@ -35,6 +35,7 @@ import com.splunk.opentelemetry.helper.AbstractTestContainerManager;
 import com.splunk.opentelemetry.helper.ResourceMapping;
 import com.splunk.opentelemetry.helper.TargetContainerBuilder;
 import com.splunk.opentelemetry.helper.TargetWaitStrategy;
+import com.splunk.opentelemetry.helper.TestContainerManager;
 import com.splunk.opentelemetry.helper.TestImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -333,7 +334,7 @@ public class WindowsTestContainerManager extends AbstractTestContainerManager {
   private void copyResourceToContainer(
       String containerId, String resourcePath, String containerPath) throws IOException {
     try (InputStream is =
-        Thread.currentThread().getContextClassLoader().getResourceAsStream(resourcePath)) {
+        TestContainerManager.class.getClassLoader().getResourceAsStream(resourcePath)) {
       copyFileToContainer(containerId, IOUtils.toByteArray(is), containerPath);
     }
   }

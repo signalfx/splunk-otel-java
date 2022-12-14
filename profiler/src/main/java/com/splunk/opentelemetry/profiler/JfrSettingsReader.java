@@ -63,8 +63,7 @@ class JfrSettingsReader {
 
   @VisibleForTesting
   BufferedReader openResource(String resourceName) {
-    InputStream in =
-        Thread.currentThread().getContextClassLoader().getResourceAsStream(resourceName);
+    InputStream in = JfrSettingsReader.class.getClassLoader().getResourceAsStream(resourceName);
     if (in == null) {
       logger.log(SEVERE, "Error reading jfr settings, resource {0} not found!", resourceName);
       return null;

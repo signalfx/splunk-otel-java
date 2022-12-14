@@ -35,7 +35,7 @@ public class SplunkDistroVersionResourceProvider implements ResourceProvider {
 
   private static Resource initialize() {
     try (InputStream in =
-        Thread.currentThread().getContextClassLoader().getResourceAsStream("splunk.properties")) {
+        ResourceProvider.class.getClassLoader().getResourceAsStream("splunk.properties")) {
       if (in == null) {
         return Resource.empty();
       }

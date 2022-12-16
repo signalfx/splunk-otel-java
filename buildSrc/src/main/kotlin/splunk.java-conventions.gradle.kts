@@ -15,7 +15,7 @@ repositories {
 
 val otelVersion = "1.21.0"
 val otelAlphaVersion = "1.21.0-alpha"
-val otelContribAlphaVersion = "1.20.1-alpha"
+val otelContribAlphaVersion = "1.21.0-alpha"
 val otelInstrumentationVersion = "1.21.0"
 val otelInstrumentationAlphaVersion = "1.21.0-alpha"
 val micrometerVersion = "1.10.2"
@@ -29,21 +29,21 @@ extensions.configure<DependencyManagementExtension>("dependencyManagement") {
     dependency("org.assertj:assertj-core:3.23.1")
     dependency("org.awaitility:awaitility:4.2.0")
     dependency("io.jaegertracing:jaeger-client:1.8.1")
-    dependency("com.signalfx.public:signalfx-java:1.0.26")
+    dependency("com.signalfx.public:signalfx-java:1.0.27")
 
     dependencySet("com.github.docker-java:3.2.11") {
       entry("docker-java-core")
       entry("docker-java-transport-httpclient5")
     }
-    dependencySet("org.mockito:4.7.0") {
+    dependencySet("org.mockito:4.9.0") {
       entry("mockito-core")
       entry("mockito-junit-jupiter")
     }
-    dependencySet("org.slf4j:1.7.36") {
+    dependencySet("org.slf4j:2.0.6") {
       entry("slf4j-api")
       entry("slf4j-simple")
     }
-    dependencySet("com.google.auto.value:1.9") {
+    dependencySet("com.google.auto.value:1.10.1") {
       entry("auto-value")
       entry("auto-value-annotations")
     }
@@ -83,14 +83,14 @@ extensions.configure<DependencyManagementExtension>("dependencyManagement") {
 
   imports {
     mavenBom("com.fasterxml.jackson:jackson-bom:2.14.1")
-    mavenBom("com.google.protobuf:protobuf-bom:3.21.9")
+    mavenBom("com.google.protobuf:protobuf-bom:3.21.12")
     mavenBom("com.squareup.okhttp3:okhttp-bom:4.10.0")
-    mavenBom("io.grpc:grpc-bom:1.49.0")
+    mavenBom("io.grpc:grpc-bom:1.51.0")
     mavenBom("io.micrometer:micrometer-bom:$micrometerVersion")
     mavenBom("io.opentelemetry:opentelemetry-bom-alpha:$otelAlphaVersion")
     mavenBom("io.opentelemetry:opentelemetry-bom:$otelVersion")
-    mavenBom("org.junit:junit-bom:5.9.0")
-    mavenBom("org.testcontainers:testcontainers-bom:1.17.3")
+    mavenBom("org.junit:junit-bom:5.9.1")
+    mavenBom("org.testcontainers:testcontainers-bom:1.17.6")
   }
 }
 
@@ -102,7 +102,7 @@ dependencies {
   add("testImplementation", "org.junit.jupiter:junit-jupiter-api")
   add("testImplementation", "org.junit.jupiter:junit-jupiter-params")
   add("testRuntimeOnly", "org.junit.jupiter:junit-jupiter-engine")
-  add("testRuntimeOnly", "org.slf4j:slf4j-api:2.0.3")
+  add("testRuntimeOnly", "org.slf4j:slf4j-api:2.0.6")
 }
 
 tasks.withType<Test>().configureEach {

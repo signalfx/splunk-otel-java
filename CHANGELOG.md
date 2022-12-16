@@ -8,8 +8,13 @@ and this repository adheres to [Semantic Versioning](https://semver.org/spec/v2.
 
 ## Unreleased
 
-- Micrometer dependency has been updated to version 1.10.2. (#1018)
+## v1.19.0 - 2022-12-16
 
+### General
+
+- OpenTelemetry Java SDK and OpenTelemetry Instrumentation for Java dependencies have been updated to version 1.21.0. (#1029)
+- Micrometer dependency has been updated to version 1.10.2. (#1018)
+- Comply with [GDI spec version 1.4.0](https://github.com/signalfx/gdi-specification/releases/tag/v1.4.0)
 
 ## v1.18.0 - 2022-11-23
 

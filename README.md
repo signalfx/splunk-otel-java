@@ -24,8 +24,8 @@
   <a href="https://maven-badges.herokuapp.com/maven-central/com.splunk/splunk-otel-javaagent">
     <img alt="Maven Central" src="https://img.shields.io/maven-central/v/com.splunk/splunk-otel-javaagent?style=for-the-badge">
   </a>
-  <a href="https://github.com/signalfx/splunk-otel-java/actions?query=workflow%3A%22CI+build%22">
-    <img alt="Build Status" src="https://img.shields.io/github/workflow/status/signalfx/splunk-otel-java/CI%20build?style=for-the-badge">
+  <a href="https://github.com/signalfx/splunk-otel-java/actions/workflows/ci.yaml">
+    <img alt="Build Status" src="https://img.shields.io/github/actions/workflow/status/signalfx/splunk-otel-java/ci.yaml?branch=main&style=for-the-badge">
   </a>
 </p>
 

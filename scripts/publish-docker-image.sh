@@ -59,7 +59,6 @@ create_operator_pr() {
   echo ">>> Updating the version and pushing changes ..."
   cd operator-mirror
   git checkout -b "$update_version_branch"
-  echo "$release_tag" > instrumentation/packaging/java-agent-release.txt
   ./.ci/update-javaagent-version.sh "$(get_release_version "$release_tag")"
   git commit -S -am "[automated] $message"
   git push "$repo_url" "$update_version_branch"

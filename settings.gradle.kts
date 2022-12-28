@@ -1,6 +1,6 @@
 pluginManagement {
   plugins {
-    id("com.bmuschko.docker-remote-api") version "9.1.0"
+    id("com.bmuschko.docker-remote-api") version "9.0.1"
     id("com.github.johnrengelman.shadow") version "7.1.2"
     id("io.github.gradle-nexus.publish-plugin") version "1.1.0"
     id("nebula.release") version "17.1.0"

@@ -42,7 +42,7 @@ tasks {
       "tomee" to listOf("**/TomeeSmokeTest.*"),
       "weblogic" to listOf("**/WebLogicSmokeTest.*"),
       "websphere" to listOf("**/WebSphereSmokeTest.*"),
-      "wildfly" to listOf("**/WildFlySmokeTest.*")
+      "wildfly" to listOf("**/WildFlySmokeTest.*"),
     )
 
     val smokeTestSuite: String? by project

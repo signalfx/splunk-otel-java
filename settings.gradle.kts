@@ -4,13 +4,12 @@ pluginManagement {
     id("com.github.johnrengelman.shadow") version "7.1.2"
     id("io.github.gradle-nexus.publish-plugin") version "1.1.0"
     id("nebula.release") version "17.1.0"
-    id("org.gradle.test-retry") version "1.5.0"
     id("org.unbroken-dome.test-sets") version "4.0.0"
   }
 }
 
 plugins {
-  id("com.gradle.enterprise") version "3.11.4"
+  id("com.gradle.enterprise") version "3.12.2"
 }
 
 gradleEnterprise {

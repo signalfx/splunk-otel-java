@@ -29,8 +29,7 @@ tasks {
         // You can see tests that were retried by this mechanism in the collected test reports and build scans.
         maxRetries.set(5)
         failOnPassedAfterRetry.set(true)
-      }
-      else {
+      } else {
         maxRetries.set(0)
       }
     }

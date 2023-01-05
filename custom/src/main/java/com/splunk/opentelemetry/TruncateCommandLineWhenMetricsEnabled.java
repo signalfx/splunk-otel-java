@@ -45,6 +45,9 @@ public class TruncateCommandLineWhenMetricsEnabled implements ConditionalResourc
       logger.warning(
           "Warning: Metrics are enabled, so process.command_line resource attribute is being truncated.");
       commandLine = existing.getAttribute(ResourceAttributes.PROCESS_COMMAND_LINE);
+      if (commandLine == null) {
+        return false;
+      }
       if (commandLine.length() >= 256) {
         commandLine = commandLine.substring(0, 250) + "[...]";
       }

@@ -49,6 +49,16 @@ class TruncateCommandLineWhenMetricsEnabledTest {
   }
 
   @Test
+  void shouldNotApplyIfNoCommandline() {
+    Resource existing = Resource.create(Attributes.of(PROCESS_COMMAND_LINE, null));
+    when(config.getBoolean(METRICS_ENABLED_PROPERTY, false)).thenReturn(true);
+
+    var testClass = new TruncateCommandLineWhenMetricsEnabled();
+
+    assertFalse(testClass.shouldApply(config, existing));
+  }
+
+  @Test
   void shouldApplyWhenMetricsEnabled() {
     var existing = Resource.create(Attributes.of(PROCESS_COMMAND_LINE, "foo"));
 

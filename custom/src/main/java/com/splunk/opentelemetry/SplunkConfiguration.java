@@ -41,6 +41,7 @@ public class SplunkConfiguration implements AutoConfigurationCustomizerProvider 
   public static final String METRICS_ENDPOINT_PROPERTY = "splunk.metrics.endpoint";
   public static final String METRICS_EXPORT_INTERVAL_PROPERTY = "splunk.metrics.export.interval";
   public static final String METRICS_IMPLEMENTATION = "splunk.metrics.implementation";
+  public static final String METRICS_FULL_COMMAND_LINE = "splunk.metrics.force_full_commandline";
 
   @Override
   public void customize(AutoConfigurationCustomizer autoConfiguration) {
@@ -58,6 +59,8 @@ public class SplunkConfiguration implements AutoConfigurationCustomizerProvider 
     config.put(METRICS_ENABLED_PROPERTY, "false");
     // micrometer is the default implementation
     config.put(METRICS_IMPLEMENTATION, "micrometer");
+    // truncate commandline when metrics enabled by default
+    config.put(METRICS_FULL_COMMAND_LINE, "false");
 
     // disable logging instrumentations - we're not currently sending logs (yet)
     config.put("otel.instrumentation.java-util-logging.enabled", "false");

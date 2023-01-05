@@ -1,8 +1,5 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
-
-plugins {
-  id("org.gradle.test-retry")
-}
+import com.gradle.enterprise.gradleplugin.testretry.retry
 
 dependencies {
   testCompileOnly("com.google.auto.value:auto-value-annotations")
@@ -28,8 +25,13 @@ tasks {
     testLogging.showStandardStreams = true
 
     retry {
-      // You can see tests that were retried by this mechanism in the collected test reports and build scans.
-      maxRetries.set(if (System.getenv("CI") != null) 5 else 0)
+      if (System.getenv().containsKey("CI")) {
+        // You can see tests that were retried by this mechanism in the collected test reports and build scans.
+        maxRetries.set(5)
+        failOnPassedAfterRetry.set(true)
+      } else {
+        maxRetries.set(0)
+      }
     }
 
     val suites = mapOf(

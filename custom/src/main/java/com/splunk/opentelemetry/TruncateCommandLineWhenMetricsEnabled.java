@@ -20,16 +20,18 @@ import static com.splunk.opentelemetry.SplunkConfiguration.METRICS_ENABLED_PROPE
 import static com.splunk.opentelemetry.SplunkConfiguration.METRICS_FULL_COMMAND_LINE;
 
 import com.google.auto.service.AutoService;
+import com.google.common.annotations.VisibleForTesting;
 import io.opentelemetry.api.common.Attributes;
+import io.opentelemetry.sdk.autoconfigure.spi.AutoConfigurationCustomizer;
+import io.opentelemetry.sdk.autoconfigure.spi.AutoConfigurationCustomizerProvider;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
-import io.opentelemetry.sdk.autoconfigure.spi.ResourceProvider;
-import io.opentelemetry.sdk.autoconfigure.spi.internal.ConditionalResourceProvider;
 import io.opentelemetry.sdk.resources.Resource;
 import io.opentelemetry.semconv.resource.attributes.ResourceAttributes;
+import java.util.function.BiFunction;
 import java.util.logging.Logger;
 
-@AutoService(ResourceProvider.class)
-public class TruncateCommandLineWhenMetricsEnabled implements ConditionalResourceProvider {
+@AutoService(AutoConfigurationCustomizerProvider.class)
+public class TruncateCommandLineWhenMetricsEnabled implements AutoConfigurationCustomizerProvider {
 
   private static final Logger logger =
       Logger.getLogger(TruncateCommandLineWhenMetricsEnabled.class.getName());
@@ -37,32 +39,36 @@ public class TruncateCommandLineWhenMetricsEnabled implements ConditionalResourc
   private String commandLine;
 
   @Override
-  public boolean shouldApply(ConfigProperties config, Resource existing) {
-    boolean metricsEnabled = config.getBoolean(METRICS_ENABLED_PROPERTY, false);
-    boolean forceFullCommandline = config.getBoolean(METRICS_FULL_COMMAND_LINE, false);
-    boolean wantTruncate = metricsEnabled && !forceFullCommandline;
-    if (wantTruncate) {
-      logger.warning(
-          "Warning: Metrics are enabled, so process.command_line resource attribute is being truncated.");
-      commandLine = existing.getAttribute(ResourceAttributes.PROCESS_COMMAND_LINE);
-      if (commandLine == null) {
-        return false;
-      }
-      if (commandLine.length() >= 256) {
-        commandLine = commandLine.substring(0, 250) + "[...]";
-      }
-    }
-    return wantTruncate;
-  }
-
-  @Override
-  public Resource createResource(ConfigProperties config) {
-    return Resource.create(Attributes.of(ResourceAttributes.PROCESS_COMMAND_LINE, commandLine));
+  public void customize(AutoConfigurationCustomizer autoConfiguration) {
+    autoConfiguration.addResourceCustomizer(new CommandLineTruncator());
   }
 
   @Override
   public int order() {
     // Need to run late so that we can override the existing commandline
     return 9999;
+  }
+
+  @VisibleForTesting
+  static class CommandLineTruncator implements BiFunction<Resource, ConfigProperties, Resource> {
+    @Override
+    public Resource apply(Resource existing, ConfigProperties config) {
+      boolean metricsEnabled = config.getBoolean(METRICS_ENABLED_PROPERTY, false);
+      boolean forceFullCommandline = config.getBoolean(METRICS_FULL_COMMAND_LINE, false);
+      if (!metricsEnabled || forceFullCommandline) {
+        return existing;
+      }
+
+      String commandLine = existing.getAttribute(ResourceAttributes.PROCESS_COMMAND_LINE);
+      if (commandLine == null || commandLine.length() < 256) {
+        return existing;
+      }
+
+      logger.warning(
+          "Metrics are enabled, process.command_line resource attribute is being truncated.");
+      String newCommandLine = commandLine.substring(0, 250) + "[...]";
+      return Resource.create(
+          Attributes.of(ResourceAttributes.PROCESS_COMMAND_LINE, newCommandLine));
+    }
   }
 }

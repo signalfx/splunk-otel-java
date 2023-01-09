@@ -20,17 +20,21 @@ import static com.splunk.opentelemetry.SplunkConfiguration.METRICS_ENABLED_PROPE
 import static com.splunk.opentelemetry.SplunkConfiguration.METRICS_FULL_COMMAND_LINE;
 import static io.opentelemetry.semconv.resource.attributes.ResourceAttributes.PROCESS_COMMAND_LINE;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.opentelemetry.api.common.Attributes;
+import io.opentelemetry.sdk.autoconfigure.spi.AutoConfigurationCustomizer;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import io.opentelemetry.sdk.resources.Resource;
+import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -38,34 +42,40 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class TruncateCommandLineWhenMetricsEnabledTest {
 
   @Mock ConfigProperties config;
+  @Mock Resource existingResource;
 
   @Test
   void shouldNotApplyIfMetricsNotEnabled() {
     when(config.getBoolean(METRICS_ENABLED_PROPERTY, false)).thenReturn(false);
 
-    var testClass = new TruncateCommandLineWhenMetricsEnabled();
-
-    assertFalse(testClass.shouldApply(config, null));
+    var testClass = new TruncateCommandLineWhenMetricsEnabled.CommandLineTruncator();
+    var result = testClass.apply(existingResource, config);
+    assertSame(existingResource, result);
   }
 
   @Test
   void shouldNotApplyIfNoCommandline() {
-    Resource existing = Resource.create(Attributes.of(PROCESS_COMMAND_LINE, null));
+    var existing = Resource.create(Attributes.of(PROCESS_COMMAND_LINE, null));
     when(config.getBoolean(METRICS_ENABLED_PROPERTY, false)).thenReturn(true);
 
-    var testClass = new TruncateCommandLineWhenMetricsEnabled();
+    var testClass = new TruncateCommandLineWhenMetricsEnabled.CommandLineTruncator();
 
-    assertFalse(testClass.shouldApply(config, existing));
+    var result = testClass.apply(existing, config);
+    assertSame(existing, result);
   }
 
   @Test
-  void shouldApplyWhenMetricsEnabled() {
-    var existing = Resource.create(Attributes.of(PROCESS_COMMAND_LINE, "foo"));
+  void doesntTruncateWhenCommandlineShort() {
+    var cmd = "c:\\java.exe runme.jar";
+    var existing = Resource.create(Attributes.of(PROCESS_COMMAND_LINE, cmd));
 
     when(config.getBoolean(METRICS_ENABLED_PROPERTY, false)).thenReturn(true);
 
-    var testClass = new TruncateCommandLineWhenMetricsEnabled();
-    assertTrue(testClass.shouldApply(config, existing));
+    var testClass = new TruncateCommandLineWhenMetricsEnabled.CommandLineTruncator();
+    var result = testClass.apply(existing, config);
+
+    assertSame(existing, result);
+    assertThat(result.getAttribute(PROCESS_COMMAND_LINE)).isEqualTo(cmd);
   }
 
   @Test
@@ -73,23 +83,10 @@ class TruncateCommandLineWhenMetricsEnabledTest {
     when(config.getBoolean(METRICS_ENABLED_PROPERTY, false)).thenReturn(true);
     when(config.getBoolean(METRICS_FULL_COMMAND_LINE, false)).thenReturn(true);
 
-    var testClass = new TruncateCommandLineWhenMetricsEnabled();
+    var testClass = new TruncateCommandLineWhenMetricsEnabled.CommandLineTruncator();
 
-    assertFalse(testClass.shouldApply(config, null));
-  }
-
-  @Test
-  void doesntTruncateIfShort() {
-    var cmd = "c:\\java.exe runme.jar";
-    var existing = Resource.create(Attributes.of(PROCESS_COMMAND_LINE, cmd));
-
-    when(config.getBoolean(METRICS_ENABLED_PROPERTY, false)).thenReturn(true);
-
-    var testClass = new TruncateCommandLineWhenMetricsEnabled();
-    testClass.shouldApply(config, existing);
-
-    Resource result = testClass.createResource(config);
-    assertThat(result.getAttribute(PROCESS_COMMAND_LINE)).isEqualTo(cmd);
+    var result = testClass.apply(existingResource, config);
+    assertSame(existingResource, result);
   }
 
   @Test
@@ -99,11 +96,33 @@ class TruncateCommandLineWhenMetricsEnabledTest {
 
     when(config.getBoolean(METRICS_ENABLED_PROPERTY, false)).thenReturn(true);
 
-    var testClass = new TruncateCommandLineWhenMetricsEnabled();
-    testClass.shouldApply(config, existing);
+    var testClass = new TruncateCommandLineWhenMetricsEnabled.CommandLineTruncator();
+    var result = testClass.apply(existing, config);
 
-    Resource result = testClass.createResource(config);
     String resultCmd = result.getAttribute(PROCESS_COMMAND_LINE);
+    assertThat(resultCmd.length()).isEqualTo(255);
+    assertThat(resultCmd.endsWith("[...]")).isTrue();
+  }
+
+  @Test
+  void testTruncateThroughParent() {
+    var testClass = new TruncateCommandLineWhenMetricsEnabled();
+    var cmd = Stream.generate(() -> "x").limit(500).collect(Collectors.joining());
+    var existing = Resource.create(Attributes.of(PROCESS_COMMAND_LINE, cmd));
+
+    when(config.getBoolean(METRICS_ENABLED_PROPERTY, false)).thenReturn(true);
+
+    var autoConfig = mock(AutoConfigurationCustomizer.class);
+
+    testClass.customize(autoConfig);
+    ArgumentCaptor<BiFunction<Resource, ConfigProperties, Resource>> captor =
+        ArgumentCaptor.forClass(BiFunction.class);
+    verify(autoConfig).addResourceCustomizer(captor.capture());
+
+    var truncator = captor.getValue();
+
+    var result = truncator.apply(existing, config);
+    var resultCmd = result.getAttribute(PROCESS_COMMAND_LINE);
     assertThat(resultCmd.length()).isEqualTo(255);
     assertThat(resultCmd.endsWith("[...]")).isTrue();
   }

@@ -45,7 +45,7 @@ public class TruncateCommandLineWhenMetricsEnabled implements AutoConfigurationC
 
   @Override
   public int order() {
-    // Need to run late so that we can override the existing commandline
+    // Need to run late so that we can override other resource customizers
     return 9999;
   }
 

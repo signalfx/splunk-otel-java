@@ -167,7 +167,7 @@ with:
 
 * OpenTelemetry API version <!--OTEL_VERSION-->1.21.0<!--OTEL_VERSION-->
 * OpenTelemetry Instrumentation for Java version <!--OTEL_INSTRUMENTATION_VERSION-->1.21.0<!--OTEL_INSTRUMENTATION_VERSION-->
-* Micrometer version 1.10.2
+* Micrometer version 1.10.3
 
 ## Snapshot builds
 

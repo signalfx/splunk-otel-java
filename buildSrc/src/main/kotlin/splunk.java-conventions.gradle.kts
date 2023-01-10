@@ -13,8 +13,8 @@ repositories {
   }
 }
 
-val otelVersion = "1.21.0"
-val otelAlphaVersion = "1.21.0-alpha"
+val otelVersion = "1.22.0"
+val otelAlphaVersion = "1.22.0-alpha"
 val otelContribAlphaVersion = "1.21.0-alpha"
 val otelInstrumentationVersion = "1.22.0-SNAPSHOT"
 val otelInstrumentationAlphaVersion = "1.22.0-alpha-SNAPSHOT"

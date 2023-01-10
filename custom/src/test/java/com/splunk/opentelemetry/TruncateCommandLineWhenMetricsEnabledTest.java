@@ -42,15 +42,16 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class TruncateCommandLineWhenMetricsEnabledTest {
 
   @Mock ConfigProperties config;
-  @Mock Resource existingResource;
 
   @Test
   void shouldNotApplyIfMetricsNotEnabled() {
+    var existing = Resource.create(Attributes.of(PROCESS_COMMAND_LINE, "blargus"));
+
     when(config.getBoolean(METRICS_ENABLED_PROPERTY, false)).thenReturn(false);
 
     var testClass = new TruncateCommandLineWhenMetricsEnabled.CommandLineTruncator();
-    var result = testClass.apply(existingResource, config);
-    assertSame(existingResource, result);
+    var result = testClass.apply(existing, config);
+    assertSame(existing, result);
   }
 
   @Test
@@ -80,13 +81,15 @@ class TruncateCommandLineWhenMetricsEnabledTest {
 
   @Test
   void shouldNotApplyIfConfigItemOverrides() {
+    var existing = Resource.create(Attributes.of(PROCESS_COMMAND_LINE, "blargus"));
+
     when(config.getBoolean(METRICS_ENABLED_PROPERTY, false)).thenReturn(true);
     when(config.getBoolean(METRICS_FULL_COMMAND_LINE, false)).thenReturn(true);
 
     var testClass = new TruncateCommandLineWhenMetricsEnabled.CommandLineTruncator();
 
-    var result = testClass.apply(existingResource, config);
-    assertSame(existingResource, result);
+    var result = testClass.apply(existing, config);
+    assertSame(existing, result);
   }
 
   @Test
@@ -105,7 +108,7 @@ class TruncateCommandLineWhenMetricsEnabledTest {
   }
 
   @Test
-  void testTruncateThroughParent() {
+  void testTruncateThroughSpi() {
     var testClass = new TruncateCommandLineWhenMetricsEnabled();
     var cmd = Stream.generate(() -> "x").limit(500).collect(Collectors.joining());
     var existing = Resource.create(Attributes.of(PROCESS_COMMAND_LINE, cmd));

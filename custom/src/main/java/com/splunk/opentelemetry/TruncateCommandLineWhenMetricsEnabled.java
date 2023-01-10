@@ -66,8 +66,8 @@ public class TruncateCommandLineWhenMetricsEnabled implements AutoConfigurationC
 
       logger.warning("Metrics are enabled. Truncating process.command_line resource attribute.");
       String newCommandLine = commandLine.substring(0, 250) + "[...]";
-      return Resource.create(
-          Attributes.of(ResourceAttributes.PROCESS_COMMAND_LINE, newCommandLine));
+      return existing.merge(Resource.create(
+          Attributes.of(ResourceAttributes.PROCESS_COMMAND_LINE, newCommandLine)));
     }
   }
 }

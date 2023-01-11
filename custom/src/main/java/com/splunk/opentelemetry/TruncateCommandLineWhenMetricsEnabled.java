@@ -36,8 +36,6 @@ public class TruncateCommandLineWhenMetricsEnabled implements AutoConfigurationC
   private static final Logger logger =
       Logger.getLogger(TruncateCommandLineWhenMetricsEnabled.class.getName());
 
-  private String commandLine;
-
   @Override
   public void customize(AutoConfigurationCustomizer autoConfiguration) {
     autoConfiguration.addResourceCustomizer(new CommandLineTruncator());

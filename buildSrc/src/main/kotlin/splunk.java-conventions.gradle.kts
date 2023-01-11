@@ -17,7 +17,7 @@ dependencies {
   add("testImplementation", "org.junit.jupiter:junit-jupiter-api")
   add("testImplementation", "org.junit.jupiter:junit-jupiter-params")
   add("testRuntimeOnly", "org.junit.jupiter:junit-jupiter-engine")
-  add("testRuntimeOnly", "org.slf4j:slf4j-api:2.0.6")
+  add("testRuntimeOnly", "org.slf4j:slf4j-api")
 }
 
 tasks.withType<Test>().configureEach {

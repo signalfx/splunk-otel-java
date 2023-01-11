@@ -30,7 +30,14 @@ group = "com.splunk"
 subprojects {
   version = rootProject.version
 
-  apply(plugin = "splunk.java-conventions")
-  apply(plugin = "splunk.spotless-conventions")
+  if (this.name != "dependencyManagement") {
+    apply(plugin = "splunk.java-conventions")
+    apply(plugin = "splunk.spotless-conventions")
+    dependencies {
+      for(conf in configurations) {
+        add(conf.name, platform(project(":dependencyManagement")))
+      }
+    }
+  }
 }
 

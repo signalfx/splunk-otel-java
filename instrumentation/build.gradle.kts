@@ -16,6 +16,10 @@ subprojects {
       options.release.set(8)
     }
   }
+  dependencies {
+    implementation(platform(project(":dependencyManagement")))
+  }
+
 }
 
 tasks {

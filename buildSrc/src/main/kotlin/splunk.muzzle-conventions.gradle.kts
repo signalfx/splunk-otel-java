@@ -9,6 +9,9 @@ plugins {
 }
 
 dependencies {
+  add("muzzleTooling", platform(project(":dependencyManagement")))
+  add("muzzleBootstrap", platform(project(":dependencyManagement")))
+  add("codegen", platform(project(":dependencyManagement")))
   // dependencies needed to make muzzle-check work
   add("muzzleTooling", "io.opentelemetry.javaagent:opentelemetry-javaagent-tooling")
   add("muzzleTooling", "ch.qos.logback:logback-classic:1.2.10")

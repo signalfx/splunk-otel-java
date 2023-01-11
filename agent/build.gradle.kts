@@ -29,9 +29,10 @@ val upstreamAgent: Configuration by configurations.creating {
   isCanBeConsumed = false
 }
 
-val otelInstrumentationVersion: String by extra
+val otelInstrumentationVersion: String by rootProject.extra
 
 dependencies {
+  add("upstreamAgent", platform(project(":dependencyManagement")))
   bootstrapLibs(project(":bootstrap"))
 
   javaagentLibs(project(":custom"))

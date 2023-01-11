@@ -20,6 +20,7 @@ gradleEnterprise {
 }
 
 rootProject.name = "splunk-otel-java"
+include(":dependencyManagement")
 include(
     "agent",
     "bootstrap",

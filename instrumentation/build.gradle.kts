@@ -19,7 +19,6 @@ subprojects {
   dependencies {
     implementation(platform(project(":dependencyManagement")))
   }
-
 }
 
 tasks {

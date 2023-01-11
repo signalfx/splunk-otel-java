@@ -18,6 +18,7 @@ package com.splunk.opentelemetry;
 
 import static com.splunk.opentelemetry.SplunkConfiguration.METRICS_ENABLED_PROPERTY;
 import static com.splunk.opentelemetry.SplunkConfiguration.METRICS_FULL_COMMAND_LINE;
+import static io.opentelemetry.api.common.AttributeKey.stringKey;
 import static io.opentelemetry.semconv.resource.attributes.ResourceAttributes.PROCESS_COMMAND_LINE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertSame;
@@ -32,6 +33,7 @@ import io.opentelemetry.sdk.resources.Resource;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -45,7 +47,7 @@ class TruncateCommandLineWhenMetricsEnabledTest {
 
   @Test
   void shouldNotApplyIfMetricsNotEnabled() {
-    var existing = Resource.create(Attributes.of(PROCESS_COMMAND_LINE, "blargus"));
+    var existing = makeBasicResource("blargus");
 
     when(config.getBoolean(METRICS_ENABLED_PROPERTY, false)).thenReturn(false);
 
@@ -56,7 +58,7 @@ class TruncateCommandLineWhenMetricsEnabledTest {
 
   @Test
   void shouldNotApplyIfNoCommandline() {
-    var existing = Resource.create(Attributes.of(PROCESS_COMMAND_LINE, null));
+    var existing = makeBasicResource(null);
     when(config.getBoolean(METRICS_ENABLED_PROPERTY, false)).thenReturn(true);
 
     var testClass = new TruncateCommandLineWhenMetricsEnabled.CommandLineTruncator();
@@ -68,7 +70,7 @@ class TruncateCommandLineWhenMetricsEnabledTest {
   @Test
   void doesntTruncateWhenCommandlineShort() {
     var cmd = "c:\\java.exe runme.jar";
-    var existing = Resource.create(Attributes.of(PROCESS_COMMAND_LINE, cmd));
+    var existing = makeBasicResource(cmd);
 
     when(config.getBoolean(METRICS_ENABLED_PROPERTY, false)).thenReturn(true);
 
@@ -81,7 +83,7 @@ class TruncateCommandLineWhenMetricsEnabledTest {
 
   @Test
   void shouldNotApplyIfConfigItemOverrides() {
-    var existing = Resource.create(Attributes.of(PROCESS_COMMAND_LINE, "blargus"));
+    var existing = makeBasicResource("blargus");
 
     when(config.getBoolean(METRICS_ENABLED_PROPERTY, false)).thenReturn(true);
     when(config.getBoolean(METRICS_FULL_COMMAND_LINE, false)).thenReturn(true);
@@ -95,7 +97,7 @@ class TruncateCommandLineWhenMetricsEnabledTest {
   @Test
   void truncatesWhenTooLong() {
     var cmd = Stream.generate(() -> "x").limit(500).collect(Collectors.joining());
-    var existing = Resource.create(Attributes.of(PROCESS_COMMAND_LINE, cmd));
+    var existing = makeBasicResource(cmd);
 
     when(config.getBoolean(METRICS_ENABLED_PROPERTY, false)).thenReturn(true);
 
@@ -105,13 +107,14 @@ class TruncateCommandLineWhenMetricsEnabledTest {
     String resultCmd = result.getAttribute(PROCESS_COMMAND_LINE);
     assertThat(resultCmd.length()).isEqualTo(255);
     assertThat(resultCmd.endsWith("[...]")).isTrue();
+    assertThat(result.getAttribute(stringKey("foo"))).isEqualTo("barfly");
   }
 
   @Test
   void testTruncateThroughSpi() {
     var testClass = new TruncateCommandLineWhenMetricsEnabled();
     var cmd = Stream.generate(() -> "x").limit(500).collect(Collectors.joining());
-    var existing = Resource.create(Attributes.of(PROCESS_COMMAND_LINE, cmd));
+    var existing = makeBasicResource(cmd);
 
     when(config.getBoolean(METRICS_ENABLED_PROPERTY, false)).thenReturn(true);
 
@@ -128,5 +131,12 @@ class TruncateCommandLineWhenMetricsEnabledTest {
     var resultCmd = result.getAttribute(PROCESS_COMMAND_LINE);
     assertThat(resultCmd.length()).isEqualTo(255);
     assertThat(resultCmd.endsWith("[...]")).isTrue();
+    assertThat(result.getAttribute(stringKey("foo"))).isEqualTo("barfly");
+  }
+
+  @NotNull
+  private static Resource makeBasicResource(String cmdLine) {
+    return Resource.create(
+        Attributes.of(PROCESS_COMMAND_LINE, cmdLine, stringKey("foo"), "barfly"));
   }
 }

@@ -10,6 +10,9 @@ repositories {
 }
 
 dependencies {
+  for (conf in configurations) {
+    add(conf.name, platform(project(":dependencyManagement")))
+  }
   add("testImplementation", "org.assertj:assertj-core")
   add("testImplementation", "org.awaitility:awaitility")
   add("testImplementation", "org.mockito:mockito-core")

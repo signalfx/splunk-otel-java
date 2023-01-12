@@ -8,6 +8,7 @@ plugins {
 val testInstrumentation by configurations.creating
 
 dependencies {
+  add("testInstrumentation", platform(project(":dependencyManagement")))
   compileOnly("io.opentelemetry:opentelemetry-sdk")
   compileOnly("io.opentelemetry:opentelemetry-sdk-extension-autoconfigure")
   compileOnly("io.opentelemetry:opentelemetry-sdk-extension-autoconfigure-spi")

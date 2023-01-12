@@ -45,7 +45,8 @@ public final class KHttpSingletons {
                 INSTRUMENTATION_NAME,
                 HttpSpanNameExtractor.create(httpAttributesGetter))
             .setSpanStatusExtractor(HttpSpanStatusExtractor.create(httpAttributesGetter))
-            .addAttributesExtractor(HttpClientAttributesExtractor.create(httpAttributesGetter))
+            .addAttributesExtractor(
+                HttpClientAttributesExtractor.create(httpAttributesGetter, netAttributesGetter))
             .addAttributesExtractor(NetClientAttributesExtractor.create(netAttributesGetter))
             .addAttributesExtractor(
                 PeerServiceAttributesExtractor.create(

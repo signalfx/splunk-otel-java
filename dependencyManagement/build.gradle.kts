@@ -4,7 +4,7 @@ plugins {
 
 val otelVersion = "1.22.0"
 val otelAlphaVersion = "1.22.0-alpha"
-val otelInstrumentationVersion = "1.22.0-SNAPSHOT"
+val otelInstrumentationVersion = "1.22.0"
 val otelInstrumentationAlphaVersion = "1.22.0-alpha-SNAPSHOT"
 val otelContribAlphaVersion = "1.21.0-alpha"
 

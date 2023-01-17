@@ -17,7 +17,7 @@ Regular maintenance release, coordinated after the upstream/vanilla release.
 - Upgrade to Gradle 7.6 (#1062)
 - Upgrade ot Micrometer 1.10.3 (#1065)
 - Truncate `process.command_line` resource attribute when metrics are enabled (#1057) 
-- Various 
+- Numerous other minor dependency upgrades. 
 
 ## v1.19.0 - 2022-12-16
 

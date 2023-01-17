@@ -40,7 +40,7 @@ dependencies {
   constraints {
     api("com.google.auto.service:auto-service:1.0.1")
     api("io.jaegertracing:jaeger-client:1.8.1")
-    api("org.assertj:assertj-core:3.24.1")
+    api("org.assertj:assertj-core:3.24.2")
     api("org.awaitility:awaitility:4.2.0")
     api("com.signalfx.public:signalfx-java:1.0.28")
 

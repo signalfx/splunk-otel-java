@@ -8,6 +8,7 @@ repositories {
     url = uri("https://oss.sonatype.org/content/repositories/snapshots")
   }
 }
+evaluationDependsOn(":dependencyManagement")
 
 dependencies {
   for (conf in configurations) {

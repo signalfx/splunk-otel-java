@@ -2,10 +2,10 @@ plugins {
   `java-platform`
 }
 
-val otelVersion = "1.22.0"
-val otelAlphaVersion = "1.22.0-alpha"
-val otelInstrumentationVersion = "1.22.1"
-val otelInstrumentationAlphaVersion = "1.22.1-alpha"
+val otelVersion = "1.23.0-SNAPSHOT"
+val otelAlphaVersion = "1.23.0-alpha-SNAPSHOT"
+val otelInstrumentationVersion = "1.23.0-SNAPSHOT"
+val otelInstrumentationAlphaVersion = "1.23.0-alpha-SNAPSHOT"
 val otelContribAlphaVersion = "1.22.0-alpha"
 
 val micrometerVersion = "1.10.3"

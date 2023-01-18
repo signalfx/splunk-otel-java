@@ -8,6 +8,17 @@ and this repository adheres to [Semantic Versioning](https://semver.org/spec/v2.
 
 ## Unreleased
 
+## v1.20.0 - 2023-01-18
+
+Regular maintenance release, coordinated after the upstream/vanilla release.
+
+- OpenTelemetry Java SDK updated to version 1.22.0
+- OpenTelemetry Instrumentation for Java dependencies updated to version 1.22.1.
+- Upgrade to Gradle 7.6 (#1062)
+- Upgrade to Micrometer 1.10.3 (#1065)
+- Truncate `process.command_line` resource attribute when metrics are enabled (#1057) 
+- Numerous other minor dependency upgrades. 
+
 ## v1.19.0 - 2022-12-16
 
 ### General

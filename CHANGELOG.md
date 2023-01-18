@@ -15,7 +15,7 @@ Regular maintenance release, coordinated after the upstream/vanilla release.
 - OpenTelemetry Java SDK updated to version 1.22.0
 - OpenTelemetry Instrumentation for Java dependencies updated to version 1.22.1.
 - Upgrade to Gradle 7.6 (#1062)
-- Upgrade ot Micrometer 1.10.3 (#1065)
+- Upgrade to Micrometer 1.10.3 (#1065)
 - Truncate `process.command_line` resource attribute when metrics are enabled (#1057) 
 - Numerous other minor dependency upgrades. 
 

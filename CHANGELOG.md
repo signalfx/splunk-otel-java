@@ -10,8 +10,6 @@ and this repository adheres to [Semantic Versioning](https://semver.org/spec/v2.
 
 ## v1.20.0 - 2023-01-18
 
-## v1.20.0 - 2023-01-18
-
 Regular maintenance release, coordinated after the upstream/vanilla release.
 
 - OpenTelemetry Java SDK updated to version 1.22.0

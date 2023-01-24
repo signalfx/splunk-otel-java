@@ -24,13 +24,13 @@ import org.jetbrains.annotations.Nullable;
 final class KHttpHttpClientNetAttributesGetter
     implements NetClientAttributesGetter<RequestWrapper, Response> {
   @Override
-  public String transport(RequestWrapper requestWrapper, @Nullable Response response) {
+  public String getTransport(RequestWrapper requestWrapper, @Nullable Response response) {
     return SemanticAttributes.NetTransportValues.IP_TCP;
   }
 
   @Nullable
   @Override
-  public String peerName(RequestWrapper requestWrapper) {
+  public String getPeerName(RequestWrapper requestWrapper) {
     if (requestWrapper.parsedUri != null) {
       return requestWrapper.parsedUri.getHost();
     }
@@ -39,7 +39,7 @@ final class KHttpHttpClientNetAttributesGetter
 
   @Nullable
   @Override
-  public Integer peerPort(RequestWrapper requestWrapper) {
+  public Integer getPeerPort(RequestWrapper requestWrapper) {
     if (requestWrapper.parsedUri != null && requestWrapper.parsedUri.getPort() > 0) {
       return requestWrapper.parsedUri.getPort();
     }

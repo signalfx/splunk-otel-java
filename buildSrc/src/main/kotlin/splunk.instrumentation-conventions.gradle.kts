@@ -74,3 +74,25 @@ tasks.withType<Test>().configureEach {
     return@filter true
   }
 }
+
+tasks {
+  register("generateInstrumentationVersionFile") {
+    val name = "com.splunk.${project.name}"
+    val version = project.version.toString()
+    inputs.property("instrumentation.name", name)
+    inputs.property("instrumentation.version", version)
+
+    val propertiesDir = File(project.buildDir, "generated/instrumentationVersion/META-INF/io/opentelemetry/instrumentation/")
+    outputs.dir(propertiesDir)
+
+    doLast {
+      File(propertiesDir, "$name.properties").writeText("version=$version")
+    }
+  }
+}
+
+sourceSets {
+  main {
+    output.dir("build/generated/instrumentationVersion", "builtBy" to "generateInstrumentationVersionFile")
+  }
+}

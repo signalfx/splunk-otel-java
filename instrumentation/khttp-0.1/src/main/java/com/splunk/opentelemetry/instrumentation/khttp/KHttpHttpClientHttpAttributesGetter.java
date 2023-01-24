@@ -30,35 +30,35 @@ final class KHttpHttpClientHttpAttributesGetter
 
   @Nullable
   @Override
-  public String url(RequestWrapper requestWrapper) {
+  public String getUrl(RequestWrapper requestWrapper) {
     return requestWrapper.uri;
   }
 
   @Override
-  public String flavor(RequestWrapper requestWrapper, @Nullable Response response) {
+  public String getFlavor(RequestWrapper requestWrapper, @Nullable Response response) {
     return SemanticAttributes.HttpFlavorValues.HTTP_1_1;
   }
 
   @Nullable
   @Override
-  public String method(RequestWrapper requestWrapper) {
+  public String getMethod(RequestWrapper requestWrapper) {
     return requestWrapper.method;
   }
 
   @Override
-  public List<String> requestHeader(RequestWrapper requestWrapper, String name) {
+  public List<String> getRequestHeader(RequestWrapper requestWrapper, String name) {
     String header = requestWrapper.headers.get(name);
     return header != null ? singletonList(header) : emptyList();
   }
 
   @Override
-  public Integer statusCode(
+  public Integer getStatusCode(
       RequestWrapper requestWrapper, Response response, @Nullable Throwable error) {
     return response.getStatusCode();
   }
 
   @Override
-  public List<String> responseHeader(
+  public List<String> getResponseHeader(
       RequestWrapper requestWrapper, Response response, String name) {
     String header = response.getHeaders().get(name);
     return header != null ? singletonList(header) : emptyList();

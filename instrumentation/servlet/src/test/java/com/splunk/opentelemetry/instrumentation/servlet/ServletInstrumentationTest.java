@@ -254,7 +254,7 @@ class ServletInstrumentationTest {
   }
 
   public static class InternalSpanFilter implements Filter {
-    private final Tracer tracer = GlobalOpenTelemetry.getTracer("test-custom");
+    private final Tracer tracer = GlobalOpenTelemetry.getTracer("test");
 
     @Override
     public void init(FilterConfig filterConfig) {}

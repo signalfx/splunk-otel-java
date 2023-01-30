@@ -11,7 +11,7 @@ val otelContribAlphaVersion = "1.22.0-alpha"
 val micrometerVersion = "1.10.3"
 val micrometerOldVersion = "1.3.20"
 val dockerJavaVersion = "3.2.14"
-val mockitoVersion = "5.0.0"
+val mockitoVersion = "5.1.0"
 val slfVersion = "2.0.6"
 val autoValueVersion = "1.10.1";
 

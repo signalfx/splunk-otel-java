@@ -17,28 +17,33 @@
 package com.splunk.opentelemetry.profiler;
 
 import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_ENABLE_PROFILER;
+import static java.util.Collections.emptyMap;
 
 import com.google.auto.service.AutoService;
 import io.opentelemetry.context.ContextStorage;
-import io.opentelemetry.instrumentation.api.internal.ConfigPropertiesUtil;
 import io.opentelemetry.sdk.autoconfigure.spi.AutoConfigurationCustomizer;
 import io.opentelemetry.sdk.autoconfigure.spi.AutoConfigurationCustomizerProvider;
+import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 
 @AutoService(AutoConfigurationCustomizerProvider.class)
 public class SdkCustomizer implements AutoConfigurationCustomizerProvider {
 
   @Override
   public void customize(AutoConfigurationCustomizer autoConfigurationCustomizer) {
-    if (jfrIsAvailable() && jfrIsEnabledInConfig()) {
-      ContextStorage.addWrapper(JfrContextStorage::new);
-    }
+    autoConfigurationCustomizer.addPropertiesCustomizer(
+        config -> {
+          if (jfrIsAvailable() && jfrIsEnabledInConfig(config)) {
+            ContextStorage.addWrapper(JfrContextStorage::new);
+          }
+          return emptyMap();
+        });
   }
 
   private boolean jfrIsAvailable() {
     return JFR.instance.isAvailable();
   }
 
-  private boolean jfrIsEnabledInConfig() {
-    return ConfigPropertiesUtil.getBoolean(CONFIG_KEY_ENABLE_PROFILER, false);
+  private boolean jfrIsEnabledInConfig(ConfigProperties config) {
+    return config.getBoolean(CONFIG_KEY_ENABLE_PROFILER, false);
   }
 }

@@ -37,11 +37,11 @@ import org.junit.jupiter.params.provider.MethodSource;
 class WebLogicSmokeTest extends AppServerTest {
 
   private static final AppServerTest.ExpectedServerAttributes V12_1_ATTRIBUTES =
-      new AppServerTest.ExpectedServerAttributes("HTTP GET", "WebLogic Server", "12.1.3.0.0");
+      new AppServerTest.ExpectedServerAttributes("GET", "WebLogic Server", "12.1.3.0.0");
   private static final AppServerTest.ExpectedServerAttributes V12_2_ATTRIBUTES =
-      new AppServerTest.ExpectedServerAttributes("HTTP GET", "WebLogic Server", "12.2.1.4.0");
+      new AppServerTest.ExpectedServerAttributes("GET", "WebLogic Server", "12.2.1.4.0");
   private static final AppServerTest.ExpectedServerAttributes V14_ATTRIBUTES =
-      new AppServerTest.ExpectedServerAttributes("HTTP GET", "WebLogic Server", "14.1.1.0.0");
+      new AppServerTest.ExpectedServerAttributes("GET", "WebLogic Server", "14.1.1.0.0");
 
   private static Stream<Arguments> supportedWlsConfigurations() {
     return configurations("weblogic")

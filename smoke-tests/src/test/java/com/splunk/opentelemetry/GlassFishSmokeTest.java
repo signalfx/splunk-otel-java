@@ -29,9 +29,9 @@ import org.junit.jupiter.params.provider.MethodSource;
 public class GlassFishSmokeTest extends AppServerTest {
 
   public static final ExpectedServerAttributes PAYARA20_SERVER_ATTRIBUTES =
-      new ExpectedServerAttributes("/*", "Payara Server", "5.2020.6");
+      new ExpectedServerAttributes("GET /*", "Payara Server", "5.2020.6");
   public static final ExpectedServerAttributes PAYARA21_SERVER_ATTRIBUTES =
-      new ExpectedServerAttributes("/*", "Payara Server", "5.2021.8");
+      new ExpectedServerAttributes("GET /*", "Payara Server", "5.2021.8");
 
   private static Stream<Arguments> supportedConfigurations() {
     return configurations("payara")

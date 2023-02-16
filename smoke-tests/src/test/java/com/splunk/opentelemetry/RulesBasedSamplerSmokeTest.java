@@ -53,10 +53,10 @@ public class RulesBasedSamplerSmokeTest extends AppServerTest {
   }
 
   protected void assertTraces(TraceInspector traces) {
-    assertEquals(1, traces.countSpansByName("/greeting"));
+    assertEquals(1, traces.countSpansByName("GET /greeting"));
     assertEquals(1, traces.countSpansByName("WebController.greeting"));
     assertEquals(1, traces.countSpansByName("WebController.withSpan"));
-    assertEquals(0, traces.countSpansByName("/front"));
+    assertEquals(0, traces.countSpansByName("GET /front"));
 
     assertThat(traces.countTraceIds()).isEqualTo(1);
   }

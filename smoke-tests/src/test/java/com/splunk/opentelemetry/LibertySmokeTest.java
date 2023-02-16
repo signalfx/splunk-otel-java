@@ -114,7 +114,7 @@ public class LibertySmokeTest extends AppServerTest {
 
   public static class LibertyAttributes extends ExpectedServerAttributes {
     public LibertyAttributes(String version) {
-      super("HTTP GET", "websphere liberty", version);
+      super("GET", "websphere liberty", version);
     }
   }
 }

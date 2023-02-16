@@ -106,7 +106,7 @@ public class TomcatSmokeTest extends AppServerTest {
   private static class TomcatAttributes extends ExpectedServerAttributes {
     public TomcatAttributes(String version) {
       // This handler span name is only received if default webapps are removed
-      super("HTTP GET", "tomcat", version);
+      super("GET", "tomcat", version);
     }
   }
 }

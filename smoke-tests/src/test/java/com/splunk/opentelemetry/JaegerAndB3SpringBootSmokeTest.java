@@ -34,7 +34,7 @@ public class JaegerAndB3SpringBootSmokeTest extends SpringBootSmokeTest {
 
   protected void assertTraces(TraceInspector traces) throws IOException {
     // verify spans are exported
-    assertEquals(1, traces.countSpansByName("/greeting"));
+    assertEquals(1, traces.countSpansByName("GET /greeting"));
     assertEquals(1, traces.countSpansByName("WebController.greeting"));
     assertEquals(1, traces.countSpansByName("WebController.withSpan"));
 

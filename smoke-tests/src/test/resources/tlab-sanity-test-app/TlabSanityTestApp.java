@@ -24,8 +24,7 @@ public class TlabSanityTestApp {
   private static final long TEST_DURATION_MS = TimeUnit.SECONDS.toMillis(20);
 
   public static void main(String[] args) throws Exception {
-    CountDownLatch latch = new CountDownLatch(1);
-
+    var latch = new CountDownLatch(1);
     ThreadFactory namedThreadFactory =
         runnable -> {
           Thread t = Executors.defaultThreadFactory().newThread(runnable);
@@ -36,17 +35,20 @@ public class TlabSanityTestApp {
     // wait a bit for JFR to start recording
     TimeUnit.SECONDS.sleep(5);
 
-    Executors.newSingleThreadExecutor(namedThreadFactory)
-        .submit(
-            () -> {
-              instrumentedMethod();
-              latch.countDown();
-              return null;
-            });
+    var pool = Executors.newSingleThreadExecutor(namedThreadFactory);
+    pool.submit(
+        () -> {
+          instrumentedMethod();
+          latch.countDown();
+          return null;
+        });
 
     System.out.println("Waiting for thread to finish ...");
     latch.await(30, TimeUnit.SECONDS);
     System.out.println("Done.");
+    pool.shutdown();
+    pool.awaitTermination(30, TimeUnit.SECONDS);
+    TimeUnit.SECONDS.sleep(60);
   }
 
   private static void instrumentedMethod() throws InterruptedException {

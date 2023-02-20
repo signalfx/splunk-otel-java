@@ -8,9 +8,24 @@ and this repository adheres to [Semantic Versioning](https://semver.org/spec/v2.
 
 ## Unreleased
 
+## v1.21.0 - 2023-02-20
+
+### General
+
+- OpenTelemetry Java SDK has been updated to version 1.23.1.
+- OpenTelemetry Instrumentation for Java has been updated to version 1.21.0.
+- Micrometer dependency has been updated to version 1.10.4.
+- [signalfx-java](https://github.com/signalfx/signalfx-java) dependency has been updated to version 1.0.29.
+
+### Enhancements
+
+- Starting with this release we will publish a GHCR-hosted Docker image that contains the javaagent jar. (#1108)
+
 ## v1.20.0 - 2023-01-18
 
 Regular maintenance release, coordinated after the upstream/vanilla release.
+
+### General
 
 - OpenTelemetry Java SDK updated to version 1.22.0
 - OpenTelemetry Instrumentation for Java dependencies updated to version 1.22.1.

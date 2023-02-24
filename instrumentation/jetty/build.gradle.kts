@@ -12,5 +12,5 @@ muzzle {
 }
 
 dependencies {
-  compileOnly("org.eclipse.jetty:jetty-server:9.4.35.v20201120")
+  compileOnly("org.eclipse.jetty:jetty-server:8.0.0.v20110901")
 }

@@ -46,6 +46,7 @@ snapshot:
 release:
   stage: release
   artifacts:
+    when: always
     paths:
       - dist/
   rules:

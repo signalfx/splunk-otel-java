@@ -1,7 +1,10 @@
-FROM scratch
+FROM busybox
 
 ARG RELEASE_VER
 ENV RELEASE_VER=$RELEASE_VER
+ADD https://github.com/signalfx/splunk-otel-java/releases/download/${RELEASE_VER}/splunk-otel-javaagent.jar /stage/
+RUN chmod 644 /stage/splunk-otel-javaagent.jar
+RUN ln -s splunk-otel-javaagent.jar /stage/javaagent.jar
 
-ADD https://github.com/signalfx/splunk-otel-java/releases/download/${RELEASE_VER}/splunk-otel-javaagent.jar /
-
+FROM scratch
+COPY --from=0 /stage/ /

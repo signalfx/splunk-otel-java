@@ -25,3 +25,10 @@ dependencies {
 
   testRuntimeOnly("org.junit.vintage:junit-vintage-engine")
 }
+
+tasks.withType<Test>().configureEach {
+  // required on jdk17
+  jvmArgs("--add-opens=java.base/java.net=ALL-UNNAMED")
+  jvmArgs("--add-opens=java.base/sun.net.www.protocol.https=ALL-UNNAMED")
+  jvmArgs("-XX:+IgnoreUnrecognizedVMOptions")
+}

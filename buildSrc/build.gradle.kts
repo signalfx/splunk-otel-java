@@ -43,5 +43,5 @@ dependencies {
   implementation("io.spring.gradle:dependency-management-plugin:1.1.0")
 
   // keep these versions in sync with settings.gradle.kts
-  implementation("gradle.plugin.com.github.johnrengelman:shadow:7.1.2")
+  implementation("gradle.plugin.com.github.johnrengelman:shadow:8.0.0")
 }

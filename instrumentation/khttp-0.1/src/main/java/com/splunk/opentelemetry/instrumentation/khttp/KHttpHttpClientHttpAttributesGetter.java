@@ -22,6 +22,8 @@ import static java.util.Collections.singletonList;
 import io.opentelemetry.instrumentation.api.instrumenter.http.HttpClientAttributesGetter;
 import io.opentelemetry.semconv.trace.attributes.SemanticAttributes;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import khttp.responses.Response;
 import org.jetbrains.annotations.Nullable;
 
@@ -47,8 +49,10 @@ final class KHttpHttpClientHttpAttributesGetter
 
   @Override
   public List<String> getRequestHeader(RequestWrapper requestWrapper, String name) {
-    String header = requestWrapper.headers.get(name);
-    return header != null ? singletonList(header) : emptyList();
+    return requestWrapper.headers.entrySet().stream()
+        .filter(e -> e.getKey().equalsIgnoreCase(name))
+        .map(Map.Entry::getValue)
+        .collect(Collectors.toList());
   }
 
   @Override

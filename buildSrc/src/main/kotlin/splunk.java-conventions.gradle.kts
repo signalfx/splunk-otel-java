@@ -9,11 +9,21 @@ repositories {
   }
 }
 evaluationDependsOn(":dependencyManagement")
+val dependencyManagementConf = configurations.create("dependencyManagement") {
+  isCanBeConsumed = false
+  isCanBeResolved = false
+  isVisible = false
+}
+afterEvaluate {
+  configurations.configureEach {
+    if (isCanBeResolved && !isCanBeConsumed) {
+      extendsFrom(dependencyManagementConf)
+    }
+  }
+}
 
 dependencies {
-  for (conf in configurations) {
-    add(conf.name, platform(project(":dependencyManagement")))
-  }
+  add(dependencyManagementConf.name, platform(project(":dependencyManagement")))
   add("testImplementation", "org.assertj:assertj-core")
   add("testImplementation", "org.awaitility:awaitility")
   add("testImplementation", "org.mockito:mockito-core")

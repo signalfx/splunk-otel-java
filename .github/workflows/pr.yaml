@@ -33,11 +33,11 @@ jobs:
     steps:
       - uses: actions/checkout@v3.3.0
 
-      - name: Set up JDK 11 for running Gradle
+      - name: Set up JDK 17 for running Gradle
         uses: actions/setup-java@v3.10.0
         with:
-          distribution: adopt
-          java-version: 11.0.11+9
+          distribution: temurin
+          java-version: 17
 
       - name: Cache Gradle Wrapper
         uses: actions/cache@v3.2.6
@@ -56,11 +56,11 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v3.3.0
 
-      - name: Set up JDK 11 for running Gradle
+      - name: Set up JDK 17 for running Gradle
         uses: actions/setup-java@v3.10.0
         with:
-          distribution: adopt
-          java-version: 11.0.11+9
+          distribution: temurin
+          java-version: 17
 
       - name: Cache Gradle Wrapper
         uses: actions/cache@v3.2.6
@@ -81,11 +81,11 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v3.3.0
 
-      - name: Set up JDK 11 for running Gradle
+      - name: Set up JDK 17 for running Gradle
         uses: actions/setup-java@v3.10.0
         with:
-          distribution: adopt
-          java-version: 11.0.11+9
+          distribution: temurin
+          java-version: 17
 
       - name: Cache Gradle Wrapper
         uses: actions/cache@v3.2.6
@@ -119,11 +119,11 @@ jobs:
     steps:
       - uses: actions/checkout@v3.3.0
 
-      - name: Set up JDK 11 for running Gradle
+      - name: Set up JDK 17 for running Gradle
         uses: actions/setup-java@v3.10.0
         with:
-          distribution: adopt
-          java-version: 11.0.11+9
+          distribution: temurin
+          java-version: 17
 
       - name: Cache Gradle Wrapper
         uses: actions/cache@v3.2.6

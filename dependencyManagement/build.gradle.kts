@@ -2,7 +2,7 @@ plugins {
   `java-platform`
 }
 
-val otelVersion = "1.23.1"
+val otelVersion = "1.24.0"
 val otelAlphaVersion = "1.23.1-alpha"
 val otelInstrumentationVersion = "1.24.0-SNAPSHOT"
 val otelInstrumentationAlphaVersion = "1.24.0-alpha-SNAPSHOT"

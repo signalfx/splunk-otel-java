@@ -8,7 +8,7 @@ val otelInstrumentationVersion = "1.24.0-SNAPSHOT"
 val otelInstrumentationAlphaVersion = "1.24.0-alpha-SNAPSHOT"
 val otelContribAlphaVersion = "1.23.0-alpha"
 
-val micrometerVersion = "1.10.4"
+val micrometerVersion = "1.10.5"
 val micrometerOldVersion = "1.3.20"
 val dockerJavaVersion = "3.3.0"
 val mockitoVersion = "5.2.0"

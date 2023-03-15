@@ -8,6 +8,12 @@ and this repository adheres to [Semantic Versioning](https://semver.org/spec/v2.
 
 ## Unreleased
 
+## v1.22.0 - 2023-03-16
+- OpenTelemetry Java SDK has been updated to version 1.24.0.
+- OpenTelemetry Instrumentation for Java has been updated to version 1.24.0.
+- GHA workflows now use Java 17 temurin
+- Change scratch GHCR Docker image back to busybox for better compatibility with the k8s operator (#1155)
+
 ## v1.21.0 - 2023-02-23
 
 ### General

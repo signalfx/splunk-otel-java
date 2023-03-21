@@ -61,32 +61,6 @@ create_post_release_pr() {
     --head "$post_release_branch"
 }
 
-create_overhead_test_pr() {
-  local repo="signalfx/splunk-otel-java-overhead-test"
-  local repo_url="https://srv-gh-o11y-gdi:${GITHUB_TOKEN}@github.com/${repo}.git"
-  local update_version_branch="agent-version-update-$release_tag"
-  local message="[agent-version-update] Update agent version to $release_tag"
-
-  echo ">>> Cloning the $repo repository ..."
-  git clone "$repo_url" overhead-test-mirror
-
-  echo ">>> Applying the update-version.sh script and pushing changes ..."
-  cd overhead-test-mirror
-  git checkout -b "$update_version_branch"
-  ./scripts/update-version.sh "$(get_release_version "$release_tag")"
-  git commit -S -am "[automated] $message"
-  git push "$repo_url" "$update_version_branch"
-
-  echo ">>> Creating the agent version update PR ..."
-  gh pr create \
-    --repo "$repo" \
-    --title "$message" \
-    --body "$message" \
-    --label automated \
-    --base main \
-    --head "$update_version_branch"
-}
-
 create_collector_pr() {
   local repo="signalfx/splunk-otel-collector"
   local repo_url="https://srv-gh-o11y-gdi:${GITHUB_TOKEN}@github.com/${repo}.git"
@@ -116,5 +90,4 @@ setup_gpg
 import_gpg_secret_key "$GITHUB_BOT_GPG_KEY"
 setup_git
 create_post_release_pr
-create_overhead_test_pr
 create_collector_pr

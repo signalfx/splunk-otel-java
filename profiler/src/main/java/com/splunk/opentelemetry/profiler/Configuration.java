@@ -30,6 +30,7 @@ import java.util.Map;
 
 @AutoService(AutoConfigurationCustomizerProvider.class)
 public class Configuration implements AutoConfigurationCustomizerProvider {
+  private static final boolean HAS_OBJECT_ALLOCATION_SAMPLE_EVENT = getJavaVersion() >= 16;
 
   private static final String DEFAULT_RECORDING_DURATION = "20s";
   public static final boolean DEFAULT_MEMORY_ENABLED = false;
@@ -48,6 +49,9 @@ public class Configuration implements AutoConfigurationCustomizerProvider {
   public static final String CONFIG_KEY_MEMORY_ENABLED = PROFILER_MEMORY_ENABLED_PROPERTY;
   public static final String CONFIG_KEY_MEMORY_SAMPLER_INTERVAL =
       "splunk.profiler.memory.sampler.interval";
+  // ObjectAllocationSample event uses 150/s in default and 300/s in profiling configuration
+  private static final String DEFAULT_MEMORY_EVENT_RATE = "20/s";
+  public static final String CONFIG_KEY_MEMORY_EVENT_RATE = "splunk.profiler.memory.event.rate";
   private static final String CONFIG_KEY_CPU_DATA_FORMAT = "splunk.profiler.cpu.data.format";
   private static final String CONFIG_KEY_MEMORY_DATA_FORMAT = "splunk.profiler.memory.data.format";
   public static final String CONFIG_KEY_TLAB_ENABLED = "splunk.profiler.tlab.enabled";
@@ -94,6 +98,14 @@ public class Configuration implements AutoConfigurationCustomizerProvider {
     return config.getInt(CONFIG_KEY_MEMORY_SAMPLER_INTERVAL, DEFAULT_MEMORY_SAMPLING_INTERVAL);
   }
 
+  public static String getMemoryEventRate(ConfigProperties config) {
+    return config.getString(CONFIG_KEY_MEMORY_EVENT_RATE, DEFAULT_MEMORY_EVENT_RATE);
+  }
+
+  public static boolean getUseAllocationSampleEvent() {
+    return HAS_OBJECT_ALLOCATION_SAMPLE_EVENT;
+  }
+
   public static Duration getCallStackInterval(ConfigProperties config) {
     return config.getDuration(CONFIG_KEY_CALL_STACK_INTERVAL, DEFAULT_CALL_STACK_INTERVAL);
   }
@@ -128,6 +140,14 @@ public class Configuration implements AutoConfigurationCustomizerProvider {
     String value =
         config.getString(CONFIG_KEY_MEMORY_DATA_FORMAT, DataFormat.PPROF_GZIP_BASE64.value());
     return DataFormat.fromString(value);
+  }
+
+  private static int getJavaVersion() {
+    String javaSpecVersion = System.getProperty("java.specification.version");
+    if ("1.8".equals(javaSpecVersion)) {
+      return 8;
+    }
+    return Integer.parseInt(javaSpecVersion);
   }
 
   public enum DataFormat {

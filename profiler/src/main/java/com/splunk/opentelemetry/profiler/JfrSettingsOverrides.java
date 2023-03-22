@@ -55,8 +55,16 @@ class JfrSettingsOverrides {
 
   private Map<String, String> maybeEnableTLABs(Map<String, String> settings) {
     if (Configuration.getTLABEnabled(config)) {
-      settings.put("jdk.ObjectAllocationInNewTLAB#enabled", "true");
-      settings.put("jdk.ObjectAllocationOutsideTLAB#enabled", "true");
+      if (Configuration.getUseAllocationSampleEvent()) {
+        settings.put("jdk.ObjectAllocationSample#enabled", "true");
+        // XXX Should validate the format of the rate?
+        // XXX Should verify that this is respected
+        settings.put(
+            "jdk.ObjectAllocationSample#throttle", Configuration.getMemoryEventRate(config));
+      } else {
+        settings.put("jdk.ObjectAllocationInNewTLAB#enabled", "true");
+        settings.put("jdk.ObjectAllocationOutsideTLAB#enabled", "true");
+      }
     }
     return settings;
   }

@@ -19,8 +19,11 @@ package com.splunk.opentelemetry.profiler;
 import static java.util.logging.Level.FINE;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.splunk.opentelemetry.profiler.allocation.sampler.AllocationEventSampler;
+import com.splunk.opentelemetry.profiler.allocation.sampler.RateLimitingAllocationEventSampler;
 import com.splunk.opentelemetry.profiler.context.SpanContextualizer;
 import com.splunk.opentelemetry.profiler.events.ContextAttached;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -74,13 +77,39 @@ class EventProcessingChain {
    * the buffer. After flushing, the buffer will be empty.
    */
   public void flushBuffer() {
-    buffer.stream()
-        .sorted(Comparator.comparing(RecordedEvent::getStartTime))
-        .forEach(this::dispatchEvent);
+    buffer.sort(Comparator.comparing(RecordedEvent::getStartTime));
+    updateAllocationSampler();
+
+    buffer.stream().forEach(this::dispatchEvent);
     buffer.clear();
     chunkTracker.reset();
     tlabProcessor.flush();
     threadDumpProcessor.flush();
+  }
+
+  private void updateAllocationSampler() {
+    AllocationEventSampler allocationEventSampler = tlabProcessor.getAllocationEventSampler();
+    if (!(allocationEventSampler instanceof RateLimitingAllocationEventSampler)) {
+      return;
+    }
+    RateLimitingAllocationEventSampler sampler =
+        (RateLimitingAllocationEventSampler) allocationEventSampler;
+
+    long tlabEventCount =
+        buffer.stream()
+            .filter(
+                event -> {
+                  String eventName = event.getEventType().getName();
+                  return TLABProcessor.NEW_TLAB_EVENT_NAME.equals(eventName)
+                      || TLABProcessor.OUTSIDE_TLAB_EVENT_NAME.equals(eventName);
+                })
+            .count();
+    if (tlabEventCount > 0) {
+      Instant firsEvent = buffer.get(0).getStartTime();
+      Instant lastEvent = buffer.get(buffer.size() - 1).getStartTime();
+
+      sampler.updateSampler(tlabEventCount, firsEvent, lastEvent);
+    }
   }
 
   private void dispatchEvent(RecordedEvent event) {
@@ -98,6 +127,7 @@ class EventProcessingChain {
         break;
       case TLABProcessor.NEW_TLAB_EVENT_NAME:
       case TLABProcessor.OUTSIDE_TLAB_EVENT_NAME:
+      case TLABProcessor.ALLOCATION_SAMPLE_EVENT_NAME:
         try (EventTimer eventTimer = eventStats.time(eventName)) {
           tlabProcessor.accept(event);
         }

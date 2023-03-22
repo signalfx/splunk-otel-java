@@ -18,6 +18,7 @@ package com.splunk.opentelemetry.profiler;
 
 import com.splunk.opentelemetry.profiler.allocation.exporter.AllocationEventExporter;
 import com.splunk.opentelemetry.profiler.allocation.sampler.AllocationEventSampler;
+import com.splunk.opentelemetry.profiler.allocation.sampler.RateLimitingAllocationEventSampler;
 import com.splunk.opentelemetry.profiler.allocation.sampler.SystematicAllocationEventSampler;
 import com.splunk.opentelemetry.profiler.context.SpanContextualizer;
 import io.opentelemetry.api.common.AttributeKey;
@@ -31,6 +32,7 @@ import jdk.jfr.consumer.RecordedThread;
 public class TLABProcessor implements Consumer<RecordedEvent> {
   public static final String NEW_TLAB_EVENT_NAME = "jdk.ObjectAllocationInNewTLAB";
   public static final String OUTSIDE_TLAB_EVENT_NAME = "jdk.ObjectAllocationOutsideTLAB";
+  public static final String ALLOCATION_SAMPLE_EVENT_NAME = "jdk.ObjectAllocationSample";
   static final AttributeKey<Long> ALLOCATION_SIZE_KEY = AttributeKey.longKey("memory.allocated");
 
   private final boolean enabled;
@@ -80,12 +82,24 @@ public class TLABProcessor implements Consumer<RecordedEvent> {
     allocationEventExporter.flush();
   }
 
+  public AllocationEventSampler getAllocationEventSampler() {
+    return sampler;
+  }
+
   static Builder builder(ConfigProperties config) {
     boolean enabled = Configuration.getTLABEnabled(config);
     Builder builder = new Builder(enabled);
+    // XXX should we keep this sampler?
     int samplerInterval = Configuration.getMemorySamplerInterval(config);
     if (samplerInterval > 1) {
       builder.sampler(new SystematicAllocationEventSampler(samplerInterval));
+      // XXX this is a bit weird. Rate limiting is enabled by default when there are no other
+      // samplers, but when using jdk 16+ it will be enabled regardless of whether another sampler
+      // is enabled. Need to decide how rate limiting should behave when combined with other
+      // samplers.
+    } else if (!Configuration.getUseAllocationSampleEvent()) {
+      builder.sampler(
+          new RateLimitingAllocationEventSampler(Configuration.getMemoryEventRate(config)));
     }
     return builder;
   }

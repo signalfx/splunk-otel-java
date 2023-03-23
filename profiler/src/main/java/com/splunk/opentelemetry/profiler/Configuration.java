@@ -47,11 +47,11 @@ public class Configuration implements AutoConfigurationCustomizerProvider {
   public static final String CONFIG_KEY_INGEST_URL = "splunk.profiler.logs-endpoint";
   public static final String CONFIG_KEY_OTEL_OTLP_URL = "otel.exporter.otlp.endpoint";
   public static final String CONFIG_KEY_MEMORY_ENABLED = PROFILER_MEMORY_ENABLED_PROPERTY;
-  public static final String CONFIG_KEY_MEMORY_SAMPLER_INTERVAL =
-      "splunk.profiler.memory.sampler.interval";
   // ObjectAllocationSample event uses 150/s in default and 300/s in profiling configuration
   private static final String DEFAULT_MEMORY_EVENT_RATE = "20/s";
   public static final String CONFIG_KEY_MEMORY_EVENT_RATE = "splunk.profiler.memory.event.rate";
+  public static final String CONFIG_KEY_MEMORY_NATIVE_SAMPLING =
+      "splunk.profiler.memory.native.sampling";
   private static final String CONFIG_KEY_CPU_DATA_FORMAT = "splunk.profiler.cpu.data.format";
   private static final String CONFIG_KEY_MEMORY_DATA_FORMAT = "splunk.profiler.memory.data.format";
   public static final String CONFIG_KEY_TLAB_ENABLED = "splunk.profiler.tlab.enabled";
@@ -78,8 +78,7 @@ public class Configuration implements AutoConfigurationCustomizerProvider {
     config.put(CONFIG_KEY_RECORDING_DURATION, DEFAULT_RECORDING_DURATION);
     config.put(CONFIG_KEY_KEEP_FILES, "false");
     config.put(CONFIG_KEY_MEMORY_ENABLED, String.valueOf(DEFAULT_MEMORY_ENABLED));
-    config.put(
-        CONFIG_KEY_MEMORY_SAMPLER_INTERVAL, String.valueOf(DEFAULT_MEMORY_SAMPLING_INTERVAL));
+    config.put(CONFIG_KEY_MEMORY_EVENT_RATE, DEFAULT_MEMORY_EVENT_RATE);
     config.put(CONFIG_KEY_CALL_STACK_INTERVAL, DEFAULT_CALL_STACK_INTERVAL.toMillis() + "ms");
     return config;
   }
@@ -94,16 +93,14 @@ public class Configuration implements AutoConfigurationCustomizerProvider {
     return config.getBoolean(CONFIG_KEY_TLAB_ENABLED, memoryEnabled);
   }
 
-  public static int getMemorySamplerInterval(ConfigProperties config) {
-    return config.getInt(CONFIG_KEY_MEMORY_SAMPLER_INTERVAL, DEFAULT_MEMORY_SAMPLING_INTERVAL);
-  }
-
   public static String getMemoryEventRate(ConfigProperties config) {
     return config.getString(CONFIG_KEY_MEMORY_EVENT_RATE, DEFAULT_MEMORY_EVENT_RATE);
   }
 
-  public static boolean getUseAllocationSampleEvent() {
-    return HAS_OBJECT_ALLOCATION_SAMPLE_EVENT;
+  public static boolean getUseAllocationSampleEvent(ConfigProperties config) {
+    // Using jdk16+ ObjectAllocationSample event is disabled by default
+    return HAS_OBJECT_ALLOCATION_SAMPLE_EVENT
+        && config.getBoolean(CONFIG_KEY_MEMORY_NATIVE_SAMPLING, false);
   }
 
   public static Duration getCallStackInterval(ConfigProperties config) {

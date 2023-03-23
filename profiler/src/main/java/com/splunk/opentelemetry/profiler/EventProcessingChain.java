@@ -87,6 +87,12 @@ class EventProcessingChain {
     threadDumpProcessor.flush();
   }
 
+  private static boolean isTlabEvent(RecordedEvent event) {
+    String eventName = event.getEventType().getName();
+    return TLABProcessor.NEW_TLAB_EVENT_NAME.equals(eventName)
+        || TLABProcessor.OUTSIDE_TLAB_EVENT_NAME.equals(eventName);
+  }
+
   private void updateAllocationSampler() {
     AllocationEventSampler allocationEventSampler = tlabProcessor.getAllocationEventSampler();
     if (!(allocationEventSampler instanceof RateLimitingAllocationEventSampler)) {
@@ -95,15 +101,7 @@ class EventProcessingChain {
     RateLimitingAllocationEventSampler sampler =
         (RateLimitingAllocationEventSampler) allocationEventSampler;
 
-    long tlabEventCount =
-        buffer.stream()
-            .filter(
-                event -> {
-                  String eventName = event.getEventType().getName();
-                  return TLABProcessor.NEW_TLAB_EVENT_NAME.equals(eventName)
-                      || TLABProcessor.OUTSIDE_TLAB_EVENT_NAME.equals(eventName);
-                })
-            .count();
+    long tlabEventCount = buffer.stream().filter(EventProcessingChain::isTlabEvent).count();
     if (tlabEventCount > 0) {
       Instant firsEvent = buffer.get(0).getStartTime();
       Instant lastEvent = buffer.get(buffer.size() - 1).getStartTime();

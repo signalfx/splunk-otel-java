@@ -16,10 +16,8 @@
 
 package com.splunk.opentelemetry.profiler;
 
-import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_MEMORY_SAMPLER_INTERVAL;
 import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_TLAB_ENABLED;
 import static com.splunk.opentelemetry.profiler.Configuration.DEFAULT_MEMORY_ENABLED;
-import static com.splunk.opentelemetry.profiler.Configuration.DEFAULT_MEMORY_SAMPLING_INTERVAL;
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.DATA_FORMAT;
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.DATA_TYPE;
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.SOURCE_EVENT_NAME;
@@ -33,6 +31,7 @@ import static org.mockito.Mockito.when;
 
 import com.splunk.opentelemetry.profiler.allocation.exporter.AllocationEventExporter;
 import com.splunk.opentelemetry.profiler.allocation.exporter.PlainTextAllocationEventExporter;
+import com.splunk.opentelemetry.profiler.allocation.sampler.RateLimitingAllocationEventSampler;
 import com.splunk.opentelemetry.profiler.context.SpanContextualizer;
 import com.splunk.opentelemetry.profiler.context.SpanLinkage;
 import com.splunk.opentelemetry.profiler.events.EventPeriods;
@@ -211,13 +210,11 @@ class TLABProcessorTest {
 
   private static final AttributeKey<String> SAMPLER_NAME_KEY =
       AttributeKey.stringKey("sampler.name");
-  private static final AttributeKey<Long> SAMPLER_INTERVAL_KEY =
-      AttributeKey.longKey("sampler.interval");
+  private static final AttributeKey<String> SAMPLER_LIMIT_KEY =
+      AttributeKey.stringKey("sampler.limit");
 
   @Test
   void testSampling() {
-    int samplerInterval = 5;
-
     StackSerializer serializer = mock(StackSerializer.class);
     LogDataCommonAttributes commonAttrs = new LogDataCommonAttributes(new EventPeriods(x -> null));
     SpanContextualizer spanContextualizer = mock(SpanContextualizer.class);
@@ -225,8 +222,6 @@ class TLABProcessorTest {
 
     ConfigProperties config = mock(ConfigProperties.class);
     when(config.getBoolean(CONFIG_KEY_TLAB_ENABLED, DEFAULT_MEMORY_ENABLED)).thenReturn(true);
-    when(config.getInt(CONFIG_KEY_MEMORY_SAMPLER_INTERVAL, DEFAULT_MEMORY_SAMPLING_INTERVAL))
-        .thenReturn(samplerInterval);
 
     AllocationEventExporter allocationEventExporter =
         PlainTextAllocationEventExporter.builder()
@@ -236,18 +231,21 @@ class TLABProcessorTest {
             .stackDepth(128)
             .build();
 
+    RateLimitingAllocationEventSampler sampler = new RateLimitingAllocationEventSampler("100/s");
     TLABProcessor processor =
-        TLABProcessor.builder(config)
+        new TLABProcessor.Builder(true)
             .allocationEventExporter(allocationEventExporter)
             .spanContextualizer(spanContextualizer)
+            .sampler(sampler)
             .build();
 
     RecordedEvent event = createMockEvent(serializer, Instant.now(), null);
 
-    for (int i = 0; i < samplerInterval + 2; i++) {
+    for (int i = 0; i < 10; i++) {
+      sampler.updateSampler(i % 2 == 0 ? 1.0 : 0.0);
       processor.accept(event);
 
-      if (i % samplerInterval == 0) {
+      if (i % 2 == 0) {
         assertThat(logExporter.getFinishedLogItems())
             .satisfiesExactly(
                 log ->
@@ -255,8 +253,8 @@ class TLABProcessorTest {
                         .hasAttributes(
                             entry(SOURCE_TYPE, "otel.profiling"),
                             entry(SOURCE_EVENT_NAME, "tee-lab"),
-                            entry(SAMPLER_NAME_KEY, "Systematic sampler"),
-                            entry(SAMPLER_INTERVAL_KEY, (long) samplerInterval),
+                            entry(SAMPLER_NAME_KEY, "Rate limiting sampler"),
+                            entry(SAMPLER_LIMIT_KEY, "100/s"),
                             entry(ALLOCATION_SIZE_KEY, ONE_MB),
                             entry(DATA_TYPE, ProfilingDataType.ALLOCATION.value()),
                             entry(DATA_FORMAT, Configuration.DataFormat.TEXT.value())));

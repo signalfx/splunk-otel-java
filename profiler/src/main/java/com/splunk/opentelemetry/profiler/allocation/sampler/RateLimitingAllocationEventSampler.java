@@ -16,6 +16,7 @@
 
 package com.splunk.opentelemetry.profiler.allocation.sampler;
 
+import com.google.common.annotations.VisibleForTesting;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.concurrent.TimeUnit;
@@ -24,7 +25,7 @@ import jdk.jfr.consumer.RecordedEvent;
 
 public class RateLimitingAllocationEventSampler implements AllocationEventSampler {
   private final String rateLimitString;
-  private int maxEventsPerSecond;
+  private double maxEventsPerSecond;
   private ProbabilisticAllocationEventSampler delegate;
 
   public RateLimitingAllocationEventSampler(String rateLimitString) {
@@ -32,12 +33,26 @@ public class RateLimitingAllocationEventSampler implements AllocationEventSample
     maxEventsPerSecond = parseRateLimit(rateLimitString);
   }
 
-  private static int parseRateLimit(String rateLimitString) {
-    if (!rateLimitString.endsWith("/s")) {
-      throw new IllegalArgumentException("Invalid rate limit '" + rateLimitString + "'");
+  private static double parseRateLimit(String rateLimitString) {
+    boolean inSecond = rateLimitString.endsWith("/s");
+    boolean inMinute = rateLimitString.endsWith("/m");
+    if (!inSecond && !inMinute) {
+      throw getRateLimitException(rateLimitString, null);
     }
     String limit = rateLimitString.substring(0, rateLimitString.length() - 2);
-    return Integer.parseInt(limit);
+    try {
+      int value = Integer.parseInt(limit);
+      return inMinute ? value / 60.0 : value;
+    } catch (NumberFormatException exception) {
+      throw getRateLimitException(rateLimitString, exception);
+    }
+  }
+
+  private static IllegalArgumentException getRateLimitException(
+      String rateLimitString, Throwable cause) {
+    return new IllegalArgumentException(
+        "Invalid rate limit '" + rateLimitString + "' valid rate limit is '100/s' or '10/m'",
+        cause);
   }
 
   @Override
@@ -50,10 +65,14 @@ public class RateLimitingAllocationEventSampler implements AllocationEventSample
 
   public void updateSampler(long eventCount, Instant periodStart, Instant periodEnd) {
     long period = Duration.between(periodStart, periodEnd).toMillis();
-    double desiredEventsInPeriod =
-        (double) maxEventsPerSecond * period / TimeUnit.SECONDS.toMillis(1);
+    double desiredEventsInPeriod = maxEventsPerSecond * period / TimeUnit.SECONDS.toMillis(1);
     double probability = clamp(desiredEventsInPeriod / eventCount, 0, 1);
 
+    updateSampler(probability);
+  }
+
+  @VisibleForTesting
+  public void updateSampler(double probability) {
     delegate = new ProbabilisticAllocationEventSampler(probability);
   }
 
@@ -67,5 +86,10 @@ public class RateLimitingAllocationEventSampler implements AllocationEventSample
       BiConsumer<String, Long> longAttributeAdder) {
     stringAttributeAdder.accept("sampler.name", "Rate limiting sampler");
     stringAttributeAdder.accept("sampler.limit", rateLimitString);
+  }
+
+  @VisibleForTesting
+  public double maxEventsPerSecond() {
+    return maxEventsPerSecond;
   }
 }

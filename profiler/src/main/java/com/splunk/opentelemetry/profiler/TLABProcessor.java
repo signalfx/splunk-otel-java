@@ -19,7 +19,6 @@ package com.splunk.opentelemetry.profiler;
 import com.splunk.opentelemetry.profiler.allocation.exporter.AllocationEventExporter;
 import com.splunk.opentelemetry.profiler.allocation.sampler.AllocationEventSampler;
 import com.splunk.opentelemetry.profiler.allocation.sampler.RateLimitingAllocationEventSampler;
-import com.splunk.opentelemetry.profiler.allocation.sampler.SystematicAllocationEventSampler;
 import com.splunk.opentelemetry.profiler.context.SpanContextualizer;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.trace.SpanContext;
@@ -89,17 +88,11 @@ public class TLABProcessor implements Consumer<RecordedEvent> {
   static Builder builder(ConfigProperties config) {
     boolean enabled = Configuration.getTLABEnabled(config);
     Builder builder = new Builder(enabled);
-    // XXX should we keep this sampler?
-    int samplerInterval = Configuration.getMemorySamplerInterval(config);
-    if (samplerInterval > 1) {
-      builder.sampler(new SystematicAllocationEventSampler(samplerInterval));
-      // XXX this is a bit weird. Rate limiting is enabled by default when there are no other
-      // samplers, but when using jdk 16+ it will be enabled regardless of whether another sampler
-      // is enabled. Need to decide how rate limiting should behave when combined with other
-      // samplers.
-    } else if (!Configuration.getUseAllocationSampleEvent()) {
-      builder.sampler(
-          new RateLimitingAllocationEventSampler(Configuration.getMemoryEventRate(config)));
+    if (!Configuration.getUseAllocationSampleEvent(config)) {
+      String rateLimit = Configuration.getMemoryEventRate(config);
+      if (rateLimit != null) {
+        builder.sampler(new RateLimitingAllocationEventSampler(rateLimit));
+      }
     }
     return builder;
   }

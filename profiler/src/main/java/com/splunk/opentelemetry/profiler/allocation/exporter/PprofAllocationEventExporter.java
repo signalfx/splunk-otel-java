@@ -88,6 +88,7 @@ public class PprofAllocationEventExporter implements AllocationEventExporter {
                         method.getType().getName() + "." + method.getName(),
                         frame.getLineNumber()));
               }
+              pprof.incFrameCount();
             });
 
     String eventName = event.getEventType().getName();
@@ -140,9 +141,10 @@ public class PprofAllocationEventExporter implements AllocationEventExporter {
     if (!pprof.hasSamples()) {
       return;
     }
+    int frameCount = pprof.frameCount();
     // Flush is called after each JFR chunk, hopefully this will keep batch sizes small enough.
     byte[] bytes = serializePprof();
-    pprofLogDataExporter.export(bytes);
+    pprofLogDataExporter.export(bytes, frameCount);
   }
 
   public static Builder builder() {

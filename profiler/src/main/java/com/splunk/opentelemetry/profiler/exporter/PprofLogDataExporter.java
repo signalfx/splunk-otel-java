@@ -18,6 +18,7 @@ package com.splunk.opentelemetry.profiler.exporter;
 
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.DATA_FORMAT;
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.DATA_TYPE;
+import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.FRAME_COUNT;
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.PROFILING_SOURCE;
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.SOURCE_TYPE;
 import static java.util.logging.Level.FINE;
@@ -50,7 +51,7 @@ public class PprofLogDataExporter {
             .build();
   }
 
-  public void export(byte[] bytes) {
+  public void export(byte[] bytes, int frameCount) {
     if (logger.isLoggable(FINE)) {
       logger.log(
           FINE,
@@ -59,7 +60,7 @@ public class PprofLogDataExporter {
     }
 
     String body = new String(bytes, StandardCharsets.ISO_8859_1);
-
-    otelLogger.logRecordBuilder().setBody(body).setAllAttributes(commonAttributes).emit();
+    Attributes attributes = commonAttributes.toBuilder().put(FRAME_COUNT, frameCount).build();
+    otelLogger.logRecordBuilder().setBody(body).setAllAttributes(attributes).emit();
   }
 }

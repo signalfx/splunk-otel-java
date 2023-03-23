@@ -35,6 +35,7 @@ public class Pprof {
   private final StringTable stringTable = new StringTable(profileBuilder);
   private final FunctionTable functionTable = new FunctionTable(profileBuilder, stringTable);
   private final LocationTable locationTable = new LocationTable(profileBuilder, functionTable);
+  private int frameCount;
 
   public Profile.Builder getProfileBuilder() {
     return profileBuilder;
@@ -80,6 +81,17 @@ public class Pprof {
 
   public boolean hasSamples() {
     return profileBuilder.getSampleCount() > 0;
+  }
+
+  public void incFrameCount() {
+    frameCount++;
+  }
+
+  /**
+   * @return non unique stack frames in this pprof batch
+   */
+  public int frameCount() {
+    return frameCount;
   }
 
   public byte[] serialize(Configuration.DataFormat dataFormat) {

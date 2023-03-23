@@ -130,16 +130,16 @@ public final class LogsInspector {
     return sample -> name.equals(sample.getThreadName());
   }
 
-  private static String getStringAttr(LogRecord log, AttributeKey<String> key) {
+  static String getStringAttr(LogRecord log, AttributeKey<String> key) {
     return getStringAttr(log, key.getKey());
   }
 
-  static String getStringAttr(LogRecord log, String name) {
+  private static String getStringAttr(LogRecord log, String name) {
     Optional<KeyValue> foundAttr = findAttr(log, name);
     return foundAttr.map(attr -> attr.getValue().getStringValue()).orElse(null);
   }
 
-  private static Long getLongAttr(LogRecord log, AttributeKey<Long> key) {
+  static Long getLongAttr(LogRecord log, AttributeKey<Long> key) {
     return getLongAttr(log, key.getKey());
   }
 

@@ -79,6 +79,7 @@ public class PprofCpuEventExporter implements CpuEventExporter {
     for (StackTraceParser.StackTraceLine stl : stackTrace.getStackTraceLines()) {
       sample.addLocationId(
           pprof.getLocationId(stl.getLocation(), stl.getClassAndMethod(), stl.getLineNumber()));
+      pprof.incFrameCount();
     }
 
     String eventName = stackToSpanLinkage.getSourceEventName();
@@ -114,9 +115,10 @@ public class PprofCpuEventExporter implements CpuEventExporter {
     if (!pprof.hasSamples()) {
       return;
     }
+    int frameCount = pprof.frameCount();
     // Flush is called after each JFR chunk, hopefully this will keep batch sizes small enough.
     byte[] bytes = serializePprof();
-    pprofLogDataExporter.export(bytes);
+    pprofLogDataExporter.export(bytes, frameCount);
   }
 
   public static Builder builder() {

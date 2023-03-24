@@ -19,6 +19,7 @@ package com.splunk.opentelemetry;
 import static com.splunk.opentelemetry.LogsInspector.getStringAttr;
 import static com.splunk.opentelemetry.LogsInspector.hasThreadName;
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.DATA_FORMAT;
+import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.FRAME_COUNT;
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.SOURCE_TYPE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
@@ -145,8 +146,13 @@ public abstract class ProfilerSmokeTest {
     LogsInspector logs = telemetryRetriever.waitForLogs();
 
     assertThat(logs.getLogStream())
-        .allMatch(log -> "otel.profiling".equals(getStringAttr(log, SOURCE_TYPE.getKey())))
-        .allMatch(log -> dataFormat.equals(getStringAttr(log, DATA_FORMAT.getKey())));
+        .allMatch(log -> "otel.profiling".equals(getStringAttr(log, SOURCE_TYPE)))
+        .allMatch(log -> dataFormat.equals(getStringAttr(log, DATA_FORMAT)));
+
+    if (dataFormat.equals(Configuration.DataFormat.PPROF_GZIP_BASE64.value())) {
+      assertThat(logs.getLogStream())
+          .allMatch(log -> LogsInspector.getLongAttr(log, FRAME_COUNT) > 0);
+    }
 
     assertThat(logs.getCpuSamples())
         .isNotEmpty()

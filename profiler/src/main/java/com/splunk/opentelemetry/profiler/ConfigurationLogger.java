@@ -51,7 +51,9 @@ public class ConfigurationLogger {
     log(CONFIG_KEY_OTEL_OTLP_URL, (it) -> config.getString(it, null));
     log(CONFIG_KEY_MEMORY_ENABLED, (it) -> config.getBoolean(it, DEFAULT_MEMORY_ENABLED));
     log(CONFIG_KEY_TLAB_ENABLED, (it) -> Configuration.getTLABEnabled(config));
-    log(CONFIG_KEY_MEMORY_EVENT_RATE, (it) -> Configuration.getMemoryEventRate(config));
+    if (Configuration.getMemoryEventRateLimitEnabled(config)) {
+      log(CONFIG_KEY_MEMORY_EVENT_RATE, (it) -> Configuration.getMemoryEventRate(config));
+    }
     log(CONFIG_KEY_CALL_STACK_INTERVAL, (it) -> Configuration.getCallStackInterval(config));
     log(
         CONFIG_KEY_INCLUDE_INTERNAL_STACKS,

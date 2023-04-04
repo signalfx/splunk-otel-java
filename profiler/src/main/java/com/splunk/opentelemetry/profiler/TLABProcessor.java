@@ -88,7 +88,8 @@ public class TLABProcessor implements Consumer<RecordedEvent> {
   static Builder builder(ConfigProperties config) {
     boolean enabled = Configuration.getTLABEnabled(config);
     Builder builder = new Builder(enabled);
-    if (!Configuration.getUseAllocationSampleEvent(config)) {
+    if (Configuration.getMemoryEventRateLimitEnabled(config)
+        && !Configuration.getUseAllocationSampleEvent(config)) {
       String rateLimit = Configuration.getMemoryEventRate(config);
       if (rateLimit != null) {
         builder.sampler(new RateLimitingAllocationEventSampler(rateLimit));

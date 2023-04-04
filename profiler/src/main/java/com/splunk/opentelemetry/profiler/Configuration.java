@@ -38,6 +38,7 @@ public class Configuration implements AutoConfigurationCustomizerProvider {
   public static final boolean DEFAULT_INCLUDE_INTERNAL_STACKS = false;
   public static final boolean DEFAULT_TRACING_STACKS_ONLY = false;
   private static final int DEFAULT_STACK_DEPTH = 1024;
+  private static final boolean DEFAULT_MEMORY_EVENT_RATE_LIMIT_ENABLED = false;
 
   public static final String CONFIG_KEY_ENABLE_PROFILER = PROFILER_ENABLED_PROPERTY;
   public static final String CONFIG_KEY_PROFILER_DIRECTORY = "splunk.profiler.directory";
@@ -46,6 +47,8 @@ public class Configuration implements AutoConfigurationCustomizerProvider {
   public static final String CONFIG_KEY_INGEST_URL = "splunk.profiler.logs-endpoint";
   public static final String CONFIG_KEY_OTEL_OTLP_URL = "otel.exporter.otlp.endpoint";
   public static final String CONFIG_KEY_MEMORY_ENABLED = PROFILER_MEMORY_ENABLED_PROPERTY;
+  public static final String CONFIG_KEY_MEMORY_EVENT_RATE_LIMIT_ENABLED =
+      "splunk.profiler.memory.event.rate-limit.enabled";
   // ObjectAllocationSample event uses 150/s in default and 300/s in profiling configuration
   private static final String DEFAULT_MEMORY_EVENT_RATE = "150/s";
   public static final String CONFIG_KEY_MEMORY_EVENT_RATE = "splunk.profiler.memory.event.rate";
@@ -90,6 +93,11 @@ public class Configuration implements AutoConfigurationCustomizerProvider {
   public static boolean getTLABEnabled(ConfigProperties config) {
     boolean memoryEnabled = config.getBoolean(CONFIG_KEY_MEMORY_ENABLED, DEFAULT_MEMORY_ENABLED);
     return config.getBoolean(CONFIG_KEY_TLAB_ENABLED, memoryEnabled);
+  }
+
+  public static boolean getMemoryEventRateLimitEnabled(ConfigProperties config) {
+    return config.getBoolean(
+        CONFIG_KEY_MEMORY_EVENT_RATE_LIMIT_ENABLED, DEFAULT_MEMORY_EVENT_RATE_LIMIT_ENABLED);
   }
 
   public static String getMemoryEventRate(ConfigProperties config) {

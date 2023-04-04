@@ -48,7 +48,7 @@ public class Configuration implements AutoConfigurationCustomizerProvider {
   public static final String CONFIG_KEY_OTEL_OTLP_URL = "otel.exporter.otlp.endpoint";
   public static final String CONFIG_KEY_MEMORY_ENABLED = PROFILER_MEMORY_ENABLED_PROPERTY;
   // ObjectAllocationSample event uses 150/s in default and 300/s in profiling configuration
-  private static final String DEFAULT_MEMORY_EVENT_RATE = "300/s";
+  private static final String DEFAULT_MEMORY_EVENT_RATE = "150/s";
   public static final String CONFIG_KEY_MEMORY_EVENT_RATE = "splunk.profiler.memory.event.rate";
   public static final String CONFIG_KEY_MEMORY_NATIVE_SAMPLING =
       "splunk.profiler.memory.native.sampling";

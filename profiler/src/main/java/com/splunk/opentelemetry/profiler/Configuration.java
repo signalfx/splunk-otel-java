@@ -34,7 +34,6 @@ public class Configuration implements AutoConfigurationCustomizerProvider {
 
   private static final String DEFAULT_RECORDING_DURATION = "20s";
   public static final boolean DEFAULT_MEMORY_ENABLED = false;
-  public static final int DEFAULT_MEMORY_SAMPLING_INTERVAL = 1;
   public static final Duration DEFAULT_CALL_STACK_INTERVAL = Duration.ofSeconds(10);
   public static final boolean DEFAULT_INCLUDE_INTERNAL_STACKS = false;
   public static final boolean DEFAULT_TRACING_STACKS_ONLY = false;

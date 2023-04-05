@@ -80,7 +80,7 @@ class EventProcessingChain {
     buffer.sort(Comparator.comparing(RecordedEvent::getStartTime));
     updateAllocationSampler();
 
-    buffer.stream().forEach(this::dispatchEvent);
+    buffer.forEach(this::dispatchEvent);
     buffer.clear();
     chunkTracker.reset();
     tlabProcessor.flush();

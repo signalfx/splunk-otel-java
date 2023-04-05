@@ -30,14 +30,15 @@ import java.util.Map;
 
 @AutoService(AutoConfigurationCustomizerProvider.class)
 public class Configuration implements AutoConfigurationCustomizerProvider {
+  private static final boolean HAS_OBJECT_ALLOCATION_SAMPLE_EVENT = getJavaVersion() >= 16;
 
   private static final String DEFAULT_RECORDING_DURATION = "20s";
   public static final boolean DEFAULT_MEMORY_ENABLED = false;
-  public static final int DEFAULT_MEMORY_SAMPLING_INTERVAL = 1;
   public static final Duration DEFAULT_CALL_STACK_INTERVAL = Duration.ofSeconds(10);
   public static final boolean DEFAULT_INCLUDE_INTERNAL_STACKS = false;
   public static final boolean DEFAULT_TRACING_STACKS_ONLY = false;
   private static final int DEFAULT_STACK_DEPTH = 1024;
+  private static final boolean DEFAULT_MEMORY_EVENT_RATE_LIMIT_ENABLED = false;
 
   public static final String CONFIG_KEY_ENABLE_PROFILER = PROFILER_ENABLED_PROPERTY;
   public static final String CONFIG_KEY_PROFILER_DIRECTORY = "splunk.profiler.directory";
@@ -46,8 +47,13 @@ public class Configuration implements AutoConfigurationCustomizerProvider {
   public static final String CONFIG_KEY_INGEST_URL = "splunk.profiler.logs-endpoint";
   public static final String CONFIG_KEY_OTEL_OTLP_URL = "otel.exporter.otlp.endpoint";
   public static final String CONFIG_KEY_MEMORY_ENABLED = PROFILER_MEMORY_ENABLED_PROPERTY;
-  public static final String CONFIG_KEY_MEMORY_SAMPLER_INTERVAL =
-      "splunk.profiler.memory.sampler.interval";
+  public static final String CONFIG_KEY_MEMORY_EVENT_RATE_LIMIT_ENABLED =
+      "splunk.profiler.memory.event.rate-limit.enabled";
+  // ObjectAllocationSample event uses 150/s in default and 300/s in profiling configuration
+  private static final String DEFAULT_MEMORY_EVENT_RATE = "150/s";
+  public static final String CONFIG_KEY_MEMORY_EVENT_RATE = "splunk.profiler.memory.event.rate";
+  public static final String CONFIG_KEY_MEMORY_NATIVE_SAMPLING =
+      "splunk.profiler.memory.native.sampling";
   private static final String CONFIG_KEY_CPU_DATA_FORMAT = "splunk.profiler.cpu.data.format";
   private static final String CONFIG_KEY_MEMORY_DATA_FORMAT = "splunk.profiler.memory.data.format";
   public static final String CONFIG_KEY_TLAB_ENABLED = "splunk.profiler.tlab.enabled";
@@ -74,8 +80,7 @@ public class Configuration implements AutoConfigurationCustomizerProvider {
     config.put(CONFIG_KEY_RECORDING_DURATION, DEFAULT_RECORDING_DURATION);
     config.put(CONFIG_KEY_KEEP_FILES, "false");
     config.put(CONFIG_KEY_MEMORY_ENABLED, String.valueOf(DEFAULT_MEMORY_ENABLED));
-    config.put(
-        CONFIG_KEY_MEMORY_SAMPLER_INTERVAL, String.valueOf(DEFAULT_MEMORY_SAMPLING_INTERVAL));
+    config.put(CONFIG_KEY_MEMORY_EVENT_RATE, DEFAULT_MEMORY_EVENT_RATE);
     config.put(CONFIG_KEY_CALL_STACK_INTERVAL, DEFAULT_CALL_STACK_INTERVAL.toMillis() + "ms");
     return config;
   }
@@ -90,8 +95,19 @@ public class Configuration implements AutoConfigurationCustomizerProvider {
     return config.getBoolean(CONFIG_KEY_TLAB_ENABLED, memoryEnabled);
   }
 
-  public static int getMemorySamplerInterval(ConfigProperties config) {
-    return config.getInt(CONFIG_KEY_MEMORY_SAMPLER_INTERVAL, DEFAULT_MEMORY_SAMPLING_INTERVAL);
+  public static boolean getMemoryEventRateLimitEnabled(ConfigProperties config) {
+    return config.getBoolean(
+        CONFIG_KEY_MEMORY_EVENT_RATE_LIMIT_ENABLED, DEFAULT_MEMORY_EVENT_RATE_LIMIT_ENABLED);
+  }
+
+  public static String getMemoryEventRate(ConfigProperties config) {
+    return config.getString(CONFIG_KEY_MEMORY_EVENT_RATE, DEFAULT_MEMORY_EVENT_RATE);
+  }
+
+  public static boolean getUseAllocationSampleEvent(ConfigProperties config) {
+    // Using jdk16+ ObjectAllocationSample event is disabled by default
+    return HAS_OBJECT_ALLOCATION_SAMPLE_EVENT
+        && config.getBoolean(CONFIG_KEY_MEMORY_NATIVE_SAMPLING, false);
   }
 
   public static Duration getCallStackInterval(ConfigProperties config) {
@@ -128,6 +144,14 @@ public class Configuration implements AutoConfigurationCustomizerProvider {
     String value =
         config.getString(CONFIG_KEY_MEMORY_DATA_FORMAT, DataFormat.PPROF_GZIP_BASE64.value());
     return DataFormat.fromString(value);
+  }
+
+  private static int getJavaVersion() {
+    String javaSpecVersion = System.getProperty("java.specification.version");
+    if ("1.8".equals(javaSpecVersion)) {
+      return 8;
+    }
+    return Integer.parseInt(javaSpecVersion);
   }
 
   public enum DataFormat {

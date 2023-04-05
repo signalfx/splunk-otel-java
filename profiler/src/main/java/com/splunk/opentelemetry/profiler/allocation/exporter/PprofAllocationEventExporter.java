@@ -63,7 +63,12 @@ public class PprofAllocationEventExporter implements AllocationEventExporter {
       return;
     }
 
-    long allocationSize = event.getLong("allocationSize");
+    // XXX ObjectAllocationSample event doesn't have allocationSize using weight here just to make
+    // tests that verify that allocationSize is set happy
+    long allocationSize =
+        event.hasField("allocationSize")
+            ? event.getLong("allocationSize")
+            : event.getLong("weight");
 
     Sample.Builder sample = Sample.newBuilder();
     sample.addValue(allocationSize);

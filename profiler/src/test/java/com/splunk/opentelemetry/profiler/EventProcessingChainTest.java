@@ -16,7 +16,9 @@
 
 package com.splunk.opentelemetry.profiler;
 
+import static java.time.temporal.ChronoUnit.MILLIS;
 import static java.time.temporal.ChronoUnit.SECONDS;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.inOrder;
@@ -26,14 +28,19 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import com.splunk.opentelemetry.profiler.allocation.exporter.AllocationEventExporter;
+import com.splunk.opentelemetry.profiler.allocation.sampler.RateLimitingAllocationEventSampler;
 import com.splunk.opentelemetry.profiler.context.SpanContextualizer;
 import com.splunk.opentelemetry.profiler.events.ContextAttached;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 import jdk.jfr.EventType;
 import jdk.jfr.consumer.RecordedEvent;
+import jdk.jfr.consumer.RecordedStackTrace;
+import org.assertj.core.data.Offset;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InOrder;
@@ -190,6 +197,41 @@ class EventProcessingChainTest {
     ordered.verify(threadDumpProcessor).accept(event3);
     ordered.verify(threadDumpProcessor).flush();
     ordered.verifyNoMoreInteractions();
+  }
+
+  @Test
+  void eventRateLimit() {
+    EventType eventType = newEventType(TLABProcessor.NEW_TLAB_EVENT_NAME);
+    Instant now = Instant.now();
+    List<RecordedEvent> events = new ArrayList<>();
+    for (int i = 0; i < 1000; i++) {
+      RecordedEvent event = newEvent(eventType, now.plus(i, MILLIS));
+      when(event.getStackTrace()).thenReturn(mock(RecordedStackTrace.class));
+      events.add(event);
+    }
+
+    RateLimitingAllocationEventSampler sampler = new RateLimitingAllocationEventSampler("100/s");
+    AtomicInteger receivedCount = new AtomicInteger();
+    AllocationEventExporter exporter =
+        (event, sampler1, spanContext) -> receivedCount.incrementAndGet();
+    SpanContextualizer spanContextualizer = mock(SpanContextualizer.class);
+
+    TLABProcessor processor =
+        new TLABProcessor.Builder(true)
+            .allocationEventExporter(exporter)
+            .spanContextualizer(spanContextualizer)
+            .sampler(sampler)
+            .build();
+    EventProcessingChain chain =
+        new EventProcessingChain(contextualizer, threadDumpProcessor, processor);
+    for (RecordedEvent event : events) {
+      chain.accept(event);
+    }
+    chain.flushBuffer();
+
+    // probabilistic sampling can over or undersample
+    assertThat(receivedCount.get()).isCloseTo(100, Offset.offset(30));
+    assertThat(sampler.maxEventsPerSecond()).isEqualTo(100);
   }
 
   private EventType newEventType(String name) {

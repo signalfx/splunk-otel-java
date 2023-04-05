@@ -19,38 +19,28 @@ package com.splunk.opentelemetry.profiler.allocation.sampler;
 import java.util.function.BiConsumer;
 import jdk.jfr.consumer.RecordedEvent;
 
-/** A sampler that samples every Nth element, where N is the sampling interval. */
-public class SystematicAllocationEventSampler implements AllocationEventSampler {
-  private static final String SAMPLER_NAME_KEY = "sampler.name";
-  private static final String SAMPLER_INTERVAL_KEY = "sampler.interval";
+public class ProbabilisticAllocationEventSampler implements AllocationEventSampler {
+  private final double probability;
+  private final String probabilityString;
 
-  private final int samplingInterval;
-  private int counter;
-
-  public SystematicAllocationEventSampler(int samplingInterval) {
-    if (samplingInterval < 1) {
-      throw new IllegalArgumentException("Invalid sampling interval " + samplingInterval);
+  public ProbabilisticAllocationEventSampler(double probability) {
+    if (probability < 0 || probability > 1) {
+      throw new IllegalArgumentException("Invalid sampling probability " + probability);
     }
-    this.samplingInterval = samplingInterval;
-    // set counter to sample first event
-    this.counter = samplingInterval;
+    this.probability = probability;
+    this.probabilityString = String.valueOf(probability);
   }
 
   @Override
   public boolean shouldSample(RecordedEvent event) {
-    counter++;
-    if (counter < samplingInterval) {
-      return false;
-    }
-    counter = 0;
-    return true;
+    return Math.random() < probability;
   }
 
   @Override
   public void addAttributes(
       BiConsumer<String, String> stringAttributeAdder,
       BiConsumer<String, Long> longAttributeAdder) {
-    stringAttributeAdder.accept(SAMPLER_NAME_KEY, "Systematic sampler");
-    longAttributeAdder.accept(SAMPLER_INTERVAL_KEY, (long) samplingInterval);
+    stringAttributeAdder.accept("sampler.name", "Probabilistic sampler");
+    stringAttributeAdder.accept("sampler.probability", probabilityString);
   }
 }

@@ -18,7 +18,7 @@ package com.splunk.opentelemetry.profiler;
 
 import com.splunk.opentelemetry.profiler.allocation.exporter.AllocationEventExporter;
 import com.splunk.opentelemetry.profiler.allocation.sampler.AllocationEventSampler;
-import com.splunk.opentelemetry.profiler.allocation.sampler.SystematicAllocationEventSampler;
+import com.splunk.opentelemetry.profiler.allocation.sampler.RateLimitingAllocationEventSampler;
 import com.splunk.opentelemetry.profiler.context.SpanContextualizer;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.trace.SpanContext;
@@ -31,6 +31,7 @@ import jdk.jfr.consumer.RecordedThread;
 public class TLABProcessor implements Consumer<RecordedEvent> {
   public static final String NEW_TLAB_EVENT_NAME = "jdk.ObjectAllocationInNewTLAB";
   public static final String OUTSIDE_TLAB_EVENT_NAME = "jdk.ObjectAllocationOutsideTLAB";
+  public static final String ALLOCATION_SAMPLE_EVENT_NAME = "jdk.ObjectAllocationSample";
   static final AttributeKey<Long> ALLOCATION_SIZE_KEY = AttributeKey.longKey("memory.allocated");
 
   private final boolean enabled;
@@ -80,12 +81,17 @@ public class TLABProcessor implements Consumer<RecordedEvent> {
     allocationEventExporter.flush();
   }
 
+  public AllocationEventSampler getAllocationEventSampler() {
+    return sampler;
+  }
+
   static Builder builder(ConfigProperties config) {
     boolean enabled = Configuration.getTLABEnabled(config);
     Builder builder = new Builder(enabled);
-    int samplerInterval = Configuration.getMemorySamplerInterval(config);
-    if (samplerInterval > 1) {
-      builder.sampler(new SystematicAllocationEventSampler(samplerInterval));
+    if (Configuration.getMemoryEventRateLimitEnabled(config)
+        && !Configuration.getUseAllocationSampleEvent(config)) {
+      String rateLimit = Configuration.getMemoryEventRate(config);
+      builder.sampler(new RateLimitingAllocationEventSampler(rateLimit));
     }
     return builder;
   }

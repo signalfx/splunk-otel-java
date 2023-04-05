@@ -39,7 +39,7 @@ class JfrSettingsReader {
     return read(DEFAULT_JFR_SETTINGS);
   }
 
-  public Map<String, String> read(String resourceName) {
+  private Map<String, String> read(String resourceName) {
     Map<String, String> result = new HashMap<>();
     try (BufferedReader reader = openResource(resourceName)) {
       if (reader == null) {

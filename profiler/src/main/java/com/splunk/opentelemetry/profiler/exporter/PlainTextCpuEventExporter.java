@@ -30,11 +30,15 @@ import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.context.Context;
 
 public class PlainTextCpuEventExporter implements CpuEventExporter {
+  private static final java.util.logging.Logger logger =
+      java.util.logging.Logger.getLogger(PlainTextCpuEventExporter.class.getName());
 
   private final Logger otelLogger;
   private final LogDataCommonAttributes commonAttributes;
 
   private PlainTextCpuEventExporter(Builder builder) {
+    logger.warning(
+        "Plain text profiling format is deprecated and will be removed in the next release.");
     otelLogger = builder.otelLogger;
     commonAttributes = builder.commonAttributes;
   }

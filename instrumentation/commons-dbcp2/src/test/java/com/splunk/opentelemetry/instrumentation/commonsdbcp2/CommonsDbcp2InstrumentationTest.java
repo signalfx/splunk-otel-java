@@ -104,8 +104,7 @@ public class CommonsDbcp2InstrumentationTest {
   }
 
   private static void assertConnectionPoolMetrics(String poolName) {
-    var tags =
-        Map.of("pool.name", poolName, "pool.type", "dbcp2", "service", "unknown_service:java");
+    var tags = Map.of("pool.name", poolName, "pool.type", "dbcp2");
 
     assertThat(TestMetricsAccess.getMeters())
         .containsExactlyInAnyOrder(

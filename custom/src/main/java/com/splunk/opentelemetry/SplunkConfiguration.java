@@ -41,6 +41,8 @@ public class SplunkConfiguration implements AutoConfigurationCustomizerProvider 
   public static final String METRICS_ENDPOINT_PROPERTY = "splunk.metrics.endpoint";
   public static final String METRICS_EXPORT_INTERVAL_PROPERTY = "splunk.metrics.export.interval";
   public static final String METRICS_IMPLEMENTATION = "splunk.metrics.implementation";
+  // used for testing micrometer metrics
+  public static final String METRICS_MICROMETER_DISABLED = "splunk.metrics.micrometer.disabled";
   public static final String METRICS_FULL_COMMAND_LINE = "splunk.metrics.force_full_commandline";
 
   @Override

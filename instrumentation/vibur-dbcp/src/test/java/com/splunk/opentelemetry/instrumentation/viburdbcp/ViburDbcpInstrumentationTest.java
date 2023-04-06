@@ -83,8 +83,7 @@ public class ViburDbcpInstrumentationTest {
         .as("vibur-dbcp generates a unique pool name if it's not explicitly provided")
         .isNotEmpty();
 
-    var tags =
-        Map.of("pool.name", poolName, "pool.type", "vibur-dbcp", "service", "unknown_service:java");
+    var tags = Map.of("pool.name", poolName, "pool.type", "vibur-dbcp");
 
     assertThat(TestMetricsAccess.getMeters())
         .containsExactlyInAnyOrder(

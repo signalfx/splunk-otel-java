@@ -20,6 +20,7 @@ import static com.splunk.opentelemetry.SplunkConfiguration.METRICS_ENABLED_PROPE
 import static com.splunk.opentelemetry.SplunkConfiguration.METRICS_ENDPOINT_PROPERTY;
 import static com.splunk.opentelemetry.SplunkConfiguration.METRICS_EXPORT_INTERVAL_PROPERTY;
 import static com.splunk.opentelemetry.SplunkConfiguration.METRICS_IMPLEMENTATION;
+import static com.splunk.opentelemetry.SplunkConfiguration.METRICS_MICROMETER_DISABLED;
 import static com.splunk.opentelemetry.SplunkConfiguration.SPLUNK_ACCESS_TOKEN;
 import static com.splunk.opentelemetry.SplunkConfiguration.SPLUNK_REALM_NONE;
 import static io.micrometer.core.instrument.config.MeterRegistryConfigValidator.checkAll;
@@ -56,7 +57,8 @@ class SplunkMetricsConfig implements SignalFxConfig {
   @Override
   public boolean enabled() {
     return config.getBoolean(METRICS_ENABLED_PROPERTY, false)
-        && "micrometer".equals(config.getString(METRICS_IMPLEMENTATION));
+        && "micrometer".equals(config.getString(METRICS_IMPLEMENTATION))
+        && !config.getBoolean(METRICS_MICROMETER_DISABLED, false);
   }
 
   @Override

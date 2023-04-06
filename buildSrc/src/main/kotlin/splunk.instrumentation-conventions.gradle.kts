@@ -37,15 +37,16 @@ evaluationDependsOn(":testing:agent-for-testing")
 
 tasks.withType<Test>().configureEach {
   val shadowJar = tasks.shadowJar.get()
-  val agentShadowJar = project(":testing:agent-for-testing").tasks.shadowJar.get()
+  val agentShadowJar = project(":testing:agent-for-testing").tasks.shadowJar
 
   inputs.file(shadowJar.archiveFile)
 
   dependsOn(shadowJar)
-  dependsOn(agentShadowJar)
+  dependsOn(agentShadowJar.get())
+
+  jvmArgumentProviders.add(JavaagentProvider(agentShadowJar.flatMap { it.archiveFile }))
 
   jvmArgs("-Dotel.javaagent.debug=true")
-  jvmArgs("-javaagent:${agentShadowJar.archiveFile.get().asFile.absolutePath}")
   jvmArgs("-Dotel.javaagent.experimental.initializer.jar=${shadowJar.archiveFile.get().asFile.absolutePath}")
   jvmArgs("-Dotel.javaagent.testing.additional-library-ignores.enabled=false")
   jvmArgs("-Dotel.javaagent.testing.fail-on-context-leak=true")
@@ -95,4 +96,14 @@ sourceSets {
   main {
     output.dir("build/generated/instrumentationVersion", "builtBy" to "generateInstrumentationVersionFile")
   }
+}
+
+class JavaagentProvider(
+  @InputFile
+  @PathSensitive(PathSensitivity.RELATIVE)
+  val agentJar: Provider<RegularFile>,
+) : CommandLineArgumentProvider {
+  override fun asArguments(): Iterable<String> = listOf(
+    "-javaagent:${file(agentJar).absolutePath}",
+  )
 }

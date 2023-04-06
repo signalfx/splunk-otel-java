@@ -27,6 +27,7 @@ dependencies {
 
   // include micrometer-core API
   bootstrapLibs(project(":bootstrap"))
+  javaagentLibs(project(":custom"))
   // include testing extensions, e.g. micrometer
   javaagentLibs(project(":testing:agent-test-extension"))
 
@@ -46,6 +47,14 @@ tasks {
     configurations = listOf(javaagentLibs)
 
     archiveFileName.set("javaagentLibs-relocated.jar")
+
+    // exclude known bootstrap dependencies - they can't appear in the inst/ directory
+    dependencies {
+      exclude(dependency("org.slf4j:slf4j-api"))
+      exclude(dependency("io.opentelemetry:opentelemetry-api"))
+      exclude(dependency("io.opentelemetry:opentelemetry-context"))
+      exclude(dependency("io.opentelemetry:opentelemetry-semconv"))
+    }
   }
 
   // 2. the Splunk javaagent libs are then isolated - moved to the inst/ directory

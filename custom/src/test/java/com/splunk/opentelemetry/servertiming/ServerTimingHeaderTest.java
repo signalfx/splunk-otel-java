@@ -14,8 +14,10 @@
  * limitations under the License.
  */
 
-package com.splunk.opentelemetry.instrumentation.servertiming;
+package com.splunk.opentelemetry.servertiming;
 
+import static com.splunk.opentelemetry.servertiming.ServerTimingHeaderCustomizer.EXPOSE_HEADERS;
+import static com.splunk.opentelemetry.servertiming.ServerTimingHeaderCustomizer.SERVER_TIMING;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -25,6 +27,7 @@ import io.opentelemetry.instrumentation.testing.junit.InstrumentationExtension;
 import io.opentelemetry.instrumentation.testing.junit.LibraryInstrumentationExtension;
 import java.util.HashMap;
 import java.util.Map;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
@@ -32,13 +35,20 @@ class ServerTimingHeaderTest {
 
   @RegisterExtension InstrumentationExtension testing = LibraryInstrumentationExtension.create();
 
+  private final ServerTimingHeaderCustomizer serverTiming = new ServerTimingHeaderCustomizer();
+
+  @BeforeAll
+  static void setUp() {
+    ServerTimingHeaderCustomizer.enabled = true;
+  }
+
   @Test
   void shouldNotSetAnyHeadersWithoutValidCurrentSpan() {
     // given
     var headers = new HashMap<String, String>();
 
     // when
-    ServerTimingHeader.setHeaders(Context.root(), headers, Map::put);
+    serverTiming.customize(Context.root(), headers, Map::put);
 
     // then
     assertTrue(headers.isEmpty());
@@ -54,7 +64,7 @@ class ServerTimingHeaderTest {
         testing.runWithSpan(
             "server",
             () -> {
-              ServerTimingHeader.setHeaders(Context.current(), headers, Map::put);
+              serverTiming.customize(Context.current(), headers, Map::put);
               return Span.current().getSpanContext();
             });
 
@@ -67,7 +77,7 @@ class ServerTimingHeaderTest {
             + "-"
             + spanContext.getSpanId()
             + "-01\"";
-    assertEquals(serverTimingHeaderValue, headers.get(ServerTimingHeader.SERVER_TIMING));
-    assertEquals(ServerTimingHeader.SERVER_TIMING, headers.get(ServerTimingHeader.EXPOSE_HEADERS));
+    assertEquals(serverTimingHeaderValue, headers.get(SERVER_TIMING));
+    assertEquals(SERVER_TIMING, headers.get(EXPOSE_HEADERS));
   }
 }

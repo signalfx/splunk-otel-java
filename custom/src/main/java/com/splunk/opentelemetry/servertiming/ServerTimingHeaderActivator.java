@@ -14,18 +14,22 @@
  * limitations under the License.
  */
 
-package com.splunk.opentelemetry.instrumentation.servertiming;
+package com.splunk.opentelemetry.servertiming;
 
+import com.google.auto.service.AutoService;
+import io.opentelemetry.javaagent.extension.AgentListener;
+import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 
-public final class ServerTimingHeaderConfig {
-
+@AutoService(AgentListener.class)
+public class ServerTimingHeaderActivator implements AgentListener {
   private static final String EMIT_RESPONSE_HEADERS = "splunk.trace-response-header.enabled";
 
-  private ServerTimingHeaderConfig() {}
-
-  // needs to be in a separate class to appease muzzle
-  public static boolean shouldEmitServerTimingHeader(ConfigProperties config) {
-    return config.getBoolean(EMIT_RESPONSE_HEADERS, true);
+  @Override
+  public void afterAgent(AutoConfiguredOpenTelemetrySdk autoConfiguredOpenTelemetrySdk) {
+    ConfigProperties config = autoConfiguredOpenTelemetrySdk.getConfig();
+    if (config.getBoolean(EMIT_RESPONSE_HEADERS, true)) {
+      ServerTimingHeaderCustomizer.enabled = true;
+    }
   }
 }

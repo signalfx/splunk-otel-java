@@ -88,7 +88,9 @@ public class TomcatJdbcInstrumentationTest {
         .as("tomcat-jdbc generates a unique pool name if it's not explicitly provided")
         .isNotEmpty();
 
-    var tags = Map.of("pool.name", poolName, "pool.type", "tomcat-jdbc");
+    var tags =
+        Map.of(
+            "pool.name", poolName, "pool.type", "tomcat-jdbc", "service", "unknown_service:java");
 
     assertThat(TestMetricsAccess.getMeters())
         .containsExactlyInAnyOrder(

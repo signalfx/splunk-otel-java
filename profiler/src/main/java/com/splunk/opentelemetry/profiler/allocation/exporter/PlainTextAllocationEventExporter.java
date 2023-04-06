@@ -40,7 +40,7 @@ import jdk.jfr.consumer.RecordedThread;
 
 public class PlainTextAllocationEventExporter implements AllocationEventExporter {
 
-  private static final java.util.logging.Logger LOGGER =
+  private static final java.util.logging.Logger logger =
       java.util.logging.Logger.getLogger(PlainTextAllocationEventExporter.class.getName());
   private static final AttributeKey<Long> ALLOCATION_SIZE_KEY =
       AttributeKey.longKey("memory.allocated");
@@ -51,7 +51,7 @@ public class PlainTextAllocationEventExporter implements AllocationEventExporter
   private final LogDataCommonAttributes commonAttributes;
 
   private PlainTextAllocationEventExporter(Builder builder) {
-    LOGGER.warning(
+    logger.warning(
         "Plain text profiling format is deprecated and will be removed in the next release.");
     this.otelLogger = builder.otelLogger;
     this.commonAttributes = builder.commonAttributes;

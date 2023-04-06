@@ -18,6 +18,7 @@ package com.splunk.opentelemetry.profiler;
 
 import static com.splunk.opentelemetry.SplunkConfiguration.PROFILER_ENABLED_PROPERTY;
 import static com.splunk.opentelemetry.SplunkConfiguration.PROFILER_MEMORY_ENABLED_PROPERTY;
+import static java.util.logging.Level.WARNING;
 
 import com.google.auto.service.AutoService;
 import io.opentelemetry.sdk.autoconfigure.spi.AutoConfigurationCustomizer;
@@ -27,9 +28,11 @@ import java.time.Duration;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.logging.Logger;
 
 @AutoService(AutoConfigurationCustomizerProvider.class)
 public class Configuration implements AutoConfigurationCustomizerProvider {
+  private static final Logger logger = Logger.getLogger(Configuration.class.getName());
   private static final boolean HAS_OBJECT_ALLOCATION_SAMPLE_EVENT = getJavaVersion() >= 16;
 
   private static final String DEFAULT_RECORDING_DURATION = "20s";
@@ -87,6 +90,17 @@ public class Configuration implements AutoConfigurationCustomizerProvider {
 
   public static String getConfigUrl(ConfigProperties config) {
     String ingestUrl = config.getString(CONFIG_KEY_OTEL_OTLP_URL, null);
+    if (ingestUrl != null
+        && ingestUrl.startsWith("https://ingest.")
+        && ingestUrl.endsWith(".signalfx.com")
+        && config.getString(CONFIG_KEY_INGEST_URL) == null) {
+      logger.log(
+          WARNING,
+          "Profiling data can not be sent to {0}, using http://localhost:4317 instead. "
+              + "You can override it by setting splunk.profiler.logs-endpoint",
+          new Object[] {ingestUrl});
+      return null;
+    }
     return config.getString(CONFIG_KEY_INGEST_URL, ingestUrl);
   }
 

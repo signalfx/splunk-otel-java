@@ -20,7 +20,6 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 
 import io.opentelemetry.instrumentation.api.instrumenter.http.HttpClientAttributesGetter;
-import io.opentelemetry.semconv.trace.attributes.SemanticAttributes;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -34,11 +33,6 @@ final class KHttpHttpClientHttpAttributesGetter
   @Override
   public String getUrl(RequestWrapper requestWrapper) {
     return requestWrapper.uri;
-  }
-
-  @Override
-  public String getFlavor(RequestWrapper requestWrapper, @Nullable Response response) {
-    return SemanticAttributes.HttpFlavorValues.HTTP_1_1;
   }
 
   @Nullable

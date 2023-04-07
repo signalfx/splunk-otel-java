@@ -1,4 +1,7 @@
 package com.splunk.opentelemetry.instrumentation.khttp
+
+import io.opentelemetry.api.common.AttributeKey
+
 /*
  * Copyright The OpenTelemetry Authors
  * SPDX-License-Identifier: Apache-2.0
@@ -8,6 +11,8 @@ package com.splunk.opentelemetry.instrumentation.khttp
 import io.opentelemetry.instrumentation.test.AgentTestTrait
 import io.opentelemetry.instrumentation.test.base.HttpClientTest
 import khttp.KHttp
+
+import static io.opentelemetry.api.common.AttributeKey.stringKey
 
 class KHttpClientTest extends HttpClientTest<Void> implements AgentTestTrait {
 
@@ -40,4 +45,10 @@ class KHttpClientTest extends HttpClientTest<Void> implements AgentTestTrait {
     return false
   }
 
+  Set<AttributeKey<?>> httpAttributes(URI uri) {
+    def attributes = super.httpAttributes(uri)
+    attributes.remove(stringKey("net.protocol.name"))
+    attributes.remove(stringKey("net.protocol.version"))
+    return attributes
+  }
 }

@@ -32,6 +32,7 @@ public class ServerTimingHeaderCustomizer implements HttpServerResponseCustomize
   static final String SERVER_TIMING = "Server-Timing";
   static final String EXPOSE_HEADERS = "Access-Control-Expose-Headers";
 
+  // not using volatile because this field is set only once during agent initialization
   static boolean enabled = false;
 
   @Override

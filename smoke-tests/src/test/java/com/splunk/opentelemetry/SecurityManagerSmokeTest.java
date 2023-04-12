@@ -38,16 +38,18 @@ public class SecurityManagerSmokeTest extends SmokeTest {
 
   @Override
   protected Map<String, String> getExtraEnv() {
-    return Map.of("OTEL_JAVAAGENT_EXPERIMENTAL_SECURITY_MANAGER_SUPPORT_ENABLED", "true",
+    return Map.of(
+        "OTEL_JAVAAGENT_EXPERIMENTAL_SECURITY_MANAGER_SUPPORT_ENABLED",
+        "true",
         // AbstractTestContainerManager sets sampler to "internal_root_off" which isn't suitable for
         // this test, overwrite it
-        "OTEL_TRACES_SAMPLER", "always_on");
+        "OTEL_TRACES_SAMPLER",
+        "always_on");
   }
 
   @Override
   protected TargetWaitStrategy getWaitStrategy() {
-    return new TargetWaitStrategy.Log(
-        Duration.ofMinutes(1), ".*opentelemetry-javaagent.*");
+    return new TargetWaitStrategy.Log(Duration.ofMinutes(1), ".*opentelemetry-javaagent.*");
   }
 
   @ParameterizedTest(name = "{index} => SecurityManager SmokeTest On JDK{0}.")

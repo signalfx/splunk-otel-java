@@ -63,6 +63,7 @@ dependencies {
     api("io.opentelemetry.javaagent:opentelemetry-javaagent-bootstrap:$otelInstrumentationAlphaVersion")
     api("io.opentelemetry.javaagent:opentelemetry-javaagent-extension-api:$otelInstrumentationAlphaVersion")
     api("io.opentelemetry.javaagent:opentelemetry-javaagent-instrumentation-api:$otelInstrumentationAlphaVersion")
+    api("io.opentelemetry.javaagent:opentelemetry-javaagent-internal-logging-simple:$otelInstrumentationAlphaVersion")
     api("io.opentelemetry.javaagent:opentelemetry-javaagent-tooling:$otelInstrumentationAlphaVersion")
     api("io.opentelemetry.javaagent:opentelemetry-muzzle:$otelInstrumentationAlphaVersion")
     api("io.opentelemetry.javaagent:opentelemetry-testing-common:$otelInstrumentationAlphaVersion")

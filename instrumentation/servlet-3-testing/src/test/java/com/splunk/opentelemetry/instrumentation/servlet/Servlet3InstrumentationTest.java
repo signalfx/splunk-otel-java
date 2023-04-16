@@ -20,13 +20,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.splunk.opentelemetry.instrumentation.servertiming.ServerTimingHeader;
 import io.opentelemetry.instrumentation.test.utils.PortUtils;
 import io.opentelemetry.instrumentation.testing.junit.AgentInstrumentationExtension;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.EnumSet;
-import java.util.concurrent.TimeoutException;
 import javax.servlet.DispatcherType;
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
@@ -49,6 +47,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
 class Servlet3InstrumentationTest {
+  private static final String SERVER_TIMING = "Server-Timing";
+  private static final String EXPOSE_HEADERS = "Access-Control-Expose-Headers";
+
   @RegisterExtension
   static final AgentInstrumentationExtension instrumentation =
       AgentInstrumentationExtension.create();
@@ -97,7 +98,7 @@ class Servlet3InstrumentationTest {
     assertEquals(200, response.code());
     assertEquals("result", response.body().string());
 
-    var serverTimingHeader = response.header(ServerTimingHeader.SERVER_TIMING);
+    var serverTimingHeader = response.header(SERVER_TIMING);
     assertHeaders(response, serverTimingHeader);
     assertServerTimingHeaderContainsTraceId(serverTimingHeader);
   }
@@ -118,19 +119,17 @@ class Servlet3InstrumentationTest {
     assertEquals(200, response.code());
     assertEquals("result", response.body().string());
 
-    var serverTimingHeader = response.header(ServerTimingHeader.SERVER_TIMING);
+    var serverTimingHeader = response.header(SERVER_TIMING);
     assertHeaders(response, serverTimingHeader);
     assertServerTimingHeaderContainsTraceId(serverTimingHeader);
   }
 
   private static void assertHeaders(Response response, String serverTimingHeader) {
     assertNotNull(serverTimingHeader);
-    assertEquals(
-        ServerTimingHeader.SERVER_TIMING, response.header(ServerTimingHeader.EXPOSE_HEADERS));
+    assertEquals(SERVER_TIMING, response.header(EXPOSE_HEADERS));
   }
 
-  private static void assertServerTimingHeaderContainsTraceId(String serverTimingHeader)
-      throws InterruptedException, TimeoutException {
+  private static void assertServerTimingHeaderContainsTraceId(String serverTimingHeader) {
     var traces = instrumentation.waitForTraces(1);
     assertEquals(1, traces.size());
 

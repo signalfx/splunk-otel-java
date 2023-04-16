@@ -6,9 +6,7 @@ dependencies {
   testInstrumentation("io.opentelemetry.javaagent.instrumentation:opentelemetry-javaagent-servlet-common")
   testInstrumentation("io.opentelemetry.javaagent.instrumentation:opentelemetry-javaagent-servlet-2.2")
   testInstrumentation("io.opentelemetry.javaagent.instrumentation:opentelemetry-javaagent-servlet-3.0")
-  testInstrumentation(project(":instrumentation:servlet"))
 
-  testImplementation(project(":instrumentation:common"))
   testImplementation("io.opentelemetry.javaagent:opentelemetry-testing-common")
 
   testImplementation("javax.servlet:javax.servlet-api:3.0.1")

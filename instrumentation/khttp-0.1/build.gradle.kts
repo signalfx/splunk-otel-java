@@ -31,4 +31,8 @@ tasks.withType<Test>().configureEach {
   jvmArgs("--add-opens=java.base/java.net=ALL-UNNAMED")
   jvmArgs("--add-opens=java.base/sun.net.www.protocol.https=ALL-UNNAMED")
   jvmArgs("-XX:+IgnoreUnrecognizedVMOptions")
+
+  // override the default always_on sampler because http client test suite includes a test that
+  // fails with it
+  jvmArgs("-Dotel.traces.sampler=parentbased_always_on")
 }

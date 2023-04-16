@@ -63,8 +63,9 @@ public class PprofAllocationEventExporter implements AllocationEventExporter {
       return;
     }
 
-    // XXX ObjectAllocationSample event doesn't have allocationSize using weight here just to make
-    // tests that verify that allocationSize is set happy
+    // ObjectAllocationSample event doesn't have allocationSize using weight instead. Aggregating
+    // the weights for a large number of samples, for a particular class, thread or stack trace,
+    // gives a statistically accurate representation of the allocation pressure.
     long allocationSize =
         event.hasField("allocationSize")
             ? event.getLong("allocationSize")

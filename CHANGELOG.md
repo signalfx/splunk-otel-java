@@ -16,6 +16,17 @@ and this repository adheres to [Semantic Versioning](https://semver.org/spec/v2.
 - OpenTelemetry Instrumentation for Java has been updated to version 1.25.0.
 - Micrometer dependency has been updated to version 1.10.6.
 
+### Enhancements
+
+- Prevent `splunk.realm` from configuring profiling logs to direct ingest (#1192)
+- Improved compatibility with Java security manager (#1208)
+- Add ability to rate limit profiling allocation events (default disabled, 150/s when enabled) (#1182) 
+
+### Deprecations
+
+- Deprecate text format for `splunk.profiler.cpu.data.format` and `splunk.profiler.memory.data.format`.
+  Users should migrate to the default `pprof-gzip-base64` before 1.24.0.
+
 ## v1.22.0 - 2023-03-16
 
 ### General

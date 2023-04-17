@@ -20,7 +20,6 @@ and this repository adheres to [Semantic Versioning](https://semver.org/spec/v2.
 
 - Prevent `splunk.realm` from configuring profiling logs to direct ingest (#1192)
 - Improved compatibility with Java security manager (#1208)
-- Add ability to rate limit profiling allocation events (default disabled, 150/s when enabled) (#1182) 
 
 ### Deprecations
 

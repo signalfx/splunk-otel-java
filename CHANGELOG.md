@@ -8,7 +8,18 @@ and this repository adheres to [Semantic Versioning](https://semver.org/spec/v2.
 
 ## Unreleased
 
+## v1.23.0 - 2023-04-17
+
+### General
+
+- OpenTelemetry Java SDK has been updated to version 1.25.0.
+- OpenTelemetry Instrumentation for Java has been updated to version 1.25.0.
+- Micrometer dependency has been updated to version 1.10.6.
+
 ## v1.22.0 - 2023-03-16
+
+### General
+
 - OpenTelemetry Java SDK has been updated to version 1.24.0.
 - OpenTelemetry Instrumentation for Java has been updated to version 1.24.0.
 - GHA workflows now use Java 17 temurin

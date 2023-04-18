@@ -41,7 +41,7 @@ public class Configuration implements AutoConfigurationCustomizerProvider {
   public static final boolean DEFAULT_INCLUDE_INTERNAL_STACKS = false;
   public static final boolean DEFAULT_TRACING_STACKS_ONLY = false;
   private static final int DEFAULT_STACK_DEPTH = 1024;
-  private static final boolean DEFAULT_MEMORY_EVENT_RATE_LIMIT_ENABLED = false;
+  private static final boolean DEFAULT_MEMORY_EVENT_RATE_LIMIT_ENABLED = true;
 
   public static final String CONFIG_KEY_ENABLE_PROFILER = PROFILER_ENABLED_PROPERTY;
   public static final String CONFIG_KEY_PROFILER_DIRECTORY = "splunk.profiler.directory";

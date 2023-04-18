@@ -1,6 +1,6 @@
 plugins {
   `java-library`
-  id("me.champeau.jmh") version "0.7.0"
+  id("me.champeau.jmh") version "0.7.1"
 }
 
 repositories {

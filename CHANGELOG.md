@@ -26,6 +26,10 @@ and this repository adheres to [Semantic Versioning](https://semver.org/spec/v2.
 - Deprecate text format for `splunk.profiler.cpu.data.format` and `splunk.profiler.memory.data.format`.
   Users should migrate to the default `pprof-gzip-base64` before 1.24.0.
 
+### Breaking Changes
+
+- Configuration property `splunk.profiler.memory.sampler.interval` has been removed, it is replaced with a rate limiting sampler (#1182)
+
 ## v1.22.0 - 2023-03-16
 
 ### General

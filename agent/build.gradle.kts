@@ -1,9 +1,12 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+import com.github.jk1.license.filter.LicenseBundleNormalizer
+import com.github.jk1.license.render.InventoryMarkdownReportRenderer
 
 plugins {
   id("maven-publish")
   id("signing")
   id("splunk.shadow-conventions")
+  id("com.github.jk1.dependency-license-report")
 }
 
 base.archivesName.set("splunk-otel-javaagent")
@@ -27,6 +30,11 @@ val javaagentLibs: Configuration by configurations.creating {
 val upstreamAgent: Configuration by configurations.creating {
   isCanBeResolved = true
   isCanBeConsumed = false
+}
+
+val licenseReportDependencies: Configuration by configurations.creating {
+  extendsFrom(bootstrapLibs)
+  extendsFrom(javaagentLibs)
 }
 
 val otelInstrumentationVersion: String by rootProject.extra
@@ -56,6 +64,12 @@ project(":instrumentation").subprojects {
 tasks {
   jar {
     enabled = false
+  }
+
+  processResources {
+    from(rootProject.file("licenses")) {
+      into("META-INF/licenses")
+    }
   }
 
   // building the final javaagent jar is done in 3 steps:
@@ -95,6 +109,10 @@ tasks {
 
     dependsOn(isolateJavaagentLibs)
     from(isolateJavaagentLibs.get().outputs)
+    filesMatching("META-INF/licenses/licenses.md") {
+      // rename our licenses report to avoid overwriting the one from upstream
+      this.path = this.path.replace("licenses.md", "licenses-splunk-otel-java.md")
+    }
 
     archiveClassifier.set("all")
 
@@ -185,10 +203,43 @@ tasks {
       sign(publishing.publications["maven"])
     }
   }
+
+  val cleanLicenses by registering(Delete::class) {
+    delete(rootProject.file("licenses"))
+  }
+
+  val generateLicenseReportEnabled = gradle.startParameter.taskNames.any { it.equals("generateLicenseReport") }
+  named("generateLicenseReport").configure {
+    dependsOn(cleanLicenses)
+    // disable licence report generation unless this task is explicitly run
+    // the files produced by this task are used by other tasks without declaring them as dependency
+    // which gradle considers an error
+    enabled = enabled && generateLicenseReportEnabled
+  }
 }
 
 rootProject.tasks.named("release") {
   finalizedBy(tasks["publishToSonatype"])
+}
+
+licenseReport {
+  outputDir = rootProject.file("licenses").absolutePath
+
+  renderers = arrayOf(InventoryMarkdownReportRenderer())
+
+  configurations = arrayOf(licenseReportDependencies.name)
+
+  excludeBoms = true
+
+  excludeGroups = arrayOf(
+    "splunk-otel-java\\.instrumentation",
+  )
+
+  excludes = arrayOf(
+    "io.opentelemetry:opentelemetry-bom-alpha",
+  )
+
+  filters = arrayOf(LicenseBundleNormalizer("$projectDir/license-normalizer-bundle.json", true))
 }
 
 fun CopySpec.isolateClasses(jars: Iterable<File>) {

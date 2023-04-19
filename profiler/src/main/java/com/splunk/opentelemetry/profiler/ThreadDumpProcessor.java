@@ -23,27 +23,29 @@ import com.splunk.opentelemetry.profiler.context.SpanLinkage;
 import com.splunk.opentelemetry.profiler.context.StackToSpanLinkage;
 import com.splunk.opentelemetry.profiler.exporter.CpuEventExporter;
 import java.util.logging.Logger;
-import jdk.jfr.consumer.RecordedEvent;
+import org.openjdk.jmc.common.item.IItem;
 
 public class ThreadDumpProcessor {
   public static final String EVENT_NAME = "jdk.ThreadDump";
   private static final Logger logger = Logger.getLogger(ThreadDumpProcessor.class.getName());
+  private final EventReader eventReader;
   private final SpanContextualizer contextualizer;
   private final CpuEventExporter cpuEventExporter;
   private final StackTraceFilter stackTraceFilter;
   private final boolean onlyTracingSpans;
 
   private ThreadDumpProcessor(Builder builder) {
+    this.eventReader = builder.eventReader;
     this.contextualizer = builder.contextualizer;
     this.cpuEventExporter = builder.cpuEventExporter;
     this.stackTraceFilter = builder.stackTraceFilter;
     this.onlyTracingSpans = builder.onlyTracingSpans;
   }
 
-  public void accept(RecordedEvent event) {
-    String eventName = event.getEventType().getName();
+  public void accept(IItem event) {
+    String eventName = event.getType().getIdentifier();
     logger.log(FINE, "Processing JFR event {0}", eventName);
-    String wallOfStacks = event.getString("result");
+    String wallOfStacks = eventReader.getThreadDumpResult(event);
 
     ThreadDumpRegion stack = new ThreadDumpRegion(wallOfStacks, 0, 0);
 
@@ -57,7 +59,7 @@ public class ThreadDumpProcessor {
       }
       StackToSpanLinkage spanWithLinkage =
           new StackToSpanLinkage(
-              event.getStartTime(), stack.getCurrentRegion(), eventName, linkage);
+              eventReader.getStartInstant(event), stack.getCurrentRegion(), eventName, linkage);
       cpuEventExporter.export(spanWithLinkage);
     }
   }
@@ -71,10 +73,16 @@ public class ThreadDumpProcessor {
   }
 
   public static class Builder {
+    private EventReader eventReader;
     private SpanContextualizer contextualizer;
     private CpuEventExporter cpuEventExporter;
     private StackTraceFilter stackTraceFilter;
     private boolean onlyTracingSpans;
+
+    public Builder eventReader(EventReader eventReader) {
+      this.eventReader = eventReader;
+      return this;
+    }
 
     public Builder spanContextualizer(SpanContextualizer contextualizer) {
       this.contextualizer = contextualizer;

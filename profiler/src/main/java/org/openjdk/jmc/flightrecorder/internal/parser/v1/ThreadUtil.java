@@ -14,15 +14,19 @@
  * limitations under the License.
  */
 
-package com.splunk.opentelemetry.profiler.allocation.exporter;
+package org.openjdk.jmc.flightrecorder.internal.parser.v1;
 
-import com.splunk.opentelemetry.profiler.allocation.sampler.AllocationEventSampler;
-import io.opentelemetry.api.trace.SpanContext;
-import org.openjdk.jmc.common.item.IItem;
+import org.openjdk.jmc.common.IMCThread;
 
-public interface AllocationEventExporter {
-
-  void export(IItem event, AllocationEventSampler sampler, SpanContext spanContext);
-
-  default void flush() {}
+// helper class for accessing package private StructTypes.JfrThread
+public class ThreadUtil {
+  public static Long getOsThreadId(IMCThread thread) {
+    if (thread instanceof StructTypes.JfrThread) {
+      Object value = ((StructTypes.JfrThread) thread).osThreadId;
+      if (value instanceof Number) {
+        return ((Number) value).longValue();
+      }
+    }
+    return null;
+  }
 }

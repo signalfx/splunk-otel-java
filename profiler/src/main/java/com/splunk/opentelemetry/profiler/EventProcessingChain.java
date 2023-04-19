@@ -18,7 +18,6 @@ package com.splunk.opentelemetry.profiler;
 
 import static java.util.logging.Level.FINE;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.splunk.opentelemetry.profiler.allocation.sampler.AllocationEventSampler;
 import com.splunk.opentelemetry.profiler.allocation.sampler.RateLimitingAllocationEventSampler;
 import com.splunk.opentelemetry.profiler.context.SpanContextualizer;
@@ -31,44 +30,33 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
-import jdk.jfr.EventType;
-import jdk.jfr.consumer.RecordedEvent;
+import org.openjdk.jmc.common.item.IItem;
 
 class EventProcessingChain {
 
   private static final Logger logger = Logger.getLogger(EventProcessingChain.class.getName());
 
+  private final EventReader eventReader;
   private final SpanContextualizer spanContextualizer;
   private final ThreadDumpProcessor threadDumpProcessor;
   private final TLABProcessor tlabProcessor;
-  private final List<RecordedEvent> buffer = new ArrayList<>();
+  private final List<IItem> buffer = new ArrayList<>();
   private final EventStats eventStats =
       logger.isLoggable(FINE) ? new EventStatsImpl() : new NoOpEventStats();
-  private final ChunkTracker chunkTracker;
 
   EventProcessingChain(
+      EventReader eventReader,
       SpanContextualizer spanContextualizer,
       ThreadDumpProcessor threadDumpProcessor,
       TLABProcessor tlabProcessor) {
-    this(spanContextualizer, threadDumpProcessor, tlabProcessor, new ChunkTracker());
-  }
-
-  EventProcessingChain(
-      SpanContextualizer spanContextualizer,
-      ThreadDumpProcessor threadDumpProcessor,
-      TLABProcessor tlabProcessor,
-      ChunkTracker chunkTracker) {
+    this.eventReader = eventReader;
     this.spanContextualizer = spanContextualizer;
     this.threadDumpProcessor = threadDumpProcessor;
     this.tlabProcessor = tlabProcessor;
-    this.chunkTracker = chunkTracker;
   }
 
-  void accept(RecordedEvent event) {
+  void accept(IItem event) {
     eventStats.incEventCount();
-    if (chunkTracker.isNewChunk(event)) {
-      flushBuffer();
-    }
     buffer.add(event);
   }
 
@@ -77,18 +65,17 @@ class EventProcessingChain {
    * the buffer. After flushing, the buffer will be empty.
    */
   public void flushBuffer() {
-    buffer.sort(Comparator.comparing(RecordedEvent::getStartTime));
+    buffer.sort(Comparator.comparingLong(eventReader::getStartTime));
     updateAllocationSampler();
 
     buffer.forEach(this::dispatchEvent);
     buffer.clear();
-    chunkTracker.reset();
     tlabProcessor.flush();
     threadDumpProcessor.flush();
   }
 
-  private static boolean isTlabEvent(RecordedEvent event) {
-    String eventName = event.getEventType().getName();
+  private static boolean isTlabEvent(IItem event) {
+    String eventName = event.getType().getIdentifier();
     return TLABProcessor.NEW_TLAB_EVENT_NAME.equals(eventName)
         || TLABProcessor.OUTSIDE_TLAB_EVENT_NAME.equals(eventName);
   }
@@ -103,15 +90,15 @@ class EventProcessingChain {
 
     long tlabEventCount = buffer.stream().filter(EventProcessingChain::isTlabEvent).count();
     if (tlabEventCount > 0) {
-      Instant firsEvent = buffer.get(0).getStartTime();
-      Instant lastEvent = buffer.get(buffer.size() - 1).getStartTime();
+      Instant firsEvent = eventReader.getStartInstant(buffer.get(0));
+      Instant lastEvent = eventReader.getStartInstant(buffer.get(buffer.size() - 1));
 
       sampler.updateSampler(tlabEventCount, firsEvent, lastEvent);
     }
   }
 
-  private void dispatchEvent(RecordedEvent event) {
-    String eventName = event.getEventType().getName();
+  private void dispatchEvent(IItem event) {
+    String eventName = event.getType().getIdentifier();
     switch (eventName) {
       case ContextAttached.EVENT_NAME:
         try (EventTimer eventTimer = eventStats.time(eventName)) {
@@ -135,38 +122,6 @@ class EventProcessingChain {
 
   public void logEventStats() {
     eventStats.logEventStats();
-  }
-
-  /**
-   * Helper class for detecting when parsing advances to next chunk. We'll sort events only for the
-   * current chunk, similarly how jfr command line tool does when printing events. While jfr command
-   * line tool uses an internal method to detect last event of chunk we do this in a bit roundabout
-   * way. As event types are recreated for each chunk we know that we are in a new chunk when event
-   * type of context attach or thread dump event doesn't match what we have recorded. When chunk
-   * change is detected process buffered events and clear the buffer.
-   */
-  @VisibleForTesting
-  static class ChunkTracker {
-
-    private final Map<String, EventType> eventTypes = new HashMap<>();
-
-    /**
-     * @return true when event belongs to a new chunk
-     */
-    boolean isNewChunk(RecordedEvent event) {
-      EventType currentEventType = event.getEventType();
-      String eventName = currentEventType.getName();
-
-      eventTypes.putIfAbsent(eventName, currentEventType);
-      EventType oldEventType = eventTypes.get(eventName);
-      // each chunk is parsed by a new parser that recreates EventType - so the actual EventType
-      // instances end up being different, even though they represent the same thing
-      return oldEventType != currentEventType;
-    }
-
-    void reset() {
-      eventTypes.clear();
-    }
   }
 
   private interface EventStats {

@@ -21,6 +21,7 @@ import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.DATA
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.THREAD_STACK_TRUNCATED;
 
 import com.splunk.opentelemetry.profiler.Configuration.DataFormat;
+import com.splunk.opentelemetry.profiler.EventReader;
 import com.splunk.opentelemetry.profiler.LogDataCommonAttributes;
 import com.splunk.opentelemetry.profiler.ProfilingDataType;
 import com.splunk.opentelemetry.profiler.allocation.sampler.AllocationEventSampler;
@@ -34,9 +35,9 @@ import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.context.Context;
 import java.time.Instant;
-import jdk.jfr.consumer.RecordedEvent;
-import jdk.jfr.consumer.RecordedStackTrace;
-import jdk.jfr.consumer.RecordedThread;
+import org.openjdk.jmc.common.IMCStackTrace;
+import org.openjdk.jmc.common.IMCThread;
+import org.openjdk.jmc.common.item.IItem;
 
 public class PlainTextAllocationEventExporter implements AllocationEventExporter {
 
@@ -45,6 +46,7 @@ public class PlainTextAllocationEventExporter implements AllocationEventExporter
   private static final AttributeKey<Long> ALLOCATION_SIZE_KEY =
       AttributeKey.longKey("memory.allocated");
 
+  private final EventReader eventreader;
   private final StackSerializer stackSerializer;
   private final int stackDepth;
   private final Logger otelLogger;
@@ -53,6 +55,7 @@ public class PlainTextAllocationEventExporter implements AllocationEventExporter
   private PlainTextAllocationEventExporter(Builder builder) {
     logger.warning(
         "Plain text profiling format is deprecated and will be removed in the next release.");
+    this.eventreader = builder.eventreader;
     this.otelLogger = builder.otelLogger;
     this.commonAttributes = builder.commonAttributes;
     this.stackDepth = builder.stackDepth;
@@ -61,26 +64,27 @@ public class PlainTextAllocationEventExporter implements AllocationEventExporter
   }
 
   @Override
-  public void export(RecordedEvent event, AllocationEventSampler sampler, SpanContext spanContext) {
-    RecordedStackTrace stackTrace = event.getStackTrace();
+  public void export(IItem event, AllocationEventSampler sampler, SpanContext spanContext) {
+    IMCStackTrace stackTrace = eventreader.getStackTrace(event);
     if (stackTrace == null) {
       return;
     }
-    Instant time = event.getStartTime();
+    Instant time = eventreader.getStartInstant(event);
     String body = buildBody(event, stackTrace);
 
     AttributesBuilder builder =
         commonAttributes
-            .builder(event.getEventType().getName())
+            .builder(event.getType().getIdentifier())
             .put(DATA_TYPE, ProfilingDataType.ALLOCATION.value())
             .put(DATA_FORMAT, DataFormat.TEXT.value())
-            .put(ALLOCATION_SIZE_KEY, event.getLong("allocationSize"));
+            .put(ALLOCATION_SIZE_KEY, eventreader.getAllocationSize(event));
     if (sampler != null) {
       sampler.addAttributes((k, v) -> builder.put(k, v), (k, v) -> builder.put(k, v));
     }
 
     // stack trace is truncated either by jfr or in StackSerializer
-    if (stackTrace.isTruncated() || stackTrace.getFrames().size() > stackDepth) {
+    if (stackTrace.getTruncationState().isTruncated()
+        || stackTrace.getFrames().size() > stackDepth) {
       builder.put(THREAD_STACK_TRUNCATED, true);
     }
 
@@ -96,14 +100,17 @@ public class PlainTextAllocationEventExporter implements AllocationEventExporter
     logRecordBuilder.emit();
   }
 
-  private String buildBody(RecordedEvent event, RecordedStackTrace stackTrace) {
+  private String buildBody(IItem event, IMCStackTrace stackTrace) {
     String stack = stackSerializer.serialize(stackTrace);
-    RecordedThread thread = event.getThread();
-    String name = thread == null ? "unknown" : thread.getJavaName();
-    long id = thread == null ? 0 : thread.getJavaThreadId();
+    IMCThread thread = eventreader.getThread(event);
+    String name = thread == null ? "unknown" : thread.getThreadName();
+    long id = thread == null || thread.getThreadId() == null ? 0 : thread.getThreadId();
     String result = "\"" + name + "\"" + " #" + id;
     if (thread != null) {
-      result += " nid=0x" + Long.toHexString(thread.getOSThreadId());
+      long osThreadId = eventreader.getOSThreadId(thread);
+      if (osThreadId != -1) {
+        result += " nid=0x" + Long.toHexString(eventreader.getOSThreadId(thread));
+      }
     }
     result += "\n";
     result += "   java.lang.Thread.State: UNKNOWN\n" + stack;
@@ -115,6 +122,7 @@ public class PlainTextAllocationEventExporter implements AllocationEventExporter
   }
 
   public static class Builder {
+    private EventReader eventreader;
     private StackSerializer stackSerializer;
     private Logger otelLogger;
     private LogDataCommonAttributes commonAttributes;
@@ -122,6 +130,11 @@ public class PlainTextAllocationEventExporter implements AllocationEventExporter
 
     public PlainTextAllocationEventExporter build() {
       return new PlainTextAllocationEventExporter(this);
+    }
+
+    public Builder eventReader(EventReader eventreader) {
+      this.eventreader = eventreader;
+      return this;
     }
 
     public Builder stackSerializer(StackSerializer stackSerializer) {

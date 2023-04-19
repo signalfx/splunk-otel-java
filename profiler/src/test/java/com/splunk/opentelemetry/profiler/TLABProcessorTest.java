@@ -50,19 +50,25 @@ import io.opentelemetry.sdk.logs.export.InMemoryLogRecordExporter;
 import io.opentelemetry.sdk.logs.export.SimpleLogRecordProcessor;
 import java.time.Instant;
 import java.util.concurrent.TimeUnit;
-import jdk.jfr.EventType;
-import jdk.jfr.consumer.RecordedEvent;
-import jdk.jfr.consumer.RecordedStackTrace;
-import jdk.jfr.consumer.RecordedThread;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
 import org.mockito.invocation.InvocationOnMock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.mockito.stubbing.Answer;
+import org.openjdk.jmc.common.IMCStackTrace;
+import org.openjdk.jmc.common.IMCThread;
+import org.openjdk.jmc.common.item.IItem;
+import org.openjdk.jmc.common.item.IType;
 
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 class TLABProcessorTest {
 
   public static final long ONE_MB = 1024 * 1024L;
-  public static final long FIVE_MB = 5 * 1024 * 1024L;
   public static final long THREAD_ID = 606L;
   public static final long OS_THREAD_ID = 0x707L;
 
@@ -73,40 +79,36 @@ class TLABProcessorTest {
           .build()
           .get("test");
 
+  @Mock EventReader eventReader;
+
   @BeforeEach
   void reset() {
     logExporter.reset();
   }
 
   @Test
-  void testProcess() {
-    Long tlabSize = FIVE_MB;
-    tlabProcessTest(tlabSize);
-  }
-
-  @Test
   void testNullStack() {
-    RecordedEvent event = mock(RecordedEvent.class);
-    when(event.getStackTrace()).thenReturn(null); // just to be explicit
+    IItem event = mock(IItem.class);
+    when(eventReader.getStackTrace(event)).thenReturn(null); // just to be explicit
 
     ConfigProperties config = mock(ConfigProperties.class);
     when(config.getBoolean(CONFIG_KEY_TLAB_ENABLED, DEFAULT_MEMORY_ENABLED)).thenReturn(true);
 
-    TLABProcessor processor = TLABProcessor.builder(config).build();
+    TLABProcessor processor = TLABProcessor.builder(config).eventReader(eventReader).build();
     processor.accept(event);
     // success, no NPEs
   }
 
   @Test
   void testProfilingDisabled() {
-    RecordedEvent event =
+    IItem event =
         mock(
-            RecordedEvent.class,
+            IItem.class,
             new Answer<Object>() {
               @Override
               public Object answer(InvocationOnMock invocation) throws Throwable {
                 throw new IllegalStateException(
-                    "RecordedEvent methods should not be called when TLAB profiling is not enabled");
+                    "IItem methods should not be called when TLAB profiling is not enabled");
               }
             });
 
@@ -118,11 +120,7 @@ class TLABProcessorTest {
   }
 
   @Test
-  void testAllocationOutsideTLAB() {
-    tlabProcessTest(null);
-  }
-
-  private void tlabProcessTest(Long tlabSize) {
+  void testProcess() {
     Instant now = Instant.now();
     String stackAsString =
         "\"mockingbird\" #606 nid=0x707\n"
@@ -133,7 +131,7 @@ class TLABProcessorTest {
     LogDataCommonAttributes commonAttrs = new LogDataCommonAttributes(new EventPeriods(x -> null));
     Clock clock = new MockClock(now);
 
-    RecordedEvent event = createMockEvent(serializer, now, tlabSize);
+    IItem event = createMockEvent(serializer, now);
 
     ConfigProperties config = mock(ConfigProperties.class);
     when(config.getBoolean(CONFIG_KEY_TLAB_ENABLED, DEFAULT_MEMORY_ENABLED)).thenReturn(true);
@@ -149,6 +147,7 @@ class TLABProcessorTest {
 
     AllocationEventExporter allocationEventExporter =
         PlainTextAllocationEventExporter.builder()
+            .eventReader(eventReader)
             .stackSerializer(serializer)
             .logEmitter(otelLogger)
             .commonAttributes(commonAttrs)
@@ -157,6 +156,7 @@ class TLABProcessorTest {
 
     TLABProcessor processor =
         TLABProcessor.builder(config)
+            .eventReader(eventReader)
             .allocationEventExporter(allocationEventExporter)
             .spanContextualizer(spanContextualizer)
             .build();
@@ -179,30 +179,24 @@ class TLABProcessorTest {
                         entry(DATA_FORMAT, Configuration.DataFormat.TEXT.value())));
   }
 
-  private RecordedEvent createMockEvent(StackSerializer serializer, Instant now, Long tlabSize) {
+  private IItem createMockEvent(StackSerializer serializer, Instant now) {
     String stackAsString = "i am a serialized stack believe me";
 
-    RecordedEvent event = mock(RecordedEvent.class);
-    RecordedStackTrace stack = mock(RecordedStackTrace.class);
-    EventType eventType = mock(EventType.class);
-    RecordedThread mockThread = mock(RecordedThread.class);
+    IItem event = mock(IItem.class);
+    IMCStackTrace stack = mock(IMCStackTrace.class);
+    IType eventType = mock(IType.class);
+    IMCThread mockThread = mock(IMCThread.class);
 
-    when(event.getStartTime()).thenReturn(now);
-    when(event.getStackTrace()).thenReturn(stack);
-    when(event.getEventType()).thenReturn(eventType);
-    when(event.getLong("allocationSize")).thenReturn(ONE_MB);
-    when(event.getThread()).thenReturn(mockThread);
-    when(mockThread.getJavaThreadId()).thenReturn(THREAD_ID);
-    when(mockThread.getOSThreadId()).thenReturn(OS_THREAD_ID);
-    when(mockThread.getJavaName()).thenReturn("mockingbird");
-
-    when(event.hasField("tlabSize")).thenReturn(tlabSize != null);
-    if (tlabSize == null) {
-      when(event.getLong("tlabSize")).thenThrow(NullPointerException.class);
-    } else {
-      when(event.getLong("tlabSize")).thenReturn(tlabSize);
-    }
-    when(eventType.getName()).thenReturn("tee-lab");
+    when(eventReader.getStartInstant(event)).thenReturn(now);
+    when(eventReader.getStackTrace(event)).thenReturn(stack);
+    when(event.getType()).thenReturn(eventType);
+    when(eventReader.getAllocationSize(event)).thenReturn(ONE_MB);
+    when(eventReader.getThread(event)).thenReturn(mockThread);
+    when(mockThread.getThreadId()).thenReturn(THREAD_ID);
+    when(eventReader.getOSThreadId(mockThread)).thenReturn(OS_THREAD_ID);
+    when(mockThread.getThreadName()).thenReturn("mockingbird");
+    when(stack.getTruncationState()).thenReturn(IMCStackTrace.TruncationState.NOT_TRUNCATED);
+    when(eventType.getIdentifier()).thenReturn("tee-lab");
     when(serializer.serialize(stack)).thenReturn(stackAsString);
 
     return event;
@@ -225,6 +219,7 @@ class TLABProcessorTest {
 
     AllocationEventExporter allocationEventExporter =
         PlainTextAllocationEventExporter.builder()
+            .eventReader(eventReader)
             .stackSerializer(serializer)
             .logEmitter(otelLogger)
             .commonAttributes(commonAttrs)
@@ -234,12 +229,13 @@ class TLABProcessorTest {
     RateLimitingAllocationEventSampler sampler = new RateLimitingAllocationEventSampler("100/s");
     TLABProcessor processor =
         new TLABProcessor.Builder(true)
+            .eventReader(eventReader)
             .allocationEventExporter(allocationEventExporter)
             .spanContextualizer(spanContextualizer)
             .sampler(sampler)
             .build();
 
-    RecordedEvent event = createMockEvent(serializer, Instant.now(), null);
+    IItem event = createMockEvent(serializer, Instant.now());
 
     for (int i = 0; i < 10; i++) {
       sampler.updateSampler(i % 2 == 0 ? 1.0 : 0.0);

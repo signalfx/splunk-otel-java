@@ -137,10 +137,8 @@ public class JfrActivator implements AgentListener {
             .build();
     Map<String, String> jfrSettings = buildJfrSettings(config);
 
-    RecordedEventStream.Factory recordedEventStreamFactory =
-        () -> new BasicJfrRecordingFile(JFR.instance);
-
-    SpanContextualizer spanContextualizer = new SpanContextualizer();
+    EventReader eventReader = new EventReader();
+    SpanContextualizer spanContextualizer = new SpanContextualizer(eventReader);
     EventPeriods periods = new EventPeriods(jfrSettings::get);
     LogDataCommonAttributes commonAttributes = new LogDataCommonAttributes(periods);
     LogRecordExporter logsExporter = LogExporterBuilder.fromConfig(config);
@@ -163,15 +161,17 @@ public class JfrActivator implements AgentListener {
               .build();
     }
 
-    StackTraceFilter stackTraceFilter = buildStackTraceFilter(config);
+    StackTraceFilter stackTraceFilter = buildStackTraceFilter(config, eventReader);
     ThreadDumpProcessor threadDumpProcessor =
-        buildThreadDumpProcessor(spanContextualizer, cpuEventExporter, stackTraceFilter, config);
+        buildThreadDumpProcessor(
+            eventReader, spanContextualizer, cpuEventExporter, stackTraceFilter, config);
 
     DataFormat allocationDataFormat = Configuration.getAllocationDataFormat(config);
     AllocationEventExporter allocationEventExporter;
     if (allocationDataFormat == DataFormat.TEXT) {
       allocationEventExporter =
           PlainTextAllocationEventExporter.builder()
+              .eventReader(eventReader)
               .logEmitter(buildOtelLogger(BatchLogProcessorHolder.get(logsExporter), resource))
               .commonAttributes(commonAttributes)
               .stackDepth(stackDepth)
@@ -179,6 +179,7 @@ public class JfrActivator implements AgentListener {
     } else {
       allocationEventExporter =
           PprofAllocationEventExporter.builder()
+              .eventReader(eventReader)
               .otelLogger(buildOtelLogger(SimpleLogRecordProcessor.create(logsExporter), resource))
               .dataFormat(allocationDataFormat)
               .stackDepth(stackDepth)
@@ -187,12 +188,15 @@ public class JfrActivator implements AgentListener {
 
     TLABProcessor tlabProcessor =
         TLABProcessor.builder(config)
+            .eventReader(eventReader)
             .allocationEventExporter(allocationEventExporter)
             .spanContextualizer(spanContextualizer)
             .stackTraceFilter(stackTraceFilter)
             .build();
+
     EventProcessingChain eventProcessingChain =
-        new EventProcessingChain(spanContextualizer, threadDumpProcessor, tlabProcessor);
+        new EventProcessingChain(
+            eventReader, spanContextualizer, threadDumpProcessor, tlabProcessor);
     Consumer<Path> deleter = buildFileDeleter(config);
     JfrDirCleanup dirCleanup = new JfrDirCleanup(deleter);
 
@@ -200,7 +204,6 @@ public class JfrActivator implements AgentListener {
 
     JfrPathHandler jfrPathHandler =
         JfrPathHandler.builder()
-            .recordedEventStreamFactory(recordedEventStreamFactory)
             .eventProcessingChain(eventProcessingChain)
             .onFileFinished(onFileFinished)
             .build();
@@ -238,11 +241,13 @@ public class JfrActivator implements AgentListener {
   }
 
   private ThreadDumpProcessor buildThreadDumpProcessor(
+      EventReader eventReader,
       SpanContextualizer spanContextualizer,
       CpuEventExporter profilingEventExporter,
       StackTraceFilter stackTraceFilter,
       ConfigProperties config) {
     return ThreadDumpProcessor.builder()
+        .eventReader(eventReader)
         .spanContextualizer(spanContextualizer)
         .cpuEventExporter(profilingEventExporter)
         .stackTraceFilter(stackTraceFilter)
@@ -251,10 +256,10 @@ public class JfrActivator implements AgentListener {
   }
 
   /** Based on config, filters out agent internal stacks and/or JVM internal stacks */
-  private StackTraceFilter buildStackTraceFilter(ConfigProperties config) {
+  private StackTraceFilter buildStackTraceFilter(ConfigProperties config, EventReader eventReader) {
     boolean includeAgentInternalStacks = Configuration.getIncludeAgentInternalStacks(config);
     boolean includeJVMInternalStacks = Configuration.getIncludeJvmInternalStacks(config);
-    return new StackTraceFilter(includeAgentInternalStacks, includeJVMInternalStacks);
+    return new StackTraceFilter(eventReader, includeAgentInternalStacks, includeJVMInternalStacks);
   }
 
   private Map<String, String> buildJfrSettings(ConfigProperties config) {

@@ -78,7 +78,8 @@ public class PprofCpuEventExporter implements CpuEventExporter {
 
     for (StackTraceParser.StackTraceLine stl : stackTrace.getStackTraceLines()) {
       sample.addLocationId(
-          pprof.getLocationId(stl.getLocation(), stl.getClassAndMethod(), stl.getLineNumber()));
+          pprof.getLocationId(
+              stl.getLocation(), stl.getClassName(), stl.getMethod(), stl.getLineNumber()));
       pprof.incFrameCount();
     }
 

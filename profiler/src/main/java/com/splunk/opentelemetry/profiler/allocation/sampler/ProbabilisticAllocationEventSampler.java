@@ -17,7 +17,6 @@
 package com.splunk.opentelemetry.profiler.allocation.sampler;
 
 import java.util.function.BiConsumer;
-import jdk.jfr.consumer.RecordedEvent;
 
 public class ProbabilisticAllocationEventSampler implements AllocationEventSampler {
   private final double probability;
@@ -32,7 +31,7 @@ public class ProbabilisticAllocationEventSampler implements AllocationEventSampl
   }
 
   @Override
-  public boolean shouldSample(RecordedEvent event) {
+  public boolean shouldSample() {
     return Math.random() < probability;
   }
 

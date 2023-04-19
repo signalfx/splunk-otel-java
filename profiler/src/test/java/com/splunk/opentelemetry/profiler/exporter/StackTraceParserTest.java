@@ -59,22 +59,24 @@ class StackTraceParserTest {
         assertEquals(3, stackTrace.getStackTraceLines().size());
         {
           StackTraceLine stackTraceLine = stackTrace.getStackTraceLines().get(0);
-          assertEquals("java.lang.Thread.sleep", stackTraceLine.getClassAndMethod());
+          assertEquals("java.lang.Thread", stackTraceLine.getClassName());
+          assertEquals("sleep", stackTraceLine.getMethod());
           assertEquals("Native Method", stackTraceLine.getLocation());
           assertEquals(-1, stackTraceLine.getLineNumber());
         }
         {
           StackTraceLine stackTraceLine = stackTrace.getStackTraceLines().get(1);
-          assertEquals(
-              "org.apache.catalina.core.StandardServer.await", stackTraceLine.getClassAndMethod());
+          assertEquals("org.apache.catalina.core.StandardServer", stackTraceLine.getClassName());
+          assertEquals("await", stackTraceLine.getMethod());
           assertEquals("StandardServer.java", stackTraceLine.getLocation());
           assertEquals(570, stackTraceLine.getLineNumber());
         }
         {
           StackTraceLine stackTraceLine = stackTrace.getStackTraceLines().get(2);
           assertEquals(
-              "org.springframework.boot.web.embedded.tomcat.TomcatWebServer$1.run",
-              stackTraceLine.getClassAndMethod());
+              "org.springframework.boot.web.embedded.tomcat.TomcatWebServer$1",
+              stackTraceLine.getClassName());
+          assertEquals("run", stackTraceLine.getMethod());
           assertEquals("TomcatWebServer.java", stackTraceLine.getLocation());
           assertEquals(197, stackTraceLine.getLineNumber());
         }

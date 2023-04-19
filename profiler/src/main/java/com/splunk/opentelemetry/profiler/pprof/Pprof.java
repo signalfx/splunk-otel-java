@@ -45,8 +45,8 @@ public class Pprof {
     return stringTable.get(str);
   }
 
-  public long getLocationId(String file, String function, long line) {
-    return locationTable.get(file, function, line);
+  public long getLocationId(String file, String className, String function, long line) {
+    return locationTable.get(file, className, function, line);
   }
 
   public void addLabel(Sample.Builder sample, AttributeKey<String> key, String value) {
@@ -102,11 +102,10 @@ public class Pprof {
     Profile profile = profileBuilder.build();
     try {
       ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
-      try (OutputStream outputStream = new GZIPOutputStream(byteStream)) {
+      try (OutputStream outputStream = new GZIPOutputStream(Base64.getEncoder().wrap(byteStream))) {
         profile.writeTo(outputStream);
       }
-      byte[] bytes = byteStream.toByteArray();
-      return Base64.getEncoder().encode(bytes);
+      return byteStream.toByteArray();
     } catch (IOException exception) {
       throw new IllegalStateException("Failed to serialize pprof", exception);
     }
@@ -153,7 +152,7 @@ public class Pprof {
                 Function.newBuilder()
                     .setId(index)
                     .setFilename(stringTable.get(key.file))
-                    .setName(stringTable.get(key.function))
+                    .setName(stringTable.get(key.className + "." + key.function))
                     .build();
             profile.addFunction(fn);
             return index++;
@@ -163,10 +162,12 @@ public class Pprof {
 
   private static class FunctionKey {
     private final String file;
+    private final String className;
     private final String function;
 
-    FunctionKey(String file, String function) {
+    FunctionKey(String file, String className, String function) {
       this.file = file;
+      this.className = className;
       this.function = function;
     }
 
@@ -175,12 +176,14 @@ public class Pprof {
       if (this == o) return true;
       if (o == null || getClass() != o.getClass()) return false;
       FunctionKey that = (FunctionKey) o;
-      return Objects.equals(file, that.file) && Objects.equals(function, that.function);
+      return Objects.equals(file, that.file)
+          && Objects.equals(className, that.className)
+          && Objects.equals(function, that.function);
     }
 
     @Override
     public int hashCode() {
-      return Objects.hash(file, function);
+      return file.hashCode() + 7 * className.hashCode() + 17 * function.hashCode();
     }
   }
 
@@ -195,8 +198,8 @@ public class Pprof {
       this.functionTable = functionTable;
     }
 
-    long get(String file, String function, long line) {
-      FunctionKey functionKey = new FunctionKey(file, function);
+    long get(String file, String className, String function, long line) {
+      FunctionKey functionKey = new FunctionKey(file, className, function);
       LocationKey locationKey = new LocationKey(functionKey, line);
       return table.computeIfAbsent(
           locationKey,
@@ -235,7 +238,7 @@ public class Pprof {
 
     @Override
     public int hashCode() {
-      return Objects.hash(functionKey, line);
+      return functionKey.hashCode() + 7 * Long.hashCode(line);
     }
   }
 }

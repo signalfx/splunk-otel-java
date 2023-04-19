@@ -17,14 +17,24 @@
 package com.splunk.opentelemetry.profiler;
 
 import static java.util.logging.Level.FINE;
+import static java.util.logging.Level.SEVERE;
 
+import java.io.RandomAccessFile;
+import java.lang.reflect.Method;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Collections;
+import java.util.List;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
-import java.util.stream.Stream;
-import jdk.jfr.consumer.RecordedEvent;
+import org.openjdk.jmc.common.item.IItemCollection;
+import org.openjdk.jmc.flightrecorder.EventCollectionUtil;
+import org.openjdk.jmc.flightrecorder.internal.ChunkInfo;
+import org.openjdk.jmc.flightrecorder.internal.FlightRecordingLoader;
+import org.openjdk.jmc.flightrecorder.internal.IChunkLoader;
+import org.openjdk.jmc.flightrecorder.internal.IChunkSupplier;
+import org.openjdk.jmc.flightrecorder.internal.parser.LoaderContext;
 
 /**
  * Responsible for processing a single jfr file snapshot. It streams events from the
@@ -36,12 +46,10 @@ class JfrPathHandler implements Consumer<Path> {
   private static final Logger logger = Logger.getLogger(JfrPathHandler.class.getName());
   private final EventProcessingChain eventProcessingChain;
   private final Consumer<Path> onFileFinished;
-  private final RecordedEventStream.Factory recordedEventStreamFactory;
 
   public JfrPathHandler(Builder builder) {
     this.eventProcessingChain = builder.eventProcessingChain;
     this.onFileFinished = builder.onFileFinished;
-    this.recordedEventStreamFactory = builder.recordedEventStreamFactory;
   }
 
   @Override
@@ -54,12 +62,29 @@ class JfrPathHandler implements Consumer<Path> {
     }
     Instant start = Instant.now();
     try {
-      RecordedEventStream recordingFile = recordedEventStreamFactory.get();
-      try (Stream<RecordedEvent> events = recordingFile.open(path)) {
-        events.forEach(eventProcessingChain::accept);
+      RandomAccessFile raf = new RandomAccessFile(path.toFile(), "r");
+      List<ChunkInfo> allChunks =
+          FlightRecordingLoader.readChunkInfo(FlightRecordingLoader.createChunkSupplier(raf));
+      IChunkSupplier chunkSupplier = FlightRecordingLoader.createChunkSupplier(raf, allChunks);
+
+      byte[] buffer = new byte[0];
+      while (true) {
+        LoaderContext context = new LoaderContext(Collections.emptyList(), false);
+        IChunkLoader chunkLoader = createChunkLoader(chunkSupplier, context, buffer, true);
+        if (chunkLoader == null) {
+          // we have parsed all chunks
+          break;
+        }
+        // update buffer to reuse it when parsing the next chunk
+        buffer = chunkLoader.call();
+        IItemCollection items = EventCollectionUtil.build(context.buildEventArrays());
+        items.stream().flatMap(iItems -> iItems.stream()).forEach(eventProcessingChain::accept);
+        eventProcessingChain.flushBuffer();
       }
-      eventProcessingChain.flushBuffer();
+
       onFileFinished.accept(path);
+    } catch (Exception exception) {
+      logger.log(SEVERE, "Error parsing JFR recording", exception);
     } finally {
       Instant end = Instant.now();
       long timeElapsed = Duration.between(start, end).toMillis();
@@ -70,6 +95,25 @@ class JfrPathHandler implements Consumer<Path> {
     }
   }
 
+  private static IChunkLoader createChunkLoader(
+      IChunkSupplier chunkSupplier,
+      LoaderContext context,
+      byte[] buffer,
+      boolean ignoreTruncatedChunk)
+      throws Exception {
+    Method createChunkLoader =
+        FlightRecordingLoader.class.getDeclaredMethod(
+            "createChunkLoader",
+            IChunkSupplier.class,
+            LoaderContext.class,
+            byte[].class,
+            boolean.class);
+    createChunkLoader.setAccessible(true);
+    IChunkLoader chunkLoader =
+        (IChunkLoader) createChunkLoader.invoke(null, chunkSupplier, context, buffer, true);
+    return chunkLoader;
+  }
+
   public static Builder builder() {
     return new Builder();
   }
@@ -77,7 +121,6 @@ class JfrPathHandler implements Consumer<Path> {
   public static class Builder {
     private EventProcessingChain eventProcessingChain;
     private Consumer<Path> onFileFinished;
-    private RecordedEventStream.Factory recordedEventStreamFactory;
 
     public Builder eventProcessingChain(EventProcessingChain eventProcessingChain) {
       this.eventProcessingChain = eventProcessingChain;
@@ -86,12 +129,6 @@ class JfrPathHandler implements Consumer<Path> {
 
     public Builder onFileFinished(Consumer<Path> onFileFinished) {
       this.onFileFinished = onFileFinished;
-      return this;
-    }
-
-    public Builder recordedEventStreamFactory(
-        RecordedEventStream.Factory recordedEventStreamFactory) {
-      this.recordedEventStreamFactory = recordedEventStreamFactory;
       return this;
     }
 

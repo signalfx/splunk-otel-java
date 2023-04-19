@@ -17,17 +17,14 @@
 package com.splunk.opentelemetry.profiler.allocation.sampler;
 
 import java.util.function.BiConsumer;
-import jdk.jfr.consumer.RecordedEvent;
 
 /** A sampler that decides whether given allocation event should be sampled or discarded. */
 public interface AllocationEventSampler {
 
   /**
-   * @param event allocation event (jdk.ObjectAllocationInNewTLAB or
-   *     jdk.ObjectAllocationOutsideTLAB)
    * @return true when given event is sampled
    */
-  boolean shouldSample(RecordedEvent event);
+  boolean shouldSample();
 
   /**
    * Add attributes describing the sampling strategy to data.

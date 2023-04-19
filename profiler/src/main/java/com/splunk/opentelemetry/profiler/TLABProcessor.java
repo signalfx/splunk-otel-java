@@ -23,18 +23,18 @@ import com.splunk.opentelemetry.profiler.context.SpanContextualizer;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
-import java.util.function.Consumer;
-import jdk.jfr.consumer.RecordedEvent;
-import jdk.jfr.consumer.RecordedStackTrace;
-import jdk.jfr.consumer.RecordedThread;
+import org.openjdk.jmc.common.IMCStackTrace;
+import org.openjdk.jmc.common.IMCThread;
+import org.openjdk.jmc.common.item.IItem;
 
-public class TLABProcessor implements Consumer<RecordedEvent> {
+public class TLABProcessor {
   public static final String NEW_TLAB_EVENT_NAME = "jdk.ObjectAllocationInNewTLAB";
   public static final String OUTSIDE_TLAB_EVENT_NAME = "jdk.ObjectAllocationOutsideTLAB";
   public static final String ALLOCATION_SAMPLE_EVENT_NAME = "jdk.ObjectAllocationSample";
   static final AttributeKey<Long> ALLOCATION_SIZE_KEY = AttributeKey.longKey("memory.allocated");
 
   private final boolean enabled;
+  private final EventReader eventReader;
   private final AllocationEventExporter allocationEventExporter;
   private final AllocationEventSampler sampler;
   private final SpanContextualizer spanContextualizer;
@@ -42,20 +42,20 @@ public class TLABProcessor implements Consumer<RecordedEvent> {
 
   private TLABProcessor(Builder builder) {
     this.enabled = builder.enabled;
+    this.eventReader = builder.eventReader;
     this.allocationEventExporter = builder.allocationEventExporter;
     this.sampler = builder.sampler;
     this.spanContextualizer = builder.spanContextualizer;
     this.stackTraceFilter = builder.stackTraceFilter;
   }
 
-  @Override
-  public void accept(RecordedEvent event) {
+  public void accept(IItem event) {
     // If there is another JFR recording in progress that has enabled TLAB events we might also get
     // them because JFR sends all enabled events to all recordings, if that is the case ignore them.
     if (!enabled) {
       return;
     }
-    RecordedStackTrace stackTrace = event.getStackTrace();
+    IMCStackTrace stackTrace = eventReader.getStackTrace(event);
     if (stackTrace == null) {
       return;
     }
@@ -64,14 +64,14 @@ public class TLABProcessor implements Consumer<RecordedEvent> {
       return;
     }
     // Discard events not chosen by the sampling strategy
-    if (sampler != null && !sampler.shouldSample(event)) {
+    if (sampler != null && !sampler.shouldSample()) {
       return;
     }
 
     SpanContext spanContext = null;
-    RecordedThread thread = event.getThread();
-    if (thread != null) {
-      spanContext = spanContextualizer.link(thread.getJavaThreadId()).getSpanContext();
+    IMCThread thread = eventReader.getThread(event);
+    if (thread != null && thread.getThreadId() != null) {
+      spanContext = spanContextualizer.link(thread.getThreadId()).getSpanContext();
     }
 
     allocationEventExporter.export(event, sampler, spanContext);
@@ -98,6 +98,7 @@ public class TLABProcessor implements Consumer<RecordedEvent> {
 
   static class Builder {
     private final boolean enabled;
+    private EventReader eventReader;
     private AllocationEventExporter allocationEventExporter;
     private AllocationEventSampler sampler;
     private SpanContextualizer spanContextualizer;
@@ -109,6 +110,11 @@ public class TLABProcessor implements Consumer<RecordedEvent> {
 
     TLABProcessor build() {
       return new TLABProcessor(this);
+    }
+
+    Builder eventReader(EventReader eventReader) {
+      this.eventReader = eventReader;
+      return this;
     }
 
     Builder allocationEventExporter(AllocationEventExporter allocationEventExporter) {

@@ -23,15 +23,22 @@ import static org.mockito.Mockito.when;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import jdk.jfr.EventType;
-import jdk.jfr.consumer.RecordedClass;
-import jdk.jfr.consumer.RecordedEvent;
-import jdk.jfr.consumer.RecordedFrame;
-import jdk.jfr.consumer.RecordedMethod;
-import jdk.jfr.consumer.RecordedStackTrace;
-import jdk.jfr.consumer.RecordedThread;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
+import org.openjdk.jmc.common.IMCFrame;
+import org.openjdk.jmc.common.IMCMethod;
+import org.openjdk.jmc.common.IMCStackTrace;
+import org.openjdk.jmc.common.IMCThread;
+import org.openjdk.jmc.common.IMCType;
+import org.openjdk.jmc.common.item.IItem;
+import org.openjdk.jmc.common.item.IType;
 
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 class StackTraceFilterTest {
 
   public static final String JVM_INTERNAL_STACK =
@@ -57,9 +64,11 @@ class StackTraceFilterTest {
           + "\tat java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject.awaitNanos(java.base@11.0.12/AbstractQueuedSynchronizer.java:2123)\n"
           + "\t[...]";
 
+  @Mock EventReader eventReader;
+
   @Test
   void oneLiners() {
-    StackTraceFilter filter = new StackTraceFilter(false);
+    StackTraceFilter filter = new StackTraceFilter(eventReader, false);
     String stack =
         "\"GC Thread#1\" os_prio=0 cpu=1285.69ms elapsed=11333.59s tid=0x00007f43e0001000 nid=0xd0 runnable";
     assertFalse(filter.test(regionFromStackTrace(stack)));
@@ -73,7 +82,7 @@ class StackTraceFilterTest {
             + "\tat sun.nio.ch.EPoll.wait(java.base@11.0.12/Native Method)\n"
             + "\tat sun.nio.ch.EPollSelectorImpl.doSelect(java.base@11.0.12/EPollSelectorImpl.java:120)\n"
             + "\t[...]";
-    StackTraceFilter filter = new StackTraceFilter(false);
+    StackTraceFilter filter = new StackTraceFilter(eventReader, false);
     assertTrue(filter.test(regionFromStackTrace(stack)));
   }
 
@@ -87,7 +96,7 @@ class StackTraceFilterTest {
             + "\tat java.util.concurrent.locks.LockSupport.parkNanos(java.base@11.0.12/LockSupport.java:234)\n"
             + "\tat java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject.awaitNanos(java.base@11.0.12/AbstractQueuedSynchronizer.java:2123)\n"
             + "\t[...]";
-    StackTraceFilter filter = new StackTraceFilter(false);
+    StackTraceFilter filter = new StackTraceFilter(eventReader, false);
     assertFalse(filter.test(regionFromStackTrace(stack)));
   }
 
@@ -99,7 +108,7 @@ class StackTraceFilterTest {
             + "\tat jdk.internal.misc.Unsafe.park(java.base@11.0.12/Native Method)\n"
             + "\t- parking to wait for  <0x00000000c3401f88> (a java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject)\n"
             + "\t[...]";
-    StackTraceFilter filter = new StackTraceFilter(false);
+    StackTraceFilter filter = new StackTraceFilter(eventReader, false);
     assertFalse(filter.test(regionFromStackTrace(stack)));
   }
 
@@ -108,7 +117,7 @@ class StackTraceFilterTest {
     String stack =
         "\"JFR Recorder Thread\" #16 daemon prio=5 os_prio=0 cpu=75.99ms elapsed=436.13s tid=0x00007f5194e83800 nid=0xda waiting on condition  [0x0000000000000000]\n"
             + "   java.lang.Thread.State: RUNNABLE\n";
-    StackTraceFilter filter = new StackTraceFilter(false);
+    StackTraceFilter filter = new StackTraceFilter(eventReader, false);
     assertFalse(filter.test(regionFromStackTrace(stack)));
     stack =
         "\"JFR Periodic Tasks\" #17 daemon prio=5 os_prio=0 cpu=171.78ms elapsed=435.78s tid=0x00007f5194ecd800 nid=0xdb in Object.wait()  [0x00007f5187dfe000]\n"
@@ -129,7 +138,7 @@ class StackTraceFilterTest {
             + "\tat java.util.TimerThread.mainLoop(java.base@11.0.9.1/Timer.java:527)\n"
             + "\t- waiting to re-lock in wait() <0x0000000600ca4e70> (a java.util.TaskQueue)\n"
             + "\tat java.util.TimerThread.run(java.base@11.0.9.1/Timer.java:506)";
-    StackTraceFilter filter = new StackTraceFilter(true, true);
+    StackTraceFilter filter = new StackTraceFilter(eventReader, true, true);
     assertTrue(filter.test(regionFromStackTrace(stack)));
     stack =
         "\"JFR Periodic Tasks\" #17 daemon prio=5 os_prio=0 cpu=171.78ms elapsed=435.78s tid=0x00007f5194ecd800 nid=0xdb in Object.wait()  [0x00007f5187dfe000]\n"
@@ -144,20 +153,20 @@ class StackTraceFilterTest {
     String stack =
         "\"G1 Young RemSet Sampling\" os_prio=0 cpu=20.37ms elapsed=67.37s tid=0x00007f2b600eb800 nid=0xc runnable\n"
             + "\"VM Periodic Task Thread\" os_prio=0 cpu=29.95ms elapsed=65.02s tid=0x00007f2b60c75800 nid=0x1a waiting on condition\n";
-    StackTraceFilter filter = new StackTraceFilter(false);
+    StackTraceFilter filter = new StackTraceFilter(eventReader, false);
     assertFalse(filter.test(regionFromStackTrace(stack)));
   }
 
   @Test
   void badLastIndex() {
-    StackTraceFilter filter = new StackTraceFilter(false);
+    StackTraceFilter filter = new StackTraceFilter(eventReader, false);
     assertFalse(filter.test(new ThreadDumpRegion("", 0, -1)));
   }
 
   @Test
   void lineDoesntStartWithDoubleQuote() {
     String stack = "JNI global refs: 50, weak refs: 0\n";
-    StackTraceFilter filter = new StackTraceFilter(false);
+    StackTraceFilter filter = new StackTraceFilter(eventReader, false);
     assertFalse(filter.test(regionFromStackTrace(stack)));
   }
 
@@ -174,7 +183,7 @@ class StackTraceFilterTest {
     String beforeStack = "something above\n";
     String afterStack = "something below\n";
     String wallOfStacks = beforeStack + "\n" + stack + "\n" + afterStack;
-    StackTraceFilter filter = new StackTraceFilter(false, true);
+    StackTraceFilter filter = new StackTraceFilter(eventReader, false, true);
     boolean result =
         filter.test(
             new ThreadDumpRegion(
@@ -185,7 +194,7 @@ class StackTraceFilterTest {
   @Test
   void canIncludeOnlyAgentInternalStacks() {
     String stack = AGENT_INTERNAL_STACK;
-    StackTraceFilter filter = new StackTraceFilter(true, false);
+    StackTraceFilter filter = new StackTraceFilter(eventReader, true, false);
     boolean result = filter.test(regionFromStackTrace(stack));
     assertTrue(result);
   }
@@ -193,7 +202,7 @@ class StackTraceFilterTest {
   @Test
   void canExcludeOnlyAgentInternalStacks() {
     String stack = AGENT_INTERNAL_STACK;
-    StackTraceFilter filter = new StackTraceFilter(false, true);
+    StackTraceFilter filter = new StackTraceFilter(eventReader, false, true);
     boolean result = filter.test(regionFromStackTrace(stack));
     assertFalse(result);
   }
@@ -201,7 +210,7 @@ class StackTraceFilterTest {
   @Test
   void canIncludeOnlyJvmInternalStacks() {
     String stack = JVM_INTERNAL_STACK;
-    StackTraceFilter filter = new StackTraceFilter(false, true);
+    StackTraceFilter filter = new StackTraceFilter(eventReader, false, true);
     boolean result = filter.test(regionFromStackTrace(stack));
     assertTrue(result);
   }
@@ -209,7 +218,7 @@ class StackTraceFilterTest {
   @Test
   void canExcludeOnlyJvmInternalStacks() {
     String stack = JVM_INTERNAL_STACK;
-    StackTraceFilter filter = new StackTraceFilter(true, false);
+    StackTraceFilter filter = new StackTraceFilter(eventReader, true, false);
     boolean result = filter.test(regionFromStackTrace(stack));
     assertFalse(result);
   }
@@ -220,10 +229,10 @@ class StackTraceFilterTest {
 
   @Test
   void filterByThreadName() {
-    RecordedEvent agentEvent1 = createMockEvent("JFR Recorder Thread");
-    RecordedEvent agentEvent2 = createMockEvent("BatchSpanProcessor_WorkerThread-1");
-    RecordedEvent applicationEvent = createMockEvent("My Thread");
-    StackTraceFilter filter = new StackTraceFilter(false, true);
+    IItem agentEvent1 = createMockEvent("JFR Recorder Thread");
+    IItem agentEvent2 = createMockEvent("BatchSpanProcessor_WorkerThread-1");
+    IItem applicationEvent = createMockEvent("My Thread");
+    StackTraceFilter filter = new StackTraceFilter(eventReader, false, true);
     assertFalse(filter.test(agentEvent1));
     assertFalse(filter.test(agentEvent2));
     assertTrue(filter.test(applicationEvent));
@@ -231,48 +240,48 @@ class StackTraceFilterTest {
 
   @Test
   void filterByStackTrace() {
-    RecordedFrame frame1 = createMockFrame("java.lang.Thread", "run", 1);
-    RecordedFrame frame2 = createMockFrame("jdk.Foo", "foo", 2);
-    RecordedFrame frame3 = createMockFrame("sun.Bar", "bar", 3);
-    RecordedFrame frame4 = createMockFrame("baz.baz", "baz", 4);
+    IMCFrame frame1 = createMockFrame("java.lang.Thread", "run", 1);
+    IMCFrame frame2 = createMockFrame("jdk.Foo", "foo", 2);
+    IMCFrame frame3 = createMockFrame("sun.Bar", "bar", 3);
+    IMCFrame frame4 = createMockFrame("baz.baz", "baz", 4);
 
-    RecordedEvent vmEvent = createMockEvent("VM Thread", Arrays.asList(frame3, frame2, frame1));
-    RecordedEvent applicationEvent =
+    IItem vmEvent = createMockEvent("VM Thread", Arrays.asList(frame3, frame2, frame1));
+    IItem applicationEvent =
         createMockEvent("My Thread", Arrays.asList(frame4, frame3, frame2, frame1));
 
-    StackTraceFilter filter = new StackTraceFilter(true, false);
+    StackTraceFilter filter = new StackTraceFilter(eventReader, true, false);
     assertFalse(filter.test(vmEvent));
     assertTrue(filter.test(applicationEvent));
   }
 
-  private RecordedEvent createMockEvent(String threadName) {
+  private IItem createMockEvent(String threadName) {
     return createMockEvent(threadName, Collections.emptyList());
   }
 
-  private RecordedEvent createMockEvent(String threadName, List<RecordedFrame> frames) {
-    RecordedEvent event = mock(RecordedEvent.class);
-    RecordedStackTrace stack = mock(RecordedStackTrace.class);
-    EventType eventType = mock(EventType.class);
-    RecordedThread mockThread = mock(RecordedThread.class);
+  private IItem createMockEvent(String threadName, List<IMCFrame> frames) {
+    IItem event = mock(IItem.class);
+    IMCStackTrace stack = mock(IMCStackTrace.class);
+    IType eventType = mock(IType.class);
+    IMCThread mockThread = mock(IMCThread.class);
 
-    when(event.getStackTrace()).thenReturn(stack);
-    when(event.getEventType()).thenReturn(eventType);
-    when(event.getThread()).thenReturn(mockThread);
-    when(mockThread.getJavaName()).thenReturn(threadName);
-    when(stack.getFrames()).thenReturn(frames);
+    when(eventReader.getStackTrace(event)).thenReturn(stack);
+    when(event.getType()).thenReturn(eventType);
+    when(eventReader.getThread(event)).thenReturn(mockThread);
+    when(mockThread.getThreadName()).thenReturn(threadName);
+    when(stack.getFrames()).thenReturn((List) frames);
 
     return event;
   }
 
-  private RecordedFrame createMockFrame(String typeName, String methodName, int line) {
-    RecordedFrame frame = mock(RecordedFrame.class);
-    RecordedMethod method = mock(RecordedMethod.class);
-    RecordedClass type = mock(RecordedClass.class);
+  private IMCFrame createMockFrame(String typeName, String methodName, int line) {
+    IMCFrame frame = mock(IMCFrame.class);
+    IMCMethod method = mock(IMCMethod.class);
+    IMCType type = mock(IMCType.class);
     when(method.getType()).thenReturn(type);
     when(frame.getMethod()).thenReturn(method);
-    when(method.getName()).thenReturn(methodName);
-    when(frame.getInt("lineNumber")).thenReturn(line);
-    when(type.getName()).thenReturn(typeName);
+    when(method.getMethodName()).thenReturn(methodName);
+    when(frame.getFrameLineNumber()).thenReturn(line);
+    when(type.getFullName()).thenReturn(typeName);
     return frame;
   }
 }

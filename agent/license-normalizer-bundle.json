@@ -4,6 +4,11 @@
       "bundleName": "apache2",
       "licenseName": "Apache License, Version 2.0",
       "licenseUrl": "http://www.apache.org/licenses/LICENSE-2.0"
+    },
+    {
+      "bundleName": "UPL-BSD-3-Clause",
+      "licenseName": "Universal Permissive License Version 1.0 or The 3-Clause BSD License",
+      "licenseUrl": "https://github.com/openjdk/jmc/blob/master/core/license/LICENSE.txt"
     }
   ],
   "transformationRules": [
@@ -13,15 +18,16 @@
     },
     {
       "bundleName": "apache2",
-      "licenseNamePattern": "Apache-2.0"
-    },
-    {
-      "bundleName": "apache2",
       "licenseNamePattern": "The Apache License, Version 2.0"
     },
     {
       "bundleName": "apache2",
       "licenseNamePattern": "The Apache Software License, Version 2.0"
+    },
+    {
+      "bundleName": "UPL-BSD-3-Clause",
+      // org.openjdk.jmc:flightrecorder gets detected as UPL, it is really UPL+BSD dual license"
+      "licenseNamePattern": "Universal Permissive License Version 1.0"
     }
   ]
 }

@@ -1,7 +1,7 @@
 
 #agent
 ##Dependency License Report
-_2023-04-20 19:31:06 EEST_
+_2023-04-24 19:16:42 EEST_
 ## Apache License, Version 2.0
 
 **1** **Group:** `com.fasterxml.jackson.core` **Name:** `jackson-core` **Version:** `2.14.2` 
@@ -23,12 +23,12 @@ _2023-04-20 19:31:06 EEST_
 > - **POM License**: Apache License, Version 2.0 - [https://www.apache.org/licenses/LICENSE-2.0](https://www.apache.org/licenses/LICENSE-2.0)
 > - **Embedded license files**: [signalfx-java-1.0.30.jar/META-INF/LICENSE](signalfx-java-1.0.30.jar/META-INF/LICENSE)
 
-**4** **Group:** `com.squareup.okhttp3` **Name:** `okhttp` **Version:** `4.10.0` 
+**4** **Group:** `com.squareup.okhttp3` **Name:** `okhttp` **Version:** `4.11.0` 
 > - **POM Project URL**: [https://square.github.io/okhttp/](https://square.github.io/okhttp/)
 > - **POM License**: Apache License, Version 2.0 - [https://www.apache.org/licenses/LICENSE-2.0](https://www.apache.org/licenses/LICENSE-2.0)
-> - **Embedded license files**: [okhttp-4.10.0.jar/okhttp3/internal/publicsuffix/NOTICE](okhttp-4.10.0.jar/okhttp3/internal/publicsuffix/NOTICE)
+> - **Embedded license files**: [okhttp-4.11.0.jar/okhttp3/internal/publicsuffix/NOTICE](okhttp-4.11.0.jar/okhttp3/internal/publicsuffix/NOTICE)
 
-**5** **Group:** `com.squareup.okio` **Name:** `okio-jvm` **Version:** `3.0.0` 
+**5** **Group:** `com.squareup.okio` **Name:** `okio-jvm` **Version:** `3.2.0` 
 > - **POM Project URL**: [https://github.com/square/okio/](https://github.com/square/okio/)
 > - **POM License**: Apache License, Version 2.0 - [https://www.apache.org/licenses/LICENSE-2.0](https://www.apache.org/licenses/LICENSE-2.0)
 
@@ -171,11 +171,11 @@ _2023-04-20 19:31:06 EEST_
 > - **POM Project URL**: [https://kotlinlang.org/](https://kotlinlang.org/)
 > - **POM License**: Apache License, Version 2.0 - [https://www.apache.org/licenses/LICENSE-2.0](https://www.apache.org/licenses/LICENSE-2.0)
 
-**39** **Group:** `org.jetbrains.kotlin` **Name:** `kotlin-stdlib-jdk7` **Version:** `1.5.31` 
+**39** **Group:** `org.jetbrains.kotlin` **Name:** `kotlin-stdlib-jdk7` **Version:** `1.6.20` 
 > - **POM Project URL**: [https://kotlinlang.org/](https://kotlinlang.org/)
 > - **POM License**: Apache License, Version 2.0 - [https://www.apache.org/licenses/LICENSE-2.0](https://www.apache.org/licenses/LICENSE-2.0)
 
-**40** **Group:** `org.jetbrains.kotlin` **Name:** `kotlin-stdlib-jdk8` **Version:** `1.5.31` 
+**40** **Group:** `org.jetbrains.kotlin` **Name:** `kotlin-stdlib-jdk8` **Version:** `1.6.20` 
 > - **POM Project URL**: [https://kotlinlang.org/](https://kotlinlang.org/)
 > - **POM License**: Apache License, Version 2.0 - [https://www.apache.org/licenses/LICENSE-2.0](https://www.apache.org/licenses/LICENSE-2.0)
 
@@ -238,6 +238,6 @@ _2023-04-20 19:31:06 EEST_
 
 ## Unknown
 
-**49** **Group:** `com.squareup.okio` **Name:** `okio` **Version:** `3.0.0` 
+**49** **Group:** `com.squareup.okio` **Name:** `okio` **Version:** `3.2.0` 
 
 

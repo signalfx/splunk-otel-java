@@ -34,6 +34,10 @@ import org.openjdk.jmc.flightrecorder.internal.parser.v1.ThreadUtil;
 import org.openjdk.jmc.flightrecorder.jdk.JdkAttributes;
 
 public class EventReader {
+  private static final IAttribute<String> EVENT_TRACE_ID = attr("traceId", "trace id", PLAIN_TEXT);
+  private static final IAttribute<String> EVENT_SPAN_ID = attr("spanId", "span id", PLAIN_TEXT);
+  private static final IAttribute<IQuantity> EVENT_TRACE_FLAGS =
+      attr("traceFlags", "trace flags", NUMBER);
 
   public Instant getStartInstant(IItem event) {
     return Instant.ofEpochSecond(0, getStartTime(event));
@@ -64,24 +68,17 @@ public class EventReader {
     return accessor.getMember(event);
   }
 
-  public static final IAttribute<String> EVENT_TRACE_ID = attr("traceId", "trace id", PLAIN_TEXT);
-
   public String getTraceId(IItem event) {
     IMemberAccessor<String, IItem> accessor =
         getItemType(event).getAccessor(EVENT_TRACE_ID.getKey());
     return accessor.getMember(event);
   }
 
-  public static final IAttribute<String> EVENT_SPAN_ID = attr("spanId", "span id", PLAIN_TEXT);
-
   public String getSpanId(IItem event) {
     IMemberAccessor<String, IItem> accessor =
         getItemType(event).getAccessor(EVENT_SPAN_ID.getKey());
     return accessor.getMember(event);
   }
-
-  public static final IAttribute<IQuantity> EVENT_TRACE_FLAGS =
-      attr("traceFlags", "trace flags", NUMBER);
 
   public byte getTraceFlags(IItem event) {
     IMemberAccessor<IQuantity, IItem> accessor =

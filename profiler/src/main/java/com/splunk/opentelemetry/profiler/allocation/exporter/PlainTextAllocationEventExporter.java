@@ -108,7 +108,7 @@ public class PlainTextAllocationEventExporter implements AllocationEventExporter
     String result = "\"" + name + "\"" + " #" + id;
     if (thread != null) {
       Long osThreadId = eventReader.getOSThreadId(thread);
-      if (osThreadId != null) {
+      if (osThreadId == null) {
         osThreadId = 0L;
       }
       result += " nid=0x" + Long.toHexString(osThreadId);

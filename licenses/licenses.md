@@ -1,7 +1,7 @@
 
 #splunk-otel-javaagent
 ##Dependency License Report
-_2023-04-24 22:32:19 EEST_
+_2023-04-25 14:55:17 EEST_
 ## Apache License, Version 2.0
 
 **1** **Group:** `com.fasterxml.jackson.core` **Name:** `jackson-core` **Version:** `2.15.0` 
@@ -28,11 +28,11 @@ _2023-04-24 22:32:19 EEST_
 > - **POM License**: Apache License, Version 2.0 - [https://www.apache.org/licenses/LICENSE-2.0](https://www.apache.org/licenses/LICENSE-2.0)
 > - **Embedded license files**: [okhttp-4.11.0.jar/okhttp3/internal/publicsuffix/NOTICE](okhttp-4.11.0.jar/okhttp3/internal/publicsuffix/NOTICE)
 
-**5** **Group:** `com.squareup.okio` **Name:** `okio-jvm` **Version:** `3.2.0` 
+**5** **Group:** `com.squareup.okio` **Name:** `okio` **Version:** `3.2.0` 
 > - **Project URL**: [https://github.com/square/okio/](https://github.com/square/okio/)
 > - **License URL**: [https://www.apache.org/licenses/LICENSE-2.0](Apache License, Version 2.0)
 
-**6** **Group:** `com.squareup.okio` **Name:** `okio-jvm` **Version:** `3.0.0` 
+**6** **Group:** `com.squareup.okio` **Name:** `okio-jvm` **Version:** `3.2.0` 
 > - **POM Project URL**: [https://github.com/square/okio/](https://github.com/square/okio/)
 > - **POM License**: Apache License, Version 2.0 - [https://www.apache.org/licenses/LICENSE-2.0](https://www.apache.org/licenses/LICENSE-2.0)
 
@@ -136,11 +136,11 @@ _2023-04-24 22:32:19 EEST_
 > - **POM Project URL**: [https://github.com/open-telemetry/opentelemetry-java](https://github.com/open-telemetry/opentelemetry-java)
 > - **POM License**: Apache License, Version 2.0 - [https://www.apache.org/licenses/LICENSE-2.0](https://www.apache.org/licenses/LICENSE-2.0)
 
-**29** **Group:** `io.opentelemetry.contrib` **Name:** `opentelemetry-resource-providers` **Version:** `1.25.1-alpha` 
+**30** **Group:** `io.opentelemetry.contrib` **Name:** `opentelemetry-resource-providers` **Version:** `1.25.1-alpha` 
 > - **POM Project URL**: [https://github.com/open-telemetry/opentelemetry-java-contrib](https://github.com/open-telemetry/opentelemetry-java-contrib)
 > - **POM License**: Apache License, Version 2.0 - [https://www.apache.org/licenses/LICENSE-2.0](https://www.apache.org/licenses/LICENSE-2.0)
 
-**30** **Group:** `io.opentelemetry.contrib` **Name:** `opentelemetry-samplers` **Version:** `1.25.1-alpha` 
+**31** **Group:** `io.opentelemetry.contrib` **Name:** `opentelemetry-samplers` **Version:** `1.25.1-alpha` 
 > - **POM Project URL**: [https://github.com/open-telemetry/opentelemetry-java-contrib](https://github.com/open-telemetry/opentelemetry-java-contrib)
 > - **POM License**: Apache License, Version 2.0 - [https://www.apache.org/licenses/LICENSE-2.0](https://www.apache.org/licenses/LICENSE-2.0)
 
@@ -175,11 +175,11 @@ _2023-04-24 22:32:19 EEST_
 > - **POM Project URL**: [https://kotlinlang.org/](https://kotlinlang.org/)
 > - **POM License**: Apache License, Version 2.0 - [https://www.apache.org/licenses/LICENSE-2.0](https://www.apache.org/licenses/LICENSE-2.0)
 
-**39** **Group:** `org.jetbrains.kotlin` **Name:** `kotlin-stdlib-jdk7` **Version:** `1.6.20` 
+**40** **Group:** `org.jetbrains.kotlin` **Name:** `kotlin-stdlib-jdk7` **Version:** `1.6.20` 
 > - **POM Project URL**: [https://kotlinlang.org/](https://kotlinlang.org/)
 > - **POM License**: Apache License, Version 2.0 - [https://www.apache.org/licenses/LICENSE-2.0](https://www.apache.org/licenses/LICENSE-2.0)
 
-**40** **Group:** `org.jetbrains.kotlin` **Name:** `kotlin-stdlib-jdk8` **Version:** `1.6.20` 
+**41** **Group:** `org.jetbrains.kotlin` **Name:** `kotlin-stdlib-jdk8` **Version:** `1.6.20` 
 > - **POM Project URL**: [https://kotlinlang.org/](https://kotlinlang.org/)
 > - **POM License**: Apache License, Version 2.0 - [https://www.apache.org/licenses/LICENSE-2.0](https://www.apache.org/licenses/LICENSE-2.0)
 
@@ -211,30 +211,16 @@ _2023-04-24 22:32:19 EEST_
 
 ## MIT License
 
-**44** **Group:** `ch.randelshofer` **Name:** `fastdoubleparser` **Version:** `0.8.0` 
+**46** **Group:** `ch.randelshofer` **Name:** `fastdoubleparser` **Version:** `0.8.0` 
 > - **POM Project URL**: [https://github.com/wrandelshofer/FastDoubleParser](https://github.com/wrandelshofer/FastDoubleParser)
 > - **POM License**: MIT License - [https://opensource.org/licenses/MIT](https://opensource.org/licenses/MIT)
 
-**45** **Group:** `org.slf4j` **Name:** `slf4j-api` **Version:** `2.0.7` 
+**47** **Group:** `org.slf4j` **Name:** `slf4j-api` **Version:** `2.0.7` 
 > - **Project URL**: [http://www.slf4j.org](http://www.slf4j.org)
 > - **POM License**: MIT License - [https://opensource.org/licenses/MIT](https://opensource.org/licenses/MIT)
 > - **Embedded license files**: [slf4j-api-2.0.7.jar/META-INF/LICENSE.txt](slf4j-api-2.0.7.jar/META-INF/LICENSE.txt)
 
 ## PUBLIC DOMAIN
-
-**46** **Group:** `org.hdrhistogram` **Name:** `HdrHistogram` **Version:** `2.1.12` 
-> - **Manifest License**: The 2-Clause BSD License (Not Packaged)
-> - **POM Project URL**: [http://hdrhistogram.github.io/HdrHistogram/](http://hdrhistogram.github.io/HdrHistogram/)
-> - **POM License**: Creative Commons Legal Code - [https://creativecommons.org/publicdomain/zero/1.0/legalcode](https://creativecommons.org/publicdomain/zero/1.0/legalcode)
-> - **POM License**: PUBLIC DOMAIN - [http://creativecommons.org/publicdomain/zero/1.0/](http://creativecommons.org/publicdomain/zero/1.0/)
-> - **POM License**: The 2-Clause BSD License - [https://opensource.org/licenses/BSD-2-Clause](https://opensource.org/licenses/BSD-2-Clause)
-
-**47** **Group:** `org.latencyutils` **Name:** `LatencyUtils` **Version:** `2.0.3` 
-> - **POM Project URL**: [http://latencyutils.github.io/LatencyUtils/](http://latencyutils.github.io/LatencyUtils/)
-> - **POM License**: Creative Commons Legal Code - [https://creativecommons.org/publicdomain/zero/1.0/legalcode](https://creativecommons.org/publicdomain/zero/1.0/legalcode)
-> - **POM License**: PUBLIC DOMAIN - [http://creativecommons.org/publicdomain/zero/1.0/](http://creativecommons.org/publicdomain/zero/1.0/)
-
-## The 2-Clause BSD License
 
 **48** **Group:** `org.hdrhistogram` **Name:** `HdrHistogram` **Version:** `2.1.12` 
 > - **Manifest License**: The 2-Clause BSD License (Not Packaged)
@@ -243,14 +229,14 @@ _2023-04-24 22:32:19 EEST_
 > - **POM License**: PUBLIC DOMAIN - [http://creativecommons.org/publicdomain/zero/1.0/](http://creativecommons.org/publicdomain/zero/1.0/)
 > - **POM License**: The 2-Clause BSD License - [https://opensource.org/licenses/BSD-2-Clause](https://opensource.org/licenses/BSD-2-Clause)
 
-**48** **Group:** `org.latencyutils` **Name:** `LatencyUtils` **Version:** `2.0.3` 
+**49** **Group:** `org.latencyutils` **Name:** `LatencyUtils` **Version:** `2.0.3` 
 > - **POM Project URL**: [http://latencyutils.github.io/LatencyUtils/](http://latencyutils.github.io/LatencyUtils/)
 > - **POM License**: Creative Commons Legal Code - [https://creativecommons.org/publicdomain/zero/1.0/legalcode](https://creativecommons.org/publicdomain/zero/1.0/legalcode)
 > - **POM License**: PUBLIC DOMAIN - [http://creativecommons.org/publicdomain/zero/1.0/](http://creativecommons.org/publicdomain/zero/1.0/)
 
 ## The 2-Clause BSD License
 
-**49** **Group:** `org.hdrhistogram` **Name:** `HdrHistogram` **Version:** `2.1.12` 
+**50** **Group:** `org.hdrhistogram` **Name:** `HdrHistogram` **Version:** `2.1.12` 
 > - **Manifest License**: The 2-Clause BSD License (Not Packaged)
 > - **POM Project URL**: [http://hdrhistogram.github.io/HdrHistogram/](http://hdrhistogram.github.io/HdrHistogram/)
 > - **POM License**: Creative Commons Legal Code - [https://creativecommons.org/publicdomain/zero/1.0/legalcode](https://creativecommons.org/publicdomain/zero/1.0/legalcode)
@@ -259,10 +245,10 @@ _2023-04-24 22:32:19 EEST_
 
 ## The 3-Clause BSD License
 
-**49** **Group:** `com.google.protobuf` **Name:** `protobuf-java` **Version:** `3.22.3` 
+**51** **Group:** `com.google.protobuf` **Name:** `protobuf-java` **Version:** `3.22.3` 
 > - **POM License**: The 3-Clause BSD License - [https://opensource.org/licenses/BSD-3-Clause](https://opensource.org/licenses/BSD-3-Clause)
 
-**51** **Group:** `org.owasp.encoder` **Name:** `encoder` **Version:** `1.2.3` 
+**52** **Group:** `org.owasp.encoder` **Name:** `encoder` **Version:** `1.2.3` 
 > - **Manifest Project URL**: [https://www.owasp.org/](https://www.owasp.org/)
 > - **Manifest License**: The 3-Clause BSD License (Not Packaged)
 > - **POM License**: The 3-Clause BSD License - [https://opensource.org/licenses/BSD-3-Clause](https://opensource.org/licenses/BSD-3-Clause)
@@ -270,10 +256,12 @@ _2023-04-24 22:32:19 EEST_
 
 ## Universal Permissive License Version 1.0 or The 3-Clause BSD License
 
-**52** **Group:** `org.openjdk.jmc` **Name:** `common` **Version:** `8.3.0` 
+**53** **Group:** `org.openjdk.jmc` **Name:** `common` **Version:** `8.3.0` 
 > - **POM License**: Universal Permissive License Version 1.0 or The 3-Clause BSD License - [https://github.com/openjdk/jmc/blob/master/core/license/LICENSE.txt](https://github.com/openjdk/jmc/blob/master/core/license/LICENSE.txt)
 > - **Embedded license files**: [common-8.3.0.jar/LICENSE.txt](common-8.3.0.jar/LICENSE.txt)
 
-**53** **Group:** `org.openjdk.jmc` **Name:** `flightrecorder` **Version:** `8.3.0` 
+**54** **Group:** `org.openjdk.jmc` **Name:** `flightrecorder` **Version:** `8.3.0` 
 > - **POM License**: Universal Permissive License Version 1.0 or The 3-Clause BSD License - [https://github.com/openjdk/jmc/blob/master/core/license/LICENSE.txt](https://github.com/openjdk/jmc/blob/master/core/license/LICENSE.txt)
 > - **Embedded license files**: [flightrecorder-8.3.0.jar/LICENSE.txt](flightrecorder-8.3.0.jar/LICENSE.txt)
+
+

@@ -90,7 +90,7 @@ public class PprofAllocationEventExporter implements AllocationEventExporter {
             frame -> {
               IMCMethod method = frame.getMethod();
               if (method == null) {
-                sample.addLocationId(pprof.getLocationId("unknown", "unknown", "unknown", -1));
+                sample.addLocationId(pprof.getLocationId("unknown", "unknown", "unknown", 0));
               } else {
                 Integer lineNumber = frame.getFrameLineNumber();
                 sample.addLocationId(
@@ -98,7 +98,7 @@ public class PprofAllocationEventExporter implements AllocationEventExporter {
                         "unknown", // file name is not known
                         method.getType().getFullName(),
                         method.getMethodName(),
-                        lineNumber != null ? lineNumber : -1));
+                        lineNumber != null ? lineNumber : 0));
               }
               pprof.incFrameCount();
             });
@@ -114,8 +114,8 @@ public class PprofAllocationEventExporter implements AllocationEventExporter {
         pprof.addLabel(sample, THREAD_ID, thread.getThreadId());
         pprof.addLabel(sample, THREAD_NAME, thread.getThreadName());
       }
-      long osThreadId = eventReader.getOSThreadId(thread);
-      if (osThreadId != -1) {
+      Long osThreadId = eventReader.getOSThreadId(thread);
+      if (osThreadId != null) {
         pprof.addLabel(sample, THREAD_OS_ID, osThreadId);
       }
     }

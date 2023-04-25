@@ -28,6 +28,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
+import javax.annotation.Nullable;
 import org.openjdk.jmc.common.item.IItemCollection;
 import org.openjdk.jmc.flightrecorder.EventCollectionUtil;
 import org.openjdk.jmc.flightrecorder.internal.ChunkInfo;
@@ -95,6 +96,7 @@ class JfrPathHandler implements Consumer<Path> {
     }
   }
 
+  @Nullable
   private static IChunkLoader createChunkLoader(
       IChunkSupplier chunkSupplier,
       LoaderContext context,

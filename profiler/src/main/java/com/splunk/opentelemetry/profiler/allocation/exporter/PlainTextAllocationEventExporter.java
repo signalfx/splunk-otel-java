@@ -46,7 +46,7 @@ public class PlainTextAllocationEventExporter implements AllocationEventExporter
   private static final AttributeKey<Long> ALLOCATION_SIZE_KEY =
       AttributeKey.longKey("memory.allocated");
 
-  private final EventReader eventreader;
+  private final EventReader eventReader;
   private final StackSerializer stackSerializer;
   private final int stackDepth;
   private final Logger otelLogger;
@@ -55,7 +55,7 @@ public class PlainTextAllocationEventExporter implements AllocationEventExporter
   private PlainTextAllocationEventExporter(Builder builder) {
     logger.warning(
         "Plain text profiling format is deprecated and will be removed in the next release.");
-    this.eventreader = builder.eventreader;
+    this.eventReader = builder.eventReader;
     this.otelLogger = builder.otelLogger;
     this.commonAttributes = builder.commonAttributes;
     this.stackDepth = builder.stackDepth;
@@ -65,11 +65,11 @@ public class PlainTextAllocationEventExporter implements AllocationEventExporter
 
   @Override
   public void export(IItem event, AllocationEventSampler sampler, SpanContext spanContext) {
-    IMCStackTrace stackTrace = eventreader.getStackTrace(event);
+    IMCStackTrace stackTrace = eventReader.getStackTrace(event);
     if (stackTrace == null) {
       return;
     }
-    Instant time = eventreader.getStartInstant(event);
+    Instant time = eventReader.getStartInstant(event);
     String body = buildBody(event, stackTrace);
 
     AttributesBuilder builder =
@@ -77,7 +77,7 @@ public class PlainTextAllocationEventExporter implements AllocationEventExporter
             .builder(event.getType().getIdentifier())
             .put(DATA_TYPE, ProfilingDataType.ALLOCATION.value())
             .put(DATA_FORMAT, DataFormat.TEXT.value())
-            .put(ALLOCATION_SIZE_KEY, eventreader.getAllocationSize(event));
+            .put(ALLOCATION_SIZE_KEY, eventReader.getAllocationSize(event));
     if (sampler != null) {
       sampler.addAttributes((k, v) -> builder.put(k, v), (k, v) -> builder.put(k, v));
     }
@@ -102,15 +102,16 @@ public class PlainTextAllocationEventExporter implements AllocationEventExporter
 
   private String buildBody(IItem event, IMCStackTrace stackTrace) {
     String stack = stackSerializer.serialize(stackTrace);
-    IMCThread thread = eventreader.getThread(event);
+    IMCThread thread = eventReader.getThread(event);
     String name = thread == null ? "unknown" : thread.getThreadName();
     long id = thread == null || thread.getThreadId() == null ? 0 : thread.getThreadId();
     String result = "\"" + name + "\"" + " #" + id;
     if (thread != null) {
-      long osThreadId = eventreader.getOSThreadId(thread);
-      if (osThreadId != -1) {
-        result += " nid=0x" + Long.toHexString(eventreader.getOSThreadId(thread));
+      Long osThreadId = eventReader.getOSThreadId(thread);
+      if (osThreadId != null) {
+        osThreadId = 0L;
       }
+      result += " nid=0x" + Long.toHexString(osThreadId);
     }
     result += "\n";
     result += "   java.lang.Thread.State: UNKNOWN\n" + stack;
@@ -122,7 +123,7 @@ public class PlainTextAllocationEventExporter implements AllocationEventExporter
   }
 
   public static class Builder {
-    private EventReader eventreader;
+    private EventReader eventReader;
     private StackSerializer stackSerializer;
     private Logger otelLogger;
     private LogDataCommonAttributes commonAttributes;
@@ -132,8 +133,8 @@ public class PlainTextAllocationEventExporter implements AllocationEventExporter
       return new PlainTextAllocationEventExporter(this);
     }
 
-    public Builder eventReader(EventReader eventreader) {
-      this.eventreader = eventreader;
+    public Builder eventReader(EventReader eventReader) {
+      this.eventReader = eventReader;
       return this;
     }
 

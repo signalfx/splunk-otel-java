@@ -21,6 +21,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
+import org.openjdk.jmc.common.item.IItem;
 
 public class RateLimitingAllocationEventSampler implements AllocationEventSampler {
   private final String rateLimitString;
@@ -55,11 +56,11 @@ public class RateLimitingAllocationEventSampler implements AllocationEventSample
   }
 
   @Override
-  public boolean shouldSample() {
+  public boolean shouldSample(IItem event) {
     if (delegate == null) {
       throw new IllegalStateException("delegate not set");
     }
-    return delegate.shouldSample();
+    return delegate.shouldSample(event);
   }
 
   public void updateSampler(long eventCount, Instant periodStart, Instant periodEnd) {

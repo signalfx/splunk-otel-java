@@ -50,7 +50,7 @@ public class StackSerializer {
     String methodName = method.getMethodName();
     Integer lineNumber = frame.getFrameLineNumber();
     if (lineNumber == null) {
-      lineNumber = -1;
+      lineNumber = 0;
     }
     return sb.append("\tat ")
         .append(className)

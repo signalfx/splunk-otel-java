@@ -138,7 +138,7 @@ class StackTraceParser {
       location = location.substring(i + 1);
     }
 
-    int lineNumber = -1;
+    int lineNumber = 0;
     i = location.indexOf(':');
     if (i != -1) {
       try {
@@ -152,9 +152,9 @@ class StackTraceParser {
   }
 
   private static class StackTraceBuilder {
-    private int threadId = -1;
+    private int threadId = 0;
     private String threadName;
-    private int osThreadId = -1;
+    private int osThreadId = 0;
     private String threadState;
     private List<StackTraceLine> stackTraceLines = new ArrayList<>();
     private boolean truncated;

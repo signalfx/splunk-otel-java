@@ -64,7 +64,7 @@ public class TLABProcessor {
       return;
     }
     // Discard events not chosen by the sampling strategy
-    if (sampler != null && !sampler.shouldSample()) {
+    if (sampler != null && !sampler.shouldSample(event)) {
       return;
     }
 

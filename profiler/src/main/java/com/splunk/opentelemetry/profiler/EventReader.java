@@ -100,7 +100,7 @@ public class EventReader {
 
   public long getOSThreadId(IMCThread thread) {
     Long value = ThreadUtil.getOsThreadId(thread);
-    return value != null ? value.longValue() : -1;
+    return value != null ? value.longValue() : 0;
   }
 
   private static IType<IItem> getItemType(IItem item) {

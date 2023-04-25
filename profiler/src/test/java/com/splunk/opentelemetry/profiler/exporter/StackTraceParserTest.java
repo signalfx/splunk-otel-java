@@ -62,7 +62,7 @@ class StackTraceParserTest {
           assertEquals("java.lang.Thread", stackTraceLine.getClassName());
           assertEquals("sleep", stackTraceLine.getMethod());
           assertEquals("Native Method", stackTraceLine.getLocation());
-          assertEquals(-1, stackTraceLine.getLineNumber());
+          assertEquals(0, stackTraceLine.getLineNumber());
         }
         {
           StackTraceLine stackTraceLine = stackTrace.getStackTraceLines().get(1);

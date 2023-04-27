@@ -1,6 +1,6 @@
 
 plugins {
-  id("com.google.protobuf") version "0.9.2"
+  id("com.google.protobuf") version "0.9.3"
 }
 
 val protobufVersion = "3.22.3"

@@ -103,6 +103,7 @@ public class EventReader {
     return value != null ? value.longValue() : 0;
   }
 
+  @SuppressWarnings("unchecked")
   private static IType<IItem> getItemType(IItem item) {
     return (IType<IItem>) item.getType();
   }

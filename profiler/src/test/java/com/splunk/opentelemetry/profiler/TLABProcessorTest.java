@@ -70,7 +70,6 @@ class TLABProcessorTest {
 
   public static final long ONE_MB = 1024 * 1024L;
   public static final long THREAD_ID = 606L;
-  public static final long OS_THREAD_ID = 0x707L;
 
   static final InMemoryLogRecordExporter logExporter = InMemoryLogRecordExporter.create();
   static final Logger otelLogger =

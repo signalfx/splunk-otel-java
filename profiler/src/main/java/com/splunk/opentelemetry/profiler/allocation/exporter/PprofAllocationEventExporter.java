@@ -92,12 +92,20 @@ public class PprofAllocationEventExporter implements AllocationEventExporter {
               if (method == null) {
                 sample.addLocationId(pprof.getLocationId("unknown", "unknown", "unknown", 0));
               } else {
+                String className = method.getType().getFullName();
+                if (className == null) {
+                  className = "unknown";
+                }
+                String methodName = method.getMethodName();
+                if (methodName == null) {
+                  methodName = "unknown";
+                }
                 Integer lineNumber = frame.getFrameLineNumber();
                 sample.addLocationId(
                     pprof.getLocationId(
                         "unknown", // file name is not known
-                        method.getType().getFullName(),
-                        method.getMethodName(),
+                        className,
+                        methodName,
                         lineNumber != null && lineNumber != -1 ? lineNumber : 0));
               }
               pprof.incFrameCount();

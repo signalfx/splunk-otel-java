@@ -164,6 +164,9 @@ public class StackTraceFilter {
         continue;
       }
       String className = type.getFullName();
+      if (className == null) {
+        continue;
+      }
       if (!className.startsWith("java.")
           && !className.startsWith("jdk.")
           && !className.startsWith("sun.")) {

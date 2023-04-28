@@ -26,8 +26,6 @@ import static org.mockito.Mockito.when;
 import com.splunk.opentelemetry.profiler.events.EventPeriods;
 import io.opentelemetry.api.common.Attributes;
 import java.time.Duration;
-import jdk.jfr.EventType;
-import jdk.jfr.consumer.RecordedEvent;
 import org.junit.jupiter.api.Test;
 
 class LogDataCommonAttributesTest {
@@ -44,16 +42,11 @@ class LogDataCommonAttributesTest {
             .build();
 
     EventPeriods periods = mock(EventPeriods.class);
-    RecordedEvent event = mock(RecordedEvent.class);
-    EventType eventType = mock(EventType.class);
-
-    when(event.getEventType()).thenReturn(eventType);
-    when(eventType.getName()).thenReturn(eventName);
     when(periods.getDuration(eventName)).thenReturn(Duration.ofMillis(999));
 
     LogDataCommonAttributes logDataAttributes = new LogDataCommonAttributes(periods);
 
-    Attributes result = logDataAttributes.builder(event.getEventType().getName()).build();
+    Attributes result = logDataAttributes.builder(eventName).build();
     assertEquals(expected, result);
   }
 }

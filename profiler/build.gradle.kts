@@ -34,6 +34,7 @@ dependencies {
   implementation("io.opentelemetry:opentelemetry-sdk-logs")
   implementation("io.opentelemetry:opentelemetry-exporter-otlp-logs")
   implementation("com.google.protobuf:protobuf-java:$protobufVersion")
+  implementation("org.openjdk.jmc:flightrecorder:8.3.0")
 
   annotationProcessor("com.google.auto.service:auto-service")
   compileOnly("com.google.auto.service:auto-service")

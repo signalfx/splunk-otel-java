@@ -30,6 +30,7 @@ import com.google.perftools.profiles.ProfileProto;
 import com.google.perftools.profiles.ProfileProto.Profile;
 import com.google.perftools.profiles.ProfileProto.Sample;
 import com.splunk.opentelemetry.profiler.Configuration.DataFormat;
+import com.splunk.opentelemetry.profiler.EventReader;
 import com.splunk.opentelemetry.profiler.ProfilingDataType;
 import com.splunk.opentelemetry.profiler.allocation.sampler.AllocationEventSampler;
 import com.splunk.opentelemetry.profiler.exporter.PprofLogDataExporter;
@@ -37,18 +38,20 @@ import com.splunk.opentelemetry.profiler.pprof.Pprof;
 import io.opentelemetry.api.logs.Logger;
 import io.opentelemetry.api.trace.SpanContext;
 import java.time.Instant;
-import jdk.jfr.consumer.RecordedEvent;
-import jdk.jfr.consumer.RecordedMethod;
-import jdk.jfr.consumer.RecordedStackTrace;
-import jdk.jfr.consumer.RecordedThread;
+import org.openjdk.jmc.common.IMCMethod;
+import org.openjdk.jmc.common.IMCStackTrace;
+import org.openjdk.jmc.common.IMCThread;
+import org.openjdk.jmc.common.item.IItem;
 
 public class PprofAllocationEventExporter implements AllocationEventExporter {
+  private final EventReader eventReader;
   private final DataFormat dataFormat;
   private final PprofLogDataExporter pprofLogDataExporter;
   private final int stackDepth;
   private Pprof pprof = createPprof();
 
   private PprofAllocationEventExporter(Builder builder) {
+    this.eventReader = builder.eventReader;
     this.dataFormat = builder.dataFormat;
     this.stackDepth = builder.stackDepth;
     this.pprofLogDataExporter =
@@ -57,8 +60,8 @@ public class PprofAllocationEventExporter implements AllocationEventExporter {
   }
 
   @Override
-  public void export(RecordedEvent event, AllocationEventSampler sampler, SpanContext spanContext) {
-    RecordedStackTrace stackTrace = event.getStackTrace();
+  public void export(IItem event, AllocationEventSampler sampler, SpanContext spanContext) {
+    IMCStackTrace stackTrace = eventReader.getStackTrace(event);
     if (stackTrace == null) {
       return;
     }
@@ -67,14 +70,15 @@ public class PprofAllocationEventExporter implements AllocationEventExporter {
     // the weights for a large number of samples, for a particular class, thread or stack trace,
     // gives a statistically accurate representation of the allocation pressure.
     long allocationSize =
-        event.hasField("allocationSize")
-            ? event.getLong("allocationSize")
-            : event.getLong("weight");
+        "jdk.ObjectAllocationSample".equals(event.getType().getIdentifier())
+            ? eventReader.getSampleWeight(event)
+            : eventReader.getAllocationSize(event);
 
     Sample.Builder sample = Sample.newBuilder();
     sample.addValue(allocationSize);
 
-    if (stackTrace.isTruncated() || stackTrace.getFrames().size() > stackDepth) {
+    if (stackTrace.getTruncationState().isTruncated()
+        || stackTrace.getFrames().size() > stackDepth) {
       pprof.addLabel(sample, THREAD_STACK_TRUNCATED, true);
     }
 
@@ -84,31 +88,44 @@ public class PprofAllocationEventExporter implements AllocationEventExporter {
         .limit(stackDepth)
         .forEachOrdered(
             frame -> {
-              RecordedMethod method = frame.getMethod();
+              IMCMethod method = frame.getMethod();
               if (method == null) {
-                sample.addLocationId(pprof.getLocationId("unknown", "unknown.unknown", -1));
+                sample.addLocationId(pprof.getLocationId("unknown", "unknown", "unknown", 0));
               } else {
+                String className = method.getType().getFullName();
+                if (className == null) {
+                  className = "unknown";
+                }
+                String methodName = method.getMethodName();
+                if (methodName == null) {
+                  methodName = "unknown";
+                }
+                Integer lineNumber = frame.getFrameLineNumber();
                 sample.addLocationId(
                     pprof.getLocationId(
                         "unknown", // file name is not known
-                        method.getType().getName() + "." + method.getName(),
-                        frame.getLineNumber()));
+                        className,
+                        methodName,
+                        lineNumber != null && lineNumber != -1 ? lineNumber : 0));
               }
               pprof.incFrameCount();
             });
 
-    String eventName = event.getEventType().getName();
+    String eventName = event.getType().getIdentifier();
     pprof.addLabel(sample, SOURCE_EVENT_NAME, eventName);
-    Instant time = event.getStartTime();
+    Instant time = eventReader.getStartInstant(event);
     pprof.addLabel(sample, SOURCE_EVENT_TIME, time.toEpochMilli());
 
-    RecordedThread thread = event.getThread();
+    IMCThread thread = eventReader.getThread(event);
     if (thread != null) {
-      if (thread.getJavaThreadId() != -1) {
-        pprof.addLabel(sample, THREAD_ID, thread.getJavaThreadId());
-        pprof.addLabel(sample, THREAD_NAME, thread.getJavaName());
+      if (thread.getThreadId() != null) {
+        pprof.addLabel(sample, THREAD_ID, thread.getThreadId());
+        pprof.addLabel(sample, THREAD_NAME, thread.getThreadName());
       }
-      pprof.addLabel(sample, THREAD_OS_ID, thread.getOSThreadId());
+      Long osThreadId = eventReader.getOSThreadId(thread);
+      if (osThreadId != null) {
+        pprof.addLabel(sample, THREAD_OS_ID, osThreadId);
+      }
     }
     pprof.addLabel(sample, THREAD_STATE, "RUNNABLE");
 
@@ -158,12 +175,18 @@ public class PprofAllocationEventExporter implements AllocationEventExporter {
   }
 
   public static class Builder {
+    private EventReader eventReader;
     private Logger otelLogger;
     private DataFormat dataFormat;
     private int stackDepth;
 
     public PprofAllocationEventExporter build() {
       return new PprofAllocationEventExporter(this);
+    }
+
+    public Builder eventReader(EventReader eventReader) {
+      this.eventReader = eventReader;
+      return this;
     }
 
     public Builder otelLogger(Logger otelLogger) {

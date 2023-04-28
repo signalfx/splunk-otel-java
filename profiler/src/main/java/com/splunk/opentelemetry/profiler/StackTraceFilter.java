@@ -17,12 +17,12 @@
 package com.splunk.opentelemetry.profiler;
 
 import java.util.stream.Stream;
-import jdk.jfr.consumer.RecordedClass;
-import jdk.jfr.consumer.RecordedEvent;
-import jdk.jfr.consumer.RecordedFrame;
-import jdk.jfr.consumer.RecordedMethod;
-import jdk.jfr.consumer.RecordedStackTrace;
-import jdk.jfr.consumer.RecordedThread;
+import org.openjdk.jmc.common.IMCFrame;
+import org.openjdk.jmc.common.IMCMethod;
+import org.openjdk.jmc.common.IMCStackTrace;
+import org.openjdk.jmc.common.IMCThread;
+import org.openjdk.jmc.common.IMCType;
+import org.openjdk.jmc.common.item.IItem;
 
 public class StackTraceFilter {
 
@@ -39,14 +39,20 @@ public class StackTraceFilter {
         "\"C1 CompilerThread",
         "\"Common-Cleaner\""
       };
+
+  private final EventReader eventReader;
   private final boolean includeAgentInternalStacks;
   private final boolean includeJvmInternalStacks;
 
-  public StackTraceFilter(boolean includeAgentInternalStacks) {
-    this(includeAgentInternalStacks, false);
+  public StackTraceFilter(EventReader eventReader, boolean includeAgentInternalStacks) {
+    this(eventReader, includeAgentInternalStacks, false);
   }
 
-  public StackTraceFilter(boolean includeAgentInternalStacks, boolean includeJvmInternalStacks) {
+  public StackTraceFilter(
+      EventReader eventReader,
+      boolean includeAgentInternalStacks,
+      boolean includeJvmInternalStacks) {
+    this.eventReader = eventReader;
     this.includeAgentInternalStacks = includeAgentInternalStacks;
     this.includeJvmInternalStacks = includeJvmInternalStacks;
   }
@@ -86,29 +92,29 @@ public class StackTraceFilter {
     return true;
   }
 
-  public boolean test(RecordedEvent event) {
-    RecordedThread thread = event.getThread();
-    if (thread == null || thread.getJavaName() == null) {
+  public boolean test(IItem event) {
+    IMCThread thread = eventReader.getThread(event);
+    if (thread == null || thread.getThreadName() == null) {
       return true;
     }
 
     if (!includeAgentInternalStacks) {
-      String threadName = thread.getJavaName();
+      String threadName = thread.getThreadName();
       for (String prefix : UNWANTED_PREFIXES) {
         // if prefix ends with " we expect it to match thread name
         if (prefix.endsWith("\"")) {
           // prefix is surrounded by "
-          if (threadName.equals(prefix.substring(1, prefix.length() - 1))) {
+          if (threadName.regionMatches(0, prefix, 1, prefix.length() - 2)) {
             return false;
           }
           // prefix starts with "
-        } else if (threadName.startsWith(prefix.substring(1))) {
+        } else if (threadName.regionMatches(0, prefix, 1, prefix.length() - 1)) {
           return false;
         }
       }
     }
     if (!includeJvmInternalStacks) {
-      if (everyFrameIsJvmInternal(event.getStackTrace())) {
+      if (everyFrameIsJvmInternal(eventReader.getStackTrace(event))) {
         return false;
       }
     }
@@ -144,20 +150,23 @@ public class StackTraceFilter {
     return false;
   }
 
-  private static boolean everyFrameIsJvmInternal(RecordedStackTrace stackTrace) {
+  private static boolean everyFrameIsJvmInternal(IMCStackTrace stackTrace) {
     if (stackTrace == null) {
       return false;
     }
-    for (RecordedFrame frame : stackTrace.getFrames()) {
-      RecordedMethod method = frame.getMethod();
+    for (IMCFrame frame : stackTrace.getFrames()) {
+      IMCMethod method = frame.getMethod();
       if (method == null) {
         continue;
       }
-      RecordedClass type = method.getType();
+      IMCType type = method.getType();
       if (type == null) {
         continue;
       }
-      String className = type.getName();
+      String className = type.getFullName();
+      if (className == null) {
+        continue;
+      }
       if (!className.startsWith("java.")
           && !className.startsWith("jdk.")
           && !className.startsWith("sun.")) {

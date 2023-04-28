@@ -14,15 +14,14 @@
  * limitations under the License.
  */
 
-package com.splunk.opentelemetry.profiler.allocation.exporter;
+package org.openjdk.jmc.flightrecorder;
 
-import com.splunk.opentelemetry.profiler.allocation.sampler.AllocationEventSampler;
-import io.opentelemetry.api.trace.SpanContext;
-import org.openjdk.jmc.common.item.IItem;
+import org.openjdk.jmc.common.item.IItemCollection;
+import org.openjdk.jmc.flightrecorder.internal.EventArrays;
 
-public interface AllocationEventExporter {
-
-  void export(IItem event, AllocationEventSampler sampler, SpanContext spanContext);
-
-  default void flush() {}
+// helper class for accessing package private EventCollection
+public class EventCollectionUtil {
+  public static IItemCollection build(EventArrays events) {
+    return EventCollection.build(events);
+  }
 }

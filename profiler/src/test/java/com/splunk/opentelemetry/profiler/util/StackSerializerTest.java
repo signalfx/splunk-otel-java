@@ -22,28 +22,28 @@ import static org.mockito.Mockito.when;
 
 import java.util.Arrays;
 import java.util.List;
-import jdk.jfr.consumer.RecordedClass;
-import jdk.jfr.consumer.RecordedFrame;
-import jdk.jfr.consumer.RecordedMethod;
-import jdk.jfr.consumer.RecordedStackTrace;
 import org.junit.jupiter.api.Test;
+import org.openjdk.jmc.common.IMCFrame;
+import org.openjdk.jmc.common.IMCMethod;
+import org.openjdk.jmc.common.IMCStackTrace;
+import org.openjdk.jmc.common.IMCType;
 
 class StackSerializerTest {
   private static final int STACK_DEPTH = 128;
 
-  RecordedFrame frame1 = makeFrame("io.test.MyClass", "action", 123);
-  RecordedFrame frame2 = makeFrame("io.test.MyClass", "silver", 456);
-  RecordedFrame frame3 = makeFrame("io.test.Framewerk", "root", 66);
-  List<RecordedFrame> frames = Arrays.asList(frame1, frame2, frame3);
-  List<RecordedFrame> framesWithNullMethod =
+  IMCFrame frame1 = makeFrame("io.test.MyClass", "action", 123);
+  IMCFrame frame2 = makeFrame("io.test.MyClass", "silver", 456);
+  IMCFrame frame3 = makeFrame("io.test.Framewerk", "root", 66);
+  List<IMCFrame> frames = Arrays.asList(frame1, frame2, frame3);
+  List<IMCFrame> framesWithNullMethod =
       Arrays.asList(frame1, makeFrameWithNullMethod("io.test.MyClass", 456), frame3);
 
   @Test
   void serialize() {
     StackSerializer serializer = new StackSerializer(STACK_DEPTH);
-    RecordedStackTrace stack = mock(RecordedStackTrace.class);
+    IMCStackTrace stack = mock(IMCStackTrace.class);
 
-    when(stack.getFrames()).thenReturn(frames);
+    when(stack.getFrames()).thenReturn((List) frames);
 
     String result = serializer.serialize(stack);
     String expected =
@@ -56,9 +56,9 @@ class StackSerializerTest {
   @Test
   void serializeWithNullMethod() {
     StackSerializer serializer = new StackSerializer(STACK_DEPTH);
-    RecordedStackTrace stack = mock(RecordedStackTrace.class);
+    IMCStackTrace stack = mock(IMCStackTrace.class);
 
-    when(stack.getFrames()).thenReturn(framesWithNullMethod);
+    when(stack.getFrames()).thenReturn((List) framesWithNullMethod);
 
     String result = serializer.serialize(stack);
     String expected =
@@ -71,9 +71,9 @@ class StackSerializerTest {
   @Test
   void limitDepth() {
     StackSerializer serializer = new StackSerializer(2);
-    RecordedStackTrace stack = mock(RecordedStackTrace.class);
+    IMCStackTrace stack = mock(IMCStackTrace.class);
 
-    when(stack.getFrames()).thenReturn(frames);
+    when(stack.getFrames()).thenReturn((List) frames);
 
     String result = serializer.serialize(stack);
     String expected =
@@ -81,24 +81,24 @@ class StackSerializerTest {
     assertEquals(expected, result);
   }
 
-  private RecordedFrame makeFrame(String typeName, String methodName, int line) {
-    RecordedFrame frame = mock(RecordedFrame.class);
-    RecordedMethod method = mock(RecordedMethod.class);
-    RecordedClass type = mock(RecordedClass.class);
+  private IMCFrame makeFrame(String typeName, String methodName, int line) {
+    IMCFrame frame = mock(IMCFrame.class);
+    IMCMethod method = mock(IMCMethod.class);
+    IMCType type = mock(IMCType.class);
     when(method.getType()).thenReturn(type);
     when(frame.getMethod()).thenReturn(method);
-    when(method.getName()).thenReturn(methodName);
-    when(frame.getInt("lineNumber")).thenReturn(line);
-    when(type.getName()).thenReturn(typeName);
+    when(method.getMethodName()).thenReturn(methodName);
+    when(frame.getFrameLineNumber()).thenReturn(line);
+    when(type.getFullName()).thenReturn(typeName);
     return frame;
   }
 
-  private RecordedFrame makeFrameWithNullMethod(String typeName, int line) {
-    RecordedFrame frame = mock(RecordedFrame.class);
-    RecordedClass type = mock(RecordedClass.class);
+  private IMCFrame makeFrameWithNullMethod(String typeName, int line) {
+    IMCFrame frame = mock(IMCFrame.class);
+    IMCType type = mock(IMCType.class);
     when(frame.getMethod()).thenReturn(null);
-    when(frame.getInt("lineNumber")).thenReturn(line);
-    when(type.getName()).thenReturn(typeName);
+    when(frame.getFrameLineNumber()).thenReturn(line);
+    when(type.getFullName()).thenReturn(typeName);
     return frame;
   }
 }

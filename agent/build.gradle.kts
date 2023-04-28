@@ -225,7 +225,11 @@ rootProject.tasks.named("release") {
 licenseReport {
   outputDir = rootProject.file("licenses").absolutePath
 
-  renderers = arrayOf(InventoryMarkdownReportRenderer())
+  renderers = arrayOf(InventoryMarkdownReportRenderer(
+    "licenses.md",
+    "splunk-otel-javaagent",
+    File("$projectDir/license-overrides.txt")
+  ))
 
   configurations = arrayOf(licenseReportDependencies.name)
 

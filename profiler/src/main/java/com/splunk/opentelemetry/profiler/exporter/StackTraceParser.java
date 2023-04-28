@@ -124,7 +124,13 @@ class StackTraceParser {
     if (i == -1) {
       return null;
     }
-    String classAndMethod = line.substring(0, i);
+    int j = line.lastIndexOf('.', i);
+    if (j == -1) {
+      return null;
+    }
+    String className = line.substring(0, j);
+    String method = line.substring(j + 1, i);
+
     String location = line.substring(i + 1);
 
     i = location.indexOf('/');
@@ -132,7 +138,7 @@ class StackTraceParser {
       location = location.substring(i + 1);
     }
 
-    int lineNumber = -1;
+    int lineNumber = 0;
     i = location.indexOf(':');
     if (i != -1) {
       try {
@@ -142,13 +148,13 @@ class StackTraceParser {
       location = location.substring(0, i);
     }
 
-    return new StackTraceLine(classAndMethod, location, lineNumber);
+    return new StackTraceLine(className, method, location, lineNumber);
   }
 
   private static class StackTraceBuilder {
-    private int threadId = -1;
+    private int threadId = 0;
     private String threadName;
-    private int osThreadId = -1;
+    private int osThreadId = 0;
     private String threadState;
     private List<StackTraceLine> stackTraceLines = new ArrayList<>();
     private boolean truncated;
@@ -249,18 +255,24 @@ class StackTraceParser {
   }
 
   static class StackTraceLine {
-    private final String classAndMethod;
+    private final String className;
+    private final String method;
     private final String location;
     private final int lineNumber;
 
-    StackTraceLine(String classAndMethod, String location, int lineNumber) {
-      this.classAndMethod = classAndMethod;
+    StackTraceLine(String className, String method, String location, int lineNumber) {
+      this.className = className;
+      this.method = method;
       this.location = location;
       this.lineNumber = lineNumber;
     }
 
-    String getClassAndMethod() {
-      return classAndMethod;
+    String getClassName() {
+      return className;
+    }
+
+    String getMethod() {
+      return method;
     }
 
     String getLocation() {

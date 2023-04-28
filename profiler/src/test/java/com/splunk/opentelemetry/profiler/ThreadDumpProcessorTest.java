@@ -35,16 +35,25 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Stream;
-import jdk.jfr.EventType;
-import jdk.jfr.consumer.RecordedEvent;
-import jdk.jfr.consumer.RecordedThread;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
+import org.openjdk.jmc.common.IMCThread;
+import org.openjdk.jmc.common.item.IItem;
+import org.openjdk.jmc.common.item.IType;
 
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 class ThreadDumpProcessorTest {
 
   static String traceId = "deadbeefdeadbeefdeadbeefdeadbeef";
   static String spanId = "0123012301230123";
   static byte traceFlags = TraceFlags.getSampled().asByte();
+
+  @Mock EventReader eventReader;
 
   // Some handpicked entries of thread ID to name from threadDumpResult to test filtering
   static List<SampleThread> sampleThreadsFromDump =
@@ -55,7 +64,7 @@ class ThreadDumpProcessorTest {
 
   @Test
   void testProcessEvent() {
-    SpanContextualizer contextualizer = new SpanContextualizer();
+    SpanContextualizer contextualizer = new SpanContextualizer(eventReader);
     long idOfThreadRunningTheSpan = 3L;
     SpanContext expectedContext =
         SpanContext.create(
@@ -83,7 +92,7 @@ class ThreadDumpProcessorTest {
 
   @Test
   void testFilterInternalStacks() {
-    SpanContextualizer contextualizer = new SpanContextualizer();
+    SpanContextualizer contextualizer = new SpanContextualizer(new EventReader());
 
     String threadDump = readDumpFromResource("thread-dump1.txt");
     List<StackToSpanLinkage> results = collectResults(contextualizer, threadDump, false);
@@ -99,7 +108,7 @@ class ThreadDumpProcessorTest {
 
   @Test
   void testFilterStacksWithoutSpans() {
-    SpanContextualizer contextualizer = new SpanContextualizer();
+    SpanContextualizer contextualizer = new SpanContextualizer(eventReader);
 
     sampleThreadsFromDump.forEach(
         it -> contextualizer.updateContext(threadContextStartEvent(it.threadId)));
@@ -114,37 +123,40 @@ class ThreadDumpProcessorTest {
             assertThat(results).anyMatch(stack -> stack.getRawStack().contains(sample.threadName)));
   }
 
-  private static RecordedEvent threadContextStartEvent(long threadId) {
-    RecordedEvent event = mock(RecordedEvent.class);
-    EventType type = mock(EventType.class);
-    when(type.getName()).thenReturn(ContextAttached.EVENT_NAME);
-    when(event.getEventType()).thenReturn(type);
-    when(event.getString("traceId")).thenReturn(traceId);
-    when(event.getString("spanId")).thenReturn(spanId);
-    when(event.getByte("traceFlags")).thenReturn(traceFlags);
-    RecordedThread thread = mock(RecordedThread.class);
-    when(thread.getJavaThreadId()).thenReturn(threadId);
-    when(event.getThread()).thenReturn(thread);
+  private IItem threadContextStartEvent(long threadId) {
+    IItem event = mock(IItem.class);
+    IType eventType = mock(IType.class);
+    when(event.getType()).thenReturn(eventType);
+    when(eventType.getIdentifier()).thenReturn(ContextAttached.EVENT_NAME);
+    when(eventReader.getTraceId(event)).thenReturn(traceId);
+    when(eventReader.getSpanId(event)).thenReturn(spanId);
+    when(eventReader.getTraceFlags(event)).thenReturn(traceFlags);
+    IMCThread thread = mock(IMCThread.class);
+    when(thread.getThreadId()).thenReturn(threadId);
+    when(eventReader.getThread(event)).thenReturn(thread);
+
     return event;
   }
 
   private static List<StackToSpanLinkage> collectResults(
       SpanContextualizer contextualizer, String threadDump, boolean onlyTracingSpans) {
+    EventReader eventReader = mock(EventReader.class);
     List<StackToSpanLinkage> results = new ArrayList<>();
     CpuEventExporter profilingEventExporter = results::add;
     ThreadDumpProcessor processor =
         ThreadDumpProcessor.builder()
+            .eventReader(eventReader)
             .spanContextualizer(contextualizer)
             .cpuEventExporter(profilingEventExporter)
-            .stackTraceFilter(new StackTraceFilter(false))
+            .stackTraceFilter(new StackTraceFilter(eventReader, false))
             .onlyTracingSpans(onlyTracingSpans)
             .build();
 
-    RecordedEvent event = mock(RecordedEvent.class);
-    EventType eventType = mock(EventType.class);
-    when(event.getEventType()).thenReturn(eventType);
-    when(eventType.getName()).thenReturn(ThreadDumpProcessor.EVENT_NAME);
-    when(event.getString("result")).thenReturn(threadDump);
+    IItem event = mock(IItem.class);
+    IType eventType = mock(IType.class);
+    when(event.getType()).thenReturn(eventType);
+    when(eventType.getIdentifier()).thenReturn(ThreadDumpProcessor.EVENT_NAME);
+    when(eventReader.getThreadDumpResult(event)).thenReturn(threadDump);
 
     processor.accept(event);
     return results;

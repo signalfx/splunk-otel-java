@@ -19,6 +19,7 @@ package com.splunk.opentelemetry.profiler.context;
 import static com.splunk.opentelemetry.profiler.context.StackDescriptorLineParser.CANT_PARSE_THREAD_ID;
 import static java.util.logging.Level.FINE;
 
+import com.splunk.opentelemetry.profiler.EventReader;
 import com.splunk.opentelemetry.profiler.ThreadDumpRegion;
 import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.api.trace.TraceFlags;
@@ -26,7 +27,8 @@ import io.opentelemetry.api.trace.TraceState;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
-import jdk.jfr.consumer.RecordedEvent;
+import org.openjdk.jmc.common.IMCThread;
+import org.openjdk.jmc.common.item.IItem;
 
 /**
  * Keeps track of span scope changes and, when applicable, can wrap the RecordedEvent with span
@@ -39,30 +41,37 @@ public class SpanContextualizer {
   private final Map<Long, SpanLinkage> threadSpans = new HashMap<>();
   private final StackDescriptorLineParser descriptorParser = new StackDescriptorLineParser();
 
+  private final EventReader eventReader;
+
+  public SpanContextualizer(EventReader eventReader) {
+    this.eventReader = eventReader;
+  }
+
   /**
    * This updates the tracked thread context for a given span. This must only be called with
    * ContextAttached events.
    */
-  public void updateContext(RecordedEvent event) {
+  public void updateContext(IItem event) {
     // jdk 17 doesn't report thread for events that happened on a thread that has terminated by now
-    if (event.getThread() == null) {
+    IMCThread eventThread = eventReader.getThread(event);
+    if (eventThread == null) {
       return;
     }
-    String traceId = event.getString("traceId");
-    String spanId = event.getString("spanId");
-    long javaThreadId = event.getThread().getJavaThreadId();
+    String traceId = eventReader.getTraceId(event);
+    String spanId = eventReader.getSpanId(event);
+    long javaThreadId = eventThread.getThreadId();
 
     if (logger.isLoggable(FINE)) {
       logger.log(
           FINE,
           "Set thread context: [{0}] {1} {2} at {3}",
-          new Object[] {javaThreadId, traceId, spanId, event.getStartTime()});
+          new Object[] {javaThreadId, traceId, spanId, eventReader.getStartInstant(event)});
     }
 
     if (traceId == null || spanId == null) {
       threadSpans.remove(javaThreadId);
     } else {
-      TraceFlags traceFlags = TraceFlags.fromByte(event.getByte("traceFlags"));
+      TraceFlags traceFlags = TraceFlags.fromByte(eventReader.getTraceFlags(event));
       SpanContext spanContext =
           SpanContext.create(traceId, spanId, traceFlags, TraceState.getDefault());
       SpanLinkage linkage = new SpanLinkage(spanContext, javaThreadId);

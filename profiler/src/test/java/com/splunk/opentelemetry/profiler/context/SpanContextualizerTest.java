@@ -21,6 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import com.splunk.opentelemetry.profiler.EventReader;
 import com.splunk.opentelemetry.profiler.ThreadDumpRegion;
 import com.splunk.opentelemetry.profiler.events.ContextAttached;
 import java.util.ArrayList;
@@ -28,20 +29,29 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 import java.util.stream.IntStream;
-import jdk.jfr.EventType;
-import jdk.jfr.consumer.RecordedEvent;
-import jdk.jfr.consumer.RecordedThread;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
+import org.openjdk.jmc.common.IMCThread;
+import org.openjdk.jmc.common.item.IItem;
+import org.openjdk.jmc.common.item.IType;
 
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 class SpanContextualizerTest {
 
   private final String traceId = "deadbeefdeadbeefdeadbeefdeadbeef";
   private final String spanId = "0123012301230123";
   private final String rawStack = "raw is raw";
 
+  @Mock EventReader eventReader;
+
   @Test
   void testSimplePath() {
-    SpanContextualizer testClass = new SpanContextualizer();
+    SpanContextualizer testClass = new SpanContextualizer(eventReader);
 
     Events events = buildEvents(spanId, 906);
 
@@ -56,7 +66,7 @@ class SpanContextualizerTest {
 
   @Test
   void testNestedChildSpanOneThread() {
-    SpanContextualizer testClass = new SpanContextualizer();
+    SpanContextualizer testClass = new SpanContextualizer(eventReader);
 
     String childSpanId = "0123012301230123";
     String rawStack1 = "raw is raw1";
@@ -81,7 +91,7 @@ class SpanContextualizerTest {
 
   @Test
   void testOneSpanThreadHops() {
-    SpanContextualizer testClass = new SpanContextualizer();
+    SpanContextualizer testClass = new SpanContextualizer(eventReader);
 
     Events events1 = buildEvents(spanId, 906);
     Events events2 = buildEvents(spanId, 907);
@@ -100,7 +110,7 @@ class SpanContextualizerTest {
 
   @Test
   void testMultipleThreadsOneSpanAllLinked() {
-    SpanContextualizer testClass = new SpanContextualizer();
+    SpanContextualizer testClass = new SpanContextualizer(eventReader);
 
     long threadId1 = 907;
     long threadId2 = 908;
@@ -142,7 +152,7 @@ class SpanContextualizerTest {
 
   @Test
   void testBackgroundWorkerThreads() {
-    SpanContextualizer testClass = new SpanContextualizer();
+    SpanContextualizer testClass = new SpanContextualizer(eventReader);
 
     Events events1 = buildEvents(spanId, 906);
     Events events2 = buildEvents(spanId, 907);
@@ -179,7 +189,7 @@ class SpanContextualizerTest {
 
   @Test
   void testMultipleChildThreadedSpansEndWithinParent() {
-    SpanContextualizer testClass = new SpanContextualizer();
+    SpanContextualizer testClass = new SpanContextualizer(eventReader);
 
     Events events1 = buildEvents("0123012301230123", 906);
     Events events2 = buildEvents("9999888899998888", 907);
@@ -215,7 +225,8 @@ class SpanContextualizerTest {
 
   @Test
   void testOneSpanThreadHop_FirstThreadClosesFirst() {
-    SpanContextualizer testClass = new SpanContextualizer();
+    SpanContextualizer testClass = new SpanContextualizer(eventReader);
+
     Events events1 = buildEvents(spanId, 906);
     Events events2 = buildEvents(spanId, 907);
     testClass.updateContext(events1.scopeStart);
@@ -236,7 +247,8 @@ class SpanContextualizerTest {
 
   @Test
   void testVeryLargeNumberOfDynamicThreads() {
-    SpanContextualizer testClass = new SpanContextualizer();
+    SpanContextualizer testClass = new SpanContextualizer(eventReader);
+
     Random rand = new Random();
     int num = 500;
     Events rootEvents = buildEvents(spanId, 906);
@@ -305,19 +317,20 @@ class SpanContextualizerTest {
     Events result = new Events(spanId, threadId);
     result.scopeStart = contextEventIn(spanId, threadId);
     result.scopeEnd = contextEventOut(parent, threadId);
-    result.sourceEvent = mock(RecordedEvent.class);
-    EventType eventType = mock(EventType.class);
-    when(result.sourceEvent.getEventType()).thenReturn(eventType);
-    when(eventType.getName()).thenReturn("GreatSourceEventHere");
+    result.sourceEvent = mock(IItem.class);
+    IType eventType = mock(IType.class);
+    when(result.sourceEvent.getType()).thenReturn(eventType);
+    when(eventType.getIdentifier()).thenReturn("GreatSourceEventHere");
+
     return result;
   }
 
   static class Events {
     private final String spanId;
     private final long threadId;
-    public RecordedEvent scopeStart;
-    public RecordedEvent scopeEnd;
-    public RecordedEvent sourceEvent;
+    public IItem scopeStart;
+    public IItem scopeEnd;
+    public IItem sourceEvent;
 
     Events(String spanId, long threadId) {
       this.spanId = spanId;
@@ -325,11 +338,11 @@ class SpanContextualizerTest {
     }
   }
 
-  private RecordedEvent contextEventIn(String spanId, long threadId) {
+  private IItem contextEventIn(String spanId, long threadId) {
     return contextEvent(traceId, spanId, threadId);
   }
 
-  private RecordedEvent contextEventOut(Events parent, long threadId) {
+  private IItem contextEventOut(Events parent, long threadId) {
     if (parent == null) {
       return contextEvent(null, null, threadId);
     } else {
@@ -337,16 +350,17 @@ class SpanContextualizerTest {
     }
   }
 
-  private static RecordedEvent contextEvent(String traceId, String spanId, long threadId) {
-    RecordedEvent event = mock(RecordedEvent.class);
-    EventType type = mock(EventType.class);
-    when(type.getName()).thenReturn(ContextAttached.EVENT_NAME);
-    when(event.getEventType()).thenReturn(type);
-    when(event.getString("traceId")).thenReturn(traceId);
-    when(event.getString("spanId")).thenReturn(spanId);
-    RecordedThread thread = mock(RecordedThread.class);
-    when(thread.getJavaThreadId()).thenReturn(threadId);
-    when(event.getThread()).thenReturn(thread);
+  private IItem contextEvent(String traceId, String spanId, long threadId) {
+    IItem event = mock(IItem.class);
+    IType eventType = mock(IType.class);
+    when(event.getType()).thenReturn(eventType);
+    when(eventType.getIdentifier()).thenReturn(ContextAttached.EVENT_NAME);
+    when(eventReader.getTraceId(event)).thenReturn(traceId);
+    when(eventReader.getSpanId(event)).thenReturn(spanId);
+    IMCThread thread = mock(IMCThread.class);
+    when(thread.getThreadId()).thenReturn(threadId);
+    when(eventReader.getThread(event)).thenReturn(thread);
+
     return event;
   }
 }

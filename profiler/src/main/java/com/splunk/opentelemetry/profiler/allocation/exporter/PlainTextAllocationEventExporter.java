@@ -106,13 +106,6 @@ public class PlainTextAllocationEventExporter implements AllocationEventExporter
     String name = thread == null ? "unknown" : thread.getThreadName();
     long id = thread == null || thread.getThreadId() == null ? 0 : thread.getThreadId();
     String result = "\"" + name + "\"" + " #" + id;
-    if (thread != null) {
-      Long osThreadId = eventReader.getOSThreadId(thread);
-      if (osThreadId == null) {
-        osThreadId = 0L;
-      }
-      result += " nid=0x" + Long.toHexString(osThreadId);
-    }
     result += "\n";
     result += "   java.lang.Thread.State: UNKNOWN\n" + stack;
     return result;

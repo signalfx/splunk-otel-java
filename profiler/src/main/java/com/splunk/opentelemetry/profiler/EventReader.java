@@ -30,7 +30,6 @@ import org.openjdk.jmc.common.item.IMemberAccessor;
 import org.openjdk.jmc.common.item.IType;
 import org.openjdk.jmc.common.unit.IQuantity;
 import org.openjdk.jmc.flightrecorder.JfrAttributes;
-import org.openjdk.jmc.flightrecorder.internal.parser.v1.ThreadUtil;
 import org.openjdk.jmc.flightrecorder.jdk.JdkAttributes;
 
 public class EventReader {
@@ -96,11 +95,6 @@ public class EventReader {
     IMemberAccessor<IQuantity, IItem> accessor =
         getItemType(event).getAccessor(JdkAttributes.SAMPLE_WEIGHT.getKey());
     return accessor.getMember(event).longValue();
-  }
-
-  public long getOSThreadId(IMCThread thread) {
-    Long value = ThreadUtil.getOsThreadId(thread);
-    return value != null ? value.longValue() : 0;
   }
 
   @SuppressWarnings("unchecked")

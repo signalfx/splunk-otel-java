@@ -41,7 +41,6 @@ public class ProfilingSemanticAttributes {
 
   public static final AttributeKey<Long> THREAD_ID = longKey("thread.id");
   public static final AttributeKey<String> THREAD_NAME = stringKey("thread.name");
-  public static final AttributeKey<Long> THREAD_OS_ID = longKey("thread.os.id");
   public static final AttributeKey<String> THREAD_STATE = stringKey("thread.state");
   public static final AttributeKey<Boolean> THREAD_STACK_TRUNCATED =
       booleanKey("thread.stack.truncated");

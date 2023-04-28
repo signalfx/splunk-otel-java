@@ -123,7 +123,7 @@ class TLABProcessorTest {
   void testProcess() {
     Instant now = Instant.now();
     String stackAsString =
-        "\"mockingbird\" #606 nid=0x707\n"
+        "\"mockingbird\" #606\n"
             + "   java.lang.Thread.State: UNKNOWN\n"
             + "i am a serialized stack believe me";
 
@@ -193,7 +193,6 @@ class TLABProcessorTest {
     when(eventReader.getAllocationSize(event)).thenReturn(ONE_MB);
     when(eventReader.getThread(event)).thenReturn(mockThread);
     when(mockThread.getThreadId()).thenReturn(THREAD_ID);
-    when(eventReader.getOSThreadId(mockThread)).thenReturn(OS_THREAD_ID);
     when(mockThread.getThreadName()).thenReturn("mockingbird");
     when(stack.getTruncationState()).thenReturn(IMCStackTrace.TruncationState.NOT_TRUNCATED);
     when(eventType.getIdentifier()).thenReturn("tee-lab");

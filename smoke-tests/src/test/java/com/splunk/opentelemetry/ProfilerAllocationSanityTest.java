@@ -17,7 +17,6 @@
 package com.splunk.opentelemetry;
 
 import static com.splunk.opentelemetry.profiler.Configuration.DataFormat.PPROF_GZIP_BASE64;
-import static com.splunk.opentelemetry.profiler.Configuration.DataFormat.TEXT;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
@@ -46,12 +45,6 @@ abstract class ProfilerAllocationSanityTest extends SmokeTest {
   public static class TestPprof extends ProfilerAllocationSanityTest {
     TestPprof() {
       super(PPROF_GZIP_BASE64);
-    }
-  }
-
-  public static class TestText extends ProfilerAllocationSanityTest {
-    TestText() {
-      super(TEXT);
     }
   }
 

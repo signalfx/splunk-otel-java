@@ -73,14 +73,8 @@ public abstract class ProfilerSmokeTest {
     this.dataFormat = dataFormat;
   }
 
-  public static class TestTextJdk8 extends ProfilerSmokeTest {
-    TestTextJdk8() {
-      super("8", "text");
-    }
-  }
-
-  public static class TestPprofJdk8 extends ProfilerSmokeTest {
-    TestPprofJdk8() {
+  public static class TestJdk8 extends ProfilerSmokeTest {
+    TestJdk8() {
       super("8", Configuration.DataFormat.PPROF_GZIP_BASE64.value());
     }
   }

@@ -98,7 +98,7 @@ public class PprofAllocationEventExporter implements AllocationEventExporter {
                         "unknown", // file name is not known
                         method.getType().getFullName(),
                         method.getMethodName(),
-                        lineNumber != null ? lineNumber : 0));
+                        lineNumber != null && lineNumber != -1 ? lineNumber : 0));
               }
               pprof.incFrameCount();
             });

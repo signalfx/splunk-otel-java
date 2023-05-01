@@ -29,7 +29,6 @@ import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.TRAC
 import com.google.perftools.profiles.ProfileProto;
 import com.google.perftools.profiles.ProfileProto.Profile;
 import com.google.perftools.profiles.ProfileProto.Sample;
-import com.splunk.opentelemetry.profiler.Configuration.DataFormat;
 import com.splunk.opentelemetry.profiler.EventReader;
 import com.splunk.opentelemetry.profiler.ProfilingDataType;
 import com.splunk.opentelemetry.profiler.allocation.sampler.AllocationEventSampler;
@@ -45,18 +44,15 @@ import org.openjdk.jmc.common.item.IItem;
 
 public class PprofAllocationEventExporter implements AllocationEventExporter {
   private final EventReader eventReader;
-  private final DataFormat dataFormat;
   private final PprofLogDataExporter pprofLogDataExporter;
   private final int stackDepth;
   private Pprof pprof = createPprof();
 
   private PprofAllocationEventExporter(Builder builder) {
     this.eventReader = builder.eventReader;
-    this.dataFormat = builder.dataFormat;
     this.stackDepth = builder.stackDepth;
     this.pprofLogDataExporter =
-        new PprofLogDataExporter(
-            builder.otelLogger, ProfilingDataType.ALLOCATION, builder.dataFormat);
+        new PprofLogDataExporter(builder.otelLogger, ProfilingDataType.ALLOCATION);
   }
 
   @Override
@@ -154,7 +150,7 @@ public class PprofAllocationEventExporter implements AllocationEventExporter {
   }
 
   private byte[] serializePprof() {
-    byte[] result = pprof.serialize(dataFormat);
+    byte[] result = pprof.serialize();
     pprof = createPprof();
     return result;
   }
@@ -177,7 +173,6 @@ public class PprofAllocationEventExporter implements AllocationEventExporter {
   public static class Builder {
     private EventReader eventReader;
     private Logger otelLogger;
-    private DataFormat dataFormat;
     private int stackDepth;
 
     public PprofAllocationEventExporter build() {
@@ -191,11 +186,6 @@ public class PprofAllocationEventExporter implements AllocationEventExporter {
 
     public Builder otelLogger(Logger otelLogger) {
       this.otelLogger = otelLogger;
-      return this;
-    }
-
-    public Builder dataFormat(DataFormat dataFormat) {
-      this.dataFormat = dataFormat;
       return this;
     }
 

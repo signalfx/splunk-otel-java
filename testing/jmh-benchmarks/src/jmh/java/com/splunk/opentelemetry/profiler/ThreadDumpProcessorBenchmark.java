@@ -62,7 +62,7 @@ public class ThreadDumpProcessorBenchmark {
   }
 
   private static ThreadDumpProcessor buildNewThreadDumpProcessor() {
-    SpanContextualizer contextualizer = new SpanContextualizer();
+    SpanContextualizer contextualizer = new SpanContextualizer(new EventReader());
     CpuEventExporter cpuEventExporter = x -> {};
     return ThreadDumpProcessor.builder()
         .cpuEventExporter(cpuEventExporter)
@@ -72,17 +72,18 @@ public class ThreadDumpProcessorBenchmark {
 
   private static com.splunk.opentelemetry.profiler.old.ThreadDumpProcessor
       buildOldThreadDumpProcessor() {
-    SpanContextualizer contextualizer = new SpanContextualizer();
+    SpanContextualizer contextualizer = new SpanContextualizer(new EventReader());
     Consumer<StackToSpanLinkage> processor = x -> {};
     Predicate<String> filter = new AgentInternalsFilter();
     return new com.splunk.opentelemetry.profiler.old.ThreadDumpProcessor(
         contextualizer, processor, filter);
   }
 
-  @Benchmark
-  public void newThreadDumpProcessor(RecordingFileState state) {
-    state.newThreadDumpProcessor.accept(state.nextEvent());
-  }
+  // TODO: Not sure what to do with this or if we want to continue maintaining it
+  //  @Benchmark
+  //  public void newThreadDumpProcessor(RecordingFileState state) {
+  //    state.newThreadDumpProcessor.accept(state.nextEvent());
+  //  }
 
   @Benchmark
   public void oldThreadDumpProcessor(RecordingFileState state) {

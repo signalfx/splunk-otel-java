@@ -26,7 +26,6 @@ import static com.splunk.opentelemetry.profiler.util.Runnables.logUncaught;
 import static java.util.logging.Level.WARNING;
 
 import com.google.auto.service.AutoService;
-import com.splunk.opentelemetry.profiler.Configuration.DataFormat;
 import com.splunk.opentelemetry.profiler.allocation.exporter.AllocationEventExporter;
 import com.splunk.opentelemetry.profiler.allocation.exporter.PprofAllocationEventExporter;
 import com.splunk.opentelemetry.profiler.context.SpanContextualizer;
@@ -140,11 +139,9 @@ public class JfrActivator implements AgentListener {
     EventPeriods periods = new EventPeriods(jfrSettings::get);
     LogRecordExporter logsExporter = LogExporterBuilder.fromConfig(config);
 
-    DataFormat cpuDataFormat = Configuration.getCpuDataFormat(config);
     CpuEventExporter cpuEventExporter =
         PprofCpuEventExporter.builder()
             .otelLogger(buildOtelLogger(SimpleLogRecordProcessor.create(logsExporter), resource))
-            .dataFormat(cpuDataFormat)
             .eventPeriods(periods)
             .stackDepth(stackDepth)
             .build();
@@ -154,12 +151,10 @@ public class JfrActivator implements AgentListener {
         buildThreadDumpProcessor(
             eventReader, spanContextualizer, cpuEventExporter, stackTraceFilter, config);
 
-    DataFormat allocationDataFormat = Configuration.getAllocationDataFormat(config);
     AllocationEventExporter allocationEventExporter =
         PprofAllocationEventExporter.builder()
             .eventReader(eventReader)
             .otelLogger(buildOtelLogger(SimpleLogRecordProcessor.create(logsExporter), resource))
-            .dataFormat(allocationDataFormat)
             .stackDepth(stackDepth)
             .build();
 

@@ -66,7 +66,7 @@ create_collector_helm_chart_pr() {
   local repo_url="https://srv-gh-o11y-gdi:${GITHUB_TOKEN}@github.com/${repo}.git"
   local update_version_branch="java-version-update-$release_tag"
   local message="[java-version-update] Update agent version to $release_tag"
-  local java_repo = "ghcr.io/signalfx/splunk-otel-java/splunk-otel-java"
+  local java_repo="ghcr.io/signalfx/splunk-otel-java/splunk-otel-java"
 
   echo ">>> Cloning the $repo repository ..."
   git clone "$repo_url" collector-chart-mirror

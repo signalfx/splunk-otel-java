@@ -18,39 +18,26 @@ package com.splunk.opentelemetry.profiler;
 
 import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_TLAB_ENABLED;
 import static com.splunk.opentelemetry.profiler.Configuration.DEFAULT_MEMORY_ENABLED;
-import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.DATA_FORMAT;
-import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.DATA_TYPE;
-import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.SOURCE_EVENT_NAME;
-import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.SOURCE_TYPE;
-import static com.splunk.opentelemetry.profiler.TLABProcessor.ALLOCATION_SIZE_KEY;
 import static io.opentelemetry.sdk.testing.assertj.LogAssertions.assertThat;
-import static org.assertj.core.api.Assertions.entry;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.splunk.opentelemetry.profiler.allocation.exporter.AllocationEventExporter;
-import com.splunk.opentelemetry.profiler.allocation.exporter.PlainTextAllocationEventExporter;
+import com.splunk.opentelemetry.profiler.allocation.sampler.AllocationEventSampler;
 import com.splunk.opentelemetry.profiler.allocation.sampler.RateLimitingAllocationEventSampler;
 import com.splunk.opentelemetry.profiler.context.SpanContextualizer;
 import com.splunk.opentelemetry.profiler.context.SpanLinkage;
-import com.splunk.opentelemetry.profiler.events.EventPeriods;
 import com.splunk.opentelemetry.profiler.util.StackSerializer;
-import io.opentelemetry.api.common.AttributeKey;
-import io.opentelemetry.api.logs.Logger;
 import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.api.trace.SpanId;
 import io.opentelemetry.api.trace.TraceFlags;
 import io.opentelemetry.api.trace.TraceId;
 import io.opentelemetry.api.trace.TraceState;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
-import io.opentelemetry.sdk.common.Clock;
-import io.opentelemetry.sdk.logs.SdkLoggerProvider;
-import io.opentelemetry.sdk.logs.export.InMemoryLogRecordExporter;
-import io.opentelemetry.sdk.logs.export.SimpleLogRecordProcessor;
 import java.time.Instant;
-import java.util.concurrent.TimeUnit;
-import org.junit.jupiter.api.BeforeEach;
+import java.util.ArrayList;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -72,19 +59,7 @@ class TLABProcessorTest {
   public static final long THREAD_ID = 606L;
   public static final long OS_THREAD_ID = 0x707L;
 
-  static final InMemoryLogRecordExporter logExporter = InMemoryLogRecordExporter.create();
-  static final Logger otelLogger =
-      SdkLoggerProvider.builder()
-          .addLogRecordProcessor(SimpleLogRecordProcessor.create(logExporter))
-          .build()
-          .get("test");
-
   @Mock EventReader eventReader;
-
-  @BeforeEach
-  void reset() {
-    logExporter.reset();
-  }
 
   @Test
   void testNullStack() {
@@ -122,14 +97,7 @@ class TLABProcessorTest {
   @Test
   void testProcess() {
     Instant now = Instant.now();
-    String stackAsString =
-        "\"mockingbird\" #606 nid=0x707\n"
-            + "   java.lang.Thread.State: UNKNOWN\n"
-            + "i am a serialized stack believe me";
-
     StackSerializer serializer = mock(StackSerializer.class);
-    LogDataCommonAttributes commonAttrs = new LogDataCommonAttributes(new EventPeriods(x -> null));
-    Clock clock = new MockClock(now);
 
     IItem event = createMockEvent(serializer, now);
 
@@ -145,14 +113,7 @@ class TLABProcessorTest {
     SpanContextualizer spanContextualizer = mock(SpanContextualizer.class);
     when(spanContextualizer.link(THREAD_ID)).thenReturn(new SpanLinkage(spanContext, THREAD_ID));
 
-    AllocationEventExporter allocationEventExporter =
-        PlainTextAllocationEventExporter.builder()
-            .eventReader(eventReader)
-            .stackSerializer(serializer)
-            .logEmitter(otelLogger)
-            .commonAttributes(commonAttrs)
-            .stackDepth(128)
-            .build();
+    TestAllocationEventExporter allocationEventExporter = new TestAllocationEventExporter();
 
     TLABProcessor processor =
         TLABProcessor.builder(config)
@@ -163,20 +124,7 @@ class TLABProcessorTest {
 
     processor.accept(event);
 
-    assertThat(logExporter.getFinishedLogItems())
-        .satisfiesExactly(
-            log ->
-                assertThat(log)
-                    .hasSpanContext(spanContext)
-                    .hasBody(stackAsString)
-                    .hasEpochNanos(
-                        TimeUnit.SECONDS.toNanos(now.getEpochSecond()) + clock.nanoTime())
-                    .hasAttributes(
-                        entry(SOURCE_TYPE, "otel.profiling"),
-                        entry(SOURCE_EVENT_NAME, "tee-lab"),
-                        entry(ALLOCATION_SIZE_KEY, ONE_MB),
-                        entry(DATA_TYPE, ProfilingDataType.ALLOCATION.value()),
-                        entry(DATA_FORMAT, Configuration.DataFormat.TEXT.value())));
+    assertThat(allocationEventExporter.events).isNotEmpty();
   }
 
   private IItem createMockEvent(StackSerializer serializer, Instant now) {
@@ -202,29 +150,16 @@ class TLABProcessorTest {
     return event;
   }
 
-  private static final AttributeKey<String> SAMPLER_NAME_KEY =
-      AttributeKey.stringKey("sampler.name");
-  private static final AttributeKey<String> SAMPLER_LIMIT_KEY =
-      AttributeKey.stringKey("sampler.limit");
-
   @Test
   void testSampling() {
     StackSerializer serializer = mock(StackSerializer.class);
-    LogDataCommonAttributes commonAttrs = new LogDataCommonAttributes(new EventPeriods(x -> null));
     SpanContextualizer spanContextualizer = mock(SpanContextualizer.class);
     when(spanContextualizer.link(anyLong())).thenReturn(SpanLinkage.NONE);
 
     ConfigProperties config = mock(ConfigProperties.class);
     when(config.getBoolean(CONFIG_KEY_TLAB_ENABLED, DEFAULT_MEMORY_ENABLED)).thenReturn(true);
 
-    AllocationEventExporter allocationEventExporter =
-        PlainTextAllocationEventExporter.builder()
-            .eventReader(eventReader)
-            .stackSerializer(serializer)
-            .logEmitter(otelLogger)
-            .commonAttributes(commonAttrs)
-            .stackDepth(128)
-            .build();
+    TestAllocationEventExporter allocationEventExporter = new TestAllocationEventExporter();
 
     RateLimitingAllocationEventSampler sampler = new RateLimitingAllocationEventSampler("100/s");
     TLABProcessor processor =
@@ -242,41 +177,25 @@ class TLABProcessorTest {
       processor.accept(event);
 
       if (i % 2 == 0) {
-        assertThat(logExporter.getFinishedLogItems())
-            .satisfiesExactly(
-                log ->
-                    assertThat(log)
-                        .hasAttributes(
-                            entry(SOURCE_TYPE, "otel.profiling"),
-                            entry(SOURCE_EVENT_NAME, "tee-lab"),
-                            entry(SAMPLER_NAME_KEY, "Rate limiting sampler"),
-                            entry(SAMPLER_LIMIT_KEY, "100/s"),
-                            entry(ALLOCATION_SIZE_KEY, ONE_MB),
-                            entry(DATA_TYPE, ProfilingDataType.ALLOCATION.value()),
-                            entry(DATA_FORMAT, Configuration.DataFormat.TEXT.value())));
+        assertThat(allocationEventExporter.events).isNotEmpty();
       } else {
-        assertThat(logExporter.getFinishedLogItems()).isEmpty();
+        assertThat(allocationEventExporter.events).isEmpty();
       }
 
-      logExporter.reset();
+      allocationEventExporter.reset();
     }
   }
 
-  private static class MockClock implements Clock {
-    private final Instant now;
-
-    public MockClock(Instant now) {
-      this.now = now;
-    }
+  private static class TestAllocationEventExporter implements AllocationEventExporter {
+    List<IItem> events = new ArrayList<>();
 
     @Override
-    public long now() {
-      return now.toEpochMilli();
+    public void export(IItem event, AllocationEventSampler sampler, SpanContext spanContext) {
+      events.add(event);
     }
 
-    @Override
-    public long nanoTime() {
-      return now.getNano();
+    void reset() {
+      events.clear();
     }
   }
 }

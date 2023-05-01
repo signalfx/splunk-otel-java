@@ -169,7 +169,6 @@ public class Configuration implements AutoConfigurationCustomizerProvider {
   }
 
   public enum DataFormat {
-    TEXT,
     PPROF_GZIP_BASE64;
 
     private final String value;

@@ -28,12 +28,10 @@ import static java.util.logging.Level.WARNING;
 import com.google.auto.service.AutoService;
 import com.splunk.opentelemetry.profiler.Configuration.DataFormat;
 import com.splunk.opentelemetry.profiler.allocation.exporter.AllocationEventExporter;
-import com.splunk.opentelemetry.profiler.allocation.exporter.PlainTextAllocationEventExporter;
 import com.splunk.opentelemetry.profiler.allocation.exporter.PprofAllocationEventExporter;
 import com.splunk.opentelemetry.profiler.context.SpanContextualizer;
 import com.splunk.opentelemetry.profiler.events.EventPeriods;
 import com.splunk.opentelemetry.profiler.exporter.CpuEventExporter;
-import com.splunk.opentelemetry.profiler.exporter.PlainTextCpuEventExporter;
 import com.splunk.opentelemetry.profiler.exporter.PprofCpuEventExporter;
 import com.splunk.opentelemetry.profiler.util.FileDeleter;
 import com.splunk.opentelemetry.profiler.util.HelpfulExecutors;
@@ -140,26 +138,16 @@ public class JfrActivator implements AgentListener {
     EventReader eventReader = new EventReader();
     SpanContextualizer spanContextualizer = new SpanContextualizer(eventReader);
     EventPeriods periods = new EventPeriods(jfrSettings::get);
-    LogDataCommonAttributes commonAttributes = new LogDataCommonAttributes(periods);
     LogRecordExporter logsExporter = LogExporterBuilder.fromConfig(config);
 
     DataFormat cpuDataFormat = Configuration.getCpuDataFormat(config);
-    CpuEventExporter cpuEventExporter;
-    if (cpuDataFormat == DataFormat.TEXT) {
-      cpuEventExporter =
-          PlainTextCpuEventExporter.builder()
-              .otelLogger(buildOtelLogger(BatchLogProcessorHolder.get(logsExporter), resource))
-              .commonAttributes(commonAttributes)
-              .build();
-    } else {
-      cpuEventExporter =
-          PprofCpuEventExporter.builder()
-              .otelLogger(buildOtelLogger(SimpleLogRecordProcessor.create(logsExporter), resource))
-              .dataFormat(cpuDataFormat)
-              .eventPeriods(periods)
-              .stackDepth(stackDepth)
-              .build();
-    }
+    CpuEventExporter cpuEventExporter =
+        PprofCpuEventExporter.builder()
+            .otelLogger(buildOtelLogger(SimpleLogRecordProcessor.create(logsExporter), resource))
+            .dataFormat(cpuDataFormat)
+            .eventPeriods(periods)
+            .stackDepth(stackDepth)
+            .build();
 
     StackTraceFilter stackTraceFilter = buildStackTraceFilter(config, eventReader);
     ThreadDumpProcessor threadDumpProcessor =
@@ -167,24 +155,13 @@ public class JfrActivator implements AgentListener {
             eventReader, spanContextualizer, cpuEventExporter, stackTraceFilter, config);
 
     DataFormat allocationDataFormat = Configuration.getAllocationDataFormat(config);
-    AllocationEventExporter allocationEventExporter;
-    if (allocationDataFormat == DataFormat.TEXT) {
-      allocationEventExporter =
-          PlainTextAllocationEventExporter.builder()
-              .eventReader(eventReader)
-              .logEmitter(buildOtelLogger(BatchLogProcessorHolder.get(logsExporter), resource))
-              .commonAttributes(commonAttributes)
-              .stackDepth(stackDepth)
-              .build();
-    } else {
-      allocationEventExporter =
-          PprofAllocationEventExporter.builder()
-              .eventReader(eventReader)
-              .otelLogger(buildOtelLogger(SimpleLogRecordProcessor.create(logsExporter), resource))
-              .dataFormat(allocationDataFormat)
-              .stackDepth(stackDepth)
-              .build();
-    }
+    AllocationEventExporter allocationEventExporter =
+        PprofAllocationEventExporter.builder()
+            .eventReader(eventReader)
+            .otelLogger(buildOtelLogger(SimpleLogRecordProcessor.create(logsExporter), resource))
+            .dataFormat(allocationDataFormat)
+            .stackDepth(stackDepth)
+            .build();
 
     TLABProcessor tlabProcessor =
         TLABProcessor.builder(config)

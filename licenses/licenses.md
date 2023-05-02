@@ -1,7 +1,7 @@
 
 #splunk-otel-javaagent
 ##Dependency License Report
-_2023-04-25 14:55:17 EEST_
+_2023-05-02 11:43:42 EEST_
 ## Apache License, Version 2.0
 
 **1** **Group:** `com.fasterxml.jackson.core` **Name:** `jackson-core` **Version:** `2.15.0` 
@@ -256,12 +256,12 @@ _2023-04-25 14:55:17 EEST_
 
 ## Universal Permissive License Version 1.0 or The 3-Clause BSD License
 
-**53** **Group:** `org.openjdk.jmc` **Name:** `common` **Version:** `8.3.0` 
+**53** **Group:** `org.openjdk.jmc` **Name:** `common` **Version:** `8.3.1` 
 > - **POM License**: Universal Permissive License Version 1.0 or The 3-Clause BSD License - [https://github.com/openjdk/jmc/blob/master/core/license/LICENSE.txt](https://github.com/openjdk/jmc/blob/master/core/license/LICENSE.txt)
-> - **Embedded license files**: [common-8.3.0.jar/LICENSE.txt](common-8.3.0.jar/LICENSE.txt)
+> - **Embedded license files**: [common-8.3.1.jar/LICENSE.txt](common-8.3.1.jar/LICENSE.txt)
 
-**54** **Group:** `org.openjdk.jmc` **Name:** `flightrecorder` **Version:** `8.3.0` 
+**54** **Group:** `org.openjdk.jmc` **Name:** `flightrecorder` **Version:** `8.3.1` 
 > - **POM License**: Universal Permissive License Version 1.0 or The 3-Clause BSD License - [https://github.com/openjdk/jmc/blob/master/core/license/LICENSE.txt](https://github.com/openjdk/jmc/blob/master/core/license/LICENSE.txt)
-> - **Embedded license files**: [flightrecorder-8.3.0.jar/LICENSE.txt](flightrecorder-8.3.0.jar/LICENSE.txt)
+> - **Embedded license files**: [flightrecorder-8.3.1.jar/LICENSE.txt](flightrecorder-8.3.1.jar/LICENSE.txt)
 
 

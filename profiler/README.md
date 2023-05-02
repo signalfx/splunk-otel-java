@@ -105,14 +105,6 @@ The agent logs the profiling configuration at `INFO` during startup. You can gre
 [otel.javaagent 2021-09-28 18:17:04:246 +0000] [main] INFO <snip> - -----------------------
 ```
 
-### What about this escape hatch?
-
-If the escape hatch becomes active, it will log with `com.splunk.opentelemetry.profiler.RecordingEscapeHatch`
-(you can grep for this in the logs). You may also look for `"** THIS WILL RESULT IN LOSS OF PROFILING DATA **"`
-as a big hint that things are not well.
-
-You may need to free up some disk space and/or give the JVM more resources.
-
 ### What if I'm on an unsupported JVM?
 
 If your JVM does not support JFR, the profiler logs a warning at startup with the

@@ -44,8 +44,9 @@ class JfrRecorder {
 
   private final Duration maxAgeDuration;
   private final JFR jfr;
-  private final Consumer<Path> onNewRecordingFile;
+  private final Consumer<InputStream> onNewRecording;
   private final RecordingFileNamingConvention namingConvention;
+  private final boolean keepRecordingFiles;
   private volatile Recording recording;
   private volatile Instant snapshotStart = Instant.now();
 
@@ -53,8 +54,9 @@ class JfrRecorder {
     this.settings = requireNonNull(builder.settings);
     this.maxAgeDuration = requireNonNull(builder.maxAgeDuration);
     this.jfr = requireNonNull(builder.jfr);
-    this.onNewRecordingFile = requireNonNull(builder.onNewRecordingFile);
+    this.onNewRecording = requireNonNull(builder.onNewRecording);
     this.namingConvention = requireNonNull(builder.namingConvention);
+    this.keepRecordingFiles = builder.keepRecordingFiles;
   }
 
   public void start() {
@@ -75,24 +77,33 @@ class JfrRecorder {
 
   public void flushSnapshot() {
     try (Recording snap = jfr.takeSnapshot()) {
-      Path path = namingConvention.newOutputPath().toAbsolutePath();
-      logger.log(FINE, "Flushing a JFR snapshot: {0}", path);
       Instant snapshotEnd = snap.getStopTime();
-      try (InputStream in = snap.getStream(snapshotStart, snapshotEnd)) {
-        try (OutputStream out = Files.newOutputStream(path)) {
-          copy(in, out);
-          if (logger.isLoggable(FINE)) {
-            logger.log(
-                FINE,
-                "Wrote JFR dump {0} with size {1}",
-                new Object[] {path, path.toFile().length()});
+      Instant start = snapshotStart;
+      snapshotStart = snapshotEnd;
+      if (keepRecordingFiles) {
+        Path path = namingConvention.newOutputPath().toAbsolutePath();
+        logger.log(FINE, "Flushing a JFR snapshot: {0}", path);
+        try (InputStream in = snap.getStream(start, snapshotEnd)) {
+          try (OutputStream out = Files.newOutputStream(path)) {
+            copy(in, out);
+            if (logger.isLoggable(FINE)) {
+              logger.log(
+                  FINE,
+                  "Wrote JFR dump {0} with size {1}",
+                  new Object[] {path, path.toFile().length()});
+            }
           }
         }
+        try (InputStream in = Files.newInputStream(path)) {
+          onNewRecording.accept(in);
+        }
+      } else {
+        try (InputStream in = snap.getStream(start, snapshotEnd)) {
+          onNewRecording.accept(in);
+        }
       }
-      snapshotStart = snapshotEnd;
-      onNewRecordingFile.accept(path);
     } catch (IOException e) {
-      logger.log(SEVERE, "Error flushing JFR snapshot data to disk", e);
+      logger.log(SEVERE, "Error handling JFR recording", e);
     }
   }
 
@@ -122,7 +133,8 @@ class JfrRecorder {
     private Map<String, String> settings;
     private Duration maxAgeDuration;
     private JFR jfr = JFR.instance;
-    private Consumer<Path> onNewRecordingFile;
+    private Consumer<InputStream> onNewRecording;
+    private boolean keepRecordingFiles;
 
     public Builder settings(Map<String, String> settings) {
       this.settings = settings;
@@ -139,13 +151,18 @@ class JfrRecorder {
       return this;
     }
 
-    public Builder onNewRecordingFile(Consumer<Path> onNewRecordingFile) {
-      this.onNewRecordingFile = onNewRecordingFile;
+    public Builder onNewRecording(Consumer<InputStream> onNewRecording) {
+      this.onNewRecording = onNewRecording;
       return this;
     }
 
     public Builder namingConvention(RecordingFileNamingConvention namingConvention) {
       this.namingConvention = namingConvention;
+      return this;
+    }
+
+    public Builder keepRecordingFiles(boolean keepRecordingFiles) {
+      this.keepRecordingFiles = keepRecordingFiles;
       return this;
     }
 

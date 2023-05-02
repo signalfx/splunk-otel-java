@@ -35,12 +35,10 @@ class RecordingSequencer {
   private final ScheduledExecutorService executor =
       HelpfulExecutors.newSingleThreadedScheduledExecutor("JFR Recording Sequencer");
   private final Duration recordingDuration;
-  private final RecordingEscapeHatch recordingEscapeHatch;
   private final JfrRecorder recorder;
 
   private RecordingSequencer(Builder builder) {
     this.recordingDuration = builder.recordingDuration;
-    this.recordingEscapeHatch = builder.recordingEscapeHatch;
     this.recorder = builder.recorder;
   }
 
@@ -53,13 +51,6 @@ class RecordingSequencer {
   @VisibleForTesting
   void handleInterval() {
     try {
-      if (!recordingEscapeHatch.jfrCanContinue()) {
-        logger.warning("JFR recordings cannot proceed.");
-        if (recorder.isStarted()) {
-          recorder.stop();
-        }
-        return;
-      }
       if (!recorder.isStarted()) {
         recorder.start();
         return;
@@ -76,16 +67,10 @@ class RecordingSequencer {
 
   public static class Builder {
     private Duration recordingDuration;
-    private RecordingEscapeHatch recordingEscapeHatch;
     private JfrRecorder recorder;
 
     public Builder recordingDuration(Duration duration) {
       this.recordingDuration = duration;
-      return this;
-    }
-
-    public Builder recordingEscapeHatch(RecordingEscapeHatch prediate) {
-      this.recordingEscapeHatch = prediate;
       return this;
     }
 

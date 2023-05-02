@@ -6,6 +6,9 @@
 #    busybox image because it contains the Linux command cp which must be available.
 FROM busybox
 
+LABEL org.opencontainers.image.source="https://github.com/signalfx/splunk-otel-java"
+LABEL org.opencontainers.image.description="Splunk Distribution of OpenTelemetry Java Instrumentation"
+
 ARG RELEASE_VER
 ENV RELEASE_VER=$RELEASE_VER
 

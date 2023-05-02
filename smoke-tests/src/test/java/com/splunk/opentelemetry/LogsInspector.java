@@ -25,9 +25,7 @@ import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.THRE
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.TRACE_ID;
 
 import com.google.perftools.profiles.ProfileProto;
-import com.splunk.opentelemetry.profiler.Configuration;
 import com.splunk.opentelemetry.profiler.ProfilingDataType;
-import com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.proto.collector.logs.v1.ExportLogsServiceRequest;
 import io.opentelemetry.proto.common.v1.KeyValue;
@@ -79,23 +77,13 @@ public final class LogsInspector {
         ProfilingDataType.valueOf(dataType.toUpperCase(Locale.ROOT));
     List<ProfilerSample> samples = getSamplesList(profilingDataType);
 
-    String dataFormatAttr = getStringAttr(logRecord, ProfilingSemanticAttributes.DATA_FORMAT);
-    Objects.requireNonNull(dataFormatAttr, "Data format not set");
-    Configuration.DataFormat dataFormat = Configuration.DataFormat.fromString(dataFormatAttr);
-
-    switch (dataFormat) {
-      case PPROF_GZIP_BASE64:
-        try {
-          ProfileProto.Profile profile = parsePprof(logRecord.getBody().getStringValue());
-          for (ProfileProto.Sample sample : profile.getSampleList()) {
-            samples.add(new PprofProfilerSample(profile, sample));
-          }
-        } catch (IOException exception) {
-          throw new IllegalStateException("Failed to parse pprof", exception);
-        }
-        break;
-      default:
-        throw new IllegalStateException("unexpected data format: " + dataFormat);
+    try {
+      ProfileProto.Profile profile = parsePprof(logRecord.getBody().getStringValue());
+      for (ProfileProto.Sample sample : profile.getSampleList()) {
+        samples.add(new PprofProfilerSample(profile, sample));
+      }
+    } catch (IOException exception) {
+      throw new IllegalStateException("Failed to parse pprof", exception);
     }
   }
 

@@ -28,7 +28,6 @@ import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.THRE
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.TRACE_ID;
 
 import com.google.perftools.profiles.ProfileProto.Sample;
-import com.splunk.opentelemetry.profiler.Configuration.DataFormat;
 import com.splunk.opentelemetry.profiler.ProfilingDataType;
 import com.splunk.opentelemetry.profiler.context.StackToSpanLinkage;
 import com.splunk.opentelemetry.profiler.events.EventPeriods;
@@ -40,18 +39,15 @@ import java.time.Duration;
 import java.time.Instant;
 
 public class PprofCpuEventExporter implements CpuEventExporter {
-  private final DataFormat dataFormat;
   private final EventPeriods eventPeriods;
   private final int stackDepth;
   private final PprofLogDataExporter pprofLogDataExporter;
   private Pprof pprof = createPprof();
 
   private PprofCpuEventExporter(Builder builder) {
-    this.dataFormat = builder.dataFormat;
     this.eventPeriods = builder.eventPeriods;
     this.stackDepth = builder.stackDepth;
-    this.pprofLogDataExporter =
-        new PprofLogDataExporter(builder.otelLogger, ProfilingDataType.CPU, builder.dataFormat);
+    this.pprofLogDataExporter = new PprofLogDataExporter(builder.otelLogger, ProfilingDataType.CPU);
   }
 
   @Override
@@ -106,7 +102,7 @@ public class PprofCpuEventExporter implements CpuEventExporter {
   }
 
   private byte[] serializePprof() {
-    byte[] result = pprof.serialize(dataFormat);
+    byte[] result = pprof.serialize();
     pprof = createPprof();
     return result;
   }
@@ -128,7 +124,6 @@ public class PprofCpuEventExporter implements CpuEventExporter {
 
   public static class Builder {
     private Logger otelLogger;
-    private DataFormat dataFormat;
     private EventPeriods eventPeriods;
     private int stackDepth;
 
@@ -138,11 +133,6 @@ public class PprofCpuEventExporter implements CpuEventExporter {
 
     public Builder otelLogger(Logger otelLogger) {
       this.otelLogger = otelLogger;
-      return this;
-    }
-
-    public Builder dataFormat(DataFormat dataFormat) {
-      this.dataFormat = dataFormat;
       return this;
     }
 

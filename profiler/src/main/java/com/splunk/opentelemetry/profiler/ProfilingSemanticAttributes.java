@@ -36,7 +36,6 @@ public class ProfilingSemanticAttributes {
   public static final AttributeKey<Long> SOURCE_EVENT_TIME = longKey("source.event.time");
 
   public static final AttributeKey<String> DATA_TYPE = stringKey("profiling.data.type");
-  public static final AttributeKey<String> DATA_FORMAT = stringKey("profiling.data.format");
   public static final AttributeKey<Long> FRAME_COUNT = longKey("profiling.data.total.frame.count");
 
   public static final AttributeKey<Long> THREAD_ID = longKey("thread.id");

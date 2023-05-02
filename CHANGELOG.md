@@ -8,6 +8,10 @@ and this repository adheres to [Semantic Versioning](https://semver.org/spec/v2.
 
 ## Unreleased
 
+## v1.23.1 - 2023-05-02
+
+- OpenTelemetry Instrumentation for Java has been updated to version 1.25.1.
+
 ## v1.23.0 - 2023-04-17
 
 ### General

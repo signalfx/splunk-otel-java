@@ -35,6 +35,7 @@ class RecordingSequencerTest {
   Duration duration = Duration.ofMillis(10);
 
   @Mock JfrRecorder recorder;
+  @Mock RecordingFileNamingConvention namingConvention;
 
   @Test
   void canContinueNotStarted() {
@@ -71,7 +72,7 @@ class RecordingSequencerTest {
     return RecordingSequencer.builder().recordingDuration(duration).recorder(recorder).build();
   }
 
-  private static class MockRecorder extends JfrRecorder {
+  private class MockRecorder extends JfrRecorder {
     private final CountDownLatch flushLatch;
     final CountDownLatch stopLatch = new CountDownLatch(1);
     boolean started;
@@ -81,6 +82,7 @@ class RecordingSequencerTest {
           new Builder()
               .settings(Collections.emptyMap())
               .maxAgeDuration(Duration.ofSeconds(10))
+              .namingConvention(namingConvention)
               .onNewRecording(mock(Consumer.class)));
       this.flushLatch = flushLatch;
       started = false;

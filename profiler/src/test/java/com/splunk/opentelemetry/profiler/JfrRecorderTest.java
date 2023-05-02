@@ -45,6 +45,7 @@ class JfrRecorderTest {
   Map<String, String> settings;
   @Mock Recording recording;
   @Mock Consumer<InputStream> onNewRecording;
+  @Mock RecordingFileNamingConvention namingConvention;
 
   @BeforeEach
   void setup() {
@@ -117,6 +118,7 @@ class JfrRecorderTest {
             .maxAgeDuration(maxAge)
             .settings(settings)
             .onNewRecording(onNewRecording)
+            .namingConvention(namingConvention)
             .jfr(jfr);
 
     return new JfrRecorder(builder) {

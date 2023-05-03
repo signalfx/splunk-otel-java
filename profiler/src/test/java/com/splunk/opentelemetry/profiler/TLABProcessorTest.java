@@ -57,7 +57,6 @@ class TLABProcessorTest {
 
   public static final long ONE_MB = 1024 * 1024L;
   public static final long THREAD_ID = 606L;
-  public static final long OS_THREAD_ID = 0x707L;
 
   @Mock EventReader eventReader;
 
@@ -141,7 +140,6 @@ class TLABProcessorTest {
     when(eventReader.getAllocationSize(event)).thenReturn(ONE_MB);
     when(eventReader.getThread(event)).thenReturn(mockThread);
     when(mockThread.getThreadId()).thenReturn(THREAD_ID);
-    when(eventReader.getOSThreadId(mockThread)).thenReturn(OS_THREAD_ID);
     when(mockThread.getThreadName()).thenReturn("mockingbird");
     when(stack.getTruncationState()).thenReturn(IMCStackTrace.TruncationState.NOT_TRUNCATED);
     when(eventType.getIdentifier()).thenReturn("tee-lab");

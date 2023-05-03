@@ -54,8 +54,6 @@ property or as environment variables (by making them uppercase and replacing dot
 | `splunk.profiler.memory.sampler.interval` | 1                                                      | set to `2` or larger to enable sampling every Nth allocation event where N is the value of this property                                                                                      |
 | `splunk.profiler.include.internal.stacks` | false                                                  | set to `true` to include stack traces of agent internal threads and stack traces with only JDK internal frames                                                                                |
 | `splunk.profiler.tracing.stacks.only`     | false                                                  | set to `true` to include only stack traces that are linked to a span context                                                                                                                  |
-| `splunk.profiler.cpu.data.format`         | `pprof-gzip-base64`                                    | DEPRECATED. Controls the format of CPU call stack data sent to the collector. Should be `pprof-gzip-base64` (`text` is deprecated and will be removed in the next release)                    |
-| `splunk.profiler.memory.data.format`      | `pprof-gzip-base64`                                    | DEPRECATED. Controls the format of memory allocation call site stack data sent to the collector. Should be `pprof-gzip-base64` (`text` is deprecated and will be removed in the next release) |
 
 If the `splunk.profiler.enabled` option is not enabled, all profiling features are disabled. For
 example, setting `splunk.profiler.memory.enabled` to `true` has no effect if

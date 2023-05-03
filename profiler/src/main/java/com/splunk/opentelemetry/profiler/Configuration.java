@@ -26,7 +26,6 @@ import io.opentelemetry.sdk.autoconfigure.spi.AutoConfigurationCustomizerProvide
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import java.time.Duration;
 import java.util.HashMap;
-import java.util.Locale;
 import java.util.Map;
 import java.util.logging.Logger;
 
@@ -148,42 +147,11 @@ public class Configuration implements AutoConfigurationCustomizerProvider {
     return config.getInt(CONFIG_KEY_STACK_DEPTH, DEFAULT_STACK_DEPTH);
   }
 
-  public static DataFormat getCpuDataFormat(ConfigProperties config) {
-    String value =
-        config.getString(CONFIG_KEY_CPU_DATA_FORMAT, DataFormat.PPROF_GZIP_BASE64.value());
-    return DataFormat.fromString(value);
-  }
-
-  public static DataFormat getAllocationDataFormat(ConfigProperties config) {
-    String value =
-        config.getString(CONFIG_KEY_MEMORY_DATA_FORMAT, DataFormat.PPROF_GZIP_BASE64.value());
-    return DataFormat.fromString(value);
-  }
-
   private static int getJavaVersion() {
     String javaSpecVersion = System.getProperty("java.specification.version");
     if ("1.8".equals(javaSpecVersion)) {
       return 8;
     }
     return Integer.parseInt(javaSpecVersion);
-  }
-
-  public enum DataFormat {
-    TEXT,
-    PPROF_GZIP_BASE64;
-
-    private final String value;
-
-    DataFormat() {
-      value = name().toLowerCase(Locale.ROOT).replace('_', '-');
-    }
-
-    public static DataFormat fromString(String value) {
-      return DataFormat.valueOf(value.toUpperCase(Locale.ROOT).replace('-', '_'));
-    }
-
-    public String value() {
-      return value;
-    }
   }
 }

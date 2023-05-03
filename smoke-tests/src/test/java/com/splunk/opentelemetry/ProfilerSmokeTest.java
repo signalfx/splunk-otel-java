@@ -18,7 +18,6 @@ package com.splunk.opentelemetry;
 
 import static com.splunk.opentelemetry.LogsInspector.getStringAttr;
 import static com.splunk.opentelemetry.LogsInspector.hasThreadName;
-import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.DATA_FORMAT;
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.FRAME_COUNT;
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.SOURCE_TYPE;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -31,7 +30,6 @@ import com.splunk.opentelemetry.helper.TargetWaitStrategy;
 import com.splunk.opentelemetry.helper.TestContainerManager;
 import com.splunk.opentelemetry.helper.TestImage;
 import com.splunk.opentelemetry.helper.windows.WindowsTestContainerManager;
-import com.splunk.opentelemetry.profiler.Configuration;
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
@@ -66,36 +64,28 @@ public abstract class ProfilerSmokeTest {
   private TestContainerManager containerManager;
   private TelemetryRetriever telemetryRetriever;
   private final String jdkVersion;
-  private final String dataFormat;
 
-  ProfilerSmokeTest(String jdkVersion, String dataFormat) {
+  ProfilerSmokeTest(String jdkVersion) {
     this.jdkVersion = jdkVersion;
-    this.dataFormat = dataFormat;
   }
 
-  public static class TestTextJdk8 extends ProfilerSmokeTest {
-    TestTextJdk8() {
-      super("8", "text");
-    }
-  }
-
-  public static class TestPprofJdk8 extends ProfilerSmokeTest {
-    TestPprofJdk8() {
-      super("8", Configuration.DataFormat.PPROF_GZIP_BASE64.value());
+  public static class TestJdk8 extends ProfilerSmokeTest {
+    TestJdk8() {
+      super("8");
     }
   }
 
   @Ignore
   public static class TestJdk11 extends ProfilerSmokeTest {
     TestJdk11() {
-      super("11", Configuration.DataFormat.PPROF_GZIP_BASE64.value());
+      super("11");
     }
   }
 
   @Ignore
   public static class TestJdk17 extends ProfilerSmokeTest {
     TestJdk17() {
-      super("17", Configuration.DataFormat.PPROF_GZIP_BASE64.value());
+      super("17");
     }
   }
 
@@ -146,13 +136,10 @@ public abstract class ProfilerSmokeTest {
     LogsInspector logs = telemetryRetriever.waitForLogs();
 
     assertThat(logs.getLogStream())
-        .allMatch(log -> "otel.profiling".equals(getStringAttr(log, SOURCE_TYPE)))
-        .allMatch(log -> dataFormat.equals(getStringAttr(log, DATA_FORMAT)));
+        .allMatch(log -> "otel.profiling".equals(getStringAttr(log, SOURCE_TYPE)));
 
-    if (dataFormat.equals(Configuration.DataFormat.PPROF_GZIP_BASE64.value())) {
-      assertThat(logs.getLogStream())
-          .allMatch(log -> LogsInspector.getLongAttr(log, FRAME_COUNT) > 0);
-    }
+    assertThat(logs.getLogStream())
+        .allMatch(log -> LogsInspector.getLongAttr(log, FRAME_COUNT) > 0);
 
     assertThat(logs.getCpuSamples())
         .isNotEmpty()
@@ -288,8 +275,6 @@ public abstract class ProfilerSmokeTest {
                 "-Dotel.javaagent.debug=true",
                 "-Dsplunk.profiler.enabled=true",
                 "-Dsplunk.profiler.tlab.enabled=true",
-                "-Dsplunk.profiler.cpu.data.format=" + dataFormat,
-                "-Dsplunk.profiler.memory.data.format=" + dataFormat,
                 "-Dsplunk.profiler.directory=/app/jfr",
                 "-Dsplunk.profiler.keep-files=true",
                 "-Dsplunk.profiler.call.stack.interval=1001",

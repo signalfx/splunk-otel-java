@@ -16,14 +16,12 @@
 
 package com.splunk.opentelemetry.profiler.exporter;
 
-import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.DATA_FORMAT;
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.DATA_TYPE;
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.FRAME_COUNT;
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.PROFILING_SOURCE;
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.SOURCE_TYPE;
 import static java.util.logging.Level.FINE;
 
-import com.splunk.opentelemetry.profiler.Configuration.DataFormat;
 import com.splunk.opentelemetry.profiler.ProfilingDataType;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.logs.Logger;
@@ -35,19 +33,15 @@ public class PprofLogDataExporter {
 
   private final Logger otelLogger;
   private final ProfilingDataType dataType;
-  private final DataFormat dataFormat;
   private final Attributes commonAttributes;
 
-  public PprofLogDataExporter(
-      Logger otelLogger, ProfilingDataType dataType, DataFormat dataFormat) {
+  public PprofLogDataExporter(Logger otelLogger, ProfilingDataType dataType) {
     this.otelLogger = otelLogger;
     this.dataType = dataType;
-    this.dataFormat = dataFormat;
     this.commonAttributes =
         Attributes.builder()
             .put(SOURCE_TYPE, PROFILING_SOURCE)
             .put(DATA_TYPE, dataType.value())
-            .put(DATA_FORMAT, dataFormat.value())
             .build();
   }
 
@@ -55,8 +49,8 @@ public class PprofLogDataExporter {
     if (logger.isLoggable(FINE)) {
       logger.log(
           FINE,
-          "Exporting {0} data as {1}, size {2}.",
-          new Object[] {dataType.value(), dataFormat.value(), bytes.length});
+          "Exporting {0} data as pprof, size {2}.",
+          new Object[] {dataType.value(), bytes.length});
     }
 
     String body = new String(bytes, StandardCharsets.ISO_8859_1);

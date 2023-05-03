@@ -16,9 +16,13 @@
 
 package com.splunk.opentelemetry.profiler.pprof;
 
-import static com.google.perftools.profiles.ProfileProto.*;
+import static com.google.perftools.profiles.ProfileProto.Function;
+import static com.google.perftools.profiles.ProfileProto.Label;
+import static com.google.perftools.profiles.ProfileProto.Line;
+import static com.google.perftools.profiles.ProfileProto.Location;
+import static com.google.perftools.profiles.ProfileProto.Profile;
+import static com.google.perftools.profiles.ProfileProto.Sample;
 
-import com.splunk.opentelemetry.profiler.Configuration;
 import io.opentelemetry.api.common.AttributeKey;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -94,11 +98,7 @@ public class Pprof {
     return frameCount;
   }
 
-  public byte[] serialize(Configuration.DataFormat dataFormat) {
-    if (dataFormat != Configuration.DataFormat.PPROF_GZIP_BASE64) {
-      throw new IllegalArgumentException("Unsupported data format " + dataFormat);
-    }
-
+  public byte[] serialize() {
     Profile profile = profileBuilder.build();
     try {
       ByteArrayOutputStream byteStream = new ByteArrayOutputStream();

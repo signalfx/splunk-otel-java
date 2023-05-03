@@ -25,12 +25,8 @@ import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.THRE
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.TRACE_ID;
 
 import com.google.perftools.profiles.ProfileProto;
-import com.splunk.opentelemetry.profiler.Configuration;
 import com.splunk.opentelemetry.profiler.ProfilingDataType;
-import com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes;
 import io.opentelemetry.api.common.AttributeKey;
-import io.opentelemetry.api.trace.SpanId;
-import io.opentelemetry.api.trace.TraceId;
 import io.opentelemetry.proto.collector.logs.v1.ExportLogsServiceRequest;
 import io.opentelemetry.proto.common.v1.KeyValue;
 import io.opentelemetry.proto.logs.v1.LogRecord;
@@ -81,26 +77,13 @@ public final class LogsInspector {
         ProfilingDataType.valueOf(dataType.toUpperCase(Locale.ROOT));
     List<ProfilerSample> samples = getSamplesList(profilingDataType);
 
-    String dataFormatAttr = getStringAttr(logRecord, ProfilingSemanticAttributes.DATA_FORMAT);
-    Objects.requireNonNull(dataFormatAttr, "Data format not set");
-    Configuration.DataFormat dataFormat = Configuration.DataFormat.fromString(dataFormatAttr);
-
-    switch (dataFormat) {
-      case PPROF_GZIP_BASE64:
-        try {
-          ProfileProto.Profile profile = parsePprof(logRecord.getBody().getStringValue());
-          for (ProfileProto.Sample sample : profile.getSampleList()) {
-            samples.add(new PprofProfilerSample(profile, sample));
-          }
-        } catch (IOException exception) {
-          throw new IllegalStateException("Failed to parse pprof", exception);
-        }
-        break;
-      case TEXT:
-        samples.add(new TextProfilerSample(logRecord));
-        break;
-      default:
-        throw new IllegalStateException("unexpected data format: " + dataFormat);
+    try {
+      ProfileProto.Profile profile = parsePprof(logRecord.getBody().getStringValue());
+      for (ProfileProto.Sample sample : profile.getSampleList()) {
+        samples.add(new PprofProfilerSample(profile, sample));
+      }
+    } catch (IOException exception) {
+      throw new IllegalStateException("Failed to parse pprof", exception);
     }
   }
 
@@ -162,51 +145,6 @@ public final class LogsInspector {
     String getTraceId();
 
     String getSpanId();
-  }
-
-  public class TextProfilerSample implements ProfilerSample {
-    private final LogRecord logRecord;
-
-    TextProfilerSample(LogRecord logRecord) {
-      this.logRecord = logRecord;
-    }
-
-    @Override
-    public long getSourceEventPeriod() {
-      return getLongAttr(logRecord, SOURCE_EVENT_PERIOD);
-    }
-
-    @Override
-    public String getThreadName() {
-      if (!logRecord.hasBody()) {
-        return null;
-      }
-      // body starts with quoted thread name
-      String body = logRecord.getBody().getStringValue();
-      if (!body.startsWith("\"")) {
-        return null;
-      }
-      int nameEnd = body.indexOf("\"", 1);
-      if (nameEnd == -1) {
-        return null;
-      }
-      return body.substring(1, nameEnd);
-    }
-
-    @Override
-    public Long getAllocated() {
-      return getLongAttr(logRecord, "memory.allocated");
-    }
-
-    @Override
-    public String getTraceId() {
-      return TraceId.fromBytes(logRecord.getTraceId().toByteArray());
-    }
-
-    @Override
-    public String getSpanId() {
-      return SpanId.fromBytes(logRecord.getSpanId().toByteArray());
-    }
   }
 
   public class PprofProfilerSample implements ProfilerSample {

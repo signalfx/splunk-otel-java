@@ -65,7 +65,8 @@ public class SplunkConfiguration implements AutoConfigurationCustomizerProvider 
     // truncate commandline when metrics enabled by default
     config.put(METRICS_FULL_COMMAND_LINE, "false");
 
-    // disable logging instrumentations - we're not currently sending logs (yet)
+    // disable logs and logging instrumentations - we're not currently sending logs (yet)
+    config.put("otel.logs.exporter", "none");
     config.put("otel.instrumentation.java-util-logging.enabled", "false");
     config.put("otel.instrumentation.jboss-logmanager.enabled", "false");
     config.put("otel.instrumentation.log4j-appender.enabled", "false");

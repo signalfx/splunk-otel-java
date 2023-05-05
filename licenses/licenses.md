@@ -1,7 +1,7 @@
 
 #splunk-otel-javaagent
 ##Dependency License Report
-_2023-05-02 11:43:42 EEST_
+_2023-05-05 19:53:01 EEST_
 ## Apache License, Version 2.0
 
 **1** **Group:** `com.fasterxml.jackson.core` **Name:** `jackson-core` **Version:** `2.15.0` 
@@ -245,7 +245,7 @@ _2023-05-02 11:43:42 EEST_
 
 ## The 3-Clause BSD License
 
-**51** **Group:** `com.google.protobuf` **Name:** `protobuf-java` **Version:** `3.22.3` 
+**51** **Group:** `com.google.protobuf` **Name:** `protobuf-java` **Version:** `3.22.4` 
 > - **POM License**: The 3-Clause BSD License - [https://opensource.org/licenses/BSD-3-Clause](https://opensource.org/licenses/BSD-3-Clause)
 
 **52** **Group:** `org.owasp.encoder` **Name:** `encoder` **Version:** `1.2.3` 

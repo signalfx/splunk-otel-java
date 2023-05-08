@@ -1,4 +1,4 @@
-> The official Splunk documentation for this page is [Metrics and attributes of the Java agent](https://docs.splunk.com/Observability/gdi/get-data-in/application/java/configuration/java-otel-metrics-attributes.html). For instructions on how to contribute to the docs, see [CONTRIBUTING.md](../CONTRIBUTING.md#documentation).
+> The official Splunk documentation for this page is [Metrics and attributes of the Java agent](https://quickdraw.splunk.com/redirect/?product=Observability&version=current&location=java.gdi.metrics). For instructions on how to contribute to the docs, see [CONTRIBUTING.md](../CONTRIBUTING.md#documentation).
 
 # Metrics and attributes
 

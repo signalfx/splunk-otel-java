@@ -1,6 +1,6 @@
-> The official Splunk documentation for this page is [Configure the Java agent](https://docs.splunk.com/Observability/gdi/get-data-in/application/java/configuration/advanced-java-otel-configuration.html). For instructions on how to contribute to the docs, see [CONTRIBUTING.md](../CONTRIBUTING.md#documentation).
+> The official Splunk documentation for this page is [Configure the Java agent](https://quickdraw.splunk.com/redirect/?product=Observability&version=current&location=java.gdi.settings). For instructions on how to contribute to the docs, see [CONTRIBUTING.md](../CONTRIBUTING.md#documentation).
 
-# Advanced Configuration
+# Advanced configuration
 
 The agent can be configured in the following ways:
 
@@ -11,7 +11,7 @@ The agent can be configured in the following ways:
 
 Below you will find all the configuration options supported by this distribution.
 
-## Splunk distribution configuration
+## Splunk configuration
 
 | System property                         | Environment variable                    | Default value           | Support      | Description                                                                                                                                                                                                                                                   |
 |-----------------------------------------|-----------------------------------------|-------------------------|--------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|

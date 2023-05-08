@@ -19,6 +19,7 @@ package com.splunk.opentelemetry.logging;
 import com.google.auto.service.AutoService;
 import io.opentelemetry.javaagent.logging.simple.Slf4jSimpleLoggingCustomizer;
 import io.opentelemetry.javaagent.tooling.LoggingCustomizer;
+import io.opentelemetry.javaagent.tooling.config.EarlyInitAgentConfig;
 
 @AutoService(LoggingCustomizer.class)
 public class SplunkSlf4jLoggingCustomizer implements LoggingCustomizer {
@@ -30,10 +31,10 @@ public class SplunkSlf4jLoggingCustomizer implements LoggingCustomizer {
   }
 
   @Override
-  public void init() {
+  public void init(EarlyInitAgentConfig earlyConfig) {
     addCustomLoggingConfiguration();
 
-    delegate.init();
+    delegate.init(earlyConfig);
   }
 
   @Override

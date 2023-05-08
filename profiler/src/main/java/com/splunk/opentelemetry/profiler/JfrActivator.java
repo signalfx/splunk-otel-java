@@ -20,8 +20,6 @@ import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_ENABLE_
 import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_KEEP_FILES;
 import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_PROFILER_DIRECTORY;
 import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_RECORDING_DURATION;
-import static com.splunk.opentelemetry.profiler.JfrFileLifecycleEvents.buildOnFileFinished;
-import static com.splunk.opentelemetry.profiler.JfrFileLifecycleEvents.buildOnNewRecording;
 import static com.splunk.opentelemetry.profiler.util.Runnables.logUncaught;
 import static java.util.logging.Level.WARNING;
 
@@ -32,7 +30,6 @@ import com.splunk.opentelemetry.profiler.context.SpanContextualizer;
 import com.splunk.opentelemetry.profiler.events.EventPeriods;
 import com.splunk.opentelemetry.profiler.exporter.CpuEventExporter;
 import com.splunk.opentelemetry.profiler.exporter.PprofCpuEventExporter;
-import com.splunk.opentelemetry.profiler.util.FileDeleter;
 import com.splunk.opentelemetry.profiler.util.HelpfulExecutors;
 import io.opentelemetry.api.logs.Logger;
 import io.opentelemetry.javaagent.extension.AgentListener;
@@ -50,7 +47,6 @@ import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
-import java.util.function.Consumer;
 
 @AutoService(AgentListener.class)
 public class JfrActivator implements AgentListener {
@@ -123,12 +119,6 @@ public class JfrActivator implements AgentListener {
 
     // can't be null, default value is set in Configuration.getProperties
     Duration recordingDuration = config.getDuration(CONFIG_KEY_RECORDING_DURATION, null);
-    RecordingEscapeHatch recordingEscapeHatch =
-        RecordingEscapeHatch.builder()
-            .namingConvention(namingConvention)
-            .configKeepsFilesOnDisk(keepFiles(config))
-            .recordingDuration(recordingDuration)
-            .build();
     Map<String, String> jfrSettings = buildJfrSettings(config);
 
     EventReader eventReader = new EventReader();
@@ -166,37 +156,27 @@ public class JfrActivator implements AgentListener {
     EventProcessingChain eventProcessingChain =
         new EventProcessingChain(
             eventReader, spanContextualizer, threadDumpProcessor, tlabProcessor);
-    Consumer<Path> deleter = buildFileDeleter(config);
-    JfrDirCleanup dirCleanup = new JfrDirCleanup(deleter);
 
-    Consumer<Path> onFileFinished = buildOnFileFinished(deleter, dirCleanup);
-
-    JfrPathHandler jfrPathHandler =
-        JfrPathHandler.builder()
-            .eventProcessingChain(eventProcessingChain)
-            .onFileFinished(onFileFinished)
-            .build();
-
-    Consumer<Path> onNewRecording = buildOnNewRecording(jfrPathHandler, dirCleanup);
+    JfrRecordingHandler jfrRecordingHandler =
+        JfrRecordingHandler.builder().eventProcessingChain(eventProcessingChain).build();
 
     JfrRecorder recorder =
         JfrRecorder.builder()
             .settings(jfrSettings)
             .maxAgeDuration(recordingDuration.multipliedBy(10))
             .jfr(JFR.instance)
+            .onNewRecording(jfrRecordingHandler)
             .namingConvention(namingConvention)
-            .onNewRecordingFile(onNewRecording)
+            .keepRecordingFiles(keepFiles(config))
             .build();
 
     RecordingSequencer sequencer =
         RecordingSequencer.builder()
             .recordingDuration(recordingDuration)
-            .recordingEscapeHatch(recordingEscapeHatch)
             .recorder(recorder)
             .build();
 
     sequencer.start();
-    dirCleanup.registerShutdownHook();
   }
 
   private Logger buildOtelLogger(LogRecordProcessor logProcessor, Resource resource) {
@@ -236,14 +216,6 @@ public class JfrActivator implements AgentListener {
     Map<String, String> jfrSettings = settingsReader.read();
     JfrSettingsOverrides overrides = new JfrSettingsOverrides(config);
     return overrides.apply(jfrSettings);
-  }
-
-  private Consumer<Path> buildFileDeleter(ConfigProperties config) {
-    if (keepFiles(config)) {
-      logger.log(WARNING, "{0} is enabled, leaving JFR files on disk.", CONFIG_KEY_KEEP_FILES);
-      return FileDeleter.noopFileDeleter();
-    }
-    return FileDeleter.newDeleter();
   }
 
   private boolean keepFiles(ConfigProperties config) {

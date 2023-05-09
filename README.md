@@ -122,37 +122,9 @@ We publish [snapshot builds](https://oss.sonatype.org/content/repositories/snaps
 with every merge to the `main` branch. Snapshots are primarily intended to test new functionality and are not recommended
 for production use.
 
-## When to upgrade?
+## Upgrades
 
-In general, we recommend that you upgrade to each new version shortly after it is released. Ideally,
-you should upgrade within a few weeks of a release. Given that OpenTelemetry is a very active 
-community, consistent, frequent upgrades will help limit the number of changes between upgrades. 
-
-Upgrades should be intentional and version numbers should be pinned in your build pipeline. See [VERSIONING.md](VERSIONING.md) for more information.
-
-### Upgrade best practices
-
-To reduce the risk of problems with an upgrade, do the following:
-
-* Don't use snapshot builds in production.
-* Read the release notes and changelog for each release, to help you determine when the release has
-  changes that might affect your software stack. Give special consideration to specific mentions of 
-  libraries, frameworks, and tools that your software uses.
-* Use canary instances. Let the canaries operate with the code before releasing the code to 
-  production. Run the canaries for at least a few hours, and preferably for a few days.
-* Minimize the number of dependencies, including instrumentation, changing in a given release.
-  It becomes more difficult to determine the root cause of a problem when multiple
-  dependencies have been upgraded at the same time.
-
-## Understanding version numbers
-
-Refer to
-the [versioning document](https://github.com/signalfx/splunk-otel-java/blob/main/VERSIONING.md) to
-learn more about version numbers. Major versions contain a large number of changes, which might
-result in increased risk to your production environment. The most common releases are marked with a
-minor version, and they contain a modest number of changes. Patch releases are infrequent, and they
-pinpoint specific fixes or enhancements.
-
+For information and best practices around upgrades, see the [Upgrading documentation](https://quickdraw.splunk.com/redirect/?product=Observability&version=current&location=java.gdi.upgrades).
 
 ## Troubleshooting
 

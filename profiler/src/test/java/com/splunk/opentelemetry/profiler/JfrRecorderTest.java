@@ -18,12 +18,13 @@ package com.splunk.opentelemetry.profiler;
 
 import static com.splunk.opentelemetry.profiler.JfrRecorder.RECORDING_NAME;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.nio.file.Path;
+import java.io.InputStream;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
@@ -33,7 +34,6 @@ import jdk.jfr.RecordingState;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.api.io.TempDir;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -41,11 +41,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class JfrRecorderTest {
 
-  @TempDir Path outDir;
   Duration maxAge = Duration.ofMinutes(13);
   Map<String, String> settings;
   @Mock Recording recording;
-  @Mock Consumer<Path> onNewRecordingFile;
+  @Mock Consumer<InputStream> onNewRecording;
+  @Mock RecordingFileNamingConvention namingConvention;
 
   @BeforeEach
   void setup() {
@@ -69,15 +69,14 @@ class JfrRecorderTest {
   void testFlushSnapshot() throws Exception {
     JFR jfr = mock(JFR.class);
     Recording snap = mock(Recording.class);
-    ArgumentCaptor<Path> pathCaptor = ArgumentCaptor.forClass(Path.class);
-    doNothing().when(onNewRecordingFile).accept(pathCaptor.capture());
+    ArgumentCaptor<InputStream> inputStreamCaptor = ArgumentCaptor.forClass(InputStream.class);
+    doNothing().when(onNewRecording).accept(inputStreamCaptor.capture());
     when(snap.getStream(any(), any())).thenReturn(new ByteArrayInputStream(new byte[0]));
     when(jfr.takeSnapshot()).thenReturn(snap);
     JfrRecorder jfrRecorder = buildJfrRecorder(jfr);
 
     jfrRecorder.flushSnapshot();
-    Path outputPath = pathCaptor.getValue();
-    assertTrue(outputPath.startsWith(outDir));
+    assertNotNull(inputStreamCaptor.getValue());
   }
 
   @Test
@@ -118,8 +117,8 @@ class JfrRecorderTest {
         JfrRecorder.builder()
             .maxAgeDuration(maxAge)
             .settings(settings)
-            .namingConvention(new RecordingFileNamingConvention(outDir))
-            .onNewRecordingFile(onNewRecordingFile)
+            .onNewRecording(onNewRecording)
+            .namingConvention(namingConvention)
             .jfr(jfr);
 
     return new JfrRecorder(builder) {

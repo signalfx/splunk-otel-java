@@ -19,54 +19,39 @@ package com.splunk.opentelemetry.profiler;
 import static java.util.logging.Level.FINE;
 import static java.util.logging.Level.SEVERE;
 
-import java.io.RandomAccessFile;
+import java.io.InputStream;
 import java.lang.reflect.Method;
-import java.nio.file.Path;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Collections;
-import java.util.List;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
 import javax.annotation.Nullable;
 import org.openjdk.jmc.common.item.IItemCollection;
 import org.openjdk.jmc.flightrecorder.EventCollectionUtil;
-import org.openjdk.jmc.flightrecorder.internal.ChunkInfo;
 import org.openjdk.jmc.flightrecorder.internal.FlightRecordingLoader;
 import org.openjdk.jmc.flightrecorder.internal.IChunkLoader;
 import org.openjdk.jmc.flightrecorder.internal.IChunkSupplier;
 import org.openjdk.jmc.flightrecorder.internal.parser.LoaderContext;
 
 /**
- * Responsible for processing a single jfr file snapshot. It streams events from the
- * RecordedEventStream into the processing chain and, once complete, calls the onFileFinished
- * callback.
+ * Responsible for processing a single jfr recording snapshot. It streams events from the recoding
+ * into the processing chain.
  */
-class JfrPathHandler implements Consumer<Path> {
+class JfrRecordingHandler implements Consumer<InputStream> {
 
-  private static final Logger logger = Logger.getLogger(JfrPathHandler.class.getName());
+  private static final Logger logger = Logger.getLogger(JfrRecordingHandler.class.getName());
   private final EventProcessingChain eventProcessingChain;
-  private final Consumer<Path> onFileFinished;
 
-  public JfrPathHandler(Builder builder) {
+  public JfrRecordingHandler(Builder builder) {
     this.eventProcessingChain = builder.eventProcessingChain;
-    this.onFileFinished = builder.onFileFinished;
   }
 
   @Override
-  public void accept(Path path) {
-    if (logger.isLoggable(FINE)) {
-      logger.log(
-          FINE,
-          "New jfr file detected: {0} size: {1}",
-          new Object[] {path, path.toFile().length()});
-    }
+  public void accept(InputStream inputStream) {
     Instant start = Instant.now();
     try {
-      RandomAccessFile raf = new RandomAccessFile(path.toFile(), "r");
-      List<ChunkInfo> allChunks =
-          FlightRecordingLoader.readChunkInfo(FlightRecordingLoader.createChunkSupplier(raf));
-      IChunkSupplier chunkSupplier = FlightRecordingLoader.createChunkSupplier(raf, allChunks);
+      IChunkSupplier chunkSupplier = FlightRecordingLoader.createChunkSupplier(inputStream);
 
       byte[] buffer = new byte[0];
       while (true) {
@@ -82,15 +67,13 @@ class JfrPathHandler implements Consumer<Path> {
         items.stream().flatMap(iItems -> iItems.stream()).forEach(eventProcessingChain::accept);
         eventProcessingChain.flushBuffer();
       }
-
-      onFileFinished.accept(path);
     } catch (Exception exception) {
       logger.log(SEVERE, "Error parsing JFR recording", exception);
     } finally {
       Instant end = Instant.now();
       long timeElapsed = Duration.between(start, end).toMillis();
       if (logger.isLoggable(FINE)) {
-        logger.log(FINE, "Processed {0} in {1}ms", new Object[] {path, timeElapsed});
+        logger.log(FINE, "Processed recording in {1}ms", new Object[] {timeElapsed});
       }
       eventProcessingChain.logEventStats();
     }
@@ -122,20 +105,14 @@ class JfrPathHandler implements Consumer<Path> {
 
   public static class Builder {
     private EventProcessingChain eventProcessingChain;
-    private Consumer<Path> onFileFinished;
 
     public Builder eventProcessingChain(EventProcessingChain eventProcessingChain) {
       this.eventProcessingChain = eventProcessingChain;
       return this;
     }
 
-    public Builder onFileFinished(Consumer<Path> onFileFinished) {
-      this.onFileFinished = onFileFinished;
-      return this;
-    }
-
-    public JfrPathHandler build() {
-      return new JfrPathHandler(this);
+    public JfrRecordingHandler build() {
+      return new JfrRecordingHandler(this);
     }
   }
 }

@@ -1,6 +1,6 @@
-> The official Splunk documentation for this page is [Configure the Java agent](https://docs.splunk.com/Observability/gdi/get-data-in/application/java/configuration/advanced-java-otel-configuration.html). For instructions on how to contribute to the docs, see [CONTRIBUTING.md](../CONTRIBUTING.md#documentation).
+> The official Splunk documentation for this page is [Configure the Java agent](https://quickdraw.splunk.com/redirect/?product=Observability&version=current&location=java.gdi.settings). For instructions on how to contribute to the docs, see [CONTRIBUTING.md](../CONTRIBUTING.md#documentation).
 
-# Advanced Configuration
+# Advanced configuration
 
 The agent can be configured in the following ways:
 
@@ -11,7 +11,7 @@ The agent can be configured in the following ways:
 
 Below you will find all the configuration options supported by this distribution.
 
-## Splunk distribution configuration
+## Splunk configuration
 
 | System property                         | Environment variable                    | Default value           | Support      | Description                                                                                                                                                                                                                                                   |
 |-----------------------------------------|-----------------------------------------|-------------------------|--------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -92,18 +92,72 @@ export OTEL_PROPAGATORS=b3multi
 
 ## Sampling configuration
 
-| System property       | Environment variable  | Default value | Support | Description                      |
-|-----------------------|-----------------------|---------------|---------|----------------------------------|
-| `otel.traces.sampler` | `OTEL_TRACES_SAMPLER` | `always_on`   | Stable  | The sampler to use for tracing.	 |
+| System property          | Environment variable     | Default value  | Support | Description |
+| ------------------------ | ------------------------ | -------------- | ------- | ----------- |
+| `otel.traces.sampler`    | `OTEL_TRACES_SAMPLER`     | `always_on`    | Stable  | The sampler to use for tracing.	|
 
-Set `otel.traces.sampler` to `internal_root_off` to drop all traces with root spans where `spanKind` is `INTERNAL`, `CLIENT` or `PRODUCER`. This setting only keeps root spans where `spanKind` is `SERVER` and `CONSUMER`.
+Splunk Distribution of OpenTelemetry Java supports all standard samplers as provided by
+[OpenTelemetry Java SDK Autoconfigure](https://github.com/open-telemetry/opentelemetry-java/tree/main/sdk-extensions/autoconfigure#sampler).
+In addition, the distribution adds the following samplers:
 
+### `internal_root_off`
+Setting `otel.traces.sampler` to `internal_root_off` drops all traces with root spans where `spanKind` is `INTERNAL`, `CLIENT` or `PRODUCER`. This setting only keeps root spans where `spanKind` is `SERVER` and `CONSUMER`.
+
+### `rules`
+This sampler allows to ignore individual endpoints and drop all traces that originate from them.
+It applies only to spans with `SERVER` kind.
+
+For example, the following configuration results in all requests to `/healthcheck` to be excluded from monitoring:
+
+```shell
+export OTEL_TRACES_SAMPLER=rules
+export OTEL_TRACES_SAMPLER_ARG=drop=/healthcheck;fallback=parentbased_always_on
+```
+All requests to downstream services that happen as a consequence of calling an excluded endpoint are also excluded.
+
+The value of `OTEL_TRACES_SAMPLER_ARG` is interpreted as a semicolon-separated list of rules.
+The following types of rules are supported:
+
+- `drop=<value>`: The sampler drops a span if its `http.target` attribute has a substring equal to the provided value.
+  You can provide as many `drop` rules as you want.
+- `fallback=sampler`: Fallback sampler used if no `drop` rule matched a  given span.
+  Supported fallback samplers are `always_on` and `parentbased_always_on`.
+  Probability samplers such as `traceidratio` are not supported.
+
+> If several `fallback` rules are provided, only the last one will be in effect.
+
+If `OTEL_TRACES_SAMPLER_ARG` is not provided or has en empty value, no `drop` rules are configured and `parentbased_always_on` sampler is as default.
 
 ## Java agent configuration
 
 | System property          | Environment variable     | Default value | Support | Description                                      |
 |--------------------------|--------------------------|---------------|---------|--------------------------------------------------|
 | `otel.javaagent.enabled` | `OTEL_JAVAAGENT_ENABLED` | `true`        | Stable  | Globally enables javaagent auto-instrumentation. |
+
+## Profiler settings
+
+| Setting                                   | Default                                                | Description                                                                                                                                                                                   |
+|-------------------------------------------|--------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `splunk.profiler.enabled`                 | false                                                  | set to true to enable the profiler                                                                                                                                                            |
+| `splunk.profiler.directory`               | system temp directory                                  | location of JFR files, defaults to `System.getProperty("java.io.tmpdir")`                                                                                                                     |
+| `splunk.profiler.recording.duration`      | 20s                                                    | recording unit duration                                                                                                                                                                       |
+| `splunk.profiler.keep-files`              | false                                                  | leave JFR files on disk id `true`                                                                                                                                                             |
+| `splunk.profiler.logs-endpoint`           | `otel.exporter.otlp.endpoint` or http://localhost:4317 | where to send OTLP logs                                                                                                                                                                       |
+| `splunk.profiler.call.stack.interval`     | 10000ms                                                | how often to sample call stacks                                                                                                                                                               |
+| `splunk.profiler.memory.enabled`          | false                                                  | set to `true` to enable all other memory profiling options unless explicitly disabled. Setting to `true` enables metrics.                                                                     |
+| `splunk.profiler.tlab.enabled`            | `splunk.profiler.memory.enabled`                       | set to `true` to enable TLAB events even if `splunk.profiler.memory.enabled` is `false`                                                                                                       |
+| `splunk.profiler.memory.sampler.interval` | 1                                                      | set to `2` or larger to enable sampling every Nth allocation event where N is the value of this property                                                                                      |
+| `splunk.profiler.include.internal.stacks` | false                                                  | set to `true` to include stack traces of agent internal threads and stack traces with only JDK internal frames                                                                                |
+| `splunk.profiler.tracing.stacks.only`     | false                                                  | set to `true` to include only stack traces that are linked to a span context                                                                                                                  |
+
+If the `splunk.profiler.enabled` option is not enabled, all profiling features are disabled. For
+example, setting `splunk.profiler.memory.enabled` to `true` has no effect if
+`splunk.profiler.enabled` is set to `false`. Similarly, there is no separate toggle for periodic
+collection of call stacks (thread dumps), as this feature is enabled only when the profiler is
+enabled.
+
+Note: Setting `splunk.profiler.memory.enabled` to `true` automatically activates the metrics subsystem.
+Furthermore, this setting takes precedence over `splunk.metrics.enabled`.
 
 ## Other OpenTelemetry Java agent configuration
 

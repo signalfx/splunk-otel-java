@@ -8,6 +8,24 @@ and this repository adheres to [Semantic Versioning](https://semver.org/spec/v2.
 
 ## Unreleased
 
+## v1.24.0 - 2023-05-11
+
+### General
+
+- OpenTelemetry Java SDK has been updated to version 1.26.0.
+- OpenTelemetry Instrumentation for Java has been updated to version 1.26.0.
+- Micrometer dependency has been updated to version 1.11.0.
+
+### Enhancements
+
+- Enabled allocation event rate limiting by default in the profiler (#1225)
+- Replaced the JFR event parser with the JDK mission control parser (#1229)
+- Refactored the profiler so that it no longer needs to write the JFR recording into a temporary file (#1242)
+
+### Breaking Changes
+
+- Removed the previously deprecated profiler test formats (#1238, #1240)
+
 ## v1.23.0 - 2023-04-17
 
 ### General

@@ -12,7 +12,7 @@ dependencies {
 
 testing {
   suites {
-    (3..10).forEach { ver ->
+    (3..11).forEach { ver ->
       register<JvmTestSuite>("version1_${ver}Test") {
         sources {
           java {

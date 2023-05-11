@@ -12,7 +12,7 @@ val micrometerVersion = "1.11.0"
 val micrometerOldVersion = "1.3.20"
 val dockerJavaVersion = "3.3.0"
 val mockitoVersion = "5.3.1"
-val slfVersion = "2.0.7"
+val slf4jVersion = "2.0.7"
 val autoValueVersion = "1.10.1";
 
 // instrumentation version is used to compute Implementation-Version manifest attribute
@@ -42,15 +42,15 @@ dependencies {
     api("io.jaegertracing:jaeger-client:1.8.1")
     api("org.assertj:assertj-core:3.24.2")
     api("org.awaitility:awaitility:4.2.0")
-    api("com.signalfx.public:signalfx-java:1.0.30")
+    api("com.signalfx.public:signalfx-java:1.0.31")
 
     api("com.github.docker-java:docker-java-core:$dockerJavaVersion")
     api("com.github.docker-java:docker-java-transport-httpclient5:$dockerJavaVersion")
 
     api("org.mockito:mockito-core:$mockitoVersion")
     api("org.mockito:mockito-junit-jupiter:$mockitoVersion")
-    api("org.slf4j:slf4j-api:$slfVersion")
-    api("org.slf4j:slf4j-simple:$slfVersion")
+    api("org.slf4j:slf4j-api:$slf4jVersion")
+    api("org.slf4j:slf4j-simple:$slf4jVersion")
     api("com.google.auto.value:auto-value:$autoValueVersion")
     api("com.google.auto.value:auto-value-annotations:$autoValueVersion")
 
@@ -67,11 +67,6 @@ dependencies {
     api("io.opentelemetry.javaagent:opentelemetry-javaagent-tooling:$otelInstrumentationAlphaVersion")
     api("io.opentelemetry.javaagent:opentelemetry-muzzle:$otelInstrumentationAlphaVersion")
     api("io.opentelemetry.javaagent:opentelemetry-testing-common:$otelInstrumentationAlphaVersion")
-    api("io.opentelemetry.instrumentation:opentelemetry-netty-4.1:$otelInstrumentationAlphaVersion")
-    api("io.opentelemetry.javaagent.instrumentation:opentelemetry-javaagent-netty-3.8:$otelInstrumentationAlphaVersion")
-    api("io.opentelemetry.javaagent.instrumentation:opentelemetry-javaagent-netty-4.0:$otelInstrumentationAlphaVersion")
-    api("io.opentelemetry.javaagent.instrumentation:opentelemetry-javaagent-netty-4.1:$otelInstrumentationAlphaVersion")
-    api("io.opentelemetry.javaagent.instrumentation:opentelemetry-javaagent-netty-4.1-common:$otelInstrumentationAlphaVersion")
     api("io.opentelemetry.javaagent.instrumentation:opentelemetry-javaagent-servlet-2.2:$otelInstrumentationAlphaVersion")
     api("io.opentelemetry.javaagent.instrumentation:opentelemetry-javaagent-servlet-3.0:$otelInstrumentationAlphaVersion")
     api("io.opentelemetry.javaagent.instrumentation:opentelemetry-javaagent-servlet-common:$otelInstrumentationAlphaVersion")

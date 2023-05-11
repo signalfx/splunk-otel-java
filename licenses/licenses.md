@@ -1,7 +1,7 @@
 
 #splunk-otel-javaagent
 ##Dependency License Report
-_2023-05-10 07:52:58 CEST_
+_2023-05-11 11:36:36 CEST_
 ## Apache License, Version 2.0
 
 **1** **Group:** `com.fasterxml.jackson.core` **Name:** `jackson-core` **Version:** `2.15.0` 
@@ -18,10 +18,10 @@ _2023-05-10 07:52:58 CEST_
 > - **Embedded license files**: [jackson-jr-objects-2.15.0.jar/META-INF/LICENSE](jackson-jr-objects-2.15.0.jar/META-INF/LICENSE) 
     - [jackson-jr-objects-2.15.0.jar/META-INF/NOTICE](jackson-jr-objects-2.15.0.jar/META-INF/NOTICE)
 
-**3** **Group:** `com.signalfx.public` **Name:** `signalfx-java` **Version:** `1.0.30` 
+**3** **Group:** `com.signalfx.public` **Name:** `signalfx-java` **Version:** `1.0.31` 
 > - **POM Project URL**: [http://www.signalfx.com](http://www.signalfx.com)
 > - **POM License**: Apache License, Version 2.0 - [https://www.apache.org/licenses/LICENSE-2.0](https://www.apache.org/licenses/LICENSE-2.0)
-> - **Embedded license files**: [signalfx-java-1.0.30.jar/META-INF/LICENSE](signalfx-java-1.0.30.jar/META-INF/LICENSE)
+> - **Embedded license files**: [signalfx-java-1.0.31.jar/META-INF/LICENSE](signalfx-java-1.0.31.jar/META-INF/LICENSE)
 
 **4** **Group:** `com.squareup.okhttp3` **Name:** `okhttp` **Version:** `4.11.0` 
 > - **POM Project URL**: [https://square.github.io/okhttp/](https://square.github.io/okhttp/)

@@ -127,6 +127,28 @@ class SplunkConfigurationTest {
     verifyThatMicrometerInstrumentationsAreDisabled(config);
   }
 
+  @Test
+  void shouldDisableLogsByDefault() {
+    ConfigProperties config = configuration();
+
+    assertThat(config.getString("otel.logs.exporter")).isEqualTo("none");
+    assertInstrumentationDisabled(config, "java-util-logging");
+    assertInstrumentationDisabled(config, "jboss-logmanager");
+    assertInstrumentationDisabled(config, "log4j-appender");
+    assertInstrumentationDisabled(config, "logback-appender");
+  }
+
+  @Test
+  void shouldNotDisableLoggingInstrumentationsWhenExporterIsSet() {
+    ConfigProperties config = configuration(() -> Map.of("otel.logs.exporter", "otlp"));
+
+    assertThat(config.getString("otel.logs.exporter")).isEqualTo("otlp");
+    assertInstrumentationNotChanged(config, "java-util-logging");
+    assertInstrumentationNotChanged(config, "jboss-logmanager");
+    assertInstrumentationNotChanged(config, "log4j-appender");
+    assertInstrumentationNotChanged(config, "logback-appender");
+  }
+
   private static ConfigProperties configuration() {
     return configuration(Map::of);
   }
@@ -182,5 +204,11 @@ class SplunkConfigurationTest {
     assertThat(config.getBoolean("otel.instrumentation." + name + ".enabled"))
         .as("Instrumentation %s is turned off", name)
         .isFalse();
+  }
+
+  private static void assertInstrumentationNotChanged(ConfigProperties config, String name) {
+    assertThat(config.getBoolean("otel.instrumentation." + name + ".enabled"))
+        .as("Instrumentation %s is not changed", name)
+        .isNull();
   }
 }

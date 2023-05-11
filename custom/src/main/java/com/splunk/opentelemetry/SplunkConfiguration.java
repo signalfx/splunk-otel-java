@@ -65,12 +65,8 @@ public class SplunkConfiguration implements AutoConfigurationCustomizerProvider 
     // truncate commandline when metrics enabled by default
     config.put(METRICS_FULL_COMMAND_LINE, "false");
 
-    // disable logs and logging instrumentations - we're not currently sending logs (yet)
+    // disable logs by default, we're not sending them yet
     config.put("otel.logs.exporter", "none");
-    config.put("otel.instrumentation.java-util-logging.enabled", "false");
-    config.put("otel.instrumentation.jboss-logmanager.enabled", "false");
-    config.put("otel.instrumentation.log4j-appender.enabled", "false");
-    config.put("otel.instrumentation.logback-appender.enabled", "false");
 
     // enable spring batch instrumentation
     config.put("otel.instrumentation.spring-batch.enabled", "true");
@@ -194,6 +190,14 @@ public class SplunkConfiguration implements AutoConfigurationCustomizerProvider 
       String otlpHeaders =
           (userOtlpHeaders == null ? "" : userOtlpHeaders + ",") + "X-SF-TOKEN=" + accessToken;
       customized.put("otel.exporter.otlp.headers", otlpHeaders);
+    }
+
+    // disable logging instrumentations if the logging exporter is not used
+    if ("none".equals(config.getString("otel.logs.exporter"))) {
+      customized.put("otel.instrumentation.java-util-logging.enabled", "false");
+      customized.put("otel.instrumentation.jboss-logmanager.enabled", "false");
+      customized.put("otel.instrumentation.log4j-appender.enabled", "false");
+      customized.put("otel.instrumentation.logback-appender.enabled", "false");
     }
 
     return customized;

@@ -4,7 +4,7 @@ pluginManagement {
     id("com.github.johnrengelman.shadow") version "8.1.1"
     id("io.github.gradle-nexus.publish-plugin") version "1.3.0"
     id("nebula.release") version "17.2.1"
-    id("com.github.jk1.dependency-license-report") version "2.1"
+    id("com.github.jk1.dependency-license-report") version "2.2"
   }
 }
 

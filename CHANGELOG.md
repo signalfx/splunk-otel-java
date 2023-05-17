@@ -8,6 +8,11 @@ and this repository adheres to [Semantic Versioning](https://semver.org/spec/v2.
 
 ## Unreleased
 
+## v1.24.1 - 2023-05-17
+
+### Bugfixes
+- Include `profiling.data.format` attribute in profiling data for GDI spec compliance (#1278)
+
 ## v1.24.0 - 2023-05-11
 
 ### General

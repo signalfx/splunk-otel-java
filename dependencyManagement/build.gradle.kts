@@ -27,7 +27,7 @@ javaPlatform {
 dependencies {
 
   // BOMs
-  api(enforcedPlatform("com.fasterxml.jackson:jackson-bom:2.15.0"))
+  api(enforcedPlatform("com.fasterxml.jackson:jackson-bom:2.15.1"))
   api(enforcedPlatform("com.google.protobuf:protobuf-bom:3.23.0"))
   api(enforcedPlatform("com.squareup.okhttp3:okhttp-bom:4.11.0"))
   api(enforcedPlatform("io.grpc:grpc-bom:1.55.1"))

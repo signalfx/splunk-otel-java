@@ -79,10 +79,8 @@ create_collector_helm_chart_pr() {
   VLINE=$(grep -n -A 1 $java_repo helm-charts/splunk-otel-collector/values.yaml | tail -1 | sed -e "s/-.*//")
   sed -i "${VLINE}s/\"v.*\"/\"${release_tag}\"/" helm-charts/splunk-otel-collector/values.yaml
 
-  # Update the examples as well
-  echo ">>> Updating versions inline: deployment.yaml"
-  sed -i "s#${java_repo}:v.*#${java_repo}:${release_tag}#" \
-    examples/enable-operator-and-auto-instrumentation/rendered_manifests/operator/deployment.yaml
+  # Generate the various templates
+  make render
 
   git commit -S -am "[automated] $message"
   git push "$repo_url" "$update_version_branch"

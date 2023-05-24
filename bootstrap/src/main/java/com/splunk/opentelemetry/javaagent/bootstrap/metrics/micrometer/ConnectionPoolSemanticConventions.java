@@ -27,21 +27,27 @@ public final class ConnectionPoolSemanticConventions {
   /** The number of open connections. */
   public static final GaugeSemanticConvention CONNECTIONS_TOTAL =
       gauge("db.pool.connections", CONNECTIONS);
+
   /** The number of open connections that are currently in use. */
   public static final GaugeSemanticConvention CONNECTIONS_ACTIVE =
       gauge("db.pool.connections.active", CONNECTIONS);
+
   /** The number of open connections that are currently idle. */
   public static final GaugeSemanticConvention CONNECTIONS_IDLE =
       gauge("db.pool.connections.idle", CONNECTIONS);
+
   /** The minimum number of idle open connections allowed. */
   public static final GaugeSemanticConvention CONNECTIONS_IDLE_MIN =
       gauge("db.pool.connections.idle.min", CONNECTIONS);
+
   /** The maximum number of idle open connections allowed. */
   public static final GaugeSemanticConvention CONNECTIONS_IDLE_MAX =
       gauge("db.pool.connections.idle.max", CONNECTIONS);
+
   /** The maximum number of open connections allowed. */
   public static final GaugeSemanticConvention CONNECTIONS_MAX =
       gauge("db.pool.connections.max", CONNECTIONS);
+
   /** The number of threads that are currently waiting for an open connection. */
   public static final GaugeSemanticConvention CONNECTIONS_PENDING_THREADS =
       gauge("db.pool.connections.pending_threads", THREADS);
@@ -53,15 +59,18 @@ public final class ConnectionPoolSemanticConventions {
   /** The time it took to create a new connection. */
   public static final TimerSemanticConvention CONNECTIONS_CREATE_TIME =
       timer("db.pool.connections.create_time");
+
   /** The time it took to get an open connection from the pool. */
   public static final TimerSemanticConvention CONNECTIONS_WAIT_TIME =
       timer("db.pool.connections.wait_time");
+
   /** The time between borrowing a connection and returning it to the pool. */
   public static final TimerSemanticConvention CONNECTIONS_USE_TIME =
       timer("db.pool.connections.use_time");
 
   /** The name of the DB connection pool, as named by the instrumented application developer. */
   public static final String POOL_NAME = "pool.name";
+
   /**
    * Type/implementation of the DB connection pool.
    *

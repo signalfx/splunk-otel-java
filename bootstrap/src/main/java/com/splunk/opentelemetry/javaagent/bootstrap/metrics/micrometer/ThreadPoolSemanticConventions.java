@@ -25,27 +25,33 @@ public final class ThreadPoolSemanticConventions {
 
   /** The current number of threads in the pool. */
   public static final GaugeSemanticConvention THREADS_CURRENT = gauge("executor.threads", THREADS);
+
   /** The number of threads that are currently busy. */
   public static final GaugeSemanticConvention THREADS_ACTIVE =
       gauge("executor.threads.active", THREADS);
+
   /** The number of threads that are currently idle. */
   public static final GaugeSemanticConvention THREADS_IDLE =
       gauge("executor.threads.idle", THREADS);
+
   /** Core thread pool size - the number of threads that are always kept in the pool. */
   public static final GaugeSemanticConvention THREADS_CORE =
       gauge("executor.threads.core", THREADS);
+
   /** The maximum number of threads in the pool. */
   public static final GaugeSemanticConvention THREADS_MAX = gauge("executor.threads.max", THREADS);
 
   /** The total number of tasks that were submitted to this executor. */
   public static final CounterSemanticConvention TASKS_SUBMITTED =
       counter("executor.tasks.submitted", TASKS);
+
   /** The total number of tasks completed by this executor. */
   public static final CounterSemanticConvention TASKS_COMPLETED =
       counter("executor.tasks.completed", TASKS);
 
   /** The name of the thread pool, as named by the instrumented application developer. */
   public static final String EXECUTOR_NAME = "executor.name";
+
   /**
    * Type/implementation of the DB connection pool.
    *

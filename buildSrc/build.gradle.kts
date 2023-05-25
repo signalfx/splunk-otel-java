@@ -18,6 +18,8 @@ spotless {
         "ktlint_standard_max-line-length" to "disabled",
         // ktlint makes it *very* hard to locate where this actually happened
         "ktlint_standard_trailing-comma-on-call-site" to "disabled",
+        // depends on ktlint_standard_wrapping
+        "ktlint_standard_trailing-comma-on-declaration-site" to "disabled",
         // also very hard to find out where this happens
         "ktlint_standard_wrapping" to "disabled"
       )
@@ -38,7 +40,7 @@ repositories {
 dependencies {
   implementation(gradleApi())
 
-  implementation("com.diffplug.spotless:spotless-plugin-gradle:6.18.0")
+  implementation("com.diffplug.spotless:spotless-plugin-gradle:6.19.0")
   implementation("io.opentelemetry.instrumentation:gradle-plugins:1.27.0-alpha-SNAPSHOT")
   implementation("io.spring.gradle:dependency-management-plugin:1.1.0")
 

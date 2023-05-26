@@ -38,14 +38,14 @@ public class OtlpLogsSmokeTest extends SmokeTest {
   }
 
   @ParameterizedTest(name = "{index} => OTLP logs exporter test on JDK{0}.")
-  @ValueSource(ints = {8, 11, 15})
+  @ValueSource(ints = {8, 11, 17})
   void springBootSmokeTestOnJDK(int jdk) throws IOException, InterruptedException {
     // given
     startTargetOrSkipTest(
         linuxImage(
-            "ghcr.io/open-telemetry/java-test-containers:smoke-springboot-jdk"
+            "ghcr.io/open-telemetry/opentelemetry-java-instrumentation/smoke-test-spring-boot:jdk"
                 + jdk
-                + "-20210218.577304949"));
+                + "-20230509.4927886820"));
 
     Request request = new Request.Builder().url(getUrl("/greeting", false)).get().build();
 

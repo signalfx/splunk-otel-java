@@ -167,6 +167,11 @@ public abstract class SmokeTest {
     }
   }
 
+  protected String getUrl(String path, boolean originalPort) {
+    int port = originalPort ? 8080 : containerManager.getTargetMappedPort(8080);
+    return String.format("http://localhost:%d%s", port, path);
+  }
+
   public static TestContainerManager createContainerManager() {
     boolean isWindows = System.getProperty("os.name").toLowerCase().contains("windows");
 

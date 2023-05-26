@@ -174,11 +174,6 @@ public abstract class AppServerTest extends SmokeTest {
     clearTelemetry();
   }
 
-  protected String getUrl(String path, boolean originalPort) {
-    int port = originalPort ? 8080 : containerManager.getTargetMappedPort(8080);
-    return String.format("http://localhost:%d%s", port, path);
-  }
-
   protected static class ExpectedServerAttributes {
     final String handlerSpanName;
     final String webengineName;

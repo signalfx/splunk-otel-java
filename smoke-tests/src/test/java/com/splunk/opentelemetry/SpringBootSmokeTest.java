@@ -35,9 +35,9 @@ public class SpringBootSmokeTest extends AppServerTest {
 
   private TestImage getTargetImage(int jdk) {
     return linuxImage(
-        "ghcr.io/open-telemetry/java-test-containers:smoke-springboot-jdk"
+        "ghcr.io/open-telemetry/opentelemetry-java-instrumentation/smoke-test-spring-boot:jdk"
             + jdk
-            + "-20210218.577304949");
+            + "-20230509.4927886820");
   }
 
   @Override
@@ -51,7 +51,7 @@ public class SpringBootSmokeTest extends AppServerTest {
   }
 
   @ParameterizedTest(name = "{index} => SpringBoot SmokeTest On JDK{0}.")
-  @ValueSource(ints = {8, 11, 15})
+  @ValueSource(ints = {8, 11, 17})
   void springBootSmokeTestOnJDK(int jdk) throws IOException, InterruptedException {
     // given
     startTargetOrSkipTest(getTargetImage(jdk));

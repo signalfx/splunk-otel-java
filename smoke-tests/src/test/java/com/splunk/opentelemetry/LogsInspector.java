@@ -27,6 +27,7 @@ import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.TRAC
 import com.google.perftools.profiles.ProfileProto;
 import com.splunk.opentelemetry.profiler.ProfilingDataType;
 import io.opentelemetry.api.common.AttributeKey;
+import io.opentelemetry.api.trace.TraceId;
 import io.opentelemetry.proto.collector.logs.v1.ExportLogsServiceRequest;
 import io.opentelemetry.proto.common.v1.KeyValue;
 import io.opentelemetry.proto.logs.v1.LogRecord;
@@ -99,6 +100,22 @@ public final class LogsInspector {
         .flatMap(log -> log.getResourceLogsList().stream())
         .flatMap(log -> log.getScopeLogsList().stream())
         .flatMap(log -> log.getLogRecordsList().stream());
+  }
+
+  public Stream<LogRecord> getLogStream(String loggerName) {
+    return logRequests.stream()
+        .flatMap(log -> log.getResourceLogsList().stream())
+        .flatMap(log -> log.getScopeLogsList().stream())
+        .filter(log -> Objects.equals(log.getScope().getName(), loggerName))
+        .flatMap(log -> log.getLogRecordsList().stream());
+  }
+
+  public static Predicate<LogRecord> hasTraceId(String traceId) {
+    return log -> traceId.equals(TraceId.fromBytes(log.getTraceId().toByteArray()));
+  }
+
+  public static Predicate<LogRecord> hasStringBody(String body) {
+    return log -> log.getBody().hasStringValue() && log.getBody().getStringValue().equals(body);
   }
 
   public List<ProfilerSample> getCpuSamples() {

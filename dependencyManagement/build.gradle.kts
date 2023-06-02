@@ -35,7 +35,7 @@ dependencies {
   api(enforcedPlatform("io.opentelemetry:opentelemetry-bom-alpha:$otelAlphaVersion"))
   api(enforcedPlatform("io.opentelemetry:opentelemetry-bom:$otelVersion"))
   api(enforcedPlatform("org.junit:junit-bom:5.9.3"))
-  api(enforcedPlatform("org.testcontainers:testcontainers-bom:1.18.2"))
+  api(enforcedPlatform("org.testcontainers:testcontainers-bom:1.18.3"))
 
   constraints {
     api("com.google.auto.service:auto-service:1.1.0")

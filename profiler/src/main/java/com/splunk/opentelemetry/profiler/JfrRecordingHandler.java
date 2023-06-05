@@ -47,9 +47,14 @@ class JfrRecordingHandler implements Consumer<InputStream> {
 
   private static final Logger logger = Logger.getLogger(JfrRecordingHandler.class.getName());
   // set of accepted event types
-  private static final Set<String> eventTypes = new HashSet<>(Arrays.asList(
-      ContextAttached.EVENT_NAME, ThreadDumpProcessor.EVENT_NAME, TLABProcessor.NEW_TLAB_EVENT_NAME,
-      TLABProcessor.OUTSIDE_TLAB_EVENT_NAME, TLABProcessor.ALLOCATION_SAMPLE_EVENT_NAME));
+  private static final Set<String> eventTypes =
+      new HashSet<>(
+          Arrays.asList(
+              ContextAttached.EVENT_NAME,
+              ThreadDumpProcessor.EVENT_NAME,
+              TLABProcessor.NEW_TLAB_EVENT_NAME,
+              TLABProcessor.OUTSIDE_TLAB_EVENT_NAME,
+              TLABProcessor.ALLOCATION_SAMPLE_EVENT_NAME));
   private final EventProcessingChain eventProcessingChain;
 
   public JfrRecordingHandler(Builder builder) {

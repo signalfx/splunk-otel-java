@@ -78,7 +78,7 @@ class EventProcessingChainTest {
 
     verifyNoInteractions(contextualizer, threadDumpProcessor, tlabProcessor);
 
-    chain.flushBuffer();
+    chain.flush();
     InOrder inOrder = inOrder(contextualizer, threadDumpProcessor, tlabProcessor);
     inOrder.verify(threadDumpProcessor).accept(threadDump);
     inOrder.verify(tlabProcessor).accept(tlab1);
@@ -107,7 +107,7 @@ class EventProcessingChainTest {
     chain.accept(event2); // Out of order
     chain.accept(event1); // Out of order
     chain.accept(event3);
-    chain.flushBuffer();
+    chain.flush();
 
     InOrder ordered = inOrder(contextualizer, threadDumpProcessor);
     ordered.verify(contextualizer).updateContext(event1);
@@ -146,7 +146,7 @@ class EventProcessingChainTest {
     for (IItem event : events) {
       chain.accept(event);
     }
-    chain.flushBuffer();
+    chain.flush();
 
     // probabilistic sampling can over or undersample
     assertThat(receivedCount.get()).isCloseTo(100, Offset.offset(30));

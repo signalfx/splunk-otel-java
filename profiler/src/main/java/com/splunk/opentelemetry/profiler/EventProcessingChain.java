@@ -61,10 +61,10 @@ class EventProcessingChain {
   }
 
   /**
-   * Tells the processing chain that a work unit (JFR file) is complete and it can process what's in
-   * the buffer. After flushing, the buffer will be empty.
+   * Tells the processing chain that a work unit (JFR chunk) is complete and the result can be
+   * exported.
    */
-  public void flushBuffer() {
+  public void flush() {
     buffer.sort(Comparator.comparingLong(eventReader::getStartTime));
     updateAllocationSampler();
 

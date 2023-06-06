@@ -61,6 +61,40 @@ create_post_release_pr() {
     --head "$post_release_branch"
 }
 
+create_collector_helm_chart_pr() {
+  local repo="signalfx/splunk-otel-collector-chart"
+  local repo_url="https://srv-gh-o11y-gdi:${GITHUB_TOKEN}@github.com/${repo}.git"
+  local update_version_branch="java-version-update-$release_tag"
+  local message="[java-version-update] Update agent version to $release_tag"
+  local java_repo="ghcr.io/signalfx/splunk-otel-java/splunk-otel-java"
+
+  echo ">>> Cloning the $repo repository ..."
+  git clone "$repo_url" collector-chart-mirror
+
+  cd collector-chart-mirror
+  git checkout -b "$update_version_branch"
+
+  # This relies on the tag being on the line after the java repo
+  echo ">>> Updating versions inline: values.yaml"
+  VLINE=$(grep -n -A 1 $java_repo helm-charts/splunk-otel-collector/values.yaml | tail -1 | sed -e "s/-.*//")
+  sed -i "${VLINE}s/\"v.*\"/\"${release_tag}\"/" helm-charts/splunk-otel-collector/values.yaml
+
+  # Generate the various templates
+  make render
+
+  git commit -S -am "[automated] $message"
+  git push "$repo_url" "$update_version_branch"
+
+  echo ">>> Creating a PR in splunk-otel-collector-chart..."
+  gh pr create \
+    --repo "$repo" \
+    --title "$message" \
+    --body "$message" \
+    --label automated \
+    --base main \
+    --head "$update_version_branch"
+}
+
 create_collector_pr() {
   local repo="signalfx/splunk-otel-collector"
   local repo_url="https://srv-gh-o11y-gdi:${GITHUB_TOKEN}@github.com/${repo}.git"
@@ -91,3 +125,4 @@ import_gpg_secret_key "$GITHUB_BOT_GPG_KEY"
 setup_git
 create_post_release_pr
 create_collector_pr
+create_collector_helm_chart_pr

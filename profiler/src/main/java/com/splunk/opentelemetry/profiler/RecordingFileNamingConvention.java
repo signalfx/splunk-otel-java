@@ -47,18 +47,4 @@ class RecordingFileNamingConvention {
     return Files.createTempFile(
         outputDir, PREFIX + "-" + timestamp.replace(':', '_') + "-", ".jfr");
   }
-
-  /** Determines if the path represents a file that we would have recorded to. */
-  boolean matches(Path path) {
-    return outputDir.equals(path.getParent()) && filenameMatches(path);
-  }
-
-  private boolean filenameMatches(Path path) {
-    String filename = path.getFileName().toString();
-    return filenamePattern.matcher(filename).matches();
-  }
-
-  Path getOutputPath() {
-    return outputDir;
-  }
 }

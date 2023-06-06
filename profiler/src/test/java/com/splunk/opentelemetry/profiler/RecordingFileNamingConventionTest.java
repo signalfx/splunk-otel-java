@@ -17,12 +17,9 @@
 package com.splunk.opentelemetry.profiler;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.Month;
 import org.junit.jupiter.api.Test;
@@ -41,17 +38,5 @@ class RecordingFileNamingConventionTest {
     Path path = convention.newOutputPath(now);
 
     assertThat(path.toString()).startsWith(expected.toString()).endsWith(".jfr");
-  }
-
-  @Test
-  void testMatches() {
-    RecordingFileNamingConvention convention = new RecordingFileNamingConvention(outputDir);
-    Path doesMatch = outputDir.resolve("otel-profiler-1999-02-12T17_03_21-123.jfr");
-    Path differentDir = Paths.get("/no/way/out/otel-profiler-1999-02-12T17_03_21-123.jfr");
-    Path badFilename = outputDir.resolve("tugboat-1999-02-12T17_03_21-123.jfr");
-
-    assertTrue(convention.matches(doesMatch));
-    assertFalse(convention.matches(differentDir));
-    assertFalse(convention.matches(badFilename));
   }
 }

@@ -100,7 +100,7 @@ public class JfrActivator implements AgentListener {
     }
 
     if (!Files.isWritable(outputDir)) {
-      outdirWarn(outputDir, "exists but is not writable.");
+      outdirWarn(outputDir, "exists but is not writable");
       return false;
     }
 

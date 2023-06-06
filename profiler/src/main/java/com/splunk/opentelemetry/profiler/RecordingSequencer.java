@@ -25,10 +25,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
-/**
- * Responsible for periodically generating a sequence of JFR recording files. Prior to starting a
- * recording, it consults with a RecordingEscapeHatch to make sure that it is safe/relevant to do.
- */
+/** Responsible for periodically generating a sequence of JFR recordings. */
 class RecordingSequencer {
   private static final Logger logger = Logger.getLogger(RecordingSequencer.class.getName());
 

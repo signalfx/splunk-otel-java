@@ -19,16 +19,21 @@ package com.splunk.opentelemetry.profiler;
 import static java.util.logging.Level.FINE;
 import static java.util.logging.Level.SEVERE;
 
+import com.splunk.opentelemetry.profiler.events.ContextAttached;
 import java.io.InputStream;
 import java.lang.reflect.Method;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
 import javax.annotation.Nullable;
-import org.openjdk.jmc.common.item.IItemCollection;
-import org.openjdk.jmc.flightrecorder.EventCollectionUtil;
+import org.openjdk.jmc.common.item.IItem;
+import org.openjdk.jmc.common.item.IType;
+import org.openjdk.jmc.flightrecorder.internal.EventArray;
 import org.openjdk.jmc.flightrecorder.internal.FlightRecordingLoader;
 import org.openjdk.jmc.flightrecorder.internal.IChunkLoader;
 import org.openjdk.jmc.flightrecorder.internal.IChunkSupplier;
@@ -41,6 +46,15 @@ import org.openjdk.jmc.flightrecorder.internal.parser.LoaderContext;
 class JfrRecordingHandler implements Consumer<InputStream> {
 
   private static final Logger logger = Logger.getLogger(JfrRecordingHandler.class.getName());
+  // set of accepted event types
+  private static final Set<String> eventTypes =
+      new HashSet<>(
+          Arrays.asList(
+              ContextAttached.EVENT_NAME,
+              ThreadDumpProcessor.EVENT_NAME,
+              TLABProcessor.NEW_TLAB_EVENT_NAME,
+              TLABProcessor.OUTSIDE_TLAB_EVENT_NAME,
+              TLABProcessor.ALLOCATION_SAMPLE_EVENT_NAME));
   private final EventProcessingChain eventProcessingChain;
 
   public JfrRecordingHandler(Builder builder) {
@@ -63,9 +77,15 @@ class JfrRecordingHandler implements Consumer<InputStream> {
         }
         // update buffer to reuse it when parsing the next chunk
         buffer = chunkLoader.call();
-        IItemCollection items = EventCollectionUtil.build(context.buildEventArrays());
-        items.stream().flatMap(iItems -> iItems.stream()).forEach(eventProcessingChain::accept);
-        eventProcessingChain.flushBuffer();
+
+        for (EventArray eventArray : context.buildEventArrays().getArrays()) {
+          IType<IItem> type = eventArray.getType();
+          if (eventTypes.contains(type.getIdentifier())) {
+            Arrays.asList(eventArray.getEvents()).forEach(eventProcessingChain::accept);
+          }
+        }
+
+        eventProcessingChain.flush();
       }
     } catch (Exception exception) {
       logger.log(SEVERE, "Error parsing JFR recording", exception);

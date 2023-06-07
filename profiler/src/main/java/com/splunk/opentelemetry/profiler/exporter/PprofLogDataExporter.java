@@ -49,7 +49,7 @@ public class PprofLogDataExporter {
     if (logger.isLoggable(FINE)) {
       logger.log(
           FINE,
-          "Exporting {0} data as pprof, size {2}.",
+          "Exporting {0} data as pprof, size {1}.",
           new Object[] {dataType.value(), bytes.length});
     }
 

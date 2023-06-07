@@ -9,6 +9,7 @@ repositories {
 
 dependencies {
   implementation(project(":profiler"))
+  implementation("io.opentelemetry:opentelemetry-api")
   testImplementation("org.junit.jupiter:junit-jupiter-api")
   testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
 }

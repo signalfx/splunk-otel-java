@@ -43,6 +43,7 @@ public class Configuration implements AutoConfigurationCustomizerProvider {
   private static final boolean DEFAULT_MEMORY_EVENT_RATE_LIMIT_ENABLED = true;
 
   public static final String CONFIG_KEY_ENABLE_PROFILER = PROFILER_ENABLED_PROPERTY;
+  public static final String CONFIG_KEY_PROFILER_JFR = "splunk.profiler.jfr";
   public static final String CONFIG_KEY_PROFILER_DIRECTORY = "splunk.profiler.directory";
   public static final String CONFIG_KEY_RECORDING_DURATION = "splunk.profiler.recording.duration";
   public static final String CONFIG_KEY_KEEP_FILES = "splunk.profiler.keep-files";
@@ -99,6 +100,10 @@ public class Configuration implements AutoConfigurationCustomizerProvider {
       return null;
     }
     return config.getString(CONFIG_KEY_INGEST_URL, ingestUrl);
+  }
+
+  public static boolean getProfilerJfrEnabled(ConfigProperties config) {
+    return config.getBoolean(CONFIG_KEY_PROFILER_JFR, true);
   }
 
   public static boolean getTLABEnabled(ConfigProperties config) {

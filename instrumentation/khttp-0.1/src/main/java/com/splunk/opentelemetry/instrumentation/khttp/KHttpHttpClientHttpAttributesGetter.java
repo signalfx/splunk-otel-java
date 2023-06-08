@@ -31,7 +31,7 @@ final class KHttpHttpClientHttpAttributesGetter
 
   @Nullable
   @Override
-  public String getUrl(RequestWrapper requestWrapper) {
+  public String getUrlFull(RequestWrapper requestWrapper) {
     return requestWrapper.uri;
   }
 

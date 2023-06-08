@@ -54,10 +54,10 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 @AutoService(AgentListener.class)
-public class JfrActivator implements AgentListener {
+public class ProfilerActivator implements AgentListener {
 
   private static final java.util.logging.Logger logger =
-      java.util.logging.Logger.getLogger(JfrActivator.class.getName());
+      java.util.logging.Logger.getLogger(ProfilerActivator.class.getName());
   private final ConfigurationLogger configurationLogger = new ConfigurationLogger();
 
   @Override
@@ -92,7 +92,7 @@ public class JfrActivator implements AgentListener {
     private static final ExecutorService executor =
         HelpfulExecutors.newSingleThreadExecutor("JFR Profiler");
 
-    static void run(JfrActivator activator, ConfigProperties config, Resource resource) {
+    static void run(ProfilerActivator activator, ConfigProperties config, Resource resource) {
       executor.submit(logUncaught(() -> activator.activateJfrAndRunForever(config, resource)));
     }
   }
@@ -101,7 +101,7 @@ public class JfrActivator implements AgentListener {
     private static final ScheduledExecutorService scheduler =
         HelpfulExecutors.newSingleThreadedScheduledExecutor("Profiler scheduler");
 
-    static void run(JfrActivator activator, ConfigProperties config, Resource resource) {
+    static void run(ProfilerActivator activator, ConfigProperties config, Resource resource) {
       int stackDepth = Configuration.getStackDepth(config);
       LogRecordExporter logsExporter = LogExporterBuilder.fromConfig(config);
       CpuEventExporter cpuEventExporter =

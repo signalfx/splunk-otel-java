@@ -31,10 +31,10 @@ dependencies {
   implementation("io.micrometer:micrometer-registry-signalfx") {
     // bootstrap already has micrometer-core
     exclude("io.micrometer", "micrometer-core")
-    // we're setting the signalfx-java version ourselves
+    // we replace signalfx-java with signalfx-metrics
     exclude("com.signalfx.public", "signalfx-java")
   }
-  implementation("com.signalfx.public:signalfx-java")
+  implementation("com.signalfx.public:signalfx-metrics")
 
   testImplementation("io.opentelemetry:opentelemetry-sdk")
   testImplementation("io.opentelemetry:opentelemetry-sdk-testing")

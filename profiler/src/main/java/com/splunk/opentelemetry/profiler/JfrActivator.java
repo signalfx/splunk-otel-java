@@ -64,7 +64,7 @@ public class JfrActivator implements AgentListener {
     }
 
     configurationLogger.log(config);
-    logger.info("JFR profiler is active.");
+    logger.info("Profiler is active.");
     executor.submit(
         logUncaught(
             () -> activateJfrAndRunForever(config, autoConfiguredOpenTelemetrySdk.getResource())));
@@ -72,9 +72,7 @@ public class JfrActivator implements AgentListener {
 
   private boolean notClearForTakeoff(ConfigProperties config) {
     if (!config.getBoolean(CONFIG_KEY_ENABLE_PROFILER, false)) {
-      logger.fine("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
-      logger.fine("xxxxxxxxx  JFR PROFILER DISABLED!  xxxxxxxxx");
-      logger.fine("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
+      logger.fine("Profiler is not enabled.");
       return true;
     }
     if (!JFR.instance.isAvailable()) {
@@ -83,35 +81,42 @@ public class JfrActivator implements AgentListener {
       return true;
     }
 
-    Path outputDir = Paths.get(config.getString(CONFIG_KEY_PROFILER_DIRECTORY));
+    return false;
+  }
+
+  private boolean checkOutputDir(Path outputDir) {
     if (!Files.exists(outputDir)) {
       // Try creating the directory for the user...
       try {
         Files.createDirectories(outputDir);
       } catch (IOException e) {
-        return outdirWarn(outputDir, "does not exist and could not be created");
+        outdirWarn(outputDir, "does not exist and could not be created");
+        return false;
       }
     }
     if (!Files.isDirectory(outputDir)) {
-      return outdirWarn(outputDir, "exists but is not a directory");
+      outdirWarn(outputDir, "exists but is not a directory");
+      return false;
     }
 
     if (!Files.isWritable(outputDir)) {
-      return outdirWarn(outputDir, "exists but is not writable.");
+      outdirWarn(outputDir, "exists but is not writable");
+      return false;
     }
-    return false;
-  }
 
-  private boolean outdirWarn(Path dir, String suffix) {
-    logger.log(
-        WARNING,
-        "PROFILER WILL NOT BE STARTED: The configured output directory {0} {1}.",
-        new Object[] {dir, suffix});
     return true;
   }
 
+  private void outdirWarn(Path dir, String suffix) {
+    logger.log(WARNING, "The configured output directory {0} {1}.", new Object[] {dir, suffix});
+  }
+
   private void activateJfrAndRunForever(ConfigProperties config, Resource resource) {
+    boolean keepFiles = keepFiles(config);
     Path outputDir = Paths.get(config.getString(CONFIG_KEY_PROFILER_DIRECTORY));
+    if (keepFiles && !checkOutputDir(outputDir)) {
+      keepFiles = false;
+    }
     RecordingFileNamingConvention namingConvention = new RecordingFileNamingConvention(outputDir);
 
     int stackDepth = Configuration.getStackDepth(config);
@@ -167,7 +172,7 @@ public class JfrActivator implements AgentListener {
             .jfr(JFR.instance)
             .onNewRecording(jfrRecordingHandler)
             .namingConvention(namingConvention)
-            .keepRecordingFiles(keepFiles(config))
+            .keepRecordingFiles(keepFiles)
             .build();
 
     RecordingSequencer sequencer =

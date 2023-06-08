@@ -42,7 +42,7 @@ dependencies {
     api("io.jaegertracing:jaeger-client:1.8.1")
     api("org.assertj:assertj-core:3.24.2")
     api("org.awaitility:awaitility:4.2.0")
-    api("com.signalfx.public:signalfx-java:1.0.31")
+    api("com.signalfx.public:signalfx-java:1.0.32")
 
     api("com.github.docker-java:docker-java-core:$dockerJavaVersion")
     api("com.github.docker-java:docker-java-transport-httpclient5:$dockerJavaVersion")

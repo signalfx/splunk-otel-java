@@ -42,7 +42,7 @@ dependencies {
     api("io.jaegertracing:jaeger-client:1.8.1")
     api("org.assertj:assertj-core:3.24.2")
     api("org.awaitility:awaitility:4.2.0")
-    api("com.signalfx.public:signalfx-java:1.0.31")
+    api("com.signalfx.public:signalfx-metrics:1.0.32")
 
     api("com.github.docker-java:docker-java-core:$dockerJavaVersion")
     api("com.github.docker-java:docker-java-transport-httpclient5:$dockerJavaVersion")
@@ -51,6 +51,7 @@ dependencies {
     api("org.mockito:mockito-junit-jupiter:$mockitoVersion")
     api("org.slf4j:slf4j-api:$slf4jVersion")
     api("org.slf4j:slf4j-simple:$slf4jVersion")
+    api("org.slf4j:jcl-over-slf4j:$slf4jVersion")
     api("com.google.auto.value:auto-value:$autoValueVersion")
     api("com.google.auto.value:auto-value-annotations:$autoValueVersion")
 

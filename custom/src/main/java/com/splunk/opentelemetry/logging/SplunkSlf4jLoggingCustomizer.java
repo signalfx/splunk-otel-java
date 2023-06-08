@@ -48,7 +48,7 @@ public class SplunkSlf4jLoggingCustomizer implements LoggingCustomizer {
   }
 
   private static final String METRICS_RETRY_LOGGER_PROPERTY =
-      "io.opentelemetry.javaagent.slf4j.simpleLogger.log.com.signalfx.shaded.apache.http.impl.execchain.RetryExec";
+      "org.apache.http.impl.execchain.RetryExec";
 
   private static void addCustomLoggingConfiguration() {
     // metrics exporter sometimes logs "Broken pipe (Write failed)" at INFO; usually in

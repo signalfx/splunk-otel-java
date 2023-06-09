@@ -122,6 +122,31 @@ public class StackTraceFilter {
     return true;
   }
 
+  public boolean test(Thread thread, StackTraceElement[] threadDump) {
+    if (!includeAgentInternalStacks) {
+      String threadName = thread.getName();
+      for (String prefix : UNWANTED_PREFIXES) {
+        // if prefix ends with " we expect it to match thread name
+        if (prefix.endsWith("\"")) {
+          // prefix is surrounded by "
+          if (threadName.regionMatches(0, prefix, 1, prefix.length() - 2)) {
+            return false;
+          }
+          // prefix starts with "
+        } else if (threadName.regionMatches(0, prefix, 1, prefix.length() - 1)) {
+          return false;
+        }
+      }
+    }
+    if (!includeJvmInternalStacks) {
+      if (everyFrameIsJvmInternal(threadDump)) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
   /**
    * Frames are considered JVM internal if every frame in the stack stars with one of "jdk.", "sun."
    * or "java.".
@@ -164,6 +189,24 @@ public class StackTraceFilter {
         continue;
       }
       String className = type.getFullName();
+      if (className == null) {
+        continue;
+      }
+      if (!className.startsWith("java.")
+          && !className.startsWith("jdk.")
+          && !className.startsWith("sun.")) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  private static boolean everyFrameIsJvmInternal(StackTraceElement[] stackTrace) {
+    if (stackTrace == null) {
+      return false;
+    }
+    for (StackTraceElement frame : stackTrace) {
+      String className = frame.getClassName();
       if (className == null) {
         continue;
       }

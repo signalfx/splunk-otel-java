@@ -112,6 +112,8 @@ public class ProfilerActivator implements AgentListener {
               .period(Configuration.getCallStackInterval(config))
               .stackDepth(stackDepth)
               .build();
+      StackTraceFilter stackTraceFilter = activator.buildStackTraceFilter(config, null);
+      boolean onlyTracingSpans = Configuration.getTracingStacksOnly(config);
 
       Runnable profiler =
           () -> {
@@ -134,8 +136,18 @@ public class ProfilerActivator implements AgentListener {
             }
             for (Map.Entry<Thread, StackTraceElement[]> entry : stackTracesMap.entrySet()) {
               Thread thread = entry.getKey();
+              StackTraceElement[] stack = entry.getValue();
+
+              if (!stackTraceFilter.test(thread, stack)) {
+                continue;
+              }
+
               SpanContext spanContext = contextMap.get(thread);
-              cpuEventExporter.export(thread, entry.getValue(), now, spanContext);
+              if (onlyTracingSpans && !spanContext.isValid()) {
+                continue;
+              }
+
+              cpuEventExporter.export(thread, stack, now, spanContext);
             }
             cpuEventExporter.flush();
           };

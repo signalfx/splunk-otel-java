@@ -37,12 +37,12 @@ final class KHttpHttpClientHttpAttributesGetter
 
   @Nullable
   @Override
-  public String getMethod(RequestWrapper requestWrapper) {
+  public String getHttpRequestMethod(RequestWrapper requestWrapper) {
     return requestWrapper.method;
   }
 
   @Override
-  public List<String> getRequestHeader(RequestWrapper requestWrapper, String name) {
+  public List<String> getHttpRequestHeader(RequestWrapper requestWrapper, String name) {
     return requestWrapper.headers.entrySet().stream()
         .filter(e -> e.getKey().equalsIgnoreCase(name))
         .map(Map.Entry::getValue)
@@ -50,13 +50,13 @@ final class KHttpHttpClientHttpAttributesGetter
   }
 
   @Override
-  public Integer getStatusCode(
+  public Integer getHttpResponseStatusCode(
       RequestWrapper requestWrapper, Response response, @Nullable Throwable error) {
     return response.getStatusCode();
   }
 
   @Override
-  public List<String> getResponseHeader(
+  public List<String> getHttpResponseHeader(
       RequestWrapper requestWrapper, Response response, String name) {
     String header = response.getHeaders().get(name);
     return header != null ? singletonList(header) : emptyList();

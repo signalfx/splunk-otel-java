@@ -290,6 +290,7 @@ public abstract class ProfilerSmokeTest {
                 ));
     if (!useJfr) {
       command.add("-Dsplunk.profiler.jfr=false");
+      command.add("-Dsplunk.profiler.java=true");
     }
     command.addAll(Arrays.asList("-jar", "/app/spring-petclinic-rest.jar"));
 

@@ -44,6 +44,7 @@ public class Configuration implements AutoConfigurationCustomizerProvider {
 
   public static final String CONFIG_KEY_ENABLE_PROFILER = PROFILER_ENABLED_PROPERTY;
   public static final String CONFIG_KEY_PROFILER_JFR = "splunk.profiler.jfr";
+  public static final String CONFIG_KEY_PROFILER_JAVA = "splunk.profiler.java";
   public static final String CONFIG_KEY_PROFILER_DIRECTORY = "splunk.profiler.directory";
   public static final String CONFIG_KEY_RECORDING_DURATION = "splunk.profiler.recording.duration";
   public static final String CONFIG_KEY_KEEP_FILES = "splunk.profiler.keep-files";
@@ -104,6 +105,10 @@ public class Configuration implements AutoConfigurationCustomizerProvider {
 
   public static boolean getProfilerJfrEnabled(ConfigProperties config) {
     return config.getBoolean(CONFIG_KEY_PROFILER_JFR, true);
+  }
+
+  public static boolean getProfilerJavaEnabled(ConfigProperties config) {
+    return config.getBoolean(CONFIG_KEY_PROFILER_JAVA, false);
   }
 
   public static boolean getTLABEnabled(ConfigProperties config) {

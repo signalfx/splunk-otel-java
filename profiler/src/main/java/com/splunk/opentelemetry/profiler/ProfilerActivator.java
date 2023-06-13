@@ -70,12 +70,14 @@ public class ProfilerActivator implements AgentListener {
     boolean useJfr = Configuration.getProfilerJfrEnabled(config);
     boolean javaProfilerEnabled = Configuration.getProfilerJavaEnabled(config);
     if (useJfr && !JFR.instance.isAvailable()) {
+      // jfr is not available and java profiler is not enabled
       if (!javaProfilerEnabled) {
         logger.warning(
             "JDK Flight Recorder (JFR) is not available in this JVM. Profiling is disabled.");
         return;
       }
 
+      // fall back to java profiler
       logger.fine(
           "JDK Flight Recorder (JFR) is not available in this JVM, switching to java profiler.");
       if (Configuration.getTLABEnabled(config)) {
@@ -83,7 +85,9 @@ public class ProfilerActivator implements AgentListener {
             "JDK Flight Recorder (JFR) is not available in this JVM. Memory profiling is disabled.");
       }
       useJfr = false;
-    } else if (!javaProfilerEnabled) {
+    }
+    // neither jfr nor java profiler is available
+    if (!useJfr && !javaProfilerEnabled) {
       logger.fine("Java profiler is disabled.");
       return;
     }

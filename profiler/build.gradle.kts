@@ -32,7 +32,7 @@ dependencies {
   // required to access InstrumentationHolder
   compileOnly("io.opentelemetry.javaagent:opentelemetry-javaagent-bootstrap")
   implementation("io.opentelemetry:opentelemetry-sdk-logs")
-  implementation("io.opentelemetry:opentelemetry-exporter-otlp-logs")
+  implementation("io.opentelemetry:opentelemetry-exporter-otlp")
   implementation("com.google.protobuf:protobuf-java:$protobufVersion")
   implementation("org.openjdk.jmc:flightrecorder:8.3.1")
 
@@ -48,7 +48,7 @@ dependencies {
   testImplementation("io.opentelemetry:opentelemetry-context")
   testImplementation("io.opentelemetry:opentelemetry-api")
   testImplementation("io.opentelemetry:opentelemetry-sdk")
-  testImplementation("io.opentelemetry:opentelemetry-sdk-logs-testing")
+  testImplementation("io.opentelemetry:opentelemetry-sdk-testing")
   testImplementation("io.github.netmikey.logunit:logunit-jul:2.0.0")
 }
 

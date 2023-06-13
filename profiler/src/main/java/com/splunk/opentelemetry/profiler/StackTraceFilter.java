@@ -100,17 +100,8 @@ public class StackTraceFilter {
 
     if (!includeAgentInternalStacks) {
       String threadName = thread.getThreadName();
-      for (String prefix : UNWANTED_PREFIXES) {
-        // if prefix ends with " we expect it to match thread name
-        if (prefix.endsWith("\"")) {
-          // prefix is surrounded by "
-          if (threadName.regionMatches(0, prefix, 1, prefix.length() - 2)) {
-            return false;
-          }
-          // prefix starts with "
-        } else if (threadName.regionMatches(0, prefix, 1, prefix.length() - 1)) {
-          return false;
-        }
+      if (isInternalThread(threadName)) {
+        return false;
       }
     }
     if (!includeJvmInternalStacks) {
@@ -125,17 +116,8 @@ public class StackTraceFilter {
   public boolean test(Thread thread, StackTraceElement[] threadDump) {
     if (!includeAgentInternalStacks) {
       String threadName = thread.getName();
-      for (String prefix : UNWANTED_PREFIXES) {
-        // if prefix ends with " we expect it to match thread name
-        if (prefix.endsWith("\"")) {
-          // prefix is surrounded by "
-          if (threadName.regionMatches(0, prefix, 1, prefix.length() - 2)) {
-            return false;
-          }
-          // prefix starts with "
-        } else if (threadName.regionMatches(0, prefix, 1, prefix.length() - 1)) {
-          return false;
-        }
+      if (isInternalThread(threadName)) {
+        return false;
       }
     }
     if (!includeJvmInternalStacks) {
@@ -145,6 +127,22 @@ public class StackTraceFilter {
     }
 
     return true;
+  }
+
+  private static boolean isInternalThread(String threadName) {
+    for (String prefix : UNWANTED_PREFIXES) {
+      // if prefix ends with " we expect it to match thread name
+      if (prefix.endsWith("\"")) {
+        // prefix is surrounded by "
+        if (threadName.regionMatches(0, prefix, 1, prefix.length() - 2)) {
+          return true;
+        }
+        // prefix starts with "
+      } else if (threadName.regionMatches(0, prefix, 1, prefix.length() - 1)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   /**
@@ -192,9 +190,7 @@ public class StackTraceFilter {
       if (className == null) {
         continue;
       }
-      if (!className.startsWith("java.")
-          && !className.startsWith("jdk.")
-          && !className.startsWith("sun.")) {
+      if (!isJvmInternalClassName(className)) {
         return false;
       }
     }
@@ -210,12 +206,16 @@ public class StackTraceFilter {
       if (className == null) {
         continue;
       }
-      if (!className.startsWith("java.")
-          && !className.startsWith("jdk.")
-          && !className.startsWith("sun.")) {
+      if (!isJvmInternalClassName(className)) {
         return false;
       }
     }
     return true;
+  }
+
+  private static boolean isJvmInternalClassName(String className) {
+    return className.startsWith("java.")
+        || className.startsWith("jdk.")
+        || className.startsWith("sun.");
   }
 }

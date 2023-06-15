@@ -28,7 +28,7 @@ dependencies {
 
   // BOMs
   api(enforcedPlatform("com.fasterxml.jackson:jackson-bom:2.15.2"))
-  api(enforcedPlatform("com.google.protobuf:protobuf-bom:3.23.2"))
+  api(enforcedPlatform("com.google.protobuf:protobuf-bom:3.23.3"))
   api(enforcedPlatform("com.squareup.okhttp3:okhttp-bom:4.11.0"))
   api(enforcedPlatform("io.grpc:grpc-bom:1.56.0"))
   api(platform("io.micrometer:micrometer-bom:$micrometerVersion"))

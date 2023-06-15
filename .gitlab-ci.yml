@@ -7,7 +7,7 @@ include:
     file: '/prodsec/.oss-scan.yml'
 
 image:
-  name: "docker-hub.repo.splunkdev.net/openjdk:11.0.11-9-jdk"
+  name: "docker.repo.splunkdev.net/ci-cd/ci-container/maven-3.8-jdk-17:1.15.0"
 
 stages:
   - build

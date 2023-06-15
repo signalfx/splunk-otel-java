@@ -111,6 +111,7 @@ jobs:
         os: [ windows-2019, ubuntu-20.04 ]
         suite: [ "glassfish", "jboss", "jetty", "liberty", "profiler", "tomcat", "tomee", "weblogic", "websphere", "wildfly", "other" ]
         exclude:
+          - os: ${{ !contains(github.event.pull_request.labels.*.name, 'test windows') && 'windows-2019' || '' }}
           - os: windows-2019
             suite: websphere
           - os: windows-2019

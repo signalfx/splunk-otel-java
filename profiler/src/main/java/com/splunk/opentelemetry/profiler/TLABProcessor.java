@@ -20,7 +20,6 @@ import com.splunk.opentelemetry.profiler.allocation.exporter.AllocationEventExpo
 import com.splunk.opentelemetry.profiler.allocation.sampler.AllocationEventSampler;
 import com.splunk.opentelemetry.profiler.allocation.sampler.RateLimitingAllocationEventSampler;
 import com.splunk.opentelemetry.profiler.context.SpanContextualizer;
-import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import org.openjdk.jmc.common.IMCStackTrace;
@@ -31,7 +30,6 @@ public class TLABProcessor {
   public static final String NEW_TLAB_EVENT_NAME = "jdk.ObjectAllocationInNewTLAB";
   public static final String OUTSIDE_TLAB_EVENT_NAME = "jdk.ObjectAllocationOutsideTLAB";
   public static final String ALLOCATION_SAMPLE_EVENT_NAME = "jdk.ObjectAllocationSample";
-  static final AttributeKey<Long> ALLOCATION_SIZE_KEY = AttributeKey.longKey("memory.allocated");
 
   private final boolean enabled;
   private final EventReader eventReader;

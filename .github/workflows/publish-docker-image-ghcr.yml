@@ -3,6 +3,7 @@ name: publish splunk-otel-java docker image to ghcr
 on:
   release:
     types: [published]
+  workflow_dispatch:
 
 jobs:
   build:
@@ -15,8 +16,18 @@ jobs:
 
       - uses: docker/setup-buildx-action@v2
 
-      - name: Put GITHUB_REF_NAME into env
-        run: echo GITHUB_REF_NAME=${GITHUB_REF_NAME} >> $GITHUB_ENV
+      - name: Get the latest release version
+        run: |
+          if [[ "$GITHUB_REF_NAME" =~ ^v[0-9]+\.[0-9]+\.x$ ]]; then
+            # get the latest tag on the release branch
+            RELEASE_VERSION="$(git describe --abbrev=0)"
+          elif [[ "$GITHUB_REF_NAME" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            RELEASE_VERSION="$GITHUB_REF_NAME"
+          else 
+            echo "This script can only be run on the tag or a release branch"
+            exit 1
+          fi
+          echo RELEASE_VERSION=${RELEASE_VERSION} >> $GITHUB_ENV
 
       - name: Set the major version number
         run: echo MAJOR_VERSION=${GITHUB_REF_NAME} | sed -e 's/\..*//' >> $GITHUB_ENV
@@ -34,10 +45,10 @@ jobs:
           push: true
           file: Dockerfile-ghcr
           build-args: |
-            RELEASE_VER=${{ env.GITHUB_REF_NAME }}
+            RELEASE_VER=${{ env.RELEASE_VERSION }}
           tags: |
             ghcr.io/signalfx/splunk-otel-java/splunk-otel-java:latest
             ghcr.io/signalfx/splunk-otel-java/splunk-otel-java:${{ env.MAJOR_VERSION }}
-            ghcr.io/signalfx/splunk-otel-java/splunk-otel-java:${{ env.GITHUB_REF_NAME }}
+            ghcr.io/signalfx/splunk-otel-java/splunk-otel-java:${{ env.RELEASE_VERSION }}
 
 

@@ -13,16 +13,16 @@ Below you will find all the configuration options supported by this distribution
 
 ## Splunk configuration
 
-| System property                         | Environment variable                    | Default value           | Support      | Description                                                                                                                                                                                                                                                   |
-|-----------------------------------------|-----------------------------------------|-------------------------|--------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `splunk.access.token`                   | `SPLUNK_ACCESS_TOKEN`                   | unset                   | Stable       | (Optional) Auth token allowing exporters to communicate directly with the Splunk cloud, passed as `X-SF-TOKEN` header. Currently, the [Jaeger trace exporter](#trace-exporters) as well as the [SignalFx metrics exporter](metrics.md) support this property. |
-| `splunk.realm`                          | `SPLUNK_REALM`                          | `none`                  | Stable       | The Splunk Observability Cloud realm where the telemetry should be sent to. For example, `us0` or `us1`. Defaults to `none`, which means that data goes to a Splunk OpenTelemetry Collector deployed on `localhost`.                                                                    |
-| `splunk.metrics.enabled`                | `SPLUNK_METRICS_ENABLED`                | `false`                 | Experimental | Enables exporting metrics. See [this document](metrics.md) for more information.                                                                                                                                                                              |
-| `splunk.metrics.endpoint`               | `SPLUNK_METRICS_ENDPOINT`               | `http://localhost:9943` | Experimental | The SignalFx metrics endpoint to connect to.  Setting this will override the `splunk.realm` property.                                                                                                                                                         |
-| `splunk.metrics.export.interval`        | `SPLUNK_METRICS_EXPORT_INTERVAL`        | `30s`                   | Experimental | The interval between pushing metrics.  <details><summary>Format</summary>Durations can be of the form `{number}{unit}`, where unit is one of `ms`, `s`, `m`, `h`, `d`. If no unit is specified, milliseconds is the assumed duration unit.</details>          |
-| `splunk.metrics.implementation`         | `SPLUNK_METRICS_IMPLEMENTATION`         | `micrometer`            | Experimental | The metrics implementation used by the agent. Valid values are `micrometer` and `opentelemetry`.                                                                                                                                                              |
-| `splunk.metrics.force_full_commandline` | `SPLUNK_METRICS_FORCE_FULL_COMMANDLINE` | `false`                 | Experimental | Adds the full command line as a resource attribute for all metrics. If false, commands longer than 255 characters are truncated.                                                                                                       |
-| `splunk.trace-response-header.enabled`  | `SPLUNK_TRACE_RESPONSE_HEADER_ENABLED`  | `true`                  | Stable       | Enables adding server trace information to HTTP response headers. See [this document](server-trace-info.md) for more information.                                                                                                                             |
+| System property                         | Environment variable                    | Default value           | Support      | Description                                                                                                                                                                                                                                          |
+|-----------------------------------------|-----------------------------------------|-------------------------|--------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `splunk.access.token`                   | `SPLUNK_ACCESS_TOKEN`                   | unset                   | Stable       | (Optional) Auth token allowing exporters to communicate directly with the Splunk cloud, passed as `X-SF-TOKEN` header. Currently, the [SignalFx metrics exporter](metrics.md) supports this property.                                                |
+| `splunk.realm`                          | `SPLUNK_REALM`                          | `none`                  | Stable       | The Splunk Observability Cloud realm where the telemetry should be sent to. For example, `us0` or `us1`. Defaults to `none`, which means that data goes to a Splunk OpenTelemetry Collector deployed on `localhost`.                                 |
+| `splunk.metrics.enabled`                | `SPLUNK_METRICS_ENABLED`                | `false`                 | Experimental | Enables exporting metrics. See [this document](metrics.md) for more information.                                                                                                                                                                     |
+| `splunk.metrics.endpoint`               | `SPLUNK_METRICS_ENDPOINT`               | `http://localhost:9943` | Experimental | The SignalFx metrics endpoint to connect to.  Setting this will override the `splunk.realm` property.                                                                                                                                                |
+| `splunk.metrics.export.interval`        | `SPLUNK_METRICS_EXPORT_INTERVAL`        | `30s`                   | Experimental | The interval between pushing metrics.  <details><summary>Format</summary>Durations can be of the form `{number}{unit}`, where unit is one of `ms`, `s`, `m`, `h`, `d`. If no unit is specified, milliseconds is the assumed duration unit.</details> |
+| `splunk.metrics.implementation`         | `SPLUNK_METRICS_IMPLEMENTATION`         | `micrometer`            | Experimental | The metrics implementation used by the agent. Valid values are `micrometer` and `opentelemetry`.                                                                                                                                                     |
+| `splunk.metrics.force_full_commandline` | `SPLUNK_METRICS_FORCE_FULL_COMMANDLINE` | `false`                 | Experimental | Adds the full command line as a resource attribute for all metrics. If false, commands longer than 255 characters are truncated.                                                                                                                     |
+| `splunk.trace-response-header.enabled`  | `SPLUNK_TRACE_RESPONSE_HEADER_ENABLED`  | `true`                  | Stable       | Enables adding server trace information to HTTP response headers. See [this document](server-trace-info.md) for more information.                                                                                                                    |
 
 The SignalFx exporter can be configured to export metrics directly to Splunk ingest. To achieve that, you need to set
 the `splunk.access.token` configuration property and set the `splunk.metrics.endpoint` to Splunk ingest URL. For
@@ -35,34 +35,12 @@ export SPLUNK_METRICS_ENDPOINT=https://ingest.us0.signalfx.com
 
 ## Trace exporters
 
-| System property                 | Environment variable            | Default value                    | Support | Description                                                                                                                              |
-|---------------------------------|---------------------------------|----------------------------------|---------|------------------------------------------------------------------------------------------------------------------------------------------|
-| `otel.exporter.otlp.endpoint`   | `OTEL_EXPORTER_OTLP_ENDPOINT`   | `http://localhost:4317`          | Stable  | The OTLP endpoint to connect to. Setting this will override the `splunk.realm` property.                                                 |
-| `otel.exporter.jaeger.endpoint` | `OTEL_EXPORTER_JAEGER_ENDPOINT` | `http://localhost:9080/v1/trace` | Stable  | The Jaeger endpoint to connect to. Setting this will override the `splunk.realm` property.                                               |
-| `otel.traces.exporter`          | `OTEL_TRACES_EXPORTER`          | `otlp`                           | Stable  | Select the traces exporter to use. We recommend using either the OTLP exporter (`otlp`) or the Jaeger exporter (`jaeger-thrift-splunk`). |
+| System property                 | Environment variable            | Default value                    | Support | Description                                                                               |
+|---------------------------------|---------------------------------|----------------------------------|---------|-------------------------------------------------------------------------------------------|
+| `otel.exporter.otlp.endpoint`   | `OTEL_EXPORTER_OTLP_ENDPOINT`   | `http://localhost:4317`          | Stable  | The OTLP endpoint to connect to. Setting this will override the `splunk.realm` property.  |
+| `otel.traces.exporter`          | `OTEL_TRACES_EXPORTER`          | `otlp`                           | Stable  | Select the traces exporter to use. We recommend using the default OTLP exporter (`otlp`)  |
 
-:warning: **Support for the `jaeger-thrift-splunk` exporter will be removed after December 17th, 2022. See the [deprecation notice](https://github.com/signalfx/signalfx-agent/blob/main/docs/smartagent-deprecation-notice.md) on the SmartAgent for details. ** :warning:
-
-The Splunk Distribution of OpenTelemetry Java uses the OTLP traces exporter as the default setting. Please note that the
-OTLP format is neither supported by the (now
-deprecated) [SignalFx Smart Agent](https://github.com/signalfx/signalfx-agent) nor by the Splunk ingest. If you're still
-using the Smart Agent, or if you wish to send traces directly to the Splunk Ingest, please use the Jaeger exporter. To
-use the Jaeger exporter set the `otel.traces.exporter` configuration option to `jaeger-thrift-splunk`. For example:
-
-```bash
-export OTEL_TRACES_EXPORTER=jaeger-thrift-splunk
-```
-
-Jaeger exporter can be configured to export traces directly to the Splunk ingest. To achieve that, you need to set
-the `splunk.access.token` configuration property and set the `otel.exporter.jaeger.endpoint` to Splunk ingest URL.
-
-Example:
-
-```bash
-export SPLUNK_ACCESS_TOKEN=my_splunk_token
-export OTEL_TRACES_EXPORTER=jaeger-thrift-splunk
-export OTEL_EXPORTER_JAEGER_ENDPOINT=https://ingest.us0.signalfx.com/v2/trace
-```
+The Splunk Distribution of OpenTelemetry Java uses the OTLP traces exporter as the default setting.
 
 ## Trace propagation configuration
 

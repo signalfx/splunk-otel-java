@@ -8,6 +8,8 @@ and this repository adheres to [Semantic Versioning](https://semver.org/spec/v2.
 
 ## Unreleased
 
+- Remove deprecated Jaeger exporter support.
+
 ## v1.25.0 - 2023-06-15
 
 ### General

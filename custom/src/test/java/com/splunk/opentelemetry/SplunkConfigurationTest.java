@@ -18,7 +18,6 @@ package com.splunk.opentelemetry;
 
 import static com.splunk.opentelemetry.SplunkConfiguration.METRICS_ENABLED_PROPERTY;
 import static com.splunk.opentelemetry.SplunkConfiguration.METRICS_IMPLEMENTATION;
-import static com.splunk.opentelemetry.SplunkConfiguration.OTEL_EXPORTER_JAEGER_ENDPOINT;
 import static com.splunk.opentelemetry.SplunkConfiguration.PROFILER_MEMORY_ENABLED_PROPERTY;
 import static com.splunk.opentelemetry.SplunkConfiguration.SPLUNK_REALM_NONE;
 import static java.util.Arrays.asList;
@@ -38,8 +37,6 @@ class SplunkConfigurationTest {
   void usesLocalIngestIfNoRealmIsConfigured() {
     ConfigProperties config = configuration();
 
-    assertThat(config.getString(OTEL_EXPORTER_JAEGER_ENDPOINT))
-        .isEqualTo("http://localhost:9080/v1/trace");
     assertThat(config.getString(OTLP_ENDPOINT)).isNull();
   }
 
@@ -48,8 +45,6 @@ class SplunkConfigurationTest {
     ConfigProperties config =
         configuration(() -> Map.of(SplunkConfiguration.SPLUNK_REALM_PROPERTY, SPLUNK_REALM_NONE));
 
-    assertThat(config.getString(OTEL_EXPORTER_JAEGER_ENDPOINT))
-        .isEqualTo("http://localhost:9080/v1/trace");
     assertThat(config.getString(OTLP_ENDPOINT)).isNull();
   }
 
@@ -57,8 +52,6 @@ class SplunkConfigurationTest {
   void realmIsNotHardcoded() {
     var config = configuration(() -> Map.of(SplunkConfiguration.SPLUNK_REALM_PROPERTY, "test1"));
 
-    assertThat(config.getString(OTEL_EXPORTER_JAEGER_ENDPOINT))
-        .isEqualTo("https://ingest.test1.signalfx.com/v2/trace");
     assertThat(config.getString(OTLP_ENDPOINT)).isEqualTo("https://ingest.test1.signalfx.com");
   }
 

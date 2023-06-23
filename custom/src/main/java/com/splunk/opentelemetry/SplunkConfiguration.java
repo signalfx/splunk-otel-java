@@ -31,7 +31,6 @@ public class SplunkConfiguration implements AutoConfigurationCustomizerProvider 
   private static final Logger logger = Logger.getLogger(SplunkConfiguration.class.getName());
 
   public static final String SPLUNK_ACCESS_TOKEN = "splunk.access.token";
-  public static final String OTEL_EXPORTER_JAEGER_ENDPOINT = "otel.exporter.jaeger.endpoint";
   public static final String PROFILER_ENABLED_PROPERTY = "splunk.profiler.enabled";
   public static final String PROFILER_MEMORY_ENABLED_PROPERTY = "splunk.profiler.memory.enabled";
   public static final String SPLUNK_REALM_PROPERTY = "splunk.realm";
@@ -160,20 +159,12 @@ public class SplunkConfiguration implements AutoConfigurationCustomizerProvider 
     }
 
     String realm = config.getString(SPLUNK_REALM_PROPERTY, SPLUNK_REALM_NONE);
-    if (SPLUNK_REALM_NONE.equals(realm)) {
-      addIfAbsent(
-          customized, config, OTEL_EXPORTER_JAEGER_ENDPOINT, "http://localhost:9080/v1/trace");
-    } else {
+    if (!SPLUNK_REALM_NONE.equals(realm)) {
       addIfAbsent(
           customized,
           config,
           "otel.exporter.otlp.endpoint",
           "https://ingest." + realm + ".signalfx.com");
-      addIfAbsent(
-          customized,
-          config,
-          OTEL_EXPORTER_JAEGER_ENDPOINT,
-          "https://ingest." + realm + ".signalfx.com/v2/trace");
 
       // metrics ingest doesn't currently accept grpc
       addIfAbsent(customized, config, "otel.exporter.otlp.metrics.protocol", "http/protobuf");

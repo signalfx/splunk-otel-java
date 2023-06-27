@@ -75,6 +75,11 @@ else
   sed_flag='-i'
 fi
 
+# version.gradle.kts
+sed ${sed_flag} \
+  -e "s/val distroVersion = \"[^\"]*\"/val distroVersion = \"${splunk_new_version}\"/" \
+   version.gradle.kts
+
 # README.md
 readme_sed_args=(
   # update version placeholders

@@ -41,7 +41,7 @@ snapshot:
   rules:
     - if: '$CI_COMMIT_REF_NAME == "main"'
   script:
-    - ./gradlew snapshot --no-daemon --stacktrace
+    - ./gradlew assemble publishToSonatype --no-daemon --stacktrace
 
 release:
   stage: release

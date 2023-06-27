@@ -41,6 +41,11 @@ else
   sed_flag='-i'
 fi
 
+# version.gradle.kts
+sed ${sed_flag} \
+  -e "s/val distroVersion = \"[^\"]*\"/val distroVersion = \"${splunk_next_version}-SNAPSHOT\"/" \
+   version.gradle.kts
+
 # Prepare development version docs warning for the new version
 cat > dev_docs_warning.md.tmp <<EOF
 <!--DEV_DOCS_WARNING_START-->

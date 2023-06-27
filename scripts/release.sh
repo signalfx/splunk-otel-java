@@ -28,6 +28,15 @@ fi
 
 release_tag="$1"
 
+validate_project_version() {
+  if (grep SNAPSHOT version.gradle.kts >/dev/null)
+  then
+    echo "Cannot release a SNAPSHOT version!"
+    echo "Did you run the scripts/pre-release-changes.sh script before running the release process?"
+    exit 1
+  fi
+}
+
 build_project() {
   local release_version
   release_version="$(get_release_version "$release_tag")"
@@ -35,7 +44,7 @@ build_project() {
   mkdir -p dist
 
   echo ">>> Building the javaagent ..."
-  ./gradlew -Prelease.useLastTag=true build final closeAndReleaseSonatypeStagingRepository -x test --no-daemon
+  ./gradlew assemble publishToSonatype closeAndReleaseSonatypeStagingRepository --no-daemon --stacktrace
   mv "agent/build/libs/splunk-otel-javaagent-${release_version}.jar" dist/splunk-otel-javaagent.jar
   mv "agent/build/libs/splunk-otel-javaagent-${release_version}.jar.asc" dist/splunk-otel-javaagent.jar.asc
   mv "agent/build/libs/splunk-otel-javaagent-${release_version}-all.jar" dist/splunk-otel-javaagent-all.jar
@@ -59,6 +68,7 @@ create_gh_release() {
     --title "Release $release_tag"
 }
 
+validate_project_version
 setup_gpg
 import_gpg_secret_key "$GPG_SECRET_KEY"
 build_project

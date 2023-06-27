@@ -222,10 +222,6 @@ tasks {
   }
 }
 
-rootProject.tasks.named("release") {
-  finalizedBy(tasks["publishToSonatype"])
-}
-
 licenseReport {
   outputDir = rootProject.file("licenses").absolutePath
 

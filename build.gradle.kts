@@ -1,18 +1,9 @@
-import nebula.plugin.release.git.opinion.Strategies
-
 plugins {
   id("idea")
-  id("nebula.release")
   id("io.github.gradle-nexus.publish-plugin")
 }
 
-release {
-  defaultVersionStrategy = Strategies.getSNAPSHOT()
-}
-
-nebulaRelease {
-  addReleaseBranchPattern("""v\d+\.\d+\.x""")
-}
+apply(from = "version.gradle.kts")
 
 nexusPublishing {
   packageGroup.set("com.splunk")

@@ -23,6 +23,7 @@ hs_err_pid*
 
 # temporary files
 *.md.tmp
+version.gradle.kts.tmp
 
 # other
 .DS_Store

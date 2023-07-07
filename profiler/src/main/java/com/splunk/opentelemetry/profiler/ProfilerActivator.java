@@ -27,11 +27,12 @@ import com.google.auto.service.AutoService;
 import com.splunk.opentelemetry.profiler.allocation.exporter.AllocationEventExporter;
 import com.splunk.opentelemetry.profiler.allocation.exporter.PprofAllocationEventExporter;
 import com.splunk.opentelemetry.profiler.context.SpanContextualizer;
-import com.splunk.opentelemetry.profiler.events.EventPeriods;
+import com.splunk.opentelemetry.profiler.contextstorage.JavaContextStorage;
 import com.splunk.opentelemetry.profiler.exporter.CpuEventExporter;
 import com.splunk.opentelemetry.profiler.exporter.PprofCpuEventExporter;
 import com.splunk.opentelemetry.profiler.util.HelpfulExecutors;
 import io.opentelemetry.api.logs.Logger;
+import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.javaagent.extension.AgentListener;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
@@ -45,43 +46,129 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
+import java.time.Instant;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 @AutoService(AgentListener.class)
-public class JfrActivator implements AgentListener {
+public class ProfilerActivator implements AgentListener {
 
   private static final java.util.logging.Logger logger =
-      java.util.logging.Logger.getLogger(JfrActivator.class.getName());
-  private final ExecutorService executor = HelpfulExecutors.newSingleThreadExecutor("JFR Profiler");
+      java.util.logging.Logger.getLogger(ProfilerActivator.class.getName());
   private final ConfigurationLogger configurationLogger = new ConfigurationLogger();
 
   @Override
   public void afterAgent(AutoConfiguredOpenTelemetrySdk autoConfiguredOpenTelemetrySdk) {
     ConfigProperties config = autoConfiguredOpenTelemetrySdk.getConfig();
-    if (notClearForTakeoff(config)) {
+    if (!config.getBoolean(CONFIG_KEY_ENABLE_PROFILER, false)) {
+      logger.fine("Profiler is not enabled.");
+      return;
+    }
+    boolean useJfr = Configuration.getProfilerJfrEnabled(config);
+    boolean javaProfilerEnabled = Configuration.getProfilerJavaEnabled(config);
+    if (useJfr && !JFR.instance.isAvailable()) {
+      // jfr is not available and java profiler is not enabled
+      if (!javaProfilerEnabled) {
+        logger.warning(
+            "JDK Flight Recorder (JFR) is not available in this JVM. Profiling is disabled.");
+        return;
+      }
+
+      // fall back to java profiler
+      logger.fine(
+          "JDK Flight Recorder (JFR) is not available in this JVM, switching to java profiler.");
+      if (Configuration.getTLABEnabled(config)) {
+        logger.warning(
+            "JDK Flight Recorder (JFR) is not available in this JVM. Memory profiling is disabled.");
+      }
+      useJfr = false;
+    }
+    // neither jfr nor java profiler is available
+    if (!useJfr && !javaProfilerEnabled) {
+      logger.fine("Java profiler is disabled.");
       return;
     }
 
     configurationLogger.log(config);
     logger.info("Profiler is active.");
-    executor.submit(
-        logUncaught(
-            () -> activateJfrAndRunForever(config, autoConfiguredOpenTelemetrySdk.getResource())));
+
+    if (useJfr) {
+      JfrProfiler.run(this, config, autoConfiguredOpenTelemetrySdk.getResource());
+    } else {
+      JavaProfiler.run(this, config, autoConfiguredOpenTelemetrySdk.getResource());
+    }
   }
 
-  private boolean notClearForTakeoff(ConfigProperties config) {
-    if (!config.getBoolean(CONFIG_KEY_ENABLE_PROFILER, false)) {
-      logger.fine("Profiler is not enabled.");
-      return true;
-    }
-    if (!JFR.instance.isAvailable()) {
-      logger.warning(
-          "JDK Flight Recorder (JFR) is not available in this JVM. Profiling is disabled.");
-      return true;
-    }
+  private static class JfrProfiler {
+    private static final ExecutorService executor =
+        HelpfulExecutors.newSingleThreadExecutor("JFR Profiler");
 
-    return false;
+    static void run(ProfilerActivator activator, ConfigProperties config, Resource resource) {
+      executor.submit(logUncaught(() -> activator.activateJfrAndRunForever(config, resource)));
+    }
+  }
+
+  private static class JavaProfiler {
+    private static final ScheduledExecutorService scheduler =
+        HelpfulExecutors.newSingleThreadedScheduledExecutor("Profiler scheduler");
+
+    static void run(ProfilerActivator activator, ConfigProperties config, Resource resource) {
+      int stackDepth = Configuration.getStackDepth(config);
+      LogRecordExporter logsExporter = LogExporterBuilder.fromConfig(config);
+      CpuEventExporter cpuEventExporter =
+          PprofCpuEventExporter.builder()
+              .otelLogger(
+                  activator.buildOtelLogger(
+                      SimpleLogRecordProcessor.create(logsExporter), resource))
+              .period(Configuration.getCallStackInterval(config))
+              .stackDepth(stackDepth)
+              .build();
+      StackTraceFilter stackTraceFilter = activator.buildStackTraceFilter(config, null);
+      boolean onlyTracingSpans = Configuration.getTracingStacksOnly(config);
+
+      Runnable profiler =
+          () -> {
+            Instant now = Instant.now();
+            Map<Thread, StackTraceElement[]> stackTracesMap;
+            Map<Thread, SpanContext> contextMap = new HashMap<>();
+            // disallow context changes while we are taking the thread dump
+            JavaContextStorage.block();
+            try {
+              stackTracesMap = Thread.getAllStackTraces();
+              // copy active context for each thread
+              for (Thread thread : stackTracesMap.keySet()) {
+                SpanContext spanContext = JavaContextStorage.activeContext.get(thread);
+                if (spanContext != null) {
+                  contextMap.put(thread, spanContext);
+                }
+              }
+            } finally {
+              JavaContextStorage.unblock();
+            }
+            for (Map.Entry<Thread, StackTraceElement[]> entry : stackTracesMap.entrySet()) {
+              Thread thread = entry.getKey();
+              StackTraceElement[] stack = entry.getValue();
+
+              if (!stackTraceFilter.test(thread, stack)) {
+                continue;
+              }
+
+              SpanContext spanContext = contextMap.get(thread);
+              if (onlyTracingSpans && !spanContext.isValid()) {
+                continue;
+              }
+
+              cpuEventExporter.export(thread, stack, now, spanContext);
+            }
+            cpuEventExporter.flush();
+          };
+      long period = Configuration.getCallStackInterval(config).toMillis();
+      scheduler.scheduleAtFixedRate(
+          logUncaught(() -> profiler.run()), period, period, TimeUnit.MILLISECONDS);
+    }
   }
 
   private boolean checkOutputDir(Path outputDir) {
@@ -107,7 +194,7 @@ public class JfrActivator implements AgentListener {
     return true;
   }
 
-  private void outdirWarn(Path dir, String suffix) {
+  private static void outdirWarn(Path dir, String suffix) {
     logger.log(WARNING, "The configured output directory {0} {1}.", new Object[] {dir, suffix});
   }
 
@@ -128,13 +215,12 @@ public class JfrActivator implements AgentListener {
 
     EventReader eventReader = new EventReader();
     SpanContextualizer spanContextualizer = new SpanContextualizer(eventReader);
-    EventPeriods periods = new EventPeriods(jfrSettings::get);
     LogRecordExporter logsExporter = LogExporterBuilder.fromConfig(config);
 
     CpuEventExporter cpuEventExporter =
         PprofCpuEventExporter.builder()
             .otelLogger(buildOtelLogger(SimpleLogRecordProcessor.create(logsExporter), resource))
-            .eventPeriods(periods)
+            .period(Configuration.getCallStackInterval(config))
             .stackDepth(stackDepth)
             .build();
 

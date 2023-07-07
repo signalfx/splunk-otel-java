@@ -26,6 +26,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assumptions.assumeFalse;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import com.splunk.opentelemetry.helper.TargetContainerBuilder;
 import com.splunk.opentelemetry.helper.TargetWaitStrategy;
@@ -37,6 +38,8 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -45,7 +48,6 @@ import jdk.jfr.consumer.RecordedEvent;
 import jdk.jfr.consumer.RecordingFile;
 import okhttp3.Request;
 import okhttp3.Response;
-import org.junit.Ignore;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -66,9 +68,15 @@ public abstract class ProfilerSmokeTest {
   private TestContainerManager containerManager;
   private TelemetryRetriever telemetryRetriever;
   private final String jdkVersion;
+  private final boolean useJfr;
 
   ProfilerSmokeTest(String jdkVersion) {
+    this(jdkVersion, true);
+  }
+
+  ProfilerSmokeTest(String jdkVersion, boolean useJfr) {
     this.jdkVersion = jdkVersion;
+    this.useJfr = useJfr;
   }
 
   public static class TestJdk8 extends ProfilerSmokeTest {
@@ -77,14 +85,18 @@ public abstract class ProfilerSmokeTest {
     }
   }
 
-  @Ignore
-  public static class TestJdk11 extends ProfilerSmokeTest {
-    TestJdk11() {
+  public static class TestJdk11JfrProfiler extends ProfilerSmokeTest {
+    TestJdk11JfrProfiler() {
       super("11");
     }
   }
 
-  @Ignore
+  public static class TestJdk11JavaProfiler extends ProfilerSmokeTest {
+    TestJdk11JavaProfiler() {
+      super("11", false);
+    }
+  }
+
   public static class TestJdk17 extends ProfilerSmokeTest {
     TestJdk17() {
       super("17");
@@ -120,6 +132,8 @@ public abstract class ProfilerSmokeTest {
 
   @Test
   void ensureJfrFilesContainContextChangeEvents() throws Exception {
+    assumeTrue(useJfr);
+
     await()
         .atMost(1, TimeUnit.MINUTES)
         .pollInterval(1, TimeUnit.SECONDS)
@@ -154,10 +168,12 @@ public abstract class ProfilerSmokeTest {
 
     assertThat(logs.getCpuSamples()).anyMatch(hasThreadName("main"));
 
-    assertThat(logs.getMemorySamples())
-        .isNotEmpty()
-        .allMatch(sample -> sample.getAllocated() > 0)
-        .allMatch(sample -> sample.getThreadName() != null);
+    if (useJfr) {
+      assertThat(logs.getMemorySamples())
+          .isNotEmpty()
+          .allMatch(sample -> sample.getAllocated() > 0)
+          .allMatch(sample -> sample.getThreadName() != null);
+    }
   }
 
   @Test
@@ -260,6 +276,27 @@ public abstract class ProfilerSmokeTest {
   }
 
   private void startPetclinic() {
+    List<String> command =
+        new ArrayList<>(
+            Arrays.asList(
+                "-javaagent:/" + TestContainerManager.TARGET_AGENT_FILENAME,
+                "-Dotel.resource.attributes=service.name=smoketest,deployment.environment=smokeytown",
+                "-Dotel.javaagent.debug=true",
+                "-Dsplunk.profiler.enabled=true",
+                "-Dsplunk.profiler.tlab.enabled=true",
+                "-Dsplunk.profiler.directory=/app/jfr",
+                "-Dsplunk.profiler.keep-files=true",
+                "-Dsplunk.profiler.call.stack.interval=1001",
+                "-Dsplunk.profiler.logs-endpoint=http://collector:4317"
+                // uncomment to enable exporting traces
+                // "-Dotel.exporter.otlp.endpoint=http://collector:4317"
+                ));
+    if (!useJfr) {
+      command.add("-Dsplunk.profiler.jfr=false");
+      command.add("-Dsplunk.profiler.java=true");
+    }
+    command.addAll(Arrays.asList("-jar", "/app/spring-petclinic-rest.jar"));
+
     containerManager.startTarget(
         new TargetContainerBuilder(getPetclinicImageName())
             .withTargetPort(PETCLINIC_PORT)
@@ -272,20 +309,7 @@ public abstract class ProfilerSmokeTest {
             .withWaitStrategy(
                 new TargetWaitStrategy.Http(Duration.ofMinutes(5), "/petclinic/api/vets"))
             .withUseDefaultAgentConfiguration(false)
-            .withCommand(
-                "-javaagent:/" + TestContainerManager.TARGET_AGENT_FILENAME,
-                "-Dotel.resource.attributes=service.name=smoketest,deployment.environment=smokeytown",
-                "-Dotel.javaagent.debug=true",
-                "-Dsplunk.profiler.enabled=true",
-                "-Dsplunk.profiler.tlab.enabled=true",
-                "-Dsplunk.profiler.directory=/app/jfr",
-                "-Dsplunk.profiler.keep-files=true",
-                "-Dsplunk.profiler.call.stack.interval=1001",
-                "-Dsplunk.profiler.logs-endpoint=http://collector:4317",
-                // uncomment to enable exporting traces
-                // "-Dotel.exporter.otlp.endpoint=http://collector:4317",
-                "-jar",
-                "/app/spring-petclinic-rest.jar"));
+            .withCommand(command));
 
     logger.info("Petclinic has been started.");
 

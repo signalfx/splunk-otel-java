@@ -17,8 +17,13 @@
 package com.splunk.opentelemetry.profiler.exporter;
 
 import com.splunk.opentelemetry.profiler.context.StackToSpanLinkage;
+import io.opentelemetry.api.trace.SpanContext;
+import java.time.Instant;
 
 public interface CpuEventExporter {
+
+  void export(
+      Thread thread, StackTraceElement[] stackTrace, Instant eventTime, SpanContext spanContext);
 
   void export(StackToSpanLinkage stackToSpanLinkage);
 

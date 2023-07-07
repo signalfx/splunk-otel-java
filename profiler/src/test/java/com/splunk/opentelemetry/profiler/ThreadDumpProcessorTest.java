@@ -31,6 +31,7 @@ import com.splunk.opentelemetry.profiler.exporter.CpuEventExporter;
 import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.api.trace.TraceFlags;
 import io.opentelemetry.api.trace.TraceState;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -142,7 +143,22 @@ class ThreadDumpProcessorTest {
       SpanContextualizer contextualizer, String threadDump, boolean onlyTracingSpans) {
     EventReader eventReader = mock(EventReader.class);
     List<StackToSpanLinkage> results = new ArrayList<>();
-    CpuEventExporter profilingEventExporter = results::add;
+    CpuEventExporter profilingEventExporter =
+        new CpuEventExporter() {
+          @Override
+          public void export(
+              Thread thread,
+              StackTraceElement[] stackTrace,
+              Instant eventTime,
+              SpanContext spanContext) {
+            throw new IllegalStateException("should not be called");
+          }
+
+          @Override
+          public void export(StackToSpanLinkage stackToSpanLinkage) {
+            results.add(stackToSpanLinkage);
+          }
+        };
     ThreadDumpProcessor processor =
         ThreadDumpProcessor.builder()
             .eventReader(eventReader)

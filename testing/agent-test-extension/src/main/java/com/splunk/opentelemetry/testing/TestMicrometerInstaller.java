@@ -16,6 +16,7 @@
 
 package com.splunk.opentelemetry.testing;
 
+import static io.opentelemetry.sdk.autoconfigure.internal.AutoConfigureUtil.getConfig;
 import static java.util.Collections.emptyMap;
 
 import com.google.auto.service.AutoService;
@@ -33,7 +34,7 @@ public class TestMicrometerInstaller implements BeforeAgentListener {
 
   @Override
   public void beforeAgent(AutoConfiguredOpenTelemetrySdk autoConfiguredOpenTelemetrySdk) {
-    ConfigProperties config = autoConfiguredOpenTelemetrySdk.getConfig();
+    ConfigProperties config = getConfig(autoConfiguredOpenTelemetrySdk);
     // splunk.testing.metrics.global-tags is normalized to splunk.testing.metrics.global.tags
     Tags globalMetricsTags =
         config.getMap("splunk.testing.metrics.global.tags", emptyMap()).entrySet().stream()

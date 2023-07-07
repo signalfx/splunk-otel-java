@@ -16,6 +16,8 @@
 
 package com.splunk.opentelemetry;
 
+import static com.splunk.opentelemetry.internal.AutoConfigureUtil.getConfig;
+
 import com.google.auto.service.AutoService;
 import io.opentelemetry.javaagent.tooling.BeforeAgentListener;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
@@ -41,7 +43,7 @@ public class RealmAccessTokenChecker implements BeforeAgentListener {
 
   @Override
   public void beforeAgent(AutoConfiguredOpenTelemetrySdk autoConfiguredOpenTelemetrySdk) {
-    ConfigProperties config = autoConfiguredOpenTelemetrySdk.getConfig();
+    ConfigProperties config = getConfig(autoConfiguredOpenTelemetrySdk);
 
     if (isRealmConfigured(config) && !isAccessTokenConfigured(config)) {
       logWarn.accept(

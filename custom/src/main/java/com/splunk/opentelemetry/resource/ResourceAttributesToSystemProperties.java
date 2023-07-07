@@ -16,11 +16,14 @@
 
 package com.splunk.opentelemetry.resource;
 
+import static com.splunk.opentelemetry.internal.AutoConfigureUtil.getResource;
+
 import com.google.auto.service.AutoService;
 import io.opentelemetry.api.common.AttributeType;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.javaagent.extension.AgentListener;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
+import io.opentelemetry.sdk.resources.Resource;
 
 /**
  * This component exposes String resource attributes as system properties with <code>otel.resource.
@@ -33,7 +36,8 @@ public class ResourceAttributesToSystemProperties implements AgentListener {
 
   @Override
   public void afterAgent(AutoConfiguredOpenTelemetrySdk autoConfiguredOpenTelemetrySdk) {
-    Attributes attributes = autoConfiguredOpenTelemetrySdk.getResource().getAttributes();
+    Resource resource = getResource(autoConfiguredOpenTelemetrySdk);
+    Attributes attributes = resource.getAttributes();
     attributes.forEach(
         (k, v) -> {
           if (k.getType() == AttributeType.STRING) {

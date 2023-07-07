@@ -20,6 +20,7 @@ import static com.splunk.opentelemetry.SplunkConfiguration.METRICS_ENABLED_PROPE
 import static com.splunk.opentelemetry.SplunkConfiguration.METRICS_IMPLEMENTATION;
 import static com.splunk.opentelemetry.SplunkConfiguration.PROFILER_MEMORY_ENABLED_PROPERTY;
 import static com.splunk.opentelemetry.SplunkConfiguration.SPLUNK_REALM_NONE;
+import static com.splunk.opentelemetry.internal.AutoConfigureUtil.getConfig;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -148,15 +149,15 @@ class SplunkConfigurationTest {
 
   private static ConfigProperties configuration(
       Supplier<Map<String, String>> testPropertiesSupplier) {
-    return AutoConfiguredOpenTelemetrySdk.builder()
-        .setResultAsGlobal(false)
-        // don't create the SDK
-        .addPropertiesSupplier(() -> Map.of("otel.experimental.sdk.enabled", "false"))
-        // run in a customizer so that it executes after SplunkConfiguration#defaultProperties()
-        .addPropertiesCustomizer(config -> testPropertiesSupplier.get())
-        // implicitly loads SplunkConfiguration through SPI
-        .build()
-        .getConfig();
+    AutoConfiguredOpenTelemetrySdk sdk =
+        AutoConfiguredOpenTelemetrySdk.builder()
+            // don't create the SDK
+            .addPropertiesSupplier(() -> Map.of("otel.experimental.sdk.enabled", "false"))
+            // run in a customizer so that it executes after SplunkConfiguration#defaultProperties()
+            .addPropertiesCustomizer(config -> testPropertiesSupplier.get())
+            // implicitly loads SplunkConfiguration through SPI
+            .build();
+    return getConfig(sdk);
   }
 
   private static void verifyThatOtelMetricsInstrumentationsAreDisabled(ConfigProperties config) {

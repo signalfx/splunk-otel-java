@@ -16,8 +16,8 @@
 
 package com.splunk.opentelemetry.micrometer;
 
-import static com.splunk.opentelemetry.internal.AutoConfigureUtil.getConfig;
-import static com.splunk.opentelemetry.internal.AutoConfigureUtil.getResource;
+import static io.opentelemetry.sdk.autoconfigure.AutoConfigureUtil.getConfig;
+import static io.opentelemetry.sdk.autoconfigure.AutoConfigureUtil.getResource;
 
 import com.google.auto.service.AutoService;
 import io.micrometer.core.instrument.Clock;

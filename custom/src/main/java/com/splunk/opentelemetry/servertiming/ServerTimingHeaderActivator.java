@@ -16,7 +16,7 @@
 
 package com.splunk.opentelemetry.servertiming;
 
-import static com.splunk.opentelemetry.internal.AutoConfigureUtil.getConfig;
+import static io.opentelemetry.sdk.autoconfigure.AutoConfigureUtil.getConfig;
 
 import com.google.auto.service.AutoService;
 import io.opentelemetry.javaagent.extension.AgentListener;

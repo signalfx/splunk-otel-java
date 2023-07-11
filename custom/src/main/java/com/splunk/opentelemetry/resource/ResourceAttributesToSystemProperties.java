@@ -16,7 +16,7 @@
 
 package com.splunk.opentelemetry.resource;
 
-import static com.splunk.opentelemetry.internal.AutoConfigureUtil.getResource;
+import static io.opentelemetry.sdk.autoconfigure.AutoConfigureUtil.getResource;
 
 import com.google.auto.service.AutoService;
 import io.opentelemetry.api.common.AttributeType;

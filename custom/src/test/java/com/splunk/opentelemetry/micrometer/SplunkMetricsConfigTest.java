@@ -23,8 +23,8 @@ import static com.splunk.opentelemetry.SplunkConfiguration.METRICS_IMPLEMENTATIO
 import static com.splunk.opentelemetry.SplunkConfiguration.SPLUNK_ACCESS_TOKEN;
 import static com.splunk.opentelemetry.SplunkConfiguration.SPLUNK_REALM_NONE;
 import static com.splunk.opentelemetry.SplunkConfiguration.SPLUNK_REALM_PROPERTY;
-import static com.splunk.opentelemetry.internal.AutoConfigureUtil.getConfig;
 import static com.splunk.opentelemetry.micrometer.SplunkMetricsConfig.DEFAULT_METRICS_ENDPOINT;
+import static io.opentelemetry.sdk.autoconfigure.AutoConfigureUtil.getConfig;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;

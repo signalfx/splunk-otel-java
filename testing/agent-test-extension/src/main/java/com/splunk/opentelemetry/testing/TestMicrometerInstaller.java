@@ -16,7 +16,7 @@
 
 package com.splunk.opentelemetry.testing;
 
-import static com.splunk.opentelemetry.internal.AutoConfigureUtil.getConfig;
+import static io.opentelemetry.sdk.autoconfigure.AutoConfigureUtil.getConfig;
 import static java.util.Collections.emptyMap;
 
 import com.google.auto.service.AutoService;

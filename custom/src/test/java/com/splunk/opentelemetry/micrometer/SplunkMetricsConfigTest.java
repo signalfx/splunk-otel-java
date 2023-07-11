@@ -24,6 +24,7 @@ import static com.splunk.opentelemetry.SplunkConfiguration.SPLUNK_ACCESS_TOKEN;
 import static com.splunk.opentelemetry.SplunkConfiguration.SPLUNK_REALM_NONE;
 import static com.splunk.opentelemetry.SplunkConfiguration.SPLUNK_REALM_PROPERTY;
 import static com.splunk.opentelemetry.micrometer.SplunkMetricsConfig.DEFAULT_METRICS_ENDPOINT;
+import static io.opentelemetry.sdk.autoconfigure.AutoConfigureUtil.getConfig;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -42,10 +43,9 @@ class SplunkMetricsConfigTest {
   @Test
   void testDefaultValues() {
     // given
-    var autoConfiguredSdk =
-        AutoConfiguredOpenTelemetrySdk.builder().setResultAsGlobal(false).build();
+    var autoConfiguredSdk = AutoConfiguredOpenTelemetrySdk.builder().build();
     var resource = Resource.create(Attributes.of(ResourceAttributes.SERVICE_NAME, "test-service"));
-    var splunkMetricsConfig = new SplunkMetricsConfig(autoConfiguredSdk.getConfig(), resource);
+    var splunkMetricsConfig = new SplunkMetricsConfig(getConfig(autoConfiguredSdk), resource);
 
     // when & then
     assertFalse(splunkMetricsConfig.enabled());
@@ -60,7 +60,6 @@ class SplunkMetricsConfigTest {
   void testCustomValues() {
     var autoConfiguredSdk =
         AutoConfiguredOpenTelemetrySdk.builder()
-            .setResultAsGlobal(false)
             // make it a customizer so that it overrides SplunkConfiguration
             .addPropertiesCustomizer(
                 config ->
@@ -78,7 +77,7 @@ class SplunkMetricsConfigTest {
             .build();
 
     var resource = Resource.create(Attributes.of(ResourceAttributes.SERVICE_NAME, "test-service"));
-    var splunkMetricsConfig = new SplunkMetricsConfig(autoConfiguredSdk.getConfig(), resource);
+    var splunkMetricsConfig = new SplunkMetricsConfig(getConfig(autoConfiguredSdk), resource);
 
     // when & then
     assertTrue(splunkMetricsConfig.enabled());
@@ -92,10 +91,9 @@ class SplunkMetricsConfigTest {
   @Test
   void emptyServiceNameIsNotValid() {
     // given
-    var autoConfiguredSdk =
-        AutoConfiguredOpenTelemetrySdk.builder().setResultAsGlobal(false).build();
+    var autoConfiguredSdk = AutoConfiguredOpenTelemetrySdk.builder().build();
     var resource = Resource.empty();
-    var splunkMetricsConfig = new SplunkMetricsConfig(autoConfiguredSdk.getConfig(), resource);
+    var splunkMetricsConfig = new SplunkMetricsConfig(getConfig(autoConfiguredSdk), resource);
 
     // when
     Validated<?> validated = splunkMetricsConfig.validate();
@@ -109,11 +107,10 @@ class SplunkMetricsConfigTest {
     // given
     var autoConfiguredSdk =
         AutoConfiguredOpenTelemetrySdk.builder()
-            .setResultAsGlobal(false)
             .addPropertiesSupplier(() -> Map.of(METRICS_ENDPOINT_PROPERTY, ""))
             .build();
     var resource = Resource.create(Attributes.of(ResourceAttributes.SERVICE_NAME, "test-service"));
-    var splunkMetricsConfig = new SplunkMetricsConfig(autoConfiguredSdk.getConfig(), resource);
+    var splunkMetricsConfig = new SplunkMetricsConfig(getConfig(autoConfiguredSdk), resource);
 
     // when
     Validated<?> validated = splunkMetricsConfig.validate();
@@ -126,10 +123,9 @@ class SplunkMetricsConfigTest {
   void usesRealmUrlDefaultIfRealmDefined() {
     var autoConfiguredSdk =
         AutoConfiguredOpenTelemetrySdk.builder()
-            .setResultAsGlobal(false)
             .addPropertiesSupplier(() -> Map.of(SPLUNK_REALM_PROPERTY, "test0"))
             .build();
-    var config = new SplunkMetricsConfig(autoConfiguredSdk.getConfig(), Resource.getDefault());
+    var config = new SplunkMetricsConfig(getConfig(autoConfiguredSdk), Resource.getDefault());
 
     assertEquals(config.uri(), "https://ingest.test0.signalfx.com");
   }
@@ -138,10 +134,9 @@ class SplunkMetricsConfigTest {
   void usesLocalUrlDefaultIfRealmIsNone() {
     var autoConfiguredSdk =
         AutoConfiguredOpenTelemetrySdk.builder()
-            .setResultAsGlobal(false)
             .addPropertiesSupplier(() -> Map.of(SPLUNK_REALM_PROPERTY, SPLUNK_REALM_NONE))
             .build();
-    var config = new SplunkMetricsConfig(autoConfiguredSdk.getConfig(), Resource.getDefault());
+    var config = new SplunkMetricsConfig(getConfig(autoConfiguredSdk), Resource.getDefault());
 
     assertEquals(config.uri(), DEFAULT_METRICS_ENDPOINT);
   }

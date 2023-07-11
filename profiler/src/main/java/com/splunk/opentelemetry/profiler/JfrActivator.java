@@ -21,6 +21,8 @@ import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_KEEP_FI
 import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_PROFILER_DIRECTORY;
 import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_RECORDING_DURATION;
 import static com.splunk.opentelemetry.profiler.util.Runnables.logUncaught;
+import static io.opentelemetry.sdk.autoconfigure.AutoConfigureUtil.getConfig;
+import static io.opentelemetry.sdk.autoconfigure.AutoConfigureUtil.getResource;
 import static java.util.logging.Level.WARNING;
 
 import com.google.auto.service.AutoService;
@@ -58,7 +60,7 @@ public class JfrActivator implements AgentListener {
 
   @Override
   public void afterAgent(AutoConfiguredOpenTelemetrySdk autoConfiguredOpenTelemetrySdk) {
-    ConfigProperties config = autoConfiguredOpenTelemetrySdk.getConfig();
+    ConfigProperties config = getConfig(autoConfiguredOpenTelemetrySdk);
     if (notClearForTakeoff(config)) {
       return;
     }
@@ -67,7 +69,7 @@ public class JfrActivator implements AgentListener {
     logger.info("Profiler is active.");
     executor.submit(
         logUncaught(
-            () -> activateJfrAndRunForever(config, autoConfiguredOpenTelemetrySdk.getResource())));
+            () -> activateJfrAndRunForever(config, getResource(autoConfiguredOpenTelemetrySdk))));
   }
 
   private boolean notClearForTakeoff(ConfigProperties config) {

@@ -35,8 +35,7 @@ class ServiceNameCheckerTest {
   @Test
   void shouldLogWarnWhenNeitherServiceNameNorResourceAttributeIsConfigured() {
     // given
-    var autoConfiguredSdk =
-        AutoConfiguredOpenTelemetrySdk.builder().setResultAsGlobal(false).build();
+    var autoConfiguredSdk = AutoConfiguredOpenTelemetrySdk.builder().build();
 
     var underTest = new ServiceNameChecker(logWarn);
 
@@ -52,7 +51,6 @@ class ServiceNameCheckerTest {
     // given
     var autoConfiguredSdk =
         AutoConfiguredOpenTelemetrySdk.builder()
-            .setResultAsGlobal(false)
             .addPropertiesSupplier(() -> Map.of("otel.service.name", "test"))
             .build();
 
@@ -70,7 +68,6 @@ class ServiceNameCheckerTest {
     // given
     var autoConfiguredSdk =
         AutoConfiguredOpenTelemetrySdk.builder()
-            .setResultAsGlobal(false)
             .addPropertiesSupplier(() -> Map.of("otel.resource.attributes", "service.name=test"))
             .build();
 

@@ -9,6 +9,7 @@ dependencies {
   compileOnly("io.opentelemetry.javaagent:opentelemetry-javaagent-tooling")
   compileOnly("io.micrometer:micrometer-core")
   compileOnly(project(":bootstrap"))
+  compileOnly(project(":custom"))
 }
 
 tasks {

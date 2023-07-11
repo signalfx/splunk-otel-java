@@ -16,6 +16,9 @@
 
 package com.splunk.opentelemetry.micrometer;
 
+import static io.opentelemetry.sdk.autoconfigure.AutoConfigureUtil.getConfig;
+import static io.opentelemetry.sdk.autoconfigure.AutoConfigureUtil.getResource;
+
 import com.google.auto.service.AutoService;
 import io.micrometer.core.instrument.Clock;
 import io.micrometer.core.instrument.Metrics;
@@ -33,8 +36,8 @@ public class MicrometerInstaller implements BeforeAgentListener {
 
   @Override
   public void beforeAgent(AutoConfiguredOpenTelemetrySdk autoConfiguredOpenTelemetrySdk) {
-    ConfigProperties config = autoConfiguredOpenTelemetrySdk.getConfig();
-    Resource resource = autoConfiguredOpenTelemetrySdk.getResource();
+    ConfigProperties config = getConfig(autoConfiguredOpenTelemetrySdk);
+    Resource resource = getResource(autoConfiguredOpenTelemetrySdk);
     SplunkMetricsConfig splunkMetricsConfig = new SplunkMetricsConfig(config, resource);
 
     if (splunkMetricsConfig.enabled()) {

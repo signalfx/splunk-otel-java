@@ -38,8 +38,7 @@ class RealmAccessTokenCheckerTest {
   @Test
   void shouldNotLogWarnWhenNoRealmSet() {
     // given
-    var autoConfiguredSdk =
-        AutoConfiguredOpenTelemetrySdk.builder().setResultAsGlobal(false).build();
+    var autoConfiguredSdk = AutoConfiguredOpenTelemetrySdk.builder().build();
     var underTest = new RealmAccessTokenChecker(logWarn);
 
     // when
@@ -54,7 +53,6 @@ class RealmAccessTokenCheckerTest {
     // given
     var autoConfiguredSdk =
         AutoConfiguredOpenTelemetrySdk.builder()
-            .setResultAsGlobal(false)
             .addPropertiesSupplier(() -> Map.of(SPLUNK_REALM_PROPERTY, SPLUNK_REALM_NONE))
             .build();
     var underTest = new RealmAccessTokenChecker(logWarn);
@@ -71,7 +69,6 @@ class RealmAccessTokenCheckerTest {
     // given
     var autoConfiguredSdk =
         AutoConfiguredOpenTelemetrySdk.builder()
-            .setResultAsGlobal(false)
             .addPropertiesSupplier(
                 () -> Map.of(SPLUNK_REALM_PROPERTY, "test0", SPLUNK_ACCESS_TOKEN, "token"))
             .build();
@@ -89,7 +86,6 @@ class RealmAccessTokenCheckerTest {
     // given
     var autoConfiguredSdk =
         AutoConfiguredOpenTelemetrySdk.builder()
-            .setResultAsGlobal(false)
             .addPropertiesSupplier(() -> Map.of(SPLUNK_REALM_PROPERTY, "test0"))
             .build();
     var underTest = new RealmAccessTokenChecker(logWarn);

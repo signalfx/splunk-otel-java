@@ -2,7 +2,7 @@ plugins {
   `java-platform`
 }
 
-val otelVersion = "1.27.0"
+val otelVersion = "1.28.0"
 val otelAlphaVersion = otelVersion.replaceFirst("(-SNAPSHOT)?$".toRegex(), "-alpha$1")
 val otelInstrumentationVersion = "1.28.0-SNAPSHOT"
 val otelInstrumentationAlphaVersion =  otelInstrumentationVersion.replaceFirst("(-SNAPSHOT)?$".toRegex(), "-alpha$1")
@@ -28,7 +28,7 @@ dependencies {
 
   // BOMs
   api(enforcedPlatform("com.fasterxml.jackson:jackson-bom:2.15.2"))
-  api(enforcedPlatform("com.google.protobuf:protobuf-bom:3.23.2"))
+  api(enforcedPlatform("com.google.protobuf:protobuf-bom:3.23.4"))
   api(enforcedPlatform("com.squareup.okhttp3:okhttp-bom:4.11.0"))
   api(enforcedPlatform("io.grpc:grpc-bom:1.56.1"))
   api(platform("io.micrometer:micrometer-bom:$micrometerVersion"))

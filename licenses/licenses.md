@@ -1,11 +1,7 @@
 
 # splunk-otel-javaagent
 ## Dependency License Report
-<<<<<<< HEAD
-_2023-07-07 10:23:36 PDT_
-=======
-_2023-07-11 10:08:34 PDT_
->>>>>>> af050279 (update licenses)
+_2023-07-11 10:26:45 PDT_
 ## Apache License, Version 2.0
 
 **1** **Group:** `com.fasterxml.jackson.core` **Name:** `jackson-core` **Version:** `2.15.2` 

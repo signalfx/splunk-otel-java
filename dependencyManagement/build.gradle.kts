@@ -6,7 +6,7 @@ val otelVersion = "1.28.0"
 val otelAlphaVersion = otelVersion.replaceFirst("(-SNAPSHOT)?$".toRegex(), "-alpha$1")
 val otelInstrumentationVersion = "1.29.0-SNAPSHOT"
 val otelInstrumentationAlphaVersion =  otelInstrumentationVersion.replaceFirst("(-SNAPSHOT)?$".toRegex(), "-alpha$1")
-val otelContribAlphaVersion = "1.27.0-alpha"
+val otelContribAlphaVersion = "1.28.0-alpha"
 
 val micrometerVersion = "1.11.2"
 val micrometerOldVersion = "1.3.20"

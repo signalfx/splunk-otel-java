@@ -140,4 +140,4 @@ Furthermore, this setting takes precedence over `splunk.metrics.enabled`.
 ## Other OpenTelemetry Java agent configuration
 
 You can find all other Java agent configuration options
-described [here](https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/docs/agent-config.md).
+described [here](https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/docs/advanced-configuration-options.md).

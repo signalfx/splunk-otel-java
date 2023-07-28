@@ -30,7 +30,7 @@ dependencies {
   api(enforcedPlatform("com.fasterxml.jackson:jackson-bom:2.15.2"))
   api(enforcedPlatform("com.google.protobuf:protobuf-bom:3.23.4"))
   api(enforcedPlatform("com.squareup.okhttp3:okhttp-bom:4.11.0"))
-  api(enforcedPlatform("io.grpc:grpc-bom:1.56.1"))
+  api(enforcedPlatform("io.grpc:grpc-bom:1.57.0"))
   api(platform("io.micrometer:micrometer-bom:$micrometerVersion"))
   api(enforcedPlatform("io.opentelemetry:opentelemetry-bom-alpha:$otelAlphaVersion"))
   api(enforcedPlatform("io.opentelemetry:opentelemetry-bom:$otelVersion"))

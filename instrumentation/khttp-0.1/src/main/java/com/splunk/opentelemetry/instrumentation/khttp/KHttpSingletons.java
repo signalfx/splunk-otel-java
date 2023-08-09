@@ -33,8 +33,6 @@ public final class KHttpSingletons {
   private static final Instrumenter<RequestWrapper, Response> INSTRUMENTER;
 
   static {
-    KHttpHttpClientNetAttributesGetter netAttributesGetter =
-        new KHttpHttpClientNetAttributesGetter();
     HttpClientAttributesGetter<RequestWrapper, Response> httpAttributesGetter =
         new KHttpHttpClientHttpAttributesGetter();
 
@@ -45,13 +43,13 @@ public final class KHttpSingletons {
                 HttpSpanNameExtractor.create(httpAttributesGetter))
             .setSpanStatusExtractor(HttpSpanStatusExtractor.create(httpAttributesGetter))
             .addAttributesExtractor(
-                HttpClientAttributesExtractor.builder(httpAttributesGetter, netAttributesGetter)
+                HttpClientAttributesExtractor.builder(httpAttributesGetter)
                     .setCapturedRequestHeaders(CommonConfig.get().getClientRequestHeaders())
                     .setCapturedResponseHeaders(CommonConfig.get().getClientResponseHeaders())
                     .build())
             .addAttributesExtractor(
                 PeerServiceAttributesExtractor.create(
-                    netAttributesGetter, CommonConfig.get().getPeerServiceMapping()))
+                    httpAttributesGetter, CommonConfig.get().getPeerServiceMapping()))
             .addOperationMetrics(HttpClientMetrics.get())
             .buildClientInstrumenter(KHttpHttpHeaderSetter.INSTANCE);
   }

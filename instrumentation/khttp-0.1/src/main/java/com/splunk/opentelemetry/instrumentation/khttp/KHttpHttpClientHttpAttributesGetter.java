@@ -20,6 +20,8 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 
 import io.opentelemetry.instrumentation.api.instrumenter.http.HttpClientAttributesGetter;
+import io.opentelemetry.semconv.trace.attributes.SemanticAttributes;
+import java.net.InetSocketAddress;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -60,5 +62,54 @@ final class KHttpHttpClientHttpAttributesGetter
       RequestWrapper requestWrapper, Response response, String name) {
     String header = response.getHeaders().get(name);
     return header != null ? singletonList(header) : emptyList();
+  }
+
+  @Override
+  public String getTransport(RequestWrapper requestWrapper, @Nullable Response response) {
+    return SemanticAttributes.NetTransportValues.IP_TCP;
+  }
+
+  @Nullable
+  @Override
+  public String getServerAddress(RequestWrapper requestWrapper) {
+    if (requestWrapper.parsedUri != null) {
+      return requestWrapper.parsedUri.getHost();
+    }
+    return null;
+  }
+
+  @Nullable
+  @Override
+  public Integer getServerPort(RequestWrapper requestWrapper) {
+    if (requestWrapper.parsedUri != null && requestWrapper.parsedUri.getPort() > 0) {
+      return requestWrapper.parsedUri.getPort();
+    }
+    return null;
+  }
+
+  @Nullable
+  @Override
+  public String getNetworkProtocolName(RequestWrapper requestWrapper, @Nullable Response response) {
+    if (requestWrapper.parsedUri.getScheme().toLowerCase().startsWith("http")) {
+      return "http";
+    }
+    return null;
+  }
+
+  @Override
+  public String getNetworkTransport(RequestWrapper requestWrapper, @Nullable Response response) {
+    return "tcp";
+  }
+
+  @Nullable
+  @Override
+  public InetSocketAddress getServerInetSocketAddress(
+      RequestWrapper requestWrapper, @Nullable Response response) {
+    String host = getServerAddress(requestWrapper);
+    Integer port = getServerPort(requestWrapper);
+    if (host == null || port == null) {
+      return null;
+    }
+    return new InetSocketAddress(host, port);
   }
 }

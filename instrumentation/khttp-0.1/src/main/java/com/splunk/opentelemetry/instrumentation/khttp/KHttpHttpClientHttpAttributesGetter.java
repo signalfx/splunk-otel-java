@@ -20,13 +20,11 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 
 import io.opentelemetry.instrumentation.api.instrumenter.http.HttpClientAttributesGetter;
-
+import io.opentelemetry.semconv.trace.attributes.SemanticAttributes;
 import java.net.InetSocketAddress;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
-import io.opentelemetry.semconv.trace.attributes.SemanticAttributes;
 import khttp.responses.Response;
 import org.jetbrains.annotations.Nullable;
 
@@ -92,7 +90,7 @@ final class KHttpHttpClientHttpAttributesGetter
   @Nullable
   @Override
   public String getNetworkProtocolName(RequestWrapper requestWrapper, @Nullable Response response) {
-    if(requestWrapper.parsedUri.getScheme().toLowerCase().startsWith("http")) {
+    if (requestWrapper.parsedUri.getScheme().toLowerCase().startsWith("http")) {
       return "http";
     }
     return null;
@@ -105,13 +103,13 @@ final class KHttpHttpClientHttpAttributesGetter
 
   @Nullable
   @Override
-  public InetSocketAddress getServerInetSocketAddress(RequestWrapper requestWrapper, @Nullable Response response) {
+  public InetSocketAddress getServerInetSocketAddress(
+      RequestWrapper requestWrapper, @Nullable Response response) {
     String host = getServerAddress(requestWrapper);
     Integer port = getServerPort(requestWrapper);
-    if(host == null || port == null){
+    if (host == null || port == null) {
       return null;
     }
     return new InetSocketAddress(host, port);
   }
-
 }

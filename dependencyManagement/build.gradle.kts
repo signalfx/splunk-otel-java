@@ -12,7 +12,7 @@ val autoValueVersion = "1.10.3";
 val dockerJavaVersion = "3.3.3"
 val micrometerOldVersion = "1.3.20"
 val micrometerVersion = "1.11.3"
-val mockitoVersion = "5.4.0"
+val mockitoVersion = "5.5.0"
 val protobufVersion = "3.24.1"
 val slf4jVersion = "2.0.7"
 
@@ -37,7 +37,7 @@ dependencies {
   api(enforcedPlatform("io.opentelemetry:opentelemetry-bom-alpha:$otelAlphaVersion"))
   api(enforcedPlatform("io.opentelemetry:opentelemetry-bom:$otelVersion"))
   api(enforcedPlatform("org.junit:junit-bom:5.10.0"))
-  api(enforcedPlatform("org.testcontainers:testcontainers-bom:1.18.3"))
+  api(enforcedPlatform("org.testcontainers:testcontainers-bom:1.19.0"))
 
   constraints {
     api("com.google.auto.service:auto-service:1.1.1")

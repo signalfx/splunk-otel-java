@@ -1,12 +1,10 @@
-
 plugins {
   id("com.google.protobuf") version "0.9.4"
 }
 
-val protobufVersion = "3.24.0"
-
 protobuf {
   protoc {
+    val protobufVersion = rootProject.extra["protobufVersion"]
     artifact = "com.google.protobuf:protoc:$protobufVersion"
   }
 }
@@ -33,7 +31,7 @@ dependencies {
   compileOnly("io.opentelemetry.javaagent:opentelemetry-javaagent-bootstrap")
   implementation("io.opentelemetry:opentelemetry-sdk-logs")
   implementation("io.opentelemetry:opentelemetry-exporter-otlp")
-  implementation("com.google.protobuf:protobuf-java:$protobufVersion")
+  implementation("com.google.protobuf:protobuf-java")
   implementation("org.openjdk.jmc:flightrecorder:8.3.1")
 
   annotationProcessor("com.google.auto.service:auto-service")

@@ -8,16 +8,18 @@ val otelInstrumentationVersion = "1.30.0-SNAPSHOT"
 val otelInstrumentationAlphaVersion =  otelInstrumentationVersion.replaceFirst("(-SNAPSHOT)?$".toRegex(), "-alpha$1")
 val otelContribAlphaVersion = "1.28.0-alpha"
 
-val micrometerVersion = "1.11.3"
-val micrometerOldVersion = "1.3.20"
-val dockerJavaVersion = "3.3.3"
-val mockitoVersion = "5.4.0"
-val slf4jVersion = "2.0.7"
 val autoValueVersion = "1.10.3";
+val dockerJavaVersion = "3.3.3"
+val micrometerOldVersion = "1.3.20"
+val micrometerVersion = "1.11.3"
+val mockitoVersion = "5.4.0"
+val protobufVersion = "3.24.1"
+val slf4jVersion = "2.0.7"
 
 // instrumentation version is used to compute Implementation-Version manifest attribute
 rootProject.extra["otelInstrumentationVersion"] = otelInstrumentationVersion
 rootProject.extra["micrometerOldVersion"] = micrometerOldVersion
+rootProject.extra["protobufVersion"] = protobufVersion
 
 javaPlatform {
   // What a great hack!
@@ -28,7 +30,7 @@ dependencies {
 
   // BOMs
   api(enforcedPlatform("com.fasterxml.jackson:jackson-bom:2.15.2"))
-  api(enforcedPlatform("com.google.protobuf:protobuf-bom:3.24.0"))
+  api(enforcedPlatform("com.google.protobuf:protobuf-bom:$protobufVersion"))
   api(enforcedPlatform("com.squareup.okhttp3:okhttp-bom:4.11.0"))
   api(enforcedPlatform("io.grpc:grpc-bom:1.57.2"))
   api(platform("io.micrometer:micrometer-bom:$micrometerVersion"))

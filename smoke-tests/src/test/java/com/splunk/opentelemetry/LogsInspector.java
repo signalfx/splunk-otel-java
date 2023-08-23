@@ -27,6 +27,7 @@ import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.TRAC
 import com.google.perftools.profiles.ProfileProto;
 import com.splunk.opentelemetry.profiler.ProfilingDataType;
 import io.opentelemetry.api.common.AttributeKey;
+import io.opentelemetry.api.trace.SpanId;
 import io.opentelemetry.api.trace.TraceId;
 import io.opentelemetry.proto.collector.logs.v1.ExportLogsServiceRequest;
 import io.opentelemetry.proto.common.v1.KeyValue;
@@ -112,6 +113,10 @@ public final class LogsInspector {
 
   public static Predicate<LogRecord> hasTraceId(String traceId) {
     return log -> traceId.equals(TraceId.fromBytes(log.getTraceId().toByteArray()));
+  }
+
+  public static Predicate<LogRecord> hasSpanId(String spanId) {
+    return log -> spanId.equals(SpanId.fromBytes(log.getSpanId().toByteArray()));
   }
 
   public static Predicate<LogRecord> hasStringBody(String body) {

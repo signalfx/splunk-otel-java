@@ -16,6 +16,7 @@
 
 package com.splunk.opentelemetry;
 
+import static com.splunk.opentelemetry.LogsInspector.hasSpanId;
 import static com.splunk.opentelemetry.LogsInspector.hasStringBody;
 import static com.splunk.opentelemetry.LogsInspector.hasTraceId;
 import static com.splunk.opentelemetry.helper.TestImage.linuxImage;
@@ -55,14 +56,22 @@ public class OtlpLogsSmokeTest extends SmokeTest {
     // then
     assertEquals(response.body().string(), "Hi!");
 
-    Set<String> traceIds = waitForTraces().getTraceIds();
+    TraceInspector traces = waitForTraces();
+
+    Set<String> traceIds = traces.getTraceIds();
     assertThat(traceIds).hasSize(1);
+
+    Set<String> springSpanIds = traces.getSpanIdsByName("WebController.greeting");
+    assertThat(springSpanIds).hasSize(1);
+
     String traceId = traceIds.iterator().next();
+    String spanId = springSpanIds.iterator().next();
 
     assertThat(
             waitForLogs()
                 .getLogStream("io.opentelemetry.smoketest.springboot.controller.WebController"))
-        .anyMatch(hasTraceId(traceId).and(hasStringBody("HTTP request received")));
+        .anyMatch(
+            hasTraceId(traceId).and(hasSpanId(spanId)).and(hasStringBody("HTTP request received")));
 
     // cleanup
     stopTarget();

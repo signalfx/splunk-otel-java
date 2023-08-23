@@ -17,6 +17,7 @@
 package com.splunk.opentelemetry;
 
 import com.google.protobuf.ByteString;
+import io.opentelemetry.api.trace.SpanId;
 import io.opentelemetry.api.trace.TraceId;
 import io.opentelemetry.proto.collector.trace.v1.ExportTraceServiceRequest;
 import io.opentelemetry.proto.trace.v1.ResourceSpans;
@@ -89,6 +90,15 @@ public class TraceInspector {
         .map(Span::getTraceId)
         .map(ByteString::toByteArray)
         .map(TraceId::fromBytes)
+        .collect(Collectors.toSet());
+  }
+
+  public Set<String> getSpanIdsByName(String spanName) {
+    return getSpanStream()
+        .filter(it -> it.getName().equals(spanName))
+        .map(Span::getSpanId)
+        .map(ByteString::toByteArray)
+        .map(SpanId::fromBytes)
         .collect(Collectors.toSet());
   }
 

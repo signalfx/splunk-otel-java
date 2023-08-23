@@ -16,15 +16,20 @@
 
 package com.splunk.opentelemetry;
 
+import static com.splunk.opentelemetry.LogsInspector.hasSpanId;
 import static com.splunk.opentelemetry.LogsInspector.hasStringBody;
 import static com.splunk.opentelemetry.LogsInspector.hasTraceId;
 import static com.splunk.opentelemetry.helper.TestImage.linuxImage;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import com.google.protobuf.ByteString;
+import io.opentelemetry.api.trace.SpanId;
+import io.opentelemetry.proto.trace.v1.Span;
 import java.io.IOException;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 import okhttp3.Request;
 import okhttp3.Response;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -55,14 +60,29 @@ public class OtlpLogsSmokeTest extends SmokeTest {
     // then
     assertEquals(response.body().string(), "Hi!");
 
-    Set<String> traceIds = waitForTraces().getTraceIds();
+    TraceInspector traces = waitForTraces();
+    Set<String> traceIds = traces.getTraceIds();
     assertThat(traceIds).hasSize(1);
+
+    Set<String> springSpanIds =
+        traces
+            .getSpanStream()
+            .filter(it -> it.getName().equals("WebController.greeting"))
+            .map(Span::getSpanId)
+            .map(ByteString::toByteArray)
+            .map(SpanId::fromBytes)
+            .collect(Collectors.toSet());
+
+    assertThat(springSpanIds).hasSize(1);
+
     String traceId = traceIds.iterator().next();
+    String spanId = springSpanIds.iterator().next();
 
     assertThat(
             waitForLogs()
                 .getLogStream("io.opentelemetry.smoketest.springboot.controller.WebController"))
-        .anyMatch(hasTraceId(traceId).and(hasStringBody("HTTP request received")));
+        .anyMatch(
+            hasTraceId(traceId).and(hasSpanId(spanId)).and(hasStringBody("HTTP request received")));
 
     // cleanup
     stopTarget();

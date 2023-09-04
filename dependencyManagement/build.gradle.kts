@@ -14,7 +14,7 @@ val micrometerOldVersion = "1.3.20"
 val micrometerVersion = "1.11.3"
 val mockitoVersion = "5.5.0"
 val protobufVersion = "3.24.2"
-val slf4jVersion = "2.0.7"
+val slf4jVersion = "2.0.9"
 
 // instrumentation version is used to compute Implementation-Version manifest attribute
 rootProject.extra["otelInstrumentationVersion"] = otelInstrumentationVersion

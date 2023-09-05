@@ -26,7 +26,7 @@ dependencies {
   compileOnly("io.opentelemetry:opentelemetry-sdk-extension-autoconfigure-spi")
   compileOnly("io.opentelemetry.javaagent:opentelemetry-javaagent-extension-api")
   compileOnly("io.opentelemetry.instrumentation:opentelemetry-instrumentation-api")
-  compileOnly("io.opentelemetry:opentelemetry-semconv")
+  compileOnly("io.opentelemetry.semconv:opentelemetry-semconv")
   // required to access InstrumentationHolder
   compileOnly("io.opentelemetry.javaagent:opentelemetry-javaagent-bootstrap")
   implementation("io.opentelemetry:opentelemetry-sdk-logs")
@@ -42,7 +42,7 @@ dependencies {
   testImplementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-api")
   testImplementation("io.opentelemetry:opentelemetry-sdk-extension-autoconfigure")
   testImplementation("io.opentelemetry:opentelemetry-sdk-extension-autoconfigure-spi")
-  testImplementation("io.opentelemetry:opentelemetry-semconv")
+  testImplementation("io.opentelemetry.semconv:opentelemetry-semconv")
   testImplementation("io.opentelemetry:opentelemetry-context")
   testImplementation("io.opentelemetry:opentelemetry-api")
   testImplementation("io.opentelemetry:opentelemetry-sdk")

@@ -34,7 +34,7 @@ import io.micrometer.core.instrument.config.validate.Validated;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 import io.opentelemetry.sdk.resources.Resource;
-import io.opentelemetry.semconv.resource.attributes.ResourceAttributes;
+import io.opentelemetry.semconv.ResourceAttributes;
 import java.time.Duration;
 import java.util.Map;
 import org.junit.jupiter.api.Test;

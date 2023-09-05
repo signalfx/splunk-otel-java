@@ -15,6 +15,7 @@ dependencies {
   compileOnly("io.opentelemetry.instrumentation:opentelemetry-instrumentation-api")
   compileOnly("io.opentelemetry.instrumentation:opentelemetry-instrumentation-api-semconv")
   compileOnly("io.opentelemetry.javaagent:opentelemetry-javaagent-extension-api")
+  compileOnly("io.opentelemetry.semconv:opentelemetry-semconv")
   annotationProcessor("com.google.auto.service:auto-service")
   compileOnly("com.google.auto.service:auto-service")
   compileOnly(project(":bootstrap"))

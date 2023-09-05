@@ -22,7 +22,7 @@ import io.micrometer.core.instrument.Tag;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.sdk.resources.Resource;
-import io.opentelemetry.semconv.resource.attributes.ResourceAttributes;
+import io.opentelemetry.semconv.ResourceAttributes;
 import org.junit.jupiter.api.Test;
 
 class GlobalTagsBuilderTest {

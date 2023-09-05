@@ -35,7 +35,7 @@ dependencies {
   api(enforcedPlatform("io.grpc:grpc-bom:1.58.0"))
   api(platform("io.micrometer:micrometer-bom:$micrometerVersion"))
   api(enforcedPlatform("io.opentelemetry:opentelemetry-bom-alpha:$otelAlphaVersion"))
-  api(enforcedPlatform("io.opentelemetry:opentelemetry-bom:$otelVersion"))
+  api(enforcedPlatform("io.opentelemetry.instrumentation:opentelemetry-instrumentation-bom-alpha:$otelInstrumentationAlphaVersion"))
   api(enforcedPlatform("org.junit:junit-bom:5.10.0"))
   api(enforcedPlatform("org.testcontainers:testcontainers-bom:1.19.0"))
 
@@ -56,27 +56,10 @@ dependencies {
     api("com.google.auto.value:auto-value:$autoValueVersion")
     api("com.google.auto.value:auto-value-annotations:$autoValueVersion")
 
-    // otel-java-instrumentation
-    api("io.opentelemetry.javaagent:opentelemetry-javaagent:$otelInstrumentationVersion")
-    api("io.opentelemetry.instrumentation:opentelemetry-instrumentation-api:$otelInstrumentationVersion")
-    api("io.opentelemetry.instrumentation:opentelemetry-instrumentation-api-semconv:$otelInstrumentationAlphaVersion")
-
-    api("io.opentelemetry.javaagent:opentelemetry-agent-for-testing:$otelInstrumentationAlphaVersion")
-    api("io.opentelemetry.javaagent:opentelemetry-javaagent-bootstrap:$otelInstrumentationAlphaVersion")
-    api("io.opentelemetry.javaagent:opentelemetry-javaagent-extension-api:$otelInstrumentationAlphaVersion")
-    api("io.opentelemetry.javaagent:opentelemetry-javaagent-instrumentation-api:$otelInstrumentationAlphaVersion")
-    api("io.opentelemetry.javaagent:opentelemetry-javaagent-internal-logging-simple:$otelInstrumentationAlphaVersion")
-    api("io.opentelemetry.javaagent:opentelemetry-javaagent-tooling:$otelInstrumentationAlphaVersion")
-    api("io.opentelemetry.javaagent:opentelemetry-muzzle:$otelInstrumentationAlphaVersion")
-    api("io.opentelemetry.javaagent:opentelemetry-testing-common:$otelInstrumentationAlphaVersion")
-    api("io.opentelemetry.javaagent.instrumentation:opentelemetry-javaagent-servlet-2.2:$otelInstrumentationAlphaVersion")
-    api("io.opentelemetry.javaagent.instrumentation:opentelemetry-javaagent-servlet-3.0:$otelInstrumentationAlphaVersion")
-    api("io.opentelemetry.javaagent.instrumentation:opentelemetry-javaagent-servlet-common:$otelInstrumentationAlphaVersion")
-
     api("io.opentelemetry.contrib:opentelemetry-samplers:$otelContribAlphaVersion")
     api("io.opentelemetry.contrib:opentelemetry-resource-providers:$otelContribAlphaVersion")
-
     api("io.opentelemetry.proto:opentelemetry-proto:1.0.0-alpha")
+    api("io.opentelemetry.semconv:opentelemetry-semconv:1.21.0-alpha")
   }
 
 }

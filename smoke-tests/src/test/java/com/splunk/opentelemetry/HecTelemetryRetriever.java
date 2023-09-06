@@ -75,10 +75,9 @@ class HecTelemetryRetriever {
 
     for (HttpRequest request : requests) {
       // HEC format just concatenates multiple JSON bodies after one another without using a JSON
-      // array, that's why we
-      // use readValuesAs. Also use getBodyAsRawBytes instead of getBodyAsString - MockServerClient
-      // parses the content
-      // and reformats if content type is JSON, keeping only the JSON body.
+      // array, that's why we use readValuesAs. Also use getBodyAsRawBytes instead of
+      // getBodyAsString - MockServerClient parses the content and reformats if content type is
+      // JSON, keeping only the JSON body.
       try (JsonParser parser = JSON_FACTORY.createParser(request.getBodyAsRawBytes())) {
         Iterator<JsonNode> entries = parser.readValuesAs(JsonNode.class);
 

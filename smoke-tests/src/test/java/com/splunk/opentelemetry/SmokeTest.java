@@ -18,6 +18,7 @@ package com.splunk.opentelemetry;
 
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.splunk.opentelemetry.helper.LinuxTestContainerManager;
 import com.splunk.opentelemetry.helper.ResourceMapping;
 import com.splunk.opentelemetry.helper.TargetContainerBuilder;
@@ -48,6 +49,7 @@ public abstract class SmokeTest {
       System.getProperty("io.opentelemetry.smoketest.agent.shadowJar.path");
 
   private TelemetryRetriever telemetryRetriever;
+  private HecTelemetryRetriever hecTelemetryRetriever;
 
   /** Subclasses can override this method to pass jvm arguments in another environment variable */
   protected String getJvmArgsEnvVarName() {
@@ -130,11 +132,21 @@ public abstract class SmokeTest {
   @BeforeEach
   void setUpTelemetryRetriever() {
     telemetryRetriever = new TelemetryRetriever(client, containerManager.getBackendMappedPort());
+
+    int hecBackendPort = containerManager.getHecBackendMappedPort();
+    if (hecBackendPort != 0) {
+      hecTelemetryRetriever = new HecTelemetryRetriever(hecBackendPort);
+      hecTelemetryRetriever.initializeEndpoints();
+    }
   }
 
   @AfterEach
   void clearTelemetry() throws IOException {
     telemetryRetriever.clearTelemetry();
+
+    if (hecTelemetryRetriever != null) {
+      hecTelemetryRetriever.clearTelemetry();
+    }
   }
 
   void stopTarget() {
@@ -151,6 +163,18 @@ public abstract class SmokeTest {
 
   protected LogsInspector waitForLogs() throws IOException, InterruptedException {
     return telemetryRetriever.waitForLogs();
+  }
+
+  protected List<JsonNode> waitForHecEntries() throws IOException, InterruptedException {
+    if (hecTelemetryRetriever != null) {
+      return hecTelemetryRetriever.waitForEntries();
+    } else {
+      return Collections.emptyList();
+    }
+  }
+
+  protected boolean isHecEnabled() {
+    return hecTelemetryRetriever != null;
   }
 
   protected String getOtelInstrumentationVersion() throws IOException {

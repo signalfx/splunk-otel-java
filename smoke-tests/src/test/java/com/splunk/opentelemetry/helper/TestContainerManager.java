@@ -35,6 +35,8 @@ public interface TestContainerManager {
 
   int getBackendMappedPort();
 
+  int getHecBackendMappedPort();
+
   int getTargetMappedPort(int originalPort);
 
   void startTarget(TargetContainerBuilder builder);

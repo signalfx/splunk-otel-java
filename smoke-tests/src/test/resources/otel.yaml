@@ -27,6 +27,14 @@ exporters:
     endpoint: backend:8080
     tls:
       insecure: true
+  splunk_hec:
+    token: "00000000-0000-0000-0000-000000000000"
+    endpoint: http://hec-backend:1080/services/collector/event
+    sourcetype: "test"
+    max_connections: 20
+    timeout: 10s
+    tls:
+      insecure_skip_verify: true
 
 service:
   pipelines:
@@ -41,6 +49,6 @@ service:
     logs:
       receivers: [ otlp ]
       processors: [ batch ]
-      exporters: [ logging/logging_info, otlp ]
+      exporters: [ logging/logging_info, otlp, splunk_hec ]
 
   extensions: [ health_check, pprof, zpages ]

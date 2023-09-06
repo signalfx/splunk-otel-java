@@ -200,6 +200,11 @@ public class WindowsTestContainerManager extends AbstractTestContainerManager {
   }
 
   @Override
+  public int getHecBackendMappedPort() {
+    return 0;
+  }
+
+  @Override
   public int getTargetMappedPort(int originalPort) {
     return extractMappedPort(target, originalPort);
   }

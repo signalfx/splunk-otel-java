@@ -16,6 +16,8 @@
 
 package com.splunk.opentelemetry;
 
+import static com.splunk.opentelemetry.HecTelemetryInspector.hasEventName;
+import static com.splunk.opentelemetry.HecTelemetryInspector.hasTextFieldValue;
 import static com.splunk.opentelemetry.LogsInspector.hasSpanId;
 import static com.splunk.opentelemetry.LogsInspector.hasStringBody;
 import static com.splunk.opentelemetry.LogsInspector.hasTraceId;
@@ -23,7 +25,9 @@ import static com.splunk.opentelemetry.helper.TestImage.linuxImage;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import okhttp3.Request;
@@ -72,6 +76,16 @@ public class OtlpLogsSmokeTest extends SmokeTest {
                 .getLogStream("io.opentelemetry.smoketest.springboot.controller.WebController"))
         .anyMatch(
             hasTraceId(traceId).and(hasSpanId(spanId)).and(hasStringBody("HTTP request received")));
+
+    if (isHecEnabled()) {
+      List<JsonNode> hecEntries = waitForHecEntries();
+
+      assertThat(hecEntries)
+          .anyMatch(
+              hasEventName("HTTP request received")
+                  .and(hasTextFieldValue("span_id", spanId))
+                  .and(hasTextFieldValue("trace_id", traceId)));
+    }
 
     // cleanup
     stopTarget();

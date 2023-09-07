@@ -19,6 +19,7 @@ package com.splunk.opentelemetry.instrumentation.jvmmetrics.micrometer;
 import static com.splunk.opentelemetry.instrumentation.jvmmetrics.AllocatedMemoryMetrics.METRIC_NAME;
 
 import com.splunk.opentelemetry.instrumentation.jvmmetrics.AllocatedMemoryMetrics;
+import io.micrometer.common.lang.NonNull;
 import io.micrometer.core.instrument.FunctionCounter;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.binder.BaseUnits;
@@ -27,9 +28,9 @@ import io.micrometer.core.instrument.binder.MeterBinder;
 public class MicrometerAllocatedMemoryMetrics implements MeterBinder {
 
   @Override
-  public void bindTo(MeterRegistry registry) {
+  public void bindTo(@NonNull MeterRegistry registry) {
     AllocatedMemoryMetrics allocatedMemoryMetrics = new AllocatedMemoryMetrics();
-    if (!allocatedMemoryMetrics.isAvailable()) {
+    if (allocatedMemoryMetrics.isUnavailable()) {
       return;
     }
 

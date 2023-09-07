@@ -29,7 +29,7 @@ public class OtelAllocatedMemoryMetrics {
 
   public void install() {
     AllocatedMemoryMetrics allocatedMemoryMetrics = new AllocatedMemoryMetrics();
-    if (!allocatedMemoryMetrics.isAvailable()) {
+    if (allocatedMemoryMetrics.isUnavailable()) {
       return;
     }
 

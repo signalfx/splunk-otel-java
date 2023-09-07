@@ -25,19 +25,18 @@ import java.util.Set;
 
 public class AllocatedMemoryMetrics {
   public static final String METRIC_NAME = "process.runtime.jvm.memory.allocated";
-  private static final boolean hasComSunThreadMXBean = hasComSunThreadMXBean();
   private final AllocationTracker allocationTracker = createAllocationTracker();
 
-  public boolean isAvailable() {
-    return allocationTracker != null;
+  public boolean isUnavailable() {
+    return allocationTracker == null;
   }
 
   public long getCumulativeAllocationTotal() {
-    return allocationTracker != null ? allocationTracker.getCumulativeAllocationTotal() : 0;
+    return allocationTracker == null ? 0 : allocationTracker.getCumulativeAllocationTotal();
   }
 
   private AllocationTracker createAllocationTracker() {
-    if (hasComSunThreadMXBean && isThreadAllocatedMemoryEnabled()) {
+    if (hasComSunThreadMXBean() && isThreadAllocatedMemoryEnabled() && mxBeanTypeIsCompatible()) {
       return new AllocationTracker();
     }
     return null;
@@ -53,13 +52,22 @@ public class AllocatedMemoryMetrics {
     }
   }
 
+  private static boolean mxBeanTypeIsCompatible() {
+    try {
+      Class<?> mxBeanClass = Class.forName("com.sun.management.ThreadMXBean");
+      return mxBeanClass.isInstance(ManagementFactory.getThreadMXBean());
+    } catch (Exception e) {
+      return false;
+    }
+  }
+
   private static boolean isThreadAllocatedMemoryEnabled() {
-    ThreadMXBean threadBean = (ThreadMXBean) ManagementFactory.getThreadMXBean();
+    ThreadMXBean threadBean = (com.sun.management.ThreadMXBean) ManagementFactory.getThreadMXBean();
 
     try {
-      threadBean.getAllThreadIds();
-      return threadBean.isThreadAllocatedMemorySupported()
-          && threadBean.isThreadAllocatedMemoryEnabled();
+      threadBean.getAllThreadIds(); // java.lang.management.ThreadMXBean
+      return threadBean.isThreadAllocatedMemorySupported() // com.sun.management.ThreadMXBean
+          && threadBean.isThreadAllocatedMemoryEnabled(); // com.sun.management.ThreadMXBean
     } catch (Error error) {
       // An error will be thrown for unsupported operations
       // e.g. SubstrateVM does not support getAllThreadIds

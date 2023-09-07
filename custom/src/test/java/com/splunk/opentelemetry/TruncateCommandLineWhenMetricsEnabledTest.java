@@ -19,6 +19,7 @@ package com.splunk.opentelemetry;
 import static com.splunk.opentelemetry.SplunkConfiguration.METRICS_ENABLED_PROPERTY;
 import static com.splunk.opentelemetry.SplunkConfiguration.METRICS_FULL_COMMAND_LINE;
 import static io.opentelemetry.api.common.AttributeKey.stringKey;
+import static io.opentelemetry.semconv.resource.attributes.ResourceAttributes.PROCESS_COMMAND_ARGS;
 import static io.opentelemetry.semconv.resource.attributes.ResourceAttributes.PROCESS_COMMAND_LINE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertSame;
@@ -30,9 +31,9 @@ import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.sdk.autoconfigure.spi.AutoConfigurationCustomizer;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import io.opentelemetry.sdk.resources.Resource;
+import java.util.Arrays;
 import java.util.function.BiFunction;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -96,7 +97,7 @@ class TruncateCommandLineWhenMetricsEnabledTest {
 
   @Test
   void truncatesWhenTooLong() {
-    var cmd = Stream.generate(() -> "x").limit(500).collect(Collectors.joining());
+    var cmd = "foo ".repeat(100).trim();
     var existing = makeBasicResource(cmd);
 
     when(config.getBoolean(METRICS_ENABLED_PROPERTY, false)).thenReturn(true);
@@ -106,14 +107,18 @@ class TruncateCommandLineWhenMetricsEnabledTest {
 
     String resultCmd = result.getAttribute(PROCESS_COMMAND_LINE);
     assertThat(resultCmd.length()).isEqualTo(255);
-    assertThat(resultCmd.endsWith("[...]")).isTrue();
+    assertThat(resultCmd.endsWith("...")).isTrue();
+    var cmdArgs = result.getAttribute(PROCESS_COMMAND_ARGS);
+    String joinedArgs = StringUtils.joinWith(", ", cmdArgs.toArray());
+    assertThat(joinedArgs.length()).isLessThan(255);
+    assertThat(joinedArgs.endsWith("...")).isTrue();
     assertThat(result.getAttribute(stringKey("foo"))).isEqualTo("barfly");
   }
 
   @Test
   void testTruncateThroughSpi() {
     var testClass = new TruncateCommandLineWhenMetricsEnabled();
-    var cmd = Stream.generate(() -> "x").limit(500).collect(Collectors.joining());
+    var cmd = "foo ".repeat(100).trim();
     var existing = makeBasicResource(cmd);
 
     when(config.getBoolean(METRICS_ENABLED_PROPERTY, false)).thenReturn(true);
@@ -130,13 +135,23 @@ class TruncateCommandLineWhenMetricsEnabledTest {
     var result = truncator.apply(existing, config);
     var resultCmd = result.getAttribute(PROCESS_COMMAND_LINE);
     assertThat(resultCmd.length()).isEqualTo(255);
-    assertThat(resultCmd.endsWith("[...]")).isTrue();
+    assertThat(resultCmd.endsWith("...")).isTrue();
+    var cmdArgs = result.getAttribute(PROCESS_COMMAND_ARGS);
+    String joinedArgs = StringUtils.joinWith(", ", cmdArgs.toArray());
+    assertThat(joinedArgs.length()).isLessThan(255);
+    assertThat(joinedArgs.endsWith("...")).isTrue();
     assertThat(result.getAttribute(stringKey("foo"))).isEqualTo("barfly");
   }
 
   @NotNull
   private static Resource makeBasicResource(String cmdLine) {
     return Resource.create(
-        Attributes.of(PROCESS_COMMAND_LINE, cmdLine, stringKey("foo"), "barfly"));
+        Attributes.of(
+            PROCESS_COMMAND_LINE,
+            cmdLine,
+            PROCESS_COMMAND_ARGS,
+            cmdLine != null ? Arrays.asList(cmdLine.split(" ")) : null,
+            stringKey("foo"),
+            "barfly"));
   }
 }

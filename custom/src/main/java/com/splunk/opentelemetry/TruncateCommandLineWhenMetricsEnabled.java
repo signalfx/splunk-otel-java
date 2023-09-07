@@ -27,6 +27,9 @@ import io.opentelemetry.sdk.autoconfigure.spi.AutoConfigurationCustomizerProvide
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import io.opentelemetry.sdk.resources.Resource;
 import io.opentelemetry.semconv.resource.attributes.ResourceAttributes;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 import java.util.function.BiFunction;
 import java.util.logging.Logger;
 
@@ -49,6 +52,8 @@ public class TruncateCommandLineWhenMetricsEnabled implements AutoConfigurationC
 
   @VisibleForTesting
   static class CommandLineTruncator implements BiFunction<Resource, ConfigProperties, Resource> {
+    private static final int MAX_LENGTH = 255;
+
     @Override
     public Resource apply(Resource existing, ConfigProperties config) {
       boolean metricsEnabled = config.getBoolean(METRICS_ENABLED_PROPERTY, false);
@@ -57,15 +62,66 @@ public class TruncateCommandLineWhenMetricsEnabled implements AutoConfigurationC
         return existing;
       }
 
-      String commandLine = existing.getAttribute(ResourceAttributes.PROCESS_COMMAND_LINE);
-      if (commandLine == null || commandLine.length() < 256) {
-        return existing;
+      Resource resource = existing;
+      if (resource.getAttribute(ResourceAttributes.PROCESS_COMMAND_ARGS) != null) {
+        List<String> newCommandArgs =
+            truncate(resource.getAttribute(ResourceAttributes.PROCESS_COMMAND_ARGS));
+        if (newCommandArgs != null) {
+          resource =
+              resource.merge(
+                  Resource.create(
+                      Attributes.of(ResourceAttributes.PROCESS_COMMAND_ARGS, newCommandArgs)));
+        }
       }
 
-      logger.warning("Metrics are enabled. Truncating process.command_line resource attribute.");
-      String newCommandLine = commandLine.substring(0, 250) + "[...]";
-      return existing.merge(
-          Resource.create(Attributes.of(ResourceAttributes.PROCESS_COMMAND_LINE, newCommandLine)));
+      String commandLine = resource.getAttribute(ResourceAttributes.PROCESS_COMMAND_LINE);
+      if (commandLine != null && commandLine.length() > MAX_LENGTH) {
+        String newCommandLine = commandLine.substring(0, MAX_LENGTH - 3) + "...";
+        resource =
+            resource.merge(
+                Resource.create(
+                    Attributes.of(ResourceAttributes.PROCESS_COMMAND_LINE, newCommandLine)));
+      }
+
+      if (existing != resource) {
+        logger.warning(
+            "Metrics are enabled. Truncating process.command_line and process.command_args resource attributes.");
+      }
+      return resource;
+    }
+
+    private static List<String> truncate(List<String> list) {
+      // when List is translated to String it is surrounded in [], each element is surrounded in
+      // double quotes, elements are separated with a comma
+      int maxLength = MAX_LENGTH - 4;
+      List<String> result = new ArrayList<>();
+      int size = 0;
+      for (Iterator<String> i = list.iterator(); i.hasNext(); ) {
+        String s = i.next();
+        int length = s.length();
+        if (i.hasNext()) {
+          // we assume that list elements are joined with ","
+          length += 3;
+        }
+        if (size + length <= maxLength) {
+          result.add(s);
+        } else {
+          // if there is room for less than 3 chars we'll need to truncate the previous element
+          if (maxLength - size >= 3) {
+            s = s.substring(0, Math.min(s.length(), maxLength - size - 3)) + "...";
+          } else {
+            s = result.remove(result.size() - 1);
+            // we just truncate the last 3 chars, this can make the end result slightly shorter
+            // than the max length
+            s = s.substring(0, Math.max(0, s.length() - 3)) + "...";
+          }
+          result.add(s);
+          return result;
+        }
+        size += length;
+      }
+
+      return null;
     }
   }
 }

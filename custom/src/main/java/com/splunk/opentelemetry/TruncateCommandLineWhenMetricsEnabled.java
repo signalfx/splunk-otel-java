@@ -95,7 +95,7 @@ public class TruncateCommandLineWhenMetricsEnabled implements AutoConfigurationC
       // double quotes, elements are separated with a comma
       int maxLength = MAX_LENGTH - 4;
       List<String> result = new ArrayList<>();
-      int size = 0;
+      int totalLength = 0;
       for (Iterator<String> i = list.iterator(); i.hasNext(); ) {
         String s = i.next();
         int length = s.length();
@@ -103,12 +103,12 @@ public class TruncateCommandLineWhenMetricsEnabled implements AutoConfigurationC
           // we assume that list elements are joined with ","
           length += 3;
         }
-        if (size + length <= maxLength) {
+        if (totalLength + length <= maxLength) {
           result.add(s);
         } else {
           // if there is room for less than 3 chars we'll need to truncate the previous element
-          if (maxLength - size >= 3) {
-            s = s.substring(0, Math.min(s.length(), maxLength - size - 3)) + "...";
+          if (maxLength - totalLength >= 3) {
+            s = s.substring(0, Math.min(s.length(), maxLength - totalLength - 3)) + "...";
           } else {
             s = result.remove(result.size() - 1);
             // we just truncate the last 3 chars, this can make the end result slightly shorter
@@ -118,7 +118,7 @@ public class TruncateCommandLineWhenMetricsEnabled implements AutoConfigurationC
           result.add(s);
           return result;
         }
-        size += length;
+        totalLength += length;
       }
 
       return null;

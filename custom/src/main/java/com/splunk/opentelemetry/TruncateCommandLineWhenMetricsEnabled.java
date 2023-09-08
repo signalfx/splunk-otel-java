@@ -91,8 +91,9 @@ public class TruncateCommandLineWhenMetricsEnabled implements AutoConfigurationC
     }
 
     private static List<String> truncate(List<String> list) {
-      // when List is translated to String it is surrounded in [], each element is surrounded in
-      // double quotes, elements are separated with a comma
+      // Ensure that String representation of the List does not exceed max allowed length. List is
+      // translated to String as a JSON array (it is surrounded in [], each element is surrounded in
+      // double quotes, elements are separated with a comma).
       int maxLength = MAX_LENGTH - 4;
       List<String> result = new ArrayList<>();
       int totalLength = 0;

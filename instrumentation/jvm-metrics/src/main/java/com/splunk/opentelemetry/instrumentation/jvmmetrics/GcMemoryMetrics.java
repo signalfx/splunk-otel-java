@@ -52,12 +52,17 @@ public class GcMemoryMetrics implements AutoCloseable {
   }
 
   public void registerListener() {
+    registerListener(null);
+  }
+
+  public void registerListener(GcEventCallback gcEventCallback) {
     ManagementFactory.getMemoryPoolMXBeans().stream()
         .filter(pool -> MemoryType.HEAP.equals(pool.getType()))
         .map(MemoryPoolMXBean::getName)
         .forEach(heapPoolNames::add);
 
-    GcMetricsNotificationListener gcNotificationListener = new GcMetricsNotificationListener();
+    GcMetricsNotificationListener gcNotificationListener =
+        new GcMetricsNotificationListener(gcEventCallback);
     for (GarbageCollectorMXBean gcBean : ManagementFactory.getGarbageCollectorMXBeans()) {
       if (!(gcBean instanceof NotificationEmitter)) {
         continue;
@@ -86,6 +91,11 @@ public class GcMemoryMetrics implements AutoCloseable {
   }
 
   class GcMetricsNotificationListener implements NotificationListener {
+    private final GcEventCallback gcEventCallback;
+
+    GcMetricsNotificationListener(GcEventCallback gcEventCallback) {
+      this.gcEventCallback = gcEventCallback;
+    }
 
     @Override
     public void handleNotification(Notification notification, Object ref) {
@@ -101,6 +111,10 @@ public class GcMemoryMetrics implements AutoCloseable {
       long usageAfter = sumMemoryUsage(after);
 
       deltaSum.addAndGet(usageBefore - usageAfter);
+
+      if (gcEventCallback != null) {
+        gcEventCallback.handleGcEvent(notificationInfo);
+      }
     }
 
     private long sumMemoryUsage(Map<String, MemoryUsage> memoryUsageMap) {
@@ -135,5 +149,9 @@ public class GcMemoryMetrics implements AutoCloseable {
       // We are operating in a JVM without access to this level of detail
       return false;
     }
+  }
+
+  public interface GcEventCallback {
+    void handleGcEvent(GarbageCollectionNotificationInfo notificationInfo);
   }
 }

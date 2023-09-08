@@ -54,7 +54,7 @@ public class AllocatedMemoryMetrics {
 
   private static boolean mxBeanTypeIsCompatible() {
     try {
-      Class<?> mxBeanClass = Class.forName("com.sun.management.ThreadMXBean");
+      Class<?> mxBeanClass = Class.forName("com.sun.management.ThreadMXBean", false, AllocatedMemoryMetrics.class.getClassLoader());
       return mxBeanClass.isInstance(ManagementFactory.getThreadMXBean());
     } catch (Exception e) {
       return false;

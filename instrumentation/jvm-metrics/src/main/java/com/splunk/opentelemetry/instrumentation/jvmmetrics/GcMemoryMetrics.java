@@ -47,8 +47,8 @@ public class GcMemoryMetrics implements AutoCloseable {
     return deltaSum.get();
   }
 
-  public boolean isAvailable() {
-    return managementExtensionsPresent;
+  public boolean isUnavailable() {
+    return !managementExtensionsPresent;
   }
 
   public void registerListener() {

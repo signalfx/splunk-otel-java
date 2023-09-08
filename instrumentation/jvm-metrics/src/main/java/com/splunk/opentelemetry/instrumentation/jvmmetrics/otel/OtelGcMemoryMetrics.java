@@ -25,7 +25,7 @@ public class OtelGcMemoryMetrics {
 
   public void install() {
     GcMemoryMetrics gcMemoryMetrics = new GcMemoryMetrics();
-    if (!gcMemoryMetrics.isAvailable()) {
+    if (gcMemoryMetrics.isUnavailable()) {
       return;
     }
 

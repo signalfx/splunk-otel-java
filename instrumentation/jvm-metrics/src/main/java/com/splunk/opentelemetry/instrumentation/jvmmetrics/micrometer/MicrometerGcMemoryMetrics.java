@@ -29,7 +29,7 @@ public class MicrometerGcMemoryMetrics implements MeterBinder, AutoCloseable {
 
   @Override
   public void bindTo(MeterRegistry registry) {
-    if (!gcMemoryMetrics.isAvailable()) {
+    if (gcMemoryMetrics.isUnavailable()) {
       return;
     }
 

@@ -1,7 +1,7 @@
 
 # splunk-otel-javaagent
 ## Dependency License Report
-_2023-09-12 20:46:57 EEST_
+_2023-09-14 16:53:56 CEST_
 ## Apache License, Version 2.0
 
 **1** **Group:** `com.fasterxml.jackson.core` **Name:** `jackson-core` **Version:** `2.15.2` 
@@ -273,5 +273,9 @@ _2023-09-12 20:46:57 EEST_
 **53** **Group:** `org.openjdk.jmc` **Name:** `flightrecorder` **Version:** `8.3.1` 
 > - **POM License**: Universal Permissive License Version 1.0 or The 3-Clause BSD License - [https://github.com/openjdk/jmc/blob/master/core/license/LICENSE.txt](https://github.com/openjdk/jmc/blob/master/core/license/LICENSE.txt)
 > - **Embedded license files**: [flightrecorder-8.3.1.jar/LICENSE.txt](flightrecorder-8.3.1.jar/LICENSE.txt)
+
+## Unknown
+
+**54** **Group:** `io.opentelemetry.instrumentation` **Name:** `opentelemetry-instrumentation-bom-alpha` **Version:** `1.30.0-alpha-SNAPSHOT` 
 
 

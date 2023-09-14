@@ -31,7 +31,7 @@ import io.micrometer.core.instrument.step.StepRegistryConfig;
 import io.micrometer.signalfx.SignalFxConfig;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import io.opentelemetry.sdk.resources.Resource;
-import io.opentelemetry.semconv.resource.attributes.ResourceAttributes;
+import io.opentelemetry.semconv.ResourceAttributes;
 import java.time.Duration;
 
 class SplunkMetricsConfig implements SignalFxConfig {

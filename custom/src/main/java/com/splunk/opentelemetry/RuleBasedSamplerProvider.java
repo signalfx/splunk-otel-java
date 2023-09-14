@@ -20,13 +20,15 @@ import static java.util.logging.Level.INFO;
 import static java.util.logging.Level.WARNING;
 
 import com.google.auto.service.AutoService;
+import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.trace.SpanKind;
 import io.opentelemetry.contrib.sampler.RuleBasedRoutingSampler;
 import io.opentelemetry.contrib.sampler.RuleBasedRoutingSamplerBuilder;
+import io.opentelemetry.instrumentation.api.internal.SemconvStability;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import io.opentelemetry.sdk.autoconfigure.spi.traces.ConfigurableSamplerProvider;
 import io.opentelemetry.sdk.trace.samplers.Sampler;
-import io.opentelemetry.semconv.trace.attributes.SemanticAttributes;
+import io.opentelemetry.semconv.SemanticAttributes;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
@@ -45,9 +47,16 @@ public class RuleBasedSamplerProvider implements ConfigurableSamplerProvider {
 
     RuleBasedRoutingSamplerBuilder builder =
         RuleBasedRoutingSampler.builder(SpanKind.SERVER, samplerConfiguration.fallback);
-    samplerConfiguration.drop.forEach(d -> builder.drop(SemanticAttributes.HTTP_TARGET, d));
+    samplerConfiguration.drop.forEach(d -> builder.drop(getHttpPathAttribute(), d));
 
     return builder.build();
+  }
+
+  @SuppressWarnings("deprecation") // old semconv still used
+  private AttributeKey<String> getHttpPathAttribute() {
+    return SemconvStability.emitOldHttpSemconv()
+        ? SemanticAttributes.HTTP_TARGET
+        : SemanticAttributes.URL_PATH;
   }
 
   @Override

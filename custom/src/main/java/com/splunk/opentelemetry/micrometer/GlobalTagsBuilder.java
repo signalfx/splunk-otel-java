@@ -16,12 +16,12 @@
 
 package com.splunk.opentelemetry.micrometer;
 
-import static io.opentelemetry.semconv.resource.attributes.ResourceAttributes.CONTAINER_ID;
-import static io.opentelemetry.semconv.resource.attributes.ResourceAttributes.DEPLOYMENT_ENVIRONMENT;
-import static io.opentelemetry.semconv.resource.attributes.ResourceAttributes.HOST_NAME;
-import static io.opentelemetry.semconv.resource.attributes.ResourceAttributes.PROCESS_PID;
-import static io.opentelemetry.semconv.resource.attributes.ResourceAttributes.PROCESS_RUNTIME_NAME;
-import static io.opentelemetry.semconv.resource.attributes.ResourceAttributes.SERVICE_NAME;
+import static io.opentelemetry.semconv.ResourceAttributes.CONTAINER_ID;
+import static io.opentelemetry.semconv.ResourceAttributes.DEPLOYMENT_ENVIRONMENT;
+import static io.opentelemetry.semconv.ResourceAttributes.HOST_NAME;
+import static io.opentelemetry.semconv.ResourceAttributes.PROCESS_PID;
+import static io.opentelemetry.semconv.ResourceAttributes.PROCESS_RUNTIME_NAME;
+import static io.opentelemetry.semconv.ResourceAttributes.SERVICE_NAME;
 
 import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.Tags;

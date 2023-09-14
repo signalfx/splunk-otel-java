@@ -89,7 +89,7 @@ tasks {
       exclude(dependency("io.opentelemetry:opentelemetry-api-events"))
       exclude(dependency("io.opentelemetry:opentelemetry-api-logs"))
       exclude(dependency("io.opentelemetry:opentelemetry-context"))
-      exclude(dependency("io.opentelemetry:opentelemetry-semconv"))
+      exclude(dependency("io.opentelemetry.semconv:opentelemetry-semconv"))
       // metrics advice API
       exclude(dependency("io.opentelemetry:opentelemetry-extension-incubator"))
     }

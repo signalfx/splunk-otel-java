@@ -8,8 +8,6 @@ and this repository adheres to [Semantic Versioning](https://semver.org/spec/v2.
 
 ## Unreleased
 
-## v1.28.0 - 2023-09-14
-
 - tbd
 
 ## v1.28.0 - 2023-09-15

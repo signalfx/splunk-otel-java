@@ -65,9 +65,10 @@ To send us a pull request:
    reformat all the code, it will be hard for us to focus on your change.
 3. Ensure local tests pass and add new tests related to the contribution.
 4. Commit to your fork using clear commit messages.
-5. Send us a pull request, answering any default questions in the pull request
+5. [Sign your commits](https://docs.github.com/en/authentication/managing-commit-signature-verification/signing-commits).
+6. Send us a pull request, answering any default questions in the pull request
    interface.
-6. Pay attention to any automated CI failures reported in the pull request, and
+7. Pay attention to any automated CI failures reported in the pull request, and
    stay involved in the conversation.
 
 GitHub provides additional documentation on [forking a

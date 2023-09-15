@@ -8,6 +8,25 @@ and this repository adheres to [Semantic Versioning](https://semver.org/spec/v2.
 
 ## Unreleased
 
+- tbd
+
+## v1.28.0 - 2023-09-15
+ 
+### General
+ 
+- OpenTelemetry Java SDK has been updated to version 1.30.1.
+- OpenTelemetry Instrumentation for Java has been updated to version 1.30.0.
+- Micrometer dependency has been updated to version 1.11.4.
+
+### 📈 Enhancements 
+
+- Use OpenTelemetry metric conventions for profiling when otel metrics are used (#1428)
+- Truncate `process.command_args` when metrics are enabled (#1426)
+
+### 🛠️ Bug fixes
+
+- Prevent `ClassCastException` when attempting to track memory allocations on IBM J9 (#1435)
+
 ## v1.27.0 - 2023-08-21
 
 ### General

@@ -1,7 +1,7 @@
 
 # splunk-otel-javaagent
 ## Dependency License Report
-_2023-09-14 16:53:56 CEST_
+_2023-09-14 15:55:24 PDT_
 ## Apache License, Version 2.0
 
 **1** **Group:** `com.fasterxml.jackson.core` **Name:** `jackson-core` **Version:** `2.15.2` 
@@ -18,23 +18,23 @@ _2023-09-14 16:53:56 CEST_
 > - **Embedded license files**: [jackson-jr-objects-2.15.2.jar/META-INF/LICENSE](jackson-jr-objects-2.15.2.jar/META-INF/LICENSE) 
     - [jackson-jr-objects-2.15.2.jar/META-INF/NOTICE](jackson-jr-objects-2.15.2.jar/META-INF/NOTICE)
 
-**3** **Group:** `com.signalfx.public` **Name:** `signalfx-commons-protoc-java` **Version:** `1.0.34` 
+**3** **Group:** `com.signalfx.public` **Name:** `signalfx-commons-protoc-java` **Version:** `1.0.35` 
 > - **POM Project URL**: [http://www.signalfx.com](http://www.signalfx.com)
 > - **POM License**: Apache License, Version 2.0 - [https://www.apache.org/licenses/LICENSE-2.0](https://www.apache.org/licenses/LICENSE-2.0)
 
-**4** **Group:** `com.signalfx.public` **Name:** `signalfx-connection` **Version:** `1.0.34` 
+**4** **Group:** `com.signalfx.public` **Name:** `signalfx-connection` **Version:** `1.0.35` 
 > - **POM Project URL**: [https://www.splunk.com](https://www.splunk.com)
 > - **POM License**: Apache License, Version 2.0 - [https://www.apache.org/licenses/LICENSE-2.0](https://www.apache.org/licenses/LICENSE-2.0)
 
-**5** **Group:** `com.signalfx.public` **Name:** `signalfx-endpoint` **Version:** `1.0.34` 
+**5** **Group:** `com.signalfx.public` **Name:** `signalfx-endpoint` **Version:** `1.0.35` 
 > - **POM Project URL**: [http://www.splunk.com](http://www.splunk.com)
 > - **POM License**: Apache License, Version 2.0 - [https://www.apache.org/licenses/LICENSE-2.0](https://www.apache.org/licenses/LICENSE-2.0)
 
-**6** **Group:** `com.signalfx.public` **Name:** `signalfx-metrics` **Version:** `1.0.34` 
+**6** **Group:** `com.signalfx.public` **Name:** `signalfx-metrics` **Version:** `1.0.35` 
 > - **POM Project URL**: [http://www.signalfx.com](http://www.signalfx.com)
 > - **POM License**: Apache License, Version 2.0 - [https://www.apache.org/licenses/LICENSE-2.0](https://www.apache.org/licenses/LICENSE-2.0)
 
-**7** **Group:** `com.signalfx.public` **Name:** `signalfx-protoc` **Version:** `1.0.34` 
+**7** **Group:** `com.signalfx.public` **Name:** `signalfx-protoc` **Version:** `1.0.35` 
 > - **POM Project URL**: [http://www.signalfx.com](http://www.signalfx.com)
 > - **POM License**: Apache License, Version 2.0 - [https://www.apache.org/licenses/LICENSE-2.0](https://www.apache.org/licenses/LICENSE-2.0)
 
@@ -276,6 +276,6 @@ _2023-09-14 16:53:56 CEST_
 
 ## Unknown
 
-**54** **Group:** `io.opentelemetry.instrumentation` **Name:** `opentelemetry-instrumentation-bom-alpha` **Version:** `1.30.0-alpha-SNAPSHOT` 
+**54** **Group:** `io.opentelemetry.instrumentation` **Name:** `opentelemetry-instrumentation-bom-alpha` **Version:** `1.30.0-alpha` 
 
 

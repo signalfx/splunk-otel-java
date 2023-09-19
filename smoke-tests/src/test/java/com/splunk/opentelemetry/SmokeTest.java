@@ -146,6 +146,7 @@ public abstract class SmokeTest {
 
     if (hecTelemetryRetriever != null) {
       hecTelemetryRetriever.clearTelemetry();
+      hecTelemetryRetriever = null;
     }
   }
 
@@ -166,11 +167,11 @@ public abstract class SmokeTest {
   }
 
   protected List<JsonNode> waitForHecEntries() throws IOException, InterruptedException {
-    if (hecTelemetryRetriever != null) {
-      return hecTelemetryRetriever.waitForEntries();
-    } else {
+    if (hecTelemetryRetriever == null) {
       return Collections.emptyList();
     }
+
+    return hecTelemetryRetriever.waitForEntries();
   }
 
   protected boolean isHecEnabled() {

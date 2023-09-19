@@ -21,7 +21,7 @@ import java.util.function.Predicate;
 
 class HecTelemetryInspector {
   private static final String EVENT_KEY = "event";
-  private static final String FIELDS_KEY = "event";
+  private static final String FIELDS_KEY = "fields";
 
   static Predicate<JsonNode> hasEventName(String eventName) {
     return it -> {

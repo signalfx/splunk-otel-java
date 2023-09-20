@@ -33,6 +33,7 @@ public class LinuxTestContainerManager extends AbstractTestContainerManager {
 
   private Network network;
   private GenericContainer<?> backend;
+  private GenericContainer<?> hecBackend;
   private GenericContainer<?> collector;
   private GenericContainer<?> target;
 
@@ -52,6 +53,15 @@ public class LinuxTestContainerManager extends AbstractTestContainerManager {
             .withLogConsumer(new Slf4jLogConsumer(logger));
     backend.start();
 
+    hecBackend =
+        new GenericContainer<>(DockerImageName.parse("mockserver/mockserver:5.15.0"))
+            .withExposedPorts(HEC_BACKEND_PORT)
+            .waitingFor(Wait.forLogMessage(".*started on port.*", 1))
+            .withNetwork(network)
+            .withNetworkAliases(HEC_BACKEND_ALIAS)
+            .withLogConsumer(new Slf4jLogConsumer(logger));
+    hecBackend.start();
+
     collector =
         new GenericContainer<>(DockerImageName.parse("otel/opentelemetry-collector-contrib:latest"))
             .dependsOn(backend)
@@ -69,6 +79,10 @@ public class LinuxTestContainerManager extends AbstractTestContainerManager {
     if (backend != null) {
       backend.stop();
       backend = null;
+    }
+    if (hecBackend != null) {
+      hecBackend.stop();
+      hecBackend = null;
     }
     if (collector != null) {
       collector.stop();
@@ -116,6 +130,11 @@ public class LinuxTestContainerManager extends AbstractTestContainerManager {
   @Override
   public int getBackendMappedPort() {
     return backend.getMappedPort(BACKEND_PORT);
+  }
+
+  @Override
+  public int getHecBackendMappedPort() {
+    return hecBackend.getMappedPort(HEC_BACKEND_PORT);
   }
 
   @Override

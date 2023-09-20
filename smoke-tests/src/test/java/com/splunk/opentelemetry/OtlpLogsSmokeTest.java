@@ -16,6 +16,8 @@
 
 package com.splunk.opentelemetry;
 
+import static com.splunk.opentelemetry.HecTelemetryInspector.hasEventName;
+import static com.splunk.opentelemetry.HecTelemetryInspector.hasTextFieldValue;
 import static com.splunk.opentelemetry.LogsInspector.hasSpanId;
 import static com.splunk.opentelemetry.LogsInspector.hasStringBody;
 import static com.splunk.opentelemetry.LogsInspector.hasTraceId;
@@ -72,6 +74,14 @@ public class OtlpLogsSmokeTest extends SmokeTest {
                 .getLogStream("io.opentelemetry.smoketest.springboot.controller.WebController"))
         .anyMatch(
             hasTraceId(traceId).and(hasSpanId(spanId)).and(hasStringBody("HTTP request received")));
+
+    if (isHecEnabled()) {
+      assertThat(waitForHecEntries())
+          .anyMatch(
+              hasEventName("HTTP request received")
+                  .and(hasTextFieldValue("span_id", spanId))
+                  .and(hasTextFieldValue("trace_id", traceId)));
+    }
 
     // cleanup
     stopTarget();

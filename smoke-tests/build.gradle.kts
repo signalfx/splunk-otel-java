@@ -16,6 +16,7 @@ dependencies {
   testImplementation("ch.qos.logback:logback-classic:1.4.11")
   testImplementation("com.github.docker-java:docker-java-core")
   testImplementation("com.github.docker-java:docker-java-transport-httpclient5")
+  testImplementation("org.mock-server:mockserver-client-java:5.15.0")
 }
 
 tasks {

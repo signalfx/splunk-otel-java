@@ -33,7 +33,6 @@ import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import io.opentelemetry.sdk.resources.Resource;
 import java.util.Arrays;
 import java.util.function.BiFunction;
-import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -109,7 +108,7 @@ class TruncateCommandLineWhenMetricsEnabledTest {
     assertThat(resultCmd.length()).isEqualTo(255);
     assertThat(resultCmd.endsWith("...")).isTrue();
     var cmdArgs = result.getAttribute(PROCESS_COMMAND_ARGS);
-    String joinedArgs = StringUtils.joinWith(", ", cmdArgs.toArray());
+    String joinedArgs = String.join(", ", cmdArgs);
     assertThat(joinedArgs.length()).isLessThan(255);
     assertThat(joinedArgs.endsWith("...")).isTrue();
     assertThat(result.getAttribute(stringKey("foo"))).isEqualTo("barfly");
@@ -137,7 +136,7 @@ class TruncateCommandLineWhenMetricsEnabledTest {
     assertThat(resultCmd.length()).isEqualTo(255);
     assertThat(resultCmd.endsWith("...")).isTrue();
     var cmdArgs = result.getAttribute(PROCESS_COMMAND_ARGS);
-    String joinedArgs = StringUtils.joinWith(", ", cmdArgs.toArray());
+    String joinedArgs = String.join(", ", cmdArgs);
     assertThat(joinedArgs.length()).isLessThan(255);
     assertThat(joinedArgs.endsWith("...")).isTrue();
     assertThat(result.getAttribute(stringKey("foo"))).isEqualTo("barfly");

@@ -47,18 +47,33 @@ public class SplunkSlf4jLoggingCustomizer implements LoggingCustomizer {
     delegate.onStartupFailure(throwable);
   }
 
-  private static final String METRICS_RETRY_LOGGER_PROPERTY =
-      "org.apache.http.impl.execchain.RetryExec";
+  private static final String LOGGER_PREFIX = "io.opentelemetry.javaagent.slf4j.simpleLogger.log.";
 
   private static void addCustomLoggingConfiguration() {
-    // metrics exporter sometimes logs "Broken pipe (Write failed)" at INFO; usually in
-    // docker-based environments
-    // most likely docker resets long-running connections and the exporter has to retry, and it
-    // always succeeds after retrying and metrics are exported correctly
-    // limit default logging level to WARN unless debug mode is on or the user has overridden it
-    String metricsRetryLoggerLevel = System.getProperty(METRICS_RETRY_LOGGER_PROPERTY);
-    if (metricsRetryLoggerLevel == null && !isDebugMode()) {
-      System.setProperty(METRICS_RETRY_LOGGER_PROPERTY, "WARN");
+    if (!isDebugMode()) {
+      // metrics exporter sometimes logs "Broken pipe (Write failed)" at INFO; usually in
+      // docker-based environments
+      // most likely docker resets long-running connections and the exporter has to retry, and it
+      // always succeeds after retrying and metrics are exported correctly
+      // limit default logging level to WARN unless debug mode is on or the user has overridden it
+      setLogLevelIfNotSet("org.apache.http.impl.execchain.RetryExec", "WARN");
+
+      // Silence the following warning on jdk21, this warning should go away with an update to jfr
+      // parser
+      // [otel.javaagent 2023-10-09 14:38:17:665 +0000] [JFR Recording Sequencer] WARN
+      // org.openjdk.jmc.flightrecorder.internal.parser.v1.ValueReaders$ReflectiveReader - Could not
+      // find field with name 'virtual' in reader for 'thread'
+      setLogLevelIfNotSet(
+          "org.openjdk.jmc.flightrecorder.internal.parser.v1.ValueReaders$ReflectiveReader",
+          "ERROR");
+    }
+  }
+
+  private static void setLogLevelIfNotSet(String className, String logLevel) {
+    String loggerProperty = LOGGER_PREFIX + className;
+    String currentLogLevel = System.getProperty(loggerProperty);
+    if (currentLogLevel == null) {
+      System.setProperty(loggerProperty, logLevel);
     }
   }
 

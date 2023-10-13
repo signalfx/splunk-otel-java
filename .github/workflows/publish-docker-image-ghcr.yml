@@ -46,6 +46,7 @@ jobs:
         with:
           push: true
           file: Dockerfile-ghcr
+          platforms: linux/amd64,linux/arm64,linux/ppc64
           build-args: |
             RELEASE_VER=${{ env.RELEASE_VERSION }}
           tags: |

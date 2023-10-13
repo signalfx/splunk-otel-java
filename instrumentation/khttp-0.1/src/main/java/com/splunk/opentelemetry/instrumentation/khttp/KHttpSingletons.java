@@ -49,7 +49,7 @@ public final class KHttpSingletons {
                     .build())
             .addAttributesExtractor(
                 PeerServiceAttributesExtractor.create(
-                    httpAttributesGetter, CommonConfig.get().getPeerServiceMapping()))
+                    httpAttributesGetter, CommonConfig.get().getPeerServiceResolver()))
             .addOperationMetrics(HttpClientMetrics.get())
             .buildClientInstrumenter(KHttpHttpHeaderSetter.INSTANCE);
   }

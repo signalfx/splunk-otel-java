@@ -1,7 +1,7 @@
 
 # splunk-otel-javaagent
 ## Dependency License Report
-_2023-10-17 18:20:08 EEST_
+_2023-10-19 19:23:20 EEST_
 ## Apache License, Version 2.0
 
 **1** **Group:** `com.fasterxml.jackson.core` **Name:** `jackson-core` **Version:** `2.15.3` 
@@ -134,11 +134,11 @@ _2023-10-17 18:20:08 EEST_
 > - **POM Project URL**: [https://github.com/open-telemetry/opentelemetry-java](https://github.com/open-telemetry/opentelemetry-java)
 > - **POM License**: Apache License, Version 2.0 - [https://www.apache.org/licenses/LICENSE-2.0](https://www.apache.org/licenses/LICENSE-2.0)
 
-**29** **Group:** `io.opentelemetry.contrib` **Name:** `opentelemetry-resource-providers` **Version:** `1.30.0-alpha` 
+**29** **Group:** `io.opentelemetry.contrib` **Name:** `opentelemetry-resource-providers` **Version:** `1.31.0-alpha` 
 > - **POM Project URL**: [https://github.com/open-telemetry/opentelemetry-java-contrib](https://github.com/open-telemetry/opentelemetry-java-contrib)
 > - **POM License**: Apache License, Version 2.0 - [https://www.apache.org/licenses/LICENSE-2.0](https://www.apache.org/licenses/LICENSE-2.0)
 
-**30** **Group:** `io.opentelemetry.contrib` **Name:** `opentelemetry-samplers` **Version:** `1.30.0-alpha` 
+**30** **Group:** `io.opentelemetry.contrib` **Name:** `opentelemetry-samplers` **Version:** `1.31.0-alpha` 
 > - **POM Project URL**: [https://github.com/open-telemetry/opentelemetry-java-contrib](https://github.com/open-telemetry/opentelemetry-java-contrib)
 > - **POM License**: Apache License, Version 2.0 - [https://www.apache.org/licenses/LICENSE-2.0](https://www.apache.org/licenses/LICENSE-2.0)
 

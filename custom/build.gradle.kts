@@ -39,7 +39,7 @@ dependencies {
   testImplementation("io.micrometer:micrometer-core")
 
   testImplementation(project(":testing:common"))
-  testImplementation("javax.servlet:javax.servlet-api:3.0.1")
+  testImplementation("javax.servlet:javax.servlet-api:3.1.0")
   testImplementation("org.eclipse.jetty:jetty-server:8.0.0.v20110901")
   testImplementation("org.eclipse.jetty:jetty-servlet:8.0.0.v20110901")
 }

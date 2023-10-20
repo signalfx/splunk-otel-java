@@ -7,7 +7,7 @@ plugins {
 }
 
 dependencies {
-  compileOnly("javax.servlet:javax.servlet-api:3.1.0")
+  compileOnly("javax.servlet:javax.servlet-api:4.0.1")
 }
 
 tasks {

@@ -7,7 +7,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4.1.1
 
@@ -27,7 +27,7 @@ jobs:
         run: ./gradlew build -x :smoke-tests:test --scan --no-daemon
 
   setup-muzzle-matrix:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
@@ -51,7 +51,7 @@ jobs:
 
   muzzle:
     needs: setup-muzzle-matrix
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     strategy:
       matrix: ${{fromJson(needs.setup-muzzle-matrix.outputs.matrix)}}
       fail-fast: false
@@ -127,7 +127,7 @@ jobs:
   issue:
     name: Open issue on failure
     needs: [ build, muzzle, smoke-test ]
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     permissions:
       issues: write
     if: always()
@@ -157,7 +157,7 @@ jobs:
             --body-file body.txt
 
   shellcheck:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4.1.1
 

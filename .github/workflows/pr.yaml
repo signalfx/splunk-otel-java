@@ -29,7 +29,7 @@ jobs:
   #      run: exit ${{ steps.lychee.outputs.exit_code }}
 
   build:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4.1.1
 
@@ -49,7 +49,7 @@ jobs:
         run: ./gradlew build -x :smoke-tests:test --scan --no-daemon
 
   setup-muzzle-matrix:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
@@ -73,7 +73,7 @@ jobs:
 
   muzzle:
     needs: setup-muzzle-matrix
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     strategy:
       matrix: ${{fromJson(needs.setup-muzzle-matrix.outputs.matrix)}}
       fail-fast: false
@@ -150,7 +150,7 @@ jobs:
         run: ./gradlew :smoke-tests:test -PsmokeTestSuite=${{ matrix.suite }} --scan --no-daemon
 
   shellcheck:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4.1.1
 
@@ -161,7 +161,7 @@ jobs:
         run: shellcheck-v0.8.0/shellcheck --format=gcc $(find scripts -name '*.sh')
 
   license-check:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4.1.1
 

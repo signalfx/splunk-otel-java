@@ -1,0 +1,13 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:base"
+  ],
+  "ignorePaths": ["instrumentation/**"],
+  "packageRules": [
+    {
+      "matchPackageNames": ["docker.repo.splunkdev.net/ci-cd/ci-container/maven-3.8-jdk-17"],
+      "enabled": false
+    }
+  ]
+}

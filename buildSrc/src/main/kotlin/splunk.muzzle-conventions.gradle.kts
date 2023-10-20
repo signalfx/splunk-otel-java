@@ -14,7 +14,7 @@ dependencies {
   add("codegen", platform(project(":dependencyManagement")))
   // dependencies needed to make muzzle-check work
   add("muzzleTooling", "io.opentelemetry.javaagent:opentelemetry-javaagent-tooling")
-  add("muzzleTooling", "ch.qos.logback:logback-classic:1.2.10")
+  add("muzzleTooling", "io.opentelemetry.javaagent:opentelemetry-javaagent-extension-api")
   add("muzzleBootstrap", project(":bootstrap"))
   add("muzzleBootstrap", "io.opentelemetry:opentelemetry-api")
   add("codegen", "io.opentelemetry.javaagent:opentelemetry-muzzle")

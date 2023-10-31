@@ -36,7 +36,7 @@ public class AllocatedMemoryMetrics {
   }
 
   private AllocationTracker createAllocationTracker() {
-    if (hasComSunThreadMXBean() && isThreadAllocatedMemoryEnabled() && mxBeanTypeIsCompatible()) {
+    if (hasComSunThreadMXBean() && mxBeanTypeIsCompatible() && isThreadAllocatedMemoryEnabled()) {
       return new AllocationTracker();
     }
     return null;

@@ -18,7 +18,9 @@ package com.splunk.opentelemetry.profiler;
 
 import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_CALL_STACK_INTERVAL;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -47,5 +49,22 @@ class JfrSettingsOverridesTest {
     assertEquals("163 ms", result.get("jdk.ThreadDump#period"));
     assertEquals("true", result.get("jdk.ObjectAllocationInNewTLAB#enabled"));
     assertEquals("true", result.get("jdk.ObjectAllocationOutsideTLAB#enabled"));
+  }
+
+  @Test
+  void avoidanceSoup(){
+      assertFalse(JfrSettingsOverrides.isVulnerableToJdk8309862("8.0.382"));
+      assertFalse(JfrSettingsOverrides.isVulnerableToJdk8309862("11.0.1"));
+      assertTrue(JfrSettingsOverrides.isVulnerableToJdk8309862("17.0.1"));
+      assertTrue(JfrSettingsOverrides.isVulnerableToJdk8309862("17.0.2"));
+      assertTrue(JfrSettingsOverrides.isVulnerableToJdk8309862("17.0.3"));
+      assertTrue(JfrSettingsOverrides.isVulnerableToJdk8309862("17.0.4"));
+      assertTrue(JfrSettingsOverrides.isVulnerableToJdk8309862("17.0.5"));
+      assertTrue(JfrSettingsOverrides.isVulnerableToJdk8309862("17.0.6"));
+      assertTrue(JfrSettingsOverrides.isVulnerableToJdk8309862("17.0.7"));
+      assertTrue(JfrSettingsOverrides.isVulnerableToJdk8309862("17.0.8"));
+      assertFalse(JfrSettingsOverrides.isVulnerableToJdk8309862("17.0.9"));
+      assertFalse(JfrSettingsOverrides.isVulnerableToJdk8309862("21.0.0"));
+      assertFalse(JfrSettingsOverrides.isVulnerableToJdk8309862("21.0.1"));
   }
 }

@@ -18,10 +18,13 @@ package com.splunk.opentelemetry.profiler;
 
 import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_CALL_STACK_INTERVAL;
 
+import com.google.common.annotations.VisibleForTesting;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Logger;
+import java.util.stream.IntStream;
 
 /**
  * Customizes a configuration with user overrides. The config can contain
@@ -29,6 +32,8 @@ import java.util.Map;
  * without suffix.
  */
 class JfrSettingsOverrides {
+
+  private static final Logger logger = Logger.getLogger(JfrSettingsOverrides.class.getName());
 
   private final ConfigProperties config;
 
@@ -54,6 +59,18 @@ class JfrSettingsOverrides {
   }
 
   private Map<String, String> maybeEnableTLABs(Map<String, String> settings) {
+
+    if(isRunningVersionUnsafeForJfr()){
+      logger.warning("*****************************************************************");
+      logger.warning("**************************** WARNING ****************************");
+      logger.warning("* JDK " + jdkVersion() + " is vulnerable to JDK-8309862. Memory ");
+      logger.warning("* profiling will not be enabled. You will need to               ");
+      logger.warning("* upgrade the JDK to use the memory profiler.                   ");
+      logger.warning("*****************************************************************");
+      logger.warning("*****************************************************************");
+      return settings;
+    }
+
     if (Configuration.getTLABEnabled(config)) {
       if (Configuration.getMemoryEventRateLimitEnabled(config)
           && Configuration.getUseAllocationSampleEvent(config)) {
@@ -67,4 +84,25 @@ class JfrSettingsOverrides {
     }
     return settings;
   }
+
+  private static boolean isRunningVersionUnsafeForJfr(){
+    String version = jdkVersion();
+    return isVulnerableToJdk8309862(version);
+  }
+
+  @VisibleForTesting
+  static boolean isVulnerableToJdk8309862(String version){
+    if(version == null){
+      return false;
+    }
+    return IntStream.range(0, 9)
+        .mapToObj(i -> "^17\\.0\\." + i + "(\\..*|$)")
+        .anyMatch(version::matches);
+  }
+
+  private static String jdkVersion() {
+    String version = System.getProperty("java.runtime.version");
+    return version;
+  }
+
 }

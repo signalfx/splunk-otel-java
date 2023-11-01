@@ -52,19 +52,19 @@ class JfrSettingsOverridesTest {
   }
 
   @Test
-  void avoidanceSoup(){
-      assertFalse(JfrSettingsOverrides.isVulnerableToJdk8309862("8.0.382"));
-      assertFalse(JfrSettingsOverrides.isVulnerableToJdk8309862("11.0.1"));
-      assertTrue(JfrSettingsOverrides.isVulnerableToJdk8309862("17.0.1"));
-      assertTrue(JfrSettingsOverrides.isVulnerableToJdk8309862("17.0.2"));
-      assertTrue(JfrSettingsOverrides.isVulnerableToJdk8309862("17.0.3"));
-      assertTrue(JfrSettingsOverrides.isVulnerableToJdk8309862("17.0.4"));
-      assertTrue(JfrSettingsOverrides.isVulnerableToJdk8309862("17.0.5"));
-      assertTrue(JfrSettingsOverrides.isVulnerableToJdk8309862("17.0.6"));
-      assertTrue(JfrSettingsOverrides.isVulnerableToJdk8309862("17.0.7"));
-      assertTrue(JfrSettingsOverrides.isVulnerableToJdk8309862("17.0.8"));
-      assertFalse(JfrSettingsOverrides.isVulnerableToJdk8309862("17.0.9"));
-      assertFalse(JfrSettingsOverrides.isVulnerableToJdk8309862("21.0.0"));
-      assertFalse(JfrSettingsOverrides.isVulnerableToJdk8309862("21.0.1"));
+  void avoidanceSoup() {
+    assertFalse(JfrSettingsOverrides.isVulnerableToJdk8309862("8.0.382"));
+    assertFalse(JfrSettingsOverrides.isVulnerableToJdk8309862("11.0.1"));
+    assertTrue(JfrSettingsOverrides.isVulnerableToJdk8309862("17.0.1"));
+    assertTrue(JfrSettingsOverrides.isVulnerableToJdk8309862("17.0.2"));
+    assertTrue(JfrSettingsOverrides.isVulnerableToJdk8309862("17.0.3"));
+    assertTrue(JfrSettingsOverrides.isVulnerableToJdk8309862("17.0.4"));
+    assertTrue(JfrSettingsOverrides.isVulnerableToJdk8309862("17.0.5"));
+    assertTrue(JfrSettingsOverrides.isVulnerableToJdk8309862("17.0.6"));
+    assertTrue(JfrSettingsOverrides.isVulnerableToJdk8309862("17.0.7"));
+    assertTrue(JfrSettingsOverrides.isVulnerableToJdk8309862("17.0.8"));
+    assertFalse(JfrSettingsOverrides.isVulnerableToJdk8309862("17.0.9"));
+    assertFalse(JfrSettingsOverrides.isVulnerableToJdk8309862("21.0.0"));
+    assertFalse(JfrSettingsOverrides.isVulnerableToJdk8309862("21.0.1"));
   }
 }

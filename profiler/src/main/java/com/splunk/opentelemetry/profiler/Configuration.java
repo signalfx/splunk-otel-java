@@ -67,6 +67,7 @@ public class Configuration implements AutoConfigurationCustomizerProvider {
       "splunk.profiler.include.internal.stacks";
   public static final String CONFIG_KEY_TRACING_STACKS_ONLY = "splunk.profiler.tracing.stacks.only";
   private static final String CONFIG_KEY_STACK_DEPTH = "splunk.profiler.max.stack.depth";
+  private static final String RISKY_JFR_OPT_IN = "risky.jfr.optin";
 
   @Override
   public void customize(AutoConfigurationCustomizer autoConfiguration) {
@@ -143,6 +144,10 @@ public class Configuration implements AutoConfigurationCustomizerProvider {
 
   public static int getStackDepth(ConfigProperties config) {
     return config.getInt(CONFIG_KEY_STACK_DEPTH, DEFAULT_STACK_DEPTH);
+  }
+
+  public static boolean getRiskyJfrOptIn(ConfigProperties config) {
+    return config.getBoolean(RISKY_JFR_OPT_IN, false);
   }
 
   private static int getJavaVersion() {

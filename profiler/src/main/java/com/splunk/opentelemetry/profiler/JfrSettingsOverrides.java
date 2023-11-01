@@ -59,40 +59,48 @@ class JfrSettingsOverrides {
   }
 
   private Map<String, String> maybeEnableTLABs(Map<String, String> settings) {
-
-    if(isRunningVersionUnsafeForJfr()){
-      logger.warning("*****************************************************************");
-      logger.warning("**************************** WARNING ****************************");
-      logger.warning("* JDK " + jdkVersion() + " is vulnerable to JDK-8309862. Memory ");
-      logger.warning("* profiling will not be enabled. You will need to               ");
-      logger.warning("* upgrade the JDK to use the memory profiler.                   ");
-      logger.warning("*****************************************************************");
-      logger.warning("*****************************************************************");
+    if (!Configuration.getTLABEnabled(config)) {
       return settings;
     }
 
-    if (Configuration.getTLABEnabled(config)) {
-      if (Configuration.getMemoryEventRateLimitEnabled(config)
-          && Configuration.getUseAllocationSampleEvent(config)) {
-        settings.put("jdk.ObjectAllocationSample#enabled", "true");
-        settings.put(
-            "jdk.ObjectAllocationSample#throttle", Configuration.getMemoryEventRate(config));
+    if (isRunningVersionUnsafeForJfr()) {
+      if (Configuration.getRiskyJfrOptIn(config)) {
+        logger.warning(
+            "JDK "
+                + jdkVersion()
+                + " is vulnerable to JDK-8309862 but the operator has chosen to accept the risk.");
       } else {
-        settings.put("jdk.ObjectAllocationInNewTLAB#enabled", "true");
-        settings.put("jdk.ObjectAllocationOutsideTLAB#enabled", "true");
+        logger.warning("*****************************************************************");
+        logger.warning("**************************** WARNING ****************************");
+        logger.warning("* JDK " + jdkVersion() + " is vulnerable to JDK-8309862. Memory ");
+        logger.warning("* profiling will not be enabled. You will need to upgrade the   ");
+        logger.warning("* JDK to use the memory profiler. You can bypass this by        ");
+        logger.warning("* passing -Drisky.jfr.optin=true.                               ");
+        logger.warning("*****************************************************************");
+        logger.warning("*****************************************************************");
+        return settings;
       }
+    }
+
+    if (Configuration.getMemoryEventRateLimitEnabled(config)
+        && Configuration.getUseAllocationSampleEvent(config)) {
+      settings.put("jdk.ObjectAllocationSample#enabled", "true");
+      settings.put("jdk.ObjectAllocationSample#throttle", Configuration.getMemoryEventRate(config));
+    } else {
+      settings.put("jdk.ObjectAllocationInNewTLAB#enabled", "true");
+      settings.put("jdk.ObjectAllocationOutsideTLAB#enabled", "true");
     }
     return settings;
   }
 
-  private static boolean isRunningVersionUnsafeForJfr(){
+  private static boolean isRunningVersionUnsafeForJfr() {
     String version = jdkVersion();
     return isVulnerableToJdk8309862(version);
   }
 
   @VisibleForTesting
-  static boolean isVulnerableToJdk8309862(String version){
-    if(version == null){
+  static boolean isVulnerableToJdk8309862(String version) {
+    if (version == null) {
       return false;
     }
     return IntStream.range(0, 9)
@@ -104,5 +112,4 @@ class JfrSettingsOverrides {
     String version = System.getProperty("java.runtime.version");
     return version;
   }
-
 }

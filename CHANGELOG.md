@@ -8,6 +8,12 @@ and this repository adheres to [Semantic Versioning](https://semver.org/spec/v2.
 
 ## Unreleased
 
+## v1.29.1 - 2023-11-07
+
+### 🛠️ Bug fixes
+
+- Check for mxBean compatibility before attempting cast (#1508)
+
 ## v1.29.0 - 2023-10-13
 
 ### General

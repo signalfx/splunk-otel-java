@@ -11,7 +11,7 @@ val otelContribAlphaVersion = "1.31.0-alpha"
 val autoValueVersion = "1.10.4";
 val dockerJavaVersion = "3.3.4"
 val micrometerOldVersion = "1.3.20"
-val micrometerVersion = "1.11.5"
+val micrometerVersion = "1.12.0"
 val mockitoVersion = "5.7.0"
 val protobufVersion = "3.25.1"
 val slf4jVersion = "2.0.9"
@@ -29,7 +29,7 @@ javaPlatform {
 dependencies {
 
   // BOMs
-  api(enforcedPlatform("com.fasterxml.jackson:jackson-bom:2.15.3"))
+  api(enforcedPlatform("com.fasterxml.jackson:jackson-bom:2.16.0"))
   api(enforcedPlatform("com.google.protobuf:protobuf-bom:$protobufVersion"))
   api(enforcedPlatform("com.squareup.okhttp3:okhttp-bom:4.12.0"))
   api(enforcedPlatform("io.grpc:grpc-bom:1.59.0"))

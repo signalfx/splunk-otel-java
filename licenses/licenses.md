@@ -1,7 +1,7 @@
 
 # splunk-otel-javaagent
 ## Dependency License Report
-_2023-11-20 15:44:47 EET_
+_2023-11-21 09:23:00 EET_
 ## Apache License, Version 2.0
 
 **1** **Group:** `com.fasterxml.jackson.core` **Name:** `jackson-core` **Version:** `2.15.3` 
@@ -54,29 +54,29 @@ _2023-11-20 15:44:47 EET_
 > - **Embedded license files**: [commons-codec-1.11.jar/META-INF/LICENSE.txt](commons-codec-1.11.jar/META-INF/LICENSE.txt) 
     - [commons-codec-1.11.jar/META-INF/NOTICE.txt](commons-codec-1.11.jar/META-INF/NOTICE.txt)
 
-**11** **Group:** `io.micrometer` **Name:** `micrometer-commons` **Version:** `1.11.5` 
+**11** **Group:** `io.micrometer` **Name:** `micrometer-commons` **Version:** `1.12.0` 
 > - **POM Project URL**: [https://github.com/micrometer-metrics/micrometer](https://github.com/micrometer-metrics/micrometer)
 > - **POM License**: Apache License, Version 2.0 - [https://www.apache.org/licenses/LICENSE-2.0](https://www.apache.org/licenses/LICENSE-2.0)
-> - **Embedded license files**: [micrometer-commons-1.11.5.jar/META-INF/LICENSE](micrometer-commons-1.11.5.jar/META-INF/LICENSE) 
-    - [micrometer-commons-1.11.5.jar/META-INF/NOTICE](micrometer-commons-1.11.5.jar/META-INF/NOTICE)
+> - **Embedded license files**: [micrometer-commons-1.12.0.jar/META-INF/LICENSE](micrometer-commons-1.12.0.jar/META-INF/LICENSE) 
+    - [micrometer-commons-1.12.0.jar/META-INF/NOTICE](micrometer-commons-1.12.0.jar/META-INF/NOTICE)
 
-**12** **Group:** `io.micrometer` **Name:** `micrometer-core` **Version:** `1.11.5` 
+**12** **Group:** `io.micrometer` **Name:** `micrometer-core` **Version:** `1.12.0` 
 > - **POM Project URL**: [https://github.com/micrometer-metrics/micrometer](https://github.com/micrometer-metrics/micrometer)
 > - **POM License**: Apache License, Version 2.0 - [https://www.apache.org/licenses/LICENSE-2.0](https://www.apache.org/licenses/LICENSE-2.0)
-> - **Embedded license files**: [micrometer-core-1.11.5.jar/META-INF/LICENSE](micrometer-core-1.11.5.jar/META-INF/LICENSE) 
-    - [micrometer-core-1.11.5.jar/META-INF/NOTICE](micrometer-core-1.11.5.jar/META-INF/NOTICE)
+> - **Embedded license files**: [micrometer-core-1.12.0.jar/META-INF/LICENSE](micrometer-core-1.12.0.jar/META-INF/LICENSE) 
+    - [micrometer-core-1.12.0.jar/META-INF/NOTICE](micrometer-core-1.12.0.jar/META-INF/NOTICE)
 
-**13** **Group:** `io.micrometer` **Name:** `micrometer-observation` **Version:** `1.11.5` 
+**13** **Group:** `io.micrometer` **Name:** `micrometer-observation` **Version:** `1.12.0` 
 > - **POM Project URL**: [https://github.com/micrometer-metrics/micrometer](https://github.com/micrometer-metrics/micrometer)
 > - **POM License**: Apache License, Version 2.0 - [https://www.apache.org/licenses/LICENSE-2.0](https://www.apache.org/licenses/LICENSE-2.0)
-> - **Embedded license files**: [micrometer-observation-1.11.5.jar/META-INF/LICENSE](micrometer-observation-1.11.5.jar/META-INF/LICENSE) 
-    - [micrometer-observation-1.11.5.jar/META-INF/NOTICE](micrometer-observation-1.11.5.jar/META-INF/NOTICE)
+> - **Embedded license files**: [micrometer-observation-1.12.0.jar/META-INF/LICENSE](micrometer-observation-1.12.0.jar/META-INF/LICENSE) 
+    - [micrometer-observation-1.12.0.jar/META-INF/NOTICE](micrometer-observation-1.12.0.jar/META-INF/NOTICE)
 
-**14** **Group:** `io.micrometer` **Name:** `micrometer-registry-signalfx` **Version:** `1.11.5` 
+**14** **Group:** `io.micrometer` **Name:** `micrometer-registry-signalfx` **Version:** `1.12.0` 
 > - **POM Project URL**: [https://github.com/micrometer-metrics/micrometer](https://github.com/micrometer-metrics/micrometer)
 > - **POM License**: Apache License, Version 2.0 - [https://www.apache.org/licenses/LICENSE-2.0](https://www.apache.org/licenses/LICENSE-2.0)
-> - **Embedded license files**: [micrometer-registry-signalfx-1.11.5.jar/META-INF/LICENSE](micrometer-registry-signalfx-1.11.5.jar/META-INF/LICENSE) 
-    - [micrometer-registry-signalfx-1.11.5.jar/META-INF/NOTICE](micrometer-registry-signalfx-1.11.5.jar/META-INF/NOTICE)
+> - **Embedded license files**: [micrometer-registry-signalfx-1.12.0.jar/META-INF/LICENSE](micrometer-registry-signalfx-1.12.0.jar/META-INF/LICENSE) 
+    - [micrometer-registry-signalfx-1.12.0.jar/META-INF/NOTICE](micrometer-registry-signalfx-1.12.0.jar/META-INF/NOTICE)
 
 **15** **Group:** `io.opentelemetry` **Name:** `opentelemetry-api` **Version:** `1.32.0` 
 > - **POM Project URL**: [https://github.com/open-telemetry/opentelemetry-java](https://github.com/open-telemetry/opentelemetry-java)

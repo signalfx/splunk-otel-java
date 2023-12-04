@@ -6,6 +6,10 @@
   "ignorePaths": ["instrumentation/**"],
   "packageRules": [
     {
+      "matchPackagePrefixes": ["com.diffplug.spotless"],
+      "groupName": "spotless packages"
+    },
+    {
       // pinned version for compatibility
       "matchFileNames": ["matrix/build.gradle.kts"],
       "matchPackageNames": ["javax.servlet:javax.servlet-api"],

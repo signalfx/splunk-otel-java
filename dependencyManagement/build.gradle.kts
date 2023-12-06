@@ -4,15 +4,15 @@ plugins {
 
 val otelVersion = "1.32.0"
 val otelAlphaVersion = otelVersion.replaceFirst("(-SNAPSHOT)?$".toRegex(), "-alpha$1")
-val otelInstrumentationVersion = "1.32.0"
+val otelInstrumentationVersion = "1.32.0-SNAPSHOT"
 val otelInstrumentationAlphaVersion =  otelInstrumentationVersion.replaceFirst("(-SNAPSHOT)?$".toRegex(), "-alpha$1")
 val otelContribAlphaVersion = "1.31.0-alpha"
 
 val autoValueVersion = "1.10.4";
 val dockerJavaVersion = "3.3.4"
 val micrometerOldVersion = "1.3.20"
-val micrometerVersion = "1.11.5"
-val mockitoVersion = "5.7.0"
+val micrometerVersion = "1.12.0"
+val mockitoVersion = "5.8.0"
 val protobufVersion = "3.25.1"
 val slf4jVersion = "2.0.9"
 
@@ -32,18 +32,18 @@ dependencies {
   api(enforcedPlatform("com.fasterxml.jackson:jackson-bom:2.16.0"))
   api(enforcedPlatform("com.google.protobuf:protobuf-bom:$protobufVersion"))
   api(enforcedPlatform("com.squareup.okhttp3:okhttp-bom:4.12.0"))
-  api(enforcedPlatform("io.grpc:grpc-bom:1.59.0"))
+  api(enforcedPlatform("io.grpc:grpc-bom:1.60.0"))
   api(platform("io.micrometer:micrometer-bom:$micrometerVersion"))
   api(enforcedPlatform("io.opentelemetry:opentelemetry-bom-alpha:$otelAlphaVersion"))
   api(enforcedPlatform("io.opentelemetry.instrumentation:opentelemetry-instrumentation-bom-alpha:$otelInstrumentationAlphaVersion"))
   api(enforcedPlatform("org.junit:junit-bom:5.10.1"))
-  api(enforcedPlatform("org.testcontainers:testcontainers-bom:1.19.2"))
+  api(enforcedPlatform("org.testcontainers:testcontainers-bom:1.19.3"))
 
   constraints {
     api("com.google.auto.service:auto-service:1.1.1")
     api("org.assertj:assertj-core:3.24.2")
     api("org.awaitility:awaitility:4.2.0")
-    api("com.signalfx.public:signalfx-metrics:1.0.36")
+    api("com.signalfx.public:signalfx-metrics:1.0.37")
 
     api("com.github.docker-java:docker-java-core:$dockerJavaVersion")
     api("com.github.docker-java:docker-java-transport-httpclient5:$dockerJavaVersion")

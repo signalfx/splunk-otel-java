@@ -1,6 +1,6 @@
 pluginManagement {
   plugins {
-    id("com.bmuschko.docker-remote-api") version "9.3.7"
+    id("com.bmuschko.docker-remote-api") version "9.4.0"
     id("com.github.johnrengelman.shadow") version "8.1.1"
     id("io.github.gradle-nexus.publish-plugin") version "1.3.0"
     id("com.github.jk1.dependency-license-report") version "2.5"
@@ -8,7 +8,7 @@ pluginManagement {
 }
 
 plugins {
-  id("com.gradle.enterprise") version "3.15.1"
+  id("com.gradle.enterprise") version "3.16"
 }
 
 gradleEnterprise {

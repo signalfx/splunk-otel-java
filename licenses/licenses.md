@@ -1,22 +1,22 @@
 
 # splunk-otel-javaagent
 ## Dependency License Report
-_2023-11-23 19:33:05 EET_
+_2023-12-06 12:26:30 EET_
 ## Apache License, Version 2.0
 
-**1** **Group:** `com.fasterxml.jackson.core` **Name:** `jackson-core` **Version:** `2.15.3` 
+**1** **Group:** `com.fasterxml.jackson.core` **Name:** `jackson-core` **Version:** `2.16.0` 
 > - **Project URL**: [https://github.com/FasterXML/jackson-core](https://github.com/FasterXML/jackson-core)
 > - **Manifest License**: Apache License, Version 2.0 (Not Packaged)
 > - **POM License**: Apache License, Version 2.0 - [https://www.apache.org/licenses/LICENSE-2.0](https://www.apache.org/licenses/LICENSE-2.0)
-> - **Embedded license files**: [jackson-core-2.15.3.jar/META-INF/LICENSE](jackson-core-2.15.3.jar/META-INF/LICENSE) 
-    - [jackson-core-2.15.3.jar/META-INF/NOTICE](jackson-core-2.15.3.jar/META-INF/NOTICE)
+> - **Embedded license files**: [jackson-core-2.16.0.jar/META-INF/LICENSE](jackson-core-2.16.0.jar/META-INF/LICENSE) 
+    - [jackson-core-2.16.0.jar/META-INF/NOTICE](jackson-core-2.16.0.jar/META-INF/NOTICE)
 
-**2** **Group:** `com.fasterxml.jackson.jr` **Name:** `jackson-jr-objects` **Version:** `2.15.3` 
+**2** **Group:** `com.fasterxml.jackson.jr` **Name:** `jackson-jr-objects` **Version:** `2.16.0` 
 > - **Project URL**: [https://github.com/FasterXML/jackson-jr](https://github.com/FasterXML/jackson-jr)
 > - **Manifest License**: Apache License, Version 2.0 (Not Packaged)
 > - **POM License**: Apache License, Version 2.0 - [https://www.apache.org/licenses/LICENSE-2.0](https://www.apache.org/licenses/LICENSE-2.0)
-> - **Embedded license files**: [jackson-jr-objects-2.15.3.jar/META-INF/LICENSE](jackson-jr-objects-2.15.3.jar/META-INF/LICENSE) 
-    - [jackson-jr-objects-2.15.3.jar/META-INF/NOTICE](jackson-jr-objects-2.15.3.jar/META-INF/NOTICE)
+> - **Embedded license files**: [jackson-jr-objects-2.16.0.jar/META-INF/LICENSE](jackson-jr-objects-2.16.0.jar/META-INF/LICENSE) 
+    - [jackson-jr-objects-2.16.0.jar/META-INF/NOTICE](jackson-jr-objects-2.16.0.jar/META-INF/NOTICE)
 
 **3** **Group:** `com.signalfx.public` **Name:** `signalfx-commons-protoc-java` **Version:** `1.0.37` 
 > - **POM Project URL**: [http://www.signalfx.com](http://www.signalfx.com)

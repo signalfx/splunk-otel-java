@@ -77,15 +77,15 @@ public abstract class AppServerTest extends SmokeTest {
 
     assertEquals(
         1,
-        traces.countFilteredAttributes("http.target", "/app/greeting"),
+        traces.countFilteredAttributes("url.path", "/app/greeting"),
         "The span for the initial web request");
     assertEquals(
         1,
-        traces.countFilteredAttributes("http.url", getUrl("/app/headers", true)),
+        traces.countFilteredAttributes("url.full", getUrl("/app/headers", true)),
         "Client span for the remote call");
     assertEquals(
         1,
-        traces.countFilteredAttributes("http.target", "/app/headers"),
+        traces.countFilteredAttributes("url.path", "/app/headers"),
         "Server span for the remote call");
 
     assertThat(traces.getInstrumentationLibraryVersions())

@@ -19,9 +19,7 @@ package com.splunk.opentelemetry.instrumentation.khttp;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 
-import io.opentelemetry.instrumentation.api.instrumenter.http.HttpClientAttributesGetter;
-import io.opentelemetry.semconv.SemanticAttributes;
-import java.net.InetSocketAddress;
+import io.opentelemetry.instrumentation.api.semconv.http.HttpClientAttributesGetter;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -64,11 +62,6 @@ final class KHttpHttpClientHttpAttributesGetter
     return header != null ? singletonList(header) : emptyList();
   }
 
-  @Override
-  public String getTransport(RequestWrapper requestWrapper, @Nullable Response response) {
-    return SemanticAttributes.NetTransportValues.IP_TCP;
-  }
-
   @Nullable
   @Override
   public String getServerAddress(RequestWrapper requestWrapper) {
@@ -99,17 +92,5 @@ final class KHttpHttpClientHttpAttributesGetter
   @Override
   public String getNetworkTransport(RequestWrapper requestWrapper, @Nullable Response response) {
     return "tcp";
-  }
-
-  @Nullable
-  @Override
-  public InetSocketAddress getServerInetSocketAddress(
-      RequestWrapper requestWrapper, @Nullable Response response) {
-    String host = getServerAddress(requestWrapper);
-    Integer port = getServerPort(requestWrapper);
-    if (host == null || port == null) {
-      return null;
-    }
-    return new InetSocketAddress(host, port);
   }
 }

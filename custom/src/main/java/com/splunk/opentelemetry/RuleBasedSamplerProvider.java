@@ -24,7 +24,6 @@ import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.trace.SpanKind;
 import io.opentelemetry.contrib.sampler.RuleBasedRoutingSampler;
 import io.opentelemetry.contrib.sampler.RuleBasedRoutingSamplerBuilder;
-import io.opentelemetry.instrumentation.api.internal.SemconvStability;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import io.opentelemetry.sdk.autoconfigure.spi.traces.ConfigurableSamplerProvider;
 import io.opentelemetry.sdk.trace.samplers.Sampler;
@@ -52,11 +51,8 @@ public class RuleBasedSamplerProvider implements ConfigurableSamplerProvider {
     return builder.build();
   }
 
-  @SuppressWarnings("deprecation") // old semconv still used
   private AttributeKey<String> getHttpPathAttribute() {
-    return SemconvStability.emitOldHttpSemconv()
-        ? SemanticAttributes.HTTP_TARGET
-        : SemanticAttributes.URL_PATH;
+    return SemanticAttributes.URL_PATH;
   }
 
   @Override

@@ -66,7 +66,7 @@ fun createDockerTasks(targets: List<AppServerTarget>) {
 }
 
 fun configureImage(server: String, version: String, vm: String, jdk: String, extraArgs: Map<String, String>) {
-  val dockerWorkingDir = File(project.buildDir, "docker")
+  val dockerWorkingDir = File(layout.buildDirectory.get().asFile, "docker")
   val dockerFileName = "$server.dockerfile"
 
   val prepareTask = tasks.register("${server}ImagePrepare-$version-jdk$jdk-$vm", Copy::class) {

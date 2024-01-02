@@ -189,12 +189,12 @@ _2024-01-02 13:21:36 EET_
 > - **POM Project URL**: [https://github.com/lz4/lz4-java](https://github.com/lz4/lz4-java)
 > - **POM License**: Apache License, Version 2.0 - [https://www.apache.org/licenses/LICENSE-2.0](https://www.apache.org/licenses/LICENSE-2.0)
 
-**41** **Group:** `org.slf4j` **Name:** `jcl-over-slf4j` **Version:** `2.0.9` 
+**41** **Group:** `org.slf4j` **Name:** `jcl-over-slf4j` **Version:** `2.0.10` 
 > - **Project URL**: [http://www.slf4j.org](http://www.slf4j.org)
 > - **Manifest License**: Apache License, Version 2.0 (Not Packaged)
 > - **POM License**: Apache License, Version 2.0 - [https://www.apache.org/licenses/LICENSE-2.0](https://www.apache.org/licenses/LICENSE-2.0)
 > - **POM License**: MIT License - [https://opensource.org/licenses/MIT](https://opensource.org/licenses/MIT)
-> - **Embedded license files**: [jcl-over-slf4j-2.0.9.jar/META-INF/LICENSE.txt](jcl-over-slf4j-2.0.9.jar/META-INF/LICENSE.txt)
+> - **Embedded license files**: [jcl-over-slf4j-2.0.10.jar/META-INF/LICENSE.txt](jcl-over-slf4j-2.0.10.jar/META-INF/LICENSE.txt)
 
 ## Creative Commons Legal Code
 
@@ -212,17 +212,17 @@ _2024-01-02 13:21:36 EET_
 
 ## MIT License
 
-**44** **Group:** `org.slf4j` **Name:** `jcl-over-slf4j` **Version:** `2.0.9` 
+**44** **Group:** `org.slf4j` **Name:** `jcl-over-slf4j` **Version:** `2.0.10` 
 > - **Project URL**: [http://www.slf4j.org](http://www.slf4j.org)
 > - **Manifest License**: Apache License, Version 2.0 (Not Packaged)
 > - **POM License**: Apache License, Version 2.0 - [https://www.apache.org/licenses/LICENSE-2.0](https://www.apache.org/licenses/LICENSE-2.0)
 > - **POM License**: MIT License - [https://opensource.org/licenses/MIT](https://opensource.org/licenses/MIT)
-> - **Embedded license files**: [jcl-over-slf4j-2.0.9.jar/META-INF/LICENSE.txt](jcl-over-slf4j-2.0.9.jar/META-INF/LICENSE.txt)
+> - **Embedded license files**: [jcl-over-slf4j-2.0.10.jar/META-INF/LICENSE.txt](jcl-over-slf4j-2.0.10.jar/META-INF/LICENSE.txt)
 
-**45** **Group:** `org.slf4j` **Name:** `slf4j-api` **Version:** `2.0.9` 
+**45** **Group:** `org.slf4j` **Name:** `slf4j-api` **Version:** `2.0.10` 
 > - **Project URL**: [http://www.slf4j.org](http://www.slf4j.org)
 > - **POM License**: MIT License - [https://opensource.org/licenses/MIT](https://opensource.org/licenses/MIT)
-> - **Embedded license files**: [slf4j-api-2.0.9.jar/META-INF/LICENSE.txt](slf4j-api-2.0.9.jar/META-INF/LICENSE.txt)
+> - **Embedded license files**: [slf4j-api-2.0.10.jar/META-INF/LICENSE.txt](slf4j-api-2.0.10.jar/META-INF/LICENSE.txt)
 
 ## PUBLIC DOMAIN
 

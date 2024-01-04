@@ -34,7 +34,7 @@ public class MetadataGenerator {
   private static String getRequiredSystemProperty(String name) {
     String value = System.getProperty(name);
     if (value == null) {
-       throw new IllegalStateException("System property '" + name + "' must be set");
+      throw new IllegalStateException("System property '" + name + "' must be set");
     }
     return value;
   }
@@ -57,9 +57,14 @@ public class MetadataGenerator {
     String outputPath = getRequiredSystemProperty("outputPath");
 
     System.err.println("splunkAgentVersion " + splunkJavaVersion);
-    System.err.println("otelInstrumentationVersion " + otelJavaInstrumentationVersion + "/" + otelJavaInstrumentationAlphaVersion);
+    System.err.println(
+        "otelInstrumentationVersion "
+            + otelJavaInstrumentationVersion
+            + "/"
+            + otelJavaInstrumentationAlphaVersion);
     System.err.println("otelVersion " + otelJavaVersion + "/" + otelJavaAlphaVersion);
-    System.err.println("otelContribVersion " + otelJavaContribVersion + "/" + otelJavaContribAlphaVersion);
+    System.err.println(
+        "otelContribVersion " + otelJavaContribVersion + "/" + otelJavaContribAlphaVersion);
     System.err.println("outputPath " + outputPath);
 
     Map<String, Object> root = new LinkedHashMap<>();

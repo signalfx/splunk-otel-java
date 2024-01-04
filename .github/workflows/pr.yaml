@@ -217,7 +217,8 @@ jobs:
       - name: Generate metadata
         run: ./gradlew :metadata-generator:generateMetadata --no-daemon
 
-      - name: Upload agent jar
+      - name: Upload metadata yaml
         uses: actions/upload-artifact@v4.0.0
         with:
+          name: splunk-otel-java-metadata.yaml
           path: metadata-generator/build/splunk-otel-java-metadata.yaml

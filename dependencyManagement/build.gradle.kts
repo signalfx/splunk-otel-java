@@ -18,6 +18,8 @@ val slf4jVersion = "2.0.10"
 
 // instrumentation version is used to compute Implementation-Version manifest attribute
 rootProject.extra["otelInstrumentationVersion"] = otelInstrumentationVersion
+rootProject.extra["otelVersion"] = otelVersion
+rootProject.extra["otelContribVersion"] = otelContribAlphaVersion.replace("-alpha", "")
 rootProject.extra["micrometerOldVersion"] = micrometerOldVersion
 rootProject.extra["protobufVersion"] = protobufVersion
 

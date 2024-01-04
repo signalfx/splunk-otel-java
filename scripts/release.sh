@@ -47,8 +47,6 @@ build_project() {
   ./gradlew assemble publishToSonatype closeAndReleaseSonatypeStagingRepository --no-daemon --stacktrace
   mv "agent/build/libs/splunk-otel-javaagent-${release_version}.jar" dist/splunk-otel-javaagent.jar
   mv "agent/build/libs/splunk-otel-javaagent-${release_version}.jar.asc" dist/splunk-otel-javaagent.jar.asc
-  mv "agent/build/libs/splunk-otel-javaagent-${release_version}-all.jar" dist/splunk-otel-javaagent-all.jar
-  mv "agent/build/libs/splunk-otel-javaagent-${release_version}-all.jar.asc" dist/splunk-otel-javaagent-all.jar.asc
 
   echo ">>> Building the cloudfoundry buildpack ..."
   ./deployments/cloudfoundry/buildpack/build.sh

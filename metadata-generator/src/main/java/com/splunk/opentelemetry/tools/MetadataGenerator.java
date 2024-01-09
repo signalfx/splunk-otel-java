@@ -3238,13 +3238,13 @@ public class MetadataGenerator {
   }
 
   private static Map<String, Object> setting(
-      String name,
+      String env,
       String description,
       String defaultValue,
       SettingType type,
       SettingCategory category) {
     Map<String, Object> map = new LinkedHashMap<>();
-    map.put("name", name);
+    map.put("env", env);
     map.put("description", description);
     map.put("default", defaultValue);
     map.put("type", type.value());

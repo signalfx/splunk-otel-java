@@ -283,7 +283,7 @@ public abstract class ProfilerSmokeTest {
                 "-Dsplunk.profiler.call.stack.interval=1001",
                 "-Dsplunk.profiler.logs-endpoint=http://collector:4317",
                 // uncomment to enable exporting traces
-                // "-Dotel.exporter.otlp.endpoint=http://collector:4317",
+                // "-Dotel.exporter.otlp.endpoint=http://collector:4318",
                 "-jar",
                 "/app/spring-petclinic-rest.jar"));
 

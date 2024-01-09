@@ -2,7 +2,7 @@ plugins {
   `java-platform`
 }
 
-val otelVersion = "1.33.0"
+val otelVersion = "1.34.0"
 val otelAlphaVersion = otelVersion.replaceFirst("(-SNAPSHOT)?$".toRegex(), "-alpha$1")
 val otelInstrumentationVersion = "1.33.0-SNAPSHOT"
 val otelInstrumentationAlphaVersion =  otelInstrumentationVersion.replaceFirst("(-SNAPSHOT)?$".toRegex(), "-alpha$1")
@@ -43,7 +43,7 @@ dependencies {
 
   constraints {
     api("com.google.auto.service:auto-service:1.1.1")
-    api("org.assertj:assertj-core:3.25.0")
+    api("org.assertj:assertj-core:3.25.1")
     api("org.awaitility:awaitility:4.2.0")
     api("com.signalfx.public:signalfx-metrics:1.0.38")
 

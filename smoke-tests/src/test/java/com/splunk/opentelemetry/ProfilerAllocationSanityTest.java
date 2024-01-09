@@ -72,7 +72,7 @@ abstract class ProfilerAllocationSanityTest extends SmokeTest {
             .withEnv("SPLUNK_PROFILER_TLAB_ENABLED", "true")
             .withEnv("SPLUNK_PROFILER_CALL_STACK_INTERVAL", "1000")
             .withEnv("SPLUNK_PROFILER_LOGS_ENDPOINT", "http://collector:4317")
-            .withEnv("OTEL_EXPORTER_OTLP_ENDPOINT", "http://collector:4317")
+            .withEnv("OTEL_EXPORTER_OTLP_ENDPOINT", "http://collector:4318")
             .withCommand("/bin/sh", "-c", "/start.sh");
 
     // when

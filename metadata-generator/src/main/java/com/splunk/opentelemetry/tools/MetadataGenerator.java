@@ -1877,6 +1877,50 @@ public class MetadataGenerator {
             SettingType.BOOLEAN,
             SettingCategory.INSTRUMENTATION));
 
+    // https://github.com/open-telemetry/opentelemetry-java-instrumentation/tree/main/instrumentation/runtime-telemetry/README.md
+    /*
+    | `otel.instrumentation.runtime-telemetry.emit-experimental-telemetry`     | Boolean | `false` | Enable the capture of experimental metrics.                       |
+    | `otel.instrumentation.runtime-telemetry-java17.enable-all`               | Boolean | `false` | Enable the capture of all JFR based metrics.                      |
+    | `otel.instrumentation.runtime-telemetry-java17.enabled`                  | Boolean | `false` | Enable the capture of JFR based metrics.                          |
+    | `otel.instrumentation.runtime-telemetry.package-emitter.enabled`         | Boolean | `false` | Enable creating events for JAR libraries used by the application. |
+    | `otel.instrumentation.runtime-telemetry.package-emitter.jars-per-second` | Integer | 10      | The number of JAR files processed per second.                     |
+     */
+    settings.add(
+        setting(
+            toEnvVar("otel.instrumentation.runtime-telemetry.emit-experimental-telemetry"),
+            "Enable the capture of experimental metrics.",
+            "false",
+            SettingType.BOOLEAN,
+            SettingCategory.INSTRUMENTATION));
+    settings.add(
+        setting(
+            toEnvVar("otel.instrumentation.runtime-telemetry-java17.enable-all"),
+            "Enable the capture of all JFR based metrics.",
+            "false",
+            SettingType.BOOLEAN,
+            SettingCategory.INSTRUMENTATION));
+    settings.add(
+        setting(
+            toEnvVar("otel.instrumentation.runtime-telemetry-java17.enabled"),
+            "Enable the capture of JFR based metrics.",
+            "false",
+            SettingType.BOOLEAN,
+            SettingCategory.INSTRUMENTATION));
+    settings.add(
+        setting(
+            toEnvVar("otel.instrumentation.runtime-telemetry.package-emitter.enabled"),
+            "Enable creating events for JAR libraries used by the application.",
+            "false",
+            SettingType.BOOLEAN,
+            SettingCategory.INSTRUMENTATION));
+    settings.add(
+        setting(
+            toEnvVar("otel.instrumentation.runtime-telemetry.package-emitter.jars-per-second"),
+            "The number of JAR files processed per second.",
+            "10",
+            SettingType.INT,
+            SettingCategory.INSTRUMENTATION));
+
     // https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/instrumentation/rxjava/README.md
     /*
     | `otel.instrumentation.rxjava.experimental-span-attributes` | Boolean | `false` | Enable the capture of experimental span attributes for RxJava 2 and 3 instrumentation. |
@@ -2874,7 +2918,79 @@ public class MetadataGenerator {
     instrumentations.add(
         instrumentation("java-util-logging").component("java.util.logging", null).build());
     instrumentations.add(
-        instrumentation("runtime-telemetry").component("Java Platform", null).build());
+        instrumentation("runtime-telemetry")
+            .component("Java Platform", null)
+            .metric(
+                "jvm.class.loaded",
+                MetricInstrument.COUNTER,
+                "Number of classes loaded since JVM start.")
+            .metric(
+                "jvm.class.unloaded",
+                MetricInstrument.COUNTER,
+                "Number of classes unloaded since JVM start.")
+            .metric(
+                "jvm.class.count",
+                MetricInstrument.UP_DOWN_COUNTER,
+                "Number of classes currently loaded.")
+            .metric(
+                "jvm.cpu.time",
+                MetricInstrument.COUNTER,
+                "CPU time used by the process as reported by the JVM.")
+            .metric(
+                "jvm.cpu.count",
+                MetricInstrument.UP_DOWN_COUNTER,
+                "Number of processors available to the Java virtual machine.")
+            .metric(
+                "jvm.cpu.recent_utilization",
+                MetricInstrument.GAUGE,
+                "Recent CPU utilization for the process as reported by the JVM.")
+            .metric(
+                "jvm.gc.duration",
+                MetricInstrument.HISTOGRAM,
+                "Duration of JVM garbage collection actions.")
+            .metric("jvm.memory.used", MetricInstrument.UP_DOWN_COUNTER, "Measure of memory used.")
+            .metric(
+                "jvm.memory.committed",
+                MetricInstrument.UP_DOWN_COUNTER,
+                "Measure of memory committed.")
+            .metric(
+                "jvm.memory.limit",
+                MetricInstrument.UP_DOWN_COUNTER,
+                "Measure of max obtainable memory.")
+            .metric(
+                "jvm.memory.used_after_last_gc",
+                MetricInstrument.UP_DOWN_COUNTER,
+                "Measure of memory used, as measured after the most recent garbage collection event on this pool.")
+            .metric(
+                "jvm.thread.count",
+                MetricInstrument.UP_DOWN_COUNTER,
+                "Number of executing platform threads (disabled by default).")
+            .metric(
+                "jvm.buffer.memory.usage",
+                MetricInstrument.UP_DOWN_COUNTER,
+                "Measure of memory used by buffers (disabled by default).")
+            .metric(
+                "jvm.buffer.memory.limit",
+                MetricInstrument.UP_DOWN_COUNTER,
+                "Measure of total memory capacity of buffers (disabled by default).")
+            .metric(
+                "jvm.buffer.count",
+                MetricInstrument.UP_DOWN_COUNTER,
+                "Number of buffers in the pool (disabled by default).")
+            .metric(
+                "jvm.system.cpu.load_1m",
+                MetricInstrument.GAUGE,
+                "Average CPU load of the whole system for the last minute as reported by the JVM (disabled by default).")
+            .metric(
+                "jvm.system.cpu.utilization",
+                MetricInstrument.GAUGE,
+                "Recent CPU utilization for the whole system as reported by the JVM (disabled by default).")
+            .metric(
+                "jvm.memory.init",
+                MetricInstrument.UP_DOWN_COUNTER,
+                "Measure of initial memory requested (disabled by default).")
+            // XXX JFR metrics from runtime-telemetry-java17 are missing
+            .build());
     instrumentations.add(instrumentation("jaxrs").component("JAX-RS", "0.5 and higher").build());
     instrumentations.add(
         instrumentation("jaxrs-client")
@@ -3094,6 +3210,31 @@ public class MetadataGenerator {
     instrumentations.add(instrumentation("zio").component("ZIO", "2.0 and higher").build());
 
     // splunk instrumentations
+    instrumentations.add(
+        splunkInstrumentation("jvm-metrics.splunk")
+            .component("Java Platform", null)
+            .metric(
+                "process.runtime.jvm.memory.allocated",
+                MetricInstrument.COUNTER,
+                "Approximate sum of heap allocations.")
+            .metric(
+                "process.runtime.jvm.memory.reclaimed",
+                MetricInstrument.COUNTER,
+                "Sum of heap size differences before and after gc.")
+            .metric("runtime.jvm.gc.pause.count", MetricInstrument.COUNTER, "Number of gc pauses.")
+            .metric(
+                "runtime.jvm.gc.pause.totalTime",
+                MetricInstrument.COUNTER,
+                "Time spent in GC pause.")
+            .metric(
+                "runtime.jvm.gc.live.data.size",
+                MetricInstrument.GAUGE,
+                "Size of long-lived heap memory pool after reclamation.")
+            .metric(
+                "runtime.jvm.threads.states",
+                MetricInstrument.GAUGE,
+                "The current number of threads that are currently in state described by the state attribute.")
+            .build());
     instrumentations.add(
         splunkInstrumentation("khttp").component("khttp", "0.1 and higher").build());
     instrumentations.add(

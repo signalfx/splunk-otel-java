@@ -22,7 +22,7 @@ import java.util.Map;
 public abstract class AbstractTestContainerManager implements TestContainerManager {
   protected static final int BACKEND_PORT = 8080;
   protected static final int HEC_BACKEND_PORT = 1080;
-  protected static final int COLLECTOR_PORT = 4317;
+  protected static final int COLLECTOR_PORT = 4318;
 
   protected static final String BACKEND_ALIAS = "backend";
   protected static final String HEC_BACKEND_ALIAS = "hec-backend";

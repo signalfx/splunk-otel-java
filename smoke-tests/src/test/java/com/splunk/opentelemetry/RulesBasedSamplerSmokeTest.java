@@ -29,8 +29,12 @@ import org.junit.jupiter.api.Test;
 public class RulesBasedSamplerSmokeTest extends AppServerTest {
   protected Map<String, String> getExtraEnv() {
     return Map.of(
-        "OTEL_TRACES_SAMPLER", "rules",
-        "OTEL_TRACES_SAMPLER_ARG", "drop=/front;fallback=parentbased_always_on");
+        "OTEL_TRACES_SAMPLER",
+        "rules",
+        "OTEL_TRACES_SAMPLER_ARG",
+        "drop=/front;fallback=parentbased_always_on",
+        "OTEL_INSTRUMENTATION_COMMON_EXPERIMENTAL_CONTROLLER_TELEMETRY_ENABLED",
+        "true");
   }
 
   @Test

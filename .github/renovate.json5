@@ -10,6 +10,10 @@
       "groupName": "spotless packages"
     },
     {
+      "matchPackagePrefixes": ["org.ow2.asm:"],
+      "groupName": "asm packages"
+    },
+    {
       // pinned version for compatibility
       "matchFileNames": ["matrix/build.gradle.kts"],
       "matchPackageNames": ["javax.servlet:javax.servlet-api"],

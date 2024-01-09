@@ -14,7 +14,7 @@ val micrometerOldVersion = "1.3.20"
 val micrometerVersion = "1.12.1"
 val mockitoVersion = "5.8.0"
 val protobufVersion = "3.25.1"
-val slf4jVersion = "2.0.10"
+val slf4jVersion = "2.0.11"
 
 // instrumentation version is used to compute Implementation-Version manifest attribute
 rootProject.extra["otelInstrumentationVersion"] = otelInstrumentationVersion
@@ -31,7 +31,7 @@ javaPlatform {
 dependencies {
 
   // BOMs
-  api(enforcedPlatform("com.fasterxml.jackson:jackson-bom:2.16.0"))
+  api(enforcedPlatform("com.fasterxml.jackson:jackson-bom:2.16.1"))
   api(enforcedPlatform("com.google.protobuf:protobuf-bom:$protobufVersion"))
   api(enforcedPlatform("com.squareup.okhttp3:okhttp-bom:4.12.0"))
   api(enforcedPlatform("io.grpc:grpc-bom:1.60.1"))

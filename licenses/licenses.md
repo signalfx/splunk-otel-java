@@ -1,22 +1,22 @@
 
 # splunk-otel-javaagent
 ## Dependency License Report
-_2024-01-05 22:53:02 EET_
+_2024-01-09 09:51:45 EET_
 ## Apache License, Version 2.0
 
-**1** **Group:** `com.fasterxml.jackson.core` **Name:** `jackson-core` **Version:** `2.16.0` 
+**1** **Group:** `com.fasterxml.jackson.core` **Name:** `jackson-core` **Version:** `2.16.1` 
 > - **Project URL**: [https://github.com/FasterXML/jackson-core](https://github.com/FasterXML/jackson-core)
 > - **Manifest License**: Apache License, Version 2.0 (Not Packaged)
 > - **POM License**: Apache License, Version 2.0 - [https://www.apache.org/licenses/LICENSE-2.0](https://www.apache.org/licenses/LICENSE-2.0)
-> - **Embedded license files**: [jackson-core-2.16.0.jar/META-INF/LICENSE](jackson-core-2.16.0.jar/META-INF/LICENSE) 
-    - [jackson-core-2.16.0.jar/META-INF/NOTICE](jackson-core-2.16.0.jar/META-INF/NOTICE)
+> - **Embedded license files**: [jackson-core-2.16.1.jar/META-INF/LICENSE](jackson-core-2.16.1.jar/META-INF/LICENSE) 
+    - [jackson-core-2.16.1.jar/META-INF/NOTICE](jackson-core-2.16.1.jar/META-INF/NOTICE)
 
-**2** **Group:** `com.fasterxml.jackson.jr` **Name:** `jackson-jr-objects` **Version:** `2.16.0` 
+**2** **Group:** `com.fasterxml.jackson.jr` **Name:** `jackson-jr-objects` **Version:** `2.16.1` 
 > - **Project URL**: [https://github.com/FasterXML/jackson-jr](https://github.com/FasterXML/jackson-jr)
 > - **Manifest License**: Apache License, Version 2.0 (Not Packaged)
 > - **POM License**: Apache License, Version 2.0 - [https://www.apache.org/licenses/LICENSE-2.0](https://www.apache.org/licenses/LICENSE-2.0)
-> - **Embedded license files**: [jackson-jr-objects-2.16.0.jar/META-INF/LICENSE](jackson-jr-objects-2.16.0.jar/META-INF/LICENSE) 
-    - [jackson-jr-objects-2.16.0.jar/META-INF/NOTICE](jackson-jr-objects-2.16.0.jar/META-INF/NOTICE)
+> - **Embedded license files**: [jackson-jr-objects-2.16.1.jar/META-INF/LICENSE](jackson-jr-objects-2.16.1.jar/META-INF/LICENSE) 
+    - [jackson-jr-objects-2.16.1.jar/META-INF/NOTICE](jackson-jr-objects-2.16.1.jar/META-INF/NOTICE)
 
 **3** **Group:** `com.signalfx.public` **Name:** `signalfx-commons-protoc-java` **Version:** `1.0.38` 
 > - **POM Project URL**: [http://www.signalfx.com](http://www.signalfx.com)
@@ -189,12 +189,12 @@ _2024-01-05 22:53:02 EET_
 > - **POM Project URL**: [https://github.com/lz4/lz4-java](https://github.com/lz4/lz4-java)
 > - **POM License**: Apache License, Version 2.0 - [https://www.apache.org/licenses/LICENSE-2.0](https://www.apache.org/licenses/LICENSE-2.0)
 
-**41** **Group:** `org.slf4j` **Name:** `jcl-over-slf4j` **Version:** `2.0.10` 
+**41** **Group:** `org.slf4j` **Name:** `jcl-over-slf4j` **Version:** `2.0.11` 
 > - **Project URL**: [http://www.slf4j.org](http://www.slf4j.org)
 > - **Manifest License**: Apache License, Version 2.0 (Not Packaged)
 > - **POM License**: Apache License, Version 2.0 - [https://www.apache.org/licenses/LICENSE-2.0](https://www.apache.org/licenses/LICENSE-2.0)
 > - **POM License**: MIT License - [https://opensource.org/licenses/MIT](https://opensource.org/licenses/MIT)
-> - **Embedded license files**: [jcl-over-slf4j-2.0.10.jar/META-INF/LICENSE.txt](jcl-over-slf4j-2.0.10.jar/META-INF/LICENSE.txt)
+> - **Embedded license files**: [jcl-over-slf4j-2.0.11.jar/META-INF/LICENSE.txt](jcl-over-slf4j-2.0.11.jar/META-INF/LICENSE.txt)
 
 ## Creative Commons Legal Code
 
@@ -212,17 +212,17 @@ _2024-01-05 22:53:02 EET_
 
 ## MIT License
 
-**44** **Group:** `org.slf4j` **Name:** `jcl-over-slf4j` **Version:** `2.0.10` 
+**44** **Group:** `org.slf4j` **Name:** `jcl-over-slf4j` **Version:** `2.0.11` 
 > - **Project URL**: [http://www.slf4j.org](http://www.slf4j.org)
 > - **Manifest License**: Apache License, Version 2.0 (Not Packaged)
 > - **POM License**: Apache License, Version 2.0 - [https://www.apache.org/licenses/LICENSE-2.0](https://www.apache.org/licenses/LICENSE-2.0)
 > - **POM License**: MIT License - [https://opensource.org/licenses/MIT](https://opensource.org/licenses/MIT)
-> - **Embedded license files**: [jcl-over-slf4j-2.0.10.jar/META-INF/LICENSE.txt](jcl-over-slf4j-2.0.10.jar/META-INF/LICENSE.txt)
+> - **Embedded license files**: [jcl-over-slf4j-2.0.11.jar/META-INF/LICENSE.txt](jcl-over-slf4j-2.0.11.jar/META-INF/LICENSE.txt)
 
-**45** **Group:** `org.slf4j` **Name:** `slf4j-api` **Version:** `2.0.10` 
+**45** **Group:** `org.slf4j` **Name:** `slf4j-api` **Version:** `2.0.11` 
 > - **Project URL**: [http://www.slf4j.org](http://www.slf4j.org)
 > - **POM License**: MIT License - [https://opensource.org/licenses/MIT](https://opensource.org/licenses/MIT)
-> - **Embedded license files**: [slf4j-api-2.0.10.jar/META-INF/LICENSE.txt](slf4j-api-2.0.10.jar/META-INF/LICENSE.txt)
+> - **Embedded license files**: [slf4j-api-2.0.11.jar/META-INF/LICENSE.txt](slf4j-api-2.0.11.jar/META-INF/LICENSE.txt)
 
 ## PUBLIC DOMAIN
 

@@ -3217,6 +3217,9 @@ public class MetadataGenerator {
 
     DumperOptions options = new DumperOptions();
     options.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
+    options.setIndent(2);
+    options.setIndicatorIndent(2);
+    options.setIndentWithIndicator(true);
     Yaml yaml = new Yaml(options);
     try (Writer writer = new FileWriter(outputPath, StandardCharsets.UTF_8)) {
       yaml.dump(root, writer);

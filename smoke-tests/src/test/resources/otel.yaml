@@ -6,13 +6,10 @@ extensions:
     endpoint: 0.0.0.0:55679
 
 receivers:
-  jaeger:
-    protocols:
-      grpc:
-      thrift_http:
   otlp:
     protocols:
       grpc:
+      http:
   signalfx:
 
 processors:
@@ -38,7 +35,7 @@ exporters:
 service:
   pipelines:
     traces:
-      receivers: [ jaeger, otlp ]
+      receivers: [ otlp ]
       processors: [ batch ]
       exporters: [ logging/logging_debug, otlp ]
     metrics:

@@ -37,7 +37,11 @@ public class OtlpLogsSmokeTest extends SmokeTest {
 
   @Override
   protected Map<String, String> getExtraEnv() {
-    return Map.of("OTEL_LOGS_EXPORTER", "otlp");
+    return Map.of(
+        "OTEL_LOGS_EXPORTER",
+        "otlp",
+        "OTEL_INSTRUMENTATION_COMMON_EXPERIMENTAL_CONTROLLER_TELEMETRY_ENABLED",
+        "true");
   }
 
   @ParameterizedTest(name = "{index} => OTLP logs exporter test on JDK{0}.")

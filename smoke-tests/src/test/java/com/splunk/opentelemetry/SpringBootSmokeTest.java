@@ -42,7 +42,11 @@ public class SpringBootSmokeTest extends AppServerTest {
 
   @Override
   protected Map<String, String> getExtraEnv() {
-    return Map.of("SPRING_APPLICATION_NAME", "smoke-test-app");
+    return Map.of(
+        "SPRING_APPLICATION_NAME",
+        "smoke-test-app",
+        "OTEL_INSTRUMENTATION_COMMON_EXPERIMENTAL_CONTROLLER_TELEMETRY_ENABLED",
+        "true");
   }
 
   @Override

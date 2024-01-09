@@ -16,21 +16,58 @@
 
 package com.splunk.opentelemetry.instrumentation.weblogic.metrics;
 
-import io.opentelemetry.javaagent.bootstrap.internal.InstrumentationConfig;
+import static com.splunk.opentelemetry.javaagent.bootstrap.metrics.jmx.JmxAttributesHelper.getNumberAttribute;
+
+import com.splunk.opentelemetry.javaagent.bootstrap.jmx.JmxQuery;
+import com.splunk.opentelemetry.javaagent.bootstrap.metrics.jmx.JmxMetricsWatcher;
+import com.splunk.opentelemetry.javaagent.bootstrap.metrics.otel.ThreadPoolMetrics;
+import com.splunk.opentelemetry.javaagent.bootstrap.metrics.otel.jmx.OtelJmxMetricsWatcherFactory;
+import io.opentelemetry.api.GlobalOpenTelemetry;
+import io.opentelemetry.api.OpenTelemetry;
+import java.util.Arrays;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
+import javax.management.MBeanServer;
+import javax.management.ObjectName;
 
 public final class WebLogicThreadPoolMetrics {
-  private static final String metricsImplementation =
-      InstrumentationConfig.get().getString("splunk.metrics.implementation");
-  private static final boolean useOtelMetrics = "opentelemetry".equals(metricsImplementation);
-  private static final boolean useMicrometerMetrics = "micrometer".equals(metricsImplementation);
+  private static final String INSTRUMENTATION_NAME =
+      "com.splunk.javaagent.weblogic-thread-pool-metrics";
+
+  private static final AtomicBoolean initialized = new AtomicBoolean();
+  private static final JmxMetricsWatcher<AutoCloseable> jmxMetricsWatcher =
+      OtelJmxMetricsWatcherFactory.create(
+          JmxQuery.create("com.bea", "Name", "ThreadPoolRuntime"),
+          WebLogicThreadPoolMetrics::createMeters);
 
   public static void initialize() {
-    if (useOtelMetrics) {
-      WebLogicThreadPoolOtelMetrics.initialize();
+    if (initialized.compareAndSet(false, true)) {
+      jmxMetricsWatcher.start();
     }
-    if (useMicrometerMetrics) {
-      WebLogicThreadPoolMicrometerMetrics.initialize();
-    }
+  }
+
+  private static List<AutoCloseable> createMeters(MBeanServer mBeanServer, ObjectName objectName) {
+    OpenTelemetry openTelemetry = GlobalOpenTelemetry.get();
+    ThreadPoolMetrics metrics =
+        ThreadPoolMetrics.create(
+            openTelemetry, INSTRUMENTATION_NAME, "weblogic", objectName.toString());
+
+    return Arrays.asList(
+        metrics.currentThreads(
+            () ->
+                getNumberAttribute(objectName, "ExecuteThreadTotalCount")
+                    .applyAsDouble(mBeanServer)),
+        // WebLogic puts threads that are not needed to handle the present work load into a standby
+        // pool. Include these in idle thread count.
+        metrics.idleThreads(
+            () ->
+                getNumberAttribute(objectName, "ExecuteThreadIdleCount").applyAsDouble(mBeanServer)
+                    + getNumberAttribute(objectName, "StandbyThreadCount")
+                        .applyAsDouble(mBeanServer)),
+        metrics.tasksCompleted(
+            () ->
+                getNumberAttribute(objectName, "CompletedRequestCount")
+                    .applyAsDouble(mBeanServer)));
   }
 
   private WebLogicThreadPoolMetrics() {}

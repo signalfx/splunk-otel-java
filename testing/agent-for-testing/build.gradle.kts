@@ -25,7 +25,6 @@ dependencies {
   add("javaagentLibs", platform(project(":dependencyManagement")))
   add("upstreamAgent", platform(project(":dependencyManagement")))
 
-  // include micrometer-core API
   bootstrapLibs(project(":bootstrap"))
   javaagentLibs(project(":custom"))
   // include testing extensions, e.g. micrometer

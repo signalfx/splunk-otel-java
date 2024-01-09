@@ -16,7 +16,6 @@
 
 package com.splunk.opentelemetry;
 
-import static com.splunk.opentelemetry.SplunkConfiguration.METRICS_ENABLED_PROPERTY;
 import static com.splunk.opentelemetry.SplunkConfiguration.METRICS_FULL_COMMAND_LINE;
 
 import com.google.auto.service.AutoService;
@@ -56,9 +55,8 @@ public class TruncateCommandLineWhenMetricsEnabled implements AutoConfigurationC
 
     @Override
     public Resource apply(Resource existing, ConfigProperties config) {
-      boolean metricsEnabled = config.getBoolean(METRICS_ENABLED_PROPERTY, false);
       boolean forceFullCommandline = config.getBoolean(METRICS_FULL_COMMAND_LINE, false);
-      if (!metricsEnabled || forceFullCommandline) {
+      if (forceFullCommandline) {
         return existing;
       }
 
@@ -84,7 +82,7 @@ public class TruncateCommandLineWhenMetricsEnabled implements AutoConfigurationC
       }
 
       if (existing != resource) {
-        logger.warning(
+        logger.fine(
             "Metrics are enabled. Truncating process.command_line and process.command_args resource attributes.");
       }
       return resource;

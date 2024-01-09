@@ -46,6 +46,8 @@ public class SpringBootSmokeTest extends AppServerTest {
         "SPRING_APPLICATION_NAME",
         "smoke-test-app",
         "OTEL_INSTRUMENTATION_COMMON_EXPERIMENTAL_CONTROLLER_TELEMETRY_ENABLED",
+        "true",
+        "SPLUNK_METRICS_EXPERIMENTAL_ENABLED",
         "true");
   }
 
@@ -92,10 +94,10 @@ public class SpringBootSmokeTest extends AppServerTest {
 
   protected void assertMetrics(MetricsInspector metrics) {
     // verify that JVM metrics are exported
-    assertTrue(metrics.hasMetricsNamed("runtime.jvm.classes.loaded"));
-    assertTrue(metrics.hasMetricsNamed("runtime.jvm.gc.memory.allocated"));
-    assertTrue(metrics.hasMetricsNamed("runtime.jvm.memory.used"));
-    assertTrue(metrics.hasMetricsNamed("runtime.jvm.threads.peak"));
+    assertTrue(metrics.hasMetricsNamed("jvm.class.loaded"));
+    assertTrue(metrics.hasMetricsNamed("process.runtime.jvm.memory.allocated"));
+    assertTrue(metrics.hasMetricsNamed("jvm.memory.used"));
+    assertTrue(metrics.hasMetricsNamed("jvm.thread.count"));
   }
 
   @Test

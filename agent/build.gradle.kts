@@ -161,7 +161,6 @@ tasks {
         groupId = "com.splunk"
         version = project.version.toString()
 
-        artifact(shadowJar)
         artifact(mainShadowJar)
         artifact(t.named("sourcesJar"))
         artifact(t.named("javadocJar"))

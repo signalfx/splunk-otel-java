@@ -1600,8 +1600,7 @@ public class MetadataGenerator {
             SettingCategory.INSTRUMENTATION));
     settings.add(
         setting(
-            toEnvVar(
-                "otel.instrumentation.log4j-appender.experimental.capture-mdc-attributes"),
+            toEnvVar("otel.instrumentation.log4j-appender.experimental.capture-mdc-attributes"),
             "Comma separated list of context data attributes to capture. Use the wildcard character `*` to capture all attributes.",
             "",
             SettingType.STRING,

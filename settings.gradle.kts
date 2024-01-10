@@ -61,6 +61,7 @@ include(
     "instrumentation:weblogic",
     "instrumentation:websphere",
     "instrumentation:wildfly",
+    "metadata-generator",
     "matrix",
     "profiler",
     "smoke-tests",

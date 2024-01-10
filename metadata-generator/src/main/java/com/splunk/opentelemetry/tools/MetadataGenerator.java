@@ -3080,6 +3080,10 @@ public class MetadataGenerator {
             .component("Play WS", "1.0 and higher")
             .httpClientMetrics()
             .build());
+    instrumentations.add(
+        instrumentation("quarkus-resteasy-reactive")
+            .component("Quarkus Resteasy Reactive", "2.16.7 and higher")
+            .build());
     instrumentations.add(instrumentation("quartz").component("Quartz", "2.0 and higher").build());
     instrumentations.add(instrumentation("r2dbc").component("R2DBC", "1.0 and higher").build());
     instrumentations.add(

@@ -15,17 +15,6 @@ dependencies {
   implementation("io.opentelemetry.contrib:opentelemetry-samplers")
   implementation("io.opentelemetry.contrib:opentelemetry-resource-providers")
 
-  compileOnly("io.micrometer:micrometer-core")
-  implementation("io.micrometer:micrometer-registry-signalfx") {
-    // bootstrap already has micrometer-core
-    exclude("io.micrometer", "micrometer-core")
-    // we replace signalfx-java with signalfx-metrics
-    exclude("com.signalfx.public", "signalfx-java")
-  }
-  implementation("com.signalfx.public:signalfx-metrics") {
-    // we use jcl-over-slf4j
-    exclude("commons-logging", "commons-logging")
-  }
   implementation("org.slf4j:jcl-over-slf4j")
 
   testImplementation("io.opentelemetry:opentelemetry-sdk")
@@ -36,7 +25,7 @@ dependencies {
   testImplementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-api")
   testImplementation("io.opentelemetry.javaagent:opentelemetry-javaagent-extension-api")
   testImplementation("io.opentelemetry.javaagent:opentelemetry-javaagent-tooling")
-  testImplementation("io.micrometer:micrometer-core")
+  testImplementation("org.apache.commons:commons-lang3:3.14.0")
 
   testImplementation(project(":testing:common"))
 }

@@ -16,23 +16,13 @@
 
 package com.splunk.opentelemetry.instrumentation.jvmmetrics;
 
-import static com.splunk.opentelemetry.SplunkConfiguration.METRICS_ENABLED_PROPERTY;
-import static com.splunk.opentelemetry.SplunkConfiguration.METRICS_IMPLEMENTATION;
 import static com.splunk.opentelemetry.SplunkConfiguration.PROFILER_MEMORY_ENABLED_PROPERTY;
 import static io.opentelemetry.sdk.autoconfigure.AutoConfigureUtil.getConfig;
 
 import com.google.auto.service.AutoService;
-import com.splunk.opentelemetry.instrumentation.jvmmetrics.micrometer.MicrometerAllocatedMemoryMetrics;
-import com.splunk.opentelemetry.instrumentation.jvmmetrics.micrometer.MicrometerGcMemoryMetrics;
 import com.splunk.opentelemetry.instrumentation.jvmmetrics.otel.OtelAllocatedMemoryMetrics;
 import com.splunk.opentelemetry.instrumentation.jvmmetrics.otel.OtelGcMemoryMetrics;
 import com.splunk.opentelemetry.instrumentation.jvmmetrics.otel.OtelJvmThreadMetrics;
-import io.micrometer.core.instrument.Metrics;
-import io.micrometer.core.instrument.binder.jvm.ClassLoaderMetrics;
-import io.micrometer.core.instrument.binder.jvm.JvmGcMetrics;
-import io.micrometer.core.instrument.binder.jvm.JvmHeapPressureMetrics;
-import io.micrometer.core.instrument.binder.jvm.JvmMemoryMetrics;
-import io.micrometer.core.instrument.binder.jvm.JvmThreadMetrics;
 import io.opentelemetry.javaagent.extension.AgentListener;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
@@ -43,63 +33,36 @@ public class JvmMetricsInstaller implements AgentListener {
   @Override
   public void afterAgent(AutoConfiguredOpenTelemetrySdk autoConfiguredOpenTelemetrySdk) {
     ConfigProperties config = getConfig(autoConfiguredOpenTelemetrySdk);
-    boolean metricsEnabled = config.getBoolean(METRICS_ENABLED_PROPERTY, false);
-    if (!config.getBoolean("otel.instrumentation.jvm-metrics.splunk.enabled", metricsEnabled)) {
+    if (!config.getBoolean("otel.instrumentation.jvm-metrics.splunk.enabled", true)) {
       return;
     }
 
-    String metricsImplementation = config.getString(METRICS_IMPLEMENTATION);
+    // gc metrics were removed:
+    //   runtime.jvm.gc.concurrent.phase.time is replaced by OTel
+    //     process.runtime.jvm.gc.duration{gc=<concurrent gcs>}
+    //   runtime.jvm.gc.pause is replaced by OTel
+    //     process.runtime.jvm.gc.duration{gc!=<concurrent gcs>}
+    //   runtime.jvm.gc.max.data.size is replaced by OTel
+    //     process.runtime.jvm.memory.limit{pool=<long lived pools>}
+    //   runtime.jvm.gc.live.data.size is replaced by OTel
+    //     process.runtime.jvm.memory.usage_after_last_gc{pool=<long lived pools>}
+    //     (temporarily restored to ease migration)
+    //   runtime.jvm.gc.memory.allocated is replaced by memory profiling metric
+    //     process.runtime.jvm.memory.allocated
+    //   runtime.jvm.gc.memory.promoted is removed with no direct replacement
 
-    if (useMicrometerMetrics(metricsImplementation)) {
-      new ClassLoaderMetrics().bindTo(Metrics.globalRegistry);
-      new JvmGcMetrics().bindTo(Metrics.globalRegistry);
-      new JvmHeapPressureMetrics().bindTo(Metrics.globalRegistry);
-      new JvmMemoryMetrics().bindTo(Metrics.globalRegistry);
-      new JvmThreadMetrics().bindTo(Metrics.globalRegistry);
-    }
-    if (useOtelMetrics(metricsImplementation)) {
-      // gc metrics were removed:
-      //   runtime.jvm.gc.concurrent.phase.time is replaced by OTel
-      //     process.runtime.jvm.gc.duration{gc=<concurrent gcs>}
-      //   runtime.jvm.gc.pause is replaced by OTel
-      //     process.runtime.jvm.gc.duration{gc!=<concurrent gcs>}
-      //   runtime.jvm.gc.max.data.size is replaced by OTel
-      //     process.runtime.jvm.memory.limit{pool=<long lived pools>}
-      //   runtime.jvm.gc.live.data.size is replaced by OTel
-      //     process.runtime.jvm.memory.usage_after_last_gc{pool=<long lived pools>}
-      //     (temporarily restored to ease migration)
-      //   runtime.jvm.gc.memory.allocated is replaced by memory profiling metric
-      //     process.runtime.jvm.memory.allocated
-      //   runtime.jvm.gc.memory.promoted is removed with no direct replacement
-
-      // heap pressure metrics were removed:
-      //   runtime.jvm.memory.usage.after.gc is replaced by OTel
-      //     process.runtime.jvm.memory.usage_after_last_gc{pool=<long lived pools>,type=heap} /
-      //     process.runtime.jvm.memory.limit{pool=<long lived pools>,type=heap}
-      //   runtime.jvm.gc.overhead is something that should be done in a dashboard, not here
-
-      new OtelJvmThreadMetrics().install();
-    }
+    // heap pressure metrics were removed:
+    //   runtime.jvm.memory.usage.after.gc is replaced by OTel
+    //     process.runtime.jvm.memory.usage_after_last_gc{pool=<long lived pools>,type=heap} /
+    //     process.runtime.jvm.memory.limit{pool=<long lived pools>,type=heap}
+    //   runtime.jvm.gc.overhead is something that should be done in a dashboard, not here
+    new OtelJvmThreadMetrics().install();
 
     // Following metrics are experimental, we'll enable them only when memory profiling is enabled
     if (config.getBoolean(PROFILER_MEMORY_ENABLED_PROPERTY, false)
         || config.getBoolean("splunk.metrics.experimental.enabled", false)) {
-      if (useMicrometerMetrics(metricsImplementation)) {
-        new MicrometerAllocatedMemoryMetrics().bindTo(Metrics.globalRegistry);
-        new MicrometerGcMemoryMetrics().bindTo(Metrics.globalRegistry);
-      }
-      if (useOtelMetrics(metricsImplementation)) {
-        new OtelAllocatedMemoryMetrics().install();
-        new OtelGcMemoryMetrics().install();
-      }
+      new OtelAllocatedMemoryMetrics().install();
+      new OtelGcMemoryMetrics().install();
     }
-  }
-
-  private static boolean useMicrometerMetrics(String metricsImplementation) {
-    return "micrometer".equalsIgnoreCase(metricsImplementation);
-  }
-
-  private static boolean useOtelMetrics(String metricsImplementation) {
-    return "opentelemetry".equalsIgnoreCase(metricsImplementation);
   }
 }

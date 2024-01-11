@@ -16,7 +16,6 @@
 
 package com.splunk.opentelemetry;
 
-import static com.splunk.opentelemetry.SplunkConfiguration.METRICS_ENABLED_PROPERTY;
 import static com.splunk.opentelemetry.SplunkConfiguration.METRICS_FULL_COMMAND_LINE;
 import static io.opentelemetry.api.common.AttributeKey.stringKey;
 import static io.opentelemetry.semconv.ResourceAttributes.PROCESS_COMMAND_ARGS;
@@ -47,20 +46,8 @@ class TruncateCommandLineWhenMetricsEnabledTest {
   @Mock ConfigProperties config;
 
   @Test
-  void shouldNotApplyIfMetricsNotEnabled() {
-    var existing = makeBasicResource("blargus");
-
-    when(config.getBoolean(METRICS_ENABLED_PROPERTY, false)).thenReturn(false);
-
-    var testClass = new TruncateCommandLineWhenMetricsEnabled.CommandLineTruncator();
-    var result = testClass.apply(existing, config);
-    assertSame(existing, result);
-  }
-
-  @Test
   void shouldNotApplyIfNoCommandline() {
     var existing = makeBasicResource(null);
-    when(config.getBoolean(METRICS_ENABLED_PROPERTY, false)).thenReturn(true);
 
     var testClass = new TruncateCommandLineWhenMetricsEnabled.CommandLineTruncator();
 
@@ -73,8 +60,6 @@ class TruncateCommandLineWhenMetricsEnabledTest {
     var cmd = "c:\\java.exe runme.jar";
     var existing = makeBasicResource(cmd);
 
-    when(config.getBoolean(METRICS_ENABLED_PROPERTY, false)).thenReturn(true);
-
     var testClass = new TruncateCommandLineWhenMetricsEnabled.CommandLineTruncator();
     var result = testClass.apply(existing, config);
 
@@ -86,7 +71,6 @@ class TruncateCommandLineWhenMetricsEnabledTest {
   void shouldNotApplyIfConfigItemOverrides() {
     var existing = makeBasicResource("blargus");
 
-    when(config.getBoolean(METRICS_ENABLED_PROPERTY, false)).thenReturn(true);
     when(config.getBoolean(METRICS_FULL_COMMAND_LINE, false)).thenReturn(true);
 
     var testClass = new TruncateCommandLineWhenMetricsEnabled.CommandLineTruncator();
@@ -99,8 +83,6 @@ class TruncateCommandLineWhenMetricsEnabledTest {
   void truncatesWhenTooLong() {
     var cmd = "foo ".repeat(100).trim();
     var existing = makeBasicResource(cmd);
-
-    when(config.getBoolean(METRICS_ENABLED_PROPERTY, false)).thenReturn(true);
 
     var testClass = new TruncateCommandLineWhenMetricsEnabled.CommandLineTruncator();
     var result = testClass.apply(existing, config);
@@ -120,8 +102,6 @@ class TruncateCommandLineWhenMetricsEnabledTest {
     var testClass = new TruncateCommandLineWhenMetricsEnabled();
     var cmd = "foo ".repeat(100).trim();
     var existing = makeBasicResource(cmd);
-
-    when(config.getBoolean(METRICS_ENABLED_PROPERTY, false)).thenReturn(true);
 
     var autoConfig = mock(AutoConfigurationCustomizer.class);
 

@@ -19,7 +19,6 @@ dependencies {
   annotationProcessor("com.google.auto.service:auto-service")
   compileOnly("com.google.auto.service:auto-service")
   compileOnly(project(":bootstrap"))
-  compileOnly("io.micrometer:micrometer-core")
 
   // test
   testImplementation(project(":testing:common"))
@@ -61,8 +60,6 @@ tasks.withType<Test>().configureEach {
   // suppress repeated logging of "No metric data to export - skipping export."
   // since PeriodicMetricReader is configured with a short interval
   jvmArgs("-Dio.opentelemetry.javaagent.slf4j.simpleLogger.log.io.opentelemetry.sdk.metrics.export.PeriodicMetricReader=INFO")
-  // disable agent micrometer registry, when running tests we'll use the registry provided by TestMicrometerInstaller
-  jvmArgs("-Dsplunk.metrics.testing.micrometer.disabled=true")
 
   val trustStore = project(":testing:common").file("src/misc/testing-keystore.p12")
   inputs.file(trustStore)

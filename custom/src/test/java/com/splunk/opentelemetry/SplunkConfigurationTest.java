@@ -16,9 +16,6 @@
 
 package com.splunk.opentelemetry;
 
-import static com.splunk.opentelemetry.SplunkConfiguration.METRICS_ENABLED_PROPERTY;
-import static com.splunk.opentelemetry.SplunkConfiguration.METRICS_IMPLEMENTATION;
-import static com.splunk.opentelemetry.SplunkConfiguration.PROFILER_MEMORY_ENABLED_PROPERTY;
 import static com.splunk.opentelemetry.SplunkConfiguration.SPLUNK_REALM_NONE;
 import static io.opentelemetry.sdk.autoconfigure.AutoConfigureUtil.getConfig;
 import static java.util.Arrays.asList;
@@ -77,48 +74,6 @@ class SplunkConfigurationTest {
 
     assertThat(config.getString("otel.exporter.otlp.headers"))
         .isEqualTo("key=value,X-SF-TOKEN=token");
-  }
-
-  @Test
-  void memoryProfilerEnablesMetrics() {
-    ConfigProperties config = configuration(() -> Map.of(PROFILER_MEMORY_ENABLED_PROPERTY, "true"));
-
-    assertThat(config.getBoolean(METRICS_ENABLED_PROPERTY)).isTrue();
-  }
-
-  @Test
-  void shouldDisableMetricsByDefault() {
-    ConfigProperties config = configuration();
-
-    assertThat(config.getBoolean(METRICS_ENABLED_PROPERTY)).isFalse();
-    assertThat(config.getString("otel.metrics.exporter")).isEqualTo("none");
-
-    verifyThatOtelMetricsInstrumentationsAreDisabled(config);
-  }
-
-  @Test
-  void shouldChooseMicrometerAsTheDefaultMetricsImplementation() {
-    ConfigProperties config = configuration(() -> Map.of(METRICS_ENABLED_PROPERTY, "true"));
-
-    assertThat(config.getBoolean(METRICS_ENABLED_PROPERTY)).isTrue();
-    assertThat(config.getString(METRICS_IMPLEMENTATION)).isEqualTo("micrometer");
-    assertThat(config.getString("otel.metrics.exporter")).isEqualTo("none");
-
-    verifyThatOtelMetricsInstrumentationsAreDisabled(config);
-  }
-
-  @Test
-  void shouldDisableMicrometerMetricsIfOtelImplementationIsChosen() {
-    ConfigProperties config =
-        configuration(
-            () ->
-                Map.of(METRICS_ENABLED_PROPERTY, "true", METRICS_IMPLEMENTATION, "opentelemetry"));
-
-    assertThat(config.getBoolean(METRICS_ENABLED_PROPERTY)).isTrue();
-    assertThat(config.getString(METRICS_IMPLEMENTATION)).isEqualTo("opentelemetry");
-    assertThat(config.getString("otel.metrics.exporter")).isNotEqualTo("none");
-
-    verifyThatMicrometerInstrumentationsAreDisabled(config);
   }
 
   @Test

@@ -40,8 +40,7 @@ public class LibertySmokeTest extends AppServerTest {
   private static Stream<Arguments> supportedConfigurations() {
     return configurations("liberty")
         .otelLinux("20.0.0.12", LIBERTY20_SERVER_ATTRIBUTES, VMS_ALL, "8", "11", "16")
-        .otelLinux(
-            "21.0.0.10", LIBERTY21_SERVER_ATTRIBUTES, VMS_HOTSPOT, METRICS_ALL, "8", "11", "17")
+        .otelLinux("21.0.0.10", LIBERTY21_SERVER_ATTRIBUTES, VMS_HOTSPOT, "8", "11", "17")
         .otelLinux("21.0.0.10", LIBERTY21_SERVER_ATTRIBUTES, VMS_OPENJ9, "8", "11", "16")
         .otelWindows("20.0.0.12", LIBERTY20_SERVER_ATTRIBUTES, VMS_ALL, "8", "11", "16")
         .otelWindows("21.0.0.10", LIBERTY21_SERVER_ATTRIBUTES, VMS_HOTSPOT, "8", "11", "17")
@@ -73,36 +72,18 @@ public class LibertySmokeTest extends AppServerTest {
 
   @ParameterizedTest(name = "[{index}] {0}")
   @MethodSource("supportedConfigurations")
-  void libertySmokeTest(
-      TestImage image,
-      ExpectedServerAttributes expectedServerAttributes,
-      String metricsImplementation)
+  void libertySmokeTest(TestImage image, ExpectedServerAttributes expectedServerAttributes)
       throws IOException, InterruptedException {
-    startTargetOrSkipTest(image, metricsImplementation);
+    startTargetOrSkipTest(image);
 
     assertServerHandler(expectedServerAttributes);
     assertWebAppTrace(expectedServerAttributes);
-    assertMetrics(waitForMetrics(), metricsImplementation);
+    assertMetrics(waitForMetrics());
 
     stopTarget();
   }
 
-  private void assertMetrics(MetricsInspector metrics, String metricsImplementation) {
-    if ("micrometer".equals(metricsImplementation)) {
-      assertMicrometerMetrics(metrics);
-    } else if ("opentelemetry".equals(metricsImplementation)) {
-      assertOtelMetrics(metrics);
-    } else {
-      throw new IllegalStateException("invalid metrics implementation " + metricsImplementation);
-    }
-  }
-
-  private void assertMicrometerMetrics(MetricsInspector metrics) {
-    var expectedAttrs = Map.of("executor_type", "liberty");
-    assertMetrics(metrics, expectedAttrs);
-  }
-
-  private void assertOtelMetrics(MetricsInspector metrics) {
+  private void assertMetrics(MetricsInspector metrics) {
     var expectedAttrs = Map.of("executor.type", "liberty");
     assertMetrics(metrics, expectedAttrs);
   }

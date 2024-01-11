@@ -405,29 +405,29 @@ public class MetadataGenerator {
     settings.add(
         setting(
             "OTEL_EXPORTER_OTLP_PROTOCOL",
-            "The transport protocol to use on OTLP trace, metric, and log requests. Options include grpc and http/protobuf. Default is grpc.",
-            "grpc", // XXX may change
+            "The transport protocol to use on OTLP trace, metric, and log requests. Options include grpc and http/protobuf.",
+            "http/protobuf",
             SettingType.STRING,
             SettingCategory.EXPORTER));
     settings.add(
         setting(
             "OTEL_EXPORTER_OTLP_TRACES_PROTOCOL",
-            "The transport protocol to use on OTLP trace requests. Options include grpc and http/protobuf. Default is grpc.",
-            "grpc", // XXX may change
+            "The transport protocol to use on OTLP trace requests. Options include grpc and http/protobuf.",
+            "http/protobuf",
             SettingType.STRING,
             SettingCategory.EXPORTER));
     settings.add(
         setting(
             "OTEL_EXPORTER_OTLP_METRICS_PROTOCOL",
-            "The transport protocol to use on OTLP metric requests. Options include grpc and http/protobuf. Default is http/protobuf.",
+            "The transport protocol to use on OTLP metric requests. Options include grpc and http/protobuf.",
             "http/protobuf",
             SettingType.STRING,
             SettingCategory.EXPORTER));
     settings.add(
         setting(
             "OTEL_EXPORTER_OTLP_LOGS_PROTOCOL",
-            "The transport protocol to use on OTLP log requests. Options include grpc and http/protobuf. Default is grpc.",
-            "grpc", // XXX may change
+            "The transport protocol to use on OTLP log requests. Options include grpc and http/protobuf.",
+            "http/protobuf",
             SettingType.STRING,
             SettingCategory.EXPORTER));
 

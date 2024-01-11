@@ -95,10 +95,9 @@ public class Configuration implements AutoConfigurationCustomizerProvider {
           && config.getString(CONFIG_KEY_INGEST_URL) == null) {
         logger.log(
             WARNING,
-            "Profiling data can not be sent to {0}, using "
-                + getDefaultLogsEndpoint(config)
-                + " instead. You can override it by setting splunk.profiler.logs-endpoint",
-            new Object[] {ingestUrl});
+            "Profiling data can not be sent to {0}, using {1} instead. "
+                + "You can override it by setting splunk.profiler.logs-endpoint",
+            new Object[] {ingestUrl, getDefaultLogsEndpoint(config)});
         return null;
       }
       if ("http/protobuf".equals(getOtlpProtocol(config))) {

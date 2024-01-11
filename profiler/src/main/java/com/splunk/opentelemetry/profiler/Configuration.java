@@ -47,6 +47,7 @@ public class Configuration implements AutoConfigurationCustomizerProvider {
   public static final String CONFIG_KEY_RECORDING_DURATION = "splunk.profiler.recording.duration";
   public static final String CONFIG_KEY_KEEP_FILES = "splunk.profiler.keep-files";
   public static final String CONFIG_KEY_INGEST_URL = "splunk.profiler.logs-endpoint";
+  public static final String CONFIG_KEY_OTLP_PROTOCOL = "splunk.profiler.otlp.protocol";
   public static final String CONFIG_KEY_OTEL_OTLP_URL = "otel.exporter.otlp.endpoint";
   public static final String CONFIG_KEY_MEMORY_ENABLED = PROFILER_MEMORY_ENABLED_PROPERTY;
   public static final String CONFIG_KEY_MEMORY_EVENT_RATE_LIMIT_ENABLED =
@@ -82,23 +83,42 @@ public class Configuration implements AutoConfigurationCustomizerProvider {
     config.put(CONFIG_KEY_MEMORY_ENABLED, String.valueOf(DEFAULT_MEMORY_ENABLED));
     config.put(CONFIG_KEY_MEMORY_EVENT_RATE, DEFAULT_MEMORY_EVENT_RATE);
     config.put(CONFIG_KEY_CALL_STACK_INTERVAL, DEFAULT_CALL_STACK_INTERVAL.toMillis() + "ms");
+    config.put(CONFIG_KEY_OTLP_PROTOCOL, "http/protobuf");
     return config;
   }
 
   public static String getConfigUrl(ConfigProperties config) {
     String ingestUrl = config.getString(CONFIG_KEY_OTEL_OTLP_URL, null);
-    if (ingestUrl != null
-        && ingestUrl.startsWith("https://ingest.")
-        && ingestUrl.endsWith(".signalfx.com")
-        && config.getString(CONFIG_KEY_INGEST_URL) == null) {
-      logger.log(
-          WARNING,
-          "Profiling data can not be sent to {0}, using http://localhost:4317 instead. "
-              + "You can override it by setting splunk.profiler.logs-endpoint",
-          new Object[] {ingestUrl});
-      return null;
+    if (ingestUrl != null) {
+      if (ingestUrl.startsWith("https://ingest.")
+          && ingestUrl.endsWith(".signalfx.com")
+          && config.getString(CONFIG_KEY_INGEST_URL) == null) {
+        logger.log(
+            WARNING,
+            "Profiling data can not be sent to {0}, using "
+                + getDefaultLogsEndpoint(config)
+                + " instead. You can override it by setting splunk.profiler.logs-endpoint",
+            new Object[] {ingestUrl});
+        return null;
+      }
+      if ("http/protobuf".equals(getOtlpProtocol(config))) {
+        if (!ingestUrl.endsWith("/")) {
+          ingestUrl += "/";
+        }
+        ingestUrl += "v1/logs";
+      }
     }
     return config.getString(CONFIG_KEY_INGEST_URL, ingestUrl);
+  }
+
+  private static String getDefaultLogsEndpoint(ConfigProperties config) {
+    return "http/protobuf".equals(getOtlpProtocol(config))
+        ? "http://localhost:4318/v1/logs"
+        : "http://localhost:4317";
+  }
+
+  public static String getOtlpProtocol(ConfigProperties config) {
+    return config.getString(CONFIG_KEY_OTLP_PROTOCOL);
   }
 
   public static boolean getTLABEnabled(ConfigProperties config) {

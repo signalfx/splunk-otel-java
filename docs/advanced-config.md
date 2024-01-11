@@ -127,7 +127,7 @@ If `OTEL_TRACES_SAMPLER_ARG` is not provided or has en empty value, no `drop` ru
 | `splunk.profiler.memory.event.rate`       | 150/s                                                  | allocation event rate                                                                                                     |
 | `splunk.profiler.include.internal.stacks` | false                                                  | set to `true` to include stack traces of agent internal threads and stack traces with only JDK internal frames            |
 | `splunk.profiler.tracing.stacks.only`     | false                                                  | set to `true` to include only stack traces that are linked to a span context                                              |
-| `splunk.profiler.otlp.protocol`           | `http/protobuf`                                        | The transport protocol to use on profiling OTLP log requests. Options include grpc and http/protobuf.                     |
+| `splunk.profiler.otlp.protocol`           | `http/protobuf`                                        | The transport protocol to use on profiling OTLP log requests. Options include `grpc` and `http/protobuf`.                 |
 
 If the `splunk.profiler.enabled` option is not enabled, all profiling features are disabled. For
 example, setting `splunk.profiler.memory.enabled` to `true` has no effect if

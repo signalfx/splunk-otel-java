@@ -1075,6 +1075,7 @@ public class MetadataGenerator {
 
     /*
     | otel.javaagent.exclude-classes | OTEL_JAVAAGENT_EXCLUDE_CLASSES | Suppresses all instrumentation for specific classes, format is "my.package.MyClass,my.package2.\*" |
+    | otel.javaagent.exclude-class-loaders | OTEL_JAVAAGENT_EXCLUDE_CLASS_LOADERS | Ignore the specified class loaders, format is "my.package.MyClass,my.package2." |
     | otel.javaagent.experimental.security-manager-support.enabled | OTEL_JAVAAGENT_EXPERIMENTAL_SECURITY_MANAGER_SUPPORT_ENABLED | Grant all privileges to agent code[1] |
 
     [1] Disclaimer: agent can provide application means for escaping security manager sandbox. Do not use
@@ -1085,6 +1086,13 @@ public class MetadataGenerator {
         setting(
             "OTEL_JAVAAGENT_EXCLUDE_CLASSES",
             "Suppresses all instrumentation for specific classes, format is \"my.package.MyClass,my.package2.*\".",
+            "",
+            SettingType.STRING,
+            SettingCategory.GENERAL));
+    settings.add(
+        setting(
+            "OTEL_JAVAAGENT_EXCLUDE_CLASS_LOADERS",
+            "Ignore the specified class loaders, format is \"my.package.MyClass,my.package2.\".",
             "",
             SettingType.STRING,
             SettingCategory.GENERAL));

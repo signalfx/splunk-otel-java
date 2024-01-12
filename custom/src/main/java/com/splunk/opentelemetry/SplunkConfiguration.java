@@ -16,15 +16,19 @@
 
 package com.splunk.opentelemetry;
 
+import static java.util.logging.Level.WARNING;
+
 import com.google.auto.service.AutoService;
 import io.opentelemetry.sdk.autoconfigure.spi.AutoConfigurationCustomizer;
 import io.opentelemetry.sdk.autoconfigure.spi.AutoConfigurationCustomizerProvider;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Logger;
 
 @AutoService(AutoConfigurationCustomizerProvider.class)
 public class SplunkConfiguration implements AutoConfigurationCustomizerProvider {
+  private static final Logger logger = Logger.getLogger(SplunkConfiguration.class.getName());
 
   public static final String SPLUNK_ACCESS_TOKEN = "splunk.access.token";
   public static final String PROFILER_ENABLED_PROPERTY = "splunk.profiler.enabled";
@@ -49,9 +53,6 @@ public class SplunkConfiguration implements AutoConfigurationCustomizerProvider 
     // truncate commandline when metrics enabled by default
     config.put(METRICS_FULL_COMMAND_LINE, "false");
 
-    // disable logs by default, we're not sending them yet
-    config.put("otel.logs.exporter", "none");
-
     // enable spring batch instrumentation
     config.put("otel.instrumentation.spring-batch.enabled", "true");
     config.put("otel.instrumentation.spring-batch.item.enabled", "true");
@@ -70,11 +71,24 @@ public class SplunkConfiguration implements AutoConfigurationCustomizerProvider 
           "otel.exporter.otlp.endpoint",
           "https://ingest." + realm + ".signalfx.com");
 
+      // metrics ingest doesn't currently accept grpc
+      addIfAbsent(customized, config, "otel.exporter.otlp.metrics.protocol", "http/protobuf");
       addIfAbsent(
           customized,
           config,
           "otel.exporter.otlp.metrics.endpoint",
           "https://ingest." + realm + ".signalfx.com/v2/datapoint/otlp");
+
+      if (config.getString("otel.exporter.otlp.logs.endpoint") == null) {
+        String logsEndpoint = getDefaultLogsEndpoint(config);
+        logger.log(
+            WARNING,
+            "Logs can not be sent to {0}, using {1} instead. "
+                + "You can override it by setting otel.exporter.otlp.logs.endpoint",
+            new Object[] {"https://ingest." + realm + ".signalfx.com", logsEndpoint});
+
+        addIfAbsent(customized, config, "otel.exporter.otlp.logs.endpoint", logsEndpoint);
+      }
     }
 
     String accessToken = config.getString(SPLUNK_ACCESS_TOKEN);
@@ -94,6 +108,17 @@ public class SplunkConfiguration implements AutoConfigurationCustomizerProvider 
     }
 
     return customized;
+  }
+
+  private static String getDefaultLogsEndpoint(ConfigProperties config) {
+    return "http/protobuf".equals(getOtlpLogsProtocol(config))
+        ? "http://localhost:4318/v1/logs"
+        : "http://localhost:4317";
+  }
+
+  public static String getOtlpLogsProtocol(ConfigProperties config) {
+    return config.getString(
+        "otel.exporter.otlp.logs.protocol", config.getString("otel.exporter.otlp.protocol"));
   }
 
   private static void addIfAbsent(

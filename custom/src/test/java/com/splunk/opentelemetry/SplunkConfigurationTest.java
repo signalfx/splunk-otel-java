@@ -77,8 +77,8 @@ class SplunkConfigurationTest {
   }
 
   @Test
-  void shouldDisableLogsByDefault() {
-    ConfigProperties config = configuration();
+  void shouldDisableLoggingInstrumentationsWhenExporterIsNone() {
+    ConfigProperties config = configuration(() -> Map.of("otel.logs.exporter", "none"));
 
     assertThat(config.getString("otel.logs.exporter")).isEqualTo("none");
     assertInstrumentationDisabled(config, "java-util-logging");

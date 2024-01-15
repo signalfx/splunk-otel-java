@@ -10,7 +10,7 @@
   <!-- used by com.splunk.opentelemetry.logger.LoggerTestMain -->
   <appender name="consoleWithResource" class="ch.qos.logback.core.ConsoleAppender">
     <encoder>
-      <pattern>%logger - service=%property{otel.resource.service.name}, env=%property{otel.resource.environment}: %m%n</pattern>
+      <pattern>%logger - service=%X{service.name}, env=%X{environment}: %m%n</pattern>
     </encoder>
   </appender>
 

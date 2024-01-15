@@ -17,6 +17,8 @@
 package com.splunk.opentelemetry.profiler;
 
 import com.google.common.annotations.VisibleForTesting;
+import io.opentelemetry.exporter.otlp.http.logs.OtlpHttpLogRecordExporter;
+import io.opentelemetry.exporter.otlp.http.logs.OtlpHttpLogRecordExporterBuilder;
 import io.opentelemetry.exporter.otlp.logs.OtlpGrpcLogRecordExporter;
 import io.opentelemetry.exporter.otlp.logs.OtlpGrpcLogRecordExporterBuilder;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
@@ -29,13 +31,30 @@ class LogExporterBuilder {
   static final String STACKTRACES_HEADER_VALUE = "otel-profiling-stacktraces";
 
   static LogRecordExporter fromConfig(ConfigProperties config) {
-    return fromConfig(config, OtlpGrpcLogRecordExporter::builder);
+    String protocol = Configuration.getOtlpProtocol(config);
+    if ("http/protobuf".equals(protocol)) {
+      return buildHttpExporter(config, OtlpHttpLogRecordExporter::builder);
+    } else if ("grpc".equals(protocol)) {
+      return buildGrpcExporter(config, OtlpGrpcLogRecordExporter::builder);
+    }
+    throw new IllegalStateException("Unsupported OTLP protocol: " + protocol);
   }
 
   @VisibleForTesting
-  static LogRecordExporter fromConfig(
+  static LogRecordExporter buildGrpcExporter(
       ConfigProperties config, Supplier<OtlpGrpcLogRecordExporterBuilder> makeBuilder) {
     OtlpGrpcLogRecordExporterBuilder builder = makeBuilder.get();
+    String ingestUrl = Configuration.getConfigUrl(config);
+    if (ingestUrl != null) {
+      builder.setEndpoint(ingestUrl);
+    }
+    return builder.addHeader(EXTRA_CONTENT_TYPE, STACKTRACES_HEADER_VALUE).build();
+  }
+
+  @VisibleForTesting
+  static LogRecordExporter buildHttpExporter(
+      ConfigProperties config, Supplier<OtlpHttpLogRecordExporterBuilder> makeBuilder) {
+    OtlpHttpLogRecordExporterBuilder builder = makeBuilder.get();
     String ingestUrl = Configuration.getConfigUrl(config);
     if (ingestUrl != null) {
       builder.setEndpoint(ingestUrl);

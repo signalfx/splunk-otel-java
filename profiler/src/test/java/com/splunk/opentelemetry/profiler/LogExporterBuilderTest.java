@@ -26,6 +26,8 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import io.opentelemetry.exporter.otlp.http.logs.OtlpHttpLogRecordExporter;
+import io.opentelemetry.exporter.otlp.http.logs.OtlpHttpLogRecordExporterBuilder;
 import io.opentelemetry.exporter.otlp.logs.OtlpGrpcLogRecordExporter;
 import io.opentelemetry.exporter.otlp.logs.OtlpGrpcLogRecordExporterBuilder;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
@@ -35,7 +37,7 @@ import org.junit.jupiter.api.Test;
 class LogExporterBuilderTest {
 
   @Test
-  void testBuildSimple() {
+  void testBuildSimpleGrpc() {
     ConfigProperties config = mock(ConfigProperties.class);
     OtlpGrpcLogRecordExporterBuilder builder = mock(OtlpGrpcLogRecordExporterBuilder.class);
     OtlpGrpcLogRecordExporter expected = mock(OtlpGrpcLogRecordExporter.class);
@@ -43,13 +45,27 @@ class LogExporterBuilderTest {
     when(builder.addHeader(EXTRA_CONTENT_TYPE, STACKTRACES_HEADER_VALUE)).thenReturn(builder);
     when(builder.build()).thenReturn(expected);
 
-    LogRecordExporter exporter = LogExporterBuilder.fromConfig(config, () -> builder);
+    LogRecordExporter exporter = LogExporterBuilder.buildGrpcExporter(config, () -> builder);
     assertSame(expected, exporter);
     verify(builder, never()).setEndpoint(anyString());
   }
 
   @Test
-  void testCustomEndpoint() {
+  void testBuildSimpleHttp() {
+    ConfigProperties config = mock(ConfigProperties.class);
+    OtlpHttpLogRecordExporterBuilder builder = mock(OtlpHttpLogRecordExporterBuilder.class);
+    OtlpHttpLogRecordExporter expected = mock(OtlpHttpLogRecordExporter.class);
+
+    when(builder.addHeader(EXTRA_CONTENT_TYPE, STACKTRACES_HEADER_VALUE)).thenReturn(builder);
+    when(builder.build()).thenReturn(expected);
+
+    LogRecordExporter exporter = LogExporterBuilder.buildHttpExporter(config, () -> builder);
+    assertSame(expected, exporter);
+    verify(builder, never()).setEndpoint(anyString());
+  }
+
+  @Test
+  void testCustomEndpointGrpc() {
     String endpoint = "http://example.com:9122/";
 
     ConfigProperties config = mock(ConfigProperties.class);
@@ -59,11 +75,35 @@ class LogExporterBuilderTest {
     when(builder.addHeader(EXTRA_CONTENT_TYPE, STACKTRACES_HEADER_VALUE)).thenReturn(builder);
     when(builder.build()).thenReturn(expected);
 
+    when(config.getString(Configuration.CONFIG_KEY_OTLP_PROTOCOL)).thenReturn("grpc");
     when(config.getString(Configuration.CONFIG_KEY_OTEL_OTLP_URL, null))
         .thenReturn("http://shadowed.example.com:9122/");
     when(config.getString(Configuration.CONFIG_KEY_INGEST_URL, "http://shadowed.example.com:9122/"))
         .thenReturn(endpoint);
-    LogRecordExporter exporter = LogExporterBuilder.fromConfig(config, () -> builder);
+    LogRecordExporter exporter = LogExporterBuilder.buildGrpcExporter(config, () -> builder);
+
+    assertNotNull(exporter);
+    verify(builder).setEndpoint(endpoint);
+  }
+
+  @Test
+  void testCustomEndpointHttp() {
+    String endpoint = "http://example.com:9122/";
+
+    ConfigProperties config = mock(ConfigProperties.class);
+    OtlpHttpLogRecordExporterBuilder builder = mock(OtlpHttpLogRecordExporterBuilder.class);
+    OtlpHttpLogRecordExporter expected = mock(OtlpHttpLogRecordExporter.class);
+
+    when(builder.addHeader(EXTRA_CONTENT_TYPE, STACKTRACES_HEADER_VALUE)).thenReturn(builder);
+    when(builder.build()).thenReturn(expected);
+
+    when(config.getString(Configuration.CONFIG_KEY_OTLP_PROTOCOL)).thenReturn("http/protobuf");
+    when(config.getString(Configuration.CONFIG_KEY_OTEL_OTLP_URL, null))
+        .thenReturn("http://shadowed.example.com:9122/");
+    when(config.getString(
+            Configuration.CONFIG_KEY_INGEST_URL, "http://shadowed.example.com:9122/v1/logs"))
+        .thenReturn(endpoint);
+    LogRecordExporter exporter = LogExporterBuilder.buildHttpExporter(config, () -> builder);
 
     assertNotNull(exporter);
     verify(builder).setEndpoint(endpoint);

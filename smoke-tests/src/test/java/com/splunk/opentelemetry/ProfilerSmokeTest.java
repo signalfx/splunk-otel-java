@@ -281,7 +281,7 @@ public abstract class ProfilerSmokeTest {
                 "-Dsplunk.profiler.directory=/app/jfr",
                 "-Dsplunk.profiler.keep-files=true",
                 "-Dsplunk.profiler.call.stack.interval=1001",
-                "-Dsplunk.profiler.logs-endpoint=http://collector:4317",
+                "-Dsplunk.profiler.logs-endpoint=http://collector:4318/v1/logs",
                 // uncomment to enable exporting traces
                 // "-Dotel.exporter.otlp.endpoint=http://collector:4318",
                 "-jar",

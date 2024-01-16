@@ -57,7 +57,6 @@ public class Configuration implements AutoConfigurationCustomizerProvider {
   public static final String CONFIG_KEY_MEMORY_EVENT_RATE = "splunk.profiler.memory.event.rate";
   public static final String CONFIG_KEY_MEMORY_NATIVE_SAMPLING =
       "splunk.profiler.memory.native.sampling";
-  public static final String CONFIG_KEY_TLAB_ENABLED = "splunk.profiler.tlab.enabled";
   public static final String CONFIG_KEY_CALL_STACK_INTERVAL = "splunk.profiler.call.stack.interval";
   public static final String CONFIG_KEY_INCLUDE_AGENT_INTERNALS =
       "splunk.profiler.include.agent.internals";
@@ -120,9 +119,8 @@ public class Configuration implements AutoConfigurationCustomizerProvider {
     return config.getString(CONFIG_KEY_OTLP_PROTOCOL);
   }
 
-  public static boolean getTLABEnabled(ConfigProperties config) {
-    boolean memoryEnabled = config.getBoolean(CONFIG_KEY_MEMORY_ENABLED, DEFAULT_MEMORY_ENABLED);
-    return config.getBoolean(CONFIG_KEY_TLAB_ENABLED, memoryEnabled);
+  public static boolean getMemoryEnabled(ConfigProperties config) {
+    return config.getBoolean(CONFIG_KEY_MEMORY_ENABLED, DEFAULT_MEMORY_ENABLED);
   }
 
   public static boolean getMemoryEventRateLimitEnabled(ConfigProperties config) {

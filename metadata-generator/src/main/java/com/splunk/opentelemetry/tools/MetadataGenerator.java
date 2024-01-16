@@ -1222,7 +1222,6 @@ public class MetadataGenerator {
     | `splunk.profiler.logs-endpoint`                   | `otel.exporter.otlp.endpoint` or http://localhost:4317 | where to send OTLP logs                                                                                                   |
     | `splunk.profiler.call.stack.interval`             | 10000ms                                                | how often to sample call stacks                                                                                           |
     | `splunk.profiler.memory.enabled`                  | false                                                  | set to `true` to enable all other memory profiling options unless explicitly disabled. Setting to `true` enables metrics. |
-    | `splunk.profiler.tlab.enabled`                    | `splunk.profiler.memory.enabled`                       | set to `true` to enable TLAB events even if `splunk.profiler.memory.enabled` is `false`                                   |
     | `splunk.profiler.memory.event.rate`               | 150/s                                                  | allocation event rate                                                                                                     |
     | `splunk.profiler.include.internal.stacks`         | false                                                  | set to `true` to include stack traces of agent internal threads and stack traces with only JDK internal frames            |
     | `splunk.profiler.tracing.stacks.only`             | false                                                  | set to `true` to include only stack traces that are linked to a span context                                              |
@@ -1275,14 +1274,6 @@ public class MetadataGenerator {
         setting(
             "SPLUNK_PROFILER_MEMORY_ENABLED",
             "Enables allocation profiler.",
-            "false",
-            SettingType.BOOLEAN,
-            SettingCategory.PROFILER));
-    // XXX remove?
-    settings.add(
-        setting(
-            "SPLUNK_PROFILER_TLAB_ENABLED",
-            "Alas for SPLUNK_PROFILER_MEMORY_ENABLED.",
             "false",
             SettingType.BOOLEAN,
             SettingCategory.PROFILER));

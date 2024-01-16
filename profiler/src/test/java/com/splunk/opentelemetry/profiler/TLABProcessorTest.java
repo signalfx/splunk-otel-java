@@ -16,7 +16,7 @@
 
 package com.splunk.opentelemetry.profiler;
 
-import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_TLAB_ENABLED;
+import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_MEMORY_ENABLED;
 import static com.splunk.opentelemetry.profiler.Configuration.DEFAULT_MEMORY_ENABLED;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -66,7 +66,7 @@ class TLABProcessorTest {
     when(eventReader.getStackTrace(event)).thenReturn(null); // just to be explicit
 
     ConfigProperties config = mock(ConfigProperties.class);
-    when(config.getBoolean(CONFIG_KEY_TLAB_ENABLED, DEFAULT_MEMORY_ENABLED)).thenReturn(true);
+    when(config.getBoolean(CONFIG_KEY_MEMORY_ENABLED, DEFAULT_MEMORY_ENABLED)).thenReturn(true);
 
     TLABProcessor processor = TLABProcessor.builder(config).eventReader(eventReader).build();
     processor.accept(event);
@@ -87,7 +87,7 @@ class TLABProcessorTest {
             });
 
     ConfigProperties config = mock(ConfigProperties.class);
-    when(config.getBoolean(CONFIG_KEY_TLAB_ENABLED, DEFAULT_MEMORY_ENABLED)).thenReturn(false);
+    when(config.getBoolean(CONFIG_KEY_MEMORY_ENABLED, DEFAULT_MEMORY_ENABLED)).thenReturn(false);
 
     TLABProcessor processor = TLABProcessor.builder(config).build();
     processor.accept(event);
@@ -101,7 +101,7 @@ class TLABProcessorTest {
     IItem event = createMockEvent(serializer, now);
 
     ConfigProperties config = mock(ConfigProperties.class);
-    when(config.getBoolean(CONFIG_KEY_TLAB_ENABLED, DEFAULT_MEMORY_ENABLED)).thenReturn(true);
+    when(config.getBoolean(CONFIG_KEY_MEMORY_ENABLED, DEFAULT_MEMORY_ENABLED)).thenReturn(true);
 
     SpanContext spanContext =
         SpanContext.create(
@@ -155,7 +155,7 @@ class TLABProcessorTest {
     when(spanContextualizer.link(anyLong())).thenReturn(SpanLinkage.NONE);
 
     ConfigProperties config = mock(ConfigProperties.class);
-    when(config.getBoolean(CONFIG_KEY_TLAB_ENABLED, DEFAULT_MEMORY_ENABLED)).thenReturn(true);
+    when(config.getBoolean(CONFIG_KEY_MEMORY_ENABLED, DEFAULT_MEMORY_ENABLED)).thenReturn(true);
 
     TestAllocationEventExporter allocationEventExporter = new TestAllocationEventExporter();
 

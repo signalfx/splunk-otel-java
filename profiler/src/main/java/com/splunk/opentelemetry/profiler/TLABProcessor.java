@@ -84,7 +84,7 @@ public class TLABProcessor {
   }
 
   static Builder builder(ConfigProperties config) {
-    boolean enabled = Configuration.getTLABEnabled(config);
+    boolean enabled = Configuration.getMemoryEnabled(config);
     Builder builder = new Builder(enabled);
     if (Configuration.getMemoryEventRateLimitEnabled(config)
         && !Configuration.getUseAllocationSampleEvent(config)) {

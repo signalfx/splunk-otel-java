@@ -25,7 +25,6 @@ import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_MEMORY_
 import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_OTEL_OTLP_URL;
 import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_PROFILER_DIRECTORY;
 import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_RECORDING_DURATION;
-import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_TLAB_ENABLED;
 import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_TRACING_STACKS_ONLY;
 import static com.splunk.opentelemetry.profiler.Configuration.DEFAULT_CALL_STACK_INTERVAL;
 import static com.splunk.opentelemetry.profiler.Configuration.DEFAULT_INCLUDE_INTERNAL_STACKS;
@@ -57,7 +56,6 @@ class ConfigurationLoggerTest {
     when(config.getString(CONFIG_KEY_INGEST_URL, "http://otel.example.com"))
         .thenReturn("http://example.com");
     when(config.getBoolean(CONFIG_KEY_MEMORY_ENABLED, DEFAULT_MEMORY_ENABLED)).thenReturn(false);
-    when(config.getBoolean(CONFIG_KEY_TLAB_ENABLED, false)).thenReturn(true);
     when(config.getDuration(CONFIG_KEY_CALL_STACK_INTERVAL, DEFAULT_CALL_STACK_INTERVAL))
         .thenReturn(Duration.ofSeconds(21));
     when(config.getBoolean(CONFIG_KEY_INCLUDE_INTERNAL_STACKS, DEFAULT_INCLUDE_INTERNAL_STACKS))
@@ -78,7 +76,6 @@ class ConfigurationLoggerTest {
     log.assertContains("          splunk.profiler.logs-endpoint : http://example.com");
     log.assertContains("            otel.exporter.otlp.endpoint : http://otel.example.com");
     log.assertContains("         splunk.profiler.memory.enabled : false");
-    log.assertContains("           splunk.profiler.tlab.enabled : true");
     log.assertContains("    splunk.profiler.call.stack.interval : PT21S");
     log.assertContains("splunk.profiler.include.internal.stacks : true");
     log.assertContains("    splunk.profiler.tracing.stacks.only : true");
@@ -92,7 +89,6 @@ class ConfigurationLoggerTest {
     when(config.getString(CONFIG_KEY_OTEL_OTLP_URL, null)).thenReturn(inheritedUrl);
     when(config.getString(CONFIG_KEY_INGEST_URL, inheritedUrl)).thenReturn(inheritedUrl);
     when(config.getBoolean(CONFIG_KEY_MEMORY_ENABLED, DEFAULT_MEMORY_ENABLED)).thenReturn(true);
-    when(config.getBoolean(CONFIG_KEY_TLAB_ENABLED, true)).thenReturn(false);
 
     ConfigurationLogger configurationLogger = new ConfigurationLogger();
 
@@ -101,6 +97,5 @@ class ConfigurationLoggerTest {
     log.assertContains("          splunk.profiler.logs-endpoint : http://otel.example.com");
     log.assertContains("            otel.exporter.otlp.endpoint : http://otel.example.com");
     log.assertContains("         splunk.profiler.memory.enabled : true");
-    log.assertContains("           splunk.profiler.tlab.enabled : false");
   }
 }

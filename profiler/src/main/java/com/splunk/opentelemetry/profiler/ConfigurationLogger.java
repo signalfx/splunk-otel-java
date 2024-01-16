@@ -26,10 +26,8 @@ import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_MEMORY_
 import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_OTEL_OTLP_URL;
 import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_PROFILER_DIRECTORY;
 import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_RECORDING_DURATION;
-import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_TLAB_ENABLED;
 import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_TRACING_STACKS_ONLY;
 import static com.splunk.opentelemetry.profiler.Configuration.DEFAULT_INCLUDE_INTERNAL_STACKS;
-import static com.splunk.opentelemetry.profiler.Configuration.DEFAULT_MEMORY_ENABLED;
 
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import java.util.function.Function;
@@ -49,8 +47,7 @@ public class ConfigurationLogger {
     log(CONFIG_KEY_KEEP_FILES, (it) -> config.getBoolean(it, false));
     log(CONFIG_KEY_INGEST_URL, (it) -> Configuration.getConfigUrl(config));
     log(CONFIG_KEY_OTEL_OTLP_URL, (it) -> config.getString(it, null));
-    log(CONFIG_KEY_MEMORY_ENABLED, (it) -> config.getBoolean(it, DEFAULT_MEMORY_ENABLED));
-    log(CONFIG_KEY_TLAB_ENABLED, (it) -> Configuration.getTLABEnabled(config));
+    log(CONFIG_KEY_MEMORY_ENABLED, (it) -> Configuration.getMemoryEnabled(config));
     if (Configuration.getMemoryEventRateLimitEnabled(config)) {
       log(CONFIG_KEY_MEMORY_EVENT_RATE, (it) -> Configuration.getMemoryEventRate(config));
     }

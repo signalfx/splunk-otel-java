@@ -19,37 +19,6 @@ dependencies {
   testImplementation("org.apache.tomcat.embed:tomcat-embed-core:9.0.40")
 }
 
-tasks {
-  val testMicrometerMetrics by registering(Test::class) {
-    filter {
-      includeTestsMatching("*TomcatMicrometerMetricsTest")
-    }
-    include("**/*TomcatMicrometerMetricsTest.*")
-    jvmArgs("-Dsplunk.metrics.implementation=micrometer")
-  }
-
-  val testOtelMetrics by registering(Test::class) {
-    filter {
-      includeTestsMatching("*TomcatOtelMetricsTest")
-    }
-    include("**/*TomcatOtelMetricsTest.*")
-    jvmArgs("-Dsplunk.metrics.implementation=opentelemetry")
-  }
-
-  test {
-    filter {
-      excludeTestsMatching("*TomcatMicrometerMetricsTest")
-      excludeTestsMatching("*TomcatOtelMetricsTest")
-      isFailOnNoMatchingTests = false
-    }
-  }
-
-  test {
-    dependsOn(testMicrometerMetrics)
-    dependsOn(testOtelMetrics)
-  }
-
-  withType<Test>().configureEach {
-    jvmArgs("-Dsplunk.metrics.enabled=true")
-  }
+tasks.withType<Test>().configureEach {
+  jvmArgs("-Dsplunk.metrics.enabled=true")
 }

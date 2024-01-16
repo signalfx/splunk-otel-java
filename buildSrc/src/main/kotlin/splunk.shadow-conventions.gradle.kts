@@ -34,13 +34,4 @@ tasks.withType<ShadowJar>().configureEach {
   // by the instrumentation modules that use them
   relocate("io.opentelemetry.extension.aws", "io.opentelemetry.javaagent.shaded.io.opentelemetry.extension.aws")
   relocate("io.opentelemetry.extension.kotlin", "io.opentelemetry.javaagent.shaded.io.opentelemetry.extension.kotlin")
-
-  // relocate Micrometer
-  relocate("io.micrometer", "com.splunk.javaagent.shaded.io.micrometer")
-  // micrometer dependencies
-  relocate("org.HdrHistogram", "com.splunk.javaagent.shaded.org.hdrhistogram")
-  relocate("org.LatencyUtils", "com.splunk.javaagent.shaded.org.latencyutils")
-
-  // relocate micrometer instrumentation packages
-  relocate("application.io.micrometer", "io.micrometer")
 }

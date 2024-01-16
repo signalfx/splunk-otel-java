@@ -27,7 +27,7 @@ dependencies {
 
   bootstrapLibs(project(":bootstrap"))
   javaagentLibs(project(":custom"))
-  // include testing extensions, e.g. micrometer
+  // include testing extensions
   javaagentLibs(project(":testing:agent-test-extension"))
 
   // and finally include everything from otel agent for testing

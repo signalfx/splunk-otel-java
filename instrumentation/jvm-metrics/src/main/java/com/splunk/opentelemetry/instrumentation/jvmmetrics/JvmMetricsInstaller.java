@@ -16,6 +16,7 @@
 
 package com.splunk.opentelemetry.instrumentation.jvmmetrics;
 
+import static com.splunk.opentelemetry.SplunkConfiguration.METRICS_ENABLED_PROPERTY;
 import static com.splunk.opentelemetry.SplunkConfiguration.PROFILER_MEMORY_ENABLED_PROPERTY;
 import static io.opentelemetry.sdk.autoconfigure.AutoConfigureUtil.getConfig;
 
@@ -33,7 +34,8 @@ public class JvmMetricsInstaller implements AgentListener {
   @Override
   public void afterAgent(AutoConfiguredOpenTelemetrySdk autoConfiguredOpenTelemetrySdk) {
     ConfigProperties config = getConfig(autoConfiguredOpenTelemetrySdk);
-    if (!config.getBoolean("otel.instrumentation.jvm-metrics.splunk.enabled", true)) {
+    boolean metricsEnabled = config.getBoolean(METRICS_ENABLED_PROPERTY, false);
+    if (!config.getBoolean("otel.instrumentation.jvm-metrics.splunk.enabled", metricsEnabled)) {
       return;
     }
 

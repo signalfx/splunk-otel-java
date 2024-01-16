@@ -277,7 +277,7 @@ public abstract class ProfilerSmokeTest {
                 "-Dotel.resource.attributes=service.name=smoketest,deployment.environment=smokeytown",
                 "-Dotel.javaagent.debug=true",
                 "-Dsplunk.profiler.enabled=true",
-                "-Dsplunk.profiler.tlab.enabled=true",
+                "-Dsplunk.profiler.memory.enabled=true",
                 "-Dsplunk.profiler.directory=/app/jfr",
                 "-Dsplunk.profiler.keep-files=true",
                 "-Dsplunk.profiler.call.stack.interval=1001",

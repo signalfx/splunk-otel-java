@@ -34,7 +34,7 @@ class JfrSettingsOverridesTest {
     ConfigProperties config = mock(ConfigProperties.class);
     when(config.getDuration(CONFIG_KEY_CALL_STACK_INTERVAL, Duration.ZERO))
         .thenReturn(Duration.ofMillis(163));
-    when(config.getBoolean("splunk.profiler.tlab.enabled", false)).thenReturn(true);
+    when(config.getBoolean("splunk.profiler.memory.enabled", false)).thenReturn(true);
     JfrSettingsOverrides overrides = new JfrSettingsOverrides(config);
     Map<String, String> jfrSettings =
         Map.of(

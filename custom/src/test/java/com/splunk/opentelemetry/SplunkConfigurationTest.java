@@ -18,7 +18,6 @@ package com.splunk.opentelemetry;
 
 import static com.splunk.opentelemetry.SplunkConfiguration.SPLUNK_REALM_NONE;
 import static io.opentelemetry.sdk.autoconfigure.AutoConfigureUtil.getConfig;
-import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
@@ -113,40 +112,6 @@ class SplunkConfigurationTest {
             // implicitly loads SplunkConfiguration through SPI
             .build();
     return getConfig(sdk);
-  }
-
-  private static void verifyThatOtelMetricsInstrumentationsAreDisabled(ConfigProperties config) {
-    for (String instrumentationName :
-        asList(
-            "apache-dbcp",
-            "c3p0",
-            "hikaricp",
-            "micrometer",
-            "oracle-ucp",
-            "oshi",
-            "runtime-metrics",
-            "spring-boot-actuator-autoconfigure",
-            "tomcat-jdbc",
-            "vibur-dbcp")) {
-      assertInstrumentationDisabled(config, instrumentationName);
-    }
-    assertThat(config.getBoolean("otel.instrumentation.kafka.metric-reporter.enabled"))
-        .as("Kafka metric reporter is turned off")
-        .isFalse();
-  }
-
-  private static void verifyThatMicrometerInstrumentationsAreDisabled(ConfigProperties config) {
-    for (String instrumentationName :
-        asList(
-            "c3p0-splunk",
-            "commons-dbcp2-splunk",
-            "hikari-splunk",
-            "micrometer-splunk",
-            "oracle-ucp-splunk",
-            "tomcat-jdbc-splunk",
-            "vibur-dbcp-splunk")) {
-      assertInstrumentationDisabled(config, instrumentationName);
-    }
   }
 
   private static void assertInstrumentationDisabled(ConfigProperties config, String name) {

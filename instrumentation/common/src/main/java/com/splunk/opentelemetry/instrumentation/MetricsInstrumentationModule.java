@@ -21,7 +21,7 @@ import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 
 /**
  * Instrumentation can extend this class instead of InstrumentationModule if they require metrics to
- * be enabled (and Micrometer has at least one active registry).
+ * be enabled.
  */
 public abstract class MetricsInstrumentationModule extends InstrumentationModule {
 

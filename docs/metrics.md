@@ -6,7 +6,7 @@
 > configuration properties may change.
 
 The Splunk Distribution of OpenTelemetry Java agent gathers basic application metrics.
-Because these metrics are still experimental they are not enabled by default.
+Because these splunk-specific metrics are still experimental they are not enabled by default.
 To enable metrics, add `-Dsplunk.metrics.enabled=true` to the JVM
 arguments or set the environment variable `SPLUNK_METRICS_ENABLED` to `true`.
 For more information, please see the [advanced configuration](advanced-config.md#splunk-distribution-configuration)

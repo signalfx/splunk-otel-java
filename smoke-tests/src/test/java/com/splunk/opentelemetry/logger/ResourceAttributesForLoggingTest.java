@@ -67,6 +67,7 @@ public class ResourceAttributesForLoggingTest {
       javaBinary.getAbsolutePath(),
       javaagent,
       resourceAttributes,
+      "-Dotel.instrumentation.common.mdc.resource-attributes=service.name,environment",
       "-cp",
       classpath,
       LoggerTestMain.class.getName()

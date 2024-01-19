@@ -3199,10 +3199,6 @@ public class MetadataGenerator {
                 "process.runtime.jvm.memory.allocated",
                 MetricInstrument.COUNTER,
                 "Approximate sum of heap allocations.")
-            .metric(
-                "process.runtime.jvm.memory.reclaimed",
-                MetricInstrument.COUNTER,
-                "Sum of heap size differences before and after gc.")
             .metric("runtime.jvm.gc.pause.count", MetricInstrument.COUNTER, "Number of gc pauses.")
             .metric(
                 "runtime.jvm.gc.pause.totalTime",

@@ -17,18 +17,11 @@
 package com.splunk.opentelemetry.instrumentation.jvmmetrics;
 
 import com.sun.management.GarbageCollectionNotificationInfo;
-import com.sun.management.GcInfo;
 import java.lang.management.GarbageCollectorMXBean;
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryPoolMXBean;
-import java.lang.management.MemoryType;
-import java.lang.management.MemoryUsage;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.atomic.AtomicLong;
 import javax.management.ListenerNotFoundException;
 import javax.management.Notification;
 import javax.management.NotificationEmitter;
@@ -36,31 +29,15 @@ import javax.management.NotificationListener;
 import javax.management.openmbean.CompositeData;
 
 public class GcMemoryMetrics implements AutoCloseable {
-  public static final String METRIC_NAME = "process.runtime.jvm.memory.reclaimed";
   private final boolean managementExtensionsPresent = isManagementExtensionsPresent();
 
   private final List<Runnable> notificationListenerCleanUpRunnables = new CopyOnWriteArrayList<>();
-  private final Set<String> heapPoolNames = new HashSet<>();
-  private final AtomicLong deltaSum = new AtomicLong();
-
-  public long getDeltaSum() {
-    return deltaSum.get();
-  }
 
   public boolean isUnavailable() {
     return !managementExtensionsPresent;
   }
 
-  public void registerListener() {
-    registerListener(null);
-  }
-
   public void registerListener(GcEventCallback gcEventCallback) {
-    ManagementFactory.getMemoryPoolMXBeans().stream()
-        .filter(pool -> MemoryType.HEAP.equals(pool.getType()))
-        .map(MemoryPoolMXBean::getName)
-        .forEach(heapPoolNames::add);
-
     GcMetricsNotificationListener gcNotificationListener =
         new GcMetricsNotificationListener(gcEventCallback);
     for (GarbageCollectorMXBean gcBean : ManagementFactory.getGarbageCollectorMXBeans()) {
@@ -103,32 +80,9 @@ public class GcMemoryMetrics implements AutoCloseable {
       GarbageCollectionNotificationInfo notificationInfo =
           GarbageCollectionNotificationInfo.from(cd);
 
-      GcInfo gcInfo = notificationInfo.getGcInfo();
-      final Map<String, MemoryUsage> before = gcInfo.getMemoryUsageBeforeGc();
-      final Map<String, MemoryUsage> after = gcInfo.getMemoryUsageAfterGc();
-
-      long usageBefore = sumMemoryUsage(before);
-      long usageAfter = sumMemoryUsage(after);
-
-      deltaSum.addAndGet(usageBefore - usageAfter);
-
       if (gcEventCallback != null) {
         gcEventCallback.handleGcEvent(notificationInfo);
       }
-    }
-
-    private long sumMemoryUsage(Map<String, MemoryUsage> memoryUsageMap) {
-      long result = 0;
-      for (Map.Entry<String, MemoryUsage> entry : memoryUsageMap.entrySet()) {
-        String poolName = entry.getKey();
-        MemoryUsage memoryUsage = entry.getValue();
-        if (!heapPoolNames.contains(poolName)) {
-          continue;
-        }
-
-        result += memoryUsage.getUsed();
-      }
-      return result;
     }
   }
 

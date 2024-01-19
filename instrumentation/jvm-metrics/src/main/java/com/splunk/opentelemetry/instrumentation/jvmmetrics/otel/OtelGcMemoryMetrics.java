@@ -41,29 +41,8 @@ import com.sun.management.GcInfo;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.metrics.LongCounter;
 import io.opentelemetry.api.metrics.Meter;
-import java.lang.management.ManagementFactory;
-import java.lang.management.MemoryPoolMXBean;
-import java.lang.management.MemoryUsage;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.atomic.AtomicLong;
 
 public class OtelGcMemoryMetrics {
-
-  private final boolean isGenerationalGc = isGenerationalGcConfigured();
-  private final Set<String> longLivedPoolNames = new HashSet<>();
-  private AtomicLong liveDataSize;
-
-  public OtelGcMemoryMetrics() {
-    for (MemoryPoolMXBean mbean : ManagementFactory.getMemoryPoolMXBeans()) {
-      String name = mbean.getName();
-      if (isLongLivedPool(name)) {
-        longLivedPoolNames.add(name);
-      }
-    }
-  }
 
   public void install() {
     GcMemoryMetrics gcMemoryMetrics = new GcMemoryMetrics();
@@ -91,13 +70,6 @@ public class OtelGcMemoryMetrics {
             .setDescription("Time spent in GC pause.")
             .build();
 
-    liveDataSize = new AtomicLong();
-    meter
-        .gaugeBuilder("runtime.jvm.gc.live.data.size")
-        .setUnit("bytes")
-        .setDescription("Size of long-lived heap memory pool after reclamation.")
-        .buildWithCallback(measurement -> measurement.record(liveDataSize.get()));
-
     gcMemoryMetrics.registerListener(
         notificationInfo -> {
           GcInfo gcInfo = notificationInfo.getGcInfo();
@@ -117,22 +89,6 @@ public class OtelGcMemoryMetrics {
             gcPauseCounter.add(1, attributes);
             gcPauseTime.add(duration, attributes);
           }
-
-          final Map<String, MemoryUsage> before = gcInfo.getMemoryUsageBeforeGc();
-          final Map<String, MemoryUsage> after = gcInfo.getMemoryUsageAfterGc();
-
-          long longLivedBefore =
-              longLivedPoolNames.stream().mapToLong(pool -> before.get(pool).getUsed()).sum();
-          long longLivedAfter =
-              longLivedPoolNames.stream().mapToLong(pool -> after.get(pool).getUsed()).sum();
-
-          // Some GC implementations such as G1 can reduce the old gen size as part of a minor GC.
-          // To track the live data size we record the value if we see a reduction in the long-lived
-          // heap size or after a major/non-generational GC.
-          if (longLivedAfter < longLivedBefore
-              || shouldUpdateDataSizeMetrics(notificationInfo.getGcName())) {
-            liveDataSize.set(longLivedAfter);
-          }
         });
   }
 
@@ -141,76 +97,5 @@ public class OtelGcMemoryMetrics {
         || "Shenandoah Cycles".equals(name)
         || "ZGC Cycles".equals(name)
         || (name.startsWith("GPGC") && !name.endsWith("Pauses"));
-  }
-
-  private static boolean isLongLivedPool(String name) {
-    return name != null
-        && (name.endsWith("Old Gen")
-            || name.endsWith("Tenured Gen")
-            || "Shenandoah".equals(name)
-            || "ZHeap".equals(name)
-            || name.endsWith("balanced-old")
-            || name.contains("tenured") // "tenured",
-            // "tenured-SOA",
-            // "tenured-LOA"
-            || "JavaHeap".equals(name) // metronome
-        );
-  }
-
-  private boolean shouldUpdateDataSizeMetrics(String gcName) {
-    return nonGenerationalGcShouldUpdateDataSize(gcName) || isMajorGenerationalGc(gcName);
-  }
-
-  private boolean isMajorGenerationalGc(String gcName) {
-    return GcGenerationAge.fromGcName(gcName) == GcGenerationAge.OLD;
-  }
-
-  private boolean nonGenerationalGcShouldUpdateDataSize(String gcName) {
-    return !isGenerationalGc
-        // Skip Shenandoah and ZGC gc notifications with the name Pauses due
-        // to missing memory pool size info
-        && !gcName.endsWith("Pauses");
-  }
-
-  private boolean isGenerationalGcConfigured() {
-    return ManagementFactory.getMemoryPoolMXBeans().stream()
-            .filter(JvmMemory::isHeap)
-            .map(MemoryPoolMXBean::getName)
-            .filter(name -> !name.contains("tenured"))
-            .count()
-        > 1;
-  }
-
-  /**
-   * Generalization of which parts of the heap are considered "young" or "old" for multiple GC
-   * implementations
-   */
-  enum GcGenerationAge {
-    OLD,
-    YOUNG,
-    UNKNOWN;
-
-    private static final Map<String, GcGenerationAge> knownCollectors =
-        new HashMap<String, GcGenerationAge>() {
-          {
-            put("ConcurrentMarkSweep", OLD);
-            put("Copy", YOUNG);
-            put("G1 Old Generation", OLD);
-            put("G1 Young Generation", YOUNG);
-            put("MarkSweepCompact", OLD);
-            put("PS MarkSweep", OLD);
-            put("PS Scavenge", YOUNG);
-            put("ParNew", YOUNG);
-            put("global", OLD);
-            put("scavenge", YOUNG);
-            put("partial gc", YOUNG);
-            put("global garbage collect", OLD);
-            put("Epsilon", OLD);
-          }
-        };
-
-    static GcGenerationAge fromGcName(String gcName) {
-      return knownCollectors.getOrDefault(gcName, UNKNOWN);
-    }
   }
 }

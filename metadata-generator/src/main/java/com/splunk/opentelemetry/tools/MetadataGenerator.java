@@ -3209,10 +3209,6 @@ public class MetadataGenerator {
                 MetricInstrument.COUNTER,
                 "Time spent in GC pause.")
             .metric(
-                "runtime.jvm.gc.live.data.size",
-                MetricInstrument.GAUGE,
-                "Size of long-lived heap memory pool after reclamation.")
-            .metric(
                 "runtime.jvm.threads.states",
                 MetricInstrument.GAUGE,
                 "The current number of threads that are currently in state described by the state attribute.")

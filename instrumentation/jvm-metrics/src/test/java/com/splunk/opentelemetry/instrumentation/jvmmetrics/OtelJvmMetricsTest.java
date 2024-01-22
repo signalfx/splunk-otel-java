@@ -49,7 +49,7 @@ class OtelJvmMetricsTest {
     // allocated memory metrics
     assertOtelMetricPresent(AllocatedMemoryMetrics.METRIC_NAME);
     // Our custom GC metrics
-    assertOtelMetricPresent(GcMemoryMetrics.METRIC_NAME);
+    assertOtelMetricPresent("runtime.jvm.gc.pause.count");
   }
 
   private void assertOtelMetricPresent(String name) {

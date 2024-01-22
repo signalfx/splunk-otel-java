@@ -33,7 +33,6 @@
 
 package com.splunk.opentelemetry.instrumentation.jvmmetrics.otel;
 
-import static com.splunk.opentelemetry.instrumentation.jvmmetrics.GcMemoryMetrics.METRIC_NAME;
 import static io.opentelemetry.api.common.AttributeKey.stringKey;
 
 import com.splunk.opentelemetry.instrumentation.jvmmetrics.GcMemoryMetrics;
@@ -51,12 +50,6 @@ public class OtelGcMemoryMetrics {
     }
 
     Meter meter = OtelMeterProvider.get();
-    meter
-        .counterBuilder(METRIC_NAME)
-        .setUnit("bytes")
-        .setDescription("Sum of heap size differences before and after gc.")
-        .buildWithCallback(measurement -> measurement.record(gcMemoryMetrics.getDeltaSum()));
-
     LongCounter gcPauseCounter =
         meter
             .counterBuilder("runtime.jvm.gc.pause.count")

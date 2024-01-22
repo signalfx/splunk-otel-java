@@ -35,7 +35,6 @@ These metrics are enabled only when memory profiler is enabled.
 | Metric name                            | Instrument   | Description                                                      |
 |----------------------------------------|--------------|------------------------------------------------------------------|
 | `process.runtime.jvm.memory.allocated` | [Counter][c] | Approximate sum of heap allocations.                             |
-| `process.runtime.jvm.memory.reclaimed` | [Counter][c] | Sum of heap size differences before and after gc.                |
 | `runtime.jvm.gc.pause.count`           | [Counter][c] | Number of gc pauses.                                             |
 | `runtime.jvm.gc.pause.totalTime`       | [Counter][c] | Time spent in GC pause.                                          |
 

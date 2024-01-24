@@ -3199,11 +3199,14 @@ public class MetadataGenerator {
                 "process.runtime.jvm.memory.allocated",
                 MetricInstrument.COUNTER,
                 "Approximate sum of heap allocations.")
-            .metric("runtime.jvm.gc.pause.count", MetricInstrument.COUNTER, "Number of gc pauses.")
             .metric(
-                "runtime.jvm.gc.pause.totalTime",
+                "jvm.gc.pause.count",
                 MetricInstrument.COUNTER,
-                "Time spent in GC pause.")
+                "Number of gc pauses. This metric will be removed in a future release.")
+            .metric(
+                "jvm.gc.pause.totalTime",
+                MetricInstrument.COUNTER,
+                "Time spent in GC pause. This metric will be removed in a future release.")
             .metric(
                 "runtime.jvm.threads.states",
                 MetricInstrument.GAUGE,

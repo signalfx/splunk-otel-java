@@ -32,11 +32,11 @@ Besides OpenTelemetry JVM Metrics we include the following JVM metrics.
 
 These metrics are enabled only when memory profiler is enabled.
 
-| Metric name                            | Instrument   | Description                                                      |
-|----------------------------------------|--------------|------------------------------------------------------------------|
-| `process.runtime.jvm.memory.allocated` | [Counter][c] | Approximate sum of heap allocations.                             |
-| `runtime.jvm.gc.pause.count`           | [Counter][c] | Number of gc pauses.                                             |
-| `runtime.jvm.gc.pause.totalTime`       | [Counter][c] | Time spent in GC pause.                                          |
+| Metric name              | Instrument   | Description                                                              |
+|--------------------------|--------------|--------------------------------------------------------------------------|
+| `jvm.memory.allocated`   | [Counter][c] | Approximate sum of heap allocations.                                     |
+| `jvm.gc.pause.count`     | [Counter][c] | Number of gc pauses. This metric will be removed in a future release.    |
+| `jvm.gc.pause.totalTime` | [Counter][c] | Time spent in GC pause. This metric will be removed in a future release. |
 
 #### Thread metrics
 

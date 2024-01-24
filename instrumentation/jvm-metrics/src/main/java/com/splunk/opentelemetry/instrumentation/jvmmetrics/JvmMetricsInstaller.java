@@ -48,7 +48,6 @@ public class JvmMetricsInstaller implements AgentListener {
     //     process.runtime.jvm.memory.limit{pool=<long lived pools>}
     //   runtime.jvm.gc.live.data.size is replaced by OTel
     //     process.runtime.jvm.memory.usage_after_last_gc{pool=<long lived pools>}
-    //     (temporarily restored to ease migration)
     //   runtime.jvm.gc.memory.allocated is replaced by memory profiling metric
     //     process.runtime.jvm.memory.allocated
     //   runtime.jvm.gc.memory.promoted is removed with no direct replacement

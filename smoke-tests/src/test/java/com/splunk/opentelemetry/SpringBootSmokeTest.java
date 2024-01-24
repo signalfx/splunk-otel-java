@@ -95,7 +95,7 @@ public class SpringBootSmokeTest extends AppServerTest {
   protected void assertMetrics(MetricsInspector metrics) {
     // verify that JVM metrics are exported
     assertTrue(metrics.hasMetricsNamed("jvm.class.loaded"));
-    assertTrue(metrics.hasMetricsNamed("process.runtime.jvm.memory.allocated"));
+    assertTrue(metrics.hasMetricsNamed("jvm.memory.allocated"));
     assertTrue(metrics.hasMetricsNamed("jvm.memory.used"));
     assertTrue(metrics.hasMetricsNamed("jvm.thread.count"));
   }

@@ -44,8 +44,6 @@ class OtelJvmMetricsTest {
     }
     System.gc();
 
-    // thread metrics
-    assertOtelMetricPresent("runtime.jvm.threads.states");
     // allocated memory metrics
     assertOtelMetricPresent(AllocatedMemoryMetrics.METRIC_NAME);
     // Our custom GC metrics

@@ -23,7 +23,6 @@ import static io.opentelemetry.sdk.autoconfigure.AutoConfigureUtil.getConfig;
 import com.google.auto.service.AutoService;
 import com.splunk.opentelemetry.instrumentation.jvmmetrics.otel.OtelAllocatedMemoryMetrics;
 import com.splunk.opentelemetry.instrumentation.jvmmetrics.otel.OtelGcMemoryMetrics;
-import com.splunk.opentelemetry.instrumentation.jvmmetrics.otel.OtelJvmThreadMetrics;
 import io.opentelemetry.javaagent.extension.AgentListener;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
@@ -38,26 +37,6 @@ public class JvmMetricsInstaller implements AgentListener {
     if (!config.getBoolean("otel.instrumentation.jvm-metrics.splunk.enabled", metricsEnabled)) {
       return;
     }
-
-    // gc metrics were removed:
-    //   runtime.jvm.gc.concurrent.phase.time is replaced by OTel
-    //     process.runtime.jvm.gc.duration{gc=<concurrent gcs>}
-    //   runtime.jvm.gc.pause is replaced by OTel
-    //     process.runtime.jvm.gc.duration{gc!=<concurrent gcs>}
-    //   runtime.jvm.gc.max.data.size is replaced by OTel
-    //     process.runtime.jvm.memory.limit{pool=<long lived pools>}
-    //   runtime.jvm.gc.live.data.size is replaced by OTel
-    //     process.runtime.jvm.memory.usage_after_last_gc{pool=<long lived pools>}
-    //   runtime.jvm.gc.memory.allocated is replaced by memory profiling metric
-    //     process.runtime.jvm.memory.allocated
-    //   runtime.jvm.gc.memory.promoted is removed with no direct replacement
-
-    // heap pressure metrics were removed:
-    //   runtime.jvm.memory.usage.after.gc is replaced by OTel
-    //     process.runtime.jvm.memory.usage_after_last_gc{pool=<long lived pools>,type=heap} /
-    //     process.runtime.jvm.memory.limit{pool=<long lived pools>,type=heap}
-    //   runtime.jvm.gc.overhead is something that should be done in a dashboard, not here
-    new OtelJvmThreadMetrics().install();
 
     // Following metrics are experimental, we'll enable them only when memory profiling is enabled
     if (config.getBoolean(PROFILER_MEMORY_ENABLED_PROPERTY, false)

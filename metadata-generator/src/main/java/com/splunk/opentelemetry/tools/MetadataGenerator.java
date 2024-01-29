@@ -3206,12 +3206,7 @@ public class MetadataGenerator {
             .metric(
                 "jvm.gc.pause.totalTime",
                 MetricInstrument.COUNTER,
-                "Time spent in GC pause. This metric will be removed in a future release.")
-            .metric(
-                "runtime.jvm.threads.states",
-                MetricInstrument.GAUGE,
-                "The current number of threads that are currently in state described by the state attribute.")
-            .build());
+                "Time spent in GC pause. This metric will be removed in a future release."));
     instrumentations.add(
         splunkInstrumentation("khttp").component("khttp", "0.1 and higher").build());
     instrumentations.add(

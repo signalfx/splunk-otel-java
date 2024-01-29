@@ -52,15 +52,16 @@ public class OtelGcMemoryMetrics {
     Meter meter = OtelMeterProvider.get();
     LongCounter gcPauseCounter =
         meter
-            .counterBuilder("runtime.jvm.gc.pause.count")
+            .counterBuilder("jvm.gc.pause.count")
             .setUnit("{gcs}")
-            .setDescription("Number of gc pauses.")
+            .setDescription("Number of gc pauses. This metric will be removed in a future release.")
             .build();
     LongCounter gcPauseTime =
         meter
-            .counterBuilder("runtime.jvm.gc.pause.totalTime")
+            .counterBuilder("jvm.gc.pause.totalTime")
             .setUnit("ms")
-            .setDescription("Time spent in GC pause.")
+            .setDescription(
+                "Time spent in GC pause. This metric will be removed in a future release.")
             .build();
 
     gcMemoryMetrics.registerListener(

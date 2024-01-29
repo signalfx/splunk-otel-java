@@ -24,7 +24,7 @@ import java.util.Map;
 import java.util.Set;
 
 public class AllocatedMemoryMetrics {
-  public static final String METRIC_NAME = "process.runtime.jvm.memory.allocated";
+  public static final String METRIC_NAME = "jvm.memory.allocated";
   private final AllocationTracker allocationTracker = createAllocationTracker();
 
   public boolean isUnavailable() {

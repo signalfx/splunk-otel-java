@@ -8,6 +8,5 @@ dependencies {
 }
 
 tasks.withType<Test>().configureEach {
-  jvmArgs("-Dsplunk.metrics.enabled=true")
-  jvmArgs("-Dsplunk.metrics.experimental.enabled=true")
+  jvmArgs("-Dotel.instrumentation.jvm-metrics.splunk.enabled=true")
 }

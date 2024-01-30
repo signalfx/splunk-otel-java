@@ -47,7 +47,7 @@ public class SpringBootSmokeTest extends AppServerTest {
         "smoke-test-app",
         "OTEL_INSTRUMENTATION_COMMON_EXPERIMENTAL_CONTROLLER_TELEMETRY_ENABLED",
         "true",
-        "SPLUNK_METRICS_EXPERIMENTAL_ENABLED",
+        "OTEL_INSTRUMENTATION_JVM_METRICS_SPLUNK_ENABLED",
         "true");
   }
 

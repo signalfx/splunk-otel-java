@@ -66,12 +66,6 @@ public class SplunkConfiguration implements AutoConfigurationCustomizerProvider 
   Map<String, String> customize(ConfigProperties config) {
     Map<String, String> customized = new HashMap<>();
 
-    boolean memoryProfilerEnabled = config.getBoolean(PROFILER_MEMORY_ENABLED_PROPERTY, false);
-    // memory profiler implies metrics
-    if (memoryProfilerEnabled) {
-      customized.put(METRICS_ENABLED_PROPERTY, "true");
-    }
-
     String realm = config.getString(SPLUNK_REALM_PROPERTY, SPLUNK_REALM_NONE);
     if (!SPLUNK_REALM_NONE.equals(realm)) {
       addIfAbsent(

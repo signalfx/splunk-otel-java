@@ -38,12 +38,6 @@ These metrics are enabled only when memory profiler is enabled.
 | `jvm.gc.pause.count`     | [Counter][c] | Number of gc pauses. This metric will be removed in a future release.    |
 | `jvm.gc.pause.totalTime` | [Counter][c] | Time spent in GC pause. This metric will be removed in a future release. |
 
-#### Thread metrics
-
-| Metric name                  | Instrument | Description |
-| ---------------------------- | ---------- | ----------- |
-| `runtime.jvm.threads.states` | [Gauge][g] | The current number of threads per `state` (metric tag).
-
 ### Thread pool metrics
 
 Splunk Distribution of OpenTelemetry Java instruments several thread pool implementations:

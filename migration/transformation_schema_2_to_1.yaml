@@ -22,7 +22,7 @@ versions:
 #            jvm.memory.init:               process.runtime.jvm.memory.init  # experimental
         - rename_attributes:
             attribute_map:
-              jvm.memory.type: type
+              jvm.memory.type: area
               jvm.memory.pool.name: pool
             apply_to_metrics:
               - jvm.memory.used

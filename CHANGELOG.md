@@ -18,7 +18,7 @@ Note: 2.0.0 release is considered experimental, Splunk recommends using 1.x vers
 - OpenTelemetry Java SDK has been updated to version 1.34.1.
 - OpenTelemetry Instrumentation for Java has been updated to version 2.0.0.
 
-### Breaking Changes
+### ⚠️⚠️ Breaking changes ⚠️⚠️
 - Micrometer based metrics were removed in favour of OpenTelemetry based metrics.
 - The default OTLP protocol has been changed from `grpc` to `http/protobuf` in order to align with
   the [specification](https://github.com/open-telemetry/opentelemetry-specification/blob/v1.28.0/specification/protocol/exporter.md#specify-protocol).

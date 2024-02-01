@@ -80,6 +80,18 @@ versions:
               - jvm.buffer.memory.usage
               - jvm.buffer.memory.limit
               - jvm.buffer.count
+        #--------------------------------------------------------------
+        # DB pool metrics
+        - rename_metrics:
+            db.client.connections.usage:            db.pool.connections                 # micrometer
+            db.client.connections.idle.min:         db.pool.connections.idle.min        # micrometer
+            db.client.connections.idle.max:         db.pool.connections.idle.max        # micrometer
+            db.client.connections.max:              db.pool.connections.max             # micrometer
+            db.client.connections.pending_requests: db.pool.connections.pending_threads # micrometer
+            db.client.connections.timeouts:         db.pool.connections.timeouts        # micrometer
+#           db.client.connections.create_time:      db.pool.connections.create_time     # micrometer, timer vs. histogram
+#           db.client.connections.wait_time:        db.pool.connections.wait_time       # micrometer, timer vs. histogram
+#           db.client.connections.use_time:         db.pool.connections.use_time        # micrometer, timer vs. histogram
 
         #--------------------------------------------------------------
         # HTTP metrics

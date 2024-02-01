@@ -45,7 +45,7 @@ versions:
         #--------------------------------------------------------------
         # Threads metrics
         - rename_metrics:
-            jvm.thread.count: process.runtime.jvm.threads.count
+            jvm.thread.count: runtime.jvm.threads.live
         - rename_attributes:
             attribute_map:
               jvm.thread.daemon: daemon

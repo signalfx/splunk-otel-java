@@ -70,9 +70,9 @@ versions:
         #--------------------------------------------------------------
         # Buffer metrics
         - rename_metrics:
-            jvm.buffer.memory.usage: process.runtime.jvm.buffer.usage # experimental
-            jvm.buffer.memory.limit: process.runtime.jvm.buffer.limit # experimental
-            jvm.buffer.count:        process.runtime.jvm.buffer.count # experimental
+            jvm.buffer.memory.usage: runtime.jvm.buffer.memory.used    # experimental
+            jvm.buffer.memory.limit: runtime.jvm.buffer.total.capacity # experimental
+            jvm.buffer.count:        runtime.jvm.buffer.count          # experimental
         - rename_attributes:
             attribute_map:
               jvm.buffer.pool.name: pool

@@ -2268,9 +2268,6 @@ public class MetadataGenerator {
                 "kafka.consumer.fetch_total",
                 MetricInstrument.COUNTER,
                 "The total number of fetch requests.")
-            // FIXME
-            // .metric("kafka.consumer.preferred_read_replica", , "The current read replica for the
-            // partition, or -1 if reading from leader.")
             .metric(
                 "kafka.consumer.records_consumed_rate",
                 MetricInstrument.GAUGE,
@@ -2290,7 +2287,7 @@ public class MetadataGenerator {
             .metric(
                 "kafka.consumer.records_lag_max",
                 MetricInstrument.GAUGE,
-                "The maximum lag in terms of number of records for any partition in this window.")
+                "The maximum lag in terms of number of records for any partition in this window. NOTE: This is based on current offset and not committed offset.")
             .metric(
                 "kafka.consumer.records_lead",
                 MetricInstrument.GAUGE,
@@ -2307,6 +2304,14 @@ public class MetadataGenerator {
                 "kafka.consumer.records_per_request_avg",
                 MetricInstrument.GAUGE,
                 "The average number of records in each request.")
+            .metric(
+                "kafka.consumer.commit_sync_time_ns_total",
+                MetricInstrument.COUNTER,
+                "The total time the consumer has spent in commitSync in nanoseconds.")
+            .metric(
+                "kafka.consumer.committed_time_ns_total",
+                MetricInstrument.COUNTER,
+                "The total time the consumer has spent in committed in nanoseconds.")
             .metric(
                 "kafka.consumer.connection_close_rate",
                 MetricInstrument.GAUGE,
@@ -2346,27 +2351,35 @@ public class MetadataGenerator {
             .metric(
                 "kafka.consumer.io_ratio",
                 MetricInstrument.GAUGE,
-                "The fraction of time the I/O thread spent doing I/O.")
+                " *Deprecated* The fraction of time the I/O thread spent doing I/O.")
             .metric(
                 "kafka.consumer.io_time_ns_avg",
                 MetricInstrument.GAUGE,
                 "The average length of time for I/O per select call in nanoseconds.")
             .metric(
+                "kafka.consumer.io_time_ns_total",
+                MetricInstrument.COUNTER,
+                "The total time the I/O thread spent doing I/O.")
+            .metric(
                 "kafka.consumer.io_wait_ratio",
                 MetricInstrument.GAUGE,
-                "The fraction of time the I/O thread spent waiting.")
+                "*Deprecated* The fraction of time the I/O thread spent waiting.")
             .metric(
                 "kafka.consumer.io_wait_time_ns_avg",
                 MetricInstrument.GAUGE,
                 "The average length of time the I/O thread spent waiting for a socket ready for reads or writes in nanoseconds.")
             .metric(
+                "kafka.consumer.io_wait_time_ns_total",
+                MetricInstrument.COUNTER,
+                "The total time the I/O thread spent waiting")
+            .metric(
                 "kafka.consumer.io_waittime_total",
                 MetricInstrument.COUNTER,
-                "The total time the I/O thread spent waiting.")
+                "*Deprecated* The total time the I/O thread spent waiting.")
             .metric(
                 "kafka.consumer.iotime_total",
                 MetricInstrument.COUNTER,
-                "The total time the I/O thread spent doing I/O.")
+                "*Deprecated* The total time the I/O thread spent doing I/O.")
             .metric(
                 "kafka.consumer.last_poll_seconds_ago",
                 MetricInstrument.GAUGE,
@@ -2422,11 +2435,11 @@ public class MetadataGenerator {
             .metric(
                 "kafka.consumer.time_between_poll_avg",
                 MetricInstrument.GAUGE,
-                "The average delay between invocations of poll().")
+                "The average delay between invocations of poll() in milliseconds.")
             .metric(
                 "kafka.consumer.time_between_poll_max",
                 MetricInstrument.GAUGE,
-                "The max delay between invocations of poll().")
+                "The max delay between invocations of poll() in milliseconds.")
             .metric(
                 "kafka.consumer.incoming_byte_rate",
                 MetricInstrument.GAUGE,
@@ -2443,8 +2456,14 @@ public class MetadataGenerator {
                 "kafka.consumer.outgoing_byte_total",
                 MetricInstrument.COUNTER,
                 "The total number of outgoing bytes sent to all servers.")
-            .metric("kafka.consumer.request_latency_avg", MetricInstrument.GAUGE, "")
-            .metric("kafka.consumer.request_latency_max", MetricInstrument.GAUGE, "")
+            .metric(
+                "kafka.consumer.request_latency_avg",
+                MetricInstrument.GAUGE,
+                "The average request latency in ms.")
+            .metric(
+                "kafka.consumer.request_latency_max",
+                MetricInstrument.GAUGE,
+                "The maximum request latency in ms.")
             .metric(
                 "kafka.consumer.request_rate",
                 MetricInstrument.GAUGE,
@@ -2506,9 +2525,13 @@ public class MetadataGenerator {
                 MetricInstrument.GAUGE,
                 "The fraction of time an appender waits for space allocation.")
             .metric(
+                "kafka.producer.bufferpool_wait_time_ns_total",
+                MetricInstrument.COUNTER,
+                "The total time in nanoseconds an appender waits for space allocation.")
+            .metric(
                 "kafka.producer.bufferpool_wait_time_total",
                 MetricInstrument.COUNTER,
-                "The total time an appender waits for space allocation.")
+                "*Deprecated* The total time an appender waits for space allocation.")
             .metric(
                 "kafka.producer.compression_rate_avg",
                 MetricInstrument.GAUGE,
@@ -2550,33 +2573,49 @@ public class MetadataGenerator {
                 MetricInstrument.COUNTER,
                 "The total number of failed re-authentication of connections.")
             .metric(
+                "kafka.producer.flush_time_ns_total",
+                MetricInstrument.COUNTER,
+                "Total time producer has spent in flush in nanoseconds.")
+            .metric(
                 "kafka.producer.io_ratio",
                 MetricInstrument.GAUGE,
-                "The fraction of time the I/O thread spent doing I/O.")
+                "*Deprecated* The fraction of time the I/O thread spent doing I/O.")
             .metric(
                 "kafka.producer.io_time_ns_avg",
                 MetricInstrument.GAUGE,
                 "The average length of time for I/O per select call in nanoseconds.")
             .metric(
+                "kafka.producer.io_time_ns_total",
+                MetricInstrument.COUNTER,
+                "The total time the I/O thread spent doing I/O.")
+            .metric(
                 "kafka.producer.io_wait_ratio",
                 MetricInstrument.GAUGE,
-                "The fraction of time the I/O thread spent waiting.")
+                "*Deprecated* The fraction of time the I/O thread spent waiting.")
             .metric(
                 "kafka.producer.io_wait_time_ns_avg",
                 MetricInstrument.GAUGE,
                 "The average length of time the I/O thread spent waiting for a socket ready for reads or writes in nanoseconds.")
             .metric(
-                "kafka.producer.io_waittime_total",
+                "kafka.producer.io_wait_time_ns_total",
                 MetricInstrument.COUNTER,
                 "The total time the I/O thread spent waiting.")
             .metric(
+                "kafka.producer.io_waittime_total",
+                MetricInstrument.COUNTER,
+                "*Deprecated* The total time the I/O thread spent waiting.")
+            .metric(
                 "kafka.producer.iotime_total",
                 MetricInstrument.COUNTER,
-                "The total time the I/O thread spent doing I/O.")
+                "*Deprecated* The total time the I/O thread spent doing I/O.")
             .metric(
                 "kafka.producer.metadata_age",
                 MetricInstrument.GAUGE,
                 "The age in seconds of the current producer metadata being used.")
+            .metric(
+                "kafka.producer.metadata_wait_time_ns_total",
+                MetricInstrument.COUNTER,
+                "Total time producer has spent waiting on topic metadata in nanoseconds.")
             .metric(
                 "kafka.producer.network_io_rate",
                 MetricInstrument.GAUGE,
@@ -2653,6 +2692,26 @@ public class MetadataGenerator {
                 "kafka.producer.successful_reauthentication_total",
                 MetricInstrument.COUNTER,
                 "The total number of successful re-authentication of connections.")
+            .metric(
+                "kafka.producer.txn_abort_time_ns_total",
+                MetricInstrument.COUNTER,
+                "Total time producer has spent in abortTransaction in nanoseconds.")
+            .metric(
+                "kafka.producer.txn_begin_time_ns_total",
+                MetricInstrument.COUNTER,
+                "Total time producer has spent in beginTransaction in nanoseconds.")
+            .metric(
+                "kafka.producer.txn_commit_time_ns_total",
+                MetricInstrument.COUNTER,
+                "Total time producer has spent in commitTransaction in nanoseconds.")
+            .metric(
+                "kafka.producer.txn_init_time_ns_total",
+                MetricInstrument.COUNTER,
+                "Total time producer has spent in initTransactions in nanoseconds.")
+            .metric(
+                "kafka.producer.txn_send_offsets_time_ns_total",
+                MetricInstrument.COUNTER,
+                "Total time producer has spent in sendOffsetsToTransaction in nanoseconds.")
             .metric(
                 "kafka.producer.waiting_threads",
                 MetricInstrument.GAUGE,

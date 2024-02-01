@@ -55,9 +55,9 @@ versions:
         #--------------------------------------------------------------
         # Classes metrics
         - rename_metrics:
-            jvm.class.loaded:   process.runtime.jvm.classes.loaded
-            jvm.class.unloaded: process.runtime.jvm.classes.unloaded
-            jvm.class.count:    process.runtime.jvm.classes.current_loaded
+#            jvm.class.loaded:   process.runtime.jvm.classes.loaded
+            jvm.class.unloaded: runtime.jvm.classes.unloaded
+            jvm.class.count:    runtime.jvm.classes.loaded
 
         #--------------------------------------------------------------
         # CPU metrics

@@ -80,6 +80,7 @@ versions:
               - jvm.buffer.memory.usage
               - jvm.buffer.memory.limit
               - jvm.buffer.count
+
         #--------------------------------------------------------------
         # DB pool metrics
         - rename_metrics:
@@ -92,6 +93,16 @@ versions:
 #           db.client.connections.create_time:      db.pool.connections.create_time     # micrometer, timer vs. histogram
 #           db.client.connections.wait_time:        db.pool.connections.wait_time       # micrometer, timer vs. histogram
 #           db.client.connections.use_time:         db.pool.connections.use_time        # micrometer, timer vs. histogram
+        - rename_attributes:
+            attribute_map:
+              pool.name: pool_name
+            apply_to_metrics:
+              - db.client.connections.usage
+              - db.client.connections.idle.min
+              - db.client.connections.idle.max
+              - db.client.connections.max
+              - db.client.connections.pending_requests
+              - db.client.connections.timeouts
 
         #--------------------------------------------------------------
         # HTTP metrics

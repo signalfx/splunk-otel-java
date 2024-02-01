@@ -15,10 +15,10 @@ versions:
         #--------------------------------------------------------------
         # Memory metrics
         - rename_metrics:
-            jvm.memory.used:               runtime.jvm.memory.used
-            jvm.memory.committed:          runtime.jvm.memory.committed
-            jvm.memory.limit:              runtime.jvm.memory.max
-            jvm.memory.used_after_last_gc: runtime.jvm.memory.usage.after.gc
+            jvm.memory.used:               runtime.jvm.memory.used           # micrometer
+            jvm.memory.committed:          runtime.jvm.memory.committed      # micrometer
+            jvm.memory.limit:              runtime.jvm.memory.max            # micrometer
+            jvm.memory.used_after_last_gc: runtime.jvm.memory.usage.after.gc # micrometer
 #            jvm.memory.init:               process.runtime.jvm.memory.init  # experimental
         - rename_attributes:
             attribute_map:
@@ -29,23 +29,23 @@ versions:
               - jvm.memory.committed
               - jvm.memory.limit
               - jvm.memory.used_after_last_gc
-              - jvm.memory.init
+#              - jvm.memory.init
 
         #--------------------------------------------------------------
         # Garbage collection metrics
-        - rename_metrics:
-            jvm.gc.duration: process.runtime.jvm.gc.duration
-        - rename_attributes:
-            attribute_map:
-              name: jvm.gc.name
-              action: jvm.gc.action
-            apply_to_metrics:
-              - jvm.gc.duration
+#        - rename_metrics:
+#            jvm.gc.duration: process.runtime.jvm.gc.duration # otel
+#        - rename_attributes:
+#            attribute_map:
+#              name: jvm.gc.name
+#              action: jvm.gc.action
+#            apply_to_metrics:
+#              - jvm.gc.duration
 
         #--------------------------------------------------------------
         # Threads metrics
         - rename_metrics:
-            jvm.thread.count: runtime.jvm.threads.live
+            jvm.thread.count: runtime.jvm.threads.live # micrometer
         - rename_attributes:
             attribute_map:
               jvm.thread.daemon: daemon
@@ -56,23 +56,23 @@ versions:
         # Classes metrics
         - rename_metrics:
 #            jvm.class.loaded:   process.runtime.jvm.classes.loaded
-            jvm.class.unloaded: runtime.jvm.classes.unloaded
-            jvm.class.count:    runtime.jvm.classes.loaded
+            jvm.class.unloaded: runtime.jvm.classes.unloaded  # micrometer
+            jvm.class.count:    runtime.jvm.classes.loaded    # micrometer
 
         #--------------------------------------------------------------
         # CPU metrics
-        - rename_metrics:
-            jvm.cpu.time:               process.runtime.jvm.cpu.time
-            jvm.cpu.recent_utilization: process.runtime.jvm.cpu.recent_utilization
-            jvm.system.cpu.utilization: process.runtime.jvm.system.cpu.utilization # experimental
-            jvm.system.cpu.load_1m:     process.runtime.jvm.system.cpu.load_1m     # experimental
+#        - rename_metrics:
+#            jvm.cpu.time:               process.runtime.jvm.cpu.time
+#            jvm.cpu.recent_utilization: process.runtime.jvm.cpu.recent_utilization
+#            jvm.system.cpu.utilization: process.runtime.jvm.system.cpu.utilization # experimental
+#            jvm.system.cpu.load_1m:     process.runtime.jvm.system.cpu.load_1m     # experimental
 
         #--------------------------------------------------------------
         # Buffer metrics
         - rename_metrics:
-            jvm.buffer.memory.usage: runtime.jvm.buffer.memory.used    # experimental
-            jvm.buffer.memory.limit: runtime.jvm.buffer.total.capacity # experimental
-            jvm.buffer.count:        runtime.jvm.buffer.count          # experimental
+            jvm.buffer.memory.usage: runtime.jvm.buffer.memory.used    # micrometer, experimental
+            jvm.buffer.memory.limit: runtime.jvm.buffer.total.capacity # micrometer, experimental
+            jvm.buffer.count:        runtime.jvm.buffer.count          # micrometer, experimental
         - rename_attributes:
             attribute_map:
               jvm.buffer.pool.name: pool

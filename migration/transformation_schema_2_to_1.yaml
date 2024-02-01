@@ -18,7 +18,7 @@ versions:
             jvm.memory.used:               runtime.jvm.memory.used
             jvm.memory.committed:          runtime.jvm.memory.committed
             jvm.memory.limit:              runtime.jvm.memory.max
-#            jvm.memory.used_after_last_gc: process.runtime.jvm.memory.usage_after_last_gc
+            jvm.memory.used_after_last_gc: runtime.jvm.memory.usage.after.gc
 #            jvm.memory.init:               process.runtime.jvm.memory.init  # experimental
         - rename_attributes:
             attribute_map:

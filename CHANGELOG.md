@@ -8,10 +8,10 @@ and this repository adheres to [Semantic Versioning](https://semver.org/spec/v2.
 
 ## Unreleased
 
-The 2.0.0 release contains significant breaking changes that will most likely affect all users,
+The 2.0.0-alpha release contains significant breaking changes that will most likely affect all users,
 please be sure to read the breaking changes below carefully.
 
-Note: 2.0.0 release is considered experimental, Splunk recommends using 1.x version of the agent.
+Note: 2.0.0-alpha release is considered experimental, Splunk recommends using 1.x version of the agent.
 
 ### General
 

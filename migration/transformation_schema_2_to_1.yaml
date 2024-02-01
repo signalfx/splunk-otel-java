@@ -32,17 +32,6 @@ versions:
 #              - jvm.memory.init
 
         #--------------------------------------------------------------
-        # Garbage collection metrics
-#        - rename_metrics:
-#            jvm.gc.duration: process.runtime.jvm.gc.duration # otel
-#        - rename_attributes:
-#            attribute_map:
-#              name: jvm.gc.name
-#              action: jvm.gc.action
-#            apply_to_metrics:
-#              - jvm.gc.duration
-
-        #--------------------------------------------------------------
         # Threads metrics
         - rename_metrics:
             jvm.thread.count: runtime.jvm.threads.live # micrometer
@@ -66,6 +55,17 @@ versions:
 #            jvm.cpu.recent_utilization: process.runtime.jvm.cpu.recent_utilization
 #            jvm.system.cpu.utilization: process.runtime.jvm.system.cpu.utilization # experimental
 #            jvm.system.cpu.load_1m:     process.runtime.jvm.system.cpu.load_1m     # experimental
+
+#       #--------------------------------------------------------------
+#       # Garbage collection metrics
+#        - rename_metrics:
+#            jvm.gc.duration: process.runtime.jvm.gc.duration # otel
+#        - rename_attributes:
+#            attribute_map:
+#              name: jvm.gc.name
+#              action: jvm.gc.action
+#            apply_to_metrics:
+#              - jvm.gc.duration
 
         #--------------------------------------------------------------
         # Buffer metrics
@@ -106,29 +106,29 @@ versions:
 
         #--------------------------------------------------------------
         # HTTP metrics
-        - rename_metrics:
-            http.client.request.duration:   http.client.duration
-            http.server.request.duration:   http.server.duration
-            http.server.request.body.size:  http.server.request.size
-            http.server.response.body.size: http.server.response.size
-        - rename_attributes:
-            attribute_map:
-              http.request.method:       http.method
-              http.response.status_code: http.status_code
-              server.address:            net.peer.name
-              server.port:               net.peer.port
-              network.protocol.name:     net.protocol.name
-              network.protocol.version:  net.protocol.version
-            apply_to_metrics:
-              - http.client.request.duration
-        - rename_attributes:
-            attribute_map:
-              http.request.method:       http.method
-              http.response.status_code: http.status_code
-              url.scheme:                http.scheme
-              network.protocol.name:     net.protocol.name
-              network.protocol.version:  net.protocol.version
-              server.address:            net.host.name
-              server.port:               net.host.port
-            apply_to_metrics:
-              - http.server.request.duration
+#        - rename_metrics:
+#            http.client.request.duration:   http.client.duration         # otel
+#            http.server.request.duration:   http.server.duration         # otel
+#            http.server.request.body.size:  http.server.request.size     # otel
+#            http.server.response.body.size: http.server.response.size    # otel
+#        - rename_attributes:
+#            attribute_map:
+#              http.request.method:       http.method
+#              http.response.status_code: http.status_code
+#              server.address:            net.peer.name
+#              server.port:               net.peer.port
+#              network.protocol.name:     net.protocol.name
+#              network.protocol.version:  net.protocol.version
+#            apply_to_metrics:
+#              - http.client.request.duration
+#        - rename_attributes:
+#            attribute_map:
+#              http.request.method:       http.method
+#              http.response.status_code: http.status_code
+#              url.scheme:                http.scheme
+#              network.protocol.name:     net.protocol.name
+#              network.protocol.version:  net.protocol.version
+#              server.address:            net.host.name
+#              server.port:               net.host.port
+#            apply_to_metrics:
+#              - http.server.request.duration

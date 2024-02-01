@@ -27,7 +27,7 @@ Note: 2.0.0 release is considered experimental, Splunk recommends using 1.x vers
   `OTEL_METRICS_EXPORTER=none` or `-Dotel.metrics.exporter=none`.
 - The OTLP logs exporter is now enabled by default. You can disable it using
   `OTEL_LOGS_EXPORTER=none` or `-Dotel.logs.exporter=none`.
-- splunk-otel-javaagent-all.jar is not published anymore, use splunk-otel-javaagent.jar (##1567)
+- splunk-otel-javaagent-all.jar is not published anymore, use splunk-otel-javaagent.jar (#1567)
 - Configuration property `splunk.profiler.tlab.enabled` has been removed, it is replaced with `splunk.profiler.memory.enabled` (#1590)
 - Copying resource attributes to system properties was removed. If you wish to use resource attributes
   in logs you can use `otel.instrumentation.common.mdc.resource-attributes`. (#1587)

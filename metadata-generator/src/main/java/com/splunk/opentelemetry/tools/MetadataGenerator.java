@@ -2456,8 +2456,14 @@ public class MetadataGenerator {
                 "kafka.consumer.outgoing_byte_total",
                 MetricInstrument.COUNTER,
                 "The total number of outgoing bytes sent to all servers.")
-            .metric("kafka.consumer.request_latency_avg", MetricInstrument.GAUGE, "The average request latency in ms.")
-            .metric("kafka.consumer.request_latency_max", MetricInstrument.GAUGE, "The maximum request latency in ms.")
+            .metric(
+                "kafka.consumer.request_latency_avg",
+                MetricInstrument.GAUGE,
+                "The average request latency in ms.")
+            .metric(
+                "kafka.consumer.request_latency_max",
+                MetricInstrument.GAUGE,
+                "The maximum request latency in ms.")
             .metric(
                 "kafka.consumer.request_rate",
                 MetricInstrument.GAUGE,

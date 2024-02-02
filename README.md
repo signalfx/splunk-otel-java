@@ -12,8 +12,8 @@
 
 <p align="center">
   <img alt="Stable" src="https://img.shields.io/badge/status-stable-informational?style=for-the-badge">
-  <a href="https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/tag/v1.32.0">
-    <img alt="OpenTelemetry Instrumentation for Java Version" src="https://img.shields.io/badge/otel-1.32.0-blueviolet?style=for-the-badge">
+  <a href="https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/tag/v1.32.1">
+    <img alt="OpenTelemetry Instrumentation for Java Version" src="https://img.shields.io/badge/otel-1.32.1-blueviolet?style=for-the-badge">
   </a>
   <a href="https://github.com/signalfx/gdi-specification/releases/tag/v1.6.0">
     <img alt="Splunk GDI specification" src="https://img.shields.io/badge/GDI-1.6.0-blueviolet?style=for-the-badge">
@@ -104,12 +104,12 @@ To extend the instrumentation with the OpenTelemetry Instrumentation for Java,
 you have to use a compatible API version.
 
 <!-- IMPORTANT: do not change comments or break those lines below -->
-The Splunk Distribution of OpenTelemetry Java version <!--SPLUNK_VERSION-->1.30.0<!--SPLUNK_VERSION--> is compatible
+The Splunk Distribution of OpenTelemetry Java version <!--SPLUNK_VERSION-->1.30.1<!--SPLUNK_VERSION--> is compatible
 with:
 
-* OpenTelemetry API version <!--OTEL_VERSION-->1.32.0<!--OTEL_VERSION-->
-* OpenTelemetry Instrumentation for Java version <!--OTEL_INSTRUMENTATION_VERSION-->1.32.0<!--OTEL_INSTRUMENTATION_VERSION-->
-* Micrometer version 1.11.0
+* OpenTelemetry API version <!--OTEL_VERSION-->1.34.1<!--OTEL_VERSION-->
+* OpenTelemetry Instrumentation for Java version <!--OTEL_INSTRUMENTATION_VERSION-->1.32.1<!--OTEL_INSTRUMENTATION_VERSION-->
+* Micrometer version 1.12.2
 
 ## Snapshot builds
 

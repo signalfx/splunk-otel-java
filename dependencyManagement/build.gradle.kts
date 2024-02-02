@@ -2,16 +2,16 @@ plugins {
   `java-platform`
 }
 
-val otelVersion = "1.32.0"
+val otelVersion = "1.34.1"
 val otelAlphaVersion = otelVersion.replaceFirst("(-SNAPSHOT)?$".toRegex(), "-alpha$1")
-val otelInstrumentationVersion = "1.32.0"
+val otelInstrumentationVersion = "1.32.1"
 val otelInstrumentationAlphaVersion =  otelInstrumentationVersion.replaceFirst("(-SNAPSHOT)?$".toRegex(), "-alpha$1")
-val otelContribAlphaVersion = "1.31.0-alpha"
+val otelContribAlphaVersion = "1.32.0-alpha"
 
 val autoValueVersion = "1.10.4";
 val dockerJavaVersion = "3.3.4"
 val micrometerOldVersion = "1.3.20"
-val micrometerVersion = "1.12.0"
+val micrometerVersion = "1.12.2"
 val mockitoVersion = "5.7.0"
 val protobufVersion = "3.25.1"
 val slf4jVersion = "2.0.9"

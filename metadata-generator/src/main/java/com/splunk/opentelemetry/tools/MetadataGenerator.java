@@ -71,7 +71,7 @@ public class MetadataGenerator {
     root.put("component", "Splunk Distribution of OpenTelemetry Java");
     root.put("version", splunkJavaVersion);
 
-    List<Object> dependencies = new ArrayList<>();
+    List<Map<String, Object>> dependencies = new ArrayList<>();
     root.put("dependencies", dependencies);
 
     dependencies.add(
@@ -99,7 +99,7 @@ public class MetadataGenerator {
             otelJavaContribAlphaVersion,
             Stability.EXPERIMENTAL));
 
-    List<Object> settings = new ArrayList<>();
+    List<Map<String, Object>> settings = new ArrayList<>();
     root.put("settings", settings);
 
     // https://github.com/open-telemetry/opentelemetry-java/blob/main/sdk-extensions/autoconfigure/README.md
@@ -2050,7 +2050,38 @@ public class MetadataGenerator {
             SettingType.BOOLEAN,
             SettingCategory.INSTRUMENTATION));
 
-    List<Object> instrumentations = new ArrayList<>();
+    // metrics from the Java SDK, .NET SDK does not have built-in metrics so this is not present in
+    // their yaml
+    List<Map<String, Object>> metrics = new ArrayList<>();
+    root.put("metrics", metrics);
+
+    metrics.add(
+        metric(
+            "io.opentelemetry.sdk.trace",
+            "queueSize",
+            MetricInstrument.GAUGE,
+            "The number of items queued"));
+    metrics.add(
+        metric(
+            "io.opentelemetry.sdk.trace",
+            "processedSpans",
+            MetricInstrument.COUNTER,
+            "The number of spans processed by the BatchSpanProcessor. [dropped=true if they were dropped due to high throughput]"));
+
+    metrics.add(
+        metric(
+            "io.opentelemetry.sdk.logs",
+            "queueSize",
+            MetricInstrument.GAUGE,
+            "The number of items queued"));
+    metrics.add(
+        metric(
+            "io.opentelemetry.sdk.logs",
+            "processedSpans",
+            MetricInstrument.COUNTER,
+            "The number of logs processed by the BatchLogRecordProcessor. [dropped=true if they were dropped due to high throughput]"));
+
+    List<Map<String, Object>> instrumentations = new ArrayList<>();
     root.put("instrumentations", instrumentations);
 
     instrumentations.add(
@@ -3265,7 +3296,8 @@ public class MetadataGenerator {
             .metric(
                 "jvm.gc.pause.totalTime",
                 MetricInstrument.COUNTER,
-                "Time spent in GC pause. This metric will be removed in a future release."));
+                "Time spent in GC pause. This metric will be removed in a future release.")
+            .build());
     instrumentations.add(
         splunkInstrumentation("khttp").component("khttp", "0.1 and higher").build());
     instrumentations.add(
@@ -3305,7 +3337,7 @@ public class MetadataGenerator {
     instrumentations.add(
         splunkInstrumentation("wildfly").component("WildFly", "13.0 and higher").build());
 
-    List<Object> resourceProviders = new ArrayList<>();
+    List<Map<String, Object>> resourceProviders = new ArrayList<>();
     root.put("resource_detectors", resourceProviders);
     resourceProviders.add(
         resourceProvider("CONTAINER", "Container detector.", List.of("container.id"))
@@ -3421,6 +3453,20 @@ public class MetadataGenerator {
     map.put("default", defaultValue);
     map.put("type", type.value());
     map.put("category", category.value());
+
+    return map;
+  }
+
+  private static Map<String, Object> metric(
+      String instrumentationScopeName,
+      String metricName,
+      MetricInstrument instrument,
+      String description) {
+    Map<String, Object> map = new LinkedHashMap<>();
+    map.put("instrumentation_scope_name", instrumentationScopeName);
+    map.put("metric_name", metricName);
+    map.put("instrument", instrument.value());
+    map.put("description", description);
 
     return map;
   }

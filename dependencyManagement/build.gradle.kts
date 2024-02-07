@@ -12,7 +12,7 @@ val autoValueVersion = "1.10.4";
 val dockerJavaVersion = "3.3.4"
 val mockitoVersion = "5.10.0"
 val protobufVersion = "3.25.2"
-val slf4jVersion = "2.0.11"
+val slf4jVersion = "2.0.12"
 
 // instrumentation version is used to compute Implementation-Version manifest attribute
 rootProject.extra["otelInstrumentationVersion"] = otelInstrumentationVersion
@@ -31,15 +31,15 @@ dependencies {
   api(enforcedPlatform("com.fasterxml.jackson:jackson-bom:2.16.1"))
   api(enforcedPlatform("com.google.protobuf:protobuf-bom:$protobufVersion"))
   api(enforcedPlatform("com.squareup.okhttp3:okhttp-bom:4.12.0"))
-  api(enforcedPlatform("io.grpc:grpc-bom:1.61.0"))
+  api(enforcedPlatform("io.grpc:grpc-bom:1.61.1"))
   api(enforcedPlatform("io.opentelemetry:opentelemetry-bom-alpha:$otelAlphaVersion"))
   api(enforcedPlatform("io.opentelemetry.instrumentation:opentelemetry-instrumentation-bom-alpha:$otelInstrumentationAlphaVersion"))
-  api(enforcedPlatform("org.junit:junit-bom:5.10.1"))
+  api(enforcedPlatform("org.junit:junit-bom:5.10.2"))
   api(enforcedPlatform("org.testcontainers:testcontainers-bom:1.19.4"))
 
   constraints {
     api("com.google.auto.service:auto-service:1.1.1")
-    api("org.assertj:assertj-core:3.25.2")
+    api("org.assertj:assertj-core:3.25.3")
     api("org.awaitility:awaitility:4.2.0")
 
     api("com.github.docker-java:docker-java-core:$dockerJavaVersion")

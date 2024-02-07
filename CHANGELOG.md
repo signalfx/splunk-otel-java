@@ -33,6 +33,14 @@ Note: 2.0.0-alpha release is considered experimental, Splunk recommends using 1.
   in logs you can use `otel.instrumentation.common.mdc.resource-attributes`. (#1587)
 - Please also review the breaking changes in the [release notes of OpenTelemetry Instrumentation for Java](https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/tag/v2.0.0)
 
+## v1.30.1 - 2024-02-02
+
+### General
+
+- OpenTelemetry Java SDK has been updated to version 1.34.1.
+- OpenTelemetry Instrumentation for Java has been updated to version 1.32.1.
+- Micrometer dependency has been updated to version 1.12.2.
+
 ## v1.30.0 - 2023-11-23
 
 ### General

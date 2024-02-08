@@ -41,7 +41,8 @@ setup_git() {
   git config --global user.signingKey "$GITHUB_BOT_GPG_KEY_ID"
 }
 
-# without the starting 'v'
+# input must include starting 'v'.
+# this strips it and returns version minus leading v.
 get_release_version() {
   local release_tag="$1"
   echo "$release_tag" | cut -c2-

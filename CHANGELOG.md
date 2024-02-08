@@ -8,6 +8,31 @@ and this repository adheres to [Semantic Versioning](https://semver.org/spec/v2.
 
 ## Unreleased
 
+The 2.0.0-alpha release contains significant breaking changes that will most likely affect all users,
+please be sure to read the breaking changes below carefully.
+
+Note: 2.0.0-alpha release is considered experimental, Splunk recommends using 1.x version of the agent.
+
+### General
+
+- OpenTelemetry Java SDK has been updated to version 1.34.1.
+- OpenTelemetry Instrumentation for Java has been updated to version 2.0.0.
+
+### ⚠️⚠️ Breaking changes ⚠️⚠️
+- Micrometer based metrics were removed in favour of OpenTelemetry based metrics.
+- The default OTLP protocol has been changed from `grpc` to `http/protobuf` in order to align with
+  the [specification](https://github.com/open-telemetry/opentelemetry-specification/blob/v1.28.0/specification/protocol/exporter.md#specify-protocol).
+  You can switch to the `grpc` protocol using `OTEL_EXPORTER_OTLP_PROTOCOL=grpc`
+- The OTLP metrics exporter is now enabled by default. You can disable it using
+  `OTEL_METRICS_EXPORTER=none` or `-Dotel.metrics.exporter=none`.
+- The OTLP logs exporter is now enabled by default. You can disable it using
+  `OTEL_LOGS_EXPORTER=none` or `-Dotel.logs.exporter=none`.
+- splunk-otel-javaagent-all.jar is not published anymore, use splunk-otel-javaagent.jar (#1567)
+- Configuration property `splunk.profiler.tlab.enabled` has been removed, it is replaced with `splunk.profiler.memory.enabled` (#1590)
+- Copying resource attributes to system properties was removed. If you wish to use resource attributes
+  in logs you can use `otel.instrumentation.common.mdc.resource-attributes`. (#1587)
+- Please also review the breaking changes in the [release notes of OpenTelemetry Instrumentation for Java](https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/tag/v2.0.0)
+
 ## v1.30.1 - 2024-02-02
 
 ### General

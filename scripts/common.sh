@@ -58,12 +58,12 @@ get_minor_version() {
 }
 get_patch_version() {
   local release_tag="$1"
-  get_release_version "$release_tag" | awk -F'.' '{print $3}'
+  get_release_version "$release_tag" | awk -F'[.-]' '{print $3}'
 }
 
 validate_version() {
   local version="$1"
-  if [[ ! $version =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
+  if [[ ! $version =~ ^[0-9]+\.[0-9]+\.[0-9]+(-.*)?$ ]]
   then
     echo "Invalid release version: $version"
     echo "Release version must follow the pattern major.minor.patch, e.g. 1.2.3"

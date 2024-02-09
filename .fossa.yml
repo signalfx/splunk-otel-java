@@ -1,0 +1,10 @@
+version: 3
+
+experimental:
+  gradle:
+    # other configurations will be excluded, we don't wish to analyze compile only and test dependencies
+    configurations-only:
+      - runtimeClasspath
+      - runtime
+      - runtimeOnly
+      - runtimeOnlyDependenciesMetadata

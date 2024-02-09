@@ -51,7 +51,7 @@ release:
     paths:
       - dist/
   rules:
-    - if: '$CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9](-alpha)?+.*/'
+    - if: '$CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+(-alpha)?.*/'
   before_script:
     - ./scripts/install-gh-deps.sh
   script:
@@ -60,7 +60,7 @@ release:
 publish-docker-image:
   stage: post-release
   rules:
-    - if: '$CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9](-alpha)?+.*/'
+    - if: '$CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+(-alpha)?.*/'
   before_script:
     - ./scripts/install-docker-deps.sh
     - ./scripts/install-gh-deps.sh
@@ -70,7 +70,7 @@ publish-docker-image:
 propagate-version:
   stage: post-release
   rules:
-    - if: '$CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9](-alpha)?+.*/'
+    - if: '$CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+(-alpha)?.*/'
   before_script:
     - ./scripts/install-gh-deps.sh
   script:

@@ -1,6 +1,6 @@
 # Dockerfile for the application under test
 # Builds petclinic-rest using the specified JDK version (minimum is 8 for JFR)
-ARG jdkVersion=8
+ARG jdkVersion=21
 
 FROM eclipse-temurin:${jdkVersion}
 

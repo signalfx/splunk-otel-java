@@ -12,7 +12,7 @@ val autoValueVersion = "1.10.4";
 val dockerJavaVersion = "3.3.4"
 val micrometerOldVersion = "1.3.20"
 val micrometerVersion = "1.12.2"
-val mockitoVersion = "5.7.0"
+val mockitoVersion = "5.10.0"
 val protobufVersion = "3.25.2"
 val slf4jVersion = "2.0.12"
 
@@ -32,7 +32,7 @@ dependencies {
   api(enforcedPlatform("com.fasterxml.jackson:jackson-bom:2.16.1"))
   api(enforcedPlatform("com.google.protobuf:protobuf-bom:$protobufVersion"))
   api(enforcedPlatform("com.squareup.okhttp3:okhttp-bom:4.12.0"))
-  api(enforcedPlatform("io.grpc:grpc-bom:1.59.0"))
+  api(enforcedPlatform("io.grpc:grpc-bom:1.61.1"))
   api(platform("io.micrometer:micrometer-bom:$micrometerVersion"))
   api(enforcedPlatform("io.opentelemetry:opentelemetry-bom-alpha:$otelAlphaVersion"))
   api(enforcedPlatform("io.opentelemetry.instrumentation:opentelemetry-instrumentation-bom-alpha:$otelInstrumentationAlphaVersion"))
@@ -43,7 +43,7 @@ dependencies {
     api("com.google.auto.service:auto-service:1.1.1")
     api("org.assertj:assertj-core:3.25.3")
     api("org.awaitility:awaitility:4.2.0")
-    api("com.signalfx.public:signalfx-metrics:1.0.37")
+    api("com.signalfx.public:signalfx-metrics:1.0.38")
 
     api("com.github.docker-java:docker-java-core:$dockerJavaVersion")
     api("com.github.docker-java:docker-java-transport-httpclient5:$dockerJavaVersion")

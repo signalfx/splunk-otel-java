@@ -41,7 +41,8 @@ setup_git() {
   git config --global user.signingKey "$GITHUB_BOT_GPG_KEY_ID"
 }
 
-# without the starting 'v'
+# input must include starting 'v'.
+# this strips it and returns version minus leading v.
 get_release_version() {
   local release_tag="$1"
   echo "$release_tag" | cut -c2-
@@ -58,12 +59,12 @@ get_minor_version() {
 }
 get_patch_version() {
   local release_tag="$1"
-  get_release_version "$release_tag" | awk -F'.' '{print $3}'
+  get_release_version "$release_tag" | awk -F'[.-]' '{print $3}'
 }
 
 validate_version() {
   local version="$1"
-  if [[ ! $version =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
+  if [[ ! $version =~ ^[0-9]+\.[0-9]+\.[0-9]+(-.*)?$ ]]
   then
     echo "Invalid release version: $version"
     echo "Release version must follow the pattern major.minor.patch, e.g. 1.2.3"

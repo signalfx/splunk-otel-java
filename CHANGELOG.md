@@ -12,7 +12,7 @@ tbd
 
 ## v1.30.2 - 2024-02-15
 
-- Update base image for tanzu buildpack from cflinuxfs3 to cflinuxfs4.
+- Update base image for CloudFoundry buildpack from cflinuxfs3 to cflinuxfs4.
 
 ## v2.0.0-alpha - 2024-02-13
 

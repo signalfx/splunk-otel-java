@@ -10,6 +10,10 @@ and this repository adheres to [Semantic Versioning](https://semver.org/spec/v2.
 
 tbd
 
+## v1.30.2 - 2024-02-15
+
+- Update base image for tanzu buildpack from cflinuxfs3 to cflinuxfs4.
+
 ## v2.0.0-alpha - 2024-02-13
 
 The 2.0.0-alpha release contains significant breaking changes that will most likely affect all users,

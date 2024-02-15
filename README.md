@@ -104,7 +104,7 @@ To extend the instrumentation with the OpenTelemetry Instrumentation for Java,
 you have to use a compatible API version.
 
 <!-- IMPORTANT: do not change comments or break those lines below -->
-The Splunk Distribution of OpenTelemetry Java version <!--SPLUNK_VERSION-->1.30.1<!--SPLUNK_VERSION--> is compatible
+The Splunk Distribution of OpenTelemetry Java version <!--SPLUNK_VERSION-->1.30.2<!--SPLUNK_VERSION--> is compatible
 with:
 
 * OpenTelemetry API version <!--OTEL_VERSION-->1.34.1<!--OTEL_VERSION-->

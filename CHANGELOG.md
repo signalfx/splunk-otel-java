@@ -13,7 +13,7 @@ tbd
 ## v1.30.2 - 2024-02-15
 
 - Several dependency upgrades.
-- Update base image for tanzu buildpack to cflinuxfs3.
+- Update base image for tanzu buildpack from cflinuxfs3 to cflinuxfs4.
 
 ## v1.30.1 - 2024-02-02
 

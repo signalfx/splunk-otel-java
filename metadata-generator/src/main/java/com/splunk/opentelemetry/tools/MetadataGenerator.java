@@ -980,6 +980,82 @@ public class MetadataGenerator {
             SettingType.BOOLEAN,
             SettingCategory.INSTRUMENTATION));
 
+    // Capturing enduser attributes
+    // https://opentelemetry.io/docs/languages/java/automatic/configuration/#capturing-enduser-attributes
+
+    /*
+    You can configure the agent to capture general identity attributes (enduser.id, enduser.role, enduser.scope) from instrumentation libraries like JavaEE/JakartaEE Servlet and Spring Security.
+
+    Note: Given the sensitive nature of the data involved, this feature is turned off by default while allowing selective activation for particular attributes. You must carefully evaluate each attribute’s privacy implications before enabling the collection of the data.
+
+    System property: otel.instrumentation.common.enduser.enabled
+    Environment variable: OTEL_INSTRUMENTATION_COMMON_ENDUSER_ENABLED
+    Default: false
+    Description: Common flag for enabling/disabling enduser attributes.
+
+    System property: otel.instrumentation.common.enduser.id.enabled
+    Environment variable: OTEL_INSTRUMENTATION_COMMON_ENDUSER_ID_ENABLED
+    Default: false
+    Description: Determines whether to capture enduser.id semantic attribute.
+
+    System property: otel.instrumentation.common.enduser.role.enabled
+    Environment variable: OTEL_INSTRUMENTATION_COMMON_ENDUSER_ROLE_ENABLED
+    Default: false
+    Description: Determines whether to capture enduser.role semantic attribute.
+
+    System property: otel.instrumentation.common.enduser.scope.enabled
+    Environment variable: OTEL_INSTRUMENTATION_COMMON_ENDUSER_SCOPE_ENABLED
+    Default: false
+    Description: Determines whether to capture enduser.scope semantic attribute.
+     */
+
+    settings.add(
+        setting(
+            "OTEL_INSTRUMENTATION_COMMON_ENDUSER_ENABLED",
+            "Common flag for enabling/disabling enduser attributes.",
+            "false",
+            SettingType.BOOLEAN,
+            SettingCategory.INSTRUMENTATION));
+    settings.add(
+        setting(
+            "OTEL_INSTRUMENTATION_COMMON_ENDUSER_ID_ENABLED",
+            "Determines whether to capture `enduser.id` semantic attribute.",
+            "false",
+            SettingType.BOOLEAN,
+            SettingCategory.INSTRUMENTATION));
+    settings.add(
+        setting(
+            "OTEL_INSTRUMENTATION_COMMON_ENDUSER_ROLE_ENABLED",
+            "Determines whether to capture `enduser.role` semantic attribute.",
+            "false",
+            SettingType.BOOLEAN,
+            SettingCategory.INSTRUMENTATION));
+    settings.add(
+        setting(
+            "OTEL_INSTRUMENTATION_COMMON_ENDUSER_SCOPE_ENABLED",
+            "Determines whether to capture `enduser.scope` semantic attribute.",
+            "false",
+            SettingType.BOOLEAN,
+            SettingCategory.INSTRUMENTATION));
+
+    // the following don't seem to be documented anywhere
+    // https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/1cddf1b4a7dac1ada37f356cd5e25f1ca16e2395/javaagent-extension-api/src/main/java/io/opentelemetry/javaagent/bootstrap/internal/CommonConfig.java#L60
+
+    settings.add(
+        setting(
+            toEnvVar("otel.instrumentation.http.client.emit-experimental-telemetry"),
+            "Enables experimental http client telemetry.",
+            "false",
+            SettingType.BOOLEAN,
+            SettingCategory.INSTRUMENTATION));
+    settings.add(
+        setting(
+            toEnvVar("otel.instrumentation.http.server.emit-experimental-telemetry"),
+            "Enables experimental http server telemetry.",
+            "false",
+            SettingType.BOOLEAN,
+            SettingCategory.INSTRUMENTATION));
+
     // Enable only specific instrumentation
     // https://opentelemetry.io/docs/instrumentation/java/automatic/agent-config/#enable-only-specific-instrumentation
 
@@ -1510,7 +1586,7 @@ public class MetadataGenerator {
             SettingCategory.INSTRUMENTATION));
     settings.add(
         setting(
-            toEnvVar("otel.instrumentation.kafka.client-propagation.enabled"),
+            toEnvVar("otel.instrumentation.kafka.producer-propagation.enabled"),
             "Enable context propagation for kafka message producer.",
             "true",
             SettingType.BOOLEAN,
@@ -2932,6 +3008,8 @@ public class MetadataGenerator {
         instrumentation("elasticsearch-transport")
             .component("Elasticsearch Transport Client", "5.0 and higher")
             .build());
+    instrumentations.add(
+        instrumentation("finagle").component("Finagle", "23.11 and higher").build());
     instrumentations.add(instrumentation("finatra").component("Finatra", "2.9 and higher").build());
     instrumentations.add(
         instrumentation("geode").component("Geode Client", "1.4 and higher").build());
@@ -3109,6 +3187,7 @@ public class MetadataGenerator {
         instrumentation("micrometer").component("Micrometer", "1.5 and higher").build());
     instrumentations.add(
         instrumentation("mongo").component("MongoDB Drive", "3.1 and higher").build());
+    instrumentations.add(instrumentation("mybatis").component("MyBatis", "3.2 and higher").build());
     instrumentations.add(
         instrumentation("netty")
             .component("Netty", "3.8 and higher")

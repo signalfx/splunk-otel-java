@@ -27,7 +27,8 @@ $ cf set-env my-app OTEL_RESOURCE_ATTRIBUTES "service.name=<application name>"
 # ...
 
 # java_buildpack is the main buildpack for JVM apps, it needs to be the final one
-$ cf push my-app -b splunk_otel_java_buildpack -b https://github.com/cloudfoundry/java-buildpack
+# python is required for the supply script
+$ cf push my-app -b python_buildpack -b splunk_otel_java_buildpack -b https://github.com/cloudfoundry/java-buildpack
 ```
 
 ## Configuration

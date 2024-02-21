@@ -8,7 +8,12 @@ and this repository adheres to [Semantic Versioning](https://semver.org/spec/v2.
 
 ## Unreleased
 
-tbd
+## v2.1.0-alpha - 2024-02-21
+
+- OpenTelemetry Java SDK has been updated to version 1.35.0.
+- OpenTelemetry Instrumentation for Java has been updated to version 2.1.0.
+
+Note: 2.1.0-alpha release is considered experimental, Splunk recommends using 1.x version of the agent.
 
 ## v1.30.2 - 2024-02-15
 

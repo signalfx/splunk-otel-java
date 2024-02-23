@@ -8,7 +8,7 @@ and this repository adheres to [Semantic Versioning](https://semver.org/spec/v2.
 
 ## Unreleased
 
-tbd 
+- Remove dependency on python for CloudFoundry `supply` script 
 
 ## v1.30.2 - 2024-02-15
 

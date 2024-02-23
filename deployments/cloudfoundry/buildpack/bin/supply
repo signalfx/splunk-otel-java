@@ -1,79 +1,86 @@
-#!/usr/bin/env python3
+#!/bin/bash
 
-import os
-import shutil
-from os import makedirs, environ as ENV
-from pathlib import Path
-from sys import argv as ARGV
-from urllib.request import build_opener, HTTPRedirectHandler
+LATEST_VERSION="latest"
+JAVA_AGENT_VERSION="$SPLUNK_OTEL_JAVA_VERSION"
+if [ "$JAVA_AGENT_VERSION" == "" ]; then
+  JAVA_AGENT_VERSION="$LATEST_VERSION"
+fi
+JAVA_AGENT_JAR_NAME="splunk-otel-javaagent-${JAVA_AGENT_VERSION}.jar"
+JAVA_AGENT_URL="https://github.com/signalfx/splunk-otel-java/releases/download/v${JAVA_AGENT_VERSION}/splunk-otel-javaagent.jar"
+JAVA_AGENT_LATEST_URL="https://github.com/signalfx/splunk-otel-java/releases/latest/download/splunk-otel-javaagent.jar"
+RET=""
 
-LATEST_VERSION = "latest"
-JAVA_AGENT_VERSION = ENV.get("SPLUNK_OTEL_JAVA_VERSION", default=LATEST_VERSION)
-JAVA_AGENT_JAR_NAME = f"splunk-otel-javaagent-{JAVA_AGENT_VERSION}.jar"
-JAVA_AGENT_URL = f"https://github.com/signalfx/splunk-otel-java/releases/download/v{JAVA_AGENT_VERSION}/splunk-otel-javaagent.jar"
-JAVA_AGENT_LATEST_URL = "https://github.com/signalfx/splunk-otel-java/releases/latest/download/splunk-otel-javaagent.jar"
+function disable_cache_for_latest_version {
+  local AGENT_JAR="$1"
+  echo $JAVA_AGENT_VERSION
+  echo $LATEST_VERSION
+  if [ "$JAVA_AGENT_VERSION" == "$LATEST_VERSION" ]; then
+    if [ -f $AGENT_JAR ]; then
+      echo "Disabling cache when using the latest version ..."
+      rm "$AGENT_JAR"
+    fi
+  fi
+}
 
-def log_op(msg):
-    print(f"-----> {msg}")
+function download_agent_jar {
+  CACHE_DIR="$1"
+  local AGENT_JAR="${CACHE_DIR}/${JAVA_AGENT_JAR_NAME}"
+  disable_cache_for_latest_version $AGENT_JAR
+  if [ !  -f "$AGENT_JAR" ]; then
+    echo "Agent jar ${AGENT_JAR} does not exist, downloading ..."
+    local URL="${JAVA_AGENT_URL}"
+    if [ "$JAVA_AGENT_VERSION" == "$LATEST_VERSION" ] ; then
+      URL="$JAVA_AGENT_LATEST_URL"
+    fi
+    echo "$URL"
+    curl -L -o "${AGENT_JAR}" "$URL"
+  fi
+  RET="$AGENT_JAR"
+}
 
-def disable_cache_for_latest_version(agent_jar):
-    if JAVA_AGENT_VERSION == LATEST_VERSION:
-        if agent_jar.is_file():
-            log_op("Disabling cache when using the latest version ...")
-            os.remove(agent_jar)
+function copy_agent_to_app {
+  local AGENT_JAR="$1"
+  local APP_DIR="$2"
+  local TARGET_DIR="${APP_DIR}/.java_buildpack/splunk_otel_java"
+  if [ ! -d "$TARGET_DIR" ]; then
+    mkdir -p "${TARGET_DIR}"
+  fi
+  local TARGET_AGENT_JAR="${TARGET_DIR}/${JAVA_AGENT_JAR_NAME}"
+  echo "Moving agent jar to $TARGET_AGENT_JAR..."
+  cp "$AGENT_JAR" "$TARGET_AGENT_JAR"
+  RET="$TARGET_AGENT_JAR"
+}
 
-def get_url():
-    if JAVA_AGENT_VERSION == LATEST_VERSION:
-        return JAVA_AGENT_LATEST_URL
-    else:
-        return JAVA_AGENT_URL
+function write_config_yml {
+  local AGENT_JAR="$1"
+  local DEPS_DIR="$2"
+  local DEPS_IDX="$3"
+  local DEP_PATH="${DEPS_DIR}/${DEPS_IDX}"
+  if [ ! -d "${DEP_PATH}" ]; then
+    mkdir -p "${DEP_PATH}"
+  fi
+  local CONFIG_YML="${DEP_PATH}/config.yml"
+  echo "Writing configuration file ${CONFIG_YML} ..."
+  echo "---"                               > "$CONFIG_YML"
+  echo "name: splunk-otel-java"           >> "$CONFIG_YML"
+  echo "config:"                          >> "$CONFIG_YML"
+  echo "  java_opts:"                     >> "$CONFIG_YML"
+  echo "    javaagents: ['${AGENT_JAR}']" >> "$CONFIG_YML"
+}
 
-def download_agent_jar(cache_dir):
-    agent_jar = Path(cache_dir, JAVA_AGENT_JAR_NAME)
-    disable_cache_for_latest_version(agent_jar)
-    if not agent_jar.is_file():
-        log_op(f"Agent jar {agent_jar} does not exist, downloading ...")
-        client = build_opener(HTTPRedirectHandler())
-        with client.open(get_url()) as rs:
-            with agent_jar.open('wb') as f:
-                f.write(rs.read())
-    return agent_jar
+if [ $# -lt 4 ]; then
+  echo "ERROR: this script must be provided at least 4 args: BUILD_DIR, CACHE_DIR, DEPS_DIR, DEPS_IDX"
+  exit 1
+fi
 
-def copy_agent_to_app(agent_jar, app_dir):
-    target_dir = Path(app_dir, ".java-buildpack", "splunk_otel_java")
-    if not target_dir.is_dir():
-        makedirs(target_dir)
+APP_DIR="$1"
+CACHE_DIR="$2"
+DEPS_DIR="$3"
+DEPS_IDX="$4"
 
-    target_agent_jar = Path(target_dir, JAVA_AGENT_JAR_NAME)
-    log_op(f"Moving agent jar to {target_agent_jar} ...")
-    shutil.copy(agent_jar, target_agent_jar)
-    return target_agent_jar
-
-def write_config_yml(agent_jar, deps_dir, deps_idx):
-    dep_path = Path(deps_dir, deps_idx)
-    if not dep_path.is_dir():
-        makedirs(dep_path)
-
-    config_yml = Path(dep_path, "config.yml")
-    log_op(f"Writing configuration file {config_yml} ...")
-
-    with config_yml.open('w') as f:
-        f.writelines([
-            "---\n",
-            "name: splunk-otel-java\n",
-            "config:\n",
-            "  java_opts:\n",
-            f"    javaagents: ['{agent_jar}']\n",
-        ])
-
-def main(app_dir, cache_dir, deps_dir, deps_idx):
-    log_op("Splunk OpenTelemetry Java Buildpack")
-    agent_jar = download_agent_jar(cache_dir)
-    agent_jar = copy_agent_to_app(agent_jar, app_dir)
-    write_config_yml(agent_jar, deps_dir, deps_idx)
-
-if __name__ == "__main__":
-    if len(ARGV) < 5:
-        log_op("ERROR: this script must be provided at least 4 args: BUILD_DIR, CACHE_DIR, DEPS_DIR, DEPS_IDX")
-        exit(1)
-    main(ARGV[1], ARGV[2], ARGV[3], ARGV[4])
+echo "Splunk OpenTelemetry Java Buildpack"
+download_agent_jar $CACHE_DIR
+AGENT_JAR="$RET"
+copy_agent_to_app "$AGENT_JAR" "$APP_DIR"
+AGENT_JAR="$RET"
+write_config_yml "$AGENT_JAR" "$DEPS_DIR" "$DEPS_IDX"

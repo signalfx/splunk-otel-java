@@ -1,7 +1,7 @@
 
 # splunk-otel-javaagent
 ## Dependency License Report
-_2024-02-21 16:35:40 EET_
+_2024-02-27 07:47:01 EET_
 ## Apache License, Version 2.0
 
 **1** **Group:** `com.squareup.okhttp3` **Name:** `okhttp` **Version:** `4.12.0` 
@@ -153,6 +153,6 @@ _2024-02-21 16:35:40 EET_
 
 **33** **Group:** `com.squareup.okio` **Name:** `okio` **Version:** `3.6.0` 
 
-**34** **Group:** `io.opentelemetry.instrumentation` **Name:** `opentelemetry-instrumentation-bom-alpha` **Version:** `2.1.0-alpha` 
+**34** **Group:** `io.opentelemetry.instrumentation` **Name:** `opentelemetry-instrumentation-bom-alpha` **Version:** `2.2.0-alpha-SNAPSHOT` 
 
 

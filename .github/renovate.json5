@@ -4,7 +4,7 @@
     "config:base"
   ],
   "ignorePaths": ["instrumentation/**"],
-  "baseBranches": ["main", "v1.30.x"],
+  "baseBranches": ["main", "v1.31.x"],
   "packageRules": [
     {
       "matchPackagePrefixes": ["com.diffplug.spotless"],

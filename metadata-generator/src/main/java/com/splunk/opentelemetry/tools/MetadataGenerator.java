@@ -2153,7 +2153,7 @@ public class MetadataGenerator {
     metrics.add(
         metric(
             "io.opentelemetry.sdk.logs",
-            "processedSpans",
+            "processedLogs",
             MetricInstrument.COUNTER,
             "The number of logs processed by the BatchLogRecordProcessor. [dropped=true if they were dropped due to high throughput]"));
 

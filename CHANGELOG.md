@@ -8,6 +8,17 @@ and this repository adheres to [Semantic Versioning](https://semver.org/spec/v2.
 
 ## Unreleased
 
+## v1.31.0 - 2024-03-06
+
+### General
+
+- OpenTelemetry Java SDK has been updated to version 1.35.0.
+- OpenTelemetry Instrumentation for Java has been updated to version 1.33.0.
+- Micrometer dependency has been updated to version 1.12.3.
+
+### Breaking Changes
+- The deprecated Jaeger exporter has been removed.
+
 ## v1.30.3 - 2024-02-27
 
 - Remove dependency on python for CloudFoundry `supply` script 
@@ -82,7 +93,7 @@ and this repository adheres to [Semantic Versioning](https://semver.org/spec/v2.
 - Grpc dependency has been updated to version 1.56.1.
 
 ### Breaking Changes
-- Remove deprecated Jaeger exporter support.
+- The deprecated Jaeger Thrift exporter has been removed.
 
 ## v1.25.0 - 2023-06-15
 

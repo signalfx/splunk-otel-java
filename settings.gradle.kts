@@ -2,7 +2,7 @@ pluginManagement {
   plugins {
     id("com.bmuschko.docker-remote-api") version "9.4.0"
     id("io.github.gradle-nexus.publish-plugin") version "1.3.0"
-    id("com.github.jk1.dependency-license-report") version "2.5"
+    id("com.github.jk1.dependency-license-report") version "2.6"
   }
 }
 

@@ -23,7 +23,7 @@ versions:
         - rename_attributes:
             attribute_map:
               jvm.memory.type: area
-              jvm.memory.pool.name: pool
+              jvm.memory.pool.name: id
             apply_to_metrics:
               - jvm.memory.used
               - jvm.memory.committed

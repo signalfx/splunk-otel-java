@@ -3009,7 +3009,7 @@ public class MetadataGenerator {
             .component("Elasticsearch Transport Client", "5.0 and higher")
             .build());
     instrumentations.add(
-        instrumentation("finagle").component("Finagle", "23.11 and higher").build());
+        instrumentation("finagle-http").component("Finagle", "23.11 and higher").build());
     instrumentations.add(instrumentation("finatra").component("Finatra", "2.9 and higher").build());
     instrumentations.add(
         instrumentation("geode").component("Geode Client", "1.4 and higher").build());

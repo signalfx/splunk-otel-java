@@ -1181,6 +1181,36 @@ public class MetadataGenerator {
             SettingType.BOOLEAN,
             SettingCategory.GENERAL));
 
+    // Enable Resource Providers that are disabled by default
+    // https://opentelemetry.io/docs/languages/java/automatic/configuration/#enable-resource-providers-that-are-disabled-by-default
+
+    /*
+    System property: otel.resource.providers.aws.enabled
+    Environment variable: OTEL_RESOURCE_PROVIDERS_AWS_ENABLED
+    Default: false
+    Description: Enables the AWS Resource Provider.
+
+    System property: otel.resource.providers.gcp.enabled
+    Environment variable: OTEL_RESOURCE_PROVIDERS_GCP_ENABLED
+    Default: false
+    Description: Enables the GCP Resource Provider.
+     */
+
+    settings.add(
+        setting(
+            toEnvVar("otel.resource.providers.aws.enabled"),
+            "Enables the AWS Resource Provider.",
+            "false",
+            SettingType.BOOLEAN,
+            SettingCategory.RESOURCE_PROVIDER));
+    settings.add(
+        setting(
+            toEnvVar("otel.resource.providers.gcp.enabled"),
+            "Enables the GCP Resource Provider.",
+            "false",
+            SettingType.BOOLEAN,
+            SettingCategory.RESOURCE_PROVIDER));
+
     // https://github.com/signalfx/splunk-otel-java/blob/main/docs/advanced-config.md
 
     // Splunk configuration
@@ -2121,6 +2151,18 @@ public class MetadataGenerator {
     settings.add(
         setting(
             toEnvVar("otel.instrumentation.twilio.experimental-span-attributes"),
+            "Enable the capture of experimental span attributes.",
+            "false",
+            SettingType.BOOLEAN,
+            SettingCategory.INSTRUMENTATION));
+
+    // https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/instrumentation/xxl-job/README.md
+    /*
+    | `otel.instrumentation.xxl-job.experimental-span-attributes` | Boolean | `false` | Enable the capture of experimental span attributes. |
+     */
+    settings.add(
+        setting(
+            toEnvVar("otel.instrumentation.xxl-job.experimental-span-attributes"),
             "Enable the capture of experimental span attributes.",
             "false",
             SettingType.BOOLEAN,
@@ -3358,6 +3400,8 @@ public class MetadataGenerator {
             .component("Vibur DBCP", "11.0 and higher")
             .dbPoolMetrics(DbPoolMetrics.USAGE, DbPoolMetrics.MAX)
             .build());
+    instrumentations.add(
+        instrumentation("xxl-job").component("XXL-JOB", "1.9.2 and higher").build());
     instrumentations.add(instrumentation("zio").component("ZIO", "2.0 and higher").build());
 
     // splunk instrumentations
@@ -3418,35 +3462,12 @@ public class MetadataGenerator {
 
     List<Map<String, Object>> resourceProviders = new ArrayList<>();
     root.put("resource_detectors", resourceProviders);
+    // OpenTelemetry Java Instrumentation Resource Providers
     resourceProviders.add(
-        resourceProvider("CONTAINER", "Container detector.", List.of("container.id"))
-            .dependency(
-                "OpenTelemetry Java Instrumentation Resource Providers",
-                "https://github.com/open-telemetry/opentelemetry-java-instrumentation/tree/main/instrumentation/resources/library",
-                "https://central.sonatype.com/artifact/io.opentelemetry.instrumentation/opentelemetry-resources",
-                otelJavaInstrumentationAlphaVersion,
-                Stability.EXPERIMENTAL)
-            .build());
-    resourceProviders.add(
-        resourceProvider("HOST", "Host detector.", List.of("host.name", "host.arch"))
-            .dependency(
-                "OpenTelemetry Java Instrumentation Resource Providers",
-                "https://github.com/open-telemetry/opentelemetry-java-instrumentation/tree/main/instrumentation/resources/library",
-                "https://central.sonatype.com/artifact/io.opentelemetry.instrumentation/opentelemetry-resources",
-                otelJavaInstrumentationAlphaVersion,
-                Stability.EXPERIMENTAL)
-            .build());
-    resourceProviders.add(
-        resourceProvider("JAR_SERVICE_NAME", "Jar service name detector.", List.of("service.name"))
-            .dependency(
-                "OpenTelemetry Java Instrumentation Resource Providers",
-                "https://github.com/open-telemetry/opentelemetry-java-instrumentation/tree/main/instrumentation/resources/library",
-                "https://central.sonatype.com/artifact/io.opentelemetry.instrumentation/opentelemetry-resources",
-                otelJavaInstrumentationAlphaVersion,
-                Stability.EXPERIMENTAL)
-            .build());
-    resourceProviders.add(
-        resourceProvider("OS", "Os detector.", List.of("os.type", "os.description"))
+        resourceProvider(
+                "io.opentelemetry.instrumentation.resources.ContainerResourceProvider",
+                "Container detector.",
+                List.of("container.id"))
             .dependency(
                 "OpenTelemetry Java Instrumentation Resource Providers",
                 "https://github.com/open-telemetry/opentelemetry-java-instrumentation/tree/main/instrumentation/resources/library",
@@ -3456,7 +3477,67 @@ public class MetadataGenerator {
             .build());
     resourceProviders.add(
         resourceProvider(
-                "PROCESS",
+                "io.opentelemetry.instrumentation.resources.HostIdResourceProvider",
+                "Host id detector.",
+                List.of("host.id"))
+            .dependency(
+                "OpenTelemetry Java Instrumentation Resource Providers",
+                "https://github.com/open-telemetry/opentelemetry-java-instrumentation/tree/main/instrumentation/resources/library",
+                "https://central.sonatype.com/artifact/io.opentelemetry.instrumentation/opentelemetry-resources",
+                otelJavaInstrumentationAlphaVersion,
+                Stability.EXPERIMENTAL)
+            .build());
+    resourceProviders.add(
+        resourceProvider(
+                "io.opentelemetry.instrumentation.resources.HostResourceProvider",
+                "Host detector.",
+                List.of("host.name", "host.arch"))
+            .dependency(
+                "OpenTelemetry Java Instrumentation Resource Providers",
+                "https://github.com/open-telemetry/opentelemetry-java-instrumentation/tree/main/instrumentation/resources/library",
+                "https://central.sonatype.com/artifact/io.opentelemetry.instrumentation/opentelemetry-resources",
+                otelJavaInstrumentationAlphaVersion,
+                Stability.EXPERIMENTAL)
+            .build());
+    resourceProviders.add(
+        resourceProvider(
+                "io.opentelemetry.instrumentation.resources.JarServiceNameDetector",
+                "Jar service name detector.",
+                List.of("service.name"))
+            .dependency(
+                "OpenTelemetry Java Instrumentation Resource Providers",
+                "https://github.com/open-telemetry/opentelemetry-java-instrumentation/tree/main/instrumentation/resources/library",
+                "https://central.sonatype.com/artifact/io.opentelemetry.instrumentation/opentelemetry-resources",
+                otelJavaInstrumentationAlphaVersion,
+                Stability.EXPERIMENTAL)
+            .build());
+    resourceProviders.add(
+        resourceProvider(
+                "io.opentelemetry.instrumentation.resources.ManifestResourceProvider",
+                "Manifest service name and version detector.",
+                List.of("service.name", "service.version"))
+            .dependency(
+                "OpenTelemetry Java Instrumentation Resource Providers",
+                "https://github.com/open-telemetry/opentelemetry-java-instrumentation/tree/main/instrumentation/resources/library",
+                "https://central.sonatype.com/artifact/io.opentelemetry.instrumentation/opentelemetry-resources",
+                otelJavaInstrumentationAlphaVersion,
+                Stability.EXPERIMENTAL)
+            .build());
+    resourceProviders.add(
+        resourceProvider(
+                "io.opentelemetry.instrumentation.resources.OsResourceProvider",
+                "Os detector.",
+                List.of("os.type", "os.description"))
+            .dependency(
+                "OpenTelemetry Java Instrumentation Resource Providers",
+                "https://github.com/open-telemetry/opentelemetry-java-instrumentation/tree/main/instrumentation/resources/library",
+                "https://central.sonatype.com/artifact/io.opentelemetry.instrumentation/opentelemetry-resources",
+                otelJavaInstrumentationAlphaVersion,
+                Stability.EXPERIMENTAL)
+            .build());
+    resourceProviders.add(
+        resourceProvider(
+                "io.opentelemetry.instrumentation.resources.ProcessResourceProvider",
                 "Process detector.",
                 List.of(
                     "process.pid",
@@ -3472,7 +3553,7 @@ public class MetadataGenerator {
             .build());
     resourceProviders.add(
         resourceProvider(
-                "PROCESS_RUNTIME",
+                "io.opentelemetry.instrumentation.resources.ProcessRuntimeResourceProvider",
                 "Process runtime detector.",
                 List.of(
                     "process.runtime.name",
@@ -3485,15 +3566,166 @@ public class MetadataGenerator {
                 otelJavaInstrumentationAlphaVersion,
                 Stability.EXPERIMENTAL)
             .build());
+    // OpenTelemetry Java Instrumentation Spring Boot Resource Providers
     resourceProviders.add(
         resourceProvider(
-                "APP_SERVER_SERVICE_NAME",
+                "io.opentelemetry.instrumentation.spring.resources.SpringBootServiceNameDetector",
+                "Spring boot service name detector.",
+                List.of("service.name"))
+            .dependency(
+                "OpenTelemetry Java Instrumentation Spring Boot Resource Providers",
+                "https://github.com/open-telemetry/opentelemetry-java-instrumentation/tree/main/instrumentation/spring/spring-boot-resources/javaagent",
+                // FIXME package location will change for 2.3.0
+                "https://central.sonatype.com/artifact/io.opentelemetry.instrumentation/opentelemetry-spring-boot-resources",
+                otelJavaInstrumentationAlphaVersion,
+                Stability.EXPERIMENTAL)
+            .build());
+    resourceProviders.add(
+        resourceProvider(
+                "io.opentelemetry.instrumentation.spring.resources.SpringBootServiceVersionDetector",
+                "Spring boot service version detector.",
+                List.of("service.version"))
+            .dependency(
+                "OpenTelemetry Java Instrumentation Spring Boot Resource Providers",
+                "https://github.com/open-telemetry/opentelemetry-java-instrumentation/tree/main/instrumentation/spring/spring-boot-resources/javaagent",
+                // FIXME package location will change for 2.3.0
+                "https://central.sonatype.com/artifact/io.opentelemetry.instrumentation/opentelemetry-spring-boot-resources",
+                otelJavaInstrumentationAlphaVersion,
+                Stability.EXPERIMENTAL)
+            .build());
+    // OpenTelemetry Java Contrib Resource Providers
+    resourceProviders.add(
+        resourceProvider(
+                "io.opentelemetry.contrib.resourceproviders.AppServerServiceNameProvider",
                 "Application server service name detector.",
                 List.of("service.name"))
             .dependency(
                 "OpenTelemetry Java Contrib Resource Providers",
                 "https://github.com/open-telemetry/opentelemetry-java-contrib/tree/main/resource-providers",
                 "https://central.sonatype.com/artifact/io.opentelemetry.contrib/opentelemetry-resource-providers",
+                otelJavaContribAlphaVersion,
+                Stability.EXPERIMENTAL)
+            .build());
+    // OpenTelemetry AWS Resource Providers
+    resourceProviders.add(
+        resourceProvider(
+                "io.opentelemetry.contrib.aws.resource.BeanstalkResourceProvider",
+                "Beanstalk detector.",
+                List.of(
+                    "service.instance.id",
+                    "service.version",
+                    "service.namespace",
+                    "cloud.provider",
+                    "cloud.platform"))
+            .dependency(
+                "OpenTelemetry AWS Resource Providers",
+                "https://github.com/open-telemetry/opentelemetry-java-contrib/blob/main/aws-resources",
+                "https://central.sonatype.com/artifact/io.opentelemetry.contrib/opentelemetry-aws-resources",
+                otelJavaContribAlphaVersion,
+                Stability.EXPERIMENTAL)
+            .build());
+    resourceProviders.add(
+        resourceProvider(
+                "io.opentelemetry.contrib.aws.resource.Ec2ResourceProvider",
+                "Ec2 detector.",
+                List.of(
+                    "cloud.provider",
+                    "cloud.platform",
+                    "host.id",
+                    "cloud.availability_zone",
+                    "host.type",
+                    "host.image.id",
+                    "cloud.account.id",
+                    "cloud.region",
+                    "host.name"))
+            .dependency(
+                "OpenTelemetry AWS Resource Providers",
+                "https://github.com/open-telemetry/opentelemetry-java-contrib/blob/main/aws-resources",
+                "https://central.sonatype.com/artifact/io.opentelemetry.contrib/opentelemetry-aws-resources",
+                otelJavaContribAlphaVersion,
+                Stability.EXPERIMENTAL)
+            .build());
+    resourceProviders.add(
+        resourceProvider(
+                "io.opentelemetry.contrib.aws.resource.EcsResourceProvider",
+                "Ecs detector.",
+                List.of(
+                    "cloud.provider",
+                    "container.id",
+                    "container.name",
+                    "aws.ecs.container.arn",
+                    "container.image.name",
+                    "container.image.tag",
+                    "aws.ecs.container.image.id",
+                    "aws.log.group.names",
+                    "aws.log.stream.names",
+                    "aws.log.group.arns",
+                    "aws.log.stream.arns",
+                    "aws.ecs.task.arn",
+                    "aws.ecs.launchtype",
+                    "aws.ecs.task.family",
+                    "aws.ecs.task.revision"))
+            .dependency(
+                "OpenTelemetry AWS Resource Providers",
+                "https://github.com/open-telemetry/opentelemetry-java-contrib/blob/main/aws-resources",
+                "https://central.sonatype.com/artifact/io.opentelemetry.contrib/opentelemetry-aws-resources",
+                otelJavaContribAlphaVersion,
+                Stability.EXPERIMENTAL)
+            .build());
+    resourceProviders.add(
+        resourceProvider(
+                "io.opentelemetry.contrib.aws.resource.EksResourceProvider",
+                "Eks detector.",
+                List.of("cloud.provider", "cloud.platform", "k8s.cluster.name", "container.id"))
+            .dependency(
+                "OpenTelemetry AWS Resource Providers",
+                "https://github.com/open-telemetry/opentelemetry-java-contrib/blob/main/aws-resources",
+                "https://central.sonatype.com/artifact/io.opentelemetry.contrib/opentelemetry-aws-resources",
+                otelJavaContribAlphaVersion,
+                Stability.EXPERIMENTAL)
+            .build());
+    resourceProviders.add(
+        resourceProvider(
+                "io.opentelemetry.contrib.aws.resource.LambdaResourceProvider",
+                "Lambda detector.",
+                List.of(
+                    "cloud.provider",
+                    "cloud.platform",
+                    "cloud.region",
+                    "faas.name",
+                    "faas.version"))
+            .dependency(
+                "OpenTelemetry AWS Resource Providers",
+                "https://github.com/open-telemetry/opentelemetry-java-contrib/blob/main/aws-resources",
+                "https://central.sonatype.com/artifact/io.opentelemetry.contrib/opentelemetry-aws-resources",
+                otelJavaContribAlphaVersion,
+                Stability.EXPERIMENTAL)
+            .build());
+    // OpenTelemetry GCP Resource Providers
+    resourceProviders.add(
+        resourceProvider(
+                "io.opentelemetry.contrib.gcp.resource.GCPResourceProvider",
+                "GCP detector.",
+                List.of(
+                    "cloud.platform",
+                    "cloud.provider",
+                    "cloud.account.id",
+                    "cloud.availability_zone",
+                    "cloud.region",
+                    "host.id",
+                    "host.name",
+                    "host.type",
+                    "k8s.pod.name",
+                    "k8s.namespace.name",
+                    "k8s.container.name",
+                    "k8s.cluster.name",
+                    "faas.name",
+                    "faas.version",
+                    "faas.instance"))
+            .dependency(
+                "OpenTelemetry GCP Resource Providers",
+                "https://github.com/open-telemetry/opentelemetry-java-contrib/blob/main/gcp-resources",
+                "https://central.sonatype.com/artifact/io.opentelemetry.contrib/opentelemetry-gcp-resources",
                 otelJavaContribAlphaVersion,
                 Stability.EXPERIMENTAL)
             .build());

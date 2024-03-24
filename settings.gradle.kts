@@ -13,8 +13,8 @@ pluginManagement {
 buildscript {
   dependencies {
     classpath("com.github.johnrengelman:shadow:8.1.1")
-    classpath("org.ow2.asm:asm:9.6")
-    classpath("org.ow2.asm:asm-commons:9.6")
+    classpath("org.ow2.asm:asm:9.7")
+    classpath("org.ow2.asm:asm-commons:9.7")
   }
 }
 

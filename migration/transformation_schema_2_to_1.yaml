@@ -1,0 +1,134 @@
+# This file provides specific mappings for metric data between Java 2.x to Java 1.x
+# The format should be the same as the otel file_format for schema files.
+file_format: 1.1.0
+# TODO: Fix URL
+schema_url: https://github.com/signalfx/splunk-otel-java/migration/transformation_schema_2_to_1.yaml
+versions:
+  # Java version 2.0.0 is the new version. The following mappings translate
+  # FROM the new/correct/stable names back to the previous names.
+  # The names to use when applying attribute renaming are the NEW names.
+  # <new_name>: <old_name>
+  # We want to translate TO the old names as a migration step
+  2.0.0:
+    metrics:
+      changes:
+        #--------------------------------------------------------------
+        # Memory metrics
+        - rename_metrics:
+            jvm.memory.used:               runtime.jvm.memory.used           # micrometer
+            jvm.memory.committed:          runtime.jvm.memory.committed      # micrometer
+            jvm.memory.limit:              runtime.jvm.memory.max            # micrometer
+            jvm.memory.used_after_last_gc: runtime.jvm.memory.usage.after.gc # micrometer
+#            jvm.memory.init:               process.runtime.jvm.memory.init  # experimental
+        - rename_attributes:
+            attribute_map:
+              jvm.memory.type: area
+              jvm.memory.pool.name: id
+            apply_to_metrics:
+              - jvm.memory.used
+              - jvm.memory.committed
+              - jvm.memory.limit
+              - jvm.memory.used_after_last_gc
+#              - jvm.memory.init
+
+        #--------------------------------------------------------------
+        # Threads metrics
+        - rename_metrics:
+            jvm.thread.count: runtime.jvm.threads.live # micrometer
+        - rename_attributes:
+            attribute_map:
+              jvm.thread.daemon: daemon
+            apply_to_metrics:
+              - jvm.threads.count
+
+        #--------------------------------------------------------------
+        # Classes metrics
+        - rename_metrics:
+#            jvm.class.loaded:   process.runtime.jvm.classes.loaded
+            jvm.class.unloaded: runtime.jvm.classes.unloaded  # micrometer
+            jvm.class.count:    runtime.jvm.classes.loaded    # micrometer
+
+        #--------------------------------------------------------------
+        # CPU metrics
+#        - rename_metrics:
+#            jvm.cpu.time:               process.runtime.jvm.cpu.time
+#            jvm.cpu.recent_utilization: process.runtime.jvm.cpu.recent_utilization
+#            jvm.system.cpu.utilization: process.runtime.jvm.system.cpu.utilization # experimental
+#            jvm.system.cpu.load_1m:     process.runtime.jvm.system.cpu.load_1m     # experimental
+
+#       #--------------------------------------------------------------
+#       # Garbage collection metrics
+#        - rename_metrics:
+#            jvm.gc.duration: process.runtime.jvm.gc.duration # otel
+#        - rename_attributes:
+#            attribute_map:
+#              name: jvm.gc.name
+#              action: jvm.gc.action
+#            apply_to_metrics:
+#              - jvm.gc.duration
+
+        #--------------------------------------------------------------
+        # Buffer metrics
+        - rename_metrics:
+            jvm.buffer.memory.usage: runtime.jvm.buffer.memory.used    # micrometer, experimental
+            jvm.buffer.memory.limit: runtime.jvm.buffer.total.capacity # micrometer, experimental
+            jvm.buffer.count:        runtime.jvm.buffer.count          # micrometer, experimental
+        - rename_attributes:
+            attribute_map:
+              jvm.buffer.pool.name: pool
+            apply_to_metrics:
+              - jvm.buffer.memory.usage
+              - jvm.buffer.memory.limit
+              - jvm.buffer.count
+
+        #--------------------------------------------------------------
+        # DB pool metrics
+        - rename_metrics:
+            db.client.connections.usage:            db.pool.connections                 # micrometer
+            db.client.connections.idle.min:         db.pool.connections.idle.min        # micrometer
+            db.client.connections.idle.max:         db.pool.connections.idle.max        # micrometer
+            db.client.connections.max:              db.pool.connections.max             # micrometer
+            db.client.connections.pending_requests: db.pool.connections.pending_threads # micrometer
+            db.client.connections.timeouts:         db.pool.connections.timeouts        # micrometer
+#           db.client.connections.create_time:      db.pool.connections.create_time     # micrometer, timer vs. histogram
+#           db.client.connections.wait_time:        db.pool.connections.wait_time       # micrometer, timer vs. histogram
+#           db.client.connections.use_time:         db.pool.connections.use_time        # micrometer, timer vs. histogram
+        - rename_attributes:
+            attribute_map:
+              pool.name: pool_name
+            apply_to_metrics:
+              - db.client.connections.usage
+              - db.client.connections.idle.min
+              - db.client.connections.idle.max
+              - db.client.connections.max
+              - db.client.connections.pending_requests
+              - db.client.connections.timeouts
+
+        #--------------------------------------------------------------
+        # HTTP metrics
+#        - rename_metrics:
+#            http.client.request.duration:   http.client.duration         # otel
+#            http.server.request.duration:   http.server.duration         # otel
+#            http.server.request.body.size:  http.server.request.size     # otel
+#            http.server.response.body.size: http.server.response.size    # otel
+#        - rename_attributes:
+#            attribute_map:
+#              http.request.method:       http.method
+#              http.response.status_code: http.status_code
+#              server.address:            net.peer.name
+#              server.port:               net.peer.port
+#              network.protocol.name:     net.protocol.name
+#              network.protocol.version:  net.protocol.version
+#            apply_to_metrics:
+#              - http.client.request.duration
+#        - rename_attributes:
+#            attribute_map:
+#              http.request.method:       http.method
+#              http.response.status_code: http.status_code
+#              url.scheme:                http.scheme
+#              network.protocol.name:     net.protocol.name
+#              network.protocol.version:  net.protocol.version
+#              server.address:            net.host.name
+#              server.port:               net.host.port
+#            apply_to_metrics:
+#              - http.server.request.duration

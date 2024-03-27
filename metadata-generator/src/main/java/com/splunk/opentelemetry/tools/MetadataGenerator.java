@@ -2199,6 +2199,17 @@ public class MetadataGenerator {
             MetricInstrument.COUNTER,
             "The number of logs processed by the BatchLogRecordProcessor. [dropped=true if they were dropped due to high throughput]"));
 
+    metrics.add(
+        metric(
+            "otlp.exporter.exported",
+            MetricInstrument.COUNTER,
+            "The number of items exported by the otlp exporter."));
+    metrics.add(
+        metric(
+            "otlp.exporter.seen",
+            MetricInstrument.COUNTER,
+            "The number of items seen by the otlp exporter."));
+
     List<Map<String, Object>> instrumentations = new ArrayList<>();
     root.put("instrumentations", instrumentations);
 
@@ -3769,12 +3780,19 @@ public class MetadataGenerator {
   }
 
   private static Map<String, Object> metric(
+      String metricName, MetricInstrument instrument, String description) {
+    return metric(null, metricName, instrument, description);
+  }
+
+  private static Map<String, Object> metric(
       String instrumentationScopeName,
       String metricName,
       MetricInstrument instrument,
       String description) {
     Map<String, Object> map = new LinkedHashMap<>();
-    map.put("instrumentation_scope_name", instrumentationScopeName);
+    if (instrumentationScopeName != null) {
+      map.put("instrumentation_scope_name", instrumentationScopeName);
+    }
     map.put("metric_name", metricName);
     map.put("instrument", instrument.value());
     map.put("description", description);

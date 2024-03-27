@@ -3781,7 +3781,7 @@ public class MetadataGenerator {
 
   private static Map<String, Object> metric(
       String metricName, MetricInstrument instrument, String description) {
-    return metric(metricName, instrument, description);
+    return metric(null, metricName, instrument, description);
   }
 
   private static Map<String, Object> metric(

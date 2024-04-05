@@ -3433,8 +3433,6 @@ public class MetadataGenerator {
                 "Time spent in GC pause. This metric will be removed in a future release.")
             .build());
     instrumentations.add(
-        splunkInstrumentation("khttp").component("khttp", "0.1 and higher").build());
-    instrumentations.add(
         splunkInstrumentation("glassfish").component("GlassFish", "5.0 and higher").build());
     // XXX jetty, liberty and tomcat have the same key as an existing otel instrumentation
     instrumentations.add(

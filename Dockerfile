@@ -1,3 +1,3 @@
 FROM busybox 
 
-ADD dist/splunk-otel-javaagent-all.jar /
+ADD dist/splunk-otel-javaagent.jar /

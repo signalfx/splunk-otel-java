@@ -28,7 +28,7 @@ import io.opentelemetry.javaagent.bootstrap.internal.CommonConfig;
 import khttp.responses.Response;
 
 public final class KHttpSingletons {
-  private static final String INSTRUMENTATION_NAME = "com.splunk.khttp-0.1";
+  private static final String INSTRUMENTATION_NAME = "com.splunk.khttp";
 
   private static final Instrumenter<RequestWrapper, Response> INSTRUMENTER;
 

@@ -47,7 +47,7 @@ class KHttpClientTest extends HttpClientTest<Void> implements AgentTestTrait {
 
   Set<AttributeKey<?>> httpAttributes(URI uri) {
     def attributes = super.httpAttributes(uri)
-    attributes.remove(stringKey("network.protocol.version"))
+    attributes.remove(AttributeKey.stringKey("network.protocol.version"))
     return attributes
   }
 }

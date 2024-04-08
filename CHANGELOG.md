@@ -8,8 +8,6 @@ and this repository adheres to [Semantic Versioning](https://semver.org/spec/v2.
 
 ## Unreleased
 
-- Remove khttp instrumentation.
-
 ## v1.31.1 - 2024-03-21
 
 ### General

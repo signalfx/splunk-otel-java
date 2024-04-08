@@ -41,7 +41,7 @@ include(
     "instrumentation:glassfish",
     "instrumentation:jetty",
     "instrumentation:jvm-metrics",
-    "instrumentation:khttp-0.1",
+    "instrumentation:khttp",
     "instrumentation:liberty",
     "instrumentation:servlet-3-testing",
     "instrumentation:tomcat",

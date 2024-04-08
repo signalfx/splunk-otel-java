@@ -19,7 +19,7 @@ buildscript {
 }
 
 plugins {
-  id("com.gradle.enterprise") version "3.17"
+  id("com.gradle.enterprise") version "3.16.2"
 }
 
 gradleEnterprise {
@@ -41,7 +41,6 @@ include(
     "instrumentation:glassfish",
     "instrumentation:jetty",
     "instrumentation:jvm-metrics",
-    "instrumentation:khttp-0.1",
     "instrumentation:liberty",
     "instrumentation:servlet-3-testing",
     "instrumentation:tomcat",

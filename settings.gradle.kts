@@ -44,7 +44,7 @@ include(
     "instrumentation:hikaricp",
     "instrumentation:jetty",
     "instrumentation:jvm-metrics",
-    "instrumentation:khttp-0.1",
+    "instrumentation:khttp",
     "instrumentation:liberty",
     "instrumentation:micrometer-1.3",
     "instrumentation:micrometer-1.3-shaded-for-instrumenting",

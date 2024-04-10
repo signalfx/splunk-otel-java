@@ -25,7 +25,7 @@ import io.opentelemetry.sdk.autoconfigure.spi.AutoConfigurationCustomizer;
 import io.opentelemetry.sdk.autoconfigure.spi.AutoConfigurationCustomizerProvider;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import io.opentelemetry.sdk.resources.Resource;
-import io.opentelemetry.semconv.ResourceAttributes;
+import io.opentelemetry.semconv.incubating.ProcessIncubatingAttributes;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -61,24 +61,24 @@ public class TruncateCommandLineWhenMetricsEnabled implements AutoConfigurationC
       }
 
       Resource resource = existing;
-      if (resource.getAttribute(ResourceAttributes.PROCESS_COMMAND_ARGS) != null) {
+      if (resource.getAttribute(ProcessIncubatingAttributes.PROCESS_COMMAND_ARGS) != null) {
         List<String> newCommandArgs =
-            truncate(resource.getAttribute(ResourceAttributes.PROCESS_COMMAND_ARGS));
+            truncate(resource.getAttribute(ProcessIncubatingAttributes.PROCESS_COMMAND_ARGS));
         if (newCommandArgs != null) {
           resource =
               resource.merge(
                   Resource.create(
-                      Attributes.of(ResourceAttributes.PROCESS_COMMAND_ARGS, newCommandArgs)));
+                      Attributes.of(ProcessIncubatingAttributes.PROCESS_COMMAND_ARGS, newCommandArgs)));
         }
       }
 
-      String commandLine = resource.getAttribute(ResourceAttributes.PROCESS_COMMAND_LINE);
+      String commandLine = resource.getAttribute(ProcessIncubatingAttributes.PROCESS_COMMAND_LINE);
       if (commandLine != null && commandLine.length() > MAX_LENGTH) {
         String newCommandLine = commandLine.substring(0, MAX_LENGTH - 3) + "...";
         resource =
             resource.merge(
                 Resource.create(
-                    Attributes.of(ResourceAttributes.PROCESS_COMMAND_LINE, newCommandLine)));
+                    Attributes.of(ProcessIncubatingAttributes.PROCESS_COMMAND_LINE, newCommandLine)));
       }
 
       if (existing != resource) {

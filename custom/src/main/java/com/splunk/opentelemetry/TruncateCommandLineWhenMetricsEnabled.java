@@ -68,7 +68,8 @@ public class TruncateCommandLineWhenMetricsEnabled implements AutoConfigurationC
           resource =
               resource.merge(
                   Resource.create(
-                      Attributes.of(ProcessIncubatingAttributes.PROCESS_COMMAND_ARGS, newCommandArgs)));
+                      Attributes.of(
+                          ProcessIncubatingAttributes.PROCESS_COMMAND_ARGS, newCommandArgs)));
         }
       }
 
@@ -78,7 +79,8 @@ public class TruncateCommandLineWhenMetricsEnabled implements AutoConfigurationC
         resource =
             resource.merge(
                 Resource.create(
-                    Attributes.of(ProcessIncubatingAttributes.PROCESS_COMMAND_LINE, newCommandLine)));
+                    Attributes.of(
+                        ProcessIncubatingAttributes.PROCESS_COMMAND_LINE, newCommandLine)));
       }
 
       if (existing != resource) {

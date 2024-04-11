@@ -51,12 +51,11 @@ tasks {
     dependencies {
       exclude(dependency("org.slf4j:slf4j-api"))
       exclude(dependency("io.opentelemetry:opentelemetry-api"))
-      exclude(dependency("io.opentelemetry:opentelemetry-api-events"))
-      exclude(dependency("io.opentelemetry:opentelemetry-api-logs"))
       exclude(dependency("io.opentelemetry:opentelemetry-context"))
       exclude(dependency("io.opentelemetry.semconv:opentelemetry-semconv"))
-      // metrics advice API
-      exclude(dependency("io.opentelemetry:opentelemetry-extension-incubator"))
+      exclude(dependency("io.opentelemetry.semconv:opentelemetry-semconv-incubating"))
+      // events API and metrics advice API
+      exclude(dependency("io.opentelemetry:opentelemetry-api-incubator"))
     }
   }
 

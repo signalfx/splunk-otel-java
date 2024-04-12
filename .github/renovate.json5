@@ -24,6 +24,24 @@
     {
       "matchPackageNames": ["docker.repo.splunkdev.net/ci-cd/ci-container/maven-3.8-jdk-17"],
       "enabled": false
+    },
+    {
+      "matchPackageNames": [
+        "io.opentelemetry.proto:opentelemetry-proto",
+        "io.opentelemetry.semconv:opentelemetry-semconv"
+      ],
+      // Renovate's default behavior is only to update from unstable -> unstable if it's for the
+      // major.minor.patch, under the assumption that you would want to update to the stable version
+      // of that release instead of the unstable version for a future release
+      "ignoreUnstable": false,
+      "allowedVersions": "!/\\-SNAPSHOT$/"
+    },
+    {
+      // we are not going to update the semconv in 1.x branch
+      "matchPackageNames": ["io.opentelemetry.semconv:opentelemetry-semconv"],
+      "matchUpdateTypes": ["minor"],
+      "matchBaseBranches": ["v1.32.x"],
+      "enabled": false
     }
   ]
 }

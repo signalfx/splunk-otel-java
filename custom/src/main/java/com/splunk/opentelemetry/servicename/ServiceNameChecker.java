@@ -24,7 +24,7 @@ import io.opentelemetry.javaagent.tooling.BeforeAgentListener;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import io.opentelemetry.sdk.resources.Resource;
-import io.opentelemetry.semconv.ResourceAttributes;
+import io.opentelemetry.semconv.ServiceAttributes;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
@@ -67,7 +67,7 @@ public class ServiceNameChecker implements BeforeAgentListener {
     String serviceName = config.getString("otel.service.name");
     Map<String, String> resourceAttributes = config.getMap("otel.resource.attributes");
     return serviceName == null
-        && !resourceAttributes.containsKey(ResourceAttributes.SERVICE_NAME.getKey())
-        && "unknown_service:java".equals(resource.getAttribute(ResourceAttributes.SERVICE_NAME));
+        && !resourceAttributes.containsKey(ServiceAttributes.SERVICE_NAME.getKey())
+        && "unknown_service:java".equals(resource.getAttribute(ServiceAttributes.SERVICE_NAME));
   }
 }

@@ -27,7 +27,7 @@ import io.opentelemetry.contrib.sampler.RuleBasedRoutingSamplerBuilder;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import io.opentelemetry.sdk.autoconfigure.spi.traces.ConfigurableSamplerProvider;
 import io.opentelemetry.sdk.trace.samplers.Sampler;
-import io.opentelemetry.semconv.SemanticAttributes;
+import io.opentelemetry.semconv.UrlAttributes;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
@@ -52,7 +52,7 @@ public class RuleBasedSamplerProvider implements ConfigurableSamplerProvider {
   }
 
   private AttributeKey<String> getHttpPathAttribute() {
-    return SemanticAttributes.URL_PATH;
+    return UrlAttributes.URL_PATH;
   }
 
   @Override

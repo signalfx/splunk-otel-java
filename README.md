@@ -117,7 +117,7 @@ with:
 
 ## Snapshot builds
 
-We publish [snapshot builds](https://oss.sonatype.org/content/repositories/snapshots/com/splunk/splunk-otel-javaagent/2.4.0-SNAPSHOT/)
+We publish [snapshot builds](https://oss.sonatype.org/content/repositories/snapshots/com/splunk/splunk-otel-javaagent/2.4.0-alpha-SNAPSHOT/)
 with every merge to the `main` branch. Snapshots are primarily intended to test new functionality and are not recommended
 for production use.
 

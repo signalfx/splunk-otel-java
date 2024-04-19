@@ -44,6 +44,7 @@ dependencies {
     api("org.assertj:assertj-core:3.25.3")
     api("org.awaitility:awaitility:4.2.1")
     api("com.signalfx.public:signalfx-metrics:1.0.40")
+    api("commons-codec:commons-codec:1.16.1")
 
     api("com.github.docker-java:docker-java-core:$dockerJavaVersion")
     api("com.github.docker-java:docker-java-transport-httpclient5:$dockerJavaVersion")

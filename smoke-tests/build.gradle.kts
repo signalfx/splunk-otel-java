@@ -25,7 +25,7 @@ tasks {
 
     testLogging.showStandardStreams = true
 
-    retry {
+    develocity.testRetry {
       if (System.getenv().containsKey("CI")) {
         // You can see tests that were retried by this mechanism in the collected test reports and build scans.
         maxRetries.set(5)

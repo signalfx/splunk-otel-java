@@ -119,12 +119,12 @@ class TruncateCommandLineWhenMetricsEnabledTest {
   private static String getJoinedArgs(List<String> cmdArgs) {
     StringBuilder sb = new StringBuilder();
     for (Object item : cmdArgs.toArray()) {
-      if(!sb.isEmpty()) {
+      if (!sb.isEmpty()) {
         sb.append(", ");
       }
       sb.append(item);
     }
-      return sb.toString();
+    return sb.toString();
   }
 
   @Test

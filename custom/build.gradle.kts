@@ -26,8 +26,6 @@ dependencies {
   testImplementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-api")
   testImplementation("io.opentelemetry.javaagent:opentelemetry-javaagent-extension-api")
   testImplementation("io.opentelemetry.javaagent:opentelemetry-javaagent-tooling")
-  testImplementation("org.apache.commons:commons-lang3:3.14.0")
-
   testImplementation(project(":testing:common"))
 }
 

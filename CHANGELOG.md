@@ -8,6 +8,17 @@ and this repository adheres to [Semantic Versioning](https://semver.org/spec/v2.
 
 ## Unreleased
 
+## v1.32.0 - 2024-04-22
+
+### General
+
+- OpenTelemetry Java SDK has been updated to version 1.37.0.
+- OpenTelemetry Instrumentation for Java has been updated to version 1.33.1.
+- Micrometer dependency has been updated to version 1.12.5.
+
+### ⚠️⚠️ Breaking changes ⚠️⚠️
+- splunk-otel-javaagent-all.jar is not published anymore, use splunk-otel-javaagent.jar (#1756)
+
 ## v1.31.1 - 2024-03-21
 
 ### General

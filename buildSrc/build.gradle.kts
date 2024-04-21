@@ -41,7 +41,7 @@ dependencies {
   implementation(gradleApi())
 
   implementation("com.diffplug.spotless:spotless-plugin-gradle:6.25.0")
-  implementation("io.opentelemetry.instrumentation:gradle-plugins:1.33.1-alpha")
+  implementation("io.opentelemetry.instrumentation:gradle-plugins:1.33.2-alpha")
 
   // keep these versions in sync with settings.gradle.kts
   implementation("gradle.plugin.com.github.johnrengelman:shadow:8.0.0")

@@ -112,7 +112,7 @@ public class MetadataGenerator {
 
     settings.add(
         setting(
-            "OTEL_SDK_DISABLED",
+            "otel.sdk.disabled",
             "If true, disable the OpenTelemetry SDK. Defaults to false.",
             "false",
             SettingType.BOOLEAN,
@@ -128,21 +128,21 @@ public class MetadataGenerator {
 
     settings.add(
         setting(
-            "OTEL_TRACES_EXPORTER",
+            "otel.traces.exporter",
             "List of exporters to be used for tracing, separated by commas. Default is otlp. none means no autoconfigured exporter.",
             "otlp",
             SettingType.STRING,
             SettingCategory.EXPORTER));
     settings.add(
         setting(
-            "OTEL_METRICS_EXPORTER",
+            "otel.metrics.exporter",
             "List of exporters to be used for tracing, separated by commas. Default is otlp. none means no autoconfigured exporter.",
             "otlp",
             SettingType.STRING,
             SettingCategory.EXPORTER));
     settings.add(
         setting(
-            "OTEL_LOGS_EXPORTER",
+            "otel.logs.exporter",
             "List of exporters to be used for tracing, separated by commas. Default is otlp. none means no autoconfigured exporter.",
             "otlp",
             SettingType.STRING,
@@ -159,30 +159,30 @@ public class MetadataGenerator {
     */
     settings.add(
         setting(
-            "OTEL_EXPORTER_OTLP_ENDPOINT",
+            "otel.exporter.otlp.endpoint",
             "The OTLP traces, metrics, and logs endpoint to connect to. Must be a URL with a scheme of either http or https based on the use of TLS. If protocol is http/protobuf the version and signal will be appended to the path (e.g. v1/traces, v1/metrics, or v1/logs). Default is http://localhost:4317 when protocol is grpc, and http://localhost:4318/v1/{signal} when protocol is http/protobuf.",
-            "http://localhost:4317", // XXX may change
+            "http://localhost:4318",
             SettingType.STRING,
             SettingCategory.EXPORTER));
     settings.add(
         setting(
-            "OTEL_EXPORTER_OTLP_TRACES_ENDPOINT",
+            "otel.exporter.otlp.traces.endpoint",
             "The OTLP traces endpoint to connect to. Must be a URL with a scheme of either http or https based on the use of TLS. Default is http://localhost:4317 when protocol is grpc, and http://localhost:4318/v1/traces when protocol is http/protobuf.",
-            "http://localhost:4317", // XXX may change
+            "http://localhost:4318/v1/traces",
             SettingType.STRING,
             SettingCategory.EXPORTER));
     settings.add(
         setting(
-            "OTEL_EXPORTER_OTLP_METRICS_ENDPOINT",
+            "otel.exporter.otlp.metrics.endpoint",
             "The OTLP metrics endpoint to connect to. Must be a URL with a scheme of either http or https based on the use of TLS. Default is http://localhost:4317 when protocol is grpc, and http://localhost:4318/v1/metrics when protocol is http/protobuf.",
             "http://localhost:4318/v1/metrics",
             SettingType.STRING,
             SettingCategory.EXPORTER));
     settings.add(
         setting(
-            "OTEL_EXPORTER_OTLP_LOGS_ENDPOINT",
+            "otel.exporter.otlp.logs.endpoint",
             "The OTLP logs endpoint to connect to. Must be a URL with a scheme of either http or https based on the use of TLS. Default is http://localhost:4317 when protocol is grpc, and http://localhost:4318/v1/logs when protocol is http/protobuf.",
-            "http://localhost:4317", // XXX may change
+            "http://localhost:4318/v1/logs",
             SettingType.STRING,
             SettingCategory.EXPORTER));
 
@@ -194,28 +194,28 @@ public class MetadataGenerator {
     */
     settings.add(
         setting(
-            "OTEL_EXPORTER_OTLP_CERTIFICATE",
+            "otel.exporter.otlp.certificate",
             "The path to the file containing trusted certificates to use when verifying an OTLP trace, metric, or log server's TLS credentials. The file should contain one or more X.509 certificates in PEM format. By default the host platform's trusted root certificates are used.",
             "",
             SettingType.STRING,
             SettingCategory.EXPORTER));
     settings.add(
         setting(
-            "OTEL_EXPORTER_OTLP_TRACES_CERTIFICATE",
+            "otel.exporter.otlp.traces.certificate",
             "The path to the file containing trusted certificates to use when verifying an OTLP trace server's TLS credentials. The file should contain one or more X.509 certificates in PEM format. By default the host platform's trusted root certificates are used.",
             "",
             SettingType.STRING,
             SettingCategory.EXPORTER));
     settings.add(
         setting(
-            "OTEL_EXPORTER_OTLP_METRICS_CERTIFICATE",
+            "otel.exporter.otlp.metrics.certificate",
             "The path to the file containing trusted certificates to use when verifying an OTLP metric server's TLS credentials. The file should contain one or more X.509 certificates in PEM format. By default the host platform's trusted root certificates are used.",
             "",
             SettingType.STRING,
             SettingCategory.EXPORTER));
     settings.add(
         setting(
-            "OTEL_EXPORTER_OTLP_TRACES_CERTIFICATE",
+            "otel.exporter.otlp.logs.certificate",
             "The path to the file containing trusted certificates to use when verifying an OTLP log server's TLS credentials. The file should contain one or more X.509 certificates in PEM format. By default the host platform's trusted root certificates are used.",
             "",
             SettingType.STRING,
@@ -229,28 +229,28 @@ public class MetadataGenerator {
     */
     settings.add(
         setting(
-            "OTEL_EXPORTER_OTLP_CLIENT_KEY",
+            "otel.exporter.otlp.client.key",
             "The path to the file containing private client key to use when verifying an OTLP trace, metric, or log client's TLS credentials. The file should contain one private key PKCS8 PEM format. By default no client key is used.",
             "",
             SettingType.STRING,
             SettingCategory.EXPORTER));
     settings.add(
         setting(
-            "OTEL_EXPORTER_OTLP_TRACES_CLIENT_KEY",
+            "otel.exporter.otlp.traces.client.key",
             "The path to the file containing private client key to use when verifying an OTLP trace client's TLS credentials. The file should contain one private key PKCS8 PEM format. By default no client key file is used.",
             "",
             SettingType.STRING,
             SettingCategory.EXPORTER));
     settings.add(
         setting(
-            "OTEL_EXPORTER_OTLP_METRICS_CLIENT_KEY",
+            "otel.exporter.otlp.metrics.client.key",
             "The path to the file containing private client key to use when verifying an OTLP metric client's TLS credentials. The file should contain one private key PKCS8 PEM format. By default no client key file is used.",
             "",
             SettingType.STRING,
             SettingCategory.EXPORTER));
     settings.add(
         setting(
-            "OTEL_EXPORTER_OTLP_LOGS_CLIENT_KEY",
+            "otel.exporter.otlp.logs.client.key",
             "The path to the file containing private client key to use when verifying an OTLP log client's TLS credentials. The file should contain one private key PKCS8 PEM format. By default no client key file is used.",
             "",
             SettingType.STRING,
@@ -264,28 +264,28 @@ public class MetadataGenerator {
     */
     settings.add(
         setting(
-            "OTEL_EXPORTER_OTLP_CLIENT_CERTIFICATE",
+            "otel.exporter.otlp.client.certificate",
             "The path to the file containing trusted certificates to use when verifying an OTLP trace, metric, or log client's TLS credentials. The file should contain one or more X.509 certificates in PEM format. By default no chain file is used.",
             "",
             SettingType.STRING,
             SettingCategory.EXPORTER));
     settings.add(
         setting(
-            "OTEL_EXPORTER_OTLP_TRACES_CLIENT_CERTIFICATE",
+            "otel.exporter.otlp.traces.client.certificate",
             "The path to the file containing trusted certificates to use when verifying an OTLP trace server's TLS credentials. The file should contain one or more X.509 certificates in PEM format. By default no chain file is used.",
             "",
             SettingType.STRING,
             SettingCategory.EXPORTER));
     settings.add(
         setting(
-            "OTEL_EXPORTER_OTLP_METRICS_CLIENT_CERTIFICATE",
+            "otel.exporter.otlp.metrics.client.certificate",
             "The path to the file containing trusted certificates to use when verifying an OTLP metric server's TLS credentials. The file should contain one or more X.509 certificates in PEM format. By default no chain file is used.",
             "",
             SettingType.STRING,
             SettingCategory.EXPORTER));
     settings.add(
         setting(
-            "OTEL_EXPORTER_OTLP_LOGS_CLIENT_CERTIFICATE",
+            "otel.exporter.otlp.logs.client.certificate",
             "The path to the file containing trusted certificates to use when verifying an OTLP log server's TLS credentials. The file should contain one or more X.509 certificates in PEM format. By default no chain file is used.",
             "",
             SettingType.STRING,
@@ -299,28 +299,28 @@ public class MetadataGenerator {
     */
     settings.add(
         setting(
-            "OTEL_EXPORTER_OTLP_HEADERS",
+            "otel.exporter.otlp.headers",
             "Key-value pairs separated by commas to pass as request headers on OTLP trace, metric, and log requests.",
             "",
             SettingType.STRING,
             SettingCategory.EXPORTER));
     settings.add(
         setting(
-            "OTEL_EXPORTER_OTLP_TRACES_HEADERS",
+            "otel.exporter.otlp.traces.headers",
             "Key-value pairs separated by commas to pass as request headers on OTLP trace requests.",
             "",
             SettingType.STRING,
             SettingCategory.EXPORTER));
     settings.add(
         setting(
-            "OTEL_EXPORTER_OTLP_METRICS_HEADERS",
+            "otel.exporter.otlp.metrics.headers",
             "Key-value pairs separated by commas to pass as request headers on OTLP metrics requests.",
             "",
             SettingType.STRING,
             SettingCategory.EXPORTER));
     settings.add(
         setting(
-            "OTEL_EXPORTER_OTLP_LOGS_HEADERS",
+            "otel.exporter.otlp.logs.headers",
             "Key-value pairs separated by commas to pass as request headers on OTLP logs requests.",
             "",
             SettingType.STRING,
@@ -334,28 +334,28 @@ public class MetadataGenerator {
     */
     settings.add(
         setting(
-            "OTEL_EXPORTER_OTLP_COMPRESSION",
+            "otel.exporter.otlp.compression",
             "The compression type to use on OTLP trace, metric, and log requests. Options include gzip. By default no compression will be used.",
             "",
             SettingType.STRING,
             SettingCategory.EXPORTER));
     settings.add(
         setting(
-            "OTEL_EXPORTER_OTLP_TRACES_COMPRESSION",
+            "otel.exporter.otlp.traces.compression",
             "The compression type to use on OTLP trace requests. Options include gzip. By default no compression will be used.",
             "",
             SettingType.STRING,
             SettingCategory.EXPORTER));
     settings.add(
         setting(
-            "OTEL_EXPORTER_OTLP_METRICS_COMPRESSION",
+            "otel.exporter.otlp.metrics.compression",
             "The compression type to use on OTLP metric requests. Options include gzip. By default no compression will be used.",
             "",
             SettingType.STRING,
             SettingCategory.EXPORTER));
     settings.add(
         setting(
-            "OTEL_EXPORTER_OTLP_LOGS_COMPRESSION",
+            "otel.exporter.otlp.logs.compression",
             "The compression type to use on OTLP log requests. Options include gzip. By default no compression will be used.",
             "",
             SettingType.STRING,
@@ -369,28 +369,28 @@ public class MetadataGenerator {
     */
     settings.add(
         setting(
-            "OTEL_EXPORTER_OTLP_TIMEOUT",
+            "otel.exporter.otlp.timeout",
             "The maximum waiting time, in milliseconds, allowed to send each OTLP trace, metric, and log batch. Default is 10000.",
             "10000",
             SettingType.INT,
             SettingCategory.EXPORTER));
     settings.add(
         setting(
-            "OTEL_EXPORTER_OTLP_TRACES_TIMEOUT",
+            "otel.exporter.otlp.traces.timeout",
             "The maximum waiting time, in milliseconds, allowed to send each OTLP trace batch. Default is 10000.",
             "10000",
             SettingType.INT,
             SettingCategory.EXPORTER));
     settings.add(
         setting(
-            "OTEL_EXPORTER_OTLP_METRICS_TIMEOUT",
+            "otel.exporter.otlp.metrics.timeout",
             "The maximum waiting time, in milliseconds, allowed to send each OTLP metric batch. Default is 10000.",
             "10000",
             SettingType.INT,
             SettingCategory.EXPORTER));
     settings.add(
         setting(
-            "OTEL_EXPORTER_OTLP_LOGS_TIMEOUT",
+            "otel.exporter.otlp.logs.timeout",
             "The maximum waiting time, in milliseconds, allowed to send each OTLP log batch. Default is 10000.",
             "10000",
             SettingType.INT,
@@ -404,28 +404,28 @@ public class MetadataGenerator {
     */
     settings.add(
         setting(
-            "OTEL_EXPORTER_OTLP_PROTOCOL",
+            "otel.exporter.otlp.protocol",
             "The transport protocol to use on OTLP trace, metric, and log requests. Options include grpc and http/protobuf.",
             "http/protobuf",
             SettingType.STRING,
             SettingCategory.EXPORTER));
     settings.add(
         setting(
-            "OTEL_EXPORTER_OTLP_TRACES_PROTOCOL",
+            "otel.exporter.otlp.traces.protocol",
             "The transport protocol to use on OTLP trace requests. Options include grpc and http/protobuf.",
             "http/protobuf",
             SettingType.STRING,
             SettingCategory.EXPORTER));
     settings.add(
         setting(
-            "OTEL_EXPORTER_OTLP_METRICS_PROTOCOL",
+            "otel.exporter.otlp.metrics.protocol",
             "The transport protocol to use on OTLP metric requests. Options include grpc and http/protobuf.",
             "http/protobuf",
             SettingType.STRING,
             SettingCategory.EXPORTER));
     settings.add(
         setting(
-            "OTEL_EXPORTER_OTLP_LOGS_PROTOCOL",
+            "otel.exporter.otlp.logs.protocol",
             "The transport protocol to use on OTLP log requests. Options include grpc and http/protobuf.",
             "http/protobuf",
             SettingType.STRING,
@@ -437,14 +437,14 @@ public class MetadataGenerator {
      */
     settings.add(
         setting(
-            "OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE",
+            "otel.exporter.otlp.metrics.temporality.preference",
             "The preferred output aggregation temporality. Options include DELTA, LOWMEMORY, and CUMULATIVE. If CUMULATIVE, all instruments will have cumulative temporality. If DELTA, counter (sync and async) and histograms will be delta, up down counters (sync and async) will be cumulative. If LOWMEMORY, sync counter and histograms will be delta, async counter and up down counters (sync and async) will be cumulative. Default is CUMULATIVE.",
             "CUMULATIVE",
             SettingType.STRING,
             SettingCategory.EXPORTER));
     settings.add(
         setting(
-            "OTEL_EXPORTER_OTLP_METRICS_DEFAULT_HISTOGRAM_AGGREGATION",
+            "otel.exporter.otlp.metrics.default.histogram.aggregation",
             "The preferred default histogram aggregation. Options include BASE2_EXPONENTIAL_BUCKET_HISTOGRAM and EXPLICIT_BUCKET_HISTOGRAM. Default is EXPLICIT_BUCKET_HISTOGRAM.",
             "EXPLICIT_BUCKET_HISTOGRAM",
             SettingType.STRING,
@@ -455,7 +455,7 @@ public class MetadataGenerator {
      */
     settings.add(
         setting(
-            "OTEL_EXPERIMENTAL_EXPORTER_OTLP_RETRY_ENABLED",
+            "otel.experimental.exporter.otlp.retry.enabled",
             "If true, enable experimental retry support. Default is false.",
             "false",
             SettingType.BOOLEAN,
@@ -472,21 +472,21 @@ public class MetadataGenerator {
 
     settings.add(
         setting(
-            "OTEL_RESOURCE_ATTRIBUTES",
+            "otel.resource.attributes",
             "Specify resource attributes in the following format: key1=val1,key2=val2,key3=val3",
             "",
             SettingType.STRING,
             SettingCategory.INSTRUMENTATION));
     settings.add(
         setting(
-            "OTEL_SERVICE_NAME",
+            "otel.service.name",
             "Specify logical service name. Takes precedence over service.name defined with otel.resource.attributes",
             "",
             SettingType.STRING,
             SettingCategory.INSTRUMENTATION));
     settings.add(
         setting(
-            "OTEL_EXPERIMENTAL_RESOURCE_DISABLED_KEYS",
+            "otel.experimental.resource.disabled-keys",
             "Specify resource attribute keys that are filtered.",
             "",
             SettingType.STRING,
@@ -502,14 +502,14 @@ public class MetadataGenerator {
 
     settings.add(
         setting(
-            "OTEL_JAVA_ENABLED_RESOURCE_PROVIDERS",
+            "otel.java.enabled.resource.providers",
             "Enables one or more ResourceProvider types. If unset, all resource providers are enabled.",
             "",
             SettingType.STRING,
             SettingCategory.RESOURCE_PROVIDER));
     settings.add(
         setting(
-            "OTEL_JAVA_DISABLED_RESOURCE_PROVIDERS",
+            "otel.java.disabled.resource.providers",
             "Disables one or more ResourceProvider types.",
             "",
             SettingType.STRING,
@@ -525,14 +525,14 @@ public class MetadataGenerator {
 
     settings.add(
         setting(
-            "OTEL_ATTRIBUTE_VALUE_LENGTH_LIMIT",
+            "otel.attribute.value.length.limit",
             "The maximum length of attribute values. Applies to spans and logs. By default there is no limit.",
             "",
             SettingType.INT,
             SettingCategory.INSTRUMENTATION));
     settings.add(
         setting(
-            "OTEL_ATTRIBUTE_COUNT_LIMIT",
+            "otel.attribute.count.limit",
             "The maximum number of attributes. Applies to spans, span events, span links, and logs. Default is 128.",
             "128",
             SettingType.INT,
@@ -547,7 +547,7 @@ public class MetadataGenerator {
 
     settings.add(
         setting(
-            "OTEL_PROPAGATORS",
+            "otel.propagators",
             "The propagators to be used. Use a comma-separated list for multiple propagators. Default is tracecontext,baggage (W3C).",
             "tracecontext,baggage",
             SettingType.STRING,
@@ -562,7 +562,7 @@ public class MetadataGenerator {
 
     settings.add(
         setting(
-            "OTEL_EXPORTER_ZIPKIN_ENDPOINT",
+            "otel.exporter.zipkin.endpoint",
             "The Zipkin endpoint to connect to. Default is http://localhost:9411/api/v2/spans. Currently only HTTP is supported.",
             "http://localhost:9411/api/v2/spans",
             SettingType.STRING,
@@ -580,28 +580,28 @@ public class MetadataGenerator {
 
     settings.add(
         setting(
-            "OTEL_BSP_SCHEDULE_DELAY",
+            "otel.bsp.schedule.delay",
             "The interval, in milliseconds, between two consecutive exports. Default is 5000.",
             "5000",
             SettingType.INT,
             SettingCategory.GENERAL));
     settings.add(
         setting(
-            "OTEL_BSP_MAX_QUEUE_SIZE",
+            "otel.bsp.max.queue.size",
             "The maximum queue size. Default is 2048.",
             "2048",
             SettingType.INT,
             SettingCategory.GENERAL));
     settings.add(
         setting(
-            "OTEL_BSP_MAX_EXPORT_BATCH_SIZE",
+            "otel.bsp.max.export.batch.size",
             "The maximum batch size. Default is 512.",
             "512",
             SettingType.INT,
             SettingCategory.GENERAL));
     settings.add(
         setting(
-            "OTEL_BSP_EXPORT_TIMEOUT",
+            "otel.bsp.export.timeout",
             "The maximum allowed time, in milliseconds, to export data. Default is 30000.",
             "30000",
             SettingType.INT,
@@ -617,14 +617,14 @@ public class MetadataGenerator {
 
     settings.add(
         setting(
-            "OTEL_TRACES_SAMPLER",
+            "otel.traces.sampler",
             "The sampler to use for tracing. Defaults to parentbased_always_on",
             "always_on",
             SettingType.STRING,
             SettingCategory.GENERAL));
     settings.add(
         setting(
-            "OTEL_TRACES_SAMPLER_ARG",
+            "otel.traces.sampler.arg",
             "An argument to the configured tracer if supported, for example a ratio.",
             "",
             SettingType.STRING,
@@ -642,28 +642,28 @@ public class MetadataGenerator {
 
     settings.add(
         setting(
-            "OTEL_SPAN_ATTRIBUTE_VALUE_LENGTH_LIMIT",
+            "otel.span.attribute.value.length.limit",
             "The maximum length of span attribute values. Takes precedence over otel.attribute.value.length.limit. By default there is no limit.",
             "",
             SettingType.INT,
             SettingCategory.INSTRUMENTATION));
     settings.add(
         setting(
-            "OTEL_SPAN_ATTRIBUTE_COUNT_LIMIT",
+            "otel.span.attribute.count.limit",
             "The maximum number of attributes per span. Takes precedence over otel.attribute.count.limit. Default is 128.",
             "128",
             SettingType.INT,
             SettingCategory.INSTRUMENTATION));
     settings.add(
         setting(
-            "OTEL_SPAN_EVENT_COUNT_LIMIT",
+            "otel.span.event.count.limit",
             "The maximum number of events per span. Default is 128.",
             "128",
             SettingType.INT,
             SettingCategory.INSTRUMENTATION));
     settings.add(
         setting(
-            "OTEL_SPAN_LINK_COUNT_LIMIT",
+            "otel.span.link.count.limit",
             "TThe maximum number of links per span. Default is 128.",
             "128",
             SettingType.INT,
@@ -679,7 +679,7 @@ public class MetadataGenerator {
     // XXX are exemplars even supported in our backend?
     settings.add(
         setting(
-            "OTEL_METRICS_EXEMPLAR_FILTER",
+            "otel.metrics.exemplar.filter",
             "The filter for exemplar sampling. Can be ALWAYS_OFF, ALWAYS_ON or TRACE_BASED. Default is TRACE_BASED.",
             "TRACE_BASED",
             SettingType.STRING,
@@ -694,7 +694,7 @@ public class MetadataGenerator {
 
     settings.add(
         setting(
-            "OTEL_METRIC_EXPORT_INTERVAL",
+            "otel.metric.export.interval",
             "The interval, in milliseconds, between the start of two export attempts. Default is 60000.",
             "60000",
             SettingType.INT,
@@ -710,14 +710,14 @@ public class MetadataGenerator {
 
     settings.add(
         setting(
-            "OTEL_EXPORTER_PROMETHEUS_PORT",
+            "otel.exporter.prometheus.port",
             "The local port used to bind the prometheus metric server. Default is 9464.",
             "9464",
             SettingType.INT,
             SettingCategory.EXPORTER));
     settings.add(
         setting(
-            "OTEL_EXPORTER_PROMETHEUS_HOST",
+            "otel.exporter.prometheus.host",
             "The local address used to bind the prometheus metric server. Default is 0.0.0.0.",
             "0.0.0.0",
             SettingType.INT,
@@ -731,7 +731,7 @@ public class MetadataGenerator {
      */
     settings.add(
         setting(
-            "OTEL_EXPERIMENTAL_METRICS_CARDINALITY_LIMIT",
+            "otel.experimental.metrics.cardinality.limit\t",
             "If set, configure experimental cardinality limit. The value dictates the maximum number of distinct points per metric. Default is 2000.",
             "2000",
             SettingType.INT,
@@ -749,28 +749,28 @@ public class MetadataGenerator {
 
     settings.add(
         setting(
-            "OTEL_BLRP_SCHEDULE_DELAY",
+            "otel.blrp.schedule.delay",
             "The interval, in milliseconds, between two consecutive exports. Default is 1000.",
             "1000",
             SettingType.INT,
             SettingCategory.GENERAL));
     settings.add(
         setting(
-            "OTEL_BLRP_MAX_QUEUE_SIZE",
+            "otel.blrp.max.queue.size",
             "The maximum queue size. Default is 2048.",
             "2048",
             SettingType.INT,
             SettingCategory.GENERAL));
     settings.add(
         setting(
-            "OTEL_BLRP_MAX_EXPORT_BATCH_SIZE",
+            "otel.blrp.max.export.batch.size",
             "The maximum batch size. Default is 512.",
             "512",
             SettingType.INT,
             SettingCategory.GENERAL));
     settings.add(
         setting(
-            "OTEL_BLRP_EXPORT_TIMEOUT",
+            "otel.blrp.export.timeout",
             "The maximum allowed time, in milliseconds, to export data. Default is 30000.",
             "30000",
             SettingType.INT,
@@ -783,12 +783,13 @@ public class MetadataGenerator {
     otel.config.file	OTEL_CONFIG_FILE	The path to the SDK configuration file. Defaults to unset.
      */
 
-    /*
-    settings.add(Map.of("name","OTEL_CONFIG_FILE",
+    settings.add(
+        setting(
+            "otel.config.file",
             "The path to the SDK configuration file. Defaults to unset.",
             "",
-            "category", "general"));
-     */
+            SettingType.STRING,
+            SettingCategory.GENERAL));
 
     // https://opentelemetry.io/docs/instrumentation/java/automatic/agent-config/
 
@@ -805,7 +806,7 @@ public class MetadataGenerator {
 
     settings.add(
         setting(
-            "OTEL_JAVAAGENT_CONFIGURATION_FILE",
+            "otel.javaagent.configuration-file",
             "Path to valid Java properties file which contains the agent configuration.",
             "",
             SettingType.STRING,
@@ -824,7 +825,7 @@ public class MetadataGenerator {
 
     settings.add(
         setting(
-            "OTEL_JAVAAGENT_EXTENSIONS",
+            "otel.javaagent.extensions",
             "Path to an extension jar file or folder, containing jar files. If pointing to a folder, every jar file in that folder will be treated as separate, independent extension.",
             "",
             SettingType.STRING,
@@ -847,7 +848,7 @@ public class MetadataGenerator {
 
     settings.add(
         setting(
-            "OTEL_JAVAAGENT_LOGGING",
+            "otel.javaagent.logging",
             "The Java agent logging mode. The following 3 modes are supported:\n"
                 + "simple: The agent will print out its logs using the standard error stream. Only INFO or higher logs will be printed. This is the default Java agent logging mode.\n"
                 + "none: The agent will not log anything - not even its own version.\n"
@@ -867,7 +868,7 @@ public class MetadataGenerator {
 
     settings.add(
         setting(
-            "OTEL_INSTRUMENTATION_COMMON_PEER_SERVICE_MAPPING",
+            "otel.instrumentation.common.peer-service-mapping",
             "Used to specify a mapping from host names or IP addresses to peer services, as a comma-separated list of &lt;host_or_ip&gt;=&lt;user_assigned_name&gt; pairs. The peer service is added as an attribute to a span whose host or IP address match the mapping.",
             "",
             SettingType.STRING,
@@ -885,7 +886,7 @@ public class MetadataGenerator {
 
     settings.add(
         setting(
-            "OTEL_INSTRUMENTATION_COMMON_DB_STATEMENT_SANITIZER_ENABLED",
+            "otel.instrumentation.common.db-statement-sanitizer.enabled",
             "Enables the DB statement sanitization.",
             "true",
             SettingType.BOOLEAN,
@@ -914,28 +915,28 @@ public class MetadataGenerator {
 
     settings.add(
         setting(
-            "OTEL_INSTRUMENTATION_HTTP_CLIENT_CAPTURE_REQUEST_HEADERS",
+            "otel.instrumentation.http.client.capture-request-headers",
             "A comma-separated list of HTTP header names. HTTP client instrumentations will capture HTTP request header values for all configured header names.",
             "",
             SettingType.STRING,
             SettingCategory.INSTRUMENTATION));
     settings.add(
         setting(
-            "OTEL_INSTRUMENTATION_HTTP_CLIENT_CAPTURE_RESPONSE_HEADERS",
+            "otel.instrumentation.http.client.capture-response-headers",
             "A comma-separated list of HTTP header names. HTTP client instrumentations will capture HTTP response header values for all configured header names.",
             "",
             SettingType.STRING,
             SettingCategory.INSTRUMENTATION));
     settings.add(
         setting(
-            "OTEL_INSTRUMENTATION_HTTP_SERVER_CAPTURE_REQUEST_HEADERS",
+            "otel.instrumentation.http.server.capture-request-headers",
             "A comma-separated list of HTTP header names. HTTP server instrumentations will capture HTTP request header values for all configured header names.",
             "",
             SettingType.STRING,
             SettingCategory.INSTRUMENTATION));
     settings.add(
         setting(
-            "OTEL_INSTRUMENTATION_HTTP_SERVER_CAPTURE_RESPONSE_HEADERS",
+            "otel.instrumentation.http.server.capture-response-headers",
             "A comma-separated list of HTTP header names. HTTP server instrumentations will capture HTTP response header values for all configured header names.",
             "",
             SettingType.STRING,
@@ -952,7 +953,7 @@ public class MetadataGenerator {
 
     settings.add(
         setting(
-            "OTEL_INSTRUMENTATION_SERVLET_EXPERIMENTAL_CAPTURE_REQUEST_PARAMETERS",
+            "otel.instrumentation.servlet.experimental.capture-request-parameters",
             "A comma-separated list of request parameter names.",
             "",
             SettingType.STRING,
@@ -974,7 +975,7 @@ public class MetadataGenerator {
 
     settings.add(
         setting(
-            "OTEL_INSTRUMENTATION_MESSAGING_EXPERIMENTAL_RECEIVE_TELEMETRY_ENABLED",
+            "otel.instrumentation.messaging.experimental.receive-telemetry.enabled",
             "Enables the consumer message receive telemetry. Note that this will cause the consumer side to start a new trace, with only a span link connecting it to the producer trace.",
             "false",
             SettingType.BOOLEAN,
@@ -1011,28 +1012,28 @@ public class MetadataGenerator {
 
     settings.add(
         setting(
-            "OTEL_INSTRUMENTATION_COMMON_ENDUSER_ENABLED",
+            "otel.instrumentation.common.enduser.enabled",
             "Common flag for enabling/disabling enduser attributes.",
             "false",
             SettingType.BOOLEAN,
             SettingCategory.INSTRUMENTATION));
     settings.add(
         setting(
-            "OTEL_INSTRUMENTATION_COMMON_ENDUSER_ID_ENABLED",
+            "otel.instrumentation.common.enduser.id.enabled",
             "Determines whether to capture `enduser.id` semantic attribute.",
             "false",
             SettingType.BOOLEAN,
             SettingCategory.INSTRUMENTATION));
     settings.add(
         setting(
-            "OTEL_INSTRUMENTATION_COMMON_ENDUSER_ROLE_ENABLED",
+            "otel.instrumentation.common.enduser.role.enabled",
             "Determines whether to capture `enduser.role` semantic attribute.",
             "false",
             SettingType.BOOLEAN,
             SettingCategory.INSTRUMENTATION));
     settings.add(
         setting(
-            "OTEL_INSTRUMENTATION_COMMON_ENDUSER_SCOPE_ENABLED",
+            "otel.instrumentation.common.enduser.scope.enabled",
             "Determines whether to capture `enduser.scope` semantic attribute.",
             "false",
             SettingType.BOOLEAN,
@@ -1043,14 +1044,14 @@ public class MetadataGenerator {
 
     settings.add(
         setting(
-            toEnvVar("otel.instrumentation.http.client.emit-experimental-telemetry"),
+            "otel.instrumentation.http.client.emit-experimental-telemetry",
             "Enables experimental http client telemetry.",
             "false",
             SettingType.BOOLEAN,
             SettingCategory.INSTRUMENTATION));
     settings.add(
         setting(
-            toEnvVar("otel.instrumentation.http.server.emit-experimental-telemetry"),
+            "otel.instrumentation.http.server.emit-experimental-telemetry",
             "Enables experimental http server telemetry.",
             "false",
             SettingType.BOOLEAN,
@@ -1069,7 +1070,7 @@ public class MetadataGenerator {
 
     settings.add(
         setting(
-            "OTEL_INSTRUMENTATION_COMMON_DEFAULT_ENABLED",
+            "otel.instrumentation.common.default-enabled",
             "Disable all instrumentations in the agent.",
             "true",
             SettingType.BOOLEAN,
@@ -1084,8 +1085,8 @@ public class MetadataGenerator {
 
     settings.add(
         setting(
-            "OTEL_INSTRUMENTATION_{NAME}_ENABLED",
-            "Suppresses agent instrumentation of specific library where `{NAME}` is the corresponding instrumentation name.",
+            "otel.instrumentation.{name}.enabled",
+            "Suppresses agent instrumentation of specific library where `{name}` is the corresponding instrumentation name.",
             "",
             SettingType.BOOLEAN,
             SettingCategory.INSTRUMENTATION));
@@ -1110,14 +1111,14 @@ public class MetadataGenerator {
     // XXX will change
     settings.add(
         setting(
-            "OTEL_INSTRUMENTATION_COMMON_EXPERIMENTAL_CONTROLLER_TELEMETRY_ENABLED",
+            "otel.instrumentation.common.experimental.controller-telemetry.enabled",
             "Enables the controller telemetry.",
             "true",
             SettingType.BOOLEAN,
             SettingCategory.INSTRUMENTATION));
     settings.add(
         setting(
-            "OTEL_INSTRUMENTATION_COMMON_EXPERIMENTAL_VIEW_TELEMETRY_ENABLED",
+            " otel.instrumentation.common.experimental.view-telemetry.enabled",
             "Enables the view telemetry.",
             "true",
             SettingType.BOOLEAN,
@@ -1138,7 +1139,7 @@ public class MetadataGenerator {
 
     settings.add(
         setting(
-            "OTEL_INSTRUMENTATION_EXPERIMENTAL_SPAN_SUPPRESSION_STRATEGY",
+            "otel.instrumentation.experimental.span-suppression-strategy",
             "The Java agent span suppression strategy. The following 3 strategies are supported:\n"
                 + "semconv: The agent will suppress duplicate semantic conventions. This is the default behavior of the Java agent.\n"
                 + "span-kind: The agent will suppress spans with the same kind (except INTERNAL).\n"
@@ -1160,21 +1161,21 @@ public class MetadataGenerator {
 
     settings.add(
         setting(
-            "OTEL_JAVAAGENT_EXCLUDE_CLASSES",
+            "otel.javaagent.exclude-classes",
             "Suppresses all instrumentation for specific classes, format is \"my.package.MyClass,my.package2.*\".",
             "",
             SettingType.STRING,
             SettingCategory.GENERAL));
     settings.add(
         setting(
-            "OTEL_JAVAAGENT_EXCLUDE_CLASS_LOADERS",
+            "otel.javaagent.exclude-class-loaders",
             "Ignore the specified class loaders, format is \"my.package.MyClass,my.package2.\".",
             "",
             SettingType.STRING,
             SettingCategory.GENERAL));
     settings.add(
         setting(
-            "OTEL_JAVAAGENT_EXPERIMENTAL_SECURITY_MANAGER_SUPPORT_ENABLED",
+            "otel.javaagent.experimental.security-manager-support.enabled",
             "Grant all privileges to agent code. Disclaimer: agent can provide application means for escaping security manager sandbox. Do not use"
                 + "this option if your application relies on security manager to run untrusted code.",
             "false",
@@ -1198,14 +1199,14 @@ public class MetadataGenerator {
 
     settings.add(
         setting(
-            toEnvVar("otel.resource.providers.aws.enabled"),
+            "otel.resource.providers.aws.enabled",
             "Enables the AWS Resource Provider.",
             "false",
             SettingType.BOOLEAN,
             SettingCategory.RESOURCE_PROVIDER));
     settings.add(
         setting(
-            toEnvVar("otel.resource.providers.gcp.enabled"),
+            "otel.resource.providers.gcp.enabled",
             "Enables the GCP Resource Provider.",
             "false",
             SettingType.BOOLEAN,
@@ -1226,35 +1227,35 @@ public class MetadataGenerator {
 
     settings.add(
         setting(
-            "SPLUNK_ACCESS_TOKEN",
+            "splunk.access.token",
             "(Optional) Auth token allowing exporters to communicate directly with the Splunk cloud, passed as X-SF-TOKEN header.",
             "",
             SettingType.STRING,
             SettingCategory.GENERAL));
     settings.add(
         setting(
-            "SPLUNK_REALM",
+            "splunk.realm",
             "The Splunk Observability Cloud realm where the telemetry should be sent to. For example, us0 or us1. Defaults to none, which means that data goes to a Splunk OpenTelemetry Collector deployed on localhost.",
             "none",
             SettingType.STRING,
             SettingCategory.GENERAL));
     settings.add(
         setting(
-            "SPLUNK_METRICS_ENABLED",
+            "splunk.metrics.enabled",
             "Enables exporting splunk metrics.",
             "false",
             SettingType.BOOLEAN,
             SettingCategory.GENERAL));
     settings.add(
         setting(
-            "SPLUNK_METRICS_FORCE_FULL_COMMANDLINE",
+            "splunk.metrics.force_full_commandline",
             "Adds the full command line as a resource attribute for all metrics. If false, commands longer than 255 characters are truncated.",
             "false",
             SettingType.BOOLEAN,
             SettingCategory.GENERAL));
     settings.add(
         setting(
-            "SPLUNK_TRACE_RESPONSE_HEADER_ENABLED",
+            "splunk.trace-response-header.enabled",
             "Enables adding server trace information to HTTP response headers. See this document for more information.",
             "true",
             SettingType.BOOLEAN,
@@ -1274,7 +1275,7 @@ public class MetadataGenerator {
 
     settings.add(
         setting(
-            "OTEL_INSTRUMENTATION_METHODS_INCLUDE",
+            "otel.instrumentation.methods.include",
             "Same as adding @WithSpan annotation functionality for the target method string, e.g. my.package.MyClass1[method1,method2];my.package.MyClass2[method3]",
             "",
             SettingType.STRING,
@@ -1282,7 +1283,7 @@ public class MetadataGenerator {
 
     settings.add(
         setting(
-            "OTEL_INSTRUMENTATION_OPENTELEMETRY_ANNOTATIONS_EXCLUDE_METHODS",
+            "otel.instrumentation.opentelemetry-annotations.exclude-methods",
             "Suppress @WithSpan instrumentation for specific methods, e.g. my.package.MyClass1[method1,method2];my.package.MyClass2[method3]",
             "",
             SettingType.STRING,
@@ -1307,77 +1308,77 @@ public class MetadataGenerator {
 
     settings.add(
         setting(
-            "SPLUNK_PROFILER_ENABLED",
+            "splunk.profiler.enabled",
             "Enables cpu profiler.",
             "false",
             SettingType.BOOLEAN,
             SettingCategory.PROFILER));
     settings.add(
         setting(
-            "SPLUNK_PROFILER_DIRECTORY",
+            "splunk.profiler.directory",
             "Location of JFR files, defaults to System.getProperty(\"java.io.tmpdir\").",
             "value of System.getProperty(\"java.io.tmpdir\")",
             SettingType.STRING,
             SettingCategory.PROFILER));
     settings.add(
         setting(
-            "SPLUNK_PROFILER_RECORDING_DURATION",
+            "splunk.profiler.recording.duration",
             "Recording unit duration.",
             "20s",
             SettingType.STRING,
             SettingCategory.PROFILER));
     settings.add(
         setting(
-            "SPLUNK_PROFILER_KEEP_FILES",
+            "splunk.profiler.keep-files",
             "Leave JFR files on disk if true.",
             "false",
             SettingType.BOOLEAN,
             SettingCategory.PROFILER));
     settings.add(
         setting(
-            "SPLUNK_PROFILER_LOGS_ENDPOINT",
+            "splunk.profiler.logs-endpoint",
             "Where to send OTLP logs.",
             "otel.exporter.otlp.endpoint or http://localhost:4317",
             SettingType.STRING,
             SettingCategory.PROFILER));
     settings.add(
         setting(
-            "SPLUNK_PROFILER_CALL_STACK_INTERVAL",
+            "splunk.profiler.call.stack.interval",
             "How often to sample call stacks.",
             "10000ms",
             SettingType.STRING,
             SettingCategory.PROFILER));
     settings.add(
         setting(
-            "SPLUNK_PROFILER_MEMORY_ENABLED",
+            "splunk.profiler.memory.enabled",
             "Enables allocation profiler.",
             "false",
             SettingType.BOOLEAN,
             SettingCategory.PROFILER));
     settings.add(
         setting(
-            "SPLUNK_PROFILER_MEMORY_EVENT_RATE",
+            "splunk.profiler.memory.event.rate",
             "Allocation event rate.",
             "150/s",
             SettingType.STRING,
             SettingCategory.PROFILER));
     settings.add(
         setting(
-            "SPLUNK_PROFILER_INCLUDE_INTERVAL_STACKS",
+            "splunk.profiler.include.internal.stacks",
             "Set to `true` to include stack traces of agent internal threads and stack traces with only JDK internal frames.",
             "false",
             SettingType.BOOLEAN,
             SettingCategory.PROFILER));
     settings.add(
         setting(
-            "SPLUNK_PROFILER_TRACING_STACKS_ONLY",
+            "splunk.profiler.tracing.stacks.only",
             "Set to `true` to include only stack traces that are linked to a span context.",
             "false",
             SettingType.BOOLEAN,
             SettingCategory.PROFILER));
     settings.add(
         setting(
-            "SPLUNK_PROFILER_OTLP_PROTOCOL",
+            "splunk.profiler.otlp.protocol",
             "The transport protocol to use on profiling OTLP log requests. Options include grpc and http/protobuf.",
             "http/protobuf",
             SettingType.STRING,
@@ -1393,21 +1394,21 @@ public class MetadataGenerator {
      */
     settings.add(
         setting(
-            toEnvVar("otel.instrumentation.aws-sdk.experimental-span-attributes"),
+            "otel.instrumentation.aws-sdk.experimental-span-attributes",
             "Enable the capture of experimental span attributes.",
             "false",
             SettingType.BOOLEAN,
             SettingCategory.INSTRUMENTATION));
     settings.add(
         setting(
-            toEnvVar("otel.instrumentation.aws-sdk.experimental-use-propagator-for-messaging"),
+            "otel.instrumentation.aws-sdk.experimental-use-propagator-for-messaging",
             "v2 only, inject into SNS/SQS attributes with configured propagator.",
             "false",
             SettingType.BOOLEAN,
             SettingCategory.INSTRUMENTATION));
     settings.add(
         setting(
-            toEnvVar("otel.instrumentation.aws-sdk.experimental-use-propagator-for-messaging"),
+            "otel.instrumentation.aws-sdk.experimental-use-propagator-for-messaging",
             "v2 only, record errors returned by each individual HTTP request as events for the SDK span.",
             "false",
             SettingType.BOOLEAN,
@@ -1419,7 +1420,7 @@ public class MetadataGenerator {
      */
     settings.add(
         setting(
-            toEnvVar("otel.instrumentation.camel.experimental-span-attributes"),
+            "otel.instrumentation.camel.experimental-span-attributes",
             "Enable the capture of experimental span attributes.",
             "false",
             SettingType.BOOLEAN,
@@ -1431,7 +1432,7 @@ public class MetadataGenerator {
      */
     settings.add(
         setting(
-            toEnvVar("otel.instrumentation.couchbase.experimental-span-attributes"),
+            "otel.instrumentation.couchbase.experimental-span-attributes",
             "Enables the capture of experimental span attributes (for version 2.6 and higher of this instrumentation).",
             "false",
             SettingType.BOOLEAN,
@@ -1444,14 +1445,14 @@ public class MetadataGenerator {
      */
     settings.add(
         setting(
-            toEnvVar("otel.instrumentation.elasticsearch.capture-search-query"),
+            "otel.instrumentation.elasticsearch.capture-search-query",
             "Enable the capture of search query bodies. Attention: Elasticsearch queries may contain personal or sensitive information.",
             "false",
             SettingType.BOOLEAN,
             SettingCategory.INSTRUMENTATION));
     settings.add(
         setting(
-            toEnvVar("otel.instrumentation.elasticsearch.experimental-span-attributes"),
+            "otel.instrumentation.elasticsearch.experimental-span-attributes",
             "Enable the capture of experimental span attributes.",
             "false",
             SettingType.BOOLEAN,
@@ -1463,7 +1464,7 @@ public class MetadataGenerator {
      */
     settings.add(
         setting(
-            toEnvVar("otel.instrumentation.graphql.query-sanitizer.enabled"),
+            "otel.instrumentation.graphql.query-sanitizer.enabled",
             "Whether to remove sensitive information from query source that is added as span attribute.",
             "true",
             SettingType.BOOLEAN,
@@ -1477,21 +1478,21 @@ public class MetadataGenerator {
      */
     settings.add(
         setting(
-            toEnvVar("otel.instrumentation.grpc.experimental-span-attributes"),
+            "otel.instrumentation.grpc.experimental-span-attributes",
             "Enable the capture of experimental span attributes.",
             "false",
             SettingType.BOOLEAN,
             SettingCategory.INSTRUMENTATION));
     settings.add(
         setting(
-            toEnvVar("otel.instrumentation.grpc.capture-metadata.client.request"),
+            "otel.instrumentation.grpc.capture-metadata.client.request",
             "A comma-separated list of request metadata keys. gRPC client instrumentation will capture metadata values corresponding to configured keys as span attributes.",
             "",
             SettingType.STRING,
             SettingCategory.INSTRUMENTATION));
     settings.add(
         setting(
-            toEnvVar("otel.instrumentation.grpc.capture-metadata.server.request"),
+            "otel.instrumentation.grpc.capture-metadata.server.request",
             "A comma-separated list of request metadata keys. gRPC server instrumentation will capture metadata values corresponding to configured keys as span attributes.",
             "",
             SettingType.STRING,
@@ -1503,7 +1504,7 @@ public class MetadataGenerator {
      */
     settings.add(
         setting(
-            toEnvVar("otel.instrumentation.guava.experimental-span-attributes"),
+            "otel.instrumentation.guava.experimental-span-attributes",
             "Enable the capture of experimental span attributes.",
             "false",
             SettingType.BOOLEAN,
@@ -1515,7 +1516,7 @@ public class MetadataGenerator {
      */
     settings.add(
         setting(
-            toEnvVar("otel.instrumentation.hibernate.experimental-span-attributes"),
+            "otel.instrumentation.hibernate.experimental-span-attributes",
             "Enable the capture of experimental span attributes.",
             "false",
             SettingType.BOOLEAN,
@@ -1527,7 +1528,7 @@ public class MetadataGenerator {
      */
     settings.add(
         setting(
-            toEnvVar("otel.instrumentation.hystrix.experimental-span-attributes"),
+            "otel.instrumentation.hystrix.experimental-span-attributes",
             "Enable the capture of experimental span attributes.",
             "false",
             SettingType.BOOLEAN,
@@ -1539,7 +1540,7 @@ public class MetadataGenerator {
      */
     settings.add(
         setting(
-            toEnvVar("otel.instrumentation.java-util-logging.experimental-log-attributes"),
+            "otel.instrumentation.java-util-logging.experimental-log-attributes",
             "Enable the capture of experimental log attributes `thread.name` and `thread.id`.",
             "false",
             SettingType.BOOLEAN,
@@ -1551,7 +1552,7 @@ public class MetadataGenerator {
      */
     settings.add(
         setting(
-            toEnvVar("otel.instrumentation.jaxrs.experimental-span-attributes"),
+            "otel.instrumentation.jaxrs.experimental-span-attributes",
             "Enable the capture of experimental span attributes.",
             "false",
             SettingType.BOOLEAN,
@@ -1564,14 +1565,14 @@ public class MetadataGenerator {
      */
     settings.add(
         setting(
-            toEnvVar("otel.instrumentation.jboss-logmanager.experimental-log-attributes"),
+            "otel.instrumentation.jboss-logmanager.experimental-log-attributes",
             "Enable the capture of experimental log attributes.",
             "false",
             SettingType.BOOLEAN,
             SettingCategory.INSTRUMENTATION));
     settings.add(
         setting(
-            toEnvVar("otel.instrumentation.jboss-logmanager.experimental.capture-mdc-attributes"),
+            "otel.instrumentation.jboss-logmanager.experimental.capture-mdc-attributes",
             "Comma separated list of MDC attributes to capture. Use the wildcard character `*` to capture all attributes.",
             "",
             SettingType.STRING,
@@ -1583,7 +1584,7 @@ public class MetadataGenerator {
      */
     settings.add(
         setting(
-            toEnvVar("otel.instrumentation.jdbc.statement-sanitizer.enabled"),
+            "otel.instrumentation.jdbc.statement-sanitizer.enabled",
             "EEnables the DB statement sanitization.",
             "false",
             SettingType.BOOLEAN,
@@ -1595,7 +1596,7 @@ public class MetadataGenerator {
      */
     settings.add(
         setting(
-            toEnvVar("otel.instrumentation.jsp.experimental-span-attributes"),
+            "otel.instrumentation.jsp.experimental-span-attributes",
             "Enable the capture of experimental span attributes.",
             "false",
             SettingType.BOOLEAN,
@@ -1609,21 +1610,21 @@ public class MetadataGenerator {
      */
     settings.add(
         setting(
-            toEnvVar("otel.instrumentation.kafka.experimental-span-attributes"),
+            "otel.instrumentation.kafka.experimental-span-attributes",
             "Enable the capture of experimental span attributes.",
             "false",
             SettingType.BOOLEAN,
             SettingCategory.INSTRUMENTATION));
     settings.add(
         setting(
-            toEnvVar("otel.instrumentation.kafka.producer-propagation.enabled"),
+            "otel.instrumentation.kafka.producer-propagation.enabled",
             "Enable context propagation for kafka message producer.",
             "true",
             SettingType.BOOLEAN,
             SettingCategory.INSTRUMENTATION));
     settings.add(
         setting(
-            toEnvVar("otel.instrumentation.kafka.metric-reporter.enabled"),
+            "otel.instrumentation.kafka.metric-reporter.enabled",
             "Enable kafka consumer and producer metrics. Deprecated, disable instrumentation with name `kafka-clients-metrics` instead.",
             "true",
             SettingType.BOOLEAN,
@@ -1635,7 +1636,7 @@ public class MetadataGenerator {
      */
     settings.add(
         setting(
-            toEnvVar("otel.instrumentation.kubernetes-client.experimental-span-attributes"),
+            "otel.instrumentation.kubernetes-client.experimental-span-attributes",
             "Enable the capture of experimental span attributes.",
             "false",
             SettingType.BOOLEAN,
@@ -1647,7 +1648,7 @@ public class MetadataGenerator {
      */
     settings.add(
         setting(
-            toEnvVar("otel.instrumentation.lettuce.experimental-span-attributes"),
+            "otel.instrumentation.lettuce.experimental-span-attributes",
             "Enable the capture of experimental span attributes.",
             "false",
             SettingType.BOOLEAN,
@@ -1662,29 +1663,28 @@ public class MetadataGenerator {
      */
     settings.add(
         setting(
-            toEnvVar("otel.instrumentation.log4j-appender.experimental-log-attributes"),
+            "otel.instrumentation.log4j-appender.experimental-log-attributes",
             "Enable the capture of experimental log attributes `thread.name` and `thread.id`.",
             "false",
             SettingType.BOOLEAN,
             SettingCategory.INSTRUMENTATION));
     settings.add(
         setting(
-            toEnvVar(
-                "otel.instrumentation.log4j-appender.experimental.capture-map-message-attributes"),
+            "otel.instrumentation.log4j-appender.experimental.capture-map-message-attributes",
             "Enable the capture of `MapMessage` attributes.",
             "false",
             SettingType.BOOLEAN,
             SettingCategory.INSTRUMENTATION));
     settings.add(
         setting(
-            toEnvVar("otel.instrumentation.log4j-appender.experimental.capture-marker-attribute"),
+            "otel.instrumentation.log4j-appender.experimental.capture-marker-attribute",
             "Enable the capture of Log4j markers as attributes.",
             "false",
             SettingType.BOOLEAN,
             SettingCategory.INSTRUMENTATION));
     settings.add(
         setting(
-            toEnvVar("otel.instrumentation.log4j-appender.experimental.capture-mdc-attributes"),
+            "otel.instrumentation.log4j-appender.experimental.capture-mdc-attributes",
             "Comma separated list of context data attributes to capture. Use the wildcard character `*` to capture all attributes.",
             "",
             SettingType.STRING,
@@ -1697,7 +1697,7 @@ public class MetadataGenerator {
      */
     settings.add(
         setting(
-            toEnvVar("otel.instrumentation.common.mdc.resource-attributes"),
+            "otel.instrumentation.common.mdc.resource-attributes",
             "Comma separated list of resource attributes to expose through MDC.",
             "",
             SettingType.STRING,
@@ -1714,44 +1714,42 @@ public class MetadataGenerator {
      */
     settings.add(
         setting(
-            toEnvVar("otel.instrumentation.logback-appender.experimental-log-attributes"),
+            "otel.instrumentation.logback-appender.experimental-log-attributes",
             "Enable the capture of experimental log attributes `thread.name` and `thread.id`.",
             "false",
             SettingType.BOOLEAN,
             SettingCategory.INSTRUMENTATION));
     settings.add(
         setting(
-            toEnvVar("otel.instrumentation.logback-appender.experimental.capture-code-attributes"),
+            "otel.instrumentation.logback-appender.experimental.capture-code-attributes",
             "Enable the capture of [source code attributes](https://github.com/open-telemetry/semantic-conventions/blob/main/docs/general/attributes.md#source-code-attributes). Note that capturing source code attributes at logging sites might add a performance overhead.",
             "false",
             SettingType.BOOLEAN,
             SettingCategory.INSTRUMENTATION));
     settings.add(
         setting(
-            toEnvVar("otel.instrumentation.logback-appender.experimental.capture-marker-attribute"),
+            "otel.instrumentation.logback-appender.experimental.capture-marker-attribute",
             "Enable the capture of Logback markers as attributes.",
             "false",
             SettingType.BOOLEAN,
             SettingCategory.INSTRUMENTATION));
     settings.add(
         setting(
-            toEnvVar(
-                "otel.instrumentation.logback-appender.experimental.capture-key-value-pair-attributes"),
+            "otel.instrumentation.logback-appender.experimental.capture-key-value-pair-attributes",
             "Enable the capture of Logback key value pairs as attributes.",
             "false",
             SettingType.BOOLEAN,
             SettingCategory.INSTRUMENTATION));
     settings.add(
         setting(
-            toEnvVar(
-                "otel.instrumentation.logback-appender.experimental.capture-logger-context-attributes"),
+            "otel.instrumentation.logback-appender.experimental.capture-logger-context-attributes",
             "Enable the capture of Logback logger context properties as attributes.",
             "false",
             SettingType.BOOLEAN,
             SettingCategory.INSTRUMENTATION));
     settings.add(
         setting(
-            toEnvVar("otel.instrumentation.logback-appender.experimental.capture-mdc-attributes"),
+            "otel.instrumentation.logback-appender.experimental.capture-mdc-attributes",
             "Comma separated list of MDC attributes to capture. Use the wildcard character `*` to capture all attributes.",
             "",
             SettingType.STRING,
@@ -1764,14 +1762,14 @@ public class MetadataGenerator {
      */
     settings.add(
         setting(
-            toEnvVar("otel.instrumentation.logback-mdc.add-baggage"),
+            "otel.instrumentation.logback-mdc.add-baggage",
             "Enable exposing baggage attributes through MDC.",
             "false",
             SettingType.BOOLEAN,
             SettingCategory.INSTRUMENTATION));
     settings.add(
         setting(
-            toEnvVar("otel.instrumentation.common.mdc.resource-attributes"),
+            "otel.instrumentation.common.mdc.resource-attributes",
             "Comma separated list of resource attributes to expose through MDC.",
             "",
             SettingType.STRING,
@@ -1800,21 +1798,21 @@ public class MetadataGenerator {
      */
     settings.add(
         setting(
-            toEnvVar("otel.instrumentation.micrometer.base-time-unit"),
+            "otel.instrumentation.micrometer.base-time-unit",
             "Set the base time unit for the OpenTelemetry `MeterRegistry` implementation. <details><summary>Valid values</summary>`ns`, `nanoseconds`, `us`, `microseconds`, `ms`, `milliseconds`, `s`, `seconds`, `min`, `minutes`, `h`, `hours`, `d`, `days`</details>",
             "s",
             SettingType.STRING,
             SettingCategory.INSTRUMENTATION));
     settings.add(
         setting(
-            toEnvVar("otel.instrumentation.micrometer.prometheus-mode.enabled"),
+            "otel.instrumentation.micrometer.prometheus-mode.enabled",
             "Enable the \"Prometheus mode\" this will simulate the behavior of Micrometer's PrometheusMeterRegistry. The instruments will be renamed to match Micrometer instrument naming, and the base time unit will be set to seconds.",
             "false",
             SettingType.BOOLEAN,
             SettingCategory.INSTRUMENTATION));
     settings.add(
         setting(
-            toEnvVar("otel.instrumentation.micrometer.histogram-gauges.enabled"),
+            "otel.instrumentation.micrometer.histogram-gauges.enabled",
             "Enables the generation of gauge-based Micrometer histograms for `DistributionSummary` and `Timer` instruments.",
             "false",
             SettingType.BOOLEAN,
@@ -1826,7 +1824,7 @@ public class MetadataGenerator {
      */
     settings.add(
         setting(
-            toEnvVar("otel.instrumentation.mongo.statement-sanitizer.enabled"),
+            "otel.instrumentation.mongo.statement-sanitizer.enabled",
             "Enables the DB statement sanitization.",
             "false",
             SettingType.BOOLEAN,
@@ -1839,14 +1837,14 @@ public class MetadataGenerator {
      */
     settings.add(
         setting(
-            toEnvVar("otel.instrumentation.netty.connection-telemetry.enabled"),
+            "otel.instrumentation.netty.connection-telemetry.enabled",
             "Enable the creation of Connect and DNS spans by default for Netty 4.0 and higher instrumentation.",
             "false",
             SettingType.BOOLEAN,
             SettingCategory.INSTRUMENTATION));
     settings.add(
         setting(
-            toEnvVar("otel.instrumentation.netty.ssl-telemetry.enabled"),
+            "otel.instrumentation.netty.ssl-telemetry.enabled",
             "Enable SSL telemetry for Netty 4.0 and higher instrumentation.",
             "false",
             SettingType.BOOLEAN,
@@ -1858,7 +1856,7 @@ public class MetadataGenerator {
      */
     settings.add(
         setting(
-            toEnvVar("otel.instrumentation.opentelemetry-annotations.exclude-methods"),
+            "otel.instrumentation.opentelemetry-annotations.exclude-methods",
             "All methods to be excluded from auto-instrumentation by annotation-based advices.",
             "",
             SettingType.STRING,
@@ -1870,8 +1868,7 @@ public class MetadataGenerator {
      */
     settings.add(
         setting(
-            toEnvVar(
-                "otel.instrumentation.opentelemetry-instrumentation-annotations.exclude-methods"),
+            "otel.instrumentation.opentelemetry-instrumentation-annotations.exclude-methods",
             "All methods to be excluded from auto-instrumentation by annotation-based advices.",
             "",
             SettingType.STRING,
@@ -1883,7 +1880,7 @@ public class MetadataGenerator {
      */
     settings.add(
         setting(
-            toEnvVar("otel.instrumentation.oshi.experimental-metrics.enabled"),
+            "otel.instrumentation.oshi.experimental-metrics.enabled",
             "Enable the OSHI metrics.",
             "false",
             SettingType.BOOLEAN,
@@ -1895,7 +1892,7 @@ public class MetadataGenerator {
      */
     settings.add(
         setting(
-            toEnvVar("otel.instrumentation.pulsar.experimental-span-attributes"),
+            "otel.instrumentation.pulsar.experimental-span-attributes",
             "Enable the capture of experimental span attributes.",
             "false",
             SettingType.BOOLEAN,
@@ -1907,7 +1904,7 @@ public class MetadataGenerator {
      */
     settings.add(
         setting(
-            toEnvVar("otel.instrumentation.quartz.experimental-span-attributes"),
+            "otel.instrumentation.quartz.experimental-span-attributes",
             "Enable the capture of experimental span attributes.",
             "false",
             SettingType.BOOLEAN,
@@ -1919,7 +1916,7 @@ public class MetadataGenerator {
      */
     settings.add(
         setting(
-            toEnvVar("otel.instrumentation.rabbitmq.experimental-span-attributes"),
+            "otel.instrumentation.rabbitmq.experimental-span-attributes",
             "Enable the capture of experimental span attributes.",
             "false",
             SettingType.BOOLEAN,
@@ -1931,7 +1928,7 @@ public class MetadataGenerator {
      */
     settings.add(
         setting(
-            toEnvVar("otel.instrumentation.reactor.experimental-span-attributes"),
+            "otel.instrumentation.reactor.experimental-span-attributes",
             "Enable the capture of experimental span attributes.",
             "false",
             SettingType.BOOLEAN,
@@ -1943,7 +1940,7 @@ public class MetadataGenerator {
      */
     settings.add(
         setting(
-            toEnvVar("otel.instrumentation.reactor-netty.connection-telemetry.enabled"),
+            "otel.instrumentation.reactor-netty.connection-telemetry.enabled",
             "Enable the creation of Connect and DNS spans by default.",
             "false",
             SettingType.BOOLEAN,
@@ -1955,7 +1952,7 @@ public class MetadataGenerator {
      */
     settings.add(
         setting(
-            toEnvVar("otel.instrumentation.rocketmq-client.experimental-span-attributes"),
+            "otel.instrumentation.rocketmq-client.experimental-span-attributes",
             "Enable the capture of experimental span attributes.",
             "false",
             SettingType.BOOLEAN,
@@ -1971,35 +1968,35 @@ public class MetadataGenerator {
      */
     settings.add(
         setting(
-            toEnvVar("otel.instrumentation.runtime-telemetry.emit-experimental-telemetry"),
+            "otel.instrumentation.runtime-telemetry.emit-experimental-telemetry",
             "Enable the capture of experimental metrics.",
             "false",
             SettingType.BOOLEAN,
             SettingCategory.INSTRUMENTATION));
     settings.add(
         setting(
-            toEnvVar("otel.instrumentation.runtime-telemetry-java17.enable-all"),
+            "otel.instrumentation.runtime-telemetry-java17.enable-all",
             "Enable the capture of all JFR based metrics.",
             "false",
             SettingType.BOOLEAN,
             SettingCategory.INSTRUMENTATION));
     settings.add(
         setting(
-            toEnvVar("otel.instrumentation.runtime-telemetry-java17.enabled"),
+            "otel.instrumentation.runtime-telemetry-java17.enabled",
             "Enable the capture of JFR based metrics.",
             "false",
             SettingType.BOOLEAN,
             SettingCategory.INSTRUMENTATION));
     settings.add(
         setting(
-            toEnvVar("otel.instrumentation.runtime-telemetry.package-emitter.enabled"),
+            "otel.instrumentation.runtime-telemetry.package-emitter.enabled",
             "Enable creating events for JAR libraries used by the application.",
             "false",
             SettingType.BOOLEAN,
             SettingCategory.INSTRUMENTATION));
     settings.add(
         setting(
-            toEnvVar("otel.instrumentation.runtime-telemetry.package-emitter.jars-per-second"),
+            "otel.instrumentation.runtime-telemetry.package-emitter.jars-per-second",
             "The number of JAR files processed per second.",
             "10",
             SettingType.INT,
@@ -2011,7 +2008,7 @@ public class MetadataGenerator {
      */
     settings.add(
         setting(
-            toEnvVar("otel.instrumentation.rxjava.experimental-span-attributes"),
+            "otel.instrumentation.rxjava.experimental-span-attributes",
             "Enable the capture of experimental span attributes.",
             "false",
             SettingType.BOOLEAN,
@@ -2024,7 +2021,7 @@ public class MetadataGenerator {
      */
     settings.add(
         setting(
-            toEnvVar("otel.instrumentation.servlet.experimental-span-attributes"),
+            "otel.instrumentation.servlet.experimental-span-attributes",
             "Enable the capture of experimental span attributes.",
             "false",
             SettingType.BOOLEAN,
@@ -2045,56 +2042,56 @@ public class MetadataGenerator {
      */
     settings.add(
         setting(
-            toEnvVar("otel.instrumentation.spring-batch.item.enabled"),
+            "otel.instrumentation.spring-batch.item.enabled",
             "Enable creating span for each item.",
             "false",
             SettingType.BOOLEAN,
             SettingCategory.INSTRUMENTATION));
     settings.add(
         setting(
-            toEnvVar("otel.instrumentation.spring-batch.experimental.chunk.new-trace"),
+            "otel.instrumentation.spring-batch.experimental.chunk.new-trace",
             "Enable staring a new trace for each chunk.",
             "false",
             SettingType.BOOLEAN,
             SettingCategory.INSTRUMENTATION));
     settings.add(
         setting(
-            toEnvVar("otel.instrumentation.spring-scheduling.experimental-span-attributes"),
+            "otel.instrumentation.spring-scheduling.experimental-span-attributes",
             "Enable the capture of experimental span attributes for Spring Batch version 3.0.",
             "false",
             SettingType.BOOLEAN,
             SettingCategory.INSTRUMENTATION));
     settings.add(
         setting(
-            toEnvVar("otel.instrumentation.spring-integration.global-channel-interceptor-patterns"),
+            "otel.instrumentation.spring-integration.global-channel-interceptor-patterns",
             "An array of Spring channel name patterns that will be intercepted. See [Spring Integration docs](https://docs.spring.io/spring-integration/reference/channel/configuration.html#global-channel-configuration-interceptors) for more details.",
             "*",
             SettingType.STRING,
             SettingCategory.INSTRUMENTATION));
     settings.add(
         setting(
-            toEnvVar("otel.instrumentation.spring-integration.producer.enabled"),
+            "otel.instrumentation.spring-integration.producer.enabled",
             "Create producer spans when messages are sent to an output channel. Enable when you're using a messaging library that doesn't have its own instrumentation for generating producer spans. Note that the detection of output channels only works for [Spring Cloud Stream](https://spring.io/projects/spring-cloud-stream) `DirectWithAttributesChannel`.",
             "false",
             SettingType.BOOLEAN,
             SettingCategory.INSTRUMENTATION));
     settings.add(
         setting(
-            toEnvVar("otel.instrumentation.spring-scheduling.experimental-span-attributes"),
+            "otel.instrumentation.spring-scheduling.experimental-span-attributes",
             "Enable the capture of experimental span attributes for Spring Scheduling version 3.1.",
             "false",
             SettingType.BOOLEAN,
             SettingCategory.INSTRUMENTATION));
     settings.add(
         setting(
-            toEnvVar("otel.instrumentation.spring-webflux.experimental-span-attributes"),
+            "otel.instrumentation.spring-webflux.experimental-span-attributes",
             "Enable the capture of experimental span attributes for Spring WebFlux version 5.0.",
             "false",
             SettingType.BOOLEAN,
             SettingCategory.INSTRUMENTATION));
     settings.add(
         setting(
-            toEnvVar("otel.instrumentation.spring-webmvc.experimental-span-attributes"),
+            "otel.instrumentation.spring-webmvc.experimental-span-attributes",
             "Enable the capture of experimental span attributes for Spring Web MVC version 3.1.",
             "false",
             SettingType.BOOLEAN,
@@ -2106,7 +2103,7 @@ public class MetadataGenerator {
      */
     settings.add(
         setting(
-            toEnvVar("otel.instrumentation.spring-cloud-gateway.experimental-span-attributes"),
+            "otel.instrumentation.spring-cloud-gateway.experimental-span-attributes",
             "Enable the capture of experimental span attributes.",
             "false",
             SettingType.BOOLEAN,
@@ -2119,14 +2116,14 @@ public class MetadataGenerator {
      */
     settings.add(
         setting(
-            toEnvVar("otel.instrumentation.spring-security.enduser.role.granted-authority-prefix"),
+            "otel.instrumentation.spring-security.enduser.role.granted-authority-prefix",
             "Prefix of granted authorities identifying roles to capture in the `enduser.role` semantic attribute.",
             "ROLE_",
             SettingType.STRING,
             SettingCategory.INSTRUMENTATION));
     settings.add(
         setting(
-            toEnvVar("otel.instrumentation.spring-security.enduser.scope.granted-authority-prefix"),
+            "otel.instrumentation.spring-security.enduser.scope.granted-authority-prefix",
             "Prefix of granted authorities identifying scopes to capture in the `enduser.scopes` semantic attribute.",
             "SCOPE_",
             SettingType.STRING,
@@ -2138,7 +2135,7 @@ public class MetadataGenerator {
      */
     settings.add(
         setting(
-            toEnvVar("otel.instrumentation.spymemcached.experimental-span-attributes"),
+            "otel.instrumentation.spymemcached.experimental-span-attributes",
             "Enable the capture of experimental span attributes.",
             "false",
             SettingType.BOOLEAN,
@@ -2150,7 +2147,7 @@ public class MetadataGenerator {
      */
     settings.add(
         setting(
-            toEnvVar("otel.instrumentation.twilio.experimental-span-attributes"),
+            "otel.instrumentation.twilio.experimental-span-attributes",
             "Enable the capture of experimental span attributes.",
             "false",
             SettingType.BOOLEAN,
@@ -2162,7 +2159,7 @@ public class MetadataGenerator {
      */
     settings.add(
         setting(
-            toEnvVar("otel.instrumentation.xxl-job.experimental-span-attributes"),
+            "otel.instrumentation.xxl-job.experimental-span-attributes",
             "Enable the capture of experimental span attributes.",
             "false",
             SettingType.BOOLEAN,
@@ -3764,13 +3761,14 @@ public class MetadataGenerator {
   }
 
   private static Map<String, Object> setting(
-      String env,
+      String property,
       String description,
       String defaultValue,
       SettingType type,
       SettingCategory category) {
     Map<String, Object> map = new LinkedHashMap<>();
-    map.put("env", env);
+    map.put("property", property);
+    map.put("env", toEnvVar(property));
     map.put("description", description);
     map.put("default", defaultValue);
     map.put("type", type.value());

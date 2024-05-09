@@ -31,7 +31,7 @@ jobs:
   build:
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v4.1.4
+      - uses: actions/checkout@v4.1.5
 
       - name: Set up JDK 17 for running Gradle
         uses: actions/setup-java@v4.2.1
@@ -54,7 +54,7 @@ jobs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4.1.4
+        uses: actions/checkout@v4.1.5
 
       - name: Set up JDK 17 for running Gradle
         uses: actions/setup-java@v4.2.1
@@ -79,7 +79,7 @@ jobs:
       fail-fast: false
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4.1.4
+        uses: actions/checkout@v4.1.5
 
       - name: Set up JDK 17 for running Gradle
         uses: actions/setup-java@v4.2.1
@@ -118,7 +118,7 @@ jobs:
             suite: profiler
       fail-fast: false
     steps:
-      - uses: actions/checkout@v4.1.4
+      - uses: actions/checkout@v4.1.5
 
       - name: Set up JDK 17 for running Gradle
         uses: actions/setup-java@v4.2.1
@@ -152,7 +152,7 @@ jobs:
   shellcheck:
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v4.1.4
+      - uses: actions/checkout@v4.1.5
 
       - name: Install shell check
         run: wget -qO- "https://github.com/koalaman/shellcheck/releases/download/v0.8.0/shellcheck-v0.8.0.linux.x86_64.tar.xz" | tar -xJv
@@ -163,7 +163,7 @@ jobs:
   license-check:
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v4.1.4
+      - uses: actions/checkout@v4.1.5
 
       - name: Set up JDK 17 for running Gradle
         uses: actions/setup-java@v4.2.1

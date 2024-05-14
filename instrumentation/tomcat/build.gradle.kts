@@ -7,7 +7,7 @@ muzzle {
   pass {
     group.set("org.apache.tomcat")
     module.set("tomcat-catalina")
-    versions.set("[8,)")
+    versions.set("[7,)")
     assertInverse.set(true)
   }
 }

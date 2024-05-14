@@ -17,7 +17,6 @@ Below you will find all the configuration options supported by this distribution
 |-----------------------------------------|-----------------------------------------|-------------------------|--------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `splunk.access.token`                   | `SPLUNK_ACCESS_TOKEN`                   | unset                   | Stable       | (Optional) Auth token allowing exporters to communicate directly with the Splunk cloud, passed as `X-SF-TOKEN` header.                                                                                               |
 | `splunk.realm`                          | `SPLUNK_REALM`                          | `none`                  | Stable       | The Splunk Observability Cloud realm where the telemetry should be sent to. For example, `us0` or `us1`. Defaults to `none`, which means that data goes to a Splunk OpenTelemetry Collector deployed on `localhost`. |
-| `splunk.metrics.enabled`                | `SPLUNK_METRICS_ENABLED`                | `false`                 | Experimental | Enables exporting splunk metrics. See [this document](metrics.md) for more information.                                                                                                                              |
 | `splunk.metrics.force_full_commandline` | `SPLUNK_METRICS_FORCE_FULL_COMMANDLINE` | `false`                 | Experimental | Adds the full command line as a resource attribute for all metrics. If false, commands longer than 255 characters are truncated.                                                                                     |
 | `splunk.trace-response-header.enabled`  | `SPLUNK_TRACE_RESPONSE_HEADER_ENABLED`  | `true`                  | Stable       | Enables adding server trace information to HTTP response headers. See [this document](server-trace-info.md) for more information.                                                                                    |
 
@@ -123,7 +122,6 @@ collection of call stacks (thread dumps), as this feature is enabled only when t
 enabled.
 
 Note: Setting `splunk.profiler.memory.enabled` to `true` automatically activates the splunk metrics.
-Furthermore, this setting takes precedence over `splunk.metrics.enabled`.
 
 ## Other OpenTelemetry Java agent configuration
 

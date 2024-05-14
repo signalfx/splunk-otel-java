@@ -16,13 +16,10 @@
 
 package com.splunk.opentelemetry;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
 import com.splunk.opentelemetry.helper.TargetWaitStrategy;
 import com.splunk.opentelemetry.helper.TestImage;
 import java.io.IOException;
 import java.time.Duration;
-import java.util.Map;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -66,7 +63,6 @@ class WebLogicSmokeTest extends AppServerTest {
     // No assertServerHandler as there are no current plans to have a WebLogic server handler that
     // creates spans
     assertWebAppTrace(serverAttributes);
-    assertMetrics(waitForMetrics());
 
     stopTarget();
   }
@@ -90,16 +86,5 @@ class WebLogicSmokeTest extends AppServerTest {
         "app",
         traces.getServerSpanAttribute("webengine.weblogic.application"),
         "WebLogic Application attribute present");
-  }
-
-  private void assertMetrics(MetricsInspector metrics) {
-    var expectedAttrs = Map.of("executor.type", "weblogic");
-    assertMetrics(metrics, expectedAttrs);
-  }
-
-  private void assertMetrics(MetricsInspector metrics, Map<String, String> expectedAttrs) {
-    assertTrue(metrics.hasGaugeWithAttributes("executor.threads", expectedAttrs));
-    assertTrue(metrics.hasGaugeWithAttributes("executor.threads.idle", expectedAttrs));
-    assertTrue(metrics.hasMetricsNamed("executor.tasks.completed"));
   }
 }

@@ -7,8 +7,6 @@
 
 The Splunk Distribution of OpenTelemetry Java agent gathers basic application metrics.
 Because these splunk-specific metrics are still experimental they are not enabled by default.
-To enable metrics, add `-Dsplunk.metrics.enabled=true` to the JVM
-arguments or set the environment variable `SPLUNK_METRICS_ENABLED` to `true`.
 For more information, please see the [advanced configuration](advanced-config.md#splunk-distribution-configuration)
 for details.
 
@@ -19,9 +17,6 @@ The following metrics are currently gathered by the agent:
 | Library/Framework                                                    | Instrumentation name   | Versions |
 | -------------------------------------------------------------------- |------------------------| -------- |
 | [JVM metrics](#jvm)                                                  | `jvm-metrics-splunk`   | [Java runtimes version 8 and higher](../README.md#requirements)
-| [Tomcat thread pool metrics](#thread-pool-metrics)                   | `tomcat`               | 8.5 and higher
-| [WebSphere Liberty web request thread pool](#thread-pool-metrics)    | `liberty`              | 20.0.0.12
-| [WebLogic thread pools](#thread-pool-metrics)                        | `weblogic`             | 12.x and 14.x
 
 ### JVM
 
@@ -37,36 +32,6 @@ These metrics are enabled only when memory profiler is enabled.
 | `jvm.memory.allocated`   | [Counter][c] | Approximate sum of heap allocations.                                     |
 | `jvm.gc.pause.count`     | [Counter][c] | Number of gc pauses. This metric will be removed in a future release.    |
 | `jvm.gc.pause.totalTime` | [Counter][c] | Time spent in GC pause. This metric will be removed in a future release. |
-
-### Thread pool metrics
-
-Splunk Distribution of OpenTelemetry Java instruments several thread pool implementations:
-
-* [Tomcat connector thread pools](https://tomcat.apache.org/tomcat-8.5-doc/index.html)
-* [WebSphere Liberty web request thread pool](https://www.ibm.com/docs/en/was-liberty/base?topic=10-threadpool-monitoring)
-* [WebLogic thread pools](https://docs.oracle.com/en/middleware/standalone/weblogic-server/)
-
-Each of the supported connection pools reports a subset of the following metrics:
-
-| Metric name                | Instrument   | Description |
-| -------------------------- | ------------ | ----------- |
-| `executor.threads`         | [Gauge][g]   | The current number of threads in the pool.
-| `executor.threads.active`  | [Gauge][g]   | The number of threads that are currently busy.
-| `executor.threads.idle`    | [Gauge][g]   | The number of threads that are currently idle.
-| `executor.threads.core`    | [Gauge][g]   | Core thread pool size - the number of threads that are always kept in the pool.
-| `executor.threads.max`     | [Gauge][g]   | The maximum number of threads in the pool.
-| `executor.tasks.submitted` | [Counter][c] | The total number of tasks that were submitted to this executor.
-| `executor.tasks.completed` | [Counter][c] | The total number of tasks completed by this executor.
-
-All thread pool metrics have the following attributes:
-
-| Attribute name  | Attribute value                                                                   |
-|-----------------|-----------------------------------------------------------------------------------|
-| `executor.name` | The name of the thread pool.                                                      |
-| `executor.type` | The type/implementation of the thread pool: e.g. `tomcat`, `liberty`, `weblogic`. |
-
-[c]: https://opentelemetry.io/docs/specs/otel/metrics/api/#counter
-[g]: https://opentelemetry.io/docs/specs/otel/metrics/api/#gauge
 
 ## Webengine Attributes
 

@@ -1,7 +1,7 @@
 
 # splunk-otel-javaagent
 ## Dependency License Report
-_2024-05-13 15:44:11 EEST_
+_2024-05-14 15:20:25 EEST_
 ## Apache License, Version 2.0
 
 **1** **Group:** `com.fasterxml.jackson.core` **Name:** `jackson-core` **Version:** `2.17.1` 
@@ -58,29 +58,29 @@ _2024-05-13 15:44:11 EEST_
 > - **Embedded license files**: [commons-codec-1.17.0.jar/META-INF/LICENSE.txt](commons-codec-1.17.0.jar/META-INF/LICENSE.txt) 
     - [commons-codec-1.17.0.jar/META-INF/NOTICE.txt](commons-codec-1.17.0.jar/META-INF/NOTICE.txt)
 
-**12** **Group:** `io.micrometer` **Name:** `micrometer-commons` **Version:** `1.12.6` 
+**12** **Group:** `io.micrometer` **Name:** `micrometer-commons` **Version:** `1.13.0` 
 > - **POM Project URL**: [https://github.com/micrometer-metrics/micrometer](https://github.com/micrometer-metrics/micrometer)
 > - **POM License**: Apache License, Version 2.0 - [https://www.apache.org/licenses/LICENSE-2.0](https://www.apache.org/licenses/LICENSE-2.0)
-> - **Embedded license files**: [micrometer-commons-1.12.6.jar/META-INF/LICENSE](micrometer-commons-1.12.6.jar/META-INF/LICENSE) 
-    - [micrometer-commons-1.12.6.jar/META-INF/NOTICE](micrometer-commons-1.12.6.jar/META-INF/NOTICE)
+> - **Embedded license files**: [micrometer-commons-1.13.0.jar/META-INF/LICENSE](micrometer-commons-1.13.0.jar/META-INF/LICENSE) 
+    - [micrometer-commons-1.13.0.jar/META-INF/NOTICE](micrometer-commons-1.13.0.jar/META-INF/NOTICE)
 
-**13** **Group:** `io.micrometer` **Name:** `micrometer-core` **Version:** `1.12.6` 
+**13** **Group:** `io.micrometer` **Name:** `micrometer-core` **Version:** `1.13.0` 
 > - **POM Project URL**: [https://github.com/micrometer-metrics/micrometer](https://github.com/micrometer-metrics/micrometer)
 > - **POM License**: Apache License, Version 2.0 - [https://www.apache.org/licenses/LICENSE-2.0](https://www.apache.org/licenses/LICENSE-2.0)
-> - **Embedded license files**: [micrometer-core-1.12.6.jar/META-INF/LICENSE](micrometer-core-1.12.6.jar/META-INF/LICENSE) 
-    - [micrometer-core-1.12.6.jar/META-INF/NOTICE](micrometer-core-1.12.6.jar/META-INF/NOTICE)
+> - **Embedded license files**: [micrometer-core-1.13.0.jar/META-INF/LICENSE](micrometer-core-1.13.0.jar/META-INF/LICENSE) 
+    - [micrometer-core-1.13.0.jar/META-INF/NOTICE](micrometer-core-1.13.0.jar/META-INF/NOTICE)
 
-**14** **Group:** `io.micrometer` **Name:** `micrometer-observation` **Version:** `1.12.6` 
+**14** **Group:** `io.micrometer` **Name:** `micrometer-observation` **Version:** `1.13.0` 
 > - **POM Project URL**: [https://github.com/micrometer-metrics/micrometer](https://github.com/micrometer-metrics/micrometer)
 > - **POM License**: Apache License, Version 2.0 - [https://www.apache.org/licenses/LICENSE-2.0](https://www.apache.org/licenses/LICENSE-2.0)
-> - **Embedded license files**: [micrometer-observation-1.12.6.jar/META-INF/LICENSE](micrometer-observation-1.12.6.jar/META-INF/LICENSE) 
-    - [micrometer-observation-1.12.6.jar/META-INF/NOTICE](micrometer-observation-1.12.6.jar/META-INF/NOTICE)
+> - **Embedded license files**: [micrometer-observation-1.13.0.jar/META-INF/LICENSE](micrometer-observation-1.13.0.jar/META-INF/LICENSE) 
+    - [micrometer-observation-1.13.0.jar/META-INF/NOTICE](micrometer-observation-1.13.0.jar/META-INF/NOTICE)
 
-**15** **Group:** `io.micrometer` **Name:** `micrometer-registry-signalfx` **Version:** `1.12.6` 
+**15** **Group:** `io.micrometer` **Name:** `micrometer-registry-signalfx` **Version:** `1.13.0` 
 > - **POM Project URL**: [https://github.com/micrometer-metrics/micrometer](https://github.com/micrometer-metrics/micrometer)
 > - **POM License**: Apache License, Version 2.0 - [https://www.apache.org/licenses/LICENSE-2.0](https://www.apache.org/licenses/LICENSE-2.0)
-> - **Embedded license files**: [micrometer-registry-signalfx-1.12.6.jar/META-INF/LICENSE](micrometer-registry-signalfx-1.12.6.jar/META-INF/LICENSE) 
-    - [micrometer-registry-signalfx-1.12.6.jar/META-INF/NOTICE](micrometer-registry-signalfx-1.12.6.jar/META-INF/NOTICE)
+> - **Embedded license files**: [micrometer-registry-signalfx-1.13.0.jar/META-INF/LICENSE](micrometer-registry-signalfx-1.13.0.jar/META-INF/LICENSE) 
+    - [micrometer-registry-signalfx-1.13.0.jar/META-INF/NOTICE](micrometer-registry-signalfx-1.13.0.jar/META-INF/NOTICE)
 
 **16** **Group:** `io.opentelemetry` **Name:** `opentelemetry-api` **Version:** `1.37.0` 
 > - **POM Project URL**: [https://github.com/open-telemetry/opentelemetry-java](https://github.com/open-telemetry/opentelemetry-java)
@@ -202,12 +202,13 @@ _2024-05-13 15:44:11 EEST_
 
 ## Creative Commons Legal Code
 
-**43** **Group:** `org.hdrhistogram` **Name:** `HdrHistogram` **Version:** `2.1.12` 
+**43** **Group:** `org.hdrhistogram` **Name:** `HdrHistogram` **Version:** `2.2.1` 
 > - **Manifest License**: The 2-Clause BSD License (Not Packaged)
 > - **POM Project URL**: [http://hdrhistogram.github.io/HdrHistogram/](http://hdrhistogram.github.io/HdrHistogram/)
 > - **POM License**: Creative Commons Legal Code - [https://creativecommons.org/publicdomain/zero/1.0/legalcode](https://creativecommons.org/publicdomain/zero/1.0/legalcode)
 > - **POM License**: PUBLIC DOMAIN - [http://creativecommons.org/publicdomain/zero/1.0/](http://creativecommons.org/publicdomain/zero/1.0/)
 > - **POM License**: The 2-Clause BSD License - [https://opensource.org/licenses/BSD-2-Clause](https://opensource.org/licenses/BSD-2-Clause)
+> - **Embedded license files**: [HdrHistogram-2.2.1.jar/META-INF/LICENSE.txt](HdrHistogram-2.2.1.jar/META-INF/LICENSE.txt)
 
 **44** **Group:** `org.latencyutils` **Name:** `LatencyUtils` **Version:** `2.0.3` 
 > - **POM Project URL**: [http://latencyutils.github.io/LatencyUtils/](http://latencyutils.github.io/LatencyUtils/)
@@ -230,12 +231,13 @@ _2024-05-13 15:44:11 EEST_
 
 ## PUBLIC DOMAIN
 
-**47** **Group:** `org.hdrhistogram` **Name:** `HdrHistogram` **Version:** `2.1.12` 
+**47** **Group:** `org.hdrhistogram` **Name:** `HdrHistogram` **Version:** `2.2.1` 
 > - **Manifest License**: The 2-Clause BSD License (Not Packaged)
 > - **POM Project URL**: [http://hdrhistogram.github.io/HdrHistogram/](http://hdrhistogram.github.io/HdrHistogram/)
 > - **POM License**: Creative Commons Legal Code - [https://creativecommons.org/publicdomain/zero/1.0/legalcode](https://creativecommons.org/publicdomain/zero/1.0/legalcode)
 > - **POM License**: PUBLIC DOMAIN - [http://creativecommons.org/publicdomain/zero/1.0/](http://creativecommons.org/publicdomain/zero/1.0/)
 > - **POM License**: The 2-Clause BSD License - [https://opensource.org/licenses/BSD-2-Clause](https://opensource.org/licenses/BSD-2-Clause)
+> - **Embedded license files**: [HdrHistogram-2.2.1.jar/META-INF/LICENSE.txt](HdrHistogram-2.2.1.jar/META-INF/LICENSE.txt)
 
 **48** **Group:** `org.latencyutils` **Name:** `LatencyUtils` **Version:** `2.0.3` 
 > - **POM Project URL**: [http://latencyutils.github.io/LatencyUtils/](http://latencyutils.github.io/LatencyUtils/)
@@ -244,12 +246,13 @@ _2024-05-13 15:44:11 EEST_
 
 ## The 2-Clause BSD License
 
-**49** **Group:** `org.hdrhistogram` **Name:** `HdrHistogram` **Version:** `2.1.12` 
+**49** **Group:** `org.hdrhistogram` **Name:** `HdrHistogram` **Version:** `2.2.1` 
 > - **Manifest License**: The 2-Clause BSD License (Not Packaged)
 > - **POM Project URL**: [http://hdrhistogram.github.io/HdrHistogram/](http://hdrhistogram.github.io/HdrHistogram/)
 > - **POM License**: Creative Commons Legal Code - [https://creativecommons.org/publicdomain/zero/1.0/legalcode](https://creativecommons.org/publicdomain/zero/1.0/legalcode)
 > - **POM License**: PUBLIC DOMAIN - [http://creativecommons.org/publicdomain/zero/1.0/](http://creativecommons.org/publicdomain/zero/1.0/)
 > - **POM License**: The 2-Clause BSD License - [https://opensource.org/licenses/BSD-2-Clause](https://opensource.org/licenses/BSD-2-Clause)
+> - **Embedded license files**: [HdrHistogram-2.2.1.jar/META-INF/LICENSE.txt](HdrHistogram-2.2.1.jar/META-INF/LICENSE.txt)
 
 ## The 3-Clause BSD License
 

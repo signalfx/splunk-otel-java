@@ -42,9 +42,7 @@ public abstract class AbstractTestContainerManager implements TestContainerManag
         "OTEL_EXPORTER_OTLP_ENDPOINT", "http://" + COLLECTOR_ALIAS + ":" + COLLECTOR_PORT);
     environment.put("SPLUNK_METRICS_ENABLED", "true");
     // export metrics every 1s
-    environment.put("SPLUNK_METRICS_EXPORT_INTERVAL", "1000");
     environment.put("OTEL_METRIC_EXPORT_INTERVAL", "1000");
-    environment.put("SPLUNK_METRICS_ENDPOINT", "http://" + COLLECTOR_ALIAS + ":9943/v2/datapoint");
     if (setServiceName) {
       environment.put("OTEL_RESOURCE_ATTRIBUTES", "service.name=smoke-test");
     }

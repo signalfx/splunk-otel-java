@@ -57,8 +57,8 @@ This distribution comes with the following defaults:
   baggage](https://www.w3.org/TR/baggage/) context propagation;
   [B3](https://github.com/openzipkin/b3-propagation) can also be
   [configured](https://github.com/signalfx/splunk-otel-java/blob/main/docs/advanced-config.md#trace-propagation-configuration).
-- [OTLP gRPC
-  exporter](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/protocol/README.md)
+- [OTLP HTTP/protobuf
+  exporter](https://opentelemetry.io/docs/specs/otlp/#otlphttp)
   configured to send spans to a locally running [Splunk OpenTelemetry
   Collector](https://github.com/signalfx/splunk-otel-collector)
 - Unlimited default limits for [configuration

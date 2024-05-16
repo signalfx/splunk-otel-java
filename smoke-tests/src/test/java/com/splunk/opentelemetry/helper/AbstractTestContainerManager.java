@@ -40,7 +40,6 @@ public abstract class AbstractTestContainerManager implements TestContainerManag
     environment.put("OTEL_BSP_SCHEDULE_DELAY", "10ms");
     environment.put(
         "OTEL_EXPORTER_OTLP_ENDPOINT", "http://" + COLLECTOR_ALIAS + ":" + COLLECTOR_PORT);
-    environment.put("SPLUNK_METRICS_ENABLED", "true");
     // export metrics every 1s
     environment.put("OTEL_METRIC_EXPORT_INTERVAL", "1000");
     if (setServiceName) {

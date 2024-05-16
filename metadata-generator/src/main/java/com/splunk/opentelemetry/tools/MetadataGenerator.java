@@ -1220,7 +1220,6 @@ public class MetadataGenerator {
     /*
     | `splunk.access.token`                   | `SPLUNK_ACCESS_TOKEN`                   | unset                   | Stable       | (Optional) Auth token allowing exporters to communicate directly with the Splunk cloud, passed as `X-SF-TOKEN` header. Currently, the [SignalFx metrics exporter](metrics.md) supports this property.                |
     | `splunk.realm`                          | `SPLUNK_REALM`                          | `none`                  | Stable       | The Splunk Observability Cloud realm where the telemetry should be sent to. For example, `us0` or `us1`. Defaults to `none`, which means that data goes to a Splunk OpenTelemetry Collector deployed on `localhost`. |
-    | `splunk.metrics.enabled`                | `SPLUNK_METRICS_ENABLED`                | `false`                 | Experimental | Enables exporting splunk metrics. See [this document](metrics.md) for more information.                                                                                                                              |
     | `splunk.metrics.force_full_commandline` | `SPLUNK_METRICS_FORCE_FULL_COMMANDLINE` | `false`                 | Experimental | Adds the full command line as a resource attribute for all metrics. If false, commands longer than 255 characters are truncated.                                                                                     |
     | `splunk.trace-response-header.enabled`  | `SPLUNK_TRACE_RESPONSE_HEADER_ENABLED`  | `true`                  | Stable       | Enables adding server trace information to HTTP response headers. See [this document](server-trace-info.md) for more information.                                                                                    |
      */
@@ -1238,13 +1237,6 @@ public class MetadataGenerator {
             "The Splunk Observability Cloud realm where the telemetry should be sent to. For example, us0 or us1. Defaults to none, which means that data goes to a Splunk OpenTelemetry Collector deployed on localhost.",
             "none",
             SettingType.STRING,
-            SettingCategory.GENERAL));
-    settings.add(
-        setting(
-            "splunk.metrics.enabled",
-            "Enables exporting splunk metrics.",
-            "false",
-            SettingType.BOOLEAN,
             SettingCategory.GENERAL));
     settings.add(
         setting(
@@ -3437,31 +3429,16 @@ public class MetadataGenerator {
     instrumentations.add(
         splunkInstrumentation("jetty").component("Jetty", "9.4 and higher").build());
     instrumentations.add(
-        splunkInstrumentation("liberty")
-            .component("Liberty", "20.0 and higher")
-            .threadPoolMetrics(ThreadPoolMetrics.THREADS_CURRENT, ThreadPoolMetrics.THREADS_ACTIVE)
-            .build());
+        splunkInstrumentation("liberty").component("Liberty", "20.0 and higher").build());
     instrumentations.add(
         splunkInstrumentation(List.of("tomcat", "tomcat-metrics-splunk"))
             .component("Tomcat", "7.0 and higher")
-            .threadPoolMetrics(
-                ThreadPoolMetrics.THREADS_CURRENT,
-                ThreadPoolMetrics.THREADS_ACTIVE,
-                ThreadPoolMetrics.THREADS_IDLE,
-                ThreadPoolMetrics.THREADS_CORE,
-                ThreadPoolMetrics.THREADS_MAX,
-                ThreadPoolMetrics.TASKS_SUBMITTED,
-                ThreadPoolMetrics.TASKS_COMPLETED)
             .build());
     instrumentations.add(
         splunkInstrumentation("tomee").component("TomEE", "7.0 and higher").build());
     instrumentations.add(
         splunkInstrumentation(List.of("weblogic", "weblogic-metrics-splunk"))
             .component("WebLogic", "12.1 and higher")
-            .threadPoolMetrics(
-                ThreadPoolMetrics.THREADS_CURRENT,
-                ThreadPoolMetrics.THREADS_IDLE,
-                ThreadPoolMetrics.TASKS_COMPLETED)
             .build());
     instrumentations.add(
         splunkInstrumentation("websphere").component("WebSphere", "8.5.5 and higher").build());
@@ -3946,14 +3923,6 @@ public class MetadataGenerator {
       return this;
     }
 
-    InstrumentationBuilder threadPoolMetrics(ThreadPoolMetrics... threadPoolMetrics) {
-      for (ThreadPoolMetrics metric : threadPoolMetrics) {
-        metric.add(this);
-      }
-
-      return this;
-    }
-
     InstrumentationBuilder dependency(
         String name, String sourceUrl, String packageUrl, String version, Stability stability) {
       Map<String, Object> map = new LinkedHashMap<>();
@@ -4170,50 +4139,6 @@ public class MetadataGenerator {
     private final String description;
 
     DbPoolMetrics(String name, MetricInstrument instrument, String description) {
-      this.name = name;
-      this.instrument = instrument;
-      this.description = description;
-    }
-
-    public void add(InstrumentationBuilder builder) {
-      builder.metric(name, instrument, description);
-    }
-  }
-
-  enum ThreadPoolMetrics {
-    // XXX DbPoolMetrics uses up down counter for similar fields
-    THREADS_CURRENT(
-        "executor.threads", MetricInstrument.GAUGE, "The current number of threads in the pool."),
-    THREADS_ACTIVE(
-        "executor.threads.active",
-        MetricInstrument.GAUGE,
-        "The number of threads that are currently busy."),
-    THREADS_IDLE(
-        "executor.threads.idle",
-        MetricInstrument.GAUGE,
-        "The number of threads that are currently idle."),
-    THREADS_CORE(
-        "executor.threads.core",
-        MetricInstrument.GAUGE,
-        "Core thread pool size - the number of threads that are always kept in the pool."),
-    THREADS_MAX(
-        "executor.threads.max",
-        MetricInstrument.GAUGE,
-        "The maximum number of threads in the pool."),
-    TASKS_SUBMITTED(
-        "executor.tasks.submitted",
-        MetricInstrument.COUNTER,
-        "The total number of tasks that were submitted to this executor."),
-    TASKS_COMPLETED(
-        "executor.tasks.completed",
-        MetricInstrument.COUNTER,
-        "The total number of tasks completed by this executor.");
-
-    private final String name;
-    private final MetricInstrument instrument;
-    private final String description;
-
-    ThreadPoolMetrics(String name, MetricInstrument instrument, String description) {
       this.name = name;
       this.instrument = instrument;
       this.description = description;

@@ -36,7 +36,6 @@ include(
     "bootstrap",
     "custom",
     "instrumentation",
-    "instrumentation:common",
     "instrumentation:compile-stub",
     "instrumentation:glassfish",
     "instrumentation:jetty",

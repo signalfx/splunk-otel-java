@@ -16,15 +16,12 @@
 
 package com.splunk.opentelemetry;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
 import com.splunk.opentelemetry.helper.ResourceMapping;
 import com.splunk.opentelemetry.helper.TargetWaitStrategy;
 import com.splunk.opentelemetry.helper.TestImage;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Stream;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -78,19 +75,8 @@ public class LibertySmokeTest extends AppServerTest {
 
     assertServerHandler(expectedServerAttributes);
     assertWebAppTrace(expectedServerAttributes);
-    assertMetrics(waitForMetrics());
 
     stopTarget();
-  }
-
-  private void assertMetrics(MetricsInspector metrics) {
-    var expectedAttrs = Map.of("executor.type", "liberty");
-    assertMetrics(metrics, expectedAttrs);
-  }
-
-  private void assertMetrics(MetricsInspector metrics, Map<String, String> expectedAttrs) {
-    assertTrue(metrics.hasGaugeWithAttributes("executor.threads", expectedAttrs));
-    assertTrue(metrics.hasGaugeWithAttributes("executor.threads.active", expectedAttrs));
   }
 
   public static class LibertyAttributes extends ExpectedServerAttributes {

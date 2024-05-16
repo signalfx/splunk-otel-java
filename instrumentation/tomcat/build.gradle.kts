@@ -7,18 +7,11 @@ muzzle {
   pass {
     group.set("org.apache.tomcat")
     module.set("tomcat-catalina")
-    versions.set("[8,)")
-    // no assertInverse because metrics and attributes instrumentations support different version ranges
+    versions.set("[7,)")
+    assertInverse.set(true)
   }
 }
 
 dependencies {
   compileOnly("org.apache.tomcat:tomcat-catalina:9.0.40")
-  implementation(project(":instrumentation:common"))
-
-  testImplementation("org.apache.tomcat.embed:tomcat-embed-core:9.0.40")
-}
-
-tasks.withType<Test>().configureEach {
-  jvmArgs("-Dsplunk.metrics.enabled=true")
 }

@@ -36,7 +36,6 @@ public class SplunkConfiguration implements AutoConfigurationCustomizerProvider 
   public static final String SPLUNK_REALM_PROPERTY = "splunk.realm";
   public static final String SPLUNK_REALM_NONE = "none";
 
-  public static final String METRICS_ENABLED_PROPERTY = "splunk.metrics.enabled";
   public static final String METRICS_FULL_COMMAND_LINE = "splunk.metrics.force_full_commandline";
 
   @Override
@@ -51,8 +50,6 @@ public class SplunkConfiguration implements AutoConfigurationCustomizerProvider 
 
     config.put("otel.traces.sampler", "always_on");
 
-    // by default splunk metrics are disabled
-    config.put(METRICS_ENABLED_PROPERTY, "false");
     // truncate commandline when metrics enabled by default
     config.put(METRICS_FULL_COMMAND_LINE, "false");
 

@@ -731,7 +731,7 @@ public class MetadataGenerator {
      */
     settings.add(
         setting(
-            "otel.experimental.metrics.cardinality.limit\t",
+            "otel.experimental.metrics.cardinality.limit",
             "If set, configure experimental cardinality limit. The value dictates the maximum number of distinct points per metric. Default is 2000.",
             "2000",
             SettingType.INT,
@@ -1412,6 +1412,18 @@ public class MetadataGenerator {
     settings.add(
         setting(
             "otel.instrumentation.camel.experimental-span-attributes",
+            "Enable the capture of experimental span attributes.",
+            "false",
+            SettingType.BOOLEAN,
+            SettingCategory.INSTRUMENTATION));
+
+    // https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/instrumentation/apache-shenyu-2.4/README.md
+    /*
+    | `otel.instrumentation.apache-shenyu.experimental-span-attributes`   | Boolean | `false` | Enable the capture of experimental span attributes. |
+     */
+    settings.add(
+        setting(
+            "otel.instrumentation.apache-shenyu.experimental-span-attributes",
             "Enable the capture of experimental span attributes.",
             "false",
             SettingType.BOOLEAN,

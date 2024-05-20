@@ -1099,28 +1099,27 @@ public class MetadataGenerator {
 
     System property: otel.instrumentation.common.experimental.controller-telemetry.enabled
     Environment variable: OTEL_INSTRUMENTATION_COMMON_EXPERIMENTAL_CONTROLLER_TELEMETRY_ENABLED
-    Default: true
+    Default: false
     Description: Enables the controller telemetry.
 
     System property: otel.instrumentation.common.experimental.view-telemetry.enabled
     Environment variable: OTEL_INSTRUMENTATION_COMMON_EXPERIMENTAL_VIEW_TELEMETRY_ENABLED
-    Default: true
+    Default: false
     Description: Enables the view telemetry.
      */
 
-    // XXX will change
     settings.add(
         setting(
             "otel.instrumentation.common.experimental.controller-telemetry.enabled",
             "Enables the controller telemetry.",
-            "true",
+            "false",
             SettingType.BOOLEAN,
             SettingCategory.INSTRUMENTATION));
     settings.add(
         setting(
-            " otel.instrumentation.common.experimental.view-telemetry.enabled",
+            "otel.instrumentation.common.experimental.view-telemetry.enabled",
             "Enables the view telemetry.",
-            "true",
+            "false",
             SettingType.BOOLEAN,
             SettingCategory.INSTRUMENTATION));
 
@@ -1450,15 +1449,34 @@ public class MetadataGenerator {
             SettingType.BOOLEAN,
             SettingCategory.INSTRUMENTATION));
 
-    // https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/instrumentation/graphql-java-12.0/javaagent/README.md
+    // https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/instrumentation/graphql-java/README.md
     /*
     | `otel.instrumentation.graphql.query-sanitizer.enabled` | Boolean | `true`  | Whether to remove sensitive information from query source that is added as span attribute. |
+     */
+    // graphql 20
+    /*
+    | `otel.instrumentation.graphql.data-fetcher.enabled`         | Boolean | `false` | Whether to create spans for data fetchers.                                                                                        |
+    | `otel.instrumentation.graphql.trivial-data-fetcher.enabled` | Boolean | `false` | Whether to create spans for trivial data fetchers. A trivial data fetcher is one that simply maps data from an object to a field. |
      */
     settings.add(
         setting(
             "otel.instrumentation.graphql.query-sanitizer.enabled",
             "Whether to remove sensitive information from query source that is added as span attribute.",
             "true",
+            SettingType.BOOLEAN,
+            SettingCategory.INSTRUMENTATION));
+    settings.add(
+        setting(
+            "otel.instrumentation.graphql.data-fetcher.enabled",
+            "Whether to create spans for data fetchers (GraphQL 20 and later).",
+            "false",
+            SettingType.BOOLEAN,
+            SettingCategory.INSTRUMENTATION));
+    settings.add(
+        setting(
+            "otel.instrumentation.graphql.trivial-data-fetcher.enabled",
+            "Whether to create spans for trivial data fetchers. A trivial data fetcher is one that simply maps data from an object to a field (GraphQL 20 and later).",
+            "false",
             SettingType.BOOLEAN,
             SettingCategory.INSTRUMENTATION));
 
@@ -1577,7 +1595,7 @@ public class MetadataGenerator {
     settings.add(
         setting(
             "otel.instrumentation.jdbc.statement-sanitizer.enabled",
-            "EEnables the DB statement sanitization.",
+            "Enables the DB statement sanitization.",
             "false",
             SettingType.BOOLEAN,
             SettingCategory.INSTRUMENTATION));
@@ -1898,6 +1916,18 @@ public class MetadataGenerator {
         setting(
             "otel.instrumentation.quartz.experimental-span-attributes",
             "Enable the capture of experimental span attributes.",
+            "false",
+            SettingType.BOOLEAN,
+            SettingCategory.INSTRUMENTATION));
+
+    // https://github.com/open-telemetry/opentelemetry-java-instrumentation/tree/main/instrumentation/r2dbc-1.0/README.md
+    /*
+    | `otel.instrumentation.r2dbc.statement-sanitizer.enabled` | Boolean | `true`  | Enables the DB statement sanitization. |
+     */
+    settings.add(
+        setting(
+            "otel.instrumentation.r2dbc.statement-sanitizer.enabled",
+            "Enables the DB statement sanitization.",
             "false",
             SettingType.BOOLEAN,
             SettingCategory.INSTRUMENTATION));
@@ -2968,6 +2998,8 @@ public class MetadataGenerator {
             .component("Apache RocketMQ Remoting-based Client", "4.8 and higher")
             .build());
     instrumentations.add(
+        instrumentation("apache-shenyu").component("Apache ShenYu", "2.4 and higher").build());
+    instrumentations.add(
         instrumentation("struts").component("Apache Struts 2", "2.3 and higher").build());
     instrumentations.add(
         instrumentation("tomcat")
@@ -2983,6 +3015,12 @@ public class MetadataGenerator {
             .component("Armeria", "1.3 and higher")
             .httpClientMetrics()
             .httpServerMetrics()
+            .build());
+    instrumentations.add(
+        instrumentation("armeria")
+            .component("Armeria gRPC", "1.14 and higher")
+            .rpcClientMetrics()
+            .rpcServerMetrics()
             .build());
     instrumentations.add(
         instrumentation("async-http-client")
@@ -3097,6 +3135,8 @@ public class MetadataGenerator {
             .httpClientMetrics()
             .build());
     instrumentations.add(instrumentation("hystrix").component("Hystrix", "1.4 and higher").build());
+    instrumentations.add(
+        instrumentation("influxdb").component("InfluxDB Client", "2.4 and higher").build());
     instrumentations.add(instrumentation("executors").component("Java Executors", null).build());
     instrumentations.add(
         instrumentation("java-http-client")

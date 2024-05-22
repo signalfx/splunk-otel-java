@@ -46,7 +46,7 @@ jobs:
       - name: check out the repo
         uses: actions/checkout@v4.1.6
       - name: Login to GitHub Container Registry
-        uses: azure/docker-login@v1
+        uses: azure/docker-login@v2
         with:
           login-server: ghcr.io
           username: ${{ github.repository_owner }}

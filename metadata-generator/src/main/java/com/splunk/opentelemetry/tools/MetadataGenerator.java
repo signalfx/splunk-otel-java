@@ -1713,6 +1713,18 @@ public class MetadataGenerator {
             SettingCategory.INSTRUMENTATION));
 
     // https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/instrumentation/log4j/log4j-context-data/log4j-context-data-2.17/javaagent/README.md
+    /*
+    | `otel.instrumentation.log4j-context-data.add-baggage` | Boolean | `false`       | Enable exposing baggage attributes through MDC. |
+     */
+    settings.add(
+        setting(
+            "otel.instrumentation.log4j-context-data.add-baggage",
+            "Enable exposing baggage attributes through MDC.",
+            "false",
+            SettingType.BOOLEAN,
+            SettingCategory.INSTRUMENTATION));
+
+    // https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/instrumentation/log4j/log4j-context-data/log4j-context-data-2.17/javaagent/README.md
     // https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/instrumentation/log4j/log4j-mdc-1.2/javaagent/README.md
     /*
     | `otel.instrumentation.common.mdc.resource-attributes` | String  |         | Comma separated list of resource attributes to expose through MDC. |

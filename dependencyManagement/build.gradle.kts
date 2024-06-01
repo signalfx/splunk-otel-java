@@ -8,7 +8,7 @@ val otelInstrumentationVersion = "2.4.0"
 val otelInstrumentationAlphaVersion =  otelInstrumentationVersion.replaceFirst("(-SNAPSHOT)?$".toRegex(), "-alpha$1")
 val otelContribAlphaVersion = "1.35.0-alpha"
 
-val autoValueVersion = "1.10.4"
+val autoValueVersion = "1.11.0"
 val dockerJavaVersion = "3.3.6"
 val mockitoVersion = "5.12.0"
 val protobufVersion = "3.25.3"

@@ -73,6 +73,11 @@ see [Migrate from the SignalFx Java Agent](https://quickdraw.splunk.com/redirect
 
 <!-- Comments, spacing, empty and new lines in the section below are intentional, please do not modify them! -->
 <!--DEV_DOCS_WARNING-->
+<!--DEV_DOCS_WARNING_START-->
+The following documentation refers to the in-development version of `splunk-otel-java`. Docs for the latest version ([v2.4.0-alpha](https://github.com/signalfx/splunk-otel-java/releases/latest)) can be found [here](https://github.com/signalfx/splunk-otel-java/blob/v2.4.0-alpha/README.md).
+
+---
+<!--DEV_DOCS_WARNING_END-->
 
 ## Requirements
 
@@ -112,7 +117,7 @@ with:
 
 ## Snapshot builds
 
-We publish [snapshot builds](https://oss.sonatype.org/content/repositories/snapshots/com/splunk/splunk-otel-javaagent/2.4.0-alpha-SNAPSHOT/)
+We publish [snapshot builds](https://oss.sonatype.org/content/repositories/snapshots/com/splunk/splunk-otel-javaagent/2.5.0-SNAPSHOT/)
 with every merge to the `main` branch. Snapshots are primarily intended to test new functionality and are not recommended
 for production use.
 

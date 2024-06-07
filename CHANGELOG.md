@@ -6,7 +6,7 @@ The format is based on
 the [Splunk GDI specification](https://github.com/signalfx/gdi-specification/blob/v1.0.0/specification/repository.md),
 and this repository adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## v2.4.0-alpha - 2024-04-30
+## v2.4.0-alpha - 2024-06-06
 
 - OpenTelemetry Java SDK has been updated to version 1.38.0.
 - OpenTelemetry Instrumentation for Java has been updated to version 2.4.0.

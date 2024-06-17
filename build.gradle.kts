@@ -10,8 +10,8 @@ nexusPublishing {
 
   repositories {
     sonatype {
-      username.set(System.getenv("SONATYPE_USERNAME"))
-      password.set(System.getenv("SONATYPE_PASSWORD"))
+      username.set(System.getenv("SONATYPE_USER"))
+      password.set(System.getenv("SONATYPE_KEY"))
     }
   }
 }

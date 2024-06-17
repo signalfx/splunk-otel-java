@@ -1727,13 +1727,37 @@ public class MetadataGenerator {
     // https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/instrumentation/log4j/log4j-context-data/log4j-context-data-2.17/javaagent/README.md
     // https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/instrumentation/log4j/log4j-mdc-1.2/javaagent/README.md
     /*
-    | `otel.instrumentation.common.mdc.resource-attributes` | String  |         | Comma separated list of resource attributes to expose through MDC. |
+    | `otel.instrumentation.common.mdc.resource-attributes` | String  |               | Comma separated list of resource attributes to expose through MDC. |
+    | `otel.instrumentation.common.logging.trace-id`        | String  | `trace_id`    | Customize MDC key name for the trace id.                           |
+    | `otel.instrumentation.common.logging.span-id`         | String  | `span_id`     | Customize MDC key name for the span id.                            |
+    | `otel.instrumentation.common.logging.trace-flags`     | String  | `trace_flags` | Customize MDC key name for the trace flags.                        |
      */
     settings.add(
         setting(
             "otel.instrumentation.common.mdc.resource-attributes",
             "Comma separated list of resource attributes to expose through MDC.",
             "",
+            SettingType.STRING,
+            SettingCategory.INSTRUMENTATION));
+    settings.add(
+        setting(
+            "otel.instrumentation.common.logging.trace-id",
+            "Customize MDC key name for the trace id.",
+            "trace_id",
+            SettingType.STRING,
+            SettingCategory.INSTRUMENTATION));
+    settings.add(
+        setting(
+            "otel.instrumentation.common.logging.span-id",
+            "Customize MDC key name for the span id.",
+            "span_id",
+            SettingType.STRING,
+            SettingCategory.INSTRUMENTATION));
+    settings.add(
+        setting(
+            "otel.instrumentation.common.logging.trace-flags",
+            "Customize MDC key name for the trace flags.",
+            "trace_flags",
             SettingType.STRING,
             SettingCategory.INSTRUMENTATION));
 

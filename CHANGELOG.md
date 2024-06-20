@@ -6,6 +6,16 @@ The format is based on
 the [Splunk GDI specification](https://github.com/signalfx/gdi-specification/blob/v1.0.0/specification/repository.md),
 and this repository adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+## v1.32.2 - 2024-06-20
+
+### General
+
+- OpenTelemetry Java SDK has been updated to version 1.39.0.
+- OpenTelemetry Instrumentation for Java has been updated to version 1.33.4.
+- Micrometer dependency has been updated to version 1.13.1.
+
 ## v2.4.0-alpha - 2024-06-06
 
 - OpenTelemetry Java SDK has been updated to version 1.38.0.
@@ -15,6 +25,14 @@ Note: 2.4.0-alpha release is considered experimental, Splunk recommends using 1.
 
 - Thread pool metrics for Liberty, Tomcat, and WebLogic have been removed. 
   [#1848](https://github.com/signalfx/splunk-otel-java/pull/1848)
+
+## v1.32.1 - 2024-05-22
+
+### General
+
+- OpenTelemetry Java SDK has been updated to version 1.38.0.
+- OpenTelemetry Instrumentation for Java has been updated to version 1.33.3.
+- Micrometer dependency has been updated to version 1.13.0.
 
 ## v1.32.0 - 2024-04-23
 

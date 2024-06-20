@@ -124,6 +124,7 @@ public class MetadataGenerator {
     otel.traces.exporter	OTEL_TRACES_EXPORTER	List of exporters to be used for tracing, separated by commas. Default is otlp. none means no autoconfigured exporter.
     otel.metrics.exporter	OTEL_METRICS_EXPORTER	List of exporters to be used for metrics, separated by commas. Default is otlp. none means no autoconfigured exporter.
     otel.logs.exporter	OTEL_LOGS_EXPORTER	List of exporters to be used for logging, separated by commas. Default is otlp. none means no autoconfigured exporter.
+    otel.java.experimental.exporter.memory_mode	OTEL_JAVA_EXPERIMENTAL_EXPORTER_MEMORY_MODE	If reusable_data, enable reusable memory mode (on exporters which support it) to reduce allocations. Default is immutable_data. This option is experimental and subject to change or removal.[1]
      */
 
     settings.add(
@@ -145,6 +146,14 @@ public class MetadataGenerator {
             "otel.logs.exporter",
             "List of exporters to be used for tracing, separated by commas. Default is otlp. none means no autoconfigured exporter.",
             "otlp",
+            SettingType.STRING,
+            SettingCategory.EXPORTER));
+    settings.add(
+        setting(
+            "otel.java.experimental.exporter.memory_mode",
+            "If `reusable_data`, enable reusable memory mode (on exporters which support it) to reduce allocations. Default is `immutable_data`. "
+                + "This option is experimental and subject to change or removal.",
+            "immutable_data",
             SettingType.STRING,
             SettingCategory.EXPORTER));
 
@@ -780,12 +789,12 @@ public class MetadataGenerator {
     // https://github.com/open-telemetry/opentelemetry-java/blob/main/sdk-extensions/autoconfigure/README.md#file-configuration
 
     /*
-    otel.config.file	OTEL_CONFIG_FILE	The path to the SDK configuration file. Defaults to unset.
+    otel.experimental.config.file	OTEL_EXPERIMENTAL_CONFIG_FILE	The path to the SDK configuration file. Defaults to unset.
      */
 
     settings.add(
         setting(
-            "otel.config.file",
+            "otel.experimental.config.file",
             "The path to the SDK configuration file. Defaults to unset.",
             "",
             SettingType.STRING,

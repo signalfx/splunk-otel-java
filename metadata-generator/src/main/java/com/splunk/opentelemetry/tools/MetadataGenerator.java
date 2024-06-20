@@ -124,6 +124,7 @@ public class MetadataGenerator {
     otel.traces.exporter	OTEL_TRACES_EXPORTER	List of exporters to be used for tracing, separated by commas. Default is otlp. none means no autoconfigured exporter.
     otel.metrics.exporter	OTEL_METRICS_EXPORTER	List of exporters to be used for metrics, separated by commas. Default is otlp. none means no autoconfigured exporter.
     otel.logs.exporter	OTEL_LOGS_EXPORTER	List of exporters to be used for logging, separated by commas. Default is otlp. none means no autoconfigured exporter.
+    otel.java.experimental.exporter.memory_mode	OTEL_JAVA_EXPERIMENTAL_EXPORTER_MEMORY_MODE	If reusable_data, enable reusable memory mode (on exporters which support it) to reduce allocations. Default is immutable_data. This option is experimental and subject to change or removal.[1]
      */
 
     settings.add(
@@ -145,6 +146,14 @@ public class MetadataGenerator {
             "otel.logs.exporter",
             "List of exporters to be used for tracing, separated by commas. Default is otlp. none means no autoconfigured exporter.",
             "otlp",
+            SettingType.STRING,
+            SettingCategory.EXPORTER));
+    settings.add(
+        setting(
+            "otel.java.experimental.exporter.memory_mode",
+            "If `reusable_data`, enable reusable memory mode (on exporters which support it) to reduce allocations. Default is `immutable_data`. "
+                + "This option is experimental and subject to change or removal.",
+            "immutable_data",
             SettingType.STRING,
             SettingCategory.EXPORTER));
 
@@ -780,12 +789,12 @@ public class MetadataGenerator {
     // https://github.com/open-telemetry/opentelemetry-java/blob/main/sdk-extensions/autoconfigure/README.md#file-configuration
 
     /*
-    otel.config.file	OTEL_CONFIG_FILE	The path to the SDK configuration file. Defaults to unset.
+    otel.experimental.config.file	OTEL_EXPERIMENTAL_CONFIG_FILE	The path to the SDK configuration file. Defaults to unset.
      */
 
     settings.add(
         setting(
-            "otel.config.file",
+            "otel.experimental.config.file",
             "The path to the SDK configuration file. Defaults to unset.",
             "",
             SettingType.STRING,
@@ -1727,13 +1736,37 @@ public class MetadataGenerator {
     // https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/instrumentation/log4j/log4j-context-data/log4j-context-data-2.17/javaagent/README.md
     // https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/instrumentation/log4j/log4j-mdc-1.2/javaagent/README.md
     /*
-    | `otel.instrumentation.common.mdc.resource-attributes` | String  |         | Comma separated list of resource attributes to expose through MDC. |
+    | `otel.instrumentation.common.mdc.resource-attributes` | String  |               | Comma separated list of resource attributes to expose through MDC. |
+    | `otel.instrumentation.common.logging.trace-id`        | String  | `trace_id`    | Customize MDC key name for the trace id.                           |
+    | `otel.instrumentation.common.logging.span-id`         | String  | `span_id`     | Customize MDC key name for the span id.                            |
+    | `otel.instrumentation.common.logging.trace-flags`     | String  | `trace_flags` | Customize MDC key name for the trace flags.                        |
      */
     settings.add(
         setting(
             "otel.instrumentation.common.mdc.resource-attributes",
             "Comma separated list of resource attributes to expose through MDC.",
             "",
+            SettingType.STRING,
+            SettingCategory.INSTRUMENTATION));
+    settings.add(
+        setting(
+            "otel.instrumentation.common.logging.trace-id",
+            "Customize MDC key name for the trace id.",
+            "trace_id",
+            SettingType.STRING,
+            SettingCategory.INSTRUMENTATION));
+    settings.add(
+        setting(
+            "otel.instrumentation.common.logging.span-id",
+            "Customize MDC key name for the span id.",
+            "span_id",
+            SettingType.STRING,
+            SettingCategory.INSTRUMENTATION));
+    settings.add(
+        setting(
+            "otel.instrumentation.common.logging.trace-flags",
+            "Customize MDC key name for the trace flags.",
+            "trace_flags",
             SettingType.STRING,
             SettingCategory.INSTRUMENTATION));
 

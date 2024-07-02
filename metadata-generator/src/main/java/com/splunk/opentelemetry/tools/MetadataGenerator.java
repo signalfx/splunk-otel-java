@@ -1293,17 +1293,17 @@ public class MetadataGenerator {
     // https://github.com/signalfx/splunk-otel-java/blob/main/docs/advanced-config.md#profiler-settings
 
     /*
-    | `splunk.profiler.enabled`                         | false                                                  | set to `true` to enable the profiler                                                                                      |
-    | `splunk.profiler.directory`                       | system temp directory                                  | location of JFR files, defaults to `System.getProperty("java.io.tmpdir")`                                                 |
-    | `splunk.profiler.recording.duration`              | 20s                                                    | recording unit duration                                                                                                   |
-    | `splunk.profiler.keep-files`                      | false                                                  | leave JFR files on disk if `true`                                                                                         |
-    | `splunk.profiler.logs-endpoint`                   | `otel.exporter.otlp.endpoint` or http://localhost:4317 | where to send OTLP logs                                                                                                   |
-    | `splunk.profiler.call.stack.interval`             | 10000ms                                                | how often to sample call stacks                                                                                           |
-    | `splunk.profiler.memory.enabled`                  | false                                                  | set to `true` to enable all other memory profiling options unless explicitly disabled. Setting to `true` enables metrics. |
-    | `splunk.profiler.memory.event.rate`               | 150/s                                                  | allocation event rate                                                                                                     |
-    | `splunk.profiler.include.internal.stacks`         | false                                                  | set to `true` to include stack traces of agent internal threads and stack traces with only JDK internal frames            |
-    | `splunk.profiler.tracing.stacks.only`             | false                                                  | set to `true` to include only stack traces that are linked to a span context                                              |
-    | `splunk.profiler.otlp.protocol`                   | `http/protobuf`                                        | The transport protocol to use on profiling OTLP log requests. Options include grpc and http/protobuf.                     |
+    | `splunk.profiler.enabled`                 | false                         | set to `true` to enable the profiler                                                                                      |
+    | `splunk.profiler.directory`               | system temp directory         | location of JFR files, defaults to `System.getProperty("java.io.tmpdir")`                                                 |
+    | `splunk.profiler.recording.duration`      | 20s                           | recording unit duration                                                                                                   |
+    | `splunk.profiler.keep-files`              | false                         | leave JFR files on disk if `true`                                                                                         |
+    | `splunk.profiler.logs-endpoint`           | http://localhost:4318/v1/logs | where to send OTLP logs, defaults to `otel.exporter.otlp.endpoint`                                                        |
+    | `splunk.profiler.call.stack.interval`     | 10000ms                       | how often to sample call stacks                                                                                           |
+    | `splunk.profiler.memory.enabled`          | false                         | set to `true` to enable all other memory profiling options unless explicitly disabled. Setting to `true` enables metrics. |
+    | `splunk.profiler.memory.event.rate`       | 150/s                         | allocation event rate                                                                                                     |
+    | `splunk.profiler.include.internal.stacks` | false                         | set to `true` to include stack traces of agent internal threads and stack traces with only JDK internal frames            |
+    | `splunk.profiler.tracing.stacks.only`     | false                         | set to `true` to include only stack traces that are linked to a span context                                              |
+    | `splunk.profiler.otlp.protocol`           | `http/protobuf`               | The transport protocol to use on profiling OTLP log requests. Options include `grpc` and `http/protobuf`.                 |
      */
 
     settings.add(
@@ -1337,8 +1337,8 @@ public class MetadataGenerator {
     settings.add(
         setting(
             "splunk.profiler.logs-endpoint",
-            "Where to send OTLP logs.",
-            "otel.exporter.otlp.endpoint or http://localhost:4317",
+            "Where to send OTLP logs, defaults to `otel.exporter.otlp.endpoint.",
+            "http://localhost:4318/v1/logs",
             SettingType.STRING,
             SettingCategory.PROFILER));
     settings.add(

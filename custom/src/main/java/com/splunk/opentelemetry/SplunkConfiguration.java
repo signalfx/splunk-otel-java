@@ -107,6 +107,8 @@ public class SplunkConfiguration implements AutoConfigurationCustomizerProvider 
       customized.put("otel.instrumentation.logback-appender.enabled", "false");
     }
 
+    EndpointProtocolValidator.validate(customized, config, logger::warning);
+
     return customized;
   }
 

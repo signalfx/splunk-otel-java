@@ -35,9 +35,7 @@ class EndpointProtocolValidator {
     this.warn = warn;
   }
 
-  /**
-   * Warn when the port number in OTLP endpoint doesn't agree with configured protocol.
-   */
+  /** Warn when the port number in OTLP endpoint doesn't agree with configured protocol. */
   static void validate(
       Map<String, String> customized, ConfigProperties config, Consumer<String> warn) {
     EndpointProtocolValidator validator = new EndpointProtocolValidator(customized, config, warn);

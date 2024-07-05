@@ -3966,9 +3966,9 @@ public class MetadataGenerator {
           MetricInstrument.HISTOGRAM,
           "Size of HTTP client request bodies (disabled by default).");
       metric(
-          "http.client.request.body.size",
+          "http.client.response.body.size",
           MetricInstrument.HISTOGRAM,
-          "Size of HTTP client request bodies (disabled by default).");
+          "Size of HTTP client response bodies (disabled by default).");
 
       return this;
     }
@@ -3987,7 +3987,7 @@ public class MetadataGenerator {
           MetricInstrument.HISTOGRAM,
           "Size of HTTP server request bodies (disabled by default).");
       metric(
-          "http.server.request.body.size",
+          "http.server.response.body.size",
           MetricInstrument.HISTOGRAM,
           "Size of HTTP server response bodies (disabled by default).");
 

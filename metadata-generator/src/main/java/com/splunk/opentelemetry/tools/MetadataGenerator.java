@@ -3506,7 +3506,7 @@ public class MetadataGenerator {
         splunkInstrumentation("jvm-metrics.splunk")
             .component("Java Platform", null)
             .metric(
-                "process.runtime.jvm.memory.allocated",
+                "jvm.memory.allocated",
                 MetricInstrument.COUNTER,
                 "Approximate sum of heap allocations.")
             .metric(

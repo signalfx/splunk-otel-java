@@ -24,6 +24,9 @@ import java.util.function.Consumer;
 
 class EndpointProtocolValidator {
 
+  private static final int OTLP_GRPC_PORT = 4317;
+  private static final int OTLP_HTTP_PROTOBUF_PORT = 4318;
+
   private final Map<String, String> customized;
   private final ConfigProperties config;
   private final Consumer<String> warn;
@@ -45,9 +48,7 @@ class EndpointProtocolValidator {
   private void verifyEndpointProtocol() {
     String protocol = getString("otel.exporter.otlp.protocol", "http/protobuf");
     String endpoint =
-        getString(
-            "otel.exporter.otlp.endpoint",
-            "http://localhost:" + ("http/protobuf".equals(protocol) ? "4318" : "4317"));
+        getString("otel.exporter.otlp.endpoint", "http://localhost:" + getPort(protocol));
     if (!verifyEndpointProtocol(
         protocol, endpoint, "otel.exporter.otlp.protocol", "otel.exporter.otlp.endpoint")) {
       // there already was a mismatch between endpoint port and protocol,
@@ -64,12 +65,12 @@ class EndpointProtocolValidator {
       String protocol, String endpoint, String protocolKey, String endpointKey) {
     int port = getEndpointPort(endpoint);
     if ("http/protobuf".equals(protocol)) {
-      if (port == 4317) {
+      if (port == OTLP_GRPC_PORT) {
         warn.accept(protocolWarning("grpc", "http/protobuf", endpoint, protocolKey, endpointKey));
         return false;
       }
     } else if ("grpc".equals(protocol)) {
-      if (port == 4318) {
+      if (port == OTLP_HTTP_PROTOBUF_PORT) {
         warn.accept(protocolWarning("http/protobuf", "grpc", endpoint, protocolKey, endpointKey));
         return false;
       }
@@ -106,8 +107,8 @@ class EndpointProtocolValidator {
         + ".";
   }
 
-  private static String getPort(String protocol) {
-    return "http/protobuf".equals(protocol) ? "4318" : "4317";
+  private static int getPort(String protocol) {
+    return "http/protobuf".equals(protocol) ? OTLP_HTTP_PROTOBUF_PORT : OTLP_GRPC_PORT;
   }
 
   private void verifySignalEndpointProtocol(

@@ -101,8 +101,7 @@ class SplunkConfigurationTest {
     return configuration(Map::of);
   }
 
-  private static ConfigProperties configuration(
-      Supplier<Map<String, String>> testPropertiesSupplier) {
+  static ConfigProperties configuration(Supplier<Map<String, String>> testPropertiesSupplier) {
     AutoConfiguredOpenTelemetrySdk sdk =
         AutoConfiguredOpenTelemetrySdk.builder()
             // don't create the SDK

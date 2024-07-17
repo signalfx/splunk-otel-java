@@ -1,7 +1,7 @@
 
 # splunk-otel-javaagent
 ## Dependency License Report
-_2024-07-11 16:11:19 PDT_
+_2024-07-17 15:54:32 PDT_
 ## Apache License, Version 2.0
 
 **1** **Group:** `com.fasterxml.jackson.core` **Name:** `jackson-core` **Version:** `2.17.2` 
@@ -51,12 +51,12 @@ _2024-07-11 16:11:19 PDT_
 > - **POM Project URL**: [https://github.com/square/okio/](https://github.com/square/okio/)
 > - **POM License**: Apache License, Version 2.0 - [https://www.apache.org/licenses/LICENSE-2.0](https://www.apache.org/licenses/LICENSE-2.0)
 
-**11** **Group:** `commons-codec` **Name:** `commons-codec` **Version:** `1.17.0` 
+**11** **Group:** `commons-codec` **Name:** `commons-codec` **Version:** `1.17.1` 
 > - **Project URL**: [https://commons.apache.org/proper/commons-codec/](https://commons.apache.org/proper/commons-codec/)
 > - **Manifest License**: Apache License, Version 2.0 (Not Packaged)
 > - **POM License**: Apache License, Version 2.0 - [https://www.apache.org/licenses/LICENSE-2.0](https://www.apache.org/licenses/LICENSE-2.0)
-> - **Embedded license files**: [commons-codec-1.17.0.jar/META-INF/LICENSE.txt](commons-codec-1.17.0.jar/META-INF/LICENSE.txt) 
-    - [commons-codec-1.17.0.jar/META-INF/NOTICE.txt](commons-codec-1.17.0.jar/META-INF/NOTICE.txt)
+> - **Embedded license files**: [commons-codec-1.17.1.jar/META-INF/LICENSE.txt](commons-codec-1.17.1.jar/META-INF/LICENSE.txt) 
+    - [commons-codec-1.17.1.jar/META-INF/NOTICE.txt](commons-codec-1.17.1.jar/META-INF/NOTICE.txt)
 
 **12** **Group:** `io.micrometer` **Name:** `micrometer-commons` **Version:** `1.13.2` 
 > - **POM Project URL**: [https://github.com/micrometer-metrics/micrometer](https://github.com/micrometer-metrics/micrometer)

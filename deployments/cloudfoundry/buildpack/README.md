@@ -16,7 +16,7 @@ If you would like to install the buildpack, clone this repo, change to this dire
 $ ./build.sh
 
 # installs the buildpack on CloudFoundry
-$ cf create-buildpack splunk_otel_java_buildpack splunk_otel_java_buildpack-linux.zip 99 --enable
+$ cf create-buildpack splunk_otel_java_buildpack splunk_otel_java_buildpack-linux.zip 99
 ```
 
 Now you can use the buildpack when running your apps:

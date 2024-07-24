@@ -16,15 +16,9 @@
 
 package com.splunk.opentelemetry.instrumentation.khttp;
 
-import io.opentelemetry.api.GlobalOpenTelemetry;
-import io.opentelemetry.instrumentation.api.incubator.semconv.net.PeerServiceAttributesExtractor;
 import io.opentelemetry.instrumentation.api.instrumenter.Instrumenter;
-import io.opentelemetry.instrumentation.api.semconv.http.HttpClientAttributesExtractor;
 import io.opentelemetry.instrumentation.api.semconv.http.HttpClientAttributesGetter;
-import io.opentelemetry.instrumentation.api.semconv.http.HttpClientMetrics;
-import io.opentelemetry.instrumentation.api.semconv.http.HttpSpanNameExtractor;
-import io.opentelemetry.instrumentation.api.semconv.http.HttpSpanStatusExtractor;
-import io.opentelemetry.javaagent.bootstrap.internal.CommonConfig;
+import io.opentelemetry.javaagent.bootstrap.internal.JavaagentHttpClientInstrumenters;
 import khttp.responses.Response;
 
 public final class KHttpSingletons {
@@ -37,21 +31,10 @@ public final class KHttpSingletons {
         new KHttpHttpClientHttpAttributesGetter();
 
     INSTRUMENTER =
-        Instrumenter.<RequestWrapper, Response>builder(
-                GlobalOpenTelemetry.get(),
-                INSTRUMENTATION_NAME,
-                HttpSpanNameExtractor.create(httpAttributesGetter))
-            .setSpanStatusExtractor(HttpSpanStatusExtractor.create(httpAttributesGetter))
-            .addAttributesExtractor(
-                HttpClientAttributesExtractor.builder(httpAttributesGetter)
-                    .setCapturedRequestHeaders(CommonConfig.get().getClientRequestHeaders())
-                    .setCapturedResponseHeaders(CommonConfig.get().getClientResponseHeaders())
-                    .build())
-            .addAttributesExtractor(
-                PeerServiceAttributesExtractor.create(
-                    httpAttributesGetter, CommonConfig.get().getPeerServiceResolver()))
-            .addOperationMetrics(HttpClientMetrics.get())
-            .buildClientInstrumenter(KHttpHttpHeaderSetter.INSTANCE);
+        JavaagentHttpClientInstrumenters.create(
+            INSTRUMENTATION_NAME,
+            new KHttpHttpClientHttpAttributesGetter(),
+            KHttpHttpHeaderSetter.INSTANCE);
   }
 
   public static Instrumenter<RequestWrapper, Response> instrumenter() {

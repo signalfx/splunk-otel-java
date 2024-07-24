@@ -3048,7 +3048,10 @@ public class MetadataGenerator {
             .httpServerMetrics()
             .build());
     instrumentations.add(
-        instrumentation("pulsar").component("Apache Pulsar", "2.8 and higher").build());
+        instrumentation("pulsar")
+            .component("Apache Pulsar", "2.8 and higher")
+            .messagingPublisherMetrics()
+            .build());
     instrumentations.add(
         instrumentation("rocketmq-client")
             .component("Apache RocketMQ gRPC/Protobuf-based Client", "5.0 and higher")
@@ -3096,6 +3099,8 @@ public class MetadataGenerator {
     instrumentations.add(
         instrumentation("cassandra").component("Cassandra Driver", "3.0 and higher").build());
     instrumentations.add(
+        instrumentation("clickhouse").component("Clickhouse Client", "0.5 and higher").build());
+    instrumentations.add(
         instrumentation("couchbase")
             .component("Couchbase Client", "2.0 to 3.0 and 3.1 and higher")
             .build());
@@ -3126,7 +3131,7 @@ public class MetadataGenerator {
             .build());
     instrumentations.add(
         instrumentation("jetty-httpclient")
-            .component("Eclipse Jetty HTTP Client", "9.2 to 10.0")
+            .component("Eclipse Jetty HTTP Client", "9.2 to 10.0, 12.0 and higher")
             .httpClientMetrics()
             .build());
     instrumentations.add(
@@ -3276,6 +3281,7 @@ public class MetadataGenerator {
                 "Measure of initial memory requested (disabled by default).")
             // XXX JFR metrics from runtime-telemetry-java17 are missing
             .build());
+    instrumentations.add(instrumentation("javalin").component("Javalin", "5.0 and higher").build());
     instrumentations.add(instrumentation("jaxrs").component("JAX-RS", "0.5 and higher").build());
     instrumentations.add(
         instrumentation("jaxrs-client")
@@ -4008,6 +4014,15 @@ public class MetadataGenerator {
           "rpc.server.duration",
           MetricInstrument.HISTOGRAM,
           "Measures the duration of inbound RPC.");
+
+      return this;
+    }
+
+    InstrumentationBuilder messagingPublisherMetrics() {
+      metric(
+          "messaging.publish.duration",
+          MetricInstrument.HISTOGRAM,
+          "Measures the duration of publish operation.");
 
       return this;
     }

@@ -13,7 +13,7 @@ val dockerJavaVersion = "3.4.0"
 val micrometerOldVersion = "1.3.20"
 val micrometerVersion = "1.13.2"
 val mockitoVersion = "5.12.0"
-val protobufVersion = "3.25.3"
+val protobufVersion = "3.25.4"
 val slf4jVersion = "2.0.13"
 
 // instrumentation version is used to compute Implementation-Version manifest attribute

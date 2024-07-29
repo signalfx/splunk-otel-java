@@ -43,7 +43,7 @@ dependencies {
     api("com.google.auto.service:auto-service:1.1.1")
     api("org.assertj:assertj-core:3.26.3")
     api("org.awaitility:awaitility:4.2.1")
-    api("com.signalfx.public:signalfx-metrics:1.0.43")
+    api("com.signalfx.public:signalfx-metrics:1.0.44")
     api("commons-codec:commons-codec:1.17.1")
 
     api("com.github.docker-java:docker-java-core:$dockerJavaVersion")

@@ -1256,7 +1256,7 @@ public class MetadataGenerator {
     settings.add(
         setting(
             "splunk.trace-response-header.enabled",
-            "Enables adding server trace information to HTTP response headers. See this document for more information.",
+            "Enables adding server trace information to HTTP response headers. [See this document](https://docs.splunk.com/observability/en/gdi/get-data-in/application/java/configuration/advanced-java-otel-configuration.html#server-trace-information) for more information.",
             "true",
             SettingType.BOOLEAN,
             SettingCategory.GENERAL));

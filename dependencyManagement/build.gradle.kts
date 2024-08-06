@@ -12,7 +12,7 @@ val autoValueVersion = "1.11.0"
 val dockerJavaVersion = "3.4.0"
 val mockitoVersion = "5.12.0"
 val protobufVersion = "3.25.4"
-val slf4jVersion = "2.0.13"
+val slf4jVersion = "2.0.14"
 
 // instrumentation version is used to compute Implementation-Version manifest attribute
 rootProject.extra["otelInstrumentationVersion"] = otelInstrumentationVersion

@@ -40,7 +40,7 @@ dependencies {
   constraints {
     api("com.google.auto.service:auto-service:1.1.1")
     api("org.assertj:assertj-core:3.26.3")
-    api("org.awaitility:awaitility:4.2.1")
+    api("org.awaitility:awaitility:4.2.2")
 
     api("com.github.docker-java:docker-java-core:$dockerJavaVersion")
     api("com.github.docker-java:docker-java-transport-httpclient5:$dockerJavaVersion")

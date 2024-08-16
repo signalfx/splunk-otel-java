@@ -41,12 +41,12 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: build and publish container
+      - name: build and publish image
         uses: docker/build-push-action@v6.7.0
         with:
           push: true
           file: Dockerfile-ghcr
-          platforms: linux/amd64,linux/arm64,linux/ppc64le
+          platforms: linux/amd64,linux/arm64,linux/ppc64le,windows/amd64
           build-args: |
             RELEASE_VER=${{ env.RELEASE_VERSION }}
           tags: |

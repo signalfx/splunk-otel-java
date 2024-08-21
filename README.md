@@ -100,8 +100,8 @@ The agent works with Java runtimes version 8 and higher. For the full list of re
 
 For complete instructions on how to get started with the Splunk Distribution of OpenTelemetry Java, see [Instrument Java services for Observability Cloud](https://quickdraw.splunk.com/redirect/?product=Observability&version=current&location=learnmore.java.gdi) in the official Splunk documentation.
 
-To see the Java Agent in action with sample applications, see our
-[examples](https://github.com/signalfx/tracing-examples/tree/main/opentelemetry-tracing/opentelemetry-java-tracing).
+To see the Java Agent in action with sample applications, see the OpenTelemetry
+[examples](https://github.com/open-telemetry/opentelemetry-java-examples/tree/main/javaagent).
 
 ## Advanced configuration
 

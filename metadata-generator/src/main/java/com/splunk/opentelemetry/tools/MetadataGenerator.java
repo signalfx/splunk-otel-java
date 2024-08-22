@@ -1777,6 +1777,7 @@ public class MetadataGenerator {
     | `otel.instrumentation.logback-appender.experimental.capture-marker-attribute`          | Boolean | `false` | Enable the capture of Logback markers as attributes.                                                                                          |
     | `otel.instrumentation.logback-appender.experimental.capture-key-value-pair-attributes` | Boolean | `false` | Enable the capture of Logback key value pairs as attributes.                                                                                  |
     | `otel.instrumentation.logback-appender.experimental.capture-logger-context-attributes` | Boolean | `false` | Enable the capture of Logback logger context properties as attributes.                                                                        |
+    | `otel.instrumentation.logback-appender.experimental.capture-arguments`                 | Boolean | `false` | Enable the capture of Logback logger arguments.                                                                                               |
     | `otel.instrumentation.logback-appender.experimental.capture-mdc-attributes`            | String  |         | Comma separated list of MDC attributes to capture. Use the wildcard character `*` to capture all attributes.                                  |
      */
     settings.add(
@@ -1811,6 +1812,13 @@ public class MetadataGenerator {
         setting(
             "otel.instrumentation.logback-appender.experimental.capture-logger-context-attributes",
             "Enable the capture of Logback logger context properties as attributes.",
+            "false",
+            SettingType.BOOLEAN,
+            SettingCategory.INSTRUMENTATION));
+    settings.add(
+        setting(
+            "otel.instrumentation.logback-appender.experimental.capture-arguments",
+            "Enable the capture of Logback logger arguments.",
             "false",
             SettingType.BOOLEAN,
             SettingCategory.INSTRUMENTATION));
@@ -3051,6 +3059,7 @@ public class MetadataGenerator {
         instrumentation("pulsar")
             .component("Apache Pulsar", "2.8 and higher")
             .messagingPublisherMetrics()
+            .messagingConsumerMetrics()
             .build());
     instrumentations.add(
         instrumentation("rocketmq-client")
@@ -4023,6 +4032,19 @@ public class MetadataGenerator {
           "messaging.publish.duration",
           MetricInstrument.HISTOGRAM,
           "Measures the duration of publish operation.");
+
+      return this;
+    }
+
+    InstrumentationBuilder messagingConsumerMetrics() {
+      metric(
+          "messaging.receive.duration",
+          MetricInstrument.HISTOGRAM,
+          "Measures the duration of receive operation.");
+      metric(
+          "messaging.receive.messages",
+          MetricInstrument.COUNTER,
+          "Measures the number of received messages.");
 
       return this;
     }

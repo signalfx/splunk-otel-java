@@ -34,13 +34,6 @@
       // of that release instead of the unstable version for a future release
       "ignoreUnstable": false,
       "allowedVersions": "!/\\-SNAPSHOT$/"
-    },
-    {
-      // we are not going to update the semconv in 1.x branch
-      "matchPackageNames": ["io.opentelemetry.semconv:opentelemetry-semconv"],
-      "matchUpdateTypes": ["minor"],
-      "matchBaseBranches": ["v1.32.x"],
-      "enabled": false
     }
   ]
 }

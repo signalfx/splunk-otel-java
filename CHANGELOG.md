@@ -8,6 +8,10 @@ and this repository adheres to [Semantic Versioning](https://semver.org/spec/v2.
 
 ## Unreleased
 
+## v2.8.1 - 2024-09-20
+
+- Protobuf dependency has been updated to version 3.25.5.
+
 ## v2.8.0 - 2024-09-18
 
 - OpenTelemetry Java SDK has been updated to version 1.42.1.

@@ -1,7 +1,7 @@
 
 # splunk-otel-javaagent
 ## Dependency License Report
-_2024-09-09 14:50:05 PDT_
+_2024-09-20 15:32:31 EEST_
 ## Apache License, Version 2.0
 
 **1** **Group:** `com.fasterxml.jackson.core` **Name:** `jackson-core` **Version:** `2.17.2` 
@@ -18,23 +18,23 @@ _2024-09-09 14:50:05 PDT_
 > - **Embedded license files**: [jackson-jr-objects-2.17.2.jar/META-INF/LICENSE](jackson-jr-objects-2.17.2.jar/META-INF/LICENSE) 
     - [jackson-jr-objects-2.17.2.jar/META-INF/NOTICE](jackson-jr-objects-2.17.2.jar/META-INF/NOTICE)
 
-**3** **Group:** `com.signalfx.public` **Name:** `signalfx-commons-protoc-java` **Version:** `1.0.45` 
+**3** **Group:** `com.signalfx.public` **Name:** `signalfx-commons-protoc-java` **Version:** `1.0.46` 
 > - **POM Project URL**: [http://www.signalfx.com](http://www.signalfx.com)
 > - **POM License**: Apache License, Version 2.0 - [https://www.apache.org/licenses/LICENSE-2.0](https://www.apache.org/licenses/LICENSE-2.0)
 
-**4** **Group:** `com.signalfx.public` **Name:** `signalfx-connection` **Version:** `1.0.45` 
+**4** **Group:** `com.signalfx.public` **Name:** `signalfx-connection` **Version:** `1.0.46` 
 > - **POM Project URL**: [https://www.splunk.com](https://www.splunk.com)
 > - **POM License**: Apache License, Version 2.0 - [https://www.apache.org/licenses/LICENSE-2.0](https://www.apache.org/licenses/LICENSE-2.0)
 
-**5** **Group:** `com.signalfx.public` **Name:** `signalfx-endpoint` **Version:** `1.0.45` 
+**5** **Group:** `com.signalfx.public` **Name:** `signalfx-endpoint` **Version:** `1.0.46` 
 > - **POM Project URL**: [http://www.splunk.com](http://www.splunk.com)
 > - **POM License**: Apache License, Version 2.0 - [https://www.apache.org/licenses/LICENSE-2.0](https://www.apache.org/licenses/LICENSE-2.0)
 
-**6** **Group:** `com.signalfx.public` **Name:** `signalfx-metrics` **Version:** `1.0.45` 
+**6** **Group:** `com.signalfx.public` **Name:** `signalfx-metrics` **Version:** `1.0.46` 
 > - **POM Project URL**: [http://www.signalfx.com](http://www.signalfx.com)
 > - **POM License**: Apache License, Version 2.0 - [https://www.apache.org/licenses/LICENSE-2.0](https://www.apache.org/licenses/LICENSE-2.0)
 
-**7** **Group:** `com.signalfx.public` **Name:** `signalfx-protoc` **Version:** `1.0.45` 
+**7** **Group:** `com.signalfx.public` **Name:** `signalfx-protoc` **Version:** `1.0.46` 
 > - **POM Project URL**: [http://www.signalfx.com](http://www.signalfx.com)
 > - **POM License**: Apache License, Version 2.0 - [https://www.apache.org/licenses/LICENSE-2.0](https://www.apache.org/licenses/LICENSE-2.0)
 
@@ -150,12 +150,12 @@ _2024-09-09 14:50:05 PDT_
 > - **POM Project URL**: [https://github.com/open-telemetry/semantic-conventions-java](https://github.com/open-telemetry/semantic-conventions-java)
 > - **POM License**: Apache License, Version 2.0 - [https://www.apache.org/licenses/LICENSE-2.0](https://www.apache.org/licenses/LICENSE-2.0)
 
-**33** **Group:** `org.apache.commons` **Name:** `commons-lang3` **Version:** `3.16.0` 
+**33** **Group:** `org.apache.commons` **Name:** `commons-lang3` **Version:** `3.17.0` 
 > - **Project URL**: [https://commons.apache.org/proper/commons-lang/](https://commons.apache.org/proper/commons-lang/)
 > - **Manifest License**: Apache License, Version 2.0 (Not Packaged)
 > - **POM License**: Apache License, Version 2.0 - [https://www.apache.org/licenses/LICENSE-2.0](https://www.apache.org/licenses/LICENSE-2.0)
-> - **Embedded license files**: [commons-lang3-3.16.0.jar/META-INF/LICENSE.txt](commons-lang3-3.16.0.jar/META-INF/LICENSE.txt) 
-    - [commons-lang3-3.16.0.jar/META-INF/NOTICE.txt](commons-lang3-3.16.0.jar/META-INF/NOTICE.txt)
+> - **Embedded license files**: [commons-lang3-3.17.0.jar/META-INF/LICENSE.txt](commons-lang3-3.17.0.jar/META-INF/LICENSE.txt) 
+    - [commons-lang3-3.17.0.jar/META-INF/NOTICE.txt](commons-lang3-3.17.0.jar/META-INF/NOTICE.txt)
 
 **34** **Group:** `org.apache.httpcomponents` **Name:** `httpclient` **Version:** `4.5.14` 
 > - **POM Project URL**: [http://hc.apache.org/httpcomponents-client-ga](http://hc.apache.org/httpcomponents-client-ga)
@@ -256,7 +256,7 @@ _2024-09-09 14:50:05 PDT_
 
 ## The 3-Clause BSD License
 
-**50** **Group:** `com.google.protobuf` **Name:** `protobuf-java` **Version:** `3.25.4` 
+**50** **Group:** `com.google.protobuf` **Name:** `protobuf-java` **Version:** `3.25.5` 
 > - **Manifest Project URL**: [https://developers.google.com/protocol-buffers/](https://developers.google.com/protocol-buffers/)
 > - **Manifest License**: The 3-Clause BSD License (Not Packaged)
 > - **POM License**: The 3-Clause BSD License - [https://opensource.org/licenses/BSD-3-Clause](https://opensource.org/licenses/BSD-3-Clause)

@@ -13,7 +13,7 @@ val dockerJavaVersion = "3.4.0"
 val micrometerOldVersion = "1.3.20"
 val micrometerVersion = "1.13.4"
 val mockitoVersion = "5.13.0"
-val protobufVersion = "3.25.4"
+val protobufVersion = "3.25.5"
 val slf4jVersion = "2.0.16"
 
 // instrumentation version is used to compute Implementation-Version manifest attribute
@@ -43,7 +43,7 @@ dependencies {
     api("com.google.auto.service:auto-service:1.1.1")
     api("org.assertj:assertj-core:3.26.3")
     api("org.awaitility:awaitility:4.2.2")
-    api("com.signalfx.public:signalfx-metrics:1.0.45")
+    api("com.signalfx.public:signalfx-metrics:1.0.46")
     api("commons-codec:commons-codec:1.17.1")
 
     api("com.github.docker-java:docker-java-core:$dockerJavaVersion")

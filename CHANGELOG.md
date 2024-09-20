@@ -8,6 +8,13 @@ and this repository adheres to [Semantic Versioning](https://semver.org/spec/v2.
 
 ## Unreleased
 
+## v1.32.5 - 2024-09-20
+
+### General
+
+- Micrometer dependency has been updated to version 1.13.4.
+- Protobuf dependency has been updated to version 3.25.5.
+
 ## v1.32.4 - 2024-08-28
 
 ### General

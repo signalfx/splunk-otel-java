@@ -8,22 +8,59 @@ and this repository adheres to [Semantic Versioning](https://semver.org/spec/v2.
 
 ## Unreleased
 
+## v1.32.5 - 2024-09-20
+
+### General
+
+- Micrometer dependency has been updated to version 1.13.4.
+- Protobuf dependency has been updated to version 3.25.5.
+
+## v2.8.1 - 2024-09-20
+
+### General
+
+- Protobuf dependency has been updated to version 3.25.5.
+
 ## v2.8.0 - 2024-09-18
+
+### General
 
 - OpenTelemetry Java SDK has been updated to version 1.42.1.
 - OpenTelemetry Instrumentation for Java has been updated to version 2.8.0.
 
+## v1.32.4 - 2024-08-28
+
+### General
+
+- OpenTelemetry Java SDK has been updated to version 1.41.0.
+- OpenTelemetry Instrumentation for Java has been updated to version 1.33.6.
+- Micrometer dependency has been updated to version 1.13.3.
+
 ## v2.7.0 - 2024-08-22
+
+### General
 
 - OpenTelemetry Java SDK has been updated to version 1.41.0.
 - OpenTelemetry Instrumentation for Java has been updated to version 2.7.0.
 
+## v1.32.3 - 2024-08-01
+
+### General
+
+- OpenTelemetry Java SDK has been updated to version 1.40.0.
+- OpenTelemetry Instrumentation for Java has been updated to version 1.33.5.
+- Micrometer dependency has been updated to version 1.13.2.
+
 ## v2.6.0 - 2024-07-24
+
+### General
 
 - OpenTelemetry Java SDK has been updated to version 1.40.0.
 - OpenTelemetry Instrumentation for Java has been updated to version 2.6.0.
 
 ## v2.5.0 - 2024-06-25
+
+### General
 
 - OpenTelemetry Java SDK has been updated to version 1.39.0.
 - OpenTelemetry Instrumentation for Java has been updated to version 2.5.0.
@@ -42,6 +79,8 @@ and this repository adheres to [Semantic Versioning](https://semver.org/spec/v2.
 - Micrometer dependency has been updated to version 1.13.1.
 
 ## v2.4.0-alpha - 2024-06-06
+
+### General
 
 - OpenTelemetry Java SDK has been updated to version 1.38.0.
 - OpenTelemetry Instrumentation for Java has been updated to version 2.4.0.
@@ -109,6 +148,8 @@ Note: 2.2.0-alpha release is considered experimental, Splunk recommends using 1.
 
 ## v1.30.3 - 2024-02-27
 
+### General
+
 - Remove dependency on python for CloudFoundry `supply` script 
 
 ## v2.1.0-alpha - 2024-02-21
@@ -121,6 +162,8 @@ Note: 2.2.0-alpha release is considered experimental, Splunk recommends using 1.
 Note: 2.1.0-alpha release is considered experimental, Splunk recommends using 1.x version of the agent.
 
 ## v1.30.2 - 2024-02-15
+
+### General
 
 - Update base image for CloudFoundry buildpack from cflinuxfs3 to cflinuxfs4.
 

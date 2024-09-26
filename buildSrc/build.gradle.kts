@@ -44,5 +44,5 @@ dependencies {
   implementation("io.opentelemetry.instrumentation:gradle-plugins:2.6.0-alpha")
 
   // keep these versions in sync with settings.gradle.kts
-  implementation("gradle.plugin.com.github.johnrengelman:shadow:8.0.0")
+  implementation("com.gradleup.shadow:shadow-gradle-plugin:8.3.2")
 }

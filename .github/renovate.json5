@@ -10,10 +10,6 @@
       "groupName": "spotless packages"
     },
     {
-      "matchPackagePrefixes": ["org.ow2.asm:"],
-      "groupName": "asm packages"
-    },
-    {
       "matchPackagePrefixes": ["com.gradleup.shadow"],
       "groupName": "gradle shadow packages"
     },

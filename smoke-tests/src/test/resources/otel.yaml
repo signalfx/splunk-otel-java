@@ -18,10 +18,10 @@ processors:
   batch:
 
 exporters:
-  logging/logging_debug:
-    loglevel: debug
-  logging/logging_info:
-    loglevel: info
+  debug/logging_debug:
+    verbosity: detailed
+  debug/logging_info:
+    verbosity: basic
   otlp:
     endpoint: backend:8080
     tls:
@@ -39,14 +39,14 @@ service:
     traces:
       receivers: [ otlp ]
       processors: [ batch ]
-      exporters: [ logging/logging_debug, otlp ]
+      exporters: [ debug/logging_debug, otlp ]
     metrics:
       receivers: [ signalfx, otlp ]
       processors: [ batch ]
-      exporters: [ logging/logging_info, otlp ]
+      exporters: [ debug/logging_info, otlp ]
     logs:
       receivers: [ otlp ]
       processors: [ batch ]
-      exporters: [ logging/logging_info, otlp, splunk_hec ]
+      exporters: [ debug/logging_info, otlp, splunk_hec ]
 
   extensions: [ health_check, pprof, zpages ]

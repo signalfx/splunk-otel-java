@@ -47,7 +47,8 @@ public class Configuration implements AutoConfigurationCustomizerProvider {
   public static final String CONFIG_KEY_RECORDING_DURATION = "splunk.profiler.recording.duration";
   public static final String CONFIG_KEY_KEEP_FILES = "splunk.profiler.keep-files";
   public static final String CONFIG_KEY_INGEST_URL = "splunk.profiler.logs-endpoint";
-  public static final String CONFIG_KEY_OTLP_PROTOCOL = "splunk.profiler.otlp.protocol";
+  public static final String CONFIG_KEY_PROFILER_OTLP_PROTOCOL = "splunk.profiler.otlp.protocol";
+  public static final String CONFIG_KEY_OTLP_PROTOCOL = "otel.exporter.otlp.protocol";
   public static final String CONFIG_KEY_OTEL_OTLP_URL = "otel.exporter.otlp.endpoint";
   public static final String CONFIG_KEY_MEMORY_ENABLED = PROFILER_MEMORY_ENABLED_PROPERTY;
   public static final String CONFIG_KEY_MEMORY_EVENT_RATE_LIMIT_ENABLED =
@@ -82,7 +83,6 @@ public class Configuration implements AutoConfigurationCustomizerProvider {
     config.put(CONFIG_KEY_MEMORY_ENABLED, String.valueOf(DEFAULT_MEMORY_ENABLED));
     config.put(CONFIG_KEY_MEMORY_EVENT_RATE, DEFAULT_MEMORY_EVENT_RATE);
     config.put(CONFIG_KEY_CALL_STACK_INTERVAL, DEFAULT_CALL_STACK_INTERVAL.toMillis() + "ms");
-    config.put(CONFIG_KEY_OTLP_PROTOCOL, "http/protobuf");
     return config;
   }
 
@@ -116,7 +116,9 @@ public class Configuration implements AutoConfigurationCustomizerProvider {
   }
 
   public static String getOtlpProtocol(ConfigProperties config) {
-    return config.getString(CONFIG_KEY_OTLP_PROTOCOL);
+    return config.getString(
+        CONFIG_KEY_PROFILER_OTLP_PROTOCOL,
+        config.getString(CONFIG_KEY_OTLP_PROTOCOL, "http/protobuf"));
   }
 
   public static boolean getMemoryEnabled(ConfigProperties config) {

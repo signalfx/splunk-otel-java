@@ -22,6 +22,10 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
+import io.opentelemetry.sdk.autoconfigure.spi.internal.DefaultConfigProperties;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 
 class ConfigurationTest {
@@ -66,5 +70,30 @@ class ConfigurationTest {
     when(config.getString(Configuration.CONFIG_KEY_INGEST_URL, null)).thenReturn(null);
     String result = Configuration.getConfigUrl(config);
     assertNull(result);
+  }
+
+  @Test
+  void getOtlpProtocolDefault() {
+    String result =
+        Configuration.getOtlpProtocol(DefaultConfigProperties.create(Collections.emptyMap()));
+    assertEquals(result, "http/protobuf");
+  }
+
+  @Test
+  void getOtlpProtocolOtelPropertySet() {
+    String result =
+        Configuration.getOtlpProtocol(
+            DefaultConfigProperties.create(
+                Collections.singletonMap("otel.exporter.otlp.protocol", "test")));
+    assertEquals(result, "test");
+  }
+
+  @Test
+  void getOtlpProtocol() {
+    Map<String, String> map = new HashMap<>();
+    map.put("otel.exporter.otlp.protocol", "test1");
+    map.put("splunk.profiler.otlp.protocol", "test2");
+    String result = Configuration.getOtlpProtocol(DefaultConfigProperties.create(map));
+    assertEquals(result, "test2");
   }
 }

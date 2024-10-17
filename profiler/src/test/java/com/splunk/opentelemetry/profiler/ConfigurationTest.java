@@ -22,6 +22,10 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
+import io.opentelemetry.sdk.autoconfigure.spi.internal.DefaultConfigProperties;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 
 class ConfigurationTest {
@@ -36,7 +40,7 @@ class ConfigurationTest {
     when(config.getString(Configuration.CONFIG_KEY_INGEST_URL, otelEndpoint))
         .thenReturn(logsEndpoint);
     String result = Configuration.getConfigUrl(config);
-    assertEquals(result, logsEndpoint);
+    assertEquals(logsEndpoint, result);
   }
 
   @Test
@@ -46,7 +50,7 @@ class ConfigurationTest {
     when(config.getString(Configuration.CONFIG_KEY_INGEST_URL, otelEndpoint))
         .thenReturn(otelEndpoint);
     String result = Configuration.getConfigUrl(config);
-    assertEquals(result, otelEndpoint);
+    assertEquals(otelEndpoint, result);
   }
 
   @Test
@@ -66,5 +70,30 @@ class ConfigurationTest {
     when(config.getString(Configuration.CONFIG_KEY_INGEST_URL, null)).thenReturn(null);
     String result = Configuration.getConfigUrl(config);
     assertNull(result);
+  }
+
+  @Test
+  void getOtlpProtocolDefault() {
+    String result =
+        Configuration.getOtlpProtocol(DefaultConfigProperties.create(Collections.emptyMap()));
+    assertEquals("http/protobuf", result);
+  }
+
+  @Test
+  void getOtlpProtocolOtelPropertySet() {
+    String result =
+        Configuration.getOtlpProtocol(
+            DefaultConfigProperties.create(
+                Collections.singletonMap("otel.exporter.otlp.protocol", "test")));
+    assertEquals("test", result);
+  }
+
+  @Test
+  void getOtlpProtocol() {
+    Map<String, String> map = new HashMap<>();
+    map.put("otel.exporter.otlp.protocol", "test1");
+    map.put("splunk.profiler.otlp.protocol", "test2");
+    String result = Configuration.getOtlpProtocol(DefaultConfigProperties.create(map));
+    assertEquals("test2", result);
   }
 }

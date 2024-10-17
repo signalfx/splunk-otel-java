@@ -40,7 +40,7 @@ class ConfigurationTest {
     when(config.getString(Configuration.CONFIG_KEY_INGEST_URL, otelEndpoint))
         .thenReturn(logsEndpoint);
     String result = Configuration.getConfigUrl(config);
-    assertEquals(result, logsEndpoint);
+    assertEquals(logsEndpoint, result);
   }
 
   @Test
@@ -50,7 +50,7 @@ class ConfigurationTest {
     when(config.getString(Configuration.CONFIG_KEY_INGEST_URL, otelEndpoint))
         .thenReturn(otelEndpoint);
     String result = Configuration.getConfigUrl(config);
-    assertEquals(result, otelEndpoint);
+    assertEquals(otelEndpoint, result);
   }
 
   @Test
@@ -76,7 +76,7 @@ class ConfigurationTest {
   void getOtlpProtocolDefault() {
     String result =
         Configuration.getOtlpProtocol(DefaultConfigProperties.create(Collections.emptyMap()));
-    assertEquals(result, "http/protobuf");
+    assertEquals("http/protobuf", result);
   }
 
   @Test
@@ -85,7 +85,7 @@ class ConfigurationTest {
         Configuration.getOtlpProtocol(
             DefaultConfigProperties.create(
                 Collections.singletonMap("otel.exporter.otlp.protocol", "test")));
-    assertEquals(result, "test");
+    assertEquals("test", result);
   }
 
   @Test
@@ -94,6 +94,6 @@ class ConfigurationTest {
     map.put("otel.exporter.otlp.protocol", "test1");
     map.put("splunk.profiler.otlp.protocol", "test2");
     String result = Configuration.getOtlpProtocol(DefaultConfigProperties.create(map));
-    assertEquals(result, "test2");
+    assertEquals("test2", result);
   }
 }

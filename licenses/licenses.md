@@ -1,7 +1,7 @@
 
 # splunk-otel-javaagent
 ## Dependency License Report
-_2024-10-14 09:23:56 EEST_
+_2024-10-24 09:46:18 CEST_
 ## Apache License, Version 2.0
 
 **1** **Group:** `com.squareup.okhttp3` **Name:** `okhttp` **Version:** `4.12.0` 
@@ -69,15 +69,15 @@ _2024-10-14 09:23:56 EEST_
 > - **POM Project URL**: [https://github.com/open-telemetry/opentelemetry-java](https://github.com/open-telemetry/opentelemetry-java)
 > - **POM License**: Apache License, Version 2.0 - [https://www.apache.org/licenses/LICENSE-2.0](https://www.apache.org/licenses/LICENSE-2.0)
 
-**17** **Group:** `io.opentelemetry.contrib` **Name:** `opentelemetry-resource-providers` **Version:** `1.39.0-alpha` 
+**17** **Group:** `io.opentelemetry.contrib` **Name:** `opentelemetry-resource-providers` **Version:** `1.40.0-alpha` 
 > - **POM Project URL**: [https://github.com/open-telemetry/opentelemetry-java-contrib](https://github.com/open-telemetry/opentelemetry-java-contrib)
 > - **POM License**: Apache License, Version 2.0 - [https://www.apache.org/licenses/LICENSE-2.0](https://www.apache.org/licenses/LICENSE-2.0)
 
-**18** **Group:** `io.opentelemetry.contrib` **Name:** `opentelemetry-samplers` **Version:** `1.39.0-alpha` 
+**18** **Group:** `io.opentelemetry.contrib` **Name:** `opentelemetry-samplers` **Version:** `1.40.0-alpha` 
 > - **POM Project URL**: [https://github.com/open-telemetry/opentelemetry-java-contrib](https://github.com/open-telemetry/opentelemetry-java-contrib)
 > - **POM License**: Apache License, Version 2.0 - [https://www.apache.org/licenses/LICENSE-2.0](https://www.apache.org/licenses/LICENSE-2.0)
 
-**19** **Group:** `io.opentelemetry.instrumentation` **Name:** `opentelemetry-instrumentation-bom-alpha` **Version:** `2.9.0-alpha-SNAPSHOT` 
+**19** **Group:** `io.opentelemetry.instrumentation` **Name:** `opentelemetry-instrumentation-bom-alpha` **Version:** `2.9.0-alpha` 
 > - **POM Project URL**: [https://github.com/open-telemetry/opentelemetry-java-instrumentation](https://github.com/open-telemetry/opentelemetry-java-instrumentation)
 > - **POM License**: Apache License, Version 2.0 - [https://www.apache.org/licenses/LICENSE-2.0](https://www.apache.org/licenses/LICENSE-2.0)
 

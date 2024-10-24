@@ -47,36 +47,6 @@ publish_docker_image() {
   docker push "quay.io/signalfx/splunk-otel-instrumentation-java:$release_tag"
 }
 
-create_operator_pr() {
-  local repo="signalfx/splunk-otel-collector-operator"
-  local repo_url="https://srv-gh-o11y-gdi:${GITHUB_TOKEN}@github.com/${repo}.git"
-  local update_version_branch="javaagent-version-update-$release_tag"
-  local message="[javaagent-version-update] Update javaagent version to $release_tag"
-
-  echo ">>> Cloning the $repo repository ..."
-  git clone "$repo_url" operator-mirror
-
-  echo ">>> Updating the version and pushing changes ..."
-  cd operator-mirror
-  git checkout -b "$update_version_branch"
-  ./.ci/update-javaagent-version.sh "$(get_release_version "$release_tag")"
-  git commit -S -am "[automated] $message"
-  git push "$repo_url" "$update_version_branch"
-
-  echo ">>> Creating the agent version update PR ..."
-  gh pr create \
-    --repo "$repo" \
-    --title "$message" \
-    --body "$message" \
-    --base main \
-    --head "$update_version_branch"
-}
-
 build_docker_image
 login_to_quay_io
 publish_docker_image
-
-setup_gpg
-import_gpg_secret_key "$GITHUB_BOT_GPG_KEY"
-setup_git
-create_operator_pr

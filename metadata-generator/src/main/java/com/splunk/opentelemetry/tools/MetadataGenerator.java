@@ -3445,6 +3445,10 @@ public class MetadataGenerator {
             .build());
     instrumentations.add(
         instrumentation("spring-cloud-gateway")
+            .component("Spring Cloud AWS", "3.0 and higher")
+            .build());
+    instrumentations.add(
+        instrumentation("spring-cloud-gateway")
             .component("Spring Cloud Gateway", "1.8 and higher")
             .build());
     instrumentations.add(

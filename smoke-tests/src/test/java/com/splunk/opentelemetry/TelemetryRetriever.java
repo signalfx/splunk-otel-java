@@ -19,7 +19,7 @@ package com.splunk.opentelemetry;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.protobuf.GeneratedMessageV3;
+import com.google.protobuf.GeneratedMessage;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.util.JsonFormat;
 import io.opentelemetry.proto.collector.logs.v1.ExportLogsServiceRequest;
@@ -95,7 +95,7 @@ class TelemetryRetriever {
     return builder.build();
   }
 
-  private void deserializeIntoBuilder(JsonNode it, GeneratedMessageV3.Builder<?> builder) {
+  private void deserializeIntoBuilder(JsonNode it, GeneratedMessage.Builder<?> builder) {
     try {
       JsonFormat.parser().merge(OBJECT_MAPPER.writeValueAsString(it), builder);
     } catch (InvalidProtocolBufferException | JsonProcessingException e) {

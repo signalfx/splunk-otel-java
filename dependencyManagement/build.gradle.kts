@@ -11,7 +11,7 @@ val otelContribAlphaVersion = "1.41.0-alpha"
 val autoValueVersion = "1.11.0"
 val dockerJavaVersion = "3.4.0"
 val mockitoVersion = "5.14.2"
-val protobufVersion = "4.28.3"
+val protobufVersion = "4.29.0"
 val slf4jVersion = "2.0.16"
 
 // instrumentation version is used to compute Implementation-Version manifest attribute
@@ -28,10 +28,10 @@ javaPlatform {
 dependencies {
 
   // BOMs
-  api(enforcedPlatform("com.fasterxml.jackson:jackson-bom:2.18.1"))
+  api(enforcedPlatform("com.fasterxml.jackson:jackson-bom:2.18.2"))
   api(enforcedPlatform("com.google.protobuf:protobuf-bom:$protobufVersion"))
   api(enforcedPlatform("com.squareup.okhttp3:okhttp-bom:4.12.0"))
-  api(enforcedPlatform("io.grpc:grpc-bom:1.68.1"))
+  api(enforcedPlatform("io.grpc:grpc-bom:1.68.2"))
   api(enforcedPlatform("io.opentelemetry:opentelemetry-bom-alpha:$otelAlphaVersion"))
   api(enforcedPlatform("io.opentelemetry.instrumentation:opentelemetry-instrumentation-bom-alpha:$otelInstrumentationAlphaVersion"))
   api(enforcedPlatform("org.junit:junit-bom:5.11.3"))
@@ -55,6 +55,6 @@ dependencies {
 
     api("io.opentelemetry.contrib:opentelemetry-samplers:$otelContribAlphaVersion")
     api("io.opentelemetry.contrib:opentelemetry-resource-providers:$otelContribAlphaVersion")
-    api("io.opentelemetry.proto:opentelemetry-proto:1.3.2-alpha")
+    api("io.opentelemetry.proto:opentelemetry-proto:1.4.0-alpha")
   }
 }

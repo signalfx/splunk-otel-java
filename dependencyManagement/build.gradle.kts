@@ -2,7 +2,7 @@ plugins {
   `java-platform`
 }
 
-val otelVersion = "1.44.1"
+val otelVersion = "1.45.0"
 val otelAlphaVersion = otelVersion.replaceFirst("(-SNAPSHOT)?$".toRegex(), "-alpha$1")
 val otelInstrumentationVersion = "2.11.0-SNAPSHOT"
 val otelInstrumentationAlphaVersion =  otelInstrumentationVersion.replaceFirst("(-SNAPSHOT)?$".toRegex(), "-alpha$1")

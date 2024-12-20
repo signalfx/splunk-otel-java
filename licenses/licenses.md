@@ -1,7 +1,7 @@
 
 # splunk-otel-javaagent
 ## Dependency License Report
-_2024-12-18 20:19:52 EET_
+_2024-12-20 11:58:53 PST_
 ## Apache License, Version 2.0
 
 **1** **Group:** `com.squareup.okhttp3` **Name:** `okhttp` **Version:** `4.12.0` 
@@ -81,7 +81,7 @@ _2024-12-18 20:19:52 EET_
 > - **POM Project URL**: [https://github.com/open-telemetry/opentelemetry-java-instrumentation](https://github.com/open-telemetry/opentelemetry-java-instrumentation)
 > - **POM License**: Apache License, Version 2.0 - [https://www.apache.org/licenses/LICENSE-2.0](https://www.apache.org/licenses/LICENSE-2.0)
 
-**20** **Group:** `io.opentelemetry.semconv` **Name:** `opentelemetry-semconv` **Version:** `1.28.0-alpha` 
+**20** **Group:** `io.opentelemetry.semconv` **Name:** `opentelemetry-semconv` **Version:** `1.29.0-alpha` 
 > - **POM Project URL**: [https://github.com/open-telemetry/semantic-conventions-java](https://github.com/open-telemetry/semantic-conventions-java)
 > - **POM License**: Apache License, Version 2.0 - [https://www.apache.org/licenses/LICENSE-2.0](https://www.apache.org/licenses/LICENSE-2.0)
 

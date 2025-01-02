@@ -10,7 +10,7 @@ val otelContribAlphaVersion = "1.41.0-alpha"
 
 val autoValueVersion = "1.11.0"
 val dockerJavaVersion = "3.4.1"
-val mockitoVersion = "5.14.2"
+val mockitoVersion = "5.15.2"
 val protobufVersion = "4.29.2"
 val slf4jVersion = "2.0.16"
 

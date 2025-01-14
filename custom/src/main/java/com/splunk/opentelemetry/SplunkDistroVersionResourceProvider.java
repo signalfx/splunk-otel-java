@@ -16,6 +16,8 @@
 
 package com.splunk.opentelemetry;
 
+import static io.opentelemetry.semconv.incubating.TelemetryIncubatingAttributes.TELEMETRY_DISTRO_VERSION;
+
 import com.google.auto.service.AutoService;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
@@ -44,7 +46,8 @@ public class SplunkDistroVersionResourceProvider implements ResourceProvider {
       splunkProps.load(in);
       return Resource.create(
           Attributes.of(
-              SPLUNK_DISTRO_VERSION, splunkProps.getProperty(SPLUNK_DISTRO_VERSION.getKey())));
+              TELEMETRY_DISTRO_VERSION,
+              splunkProps.getProperty(TELEMETRY_DISTRO_VERSION.getKey())));
     } catch (IOException e) {
       return Resource.empty();
     }

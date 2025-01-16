@@ -30,8 +30,6 @@ import java.util.Properties;
 
 @AutoService(ResourceProvider.class)
 public class SplunkDistroVersionResourceProvider implements ResourceProvider {
-  static final AttributeKey<String> SPLUNK_DISTRO_VERSION =
-      AttributeKey.stringKey("splunk.distro.version");
 
   private static final Resource DISTRO_VERSION_RESOURCE = initialize();
 

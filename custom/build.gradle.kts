@@ -46,7 +46,7 @@ tasks {
     outputs.dir(propertiesDir)
 
     doLast {
-      File(propertiesDir, "splunk.properties").writeText("splunk.distro.version=${project.version}")
+      File(propertiesDir, "splunk.properties").writeText("telemetry.distro.version=${project.version}")
     }
   }
 }

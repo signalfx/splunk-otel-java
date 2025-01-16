@@ -17,6 +17,7 @@
 package com.splunk.opentelemetry;
 
 import static io.opentelemetry.sdk.testing.assertj.OpenTelemetryAssertions.assertThat;
+import static io.opentelemetry.semconv.incubating.TelemetryIncubatingAttributes.TELEMETRY_DISTRO_VERSION;
 
 import org.junit.jupiter.api.Test;
 
@@ -31,8 +32,6 @@ class SplunkDistroVersionResourceProviderTest {
 
     // then
     assertThat(resource.getAttributes().size()).isEqualTo(1);
-    assertThat(
-            resource.getAttributes().get(SplunkDistroVersionResourceProvider.SPLUNK_DISTRO_VERSION))
-        .isNotEmpty();
+    assertThat(resource.getAttributes().get(TELEMETRY_DISTRO_VERSION)).isNotEmpty();
   }
 }

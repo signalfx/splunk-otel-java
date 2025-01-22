@@ -1687,15 +1687,23 @@ public class MetadataGenerator {
 
     // https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/instrumentation/log4j/log4j-appender-2.17/javaagent/README.md
     /*
-    | `otel.instrumentation.log4j-appender.experimental-log-attributes`                  | Boolean | `false` | Enable the capture of experimental log attributes `thread.name` and `thread.id`.                                      |
-    | `otel.instrumentation.log4j-appender.experimental.capture-map-message-attributes`  | Boolean | `false` | Enable the capture of `MapMessage` attributes.                                                                        |
-    | `otel.instrumentation.log4j-appender.experimental.capture-marker-attribute`        | Boolean | `false` | Enable the capture of Log4j markers as attributes.                                                                    |
-    | `otel.instrumentation.log4j-appender.experimental.capture-mdc-attributes`          | String  |         | Comma separated list of context data attributes to capture. Use the wildcard character `*` to capture all attributes. |
-     */
+     | `otel.instrumentation.log4j-appender.experimental-log-attributes`                 | Boolean | `false` | Enable the capture of experimental log attributes `thread.name` and `thread.id`.                                                              |
+     | `otel.instrumentation.log4j-appender.experimental.capture-code-attributes`        | Boolean | `false` | Enable the capture of [source code attributes]. Note that capturing source code attributes at logging sites might add a performance overhead. |
+     | `otel.instrumentation.log4j-appender.experimental.capture-map-message-attributes` | Boolean | `false` | Enable the capture of `MapMessage` attributes.                                                                                                |
+     | `otel.instrumentation.log4j-appender.experimental.capture-marker-attribute`       | Boolean | `false` | Enable the capture of Log4j markers as attributes.                                                                                            |
+     | `otel.instrumentation.log4j-appender.experimental.capture-mdc-attributes`         | String  |         | Comma separated list of context data attributes to capture. Use the wildcard character `*` to capture all attributes.                         |
+    */
     settings.add(
         setting(
             "otel.instrumentation.log4j-appender.experimental-log-attributes",
             "Enable the capture of experimental log attributes `thread.name` and `thread.id`.",
+            "false",
+            SettingType.BOOLEAN,
+            SettingCategory.INSTRUMENTATION));
+    settings.add(
+        setting(
+            "otel.instrumentation.log4j-appender.experimental.capture-code-attributes",
+            "Enable the capture of [source code attributes](https://github.com/open-telemetry/semantic-conventions/blob/main/docs/general/attributes.md#source-code-attributes). Note that capturing source code attributes at logging sites might add a performance overhead.",
             "false",
             SettingType.BOOLEAN,
             SettingCategory.INSTRUMENTATION));
@@ -3114,16 +3122,24 @@ public class MetadataGenerator {
         instrumentation("aws-sdk")
             .component("AWS SDK 1", "1.11 and higher")
             .component("AWS SDK 2", "2.2 and higher")
+            .dbClientMetrics()
             .build());
     instrumentations.add(
         instrumentation("azure-core").component("Azure Core", "1.14 and higher").build());
     instrumentations.add(
-        instrumentation("cassandra").component("Cassandra Driver", "3.0 and higher").build());
+        instrumentation("cassandra")
+            .component("Cassandra Driver", "3.0 and higher")
+            .dbClientMetrics()
+            .build());
     instrumentations.add(
-        instrumentation("clickhouse").component("Clickhouse Client", "0.5 and higher").build());
+        instrumentation("clickhouse")
+            .component("Clickhouse Client", "0.5 and higher")
+            .dbClientMetrics()
+            .build());
     instrumentations.add(
         instrumentation("couchbase")
             .component("Couchbase Client", "2.0 to 3.0 and 3.1 and higher")
+            .dbClientMetrics()
             .build());
     instrumentations.add(
         instrumentation("c3p0")
@@ -3166,16 +3182,21 @@ public class MetadataGenerator {
     instrumentations.add(
         instrumentation("elasticsearch-rest")
             .component("Elasticsearch REST Client", "5.0 and higher")
+            .dbClientMetrics()
             .build());
     instrumentations.add(
         instrumentation("elasticsearch-transport")
             .component("Elasticsearch Transport Client", "5.0 and higher")
+            .dbClientMetrics()
             .build());
     instrumentations.add(
         instrumentation("finagle-http").component("Finagle", "23.11 and higher").build());
     instrumentations.add(instrumentation("finatra").component("Finatra", "2.9 and higher").build());
     instrumentations.add(
-        instrumentation("geode").component("Geode Client", "1.4 and higher").build());
+        instrumentation("geode")
+            .component("Geode Client", "1.4 and higher")
+            .dbClientMetrics()
+            .build());
     instrumentations.add(
         instrumentation("google-http-client")
             .component("Google HTTP Client", "1.19 and higher")
@@ -3219,7 +3240,10 @@ public class MetadataGenerator {
             .build());
     instrumentations.add(instrumentation("hystrix").component("Hystrix", "1.4 and higher").build());
     instrumentations.add(
-        instrumentation("influxdb").component("InfluxDB Client", "2.4 and higher").build());
+        instrumentation("influxdb")
+            .component("InfluxDB Client", "2.4 and higher")
+            .dbClientMetrics()
+            .build());
     instrumentations.add(instrumentation("executors").component("Java Executors", null).build());
     instrumentations.add(
         instrumentation("java-http-client")
@@ -3315,8 +3339,12 @@ public class MetadataGenerator {
             .component("JBoss Log Manager", "1.1 and higher")
             .build());
     instrumentations.add(
-        instrumentation(List.of("jdbc", "jdbc-datasource")).component("JDBC", null).build());
-    instrumentations.add(instrumentation("jedis").component("Jedis", "1.4 and higher").build());
+        instrumentation(List.of("jdbc", "jdbc-datasource"))
+            .component("JDBC", null)
+            .dbClientMetrics()
+            .build());
+    instrumentations.add(
+        instrumentation("jedis").component("Jedis", "1.4 and higher").dbClientMetrics().build());
     instrumentations.add(instrumentation("jms").component("JMS", "1.1 and higher").build());
     instrumentations.add(
         instrumentation("jodd-http")
@@ -3338,7 +3366,11 @@ public class MetadataGenerator {
         instrumentation("kubernetes-client")
             .component("Kubernetes Client", "7.0 and higher")
             .build());
-    instrumentations.add(instrumentation("lettuce").component("Lettuce", "4.0 and higher").build());
+    instrumentations.add(
+        instrumentation("lettuce")
+            .component("Lettuce", "4.0 and higher")
+            .dbClientMetrics()
+            .build());
     instrumentations.add(
         instrumentation("liberty").component("Liberty", "20.0 and higher").build());
     instrumentations.add(
@@ -3352,7 +3384,10 @@ public class MetadataGenerator {
     instrumentations.add(
         instrumentation("micrometer").component("Micrometer", "1.5 and higher").build());
     instrumentations.add(
-        instrumentation("mongo").component("MongoDB Drive", "3.1 and higher").build());
+        instrumentation("mongo")
+            .component("MongoDB Drive", "3.1 and higher")
+            .dbClientMetrics()
+            .build());
     instrumentations.add(instrumentation("mybatis").component("MyBatis", "3.2 and higher").build());
     instrumentations.add(
         instrumentation("netty")
@@ -3369,6 +3404,11 @@ public class MetadataGenerator {
         instrumentation("liberty")
             .component("OpenLiberty", "20.0 and higher")
             .httpServerMetrics()
+            .build());
+    instrumentations.add(
+        instrumentation("opensearch")
+            .component("OpenSearch REST Client", "1.0 and higher")
+            .dbClientMetrics()
             .build());
     instrumentations.add(
         instrumentation("opentelemetry-api").component("OpenTelemetry API", null).build());
@@ -3400,7 +3440,8 @@ public class MetadataGenerator {
             .component("Quarkus Resteasy Reactive", "2.16.7 and higher")
             .build());
     instrumentations.add(instrumentation("quartz").component("Quartz", "2.0 and higher").build());
-    instrumentations.add(instrumentation("r2dbc").component("R2DBC", "1.0 and higher").build());
+    instrumentations.add(
+        instrumentation("r2dbc").component("R2DBC", "1.0 and higher").dbClientMetrics().build());
     instrumentations.add(
         instrumentation("rabbitmq").component("RabbitMQ Client", "2.7 and higher").build());
     instrumentations.add(
@@ -3416,9 +3457,15 @@ public class MetadataGenerator {
             .httpClientMetrics()
             .build());
     instrumentations.add(
-        instrumentation("rediscala").component("Rediscala", "1.8 and higher").build());
+        instrumentation("rediscala")
+            .component("Rediscala", "1.8 and higher")
+            .dbClientMetrics()
+            .build());
     instrumentations.add(
-        instrumentation("redisson").component("Redisson", "3.0 and higher").build());
+        instrumentation("redisson")
+            .component("Redisson", "3.0 and higher")
+            .dbClientMetrics()
+            .build());
     instrumentations.add(
         instrumentation("resteasy").component("RESTEasy", "3.0 and higher").build());
     instrumentations.add(
@@ -3486,7 +3533,10 @@ public class MetadataGenerator {
             .httpClientMetrics()
             .build());
     instrumentations.add(
-        instrumentation("spymemcached").component("Spymemcached", "2.12 and higher").build());
+        instrumentation("spymemcached")
+            .component("Spymemcached", "2.12 and higher")
+            .dbClientMetrics()
+            .build());
     instrumentations.add(
         instrumentation("tomcat-jdbc")
             .component("Tomcat JDBC", "8.5 and higher")
@@ -3516,12 +3566,14 @@ public class MetadataGenerator {
     instrumentations.add(
         instrumentation("vertx-redis-client")
             .component("Vert.x Redis Client", "3.0 and higher")
+            .dbClientMetrics()
             .build());
     instrumentations.add(
         instrumentation("vertx-rx-java").component("Vert.x RxJava2", "3.5 and higher").build());
     instrumentations.add(
         instrumentation("vertx-sql-client")
             .component("Vert.x SQL Client", "4.0 and higher")
+            .dbClientMetrics()
             .build());
     instrumentations.add(
         instrumentation("vertx-web").component("Vert.x Web", "3.0 and higher").build());
@@ -4075,6 +4127,16 @@ public class MetadataGenerator {
       return this;
     }
 
+    InstrumentationBuilder dbClientMetrics() {
+      // only with stable semconv opt-in
+      metric(
+          "db.client.operation.duration",
+          MetricInstrument.HISTOGRAM,
+          "Duration of database client operations.");
+
+      return this;
+    }
+
     InstrumentationBuilder dependency(
         String name, String sourceUrl, String packageUrl, String version, Stability stability) {
       Map<String, Object> map = new LinkedHashMap<>();
@@ -4249,6 +4311,7 @@ public class MetadataGenerator {
   }
 
   enum DbPoolMetrics {
+    // renamed to db.client.connection.count in stable semconv
     USAGE(
         "db.client.connections.usage",
         MetricInstrument.UP_DOWN_COUNTER,

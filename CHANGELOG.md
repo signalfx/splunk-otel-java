@@ -8,6 +8,8 @@ and this repository adheres to [Semantic Versioning](https://semver.org/spec/v2.
 
 ## Unreleased
 
+## v2.12.0 - 2025-01-22
+
 - Rename `splunk.distro.version` to `telemetry.distro.version`.
 - Declare compatibility with GDI spec 1.7.0 
   [#2148](https://github.com/signalfx/splunk-otel-java/issues/2148)

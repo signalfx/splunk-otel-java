@@ -73,6 +73,11 @@ public class OpenTelemetrySdkExtension implements AfterEachCallback, OpenTelemet
     sdk.close();
   }
 
+  /**
+   * An extremely simplified adaptation of the OpenTelemetry class AutoConfiguredOpenTelemetrySdkBuilder,
+   * designed explicitly to facilitate easier component-like testing of custom OpenTelemetry Java
+   * Agent extensions.
+   */
   public static class Builder {
     private final SdkCustomizer customizer = new SdkCustomizer();
     private final Map<String, String> properties = new HashMap<>();
@@ -87,6 +92,10 @@ public class OpenTelemetrySdkExtension implements AfterEachCallback, OpenTelemet
       return this;
     }
 
+    /**
+     * Simplified re-implementation of AutoConfiguredOpenTelemetrySdkBuilder's build method. The
+     * OpenTelemetry SDK is only configured with features necessary to pass existing test use cases.
+     */
     public OpenTelemetrySdkExtension build() {
       overrideProperties();
 
@@ -105,7 +114,7 @@ public class OpenTelemetrySdkExtension implements AfterEachCallback, OpenTelemet
     }
   }
 
-  static class SdkCustomizer implements AutoConfigurationCustomizer {
+  private static class SdkCustomizer implements AutoConfigurationCustomizer {
     private final List<Function<ConfigProperties, Map<String, String>>> propertyCustomizers = new ArrayList<>();
 
     @Override

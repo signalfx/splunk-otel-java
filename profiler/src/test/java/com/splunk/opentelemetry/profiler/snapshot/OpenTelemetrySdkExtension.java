@@ -1,0 +1,154 @@
+/*
+ * 2024 Copyright (C) AppDynamics, Inc., and its affiliates
+ * All Rights Reserved
+ */
+
+/*
+ * Copyright The OpenTelemetry Authors
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+package com.splunk.opentelemetry.profiler.snapshot;
+
+import io.opentelemetry.api.OpenTelemetry;
+import io.opentelemetry.api.logs.LoggerProvider;
+import io.opentelemetry.api.metrics.MeterProvider;
+import io.opentelemetry.api.trace.TracerProvider;
+import io.opentelemetry.context.propagation.ContextPropagators;
+import io.opentelemetry.context.propagation.TextMapPropagator;
+import io.opentelemetry.sdk.OpenTelemetrySdk;
+import io.opentelemetry.sdk.OpenTelemetrySdkBuilder;
+import io.opentelemetry.sdk.autoconfigure.spi.AutoConfigurationCustomizer;
+import io.opentelemetry.sdk.autoconfigure.spi.AutoConfigurationCustomizerProvider;
+import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
+import io.opentelemetry.sdk.autoconfigure.spi.internal.DefaultConfigProperties;
+import io.opentelemetry.sdk.resources.Resource;
+import io.opentelemetry.sdk.trace.SdkTracerProviderBuilder;
+import io.opentelemetry.sdk.trace.export.SpanExporter;
+import io.opentelemetry.sdk.trace.samplers.Sampler;
+import org.junit.jupiter.api.extension.AfterEachCallback;
+import org.junit.jupiter.api.extension.ExtensionContext;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.function.BiFunction;
+import java.util.function.Function;
+import java.util.function.Supplier;
+
+public class OpenTelemetrySdkExtension implements AfterEachCallback, OpenTelemetry {
+  public static Builder builder() {
+    return new Builder();
+  }
+
+  private final OpenTelemetrySdk sdk;
+
+  private OpenTelemetrySdkExtension(OpenTelemetrySdk sdk) {
+    this.sdk = sdk;
+  }
+
+  @Override
+  public TracerProvider getTracerProvider() {
+    return sdk.getTracerProvider();
+  }
+
+  @Override
+  public MeterProvider getMeterProvider() {
+    return sdk.getMeterProvider();
+  }
+
+  @Override
+  public LoggerProvider getLogsBridge() {
+    return sdk.getLogsBridge();
+  }
+
+  @Override
+  public ContextPropagators getPropagators() {
+    return sdk.getPropagators();
+  }
+
+  @Override
+  public void afterEach(ExtensionContext extensionContext) {
+    sdk.close();
+  }
+
+  public static class Builder {
+    private final SdkCustomizer customizer = new SdkCustomizer();
+    private final Map<String, String> properties = new HashMap<>();
+
+    public Builder withProperty(String name, String value) {
+      properties.put(name, value);
+      return this;
+    }
+
+    public Builder with(AutoConfigurationCustomizerProvider provider) {
+      provider.customize(customizer);
+      return this;
+    }
+
+    public OpenTelemetrySdkExtension build() {
+      overrideProperties();
+
+      OpenTelemetrySdkBuilder sdkBuilder = OpenTelemetrySdk.builder();
+      OpenTelemetrySdk sdk = sdkBuilder.build();
+
+      return new OpenTelemetrySdkExtension(sdk);
+    }
+
+    private void overrideProperties() {
+      var properties = DefaultConfigProperties.createFromMap(this.properties);
+      for (var customizer : customizer.propertyCustomizers) {
+        var overrides = customizer.apply(properties);
+        properties = properties.withOverrides(overrides);
+      }
+    }
+  }
+
+  static class SdkCustomizer implements AutoConfigurationCustomizer {
+    private final List<Function<ConfigProperties, Map<String, String>>> propertyCustomizers = new ArrayList<>();
+
+    @Override
+    public AutoConfigurationCustomizer addTracerProviderCustomizer(
+        BiFunction<SdkTracerProviderBuilder, ConfigProperties, SdkTracerProviderBuilder> tracerProviderCustomizer) {
+      return this;
+    }
+
+    @Override
+    public AutoConfigurationCustomizer addPropagatorCustomizer(
+        BiFunction<? super TextMapPropagator, ConfigProperties, ? extends TextMapPropagator> textMapPropagator) {
+      return this;
+    }
+
+    @Override
+    public AutoConfigurationCustomizer addPropertiesCustomizer(
+        Function<ConfigProperties, Map<String, String>> propertiesCustomizer) {
+      this.propertyCustomizers.add(propertiesCustomizer);
+      return this;
+    }
+
+    @Override
+    public AutoConfigurationCustomizer addResourceCustomizer(
+        BiFunction<? super Resource, ConfigProperties, ? extends Resource> biFunction) {
+      return this;
+    }
+
+    @Override
+    public AutoConfigurationCustomizer addSamplerCustomizer(
+        BiFunction<? super Sampler, ConfigProperties, ? extends Sampler> biFunction) {
+      return null;
+    }
+
+    @Override
+    public AutoConfigurationCustomizer addSpanExporterCustomizer(
+        BiFunction<? super SpanExporter, ConfigProperties, ? extends SpanExporter> biFunction) {
+      return this;
+    }
+
+    @Override
+    public AutoConfigurationCustomizer addPropertiesSupplier(
+        Supplier<Map<String, String>> supplier) {
+      return this;
+    }
+  }
+}

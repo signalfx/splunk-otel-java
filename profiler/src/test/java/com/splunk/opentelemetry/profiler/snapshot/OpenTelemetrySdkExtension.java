@@ -1,4 +1,5 @@
 /*
+<<<<<<< HEAD
  * Copyright Splunk Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,6 +13,15 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+=======
+ * 2024 Copyright (C) AppDynamics, Inc., and its affiliates
+ * All Rights Reserved
+ */
+
+/*
+ * Copyright The OpenTelemetry Authors
+ * SPDX-License-Identifier: Apache-2.0
+>>>>>>> eed05daa (Add OpenTelemetry SDK customizer scaffolding for the snapshot profiler.)
  */
 
 package com.splunk.opentelemetry.profiler.snapshot;
@@ -27,6 +37,9 @@ import io.opentelemetry.sdk.resources.Resource;
 import io.opentelemetry.sdk.trace.SdkTracerProviderBuilder;
 import io.opentelemetry.sdk.trace.export.SpanExporter;
 import io.opentelemetry.sdk.trace.samplers.Sampler;
+import org.junit.jupiter.api.extension.AfterEachCallback;
+import org.junit.jupiter.api.extension.ExtensionContext;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -34,8 +47,6 @@ import java.util.Map;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
-import org.junit.jupiter.api.extension.AfterEachCallback;
-import org.junit.jupiter.api.extension.ExtensionContext;
 
 public class OpenTelemetrySdkExtension implements AfterEachCallback {
   public static Builder builder() {

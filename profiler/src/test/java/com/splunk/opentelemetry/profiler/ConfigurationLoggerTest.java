@@ -18,6 +18,7 @@ package com.splunk.opentelemetry.profiler;
 
 import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_CALL_STACK_INTERVAL;
 import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_ENABLE_PROFILER;
+import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_ENABLE_SNAPSHOT_PROFILER;
 import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_INCLUDE_INTERNAL_STACKS;
 import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_INGEST_URL;
 import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_KEEP_FILES;
@@ -36,6 +37,9 @@ import static org.mockito.Mockito.when;
 import io.github.netmikey.logunit.api.LogCapturer;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import java.time.Duration;
+import java.util.Collections;
+import java.util.Map;
+import io.opentelemetry.sdk.autoconfigure.spi.internal.DefaultConfigProperties;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
@@ -97,5 +101,28 @@ class ConfigurationLoggerTest {
     log.assertContains("          splunk.profiler.logs-endpoint : http://otel.example.com");
     log.assertContains("            otel.exporter.otlp.endpoint : http://otel.example.com");
     log.assertContains("         splunk.profiler.memory.enabled : true");
+  }
+
+  @Test
+  void logSnapshotProfilingValues() {
+    ConfigProperties config = DefaultConfigProperties.create(Map.of(
+        CONFIG_KEY_ENABLE_SNAPSHOT_PROFILER, "true"
+    ));
+
+    ConfigurationLogger configurationLogger = new ConfigurationLogger();
+    configurationLogger.log(config);
+
+    log.assertContains("Snapshot profiler configuration:");
+    log.assertContains("       splunk.snapshot.profiler.enabled : true");
+  }
+
+  @Test
+  void logSnapshotProfilingDefaultValues() {
+    ConfigProperties config = DefaultConfigProperties.create(Collections.emptyMap());
+
+    ConfigurationLogger configurationLogger = new ConfigurationLogger();
+    configurationLogger.log(config);
+
+    log.assertContains("       splunk.snapshot.profiler.enabled : false");
   }
 }

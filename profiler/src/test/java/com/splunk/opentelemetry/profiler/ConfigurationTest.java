@@ -96,4 +96,11 @@ class ConfigurationTest {
     String result = Configuration.getOtlpProtocol(DefaultConfigProperties.create(map));
     assertEquals("test2", result);
   }
+
+  @Test
+  void snapshotProfilingDisabledByDefault() {
+    Configuration configuration = new Configuration();
+    var properties = configuration.defaultProperties();
+    assertEquals("false", properties.get("splunk.snapshot.profiler.enabled"));
+  }
 }

@@ -18,6 +18,7 @@ package com.splunk.opentelemetry.profiler;
 
 import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_CALL_STACK_INTERVAL;
 import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_ENABLE_PROFILER;
+import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_ENABLE_SNAPSHOT_PROFILER;
 import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_INCLUDE_INTERNAL_STACKS;
 import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_INGEST_URL;
 import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_KEEP_FILES;
@@ -56,6 +57,9 @@ public class ConfigurationLogger {
         CONFIG_KEY_INCLUDE_INTERNAL_STACKS,
         (it) -> config.getBoolean(it, DEFAULT_INCLUDE_INTERNAL_STACKS));
     log(CONFIG_KEY_TRACING_STACKS_ONLY, (it) -> Configuration.getTracingStacksOnly(config));
+
+    logger.info("Snapshot profiler configuration:");
+    log(CONFIG_KEY_ENABLE_SNAPSHOT_PROFILER, (it) -> config.getBoolean(it, false));
     logger.info("-----------------------");
   }
 

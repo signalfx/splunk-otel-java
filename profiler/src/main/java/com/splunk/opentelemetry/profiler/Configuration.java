@@ -69,7 +69,8 @@ public class Configuration implements AutoConfigurationCustomizerProvider {
   public static final String CONFIG_KEY_TRACING_STACKS_ONLY = "splunk.profiler.tracing.stacks.only";
   private static final String CONFIG_KEY_STACK_DEPTH = "splunk.profiler.max.stack.depth";
 
-  public static final String CONFIG_KEY_ENABLE_SNAPSHOT_PROFILER = "splunk.snapshot.profiler.enabled";
+  public static final String CONFIG_KEY_ENABLE_SNAPSHOT_PROFILER =
+      "splunk.snapshot.profiler.enabled";
 
   @Override
   public void customize(AutoConfigurationCustomizer autoConfiguration) {

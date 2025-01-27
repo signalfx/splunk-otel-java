@@ -1,11 +1,17 @@
 /*
- * 2024 Copyright (C) AppDynamics, Inc., and its affiliates
- * All Rights Reserved
- */
-
-/*
- * Copyright The OpenTelemetry Authors
- * SPDX-License-Identifier: Apache-2.0
+ * Copyright Splunk Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.splunk.opentelemetry.profiler.snapshot;
@@ -26,9 +32,6 @@ import io.opentelemetry.sdk.resources.Resource;
 import io.opentelemetry.sdk.trace.SdkTracerProviderBuilder;
 import io.opentelemetry.sdk.trace.export.SpanExporter;
 import io.opentelemetry.sdk.trace.samplers.Sampler;
-import org.junit.jupiter.api.extension.AfterEachCallback;
-import org.junit.jupiter.api.extension.ExtensionContext;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -36,6 +39,8 @@ import java.util.Map;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import org.junit.jupiter.api.extension.AfterEachCallback;
+import org.junit.jupiter.api.extension.ExtensionContext;
 
 public class OpenTelemetrySdkExtension implements AfterEachCallback, OpenTelemetry {
   public static Builder builder() {
@@ -74,9 +79,9 @@ public class OpenTelemetrySdkExtension implements AfterEachCallback, OpenTelemet
   }
 
   /**
-   * An extremely simplified adaptation of the OpenTelemetry class AutoConfiguredOpenTelemetrySdkBuilder,
-   * designed explicitly to facilitate easier component-like testing of custom OpenTelemetry Java
-   * Agent extensions.
+   * An extremely simplified adaptation of the OpenTelemetry class
+   * AutoConfiguredOpenTelemetrySdkBuilder, designed explicitly to facilitate easier component-like
+   * testing of custom OpenTelemetry Java Agent extensions.
    */
   public static class Builder {
     private final SdkCustomizer customizer = new SdkCustomizer();
@@ -115,17 +120,20 @@ public class OpenTelemetrySdkExtension implements AfterEachCallback, OpenTelemet
   }
 
   private static class SdkCustomizer implements AutoConfigurationCustomizer {
-    private final List<Function<ConfigProperties, Map<String, String>>> propertyCustomizers = new ArrayList<>();
+    private final List<Function<ConfigProperties, Map<String, String>>> propertyCustomizers =
+        new ArrayList<>();
 
     @Override
     public AutoConfigurationCustomizer addTracerProviderCustomizer(
-        BiFunction<SdkTracerProviderBuilder, ConfigProperties, SdkTracerProviderBuilder> tracerProviderCustomizer) {
+        BiFunction<SdkTracerProviderBuilder, ConfigProperties, SdkTracerProviderBuilder>
+            tracerProviderCustomizer) {
       return this;
     }
 
     @Override
     public AutoConfigurationCustomizer addPropagatorCustomizer(
-        BiFunction<? super TextMapPropagator, ConfigProperties, ? extends TextMapPropagator> textMapPropagator) {
+        BiFunction<? super TextMapPropagator, ConfigProperties, ? extends TextMapPropagator>
+            textMapPropagator) {
       return this;
     }
 

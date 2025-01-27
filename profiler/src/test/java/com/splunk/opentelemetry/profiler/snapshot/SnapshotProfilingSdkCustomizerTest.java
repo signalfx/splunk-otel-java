@@ -1,3 +1,19 @@
+/*
+ * Copyright Splunk Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.splunk.opentelemetry.profiler.snapshot;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -9,13 +25,16 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
 class SnapshotProfilingSdkCustomizerTest {
-  private final ObservableActivationNotifier activationNotifier = new ObservableActivationNotifier();
-  private final SnapshotProfilingSdkCustomizer customizer = new SnapshotProfilingSdkCustomizer(activationNotifier);
+  private final ObservableActivationNotifier activationNotifier =
+      new ObservableActivationNotifier();
+  private final SnapshotProfilingSdkCustomizer customizer =
+      new SnapshotProfilingSdkCustomizer(activationNotifier);
 
   @Nested
   class TestSnapshotProfilingDisabledByDefault {
     @RegisterExtension
-    public final OpenTelemetrySdkExtension s = OpenTelemetrySdkExtension.builder().with(customizer).build();
+    public final OpenTelemetrySdkExtension s =
+        OpenTelemetrySdkExtension.builder().with(customizer).build();
 
     @Test
     void customizeOpenTelemetrySdk() {
@@ -26,10 +45,11 @@ class SnapshotProfilingSdkCustomizerTest {
   @Nested
   class TestEnableSnapshotProfiling {
     @RegisterExtension
-    public final OpenTelemetrySdkExtension s = OpenTelemetrySdkExtension.builder()
-        .with(customizer)
-        .withProperty("splunk.snapshot.profiler.enabled", "true")
-        .build();
+    public final OpenTelemetrySdkExtension s =
+        OpenTelemetrySdkExtension.builder()
+            .with(customizer)
+            .withProperty("splunk.snapshot.profiler.enabled", "true")
+            .build();
 
     @Test
     void customizeOpenTelemetrySdk() {
@@ -40,10 +60,11 @@ class SnapshotProfilingSdkCustomizerTest {
   @Nested
   class TestDisableSnapshotProfiling {
     @RegisterExtension
-    public final OpenTelemetrySdkExtension s = OpenTelemetrySdkExtension.builder()
-        .with(customizer)
-        .withProperty("splunk.snapshot.profiler.enabled", "false")
-        .build();
+    public final OpenTelemetrySdkExtension s =
+        OpenTelemetrySdkExtension.builder()
+            .with(customizer)
+            .withProperty("splunk.snapshot.profiler.enabled", "false")
+            .build();
 
     @Test
     void customizeOpenTelemetrySdk() {

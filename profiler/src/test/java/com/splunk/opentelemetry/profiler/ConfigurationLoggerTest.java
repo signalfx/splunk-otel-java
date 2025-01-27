@@ -36,10 +36,10 @@ import static org.mockito.Mockito.when;
 
 import io.github.netmikey.logunit.api.LogCapturer;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
+import io.opentelemetry.sdk.autoconfigure.spi.internal.DefaultConfigProperties;
 import java.time.Duration;
 import java.util.Collections;
 import java.util.Map;
-import io.opentelemetry.sdk.autoconfigure.spi.internal.DefaultConfigProperties;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
@@ -105,9 +105,8 @@ class ConfigurationLoggerTest {
 
   @Test
   void logSnapshotProfilingValues() {
-    ConfigProperties config = DefaultConfigProperties.create(Map.of(
-        CONFIG_KEY_ENABLE_SNAPSHOT_PROFILER, "true"
-    ));
+    ConfigProperties config =
+        DefaultConfigProperties.create(Map.of(CONFIG_KEY_ENABLE_SNAPSHOT_PROFILER, "true"));
 
     ConfigurationLogger configurationLogger = new ConfigurationLogger();
     configurationLogger.log(config);

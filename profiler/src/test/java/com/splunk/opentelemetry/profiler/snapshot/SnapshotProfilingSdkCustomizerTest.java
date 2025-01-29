@@ -19,7 +19,6 @@ package com.splunk.opentelemetry.profiler.snapshot;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.splunk.opentelemetry.profiler.snapshot.SnapshotProfilingSdkCustomizer.ActivationNotifier;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
@@ -72,11 +71,11 @@ class SnapshotProfilingSdkCustomizerTest {
     }
   }
 
-  private static class ObservableActivationNotifier implements ActivationNotifier {
+  private static class ObservableActivationNotifier implements Runnable {
     private boolean activated = false;
 
     @Override
-    public void activated() {
+    public void run() {
       this.activated = true;
     }
   }

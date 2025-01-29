@@ -31,14 +31,14 @@ public class SnapshotProfilingSdkCustomizer implements AutoConfigurationCustomiz
   private static final Logger LOGGER =
       Logger.getLogger(SnapshotProfilingSdkCustomizer.class.getName());
 
-  private final ActivationNotifier activationNotifier;
+  private final Runnable activationNotifier;
 
   public SnapshotProfilingSdkCustomizer() {
     this(() -> LOGGER.info("Snapshot profiling activated"));
   }
 
   @VisibleForTesting
-  SnapshotProfilingSdkCustomizer(ActivationNotifier activationNotifier) {
+  SnapshotProfilingSdkCustomizer(Runnable activationNotifier) {
     this.activationNotifier = activationNotifier;
   }
 
@@ -47,7 +47,7 @@ public class SnapshotProfilingSdkCustomizer implements AutoConfigurationCustomiz
     autoConfigurationCustomizer.addPropertiesCustomizer(
         config -> {
           if (snapshotProfilingEnabled(config)) {
-            activationNotifier.activated();
+            activationNotifier.run();
           }
           return emptyMap();
         });
@@ -55,9 +55,5 @@ public class SnapshotProfilingSdkCustomizer implements AutoConfigurationCustomiz
 
   private boolean snapshotProfilingEnabled(ConfigProperties config) {
     return config.getBoolean(CONFIG_KEY_ENABLE_SNAPSHOT_PROFILER, false);
-  }
-
-  interface ActivationNotifier {
-    void activated();
   }
 }

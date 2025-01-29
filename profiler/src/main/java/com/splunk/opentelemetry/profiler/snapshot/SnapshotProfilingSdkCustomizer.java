@@ -28,13 +28,13 @@ import java.util.logging.Logger;
 
 @AutoService(AutoConfigurationCustomizerProvider.class)
 public class SnapshotProfilingSdkCustomizer implements AutoConfigurationCustomizerProvider {
-  private static final Logger LOGGER =
+  private static final Logger logger =
       Logger.getLogger(SnapshotProfilingSdkCustomizer.class.getName());
 
   private final Runnable activationNotifier;
 
   public SnapshotProfilingSdkCustomizer() {
-    this(() -> LOGGER.info("Snapshot profiling activated"));
+    this(() -> logger.info("Snapshot profiling activated"));
   }
 
   @VisibleForTesting

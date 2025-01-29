@@ -16,11 +16,6 @@
 
 package com.splunk.opentelemetry.profiler.snapshot;
 
-import io.opentelemetry.api.OpenTelemetry;
-import io.opentelemetry.api.logs.LoggerProvider;
-import io.opentelemetry.api.metrics.MeterProvider;
-import io.opentelemetry.api.trace.TracerProvider;
-import io.opentelemetry.context.propagation.ContextPropagators;
 import io.opentelemetry.context.propagation.TextMapPropagator;
 import io.opentelemetry.sdk.OpenTelemetrySdk;
 import io.opentelemetry.sdk.OpenTelemetrySdkBuilder;
@@ -42,7 +37,7 @@ import java.util.function.Supplier;
 import org.junit.jupiter.api.extension.AfterEachCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
 
-public class OpenTelemetrySdkExtension implements AfterEachCallback, OpenTelemetry {
+public class OpenTelemetrySdkExtension implements AfterEachCallback {
   public static Builder builder() {
     return new Builder();
   }
@@ -51,26 +46,6 @@ public class OpenTelemetrySdkExtension implements AfterEachCallback, OpenTelemet
 
   private OpenTelemetrySdkExtension(OpenTelemetrySdk sdk) {
     this.sdk = sdk;
-  }
-
-  @Override
-  public TracerProvider getTracerProvider() {
-    return sdk.getTracerProvider();
-  }
-
-  @Override
-  public MeterProvider getMeterProvider() {
-    return sdk.getMeterProvider();
-  }
-
-  @Override
-  public LoggerProvider getLogsBridge() {
-    return sdk.getLogsBridge();
-  }
-
-  @Override
-  public ContextPropagators getPropagators() {
-    return sdk.getPropagators();
   }
 
   @Override

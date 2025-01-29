@@ -57,9 +57,6 @@ public class ConfigurationLogger {
         CONFIG_KEY_INCLUDE_INTERNAL_STACKS,
         (it) -> config.getBoolean(it, DEFAULT_INCLUDE_INTERNAL_STACKS));
     log(CONFIG_KEY_TRACING_STACKS_ONLY, (it) -> Configuration.getTracingStacksOnly(config));
-
-    logger.info("Snapshot profiler configuration:");
-    log(CONFIG_KEY_ENABLE_SNAPSHOT_PROFILER, (it) -> config.getBoolean(it, false));
     logger.info("-----------------------");
   }
 

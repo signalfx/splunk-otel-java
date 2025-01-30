@@ -32,6 +32,7 @@
 
 package com.splunk.opentelemetry.profiler.snapshot;
 
+import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.context.propagation.TextMapPropagator;
 import io.opentelemetry.sdk.OpenTelemetrySdk;
 import io.opentelemetry.sdk.OpenTelemetrySdkBuilder;
@@ -52,8 +53,10 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import org.junit.jupiter.api.extension.AfterEachCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
+import org.junit.jupiter.api.extension.ParameterContext;
+import org.junit.jupiter.api.extension.ParameterResolver;
 
-public class OpenTelemetrySdkExtension implements AfterEachCallback {
+public class OpenTelemetrySdkExtension implements AfterEachCallback, ParameterResolver {
   public static Builder builder() {
     return new Builder();
   }
@@ -67,6 +70,18 @@ public class OpenTelemetrySdkExtension implements AfterEachCallback {
   @Override
   public void afterEach(ExtensionContext extensionContext) {
     sdk.close();
+  }
+
+  @Override
+  public boolean supportsParameter(
+      ParameterContext parameterContext, ExtensionContext extensionContext) {
+    return parameterContext.getParameter().getType() == Tracer.class;
+  }
+
+  @Override
+  public Object resolveParameter(
+      ParameterContext parameterContext, ExtensionContext extensionContext) {
+    return sdk.getTracer(extensionContext.getRequiredTestClass().getName(), "test'");
   }
 
   /**

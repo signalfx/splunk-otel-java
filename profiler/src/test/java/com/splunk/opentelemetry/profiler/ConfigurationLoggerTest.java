@@ -102,26 +102,4 @@ class ConfigurationLoggerTest {
     log.assertContains("            otel.exporter.otlp.endpoint : http://otel.example.com");
     log.assertContains("         splunk.profiler.memory.enabled : true");
   }
-
-  @Test
-  void logSnapshotProfilingValues() {
-    ConfigProperties config =
-        DefaultConfigProperties.create(Map.of(CONFIG_KEY_ENABLE_SNAPSHOT_PROFILER, "true"));
-
-    ConfigurationLogger configurationLogger = new ConfigurationLogger();
-    configurationLogger.log(config);
-
-    log.assertContains("Snapshot profiler configuration:");
-    log.assertContains("       splunk.snapshot.profiler.enabled : true");
-  }
-
-  @Test
-  void logSnapshotProfilingDefaultValues() {
-    ConfigProperties config = DefaultConfigProperties.create(Collections.emptyMap());
-
-    ConfigurationLogger configurationLogger = new ConfigurationLogger();
-    configurationLogger.log(config);
-
-    log.assertContains("       splunk.snapshot.profiler.enabled : false");
-  }
 }

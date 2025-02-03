@@ -69,6 +69,9 @@ public class Configuration implements AutoConfigurationCustomizerProvider {
   public static final String CONFIG_KEY_TRACING_STACKS_ONLY = "splunk.profiler.tracing.stacks.only";
   private static final String CONFIG_KEY_STACK_DEPTH = "splunk.profiler.max.stack.depth";
 
+  public static final String CONFIG_KEY_ENABLE_SNAPSHOT_PROFILER =
+      "splunk.snapshot.profiler.enabled";
+
   @Override
   public void customize(AutoConfigurationCustomizer autoConfiguration) {
     autoConfiguration.addPropertiesSupplier(this::defaultProperties);
@@ -83,6 +86,8 @@ public class Configuration implements AutoConfigurationCustomizerProvider {
     config.put(CONFIG_KEY_MEMORY_ENABLED, String.valueOf(DEFAULT_MEMORY_ENABLED));
     config.put(CONFIG_KEY_MEMORY_EVENT_RATE, DEFAULT_MEMORY_EVENT_RATE);
     config.put(CONFIG_KEY_CALL_STACK_INTERVAL, DEFAULT_CALL_STACK_INTERVAL.toMillis() + "ms");
+
+    config.put(CONFIG_KEY_ENABLE_SNAPSHOT_PROFILER, "false");
     return config;
   }
 

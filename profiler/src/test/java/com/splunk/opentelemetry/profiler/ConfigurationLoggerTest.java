@@ -18,7 +18,6 @@ package com.splunk.opentelemetry.profiler;
 
 import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_CALL_STACK_INTERVAL;
 import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_ENABLE_PROFILER;
-import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_ENABLE_SNAPSHOT_PROFILER;
 import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_INCLUDE_INTERNAL_STACKS;
 import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_INGEST_URL;
 import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_KEEP_FILES;
@@ -36,10 +35,7 @@ import static org.mockito.Mockito.when;
 
 import io.github.netmikey.logunit.api.LogCapturer;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
-import io.opentelemetry.sdk.autoconfigure.spi.internal.DefaultConfigProperties;
 import java.time.Duration;
-import java.util.Collections;
-import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 

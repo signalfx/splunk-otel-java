@@ -34,7 +34,8 @@ class SpanSamplingTest {
   @Nested
   class SpanSamplingDisabled {
     @RegisterExtension
-    public final OpenTelemetrySdkExtension s = OpenTelemetrySdkExtension.builder()
+    public final OpenTelemetrySdkExtension s =
+        OpenTelemetrySdkExtension.builder()
             .withProperty("splunk.snapshot.profiler.enabled", "true")
             .withSampler(Sampler.alwaysOff())
             .with(customizer)
@@ -51,7 +52,8 @@ class SpanSamplingTest {
   @Nested
   class SpanSamplingEnabled {
     @RegisterExtension
-    public final OpenTelemetrySdkExtension s = OpenTelemetrySdkExtension.builder()
+    public final OpenTelemetrySdkExtension s =
+        OpenTelemetrySdkExtension.builder()
             .withProperty("splunk.snapshot.profiler.enabled", "true")
             .withSampler(Sampler.alwaysOn())
             .with(customizer)

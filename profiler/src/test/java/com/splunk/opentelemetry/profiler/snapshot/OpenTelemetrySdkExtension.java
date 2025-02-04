@@ -1,8 +1,4 @@
 /*
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> b3ab96ac (Applying spotless code formatting.)
  * Copyright Splunk Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,18 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
-<<<<<<< HEAD
-=======
- * 2024 Copyright (C) AppDynamics, Inc., and its affiliates
- * All Rights Reserved
- */
-
-/*
- * Copyright The OpenTelemetry Authors
- * SPDX-License-Identifier: Apache-2.0
->>>>>>> eed05daa (Add OpenTelemetry SDK customizer scaffolding for the snapshot profiler.)
-=======
->>>>>>> b3ab96ac (Applying spotless code formatting.)
  */
 
 package com.splunk.opentelemetry.profiler.snapshot;
@@ -74,14 +58,14 @@ public class OpenTelemetrySdkExtension implements AfterEachCallback, ParameterRe
   }
 
   @Override
-  public boolean supportsParameter(ParameterContext parameterContext,
-      ExtensionContext extensionContext) {
+  public boolean supportsParameter(
+      ParameterContext parameterContext, ExtensionContext extensionContext) {
     return parameterContext.getParameter().getType() == Tracer.class;
   }
 
   @Override
-  public Object resolveParameter(ParameterContext parameterContext,
-      ExtensionContext extensionContext) {
+  public Object resolveParameter(
+      ParameterContext parameterContext, ExtensionContext extensionContext) {
     return sdk.getTracer(extensionContext.getRequiredTestClass().getName(), "test'");
   }
 
@@ -118,9 +102,7 @@ public class OpenTelemetrySdkExtension implements AfterEachCallback, ParameterRe
       ConfigProperties configProperties = customizeProperties();
       SdkTracerProvider tracerProvider = customizeTracerProvider(configProperties);
 
-      OpenTelemetrySdk sdk = OpenTelemetrySdk.builder()
-          .setTracerProvider(tracerProvider)
-          .build();
+      OpenTelemetrySdk sdk = OpenTelemetrySdk.builder().setTracerProvider(tracerProvider).build();
       return new OpenTelemetrySdkExtension(sdk);
     }
 
@@ -142,19 +124,24 @@ public class OpenTelemetrySdkExtension implements AfterEachCallback, ParameterRe
   }
 
   private static class SdkCustomizer implements AutoConfigurationCustomizer {
-    private final List<Function<ConfigProperties, Map<String, String>>> propertyCustomizers = new ArrayList<>();
-    private final List<BiFunction<SdkTracerProviderBuilder, ConfigProperties, SdkTracerProviderBuilder>> tracerProviderCustomizers = new ArrayList<>();
+    private final List<Function<ConfigProperties, Map<String, String>>> propertyCustomizers =
+        new ArrayList<>();
+    private final List<
+            BiFunction<SdkTracerProviderBuilder, ConfigProperties, SdkTracerProviderBuilder>>
+        tracerProviderCustomizers = new ArrayList<>();
 
     @Override
     public AutoConfigurationCustomizer addTracerProviderCustomizer(
-        BiFunction<SdkTracerProviderBuilder, ConfigProperties, SdkTracerProviderBuilder> tracerProviderCustomizer) {
+        BiFunction<SdkTracerProviderBuilder, ConfigProperties, SdkTracerProviderBuilder>
+            tracerProviderCustomizer) {
       tracerProviderCustomizers.add(Objects.requireNonNull(tracerProviderCustomizer));
       return this;
     }
 
     @Override
     public AutoConfigurationCustomizer addPropagatorCustomizer(
-        BiFunction<? super TextMapPropagator, ConfigProperties, ? extends TextMapPropagator> textMapPropagator) {
+        BiFunction<? super TextMapPropagator, ConfigProperties, ? extends TextMapPropagator>
+            textMapPropagator) {
       return this;
     }
 

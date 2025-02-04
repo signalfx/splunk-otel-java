@@ -45,8 +45,8 @@ public class SnapshotProfilingSdkCustomizer implements AutoConfigurationCustomiz
         snapshotProfilingSpanProcessor(registry));
   }
 
-  private BiFunction<SdkTracerProviderBuilder, ConfigProperties, SdkTracerProviderBuilder> snapshotProfilingSpanProcessor(
-      TraceRegistry registry) {
+  private BiFunction<SdkTracerProviderBuilder, ConfigProperties, SdkTracerProviderBuilder>
+      snapshotProfilingSpanProcessor(TraceRegistry registry) {
     return (builder, properties) -> {
       if (snapshotProfilingEnabled(properties)) {
         return builder.addSpanProcessor(new SnapshotProfilingSpanProcessor(registry));

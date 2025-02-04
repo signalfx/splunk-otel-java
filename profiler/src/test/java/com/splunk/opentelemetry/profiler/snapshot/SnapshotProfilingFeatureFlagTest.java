@@ -24,7 +24,6 @@ import io.opentelemetry.api.trace.Tracer;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.EnumSource;
 
 class SnapshotProfilingFeatureFlagTest {
   private final TraceRegistry registry = new TraceRegistry();

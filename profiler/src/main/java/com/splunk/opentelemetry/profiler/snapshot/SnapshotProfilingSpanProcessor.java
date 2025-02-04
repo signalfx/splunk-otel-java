@@ -24,8 +24,6 @@ public class SnapshotProfilingSpanProcessor implements SpanProcessor {
     this.registry = registry;
   }
 
-  // context is always the parent context at this point, it doesn't change until after `onStart`
-  // is called, so we must manually decorate the incoming context with new span details
   @Override
   public void onStart(Context context, ReadWriteSpan span) {
     if (isRoot(span) && isEntry(span)) {

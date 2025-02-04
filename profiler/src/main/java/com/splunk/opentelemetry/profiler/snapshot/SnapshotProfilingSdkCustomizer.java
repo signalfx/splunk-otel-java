@@ -25,13 +25,9 @@ import io.opentelemetry.sdk.autoconfigure.spi.AutoConfigurationCustomizerProvide
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import io.opentelemetry.sdk.trace.SdkTracerProviderBuilder;
 import java.util.function.BiFunction;
-import java.util.logging.Logger;
 
 @AutoService(AutoConfigurationCustomizerProvider.class)
 public class SnapshotProfilingSdkCustomizer implements AutoConfigurationCustomizerProvider {
-  private static final Logger logger =
-      Logger.getLogger(SnapshotProfilingSdkCustomizer.class.getName());
-
   private final TraceRegistry registry;
 
   public SnapshotProfilingSdkCustomizer() {

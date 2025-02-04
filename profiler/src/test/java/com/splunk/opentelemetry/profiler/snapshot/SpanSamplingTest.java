@@ -28,7 +28,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class SpanSamplingTest {
-  private final TraceRegistry registry = new DefaultTraceRegistry();
+  private final TraceRegistry registry = new TraceRegistry();
   private final SnapshotProfilingSdkCustomizer customizer =
       new SnapshotProfilingSdkCustomizer(registry);
 

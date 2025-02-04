@@ -27,7 +27,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 
 class SnapshotProfilingFeatureFlagTest {
-  private final DefaultTraceRegistry registry = new DefaultTraceRegistry();
+  private final TraceRegistry registry = new TraceRegistry();
   private final SnapshotProfilingSdkCustomizer customizer =
       new SnapshotProfilingSdkCustomizer(registry);
 

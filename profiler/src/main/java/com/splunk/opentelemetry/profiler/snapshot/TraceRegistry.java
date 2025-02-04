@@ -1,21 +1,21 @@
-/*
- * 2024 Copyright (C) AppDynamics, Inc., and its affiliates
- * All Rights Reserved
- */
-
-/*
- * Copyright The OpenTelemetry Authors
- * SPDX-License-Identifier: Apache-2.0
- */
-
 package com.splunk.opentelemetry.profiler.snapshot;
 
 import io.opentelemetry.api.trace.SpanContext;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
-interface TraceRegistry {
-  void register(SpanContext spanContext);
+class TraceRegistry {
+  private final Map<String, SpanContext> traceIds = new ConcurrentHashMap<>();
 
-  boolean isRegistered(SpanContext spanContext);
+  public void register(SpanContext spanContext) {
+    traceIds.put(spanContext.getTraceId(), spanContext);
+  }
 
-  void unregister(SpanContext spanContext);
+  public boolean isRegistered(SpanContext spanContext) {
+    return traceIds.containsKey(spanContext.getTraceId());
+  }
+
+  public void unregister(SpanContext spanContext) {
+    traceIds.remove(spanContext.getTraceId());
+  }
 }

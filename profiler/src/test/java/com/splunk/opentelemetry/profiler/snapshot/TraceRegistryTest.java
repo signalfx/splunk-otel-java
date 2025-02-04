@@ -11,10 +11,10 @@ import io.opentelemetry.api.trace.TraceState;
 import java.util.Random;
 import org.junit.jupiter.api.Test;
 
-class DefaultTraceRegistryTest {
+class TraceRegistryTest {
   private static final Random RANDOM = new Random();
 
-  private final DefaultTraceRegistry registry = new DefaultTraceRegistry();
+  private final TraceRegistry registry = new TraceRegistry();
 
   @Test
   void registerTrace() {

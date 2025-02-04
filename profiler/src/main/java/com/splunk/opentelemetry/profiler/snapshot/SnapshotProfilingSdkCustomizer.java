@@ -35,7 +35,7 @@ public class SnapshotProfilingSdkCustomizer implements AutoConfigurationCustomiz
   private final TraceRegistry registry;
 
   public SnapshotProfilingSdkCustomizer() {
-    this(new DefaultTraceRegistry());
+    this(new TraceRegistry());
   }
 
   @VisibleForTesting

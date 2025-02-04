@@ -10,16 +10,14 @@
 
 package com.splunk.opentelemetry.profiler.snapshot;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import io.opentelemetry.api.trace.SpanKind;
 import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.context.Context;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.EnumSource;
-import org.junit.jupiter.params.provider.EnumSource.Mode;
-
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class TraceRegistrationTest {
   private final TraceRegistry registry = new TraceRegistry();
@@ -32,30 +30,21 @@ class TraceRegistrationTest {
           .build();
 
   @ParameterizedTest
-  @EnumSource(
-      value = SpanKind.class,
-      mode = Mode.INCLUDE,
-      names = {"SERVER", "CONSUMER"})
+  @SpanKinds.Entry
   void registerTraceForProfilingWhenRootSpanStarts(SpanKind kind, Tracer tracer) {
     var root = tracer.spanBuilder("root").setSpanKind(kind).startSpan();
     assertTrue(registry.isRegistered(root.getSpanContext()));
   }
 
   @ParameterizedTest
-  @EnumSource(
-      value = SpanKind.class,
-      mode = Mode.EXCLUDE,
-      names = {"SERVER", "CONSUMER"})
+  @SpanKinds.NonEntry
   void onlyRegisterTraceForProfilingWhenRootSpanIsEntrySpan(SpanKind kind, Tracer tracer) {
     var root = tracer.spanBuilder("root").setSpanKind(kind).startSpan();
     assertFalse(registry.isRegistered(root.getSpanContext()));
   }
 
   @ParameterizedTest
-  @EnumSource(
-      value = SpanKind.class,
-      mode = Mode.INCLUDE,
-      names = {"SERVER", "CONSUMER"})
+  @SpanKinds.Entry
   void unregisterTraceForProfilingWhenEntrySpanEnds(SpanKind kind, Tracer tracer) {
     var root = tracer.spanBuilder("root").setSpanKind(kind).startSpan();
     root.end();
@@ -63,10 +52,7 @@ class TraceRegistrationTest {
   }
 
   @ParameterizedTest
-  @EnumSource(
-      value = SpanKind.class,
-      mode = Mode.INCLUDE,
-      names = {"SERVER", "CONSUMER"})
+  @SpanKinds.Entry
   void doNotRegisterTraceForProfilingWhenNonRootSpanDetected(SpanKind kind, Tracer tracer) {
     var root = tracer.spanBuilder("root").setSpanKind(kind).startSpan();
     root.end();
@@ -75,10 +61,7 @@ class TraceRegistrationTest {
   }
 
   @ParameterizedTest
-  @EnumSource(
-      value = SpanKind.class,
-      mode = Mode.EXCLUDE,
-      names = {"SERVER", "CONSUMER"})
+  @SpanKinds.NonEntry
   void onlyUnregisterTraceForProfilingWhenEntrySpanEnds(SpanKind kind, Tracer tracer) {
     var root = tracer.spanBuilder("root").setSpanKind(SpanKind.SERVER).startSpan();
     var child =

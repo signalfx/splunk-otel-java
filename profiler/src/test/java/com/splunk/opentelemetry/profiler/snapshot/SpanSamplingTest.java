@@ -16,16 +16,15 @@
 
 package com.splunk.opentelemetry.profiler.snapshot;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import io.opentelemetry.api.trace.SpanKind;
 import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.sdk.trace.samplers.Sampler;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.EnumSource;
-
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class SpanSamplingTest {
   private final TraceRegistry registry = new TraceRegistry();
@@ -42,10 +41,7 @@ class SpanSamplingTest {
             .build();
 
     @ParameterizedTest
-    @EnumSource(
-            value = SpanKind.class,
-            mode = EnumSource.Mode.INCLUDE,
-            names = {"SERVER", "CONSUMER"})
+    @SpanKinds.Entry
     void doNotRegisterTraceForProfilingWhenSpanSamplingIsOff(SpanKind kind, Tracer tracer) {
       var root = tracer.spanBuilder("root").setSpanKind(kind).startSpan();
       assertFalse(registry.isRegistered(root.getSpanContext()));
@@ -62,10 +58,7 @@ class SpanSamplingTest {
             .build();
 
     @ParameterizedTest
-    @EnumSource(
-            value = SpanKind.class,
-            mode = EnumSource.Mode.INCLUDE,
-            names = {"SERVER", "CONSUMER"})
+    @SpanKinds.Entry
     void registerTraceForProfilingWhenSpanSamplingIsOn(SpanKind kind, Tracer tracer) {
       var root = tracer.spanBuilder("root").setSpanKind(kind).startSpan();
       assertTrue(registry.isRegistered(root.getSpanContext()));

@@ -38,10 +38,7 @@ class SnapshotProfilingFeatureFlagTest {
         OpenTelemetrySdkExtension.builder().with(customizer).build();
 
     @ParameterizedTest
-    @EnumSource(
-            value = SpanKind.class,
-            mode = EnumSource.Mode.INCLUDE,
-            names = {"SERVER", "CONSUMER"})
+    @SpanKinds.Entry
     void snapshotProfilingIsDisabledByDefault(SpanKind kind, Tracer tracer) {
       var root = tracer.spanBuilder("root").setSpanKind(kind).startSpan();
       assertFalse(registry.isRegistered(root.getSpanContext()));
@@ -58,10 +55,7 @@ class SnapshotProfilingFeatureFlagTest {
             .build();
 
     @ParameterizedTest
-    @EnumSource(
-        value = SpanKind.class,
-        mode = EnumSource.Mode.INCLUDE,
-        names = {"SERVER", "CONSUMER"})
+    @SpanKinds.Entry
     void snapshotProfilingIsExplicitlyEnabled(SpanKind kind, Tracer tracer) {
       var root = tracer.spanBuilder("root").setSpanKind(kind).startSpan();
       assertTrue(registry.isRegistered(root.getSpanContext()));
@@ -78,10 +72,7 @@ class SnapshotProfilingFeatureFlagTest {
             .build();
 
     @ParameterizedTest
-    @EnumSource(
-        value = SpanKind.class,
-        mode = EnumSource.Mode.INCLUDE,
-        names = {"SERVER", "CONSUMER"})
+    @SpanKinds.Entry
     void snapshotProfilingIsExplicitlyEnabled(SpanKind kind, Tracer tracer) {
       var root = tracer.spanBuilder("root").setSpanKind(kind).startSpan();
       assertFalse(registry.isRegistered(root.getSpanContext()));

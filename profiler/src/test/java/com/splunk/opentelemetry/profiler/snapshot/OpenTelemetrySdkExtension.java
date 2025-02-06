@@ -66,7 +66,7 @@ public class OpenTelemetrySdkExtension implements AfterEachCallback, ParameterRe
   @Override
   public Object resolveParameter(
       ParameterContext parameterContext, ExtensionContext extensionContext) {
-    return sdk.getTracer(extensionContext.getRequiredTestClass().getName(), "test'");
+    return sdk.getTracer(extensionContext.getRequiredTestClass().getName(), "test");
   }
 
   /**

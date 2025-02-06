@@ -31,6 +31,7 @@ include(
     "instrumentation:jvm-metrics",
     "instrumentation:khttp",
     "instrumentation:liberty",
+    "instrumentation:nocode",
     "instrumentation:servlet-3-testing",
     "instrumentation:tomcat",
     "instrumentation:tomee",

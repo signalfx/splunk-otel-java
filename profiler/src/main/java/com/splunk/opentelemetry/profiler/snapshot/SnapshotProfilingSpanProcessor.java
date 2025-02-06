@@ -38,7 +38,7 @@ public class SnapshotProfilingSpanProcessor implements SpanProcessor {
   }
 
   private boolean isRoot(ReadableSpan span) {
-    return SpanContext.getInvalid().equals(span.getParentSpanContext());
+    return !span.getParentSpanContext().isValid();
   }
 
   @Override

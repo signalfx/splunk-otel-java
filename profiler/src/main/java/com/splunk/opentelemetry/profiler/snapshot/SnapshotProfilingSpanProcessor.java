@@ -16,7 +16,6 @@
 
 package com.splunk.opentelemetry.profiler.snapshot;
 
-import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.api.trace.SpanKind;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.sdk.trace.ReadWriteSpan;

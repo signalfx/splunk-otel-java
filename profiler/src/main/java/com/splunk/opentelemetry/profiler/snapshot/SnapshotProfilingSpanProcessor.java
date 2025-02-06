@@ -46,6 +46,13 @@ public class SnapshotProfilingSpanProcessor implements SpanProcessor {
     return true;
   }
 
+  /**
+   * Relying solely on the OpenTelemetry instrumentation to correctly notify this SpanProcessor when
+   * a span has ended opens up the possibility of a memory leak in the event a bug is encountered
+   * within the instrumentation layer that prevents a span from being ended.
+   *
+   * <p>Will follow up with a more robust solution to this potential problem.
+   */
   @Override
   public void onEnd(ReadableSpan span) {
     if (isEntry(span)) {

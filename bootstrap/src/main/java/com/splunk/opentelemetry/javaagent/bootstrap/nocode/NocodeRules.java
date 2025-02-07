@@ -26,20 +26,20 @@ public class NocodeRules {
     }
   }
 
-  // FIXME this is awkward atomicity due to unique nature of initialization and access patterns.
-  // revisit if this placement actually works
+  // Unfortunately the particular sequence of who needs access to this and who can create (based on
+  // having the yaml parser library loaded) is awkward.  Would prefer this to be a simple
+  // static final immutable computed at startup...
   private static final AtomicReference<List<Rule>> GlobalRules = new AtomicReference<>(Collections.EMPTY_LIST);
-  private static final AtomicReference<Map<String,Map<String,Rule>>> c2m2r = new AtomicReference<>(Collections.emptyMap());
+  // Using className.methodName as the key
+  private static final AtomicReference<Map<String,Rule>> Name2Rule = new AtomicReference<>(Collections.emptyMap());
 
   public static void setGlobalRules(List<Rule> rules) {
     GlobalRules.set(Collections.unmodifiableList(new ArrayList<>(rules)));
-    Map<String, Map<String, Rule>> lookups = new HashMap<>();
+    Map<String, Rule> n2r = new HashMap<>();
     for(Rule r : rules) {
-      Map<String, Rule> method2rule = lookups.computeIfAbsent(r.className, k -> new HashMap<>());
-      method2rule.put(r.methodName, r);
+      n2r.put(r.className + "." + r.methodName, r);
     }
-    // FIXME awkward structure, particularly since subfields aren't easily marked unmodifiable
-    c2m2r.set(Collections.unmodifiableMap(lookups));
+    Name2Rule.set(Collections.unmodifiableMap(n2r));
   }
 
   public static List<Rule> getGlobalRules() {
@@ -47,13 +47,8 @@ public class NocodeRules {
   }
 
   public static Rule findRuleByClassAndMethod(String className, String methodName) {
-    Map<String,Map<String,Rule>> lookups = c2m2r.get();
-    Map<String, Rule> m2r = lookups.get(className);
-    if (m2r == null) {
-      System.out.println("JBLEY NO M2R");
-      return null;
-    }
-    return m2r.get(methodName);
+    Map<String,Rule> n2r = Name2Rule.get();
+    return n2r == null ? null : n2r.get(className + "." + methodName);
   }
 
 

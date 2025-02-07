@@ -10,6 +10,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+// FIXME need tests for the instrumentation too!
 public class JSPSTest  {
   private static final Map<String, String> thiz = new HashMap<>();
   private static final Set<String> param0 = new HashSet<>();
@@ -28,6 +29,7 @@ public class JSPSTest  {
         {"this.get(\"key\")",                   "value"},
         {"this.get(\"key\").substring(1)",      "alue"},
         {"param0.isEmpty()",                    "false"},
+        {"param0.contains(\"present\")",        "true"},
     };
     for(String[] test : tests) {
       assertEquals(test[1], JSPS.evaluate(test[0], thiz, new Object[]{param0}), test[0]);

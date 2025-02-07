@@ -1,6 +1,7 @@
 package com.splunk.opentelemetry.instrumentation.nocode;
 
 import com.splunk.opentelemetry.javaagent.nocode.NocodeRules;
+import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -14,8 +15,9 @@ import java.util.Map;
 // FIXME rename and refactor if new non-static structure works
 public class YamlParser {
 
+  public static final String NOCODE_YMLFILE_ENV_KEY = "SPLUNK_OTEL_INSTRUMENTATION_NOCODE_YML_FILE";
 
-private final List<NocodeRules.Rule> InstrumentationRules;
+  private final List<NocodeRules.Rule> InstrumentationRules;
 
   public YamlParser() {
     InstrumentationRules = Collections.unmodifiableList(new ArrayList<>(load()));
@@ -25,10 +27,9 @@ private final List<NocodeRules.Rule> InstrumentationRules;
     return InstrumentationRules;
   }
 
-  // FIXME hardcoded file name, obviously needs to be an env variable
-  // FIXME surely there is a utility for this somewhere in the agent's scope
-  private static String readYamlFile() throws Exception {
-    File f = new File("/Users/jbley/dev/java/nocode/nocode.yml");
+  // FIXME surely there is a utility for this somewhere in the agent's scope (or just use Reader in snakeyaml)
+  private static String readYamlFile(String yamlFileName) throws Exception {
+    File f = new File(yamlFileName);
     BufferedReader br = new BufferedReader(new FileReader(f));
     String line;
     StringBuffer buf = new StringBuffer();
@@ -52,7 +53,12 @@ private final List<NocodeRules.Rule> InstrumentationRules;
   }
 
   private static List<NocodeRules.Rule> loadUnsafe() throws Exception {
-    String yamlString = readYamlFile();
+    String yamlFileName = System.getenv(NOCODE_YMLFILE_ENV_KEY);
+    if (yamlFileName == null || yamlFileName.trim().isEmpty()) {
+      return Collections.emptyList();
+    }
+    String yamlString = readYamlFile(yamlFileName.trim());
+
 
     // FIXME why can't I figure out how to reference the snakeyaml that's already inside the agent jar?
     // This nonsense is here to do a reflective load of the yaml parser that's already there

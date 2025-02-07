@@ -21,7 +21,6 @@ public class NocodeModule extends InstrumentationModule {
   @Override
   public List<TypeInstrumentation> typeInstrumentations() {
     ArrayList<TypeInstrumentation> answer = new ArrayList<>();
-    // FIXME is doing this parsing in two places necessary for classloader stuff or can I just use the singleton?
     for(NocodeRules.Rule rule : NocodeRules.getGlobalRules()) {
       answer.add(new NocodeInstrumentation(rule));
     }

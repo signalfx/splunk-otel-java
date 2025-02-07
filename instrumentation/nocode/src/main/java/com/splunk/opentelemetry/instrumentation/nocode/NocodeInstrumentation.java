@@ -65,7 +65,6 @@ public class NocodeInstrumentation implements TypeInstrumentation {
       Map<String, String> attributes = Collections.EMPTY_MAP;
       NocodeRules.Rule rule = NocodeRules.findRuleByClassAndMethod(declaringClass.getName(), methodName);
       if (rule != null) {
-        System.out.println("JBLEY ADVICE RULE LOOKUP FOUND "+rule);
         attributes = rule.getAttributes();
       }
 

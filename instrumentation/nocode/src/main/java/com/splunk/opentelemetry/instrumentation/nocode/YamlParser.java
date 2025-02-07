@@ -53,9 +53,6 @@ private final List<NocodeRules.Rule> InstrumentationRules;
 
   private static List<NocodeRules.Rule> loadUnsafe() throws Exception {
     String yamlString = readYamlFile();
-    System.out.println("----- yaml ------");
-    System.out.println(yamlString);
-    System.out.println("----- end ------");
 
     // FIXME why can't I figure out how to reference the snakeyaml that's already inside the agent jar?
     // This nonsense is here to do a reflective load of the yaml parser that's already there

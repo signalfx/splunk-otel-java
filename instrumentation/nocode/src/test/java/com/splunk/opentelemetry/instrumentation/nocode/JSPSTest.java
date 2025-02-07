@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 
 import org.junit.jupiter.api.Test;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -56,6 +57,7 @@ public class JSPSTest  {
         "this.get(12.2)",
         "this.get(this)",
         "this.get(\"NoSuchKey\")", // evals completely but returns null
+        "param1.toString()", // no such param
     };
     for(String invalid : invalids) {
       String answer = JSPS.evaluate(invalid, thiz, new Object[]{param0});
@@ -167,5 +169,12 @@ public class JSPSTest  {
 
     }
   }
+
+  public void testManyParams() {
+    Object[] params = new Object[13];
+    Arrays.fill(params, new Object());
+    assertEquals("java.lang.Object", JSPS.evaluate("param12.getClass().getName()", new Object(), params));
+  }
+
 
 }

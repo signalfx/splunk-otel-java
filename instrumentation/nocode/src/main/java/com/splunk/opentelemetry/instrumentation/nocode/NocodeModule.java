@@ -12,8 +12,6 @@ import java.util.List;
 @AutoService(InstrumentationModule.class)
 public class NocodeModule extends InstrumentationModule {
 
-  // FIXME style
-
   public NocodeModule() {
     super("nocode");
     YamlParser yp = new YamlParser();
@@ -26,7 +24,6 @@ public class NocodeModule extends InstrumentationModule {
     // FIXME is doing this parsing in two places necessary for classloader stuff or can I just use the singleton?
     for(NocodeRules.Rule rule : NocodeRules.getGlobalRules()) {
       answer.add(new NocodeInstrumentation(rule));
-      System.out.println("Added instrumentation for rule "+ rule);;
     }
     return answer;
   }

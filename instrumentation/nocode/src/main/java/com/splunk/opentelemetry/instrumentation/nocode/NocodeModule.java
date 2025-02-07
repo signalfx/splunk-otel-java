@@ -31,7 +31,10 @@ public class NocodeModule extends InstrumentationModule {
   public List<String> getAdditionalHelperClassNames() {
     return Arrays.asList(
         "com.splunk.opentelemetry.instrumentation.nocode.JSPS",
-        "com.splunk.opentelemetry.instrumentation.nocode.NocodeSingletons"
+        "com.splunk.opentelemetry.instrumentation.nocode.NocodeSingletons",
+        "com.splunk.opentelemetry.instrumentation.nocode.NocodeAttributesExtractor",
+        "com.splunk.opentelemetry.instrumentation.nocode.NocodeMethodInvocation",
+        "com.splunk.opentelemetry.instrumentation.nocode.NocodeSpanNameExtractor"
     );
   }
 

@@ -75,13 +75,14 @@ public class YamlParser {
         LinkedHashMap lhm = (LinkedHashMap) sub;
         String className = lhm.get("class").toString();
         String methodName = lhm.get("method").toString();
+        String spanName = lhm.get("spanName") == null ? null : lhm.get("spanName").toString();
         List attrs = (List) lhm.get("attributes");
         Map<String, String> ruleAttributes = new HashMap<>();
         for(Object attr : attrs) {
           LinkedHashMap attrMap = (LinkedHashMap) attr;
           ruleAttributes.put(attrMap.get("key").toString(), attrMap.get("value").toString());
         }
-        answer.add(new NocodeRules.Rule(className, methodName, ruleAttributes));
+        answer.add(new NocodeRules.Rule(className, methodName, spanName, ruleAttributes));
       }
     }
     return answer;

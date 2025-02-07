@@ -46,43 +46,34 @@ public class NocodeInstrumentation implements TypeInstrumentation {
     public static void onEnter(
         @Advice.Origin("#t") Class<?> declaringClass,
         @Advice.Origin("#m") String methodName,
-        @Advice.Local("otelMethod") ClassAndMethod classAndMethod,
+        @Advice.Local("otelInvocation") NocodeMethodInvocation otelInvocation,
         @Advice.Local("otelContext") Context context,
         @Advice.Local("otelScope") Scope scope,
         @Advice.This Object thiz,
         @Advice.AllArguments Object[] methodParams
     ) {
       System.out.println("JBLEY INJECTED START");
+      NocodeRules.Rule rule = NocodeRules.findRuleByClassAndMethod(declaringClass.getName(), methodName);
+      otelInvocation = new NocodeMethodInvocation(
+          rule,
+          ClassAndMethod.create(declaringClass, methodName),
+          thiz,
+          methodParams);
       Context parentContext = currentContext();
-      classAndMethod = ClassAndMethod.create(declaringClass, methodName);
+
       // FIXME probably need to rework logic here to just use otel span
       // creation api rather than this abstraction around it
-      if (!instrumentor().shouldStart(parentContext, classAndMethod)) {
+      if (!instrumentor().shouldStart(parentContext, otelInvocation)) {
         return;
       }
-      context = instrumentor().start(parentContext, classAndMethod);
+      context = instrumentor().start(parentContext, otelInvocation);
       scope = context.makeCurrent();
-      Map<String, String> attributes = Collections.EMPTY_MAP;
-      NocodeRules.Rule rule = NocodeRules.findRuleByClassAndMethod(declaringClass.getName(), methodName);
-      if (rule != null) {
-        attributes = rule.getAttributes();
-      }
-
-      for(String key : attributes.keySet()) {
-        String jsps = attributes.get(key);
-        String value = JSPS.evaluate(jsps, thiz, methodParams);
-        System.out.println("JBLEY ATTRIBUTE "+key+" = "+value);
-        if (value != null) {
-          // FIXME java8 bridge nonsense
-          Span.current().setAttribute(key, value);
-        }
-      }
     }
 
     @Advice.OnMethodExit(suppress = Throwable.class)
     public static void stopSpan(
         @Advice.Origin Method method,
-        @Advice.Local("otelMethod") ClassAndMethod classAndMethod,
+        @Advice.Local("otelInvocation") NocodeMethodInvocation otelInvocation,
         @Advice.Local("otelContext") Context context,
         @Advice.Local("otelScope") Scope scope)
     {
@@ -93,7 +84,7 @@ public class NocodeInstrumentation implements TypeInstrumentation {
       }
       scope.close();
       // FIXME what is this nonsense copied from AsyncOperationSupport or something like that?
-      instrumentor().end(context, classAndMethod, null, null);
+      instrumentor().end(context, otelInvocation, null, null);
 
     }
   }

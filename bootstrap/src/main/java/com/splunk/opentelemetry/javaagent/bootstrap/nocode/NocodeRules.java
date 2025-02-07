@@ -12,17 +12,16 @@ public class NocodeRules {
   public static class Rule {
     public final String className;
     public final String methodName;
+    public final String spanName; // may be null - use default of "class.method"
     public final Map<String, String> attributes; // key name to jsps
-    public Rule(String className, String methodName, Map<String,String> attributes) {
+    public Rule(String className, String methodName, String spanName, Map<String,String> attributes) {
       this.className = className;
       this.methodName = methodName;
+      this.spanName = spanName;
       this.attributes = Collections.unmodifiableMap(new HashMap<>(attributes));
     }
-    public Map<String, String> getAttributes() {
-      return attributes;
-    }
     public String toString() {
-      return className+"."+methodName+"=attrs:"+attributes;
+      return className+"."+methodName+":spanName="+spanName+",attrs="+attributes;
     }
   }
 

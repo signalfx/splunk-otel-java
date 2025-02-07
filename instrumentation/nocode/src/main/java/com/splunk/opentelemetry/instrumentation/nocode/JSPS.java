@@ -2,6 +2,7 @@ package com.splunk.opentelemetry.instrumentation.nocode;
 
 import java.lang.reflect.Method;
 
+// JSPS stands for Java-like String-Producing Statement.  FIXME describe in more detail and pick a better nane
 public class JSPS {
 
   public static String evaluate(String jsps, Object thiz, Object[] params) {

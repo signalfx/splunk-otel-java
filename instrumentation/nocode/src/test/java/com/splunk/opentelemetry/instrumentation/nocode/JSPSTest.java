@@ -46,6 +46,8 @@ public class JSPSTest  {
         //  "this  .",  // FIXME currently passes
         // "this  .  ", // FIXME currently passes!
         "this.noSuchMethod()",
+        "toString()",
+        //"this.toString()toString()", // FIXME would like this to not work
         "param1.toString()", // out of bounds
         "this.getOrDefault(\"key\", \"multiparamnotsupported\")",
         "this.get(\"noclosequote)",

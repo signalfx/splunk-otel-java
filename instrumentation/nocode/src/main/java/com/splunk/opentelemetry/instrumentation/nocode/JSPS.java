@@ -52,10 +52,15 @@ public class JSPS {
               boolean.class, Boolean.class, Object.class);
           curObject = m.invoke(curObject, Boolean.parseBoolean(paramString));
         } else if (paramString.matches("[0-9]+")) {
-          Method m = findMethod(curObject, method,
-              int.class, Integer.class, long.class, Long.class, Object.class);
-          int passed = Integer.parseInt(paramString);
-          curObject = m.invoke(curObject, passed);
+          try {
+            Method m = findMethod(curObject, method, int.class, Integer.class, Object.class);
+            int passed = Integer.parseInt(paramString);
+            curObject = m.invoke(curObject, passed);
+          } catch (NoSuchMethodException tryLongInstead) {
+            Method m = findMethod(curObject, method, long.class, Long.class, Object.class);
+            long passed = Long.parseLong(paramString);
+            curObject = m.invoke(curObject, passed);
+          }
         } else {
           throw new UnsupportedOperationException("Can't parse \""+paramString+"\" as literal parameter");
         }

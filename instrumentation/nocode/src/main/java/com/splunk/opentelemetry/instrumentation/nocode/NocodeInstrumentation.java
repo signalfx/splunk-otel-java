@@ -30,7 +30,8 @@ public class NocodeInstrumentation implements TypeInstrumentation {
 
   @Override
   public ElementMatcher<TypeDescription> typeMatcher() {
-    return hasSuperType(named(rule.className));
+    // exact match for now, if updated think about class name to use in naming the span/attributes
+    return named(rule.className);
   }
 
   @Override
@@ -62,7 +63,7 @@ public class NocodeInstrumentation implements TypeInstrumentation {
       context = instrumentor().start(parentContext, classAndMethod);
       scope = context.makeCurrent();
       Map<String, String> attributes = Collections.EMPTY_MAP;
-      NocodeRules.Rule rule = NocodeRules.findRuleByClassAndMethod(declaringClass.getName(), methodName); // FIXME declaring class?
+      NocodeRules.Rule rule = NocodeRules.findRuleByClassAndMethod(declaringClass.getName(), methodName);
       if (rule != null) {
         System.out.println("JBLEY ADVICE RULE LOOKUP FOUND "+rule);
         attributes = rule.getAttributes();

@@ -18,7 +18,6 @@ public class NocodeModule extends InstrumentationModule {
     super("nocode");
     YamlParser yp = new YamlParser();
     NocodeRules.setGlobalRules(yp.getInstrumentationRules());
-//    GlobalYaml.set(new YamlParser());
   }
 
   @Override

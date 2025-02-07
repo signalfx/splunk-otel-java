@@ -35,8 +35,6 @@ public class JSPSTest  {
   }
 
   // FIXME support escaping quotes in string?
-  // FIXME test all supported types in type chains
-
   @Test
   public void testInvalidJspsReturnNull() {
     String[] invalids = new String[] {
@@ -92,6 +90,27 @@ public class JSPSTest  {
       return param.toString();
     }
   }
+  public static class TakeIntegerPrimitive {
+    public String take(int param) {
+      return Integer.toString(param);
+    }
+  }
+  public static class TakeInteger {
+    public String take(Integer param) {
+      return param.toString();
+    }
+  }
+  public static class TakeLongPrimitize {
+    public String take(long param) {
+      return Long.toString(param);
+    }
+  }
+  public static class TakeLong {
+    public String take(Long param) {
+      return param.toString();
+    }
+  }
+
 
   @Test
   public void testBooleanLiteralParamTypes() {
@@ -109,6 +128,20 @@ public class JSPSTest  {
     TakeObject O = new TakeObject();
     assertEquals("a", JSPS.evaluate("this.take(\"a\")", S, new Object[0]));
     assertEquals("a", JSPS.evaluate("this.take(\"a\")", O, new Object[0]));
+  }
+
+  @Test
+  public void testIntegerLiteralParamTypes() {
+    TakeIntegerPrimitive i = new TakeIntegerPrimitive();
+    TakeInteger I = new TakeInteger();
+    TakeLongPrimitize l = new TakeLongPrimitize();
+    TakeLong L = new TakeLong();
+    TakeObject O = new TakeObject();
+    assertEquals("13", JSPS.evaluate("this.take(13)", i, new Object[0]));
+    assertEquals("13", JSPS.evaluate("this.take(13)", I, new Object[0]));
+    assertEquals("13", JSPS.evaluate("this.take(13)", l, new Object[0]));
+    assertEquals("13", JSPS.evaluate("this.take(13)", L, new Object[0]));
+    assertEquals("13", JSPS.evaluate("this.take(13)", O, new Object[0]));
   }
 
   @Test

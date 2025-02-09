@@ -14,6 +14,8 @@ import java.util.Map;
 
 public class YamlParser {
 
+  // FIXME support span kind
+  // FIXME support method override selection - e.g., with classfile method signature or something
   public static final String NOCODE_YMLFILE_ENV_KEY = "SPLUNK_OTEL_INSTRUMENTATION_NOCODE_YML_FILE";
 
   private final List<NocodeRules.Rule> InstrumentationRules;

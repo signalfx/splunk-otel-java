@@ -5,7 +5,6 @@ import io.opentelemetry.instrumentation.api.instrumenter.Instrumenter;
 import io.opentelemetry.instrumentation.api.instrumenter.SpanKindExtractor;
 
 public class NocodeSingletons {
-  // FIXME so much copy and paste from Methods instrumentation
   private static final Instrumenter<NocodeMethodInvocation, Void> INSTRUMENTER;
 
   static {

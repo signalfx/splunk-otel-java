@@ -61,8 +61,6 @@ public class NocodeInstrumentation implements TypeInstrumentation {
           methodParams);
       Context parentContext = currentContext();
 
-      // FIXME probably need to rework logic here to just use otel span
-      // creation api rather than this abstraction around it
       if (!instrumentor().shouldStart(parentContext, otelInvocation)) {
         return;
       }
@@ -70,22 +68,25 @@ public class NocodeInstrumentation implements TypeInstrumentation {
       scope = context.makeCurrent();
     }
 
-    @Advice.OnMethodExit(suppress = Throwable.class)
+    public NocodeAdvice() {
+      super();
+    }
+
+    @Advice.OnMethodExit(onThrowable = Throwable.class, suppress = Throwable.class)
     public static void stopSpan(
         @Advice.Origin Method method,
         @Advice.Local("otelInvocation") NocodeMethodInvocation otelInvocation,
         @Advice.Local("otelContext") Context context,
-        @Advice.Local("otelScope") Scope scope)
+        @Advice.Local("otelScope") Scope scope,
+        @Advice.Thrown Throwable error)
     {
-      // FIXME @Advice.Thrown and Return
       System.out.println("JBLEY INJECTED END");
       if (scope == null) {
         return;
       }
       scope.close();
-      // FIXME what is this nonsense copied from AsyncOperationSupport or something like that?
-      instrumentor().end(context, otelInvocation, null, null);
-
+      // I wonder why the orignal methods instrumentation had support for modifying return value?
+      instrumentor().end(context, otelInvocation, null, error);
     }
   }
 }

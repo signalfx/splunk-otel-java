@@ -1,16 +1,17 @@
 package com.splunk.opentelemetry.instrumentation.nocode;
 
 import java.lang.reflect.Method;
+import java.util.logging.Logger;
 
 // JSPS stands for Java-like String-Producing Statement.  FIXME describe in more detail and pick a better nane
 public class JSPS {
+  private final static Logger logger = Logger.getLogger(JSPS.class.getName());
 
   public static String evaluate(String jsps, Object thiz, Object[] params) {
     try {
       return unsafeEvaluate(jsps, thiz, params);
     } catch (Throwable t) {
-      // FIXME better logging
-      System.out.println("can't eval jsps: "+t);
+      logger.warning("Can't evaluate {"+jsps+"}: "+t);
       return null;
     }
   }
@@ -72,7 +73,6 @@ public class JSPS {
     return curObject == null ? null : curObject.toString();
   }
 
-  // FIXME must be a better way to look through a series of type options
   private static Method findMethod(Object curObject, String methodName, Class<?>... paramTypesToTryInOrder) throws NoSuchMethodException{
     Class c = curObject.getClass();
     for(Class<?> paramType : paramTypesToTryInOrder) {

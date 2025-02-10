@@ -9,8 +9,10 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
 
 public class YamlParser {
+  private static final Logger logger = Logger.getLogger(YamlParser.class.getName());
   // FIXME support method override selection - e.g., with classfile method signature or something
   public static final String NOCODE_YMLFILE_ENV_KEY = "SPLUNK_OTEL_INSTRUMENTATION_NOCODE_YML_FILE";
 
@@ -28,8 +30,7 @@ public class YamlParser {
     try {
       return loadUnsafe();
     } catch (Exception e) {
-      // FIXME error handling
-      System.out.println("JBLEY can't load yaml: "+e);
+      logger.severe("Can't load configured yaml: "+e);
       return Collections.emptyList();
     }
   }

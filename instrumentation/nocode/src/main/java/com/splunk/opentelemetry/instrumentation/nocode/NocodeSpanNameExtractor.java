@@ -16,8 +16,6 @@ public class NocodeSpanNameExtractor implements SpanNameExtractor<NocodeMethodIn
   public String extract(NocodeMethodInvocation mi) {
     NocodeRules.Rule rule = mi.getRule();
     if (rule != null && rule.spanName != null) {
-      // FIXME might want to allow string literal as a "statement" so that
-      // the name could be hardcoded to something?
       String name = JSPS.evaluate(rule.spanName, mi.getThiz(), mi.getParameters());
       if (name != null) {
         return name;

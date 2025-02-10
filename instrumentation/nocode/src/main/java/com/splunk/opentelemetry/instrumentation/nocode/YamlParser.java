@@ -13,8 +13,6 @@ import java.util.List;
 import java.util.Map;
 
 public class YamlParser {
-
-  // FIXME support span kind
   // FIXME support method override selection - e.g., with classfile method signature or something
   public static final String NOCODE_YMLFILE_ENV_KEY = "SPLUNK_OTEL_INSTRUMENTATION_NOCODE_YML_FILE";
 
@@ -63,13 +61,14 @@ public class YamlParser {
         String className = lhm.get("class").toString();
         String methodName = lhm.get("method").toString();
         String spanName = lhm.get("spanName") == null ? null : lhm.get("spanName").toString();
+        String spanKind = lhm.get("spanKind") == null ? null : lhm.get("spanKind").toString();
         List attrs = (List) lhm.get("attributes");
         Map<String, String> ruleAttributes = new HashMap<>();
         for(Object attr : attrs) {
           LinkedHashMap attrMap = (LinkedHashMap) attr;
           ruleAttributes.put(attrMap.get("key").toString(), attrMap.get("value").toString());
         }
-        answer.add(new NocodeRules.Rule(className, methodName, spanName, ruleAttributes));
+        answer.add(new NocodeRules.Rule(className, methodName, spanName, spanKind, ruleAttributes));
       }
     }
     yamlReader.close();

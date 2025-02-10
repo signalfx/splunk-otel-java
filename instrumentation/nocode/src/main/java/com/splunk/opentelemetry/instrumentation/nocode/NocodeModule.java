@@ -34,6 +34,7 @@ public class NocodeModule extends InstrumentationModule {
         "com.splunk.opentelemetry.instrumentation.nocode.NocodeSingletons",
         "com.splunk.opentelemetry.instrumentation.nocode.NocodeAttributesExtractor",
         "com.splunk.opentelemetry.instrumentation.nocode.NocodeMethodInvocation",
+        "com.splunk.opentelemetry.instrumentation.nocode.NocodeSpanKindExtractor",
         "com.splunk.opentelemetry.instrumentation.nocode.NocodeSpanNameExtractor"
     );
   }

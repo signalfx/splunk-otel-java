@@ -13,11 +13,13 @@ public class NocodeRules {
     public final String className;
     public final String methodName;
     public final String spanName; // may be null - use default of "class.method"
+    public final String spanKind; // matches the SpanKind enum, null means default to INTERNAL
     public final Map<String, String> attributes; // key name to jsps
-    public Rule(String className, String methodName, String spanName, Map<String,String> attributes) {
+    public Rule(String className, String methodName, String spanName, String spanKind, Map<String,String> attributes) {
       this.className = className;
       this.methodName = methodName;
       this.spanName = spanName;
+      this.spanKind = spanKind;
       this.attributes = Collections.unmodifiableMap(new HashMap<>(attributes));
     }
     public String toString() {

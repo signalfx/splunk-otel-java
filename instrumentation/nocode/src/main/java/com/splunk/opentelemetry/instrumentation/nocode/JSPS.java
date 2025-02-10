@@ -3,7 +3,18 @@ package com.splunk.opentelemetry.instrumentation.nocode;
 import java.lang.reflect.Method;
 import java.util.logging.Logger;
 
-// JSPS stands for Java-like String-Producing Statement.  FIXME describe in more detail and pick a better nane
+// JSPS stands for Java-like String-Producing Statement.  A JSPS is
+// essentially a single call in Java (as though it ends with a semicolon), with
+// some limitations.  Its purpose is to allow pieces of nocode instrumentation
+// (attributes, span name) to be derived from the instrumentated context.
+// As some illustrative examples:
+   // this.getHeaders().get("X-Custom-Header").substring(5)
+   // param0.getDetails().getCustomerAccount().getAccountType()
+// The limitations are:
+   // no access to variables other than 'this' and 'paramN' (N indexed at 0)
+   // no control flow (if), no local variables, basically nothing other than a single chain of method calls
+   // Methods calls are limited to either 0 or 1 parameters currently
+   // Parameters must be literals and only integral (int/long), string, and boolean literals are currently supported
 public class JSPS {
   private final static Logger logger = Logger.getLogger(JSPS.class.getName());
 
@@ -17,7 +28,6 @@ public class JSPS {
   }
 
 
-  // FIXME improve performance - reduce allocations, etc.
   // FIXME Might be nice to support escaping quotes in string literals...
   private static String unsafeEvaluate(String jsps, Object thiz, Object[] params) throws Exception {
     jsps = jsps.trim();

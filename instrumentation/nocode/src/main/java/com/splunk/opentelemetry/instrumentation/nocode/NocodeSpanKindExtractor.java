@@ -9,6 +9,10 @@ public class NocodeSpanKindExtractor implements SpanKindExtractor<NocodeMethodIn
     if (mi.getRule() == null || mi.getRule().spanKind == null) {
       return SpanKind.INTERNAL;
     }
-    return SpanKind.valueOf(mi.getRule().spanKind.toUpperCase());
+    try {
+      return SpanKind.valueOf(mi.getRule().spanKind.toUpperCase());
+    } catch (IllegalArgumentException noMatchingValue) {
+      return SpanKind.INTERNAL;
+    }
   }
 }

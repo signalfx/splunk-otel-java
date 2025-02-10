@@ -17,6 +17,7 @@ public class JSPS {
 
 
   // FIXME improve performance - reduce allocations, etc.
+  // FIXME Might be nice to support escaping quotes in string literals...
   private static String unsafeEvaluate(String jsps, Object thiz, Object[] params) throws Exception {
     jsps = jsps.trim();
     int nextDot = jsps.indexOf('.');
@@ -30,6 +31,7 @@ public class JSPS {
     }
     int curIndex = nextDot;
     while(curIndex < jsps.length()) {
+      curIndex = jsps.indexOf('.', curIndex);
       while(jsps.charAt(curIndex) == '.' || Character.isWhitespace(jsps.charAt(curIndex))) {
         curIndex++;
       }

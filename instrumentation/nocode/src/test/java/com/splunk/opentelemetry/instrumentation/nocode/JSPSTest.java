@@ -24,7 +24,7 @@ public class JSPSTest  {
   @Test
   public void testBasicBehavior() {
     String[][] tests = new String[][] {
-        // FIXME support bare "this"
+        // Might be nice to support a bare "param0" or "this" but as a workaround can always use "this.toString()"
         {"this.toString()",                     "{key=value}"},
         {"this.toString().length()",            "11"},
         {"this.get(\"key\")",                   "value"},
@@ -37,18 +37,19 @@ public class JSPSTest  {
     }
   }
 
-  // FIXME support escaping quotes in string?
   @Test
   public void testInvalidJspsReturnNull() {
     String[] invalids = new String[] {
         "nosuchvar",
         "nosuchvar.toString()",
-        //  "this  .",  // FIXME currently passes
-        // "this  .  ", // FIXME currently passes!
+        "this  .",
+        "this  .  ",
         "this.noSuchMethod()",
         "toString()",
-        //"this.toString()toString()", // FIXME would like this to not work
+        "this.toString()extrastuffatend",
+        "this.toString()toString()",
         "param1.toString()", // out of bounds
+        "param999.toString()",
         "this.getOrDefault(\"key\", \"multiparamnotsupported\")",
         "this.get(\"noclosequote)",
         "this.get(\"nocloseparan\"",

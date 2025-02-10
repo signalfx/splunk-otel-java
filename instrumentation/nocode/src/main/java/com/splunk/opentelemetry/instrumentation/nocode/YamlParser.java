@@ -1,6 +1,8 @@
 package com.splunk.opentelemetry.instrumentation.nocode;
 
 import com.splunk.opentelemetry.javaagent.bootstrap.nocode.NocodeRules;
+import org.snakeyaml.engine.v2.api.Load;
+import org.snakeyaml.engine.v2.api.LoadSettings;
 import java.io.FileReader;
 import java.io.Reader;
 import java.util.ArrayList;
@@ -42,21 +44,13 @@ public class YamlParser {
     }
     Reader yamlReader = new FileReader(yamlFileName.trim());
 
-
-    // FIXME why can't I figure out how to reference the snakeyaml that's already inside the agent jar?
-    // This nonsense is here to do a reflective load of the yaml parser that's already there
-    // and parse the config file
-    Class loadSettingsC = Class.forName("org.snakeyaml.engine.v2.api.LoadSettings");
-    Class loadC = Class.forName("org.snakeyaml.engine.v2.api.Load");
-    Object lsb = loadSettingsC.getMethod("builder").invoke(null);
-    Object loadSettings = lsb.getClass().getMethod("build").invoke(lsb);
-    Object load = loadC.getConstructor(loadSettingsC).newInstance(loadSettings);
-    Iterable<Object> parsedYaml = (Iterable<Object>) load.getClass().getMethod("loadAllFromReader", Reader.class).invoke(load, yamlReader);
+    Load load = new Load(LoadSettings.builder().build());
+    Iterable<Object> parsedYaml = load.loadAllFromReader(yamlReader);
     ArrayList<NocodeRules.Rule> answer = new ArrayList<>();
     for(Object yamlBit : parsedYaml) {
       List l = (List) yamlBit;
-      for(Object sub : l) {
-        LinkedHashMap lhm = (LinkedHashMap) sub;
+      for(Object yamlRule : l) {
+        LinkedHashMap lhm = (LinkedHashMap) yamlRule;
         String className = lhm.get("class").toString();
         String methodName = lhm.get("method").toString();
         String spanName = lhm.get("spanName") == null ? null : lhm.get("spanName").toString();

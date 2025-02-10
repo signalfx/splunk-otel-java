@@ -4,6 +4,7 @@ import com.splunk.opentelemetry.javaagent.bootstrap.nocode.NocodeRules;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.io.Reader;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -27,21 +28,6 @@ public class YamlParser {
     return InstrumentationRules;
   }
 
-  // FIXME surely there is a utility for this somewhere in the agent's scope (or just use Reader in snakeyaml)
-  private static String readYamlFile(String yamlFileName) throws Exception {
-    File f = new File(yamlFileName);
-    BufferedReader br = new BufferedReader(new FileReader(f));
-    String line;
-    StringBuffer buf = new StringBuffer();
-    while((line = br.readLine()) != null) {
-      buf.append(line);
-      buf.append(System.lineSeparator());
-    }
-    br.close();
-    return buf.toString();
-  }
-
-
   private static List<NocodeRules.Rule> load() {
     try {
       return loadUnsafe();
@@ -57,7 +43,7 @@ public class YamlParser {
     if (yamlFileName == null || yamlFileName.trim().isEmpty()) {
       return Collections.emptyList();
     }
-    String yamlString = readYamlFile(yamlFileName.trim());
+    Reader yamlReader = new FileReader(yamlFileName.trim());
 
 
     // FIXME why can't I figure out how to reference the snakeyaml that's already inside the agent jar?
@@ -68,7 +54,7 @@ public class YamlParser {
     Object lsb = loadSettingsC.getMethod("builder").invoke(null);
     Object loadSettings = lsb.getClass().getMethod("build").invoke(lsb);
     Object load = loadC.getConstructor(loadSettingsC).newInstance(loadSettings);
-    Iterable<Object> parsedYaml = (Iterable<Object>) load.getClass().getMethod("loadAllFromString", String.class).invoke(load, yamlString);
+    Iterable<Object> parsedYaml = (Iterable<Object>) load.getClass().getMethod("loadAllFromReader", Reader.class).invoke(load, yamlReader);
     ArrayList<NocodeRules.Rule> answer = new ArrayList<>();
     for(Object yamlBit : parsedYaml) {
       List l = (List) yamlBit;
@@ -86,6 +72,7 @@ public class YamlParser {
         answer.add(new NocodeRules.Rule(className, methodName, spanName, ruleAttributes));
       }
     }
+    yamlReader.close();
     return answer;
   }
 

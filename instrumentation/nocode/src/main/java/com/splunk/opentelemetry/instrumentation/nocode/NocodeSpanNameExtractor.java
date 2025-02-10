@@ -1,6 +1,6 @@
 package com.splunk.opentelemetry.instrumentation.nocode;
 
-import com.splunk.opentelemetry.javaagent.nocode.NocodeRules;
+import com.splunk.opentelemetry.javaagent.bootstrap.nocode.NocodeRules;
 import io.opentelemetry.instrumentation.api.incubator.semconv.code.CodeSpanNameExtractor;
 import io.opentelemetry.instrumentation.api.incubator.semconv.util.ClassAndMethod;
 import io.opentelemetry.instrumentation.api.instrumenter.SpanNameExtractor;

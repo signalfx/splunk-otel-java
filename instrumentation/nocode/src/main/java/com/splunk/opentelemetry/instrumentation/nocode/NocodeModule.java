@@ -2,7 +2,7 @@
 package com.splunk.opentelemetry.instrumentation.nocode;
 
 import com.google.auto.service.AutoService;
-import com.splunk.opentelemetry.javaagent.nocode.NocodeRules;
+import com.splunk.opentelemetry.javaagent.bootstrap.nocode.NocodeRules;
 import io.opentelemetry.javaagent.extension.instrumentation.InstrumentationModule;
 import io.opentelemetry.javaagent.extension.instrumentation.TypeInstrumentation;
 import java.util.ArrayList;

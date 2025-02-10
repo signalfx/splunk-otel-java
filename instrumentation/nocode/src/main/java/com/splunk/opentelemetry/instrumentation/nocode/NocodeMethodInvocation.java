@@ -1,6 +1,6 @@
 package com.splunk.opentelemetry.instrumentation.nocode;
 
-import com.splunk.opentelemetry.javaagent.nocode.NocodeRules;
+import com.splunk.opentelemetry.javaagent.bootstrap.nocode.NocodeRules;
 import io.opentelemetry.instrumentation.api.incubator.semconv.util.ClassAndMethod;
 
 public class NocodeMethodInvocation {

@@ -1,7 +1,6 @@
 package com.splunk.opentelemetry.instrumentation.nocode;
 
-import com.splunk.opentelemetry.javaagent.nocode.NocodeRules;
-import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
+import com.splunk.opentelemetry.javaagent.bootstrap.nocode.NocodeRules;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;

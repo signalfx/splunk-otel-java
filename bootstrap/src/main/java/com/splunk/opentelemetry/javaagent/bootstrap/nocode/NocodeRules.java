@@ -1,4 +1,4 @@
-package com.splunk.opentelemetry.javaagent.nocode;
+package com.splunk.opentelemetry.javaagent.bootstrap.nocode;
 
 import java.util.ArrayList;
 import java.util.Collections;

@@ -29,10 +29,10 @@ public class JSPS {
       curObject = params[varIndex];
     }
     int curIndex = nextDot;
-    while(curIndex < jsps.length() && (jsps.charAt(curIndex) == '.' || Character.isWhitespace(jsps.charAt(curIndex)))) {
-      curIndex++;
-    }
     while(curIndex < jsps.length()) {
+      while(jsps.charAt(curIndex) == '.' || Character.isWhitespace(jsps.charAt(curIndex))) {
+        curIndex++;
+      }
       int openParen = jsps.indexOf('(', curIndex);
       String method = jsps.substring(curIndex, openParen).trim();
       int closeParen = jsps.indexOf(')', openParen);
@@ -40,8 +40,7 @@ public class JSPS {
       if (paramString.isEmpty()) {
         // FIXME how does javaagent open the class?  getting exceptions gere
         // e.g., with hashmap.entrySet().size() on the entryset accessor
-        Object nextObject = curObject.getClass().getMethod(method).invoke(curObject);
-        curObject = nextObject;
+        curObject = curObject.getClass().getMethod(method).invoke(curObject);
       } else {
         if (paramString.startsWith("\"") && paramString.endsWith("\"")) {
           String passed = paramString.substring(1, paramString.length()-1);
@@ -67,9 +66,6 @@ public class JSPS {
         }
       }
       curIndex = closeParen + 1;
-      while(curIndex < jsps.length() && (jsps.charAt(curIndex) == '.' || Character.isWhitespace(jsps.charAt(curIndex)))) {
-        curIndex++;
-      }
     }
     return curObject == null ? null : curObject.toString();
   }

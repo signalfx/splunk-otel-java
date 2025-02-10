@@ -9,7 +9,6 @@ import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.Map;
 
-// FIXME clean up printouts throughout
 public class NocodeAttributesExtractor implements AttributesExtractor<NocodeMethodInvocation, Void> {
   private final AttributesExtractor<ClassAndMethod, Void> codeExtractor;
 
@@ -27,7 +26,6 @@ public class NocodeAttributesExtractor implements AttributesExtractor<NocodeMeth
     for(String key : attributes.keySet()) {
       String jsps = attributes.get(key);
       String value = JSPS.evaluate(jsps, mi.getThiz(), mi.getParameters());
-      System.out.println("JBLEY ATTRIBUTE "+key+" = "+value);
       if (value != null) {
         attributesBuilder.put(key, value);
       }

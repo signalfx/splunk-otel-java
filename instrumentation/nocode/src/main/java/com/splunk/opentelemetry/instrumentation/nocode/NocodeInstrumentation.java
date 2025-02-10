@@ -48,7 +48,6 @@ public class NocodeInstrumentation implements TypeInstrumentation {
         @Advice.This Object thiz,
         @Advice.AllArguments Object[] methodParams
     ) {
-      System.out.println("JBLEY INJECTED START");
       NocodeRules.Rule rule = NocodeRules.findRuleByClassAndMethod(declaringClass.getName(), methodName);
       otelInvocation = new NocodeMethodInvocation(
           rule,
@@ -76,12 +75,11 @@ public class NocodeInstrumentation implements TypeInstrumentation {
         @Advice.Local("otelScope") Scope scope,
         @Advice.Thrown Throwable error)
     {
-      System.out.println("JBLEY INJECTED END");
       if (scope == null) {
         return;
       }
       scope.close();
-      // I wonder why the orignal methods instrumentation had support for modifying return value?
+      // I wonder why the original methods instrumentation had support for modifying the return value?
       instrumentor().end(context, otelInvocation, null, error);
     }
   }

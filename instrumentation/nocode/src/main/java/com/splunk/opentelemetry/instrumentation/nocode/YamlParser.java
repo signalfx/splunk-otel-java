@@ -1,8 +1,6 @@
 package com.splunk.opentelemetry.instrumentation.nocode;
 
 import com.splunk.opentelemetry.javaagent.bootstrap.nocode.NocodeRules;
-import java.io.BufferedReader;
-import java.io.File;
 import java.io.FileReader;
 import java.io.Reader;
 import java.util.ArrayList;

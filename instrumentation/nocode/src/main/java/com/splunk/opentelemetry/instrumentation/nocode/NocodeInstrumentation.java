@@ -15,6 +15,7 @@ import java.lang.reflect.Method;
 import static io.opentelemetry.javaagent.bootstrap.Java8BytecodeBridge.currentContext;
 import static com.splunk.opentelemetry.instrumentation.nocode.NocodeSingletons.instrumentor;
 
+import static net.bytebuddy.matcher.ElementMatchers.hasSuperType;
 import static net.bytebuddy.matcher.ElementMatchers.named;
 
 public class NocodeInstrumentation implements TypeInstrumentation {
@@ -26,8 +27,7 @@ public class NocodeInstrumentation implements TypeInstrumentation {
 
   @Override
   public ElementMatcher<TypeDescription> typeMatcher() {
-    // exact match for now, if updated think about class name to use in naming the span/attributes
-    return named(rule.className);
+    return hasSuperType(named(rule.className));
   }
 
   @Override

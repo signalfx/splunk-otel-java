@@ -1,0 +1,14 @@
+- class: com.splunk.opentelemetry.instrumentation.nocode.SampleClass
+  method: doSomething
+  spanName: this.getName()
+  attributes:
+    - key: "details"
+      value: this.getDetails()
+
+- class: com.splunk.opentelemetry.instrumentation.nocode.SampleClass
+  method: throwException
+  spanKind: SERVER
+  attributes:
+    - key: "five"
+      value: "param0.toString()"
+

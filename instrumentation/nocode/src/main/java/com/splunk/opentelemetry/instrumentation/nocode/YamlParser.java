@@ -1,8 +1,6 @@
 package com.splunk.opentelemetry.instrumentation.nocode;
 
 import com.splunk.opentelemetry.javaagent.bootstrap.nocode.NocodeRules;
-import org.snakeyaml.engine.v2.api.Load;
-import org.snakeyaml.engine.v2.api.LoadSettings;
 import java.io.FileReader;
 import java.io.Reader;
 import java.util.ArrayList;
@@ -12,6 +10,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
+import org.snakeyaml.engine.v2.api.Load;
+import org.snakeyaml.engine.v2.api.LoadSettings;
 
 public class YamlParser {
   private static final Logger logger = Logger.getLogger(YamlParser.class.getName());

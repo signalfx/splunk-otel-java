@@ -2,7 +2,6 @@ package com.splunk.opentelemetry.instrumentation.nocode;
 
 import io.opentelemetry.api.GlobalOpenTelemetry;
 import io.opentelemetry.instrumentation.api.instrumenter.Instrumenter;
-import io.opentelemetry.instrumentation.api.instrumenter.SpanKindExtractor;
 
 public class NocodeSingletons {
   private static final Instrumenter<NocodeMethodInvocation, Void> INSTRUMENTER;

@@ -5,9 +5,9 @@ import io.opentelemetry.context.Context;
 import io.opentelemetry.instrumentation.api.incubator.semconv.code.CodeAttributesExtractor;
 import io.opentelemetry.instrumentation.api.incubator.semconv.util.ClassAndMethod;
 import io.opentelemetry.instrumentation.api.instrumenter.AttributesExtractor;
-import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.Map;
+import javax.annotation.Nullable;
 
 public class NocodeAttributesExtractor implements AttributesExtractor<NocodeMethodInvocation, Void> {
   private final AttributesExtractor<ClassAndMethod, Void> codeExtractor;

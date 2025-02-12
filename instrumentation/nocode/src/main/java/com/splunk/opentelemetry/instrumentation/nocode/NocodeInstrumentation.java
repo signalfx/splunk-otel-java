@@ -1,22 +1,20 @@
 package com.splunk.opentelemetry.instrumentation.nocode;
 
+import static com.splunk.opentelemetry.instrumentation.nocode.NocodeSingletons.instrumentor;
+import static io.opentelemetry.javaagent.bootstrap.Java8BytecodeBridge.currentContext;
+import static net.bytebuddy.matcher.ElementMatchers.hasSuperType;
+import static net.bytebuddy.matcher.ElementMatchers.named;
+
 import com.splunk.opentelemetry.javaagent.bootstrap.nocode.NocodeRules;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.context.Scope;
 import io.opentelemetry.instrumentation.api.incubator.semconv.util.ClassAndMethod;
 import io.opentelemetry.javaagent.extension.instrumentation.TypeInstrumentation;
 import io.opentelemetry.javaagent.extension.instrumentation.TypeTransformer;
+import java.lang.reflect.Method;
 import net.bytebuddy.asm.Advice;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.matcher.ElementMatcher;
-
-import java.lang.reflect.Method;
-
-import static io.opentelemetry.javaagent.bootstrap.Java8BytecodeBridge.currentContext;
-import static com.splunk.opentelemetry.instrumentation.nocode.NocodeSingletons.instrumentor;
-
-import static net.bytebuddy.matcher.ElementMatchers.hasSuperType;
-import static net.bytebuddy.matcher.ElementMatchers.named;
 
 public class NocodeInstrumentation implements TypeInstrumentation {
   private final NocodeRules.Rule rule;

@@ -1,12 +1,13 @@
 package com.splunk.opentelemetry.instrumentation.nocode;
 
+import static io.opentelemetry.sdk.testing.assertj.OpenTelemetryAssertions.equalTo;
+
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.trace.SpanKind;
 import io.opentelemetry.instrumentation.testing.junit.AgentInstrumentationExtension;
 import io.opentelemetry.instrumentation.testing.junit.InstrumentationExtension;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
-import static io.opentelemetry.sdk.testing.assertj.OpenTelemetryAssertions.equalTo;
 
 // This test has "test/config/nocode.yml" applied to it by the gradle environment setting
 public class NocodeInstrumentationTest {

@@ -7,6 +7,7 @@ import io.opentelemetry.instrumentation.testing.junit.InstrumentationExtension;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import static io.opentelemetry.sdk.testing.assertj.OpenTelemetryAssertions.equalTo;
+import static org.assertj.core.api.Assertions.doesNotHave;
 
 // This test has "test/config/nocode.yml" applied to it by the gradle environment setting
 public class IntegrationTest {
@@ -26,6 +27,19 @@ public class IntegrationTest {
                         .hasAttributesSatisfying(
                             equalTo(AttributeKey.stringKey("details"), "details"))));
   }
+
+  @Test
+  public void testRuleWithManyInvalidFields() {
+    new SampleClass().doInvalidRule();
+    testing.waitAndAssertTracesWithoutScopeVersionVerification(
+        trace ->
+            trace.hasSpansSatisfyingExactly(
+                span ->
+                    span.hasName("SampleClass.doInvalidRule")
+                        .hasKind(SpanKind.INTERNAL)
+                        .hasTotalAttributeCount(2))); // two code. attribute but nothing from the invalid rule
+  }
+
 
   @Test
   public void testThrowException() {

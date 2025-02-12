@@ -1,6 +1,6 @@
 - class: com.splunk.opentelemetry.instrumentation.nocode.SampleClass
   method: doSomething
-  spanName: this.getName()
+  spanName: "this.getName()"
   attributes:
     - key: "details"
       value: this.getDetails()
@@ -10,5 +10,13 @@
   spanKind: SERVER
   attributes:
     - key: "five"
-      value: "param0.toString()"
+      value: param0.toString().substring(0)
+
+- class: com.splunk.opentelemetry.instrumentation.nocode.SampleClass
+  method: doInvalidRule
+  spanName: "this.thereIsNoSuchMethod()"
+  spanKind: INVALID
+  attributes:
+    - key: "notpresent"
+      value: "invalid.noSuchStatement()"
 

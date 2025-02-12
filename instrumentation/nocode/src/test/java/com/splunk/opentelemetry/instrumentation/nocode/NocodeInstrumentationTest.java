@@ -7,10 +7,9 @@ import io.opentelemetry.instrumentation.testing.junit.InstrumentationExtension;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import static io.opentelemetry.sdk.testing.assertj.OpenTelemetryAssertions.equalTo;
-import static org.assertj.core.api.Assertions.doesNotHave;
 
 // This test has "test/config/nocode.yml" applied to it by the gradle environment setting
-public class IntegrationTest {
+public class NocodeInstrumentationTest {
   @RegisterExtension
   static final InstrumentationExtension testing = AgentInstrumentationExtension.create();
 

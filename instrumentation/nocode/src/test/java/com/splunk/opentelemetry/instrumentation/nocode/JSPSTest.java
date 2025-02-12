@@ -11,7 +11,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-// FIXME need tests for the instrumentation too!
 public class JSPSTest  {
   private static final Map<String, String> thiz = new HashMap<>();
   private static final Set<String> param0 = new HashSet<>();

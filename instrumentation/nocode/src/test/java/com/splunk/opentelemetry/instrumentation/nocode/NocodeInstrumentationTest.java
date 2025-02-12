@@ -61,4 +61,24 @@ public class NocodeInstrumentationTest {
                             equalTo(AttributeKey.stringKey("five"), "5"))));
   }
 
+  public static class SampleClass {
+    public String getName() {
+      return "name";
+    }
+
+    public String getDetails() {
+      return "details";
+    }
+
+    public void throwException(int parameter) {
+      throw new UnsupportedOperationException("oh no");
+    }
+
+    public void doSomething() {
+    }
+
+    public void doInvalidRule() {
+    }
+
+  }
 }

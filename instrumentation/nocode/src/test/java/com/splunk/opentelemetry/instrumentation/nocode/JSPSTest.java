@@ -29,6 +29,7 @@ public class JSPSTest  {
         {"this.get(\"key\").substring(1)",      "alue"},
         {"param0.isEmpty()",                    "false"},
         {"param0.contains(\"present\")",        "true"},
+        {"this.entrySet().size()",              "1"},
     };
     for(String[] test : tests) {
       assertEquals(test[1], JSPS.evaluate(test[0], thiz, new Object[]{param0}), test[0]);

@@ -8,6 +8,8 @@ import io.opentelemetry.instrumentation.testing.junit.AgentInstrumentationExtens
 import io.opentelemetry.instrumentation.testing.junit.InstrumentationExtension;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
+import java.util.HashMap;
+import java.util.Map;
 
 // This test has "test/config/nocode.yml" applied to it by the gradle environment setting
 public class NocodeInstrumentationTest {
@@ -25,6 +27,7 @@ public class NocodeInstrumentationTest {
                     span.hasName("name")
                         .hasKind(SpanKind.INTERNAL)
                         .hasAttributesSatisfying(
+                            equalTo(AttributeKey.stringKey("map.size"), "2"),
                             equalTo(AttributeKey.stringKey("details"), "details"))));
   }
 
@@ -69,6 +72,12 @@ public class NocodeInstrumentationTest {
 
     public String getDetails() {
       return "details";
+    }
+    public Map<String,String> getMap() {
+      HashMap<String,String> answer = new HashMap<>();
+      answer.put("key", "value");
+      answer.put("key2", "value2");
+      return answer;
     }
 
     public void throwException(int parameter) {

@@ -4,6 +4,8 @@
   attributes:
     - key: "details"
       value: this.getDetails()
+    - key: "map.size"
+      value: this.getMap().entrySet().size()
 
 - class: com.splunk.opentelemetry.instrumentation.nocode.NocodeInstrumentationTest$SampleClass
   method: throwException

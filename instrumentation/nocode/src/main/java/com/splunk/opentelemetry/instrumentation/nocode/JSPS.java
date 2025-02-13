@@ -1,6 +1,7 @@
 package com.splunk.opentelemetry.instrumentation.nocode;
 
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.logging.Logger;
 
 // JSPS stands for Java-like String-Producing Statement.  A JSPS is
@@ -16,7 +17,8 @@ import java.util.logging.Logger;
    // Methods calls are limited to either 0 or 1 parameters currently
    // Parameters must be literals and only integral (int/long), string, and boolean literals are currently supported
 public class JSPS {
-  private final static Logger logger = Logger.getLogger(JSPS.class.getName());
+  private static final Logger logger = Logger.getLogger(JSPS.class.getName());
+  private static final Class[] NoParamTypes = new Class[0];
 
   public static String evaluate(String jsps, Object thiz, Object[] params) {
     try {
@@ -51,26 +53,25 @@ public class JSPS {
       int closeParen = jsps.indexOf(')', openParen);
       String paramString = jsps.substring(openParen + 1, closeParen).trim();
       if (paramString.isEmpty()) {
-        // FIXME how does javaagent open the class?  getting exceptions gere
-        // e.g., with hashmap.entrySet().size() on the entryset accessor
-        curObject = curObject.getClass().getMethod(method).invoke(curObject);
+        Method m = findMatchingMethod(curObject, method, NoParamTypes);
+        curObject = m.invoke(curObject);
       } else {
         if (paramString.startsWith("\"") && paramString.endsWith("\"")) {
           String passed = paramString.substring(1, paramString.length()-1);
-          Method m = findMethod(curObject, method,
+          Method m = findMethodWithPossibleTypes(curObject, method,
               String.class, Object.class);
           curObject = m.invoke(curObject, passed);
         } else if (paramString.equals("true") || paramString.equals("false")) {
-          Method m = findMethod(curObject, method,
+          Method m = findMethodWithPossibleTypes(curObject, method,
               boolean.class, Boolean.class, Object.class);
           curObject = m.invoke(curObject, Boolean.parseBoolean(paramString));
         } else if (paramString.matches("[0-9]+")) {
           try {
-            Method m = findMethod(curObject, method, int.class, Integer.class, Object.class);
+            Method m = findMethodWithPossibleTypes(curObject, method, int.class, Integer.class, Object.class);
             int passed = Integer.parseInt(paramString);
             curObject = m.invoke(curObject, passed);
           } catch (NoSuchMethodException tryLongInstead) {
-            Method m = findMethod(curObject, method, long.class, Long.class, Object.class);
+            Method m = findMethodWithPossibleTypes(curObject, method, long.class, Long.class, Object.class);
             long passed = Long.parseLong(paramString);
             curObject = m.invoke(curObject, passed);
           }
@@ -83,11 +84,49 @@ public class JSPS {
     return curObject == null ? null : curObject.toString();
   }
 
-  private static Method findMethod(Object curObject, String methodName, Class<?>... paramTypesToTryInOrder) throws NoSuchMethodException{
+  // This sequence of methods is here because:
+  // - we want to try a variety of parameter types to match a literal
+  //      e.g., someMethod(5) could match someMethod(int) or someMethod(Object)
+  // - module rules around reflection make some "legal" things harder and require
+  //   looking for a public class/interface matching the method to call
+  //      e.g., a naive reflective call through
+  //         this.getSomeHashMap().entrySet().size()
+  //      would fail simply because the HashMap$EntrySet implementation
+  //      is not public, even though the interface it's being call through is.
+  private static Method findMatchingMethod(Object curObject, String methodName, Class[] actualParamTypes) throws NoSuchMethodException{
+    Method m = findMatchingMethod(methodName, curObject.getClass(), actualParamTypes);
+    if (m == null) {
+      throw new NoSuchMethodException("Can't find matching method for "+methodName+" on "+curObject.getClass().getName());
+    }
+    return m;
+  }
+  // Returns null for none found
+  private static Method findMatchingMethod(String methodName, Class c, Class[] actualParamTypes) {
+    if (c == null) {
+      return null;
+    }
+    if (Modifier.isPublic(c.getModifiers())) {
+      try {
+        return c.getMethod(methodName, actualParamTypes);
+      } catch (NoSuchMethodException nsme) {
+        // keep trying
+      }
+    }
+    // not public, try interfaces and supertype
+    for(Class iface : c.getInterfaces()) {
+      Method m = findMatchingMethod(methodName, iface, actualParamTypes);
+      if (m != null) {
+        return m;
+      }
+    }
+    return findMatchingMethod(methodName, c.getSuperclass(), actualParamTypes);
+  }
+
+  private static Method findMethodWithPossibleTypes(Object curObject, String methodName, Class<?>... paramTypesToTryInOrder) throws NoSuchMethodException{
     Class c = curObject.getClass();
     for(Class<?> paramType : paramTypesToTryInOrder) {
       try {
-        return c.getMethod(methodName, paramType);
+        return findMatchingMethod(curObject, methodName, new Class[]{paramType});
       } catch (NoSuchMethodException e) {
         // try next one
       }

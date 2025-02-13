@@ -19,30 +19,33 @@ package com.splunk.opentelemetry.profiler.snapshot;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import io.opentelemetry.api.trace.SpanKind;
+import io.opentelemetry.api.trace.Tracer;
 import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.params.ParameterizedTest;
 
-class SnapshotProfilingSdkCustomizerTest {
-  private final ObservableActivationNotifier activationNotifier =
-      new ObservableActivationNotifier();
+class SnapshotProfilingFeatureFlagTest {
+  private final TraceRegistry registry = new TraceRegistry();
   private final SnapshotProfilingSdkCustomizer customizer =
-      new SnapshotProfilingSdkCustomizer(activationNotifier);
+      new SnapshotProfilingSdkCustomizer(registry);
 
   @Nested
-  class TestSnapshotProfilingDisabledByDefault {
+  class SnapshotProfilingDisabledByDefaultTest {
     @RegisterExtension
     public final OpenTelemetrySdkExtension s =
         OpenTelemetrySdkExtension.builder().with(customizer).build();
 
-    @Test
-    void customizeOpenTelemetrySdk() {
-      assertFalse(activationNotifier.activated);
+    @ParameterizedTest
+    @SpanKinds.Entry
+    void snapshotProfilingIsDisabledByDefault(SpanKind kind, Tracer tracer) {
+      var root = tracer.spanBuilder("root").setSpanKind(kind).startSpan();
+      assertFalse(registry.isRegistered(root.getSpanContext()));
     }
   }
 
   @Nested
-  class TestEnableSnapshotProfiling {
+  class SnapshotProfilingEnabledTest {
     @RegisterExtension
     public final OpenTelemetrySdkExtension s =
         OpenTelemetrySdkExtension.builder()
@@ -50,14 +53,16 @@ class SnapshotProfilingSdkCustomizerTest {
             .withProperty("splunk.snapshot.profiler.enabled", "true")
             .build();
 
-    @Test
-    void customizeOpenTelemetrySdk() {
-      assertTrue(activationNotifier.activated);
+    @ParameterizedTest
+    @SpanKinds.Entry
+    void snapshotProfilingIsExplicitlyEnabled(SpanKind kind, Tracer tracer) {
+      var root = tracer.spanBuilder("root").setSpanKind(kind).startSpan();
+      assertTrue(registry.isRegistered(root.getSpanContext()));
     }
   }
 
   @Nested
-  class TestDisableSnapshotProfiling {
+  class SnapshotProfilingDisabledTest {
     @RegisterExtension
     public final OpenTelemetrySdkExtension s =
         OpenTelemetrySdkExtension.builder()
@@ -65,18 +70,11 @@ class SnapshotProfilingSdkCustomizerTest {
             .withProperty("splunk.snapshot.profiler.enabled", "false")
             .build();
 
-    @Test
-    void customizeOpenTelemetrySdk() {
-      assertFalse(activationNotifier.activated);
-    }
-  }
-
-  private static class ObservableActivationNotifier implements Runnable {
-    private boolean activated = false;
-
-    @Override
-    public void run() {
-      this.activated = true;
+    @ParameterizedTest
+    @SpanKinds.Entry
+    void snapshotProfilingIsExplicitlyEnabled(SpanKind kind, Tracer tracer) {
+      var root = tracer.spanBuilder("root").setSpanKind(kind).startSpan();
+      assertFalse(registry.isRegistered(root.getSpanContext()));
     }
   }
 }

@@ -16,14 +16,15 @@
 
 package com.splunk.opentelemetry.profiler.snapshot;
 
+import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.context.propagation.TextMapPropagator;
 import io.opentelemetry.sdk.OpenTelemetrySdk;
-import io.opentelemetry.sdk.OpenTelemetrySdkBuilder;
 import io.opentelemetry.sdk.autoconfigure.spi.AutoConfigurationCustomizer;
 import io.opentelemetry.sdk.autoconfigure.spi.AutoConfigurationCustomizerProvider;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import io.opentelemetry.sdk.autoconfigure.spi.internal.DefaultConfigProperties;
 import io.opentelemetry.sdk.resources.Resource;
+import io.opentelemetry.sdk.trace.SdkTracerProvider;
 import io.opentelemetry.sdk.trace.SdkTracerProviderBuilder;
 import io.opentelemetry.sdk.trace.export.SpanExporter;
 import io.opentelemetry.sdk.trace.samplers.Sampler;
@@ -31,13 +32,16 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import org.junit.jupiter.api.extension.AfterEachCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
+import org.junit.jupiter.api.extension.ParameterContext;
+import org.junit.jupiter.api.extension.ParameterResolver;
 
-public class OpenTelemetrySdkExtension implements AfterEachCallback {
+public class OpenTelemetrySdkExtension implements AfterEachCallback, ParameterResolver {
   public static Builder builder() {
     return new Builder();
   }
@@ -53,6 +57,18 @@ public class OpenTelemetrySdkExtension implements AfterEachCallback {
     sdk.close();
   }
 
+  @Override
+  public boolean supportsParameter(
+      ParameterContext parameterContext, ExtensionContext extensionContext) {
+    return parameterContext.getParameter().getType() == Tracer.class;
+  }
+
+  @Override
+  public Object resolveParameter(
+      ParameterContext parameterContext, ExtensionContext extensionContext) {
+    return sdk.getTracer(extensionContext.getRequiredTestClass().getName(), "test");
+  }
+
   /**
    * An extremely simplified adaptation of the OpenTelemetry class
    * AutoConfiguredOpenTelemetrySdkBuilder, designed explicitly to facilitate easier component-like
@@ -61,6 +77,7 @@ public class OpenTelemetrySdkExtension implements AfterEachCallback {
   public static class Builder {
     private final SdkCustomizer customizer = new SdkCustomizer();
     private final Map<String, String> properties = new HashMap<>();
+    private Sampler sampler = Sampler.alwaysOn();
 
     public Builder withProperty(String name, String value) {
       properties.put(name, value);
@@ -72,36 +89,52 @@ public class OpenTelemetrySdkExtension implements AfterEachCallback {
       return this;
     }
 
+    public Builder withSampler(Sampler sampler) {
+      this.sampler = sampler;
+      return this;
+    }
+
     /**
      * Simplified re-implementation of AutoConfiguredOpenTelemetrySdkBuilder's build method. The
      * OpenTelemetry SDK is only configured with features necessary to pass existing test use cases.
      */
     public OpenTelemetrySdkExtension build() {
-      overrideProperties();
+      ConfigProperties configProperties = customizeProperties();
+      SdkTracerProvider tracerProvider = customizeTracerProvider(configProperties);
 
-      OpenTelemetrySdkBuilder sdkBuilder = OpenTelemetrySdk.builder();
-      OpenTelemetrySdk sdk = sdkBuilder.build();
-
+      OpenTelemetrySdk sdk = OpenTelemetrySdk.builder().setTracerProvider(tracerProvider).build();
       return new OpenTelemetrySdkExtension(sdk);
     }
 
-    private void overrideProperties() {
+    private ConfigProperties customizeProperties() {
       var properties = DefaultConfigProperties.createFromMap(this.properties);
       for (var customizer : customizer.propertyCustomizers) {
         var overrides = customizer.apply(properties);
         properties = properties.withOverrides(overrides);
       }
+      return properties;
+    }
+
+    private SdkTracerProvider customizeTracerProvider(ConfigProperties properties) {
+      var builder = SdkTracerProvider.builder().setSampler(sampler);
+      customizer.tracerProviderCustomizers.forEach(
+          customizer -> customizer.apply(builder, properties));
+      return builder.build();
     }
   }
 
   private static class SdkCustomizer implements AutoConfigurationCustomizer {
     private final List<Function<ConfigProperties, Map<String, String>>> propertyCustomizers =
         new ArrayList<>();
+    private final List<
+            BiFunction<SdkTracerProviderBuilder, ConfigProperties, SdkTracerProviderBuilder>>
+        tracerProviderCustomizers = new ArrayList<>();
 
     @Override
     public AutoConfigurationCustomizer addTracerProviderCustomizer(
         BiFunction<SdkTracerProviderBuilder, ConfigProperties, SdkTracerProviderBuilder>
             tracerProviderCustomizer) {
+      tracerProviderCustomizers.add(Objects.requireNonNull(tracerProviderCustomizer));
       return this;
     }
 

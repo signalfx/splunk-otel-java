@@ -1,3 +1,19 @@
+/*
+ * Copyright Splunk Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.splunk.opentelemetry.instrumentation.nocode;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -10,7 +26,7 @@ import java.util.Map;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
 
-public class JSPSTest  {
+public class JSPSTest {
   private static final Map<String, String> thiz = new HashMap<>();
   private static final Set<String> param0 = new HashSet<>();
 
@@ -21,48 +37,51 @@ public class JSPSTest  {
 
   @Test
   public void testBasicBehavior() {
-    String[][] tests = new String[][] {
-        // Might be nice to support a bare "param0" or "this" but as a workaround can always use "this.toString()"
-        {"this.toString()",                     "{key=value}"},
-        {"this.toString().length()",            "11"},
-        {"this.get(\"key\")",                   "value"},
-        {"this.get(\"key\").substring(1)",      "alue"},
-        {"param0.isEmpty()",                    "false"},
-        {"param0.contains(\"present\")",        "true"},
-        {"this.entrySet().size()",              "1"},
-    };
-    for(String[] test : tests) {
-      assertEquals(test[1], JSPS.evaluate(test[0], thiz, new Object[]{param0}), test[0]);
+    String[][] tests =
+        new String[][] {
+          // Might be nice to support a bare "param0" or "this" but as a workaround can always use
+          // "this.toString()"
+          {"this.toString()", "{key=value}"},
+          {"this.toString().length()", "11"},
+          {"this.get(\"key\")", "value"},
+          {"this.get(\"key\").substring(1)", "alue"},
+          {"param0.isEmpty()", "false"},
+          {"param0.contains(\"present\")", "true"},
+          {"this.entrySet().size()", "1"},
+        };
+    for (String[] test : tests) {
+      assertEquals(test[1], JSPS.evaluate(test[0], thiz, new Object[] {param0}), test[0]);
     }
   }
 
   @Test
   public void testInvalidJspsReturnNull() {
-    String[] invalids = new String[] {
-        "nosuchvar",
-        "nosuchvar.toString()",
-        "this  .",
-        "this  .  ",
-        "this.noSuchMethod()",
-        "toString()",
-        "this.toString()extrastuffatend",
-        "this.toString()toString()",
-        "param1.toString()", // out of bounds
-        "param999.toString()",
-        "this.getOrDefault(\"key\", \"multiparamnotsupported\")",
-        "this.get(\"noclosequote)",
-        "this.get(\"nocloseparan\"",
-        "this.noparens",
-        "this.noparens.anotherMethod()",
-        "this.wrongOrder)(",
-        "this.get(NotALiteralParameter);",
-        "this.get(12.2)",
-        "this.get(this)",
-        "this.get(\"NoSuchKey\")", // evals completely but returns null
-        "param1.toString()", // no such param
-    };
-    for(String invalid : invalids) {
-      String answer = JSPS.evaluate(invalid, thiz, new Object[]{param0});
+    String[] invalids =
+        new String[] {
+          "nosuchvar",
+          "nosuchvar.toString()",
+          "this  .",
+          "this  .  ",
+          "this.noSuchMethod()",
+          "toString()",
+          "this.toString()extrastuffatend",
+          "this.toString()toString()",
+          "param1.toString()", // out of bounds
+          "param999.toString()",
+          "this.getOrDefault(\"key\", \"multiparamnotsupported\")",
+          "this.get(\"noclosequote)",
+          "this.get(\"nocloseparan\"",
+          "this.noparens",
+          "this.noparens.anotherMethod()",
+          "this.wrongOrder)(",
+          "this.get(NotALiteralParameter);",
+          "this.get(12.2)",
+          "this.get(this)",
+          "this.get(\"NoSuchKey\")", // evals completely but returns null
+          "param1.toString()", // no such param
+        };
+    for (String invalid : invalids) {
+      String answer = JSPS.evaluate(invalid, thiz, new Object[] {param0});
       assertNull(answer, "Expected null for \"" + invalid + "\" but was \"" + answer + "\"");
     }
   }
@@ -80,6 +99,7 @@ public class JSPSTest  {
       return s;
     }
   }
+
   public static class TakeObject {
     public String take(Object o) {
       return o.toString();
@@ -91,32 +111,36 @@ public class JSPSTest  {
       return Boolean.toString(param);
     }
   }
+
   public static class TakeBoolean {
     public String take(Boolean param) {
       return param.toString();
     }
   }
+
   public static class TakeIntegerPrimitive {
     public String take(int param) {
       return Integer.toString(param);
     }
   }
+
   public static class TakeInteger {
     public String take(Integer param) {
       return param.toString();
     }
   }
+
   public static class TakeLongPrimitize {
     public String take(long param) {
       return Long.toString(param);
     }
   }
+
   public static class TakeLong {
     public String take(Long param) {
       return param.toString();
     }
   }
-
 
   @Test
   public void testBooleanLiteralParamTypes() {
@@ -152,31 +176,30 @@ public class JSPSTest  {
 
   @Test
   public void testWhitespace() {
-    String[] tests = new String[]{
-        "this.get(\"key\").substring(1)",
-        " this.get(\"key\").substring(1)",
-        "this .get(\"key\").substring(1)",
-        "this. get(\"key\").substring(1)",
-        "this.get (\"key\").substring(1)",
-        "this.get( \"key\").substring(1)",
-        "this.get(\"key\" ).substring(1)",
-        "this.get(\"key\") .substring(1)",
-        "this.get(\"key\"). substring(1)",
-        "this.get(\"key\").substring (1)",
-        "this.get(\"key\").substring( 1)",
-        "this.get(\"key\").substring(1 )",
-    };
-    for(String test : tests) {
-      assertEquals("alue", JSPS.evaluate(test, thiz, new Object[]{param0}), test);
-
+    String[] tests =
+        new String[] {
+          "this.get(\"key\").substring(1)",
+          " this.get(\"key\").substring(1)",
+          "this .get(\"key\").substring(1)",
+          "this. get(\"key\").substring(1)",
+          "this.get (\"key\").substring(1)",
+          "this.get( \"key\").substring(1)",
+          "this.get(\"key\" ).substring(1)",
+          "this.get(\"key\") .substring(1)",
+          "this.get(\"key\"). substring(1)",
+          "this.get(\"key\").substring (1)",
+          "this.get(\"key\").substring( 1)",
+          "this.get(\"key\").substring(1 )",
+        };
+    for (String test : tests) {
+      assertEquals("alue", JSPS.evaluate(test, thiz, new Object[] {param0}), test);
     }
   }
 
   public void testManyParams() {
     Object[] params = new Object[13];
     Arrays.fill(params, new Object());
-    assertEquals("java.lang.Object", JSPS.evaluate("param12.getClass().getName()", new Object(), params));
+    assertEquals(
+        "java.lang.Object", JSPS.evaluate("param12.getClass().getName()", new Object(), params));
   }
-
-
 }

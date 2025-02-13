@@ -1,3 +1,19 @@
+/*
+ * Copyright Splunk Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.splunk.opentelemetry.instrumentation.nocode;
 
 import com.splunk.opentelemetry.javaagent.bootstrap.nocode.NocodeRules;
@@ -32,7 +48,7 @@ public class YamlParser {
     try {
       return loadUnsafe();
     } catch (Exception e) {
-      logger.severe("Can't load configured yaml: "+e);
+      logger.severe("Can't load configured yaml: " + e);
       return Collections.emptyList();
     }
   }
@@ -47,9 +63,9 @@ public class YamlParser {
     Load load = new Load(LoadSettings.builder().build());
     Iterable<Object> parsedYaml = load.loadAllFromReader(yamlReader);
     ArrayList<NocodeRules.Rule> answer = new ArrayList<>();
-    for(Object yamlBit : parsedYaml) {
+    for (Object yamlBit : parsedYaml) {
       List l = (List) yamlBit;
-      for(Object yamlRule : l) {
+      for (Object yamlRule : l) {
         LinkedHashMap lhm = (LinkedHashMap) yamlRule;
         String className = lhm.get("class").toString();
         String methodName = lhm.get("method").toString();
@@ -57,7 +73,7 @@ public class YamlParser {
         String spanKind = lhm.get("spanKind") == null ? null : lhm.get("spanKind").toString();
         List attrs = (List) lhm.get("attributes");
         Map<String, String> ruleAttributes = new HashMap<>();
-        for(Object attr : attrs) {
+        for (Object attr : attrs) {
           LinkedHashMap attrMap = (LinkedHashMap) attr;
           ruleAttributes.put(attrMap.get("key").toString(), attrMap.get("value").toString());
         }
@@ -67,7 +83,4 @@ public class YamlParser {
     yamlReader.close();
     return answer;
   }
-
-
-
 }

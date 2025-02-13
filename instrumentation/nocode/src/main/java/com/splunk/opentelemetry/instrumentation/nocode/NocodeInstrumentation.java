@@ -1,3 +1,19 @@
+/*
+ * Copyright Splunk Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.splunk.opentelemetry.instrumentation.nocode;
 
 import static com.splunk.opentelemetry.instrumentation.nocode.NocodeSingletons.instrumentor;
@@ -30,13 +46,13 @@ public class NocodeInstrumentation implements TypeInstrumentation {
 
   @Override
   public void transform(TypeTransformer transformer) {
-    transformer.applyAdviceToMethod(named(rule.methodName),
-        NocodeInstrumentation.class.getName()+"$NocodeAdvice");
+    transformer.applyAdviceToMethod(
+        named(rule.methodName), NocodeInstrumentation.class.getName() + "$NocodeAdvice");
   }
 
   @SuppressWarnings("unused")
   public static class NocodeAdvice {
-    @Advice.OnMethodEnter(suppress =  Throwable.class)
+    @Advice.OnMethodEnter(suppress = Throwable.class)
     public static void onEnter(
         @Advice.Origin("#t") Class<?> declaringClass,
         @Advice.Origin("#m") String methodName,
@@ -44,14 +60,12 @@ public class NocodeInstrumentation implements TypeInstrumentation {
         @Advice.Local("otelContext") Context context,
         @Advice.Local("otelScope") Scope scope,
         @Advice.This Object thiz,
-        @Advice.AllArguments Object[] methodParams
-    ) {
-      NocodeRules.Rule rule = NocodeRules.findRuleByClassAndMethod(declaringClass.getName(), methodName);
-      otelInvocation = new NocodeMethodInvocation(
-          rule,
-          ClassAndMethod.create(declaringClass, methodName),
-          thiz,
-          methodParams);
+        @Advice.AllArguments Object[] methodParams) {
+      NocodeRules.Rule rule =
+          NocodeRules.findRuleByClassAndMethod(declaringClass.getName(), methodName);
+      otelInvocation =
+          new NocodeMethodInvocation(
+              rule, ClassAndMethod.create(declaringClass, methodName), thiz, methodParams);
       Context parentContext = currentContext();
 
       if (!instrumentor().shouldStart(parentContext, otelInvocation)) {
@@ -71,13 +85,13 @@ public class NocodeInstrumentation implements TypeInstrumentation {
         @Advice.Local("otelInvocation") NocodeMethodInvocation otelInvocation,
         @Advice.Local("otelContext") Context context,
         @Advice.Local("otelScope") Scope scope,
-        @Advice.Thrown Throwable error)
-    {
+        @Advice.Thrown Throwable error) {
       if (scope == null) {
         return;
       }
       scope.close();
-      // I wonder why the original methods instrumentation had support for modifying the return value?
+      // I wonder why the original methods instrumentation had support for modifying the return
+      // value?
       instrumentor().end(context, otelInvocation, null, error);
     }
   }

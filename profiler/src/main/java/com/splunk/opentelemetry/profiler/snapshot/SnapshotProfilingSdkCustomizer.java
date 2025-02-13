@@ -17,40 +17,42 @@
 package com.splunk.opentelemetry.profiler.snapshot;
 
 import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_ENABLE_SNAPSHOT_PROFILER;
-import static java.util.Collections.emptyMap;
 
 import com.google.auto.service.AutoService;
 import com.google.common.annotations.VisibleForTesting;
 import io.opentelemetry.sdk.autoconfigure.spi.AutoConfigurationCustomizer;
 import io.opentelemetry.sdk.autoconfigure.spi.AutoConfigurationCustomizerProvider;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
-import java.util.logging.Logger;
+import io.opentelemetry.sdk.trace.SdkTracerProviderBuilder;
+import java.util.function.BiFunction;
 
 @AutoService(AutoConfigurationCustomizerProvider.class)
 public class SnapshotProfilingSdkCustomizer implements AutoConfigurationCustomizerProvider {
-  private static final Logger logger =
-      Logger.getLogger(SnapshotProfilingSdkCustomizer.class.getName());
-
-  private final Runnable activationNotifier;
+  private final TraceRegistry registry;
 
   public SnapshotProfilingSdkCustomizer() {
-    this(() -> logger.info("Snapshot profiling activated"));
+    this(new TraceRegistry());
   }
 
   @VisibleForTesting
-  SnapshotProfilingSdkCustomizer(Runnable activationNotifier) {
-    this.activationNotifier = activationNotifier;
+  SnapshotProfilingSdkCustomizer(TraceRegistry registry) {
+    this.registry = registry;
   }
 
   @Override
   public void customize(AutoConfigurationCustomizer autoConfigurationCustomizer) {
-    autoConfigurationCustomizer.addPropertiesCustomizer(
-        config -> {
-          if (snapshotProfilingEnabled(config)) {
-            activationNotifier.run();
-          }
-          return emptyMap();
-        });
+    autoConfigurationCustomizer.addTracerProviderCustomizer(
+        snapshotProfilingSpanProcessor(registry));
+  }
+
+  private BiFunction<SdkTracerProviderBuilder, ConfigProperties, SdkTracerProviderBuilder>
+      snapshotProfilingSpanProcessor(TraceRegistry registry) {
+    return (builder, properties) -> {
+      if (snapshotProfilingEnabled(properties)) {
+        return builder.addSpanProcessor(new SnapshotProfilingSpanProcessor(registry));
+      }
+      return builder;
+    };
   }
 
   private boolean snapshotProfilingEnabled(ConfigProperties config) {

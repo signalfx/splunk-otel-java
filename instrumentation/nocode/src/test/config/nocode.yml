@@ -1,0 +1,24 @@
+- class: com.splunk.opentelemetry.instrumentation.nocode.NocodeInstrumentationTest$SampleClass
+  method: doSomething
+  spanName: "this.getName()"
+  attributes:
+    - key: "details"
+      value: this.getDetails()
+    - key: "map.size"
+      value: this.getMap().entrySet().size()
+
+- class: com.splunk.opentelemetry.instrumentation.nocode.NocodeInstrumentationTest$SampleClass
+  method: throwException
+  spanKind: SERVER
+  attributes:
+    - key: "five"
+      value: param0.toString().substring(0)
+
+- class: com.splunk.opentelemetry.instrumentation.nocode.NocodeInstrumentationTest$SampleClass
+  method: doInvalidRule
+  spanName: "this.thereIsNoSuchMethod()"
+  spanKind: INVALID
+  attributes:
+    - key: "notpresent"
+      value: "invalid.noSuchStatement()"
+

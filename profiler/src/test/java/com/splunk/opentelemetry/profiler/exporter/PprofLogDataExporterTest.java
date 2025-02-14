@@ -1,3 +1,19 @@
+/*
+ * Copyright Splunk Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.splunk.opentelemetry.profiler.exporter;
 
 import static io.opentelemetry.api.common.AttributeKey.longKey;
@@ -21,7 +37,8 @@ class PprofLogDataExporterTest {
   void emitDataToOpenTelemetryLogger() {
     var logMessage = "this is a test log message, the contents are not important.";
 
-    var exporter = new PprofLogDataExporter(logger, ProfilingDataType.CPU, InstrumentationSource.CONTINUOUS);
+    var exporter =
+        new PprofLogDataExporter(logger, ProfilingDataType.CPU, InstrumentationSource.CONTINUOUS);
     exporter.export(logMessage.getBytes(StandardCharsets.UTF_8), 1);
 
     assertEquals(Value.of(logMessage), logger.records().getFirst().getBodyValue());
@@ -31,7 +48,8 @@ class PprofLogDataExporterTest {
   void includeSplunkSourceTypeAttributeInLogMessage() {
     var logMessage = "this is a test log message, the contents are not important.";
 
-    var exporter = new PprofLogDataExporter(logger, ProfilingDataType.CPU, InstrumentationSource.CONTINUOUS);
+    var exporter =
+        new PprofLogDataExporter(logger, ProfilingDataType.CPU, InstrumentationSource.CONTINUOUS);
     exporter.export(logMessage.getBytes(StandardCharsets.UTF_8), 1);
 
     var attributes = logger.records().getFirst().getAttributes();
@@ -42,7 +60,8 @@ class PprofLogDataExporterTest {
   void includeProfilingDataFormatAttributeInLogMessage() {
     var logMessage = "this is a test log message, the contents are not important.";
 
-    var exporter = new PprofLogDataExporter(logger, ProfilingDataType.CPU, InstrumentationSource.CONTINUOUS);
+    var exporter =
+        new PprofLogDataExporter(logger, ProfilingDataType.CPU, InstrumentationSource.CONTINUOUS);
     exporter.export(logMessage.getBytes(StandardCharsets.UTF_8), 1);
 
     var attributes = logger.records().getFirst().getAttributes();
@@ -74,11 +93,12 @@ class PprofLogDataExporterTest {
   }
 
   @ParameterizedTest
-  @ValueSource(ints = { 1, 50, 100, 10_000 })
+  @ValueSource(ints = {1, 50, 100, 10_000})
   void includeFrameCountAttributeInLogMessage(int frameCount) {
     var logMessage = "this is a test log message, the contents are not important.";
 
-    var exporter = new PprofLogDataExporter(logger, ProfilingDataType.CPU, InstrumentationSource.CONTINUOUS);
+    var exporter =
+        new PprofLogDataExporter(logger, ProfilingDataType.CPU, InstrumentationSource.CONTINUOUS);
     exporter.export(logMessage.getBytes(StandardCharsets.UTF_8), frameCount);
 
     var attributes = logger.records().getFirst().getAttributes();

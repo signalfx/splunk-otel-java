@@ -47,7 +47,9 @@ public class PprofCpuEventExporter implements CpuEventExporter {
   private PprofCpuEventExporter(Builder builder) {
     this.eventPeriods = builder.eventPeriods;
     this.stackDepth = builder.stackDepth;
-    this.pprofLogDataExporter = new PprofLogDataExporter(builder.otelLogger, ProfilingDataType.CPU, InstrumentationSource.CONTINUOUS);
+    this.pprofLogDataExporter =
+        new PprofLogDataExporter(
+            builder.otelLogger, ProfilingDataType.CPU, InstrumentationSource.CONTINUOUS);
   }
 
   @Override

@@ -52,7 +52,8 @@ public class PprofAllocationEventExporter implements AllocationEventExporter {
     this.eventReader = builder.eventReader;
     this.stackDepth = builder.stackDepth;
     this.pprofLogDataExporter =
-        new PprofLogDataExporter(builder.otelLogger, ProfilingDataType.ALLOCATION, InstrumentationSource.CONTINUOUS);
+        new PprofLogDataExporter(
+            builder.otelLogger, ProfilingDataType.ALLOCATION, InstrumentationSource.CONTINUOUS);
   }
 
   @Override

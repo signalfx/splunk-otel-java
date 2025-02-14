@@ -18,16 +18,18 @@ package com.splunk.opentelemetry.profiler.snapshot;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.util.Locale;
 import java.util.stream.Stream;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.MethodSource;
 
 class VolumeTest {
   @ParameterizedTest
-  @MethodSource("volumesAsStrings")
-  void toStringRepresentation(Volume volume, String asString) {
-    assertEquals(asString, volume.toString());
+  @EnumSource(Volume.class)
+  void toStringRepresentation(Volume volume) {
+    assertEquals(volume.name().toLowerCase(Locale.ROOT), volume.toString());
   }
 
   @ParameterizedTest
@@ -36,8 +38,26 @@ class VolumeTest {
     assertEquals(volume, Volume.fromString(asString));
   }
 
+  @ParameterizedTest
+  @MethodSource("volumesAsStrings")
+  void fromStringIsNotSensitiveToLocale(Volume volume, String asString) {
+    var defaultLocale = Locale.getDefault();
+    try {
+      for (var locale : Locale.getAvailableLocales()) {
+        Locale.setDefault(locale);
+        assertEquals(volume, Volume.fromString(asString));
+      }
+    } finally {
+      Locale.setDefault(defaultLocale);
+    }
+  }
+
   private static Stream<Arguments> volumesAsStrings() {
-    return Stream.of(Arguments.of(Volume.OFF, "off"), Arguments.of(Volume.HIGHEST, "highest"));
+    return Stream.of(
+        Arguments.of(Volume.OFF, "off"),
+        Arguments.of(Volume.HIGHEST, "highest"),
+        Arguments.of(Volume.HIGHEST, "hıghest")
+    );
   }
 
   @ParameterizedTest

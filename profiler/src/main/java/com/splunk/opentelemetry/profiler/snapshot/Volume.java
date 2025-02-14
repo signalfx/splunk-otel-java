@@ -16,6 +16,8 @@
 
 package com.splunk.opentelemetry.profiler.snapshot;
 
+import java.util.Locale;
+
 public enum Volume {
   OFF,
   HIGHEST;
@@ -26,7 +28,7 @@ public enum Volume {
     }
 
     try {
-      return Volume.valueOf(value.toUpperCase());
+      return Volume.valueOf(value.toUpperCase(Locale.ROOT));
     } catch (IllegalArgumentException e) {
       return OFF;
     }
@@ -34,6 +36,6 @@ public enum Volume {
 
   @Override
   public String toString() {
-    return name().toLowerCase();
+    return name().toLowerCase(Locale.ROOT);
   }
 }

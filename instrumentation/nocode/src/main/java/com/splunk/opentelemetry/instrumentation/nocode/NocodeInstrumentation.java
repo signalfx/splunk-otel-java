@@ -32,7 +32,7 @@ import net.bytebuddy.asm.Advice;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.matcher.ElementMatcher;
 
-public class NocodeInstrumentation implements TypeInstrumentation {
+public final class NocodeInstrumentation implements TypeInstrumentation {
   private final NocodeRules.Rule rule;
 
   public NocodeInstrumentation(NocodeRules.Rule rule) {

@@ -25,7 +25,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 public class NocodeRules {
 
-  public static class Rule {
+  public final static class Rule {
     public final String className;
     public final String methodName;
     public final String spanName; // may be null - use default of "class.method"

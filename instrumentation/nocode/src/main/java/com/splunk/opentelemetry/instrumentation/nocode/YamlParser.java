@@ -25,6 +25,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.snakeyaml.engine.v2.api.Load;
 import org.snakeyaml.engine.v2.api.LoadSettings;
@@ -48,7 +49,7 @@ public final class YamlParser {
     try {
       return loadUnsafe();
     } catch (Exception e) {
-      logger.log(Level.SEVERE, "Can't load configured nocode yaml.", e)
+      logger.log(Level.SEVERE, "Can't load configured nocode yaml.", e);
       return Collections.emptyList();
     }
   }

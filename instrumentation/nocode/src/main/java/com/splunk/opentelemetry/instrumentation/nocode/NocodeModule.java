@@ -25,7 +25,7 @@ import java.util.Arrays;
 import java.util.List;
 
 @AutoService(InstrumentationModule.class)
-public class NocodeModule extends InstrumentationModule {
+public final class NocodeModule extends InstrumentationModule {
 
   public NocodeModule() {
     super("nocode");

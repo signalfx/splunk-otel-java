@@ -18,14 +18,18 @@ package com.splunk.opentelemetry.instrumentation.nocode;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 class JSPSTest {
@@ -37,22 +41,23 @@ class JSPSTest {
     param0.add("present");
   }
 
-  void testBasicBehavior() {
-    String[][] tests =
-        new String[][] {
-          // Might be nice to support a bare "param0" or "this" but as a workaround can always use
-          // "this.toString()"
-          {"this.toString()", "{key=value}"},
-          {"this.toString().length()", "11"},
-          {"this.get(\"key\")", "value"},
-          {"this.get(\"key\").substring(1)", "alue"},
-          {"param0.isEmpty()", "false"},
-          {"param0.contains(\"present\")", "true"},
-          {"this.entrySet().size()", "1"},
-        };
-    for (String[] test : tests) {
-      assertEquals(test[1], JSPS.evaluate(test[0], thiz, new Object[] {param0}), test[0]);
-    }
+  static Stream<Arguments> jspsToExpected() {
+    return Stream.of(
+        // Might be nice to support a bare "param0" or "this" but as a workaround can always use
+        // "this.toString()"
+        arguments("this.toString()", "{key=value}"),
+        arguments("this.toString().length()", "11"),
+        arguments("this.get(\"key\")", "value"),
+        arguments("this.get(\"key\").substring(1)", "alue"),
+        arguments("param0.isEmpty()", "false"),
+        arguments("param0.contains(\"present\")", "true"),
+        arguments("this.entrySet().size()", "1"));
+  }
+
+  @ParameterizedTest
+  @MethodSource("jspsToExpected")
+  void testBasicBehavior(String jsps, String expected) {
+    assertEquals(expected, JSPS.evaluate(jsps, thiz, new Object[] {param0}), jsps);
   }
 
   @ParameterizedTest

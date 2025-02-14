@@ -24,14 +24,20 @@ import java.util.logging.Logger;
  * essentially a single call in Java (as though it ends with a semicolon), with
  * some limitations.  Its purpose is to allow pieces of nocode instrumentation
  * (attributes, span name) to be derived from the instrumentated context.
+ * <p>
  * As some illustrative examples:
- * this.getHeaders().get("X-Custom-Header").substring(5)
- * param0.getDetails().getCustomerAccount().getAccountType()
+ * <pre>
+ *   this.getHeaders().get("X-Custom-Header").substring(5)
+ *   param0.getDetails().getCustomerAccount().getAccountType()
+ * </pre>
+ * <p>
  * The limitations are:
- * - no access to variables other than 'this' and 'paramN' (N indexed at 0)
- * - no control flow (if), no local variables, basically nothing other than a single chain of method calls
- * - Method calls are limited to either 0 or 1 parameters currently
- * - Parameters must be literals and only integral (int/long), string, and boolean literals are currently supported
+ * <ul>
+ *   <li>no access to variables other than 'this' and 'paramN' (N indexed at 0)</li>
+ *   <li>no control flow (if), no local variables, basically nothing other than a single chain of method calls</li>
+ *   <li>Method calls are limited to either 0 or 1 parameters currently</li>
+ *   <li>Parameters must be literals and only integral (int/long), string, and boolean literals are currently supported</li>
+ * </ul>
  */
 public final class JSPS {
   private static final Logger logger = Logger.getLogger(JSPS.class.getName());

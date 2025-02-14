@@ -50,8 +50,12 @@ class SnapshotProfilingSignalPropagator implements TextMapPropagator {
   @Override
   public <C> Context extract(Context context, C carrier, TextMapGetter<C> getter) {
     Volume volume = Volume.fromString(getter.get(carrier, PROFILING_SIGNAL));
+    if (volume == Volume.OFF) {
+      return context;
+    }
+
     SpanContext spanContext = Span.fromContext(context).getSpanContext();
-    if (volume == Volume.HIGHEST) {
+    if (spanContext.isValid()) {
       registry.register(spanContext);
     }
     return context;

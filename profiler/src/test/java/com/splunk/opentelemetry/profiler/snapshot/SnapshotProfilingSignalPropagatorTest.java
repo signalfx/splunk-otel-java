@@ -32,7 +32,7 @@ class SnapshotProfilingSignalPropagatorTest {
 
   @RegisterExtension public final ObservableCarrier carrier = new ObservableCarrier();
 
-  private final TraceRegistry registry = new TraceRegistry();
+  private final RecordingTraceRegistry registry = new RecordingTraceRegistry();
   private final SnapshotProfilingSignalPropagator propagator =
       new SnapshotProfilingSignalPropagator(registry);
 
@@ -103,6 +103,16 @@ class SnapshotProfilingSignalPropagatorTest {
     propagator.extract(context, carrier, carrier);
 
     assertThat(registry.isRegistered(span.getSpanContext())).isFalse();
+  }
+
+  @Test
+  void doNotRegisterTraceForProfilingWhenSpanIsNotFoundInContext() {
+    carrier.set("splunk.trace.snapshot.volume", Volume.HIGHEST.toString());
+    var context = Context.current();
+
+    propagator.extract(context, carrier, carrier);
+
+    assertEquals(Collections.emptySet(), registry.registeredTraceIds());
   }
 
   @Test

@@ -75,10 +75,6 @@ public final class NocodeInstrumentation implements TypeInstrumentation {
       scope = context.makeCurrent();
     }
 
-    public NocodeAdvice() {
-      super();
-    }
-
     @Advice.OnMethodExit(onThrowable = Throwable.class, suppress = Throwable.class)
     public static void stopSpan(
         @Advice.Origin Method method,

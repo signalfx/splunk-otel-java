@@ -25,7 +25,7 @@ import java.util.Collections;
 import java.util.Map;
 import javax.annotation.Nullable;
 
-public class NocodeAttributesExtractor
+public final class NocodeAttributesExtractor
     implements AttributesExtractor<NocodeMethodInvocation, Void> {
   private final AttributesExtractor<ClassAndMethod, Void> codeExtractor;
 

@@ -18,6 +18,8 @@ package com.splunk.opentelemetry.instrumentation.nocode;
 
 import com.splunk.opentelemetry.javaagent.bootstrap.nocode.NocodeRules;
 import io.opentelemetry.instrumentation.api.incubator.semconv.util.ClassAndMethod;
+import java.util.Collections;
+import java.util.Map;
 
 public final class NocodeMethodInvocation {
   private final NocodeRules.Rule rule;
@@ -52,4 +54,9 @@ public final class NocodeMethodInvocation {
   public ClassAndMethod getClassAndMethod() {
     return classAndMethod;
   }
+
+  public Map<String,String> getRuleAttributes() {
+    return rule == null ? Collections.EMPTY_MAP : rule.attributes;
+  }
+
 }

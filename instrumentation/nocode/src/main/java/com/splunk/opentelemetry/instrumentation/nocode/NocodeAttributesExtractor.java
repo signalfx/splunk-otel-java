@@ -38,10 +38,7 @@ public final class NocodeAttributesExtractor
       AttributesBuilder attributesBuilder, Context context, NocodeMethodInvocation mi) {
     codeExtractor.onStart(attributesBuilder, context, mi.getClassAndMethod());
 
-    Map<String, String> attributes = Collections.EMPTY_MAP;
-    if (mi.getRule() != null) {
-      attributes = mi.getRule().attributes;
-    }
+    Map<String,String> attributes = mi.getRuleAttributes();
     for (String key : attributes.keySet()) {
       String jsps = attributes.get(key);
       String value = JSPS.evaluate(jsps, mi.getThiz(), mi.getParameters());

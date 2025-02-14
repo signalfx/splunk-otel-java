@@ -62,7 +62,7 @@ public final class YamlParser {
 
     Load load = new Load(LoadSettings.builder().build());
     Iterable<Object> parsedYaml = load.loadAllFromReader(yamlReader);
-    ArrayList<NocodeRules.Rule> answer = new ArrayList<>();
+    List<NocodeRules.Rule> answer = new ArrayList<>();
     for (Object yamlBit : parsedYaml) {
       List l = (List) yamlBit;
       for (Object yamlRule : l) {

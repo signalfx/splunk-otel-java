@@ -68,6 +68,6 @@ class PprofLogDataExporterTest {
     exporter.export(logMessage.getBytes(StandardCharsets.UTF_8), 1);
 
     var attributes = logger.records().getFirst().getAttributes();
-    assertEquals(source.toString(), attributes.get(stringKey("profiling.instrumentation.source")));
+    assertEquals(source.value(), attributes.get(stringKey("profiling.instrumentation.source")));
   }
 }

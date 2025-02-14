@@ -50,7 +50,7 @@ public class PprofLogDataExporter {
             .put(SOURCE_TYPE, PROFILING_SOURCE)
             .put(DATA_TYPE, dataType.value())
             .put(DATA_FORMAT, PPROF_GZIP_BASE64)
-            .put("profiling.instrumentation.source", instrumentationSource.toString())
+            .put("profiling.instrumentation.source", instrumentationSource.value())
             .build();
   }
 

@@ -47,7 +47,7 @@ public final class NocodeInstrumentation implements TypeInstrumentation {
   @Override
   public void transform(TypeTransformer transformer) {
     transformer.applyAdviceToMethod(
-        named(rule.methodName), NocodeInstrumentation.class.getName() + "$NocodeAdvice");
+        named(rule.methodName), this.getClass().getName() + "$NocodeAdvice");
   }
 
   @SuppressWarnings("unused")

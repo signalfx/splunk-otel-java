@@ -58,10 +58,13 @@ public class SnapshotProfilingSdkCustomizer implements AutoConfigurationCustomiz
     };
   }
 
-  private BiFunction<TextMapPropagator, ConfigProperties, TextMapPropagator> addProfilingSignalPropagator(TraceRegistry registry) {
+  private BiFunction<TextMapPropagator, ConfigProperties, TextMapPropagator>
+      addProfilingSignalPropagator(TraceRegistry registry) {
     return (textMapPropagator, properties) -> {
-      if (snapshotProfilingEnabled(properties) && textMapPropagator instanceof W3CTraceContextPropagator) {
-        return TextMapPropagator.composite(textMapPropagator, new SnapshotProfilingSignalPropagator(registry));
+      if (snapshotProfilingEnabled(properties)
+          && textMapPropagator instanceof W3CTraceContextPropagator) {
+        return TextMapPropagator.composite(
+            textMapPropagator, new SnapshotProfilingSignalPropagator(registry));
       }
       return textMapPropagator;
     };

@@ -48,7 +48,8 @@ import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.ParameterContext;
 import org.junit.jupiter.api.extension.ParameterResolver;
 
-public class OpenTelemetrySdkExtension implements OpenTelemetry, AfterEachCallback, ParameterResolver {
+public class OpenTelemetrySdkExtension
+    implements OpenTelemetry, AfterEachCallback, ParameterResolver {
   public static Builder builder() {
     return new Builder();
   }
@@ -132,10 +133,11 @@ public class OpenTelemetrySdkExtension implements OpenTelemetry, AfterEachCallba
       TextMapPropagator propagator = customizePropagators(configProperties);
       ContextPropagators contextPropagators = ContextPropagators.create(propagator);
 
-      OpenTelemetrySdk sdk = OpenTelemetrySdk.builder()
-          .setTracerProvider(tracerProvider)
-          .setPropagators(contextPropagators)
-          .build();
+      OpenTelemetrySdk sdk =
+          OpenTelemetrySdk.builder()
+              .setTracerProvider(tracerProvider)
+              .setPropagators(contextPropagators)
+              .build();
       return new OpenTelemetrySdkExtension(sdk);
     }
 

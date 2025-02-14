@@ -185,9 +185,9 @@ class JSPSTest {
           "this.get (\"key\").substring(1)",
           "this.get( \"key\").substring(1)",
           "this.get(\"key\" ).substring(1)",
-          "this.get(\"key\") .substring(1)",
-          "this.get(\"key\"). substring(1)",
-          "this.get(\"key\").substring (1)",
+          "this.get(\"key\")\t.substring(1)",
+          "this.get(\"key\").\nsubstring(1)",
+          "this.get(\"key\").substring\r(1)",
           "this.get(\"key\").substring( 1)",
           "this.get(\"key\").substring(1 )",
         };

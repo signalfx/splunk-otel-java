@@ -56,8 +56,7 @@ class VolumeTest {
     return Stream.of(
         Arguments.of(Volume.OFF, "off"),
         Arguments.of(Volume.HIGHEST, "highest"),
-        Arguments.of(Volume.HIGHEST, "hıghest")
-    );
+        Arguments.of(Volume.HIGHEST, "hıghest"));
   }
 
   @ParameterizedTest

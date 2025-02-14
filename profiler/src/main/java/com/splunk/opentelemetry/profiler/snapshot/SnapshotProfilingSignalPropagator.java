@@ -20,7 +20,7 @@ import java.util.Collection;
 import java.util.Collections;
 
 class SnapshotProfilingSignalPropagator implements TextMapPropagator {
-  private static final String PROFILING_SIGNAL = "splunk.trace.snapshot";
+  private static final String PROFILING_SIGNAL = "splunk.trace.snapshot.volume";
 
   private final TraceRegistry registry;
 
@@ -37,15 +37,15 @@ class SnapshotProfilingSignalPropagator implements TextMapPropagator {
   public <C> void inject(Context context, C carrier, TextMapSetter<C> setter) {
     SpanContext spanContext = Span.fromContext(context).getSpanContext();
     if (registry.isRegistered(spanContext)) {
-      setter.set(carrier, PROFILING_SIGNAL, Boolean.TRUE.toString());
+      setter.set(carrier, PROFILING_SIGNAL, Volume.HIGHEST.toString());
     }
   }
 
   @Override
   public <C> Context extract(Context context, C carrier, TextMapGetter<C> getter) {
-    boolean profile = Boolean.parseBoolean(getter.get(carrier, PROFILING_SIGNAL));
+    Volume volume = Volume.fromString(getter.get(carrier, PROFILING_SIGNAL));
     SpanContext spanContext = Span.fromContext(context).getSpanContext();
-    if (profile) {
+    if (volume == Volume.HIGHEST) {
       registry.register(spanContext);
     }
     return context;

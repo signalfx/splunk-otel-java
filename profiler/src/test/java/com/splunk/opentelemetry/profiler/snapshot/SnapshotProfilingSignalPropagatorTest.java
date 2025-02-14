@@ -19,22 +19,22 @@ class SnapshotProfilingSignalPropagatorTest {
 
   @Test
   void propagatorReportsOnlyProfilingSignalField() {
-    assertEquals(List.of("splunk.trace.snapshot"), propagator.fields());
+    assertEquals(List.of("splunk.trace.snapshot.volume"), propagator.fields());
   }
 
   @Test
-  void attachProfilingSignalToCarrierWhenTraceIsRegisteredForProfiling(Tracer tracer) {
+  void attachTraceSnapshotVolumeToCarrierWhenTraceIsRegisteredForProfiling(Tracer tracer) {
     var span = tracer.spanBuilder("span").startSpan();
     var context = Context.current().with(span);
     registry.register(span.getSpanContext());
 
     propagator.inject(context, carrier, carrier);
 
-    assertEquals("true", carrier.get("splunk.trace.snapshot"));
+    assertEquals(Volume.HIGHEST.toString(), carrier.get("splunk.trace.snapshot.volume"));
   }
 
   @Test
-  void doNotAttachProfilingSignalToCarrierWhenTraceNotRegisteredForProfiling(Tracer tracer) {
+  void doNotAttachTraceSnapshotVolumeToCarrierWhenTraceNotRegisteredForProfiling(Tracer tracer) {
     var span = tracer.spanBuilder("span").startSpan();
     var context = Context.current().with(span);
 
@@ -44,8 +44,8 @@ class SnapshotProfilingSignalPropagatorTest {
   }
 
   @Test
-  void registerTraceForProfilingWhenProfilingSignalIsTrue(Tracer tracer) {
-    carrier.set("splunk.trace.snapshot", "true");
+  void registerTraceForProfilingWhenTraceSnapshotVolumeIsHighest(Tracer tracer) {
+    carrier.set("splunk.trace.snapshot.volume", Volume.HIGHEST.toString());
     var span = tracer.spanBuilder("span").startSpan();
     var context = Context.current().with(span);
 
@@ -56,7 +56,7 @@ class SnapshotProfilingSignalPropagatorTest {
 
   @Test
   void extractReturnsProvidedContextWhenRegisteringTraceForProfiling(Tracer tracer) {
-    carrier.set("splunk.trace.snapshot", "true");
+    carrier.set("splunk.trace.snapshot.volume", Volume.HIGHEST.toString());
     var span = tracer.spanBuilder("span").startSpan();
     var context = Context.current().with(span);
 
@@ -66,8 +66,8 @@ class SnapshotProfilingSignalPropagatorTest {
   }
 
   @Test
-  void doNotRegisterTraceForProfilingWhenProfilingSignalIsFalse(Tracer tracer) {
-    carrier.set("appdynamics-profiling", "false");
+  void doNotRegisterTraceForProfilingWhenTraceSnapshotVolumeIsOff(Tracer tracer) {
+    carrier.set("splunk.trace.snapshot.volume", Volume.OFF.toString());
     var span = tracer.spanBuilder("span").startSpan();
     var context = Context.current().with(span);
 
@@ -77,7 +77,7 @@ class SnapshotProfilingSignalPropagatorTest {
   }
 
   @Test
-  void doNotRegisterTraceForProfilingWhenProfilingSignalIsMissing(Tracer tracer) {
+  void doNotRegisterTraceForProfilingWhenTraceSnapshotVolumeIsMissing(Tracer tracer) {
     var span = tracer.spanBuilder("span").startSpan();
     var context = Context.current().with(span);
 

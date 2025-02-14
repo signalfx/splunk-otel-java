@@ -62,7 +62,7 @@ class DistributedProfilingSignalTest {
           .build();
 
   @Test
-  void traceProfilingSignalPropagatesAcrossProcessBoundaries() {
+  void traceSnapshotVolumePropagatesAcrossProcessBoundaries() {
     var message = new Message();
 
     upstream.send(message);

@@ -15,17 +15,18 @@ import io.opentelemetry.api.trace.SpanKind;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.context.Scope;
 import io.opentelemetry.context.propagation.TextMapGetter;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.function.UnaryOperator;
 import org.junit.jupiter.api.extension.AfterEachCallback;
 import org.junit.jupiter.api.extension.BeforeEachCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.function.UnaryOperator;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class Server extends Thread implements BeforeEachCallback, AfterEachCallback {
-  private static final Logger logger = LoggerFactory.getLogger(Server.class);
+  private static final Logger logger = Logger.getLogger(Server.class.getName());
 
   public static Builder builder(OpenTelemetry otel) {
     return new Builder(otel);
@@ -63,7 +64,7 @@ public class Server extends Thread implements BeforeEachCallback, AfterEachCallb
       try {
         accept(requests.take());
       } catch (InterruptedException e) {
-        logger.error("Interrupted while waiting for message", e);
+        logger.log(Level.WARNING, e.getMessage(), e);
       }
     }
   }

@@ -18,6 +18,7 @@ package com.splunk.opentelemetry.instrumentation.nocode;
 
 import io.opentelemetry.api.trace.SpanKind;
 import io.opentelemetry.instrumentation.api.instrumenter.SpanKindExtractor;
+import java.util.Locale;
 
 public class NocodeSpanKindExtractor implements SpanKindExtractor<NocodeMethodInvocation> {
   @Override
@@ -26,7 +27,7 @@ public class NocodeSpanKindExtractor implements SpanKindExtractor<NocodeMethodIn
       return SpanKind.INTERNAL;
     }
     try {
-      return SpanKind.valueOf(mi.getRule().spanKind.toUpperCase());
+      return SpanKind.valueOf(mi.getRule().spanKind.toUpperCase(Locale.ROOT));
     } catch (IllegalArgumentException noMatchingValue) {
       return SpanKind.INTERNAL;
     }

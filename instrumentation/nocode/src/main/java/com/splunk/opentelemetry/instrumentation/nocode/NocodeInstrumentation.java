@@ -85,8 +85,9 @@ public final class NocodeInstrumentation implements TypeInstrumentation {
         return;
       }
       scope.close();
-      // I wonder why the original methods instrumentation had support for modifying the return
-      // value?
+      // This is heavily based on the "methods" instrumentation from upstream, but
+      // for now we're not supporting modifying return types/async result codes, etc.
+      // This could be expanded in the future.
       instrumentor().end(context, otelInvocation, null, error);
     }
   }

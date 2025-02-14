@@ -19,24 +19,28 @@ package com.splunk.opentelemetry.instrumentation.nocode;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.logging.Logger;
+
 /**
- * JSPS stands for Java-like String-Producing Statement.  A JSPS is
- * essentially a single call in Java (as though it ends with a semicolon), with
- * some limitations.  Its purpose is to allow pieces of nocode instrumentation
- * (attributes, span name) to be derived from the instrumentated context.
- * <p>
- * As some illustrative examples:
+ * JSPS stands for Java-like String-Producing Statement. A JSPS is essentially a single call in Java
+ * (as though it ends with a semicolon), with some limitations. Its purpose is to allow pieces of
+ * nocode instrumentation (attributes, span name) to be derived from the instrumentated context.
+ *
+ * <p>As some illustrative examples:
+ *
  * <pre>
  *   this.getHeaders().get("X-Custom-Header").substring(5)
  *   param0.getDetails().getCustomerAccount().getAccountType()
  * </pre>
- * <p>
- * The limitations are:
+ *
+ * <p>The limitations are:
+ *
  * <ul>
- *   <li>no access to variables other than 'this' and 'paramN' (N indexed at 0)</li>
- *   <li>no control flow (if), no local variables, basically nothing other than a single chain of method calls</li>
- *   <li>Method calls are limited to either 0 or 1 parameters currently</li>
- *   <li>Parameters must be literals and only integral (int/long), string, and boolean literals are currently supported</li>
+ *   <li>no access to variables other than 'this' and 'paramN' (N indexed at 0)
+ *   <li>no control flow (if), no local variables, basically nothing other than a single chain of
+ *       method calls
+ *   <li>Method calls are limited to either 0 or 1 parameters currently
+ *   <li>Parameters must be literals and only integral (int/long), string, and boolean literals are
+ *       currently supported
  * </ul>
  */
 public final class JSPS {
@@ -131,7 +135,8 @@ public final class JSPS {
   }
 
   // Returns null for none found
-  private static Method findMatchingMethod(String methodName, Class clazz, Class[] actualParamTypes) {
+  private static Method findMatchingMethod(
+      String methodName, Class clazz, Class[] actualParamTypes) {
     if (clazz == null) {
       return null;
     }

@@ -24,6 +24,7 @@ import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.PROF
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.SOURCE_TYPE;
 import static java.util.logging.Level.FINE;
 
+import com.splunk.opentelemetry.profiler.InstrumentationSource;
 import com.splunk.opentelemetry.profiler.ProfilingDataType;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.logs.Logger;
@@ -38,6 +39,10 @@ public class PprofLogDataExporter {
   private final Attributes commonAttributes;
 
   public PprofLogDataExporter(Logger otelLogger, ProfilingDataType dataType) {
+    this(otelLogger, dataType, InstrumentationSource.CONTINUOUS);
+  }
+
+  public PprofLogDataExporter(Logger otelLogger, ProfilingDataType dataType, InstrumentationSource instrumentationSource) {
     this.otelLogger = otelLogger;
     this.dataType = dataType;
     this.commonAttributes =
@@ -45,6 +50,7 @@ public class PprofLogDataExporter {
             .put(SOURCE_TYPE, PROFILING_SOURCE)
             .put(DATA_TYPE, dataType.value())
             .put(DATA_FORMAT, PPROF_GZIP_BASE64)
+            .put("profiling.instrumentation.source", instrumentationSource.toString())
             .build();
   }
 

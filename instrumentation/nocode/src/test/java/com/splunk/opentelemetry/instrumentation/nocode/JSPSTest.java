@@ -26,7 +26,7 @@ import java.util.Map;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
 
-public class JSPSTest {
+class JSPSTest {
   private static final Map<String, String> thiz = new HashMap<>();
   private static final Set<String> param0 = new HashSet<>();
 
@@ -36,7 +36,7 @@ public class JSPSTest {
   }
 
   @Test
-  public void testBasicBehavior() {
+  void testBasicBehavior() {
     String[][] tests =
         new String[][] {
           // Might be nice to support a bare "param0" or "this" but as a workaround can always use
@@ -55,7 +55,7 @@ public class JSPSTest {
   }
 
   @Test
-  public void testInvalidJspsReturnNull() {
+  void testInvalidJspsReturnNull() {
     String[] invalids =
         new String[] {
           "nosuchvar",
@@ -87,7 +87,7 @@ public class JSPSTest {
   }
 
   @Test
-  public void testIntegerLiteralLongerThanOneDigit() {
+  void testIntegerLiteralLongerThanOneDigit() {
     Map<String, String> o = new HashMap<>();
     o.put("key", "really long value");
     String jsps = "this.get(\"key\").substring(10)";
@@ -143,7 +143,7 @@ public class JSPSTest {
   }
 
   @Test
-  public void testBooleanLiteralParamTypes() {
+  void testBooleanLiteralParamTypes() {
     TakeBooleanPrimitive b = new TakeBooleanPrimitive();
     TakeBoolean B = new TakeBoolean();
     TakeObject O = new TakeObject();
@@ -153,7 +153,7 @@ public class JSPSTest {
   }
 
   @Test
-  public void testStringLiteralParamTypes() {
+  void testStringLiteralParamTypes() {
     TakeString S = new TakeString();
     TakeObject O = new TakeObject();
     assertEquals("a", JSPS.evaluate("this.take(\"a\")", S, new Object[0]));
@@ -175,7 +175,7 @@ public class JSPSTest {
   }
 
   @Test
-  public void testWhitespace() {
+  void testWhitespace() {
     String[] tests =
         new String[] {
           "this.get(\"key\").substring(1)",
@@ -196,7 +196,8 @@ public class JSPSTest {
     }
   }
 
-  public void testManyParams() {
+  @Test
+  void testManyParams() {
     Object[] params = new Object[13];
     Arrays.fill(params, new Object());
     assertEquals(

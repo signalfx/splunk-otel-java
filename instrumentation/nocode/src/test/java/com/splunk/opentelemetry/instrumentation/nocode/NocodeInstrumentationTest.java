@@ -28,12 +28,12 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
 // This test has "test/config/nocode.yml" applied to it by the gradle environment setting
-public class NocodeInstrumentationTest {
+class NocodeInstrumentationTest {
   @RegisterExtension
   static final InstrumentationExtension testing = AgentInstrumentationExtension.create();
 
   @Test
-  public void testBasicMethod() {
+  void testBasicMethod() {
     new SampleClass().doSomething();
     // FIXME what is scope version verification and why doesn't it pass?
     testing.waitAndAssertTracesWithoutScopeVersionVerification(
@@ -48,7 +48,7 @@ public class NocodeInstrumentationTest {
   }
 
   @Test
-  public void testRuleWithManyInvalidFields() {
+  void testRuleWithManyInvalidFields() {
     new SampleClass().doInvalidRule();
     testing.waitAndAssertTracesWithoutScopeVersionVerification(
         trace ->
@@ -61,7 +61,7 @@ public class NocodeInstrumentationTest {
   }
 
   @Test
-  public void testThrowException() {
+  void testThrowException() {
     try {
       new SampleClass().throwException(5);
     } catch (Exception expected) {

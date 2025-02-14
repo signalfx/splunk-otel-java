@@ -48,7 +48,7 @@ public final class YamlParser {
     try {
       return loadUnsafe();
     } catch (Exception e) {
-      logger.severe("Can't load configured yaml: " + e);
+      logger.log(Level.SEVERE, "Can't load configured nocode yaml.", e)
       return Collections.emptyList();
     }
   }

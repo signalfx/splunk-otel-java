@@ -45,6 +45,7 @@ public final class NocodeMethodInvocation {
 
   /**
    * Please be careful with this, it's directly tied to @Advice.AllArguments.
+   *
    * @return
    */
   public Object[] getParameters() {
@@ -55,8 +56,7 @@ public final class NocodeMethodInvocation {
     return classAndMethod;
   }
 
-  public Map<String,String> getRuleAttributes() {
+  public Map<String, String> getRuleAttributes() {
     return rule == null ? Collections.EMPTY_MAP : rule.attributes;
   }
-
 }

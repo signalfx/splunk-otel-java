@@ -16,17 +16,15 @@
 
 package com.splunk.opentelemetry.javaagent.bootstrap.nocode;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicReference;
 
 public final class NocodeRules {
 
-  public final static class Rule {
+  public static final class Rule {
     public final String className;
     public final String methodName;
     public final String spanName; // may be null - use default of "class.method"

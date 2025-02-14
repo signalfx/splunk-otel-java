@@ -56,29 +56,30 @@ class JSPSTest {
   }
 
   @ParameterizedTest
-  @ValueSource(strings = {
-      "nosuchvar",
-      "nosuchvar.toString()",
-      "this  .",
-      "this  .  ",
-      "this.noSuchMethod()",
-      "toString()",
-      "this.toString()extrastuffatend",
-      "this.toString()toString()",
-      "param1.toString()", // out of bounds
-      "param999.toString()",
-      "this.getOrDefault(\"key\", \"multiparamnotsupported\")",
-      "this.get(\"noclosequote)",
-      "this.get(\"nocloseparan\"",
-      "this.noparens",
-      "this.noparens.anotherMethod()",
-      "this.wrongOrder)(",
-      "this.get(NotALiteralParameter);",
-      "this.get(12.2)",
-      "this.get(this)",
-      "this.get(\"NoSuchKey\")", // evals completely but returns null
-      "param1.toString()", // no such param
-  })
+  @ValueSource(
+      strings = {
+        "nosuchvar",
+        "nosuchvar.toString()",
+        "this  .",
+        "this  .  ",
+        "this.noSuchMethod()",
+        "toString()",
+        "this.toString()extrastuffatend",
+        "this.toString()toString()",
+        "param1.toString()", // out of bounds
+        "param999.toString()",
+        "this.getOrDefault(\"key\", \"multiparamnotsupported\")",
+        "this.get(\"noclosequote)",
+        "this.get(\"nocloseparan\"",
+        "this.noparens",
+        "this.noparens.anotherMethod()",
+        "this.wrongOrder)(",
+        "this.get(NotALiteralParameter);",
+        "this.get(12.2)",
+        "this.get(this)",
+        "this.get(\"NoSuchKey\")", // evals completely but returns null
+        "param1.toString()", // no such param
+      })
   void testInvalidJspsReturnNull(String invalid) {
     String answer = JSPS.evaluate(invalid, thiz, new Object[] {param0});
     assertNull(answer, "Expected null for \"" + invalid + "\" but was \"" + answer + "\"");
@@ -173,20 +174,21 @@ class JSPSTest {
   }
 
   @ParameterizedTest
-  @ValueSource(strings = {
-      "this.get(\"key\").substring(1)",
-      " this.get(\"key\").substring(1)",
-      "this .get(\"key\").substring(1)",
-      "this. get(\"key\").substring(1)",
-      "this.get (\"key\").substring(1)",
-      "this.get( \"key\").substring(1)",
-      "this.get(\"key\" ).substring(1)",
-      "this.get(\"key\")\t.substring(1)",
-      "this.get(\"key\").\nsubstring(1)",
-      "this.get(\"key\").substring\r(1)",
-      "this.get(\"key\").substring( 1)",
-      "this.get(\"key\").substring(1 )",
-  })
+  @ValueSource(
+      strings = {
+        "this.get(\"key\").substring(1)",
+        " this.get(\"key\").substring(1)",
+        "this .get(\"key\").substring(1)",
+        "this. get(\"key\").substring(1)",
+        "this.get (\"key\").substring(1)",
+        "this.get( \"key\").substring(1)",
+        "this.get(\"key\" ).substring(1)",
+        "this.get(\"key\")\t.substring(1)",
+        "this.get(\"key\").\nsubstring(1)",
+        "this.get(\"key\").substring\r(1)",
+        "this.get(\"key\").substring( 1)",
+        "this.get(\"key\").substring(1 )",
+      })
   void testWhitespace(String test) {
     assertEquals("alue", JSPS.evaluate(test, thiz, new Object[] {param0}), test);
   }

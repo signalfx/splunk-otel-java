@@ -61,8 +61,7 @@ public final class NocodeInstrumentation implements TypeInstrumentation {
         @Advice.Local("otelScope") Scope scope,
         @Advice.This Object thiz,
         @Advice.AllArguments Object[] methodParams) {
-      NocodeRules.Rule rule =
-          NocodeRules.find(declaringClass.getName(), methodName);
+      NocodeRules.Rule rule = NocodeRules.find(declaringClass.getName(), methodName);
       otelInvocation =
           new NocodeMethodInvocation(
               rule, ClassAndMethod.create(declaringClass, methodName), thiz, methodParams);

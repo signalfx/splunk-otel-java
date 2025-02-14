@@ -21,7 +21,6 @@ import io.opentelemetry.context.Context;
 import io.opentelemetry.instrumentation.api.incubator.semconv.code.CodeAttributesExtractor;
 import io.opentelemetry.instrumentation.api.incubator.semconv.util.ClassAndMethod;
 import io.opentelemetry.instrumentation.api.instrumenter.AttributesExtractor;
-import java.util.Collections;
 import java.util.Map;
 import javax.annotation.Nullable;
 
@@ -38,7 +37,7 @@ public final class NocodeAttributesExtractor
       AttributesBuilder attributesBuilder, Context context, NocodeMethodInvocation mi) {
     codeExtractor.onStart(attributesBuilder, context, mi.getClassAndMethod());
 
-    Map<String,String> attributes = mi.getRuleAttributes();
+    Map<String, String> attributes = mi.getRuleAttributes();
     for (String key : attributes.keySet()) {
       String jsps = attributes.get(key);
       String value = JSPS.evaluate(jsps, mi.getThiz(), mi.getParameters());

@@ -29,7 +29,7 @@ import java.util.logging.Logger;
 import org.snakeyaml.engine.v2.api.Load;
 import org.snakeyaml.engine.v2.api.LoadSettings;
 
-public class YamlParser {
+public final class YamlParser {
   private static final Logger logger = Logger.getLogger(YamlParser.class.getName());
   // FIXME support method override selection - e.g., with classfile method signature or something
   public static final String NOCODE_YMLFILE_ENV_KEY = "SPLUNK_OTEL_INSTRUMENTATION_NOCODE_YML_FILE";

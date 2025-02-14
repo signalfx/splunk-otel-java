@@ -19,22 +19,21 @@ package com.splunk.opentelemetry.instrumentation.nocode;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.logging.Logger;
-
-// JSPS stands for Java-like String-Producing Statement.  A JSPS is
-// essentially a single call in Java (as though it ends with a semicolon), with
-// some limitations.  Its purpose is to allow pieces of nocode instrumentation
-// (attributes, span name) to be derived from the instrumentated context.
-// As some illustrative examples:
-// this.getHeaders().get("X-Custom-Header").substring(5)
-// param0.getDetails().getCustomerAccount().getAccountType()
-// The limitations are:
-// no access to variables other than 'this' and 'paramN' (N indexed at 0)
-// no control flow (if), no local variables, basically nothing other than a single chain of method
-// calls
-// Methods calls are limited to either 0 or 1 parameters currently
-// Parameters must be literals and only integral (int/long), string, and boolean literals are
-// currently supported
-public class JSPS {
+/**
+ * JSPS stands for Java-like String-Producing Statement.  A JSPS is
+ * essentially a single call in Java (as though it ends with a semicolon), with
+ * some limitations.  Its purpose is to allow pieces of nocode instrumentation
+ * (attributes, span name) to be derived from the instrumentated context.
+ * As some illustrative examples:
+ * this.getHeaders().get("X-Custom-Header").substring(5)
+ * param0.getDetails().getCustomerAccount().getAccountType()
+ * The limitations are:
+ * - no access to variables other than 'this' and 'paramN' (N indexed at 0)
+ * - no control flow (if), no local variables, basically nothing other than a single chain of method calls
+ * - Method calls are limited to either 0 or 1 parameters currently
+ * - Parameters must be literals and only integral (int/long), string, and boolean literals are currently supported
+ */
+public final class JSPS {
   private static final Logger logger = Logger.getLogger(JSPS.class.getName());
   private static final Class[] NoParamTypes = new Class[0];
 
@@ -126,25 +125,25 @@ public class JSPS {
   }
 
   // Returns null for none found
-  private static Method findMatchingMethod(String methodName, Class c, Class[] actualParamTypes) {
-    if (c == null) {
+  private static Method findMatchingMethod(String methodName, Class clazz, Class[] actualParamTypes) {
+    if (clazz == null) {
       return null;
     }
-    if (Modifier.isPublic(c.getModifiers())) {
+    if (Modifier.isPublic(clazz.getModifiers())) {
       try {
-        return c.getMethod(methodName, actualParamTypes);
+        return clazz.getMethod(methodName, actualParamTypes);
       } catch (NoSuchMethodException nsme) {
         // keep trying
       }
     }
     // not public, try interfaces and supertype
-    for (Class iface : c.getInterfaces()) {
+    for (Class iface : clazz.getInterfaces()) {
       Method m = findMatchingMethod(methodName, iface, actualParamTypes);
       if (m != null) {
         return m;
       }
     }
-    return findMatchingMethod(methodName, c.getSuperclass(), actualParamTypes);
+    return findMatchingMethod(methodName, clazz.getSuperclass(), actualParamTypes);
   }
 
   private static Method findMethodWithPossibleTypes(

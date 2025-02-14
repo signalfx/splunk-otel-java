@@ -65,18 +65,16 @@ public final class YamlParser {
     Iterable<Object> parsedYaml = load.loadAllFromReader(yamlReader);
     List<NocodeRules.Rule> answer = new ArrayList<>();
     for (Object yamlBit : parsedYaml) {
-      List l = (List) yamlBit;
-      for (Object yamlRule : l) {
-        LinkedHashMap lhm = (LinkedHashMap) yamlRule;
-        String className = lhm.get("class").toString();
-        String methodName = lhm.get("method").toString();
-        String spanName = lhm.get("spanName") == null ? null : lhm.get("spanName").toString();
-        String spanKind = lhm.get("spanKind") == null ? null : lhm.get("spanKind").toString();
-        List attrs = (List) lhm.get("attributes");
+      List<Map<String,Object>> rulesMap = (List<Map<String,Object>>) yamlBit;
+      for (Map<String,Object> yamlRule : rulesMap) {
+        String className = yamlRule.get("class").toString();
+        String methodName = yamlRule.get("method").toString();
+        String spanName = yamlRule.get("spanName") == null ? null : yamlRule.get("spanName").toString();
+        String spanKind = yamlRule.get("spanKind") == null ? null : yamlRule.get("spanKind").toString();
+        List<Map<String,Object>> attrs = (List<Map<String,Object>>) yamlRule.get("attributes");
         Map<String, String> ruleAttributes = new HashMap<>();
-        for (Object attr : attrs) {
-          LinkedHashMap attrMap = (LinkedHashMap) attr;
-          ruleAttributes.put(attrMap.get("key").toString(), attrMap.get("value").toString());
+        for (Map<String,Object> attr : attrs) {
+          ruleAttributes.put(attr.get("key").toString(), attr.get("value").toString());
         }
         answer.add(new NocodeRules.Rule(className, methodName, spanName, spanKind, ruleAttributes));
       }

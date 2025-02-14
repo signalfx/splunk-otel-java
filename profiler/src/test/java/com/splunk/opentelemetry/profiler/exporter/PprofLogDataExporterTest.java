@@ -1,5 +1,6 @@
 package com.splunk.opentelemetry.profiler.exporter;
 
+import static io.opentelemetry.api.common.AttributeKey.longKey;
 import static io.opentelemetry.api.common.AttributeKey.stringKey;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -11,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 class PprofLogDataExporterTest {
   @RegisterExtension public final InMemoryOtelLogger logger = new InMemoryOtelLogger();
@@ -69,5 +71,17 @@ class PprofLogDataExporterTest {
 
     var attributes = logger.records().getFirst().getAttributes();
     assertEquals(source.value(), attributes.get(stringKey("profiling.instrumentation.source")));
+  }
+
+  @ParameterizedTest
+  @ValueSource(ints = { 1, 50, 100, 10_000 })
+  void includeFrameCountAttributeInLogMessage(int frameCount) {
+    var logMessage = "this is a test log message, the contents are not important.";
+
+    var exporter = new PprofLogDataExporter(logger, ProfilingDataType.CPU, InstrumentationSource.CONTINUOUS);
+    exporter.export(logMessage.getBytes(StandardCharsets.UTF_8), frameCount);
+
+    var attributes = logger.records().getFirst().getAttributes();
+    assertEquals(frameCount, attributes.get(longKey("profiling.data.total.frame.count")));
   }
 }

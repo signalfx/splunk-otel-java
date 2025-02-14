@@ -25,6 +25,8 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 class JSPSTest {
   private static final Map<String, String> thiz = new HashMap<>();
@@ -35,7 +37,6 @@ class JSPSTest {
     param0.add("present");
   }
 
-  @Test
   void testBasicBehavior() {
     String[][] tests =
         new String[][] {
@@ -54,36 +55,33 @@ class JSPSTest {
     }
   }
 
-  @Test
-  void testInvalidJspsReturnNull() {
-    String[] invalids =
-        new String[] {
-          "nosuchvar",
-          "nosuchvar.toString()",
-          "this  .",
-          "this  .  ",
-          "this.noSuchMethod()",
-          "toString()",
-          "this.toString()extrastuffatend",
-          "this.toString()toString()",
-          "param1.toString()", // out of bounds
-          "param999.toString()",
-          "this.getOrDefault(\"key\", \"multiparamnotsupported\")",
-          "this.get(\"noclosequote)",
-          "this.get(\"nocloseparan\"",
-          "this.noparens",
-          "this.noparens.anotherMethod()",
-          "this.wrongOrder)(",
-          "this.get(NotALiteralParameter);",
-          "this.get(12.2)",
-          "this.get(this)",
-          "this.get(\"NoSuchKey\")", // evals completely but returns null
-          "param1.toString()", // no such param
-        };
-    for (String invalid : invalids) {
-      String answer = JSPS.evaluate(invalid, thiz, new Object[] {param0});
-      assertNull(answer, "Expected null for \"" + invalid + "\" but was \"" + answer + "\"");
-    }
+  @ParameterizedTest
+  @ValueSource(strings = {
+      "nosuchvar",
+      "nosuchvar.toString()",
+      "this  .",
+      "this  .  ",
+      "this.noSuchMethod()",
+      "toString()",
+      "this.toString()extrastuffatend",
+      "this.toString()toString()",
+      "param1.toString()", // out of bounds
+      "param999.toString()",
+      "this.getOrDefault(\"key\", \"multiparamnotsupported\")",
+      "this.get(\"noclosequote)",
+      "this.get(\"nocloseparan\"",
+      "this.noparens",
+      "this.noparens.anotherMethod()",
+      "this.wrongOrder)(",
+      "this.get(NotALiteralParameter);",
+      "this.get(12.2)",
+      "this.get(this)",
+      "this.get(\"NoSuchKey\")", // evals completely but returns null
+      "param1.toString()", // no such param
+  })
+  void testInvalidJspsReturnNull(String invalid) {
+    String answer = JSPS.evaluate(invalid, thiz, new Object[] {param0});
+    assertNull(answer, "Expected null for \"" + invalid + "\" but was \"" + answer + "\"");
   }
 
   @Test
@@ -174,26 +172,23 @@ class JSPSTest {
     assertEquals("13", JSPS.evaluate("this.take(13)", O, new Object[0]));
   }
 
-  @Test
-  void testWhitespace() {
-    String[] tests =
-        new String[] {
-          "this.get(\"key\").substring(1)",
-          " this.get(\"key\").substring(1)",
-          "this .get(\"key\").substring(1)",
-          "this. get(\"key\").substring(1)",
-          "this.get (\"key\").substring(1)",
-          "this.get( \"key\").substring(1)",
-          "this.get(\"key\" ).substring(1)",
-          "this.get(\"key\")\t.substring(1)",
-          "this.get(\"key\").\nsubstring(1)",
-          "this.get(\"key\").substring\r(1)",
-          "this.get(\"key\").substring( 1)",
-          "this.get(\"key\").substring(1 )",
-        };
-    for (String test : tests) {
-      assertEquals("alue", JSPS.evaluate(test, thiz, new Object[] {param0}), test);
-    }
+  @ParameterizedTest
+  @ValueSource(strings = {
+      "this.get(\"key\").substring(1)",
+      " this.get(\"key\").substring(1)",
+      "this .get(\"key\").substring(1)",
+      "this. get(\"key\").substring(1)",
+      "this.get (\"key\").substring(1)",
+      "this.get( \"key\").substring(1)",
+      "this.get(\"key\" ).substring(1)",
+      "this.get(\"key\")\t.substring(1)",
+      "this.get(\"key\").\nsubstring(1)",
+      "this.get(\"key\").substring\r(1)",
+      "this.get(\"key\").substring( 1)",
+      "this.get(\"key\").substring(1 )",
+  })
+  void testWhitespace(String test) {
+    assertEquals("alue", JSPS.evaluate(test, thiz, new Object[] {param0}), test);
   }
 
   @Test

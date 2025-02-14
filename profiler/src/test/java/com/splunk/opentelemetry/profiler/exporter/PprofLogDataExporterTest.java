@@ -41,7 +41,7 @@ class PprofLogDataExporterTest {
         new PprofLogDataExporter(logger, ProfilingDataType.CPU, InstrumentationSource.CONTINUOUS);
     exporter.export(logMessage.getBytes(StandardCharsets.UTF_8), 1);
 
-    assertEquals(Value.of(logMessage), logger.records().getFirst().getBodyValue());
+    assertEquals(Value.of(logMessage), logger.records().get(0).getBodyValue());
   }
 
   @Test
@@ -52,7 +52,7 @@ class PprofLogDataExporterTest {
         new PprofLogDataExporter(logger, ProfilingDataType.CPU, InstrumentationSource.CONTINUOUS);
     exporter.export(logMessage.getBytes(StandardCharsets.UTF_8), 1);
 
-    var attributes = logger.records().getFirst().getAttributes();
+    var attributes = logger.records().get(0).getAttributes();
     assertEquals("otel.profiling", attributes.get(stringKey("com.splunk.sourcetype")));
   }
 
@@ -64,7 +64,7 @@ class PprofLogDataExporterTest {
         new PprofLogDataExporter(logger, ProfilingDataType.CPU, InstrumentationSource.CONTINUOUS);
     exporter.export(logMessage.getBytes(StandardCharsets.UTF_8), 1);
 
-    var attributes = logger.records().getFirst().getAttributes();
+    var attributes = logger.records().get(0).getAttributes();
     assertEquals("pprof-gzip-base64", attributes.get(stringKey("profiling.data.format")));
   }
 
@@ -76,7 +76,7 @@ class PprofLogDataExporterTest {
     var exporter = new PprofLogDataExporter(logger, dataType, InstrumentationSource.CONTINUOUS);
     exporter.export(logMessage.getBytes(StandardCharsets.UTF_8), 1);
 
-    var attributes = logger.records().getFirst().getAttributes();
+    var attributes = logger.records().get(0).getAttributes();
     assertEquals(dataType.value(), attributes.get(stringKey("profiling.data.type")));
   }
 
@@ -88,7 +88,7 @@ class PprofLogDataExporterTest {
     var exporter = new PprofLogDataExporter(logger, ProfilingDataType.CPU, source);
     exporter.export(logMessage.getBytes(StandardCharsets.UTF_8), 1);
 
-    var attributes = logger.records().getFirst().getAttributes();
+    var attributes = logger.records().get(0).getAttributes();
     assertEquals(source.value(), attributes.get(stringKey("profiling.instrumentation.source")));
   }
 
@@ -101,7 +101,7 @@ class PprofLogDataExporterTest {
         new PprofLogDataExporter(logger, ProfilingDataType.CPU, InstrumentationSource.CONTINUOUS);
     exporter.export(logMessage.getBytes(StandardCharsets.UTF_8), frameCount);
 
-    var attributes = logger.records().getFirst().getAttributes();
+    var attributes = logger.records().get(0).getAttributes();
     assertEquals(frameCount, attributes.get(longKey("profiling.data.total.frame.count")));
   }
 }

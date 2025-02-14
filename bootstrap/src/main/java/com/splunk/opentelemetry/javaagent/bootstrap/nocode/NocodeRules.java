@@ -21,6 +21,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 
 public final class NocodeRules {
@@ -50,30 +51,20 @@ public final class NocodeRules {
     }
   }
 
-  // Unfortunately the particular sequence of who needs access to this and who can create (based on
-  // having the yaml parser library loaded) is awkward.  Would prefer this to be a simple
-  // static final immutable computed at startup...
-  private static final AtomicReference<List<Rule>> GlobalRules =
-      new AtomicReference<>(Collections.EMPTY_LIST);
   // Using className.methodName as the key
-  private static final AtomicReference<Map<String, Rule>> Name2Rule =
-      new AtomicReference<>(Collections.emptyMap());
+  private static final ConcurrentHashMap<String, Rule> Name2Rule = new ConcurrentHashMap<>();
 
   public static void setGlobalRules(List<Rule> rules) {
-    GlobalRules.set(Collections.unmodifiableList(new ArrayList<>(rules)));
-    Map<String, Rule> n2r = new HashMap<>();
     for (Rule r : rules) {
-      n2r.put(r.className + "." + r.methodName, r);
+      Name2Rule.put(r.className + "." + r.methodName, r);
     }
-    Name2Rule.set(Collections.unmodifiableMap(n2r));
   }
 
-  public static List<Rule> getGlobalRules() {
-    return GlobalRules.get();
+  public static Iterable<Rule> getGlobalRules() {
+    return Name2Rule.values();
   }
 
-  public static Rule findRuleByClassAndMethod(String className, String methodName) {
-    Map<String, Rule> n2r = Name2Rule.get();
-    return n2r == null ? null : n2r.get(className + "." + methodName);
+  public static Rule find(String className, String methodName) {
+    return Name2Rule.get(className + "." + methodName);
   }
 }

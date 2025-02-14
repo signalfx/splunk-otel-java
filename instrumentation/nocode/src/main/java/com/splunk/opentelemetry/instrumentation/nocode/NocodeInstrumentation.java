@@ -62,7 +62,7 @@ public class NocodeInstrumentation implements TypeInstrumentation {
         @Advice.This Object thiz,
         @Advice.AllArguments Object[] methodParams) {
       NocodeRules.Rule rule =
-          NocodeRules.findRuleByClassAndMethod(declaringClass.getName(), methodName);
+          NocodeRules.find(declaringClass.getName(), methodName);
       otelInvocation =
           new NocodeMethodInvocation(
               rule, ClassAndMethod.create(declaringClass, methodName), thiz, methodParams);

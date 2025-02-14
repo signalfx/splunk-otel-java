@@ -22,7 +22,6 @@ import java.io.Reader;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
@@ -35,14 +34,14 @@ public final class YamlParser {
   // FIXME support method override selection - e.g., with classfile method signature or something
   public static final String NOCODE_YMLFILE_ENV_KEY = "SPLUNK_OTEL_INSTRUMENTATION_NOCODE_YML_FILE";
 
-  private final List<NocodeRules.Rule> InstrumentationRules;
+  private final List<NocodeRules.Rule> instrumentationRules;
 
   public YamlParser() {
-    InstrumentationRules = Collections.unmodifiableList(new ArrayList<>(load()));
+    instrumentationRules = Collections.unmodifiableList(new ArrayList<>(load()));
   }
 
   public List<NocodeRules.Rule> getInstrumentationRules() {
-    return InstrumentationRules;
+    return instrumentationRules;
   }
 
   private static List<NocodeRules.Rule> load() {

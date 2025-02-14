@@ -27,6 +27,7 @@ import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.THRE
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.TRACE_ID;
 
 import com.google.perftools.profiles.ProfileProto.Sample;
+import com.splunk.opentelemetry.profiler.InstrumentationSource;
 import com.splunk.opentelemetry.profiler.ProfilingDataType;
 import com.splunk.opentelemetry.profiler.context.StackToSpanLinkage;
 import com.splunk.opentelemetry.profiler.events.EventPeriods;
@@ -46,7 +47,7 @@ public class PprofCpuEventExporter implements CpuEventExporter {
   private PprofCpuEventExporter(Builder builder) {
     this.eventPeriods = builder.eventPeriods;
     this.stackDepth = builder.stackDepth;
-    this.pprofLogDataExporter = new PprofLogDataExporter(builder.otelLogger, ProfilingDataType.CPU);
+    this.pprofLogDataExporter = new PprofLogDataExporter(builder.otelLogger, ProfilingDataType.CPU, InstrumentationSource.CONTINUOUS);
   }
 
   @Override

@@ -38,10 +38,6 @@ public class PprofLogDataExporter {
   private final ProfilingDataType dataType;
   private final Attributes commonAttributes;
 
-  public PprofLogDataExporter(Logger otelLogger, ProfilingDataType dataType) {
-    this(otelLogger, dataType, InstrumentationSource.CONTINUOUS);
-  }
-
   public PprofLogDataExporter(Logger otelLogger, ProfilingDataType dataType, InstrumentationSource instrumentationSource) {
     this.otelLogger = otelLogger;
     this.dataType = dataType;

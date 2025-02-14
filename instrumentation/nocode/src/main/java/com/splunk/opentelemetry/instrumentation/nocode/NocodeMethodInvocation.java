@@ -19,7 +19,7 @@ package com.splunk.opentelemetry.instrumentation.nocode;
 import com.splunk.opentelemetry.javaagent.bootstrap.nocode.NocodeRules;
 import io.opentelemetry.instrumentation.api.incubator.semconv.util.ClassAndMethod;
 
-public class NocodeMethodInvocation {
+public final class NocodeMethodInvocation {
   private final NocodeRules.Rule rule;
   private final ClassAndMethod classAndMethod;
   private final Object thiz;

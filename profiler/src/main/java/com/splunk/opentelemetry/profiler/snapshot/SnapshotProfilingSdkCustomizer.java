@@ -20,6 +20,8 @@ import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_ENABLE_
 
 import com.google.auto.service.AutoService;
 import com.google.common.annotations.VisibleForTesting;
+import io.opentelemetry.api.trace.propagation.W3CTraceContextPropagator;
+import io.opentelemetry.context.propagation.TextMapPropagator;
 import io.opentelemetry.sdk.autoconfigure.spi.AutoConfigurationCustomizer;
 import io.opentelemetry.sdk.autoconfigure.spi.AutoConfigurationCustomizerProvider;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
@@ -41,8 +43,9 @@ public class SnapshotProfilingSdkCustomizer implements AutoConfigurationCustomiz
 
   @Override
   public void customize(AutoConfigurationCustomizer autoConfigurationCustomizer) {
-    autoConfigurationCustomizer.addTracerProviderCustomizer(
-        snapshotProfilingSpanProcessor(registry));
+    autoConfigurationCustomizer
+        .addTracerProviderCustomizer(snapshotProfilingSpanProcessor(registry))
+        .addPropagatorCustomizer(addProfilingSignalPropagator(registry));
   }
 
   private BiFunction<SdkTracerProviderBuilder, ConfigProperties, SdkTracerProviderBuilder>
@@ -52,6 +55,18 @@ public class SnapshotProfilingSdkCustomizer implements AutoConfigurationCustomiz
         return builder.addSpanProcessor(new SnapshotProfilingSpanProcessor(registry));
       }
       return builder;
+    };
+  }
+
+  private BiFunction<TextMapPropagator, ConfigProperties, TextMapPropagator>
+      addProfilingSignalPropagator(TraceRegistry registry) {
+    return (textMapPropagator, properties) -> {
+      if (snapshotProfilingEnabled(properties)
+          && textMapPropagator instanceof W3CTraceContextPropagator) {
+        return TextMapPropagator.composite(
+            textMapPropagator, new SnapshotProfilingSignalPropagator(registry));
+      }
+      return textMapPropagator;
     };
   }
 

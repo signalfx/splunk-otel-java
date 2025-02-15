@@ -16,7 +16,14 @@
 
 package com.splunk.opentelemetry.profiler.snapshot;
 
+import io.opentelemetry.api.OpenTelemetry;
+import io.opentelemetry.api.baggage.propagation.W3CBaggagePropagator;
+import io.opentelemetry.api.logs.LoggerProvider;
+import io.opentelemetry.api.metrics.MeterProvider;
 import io.opentelemetry.api.trace.Tracer;
+import io.opentelemetry.api.trace.TracerProvider;
+import io.opentelemetry.api.trace.propagation.W3CTraceContextPropagator;
+import io.opentelemetry.context.propagation.ContextPropagators;
 import io.opentelemetry.context.propagation.TextMapPropagator;
 import io.opentelemetry.sdk.OpenTelemetrySdk;
 import io.opentelemetry.sdk.autoconfigure.spi.AutoConfigurationCustomizer;
@@ -41,7 +48,8 @@ import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.ParameterContext;
 import org.junit.jupiter.api.extension.ParameterResolver;
 
-public class OpenTelemetrySdkExtension implements AfterEachCallback, ParameterResolver {
+public class OpenTelemetrySdkExtension
+    implements OpenTelemetry, AfterEachCallback, ParameterResolver {
   public static Builder builder() {
     return new Builder();
   }
@@ -50,6 +58,26 @@ public class OpenTelemetrySdkExtension implements AfterEachCallback, ParameterRe
 
   private OpenTelemetrySdkExtension(OpenTelemetrySdk sdk) {
     this.sdk = sdk;
+  }
+
+  @Override
+  public TracerProvider getTracerProvider() {
+    return sdk.getTracerProvider();
+  }
+
+  @Override
+  public MeterProvider getMeterProvider() {
+    return sdk.getMeterProvider();
+  }
+
+  @Override
+  public LoggerProvider getLogsBridge() {
+    return sdk.getLogsBridge();
+  }
+
+  @Override
+  public ContextPropagators getPropagators() {
+    return sdk.getPropagators();
   }
 
   @Override
@@ -102,7 +130,14 @@ public class OpenTelemetrySdkExtension implements AfterEachCallback, ParameterRe
       ConfigProperties configProperties = customizeProperties();
       SdkTracerProvider tracerProvider = customizeTracerProvider(configProperties);
 
-      OpenTelemetrySdk sdk = OpenTelemetrySdk.builder().setTracerProvider(tracerProvider).build();
+      TextMapPropagator propagator = customizePropagators(configProperties);
+      ContextPropagators contextPropagators = ContextPropagators.create(propagator);
+
+      OpenTelemetrySdk sdk =
+          OpenTelemetrySdk.builder()
+              .setTracerProvider(tracerProvider)
+              .setPropagators(contextPropagators)
+              .build();
       return new OpenTelemetrySdkExtension(sdk);
     }
 
@@ -121,6 +156,18 @@ public class OpenTelemetrySdkExtension implements AfterEachCallback, ParameterRe
           customizer -> customizer.apply(builder, properties));
       return builder.build();
     }
+
+    private TextMapPropagator customizePropagators(ConfigProperties properties) {
+      var propagators = new ArrayList<TextMapPropagator>();
+      for (var propagator : configuredPropagators()) {
+        propagators.add(customizer.textMapPropagatorBifunction.apply(propagator, properties));
+      }
+      return TextMapPropagator.composite(propagators);
+    }
+
+    private List<TextMapPropagator> configuredPropagators() {
+      return List.of(W3CTraceContextPropagator.getInstance(), W3CBaggagePropagator.getInstance());
+    }
   }
 
   private static class SdkCustomizer implements AutoConfigurationCustomizer {
@@ -129,6 +176,8 @@ public class OpenTelemetrySdkExtension implements AfterEachCallback, ParameterRe
     private final List<
             BiFunction<SdkTracerProviderBuilder, ConfigProperties, SdkTracerProviderBuilder>>
         tracerProviderCustomizers = new ArrayList<>();
+    BiFunction<? super TextMapPropagator, ConfigProperties, ? extends TextMapPropagator>
+        textMapPropagatorBifunction = (a, unused) -> a;
 
     @Override
     public AutoConfigurationCustomizer addTracerProviderCustomizer(
@@ -142,6 +191,7 @@ public class OpenTelemetrySdkExtension implements AfterEachCallback, ParameterRe
     public AutoConfigurationCustomizer addPropagatorCustomizer(
         BiFunction<? super TextMapPropagator, ConfigProperties, ? extends TextMapPropagator>
             textMapPropagator) {
+      textMapPropagatorBifunction = Objects.requireNonNull(textMapPropagator);
       return this;
     }
 

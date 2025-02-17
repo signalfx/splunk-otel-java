@@ -45,6 +45,18 @@ class PprofLogDataExporterTest {
   }
 
   @Test
+  void expectedNumberOfLogMessageAttributesAreIncluded() {
+    var logMessage = "this is a test log message, the contents are not important.";
+
+    var exporter =
+        new PprofLogDataExporter(logger, ProfilingDataType.CPU, InstrumentationSource.CONTINUOUS);
+    exporter.export(logMessage.getBytes(StandardCharsets.UTF_8), 1);
+
+    var attributes = logger.records().get(0).getAttributes();
+    assertEquals(5, attributes.size());
+  }
+
+  @Test
   void includeSplunkSourceTypeAttributeInLogMessage() {
     var logMessage = "this is a test log message, the contents are not important.";
 

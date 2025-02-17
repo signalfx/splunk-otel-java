@@ -19,6 +19,7 @@ package com.splunk.opentelemetry.profiler.exporter;
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.DATA_FORMAT;
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.DATA_TYPE;
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.FRAME_COUNT;
+import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.INSTRUMENTATION_SOURCE;
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.PPROF_GZIP_BASE64;
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.PROFILING_SOURCE;
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.SOURCE_TYPE;
@@ -47,7 +48,7 @@ public class PprofLogDataExporter {
             .put(SOURCE_TYPE, PROFILING_SOURCE)
             .put(DATA_TYPE, dataType.value())
             .put(DATA_FORMAT, PPROF_GZIP_BASE64)
-            .put("profiling.instrumentation.source", instrumentationSource.value())
+            .put(INSTRUMENTATION_SOURCE, instrumentationSource.value())
             .build();
   }
 

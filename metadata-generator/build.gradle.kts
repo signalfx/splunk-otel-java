@@ -1,5 +1,5 @@
 dependencies {
-  implementation("org.yaml:snakeyaml:2.3")
+  implementation("org.yaml:snakeyaml:2.4")
 }
 
 tasks {

@@ -21,7 +21,6 @@ import com.splunk.opentelemetry.javaagent.bootstrap.nocode.NocodeRules;
 import io.opentelemetry.javaagent.extension.instrumentation.InstrumentationModule;
 import io.opentelemetry.javaagent.extension.instrumentation.TypeInstrumentation;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 @AutoService(InstrumentationModule.class)
@@ -29,8 +28,6 @@ public final class NocodeModule extends InstrumentationModule {
 
   public NocodeModule() {
     super("nocode");
-    YamlParser yp = new YamlParser();
-    NocodeRules.setGlobalRules(yp.getInstrumentationRules());
   }
 
   @Override
@@ -39,18 +36,17 @@ public final class NocodeModule extends InstrumentationModule {
     for (NocodeRules.Rule rule : NocodeRules.getGlobalRules()) {
       answer.add(new NocodeInstrumentation(rule));
     }
+    // ensure that there is at least one instrumentation so that muzzle reference collection could
+    // work
+    if (answer.isEmpty()) {
+      answer.add(new NocodeInstrumentation(null));
+    }
     return answer;
   }
 
   @Override
-  public List<String> getAdditionalHelperClassNames() {
-    return Arrays.asList(
-        "com.splunk.opentelemetry.instrumentation.nocode.JSPS",
-        "com.splunk.opentelemetry.instrumentation.nocode.NocodeSingletons",
-        "com.splunk.opentelemetry.instrumentation.nocode.NocodeAttributesExtractor",
-        "com.splunk.opentelemetry.instrumentation.nocode.NocodeMethodInvocation",
-        "com.splunk.opentelemetry.instrumentation.nocode.NocodeSpanKindExtractor",
-        "com.splunk.opentelemetry.instrumentation.nocode.NocodeSpanNameExtractor");
+  public boolean isHelperClass(String className) {
+    return className.startsWith("com.splunk.opentelemetry.instrumentation");
   }
 
   @Override

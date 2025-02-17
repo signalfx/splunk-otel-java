@@ -24,6 +24,7 @@ import com.splunk.opentelemetry.profiler.InstrumentationSource;
 import com.splunk.opentelemetry.profiler.ProfilingDataType;
 import io.opentelemetry.api.common.Value;
 import java.nio.charset.StandardCharsets;
+import net.bytebuddy.utility.RandomString;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -35,7 +36,7 @@ class PprofLogDataExporterTest {
 
   @Test
   void emitDataToOpenTelemetryLogger() {
-    var logMessage = "this is a test log message, the contents are not important.";
+    var logMessage = RandomString.make();
 
     var exporter =
         new PprofLogDataExporter(logger, ProfilingDataType.CPU, InstrumentationSource.CONTINUOUS);
@@ -46,7 +47,7 @@ class PprofLogDataExporterTest {
 
   @Test
   void expectedNumberOfLogMessageAttributesAreIncluded() {
-    var logMessage = "this is a test log message, the contents are not important.";
+    var logMessage = RandomString.make();
 
     var exporter =
         new PprofLogDataExporter(logger, ProfilingDataType.CPU, InstrumentationSource.CONTINUOUS);
@@ -58,7 +59,7 @@ class PprofLogDataExporterTest {
 
   @Test
   void includeSplunkSourceTypeAttributeInLogMessage() {
-    var logMessage = "this is a test log message, the contents are not important.";
+    var logMessage = RandomString.make();
 
     var exporter =
         new PprofLogDataExporter(logger, ProfilingDataType.CPU, InstrumentationSource.CONTINUOUS);
@@ -70,7 +71,7 @@ class PprofLogDataExporterTest {
 
   @Test
   void includeProfilingDataFormatAttributeInLogMessage() {
-    var logMessage = "this is a test log message, the contents are not important.";
+    var logMessage = RandomString.make();
 
     var exporter =
         new PprofLogDataExporter(logger, ProfilingDataType.CPU, InstrumentationSource.CONTINUOUS);
@@ -83,7 +84,7 @@ class PprofLogDataExporterTest {
   @ParameterizedTest
   @EnumSource(ProfilingDataType.class)
   void includeProfilingDataTypeAttributeInLogMessage(ProfilingDataType dataType) {
-    var logMessage = "this is a test log message, the contents are not important.";
+    var logMessage = RandomString.make();
 
     var exporter = new PprofLogDataExporter(logger, dataType, InstrumentationSource.CONTINUOUS);
     exporter.export(logMessage.getBytes(StandardCharsets.UTF_8), 1);
@@ -95,7 +96,7 @@ class PprofLogDataExporterTest {
   @ParameterizedTest
   @EnumSource(InstrumentationSource.class)
   void includeProfilingInstrumentationSourceAttributeInLogMessage(InstrumentationSource source) {
-    var logMessage = "this is a test log message, the contents are not important.";
+    var logMessage = RandomString.make();
 
     var exporter = new PprofLogDataExporter(logger, ProfilingDataType.CPU, source);
     exporter.export(logMessage.getBytes(StandardCharsets.UTF_8), 1);
@@ -107,7 +108,7 @@ class PprofLogDataExporterTest {
   @ParameterizedTest
   @ValueSource(ints = {1, 50, 100, 10_000})
   void includeFrameCountAttributeInLogMessage(int frameCount) {
-    var logMessage = "this is a test log message, the contents are not important.";
+    var logMessage = RandomString.make();
 
     var exporter =
         new PprofLogDataExporter(logger, ProfilingDataType.CPU, InstrumentationSource.CONTINUOUS);

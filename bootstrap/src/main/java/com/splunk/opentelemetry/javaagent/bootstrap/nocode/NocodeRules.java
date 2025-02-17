@@ -20,7 +20,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 public final class NocodeRules {
 
@@ -50,19 +49,20 @@ public final class NocodeRules {
   }
 
   // Using className.methodName as the key
-  private static final ConcurrentHashMap<String, Rule> Name2Rule = new ConcurrentHashMap<>();
+  private static final HashMap<String, Rule> name2Rule = new HashMap<>();
 
+  // Called by the NocodeInitializer
   public static void setGlobalRules(List<Rule> rules) {
     for (Rule r : rules) {
-      Name2Rule.put(r.className + "." + r.methodName, r);
+      name2Rule.put(r.className + "." + r.methodName, r);
     }
   }
 
   public static Iterable<Rule> getGlobalRules() {
-    return Name2Rule.values();
+    return name2Rule.values();
   }
 
   public static Rule find(String className, String methodName) {
-    return Name2Rule.get(className + "." + methodName);
+    return name2Rule.get(className + "." + methodName);
   }
 }

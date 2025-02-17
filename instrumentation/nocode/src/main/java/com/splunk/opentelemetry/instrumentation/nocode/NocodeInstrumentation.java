@@ -42,7 +42,11 @@ public final class NocodeInstrumentation implements TypeInstrumentation {
 
   @Override
   public ElementMatcher<TypeDescription> typeMatcher() {
-    return rule != null ? hasSuperType(named(rule.className)) : none();
+    // names have to match exactly for now to enable rule lookup
+    // at advice time.  In the future, we could support
+    // more complex rules here if we dynamically generated advice classes for
+    // each rule.
+    return rule != null ? named(rule.className) : none();
   }
 
   @Override

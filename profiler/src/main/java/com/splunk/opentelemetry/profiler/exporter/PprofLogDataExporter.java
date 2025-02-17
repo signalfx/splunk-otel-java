@@ -19,11 +19,13 @@ package com.splunk.opentelemetry.profiler.exporter;
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.DATA_FORMAT;
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.DATA_TYPE;
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.FRAME_COUNT;
+import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.INSTRUMENTATION_SOURCE;
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.PPROF_GZIP_BASE64;
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.PROFILING_SOURCE;
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.SOURCE_TYPE;
 import static java.util.logging.Level.FINE;
 
+import com.splunk.opentelemetry.profiler.InstrumentationSource;
 import com.splunk.opentelemetry.profiler.ProfilingDataType;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.logs.Logger;
@@ -37,7 +39,8 @@ public class PprofLogDataExporter {
   private final ProfilingDataType dataType;
   private final Attributes commonAttributes;
 
-  public PprofLogDataExporter(Logger otelLogger, ProfilingDataType dataType) {
+  public PprofLogDataExporter(
+      Logger otelLogger, ProfilingDataType dataType, InstrumentationSource instrumentationSource) {
     this.otelLogger = otelLogger;
     this.dataType = dataType;
     this.commonAttributes =
@@ -45,6 +48,7 @@ public class PprofLogDataExporter {
             .put(SOURCE_TYPE, PROFILING_SOURCE)
             .put(DATA_TYPE, dataType.value())
             .put(DATA_FORMAT, PPROF_GZIP_BASE64)
+            .put(INSTRUMENTATION_SOURCE, instrumentationSource.value())
             .build();
   }
 

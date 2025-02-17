@@ -29,6 +29,7 @@ import com.google.perftools.profiles.ProfileProto;
 import com.google.perftools.profiles.ProfileProto.Profile;
 import com.google.perftools.profiles.ProfileProto.Sample;
 import com.splunk.opentelemetry.profiler.EventReader;
+import com.splunk.opentelemetry.profiler.InstrumentationSource;
 import com.splunk.opentelemetry.profiler.ProfilingDataType;
 import com.splunk.opentelemetry.profiler.allocation.sampler.AllocationEventSampler;
 import com.splunk.opentelemetry.profiler.exporter.PprofLogDataExporter;
@@ -51,7 +52,8 @@ public class PprofAllocationEventExporter implements AllocationEventExporter {
     this.eventReader = builder.eventReader;
     this.stackDepth = builder.stackDepth;
     this.pprofLogDataExporter =
-        new PprofLogDataExporter(builder.otelLogger, ProfilingDataType.ALLOCATION);
+        new PprofLogDataExporter(
+            builder.otelLogger, ProfilingDataType.ALLOCATION, InstrumentationSource.CONTINUOUS);
   }
 
   @Override

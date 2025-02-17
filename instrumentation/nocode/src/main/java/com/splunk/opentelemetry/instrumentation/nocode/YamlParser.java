@@ -17,8 +17,10 @@
 package com.splunk.opentelemetry.instrumentation.nocode;
 
 import com.splunk.opentelemetry.javaagent.bootstrap.nocode.NocodeRules;
-import java.io.FileReader;
-import java.io.Reader;
+import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -32,55 +34,57 @@ import org.snakeyaml.engine.v2.api.LoadSettings;
 public final class YamlParser {
   private static final Logger logger = Logger.getLogger(YamlParser.class.getName());
   // FIXME support method override selection - e.g., with classfile method signature or something
-  public static final String NOCODE_YMLFILE_ENV_KEY = "SPLUNK_OTEL_INSTRUMENTATION_NOCODE_YML_FILE";
+  private static final String NOCODE_YMLFILE = "splunk.otel.instrumentation.nocode.yml.file";
 
   private final List<NocodeRules.Rule> instrumentationRules;
 
-  public YamlParser() {
-    instrumentationRules = Collections.unmodifiableList(new ArrayList<>(load()));
+  public YamlParser(ConfigProperties config) {
+    instrumentationRules = Collections.unmodifiableList(new ArrayList<>(load(config)));
   }
 
   public List<NocodeRules.Rule> getInstrumentationRules() {
     return instrumentationRules;
   }
 
-  private static List<NocodeRules.Rule> load() {
+  private static List<NocodeRules.Rule> load(ConfigProperties config) {
+    String yamlFileName = config.getString(NOCODE_YMLFILE);
+    if (yamlFileName == null || yamlFileName.trim().isEmpty()) {
+      return Collections.emptyList();
+    }
+
     try {
-      return loadUnsafe();
+      return loadUnsafe(yamlFileName);
     } catch (Exception e) {
       logger.log(Level.SEVERE, "Can't load configured nocode yaml.", e);
       return Collections.emptyList();
     }
   }
 
-  private static List<NocodeRules.Rule> loadUnsafe() throws Exception {
-    String yamlFileName = System.getenv(NOCODE_YMLFILE_ENV_KEY);
-    if (yamlFileName == null || yamlFileName.trim().isEmpty()) {
-      return Collections.emptyList();
-    }
-    Reader yamlReader = new FileReader(yamlFileName.trim());
-
-    Load load = new Load(LoadSettings.builder().build());
-    Iterable<Object> parsedYaml = load.loadAllFromReader(yamlReader);
+  private static List<NocodeRules.Rule> loadUnsafe(String yamlFileName) throws Exception {
     List<NocodeRules.Rule> answer = new ArrayList<>();
-    for (Object yamlBit : parsedYaml) {
-      List<Map<String, Object>> rulesMap = (List<Map<String, Object>>) yamlBit;
-      for (Map<String, Object> yamlRule : rulesMap) {
-        String className = yamlRule.get("class").toString();
-        String methodName = yamlRule.get("method").toString();
-        String spanName =
-            yamlRule.get("spanName") == null ? null : yamlRule.get("spanName").toString();
-        String spanKind =
-            yamlRule.get("spanKind") == null ? null : yamlRule.get("spanKind").toString();
-        List<Map<String, Object>> attrs = (List<Map<String, Object>>) yamlRule.get("attributes");
-        Map<String, String> ruleAttributes = new HashMap<>();
-        for (Map<String, Object> attr : attrs) {
-          ruleAttributes.put(attr.get("key").toString(), attr.get("value").toString());
+    try (InputStream inputStream = Files.newInputStream(Paths.get(yamlFileName.trim()))) {
+      Load load = new Load(LoadSettings.builder().build());
+      Iterable<Object> parsedYaml = load.loadAllFromInputStream(inputStream);
+      for (Object yamlBit : parsedYaml) {
+        List<Map<String, Object>> rulesMap = (List<Map<String, Object>>) yamlBit;
+        for (Map<String, Object> yamlRule : rulesMap) {
+          String className = yamlRule.get("class").toString();
+          String methodName = yamlRule.get("method").toString();
+          String spanName =
+              yamlRule.get("spanName") == null ? null : yamlRule.get("spanName").toString();
+          String spanKind =
+              yamlRule.get("spanKind") == null ? null : yamlRule.get("spanKind").toString();
+          List<Map<String, Object>> attrs = (List<Map<String, Object>>) yamlRule.get("attributes");
+          Map<String, String> ruleAttributes = new HashMap<>();
+          for (Map<String, Object> attr : attrs) {
+            ruleAttributes.put(attr.get("key").toString(), attr.get("value").toString());
+          }
+          answer.add(
+              new NocodeRules.Rule(className, methodName, spanName, spanKind, ruleAttributes));
         }
-        answer.add(new NocodeRules.Rule(className, methodName, spanName, spanKind, ruleAttributes));
       }
     }
-    yamlReader.close();
+
     return answer;
   }
 }

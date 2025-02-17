@@ -1,10 +1,14 @@
 plugins {
   id("splunk.instrumentation-conventions")
+  id("splunk.muzzle-conventions")
 }
 
 dependencies {
+  compileOnly(project(":custom"))
   compileOnly("io.opentelemetry.javaagent:opentelemetry-javaagent-tooling")
   compileOnly("org.snakeyaml:snakeyaml-engine:2.8")
+
+  add("codegen", project(":bootstrap"))
 }
 
 tasks.withType<Test>().configureEach {

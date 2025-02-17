@@ -16,10 +16,11 @@
 
 package com.splunk.opentelemetry.instrumentation.nocode;
 
-import static com.splunk.opentelemetry.instrumentation.nocode.NocodeSingletons.instrumentor;
+import static com.splunk.opentelemetry.instrumentation.nocode.NocodeSingletons.instrumenter;
 import static io.opentelemetry.javaagent.bootstrap.Java8BytecodeBridge.currentContext;
 import static net.bytebuddy.matcher.ElementMatchers.hasSuperType;
 import static net.bytebuddy.matcher.ElementMatchers.named;
+import static net.bytebuddy.matcher.ElementMatchers.none;
 
 import com.splunk.opentelemetry.javaagent.bootstrap.nocode.NocodeRules;
 import io.opentelemetry.context.Context;
@@ -41,13 +42,14 @@ public final class NocodeInstrumentation implements TypeInstrumentation {
 
   @Override
   public ElementMatcher<TypeDescription> typeMatcher() {
-    return hasSuperType(named(rule.className));
+    return rule != null ? hasSuperType(named(rule.className)) : none();
   }
 
   @Override
   public void transform(TypeTransformer transformer) {
     transformer.applyAdviceToMethod(
-        named(rule.methodName), this.getClass().getName() + "$NocodeAdvice");
+        rule != null ? named(rule.methodName) : none(),
+        this.getClass().getName() + "$NocodeAdvice");
   }
 
   @SuppressWarnings("unused")
@@ -67,10 +69,10 @@ public final class NocodeInstrumentation implements TypeInstrumentation {
               rule, ClassAndMethod.create(declaringClass, methodName), thiz, methodParams);
       Context parentContext = currentContext();
 
-      if (!instrumentor().shouldStart(parentContext, otelInvocation)) {
+      if (!instrumenter().shouldStart(parentContext, otelInvocation)) {
         return;
       }
-      context = instrumentor().start(parentContext, otelInvocation);
+      context = instrumenter().start(parentContext, otelInvocation);
       scope = context.makeCurrent();
     }
 
@@ -88,7 +90,7 @@ public final class NocodeInstrumentation implements TypeInstrumentation {
       // This is heavily based on the "methods" instrumentation from upstream, but
       // for now we're not supporting modifying return types/async result codes, etc.
       // This could be expanded in the future.
-      instrumentor().end(context, otelInvocation, null, error);
+      instrumenter().end(context, otelInvocation, null, error);
     }
   }
 }

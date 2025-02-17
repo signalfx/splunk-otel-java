@@ -25,14 +25,12 @@ public class NocodeSingletons {
   static {
     INSTRUMENTER =
         Instrumenter.<NocodeMethodInvocation, Void>builder(
-                GlobalOpenTelemetry.get(),
-                "com.splunk.opentelemetry.instrumentation.nocode",
-                new NocodeSpanNameExtractor())
+                GlobalOpenTelemetry.get(), "com.splunk.nocode", new NocodeSpanNameExtractor())
             .addAttributesExtractor(new NocodeAttributesExtractor())
             .buildInstrumenter(new NocodeSpanKindExtractor());
   }
 
-  public static Instrumenter<NocodeMethodInvocation, Void> instrumentor() {
+  public static Instrumenter<NocodeMethodInvocation, Void> instrumenter() {
     return INSTRUMENTER;
   }
 }

@@ -35,8 +35,7 @@ class NocodeInstrumentationTest {
   @Test
   void testBasicMethod() {
     new SampleClass().doSomething();
-    // FIXME what is scope version verification and why doesn't it pass?
-    testing.waitAndAssertTracesWithoutScopeVersionVerification(
+    testing.waitAndAssertTraces(
         trace ->
             trace.hasSpansSatisfyingExactly(
                 span ->
@@ -50,7 +49,7 @@ class NocodeInstrumentationTest {
   @Test
   void testRuleWithManyInvalidFields() {
     new SampleClass().doInvalidRule();
-    testing.waitAndAssertTracesWithoutScopeVersionVerification(
+    testing.waitAndAssertTraces(
         trace ->
             trace.hasSpansSatisfyingExactly(
                 span ->
@@ -68,7 +67,7 @@ class NocodeInstrumentationTest {
       // nop
     }
 
-    testing.waitAndAssertTracesWithoutScopeVersionVerification(
+    testing.waitAndAssertTraces(
         trace ->
             trace.hasSpansSatisfyingExactly(
                 span ->

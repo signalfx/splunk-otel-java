@@ -20,6 +20,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Locale;
 import java.util.stream.Stream;
+import io.opentelemetry.api.baggage.Baggage;
+import io.opentelemetry.context.Context;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.EnumSource;
@@ -46,6 +49,31 @@ class VolumeTest {
       for (var locale : Locale.getAvailableLocales()) {
         Locale.setDefault(locale);
         assertEquals(volume, Volume.fromString(asString));
+      }
+    } finally {
+      Locale.setDefault(defaultLocale);
+    }
+  }
+
+  @ParameterizedTest
+  @MethodSource("volumesAsStrings")
+  void extractVolumeFromOpenTelemetryContext(Volume volume, String asString) {
+    var baggage = Baggage.builder().put("splunk.trace.snapshot.volume", asString).build();
+    var context = Context.current().with(baggage);
+    assertEquals(volume, Volume.from(context));
+  }
+
+  @ParameterizedTest
+  @MethodSource("volumesAsStrings")
+  void fromContextIsNotSensitiveToLocale(Volume volume, String asString) {
+    var baggage = Baggage.builder().put("splunk.trace.snapshot.volume", asString).build();
+    var context = Context.current().with(baggage);
+
+    var defaultLocale = Locale.getDefault();
+    try {
+      for (var locale : Locale.getAvailableLocales()) {
+        Locale.setDefault(locale);
+        assertEquals(volume, Volume.from(context));
       }
     } finally {
       Locale.setDefault(defaultLocale);

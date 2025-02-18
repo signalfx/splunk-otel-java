@@ -16,11 +16,19 @@
 
 package com.splunk.opentelemetry.profiler.snapshot;
 
+import io.opentelemetry.api.baggage.Baggage;
+import io.opentelemetry.context.Context;
+
 import java.util.Locale;
 
 public enum Volume {
   OFF,
   HIGHEST;
+
+  static Volume from(Context context) {
+    Baggage baggage = Baggage.fromContext(context);
+    return fromString(baggage.getEntryValue("splunk.trace.snapshot.volume"));
+  }
 
   static Volume fromString(String value) {
     if (value == null) {

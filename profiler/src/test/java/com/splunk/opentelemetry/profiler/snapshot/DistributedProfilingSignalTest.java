@@ -50,7 +50,7 @@ class DistributedProfilingSignalTest {
           .build();
 
   @RegisterExtension
-  public final OpenTelemetrySdkExtension middleSdk = OpenTelemetrySdkExtension.builder().with(new BaggageReporter()).build();
+  public final OpenTelemetrySdkExtension middleSdk = OpenTelemetrySdkExtension.builder().build();
 
   @RegisterExtension
   public final Server middle =

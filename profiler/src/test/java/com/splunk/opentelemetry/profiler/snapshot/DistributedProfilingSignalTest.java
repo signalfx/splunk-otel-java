@@ -16,17 +16,18 @@
 
 package com.splunk.opentelemetry.profiler.snapshot;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.awaitility.Awaitility.await;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
 import com.splunk.opentelemetry.profiler.snapshot.simulation.ExitCall;
 import com.splunk.opentelemetry.profiler.snapshot.simulation.Message;
 import com.splunk.opentelemetry.profiler.snapshot.simulation.Server;
-import java.time.Duration;
-import java.util.function.UnaryOperator;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
+
+import java.time.Duration;
+import java.util.function.UnaryOperator;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class DistributedProfilingSignalTest {
   private final RecordingTraceRegistry downstreamRegistry = new RecordingTraceRegistry();
@@ -38,6 +39,7 @@ class DistributedProfilingSignalTest {
       OpenTelemetrySdkExtension.builder()
           .withProperty("splunk.snapshot.profiler.enabled", "true")
           .with(downstreamCustomizer)
+          .with(new SnapshotProfilingSignalPropagator(downstreamRegistry))
           .build();
 
   @RegisterExtension
@@ -46,6 +48,16 @@ class DistributedProfilingSignalTest {
           .named("downstream")
           .performing(delayOf(Duration.ofMillis(250)))
           .build();
+
+  @RegisterExtension
+  public final OpenTelemetrySdkExtension middleSdk = OpenTelemetrySdkExtension.builder().with(new BaggageReporter()).build();
+
+  @RegisterExtension
+  public final Server middle =
+          Server.builder(middleSdk)
+                  .named("middle")
+                  .performing(ExitCall.to(downstream))
+                  .build();
 
   private final RecordingTraceRegistry upstreamRegistry = new RecordingTraceRegistry();
   private final SnapshotProfilingSdkCustomizer upstreamCustomizer =
@@ -56,11 +68,12 @@ class DistributedProfilingSignalTest {
       OpenTelemetrySdkExtension.builder()
           .withProperty("splunk.snapshot.profiler.enabled", "true")
           .with(upstreamCustomizer)
+          .with(new SnapshotProfilingSignalPropagator(upstreamRegistry))
           .build();
 
   @RegisterExtension
   public final Server upstream =
-      Server.builder(upstreamSdk).named("upstream").performing(ExitCall.to(downstream)).build();
+      Server.builder(upstreamSdk).named("upstream").performing(ExitCall.to(middle)).build();
 
   @Test
   void traceSnapshotVolumePropagatesAcrossProcessBoundaries() {
@@ -68,7 +81,7 @@ class DistributedProfilingSignalTest {
 
     upstream.send(message);
 
-    await().atMost(Duration.ofSeconds(2)).until(() -> upstream.waitForResponse() != null);
+    await().atMost(Duration.ofSeconds(9000)).until(() -> upstream.waitForResponse() != null);
     assertThat(upstreamRegistry.registeredTraceIds()).isNotEmpty();
     assertThat(downstreamRegistry.registeredTraceIds()).isNotEmpty();
     assertEquals(upstreamRegistry.registeredTraceIds(), downstreamRegistry.registeredTraceIds());

@@ -49,6 +49,10 @@ public final class NocodeModule extends InstrumentationModule {
     return className.startsWith("com.splunk.opentelemetry.instrumentation");
   }
 
+  // If nocode instrumentation is added to something with existing auto-instrumentation,
+  // it would generally be better to run the nocode bits after the "regular" bits.
+  // E.g., if we want to add nocode to a servlet call, then we want to make sure that
+  // the otel-standard servlet instrumentation runs first to handle context propagation, etc.
   @Override
   public int order() {
     return Integer.MAX_VALUE;

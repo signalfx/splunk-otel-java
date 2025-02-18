@@ -170,6 +170,7 @@ public class OpenTelemetrySdkExtension
       propagators.addAll(this.propagators);
       return propagators;
     }
+  }
 
   private static class SdkCustomizer implements AutoConfigurationCustomizer {
     private final List<Function<ConfigProperties, Map<String, String>>> propertyCustomizers =

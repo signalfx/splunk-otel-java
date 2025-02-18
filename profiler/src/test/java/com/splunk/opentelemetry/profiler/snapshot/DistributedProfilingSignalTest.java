@@ -54,10 +54,7 @@ class DistributedProfilingSignalTest {
 
   @RegisterExtension
   public final Server middle =
-          Server.builder(middleSdk)
-                  .named("middle")
-                  .performing(ExitCall.to(downstream))
-                  .build();
+          Server.builder(middleSdk).named("middle").performing(ExitCall.to(downstream)).build();
 
   private final RecordingTraceRegistry upstreamRegistry = new RecordingTraceRegistry();
   private final SnapshotProfilingSdkCustomizer upstreamCustomizer =

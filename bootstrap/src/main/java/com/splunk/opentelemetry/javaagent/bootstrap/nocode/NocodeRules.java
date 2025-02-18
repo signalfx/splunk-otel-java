@@ -44,9 +44,18 @@ public final class NocodeRules {
     }
 
     public String toString() {
-      return className + "." + methodName + ":spanName=" + spanName + ",attrs=" + attributes;
+      return "Nocode rule: "
+          + className
+          + "."
+          + methodName
+          + ":spanName="
+          + spanName
+          + ",attrs="
+          + attributes;
     }
   }
+
+  private NocodeRules() {}
 
   // Using className.methodName as the key
   private static final HashMap<String, Rule> name2Rule = new HashMap<>();

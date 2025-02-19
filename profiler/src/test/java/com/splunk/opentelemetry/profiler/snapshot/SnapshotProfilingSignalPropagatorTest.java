@@ -16,6 +16,7 @@
 
 package com.splunk.opentelemetry.profiler.snapshot;
 
+import io.opentelemetry.api.baggage.Baggage;
 import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.context.Context;
 import org.junit.jupiter.api.Test;
@@ -23,7 +24,6 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 
 import java.util.Collections;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class SnapshotProfilingSignalPropagatorTest {
@@ -32,9 +32,7 @@ class SnapshotProfilingSignalPropagatorTest {
 
   @RegisterExtension public final ObservableCarrier carrier = new ObservableCarrier();
 
-  private final RecordingTraceRegistry registry = new RecordingTraceRegistry();
-  private final SnapshotProfilingSignalPropagator propagator =
-      new SnapshotProfilingSignalPropagator(registry);
+  private final SnapshotProfilingSignalPropagator propagator = new SnapshotProfilingSignalPropagator();
 
   @Test
   void propagatorDoesNotReportAnyFields() {
@@ -42,65 +40,99 @@ class SnapshotProfilingSignalPropagatorTest {
   }
 
   @Test
-  void registerTraceForProfilingWhenTraceSnapshotVolumeIsHighest(Tracer tracer) {
-    carrier.set("splunk.trace.snapshot.volume", Volume.HIGHEST.toString());
-    var span = tracer.spanBuilder("span").startSpan();
-    var context = Context.current().with(span);
-
-    propagator.extract(context, carrier, carrier);
-
-    assertThat(registry.isRegistered(span.getSpanContext())).isTrue();
-  }
-
-  @Test
-  void extractReturnsProvidedContextWhenRegisteringTraceForProfiling(Tracer tracer) {
-    carrier.set("splunk.trace.snapshot.volume", Volume.HIGHEST.toString());
-    var span = tracer.spanBuilder("span").startSpan();
-    var context = Context.current().with(span);
-
-    var fromPropagator = propagator.extract(context, carrier, carrier);
-
-    assertEquals(context, fromPropagator);
-  }
-
-  @Test
-  void doNotRegisterTraceForProfilingWhenTraceSnapshotVolumeIsOff(Tracer tracer) {
-    carrier.set("splunk.trace.snapshot.volume", Volume.OFF.toString());
-    var span = tracer.spanBuilder("span").startSpan();
-    var context = Context.current().with(span);
-
-    propagator.extract(context, carrier, carrier);
-
-    assertThat(registry.isRegistered(span.getSpanContext())).isFalse();
-  }
-
-  @Test
-  void doNotRegisterTraceForProfilingWhenTraceSnapshotVolumeIsMissing(Tracer tracer) {
-    var span = tracer.spanBuilder("span").startSpan();
-    var context = Context.current().with(span);
-
-    propagator.extract(context, carrier, carrier);
-
-    assertThat(registry.isRegistered(span.getSpanContext())).isFalse();
-  }
-
-  @Test
-  void doNotRegisterTraceForProfilingWhenSpanIsNotFoundInContext() {
-    carrier.set("splunk.trace.snapshot.volume", Volume.HIGHEST.toString());
+  void attachVolumeToEntryWhenBeginningOfTraceDetected() {
     var context = Context.current();
 
-    propagator.extract(context, carrier, carrier);
+    var contextFromPropagator = propagator.extract(context, carrier, carrier);
 
-    assertEquals(Collections.emptySet(), registry.registeredTraceIds());
+    var volume = Volume.from(contextFromPropagator);
+    assertEquals(Volume.HIGHEST, volume);
   }
 
   @Test
-  void extractReturnsProvidedContextWhenNotRegisteringTraceForProfiling(Tracer tracer) {
+  void doNotAttachVolumeToEntryWhenTraceHasAlreadyStarted(Tracer tracer) {
     var span = tracer.spanBuilder("span").startSpan();
     var context = Context.current().with(span);
 
-    var fromPropagator = propagator.extract(context, carrier, carrier);
+    var contextFromPropagator = propagator.extract(context, carrier, carrier);
 
-    assertEquals(context, fromPropagator);
+    var baggage = Baggage.fromContext(contextFromPropagator);
+    assertEquals(Baggage.empty(), baggage);
   }
+
+  @Test
+  void leaveBaggageUnalteredWhenVolumeEntryDetected(Tracer tracer) {
+    var baggage = Volume.HIGHEST.toBaggage();
+    var span = tracer.spanBuilder("span").startSpan();
+    var context = Context.current().with(baggage).with(span);
+
+    var contextFromPropagator = propagator.extract(context, carrier, carrier);
+
+    var baggageAfterPropagator = Baggage.fromContext(contextFromPropagator);
+    assertEquals(baggage, baggageAfterPropagator);
+  }
+
+  ///////////////////////////////////////////////////////////////
+//  @Test
+//  void registerTraceForProfilingWhenTraceSnapshotVolumeIsHighest(Tracer tracer) {
+//    carrier.set("splunk.trace.snapshot.volume", Volume.HIGHEST.toString());
+//    var span = tracer.spanBuilder("span").startSpan();
+//    var context = Context.current().with(span);
+//
+//    propagator.extract(context, carrier, carrier);
+//
+//    assertThat(registry.isRegistered(span.getSpanContext())).isTrue();
+//  }
+//
+//  @Test
+//  void extractReturnsProvidedContextWhenRegisteringTraceForProfiling(Tracer tracer) {
+//    carrier.set("splunk.trace.snapshot.volume", Volume.HIGHEST.toString());
+//    var span = tracer.spanBuilder("span").startSpan();
+//    var context = Context.current().with(span);
+//
+//    var fromPropagator = propagator.extract(context, carrier, carrier);
+//
+//    assertEquals(context, fromPropagator);
+//  }
+//
+//  @Test
+//  void doNotRegisterTraceForProfilingWhenTraceSnapshotVolumeIsOff(Tracer tracer) {
+//    carrier.set("splunk.trace.snapshot.volume", Volume.OFF.toString());
+//    var span = tracer.spanBuilder("span").startSpan();
+//    var context = Context.current().with(span);
+//
+//    propagator.extract(context, carrier, carrier);
+//
+//    assertThat(registry.isRegistered(span.getSpanContext())).isFalse();
+//  }
+//
+//  @Test
+//  void doNotRegisterTraceForProfilingWhenTraceSnapshotVolumeIsMissing(Tracer tracer) {
+//    var span = tracer.spanBuilder("span").startSpan();
+//    var context = Context.current().with(span);
+//
+//    propagator.extract(context, carrier, carrier);
+//
+//    assertThat(registry.isRegistered(span.getSpanContext())).isFalse();
+//  }
+//
+//  @Test
+//  void doNotRegisterTraceForProfilingWhenSpanIsNotFoundInContext() {
+//    carrier.set("splunk.trace.snapshot.volume", Volume.HIGHEST.toString());
+//    var context = Context.current();
+//
+//    propagator.extract(context, carrier, carrier);
+//
+//    assertEquals(Collections.emptySet(), registry.registeredTraceIds());
+//  }
+//
+//  @Test
+//  void extractReturnsProvidedContextWhenNotRegisteringTraceForProfiling(Tracer tracer) {
+//    var span = tracer.spanBuilder("span").startSpan();
+//    var context = Context.current().with(span);
+//
+//    var fromPropagator = propagator.extract(context, carrier, carrier);
+//
+//    assertEquals(context, fromPropagator);
+//  }
 }

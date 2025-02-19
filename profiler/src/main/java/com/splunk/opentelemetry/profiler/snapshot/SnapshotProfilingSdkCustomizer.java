@@ -64,7 +64,7 @@ public class SnapshotProfilingSdkCustomizer implements AutoConfigurationCustomiz
       if (snapshotProfilingEnabled(properties)
           && textMapPropagator instanceof W3CTraceContextPropagator) {
         return TextMapPropagator.composite(
-            textMapPropagator, new SnapshotProfilingSignalPropagator(registry));
+            textMapPropagator, new SnapshotProfilingSignalPropagator());
       }
       return textMapPropagator;
     };

@@ -13,7 +13,7 @@ class SnapshotVolumePropagatorProviderTest {
   @Test
   void provideSnapshotVolumePropagator() {
     var propagator = provider.getPropagator(DefaultConfigProperties.create(Collections.emptyMap()));
-    assertInstanceOf(SnapshotProfilingSignalPropagator.class, propagator);
+    assertInstanceOf(SnapshotVolumePropagator.class, propagator);
   }
 
   @Test

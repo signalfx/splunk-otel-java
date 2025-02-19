@@ -9,7 +9,7 @@ import io.opentelemetry.sdk.autoconfigure.spi.ConfigurablePropagatorProvider;
 public class SnapshotVolumePropagatorProvider implements ConfigurablePropagatorProvider {
   @Override
   public TextMapPropagator getPropagator(ConfigProperties config) {
-    return new SnapshotProfilingSignalPropagator();
+    return new SnapshotVolumePropagator();
   }
 
   @Override

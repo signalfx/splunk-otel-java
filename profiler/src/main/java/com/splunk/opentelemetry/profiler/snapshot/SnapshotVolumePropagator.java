@@ -26,7 +26,7 @@ import io.opentelemetry.context.propagation.TextMapSetter;
 import java.util.Collection;
 import java.util.Collections;
 
-class SnapshotProfilingSignalPropagator implements TextMapPropagator {
+class SnapshotVolumePropagator implements TextMapPropagator {
   @Override
   public Collection<String> fields() {
     return Collections.emptyList();

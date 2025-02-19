@@ -25,13 +25,13 @@ import java.util.Collections;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
-class SnapshotProfilingSignalPropagatorTest {
+class SnapshotVolumePropagatorTest {
   @RegisterExtension
   public final OpenTelemetrySdkExtension sdk = OpenTelemetrySdkExtension.builder().build();
 
   @RegisterExtension public final ObservableCarrier carrier = new ObservableCarrier();
 
-  private final SnapshotProfilingSignalPropagator propagator = new SnapshotProfilingSignalPropagator();
+  private final SnapshotVolumePropagator propagator = new SnapshotVolumePropagator();
 
   @Test
   void propagatorDoesNotReportAnyFields() {

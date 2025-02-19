@@ -95,7 +95,7 @@ class DistributedProfilingSignalTest {
 
     upstream.send(message);
 
-    await().atMost(Duration.ofSeconds(9000)).until(() -> upstream.waitForResponse() != null);
+    await().atMost(Duration.ofSeconds(2)).until(() -> upstream.waitForResponse() != null);
     assertThat(upstreamRegistry.registeredTraceIds()).isNotEmpty();
     assertThat(downstreamRegistry.registeredTraceIds()).isNotEmpty();
     assertEquals(upstreamRegistry.registeredTraceIds(), downstreamRegistry.registeredTraceIds());

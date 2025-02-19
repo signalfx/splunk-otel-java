@@ -26,9 +26,11 @@ public enum Volume implements ImplicitContextKeyed {
   OFF,
   HIGHEST;
 
+  private static final String SPLUNK_TRACE_SNAPSHOT_VOLUME = "splunk.trace.snapshot.volume";
+
   static Volume from(Context context) {
     Baggage baggage = Baggage.fromContext(context);
-    return fromString(baggage.getEntryValue("splunk.trace.snapshot.volume"));
+    return fromString(baggage.getEntryValue(SPLUNK_TRACE_SNAPSHOT_VOLUME));
   }
 
   static Volume fromString(String value) {
@@ -50,7 +52,7 @@ public enum Volume implements ImplicitContextKeyed {
 
   @Override
   public Context storeInContext(Context context) {
-    Baggage baggage = Baggage.builder().put("splunk.trace.snapshot.volume", toString()).build();
+    Baggage baggage = Baggage.builder().put(SPLUNK_TRACE_SNAPSHOT_VOLUME, toString()).build();
     return context.with(baggage);
   }
 }

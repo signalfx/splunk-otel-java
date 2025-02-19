@@ -16,8 +16,7 @@
 
 package com.splunk.opentelemetry.profiler.snapshot;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import io.opentelemetry.api.trace.SpanKind;
 import io.opentelemetry.api.trace.Tracer;
@@ -40,50 +39,65 @@ class TraceRegistrationTest {
   @ParameterizedTest
   @SpanKinds.Entry
   void registerTraceForProfilingWhenRootSpanStarts(SpanKind kind, Tracer tracer) {
-    var root = tracer.spanBuilder("root").setSpanKind(kind).startSpan();
-    assertTrue(registry.isRegistered(root.getSpanContext()));
+    var baggage = Volume.HIGHEST.toBaggage();
+    try (var ignored = Context.current().with(baggage).makeCurrent()) {
+      var root = tracer.spanBuilder("root").setSpanKind(kind).startSpan();
+      assertThat(registry.isRegistered(root.getSpanContext())).isTrue();
+    }
   }
 
   @ParameterizedTest
   @SpanKinds.NonEntry
   void onlyRegisterTraceForProfilingWhenRootSpanIsEntrySpan(SpanKind kind, Tracer tracer) {
-    var root = tracer.spanBuilder("root").setSpanKind(kind).startSpan();
-    assertFalse(registry.isRegistered(root.getSpanContext()));
+    var baggage = Volume.HIGHEST.toBaggage();
+    try (var ignored = Context.current().with(baggage).makeCurrent()) {
+      var root = tracer.spanBuilder("root").setSpanKind(kind).startSpan();
+      assertThat(registry.isRegistered(root.getSpanContext())).isFalse();
+    }
   }
 
   @ParameterizedTest
   @SpanKinds.Entry
   void unregisterTraceForProfilingWhenEntrySpanEnds(SpanKind kind, Tracer tracer) {
-    var root = tracer.spanBuilder("root").setSpanKind(kind).startSpan();
-    root.end();
-    assertFalse(registry.isRegistered(root.getSpanContext()));
+    var baggage = Volume.HIGHEST.toBaggage();
+    try (var ignored = Context.current().with(baggage).makeCurrent()) {
+      var root = tracer.spanBuilder("root").setSpanKind(kind).startSpan();
+      root.end();
+      assertThat(registry.isRegistered(root.getSpanContext())).isFalse();
+    }
   }
 
   @ParameterizedTest
   @SpanKinds.Entry
-  void doNotRegisterTraceForProfilingWhenNonRootSpanDetected(SpanKind kind, Tracer tracer) {
+  void doNotRegisterTraceForProfilingWhenSnapshotVolumeIsOff(SpanKind kind, Tracer tracer) {
+    var baggage = Volume.OFF.toBaggage();
+    try (var ignored = Context.current().with(baggage).makeCurrent()) {
+      var root = tracer.spanBuilder("root").setSpanKind(kind).startSpan();
+      assertThat(registry.isRegistered(root.getSpanContext())).isFalse();
+    }
+  }
+
+  @ParameterizedTest
+  @SpanKinds.Entry
+  void doNotRegisterTraceForProfilingWhenSnapshotVolumeIsNotfound(SpanKind kind, Tracer tracer) {
     var root = tracer.spanBuilder("root").setSpanKind(kind).startSpan();
-    root.end();
-    var child =
-        tracer
-            .spanBuilder("child")
-            .setSpanKind(kind)
-            .setParent(Context.current().with(root))
-            .startSpan();
-    assertFalse(registry.isRegistered(child.getSpanContext()));
+    assertThat(registry.isRegistered(root.getSpanContext())).isFalse();
   }
 
   @ParameterizedTest
   @SpanKinds.NonEntry
   void onlyUnregisterTraceForProfilingWhenEntrySpanEnds(SpanKind kind, Tracer tracer) {
-    var root = tracer.spanBuilder("root").setSpanKind(SpanKind.SERVER).startSpan();
-    var child =
-        tracer
-            .spanBuilder("child")
-            .setSpanKind(kind)
-            .setParent(Context.current().with(root))
-            .startSpan();
-    child.end();
-    assertTrue(registry.isRegistered(root.getSpanContext()));
+    var baggage = Volume.HIGHEST.toBaggage();
+    try (var ignored = Context.current().with(baggage).makeCurrent()) {
+      var root = tracer.spanBuilder("root").setSpanKind(SpanKind.SERVER).startSpan();
+      var child =
+          tracer
+              .spanBuilder("child")
+              .setSpanKind(kind)
+              .setParent(Context.current().with(root))
+              .startSpan();
+      child.end();
+      assertThat(registry.isRegistered(root.getSpanContext())).isTrue();
+    }
   }
 }

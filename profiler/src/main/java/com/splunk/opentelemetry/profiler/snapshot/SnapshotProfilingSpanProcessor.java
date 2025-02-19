@@ -16,16 +16,13 @@
 
 package com.splunk.opentelemetry.profiler.snapshot;
 
-import io.opentelemetry.api.baggage.Baggage;
 import io.opentelemetry.api.trace.SpanKind;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.sdk.trace.ReadWriteSpan;
 import io.opentelemetry.sdk.trace.ReadableSpan;
 import io.opentelemetry.sdk.trace.SpanProcessor;
-import java.util.logging.Logger;
 
 public class SnapshotProfilingSpanProcessor implements SpanProcessor {
-  private static final Logger logger = Logger.getLogger(SnapshotProfilingSpanProcessor.class.getName());
   private final TraceRegistry registry;
 
   SnapshotProfilingSpanProcessor(TraceRegistry registry) {
@@ -34,20 +31,12 @@ public class SnapshotProfilingSpanProcessor implements SpanProcessor {
 
   @Override
   public void onStart(Context context, ReadWriteSpan span) {
-    logger.info(span.toString());
-    Volume volume = Volume.fromString(Baggage.fromContext(context).getEntryValue("splunk.trace.snapshot.volume"));
-    logger.info("Volume: " + volume);
-    if (volume == Volume.HIGHEST) {
-      logger.info("Snapshot volume is highest, registering trace for profiling");
-      registry.register(span.getSpanContext());
+    if (isEntry(span)) {
+      Volume volume = Volume.from(context);
+      if (volume == Volume.HIGHEST) {
+        registry.register(span.getSpanContext());
+      }
     }
-//    if (isRoot(span) && isEntry(span)) {
-//      registry.register(span.getSpanContext());
-//    }
-  }
-
-  private boolean isRoot(ReadableSpan span) {
-    return !span.getParentSpanContext().isValid();
   }
 
   @Override

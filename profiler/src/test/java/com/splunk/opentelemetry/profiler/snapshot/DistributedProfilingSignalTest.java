@@ -72,6 +72,23 @@ class DistributedProfilingSignalTest {
   public final Server upstream =
       Server.builder(upstreamSdk).named("upstream").performing(ExitCall.to(middle)).build();
 
+  /**
+   * The test below is asserting a few things are happening. First, consider the following distributed system.
+   * <pre>
+   * {@code
+   * +----------+    +--------+    +------------+
+   * | upstream | -> | middle | -> | downstream |
+   * +----------+    +--------+    +------------+
+   * }
+   * </pre>
+   * <p>
+   * 1. Upstream is instrumented with the snapshot profiling agent extension <br/>
+   * 2. Middle is instrumented with a vanilla OpenTelemetry agent <br/>
+   * 3. Downstream is instrumented with the snapshot profiling agent extension <br/>
+   * </p>
+   * We want for the upstream service instrumentation to initially register the trace for profiling
+   * and for that signal to propagate through the middle service to the downstream service.
+   */
   @Test
   void traceSnapshotVolumePropagatesAcrossProcessBoundaries() {
     var message = new Message();

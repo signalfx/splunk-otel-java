@@ -41,8 +41,8 @@ public class SnapshotProfilingSdkCustomizer implements AutoConfigurationCustomiz
 
   @Override
   public void customize(AutoConfigurationCustomizer autoConfigurationCustomizer) {
-    autoConfigurationCustomizer
-        .addTracerProviderCustomizer(snapshotProfilingSpanProcessor(registry));
+    autoConfigurationCustomizer.addTracerProviderCustomizer(
+        snapshotProfilingSpanProcessor(registry));
   }
 
   private BiFunction<SdkTracerProviderBuilder, ConfigProperties, SdkTracerProviderBuilder>

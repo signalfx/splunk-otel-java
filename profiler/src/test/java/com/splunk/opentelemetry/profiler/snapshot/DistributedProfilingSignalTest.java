@@ -16,18 +16,17 @@
 
 package com.splunk.opentelemetry.profiler.snapshot;
 
-import com.splunk.opentelemetry.profiler.snapshot.simulation.ExitCall;
-import com.splunk.opentelemetry.profiler.snapshot.simulation.Message;
-import com.splunk.opentelemetry.profiler.snapshot.simulation.Server;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.RegisterExtension;
-
-import java.time.Duration;
-import java.util.function.UnaryOperator;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import com.splunk.opentelemetry.profiler.snapshot.simulation.ExitCall;
+import com.splunk.opentelemetry.profiler.snapshot.simulation.Message;
+import com.splunk.opentelemetry.profiler.snapshot.simulation.Server;
+import java.time.Duration;
+import java.util.function.UnaryOperator;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 class DistributedProfilingSignalTest {
   private final RecordingTraceRegistry downstreamRegistry = new RecordingTraceRegistry();
@@ -54,7 +53,7 @@ class DistributedProfilingSignalTest {
 
   @RegisterExtension
   public final Server middle =
-          Server.builder(middleSdk).named("middle").performing(ExitCall.to(downstream)).build();
+      Server.builder(middleSdk).named("middle").performing(ExitCall.to(downstream)).build();
 
   private final RecordingTraceRegistry upstreamRegistry = new RecordingTraceRegistry();
   private final SnapshotProfilingSdkCustomizer upstreamCustomizer =
@@ -73,19 +72,18 @@ class DistributedProfilingSignalTest {
       Server.builder(upstreamSdk).named("upstream").performing(ExitCall.to(middle)).build();
 
   /**
-   * The test below is asserting a few things are happening. First, consider the following distributed system.
-   * <pre>
-   * {@code
+   * The test below is asserting a few things are happening. First, consider the following
+   * distributed system.
+   *
+   * <pre>{@code
    * +----------+    +--------+    +------------+
    * | upstream | -> | middle | -> | downstream |
    * +----------+    +--------+    +------------+
-   * }
-   * </pre>
-   * <p>
-   * 1. Upstream is instrumented with the snapshot profiling agent extension <br/>
-   * 2. Middle is instrumented with a vanilla OpenTelemetry agent <br/>
-   * 3. Downstream is instrumented with the snapshot profiling agent extension <br/>
-   * </p>
+   * }</pre>
+   *
+   * <p>1. Upstream is instrumented with the snapshot profiling agent extension <br>
+   * 2. Middle is instrumented with a vanilla OpenTelemetry agent <br>
+   * 3. Downstream is instrumented with the snapshot profiling agent extension <br>
    * We want for the upstream service instrumentation to initially register the trace for profiling
    * and for that signal to propagate through the middle service to the downstream service.
    */

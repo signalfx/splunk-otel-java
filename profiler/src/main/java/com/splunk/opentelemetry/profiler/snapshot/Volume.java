@@ -19,7 +19,6 @@ package com.splunk.opentelemetry.profiler.snapshot;
 import io.opentelemetry.api.baggage.Baggage;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.context.ImplicitContextKeyed;
-
 import java.util.Locale;
 
 public enum Volume implements ImplicitContextKeyed {

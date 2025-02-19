@@ -3251,6 +3251,11 @@ public class MetadataGenerator {
             .httpClientMetrics()
             .build());
     instrumentations.add(
+        instrumentation("java-http-server")
+            .component("Java HTTP Server", null)
+            .httpServerMetrics()
+            .build());
+    instrumentations.add(
         instrumentation("java-util-logging").component("java.util.logging", null).build());
     instrumentations.add(
         instrumentation("runtime-telemetry")

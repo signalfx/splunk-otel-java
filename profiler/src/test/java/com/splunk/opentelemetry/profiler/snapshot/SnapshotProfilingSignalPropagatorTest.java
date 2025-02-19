@@ -16,15 +16,15 @@
 
 package com.splunk.opentelemetry.profiler.snapshot;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
 import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.context.Context;
-import java.util.Collections;
-import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
+
+import java.util.Collections;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class SnapshotProfilingSignalPropagatorTest {
   @RegisterExtension
@@ -37,29 +37,8 @@ class SnapshotProfilingSignalPropagatorTest {
       new SnapshotProfilingSignalPropagator(registry);
 
   @Test
-  void propagatorReportsOnlyProfilingSignalField() {
-    assertEquals(List.of("splunk.trace.snapshot.volume"), propagator.fields());
-  }
-
-  @Test
-  void attachTraceSnapshotVolumeToCarrierWhenTraceIsRegisteredForProfiling(Tracer tracer) {
-    var span = tracer.spanBuilder("span").startSpan();
-    var context = Context.current().with(span);
-    registry.register(span.getSpanContext());
-
-    propagator.inject(context, carrier, carrier);
-
-    assertEquals(Volume.HIGHEST.toString(), carrier.get("splunk.trace.snapshot.volume"));
-  }
-
-  @Test
-  void doNotAttachTraceSnapshotVolumeToCarrierWhenTraceNotRegisteredForProfiling(Tracer tracer) {
-    var span = tracer.spanBuilder("span").startSpan();
-    var context = Context.current().with(span);
-
-    propagator.inject(context, carrier, carrier);
-
-    assertEquals(Collections.emptySet(), carrier.keys());
+  void propagatorDoesNotReportAnyFields() {
+    assertEquals(Collections.emptyList(), propagator.fields());
   }
 
   @Test

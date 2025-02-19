@@ -17,6 +17,7 @@
 package com.splunk.opentelemetry.profiler.snapshot;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.util.Locale;
 import java.util.stream.Stream;
@@ -96,5 +97,14 @@ class VolumeTest {
 
   private static Stream<Arguments> notVolumes() {
     return Stream.of(Arguments.of("not-a-volume"), Arguments.of((String) null));
+  }
+
+  @ParameterizedTest
+  @EnumSource(Volume.class)
+  void convertToOpenTelemetryBaggage(Volume volume) {
+    var baggage = volume.toBaggage();
+    var entry = baggage.getEntry("splunk.trace.snapshot.volume");
+    assertNotNull(entry);
+    assertEquals(volume.toString(), entry.getValue());
   }
 }

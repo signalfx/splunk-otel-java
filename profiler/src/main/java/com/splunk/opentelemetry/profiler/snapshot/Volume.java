@@ -46,4 +46,8 @@ public enum Volume {
   public String toString() {
     return name().toLowerCase(Locale.ROOT);
   }
+
+  Baggage toBaggage() {
+    return Baggage.builder().put("splunk.trace.snapshot.volume", toString()).build();
+  }
 }

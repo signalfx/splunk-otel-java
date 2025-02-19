@@ -38,26 +38,6 @@ class VolumeTest {
 
   @ParameterizedTest
   @MethodSource("volumesAsStrings")
-  void fromStringRepresentation(Volume volume, String asString) {
-    assertEquals(volume, Volume.fromString(asString));
-  }
-
-  @ParameterizedTest
-  @MethodSource("volumesAsStrings")
-  void fromStringIsNotSensitiveToLocale(Volume volume, String asString) {
-    var defaultLocale = Locale.getDefault();
-    try {
-      for (var locale : Locale.getAvailableLocales()) {
-        Locale.setDefault(locale);
-        assertEquals(volume, Volume.fromString(asString));
-      }
-    } finally {
-      Locale.setDefault(defaultLocale);
-    }
-  }
-
-  @ParameterizedTest
-  @MethodSource("volumesAsStrings")
   void extractVolumeFromOpenTelemetryContext(Volume volume, String asString) {
     var baggage = Baggage.builder().put("splunk.trace.snapshot.volume", asString).build();
     var context = Context.current().with(baggage);
@@ -90,9 +70,10 @@ class VolumeTest {
 
   @ParameterizedTest
   @MethodSource("notVolumes")
-  void fromStringReturnsOffWhenMatchNotFound(String value) {
-    var volume = Volume.fromString(value);
-    assertEquals(Volume.OFF, volume);
+  void fromContextReturnsOffWhenMatchNotFound(String value) {
+    var baggage = Baggage.builder().put("splunk.trace.snapshot.volume", value).build();
+    var context = Context.current().with(baggage);
+    assertEquals(Volume.OFF, Volume.from(context));
   }
 
   private static Stream<Arguments> notVolumes() {

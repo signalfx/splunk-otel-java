@@ -33,7 +33,7 @@ public enum Volume implements ImplicitContextKeyed {
     return fromString(baggage.getEntryValue(SPLUNK_TRACE_SNAPSHOT_VOLUME));
   }
 
-  static Volume fromString(String value) {
+  private static Volume fromString(String value) {
     if (value == null) {
       return OFF;
     }

@@ -38,13 +38,13 @@ class SnapshotProfilingSignalPropagator implements TextMapPropagator {
   @Override
   public <C> Context extract(Context context, C carrier, TextMapGetter<C> getter) {
     if (isTraceRoot(context)) {
-      return context;
+      return context.with(Volume.HIGHEST);
     }
-    return context.with(Volume.HIGHEST);
+    return context;
   }
 
   private boolean isTraceRoot(Context context) {
     SpanContext spanContext = Span.fromContext(context).getSpanContext();
-    return spanContext.isValid();
+    return !spanContext.isValid();
   }
 }

@@ -18,10 +18,11 @@ package com.splunk.opentelemetry.profiler.snapshot;
 
 import io.opentelemetry.api.baggage.Baggage;
 import io.opentelemetry.context.Context;
+import io.opentelemetry.context.ImplicitContextKeyed;
 
 import java.util.Locale;
 
-public enum Volume {
+public enum Volume implements ImplicitContextKeyed {
   OFF,
   HIGHEST;
 
@@ -47,7 +48,9 @@ public enum Volume {
     return name().toLowerCase(Locale.ROOT);
   }
 
-  Baggage toBaggage() {
-    return Baggage.builder().put("splunk.trace.snapshot.volume", toString()).build();
+  @Override
+  public Context storeInContext(Context context) {
+    Baggage baggage = Baggage.builder().put("splunk.trace.snapshot.volume", toString()).build();
+    return context.with(baggage);
   }
 }

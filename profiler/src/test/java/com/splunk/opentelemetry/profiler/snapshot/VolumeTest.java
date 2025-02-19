@@ -16,18 +16,18 @@
 
 package com.splunk.opentelemetry.profiler.snapshot;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-
-import java.util.Locale;
-import java.util.stream.Stream;
 import io.opentelemetry.api.baggage.Baggage;
 import io.opentelemetry.context.Context;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.MethodSource;
+
+import java.util.Locale;
+import java.util.stream.Stream;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 class VolumeTest {
   @ParameterizedTest
@@ -101,9 +101,11 @@ class VolumeTest {
 
   @ParameterizedTest
   @EnumSource(Volume.class)
-  void convertToOpenTelemetryBaggage(Volume volume) {
-    var baggage = volume.toBaggage();
+  void storeBaggageRepresentationInOpenTelemetryContext(Volume volume) {
+    var context = Context.current().with(volume);
+    var baggage = Baggage.fromContext(context);
     var entry = baggage.getEntry("splunk.trace.snapshot.volume");
+
     assertNotNull(entry);
     assertEquals(volume.toString(), entry.getValue());
   }

@@ -45,8 +45,7 @@ class SpanSamplingTest {
     @ParameterizedTest
     @SpanKinds.Entry
     void doNotRegisterTraceForProfilingWhenSpanSamplingIsOff(SpanKind kind, Tracer tracer) {
-      var baggage = Volume.HIGHEST.toBaggage();
-      try (var ignored = Context.root().with(baggage).makeCurrent()) {
+      try (var ignored = Context.current().with(Volume.HIGHEST).makeCurrent()) {
         var root = tracer.spanBuilder("root").setSpanKind(kind).startSpan();
         assertThat(registry.isRegistered(root.getSpanContext())).isFalse();
       }
@@ -67,8 +66,7 @@ class SpanSamplingTest {
     @ParameterizedTest
     @SpanKinds.Entry
     void registerTraceForProfilingWhenSpanSamplingIsOn(SpanKind kind, Tracer tracer) {
-      var baggage = Volume.HIGHEST.toBaggage();
-      try (var ignored = Context.root().with(baggage).makeCurrent()) {
+      try (var ignored = Context.current().with(Volume.HIGHEST).makeCurrent()) {
         var root = tracer.spanBuilder("root").setSpanKind(kind).startSpan();
         assertThat(registry.isRegistered(root.getSpanContext())).isTrue();
       }

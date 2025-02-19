@@ -16,7 +16,6 @@
 
 package com.splunk.opentelemetry.profiler.snapshot;
 
-import io.opentelemetry.api.baggage.Baggage;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.context.Context;
@@ -41,9 +40,7 @@ class SnapshotProfilingSignalPropagator implements TextMapPropagator {
     if (isTraceRoot(context)) {
       return context;
     }
-
-    Baggage baggage = Volume.HIGHEST.toBaggage();
-    return context.with(baggage);
+    return context.with(Volume.HIGHEST);
   }
 
   private boolean isTraceRoot(Context context) {

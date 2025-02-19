@@ -39,8 +39,7 @@ class SnapshotProfilingFeatureFlagTest {
     @ParameterizedTest
     @SpanKinds.Entry
     void snapshotProfilingIsDisabledByDefault(SpanKind kind, Tracer tracer) {
-      var baggage = Volume.HIGHEST.toBaggage();
-      try (var ignored = Context.root().with(baggage).makeCurrent()) {
+      try (var ignored = Context.current().with(Volume.HIGHEST).makeCurrent()) {
         var root = tracer.spanBuilder("root").setSpanKind(kind).startSpan();
         assertThat(registry.isRegistered(root.getSpanContext())).isFalse();
       }
@@ -59,8 +58,7 @@ class SnapshotProfilingFeatureFlagTest {
     @ParameterizedTest
     @SpanKinds.Entry
     void snapshotProfilingIsExplicitlyEnabled(SpanKind kind, Tracer tracer) {
-      var baggage = Volume.HIGHEST.toBaggage();
-      try (var ignored = Context.root().with(baggage).makeCurrent()) {
+      try (var ignored = Context.current().with(Volume.HIGHEST).makeCurrent()) {
         var root = tracer.spanBuilder("root").setSpanKind(kind).startSpan();
         assertThat(registry.isRegistered(root.getSpanContext())).isTrue();
       }
@@ -79,8 +77,7 @@ class SnapshotProfilingFeatureFlagTest {
     @ParameterizedTest
     @SpanKinds.Entry
     void snapshotProfilingIsExplicitlyEnabled(SpanKind kind, Tracer tracer) {
-      var baggage = Volume.HIGHEST.toBaggage();
-      try (var ignored = Context.root().with(baggage).makeCurrent()) {
+      try (var ignored = Context.current().with(Volume.HIGHEST).makeCurrent()) {
         var root = tracer.spanBuilder("root").setSpanKind(kind).startSpan();
         assertThat(registry.isRegistered(root.getSpanContext())).isFalse();
       }

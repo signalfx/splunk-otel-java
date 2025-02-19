@@ -39,8 +39,7 @@ class TraceRegistrationTest {
   @ParameterizedTest
   @SpanKinds.Entry
   void registerTraceForProfilingWhenRootSpanStarts(SpanKind kind, Tracer tracer) {
-    var baggage = Volume.HIGHEST.toBaggage();
-    try (var ignored = Context.current().with(baggage).makeCurrent()) {
+    try (var ignored = Context.current().with(Volume.HIGHEST).makeCurrent()) {
       var root = tracer.spanBuilder("root").setSpanKind(kind).startSpan();
       assertThat(registry.isRegistered(root.getSpanContext())).isTrue();
     }
@@ -49,8 +48,7 @@ class TraceRegistrationTest {
   @ParameterizedTest
   @SpanKinds.NonEntry
   void onlyRegisterTraceForProfilingWhenRootSpanIsEntrySpan(SpanKind kind, Tracer tracer) {
-    var baggage = Volume.HIGHEST.toBaggage();
-    try (var ignored = Context.current().with(baggage).makeCurrent()) {
+    try (var ignored = Context.current().with(Volume.HIGHEST).makeCurrent()) {
       var root = tracer.spanBuilder("root").setSpanKind(kind).startSpan();
       assertThat(registry.isRegistered(root.getSpanContext())).isFalse();
     }
@@ -59,8 +57,7 @@ class TraceRegistrationTest {
   @ParameterizedTest
   @SpanKinds.Entry
   void unregisterTraceForProfilingWhenEntrySpanEnds(SpanKind kind, Tracer tracer) {
-    var baggage = Volume.HIGHEST.toBaggage();
-    try (var ignored = Context.current().with(baggage).makeCurrent()) {
+    try (var ignored = Context.current().with(Volume.HIGHEST).makeCurrent()) {
       var root = tracer.spanBuilder("root").setSpanKind(kind).startSpan();
       root.end();
       assertThat(registry.isRegistered(root.getSpanContext())).isFalse();
@@ -70,8 +67,7 @@ class TraceRegistrationTest {
   @ParameterizedTest
   @SpanKinds.Entry
   void doNotRegisterTraceForProfilingWhenSnapshotVolumeIsOff(SpanKind kind, Tracer tracer) {
-    var baggage = Volume.OFF.toBaggage();
-    try (var ignored = Context.current().with(baggage).makeCurrent()) {
+    try (var ignored = Context.current().with(Volume.OFF).makeCurrent()) {
       var root = tracer.spanBuilder("root").setSpanKind(kind).startSpan();
       assertThat(registry.isRegistered(root.getSpanContext())).isFalse();
     }
@@ -87,8 +83,7 @@ class TraceRegistrationTest {
   @ParameterizedTest
   @SpanKinds.NonEntry
   void onlyUnregisterTraceForProfilingWhenEntrySpanEnds(SpanKind kind, Tracer tracer) {
-    var baggage = Volume.HIGHEST.toBaggage();
-    try (var ignored = Context.current().with(baggage).makeCurrent()) {
+    try (var ignored = Context.current().with(Volume.HIGHEST).makeCurrent()) {
       var root = tracer.spanBuilder("root").setSpanKind(SpanKind.SERVER).startSpan();
       var child =
           tracer

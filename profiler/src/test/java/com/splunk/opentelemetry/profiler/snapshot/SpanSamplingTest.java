@@ -38,7 +38,6 @@ class SpanSamplingTest {
         OpenTelemetrySdkExtension.builder()
             .withProperty("splunk.snapshot.profiler.enabled", "true")
             .withSampler(Sampler.alwaysOff())
-            .with(new SnapshotProfilingSignalPropagator())
             .with(customizer)
             .build();
 
@@ -59,7 +58,6 @@ class SpanSamplingTest {
         OpenTelemetrySdkExtension.builder()
             .withProperty("splunk.snapshot.profiler.enabled", "true")
             .withSampler(Sampler.alwaysOn())
-            .with(new SnapshotProfilingSignalPropagator())
             .with(customizer)
             .build();
 

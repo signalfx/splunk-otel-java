@@ -39,7 +39,7 @@ class SnapshotProfilingSignalPropagatorTest {
   }
 
   @Test
-  void attachVolumeToEntryWhenBeginningOfTraceDetected() {
+  void attachVolumeToBaggageWhenBeginningOfTraceDetected() {
     var context = Context.current();
 
     var contextFromPropagator = propagator.extract(context, carrier, carrier);
@@ -49,7 +49,7 @@ class SnapshotProfilingSignalPropagatorTest {
   }
 
   @Test
-  void doNotAttachVolumeToEntryWhenTraceHasAlreadyStarted(Tracer tracer) {
+  void doNotAttachVolumeToBaggageWhenTraceHasAlreadyStarted(Tracer tracer) {
     var span = tracer.spanBuilder("span").startSpan();
     var context = Context.current().with(span);
 

@@ -34,6 +34,14 @@ class SnapshotVolumePropagator implements TextMapPropagator {
   @Override
   public <C> void inject(Context context, C carrier, TextMapSetter<C> setter) {}
 
+  /**
+   * We're attempting to infer the start of a trace by inspecting the provided {@link Context}, and
+   * if so make a decision whether to select the trace for snapshotting. We will not have a
+   * trace ID at this time so we'll communicate the snapshotting decision to later instrumentation
+   * steps by placing an entry in OpenTelemetry's {@link io.opentelemetry.api.baggage.Baggage}.
+   * <br/><br/>
+   * If we're somewhere downstream of the trace root we leave the {@link Context} unchanged.
+   */
   @Override
   public <C> Context extract(Context context, C carrier, TextMapGetter<C> getter) {
     if (isTraceRoot(context)) {

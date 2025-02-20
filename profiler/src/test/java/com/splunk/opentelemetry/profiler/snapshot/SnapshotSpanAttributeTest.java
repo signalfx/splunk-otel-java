@@ -43,20 +43,16 @@ class SnapshotSpanAttributeTest {
   @SpanKinds.Entry
   void addSnapshotSpanAttributeToEntrySpans(SpanKind kind, Tracer tracer) {
     var span = (ReadWriteSpan) tracer.spanBuilder("root").setSpanKind(kind).startSpan();
-    try (var ignored = span.makeCurrent()) {
-      var attribute = span.getAttribute(AttributeKey.booleanKey("splunk.snapshot.profiling"));
-      assertThat(attribute).isTrue();
-    }
+    var attribute = span.getAttribute(AttributeKey.booleanKey("splunk.snapshot.profiling"));
+    assertThat(attribute).isTrue();
   }
 
   @ParameterizedTest
   @SpanKinds.NonEntry
   void onlyRegisterTraceForProfilingWhenRootSpanIsEntrySpan(SpanKind kind, Tracer tracer) {
     var span = (ReadWriteSpan) tracer.spanBuilder("root").setSpanKind(kind).startSpan();
-    try (var ignored = span.makeCurrent()) {
-      var attribute = span.getAttribute(AttributeKey.booleanKey("splunk.snapshot.profiling"));
-      assertThat(attribute).isNull();
-    }
+    var attribute = span.getAttribute(AttributeKey.booleanKey("splunk.snapshot.profiling"));
+    assertThat(attribute).isNull();
   }
 
   @ParameterizedTest
@@ -81,10 +77,8 @@ class SnapshotSpanAttributeTest {
     registry.toggle(State.OFF);
 
     var span = (ReadWriteSpan) tracer.spanBuilder("root").setSpanKind(kind).startSpan();
-    try (var ignored = span.makeCurrent()) {
-      var attribute = span.getAttribute(AttributeKey.booleanKey("splunk.snapshot.profiling"));
-      assertThat(attribute).isNull();
-    }
+    var attribute = span.getAttribute(AttributeKey.booleanKey("splunk.snapshot.profiling"));
+    assertThat(attribute).isNull();
   }
 
   static class TogglableTraceRegistry extends TraceRegistry {

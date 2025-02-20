@@ -17,7 +17,6 @@
 package com.splunk.opentelemetry.profiler.snapshot;
 
 import io.opentelemetry.api.trace.Span;
-import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.context.propagation.TextMapGetter;
 import io.opentelemetry.context.propagation.TextMapPropagator;
@@ -51,7 +50,6 @@ class SnapshotVolumePropagator implements TextMapPropagator {
   }
 
   private boolean isTraceRoot(Context context) {
-    SpanContext spanContext = Span.fromContext(context).getSpanContext();
-    return !spanContext.isValid();
+    return Span.fromContextOrNull(context) == null;
   }
 }

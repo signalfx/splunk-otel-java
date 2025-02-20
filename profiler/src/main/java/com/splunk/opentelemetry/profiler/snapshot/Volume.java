@@ -51,7 +51,10 @@ public enum Volume implements ImplicitContextKeyed {
 
   @Override
   public Context storeInContext(Context context) {
-    Baggage baggage = Baggage.builder().put(SPLUNK_TRACE_SNAPSHOT_VOLUME, toString()).build();
-    return context.with(baggage);
+    return context.with(toBaggage());
+  }
+
+  private Baggage toBaggage() {
+    return Baggage.current().toBuilder().put(SPLUNK_TRACE_SNAPSHOT_VOLUME, toString()).build();
   }
 }

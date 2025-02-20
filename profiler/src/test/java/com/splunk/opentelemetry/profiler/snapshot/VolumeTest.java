@@ -23,6 +23,8 @@ import io.opentelemetry.api.baggage.Baggage;
 import io.opentelemetry.context.Context;
 import java.util.Locale;
 import java.util.stream.Stream;
+
+import net.bytebuddy.utility.RandomString;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.EnumSource;
@@ -88,5 +90,22 @@ class VolumeTest {
 
     assertNotNull(entry);
     assertEquals(volume.toString(), entry.getValue());
+  }
+
+  @ParameterizedTest
+  @EnumSource(Volume.class)
+  void respectPreviousBaggageEntriesOpenTelemetryContext(Volume volume) {
+    var baggageKey = "existing-baggage-entry";
+    var baggageValue = RandomString.make();
+    var context = Context.current().with(Baggage.builder().put(baggageKey, baggageValue).build());
+
+    try (var ignored = context.makeCurrent()) {
+      var contextWithVolume = context.with(volume);
+      var baggage = Baggage.fromContext(contextWithVolume);
+      var entry = baggage.getEntry(baggageKey);
+
+      assertNotNull(entry);
+      assertEquals(baggageValue, entry.getValue());
+    }
   }
 }

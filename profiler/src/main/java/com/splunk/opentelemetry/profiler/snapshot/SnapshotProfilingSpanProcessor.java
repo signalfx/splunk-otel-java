@@ -34,6 +34,10 @@ public class SnapshotProfilingSpanProcessor implements SpanProcessor {
     if (isRoot(span) && isEntry(span)) {
       registry.register(span.getSpanContext());
     }
+
+    if (isEntry(span) && registry.isRegistered(span.getSpanContext())) {
+      span.setAttribute("splunk.snapshot.profiling", true);
+    }
   }
 
   private boolean isRoot(ReadableSpan span) {

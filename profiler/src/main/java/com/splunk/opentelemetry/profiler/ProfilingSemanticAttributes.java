@@ -41,6 +41,8 @@ public class ProfilingSemanticAttributes {
   public static final AttributeKey<Long> FRAME_COUNT = longKey("profiling.data.total.frame.count");
   public static final AttributeKey<String> INSTRUMENTATION_SOURCE =
       stringKey("profiling.instrumentation.source");
+  public static final AttributeKey<Boolean> SNAPSHOT_PROFILING =
+      AttributeKey.booleanKey("splunk.snapshot.profiling");
 
   public static final AttributeKey<Long> THREAD_ID = longKey("thread.id");
   public static final AttributeKey<String> THREAD_NAME = stringKey("thread.name");

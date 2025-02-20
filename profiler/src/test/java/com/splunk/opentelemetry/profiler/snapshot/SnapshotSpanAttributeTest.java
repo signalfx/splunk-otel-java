@@ -18,7 +18,7 @@ package com.splunk.opentelemetry.profiler.snapshot;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.splunk.opentelemetry.profiler.snapshot.SnapshotSnapAttributeTest.TogglableTraceRegistry.State;
+import com.splunk.opentelemetry.profiler.snapshot.SnapshotSpanAttributeTest.TogglableTraceRegistry.State;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.api.trace.SpanKind;
@@ -27,7 +27,7 @@ import io.opentelemetry.sdk.trace.ReadWriteSpan;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.params.ParameterizedTest;
 
-class SnapshotSnapAttributeTest {
+class SnapshotSpanAttributeTest {
   private final TogglableTraceRegistry registry = new TogglableTraceRegistry();
   private final SnapshotProfilingSdkCustomizer customizer =
       new SnapshotProfilingSdkCustomizer(registry);

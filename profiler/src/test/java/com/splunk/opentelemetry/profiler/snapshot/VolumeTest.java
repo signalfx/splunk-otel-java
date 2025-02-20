@@ -23,7 +23,6 @@ import io.opentelemetry.api.baggage.Baggage;
 import io.opentelemetry.context.Context;
 import java.util.Locale;
 import java.util.stream.Stream;
-
 import net.bytebuddy.utility.RandomString;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;

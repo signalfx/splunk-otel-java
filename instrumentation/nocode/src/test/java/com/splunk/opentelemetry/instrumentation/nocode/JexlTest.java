@@ -47,8 +47,7 @@ class JexlTest {
 
   static Stream<Arguments> jexlToExpected() {
     return Stream.of(
-        // Might be nice to support a bare "param0" or "this" but as a workaround can always use
-        // "this.toString()"
+        arguments("this", "{key=value}"),
         arguments("this.toString()", "{key=value}"),
         arguments("this.toString().length()", "11"),
         arguments("this.get(\"key\")", "value"),

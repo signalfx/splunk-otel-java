@@ -66,7 +66,7 @@ class SnapshotSpanAttributeTest {
     try (var contextScope = Context.root().with(Volume.HIGHEST).makeCurrent()) {
       try (var root = tracer.spanBuilder("root").setSpanKind(kind).startSpan().makeCurrent()) {
         try (var client =
-                     tracer.spanBuilder("client").setSpanKind(SpanKind.CLIENT).startSpan().makeCurrent()) {
+            tracer.spanBuilder("client").setSpanKind(SpanKind.CLIENT).startSpan().makeCurrent()) {
           var span = (ReadWriteSpan) tracer.spanBuilder("root").setSpanKind(kind).startSpan();
           try (var ignored = span.makeCurrent()) {
             var attribute = span.getAttribute(AttributeKey.booleanKey("splunk.snapshot.profiling"));

@@ -61,7 +61,7 @@ class JexlTest {
   @ParameterizedTest
   @MethodSource("jexlToExpected")
   void testBasicBehavior(String jexl, String expected) {
-    assertEquals(expected,  evalJexl(jexl, thiz, new Object[] {param0}), jexl);
+    assertEquals(expected, evalJexl(jexl, thiz, new Object[] {param0}), jexl);
   }
 
   @ParameterizedTest
@@ -212,7 +212,9 @@ class JexlTest {
 
   @Test
   void testTernaryLogic() {
-    assertEquals("potato", evalJexl("this.size() > 0 ? \"potato\" : \"banana\"", thiz, new Object[]{}));
-    assertEquals("banana", evalJexl("this.size() < 0 ? \"potato\" : \"banana\"", thiz, new Object[]{}));
+    assertEquals(
+        "potato", evalJexl("this.size() > 0 ? \"potato\" : \"banana\"", thiz, new Object[] {}));
+    assertEquals(
+        "banana", evalJexl("this.size() < 0 ? \"potato\" : \"banana\"", thiz, new Object[] {}));
   }
 }

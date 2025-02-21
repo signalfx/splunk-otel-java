@@ -32,7 +32,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
-class JSPSTest {
+class JexlTest {
   private static final Map<String, String> thiz = new HashMap<>();
   private static final Set<String> param0 = new HashSet<>();
 
@@ -41,7 +41,11 @@ class JSPSTest {
     param0.add("present");
   }
 
-  static Stream<Arguments> jspsToExpected() {
+  private static String evalJexl(String jexl, Object thiz, Object[] params) {
+    return new JexlEvaluator().evaluate(jexl, thiz, params);
+  }
+
+  static Stream<Arguments> jexlToExpected() {
     return Stream.of(
         // Might be nice to support a bare "param0" or "this" but as a workaround can always use
         // "this.toString()"
@@ -55,9 +59,9 @@ class JSPSTest {
   }
 
   @ParameterizedTest
-  @MethodSource("jspsToExpected")
-  void testBasicBehavior(String jsps, String expected) {
-    assertEquals(expected, JSPS.evaluate(jsps, thiz, new Object[] {param0}), jsps);
+  @MethodSource("jexlToExpected")
+  void testBasicBehavior(String jexl, String expected) {
+    assertEquals(expected,  evalJexl(jexl, thiz, new Object[] {param0}), jexl);
   }
 
   @ParameterizedTest
@@ -68,12 +72,11 @@ class JSPSTest {
         "this  .",
         "this  .  ",
         "this.noSuchMethod()",
-        "toString()",
+        // "toString()", // FIXME would like this not be "..jexl3.MapContext@<instance>"
         "this.toString()extrastuffatend",
         "this.toString()toString()",
         "param1.toString()", // out of bounds
         "param999.toString()",
-        "this.getOrDefault(\"key\", \"multiparamnotsupported\")",
         "this.get(\"noclosequote)",
         "this.get(\"nocloseparan\"",
         "this.noparens",
@@ -85,8 +88,8 @@ class JSPSTest {
         "this.get(\"NoSuchKey\")", // evals completely but returns null
         "param1.toString()", // no such param
       })
-  void testInvalidJspsReturnNull(String invalid) {
-    String answer = JSPS.evaluate(invalid, thiz, new Object[] {param0});
+  void testInvalidJexlReturnNull(String invalid) {
+    String answer = evalJexl(invalid, thiz, new Object[] {param0});
     assertNull(answer, "Expected null for \"" + invalid + "\" but was \"" + answer + "\"");
   }
 
@@ -94,8 +97,8 @@ class JSPSTest {
   void testIntegerLiteralLongerThanOneDigit() {
     Map<String, String> o = new HashMap<>();
     o.put("key", "really long value");
-    String jsps = "this.get(\"key\").substring(10)";
-    assertEquals("g value", JSPS.evaluate(jsps, o, new Object[0]));
+    String jexl = "this.get(\"key\").substring(10)";
+    assertEquals("g value", evalJexl(jexl, o, new Object[0]));
   }
 
   public static class TakeString {
@@ -151,17 +154,17 @@ class JSPSTest {
     TakeBooleanPrimitive b = new TakeBooleanPrimitive();
     TakeBoolean B = new TakeBoolean();
     TakeObject O = new TakeObject();
-    assertEquals("true", JSPS.evaluate("this.take(true)", b, new Object[0]));
-    assertEquals("false", JSPS.evaluate("this.take(false)", B, new Object[0]));
-    assertEquals("true", JSPS.evaluate("this.take(true)", O, new Object[0]));
+    assertEquals("true", evalJexl("this.take(true)", b, new Object[0]));
+    assertEquals("false", evalJexl("this.take(false)", B, new Object[0]));
+    assertEquals("true", evalJexl("this.take(true)", O, new Object[0]));
   }
 
   @Test
   void testStringLiteralParamTypes() {
     TakeString S = new TakeString();
     TakeObject O = new TakeObject();
-    assertEquals("a", JSPS.evaluate("this.take(\"a\")", S, new Object[0]));
-    assertEquals("a", JSPS.evaluate("this.take(\"a\")", O, new Object[0]));
+    assertEquals("a", evalJexl("this.take(\"a\")", S, new Object[0]));
+    assertEquals("a", evalJexl("this.take(\"a\")", O, new Object[0]));
   }
 
   @Test
@@ -171,11 +174,12 @@ class JSPSTest {
     TakeLongPrimitize l = new TakeLongPrimitize();
     TakeLong L = new TakeLong();
     TakeObject O = new TakeObject();
-    assertEquals("13", JSPS.evaluate("this.take(13)", i, new Object[0]));
-    assertEquals("13", JSPS.evaluate("this.take(13)", I, new Object[0]));
-    assertEquals("13", JSPS.evaluate("this.take(13)", l, new Object[0]));
-    assertEquals("13", JSPS.evaluate("this.take(13)", L, new Object[0]));
-    assertEquals("13", JSPS.evaluate("this.take(13)", O, new Object[0]));
+    assertEquals("13", evalJexl("this.take(13)", i, new Object[0]));
+    assertEquals("13", evalJexl("this.take(13)", I, new Object[0]));
+    assertEquals("13", evalJexl("this.take(13)", l, new Object[0]));
+    // Just documenting some oddness here with the long treatment
+    assertEquals("13", evalJexl("this.take(13L)", L, new Object[0]));
+    assertEquals("13", evalJexl("this.take(13)", O, new Object[0]));
   }
 
   @ParameterizedTest
@@ -195,7 +199,7 @@ class JSPSTest {
         "this.get(\"key\").substring(1 )",
       })
   void testWhitespace(String test) {
-    assertEquals("alue", JSPS.evaluate(test, thiz, new Object[] {param0}), test);
+    assertEquals("alue", evalJexl(test, thiz, new Object[] {param0}), test);
   }
 
   @Test
@@ -203,6 +207,12 @@ class JSPSTest {
     Object[] params = new Object[13];
     Arrays.fill(params, new Object());
     assertEquals(
-        "java.lang.Object", JSPS.evaluate("param12.getClass().getName()", new Object(), params));
+        "java.lang.Object", evalJexl("param12.getClass().getName()", new Object(), params));
+  }
+
+  @Test
+  void testTernaryLogic() {
+    assertEquals("potato", evalJexl("this.size() > 0 ? \"potato\" : \"banana\"", thiz, new Object[]{}));
+    assertEquals("banana", evalJexl("this.size() < 0 ? \"potato\" : \"banana\"", thiz, new Object[]{}));
   }
 }

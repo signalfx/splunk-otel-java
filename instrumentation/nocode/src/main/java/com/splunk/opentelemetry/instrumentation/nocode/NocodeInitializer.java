@@ -33,11 +33,6 @@ public class NocodeInitializer implements BeforeAgentListener {
     ConfigProperties config = getConfig(autoConfiguredOpenTelemetrySdk);
     YamlParser yp = new YamlParser(config);
     NocodeRules.setGlobalRules(yp.getInstrumentationRules());
-    NocodeEvaluation.internalSetEvaluator(new NocodeEvaluation.Evaluator() {
-      @Override
-      public String evaluate(String expression, Object thiz, Object[] params) {
-        return JSPS.evaluate(expression, thiz, params);
-      }
-    });
+    NocodeEvaluation.internalSetEvaluator(new JexlEvaluator());
   }
 }

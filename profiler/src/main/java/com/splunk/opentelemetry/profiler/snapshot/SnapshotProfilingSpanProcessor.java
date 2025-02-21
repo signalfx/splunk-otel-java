@@ -26,9 +26,24 @@ import io.opentelemetry.sdk.trace.SpanProcessor;
 
 public class SnapshotProfilingSpanProcessor implements SpanProcessor {
   private final TraceRegistry registry;
+  private final StackTraceSampler sampler;
 
   SnapshotProfilingSpanProcessor(TraceRegistry registry) {
+    this(
+        registry,
+        new ScheduledExecutorStackTraceSampler(
+            new StagingArea() {
+              @Override
+              public void stage(long threadId, StackTrace stackTrace) {}
+
+              @Override
+              public void empty(long threadId) {}
+            }));
+  }
+
+  SnapshotProfilingSpanProcessor(TraceRegistry registry, StackTraceSampler sampler) {
     this.registry = registry;
+    this.sampler = sampler;
   }
 
   @Override
@@ -41,6 +56,7 @@ public class SnapshotProfilingSpanProcessor implements SpanProcessor {
     }
 
     if (isEntry(span) && registry.isRegistered(span.getSpanContext())) {
+      sampler.startSampling(span.getSpanContext().getTraceId(), Thread.currentThread().getId());
       span.setAttribute(SNAPSHOT_PROFILING, true);
     }
   }
@@ -61,6 +77,7 @@ public class SnapshotProfilingSpanProcessor implements SpanProcessor {
   public void onEnd(ReadableSpan span) {
     if (isEntry(span)) {
       registry.unregister(span.getSpanContext());
+      sampler.stopSampling(Thread.currentThread().getId());
     }
   }
 

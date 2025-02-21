@@ -17,7 +17,6 @@
 package com.splunk.opentelemetry.profiler.snapshot;
 
 import io.opentelemetry.api.trace.Span;
-import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.context.propagation.TextMapGetter;
 import io.opentelemetry.context.propagation.TextMapPropagator;
@@ -25,39 +24,32 @@ import io.opentelemetry.context.propagation.TextMapSetter;
 import java.util.Collection;
 import java.util.Collections;
 
-class SnapshotProfilingSignalPropagator implements TextMapPropagator {
-  private static final String PROFILING_SIGNAL = "splunk.trace.snapshot.volume";
-
-  private final TraceRegistry registry;
-
-  SnapshotProfilingSignalPropagator(TraceRegistry registry) {
-    this.registry = registry;
-  }
-
+class SnapshotVolumePropagator implements TextMapPropagator {
   @Override
   public Collection<String> fields() {
-    return Collections.singletonList(PROFILING_SIGNAL);
+    return Collections.emptyList();
   }
 
   @Override
-  public <C> void inject(Context context, C carrier, TextMapSetter<C> setter) {
-    SpanContext spanContext = Span.fromContext(context).getSpanContext();
-    if (registry.isRegistered(spanContext)) {
-      setter.set(carrier, PROFILING_SIGNAL, Volume.HIGHEST.toString());
-    }
-  }
+  public <C> void inject(Context context, C carrier, TextMapSetter<C> setter) {}
 
+  /**
+   * We're attempting to infer the start of a trace by inspecting the provided {@link Context}, and
+   * if so make a decision whether to select the trace for snapshotting. We will not have a trace ID
+   * at this time so we'll communicate the snapshotting decision to later instrumentation steps by
+   * placing an entry in OpenTelemetry's {@link io.opentelemetry.api.baggage.Baggage}. <br>
+   * <br>
+   * If we're somewhere downstream of the trace root we leave the {@link Context} unchanged.
+   */
   @Override
   public <C> Context extract(Context context, C carrier, TextMapGetter<C> getter) {
-    Volume volume = Volume.fromString(getter.get(carrier, PROFILING_SIGNAL));
-    if (volume == Volume.OFF) {
-      return context;
-    }
-
-    SpanContext spanContext = Span.fromContext(context).getSpanContext();
-    if (spanContext.isValid()) {
-      registry.register(spanContext);
+    if (isTraceRoot(context)) {
+      return context.with(Volume.HIGHEST);
     }
     return context;
+  }
+
+  private boolean isTraceRoot(Context context) {
+    return Span.fromContextOrNull(context) == null;
   }
 }

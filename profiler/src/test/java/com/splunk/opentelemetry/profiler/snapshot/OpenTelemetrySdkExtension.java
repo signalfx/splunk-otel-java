@@ -105,6 +105,7 @@ public class OpenTelemetrySdkExtension
   public static class Builder {
     private final SdkCustomizer customizer = new SdkCustomizer();
     private final Map<String, String> properties = new HashMap<>();
+    private final List<TextMapPropagator> propagators = new ArrayList<>();
     private Sampler sampler = Sampler.alwaysOn();
 
     public Builder withProperty(String name, String value) {
@@ -122,6 +123,11 @@ public class OpenTelemetrySdkExtension
       return this;
     }
 
+    public Builder with(TextMapPropagator propagator) {
+      this.propagators.add(propagator);
+      return this;
+    }
+
     /**
      * Simplified re-implementation of AutoConfiguredOpenTelemetrySdkBuilder's build method. The
      * OpenTelemetry SDK is only configured with features necessary to pass existing test use cases.
@@ -130,7 +136,7 @@ public class OpenTelemetrySdkExtension
       ConfigProperties configProperties = customizeProperties();
       SdkTracerProvider tracerProvider = customizeTracerProvider(configProperties);
 
-      TextMapPropagator propagator = customizePropagators(configProperties);
+      TextMapPropagator propagator = TextMapPropagator.composite(configuredPropagators());
       ContextPropagators contextPropagators = ContextPropagators.create(propagator);
 
       OpenTelemetrySdk sdk =
@@ -157,16 +163,12 @@ public class OpenTelemetrySdkExtension
       return builder.build();
     }
 
-    private TextMapPropagator customizePropagators(ConfigProperties properties) {
-      var propagators = new ArrayList<TextMapPropagator>();
-      for (var propagator : configuredPropagators()) {
-        propagators.add(customizer.textMapPropagatorBifunction.apply(propagator, properties));
-      }
-      return TextMapPropagator.composite(propagators);
-    }
-
     private List<TextMapPropagator> configuredPropagators() {
-      return List.of(W3CTraceContextPropagator.getInstance(), W3CBaggagePropagator.getInstance());
+      List<TextMapPropagator> propagators = new ArrayList<>();
+      propagators.add(W3CBaggagePropagator.getInstance());
+      propagators.add(W3CTraceContextPropagator.getInstance());
+      propagators.addAll(this.propagators);
+      return propagators;
     }
   }
 
@@ -176,8 +178,6 @@ public class OpenTelemetrySdkExtension
     private final List<
             BiFunction<SdkTracerProviderBuilder, ConfigProperties, SdkTracerProviderBuilder>>
         tracerProviderCustomizers = new ArrayList<>();
-    BiFunction<? super TextMapPropagator, ConfigProperties, ? extends TextMapPropagator>
-        textMapPropagatorBifunction = (a, unused) -> a;
 
     @Override
     public AutoConfigurationCustomizer addTracerProviderCustomizer(
@@ -191,7 +191,6 @@ public class OpenTelemetrySdkExtension
     public AutoConfigurationCustomizer addPropagatorCustomizer(
         BiFunction<? super TextMapPropagator, ConfigProperties, ? extends TextMapPropagator>
             textMapPropagator) {
-      textMapPropagatorBifunction = Objects.requireNonNull(textMapPropagator);
       return this;
     }
 

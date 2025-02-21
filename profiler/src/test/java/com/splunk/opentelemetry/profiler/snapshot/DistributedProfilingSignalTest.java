@@ -38,6 +38,7 @@ class DistributedProfilingSignalTest {
       OpenTelemetrySdkExtension.builder()
           .withProperty("splunk.snapshot.profiler.enabled", "true")
           .with(downstreamCustomizer)
+          .with(new SnapshotVolumePropagator())
           .build();
 
   @RegisterExtension
@@ -46,6 +47,13 @@ class DistributedProfilingSignalTest {
           .named("downstream")
           .performing(delayOf(Duration.ofMillis(250)))
           .build();
+
+  @RegisterExtension
+  public final OpenTelemetrySdkExtension middleSdk = OpenTelemetrySdkExtension.builder().build();
+
+  @RegisterExtension
+  public final Server middle =
+      Server.builder(middleSdk).named("middle").performing(ExitCall.to(downstream)).build();
 
   private final RecordingTraceRegistry upstreamRegistry = new RecordingTraceRegistry();
   private final SnapshotProfilingSdkCustomizer upstreamCustomizer =
@@ -56,12 +64,29 @@ class DistributedProfilingSignalTest {
       OpenTelemetrySdkExtension.builder()
           .withProperty("splunk.snapshot.profiler.enabled", "true")
           .with(upstreamCustomizer)
+          .with(new SnapshotVolumePropagator())
           .build();
 
   @RegisterExtension
   public final Server upstream =
-      Server.builder(upstreamSdk).named("upstream").performing(ExitCall.to(downstream)).build();
+      Server.builder(upstreamSdk).named("upstream").performing(ExitCall.to(middle)).build();
 
+  /**
+   * The test below is asserting a few things are happening. First, consider the following
+   * distributed system.
+   *
+   * <pre>{@code
+   * +----------+    +--------+    +------------+
+   * | upstream | -> | middle | -> | downstream |
+   * +----------+    +--------+    +------------+
+   * }</pre>
+   *
+   * <p>1. Upstream is instrumented with the snapshot profiling agent extension <br>
+   * 2. Middle is instrumented with a vanilla OpenTelemetry agent <br>
+   * 3. Downstream is instrumented with the snapshot profiling agent extension <br>
+   * We want for the upstream service instrumentation to initially register the trace for profiling
+   * and for that signal to propagate through the middle service to the downstream service.
+   */
   @Test
   void traceSnapshotVolumePropagatesAcrossProcessBoundaries() {
     var message = new Message();

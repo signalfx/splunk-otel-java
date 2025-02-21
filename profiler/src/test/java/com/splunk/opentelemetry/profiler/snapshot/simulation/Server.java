@@ -79,13 +79,15 @@ public class Server extends Thread implements BeforeEachCallback, AfterEachCallb
             .getTextMapPropagator()
             .extract(Context.current(), message, new MessageGetter());
 
-    var tracer = otel.getTracer(Server.class.getName());
-    var span =
-        tracer.spanBuilder("process").setSpanKind(SpanKind.SERVER).setParent(context).startSpan();
-    try (Scope ignored = span.makeCurrent()) {
-      responses.add(operation.apply(message));
-    } finally {
-      span.end();
+    try (Scope s = context.makeCurrent()) {
+      var tracer = otel.getTracer(Server.class.getName());
+      var span =
+          tracer.spanBuilder("process").setSpanKind(SpanKind.SERVER).setParent(context).startSpan();
+      try (Scope ignored = span.makeCurrent()) {
+        responses.add(operation.apply(message));
+      } finally {
+        span.end();
+      }
     }
   }
 

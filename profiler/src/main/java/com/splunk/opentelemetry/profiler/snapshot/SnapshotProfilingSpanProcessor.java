@@ -31,13 +31,12 @@ public class SnapshotProfilingSpanProcessor implements SpanProcessor {
 
   @Override
   public void onStart(Context context, ReadWriteSpan span) {
-    if (isRoot(span) && isEntry(span)) {
-      registry.register(span.getSpanContext());
+    if (isEntry(span)) {
+      Volume volume = Volume.from(context);
+      if (volume == Volume.HIGHEST) {
+        registry.register(span.getSpanContext());
+      }
     }
-  }
-
-  private boolean isRoot(ReadableSpan span) {
-    return !span.getParentSpanContext().isValid();
   }
 
   @Override

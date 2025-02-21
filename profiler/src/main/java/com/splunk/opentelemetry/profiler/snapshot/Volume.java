@@ -16,13 +16,23 @@
 
 package com.splunk.opentelemetry.profiler.snapshot;
 
+import io.opentelemetry.api.baggage.Baggage;
+import io.opentelemetry.context.Context;
+import io.opentelemetry.context.ImplicitContextKeyed;
 import java.util.Locale;
 
-public enum Volume {
+public enum Volume implements ImplicitContextKeyed {
   OFF,
   HIGHEST;
 
-  static Volume fromString(String value) {
+  private static final String SPLUNK_TRACE_SNAPSHOT_VOLUME = "splunk.trace.snapshot.volume";
+
+  static Volume from(Context context) {
+    Baggage baggage = Baggage.fromContext(context);
+    return fromString(baggage.getEntryValue(SPLUNK_TRACE_SNAPSHOT_VOLUME));
+  }
+
+  private static Volume fromString(String value) {
     if (value == null) {
       return OFF;
     }
@@ -37,5 +47,14 @@ public enum Volume {
   @Override
   public String toString() {
     return name().toLowerCase(Locale.ROOT);
+  }
+
+  @Override
+  public Context storeInContext(Context context) {
+    return context.with(toBaggage());
+  }
+
+  private Baggage toBaggage() {
+    return Baggage.current().toBuilder().put(SPLUNK_TRACE_SNAPSHOT_VOLUME, toString()).build();
   }
 }

@@ -17,9 +17,13 @@
 package com.splunk.opentelemetry.profiler.snapshot;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+import io.opentelemetry.api.baggage.Baggage;
+import io.opentelemetry.context.Context;
 import java.util.Locale;
 import java.util.stream.Stream;
+import net.bytebuddy.utility.RandomString;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.EnumSource;
@@ -34,18 +38,23 @@ class VolumeTest {
 
   @ParameterizedTest
   @MethodSource("volumesAsStrings")
-  void fromStringRepresentation(Volume volume, String asString) {
-    assertEquals(volume, Volume.fromString(asString));
+  void extractVolumeFromOpenTelemetryContext(Volume volume, String asString) {
+    var baggage = Baggage.builder().put("splunk.trace.snapshot.volume", asString).build();
+    var context = Context.current().with(baggage);
+    assertEquals(volume, Volume.from(context));
   }
 
   @ParameterizedTest
   @MethodSource("volumesAsStrings")
-  void fromStringIsNotSensitiveToLocale(Volume volume, String asString) {
+  void fromContextIsNotSensitiveToLocale(Volume volume, String asString) {
+    var baggage = Baggage.builder().put("splunk.trace.snapshot.volume", asString).build();
+    var context = Context.current().with(baggage);
+
     var defaultLocale = Locale.getDefault();
     try {
       for (var locale : Locale.getAvailableLocales()) {
         Locale.setDefault(locale);
-        assertEquals(volume, Volume.fromString(asString));
+        assertEquals(volume, Volume.from(context));
       }
     } finally {
       Locale.setDefault(defaultLocale);
@@ -61,12 +70,41 @@ class VolumeTest {
 
   @ParameterizedTest
   @MethodSource("notVolumes")
-  void fromStringReturnsOffWhenMatchNotFound(String value) {
-    var volume = Volume.fromString(value);
-    assertEquals(Volume.OFF, volume);
+  void fromContextReturnsOffWhenMatchNotFound(String value) {
+    var baggage = Baggage.builder().put("splunk.trace.snapshot.volume", value).build();
+    var context = Context.current().with(baggage);
+    assertEquals(Volume.OFF, Volume.from(context));
   }
 
   private static Stream<Arguments> notVolumes() {
     return Stream.of(Arguments.of("not-a-volume"), Arguments.of((String) null));
+  }
+
+  @ParameterizedTest
+  @EnumSource(Volume.class)
+  void storeBaggageRepresentationInOpenTelemetryContext(Volume volume) {
+    var context = Context.current().with(volume);
+    var baggage = Baggage.fromContext(context);
+    var entry = baggage.getEntry("splunk.trace.snapshot.volume");
+
+    assertNotNull(entry);
+    assertEquals(volume.toString(), entry.getValue());
+  }
+
+  @ParameterizedTest
+  @EnumSource(Volume.class)
+  void respectPreviousBaggageEntriesOpenTelemetryContext(Volume volume) {
+    var baggageKey = "existing-baggage-entry";
+    var baggageValue = RandomString.make();
+    var context = Context.current().with(Baggage.builder().put(baggageKey, baggageValue).build());
+
+    try (var ignored = context.makeCurrent()) {
+      var contextWithVolume = context.with(volume);
+      var baggage = Baggage.fromContext(contextWithVolume);
+      var entry = baggage.getEntry(baggageKey);
+
+      assertNotNull(entry);
+      assertEquals(baggageValue, entry.getValue());
+    }
   }
 }

@@ -16,11 +16,11 @@
 
 package com.splunk.opentelemetry.profiler.snapshot;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import io.opentelemetry.api.trace.SpanKind;
 import io.opentelemetry.api.trace.Tracer;
+import io.opentelemetry.context.Context;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -39,8 +39,10 @@ class SnapshotProfilingFeatureFlagTest {
     @ParameterizedTest
     @SpanKinds.Entry
     void snapshotProfilingIsDisabledByDefault(SpanKind kind, Tracer tracer) {
-      var root = tracer.spanBuilder("root").setSpanKind(kind).startSpan();
-      assertFalse(registry.isRegistered(root.getSpanContext()));
+      try (var ignored = Context.current().with(Volume.HIGHEST).makeCurrent()) {
+        var root = tracer.spanBuilder("root").setSpanKind(kind).startSpan();
+        assertThat(registry.isRegistered(root.getSpanContext())).isFalse();
+      }
     }
   }
 
@@ -56,8 +58,10 @@ class SnapshotProfilingFeatureFlagTest {
     @ParameterizedTest
     @SpanKinds.Entry
     void snapshotProfilingIsExplicitlyEnabled(SpanKind kind, Tracer tracer) {
-      var root = tracer.spanBuilder("root").setSpanKind(kind).startSpan();
-      assertTrue(registry.isRegistered(root.getSpanContext()));
+      try (var ignored = Context.current().with(Volume.HIGHEST).makeCurrent()) {
+        var root = tracer.spanBuilder("root").setSpanKind(kind).startSpan();
+        assertThat(registry.isRegistered(root.getSpanContext())).isTrue();
+      }
     }
   }
 
@@ -73,8 +77,10 @@ class SnapshotProfilingFeatureFlagTest {
     @ParameterizedTest
     @SpanKinds.Entry
     void snapshotProfilingIsExplicitlyEnabled(SpanKind kind, Tracer tracer) {
-      var root = tracer.spanBuilder("root").setSpanKind(kind).startSpan();
-      assertFalse(registry.isRegistered(root.getSpanContext()));
+      try (var ignored = Context.current().with(Volume.HIGHEST).makeCurrent()) {
+        var root = tracer.spanBuilder("root").setSpanKind(kind).startSpan();
+        assertThat(registry.isRegistered(root.getSpanContext())).isFalse();
+      }
     }
   }
 }

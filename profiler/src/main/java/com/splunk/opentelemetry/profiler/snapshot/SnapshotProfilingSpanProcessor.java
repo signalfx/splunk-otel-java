@@ -16,6 +16,8 @@
 
 package com.splunk.opentelemetry.profiler.snapshot;
 
+import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.SNAPSHOT_PROFILING;
+
 import io.opentelemetry.api.trace.SpanKind;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.sdk.trace.ReadWriteSpan;
@@ -36,6 +38,10 @@ public class SnapshotProfilingSpanProcessor implements SpanProcessor {
       if (volume == Volume.HIGHEST) {
         registry.register(span.getSpanContext());
       }
+    }
+
+    if (isEntry(span) && registry.isRegistered(span.getSpanContext())) {
+      span.setAttribute(SNAPSHOT_PROFILING, true);
     }
   }
 

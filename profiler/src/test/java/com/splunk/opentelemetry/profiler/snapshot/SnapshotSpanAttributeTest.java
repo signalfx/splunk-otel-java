@@ -30,7 +30,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 class SnapshotSpanAttributeTest {
   private final TogglableTraceRegistry registry = new TogglableTraceRegistry();
   private final SnapshotProfilingSdkCustomizer customizer =
-      new SnapshotProfilingSdkCustomizer(registry);
+      Profiling.customizer().with(registry).build();
 
   @RegisterExtension
   public final OpenTelemetrySdkExtension s =

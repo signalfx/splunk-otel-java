@@ -27,10 +27,9 @@ import org.junit.jupiter.params.ParameterizedTest;
 
 class TraceProfilingTest {
   private final TogglableTraceRegistry registry = new TogglableTraceRegistry();
-
   private final ObservableStackTraceSampler sampler = new ObservableStackTraceSampler();
   private final SnapshotProfilingSdkCustomizer customizer =
-      new SnapshotProfilingSdkCustomizer(registry, sampler);
+      Profiling.customizer().with(registry).with(sampler).build();
 
   @RegisterExtension
   public final OpenTelemetrySdkExtension sdk =

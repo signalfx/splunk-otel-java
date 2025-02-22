@@ -28,19 +28,6 @@ public class SnapshotProfilingSpanProcessor implements SpanProcessor {
   private final TraceRegistry registry;
   private final StackTraceSampler sampler;
 
-  SnapshotProfilingSpanProcessor(TraceRegistry registry) {
-    this(
-        registry,
-        new ScheduledExecutorStackTraceSampler(
-            new StagingArea() {
-              @Override
-              public void stage(long threadId, StackTrace stackTrace) {}
-
-              @Override
-              public void empty(long threadId) {}
-            }));
-  }
-
   SnapshotProfilingSpanProcessor(TraceRegistry registry, StackTraceSampler sampler) {
     this.registry = registry;
     this.sampler = sampler;

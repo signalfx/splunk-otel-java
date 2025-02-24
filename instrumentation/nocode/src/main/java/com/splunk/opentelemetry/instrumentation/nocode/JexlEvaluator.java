@@ -42,6 +42,12 @@ public class JexlEvaluator implements NocodeEvaluation.Evaluator {
             .permissions(JexlPermissions.UNRESTRICTED)
             // don't support ant syntax
             .antish(false)
+            // This api is terribly named but false means "null deref throws exception rather than log warning"
+            .safe(false)
+            // We will catch our own exceptions
+            .silent(false)
+            // Don't assume unknown methods/variables mean "null"
+            .strict(true)
             .create();
   }
 

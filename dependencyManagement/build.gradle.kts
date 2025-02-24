@@ -49,7 +49,6 @@ dependencies {
     api("org.mockito:mockito-junit-jupiter:$mockitoVersion")
     api("org.slf4j:slf4j-api:$slf4jVersion")
     api("org.slf4j:slf4j-simple:$slf4jVersion")
-    api("org.slf4j:jcl-over-slf4j:$slf4jVersion")
     api("com.google.auto.value:auto-value:$autoValueVersion")
     api("com.google.auto.value:auto-value-annotations:$autoValueVersion")
 

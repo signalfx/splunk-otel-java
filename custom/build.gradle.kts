@@ -16,8 +16,6 @@ dependencies {
   implementation("io.opentelemetry.contrib:opentelemetry-samplers")
   implementation("io.opentelemetry.contrib:opentelemetry-resource-providers")
 
-  implementation("org.slf4j:jcl-over-slf4j")
-
   testImplementation("io.opentelemetry:opentelemetry-sdk")
   testImplementation("io.opentelemetry:opentelemetry-sdk-testing")
   testImplementation("io.opentelemetry:opentelemetry-sdk-extension-autoconfigure")

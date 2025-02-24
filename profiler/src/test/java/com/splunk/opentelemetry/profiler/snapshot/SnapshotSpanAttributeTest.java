@@ -23,6 +23,7 @@ import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.api.trace.SpanKind;
 import io.opentelemetry.api.trace.Tracer;
+import io.opentelemetry.context.Context;
 import io.opentelemetry.sdk.trace.ReadWriteSpan;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -42,29 +43,35 @@ class SnapshotSpanAttributeTest {
   @ParameterizedTest
   @SpanKinds.Entry
   void addSnapshotSpanAttributeToEntrySpans(SpanKind kind, Tracer tracer) {
-    var span = (ReadWriteSpan) tracer.spanBuilder("root").setSpanKind(kind).startSpan();
-    var attribute = span.getAttribute(AttributeKey.booleanKey("splunk.snapshot.profiling"));
-    assertThat(attribute).isTrue();
+    try (var ignored = Context.root().with(Volume.HIGHEST).makeCurrent()) {
+      var span = (ReadWriteSpan) tracer.spanBuilder("root").setSpanKind(kind).startSpan();
+      var attribute = span.getAttribute(AttributeKey.booleanKey("splunk.snapshot.profiling"));
+      assertThat(attribute).isTrue();
+    }
   }
 
   @ParameterizedTest
   @SpanKinds.NonEntry
   void onlyRegisterTraceForProfilingWhenRootSpanIsEntrySpan(SpanKind kind, Tracer tracer) {
-    var span = (ReadWriteSpan) tracer.spanBuilder("root").setSpanKind(kind).startSpan();
-    var attribute = span.getAttribute(AttributeKey.booleanKey("splunk.snapshot.profiling"));
-    assertThat(attribute).isNull();
+    try (var ignored = Context.root().with(Volume.HIGHEST).makeCurrent()) {
+      var span = (ReadWriteSpan) tracer.spanBuilder("root").setSpanKind(kind).startSpan();
+      var attribute = span.getAttribute(AttributeKey.booleanKey("splunk.snapshot.profiling"));
+      assertThat(attribute).isNull();
+    }
   }
 
   @ParameterizedTest
   @SpanKinds.Entry
   void addSnapshotSpanAttributeToAllEntrySpans(SpanKind kind, Tracer tracer) {
-    try (var root = tracer.spanBuilder("root").setSpanKind(kind).startSpan().makeCurrent()) {
-      try (var client =
-          tracer.spanBuilder("client").setSpanKind(SpanKind.CLIENT).startSpan().makeCurrent()) {
-        var span = (ReadWriteSpan) tracer.spanBuilder("root").setSpanKind(kind).startSpan();
-        try (var ignored = span.makeCurrent()) {
-          var attribute = span.getAttribute(AttributeKey.booleanKey("splunk.snapshot.profiling"));
-          assertThat(attribute).isTrue();
+    try (var contextScope = Context.root().with(Volume.HIGHEST).makeCurrent()) {
+      try (var root = tracer.spanBuilder("root").setSpanKind(kind).startSpan().makeCurrent()) {
+        try (var client =
+            tracer.spanBuilder("client").setSpanKind(SpanKind.CLIENT).startSpan().makeCurrent()) {
+          var span = (ReadWriteSpan) tracer.spanBuilder("root").setSpanKind(kind).startSpan();
+          try (var ignored = span.makeCurrent()) {
+            var attribute = span.getAttribute(AttributeKey.booleanKey("splunk.snapshot.profiling"));
+            assertThat(attribute).isTrue();
+          }
         }
       }
     }
@@ -76,9 +83,11 @@ class SnapshotSpanAttributeTest {
       SpanKind kind, Tracer tracer) {
     registry.toggle(State.OFF);
 
-    var span = (ReadWriteSpan) tracer.spanBuilder("root").setSpanKind(kind).startSpan();
-    var attribute = span.getAttribute(AttributeKey.booleanKey("splunk.snapshot.profiling"));
-    assertThat(attribute).isNull();
+    try (var ignored = Context.root().with(Volume.HIGHEST).makeCurrent()) {
+      var span = (ReadWriteSpan) tracer.spanBuilder("root").setSpanKind(kind).startSpan();
+      var attribute = span.getAttribute(AttributeKey.booleanKey("splunk.snapshot.profiling"));
+      assertThat(attribute).isNull();
+    }
   }
 
   static class TogglableTraceRegistry extends TraceRegistry {

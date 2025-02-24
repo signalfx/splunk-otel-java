@@ -31,13 +31,16 @@ public class JexlEvaluator implements NocodeEvaluation.Evaluator {
   private final JexlEngine jexl;
 
   public JexlEvaluator() {
-    JexlFeatures features = new JexlFeatures().register(false).comparatorNames(false);
-    // The "unrestricted" permissions allows jexl to introspect on custom/non-stdlib classes
-    // for calling methods
+    JexlFeatures features =
+        new JexlFeatures()
+            .register(false) // don't support #register syntax
+            .comparatorNames(false); // don't support 'lt' as an alternative to '<'
     this.jexl =
         new JexlBuilder()
             .features(features)
+            // "unrestricted" means "can introspect on custom classes"
             .permissions(JexlPermissions.UNRESTRICTED)
+            // don't support ant syntax
             .antish(false)
             .create();
   }

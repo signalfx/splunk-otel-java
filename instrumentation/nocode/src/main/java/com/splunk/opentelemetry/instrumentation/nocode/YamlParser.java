@@ -33,7 +33,7 @@ import org.snakeyaml.engine.v2.api.LoadSettings;
 
 public final class YamlParser {
   private static final Logger logger = Logger.getLogger(YamlParser.class.getName());
-  // FIXME support method override selection - e.g., with classfile method signature or something
+  // FUTURE support method override selection - e.g., with classfile method signature or something
   private static final String NOCODE_YMLFILE = "splunk.otel.instrumentation.nocode.yml.file";
 
   private final List<NocodeRules.Rule> instrumentationRules;
@@ -68,6 +68,7 @@ public final class YamlParser {
       for (Object yamlBit : parsedYaml) {
         List<Map<String, Object>> rulesMap = (List<Map<String, Object>>) yamlBit;
         for (Map<String, Object> yamlRule : rulesMap) {
+          // FUTURE support more complex class selection (inherits-from, etc.)
           String className = yamlRule.get("class").toString();
           String methodName = yamlRule.get("method").toString();
           String spanName =

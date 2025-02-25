@@ -17,19 +17,16 @@
 package com.splunk.opentelemetry.profiler.snapshot;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
-import org.junit.jupiter.api.extension.AfterEachCallback;
-import org.junit.jupiter.api.extension.ExtensionContext;
 
 /**
  * In memory implementation of the {@link StagingArea} interface that allows for direct access to
  * the stockpiled {@link StackTrace}s. Intended for testing use only.
  */
-class InMemoryStagingArea implements StagingArea, AfterEachCallback {
+class InMemoryStagingArea implements StagingArea {
   private final Map<Long, List<StackTrace>> stackTraces = new ConcurrentHashMap<>();
 
   @Override
@@ -50,12 +47,7 @@ class InMemoryStagingArea implements StagingArea, AfterEachCallback {
     stackTraces.remove(threadId);
   }
 
-  @Override
-  public void afterEach(ExtensionContext extensionContext) {
-    stackTraces.clear();
-  }
-
   public List<StackTrace> allStackTraces() {
-    return stackTraces.values().stream().flatMap(Collection::stream).collect(Collectors.toList());
+    return stackTraces.values().stream().flatMap(List::stream).collect(Collectors.toList());
   }
 }

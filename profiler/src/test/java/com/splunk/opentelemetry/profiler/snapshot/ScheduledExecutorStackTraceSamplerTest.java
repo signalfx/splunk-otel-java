@@ -22,14 +22,12 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.time.Duration;
 import java.util.Collections;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.RegisterExtension;
 
 class ScheduledExecutorStackTraceSamplerTest {
   private static final Duration HALF_SECOND = Duration.ofMillis(500);
   private static final Duration PERIOD = Duration.ofMillis(20);
 
-  @RegisterExtension public final InMemoryStagingArea staging = new InMemoryStagingArea();
-
+  private final InMemoryStagingArea staging = new InMemoryStagingArea();
   private final ScheduledExecutorStackTraceSampler sampler =
       new ScheduledExecutorStackTraceSampler(staging, PERIOD);
 

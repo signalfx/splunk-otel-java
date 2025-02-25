@@ -17,13 +17,14 @@
 package com.splunk.opentelemetry.profiler.snapshot;
 
 import com.google.common.annotations.VisibleForTesting;
+
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadInfo;
 import java.lang.management.ThreadMXBean;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -36,7 +37,7 @@ class ScheduledExecutorStackTraceSampler implements StackTraceSampler {
   private static final int SCHEDULER_PERIOD = 20;
   private static final int MAX_ENTRY_DEPTH = 200;
 
-  private final Map<Long, ScheduledExecutorService> samplers = new HashMap<>();
+  private final ConcurrentMap<Long, ScheduledExecutorService> samplers = new ConcurrentHashMap<>();
   private final ThreadMXBean threadMXBean = ManagementFactory.getThreadMXBean();
   private final StagingArea stagingArea;
   private final Duration samplingPeriod;

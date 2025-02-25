@@ -53,7 +53,6 @@ class ScheduledExecutorStackTraceSampler implements StackTraceSampler {
 
   @Override
   public void startSampling(String traceId, long threadId) {
-    LOGGER.fine("Starting stack trace sampling for for thread ID " + threadId);
     ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
     samplers.put(threadId, scheduler);
     scheduler.scheduleAtFixedRate(
@@ -65,7 +64,6 @@ class ScheduledExecutorStackTraceSampler implements StackTraceSampler {
 
   @Override
   public void stopSampling(long threadId) {
-    LOGGER.fine("Stopping stack trace sampling for for thread ID " + threadId);
     ScheduledExecutorService scheduler = samplers.remove(threadId);
     if (scheduler != null) {
       scheduler.shutdown();

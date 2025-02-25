@@ -18,7 +18,6 @@ package com.splunk.opentelemetry.profiler.snapshot;
 
 import java.util.HashSet;
 import java.util.Set;
-import org.junit.jupiter.api.extension.ExtensionContext;
 
 /**
  * Test-only implementation of the {@link StackTraceSampler}. Records which thread IDs have been
@@ -39,10 +38,5 @@ public class ObservableStackTraceSampler implements StackTraceSampler {
 
   boolean isBeingSampled(long threadId) {
     return threadIds.contains(threadId);
-  }
-
-  //  @Override
-  public void afterEach(ExtensionContext extensionContext) {
-    threadIds.clear();
   }
 }

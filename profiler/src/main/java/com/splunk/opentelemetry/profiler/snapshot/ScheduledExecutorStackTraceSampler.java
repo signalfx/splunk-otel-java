@@ -33,7 +33,7 @@ class ScheduledExecutorStackTraceSampler implements StackTraceSampler {
   private static final Logger LOGGER =
       Logger.getLogger(ScheduledExecutorStackTraceSampler.class.getName());
   private static final int SCHEDULER_INITIAL_DELAY = 0;
-  private static final int SCHEDULER_PERIOD = 20;
+  private static final Duration SCHEDULER_PERIOD = Duration.ofMillis(20);
   private static final int MAX_ENTRY_DEPTH = 200;
 
   private final ConcurrentMap<Long, ScheduledExecutorService> samplers = new ConcurrentHashMap<>();
@@ -42,7 +42,7 @@ class ScheduledExecutorStackTraceSampler implements StackTraceSampler {
   private final Duration samplingPeriod;
 
   ScheduledExecutorStackTraceSampler(StagingArea stagingArea) {
-    this(stagingArea, Duration.ofMillis(SCHEDULER_PERIOD));
+    this(stagingArea, SCHEDULER_PERIOD);
   }
 
   @VisibleForTesting

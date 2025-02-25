@@ -46,7 +46,7 @@ public final class NocodeMethodInvocation {
   /**
    * Please be careful with this, it's directly tied to @Advice.AllArguments.
    *
-   * @return
+   * @return @Advice.AllArguments - please be careful
    */
   public Object[] getParameters() {
     return parameters;

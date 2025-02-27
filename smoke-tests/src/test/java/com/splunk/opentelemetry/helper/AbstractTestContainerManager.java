@@ -48,6 +48,7 @@ public abstract class AbstractTestContainerManager implements TestContainerManag
     // This does not affect tests in any way but serves to verify that agent can actually load this
     // sampler
     environment.put("OTEL_TRACES_SAMPLER", "internal_root_off");
+    environment.put("OTEL_TRACES_EXPORTER", "otlp,console");
 
     return environment;
   }

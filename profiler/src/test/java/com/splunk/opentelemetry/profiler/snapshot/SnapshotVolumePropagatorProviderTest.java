@@ -44,7 +44,7 @@ class SnapshotVolumePropagatorProviderTest {
   }
 
   @ParameterizedTest
-  @ValueSource(doubles = {1.0, 0.75, 0.5, 0.25, 0.0})
+  @ValueSource(doubles = {0.10, 0.05, 0.0})
   void configureSnapshotSelectionRateFromConfigProperties(double selectionRate) throws Exception {
     var propagator =
         provider.getPropagator(

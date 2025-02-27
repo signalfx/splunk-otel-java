@@ -22,6 +22,8 @@ import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.trace.SpanKind;
 import io.opentelemetry.instrumentation.testing.junit.AgentInstrumentationExtension;
 import io.opentelemetry.instrumentation.testing.junit.InstrumentationExtension;
+import io.opentelemetry.sdk.testing.assertj.StatusDataAssert;
+import io.opentelemetry.sdk.trace.data.StatusData;
 import java.util.HashMap;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
@@ -41,6 +43,7 @@ class NocodeInstrumentationTest {
                 span ->
                     span.hasName("name")
                         .hasKind(SpanKind.INTERNAL)
+                        .hasStatus(StatusData.unset())
                         .hasAttributesSatisfying(
                             equalTo(AttributeKey.stringKey("map.size"), "2"),
                             equalTo(AttributeKey.stringKey("details"), "details"))));
@@ -55,6 +58,7 @@ class NocodeInstrumentationTest {
                 span ->
                     span.hasName("SampleClass.doInvalidRule")
                         .hasKind(SpanKind.INTERNAL)
+                        .hasStatus(StatusData.unset())
                         .hasTotalAttributeCount(
                             2))); // two code. attribute but nothing from the invalid rule
   }
@@ -74,6 +78,7 @@ class NocodeInstrumentationTest {
                     span.hasName("SampleClass.throwException")
                         .hasKind(SpanKind.SERVER)
                         .hasEventsSatisfyingExactly(event -> event.hasName("exception"))
+                        .hasStatusSatisfying(StatusDataAssert::isError)
                         .hasAttributesSatisfying(equalTo(AttributeKey.stringKey("five"), "5"))));
   }
 

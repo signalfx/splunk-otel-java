@@ -24,6 +24,7 @@ import com.google.auto.service.AutoService;
 import io.opentelemetry.sdk.autoconfigure.spi.AutoConfigurationCustomizer;
 import io.opentelemetry.sdk.autoconfigure.spi.AutoConfigurationCustomizerProvider;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
+import io.opentelemetry.sdk.autoconfigure.spi.internal.DefaultConfigProperties;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
@@ -72,6 +73,7 @@ public class Configuration implements AutoConfigurationCustomizerProvider {
   public static final String CONFIG_KEY_ENABLE_SNAPSHOT_PROFILER =
       "splunk.snapshot.profiler.enabled";
   public static final String CONFIG_KEY_SNAPSHOT_SELECTION_RATE = "splunk.snapshot.selection.rate";
+  private static final double DEFAULT_SNAPSHOT_SELECTION_RATE = 0.01;
 
   @Override
   public void customize(AutoConfigurationCustomizer autoConfiguration) {
@@ -89,7 +91,7 @@ public class Configuration implements AutoConfigurationCustomizerProvider {
     config.put(CONFIG_KEY_CALL_STACK_INTERVAL, DEFAULT_CALL_STACK_INTERVAL.toMillis() + "ms");
 
     config.put(CONFIG_KEY_ENABLE_SNAPSHOT_PROFILER, "false");
-    config.put(CONFIG_KEY_SNAPSHOT_SELECTION_RATE, "0.01");
+    config.put(CONFIG_KEY_SNAPSHOT_SELECTION_RATE, String.valueOf(DEFAULT_SNAPSHOT_SELECTION_RATE));
     return config;
   }
 
@@ -177,5 +179,13 @@ public class Configuration implements AutoConfigurationCustomizerProvider {
       return 8;
     }
     return Integer.parseInt(javaSpecVersion);
+  }
+
+  public static double getSnapshotSelectionRate(DefaultConfigProperties properties) {
+    String selectionRate = properties.getString(CONFIG_KEY_SNAPSHOT_SELECTION_RATE);
+    if (selectionRate != null) {
+      return Double.parseDouble(selectionRate);
+    }
+    return DEFAULT_SNAPSHOT_SELECTION_RATE;
   }
 }

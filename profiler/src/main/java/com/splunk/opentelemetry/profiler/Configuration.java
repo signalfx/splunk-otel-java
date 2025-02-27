@@ -71,6 +71,7 @@ public class Configuration implements AutoConfigurationCustomizerProvider {
 
   public static final String CONFIG_KEY_ENABLE_SNAPSHOT_PROFILER =
       "splunk.snapshot.profiler.enabled";
+  public static final String CONFIG_KEY_SNAPSHOT_SELECTION_RATE = "splunk.snapshot.selection.rate";
 
   @Override
   public void customize(AutoConfigurationCustomizer autoConfiguration) {
@@ -88,6 +89,7 @@ public class Configuration implements AutoConfigurationCustomizerProvider {
     config.put(CONFIG_KEY_CALL_STACK_INTERVAL, DEFAULT_CALL_STACK_INTERVAL.toMillis() + "ms");
 
     config.put(CONFIG_KEY_ENABLE_SNAPSHOT_PROFILER, "false");
+    config.put(CONFIG_KEY_SNAPSHOT_SELECTION_RATE, "0.01");
     return config;
   }
 

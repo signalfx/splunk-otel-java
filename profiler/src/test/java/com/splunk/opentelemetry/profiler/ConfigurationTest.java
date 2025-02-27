@@ -103,4 +103,13 @@ class ConfigurationTest {
     var properties = configuration.defaultProperties();
     assertEquals("false", properties.get("splunk.snapshot.profiler.enabled"));
   }
+
+  @Test
+  void snapshotSelectionDefaultRate() {
+    Configuration configuration = new Configuration();
+    var properties = configuration.defaultProperties();
+
+    double rate = Double.parseDouble(properties.get("splunk.snapshot.selection.rate"));
+    assertEquals(0.01, rate);
+  }
 }

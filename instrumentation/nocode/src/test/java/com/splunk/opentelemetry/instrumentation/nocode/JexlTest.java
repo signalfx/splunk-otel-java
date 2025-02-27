@@ -54,6 +54,7 @@ class JexlTest {
         arguments("this.get(\"key\").substring(1)", "alue"),
         arguments("param0.isEmpty()", "false"),
         arguments("param0.contains(\"present\")", "true"),
+        arguments("\"prefix: \"+this.toString()+\" (suffix)\"", "prefix: {key=value} (suffix)"),
         arguments("this.entrySet().size()", "1"));
   }
 

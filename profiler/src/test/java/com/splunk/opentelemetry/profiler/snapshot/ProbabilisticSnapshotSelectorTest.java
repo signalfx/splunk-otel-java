@@ -27,6 +27,34 @@ import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 
+/**
+ * The intent of the pipeline is to select roughly 5% of traces for snapshotting, and this 5% should
+ * be relatively stable regardless of how long we observe the snapshotting selection process. This
+ * is a naturally non-deterministic behavior, however, we are not able to test it through
+ * traditional deterministic unit tests.
+ *
+ * <p>Rather we need to test the behaviour by gathering a series of results and examining their
+ * variance from the intent, and there are two data points in particular we are interested in 1.
+ * Total percentage of traces selected for snapshotting 2. Stableness overtime of the snapshot
+ * selection algorithm
+ *
+ * <p>We cannot expect exactly 5% of traces selected, nor can we expect a perfectly stable system.
+ * We must instead accept some level of deviation from the stated intent of 5%.
+ *
+ * <p>Since the selection process is non-deterministic the idea behind this "test" is to confirm the
+ * results are all within some acceptable range and to do this we need execute the program a lot of
+ * times to obtain a distribution of outcomes. Here we have arbitrarily defined "a lot of times" to
+ * mean 100.
+ *
+ * <p>Each run of the test will process 1000 traces and our expectation is for roughly 5%, or 100,
+ * of those traces to be selected for snapshotting. We have arbitrarily defined our acceptable range
+ * as 10% of our expectation, or 90 <= x <= 110.
+ *
+ * <p>However outcomes beyond the acceptable range are still expected, but we shouldn't expect too
+ * many of those so our test assertions state that after the 100 executions are complete less than
+ * 5% of outcomes are beyond the acceptable range. Or, put another way, at least 95% of outcomes are
+ * within the acceptable range.
+ */
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class ProbabilisticSnapshotSelectorTest {
   private static final int ITERATIONS = 100;

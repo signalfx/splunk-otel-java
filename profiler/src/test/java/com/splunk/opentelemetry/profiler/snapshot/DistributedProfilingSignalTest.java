@@ -31,7 +31,7 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 class DistributedProfilingSignalTest {
   private final RecordingTraceRegistry downstreamRegistry = new RecordingTraceRegistry();
   private final SnapshotProfilingSdkCustomizer downstreamCustomizer =
-      new SnapshotProfilingSdkCustomizer(downstreamRegistry);
+      Profiling.customizer().with(downstreamRegistry).build();
 
   @RegisterExtension
   public final OpenTelemetrySdkExtension downstreamSdk =
@@ -57,7 +57,7 @@ class DistributedProfilingSignalTest {
 
   private final RecordingTraceRegistry upstreamRegistry = new RecordingTraceRegistry();
   private final SnapshotProfilingSdkCustomizer upstreamCustomizer =
-      new SnapshotProfilingSdkCustomizer(upstreamRegistry);
+      Profiling.customizer().with(upstreamRegistry).build();
 
   @RegisterExtension
   public final OpenTelemetrySdkExtension upstreamSdk =

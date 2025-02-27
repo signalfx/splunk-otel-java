@@ -27,6 +27,7 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 class ScheduledExecutorStackTraceSampler implements StackTraceSampler {
@@ -86,7 +87,10 @@ class ScheduledExecutorStackTraceSampler implements StackTraceSampler {
         StackTrace stackTrace = StackTrace.from(now, threadInfo);
         stagingArea.stage(threadId, stackTrace);
       } catch (Exception e) {
-        logger.severe(e::getMessage);
+        logger.log(
+            Level.SEVERE,
+            "Exception thrown attempting to stage callstacks for profiled thread " + threadId,
+            e);
       }
     }
   }

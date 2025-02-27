@@ -25,13 +25,13 @@ import java.util.Collection;
 import java.util.Collections;
 
 class SnapshotVolumePropagator implements TextMapPropagator {
-  private final TraceSelector selector;
+  private final SnapshotSelector selector;
 
   SnapshotVolumePropagator() {
-    this(new ProbabilisticTraceSelector(.01));
+    this(new ProbabilisticSnapshotSelector(.01));
   }
 
-  SnapshotVolumePropagator(TraceSelector selector) {
+  SnapshotVolumePropagator(SnapshotSelector selector) {
     this.selector = selector;
   }
 

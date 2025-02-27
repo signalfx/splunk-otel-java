@@ -18,7 +18,7 @@ package com.splunk.opentelemetry.profiler.snapshot;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import com.splunk.opentelemetry.profiler.snapshot.SnapshotVolumePropagatorTest.ToggleableTraceSelector.State;
+import com.splunk.opentelemetry.profiler.snapshot.SnapshotVolumePropagatorTest.ToggleableSnapshotSelector.State;
 import io.opentelemetry.api.baggage.Baggage;
 import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.context.Context;
@@ -32,7 +32,7 @@ class SnapshotVolumePropagatorTest {
 
   @RegisterExtension public final ObservableCarrier carrier = new ObservableCarrier();
 
-  private final ToggleableTraceSelector selector = new ToggleableTraceSelector();
+  private final ToggleableSnapshotSelector selector = new ToggleableSnapshotSelector();
   private final SnapshotVolumePropagator propagator = new SnapshotVolumePropagator(selector);
 
   @Test
@@ -84,7 +84,7 @@ class SnapshotVolumePropagatorTest {
     assertEquals(baggage, baggageAfterPropagator);
   }
 
-  static class ToggleableTraceSelector implements TraceSelector {
+  static class ToggleableSnapshotSelector implements SnapshotSelector {
     enum State {
       ON,
       OFF

@@ -12,13 +12,13 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-class ProbabilisticTraceSelectorTest {
+class ProbabilisticSnapshotSelectorTest {
     private static final int ITERATIONS = 100;
     private static final int TRACES_PER_ITERATIONS = 1000;
     private static final double SELECTION_RATE = 0.05;
     private final static List<Integer> OUTCOMES = new ArrayList<>();
 
-    private final ProbabilisticTraceSelector selector = new ProbabilisticTraceSelector(SELECTION_RATE);
+    private final ProbabilisticSnapshotSelector selector = new ProbabilisticSnapshotSelector(SELECTION_RATE);
 
     @RepeatedTest(ITERATIONS)
     @Order(1)

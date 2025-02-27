@@ -1,5 +1,5 @@
 package com.splunk.opentelemetry.profiler.snapshot;
 
-interface TraceSelector {
+interface SnapshotSelector {
   boolean select();
 }

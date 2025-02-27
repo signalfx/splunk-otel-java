@@ -18,6 +18,7 @@ package com.splunk.opentelemetry.profiler.snapshot;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import com.splunk.opentelemetry.profiler.snapshot.SnapshotVolumePropagatorTest.ToggleableTraceSelector.State;
 import io.opentelemetry.api.baggage.Baggage;
 import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.context.Context;
@@ -31,7 +32,8 @@ class SnapshotVolumePropagatorTest {
 
   @RegisterExtension public final ObservableCarrier carrier = new ObservableCarrier();
 
-  private final SnapshotVolumePropagator propagator = new SnapshotVolumePropagator();
+  private final ToggleableTraceSelector selector = new ToggleableTraceSelector();
+  private final SnapshotVolumePropagator propagator = new SnapshotVolumePropagator(selector);
 
   @Test
   void propagatorDoesNotReportAnyFields() {
@@ -60,6 +62,17 @@ class SnapshotVolumePropagatorTest {
   }
 
   @Test
+  void doNotAttachVolumeToBaggageWhenTraceIsNotSelectedForSnapshotting() {
+    selector.toggle(State.OFF);
+    var context = Context.current();
+
+    var contextFromPropagator = propagator.extract(context, carrier, carrier);
+
+    var baggage = Baggage.fromContext(contextFromPropagator);
+    assertEquals(Baggage.empty(), baggage);
+  }
+
+  @Test
   void leaveBaggageUnalteredWhenVolumeEntryDetected(Tracer tracer) {
     var span = tracer.spanBuilder("span").startSpan();
     var context = Context.current().with(Volume.HIGHEST).with(span);
@@ -69,5 +82,23 @@ class SnapshotVolumePropagatorTest {
 
     var baggageAfterPropagator = Baggage.fromContext(contextFromPropagator);
     assertEquals(baggage, baggageAfterPropagator);
+  }
+
+  static class ToggleableTraceSelector implements TraceSelector {
+    enum State {
+      ON,
+      OFF
+    }
+
+    private State state = State.ON;
+
+    @Override
+    public boolean select() {
+      return state == State.ON;
+    }
+
+    void toggle(State state) {
+      this.state = state;
+    }
   }
 }

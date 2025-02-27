@@ -27,12 +27,12 @@ import java.util.stream.Collectors;
  * the stockpiled {@link StackTrace}s. Intended for testing use only.
  */
 class InMemoryStagingArea implements StagingArea {
-  private final Map<Long, List<StackTrace>> stackTraces = new ConcurrentHashMap<>();
+  private final Map<String, List<StackTrace>> stackTraces = new ConcurrentHashMap<>();
 
   @Override
-  public void stage(long threadId, StackTrace stackTrace) {
+  public void stage(String traceId, StackTrace stackTrace) {
     stackTraces.compute(
-        threadId,
+        traceId,
         (id, stackTraces) -> {
           if (stackTraces == null) {
             stackTraces = new ArrayList<>();
@@ -43,8 +43,8 @@ class InMemoryStagingArea implements StagingArea {
   }
 
   @Override
-  public void empty(long threadId) {
-    stackTraces.remove(threadId);
+  public void empty(String traceId) {
+    stackTraces.remove(traceId);
   }
 
   public List<StackTrace> allStackTraces() {

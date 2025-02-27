@@ -19,6 +19,10 @@ package com.splunk.opentelemetry.profiler.snapshot;
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import io.opentelemetry.api.trace.SpanContext;
+import io.opentelemetry.api.trace.TraceFlags;
+import io.opentelemetry.api.trace.TraceState;
+import io.opentelemetry.sdk.trace.IdGenerator;
 import java.time.Duration;
 import java.util.Collections;
 import org.junit.jupiter.api.Test;
@@ -27,34 +31,56 @@ class ScheduledExecutorStackTraceSamplerTest {
   private static final Duration HALF_SECOND = Duration.ofMillis(500);
   private static final Duration PERIOD = Duration.ofMillis(20);
 
+  private final IdGenerator idGenerator = IdGenerator.random();
   private final InMemoryStagingArea staging = new InMemoryStagingArea();
   private final ScheduledExecutorStackTraceSampler sampler =
       new ScheduledExecutorStackTraceSampler(staging, PERIOD);
 
   @Test
   void takeStackTraceSampleForGivenThread() {
-    sampler.startSampling("", Thread.currentThread().getId());
-    await().atMost(HALF_SECOND).until(() -> !staging.allStackTraces().isEmpty());
-    sampler.stopSampling(Thread.currentThread().getId());
+    var spanContext = randomSpanContext();
+
+    try {
+      sampler.start(spanContext);
+      await().atMost(HALF_SECOND).until(() -> !staging.allStackTraces().isEmpty());
+    } finally {
+      sampler.stop(spanContext);
+    }
   }
 
   @Test
   void continuallySampleThreadForStackTraces() {
+    var spanContext = randomSpanContext();
     int expectedSamples = (int) HALF_SECOND.dividedBy(PERIOD.multipliedBy(2));
 
-    sampler.startSampling("", Thread.currentThread().getId());
-    await().atMost(HALF_SECOND).until(() -> staging.allStackTraces().size() >= expectedSamples);
-    sampler.stopSampling(Thread.currentThread().getId());
+    try {
+      sampler.start(spanContext);
+      await().atMost(HALF_SECOND).until(() -> staging.allStackTraces().size() >= expectedSamples);
+    } finally {
+      sampler.stop(spanContext);
+    }
   }
 
   @Test
   void emptyStagingAreaAfterSamplingStops() {
+    var spanContext = randomSpanContext();
     int expectedSamples = (int) HALF_SECOND.dividedBy(PERIOD.multipliedBy(2));
 
-    sampler.startSampling("", Thread.currentThread().getId());
-    await().atMost(HALF_SECOND).until(() -> staging.allStackTraces().size() >= expectedSamples);
-    sampler.stopSampling(Thread.currentThread().getId());
+    try {
+      sampler.start(spanContext);
+      await().atMost(HALF_SECOND).until(() -> staging.allStackTraces().size() >= expectedSamples);
+    } finally {
+      sampler.stop(spanContext);
+    }
 
     assertEquals(Collections.emptyList(), staging.allStackTraces());
+  }
+
+  private SpanContext randomSpanContext() {
+    return SpanContext.create(
+        idGenerator.generateTraceId(),
+        idGenerator.generateSpanId(),
+        TraceFlags.getDefault(),
+        TraceState.getDefault());
   }
 }

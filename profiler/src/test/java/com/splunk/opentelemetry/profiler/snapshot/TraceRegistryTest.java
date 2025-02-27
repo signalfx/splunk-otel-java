@@ -20,16 +20,13 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.opentelemetry.api.trace.SpanContext;
-import io.opentelemetry.api.trace.SpanId;
 import io.opentelemetry.api.trace.TraceFlags;
-import io.opentelemetry.api.trace.TraceId;
 import io.opentelemetry.api.trace.TraceState;
-import java.util.Random;
+import io.opentelemetry.sdk.trace.IdGenerator;
 import org.junit.jupiter.api.Test;
 
 class TraceRegistryTest {
-  private static final Random RANDOM = new Random();
-
+  private final IdGenerator idGenerator = IdGenerator.random();
   private final TraceRegistry registry = new TraceRegistry();
 
   @Test
@@ -60,11 +57,11 @@ class TraceRegistryTest {
   }
 
   private SpanContext newSpanContext(String traceId) {
-    var spanId = SpanId.fromLong(RANDOM.nextLong());
+    var spanId = idGenerator.generateSpanId();
     return SpanContext.create(traceId, spanId, TraceFlags.getDefault(), TraceState.getDefault());
   }
 
   private String randomTraceId() {
-    return TraceId.fromLongs(RANDOM.nextLong(), RANDOM.nextLong());
+    return idGenerator.generateTraceId();
   }
 }

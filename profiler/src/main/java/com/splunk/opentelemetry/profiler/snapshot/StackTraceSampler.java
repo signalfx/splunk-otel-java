@@ -19,9 +19,7 @@ package com.splunk.opentelemetry.profiler.snapshot;
 import io.opentelemetry.api.trace.SpanContext;
 
 interface StackTraceSampler {
-  default void start(SpanContext spanContext) {}
-  void startSampling(String traceId, long threadId);
+  void start(SpanContext spanContext);
 
-  default void stop(SpanContext spanContext) {}
-  void stopSampling(long threadId);
+  void stop(SpanContext spanContext);
 }

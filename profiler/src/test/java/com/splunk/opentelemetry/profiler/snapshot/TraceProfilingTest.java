@@ -16,14 +16,14 @@
 
 package com.splunk.opentelemetry.profiler.snapshot;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.splunk.opentelemetry.profiler.snapshot.TogglableTraceRegistry.State;
 import io.opentelemetry.api.trace.SpanKind;
 import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.context.Context;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.params.ParameterizedTest;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 class TraceProfilingTest {
   private final TogglableTraceRegistry registry = new TogglableTraceRegistry();
@@ -43,7 +43,6 @@ class TraceProfilingTest {
   void startTraceProfilingWhenEntrySpanStarts(SpanKind kind, Tracer tracer) {
     try (var ignored = Context.root().with(Volume.HIGHEST).makeCurrent()) {
       var span = tracer.spanBuilder("root").setSpanKind(kind).startSpan();
-      assertThat(sampler.isBeingSampled(Thread.currentThread().getId())).isTrue();
       assertThat(sampler.isBeingSampled(span.getSpanContext())).isTrue();
     }
   }
@@ -54,7 +53,6 @@ class TraceProfilingTest {
     try (var ignored = Context.root().with(Volume.HIGHEST).makeCurrent()) {
       var entry = tracer.spanBuilder("entry").setSpanKind(kind).startSpan();
       entry.end();
-      assertThat(sampler.isBeingSampled(Thread.currentThread().getId())).isFalse();
       assertThat(sampler.isBeingSampled(entry.getSpanContext())).isFalse();
     }
   }
@@ -64,7 +62,6 @@ class TraceProfilingTest {
   void doNotStartTraceProfilingForNonEntrySpanTypes(SpanKind kind, Tracer tracer) {
     try (var ignored = Context.root().with(Volume.HIGHEST).makeCurrent()) {
       var span = tracer.spanBuilder("span").setSpanKind(kind).startSpan();
-      assertThat(sampler.isBeingSampled(Thread.currentThread().getId())).isFalse();
       assertThat(sampler.isBeingSampled(span.getSpanContext())).isFalse();
     }
   }
@@ -87,7 +84,6 @@ class TraceProfilingTest {
           .setSpanKind(kind)
           .setParent(Context.current().with(client))
           .startSpan();
-      assertThat(sampler.isBeingSampled(Thread.currentThread().getId())).isFalse();
       assertThat(sampler.isBeingSampled(root.getSpanContext())).isFalse();
     }
   }
@@ -104,7 +100,6 @@ class TraceProfilingTest {
               .setParent(Context.current().with(root))
               .startSpan();
       child.end();
-      assertThat(sampler.isBeingSampled(Thread.currentThread().getId())).isTrue();
       assertThat(sampler.isBeingSampled(root.getSpanContext())).isTrue();
     }
   }

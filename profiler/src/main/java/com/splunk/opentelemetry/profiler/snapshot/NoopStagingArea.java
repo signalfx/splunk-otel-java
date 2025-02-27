@@ -18,8 +18,8 @@ package com.splunk.opentelemetry.profiler.snapshot;
 
 class NoopStagingArea implements StagingArea {
   @Override
-  public void stage(long threadId, StackTrace stackTrace) {}
+  public void stage(String traceId, StackTrace stackTrace) {}
 
   @Override
-  public void empty(long threadId) {}
+  public void empty(String traceId) {}
 }

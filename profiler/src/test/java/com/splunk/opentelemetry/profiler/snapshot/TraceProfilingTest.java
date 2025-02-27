@@ -58,6 +58,20 @@ class TraceProfilingTest {
   }
 
   @ParameterizedTest
+  @SpanKinds.Entry
+  void canStopTraceProfilingFromDifferentThread(SpanKind kind, Tracer tracer) throws Exception {
+    try (var ignored = Context.root().with(Volume.HIGHEST).makeCurrent()) {
+      var entry = tracer.spanBuilder("entry").setSpanKind(kind).startSpan();
+
+      var endingThread = new Thread(entry::end);
+      endingThread.start();
+      endingThread.join();
+
+      assertThat(sampler.isBeingSampled(entry.getSpanContext())).isFalse();
+    }
+  }
+
+  @ParameterizedTest
   @SpanKinds.NonEntry
   void doNotStartTraceProfilingForNonEntrySpanTypes(SpanKind kind, Tracer tracer) {
     try (var ignored = Context.root().with(Volume.HIGHEST).makeCurrent()) {

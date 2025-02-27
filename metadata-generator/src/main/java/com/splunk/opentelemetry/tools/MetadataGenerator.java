@@ -3306,7 +3306,7 @@ public class MetadataGenerator {
                 MetricInstrument.UP_DOWN_COUNTER,
                 "Number of executing platform threads (disabled by default).")
             .metric(
-                "jvm.buffer.memory.usage",
+                "jvm.buffer.memory.used",
                 MetricInstrument.UP_DOWN_COUNTER,
                 "Measure of memory used by buffers (disabled by default).")
             .metric(

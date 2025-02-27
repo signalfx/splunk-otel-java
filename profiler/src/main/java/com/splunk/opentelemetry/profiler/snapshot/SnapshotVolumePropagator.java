@@ -27,10 +27,6 @@ import java.util.Collections;
 class SnapshotVolumePropagator implements TextMapPropagator {
   private final SnapshotSelector selector;
 
-  SnapshotVolumePropagator() {
-    this(new ProbabilisticSnapshotSelector(.01));
-  }
-
   SnapshotVolumePropagator(SnapshotSelector selector) {
     this.selector = selector;
   }

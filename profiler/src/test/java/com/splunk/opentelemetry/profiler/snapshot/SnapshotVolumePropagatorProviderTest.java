@@ -44,11 +44,14 @@ class SnapshotVolumePropagatorProviderTest {
   }
 
   @ParameterizedTest
-  @ValueSource(doubles = { 1.0, 0.75, 0.5, 0.25, 0.0 })
+  @ValueSource(doubles = {1.0, 0.75, 0.5, 0.25, 0.0})
   void configureSnapshotSelectionRateFromConfigProperties(double selectionRate) throws Exception {
-    var propagator = provider.getPropagator(DefaultConfigProperties.create(Map.of(
-        Configuration.CONFIG_KEY_SNAPSHOT_SELECTION_RATE, String.valueOf(selectionRate)
-    )));
+    var propagator =
+        provider.getPropagator(
+            DefaultConfigProperties.create(
+                Map.of(
+                    Configuration.CONFIG_KEY_SNAPSHOT_SELECTION_RATE,
+                    String.valueOf(selectionRate))));
     var actualSelectionRate = reflectivelyGetSelectionRate(propagator);
 
     assertEquals(selectionRate, actualSelectionRate);
@@ -59,8 +62,9 @@ class SnapshotVolumePropagatorProviderTest {
     selectorField.setAccessible(true);
     var selector = selectorField.get(propagator);
 
-    Field selectionRateField = ProbabilisticSnapshotSelector.class.getDeclaredField("selectionRate");
+    Field selectionRateField =
+        ProbabilisticSnapshotSelector.class.getDeclaredField("selectionRate");
     selectionRateField.setAccessible(true);
-    return (double)selectionRateField.get(selector);
+    return (double) selectionRateField.get(selector);
   }
 }

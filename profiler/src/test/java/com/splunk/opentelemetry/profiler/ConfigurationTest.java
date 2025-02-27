@@ -116,9 +116,11 @@ class ConfigurationTest {
   }
 
   @ParameterizedTest
-  @ValueSource(doubles = { 1.0, 0.5, 0.0 })
+  @ValueSource(doubles = {1.0, 0.5, 0.0})
   void getSnapshotSelectionRate(double selectionRate) {
-    var properties = DefaultConfigProperties.create(Map.of("splunk.snapshot.selection.rate", String.valueOf(selectionRate)));
+    var properties =
+        DefaultConfigProperties.create(
+            Map.of("splunk.snapshot.selection.rate", String.valueOf(selectionRate)));
 
     double actualSelectionRate = Configuration.getSnapshotSelectionRate(properties);
     assertEquals(selectionRate, actualSelectionRate);

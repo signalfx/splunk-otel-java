@@ -24,6 +24,14 @@ import io.opentelemetry.sdk.trace.ReadWriteSpan;
 import io.opentelemetry.sdk.trace.ReadableSpan;
 import io.opentelemetry.sdk.trace.SpanProcessor;
 
+/**
+ * Custom {@link SpanProcessor} implementation that will 1. register traces for snapshot profiling
+ * and 2. activate profiling for the thread processing the trace. <br>
+ * <br>
+ * <b>Implementation Note</b><br>
+ * Only single-threaded traces are currently supported. Behavior of the extension in a multithreaded
+ * trace environment is unspecified and explicitly not supported.
+ */
 public class SnapshotProfilingSpanProcessor implements SpanProcessor {
   private final TraceRegistry registry;
   private final StackTraceSampler sampler;

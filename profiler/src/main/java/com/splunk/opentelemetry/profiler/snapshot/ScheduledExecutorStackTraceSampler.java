@@ -30,7 +30,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
 class ScheduledExecutorStackTraceSampler implements StackTraceSampler {
-  private static final Logger LOGGER =
+  private static final Logger logger =
       Logger.getLogger(ScheduledExecutorStackTraceSampler.class.getName());
   private static final int SCHEDULER_INITIAL_DELAY = 0;
   private static final Duration SCHEDULER_PERIOD = Duration.ofMillis(20);
@@ -86,7 +86,7 @@ class ScheduledExecutorStackTraceSampler implements StackTraceSampler {
         StackTrace stackTrace = StackTrace.from(now, threadInfo);
         stagingArea.stage(threadId, stackTrace);
       } catch (Exception e) {
-        LOGGER.severe(e::getMessage);
+        logger.severe(e::getMessage);
       }
     }
   }

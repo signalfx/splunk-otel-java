@@ -218,6 +218,8 @@ public class WindowsTestContainerManager extends AbstractTestContainerManager {
     }
 
     List<String> environment = new ArrayList<>();
+    // hec backend is not started on windows
+    environment.add("OTEL_LOGS_EXPORTER=none");
 
     if (builder.useDefaultAgentConfiguration) {
       getAgentEnvironment(builder.jvmArgsEnvVarName, !builder.autodetectServiceName)

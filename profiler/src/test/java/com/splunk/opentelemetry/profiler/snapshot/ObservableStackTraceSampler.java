@@ -16,6 +16,8 @@
 
 package com.splunk.opentelemetry.profiler.snapshot;
 
+import io.opentelemetry.api.trace.SpanContext;
+
 import java.util.HashSet;
 import java.util.Set;
 
@@ -25,10 +27,21 @@ import java.util.Set;
  */
 public class ObservableStackTraceSampler implements StackTraceSampler {
   private final Set<Long> threadIds = new HashSet<>();
+  private final Set<String> traceIds = new HashSet<>();
+
+  @Override
+  public void start(SpanContext spanContext) {
+    traceIds.add(spanContext.getTraceId());
+  }
 
   @Override
   public void startSampling(String traceId, long threadId) {
     threadIds.add(threadId);
+  }
+
+  @Override
+  public void stop(SpanContext spanContext) {
+    traceIds.remove(spanContext.getTraceId());
   }
 
   @Override
@@ -38,5 +51,9 @@ public class ObservableStackTraceSampler implements StackTraceSampler {
 
   boolean isBeingSampled(long threadId) {
     return threadIds.contains(threadId);
+  }
+
+  boolean isBeingSampled(SpanContext spanContext) {
+    return traceIds.contains(spanContext.getTraceId());
   }
 }

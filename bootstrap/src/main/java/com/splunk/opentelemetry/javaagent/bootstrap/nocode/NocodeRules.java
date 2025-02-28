@@ -28,7 +28,7 @@ public final class NocodeRules {
     public final String methodName;
     public final String spanName; // may be null - use default of "class.method"
     public final String spanKind; // matches the SpanKind enum, null means default to INTERNAL
-    public final Map<String, String> attributes; // key name to jsps
+    public final Map<String, String> attributes; // key name to jexl expression
 
     public Rule(
         String className,

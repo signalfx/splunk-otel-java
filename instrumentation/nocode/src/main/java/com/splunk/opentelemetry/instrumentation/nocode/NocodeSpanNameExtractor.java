@@ -16,6 +16,7 @@
 
 package com.splunk.opentelemetry.instrumentation.nocode;
 
+import com.splunk.opentelemetry.javaagent.bootstrap.nocode.NocodeEvaluation;
 import com.splunk.opentelemetry.javaagent.bootstrap.nocode.NocodeRules;
 import io.opentelemetry.instrumentation.api.incubator.semconv.code.CodeSpanNameExtractor;
 import io.opentelemetry.instrumentation.api.incubator.semconv.util.ClassAndMethod;
@@ -32,7 +33,7 @@ public class NocodeSpanNameExtractor implements SpanNameExtractor<NocodeMethodIn
   public String extract(NocodeMethodInvocation mi) {
     NocodeRules.Rule rule = mi.getRule();
     if (rule != null && rule.spanName != null) {
-      String name = JSPS.evaluate(rule.spanName, mi.getThiz(), mi.getParameters());
+      String name = NocodeEvaluation.evaluate(rule.spanName, mi.getThiz(), mi.getParameters());
       if (name != null) {
         return name;
       }

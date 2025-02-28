@@ -71,6 +71,9 @@ public class Configuration implements AutoConfigurationCustomizerProvider {
 
   public static final String CONFIG_KEY_ENABLE_SNAPSHOT_PROFILER =
       "splunk.snapshot.profiler.enabled";
+  public static final String CONFIG_KEY_SNAPSHOT_SELECTION_RATE = "splunk.snapshot.selection.rate";
+  private static final double DEFAULT_SNAPSHOT_SELECTION_RATE = 0.01;
+  private static final double MAX_SNAPSHOT_SELECTION_RATE = 0.10;
 
   @Override
   public void customize(AutoConfigurationCustomizer autoConfiguration) {
@@ -88,6 +91,7 @@ public class Configuration implements AutoConfigurationCustomizerProvider {
     config.put(CONFIG_KEY_CALL_STACK_INTERVAL, DEFAULT_CALL_STACK_INTERVAL.toMillis() + "ms");
 
     config.put(CONFIG_KEY_ENABLE_SNAPSHOT_PROFILER, "false");
+    config.put(CONFIG_KEY_SNAPSHOT_SELECTION_RATE, String.valueOf(DEFAULT_SNAPSHOT_SELECTION_RATE));
     return config;
   }
 
@@ -175,5 +179,32 @@ public class Configuration implements AutoConfigurationCustomizerProvider {
       return 8;
     }
     return Integer.parseInt(javaSpecVersion);
+  }
+
+  public static double getSnapshotSelectionRate(ConfigProperties properties) {
+    String selectionRatePropertyValue =
+        properties.getString(
+            CONFIG_KEY_SNAPSHOT_SELECTION_RATE, String.valueOf(DEFAULT_SNAPSHOT_SELECTION_RATE));
+    try {
+      double selectionRate = Double.parseDouble(selectionRatePropertyValue);
+      if (selectionRate > MAX_SNAPSHOT_SELECTION_RATE) {
+        logger.warning(
+            "Configured snapshot selection rate of '"
+                + selectionRatePropertyValue
+                + "' is higher than the maximum allowed rate. Using maximum allowed snapshot selection rate of '"
+                + MAX_SNAPSHOT_SELECTION_RATE
+                + "'");
+        return MAX_SNAPSHOT_SELECTION_RATE;
+      }
+      return selectionRate;
+    } catch (NumberFormatException e) {
+      logger.warning(
+          "Invalid snapshot selection rate: '"
+              + selectionRatePropertyValue
+              + "', using default rate of '"
+              + DEFAULT_SNAPSHOT_SELECTION_RATE
+              + "'");
+      return DEFAULT_SNAPSHOT_SELECTION_RATE;
+    }
   }
 }

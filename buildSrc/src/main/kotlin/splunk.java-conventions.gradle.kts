@@ -35,7 +35,8 @@ dependencies {
   add("testImplementation", "org.mockito:mockito-junit-jupiter")
   add("testImplementation", "org.junit.jupiter:junit-jupiter-api")
   add("testImplementation", "org.junit.jupiter:junit-jupiter-params")
-  add("testRuntimeOnly", "org.junit.jupiter:junit-jupiter-engine")
+  add("testImplementation", "org.junit.jupiter:junit-jupiter-engine")
+  add("testRuntimeOnly", "org.junit.platform:junit-platform-launcher")
   add("testRuntimeOnly", "org.slf4j:slf4j-api")
 }
 

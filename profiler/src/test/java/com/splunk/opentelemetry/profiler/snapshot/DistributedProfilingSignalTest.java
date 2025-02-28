@@ -38,7 +38,7 @@ class DistributedProfilingSignalTest {
       OpenTelemetrySdkExtension.builder()
           .withProperty("splunk.snapshot.profiler.enabled", "true")
           .with(downstreamCustomizer)
-          .with(new SnapshotVolumePropagator())
+          .with(new SnapshotVolumePropagator(() -> true))
           .build();
 
   @RegisterExtension
@@ -64,7 +64,7 @@ class DistributedProfilingSignalTest {
       OpenTelemetrySdkExtension.builder()
           .withProperty("splunk.snapshot.profiler.enabled", "true")
           .with(upstreamCustomizer)
-          .with(new SnapshotVolumePropagator())
+          .with(new SnapshotVolumePropagator(() -> true))
           .build();
 
   @RegisterExtension

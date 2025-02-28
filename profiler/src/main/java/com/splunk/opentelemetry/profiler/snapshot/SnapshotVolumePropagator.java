@@ -25,6 +25,12 @@ import java.util.Collection;
 import java.util.Collections;
 
 class SnapshotVolumePropagator implements TextMapPropagator {
+  private final SnapshotSelector selector;
+
+  SnapshotVolumePropagator(SnapshotSelector selector) {
+    this.selector = selector;
+  }
+
   @Override
   public Collection<String> fields() {
     return Collections.emptyList();
@@ -43,7 +49,7 @@ class SnapshotVolumePropagator implements TextMapPropagator {
    */
   @Override
   public <C> Context extract(Context context, C carrier, TextMapGetter<C> getter) {
-    if (isTraceRoot(context)) {
+    if (isTraceRoot(context) && selector.select()) {
       return context.with(Volume.HIGHEST);
     }
     return context;

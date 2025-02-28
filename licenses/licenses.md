@@ -1,7 +1,7 @@
 
 # splunk-otel-javaagent
 ## Dependency License Report
-_2025-02-20 09:15:22 EET_
+_2025-02-27 13:27:44 EET_
 ## Apache License, Version 2.0
 
 **1** **Group:** `com.squareup.okhttp3` **Name:** `okhttp` **Version:** `4.12.0` 
@@ -81,59 +81,66 @@ _2025-02-20 09:15:22 EET_
 > - **POM Project URL**: [https://github.com/open-telemetry/semantic-conventions-java](https://github.com/open-telemetry/semantic-conventions-java)
 > - **POM License**: Apache License, Version 2.0 - [https://www.apache.org/licenses/LICENSE-2.0](https://www.apache.org/licenses/LICENSE-2.0)
 
-**20** **Group:** `org.jetbrains` **Name:** `annotations` **Version:** `13.0` 
+**20** **Group:** `org.apache.commons` **Name:** `commons-jexl3` **Version:** `3.4.0` 
+> - **Project URL**: [https://commons.apache.org/proper/commons-jexl/](https://commons.apache.org/proper/commons-jexl/)
+> - **Manifest License**: Apache License, Version 2.0 (Not Packaged)
+> - **POM License**: Apache License, Version 2.0 - [https://www.apache.org/licenses/LICENSE-2.0](https://www.apache.org/licenses/LICENSE-2.0)
+> - **Embedded license files**: [commons-jexl3-3.4.0.jar/META-INF/LICENSE.txt](commons-jexl3-3.4.0.jar/META-INF/LICENSE.txt) 
+    - [commons-jexl3-3.4.0.jar/META-INF/NOTICE.txt](commons-jexl3-3.4.0.jar/META-INF/NOTICE.txt)
+
+**21** **Group:** `org.jetbrains` **Name:** `annotations` **Version:** `13.0` 
 > - **POM Project URL**: [http://www.jetbrains.org](http://www.jetbrains.org)
 > - **POM License**: Apache License, Version 2.0 - [https://www.apache.org/licenses/LICENSE-2.0](https://www.apache.org/licenses/LICENSE-2.0)
 
-**21** **Group:** `org.jetbrains.kotlin` **Name:** `kotlin-stdlib` **Version:** `1.9.10` 
+**22** **Group:** `org.jetbrains.kotlin` **Name:** `kotlin-stdlib` **Version:** `1.9.10` 
 > - **POM Project URL**: [https://kotlinlang.org/](https://kotlinlang.org/)
 > - **POM License**: Apache License, Version 2.0 - [https://www.apache.org/licenses/LICENSE-2.0](https://www.apache.org/licenses/LICENSE-2.0)
 
-**22** **Group:** `org.jetbrains.kotlin` **Name:** `kotlin-stdlib-common` **Version:** `1.9.10` 
+**23** **Group:** `org.jetbrains.kotlin` **Name:** `kotlin-stdlib-common` **Version:** `1.9.10` 
 > - **POM Project URL**: [https://kotlinlang.org/](https://kotlinlang.org/)
 > - **POM License**: Apache License, Version 2.0 - [https://www.apache.org/licenses/LICENSE-2.0](https://www.apache.org/licenses/LICENSE-2.0)
 
-**23** **Group:** `org.jetbrains.kotlin` **Name:** `kotlin-stdlib-jdk7` **Version:** `1.9.10` 
+**24** **Group:** `org.jetbrains.kotlin` **Name:** `kotlin-stdlib-jdk7` **Version:** `1.9.10` 
 > - **POM Project URL**: [https://kotlinlang.org/](https://kotlinlang.org/)
 > - **POM License**: Apache License, Version 2.0 - [https://www.apache.org/licenses/LICENSE-2.0](https://www.apache.org/licenses/LICENSE-2.0)
 
-**24** **Group:** `org.jetbrains.kotlin` **Name:** `kotlin-stdlib-jdk8` **Version:** `1.9.10` 
+**25** **Group:** `org.jetbrains.kotlin` **Name:** `kotlin-stdlib-jdk8` **Version:** `1.9.10` 
 > - **POM Project URL**: [https://kotlinlang.org/](https://kotlinlang.org/)
 > - **POM License**: Apache License, Version 2.0 - [https://www.apache.org/licenses/LICENSE-2.0](https://www.apache.org/licenses/LICENSE-2.0)
 
-**25** **Group:** `org.lz4` **Name:** `lz4-java` **Version:** `1.8.0` 
+**26** **Group:** `org.lz4` **Name:** `lz4-java` **Version:** `1.8.0` 
 > - **POM Project URL**: [https://github.com/lz4/lz4-java](https://github.com/lz4/lz4-java)
 > - **POM License**: Apache License, Version 2.0 - [https://www.apache.org/licenses/LICENSE-2.0](https://www.apache.org/licenses/LICENSE-2.0)
 
-**26** **Group:** `org.slf4j` **Name:** `jcl-over-slf4j` **Version:** `2.0.16` 
+**27** **Group:** `org.slf4j` **Name:** `jcl-over-slf4j` **Version:** `2.0.17` 
 > - **Project URL**: [http://www.slf4j.org](http://www.slf4j.org)
 > - **Manifest License**: Apache License, Version 2.0 (Not Packaged)
 > - **POM License**: Apache License, Version 2.0 - [https://www.apache.org/licenses/LICENSE-2.0](https://www.apache.org/licenses/LICENSE-2.0)
 > - **POM License**: MIT License - [https://opensource.org/licenses/MIT](https://opensource.org/licenses/MIT)
-> - **Embedded license files**: [jcl-over-slf4j-2.0.16.jar/META-INF/LICENSE.txt](jcl-over-slf4j-2.0.16.jar/META-INF/LICENSE.txt)
+> - **Embedded license files**: [jcl-over-slf4j-2.0.17.jar/META-INF/LICENSE.txt](jcl-over-slf4j-2.0.17.jar/META-INF/LICENSE.txt)
 
 ## MIT License
 
-**27** **Group:** `org.slf4j` **Name:** `jcl-over-slf4j` **Version:** `2.0.16` 
+**28** **Group:** `org.slf4j` **Name:** `jcl-over-slf4j` **Version:** `2.0.17` 
 > - **Project URL**: [http://www.slf4j.org](http://www.slf4j.org)
 > - **Manifest License**: Apache License, Version 2.0 (Not Packaged)
 > - **POM License**: Apache License, Version 2.0 - [https://www.apache.org/licenses/LICENSE-2.0](https://www.apache.org/licenses/LICENSE-2.0)
 > - **POM License**: MIT License - [https://opensource.org/licenses/MIT](https://opensource.org/licenses/MIT)
-> - **Embedded license files**: [jcl-over-slf4j-2.0.16.jar/META-INF/LICENSE.txt](jcl-over-slf4j-2.0.16.jar/META-INF/LICENSE.txt)
+> - **Embedded license files**: [jcl-over-slf4j-2.0.17.jar/META-INF/LICENSE.txt](jcl-over-slf4j-2.0.17.jar/META-INF/LICENSE.txt)
 
-**28** **Group:** `org.slf4j` **Name:** `slf4j-api` **Version:** `2.0.16` 
+**29** **Group:** `org.slf4j` **Name:** `slf4j-api` **Version:** `2.0.17` 
 > - **Project URL**: [http://www.slf4j.org](http://www.slf4j.org)
 > - **POM License**: MIT License - [https://opensource.org/licenses/MIT](https://opensource.org/licenses/MIT)
-> - **Embedded license files**: [slf4j-api-2.0.16.jar/META-INF/LICENSE.txt](slf4j-api-2.0.16.jar/META-INF/LICENSE.txt)
+> - **Embedded license files**: [slf4j-api-2.0.17.jar/META-INF/LICENSE.txt](slf4j-api-2.0.17.jar/META-INF/LICENSE.txt)
 
 ## The 3-Clause BSD License
 
-**29** **Group:** `com.google.protobuf` **Name:** `protobuf-java` **Version:** `4.29.3` 
+**30** **Group:** `com.google.protobuf` **Name:** `protobuf-java` **Version:** `4.29.3` 
 > - **Manifest Project URL**: [https://developers.google.com/protocol-buffers/](https://developers.google.com/protocol-buffers/)
 > - **Manifest License**: The 3-Clause BSD License (Not Packaged)
 > - **POM License**: The 3-Clause BSD License - [https://opensource.org/licenses/BSD-3-Clause](https://opensource.org/licenses/BSD-3-Clause)
 
-**30** **Group:** `org.owasp.encoder` **Name:** `encoder` **Version:** `1.2.3` 
+**31** **Group:** `org.owasp.encoder` **Name:** `encoder` **Version:** `1.2.3` 
 > - **Manifest Project URL**: [https://www.owasp.org/](https://www.owasp.org/)
 > - **Manifest License**: The 3-Clause BSD License (Not Packaged)
 > - **POM License**: The 3-Clause BSD License - [https://opensource.org/licenses/BSD-3-Clause](https://opensource.org/licenses/BSD-3-Clause)
@@ -141,11 +148,11 @@ _2025-02-20 09:15:22 EET_
 
 ## Universal Permissive License Version 1.0 or The 3-Clause BSD License
 
-**31** **Group:** `org.openjdk.jmc` **Name:** `common` **Version:** `8.3.1` 
+**32** **Group:** `org.openjdk.jmc` **Name:** `common` **Version:** `8.3.1` 
 > - **POM License**: Universal Permissive License Version 1.0 or The 3-Clause BSD License - [https://github.com/openjdk/jmc/blob/master/core/license/LICENSE.txt](https://github.com/openjdk/jmc/blob/master/core/license/LICENSE.txt)
 > - **Embedded license files**: [common-8.3.1.jar/LICENSE.txt](common-8.3.1.jar/LICENSE.txt)
 
-**32** **Group:** `org.openjdk.jmc` **Name:** `flightrecorder` **Version:** `8.3.1` 
+**33** **Group:** `org.openjdk.jmc` **Name:** `flightrecorder` **Version:** `8.3.1` 
 > - **POM License**: Universal Permissive License Version 1.0 or The 3-Clause BSD License - [https://github.com/openjdk/jmc/blob/master/core/license/LICENSE.txt](https://github.com/openjdk/jmc/blob/master/core/license/LICENSE.txt)
 > - **Embedded license files**: [flightrecorder-8.3.1.jar/LICENSE.txt](flightrecorder-8.3.1.jar/LICENSE.txt)
 

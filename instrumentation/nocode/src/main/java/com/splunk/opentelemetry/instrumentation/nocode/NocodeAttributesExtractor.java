@@ -16,6 +16,7 @@
 
 package com.splunk.opentelemetry.instrumentation.nocode;
 
+import com.splunk.opentelemetry.javaagent.bootstrap.nocode.NocodeEvaluation;
 import io.opentelemetry.api.common.AttributesBuilder;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.instrumentation.api.incubator.semconv.code.CodeAttributesExtractor;
@@ -39,8 +40,8 @@ public final class NocodeAttributesExtractor
 
     Map<String, String> attributes = mi.getRuleAttributes();
     for (String key : attributes.keySet()) {
-      String jsps = attributes.get(key);
-      String value = JSPS.evaluate(jsps, mi.getThiz(), mi.getParameters());
+      String expression = attributes.get(key);
+      String value = NocodeEvaluation.evaluate(expression, mi.getThiz(), mi.getParameters());
       if (value != null) {
         attributesBuilder.put(key, value);
       }

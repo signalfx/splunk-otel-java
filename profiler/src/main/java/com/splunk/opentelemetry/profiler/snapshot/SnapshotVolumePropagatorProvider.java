@@ -24,6 +24,8 @@ import io.opentelemetry.sdk.autoconfigure.spi.ConfigurablePropagatorProvider;
 
 @AutoService(ConfigurablePropagatorProvider.class)
 public class SnapshotVolumePropagatorProvider implements ConfigurablePropagatorProvider {
+  public static final String NAME = "splunk-snapshot";
+
   @Override
   public TextMapPropagator getPropagator(ConfigProperties config) {
     double snapshotSelectionRate = Configuration.getSnapshotSelectionRate(config);
@@ -32,6 +34,6 @@ public class SnapshotVolumePropagatorProvider implements ConfigurablePropagatorP
 
   @Override
   public String getName() {
-    return "splunk-snapshot";
+    return NAME;
   }
 }

@@ -24,11 +24,14 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
 class AutoConfigureSnapshotVolumePropagatorTest {
+  private static final String OTEL_PROPAGATORS = "otel-propagators";
+
   @Test
   void autoConfigureSnapshotVolumePropagator() {
     try (var sdk = newSdk().build()) {
       var properties = sdk.getProperties();
-      assertThat(properties.getList("otel.propagators")).contains("splunk-snapshot");
+      assertThat(properties.getList(OTEL_PROPAGATORS))
+          .contains(SnapshotVolumePropagatorProvider.NAME);
     }
   }
 
@@ -36,8 +39,8 @@ class AutoConfigureSnapshotVolumePropagatorTest {
   void snapshotVolumePropagatorMustBeAfterBaggageAndTraceContext() {
     try (var sdk = newSdk().build()) {
       var properties = sdk.getProperties();
-      assertThat(properties.getList("otel.propagators"))
-          .containsExactly("baggage", "tracecontext", "splunk-snapshot");
+      assertThat(properties.getList(OTEL_PROPAGATORS))
+          .containsExactly("baggage", "tracecontext", SnapshotVolumePropagatorProvider.NAME);
     }
   }
 
@@ -45,28 +48,34 @@ class AutoConfigureSnapshotVolumePropagatorTest {
   void appendSnapshotPropagatorToEndOfAlreadyConfiguredPropagators() {
     try (var sdk =
         newSdk()
-            .withProperty("otel.propagators", "baggage,tracecontext,some-other-propagator")
+            .withProperty(OTEL_PROPAGATORS, "baggage,tracecontext,some-other-propagator")
             .build()) {
       var properties = sdk.getProperties();
-      assertThat(properties.getList("otel.propagators"))
-          .containsExactly("baggage", "tracecontext", "some-other-propagator", "splunk-snapshot");
+      assertThat(properties.getList(OTEL_PROPAGATORS))
+          .containsExactly(
+              "baggage",
+              "tracecontext",
+              "some-other-propagator",
+              SnapshotVolumePropagatorProvider.NAME);
     }
   }
 
   @ParameterizedTest
   @ValueSource(strings = {"baggage", "tracecontext"})
   void doNotDoubleCountDefaultOpenTelemetryPropagators(String propagatorName) {
-    try (var sdk = newSdk().withProperty("otel.propagators", propagatorName).build()) {
+    try (var sdk = newSdk().withProperty(OTEL_PROPAGATORS, propagatorName).build()) {
       var properties = sdk.getProperties();
-      assertThat(properties.getList("otel.propagators")).containsOnlyOnce(propagatorName);
+      assertThat(properties.getList(OTEL_PROPAGATORS)).containsOnlyOnce(propagatorName);
     }
   }
 
   @Test
   void doNotDoubleCountSnapshotVolumePropagator() {
-    try (var sdk = newSdk().withProperty("otel.propagators", "splunk-snapshot").build()) {
+    try (var sdk =
+        newSdk().withProperty(OTEL_PROPAGATORS, SnapshotVolumePropagatorProvider.NAME).build()) {
       var properties = sdk.getProperties();
-      assertThat(properties.getList("otel.propagators")).containsOnlyOnce("splunk-snapshot");
+      assertThat(properties.getList(OTEL_PROPAGATORS))
+          .containsOnlyOnce(SnapshotVolumePropagatorProvider.NAME);
     }
   }
 
@@ -75,7 +84,8 @@ class AutoConfigureSnapshotVolumePropagatorTest {
     try (var sdk =
         newSdk().withProperty(Configuration.CONFIG_KEY_ENABLE_SNAPSHOT_PROFILER, "false").build()) {
       var properties = sdk.getProperties();
-      assertThat(properties.getList("otel.propagators")).doesNotContain("splunk-snapshot");
+      assertThat(properties.getList(OTEL_PROPAGATORS))
+          .doesNotContain(SnapshotVolumePropagatorProvider.NAME);
     }
   }
 

@@ -76,7 +76,8 @@ public class SnapshotProfilingSdkCustomizer implements AutoConfigurationCustomiz
     return properties -> {
       if (snapshotProfilingEnabled(properties)) {
         Set<String> propagators = new LinkedHashSet<>(properties.getList("otel.propagators"));
-        propagators.addAll(List.of("baggage", "tracecontext", "splunk-snapshot"));
+        propagators.addAll(
+            List.of("baggage", "tracecontext", SnapshotVolumePropagatorProvider.NAME));
         return Map.of("otel.propagators", String.join(",", propagators));
       }
       return Collections.emptyMap();

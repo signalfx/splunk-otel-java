@@ -24,7 +24,13 @@ import io.opentelemetry.sdk.autoconfigure.spi.AutoConfigurationCustomizer;
 import io.opentelemetry.sdk.autoconfigure.spi.AutoConfigurationCustomizerProvider;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import io.opentelemetry.sdk.trace.SdkTracerProviderBuilder;
+import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.function.BiFunction;
+import java.util.function.Function;
 
 @AutoService(AutoConfigurationCustomizerProvider.class)
 public class SnapshotProfilingSdkCustomizer implements AutoConfigurationCustomizerProvider {
@@ -41,8 +47,9 @@ public class SnapshotProfilingSdkCustomizer implements AutoConfigurationCustomiz
 
   @Override
   public void customize(AutoConfigurationCustomizer autoConfigurationCustomizer) {
-    autoConfigurationCustomizer.addTracerProviderCustomizer(
-        snapshotProfilingSpanProcessor(registry));
+    autoConfigurationCustomizer
+        .addPropertiesCustomizer(autoConfigureSnapshotVolumePropagator())
+        .addTracerProviderCustomizer(snapshotProfilingSpanProcessor(registry));
   }
 
   private BiFunction<SdkTracerProviderBuilder, ConfigProperties, SdkTracerProviderBuilder>
@@ -52,6 +59,27 @@ public class SnapshotProfilingSdkCustomizer implements AutoConfigurationCustomiz
         return builder.addSpanProcessor(new SnapshotProfilingSpanProcessor(registry));
       }
       return builder;
+    };
+  }
+
+  /**
+   * Attempt to autoconfigure the OpenTelemetry propagators to include the Splunk snapshot volume
+   * propagator and ensure it runs after both the W3C Baggage and Trace Context propagators. In
+   * addition, take care to retain any propagators explicitly configured prior.
+   *
+   * <p>The Java agent uses the "otel.propagators" property and the value is assumed to be a comma
+   * seperated list of propagator names. See <a
+   * href="https://opentelemetry.io/docs/languages/java/configuration/#properties-general">OpenTelemetry's
+   * Java Agent Configuration</a> for more details.
+   */
+  private Function<ConfigProperties, Map<String, String>> autoConfigureSnapshotVolumePropagator() {
+    return properties -> {
+      if (snapshotProfilingEnabled(properties)) {
+        Set<String> propagators = new LinkedHashSet<>(properties.getList("otel.propagators"));
+        propagators.addAll(List.of("baggage", "tracecontext", "splunk-snapshot"));
+        return Map.of("otel.propagators", String.join(",", propagators));
+      }
+      return Collections.emptyMap();
     };
   }
 

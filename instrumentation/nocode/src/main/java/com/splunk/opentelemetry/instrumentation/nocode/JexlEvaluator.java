@@ -53,7 +53,7 @@ public class JexlEvaluator implements NocodeEvaluation.Evaluator {
   }
 
   @Override
-  public String evaluate(String expression, Object thiz, Object[] params) {
+  public Object evaluate(String expression, Object thiz, Object[] params) {
     JexlContext context = new MapContext();
     context.set("this", thiz);
     for (int i = 0; i < params.length; i++) {
@@ -61,8 +61,7 @@ public class JexlEvaluator implements NocodeEvaluation.Evaluator {
     }
     try {
       // could cache the Expression in the Rule if desired
-      Object result = jexl.createExpression(expression).evaluate(context);
-      return result == null ? null : result.toString();
+      return jexl.createExpression(expression).evaluate(context);
     } catch (Throwable t) {
       logger.warning("Can't evaluate {" + expression + "}: " + t);
       return null;

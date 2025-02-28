@@ -16,6 +16,7 @@
 
 package com.splunk.opentelemetry.profiler.snapshot;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -25,6 +26,8 @@ import io.opentelemetry.api.trace.TraceState;
 import io.opentelemetry.sdk.trace.IdGenerator;
 import java.time.Duration;
 import java.util.Collections;
+import java.util.concurrent.CountDownLatch;
+import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 
 class ScheduledExecutorStackTraceSamplerTest {
@@ -76,11 +79,42 @@ class ScheduledExecutorStackTraceSamplerTest {
     assertEquals(Collections.emptyList(), staging.allStackTraces());
   }
 
+  @Test
+  void onlyTakeStackTraceSamplesForOneThreadPerTrace() {
+    var latch = new CountDownLatch(1);
+    var traceId = idGenerator.generateTraceId();
+    var threadOne = startAndStopSampler(randomSpanContext(traceId), latch);
+    var threadTwo = startAndStopSampler(randomSpanContext(traceId), latch);
+
+    threadOne.start();
+    threadTwo.start();
+    await().atMost(HALF_SECOND).until(() -> staging.allStackTraces().size() > 5);
+    latch.countDown();
+
+    var threadIds =
+        staging.allStackTraces().stream().map(StackTrace::getThreadId).collect(Collectors.toSet());
+    assertThat(threadIds).containsOnly(threadOne.getId());
+  }
+
+  private Thread startAndStopSampler(SpanContext spanContext, CountDownLatch latch) {
+    return new Thread(
+        () -> {
+          try {
+            sampler.start(spanContext);
+            latch.await();
+            sampler.stop(spanContext);
+          } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+          }
+        });
+  }
+
   private SpanContext randomSpanContext() {
+    return randomSpanContext(idGenerator.generateTraceId());
+  }
+
+  private SpanContext randomSpanContext(String traceId) {
     return SpanContext.create(
-        idGenerator.generateTraceId(),
-        idGenerator.generateSpanId(),
-        TraceFlags.getDefault(),
-        TraceState.getDefault());
+        traceId, idGenerator.generateSpanId(), TraceFlags.getDefault(), TraceState.getDefault());
   }
 }

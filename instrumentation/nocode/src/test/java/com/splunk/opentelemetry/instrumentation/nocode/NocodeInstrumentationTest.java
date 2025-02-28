@@ -45,7 +45,11 @@ class NocodeInstrumentationTest {
                         .hasKind(SpanKind.INTERNAL)
                         .hasStatus(StatusData.unset())
                         .hasAttributesSatisfying(
-                            equalTo(AttributeKey.stringKey("map.size"), "2"),
+                            equalTo(AttributeKey.doubleKey("getFloat"), 7.0),
+                            equalTo(AttributeKey.doubleKey("getDouble"), 8.0),
+                            equalTo(AttributeKey.longKey("getLong"), 9),
+                            equalTo(AttributeKey.booleanKey("map.isEmpty"), false),
+                            equalTo(AttributeKey.longKey("map.size"), 2),
                             equalTo(AttributeKey.stringKey("details"), "details"))));
   }
 
@@ -89,6 +93,18 @@ class NocodeInstrumentationTest {
 
     public String getDetails() {
       return "details";
+    }
+
+    public float getFloat() {
+      return 7.0f;
+    }
+
+    public double getDouble() {
+      return 8.0;
+    }
+
+    public long getLong() {
+      return 9L;
     }
 
     public Map<String, String> getMap() {

@@ -27,6 +27,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 class ConfigurationTest {
 
@@ -102,5 +104,54 @@ class ConfigurationTest {
     Configuration configuration = new Configuration();
     var properties = configuration.defaultProperties();
     assertEquals("false", properties.get("splunk.snapshot.profiler.enabled"));
+  }
+
+  @Test
+  void snapshotSelectionDefaultRate() {
+    Configuration configuration = new Configuration();
+    var properties = configuration.defaultProperties();
+
+    double rate = Double.parseDouble(properties.get("splunk.snapshot.selection.rate"));
+    assertEquals(0.01, rate);
+  }
+
+  @ParameterizedTest
+  @ValueSource(doubles = {0.10, 0.05, 0.0})
+  void getSnapshotSelectionRate(double selectionRate) {
+    var properties =
+        DefaultConfigProperties.create(
+            Map.of("splunk.snapshot.selection.rate", String.valueOf(selectionRate)));
+
+    double actualSelectionRate = Configuration.getSnapshotSelectionRate(properties);
+    assertEquals(selectionRate, actualSelectionRate);
+  }
+
+  @Test
+  void getSnapshotSelectionRateUsesDefaultWhenPropertyNotSet() {
+    var properties = DefaultConfigProperties.create(Collections.emptyMap());
+
+    double actualSelectionRate = Configuration.getSnapshotSelectionRate(properties);
+    assertEquals(0.01, actualSelectionRate);
+  }
+
+  @Test
+  void getSnapshotSelectionRateUsesDefaultValueIsNotNumeric() {
+    var properties =
+        DefaultConfigProperties.create(Map.of("splunk.snapshot.selection.rate", "not-a-number"));
+
+    double actualSelectionRate = Configuration.getSnapshotSelectionRate(properties);
+    assertEquals(0.01, actualSelectionRate);
+  }
+
+  @ParameterizedTest
+  @ValueSource(doubles = {1.0, 0.5, 0.11})
+  void getSnapshotSelectionRateUsesMaxSelectionRateWhenConfiguredRateIsHigher(
+      double selectionRate) {
+    var properties =
+        DefaultConfigProperties.create(
+            Map.of("splunk.snapshot.selection.rate", String.valueOf(selectionRate)));
+
+    double actualSelectionRate = Configuration.getSnapshotSelectionRate(properties);
+    assertEquals(0.10, actualSelectionRate);
   }
 }

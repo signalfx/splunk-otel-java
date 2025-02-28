@@ -188,7 +188,7 @@ public class Configuration implements AutoConfigurationCustomizerProvider {
     try {
       double selectionRate = Double.parseDouble(selectionRatePropertyValue);
       if (selectionRate > MAX_SNAPSHOT_SELECTION_RATE) {
-        logger.info(
+        logger.warning(
             "Configured snapshot selection rate of '"
                 + selectionRatePropertyValue
                 + "' is higher than the maximum allowed rate. Using maximum allowed snapshot selection rate of '"
@@ -198,7 +198,7 @@ public class Configuration implements AutoConfigurationCustomizerProvider {
       }
       return selectionRate;
     } catch (NumberFormatException e) {
-      logger.info(
+      logger.warning(
           "Invalid snapshot selection rate: '"
               + selectionRatePropertyValue
               + "', using default rate of '"

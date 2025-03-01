@@ -28,7 +28,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 class SnapshotProfilingFeatureFlagTest {
   private final TraceRegistry registry = new TraceRegistry();
   private final SnapshotProfilingSdkCustomizer customizer =
-      Profiling.customizer().with(registry).build();
+      Snapshotting.customizer().with(registry).build();
 
   @Nested
   class SnapshotProfilingDisabledByDefaultTest {

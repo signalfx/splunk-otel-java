@@ -29,7 +29,7 @@ class TraceProfilingTest {
   private final TogglableTraceRegistry registry = new TogglableTraceRegistry();
   private final ObservableStackTraceSampler sampler = new ObservableStackTraceSampler();
   private final SnapshotProfilingSdkCustomizer customizer =
-      Profiling.customizer().with(registry).with(sampler).build();
+      Snapshotting.customizer().with(registry).with(sampler).build();
 
   @RegisterExtension
   public final OpenTelemetrySdkExtension sdk =

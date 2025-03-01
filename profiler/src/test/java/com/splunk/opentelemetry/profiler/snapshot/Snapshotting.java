@@ -16,8 +16,10 @@
 
 package com.splunk.opentelemetry.profiler.snapshot;
 
-class Profiling {
+class Snapshotting {
   static SnapshotProfilingSdkCustomizerBuilder customizer() {
     return new SnapshotProfilingSdkCustomizerBuilder();
   }
+
+  private Snapshotting() {}
 }

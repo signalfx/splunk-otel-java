@@ -41,9 +41,18 @@ public final class NocodeAttributesExtractor
     Map<String, String> attributes = mi.getRuleAttributes();
     for (String key : attributes.keySet()) {
       String expression = attributes.get(key);
-      String value = NocodeEvaluation.evaluate(expression, mi.getThiz(), mi.getParameters());
-      if (value != null) {
-        attributesBuilder.put(key, value);
+      Object value = NocodeEvaluation.evaluate(expression, mi.getThiz(), mi.getParameters());
+      if (value instanceof Long
+          || value instanceof Integer
+          || value instanceof Short
+          || value instanceof Byte) {
+        attributesBuilder.put(key, ((Number) value).longValue());
+      } else if (value instanceof Float || value instanceof Double) {
+        attributesBuilder.put(key, ((Number) value).doubleValue());
+      } else if (value instanceof Boolean) {
+        attributesBuilder.put(key, (Boolean) value);
+      } else if (value != null) {
+        attributesBuilder.put(key, value.toString());
       }
     }
   }

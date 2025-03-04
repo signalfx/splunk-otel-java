@@ -49,15 +49,17 @@ import org.junit.jupiter.api.extension.ParameterContext;
 import org.junit.jupiter.api.extension.ParameterResolver;
 
 public class OpenTelemetrySdkExtension
-    implements OpenTelemetry, AfterEachCallback, ParameterResolver {
+    implements OpenTelemetry, AfterEachCallback, ParameterResolver, AutoCloseable {
   public static Builder builder() {
     return new Builder();
   }
 
   private final OpenTelemetrySdk sdk;
+  private final ConfigProperties properties;
 
-  private OpenTelemetrySdkExtension(OpenTelemetrySdk sdk) {
+  private OpenTelemetrySdkExtension(OpenTelemetrySdk sdk, ConfigProperties properties) {
     this.sdk = sdk;
+    this.properties = properties;
   }
 
   @Override
@@ -83,6 +85,15 @@ public class OpenTelemetrySdkExtension
   @Override
   public void afterEach(ExtensionContext extensionContext) {
     sdk.close();
+  }
+
+  @Override
+  public void close() {
+    sdk.close();
+  }
+
+  public ConfigProperties getProperties() {
+    return properties;
   }
 
   @Override
@@ -144,7 +155,7 @@ public class OpenTelemetrySdkExtension
               .setTracerProvider(tracerProvider)
               .setPropagators(contextPropagators)
               .build();
-      return new OpenTelemetrySdkExtension(sdk);
+      return new OpenTelemetrySdkExtension(sdk, configProperties);
     }
 
     private ConfigProperties customizeProperties() {

@@ -63,8 +63,9 @@ public class SnapshotProfilingSdkCustomizer implements AutoConfigurationCustomiz
 
   /**
    * Attempt to autoconfigure the OpenTelemetry propagators to include the Splunk snapshot volume
-   * propagator and ensure it runs after both the W3C Baggage and Trace Context propagators. In
-   * addition, take care to retain any propagators explicitly configured prior.
+   * propagator and ensure it runs after the W3C Baggage propagator and ensure that a trace context
+   * propagator is configured. In addition, take care to retain any propagators explicitly
+   * configured prior.
    *
    * <p>The Java agent uses the "otel.propagators" property and the value is assumed to be a comma
    * seperated list of propagator names. See <a

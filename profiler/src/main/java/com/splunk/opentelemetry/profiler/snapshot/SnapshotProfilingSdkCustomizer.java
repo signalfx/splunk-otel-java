@@ -26,7 +26,6 @@ import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import io.opentelemetry.sdk.trace.SdkTracerProviderBuilder;
 import java.util.Collections;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.BiFunction;
@@ -76,12 +75,19 @@ public class SnapshotProfilingSdkCustomizer implements AutoConfigurationCustomiz
     return properties -> {
       if (snapshotProfilingEnabled(properties)) {
         Set<String> propagators = new LinkedHashSet<>(properties.getList("otel.propagators"));
-        propagators.addAll(
-            List.of("baggage", "tracecontext", SnapshotVolumePropagatorProvider.NAME));
+        propagators.add("baggage");
+        if (includeTraceContextPropagator(propagators)) {
+          propagators.add("tracecontext");
+        }
+        propagators.add(SnapshotVolumePropagatorProvider.NAME);
         return Map.of("otel.propagators", String.join(",", propagators));
       }
       return Collections.emptyMap();
     };
+  }
+
+  private boolean includeTraceContextPropagator(Set<String> configuredPropagators) {
+    return !configuredPropagators.contains("b3") && !configuredPropagators.contains("b3multi");
   }
 
   private boolean snapshotProfilingEnabled(ConfigProperties config) {

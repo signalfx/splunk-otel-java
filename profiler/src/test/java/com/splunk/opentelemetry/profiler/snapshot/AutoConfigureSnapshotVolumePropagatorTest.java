@@ -69,6 +69,15 @@ class AutoConfigureSnapshotVolumePropagatorTest {
     }
   }
 
+  @ParameterizedTest
+  @ValueSource(strings = {"b3", "b3multi"})
+  void doNotAddTraceContextPropagatorWhenB3PropagatorPresent(String propagatorName) {
+    try (var sdk = newSdk().withProperty(OTEL_PROPAGATORS, propagatorName).build()) {
+      var properties = sdk.getProperties();
+      assertThat(properties.getList(OTEL_PROPAGATORS)).doesNotContain("tracecontext");
+    }
+  }
+
   @Test
   void doNotDoubleCountSnapshotVolumePropagator() {
     try (var sdk =

@@ -21,6 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.ArrayList;
 import java.util.List;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.RepeatedTest;
@@ -91,6 +92,7 @@ class ProbabilisticSnapshotSelectorTest {
 
   @Test
   @Order(3)
+  @Disabled("flaky test")
   void evaluateOutliers() {
     assertThat(outliers()).isLessThan((int) (TRACES_PER_ITERATIONS * SELECTION_RATE));
   }

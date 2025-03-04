@@ -14,6 +14,10 @@
       value: this.getDouble()
     - key: getLong
       value: this.getLong()
+    - key: getShort
+      value: this.getShort()
+    - key: getByte
+      value: this.getByte()
 
 - class: com.splunk.opentelemetry.instrumentation.nocode.NocodeInstrumentationTest$SampleClass
   method: throwException

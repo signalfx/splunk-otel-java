@@ -42,7 +42,10 @@ public final class NocodeAttributesExtractor
     for (String key : attributes.keySet()) {
       String expression = attributes.get(key);
       Object value = NocodeEvaluation.evaluate(expression, mi.getThiz(), mi.getParameters());
-      if (value instanceof Long || value instanceof Integer) {
+      if (value instanceof Long
+          || value instanceof Integer
+          || value instanceof Short
+          || value instanceof Byte) {
         attributesBuilder.put(key, ((Number) value).longValue());
       } else if (value instanceof Float || value instanceof Double) {
         attributesBuilder.put(key, ((Number) value).doubleValue());

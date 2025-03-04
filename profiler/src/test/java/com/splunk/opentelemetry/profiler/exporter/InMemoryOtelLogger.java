@@ -141,6 +141,7 @@ class InMemoryOtelLogger implements Logger, AfterEachCallback {
     }
   }
 
+  @SuppressWarnings("deprecation") // uses deprecated io.opentelemetry.sdk.logs.data.Body
   static class LogRecord implements LogRecordData {
     private final Resource resource;
     private final InstrumentationScopeInfo instrumentationScopeInfo;

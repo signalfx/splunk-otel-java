@@ -35,10 +35,12 @@ import org.junit.jupiter.params.provider.ValueSource;
 class JexlTest {
   private static final Map<String, String> thiz = new HashMap<>();
   private static final Set<String> param0 = new HashSet<>();
+  private static final Map<String, Object> param1 = new HashMap<>();
 
   static {
     thiz.put("key", "value");
     param0.add("present");
+    param1.put("float", 7.0f);
   }
 
   private static Object evalJexl(String jexl, Object thiz, Object[] params) {
@@ -55,13 +57,14 @@ class JexlTest {
         arguments("param0.isEmpty()", false),
         arguments("param0.contains(\"present\")", true),
         arguments("\"prefix: \"+this.toString()+\" (suffix)\"", "prefix: {key=value} (suffix)"),
+        arguments("param1.get(\"float\")", 7.0f),
         arguments("this.entrySet().size()", 1));
   }
 
   @ParameterizedTest
   @MethodSource("jexlToExpected")
   void testBasicBehavior(String jexl, Object expected) {
-    Object result = evalJexl(jexl, thiz, new Object[] {param0});
+    Object result = evalJexl(jexl, thiz, new Object[] {param0, param1});
     if (expected instanceof String) {
       result = result == null ? null : result.toString();
     }

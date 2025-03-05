@@ -16,12 +16,12 @@
 
 package com.splunk.opentelemetry.profiler.snapshot;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.splunk.opentelemetry.profiler.Configuration;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 class AutoConfigureSnapshotVolumePropagatorTest {
   private static final String OTEL_PROPAGATORS = "otel-propagators";
@@ -94,16 +94,18 @@ class AutoConfigureSnapshotVolumePropagatorTest {
     try (var sdk = newSdk().withProperty(OTEL_PROPAGATORS, "none").build()) {
       var properties = sdk.getProperties();
       assertThat(properties.getList(OTEL_PROPAGATORS))
-              .doesNotContain(SnapshotVolumePropagatorProvider.NAME);
+          .doesNotContain(SnapshotVolumePropagatorProvider.NAME);
     }
   }
 
   @Test
   void doNotAddTraceContextPropagatorWhenOtherPropagatorsAreExplicitlyConfigured() {
-    try (var sdk = newSdk().withProperty(OTEL_PROPAGATORS, "some-other-propagator,baggage").build()) {
+    try (var sdk =
+        newSdk().withProperty(OTEL_PROPAGATORS, "some-other-propagator,baggage").build()) {
       var properties = sdk.getProperties();
       assertThat(properties.getList(OTEL_PROPAGATORS))
-              .containsExactly("some-other-propagator", "baggage", SnapshotVolumePropagatorProvider.NAME);
+          .containsExactly(
+              "some-other-propagator", "baggage", SnapshotVolumePropagatorProvider.NAME);
     }
   }
 
@@ -112,7 +114,8 @@ class AutoConfigureSnapshotVolumePropagatorTest {
     try (var sdk = newSdk().withProperty(OTEL_PROPAGATORS, "some-other-propagator").build()) {
       var properties = sdk.getProperties();
       assertThat(properties.getList(OTEL_PROPAGATORS))
-              .containsExactly("some-other-propagator", "baggage", SnapshotVolumePropagatorProvider.NAME);
+          .containsExactly(
+              "some-other-propagator", "baggage", SnapshotVolumePropagatorProvider.NAME);
     }
   }
 

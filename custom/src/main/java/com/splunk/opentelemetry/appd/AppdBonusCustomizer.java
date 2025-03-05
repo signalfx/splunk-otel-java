@@ -39,13 +39,13 @@ public final class AppdBonusCustomizer implements AutoConfigurationCustomizerPro
 
   @VisibleForTesting
   void customize(AutoConfigurationCustomizer customizer, AppdBonusPropagator propagator) {
-    customizer.addSpanProcessorCustomizer(
-        (spanProcessor, config) -> {
+    customizer.addTracerProviderCustomizer(
+        (builder, config) -> {
           if (featureEnabled(config)) {
             SpanProcessor processor = OnStartSpanProcessor.create(new AppdBonusSpanProcessor());
-            return SpanProcessor.composite(spanProcessor, processor);
+            return builder.addSpanProcessor(processor);
           }
-          return spanProcessor;
+          return builder;
         });
     customizer.addResourceCustomizer(
         (resource, configProperties) -> {

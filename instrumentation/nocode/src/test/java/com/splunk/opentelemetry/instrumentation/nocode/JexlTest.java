@@ -35,13 +35,15 @@ import org.junit.jupiter.params.provider.ValueSource;
 class JexlTest {
   private static final Map<String, String> thiz = new HashMap<>();
   private static final Set<String> param0 = new HashSet<>();
+  private static final Map<String, Object> param1 = new HashMap<>();
 
   static {
     thiz.put("key", "value");
     param0.add("present");
+    param1.put("float", 7.0f);
   }
 
-  private static String evalJexl(String jexl, Object thiz, Object[] params) {
+  private static Object evalJexl(String jexl, Object thiz, Object[] params) {
     return new JexlEvaluator().evaluate(jexl, thiz, params);
   }
 
@@ -49,19 +51,24 @@ class JexlTest {
     return Stream.of(
         arguments("this", "{key=value}"),
         arguments("this.toString()", "{key=value}"),
-        arguments("this.toString().length()", "11"),
+        arguments("this.toString().length()", 11),
         arguments("this.get(\"key\")", "value"),
         arguments("this.get(\"key\").substring(1)", "alue"),
-        arguments("param0.isEmpty()", "false"),
-        arguments("param0.contains(\"present\")", "true"),
+        arguments("param0.isEmpty()", false),
+        arguments("param0.contains(\"present\")", true),
         arguments("\"prefix: \"+this.toString()+\" (suffix)\"", "prefix: {key=value} (suffix)"),
-        arguments("this.entrySet().size()", "1"));
+        arguments("param1.get(\"float\")", 7.0f),
+        arguments("this.entrySet().size()", 1));
   }
 
   @ParameterizedTest
   @MethodSource("jexlToExpected")
-  void testBasicBehavior(String jexl, String expected) {
-    assertEquals(expected, evalJexl(jexl, thiz, new Object[] {param0}), jexl);
+  void testBasicBehavior(String jexl, Object expected) {
+    Object result = evalJexl(jexl, thiz, new Object[] {param0, param1});
+    if (expected instanceof String) {
+      result = result == null ? null : result.toString();
+    }
+    assertEquals(expected, result, jexl);
   }
 
   @ParameterizedTest
@@ -89,7 +96,7 @@ class JexlTest {
         "param1.toString()", // no such param
       })
   void testInvalidJexlReturnNull(String invalid) {
-    String answer = evalJexl(invalid, thiz, new Object[] {param0});
+    Object answer = evalJexl(invalid, thiz, new Object[] {param0});
     assertNull(answer, "Expected null for \"" + invalid + "\" but was \"" + answer + "\"");
   }
 

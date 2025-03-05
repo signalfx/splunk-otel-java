@@ -6,6 +6,18 @@
       value: this.getDetails()
     - key: "map.size"
       value: this.getMap().entrySet().size()
+    - key: "map.isEmpty"
+      value: this.getMap().isEmpty()
+    - key: getFloat
+      value: this.getFloat()
+    - key: getDouble
+      value: this.getDouble()
+    - key: getLong
+      value: this.getLong()
+    - key: getShort
+      value: this.getShort()
+    - key: getByte
+      value: this.getByte()
 
 - class: com.splunk.opentelemetry.instrumentation.nocode.NocodeInstrumentationTest$SampleClass
   method: throwException

@@ -11,7 +11,7 @@ val otelContribAlphaVersion = "1.43.0-alpha"
 val autoValueVersion = "1.11.0"
 val dockerJavaVersion = "3.4.1"
 val mockitoVersion = "5.16.0"
-val protobufVersion = "4.29.3"
+val protobufVersion = "4.30.0"
 val slf4jVersion = "2.0.17"
 
 // instrumentation version is used to compute Implementation-Version manifest attribute

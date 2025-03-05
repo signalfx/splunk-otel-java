@@ -16,12 +16,12 @@
 
 package com.splunk.opentelemetry.profiler.snapshot;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import com.splunk.opentelemetry.profiler.Configuration;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 class AutoConfigureSnapshotVolumePropagatorTest {
   private static final String OTEL_PROPAGATORS = "otel-propagators";
@@ -36,11 +36,11 @@ class AutoConfigureSnapshotVolumePropagatorTest {
   }
 
   @Test
-  void snapshotVolumePropagatorMustBeAfterBaggageAndTraceContext() {
+  void snapshotVolumePropagatorMustBeAfterTraceContextAndBaggage() {
     try (var sdk = newSdk().build()) {
       var properties = sdk.getProperties();
       assertThat(properties.getList(OTEL_PROPAGATORS))
-          .containsExactly("baggage", "tracecontext", SnapshotVolumePropagatorProvider.NAME);
+          .containsExactly("tracecontext", "baggage", SnapshotVolumePropagatorProvider.NAME);
     }
   }
 
@@ -48,13 +48,13 @@ class AutoConfigureSnapshotVolumePropagatorTest {
   void appendSnapshotPropagatorToEndOfAlreadyConfiguredPropagators() {
     try (var sdk =
         newSdk()
-            .withProperty(OTEL_PROPAGATORS, "baggage,tracecontext,some-other-propagator")
+            .withProperty(OTEL_PROPAGATORS, "tracecontext,baggage,some-other-propagator")
             .build()) {
       var properties = sdk.getProperties();
       assertThat(properties.getList(OTEL_PROPAGATORS))
           .containsExactly(
-              "baggage",
               "tracecontext",
+              "baggage",
               "some-other-propagator",
               SnapshotVolumePropagatorProvider.NAME);
     }
@@ -66,15 +66,6 @@ class AutoConfigureSnapshotVolumePropagatorTest {
     try (var sdk = newSdk().withProperty(OTEL_PROPAGATORS, propagatorName).build()) {
       var properties = sdk.getProperties();
       assertThat(properties.getList(OTEL_PROPAGATORS)).containsOnlyOnce(propagatorName);
-    }
-  }
-
-  @ParameterizedTest
-  @ValueSource(strings = {"b3", "b3multi"})
-  void doNotAddTraceContextPropagatorWhenB3PropagatorPresent(String propagatorName) {
-    try (var sdk = newSdk().withProperty(OTEL_PROPAGATORS, propagatorName).build()) {
-      var properties = sdk.getProperties();
-      assertThat(properties.getList(OTEL_PROPAGATORS)).doesNotContain("tracecontext");
     }
   }
 
@@ -95,6 +86,33 @@ class AutoConfigureSnapshotVolumePropagatorTest {
       var properties = sdk.getProperties();
       assertThat(properties.getList(OTEL_PROPAGATORS))
           .doesNotContain(SnapshotVolumePropagatorProvider.NAME);
+    }
+  }
+
+  @Test
+  void doNotAddSnapshotVolumePropagatorsConfiguredAsNone() {
+    try (var sdk = newSdk().withProperty(OTEL_PROPAGATORS, "none").build()) {
+      var properties = sdk.getProperties();
+      assertThat(properties.getList(OTEL_PROPAGATORS))
+              .doesNotContain(SnapshotVolumePropagatorProvider.NAME);
+    }
+  }
+
+  @Test
+  void doNotAddTraceContextPropagatorWhenOtherPropagatorsAreExplicitlyConfigured() {
+    try (var sdk = newSdk().withProperty(OTEL_PROPAGATORS, "some-other-propagator,baggage").build()) {
+      var properties = sdk.getProperties();
+      assertThat(properties.getList(OTEL_PROPAGATORS))
+              .containsExactly("some-other-propagator", "baggage", SnapshotVolumePropagatorProvider.NAME);
+    }
+  }
+
+  @Test
+  void addBaggagePropagatorWhenOtherPropagatorsAreExplicitlyConfiguredButBaggageIsMissing() {
+    try (var sdk = newSdk().withProperty(OTEL_PROPAGATORS, "some-other-propagator").build()) {
+      var properties = sdk.getProperties();
+      assertThat(properties.getList(OTEL_PROPAGATORS))
+              .containsExactly("some-other-propagator", "baggage", SnapshotVolumePropagatorProvider.NAME);
     }
   }
 

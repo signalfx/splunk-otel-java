@@ -76,10 +76,14 @@ public class SnapshotProfilingSdkCustomizer implements AutoConfigurationCustomiz
     return properties -> {
       if (snapshotProfilingEnabled(properties)) {
         Set<String> propagators = new LinkedHashSet<>(properties.getList("otel.propagators"));
-        propagators.add("baggage");
+        if (propagators.contains("none")) {
+          return Collections.emptyMap();
+        }
+
         if (includeTraceContextPropagator(propagators)) {
           propagators.add("tracecontext");
         }
+        propagators.add("baggage");
         propagators.add(SnapshotVolumePropagatorProvider.NAME);
         return Map.of("otel.propagators", String.join(",", propagators));
       }
@@ -88,7 +92,7 @@ public class SnapshotProfilingSdkCustomizer implements AutoConfigurationCustomiz
   }
 
   private boolean includeTraceContextPropagator(Set<String> configuredPropagators) {
-    return !configuredPropagators.contains("b3") && !configuredPropagators.contains("b3multi");
+    return configuredPropagators.isEmpty();
   }
 
   private boolean snapshotProfilingEnabled(ConfigProperties config) {

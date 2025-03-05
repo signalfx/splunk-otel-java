@@ -18,9 +18,8 @@ package com.splunk.opentelemetry.profiler.snapshot;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.splunk.opentelemetry.profiler.snapshot.SnapshotSpanAttributeTest.TogglableTraceRegistry.State;
+import com.splunk.opentelemetry.profiler.snapshot.TogglableTraceRegistry.State;
 import io.opentelemetry.api.common.AttributeKey;
-import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.api.trace.SpanKind;
 import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.context.Context;
@@ -31,7 +30,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 class SnapshotSpanAttributeTest {
   private final TogglableTraceRegistry registry = new TogglableTraceRegistry();
   private final SnapshotProfilingSdkCustomizer customizer =
-      new SnapshotProfilingSdkCustomizer(registry);
+      Snapshotting.customizer().with(registry).build();
 
   @RegisterExtension
   public final OpenTelemetrySdkExtension s =
@@ -87,36 +86,6 @@ class SnapshotSpanAttributeTest {
       var span = (ReadWriteSpan) tracer.spanBuilder("root").setSpanKind(kind).startSpan();
       var attribute = span.getAttribute(AttributeKey.booleanKey("splunk.snapshot.profiling"));
       assertThat(attribute).isNull();
-    }
-  }
-
-  static class TogglableTraceRegistry extends TraceRegistry {
-    enum State {
-      ON,
-      OFF
-    }
-
-    private State state = State.ON;
-
-    @Override
-    public void register(SpanContext spanContext) {
-      if (state == State.ON) {
-        super.register(spanContext);
-      }
-    }
-
-    public void toggle(State state) {
-      this.state = state;
-    }
-
-    @Override
-    public boolean isRegistered(SpanContext spanContext) {
-      return super.isRegistered(spanContext);
-    }
-
-    @Override
-    public void unregister(SpanContext spanContext) {
-      super.unregister(spanContext);
     }
   }
 }

@@ -27,7 +27,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 class TraceRegistrationTest {
   private final TraceRegistry registry = new TraceRegistry();
   private final SnapshotProfilingSdkCustomizer customizer =
-      new SnapshotProfilingSdkCustomizer(registry);
+      Snapshotting.customizer().with(registry).build();
 
   @RegisterExtension
   public final OpenTelemetrySdkExtension s =

@@ -29,14 +29,16 @@ import java.util.function.BiFunction;
 @AutoService(AutoConfigurationCustomizerProvider.class)
 public class SnapshotProfilingSdkCustomizer implements AutoConfigurationCustomizerProvider {
   private final TraceRegistry registry;
+  private final StackTraceSampler sampler;
 
   public SnapshotProfilingSdkCustomizer() {
-    this(new TraceRegistry());
+    this(new TraceRegistry(), new ScheduledExecutorStackTraceSampler(new NoopStagingArea()));
   }
 
   @VisibleForTesting
-  SnapshotProfilingSdkCustomizer(TraceRegistry registry) {
+  SnapshotProfilingSdkCustomizer(TraceRegistry registry, StackTraceSampler sampler) {
     this.registry = registry;
+    this.sampler = sampler;
   }
 
   @Override
@@ -49,7 +51,7 @@ public class SnapshotProfilingSdkCustomizer implements AutoConfigurationCustomiz
       snapshotProfilingSpanProcessor(TraceRegistry registry) {
     return (builder, properties) -> {
       if (snapshotProfilingEnabled(properties)) {
-        return builder.addSpanProcessor(new SnapshotProfilingSpanProcessor(registry));
+        return builder.addSpanProcessor(new SnapshotProfilingSpanProcessor(registry, sampler));
       }
       return builder;
     };

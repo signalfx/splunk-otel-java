@@ -24,6 +24,7 @@ import static com.splunk.opentelemetry.appd.AppdBonusConstants.CTX_HEADER_SERVIC
 import static com.splunk.opentelemetry.appd.AppdBonusConstants.CTX_HEADER_TIER;
 import static com.splunk.opentelemetry.appd.AppdBonusConstants.CTX_KEY;
 
+import com.google.common.annotations.VisibleForTesting;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.context.ContextKey;
 import io.opentelemetry.context.propagation.TextMapGetter;
@@ -36,8 +37,17 @@ import javax.annotation.Nullable;
 final class AppdBonusPropagator implements TextMapPropagator {
 
   public static final ContextKey<AppdBonusContext> CONTEXT_KEY = ContextKey.named(CTX_KEY);
+  private static final AppdBonusPropagator INSTANCE = new AppdBonusPropagator();
+
   @Nullable private String serviceName;
   @Nullable private String environmentName;
+
+  @VisibleForTesting
+  AppdBonusPropagator() {}
+
+  static AppdBonusPropagator getInstance() {
+    return INSTANCE;
+  }
 
   @Override
   public Collection<String> fields() {

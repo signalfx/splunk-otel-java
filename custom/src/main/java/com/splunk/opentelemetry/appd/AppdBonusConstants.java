@@ -22,6 +22,7 @@ import io.opentelemetry.api.common.AttributeKey;
 
 public final class AppdBonusConstants {
   public static final String CONFIG_CISCO_CTX_ENABLED = "cisco.ctx.enabled";
+  public static final String PROPAGATOR_NAME = "appd-bonus";
   public static final String CTX_KEY = "cisco-bonus-ctx";
   public static final String CTX_HEADER_ACCT = "cisco-ctx-acct-id";
   public static final String CTX_HEADER_APP = "cisco-ctx-app-id";

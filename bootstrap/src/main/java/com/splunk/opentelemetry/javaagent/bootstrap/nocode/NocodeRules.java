@@ -28,6 +28,8 @@ public final class NocodeRules {
     public final String methodName;
     public final String spanName; // may be null - use default of "class.method"
     public final String spanKind; // matches the SpanKind enum, null means default to INTERNAL
+    public final String spanStatus; // may be null, should return string from StatusCodes
+
     public final Map<String, String> attributes; // key name to jexl expression
 
     public Rule(
@@ -35,11 +37,13 @@ public final class NocodeRules {
         String methodName,
         String spanName,
         String spanKind,
+        String spanStatus,
         Map<String, String> attributes) {
       this.className = className;
       this.methodName = methodName;
       this.spanName = spanName;
       this.spanKind = spanKind;
+      this.spanStatus = spanStatus;
       this.attributes = Collections.unmodifiableMap(new HashMap<>(attributes));
     }
 
@@ -50,6 +54,10 @@ public final class NocodeRules {
           + methodName
           + ":spanName="
           + spanName
+          + ":spanKind="
+          + spanKind
+          + ":spanStatus="
+          + spanStatus
           + ",attrs="
           + attributes;
     }

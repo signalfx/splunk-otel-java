@@ -30,6 +30,7 @@ import io.opentelemetry.javaagent.extension.instrumentation.TypeTransformer;
 import java.lang.reflect.Method;
 import net.bytebuddy.asm.Advice;
 import net.bytebuddy.description.type.TypeDescription;
+import net.bytebuddy.implementation.bytecode.assign.Assigner;
 import net.bytebuddy.matcher.ElementMatcher;
 
 public final class NocodeInstrumentation implements TypeInstrumentation {
@@ -85,6 +86,7 @@ public final class NocodeInstrumentation implements TypeInstrumentation {
         @Advice.Local("otelInvocation") NocodeMethodInvocation otelInvocation,
         @Advice.Local("otelContext") Context context,
         @Advice.Local("otelScope") Scope scope,
+        @Advice.Return(typing = Assigner.Typing.DYNAMIC) Object returnValue,
         @Advice.Thrown Throwable error) {
       if (scope == null) {
         return;
@@ -93,7 +95,7 @@ public final class NocodeInstrumentation implements TypeInstrumentation {
       // This is heavily based on the "methods" instrumentation from upstream, but
       // for now we're not supporting modifying return types/async result codes, etc.
       // This could be expanded in the future.
-      instrumenter().end(context, otelInvocation, null, error);
+      instrumenter().end(context, otelInvocation, returnValue, error);
     }
   }
 }

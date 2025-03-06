@@ -26,7 +26,10 @@ import io.opentelemetry.api.trace.TraceState;
 import io.opentelemetry.sdk.trace.IdGenerator;
 import java.time.Duration;
 import java.util.Collections;
+import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 
@@ -80,33 +83,39 @@ class ScheduledExecutorStackTraceSamplerTest {
   }
 
   @Test
-  void onlyTakeStackTraceSamplesForOneThreadPerTrace() {
+  void onlyTakeStackTraceSamplesForOneThreadPerTrace() throws Exception {
+    var scheduler = Executors.newScheduledThreadPool(2);
     var latch = new CountDownLatch(1);
     var traceId = idGenerator.generateTraceId();
-    var threadOne = startAndStopSampler(randomSpanContext(traceId), latch);
-    var threadTwo = startAndStopSampler(randomSpanContext(traceId), latch);
 
-    threadOne.start();
-    threadTwo.start();
+    var threadOne =
+        scheduler.schedule(
+            startSampling(randomSpanContext(traceId), latch), 0, TimeUnit.MILLISECONDS);
+    scheduler.schedule(startSampling(randomSpanContext(traceId), latch), 25, TimeUnit.MILLISECONDS);
+
     await().atMost(HALF_SECOND).until(() -> staging.allStackTraces().size() > 5);
     latch.countDown();
 
     var threadIds =
         staging.allStackTraces().stream().map(StackTrace::getThreadId).collect(Collectors.toSet());
-    assertThat(threadIds).containsOnly(threadOne.getId());
+    assertThat(threadIds).containsOnly(threadOne.get().getId());
   }
 
-  private Thread startAndStopSampler(SpanContext spanContext, CountDownLatch latch) {
-    return new Thread(
-        () -> {
-          try {
-            sampler.start(spanContext);
-            latch.await();
-            sampler.stop(spanContext);
-          } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-          }
-        });
+  private Callable<Thread> startSampling(SpanContext spanContext, CountDownLatch latch) {
+    return (() -> {
+      try {
+        System.out.println(
+            "Starting thread "
+                + Thread.currentThread().getName()
+                + ", id "
+                + Thread.currentThread().getId());
+        sampler.start(spanContext);
+        latch.await();
+        return Thread.currentThread();
+      } catch (InterruptedException e) {
+        throw new RuntimeException(e);
+      }
+    });
   }
 
   private SpanContext randomSpanContext() {

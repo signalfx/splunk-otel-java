@@ -4,7 +4,7 @@ Please don't use this if you have the ability to edit the code being instrumente
 
 Set `SPLUNK_OTEL_INSTRUMENTATION_NOCODE_YML_FILE=/path/to/some.yml`
 
-Where the yml looks like 
+Where the yml looks like
 ```
 - class: foo.Foo
   method: foo
@@ -28,4 +28,3 @@ the following variables:
   - `param0` through `paramN` where 0 indexes the first parameter to the method
   - `returnValue` which is only defined for `spanStatus` and may be null (if an exception is thrown or the method returns void)
   - `error` which is only defined for `spanStatus` and is the `Throwable` thrown by the method invocation (or null if a normal return)
-

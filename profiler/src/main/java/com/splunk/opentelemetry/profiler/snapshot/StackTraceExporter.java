@@ -16,21 +16,9 @@
 
 package com.splunk.opentelemetry.profiler.snapshot;
 
-import java.time.Instant;
+import java.util.List;
 
-class Snapshotting {
-  static SnapshotProfilingSdkCustomizerBuilder customizer() {
-    return new SnapshotProfilingSdkCustomizerBuilder();
-  }
-
-  static StackTraceBuilder stackTrace() {
-    var threadId = 1;
-    return new StackTraceBuilder()
-        .with(Instant.now())
-        .withId(threadId)
-        .withName("thread-" + threadId)
-        .with(new RuntimeException());
-  }
-
-  private Snapshotting() {}
+/** Works in concert with the {@link StagingArea} to export a batch of {@link StackTrace}s */
+interface StackTraceExporter {
+  void export(List<StackTrace> stackTraces);
 }

@@ -16,6 +16,7 @@
 
 package com.splunk.opentelemetry.profiler.snapshot;
 
+import com.google.common.annotations.VisibleForTesting;
 import java.lang.management.ThreadInfo;
 import java.time.Instant;
 
@@ -30,8 +31,8 @@ class StackTrace {
   private final String threadName;
   private final StackTraceElement[] stackFrames;
 
-  private StackTrace(
-      Instant timestamp, long threadId, String threadName, StackTraceElement[] stackFrames) {
+  @VisibleForTesting
+  StackTrace(Instant timestamp, long threadId, String threadName, StackTraceElement[] stackFrames) {
     this.timestamp = timestamp;
     this.threadId = threadId;
     this.threadName = threadName;

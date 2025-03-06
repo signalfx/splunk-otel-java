@@ -16,21 +16,23 @@
 
 package com.splunk.opentelemetry.profiler.snapshot;
 
-import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
-class Snapshotting {
-  static SnapshotProfilingSdkCustomizerBuilder customizer() {
-    return new SnapshotProfilingSdkCustomizerBuilder();
+/**
+ * In memory implementation of the {@link StackTraceExporter} interface that allows for direct
+ * access to the exported {@link StackTrace}s. Intended for testing use only.
+ */
+class InMemoryStackTraceExporter implements StackTraceExporter {
+  private final List<StackTrace> stackTraces = new ArrayList<>();
+
+  @Override
+  public void export(List<StackTrace> stackTraces) {
+    this.stackTraces.addAll(stackTraces);
   }
 
-  static StackTraceBuilder stackTrace() {
-    var threadId = 1;
-    return new StackTraceBuilder()
-        .with(Instant.now())
-        .withId(threadId)
-        .withName("thread-" + threadId)
-        .with(new RuntimeException());
+  List<StackTrace> stackTraces() {
+    return Collections.unmodifiableList(stackTraces);
   }
-
-  private Snapshotting() {}
 }

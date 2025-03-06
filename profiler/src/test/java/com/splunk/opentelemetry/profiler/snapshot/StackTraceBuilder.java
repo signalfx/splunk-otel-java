@@ -18,19 +18,33 @@ package com.splunk.opentelemetry.profiler.snapshot;
 
 import java.time.Instant;
 
-class Snapshotting {
-  static SnapshotProfilingSdkCustomizerBuilder customizer() {
-    return new SnapshotProfilingSdkCustomizerBuilder();
+class StackTraceBuilder {
+  private Instant timestamp;
+  private long threadId;
+  private String threadName;
+  private Exception exception;
+
+  public StackTraceBuilder with(Instant timestamp) {
+    this.timestamp = timestamp;
+    return this;
   }
 
-  static StackTraceBuilder stackTrace() {
-    var threadId = 1;
-    return new StackTraceBuilder()
-        .with(Instant.now())
-        .withId(threadId)
-        .withName("thread-" + threadId)
-        .with(new RuntimeException());
+  public StackTraceBuilder withId(long threadId) {
+    this.threadId = threadId;
+    return this;
   }
 
-  private Snapshotting() {}
+  public StackTraceBuilder withName(String threadName) {
+    this.threadName = threadName;
+    return this;
+  }
+
+  public StackTraceBuilder with(Exception exception) {
+    this.exception = exception;
+    return this;
+  }
+
+  StackTrace build() {
+    return new StackTrace(timestamp, threadId, threadName, exception.getStackTrace());
+  }
 }

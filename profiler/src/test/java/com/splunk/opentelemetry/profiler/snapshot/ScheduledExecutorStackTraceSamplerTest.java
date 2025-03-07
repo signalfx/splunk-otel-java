@@ -90,16 +90,18 @@ class ScheduledExecutorStackTraceSamplerTest {
     var spanContext2 = randomSpanContext(traceId);
     var spanContext1 = randomSpanContext(traceId);
 
-    var threadOne = scheduler.schedule(startSampling(spanContext1, latch), 0, TimeUnit.MILLISECONDS);
+    var threadOne =
+        scheduler.schedule(startSampling(spanContext1, latch), 0, TimeUnit.MILLISECONDS);
     scheduler.schedule(startSampling(spanContext2, latch), 25, TimeUnit.MILLISECONDS);
 
     try {
       await().until(() -> staging.allStackTraces().size() > 5);
       latch.countDown();
 
-      var threadIds = staging.allStackTraces().stream()
-          .map(StackTrace::getThreadId)
-          .collect(Collectors.toSet());
+      var threadIds =
+          staging.allStackTraces().stream()
+              .map(StackTrace::getThreadId)
+              .collect(Collectors.toSet());
       assertThat(threadIds).containsOnly(threadOne.get().getId());
     } finally {
       sampler.stop(spanContext1);

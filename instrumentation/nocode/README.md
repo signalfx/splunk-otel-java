@@ -14,7 +14,7 @@ Where the yml looks like
       value: this.getDetails().get("context")
 
 - class: foo.Foo
-  method: throwSomething
+  method: doStuff
   spanKind: CLIENT
   spanStatus: 'returnValue.code() > 3 ? "OK" : "ERROR"`
   attributes:

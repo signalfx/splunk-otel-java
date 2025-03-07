@@ -43,7 +43,7 @@ import org.junit.jupiter.api.extension.ExtensionContext;
  * access to the collected logs. Intended for testing use only.
  */
 @SuppressWarnings("deprecation") // uses deprecated io.opentelemetry.sdk.logs.data.Body
-class InMemoryOtelLogger implements Logger, AfterEachCallback {
+public class InMemoryOtelLogger implements Logger, AfterEachCallback {
   private final List<LogRecordData> records = new ArrayList<>();
 
   @Override

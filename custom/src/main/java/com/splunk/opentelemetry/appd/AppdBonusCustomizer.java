@@ -66,7 +66,8 @@ public final class AppdBonusCustomizer implements AutoConfigurationCustomizerPro
   }
 
   private static boolean featureEnabled(ConfigProperties config) {
-    return config.getBoolean(CONFIG_CISCO_CTX_ENABLED, false);
+    return config.getBoolean(CONFIG_CISCO_CTX_ENABLED, false) &&
+        !config.getList("otel.propagators", DEFAULT_PROPAGATORS).contains("none");
   }
 
   /** Used to add the AppD propagator name to the otel.propagators list if configured. */
@@ -75,7 +76,7 @@ public final class AppdBonusCustomizer implements AutoConfigurationCustomizerPro
       return Collections.emptyMap();
     }
     List<String> existing = config.getList("otel.propagators", DEFAULT_PROPAGATORS);
-    if (existing.contains(PROPAGATOR_NAME)) {
+    if (existing.contains(PROPAGATOR_NAME) || existing.contains("none")) {
       return Collections.emptyMap();
     }
     List<String> propagators = new ArrayList<>(existing);

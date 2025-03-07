@@ -39,6 +39,7 @@ import io.opentelemetry.sdk.resources.Resource;
 import io.opentelemetry.sdk.trace.ReadWriteSpan;
 import io.opentelemetry.sdk.trace.SdkTracerProviderBuilder;
 import io.opentelemetry.sdk.trace.SpanProcessor;
+import java.util.List;
 import java.util.Map;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -141,5 +142,21 @@ class AppdBonusCustomizerTest {
     SdkTracerProviderBuilder builder = mock();
     tpcCaptor.getValue().apply(builder, config);
     verify(builder, never()).addSpanProcessor(any());
+  }
+
+  @Test
+  void nonePreventsAddingPropagator() {
+    when(config.getBoolean(CONFIG_CISCO_CTX_ENABLED, false)).thenReturn(true);
+    when(config.getList("otel.propagators", DEFAULT_PROPAGATORS)).thenReturn(List.of("none"));
+
+    AppdBonusCustomizer testClass = new AppdBonusCustomizer();
+    testClass.customize(customizer, propagator);
+
+    ArgumentCaptor<Function<ConfigProperties, Map<String, String>>> pcCaptor =
+        ArgumentCaptor.forClass(Function.class);
+    verify(customizer).addPropertiesCustomizer(pcCaptor.capture());
+
+    Map<String, String> updatedConfig = pcCaptor.getValue().apply(config);
+    assertThat(updatedConfig).isEmpty();
   }
 }

@@ -87,28 +87,29 @@ class ScheduledExecutorStackTraceSamplerTest {
     var scheduler = Executors.newScheduledThreadPool(2);
     var latch = new CountDownLatch(1);
     var traceId = idGenerator.generateTraceId();
+    var spanContext2 = randomSpanContext(traceId);
+    var spanContext1 = randomSpanContext(traceId);
 
-    var threadOne =
-        scheduler.schedule(
-            startSampling(randomSpanContext(traceId), latch), 0, TimeUnit.MILLISECONDS);
-    scheduler.schedule(startSampling(randomSpanContext(traceId), latch), 25, TimeUnit.MILLISECONDS);
+    var threadOne = scheduler.schedule(startSampling(spanContext1, latch), 0, TimeUnit.MILLISECONDS);
+    scheduler.schedule(startSampling(spanContext2, latch), 25, TimeUnit.MILLISECONDS);
 
-    await().until(() -> staging.allStackTraces().size() > 5);
-    latch.countDown();
+    try {
+      await().until(() -> staging.allStackTraces().size() > 5);
+      latch.countDown();
 
-    var threadIds =
-        staging.allStackTraces().stream().map(StackTrace::getThreadId).collect(Collectors.toSet());
-    assertThat(threadIds).containsOnly(threadOne.get().getId());
+      var threadIds = staging.allStackTraces().stream()
+          .map(StackTrace::getThreadId)
+          .collect(Collectors.toSet());
+      assertThat(threadIds).containsOnly(threadOne.get().getId());
+    } finally {
+      sampler.stop(spanContext1);
+      sampler.stop(spanContext2);
+    }
   }
 
   private Callable<Thread> startSampling(SpanContext spanContext, CountDownLatch latch) {
     return (() -> {
       try {
-        System.out.println(
-            "Starting thread "
-                + Thread.currentThread().getName()
-                + ", id "
-                + Thread.currentThread().getId());
         sampler.start(spanContext);
         latch.await();
         return Thread.currentThread();

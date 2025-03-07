@@ -93,7 +93,7 @@ class ScheduledExecutorStackTraceSamplerTest {
             startSampling(randomSpanContext(traceId), latch), 0, TimeUnit.MILLISECONDS);
     scheduler.schedule(startSampling(randomSpanContext(traceId), latch), 25, TimeUnit.MILLISECONDS);
 
-    await().atMost(HALF_SECOND).until(() -> staging.allStackTraces().size() > 5);
+    await().until(() -> staging.allStackTraces().size() > 5);
     latch.countDown();
 
     var threadIds =

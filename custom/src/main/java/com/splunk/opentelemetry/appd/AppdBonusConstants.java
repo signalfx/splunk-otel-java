@@ -24,10 +24,6 @@ public final class AppdBonusConstants {
   public static final String CONFIG_CISCO_CTX_ENABLED = "cisco.ctx.enabled";
   public static final String PROPAGATOR_NAME = "appd-bonus";
   public static final String CTX_KEY = "cisco-bonus-ctx";
-  public static final String CTX_HEADER_ACCT = "cisco-ctx-acct-id";
-  public static final String CTX_HEADER_APP = "cisco-ctx-app-id";
-  public static final String CTX_HEADER_BT = "cisco-ctx-bt-id";
-  public static final String CTX_HEADER_TIER = "cisco-ctx-tier-id";
   public static final String CTX_HEADER_ENV = "cisco-ctx-env";
   public static final String CTX_HEADER_SERVICE = "cisco-ctx-service";
   public static final AttributeKey<String> APPD_ATTR_ACCT = stringKey("appd.upstream.account.id");

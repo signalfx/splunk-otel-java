@@ -16,7 +16,10 @@
 
 package com.splunk.opentelemetry.appd;
 
-import static com.splunk.opentelemetry.appd.AppdBonusConstants.*;
+import static com.splunk.opentelemetry.appd.AppdBonusConstants.APPD_ATTR_ACCT;
+import static com.splunk.opentelemetry.appd.AppdBonusConstants.APPD_ATTR_APP;
+import static com.splunk.opentelemetry.appd.AppdBonusConstants.APPD_ATTR_BT;
+import static com.splunk.opentelemetry.appd.AppdBonusConstants.APPD_ATTR_TIER;
 import static com.splunk.opentelemetry.appd.AppdBonusPropagator.CONTEXT_KEY;
 
 import io.opentelemetry.context.Context;

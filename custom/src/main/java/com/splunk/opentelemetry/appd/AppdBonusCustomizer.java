@@ -66,8 +66,8 @@ public final class AppdBonusCustomizer implements AutoConfigurationCustomizerPro
   }
 
   private static boolean featureEnabled(ConfigProperties config) {
-    return config.getBoolean(CONFIG_CISCO_CTX_ENABLED, false) &&
-        !config.getList("otel.propagators", DEFAULT_PROPAGATORS).contains("none");
+    return config.getBoolean(CONFIG_CISCO_CTX_ENABLED, false)
+        && !config.getList("otel.propagators", DEFAULT_PROPAGATORS).contains("none");
   }
 
   /** Used to add the AppD propagator name to the otel.propagators list if configured. */

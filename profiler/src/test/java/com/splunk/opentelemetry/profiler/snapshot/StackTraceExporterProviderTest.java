@@ -18,10 +18,16 @@ package com.splunk.opentelemetry.profiler.snapshot;
 
 import static org.junit.jupiter.api.Assertions.assertSame;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 class StackTraceExporterProviderTest {
-  private final StackTraceExporterProvider provider = new StackTraceExporterProvider();
+  private final StackTraceExporterProvider provider = StackTraceExporterProvider.INSTANCE;
+
+  @AfterEach
+  void tearDown() {
+    provider.reset();
+  }
 
   @Test
   void provideNoopExporterWhenNotConfigured() {
@@ -33,5 +39,12 @@ class StackTraceExporterProviderTest {
     var exporter = new InMemoryStackTraceExporter();
     provider.configure(exporter);
     assertSame(exporter, provider.get());
+  }
+
+  @Test
+  void canResetConfiguredExporter() {
+    provider.configure(new InMemoryStackTraceExporter());
+    provider.reset();
+    assertSame(StackTraceExporter.NOOP, provider.get());
   }
 }

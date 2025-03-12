@@ -16,10 +16,12 @@
 
 package com.splunk.opentelemetry.profiler.snapshot;
 
-import java.util.concurrent.atomic.AtomicReference;
+import com.google.common.annotations.VisibleForTesting;
 import java.util.function.Supplier;
 
 class StackTraceExporterProvider implements Supplier<StackTraceExporter> {
+  public static final StackTraceExporterProvider INSTANCE = new StackTraceExporterProvider();
+
   private StackTraceExporter exporter;
 
   @Override
@@ -31,8 +33,13 @@ class StackTraceExporterProvider implements Supplier<StackTraceExporter> {
   }
 
   void configure(StackTraceExporter exporter) {
-    AtomicReference<StackTraceExporter> exporterRef = new AtomicReference<>();
-    exporterRef.set(exporter);
     this.exporter = exporter;
   }
+
+  @VisibleForTesting
+  void reset() {
+    exporter = null;
+  }
+
+  private StackTraceExporterProvider() {}
 }

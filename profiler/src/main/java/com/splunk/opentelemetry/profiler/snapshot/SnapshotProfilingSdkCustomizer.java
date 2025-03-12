@@ -36,7 +36,10 @@ public class SnapshotProfilingSdkCustomizer implements AutoConfigurationCustomiz
   private final StackTraceSampler sampler;
 
   public SnapshotProfilingSdkCustomizer() {
-    this(new TraceRegistry(), new ScheduledExecutorStackTraceSampler(new NoopStagingArea()));
+    this(
+        new TraceRegistry(),
+        new ScheduledExecutorStackTraceSampler(
+            new AccumulatingStagingArea(StackTraceExporterProvider.INSTANCE)));
   }
 
   @VisibleForTesting

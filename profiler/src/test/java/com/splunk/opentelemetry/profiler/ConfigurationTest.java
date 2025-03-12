@@ -116,8 +116,9 @@ class ConfigurationTest {
   @ParameterizedTest
   @ValueSource(booleans = {true, false})
   void isSnapshotProfilingEnabled(boolean enabled) {
-    var properties = DefaultConfigProperties.create(Map.of(
-        "splunk.snapshot.profiler.enabled", String.valueOf(enabled)));
+    var properties =
+        DefaultConfigProperties.create(
+            Map.of("splunk.snapshot.profiler.enabled", String.valueOf(enabled)));
     assertEquals(enabled, Configuration.isSnapshotProfilingEnabled(properties));
   }
 

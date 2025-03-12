@@ -31,7 +31,6 @@ import java.time.Instant;
 import java.util.Collections;
 import java.util.concurrent.CountDownLatch;
 import java.util.stream.Collectors;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 class ScheduledExecutorStackTraceSamplerTest {
@@ -84,7 +83,6 @@ class ScheduledExecutorStackTraceSamplerTest {
   }
 
   @Test
-  @Disabled
   void onlyTakeStackTraceSamplesForOneThreadPerTrace() {
     var latch = new CountDownLatch(1);
     var traceId = idGenerator.generateTraceId();

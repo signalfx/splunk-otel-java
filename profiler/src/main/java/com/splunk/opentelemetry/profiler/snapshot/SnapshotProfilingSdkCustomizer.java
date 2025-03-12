@@ -16,10 +16,9 @@
 
 package com.splunk.opentelemetry.profiler.snapshot;
 
-import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_ENABLE_SNAPSHOT_PROFILER;
-
 import com.google.auto.service.AutoService;
 import com.google.common.annotations.VisibleForTesting;
+import com.splunk.opentelemetry.profiler.Configuration;
 import io.opentelemetry.sdk.autoconfigure.spi.AutoConfigurationCustomizer;
 import io.opentelemetry.sdk.autoconfigure.spi.AutoConfigurationCustomizerProvider;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
@@ -97,7 +96,7 @@ public class SnapshotProfilingSdkCustomizer implements AutoConfigurationCustomiz
     return configuredPropagators.isEmpty();
   }
 
-  private boolean snapshotProfilingEnabled(ConfigProperties config) {
-    return config.getBoolean(CONFIG_KEY_ENABLE_SNAPSHOT_PROFILER, false);
+  private boolean snapshotProfilingEnabled(ConfigProperties properties) {
+    return Configuration.isSnapshotProfilingEnabled(properties);
   }
 }

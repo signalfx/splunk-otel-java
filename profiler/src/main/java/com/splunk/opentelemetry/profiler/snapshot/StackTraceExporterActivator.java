@@ -16,9 +16,8 @@
 
 package com.splunk.opentelemetry.profiler.snapshot;
 
-import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_ENABLE_SNAPSHOT_PROFILER;
-
 import com.google.auto.service.AutoService;
+import com.splunk.opentelemetry.profiler.Configuration;
 import com.splunk.opentelemetry.profiler.OtelLoggerFactory;
 import io.opentelemetry.api.logs.Logger;
 import io.opentelemetry.javaagent.extension.AgentListener;
@@ -42,7 +41,7 @@ public class StackTraceExporterActivator implements AgentListener {
     }
   }
 
-  private boolean snapshotProfilingEnabled(ConfigProperties config) {
-    return config.getBoolean(CONFIG_KEY_ENABLE_SNAPSHOT_PROFILER, false);
+  private boolean snapshotProfilingEnabled(ConfigProperties properties) {
+    return Configuration.isSnapshotProfilingEnabled(properties);
   }
 }

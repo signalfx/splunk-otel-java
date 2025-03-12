@@ -16,25 +16,87 @@
 
 package com.splunk.opentelemetry.profiler.snapshot;
 
+import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.DATA_FORMAT;
+import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.DATA_TYPE;
+import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.INSTRUMENTATION_SOURCE;
+import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.PPROF_GZIP_BASE64;
+import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.PROFILING_SOURCE;
+import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.SOURCE_TYPE;
+
+import com.google.common.annotations.VisibleForTesting;
+import com.google.perftools.profiles.ProfileProto.Profile;
+import com.splunk.opentelemetry.profiler.InstrumentationSource;
+import com.splunk.opentelemetry.profiler.ProfilingDataType;
+import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.logs.Logger;
+import io.opentelemetry.api.logs.Severity;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.time.Clock;
+import java.time.Instant;
+import java.util.Base64;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.function.BiFunction;
+import java.util.logging.Level;
+import java.util.zip.GZIPOutputStream;
 
 class AsyncStackTraceExporter implements StackTraceExporter {
-  private final ExecutorService executor = Executors.newSingleThreadScheduledExecutor();
-  private final Logger logger;
-  private final BiFunction<Logger, List<StackTrace>, Runnable> workerFactory;
+  private static final java.util.logging.Logger logger =
+      java.util.logging.Logger.getLogger(AsyncStackTraceExporter.class.getName());
 
-  AsyncStackTraceExporter(
-      Logger logger, BiFunction<Logger, List<StackTrace>, Runnable> workerFactory) {
-    this.logger = logger;
-    this.workerFactory = workerFactory;
+  private final ExecutorService executor = Executors.newSingleThreadScheduledExecutor();
+  private final PprofTranslator translator = new PprofTranslator();
+  private final Logger otelLogger;
+  private final Clock clock;
+
+  AsyncStackTraceExporter(Logger logger) {
+    this(logger, Clock.systemUTC());
+  }
+
+  @VisibleForTesting
+  AsyncStackTraceExporter(Logger logger, Clock clock) {
+    this.otelLogger = logger;
+    this.clock = clock;
   }
 
   @Override
   public void export(List<StackTrace> stackTraces) {
-    executor.submit(workerFactory.apply(logger, stackTraces));
+    executor.submit(pprofExporter(otelLogger, stackTraces));
+  }
+
+  private Runnable pprofExporter(Logger otelLogger, List<StackTrace> stackTraces) {
+    return () -> {
+      try {
+        Profile profile = translator.translateToPprof(stackTraces);
+        otelLogger
+            .logRecordBuilder()
+            .setTimestamp(Instant.now(clock))
+            .setSeverity(Severity.INFO)
+            .setAllAttributes(profilingAttributes())
+            .setBody(serialize(profile))
+            .emit();
+      } catch (Exception e) {
+        logger.log(Level.SEVERE, "an exception was thrown", e);
+      }
+    };
+  }
+
+  private Attributes profilingAttributes() {
+    return Attributes.builder()
+        .put(SOURCE_TYPE, PROFILING_SOURCE)
+        .put(DATA_TYPE, ProfilingDataType.CPU.value())
+        .put(DATA_FORMAT, PPROF_GZIP_BASE64)
+        .put(INSTRUMENTATION_SOURCE, InstrumentationSource.SNAPSHOT.value())
+        .build();
+  }
+
+  private String serialize(Profile profile) throws IOException {
+    ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
+    try (OutputStream outputStream = new GZIPOutputStream(Base64.getEncoder().wrap(byteStream))) {
+      profile.writeTo(outputStream);
+    }
+    return byteStream.toString();
   }
 }

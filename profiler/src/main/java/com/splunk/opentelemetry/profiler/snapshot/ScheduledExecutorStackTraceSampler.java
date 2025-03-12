@@ -64,7 +64,8 @@ class ScheduledExecutorStackTraceSampler implements StackTraceSampler {
     ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
     samplers.put(spanContext.getTraceId(), scheduler);
     scheduler.scheduleAtFixedRate(
-        new StackTraceGatherer(spanContext.getTraceId(), Thread.currentThread().getId()),
+        new StackTraceGatherer(
+            samplingPeriod, spanContext.getTraceId(), Thread.currentThread().getId()),
         SCHEDULER_INITIAL_DELAY,
         samplingPeriod.toMillis(),
         TimeUnit.MILLISECONDS);
@@ -80,10 +81,13 @@ class ScheduledExecutorStackTraceSampler implements StackTraceSampler {
   }
 
   class StackTraceGatherer implements Runnable {
+    private final Duration samplingPeriod;
     private final String traceId;
     private final long threadId;
+    private Instant lastExecution;
 
-    StackTraceGatherer(String traceId, long threadId) {
+    StackTraceGatherer(Duration samplingPeroid, String traceId, long threadId) {
+      this.samplingPeriod = samplingPeroid;
       this.traceId = traceId;
       this.threadId = threadId;
     }
@@ -93,10 +97,12 @@ class ScheduledExecutorStackTraceSampler implements StackTraceSampler {
       Instant now = Instant.now();
       try {
         ThreadInfo threadInfo = threadMXBean.getThreadInfo(threadId, MAX_ENTRY_DEPTH);
-        StackTrace stackTrace = StackTrace.from(now, threadInfo);
+        StackTrace stackTrace = StackTrace.from(now, sampleDuration(now), traceId, threadInfo);
         stagingArea.stage(traceId, stackTrace);
       } catch (Exception e) {
         logger.log(Level.SEVERE, e, samplerErrorMessage(traceId, threadId));
+      } finally {
+        lastExecution = now;
       }
     }
 
@@ -106,6 +112,13 @@ class ScheduledExecutorStackTraceSampler implements StackTraceSampler {
               + traceId
               + "' on profiled thread "
               + threadId;
+    }
+
+    private Duration sampleDuration(Instant now) {
+      if (lastExecution == null) {
+        return samplingPeriod;
+      }
+      return Duration.between(lastExecution, now);
     }
   }
 }

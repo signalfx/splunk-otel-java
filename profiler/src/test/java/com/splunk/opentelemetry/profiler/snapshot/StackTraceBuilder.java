@@ -16,16 +16,30 @@
 
 package com.splunk.opentelemetry.profiler.snapshot;
 
+import java.time.Duration;
 import java.time.Instant;
 
 class StackTraceBuilder {
   private Instant timestamp;
+  private Duration duration;
+  private String traceId;
   private long threadId;
   private String threadName;
+  private Thread.State state;
   private Exception exception;
 
   public StackTraceBuilder with(Instant timestamp) {
     this.timestamp = timestamp;
+    return this;
+  }
+
+  public StackTraceBuilder with(Duration duration) {
+    this.duration = duration;
+    return this;
+  }
+
+  public StackTraceBuilder withTraceId(String traceId) {
+    this.traceId = traceId;
     return this;
   }
 
@@ -39,12 +53,18 @@ class StackTraceBuilder {
     return this;
   }
 
+  public StackTraceBuilder with(Thread.State state) {
+    this.state = state;
+    return this;
+  }
+
   public StackTraceBuilder with(Exception exception) {
     this.exception = exception;
     return this;
   }
 
   StackTrace build() {
-    return new StackTrace(timestamp, threadId, threadName, exception.getStackTrace());
+    return new StackTrace(
+        timestamp, duration, traceId, threadId, threadName, state, exception.getStackTrace());
   }
 }

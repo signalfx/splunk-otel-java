@@ -18,29 +18,57 @@ package com.splunk.opentelemetry.profiler.snapshot;
 
 import com.google.common.annotations.VisibleForTesting;
 import java.lang.management.ThreadInfo;
+import java.time.Duration;
 import java.time.Instant;
 
 class StackTrace {
-  static StackTrace from(Instant timestamp, ThreadInfo thread) {
+  static StackTrace from(Instant timestamp, Duration duration, String traceId, ThreadInfo thread) {
     return new StackTrace(
-        timestamp, thread.getThreadId(), thread.getThreadName(), thread.getStackTrace());
+        timestamp,
+        duration,
+        traceId,
+        thread.getThreadId(),
+        thread.getThreadName(),
+        thread.getThreadState(),
+        thread.getStackTrace());
   }
 
   private final Instant timestamp;
+  private final Duration duration;
+  private final String traceId;
   private final long threadId;
   private final String threadName;
+  private final Thread.State threadState;
   private final StackTraceElement[] stackFrames;
 
   @VisibleForTesting
-  StackTrace(Instant timestamp, long threadId, String threadName, StackTraceElement[] stackFrames) {
+  StackTrace(
+      Instant timestamp,
+      Duration duration,
+      String traceId,
+      long threadId,
+      String threadName,
+      Thread.State threadState,
+      StackTraceElement[] stackFrames) {
     this.timestamp = timestamp;
+    this.duration = duration;
+    this.traceId = traceId;
     this.threadId = threadId;
     this.threadName = threadName;
+    this.threadState = threadState;
     this.stackFrames = stackFrames;
   }
 
   Instant getTimestamp() {
     return timestamp;
+  }
+
+  Duration getDuration() {
+    return duration;
+  }
+
+  String getTraceId() {
+    return traceId;
   }
 
   long getThreadId() {
@@ -49,6 +77,10 @@ class StackTrace {
 
   String getThreadName() {
     return threadName;
+  }
+
+  Thread.State getThreadState() {
+    return threadState;
   }
 
   StackTraceElement[] getStackFrames() {

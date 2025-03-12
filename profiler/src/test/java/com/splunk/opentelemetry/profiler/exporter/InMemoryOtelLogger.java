@@ -56,7 +56,7 @@ public class InMemoryOtelLogger implements Logger, AfterEachCallback {
     records.clear();
   }
 
-  List<LogRecordData> records() {
+  public List<LogRecordData> records() {
     return Collections.unmodifiableList(records);
   }
 

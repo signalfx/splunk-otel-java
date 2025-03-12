@@ -34,7 +34,8 @@ class SnapshotSpanAttributeTest {
       Snapshotting.customizer().with(registry).build();
 
   @RegisterExtension
-  public final OpenTelemetrySdkExtension s = OpenTelemetrySdkExtension.configure()
+  public final OpenTelemetrySdkExtension s =
+      OpenTelemetrySdkExtension.configure()
           .with(customizer)
           .withProperty("splunk.snapshot.profiler.enabled", "true")
           .build();

@@ -35,7 +35,8 @@ class StackTraceExporterActivatorTest {
   @Nested
   class SnapshotProfilingEnabled {
     @RegisterExtension
-    public final OpenTelemetrySdkExtension s = OpenTelemetrySdkExtension.configure()
+    public final OpenTelemetrySdkExtension s =
+        OpenTelemetrySdkExtension.configure()
             .withProperty("splunk.snapshot.profiler.enabled", "true")
             .with(new StackTraceExporterActivator())
             .build();
@@ -51,7 +52,8 @@ class StackTraceExporterActivatorTest {
   @Nested
   class SnapshotProfilingDisabled {
     @RegisterExtension
-    public final OpenTelemetrySdkExtension s = OpenTelemetrySdkExtension.configure()
+    public final OpenTelemetrySdkExtension s =
+        OpenTelemetrySdkExtension.configure()
             .withProperty("splunk.snapshot.profiler.enabled", "false")
             .with(new StackTraceExporterActivator())
             .build();

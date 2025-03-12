@@ -33,7 +33,8 @@ class TraceProfilingTest {
       Snapshotting.customizer().with(registry).with(sampler).build();
 
   @RegisterExtension
-  public final OpenTelemetrySdkExtension sdk = OpenTelemetrySdkExtension.configure()
+  public final OpenTelemetrySdkExtension sdk =
+      OpenTelemetrySdkExtension.configure()
           .withProperty("splunk.snapshot.profiler.enabled", "true")
           .with(customizer)
           .build();

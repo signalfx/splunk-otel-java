@@ -22,8 +22,8 @@ import com.splunk.opentelemetry.profiler.snapshot.SnapshotVolumePropagatorTest.T
 import io.opentelemetry.api.baggage.Baggage;
 import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.context.Context;
-import java.util.Collections;
 import io.opentelemetry.sdk.autoconfigure.OpenTelemetrySdkExtension;
+import java.util.Collections;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 

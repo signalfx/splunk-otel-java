@@ -34,9 +34,8 @@ class SnapshotProfilingFeatureFlagTest {
   @Nested
   class SnapshotProfilingDisabledByDefaultTest {
     @RegisterExtension
-    public final OpenTelemetrySdkExtension s = OpenTelemetrySdkExtension.configure()
-        .with(customizer)
-        .build();
+    public final OpenTelemetrySdkExtension s =
+        OpenTelemetrySdkExtension.configure().with(customizer).build();
 
     @ParameterizedTest
     @SpanKinds.Entry
@@ -51,7 +50,8 @@ class SnapshotProfilingFeatureFlagTest {
   @Nested
   class SnapshotProfilingEnabledTest {
     @RegisterExtension
-    public final OpenTelemetrySdkExtension s = OpenTelemetrySdkExtension.configure()
+    public final OpenTelemetrySdkExtension s =
+        OpenTelemetrySdkExtension.configure()
             .with(customizer)
             .withProperty("splunk.snapshot.profiler.enabled", "true")
             .build();
@@ -69,7 +69,8 @@ class SnapshotProfilingFeatureFlagTest {
   @Nested
   class SnapshotProfilingDisabledTest {
     @RegisterExtension
-    public final OpenTelemetrySdkExtension s = OpenTelemetrySdkExtension.configure()
+    public final OpenTelemetrySdkExtension s =
+        OpenTelemetrySdkExtension.configure()
             .with(customizer)
             .withProperty("splunk.snapshot.profiler.enabled", "false")
             .build();

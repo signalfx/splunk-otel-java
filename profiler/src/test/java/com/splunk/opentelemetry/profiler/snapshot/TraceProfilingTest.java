@@ -22,6 +22,7 @@ import com.splunk.opentelemetry.profiler.snapshot.TogglableTraceRegistry.State;
 import io.opentelemetry.api.trace.SpanKind;
 import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.context.Context;
+import io.opentelemetry.sdk.autoconfigure.OpenTelemetrySdkExtension;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.params.ParameterizedTest;
 
@@ -32,8 +33,7 @@ class TraceProfilingTest {
       Snapshotting.customizer().with(registry).with(sampler).build();
 
   @RegisterExtension
-  public final OpenTelemetrySdkExtension sdk =
-      OpenTelemetrySdkExtension.builder()
+  public final OpenTelemetrySdkExtension sdk = OpenTelemetrySdkExtension.configure()
           .withProperty("splunk.snapshot.profiler.enabled", "true")
           .with(customizer)
           .build();

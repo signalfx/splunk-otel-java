@@ -23,6 +23,7 @@ import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.trace.SpanKind;
 import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.context.Context;
+import io.opentelemetry.sdk.autoconfigure.OpenTelemetrySdkExtension;
 import io.opentelemetry.sdk.trace.ReadWriteSpan;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -33,8 +34,7 @@ class SnapshotSpanAttributeTest {
       Snapshotting.customizer().with(registry).build();
 
   @RegisterExtension
-  public final OpenTelemetrySdkExtension s =
-      OpenTelemetrySdkExtension.builder()
+  public final OpenTelemetrySdkExtension s = OpenTelemetrySdkExtension.configure()
           .with(customizer)
           .withProperty("splunk.snapshot.profiler.enabled", "true")
           .build();

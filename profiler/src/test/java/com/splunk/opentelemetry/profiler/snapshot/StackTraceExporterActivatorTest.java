@@ -20,6 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertSame;
 
+import io.opentelemetry.sdk.autoconfigure.OpenTelemetrySdkExtension;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -34,8 +35,7 @@ class StackTraceExporterActivatorTest {
   @Nested
   class SnapshotProfilingEnabled {
     @RegisterExtension
-    public final io.opentelemetry.sdk.autoconfigure.OpenTelemetrySdkExtension s =
-        io.opentelemetry.sdk.autoconfigure.OpenTelemetrySdkExtension.configure()
+    public final OpenTelemetrySdkExtension s = OpenTelemetrySdkExtension.configure()
             .withProperty("splunk.snapshot.profiler.enabled", "true")
             .with(new StackTraceExporterActivator())
             .build();
@@ -51,8 +51,7 @@ class StackTraceExporterActivatorTest {
   @Nested
   class SnapshotProfilingDisabled {
     @RegisterExtension
-    public final io.opentelemetry.sdk.autoconfigure.OpenTelemetrySdkExtension s =
-        io.opentelemetry.sdk.autoconfigure.OpenTelemetrySdkExtension.configure()
+    public final OpenTelemetrySdkExtension s = OpenTelemetrySdkExtension.configure()
             .withProperty("splunk.snapshot.profiler.enabled", "false")
             .with(new StackTraceExporterActivator())
             .build();

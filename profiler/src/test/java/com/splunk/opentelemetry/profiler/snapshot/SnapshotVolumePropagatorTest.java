@@ -23,12 +23,13 @@ import io.opentelemetry.api.baggage.Baggage;
 import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.context.Context;
 import java.util.Collections;
+import io.opentelemetry.sdk.autoconfigure.OpenTelemetrySdkExtension;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
 class SnapshotVolumePropagatorTest {
   @RegisterExtension
-  public final OpenTelemetrySdkExtension sdk = OpenTelemetrySdkExtension.builder().build();
+  public final OpenTelemetrySdkExtension sdk = OpenTelemetrySdkExtension.configure().build();
 
   @RegisterExtension public final ObservableCarrier carrier = new ObservableCarrier();
 

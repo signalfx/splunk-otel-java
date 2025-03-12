@@ -21,6 +21,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import io.opentelemetry.api.trace.SpanKind;
 import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.context.Context;
+import io.opentelemetry.sdk.autoconfigure.OpenTelemetrySdkExtension;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -33,8 +34,9 @@ class SnapshotProfilingFeatureFlagTest {
   @Nested
   class SnapshotProfilingDisabledByDefaultTest {
     @RegisterExtension
-    public final OpenTelemetrySdkExtension s =
-        OpenTelemetrySdkExtension.builder().with(customizer).build();
+    public final OpenTelemetrySdkExtension s = OpenTelemetrySdkExtension.configure()
+        .with(customizer)
+        .build();
 
     @ParameterizedTest
     @SpanKinds.Entry
@@ -49,8 +51,7 @@ class SnapshotProfilingFeatureFlagTest {
   @Nested
   class SnapshotProfilingEnabledTest {
     @RegisterExtension
-    public final OpenTelemetrySdkExtension s =
-        OpenTelemetrySdkExtension.builder()
+    public final OpenTelemetrySdkExtension s = OpenTelemetrySdkExtension.configure()
             .with(customizer)
             .withProperty("splunk.snapshot.profiler.enabled", "true")
             .build();
@@ -68,8 +69,7 @@ class SnapshotProfilingFeatureFlagTest {
   @Nested
   class SnapshotProfilingDisabledTest {
     @RegisterExtension
-    public final OpenTelemetrySdkExtension s =
-        OpenTelemetrySdkExtension.builder()
+    public final OpenTelemetrySdkExtension s = OpenTelemetrySdkExtension.configure()
             .with(customizer)
             .withProperty("splunk.snapshot.profiler.enabled", "false")
             .build();

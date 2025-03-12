@@ -44,7 +44,6 @@ import java.util.Objects;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
-import javax.annotation.Nullable;
 import org.junit.jupiter.api.extension.AfterEachCallback;
 import org.junit.jupiter.api.extension.BeforeEachCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
@@ -117,13 +116,11 @@ public class OpenTelemetrySdkExtension extends AutoConfiguredOpenTelemetrySdk
     return Resource.getDefault();
   }
 
-  @Nullable
   @Override
-  ConfigProperties getConfig() {
+  public ConfigProperties getConfig() {
     return properties;
   }
 
-  @Nullable
   @Override
   Object getConfigProvider() {
     return null;

@@ -56,6 +56,10 @@ class LogExporterBuilder {
       ConfigProperties config, Supplier<OtlpHttpLogRecordExporterBuilder> makeBuilder) {
     OtlpHttpLogRecordExporterBuilder builder = makeBuilder.get();
     String ingestUrl = Configuration.getConfigUrl(config);
+
+    config.getMap("otel.exporter.otlp.headers").forEach(builder::addHeader);
+    config.getMap("otel.exporter.otlp.logs.headers").forEach(builder::addHeader);
+
     if (ingestUrl != null) {
       builder.setEndpoint(ingestUrl);
     }

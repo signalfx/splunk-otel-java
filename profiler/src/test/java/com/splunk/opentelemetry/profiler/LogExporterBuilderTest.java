@@ -32,6 +32,7 @@ import io.opentelemetry.exporter.otlp.logs.OtlpGrpcLogRecordExporter;
 import io.opentelemetry.exporter.otlp.logs.OtlpGrpcLogRecordExporterBuilder;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import io.opentelemetry.sdk.logs.export.LogRecordExporter;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 
 class LogExporterBuilderTest {
@@ -62,6 +63,27 @@ class LogExporterBuilderTest {
     LogRecordExporter exporter = LogExporterBuilder.buildHttpExporter(config, () -> builder);
     assertSame(expected, exporter);
     verify(builder, never()).setEndpoint(anyString());
+  }
+
+  @Test
+  void extraOtlpHeaders() {
+    ConfigProperties config = mock(ConfigProperties.class);
+    when(config.getMap("otel.exporter.otlp.headers"))
+        .thenReturn(Map.of("foo", "bar", "bar", "baz"));
+    when(config.getMap("otel.exporter.otlp.logs.headers")).thenReturn(Map.of("log", "lady"));
+
+    OtlpHttpLogRecordExporterBuilder builder = mock(OtlpHttpLogRecordExporterBuilder.class);
+    OtlpHttpLogRecordExporter expected = mock(OtlpHttpLogRecordExporter.class);
+
+    when(builder.addHeader(anyString(), anyString())).thenReturn(builder);
+    when(builder.build()).thenReturn(expected);
+
+    LogRecordExporter exporter = LogExporterBuilder.buildHttpExporter(config, () -> builder);
+    assertSame(expected, exporter);
+    verify(builder).addHeader(EXTRA_CONTENT_TYPE, STACKTRACES_HEADER_VALUE);
+    verify(builder).addHeader("foo", "bar");
+    verify(builder).addHeader("bar", "baz");
+    verify(builder).addHeader("log", "lady");
   }
 
   @Test

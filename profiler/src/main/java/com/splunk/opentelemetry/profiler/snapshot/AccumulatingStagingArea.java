@@ -20,12 +20,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.function.Supplier;
 
 class AccumulatingStagingArea implements StagingArea {
   private final ConcurrentMap<String, List<StackTrace>> stackTraces = new ConcurrentHashMap<>();
-  private final StackTraceExporter exporter;
+  private final Supplier<StackTraceExporter> exporter;
 
-  AccumulatingStagingArea(StackTraceExporter exporter) {
+  AccumulatingStagingArea(Supplier<StackTraceExporter> exporter) {
     this.exporter = exporter;
   }
 
@@ -46,7 +47,7 @@ class AccumulatingStagingArea implements StagingArea {
   public void empty(String traceId) {
     List<StackTrace> stackTraces = this.stackTraces.remove(traceId);
     if (stackTraces != null) {
-      exporter.export(stackTraces);
+      exporter.get().export(stackTraces);
     }
   }
 }

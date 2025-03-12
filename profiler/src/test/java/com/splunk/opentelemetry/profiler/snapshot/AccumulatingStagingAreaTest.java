@@ -26,7 +26,7 @@ import org.junit.jupiter.api.Test;
 class AccumulatingStagingAreaTest {
   private final IdGenerator idGenerator = IdGenerator.random();
   private final InMemoryStackTraceExporter exporter = new InMemoryStackTraceExporter();
-  private final AccumulatingStagingArea stagingArea = new AccumulatingStagingArea(exporter);
+  private final AccumulatingStagingArea stagingArea = new AccumulatingStagingArea(() -> exporter);
 
   @Test
   void exportStackTracesToLogExporter() {

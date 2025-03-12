@@ -24,6 +24,7 @@ import com.google.auto.service.AutoService;
 import io.opentelemetry.sdk.autoconfigure.spi.AutoConfigurationCustomizer;
 import io.opentelemetry.sdk.autoconfigure.spi.AutoConfigurationCustomizerProvider;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
+import io.opentelemetry.sdk.autoconfigure.spi.internal.DefaultConfigProperties;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
@@ -179,6 +180,10 @@ public class Configuration implements AutoConfigurationCustomizerProvider {
       return 8;
     }
     return Integer.parseInt(javaSpecVersion);
+  }
+
+  public static boolean isSnapshotProfilingEnabled(ConfigProperties properties) {
+    return properties.getBoolean(CONFIG_KEY_ENABLE_SNAPSHOT_PROFILER, false);
   }
 
   public static double getSnapshotSelectionRate(ConfigProperties properties) {

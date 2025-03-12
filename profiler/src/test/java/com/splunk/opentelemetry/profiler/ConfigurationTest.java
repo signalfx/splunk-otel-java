@@ -17,6 +17,7 @@
 package com.splunk.opentelemetry.profiler;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -104,6 +105,20 @@ class ConfigurationTest {
     Configuration configuration = new Configuration();
     var properties = configuration.defaultProperties();
     assertEquals("false", properties.get("splunk.snapshot.profiler.enabled"));
+  }
+
+  @Test
+  void isSnapshotProfilingEnabledIsFalseByDefault() {
+    var properties = DefaultConfigProperties.create(Collections.emptyMap());
+    assertFalse(Configuration.isSnapshotProfilingEnabled(properties));
+  }
+
+  @ParameterizedTest
+  @ValueSource(booleans = {true, false})
+  void isSnapshotProfilingEnabled(boolean enabled) {
+    var properties = DefaultConfigProperties.create(Map.of(
+        "splunk.snapshot.profiler.enabled", String.valueOf(enabled)));
+    assertEquals(enabled, Configuration.isSnapshotProfilingEnabled(properties));
   }
 
   @Test

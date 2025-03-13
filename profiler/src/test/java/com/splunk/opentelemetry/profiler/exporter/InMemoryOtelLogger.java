@@ -42,6 +42,7 @@ import org.junit.jupiter.api.extension.ExtensionContext;
  * In memory implementation of the OpenTelemetry {@link Logger} interface that allows for direct
  * access to the collected logs. Intended for testing use only.
  */
+@SuppressWarnings("deprecation") // uses deprecated io.opentelemetry.sdk.logs.data.Body
 class InMemoryOtelLogger implements Logger, AfterEachCallback {
   private final List<LogRecordData> records = new ArrayList<>();
 
@@ -141,7 +142,6 @@ class InMemoryOtelLogger implements Logger, AfterEachCallback {
     }
   }
 
-  @SuppressWarnings("deprecation") // uses deprecated io.opentelemetry.sdk.logs.data.Body
   static class LogRecord implements LogRecordData {
     private final Resource resource;
     private final InstrumentationScopeInfo instrumentationScopeInfo;

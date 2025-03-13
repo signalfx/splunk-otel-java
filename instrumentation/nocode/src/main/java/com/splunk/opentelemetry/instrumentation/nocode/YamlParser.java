@@ -75,13 +75,19 @@ public final class YamlParser {
               yamlRule.get("spanName") == null ? null : yamlRule.get("spanName").toString();
           String spanKind =
               yamlRule.get("spanKind") == null ? null : yamlRule.get("spanKind").toString();
-          List<Map<String, Object>> attrs = (List<Map<String, Object>>) yamlRule.get("attributes");
+          String spanStatus =
+              yamlRule.get("spanStatus") == null ? null : yamlRule.get("spanStatus").toString();
+
           Map<String, String> ruleAttributes = new HashMap<>();
-          for (Map<String, Object> attr : attrs) {
-            ruleAttributes.put(attr.get("key").toString(), attr.get("value").toString());
+          List<Map<String, Object>> attrs = (List<Map<String, Object>>) yamlRule.get("attributes");
+          if (attrs != null) {
+            for (Map<String, Object> attr : attrs) {
+              ruleAttributes.put(attr.get("key").toString(), attr.get("value").toString());
+            }
           }
           answer.add(
-              new NocodeRules.Rule(className, methodName, spanName, spanKind, ruleAttributes));
+              new NocodeRules.Rule(
+                  className, methodName, spanName, spanKind, spanStatus, ruleAttributes));
         }
       }
     }

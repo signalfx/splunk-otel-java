@@ -20,17 +20,18 @@ import io.opentelemetry.api.GlobalOpenTelemetry;
 import io.opentelemetry.instrumentation.api.instrumenter.Instrumenter;
 
 public class NocodeSingletons {
-  private static final Instrumenter<NocodeMethodInvocation, Void> INSTRUMENTER;
+  private static final Instrumenter<NocodeMethodInvocation, Object> INSTRUMENTER;
 
   static {
     INSTRUMENTER =
-        Instrumenter.<NocodeMethodInvocation, Void>builder(
+        Instrumenter.<NocodeMethodInvocation, Object>builder(
                 GlobalOpenTelemetry.get(), "com.splunk.nocode", new NocodeSpanNameExtractor())
             .addAttributesExtractor(new NocodeAttributesExtractor())
+            .setSpanStatusExtractor(new NocodeSpanStatusExtractor())
             .buildInstrumenter(new NocodeSpanKindExtractor());
   }
 
-  public static Instrumenter<NocodeMethodInvocation, Void> instrumenter() {
+  public static Instrumenter<NocodeMethodInvocation, Object> instrumenter() {
     return INSTRUMENTER;
   }
 }

@@ -52,13 +52,14 @@ public class JexlEvaluator implements NocodeEvaluation.Evaluator {
             .create();
   }
 
-  @Override
-  public Object evaluate(String expression, Object thiz, Object[] params) {
-    JexlContext context = new MapContext();
+  private static void setBeginningVariables(JexlContext context, Object thiz, Object[] params) {
     context.set("this", thiz);
     for (int i = 0; i < params.length; i++) {
       context.set("param" + i, params[i]);
     }
+  }
+
+  private Object evaluateExpression(String expression, JexlContext context) {
     try {
       // could cache the Expression in the Rule if desired
       return jexl.createExpression(expression).evaluate(context);
@@ -66,5 +67,26 @@ public class JexlEvaluator implements NocodeEvaluation.Evaluator {
       logger.warning("Can't evaluate {" + expression + "}: " + t);
       return null;
     }
+  }
+
+  private void setEndingVariables(JexlContext context, Object returnValue, Throwable error) {
+    context.set("returnValue", returnValue);
+    context.set("error", error);
+  }
+
+  @Override
+  public Object evaluate(String expression, Object thiz, Object[] params) {
+    JexlContext context = new MapContext();
+    setBeginningVariables(context, thiz, params);
+    return evaluateExpression(expression, context);
+  }
+
+  @Override
+  public Object evaluateAtEnd(
+      String expression, Object thiz, Object[] params, Object returnValue, Throwable error) {
+    JexlContext context = new MapContext();
+    setBeginningVariables(context, thiz, params);
+    setEndingVariables(context, returnValue, error);
+    return evaluateExpression(expression, context);
   }
 }

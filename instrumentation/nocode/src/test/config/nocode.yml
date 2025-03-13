@@ -27,9 +27,15 @@
       value: param0.toString().substring(0)
 
 - class: com.splunk.opentelemetry.instrumentation.nocode.NocodeInstrumentationTest$SampleClass
+  method: echo
+  spanStatus: 'returnValue.booleanValue() ? "ERROR" : "OK"'
+
+
+- class: com.splunk.opentelemetry.instrumentation.nocode.NocodeInstrumentationTest$SampleClass
   method: doInvalidRule
   spanName: "this.thereIsNoSuchMethod()"
   spanKind: INVALID
+  spanStatus: invalid jexl that does not parse
   attributes:
     - key: "notpresent"
       value: "invalid.noSuchStatement()"

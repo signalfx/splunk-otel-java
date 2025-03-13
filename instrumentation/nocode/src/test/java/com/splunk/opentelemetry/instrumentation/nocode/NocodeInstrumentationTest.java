@@ -88,6 +88,27 @@ class NocodeInstrumentationTest {
                         .hasAttributesSatisfying(equalTo(AttributeKey.stringKey("five"), "5"))));
   }
 
+  @Test
+  void testEchoTrueIsError() {
+    new SampleClass().echo(true);
+    testing.waitAndAssertTraces(
+        trace ->
+            trace.hasSpansSatisfyingExactly(
+                span ->
+                    span.hasName("SampleClass.echo")
+                        .hasStatusSatisfying(StatusDataAssert::isError)));
+  }
+
+  @Test
+  void testEchoFalseIsOK() {
+    new SampleClass().echo(false);
+    testing.waitAndAssertTraces(
+        trace ->
+            trace.hasSpansSatisfyingExactly(
+                span ->
+                    span.hasName("SampleClass.echo").hasStatusSatisfying(StatusDataAssert::isOk)));
+  }
+
   public static class SampleClass {
     public String getName() {
       return "name";
@@ -131,5 +152,9 @@ class NocodeInstrumentationTest {
     public void doSomething() {}
 
     public void doInvalidRule() {}
+
+    public boolean echo(boolean b) {
+      return b;
+    }
   }
 }

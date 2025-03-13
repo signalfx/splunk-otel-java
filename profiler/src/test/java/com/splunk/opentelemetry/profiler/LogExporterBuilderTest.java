@@ -59,6 +59,7 @@ class LogExporterBuilderTest {
 
     when(builder.addHeader(EXTRA_CONTENT_TYPE, STACKTRACES_HEADER_VALUE)).thenReturn(builder);
     when(builder.build()).thenReturn(expected);
+    when(config.getString("otel.exporter.otlp.protocol", "grpc")).thenReturn("http/protobuf");
 
     LogRecordExporter exporter = LogExporterBuilder.buildHttpExporter(config, () -> builder);
     assertSame(expected, exporter);
@@ -71,6 +72,7 @@ class LogExporterBuilderTest {
     when(config.getMap("otel.exporter.otlp.headers"))
         .thenReturn(Map.of("foo", "bar", "bar", "baz"));
     when(config.getMap("otel.exporter.otlp.logs.headers")).thenReturn(Map.of("log", "lady"));
+    when(config.getString("otel.exporter.otlp.protocol", "grpc")).thenReturn("http/protobuf");
 
     OtlpHttpLogRecordExporterBuilder builder = mock(OtlpHttpLogRecordExporterBuilder.class);
     OtlpHttpLogRecordExporter expected = mock(OtlpHttpLogRecordExporter.class);
@@ -81,9 +83,27 @@ class LogExporterBuilderTest {
     LogRecordExporter exporter = LogExporterBuilder.buildHttpExporter(config, () -> builder);
     assertSame(expected, exporter);
     verify(builder).addHeader(EXTRA_CONTENT_TYPE, STACKTRACES_HEADER_VALUE);
-    verify(builder).addHeader("foo", "bar");
-    verify(builder).addHeader("bar", "baz");
     verify(builder).addHeader("log", "lady");
+    verify(builder, never()).addHeader("foo", "bar");
+    verify(builder, never()).addHeader("bar", "baz");
+  }
+
+  @Test
+  void extraOtlpLogSpecificHeaders() {
+    ConfigProperties config = mock(ConfigProperties.class);
+    when(config.getMap("otel.exporter.otlp.headers"))
+        .thenReturn(Map.of("foo", "bar", "bar", "baz"));
+    when(config.getString("otel.exporter.otlp.protocol", "grpc")).thenReturn("http/protobuf");
+
+    OtlpHttpLogRecordExporterBuilder builder = mock(OtlpHttpLogRecordExporterBuilder.class);
+    OtlpHttpLogRecordExporter expected = mock(OtlpHttpLogRecordExporter.class);
+
+    when(builder.addHeader(anyString(), anyString())).thenReturn(builder);
+    when(builder.build()).thenReturn(expected);
+
+    LogRecordExporter exporter = LogExporterBuilder.buildHttpExporter(config, () -> builder);
+    assertSame(expected, exporter);
+    verify(builder).addHeader(EXTRA_CONTENT_TYPE, STACKTRACES_HEADER_VALUE);
   }
 
   @Test
@@ -127,6 +147,7 @@ class LogExporterBuilderTest {
     when(config.getString(
             Configuration.CONFIG_KEY_INGEST_URL, "http://shadowed.example.com:9122/v1/logs"))
         .thenReturn(endpoint);
+    when(config.getString("otel.exporter.otlp.protocol", "grpc")).thenReturn("http/protobuf");
     LogRecordExporter exporter = LogExporterBuilder.buildHttpExporter(config, () -> builder);
 
     assertNotNull(exporter);

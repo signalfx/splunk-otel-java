@@ -53,7 +53,7 @@ public class NocodeSpanStatusExtractor
         spanStatusBuilder.setStatus(code);
       } catch (IllegalArgumentException noMatchingValue) {
         // nop, should remain UNSET
-        logger.fine("Invalid span status ignored: "+status);
+        logger.fine("Invalid span status ignored: " + status);
       }
     }
   }

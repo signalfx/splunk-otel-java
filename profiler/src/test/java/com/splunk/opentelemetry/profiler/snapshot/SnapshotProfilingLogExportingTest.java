@@ -32,11 +32,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 class SnapshotProfilingLogExportingTest {
   private final InMemoryLogRecordExporter logExporter = InMemoryLogRecordExporter.create();
 
-  @AfterEach
-  void tearDown() {
-    logExporter.reset();
-  }
-
   @RegisterExtension
   public final OpenTelemetrySdkExtension sdk =
       OpenTelemetrySdkExtension.configure()
@@ -44,6 +39,11 @@ class SnapshotProfilingLogExportingTest {
           .with(Snapshotting.customizer().withRealStackTraceSampler().build())
           .with(new StackTraceExporterActivator(new OtelLoggerFactory(properties -> logExporter)))
           .build();
+
+  @AfterEach
+  void tearDown() {
+    StackTraceExporterProvider.INSTANCE.reset();
+  }
 
   @ParameterizedTest
   @SpanKinds.Entry

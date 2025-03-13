@@ -43,7 +43,9 @@ class AppdBonusPropagatorTest {
     Map<String, String> map = new HashMap<>();
     Context context = mock();
 
-    AppdBonusPropagator testClass = new AppdBonusPropagator();
+    AppdBonusPropagator testClass = AppdBonusPropagator.getInstance();
+    testClass.setEnvironmentName(null);
+    testClass.setServiceName(null);
 
     testClass.inject(context, map, Map::put);
 
@@ -55,7 +57,7 @@ class AppdBonusPropagatorTest {
     Context context = mock();
     Map<String, String> map = new HashMap<>();
 
-    AppdBonusPropagator testClass = new AppdBonusPropagator();
+    AppdBonusPropagator testClass = AppdBonusPropagator.getInstance();
     testClass.setServiceName("xxxservice");
     testClass.setEnvironmentName("xxxenv");
     testClass.inject(context, map, Map::put);
@@ -74,7 +76,7 @@ class AppdBonusPropagatorTest {
     map.put(CTX_HEADER_TIER, "123tier");
     map.put(CTX_HEADER_ACCT, "123acct");
 
-    AppdBonusPropagator testClass = new AppdBonusPropagator();
+    AppdBonusPropagator testClass = AppdBonusPropagator.getInstance();
     testClass.extract(
         context,
         map,
@@ -101,7 +103,7 @@ class AppdBonusPropagatorTest {
 
   @Test
   void fields() {
-    AppdBonusPropagator testClass = new AppdBonusPropagator();
+    AppdBonusPropagator testClass = AppdBonusPropagator.getInstance();
     assertThat(testClass.fields())
         .containsExactly(
             CTX_HEADER_ACCT,

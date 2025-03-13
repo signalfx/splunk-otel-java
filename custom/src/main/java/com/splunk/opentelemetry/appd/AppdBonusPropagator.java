@@ -20,7 +20,6 @@ import static com.splunk.opentelemetry.appd.AppdBonusConstants.CTX_HEADER_ENV;
 import static com.splunk.opentelemetry.appd.AppdBonusConstants.CTX_HEADER_SERVICE;
 import static com.splunk.opentelemetry.appd.AppdBonusConstants.CTX_KEY;
 
-import com.google.common.annotations.VisibleForTesting;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.context.ContextKey;
 import io.opentelemetry.context.propagation.TextMapGetter;
@@ -28,6 +27,7 @@ import io.opentelemetry.context.propagation.TextMapPropagator;
 import io.opentelemetry.context.propagation.TextMapSetter;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import javax.annotation.Nullable;
 
 final class AppdBonusPropagator implements TextMapPropagator {
@@ -35,6 +35,14 @@ final class AppdBonusPropagator implements TextMapPropagator {
   public static final String CTX_HEADER_APP = "cisco-ctx-app-id";
   public static final String CTX_HEADER_BT = "cisco-ctx-bt-id";
   public static final String CTX_HEADER_TIER = "cisco-ctx-tier-id";
+  private static final List<String> FIELDS =
+      Arrays.asList(
+          CTX_HEADER_ACCT,
+          CTX_HEADER_APP,
+          CTX_HEADER_BT,
+          CTX_HEADER_TIER,
+          CTX_HEADER_ENV,
+          CTX_HEADER_SERVICE);
 
   public static final ContextKey<AppdBonusContext> CONTEXT_KEY = ContextKey.named(CTX_KEY);
   private static final AppdBonusPropagator INSTANCE = new AppdBonusPropagator();
@@ -42,8 +50,7 @@ final class AppdBonusPropagator implements TextMapPropagator {
   @Nullable private String serviceName;
   @Nullable private String environmentName;
 
-  @VisibleForTesting
-  AppdBonusPropagator() {}
+  private AppdBonusPropagator() {}
 
   static AppdBonusPropagator getInstance() {
     return INSTANCE;
@@ -51,13 +58,7 @@ final class AppdBonusPropagator implements TextMapPropagator {
 
   @Override
   public Collection<String> fields() {
-    return Arrays.asList(
-        CTX_HEADER_ACCT,
-        CTX_HEADER_APP,
-        CTX_HEADER_BT,
-        CTX_HEADER_TIER,
-        CTX_HEADER_ENV,
-        CTX_HEADER_SERVICE);
+    return FIELDS;
   }
 
   @Override

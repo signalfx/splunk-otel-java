@@ -90,6 +90,16 @@ class AsyncStackTraceExporterTest {
   }
 
   @Test
+  void includeTraceIdInLogMessageContext() {
+    var stackTrace = Snapshotting.stackTrace().build();
+
+    exporter.export(List.of(stackTrace));
+    await().until(() -> !logger.records().isEmpty());
+
+    assertEquals(stackTrace.getTraceId(), logger.records().get(0).getSpanContext().getTraceId());
+  }
+
+  @Test
   void encodedLogBodyIsPprofProtobufMessage() {
     var stackTrace = Snapshotting.stackTrace().build();
 

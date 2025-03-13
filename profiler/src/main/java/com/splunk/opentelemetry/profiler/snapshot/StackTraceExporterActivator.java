@@ -17,6 +17,7 @@
 package com.splunk.opentelemetry.profiler.snapshot;
 
 import com.google.auto.service.AutoService;
+import com.google.common.annotations.VisibleForTesting;
 import com.splunk.opentelemetry.profiler.Configuration;
 import com.splunk.opentelemetry.profiler.OtelLoggerFactory;
 import io.opentelemetry.api.logs.Logger;
@@ -28,7 +29,16 @@ import io.opentelemetry.sdk.resources.Resource;
 
 @AutoService(AgentListener.class)
 public class StackTraceExporterActivator implements AgentListener {
-  private final OtelLoggerFactory otelLoggerFactory = new OtelLoggerFactory();
+  private final OtelLoggerFactory otelLoggerFactory;
+
+  public StackTraceExporterActivator() {
+    this(new OtelLoggerFactory());
+  }
+
+  @VisibleForTesting
+  StackTraceExporterActivator(OtelLoggerFactory otelLoggerFactory) {
+    this.otelLoggerFactory = otelLoggerFactory;
+  }
 
   @Override
   public void afterAgent(AutoConfiguredOpenTelemetrySdk autoConfiguredOpenTelemetrySdk) {

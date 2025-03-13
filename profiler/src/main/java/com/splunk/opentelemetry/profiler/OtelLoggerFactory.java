@@ -34,7 +34,7 @@ public class OtelLoggerFactory {
   }
 
   @VisibleForTesting
-  OtelLoggerFactory(Function<ConfigProperties, LogRecordExporter> logRecordExporter) {
+  public OtelLoggerFactory(Function<ConfigProperties, LogRecordExporter> logRecordExporter) {
     this.logRecordExporter = logRecordExporter;
   }
 

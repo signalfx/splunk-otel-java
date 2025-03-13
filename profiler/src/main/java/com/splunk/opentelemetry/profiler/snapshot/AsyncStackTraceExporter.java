@@ -28,8 +28,15 @@ import com.google.perftools.profiles.ProfileProto.Profile;
 import com.splunk.opentelemetry.profiler.InstrumentationSource;
 import com.splunk.opentelemetry.profiler.ProfilingDataType;
 import io.opentelemetry.api.common.Attributes;
+import io.opentelemetry.api.internal.ImmutableSpanContext;
 import io.opentelemetry.api.logs.Logger;
 import io.opentelemetry.api.logs.Severity;
+import io.opentelemetry.api.trace.Span;
+import io.opentelemetry.api.trace.SpanContext;
+import io.opentelemetry.api.trace.SpanId;
+import io.opentelemetry.api.trace.TraceFlags;
+import io.opentelemetry.api.trace.TraceState;
+import io.opentelemetry.context.Context;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -69,9 +76,11 @@ class AsyncStackTraceExporter implements StackTraceExporter {
   private Runnable pprofExporter(Logger otelLogger, List<StackTrace> stackTraces) {
     return () -> {
       try {
+        Context context = createProfilingContext(stackTraces);
         Profile profile = translator.translateToPprof(stackTraces);
         otelLogger
             .logRecordBuilder()
+            .setContext(context)
             .setTimestamp(Instant.now(clock))
             .setSeverity(Severity.INFO)
             .setAllAttributes(profilingAttributes())
@@ -81,6 +90,24 @@ class AsyncStackTraceExporter implements StackTraceExporter {
         logger.log(Level.SEVERE, "an exception was thrown", e);
       }
     };
+  }
+
+  private Context createProfilingContext(List<StackTrace> stackTraces) {
+    String traceId = extractTraceId(stackTraces);
+    SpanContext spanContext =
+        ImmutableSpanContext.create(
+            traceId,
+            SpanId.getInvalid(),
+            TraceFlags.getDefault(),
+            TraceState.getDefault(),
+            false,
+            true);
+    Span span = Span.wrap(spanContext);
+    return span.storeInContext(Context.root());
+  }
+
+  private String extractTraceId(List<StackTrace> stackTraces) {
+    return stackTraces.stream().findFirst().map(StackTrace::getTraceId).orElse(null);
   }
 
   private Attributes profilingAttributes() {

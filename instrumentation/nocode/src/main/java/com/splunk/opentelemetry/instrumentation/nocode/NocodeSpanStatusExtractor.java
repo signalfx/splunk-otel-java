@@ -21,10 +21,12 @@ import io.opentelemetry.api.trace.StatusCode;
 import io.opentelemetry.instrumentation.api.instrumenter.SpanStatusBuilder;
 import io.opentelemetry.instrumentation.api.instrumenter.SpanStatusExtractor;
 import java.util.Locale;
+import java.util.logging.Logger;
 import javax.annotation.Nullable;
 
 public class NocodeSpanStatusExtractor
     implements SpanStatusExtractor<NocodeMethodInvocation, Object> {
+  private static final Logger logger = Logger.getLogger(NocodeSpanStatusExtractor.class.getName());
 
   @Override
   public void extract(
@@ -51,6 +53,7 @@ public class NocodeSpanStatusExtractor
         spanStatusBuilder.setStatus(code);
       } catch (IllegalArgumentException noMatchingValue) {
         // nop, should remain UNSET
+        logger.fine("Invalid span status ignored: "+status);
       }
     }
   }

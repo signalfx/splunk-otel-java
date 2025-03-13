@@ -1,5 +1,7 @@
 # "nocode" instrumentation
 
+Stability: under active development; breaking changes can occur
+
 Please don't use this if you have the ability to edit the code being instrumented.
 
 Set `SPLUNK_OTEL_INSTRUMENTATION_NOCODE_YML_FILE=/path/to/some.yml`

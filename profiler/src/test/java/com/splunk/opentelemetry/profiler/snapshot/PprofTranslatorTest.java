@@ -24,6 +24,7 @@ import com.google.perftools.profiles.ProfileProto.Location;
 import com.google.perftools.profiles.ProfileProto.Profile;
 import com.google.perftools.profiles.ProfileProto.Sample;
 import com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -36,11 +37,11 @@ class PprofTranslatorTest {
   private final PprofTranslator translator = new PprofTranslator();
 
   @Test
-  void allStackFramesAreInPprofStringTable() throws Exception {
+  void allStackFramesAreInPprofStringTable() {
     var exception = new RuntimeException();
     var stackTrace = Snapshotting.stackTrace().with(exception).build();
 
-    var profile = translator.translateToPprof(List.of(stackTrace));
+    var profile = translator.toPprof(List.of(stackTrace)).build();
     var table = profile.getStringTableList();
 
     assertThat(table).containsAll(fullyQualifiedMethodNames(exception.getStackTrace()));
@@ -57,7 +58,7 @@ class PprofTranslatorTest {
     var exception = new RuntimeException();
     var stackTrace = Snapshotting.stackTrace().with(exception).build();
 
-    var profile = translator.translateToPprof(List.of(stackTrace));
+    var profile = translator.toPprof(List.of(stackTrace)).build();
 
     var expectedStackTrace = removeModuleInfo(exception.getStackTrace());
     var reportedStackTrace = toStackTrace(profile.getSample(0), profile);
@@ -118,10 +119,34 @@ class PprofTranslatorTest {
   }
 
   @Test
+  void maintainStackFrameCount() {
+    var stackTrace = Snapshotting.stackTrace().with(new RuntimeException()).build();
+
+    var pprof = translator.toPprof(List.of(stackTrace));
+
+    assertEquals(stackTrace.getStackFrames().length, pprof.frameCount());
+  }
+
+  @Test
+  void maintainStackFrameCountAcrossMultipleStackTraces() {
+    var stackTrace1 = Snapshotting.stackTrace().with(new RuntimeException()).build();
+    var stackTrace2 = Snapshotting.stackTrace().with(new IllegalArgumentException()).build();
+    var stackTrace3 = Snapshotting.stackTrace().with(new IOException()).build();
+
+    var pprof = translator.toPprof(List.of(stackTrace1, stackTrace2, stackTrace3));
+
+    var expectedFrameCount =
+        stackTrace1.getStackFrames().length
+            + stackTrace2.getStackFrames().length
+            + stackTrace3.getStackFrames().length;
+    assertEquals(expectedFrameCount, pprof.frameCount());
+  }
+
+  @Test
   void includeThreadInformationInSamples() {
     var stackTrace = Snapshotting.stackTrace().build();
 
-    var profile = translator.translateToPprof(List.of(stackTrace));
+    var profile = translator.toPprof(List.of(stackTrace)).build();
     var sample = profile.getSample(0);
 
     var labels = toLabelString(sample, profile);
@@ -140,7 +165,7 @@ class PprofTranslatorTest {
   void includeTraceIdInformationInSamples() {
     var stackTrace = Snapshotting.stackTrace().build();
 
-    var profile = translator.translateToPprof(List.of(stackTrace));
+    var profile = translator.toPprof(List.of(stackTrace)).build();
     var sample = profile.getSample(0);
 
     var labels = toLabelString(sample, profile);
@@ -152,7 +177,7 @@ class PprofTranslatorTest {
   void includeSourceEventNameAsSnapshotProfilingInSamples() {
     var stackTrace = Snapshotting.stackTrace().build();
 
-    var profile = translator.translateToPprof(List.of(stackTrace));
+    var profile = translator.toPprof(List.of(stackTrace)).build();
     var sample = profile.getSample(0);
 
     var labels = toLabelString(sample, profile);
@@ -165,7 +190,7 @@ class PprofTranslatorTest {
   void includeStackTraceTimestampInSamples() {
     var stackTrace = Snapshotting.stackTrace().build();
 
-    var profile = translator.translateToPprof(List.of(stackTrace));
+    var profile = translator.toPprof(List.of(stackTrace)).build();
     var sample = profile.getSample(0);
 
     var labels = toLabelString(sample, profile);
@@ -179,7 +204,7 @@ class PprofTranslatorTest {
   void includeStackTraceDurationInSamples() {
     var stackTrace = Snapshotting.stackTrace().build();
 
-    var profile = translator.translateToPprof(List.of(stackTrace));
+    var profile = translator.toPprof(List.of(stackTrace)).build();
     var sample = profile.getSample(0);
 
     var labels = toLabelString(sample, profile);

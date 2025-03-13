@@ -18,6 +18,7 @@ package com.splunk.opentelemetry.profiler.snapshot;
 
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.DATA_FORMAT;
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.DATA_TYPE;
+import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.FRAME_COUNT;
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.INSTRUMENTATION_SOURCE;
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.SOURCE_TYPE;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -27,6 +28,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.google.perftools.profiles.ProfileProto.Profile;
 import com.splunk.opentelemetry.profiler.exporter.InMemoryOtelLogger;
+import io.opentelemetry.api.common.Value;
 import io.opentelemetry.api.logs.Severity;
 import io.opentelemetry.sdk.logs.data.LogRecordData;
 import java.io.ByteArrayInputStream;
@@ -144,7 +146,11 @@ class AsyncStackTraceExporterTest {
   }
 
   private byte[] decode(LogRecordData logRecord) {
-    return Base64.getDecoder().decode(logRecord.getBody().asString());
+    Value<?> body = logRecord.getBodyValue();
+    if (body == null) {
+      throw new RuntimeException("Log record body is null");
+    }
+    return Base64.getDecoder().decode(body.asString());
   }
 
   @Test
@@ -189,5 +195,17 @@ class AsyncStackTraceExporterTest {
 
     var attributes = logger.records().get(0).getAttributes();
     assertThat(attributes.asMap()).containsEntry(INSTRUMENTATION_SOURCE, "snapshot");
+  }
+
+  @Test
+  void includeFrameCountOpenTelemetryAttributeInLogMessage() {
+    var stackTrace = Snapshotting.stackTrace().build();
+
+    exporter.export(List.of(stackTrace));
+    await().until(() -> !logger.records().isEmpty());
+
+    var attributes = logger.records().get(0).getAttributes();
+    assertThat(attributes.asMap())
+        .containsEntry(FRAME_COUNT, (long) stackTrace.getStackFrames().length);
   }
 }

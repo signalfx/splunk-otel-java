@@ -37,6 +37,14 @@ class PprofTranslator {
     return pprof.build();
   }
 
+  public Pprof toPprof(List<StackTrace> stackTraces) {
+    Pprof pprof = new Pprof();
+    for (StackTrace stackTrace : stackTraces) {
+      pprof.add(translateToPprofSample(stackTrace, pprof));
+    }
+    return pprof;
+  }
+
   private Sample translateToPprofSample(StackTrace stackTrace, Pprof pprof) {
     Sample.Builder sample = Sample.newBuilder();
     sample.addLabel(pprof.newLabel(THREAD_ID, stackTrace.getThreadId()));
@@ -49,7 +57,7 @@ class PprofTranslator {
 
     for (StackTraceElement stackFrame : stackTrace.getStackFrames()) {
       sample.addLocationId(pprof.getLocationId(stackFrame));
-      //      pprof.incFrameCount();
+      pprof.incFrameCount();
     }
     sample.addLabel(pprof.newLabel(TRACE_ID, stackTrace.getTraceId()));
 

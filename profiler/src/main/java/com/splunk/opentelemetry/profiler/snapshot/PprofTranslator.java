@@ -24,19 +24,10 @@ import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.THRE
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.THREAD_STATE;
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.TRACE_ID;
 
-import com.google.perftools.profiles.ProfileProto.Profile;
 import com.google.perftools.profiles.ProfileProto.Sample;
 import java.util.List;
 
 class PprofTranslator {
-  public Profile translateToPprof(List<StackTrace> stackTraces) {
-    Pprof pprof = new Pprof();
-    for (StackTrace stackTrace : stackTraces) {
-      pprof.add(translateToPprofSample(stackTrace, pprof));
-    }
-    return pprof.build();
-  }
-
   public Pprof toPprof(List<StackTrace> stackTraces) {
     Pprof pprof = new Pprof();
     for (StackTrace stackTrace : stackTraces) {

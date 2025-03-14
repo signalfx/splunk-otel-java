@@ -16,9 +16,33 @@
 
 package com.splunk.opentelemetry.profiler.snapshot;
 
+import io.opentelemetry.sdk.trace.IdGenerator;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.Random;
+
 class Snapshotting {
+  private static final Random RANDOM = new Random();
+  private static final IdGenerator ID_GENERATOR = IdGenerator.random();
+
   static SnapshotProfilingSdkCustomizerBuilder customizer() {
     return new SnapshotProfilingSdkCustomizerBuilder();
+  }
+
+  static StackTraceBuilder stackTrace() {
+    var threadId = RANDOM.nextLong(10_000);
+    return new StackTraceBuilder()
+        .with(Instant.now())
+        .with(Duration.ofMillis(20))
+        .withTraceId(randomTraceId())
+        .withId(threadId)
+        .withName("thread-" + threadId)
+        .with(Thread.State.WAITING)
+        .with(new RuntimeException());
+  }
+
+  static String randomTraceId() {
+    return ID_GENERATOR.generateTraceId();
   }
 
   private Snapshotting() {}

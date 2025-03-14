@@ -181,6 +181,10 @@ public class Configuration implements AutoConfigurationCustomizerProvider {
     return Integer.parseInt(javaSpecVersion);
   }
 
+  public static boolean isSnapshotProfilingEnabled(ConfigProperties properties) {
+    return properties.getBoolean(CONFIG_KEY_ENABLE_SNAPSHOT_PROFILER, false);
+  }
+
   public static double getSnapshotSelectionRate(ConfigProperties properties) {
     String selectionRatePropertyValue =
         properties.getString(

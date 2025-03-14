@@ -25,6 +25,12 @@ class SnapshotProfilingSdkCustomizerBuilder {
     return this;
   }
 
+  SnapshotProfilingSdkCustomizerBuilder withRealStackTraceSampler() {
+    return with(
+        new ScheduledExecutorStackTraceSampler(
+            new AccumulatingStagingArea(StackTraceExporterProvider.INSTANCE)));
+  }
+
   SnapshotProfilingSdkCustomizerBuilder with(StackTraceSampler sampler) {
     this.sampler = sampler;
     return this;

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.splunk.opentelemetry.profiler.snapshot;
+package io.opentelemetry.sdk.autoconfigure;
 
 import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.api.baggage.propagation.W3CBaggagePropagator;
@@ -25,6 +25,7 @@ import io.opentelemetry.api.trace.TracerProvider;
 import io.opentelemetry.api.trace.propagation.W3CTraceContextPropagator;
 import io.opentelemetry.context.propagation.ContextPropagators;
 import io.opentelemetry.context.propagation.TextMapPropagator;
+import io.opentelemetry.javaagent.extension.AgentListener;
 import io.opentelemetry.sdk.OpenTelemetrySdk;
 import io.opentelemetry.sdk.autoconfigure.spi.AutoConfigurationCustomizer;
 import io.opentelemetry.sdk.autoconfigure.spi.AutoConfigurationCustomizerProvider;
@@ -44,22 +45,30 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import org.junit.jupiter.api.extension.AfterEachCallback;
+import org.junit.jupiter.api.extension.BeforeEachCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.ParameterContext;
 import org.junit.jupiter.api.extension.ParameterResolver;
 
-public class OpenTelemetrySdkExtension
-    implements OpenTelemetry, AfterEachCallback, ParameterResolver, AutoCloseable {
-  public static Builder builder() {
+public class OpenTelemetrySdkExtension extends AutoConfiguredOpenTelemetrySdk
+    implements OpenTelemetry,
+        BeforeEachCallback,
+        AfterEachCallback,
+        ParameterResolver,
+        AutoCloseable {
+  public static Builder configure() {
     return new Builder();
   }
 
   private final OpenTelemetrySdk sdk;
   private final ConfigProperties properties;
+  private final List<AgentListener> agentListeners;
 
-  private OpenTelemetrySdkExtension(OpenTelemetrySdk sdk, ConfigProperties properties) {
+  private OpenTelemetrySdkExtension(
+      OpenTelemetrySdk sdk, ConfigProperties properties, List<AgentListener> agentListeners) {
     this.sdk = sdk;
     this.properties = properties;
+    this.agentListeners = agentListeners;
   }
 
   @Override
@@ -83,6 +92,11 @@ public class OpenTelemetrySdkExtension
   }
 
   @Override
+  public void beforeEach(ExtensionContext context) {
+    agentListeners.forEach(listener -> listener.afterAgent(this));
+  }
+
+  @Override
   public void afterEach(ExtensionContext extensionContext) {
     sdk.close();
   }
@@ -92,8 +106,24 @@ public class OpenTelemetrySdkExtension
     sdk.close();
   }
 
-  public ConfigProperties getProperties() {
+  @Override
+  public OpenTelemetrySdk getOpenTelemetrySdk() {
+    return sdk;
+  }
+
+  @Override
+  Resource getResource() {
+    return Resource.getDefault();
+  }
+
+  @Override
+  public ConfigProperties getConfig() {
     return properties;
+  }
+
+  @Override
+  Object getConfigProvider() {
+    return null;
   }
 
   @Override
@@ -117,6 +147,7 @@ public class OpenTelemetrySdkExtension
     private final SdkCustomizer customizer = new SdkCustomizer();
     private final Map<String, String> properties = new HashMap<>();
     private final List<TextMapPropagator> propagators = new ArrayList<>();
+    private final List<AgentListener> agentListeners = new ArrayList<>();
     private Sampler sampler = Sampler.alwaysOn();
 
     public Builder withProperty(String name, String value) {
@@ -139,6 +170,11 @@ public class OpenTelemetrySdkExtension
       return this;
     }
 
+    public Builder with(AgentListener agentListener) {
+      this.agentListeners.add(agentListener);
+      return this;
+    }
+
     /**
      * Simplified re-implementation of AutoConfiguredOpenTelemetrySdkBuilder's build method. The
      * OpenTelemetry SDK is only configured with features necessary to pass existing test use cases.
@@ -155,7 +191,7 @@ public class OpenTelemetrySdkExtension
               .setTracerProvider(tracerProvider)
               .setPropagators(contextPropagators)
               .build();
-      return new OpenTelemetrySdkExtension(sdk, configProperties);
+      return new OpenTelemetrySdkExtension(sdk, configProperties, agentListeners);
     }
 
     private ConfigProperties customizeProperties() {

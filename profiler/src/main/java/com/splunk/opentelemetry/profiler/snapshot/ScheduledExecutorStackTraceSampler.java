@@ -57,17 +57,17 @@ class ScheduledExecutorStackTraceSampler implements StackTraceSampler {
 
   @Override
   public void start(SpanContext spanContext) {
-    if (samplers.containsKey(spanContext.getTraceId())) {
-      return;
-    }
-
-    ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
-    samplers.put(spanContext.getTraceId(), scheduler);
-    scheduler.scheduleAtFixedRate(
-        new StackTraceGatherer(spanContext.getTraceId(), Thread.currentThread().getId()),
-        SCHEDULER_INITIAL_DELAY,
-        samplingPeriod.toMillis(),
-        TimeUnit.MILLISECONDS);
+    samplers.computeIfAbsent(
+        spanContext.getTraceId(),
+        traceId -> {
+          ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+          scheduler.scheduleAtFixedRate(
+              new StackTraceGatherer(traceId, Thread.currentThread().getId()),
+              SCHEDULER_INITIAL_DELAY,
+              samplingPeriod.toMillis(),
+              TimeUnit.MILLISECONDS);
+          return scheduler;
+        });
   }
 
   @Override

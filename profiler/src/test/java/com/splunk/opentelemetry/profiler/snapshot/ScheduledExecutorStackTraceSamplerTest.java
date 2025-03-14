@@ -16,7 +16,6 @@
 
 package com.splunk.opentelemetry.profiler.snapshot;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -27,6 +26,7 @@ import io.opentelemetry.sdk.trace.IdGenerator;
 import java.time.Duration;
 import java.util.Collections;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 
@@ -81,32 +81,44 @@ class ScheduledExecutorStackTraceSamplerTest {
 
   @Test
   void onlyTakeStackTraceSamplesForOneThreadPerTrace() {
-    var latch = new CountDownLatch(1);
+    var executor = Executors.newFixedThreadPool(2);
+    var startSpanLatch = new CountDownLatch(1);
+    var shutdownLatch = new CountDownLatch(1);
     var traceId = idGenerator.generateTraceId();
-    var threadOne = startAndStopSampler(randomSpanContext(traceId), latch);
-    var threadTwo = startAndStopSampler(randomSpanContext(traceId), latch);
+    var spanContext2 = randomSpanContext(traceId);
+    var spanContext1 = randomSpanContext(traceId);
 
-    threadOne.start();
-    threadTwo.start();
-    await().atMost(HALF_SECOND).until(() -> staging.allStackTraces().size() > 5);
-    latch.countDown();
+    executor.submit(startSampling(spanContext1, startSpanLatch, shutdownLatch));
+    executor.submit(startSampling(spanContext2, startSpanLatch, shutdownLatch));
 
-    var threadIds =
-        staging.allStackTraces().stream().map(StackTrace::getThreadId).collect(Collectors.toSet());
-    assertThat(threadIds).containsOnly(threadOne.getId());
+    try {
+      startSpanLatch.countDown();
+      await().until(() -> staging.allStackTraces().size() > 5);
+      shutdownLatch.countDown();
+
+      var threadIds =
+          staging.allStackTraces().stream()
+              .map(StackTrace::getThreadId)
+              .collect(Collectors.toSet());
+      assertEquals(1, threadIds.size());
+    } finally {
+      executor.shutdownNow();
+      sampler.stop(spanContext1);
+      sampler.stop(spanContext2);
+    }
   }
 
-  private Thread startAndStopSampler(SpanContext spanContext, CountDownLatch latch) {
-    return new Thread(
-        () -> {
-          try {
-            sampler.start(spanContext);
-            latch.await();
-            sampler.stop(spanContext);
-          } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-          }
-        });
+  private Runnable startSampling(
+      SpanContext spanContext, CountDownLatch startSpanLatch, CountDownLatch shutdownLatch) {
+    return (() -> {
+      try {
+        startSpanLatch.await();
+        sampler.start(spanContext);
+        shutdownLatch.await();
+      } catch (InterruptedException e) {
+        throw new RuntimeException(e);
+      }
+    });
   }
 
   private SpanContext randomSpanContext() {

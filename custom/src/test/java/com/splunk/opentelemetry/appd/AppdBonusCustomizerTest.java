@@ -16,13 +16,12 @@
 
 package com.splunk.opentelemetry.appd;
 
-import static com.splunk.opentelemetry.appd.AppdBonusConstants.APPD_ATTR_ACCT;
-import static com.splunk.opentelemetry.appd.AppdBonusConstants.APPD_ATTR_APP;
-import static com.splunk.opentelemetry.appd.AppdBonusConstants.APPD_ATTR_BT;
-import static com.splunk.opentelemetry.appd.AppdBonusConstants.APPD_ATTR_TIER;
-import static com.splunk.opentelemetry.appd.AppdBonusConstants.CONFIG_CISCO_CTX_ENABLED;
 import static com.splunk.opentelemetry.appd.AppdBonusCustomizer.DEFAULT_PROPAGATORS;
 import static com.splunk.opentelemetry.appd.AppdBonusPropagator.CONTEXT_KEY;
+import static com.splunk.opentelemetry.appd.AppdBonusSpanProcessor.APPD_ATTR_ACCT;
+import static com.splunk.opentelemetry.appd.AppdBonusSpanProcessor.APPD_ATTR_APP;
+import static com.splunk.opentelemetry.appd.AppdBonusSpanProcessor.APPD_ATTR_BT;
+import static com.splunk.opentelemetry.appd.AppdBonusSpanProcessor.APPD_ATTR_TIER;
 import static io.opentelemetry.semconv.ServiceAttributes.SERVICE_NAME;
 import static io.opentelemetry.semconv.incubating.DeploymentIncubatingAttributes.DEPLOYMENT_ENVIRONMENT_NAME;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -64,7 +63,7 @@ class AppdBonusCustomizerTest {
     AppdBonusContext appdContext = new AppdBonusContext("acct123", "app456", "bt123", "tier456");
 
     when(context.get(CONTEXT_KEY)).thenReturn(appdContext);
-    when(config.getBoolean(CONFIG_CISCO_CTX_ENABLED, false)).thenReturn(true);
+    when(config.getBoolean("cisco.ctx.enabled", false)).thenReturn(true);
     when(config.getList("otel.propagators", DEFAULT_PROPAGATORS)).thenReturn(DEFAULT_PROPAGATORS);
     when(resource.getAttribute(SERVICE_NAME)).thenReturn("amazingService");
     when(resource.getAttribute(DEPLOYMENT_ENVIRONMENT_NAME)).thenReturn("amazingEnv");
@@ -109,7 +108,7 @@ class AppdBonusCustomizerTest {
 
   @Test
   void customizeNotEnabled() {
-    when(config.getBoolean(CONFIG_CISCO_CTX_ENABLED, false)).thenReturn(false);
+    when(config.getBoolean("cisco.ctx.enabled", false)).thenReturn(false);
     when(resource.getAttribute(SERVICE_NAME)).thenReturn("amazingService");
     when(resource.getAttribute(DEPLOYMENT_ENVIRONMENT_NAME)).thenReturn("amazingEnv");
 
@@ -146,7 +145,7 @@ class AppdBonusCustomizerTest {
 
   @Test
   void nonePreventsAddingPropagator() {
-    when(config.getBoolean(CONFIG_CISCO_CTX_ENABLED, false)).thenReturn(true);
+    when(config.getBoolean("cisco.ctx.enabled", false)).thenReturn(true);
     when(config.getList("otel.propagators", DEFAULT_PROPAGATORS)).thenReturn(List.of("none"));
 
     AppdBonusCustomizer testClass = new AppdBonusCustomizer();

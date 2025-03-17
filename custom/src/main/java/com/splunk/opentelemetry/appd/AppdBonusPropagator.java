@@ -16,10 +16,6 @@
 
 package com.splunk.opentelemetry.appd;
 
-import static com.splunk.opentelemetry.appd.AppdBonusConstants.CTX_HEADER_ENV;
-import static com.splunk.opentelemetry.appd.AppdBonusConstants.CTX_HEADER_SERVICE;
-import static com.splunk.opentelemetry.appd.AppdBonusConstants.CTX_KEY;
-
 import io.opentelemetry.context.Context;
 import io.opentelemetry.context.ContextKey;
 import io.opentelemetry.context.propagation.TextMapGetter;
@@ -31,10 +27,16 @@ import java.util.List;
 import javax.annotation.Nullable;
 
 final class AppdBonusPropagator implements TextMapPropagator {
-  public static final String CTX_HEADER_ACCT = "cisco-ctx-acct-id";
-  public static final String CTX_HEADER_APP = "cisco-ctx-app-id";
-  public static final String CTX_HEADER_BT = "cisco-ctx-bt-id";
-  public static final String CTX_HEADER_TIER = "cisco-ctx-tier-id";
+
+  static final String NAME = "appd-bonus";
+  static final String CTX_KEY = "cisco-bonus-ctx";
+  static final String CTX_HEADER_ENV = "cisco-ctx-env";
+  static final String CTX_HEADER_SERVICE = "cisco-ctx-service";
+
+  static final String CTX_HEADER_ACCT = "cisco-ctx-acct-id";
+  static final String CTX_HEADER_APP = "cisco-ctx-app-id";
+  static final String CTX_HEADER_BT = "cisco-ctx-bt-id";
+  static final String CTX_HEADER_TIER = "cisco-ctx-tier-id";
   private static final List<String> FIELDS =
       Arrays.asList(
           CTX_HEADER_ACCT,

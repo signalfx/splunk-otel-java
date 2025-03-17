@@ -16,8 +16,6 @@
 
 package com.splunk.opentelemetry.appd;
 
-import static com.splunk.opentelemetry.appd.AppdBonusConstants.CONFIG_CISCO_CTX_ENABLED;
-import static com.splunk.opentelemetry.appd.AppdBonusConstants.PROPAGATOR_NAME;
 import static io.opentelemetry.semconv.ServiceAttributes.SERVICE_NAME;
 import static io.opentelemetry.semconv.incubating.DeploymentIncubatingAttributes.DEPLOYMENT_ENVIRONMENT_NAME;
 
@@ -37,6 +35,8 @@ import java.util.Map;
 
 @AutoService(AutoConfigurationCustomizerProvider.class)
 public final class AppdBonusCustomizer implements AutoConfigurationCustomizerProvider {
+
+  private static final String CONFIG_CISCO_CTX_ENABLED = "cisco.ctx.enabled";
 
   static final List<String> DEFAULT_PROPAGATORS = Arrays.asList("tracecontext", "baggage");
 
@@ -76,11 +76,11 @@ public final class AppdBonusCustomizer implements AutoConfigurationCustomizerPro
       return Collections.emptyMap();
     }
     List<String> existing = config.getList("otel.propagators", DEFAULT_PROPAGATORS);
-    if (existing.contains(PROPAGATOR_NAME) || existing.contains("none")) {
+    if (existing.contains(AppdBonusPropagator.NAME) || existing.contains("none")) {
       return Collections.emptyMap();
     }
     List<String> propagators = new ArrayList<>(existing);
-    propagators.add(PROPAGATOR_NAME);
+    propagators.add(AppdBonusPropagator.NAME);
     Map<String, String> customized = new HashMap<>();
     customized.put("otel.propagators", String.join(",", propagators));
     return customized;

@@ -16,12 +16,12 @@
 
 package com.splunk.opentelemetry.appd;
 
-import static com.splunk.opentelemetry.appd.AppdBonusConstants.CTX_HEADER_ENV;
-import static com.splunk.opentelemetry.appd.AppdBonusConstants.CTX_HEADER_SERVICE;
 import static com.splunk.opentelemetry.appd.AppdBonusPropagator.CONTEXT_KEY;
 import static com.splunk.opentelemetry.appd.AppdBonusPropagator.CTX_HEADER_ACCT;
 import static com.splunk.opentelemetry.appd.AppdBonusPropagator.CTX_HEADER_APP;
 import static com.splunk.opentelemetry.appd.AppdBonusPropagator.CTX_HEADER_BT;
+import static com.splunk.opentelemetry.appd.AppdBonusPropagator.CTX_HEADER_ENV;
+import static com.splunk.opentelemetry.appd.AppdBonusPropagator.CTX_HEADER_SERVICE;
 import static com.splunk.opentelemetry.appd.AppdBonusPropagator.CTX_HEADER_TIER;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
@@ -62,8 +62,8 @@ class AppdBonusPropagatorTest {
     testClass.setEnvironmentName("xxxenv");
     testClass.inject(context, map, Map::put);
 
-    assertThat(map.get(AppdBonusConstants.CTX_HEADER_ENV)).isEqualTo("xxxenv");
-    assertThat(map.get(AppdBonusConstants.CTX_HEADER_SERVICE)).isEqualTo("xxxservice");
+    assertThat(map.get(CTX_HEADER_ENV)).isEqualTo("xxxenv");
+    assertThat(map.get(CTX_HEADER_SERVICE)).isEqualTo("xxxservice");
   }
 
   @Test

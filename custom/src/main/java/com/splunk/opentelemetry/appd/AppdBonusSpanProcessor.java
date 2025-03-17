@@ -16,17 +16,20 @@
 
 package com.splunk.opentelemetry.appd;
 
-import static com.splunk.opentelemetry.appd.AppdBonusConstants.APPD_ATTR_ACCT;
-import static com.splunk.opentelemetry.appd.AppdBonusConstants.APPD_ATTR_APP;
-import static com.splunk.opentelemetry.appd.AppdBonusConstants.APPD_ATTR_BT;
-import static com.splunk.opentelemetry.appd.AppdBonusConstants.APPD_ATTR_TIER;
 import static com.splunk.opentelemetry.appd.AppdBonusPropagator.CONTEXT_KEY;
+import static io.opentelemetry.api.common.AttributeKey.stringKey;
 
+import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.sdk.extension.incubator.trace.OnStartSpanProcessor;
 import io.opentelemetry.sdk.trace.ReadWriteSpan;
 
 public class AppdBonusSpanProcessor implements OnStartSpanProcessor.OnStart {
+
+  static final AttributeKey<String> APPD_ATTR_ACCT = stringKey("appd.upstream.account.id");
+  static final AttributeKey<String> APPD_ATTR_APP = stringKey("appd.upstream.app.id");
+  static final AttributeKey<String> APPD_ATTR_BT = stringKey("appd.upstream.bt.id");
+  static final AttributeKey<String> APPD_ATTR_TIER = stringKey("appd.upstream.tier.id");
 
   @Override
   public void apply(Context context, ReadWriteSpan span) {

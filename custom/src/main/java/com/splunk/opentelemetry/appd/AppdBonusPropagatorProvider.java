@@ -16,8 +16,6 @@
 
 package com.splunk.opentelemetry.appd;
 
-import static com.splunk.opentelemetry.appd.AppdBonusConstants.PROPAGATOR_NAME;
-
 import com.google.auto.service.AutoService;
 import io.opentelemetry.context.propagation.TextMapPropagator;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
@@ -33,6 +31,6 @@ public class AppdBonusPropagatorProvider implements ConfigurablePropagatorProvid
 
   @Override
   public String getName() {
-    return PROPAGATOR_NAME;
+    return AppdBonusPropagator.NAME;
   }
 }

@@ -26,8 +26,8 @@ import java.util.Map;
 import javax.annotation.Nullable;
 
 public final class NocodeAttributesExtractor
-    implements AttributesExtractor<NocodeMethodInvocation, Void> {
-  private final AttributesExtractor<ClassAndMethod, Void> codeExtractor;
+    implements AttributesExtractor<NocodeMethodInvocation, Object> {
+  private final AttributesExtractor<ClassAndMethod, Object> codeExtractor;
 
   public NocodeAttributesExtractor() {
     codeExtractor = CodeAttributesExtractor.create(ClassAndMethod.codeAttributesGetter());
@@ -62,7 +62,7 @@ public final class NocodeAttributesExtractor
       AttributesBuilder attributesBuilder,
       Context context,
       NocodeMethodInvocation nocodeMethodInvocation,
-      @Nullable Void unused,
+      @Nullable Object unused,
       @Nullable Throwable throwable) {
     codeExtractor.onEnd(
         attributesBuilder, context, nocodeMethodInvocation.getClassAndMethod(), unused, throwable);

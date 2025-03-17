@@ -10,7 +10,7 @@ val otelContribAlphaVersion = "1.44.0-alpha"
 
 val autoValueVersion = "1.11.0"
 val dockerJavaVersion = "3.4.2"
-val mockitoVersion = "5.16.0"
+val mockitoVersion = "5.16.1"
 val protobufVersion = "4.29.3"
 val slf4jVersion = "2.0.17"
 
@@ -34,7 +34,7 @@ dependencies {
   api(enforcedPlatform("io.grpc:grpc-bom:1.71.0"))
   api(enforcedPlatform("io.opentelemetry:opentelemetry-bom-alpha:$otelAlphaVersion"))
   api(enforcedPlatform("io.opentelemetry.instrumentation:opentelemetry-instrumentation-bom-alpha:$otelInstrumentationAlphaVersion"))
-  api(enforcedPlatform("org.junit:junit-bom:5.12.0"))
+  api(enforcedPlatform("org.junit:junit-bom:5.12.1"))
   api(enforcedPlatform("org.testcontainers:testcontainers-bom:1.20.6"))
 
   constraints {

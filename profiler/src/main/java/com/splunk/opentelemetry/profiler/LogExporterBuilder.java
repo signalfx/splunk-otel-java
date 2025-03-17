@@ -16,9 +16,12 @@
 
 package com.splunk.opentelemetry.profiler;
 
+import static io.opentelemetry.exporter.otlp.internal.OtlpConfigUtil.DATA_TYPE_LOGS;
+
 import com.google.common.annotations.VisibleForTesting;
 import io.opentelemetry.exporter.otlp.http.logs.OtlpHttpLogRecordExporter;
 import io.opentelemetry.exporter.otlp.http.logs.OtlpHttpLogRecordExporterBuilder;
+import io.opentelemetry.exporter.otlp.internal.OtlpConfigUtil;
 import io.opentelemetry.exporter.otlp.logs.OtlpGrpcLogRecordExporter;
 import io.opentelemetry.exporter.otlp.logs.OtlpGrpcLogRecordExporterBuilder;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
@@ -56,6 +59,19 @@ class LogExporterBuilder {
       ConfigProperties config, Supplier<OtlpHttpLogRecordExporterBuilder> makeBuilder) {
     OtlpHttpLogRecordExporterBuilder builder = makeBuilder.get();
     String ingestUrl = Configuration.getConfigUrl(config);
+
+    OtlpConfigUtil.configureOtlpExporterBuilder(
+        DATA_TYPE_LOGS,
+        config,
+        builder::setEndpoint,
+        builder::addHeader,
+        builder::setCompression,
+        builder::setTimeout,
+        builder::setTrustedCertificates,
+        builder::setClientTls,
+        builder::setRetryPolicy,
+        builder::setMemoryMode);
+
     if (ingestUrl != null) {
       builder.setEndpoint(ingestUrl);
     }

@@ -29,7 +29,9 @@ import io.opentelemetry.sdk.trace.IdGenerator;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Collections;
+import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 
@@ -84,32 +86,31 @@ class ScheduledExecutorStackTraceSamplerTest {
 
   @Test
   void onlyTakeStackTraceSamplesForOneThreadPerTrace() {
-    var latch = new CountDownLatch(1);
+    var executor = Executors.newFixedThreadPool(2);
+    var startSpanLatch = new CountDownLatch(1);
+    var shutdownLatch = new CountDownLatch(1);
     var traceId = idGenerator.generateTraceId();
-    var threadOne = startAndStopSampler(randomSpanContext(traceId), latch);
-    var threadTwo = startAndStopSampler(randomSpanContext(traceId), latch);
+    var spanContext2 = randomSpanContext(traceId);
+    var spanContext1 = randomSpanContext(traceId);
 
-    threadOne.start();
-    threadTwo.start();
-    await().atMost(HALF_SECOND).until(() -> staging.allStackTraces().size() > 5);
-    latch.countDown();
+    executor.submit(startSampling(spanContext1, startSpanLatch, shutdownLatch));
+    executor.submit(startSampling(spanContext2, startSpanLatch, shutdownLatch));
 
-    var threadIds =
-        staging.allStackTraces().stream().map(StackTrace::getThreadId).collect(Collectors.toSet());
-    assertThat(threadIds).containsOnly(threadOne.getId());
-  }
+    try {
+      startSpanLatch.countDown();
+      await().until(() -> staging.allStackTraces().size() > 5);
+      shutdownLatch.countDown();
 
-  private Thread startAndStopSampler(SpanContext spanContext, CountDownLatch latch) {
-    return new Thread(
-        () -> {
-          try {
-            sampler.start(spanContext);
-            latch.await();
-            sampler.stop(spanContext);
-          } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-          }
-        });
+      var threadIds =
+          staging.allStackTraces().stream()
+              .map(StackTrace::getThreadId)
+              .collect(Collectors.toSet());
+      assertEquals(1, threadIds.size());
+    } finally {
+      executor.shutdownNow();
+      sampler.stop(spanContext1);
+      sampler.stop(spanContext2);
+    }
   }
 
   @Test
@@ -176,26 +177,52 @@ class ScheduledExecutorStackTraceSamplerTest {
   }
 
   @Test
-  void includeThreadDetailsOnStackTraces() {
+  void includeThreadDetailsOnStackTraces() throws Exception {
+    var executor = Executors.newSingleThreadExecutor();
     var traceId = idGenerator.generateTraceId();
     var spanContext = randomSpanContext(traceId);
-    var latch = new CountDownLatch(1);
+    var startLatch = new CountDownLatch(1);
+    var stopLatch = new CountDownLatch(1);
     try {
-      var thread = startAndStopSampler(spanContext, latch);
+      var future = executor.submit(startSampling(spanContext, startLatch, stopLatch));
 
-      thread.start();
+      startLatch.countDown();
       await().atMost(HALF_SECOND).until(() -> !staging.allStackTraces().isEmpty());
+      stopLatch.countDown();
 
+      var thread = future.get();
       var stackTrace = staging.allStackTraces().stream().findFirst().orElseThrow();
       assertAll(
-          () -> assertEquals(thread.getId(), stackTrace.getThreadId()),
-          () -> assertEquals(thread.getName(), stackTrace.getThreadName()),
+          () -> assertEquals(thread.id, stackTrace.getThreadId()),
+          () -> assertEquals(thread.name, stackTrace.getThreadName()),
           () -> assertNotNull(stackTrace.getThreadState()),
           () -> assertThat(stackTrace.getStackFrames()).isNotEmpty());
-
-      latch.countDown();
     } finally {
       sampler.stop(spanContext);
+      executor.shutdownNow();
+    }
+  }
+
+  private Callable<ThreadInfo> startSampling(SpanContext spanContext, CountDownLatch startSpanLatch, CountDownLatch shutdownLatch) {
+    return (() -> {
+      try {
+        startSpanLatch.await();
+        sampler.start(spanContext);
+        shutdownLatch.await();
+        return new ThreadInfo(Thread.currentThread().getId(), Thread.currentThread().getName());
+      } catch (InterruptedException e) {
+        throw new RuntimeException(e);
+      }
+    });
+  }
+
+  private static class ThreadInfo {
+    public final long id;
+    public final String name;
+
+    private ThreadInfo(long id, String name) {
+      this.id = id;
+      this.name = name;
     }
   }
 

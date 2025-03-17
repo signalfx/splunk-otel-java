@@ -16,10 +16,10 @@
 
 package com.splunk.opentelemetry.profiler.snapshot;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
 /**
@@ -27,7 +27,7 @@ import java.util.stream.Collectors;
  * the stockpiled {@link StackTrace}s. Intended for testing use only.
  */
 class InMemoryStagingArea implements StagingArea {
-  private final Map<String, List<StackTrace>> stackTraces = new ConcurrentHashMap<>();
+  private final ConcurrentMap<String, List<StackTrace>> stackTraces = new ConcurrentHashMap<>();
 
   @Override
   public void stage(String traceId, StackTrace stackTrace) {
@@ -35,7 +35,7 @@ class InMemoryStagingArea implements StagingArea {
         traceId,
         (id, stackTraces) -> {
           if (stackTraces == null) {
-            stackTraces = new ArrayList<>();
+            stackTraces = new CopyOnWriteArrayList<>();
           }
           stackTraces.add(stackTrace);
           return stackTraces;

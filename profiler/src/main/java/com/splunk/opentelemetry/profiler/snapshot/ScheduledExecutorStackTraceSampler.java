@@ -23,6 +23,7 @@ import java.lang.management.ThreadInfo;
 import java.lang.management.ThreadMXBean;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.Executors;
@@ -43,15 +44,21 @@ class ScheduledExecutorStackTraceSampler implements StackTraceSampler {
       new ConcurrentHashMap<>();
   private final ThreadMXBean threadMXBean = ManagementFactory.getThreadMXBean();
   private final StagingArea stagingArea;
+  private final SpanTracker spanTracker;
   private final Duration samplingPeriod;
 
   ScheduledExecutorStackTraceSampler(StagingArea stagingArea) {
-    this(stagingArea, SCHEDULER_PERIOD);
+    this(stagingArea, (traceId -> Optional.empty()), SCHEDULER_PERIOD);
+  }
+
+  ScheduledExecutorStackTraceSampler(StagingArea stagingArea, SpanTracker spanTracker) {
+    this(stagingArea, spanTracker, SCHEDULER_PERIOD);
   }
 
   @VisibleForTesting
-  ScheduledExecutorStackTraceSampler(StagingArea stagingArea, Duration samplingPeriod) {
+  ScheduledExecutorStackTraceSampler(StagingArea stagingArea, SpanTracker spanTracker, Duration samplingPeriod) {
     this.stagingArea = stagingArea;
+    this.spanTracker = spanTracker;
     this.samplingPeriod = samplingPeriod;
   }
 
@@ -93,7 +100,8 @@ class ScheduledExecutorStackTraceSampler implements StackTraceSampler {
       Instant now = Instant.now();
       try {
         ThreadInfo threadInfo = threadMXBean.getThreadInfo(threadId, MAX_ENTRY_DEPTH);
-        StackTrace stackTrace = StackTrace.from(now, threadInfo);
+        SpanContext spanContext = spanTracker.getActiveSpan(traceId).orElse(null);
+        StackTrace stackTrace = StackTrace.from(now, threadInfo, spanContext);
         stagingArea.stage(traceId, stackTrace);
       } catch (Exception e) {
         logger.log(Level.SEVERE, e, samplerErrorMessage(traceId, threadId));

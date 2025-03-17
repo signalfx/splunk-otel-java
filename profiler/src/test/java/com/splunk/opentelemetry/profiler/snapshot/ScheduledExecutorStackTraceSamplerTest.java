@@ -25,6 +25,9 @@ import io.opentelemetry.api.trace.TraceState;
 import io.opentelemetry.sdk.trace.IdGenerator;
 import java.time.Duration;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
@@ -36,8 +39,9 @@ class ScheduledExecutorStackTraceSamplerTest {
 
   private final IdGenerator idGenerator = IdGenerator.random();
   private final InMemoryStagingArea staging = new InMemoryStagingArea();
+  private final InMemorySpanTracker spanTracker = new InMemorySpanTracker();
   private final ScheduledExecutorStackTraceSampler sampler =
-      new ScheduledExecutorStackTraceSampler(staging, PERIOD);
+      new ScheduledExecutorStackTraceSampler(staging, spanTracker, PERIOD);
 
   @Test
   void takeStackTraceSampleForGivenThread() {
@@ -108,6 +112,38 @@ class ScheduledExecutorStackTraceSamplerTest {
     }
   }
 
+  @Test
+  void includeTraceIdOnStackTraces() {
+    var spanContext = randomSpanContext();
+    spanTracker.store(spanContext.getTraceId(), spanContext);
+
+    try {
+      sampler.start(spanContext);
+      await().atMost(HALF_SECOND).until(() -> !staging.allStackTraces().isEmpty());
+
+      var stackTrace = staging.allStackTraces().stream().findFirst().orElseThrow();
+      assertEquals(spanContext.getTraceId(), stackTrace.getTraceId());
+    } finally {
+      sampler.stop(spanContext);
+    }
+  }
+
+  @Test
+  void includeSpanIdOnStackTraces() {
+    var spanContext = randomSpanContext();
+    spanTracker.store(spanContext.getTraceId(), spanContext);
+
+    try {
+      sampler.start(spanContext);
+      await().atMost(HALF_SECOND).until(() -> !staging.allStackTraces().isEmpty());
+
+      var stackTrace = staging.allStackTraces().stream().findFirst().orElseThrow();
+      assertEquals(spanContext.getSpanId(), stackTrace.getSpanId());
+    } finally {
+      sampler.stop(spanContext);
+    }
+  }
+
   private Runnable startSampling(
       SpanContext spanContext, CountDownLatch startSpanLatch, CountDownLatch shutdownLatch) {
     return (() -> {
@@ -128,5 +164,18 @@ class ScheduledExecutorStackTraceSamplerTest {
   private SpanContext randomSpanContext(String traceId) {
     return SpanContext.create(
         traceId, idGenerator.generateSpanId(), TraceFlags.getDefault(), TraceState.getDefault());
+  }
+
+  private static class InMemorySpanTracker implements SpanTracker {
+    private final Map<String, SpanContext> stackTraces = new HashMap<>();
+
+    void store(String traceId, SpanContext spanContext) {
+      stackTraces.put(traceId, spanContext);
+    }
+
+    @Override
+    public Optional<SpanContext> getActiveSpan(String traceId) {
+      return Optional.ofNullable(stackTraces.get(traceId));
+    }
   }
 }

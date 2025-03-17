@@ -16,26 +16,30 @@
 
 package com.splunk.opentelemetry.profiler.snapshot;
 
+import io.opentelemetry.api.trace.SpanContext;
 import java.lang.management.ThreadInfo;
 import java.time.Instant;
 
 class StackTrace {
-  static StackTrace from(Instant timestamp, ThreadInfo thread) {
+  static StackTrace from(Instant timestamp, ThreadInfo thread, SpanContext spanContext) {
     return new StackTrace(
-        timestamp, thread.getThreadId(), thread.getThreadName(), thread.getStackTrace());
+        timestamp, thread.getThreadId(), thread.getThreadName(), thread.getStackTrace(), spanContext);
   }
 
   private final Instant timestamp;
   private final long threadId;
   private final String threadName;
   private final StackTraceElement[] stackFrames;
+  private final SpanContext spanContext;
 
   private StackTrace(
-      Instant timestamp, long threadId, String threadName, StackTraceElement[] stackFrames) {
+      Instant timestamp, long threadId, String threadName, StackTraceElement[] stackFrames,
+      SpanContext spanContext) {
     this.timestamp = timestamp;
     this.threadId = threadId;
     this.threadName = threadName;
     this.stackFrames = stackFrames;
+    this.spanContext = spanContext;
   }
 
   Instant getTimestamp() {
@@ -52,5 +56,13 @@ class StackTrace {
 
   StackTraceElement[] getStackFrames() {
     return stackFrames;
+  }
+
+  String getTraceId() {
+    return spanContext.getTraceId();
+  }
+
+  String getSpanId() {
+    return spanContext.getSpanId();
   }
 }

@@ -203,7 +203,8 @@ class ScheduledExecutorStackTraceSamplerTest {
     }
   }
 
-  private Callable<ThreadInfo> startSampling(SpanContext spanContext, CountDownLatch startSpanLatch, CountDownLatch shutdownLatch) {
+  private Callable<ThreadInfo> startSampling(
+      SpanContext spanContext, CountDownLatch startSpanLatch, CountDownLatch shutdownLatch) {
     return (() -> {
       try {
         startSpanLatch.await();

@@ -21,6 +21,7 @@ import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executors;
 import javax.annotation.Nullable;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
@@ -39,6 +40,11 @@ class ActiveSpanTrackerTest {
   void setup() {
     ActiveSpanTracker.configure(contextStorage);
     spanTracker.configure(registry);
+  }
+
+  @AfterEach
+  void teardown() {
+    ActiveSpanTracker.reset();
   }
 
   @Test
@@ -175,6 +181,40 @@ class ActiveSpanTrackerTest {
       try (var scope = spanTracker.attach(newContext)) {
         assertInstanceOf(TestScope.class, scope);
       }
+    }
+  }
+
+  @Test
+  void doNotAttemptToTrackSpansWhenNotReady(Tracer tracer) {
+    ActiveSpanTracker.reset();
+
+    var span = tracer.spanBuilder("root").startSpan();
+    var spanContext = span.getSpanContext();
+    var context = Context.root().with(span);
+    registry.register(spanContext);
+
+    try (var scope = spanTracker.attach(context)) {
+      var traceId = span.getSpanContext().getTraceId();
+      assertEquals(Optional.empty(), spanTracker.getActiveSpan(traceId));
+      assertEquals(Scope.noop(), scope);
+    }
+  }
+
+  @Test
+  void doNotAttemptToTrackSpansWhenTraceRegistryNotConfigured(Tracer tracer) {
+    ActiveSpanTracker.reset();
+    ActiveSpanTracker.configure(new TestStorage());
+    spanTracker.configure((TraceRegistry)null);
+
+    var span = tracer.spanBuilder("root").startSpan();
+    var spanContext = span.getSpanContext();
+    var context = Context.root().with(span);
+    registry.register(spanContext);
+
+    try (var scope = spanTracker.attach(context)) {
+      var traceId = span.getSpanContext().getTraceId();
+      assertEquals(Optional.empty(), spanTracker.getActiveSpan(traceId));
+      assertInstanceOf(TestScope.class, scope);
     }
   }
 

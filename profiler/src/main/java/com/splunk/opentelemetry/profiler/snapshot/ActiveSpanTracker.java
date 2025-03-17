@@ -19,7 +19,16 @@ class ActiveSpanTracker implements ContextStorage {
     DELEGATE = contextStorage;
   }
 
+  static void reset() {
+    DELEGATE = null;
+  }
+
+  static boolean isReady() {
+    return DELEGATE != null;
+  }
+
   private final ConcurrentMap<String, SpanContext> activeSpans = new ConcurrentHashMap<>();
+
   private TraceRegistry registry;
 
   void configure(TraceRegistry registry) {
@@ -28,7 +37,14 @@ class ActiveSpanTracker implements ContextStorage {
 
   @Override
   public Scope attach(Context toAttach) {
+    if (!isReady()) {
+      return Scope.noop();
+    }
+
     Scope scope = DELEGATE.attach(toAttach);
+    if (registry == null) {
+      return scope;
+    }
 
     Span span = Span.fromContext(toAttach);
     if (doNotTrack(span)) {

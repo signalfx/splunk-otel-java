@@ -20,6 +20,7 @@ import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_ENABLE_
 
 import com.google.auto.service.AutoService;
 import com.google.common.annotations.VisibleForTesting;
+import io.opentelemetry.context.ContextStorage;
 import io.opentelemetry.sdk.autoconfigure.spi.AutoConfigurationCustomizer;
 import io.opentelemetry.sdk.autoconfigure.spi.AutoConfigurationCustomizerProvider;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
@@ -95,6 +96,20 @@ public class SnapshotProfilingSdkCustomizer implements AutoConfigurationCustomiz
 
   private boolean includeTraceContextPropagator(Set<String> configuredPropagators) {
     return configuredPropagators.isEmpty();
+  }
+
+  private Function<ConfigProperties, Map<String, String>> attachToContextStorage() {
+    return properties -> {
+      if (snapshotProfilingEnabled(properties)) {
+        if (!ActiveSpanTracker.isReady()) {
+          ContextStorage.addWrapper(contextStorage -> {
+            ActiveSpanTracker.configure(contextStorage);
+            return ActiveSpanTracker.INSTANCE;
+          });
+        }
+      }
+      return Collections.emptyMap();
+    };
   }
 
   private boolean snapshotProfilingEnabled(ConfigProperties config) {

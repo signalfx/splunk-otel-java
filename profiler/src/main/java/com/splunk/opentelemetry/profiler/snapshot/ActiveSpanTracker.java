@@ -10,7 +10,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import javax.annotation.Nullable;
 
-class ActiveSpanTracker implements ContextStorage {
+class ActiveSpanTracker implements ContextStorage, SpanTracker {
   static final ActiveSpanTracker INSTANCE = new ActiveSpanTracker();
 
   private static ContextStorage DELEGATE;
@@ -79,7 +79,8 @@ class ActiveSpanTracker implements ContextStorage {
     return DELEGATE.current();
   }
 
-  Optional<SpanContext> getActiveSpan(String traceId) {
+  @Override
+  public Optional<SpanContext> getActiveSpan(String traceId) {
     return Optional.ofNullable(activeSpans.get(traceId));
   }
 

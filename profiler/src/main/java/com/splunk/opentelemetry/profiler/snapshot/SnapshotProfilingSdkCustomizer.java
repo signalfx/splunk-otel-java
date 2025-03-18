@@ -38,7 +38,7 @@ public class SnapshotProfilingSdkCustomizer implements AutoConfigurationCustomiz
   private final StackTraceSampler sampler;
 
   public SnapshotProfilingSdkCustomizer() {
-    this(new TraceRegistry(), new ScheduledExecutorStackTraceSampler(new NoopStagingArea()));
+    this(new TraceRegistry(), new ScheduledExecutorStackTraceSampler(new NoopStagingArea(), ActiveSpanTracker.INSTANCE));
   }
 
   @VisibleForTesting
@@ -51,7 +51,8 @@ public class SnapshotProfilingSdkCustomizer implements AutoConfigurationCustomiz
   public void customize(AutoConfigurationCustomizer autoConfigurationCustomizer) {
     autoConfigurationCustomizer
         .addPropertiesCustomizer(autoConfigureSnapshotVolumePropagator())
-        .addTracerProviderCustomizer(snapshotProfilingSpanProcessor(registry));
+        .addTracerProviderCustomizer(snapshotProfilingSpanProcessor(registry))
+        .addPropertiesCustomizer(startTrackingActiveSpans(registry));
   }
 
   private BiFunction<SdkTracerProviderBuilder, ConfigProperties, SdkTracerProviderBuilder>
@@ -98,14 +99,18 @@ public class SnapshotProfilingSdkCustomizer implements AutoConfigurationCustomiz
     return configuredPropagators.isEmpty();
   }
 
-  private Function<ConfigProperties, Map<String, String>> attachToContextStorage() {
+  private static boolean INTERCEPT_OTEL_CONTEXT = true;
+
+  private Function<ConfigProperties, Map<String, String>> startTrackingActiveSpans(TraceRegistry registry) {
     return properties -> {
       if (snapshotProfilingEnabled(properties)) {
-        if (!ActiveSpanTracker.isReady()) {
+        if (INTERCEPT_OTEL_CONTEXT) {
           ContextStorage.addWrapper(contextStorage -> {
             ActiveSpanTracker.configure(contextStorage);
             return ActiveSpanTracker.INSTANCE;
           });
+          ActiveSpanTracker.INSTANCE.configure(registry);
+          INTERCEPT_OTEL_CONTEXT = false;
         }
       }
       return Collections.emptyMap();

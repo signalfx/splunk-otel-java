@@ -1,13 +1,14 @@
 package com.splunk.opentelemetry.profiler.snapshot;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertInstanceOf;
-
+import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.trace.Span;
+import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.api.trace.SpanKind;
+import io.opentelemetry.api.trace.StatusCode;
+import io.opentelemetry.api.trace.TraceFlags;
 import io.opentelemetry.api.trace.TraceId;
-import io.opentelemetry.api.trace.Tracer;
+import io.opentelemetry.api.trace.TraceState;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.context.ContextKey;
 import io.opentelemetry.context.ContextStorage;
@@ -16,25 +17,24 @@ import io.opentelemetry.sdk.trace.IdGenerator;
 import io.opentelemetry.sdk.trace.data.LinkData;
 import io.opentelemetry.sdk.trace.samplers.Sampler;
 import io.opentelemetry.sdk.trace.samplers.SamplingResult;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executors;
-import javax.annotation.Nullable;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.RegisterExtension;
+import java.util.concurrent.TimeUnit;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 
 class ActiveSpanTrackerTest {
   private final TestStorage contextStorage = new TestStorage();
-  private final ToggleableSampler sampler = new ToggleableSampler();
   private final TogglableTraceRegistry registry = new TogglableTraceRegistry();
   private final ActiveSpanTracker spanTracker = ActiveSpanTracker.INSTANCE;
-
-  @RegisterExtension final OpenTelemetrySdkExtension s = OpenTelemetrySdkExtension.builder()
-      .withSampler(sampler)
-      .build();
 
   @BeforeEach
   void setup() {
@@ -49,7 +49,7 @@ class ActiveSpanTrackerTest {
 
   @Test
   void currentContextComesFromOpenTelemetryContextStorage() {
-    var context = Context.root().with(ContextKey.named("test-key"), "value");
+    var context = spanTracker.root().with(ContextKey.named("test-key"), "value");
     try (var ignored = spanTracker.attach(context)) {
       assertEquals(contextStorage.current(), spanTracker.current());
     }
@@ -62,10 +62,10 @@ class ActiveSpanTrackerTest {
   }
 
   @Test
-  void trackActiveSpanWhenNewContextAttached(Tracer tracer) {
-    var span = tracer.spanBuilder("root").startSpan();
+  void trackActiveSpanWhenNewContextAttached() {
+    var span = FakeSpan.randomSpan();
     var spanContext = span.getSpanContext();
-    var context = Context.root().with(span);
+    var context = spanTracker.root().with(span);
     registry.register(spanContext);
 
     try (var ignored = spanTracker.attach(context)) {
@@ -75,13 +75,13 @@ class ActiveSpanTrackerTest {
   }
 
   @Test
-  void trackActiveSpanAfterAcrossMultipleContextChanges(Tracer tracer) {
-    var root = tracer.spanBuilder("root").startSpan();
-    var context = Context.root().with(root);
+  void trackActiveSpanAfterAcrossMultipleContextChanges() {
+    var root = FakeSpan.randomSpan();
+    var context = spanTracker.root().with(root);
     registry.register(root.getSpanContext());
 
     try (var ignored = spanTracker.attach(context)) {
-      var span = tracer.spanBuilder("child").setParent(context).startSpan();
+      var span = FakeSpan.newSpan(root.getSpanContext());
       var spanContext = span.getSpanContext();
       context = context.with(span);
       try (var i = spanTracker.attach(context)) {
@@ -92,10 +92,10 @@ class ActiveSpanTrackerTest {
   }
 
   @Test
-  void noActiveSpanForTraceAfterSpansScopeIsClosed(Tracer tracer) {
-    var span = tracer.spanBuilder("root").startSpan();
+  void noActiveSpanForTraceAfterSpansScopeIsClosed() {
+    var span = FakeSpan.randomSpan();
     var spanContext = span.getSpanContext();
-    var context = Context.root().with(span);
+    var context = spanTracker.root().with(span);
     registry.register(spanContext);
 
     var scope = spanTracker.attach(context);
@@ -105,10 +105,10 @@ class ActiveSpanTrackerTest {
   }
 
   @Test
-  void trackActiveSpanForMultipleTraces(Tracer tracer) throws Exception {
+  void trackActiveSpanForMultipleTraces() throws Exception {
     var executor = Executors.newSingleThreadExecutor();
-    var root1 = tracer.spanBuilder("root").startSpan();
-    var root2 = tracer.spanBuilder("root").startSpan();
+    var root1 = FakeSpan.randomSpan();
+    var root2 = FakeSpan.randomSpan();
     registry.register(root1.getSpanContext());
     registry.register(root2.getSpanContext());
 
@@ -125,14 +125,14 @@ class ActiveSpanTrackerTest {
 
   private Callable<Scope> attach(Span span) {
     return () -> {
-      var context = Context.root().with(span);
+      var context = spanTracker.root().with(span);
       return spanTracker.attach(context);
     };
   }
 
   @Test
   void doNotTrackSpanWhenNoSpanPresentInContext() {
-    var context = Context.root().with(ContextKey.named("test-key"), "value");
+    var context = spanTracker.root().with(ContextKey.named("test-key"), "value");
     try (var scope = spanTracker.attach(context)) {
       assertEquals(Optional.empty(), spanTracker.getActiveSpan(TraceId.getInvalid()));
       assertInstanceOf(TestScope.class, scope);
@@ -140,41 +140,41 @@ class ActiveSpanTrackerTest {
   }
 
   @Test
-  void doNotTrackSpanWhenSpanIsNotSampled(Tracer tracer) {
-    sampler.toggle(ToggleableSampler.State.OFF);
-
-    var root = tracer.spanBuilder("root").startSpan();
-    var context = Context.root().with(root);
-    registry.register(root.getSpanContext());
+  void doNotTrackSpanWhenSpanIsNotSampled() {
+    var span = FakeSpan.randomSpan();
+    span.stopRecording();
+    var context = spanTracker.root().with(span);
+    registry.register(span.getSpanContext());
 
     try (var scope = spanTracker.attach(context)) {
-      var traceId = root.getSpanContext().getTraceId();
+      var traceId = span.getSpanContext().getTraceId();
       assertEquals(Optional.empty(), spanTracker.getActiveSpan(traceId));
       assertInstanceOf(TestScope.class, scope);
     }
   }
 
   @Test
-  void doNotTrackSpanTraceIsNotRegisteredForSnapshotting(Tracer tracer) {
+  void doNotTrackSpanTraceIsNotRegisteredForSnapshotting() {
     registry.toggle(TogglableTraceRegistry.State.OFF);
 
-    var root = tracer.spanBuilder("root").startSpan();
-    var context = Context.root().with(root);
+    var span = FakeSpan.randomSpan();
+    var context = spanTracker.root().with(span);
 
     try (var scope = spanTracker.attach(context)) {
-      var traceId = root.getSpanContext().getTraceId();
+      var traceId = span.getSpanContext().getTraceId();
       assertEquals(Optional.empty(), spanTracker.getActiveSpan(traceId));
       assertInstanceOf(TestScope.class, scope);
     }
   }
 
   @Test
-  void doNotTrackContinuallyTrackSameSpan(Tracer tracer) {
+  void doNotTrackContinuallyTrackSameSpan() {
     var storage = new TestStorage();
     ActiveSpanTracker.configure(storage);
-    var root = tracer.spanBuilder("root").startSpan();
-    var context = Context.root().with(root);
-    registry.register(root.getSpanContext());
+
+    var span = FakeSpan.randomSpan();
+    var context = spanTracker.root().with(span);
+    registry.register(span.getSpanContext());
 
     try (var ignored = spanTracker.attach(context)) {
       var newContext = context.with(ContextKey.named("test-key"), "value");
@@ -185,12 +185,12 @@ class ActiveSpanTrackerTest {
   }
 
   @Test
-  void doNotAttemptToTrackSpansWhenNotReady(Tracer tracer) {
+  void doNotAttemptToTrackSpansWhenNotReady() {
     ActiveSpanTracker.reset();
 
-    var span = tracer.spanBuilder("root").startSpan();
+    var span = FakeSpan.randomSpan();
     var spanContext = span.getSpanContext();
-    var context = Context.root().with(span);
+    var context = spanTracker.root().with(span);
     registry.register(spanContext);
 
     try (var scope = spanTracker.attach(context)) {
@@ -201,14 +201,14 @@ class ActiveSpanTrackerTest {
   }
 
   @Test
-  void doNotAttemptToTrackSpansWhenTraceRegistryNotConfigured(Tracer tracer) {
+  void doNotAttemptToTrackSpansWhenTraceRegistryNotConfigured() {
     ActiveSpanTracker.reset();
     ActiveSpanTracker.configure(new TestStorage());
     spanTracker.configure((TraceRegistry)null);
 
-    var span = tracer.spanBuilder("root").startSpan();
+    var span = FakeSpan.randomSpan();
     var spanContext = span.getSpanContext();
-    var context = Context.root().with(span);
+    var context = spanTracker.root().with(span);
     registry.register(spanContext);
 
     try (var scope = spanTracker.attach(context)) {
@@ -278,6 +278,79 @@ class ActiveSpanTrackerTest {
     @Override
     public void close() {
       storage.store(beforeAttach);
+    }
+  }
+
+  private static class FakeSpan implements Span {
+    public static FakeSpan randomSpan() {
+      return newSpan(IdGenerator.random().generateTraceId());
+    }
+
+    public static FakeSpan newSpan(SpanContext parentSpanContext) {
+      return newSpan(parentSpanContext.getTraceId());
+    }
+
+    public static FakeSpan newSpan(String traceId) {
+      return new FakeSpan(SpanContext.create(traceId, IdGenerator.random().generateSpanId(), TraceFlags.getDefault(), TraceState.getDefault()));
+    }
+
+    private final SpanContext spanContext;
+    private boolean recording = true;
+
+    private FakeSpan(SpanContext spanContext) {
+      this.spanContext = spanContext;
+    }
+
+    @Override
+    public <T> Span setAttribute(AttributeKey<T> key, T value) {
+      return this;
+    }
+
+    @Override
+    public Span addEvent(String name, Attributes attributes) {
+      return this;
+    }
+
+    @Override
+    public Span addEvent(String name, Attributes attributes, long timestamp, TimeUnit unit) {
+      return this;
+    }
+
+    @Override
+    public Span setStatus(StatusCode statusCode, String description) {
+      return this;
+    }
+
+    @Override
+    public Span recordException(Throwable exception, Attributes additionalAttributes) {
+      return this;
+    }
+
+    @Override
+    public Span updateName(String name) {
+      return this;
+    }
+
+    @Override
+    public void end() {
+    }
+
+    @Override
+    public void end(long timestamp, TimeUnit unit) {
+    }
+
+    @Override
+    public SpanContext getSpanContext() {
+      return spanContext;
+    }
+
+    void stopRecording() {
+      recording = false;
+    }
+
+    @Override
+    public boolean isRecording() {
+      return recording;
     }
   }
 }

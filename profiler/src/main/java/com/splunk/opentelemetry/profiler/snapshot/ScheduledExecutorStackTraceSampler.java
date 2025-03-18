@@ -23,7 +23,6 @@ import java.lang.management.ThreadInfo;
 import java.lang.management.ThreadMXBean;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.Executors;
@@ -46,10 +45,6 @@ class ScheduledExecutorStackTraceSampler implements StackTraceSampler {
   private final StagingArea stagingArea;
   private final SpanTracker spanTracker;
   private final Duration samplingPeriod;
-
-  ScheduledExecutorStackTraceSampler(StagingArea stagingArea) {
-    this(stagingArea, (traceId -> Optional.empty()), SCHEDULER_PERIOD);
-  }
 
   ScheduledExecutorStackTraceSampler(StagingArea stagingArea, SpanTracker spanTracker) {
     this(stagingArea, spanTracker, SCHEDULER_PERIOD);

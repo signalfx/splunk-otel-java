@@ -1065,6 +1065,13 @@ public class MetadataGenerator {
             "false",
             SettingType.BOOLEAN,
             SettingCategory.INSTRUMENTATION));
+    settings.add(
+        setting(
+            "otel.instrumentation.http.client.experimental.redact-query-parameters",
+            "Redact sensitive parameter values from URL query string, see https://opentelemetry.io/docs/specs/semconv/http/http-spans.",
+            "true",
+            SettingType.BOOLEAN,
+            SettingCategory.INSTRUMENTATION));
 
     // Enable only specific instrumentation
     // https://opentelemetry.io/docs/instrumentation/java/automatic/agent-config/#enable-only-specific-instrumentation
@@ -1391,6 +1398,7 @@ public class MetadataGenerator {
     | `otel.instrumentation.aws-sdk.experimental-span-attributes`              | Boolean | `false` | Enable the capture of experimental span attributes.                                         |
     | `otel.instrumentation.aws-sdk.experimental-use-propagator-for-messaging` | Boolean | `false` | v2 only, inject into SNS/SQS attributes with configured propagator: See [v2 README](aws-sdk-2.2/library/README.md#trace-propagation). |
     | `otel.instrumentation.aws-sdk.experimental-record-individual-http-error` | Boolean | `false` | v2 only, record errors returned by each individual HTTP request as events for the SDK span. |
+    | `otel.instrumentation.genai.capture-message-content`                     | Boolean | `false` | v2 only, record content of user and LLM messages when using Bedrock.                                                                  |
      */
     settings.add(
         setting(
@@ -1410,6 +1418,13 @@ public class MetadataGenerator {
         setting(
             "otel.instrumentation.aws-sdk.experimental-use-propagator-for-messaging",
             "v2 only, record errors returned by each individual HTTP request as events for the SDK span.",
+            "false",
+            SettingType.BOOLEAN,
+            SettingCategory.INSTRUMENTATION));
+    settings.add(
+        setting(
+            "otel.instrumentation.genai.capture-message-content",
+            "v2 only, record content of user and LLM messages when using Bedrock.",
             "false",
             SettingType.BOOLEAN,
             SettingCategory.INSTRUMENTATION));
@@ -1503,10 +1518,18 @@ public class MetadataGenerator {
 
     // https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/instrumentation/grpc-1.6/README.md
     /*
+    | `otel.instrumentation.grpc.emit-message-events`             | Boolean | `true`  | Determines whether to emit span event for each individual message received and sent.
     | `otel.instrumentation.grpc.experimental-span-attributes` | Boolean | `false` | Enable the capture of experimental span attributes. |
     | `otel.instrumentation.grpc.capture-metadata.client.request` | String  |         | A comma-separated list of request metadata keys. gRPC client instrumentation will capture metadata values corresponding to configured keys as span attributes. |
     | `otel.instrumentation.grpc.capture-metadata.server.request` | String  |         | A comma-separated list of request metadata keys. gRPC server instrumentation will capture metadata values corresponding to configured keys as span attributes. |
      */
+    settings.add(
+        setting(
+            "otel.instrumentation.grpc.emit-message-events",
+            "Determines whether to emit span event for each individual message received and sent.",
+            "true",
+            SettingType.BOOLEAN,
+            SettingCategory.INSTRUMENTATION));
     settings.add(
         setting(
             "otel.instrumentation.grpc.experimental-span-attributes",
@@ -2318,6 +2341,11 @@ public class MetadataGenerator {
     root.put("instrumentations", instrumentations);
 
     instrumentations.add(
+        instrumentation("activej-http")
+            .component("ActiveJ HTTP Server", "6.0 and higher")
+            .httpServerMetrics()
+            .build());
+    instrumentations.add(
         instrumentation("methods").component("Additional methods tracing", null).build());
     instrumentations.add(
         instrumentation("external-annotations")
@@ -3123,6 +3151,7 @@ public class MetadataGenerator {
             .component("AWS SDK 1", "1.11 and higher")
             .component("AWS SDK 2", "2.2 and higher")
             .dbClientMetrics()
+            .genAiClientMetrics()
             .build());
     instrumentations.add(
         instrumentation("azure-core").component("Azure Core", "1.14 and higher").build());
@@ -3515,6 +3544,8 @@ public class MetadataGenerator {
         instrumentation("spring-jms").component("Spring JMS", "2.0 and higher").build());
     instrumentations.add(
         instrumentation("spring-kafka").component("Spring Kafka", "2.7 and higher").build());
+    instrumentations.add(
+        instrumentation("spring-pulsar").component("Spring Pulsar", "1.0 and higher").build());
     instrumentations.add(
         instrumentation("spring-rabbit").component("Spring RabbitMQ", "1.0 and higher").build());
     instrumentations.add(
@@ -4138,6 +4169,19 @@ public class MetadataGenerator {
           "db.client.operation.duration",
           MetricInstrument.HISTOGRAM,
           "Duration of database client operations.");
+
+      return this;
+    }
+
+    InstrumentationBuilder genAiClientMetrics() {
+      metric(
+          "gen_ai.client.token.usage",
+          MetricInstrument.HISTOGRAM,
+          "Measures number of input and output tokens used.");
+      metric(
+          "gen_ai.client.operation.duration",
+          MetricInstrument.HISTOGRAM,
+          "GenAI operation duration.");
 
       return this;
     }

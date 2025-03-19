@@ -153,9 +153,7 @@ class ScheduledExecutorStackTraceSamplerTest {
       await().until(() -> staging.allStackTraces().size() > 1);
 
       var stackTrace = staging.allStackTraces().stream().skip(1).findFirst().orElseThrow();
-      assertThat(stackTrace.getDuration())
-          .isNotNull()
-          .isEqualTo(SAMPLING_PERIOD);
+      assertThat(stackTrace.getDuration()).isNotNull().isEqualTo(SAMPLING_PERIOD);
     } finally {
       sampler.stop(spanContext);
     }

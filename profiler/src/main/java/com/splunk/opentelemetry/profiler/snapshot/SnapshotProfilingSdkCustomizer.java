@@ -87,7 +87,7 @@ public class SnapshotProfilingSdkCustomizer implements AutoConfigurationCustomiz
         }
         propagators.add("baggage");
         propagators.add(SnapshotVolumePropagatorProvider.NAME);
-        return Map.of("otel.propagators", String.join(",", propagators));
+        return Collections.singletonMap("otel.propagators", String.join(",", propagators));
       }
       return Collections.emptyMap();
     };

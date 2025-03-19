@@ -16,48 +16,23 @@
 
 package com.splunk.opentelemetry.profiler.snapshot;
 
-import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.DATA_FORMAT;
-import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.DATA_TYPE;
-import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.FRAME_COUNT;
-import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.INSTRUMENTATION_SOURCE;
-import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.PPROF_GZIP_BASE64;
-import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.PROFILING_SOURCE;
-import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.SOURCE_TYPE;
-
 import com.google.common.annotations.VisibleForTesting;
-import com.google.perftools.profiles.ProfileProto.Profile;
 import com.splunk.opentelemetry.profiler.InstrumentationSource;
-import com.splunk.opentelemetry.profiler.ProfilingDataType;
-import io.opentelemetry.api.common.Attributes;
+import com.splunk.opentelemetry.profiler.exporter.CpuEventExporter;
+import com.splunk.opentelemetry.profiler.exporter.PprofCpuEventExporter;
 import io.opentelemetry.api.logs.Logger;
-import io.opentelemetry.api.logs.Severity;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.nio.charset.StandardCharsets;
 import java.time.Clock;
 import java.time.Instant;
-import java.util.Base64;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.logging.Level;
-import java.util.zip.GZIPOutputStream;
 
 class AsyncStackTraceExporter implements StackTraceExporter {
   private static final java.util.logging.Logger logger =
       java.util.logging.Logger.getLogger(AsyncStackTraceExporter.class.getName());
 
-  private static final Attributes COMMON_ATTRIBUTES =
-      Attributes.builder()
-          .put(SOURCE_TYPE, PROFILING_SOURCE)
-          .put(DATA_TYPE, ProfilingDataType.CPU.value())
-          .put(DATA_FORMAT, PPROF_GZIP_BASE64)
-          .put(INSTRUMENTATION_SOURCE, InstrumentationSource.SNAPSHOT.value())
-          .build();
-
   private final ExecutorService executor = Executors.newSingleThreadScheduledExecutor();
-  private final PprofTranslator translator = new PprofTranslator();
   private final Logger otelLogger;
   private final Clock clock;
 
@@ -79,30 +54,29 @@ class AsyncStackTraceExporter implements StackTraceExporter {
   private Runnable pprofExporter(Logger otelLogger, List<StackTrace> stackTraces) {
     return () -> {
       try {
-        Pprof pprof = translator.toPprof(stackTraces);
-        Profile profile = pprof.build();
-        otelLogger
-            .logRecordBuilder()
-            .setTimestamp(Instant.now(clock))
-            .setSeverity(Severity.INFO)
-            .setAllAttributes(profilingAttributes(pprof))
-            .setBody(serialize(profile))
-            .emit();
+        CpuEventExporter cpuEventExporter =
+            PprofCpuEventExporter.builder()
+                .otelLogger(otelLogger)
+                .stackDepth(200)
+                .period(ScheduledExecutorStackTraceSampler.SCHEDULER_PERIOD)
+                .instrumentationSource(InstrumentationSource.SNAPSHOT)
+                .build();
+
+        Instant now = Instant.now(clock);
+        for (StackTrace stackTrace : stackTraces) {
+          cpuEventExporter.export(
+              stackTrace.getThreadId(),
+              stackTrace.getThreadName(),
+              stackTrace.getThreadState(),
+              stackTrace.getStackFrames(),
+              now,
+              stackTrace.getTraceId(),
+              null);
+        }
+        cpuEventExporter.flush();
       } catch (Exception e) {
         logger.log(Level.SEVERE, "an exception was thrown", e);
       }
     };
-  }
-
-  private Attributes profilingAttributes(Pprof pprof) {
-    return COMMON_ATTRIBUTES.toBuilder().put(FRAME_COUNT, pprof.frameCount()).build();
-  }
-
-  private String serialize(Profile profile) throws IOException {
-    ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
-    try (OutputStream outputStream = new GZIPOutputStream(Base64.getEncoder().wrap(byteStream))) {
-      profile.writeTo(outputStream);
-    }
-    return byteStream.toString(StandardCharsets.ISO_8859_1.name());
   }
 }

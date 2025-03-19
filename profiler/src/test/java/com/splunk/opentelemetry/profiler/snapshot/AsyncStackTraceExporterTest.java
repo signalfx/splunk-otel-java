@@ -28,15 +28,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.google.perftools.profiles.ProfileProto.Profile;
 import com.splunk.opentelemetry.profiler.exporter.InMemoryOtelLogger;
-import io.opentelemetry.api.common.Value;
 import io.opentelemetry.api.logs.Severity;
-import io.opentelemetry.sdk.logs.data.LogRecordData;
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
-import java.util.Base64;
 import java.util.List;
 import java.util.zip.GZIPInputStream;
 import org.junit.jupiter.api.Test;
@@ -92,16 +88,6 @@ class AsyncStackTraceExporterTest {
   }
 
   @Test
-  void includeTraceIdInLogMessageContext() {
-    var stackTrace = Snapshotting.stackTrace().build();
-
-    exporter.export(List.of(stackTrace));
-    await().until(() -> !logger.records().isEmpty());
-
-    assertEquals(stackTrace.getTraceId(), logger.records().get(0).getSpanContext().getTraceId());
-  }
-
-  @Test
   void encodedLogBodyIsPprofProtobufMessage() {
     var stackTrace = Snapshotting.stackTrace().build();
 
@@ -109,7 +95,7 @@ class AsyncStackTraceExporterTest {
     await().until(() -> !logger.records().isEmpty());
 
     var logRecord = logger.records().get(0);
-    assertDoesNotThrow(() -> Profile.parseFrom(deserialize(logRecord)));
+    assertDoesNotThrow(() -> Profile.parseFrom(PprofUtils.deserialize(logRecord)));
   }
 
   @Test
@@ -120,7 +106,7 @@ class AsyncStackTraceExporterTest {
     await().until(() -> !logger.records().isEmpty());
 
     var logRecord = logger.records().get(0);
-    assertDoesNotThrow(() -> decode(logRecord));
+    assertDoesNotThrow(() -> PprofUtils.decode(logRecord));
   }
 
   @Test
@@ -133,24 +119,10 @@ class AsyncStackTraceExporterTest {
     var logRecord = logger.records().get(0);
     assertDoesNotThrow(
         () -> {
-          var bytes = new ByteArrayInputStream(decode(logRecord));
+          var bytes = new ByteArrayInputStream(PprofUtils.decode(logRecord));
           var inputStream = new GZIPInputStream(bytes);
           inputStream.readAllBytes();
         });
-  }
-
-  private byte[] deserialize(LogRecordData logRecord) throws IOException {
-    var bytes = new ByteArrayInputStream(decode(logRecord));
-    var inputStream = new GZIPInputStream(bytes);
-    return inputStream.readAllBytes();
-  }
-
-  private byte[] decode(LogRecordData logRecord) {
-    Value<?> body = logRecord.getBodyValue();
-    if (body == null) {
-      throw new RuntimeException("Log record body is null");
-    }
-    return Base64.getDecoder().decode(body.asString());
   }
 
   @Test

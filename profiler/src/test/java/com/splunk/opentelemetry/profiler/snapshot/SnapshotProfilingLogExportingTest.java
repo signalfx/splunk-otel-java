@@ -16,20 +16,32 @@
 
 package com.splunk.opentelemetry.profiler.snapshot;
 
+import static com.google.perftools.profiles.ProfileProto.Sample;
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import com.google.perftools.profiles.ProfileProto.Profile;
 import com.splunk.opentelemetry.profiler.OtelLoggerFactory;
+import com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes;
 import io.opentelemetry.api.trace.SpanKind;
 import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.sdk.autoconfigure.OpenTelemetrySdkExtension;
 import io.opentelemetry.sdk.testing.exporter.InMemoryLogRecordExporter;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.params.ParameterizedTest;
 
 class SnapshotProfilingLogExportingTest {
+  private static final Predicate<Map.Entry<String, Object>> TRACE_ID_LABEL =
+      kv -> ProfilingSemanticAttributes.TRACE_ID.getKey().equals(kv.getKey());
+
   private final InMemoryLogRecordExporter logExporter = InMemoryLogRecordExporter.create();
 
   @RegisterExtension
@@ -59,6 +71,18 @@ class SnapshotProfilingLogExportingTest {
     await().until(() -> !logExporter.getFinishedLogRecordItems().isEmpty());
 
     var logRecord = logExporter.getFinishedLogRecordItems().get(0);
-    assertEquals(traceId, logRecord.getSpanContext().getTraceId());
+    var profile = Profile.parseFrom(PprofUtils.deserialize(logRecord));
+
+    var traceIds =
+        profile.getSampleList().stream()
+            .flatMap(sampleLabels(profile))
+            .filter(TRACE_ID_LABEL)
+            .map(Map.Entry::getValue)
+            .collect(Collectors.toSet());
+    assertEquals(Set.of(traceId), traceIds);
+  }
+
+  private Function<Sample, Stream<Map.Entry<String, Object>>> sampleLabels(Profile profile) {
+    return sample -> PprofUtils.toLabelString(sample, profile).entrySet().stream();
   }
 }

@@ -27,9 +27,7 @@ import com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 
@@ -149,7 +147,7 @@ class PprofTranslatorTest {
     var profile = translator.toPprof(List.of(stackTrace)).build();
     var sample = profile.getSample(0);
 
-    var labels = toLabelString(sample, profile);
+    var labels = PprofUtils.toLabelString(sample, profile);
     assertThat(labels)
         .containsEntry(ProfilingSemanticAttributes.THREAD_ID.getKey(), stackTrace.getThreadId());
     assertThat(labels)
@@ -168,7 +166,7 @@ class PprofTranslatorTest {
     var profile = translator.toPprof(List.of(stackTrace)).build();
     var sample = profile.getSample(0);
 
-    var labels = toLabelString(sample, profile);
+    var labels = PprofUtils.toLabelString(sample, profile);
     assertThat(labels)
         .containsEntry(ProfilingSemanticAttributes.TRACE_ID.getKey(), stackTrace.getTraceId());
   }
@@ -180,7 +178,7 @@ class PprofTranslatorTest {
     var profile = translator.toPprof(List.of(stackTrace)).build();
     var sample = profile.getSample(0);
 
-    var labels = toLabelString(sample, profile);
+    var labels = PprofUtils.toLabelString(sample, profile);
     assertThat(labels)
         .containsEntry(
             ProfilingSemanticAttributes.SOURCE_EVENT_NAME.getKey(), "snapshot-profiling");
@@ -193,7 +191,7 @@ class PprofTranslatorTest {
     var profile = translator.toPprof(List.of(stackTrace)).build();
     var sample = profile.getSample(0);
 
-    var labels = toLabelString(sample, profile);
+    var labels = PprofUtils.toLabelString(sample, profile);
     assertThat(labels)
         .containsEntry(
             ProfilingSemanticAttributes.SOURCE_EVENT_TIME.getKey(),
@@ -207,24 +205,10 @@ class PprofTranslatorTest {
     var profile = translator.toPprof(List.of(stackTrace)).build();
     var sample = profile.getSample(0);
 
-    var labels = toLabelString(sample, profile);
+    var labels = PprofUtils.toLabelString(sample, profile);
     assertThat(labels)
         .containsEntry(
             ProfilingSemanticAttributes.SOURCE_EVENT_PERIOD.getKey(),
             stackTrace.getDuration().toMillis());
-  }
-
-  private Map<String, Object> toLabelString(Sample sample, Profile profile) {
-    var labels = new HashMap<String, Object>();
-    for (var label : sample.getLabelList()) {
-      var stringTableIndex = label.getKey();
-      var key = profile.getStringTable((int) stringTableIndex);
-      if (label.getStr() > 0) {
-        labels.put(key, profile.getStringTable((int) label.getStr()));
-      } else {
-        labels.put(key, label.getNum());
-      }
-    }
-    return labels;
   }
 }

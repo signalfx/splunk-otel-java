@@ -77,6 +77,9 @@ public class Configuration implements AutoConfigurationCustomizerProvider {
   private static final String CONFIG_KEY_SNAPSHOT_PROFILER_STACK_DEPTH =
       "splunk.snapshot.profiler.max.stack.depth";
   private static final int DEFAULT_SNAPSHOT_PROFILER_STACK_DEPTH = 1024;
+  private static final String CONFIG_KEY_SNAPSHOT_PROFILER_SAMPLING_INTERVAL =
+      "splunk.snapshot.profiler.sampling.interval";
+  public static final Duration DEFAULT_SNAPSHOT_PROFILER_SAMPLING_INTERVAL = Duration.ofMillis(20);
 
   @Override
   public void customize(AutoConfigurationCustomizer autoConfiguration) {
@@ -218,5 +221,13 @@ public class Configuration implements AutoConfigurationCustomizerProvider {
   public static int getSnapshotProfilerStackDepth(ConfigProperties properties) {
     return properties.getInt(
         CONFIG_KEY_SNAPSHOT_PROFILER_STACK_DEPTH, DEFAULT_SNAPSHOT_PROFILER_STACK_DEPTH);
+  }
+
+  public static Duration getSnapshotProfilerSamplingInterval(ConfigProperties properties) {
+    int millis = properties.getInt(CONFIG_KEY_SNAPSHOT_PROFILER_SAMPLING_INTERVAL, 0);
+    if (millis > 0) {
+      return Duration.ofMillis(millis);
+    }
+    return DEFAULT_SNAPSHOT_PROFILER_SAMPLING_INTERVAL;
   }
 }

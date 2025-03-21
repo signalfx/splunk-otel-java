@@ -16,6 +16,8 @@
 
 package com.splunk.opentelemetry.profiler.snapshot;
 
+import java.time.Duration;
+
 class SnapshotProfilingSdkCustomizerBuilder {
   private TraceRegistry registry = new TraceRegistry();
   private StackTraceSampler sampler = new ObservableStackTraceSampler();
@@ -28,7 +30,8 @@ class SnapshotProfilingSdkCustomizerBuilder {
   SnapshotProfilingSdkCustomizerBuilder withRealStackTraceSampler() {
     return with(
         new ScheduledExecutorStackTraceSampler(
-            new AccumulatingStagingArea(StackTraceExporterProvider.INSTANCE)));
+            new AccumulatingStagingArea(StackTraceExporterProvider.INSTANCE),
+            Duration.ofMillis(20)));
   }
 
   SnapshotProfilingSdkCustomizerBuilder with(StackTraceSampler sampler) {

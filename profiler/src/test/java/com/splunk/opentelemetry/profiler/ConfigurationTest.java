@@ -24,6 +24,7 @@ import static org.mockito.Mockito.when;
 
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import io.opentelemetry.sdk.autoconfigure.spi.internal.DefaultConfigProperties;
+import java.time.Duration;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -184,5 +185,23 @@ class ConfigurationTest {
   void getDefaultSnapshotProfilerStackDepthWhenNotSpecified() {
     var properties = DefaultConfigProperties.create(Collections.emptyMap());
     assertEquals(1024, Configuration.getSnapshotProfilerStackDepth(properties));
+  }
+
+  @ParameterizedTest
+  @ValueSource(ints = {128, 512, 2056})
+  void getConfiguredSnapshotProfilerSamplingInterval(int milliseconds) {
+    var properties =
+        DefaultConfigProperties.create(
+            Map.of("splunk.snapshot.profiler.sampling.interval", String.valueOf(milliseconds)));
+    assertEquals(
+        Duration.ofMillis(milliseconds),
+        Configuration.getSnapshotProfilerSamplingInterval(properties));
+  }
+
+  @Test
+  void getDefaultSnapshotProfilerSamplingInterval() {
+    var properties = DefaultConfigProperties.create(Collections.emptyMap());
+    assertEquals(
+        Duration.ofMillis(20), Configuration.getSnapshotProfilerSamplingInterval(properties));
   }
 }

@@ -26,6 +26,7 @@ import io.opentelemetry.sdk.autoconfigure.AutoConfigureUtil;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import io.opentelemetry.sdk.resources.Resource;
+import java.time.Duration;
 
 @AutoService(AgentListener.class)
 public class StackTraceExporterActivator implements AgentListener {
@@ -45,14 +46,20 @@ public class StackTraceExporterActivator implements AgentListener {
     ConfigProperties properties = AutoConfigureUtil.getConfig(autoConfiguredOpenTelemetrySdk);
     if (snapshotProfilingEnabled(properties)) {
       int maxDepth = Configuration.getSnapshotProfilerStackDepth(properties);
-      Resource resource = AutoConfigureUtil.getResource(autoConfiguredOpenTelemetrySdk);
-      Logger logger = otelLoggerFactory.build(properties, resource);
-      AsyncStackTraceExporter exporter = new AsyncStackTraceExporter(logger, maxDepth);
+      Duration samplingPeriod = Configuration.getSnapshotProfilerSamplingInterval(properties);
+      Logger logger = buildLogger(autoConfiguredOpenTelemetrySdk, properties);
+      AsyncStackTraceExporter exporter =
+          new AsyncStackTraceExporter(logger, samplingPeriod, maxDepth);
       StackTraceExporterProvider.INSTANCE.configure(exporter);
     }
   }
 
   private boolean snapshotProfilingEnabled(ConfigProperties properties) {
     return Configuration.isSnapshotProfilingEnabled(properties);
+  }
+
+  private Logger buildLogger(AutoConfiguredOpenTelemetrySdk sdk, ConfigProperties properties) {
+    Resource resource = AutoConfigureUtil.getResource(sdk);
+    return otelLoggerFactory.build(properties, resource);
   }
 }

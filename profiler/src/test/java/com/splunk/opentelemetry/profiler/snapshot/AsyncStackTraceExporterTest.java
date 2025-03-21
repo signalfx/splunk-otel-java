@@ -20,6 +20,7 @@ import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.DATA
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.DATA_TYPE;
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.FRAME_COUNT;
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.INSTRUMENTATION_SOURCE;
+import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.SOURCE_EVENT_TIME;
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.SOURCE_TYPE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
@@ -30,13 +31,15 @@ import com.google.perftools.profiles.ProfileProto.Profile;
 import com.splunk.opentelemetry.profiler.exporter.InMemoryOtelLogger;
 import com.splunk.opentelemetry.profiler.pprof.PprofUtils;
 import java.io.ByteArrayInputStream;
+import java.time.Duration;
 import java.util.List;
 import java.util.zip.GZIPInputStream;
 import org.junit.jupiter.api.Test;
 
 class AsyncStackTraceExporterTest {
   private final InMemoryOtelLogger logger = new InMemoryOtelLogger();
-  private final AsyncStackTraceExporter exporter = new AsyncStackTraceExporter(logger, 200);
+  private final AsyncStackTraceExporter exporter =
+      new AsyncStackTraceExporter(logger, Duration.ofMillis(20), 200);
 
   @Test
   void exportStackTraceAsOpenTelemetryLog() {
@@ -152,5 +155,20 @@ class AsyncStackTraceExporterTest {
     var attributes = logger.records().get(0).getAttributes();
     assertThat(attributes.asMap())
         .containsEntry(FRAME_COUNT, (long) stackTrace.getStackFrames().length);
+  }
+
+  @Test
+  void includeStackTraceDurationInSamples() throws Exception {
+    var stackTrace = Snapshotting.stackTrace().build();
+
+    exporter.export(List.of(stackTrace));
+    await().until(() -> !logger.records().isEmpty());
+
+    var profile = Profile.parseFrom(PprofUtils.deserialize(logger.records().get(0)));
+    var sample = profile.getSample(0);
+
+    var labels = PprofUtils.toLabelString(sample, profile);
+    assertThat(labels)
+        .containsEntry(SOURCE_EVENT_TIME.getKey(), stackTrace.getTimestamp().toEpochMilli());
   }
 }

@@ -16,7 +16,6 @@
 
 package com.splunk.opentelemetry.profiler.snapshot;
 
-import com.google.common.annotations.VisibleForTesting;
 import io.opentelemetry.api.trace.SpanContext;
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadInfo;
@@ -36,7 +35,6 @@ class ScheduledExecutorStackTraceSampler implements StackTraceSampler {
   private static final Logger logger =
       Logger.getLogger(ScheduledExecutorStackTraceSampler.class.getName());
   private static final int SCHEDULER_INITIAL_DELAY = 0;
-  static final Duration SCHEDULER_PERIOD = Duration.ofMillis(20);
 
   private final ConcurrentMap<String, ScheduledExecutorService> samplers =
       new ConcurrentHashMap<>();
@@ -44,11 +42,6 @@ class ScheduledExecutorStackTraceSampler implements StackTraceSampler {
   private final StagingArea stagingArea;
   private final Duration samplingPeriod;
 
-  ScheduledExecutorStackTraceSampler(StagingArea stagingArea) {
-    this(stagingArea, SCHEDULER_PERIOD);
-  }
-
-  @VisibleForTesting
   ScheduledExecutorStackTraceSampler(StagingArea stagingArea, Duration samplingPeriod) {
     this.stagingArea = stagingArea;
     this.samplingPeriod = samplingPeriod;

@@ -16,13 +16,11 @@
 
 package com.splunk.opentelemetry.profiler.snapshot;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.splunk.opentelemetry.profiler.InstrumentationSource;
 import com.splunk.opentelemetry.profiler.exporter.CpuEventExporter;
 import com.splunk.opentelemetry.profiler.exporter.PprofCpuEventExporter;
 import io.opentelemetry.api.logs.Logger;
-import java.time.Clock;
-import java.time.Instant;
+import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -34,18 +32,13 @@ class AsyncStackTraceExporter implements StackTraceExporter {
 
   private final ExecutorService executor = Executors.newSingleThreadScheduledExecutor();
   private final Logger otelLogger;
+  private final Duration samplingPeriod;
   private final int maxDepth;
-  private final Clock clock;
 
-  AsyncStackTraceExporter(Logger logger, int maxDepth) {
-    this(logger, maxDepth, Clock.systemUTC());
-  }
-
-  @VisibleForTesting
-  AsyncStackTraceExporter(Logger logger, int maxDepth, Clock clock) {
+  AsyncStackTraceExporter(Logger logger, Duration samplingPeriod, int maxDepth) {
     this.otelLogger = logger;
+    this.samplingPeriod = samplingPeriod;
     this.maxDepth = maxDepth;
-    this.clock = clock;
   }
 
   @Override
@@ -60,18 +53,17 @@ class AsyncStackTraceExporter implements StackTraceExporter {
             PprofCpuEventExporter.builder()
                 .otelLogger(otelLogger)
                 .stackDepth(maxDepth)
-                .period(ScheduledExecutorStackTraceSampler.SCHEDULER_PERIOD)
+                .period(samplingPeriod)
                 .instrumentationSource(InstrumentationSource.SNAPSHOT)
                 .build();
 
-        Instant now = Instant.now(clock);
         for (StackTrace stackTrace : stackTraces) {
           cpuEventExporter.export(
               stackTrace.getThreadId(),
               stackTrace.getThreadName(),
               stackTrace.getThreadState(),
               stackTrace.getStackFrames(),
-              now,
+              stackTrace.getTimestamp(),
               stackTrace.getTraceId(),
               null);
         }

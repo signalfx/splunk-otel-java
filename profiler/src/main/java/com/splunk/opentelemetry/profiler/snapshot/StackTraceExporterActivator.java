@@ -44,9 +44,10 @@ public class StackTraceExporterActivator implements AgentListener {
   public void afterAgent(AutoConfiguredOpenTelemetrySdk autoConfiguredOpenTelemetrySdk) {
     ConfigProperties properties = AutoConfigureUtil.getConfig(autoConfiguredOpenTelemetrySdk);
     if (snapshotProfilingEnabled(properties)) {
+      int maxDepth = Configuration.getSnapshotProfilerStackDepth(properties);
       Resource resource = AutoConfigureUtil.getResource(autoConfiguredOpenTelemetrySdk);
       Logger logger = otelLoggerFactory.build(properties, resource);
-      AsyncStackTraceExporter exporter = new AsyncStackTraceExporter(logger);
+      AsyncStackTraceExporter exporter = new AsyncStackTraceExporter(logger, maxDepth);
       StackTraceExporterProvider.INSTANCE.configure(exporter);
     }
   }

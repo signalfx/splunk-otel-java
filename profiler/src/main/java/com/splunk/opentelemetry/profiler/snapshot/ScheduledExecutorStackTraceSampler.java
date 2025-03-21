@@ -37,7 +37,6 @@ class ScheduledExecutorStackTraceSampler implements StackTraceSampler {
       Logger.getLogger(ScheduledExecutorStackTraceSampler.class.getName());
   private static final int SCHEDULER_INITIAL_DELAY = 0;
   static final Duration SCHEDULER_PERIOD = Duration.ofMillis(20);
-  private static final int MAX_ENTRY_DEPTH = 200;
 
   private final ConcurrentMap<String, ScheduledExecutorService> samplers =
       new ConcurrentHashMap<>();
@@ -85,8 +84,8 @@ class ScheduledExecutorStackTraceSampler implements StackTraceSampler {
     private final String traceId;
     private final long threadId;
 
-    StackTraceGatherer(Duration samplingPeroid, String traceId, long threadId) {
-      this.samplingPeriod = samplingPeroid;
+    StackTraceGatherer(Duration samplingPeriod, String traceId, long threadId) {
+      this.samplingPeriod = samplingPeriod;
       this.traceId = traceId;
       this.threadId = threadId;
     }
@@ -95,7 +94,7 @@ class ScheduledExecutorStackTraceSampler implements StackTraceSampler {
     public void run() {
       try {
         Instant now = Instant.now();
-        ThreadInfo threadInfo = threadMXBean.getThreadInfo(threadId, MAX_ENTRY_DEPTH);
+        ThreadInfo threadInfo = threadMXBean.getThreadInfo(threadId, Integer.MAX_VALUE);
         StackTrace stackTrace = StackTrace.from(now, samplingPeriod, traceId, threadInfo);
         stagingArea.stage(traceId, stackTrace);
       } catch (Exception e) {

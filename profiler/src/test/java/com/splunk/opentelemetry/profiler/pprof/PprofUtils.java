@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.splunk.opentelemetry.profiler.snapshot;
+package com.splunk.opentelemetry.profiler.pprof;
 
 import com.google.perftools.profiles.ProfileProto.Profile;
 import com.google.perftools.profiles.ProfileProto.Sample;
@@ -27,15 +27,14 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.zip.GZIPInputStream;
 
-class PprofUtils {
-
-  static byte[] deserialize(LogRecordData logRecord) throws IOException {
+public class PprofUtils {
+  public static byte[] deserialize(LogRecordData logRecord) throws IOException {
     var bytes = new ByteArrayInputStream(decode(logRecord));
     var inputStream = new GZIPInputStream(bytes);
     return inputStream.readAllBytes();
   }
 
-  static byte[] decode(LogRecordData logRecord) {
+  public static byte[] decode(LogRecordData logRecord) {
     Value<?> body = logRecord.getBodyValue();
     if (body == null) {
       throw new RuntimeException("Log record body is null");
@@ -43,7 +42,7 @@ class PprofUtils {
     return Base64.getDecoder().decode(body.asString());
   }
 
-  static Map<String, Object> toLabelString(Sample sample, Profile profile) {
+  public static Map<String, Object> toLabelString(Sample sample, Profile profile) {
     var labels = new HashMap<String, Object>();
     for (var label : sample.getLabelList()) {
       var stringTableIndex = label.getKey();

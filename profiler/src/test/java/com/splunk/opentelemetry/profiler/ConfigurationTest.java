@@ -172,11 +172,11 @@ class ConfigurationTest {
   }
 
   @ParameterizedTest
-  @ValueSource(ints =  {128, 512, 2056})
+  @ValueSource(ints = {128, 512, 2056})
   void getConfiguredSnapshotProfilerStackDepth(int depth) {
-    var properties = DefaultConfigProperties.create(Map.of(
-        "splunk.snapshot.profiler.max.stack.depth",  String.valueOf(depth)
-    ));
+    var properties =
+        DefaultConfigProperties.create(
+            Map.of("splunk.snapshot.profiler.max.stack.depth", String.valueOf(depth)));
     assertEquals(depth, Configuration.getSnapshotProfilerStackDepth(properties));
   }
 

@@ -34,15 +34,17 @@ class AsyncStackTraceExporter implements StackTraceExporter {
 
   private final ExecutorService executor = Executors.newSingleThreadScheduledExecutor();
   private final Logger otelLogger;
+  private final int maxDepth;
   private final Clock clock;
 
-  AsyncStackTraceExporter(Logger logger) {
-    this(logger, Clock.systemUTC());
+  AsyncStackTraceExporter(Logger logger, int maxDepth) {
+    this(logger, maxDepth, Clock.systemUTC());
   }
 
   @VisibleForTesting
-  AsyncStackTraceExporter(Logger logger, Clock clock) {
+  AsyncStackTraceExporter(Logger logger, int maxDepth, Clock clock) {
     this.otelLogger = logger;
+    this.maxDepth = maxDepth;
     this.clock = clock;
   }
 
@@ -57,7 +59,7 @@ class AsyncStackTraceExporter implements StackTraceExporter {
         CpuEventExporter cpuEventExporter =
             PprofCpuEventExporter.builder()
                 .otelLogger(otelLogger)
-                .stackDepth(200)
+                .stackDepth(maxDepth)
                 .period(ScheduledExecutorStackTraceSampler.SCHEDULER_PERIOD)
                 .instrumentationSource(InstrumentationSource.SNAPSHOT)
                 .build();

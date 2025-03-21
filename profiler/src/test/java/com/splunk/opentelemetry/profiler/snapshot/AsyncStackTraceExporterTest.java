@@ -28,6 +28,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.google.perftools.profiles.ProfileProto.Profile;
 import com.splunk.opentelemetry.profiler.exporter.InMemoryOtelLogger;
+import com.splunk.opentelemetry.profiler.pprof.PprofUtils;
 import java.io.ByteArrayInputStream;
 import java.util.List;
 import java.util.zip.GZIPInputStream;
@@ -35,7 +36,7 @@ import org.junit.jupiter.api.Test;
 
 class AsyncStackTraceExporterTest {
   private final InMemoryOtelLogger logger = new InMemoryOtelLogger();
-  private final AsyncStackTraceExporter exporter = new AsyncStackTraceExporter(logger);
+  private final AsyncStackTraceExporter exporter = new AsyncStackTraceExporter(logger, 200);
 
   @Test
   void exportStackTraceAsOpenTelemetryLog() {

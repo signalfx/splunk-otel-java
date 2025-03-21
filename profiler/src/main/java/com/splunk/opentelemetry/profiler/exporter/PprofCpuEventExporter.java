@@ -122,10 +122,7 @@ public class PprofCpuEventExporter implements CpuEventExporter {
       }
       String className = ste.getClassName();
       String methodName = ste.getMethodName();
-      int lineNumber = ste.getLineNumber();
-      if (lineNumber < 0) {
-        lineNumber = 0;
-      }
+      int lineNumber = Math.max(ste.getLineNumber(), 0);
       sample.addLocationId(pprof.getLocationId(fileName, className, methodName, lineNumber));
       pprof.incFrameCount();
     }

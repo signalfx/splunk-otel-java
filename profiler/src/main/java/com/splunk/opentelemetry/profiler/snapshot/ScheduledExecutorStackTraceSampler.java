@@ -36,7 +36,7 @@ class ScheduledExecutorStackTraceSampler implements StackTraceSampler {
   private static final Logger logger =
       Logger.getLogger(ScheduledExecutorStackTraceSampler.class.getName());
   private static final int SCHEDULER_INITIAL_DELAY = 0;
-  private static final Duration SCHEDULER_PERIOD = Duration.ofMillis(20);
+  static final Duration SCHEDULER_PERIOD = Duration.ofMillis(20);
   private static final int MAX_ENTRY_DEPTH = 200;
 
   private final ConcurrentMap<String, ScheduledExecutorService> samplers =

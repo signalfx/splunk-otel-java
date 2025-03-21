@@ -29,7 +29,6 @@ import com.google.auto.service.AutoService;
 import com.splunk.opentelemetry.profiler.allocation.exporter.AllocationEventExporter;
 import com.splunk.opentelemetry.profiler.allocation.exporter.PprofAllocationEventExporter;
 import com.splunk.opentelemetry.profiler.context.SpanContextualizer;
-import com.splunk.opentelemetry.profiler.events.EventPeriods;
 import com.splunk.opentelemetry.profiler.exporter.CpuEventExporter;
 import com.splunk.opentelemetry.profiler.exporter.PprofCpuEventExporter;
 import com.splunk.opentelemetry.profiler.util.HelpfulExecutors;
@@ -130,13 +129,12 @@ public class JfrActivator implements AgentListener {
 
     EventReader eventReader = new EventReader();
     SpanContextualizer spanContextualizer = new SpanContextualizer(eventReader);
-    EventPeriods periods = new EventPeriods(jfrSettings::get);
     LogRecordExporter logsExporter = LogExporterBuilder.fromConfig(config);
 
     CpuEventExporter cpuEventExporter =
         PprofCpuEventExporter.builder()
             .otelLogger(buildOtelLogger(SimpleLogRecordProcessor.create(logsExporter), resource))
-            .eventPeriods(periods)
+            .period(Configuration.getCallStackInterval(config))
             .stackDepth(stackDepth)
             .build();
 

@@ -21,6 +21,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import io.opentelemetry.api.trace.SpanKind;
 import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.context.Context;
+import io.opentelemetry.sdk.autoconfigure.OpenTelemetrySdkExtension;
 import io.opentelemetry.sdk.trace.samplers.Sampler;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.extension.RegisterExtension;
@@ -35,7 +36,7 @@ class SpanSamplingTest {
   class SpanSamplingDisabled {
     @RegisterExtension
     public final OpenTelemetrySdkExtension s =
-        OpenTelemetrySdkExtension.builder()
+        OpenTelemetrySdkExtension.configure()
             .withProperty("splunk.snapshot.profiler.enabled", "true")
             .withSampler(Sampler.alwaysOff())
             .with(customizer)
@@ -55,7 +56,7 @@ class SpanSamplingTest {
   class SpanSamplingEnabled {
     @RegisterExtension
     public final OpenTelemetrySdkExtension s =
-        OpenTelemetrySdkExtension.builder()
+        OpenTelemetrySdkExtension.configure()
             .withProperty("splunk.snapshot.profiler.enabled", "true")
             .withSampler(Sampler.alwaysOn())
             .with(customizer)

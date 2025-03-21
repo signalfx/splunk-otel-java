@@ -14,23 +14,13 @@
  * limitations under the License.
  */
 
-package com.splunk.opentelemetry.profiler.exporter;
+package com.splunk.opentelemetry.profiler.snapshot;
 
-import com.splunk.opentelemetry.profiler.context.StackToSpanLinkage;
-import java.time.Instant;
+import java.util.List;
 
-public interface CpuEventExporter {
+/** Works in concert with the {@link StagingArea} to export a batch of {@link StackTrace}s */
+interface StackTraceExporter {
+  StackTraceExporter NOOP = stackTraces -> {};
 
-  void export(StackToSpanLinkage stackToSpanLinkage);
-
-  default void export(
-      long threadId,
-      String threadName,
-      Thread.State threadState,
-      StackTraceElement[] stackTrace,
-      Instant eventTime,
-      String traceId,
-      String spanId) {}
-
-  default void flush() {}
+  void export(List<StackTrace> stackTraces);
 }

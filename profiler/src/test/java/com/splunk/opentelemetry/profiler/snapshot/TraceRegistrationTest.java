@@ -21,6 +21,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import io.opentelemetry.api.trace.SpanKind;
 import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.context.Context;
+import io.opentelemetry.sdk.autoconfigure.OpenTelemetrySdkExtension;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.params.ParameterizedTest;
 
@@ -31,7 +32,7 @@ class TraceRegistrationTest {
 
   @RegisterExtension
   public final OpenTelemetrySdkExtension s =
-      OpenTelemetrySdkExtension.builder()
+      OpenTelemetrySdkExtension.configure()
           .withProperty("splunk.snapshot.profiler.enabled", "true")
           .with(customizer)
           .build();

@@ -30,26 +30,27 @@ import com.google.perftools.profiles.ProfileProto.Sample;
 import com.splunk.opentelemetry.profiler.InstrumentationSource;
 import com.splunk.opentelemetry.profiler.ProfilingDataType;
 import com.splunk.opentelemetry.profiler.context.StackToSpanLinkage;
-import com.splunk.opentelemetry.profiler.events.EventPeriods;
 import com.splunk.opentelemetry.profiler.exporter.StackTraceParser.StackTrace;
 import com.splunk.opentelemetry.profiler.pprof.Pprof;
 import io.opentelemetry.api.logs.Logger;
 import io.opentelemetry.api.trace.SpanContext;
+import io.opentelemetry.api.trace.SpanId;
+import io.opentelemetry.api.trace.TraceId;
 import java.time.Duration;
 import java.time.Instant;
 
 public class PprofCpuEventExporter implements CpuEventExporter {
-  private final EventPeriods eventPeriods;
+  private final Duration period;
   private final int stackDepth;
   private final PprofLogDataExporter pprofLogDataExporter;
   private Pprof pprof = createPprof();
 
   private PprofCpuEventExporter(Builder builder) {
-    this.eventPeriods = builder.eventPeriods;
+    this.period = builder.period;
     this.stackDepth = builder.stackDepth;
     this.pprofLogDataExporter =
         new PprofLogDataExporter(
-            builder.otelLogger, ProfilingDataType.CPU, InstrumentationSource.CONTINUOUS);
+            builder.otelLogger, ProfilingDataType.CPU, builder.instrumentationSource);
   }
 
   @Override
@@ -80,10 +81,7 @@ public class PprofCpuEventExporter implements CpuEventExporter {
 
     String eventName = stackToSpanLinkage.getSourceEventName();
     pprof.addLabel(sample, SOURCE_EVENT_NAME, eventName);
-    Duration eventPeriod = eventPeriods.getDuration(eventName);
-    if (!EventPeriods.UNKNOWN.equals(eventPeriod)) {
-      pprof.addLabel(sample, SOURCE_EVENT_PERIOD, eventPeriod.toMillis());
-    }
+    pprof.addLabel(sample, SOURCE_EVENT_PERIOD, period.toMillis());
     Instant time = stackToSpanLinkage.getTime();
     pprof.addLabel(sample, SOURCE_EVENT_TIME, time.toEpochMilli());
 
@@ -91,6 +89,52 @@ public class PprofCpuEventExporter implements CpuEventExporter {
     if (spanContext != null && spanContext.isValid()) {
       pprof.addLabel(sample, TRACE_ID, spanContext.getTraceId());
       pprof.addLabel(sample, SPAN_ID, spanContext.getSpanId());
+    }
+
+    pprof.getProfileBuilder().addSample(sample);
+  }
+
+  @Override
+  public void export(
+      long threadId,
+      String threadName,
+      Thread.State threadState,
+      StackTraceElement[] stackTrace,
+      Instant eventTime,
+      String traceId,
+      String spanId) {
+    Sample.Builder sample = Sample.newBuilder();
+
+    pprof.addLabel(sample, THREAD_ID, threadId);
+    pprof.addLabel(sample, THREAD_NAME, threadName);
+    pprof.addLabel(sample, THREAD_STATE, threadState.name());
+
+    if (stackTrace.length > stackDepth) {
+      pprof.addLabel(sample, THREAD_STACK_TRUNCATED, true);
+    }
+
+    for (int i = 0; i < Math.min(stackDepth, stackTrace.length); i++) {
+      StackTraceElement ste = stackTrace[i];
+
+      String fileName = ste.getFileName();
+      if (fileName == null) {
+        fileName = "unknown";
+      }
+      String className = ste.getClassName();
+      String methodName = ste.getMethodName();
+      int lineNumber = Math.max(ste.getLineNumber(), 0);
+      sample.addLocationId(pprof.getLocationId(fileName, className, methodName, lineNumber));
+      pprof.incFrameCount();
+    }
+
+    pprof.addLabel(sample, SOURCE_EVENT_PERIOD, period.toMillis());
+    pprof.addLabel(sample, SOURCE_EVENT_TIME, eventTime.toEpochMilli());
+
+    if (TraceId.isValid(traceId)) {
+      pprof.addLabel(sample, TRACE_ID, traceId);
+    }
+    if (SpanId.isValid(spanId)) {
+      pprof.addLabel(sample, SPAN_ID, spanId);
     }
 
     pprof.getProfileBuilder().addSample(sample);
@@ -123,8 +167,9 @@ public class PprofCpuEventExporter implements CpuEventExporter {
 
   public static class Builder {
     private Logger otelLogger;
-    private EventPeriods eventPeriods;
+    private Duration period;
     private int stackDepth;
+    private InstrumentationSource instrumentationSource = InstrumentationSource.CONTINUOUS;
 
     public PprofCpuEventExporter build() {
       return new PprofCpuEventExporter(this);
@@ -135,13 +180,18 @@ public class PprofCpuEventExporter implements CpuEventExporter {
       return this;
     }
 
-    public Builder eventPeriods(EventPeriods eventPeriods) {
-      this.eventPeriods = eventPeriods;
+    public Builder period(Duration period) {
+      this.period = period;
       return this;
     }
 
     public Builder stackDepth(int stackDepth) {
       this.stackDepth = stackDepth;
+      return this;
+    }
+
+    public Builder instrumentationSource(InstrumentationSource instrumentationSource) {
+      this.instrumentationSource = instrumentationSource;
       return this;
     }
   }

@@ -59,33 +59,6 @@ class AsyncStackTraceExporterTest {
     assertEquals(1, logger.records().size());
   }
 
-  /*
-  @Test
-  void setTimestampOnLogMessage() {
-    var stackTrace = Snapshotting.stackTrace().build();
-    var timestamp = Instant.ofEpochMilli(System.currentTimeMillis());
-    var clock = Clock.fixed(timestamp, ZoneId.systemDefault());
-
-    var exporter = new AsyncStackTraceExporter(logger, clock);
-    exporter.export(List.of(stackTrace));
-    await().until(() -> !logger.records().isEmpty());
-
-    var logRecord = logger.records().get(0);
-    assertEquals(timestamp, Instant.ofEpochSecond(0L, logRecord.getTimestampEpochNanos()));
-  }
-
-  @Test
-  void setSeverityToInfoOnLogMessage() {
-    var stackTrace = Snapshotting.stackTrace().build();
-
-    exporter.export(List.of(stackTrace));
-    await().until(() -> !logger.records().isEmpty());
-
-    assertEquals(Severity.INFO, logger.records().get(0).getSeverity());
-  }
-
-   */
-
   @Test
   void encodedLogBodyIsPprofProtobufMessage() {
     var stackTrace = Snapshotting.stackTrace().build();

@@ -170,4 +170,19 @@ class ConfigurationTest {
     double actualSelectionRate = Configuration.getSnapshotSelectionRate(properties);
     assertEquals(0.10, actualSelectionRate);
   }
+
+  @ParameterizedTest
+  @ValueSource(ints =  {128, 512, 2056})
+  void getConfiguredSnapshotProfilerStackDepth(int depth) {
+    var properties = DefaultConfigProperties.create(Map.of(
+        "splunk.snapshot.profiler.max.stack.depth",  String.valueOf(depth)
+    ));
+    assertEquals(depth, Configuration.getSnapshotProfilerStackDepth(properties));
+  }
+
+  @Test
+  void getDefaultSnapshotProfilerStackDepthWhenNotSpecified() {
+    var properties = DefaultConfigProperties.create(Collections.emptyMap());
+    assertEquals(1024, Configuration.getSnapshotProfilerStackDepth(properties));
+  }
 }

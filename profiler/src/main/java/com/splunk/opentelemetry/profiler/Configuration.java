@@ -74,6 +74,8 @@ public class Configuration implements AutoConfigurationCustomizerProvider {
   public static final String CONFIG_KEY_SNAPSHOT_SELECTION_RATE = "splunk.snapshot.selection.rate";
   private static final double DEFAULT_SNAPSHOT_SELECTION_RATE = 0.01;
   private static final double MAX_SNAPSHOT_SELECTION_RATE = 0.10;
+  private static final String CONFIG_KEY_SNAPSHOT_PROFILER_STACK_DEPTH = "splunk.snapshot.profiler.max.stack.depth";
+  private static final int DEFAULT_SNAPSHOT_PROFILER_STACK_DEPTH = 1024;
 
   @Override
   public void customize(AutoConfigurationCustomizer autoConfiguration) {
@@ -210,5 +212,9 @@ public class Configuration implements AutoConfigurationCustomizerProvider {
               + "'");
       return DEFAULT_SNAPSHOT_SELECTION_RATE;
     }
+  }
+
+  public static int getSnapshotProfilerStackDepth(ConfigProperties properties) {
+    return properties.getInt(CONFIG_KEY_SNAPSHOT_PROFILER_STACK_DEPTH, DEFAULT_SNAPSHOT_PROFILER_STACK_DEPTH);
   }
 }

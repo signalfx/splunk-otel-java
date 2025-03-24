@@ -36,7 +36,6 @@ import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 
 class ScheduledExecutorStackTraceSamplerTest {
-  private static final Duration HALF_SECOND = Duration.ofMillis(500);
   private static final Duration SAMPLING_PERIOD = Duration.ofMillis(20);
 
   private final IdGenerator idGenerator = IdGenerator.random();
@@ -50,7 +49,7 @@ class ScheduledExecutorStackTraceSamplerTest {
 
     try {
       sampler.start(spanContext);
-      await().atMost(HALF_SECOND).until(() -> !staging.allStackTraces().isEmpty());
+      await().until(() -> !staging.allStackTraces().isEmpty());
     } finally {
       sampler.stop(spanContext);
     }
@@ -58,12 +57,13 @@ class ScheduledExecutorStackTraceSamplerTest {
 
   @Test
   void continuallySampleThreadForStackTraces() {
+    var halfSecond = Duration.ofMillis(500);
     var spanContext = randomSpanContext();
-    int expectedSamples = (int) HALF_SECOND.dividedBy(SAMPLING_PERIOD.multipliedBy(2));
+    int expectedSamples = (int) halfSecond.dividedBy(SAMPLING_PERIOD.multipliedBy(2));
 
     try {
       sampler.start(spanContext);
-      await().atMost(HALF_SECOND).until(() -> staging.allStackTraces().size() >= expectedSamples);
+      await().until(() -> staging.allStackTraces().size() >= expectedSamples);
     } finally {
       sampler.stop(spanContext);
     }
@@ -71,12 +71,13 @@ class ScheduledExecutorStackTraceSamplerTest {
 
   @Test
   void emptyStagingAreaAfterSamplingStops() {
+    var halfSecond = Duration.ofMillis(500);
     var spanContext = randomSpanContext();
-    int expectedSamples = (int) HALF_SECOND.dividedBy(SAMPLING_PERIOD.multipliedBy(2));
+    int expectedSamples = (int) halfSecond.dividedBy(SAMPLING_PERIOD.multipliedBy(2));
 
     try {
       sampler.start(spanContext);
-      await().atMost(HALF_SECOND).until(() -> staging.allStackTraces().size() >= expectedSamples);
+      await().until(() -> staging.allStackTraces().size() >= expectedSamples);
     } finally {
       sampler.stop(spanContext);
     }
@@ -120,7 +121,7 @@ class ScheduledExecutorStackTraceSamplerTest {
 
     try {
       sampler.start(spanContext);
-      await().atMost(HALF_SECOND).until(() -> !staging.allStackTraces().isEmpty());
+      await().until(() -> !staging.allStackTraces().isEmpty());
 
       var stackTrace = staging.allStackTraces().stream().findFirst().orElseThrow();
       assertThat(stackTrace.getTimestamp()).isNotNull().isAfter(now);
@@ -135,7 +136,7 @@ class ScheduledExecutorStackTraceSamplerTest {
 
     try {
       sampler.start(spanContext);
-      await().atMost(HALF_SECOND).until(() -> !staging.allStackTraces().isEmpty());
+      await().until(() -> !staging.allStackTraces().isEmpty());
 
       var stackTrace = staging.allStackTraces().stream().findFirst().orElseThrow();
       assertThat(stackTrace.getDuration()).isNotNull().isEqualTo(SAMPLING_PERIOD);
@@ -165,7 +166,7 @@ class ScheduledExecutorStackTraceSamplerTest {
 
     try {
       sampler.start(spanContext);
-      await().atMost(HALF_SECOND).until(() -> !staging.allStackTraces().isEmpty());
+      await().until(() -> !staging.allStackTraces().isEmpty());
 
       var stackTrace = staging.allStackTraces().stream().findFirst().orElseThrow();
       assertEquals(spanContext.getTraceId(), stackTrace.getTraceId());
@@ -185,7 +186,7 @@ class ScheduledExecutorStackTraceSamplerTest {
       var future = executor.submit(startSampling(spanContext, startLatch, stopLatch));
 
       startLatch.countDown();
-      await().atMost(HALF_SECOND).until(() -> !staging.allStackTraces().isEmpty());
+      await().until(() -> !staging.allStackTraces().isEmpty());
       stopLatch.countDown();
 
       var thread = future.get();

@@ -69,7 +69,7 @@ class AsyncStackTraceExporter implements StackTraceExporter {
         }
         cpuEventExporter.flush();
       } catch (Exception e) {
-        logger.log(Level.SEVERE, "an exception was thrown", e);
+        logger.log(Level.SEVERE, "An exception was thrown while exporting profiling snapshots.", e);
       }
     };
   }

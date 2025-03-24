@@ -30,7 +30,7 @@ class AsyncStackTraceExporter implements StackTraceExporter {
   private static final java.util.logging.Logger logger =
       java.util.logging.Logger.getLogger(AsyncStackTraceExporter.class.getName());
 
-  private final ExecutorService executor = Executors.newSingleThreadScheduledExecutor();
+  private final ExecutorService executor = Executors.newSingleThreadExecutor();
   private final Logger otelLogger;
   private final Duration samplingPeriod;
   private final int maxDepth;

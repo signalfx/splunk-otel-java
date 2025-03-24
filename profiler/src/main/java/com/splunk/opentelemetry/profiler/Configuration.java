@@ -224,10 +224,8 @@ public class Configuration implements AutoConfigurationCustomizerProvider {
   }
 
   public static Duration getSnapshotProfilerSamplingInterval(ConfigProperties properties) {
-    int millis = properties.getInt(CONFIG_KEY_SNAPSHOT_PROFILER_SAMPLING_INTERVAL, 0);
-    if (millis > 0) {
-      return Duration.ofMillis(millis);
-    }
-    return DEFAULT_SNAPSHOT_PROFILER_SAMPLING_INTERVAL;
+    return properties.getDuration(
+        CONFIG_KEY_SNAPSHOT_PROFILER_SAMPLING_INTERVAL,
+        DEFAULT_SNAPSHOT_PROFILER_SAMPLING_INTERVAL);
   }
 }

@@ -22,9 +22,11 @@ import static com.splunk.opentelemetry.appd.AppdBonusSpanProcessor.APPD_ATTR_APP
 import static com.splunk.opentelemetry.appd.AppdBonusSpanProcessor.APPD_ATTR_BT;
 import static com.splunk.opentelemetry.appd.AppdBonusSpanProcessor.APPD_ATTR_TIER;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.sdk.trace.ReadWriteSpan;
 import org.junit.jupiter.api.Test;
@@ -32,20 +34,46 @@ import org.junit.jupiter.api.Test;
 class AppdBonusSpanProcessorTest {
 
   @Test
-  void onStart() {
+  void shouldSetAppdAttributesOnRootSpan() {
+    // Given
     Context context = mock();
-
     AppdBonusContext appdContext = new AppdBonusContext("myacct", "myapp", "mybt", "mytier");
-    ReadWriteSpan span = mock();
-
     when(context.get(CONTEXT_KEY)).thenReturn(appdContext);
 
+    ReadWriteSpan span = mock();
+
     AppdBonusSpanProcessor testClass = new AppdBonusSpanProcessor();
+
+    // When
     testClass.apply(context, span);
 
+    // Then
     verify(span).setAttribute(APPD_ATTR_ACCT, "myacct");
     verify(span).setAttribute(APPD_ATTR_APP, "myapp");
     verify(span).setAttribute(APPD_ATTR_BT, "mybt");
     verify(span).setAttribute(APPD_ATTR_TIER, "mytier");
+  }
+
+  @Test
+  void shouldNotSetAppdAttributesOnNestedSpans() {
+    // Given
+    Context context = mock();
+    AppdBonusContext appdContext = new AppdBonusContext("myacct", "myapp", "mybt", "mytier");
+    when(context.get(CONTEXT_KEY)).thenReturn(appdContext);
+
+    ReadWriteSpan span = mock();
+    SpanContext parentSpanContext = mock(SpanContext.class);
+    when(span.getParentSpanContext()).thenReturn(parentSpanContext);
+
+    AppdBonusSpanProcessor testClass = new AppdBonusSpanProcessor();
+
+    // When
+    testClass.apply(context, span);
+
+    // Then
+    verify(span, never()).setAttribute(APPD_ATTR_ACCT, "myacct");
+    verify(span, never()).setAttribute(APPD_ATTR_APP, "myapp");
+    verify(span, never()).setAttribute(APPD_ATTR_BT, "mybt");
+    verify(span, never()).setAttribute(APPD_ATTR_TIER, "mytier");
   }
 }

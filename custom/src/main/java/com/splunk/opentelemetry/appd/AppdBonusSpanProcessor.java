@@ -37,17 +37,20 @@ public class AppdBonusSpanProcessor implements OnStartSpanProcessor.OnStart {
     if (ctx == null) {
       return;
     }
-    if (ctx.getAccountId() != null) {
-      span.setAttribute(APPD_ATTR_ACCT, ctx.getAccountId());
-    }
-    if (ctx.getAppId() != null) {
-      span.setAttribute(APPD_ATTR_APP, ctx.getAppId());
-    }
-    if (ctx.getBusinessTransactionId() != null) {
-      span.setAttribute(APPD_ATTR_BT, ctx.getBusinessTransactionId());
-    }
-    if (ctx.getTierId() != null) {
-      span.setAttribute(APPD_ATTR_TIER, ctx.getTierId());
+    // Set attributes only for the root span
+    if (span.getParentSpanContext() == null) {
+      if (ctx.getAccountId() != null) {
+        span.setAttribute(APPD_ATTR_ACCT, ctx.getAccountId());
+      }
+      if (ctx.getAppId() != null) {
+        span.setAttribute(APPD_ATTR_APP, ctx.getAppId());
+      }
+      if (ctx.getBusinessTransactionId() != null) {
+        span.setAttribute(APPD_ATTR_BT, ctx.getBusinessTransactionId());
+      }
+      if (ctx.getTierId() != null) {
+        span.setAttribute(APPD_ATTR_TIER, ctx.getTierId());
+      }
     }
   }
 }

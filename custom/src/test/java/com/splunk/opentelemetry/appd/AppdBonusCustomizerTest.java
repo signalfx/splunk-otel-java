@@ -31,6 +31,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.sdk.autoconfigure.spi.AutoConfigurationCustomizer;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
@@ -98,8 +99,14 @@ class AppdBonusCustomizerTest {
     tpcCaptor.getValue().apply(builder, config);
     ArgumentCaptor<SpanProcessor> spCapture = ArgumentCaptor.forClass(SpanProcessor.class);
     verify(builder).addSpanProcessor(spCapture.capture());
+
     ReadWriteSpan span = mock();
+    SpanContext parentSpanContext = mock(SpanContext.class);
+    when(parentSpanContext.isValid()).thenReturn(false);
+    when(span.getParentSpanContext()).thenReturn(parentSpanContext);
+
     spCapture.getValue().onStart(context, span);
+
     verify(span).setAttribute(APPD_ATTR_APP, appdContext.getAppId());
     verify(span).setAttribute(APPD_ATTR_ACCT, appdContext.getAccountId());
     verify(span).setAttribute(APPD_ATTR_TIER, appdContext.getTierId());

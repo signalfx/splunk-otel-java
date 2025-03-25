@@ -41,6 +41,9 @@ class AppdBonusSpanProcessorTest {
     when(context.get(CONTEXT_KEY)).thenReturn(appdContext);
 
     ReadWriteSpan span = mock();
+    SpanContext parentSpanContext = mock(SpanContext.class);
+    when(parentSpanContext.isValid()).thenReturn(false);
+    when(span.getParentSpanContext()).thenReturn(parentSpanContext);
 
     AppdBonusSpanProcessor testClass = new AppdBonusSpanProcessor();
 
@@ -63,6 +66,8 @@ class AppdBonusSpanProcessorTest {
 
     ReadWriteSpan span = mock();
     SpanContext parentSpanContext = mock(SpanContext.class);
+    when(parentSpanContext.isValid()).thenReturn(true);
+    when(parentSpanContext.isRemote()).thenReturn(false);
     when(span.getParentSpanContext()).thenReturn(parentSpanContext);
 
     AppdBonusSpanProcessor testClass = new AppdBonusSpanProcessor();

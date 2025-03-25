@@ -20,6 +20,7 @@ import static com.splunk.opentelemetry.appd.AppdBonusPropagator.CONTEXT_KEY;
 import static io.opentelemetry.api.common.AttributeKey.stringKey;
 
 import io.opentelemetry.api.common.AttributeKey;
+import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.sdk.extension.incubator.trace.OnStartSpanProcessor;
 import io.opentelemetry.sdk.trace.ReadWriteSpan;
@@ -38,7 +39,8 @@ public class AppdBonusSpanProcessor implements OnStartSpanProcessor.OnStart {
       return;
     }
     // Set attributes only for the root span
-    if (span.getParentSpanContext() == null) {
+    SpanContext parentSpanContext = span.getParentSpanContext();
+    if (!parentSpanContext.isValid() || parentSpanContext.isRemote()) {
       if (ctx.getAccountId() != null) {
         span.setAttribute(APPD_ATTR_ACCT, ctx.getAccountId());
       }

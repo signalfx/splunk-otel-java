@@ -19,6 +19,8 @@ package com.splunk.opentelemetry.profiler.snapshot;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.splunk.opentelemetry.profiler.Configuration;
+import io.opentelemetry.sdk.autoconfigure.OpenTelemetrySdkExtension;
+import io.opentelemetry.sdk.autoconfigure.OpenTelemetrySdkExtension.Builder;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -29,7 +31,7 @@ class AutoConfigureSnapshotVolumePropagatorTest {
   @Test
   void autoConfigureSnapshotVolumePropagator() {
     try (var sdk = newSdk().build()) {
-      var properties = sdk.getProperties();
+      var properties = sdk.getConfig();
       assertThat(properties.getList(OTEL_PROPAGATORS))
           .contains(SnapshotVolumePropagatorProvider.NAME);
     }
@@ -38,7 +40,7 @@ class AutoConfigureSnapshotVolumePropagatorTest {
   @Test
   void snapshotVolumePropagatorMustBeAfterTraceContextAndBaggage() {
     try (var sdk = newSdk().build()) {
-      var properties = sdk.getProperties();
+      var properties = sdk.getConfig();
       assertThat(properties.getList(OTEL_PROPAGATORS))
           .containsExactly("tracecontext", "baggage", SnapshotVolumePropagatorProvider.NAME);
     }
@@ -50,7 +52,7 @@ class AutoConfigureSnapshotVolumePropagatorTest {
         newSdk()
             .withProperty(OTEL_PROPAGATORS, "tracecontext,baggage,some-other-propagator")
             .build()) {
-      var properties = sdk.getProperties();
+      var properties = sdk.getConfig();
       assertThat(properties.getList(OTEL_PROPAGATORS))
           .containsExactly(
               "tracecontext",
@@ -64,7 +66,7 @@ class AutoConfigureSnapshotVolumePropagatorTest {
   @ValueSource(strings = {"baggage", "tracecontext"})
   void doNotDoubleCountDefaultOpenTelemetryPropagators(String propagatorName) {
     try (var sdk = newSdk().withProperty(OTEL_PROPAGATORS, propagatorName).build()) {
-      var properties = sdk.getProperties();
+      var properties = sdk.getConfig();
       assertThat(properties.getList(OTEL_PROPAGATORS)).containsOnlyOnce(propagatorName);
     }
   }
@@ -73,7 +75,7 @@ class AutoConfigureSnapshotVolumePropagatorTest {
   void doNotDoubleCountSnapshotVolumePropagator() {
     try (var sdk =
         newSdk().withProperty(OTEL_PROPAGATORS, SnapshotVolumePropagatorProvider.NAME).build()) {
-      var properties = sdk.getProperties();
+      var properties = sdk.getConfig();
       assertThat(properties.getList(OTEL_PROPAGATORS))
           .containsOnlyOnce(SnapshotVolumePropagatorProvider.NAME);
     }
@@ -83,7 +85,7 @@ class AutoConfigureSnapshotVolumePropagatorTest {
   void doNotAddSnapshotVolumePropagatorWhenTraceSnapshottingIsDisabled() {
     try (var sdk =
         newSdk().withProperty(Configuration.CONFIG_KEY_ENABLE_SNAPSHOT_PROFILER, "false").build()) {
-      var properties = sdk.getProperties();
+      var properties = sdk.getConfig();
       assertThat(properties.getList(OTEL_PROPAGATORS))
           .doesNotContain(SnapshotVolumePropagatorProvider.NAME);
     }
@@ -92,7 +94,7 @@ class AutoConfigureSnapshotVolumePropagatorTest {
   @Test
   void doNotAddSnapshotVolumePropagatorsConfiguredAsNone() {
     try (var sdk = newSdk().withProperty(OTEL_PROPAGATORS, "none").build()) {
-      var properties = sdk.getProperties();
+      var properties = sdk.getConfig();
       assertThat(properties.getList(OTEL_PROPAGATORS))
           .doesNotContain(SnapshotVolumePropagatorProvider.NAME);
     }
@@ -102,7 +104,7 @@ class AutoConfigureSnapshotVolumePropagatorTest {
   void doNotAddTraceContextPropagatorWhenOtherPropagatorsAreExplicitlyConfigured() {
     try (var sdk =
         newSdk().withProperty(OTEL_PROPAGATORS, "some-other-propagator,baggage").build()) {
-      var properties = sdk.getProperties();
+      var properties = sdk.getConfig();
       assertThat(properties.getList(OTEL_PROPAGATORS))
           .containsExactly(
               "some-other-propagator", "baggage", SnapshotVolumePropagatorProvider.NAME);
@@ -112,15 +114,15 @@ class AutoConfigureSnapshotVolumePropagatorTest {
   @Test
   void addBaggagePropagatorWhenOtherPropagatorsAreExplicitlyConfiguredButBaggageIsMissing() {
     try (var sdk = newSdk().withProperty(OTEL_PROPAGATORS, "some-other-propagator").build()) {
-      var properties = sdk.getProperties();
+      var properties = sdk.getConfig();
       assertThat(properties.getList(OTEL_PROPAGATORS))
           .containsExactly(
               "some-other-propagator", "baggage", SnapshotVolumePropagatorProvider.NAME);
     }
   }
 
-  private OpenTelemetrySdkExtension.Builder newSdk() {
-    return OpenTelemetrySdkExtension.builder()
+  private Builder newSdk() {
+    return OpenTelemetrySdkExtension.configure()
         .withProperty(Configuration.CONFIG_KEY_ENABLE_SNAPSHOT_PROFILER, "true")
         .with(new SnapshotProfilingSdkCustomizer());
   }

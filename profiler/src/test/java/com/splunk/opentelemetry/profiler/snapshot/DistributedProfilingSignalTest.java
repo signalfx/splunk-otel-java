@@ -23,6 +23,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import com.splunk.opentelemetry.profiler.snapshot.simulation.ExitCall;
 import com.splunk.opentelemetry.profiler.snapshot.simulation.Message;
 import com.splunk.opentelemetry.profiler.snapshot.simulation.Server;
+import io.opentelemetry.sdk.autoconfigure.OpenTelemetrySdkExtension;
 import java.time.Duration;
 import java.util.function.UnaryOperator;
 import org.junit.jupiter.api.Test;
@@ -35,7 +36,7 @@ class DistributedProfilingSignalTest {
 
   @RegisterExtension
   public final OpenTelemetrySdkExtension downstreamSdk =
-      OpenTelemetrySdkExtension.builder()
+      OpenTelemetrySdkExtension.configure()
           .withProperty("splunk.snapshot.profiler.enabled", "true")
           .with(downstreamCustomizer)
           .with(new SnapshotVolumePropagator(() -> true))
@@ -49,7 +50,7 @@ class DistributedProfilingSignalTest {
           .build();
 
   @RegisterExtension
-  public final OpenTelemetrySdkExtension middleSdk = OpenTelemetrySdkExtension.builder().build();
+  public final OpenTelemetrySdkExtension middleSdk = OpenTelemetrySdkExtension.configure().build();
 
   @RegisterExtension
   public final Server middle =
@@ -61,7 +62,7 @@ class DistributedProfilingSignalTest {
 
   @RegisterExtension
   public final OpenTelemetrySdkExtension upstreamSdk =
-      OpenTelemetrySdkExtension.builder()
+      OpenTelemetrySdkExtension.configure()
           .withProperty("splunk.snapshot.profiler.enabled", "true")
           .with(upstreamCustomizer)
           .with(new SnapshotVolumePropagator(() -> true))

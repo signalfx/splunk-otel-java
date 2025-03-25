@@ -16,28 +16,47 @@
 
 package com.splunk.opentelemetry.profiler.snapshot;
 
+import com.google.common.annotations.VisibleForTesting;
 import io.opentelemetry.api.trace.SpanContext;
 import java.lang.management.ThreadInfo;
+import java.time.Duration;
 import java.time.Instant;
 
 class StackTrace {
-  static StackTrace from(Instant timestamp, ThreadInfo thread, SpanContext spanContext) {
+  static StackTrace from(Instant timestamp, Duration duration, ThreadInfo thread, SpanContext spanContext) {
     return new StackTrace(
-        timestamp, thread.getThreadId(), thread.getThreadName(), thread.getStackTrace(), spanContext);
+        timestamp,
+        duration,
+        thread.getThreadId(),
+        thread.getThreadName(),
+        thread.getThreadState(),
+        thread.getStackTrace(),
+        spanContext
+        );
   }
 
   private final Instant timestamp;
+  private final Duration duration;
   private final long threadId;
   private final String threadName;
+  private final Thread.State threadState;
   private final StackTraceElement[] stackFrames;
   private final SpanContext spanContext;
 
-  private StackTrace(
-      Instant timestamp, long threadId, String threadName, StackTraceElement[] stackFrames,
+  @VisibleForTesting
+  StackTrace(
+      Instant timestamp,
+      Duration duration,
+      long threadId,
+      String threadName,
+      Thread.State threadState,
+      StackTraceElement[] stackFrames,
       SpanContext spanContext) {
     this.timestamp = timestamp;
+    this.duration = duration;
     this.threadId = threadId;
     this.threadName = threadName;
+    this.threadState = threadState;
     this.stackFrames = stackFrames;
     this.spanContext = spanContext;
   }
@@ -46,12 +65,20 @@ class StackTrace {
     return timestamp;
   }
 
+  Duration getDuration() {
+    return duration;
+  }
+
   long getThreadId() {
     return threadId;
   }
 
   String getThreadName() {
     return threadName;
+  }
+
+  Thread.State getThreadState() {
+    return threadState;
   }
 
   StackTraceElement[] getStackFrames() {

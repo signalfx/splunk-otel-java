@@ -77,14 +77,12 @@ public abstract class ProfilerSmokeTest {
     }
   }
 
-  @Ignore
   public static class TestJdk11 extends ProfilerSmokeTest {
     TestJdk11() {
       super("11");
     }
   }
 
-  @Ignore
   public static class TestJdk17 extends ProfilerSmokeTest {
     TestJdk17() {
       super("17");
@@ -276,6 +274,7 @@ public abstract class ProfilerSmokeTest {
                 "-javaagent:/" + TestContainerManager.TARGET_AGENT_FILENAME,
                 "-Dotel.resource.attributes=service.name=smoketest,deployment.environment=smokeytown",
                 "-Dotel.javaagent.debug=true",
+                "-Dotel.logs.exporter=none",
                 "-Dsplunk.profiler.enabled=true",
                 "-Dsplunk.profiler.memory.enabled=true",
                 "-Dsplunk.profiler.directory=/app/jfr",

@@ -38,7 +38,7 @@ public class AppdBonusSpanProcessor implements OnStartSpanProcessor.OnStart {
     if (ctx == null) {
       return;
     }
-    // Set attributes only for the root span
+    // Set attributes only for the local root span
     SpanContext parentSpanContext = span.getParentSpanContext();
     if (!parentSpanContext.isValid() || parentSpanContext.isRemote()) {
       if (ctx.getAccountId() != null) {

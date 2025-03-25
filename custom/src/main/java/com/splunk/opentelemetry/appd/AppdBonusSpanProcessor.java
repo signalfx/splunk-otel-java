@@ -20,6 +20,7 @@ import static com.splunk.opentelemetry.appd.AppdBonusPropagator.CONTEXT_KEY;
 import static io.opentelemetry.api.common.AttributeKey.stringKey;
 
 import io.opentelemetry.api.common.AttributeKey;
+import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.sdk.extension.incubator.trace.OnStartSpanProcessor;
 import io.opentelemetry.sdk.trace.ReadWriteSpan;
@@ -37,17 +38,21 @@ public class AppdBonusSpanProcessor implements OnStartSpanProcessor.OnStart {
     if (ctx == null) {
       return;
     }
-    if (ctx.getAccountId() != null) {
-      span.setAttribute(APPD_ATTR_ACCT, ctx.getAccountId());
-    }
-    if (ctx.getAppId() != null) {
-      span.setAttribute(APPD_ATTR_APP, ctx.getAppId());
-    }
-    if (ctx.getBusinessTransactionId() != null) {
-      span.setAttribute(APPD_ATTR_BT, ctx.getBusinessTransactionId());
-    }
-    if (ctx.getTierId() != null) {
-      span.setAttribute(APPD_ATTR_TIER, ctx.getTierId());
+    // Set attributes only for the local root span
+    SpanContext parentSpanContext = span.getParentSpanContext();
+    if (!parentSpanContext.isValid() || parentSpanContext.isRemote()) {
+      if (ctx.getAccountId() != null) {
+        span.setAttribute(APPD_ATTR_ACCT, ctx.getAccountId());
+      }
+      if (ctx.getAppId() != null) {
+        span.setAttribute(APPD_ATTR_APP, ctx.getAppId());
+      }
+      if (ctx.getBusinessTransactionId() != null) {
+        span.setAttribute(APPD_ATTR_BT, ctx.getBusinessTransactionId());
+      }
+      if (ctx.getTierId() != null) {
+        span.setAttribute(APPD_ATTR_TIER, ctx.getTierId());
+      }
     }
   }
 }

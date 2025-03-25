@@ -16,28 +16,32 @@
 
 package com.splunk.opentelemetry.profiler.snapshot;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.api.trace.TraceFlags;
 import io.opentelemetry.api.trace.TraceState;
 import io.opentelemetry.sdk.trace.IdGenerator;
 import java.time.Duration;
+import java.time.Instant;
 import java.util.Collections;
+import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 
 class ScheduledExecutorStackTraceSamplerTest {
-  private static final Duration HALF_SECOND = Duration.ofMillis(500);
-  private static final Duration PERIOD = Duration.ofMillis(20);
+  private static final Duration SAMPLING_PERIOD = Duration.ofMillis(20);
 
   private final IdGenerator idGenerator = IdGenerator.random();
   private final InMemoryStagingArea staging = new InMemoryStagingArea();
   private final ScheduledExecutorStackTraceSampler sampler =
-      new ScheduledExecutorStackTraceSampler(staging, PERIOD);
+      new ScheduledExecutorStackTraceSampler(staging, SAMPLING_PERIOD);
 
   @Test
   void takeStackTraceSampleForGivenThread() {
@@ -45,7 +49,7 @@ class ScheduledExecutorStackTraceSamplerTest {
 
     try {
       sampler.start(spanContext);
-      await().atMost(HALF_SECOND).until(() -> !staging.allStackTraces().isEmpty());
+      await().until(() -> !staging.allStackTraces().isEmpty());
     } finally {
       sampler.stop(spanContext);
     }
@@ -53,12 +57,13 @@ class ScheduledExecutorStackTraceSamplerTest {
 
   @Test
   void continuallySampleThreadForStackTraces() {
+    var halfSecond = Duration.ofMillis(500);
     var spanContext = randomSpanContext();
-    int expectedSamples = (int) HALF_SECOND.dividedBy(PERIOD.multipliedBy(2));
+    int expectedSamples = (int) halfSecond.dividedBy(SAMPLING_PERIOD.multipliedBy(2));
 
     try {
       sampler.start(spanContext);
-      await().atMost(HALF_SECOND).until(() -> staging.allStackTraces().size() >= expectedSamples);
+      await().until(() -> staging.allStackTraces().size() >= expectedSamples);
     } finally {
       sampler.stop(spanContext);
     }
@@ -66,12 +71,13 @@ class ScheduledExecutorStackTraceSamplerTest {
 
   @Test
   void emptyStagingAreaAfterSamplingStops() {
+    var halfSecond = Duration.ofMillis(500);
     var spanContext = randomSpanContext();
-    int expectedSamples = (int) HALF_SECOND.dividedBy(PERIOD.multipliedBy(2));
+    int expectedSamples = (int) halfSecond.dividedBy(SAMPLING_PERIOD.multipliedBy(2));
 
     try {
       sampler.start(spanContext);
-      await().atMost(HALF_SECOND).until(() -> staging.allStackTraces().size() >= expectedSamples);
+      await().until(() -> staging.allStackTraces().size() >= expectedSamples);
     } finally {
       sampler.stop(spanContext);
     }
@@ -108,17 +114,116 @@ class ScheduledExecutorStackTraceSamplerTest {
     }
   }
 
-  private Runnable startSampling(
+  @Test
+  void includeTimestampOnStackTraces() {
+    var now = Instant.now();
+    var spanContext = randomSpanContext();
+
+    try {
+      sampler.start(spanContext);
+      await().until(() -> !staging.allStackTraces().isEmpty());
+
+      var stackTrace = staging.allStackTraces().stream().findFirst().orElseThrow();
+      assertThat(stackTrace.getTimestamp()).isNotNull().isAfter(now);
+    } finally {
+      sampler.stop(spanContext);
+    }
+  }
+
+  @Test
+  void includeDefaultSamplingPeriodOnFirstRecordedStackTraces() {
+    var spanContext = randomSpanContext();
+
+    try {
+      sampler.start(spanContext);
+      await().until(() -> !staging.allStackTraces().isEmpty());
+
+      var stackTrace = staging.allStackTraces().stream().findFirst().orElseThrow();
+      assertThat(stackTrace.getDuration()).isNotNull().isEqualTo(SAMPLING_PERIOD);
+    } finally {
+      sampler.stop(spanContext);
+    }
+  }
+
+  @Test
+  void calculateSamplingPeriodAfterFirstRecordedStackTraces() {
+    var spanContext = randomSpanContext();
+
+    try {
+      sampler.start(spanContext);
+      await().until(() -> staging.allStackTraces().size() > 1);
+
+      var stackTrace = staging.allStackTraces().stream().skip(1).findFirst().orElseThrow();
+      assertThat(stackTrace.getDuration()).isNotNull().isEqualTo(SAMPLING_PERIOD);
+    } finally {
+      sampler.stop(spanContext);
+    }
+  }
+
+  @Test
+  void includeTraceIdOnStackTraces() {
+    var spanContext = randomSpanContext();
+
+    try {
+      sampler.start(spanContext);
+      await().until(() -> !staging.allStackTraces().isEmpty());
+
+      var stackTrace = staging.allStackTraces().stream().findFirst().orElseThrow();
+      assertEquals(spanContext.getTraceId(), stackTrace.getTraceId());
+    } finally {
+      sampler.stop(spanContext);
+    }
+  }
+
+  @Test
+  void includeThreadDetailsOnStackTraces() throws Exception {
+    var executor = Executors.newSingleThreadExecutor();
+    var traceId = idGenerator.generateTraceId();
+    var spanContext = randomSpanContext(traceId);
+    var startLatch = new CountDownLatch(1);
+    var stopLatch = new CountDownLatch(1);
+    try {
+      var future = executor.submit(startSampling(spanContext, startLatch, stopLatch));
+
+      startLatch.countDown();
+      await().until(() -> !staging.allStackTraces().isEmpty());
+      stopLatch.countDown();
+
+      var thread = future.get();
+      var stackTrace = staging.allStackTraces().stream().findFirst().orElseThrow();
+      assertAll(
+          () -> assertEquals(thread.id, stackTrace.getThreadId()),
+          () -> assertEquals(thread.name, stackTrace.getThreadName()),
+          () -> assertNotNull(stackTrace.getThreadState()),
+          () -> assertThat(stackTrace.getStackFrames()).isNotEmpty());
+    } finally {
+      sampler.stop(spanContext);
+      executor.shutdownNow();
+    }
+  }
+
+  private Callable<ThreadInfo> startSampling(
       SpanContext spanContext, CountDownLatch startSpanLatch, CountDownLatch shutdownLatch) {
     return (() -> {
       try {
         startSpanLatch.await();
         sampler.start(spanContext);
         shutdownLatch.await();
+        return new ThreadInfo(Thread.currentThread().getId(), Thread.currentThread().getName());
       } catch (InterruptedException e) {
         throw new RuntimeException(e);
       }
     });
+  }
+
+  private static class ThreadInfo {
+    public final long id;
+    public final String name;
+
+    private ThreadInfo(long id, String name) {
+      this.id = id;
+      this.name = name;
+    }
   }
 
   private SpanContext randomSpanContext() {

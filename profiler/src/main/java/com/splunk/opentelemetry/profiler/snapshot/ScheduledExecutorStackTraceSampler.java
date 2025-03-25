@@ -16,7 +16,6 @@
 
 package com.splunk.opentelemetry.profiler.snapshot;
 
-import com.google.common.annotations.VisibleForTesting;
 import io.opentelemetry.api.trace.SpanContext;
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadInfo;
@@ -36,8 +35,6 @@ class ScheduledExecutorStackTraceSampler implements StackTraceSampler {
   private static final Logger logger =
       Logger.getLogger(ScheduledExecutorStackTraceSampler.class.getName());
   private static final int SCHEDULER_INITIAL_DELAY = 0;
-  private static final Duration SCHEDULER_PERIOD = Duration.ofMillis(20);
-  private static final int MAX_ENTRY_DEPTH = 200;
 
   private final ConcurrentMap<String, ScheduledExecutorService> samplers =
       new ConcurrentHashMap<>();
@@ -45,11 +42,6 @@ class ScheduledExecutorStackTraceSampler implements StackTraceSampler {
   private final StagingArea stagingArea;
   private final Duration samplingPeriod;
 
-  ScheduledExecutorStackTraceSampler(StagingArea stagingArea) {
-    this(stagingArea, SCHEDULER_PERIOD);
-  }
-
-  @VisibleForTesting
   ScheduledExecutorStackTraceSampler(StagingArea stagingArea, Duration samplingPeriod) {
     this.stagingArea = stagingArea;
     this.samplingPeriod = samplingPeriod;
@@ -62,7 +54,8 @@ class ScheduledExecutorStackTraceSampler implements StackTraceSampler {
         traceId -> {
           ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
           scheduler.scheduleAtFixedRate(
-              new StackTraceGatherer(traceId, Thread.currentThread().getId()),
+              new StackTraceGatherer(
+                  samplingPeriod, spanContext.getTraceId(), Thread.currentThread().getId()),
               SCHEDULER_INITIAL_DELAY,
               samplingPeriod.toMillis(),
               TimeUnit.MILLISECONDS);
@@ -80,20 +73,22 @@ class ScheduledExecutorStackTraceSampler implements StackTraceSampler {
   }
 
   class StackTraceGatherer implements Runnable {
+    private final Duration samplingPeriod;
     private final String traceId;
     private final long threadId;
 
-    StackTraceGatherer(String traceId, long threadId) {
+    StackTraceGatherer(Duration samplingPeriod, String traceId, long threadId) {
+      this.samplingPeriod = samplingPeriod;
       this.traceId = traceId;
       this.threadId = threadId;
     }
 
     @Override
     public void run() {
-      Instant now = Instant.now();
       try {
-        ThreadInfo threadInfo = threadMXBean.getThreadInfo(threadId, MAX_ENTRY_DEPTH);
-        StackTrace stackTrace = StackTrace.from(now, threadInfo);
+        Instant now = Instant.now();
+        ThreadInfo threadInfo = threadMXBean.getThreadInfo(threadId, Integer.MAX_VALUE);
+        StackTrace stackTrace = StackTrace.from(now, samplingPeriod, traceId, threadInfo);
         stagingArea.stage(traceId, stackTrace);
       } catch (Exception e) {
         logger.log(Level.SEVERE, e, samplerErrorMessage(traceId, threadId));

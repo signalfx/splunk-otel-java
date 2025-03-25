@@ -16,10 +16,30 @@
 
 package com.splunk.opentelemetry.profiler.snapshot;
 
-class NoopStagingArea implements StagingArea {
-  @Override
-  public void stage(String traceId, StackTrace stackTrace) {}
+import com.google.common.annotations.VisibleForTesting;
+import java.util.function.Supplier;
+
+class StackTraceExporterProvider implements Supplier<StackTraceExporter> {
+  public static final StackTraceExporterProvider INSTANCE = new StackTraceExporterProvider();
+
+  private StackTraceExporter exporter;
 
   @Override
-  public void empty(String traceId) {}
+  public StackTraceExporter get() {
+    if (exporter == null) {
+      return StackTraceExporter.NOOP;
+    }
+    return exporter;
+  }
+
+  void configure(StackTraceExporter exporter) {
+    this.exporter = exporter;
+  }
+
+  @VisibleForTesting
+  void reset() {
+    exporter = null;
+  }
+
+  private StackTraceExporterProvider() {}
 }

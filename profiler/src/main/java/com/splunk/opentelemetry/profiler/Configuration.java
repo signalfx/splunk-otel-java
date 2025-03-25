@@ -74,6 +74,12 @@ public class Configuration implements AutoConfigurationCustomizerProvider {
   public static final String CONFIG_KEY_SNAPSHOT_SELECTION_RATE = "splunk.snapshot.selection.rate";
   private static final double DEFAULT_SNAPSHOT_SELECTION_RATE = 0.01;
   private static final double MAX_SNAPSHOT_SELECTION_RATE = 0.10;
+  private static final String CONFIG_KEY_SNAPSHOT_PROFILER_STACK_DEPTH =
+      "splunk.snapshot.profiler.max.stack.depth";
+  private static final int DEFAULT_SNAPSHOT_PROFILER_STACK_DEPTH = 1024;
+  private static final String CONFIG_KEY_SNAPSHOT_PROFILER_SAMPLING_INTERVAL =
+      "splunk.snapshot.profiler.sampling.interval";
+  public static final Duration DEFAULT_SNAPSHOT_PROFILER_SAMPLING_INTERVAL = Duration.ofMillis(20);
 
   @Override
   public void customize(AutoConfigurationCustomizer autoConfiguration) {
@@ -181,6 +187,10 @@ public class Configuration implements AutoConfigurationCustomizerProvider {
     return Integer.parseInt(javaSpecVersion);
   }
 
+  public static boolean isSnapshotProfilingEnabled(ConfigProperties properties) {
+    return properties.getBoolean(CONFIG_KEY_ENABLE_SNAPSHOT_PROFILER, false);
+  }
+
   public static double getSnapshotSelectionRate(ConfigProperties properties) {
     String selectionRatePropertyValue =
         properties.getString(
@@ -206,5 +216,16 @@ public class Configuration implements AutoConfigurationCustomizerProvider {
               + "'");
       return DEFAULT_SNAPSHOT_SELECTION_RATE;
     }
+  }
+
+  public static int getSnapshotProfilerStackDepth(ConfigProperties properties) {
+    return properties.getInt(
+        CONFIG_KEY_SNAPSHOT_PROFILER_STACK_DEPTH, DEFAULT_SNAPSHOT_PROFILER_STACK_DEPTH);
+  }
+
+  public static Duration getSnapshotProfilerSamplingInterval(ConfigProperties properties) {
+    return properties.getDuration(
+        CONFIG_KEY_SNAPSHOT_PROFILER_SAMPLING_INTERVAL,
+        DEFAULT_SNAPSHOT_PROFILER_SAMPLING_INTERVAL);
   }
 }

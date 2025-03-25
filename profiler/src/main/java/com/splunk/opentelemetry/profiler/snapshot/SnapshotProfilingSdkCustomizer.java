@@ -16,14 +16,14 @@
 
 package com.splunk.opentelemetry.profiler.snapshot;
 
-import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_ENABLE_SNAPSHOT_PROFILER;
-
 import com.google.auto.service.AutoService;
 import com.google.common.annotations.VisibleForTesting;
+import com.splunk.opentelemetry.profiler.Configuration;
 import io.opentelemetry.sdk.autoconfigure.spi.AutoConfigurationCustomizer;
 import io.opentelemetry.sdk.autoconfigure.spi.AutoConfigurationCustomizerProvider;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import io.opentelemetry.sdk.trace.SdkTracerProviderBuilder;
+import java.time.Duration;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Map;
@@ -34,16 +34,29 @@ import java.util.function.Function;
 @AutoService(AutoConfigurationCustomizerProvider.class)
 public class SnapshotProfilingSdkCustomizer implements AutoConfigurationCustomizerProvider {
   private final TraceRegistry registry;
-  private final StackTraceSampler sampler;
+  private final Function<ConfigProperties, StackTraceSampler> samplerProvider;
 
   public SnapshotProfilingSdkCustomizer() {
-    this(new TraceRegistry(), new ScheduledExecutorStackTraceSampler(new NoopStagingArea()));
+    this(new TraceRegistry(), stackTraceSamplerProvider());
+  }
+
+  private static Function<ConfigProperties, StackTraceSampler> stackTraceSamplerProvider() {
+    return properties -> {
+      Duration samplingPeriod = Configuration.getSnapshotProfilerSamplingInterval(properties);
+      return new ScheduledExecutorStackTraceSampler(
+          new AccumulatingStagingArea(StackTraceExporterProvider.INSTANCE), samplingPeriod);
+    };
   }
 
   @VisibleForTesting
-  SnapshotProfilingSdkCustomizer(TraceRegistry registry, StackTraceSampler sampler) {
+  SnapshotProfilingSdkCustomizer(TraceRegistry registry, StackTraceSampler samplerProvider) {
+    this(registry, properties -> samplerProvider);
+  }
+
+  private SnapshotProfilingSdkCustomizer(
+      TraceRegistry registry, Function<ConfigProperties, StackTraceSampler> samplerProvider) {
     this.registry = registry;
-    this.sampler = sampler;
+    this.samplerProvider = samplerProvider;
   }
 
   @Override
@@ -57,6 +70,7 @@ public class SnapshotProfilingSdkCustomizer implements AutoConfigurationCustomiz
       snapshotProfilingSpanProcessor(TraceRegistry registry) {
     return (builder, properties) -> {
       if (snapshotProfilingEnabled(properties)) {
+        StackTraceSampler sampler = samplerProvider.apply(properties);
         return builder.addSpanProcessor(new SnapshotProfilingSpanProcessor(registry, sampler));
       }
       return builder;
@@ -97,7 +111,7 @@ public class SnapshotProfilingSdkCustomizer implements AutoConfigurationCustomiz
     return configuredPropagators.isEmpty();
   }
 
-  private boolean snapshotProfilingEnabled(ConfigProperties config) {
-    return config.getBoolean(CONFIG_KEY_ENABLE_SNAPSHOT_PROFILER, false);
+  private boolean snapshotProfilingEnabled(ConfigProperties properties) {
+    return Configuration.isSnapshotProfilingEnabled(properties);
   }
 }

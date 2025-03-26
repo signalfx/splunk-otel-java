@@ -27,7 +27,9 @@ import com.splunk.opentelemetry.profiler.pprof.PprofUtils;
 import io.opentelemetry.api.trace.SpanKind;
 import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.context.Context;
+import io.opentelemetry.context.ContextStorage;
 import io.opentelemetry.sdk.autoconfigure.OpenTelemetrySdkExtension;
+import io.opentelemetry.sdk.testing.context.SettableContextStorageProvider;
 import io.opentelemetry.sdk.testing.exporter.InMemoryLogRecordExporter;
 import java.util.Map;
 import java.util.Set;
@@ -36,6 +38,8 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.extension.AfterEachCallback;
+import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.params.ParameterizedTest;
 
@@ -43,13 +47,19 @@ class SnapshotProfilingLogExportingTest {
   private static final Predicate<Map.Entry<String, Object>> TRACE_ID_LABEL =
       kv -> ProfilingSemanticAttributes.TRACE_ID.getKey().equals(kv.getKey());
 
+  @RegisterExtension private final ResetContextStorage spanTrackingActivator = new ResetContextStorage();
+
   private final InMemoryLogRecordExporter logExporter = InMemoryLogRecordExporter.create();
+  private final SnapshotProfilingSdkCustomizer customizer = Snapshotting.customizer()
+          .withRealStackTraceSampler()
+          .with(spanTrackingActivator)
+          .build();
 
   @RegisterExtension
   public final OpenTelemetrySdkExtension sdk =
       OpenTelemetrySdkExtension.configure()
           .withProperty("splunk.snapshot.profiler.enabled", "true")
-          .with(Snapshotting.customizer().withRealStackTraceSampler().build())
+          .with(customizer)
           .with(new StackTraceExporterActivator(new OtelLoggerFactory(properties -> logExporter)))
           .build();
 
@@ -87,5 +97,19 @@ class SnapshotProfilingLogExportingTest {
 
   private Function<Sample, Stream<Map.Entry<String, Object>>> sampleLabels(Profile profile) {
     return sample -> PprofUtils.toLabelString(sample, profile).entrySet().stream();
+  }
+
+  private static class ResetContextStorage implements SpanTrackingActivator, AfterEachCallback {
+    @Override
+    public void activate(TraceRegistry registry) {
+      ActiveSpanTracker.configure(ContextStorage.defaultStorage());
+      ActiveSpanTracker.INSTANCE.configure(registry);
+      SettableContextStorageProvider.setContextStorage(ActiveSpanTracker.INSTANCE);
+    }
+
+    @Override
+    public void afterEach(ExtensionContext context) {
+      SettableContextStorageProvider.setContextStorage(ContextStorage.defaultStorage());
+    }
   }
 }

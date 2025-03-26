@@ -21,6 +21,7 @@ import java.time.Duration;
 class SnapshotProfilingSdkCustomizerBuilder {
   private TraceRegistry registry = new TraceRegistry();
   private StackTraceSampler sampler = new ObservableStackTraceSampler();
+  private SpanTrackingActivator spanTrackingActivator = registry -> {};
 
   SnapshotProfilingSdkCustomizerBuilder with(TraceRegistry registry) {
     this.registry = registry;
@@ -40,7 +41,12 @@ class SnapshotProfilingSdkCustomizerBuilder {
     return this;
   }
 
+  SnapshotProfilingSdkCustomizerBuilder with(SpanTrackingActivator spanTrackingActivator) {
+    this.spanTrackingActivator = spanTrackingActivator;
+    return this;
+  }
+
   SnapshotProfilingSdkCustomizer build() {
-    return new SnapshotProfilingSdkCustomizer(registry, sampler);
+    return new SnapshotProfilingSdkCustomizer(registry, sampler, spanTrackingActivator);
   }
 }

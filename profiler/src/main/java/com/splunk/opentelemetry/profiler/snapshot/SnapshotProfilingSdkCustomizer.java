@@ -18,7 +18,6 @@ package com.splunk.opentelemetry.profiler.snapshot;
 
 import com.google.auto.service.AutoService;
 import com.google.common.annotations.VisibleForTesting;
-import io.opentelemetry.context.ContextStorage;
 import com.splunk.opentelemetry.profiler.Configuration;
 import io.opentelemetry.sdk.autoconfigure.spi.AutoConfigurationCustomizer;
 import io.opentelemetry.sdk.autoconfigure.spi.AutoConfigurationCustomizerProvider;
@@ -36,9 +35,10 @@ import java.util.function.Function;
 public class SnapshotProfilingSdkCustomizer implements AutoConfigurationCustomizerProvider {
   private final TraceRegistry registry;
   private final Function<ConfigProperties, StackTraceSampler> samplerProvider;
+  private final SpanTrackingActivator spanTrackingActivator;
 
   public SnapshotProfilingSdkCustomizer() {
-    this(new TraceRegistry(), stackTraceSamplerProvider());
+    this(new TraceRegistry(), stackTraceSamplerProvider(), new InterceptingContextStorageSpanTrackingActivator());
   }
 
   private static Function<ConfigProperties, StackTraceSampler> stackTraceSamplerProvider() {
@@ -52,14 +52,18 @@ public class SnapshotProfilingSdkCustomizer implements AutoConfigurationCustomiz
   }
 
   @VisibleForTesting
-  SnapshotProfilingSdkCustomizer(TraceRegistry registry, StackTraceSampler samplerProvider) {
-    this(registry, properties -> samplerProvider);
+  SnapshotProfilingSdkCustomizer(
+      TraceRegistry registry, StackTraceSampler sampler, SpanTrackingActivator activator) {
+    this(registry, properties -> sampler, activator);
   }
 
   private SnapshotProfilingSdkCustomizer(
-      TraceRegistry registry, Function<ConfigProperties, StackTraceSampler> samplerProvider) {
+      TraceRegistry registry,
+      Function<ConfigProperties, StackTraceSampler> samplerProvider,
+      SpanTrackingActivator spanTrackingActivator) {
     this.registry = registry;
     this.samplerProvider = samplerProvider;
+    this.spanTrackingActivator = spanTrackingActivator;
   }
 
   @Override
@@ -115,19 +119,10 @@ public class SnapshotProfilingSdkCustomizer implements AutoConfigurationCustomiz
     return configuredPropagators.isEmpty();
   }
 
-  private static boolean INTERCEPT_OTEL_CONTEXT = true;
-
   private Function<ConfigProperties, Map<String, String>> startTrackingActiveSpans(TraceRegistry registry) {
     return properties -> {
       if (snapshotProfilingEnabled(properties)) {
-        if (INTERCEPT_OTEL_CONTEXT) {
-          ContextStorage.addWrapper(contextStorage -> {
-            ActiveSpanTracker.configure(contextStorage);
-            return ActiveSpanTracker.INSTANCE;
-          });
-          ActiveSpanTracker.INSTANCE.configure(registry);
-          INTERCEPT_OTEL_CONTEXT = false;
-        }
+        spanTrackingActivator.activate(registry);
       }
       return Collections.emptyMap();
     };

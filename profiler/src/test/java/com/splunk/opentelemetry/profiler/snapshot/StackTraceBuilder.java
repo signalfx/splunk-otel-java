@@ -16,9 +16,6 @@
 
 package com.splunk.opentelemetry.profiler.snapshot;
 
-import io.opentelemetry.api.trace.SpanContext;
-import io.opentelemetry.api.trace.TraceFlags;
-import io.opentelemetry.api.trace.TraceState;
 import java.time.Duration;
 import java.time.Instant;
 
@@ -29,8 +26,7 @@ class StackTraceBuilder {
   private String threadName;
   private Thread.State state;
   private Exception exception;
-  private String traceId;
-  private String spanId;
+  private Snapshotting.SpanContextBuilder spanContextBuilder = Snapshotting.spanContext();
 
   public StackTraceBuilder with(Instant timestamp) {
     this.timestamp = timestamp;
@@ -63,17 +59,17 @@ class StackTraceBuilder {
   }
 
   public StackTraceBuilder withTraceId(String traceId) {
-    this.traceId = traceId;
+    spanContextBuilder = spanContextBuilder.withTraceId(traceId);
     return this;
   }
 
   public StackTraceBuilder withSpanId(String spanId) {
-    this.spanId = spanId;
+    spanContextBuilder = spanContextBuilder.withSpanId(spanId);
     return this;
   }
 
   StackTrace build() {
-    var spanContext = SpanContext.create(traceId, spanId, TraceFlags.getDefault(), TraceState.getDefault());
+    var spanContext = spanContextBuilder.build();
     return new StackTrace(
         timestamp, duration, threadId, threadName, state, exception.getStackTrace(), spanContext);
   }

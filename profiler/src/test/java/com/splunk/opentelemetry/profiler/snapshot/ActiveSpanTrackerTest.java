@@ -7,9 +7,7 @@ import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.api.trace.StatusCode;
-import io.opentelemetry.api.trace.TraceFlags;
 import io.opentelemetry.api.trace.TraceId;
-import io.opentelemetry.api.trace.TraceState;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.context.ContextKey;
 import io.opentelemetry.context.ContextStorage;
@@ -213,21 +211,20 @@ class ActiveSpanTrackerTest {
     }
 
     static class Builder {
-      private SpanContext context = SpanContext.create(IdGenerator.random().generateTraceId(), IdGenerator.random()
-          .generateSpanId(), TraceFlags.getSampled(), TraceState.getDefault());
+      private Snapshotting.SpanContextBuilder spanContextBuilder = Snapshotting.spanContext();
 
       Builder withTraceId(String traceId) {
-        context = SpanContext.create(traceId, context.getSpanId(), context.getTraceFlags(), context.getTraceState());
+        spanContextBuilder = spanContextBuilder.withTraceId(traceId);
         return this;
       }
 
       Builder unsampled() {
-        context = SpanContext.create(context.getTraceId(), context.getSpanId(), TraceFlags.getDefault(), context.getTraceState());
+        spanContextBuilder = spanContextBuilder.unsampled();
         return this;
       }
 
       FakeSpan build() {
-        return new FakeSpan(context);
+        return new FakeSpan(spanContextBuilder.build());
       }
     }
   }

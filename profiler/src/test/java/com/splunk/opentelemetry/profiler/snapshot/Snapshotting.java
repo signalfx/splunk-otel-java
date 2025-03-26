@@ -16,6 +16,9 @@
 
 package com.splunk.opentelemetry.profiler.snapshot;
 
+import io.opentelemetry.api.trace.SpanContext;
+import io.opentelemetry.api.trace.TraceFlags;
+import io.opentelemetry.api.trace.TraceState;
 import io.opentelemetry.sdk.trace.IdGenerator;
 import java.time.Duration;
 import java.time.Instant;
@@ -44,6 +47,34 @@ class Snapshotting {
 
   static String randomTraceId() {
     return ID_GENERATOR.generateTraceId();
+  }
+
+  static SpanContextBuilder spanContext() {
+    return new SpanContextBuilder();
+  }
+
+  static class SpanContextBuilder {
+    private SpanContext spanContext = SpanContext.create(Snapshotting.randomTraceId(),
+        ID_GENERATOR.generateSpanId(), TraceFlags.getSampled(), TraceState.getDefault());
+
+    SpanContextBuilder withTraceId(String traceId) {
+      spanContext = SpanContext.create(traceId, spanContext.getSpanId(), spanContext.getTraceFlags(), spanContext.getTraceState());
+      return this;
+    }
+
+    SpanContextBuilder withSpanId(String spanId) {
+      spanContext = SpanContext.create(spanContext.getTraceId(), spanId, spanContext.getTraceFlags(), spanContext.getTraceState());
+      return this;
+    }
+
+    SpanContextBuilder unsampled() {
+      spanContext = SpanContext.create(spanContext.getTraceId(), spanContext.getSpanId(), TraceFlags.getDefault(), spanContext.getTraceState());
+      return this;
+    }
+
+    SpanContext build() {
+      return spanContext;
+    }
   }
 
   private Snapshotting() {}

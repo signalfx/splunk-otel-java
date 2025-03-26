@@ -23,9 +23,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import io.opentelemetry.api.trace.SpanContext;
-import io.opentelemetry.api.trace.TraceFlags;
-import io.opentelemetry.api.trace.TraceState;
-import io.opentelemetry.sdk.trace.IdGenerator;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Collections;
@@ -38,7 +35,6 @@ import org.junit.jupiter.api.Test;
 class ScheduledExecutorStackTraceSamplerTest {
   private static final Duration SAMPLING_PERIOD = Duration.ofMillis(20);
 
-  private final IdGenerator idGenerator = IdGenerator.random();
   private final InMemoryStagingArea staging = new InMemoryStagingArea();
   private final InMemorySpanTracker spanTracker = new InMemorySpanTracker();
   private final ScheduledExecutorStackTraceSampler sampler =
@@ -46,7 +42,7 @@ class ScheduledExecutorStackTraceSamplerTest {
 
   @Test
   void takeStackTraceSampleForGivenThread() {
-    var spanContext = randomSpanContext();
+    var spanContext = Snapshotting.spanContext().build();
 
     try {
       sampler.start(spanContext);
@@ -59,7 +55,7 @@ class ScheduledExecutorStackTraceSamplerTest {
   @Test
   void continuallySampleThreadForStackTraces() {
     var halfSecond = Duration.ofMillis(500);
-    var spanContext = randomSpanContext();
+    var spanContext = Snapshotting.spanContext().build();
     int expectedSamples = (int) halfSecond.dividedBy(SAMPLING_PERIOD.multipliedBy(2));
 
     try {
@@ -73,7 +69,7 @@ class ScheduledExecutorStackTraceSamplerTest {
   @Test
   void emptyStagingAreaAfterSamplingStops() {
     var halfSecond = Duration.ofMillis(500);
-    var spanContext = randomSpanContext();
+    var spanContext = Snapshotting.spanContext().build();
     int expectedSamples = (int) halfSecond.dividedBy(SAMPLING_PERIOD.multipliedBy(2));
 
     try {
@@ -91,9 +87,9 @@ class ScheduledExecutorStackTraceSamplerTest {
     var executor = Executors.newFixedThreadPool(2);
     var startSpanLatch = new CountDownLatch(1);
     var shutdownLatch = new CountDownLatch(1);
-    var traceId = idGenerator.generateTraceId();
-    var spanContext2 = randomSpanContext(traceId);
-    var spanContext1 = randomSpanContext(traceId);
+    var traceId = Snapshotting.randomTraceId();
+    var spanContext2 = Snapshotting.spanContext().withTraceId(traceId).build();
+    var spanContext1 = Snapshotting.spanContext().withTraceId(traceId).build();
 
     executor.submit(startSampling(spanContext1, startSpanLatch, shutdownLatch));
     executor.submit(startSampling(spanContext2, startSpanLatch, shutdownLatch));
@@ -118,7 +114,7 @@ class ScheduledExecutorStackTraceSamplerTest {
   @Test
   void includeTimestampOnStackTraces() {
     var now = Instant.now();
-    var spanContext = randomSpanContext();
+    var spanContext = Snapshotting.spanContext().build();
 
     try {
       sampler.start(spanContext);
@@ -133,7 +129,7 @@ class ScheduledExecutorStackTraceSamplerTest {
 
   @Test
   void includeDefaultSamplingPeriodOnFirstRecordedStackTraces() {
-    var spanContext = randomSpanContext();
+    var spanContext = Snapshotting.spanContext().build();
 
     try {
       sampler.start(spanContext);
@@ -148,7 +144,7 @@ class ScheduledExecutorStackTraceSamplerTest {
 
   @Test
   void calculateSamplingPeriodAfterFirstRecordedStackTraces() {
-    var spanContext = randomSpanContext();
+    var spanContext = Snapshotting.spanContext().build();
 
     try {
       sampler.start(spanContext);
@@ -164,8 +160,7 @@ class ScheduledExecutorStackTraceSamplerTest {
   @Test
   void includeThreadDetailsOnStackTraces() throws Exception {
     var executor = Executors.newSingleThreadExecutor();
-    var traceId = idGenerator.generateTraceId();
-    var spanContext = randomSpanContext(traceId);
+    var spanContext = Snapshotting.spanContext().build();
     var startLatch = new CountDownLatch(1);
     var stopLatch = new CountDownLatch(1);
     try {
@@ -204,7 +199,7 @@ class ScheduledExecutorStackTraceSamplerTest {
 
   @Test
   void includeTraceIdOnStackTraces() {
-    var spanContext = randomSpanContext();
+    var spanContext = Snapshotting.spanContext().build();
     spanTracker.store(spanContext.getTraceId(), spanContext);
 
     try {
@@ -220,7 +215,7 @@ class ScheduledExecutorStackTraceSamplerTest {
 
   @Test
   void includeSpanIdOnStackTraces() {
-    var spanContext = randomSpanContext();
+    var spanContext = Snapshotting.spanContext().build();
     spanTracker.store(spanContext.getTraceId(), spanContext);
 
     try {
@@ -242,14 +237,5 @@ class ScheduledExecutorStackTraceSamplerTest {
       this.id = id;
       this.name = name;
     }
-  }
-
-  private SpanContext randomSpanContext() {
-    return randomSpanContext(idGenerator.generateTraceId());
-  }
-
-  private SpanContext randomSpanContext(String traceId) {
-    return SpanContext.create(
-        traceId, idGenerator.generateSpanId(), TraceFlags.getDefault(), TraceState.getDefault());
   }
 }

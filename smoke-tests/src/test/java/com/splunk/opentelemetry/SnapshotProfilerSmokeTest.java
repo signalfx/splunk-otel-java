@@ -127,7 +127,7 @@ public abstract class SnapshotProfilerSmokeTest {
   private void generateSomeSpans() throws Exception {
     logger.info("Generating some spans...");
     int port = containerManager.getTargetMappedPort(PETCLINIC_PORT);
-    for (int i = 0; i < 100; i++) {
+    for (int i = 0; i < 1000; i++) {
       doGetRequest("http://localhost:" + port + "/petclinic/api/vets");
       doGetRequest("http://localhost:" + port + "/petclinic/api/visits");
     }
@@ -156,6 +156,7 @@ public abstract class SnapshotProfilerSmokeTest {
                 "-Dotel.javaagent.debug=true",
                 "-Dotel.logs.exporter=none",
                 "-Dsplunk.snapshot.profiler.enabled=true",
+                "-Dsplunk.snapshot.selection.rate=0.1",
                 "-Dsplunk.profiler.logs-endpoint=http://collector:4318/v1/logs",
                 // uncomment to enable exporting traces
                 // "-Dotel.exporter.otlp.endpoint=http://collector:4318",

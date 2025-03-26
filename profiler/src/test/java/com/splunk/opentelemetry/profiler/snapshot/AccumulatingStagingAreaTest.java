@@ -24,13 +24,12 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 
 class AccumulatingStagingAreaTest {
-  private final IdGenerator idGenerator = IdGenerator.random();
   private final InMemoryStackTraceExporter exporter = new InMemoryStackTraceExporter();
   private final AccumulatingStagingArea stagingArea = new AccumulatingStagingArea(() -> exporter);
 
   @Test
   void exportStackTracesToLogExporter() {
-    var traceId = idGenerator.generateTraceId();
+    var traceId = IdGenerator.random().generateTraceId();
     var stackTrace = Snapshotting.stackTrace().build();
 
     stagingArea.stage(traceId, stackTrace);
@@ -41,14 +40,14 @@ class AccumulatingStagingAreaTest {
 
   @Test
   void onlyExportStackTracesWhenAtLeastOneHasBeenStaged() {
-    var traceId = idGenerator.generateTraceId();
+    var traceId = IdGenerator.random().generateTraceId();
     stagingArea.empty(traceId);
     assertEquals(Collections.emptyList(), exporter.stackTraces());
   }
 
   @Test
   void exportMultipleStackTracesToLogExporter() {
-    var traceId = idGenerator.generateTraceId();
+    var traceId = IdGenerator.random().generateTraceId();
     var stackTrace1 = Snapshotting.stackTrace().withId(1).withName("one").build();
     var stackTrace2 = Snapshotting.stackTrace().withId(1).withName("two").build();
 
@@ -61,8 +60,8 @@ class AccumulatingStagingAreaTest {
 
   @Test
   void exportStackTracesForOnlySpecifiedThread() {
-    var traceId1 = idGenerator.generateTraceId();
-    var traceId2 = idGenerator.generateTraceId();
+    var traceId1 = IdGenerator.random().generateTraceId();
+    var traceId2 = IdGenerator.random().generateTraceId();
     var stackTrace1 = Snapshotting.stackTrace().withId(1).withName("one").build();
     var stackTrace2 = Snapshotting.stackTrace().withId(1).withName("two").build();
 
@@ -75,8 +74,8 @@ class AccumulatingStagingAreaTest {
 
   @Test
   void exportStackTracesForMultipleThreads() {
-    var traceId1 = idGenerator.generateTraceId();
-    var traceId2 = idGenerator.generateTraceId();
+    var traceId1 = IdGenerator.random().generateTraceId();
+    var traceId2 = IdGenerator.random().generateTraceId();
     var stackTrace1 = Snapshotting.stackTrace().withId(1).withName("one").build();
     var stackTrace2 = Snapshotting.stackTrace().withId(1).withName("two").build();
 
@@ -90,7 +89,7 @@ class AccumulatingStagingAreaTest {
 
   @Test
   void stackTracesAreNotExportedMultipleTimes() {
-    var traceId = idGenerator.generateTraceId();
+    var traceId = IdGenerator.random().generateTraceId();
     var stackTrace = Snapshotting.stackTrace().build();
 
     stagingArea.stage(traceId, stackTrace);

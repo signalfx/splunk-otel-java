@@ -30,6 +30,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
+import io.opentelemetry.sdk.trace.IdGenerator;
 import org.junit.jupiter.api.Test;
 
 class ScheduledExecutorStackTraceSamplerTest {
@@ -87,7 +88,7 @@ class ScheduledExecutorStackTraceSamplerTest {
     var executor = Executors.newFixedThreadPool(2);
     var startSpanLatch = new CountDownLatch(1);
     var shutdownLatch = new CountDownLatch(1);
-    var traceId = Snapshotting.randomTraceId();
+    var traceId = IdGenerator.random().generateTraceId();
     var spanContext2 = Snapshotting.spanContext().withTraceId(traceId).build();
     var spanContext1 = Snapshotting.spanContext().withTraceId(traceId).build();
 

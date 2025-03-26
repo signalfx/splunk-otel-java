@@ -26,7 +26,6 @@ import java.util.Random;
 
 class Snapshotting {
   private static final Random RANDOM = new Random();
-  private static final IdGenerator ID_GENERATOR = IdGenerator.random();
 
   static SnapshotProfilingSdkCustomizerBuilder customizer() {
     return new SnapshotProfilingSdkCustomizerBuilder();
@@ -37,16 +36,12 @@ class Snapshotting {
     return new StackTraceBuilder()
         .with(Instant.now())
         .with(Duration.ofMillis(20))
-        .withTraceId(randomTraceId())
-        .withSpanId(ID_GENERATOR.generateSpanId())
+        .withTraceId(IdGenerator.random().generateTraceId())
+        .withSpanId(IdGenerator.random().generateSpanId())
         .withId(threadId)
         .withName("thread-" + threadId)
         .with(Thread.State.WAITING)
         .with(new RuntimeException());
-  }
-
-  static String randomTraceId() {
-    return ID_GENERATOR.generateTraceId();
   }
 
   static SpanContextBuilder spanContext() {
@@ -54,8 +49,8 @@ class Snapshotting {
   }
 
   static class SpanContextBuilder {
-    private SpanContext spanContext = SpanContext.create(Snapshotting.randomTraceId(),
-        ID_GENERATOR.generateSpanId(), TraceFlags.getSampled(), TraceState.getDefault());
+    private SpanContext spanContext = SpanContext.create(IdGenerator.random().generateTraceId(),
+        IdGenerator.random().generateSpanId(), TraceFlags.getSampled(), TraceState.getDefault());
 
     SpanContextBuilder withTraceId(String traceId) {
       spanContext = SpanContext.create(traceId, spanContext.getSpanId(), spanContext.getTraceFlags(), spanContext.getTraceState());

@@ -1,5 +1,8 @@
 package com.splunk.opentelemetry.profiler.snapshot;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.trace.Span;
@@ -17,24 +20,28 @@ import io.opentelemetry.sdk.trace.IdGenerator;
 import io.opentelemetry.sdk.trace.data.LinkData;
 import io.opentelemetry.sdk.trace.samplers.Sampler;
 import io.opentelemetry.sdk.trace.samplers.SamplingResult;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
-import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 class ActiveSpanTrackerTest {
   private final TestStorage contextStorage = new TestStorage();
   private final TogglableTraceRegistry registry = new TogglableTraceRegistry();
   private final ActiveSpanTracker spanTracker = ActiveSpanTracker.INSTANCE;
+  private static boolean wasReady = false;
+
+  @BeforeAll
+  static void setupClass() {
+    wasReady = ActiveSpanTracker.isReady();
+    System.out.println(wasReady);
+  }
 
   @BeforeEach
   void setup() {
@@ -45,6 +52,13 @@ class ActiveSpanTrackerTest {
   @AfterEach
   void teardown() {
     ActiveSpanTracker.reset();
+  }
+
+  @AfterAll
+  static void teardownClass() {
+    if (wasReady) {
+      ActiveSpanTracker.configure(ContextStorage.defaultStorage());
+    }
   }
 
   @Test
@@ -255,7 +269,6 @@ class ActiveSpanTrackerTest {
       return new TestScope(this, previousContext);
     }
 
-    @Nullable
     @Override
     public Context current() {
       return contexts.get();

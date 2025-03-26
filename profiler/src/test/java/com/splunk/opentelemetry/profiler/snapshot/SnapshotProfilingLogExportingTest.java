@@ -64,8 +64,10 @@ class SnapshotProfilingLogExportingTest {
     String traceId;
     try (var ignored = Context.root().with(Volume.HIGHEST).makeCurrent()) {
       var span = tracer.spanBuilder("root").setSpanKind(kind).startSpan();
-      traceId = span.getSpanContext().getTraceId();
-      Thread.sleep(250);
+      try (var spanScope = span.makeCurrent()) {
+        traceId = span.getSpanContext().getTraceId();
+        Thread.sleep(250);
+      }
       span.end();
     }
 

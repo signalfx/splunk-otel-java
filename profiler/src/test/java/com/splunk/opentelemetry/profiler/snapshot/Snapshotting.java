@@ -35,6 +35,7 @@ class Snapshotting {
         .with(Instant.now())
         .with(Duration.ofMillis(20))
         .withTraceId(randomTraceId())
+        .withSpanId(ID_GENERATOR.generateSpanId())
         .withId(threadId)
         .withName("thread-" + threadId)
         .with(Thread.State.WAITING)

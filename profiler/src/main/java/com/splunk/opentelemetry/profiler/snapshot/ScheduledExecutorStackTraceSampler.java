@@ -90,12 +90,16 @@ class ScheduledExecutorStackTraceSampler implements StackTraceSampler {
       try {
         Instant now = Instant.now();
         ThreadInfo threadInfo = threadMXBean.getThreadInfo(threadId, Integer.MAX_VALUE);
-        SpanContext spanContext = spanTracker.getActiveSpan(traceId).orElse(null);
+        SpanContext spanContext = retrieveActiveSpan(traceId);
         StackTrace stackTrace = StackTrace.from(now, samplingPeriod, threadInfo, spanContext);
         stagingArea.stage(traceId, stackTrace);
       } catch (Exception e) {
         logger.log(Level.SEVERE, e, samplerErrorMessage(traceId, threadId));
       }
+    }
+
+    private SpanContext retrieveActiveSpan(String traceId) {
+      return spanTracker.getActiveSpan(traceId).orElse(SpanContext.getInvalid());
     }
 
     private Supplier<String> samplerErrorMessage(String traceId, long threadId) {

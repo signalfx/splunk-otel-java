@@ -1,5 +1,6 @@
 package com.splunk.opentelemetry.profiler.snapshot;
 
+import com.google.common.annotations.VisibleForTesting;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.context.Context;
@@ -19,6 +20,7 @@ class ActiveSpanTracker implements ContextStorage, SpanTracker {
     DELEGATE = contextStorage;
   }
 
+  @VisibleForTesting
   static void reset() {
     DELEGATE = null;
   }

@@ -24,10 +24,6 @@ class ActiveSpanTracker implements ContextStorage, SpanTracker {
   @Override
   public Scope attach(Context toAttach) {
     Scope scope = delegate.attach(toAttach);
-    if (registry == null) {
-      return scope;
-    }
-
     Span span = Span.fromContext(toAttach);
     if (doNotTrack(span)) {
       return scope;

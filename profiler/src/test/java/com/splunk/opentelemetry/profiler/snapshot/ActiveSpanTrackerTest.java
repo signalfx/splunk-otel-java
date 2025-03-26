@@ -29,7 +29,7 @@ class ActiveSpanTrackerTest {
 
   @Test
   void currentContextComesFromOpenTelemetryContextStorage() {
-    var context = spanTracker.root().with(ContextKey.named("test-key"), "value");
+    var context = contextStorage.root().with(ContextKey.named("test-key"), "value");
     try (var ignored = spanTracker.attach(context)) {
       assertEquals(contextStorage.current(), spanTracker.current());
     }
@@ -45,7 +45,7 @@ class ActiveSpanTrackerTest {
   void trackActiveSpanWhenNewContextAttached() {
     var span = FakeSpan.randomSpan();
     var spanContext = span.getSpanContext();
-    var context = spanTracker.root().with(span);
+    var context = contextStorage.root().with(span);
     registry.register(spanContext);
 
     try (var ignored = spanTracker.attach(context)) {
@@ -57,7 +57,7 @@ class ActiveSpanTrackerTest {
   @Test
   void trackActiveSpanAfterAcrossMultipleContextChanges() {
     var root = FakeSpan.randomSpan();
-    var context = spanTracker.root().with(root);
+    var context = contextStorage.root().with(root);
     registry.register(root.getSpanContext());
 
     try (var ignored = spanTracker.attach(context)) {
@@ -75,7 +75,7 @@ class ActiveSpanTrackerTest {
   void noActiveSpanForTraceAfterSpansScopeIsClosed() {
     var span = FakeSpan.randomSpan();
     var spanContext = span.getSpanContext();
-    var context = spanTracker.root().with(span);
+    var context = contextStorage.root().with(span);
     registry.register(spanContext);
 
     var scope = spanTracker.attach(context);
@@ -105,17 +105,17 @@ class ActiveSpanTrackerTest {
 
   private Callable<Scope> attach(Span span) {
     return () -> {
-      var context = spanTracker.root().with(span);
+      var context = contextStorage.root().with(span);
       return spanTracker.attach(context);
     };
   }
 
   @Test
   void doNotTrackSpanWhenNoSpanPresentInContext() {
-    var context = spanTracker.root().with(ContextKey.named("test-key"), "value");
+    var context = contextStorage.root().with(ContextKey.named("test-key"), "value");
     try (var scope = spanTracker.attach(context)) {
       assertEquals(Optional.empty(), spanTracker.getActiveSpan(TraceId.getInvalid()));
-      assertInstanceOf(TestScope.class, scope);
+      assertInstanceOf(TestStorage.TestScope.class, scope);
     }
   }
 
@@ -123,13 +123,13 @@ class ActiveSpanTrackerTest {
   void doNotTrackSpanWhenSpanIsNotSampled() {
     var span = FakeSpan.randomSpan();
     span.stopRecording();
-    var context = spanTracker.root().with(span);
+    var context = contextStorage.root().with(span);
     registry.register(span.getSpanContext());
 
     try (var scope = spanTracker.attach(context)) {
       var traceId = span.getSpanContext().getTraceId();
       assertEquals(Optional.empty(), spanTracker.getActiveSpan(traceId));
-      assertInstanceOf(TestScope.class, scope);
+      assertInstanceOf(TestStorage.TestScope.class, scope);
     }
   }
 
@@ -138,25 +138,25 @@ class ActiveSpanTrackerTest {
     registry.toggle(TogglableTraceRegistry.State.OFF);
 
     var span = FakeSpan.randomSpan();
-    var context = spanTracker.root().with(span);
+    var context = contextStorage.root().with(span);
 
     try (var scope = spanTracker.attach(context)) {
       var traceId = span.getSpanContext().getTraceId();
       assertEquals(Optional.empty(), spanTracker.getActiveSpan(traceId));
-      assertInstanceOf(TestScope.class, scope);
+      assertInstanceOf(TestStorage.TestScope.class, scope);
     }
   }
 
   @Test
   void doNotTrackContinuallyTrackSameSpan() {
     var span = FakeSpan.randomSpan();
-    var context = spanTracker.root().with(span);
+    var context = contextStorage.root().with(span);
     registry.register(span.getSpanContext());
 
     try (var ignored = spanTracker.attach(context)) {
       var newContext = context.with(ContextKey.named("test-key"), "value");
       try (var scope = spanTracker.attach(newContext)) {
-        assertInstanceOf(TestScope.class, scope);
+        assertInstanceOf(TestStorage.TestScope.class, scope);
       }
     }
   }
@@ -165,7 +165,7 @@ class ActiveSpanTrackerTest {
     private final ThreadLocal<Context> contexts = new ThreadLocal<>();
 
     @Override
-    public Scope attach(Context toAttach) {
+    public TestScope attach(Context toAttach) {
       var previousContext = contexts.get();
       store(toAttach);
       return new TestScope(this, previousContext);
@@ -179,20 +179,20 @@ class ActiveSpanTrackerTest {
     void store(Context context) {
       contexts.set(context);
     }
-  }
 
-  private static class TestScope implements Scope {
-    private final TestStorage storage;
-    private final Context beforeAttach;
+    static class TestScope implements Scope {
+      private final TestStorage storage;
+      private final Context beforeAttach;
 
-    private TestScope(TestStorage storage, Context beforeAttach) {
-      this.storage = storage;
-      this.beforeAttach = beforeAttach;
-    }
+      private TestScope(TestStorage storage, Context beforeAttach) {
+        this.storage = storage;
+        this.beforeAttach = beforeAttach;
+      }
 
-    @Override
-    public void close() {
-      storage.store(beforeAttach);
+      @Override
+      public void close() {
+        storage.store(beforeAttach);
+      }
     }
   }
 
@@ -247,12 +247,10 @@ class ActiveSpanTrackerTest {
     }
 
     @Override
-    public void end() {
-    }
+    public void end() {}
 
     @Override
-    public void end(long timestamp, TimeUnit unit) {
-    }
+    public void end(long timestamp, TimeUnit unit) {}
 
     @Override
     public SpanContext getSpanContext() {

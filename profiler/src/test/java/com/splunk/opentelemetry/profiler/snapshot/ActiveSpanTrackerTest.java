@@ -41,7 +41,7 @@ class ActiveSpanTrackerTest {
 
   @Test
   void trackActiveSpanWhenNewContextAttached() {
-    var span = FakeSpan.randomSpan();
+    var span = FakeSpan.builder().build();
     var spanContext = span.getSpanContext();
     var context = Context.root().with(span);
     registry.register(spanContext);
@@ -54,12 +54,12 @@ class ActiveSpanTrackerTest {
 
   @Test
   void trackActiveSpanAfterAcrossMultipleContextChanges() {
-    var root = FakeSpan.randomSpan();
+    var root = FakeSpan.builder().build();
     var context = Context.root().with(root);
     registry.register(root.getSpanContext());
 
     try (var ignoredScope1 = spanTracker.attach(context)) {
-      var span = FakeSpan.newSpan(root.getSpanContext().getTraceId());
+      var span = FakeSpan.builder().withTraceId(root.getSpanContext().getTraceId()).build();
       var spanContext = span.getSpanContext();
       context = context.with(span);
       try (var ignoredScope2 = spanTracker.attach(context)) {
@@ -71,7 +71,7 @@ class ActiveSpanTrackerTest {
 
   @Test
   void noActiveSpanForTraceAfterSpansScopeIsClosed() {
-    var span = FakeSpan.randomSpan();
+    var span = FakeSpan.builder().build();
     var spanContext = span.getSpanContext();
     var context = Context.root().with(span);
     registry.register(spanContext);
@@ -85,8 +85,8 @@ class ActiveSpanTrackerTest {
   @Test
   void trackActiveSpanForMultipleTraces() throws Exception {
     var executor = Executors.newSingleThreadExecutor();
-    var root1 = FakeSpan.randomSpan();
-    var root2 = FakeSpan.randomSpan();
+    var root1 = FakeSpan.builder().build();
+    var root2 = FakeSpan.builder().build();
     registry.register(root1.getSpanContext());
     registry.register(root2.getSpanContext());
 
@@ -118,8 +118,7 @@ class ActiveSpanTrackerTest {
 
   @Test
   void doNotTrackSpanWhenSpanIsNotSampled() {
-    var unsampledSpanContext = SpanContext.create("", "", TraceFlags.getDefault(),  TraceState.getDefault());
-    var span = FakeSpan.newSpan(unsampledSpanContext);
+    var span = FakeSpan.builder().unsampled().build();
     var context = Context.root().with(span);
     registry.register(span.getSpanContext());
 
@@ -133,7 +132,7 @@ class ActiveSpanTrackerTest {
   void doNotTrackSpanTraceIsNotRegisteredForSnapshotting() {
     registry.toggle(TogglableTraceRegistry.State.OFF);
 
-    var span = FakeSpan.randomSpan();
+    var span = FakeSpan.builder().build();
     var context = Context.root().with(span);
 
     try (var ignored = spanTracker.attach(context)) {
@@ -144,7 +143,7 @@ class ActiveSpanTrackerTest {
 
   @Test
   void doNotTrackContinuallyTrackSameSpan() {
-    var span = FakeSpan.randomSpan();
+    var span = FakeSpan.builder().build();
     var context = Context.root().with(span);
     registry.register(span.getSpanContext());
 
@@ -157,17 +156,8 @@ class ActiveSpanTrackerTest {
   }
 
   private static class FakeSpan implements Span {
-    public static FakeSpan randomSpan() {
-      return newSpan(IdGenerator.random().generateTraceId());
-    }
-
-    public static FakeSpan newSpan(String traceId) {
-      var spanContext = SpanContext.create(traceId, IdGenerator.random().generateSpanId(), TraceFlags.getSampled(), TraceState.getDefault());
-      return new FakeSpan(spanContext);
-    }
-
-    public static FakeSpan newSpan(SpanContext spanContext) {
-      return new FakeSpan(spanContext);
+    static Builder builder() {
+      return new Builder();
     }
 
     private final SpanContext spanContext;
@@ -220,6 +210,25 @@ class ActiveSpanTrackerTest {
     @Override
     public boolean isRecording() {
       return true;
+    }
+
+    static class Builder {
+      private SpanContext context = SpanContext.create(IdGenerator.random().generateTraceId(), IdGenerator.random()
+          .generateSpanId(), TraceFlags.getSampled(), TraceState.getDefault());
+
+      Builder withTraceId(String traceId) {
+        context = SpanContext.create(traceId, context.getSpanId(), context.getTraceFlags(), context.getTraceState());
+        return this;
+      }
+
+      Builder unsampled() {
+        context = SpanContext.create(context.getTraceId(), context.getSpanId(), TraceFlags.getDefault(), context.getTraceState());
+        return this;
+      }
+
+      FakeSpan build() {
+        return new FakeSpan(context);
+      }
     }
   }
 }

@@ -29,9 +29,6 @@ import io.opentelemetry.sdk.trace.IdGenerator;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
@@ -254,18 +251,5 @@ class ScheduledExecutorStackTraceSamplerTest {
   private SpanContext randomSpanContext(String traceId) {
     return SpanContext.create(
         traceId, idGenerator.generateSpanId(), TraceFlags.getDefault(), TraceState.getDefault());
-  }
-
-  private static class InMemorySpanTracker implements SpanTracker {
-    private final Map<String, SpanContext> stackTraces = new HashMap<>();
-
-    void store(String traceId, SpanContext spanContext) {
-      stackTraces.put(traceId, spanContext);
-    }
-
-    @Override
-    public Optional<SpanContext> getActiveSpan(String traceId) {
-      return Optional.ofNullable(stackTraces.get(traceId));
-    }
   }
 }

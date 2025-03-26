@@ -9,10 +9,10 @@ class InterceptingContextStorageSpanTrackingActivator implements SpanTrackingAct
   public void activate(TraceRegistry registry) {
     if (INTERCEPT_OTEL_CONTEXT) {
       ContextStorage.addWrapper(contextStorage -> {
-        ActiveSpanTracker.configure(contextStorage);
-        return ActiveSpanTracker.INSTANCE;
+        ActiveSpanTracker tracker = new ActiveSpanTracker(contextStorage, registry);
+        SpanTrackerProvider.INSTANCE.configure(tracker);
+        return tracker;
       });
-      ActiveSpanTracker.INSTANCE.configure(registry);
       INTERCEPT_OTEL_CONTEXT = false;
     }
   }

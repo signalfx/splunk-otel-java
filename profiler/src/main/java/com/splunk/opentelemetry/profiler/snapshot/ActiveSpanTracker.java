@@ -1,6 +1,5 @@
 package com.splunk.opentelemetry.profiler.snapshot;
 
-import com.google.common.annotations.VisibleForTesting;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.context.Context;
@@ -12,38 +11,19 @@ import java.util.concurrent.ConcurrentMap;
 import javax.annotation.Nullable;
 
 class ActiveSpanTracker implements ContextStorage, SpanTracker {
-  static final ActiveSpanTracker INSTANCE = new ActiveSpanTracker();
-
-  private static ContextStorage DELEGATE;
-
-  static void configure(ContextStorage contextStorage) {
-    DELEGATE = contextStorage;
-  }
-
-  @VisibleForTesting
-  static void reset() {
-    DELEGATE = null;
-  }
-
-  static boolean isReady() {
-    return DELEGATE != null;
-  }
-
   private final ConcurrentMap<String, SpanContext> activeSpans = new ConcurrentHashMap<>();
 
-  private TraceRegistry registry;
+  private final ContextStorage delegate;
+  private final TraceRegistry registry;
 
-  void configure(TraceRegistry registry) {
+  ActiveSpanTracker(ContextStorage delegate, TraceRegistry registry) {
+    this.delegate = delegate;
     this.registry = registry;
   }
 
   @Override
   public Scope attach(Context toAttach) {
-    if (!isReady()) {
-      return Scope.noop();
-    }
-
-    Scope scope = DELEGATE.attach(toAttach);
+    Scope scope = delegate.attach(toAttach);
     if (registry == null) {
       return scope;
     }
@@ -78,13 +58,11 @@ class ActiveSpanTracker implements ContextStorage, SpanTracker {
   @Nullable
   @Override
   public Context current() {
-    return DELEGATE.current();
+    return delegate.current();
   }
 
   @Override
   public Optional<SpanContext> getActiveSpan(String traceId) {
     return Optional.ofNullable(activeSpans.get(traceId));
   }
-
-  private ActiveSpanTracker() {}
 }

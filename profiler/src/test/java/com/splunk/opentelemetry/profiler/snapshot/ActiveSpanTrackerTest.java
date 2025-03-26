@@ -7,7 +7,6 @@ import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanContext;
-import io.opentelemetry.api.trace.SpanKind;
 import io.opentelemetry.api.trace.StatusCode;
 import io.opentelemetry.api.trace.TraceFlags;
 import io.opentelemetry.api.trace.TraceId;
@@ -17,49 +16,16 @@ import io.opentelemetry.context.ContextKey;
 import io.opentelemetry.context.ContextStorage;
 import io.opentelemetry.context.Scope;
 import io.opentelemetry.sdk.trace.IdGenerator;
-import io.opentelemetry.sdk.trace.data.LinkData;
-import io.opentelemetry.sdk.trace.samplers.Sampler;
-import io.opentelemetry.sdk.trace.samplers.SamplingResult;
-import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 class ActiveSpanTrackerTest {
   private final TestStorage contextStorage = new TestStorage();
   private final TogglableTraceRegistry registry = new TogglableTraceRegistry();
-  private final ActiveSpanTracker spanTracker = ActiveSpanTracker.INSTANCE;
-  private static boolean wasReady = false;
-
-  @BeforeAll
-  static void setupClass() {
-    wasReady = ActiveSpanTracker.isReady();
-    System.out.println(wasReady);
-  }
-
-  @BeforeEach
-  void setup() {
-    ActiveSpanTracker.configure(contextStorage);
-    spanTracker.configure(registry);
-  }
-
-  @AfterEach
-  void teardown() {
-    ActiveSpanTracker.reset();
-  }
-
-  @AfterAll
-  static void teardownClass() {
-    if (wasReady) {
-      ActiveSpanTracker.configure(ContextStorage.defaultStorage());
-    }
-  }
+  private final ActiveSpanTracker spanTracker = new ActiveSpanTracker(contextStorage, registry);
 
   @Test
   void currentContextComesFromOpenTelemetryContextStorage() {
@@ -183,9 +149,6 @@ class ActiveSpanTrackerTest {
 
   @Test
   void doNotTrackContinuallyTrackSameSpan() {
-    var storage = new TestStorage();
-    ActiveSpanTracker.configure(storage);
-
     var span = FakeSpan.randomSpan();
     var context = spanTracker.root().with(span);
     registry.register(span.getSpanContext());
@@ -195,67 +158,6 @@ class ActiveSpanTrackerTest {
       try (var scope = spanTracker.attach(newContext)) {
         assertInstanceOf(TestScope.class, scope);
       }
-    }
-  }
-
-  @Test
-  void doNotAttemptToTrackSpansWhenNotReady() {
-    ActiveSpanTracker.reset();
-
-    var span = FakeSpan.randomSpan();
-    var spanContext = span.getSpanContext();
-    var context = spanTracker.root().with(span);
-    registry.register(spanContext);
-
-    try (var scope = spanTracker.attach(context)) {
-      var traceId = span.getSpanContext().getTraceId();
-      assertEquals(Optional.empty(), spanTracker.getActiveSpan(traceId));
-      assertEquals(Scope.noop(), scope);
-    }
-  }
-
-  @Test
-  void doNotAttemptToTrackSpansWhenTraceRegistryNotConfigured() {
-    ActiveSpanTracker.reset();
-    ActiveSpanTracker.configure(new TestStorage());
-    spanTracker.configure((TraceRegistry)null);
-
-    var span = FakeSpan.randomSpan();
-    var spanContext = span.getSpanContext();
-    var context = spanTracker.root().with(span);
-    registry.register(spanContext);
-
-    try (var scope = spanTracker.attach(context)) {
-      var traceId = span.getSpanContext().getTraceId();
-      assertEquals(Optional.empty(), spanTracker.getActiveSpan(traceId));
-      assertInstanceOf(TestScope.class, scope);
-    }
-  }
-
-  private static class ToggleableSampler implements Sampler {
-    enum State {
-      ON,
-      OFF
-    }
-
-    private State state = State.ON;
-
-    void toggle(State state) {
-      this.state = state;
-    }
-
-    @Override
-    public SamplingResult shouldSample(Context parentContext, String traceId, String name,
-        SpanKind spanKind, Attributes attributes, List<LinkData> parentLinks) {
-      if (state == State.OFF) {
-        return SamplingResult.drop();
-      }
-      return SamplingResult.recordAndSample();
-    }
-
-    @Override
-    public String getDescription() {
-      return getClass().getSimpleName();
     }
   }
 

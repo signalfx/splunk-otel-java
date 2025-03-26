@@ -45,7 +45,7 @@ class ScheduledExecutorStackTraceSamplerTest {
   private final InMemoryStagingArea staging = new InMemoryStagingArea();
   private final InMemorySpanTracker spanTracker = new InMemorySpanTracker();
   private final ScheduledExecutorStackTraceSampler sampler =
-      new ScheduledExecutorStackTraceSampler(staging, spanTracker, SAMPLING_PERIOD);
+      new ScheduledExecutorStackTraceSampler(staging, () -> spanTracker, SAMPLING_PERIOD);
 
   @Test
   void takeStackTraceSampleForGivenThread() {

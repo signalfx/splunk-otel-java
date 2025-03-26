@@ -46,7 +46,7 @@ public class SnapshotProfilingSdkCustomizer implements AutoConfigurationCustomiz
       Duration samplingPeriod = Configuration.getSnapshotProfilerSamplingInterval(properties);
       return new ScheduledExecutorStackTraceSampler(
           new AccumulatingStagingArea(StackTraceExporterProvider.INSTANCE),
-          ActiveSpanTracker.INSTANCE,
+          SpanTrackerProvider.INSTANCE,
           samplingPeriod);
     };
   }

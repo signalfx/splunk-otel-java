@@ -22,6 +22,7 @@ import io.opentelemetry.api.common.AttributesBuilder;
 import io.opentelemetry.api.logs.LogRecordBuilder;
 import io.opentelemetry.api.logs.Logger;
 import io.opentelemetry.api.logs.Severity;
+import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.sdk.common.InstrumentationScopeInfo;
@@ -63,6 +64,7 @@ public class InMemoryOtelLogger implements Logger, AfterEachCallback {
     private final InMemoryOtelLogger logger;
     private long timestampEpochNanos;
     private long observedTimestampEpochNanos;
+    private Context context = Context.current();
     private Severity severity = Severity.UNDEFINED_SEVERITY_NUMBER;
     private String severityText = "";
     private String body = "";
@@ -96,6 +98,7 @@ public class InMemoryOtelLogger implements Logger, AfterEachCallback {
 
     @Override
     public LogRecordBuilder setContext(Context context) {
+      this.context = Objects.requireNonNull(context);
       return this;
     }
 
@@ -131,7 +134,7 @@ public class InMemoryOtelLogger implements Logger, AfterEachCallback {
               null,
               timestampEpochNanos,
               observedTimestampEpochNanos,
-              SpanContext.getInvalid(),
+              Span.fromContext(context).getSpanContext(),
               severity,
               severityText,
               Body.string(body),

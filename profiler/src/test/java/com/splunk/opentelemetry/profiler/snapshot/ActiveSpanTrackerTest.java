@@ -1,7 +1,6 @@
 package com.splunk.opentelemetry.profiler.snapshot;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
@@ -23,15 +22,14 @@ import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Test;
 
 class ActiveSpanTrackerTest {
-  private final TestStorage contextStorage = new TestStorage();
   private final TogglableTraceRegistry registry = new TogglableTraceRegistry();
-  private final ActiveSpanTracker spanTracker = new ActiveSpanTracker(contextStorage, registry);
+  private final ActiveSpanTracker spanTracker = new ActiveSpanTracker(ContextStorage.get(), registry);
 
   @Test
   void currentContextComesFromOpenTelemetryContextStorage() {
-    var context = contextStorage.root().with(ContextKey.named("test-key"), "value");
+    var context = Context.root().with(ContextKey.named("test-key"), "value");
     try (var ignored = spanTracker.attach(context)) {
-      assertEquals(contextStorage.current(), spanTracker.current());
+      assertEquals(Context.current(), spanTracker.current());
     }
   }
 
@@ -45,7 +43,7 @@ class ActiveSpanTrackerTest {
   void trackActiveSpanWhenNewContextAttached() {
     var span = FakeSpan.randomSpan();
     var spanContext = span.getSpanContext();
-    var context = contextStorage.root().with(span);
+    var context = Context.root().with(span);
     registry.register(spanContext);
 
     try (var ignored = spanTracker.attach(context)) {
@@ -57,14 +55,14 @@ class ActiveSpanTrackerTest {
   @Test
   void trackActiveSpanAfterAcrossMultipleContextChanges() {
     var root = FakeSpan.randomSpan();
-    var context = contextStorage.root().with(root);
+    var context = Context.root().with(root);
     registry.register(root.getSpanContext());
 
-    try (var ignored = spanTracker.attach(context)) {
+    try (var ignoredScope1 = spanTracker.attach(context)) {
       var span = FakeSpan.newSpan(root.getSpanContext().getTraceId());
       var spanContext = span.getSpanContext();
       context = context.with(span);
-      try (var i = spanTracker.attach(context)) {
+      try (var ignoredScope2 = spanTracker.attach(context)) {
         var traceId = span.getSpanContext().getTraceId();
         assertEquals(Optional.of(spanContext), spanTracker.getActiveSpan(traceId));
       }
@@ -75,7 +73,7 @@ class ActiveSpanTrackerTest {
   void noActiveSpanForTraceAfterSpansScopeIsClosed() {
     var span = FakeSpan.randomSpan();
     var spanContext = span.getSpanContext();
-    var context = contextStorage.root().with(span);
+    var context = Context.root().with(span);
     registry.register(spanContext);
 
     var scope = spanTracker.attach(context);
@@ -92,8 +90,8 @@ class ActiveSpanTrackerTest {
     registry.register(root1.getSpanContext());
     registry.register(root2.getSpanContext());
 
-    try (var scope1 = executor.submit(attach(root1)).get();
-        var scope2 = executor.submit(attach(root2)).get()) {
+    try (var ignoredScope1 = executor.submit(attach(root1)).get();
+         var ignoredScope2 = executor.submit(attach(root2)).get()) {
       var traceId1 = root1.getSpanContext().getTraceId();
       assertEquals(Optional.of(root1.getSpanContext()), spanTracker.getActiveSpan(traceId1));
       var traceId2 = root2.getSpanContext().getTraceId();
@@ -105,17 +103,16 @@ class ActiveSpanTrackerTest {
 
   private Callable<Scope> attach(Span span) {
     return () -> {
-      var context = contextStorage.root().with(span);
+      var context = Context.root().with(span);
       return spanTracker.attach(context);
     };
   }
 
   @Test
   void doNotTrackSpanWhenNoSpanPresentInContext() {
-    var context = contextStorage.root().with(ContextKey.named("test-key"), "value");
-    try (var scope = spanTracker.attach(context)) {
+    var context = Context.root().with(ContextKey.named("test-key"), "value");
+    try (var ignored = spanTracker.attach(context)) {
       assertEquals(Optional.empty(), spanTracker.getActiveSpan(TraceId.getInvalid()));
-      assertInstanceOf(TestStorage.TestScope.class, scope);
     }
   }
 
@@ -123,13 +120,12 @@ class ActiveSpanTrackerTest {
   void doNotTrackSpanWhenSpanIsNotSampled() {
     var unsampledSpanContext = SpanContext.create("", "", TraceFlags.getDefault(),  TraceState.getDefault());
     var span = FakeSpan.newSpan(unsampledSpanContext);
-    var context = contextStorage.root().with(span);
+    var context = Context.root().with(span);
     registry.register(span.getSpanContext());
 
-    try (var scope = spanTracker.attach(context)) {
+    try (var ignored = spanTracker.attach(context)) {
       var traceId = span.getSpanContext().getTraceId();
       assertEquals(Optional.empty(), spanTracker.getActiveSpan(traceId));
-      assertInstanceOf(TestStorage.TestScope.class, scope);
     }
   }
 
@@ -138,60 +134,24 @@ class ActiveSpanTrackerTest {
     registry.toggle(TogglableTraceRegistry.State.OFF);
 
     var span = FakeSpan.randomSpan();
-    var context = contextStorage.root().with(span);
+    var context = Context.root().with(span);
 
-    try (var scope = spanTracker.attach(context)) {
+    try (var ignored = spanTracker.attach(context)) {
       var traceId = span.getSpanContext().getTraceId();
       assertEquals(Optional.empty(), spanTracker.getActiveSpan(traceId));
-      assertInstanceOf(TestStorage.TestScope.class, scope);
     }
   }
 
   @Test
   void doNotTrackContinuallyTrackSameSpan() {
     var span = FakeSpan.randomSpan();
-    var context = contextStorage.root().with(span);
+    var context = Context.root().with(span);
     registry.register(span.getSpanContext());
 
     try (var ignored = spanTracker.attach(context)) {
       var newContext = context.with(ContextKey.named("test-key"), "value");
       try (var scope = spanTracker.attach(newContext)) {
-        assertInstanceOf(TestStorage.TestScope.class, scope);
-      }
-    }
-  }
-
-  private static class TestStorage implements ContextStorage {
-    private final ThreadLocal<Context> contexts = new ThreadLocal<>();
-
-    @Override
-    public TestScope attach(Context toAttach) {
-      var previousContext = contexts.get();
-      store(toAttach);
-      return new TestScope(this, previousContext);
-    }
-
-    @Override
-    public Context current() {
-      return contexts.get();
-    }
-
-    void store(Context context) {
-      contexts.set(context);
-    }
-
-    static class TestScope implements Scope {
-      private final TestStorage storage;
-      private final Context beforeAttach;
-
-      private TestScope(TestStorage storage, Context beforeAttach) {
-        this.storage = storage;
-        this.beforeAttach = beforeAttach;
-      }
-
-      @Override
-      public void close() {
-        storage.store(beforeAttach);
+        assertEquals("io.opentelemetry.context.ThreadLocalContextStorage$ScopeImpl", scope.getClass().getName());
       }
     }
   }

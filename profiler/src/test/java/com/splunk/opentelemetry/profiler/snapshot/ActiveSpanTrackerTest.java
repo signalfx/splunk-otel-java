@@ -61,7 +61,7 @@ class ActiveSpanTrackerTest {
     registry.register(root.getSpanContext());
 
     try (var ignored = spanTracker.attach(context)) {
-      var span = FakeSpan.newSpan(root.getSpanContext());
+      var span = FakeSpan.newSpan(root.getSpanContext().getTraceId());
       var spanContext = span.getSpanContext();
       context = context.with(span);
       try (var i = spanTracker.attach(context)) {
@@ -121,8 +121,8 @@ class ActiveSpanTrackerTest {
 
   @Test
   void doNotTrackSpanWhenSpanIsNotSampled() {
-    var span = FakeSpan.randomSpan();
-    span.stopRecording();
+    var unsampledSpanContext = SpanContext.create("", "", TraceFlags.getDefault(),  TraceState.getDefault());
+    var span = FakeSpan.newSpan(unsampledSpanContext);
     var context = contextStorage.root().with(span);
     registry.register(span.getSpanContext());
 
@@ -201,16 +201,16 @@ class ActiveSpanTrackerTest {
       return newSpan(IdGenerator.random().generateTraceId());
     }
 
-    public static FakeSpan newSpan(SpanContext parentSpanContext) {
-      return newSpan(parentSpanContext.getTraceId());
+    public static FakeSpan newSpan(String traceId) {
+      var spanContext = SpanContext.create(traceId, IdGenerator.random().generateSpanId(), TraceFlags.getSampled(), TraceState.getDefault());
+      return new FakeSpan(spanContext);
     }
 
-    public static FakeSpan newSpan(String traceId) {
-      return new FakeSpan(SpanContext.create(traceId, IdGenerator.random().generateSpanId(), TraceFlags.getDefault(), TraceState.getDefault()));
+    public static FakeSpan newSpan(SpanContext spanContext) {
+      return new FakeSpan(spanContext);
     }
 
     private final SpanContext spanContext;
-    private boolean recording = true;
 
     private FakeSpan(SpanContext spanContext) {
       this.spanContext = spanContext;
@@ -257,13 +257,9 @@ class ActiveSpanTrackerTest {
       return spanContext;
     }
 
-    void stopRecording() {
-      recording = false;
-    }
-
     @Override
     public boolean isRecording() {
-      return recording;
+      return true;
     }
   }
 }

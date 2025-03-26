@@ -24,12 +24,11 @@ class ActiveSpanTracker implements ContextStorage, SpanTracker {
   @Override
   public Scope attach(Context toAttach) {
     Scope scope = delegate.attach(toAttach);
-    Span span = Span.fromContext(toAttach);
-    if (doNotTrack(span)) {
+    SpanContext spanContext = Span.fromContext(toAttach).getSpanContext();
+    if (doNotTrack(spanContext)) {
       return scope;
     }
 
-    SpanContext spanContext = span.getSpanContext();
     String traceId = spanContext.getTraceId();
     SpanContext current =  activeSpans.get(traceId);
     if (current == spanContext) {
@@ -43,12 +42,8 @@ class ActiveSpanTracker implements ContextStorage, SpanTracker {
     };
   }
 
-  private boolean doNotTrack(Span  span) {
-    if (!span.isRecording()) {
-      return true;
-    }
-    SpanContext  spanContext = span.getSpanContext();
-    return !registry.isRegistered(spanContext);
+  private boolean doNotTrack(SpanContext spanContext) {
+    return !spanContext.isSampled() || !registry.isRegistered(spanContext);
   }
 
   @Nullable

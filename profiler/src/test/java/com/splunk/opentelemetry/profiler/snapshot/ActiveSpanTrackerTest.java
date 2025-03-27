@@ -57,7 +57,7 @@ class ActiveSpanTrackerTest {
     registry.register(root.getSpanContext());
 
     try (var ignoredScope1 = spanTracker.attach(context)) {
-      var span = FakeSpan.newSpan(Snapshotting.spanContext().withTraceId(root.getSpanContext().getTraceId()));
+      var span = FakeSpan.newSpan(Snapshotting.spanContext().withTraceIdFrom(root));
       var spanContext = span.getSpanContext();
       context = context.with(span);
       try (var ignoredScope2 = spanTracker.attach(context)) {

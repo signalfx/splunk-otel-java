@@ -16,6 +16,7 @@
 
 package com.splunk.opentelemetry.profiler.snapshot;
 
+import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.api.trace.TraceFlags;
 import io.opentelemetry.api.trace.TraceState;
@@ -51,6 +52,10 @@ class Snapshotting {
   static class SpanContextBuilder {
     private SpanContext spanContext = SpanContext.create(IdGenerator.random().generateTraceId(),
         IdGenerator.random().generateSpanId(), TraceFlags.getSampled(), TraceState.getDefault());
+
+    SpanContextBuilder withTraceIdFrom(Span span) {
+      return withTraceId(span.getSpanContext().getTraceId());
+    }
 
     SpanContextBuilder withTraceId(String traceId) {
       spanContext = SpanContext.create(traceId, spanContext.getSpanId(), spanContext.getTraceFlags(), spanContext.getTraceState());

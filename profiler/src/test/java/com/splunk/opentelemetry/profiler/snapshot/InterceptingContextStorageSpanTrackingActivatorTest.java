@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 
 class InterceptingContextStorageSpanTrackingActivatorTest {
-  private final ContextStorageUnaryOperator delegate = new ContextStorageUnaryOperator();
+  private final ContextStorageRecorder delegate = new ContextStorageRecorder();
   private final InterceptingContextStorageSpanTrackingActivator activator = new InterceptingContextStorageSpanTrackingActivator(delegate);
 
   @Test
@@ -23,7 +23,7 @@ class InterceptingContextStorageSpanTrackingActivatorTest {
     assertInstanceOf(ActiveSpanTracker.class, SpanTrackerProvider.INSTANCE.get());
   }
 
-  private static class ContextStorageUnaryOperator implements Consumer<UnaryOperator<ContextStorage>> {
+  private static class ContextStorageRecorder implements Consumer<UnaryOperator<ContextStorage>> {
     private ContextStorage storage = ContextStorage.defaultStorage();
 
     @Override

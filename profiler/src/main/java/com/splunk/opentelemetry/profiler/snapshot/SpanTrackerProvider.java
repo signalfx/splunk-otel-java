@@ -1,28 +1,20 @@
 package com.splunk.opentelemetry.profiler.snapshot;
 
-import com.google.common.annotations.VisibleForTesting;
+import java.util.Objects;
 import java.util.function.Supplier;
 
 class SpanTrackerProvider implements Supplier<SpanTracker> {
   public static final  SpanTrackerProvider INSTANCE = new SpanTrackerProvider();
 
-  private SpanTracker tracker;
+  private SpanTracker tracker = SpanTracker.NOOP;
 
   @Override
   public SpanTracker get() {
-    if (tracker == null) {
-      return SpanTracker.NOOP;
-    }
     return tracker;
   }
 
   void configure(SpanTracker tracker) {
-    this.tracker = tracker;
-  }
-
-  @VisibleForTesting
-  void reset() {
-    tracker = null;
+    this.tracker = Objects.requireNonNull(tracker);
   }
 
   private SpanTrackerProvider() {}

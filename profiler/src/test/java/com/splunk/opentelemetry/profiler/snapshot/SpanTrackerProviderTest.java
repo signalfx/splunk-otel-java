@@ -4,13 +4,14 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class SpanTrackerProviderTest {
   private final SpanTrackerProvider provider = SpanTrackerProvider.INSTANCE;
 
   @AfterEach
-  void tearDown() {
-    provider.reset();
+  void teardown() {
+    SpanTrackerProvider.INSTANCE.configure(SpanTracker.NOOP);
   }
 
   @Test
@@ -26,9 +27,7 @@ class SpanTrackerProviderTest {
   }
 
   @Test
-  void canResetConfiguredSpanTracker() {
-    provider.configure(new InMemorySpanTracker());
-    provider.reset();
-    assertSame(SpanTracker.NOOP, provider.get());
+  void doNotAllowNullSpanTrackers() {
+    assertThrows(Exception.class, () -> provider.configure(null));
   }
 }

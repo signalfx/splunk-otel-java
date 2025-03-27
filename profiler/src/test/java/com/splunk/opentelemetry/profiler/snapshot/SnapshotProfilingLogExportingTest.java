@@ -17,13 +17,16 @@
 package com.splunk.opentelemetry.profiler.snapshot;
 
 import static com.google.perftools.profiles.ProfileProto.Sample;
+import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.SPAN_ID;
+import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.TRACE_ID;
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.google.perftools.profiles.ProfileProto.Profile;
 import com.splunk.opentelemetry.profiler.OtelLoggerFactory;
-import com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes;
 import com.splunk.opentelemetry.profiler.pprof.PprofUtils;
+import io.opentelemetry.api.common.AttributeKey;
+import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.api.trace.SpanKind;
 import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.context.Context;
@@ -44,9 +47,6 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.params.ParameterizedTest;
 
 class SnapshotProfilingLogExportingTest {
-  private static final Predicate<Map.Entry<String, Object>> TRACE_ID_LABEL =
-      kv -> ProfilingSemanticAttributes.TRACE_ID.getKey().equals(kv.getKey());
-
   @RegisterExtension private final ResetContextStorage spanTrackingActivator = new ResetContextStorage();
 
   private final InMemoryLogRecordExporter logExporter = InMemoryLogRecordExporter.create();
@@ -71,11 +71,11 @@ class SnapshotProfilingLogExportingTest {
   @ParameterizedTest
   @SpanKinds.Entry
   void exportStackTracesForProfiledTraces(SpanKind kind, Tracer tracer) throws Exception {
-    String traceId;
-    try (var ignored = Context.root().with(Volume.HIGHEST).makeCurrent()) {
+    SpanContext spanContext;
+    try (var ignoredScope1 = Context.root().with(Volume.HIGHEST).makeCurrent()) {
       var span = tracer.spanBuilder("root").setSpanKind(kind).startSpan();
-      try (var spanScope = span.makeCurrent()) {
-        traceId = span.getSpanContext().getTraceId();
+      try (var ignoredScope2 = span.makeCurrent()) {
+        spanContext = span.getSpanContext();
         Thread.sleep(250);
       }
       span.end();
@@ -86,17 +86,25 @@ class SnapshotProfilingLogExportingTest {
     var logRecord = logExporter.getFinishedLogRecordItems().get(0);
     var profile = Profile.parseFrom(PprofUtils.deserialize(logRecord));
 
-    var traceIds =
-        profile.getSampleList().stream()
+    assertEquals(Set.of(spanContext.getTraceId()), findLabelValues(profile, TRACE_ID));
+    assertEquals(Set.of(spanContext.getSpanId()), findLabelValues(profile, SPAN_ID));
+  }
+
+  private Set<String> findLabelValues(Profile profile, AttributeKey<String> key) {
+    return profile.getSampleList().stream()
             .flatMap(sampleLabels(profile))
-            .filter(TRACE_ID_LABEL)
+            .filter(label(key))
             .map(Map.Entry::getValue)
+            .map(String::valueOf)
             .collect(Collectors.toSet());
-    assertEquals(Set.of(traceId), traceIds);
   }
 
   private Function<Sample, Stream<Map.Entry<String, Object>>> sampleLabels(Profile profile) {
     return sample -> PprofUtils.toLabelString(sample, profile).entrySet().stream();
+  }
+
+  private Predicate<Map.Entry<String, Object>> label(AttributeKey<String> key) {
+    return kv -> key.getKey().equals(kv.getKey());
   }
 
   private static class ResetContextStorage implements SpanTrackingActivator, AfterEachCallback {

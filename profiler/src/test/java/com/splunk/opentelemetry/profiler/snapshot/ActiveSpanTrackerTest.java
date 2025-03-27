@@ -39,7 +39,7 @@ class ActiveSpanTrackerTest {
 
   @Test
   void trackActiveSpanWhenNewContextAttached() {
-    var span = FakeSpan.builder().build();
+    var span = FakeSpan.newSpan(Snapshotting.spanContext());
     var spanContext = span.getSpanContext();
     var context = Context.root().with(span);
     registry.register(spanContext);
@@ -52,12 +52,12 @@ class ActiveSpanTrackerTest {
 
   @Test
   void trackActiveSpanAfterAcrossMultipleContextChanges() {
-    var root = FakeSpan.builder().build();
+    var root = FakeSpan.newSpan(Snapshotting.spanContext());
     var context = Context.root().with(root);
     registry.register(root.getSpanContext());
 
     try (var ignoredScope1 = spanTracker.attach(context)) {
-      var span = FakeSpan.builder().withTraceId(root.getSpanContext().getTraceId()).build();
+      var span = FakeSpan.newSpan(Snapshotting.spanContext().withTraceId(root.getSpanContext().getTraceId()));
       var spanContext = span.getSpanContext();
       context = context.with(span);
       try (var ignoredScope2 = spanTracker.attach(context)) {
@@ -69,7 +69,7 @@ class ActiveSpanTrackerTest {
 
   @Test
   void noActiveSpanForTraceAfterSpansScopeIsClosed() {
-    var span = FakeSpan.builder().build();
+    var span = FakeSpan.newSpan(Snapshotting.spanContext());
     var spanContext = span.getSpanContext();
     var context = Context.root().with(span);
     registry.register(spanContext);
@@ -83,8 +83,8 @@ class ActiveSpanTrackerTest {
   @Test
   void trackActiveSpanForMultipleTraces() throws Exception {
     var executor = Executors.newSingleThreadExecutor();
-    var root1 = FakeSpan.builder().build();
-    var root2 = FakeSpan.builder().build();
+    var root1 = FakeSpan.newSpan(Snapshotting.spanContext());
+    var root2 = FakeSpan.newSpan(Snapshotting.spanContext());
     registry.register(root1.getSpanContext());
     registry.register(root2.getSpanContext());
 
@@ -116,7 +116,7 @@ class ActiveSpanTrackerTest {
 
   @Test
   void doNotTrackSpanWhenSpanIsNotSampled() {
-    var span = FakeSpan.builder().unsampled().build();
+    var span = FakeSpan.newSpan(Snapshotting.spanContext().unsampled());
     var context = Context.root().with(span);
     registry.register(span.getSpanContext());
 
@@ -130,7 +130,7 @@ class ActiveSpanTrackerTest {
   void doNotTrackSpanTraceIsNotRegisteredForSnapshotting() {
     registry.toggle(TogglableTraceRegistry.State.OFF);
 
-    var span = FakeSpan.builder().build();
+    var span = FakeSpan.newSpan(Snapshotting.spanContext());
     var context = Context.root().with(span);
 
     try (var ignored = spanTracker.attach(context)) {
@@ -141,7 +141,7 @@ class ActiveSpanTrackerTest {
 
   @Test
   void doNotTrackContinuallyTrackSameSpan() {
-    var span = FakeSpan.builder().build();
+    var span = FakeSpan.newSpan(Snapshotting.spanContext());
     var context = Context.root().with(span);
     registry.register(span.getSpanContext());
 
@@ -154,8 +154,8 @@ class ActiveSpanTrackerTest {
   }
 
   private static class FakeSpan implements Span {
-    static Builder builder() {
-      return new Builder();
+    static FakeSpan newSpan(Snapshotting.SpanContextBuilder spanContext) {
+      return new FakeSpan(spanContext.build());
     }
 
     private final SpanContext spanContext;
@@ -208,24 +208,6 @@ class ActiveSpanTrackerTest {
     @Override
     public boolean isRecording() {
       return true;
-    }
-
-    static class Builder {
-      private Snapshotting.SpanContextBuilder spanContextBuilder = Snapshotting.spanContext();
-
-      Builder withTraceId(String traceId) {
-        spanContextBuilder = spanContextBuilder.withTraceId(traceId);
-        return this;
-      }
-
-      Builder unsampled() {
-        spanContextBuilder = spanContextBuilder.unsampled();
-        return this;
-      }
-
-      FakeSpan build() {
-        return new FakeSpan(spanContextBuilder.build());
-      }
     }
   }
 }

@@ -50,25 +50,44 @@ class Snapshotting {
   }
 
   static class SpanContextBuilder {
-    private SpanContext spanContext = SpanContext.create(IdGenerator.random().generateTraceId(),
-        IdGenerator.random().generateSpanId(), TraceFlags.getSampled(), TraceState.getDefault());
+    private SpanContext spanContext =
+        SpanContext.create(
+            IdGenerator.random().generateTraceId(),
+            IdGenerator.random().generateSpanId(),
+            TraceFlags.getSampled(),
+            TraceState.getDefault());
 
     SpanContextBuilder withTraceIdFrom(Span span) {
       return withTraceId(span.getSpanContext().getTraceId());
     }
 
     SpanContextBuilder withTraceId(String traceId) {
-      spanContext = SpanContext.create(traceId, spanContext.getSpanId(), spanContext.getTraceFlags(), spanContext.getTraceState());
+      spanContext =
+          SpanContext.create(
+              traceId,
+              spanContext.getSpanId(),
+              spanContext.getTraceFlags(),
+              spanContext.getTraceState());
       return this;
     }
 
     SpanContextBuilder withSpanId(String spanId) {
-      spanContext = SpanContext.create(spanContext.getTraceId(), spanId, spanContext.getTraceFlags(), spanContext.getTraceState());
+      spanContext =
+          SpanContext.create(
+              spanContext.getTraceId(),
+              spanId,
+              spanContext.getTraceFlags(),
+              spanContext.getTraceState());
       return this;
     }
 
     SpanContextBuilder unsampled() {
-      spanContext = SpanContext.create(spanContext.getTraceId(), spanContext.getSpanId(), TraceFlags.getDefault(), spanContext.getTraceState());
+      spanContext =
+          SpanContext.create(
+              spanContext.getTraceId(),
+              spanContext.getSpanId(),
+              TraceFlags.getDefault(),
+              spanContext.getTraceState());
       return this;
     }
 

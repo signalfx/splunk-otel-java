@@ -43,7 +43,8 @@ class ScheduledExecutorStackTraceSampler implements StackTraceSampler {
   private final Supplier<SpanTracker> spanTracker;
   private final Duration samplingPeriod;
 
-  ScheduledExecutorStackTraceSampler(StagingArea stagingArea, Supplier<SpanTracker> spanTracker, Duration samplingPeriod) {
+  ScheduledExecutorStackTraceSampler(
+      StagingArea stagingArea, Supplier<SpanTracker> spanTracker, Duration samplingPeriod) {
     this.stagingArea = stagingArea;
     this.spanTracker = spanTracker;
     this.samplingPeriod = samplingPeriod;
@@ -91,7 +92,8 @@ class ScheduledExecutorStackTraceSampler implements StackTraceSampler {
         Instant now = Instant.now();
         ThreadInfo threadInfo = threadMXBean.getThreadInfo(threadId, Integer.MAX_VALUE);
         SpanContext spanContext = retrieveActiveSpan(traceId);
-        StackTrace stackTrace = StackTrace.from(now, samplingPeriod, threadInfo, traceId, spanContext.getSpanId());
+        StackTrace stackTrace =
+            StackTrace.from(now, samplingPeriod, threadInfo, traceId, spanContext.getSpanId());
         stagingArea.stage(traceId, stackTrace);
       } catch (Exception e) {
         logger.log(Level.SEVERE, e, samplerErrorMessage(traceId, threadId));

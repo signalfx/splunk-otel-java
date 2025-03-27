@@ -1,3 +1,19 @@
+/*
+ * Copyright Splunk Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.splunk.opentelemetry.profiler.snapshot;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -95,7 +111,8 @@ class ActiveSpanTrackerTest {
       scope.close();
 
       var rootSpanContext = root.getSpanContext();
-      assertEquals(Optional.of(rootSpanContext), spanTracker.getActiveSpan(rootSpanContext.getTraceId()));
+      assertEquals(
+          Optional.of(rootSpanContext), spanTracker.getActiveSpan(rootSpanContext.getTraceId()));
     }
   }
 
@@ -108,7 +125,7 @@ class ActiveSpanTrackerTest {
     registry.register(root2.getSpanContext());
 
     try (var ignoredScope1 = executor.submit(attach(root1)).get();
-         var ignoredScope2 = executor.submit(attach(root2)).get()) {
+        var ignoredScope2 = executor.submit(attach(root2)).get()) {
       var traceId1 = root1.getSpanContext().getTraceId();
       assertEquals(Optional.of(root1.getSpanContext()), spanTracker.getActiveSpan(traceId1));
       var traceId2 = root2.getSpanContext().getTraceId();
@@ -167,7 +184,9 @@ class ActiveSpanTrackerTest {
     try (var ignored = spanTracker.attach(context)) {
       var newContext = context.with(ContextKey.named("test-key"), "value");
       try (var scope = spanTracker.attach(newContext)) {
-        assertEquals("io.opentelemetry.context.ThreadLocalContextStorage$ScopeImpl", scope.getClass().getName());
+        assertEquals(
+            "io.opentelemetry.context.ThreadLocalContextStorage$ScopeImpl",
+            scope.getClass().getName());
       }
     }
   }

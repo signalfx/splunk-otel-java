@@ -22,7 +22,8 @@ import java.time.Duration;
 import java.time.Instant;
 
 class StackTrace {
-  static StackTrace from(Instant timestamp, Duration duration, ThreadInfo thread, String traceId, String spanId) {
+  static StackTrace from(
+      Instant timestamp, Duration duration, ThreadInfo thread, String traceId, String spanId) {
     return new StackTrace(
         timestamp,
         duration,
@@ -31,8 +32,7 @@ class StackTrace {
         thread.getThreadState(),
         thread.getStackTrace(),
         traceId,
-        spanId
-    );
+        spanId);
   }
 
   private final Instant timestamp;

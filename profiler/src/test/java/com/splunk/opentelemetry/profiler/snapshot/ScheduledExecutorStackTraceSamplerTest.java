@@ -23,6 +23,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import io.opentelemetry.api.trace.SpanContext;
+import io.opentelemetry.sdk.trace.IdGenerator;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Collections;
@@ -30,7 +31,6 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
-import io.opentelemetry.sdk.trace.IdGenerator;
 import org.junit.jupiter.api.Test;
 
 class ScheduledExecutorStackTraceSamplerTest {

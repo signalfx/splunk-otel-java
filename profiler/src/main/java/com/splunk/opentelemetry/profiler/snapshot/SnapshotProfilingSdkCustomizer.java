@@ -38,7 +38,10 @@ public class SnapshotProfilingSdkCustomizer implements AutoConfigurationCustomiz
   private final SpanTrackingActivator spanTrackingActivator;
 
   public SnapshotProfilingSdkCustomizer() {
-    this(new TraceRegistry(), stackTraceSamplerProvider(), new InterceptingContextStorageSpanTrackingActivator());
+    this(
+        new TraceRegistry(),
+        stackTraceSamplerProvider(),
+        new InterceptingContextStorageSpanTrackingActivator());
   }
 
   private static Function<ConfigProperties, StackTraceSampler> stackTraceSamplerProvider() {
@@ -119,7 +122,8 @@ public class SnapshotProfilingSdkCustomizer implements AutoConfigurationCustomiz
     return configuredPropagators.isEmpty();
   }
 
-  private Function<ConfigProperties, Map<String, String>> startTrackingActiveSpans(TraceRegistry registry) {
+  private Function<ConfigProperties, Map<String, String>> startTrackingActiveSpans(
+      TraceRegistry registry) {
     return properties -> {
       if (snapshotProfilingEnabled(properties)) {
         spanTrackingActivator.activate(registry);

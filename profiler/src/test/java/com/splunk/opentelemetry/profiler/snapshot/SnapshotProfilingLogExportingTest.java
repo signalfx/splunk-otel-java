@@ -47,13 +47,12 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.params.ParameterizedTest;
 
 class SnapshotProfilingLogExportingTest {
-  @RegisterExtension private final ResetContextStorage spanTrackingActivator = new ResetContextStorage();
+  @RegisterExtension
+  private final ResetContextStorage spanTrackingActivator = new ResetContextStorage();
 
   private final InMemoryLogRecordExporter logExporter = InMemoryLogRecordExporter.create();
-  private final SnapshotProfilingSdkCustomizer customizer = Snapshotting.customizer()
-          .withRealStackTraceSampler()
-          .with(spanTrackingActivator)
-          .build();
+  private final SnapshotProfilingSdkCustomizer customizer =
+      Snapshotting.customizer().withRealStackTraceSampler().with(spanTrackingActivator).build();
 
   @RegisterExtension
   public final OpenTelemetrySdkExtension sdk =
@@ -92,11 +91,11 @@ class SnapshotProfilingLogExportingTest {
 
   private Set<String> findLabelValues(Profile profile, AttributeKey<String> key) {
     return profile.getSampleList().stream()
-            .flatMap(sampleLabels(profile))
-            .filter(label(key))
-            .map(Map.Entry::getValue)
-            .map(String::valueOf)
-            .collect(Collectors.toSet());
+        .flatMap(sampleLabels(profile))
+        .filter(label(key))
+        .map(Map.Entry::getValue)
+        .map(String::valueOf)
+        .collect(Collectors.toSet());
   }
 
   private Function<Sample, Stream<Map.Entry<String, Object>>> sampleLabels(Profile profile) {
@@ -110,7 +109,8 @@ class SnapshotProfilingLogExportingTest {
   private static class ResetContextStorage implements SpanTrackingActivator, AfterEachCallback {
     @Override
     public void activate(TraceRegistry registry) {
-      ActiveSpanTracker spanTracker = new ActiveSpanTracker(ContextStorage.defaultStorage(),  registry);
+      ActiveSpanTracker spanTracker =
+          new ActiveSpanTracker(ContextStorage.defaultStorage(), registry);
       SpanTrackerProvider.INSTANCE.configure(spanTracker);
       SettableContextStorageProvider.setContextStorage(spanTracker);
     }

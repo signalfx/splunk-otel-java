@@ -201,7 +201,6 @@ class ScheduledExecutorStackTraceSamplerTest {
   @Test
   void includeTraceIdOnStackTraces() {
     var spanContext = Snapshotting.spanContext().build();
-    spanTracker.store(spanContext.getTraceId(), spanContext);
 
     try {
       sampler.start(spanContext);
@@ -215,7 +214,7 @@ class ScheduledExecutorStackTraceSamplerTest {
   }
 
   @Test
-  void includeSpanIdOnStackTraces() {
+  void includeActiveSpanIdOnStackTraces() {
     var spanContext = Snapshotting.spanContext().build();
     spanTracker.store(spanContext.getTraceId(), spanContext);
 

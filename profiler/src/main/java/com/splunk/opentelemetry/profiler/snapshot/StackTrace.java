@@ -17,13 +17,12 @@
 package com.splunk.opentelemetry.profiler.snapshot;
 
 import com.google.common.annotations.VisibleForTesting;
-import io.opentelemetry.api.trace.SpanContext;
 import java.lang.management.ThreadInfo;
 import java.time.Duration;
 import java.time.Instant;
 
 class StackTrace {
-  static StackTrace from(Instant timestamp, Duration duration, ThreadInfo thread, SpanContext spanContext) {
+  static StackTrace from(Instant timestamp, Duration duration, ThreadInfo thread, String traceId, String spanId) {
     return new StackTrace(
         timestamp,
         duration,
@@ -31,8 +30,9 @@ class StackTrace {
         thread.getThreadName(),
         thread.getThreadState(),
         thread.getStackTrace(),
-        spanContext
-        );
+        traceId,
+        spanId
+    );
   }
 
   private final Instant timestamp;
@@ -41,7 +41,8 @@ class StackTrace {
   private final String threadName;
   private final Thread.State threadState;
   private final StackTraceElement[] stackFrames;
-  private final SpanContext spanContext;
+  private final String traceId;
+  private final String spanId;
 
   @VisibleForTesting
   StackTrace(
@@ -51,14 +52,16 @@ class StackTrace {
       String threadName,
       Thread.State threadState,
       StackTraceElement[] stackFrames,
-      SpanContext spanContext) {
+      String traceId,
+      String spanId) {
     this.timestamp = timestamp;
     this.duration = duration;
     this.threadId = threadId;
     this.threadName = threadName;
     this.threadState = threadState;
     this.stackFrames = stackFrames;
-    this.spanContext = spanContext;
+    this.traceId = traceId;
+    this.spanId = spanId;
   }
 
   Instant getTimestamp() {
@@ -86,10 +89,10 @@ class StackTrace {
   }
 
   String getTraceId() {
-    return spanContext.getTraceId();
+    return traceId;
   }
 
   String getSpanId() {
-    return spanContext.getSpanId();
+    return spanId;
   }
 }

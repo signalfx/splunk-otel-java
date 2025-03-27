@@ -70,7 +70,6 @@ class StackTraceBuilder {
 
   StackTrace build() {
     var spanContext = spanContextBuilder.build();
-    return new StackTrace(
-        timestamp, duration, threadId, threadName, state, exception.getStackTrace(), spanContext);
+    return new StackTrace(timestamp, duration, threadId, threadName, state, exception.getStackTrace(), spanContext.getTraceId(), spanContext.getSpanId());
   }
 }

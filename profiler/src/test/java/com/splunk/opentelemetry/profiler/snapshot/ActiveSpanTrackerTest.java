@@ -20,14 +20,15 @@ import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Test;
 
 class ActiveSpanTrackerTest {
+  private final ContextStorage storage = ContextStorage.get();
   private final TogglableTraceRegistry registry = new TogglableTraceRegistry();
-  private final ActiveSpanTracker spanTracker = new ActiveSpanTracker(ContextStorage.get(), registry);
+  private final ActiveSpanTracker spanTracker = new ActiveSpanTracker(storage, registry);
 
   @Test
   void currentContextComesFromOpenTelemetryContextStorage() {
     var context = Context.root().with(ContextKey.named("test-key"), "value");
     try (var ignored = spanTracker.attach(context)) {
-      assertEquals(Context.current(), spanTracker.current());
+      assertEquals(storage.current(), spanTracker.current());
     }
   }
 
@@ -51,7 +52,20 @@ class ActiveSpanTrackerTest {
   }
 
   @Test
-  void trackActiveSpanAfterAcrossMultipleContextChanges() {
+  void noActiveSpanForTraceAfterSpansScopeIsClosed() {
+    var span = FakeSpan.newSpan(Snapshotting.spanContext());
+    var spanContext = span.getSpanContext();
+    var context = Context.root().with(span);
+    registry.register(spanContext);
+
+    var scope = spanTracker.attach(context);
+    scope.close();
+
+    assertEquals(Optional.empty(), spanTracker.getActiveSpan(spanContext.getTraceId()));
+  }
+
+  @Test
+  void trackActiveSpanAcrossMultipleContextChanges() {
     var root = FakeSpan.newSpan(Snapshotting.spanContext());
     var context = Context.root().with(root);
     registry.register(root.getSpanContext());
@@ -68,16 +82,21 @@ class ActiveSpanTrackerTest {
   }
 
   @Test
-  void noActiveSpanForTraceAfterSpansScopeIsClosed() {
-    var span = FakeSpan.newSpan(Snapshotting.spanContext());
-    var spanContext = span.getSpanContext();
-    var context = Context.root().with(span);
-    registry.register(spanContext);
+  void restoreActiveSpanToPreviousSpanAfterScopeClosing() {
+    var root = FakeSpan.newSpan(Snapshotting.spanContext());
+    var context = Context.root().with(root);
+    registry.register(root.getSpanContext());
 
-    var scope = spanTracker.attach(context);
-    scope.close();
+    try (var ignoredScope1 = spanTracker.attach(context)) {
+      var span = FakeSpan.newSpan(Snapshotting.spanContext().withTraceIdFrom(root));
+      context = context.with(span);
 
-    assertEquals(Optional.empty(), spanTracker.getActiveSpan(spanContext.getTraceId()));
+      var scope = spanTracker.attach(context);
+      scope.close();
+
+      var rootSpanContext = root.getSpanContext();
+      assertEquals(Optional.of(rootSpanContext), spanTracker.getActiveSpan(rootSpanContext.getTraceId()));
+    }
   }
 
   @Test

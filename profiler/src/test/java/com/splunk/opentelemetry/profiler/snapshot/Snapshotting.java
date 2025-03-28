@@ -16,6 +16,10 @@
 
 package com.splunk.opentelemetry.profiler.snapshot;
 
+import io.opentelemetry.api.trace.Span;
+import io.opentelemetry.api.trace.SpanContext;
+import io.opentelemetry.api.trace.TraceFlags;
+import io.opentelemetry.api.trace.TraceState;
 import io.opentelemetry.sdk.trace.IdGenerator;
 import java.time.Duration;
 import java.time.Instant;
@@ -23,7 +27,6 @@ import java.util.Random;
 
 class Snapshotting {
   private static final Random RANDOM = new Random();
-  private static final IdGenerator ID_GENERATOR = IdGenerator.random();
 
   static SnapshotProfilingSdkCustomizerBuilder customizer() {
     return new SnapshotProfilingSdkCustomizerBuilder();
@@ -34,15 +37,63 @@ class Snapshotting {
     return new StackTraceBuilder()
         .with(Instant.now())
         .with(Duration.ofMillis(20))
-        .withTraceId(randomTraceId())
+        .withTraceId(IdGenerator.random().generateTraceId())
+        .withSpanId(IdGenerator.random().generateSpanId())
         .withId(threadId)
         .withName("thread-" + threadId)
         .with(Thread.State.WAITING)
         .with(new RuntimeException());
   }
 
-  static String randomTraceId() {
-    return ID_GENERATOR.generateTraceId();
+  static SpanContextBuilder spanContext() {
+    return new SpanContextBuilder();
+  }
+
+  static class SpanContextBuilder {
+    private SpanContext spanContext =
+        SpanContext.create(
+            IdGenerator.random().generateTraceId(),
+            IdGenerator.random().generateSpanId(),
+            TraceFlags.getSampled(),
+            TraceState.getDefault());
+
+    SpanContextBuilder withTraceIdFrom(Span span) {
+      return withTraceId(span.getSpanContext().getTraceId());
+    }
+
+    SpanContextBuilder withTraceId(String traceId) {
+      spanContext =
+          SpanContext.create(
+              traceId,
+              spanContext.getSpanId(),
+              spanContext.getTraceFlags(),
+              spanContext.getTraceState());
+      return this;
+    }
+
+    SpanContextBuilder withSpanId(String spanId) {
+      spanContext =
+          SpanContext.create(
+              spanContext.getTraceId(),
+              spanId,
+              spanContext.getTraceFlags(),
+              spanContext.getTraceState());
+      return this;
+    }
+
+    SpanContextBuilder unsampled() {
+      spanContext =
+          SpanContext.create(
+              spanContext.getTraceId(),
+              spanContext.getSpanId(),
+              TraceFlags.getDefault(),
+              spanContext.getTraceState());
+      return this;
+    }
+
+    SpanContext build() {
+      return spanContext;
+    }
   }
 
   private Snapshotting() {}

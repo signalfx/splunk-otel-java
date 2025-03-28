@@ -40,10 +40,13 @@ class ScheduledExecutorStackTraceSampler implements StackTraceSampler {
       new ConcurrentHashMap<>();
   private final ThreadMXBean threadMXBean = ManagementFactory.getThreadMXBean();
   private final StagingArea stagingArea;
+  private final Supplier<SpanTracker> spanTracker;
   private final Duration samplingPeriod;
 
-  ScheduledExecutorStackTraceSampler(StagingArea stagingArea, Duration samplingPeriod) {
+  ScheduledExecutorStackTraceSampler(
+      StagingArea stagingArea, Supplier<SpanTracker> spanTracker, Duration samplingPeriod) {
     this.stagingArea = stagingArea;
+    this.spanTracker = spanTracker;
     this.samplingPeriod = samplingPeriod;
   }
 
@@ -88,11 +91,17 @@ class ScheduledExecutorStackTraceSampler implements StackTraceSampler {
       try {
         Instant now = Instant.now();
         ThreadInfo threadInfo = threadMXBean.getThreadInfo(threadId, Integer.MAX_VALUE);
-        StackTrace stackTrace = StackTrace.from(now, samplingPeriod, traceId, threadInfo);
+        SpanContext spanContext = retrieveActiveSpan(threadId);
+        StackTrace stackTrace =
+            StackTrace.from(now, samplingPeriod, threadInfo, traceId, spanContext.getSpanId());
         stagingArea.stage(traceId, stackTrace);
       } catch (Exception e) {
         logger.log(Level.SEVERE, e, samplerErrorMessage(traceId, threadId));
       }
+    }
+
+    private SpanContext retrieveActiveSpan(long threadId) {
+      return spanTracker.get().getActiveSpan(threadId).orElse(SpanContext.getInvalid());
     }
 
     private Supplier<String> samplerErrorMessage(String traceId, long threadId) {

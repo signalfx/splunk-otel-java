@@ -22,11 +22,11 @@ import java.time.Instant;
 class StackTraceBuilder {
   private Instant timestamp;
   private Duration duration;
-  private String traceId;
   private long threadId;
   private String threadName;
   private Thread.State state;
   private Exception exception;
+  private Snapshotting.SpanContextBuilder spanContextBuilder = Snapshotting.spanContext();
 
   public StackTraceBuilder with(Instant timestamp) {
     this.timestamp = timestamp;
@@ -35,11 +35,6 @@ class StackTraceBuilder {
 
   public StackTraceBuilder with(Duration duration) {
     this.duration = duration;
-    return this;
-  }
-
-  public StackTraceBuilder withTraceId(String traceId) {
-    this.traceId = traceId;
     return this;
   }
 
@@ -63,8 +58,26 @@ class StackTraceBuilder {
     return this;
   }
 
+  public StackTraceBuilder withTraceId(String traceId) {
+    spanContextBuilder = spanContextBuilder.withTraceId(traceId);
+    return this;
+  }
+
+  public StackTraceBuilder withSpanId(String spanId) {
+    spanContextBuilder = spanContextBuilder.withSpanId(spanId);
+    return this;
+  }
+
   StackTrace build() {
+    var spanContext = spanContextBuilder.build();
     return new StackTrace(
-        timestamp, duration, traceId, threadId, threadName, state, exception.getStackTrace());
+        timestamp,
+        duration,
+        threadId,
+        threadName,
+        state,
+        exception.getStackTrace(),
+        spanContext.getTraceId(),
+        spanContext.getSpanId());
   }
 }

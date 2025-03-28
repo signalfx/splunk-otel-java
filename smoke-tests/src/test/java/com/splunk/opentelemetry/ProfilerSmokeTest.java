@@ -45,7 +45,6 @@ import jdk.jfr.consumer.RecordedEvent;
 import jdk.jfr.consumer.RecordingFile;
 import okhttp3.Request;
 import okhttp3.Response;
-import org.junit.Ignore;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -77,14 +76,12 @@ public abstract class ProfilerSmokeTest {
     }
   }
 
-  @Ignore
   public static class TestJdk11 extends ProfilerSmokeTest {
     TestJdk11() {
       super("11");
     }
   }
 
-  @Ignore
   public static class TestJdk17 extends ProfilerSmokeTest {
     TestJdk17() {
       super("17");
@@ -276,6 +273,7 @@ public abstract class ProfilerSmokeTest {
                 "-javaagent:/" + TestContainerManager.TARGET_AGENT_FILENAME,
                 "-Dotel.resource.attributes=service.name=smoketest,deployment.environment=smokeytown",
                 "-Dotel.javaagent.debug=true",
+                "-Dotel.logs.exporter=none",
                 "-Dsplunk.profiler.enabled=true",
                 "-Dsplunk.profiler.memory.enabled=true",
                 "-Dsplunk.profiler.directory=/app/jfr",

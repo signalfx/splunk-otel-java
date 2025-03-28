@@ -27,7 +27,7 @@ import java.util.concurrent.ConcurrentMap;
 import javax.annotation.Nullable;
 
 class ActiveSpanTracker implements ContextStorage, SpanTracker {
-  private final ConcurrentMap<String, SpanContext> activeSpans = new ConcurrentHashMap<>();
+  private final ConcurrentMap<Long, SpanContext> activeSpansForThreads = new ConcurrentHashMap<>();
 
   private final ContextStorage delegate;
   private final TraceRegistry registry;
@@ -45,15 +45,15 @@ class ActiveSpanTracker implements ContextStorage, SpanTracker {
       return scope;
     }
 
-    String traceId = spanContext.getTraceId();
-    SpanContext current = activeSpans.get(traceId);
+    long threadId = Thread.currentThread().getId();
+    SpanContext current = activeSpansForThreads.get(threadId);
     if (current == spanContext) {
       return scope;
     }
 
-    SpanContext previous = activeSpans.put(traceId, spanContext);
+    SpanContext previous = activeSpansForThreads.put(threadId, spanContext);
     return () -> {
-      activeSpans.computeIfPresent(traceId, (id, sc) -> previous);
+      activeSpansForThreads.computeIfPresent(threadId, (id, sc) -> previous);
       scope.close();
     };
   }
@@ -69,7 +69,7 @@ class ActiveSpanTracker implements ContextStorage, SpanTracker {
   }
 
   @Override
-  public Optional<SpanContext> getActiveSpan(String traceId) {
-    return Optional.ofNullable(activeSpans.get(traceId));
+  public Optional<SpanContext> getActiveSpan(long threadId) {
+    return Optional.ofNullable(activeSpansForThreads.get(threadId));
   }
 }

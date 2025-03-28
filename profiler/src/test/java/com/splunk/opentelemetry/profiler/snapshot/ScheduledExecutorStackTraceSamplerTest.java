@@ -216,7 +216,7 @@ class ScheduledExecutorStackTraceSamplerTest {
   @Test
   void includeActiveSpanIdOnStackTraces() {
     var spanContext = Snapshotting.spanContext().build();
-    spanTracker.store(spanContext.getTraceId(), spanContext);
+    spanTracker.store(Thread.currentThread().getId(), spanContext);
 
     try {
       sampler.start(spanContext);

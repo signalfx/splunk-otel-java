@@ -16,6 +16,9 @@
 
 package com.splunk.opentelemetry.profiler.snapshot;
 
+import static org.awaitility.Awaitility.await;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.context.Context;
@@ -23,8 +26,6 @@ import io.opentelemetry.context.ContextKey;
 import io.opentelemetry.context.ContextStorage;
 import io.opentelemetry.context.Scope;
 import io.opentelemetry.sdk.trace.IdGenerator;
-import org.junit.jupiter.api.Test;
-
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.time.Instant;
@@ -32,9 +33,7 @@ import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
-
-import static org.awaitility.Awaitility.await;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import org.junit.jupiter.api.Test;
 
 class ActiveSpanTrackerTest {
   private final ContextStorage storage = ContextStorage.get();
@@ -127,7 +126,8 @@ class ActiveSpanTrackerTest {
     var f2 = executor.submit(attach(span2, releaseLatch));
     releaseLatch.countDown();
 
-    try (var scope1 = f1.get(); var scope2 = f2.get()) {
+    try (var scope1 = f1.get();
+        var scope2 = f2.get()) {
       assertEquals(Optional.of(span1.getSpanContext()), spanTracker.getActiveSpan(scope1.thread));
       assertEquals(Optional.of(span2.getSpanContext()), spanTracker.getActiveSpan(scope2.thread));
     } finally {
@@ -146,10 +146,8 @@ class ActiveSpanTrackerTest {
     var executor = Executors.newFixedThreadPool(2);
     try (var scope1 = executor.submit(attach(span1)).get();
         var scope2 = executor.submit(attach(span2)).get()) {
-      assertEquals(
-          Optional.of(span1.getSpanContext()), spanTracker.getActiveSpan(scope1.thread));
-      assertEquals(
-          Optional.of(span2.getSpanContext()), spanTracker.getActiveSpan(scope2.thread));
+      assertEquals(Optional.of(span1.getSpanContext()), spanTracker.getActiveSpan(scope1.thread));
+      assertEquals(Optional.of(span2.getSpanContext()), spanTracker.getActiveSpan(scope2.thread));
     } finally {
       executor.shutdown();
     }
@@ -163,7 +161,8 @@ class ActiveSpanTrackerTest {
     return () -> {
       var context = Context.root().with(span);
       var threadScope = new ThreadScope(Thread.currentThread(), spanTracker.attach(context));
-      System.out.println(Instant.now() + ": " + Thread.currentThread().getName() + " waiting to be released.");
+      System.out.println(
+          Instant.now() + ": " + Thread.currentThread().getName() + " waiting to be released.");
       latch.await();
       System.out.println(Instant.now() + ": " + Thread.currentThread().getName() + " released.");
       return threadScope;
@@ -267,10 +266,12 @@ class ActiveSpanTrackerTest {
     var span = Span.wrap(Snapshotting.spanContext().build());
     registry.register(span.getSpanContext());
 
-    Thread thread = new Thread(() -> {
-      var context = Context.root().with(span);
-      spanTracker.attach(context);
-    });
+    Thread thread =
+        new Thread(
+            () -> {
+              var context = Context.root().with(span);
+              spanTracker.attach(context);
+            });
     thread.start();
     thread.join();
     thread = null;
@@ -280,8 +281,9 @@ class ActiveSpanTrackerTest {
   }
 
   /**
-   * The internal OpenTelemetry {@link io.opentelemetry.instrumentation.api.internal.cache.Cache} interface doesn't
-   * define a "size" so instead we have this ugly reflection hack to get access to it.
+   * The internal OpenTelemetry {@link io.opentelemetry.instrumentation.api.internal.cache.Cache}
+   * interface doesn't define a "size" so instead we have this ugly reflection hack to get access to
+   * it.
    */
   private int numberOfActiveSpans() {
     try {
@@ -289,10 +291,11 @@ class ActiveSpanTrackerTest {
       Field field = trackerClass.getDeclaredField("cache");
       field.setAccessible(true);
 
-      Class<?> clazz = Class.forName("io.opentelemetry.instrumentation.api.internal.cache.WeakLockFreeCache");
+      Class<?> clazz =
+          Class.forName("io.opentelemetry.instrumentation.api.internal.cache.WeakLockFreeCache");
       Method method = clazz.getDeclaredMethod("size");
       method.setAccessible(true);
-      return (int)method.invoke(field.get(spanTracker));
+      return (int) method.invoke(field.get(spanTracker));
     } catch (Exception e) {
       throw new RuntimeException(e);
     }

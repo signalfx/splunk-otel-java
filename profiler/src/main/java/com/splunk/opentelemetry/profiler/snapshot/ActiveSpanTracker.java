@@ -22,9 +22,8 @@ import io.opentelemetry.context.Context;
 import io.opentelemetry.context.ContextStorage;
 import io.opentelemetry.context.Scope;
 import io.opentelemetry.instrumentation.api.internal.cache.Cache;
-
-import javax.annotation.Nullable;
 import java.util.Optional;
+import javax.annotation.Nullable;
 
 class ActiveSpanTracker implements ContextStorage, SpanTracker {
   private final Cache<Thread, SpanContext> cache = Cache.weak();

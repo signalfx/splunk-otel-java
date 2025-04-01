@@ -58,7 +58,7 @@ class ScheduledExecutorStackTraceSampler implements StackTraceSampler {
           ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
           scheduler.scheduleAtFixedRate(
               new StackTraceGatherer(
-                  samplingPeriod, spanContext.getTraceId(), Thread.currentThread().getId()),
+                  samplingPeriod, spanContext.getTraceId(), Thread.currentThread()),
               SCHEDULER_INITIAL_DELAY,
               samplingPeriod.toMillis(),
               TimeUnit.MILLISECONDS);
@@ -78,30 +78,30 @@ class ScheduledExecutorStackTraceSampler implements StackTraceSampler {
   class StackTraceGatherer implements Runnable {
     private final Duration samplingPeriod;
     private final String traceId;
-    private final long threadId;
+    private final Thread thread;
 
-    StackTraceGatherer(Duration samplingPeriod, String traceId, long threadId) {
+    StackTraceGatherer(Duration samplingPeriod, String traceId, Thread thread) {
       this.samplingPeriod = samplingPeriod;
       this.traceId = traceId;
-      this.threadId = threadId;
+      this.thread = thread;
     }
 
     @Override
     public void run() {
       try {
         Instant now = Instant.now();
-        ThreadInfo threadInfo = threadMXBean.getThreadInfo(threadId, Integer.MAX_VALUE);
-        SpanContext spanContext = retrieveActiveSpan(threadId);
+        ThreadInfo threadInfo = threadMXBean.getThreadInfo(thread.getId(), Integer.MAX_VALUE);
+        SpanContext spanContext = retrieveActiveSpan(thread);
         StackTrace stackTrace =
             StackTrace.from(now, samplingPeriod, threadInfo, traceId, spanContext.getSpanId());
         stagingArea.stage(traceId, stackTrace);
       } catch (Exception e) {
-        logger.log(Level.SEVERE, e, samplerErrorMessage(traceId, threadId));
+        logger.log(Level.SEVERE, e, samplerErrorMessage(traceId, thread.getId()));
       }
     }
 
-    private SpanContext retrieveActiveSpan(long threadId) {
-      return spanTracker.get().getActiveSpan(threadId).orElse(SpanContext.getInvalid());
+    private SpanContext retrieveActiveSpan(Thread thread) {
+      return spanTracker.get().getActiveSpan(thread).orElse(SpanContext.getInvalid());
     }
 
     private Supplier<String> samplerErrorMessage(String traceId, long threadId) {

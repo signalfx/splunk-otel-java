@@ -21,13 +21,13 @@ import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.context.ContextStorage;
 import io.opentelemetry.context.Scope;
-import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
+import io.opentelemetry.instrumentation.api.internal.cache.Cache;
+
 import javax.annotation.Nullable;
+import java.util.Optional;
 
 class ActiveSpanTracker implements ContextStorage, SpanTracker {
-  private final ConcurrentMap<Long, SpanContext> activeSpansForThreads = new ConcurrentHashMap<>();
+  private final Cache<Thread, SpanContext> cache = Cache.weak();
 
   private final ContextStorage delegate;
   private final TraceRegistry registry;
@@ -40,20 +40,24 @@ class ActiveSpanTracker implements ContextStorage, SpanTracker {
   @Override
   public Scope attach(Context toAttach) {
     Scope scope = delegate.attach(toAttach);
-    SpanContext spanContext = Span.fromContext(toAttach).getSpanContext();
-    if (doNotTrack(spanContext)) {
+    SpanContext newSpanContext = Span.fromContext(toAttach).getSpanContext();
+    if (doNotTrack(newSpanContext)) {
       return scope;
     }
 
-    long threadId = Thread.currentThread().getId();
-    SpanContext current = activeSpansForThreads.get(threadId);
-    if (current == spanContext) {
+    Thread thread = Thread.currentThread();
+    SpanContext oldSpanContext = cache.get(thread);
+    if (oldSpanContext == newSpanContext) {
       return scope;
     }
 
-    SpanContext previous = activeSpansForThreads.put(threadId, spanContext);
+    cache.put(thread, newSpanContext);
     return () -> {
-      activeSpansForThreads.computeIfPresent(threadId, (id, sc) -> previous);
+      if (oldSpanContext != null) {
+        cache.put(thread, oldSpanContext);
+      } else {
+        cache.remove(thread);
+      }
       scope.close();
     };
   }
@@ -68,8 +72,7 @@ class ActiveSpanTracker implements ContextStorage, SpanTracker {
     return delegate.current();
   }
 
-  @Override
-  public Optional<SpanContext> getActiveSpan(long threadId) {
-    return Optional.ofNullable(activeSpansForThreads.get(threadId));
+  public Optional<SpanContext> getActiveSpan(Thread thread) {
+    return Optional.ofNullable(cache.get(thread));
   }
 }

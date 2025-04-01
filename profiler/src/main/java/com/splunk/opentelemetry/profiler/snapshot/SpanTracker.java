@@ -20,7 +20,7 @@ import io.opentelemetry.api.trace.SpanContext;
 import java.util.Optional;
 
 interface SpanTracker {
-  SpanTracker NOOP = threadId -> Optional.empty();
+  SpanTracker NOOP = thread -> Optional.empty();
 
-  Optional<SpanContext> getActiveSpan(long threadId);
+  Optional<SpanContext> getActiveSpan(Thread thread);
 }

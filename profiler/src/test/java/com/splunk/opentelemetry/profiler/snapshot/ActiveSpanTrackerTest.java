@@ -16,8 +16,6 @@
 
 package com.splunk.opentelemetry.profiler.snapshot;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.context.Context;
@@ -25,10 +23,16 @@ import io.opentelemetry.context.ContextKey;
 import io.opentelemetry.context.ContextStorage;
 import io.opentelemetry.context.Scope;
 import io.opentelemetry.sdk.trace.IdGenerator;
+import org.junit.jupiter.api.Test;
+
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executors;
-import org.junit.jupiter.api.Test;
+
+import static org.awaitility.Awaitility.await;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class ActiveSpanTrackerTest {
   private final ContextStorage storage = ContextStorage.get();
@@ -45,7 +49,7 @@ class ActiveSpanTrackerTest {
 
   @Test
   void noActiveSpanForThreadBeforeFirstSpanInTraceIsAttachedToContext() {
-    assertEquals(Optional.empty(), spanTracker.getActiveSpan(currentThreadId()));
+    assertEquals(Optional.empty(), spanTracker.getActiveSpan(Thread.currentThread()));
   }
 
   @Test
@@ -56,7 +60,7 @@ class ActiveSpanTrackerTest {
     registry.register(spanContext);
 
     try (var ignored = spanTracker.attach(context)) {
-      assertEquals(Optional.of(spanContext), spanTracker.getActiveSpan(currentThreadId()));
+      assertEquals(Optional.of(spanContext), spanTracker.getActiveSpan(Thread.currentThread()));
     }
   }
 
@@ -70,7 +74,7 @@ class ActiveSpanTrackerTest {
     var scope = spanTracker.attach(context);
     scope.close();
 
-    assertEquals(Optional.empty(), spanTracker.getActiveSpan(currentThreadId()));
+    assertEquals(Optional.empty(), spanTracker.getActiveSpan(Thread.currentThread()));
   }
 
   @Test
@@ -84,7 +88,7 @@ class ActiveSpanTrackerTest {
       var spanContext = span.getSpanContext();
       context = context.with(span);
       try (var ignoredScope2 = spanTracker.attach(context)) {
-        assertEquals(Optional.of(spanContext), spanTracker.getActiveSpan(currentThreadId()));
+        assertEquals(Optional.of(spanContext), spanTracker.getActiveSpan(Thread.currentThread()));
       }
     }
   }
@@ -103,7 +107,7 @@ class ActiveSpanTrackerTest {
       scope.close();
 
       var rootSpanContext = root.getSpanContext();
-      assertEquals(Optional.of(rootSpanContext), spanTracker.getActiveSpan(currentThreadId()));
+      assertEquals(Optional.of(rootSpanContext), spanTracker.getActiveSpan(Thread.currentThread()));
     }
   }
 
@@ -117,10 +121,8 @@ class ActiveSpanTrackerTest {
     var executor = Executors.newFixedThreadPool(2);
     try (var scope1 = executor.submit(attach(span1)).get();
         var scope2 = executor.submit(attach(span2)).get()) {
-      assertEquals(
-          Optional.of(span1.getSpanContext()), spanTracker.getActiveSpan(scope1.getThreadId()));
-      assertEquals(
-          Optional.of(span2.getSpanContext()), spanTracker.getActiveSpan(scope2.getThreadId()));
+      assertEquals(Optional.of(span1.getSpanContext()), spanTracker.getActiveSpan(scope1.thread));
+      assertEquals(Optional.of(span2.getSpanContext()), spanTracker.getActiveSpan(scope2.thread));
     } finally {
       executor.shutdown();
     }
@@ -138,9 +140,9 @@ class ActiveSpanTrackerTest {
     try (var scope1 = executor.submit(attach(span1)).get();
         var scope2 = executor.submit(attach(span2)).get()) {
       assertEquals(
-          Optional.of(span1.getSpanContext()), spanTracker.getActiveSpan(scope1.getThreadId()));
+          Optional.of(span1.getSpanContext()), spanTracker.getActiveSpan(scope1.thread));
       assertEquals(
-          Optional.of(span2.getSpanContext()), spanTracker.getActiveSpan(scope2.getThreadId()));
+          Optional.of(span2.getSpanContext()), spanTracker.getActiveSpan(scope2.thread));
     } finally {
       executor.shutdown();
     }
@@ -149,21 +151,17 @@ class ActiveSpanTrackerTest {
   private Callable<ThreadScope> attach(Span span) {
     return () -> {
       var context = Context.root().with(span);
-      return new ThreadScope(spanTracker.attach(context), Thread.currentThread().getId());
+      return new ThreadScope(Thread.currentThread(), spanTracker.attach(context));
     };
   }
 
   private static class ThreadScope implements Scope {
+    private final Thread thread;
     private final Scope scope;
-    private final long threadId;
 
-    private ThreadScope(Scope scope, long threadId) {
+    private ThreadScope(Thread thread, Scope scope) {
+      this.thread = thread;
       this.scope = scope;
-      this.threadId = threadId;
-    }
-
-    public long getThreadId() {
-      return threadId;
     }
 
     @Override
@@ -184,9 +182,9 @@ class ActiveSpanTrackerTest {
     try (var scope1 = attach(root).call();
         var scope2 = executor.submit(attach(child)).get()) {
       assertEquals(
-          Optional.of(root.getSpanContext()), spanTracker.getActiveSpan(scope1.getThreadId()));
+          Optional.of(root.getSpanContext()), spanTracker.getActiveSpan(scope1.thread));
       assertEquals(
-          Optional.of(child.getSpanContext()), spanTracker.getActiveSpan(scope2.getThreadId()));
+          Optional.of(child.getSpanContext()), spanTracker.getActiveSpan(scope2.thread));
     } finally {
       executor.shutdown();
     }
@@ -196,7 +194,7 @@ class ActiveSpanTrackerTest {
   void doNotTrackSpanWhenNoSpanPresentInContext() {
     var context = Context.root().with(ContextKey.named("test-key"), "value");
     try (var ignored = spanTracker.attach(context)) {
-      assertEquals(Optional.empty(), spanTracker.getActiveSpan(currentThreadId()));
+      assertEquals(Optional.empty(), spanTracker.getActiveSpan(Thread.currentThread()));
     }
   }
 
@@ -207,7 +205,7 @@ class ActiveSpanTrackerTest {
     registry.register(span.getSpanContext());
 
     try (var ignored = spanTracker.attach(context)) {
-      assertEquals(Optional.empty(), spanTracker.getActiveSpan(currentThreadId()));
+      assertEquals(Optional.empty(), spanTracker.getActiveSpan(Thread.currentThread()));
     }
   }
 
@@ -219,7 +217,7 @@ class ActiveSpanTrackerTest {
     var context = Context.root().with(span);
 
     try (var ignored = spanTracker.attach(context)) {
-      assertEquals(Optional.empty(), spanTracker.getActiveSpan(currentThreadId()));
+      assertEquals(Optional.empty(), spanTracker.getActiveSpan(Thread.currentThread()));
     }
   }
 
@@ -230,7 +228,7 @@ class ActiveSpanTrackerTest {
     registry.register(span.getSpanContext());
 
     try (var ignored = spanTracker.attach(context)) {
-      assertEquals(Optional.empty(), spanTracker.getActiveSpan(currentThreadId()));
+      assertEquals(Optional.empty(), spanTracker.getActiveSpan(Thread.currentThread()));
     }
   }
 
@@ -250,7 +248,40 @@ class ActiveSpanTrackerTest {
     }
   }
 
-  private long currentThreadId() {
-    return Thread.currentThread().getId();
+  @Test
+  @SuppressWarnings("")
+  void automaticallyRemoveUnclosedScopesAfterTheirReferencesExpire() throws Exception {
+    var span = Span.wrap(Snapshotting.spanContext().build());
+    registry.register(span.getSpanContext());
+
+    Thread thread = new Thread(() -> {
+      var context = Context.root().with(span);
+      spanTracker.attach(context);
+    });
+    thread.start();
+    thread.join();
+    thread = null;
+
+    System.gc();
+    await().untilAsserted(() -> assertEquals(0, numberOfActiveSpans()));
+  }
+
+  /**
+   * The internal OpenTelemetry {@link io.opentelemetry.instrumentation.api.internal.cache.Cache} interface doesn't
+   * define a "size" so instead we have this ugly reflection hack to get access to it.
+   */
+  private int numberOfActiveSpans() {
+    try {
+      Class<ActiveSpanTracker> trackerClass = ActiveSpanTracker.class;
+      Field field = trackerClass.getDeclaredField("cache");
+      field.setAccessible(true);
+
+      Class<?> clazz = Class.forName("io.opentelemetry.instrumentation.api.internal.cache.WeakLockFreeCache");
+      Method method = clazz.getDeclaredMethod("size");
+      method.setAccessible(true);
+      return (int)method.invoke(field.get(spanTracker));
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
   }
 }

@@ -27,8 +27,10 @@ import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.time.Instant;
 import java.util.Optional;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 
 import static org.awaitility.Awaitility.await;
@@ -119,8 +121,13 @@ class ActiveSpanTrackerTest {
     registry.register(span2.getSpanContext());
 
     var executor = Executors.newFixedThreadPool(2);
-    try (var scope1 = executor.submit(attach(span1)).get();
-        var scope2 = executor.submit(attach(span2)).get()) {
+    var releaseLatch = new CountDownLatch(1);
+
+    var f1 = executor.submit(attach(span1, releaseLatch));
+    var f2 = executor.submit(attach(span2, releaseLatch));
+    releaseLatch.countDown();
+
+    try (var scope1 = f1.get(); var scope2 = f2.get()) {
       assertEquals(Optional.of(span1.getSpanContext()), spanTracker.getActiveSpan(scope1.thread));
       assertEquals(Optional.of(span2.getSpanContext()), spanTracker.getActiveSpan(scope2.thread));
     } finally {
@@ -149,9 +156,17 @@ class ActiveSpanTrackerTest {
   }
 
   private Callable<ThreadScope> attach(Span span) {
+    return attach(span, new CountDownLatch(0));
+  }
+
+  private Callable<ThreadScope> attach(Span span, CountDownLatch latch) {
     return () -> {
       var context = Context.root().with(span);
-      return new ThreadScope(Thread.currentThread(), spanTracker.attach(context));
+      var threadScope = new ThreadScope(Thread.currentThread(), spanTracker.attach(context));
+      System.out.println(Instant.now() + ": " + Thread.currentThread().getName() + " waiting to be released.");
+      latch.await();
+      System.out.println(Instant.now() + ": " + Thread.currentThread().getName() + " released.");
+      return threadScope;
     };
   }
 
@@ -181,10 +196,8 @@ class ActiveSpanTrackerTest {
     var executor = Executors.newSingleThreadExecutor();
     try (var scope1 = attach(root).call();
         var scope2 = executor.submit(attach(child)).get()) {
-      assertEquals(
-          Optional.of(root.getSpanContext()), spanTracker.getActiveSpan(scope1.thread));
-      assertEquals(
-          Optional.of(child.getSpanContext()), spanTracker.getActiveSpan(scope2.thread));
+      assertEquals(Optional.of(root.getSpanContext()), spanTracker.getActiveSpan(scope1.thread));
+      assertEquals(Optional.of(child.getSpanContext()), spanTracker.getActiveSpan(scope2.thread));
     } finally {
       executor.shutdown();
     }

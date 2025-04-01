@@ -19,6 +19,7 @@ package com.splunk.opentelemetry.profiler.snapshot;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import io.opentelemetry.api.trace.Span;
+import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.context.ContextKey;
 import io.opentelemetry.context.ContextStorage;
@@ -216,6 +217,17 @@ class ActiveSpanTrackerTest {
 
     var span = Span.wrap(Snapshotting.spanContext().build());
     var context = Context.root().with(span);
+
+    try (var ignored = spanTracker.attach(context)) {
+      assertEquals(Optional.empty(), spanTracker.getActiveSpan(currentThreadId()));
+    }
+  }
+
+  @Test
+  void doNotTrackInvalidSpans() {
+    var span = Span.wrap(SpanContext.getInvalid());
+    var context = Context.root().with(span);
+    registry.register(span.getSpanContext());
 
     try (var ignored = spanTracker.attach(context)) {
       assertEquals(Optional.empty(), spanTracker.getActiveSpan(currentThreadId()));

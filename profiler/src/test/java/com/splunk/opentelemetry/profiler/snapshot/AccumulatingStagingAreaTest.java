@@ -16,6 +16,7 @@
 
 package com.splunk.opentelemetry.profiler.snapshot;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import io.opentelemetry.sdk.trace.IdGenerator;
@@ -97,5 +98,40 @@ class AccumulatingStagingAreaTest {
     stagingArea.empty(traceId);
 
     assertEquals(List.of(stackTrace), exporter.stackTraces());
+  }
+
+  @Test
+  void exportStackTracesWhenClosed() {
+    var stackTrace = Snapshotting.stackTrace().build();
+
+    stagingArea.stage(stackTrace.getTraceId(), stackTrace);
+    stagingArea.close();
+
+    assertEquals(List.of(stackTrace), exporter.stackTraces());
+  }
+
+  @Test
+  void exportStackTracesForAllTracesWhenClosed() {
+    var stackTrace1 = Snapshotting.stackTrace().withId(1).withName("one").build();
+    var stackTrace2 = Snapshotting.stackTrace().withId(2).withName("one").build();
+    var stackTrace3 = Snapshotting.stackTrace().withId(3).withName("one").build();
+
+    stagingArea.stage(stackTrace1.getTraceId(), stackTrace1);
+    stagingArea.stage(stackTrace2.getTraceId(), stackTrace2);
+    stagingArea.stage(stackTrace3.getTraceId(), stackTrace3);
+    stagingArea.close();
+
+    assertThat(exporter.stackTraces()).contains(stackTrace1, stackTrace2, stackTrace3);
+  }
+
+  @Test
+  void doNotAcceptNewStackTracesWhenClosed() {
+    var stackTrace = Snapshotting.stackTrace().build();
+
+    stagingArea.close();
+    stagingArea.stage(stackTrace.getTraceId(), stackTrace);
+    stagingArea.empty(stackTrace.getTraceId());
+
+    assertEquals(Collections.emptyList(), exporter.stackTraces());
   }
 }

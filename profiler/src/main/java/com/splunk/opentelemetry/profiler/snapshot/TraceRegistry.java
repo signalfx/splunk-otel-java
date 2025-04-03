@@ -17,11 +17,12 @@
 package com.splunk.opentelemetry.profiler.snapshot;
 
 import io.opentelemetry.api.trace.SpanContext;
+import java.util.Collections;
 import java.util.Set;
-import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.concurrent.ConcurrentHashMap;
 
 class TraceRegistry {
-  private final Set<String> traceIds = new CopyOnWriteArraySet<>();
+  private final Set<String> traceIds = Collections.newSetFromMap(new ConcurrentHashMap<>());
 
   public void register(SpanContext spanContext) {
     traceIds.add(spanContext.getTraceId());

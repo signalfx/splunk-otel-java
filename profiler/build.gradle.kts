@@ -39,6 +39,7 @@ dependencies {
 
   testImplementation(project(":custom"))
   testImplementation("io.opentelemetry.javaagent:opentelemetry-javaagent-extension-api")
+  testImplementation("io.opentelemetry.javaagent:opentelemetry-testing-common")
   testImplementation("io.grpc:grpc-netty")
   testImplementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-api")
   testImplementation("io.opentelemetry:opentelemetry-sdk-extension-autoconfigure")

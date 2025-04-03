@@ -17,9 +17,12 @@
 package com.splunk.opentelemetry.profiler.snapshot;
 
 import io.opentelemetry.api.trace.SpanContext;
+import java.io.Closeable;
 
-interface StackTraceSampler {
+interface StackTraceSampler extends Closeable {
   void start(SpanContext spanContext);
 
   void stop(SpanContext spanContext);
+
+  default void close() {}
 }

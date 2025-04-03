@@ -42,6 +42,7 @@ class ScheduledExecutorStackTraceSampler implements StackTraceSampler {
   private final StagingArea stagingArea;
   private final Supplier<SpanTracker> spanTracker;
   private final Duration samplingPeriod;
+  private volatile boolean closed = false;
 
   ScheduledExecutorStackTraceSampler(
       StagingArea stagingArea, Supplier<SpanTracker> spanTracker, Duration samplingPeriod) {
@@ -52,6 +53,10 @@ class ScheduledExecutorStackTraceSampler implements StackTraceSampler {
 
   @Override
   public void start(SpanContext spanContext) {
+    if (closed) {
+      return;
+    }
+
     samplers.computeIfAbsent(
         spanContext.getTraceId(),
         traceId -> {
@@ -73,6 +78,12 @@ class ScheduledExecutorStackTraceSampler implements StackTraceSampler {
       scheduler.shutdown();
     }
     stagingArea.empty(spanContext.getTraceId());
+  }
+
+  @Override
+  public void close() {
+    closed = true;
+    samplers.values().forEach(ScheduledExecutorService::shutdown);
   }
 
   class StackTraceGatherer implements Runnable {

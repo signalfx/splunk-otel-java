@@ -30,6 +30,7 @@ import java.util.Collections;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 
@@ -184,6 +185,10 @@ class ScheduledExecutorStackTraceSamplerTest {
     }
   }
 
+  private Callable<ThreadInfo> startSampling(SpanContext spanContext, CountDownLatch startSpanLatch) {
+    return startSampling(spanContext, startSpanLatch, new CountDownLatch(0));
+  }
+
   private Callable<ThreadInfo> startSampling(
       SpanContext spanContext, CountDownLatch startSpanLatch, CountDownLatch shutdownLatch) {
     return (() -> {
@@ -237,5 +242,52 @@ class ScheduledExecutorStackTraceSamplerTest {
       this.id = id;
       this.name = name;
     }
+  }
+
+  @Test
+  void stopSamplingWhenClosed() throws Exception {
+    var spanContext = Snapshotting.spanContext().build();
+
+    sampler.start(spanContext);
+    await().until(() -> !staging.allStackTraces().isEmpty());
+    sampler.close();
+    staging.empty(spanContext.getTraceId());
+
+    var scheduler = Executors.newSingleThreadScheduledExecutor();
+    try {
+      var future = scheduler.schedule(reportStackTracesStaged(), SAMPLING_PERIOD.toMillis() * 10, TimeUnit.MILLISECONDS);
+      assertEquals(0, future.get());
+    } finally {
+      scheduler.shutdownNow();
+    }
+  }
+
+  @Test
+  void stopSamplingForEveryTraceWhenClosed() throws Exception{
+    var executor = Executors.newFixedThreadPool(2);
+    var scheduler = Executors.newSingleThreadScheduledExecutor();
+    var startSpanLatch = new CountDownLatch(1);
+    var spanContext2 = Snapshotting.spanContext().build();
+    var spanContext1 = Snapshotting.spanContext().build();
+
+    executor.submit(startSampling(spanContext1, startSpanLatch));
+    executor.submit(startSampling(spanContext2, startSpanLatch));
+    try {
+      startSpanLatch.countDown();
+      await().until(() -> staging.allStackTraces().size() > 5);
+      sampler.close();
+      staging.empty(spanContext1.getTraceId());
+      staging.empty(spanContext2.getTraceId());
+
+      var future = scheduler.schedule(reportStackTracesStaged(), SAMPLING_PERIOD.toMillis() * 10, TimeUnit.MILLISECONDS);
+      assertEquals(0, future.get());
+    } finally {
+      executor.shutdownNow();
+      scheduler.shutdownNow();
+    }
+  }
+
+  private Callable<Integer> reportStackTracesStaged() {
+    return () -> staging.allStackTraces().size();
   }
 }

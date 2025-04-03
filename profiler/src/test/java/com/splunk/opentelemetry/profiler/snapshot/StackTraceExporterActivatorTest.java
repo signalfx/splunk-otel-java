@@ -43,7 +43,6 @@ class StackTraceExporterActivatorTest {
 
     @Test
     void configureStackTraceExporterProvider() {
-      System.out.println("one");
       var exporter = StackTraceExporterProvider.INSTANCE.get();
       assertNotSame(StackTraceExporter.NOOP, exporter);
       assertInstanceOf(AsyncStackTraceExporter.class, exporter);
@@ -61,7 +60,6 @@ class StackTraceExporterActivatorTest {
 
     @Test
     void doNotConfigureStackTraceExporterProvider() {
-      System.out.println("two");
       var exporter = StackTraceExporterProvider.INSTANCE.get();
       assertSame(StackTraceExporter.NOOP, exporter);
     }

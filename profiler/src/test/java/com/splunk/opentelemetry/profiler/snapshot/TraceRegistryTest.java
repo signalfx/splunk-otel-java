@@ -19,49 +19,31 @@ package com.splunk.opentelemetry.profiler.snapshot;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import io.opentelemetry.api.trace.SpanContext;
-import io.opentelemetry.api.trace.TraceFlags;
-import io.opentelemetry.api.trace.TraceState;
-import io.opentelemetry.sdk.trace.IdGenerator;
 import org.junit.jupiter.api.Test;
 
 class TraceRegistryTest {
-  private final IdGenerator idGenerator = IdGenerator.random();
   private final TraceRegistry registry = new TraceRegistry();
 
   @Test
   void registerTrace() {
-    var spanContext = newSpanContext();
+    var spanContext = Snapshotting.spanContext().build();
     registry.register(spanContext);
     assertTrue(registry.isRegistered(spanContext));
   }
 
   @Test
   void unregisteredTracesAreNotRegisteredForProfiling() {
-    var spanContext = newSpanContext();
+    var spanContext = Snapshotting.spanContext().build();
     assertFalse(registry.isRegistered(spanContext));
   }
 
   @Test
   void unregisterTraceForProfiling() {
-    var spanContext = newSpanContext();
+    var spanContext = Snapshotting.spanContext().build();
 
     registry.register(spanContext);
     registry.unregister(spanContext);
 
     assertFalse(registry.isRegistered(spanContext));
-  }
-
-  private SpanContext newSpanContext() {
-    return newSpanContext(randomTraceId());
-  }
-
-  private SpanContext newSpanContext(String traceId) {
-    var spanId = idGenerator.generateSpanId();
-    return SpanContext.create(traceId, spanId, TraceFlags.getDefault(), TraceState.getDefault());
-  }
-
-  private String randomTraceId() {
-    return idGenerator.generateTraceId();
   }
 }

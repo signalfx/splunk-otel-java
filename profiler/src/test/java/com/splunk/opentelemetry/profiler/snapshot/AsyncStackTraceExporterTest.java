@@ -22,6 +22,8 @@ import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.FRAM
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.INSTRUMENTATION_SOURCE;
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.SOURCE_EVENT_TIME;
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.SOURCE_TYPE;
+import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.SPAN_ID;
+import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.TRACE_ID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
@@ -170,5 +172,33 @@ class AsyncStackTraceExporterTest {
     var labels = PprofUtils.toLabelString(sample, profile);
     assertThat(labels)
         .containsEntry(SOURCE_EVENT_TIME.getKey(), stackTrace.getTimestamp().toEpochMilli());
+  }
+
+  @Test
+  void includeStackTraceTraceIdInSamples() throws Exception {
+    var stackTrace = Snapshotting.stackTrace().build();
+
+    exporter.export(List.of(stackTrace));
+    await().until(() -> !logger.records().isEmpty());
+
+    var profile = Profile.parseFrom(PprofUtils.deserialize(logger.records().get(0)));
+    var sample = profile.getSample(0);
+
+    var labels = PprofUtils.toLabelString(sample, profile);
+    assertThat(labels).containsEntry(TRACE_ID.getKey(), stackTrace.getTraceId());
+  }
+
+  @Test
+  void includeStackTraceSpanIdInSamples() throws Exception {
+    var stackTrace = Snapshotting.stackTrace().build();
+
+    exporter.export(List.of(stackTrace));
+    await().until(() -> !logger.records().isEmpty());
+
+    var profile = Profile.parseFrom(PprofUtils.deserialize(logger.records().get(0)));
+    var sample = profile.getSample(0);
+
+    var labels = PprofUtils.toLabelString(sample, profile);
+    assertThat(labels).containsEntry(SPAN_ID.getKey(), stackTrace.getSpanId());
   }
 }

@@ -22,41 +22,46 @@ import java.time.Duration;
 import java.time.Instant;
 
 class StackTrace {
-  static StackTrace from(Instant timestamp, Duration duration, String traceId, ThreadInfo thread) {
+  static StackTrace from(
+      Instant timestamp, Duration duration, ThreadInfo thread, String traceId, String spanId) {
     return new StackTrace(
         timestamp,
         duration,
-        traceId,
         thread.getThreadId(),
         thread.getThreadName(),
         thread.getThreadState(),
-        thread.getStackTrace());
+        thread.getStackTrace(),
+        traceId,
+        spanId);
   }
 
   private final Instant timestamp;
   private final Duration duration;
-  private final String traceId;
   private final long threadId;
   private final String threadName;
   private final Thread.State threadState;
   private final StackTraceElement[] stackFrames;
+  private final String traceId;
+  private final String spanId;
 
   @VisibleForTesting
   StackTrace(
       Instant timestamp,
       Duration duration,
-      String traceId,
       long threadId,
       String threadName,
       Thread.State threadState,
-      StackTraceElement[] stackFrames) {
+      StackTraceElement[] stackFrames,
+      String traceId,
+      String spanId) {
     this.timestamp = timestamp;
     this.duration = duration;
-    this.traceId = traceId;
     this.threadId = threadId;
     this.threadName = threadName;
     this.threadState = threadState;
     this.stackFrames = stackFrames;
+    this.traceId = traceId;
+    this.spanId = spanId;
   }
 
   Instant getTimestamp() {
@@ -65,10 +70,6 @@ class StackTrace {
 
   Duration getDuration() {
     return duration;
-  }
-
-  String getTraceId() {
-    return traceId;
   }
 
   long getThreadId() {
@@ -85,5 +86,13 @@ class StackTrace {
 
   StackTraceElement[] getStackFrames() {
     return stackFrames;
+  }
+
+  String getTraceId() {
+    return traceId;
+  }
+
+  String getSpanId() {
+    return spanId;
   }
 }

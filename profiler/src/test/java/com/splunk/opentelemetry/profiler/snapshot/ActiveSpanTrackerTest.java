@@ -25,9 +25,12 @@ import io.opentelemetry.context.Context;
 import io.opentelemetry.context.ContextKey;
 import io.opentelemetry.context.ContextStorage;
 import io.opentelemetry.context.Scope;
+import io.opentelemetry.instrumentation.test.utils.GcUtils;
 import io.opentelemetry.sdk.trace.IdGenerator;
+import java.lang.ref.WeakReference;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.Optional;
 import java.util.concurrent.Callable;
@@ -274,9 +277,10 @@ class ActiveSpanTrackerTest {
             });
     thread.start();
     thread.join();
+    WeakReference<Thread> threadReference = new WeakReference<>(thread);
     thread = null;
 
-    System.gc();
+    GcUtils.awaitGc(threadReference, Duration.ofSeconds(10));
     await().untilAsserted(() -> assertEquals(0, numberOfActiveSpans()));
   }
 

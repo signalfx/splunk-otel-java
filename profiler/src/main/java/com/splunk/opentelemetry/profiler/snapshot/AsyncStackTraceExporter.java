@@ -24,6 +24,8 @@ import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
 class AsyncStackTraceExporter implements StackTraceExporter {
@@ -43,7 +45,21 @@ class AsyncStackTraceExporter implements StackTraceExporter {
 
   @Override
   public void export(List<StackTrace> stackTraces) {
-    executor.submit(pprofExporter(otelLogger, stackTraces));
+    try {
+      executor.submit(pprofExporter(otelLogger, stackTraces));
+    } catch (RejectedExecutionException e) {
+      logger.log(Level.WARNING, "Unable to export stacktraces, has the export process been closed?", e);
+    }
+  }
+
+  @Override
+  public void close() {
+    executor.shutdown();
+    try {
+      executor.awaitTermination(1, TimeUnit.SECONDS);
+    } catch (InterruptedException e) {
+      executor.shutdownNow();
+    }
   }
 
   private Runnable pprofExporter(Logger otelLogger, List<StackTrace> stackTraces) {

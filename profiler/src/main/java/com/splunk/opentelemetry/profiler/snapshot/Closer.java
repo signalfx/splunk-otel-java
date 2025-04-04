@@ -6,6 +6,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 class Closer {
+  static Closer NOOP = new Closer() {
+    @Override
+    void add(Closeable closeable) {}
+
+    @Override
+    CompletableResultCode close() {
+      return CompletableResultCode.ofSuccess();
+    }
+  };
+
   private final List<Closeable> closeables = new ArrayList<>();
 
   void add(Closeable closeable) {

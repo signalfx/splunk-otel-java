@@ -31,7 +31,7 @@ class SnapshotProfilingSdkCustomizerBuilder {
   SnapshotProfilingSdkCustomizerBuilder withRealStackTraceSampler() {
     return with(
         new ScheduledExecutorStackTraceSampler(
-            new AccumulatingStagingArea(StackTraceExporterProvider.INSTANCE),
+            StagingAreaProvider.INSTANCE,
             SpanTrackerProvider.INSTANCE,
             Duration.ofMillis(20)));
   }

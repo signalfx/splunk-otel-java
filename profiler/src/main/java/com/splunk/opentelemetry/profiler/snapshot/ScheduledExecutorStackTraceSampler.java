@@ -45,7 +45,9 @@ class ScheduledExecutorStackTraceSampler implements StackTraceSampler {
   private volatile boolean closed = false;
 
   ScheduledExecutorStackTraceSampler(
-      Supplier<StagingArea> stagingArea, Supplier<SpanTracker> spanTracker, Duration samplingPeriod) {
+      Supplier<StagingArea> stagingArea,
+      Supplier<SpanTracker> spanTracker,
+      Duration samplingPeriod) {
     this.stagingArea = stagingArea;
     this.spanTracker = spanTracker;
     this.samplingPeriod = samplingPeriod;

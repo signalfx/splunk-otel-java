@@ -185,7 +185,8 @@ class ScheduledExecutorStackTraceSamplerTest {
     }
   }
 
-  private Callable<ThreadInfo> startSampling(SpanContext spanContext, CountDownLatch startSpanLatch) {
+  private Callable<ThreadInfo> startSampling(
+      SpanContext spanContext, CountDownLatch startSpanLatch) {
     return startSampling(spanContext, startSpanLatch, new CountDownLatch(0));
   }
 
@@ -255,7 +256,9 @@ class ScheduledExecutorStackTraceSamplerTest {
 
     var scheduler = Executors.newSingleThreadScheduledExecutor();
     try {
-      var future = scheduler.schedule(reportStackTracesStaged(), SAMPLING_PERIOD.toMillis() * 10, TimeUnit.MILLISECONDS);
+      var future =
+          scheduler.schedule(
+              reportStackTracesStaged(), SAMPLING_PERIOD.toMillis() * 10, TimeUnit.MILLISECONDS);
       assertEquals(0, future.get());
     } finally {
       scheduler.shutdownNow();
@@ -263,7 +266,7 @@ class ScheduledExecutorStackTraceSamplerTest {
   }
 
   @Test
-  void stopSamplingForEveryTraceWhenClosed() throws Exception{
+  void stopSamplingForEveryTraceWhenClosed() throws Exception {
     var executor = Executors.newFixedThreadPool(2);
     var scheduler = Executors.newSingleThreadScheduledExecutor();
     var startSpanLatch = new CountDownLatch(1);
@@ -279,7 +282,9 @@ class ScheduledExecutorStackTraceSamplerTest {
       staging.empty(spanContext1.getTraceId());
       staging.empty(spanContext2.getTraceId());
 
-      var future = scheduler.schedule(reportStackTracesStaged(), SAMPLING_PERIOD.toMillis() * 10, TimeUnit.MILLISECONDS);
+      var future =
+          scheduler.schedule(
+              reportStackTracesStaged(), SAMPLING_PERIOD.toMillis() * 10, TimeUnit.MILLISECONDS);
       assertEquals(0, future.get());
     } finally {
       executor.shutdownNow();

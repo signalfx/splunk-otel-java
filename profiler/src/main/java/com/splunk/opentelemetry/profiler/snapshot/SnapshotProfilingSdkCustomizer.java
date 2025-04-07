@@ -77,7 +77,8 @@ public class SnapshotProfilingSdkCustomizer implements AutoConfigurationCustomiz
         .addTracerProviderCustomizer(addShutdownHook());
   }
 
-  private BiFunction<SdkTracerProviderBuilder, ConfigProperties, SdkTracerProviderBuilder> addShutdownHook() {
+  private BiFunction<SdkTracerProviderBuilder, ConfigProperties, SdkTracerProviderBuilder>
+      addShutdownHook() {
     return (builder, properties) -> {
       if (snapshotProfilingEnabled(properties)) {
         builder.addSpanProcessor(new SdkShutdownHook());

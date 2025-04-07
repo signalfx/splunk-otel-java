@@ -48,7 +48,8 @@ class AsyncStackTraceExporter implements StackTraceExporter {
     try {
       executor.submit(pprofExporter(otelLogger, stackTraces));
     } catch (RejectedExecutionException e) {
-      logger.log(Level.WARNING, "Unable to export stacktraces, has the export process been closed?", e);
+      logger.log(
+          Level.WARNING, "Unable to export stacktraces, has the export process been closed?", e);
     }
   }
 

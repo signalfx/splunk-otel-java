@@ -20,10 +20,14 @@ import io.opentelemetry.api.trace.SpanContext;
 import java.io.Closeable;
 
 interface StackTraceSampler extends Closeable {
-  StackTraceSampler NOOP = new StackTraceSampler() {
-    @Override public void start(SpanContext spanContext) {}
-    @Override public void stop(SpanContext spanContext) {}
-  };
+  StackTraceSampler NOOP =
+      new StackTraceSampler() {
+        @Override
+        public void start(SpanContext spanContext) {}
+
+        @Override
+        public void stop(SpanContext spanContext) {}
+      };
   ConfigurableSupplier<StackTraceSampler> SUPPLIER = new ConfigurableSupplier<>(NOOP);
 
   void start(SpanContext spanContext);

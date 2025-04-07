@@ -22,6 +22,7 @@ import java.util.List;
 /** Works in concert with the {@link StagingArea} to export a batch of {@link StackTrace}s */
 interface StackTraceExporter extends Closeable {
   StackTraceExporter NOOP = stackTraces -> {};
+  ConfigurableSupplier<StackTraceExporter> SUPPLIER = new ConfigurableSupplier<>(NOOP);
 
   void export(List<StackTrace> stackTraces);
 

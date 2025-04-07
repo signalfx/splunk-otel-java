@@ -37,7 +37,7 @@ class InterceptingContextStorageSpanTrackingActivatorTest {
   @Test
   void activateSpanTracker() {
     activator.activate(new TraceRegistry());
-    assertInstanceOf(ActiveSpanTracker.class, SpanTrackerProvider.INSTANCE.get());
+    assertInstanceOf(ActiveSpanTracker.class, SpanTracker.SUPPLIER.get());
   }
 
   private static class ContextStorageRecorder implements Consumer<UnaryOperator<ContextStorage>> {

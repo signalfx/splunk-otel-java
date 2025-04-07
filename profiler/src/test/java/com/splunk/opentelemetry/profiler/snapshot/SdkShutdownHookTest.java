@@ -1,11 +1,10 @@
 package com.splunk.opentelemetry.profiler.snapshot;
 
-import io.opentelemetry.api.trace.SpanContext;
-import org.junit.jupiter.api.Test;
-
-import java.util.List;
-
 import static org.assertj.core.api.Assertions.assertThat;
+
+import io.opentelemetry.api.trace.SpanContext;
+import java.util.List;
+import org.junit.jupiter.api.Test;
 
 class SdkShutdownHookTest {
     private final ClosingObserver observer = new ClosingObserver();
@@ -14,33 +13,33 @@ class SdkShutdownHookTest {
     @Test
     void shutdownStackTraceSampling() {
         try {
-            StackTraceSamplerProvider.INSTANCE.configure(observer);
-            shutdownHook.shutdown();
-            assertThat(observer.isClosed).isTrue();
+          StackTraceSampler.SUPPLIER.configure(observer);
+          shutdownHook.shutdown();
+          assertThat(observer.isClosed).isTrue();
         } finally {
-            StackTraceSamplerProvider.INSTANCE.reset();
+          StackTraceSampler.SUPPLIER.reset();
         }
     }
 
     @Test
     void shutdownStagingArea() {
         try {
-            StagingAreaProvider.INSTANCE.configure(observer);
+            StagingArea.SUPPLIER.configure(observer);
             shutdownHook.shutdown();
             assertThat(observer.isClosed).isTrue();
         } finally {
-            StackTraceSamplerProvider.INSTANCE.reset();
+          StagingArea.SUPPLIER.reset();
         }
     }
 
     @Test
     void shutdownStackTraceExporting() {
         try {
-            StackTraceExporterProvider.INSTANCE.configure(observer);
+            StackTraceExporter.SUPPLIER.configure(observer);
             shutdownHook.shutdown();
             assertThat(observer.isClosed).isTrue();
         } finally {
-            StackTraceSamplerProvider.INSTANCE.reset();
+          StackTraceExporter.SUPPLIER.reset();
         }
     }
 

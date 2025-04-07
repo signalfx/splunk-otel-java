@@ -13,9 +13,9 @@ class SdkShutdownHook implements SpanProcessor {
   @Override
   public CompletableResultCode shutdown() {
     List<CompletableResultCode> results = new ArrayList<>();
-    results.add(close(StackTraceSamplerProvider.INSTANCE.get()));
-    results.add(close(StagingAreaProvider.INSTANCE.get()));
-    results.add(close(StackTraceExporterProvider.INSTANCE.get()));
+    results.add(close(StackTraceSampler.SUPPLIER.get()));
+    results.add(close(StagingArea.SUPPLIER.get()));
+    results.add(close(StackTraceExporter.SUPPLIER.get()));
     return CompletableResultCode.ofAll(results);
   }
 

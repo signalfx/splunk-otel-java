@@ -25,4 +25,16 @@ class ConfigurableSupplierTest {
   void doNotAllowNullValues() {
     assertThrows(Exception.class, () -> supplier.configure(null));
   }
+
+  @Test
+  void doNotAllowCreationWithNullDefaultValue() {
+    assertThrows(Exception.class, () -> new ConfigurableSupplier<>(null));
+  }
+
+  @Test
+  void canResetSupplier() {
+    supplier.configure("this is a value");
+    supplier.reset();
+    assertSame(defaultValue, supplier.get());
+  }
 }

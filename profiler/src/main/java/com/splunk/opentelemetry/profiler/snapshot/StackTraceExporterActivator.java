@@ -50,7 +50,7 @@ public class StackTraceExporterActivator implements AgentListener {
       Logger logger = buildLogger(autoConfiguredOpenTelemetrySdk, properties);
       AsyncStackTraceExporter exporter =
           new AsyncStackTraceExporter(logger, samplingPeriod, maxDepth);
-      StackTraceExporterProvider.INSTANCE.configure(exporter);
+      StackTraceExporter.SUPPLIER.configure(exporter);
     }
   }
 

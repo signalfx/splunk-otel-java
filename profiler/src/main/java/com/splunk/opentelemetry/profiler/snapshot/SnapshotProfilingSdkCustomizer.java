@@ -47,12 +47,9 @@ public class SnapshotProfilingSdkCustomizer implements AutoConfigurationCustomiz
   private static Function<ConfigProperties, StackTraceSampler> stackTraceSamplerProvider() {
     return properties -> {
       Duration samplingPeriod = Configuration.getSnapshotProfilerSamplingInterval(properties);
-      StagingAreaProvider provider = StagingAreaProvider.INSTANCE;
-      provider.configure(new AccumulatingStagingArea(StackTraceExporterProvider.INSTANCE));
-      return new ScheduledExecutorStackTraceSampler(
-          provider,
-          SpanTrackerProvider.INSTANCE,
-          samplingPeriod);
+      ConfigurableSupplier<StagingArea> supplier = StagingArea.SUPPLIER;
+      supplier.configure(new AccumulatingStagingArea(StackTraceExporter.SUPPLIER));
+      return new ScheduledExecutorStackTraceSampler(supplier, SpanTracker.SUPPLIER, samplingPeriod);
     };
   }
 
@@ -94,9 +91,9 @@ public class SnapshotProfilingSdkCustomizer implements AutoConfigurationCustomiz
     return (builder, properties) -> {
       if (snapshotProfilingEnabled(properties)) {
         StackTraceSampler sampler = samplerProvider.apply(properties);
-        StackTraceSamplerProvider provider = StackTraceSamplerProvider.INSTANCE;
-        provider.configure(sampler);
-        return builder.addSpanProcessor(new SnapshotProfilingSpanProcessor(registry, provider));
+        ConfigurableSupplier<StackTraceSampler> supplier = StackTraceSampler.SUPPLIER;
+        supplier.configure(sampler);
+        return builder.addSpanProcessor(new SnapshotProfilingSpanProcessor(registry, supplier));
       }
       return builder;
     };

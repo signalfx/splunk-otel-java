@@ -5,18 +5,27 @@ import io.opentelemetry.sdk.common.CompletableResultCode;
 import io.opentelemetry.sdk.trace.ReadWriteSpan;
 import io.opentelemetry.sdk.trace.ReadableSpan;
 import io.opentelemetry.sdk.trace.SpanProcessor;
-import java.util.function.Supplier;
+import java.io.Closeable;
+import java.util.ArrayList;
+import java.util.List;
 
 class SdkShutdownHook implements SpanProcessor {
-  private final Supplier<Closer> closer;
-
-  SdkShutdownHook(Supplier<Closer> closer) {
-    this.closer = closer;
-  }
-
   @Override
   public CompletableResultCode shutdown() {
-    return closer.get().close();
+    List<CompletableResultCode> results = new ArrayList<>();
+    results.add(close(StackTraceSamplerProvider.INSTANCE.get()));
+    results.add(close(StagingAreaProvider.INSTANCE.get()));
+    results.add(close(StackTraceExporterProvider.INSTANCE.get()));
+    return CompletableResultCode.ofAll(results);
+  }
+
+  private CompletableResultCode close(Closeable closeable) {
+    try {
+      closeable.close();
+      return CompletableResultCode.ofSuccess();
+    } catch (Exception e) {
+      return CompletableResultCode.ofExceptionalFailure(e);
+    }
   }
 
   @Override

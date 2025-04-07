@@ -76,7 +76,17 @@ public class SnapshotProfilingSdkCustomizer implements AutoConfigurationCustomiz
     autoConfigurationCustomizer
         .addPropertiesCustomizer(autoConfigureSnapshotVolumePropagator())
         .addTracerProviderCustomizer(snapshotProfilingSpanProcessor(registry))
-        .addPropertiesCustomizer(startTrackingActiveSpans(registry));
+        .addPropertiesCustomizer(startTrackingActiveSpans(registry))
+        .addTracerProviderCustomizer(addShutdownHook());
+  }
+
+  private BiFunction<SdkTracerProviderBuilder, ConfigProperties, SdkTracerProviderBuilder> addShutdownHook() {
+    return (builder, properties) -> {
+      if (snapshotProfilingEnabled(properties)) {
+        builder.addSpanProcessor(new SdkShutdownHook());
+      }
+      return builder;
+    };
   }
 
   private BiFunction<SdkTracerProviderBuilder, ConfigProperties, SdkTracerProviderBuilder>

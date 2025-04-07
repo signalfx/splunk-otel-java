@@ -1,78 +1,61 @@
 package com.splunk.opentelemetry.profiler.snapshot;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.io.Closeable;
-import java.io.IOException;
+import io.opentelemetry.api.trace.SpanContext;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
 class SdkShutdownHookTest {
-    private final Closer closer = new Closer();
-    private final SdkShutdownHook shutdownHook = new SdkShutdownHook(() -> closer);
+    private final ClosingObserver observer = new ClosingObserver();
+    private final SdkShutdownHook shutdownHook = new SdkShutdownHook();
 
     @Test
-    void shutdownClosesAddedCloseable() {
-        var thingToClose = new SuccessfulCloseable();
-
-        closer.add(thingToClose);
-        shutdownHook.shutdown();
-
-        assertThat(thingToClose.closed).isTrue();
+    void shutdownStackTraceSampling() {
+        try {
+            StackTraceSamplerProvider.INSTANCE.configure(observer);
+            shutdownHook.shutdown();
+            assertThat(observer.isClosed).isTrue();
+        } finally {
+            StackTraceSamplerProvider.INSTANCE.reset();
+        }
     }
 
     @Test
-    void shutdownClosesMultipleAddedCloseable() {
-        var one = new SuccessfulCloseable();
-        var two = new SuccessfulCloseable();
-
-        closer.add(one);
-        closer.add(two);
-        shutdownHook.shutdown();
-
-        assertThat(one.closed).isTrue();
-        assertThat(two.closed).isTrue();
+    void shutdownStagingArea() {
+        try {
+            StagingAreaProvider.INSTANCE.configure(observer);
+            shutdownHook.shutdown();
+            assertThat(observer.isClosed).isTrue();
+        } finally {
+            StackTraceSamplerProvider.INSTANCE.reset();
+        }
     }
 
     @Test
-    void shutdownReportsSuccessAllCloseablesCloseSuccessfully() {
-        closer.add(new SuccessfulCloseable());
-        closer.add(new SuccessfulCloseable());
-
-        var result = shutdownHook.shutdown();
-        assertThat(result.isSuccess()).isTrue();
+    void shutdownStackTraceExporting() {
+        try {
+            StackTraceExporterProvider.INSTANCE.configure(observer);
+            shutdownHook.shutdown();
+            assertThat(observer.isClosed).isTrue();
+        } finally {
+            StackTraceSamplerProvider.INSTANCE.reset();
+        }
     }
 
-    @Test
-    void shutdownReportsFailureWhenCloseableFailsToClose() {
-        closer.add(new ExceptionThrowingCloseable());
-
-        var result = shutdownHook.shutdown();
-        assertThat(result.isSuccess()).isFalse();
-    }
-
-    @Test
-    void shutdownReportsFailureWhenAtLeaseCloseableFailsToClose() {
-        closer.add(new SuccessfulCloseable());
-        closer.add(new ExceptionThrowingCloseable());
-        closer.add(new SuccessfulCloseable());
-
-        var result = shutdownHook.shutdown();
-        assertThat(result.isSuccess()).isFalse();
-    }
-
-    private static class SuccessfulCloseable implements Closeable {
-        private boolean closed;
+    private static class ClosingObserver implements StackTraceSampler, StagingArea, StackTraceExporter {
+        private boolean isClosed = false;
 
         @Override
         public void close() {
-            closed = true;
+            isClosed = true;
         }
-    }
 
-    private static class ExceptionThrowingCloseable implements Closeable {
-        @Override
-        public void close() throws IOException {
-            throw new IOException();
-        }
+        @Override public void start(SpanContext spanContext) {}
+        @Override public void stop(SpanContext spanContext) {}
+        @Override public void stage(String traceId, StackTrace stackTrace) {}
+        @Override public void empty(String traceId) {}
+        @Override public void export(List<StackTrace> stackTraces) {}
     }
 }

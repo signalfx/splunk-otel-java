@@ -10,12 +10,12 @@ class ConfigurableSupplierTest {
   private final ConfigurableSupplier<String> supplier = new ConfigurableSupplier<>(defaultValue);
 
   @Test
-  void provideDefaultValueNotConfigured() {
+  void getDefaultWhenValueNotConfigured() {
     assertSame(defaultValue, supplier.get());
   }
 
   @Test
-  void providedConfiguredValue() {
+  void getConfiguredValue() {
     var value = "this is a configured value";
     supplier.configure(value);
     assertSame(value, supplier.get());

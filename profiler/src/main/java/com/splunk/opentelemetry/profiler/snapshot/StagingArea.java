@@ -26,16 +26,16 @@ interface StagingArea extends Closeable {
   StagingArea NOOP =
       new StagingArea() {
         @Override
-        public void stage(String traceId, StackTrace stackTrace) {}
+        public void stage(StackTrace stackTrace) {}
 
         @Override
-        public void empty(String traceId) {}
+        public void empty() {}
       };
   ConfigurableSupplier<StagingArea> SUPPLIER = new ConfigurableSupplier<>(NOOP);
 
-  void stage(String traceId, StackTrace stackTrace);
+  void stage(StackTrace stackTrace);
 
-  void empty(String traceId);
+  void empty();
 
   default void close() {}
 }

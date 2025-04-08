@@ -32,9 +32,9 @@ class InMemoryStagingArea implements StagingArea {
   private final ConcurrentMap<String, StagedStackTraces> stackTraces = new ConcurrentHashMap<>();
 
   @Override
-  public void stage(String traceId, StackTrace stackTrace) {
+  public void stage(StackTrace stackTrace) {
     stackTraces.compute(
-        traceId,
+        stackTrace.getTraceId(),
         (id, stackTraces) -> {
           if (stackTraces == null) {
             stackTraces = new StagedStackTraces();
@@ -46,9 +46,8 @@ class InMemoryStagingArea implements StagingArea {
         });
   }
 
-  @Override
-  public void empty(String traceId) {
-    stackTraces.getOrDefault(traceId, new StagedStackTraces()).empty();
+  public void empty() {
+    stackTraces.clear();
   }
 
   StagedStackTraces getStackTraces(SpanContext spanContext) {
@@ -56,7 +55,7 @@ class InMemoryStagingArea implements StagingArea {
   }
 
   boolean hasStackTraces(SpanContext spanContext) {
-    return !stackTraces.get(spanContext.getTraceId()).isEmpty();
+    return !getStackTraces(spanContext).isEmpty();
   }
 
   public List<StackTrace> allStackTraces() {

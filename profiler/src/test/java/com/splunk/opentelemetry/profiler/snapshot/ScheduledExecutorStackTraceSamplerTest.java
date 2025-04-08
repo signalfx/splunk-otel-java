@@ -68,22 +68,6 @@ class ScheduledExecutorStackTraceSamplerTest {
   }
 
   @Test
-  void emptyStagingAreaAfterSamplingStops() {
-    var halfSecond = Duration.ofMillis(500);
-    var spanContext = Snapshotting.spanContext().build();
-    int expectedSamples = (int) halfSecond.dividedBy(SAMPLING_PERIOD.multipliedBy(2));
-
-    try {
-      sampler.start(spanContext);
-      await().until(() -> staging.getStackTraces(spanContext).size() >= expectedSamples);
-    } finally {
-      sampler.stop(spanContext);
-    }
-
-    assertThat(staging.getStackTraces(spanContext).emptied()).isTrue();
-  }
-
-  @Test
   void onlyTakeStackTraceSamplesForOneThreadPerTrace() {
     var executor = Executors.newFixedThreadPool(2);
     var startSpanLatch = new CountDownLatch(1);
@@ -341,15 +325,14 @@ class ScheduledExecutorStackTraceSamplerTest {
     await().until(() -> !staging.allStackTraces().isEmpty());
     sampler.close();
 
-    int previouslyStagedStackTraces = reportStackTracesStaged().call();
-    staging.empty(spanContext.getTraceId());
+    staging.empty();
 
     var scheduler = Executors.newSingleThreadScheduledExecutor();
     try {
       var future =
           scheduler.schedule(
               reportStackTracesStaged(), SAMPLING_PERIOD.toMillis() * 10, TimeUnit.MILLISECONDS);
-      assertEquals(previouslyStagedStackTraces, future.get());
+      assertEquals(0, future.get());
     } finally {
       scheduler.shutdownNow();
     }
@@ -369,15 +352,12 @@ class ScheduledExecutorStackTraceSamplerTest {
       startSpanLatch.countDown();
       await().until(() -> staging.allStackTraces().size() > 5);
       sampler.close();
-
-      int previouslyStagedStackTraces = reportStackTracesStaged().call();
-      staging.empty(spanContext1.getTraceId());
-      staging.empty(spanContext2.getTraceId());
+      staging.empty();
 
       var future =
           scheduler.schedule(
               reportStackTracesStaged(), SAMPLING_PERIOD.toMillis() * 10, TimeUnit.MILLISECONDS);
-      assertEquals(previouslyStagedStackTraces, future.get());
+      assertEquals(0, future.get());
     } finally {
       executor.shutdownNow();
       scheduler.shutdownNow();

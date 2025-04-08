@@ -65,6 +65,7 @@ class SnapshotProfilingLogExportingTest {
   @AfterEach
   void tearDown() {
     StackTraceExporter.SUPPLIER.reset();
+    logExporter.reset();
   }
 
   @ParameterizedTest
@@ -84,6 +85,12 @@ class SnapshotProfilingLogExportingTest {
 
     var logRecord = logExporter.getFinishedLogRecordItems().get(0);
     var profile = Profile.parseFrom(PprofUtils.deserialize(logRecord));
+
+    System.out.println(logExporter.getFinishedLogRecordItems().size());
+    for (var log : logExporter.getFinishedLogRecordItems()) {
+      var p = Profile.parseFrom(PprofUtils.deserialize(log));
+      System.out.println(findLabelValues(p, TRACE_ID));
+    }
 
     assertEquals(Set.of(spanContext.getTraceId()), findLabelValues(profile, TRACE_ID));
     assertEquals(Set.of(spanContext.getSpanId()), findLabelValues(profile, SPAN_ID));

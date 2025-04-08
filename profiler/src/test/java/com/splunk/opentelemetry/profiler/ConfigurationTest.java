@@ -210,7 +210,8 @@ class ConfigurationTest {
   void getConfiguredSnapshotProfilerEmptyStagingInterval(int milliseconds) {
     var properties =
         DefaultConfigProperties.create(
-            Map.of("splunk.snapshot.profiler.empty.staging.interval", String.valueOf(milliseconds)));
+            Map.of(
+                "splunk.snapshot.profiler.empty.staging.interval", String.valueOf(milliseconds)));
     assertEquals(
         Duration.ofMillis(milliseconds),
         Configuration.getSnapshotProfilerEmptyStagingInterval(properties));

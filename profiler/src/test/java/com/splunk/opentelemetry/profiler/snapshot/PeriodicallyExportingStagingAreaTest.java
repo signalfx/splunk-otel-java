@@ -2,10 +2,9 @@ package com.splunk.opentelemetry.profiler.snapshot;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.time.Duration;
-import java.util.Collection;
 import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -72,14 +71,14 @@ class PeriodicallyExportingStagingAreaTest {
     stagingArea.stage("", stackTrace);
     stagingArea.close();
 
-    assertThat(exporter.stackTraces).containsOnly(stackTrace);
+    assertEquals(List.of(stackTrace), exporter.stackTraces);
   }
 
   static class SimpleStackTraceExporter implements StackTraceExporter {
-    private Collection<StackTrace> stackTraces;
+    private List<StackTrace> stackTraces;
 
     @Override
-    public void export(Collection<StackTrace> stackTraces) {
+    public void export(List<StackTrace> stackTraces) {
       this.stackTraces = stackTraces;
     }
   }

@@ -30,7 +30,7 @@ jobs:
           tags: ghcr.io/signalfx/splunk-otel-java/profiling-petclinic-base-linux-jdk${{ matrix.jdk_version }}:latest
   push_to_registry_windows:
     name: publish custom windows spring-petclinic base image for profiling
-    runs-on: windows-2022
+    runs-on: windows-2025
     strategy:
       matrix:
         jdk_version: [8, 11, 17]

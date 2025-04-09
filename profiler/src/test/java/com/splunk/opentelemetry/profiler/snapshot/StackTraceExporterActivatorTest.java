@@ -29,7 +29,7 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 class StackTraceExporterActivatorTest {
   @AfterEach
   void tearDown() {
-    StackTraceExporterProvider.INSTANCE.reset();
+    StackTraceExporter.SUPPLIER.reset();
   }
 
   @Nested
@@ -43,7 +43,7 @@ class StackTraceExporterActivatorTest {
 
     @Test
     void configureStackTraceExporterProvider() {
-      var exporter = StackTraceExporterProvider.INSTANCE.get();
+      var exporter = StackTraceExporter.SUPPLIER.get();
       assertNotSame(StackTraceExporter.NOOP, exporter);
       assertInstanceOf(AsyncStackTraceExporter.class, exporter);
     }
@@ -60,7 +60,7 @@ class StackTraceExporterActivatorTest {
 
     @Test
     void doNotConfigureStackTraceExporterProvider() {
-      var exporter = StackTraceExporterProvider.INSTANCE.get();
+      var exporter = StackTraceExporter.SUPPLIER.get();
       assertSame(StackTraceExporter.NOOP, exporter);
     }
   }

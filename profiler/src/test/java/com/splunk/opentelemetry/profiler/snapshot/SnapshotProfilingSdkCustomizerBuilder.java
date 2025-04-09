@@ -28,15 +28,20 @@ class SnapshotProfilingSdkCustomizerBuilder {
     return this;
   }
 
+  SnapshotProfilingSdkCustomizer real() {
+    return new SnapshotProfilingSdkCustomizer();
+  }
+
   SnapshotProfilingSdkCustomizerBuilder withRealStackTraceSampler() {
+    var supplier = StagingArea.SUPPLIER;
+    supplier.configure(new AccumulatingStagingArea(StackTraceExporter.SUPPLIER));
     return with(
         new ScheduledExecutorStackTraceSampler(
-            new AccumulatingStagingArea(StackTraceExporterProvider.INSTANCE),
-            SpanTrackerProvider.INSTANCE,
-            Duration.ofMillis(20)));
+            supplier, SpanTracker.SUPPLIER, Duration.ofMillis(20)));
   }
 
   SnapshotProfilingSdkCustomizerBuilder with(StackTraceSampler sampler) {
+    StackTraceSampler.SUPPLIER.configure(sampler);
     this.sampler = sampler;
     return this;
   }

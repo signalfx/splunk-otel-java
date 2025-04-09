@@ -35,6 +35,9 @@ import com.splunk.opentelemetry.profiler.pprof.PprofUtils;
 import java.io.ByteArrayInputStream;
 import java.time.Duration;
 import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.zip.GZIPInputStream;
 import org.junit.jupiter.api.Test;
 
@@ -200,5 +203,25 @@ class AsyncStackTraceExporterTest {
 
     var labels = PprofUtils.toLabelString(sample, profile);
     assertThat(labels).containsEntry(SPAN_ID.getKey(), stackTrace.getSpanId());
+  }
+
+  @Test
+  void doNotAcceptNewStackTracesAfterBeingClosed() throws Exception {
+    var stackTrace = Snapshotting.stackTrace().build();
+
+    exporter.close();
+    exporter.export(List.of(stackTrace));
+
+    var scheduler = Executors.newSingleThreadScheduledExecutor();
+    try {
+      var future = scheduler.schedule(reportStackTracesStaged(), 100, TimeUnit.MILLISECONDS);
+      assertEquals(0, future.get());
+    } finally {
+      scheduler.shutdownNow();
+    }
+  }
+
+  private Callable<Integer> reportStackTracesStaged() {
+    return () -> logger.records().size();
   }
 }

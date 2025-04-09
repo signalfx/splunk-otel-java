@@ -39,12 +39,15 @@ class ScheduledExecutorStackTraceSampler implements StackTraceSampler {
   private final ConcurrentMap<String, ScheduledExecutorService> samplers =
       new ConcurrentHashMap<>();
   private final ThreadMXBean threadMXBean = ManagementFactory.getThreadMXBean();
-  private final StagingArea stagingArea;
+  private final Supplier<StagingArea> stagingArea;
   private final Supplier<SpanTracker> spanTracker;
   private final Duration samplingPeriod;
+  private volatile boolean closed = false;
 
   ScheduledExecutorStackTraceSampler(
-      StagingArea stagingArea, Supplier<SpanTracker> spanTracker, Duration samplingPeriod) {
+      Supplier<StagingArea> stagingArea,
+      Supplier<SpanTracker> spanTracker,
+      Duration samplingPeriod) {
     this.stagingArea = stagingArea;
     this.spanTracker = spanTracker;
     this.samplingPeriod = samplingPeriod;
@@ -52,6 +55,10 @@ class ScheduledExecutorStackTraceSampler implements StackTraceSampler {
 
   @Override
   public void start(SpanContext spanContext) {
+    if (closed) {
+      return;
+    }
+
     samplers.computeIfAbsent(
         spanContext.getTraceId(),
         traceId -> {
@@ -72,7 +79,13 @@ class ScheduledExecutorStackTraceSampler implements StackTraceSampler {
     if (scheduler != null) {
       scheduler.shutdown();
     }
-    stagingArea.empty(spanContext.getTraceId());
+    stagingArea.get().empty(spanContext.getTraceId());
+  }
+
+  @Override
+  public void close() {
+    closed = true;
+    samplers.values().forEach(ScheduledExecutorService::shutdown);
   }
 
   class StackTraceGatherer implements Runnable {
@@ -94,7 +107,7 @@ class ScheduledExecutorStackTraceSampler implements StackTraceSampler {
         SpanContext spanContext = retrieveActiveSpan(thread);
         StackTrace stackTrace =
             StackTrace.from(now, samplingPeriod, threadInfo, traceId, spanContext.getSpanId());
-        stagingArea.stage(traceId, stackTrace);
+        stagingArea.get().stage(traceId, stackTrace);
       } catch (Exception e) {
         logger.log(Level.SEVERE, e, samplerErrorMessage(traceId, thread.getId()));
       }

@@ -64,7 +64,7 @@ class SnapshotProfilingLogExportingTest {
 
   @AfterEach
   void tearDown() {
-    StackTraceExporterProvider.INSTANCE.reset();
+    StackTraceExporter.SUPPLIER.reset();
   }
 
   @ParameterizedTest
@@ -111,7 +111,7 @@ class SnapshotProfilingLogExportingTest {
     public void activate(TraceRegistry registry) {
       ActiveSpanTracker spanTracker =
           new ActiveSpanTracker(ContextStorage.defaultStorage(), registry);
-      SpanTrackerProvider.INSTANCE.configure(spanTracker);
+      SpanTracker.SUPPLIER.configure(spanTracker);
       SettableContextStorageProvider.setContextStorage(spanTracker);
     }
 

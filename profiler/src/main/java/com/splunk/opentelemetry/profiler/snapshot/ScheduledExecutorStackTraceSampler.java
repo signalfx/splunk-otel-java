@@ -36,8 +36,7 @@ class ScheduledExecutorStackTraceSampler implements StackTraceSampler {
       Logger.getLogger(ScheduledExecutorStackTraceSampler.class.getName());
   private static final int SCHEDULER_INITIAL_DELAY = 0;
 
-  private final ConcurrentMap<String, StackSamplerExecution> samplers =
-      new ConcurrentHashMap<>();
+  private final ConcurrentMap<String, StackSamplerExecution> samplers = new ConcurrentHashMap<>();
   private final ThreadMXBean threadMXBean = ManagementFactory.getThreadMXBean();
   private final StagingArea stagingArea;
   private final Supplier<SpanTracker> spanTracker;
@@ -56,8 +55,9 @@ class ScheduledExecutorStackTraceSampler implements StackTraceSampler {
         spanContext.getTraceId(),
         traceId -> {
           ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
-          StackTraceGatherer stackTraceGatherer = new StackTraceGatherer(
-              samplingPeriod, spanContext.getTraceId(), Thread.currentThread());
+          StackTraceGatherer stackTraceGatherer =
+              new StackTraceGatherer(
+                  samplingPeriod, spanContext.getTraceId(), Thread.currentThread());
           scheduler.scheduleAtFixedRate(
               stackTraceGatherer,
               SCHEDULER_INITIAL_DELAY,

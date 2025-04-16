@@ -129,7 +129,7 @@ class ScheduledExecutorStackTraceSamplerTest {
   }
 
   @Test
-  void includeDefaultSamplingPeriodOnFirstRecordedStackTraces() {
+  void includeSamplingPeriodOnFirstRecordedStackTraces() {
     var spanContext = Snapshotting.spanContext().build();
 
     try {
@@ -137,7 +137,7 @@ class ScheduledExecutorStackTraceSamplerTest {
       await().until(() -> !staging.allStackTraces().isEmpty());
 
       var stackTrace = staging.allStackTraces().stream().findFirst().orElseThrow();
-      assertThat(stackTrace.getDuration()).isNotNull().isEqualTo(SAMPLING_PERIOD);
+      assertThat(stackTrace.getDuration()).isNotNull().isGreaterThan(Duration.ZERO);
     } finally {
       sampler.stop(spanContext);
     }
@@ -152,7 +152,7 @@ class ScheduledExecutorStackTraceSamplerTest {
       await().until(() -> staging.allStackTraces().size() > 1);
 
       var stackTrace = staging.allStackTraces().stream().skip(1).findFirst().orElseThrow();
-      assertThat(stackTrace.getDuration()).isNotNull().isEqualTo(SAMPLING_PERIOD);
+      assertThat(stackTrace.getDuration()).isNotNull().isCloseTo(SAMPLING_PERIOD, Duration.ofMillis(5));
     } finally {
       sampler.stop(spanContext);
     }

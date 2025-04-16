@@ -38,6 +38,7 @@ class ScheduledExecutorStackTraceSampler implements StackTraceSampler {
 
   private final ConcurrentMap<String, ScheduledExecutorService> samplers =
       new ConcurrentHashMap<>();
+  private final ConcurrentMap<String, Long> samplingTimestamps = new ConcurrentHashMap<>();
   private final ThreadMXBean threadMXBean = ManagementFactory.getThreadMXBean();
   private final StagingArea stagingArea;
   private final Supplier<SpanTracker> spanTracker;
@@ -55,10 +56,10 @@ class ScheduledExecutorStackTraceSampler implements StackTraceSampler {
     samplers.computeIfAbsent(
         spanContext.getTraceId(),
         traceId -> {
+          samplingTimestamps.put(traceId, System.nanoTime());
           ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
           scheduler.scheduleAtFixedRate(
-              new StackTraceGatherer(
-                  samplingPeriod, spanContext.getTraceId(), Thread.currentThread()),
+              new StackTraceGatherer(spanContext.getTraceId(), Thread.currentThread()),
               SCHEDULER_INITIAL_DELAY,
               samplingPeriod.toMillis(),
               TimeUnit.MILLISECONDS);
@@ -68,35 +69,40 @@ class ScheduledExecutorStackTraceSampler implements StackTraceSampler {
 
   @Override
   public void stop(SpanContext spanContext) {
-    ScheduledExecutorService scheduler = samplers.remove(spanContext.getTraceId());
+    String traceId = spanContext.getTraceId();
+    ScheduledExecutorService scheduler = samplers.remove(traceId);
     if (scheduler != null) {
       scheduler.shutdown();
     }
+    samplingTimestamps.remove(traceId);
     stagingArea.empty(spanContext.getTraceId());
   }
 
   class StackTraceGatherer implements Runnable {
-    private final Duration samplingPeriod;
     private final String traceId;
     private final Thread thread;
 
-    StackTraceGatherer(Duration samplingPeriod, String traceId, Thread thread) {
-      this.samplingPeriod = samplingPeriod;
+    StackTraceGatherer(String traceId, Thread thread) {
       this.traceId = traceId;
       this.thread = thread;
     }
 
     @Override
     public void run() {
+      long currentSampleTimestamp = System.nanoTime();
       try {
-        Instant now = Instant.now();
+        long previousSamplingTimestamp = samplingTimestamps.get(traceId);
+
         ThreadInfo threadInfo = threadMXBean.getThreadInfo(thread.getId(), Integer.MAX_VALUE);
         SpanContext spanContext = retrieveActiveSpan(thread);
+        Duration samplingPeriod = samplingPeriod(previousSamplingTimestamp, currentSampleTimestamp);
         StackTrace stackTrace =
-            StackTrace.from(now, samplingPeriod, threadInfo, traceId, spanContext.getSpanId());
+            StackTrace.from(Instant.now(), samplingPeriod, threadInfo, traceId, spanContext.getSpanId());
         stagingArea.stage(traceId, stackTrace);
       } catch (Exception e) {
         logger.log(Level.SEVERE, e, samplerErrorMessage(traceId, thread.getId()));
+      } finally {
+        samplingTimestamps.put(traceId, currentSampleTimestamp);
       }
     }
 
@@ -110,6 +116,14 @@ class ScheduledExecutorStackTraceSampler implements StackTraceSampler {
               + traceId
               + "' on profiled thread "
               + threadId;
+    }
+
+    private Instant nanosecondsToInstant(long nanoseconds) {
+      return Instant.ofEpochSecond(0, nanoseconds);
+    }
+
+    private Duration samplingPeriod(long fromNanos, long toNanos) {
+      return Duration.ofNanos(toNanos - fromNanos);
     }
   }
 }

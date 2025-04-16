@@ -151,8 +151,11 @@ class ScheduledExecutorStackTraceSamplerTest {
       sampler.start(spanContext);
       await().until(() -> staging.getStackTraces(spanContext).size() > 1);
 
-      var stackTrace = staging.getStackTraces(spanContext).stream().skip(1).findFirst().orElseThrow();
-      assertThat(stackTrace.getDuration()).isNotNull().isCloseTo(SAMPLING_PERIOD, Duration.ofMillis(5));
+      var stackTrace =
+          staging.getStackTraces(spanContext).stream().skip(1).findFirst().orElseThrow();
+      assertThat(stackTrace.getDuration())
+          .isNotNull()
+          .isCloseTo(SAMPLING_PERIOD, Duration.ofMillis(5));
     } finally {
       sampler.stop(spanContext);
     }
@@ -224,7 +227,8 @@ class ScheduledExecutorStackTraceSamplerTest {
     var expectedDuration = SAMPLING_PERIOD.dividedBy(2);
     try {
       scheduler.submit(startSampling(spanContext, startLatch, stopLatch));
-      scheduler.schedule(() -> sampler.stop(spanContext), expectedDuration.toMillis(), TimeUnit.MILLISECONDS);
+      scheduler.schedule(
+          () -> sampler.stop(spanContext), expectedDuration.toMillis(), TimeUnit.MILLISECONDS);
       await().until(() -> staging.hasStackTraces(spanContext));
       stopLatch.countDown();
 
@@ -244,7 +248,8 @@ class ScheduledExecutorStackTraceSamplerTest {
     var expectedDuration = SAMPLING_PERIOD.dividedBy(2);
     try {
       scheduler.submit(startSampling(spanContext, startLatch, stopLatch));
-      scheduler.schedule(() -> sampler.stop(spanContext), expectedDuration.toMillis(), TimeUnit.MILLISECONDS);
+      scheduler.schedule(
+          () -> sampler.stop(spanContext), expectedDuration.toMillis(), TimeUnit.MILLISECONDS);
       await().until(() -> staging.hasStackTraces(spanContext));
       stopLatch.countDown();
 

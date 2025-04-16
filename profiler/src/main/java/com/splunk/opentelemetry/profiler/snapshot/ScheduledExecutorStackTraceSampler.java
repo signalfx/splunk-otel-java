@@ -74,6 +74,10 @@ class ScheduledExecutorStackTraceSampler implements StackTraceSampler {
     if (scheduler != null) {
       scheduler.shutdown();
     }
+
+    Thread thread = Thread.currentThread();
+    takeStackTraceSample(thread, traceId);
+
     samplingTimestamps.remove(traceId);
     stagingArea.empty(spanContext.getTraceId());
   }
@@ -89,41 +93,39 @@ class ScheduledExecutorStackTraceSampler implements StackTraceSampler {
 
     @Override
     public void run() {
-      long currentSampleTimestamp = System.nanoTime();
-      try {
-        long previousSamplingTimestamp = samplingTimestamps.get(traceId);
-
-        ThreadInfo threadInfo = threadMXBean.getThreadInfo(thread.getId(), Integer.MAX_VALUE);
-        SpanContext spanContext = retrieveActiveSpan(thread);
-        Duration samplingPeriod = samplingPeriod(previousSamplingTimestamp, currentSampleTimestamp);
-        StackTrace stackTrace =
-            StackTrace.from(Instant.now(), samplingPeriod, threadInfo, traceId, spanContext.getSpanId());
-        stagingArea.stage(traceId, stackTrace);
-      } catch (Exception e) {
-        logger.log(Level.SEVERE, e, samplerErrorMessage(traceId, thread.getId()));
-      } finally {
-        samplingTimestamps.put(traceId, currentSampleTimestamp);
-      }
+      takeStackTraceSample(thread, traceId);
     }
+  }
 
-    private SpanContext retrieveActiveSpan(Thread thread) {
-      return spanTracker.get().getActiveSpan(thread).orElse(SpanContext.getInvalid());
+  private void takeStackTraceSample(Thread thread, String traceId) {
+    long currentSampleTimestamp = System.nanoTime();
+    try {
+      ThreadInfo threadInfo = threadMXBean.getThreadInfo(thread.getId(), Integer.MAX_VALUE);
+      long previousSamplingTimestamp = samplingTimestamps.get(traceId);
+      Duration samplingPeriod = samplingPeriod(previousSamplingTimestamp, currentSampleTimestamp);
+      String spanId = retrieveActiveSpan(thread).getSpanId();
+      StackTrace stackTrace = StackTrace.from(Instant.now(), samplingPeriod, threadInfo, traceId, spanId);
+      stagingArea.stage(traceId, stackTrace);
+    } catch (Exception e) {
+      logger.log(Level.SEVERE, e, samplerErrorMessage(traceId, thread.getId()));
+    } finally {
+      samplingTimestamps.put(traceId, currentSampleTimestamp);
     }
+  }
 
-    private Supplier<String> samplerErrorMessage(String traceId, long threadId) {
-      return () ->
-          "Exception thrown attempting to stage callstacks for trace ID ' "
-              + traceId
-              + "' on profiled thread "
-              + threadId;
-    }
+  private SpanContext retrieveActiveSpan(Thread thread) {
+    return spanTracker.get().getActiveSpan(thread).orElse(SpanContext.getInvalid());
+  }
 
-    private Instant nanosecondsToInstant(long nanoseconds) {
-      return Instant.ofEpochSecond(0, nanoseconds);
-    }
+  private Duration samplingPeriod(long fromNanos, long toNanos) {
+    return Duration.ofNanos(toNanos - fromNanos);
+  }
 
-    private Duration samplingPeriod(long fromNanos, long toNanos) {
-      return Duration.ofNanos(toNanos - fromNanos);
-    }
+  private Supplier<String> samplerErrorMessage(String traceId, long threadId) {
+    return () ->
+        "Exception thrown attempting to stage callstacks for trace ID ' "
+            + traceId
+            + "' on profiled thread "
+            + threadId;
   }
 }

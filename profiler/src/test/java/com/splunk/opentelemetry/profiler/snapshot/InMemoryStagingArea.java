@@ -16,10 +16,12 @@
 
 package com.splunk.opentelemetry.profiler.snapshot;
 
+import io.opentelemetry.api.trace.SpanContext;
+import java.util.AbstractList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
 /**
@@ -27,7 +29,7 @@ import java.util.stream.Collectors;
  * the stockpiled {@link StackTrace}s. Intended for testing use only.
  */
 class InMemoryStagingArea implements StagingArea {
-  private final ConcurrentMap<String, List<StackTrace>> stackTraces = new ConcurrentHashMap<>();
+  private final ConcurrentMap<String, StagedStackTraces> stackTraces = new ConcurrentHashMap<>();
 
   @Override
   public void stage(String traceId, StackTrace stackTrace) {
@@ -35,19 +37,64 @@ class InMemoryStagingArea implements StagingArea {
         traceId,
         (id, stackTraces) -> {
           if (stackTraces == null) {
-            stackTraces = new CopyOnWriteArrayList<>();
+            stackTraces = new StagedStackTraces();
           }
-          stackTraces.add(stackTrace);
+          if (!stackTraces.emptied()) {
+            stackTraces.add(stackTrace);
+          }
           return stackTraces;
         });
   }
 
   @Override
   public void empty(String traceId) {
-    stackTraces.remove(traceId);
+    stackTraces.get(traceId).empty();
+  }
+
+  StagedStackTraces getStackTraces(SpanContext spanContext) {
+    return stackTraces.getOrDefault(spanContext.getTraceId(), new StagedStackTraces());
+  }
+
+  boolean hasStackTraces(SpanContext spanContext) {
+    return !stackTraces.get(spanContext.getTraceId()).isEmpty();
   }
 
   public List<StackTrace> allStackTraces() {
-    return stackTraces.values().stream().flatMap(List::stream).collect(Collectors.toList());
+    return stackTraces.values().stream()
+        .map(StagedStackTraces::stackTraces)
+        .flatMap(List::stream)
+        .collect(Collectors.toList());
+  }
+
+  static class StagedStackTraces extends AbstractList<StackTrace> {
+    private final List<StackTrace> stackTraces = new ArrayList<>();
+    private boolean emptied = false;
+
+    List<StackTrace> stackTraces() {
+      return stackTraces;
+    }
+
+    @Override
+    public int size() {
+      return stackTraces.size();
+    }
+
+    @Override
+    public boolean add(StackTrace stackTrace) {
+      return stackTraces.add(stackTrace);
+    }
+
+    @Override
+    public StackTrace get(int index) {
+      return stackTraces.get(index);
+    }
+
+    boolean emptied() {
+      return emptied;
+    }
+
+    private void empty() {
+      emptied = true;
+    }
   }
 }

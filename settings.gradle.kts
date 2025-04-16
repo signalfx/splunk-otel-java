@@ -22,6 +22,7 @@ rootProject.name = "splunk-otel-java"
 include(":dependencyManagement")
 include(
     "agent",
+    "agent-csa-bundle",
     "bootstrap",
     "custom",
     "instrumentation",

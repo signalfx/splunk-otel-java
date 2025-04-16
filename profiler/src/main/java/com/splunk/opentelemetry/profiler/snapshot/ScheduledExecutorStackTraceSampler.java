@@ -79,6 +79,7 @@ class ScheduledExecutorStackTraceSampler implements StackTraceSampler {
     private final Duration samplingPeriod;
     private final String traceId;
     private final Thread thread;
+    private volatile Instant lastSample = Instant.now();
 
     StackTraceGatherer(Duration samplingPeriod, String traceId, Thread thread) {
       this.samplingPeriod = samplingPeriod;
@@ -88,15 +89,17 @@ class ScheduledExecutorStackTraceSampler implements StackTraceSampler {
 
     @Override
     public void run() {
+      Instant now = Instant.now();
       try {
-        Instant now = Instant.now();
         ThreadInfo threadInfo = threadMXBean.getThreadInfo(thread.getId(), Integer.MAX_VALUE);
         SpanContext spanContext = retrieveActiveSpan(thread);
         StackTrace stackTrace =
-            StackTrace.from(now, samplingPeriod, threadInfo, traceId, spanContext.getSpanId());
+            StackTrace.from(now, Duration.between(lastSample, now), threadInfo, traceId, spanContext.getSpanId());
         stagingArea.stage(traceId, stackTrace);
       } catch (Exception e) {
         logger.log(Level.SEVERE, e, samplerErrorMessage(traceId, thread.getId()));
+      } finally {
+        lastSample = now;
       }
     }
 

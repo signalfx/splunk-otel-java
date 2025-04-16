@@ -59,9 +59,9 @@ class ScheduledExecutorStackTraceSampler implements StackTraceSampler {
   @Override
   public void stop(SpanContext spanContext) {
     String traceId = spanContext.getTraceId();
-    ThreadSampler scheduler = samplers.remove(traceId);
-    if (scheduler != null) {
-      scheduler.stop();
+    ThreadSampler sampler = samplers.remove(traceId);
+    if (sampler != null) {
+      sampler.stop();
     }
 
     stagingArea.empty(spanContext.getTraceId());

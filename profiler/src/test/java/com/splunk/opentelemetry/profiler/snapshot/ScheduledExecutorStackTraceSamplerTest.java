@@ -21,6 +21,10 @@ import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.sdk.trace.IdGenerator;
@@ -32,6 +36,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
 class ScheduledExecutorStackTraceSamplerTest {
   private static final Duration SAMPLING_PERIOD = Duration.ofMillis(20);
@@ -226,6 +231,24 @@ class ScheduledExecutorStackTraceSamplerTest {
       assertEquals(spanContext.getSpanId(), stackTrace.getSpanId());
     } finally {
       sampler.stop(spanContext);
+    }
+  }
+
+  @Test
+  void closeTakesAdditionalFrame() {
+    var stagingArea = Mockito.mock(InMemoryStagingArea.class);
+    var samplerWithMockStager =
+        new ScheduledExecutorStackTraceSampler(stagingArea, () -> spanTracker, SAMPLING_PERIOD);
+
+    var infiniteDuration = Duration.ofMillis(Integer.MAX_VALUE);
+    var spanContext = Snapshotting.spanContext().build();
+
+    try {
+      samplerWithMockStager.start(spanContext);
+      verify(stagingArea, times(1)).stage(anyString(), any(StackTrace.class));
+    } finally {
+      samplerWithMockStager.stop(spanContext);
+      verify(stagingArea, times(2)).stage(anyString(), any(StackTrace.class));
     }
   }
 

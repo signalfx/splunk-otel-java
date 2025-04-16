@@ -70,7 +70,9 @@ class ScheduledExecutorStackTraceSampler implements StackTraceSampler {
   @Override
   public void stop(SpanContext spanContext) {
     StackSamplerExecution samplerExecution = samplers.remove(spanContext.getTraceId());
-    samplerExecution.finish();
+    if (samplerExecution != null) {
+      samplerExecution.finish();
+    }
   }
 
   class StackTraceGatherer implements Runnable {

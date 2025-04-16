@@ -36,7 +36,7 @@ class ScheduledExecutorStackTraceSampler implements StackTraceSampler {
       Logger.getLogger(ScheduledExecutorStackTraceSampler.class.getName());
   private static final int SCHEDULER_INITIAL_DELAY = 0;
 
-  private final ConcurrentMap<String, ScheduledExecutorService> samplers =
+  private final ConcurrentMap<String, StackSamplerExecution> samplers =
       new ConcurrentHashMap<>();
   private final ThreadMXBean threadMXBean = ManagementFactory.getThreadMXBean();
   private final StagingArea stagingArea;
@@ -56,23 +56,21 @@ class ScheduledExecutorStackTraceSampler implements StackTraceSampler {
         spanContext.getTraceId(),
         traceId -> {
           ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+          StackTraceGatherer stackTraceGatherer = new StackTraceGatherer(
+              samplingPeriod, spanContext.getTraceId(), Thread.currentThread());
           scheduler.scheduleAtFixedRate(
-              new StackTraceGatherer(
-                  samplingPeriod, spanContext.getTraceId(), Thread.currentThread()),
+              stackTraceGatherer,
               SCHEDULER_INITIAL_DELAY,
               samplingPeriod.toMillis(),
               TimeUnit.MILLISECONDS);
-          return scheduler;
+          return new StackSamplerExecution(scheduler, stackTraceGatherer);
         });
   }
 
   @Override
   public void stop(SpanContext spanContext) {
-    ScheduledExecutorService scheduler = samplers.remove(spanContext.getTraceId());
-    if (scheduler != null) {
-      scheduler.shutdown();
-    }
-    stagingArea.empty(spanContext.getTraceId());
+    StackSamplerExecution samplerExecution = samplers.remove(spanContext.getTraceId());
+    samplerExecution.finish();
   }
 
   class StackTraceGatherer implements Runnable {
@@ -110,6 +108,29 @@ class ScheduledExecutorStackTraceSampler implements StackTraceSampler {
               + traceId
               + "' on profiled thread "
               + threadId;
+    }
+
+    public void finish() {
+      stagingArea.empty(traceId);
+    }
+  }
+
+  private class StackSamplerExecution {
+    private final StackTraceGatherer gatherer;
+    private final ScheduledExecutorService executor;
+
+    public StackSamplerExecution(ScheduledExecutorService executor, StackTraceGatherer gatherer) {
+      this.executor = executor;
+      this.gatherer = gatherer;
+    }
+
+    public void finish() {
+      // take final sample so stack trace timing matches span
+      gatherer.run();
+      gatherer.finish();
+      if (executor != null) {
+        executor.shutdown();
+      }
     }
   }
 }

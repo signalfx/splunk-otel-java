@@ -44,8 +44,7 @@ import org.junit.jupiter.params.provider.EnumSource;
 
 class PprofCpuEventExporterTest {
   private final InMemoryOtelLogger logger = new InMemoryOtelLogger();
-  private final PprofCpuEventExporter exporter =
-      new PprofCpuEventExporter.Builder()
+  private final PprofCpuEventExporter exporter = PprofCpuEventExporter.builder()
           .otelLogger(logger)
           .period(Duration.ofMillis(20))
           .stackDepth(1024)
@@ -83,8 +82,7 @@ class PprofCpuEventExporterTest {
   @Test
   void reportStackTraceWasTruncated() throws Exception {
     var exception = new RuntimeException();
-    var exporter =
-        new PprofCpuEventExporter.Builder()
+    var exporter = PprofCpuEventExporter.builder()
             .otelLogger(logger)
             .period(Duration.ofMillis(20))
             .stackDepth(exception.getStackTrace().length - 1)
@@ -109,8 +107,7 @@ class PprofCpuEventExporterTest {
   void includeOnlyTruncatedStackFrames() throws Exception {
     var exception = new RuntimeException();
     var depth = exception.getStackTrace().length - 1;
-    var exporter =
-        new PprofCpuEventExporter.Builder()
+    var exporter = PprofCpuEventExporter.builder()
             .otelLogger(logger)
             .period(Duration.ofMillis(20))
             .stackDepth(depth)

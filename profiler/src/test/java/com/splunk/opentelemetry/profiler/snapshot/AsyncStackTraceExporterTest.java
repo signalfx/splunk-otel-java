@@ -33,7 +33,6 @@ import com.google.perftools.profiles.ProfileProto.Profile;
 import com.splunk.opentelemetry.profiler.exporter.InMemoryOtelLogger;
 import com.splunk.opentelemetry.profiler.pprof.PprofUtils;
 import java.io.ByteArrayInputStream;
-import java.time.Duration;
 import java.util.List;
 import java.util.zip.GZIPInputStream;
 import org.junit.jupiter.api.Test;

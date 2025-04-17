@@ -9,9 +9,7 @@ dependencies {
 }
 
 // This should be updated for every CSA release
-// This version must match the version in dockerhub
-//val csaVersion = "25.3.0-1321"
-val csaVersion = "23.10.0-1153"
+val csaVersion = "25.3.0-1321"
 base.archivesName.set("splunk-otel-javaagent-csa")
 
 tasks {

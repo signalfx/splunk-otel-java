@@ -202,6 +202,6 @@ class ConfigurationTest {
   void getDefaultSnapshotProfilerSamplingInterval() {
     var properties = DefaultConfigProperties.create(Collections.emptyMap());
     assertEquals(
-        Duration.ofMillis(20), Configuration.getSnapshotProfilerSamplingInterval(properties));
+        Duration.ofMillis(10), Configuration.getSnapshotProfilerSamplingInterval(properties));
   }
 }

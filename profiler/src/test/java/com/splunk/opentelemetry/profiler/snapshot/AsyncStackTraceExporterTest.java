@@ -40,8 +40,7 @@ import org.junit.jupiter.api.Test;
 
 class AsyncStackTraceExporterTest {
   private final InMemoryOtelLogger logger = new InMemoryOtelLogger();
-  private final AsyncStackTraceExporter exporter =
-      new AsyncStackTraceExporter(logger, Duration.ofMillis(20), 200);
+  private final AsyncStackTraceExporter exporter = new AsyncStackTraceExporter(logger, 200);
 
   @Test
   void exportStackTraceAsOpenTelemetryLog() {

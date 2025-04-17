@@ -30,17 +30,9 @@ mkdir -p "${SPLUNK_TEMP}"
 mkdir -p "${CSA_TEMP}"
 mkdir -p "${ADAPTORS_DIR}"
 
-# Fetch CSA extension via dockerhub image
-
-docker pull appdynamics/secureapp-otel-java-extension:latest
-EXT_IMG=$(docker create --name tmpc appdynamics/secureapp-otel-java-extension:${CSA_VERSION})
-docker cp \
-  ${EXT_IMG}:/opt/appdynamics/otel-java-extensions/oss-agent-mtagent-extension-deployment.jar \
-  ${WORKING_DIR}/${CSA_EXT_JAR}
-docker rm tmpc
-
+# Fetch CSA extension from relases repo
 # FIXME XXX this is for local development until the repo is public:
-#cp /tmp/${CSA_EXT_JAR} ${WORKING_DIR}/${CSA_EXT_JAR}
+cp /tmp/${CSA_EXT_JAR} ${WORKING_DIR}/${CSA_EXT_JAR}
 #curl --fail --show-error -o \
 #  ${WORKING_DIR}/${CSA_EXT_JAR} \
 #  https://github.com/signalfx/csa-releases/releases/download/${CSA_VERSION}/${CSA_EXT_JAR}

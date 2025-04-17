@@ -65,7 +65,8 @@ class AsyncStackTraceExporter implements StackTraceExporter {
               stackTrace.getStackFrames(),
               stackTrace.getTimestamp(),
               stackTrace.getTraceId(),
-              stackTrace.getSpanId());
+              stackTrace.getSpanId(),
+              stackTrace.getDuration());
         }
         cpuEventExporter.flush();
       } catch (Exception e) {

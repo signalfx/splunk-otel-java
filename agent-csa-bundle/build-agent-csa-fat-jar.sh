@@ -33,7 +33,7 @@ mkdir -p "${ADAPTORS_DIR}"
 # Fetch CSA extension via dockerhub image
 
 docker pull appdynamics/secureapp-otel-java-extension:latest
-EXT_IMG=$(docker create --name tmpc appdynamics/secureapp-otel-java-extension:latest)
+EXT_IMG=$(docker create --name tmpc appdynamics/secureapp-otel-java-extension:${CSA_VERSION})
 docker cp \
   ${EXT_IMG}:/opt/appdynamics/otel-java-extensions/oss-agent-mtagent-extension-deployment.jar \
   ${WORKING_DIR}/${CSA_EXT_JAR}

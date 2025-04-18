@@ -17,6 +17,7 @@
 package com.splunk.opentelemetry.profiler.exporter;
 
 import com.splunk.opentelemetry.profiler.context.StackToSpanLinkage;
+import java.time.Duration;
 import java.time.Instant;
 
 public interface CpuEventExporter {
@@ -30,7 +31,8 @@ public interface CpuEventExporter {
       StackTraceElement[] stackTrace,
       Instant eventTime,
       String traceId,
-      String spanId) {}
+      String spanId,
+      Duration duration) {}
 
   default void flush() {}
 }

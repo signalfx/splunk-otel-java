@@ -102,7 +102,8 @@ public class PprofCpuEventExporter implements CpuEventExporter {
       StackTraceElement[] stackTrace,
       Instant eventTime,
       String traceId,
-      String spanId) {
+      String spanId,
+      Duration duration) {
     Sample.Builder sample = Sample.newBuilder();
 
     pprof.addLabel(sample, THREAD_ID, threadId);
@@ -127,7 +128,7 @@ public class PprofCpuEventExporter implements CpuEventExporter {
       pprof.incFrameCount();
     }
 
-    pprof.addLabel(sample, SOURCE_EVENT_PERIOD, period.toMillis());
+    pprof.addLabel(sample, SOURCE_EVENT_PERIOD, duration.toMillis());
     pprof.addLabel(sample, SOURCE_EVENT_TIME, eventTime.toEpochMilli());
 
     if (TraceId.isValid(traceId)) {

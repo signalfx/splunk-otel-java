@@ -48,7 +48,7 @@ class InMemoryStagingArea implements StagingArea {
 
   @Override
   public void empty(String traceId) {
-    stackTraces.get(traceId).empty();
+    stackTraces.getOrDefault(traceId, new StagedStackTraces()).empty();
   }
 
   StagedStackTraces getStackTraces(SpanContext spanContext) {

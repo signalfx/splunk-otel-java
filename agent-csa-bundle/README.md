@@ -24,5 +24,5 @@ From the root of the project:
 $ ./gradlew agent-csa-bundle:assemble
 ```
 
-The resulting bundle will be located at 
+The resulting bundle will be located at
 `agent-csa-bundle/build/splunk-otel-javaagent-csa-<version>.jar`.

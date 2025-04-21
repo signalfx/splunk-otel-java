@@ -30,12 +30,10 @@ mkdir -p "${SPLUNK_TEMP}"
 mkdir -p "${CSA_TEMP}"
 mkdir -p "${ADAPTORS_DIR}"
 
-# Fetch CSA extension from relases repo
-# FIXME XXX this is for local development until the repo is public:
-cp /tmp/${CSA_EXT_JAR} ${WORKING_DIR}/${CSA_EXT_JAR}
-#curl --fail --show-error -o \
-#  ${WORKING_DIR}/${CSA_EXT_JAR} \
-#  https://github.com/signalfx/csa-releases/releases/download/${CSA_VERSION}/${CSA_EXT_JAR}
+# Fetch CSA extension from releases repo
+curl --fail --show-error -o \
+  ${WORKING_DIR}/${CSA_EXT_JAR} \
+  https://github.com/signalfx/csa-releases/releases/download/${CSA_VERSION}/${CSA_EXT_JAR}
 
 # copy splunk-otel-java jar
 MYDIR=`dirname $0`

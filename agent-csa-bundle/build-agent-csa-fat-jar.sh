@@ -31,7 +31,7 @@ mkdir -p "${CSA_TEMP}"
 mkdir -p "${ADAPTORS_DIR}"
 
 # Fetch CSA extension from releases repo
-curl --fail --show-error -o \
+curl --fail --show-error -L -o \
   ${WORKING_DIR}/${CSA_EXT_JAR} \
   https://github.com/signalfx/csa-releases/releases/download/${CSA_VERSION}/${CSA_EXT_JAR}
 

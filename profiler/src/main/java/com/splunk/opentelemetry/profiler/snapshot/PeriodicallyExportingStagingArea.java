@@ -19,6 +19,7 @@ package com.splunk.opentelemetry.profiler.snapshot;
 import java.io.Closeable;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Executors;
@@ -43,11 +44,12 @@ class PeriodicallyExportingStagingArea implements StagingArea, Closeable {
 
   @Override
   public void empty() {
-    if (stackTraces.isEmpty()) {
+    List<StackTrace> stackTracesToExport = new ArrayList<>(stackTraces);
+    if (stackTracesToExport.isEmpty()) {
       return;
     }
-    exporter.get().export(new ArrayList<>(stackTraces));
-    stackTraces.clear();
+    exporter.get().export(stackTracesToExport);
+    stackTraces.removeAll(stackTracesToExport);
   }
 
   @Override

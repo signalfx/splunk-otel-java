@@ -96,7 +96,7 @@ class ScheduledExecutorStackTraceSampler implements StackTraceSampler {
   private class StackTraceGatherer implements Runnable {
     private final String traceId;
     private final Thread thread;
-    private long timestampNanos;
+    private volatile long timestampNanos;
 
     StackTraceGatherer(String traceId, Thread thread, long timestampNanos) {
       this.traceId = traceId;
@@ -106,10 +106,11 @@ class ScheduledExecutorStackTraceSampler implements StackTraceSampler {
 
     @Override
     public void run() {
+      long previousTimestampNanos = timestampNanos;
       long currentSampleTimestamp = System.nanoTime();
       try {
         ThreadInfo threadInfo = threadMXBean.getThreadInfo(thread.getId(), Integer.MAX_VALUE);
-        Duration samplingPeriod = samplingPeriod(timestampNanos, currentSampleTimestamp);
+        Duration samplingPeriod = samplingPeriod(previousTimestampNanos, currentSampleTimestamp);
         String spanId = retrieveActiveSpan(thread).getSpanId();
         StackTrace stackTrace =
             StackTrace.from(Instant.now(), samplingPeriod, threadInfo, traceId, spanId);

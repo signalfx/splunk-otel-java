@@ -112,6 +112,48 @@ class ScheduledExecutorStackTraceSamplerTest {
     }
   }
 
+  /**
+   * Attempting to exercise the following scenario. <br>
+   * <br>
+   * Two services: A and B where A makes multiple API calls into B in parallel. If the trace is
+   * profiled the first API call into B will start profiling within B, and the profiling should not
+   * stop until that same span ends.
+   */
+  @Test
+  void onlyStopSamplingWhenCommandOriginatesSameSpanContextThatStartedSampling() {
+    var executor = Executors.newFixedThreadPool(2);
+    var traceId = IdGenerator.random().generateTraceId();
+
+    var start1 = new CountDownLatch(1);
+    var stop1 = new CountDownLatch(1);
+    var spanContext1 = Snapshotting.spanContext().withTraceId(traceId).build();
+
+    var start2 = new CountDownLatch(1);
+    var stop2 = new CountDownLatch(1);
+    var spanContext2 = Snapshotting.spanContext().withTraceId(traceId).build();
+
+    executor.submit(startSampling(spanContext1, start1, stop1));
+    executor.submit(startSampling(spanContext2, start2, stop2));
+
+    try {
+      start1.countDown();
+      start2.countDown();
+      await().until(() -> staging.allStackTraces().size() > 1);
+
+      stop2.countDown();
+      int numberOfStackTraces = staging.allStackTraces().size();
+      sampler.stop(spanContext2);
+
+      await()
+          .untilAsserted(
+              () -> assertThat(staging.allStackTraces().size()).isGreaterThan(numberOfStackTraces));
+    } finally {
+      sampler.stop(spanContext1);
+      stop1.countDown();
+      executor.shutdownNow();
+    }
+  }
+
   @Test
   void includeTimestampOnStackTraces() {
     var now = Instant.now();

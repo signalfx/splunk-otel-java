@@ -52,34 +52,44 @@ class ScheduledExecutorStackTraceSampler implements StackTraceSampler {
   @Override
   public void start(SpanContext spanContext) {
     samplers.computeIfAbsent(
-        spanContext.getTraceId(),
-        traceId -> new ThreadSampler(traceId, Thread.currentThread(), samplingPeriod));
+        spanContext.getTraceId(), id -> new ThreadSampler(spanContext, samplingPeriod));
   }
 
   @Override
   public void stop(SpanContext spanContext) {
-    String traceId = spanContext.getTraceId();
-    ThreadSampler sampler = samplers.remove(traceId);
-    if (sampler != null) {
-      sampler.stop();
-    }
-
-    stagingArea.empty(spanContext.getTraceId());
+    samplers.computeIfPresent(
+        spanContext.getTraceId(),
+        (traceId, sampler) -> {
+          if (spanContext.equals(sampler.getSpanContext())) {
+            sampler.shutdown();
+            stagingArea.empty(spanContext.getTraceId());
+            return null;
+          }
+          return sampler;
+        });
   }
 
   private class ThreadSampler {
     private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+    private final SpanContext spanContext;
     private final StackTraceGatherer gatherer;
 
-    private ThreadSampler(String traceId, Thread thread, Duration period) {
-      gatherer = new StackTraceGatherer(traceId, thread, System.nanoTime());
+    ThreadSampler(SpanContext spanContext, Duration samplingPeriod) {
+      this.spanContext = spanContext;
+      gatherer =
+          new StackTraceGatherer(
+              spanContext.getTraceId(), Thread.currentThread(), System.nanoTime());
       scheduler.scheduleAtFixedRate(
-          gatherer, SCHEDULER_INITIAL_DELAY, period.toMillis(), TimeUnit.MILLISECONDS);
+          gatherer, SCHEDULER_INITIAL_DELAY, samplingPeriod.toMillis(), TimeUnit.MILLISECONDS);
     }
 
-    void stop() {
+    void shutdown() {
       scheduler.shutdown();
       gatherer.run();
+    }
+
+    SpanContext getSpanContext() {
+      return spanContext;
     }
   }
 

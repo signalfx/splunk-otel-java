@@ -79,7 +79,7 @@ public class Configuration implements AutoConfigurationCustomizerProvider {
   private static final int DEFAULT_SNAPSHOT_PROFILER_STACK_DEPTH = 1024;
   private static final String CONFIG_KEY_SNAPSHOT_PROFILER_SAMPLING_INTERVAL =
       "splunk.snapshot.profiler.sampling.interval";
-  public static final Duration DEFAULT_SNAPSHOT_PROFILER_SAMPLING_INTERVAL = Duration.ofMillis(20);
+  private static final Duration DEFAULT_SNAPSHOT_PROFILER_SAMPLING_INTERVAL = Duration.ofMillis(10);
 
   @Override
   public void customize(AutoConfigurationCustomizer autoConfiguration) {

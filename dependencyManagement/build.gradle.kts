@@ -4,7 +4,7 @@ plugins {
 
 val otelVersion = "1.49.0"
 val otelAlphaVersion = otelVersion.replaceFirst("(-SNAPSHOT)?$".toRegex(), "-alpha$1")
-val otelInstrumentationVersion = "2.15.0-SNAPSHOT"
+val otelInstrumentationVersion = "2.16.0-SNAPSHOT"
 val otelInstrumentationAlphaVersion =  otelInstrumentationVersion.replaceFirst("(-SNAPSHOT)?$".toRegex(), "-alpha$1")
 val otelContribAlphaVersion = "1.45.0-alpha"
 
@@ -31,10 +31,10 @@ dependencies {
   api(enforcedPlatform("com.fasterxml.jackson:jackson-bom:2.18.3"))
   api(enforcedPlatform("com.google.protobuf:protobuf-bom:$protobufVersion"))
   api(enforcedPlatform("com.squareup.okhttp3:okhttp-bom:4.12.0"))
-  api(enforcedPlatform("io.grpc:grpc-bom:1.71.0"))
+  api(enforcedPlatform("io.grpc:grpc-bom:1.72.0"))
   api(enforcedPlatform("io.opentelemetry:opentelemetry-bom-alpha:$otelAlphaVersion"))
   api(enforcedPlatform("io.opentelemetry.instrumentation:opentelemetry-instrumentation-bom-alpha:$otelInstrumentationAlphaVersion"))
-  api(enforcedPlatform("org.junit:junit-bom:5.12.1"))
+  api(enforcedPlatform("org.junit:junit-bom:5.12.2"))
   api(enforcedPlatform("org.testcontainers:testcontainers-bom:1.20.6"))
 
   constraints {

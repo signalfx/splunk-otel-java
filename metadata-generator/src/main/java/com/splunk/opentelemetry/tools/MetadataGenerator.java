@@ -3932,6 +3932,99 @@ public class MetadataGenerator {
                 otelJavaContribAlphaVersion,
                 Stability.EXPERIMENTAL)
             .build());
+    // OpenTelemetry Azure Resource Providers
+    resourceProviders.add(
+        resourceProvider(
+                "io.opentelemetry.contrib.azure.resource.AzureAksResourceProvider",
+                "AKS detector.",
+                List.of("cloud.platform", "cloud.provider", "k8s.cluster.name"))
+            .dependency(
+                "OpenTelemetry Azure Resource Providers",
+                "https://github.com/open-telemetry/opentelemetry-java-contrib/blob/main/azure-resources",
+                "https://central.sonatype.com/artifact/io.opentelemetry.contrib/opentelemetry-azure-resources",
+                otelJavaContribAlphaVersion,
+                Stability.EXPERIMENTAL)
+            .build());
+    resourceProviders.add(
+        resourceProvider(
+                "io.opentelemetry.contrib.azure.resource.AzureAppServiceResourceProvider",
+                "App service detector.",
+                List.of(
+                    "cloud.platform",
+                    "cloud.provider",
+                    "service.name",
+                    "cloud.region",
+                    "cloud.resource_id",
+                    "deployment.environment.name",
+                    "host.id",
+                    "service.instance.id",
+                    "azure.app.service.stamp"))
+            .dependency(
+                "OpenTelemetry Azure Resource Providers",
+                "https://github.com/open-telemetry/opentelemetry-java-contrib/blob/main/azure-resources",
+                "https://central.sonatype.com/artifact/io.opentelemetry.contrib/opentelemetry-azure-resources",
+                otelJavaContribAlphaVersion,
+                Stability.EXPERIMENTAL)
+            .build());
+    resourceProviders.add(
+        resourceProvider(
+                "io.opentelemetry.contrib.azure.resource.AzureContainersResourceProvider",
+                "Container detector.",
+                List.of(
+                    "cloud.platform",
+                    "cloud.provider",
+                    "service.name",
+                    "service.instance.id",
+                    "service.version"))
+            .dependency(
+                "OpenTelemetry Azure Resource Providers",
+                "https://github.com/open-telemetry/opentelemetry-java-contrib/blob/main/azure-resources",
+                "https://central.sonatype.com/artifact/io.opentelemetry.contrib/opentelemetry-azure-resources",
+                otelJavaContribAlphaVersion,
+                Stability.EXPERIMENTAL)
+            .build());
+    resourceProviders.add(
+        resourceProvider(
+                "io.opentelemetry.contrib.azure.resource.AzureFunctionsResourceProvider",
+                "Function detector.",
+                List.of(
+                    "cloud.platform",
+                    "cloud.provider",
+                    "faas.max_memory",
+                    "cloud.region",
+                    "faas.name",
+                    "faas.version",
+                    "faas.instance"))
+            .dependency(
+                "OpenTelemetry Azure Resource Providers",
+                "https://github.com/open-telemetry/opentelemetry-java-contrib/blob/main/azure-resources",
+                "https://central.sonatype.com/artifact/io.opentelemetry.contrib/opentelemetry-azure-resources",
+                otelJavaContribAlphaVersion,
+                Stability.EXPERIMENTAL)
+            .build());
+    resourceProviders.add(
+        resourceProvider(
+                "io.opentelemetry.contrib.azure.resource.AzureVmResourceProvider",
+                "Vm detector.",
+                List.of(
+                    "cloud.platform",
+                    "cloud.provider",
+                    "cloud.region",
+                    "cloud.resource_id",
+                    "host.id",
+                    "host.name",
+                    "host.type",
+                    "os.type",
+                    "os.version",
+                    "azure.vm.scaleset.name",
+                    "azure.vm.sku"))
+            .dependency(
+                "OpenTelemetry Azure Resource Providers",
+                "https://github.com/open-telemetry/opentelemetry-java-contrib/blob/main/azure-resources",
+                "https://central.sonatype.com/artifact/io.opentelemetry.contrib/opentelemetry-azure-resources",
+                otelJavaContribAlphaVersion,
+                Stability.EXPERIMENTAL)
+            .build());
 
     DumperOptions options = new DumperOptions();
     options.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
@@ -4119,7 +4212,7 @@ public class MetadataGenerator {
       metric(
           "rpc.client.duration",
           MetricInstrument.HISTOGRAM,
-          "Measures the duration of outbound RPC.");
+          "The duration of an outbound RPC invocation.");
 
       return this;
     }
@@ -4128,7 +4221,7 @@ public class MetadataGenerator {
       metric(
           "rpc.server.duration",
           MetricInstrument.HISTOGRAM,
-          "Measures the duration of inbound RPC.");
+          "The duration of an inbound RPC invocation.");
 
       return this;
     }

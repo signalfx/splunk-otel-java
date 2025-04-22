@@ -36,8 +36,7 @@ class ScheduledExecutorStackTraceSampler implements StackTraceSampler {
       Logger.getLogger(ScheduledExecutorStackTraceSampler.class.getName());
   private static final int SCHEDULER_INITIAL_DELAY = 0;
 
-  private final ConcurrentMap<String, ScheduledExecutorService> samplers =
-      new ConcurrentHashMap<>();
+  private final ConcurrentMap<String, ThreadSampler> samplers = new ConcurrentHashMap<>();
   private final ThreadMXBean threadMXBean = ManagementFactory.getThreadMXBean();
   private final Supplier<StagingArea> stagingArea;
   private final Supplier<SpanTracker> spanTracker;
@@ -60,35 +59,52 @@ class ScheduledExecutorStackTraceSampler implements StackTraceSampler {
     }
 
     samplers.computeIfAbsent(
-        spanContext.getTraceId(),
-        traceId -> {
-          ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
-          scheduler.scheduleAtFixedRate(
-              new StackTraceGatherer(
-                  samplingPeriod, spanContext.getTraceId(), Thread.currentThread()),
-              SCHEDULER_INITIAL_DELAY,
-              samplingPeriod.toMillis(),
-              TimeUnit.MILLISECONDS);
-          return scheduler;
-        });
+        spanContext.getTraceId(), id -> new ThreadSampler(spanContext, samplingPeriod));
   }
 
   @Override
   public void stop(SpanContext spanContext) {
-    ScheduledExecutorService scheduler = samplers.remove(spanContext.getTraceId());
-    if (scheduler != null) {
-      scheduler.shutdown();
-    }
-    stagingArea.get().empty(spanContext.getTraceId());
+    samplers.computeIfPresent(
+        spanContext.getTraceId(),
+        (traceId, sampler) -> {
+          if (spanContext.equals(sampler.getSpanContext())) {
+            sampler.shutdown();
+            stagingArea.get().empty(spanContext.getTraceId());
+            return null;
+          }
+          return sampler;
+        });
   }
 
   @Override
   public void close() {
     closed = true;
-    samplers.values().forEach(ScheduledExecutorService::shutdown);
+    samplers.values().forEach(ThreadSampler::shutdown);
   }
 
-  class StackTraceGatherer implements Runnable {
+  private class ThreadSampler {
+    private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+    private final SpanContext spanContext;
+
+    ThreadSampler(SpanContext spanContext, Duration samplingPeriod) {
+      this.spanContext = spanContext;
+      scheduler.scheduleAtFixedRate(
+          new StackTraceGatherer(samplingPeriod, spanContext.getTraceId(), Thread.currentThread()),
+          SCHEDULER_INITIAL_DELAY,
+          samplingPeriod.toMillis(),
+          TimeUnit.MILLISECONDS);
+    }
+
+    void shutdown() {
+      scheduler.shutdown();
+    }
+
+    SpanContext getSpanContext() {
+      return spanContext;
+    }
+  }
+
+  private class StackTraceGatherer implements Runnable {
     private final Duration samplingPeriod;
     private final String traceId;
     private final Thread thread;

@@ -110,7 +110,7 @@ class ScheduledExecutorStackTraceSampler implements StackTraceSampler {
       long currentSampleTimestamp = System.nanoTime();
       try {
         ThreadInfo threadInfo = threadMXBean.getThreadInfo(thread.getId(), Integer.MAX_VALUE);
-        Duration samplingPeriod = samplingPeriod(previousTimestampNanos, currentSampleTimestamp);
+        Duration samplingPeriod = Duration.ofNanos(currentSampleTimestamp - previousTimestampNanos);
         String spanId = retrieveActiveSpan(thread).getSpanId();
         StackTrace stackTrace =
             StackTrace.from(Instant.now(), samplingPeriod, threadInfo, traceId, spanId);
@@ -120,10 +120,6 @@ class ScheduledExecutorStackTraceSampler implements StackTraceSampler {
       } finally {
         timestampNanos = currentSampleTimestamp;
       }
-    }
-
-    private Duration samplingPeriod(long fromNanos, long toNanos) {
-      return Duration.ofNanos(toNanos - fromNanos);
     }
 
     private SpanContext retrieveActiveSpan(Thread thread) {

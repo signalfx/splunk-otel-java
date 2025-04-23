@@ -25,13 +25,11 @@ class ConfigurableSupplier<T> implements Supplier<T> {
 
   ConfigurableSupplier(T defaultValue) {
     this.defaultValue = Objects.requireNonNull(defaultValue);
+    this.value = defaultValue;
   }
 
   @Override
   public T get() {
-    if (value == null) {
-      return defaultValue;
-    }
     return value;
   }
 

@@ -59,6 +59,8 @@ jar uf ${OUTPUT_JAR} -C "${WORKING_DIR}" \
 # add extension to service loader
 unzip -o "${OUTPUT_JAR}" -d "${WORKING_DIR}" \
   inst/META-INF/services/io.opentelemetry.javaagent.extension.AgentListener
+echo "" \
+  >> "${WORKING_DIR}/inst/META-INF/services/io.opentelemetry.javaagent.extension.AgentListener"
 echo "com.cisco.mtagent.adaptors.AgentOSSAgentExtension" \
   >> "${WORKING_DIR}/inst/META-INF/services/io.opentelemetry.javaagent.extension.AgentListener"
 jar uf "${OUTPUT_JAR}" -C "${WORKING_DIR}" \

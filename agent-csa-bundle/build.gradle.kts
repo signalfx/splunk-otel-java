@@ -9,7 +9,7 @@ dependencies {
 }
 
 // This should be updated for every CSA release
-val csaVersion = "25.3.0-1321"
+val csaVersion = "25.4.0-1327"
 base.archivesName.set("splunk-otel-javaagent-csa")
 
 tasks {

@@ -6,12 +6,12 @@ plugins {
   id("com.gradleup.shadow")
 }
 
-
-base.archivesName.set("splunk-otel-javaagent-csa")
-
 // This should be updated for every CSA release, eventually in dependencyManagement?
+
 val csaVersion = "25.4.0-1327"
 val otelInstrumentationVersion: String by rootProject.extra
+
+base.archivesName.set("splunk-otel-javaagent-csa")
 
 val csaReleases: Configuration by configurations.creating {
   isCanBeResolved = true
@@ -19,7 +19,8 @@ val csaReleases: Configuration by configurations.creating {
 }
 
 repositories {
-  ivy { // Required to source artifact directly from github release page
+  ivy {
+    // Required to source artifact directly from github release page
     // https://github.com/signalfx/csa-releases/releases/download/<version>/oss-agent-mtagent-extension-deployment.jar
     url = uri("https://github.com/")
     metadataSources {
@@ -34,7 +35,7 @@ repositories {
 
 dependencies {
   runtimeOnly(project(":agent", configuration = "shadow"))
-  csaReleases("signalfx:csa-releases:${csaVersion}") {
+  csaReleases("signalfx:csa-releases:$csaVersion") {
     artifact {
       name = "oss-agent-mtagent-extension-deployment"
       extension = "jar"
@@ -77,7 +78,7 @@ tasks {
   }
 
   // Copy service file so path on disk matches path in jar
-  val copyServiceFile by registering(Copy::class){
+  val copyServiceFile by registering(Copy::class) {
     dependsOn(extractExtensionClasses)
     from("build/ext-exploded/META-INF/services/")
     into("build/ext-exploded/inst/META-INF/services/")
@@ -85,8 +86,7 @@ tasks {
 
   shadowJar {
     archiveClassifier.set("")
-    dependsOn(copyServiceFile, renameClasstoClassdata,
-      shadowExplodeWorkaround)
+    dependsOn(copyServiceFile, renameClasstoClassdata, shadowExplodeWorkaround)
 
     // Include the example properties file
     from("otel-extension-system.properties") {
@@ -97,12 +97,12 @@ tasks {
     from(shadowExplodeWorkaround.get().outputs.files.first())
 
     // Add the two extension class(data) files:
-    from("build/ext-exploded/com/cisco/mtagent/adaptors/"){
+    from("build/ext-exploded/com/cisco/mtagent/adaptors/") {
       into("inst/com/cisco/mtagent/adaptors/")
       include("AgentOSSAgentExtension.classdata", "AgentOSSAgentExtensionUtil.classdata")
     }
     // Merge service descriptor files
-    mergeServiceFiles() {
+    mergeServiceFiles {
       include("inst/META-INF/services/io.opentelemetry.javaagent.extension.AgentListener")
     }
     from("build/ext-exploded/") {
@@ -120,7 +120,8 @@ tasks {
           "Implementation-Vendor" to "Splunk",
           "Implementation-Version" to "splunk-${project.version}-otel-$otelInstrumentationVersion",
           "Cisco-Secure-Application-Version" to csaVersion,
-        ))
+        )
+      )
     }
   }
 

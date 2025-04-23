@@ -80,6 +80,16 @@ class ScheduledExecutorStackTraceSampler implements StackTraceSampler {
   public void close() {
     closed = true;
     samplers.values().forEach(ThreadSampler::shutdown);
+    samplers.values().forEach(sampler -> {
+      try {
+        if(!sampler.awaitTermination(samplingPeriod.multipliedBy(2))) {
+          sampler.shutdownNow();
+        }
+      } catch (InterruptedException e) {
+        sampler.shutdownNow();
+        Thread.currentThread().interrupt();
+      }
+    });
   }
 
   private class ThreadSampler {
@@ -97,6 +107,14 @@ class ScheduledExecutorStackTraceSampler implements StackTraceSampler {
 
     void shutdown() {
       scheduler.shutdown();
+    }
+
+    void shutdownNow() {
+      scheduler.shutdownNow();
+    }
+
+    boolean awaitTermination(Duration timeout) throws InterruptedException {
+      return scheduler.awaitTermination(timeout.toMillis(), TimeUnit.MILLISECONDS);
     }
 
     SpanContext getSpanContext() {

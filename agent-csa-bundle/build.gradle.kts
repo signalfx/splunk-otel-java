@@ -7,7 +7,7 @@ plugins {
 }
 
 // This should be updated for every CSA release, eventually in dependencyManagement?
-val csaVersion = "25.3.0-1321"
+val csaVersion = "25.4.0-1327"
 val otelInstrumentationVersion: String by rootProject.extra
 
 val csaReleases: Configuration by configurations.creating {

@@ -21,7 +21,7 @@ import java.util.function.Supplier;
 
 class ConfigurableSupplier<T> implements Supplier<T> {
   private final T defaultValue;
-  private T value;
+  private volatile T value;
 
   ConfigurableSupplier(T defaultValue) {
     this.defaultValue = Objects.requireNonNull(defaultValue);

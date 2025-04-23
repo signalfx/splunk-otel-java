@@ -88,7 +88,7 @@ class ScheduledExecutorStackTraceSampler implements StackTraceSampler {
 
   private void waitForShutdown(ThreadSampler sampler) {
     try {
-      if(!sampler.awaitTermination(samplingPeriod.multipliedBy(2))) {
+      if (!sampler.awaitTermination(samplingPeriod.multipliedBy(2))) {
         sampler.shutdownNow();
       }
     } catch (InterruptedException e) {

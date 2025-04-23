@@ -69,6 +69,7 @@ class ScheduledExecutorStackTraceSampler implements StackTraceSampler {
         (traceId, sampler) -> {
           if (spanContext.equals(sampler.getSpanContext())) {
             sampler.shutdown();
+            waitForShutdown(sampler);
             stagingArea.get().empty(spanContext.getTraceId());
             return null;
           }
@@ -79,17 +80,21 @@ class ScheduledExecutorStackTraceSampler implements StackTraceSampler {
   @Override
   public void close() {
     closed = true;
+
     samplers.values().forEach(ThreadSampler::shutdown);
-    samplers.values().forEach(sampler -> {
-      try {
-        if(!sampler.awaitTermination(samplingPeriod.multipliedBy(2))) {
-          sampler.shutdownNow();
-        }
-      } catch (InterruptedException e) {
+    samplers.values().forEach(this::waitForShutdown);
+    samplers.clear();
+  }
+
+  private void waitForShutdown(ThreadSampler sampler) {
+    try {
+      if(!sampler.awaitTermination(samplingPeriod.multipliedBy(2))) {
         sampler.shutdownNow();
-        Thread.currentThread().interrupt();
       }
-    });
+    } catch (InterruptedException e) {
+      sampler.shutdownNow();
+      Thread.currentThread().interrupt();
+    }
   }
 
   private class ThreadSampler {

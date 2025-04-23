@@ -6,6 +6,9 @@ plugins {
   id("com.gradleup.shadow")
 }
 
+
+base.archivesName.set("splunk-otel-javaagent-csa")
+
 // This should be updated for every CSA release, eventually in dependencyManagement?
 val csaVersion = "25.4.0-1327"
 val otelInstrumentationVersion: String by rootProject.extra
@@ -53,6 +56,23 @@ tasks {
     configurations = listOf(csaReleases)
   }
 
+  // Extract and rename extension classes
+  val extractExtensionClasses by registering(Copy::class) {
+    dependsOn(copyCsaJar)
+    from(zipTree(copyCsaJar.get().outputs.files.first()))
+    into("build/ext-exploded")
+  }
+
+  // Rename class to classdata
+  val renameClasstoClassdata by registering(Copy::class) {
+    dependsOn(extractExtensionClasses)
+    from("build/ext-exploded/com/cisco/mtagent/adaptors/")
+    into("build/ext-exploded/com/cisco/mtagent/adaptors/")
+    include("AgentOSSAgentExtension.class", "AgentOSSAgentExtensionUtil.class")
+    rename("AgentOSSAgentExtension.class", "AgentOSSAgentExtension.classdata")
+    rename("AgentOSSAgentExtensionUtil.class", "AgentOSSAgentExtensionUtil.classdata")
+  }
+
   // Shadow always explodes jars, so we double-jar the jar to prevent it
   // from being exploded. Yay!
   val shadowExplodeWorkaround by registering(Jar::class) {
@@ -60,16 +80,41 @@ tasks {
     destinationDirectory = file("build/shadow-explode-workaround")
     archiveBaseName = "nested-content"
     from(copyCsaJar)
-}
+  }
+
+  // Copy service file
+  val copyServiceFile by registering(Copy::class){
+    dependsOn(extractExtensionClasses)
+    from("build/ext-exploded/META-INF/services/")
+    into("build/ext-exploded/inst/META-INF/services/")
+  }
 
   shadowJar {
     archiveClassifier.set("")
-    dependsOn(shadowExplodeWorkaround)
+    dependsOn(copyServiceFile, renameClasstoClassdata,
+      shadowExplodeWorkaround)
+
+    // Include the example properties file
     from("otel-extension-system.properties") {
       into("/")
     }
 
+    // Add the entire extension jar
     from(shadowExplodeWorkaround.get().outputs.files.first())
+
+    // Add the two extension class(data) files:
+    from("build/ext-exploded/com/cisco/mtagent/adaptors/"){
+      into("inst/com/cisco/mtagent/adaptors/")
+      include("AgentOSSAgentExtension.classdata", "AgentOSSAgentExtensionUtil.classdata")
+    }
+    // Merge service descriptor files
+    mergeServiceFiles() {
+      include("inst/META-INF/services/io.opentelemetry.javaagent.extension.AgentListener")
+    }
+    from("build/ext-exploded/") {
+      include("inst/META-INF/services/io.opentelemetry.javaagent.extension.AgentListener")
+    }
+
     manifest {
       attributes(
         mapOf(
@@ -92,7 +137,6 @@ tasks {
 }
 
 //
-//base.archivesName.set("splunk-otel-javaagent-csa")
 //
 //val upstreamSecureApp: Configuration by configurations.creating {
 //  isCanBeResolved = true

@@ -64,24 +64,11 @@ tasks {
 
   shadowJar {
     archiveClassifier.set("")
-//    dependsOn(copyCsaJar)
     dependsOn(shadowExplodeWorkaround)
     from("otel-extension-system.properties") {
       into("/")
     }
-//    println("F IT")
-//    println(copyCsaJar.get().outputs.files.first())
-//    println(copyCsaJar.get().outputs.files.first().javaClass)
-////    from(copyCsaJar.get().outputs.files.first()) {
-////    resources
-////      from(file("build/libs/oss-agent-mtagent-extension-deployment.jar")) {
-//    from(copyCsaJar.get().outputs.files.first()) {
-//      into("/mangle")
-//    }
 
-    println("DOG IT")
-    println(shadowExplodeWorkaround.get().outputs.files.first())
-    println(shadowExplodeWorkaround.get().outputs.files.first().javaClass)
     from(shadowExplodeWorkaround.get().outputs.files.first())
     manifest {
       attributes(

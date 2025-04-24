@@ -42,7 +42,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: build and publish container
-        uses: docker/build-push-action@v6.15.0
+        uses: docker/build-push-action@v6.16.0
         with:
           push: true
           file: Dockerfile-ghcr

@@ -21,7 +21,7 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: push to gh packages
-        uses: docker/build-push-action@v6.15.0
+        uses: docker/build-push-action@v6.16.0
         with:
           push: true
           file: smoke-tests/profiling-base-petclinic/linux/Dockerfile

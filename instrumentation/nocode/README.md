@@ -4,7 +4,7 @@ Stability: under active development; breaking changes can occur
 
 Please don't use this if you have the ability to edit the code being instrumented.
 
-By using this feature you are essentially changing your application's code.  Doing so without understanding
+By using this feature you are essentially changing your application's code. Doing so without understanding
 the behavior of the code you are adding may cause any or all of:
   - Data corruption
   - Deadlocks or application crashes

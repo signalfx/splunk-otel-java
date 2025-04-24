@@ -4,6 +4,16 @@ Stability: under active development; breaking changes can occur
 
 Please don't use this if you have the ability to edit the code being instrumented.
 
+By using this feature you are essentially changing your application's code.  Doing so without understanding
+the behavior of the code you are adding may cause any or all of:
+  - Data corruption
+  - Deadlocks or application crashes
+  - Memory leaks
+  - Greatly increased latency or timeouts
+  - Errors reported back to your application's clients
+
+## How to add custom instrumentation without source access
+
 Set `SPLUNK_OTEL_INSTRUMENTATION_NOCODE_YML_FILE=/path/to/some.yml`
 
 Where the yml looks like
@@ -18,10 +28,10 @@ Where the yml looks like
 - class: foo.Foo
   method: doStuff
   spanKind: CLIENT
-  spanStatus: 'returnValue.code() > 3 ? "OK" : "ERROR"`
+  spanStatus: 'returnValue.code() > 3 ? "OK" : "ERROR"'
   attributes:
     - key: "special.header"
-      value: 'param0.headers().get("special-header").substring(5)"'
+      value: 'param0.headers().get("special-header").substring(5)'
 ```
 
 Expressions are written in [JEXL](https://commons.apache.org/proper/commons-jexl/reference/syntax.html) and may use

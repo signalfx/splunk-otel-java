@@ -18,6 +18,11 @@ val csaReleases: Configuration by configurations.creating {
   isCanBeConsumed = false
 }
 
+val splunkAgent: Configuration by configurations.creating {
+  isCanBeResolved = true
+  isCanBeConsumed = false
+}
+
 repositories {
   ivy {
     // Required to source artifact directly from github release page
@@ -34,7 +39,7 @@ repositories {
 }
 
 dependencies {
-  runtimeOnly(project(":agent", configuration = "shadow"))
+  splunkAgent(project(":agent", configuration = "shadow"))
   csaReleases("signalfx:csa-releases:$csaVersion") {
     artifact {
       name = "oss-agent-mtagent-extension-deployment"
@@ -45,16 +50,16 @@ dependencies {
 
 tasks {
 
-  // This exists purely as a hack to get the extension jar into our build dir
-  val copyCsaJar by registering(ShadowJar::class) {
+  // This exists purely to get the extension jar into our build dir
+  val copyCsaJar by registering(Jar::class) {
     archiveFileName.set("oss-agent-mtagent-extension-deployment.jar")
-    configurations = listOf(csaReleases)
+    from(zipTree(csaReleases.singleFile))
   }
 
   // Extract and rename extension classes
   val extractExtensionClasses by registering(Copy::class) {
     dependsOn(copyCsaJar)
-    from(zipTree(copyCsaJar.get().outputs.files.first()))
+    from(zipTree(copyCsaJar.get().archiveFile))
     into("build/ext-exploded")
   }
 
@@ -68,15 +73,6 @@ tasks {
     rename("AgentOSSAgentExtensionUtil.class", "AgentOSSAgentExtensionUtil.classdata")
   }
 
-  // Shadow always explodes jars, so we double-jar the jar to prevent it
-  // from being exploded. Yay!
-  val shadowExplodeWorkaround by registering(Jar::class) {
-    dependsOn(copyCsaJar)
-    destinationDirectory = file("build/shadow-explode-workaround")
-    archiveBaseName = "nested-content"
-    from(copyCsaJar)
-  }
-
   // Copy service file so path on disk matches path in jar
   val copyServiceFile by registering(Copy::class) {
     dependsOn(extractExtensionClasses)
@@ -84,17 +80,16 @@ tasks {
     into("build/ext-exploded/inst/META-INF/services/")
   }
 
-  shadowJar {
-    archiveClassifier.set("")
-    dependsOn(copyServiceFile, renameClasstoClassdata, shadowExplodeWorkaround)
+  val shadowCsaClasses by registering(ShadowJar::class) {
+    archiveFileName.set("shadow-csa-classes.jar")
+    dependsOn(copyServiceFile, renameClasstoClassdata)
+
+    from(zipTree(splunkAgent.singleFile))
 
     // Include the example properties file
     from("otel-extension-system.properties") {
       into("/")
     }
-
-    // Add the entire extension jar
-    from(shadowExplodeWorkaround.get().outputs.files.first())
 
     // Add the two extension class(data) files:
     from("build/ext-exploded/com/cisco/mtagent/adaptors/") {
@@ -108,6 +103,12 @@ tasks {
     from("build/ext-exploded/") {
       include("inst/META-INF/services/io.opentelemetry.javaagent.extension.AgentListener")
     }
+  }
+
+  jar {
+    dependsOn(shadowCsaClasses)
+    from(zipTree(shadowCsaClasses.get().archiveFile.get()))
+    from(copyCsaJar.get().archiveFile.get())
 
     manifest {
       attributes(
@@ -125,10 +126,6 @@ tasks {
     }
   }
 
-  assemble {
-    dependsOn(shadowJar)
-  }
-
   publishing {
     publications {
       register<MavenPublication>("maven") {
@@ -136,7 +133,7 @@ tasks {
         groupId = "com.splunk"
         version = project.version.toString()
 
-        artifact(shadowJar)
+        artifact(jar)
 
         pom {
           name.set("splunk-otel-java with Cisco SecureApp bundle")

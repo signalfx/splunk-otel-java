@@ -137,8 +137,9 @@ class ScheduledExecutorStackTraceSamplerTest {
 
     try {
       start1.countDown();
-      start2.countDown();
       await().until(() -> staging.allStackTraces().size() > 1);
+      start2.countDown();
+      await().until(() -> staging.allStackTraces().size() > 2);
 
       stop2.countDown();
       int numberOfStackTraces = staging.allStackTraces().size();

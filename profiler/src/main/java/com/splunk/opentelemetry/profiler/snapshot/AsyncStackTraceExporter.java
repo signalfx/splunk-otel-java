@@ -19,11 +19,11 @@ package com.splunk.opentelemetry.profiler.snapshot;
 import com.splunk.opentelemetry.profiler.InstrumentationSource;
 import com.splunk.opentelemetry.profiler.exporter.CpuEventExporter;
 import com.splunk.opentelemetry.profiler.exporter.PprofCpuEventExporter;
+import com.splunk.opentelemetry.profiler.util.HelpfulExecutors;
 import io.opentelemetry.api.logs.Logger;
 import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
@@ -31,7 +31,8 @@ class AsyncStackTraceExporter implements StackTraceExporter {
   private static final java.util.logging.Logger logger =
       java.util.logging.Logger.getLogger(AsyncStackTraceExporter.class.getName());
 
-  private final ExecutorService executor = Executors.newSingleThreadExecutor();
+  private final ExecutorService executor =
+      HelpfulExecutors.newSingleThreadExecutor("async-stack-trace-exporter");
   private final Logger otelLogger;
   private final Duration samplingPeriod;
   private final int maxDepth;

@@ -16,6 +16,7 @@
 
 package com.splunk.opentelemetry.profiler.snapshot;
 
+import com.splunk.opentelemetry.profiler.util.HelpfulExecutors;
 import io.opentelemetry.api.trace.SpanContext;
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadInfo;
@@ -24,7 +25,6 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
@@ -98,11 +98,14 @@ class ScheduledExecutorStackTraceSampler implements StackTraceSampler {
   }
 
   private class ThreadSampler {
-    private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+    private final ScheduledExecutorService scheduler;
     private final SpanContext spanContext;
 
     ThreadSampler(SpanContext spanContext, Duration samplingPeriod) {
       this.spanContext = spanContext;
+      scheduler =
+          HelpfulExecutors.newSingleThreadedScheduledExecutor(
+              "stack-trace-sampler-" + spanContext.getTraceId());
       scheduler.scheduleAtFixedRate(
           new StackTraceGatherer(samplingPeriod, spanContext.getTraceId(), Thread.currentThread()),
           SCHEDULER_INITIAL_DELAY,

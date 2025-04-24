@@ -52,7 +52,9 @@ tasks {
   // This exists purely to get the extension jar into our build dir
   val copyCsaJar by registering(Jar::class) {
     archiveFileName.set("oss-agent-mtagent-extension-deployment.jar")
-    from(zipTree(csaReleases.singleFile))
+    doFirst {
+      from(zipTree(csaReleases.singleFile))
+    }
   }
 
   // Extract and rename extension classes

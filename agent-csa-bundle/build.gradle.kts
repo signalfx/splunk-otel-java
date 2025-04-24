@@ -49,7 +49,6 @@ dependencies {
 }
 
 tasks {
-
   // This exists purely to get the extension jar into our build dir
   val copyCsaJar by registering(Jar::class) {
     archiveFileName.set("oss-agent-mtagent-extension-deployment.jar")
@@ -82,7 +81,7 @@ tasks {
 
   val shadowCsaClasses by registering(ShadowJar::class) {
     archiveFileName.set("shadow-csa-classes.jar")
-    dependsOn(copyServiceFile, renameClasstoClassdata)
+    dependsOn(copyServiceFile, renameClasstoClassdata, splunkAgent)
 
     from(zipTree(splunkAgent.singleFile))
 

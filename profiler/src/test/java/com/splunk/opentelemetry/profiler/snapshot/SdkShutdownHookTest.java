@@ -19,6 +19,7 @@ package com.splunk.opentelemetry.profiler.snapshot;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.opentelemetry.api.trace.SpanContext;
+import java.util.Collection;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
@@ -81,6 +82,6 @@ class SdkShutdownHookTest {
     public void empty(String traceId) {}
 
     @Override
-    public void export(List<StackTrace> stackTraces) {}
+    public void export(Collection<StackTrace> stackTraces) {}
   }
 }

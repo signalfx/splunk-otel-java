@@ -47,6 +47,12 @@ publish_docker_image() {
   docker push "quay.io/signalfx/splunk-otel-instrumentation-java:$release_tag"
 }
 
+sign_published_docker_image() {
+  echo ">>> Signing the published operator docker image ..."
+  artifact-ci sign docker "quay.io/signalfx/splunk-otel-instrumentation-java:$release_tag"
+}
+
 build_docker_image
 login_to_quay_io
 publish_docker_image
+sign_published_docker_image

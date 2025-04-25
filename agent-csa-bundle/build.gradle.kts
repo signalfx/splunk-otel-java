@@ -1,32 +1,130 @@
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
 plugins {
   id("maven-publish")
   id("signing")
+  id("com.gradleup.shadow")
+}
+
+// This should be updated for every CSA release, eventually in dependencyManagement?
+
+val csaVersion = "25.4.0-1327"
+val otelInstrumentationVersion: String by rootProject.extra
+
+base.archivesName.set("splunk-otel-javaagent-csa")
+
+val csaReleases: Configuration by configurations.creating {
+  isCanBeResolved = true
+  isCanBeConsumed = false
+}
+
+val splunkAgent: Configuration by configurations.creating {
+  isCanBeResolved = true
+  isCanBeConsumed = false
+}
+
+repositories {
+  ivy {
+    // Required to source artifact directly from github release page
+    // https://github.com/signalfx/csa-releases/releases/download/<version>/oss-agent-mtagent-extension-deployment.jar
+    url = uri("https://github.com/")
+    metadataSources {
+      artifact()
+    }
+    patternLayout {
+      ivy("[organisation]/[module]/releases/download/[revision]/[artifact].[ext]")
+      artifact("[organisation]/[module]/releases/download/[revision]/[artifact].[ext]")
+    }
+  }
 }
 
 dependencies {
-  implementation(project(":agent"))
+  splunkAgent(project(":agent", configuration = "shadow"))
+  csaReleases("signalfx:csa-releases:$csaVersion") {
+    artifact {
+      name = "oss-agent-mtagent-extension-deployment"
+      extension = "jar"
+    }
+  }
 }
 
-// This should be updated for every CSA release
-val csaVersion = "25.3.0-1321"
-base.archivesName.set("splunk-otel-javaagent-csa")
-
 tasks {
-  val bundleSecureApp by registering(Exec::class) {
-    description = "Bundle the Cisco SecureApp with splunk-otel-java"
-    dependsOn(":agent:assemble")
-    isIgnoreExitValue = false
-    commandLine("./build-agent-csa-fat-jar.sh", version, csaVersion)
-    outputs.file(File("build/splunk-otel-javaagent-csa-$version.jar"))
+  // This exists purely to get the extension jar into our build dir
+  val copyCsaJar by registering(Jar::class) {
+    archiveFileName.set("oss-agent-mtagent-extension-deployment.jar")
+    doFirst {
+      from(zipTree(csaReleases.singleFile))
+    }
+  }
+
+  // Extract and rename extension classes
+  val extractExtensionClasses by registering(Copy::class) {
+    dependsOn(copyCsaJar)
+    from(zipTree(copyCsaJar.get().archiveFile))
+    into("build/ext-exploded")
+  }
+
+  // Rename class to classdata
+  val renameClasstoClassdata by registering(Copy::class) {
+    dependsOn(extractExtensionClasses)
+    from("build/ext-exploded/com/cisco/mtagent/adaptors/")
+    into("build/ext-exploded/com/cisco/mtagent/adaptors/")
+    include("AgentOSSAgentExtension.class", "AgentOSSAgentExtensionUtil.class")
+    rename("AgentOSSAgentExtension.class", "AgentOSSAgentExtension.classdata")
+    rename("AgentOSSAgentExtensionUtil.class", "AgentOSSAgentExtensionUtil.classdata")
+  }
+
+  // Copy service file so path on disk matches path in jar
+  val copyServiceFile by registering(Copy::class) {
+    dependsOn(extractExtensionClasses)
+    from("build/ext-exploded/META-INF/services/")
+    into("build/ext-exploded/inst/META-INF/services/")
+  }
+
+  val shadowCsaClasses by registering(ShadowJar::class) {
+    archiveFileName.set("shadow-csa-classes.jar")
+    dependsOn(copyServiceFile, renameClasstoClassdata, splunkAgent)
+
+    from(zipTree(splunkAgent.singleFile))
+
+    // Include the example properties file
+    from("otel-extension-system.properties") {
+      into("/")
+    }
+
+    // Add the two extension class(data) files:
+    from("build/ext-exploded/com/cisco/mtagent/adaptors/") {
+      into("inst/com/cisco/mtagent/adaptors/")
+      include("AgentOSSAgentExtension.classdata", "AgentOSSAgentExtensionUtil.classdata")
+    }
+    // Merge service descriptor files
+    mergeServiceFiles {
+      include("inst/META-INF/services/io.opentelemetry.javaagent.extension.AgentListener")
+    }
+    from("build/ext-exploded/") {
+      include("inst/META-INF/services/io.opentelemetry.javaagent.extension.AgentListener")
+    }
   }
 
   jar {
-    inputs.files(bundleSecureApp)
-  }
+    dependsOn(shadowCsaClasses)
+    from(zipTree(shadowCsaClasses.get().archiveFile.get()))
+    from(copyCsaJar.get().archiveFile.get())
 
-  assemble {
-    dependsOn(bundleSecureApp)
+    manifest {
+      attributes(
+        mapOf(
+          "Main-Class" to "io.opentelemetry.javaagent.OpenTelemetryAgent",
+          "Agent-Class" to "com.splunk.opentelemetry.javaagent.SplunkAgent",
+          "Premain-Class" to "com.splunk.opentelemetry.javaagent.SplunkAgent",
+          "Can-Redefine-Classes" to "true",
+          "Can-Retransform-Classes" to "true",
+          "Implementation-Vendor" to "Splunk",
+          "Implementation-Version" to "splunk-${project.version}-otel-$otelInstrumentationVersion",
+          "Cisco-Secure-Application-Version" to csaVersion,
+        )
+      )
+    }
   }
 
   publishing {
@@ -36,7 +134,7 @@ tasks {
         groupId = "com.splunk"
         version = project.version.toString()
 
-        artifact(bundleSecureApp)
+        artifact(jar)
 
         pom {
           name.set("splunk-otel-java with Cisco SecureApp bundle")

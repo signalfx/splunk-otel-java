@@ -235,7 +235,7 @@ public class Configuration implements AutoConfigurationCustomizerProvider {
         DEFAULT_SNAPSHOT_PROFILER_SAMPLING_INTERVAL);
   }
 
-  static Duration getSnapshotProfilerEmptyStagingInterval(DefaultConfigProperties properties) {
+  public static Duration getSnapshotProfilerEmptyStagingInterval(ConfigProperties properties) {
     return properties.getDuration(
         CONFIG_KEY_SNAPSHOT_PROFILER_EMPTY_STAGING_INTERVAL,
         DEFAULT_SNAPSHOT_PROFILER_EMPTY_STAGING_INTERVAL);

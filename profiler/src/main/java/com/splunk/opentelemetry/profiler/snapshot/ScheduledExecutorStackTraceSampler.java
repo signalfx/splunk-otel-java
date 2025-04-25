@@ -151,7 +151,8 @@ class ScheduledExecutorStackTraceSampler implements StackTraceSampler {
         ThreadInfo threadInfo = threadMXBean.getThreadInfo(thread.getId(), Integer.MAX_VALUE);
         Duration samplingPeriod = Duration.ofNanos(currentSampleTimestamp - previousTimestampNanos);
         String spanId = retrieveActiveSpan(thread).getSpanId();
-        StackTrace stackTrace = StackTrace.from(now, samplingPeriod, threadInfo, traceId, spanId);
+        StackTrace stackTrace =
+            StackTrace.from(Instant.now(), samplingPeriod, threadInfo, traceId, spanId);
         stagingArea.get().stage(traceId, stackTrace);
       } catch (Exception e) {
         logger.log(Level.SEVERE, e, samplerErrorMessage(traceId, thread.getId()));

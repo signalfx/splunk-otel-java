@@ -28,9 +28,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
 class PeriodicallyExportingStagingArea implements StagingArea, Closeable {
-  private final ScheduledExecutorService scheduler = HelpfulExecutors.newSingleThreadedScheduledExecutor(
-      "periodically-exporting-staging-area"
-  );
+  private final ScheduledExecutorService scheduler =
+      HelpfulExecutors.newSingleThreadedScheduledExecutor("periodically-exporting-staging-area");
   private final Queue<StackTrace> stackTraces = new ConcurrentLinkedQueue<>();
   private final Supplier<StackTraceExporter> exporter;
 

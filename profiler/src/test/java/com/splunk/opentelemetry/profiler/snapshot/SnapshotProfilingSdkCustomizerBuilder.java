@@ -34,8 +34,11 @@ class SnapshotProfilingSdkCustomizerBuilder {
 
   SnapshotProfilingSdkCustomizerBuilder withRealStackTraceSampler() {
     var stagingAreaSupplier = StagingArea.SUPPLIER;
-    stagingAreaSupplier.configure(new PeriodicallyExportingStagingArea(StackTraceExporter.SUPPLIER, Duration.ofMillis(200)));
-    return with(new ScheduledExecutorStackTraceSampler(stagingAreaSupplier, SpanTracker.SUPPLIER, Duration.ofMillis(20)));
+    stagingAreaSupplier.configure(
+        new PeriodicallyExportingStagingArea(StackTraceExporter.SUPPLIER, Duration.ofMillis(200)));
+    return with(
+        new ScheduledExecutorStackTraceSampler(
+            stagingAreaSupplier, SpanTracker.SUPPLIER, Duration.ofMillis(20)));
   }
 
   SnapshotProfilingSdkCustomizerBuilder with(StackTraceSampler sampler) {

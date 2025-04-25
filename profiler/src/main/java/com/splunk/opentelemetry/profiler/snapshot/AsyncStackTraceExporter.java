@@ -22,7 +22,7 @@ import com.splunk.opentelemetry.profiler.exporter.PprofCpuEventExporter;
 import com.splunk.opentelemetry.profiler.util.HelpfulExecutors;
 import io.opentelemetry.api.logs.Logger;
 import java.time.Duration;
-import java.util.List;
+import java.util.Collection;
 import java.util.concurrent.ExecutorService;
 import java.util.logging.Level;
 
@@ -43,11 +43,11 @@ class AsyncStackTraceExporter implements StackTraceExporter {
   }
 
   @Override
-  public void export(List<StackTrace> stackTraces) {
+  public void export(Collection<StackTrace> stackTraces) {
     executor.submit(pprofExporter(otelLogger, stackTraces));
   }
 
-  private Runnable pprofExporter(Logger otelLogger, List<StackTrace> stackTraces) {
+  private Runnable pprofExporter(Logger otelLogger, Collection<StackTrace> stackTraces) {
     return () -> {
       try {
         CpuEventExporter cpuEventExporter =

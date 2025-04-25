@@ -16,14 +16,14 @@
 
 package com.splunk.opentelemetry.profiler.snapshot;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentMap;
 import java.util.function.Supplier;
 
 class AccumulatingStagingArea implements StagingArea {
-  private final ConcurrentMap<String, List<StackTrace>> stackTraces = new ConcurrentHashMap<>();
+  private final ConcurrentMap<String, Queue<StackTrace>> stackTraces = new ConcurrentHashMap<>();
   private final Supplier<StackTraceExporter> exporter;
 
   AccumulatingStagingArea(Supplier<StackTraceExporter> exporter) {
@@ -36,7 +36,7 @@ class AccumulatingStagingArea implements StagingArea {
         traceId,
         (id, stackTraces) -> {
           if (stackTraces == null) {
-            stackTraces = new ArrayList<>();
+            stackTraces = new ConcurrentLinkedQueue<>();
           }
           stackTraces.add(stackTrace);
           return stackTraces;
@@ -45,7 +45,7 @@ class AccumulatingStagingArea implements StagingArea {
 
   @Override
   public void empty(String traceId) {
-    List<StackTrace> stackTraces = this.stackTraces.remove(traceId);
+    Queue<StackTrace> stackTraces = this.stackTraces.remove(traceId);
     if (stackTraces != null) {
       exporter.get().export(stackTraces);
     }

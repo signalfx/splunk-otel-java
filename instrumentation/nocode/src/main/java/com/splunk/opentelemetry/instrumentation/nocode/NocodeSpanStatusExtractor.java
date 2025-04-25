@@ -23,8 +23,7 @@ import java.util.Locale;
 import java.util.logging.Logger;
 import javax.annotation.Nullable;
 
-class NocodeSpanStatusExtractor
-    implements SpanStatusExtractor<NocodeMethodInvocation, Object> {
+class NocodeSpanStatusExtractor implements SpanStatusExtractor<NocodeMethodInvocation, Object> {
   private static final Logger logger = Logger.getLogger(NocodeSpanStatusExtractor.class.getName());
 
   @Override

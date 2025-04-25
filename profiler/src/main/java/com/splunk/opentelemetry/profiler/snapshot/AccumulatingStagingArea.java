@@ -16,7 +16,6 @@
 
 package com.splunk.opentelemetry.profiler.snapshot;
 
-import java.util.ArrayList;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -48,7 +47,7 @@ class AccumulatingStagingArea implements StagingArea {
   public void empty(String traceId) {
     Queue<StackTrace> stackTraces = this.stackTraces.remove(traceId);
     if (stackTraces != null) {
-      exporter.get().export(new ArrayList<>(stackTraces));
+      exporter.get().export(stackTraces);
     }
   }
 }

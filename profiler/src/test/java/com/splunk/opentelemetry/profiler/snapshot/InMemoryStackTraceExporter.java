@@ -17,6 +17,7 @@
 package com.splunk.opentelemetry.profiler.snapshot;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -28,7 +29,7 @@ class InMemoryStackTraceExporter implements StackTraceExporter {
   private final List<StackTrace> stackTraces = new ArrayList<>();
 
   @Override
-  public void export(List<StackTrace> stackTraces) {
+  public void export(Collection<StackTrace> stackTraces) {
     this.stackTraces.addAll(stackTraces);
   }
 

@@ -16,7 +16,9 @@
 
 package com.splunk.opentelemetry.instrumentation.nocode;
 
+import com.splunk.opentelemetry.javaagent.bootstrap.nocode.NocodeExpression;
 import com.splunk.opentelemetry.javaagent.bootstrap.nocode.NocodeRules;
+import io.opentelemetry.api.trace.SpanKind;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -25,20 +27,23 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.commons.jexl3.JexlExpression;
 import org.snakeyaml.engine.v2.api.Load;
 import org.snakeyaml.engine.v2.api.LoadSettings;
 
-public final class YamlParser {
+class YamlParser {
   private static final Logger logger = Logger.getLogger(YamlParser.class.getName());
   // FUTURE support method override selection - e.g., with classfile method signature or something
   private static final String NOCODE_YMLFILE = "splunk.otel.instrumentation.nocode.yml.file";
 
   private final List<NocodeRules.Rule> instrumentationRules;
+  private JexlEvaluator evaluator;
 
-  public YamlParser(ConfigProperties config) {
+  YamlParser(ConfigProperties config) {
     instrumentationRules = Collections.unmodifiableList(new ArrayList<>(load(config)));
   }
 
@@ -46,7 +51,7 @@ public final class YamlParser {
     return instrumentationRules;
   }
 
-  private static List<NocodeRules.Rule> load(ConfigProperties config) {
+  private List<NocodeRules.Rule> load(ConfigProperties config) {
     String yamlFileName = config.getString(NOCODE_YMLFILE);
     if (yamlFileName == null || yamlFileName.trim().isEmpty()) {
       return Collections.emptyList();
@@ -60,7 +65,8 @@ public final class YamlParser {
     }
   }
 
-  private static List<NocodeRules.Rule> loadUnsafe(String yamlFileName) throws Exception {
+  @SuppressWarnings("unchecked")
+  private List<NocodeRules.Rule> loadUnsafe(String yamlFileName) throws Exception {
     List<NocodeRules.Rule> answer = new ArrayList<>();
     try (InputStream inputStream = Files.newInputStream(Paths.get(yamlFileName.trim()))) {
       Load load = new Load(LoadSettings.builder().build());
@@ -71,18 +77,23 @@ public final class YamlParser {
           // FUTURE support more complex class selection (inherits-from, etc.)
           String className = yamlRule.get("class").toString();
           String methodName = yamlRule.get("method").toString();
-          String spanName =
-              yamlRule.get("spanName") == null ? null : yamlRule.get("spanName").toString();
-          String spanKind =
-              yamlRule.get("spanKind") == null ? null : yamlRule.get("spanKind").toString();
-          String spanStatus =
-              yamlRule.get("spanStatus") == null ? null : yamlRule.get("spanStatus").toString();
+          NocodeExpression spanName = toExpression(yamlRule.get("spanName"));
+          SpanKind spanKind = null;
+          if (yamlRule.get("spanKind") != null) {
+            String spanKindString = yamlRule.get("spanKind").toString();
+            try {
+              spanKind = SpanKind.valueOf(spanKindString.toUpperCase(Locale.ROOT));
+            } catch (IllegalArgumentException exception) {
+              logger.warning("Invalid span kind " + spanKindString);
+            }
+          }
+          NocodeExpression spanStatus = toExpression(yamlRule.get("spanStatus"));
 
-          Map<String, String> ruleAttributes = new HashMap<>();
+          Map<String, NocodeExpression> ruleAttributes = new HashMap<>();
           List<Map<String, Object>> attrs = (List<Map<String, Object>>) yamlRule.get("attributes");
           if (attrs != null) {
             for (Map<String, Object> attr : attrs) {
-              ruleAttributes.put(attr.get("key").toString(), attr.get("value").toString());
+              ruleAttributes.put(attr.get("key").toString(), toExpression(attr.get("value")));
             }
           }
           answer.add(
@@ -93,5 +104,43 @@ public final class YamlParser {
     }
 
     return answer;
+  }
+
+  private NocodeExpression toExpression(Object ruleNode) {
+    if (ruleNode == null) {
+      return null;
+    }
+
+    String expressionText = ruleNode.toString();
+    if (expressionText == null) {
+      return null;
+    }
+
+    if (evaluator == null) {
+      evaluator = new JexlEvaluator();
+    }
+
+    JexlExpression jexlExpression = evaluator.createExpression(expressionText);
+    if (jexlExpression == null) {
+      return null;
+    }
+
+    return new NocodeExpression() {
+      @Override
+      public Object evaluate(Object thiz, Object[] params) {
+        return evaluator.evaluate(jexlExpression, thiz, params);
+      }
+
+      @Override
+      public Object evaluateAtEnd(
+          Object thiz, Object[] params, Object returnValue, Throwable error) {
+        return evaluator.evaluateAtEnd(jexlExpression, thiz, params, returnValue, error);
+      }
+
+      @Override
+      public String toString() {
+        return expressionText;
+      }
+    };
   }
 }

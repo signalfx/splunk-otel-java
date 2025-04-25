@@ -14,17 +14,11 @@
  * limitations under the License.
  */
 
-package com.splunk.opentelemetry.instrumentation.nocode;
+package com.splunk.opentelemetry.javaagent.bootstrap.nocode;
 
-import io.opentelemetry.api.trace.SpanKind;
-import io.opentelemetry.instrumentation.api.instrumenter.SpanKindExtractor;
+public interface NocodeExpression {
 
-class NocodeSpanKindExtractor implements SpanKindExtractor<NocodeMethodInvocation> {
-  @Override
-  public SpanKind extract(NocodeMethodInvocation mi) {
-    if (mi.getRule() == null || mi.getRule().getSpanKind() == null) {
-      return SpanKind.INTERNAL;
-    }
-    return mi.getRule().getSpanKind();
-  }
+  Object evaluate(Object thiz, Object[] params);
+
+  Object evaluateAtEnd(Object thiz, Object[] params, Object returnValue, Throwable error);
 }

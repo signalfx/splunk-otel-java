@@ -26,7 +26,6 @@ import io.opentelemetry.sdk.autoconfigure.AutoConfigureUtil;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import io.opentelemetry.sdk.resources.Resource;
-import java.time.Duration;
 
 @AutoService(AgentListener.class)
 public class StackTraceExporterActivator implements AgentListener {
@@ -46,10 +45,8 @@ public class StackTraceExporterActivator implements AgentListener {
     ConfigProperties properties = AutoConfigureUtil.getConfig(autoConfiguredOpenTelemetrySdk);
     if (snapshotProfilingEnabled(properties)) {
       int maxDepth = Configuration.getSnapshotProfilerStackDepth(properties);
-      Duration samplingPeriod = Configuration.getSnapshotProfilerSamplingInterval(properties);
       Logger logger = buildLogger(autoConfiguredOpenTelemetrySdk, properties);
-      AsyncStackTraceExporter exporter =
-          new AsyncStackTraceExporter(logger, samplingPeriod, maxDepth);
+      AsyncStackTraceExporter exporter = new AsyncStackTraceExporter(logger, maxDepth);
       StackTraceExporter.SUPPLIER.configure(exporter);
     }
   }

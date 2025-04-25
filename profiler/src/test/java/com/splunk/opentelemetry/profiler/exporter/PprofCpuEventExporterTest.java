@@ -45,7 +45,7 @@ import org.junit.jupiter.params.provider.EnumSource;
 class PprofCpuEventExporterTest {
   private final InMemoryOtelLogger logger = new InMemoryOtelLogger();
   private final PprofCpuEventExporter exporter =
-      new PprofCpuEventExporter.Builder()
+      PprofCpuEventExporter.builder()
           .otelLogger(logger)
           .period(Duration.ofMillis(20))
           .stackDepth(1024)
@@ -63,7 +63,14 @@ class PprofCpuEventExporterTest {
     var exception = new RuntimeException();
 
     exporter.export(
-        1, "thread-name", Thread.State.RUNNABLE, exception.getStackTrace(), Instant.now(), "", "");
+        1,
+        "thread-name",
+        Thread.State.RUNNABLE,
+        exception.getStackTrace(),
+        Instant.now(),
+        "",
+        "",
+        Duration.ZERO);
     exporter.flush();
 
     var logRecord = logger.records().get(0);
@@ -83,7 +90,7 @@ class PprofCpuEventExporterTest {
   void reportStackTraceWasTruncated() throws Exception {
     var exception = new RuntimeException();
     var exporter =
-        new PprofCpuEventExporter.Builder()
+        PprofCpuEventExporter.builder()
             .otelLogger(logger)
             .period(Duration.ofMillis(20))
             .stackDepth(exception.getStackTrace().length - 1)
@@ -91,7 +98,14 @@ class PprofCpuEventExporterTest {
             .build();
 
     exporter.export(
-        1, "thread-name", Thread.State.RUNNABLE, exception.getStackTrace(), Instant.now(), "", "");
+        1,
+        "thread-name",
+        Thread.State.RUNNABLE,
+        exception.getStackTrace(),
+        Instant.now(),
+        "",
+        "",
+        Duration.ZERO);
     exporter.flush();
 
     var logRecord = logger.records().get(0);
@@ -108,7 +122,7 @@ class PprofCpuEventExporterTest {
     var exception = new RuntimeException();
     var depth = exception.getStackTrace().length - 1;
     var exporter =
-        new PprofCpuEventExporter.Builder()
+        PprofCpuEventExporter.builder()
             .otelLogger(logger)
             .period(Duration.ofMillis(20))
             .stackDepth(depth)
@@ -116,7 +130,14 @@ class PprofCpuEventExporterTest {
             .build();
 
     exporter.export(
-        1, "thread-name", Thread.State.RUNNABLE, exception.getStackTrace(), Instant.now(), "", "");
+        1,
+        "thread-name",
+        Thread.State.RUNNABLE,
+        exception.getStackTrace(),
+        Instant.now(),
+        "",
+        "",
+        Duration.ZERO);
     exporter.flush();
 
     var logRecord = logger.records().get(0);
@@ -147,7 +168,14 @@ class PprofCpuEventExporterTest {
     var exception = new RuntimeException();
 
     exporter.export(
-        1, "thread-name", Thread.State.RUNNABLE, exception.getStackTrace(), Instant.now(), "", "");
+        1,
+        "thread-name",
+        Thread.State.RUNNABLE,
+        exception.getStackTrace(),
+        Instant.now(),
+        "",
+        "",
+        Duration.ZERO);
     exporter.flush();
 
     var logRecord = logger.records().get(0);
@@ -220,7 +248,14 @@ class PprofCpuEventExporterTest {
     var exception = new RuntimeException();
 
     exporter.export(
-        1, "thread-name", Thread.State.RUNNABLE, exception.getStackTrace(), Instant.now(), "", "");
+        1,
+        "thread-name",
+        Thread.State.RUNNABLE,
+        exception.getStackTrace(),
+        Instant.now(),
+        "",
+        "",
+        Duration.ZERO);
     exporter.flush();
 
     var logRecord = logger.records().get(0);
@@ -234,11 +269,32 @@ class PprofCpuEventExporterTest {
     var exception3 = new IOException();
 
     exporter.export(
-        1, "thread-name", Thread.State.RUNNABLE, exception1.getStackTrace(), Instant.now(), "", "");
+        1,
+        "thread-name",
+        Thread.State.RUNNABLE,
+        exception1.getStackTrace(),
+        Instant.now(),
+        "",
+        "",
+        Duration.ZERO);
     exporter.export(
-        1, "thread-name", Thread.State.RUNNABLE, exception2.getStackTrace(), Instant.now(), "", "");
+        1,
+        "thread-name",
+        Thread.State.RUNNABLE,
+        exception2.getStackTrace(),
+        Instant.now(),
+        "",
+        "",
+        Duration.ZERO);
     exporter.export(
-        1, "thread-name", Thread.State.RUNNABLE, exception3.getStackTrace(), Instant.now(), "", "");
+        1,
+        "thread-name",
+        Thread.State.RUNNABLE,
+        exception3.getStackTrace(),
+        Instant.now(),
+        "",
+        "",
+        Duration.ZERO);
     exporter.flush();
 
     var expectedFrameCount =
@@ -257,7 +313,14 @@ class PprofCpuEventExporterTest {
     var threadName = "thread-name-" + random.nextInt(1000);
 
     exporter.export(
-        threadId, threadName, state, new RuntimeException().getStackTrace(), Instant.now(), "", "");
+        threadId,
+        threadName,
+        state,
+        new RuntimeException().getStackTrace(),
+        Instant.now(),
+        "",
+        "",
+        Duration.ZERO);
     exporter.flush();
 
     var logRecord = logger.records().get(0);
@@ -281,7 +344,8 @@ class PprofCpuEventExporterTest {
         new RuntimeException().getStackTrace(),
         Instant.now(),
         traceId,
-        "");
+        "",
+        Duration.ZERO);
     exporter.flush();
 
     var logRecord = logger.records().get(0);
@@ -301,7 +365,8 @@ class PprofCpuEventExporterTest {
         new RuntimeException().getStackTrace(),
         Instant.now(),
         "",
-        "");
+        "",
+        Duration.ZERO);
     exporter.flush();
 
     var logRecord = logger.records().get(0);
@@ -323,7 +388,8 @@ class PprofCpuEventExporterTest {
         new RuntimeException().getStackTrace(),
         Instant.now(),
         "",
-        spanId);
+        spanId,
+        Duration.ZERO);
     exporter.flush();
 
     var logRecord = logger.records().get(0);
@@ -343,7 +409,8 @@ class PprofCpuEventExporterTest {
         new RuntimeException().getStackTrace(),
         Instant.now(),
         "",
-        "");
+        "",
+        Duration.ZERO);
     exporter.flush();
 
     var logRecord = logger.records().get(0);
@@ -365,7 +432,8 @@ class PprofCpuEventExporterTest {
         new RuntimeException().getStackTrace(),
         time,
         "",
-        "");
+        "",
+        Duration.ZERO);
     exporter.flush();
 
     var logRecord = logger.records().get(0);
@@ -379,6 +447,7 @@ class PprofCpuEventExporterTest {
 
   @Test
   void includeStackTraceDurationInSamples() throws Exception {
+    var duration = Duration.ofMillis(33);
     exporter.export(
         1,
         "thread-name",
@@ -386,7 +455,8 @@ class PprofCpuEventExporterTest {
         new RuntimeException().getStackTrace(),
         Instant.now(),
         "",
-        "");
+        "",
+        duration);
     exporter.flush();
 
     var logRecord = logger.records().get(0);
@@ -395,9 +465,7 @@ class PprofCpuEventExporterTest {
 
     var labels = PprofUtils.toLabelString(sample, profile);
     assertThat(labels)
-        .contains(
-            entry(
-                ProfilingSemanticAttributes.SOURCE_EVENT_PERIOD, Duration.ofMillis(20).toMillis()));
+        .contains(entry(ProfilingSemanticAttributes.SOURCE_EVENT_PERIOD, duration.toMillis()));
   }
 
   private <T> Map.Entry<String, T> entry(AttributeKey<T> attribute, T value) {

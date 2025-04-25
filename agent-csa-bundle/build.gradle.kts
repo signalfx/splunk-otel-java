@@ -85,7 +85,9 @@ tasks {
     archiveFileName.set("shadow-csa-classes.jar")
     dependsOn(copyServiceFile, renameClasstoClassdata, splunkAgent)
 
-    from(zipTree(splunkAgent.singleFile))
+    doFirst {
+      from(zipTree(splunkAgent.singleFile))
+    }
 
     // Include the example properties file
     from("otel-extension-system.properties") {

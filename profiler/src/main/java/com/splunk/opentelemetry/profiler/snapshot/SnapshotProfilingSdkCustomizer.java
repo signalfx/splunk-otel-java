@@ -47,10 +47,9 @@ public class SnapshotProfilingSdkCustomizer implements AutoConfigurationCustomiz
   private static Function<ConfigProperties, StackTraceSampler> stackTraceSamplerProvider() {
     return properties -> {
       Duration samplingPeriod = Configuration.getSnapshotProfilerSamplingInterval(properties);
-      return new ScheduledExecutorStackTraceSampler(
-          new AccumulatingStagingArea(StackTraceExporterProvider.INSTANCE),
-          SpanTrackerProvider.INSTANCE,
-          samplingPeriod);
+      ConfigurableSupplier<StagingArea> supplier = StagingArea.SUPPLIER;
+      supplier.configure(new AccumulatingStagingArea(StackTraceExporter.SUPPLIER));
+      return new ScheduledExecutorStackTraceSampler(supplier, SpanTracker.SUPPLIER, samplingPeriod);
     };
   }
 
@@ -74,7 +73,18 @@ public class SnapshotProfilingSdkCustomizer implements AutoConfigurationCustomiz
     autoConfigurationCustomizer
         .addPropertiesCustomizer(autoConfigureSnapshotVolumePropagator())
         .addTracerProviderCustomizer(snapshotProfilingSpanProcessor(registry))
-        .addPropertiesCustomizer(startTrackingActiveSpans(registry));
+        .addPropertiesCustomizer(startTrackingActiveSpans(registry))
+        .addTracerProviderCustomizer(addShutdownHook());
+  }
+
+  private BiFunction<SdkTracerProviderBuilder, ConfigProperties, SdkTracerProviderBuilder>
+      addShutdownHook() {
+    return (builder, properties) -> {
+      if (snapshotProfilingEnabled(properties)) {
+        builder.addSpanProcessor(new SdkShutdownHook());
+      }
+      return builder;
+    };
   }
 
   private BiFunction<SdkTracerProviderBuilder, ConfigProperties, SdkTracerProviderBuilder>
@@ -82,7 +92,9 @@ public class SnapshotProfilingSdkCustomizer implements AutoConfigurationCustomiz
     return (builder, properties) -> {
       if (snapshotProfilingEnabled(properties)) {
         StackTraceSampler sampler = samplerProvider.apply(properties);
-        return builder.addSpanProcessor(new SnapshotProfilingSpanProcessor(registry, sampler));
+        ConfigurableSupplier<StackTraceSampler> supplier = StackTraceSampler.SUPPLIER;
+        supplier.configure(sampler);
+        return builder.addSpanProcessor(new SnapshotProfilingSpanProcessor(registry, supplier));
       }
       return builder;
     };

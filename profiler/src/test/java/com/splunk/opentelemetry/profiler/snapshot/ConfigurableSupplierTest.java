@@ -19,31 +19,38 @@ package com.splunk.opentelemetry.profiler.snapshot;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
-class SpanTrackerProviderTest {
-  private final SpanTrackerProvider provider = SpanTrackerProvider.INSTANCE;
+class ConfigurableSupplierTest {
+  private final String defaultValue = "this is a default value";
+  private final ConfigurableSupplier<String> supplier = new ConfigurableSupplier<>(defaultValue);
 
-  @AfterEach
-  void teardown() {
-    SpanTrackerProvider.INSTANCE.configure(SpanTracker.NOOP);
+  @Test
+  void getDefaultWhenValueNotConfigured() {
+    assertSame(defaultValue, supplier.get());
   }
 
   @Test
-  void provideNoopSpanTrackerWhenNotConfigured() {
-    assertSame(SpanTracker.NOOP, provider.get());
+  void getConfiguredValue() {
+    var value = "this is a configured value";
+    supplier.configure(value);
+    assertSame(value, supplier.get());
   }
 
   @Test
-  void providedConfiguredSpanTracker() {
-    var tracker = new InMemorySpanTracker();
-    provider.configure(tracker);
-    assertSame(tracker, provider.get());
+  void doNotAllowNullValues() {
+    assertThrows(Exception.class, () -> supplier.configure(null));
   }
 
   @Test
-  void doNotAllowNullSpanTrackers() {
-    assertThrows(Exception.class, () -> provider.configure(null));
+  void doNotAllowCreationWithNullDefaultValue() {
+    assertThrows(Exception.class, () -> new ConfigurableSupplier<>(null));
+  }
+
+  @Test
+  void canResetSupplier() {
+    supplier.configure("this is a value");
+    supplier.reset();
+    assertSame(defaultValue, supplier.get());
   }
 }

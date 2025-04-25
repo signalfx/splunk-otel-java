@@ -19,19 +19,25 @@ package com.splunk.opentelemetry.profiler.snapshot;
 import java.util.Objects;
 import java.util.function.Supplier;
 
-class SpanTrackerProvider implements Supplier<SpanTracker> {
-  public static final SpanTrackerProvider INSTANCE = new SpanTrackerProvider();
+class ConfigurableSupplier<T> implements Supplier<T> {
+  private final T defaultValue;
+  private volatile T value;
 
-  private SpanTracker tracker = SpanTracker.NOOP;
+  ConfigurableSupplier(T defaultValue) {
+    this.defaultValue = Objects.requireNonNull(defaultValue);
+    this.value = defaultValue;
+  }
 
   @Override
-  public SpanTracker get() {
-    return tracker;
+  public T get() {
+    return value;
   }
 
-  void configure(SpanTracker tracker) {
-    this.tracker = Objects.requireNonNull(tracker);
+  void configure(T value) {
+    this.value = Objects.requireNonNull(value);
   }
 
-  private SpanTrackerProvider() {}
+  void reset() {
+    this.value = defaultValue;
+  }
 }

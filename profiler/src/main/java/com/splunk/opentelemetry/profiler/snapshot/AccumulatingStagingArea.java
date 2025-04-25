@@ -25,6 +25,7 @@ import java.util.function.Supplier;
 class AccumulatingStagingArea implements StagingArea {
   private final ConcurrentMap<String, Queue<StackTrace>> stackTraces = new ConcurrentHashMap<>();
   private final Supplier<StackTraceExporter> exporter;
+  private volatile boolean closed = false;
 
   AccumulatingStagingArea(Supplier<StackTraceExporter> exporter) {
     this.exporter = exporter;
@@ -32,6 +33,10 @@ class AccumulatingStagingArea implements StagingArea {
 
   @Override
   public void stage(String traceId, StackTrace stackTrace) {
+    if (closed) {
+      return;
+    }
+
     stackTraces.compute(
         traceId,
         (id, stackTraces) -> {
@@ -49,5 +54,12 @@ class AccumulatingStagingArea implements StagingArea {
     if (stackTraces != null) {
       exporter.get().export(stackTraces);
     }
+  }
+
+  @Override
+  public void close() {
+    closed = true;
+    stackTraces.values().forEach(exporter.get()::export);
+    stackTraces.clear();
   }
 }

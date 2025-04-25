@@ -39,7 +39,7 @@ class InterceptingContextStorageSpanTrackingActivator implements SpanTrackingAct
     contextStorageWrappingFunction.accept(
         contextStorage -> {
           ActiveSpanTracker tracker = new ActiveSpanTracker(contextStorage, registry);
-          SpanTrackerProvider.INSTANCE.configure(tracker);
+          SpanTracker.SUPPLIER.configure(tracker);
           return tracker;
         });
   }

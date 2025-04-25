@@ -38,12 +38,15 @@ class ScheduledExecutorStackTraceSampler implements StackTraceSampler {
 
   private final ConcurrentMap<String, ThreadSampler> samplers = new ConcurrentHashMap<>();
   private final ThreadMXBean threadMXBean = ManagementFactory.getThreadMXBean();
-  private final StagingArea stagingArea;
+  private final Supplier<StagingArea> stagingArea;
   private final Supplier<SpanTracker> spanTracker;
   private final Duration samplingPeriod;
+  private volatile boolean closed = false;
 
   ScheduledExecutorStackTraceSampler(
-      StagingArea stagingArea, Supplier<SpanTracker> spanTracker, Duration samplingPeriod) {
+      Supplier<StagingArea> stagingArea,
+      Supplier<SpanTracker> spanTracker,
+      Duration samplingPeriod) {
     this.stagingArea = stagingArea;
     this.spanTracker = spanTracker;
     this.samplingPeriod = samplingPeriod;
@@ -51,6 +54,10 @@ class ScheduledExecutorStackTraceSampler implements StackTraceSampler {
 
   @Override
   public void start(SpanContext spanContext) {
+    if (closed) {
+      return;
+    }
+
     samplers.computeIfAbsent(
         spanContext.getTraceId(), id -> new ThreadSampler(spanContext, samplingPeriod));
   }
@@ -62,11 +69,32 @@ class ScheduledExecutorStackTraceSampler implements StackTraceSampler {
         (traceId, sampler) -> {
           if (spanContext.equals(sampler.getSpanContext())) {
             sampler.shutdown();
-            stagingArea.empty(spanContext.getTraceId());
+            waitForShutdown(sampler);
+            stagingArea.get().empty(spanContext.getTraceId());
             return null;
           }
           return sampler;
         });
+  }
+
+  @Override
+  public void close() {
+    closed = true;
+
+    samplers.values().forEach(ThreadSampler::shutdown);
+    samplers.values().forEach(this::waitForShutdown);
+    samplers.clear();
+  }
+
+  private void waitForShutdown(ThreadSampler sampler) {
+    try {
+      if (!sampler.awaitTermination(samplingPeriod.multipliedBy(2))) {
+        sampler.shutdownNow();
+      }
+    } catch (InterruptedException e) {
+      sampler.shutdownNow();
+      Thread.currentThread().interrupt();
+    }
   }
 
   private class ThreadSampler {
@@ -89,6 +117,14 @@ class ScheduledExecutorStackTraceSampler implements StackTraceSampler {
     void shutdown() {
       scheduler.shutdown();
       gatherer.run();
+    }
+
+    void shutdownNow() {
+      scheduler.shutdownNow();
+    }
+
+    boolean awaitTermination(Duration timeout) throws InterruptedException {
+      return scheduler.awaitTermination(timeout.toMillis(), TimeUnit.MILLISECONDS);
     }
 
     SpanContext getSpanContext() {
@@ -117,7 +153,7 @@ class ScheduledExecutorStackTraceSampler implements StackTraceSampler {
         String spanId = retrieveActiveSpan(thread).getSpanId();
         StackTrace stackTrace =
             StackTrace.from(Instant.now(), samplingPeriod, threadInfo, traceId, spanId);
-        stagingArea.stage(traceId, stackTrace);
+        stagingArea.get().stage(traceId, stackTrace);
       } catch (Exception e) {
         logger.log(Level.SEVERE, e, samplerErrorMessage(traceId, thread.getId()));
       } finally {

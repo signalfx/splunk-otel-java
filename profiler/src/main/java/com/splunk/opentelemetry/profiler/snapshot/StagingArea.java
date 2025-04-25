@@ -16,12 +16,26 @@
 
 package com.splunk.opentelemetry.profiler.snapshot;
 
+import java.io.Closeable;
+
 /**
  * Acts as a location to stockpile gathered {@link StackTrace}s segmented by thread ID for bulk
  * exportation at some later point in time.
  */
-interface StagingArea {
+interface StagingArea extends Closeable {
+  StagingArea NOOP =
+      new StagingArea() {
+        @Override
+        public void stage(String traceId, StackTrace stackTrace) {}
+
+        @Override
+        public void empty(String traceId) {}
+      };
+  ConfigurableSupplier<StagingArea> SUPPLIER = new ConfigurableSupplier<>(NOOP);
+
   void stage(String traceId, StackTrace stackTrace);
 
   void empty(String traceId);
+
+  default void close() {}
 }

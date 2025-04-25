@@ -23,6 +23,7 @@ import com.splunk.opentelemetry.profiler.util.HelpfulExecutors;
 import io.opentelemetry.api.logs.Logger;
 import java.util.Collection;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
 class AsyncStackTraceExporter implements StackTraceExporter {
@@ -33,6 +34,7 @@ class AsyncStackTraceExporter implements StackTraceExporter {
       HelpfulExecutors.newSingleThreadExecutor("async-stack-trace-exporter");
   private final Logger otelLogger;
   private final int maxDepth;
+  private volatile boolean closed = false;
 
   AsyncStackTraceExporter(Logger logger, int maxDepth) {
     this.otelLogger = logger;
@@ -41,7 +43,25 @@ class AsyncStackTraceExporter implements StackTraceExporter {
 
   @Override
   public void export(Collection<StackTrace> stackTraces) {
+    if (closed) {
+      return;
+    }
     executor.submit(pprofExporter(otelLogger, stackTraces));
+  }
+
+  @Override
+  public void close() {
+    closed = true;
+
+    try {
+      executor.shutdown();
+      if (!executor.awaitTermination(1, TimeUnit.SECONDS)) {
+        executor.shutdownNow();
+      }
+    } catch (InterruptedException e) {
+      executor.shutdownNow();
+      Thread.currentThread().interrupt();
+    }
   }
 
   private Runnable pprofExporter(Logger otelLogger, Collection<StackTrace> stackTraces) {

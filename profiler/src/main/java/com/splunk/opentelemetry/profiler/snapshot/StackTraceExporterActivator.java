@@ -47,7 +47,7 @@ public class StackTraceExporterActivator implements AgentListener {
       int maxDepth = Configuration.getSnapshotProfilerStackDepth(properties);
       Logger logger = buildLogger(autoConfiguredOpenTelemetrySdk, properties);
       AsyncStackTraceExporter exporter = new AsyncStackTraceExporter(logger, maxDepth);
-      StackTraceExporterProvider.INSTANCE.configure(exporter);
+      StackTraceExporter.SUPPLIER.configure(exporter);
     }
   }
 

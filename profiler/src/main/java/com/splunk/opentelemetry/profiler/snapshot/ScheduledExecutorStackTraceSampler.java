@@ -72,21 +72,23 @@ class ScheduledExecutorStackTraceSampler implements StackTraceSampler {
   private class ThreadSampler {
     private final ScheduledExecutorService scheduler;
     private final SpanContext spanContext;
+    private final StackTraceGatherer gatherer;
 
     ThreadSampler(SpanContext spanContext, Duration samplingPeriod) {
       this.spanContext = spanContext;
+      gatherer =
+          new StackTraceGatherer(
+              spanContext.getTraceId(), Thread.currentThread(), System.nanoTime());
       scheduler =
           HelpfulExecutors.newSingleThreadedScheduledExecutor(
               "stack-trace-sampler-" + spanContext.getTraceId());
       scheduler.scheduleAtFixedRate(
-          new StackTraceGatherer(samplingPeriod, spanContext.getTraceId(), Thread.currentThread()),
-          SCHEDULER_INITIAL_DELAY,
-          samplingPeriod.toMillis(),
-          TimeUnit.MILLISECONDS);
+          gatherer, SCHEDULER_INITIAL_DELAY, samplingPeriod.toMillis(), TimeUnit.MILLISECONDS);
     }
 
     void shutdown() {
       scheduler.shutdown();
+      gatherer.run();
     }
 
     SpanContext getSpanContext() {
@@ -95,27 +97,31 @@ class ScheduledExecutorStackTraceSampler implements StackTraceSampler {
   }
 
   private class StackTraceGatherer implements Runnable {
-    private final Duration samplingPeriod;
     private final String traceId;
     private final Thread thread;
+    private volatile long timestampNanos;
 
-    StackTraceGatherer(Duration samplingPeriod, String traceId, Thread thread) {
-      this.samplingPeriod = samplingPeriod;
+    StackTraceGatherer(String traceId, Thread thread, long timestampNanos) {
       this.traceId = traceId;
       this.thread = thread;
+      this.timestampNanos = timestampNanos;
     }
 
     @Override
     public void run() {
+      long previousTimestampNanos = timestampNanos;
+      long currentSampleTimestamp = System.nanoTime();
       try {
-        Instant now = Instant.now();
         ThreadInfo threadInfo = threadMXBean.getThreadInfo(thread.getId(), Integer.MAX_VALUE);
-        SpanContext spanContext = retrieveActiveSpan(thread);
+        Duration samplingPeriod = Duration.ofNanos(currentSampleTimestamp - previousTimestampNanos);
+        String spanId = retrieveActiveSpan(thread).getSpanId();
         StackTrace stackTrace =
-            StackTrace.from(now, samplingPeriod, threadInfo, traceId, spanContext.getSpanId());
+            StackTrace.from(Instant.now(), samplingPeriod, threadInfo, traceId, spanId);
         stagingArea.stage(traceId, stackTrace);
       } catch (Exception e) {
         logger.log(Level.SEVERE, e, samplerErrorMessage(traceId, thread.getId()));
+      } finally {
+        timestampNanos = currentSampleTimestamp;
       }
     }
 

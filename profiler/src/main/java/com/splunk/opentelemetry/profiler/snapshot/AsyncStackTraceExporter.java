@@ -21,7 +21,6 @@ import com.splunk.opentelemetry.profiler.exporter.CpuEventExporter;
 import com.splunk.opentelemetry.profiler.exporter.PprofCpuEventExporter;
 import com.splunk.opentelemetry.profiler.util.HelpfulExecutors;
 import io.opentelemetry.api.logs.Logger;
-import java.time.Duration;
 import java.util.Collection;
 import java.util.concurrent.ExecutorService;
 import java.util.logging.Level;
@@ -33,12 +32,10 @@ class AsyncStackTraceExporter implements StackTraceExporter {
   private final ExecutorService executor =
       HelpfulExecutors.newSingleThreadExecutor("async-stack-trace-exporter");
   private final Logger otelLogger;
-  private final Duration samplingPeriod;
   private final int maxDepth;
 
-  AsyncStackTraceExporter(Logger logger, Duration samplingPeriod, int maxDepth) {
+  AsyncStackTraceExporter(Logger logger, int maxDepth) {
     this.otelLogger = logger;
-    this.samplingPeriod = samplingPeriod;
     this.maxDepth = maxDepth;
   }
 
@@ -54,7 +51,6 @@ class AsyncStackTraceExporter implements StackTraceExporter {
             PprofCpuEventExporter.builder()
                 .otelLogger(otelLogger)
                 .stackDepth(maxDepth)
-                .period(samplingPeriod)
                 .instrumentationSource(InstrumentationSource.SNAPSHOT)
                 .build();
 
@@ -66,7 +62,8 @@ class AsyncStackTraceExporter implements StackTraceExporter {
               stackTrace.getStackFrames(),
               stackTrace.getTimestamp(),
               stackTrace.getTraceId(),
-              stackTrace.getSpanId());
+              stackTrace.getSpanId(),
+              stackTrace.getDuration());
         }
         cpuEventExporter.flush();
       } catch (Exception e) {

@@ -33,15 +33,13 @@ import com.google.perftools.profiles.ProfileProto.Profile;
 import com.splunk.opentelemetry.profiler.exporter.InMemoryOtelLogger;
 import com.splunk.opentelemetry.profiler.pprof.PprofUtils;
 import java.io.ByteArrayInputStream;
-import java.time.Duration;
 import java.util.List;
 import java.util.zip.GZIPInputStream;
 import org.junit.jupiter.api.Test;
 
 class AsyncStackTraceExporterTest {
   private final InMemoryOtelLogger logger = new InMemoryOtelLogger();
-  private final AsyncStackTraceExporter exporter =
-      new AsyncStackTraceExporter(logger, Duration.ofMillis(20), 200);
+  private final AsyncStackTraceExporter exporter = new AsyncStackTraceExporter(logger, 200);
 
   @Test
   void exportStackTraceAsOpenTelemetryLog() {

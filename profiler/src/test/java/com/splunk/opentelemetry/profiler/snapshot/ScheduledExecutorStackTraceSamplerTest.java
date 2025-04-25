@@ -340,6 +340,8 @@ class ScheduledExecutorStackTraceSamplerTest {
     sampler.start(spanContext);
     await().until(() -> !staging.allStackTraces().isEmpty());
     sampler.close();
+
+    int previouslyStagedStackTraces = reportStackTracesStaged().call();
     staging.empty(spanContext.getTraceId());
 
     var scheduler = Executors.newSingleThreadScheduledExecutor();
@@ -347,7 +349,7 @@ class ScheduledExecutorStackTraceSamplerTest {
       var future =
           scheduler.schedule(
               reportStackTracesStaged(), SAMPLING_PERIOD.toMillis() * 10, TimeUnit.MILLISECONDS);
-      assertEquals(0, future.get());
+      assertEquals(previouslyStagedStackTraces, future.get());
     } finally {
       scheduler.shutdownNow();
     }
@@ -367,13 +369,15 @@ class ScheduledExecutorStackTraceSamplerTest {
       startSpanLatch.countDown();
       await().until(() -> staging.allStackTraces().size() > 5);
       sampler.close();
+
+      int previouslyStagedStackTraces = reportStackTracesStaged().call();
       staging.empty(spanContext1.getTraceId());
       staging.empty(spanContext2.getTraceId());
 
       var future =
           scheduler.schedule(
               reportStackTracesStaged(), SAMPLING_PERIOD.toMillis() * 10, TimeUnit.MILLISECONDS);
-      assertEquals(0, future.get());
+      assertEquals(previouslyStagedStackTraces, future.get());
     } finally {
       executor.shutdownNow();
       scheduler.shutdownNow();

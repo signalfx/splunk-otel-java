@@ -50,10 +50,11 @@ class PeriodicallyExportingStagingArea implements StagingArea, Closeable {
 
   @Override
   public void empty() {
-    List<StackTrace> stackTracesToExport = new ArrayList<>(stackTraces);
-    if (stackTracesToExport.isEmpty()) {
+    if (stackTraces.isEmpty()) {
       return;
     }
+
+    List<StackTrace> stackTracesToExport = new ArrayList<>(stackTraces);
     exporter.get().export(stackTracesToExport);
     stackTraces.removeAll(stackTracesToExport);
   }

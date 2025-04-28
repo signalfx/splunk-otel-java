@@ -32,14 +32,19 @@ class PeriodicallyExportingStagingArea implements StagingArea, Closeable {
       HelpfulExecutors.newSingleThreadedScheduledExecutor("periodically-exporting-staging-area");
   private final Queue<StackTrace> stackTraces = new ConcurrentLinkedQueue<>();
   private final Supplier<StackTraceExporter> exporter;
+  private volatile boolean closed = false;
 
   PeriodicallyExportingStagingArea(Supplier<StackTraceExporter> exporter, Duration emptyDuration) {
     this.exporter = exporter;
-    scheduler.scheduleAtFixedRate(this::empty, 0, emptyDuration.toMillis(), TimeUnit.MILLISECONDS);
+    scheduler.scheduleAtFixedRate(
+        this::empty, emptyDuration.toMillis(), emptyDuration.toMillis(), TimeUnit.MILLISECONDS);
   }
 
   @Override
   public void stage(StackTrace stackTrace) {
+    if (closed) {
+      return;
+    }
     stackTraces.add(stackTrace);
   }
 
@@ -55,7 +60,21 @@ class PeriodicallyExportingStagingArea implements StagingArea, Closeable {
 
   @Override
   public void close() {
-    scheduler.shutdown();
+    this.closed = true;
+
+    stopScheduledExecutor();
     empty();
+  }
+
+  private void stopScheduledExecutor() {
+    try {
+      scheduler.shutdown();
+      if (!scheduler.awaitTermination(1, TimeUnit.SECONDS)) {
+        scheduler.shutdownNow();
+      }
+    } catch (InterruptedException e) {
+      scheduler.shutdownNow();
+      Thread.currentThread().interrupt();
+    }
   }
 }

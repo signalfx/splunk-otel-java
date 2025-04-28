@@ -22,6 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.time.Duration;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -70,6 +71,18 @@ class PeriodicallyExportingStagingAreaTest {
   }
 
   @Test
+  void provideCopyOfStackTracesWhenExporting() {
+    var stackTrace = Snapshotting.stackTrace().build();
+
+    var exporter = new SimpleStackTraceExporter();
+    var stagingArea = new PeriodicallyExportingStagingArea(() -> exporter, emptyDuration);
+    stagingArea.stage(stackTrace);
+    stagingArea.close();
+
+    assertEquals(List.of(stackTrace), exporter.stackTraces);
+  }
+
+  @Test
   void stackTracesAreExportedImmediatelyUponShutdown() {
     var stackTrace = Snapshotting.stackTrace().build();
 
@@ -81,15 +94,14 @@ class PeriodicallyExportingStagingAreaTest {
   }
 
   @Test
-  void provideCopyOfStackTracesWhenExporting() {
+  void doNotAcceptStackTracesAfterShutdown() {
     var stackTrace = Snapshotting.stackTrace().build();
 
-    var exporter = new SimpleStackTraceExporter();
-    var stagingArea = new PeriodicallyExportingStagingArea(() -> exporter, emptyDuration);
-    stagingArea.stage(stackTrace);
     stagingArea.close();
+    stagingArea.stage(stackTrace);
+    stagingArea.empty();
 
-    assertEquals(List.of(stackTrace), exporter.stackTraces);
+    assertEquals(Collections.emptyList(), exporter.stackTraces());
   }
 
   static class SimpleStackTraceExporter implements StackTraceExporter {

@@ -214,14 +214,14 @@ class ConfigurationTest {
                 "splunk.snapshot.profiler.staging.empty.interval", String.valueOf(milliseconds)));
     assertEquals(
         Duration.ofMillis(milliseconds),
-        Configuration.getSnapshotProfilerEmptyStagingInterval(properties));
+        Configuration.getSnapshotProfilerStagingEmptyInterval(properties));
   }
 
   @Test
   void getDefaultSnapshotProfilerEmptyStagingInterval() {
     var properties = DefaultConfigProperties.create(Collections.emptyMap());
     assertEquals(
-        Duration.ofSeconds(5), Configuration.getSnapshotProfilerEmptyStagingInterval(properties));
+        Duration.ofSeconds(5), Configuration.getSnapshotProfilerStagingEmptyInterval(properties));
   }
 
   @ParameterizedTest

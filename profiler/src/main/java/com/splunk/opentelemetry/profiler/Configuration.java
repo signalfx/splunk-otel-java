@@ -81,9 +81,9 @@ public class Configuration implements AutoConfigurationCustomizerProvider {
       "splunk.snapshot.profiler.sampling.interval";
   private static final Duration DEFAULT_SNAPSHOT_PROFILER_SAMPLING_INTERVAL = Duration.ofMillis(10);
 
-  private static final String CONFIG_KEY_SNAPSHOT_PROFILER_EMPTY_STAGING_INTERVAL =
+  private static final String CONFIG_KEY_SNAPSHOT_PROFILER_STAGING_EMPTY_INTERVAL =
       "splunk.snapshot.profiler.staging.empty.interval";
-  private static final Duration DEFAULT_SNAPSHOT_PROFILER_EMPTY_STAGING_INTERVAL =
+  private static final Duration DEFAULT_SNAPSHOT_PROFILER_STAGING_EMPTY_INTERVAL =
       Duration.ofSeconds(5);
 
   private static final String CONFIG_KEY_SNAPSHOT_PROFILER_STAGING_CAPACITY =
@@ -238,10 +238,10 @@ public class Configuration implements AutoConfigurationCustomizerProvider {
         DEFAULT_SNAPSHOT_PROFILER_SAMPLING_INTERVAL);
   }
 
-  public static Duration getSnapshotProfilerEmptyStagingInterval(ConfigProperties properties) {
+  public static Duration getSnapshotProfilerStagingEmptyInterval(ConfigProperties properties) {
     return properties.getDuration(
-        CONFIG_KEY_SNAPSHOT_PROFILER_EMPTY_STAGING_INTERVAL,
-        DEFAULT_SNAPSHOT_PROFILER_EMPTY_STAGING_INTERVAL);
+        CONFIG_KEY_SNAPSHOT_PROFILER_STAGING_EMPTY_INTERVAL,
+        DEFAULT_SNAPSHOT_PROFILER_STAGING_EMPTY_INTERVAL);
   }
 
   public static int getSnapshotProfilerStagingCapacity(ConfigProperties properties) {

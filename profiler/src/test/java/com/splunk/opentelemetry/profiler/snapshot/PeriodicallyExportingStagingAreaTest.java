@@ -31,7 +31,7 @@ class PeriodicallyExportingStagingAreaTest {
   private final InMemoryStackTraceExporter exporter = new InMemoryStackTraceExporter();
   private final Duration emptyDuration = Duration.ofMillis(5);
   private final PeriodicallyExportingStagingArea stagingArea =
-      new PeriodicallyExportingStagingArea(() -> exporter, emptyDuration);
+      new PeriodicallyExportingStagingArea(() -> exporter, emptyDuration, 10);
 
   @AfterEach
   void teardown() {
@@ -75,7 +75,7 @@ class PeriodicallyExportingStagingAreaTest {
     var stackTrace = Snapshotting.stackTrace().build();
 
     var exporter = new SimpleStackTraceExporter();
-    var stagingArea = new PeriodicallyExportingStagingArea(() -> exporter, emptyDuration);
+    var stagingArea = new PeriodicallyExportingStagingArea(() -> exporter, emptyDuration, 10);
     stagingArea.stage(stackTrace);
     stagingArea.close();
 
@@ -86,7 +86,7 @@ class PeriodicallyExportingStagingAreaTest {
   void stackTracesAreExportedImmediatelyUponShutdown() {
     var stackTrace = Snapshotting.stackTrace().build();
 
-    var stagingArea = new PeriodicallyExportingStagingArea(() -> exporter, Duration.ofDays(1));
+    var stagingArea = new PeriodicallyExportingStagingArea(() -> exporter, Duration.ofDays(1), 10);
     stagingArea.stage(stackTrace);
     stagingArea.close();
 
@@ -102,6 +102,16 @@ class PeriodicallyExportingStagingAreaTest {
     stagingArea.empty();
 
     assertEquals(Collections.emptyList(), exporter.stackTraces());
+  }
+
+  @Test
+  void exportStackTracesWhenCapacityReached() {
+    try (var stagingArea =
+        new PeriodicallyExportingStagingArea(() -> exporter, Duration.ofDays(1), 2)) {
+      stagingArea.stage(Snapshotting.stackTrace().build());
+      stagingArea.stage(Snapshotting.stackTrace().build());
+      assertEquals(2, exporter.stackTraces().size());
+    }
   }
 
   static class SimpleStackTraceExporter implements StackTraceExporter {

@@ -17,7 +17,6 @@
 package com.splunk.opentelemetry.profiler.snapshot;
 
 import com.splunk.opentelemetry.profiler.util.HelpfulExecutors;
-
 import java.io.Closeable;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -34,10 +33,13 @@ class PeriodicallyExportingStagingArea implements StagingArea, Closeable {
       HelpfulExecutors.newSingleThreadedScheduledExecutor("periodically-exporting-staging-area");
   private final Set<StackTrace> stackTraces = Collections.newSetFromMap(new ConcurrentHashMap<>());
   private final Supplier<StackTraceExporter> exporter;
+  private final int capacity;
   private volatile boolean closed = false;
 
-  PeriodicallyExportingStagingArea(Supplier<StackTraceExporter> exporter, Duration emptyDuration) {
+  PeriodicallyExportingStagingArea(
+      Supplier<StackTraceExporter> exporter, Duration emptyDuration, int capacity) {
     this.exporter = exporter;
+    this.capacity = capacity;
     scheduler.scheduleAtFixedRate(
         this::empty, emptyDuration.toMillis(), emptyDuration.toMillis(), TimeUnit.MILLISECONDS);
   }
@@ -48,6 +50,9 @@ class PeriodicallyExportingStagingArea implements StagingArea, Closeable {
       return;
     }
     stackTraces.add(stackTrace);
+    if (stackTraces.size() >= capacity) {
+      empty();
+    }
   }
 
   @Override

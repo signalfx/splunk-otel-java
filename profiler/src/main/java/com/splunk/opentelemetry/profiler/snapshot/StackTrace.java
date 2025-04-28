@@ -100,18 +100,28 @@ class StackTrace {
 
   @Override
   public boolean equals(Object o) {
-    if (o == null || getClass() != o.getClass())
-      return false;
+    if (o == null || getClass() != o.getClass()) return false;
     StackTrace that = (StackTrace) o;
-    return threadId == that.threadId && Objects.equals(timestamp, that.timestamp) && Objects.equals(
-        duration, that.duration) && Objects.equals(threadName, that.threadName)
-        && threadState == that.threadState && Objects.deepEquals(stackFrames, that.stackFrames)
-        && Objects.equals(traceId, that.traceId) && Objects.equals(spanId, that.spanId);
+    return threadId == that.threadId
+        && Objects.equals(timestamp, that.timestamp)
+        && Objects.equals(duration, that.duration)
+        && Objects.equals(threadName, that.threadName)
+        && threadState == that.threadState
+        && Objects.deepEquals(stackFrames, that.stackFrames)
+        && Objects.equals(traceId, that.traceId)
+        && Objects.equals(spanId, that.spanId);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(timestamp, duration, threadId, threadName, threadState,
-        Arrays.hashCode(stackFrames), traceId, spanId);
+    return Objects.hash(
+        timestamp,
+        duration,
+        threadId,
+        threadName,
+        threadState,
+        Arrays.hashCode(stackFrames),
+        traceId,
+        spanId);
   }
 }

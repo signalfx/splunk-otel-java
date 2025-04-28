@@ -211,7 +211,7 @@ class ConfigurationTest {
     var properties =
         DefaultConfigProperties.create(
             Map.of(
-                "splunk.snapshot.profiler.empty.staging.interval", String.valueOf(milliseconds)));
+                "splunk.snapshot.profiler.staging.empty.interval", String.valueOf(milliseconds)));
     assertEquals(
         Duration.ofMillis(milliseconds),
         Configuration.getSnapshotProfilerEmptyStagingInterval(properties));
@@ -222,5 +222,20 @@ class ConfigurationTest {
     var properties = DefaultConfigProperties.create(Collections.emptyMap());
     assertEquals(
         Duration.ofSeconds(5), Configuration.getSnapshotProfilerEmptyStagingInterval(properties));
+  }
+
+  @ParameterizedTest
+  @ValueSource(ints = {100, 1000, 10_000})
+  void getConfiguredSnapshotProfilerStagingCapacity(int value) {
+    var properties =
+        DefaultConfigProperties.create(
+            Map.of("splunk.snapshot.profiler.staging.capacity", String.valueOf(value)));
+    assertEquals(value, Configuration.getSnapshotProfilerStagingCapacity(properties));
+  }
+
+  @Test
+  void getDefaultSnapshotProfilerStagingCapacity() {
+    var properties = DefaultConfigProperties.create(Collections.emptyMap());
+    assertEquals(2000, Configuration.getSnapshotProfilerStagingCapacity(properties));
   }
 }

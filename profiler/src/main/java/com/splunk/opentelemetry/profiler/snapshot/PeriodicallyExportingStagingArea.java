@@ -17,12 +17,14 @@
 package com.splunk.opentelemetry.profiler.snapshot;
 
 import com.splunk.opentelemetry.profiler.util.HelpfulExecutors;
+
 import java.io.Closeable;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
@@ -30,7 +32,7 @@ import java.util.function.Supplier;
 class PeriodicallyExportingStagingArea implements StagingArea, Closeable {
   private final ScheduledExecutorService scheduler =
       HelpfulExecutors.newSingleThreadedScheduledExecutor("periodically-exporting-staging-area");
-  private final Queue<StackTrace> stackTraces = new ConcurrentLinkedQueue<>();
+  private final Set<StackTrace> stackTraces = Collections.newSetFromMap(new ConcurrentHashMap<>());
   private final Supplier<StackTraceExporter> exporter;
   private volatile boolean closed = false;
 
@@ -56,7 +58,7 @@ class PeriodicallyExportingStagingArea implements StagingArea, Closeable {
 
     List<StackTrace> stackTracesToExport = new ArrayList<>(stackTraces);
     exporter.get().export(stackTracesToExport);
-    stackTraces.removeAll(stackTracesToExport);
+    stackTracesToExport.forEach(stackTraces::remove);
   }
 
   @Override

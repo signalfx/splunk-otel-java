@@ -20,6 +20,8 @@ import com.google.common.annotations.VisibleForTesting;
 import java.lang.management.ThreadInfo;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Arrays;
+import java.util.Objects;
 
 class StackTrace {
   static StackTrace from(
@@ -94,5 +96,22 @@ class StackTrace {
 
   String getSpanId() {
     return spanId;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (o == null || getClass() != o.getClass())
+      return false;
+    StackTrace that = (StackTrace) o;
+    return threadId == that.threadId && Objects.equals(timestamp, that.timestamp) && Objects.equals(
+        duration, that.duration) && Objects.equals(threadName, that.threadName)
+        && threadState == that.threadState && Objects.deepEquals(stackFrames, that.stackFrames)
+        && Objects.equals(traceId, that.traceId) && Objects.equals(spanId, that.spanId);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(timestamp, duration, threadId, threadName, threadState,
+        Arrays.hashCode(stackFrames), traceId, spanId);
   }
 }

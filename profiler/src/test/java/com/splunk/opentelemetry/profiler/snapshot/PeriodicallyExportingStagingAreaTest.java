@@ -32,7 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class PeriodicallyExportingStagingAreaTest {
   private final InMemoryStackTraceExporter exporter = new InMemoryStackTraceExporter();
-  private final Duration emptyDuration = Duration.ofMillis(5);
+  private final Duration emptyDuration = Duration.ofMillis(50);
   private final PeriodicallyExportingStagingArea stagingArea =
       new PeriodicallyExportingStagingArea(() -> exporter, emptyDuration, 10);
 
@@ -46,6 +46,20 @@ class PeriodicallyExportingStagingAreaTest {
     var stackTrace = Snapshotting.stackTrace().build();
     stagingArea.stage(stackTrace);
     await().untilAsserted(() -> assertThat(exporter.stackTraces()).contains(stackTrace));
+  }
+
+  @Test
+  void continuallyEmptyStagingAreaPeriodically() {
+    var stackTrace1 = Snapshotting.stackTrace().build();
+    var stackTrace2 = Snapshotting.stackTrace().build();
+    var stackTrace3 = Snapshotting.stackTrace().build();
+
+    stagingArea.stage(stackTrace1);
+    await().untilAsserted(() -> assertThat(exporter.stackTraces()).contains(stackTrace1));
+
+    stagingArea.stage(stackTrace2);
+    stagingArea.stage(stackTrace3);
+    await().untilAsserted(() -> assertThat(exporter.stackTraces()).contains(stackTrace2, stackTrace3));
   }
 
   @Test

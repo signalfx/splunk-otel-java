@@ -25,6 +25,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
@@ -107,12 +108,13 @@ class PeriodicallyExportingStagingAreaTest {
   }
 
   @Test
-  void doNotAcceptStackTracesAfterShutdown() {
+  void doNotAcceptStackTracesAfterShutdown() throws Exception {
     var stackTrace = Snapshotting.stackTrace().build();
 
+    var stagingArea = new PeriodicallyExportingStagingArea(() -> exporter, Duration.ofMillis(10), 10);
     stagingArea.close();
     stagingArea.stage(stackTrace);
-    stagingArea.empty();
+    TimeUnit.MILLISECONDS.sleep(50);
 
     assertEquals(Collections.emptyList(), exporter.stackTraces());
   }

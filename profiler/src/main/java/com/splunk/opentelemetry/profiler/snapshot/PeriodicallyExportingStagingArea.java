@@ -78,18 +78,19 @@ class PeriodicallyExportingStagingArea implements StagingArea, Closeable {
   public void close() {
     this.closed = true;
 
-    stopScheduledExecutor();
-    empty();
+    stop(scheduler);
+    exportWorker.submit(this::empty);
+    stop(exportWorker);
   }
 
-  private void stopScheduledExecutor() {
+  private void stop(ExecutorService executor) {
     try {
-      scheduler.shutdown();
-      if (!scheduler.awaitTermination(1, TimeUnit.SECONDS)) {
-        scheduler.shutdownNow();
+      executor.shutdown();
+      if (!executor.awaitTermination(1, TimeUnit.SECONDS)) {
+        executor.shutdownNow();
       }
     } catch (InterruptedException e) {
-      scheduler.shutdownNow();
+      executor.shutdownNow();
       Thread.currentThread().interrupt();
     }
   }

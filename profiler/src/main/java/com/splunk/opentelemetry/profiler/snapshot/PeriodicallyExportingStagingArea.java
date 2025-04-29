@@ -24,13 +24,15 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
 class PeriodicallyExportingStagingArea implements StagingArea, Closeable {
-  private final ScheduledExecutorService scheduler =
-      HelpfulExecutors.newSingleThreadedScheduledExecutor("periodically-exporting-staging-area");
+  private final ScheduledExecutorService scheduler = HelpfulExecutors.newSingleThreadedScheduledExecutor("periodically-exporting-staging-area-scheduler");
+  private final ExecutorService exportWorker = HelpfulExecutors.newSingleThreadExecutor("periodically-exporting-staging-area-exporter");
+
   private final Set<StackTrace> stackTraces = Collections.newSetFromMap(new ConcurrentHashMap<>());
   private final Supplier<StackTraceExporter> exporter;
   private final int capacity;
@@ -40,8 +42,7 @@ class PeriodicallyExportingStagingArea implements StagingArea, Closeable {
       Supplier<StackTraceExporter> exporter, Duration emptyDuration, int capacity) {
     this.exporter = exporter;
     this.capacity = capacity;
-    scheduler.scheduleAtFixedRate(
-        this::empty, emptyDuration.toMillis(), emptyDuration.toMillis(), TimeUnit.MILLISECONDS);
+    scheduler.scheduleAtFixedRate(() -> exportWorker.submit(this::empty), emptyDuration.toMillis(), emptyDuration.toMillis(), TimeUnit.MILLISECONDS);
   }
 
   @Override
@@ -49,7 +50,14 @@ class PeriodicallyExportingStagingArea implements StagingArea, Closeable {
     if (closed) {
       return;
     }
+
     stackTraces.add(stackTrace);
+    if (stackTraces.size() >= capacity) {
+      exportWorker.submit(this::emptyWithCapacityConsideration);
+    }
+  }
+
+  private void emptyWithCapacityConsideration() {
     if (stackTraces.size() >= capacity) {
       empty();
     }

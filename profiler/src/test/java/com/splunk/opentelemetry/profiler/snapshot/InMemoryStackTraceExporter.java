@@ -16,17 +16,17 @@
 
 package com.splunk.opentelemetry.profiler.snapshot;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * In memory implementation of the {@link StackTraceExporter} interface that allows for direct
  * access to the exported {@link StackTrace}s. Intended for testing use only.
  */
 class InMemoryStackTraceExporter implements StackTraceExporter {
-  private final List<StackTrace> stackTraces = new ArrayList<>();
+  private final List<StackTrace> stackTraces = new CopyOnWriteArrayList<>();
 
   @Override
   public void export(Collection<StackTrace> stackTraces) {

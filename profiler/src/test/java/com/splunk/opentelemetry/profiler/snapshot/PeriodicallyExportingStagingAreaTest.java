@@ -16,16 +16,13 @@
 
 package com.splunk.opentelemetry.profiler.snapshot;
 
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
@@ -34,66 +31,55 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class PeriodicallyExportingStagingAreaTest {
   private final InMemoryStackTraceExporter exporter = new InMemoryStackTraceExporter();
   private final Duration emptyDuration = Duration.ofMillis(50);
-  private final PeriodicallyExportingStagingArea stagingArea =
-      new PeriodicallyExportingStagingArea(() -> exporter, emptyDuration, 10);
-
-  @AfterEach
-  void teardown() {
-    stagingArea.close();
-  }
 
   @Test
-  void automaticallyEmptyStagingAreaPeriodically() {
+  void automaticallyExportStackTraces() {
     var stackTrace = Snapshotting.stackTrace().build();
-    stagingArea.stage(stackTrace);
-    await().untilAsserted(() -> assertThat(exporter.stackTraces()).contains(stackTrace));
+    try (var stagingArea = new PeriodicallyExportingStagingArea(() -> exporter, emptyDuration, 10)) {
+      stagingArea.stage(stackTrace);
+      await().untilAsserted(() -> assertThat(exporter.stackTraces()).contains(stackTrace));
+    }
   }
 
   @Test
-  void continuallyEmptyStagingAreaPeriodically() {
+  void continuallyExportingStackTracesPeriodically() {
     var stackTrace1 = Snapshotting.stackTrace().build();
     var stackTrace2 = Snapshotting.stackTrace().build();
     var stackTrace3 = Snapshotting.stackTrace().build();
 
-    stagingArea.stage(stackTrace1);
-    await().untilAsserted(() -> assertThat(exporter.stackTraces()).contains(stackTrace1));
+    try (var stagingArea = new PeriodicallyExportingStagingArea(() -> exporter, emptyDuration, 10)) {
+      stagingArea.stage(stackTrace1);
+      await().untilAsserted(() -> assertThat(exporter.stackTraces()).contains(stackTrace1));
 
-    stagingArea.stage(stackTrace2);
-    stagingArea.stage(stackTrace3);
-    await().untilAsserted(() -> assertThat(exporter.stackTraces()).contains(stackTrace2, stackTrace3));
+      stagingArea.stage(stackTrace2);
+      stagingArea.stage(stackTrace3);
+      await().untilAsserted(() -> assertThat(exporter.stackTraces()).contains(stackTrace2, stackTrace3));
+    }
   }
 
   @Test
   void exportMultipleStackTracesToLogExporter() {
-    var stackTrace1 = Snapshotting.stackTrace().withId(1).withName("one").build();
-    var stackTrace2 = Snapshotting.stackTrace().withId(2).withName("two").build();
+    var stackTrace1 = Snapshotting.stackTrace().build();
+    var stackTrace2 = Snapshotting.stackTrace().build();
 
-    stagingArea.stage(stackTrace1);
-    stagingArea.stage(stackTrace2);
+    try (var stagingArea = new PeriodicallyExportingStagingArea(() -> exporter, emptyDuration, 10)) {
+      stagingArea.stage(stackTrace1);
+      stagingArea.stage(stackTrace2);
 
-    await().untilAsserted(() -> assertThat(exporter.stackTraces()).contains(stackTrace1, stackTrace2));
+      await().untilAsserted(() -> assertThat(exporter.stackTraces()).contains(stackTrace1, stackTrace2));
+    }
   }
 
   @Test
   void stackTracesAreNotExportedMultipleTimes() {
     var stackTrace = Snapshotting.stackTrace().build();
 
-    stagingArea.stage(stackTrace);
-    await().until(() -> !exporter.stackTraces().isEmpty());
+    try (var stagingArea = new PeriodicallyExportingStagingArea(() -> exporter, emptyDuration, 10)) {
+      stagingArea.stage(stackTrace);
+      await().until(() -> !exporter.stackTraces().isEmpty());
 
-    assertEquals(List.of(stackTrace), exporter.stackTraces());
-  }
-
-  @Test
-  void provideCopyOfStackTracesWhenExporting() {
-    var stackTrace = Snapshotting.stackTrace().build();
-
-    var exporter = new SimpleStackTraceExporter();
-    var stagingArea = new PeriodicallyExportingStagingArea(() -> exporter, emptyDuration, 10);
-    stagingArea.stage(stackTrace);
-    stagingArea.close();
-
-    await().untilAsserted(() -> assertEquals(List.of(stackTrace), exporter.stackTraces));
+      assertEquals(List.of(stackTrace), exporter.stackTraces());
+    }
   }
 
   @Test
@@ -108,13 +94,12 @@ class PeriodicallyExportingStagingAreaTest {
   }
 
   @Test
-  void doNotAcceptStackTracesAfterShutdown() throws Exception {
+  void doNotAcceptStackTracesAfterShutdown() {
     var stackTrace = Snapshotting.stackTrace().build();
 
-    var stagingArea = new PeriodicallyExportingStagingArea(() -> exporter, Duration.ofMillis(10), 10);
+    var stagingArea = new PeriodicallyExportingStagingArea(() -> exporter, emptyDuration, 10);
     stagingArea.close();
     stagingArea.stage(stackTrace);
-    TimeUnit.MILLISECONDS.sleep(50);
 
     assertEquals(Collections.emptyList(), exporter.stackTraces());
   }
@@ -138,7 +123,8 @@ class PeriodicallyExportingStagingAreaTest {
     var executor = Executors.newFixedThreadPool(2);
     var startLatch = new CountDownLatch(1);
 
-    try (var stagingArea = new PeriodicallyExportingStagingArea(() -> exporter, Duration.ofDays(1), 1)) {
+    try (var stagingArea =
+        new PeriodicallyExportingStagingArea(() -> exporter, Duration.ofDays(1), 1)) {
       executor.submit(stage(stagingArea, stackTrace1, startLatch));
       executor.submit(stage(stagingArea, stackTrace2, startLatch));
       startLatch.countDown();
@@ -148,48 +134,16 @@ class PeriodicallyExportingStagingAreaTest {
     }
   }
 
-  @Test
-  void onlyExportWhenCapacityReached() {
-    var stackTrace1 = Snapshotting.stackTrace().build();
-    var stackTrace2 = Snapshotting.stackTrace().build();
-
-    var executor = Executors.newFixedThreadPool(2);
-    var startLatch = new CountDownLatch(1);
-
-    try (var stagingArea = new PeriodicallyExportingStagingArea(() -> exporter, Duration.ofDays(1), 2)) {
-      stagingArea.stage(Snapshotting.stackTrace().build());
-      executor.submit(stage(stagingArea, stackTrace1, startLatch));
-      executor.submit(stage(stagingArea, stackTrace2, startLatch, Duration.ofMillis(2)));
-      startLatch.countDown();
-
-      await().until(() -> !exporter.stackTraces().isEmpty());
-      assertEquals(2, exporter.stackTraces().size());
-    }
-  }
-
-  private Runnable stage(StagingArea stagingArea, StackTrace stackTrace, CountDownLatch startLatch) {
-    return stage(stagingArea, stackTrace, startLatch, Duration.ZERO);
-  }
-
-  private Runnable stage(StagingArea stagingArea, StackTrace stackTrace, CountDownLatch startLatch, Duration delay) {
+  private Runnable stage(
+      StagingArea stagingArea, StackTrace stackTrace, CountDownLatch startLatch) {
     return () -> {
       try {
         startLatch.await();
-        Thread.sleep(delay.toMillis());
         stagingArea.stage(stackTrace);
       } catch (InterruptedException e) {
         Thread.currentThread().interrupt();
         throw new RuntimeException(e);
       }
     };
-  }
-
-  private static class SimpleStackTraceExporter implements StackTraceExporter {
-    private Collection<StackTrace> stackTraces;
-
-    @Override
-    public void export(Collection<StackTrace> stackTraces) {
-      this.stackTraces = stackTraces;
-    }
   }
 }

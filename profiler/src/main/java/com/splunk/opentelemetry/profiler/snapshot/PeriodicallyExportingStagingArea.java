@@ -16,33 +16,29 @@
 
 package com.splunk.opentelemetry.profiler.snapshot;
 
-import com.splunk.opentelemetry.profiler.util.HelpfulExecutors;
-import java.io.Closeable;
 import java.time.Duration;
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.DelayQueue;
+import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 
-class PeriodicallyExportingStagingArea implements StagingArea, Closeable {
-  private final ScheduledExecutorService scheduler = HelpfulExecutors.newSingleThreadedScheduledExecutor("periodically-exporting-staging-area-scheduler");
-  private final ExecutorService exportWorker = HelpfulExecutors.newSingleThreadExecutor("periodically-exporting-staging-area-exporter");
-
-  private final Set<StackTrace> stackTraces = Collections.newSetFromMap(new ConcurrentHashMap<>());
-  private final Supplier<StackTraceExporter> exporter;
-  private final int capacity;
+class PeriodicallyExportingStagingArea implements StagingArea {
   private volatile boolean closed = false;
+
+  private final Exporter worker;
 
   PeriodicallyExportingStagingArea(
       Supplier<StackTraceExporter> exporter, Duration emptyDuration, int capacity) {
-    this.exporter = exporter;
-    this.capacity = capacity;
-    scheduler.scheduleAtFixedRate(() -> exportWorker.submit(this::empty), emptyDuration.toMillis(), emptyDuration.toMillis(), TimeUnit.MILLISECONDS);
+    worker = new Exporter(exporter, emptyDuration, capacity);
+    worker.setDaemon(true);
+    worker.start();
   }
 
   @Override
@@ -50,48 +46,138 @@ class PeriodicallyExportingStagingArea implements StagingArea, Closeable {
     if (closed) {
       return;
     }
-
-    stackTraces.add(stackTrace);
-    if (stackTraces.size() >= capacity) {
-      exportWorker.submit(this::emptyWithCapacityConsideration);
-    }
-  }
-
-  private void emptyWithCapacityConsideration() {
-    if (stackTraces.size() >= capacity) {
-      empty();
-    }
+    worker.add(stackTrace);
   }
 
   @Override
-  public void empty() {
-    if (stackTraces.isEmpty()) {
-      return;
-    }
-
-    List<StackTrace> stackTracesToExport = new ArrayList<>(stackTraces);
-    exporter.get().export(stackTracesToExport);
-    stackTracesToExport.forEach(stackTraces::remove);
-  }
+  public void empty() {}
 
   @Override
   public void close() {
     this.closed = true;
 
-    stop(scheduler);
-    exportWorker.submit(this::empty);
-    stop(exportWorker);
+    try {
+      worker.shutdown();
+    } catch (InterruptedException e) {
+      throw new RuntimeException(e);
+    }
   }
 
-  private void stop(ExecutorService executor) {
-    try {
-      executor.shutdown();
-      if (!executor.awaitTermination(1, TimeUnit.SECONDS)) {
-        executor.shutdownNow();
+  private static class Exporter extends Thread {
+    private final ConcurrentLinkedQueue<StackTrace> queue = new ConcurrentLinkedQueue<>();
+    private final DelayQueue<WakeUp> wakeUp = new DelayQueue<>();
+    private final BlockingQueue<Boolean> exited = new ArrayBlockingQueue<>(1);
+    private final AtomicInteger staged = new AtomicInteger();
+    private volatile boolean shutdown = false;
+
+    private final Supplier<StackTraceExporter> exporter;
+    private final Duration frequency;
+    private final int capacity;
+
+    private Exporter(Supplier<StackTraceExporter> exporter, Duration frequency, int capacity) {
+      this.exporter = exporter;
+      this.frequency = frequency;
+      this.capacity = capacity;
+
+      wakeUp.add(WakeUp.later(frequency));
+    }
+
+    void add(StackTrace stackTrace) {
+      if (queue.offer(stackTrace)) {
+        if (staged.incrementAndGet() >= capacity) {
+          wakeUp.add(WakeUp.NOW);
+        }
       }
-    } catch (InterruptedException e) {
-      executor.shutdownNow();
-      Thread.currentThread().interrupt();
+    }
+
+    @Override
+    public void run() {
+      do {
+        try {
+          WakeUp command = wakeUp.poll(frequency.toNanos(), TimeUnit.NANOSECONDS);
+          exportStackTraces();
+          scheduleNextExport(command);
+        } catch (InterruptedException e) {
+          Thread.currentThread().interrupt();
+        }
+      } while(keepRunning());
+      exited.add(true);
+    }
+
+    private boolean keepRunning() {
+      return !shutdown && !isInterrupted();
+    }
+
+    private void shutdown() throws InterruptedException {
+      shutdown = true;
+      wakeUp.add(WakeUp.NOW);
+      Boolean finished = exited.poll(5, TimeUnit.SECONDS);
+      if (finished == null) {
+        interrupt();
+      }
+
+      queue.clear();
+      wakeUp.clear();
+      exited.clear();
+      staged.set(0);
+    }
+
+    private void exportStackTraces() {
+      List<StackTrace> stackTracesToExport = emptyStagingArea();
+      exporter.get().export(stackTracesToExport);
+      staged.addAndGet(-stackTracesToExport.size());
+    }
+
+    private List<StackTrace> emptyStagingArea() {
+      List<StackTrace> stackTracesToExport = new ArrayList<>();
+      Iterator<StackTrace> iterator = queue.iterator();
+      while (iterator.hasNext()) {
+        stackTracesToExport.add(iterator.next());
+        iterator.remove();
+      }
+      return stackTracesToExport;
+    }
+
+    private void scheduleNextExport(WakeUp command) {
+      if (command != null && command.wasScheduled()) {
+        wakeUp.add(WakeUp.later(frequency));
+      }
+    }
+  }
+
+  private static class WakeUp implements Delayed {
+    private static final WakeUp NOW = new WakeUp(Duration.ZERO, false);
+
+    private static WakeUp later(Duration delay) {
+      return new WakeUp(delay, true);
+    }
+
+    private final long time;
+    private final boolean scheduled;
+
+    private WakeUp(Duration delay, boolean scheduled) {
+      this.time = System.nanoTime() + delay.toNanos();
+      this.scheduled = scheduled;
+    }
+
+    boolean wasScheduled() {
+      return scheduled;
+    }
+
+    @Override
+    public long getDelay(TimeUnit unit) {
+      return unit.convert(time - System.nanoTime(), TimeUnit.NANOSECONDS);
+    }
+
+    @Override
+    public int compareTo(Delayed other) {
+      WakeUp otherCommand = (WakeUp) other;
+      if (time < otherCommand.time) {
+        return -1;
+      } else if (time > otherCommand.time) {
+        return 1;
+      }
+      return 0;
     }
   }
 }

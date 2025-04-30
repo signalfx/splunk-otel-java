@@ -16,13 +16,12 @@
 
 package com.splunk.opentelemetry.instrumentation.nocode;
 
-import com.splunk.opentelemetry.javaagent.bootstrap.nocode.NocodeEvaluation;
 import com.splunk.opentelemetry.javaagent.bootstrap.nocode.NocodeRules;
 import io.opentelemetry.instrumentation.api.incubator.semconv.code.CodeSpanNameExtractor;
 import io.opentelemetry.instrumentation.api.incubator.semconv.util.ClassAndMethod;
 import io.opentelemetry.instrumentation.api.instrumenter.SpanNameExtractor;
 
-public class NocodeSpanNameExtractor implements SpanNameExtractor<NocodeMethodInvocation> {
+class NocodeSpanNameExtractor implements SpanNameExtractor<NocodeMethodInvocation> {
   private final SpanNameExtractor<ClassAndMethod> defaultNamer;
 
   public NocodeSpanNameExtractor() {
@@ -32,8 +31,8 @@ public class NocodeSpanNameExtractor implements SpanNameExtractor<NocodeMethodIn
   @Override
   public String extract(NocodeMethodInvocation mi) {
     NocodeRules.Rule rule = mi.getRule();
-    if (rule != null && rule.spanName != null) {
-      Object name = NocodeEvaluation.evaluate(rule.spanName, mi.getThiz(), mi.getParameters());
+    if (rule != null && rule.getSpanName() != null) {
+      Object name = mi.evaluate(rule.getSpanName());
       if (name != null) {
         return name.toString();
       }

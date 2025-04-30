@@ -16,7 +16,7 @@
 
 package com.splunk.opentelemetry.instrumentation.nocode;
 
-import com.splunk.opentelemetry.javaagent.bootstrap.nocode.NocodeEvaluation;
+import com.splunk.opentelemetry.javaagent.bootstrap.nocode.NocodeExpression;
 import io.opentelemetry.api.common.AttributesBuilder;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.instrumentation.api.incubator.semconv.code.CodeAttributesExtractor;
@@ -25,8 +25,7 @@ import io.opentelemetry.instrumentation.api.instrumenter.AttributesExtractor;
 import java.util.Map;
 import javax.annotation.Nullable;
 
-public final class NocodeAttributesExtractor
-    implements AttributesExtractor<NocodeMethodInvocation, Object> {
+class NocodeAttributesExtractor implements AttributesExtractor<NocodeMethodInvocation, Object> {
   private final AttributesExtractor<ClassAndMethod, Object> codeExtractor;
 
   public NocodeAttributesExtractor() {
@@ -38,10 +37,11 @@ public final class NocodeAttributesExtractor
       AttributesBuilder attributesBuilder, Context context, NocodeMethodInvocation mi) {
     codeExtractor.onStart(attributesBuilder, context, mi.getClassAndMethod());
 
-    Map<String, String> attributes = mi.getRuleAttributes();
-    for (String key : attributes.keySet()) {
-      String expression = attributes.get(key);
-      Object value = NocodeEvaluation.evaluate(expression, mi.getThiz(), mi.getParameters());
+    Map<String, NocodeExpression> attributes = mi.getRuleAttributes();
+    for (Map.Entry<String, NocodeExpression> entry : attributes.entrySet()) {
+      String key = entry.getKey();
+      NocodeExpression expression = entry.getValue();
+      Object value = mi.evaluate(expression);
       if (value instanceof Long
           || value instanceof Integer
           || value instanceof Short

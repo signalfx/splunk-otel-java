@@ -16,21 +16,21 @@
 
 package com.splunk.opentelemetry.instrumentation.nocode;
 
-import com.splunk.opentelemetry.javaagent.bootstrap.nocode.NocodeEvaluation;
 import java.util.logging.Logger;
 import org.apache.commons.jexl3.JexlBuilder;
 import org.apache.commons.jexl3.JexlContext;
 import org.apache.commons.jexl3.JexlEngine;
+import org.apache.commons.jexl3.JexlExpression;
 import org.apache.commons.jexl3.JexlFeatures;
 import org.apache.commons.jexl3.MapContext;
 import org.apache.commons.jexl3.introspection.JexlPermissions;
 
-public class JexlEvaluator implements NocodeEvaluation.Evaluator {
+class JexlEvaluator {
   private static final Logger logger = Logger.getLogger(JexlEvaluator.class.getName());
 
   private final JexlEngine jexl;
 
-  public JexlEvaluator() {
+  JexlEvaluator() {
     JexlFeatures features =
         new JexlFeatures()
             .register(false) // don't support #register syntax
@@ -59,12 +59,20 @@ public class JexlEvaluator implements NocodeEvaluation.Evaluator {
     }
   }
 
-  private Object evaluateExpression(String expression, JexlContext context) {
+  private static Object evaluateExpression(JexlExpression expression, JexlContext context) {
     try {
-      // could cache the Expression in the Rule if desired
-      return jexl.createExpression(expression).evaluate(context);
+      return expression.evaluate(context);
     } catch (Throwable t) {
       logger.warning("Can't evaluate {" + expression + "}: " + t);
+      return null;
+    }
+  }
+
+  JexlExpression createExpression(String expression) {
+    try {
+      return jexl.createExpression(expression);
+    } catch (Throwable t) {
+      logger.warning("Invalid expression {" + expression + "}: " + t);
       return null;
     }
   }
@@ -74,16 +82,18 @@ public class JexlEvaluator implements NocodeEvaluation.Evaluator {
     context.set("error", error);
   }
 
-  @Override
-  public Object evaluate(String expression, Object thiz, Object[] params) {
+  Object evaluate(JexlExpression expression, Object thiz, Object[] params) {
     JexlContext context = new MapContext();
     setBeginningVariables(context, thiz, params);
     return evaluateExpression(expression, context);
   }
 
-  @Override
-  public Object evaluateAtEnd(
-      String expression, Object thiz, Object[] params, Object returnValue, Throwable error) {
+  Object evaluateAtEnd(
+      JexlExpression expression,
+      Object thiz,
+      Object[] params,
+      Object returnValue,
+      Throwable error) {
     JexlContext context = new MapContext();
     setBeginningVariables(context, thiz, params);
     setEndingVariables(context, returnValue, error);

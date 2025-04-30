@@ -100,7 +100,7 @@ class PeriodicallyExportingStagingArea implements StagingArea {
         } catch (InterruptedException e) {
           Thread.currentThread().interrupt();
         }
-      } while(keepRunning());
+      } while (keepRunning());
       exited.add(true);
     }
 

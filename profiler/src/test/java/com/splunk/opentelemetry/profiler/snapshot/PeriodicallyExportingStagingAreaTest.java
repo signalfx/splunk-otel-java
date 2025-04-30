@@ -16,17 +16,16 @@
 
 package com.splunk.opentelemetry.profiler.snapshot;
 
-import org.junit.jupiter.api.Test;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.awaitility.Awaitility.await;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import org.junit.jupiter.api.Test;
 
 class PeriodicallyExportingStagingAreaTest {
   private final InMemoryStackTraceExporter exporter = new InMemoryStackTraceExporter();
@@ -35,7 +34,8 @@ class PeriodicallyExportingStagingAreaTest {
   @Test
   void automaticallyExportStackTraces() {
     var stackTrace = Snapshotting.stackTrace().build();
-    try (var stagingArea = new PeriodicallyExportingStagingArea(() -> exporter, emptyDuration, 10)) {
+    try (var stagingArea =
+        new PeriodicallyExportingStagingArea(() -> exporter, emptyDuration, 10)) {
       stagingArea.stage(stackTrace);
       await().untilAsserted(() -> assertThat(exporter.stackTraces()).contains(stackTrace));
     }
@@ -47,13 +47,16 @@ class PeriodicallyExportingStagingAreaTest {
     var stackTrace2 = Snapshotting.stackTrace().build();
     var stackTrace3 = Snapshotting.stackTrace().build();
 
-    try (var stagingArea = new PeriodicallyExportingStagingArea(() -> exporter, emptyDuration, 10)) {
+    try (var stagingArea =
+        new PeriodicallyExportingStagingArea(() -> exporter, emptyDuration, 10)) {
       stagingArea.stage(stackTrace1);
       await().untilAsserted(() -> assertThat(exporter.stackTraces()).contains(stackTrace1));
 
       stagingArea.stage(stackTrace2);
       stagingArea.stage(stackTrace3);
-      await().untilAsserted(() -> assertThat(exporter.stackTraces()).contains(stackTrace2, stackTrace3));
+      await()
+          .untilAsserted(
+              () -> assertThat(exporter.stackTraces()).contains(stackTrace2, stackTrace3));
     }
   }
 
@@ -62,11 +65,14 @@ class PeriodicallyExportingStagingAreaTest {
     var stackTrace1 = Snapshotting.stackTrace().build();
     var stackTrace2 = Snapshotting.stackTrace().build();
 
-    try (var stagingArea = new PeriodicallyExportingStagingArea(() -> exporter, emptyDuration, 10)) {
+    try (var stagingArea =
+        new PeriodicallyExportingStagingArea(() -> exporter, emptyDuration, 10)) {
       stagingArea.stage(stackTrace1);
       stagingArea.stage(stackTrace2);
 
-      await().untilAsserted(() -> assertThat(exporter.stackTraces()).contains(stackTrace1, stackTrace2));
+      await()
+          .untilAsserted(
+              () -> assertThat(exporter.stackTraces()).contains(stackTrace1, stackTrace2));
     }
   }
 
@@ -74,7 +80,8 @@ class PeriodicallyExportingStagingAreaTest {
   void stackTracesAreNotExportedMultipleTimes() {
     var stackTrace = Snapshotting.stackTrace().build();
 
-    try (var stagingArea = new PeriodicallyExportingStagingArea(() -> exporter, emptyDuration, 10)) {
+    try (var stagingArea =
+        new PeriodicallyExportingStagingArea(() -> exporter, emptyDuration, 10)) {
       stagingArea.stage(stackTrace);
       await().until(() -> !exporter.stackTraces().isEmpty());
 

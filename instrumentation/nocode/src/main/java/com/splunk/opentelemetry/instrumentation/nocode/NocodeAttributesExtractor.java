@@ -38,8 +38,9 @@ class NocodeAttributesExtractor implements AttributesExtractor<NocodeMethodInvoc
     codeExtractor.onStart(attributesBuilder, context, mi.getClassAndMethod());
 
     Map<String, NocodeExpression> attributes = mi.getRuleAttributes();
-    for (String key : attributes.keySet()) {
-      NocodeExpression expression = attributes.get(key);
+    for (Map.Entry<String, NocodeExpression> entry : attributes.entrySet()) {
+      String key = entry.getKey();
+      NocodeExpression expression = entry.getValue();
       Object value = mi.evaluate(expression);
       if (value instanceof Long
           || value instanceof Integer

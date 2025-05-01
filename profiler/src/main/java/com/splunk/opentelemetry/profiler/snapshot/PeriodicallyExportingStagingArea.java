@@ -68,7 +68,8 @@ class PeriodicallyExportingStagingArea implements StagingArea {
   }
 
   private static class Worker extends Thread {
-    // when shutting down we queue a fake stack trace to ensure that shutdown process starts immediately
+    // when shutting down we queue a fake stack trace to ensure that shutdown process starts
+    // immediately
     private static final Object SHUTDOWN_MARKER = new Object();
 
     private final BlockingQueue<Object> queue;
@@ -79,7 +80,10 @@ class PeriodicallyExportingStagingArea implements StagingArea {
     private volatile boolean shutdown = false;
     private long nextExportTime;
 
-    private Worker(Supplier<StackTraceExporter> exporter, Duration frequency, int maxQueueSize,
+    private Worker(
+        Supplier<StackTraceExporter> exporter,
+        Duration frequency,
+        int maxQueueSize,
         int maxExportBatchSize) {
       this.exporter = exporter;
       this.scheduleDelayNanos = frequency.toNanos();
@@ -101,16 +105,15 @@ class PeriodicallyExportingStagingArea implements StagingArea {
       try {
         // run until shutdown is called and all queued spans are passed to the exporter
         while (!shutdown || !queue.isEmpty() || !stackTracesToExport.isEmpty()) {
-          Object stackTrace = queue.poll(nextExportTime - System.nanoTime(),
-              TimeUnit.NANOSECONDS);
+          Object stackTrace = queue.poll(nextExportTime - System.nanoTime(), TimeUnit.NANOSECONDS);
           if (stackTrace != null && stackTrace != SHUTDOWN_MARKER) {
             stackTracesToExport.add((StackTrace) stackTrace);
           }
           // trigger export when either next export time is reached, we have max batch size, or we
           // are shutting down and have read all the queued stacks
           if (System.nanoTime() >= nextExportTime
-              || stackTracesToExport.size() >= maxExportBatchSize || (shutdown
-              && queue.isEmpty())) {
+              || stackTracesToExport.size() >= maxExportBatchSize
+              || (shutdown && queue.isEmpty())) {
             exporter.get().export(stackTracesToExport);
             stackTracesToExport = new ArrayList<>();
             updateNextExportTime();

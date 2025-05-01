@@ -103,6 +103,10 @@ class PeriodicallyExportingStagingArea implements StagingArea {
       }
     }
 
+    private boolean keepRunning() {
+      return !stackTraces.isEmpty() || (!shutdown && !isInterrupted());
+    }
+
     private void exportStackTraces() {
       List<StackTrace> stackTracesToExport = emptyStagingArea();
       exporter.get().export(stackTracesToExport);
@@ -123,10 +127,6 @@ class PeriodicallyExportingStagingArea implements StagingArea {
       if (command != null && command.scheduled) {
         exports.add(WakeUp.later(frequency));
       }
-    }
-
-    private boolean keepRunning() {
-      return !stackTraces.isEmpty() || (!shutdown && !isInterrupted());
     }
 
     private void shutdown() throws InterruptedException {

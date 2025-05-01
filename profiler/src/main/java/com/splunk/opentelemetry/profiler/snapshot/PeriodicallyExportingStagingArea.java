@@ -120,7 +120,7 @@ class PeriodicallyExportingStagingArea implements StagingArea {
     }
 
     private void scheduleNextExport(WakeUp command) {
-      if (command != null && command.wasScheduled()) {
+      if (command != null && command.scheduled) {
         exports.add(WakeUp.later(frequency));
       }
     }
@@ -149,10 +149,6 @@ class PeriodicallyExportingStagingArea implements StagingArea {
     private WakeUp(Duration delay, boolean scheduled) {
       this.time = System.nanoTime() + delay.toNanos();
       this.scheduled = scheduled;
-    }
-
-    boolean wasScheduled() {
-      return scheduled;
     }
 
     @Override

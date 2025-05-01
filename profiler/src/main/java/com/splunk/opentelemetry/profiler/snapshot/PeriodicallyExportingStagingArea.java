@@ -65,7 +65,7 @@ class PeriodicallyExportingStagingArea implements StagingArea {
   }
 
   private static class Exporter extends Thread {
-    private final ConcurrentLinkedQueue<StackTrace> queue = new ConcurrentLinkedQueue<>();
+    private final ConcurrentLinkedQueue<StackTrace> stackTraces = new ConcurrentLinkedQueue<>();
     private final DelayQueue<WakeUp> exports = new DelayQueue<>();
     private final AtomicInteger staged = new AtomicInteger();
     private volatile boolean shutdown = false;
@@ -83,7 +83,7 @@ class PeriodicallyExportingStagingArea implements StagingArea {
     }
 
     void add(StackTrace stackTrace) {
-      if (queue.offer(stackTrace)) {
+      if (stackTraces.offer(stackTrace)) {
         if (staged.incrementAndGet() >= capacity) {
           exports.add(WakeUp.NOW);
         }
@@ -111,7 +111,7 @@ class PeriodicallyExportingStagingArea implements StagingArea {
 
     private List<StackTrace> emptyStagingArea() {
       List<StackTrace> stackTracesToExport = new ArrayList<>();
-      Iterator<StackTrace> iterator = queue.iterator();
+      Iterator<StackTrace> iterator = stackTraces.iterator();
       while (iterator.hasNext()) {
         stackTracesToExport.add(iterator.next());
         iterator.remove();
@@ -126,7 +126,7 @@ class PeriodicallyExportingStagingArea implements StagingArea {
     }
 
     private boolean keepRunning() {
-      return !queue.isEmpty() || (!shutdown && !isInterrupted());
+      return !stackTraces.isEmpty() || (!shutdown && !isInterrupted());
     }
 
     private void shutdown() throws InterruptedException {

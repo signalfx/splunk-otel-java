@@ -18,25 +18,26 @@ package com.splunk.opentelemetry.profiler.snapshot;
 
 import java.time.Duration;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.DelayQueue;
-import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 
 class PeriodicallyExportingStagingArea implements StagingArea {
+  private static final String WORKER_THREAD_NAME =
+      PeriodicallyExportingStagingArea.class.getSimpleName() + "_WorkerThread";
+
   private volatile boolean closed = false;
 
-  private final Exporter worker;
+  private final Worker worker;
 
   PeriodicallyExportingStagingArea(
       Supplier<StackTraceExporter> exporter, Duration emptyDuration, int capacity) {
-    worker = new Exporter(exporter, emptyDuration, capacity);
+    // set the queue size to 4x the batch size, in sdk batch processors both of these are
+    // configurable but by default queue size is also 4*batch size
+    worker = new Worker(exporter, emptyDuration, capacity * 4, capacity);
+    worker.setName(WORKER_THREAD_NAME);
     worker.setDaemon(true);
     worker.start();
   }
@@ -56,128 +57,79 @@ class PeriodicallyExportingStagingArea implements StagingArea {
   public void close() {
     this.closed = true;
 
+    worker.shutdown();
+    // Wait for the worker thread to exit. Note that this does not guarantee that the pending items
+    // are exported as we don't attempt to wait for the actual export to complete.
     try {
-      worker.shutdown();
-    } catch (InterruptedException e) {
-      throw new RuntimeException(e);
+      worker.join(TimeUnit.SECONDS.toMillis(5));
+    } catch (InterruptedException exception) {
+      Thread.currentThread().interrupt();
     }
   }
 
-  private static class Exporter extends Thread {
-    private final ConcurrentLinkedQueue<StackTrace> queue = new ConcurrentLinkedQueue<>();
-    private final DelayQueue<WakeUp> wakeUp = new DelayQueue<>();
-    private final BlockingQueue<Boolean> exited = new ArrayBlockingQueue<>(1);
-    private final AtomicInteger staged = new AtomicInteger();
-    private volatile boolean shutdown = false;
+  private static class Worker extends Thread {
+    // when shutting down we queue a fake stack trace to ensure that shutdown process starts immediately
+    private static final Object SHUTDOWN_MARKER = new Object();
 
+    private final BlockingQueue<Object> queue;
     private final Supplier<StackTraceExporter> exporter;
-    private final Duration frequency;
-    private final int capacity;
+    private final long scheduleDelayNanos;
+    private final int maxExportBatchSize;
 
-    private Exporter(Supplier<StackTraceExporter> exporter, Duration frequency, int capacity) {
+    private volatile boolean shutdown = false;
+    private long nextExportTime;
+
+    private Worker(Supplier<StackTraceExporter> exporter, Duration frequency, int maxQueueSize,
+        int maxExportBatchSize) {
       this.exporter = exporter;
-      this.frequency = frequency;
-      this.capacity = capacity;
-
-      wakeUp.add(WakeUp.later(frequency));
+      this.scheduleDelayNanos = frequency.toNanos();
+      this.queue = new ArrayBlockingQueue<>(maxQueueSize);
+      this.maxExportBatchSize = maxExportBatchSize;
     }
 
     void add(StackTrace stackTrace) {
-      if (queue.offer(stackTrace)) {
-        if (staged.incrementAndGet() >= capacity) {
-          wakeUp.add(WakeUp.NOW);
-        }
+      if (!queue.offer(stackTrace)) {
+        // queue is full, drop the stack trace
       }
     }
 
     @Override
     public void run() {
-      do {
-        try {
-          WakeUp command = wakeUp.poll(frequency.toNanos(), TimeUnit.NANOSECONDS);
-          exportStackTraces();
-          scheduleNextExport(command);
-        } catch (InterruptedException e) {
-          Thread.currentThread().interrupt();
-        }
-      } while (keepRunning());
-      exited.add(true);
-    }
+      updateNextExportTime();
 
-    private boolean keepRunning() {
-      return !shutdown && !isInterrupted();
-    }
-
-    private void shutdown() throws InterruptedException {
-      shutdown = true;
-      wakeUp.add(WakeUp.NOW);
-      Boolean finished = exited.poll(5, TimeUnit.SECONDS);
-      if (finished == null) {
-        interrupt();
-      }
-
-      queue.clear();
-      wakeUp.clear();
-      exited.clear();
-      staged.set(0);
-    }
-
-    private void exportStackTraces() {
-      List<StackTrace> stackTracesToExport = emptyStagingArea();
-      exporter.get().export(stackTracesToExport);
-      staged.addAndGet(-stackTracesToExport.size());
-    }
-
-    private List<StackTrace> emptyStagingArea() {
       List<StackTrace> stackTracesToExport = new ArrayList<>();
-      Iterator<StackTrace> iterator = queue.iterator();
-      while (iterator.hasNext()) {
-        stackTracesToExport.add(iterator.next());
-        iterator.remove();
+      try {
+        // run until shutdown is called and all queued spans are passed to the exporter
+        while (!shutdown || !queue.isEmpty() || !stackTracesToExport.isEmpty()) {
+          Object stackTrace = queue.poll(nextExportTime - System.nanoTime(),
+              TimeUnit.NANOSECONDS);
+          if (stackTrace != null && stackTrace != SHUTDOWN_MARKER) {
+            stackTracesToExport.add((StackTrace) stackTrace);
+          }
+          // trigger export when either next export time is reached, we have max batch size, or we
+          // are shutting down and have read all the queued stacks
+          if (System.nanoTime() >= nextExportTime
+              || stackTracesToExport.size() >= maxExportBatchSize || (shutdown
+              && queue.isEmpty())) {
+            exporter.get().export(stackTracesToExport);
+            stackTracesToExport = new ArrayList<>();
+            updateNextExportTime();
+          }
+        }
+      } catch (InterruptedException exception) {
+        Thread.currentThread().interrupt();
       }
-      return stackTracesToExport;
     }
 
-    private void scheduleNextExport(WakeUp command) {
-      if (command != null && command.wasScheduled()) {
-        wakeUp.add(WakeUp.later(frequency));
-      }
-    }
-  }
-
-  private static class WakeUp implements Delayed {
-    private static final WakeUp NOW = new WakeUp(Duration.ZERO, false);
-
-    private static WakeUp later(Duration delay) {
-      return new WakeUp(delay, true);
+    private void updateNextExportTime() {
+      nextExportTime = System.nanoTime() + scheduleDelayNanos;
     }
 
-    private final long time;
-    private final boolean scheduled;
-
-    private WakeUp(Duration delay, boolean scheduled) {
-      this.time = System.nanoTime() + delay.toNanos();
-      this.scheduled = scheduled;
-    }
-
-    boolean wasScheduled() {
-      return scheduled;
-    }
-
-    @Override
-    public long getDelay(TimeUnit unit) {
-      return unit.convert(time - System.nanoTime(), TimeUnit.NANOSECONDS);
-    }
-
-    @Override
-    public int compareTo(Delayed other) {
-      WakeUp otherCommand = (WakeUp) other;
-      if (time < otherCommand.time) {
-        return -1;
-      } else if (time > otherCommand.time) {
-        return 1;
-      }
-      return 0;
+    private void shutdown() {
+      shutdown = true;
+      // we don't care if the queue is full and offer fails, we only wish to ensure that there is
+      // something in the queue so that shutdown could start immediately
+      queue.offer(SHUTDOWN_MARKER);
     }
   }
 }

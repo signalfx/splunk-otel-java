@@ -91,7 +91,7 @@ class PeriodicallyExportingStagingArea implements StagingArea {
 
     @Override
     public void run() {
-      do {
+      while(keepRunning()) {
         try {
           WakeUp command = wakeUp.poll(frequency.toNanos(), TimeUnit.NANOSECONDS);
           exportStackTraces();
@@ -99,7 +99,7 @@ class PeriodicallyExportingStagingArea implements StagingArea {
         } catch (InterruptedException e) {
           Thread.currentThread().interrupt();
         }
-      } while (keepRunning());
+      }
     }
 
     private void exportStackTraces() {

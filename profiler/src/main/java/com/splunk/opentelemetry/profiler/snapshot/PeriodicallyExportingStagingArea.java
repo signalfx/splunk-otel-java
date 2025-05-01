@@ -21,8 +21,6 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.DelayQueue;
 import java.util.concurrent.Delayed;
@@ -59,6 +57,7 @@ class PeriodicallyExportingStagingArea implements StagingArea {
 
     try {
       worker.shutdown();
+      worker.join(TimeUnit.SECONDS.toMillis(5));
     } catch (InterruptedException e) {
       throw new RuntimeException(e);
     }
@@ -67,7 +66,6 @@ class PeriodicallyExportingStagingArea implements StagingArea {
   private static class Exporter extends Thread {
     private final ConcurrentLinkedQueue<StackTrace> queue = new ConcurrentLinkedQueue<>();
     private final DelayQueue<WakeUp> wakeUp = new DelayQueue<>();
-    private final BlockingQueue<Boolean> exited = new ArrayBlockingQueue<>(1);
     private final AtomicInteger staged = new AtomicInteger();
     private volatile boolean shutdown = false;
 
@@ -102,25 +100,15 @@ class PeriodicallyExportingStagingArea implements StagingArea {
           Thread.currentThread().interrupt();
         }
       } while (keepRunning());
-      exited.add(true);
     }
 
     private boolean keepRunning() {
-      return !shutdown && !isInterrupted();
+      return !queue.isEmpty() || (!shutdown && !isInterrupted());
     }
 
     private void shutdown() throws InterruptedException {
       shutdown = true;
       wakeUp.add(WakeUp.NOW);
-      Boolean finished = exited.poll(5, TimeUnit.SECONDS);
-      if (finished == null) {
-        interrupt();
-      }
-
-      queue.clear();
-      wakeUp.clear();
-      exited.clear();
-      staged.set(0);
     }
 
     private void exportStackTraces() {

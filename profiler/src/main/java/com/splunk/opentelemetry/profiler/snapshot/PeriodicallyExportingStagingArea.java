@@ -18,6 +18,7 @@ package com.splunk.opentelemetry.profiler.snapshot;
 
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -146,6 +147,7 @@ class PeriodicallyExportingStagingArea implements StagingArea {
   }
 
   private static class WakeUp implements Delayed {
+    private static final Comparator<WakeUp> TIME_COMPARATOR = Comparator.comparing(wakeup -> wakeup.time);
     private static final WakeUp NOW = new WakeUp(Duration.ZERO, false);
 
     private static WakeUp later(Duration delay) {
@@ -171,13 +173,7 @@ class PeriodicallyExportingStagingArea implements StagingArea {
 
     @Override
     public int compareTo(Delayed other) {
-      WakeUp otherCommand = (WakeUp) other;
-      if (time < otherCommand.time) {
-        return -1;
-      } else if (time > otherCommand.time) {
-        return 1;
-      }
-      return 0;
+      return TIME_COMPARATOR.compare(this, (WakeUp)other);
     }
   }
 }

@@ -60,7 +60,7 @@ class PeriodicallyExportingStagingArea implements StagingArea {
       worker.shutdown();
       worker.join(TimeUnit.SECONDS.toMillis(5));
     } catch (InterruptedException e) {
-      throw new RuntimeException(e);
+      Thread.currentThread().interrupt();
     }
   }
 

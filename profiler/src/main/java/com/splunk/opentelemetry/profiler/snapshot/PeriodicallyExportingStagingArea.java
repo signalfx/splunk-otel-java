@@ -65,7 +65,7 @@ class PeriodicallyExportingStagingArea implements StagingArea {
 
   private static class Exporter extends Thread {
     private final ConcurrentLinkedQueue<StackTrace> queue = new ConcurrentLinkedQueue<>();
-    private final DelayQueue<WakeUp> wakeUp = new DelayQueue<>();
+    private final DelayQueue<WakeUp> exports = new DelayQueue<>();
     private final AtomicInteger staged = new AtomicInteger();
     private volatile boolean shutdown = false;
 
@@ -78,13 +78,13 @@ class PeriodicallyExportingStagingArea implements StagingArea {
       this.frequency = frequency;
       this.capacity = capacity;
 
-      wakeUp.add(WakeUp.later(frequency));
+      exports.add(WakeUp.later(frequency));
     }
 
     void add(StackTrace stackTrace) {
       if (queue.offer(stackTrace)) {
         if (staged.incrementAndGet() >= capacity) {
-          wakeUp.add(WakeUp.NOW);
+          exports.add(WakeUp.NOW);
         }
       }
     }
@@ -93,7 +93,7 @@ class PeriodicallyExportingStagingArea implements StagingArea {
     public void run() {
       while(keepRunning()) {
         try {
-          WakeUp command = wakeUp.poll(frequency.toNanos(), TimeUnit.NANOSECONDS);
+          WakeUp command = exports.poll(frequency.toNanos(), TimeUnit.NANOSECONDS);
           exportStackTraces();
           scheduleNextExport(command);
         } catch (InterruptedException e) {
@@ -120,7 +120,7 @@ class PeriodicallyExportingStagingArea implements StagingArea {
 
     private void scheduleNextExport(WakeUp command) {
       if (command != null && command.wasScheduled()) {
-        wakeUp.add(WakeUp.later(frequency));
+        exports.add(WakeUp.later(frequency));
       }
     }
 
@@ -130,7 +130,7 @@ class PeriodicallyExportingStagingArea implements StagingArea {
 
     private void shutdown() throws InterruptedException {
       shutdown = true;
-      wakeUp.add(WakeUp.NOW);
+      exports.add(WakeUp.NOW);
     }
   }
 

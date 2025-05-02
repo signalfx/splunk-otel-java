@@ -94,9 +94,8 @@ class PeriodicallyExportingStagingArea implements StagingArea {
     }
 
     void add(StackTrace stackTrace) {
-      if (!queue.offer(stackTrace)) {
-        // queue is full, drop the stack trace
-      }
+      // If queue is full drop the stack trace, not much we can do.
+      queue.offer(stackTrace);
     }
 
     @Override

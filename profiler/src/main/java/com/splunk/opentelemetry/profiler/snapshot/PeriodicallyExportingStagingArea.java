@@ -74,7 +74,7 @@ class PeriodicallyExportingStagingArea implements StagingArea {
 
     private final BlockingQueue<Object> queue;
     private final Supplier<StackTraceExporter> exporter;
-    private final long scheduleDelayNanos;
+    private final Duration delay;
     private final int maxExportBatchSize;
 
     private volatile boolean shutdown = false;
@@ -82,13 +82,15 @@ class PeriodicallyExportingStagingArea implements StagingArea {
 
     private Worker(
         Supplier<StackTraceExporter> exporter,
-        Duration frequency,
+        Duration delay,
         int maxQueueSize,
         int maxExportBatchSize) {
       this.exporter = exporter;
-      this.scheduleDelayNanos = frequency.toNanos();
+      this.delay = delay;
       this.queue = new ArrayBlockingQueue<>(maxQueueSize);
       this.maxExportBatchSize = maxExportBatchSize;
+
+      updateNextExportTime();
     }
 
     void add(StackTrace stackTrace) {
@@ -99,8 +101,6 @@ class PeriodicallyExportingStagingArea implements StagingArea {
 
     @Override
     public void run() {
-      updateNextExportTime();
-
       List<StackTrace> stackTracesToExport = new ArrayList<>();
       try {
         // run until shutdown is called and all queued spans are passed to the exporter
@@ -125,7 +125,7 @@ class PeriodicallyExportingStagingArea implements StagingArea {
     }
 
     private void updateNextExportTime() {
-      nextExportTime = System.nanoTime() + scheduleDelayNanos;
+      nextExportTime = System.nanoTime() + delay.toNanos();
     }
 
     private void shutdown() {

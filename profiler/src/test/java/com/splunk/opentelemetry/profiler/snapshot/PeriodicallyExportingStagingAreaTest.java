@@ -16,16 +16,20 @@
 
 package com.splunk.opentelemetry.profiler.snapshot;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.awaitility.Awaitility.await;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
-import org.junit.jupiter.api.Test;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class PeriodicallyExportingStagingAreaTest {
   private final InMemoryStackTraceExporter exporter = new InMemoryStackTraceExporter();
@@ -138,13 +142,12 @@ class PeriodicallyExportingStagingAreaTest {
     var stackTrace1 = Snapshotting.stackTrace().build();
     var stackTrace2 = Snapshotting.stackTrace().build();
 
-    var executor = Executors.newFixedThreadPool(2);
     var startLatch = new CountDownLatch(1);
 
-    try (var stagingArea =
-        new PeriodicallyExportingStagingArea(() -> exporter, Duration.ofDays(1), 1)) {
-      executor.submit(stage(stagingArea, stackTrace1, startLatch));
-      executor.submit(stage(stagingArea, stackTrace2, startLatch));
+    try (var executor = Executors.newFixedThreadPool(2);
+         var stagingArea = new PeriodicallyExportingStagingArea(() -> exporter, Duration.ofDays(1), 1)) {
+      executor.submit(stage(stagingArea, startLatch, stackTrace1));
+      executor.submit(stage(stagingArea, startLatch, stackTrace2));
       startLatch.countDown();
 
       await().until(() -> !exporter.stackTraces().isEmpty());
@@ -152,16 +155,47 @@ class PeriodicallyExportingStagingAreaTest {
     }
   }
 
+  @Test
+  void multipleThreadsStagingStackTracesWhenCapacityReachedDoesNotCauseMultipleExports() {
+    var stackTrace1 = Snapshotting.stackTrace().build();
+    var stackTrace2 = Snapshotting.stackTrace().build();
+    var stackTrace3 = Snapshotting.stackTrace().build();
+    var stackTrace4 = Snapshotting.stackTrace().build();
+
+    var startLatch = new CountDownLatch(1);
+
+    try (var executor = Executors.newFixedThreadPool(2);
+         var exporter = new CallCountingStackTraceExporter();
+         var stagingArea = new PeriodicallyExportingStagingArea(() -> exporter, Duration.ofDays(1), 3)) {
+      executor.submit(stage(stagingArea, startLatch, stackTrace1, stackTrace2));
+      executor.submit(stage(stagingArea, startLatch, stackTrace3, stackTrace4));
+      startLatch.countDown();
+
+      await().until(() -> !exporter.stackTraces().isEmpty());
+      assertEquals(1, exporter.timesCalled.get());
+    }
+  }
+
   private Runnable stage(
-      StagingArea stagingArea, StackTrace stackTrace, CountDownLatch startLatch) {
+      StagingArea stagingArea, CountDownLatch startLatch, StackTrace... stackTraces) {
     return () -> {
       try {
         startLatch.await();
-        stagingArea.stage(stackTrace);
+        Arrays.stream(stackTraces).forEach(stagingArea::stage);
       } catch (InterruptedException e) {
         Thread.currentThread().interrupt();
         throw new RuntimeException(e);
       }
     };
+  }
+
+  private static class CallCountingStackTraceExporter extends InMemoryStackTraceExporter {
+    private final AtomicInteger timesCalled = new AtomicInteger();
+
+    @Override
+    public void export(Collection<StackTrace> stackTraces) {
+      timesCalled.incrementAndGet();
+      super.export(stackTraces);
+    }
   }
 }

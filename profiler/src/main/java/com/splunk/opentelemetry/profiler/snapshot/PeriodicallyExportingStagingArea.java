@@ -92,7 +92,7 @@ class PeriodicallyExportingStagingArea implements StagingArea {
 
     @Override
     public void run() {
-      while(keepRunning()) {
+      while (keepRunning()) {
         try {
           WakeUp command = wakeUp.take();
           exportStackTraces();
@@ -136,7 +136,7 @@ class PeriodicallyExportingStagingArea implements StagingArea {
   }
 
   private static class WakeUp implements Delayed {
-    private static final Comparator<WakeUp> TIME_COMPARATOR = Comparator.comparing(wakeup -> wakeup.time);
+    private static final Comparator<WakeUp> BY_TIME = Comparator.comparing(wakeup -> wakeup.time);
     private static final WakeUp NOW = new WakeUp(Duration.ZERO, false);
 
     private static WakeUp later(Duration delay) {
@@ -158,7 +158,7 @@ class PeriodicallyExportingStagingArea implements StagingArea {
 
     @Override
     public int compareTo(Delayed other) {
-      return TIME_COMPARATOR.compare(this, (WakeUp)other);
+      return BY_TIME.compare(this, (WakeUp) other);
     }
   }
 }

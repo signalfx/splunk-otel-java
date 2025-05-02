@@ -113,7 +113,8 @@ class PeriodicallyExportingStagingAreaTest {
 
   @Test
   void exportStackTracesWhenCapacityReached() {
-    try (var stagingArea = new PeriodicallyExportingStagingArea(() -> exporter, Duration.ofDays(1), 2)) {
+    try (var stagingArea =
+        new PeriodicallyExportingStagingArea(() -> exporter, Duration.ofDays(1), 2)) {
       stagingArea.stage(Snapshotting.stackTrace().build());
       stagingArea.stage(Snapshotting.stackTrace().build());
 

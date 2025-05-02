@@ -32,7 +32,9 @@ dependencies {
   implementation("io.opentelemetry:opentelemetry-sdk-logs")
   implementation("io.opentelemetry:opentelemetry-exporter-otlp")
   implementation("com.google.protobuf:protobuf-java")
-  implementation("org.openjdk.jmc:flightrecorder:8.3.1")
+  implementation("org.openjdk.jmc:flightrecorder:9.1.0") {
+    exclude(group = "org.lz4", module = "lz4-java")
+  }
 
   annotationProcessor("com.google.auto.service:auto-service")
   compileOnly("com.google.auto.service:auto-service")

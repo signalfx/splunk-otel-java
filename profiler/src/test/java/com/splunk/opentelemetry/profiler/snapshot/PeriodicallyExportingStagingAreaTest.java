@@ -123,6 +123,17 @@ class PeriodicallyExportingStagingAreaTest {
   }
 
   @Test
+  void exportStackTracesOnNormalScheduleEvenAfterCapacityReached() {
+    try (var stagingArea = new PeriodicallyExportingStagingArea(() -> exporter, emptyDuration, 2)) {
+      stagingArea.stage(Snapshotting.stackTrace().build());
+      stagingArea.stage(Snapshotting.stackTrace().build());
+      stagingArea.stage(Snapshotting.stackTrace().build());
+
+      await().untilAsserted(() -> assertEquals(3, exporter.stackTraces().size()));
+    }
+  }
+
+  @Test
   void doNotExportStackTraceMultipleTimes() {
     var stackTrace1 = Snapshotting.stackTrace().build();
     var stackTrace2 = Snapshotting.stackTrace().build();

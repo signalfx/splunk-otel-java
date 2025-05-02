@@ -58,7 +58,7 @@ class PeriodicallyExportingStagingArea implements StagingArea {
 
     try {
       worker.shutdown();
-      worker.join(TimeUnit.SECONDS.toMillis(5));
+      worker.join(TimeUnit.SECONDS.toSeconds(5));
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
     }
@@ -66,7 +66,7 @@ class PeriodicallyExportingStagingArea implements StagingArea {
 
   private static class Exporter extends Thread {
     private final ConcurrentLinkedQueue<StackTrace> stackTraces = new ConcurrentLinkedQueue<>();
-    private final DelayQueue<WakeUp> exports = new DelayQueue<>();
+    private final DelayQueue<WakeUp> wakeUp = new DelayQueue<>();
     private final AtomicInteger staged = new AtomicInteger();
     private volatile boolean shutdown = false;
 
@@ -79,13 +79,13 @@ class PeriodicallyExportingStagingArea implements StagingArea {
       this.frequency = frequency;
       this.capacity = capacity;
 
-      exports.add(WakeUp.later(frequency));
+      wakeUp.add(WakeUp.later(frequency));
     }
 
     void add(StackTrace stackTrace) {
       if (stackTraces.offer(stackTrace)) {
         if (staged.incrementAndGet() >= capacity) {
-          exports.add(WakeUp.NOW);
+          wakeUp.add(WakeUp.NOW);
         }
       }
     }
@@ -94,7 +94,7 @@ class PeriodicallyExportingStagingArea implements StagingArea {
     public void run() {
       while(keepRunning()) {
         try {
-          WakeUp command = exports.poll(frequency.toNanos(), TimeUnit.NANOSECONDS);
+          WakeUp command = wakeUp.take();
           exportStackTraces();
           scheduleNextExport(command);
         } catch (InterruptedException e) {
@@ -125,13 +125,13 @@ class PeriodicallyExportingStagingArea implements StagingArea {
 
     private void scheduleNextExport(WakeUp command) {
       if (command != null && command.scheduled) {
-        exports.add(WakeUp.later(frequency));
+        wakeUp.add(WakeUp.later(frequency));
       }
     }
 
     private void shutdown() throws InterruptedException {
       shutdown = true;
-      exports.add(WakeUp.NOW);
+      wakeUp.add(WakeUp.NOW);
     }
   }
 

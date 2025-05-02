@@ -32,11 +32,8 @@ class PeriodicallyExportingStagingArea implements StagingArea {
 
   private final Worker worker;
 
-  PeriodicallyExportingStagingArea(
-      Supplier<StackTraceExporter> exporter, Duration emptyDuration, int capacity) {
-    // set the queue size to 4x the batch size, in sdk batch processors both of these are
-    // configurable but by default queue size is also 4*batch size
-    worker = new Worker(exporter, emptyDuration, capacity * 4, capacity);
+  PeriodicallyExportingStagingArea(Supplier<StackTraceExporter> exporter, Duration delay, int capacity) {
+    worker = new Worker(exporter, delay, capacity);
     worker.setName(WORKER_THREAD_NAME);
     worker.setDaemon(true);
     worker.start();
@@ -80,15 +77,13 @@ class PeriodicallyExportingStagingArea implements StagingArea {
     private volatile boolean shutdown = false;
     private long nextExportTime;
 
-    private Worker(
-        Supplier<StackTraceExporter> exporter,
-        Duration delay,
-        int maxQueueSize,
-        int maxExportBatchSize) {
+    private Worker(Supplier<StackTraceExporter> exporter, Duration delay, int maxExportBatchSize) {
       this.exporter = exporter;
       this.delay = delay;
-      this.queue = new ArrayBlockingQueue<>(maxQueueSize);
       this.maxExportBatchSize = maxExportBatchSize;
+      // set the queue size to 4x the batch size, in sdk batch processors both of these are
+      // configurable but by default queue size is also 4*batch size
+      this.queue = new ArrayBlockingQueue<>(maxExportBatchSize * 4);
 
       updateNextExportTime();
     }

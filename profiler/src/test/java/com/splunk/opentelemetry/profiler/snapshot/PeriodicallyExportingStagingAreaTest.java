@@ -143,15 +143,17 @@ class PeriodicallyExportingStagingAreaTest {
 
     var startLatch = new CountDownLatch(1);
 
-    try (var executor = Executors.newFixedThreadPool(2);
-        var stagingArea =
-            new PeriodicallyExportingStagingArea(() -> exporter, Duration.ofDays(1), 1)) {
+    var executor = Executors.newFixedThreadPool(2);
+    try (var stagingArea =
+        new PeriodicallyExportingStagingArea(() -> exporter, Duration.ofDays(1), 1)) {
       executor.submit(stage(stagingArea, startLatch, stackTrace1));
       executor.submit(stage(stagingArea, startLatch, stackTrace2));
       startLatch.countDown();
 
       await().until(() -> !exporter.stackTraces().isEmpty());
       assertThat(exporter.stackTraces()).containsOnlyOnce(stackTrace1, stackTrace2);
+    } finally {
+      executor.shutdown();
     }
   }
 
@@ -164,8 +166,8 @@ class PeriodicallyExportingStagingAreaTest {
 
     var startLatch = new CountDownLatch(1);
 
-    try (var executor = Executors.newFixedThreadPool(2);
-        var exporter = new CallCountingStackTraceExporter();
+    var executor = Executors.newFixedThreadPool(2);
+    try (var exporter = new CallCountingStackTraceExporter();
         var stagingArea =
             new PeriodicallyExportingStagingArea(() -> exporter, Duration.ofDays(1), 3)) {
       executor.submit(stage(stagingArea, startLatch, stackTrace1, stackTrace2));
@@ -174,6 +176,8 @@ class PeriodicallyExportingStagingAreaTest {
 
       await().until(() -> !exporter.stackTraces().isEmpty());
       assertEquals(1, exporter.timesCalled.get());
+    } finally {
+      executor.shutdown();
     }
   }
 

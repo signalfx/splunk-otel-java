@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
@@ -55,11 +56,10 @@ class PeriodicallyExportingStagingArea implements StagingArea {
   public void close() {
     this.closed = true;
 
-    worker.shutdown();
     // Wait for the worker thread to exit. Note that this does not guarantee that the pending items
     // are exported as we don't attempt to wait for the actual export to complete.
     try {
-      worker.join(TimeUnit.SECONDS.toMillis(5));
+      worker.shutdown();
     } catch (InterruptedException exception) {
       Thread.currentThread().interrupt();
     }
@@ -70,6 +70,7 @@ class PeriodicallyExportingStagingArea implements StagingArea {
     // immediately
     private static final Object SHUTDOWN_MARKER = new Object();
 
+    private final CountDownLatch shutdownCompletion =  new CountDownLatch(1);
     private final BlockingQueue<Object> queue;
     private final Supplier<StackTraceExporter> exporter;
     private final Duration delay;
@@ -114,6 +115,7 @@ class PeriodicallyExportingStagingArea implements StagingArea {
             updateNextExportTime();
           }
         }
+        shutdownCompletion.countDown();
       } catch (InterruptedException exception) {
         Thread.currentThread().interrupt();
       }
@@ -123,11 +125,12 @@ class PeriodicallyExportingStagingArea implements StagingArea {
       nextExportTime = System.nanoTime() + delay.toNanos();
     }
 
-    private void shutdown() {
+    private void shutdown() throws InterruptedException {
       shutdown = true;
       // we don't care if the queue is full and offer fails, we only wish to ensure that there is
       // something in the queue so that shutdown could start immediately
       queue.offer(SHUTDOWN_MARKER);
+      shutdownCompletion.await();
     }
   }
 }

@@ -16,7 +16,9 @@
 
 package com.splunk.opentelemetry.profiler.snapshot;
 
-import org.junit.jupiter.api.Test;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.time.Duration;
 import java.util.Arrays;
@@ -26,10 +28,7 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.awaitility.Awaitility.await;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import org.junit.jupiter.api.Test;
 
 class PeriodicallyExportingStagingAreaTest {
   private final InMemoryStackTraceExporter exporter = new InMemoryStackTraceExporter();
@@ -145,7 +144,8 @@ class PeriodicallyExportingStagingAreaTest {
     var startLatch = new CountDownLatch(1);
 
     try (var executor = Executors.newFixedThreadPool(2);
-         var stagingArea = new PeriodicallyExportingStagingArea(() -> exporter, Duration.ofDays(1), 1)) {
+        var stagingArea =
+            new PeriodicallyExportingStagingArea(() -> exporter, Duration.ofDays(1), 1)) {
       executor.submit(stage(stagingArea, startLatch, stackTrace1));
       executor.submit(stage(stagingArea, startLatch, stackTrace2));
       startLatch.countDown();
@@ -165,8 +165,9 @@ class PeriodicallyExportingStagingAreaTest {
     var startLatch = new CountDownLatch(1);
 
     try (var executor = Executors.newFixedThreadPool(2);
-         var exporter = new CallCountingStackTraceExporter();
-         var stagingArea = new PeriodicallyExportingStagingArea(() -> exporter, Duration.ofDays(1), 3)) {
+        var exporter = new CallCountingStackTraceExporter();
+        var stagingArea =
+            new PeriodicallyExportingStagingArea(() -> exporter, Duration.ofDays(1), 3)) {
       executor.submit(stage(stagingArea, startLatch, stackTrace1, stackTrace2));
       executor.submit(stage(stagingArea, startLatch, stackTrace3, stackTrace4));
       startLatch.countDown();

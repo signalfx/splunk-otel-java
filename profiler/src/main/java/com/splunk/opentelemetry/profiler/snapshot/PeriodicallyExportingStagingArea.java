@@ -32,7 +32,8 @@ class PeriodicallyExportingStagingArea implements StagingArea {
 
   private final Worker worker;
 
-  PeriodicallyExportingStagingArea(Supplier<StackTraceExporter> exporter, Duration delay, int capacity) {
+  PeriodicallyExportingStagingArea(
+      Supplier<StackTraceExporter> exporter, Duration delay, int capacity) {
     worker = new Worker(exporter, delay, capacity);
     worker.setName(WORKER_THREAD_NAME);
     worker.setDaemon(true);

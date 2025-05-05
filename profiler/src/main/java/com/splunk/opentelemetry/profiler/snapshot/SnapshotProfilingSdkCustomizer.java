@@ -54,7 +54,7 @@ public class SnapshotProfilingSdkCustomizer implements AutoConfigurationCustomiz
   }
 
   private static StagingArea createStagingArea(ConfigProperties properties) {
-    Duration interval = Configuration.getSnapshotProfilerStagingEmptyInterval(properties);
+    Duration interval = Configuration.getSnapshotProfilerExportInterval(properties);
     int capacity = Configuration.getSnapshotProfilerStagingCapacity(properties);
     return new PeriodicallyExportingStagingArea(StackTraceExporter.SUPPLIER, interval, capacity);
   }

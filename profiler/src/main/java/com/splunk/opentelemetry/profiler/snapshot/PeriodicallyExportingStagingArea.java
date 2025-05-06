@@ -58,6 +58,7 @@ class PeriodicallyExportingStagingArea implements StagingArea {
     // Wait for the worker thread to exit. Note that this does not guarantee that the pending items
     // are exported as we don't attempt to wait for the actual export to complete.
     try {
+      worker.shutdown();
       worker.join();
     } catch (InterruptedException exception) {
       Thread.currentThread().interrupt();

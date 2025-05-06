@@ -35,7 +35,7 @@ class InterceptingContextStorageSpanTrackingActivator implements SpanTrackingAct
   }
 
   @Override
-  public void activate(TraceRegistry registry) {
+  public void activate(ITraceRegistry registry) {
     contextStorageWrappingFunction.accept(
         contextStorage -> {
           ActiveSpanTracker tracker = new ActiveSpanTracker(contextStorage, registry);

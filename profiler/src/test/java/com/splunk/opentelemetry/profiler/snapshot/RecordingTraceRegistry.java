@@ -22,7 +22,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Test only version of {@link TraceRegistry} that keeps a record of every trace ID registered over
+ * Test only version of {@link ITraceRegistry} that keeps a record of every trace ID registered over
  * the lifetime of the instance.
  */
 class RecordingTraceRegistry extends TraceRegistry implements ITraceRegistry {

@@ -26,7 +26,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
 class TraceRegistrationTest {
-  private final TraceRegistry registry = new TraceRegistry();
+  private final ITraceRegistry registry = new TraceRegistry();
   private final SnapshotProfilingSdkCustomizer customizer =
       Snapshotting.customizer().with(registry).build();
 

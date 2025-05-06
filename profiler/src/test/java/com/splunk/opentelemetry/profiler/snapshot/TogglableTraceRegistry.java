@@ -17,8 +17,12 @@
 package com.splunk.opentelemetry.profiler.snapshot;
 
 import io.opentelemetry.api.trace.SpanContext;
+import java.util.HashSet;
+import java.util.Set;
 
-class TogglableTraceRegistry extends TraceRegistry implements ITraceRegistry {
+class TogglableTraceRegistry implements ITraceRegistry {
+  private final Set<String> traceIds = new HashSet<>();
+
   enum State {
     ON,
     OFF
@@ -29,7 +33,7 @@ class TogglableTraceRegistry extends TraceRegistry implements ITraceRegistry {
   @Override
   public void register(SpanContext spanContext) {
     if (state == State.ON) {
-      super.register(spanContext);
+      traceIds.add(spanContext.getTraceId());
     }
   }
 
@@ -39,11 +43,11 @@ class TogglableTraceRegistry extends TraceRegistry implements ITraceRegistry {
 
   @Override
   public boolean isRegistered(SpanContext spanContext) {
-    return super.isRegistered(spanContext);
+    return traceIds.contains(spanContext.getTraceId());
   }
 
   @Override
   public void unregister(SpanContext spanContext) {
-    super.unregister(spanContext);
+    traceIds.remove(spanContext.getTraceId());
   }
 }

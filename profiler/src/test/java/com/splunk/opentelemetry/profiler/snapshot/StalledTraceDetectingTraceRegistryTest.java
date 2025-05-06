@@ -69,4 +69,20 @@ class StalledTraceDetectingTraceRegistryTest {
       await().untilAsserted(() -> assertThat(delegate.isRegistered(spanContext)).isFalse());
     }
   }
+
+  @Test
+  void continueRemovingRegisteredTracesAfterStalledTimeLimitPasses() throws Exception {
+    var spanContext = Snapshotting.spanContext().build();
+    var stalledTimeLimit = Duration.ofMillis(10);
+
+    try (var registry = new StalledTraceDetectingTraceRegistry(delegate, stalledTimeLimit)) {
+      registry.register(spanContext);
+      assertThat(registry.isRegistered(spanContext)).isTrue();
+      await().untilAsserted(() -> assertThat(delegate.isRegistered(spanContext)).isFalse());
+
+      registry.register(spanContext);
+      assertThat(registry.isRegistered(spanContext)).isTrue();
+      await().untilAsserted(() -> assertThat(delegate.isRegistered(spanContext)).isFalse());
+    }
+  }
 }

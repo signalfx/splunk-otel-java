@@ -70,7 +70,7 @@ class PeriodicallyExportingStagingArea implements StagingArea {
     // immediately
     private static final Object SHUTDOWN_MARKER = new Object();
 
-    private final CountDownLatch shutdownCompletion =  new CountDownLatch(1);
+    private final CountDownLatch shutdownCompletion = new CountDownLatch(1);
     private final BlockingQueue<Object> queue;
     private final Supplier<StackTraceExporter> exporter;
     private final Duration delay;

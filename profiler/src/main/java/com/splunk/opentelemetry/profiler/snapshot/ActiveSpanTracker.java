@@ -29,9 +29,9 @@ class ActiveSpanTracker implements ContextStorage, SpanTracker {
   private final Cache<Thread, SpanContext> cache = Cache.weak();
 
   private final ContextStorage delegate;
-  private final ITraceRegistry registry;
+  private final TraceRegistry registry;
 
-  ActiveSpanTracker(ContextStorage delegate, ITraceRegistry registry) {
+  ActiveSpanTracker(ContextStorage delegate, TraceRegistry registry) {
     this.delegate = delegate;
     this.registry = registry;
   }

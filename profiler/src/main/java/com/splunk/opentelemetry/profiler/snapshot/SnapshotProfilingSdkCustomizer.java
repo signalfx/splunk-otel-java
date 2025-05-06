@@ -33,7 +33,7 @@ import java.util.function.Function;
 
 @AutoService(AutoConfigurationCustomizerProvider.class)
 public class SnapshotProfilingSdkCustomizer implements AutoConfigurationCustomizerProvider {
-  private final ITraceRegistry registry;
+  private final TraceRegistry registry;
   private final Function<ConfigProperties, StackTraceSampler> samplerProvider;
   private final SpanTrackingActivator spanTrackingActivator;
 
@@ -61,12 +61,12 @@ public class SnapshotProfilingSdkCustomizer implements AutoConfigurationCustomiz
 
   @VisibleForTesting
   SnapshotProfilingSdkCustomizer(
-      ITraceRegistry registry, StackTraceSampler sampler, SpanTrackingActivator activator) {
+      TraceRegistry registry, StackTraceSampler sampler, SpanTrackingActivator activator) {
     this(registry, properties -> sampler, activator);
   }
 
   private SnapshotProfilingSdkCustomizer(
-      ITraceRegistry registry,
+      TraceRegistry registry,
       Function<ConfigProperties, StackTraceSampler> samplerProvider,
       SpanTrackingActivator spanTrackingActivator) {
     this.registry = registry;
@@ -94,7 +94,7 @@ public class SnapshotProfilingSdkCustomizer implements AutoConfigurationCustomiz
   }
 
   private BiFunction<SdkTracerProviderBuilder, ConfigProperties, SdkTracerProviderBuilder>
-      snapshotProfilingSpanProcessor(ITraceRegistry registry) {
+      snapshotProfilingSpanProcessor(TraceRegistry registry) {
     return (builder, properties) -> {
       if (snapshotProfilingEnabled(properties)) {
         StackTraceSampler sampler = samplerProvider.apply(properties);
@@ -141,7 +141,7 @@ public class SnapshotProfilingSdkCustomizer implements AutoConfigurationCustomiz
   }
 
   private Function<ConfigProperties, Map<String, String>> startTrackingActiveSpans(
-      ITraceRegistry registry) {
+      TraceRegistry registry) {
     return properties -> {
       if (snapshotProfilingEnabled(properties)) {
         spanTrackingActivator.activate(registry);

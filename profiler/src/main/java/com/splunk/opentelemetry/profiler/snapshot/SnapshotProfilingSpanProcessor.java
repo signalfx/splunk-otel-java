@@ -36,10 +36,10 @@ import java.util.function.Supplier;
  * be profiled at a time.
  */
 public class SnapshotProfilingSpanProcessor implements SpanProcessor {
-  private final ITraceRegistry registry;
+  private final TraceRegistry registry;
   private final Supplier<StackTraceSampler> sampler;
 
-  SnapshotProfilingSpanProcessor(ITraceRegistry registry, Supplier<StackTraceSampler> sampler) {
+  SnapshotProfilingSpanProcessor(TraceRegistry registry, Supplier<StackTraceSampler> sampler) {
     this.registry = registry;
     this.sampler = sampler;
   }

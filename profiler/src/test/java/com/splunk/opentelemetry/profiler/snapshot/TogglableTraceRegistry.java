@@ -20,7 +20,7 @@ import io.opentelemetry.api.trace.SpanContext;
 import java.util.HashSet;
 import java.util.Set;
 
-class TogglableTraceRegistry implements ITraceRegistry {
+class TogglableTraceRegistry implements TraceRegistry {
   private final Set<String> traceIds = new HashSet<>();
 
   enum State {

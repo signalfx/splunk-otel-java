@@ -2,7 +2,7 @@ package com.splunk.opentelemetry.profiler.snapshot;
 
 import io.opentelemetry.api.trace.SpanContext;
 
-interface ITraceRegistry {
+interface TraceRegistry {
   void register(SpanContext spanContext);
 
   boolean isRegistered(SpanContext spanContext);

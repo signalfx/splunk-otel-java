@@ -106,7 +106,7 @@ class SnapshotProfilingLogExportingTest {
 
   private static class ResetContextStorage implements SpanTrackingActivator, AfterEachCallback {
     @Override
-    public void activate(ITraceRegistry registry) {
+    public void activate(TraceRegistry registry) {
       ActiveSpanTracker spanTracker =
           new ActiveSpanTracker(ContextStorage.defaultStorage(), registry);
       SpanTracker.SUPPLIER.configure(spanTracker);

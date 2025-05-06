@@ -23,10 +23,10 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Test only version of {@link ITraceRegistry} that keeps a record of every trace ID registered over
+ * Test only version of {@link TraceRegistry} that keeps a record of every trace ID registered over
  * the lifetime of the instance.
  */
-class RecordingTraceRegistry implements ITraceRegistry {
+class RecordingTraceRegistry implements TraceRegistry {
   private final Map<String, Boolean> traceIds = new ConcurrentHashMap<>();
 
   @Override

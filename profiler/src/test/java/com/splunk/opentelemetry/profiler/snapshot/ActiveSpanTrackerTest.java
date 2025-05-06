@@ -31,7 +31,6 @@ import java.lang.ref.WeakReference;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.time.Duration;
-import java.time.Instant;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
@@ -164,10 +163,7 @@ class ActiveSpanTrackerTest {
     return () -> {
       var context = Context.root().with(span);
       var threadScope = new ThreadScope(Thread.currentThread(), spanTracker.attach(context));
-      System.out.println(
-          Instant.now() + ": " + Thread.currentThread().getName() + " waiting to be released.");
       latch.await();
-      System.out.println(Instant.now() + ": " + Thread.currentThread().getName() + " released.");
       return threadScope;
     };
   }

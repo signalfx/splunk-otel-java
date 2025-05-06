@@ -21,8 +21,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
 
-class TraceRegistryTest {
-  private final TraceRegistry registry = new TraceRegistry();
+class SimpleTraceRegistryTest {
+  private final SimpleTraceRegistry registry = new SimpleTraceRegistry();
 
   @Test
   void registerTrace() {

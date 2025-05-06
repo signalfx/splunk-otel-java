@@ -30,13 +30,13 @@ class InterceptingContextStorageSpanTrackingActivatorTest {
 
   @Test
   void interceptContextStorage() {
-    activator.activate(new TraceRegistry());
+    activator.activate(new SimpleTraceRegistry());
     assertInstanceOf(ActiveSpanTracker.class, delegate.storage);
   }
 
   @Test
   void activateSpanTracker() {
-    activator.activate(new TraceRegistry());
+    activator.activate(new SimpleTraceRegistry());
     assertInstanceOf(ActiveSpanTracker.class, SpanTracker.SUPPLIER.get());
   }
 

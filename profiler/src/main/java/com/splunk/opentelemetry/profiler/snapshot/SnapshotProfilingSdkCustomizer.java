@@ -39,7 +39,7 @@ public class SnapshotProfilingSdkCustomizer implements AutoConfigurationCustomiz
 
   public SnapshotProfilingSdkCustomizer() {
     this(
-        new TraceRegistry(),
+        new SimpleTraceRegistry(),
         stackTraceSamplerProvider(),
         new InterceptingContextStorageSpanTrackingActivator());
   }

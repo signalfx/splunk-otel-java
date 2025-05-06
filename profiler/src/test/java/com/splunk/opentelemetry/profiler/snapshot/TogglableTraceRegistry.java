@@ -18,7 +18,7 @@ package com.splunk.opentelemetry.profiler.snapshot;
 
 import io.opentelemetry.api.trace.SpanContext;
 
-class TogglableTraceRegistry extends TraceRegistry {
+class TogglableTraceRegistry extends TraceRegistry implements ITraceRegistry {
   enum State {
     ON,
     OFF

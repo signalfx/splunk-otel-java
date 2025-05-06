@@ -21,7 +21,7 @@ import java.util.Collections;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-class TraceRegistry {
+class TraceRegistry implements ITraceRegistry {
   private final Set<String> traceIds = Collections.newSetFromMap(new ConcurrentHashMap<>());
 
   public void register(SpanContext spanContext) {

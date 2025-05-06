@@ -25,7 +25,7 @@ import java.util.Set;
  * Test only version of {@link TraceRegistry} that keeps a record of every trace ID registered over
  * the lifetime of the instance.
  */
-class RecordingTraceRegistry extends TraceRegistry {
+class RecordingTraceRegistry extends TraceRegistry implements ITraceRegistry {
   private final Set<String> registeredTraceIds = new HashSet<>();
 
   @Override

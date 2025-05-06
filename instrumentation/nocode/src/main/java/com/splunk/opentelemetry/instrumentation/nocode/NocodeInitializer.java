@@ -19,7 +19,6 @@ package com.splunk.opentelemetry.instrumentation.nocode;
 import static io.opentelemetry.sdk.autoconfigure.AutoConfigureUtil.getConfig;
 
 import com.google.auto.service.AutoService;
-import com.splunk.opentelemetry.javaagent.bootstrap.nocode.NocodeEvaluation;
 import com.splunk.opentelemetry.javaagent.bootstrap.nocode.NocodeRules;
 import io.opentelemetry.javaagent.tooling.BeforeAgentListener;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
@@ -33,6 +32,5 @@ public class NocodeInitializer implements BeforeAgentListener {
     ConfigProperties config = getConfig(autoConfiguredOpenTelemetrySdk);
     YamlParser yp = new YamlParser(config);
     NocodeRules.setGlobalRules(yp.getInstrumentationRules());
-    NocodeEvaluation.internalSetEvaluator(new JexlEvaluator());
   }
 }

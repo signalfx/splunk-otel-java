@@ -24,6 +24,7 @@ import static net.bytebuddy.matcher.ElementMatchers.none;
 import com.splunk.opentelemetry.javaagent.bootstrap.nocode.NocodeRules;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.context.Scope;
+import io.opentelemetry.instrumentation.api.annotation.support.async.AsyncOperationEndSupport;
 import io.opentelemetry.instrumentation.api.incubator.semconv.util.ClassAndMethod;
 import io.opentelemetry.javaagent.extension.instrumentation.TypeInstrumentation;
 import io.opentelemetry.javaagent.extension.instrumentation.TypeTransformer;
@@ -32,6 +33,7 @@ import net.bytebuddy.asm.Advice;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.implementation.bytecode.assign.Assigner;
 import net.bytebuddy.matcher.ElementMatcher;
+import net.bytebuddy.utility.JavaConstant;
 
 public final class NocodeInstrumentation implements TypeInstrumentation {
   private final NocodeRules.Rule rule;
@@ -42,24 +44,37 @@ public final class NocodeInstrumentation implements TypeInstrumentation {
 
   @Override
   public ElementMatcher<TypeDescription> typeMatcher() {
-    // names have to match exactly for now to enable rule lookup
-    // at advice time.  In the future, we could support
-    // more complex rules here if we dynamically generated advice classes for
-    // each rule.
-    return rule != null ? named(rule.className) : none();
+    // null rule is used when no rules are configured, this ensures that muzzle can collect helper
+    // classes
+    return rule != null ? named(rule.getClassName()) : none();
   }
 
   @Override
   public void transform(TypeTransformer transformer) {
     transformer.applyAdviceToMethod(
-        rule != null ? named(rule.methodName) : none(),
+        rule != null ? named(rule.getMethodName()) : none(),
+        mapping ->
+            mapping
+                .bind(RuleId.class, JavaConstant.Simple.ofLoaded(rule != null ? rule.getId() : -1))
+                .bind(
+                    MethodReturnType.class,
+                    (instrumentedType, instrumentedMethod, assigner, argumentHandler, sort) ->
+                        Advice.OffsetMapping.Target.ForStackManipulation.of(
+                            instrumentedMethod.getReturnType().asErasure())),
         this.getClass().getName() + "$NocodeAdvice");
   }
+
+  // custom annotation that allows looking up the rule that triggered instrumenting the method
+  @interface RuleId {}
+
+  // custom annotation that represents the return type of the method
+  @interface MethodReturnType {}
 
   @SuppressWarnings("unused")
   public static class NocodeAdvice {
     @Advice.OnMethodEnter(suppress = Throwable.class)
     public static void onEnter(
+        @RuleId int ruleId,
         @Advice.Origin("#t") Class<?> declaringClass,
         @Advice.Origin("#m") String methodName,
         @Advice.Local("otelInvocation") NocodeMethodInvocation otelInvocation,
@@ -67,7 +82,7 @@ public final class NocodeInstrumentation implements TypeInstrumentation {
         @Advice.Local("otelScope") Scope scope,
         @Advice.This Object thiz,
         @Advice.AllArguments Object[] methodParams) {
-      NocodeRules.Rule rule = NocodeRules.find(declaringClass.getName(), methodName);
+      NocodeRules.Rule rule = NocodeRules.find(ruleId);
       otelInvocation =
           new NocodeMethodInvocation(
               rule, ClassAndMethod.create(declaringClass, methodName), thiz, methodParams);
@@ -86,16 +101,16 @@ public final class NocodeInstrumentation implements TypeInstrumentation {
         @Advice.Local("otelInvocation") NocodeMethodInvocation otelInvocation,
         @Advice.Local("otelContext") Context context,
         @Advice.Local("otelScope") Scope scope,
-        @Advice.Return(typing = Assigner.Typing.DYNAMIC) Object returnValue,
+        @Advice.Return(readOnly = false, typing = Assigner.Typing.DYNAMIC) Object returnValue,
         @Advice.Thrown Throwable error) {
       if (scope == null) {
         return;
       }
       scope.close();
-      // This is heavily based on the "methods" instrumentation from upstream, but
-      // for now we're not supporting modifying return types/async result codes, etc.
-      // This could be expanded in the future.
-      instrumenter().end(context, otelInvocation, returnValue, error);
+
+      returnValue =
+          AsyncOperationEndSupport.create(instrumenter(), Object.class, method.getReturnType())
+              .asyncEnd(context, otelInvocation, returnValue, error);
     }
   }
 }

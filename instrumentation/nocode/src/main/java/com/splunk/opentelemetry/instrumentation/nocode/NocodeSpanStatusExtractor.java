@@ -16,7 +16,6 @@
 
 package com.splunk.opentelemetry.instrumentation.nocode;
 
-import com.splunk.opentelemetry.javaagent.bootstrap.nocode.NocodeEvaluation;
 import io.opentelemetry.api.trace.StatusCode;
 import io.opentelemetry.instrumentation.api.instrumenter.SpanStatusBuilder;
 import io.opentelemetry.instrumentation.api.instrumenter.SpanStatusExtractor;
@@ -24,8 +23,7 @@ import java.util.Locale;
 import java.util.logging.Logger;
 import javax.annotation.Nullable;
 
-public class NocodeSpanStatusExtractor
-    implements SpanStatusExtractor<NocodeMethodInvocation, Object> {
+class NocodeSpanStatusExtractor implements SpanStatusExtractor<NocodeMethodInvocation, Object> {
   private static final Logger logger = Logger.getLogger(NocodeSpanStatusExtractor.class.getName());
 
   @Override
@@ -35,18 +33,11 @@ public class NocodeSpanStatusExtractor
       @Nullable Object returnValue,
       @Nullable Throwable error) {
 
-    if (mi.getRule() == null || mi.getRule().spanStatus == null) {
-
-      // FIXME would love to use a DefaultSpanStatusExtractor as a fallback but it is not public
-      // so here is a copy of its (admittedly simple) guts
-      if (error != null) {
-        spanStatusBuilder.setStatus(StatusCode.ERROR);
-      }
+    if (mi.getRule() == null || mi.getRule().getSpanStatus() == null) {
+      SpanStatusExtractor.getDefault().extract(spanStatusBuilder, mi, returnValue, error);
       return;
     }
-    Object status =
-        NocodeEvaluation.evaluateAtEnd(
-            mi.getRule().spanStatus, mi.getThiz(), mi.getParameters(), returnValue, error);
+    Object status = mi.evaluateAtEnd(mi.getRule().getSpanStatus(), returnValue, error);
     if (status != null) {
       try {
         StatusCode code = StatusCode.valueOf(status.toString().toUpperCase(Locale.ROOT));

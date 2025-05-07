@@ -29,6 +29,9 @@ import io.opentelemetry.sdk.resources.Resource;
 
 @AutoService(AgentListener.class)
 public class StackTraceExporterActivator implements AgentListener {
+  private static final java.util.logging.Logger logger =
+      java.util.logging.Logger.getLogger(StackTraceExporterActivator.class.getName());
+
   private final OtelLoggerFactory otelLoggerFactory;
 
   public StackTraceExporterActivator() {
@@ -41,14 +44,20 @@ public class StackTraceExporterActivator implements AgentListener {
   }
 
   @Override
-  public void afterAgent(AutoConfiguredOpenTelemetrySdk autoConfiguredOpenTelemetrySdk) {
-    ConfigProperties properties = AutoConfigureUtil.getConfig(autoConfiguredOpenTelemetrySdk);
-    if (snapshotProfilingEnabled(properties)) {
-      int maxDepth = Configuration.getSnapshotProfilerStackDepth(properties);
-      Logger logger = buildLogger(autoConfiguredOpenTelemetrySdk, properties);
-      AsyncStackTraceExporter exporter = new AsyncStackTraceExporter(logger, maxDepth);
-      StackTraceExporter.SUPPLIER.configure(exporter);
+  public void afterAgent(AutoConfiguredOpenTelemetrySdk sdk) {
+    ConfigProperties properties = AutoConfigureUtil.getConfig(sdk);
+    if (!snapshotProfilingEnabled(properties)) {
+      return;
     }
+
+    SnapshotProfilingConfigurationLogger.log(properties);
+
+    int maxDepth = Configuration.getSnapshotProfilerStackDepth(properties);
+    Logger otelLogger = buildLogger(sdk, properties);
+    AsyncStackTraceExporter exporter = new AsyncStackTraceExporter(otelLogger, maxDepth);
+    StackTraceExporter.SUPPLIER.configure(exporter);
+
+    logger.info("Snapshot profiling is active.");
   }
 
   private boolean snapshotProfilingEnabled(ConfigProperties properties) {

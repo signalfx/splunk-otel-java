@@ -74,18 +74,18 @@ public class Configuration implements AutoConfigurationCustomizerProvider {
   public static final String CONFIG_KEY_SNAPSHOT_SELECTION_RATE = "splunk.snapshot.selection.rate";
   private static final double DEFAULT_SNAPSHOT_SELECTION_RATE = 0.01;
   private static final double MAX_SNAPSHOT_SELECTION_RATE = 0.10;
-  private static final String CONFIG_KEY_SNAPSHOT_PROFILER_STACK_DEPTH =
+  public static final String CONFIG_KEY_SNAPSHOT_PROFILER_STACK_DEPTH =
       "splunk.snapshot.profiler.max.stack.depth";
   private static final int DEFAULT_SNAPSHOT_PROFILER_STACK_DEPTH = 1024;
-  private static final String CONFIG_KEY_SNAPSHOT_PROFILER_SAMPLING_INTERVAL =
+  public static final String CONFIG_KEY_SNAPSHOT_PROFILER_SAMPLING_INTERVAL =
       "splunk.snapshot.profiler.sampling.interval";
   private static final Duration DEFAULT_SNAPSHOT_PROFILER_SAMPLING_INTERVAL = Duration.ofMillis(10);
 
-  private static final String CONFIG_KEY_SNAPSHOT_PROFILER_EXPORT_INTERVAL =
+  public static final String CONFIG_KEY_SNAPSHOT_PROFILER_EXPORT_INTERVAL =
       "splunk.snapshot.profiler.export.interval";
   private static final Duration DEFAULT_SNAPSHOT_PROFILER_EXPORT_INTERVAL = Duration.ofSeconds(5);
 
-  private static final String CONFIG_KEY_SNAPSHOT_PROFILER_STAGING_CAPACITY =
+  public static final String CONFIG_KEY_SNAPSHOT_PROFILER_STAGING_CAPACITY =
       "splunk.snapshot.profiler.staging.capacity";
   private static final int DEFAULT_SNAPSHOT_PROFILER_STAGING_CAPACITY = 2000;
 

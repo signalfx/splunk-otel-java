@@ -34,9 +34,7 @@ class StalledTraceDetectingTraceRegistry implements TraceRegistry, AutoCloseable
   private final Supplier<StackTraceSampler> sampler;
 
   public StalledTraceDetectingTraceRegistry(
-      TraceRegistry delegate,
-      Supplier<StackTraceSampler> sampler,
-      Duration stalledTimeLimit) {
+      TraceRegistry delegate, Supplier<StackTraceSampler> sampler, Duration stalledTimeLimit) {
     this.delegate = delegate;
     this.sampler = sampler;
 

@@ -24,9 +24,12 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 class StalledTraceDetectingTraceRegistryTest {
+  private static final Duration STALLED_TIME_LIMIT = Duration.ofMillis(10);
+
   private final TraceRegistry delegate = new SimpleTraceRegistry();
+  private final ObservableStackTraceSampler sampler = new ObservableStackTraceSampler();
   private final StalledTraceDetectingTraceRegistry registry =
-      new StalledTraceDetectingTraceRegistry(delegate);
+      new StalledTraceDetectingTraceRegistry(delegate, () -> sampler, STALLED_TIME_LIMIT);
 
   @AfterEach
   void teardown() throws Exception {
@@ -58,31 +61,35 @@ class StalledTraceDetectingTraceRegistryTest {
   }
 
   @Test
-  void removeRegisteredTracesAfterStalledTimeLimitPasses() throws Exception {
+  void removeRegisteredTracesAfterStalledTimeLimitPasses() {
     var spanContext = Snapshotting.spanContext().build();
-    var stalledTimeLimit = Duration.ofMillis(10);
 
-    try (var registry = new StalledTraceDetectingTraceRegistry(delegate, stalledTimeLimit)) {
-      registry.register(spanContext);
-      assertThat(registry.isRegistered(spanContext)).isTrue();
+    registry.register(spanContext);
+    assertThat(registry.isRegistered(spanContext)).isTrue();
 
-      await().untilAsserted(() -> assertThat(delegate.isRegistered(spanContext)).isFalse());
-    }
+    await().untilAsserted(() -> assertThat(delegate.isRegistered(spanContext)).isFalse());
   }
 
   @Test
-  void continueRemovingRegisteredTracesAfterStalledTimeLimitPasses() throws Exception {
+  void continueRemovingRegisteredTracesAfterStalledTimeLimitPasses() {
     var spanContext = Snapshotting.spanContext().build();
-    var stalledTimeLimit = Duration.ofMillis(10);
 
-    try (var registry = new StalledTraceDetectingTraceRegistry(delegate, stalledTimeLimit)) {
-      registry.register(spanContext);
-      assertThat(registry.isRegistered(spanContext)).isTrue();
-      await().untilAsserted(() -> assertThat(delegate.isRegistered(spanContext)).isFalse());
+    registry.register(spanContext);
+    assertThat(registry.isRegistered(spanContext)).isTrue();
+    await().untilAsserted(() -> assertThat(delegate.isRegistered(spanContext)).isFalse());
 
-      registry.register(spanContext);
-      assertThat(registry.isRegistered(spanContext)).isTrue();
-      await().untilAsserted(() -> assertThat(delegate.isRegistered(spanContext)).isFalse());
-    }
+    registry.register(spanContext);
+    assertThat(registry.isRegistered(spanContext)).isTrue();
+    await().untilAsserted(() -> assertThat(delegate.isRegistered(spanContext)).isFalse());
+  }
+
+  @Test
+  void stopTraceSamplingWhenStalledTraceUnregistered() {
+    var spanContext = Snapshotting.spanContext().build();
+
+    registry.register(spanContext);
+    sampler.start(spanContext);
+
+    await().untilAsserted(() -> assertThat(sampler.isBeingSampled(spanContext)).isFalse());
   }
 }

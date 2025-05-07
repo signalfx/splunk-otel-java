@@ -24,19 +24,21 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 
 class StalledTraceDetectingTraceRegistry implements TraceRegistry, AutoCloseable {
   private final ScheduledExecutorService scheduler =
       HelpfulExecutors.newSingleThreadedScheduledExecutor("stalled-trace-detector");
   private final Map<String, RegistrationContext> traceIds = new ConcurrentHashMap<>();
   private final TraceRegistry delegate;
+  private final Supplier<StackTraceSampler> sampler;
 
-  StalledTraceDetectingTraceRegistry(TraceRegistry delegate) {
-    this(delegate, Duration.ofMillis(10));
-  }
-
-  public StalledTraceDetectingTraceRegistry(TraceRegistry delegate, Duration stalledTimeLimit) {
+  public StalledTraceDetectingTraceRegistry(
+      TraceRegistry delegate,
+      Supplier<StackTraceSampler> sampler,
+      Duration stalledTimeLimit) {
     this.delegate = delegate;
+    this.sampler = sampler;
 
     scheduler.scheduleAtFixedRate(
         removeStalledTraces(stalledTimeLimit),
@@ -78,6 +80,7 @@ class StalledTraceDetectingTraceRegistry implements TraceRegistry, AutoCloseable
                   Duration duration = Duration.between(now, context.registrationTime);
                   if (duration.compareTo(stalledTimeLimit) <= 0) {
                     unregister(context.spanContext);
+                    sampler.get().stop(context.spanContext);
                   }
                 });
   }

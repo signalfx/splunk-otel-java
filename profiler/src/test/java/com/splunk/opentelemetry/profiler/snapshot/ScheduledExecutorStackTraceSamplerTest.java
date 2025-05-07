@@ -47,7 +47,7 @@ class ScheduledExecutorStackTraceSamplerTest {
 
     try {
       sampler.start(spanContext);
-      await().until(() -> staging.hasStackTraces(spanContext));
+      await().until(staging::hasStackTraces);
     } finally {
       sampler.stop(spanContext);
     }
@@ -61,26 +61,10 @@ class ScheduledExecutorStackTraceSamplerTest {
 
     try {
       sampler.start(spanContext);
-      await().until(() -> staging.getStackTraces(spanContext).size() >= expectedSamples);
+      await().until(() -> staging.allStackTraces().size() >= expectedSamples);
     } finally {
       sampler.stop(spanContext);
     }
-  }
-
-  @Test
-  void emptyStagingAreaAfterSamplingStops() {
-    var halfSecond = Duration.ofMillis(500);
-    var spanContext = Snapshotting.spanContext().build();
-    int expectedSamples = (int) halfSecond.dividedBy(SAMPLING_PERIOD.multipliedBy(2));
-
-    try {
-      sampler.start(spanContext);
-      await().until(() -> staging.getStackTraces(spanContext).size() >= expectedSamples);
-    } finally {
-      sampler.stop(spanContext);
-    }
-
-    assertThat(staging.getStackTraces(spanContext).emptied()).isTrue();
   }
 
   @Test
@@ -162,7 +146,7 @@ class ScheduledExecutorStackTraceSamplerTest {
 
     try {
       sampler.start(spanContext);
-      await().until(() -> staging.hasStackTraces(spanContext));
+      await().until(staging::hasStackTraces);
 
       var stackTrace = staging.allStackTraces().stream().findFirst().orElseThrow();
       assertThat(stackTrace.getTimestamp()).isNotNull().isAfter(now);
@@ -177,7 +161,7 @@ class ScheduledExecutorStackTraceSamplerTest {
 
     try {
       sampler.start(spanContext);
-      await().until(() -> staging.hasStackTraces(spanContext));
+      await().until(staging::hasStackTraces);
 
       var stackTrace = staging.allStackTraces().stream().findFirst().orElseThrow();
       assertThat(stackTrace.getDuration()).isNotNull().isGreaterThan(Duration.ZERO);
@@ -192,10 +176,9 @@ class ScheduledExecutorStackTraceSamplerTest {
 
     try {
       sampler.start(spanContext);
-      await().until(() -> staging.getStackTraces(spanContext).size() > 1);
+      await().until(() -> staging.allStackTraces().size() > 1);
 
-      var stackTrace =
-          staging.getStackTraces(spanContext).stream().skip(1).findFirst().orElseThrow();
+      var stackTrace = staging.allStackTraces().stream().skip(1).findFirst().orElseThrow();
       assertThat(stackTrace.getDuration())
           .isNotNull()
           .isCloseTo(SAMPLING_PERIOD, Duration.ofMillis(5));
@@ -214,7 +197,7 @@ class ScheduledExecutorStackTraceSamplerTest {
       var future = executor.submit(startSampling(spanContext, startLatch, stopLatch));
 
       startLatch.countDown();
-      await().until(() -> staging.hasStackTraces(spanContext));
+      await().until(staging::hasStackTraces);
       stopLatch.countDown();
 
       var thread = future.get();
@@ -236,7 +219,7 @@ class ScheduledExecutorStackTraceSamplerTest {
 
     try {
       sampler.start(spanContext);
-      await().until(() -> staging.hasStackTraces(spanContext));
+      await().until(staging::hasStackTraces);
 
       var stackTrace = staging.allStackTraces().stream().findFirst().orElseThrow();
       assertEquals(spanContext.getTraceId(), stackTrace.getTraceId());
@@ -252,7 +235,7 @@ class ScheduledExecutorStackTraceSamplerTest {
 
     try {
       sampler.start(spanContext);
-      await().until(() -> staging.hasStackTraces(spanContext));
+      await().until(staging::hasStackTraces);
 
       var stackTrace = staging.allStackTraces().stream().findFirst().orElseThrow();
       assertEquals(spanContext.getSpanId(), stackTrace.getSpanId());
@@ -272,7 +255,7 @@ class ScheduledExecutorStackTraceSamplerTest {
       scheduler.submit(startSampling(spanContext, startLatch, stopLatch));
       scheduler.schedule(
           () -> sampler.stop(spanContext), expectedDuration.toMillis(), TimeUnit.MILLISECONDS);
-      await().until(() -> staging.hasStackTraces(spanContext));
+      await().until(staging::hasStackTraces);
       stopLatch.countDown();
 
       var stackTraces = staging.allStackTraces();
@@ -293,10 +276,10 @@ class ScheduledExecutorStackTraceSamplerTest {
       scheduler.submit(startSampling(spanContext, startLatch, stopLatch));
       scheduler.schedule(
           () -> sampler.stop(spanContext), expectedDuration.toMillis(), TimeUnit.MILLISECONDS);
-      await().until(() -> staging.hasStackTraces(spanContext));
+      await().until(staging::hasStackTraces);
       stopLatch.countDown();
 
-      var stackTraces = staging.getStackTraces(spanContext);
+      var stackTraces = staging.allStackTraces();
       var lastStackTrace = stackTraces.get(stackTraces.size() - 1);
       assertThat(lastStackTrace.getDuration()).isLessThan(SAMPLING_PERIOD);
     } finally {
@@ -341,15 +324,14 @@ class ScheduledExecutorStackTraceSamplerTest {
     await().until(() -> !staging.allStackTraces().isEmpty());
     sampler.close();
 
-    int previouslyStagedStackTraces = reportStackTracesStaged().call();
-    staging.empty(spanContext.getTraceId());
+    staging.empty();
 
     var scheduler = Executors.newSingleThreadScheduledExecutor();
     try {
       var future =
           scheduler.schedule(
               reportStackTracesStaged(), SAMPLING_PERIOD.toMillis() * 10, TimeUnit.MILLISECONDS);
-      assertEquals(previouslyStagedStackTraces, future.get());
+      assertEquals(0, future.get());
     } finally {
       scheduler.shutdownNow();
     }
@@ -369,15 +351,12 @@ class ScheduledExecutorStackTraceSamplerTest {
       startSpanLatch.countDown();
       await().until(() -> staging.allStackTraces().size() > 5);
       sampler.close();
-
-      int previouslyStagedStackTraces = reportStackTracesStaged().call();
-      staging.empty(spanContext1.getTraceId());
-      staging.empty(spanContext2.getTraceId());
+      staging.empty();
 
       var future =
           scheduler.schedule(
               reportStackTracesStaged(), SAMPLING_PERIOD.toMillis() * 10, TimeUnit.MILLISECONDS);
-      assertEquals(previouslyStagedStackTraces, future.get());
+      assertEquals(0, future.get());
     } finally {
       executor.shutdownNow();
       scheduler.shutdownNow();

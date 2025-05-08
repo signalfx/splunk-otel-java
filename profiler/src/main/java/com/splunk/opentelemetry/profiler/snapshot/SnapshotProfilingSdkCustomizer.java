@@ -18,7 +18,6 @@ package com.splunk.opentelemetry.profiler.snapshot;
 
 import com.google.auto.service.AutoService;
 import com.google.common.annotations.VisibleForTesting;
-import com.splunk.opentelemetry.profiler.Configuration;
 import io.opentelemetry.sdk.autoconfigure.spi.AutoConfigurationCustomizer;
 import io.opentelemetry.sdk.autoconfigure.spi.AutoConfigurationCustomizerProvider;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
@@ -46,7 +45,8 @@ public class SnapshotProfilingSdkCustomizer implements AutoConfigurationCustomiz
 
   private static Function<ConfigProperties, StackTraceSampler> stackTraceSamplerProvider() {
     return properties -> {
-      Duration samplingPeriod = Configuration.getSnapshotProfilerSamplingInterval(properties);
+      Duration samplingPeriod =
+          SnapshotProfilingConfiguration.getSnapshotProfilerSamplingInterval(properties);
       StagingArea.SUPPLIER.configure(createStagingArea(properties));
       return new ScheduledExecutorStackTraceSampler(
           StagingArea.SUPPLIER, SpanTracker.SUPPLIER, samplingPeriod);
@@ -54,8 +54,9 @@ public class SnapshotProfilingSdkCustomizer implements AutoConfigurationCustomiz
   }
 
   private static StagingArea createStagingArea(ConfigProperties properties) {
-    Duration interval = Configuration.getSnapshotProfilerExportInterval(properties);
-    int capacity = Configuration.getSnapshotProfilerStagingCapacity(properties);
+    Duration interval =
+        SnapshotProfilingConfiguration.getSnapshotProfilerExportInterval(properties);
+    int capacity = SnapshotProfilingConfiguration.getSnapshotProfilerStagingCapacity(properties);
     return new PeriodicallyExportingStagingArea(StackTraceExporter.SUPPLIER, interval, capacity);
   }
 
@@ -151,6 +152,6 @@ public class SnapshotProfilingSdkCustomizer implements AutoConfigurationCustomiz
   }
 
   private boolean snapshotProfilingEnabled(ConfigProperties properties) {
-    return Configuration.isSnapshotProfilingEnabled(properties);
+    return SnapshotProfilingConfiguration.isSnapshotProfilingEnabled(properties);
   }
 }

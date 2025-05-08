@@ -18,7 +18,6 @@ package com.splunk.opentelemetry.profiler.snapshot;
 
 import com.google.auto.service.AutoService;
 import com.google.common.annotations.VisibleForTesting;
-import com.splunk.opentelemetry.profiler.Configuration;
 import com.splunk.opentelemetry.profiler.OtelLoggerFactory;
 import io.opentelemetry.api.logs.Logger;
 import io.opentelemetry.javaagent.extension.AgentListener;
@@ -52,7 +51,7 @@ public class StackTraceExporterActivator implements AgentListener {
 
     SnapshotProfilingConfiguration.log(properties);
 
-    int maxDepth = Configuration.getSnapshotProfilerStackDepth(properties);
+    int maxDepth = SnapshotProfilingConfiguration.getSnapshotProfilerStackDepth(properties);
     Logger otelLogger = buildLogger(sdk, properties);
     AsyncStackTraceExporter exporter = new AsyncStackTraceExporter(otelLogger, maxDepth);
     StackTraceExporter.SUPPLIER.configure(exporter);
@@ -61,7 +60,7 @@ public class StackTraceExporterActivator implements AgentListener {
   }
 
   private boolean snapshotProfilingEnabled(ConfigProperties properties) {
-    return Configuration.isSnapshotProfilingEnabled(properties);
+    return SnapshotProfilingConfiguration.isSnapshotProfilingEnabled(properties);
   }
 
   private Logger buildLogger(AutoConfiguredOpenTelemetrySdk sdk, ConfigProperties properties) {

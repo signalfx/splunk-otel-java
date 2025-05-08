@@ -69,26 +69,6 @@ public class Configuration implements AutoConfigurationCustomizerProvider {
   public static final String CONFIG_KEY_TRACING_STACKS_ONLY = "splunk.profiler.tracing.stacks.only";
   private static final String CONFIG_KEY_STACK_DEPTH = "splunk.profiler.max.stack.depth";
 
-  public static final String CONFIG_KEY_ENABLE_SNAPSHOT_PROFILER =
-      "splunk.snapshot.profiler.enabled";
-  public static final String CONFIG_KEY_SNAPSHOT_SELECTION_RATE = "splunk.snapshot.selection.rate";
-  private static final double DEFAULT_SNAPSHOT_SELECTION_RATE = 0.01;
-  private static final double MAX_SNAPSHOT_SELECTION_RATE = 0.10;
-  public static final String CONFIG_KEY_SNAPSHOT_PROFILER_STACK_DEPTH =
-      "splunk.snapshot.profiler.max.stack.depth";
-  private static final int DEFAULT_SNAPSHOT_PROFILER_STACK_DEPTH = 1024;
-  public static final String CONFIG_KEY_SNAPSHOT_PROFILER_SAMPLING_INTERVAL =
-      "splunk.snapshot.profiler.sampling.interval";
-  private static final Duration DEFAULT_SNAPSHOT_PROFILER_SAMPLING_INTERVAL = Duration.ofMillis(10);
-
-  public static final String CONFIG_KEY_SNAPSHOT_PROFILER_EXPORT_INTERVAL =
-      "splunk.snapshot.profiler.export.interval";
-  private static final Duration DEFAULT_SNAPSHOT_PROFILER_EXPORT_INTERVAL = Duration.ofSeconds(5);
-
-  public static final String CONFIG_KEY_SNAPSHOT_PROFILER_STAGING_CAPACITY =
-      "splunk.snapshot.profiler.staging.capacity";
-  private static final int DEFAULT_SNAPSHOT_PROFILER_STAGING_CAPACITY = 2000;
-
   @Override
   public void customize(AutoConfigurationCustomizer autoConfiguration) {
     autoConfiguration.addPropertiesSupplier(this::defaultProperties);
@@ -103,9 +83,6 @@ public class Configuration implements AutoConfigurationCustomizerProvider {
     config.put(CONFIG_KEY_MEMORY_ENABLED, String.valueOf(DEFAULT_MEMORY_ENABLED));
     config.put(CONFIG_KEY_MEMORY_EVENT_RATE, DEFAULT_MEMORY_EVENT_RATE);
     config.put(CONFIG_KEY_CALL_STACK_INTERVAL, DEFAULT_CALL_STACK_INTERVAL.toMillis() + "ms");
-
-    config.put(CONFIG_KEY_ENABLE_SNAPSHOT_PROFILER, "false");
-    config.put(CONFIG_KEY_SNAPSHOT_SELECTION_RATE, String.valueOf(DEFAULT_SNAPSHOT_SELECTION_RATE));
     return config;
   }
 
@@ -193,57 +170,5 @@ public class Configuration implements AutoConfigurationCustomizerProvider {
       return 8;
     }
     return Integer.parseInt(javaSpecVersion);
-  }
-
-  public static boolean isSnapshotProfilingEnabled(ConfigProperties properties) {
-    return properties.getBoolean(CONFIG_KEY_ENABLE_SNAPSHOT_PROFILER, false);
-  }
-
-  public static double getSnapshotSelectionRate(ConfigProperties properties) {
-    String selectionRatePropertyValue =
-        properties.getString(
-            CONFIG_KEY_SNAPSHOT_SELECTION_RATE, String.valueOf(DEFAULT_SNAPSHOT_SELECTION_RATE));
-    try {
-      double selectionRate = Double.parseDouble(selectionRatePropertyValue);
-      if (selectionRate > MAX_SNAPSHOT_SELECTION_RATE) {
-        logger.warning(
-            "Configured snapshot selection rate of '"
-                + selectionRatePropertyValue
-                + "' is higher than the maximum allowed rate. Using maximum allowed snapshot selection rate of '"
-                + MAX_SNAPSHOT_SELECTION_RATE
-                + "'");
-        return MAX_SNAPSHOT_SELECTION_RATE;
-      }
-      return selectionRate;
-    } catch (NumberFormatException e) {
-      logger.warning(
-          "Invalid snapshot selection rate: '"
-              + selectionRatePropertyValue
-              + "', using default rate of '"
-              + DEFAULT_SNAPSHOT_SELECTION_RATE
-              + "'");
-      return DEFAULT_SNAPSHOT_SELECTION_RATE;
-    }
-  }
-
-  public static int getSnapshotProfilerStackDepth(ConfigProperties properties) {
-    return properties.getInt(
-        CONFIG_KEY_SNAPSHOT_PROFILER_STACK_DEPTH, DEFAULT_SNAPSHOT_PROFILER_STACK_DEPTH);
-  }
-
-  public static Duration getSnapshotProfilerSamplingInterval(ConfigProperties properties) {
-    return properties.getDuration(
-        CONFIG_KEY_SNAPSHOT_PROFILER_SAMPLING_INTERVAL,
-        DEFAULT_SNAPSHOT_PROFILER_SAMPLING_INTERVAL);
-  }
-
-  public static Duration getSnapshotProfilerExportInterval(ConfigProperties properties) {
-    return properties.getDuration(
-        CONFIG_KEY_SNAPSHOT_PROFILER_EXPORT_INTERVAL, DEFAULT_SNAPSHOT_PROFILER_EXPORT_INTERVAL);
-  }
-
-  public static int getSnapshotProfilerStagingCapacity(ConfigProperties properties) {
-    return properties.getInt(
-        CONFIG_KEY_SNAPSHOT_PROFILER_STAGING_CAPACITY, DEFAULT_SNAPSHOT_PROFILER_STAGING_CAPACITY);
   }
 }

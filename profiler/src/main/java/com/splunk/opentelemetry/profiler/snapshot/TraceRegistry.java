@@ -18,10 +18,13 @@ package com.splunk.opentelemetry.profiler.snapshot;
 
 import io.opentelemetry.api.trace.SpanContext;
 
-interface TraceRegistry {
+interface TraceRegistry extends AutoCloseable {
   void register(SpanContext spanContext);
 
   boolean isRegistered(SpanContext spanContext);
 
   void unregister(SpanContext spanContext);
+
+  @Override
+  default void close() throws Exception {}
 }

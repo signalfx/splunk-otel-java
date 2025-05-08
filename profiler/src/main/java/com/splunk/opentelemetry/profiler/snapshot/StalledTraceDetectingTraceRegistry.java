@@ -26,7 +26,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
-class StalledTraceDetectingTraceRegistry implements TraceRegistry, AutoCloseable {
+class StalledTraceDetectingTraceRegistry implements TraceRegistry {
   private final ScheduledExecutorService scheduler =
       HelpfulExecutors.newSingleThreadedScheduledExecutor("stalled-trace-detector");
   private final Map<String, RegistrationContext> traceIds = new ConcurrentHashMap<>();
@@ -63,7 +63,8 @@ class StalledTraceDetectingTraceRegistry implements TraceRegistry, AutoCloseable
 
   @Override
   public void close() throws Exception {
-    scheduler.shutdown();
+    scheduler.shutdownNow();
+    delegate.close();
   }
 
   private Runnable removeStalledTraces(Duration stalledTimeLimit) {

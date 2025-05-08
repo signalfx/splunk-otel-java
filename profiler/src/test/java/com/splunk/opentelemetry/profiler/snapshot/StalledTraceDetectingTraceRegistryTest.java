@@ -92,4 +92,29 @@ class StalledTraceDetectingTraceRegistryTest {
 
     await().untilAsserted(() -> assertThat(sampler.isBeingSampled(spanContext)).isFalse());
   }
+
+  @Test
+  void stopUnregisteredTraceSamplingWhenClosed() throws Exception {
+    var timeout = Duration.ofMillis(100);
+    var spanContext = Snapshotting.spanContext().build();
+
+    var delegate = new RecordingTraceRegistry();
+    var registry = new StalledTraceDetectingTraceRegistry(delegate, () -> sampler, timeout);
+    registry.register(spanContext);
+    registry.close();
+
+    Thread.sleep(timeout.toMillis() * 2);
+
+    assertThat(registry.isRegistered(spanContext)).isTrue();
+  }
+
+  @Test
+  void alsoCloseDelegateTraceRegistryWhenClosed() throws Exception {
+    var spanContext = Snapshotting.spanContext().build();
+
+    registry.register(spanContext);
+    registry.close();
+
+    assertThat(delegate.isRegistered(spanContext)).isFalse();
+  }
 }

@@ -20,9 +20,9 @@ import com.splunk.opentelemetry.profiler.Configuration;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import java.util.logging.Logger;
 
-class SnapshotProfilingConfigurationLogger {
+class SnapshotProfilingConfiguration {
   private static final Logger logger =
-      Logger.getLogger(SnapshotProfilingConfigurationLogger.class.getName());
+      Logger.getLogger(SnapshotProfilingConfiguration.class.getName());
 
   static void log(ConfigProperties properties) {
     logger.info("Snapshot Profiler Configuration:");

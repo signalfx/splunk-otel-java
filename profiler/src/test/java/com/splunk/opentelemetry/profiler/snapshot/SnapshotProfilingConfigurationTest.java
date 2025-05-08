@@ -26,16 +26,16 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-class SnapshotProfilingConfigurationLoggerTest {
+class SnapshotProfilingConfigurationTest {
   @RegisterExtension
   private final LogCapturer log =
-      LogCapturer.create().captureForType(SnapshotProfilingConfigurationLogger.class);
+      LogCapturer.create().captureForType(SnapshotProfilingConfiguration.class);
 
   @Test
   void includeSnapshotProfilingHeading() {
     var properties = DefaultConfigProperties.create(Collections.emptyMap());
 
-    SnapshotProfilingConfigurationLogger.log(properties);
+    SnapshotProfilingConfiguration.log(properties);
 
     log.assertContains("-----------------------");
     log.assertContains("Snapshot Profiler Configuration:");
@@ -47,7 +47,7 @@ class SnapshotProfilingConfigurationLoggerTest {
     var properties =
         DefaultConfigProperties.create(
             Map.of(Configuration.CONFIG_KEY_ENABLE_SNAPSHOT_PROFILER, String.valueOf(enabled)));
-    SnapshotProfilingConfigurationLogger.log(properties);
+    SnapshotProfilingConfiguration.log(properties);
     log.assertContains(Configuration.CONFIG_KEY_ENABLE_SNAPSHOT_PROFILER + " : " + enabled);
   }
 
@@ -57,7 +57,7 @@ class SnapshotProfilingConfigurationLoggerTest {
     var properties =
         DefaultConfigProperties.create(
             Map.of(Configuration.CONFIG_KEY_SNAPSHOT_SELECTION_RATE, String.valueOf(rate)));
-    SnapshotProfilingConfigurationLogger.log(properties);
+    SnapshotProfilingConfiguration.log(properties);
     log.assertContains(Configuration.CONFIG_KEY_SNAPSHOT_SELECTION_RATE + " : " + rate);
   }
 
@@ -67,7 +67,7 @@ class SnapshotProfilingConfigurationLoggerTest {
     var properties =
         DefaultConfigProperties.create(
             Map.of(Configuration.CONFIG_KEY_SNAPSHOT_PROFILER_STACK_DEPTH, String.valueOf(depth)));
-    SnapshotProfilingConfigurationLogger.log(properties);
+    SnapshotProfilingConfiguration.log(properties);
     log.assertContains(Configuration.CONFIG_KEY_SNAPSHOT_PROFILER_STACK_DEPTH + " : " + depth);
   }
 
@@ -78,7 +78,7 @@ class SnapshotProfilingConfigurationLoggerTest {
         DefaultConfigProperties.create(
             Map.of(Configuration.CONFIG_KEY_SNAPSHOT_PROFILER_SAMPLING_INTERVAL, interval));
 
-    SnapshotProfilingConfigurationLogger.log(properties);
+    SnapshotProfilingConfiguration.log(properties);
 
     var duration =
         properties.getDuration(Configuration.CONFIG_KEY_SNAPSHOT_PROFILER_SAMPLING_INTERVAL);
@@ -93,7 +93,7 @@ class SnapshotProfilingConfigurationLoggerTest {
         DefaultConfigProperties.create(
             Map.of(Configuration.CONFIG_KEY_SNAPSHOT_PROFILER_EXPORT_INTERVAL, interval));
 
-    SnapshotProfilingConfigurationLogger.log(properties);
+    SnapshotProfilingConfiguration.log(properties);
 
     var duration =
         properties.getDuration(Configuration.CONFIG_KEY_SNAPSHOT_PROFILER_EXPORT_INTERVAL);
@@ -109,7 +109,7 @@ class SnapshotProfilingConfigurationLoggerTest {
             Map.of(
                 Configuration.CONFIG_KEY_SNAPSHOT_PROFILER_STAGING_CAPACITY,
                 String.valueOf(capacity)));
-    SnapshotProfilingConfigurationLogger.log(properties);
+    SnapshotProfilingConfiguration.log(properties);
     log.assertContains(
         Configuration.CONFIG_KEY_SNAPSHOT_PROFILER_STAGING_CAPACITY + " : " + capacity);
   }

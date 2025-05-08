@@ -23,9 +23,13 @@ import java.util.concurrent.ConcurrentHashMap;
 
 class SimpleTraceRegistry implements TraceRegistry {
   private final Set<String> traceIds = Collections.newSetFromMap(new ConcurrentHashMap<>());
+  private volatile boolean closed = false;
 
   @Override
   public void register(SpanContext spanContext) {
+    if (closed) {
+      return;
+    }
     traceIds.add(spanContext.getTraceId());
   }
 
@@ -37,5 +41,11 @@ class SimpleTraceRegistry implements TraceRegistry {
   @Override
   public void unregister(SpanContext spanContext) {
     traceIds.remove(spanContext.getTraceId());
+  }
+
+  @Override
+  public void close() {
+    closed = true;
+    traceIds.clear();
   }
 }

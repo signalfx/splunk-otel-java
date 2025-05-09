@@ -29,8 +29,8 @@ public final class NocodeRules {
     private static final AtomicInteger counter = new AtomicInteger();
 
     private final int id = counter.incrementAndGet();
-    private final String className;
-    private final String methodName;
+    private final Object classMatcher;
+    private final Object methodMatcher;
     private final NocodeExpression spanName; // may be null - use default of "class.method"
     private final SpanKind spanKind; // may be null
     private final NocodeExpression spanStatus; // may be null, should return string from StatusCodes
@@ -38,14 +38,14 @@ public final class NocodeRules {
     private final Map<String, NocodeExpression> attributes; // key name to jexl expression
 
     public Rule(
-        String className,
-        String methodName,
+        Object classMatcher, // ElementMatcher
+        Object methodMatcher, // ElementMatcher
         NocodeExpression spanName,
         SpanKind spanKind,
         NocodeExpression spanStatus,
         Map<String, NocodeExpression> attributes) {
-      this.className = className;
-      this.methodName = methodName;
+      this.classMatcher = classMatcher;
+      this.methodMatcher = methodMatcher;
       this.spanName = spanName;
       this.spanKind = spanKind;
       this.spanStatus = spanStatus;
@@ -54,9 +54,9 @@ public final class NocodeRules {
 
     public String toString() {
       return "Nocode rule: "
-          + className
+          + classMatcher
           + "."
-          + methodName
+          + methodMatcher
           + ":spanName="
           + spanName
           + ":spanKind="
@@ -71,12 +71,12 @@ public final class NocodeRules {
       return id;
     }
 
-    public String getClassName() {
-      return className;
+    public Object getClassMatcher() {
+      return classMatcher;
     }
 
-    public String getMethodName() {
-      return methodName;
+    public Object getMethodMatcher() {
+      return methodMatcher;
     }
 
     public NocodeExpression getSpanName() {

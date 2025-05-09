@@ -31,6 +31,10 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import net.bytebuddy.description.method.MethodDescription;
+import net.bytebuddy.description.type.TypeDescription;
+import net.bytebuddy.matcher.ElementMatcher;
+import net.bytebuddy.matcher.ElementMatchers;
 import org.apache.commons.jexl3.JexlExpression;
 import org.snakeyaml.engine.v2.api.Load;
 import org.snakeyaml.engine.v2.api.LoadSettings;
@@ -75,8 +79,8 @@ class YamlParser {
         List<Map<String, Object>> rulesMap = (List<Map<String, Object>>) yamlBit;
         for (Map<String, Object> yamlRule : rulesMap) {
           // FUTURE support more complex class selection (inherits-from, etc.)
-          String className = yamlRule.get("class").toString();
-          String methodName = yamlRule.get("method").toString();
+          ElementMatcher<TypeDescription> classMatcher = classMatcher(yamlRule.get("class"));
+          ElementMatcher<MethodDescription> methodMatcher = methodMatcher(yamlRule.get("method"));
           NocodeExpression spanName = toExpression(yamlRule.get("spanName"));
           SpanKind spanKind = null;
           if (yamlRule.get("spanKind") != null) {
@@ -98,12 +102,91 @@ class YamlParser {
           }
           answer.add(
               new NocodeRules.Rule(
-                  className, methodName, spanName, spanKind, spanStatus, ruleAttributes));
+                  classMatcher, methodMatcher, spanName, spanKind, spanStatus, ruleAttributes));
         }
       }
     }
 
     return answer;
+  }
+
+  private ElementMatcher<TypeDescription> classMatcher(Object yaml) {
+    if (yaml instanceof String) {
+      return ElementMatchers.named(yaml.toString());
+    }
+    return matcherFromYaml(yaml, true);
+  }
+
+  private ElementMatcher<MethodDescription> methodMatcher(Object yaml) {
+    if (yaml instanceof String) {
+      return ElementMatchers.named(yaml.toString());
+    }
+    return matcherFromYaml(yaml, false);
+  }
+
+  private List<ElementMatcher> matcherListFromYaml(Object yamlObject, boolean isClass) {
+    if (!(yamlObject instanceof Map)) {
+      throw new IllegalArgumentException("Bare yaml value not expected: " + yamlObject);
+    }
+    Map<String, Object> yaml = (Map<String, Object>) yamlObject;
+    ArrayList<ElementMatcher> answer = new ArrayList<>();
+    for (String key : yaml.keySet()) {
+      answer.add(matcherFromKeyAndYamlValue(key, yaml.get(key), isClass));
+    }
+    return answer;
+  }
+
+  private ElementMatcher matcherFromYaml(Object yamlObject, boolean isClass) {
+    if (!(yamlObject instanceof Map)) {
+      throw new IllegalArgumentException("Bare yaml value not expected: " + yamlObject);
+    }
+    Map<String, Object> yaml = (Map<String, Object>) yamlObject;
+    if (yaml.size() != 1) {
+      throw new IllegalArgumentException("Multiple yaml elements not allowed without and:/or:");
+    }
+    String key = yaml.keySet().iterator().next();
+    Object value = yaml.get(key);
+    return matcherFromKeyAndYamlValue(key, value, isClass);
+  }
+
+  private ElementMatcher matcherFromKeyAndYamlValue(String key, Object value, boolean isClass) {
+    if (key.equals("and")) {
+      ElementMatcher.Junction matcher = ElementMatchers.any();
+      for (ElementMatcher sub : matcherListFromYaml(value, isClass)) {
+        matcher = matcher.and(sub);
+      }
+      return matcher;
+    } else if (key.equals("or")) {
+      ElementMatcher.Junction matcher = ElementMatchers.none();
+      for (ElementMatcher sub : matcherListFromYaml(value, isClass)) {
+        matcher = matcher.or(sub);
+      }
+      return matcher;
+    } else if (key.equals("not")) {
+      return ElementMatchers.not(matcherFromYaml(value, isClass));
+    } else if (key.equals("named")) {
+      return ElementMatchers.named(value.toString());
+    } else if (key.equals("nameMatches")) {
+      return ElementMatchers.nameMatches(value.toString());
+    }
+    if (isClass) {
+      if (key.equals("hasSuper")) {
+        return ElementMatchers.hasSuperType(ElementMatchers.named(value.toString()));
+      }
+    } else { // isMethod
+      if (key.equals("hasParameterCount")) {
+        return ElementMatchers.takesArguments(Integer.parseInt(value.toString()));
+      } else if (key.equals("hasParameterOfType")) {
+        String[] args = ((String) value).split("\\s+");
+        if (args.length != 2) {
+          throw new IllegalArgumentException(
+              "Expected <index> <typename> as fields of hasParameterOfType");
+        }
+        return ElementMatchers.takesArgument(
+            Integer.parseInt(args[0]), ElementMatchers.named(args[1]));
+      }
+    }
+    throw new IllegalArgumentException("Unknown yaml element: " + key);
   }
 
   private NocodeExpression toExpression(Object ruleNode) {

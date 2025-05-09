@@ -3630,15 +3630,15 @@ public class MetadataGenerator {
     instrumentations.add(
         splunkInstrumentation("jvm-metrics.splunk")
             .component("Java Platform", null)
-            .customMetric(
+            .bundledMetric(
                 "jvm.memory.allocated",
                 MetricInstrument.COUNTER,
                 "Approximate sum of heap allocations.")
-            .customMetric(
+            .bundledMetric(
                 "jvm.gc.pause.count",
                 MetricInstrument.COUNTER,
                 "Number of gc pauses. This metric will be removed in a future release.")
-            .customMetric(
+            .bundledMetric(
                 "jvm.gc.pause.totalTime",
                 MetricInstrument.COUNTER,
                 "Time spent in GC pause. This metric will be removed in a future release.")

@@ -30,6 +30,9 @@ import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
 
 public class MetadataGenerator {
+  private static final String BUNDLED_METRIC =
+      "APM bundled, if data points for the metric contain `telemetry.sdk.language` attribute.";
+  private static final String CUSTOM_METRIC = "Custom metric.";
 
   private static String getRequiredSystemProperty(String name) {
     String value = System.getProperty(name);
@@ -2301,38 +2304,38 @@ public class MetadataGenerator {
     root.put("metrics", metrics);
 
     metrics.add(
-        metric(
+        bundledMetric(
             "io.opentelemetry.sdk.trace",
             "queueSize",
             MetricInstrument.GAUGE,
             "The number of items queued"));
     metrics.add(
-        metric(
+        bundledMetric(
             "io.opentelemetry.sdk.trace",
             "processedSpans",
             MetricInstrument.COUNTER,
             "The number of spans processed by the BatchSpanProcessor. [dropped=true if they were dropped due to high throughput]"));
 
     metrics.add(
-        metric(
+        bundledMetric(
             "io.opentelemetry.sdk.logs",
             "queueSize",
             MetricInstrument.GAUGE,
             "The number of items queued"));
     metrics.add(
-        metric(
+        bundledMetric(
             "io.opentelemetry.sdk.logs",
             "processedLogs",
             MetricInstrument.COUNTER,
             "The number of logs processed by the BatchLogRecordProcessor. [dropped=true if they were dropped due to high throughput]"));
 
     metrics.add(
-        metric(
+        bundledMetric(
             "otlp.exporter.exported",
             MetricInstrument.COUNTER,
             "The number of items exported by the otlp exporter."));
     metrics.add(
-        metric(
+        bundledMetric(
             "otlp.exporter.seen",
             MetricInstrument.COUNTER,
             "The number of items seen by the otlp exporter."));
@@ -2396,699 +2399,699 @@ public class MetadataGenerator {
             .component("Apache Kafka Streams API", "0.11 and higher")
             // https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/instrumentation/kafka/kafka-clients/kafka-clients-2.6/library/README.md
             // these metrics are created by kafka, we only collect these as otel metrics
-            .metric(
+            .customMetric(
                 "kafka.consumer.assigned_partitions",
                 MetricInstrument.GAUGE,
                 "The number of partitions currently assigned to this consumer.")
-            .metric(
+            .customMetric(
                 "kafka.consumer.commit_latency_avg",
                 MetricInstrument.GAUGE,
                 "The average time taken for a commit request.")
-            .metric(
+            .customMetric(
                 "kafka.consumer.commit_latency_max",
                 MetricInstrument.GAUGE,
                 "The max time taken for a commit request.")
-            .metric(
+            .customMetric(
                 "kafka.consumer.commit_rate",
                 MetricInstrument.GAUGE,
                 "The number of commit calls per second.")
-            .metric(
+            .customMetric(
                 "kafka.consumer.commit_total",
                 MetricInstrument.COUNTER,
                 "The total number of commit calls.")
-            .metric(
+            .customMetric(
                 "kafka.consumer.failed_rebalance_rate_per_hour",
                 MetricInstrument.GAUGE,
                 "The number of failed rebalance events per hour.")
-            .metric(
+            .customMetric(
                 "kafka.consumer.failed_rebalance_total",
                 MetricInstrument.COUNTER,
                 "The total number of failed rebalance events.")
-            .metric(
+            .customMetric(
                 "kafka.consumer.heartbeat_rate",
                 MetricInstrument.GAUGE,
                 "The number of heartbeats per second.")
-            .metric(
+            .customMetric(
                 "kafka.consumer.heartbeat_response_time_max",
                 MetricInstrument.GAUGE,
                 "The max time taken to receive a response to a heartbeat request.")
-            .metric(
+            .customMetric(
                 "kafka.consumer.heartbeat_total",
                 MetricInstrument.COUNTER,
                 "The total number of heartbeats.")
-            .metric(
+            .customMetric(
                 "kafka.consumer.join_rate",
                 MetricInstrument.GAUGE,
                 "The number of group joins per second.")
-            .metric(
+            .customMetric(
                 "kafka.consumer.join_time_avg",
                 MetricInstrument.GAUGE,
                 "The average time taken for a group rejoin.")
-            .metric(
+            .customMetric(
                 "kafka.consumer.join_time_max",
                 MetricInstrument.GAUGE,
                 "The max time taken for a group rejoin.")
-            .metric(
+            .customMetric(
                 "kafka.consumer.join_total",
                 MetricInstrument.COUNTER,
                 "The total number of group joins.")
-            .metric(
+            .customMetric(
                 "kafka.consumer.last_heartbeat_seconds_ago",
                 MetricInstrument.GAUGE,
                 "The number of seconds since the last coordinator heartbeat was sent.")
-            .metric(
+            .customMetric(
                 "kafka.consumer.last_rebalance_seconds_ago",
                 MetricInstrument.GAUGE,
                 "The number of seconds since the last successful rebalance event.")
-            .metric(
+            .customMetric(
                 "kafka.consumer.partition_assigned_latency_avg",
                 MetricInstrument.GAUGE,
                 "The average time taken for a partition-assigned rebalance listener callback.")
-            .metric(
+            .customMetric(
                 "kafka.consumer.partition_assigned_latency_max",
                 MetricInstrument.GAUGE,
                 "The max time taken for a partition-assigned rebalance listener callback.")
-            .metric(
+            .customMetric(
                 "kafka.consumer.partition_lost_latency_avg",
                 MetricInstrument.GAUGE,
                 "The average time taken for a partition-lost rebalance listener callback.")
-            .metric(
+            .customMetric(
                 "kafka.consumer.partition_lost_latency_max",
                 MetricInstrument.GAUGE,
                 "The max time taken for a partition-lost rebalance listener callback.")
-            .metric(
+            .customMetric(
                 "kafka.consumer.partition_revoked_latency_avg",
                 MetricInstrument.GAUGE,
                 "The average time taken for a partition-revoked rebalance listener callback.")
-            .metric(
+            .customMetric(
                 "kafka.consumer.partition_revoked_latency_max",
                 MetricInstrument.GAUGE,
                 "The max time taken for a partition-revoked rebalance listener callback.")
-            .metric(
+            .customMetric(
                 "kafka.consumer.rebalance_latency_avg",
                 MetricInstrument.GAUGE,
                 "The average time taken for a group to complete a successful rebalance, which may be composed of several failed re-trials until it succeeded.")
-            .metric(
+            .customMetric(
                 "kafka.consumer.rebalance_latency_max",
                 MetricInstrument.GAUGE,
                 "The max time taken for a group to complete a successful rebalance, which may be composed of several failed re-trials until it succeeded.")
-            .metric(
+            .customMetric(
                 "kafka.consumer.rebalance_latency_total",
                 MetricInstrument.COUNTER,
                 "The total number of milliseconds this consumer has spent in successful rebalances since creation.")
-            .metric(
+            .customMetric(
                 "kafka.consumer.rebalance_rate_per_hour",
                 MetricInstrument.GAUGE,
                 "The number of successful rebalance events per hour, each event is composed of several failed re-trials until it succeeded.")
-            .metric(
+            .customMetric(
                 "kafka.consumer.rebalance_total",
                 MetricInstrument.COUNTER,
                 "The total number of successful rebalance events, each event is composed of several failed re-trials until it succeeded.")
-            .metric(
+            .customMetric(
                 "kafka.consumer.sync_rate",
                 MetricInstrument.GAUGE,
                 "The number of group syncs per second.")
-            .metric(
+            .customMetric(
                 "kafka.consumer.sync_time_avg",
                 MetricInstrument.GAUGE,
                 "The average time taken for a group sync.")
-            .metric(
+            .customMetric(
                 "kafka.consumer.sync_time_max",
                 MetricInstrument.GAUGE,
                 "The max time taken for a group sync.")
-            .metric(
+            .customMetric(
                 "kafka.consumer.sync_total",
                 MetricInstrument.COUNTER,
                 "The total number of group syncs.")
-            .metric(
+            .customMetric(
                 "kafka.consumer.bytes_consumed_rate",
                 MetricInstrument.GAUGE,
                 "The average number of bytes consumed per second.")
-            .metric(
+            .customMetric(
                 "kafka.consumer.bytes_consumed_total",
                 MetricInstrument.COUNTER,
                 "The total number of bytes consumed.")
-            .metric(
+            .customMetric(
                 "kafka.consumer.fetch_latency_avg",
                 MetricInstrument.GAUGE,
                 "The average time taken for a fetch request.")
-            .metric(
+            .customMetric(
                 "kafka.consumer.fetch_latency_max",
                 MetricInstrument.GAUGE,
                 "The max time taken for any fetch request.")
-            .metric(
+            .customMetric(
                 "kafka.consumer.fetch_rate",
                 MetricInstrument.GAUGE,
                 "The number of fetch requests per second.")
-            .metric(
+            .customMetric(
                 "kafka.consumer.fetch_size_avg",
                 MetricInstrument.GAUGE,
                 "The average number of bytes fetched per request.")
-            .metric(
+            .customMetric(
                 "kafka.consumer.fetch_size_max",
                 MetricInstrument.GAUGE,
                 "The maximum number of bytes fetched per request.")
-            .metric(
+            .customMetric(
                 "kafka.consumer.fetch_throttle_time_avg",
                 MetricInstrument.GAUGE,
                 "The average throttle time in ms.")
-            .metric(
+            .customMetric(
                 "kafka.consumer.fetch_throttle_time_max",
                 MetricInstrument.GAUGE,
                 "The maximum throttle time in ms.")
-            .metric(
+            .customMetric(
                 "kafka.consumer.fetch_total",
                 MetricInstrument.COUNTER,
                 "The total number of fetch requests.")
-            .metric(
+            .customMetric(
                 "kafka.consumer.records_consumed_rate",
                 MetricInstrument.GAUGE,
                 "The average number of records consumed per second.")
-            .metric(
+            .customMetric(
                 "kafka.consumer.records_consumed_total",
                 MetricInstrument.COUNTER,
                 "The total number of records consumed.")
-            .metric(
+            .customMetric(
                 "kafka.consumer.records_lag",
                 MetricInstrument.GAUGE,
                 "The latest lag of the partition.")
-            .metric(
+            .customMetric(
                 "kafka.consumer.records_lag_avg",
                 MetricInstrument.GAUGE,
                 "The average lag of the partition.")
-            .metric(
+            .customMetric(
                 "kafka.consumer.records_lag_max",
                 MetricInstrument.GAUGE,
                 "The maximum lag in terms of number of records for any partition in this window. NOTE: This is based on current offset and not committed offset.")
-            .metric(
+            .customMetric(
                 "kafka.consumer.records_lead",
                 MetricInstrument.GAUGE,
                 "The latest lead of the partition.")
-            .metric(
+            .customMetric(
                 "kafka.consumer.records_lead_avg",
                 MetricInstrument.GAUGE,
                 "The average lead of the partition.")
-            .metric(
+            .customMetric(
                 "kafka.consumer.records_lead_min",
                 MetricInstrument.GAUGE,
                 "The minimum lead in terms of number of records for any partition in this window.")
-            .metric(
+            .customMetric(
                 "kafka.consumer.records_per_request_avg",
                 MetricInstrument.GAUGE,
                 "The average number of records in each request.")
-            .metric(
+            .customMetric(
                 "kafka.consumer.commit_sync_time_ns_total",
                 MetricInstrument.COUNTER,
                 "The total time the consumer has spent in commitSync in nanoseconds.")
-            .metric(
+            .customMetric(
                 "kafka.consumer.committed_time_ns_total",
                 MetricInstrument.COUNTER,
                 "The total time the consumer has spent in committed in nanoseconds.")
-            .metric(
+            .customMetric(
                 "kafka.consumer.connection_close_rate",
                 MetricInstrument.GAUGE,
                 "The number of connections closed per second.")
-            .metric(
+            .customMetric(
                 "kafka.consumer.connection_close_total",
                 MetricInstrument.COUNTER,
                 "The total number of connections closed.")
-            .metric(
+            .customMetric(
                 "kafka.consumer.connection_count",
                 MetricInstrument.GAUGE,
                 "The current number of active connections.")
-            .metric(
+            .customMetric(
                 "kafka.consumer.connection_creation_rate",
                 MetricInstrument.GAUGE,
                 "The number of new connections established per second.")
-            .metric(
+            .customMetric(
                 "kafka.consumer.connection_creation_total",
                 MetricInstrument.COUNTER,
                 "The total number of new connections established.")
-            .metric(
+            .customMetric(
                 "kafka.consumer.failed_authentication_rate",
                 MetricInstrument.GAUGE,
                 "The number of connections with failed authentication per second.")
-            .metric(
+            .customMetric(
                 "kafka.consumer.failed_authentication_total",
                 MetricInstrument.COUNTER,
                 "The total number of connections with failed authentication.")
-            .metric(
+            .customMetric(
                 "kafka.consumer.failed_reauthentication_rate",
                 MetricInstrument.GAUGE,
                 "The number of failed re-authentication of connections per second.")
-            .metric(
+            .customMetric(
                 "kafka.consumer.failed_reauthentication_total",
                 MetricInstrument.COUNTER,
                 "The total number of failed re-authentication of connections.")
-            .metric(
+            .customMetric(
                 "kafka.consumer.io_ratio",
                 MetricInstrument.GAUGE,
                 " *Deprecated* The fraction of time the I/O thread spent doing I/O.")
-            .metric(
+            .customMetric(
                 "kafka.consumer.io_time_ns_avg",
                 MetricInstrument.GAUGE,
                 "The average length of time for I/O per select call in nanoseconds.")
-            .metric(
+            .customMetric(
                 "kafka.consumer.io_time_ns_total",
                 MetricInstrument.COUNTER,
                 "The total time the I/O thread spent doing I/O.")
-            .metric(
+            .customMetric(
                 "kafka.consumer.io_wait_ratio",
                 MetricInstrument.GAUGE,
                 "*Deprecated* The fraction of time the I/O thread spent waiting.")
-            .metric(
+            .customMetric(
                 "kafka.consumer.io_wait_time_ns_avg",
                 MetricInstrument.GAUGE,
                 "The average length of time the I/O thread spent waiting for a socket ready for reads or writes in nanoseconds.")
-            .metric(
+            .customMetric(
                 "kafka.consumer.io_wait_time_ns_total",
                 MetricInstrument.COUNTER,
                 "The total time the I/O thread spent waiting")
-            .metric(
+            .customMetric(
                 "kafka.consumer.io_waittime_total",
                 MetricInstrument.COUNTER,
                 "*Deprecated* The total time the I/O thread spent waiting.")
-            .metric(
+            .customMetric(
                 "kafka.consumer.iotime_total",
                 MetricInstrument.COUNTER,
                 "*Deprecated* The total time the I/O thread spent doing I/O.")
-            .metric(
+            .customMetric(
                 "kafka.consumer.last_poll_seconds_ago",
                 MetricInstrument.GAUGE,
                 "The number of seconds since the last poll() invocation.")
-            .metric(
+            .customMetric(
                 "kafka.consumer.network_io_rate",
                 MetricInstrument.GAUGE,
                 "The number of network operations (reads or writes) on all connections per second.")
-            .metric(
+            .customMetric(
                 "kafka.consumer.network_io_total",
                 MetricInstrument.COUNTER,
                 "The total number of network operations (reads or writes) on all connections.")
-            .metric(
+            .customMetric(
                 "kafka.consumer.poll_idle_ratio_avg",
                 MetricInstrument.GAUGE,
                 "The average fraction of time the consumer's poll() is idle as opposed to waiting for the user code to process records.")
-            .metric(
+            .customMetric(
                 "kafka.consumer.reauthentication_latency_avg",
                 MetricInstrument.GAUGE,
                 "The average latency observed due to re-authentication.")
-            .metric(
+            .customMetric(
                 "kafka.consumer.reauthentication_latency_max",
                 MetricInstrument.GAUGE,
                 "The max latency observed due to re-authentication.")
-            .metric(
+            .customMetric(
                 "kafka.consumer.select_rate",
                 MetricInstrument.GAUGE,
                 "The number of times the I/O layer checked for new I/O to perform per second.")
-            .metric(
+            .customMetric(
                 "kafka.consumer.select_total",
                 MetricInstrument.COUNTER,
                 "The total number of times the I/O layer checked for new I/O to perform.")
-            .metric(
+            .customMetric(
                 "kafka.consumer.successful_authentication_no_reauth_total",
                 MetricInstrument.COUNTER,
                 "The total number of connections with successful authentication where the client does not support re-authentication.")
-            .metric(
+            .customMetric(
                 "kafka.consumer.successful_authentication_rate",
                 MetricInstrument.GAUGE,
                 "The number of connections with successful authentication per second.")
-            .metric(
+            .customMetric(
                 "kafka.consumer.successful_authentication_total",
                 MetricInstrument.COUNTER,
                 "The total number of connections with successful authentication.")
-            .metric(
+            .customMetric(
                 "kafka.consumer.successful_reauthentication_rate",
                 MetricInstrument.GAUGE,
                 "The number of successful re-authentication of connections per second.")
-            .metric(
+            .customMetric(
                 "kafka.consumer.successful_reauthentication_total",
                 MetricInstrument.COUNTER,
                 "The total number of successful re-authentication of connections.")
-            .metric(
+            .customMetric(
                 "kafka.consumer.time_between_poll_avg",
                 MetricInstrument.GAUGE,
                 "The average delay between invocations of poll() in milliseconds.")
-            .metric(
+            .customMetric(
                 "kafka.consumer.time_between_poll_max",
                 MetricInstrument.GAUGE,
                 "The max delay between invocations of poll() in milliseconds.")
-            .metric(
+            .customMetric(
                 "kafka.consumer.incoming_byte_rate",
                 MetricInstrument.GAUGE,
                 "The number of bytes read off all sockets per second.")
-            .metric(
+            .customMetric(
                 "kafka.consumer.incoming_byte_total",
                 MetricInstrument.COUNTER,
                 "The total number of bytes read off all sockets.")
-            .metric(
+            .customMetric(
                 "kafka.consumer.outgoing_byte_rate",
                 MetricInstrument.GAUGE,
                 "The number of outgoing bytes sent to all servers per second.")
-            .metric(
+            .customMetric(
                 "kafka.consumer.outgoing_byte_total",
                 MetricInstrument.COUNTER,
                 "The total number of outgoing bytes sent to all servers.")
-            .metric(
+            .customMetric(
                 "kafka.consumer.request_latency_avg",
                 MetricInstrument.GAUGE,
                 "The average request latency in ms.")
-            .metric(
+            .customMetric(
                 "kafka.consumer.request_latency_max",
                 MetricInstrument.GAUGE,
                 "The maximum request latency in ms.")
-            .metric(
+            .customMetric(
                 "kafka.consumer.request_rate",
                 MetricInstrument.GAUGE,
                 "The number of requests sent per second.")
-            .metric(
+            .customMetric(
                 "kafka.consumer.request_size_avg",
                 MetricInstrument.GAUGE,
                 "The average size of requests sent.")
-            .metric(
+            .customMetric(
                 "kafka.consumer.request_size_max",
                 MetricInstrument.GAUGE,
                 "The maximum size of any request sent.")
-            .metric(
+            .customMetric(
                 "kafka.consumer.request_total",
                 MetricInstrument.COUNTER,
                 "The total number of requests sent.")
-            .metric(
+            .customMetric(
                 "kafka.consumer.response_rate",
                 MetricInstrument.GAUGE,
                 "The number of responses received per second.")
-            .metric(
+            .customMetric(
                 "kafka.consumer.response_total",
                 MetricInstrument.COUNTER,
                 "The total number of responses received.")
-            .metric(
+            .customMetric(
                 "kafka.producer.batch_size_avg",
                 MetricInstrument.GAUGE,
                 "The average number of bytes sent per partition per-request.")
-            .metric(
+            .customMetric(
                 "kafka.producer.batch_size_max",
                 MetricInstrument.GAUGE,
                 "The max number of bytes sent per partition per-request.")
-            .metric(
+            .customMetric(
                 "kafka.producer.batch_split_rate",
                 MetricInstrument.GAUGE,
                 "The average number of batch splits per second.")
-            .metric(
+            .customMetric(
                 "kafka.producer.batch_split_total",
                 MetricInstrument.COUNTER,
                 "The total number of batch splits.")
-            .metric(
+            .customMetric(
                 "kafka.producer.buffer_available_bytes",
                 MetricInstrument.GAUGE,
                 "The total amount of buffer memory that is not being used (either unallocated or in the free list).")
-            .metric(
+            .customMetric(
                 "kafka.producer.buffer_exhausted_rate",
                 MetricInstrument.GAUGE,
                 "The average per-second number of record sends that are dropped due to buffer exhaustion.")
-            .metric(
+            .customMetric(
                 "kafka.producer.buffer_exhausted_total",
                 MetricInstrument.COUNTER,
                 "The total number of record sends that are dropped due to buffer exhaustion.")
-            .metric(
+            .customMetric(
                 "kafka.producer.buffer_total_bytes",
                 MetricInstrument.GAUGE,
                 "The maximum amount of buffer memory the client can use (whether or not it is currently used).")
-            .metric(
+            .customMetric(
                 "kafka.producer.bufferpool_wait_ratio",
                 MetricInstrument.GAUGE,
                 "The fraction of time an appender waits for space allocation.")
-            .metric(
+            .customMetric(
                 "kafka.producer.bufferpool_wait_time_ns_total",
                 MetricInstrument.COUNTER,
                 "The total time in nanoseconds an appender waits for space allocation.")
-            .metric(
+            .customMetric(
                 "kafka.producer.bufferpool_wait_time_total",
                 MetricInstrument.COUNTER,
                 "*Deprecated* The total time an appender waits for space allocation.")
-            .metric(
+            .customMetric(
                 "kafka.producer.compression_rate_avg",
                 MetricInstrument.GAUGE,
                 "The average compression rate of record batches.")
-            .metric(
+            .customMetric(
                 "kafka.producer.connection_close_rate",
                 MetricInstrument.GAUGE,
                 "The number of connections closed per second.")
-            .metric(
+            .customMetric(
                 "kafka.producer.connection_close_total",
                 MetricInstrument.COUNTER,
                 "The total number of connections closed.")
-            .metric(
+            .customMetric(
                 "kafka.producer.connection_count",
                 MetricInstrument.GAUGE,
                 "The current number of active connections.")
-            .metric(
+            .customMetric(
                 "kafka.producer.connection_creation_rate",
                 MetricInstrument.GAUGE,
                 "The number of new connections established per second.")
-            .metric(
+            .customMetric(
                 "kafka.producer.connection_creation_total",
                 MetricInstrument.COUNTER,
                 "The total number of new connections established.")
-            .metric(
+            .customMetric(
                 "kafka.producer.failed_authentication_rate",
                 MetricInstrument.GAUGE,
                 "The number of connections with failed authentication per second.")
-            .metric(
+            .customMetric(
                 "kafka.producer.failed_authentication_total",
                 MetricInstrument.COUNTER,
                 "The total number of connections with failed authentication.")
-            .metric(
+            .customMetric(
                 "kafka.producer.failed_reauthentication_rate",
                 MetricInstrument.GAUGE,
                 "The number of failed re-authentication of connections per second.")
-            .metric(
+            .customMetric(
                 "kafka.producer.failed_reauthentication_total",
                 MetricInstrument.COUNTER,
                 "The total number of failed re-authentication of connections.")
-            .metric(
+            .customMetric(
                 "kafka.producer.flush_time_ns_total",
                 MetricInstrument.COUNTER,
                 "Total time producer has spent in flush in nanoseconds.")
-            .metric(
+            .customMetric(
                 "kafka.producer.io_ratio",
                 MetricInstrument.GAUGE,
                 "*Deprecated* The fraction of time the I/O thread spent doing I/O.")
-            .metric(
+            .customMetric(
                 "kafka.producer.io_time_ns_avg",
                 MetricInstrument.GAUGE,
                 "The average length of time for I/O per select call in nanoseconds.")
-            .metric(
+            .customMetric(
                 "kafka.producer.io_time_ns_total",
                 MetricInstrument.COUNTER,
                 "The total time the I/O thread spent doing I/O.")
-            .metric(
+            .customMetric(
                 "kafka.producer.io_wait_ratio",
                 MetricInstrument.GAUGE,
                 "*Deprecated* The fraction of time the I/O thread spent waiting.")
-            .metric(
+            .customMetric(
                 "kafka.producer.io_wait_time_ns_avg",
                 MetricInstrument.GAUGE,
                 "The average length of time the I/O thread spent waiting for a socket ready for reads or writes in nanoseconds.")
-            .metric(
+            .customMetric(
                 "kafka.producer.io_wait_time_ns_total",
                 MetricInstrument.COUNTER,
                 "The total time the I/O thread spent waiting.")
-            .metric(
+            .customMetric(
                 "kafka.producer.io_waittime_total",
                 MetricInstrument.COUNTER,
                 "*Deprecated* The total time the I/O thread spent waiting.")
-            .metric(
+            .customMetric(
                 "kafka.producer.iotime_total",
                 MetricInstrument.COUNTER,
                 "*Deprecated* The total time the I/O thread spent doing I/O.")
-            .metric(
+            .customMetric(
                 "kafka.producer.metadata_age",
                 MetricInstrument.GAUGE,
                 "The age in seconds of the current producer metadata being used.")
-            .metric(
+            .customMetric(
                 "kafka.producer.metadata_wait_time_ns_total",
                 MetricInstrument.COUNTER,
                 "Total time producer has spent waiting on topic metadata in nanoseconds.")
-            .metric(
+            .customMetric(
                 "kafka.producer.network_io_rate",
                 MetricInstrument.GAUGE,
                 "The number of network operations (reads or writes) on all connections per second.")
-            .metric(
+            .customMetric(
                 "kafka.producer.network_io_total",
                 MetricInstrument.COUNTER,
                 "The total number of network operations (reads or writes) on all connections.")
-            .metric(
+            .customMetric(
                 "kafka.producer.produce_throttle_time_avg",
                 MetricInstrument.GAUGE,
                 "The average time in ms a request was throttled by a broker.")
-            .metric(
+            .customMetric(
                 "kafka.producer.produce_throttle_time_max",
                 MetricInstrument.GAUGE,
                 "The maximum time in ms a request was throttled by a broker.")
-            .metric(
+            .customMetric(
                 "kafka.producer.reauthentication_latency_avg",
                 MetricInstrument.GAUGE,
                 "The average latency observed due to re-authentication.")
-            .metric(
+            .customMetric(
                 "kafka.producer.reauthentication_latency_max",
                 MetricInstrument.GAUGE,
                 "The max latency observed due to re-authentication.")
-            .metric(
+            .customMetric(
                 "kafka.producer.record_queue_time_avg",
                 MetricInstrument.GAUGE,
                 "The average time in ms record batches spent in the send buffer.")
-            .metric(
+            .customMetric(
                 "kafka.producer.record_queue_time_max",
                 MetricInstrument.GAUGE,
                 "The maximum time in ms record batches spent in the send buffer.")
-            .metric(
+            .customMetric(
                 "kafka.producer.record_size_avg",
                 MetricInstrument.GAUGE,
                 "The average record size.")
-            .metric(
+            .customMetric(
                 "kafka.producer.record_size_max",
                 MetricInstrument.GAUGE,
                 "The maximum record size.")
-            .metric(
+            .customMetric(
                 "kafka.producer.records_per_request_avg",
                 MetricInstrument.GAUGE,
                 "The average number of records per request.")
-            .metric(
+            .customMetric(
                 "kafka.producer.requests_in_flight",
                 MetricInstrument.GAUGE,
                 "The current number of in-flight requests awaiting a response.")
-            .metric(
+            .customMetric(
                 "kafka.producer.select_rate",
                 MetricInstrument.GAUGE,
                 "The number of times the I/O layer checked for new I/O to perform per second.")
-            .metric(
+            .customMetric(
                 "kafka.producer.select_total",
                 MetricInstrument.COUNTER,
                 "The total number of times the I/O layer checked for new I/O to perform.")
-            .metric(
+            .customMetric(
                 "kafka.producer.successful_authentication_no_reauth_total",
                 MetricInstrument.COUNTER,
                 "The total number of connections with successful authentication where the client does not support re-authentication.")
-            .metric(
+            .customMetric(
                 "kafka.producer.successful_authentication_rate",
                 MetricInstrument.GAUGE,
                 "The number of connections with successful authentication per second.")
-            .metric(
+            .customMetric(
                 "kafka.producer.successful_authentication_total",
                 MetricInstrument.COUNTER,
                 "The total number of connections with successful authentication.")
-            .metric(
+            .customMetric(
                 "kafka.producer.successful_reauthentication_rate",
                 MetricInstrument.GAUGE,
                 "The number of successful re-authentication of connections per second.")
-            .metric(
+            .customMetric(
                 "kafka.producer.successful_reauthentication_total",
                 MetricInstrument.COUNTER,
                 "The total number of successful re-authentication of connections.")
-            .metric(
+            .customMetric(
                 "kafka.producer.txn_abort_time_ns_total",
                 MetricInstrument.COUNTER,
                 "Total time producer has spent in abortTransaction in nanoseconds.")
-            .metric(
+            .customMetric(
                 "kafka.producer.txn_begin_time_ns_total",
                 MetricInstrument.COUNTER,
                 "Total time producer has spent in beginTransaction in nanoseconds.")
-            .metric(
+            .customMetric(
                 "kafka.producer.txn_commit_time_ns_total",
                 MetricInstrument.COUNTER,
                 "Total time producer has spent in commitTransaction in nanoseconds.")
-            .metric(
+            .customMetric(
                 "kafka.producer.txn_init_time_ns_total",
                 MetricInstrument.COUNTER,
                 "Total time producer has spent in initTransactions in nanoseconds.")
-            .metric(
+            .customMetric(
                 "kafka.producer.txn_send_offsets_time_ns_total",
                 MetricInstrument.COUNTER,
                 "Total time producer has spent in sendOffsetsToTransaction in nanoseconds.")
-            .metric(
+            .customMetric(
                 "kafka.producer.waiting_threads",
                 MetricInstrument.GAUGE,
                 "The number of user threads blocked waiting for buffer memory to enqueue their records.")
-            .metric(
+            .customMetric(
                 "kafka.producer.incoming_byte_rate",
                 MetricInstrument.GAUGE,
                 "The number of bytes read off all sockets per second.")
-            .metric(
+            .customMetric(
                 "kafka.producer.incoming_byte_total",
                 MetricInstrument.COUNTER,
                 "The total number of bytes read off all sockets.")
-            .metric(
+            .customMetric(
                 "kafka.producer.outgoing_byte_rate",
                 MetricInstrument.GAUGE,
                 "The number of outgoing bytes sent to all servers per second.")
-            .metric(
+            .customMetric(
                 "kafka.producer.outgoing_byte_total",
                 MetricInstrument.COUNTER,
                 "The total number of outgoing bytes sent to all servers.")
-            .metric(
+            .customMetric(
                 "kafka.producer.request_latency_avg",
                 MetricInstrument.GAUGE,
                 "The average request latency in ms.")
-            .metric(
+            .customMetric(
                 "kafka.producer.request_latency_max",
                 MetricInstrument.GAUGE,
                 "The maximum request latency in ms.")
-            .metric(
+            .customMetric(
                 "kafka.producer.request_rate",
                 MetricInstrument.GAUGE,
                 "The number of requests sent per second.")
-            .metric(
+            .customMetric(
                 "kafka.producer.request_size_avg",
                 MetricInstrument.GAUGE,
                 "The average size of requests sent.")
-            .metric(
+            .customMetric(
                 "kafka.producer.request_size_max",
                 MetricInstrument.GAUGE,
                 "The maximum size of any request sent.")
-            .metric(
+            .customMetric(
                 "kafka.producer.request_total",
                 MetricInstrument.COUNTER,
                 "The total number of requests sent.")
-            .metric(
+            .customMetric(
                 "kafka.producer.response_rate",
                 MetricInstrument.GAUGE,
                 "The number of responses received per second.")
-            .metric(
+            .customMetric(
                 "kafka.producer.response_total",
                 MetricInstrument.COUNTER,
                 "The total number of responses received.")
-            .metric(
+            .customMetric(
                 "kafka.producer.byte_rate",
                 MetricInstrument.GAUGE,
                 "The average number of bytes sent per second for a topic.")
-            .metric(
+            .customMetric(
                 "kafka.producer.byte_total",
                 MetricInstrument.COUNTER,
                 "The total number of bytes sent for a topic.")
-            .metric(
+            .customMetric(
                 "kafka.producer.compression_rate",
                 MetricInstrument.GAUGE,
                 "The average compression rate of record batches for a topic.")
-            .metric(
+            .customMetric(
                 "kafka.producer.record_error_rate",
                 MetricInstrument.GAUGE,
                 "The average per-second number of record sends that resulted in errors.")
-            .metric(
+            .customMetric(
                 "kafka.producer.record_error_total",
                 MetricInstrument.COUNTER,
                 "The total number of record sends that resulted in errors.")
-            .metric(
+            .customMetric(
                 "kafka.producer.record_retry_rate",
                 MetricInstrument.GAUGE,
                 "The average per-second number of retried record sends.")
-            .metric(
+            .customMetric(
                 "kafka.producer.record_retry_total",
                 MetricInstrument.COUNTER,
                 "The total number of retried record sends.")
-            .metric(
+            .customMetric(
                 "kafka.producer.record_send_rate",
                 MetricInstrument.GAUGE,
                 "The average number of records sent per second.")
-            .metric(
+            .customMetric(
                 "kafka.producer.record_send_total",
                 MetricInstrument.COUNTER,
                 "The total number of records sent.")
@@ -3289,72 +3292,73 @@ public class MetadataGenerator {
     instrumentations.add(
         instrumentation("runtime-telemetry")
             .component("Java Platform", null)
-            .metric(
+            .bundledMetric(
                 "jvm.class.loaded",
                 MetricInstrument.COUNTER,
                 "Number of classes loaded since JVM start.")
-            .metric(
+            .bundledMetric(
                 "jvm.class.unloaded",
                 MetricInstrument.COUNTER,
                 "Number of classes unloaded since JVM start.")
-            .metric(
+            .bundledMetric(
                 "jvm.class.count",
                 MetricInstrument.UP_DOWN_COUNTER,
                 "Number of classes currently loaded.")
-            .metric(
+            .bundledMetric(
                 "jvm.cpu.time",
                 MetricInstrument.COUNTER,
                 "CPU time used by the process as reported by the JVM.")
-            .metric(
+            .bundledMetric(
                 "jvm.cpu.count",
                 MetricInstrument.UP_DOWN_COUNTER,
                 "Number of processors available to the Java virtual machine.")
-            .metric(
+            .bundledMetric(
                 "jvm.cpu.recent_utilization",
                 MetricInstrument.GAUGE,
                 "Recent CPU utilization for the process as reported by the JVM.")
-            .metric(
+            .bundledMetric(
                 "jvm.gc.duration",
                 MetricInstrument.HISTOGRAM,
                 "Duration of JVM garbage collection actions.")
-            .metric("jvm.memory.used", MetricInstrument.UP_DOWN_COUNTER, "Measure of memory used.")
-            .metric(
+            .bundledMetric(
+                "jvm.memory.used", MetricInstrument.UP_DOWN_COUNTER, "Measure of memory used.")
+            .bundledMetric(
                 "jvm.memory.committed",
                 MetricInstrument.UP_DOWN_COUNTER,
                 "Measure of memory committed.")
-            .metric(
+            .bundledMetric(
                 "jvm.memory.limit",
                 MetricInstrument.UP_DOWN_COUNTER,
                 "Measure of max obtainable memory.")
-            .metric(
+            .bundledMetric(
                 "jvm.memory.used_after_last_gc",
                 MetricInstrument.UP_DOWN_COUNTER,
                 "Measure of memory used, as measured after the most recent garbage collection event on this pool.")
-            .metric(
+            .bundledMetric(
                 "jvm.thread.count",
                 MetricInstrument.UP_DOWN_COUNTER,
                 "Number of executing platform threads (disabled by default).")
-            .metric(
+            .customMetric(
                 "jvm.buffer.memory.used",
                 MetricInstrument.UP_DOWN_COUNTER,
                 "Measure of memory used by buffers (disabled by default).")
-            .metric(
+            .customMetric(
                 "jvm.buffer.memory.limit",
                 MetricInstrument.UP_DOWN_COUNTER,
                 "Measure of total memory capacity of buffers (disabled by default).")
-            .metric(
+            .customMetric(
                 "jvm.buffer.count",
                 MetricInstrument.UP_DOWN_COUNTER,
                 "Number of buffers in the pool (disabled by default).")
-            .metric(
+            .customMetric(
                 "jvm.system.cpu.load_1m",
                 MetricInstrument.GAUGE,
                 "Average CPU load of the whole system for the last minute as reported by the JVM (disabled by default).")
-            .metric(
+            .customMetric(
                 "jvm.system.cpu.utilization",
                 MetricInstrument.GAUGE,
                 "Recent CPU utilization for the whole system as reported by the JVM (disabled by default).")
-            .metric(
+            .customMetric(
                 "jvm.memory.init",
                 MetricInstrument.UP_DOWN_COUNTER,
                 "Measure of initial memory requested (disabled by default).")
@@ -3626,15 +3630,15 @@ public class MetadataGenerator {
     instrumentations.add(
         splunkInstrumentation("jvm-metrics.splunk")
             .component("Java Platform", null)
-            .metric(
+            .bundledMetric(
                 "jvm.memory.allocated",
                 MetricInstrument.COUNTER,
                 "Approximate sum of heap allocations.")
-            .metric(
+            .bundledMetric(
                 "jvm.gc.pause.count",
                 MetricInstrument.COUNTER,
                 "Number of gc pauses. This metric will be removed in a future release.")
-            .metric(
+            .bundledMetric(
                 "jvm.gc.pause.totalTime",
                 MetricInstrument.COUNTER,
                 "Time spent in GC pause. This metric will be removed in a future release.")
@@ -3778,7 +3782,6 @@ public class MetadataGenerator {
             .dependency(
                 "OpenTelemetry Java Instrumentation Spring Boot Resource Providers",
                 "https://github.com/open-telemetry/opentelemetry-java-instrumentation/tree/main/instrumentation/spring/spring-boot-resources/javaagent",
-                // FIXME package location will change for 2.3.0
                 "https://central.sonatype.com/artifact/io.opentelemetry.instrumentation/opentelemetry-spring-boot-resources",
                 otelJavaInstrumentationAlphaVersion,
                 Stability.EXPERIMENTAL)
@@ -3791,7 +3794,6 @@ public class MetadataGenerator {
             .dependency(
                 "OpenTelemetry Java Instrumentation Spring Boot Resource Providers",
                 "https://github.com/open-telemetry/opentelemetry-java-instrumentation/tree/main/instrumentation/spring/spring-boot-resources/javaagent",
-                // FIXME package location will change for 2.3.0
                 "https://central.sonatype.com/artifact/io.opentelemetry.instrumentation/opentelemetry-spring-boot-resources",
                 otelJavaInstrumentationAlphaVersion,
                 Stability.EXPERIMENTAL)
@@ -4065,16 +4067,25 @@ public class MetadataGenerator {
     return map;
   }
 
-  private static Map<String, Object> metric(
+  private static Map<String, Object> bundledMetric(
       String metricName, MetricInstrument instrument, String description) {
-    return metric(null, metricName, instrument, description);
+    return bundledMetric(null, metricName, instrument, description);
+  }
+
+  private static Map<String, Object> bundledMetric(
+      String instrumentationScopeName,
+      String metricName,
+      MetricInstrument instrument,
+      String description) {
+    return metric(instrumentationScopeName, metricName, instrument, description, BUNDLED_METRIC);
   }
 
   private static Map<String, Object> metric(
       String instrumentationScopeName,
       String metricName,
       MetricInstrument instrument,
-      String description) {
+      String description,
+      String categoryNotes) {
     Map<String, Object> map = new LinkedHashMap<>();
     if (instrumentationScopeName != null) {
       map.put("instrumentation_scope_name", instrumentationScopeName);
@@ -4082,6 +4093,7 @@ public class MetadataGenerator {
     map.put("metric_name", metricName);
     map.put("instrument", instrument.value());
     map.put("description", description);
+    map.put("category_notes", categoryNotes);
 
     return map;
   }
@@ -4160,26 +4172,38 @@ public class MetadataGenerator {
       return this;
     }
 
-    InstrumentationBuilder metric(String name, MetricInstrument instrument, String description) {
+    InstrumentationBuilder bundledMetric(
+        String name, MetricInstrument instrument, String description) {
+      return metric(name, instrument, description, BUNDLED_METRIC);
+    }
+
+    InstrumentationBuilder customMetric(
+        String name, MetricInstrument instrument, String description) {
+      return metric(name, instrument, description, CUSTOM_METRIC);
+    }
+
+    InstrumentationBuilder metric(
+        String name, MetricInstrument instrument, String description, String categoryNotes) {
       Map<String, Object> map = new LinkedHashMap<>();
       metrics.add(map);
       map.put("metric_name", name);
       map.put("instrument", instrument.value());
       map.put("description", description);
+      map.put("category_notes", categoryNotes);
 
       return this;
     }
 
     InstrumentationBuilder httpClientMetrics() {
-      metric(
+      bundledMetric(
           "http.client.request.duration",
           MetricInstrument.HISTOGRAM,
           "Duration of HTTP client requests.");
-      metric(
+      customMetric(
           "http.client.request.body.size",
           MetricInstrument.HISTOGRAM,
           "Size of HTTP client request bodies (disabled by default).");
-      metric(
+      customMetric(
           "http.client.response.body.size",
           MetricInstrument.HISTOGRAM,
           "Size of HTTP client response bodies (disabled by default).");
@@ -4188,19 +4212,19 @@ public class MetadataGenerator {
     }
 
     InstrumentationBuilder httpServerMetrics() {
-      metric(
+      bundledMetric(
           "http.server.request.duration",
           MetricInstrument.HISTOGRAM,
           "Duration of HTTP server requests.");
-      metric(
+      customMetric(
           "http.server.active_requests",
           MetricInstrument.UP_DOWN_COUNTER,
           "Number of active HTTP server requests (disabled by default).");
-      metric(
+      customMetric(
           "http.server.request.body.size",
           MetricInstrument.HISTOGRAM,
           "Size of HTTP server request bodies (disabled by default).");
-      metric(
+      customMetric(
           "http.server.response.body.size",
           MetricInstrument.HISTOGRAM,
           "Size of HTTP server response bodies (disabled by default).");
@@ -4209,7 +4233,7 @@ public class MetadataGenerator {
     }
 
     InstrumentationBuilder rpcClientMetrics() {
-      metric(
+      customMetric(
           "rpc.client.duration",
           MetricInstrument.HISTOGRAM,
           "The duration of an outbound RPC invocation.");
@@ -4218,7 +4242,7 @@ public class MetadataGenerator {
     }
 
     InstrumentationBuilder rpcServerMetrics() {
-      metric(
+      customMetric(
           "rpc.server.duration",
           MetricInstrument.HISTOGRAM,
           "The duration of an inbound RPC invocation.");
@@ -4227,7 +4251,7 @@ public class MetadataGenerator {
     }
 
     InstrumentationBuilder messagingPublisherMetrics() {
-      metric(
+      customMetric(
           "messaging.publish.duration",
           MetricInstrument.HISTOGRAM,
           "Measures the duration of publish operation.");
@@ -4236,11 +4260,11 @@ public class MetadataGenerator {
     }
 
     InstrumentationBuilder messagingConsumerMetrics() {
-      metric(
+      customMetric(
           "messaging.receive.duration",
           MetricInstrument.HISTOGRAM,
           "Measures the duration of receive operation.");
-      metric(
+      customMetric(
           "messaging.receive.messages",
           MetricInstrument.COUNTER,
           "Measures the number of received messages.");
@@ -4258,7 +4282,7 @@ public class MetadataGenerator {
 
     InstrumentationBuilder dbClientMetrics() {
       // only with stable semconv opt-in
-      metric(
+      customMetric(
           "db.client.operation.duration",
           MetricInstrument.HISTOGRAM,
           "Duration of database client operations.");
@@ -4267,11 +4291,11 @@ public class MetadataGenerator {
     }
 
     InstrumentationBuilder genAiClientMetrics() {
-      metric(
+      customMetric(
           "gen_ai.client.token.usage",
           MetricInstrument.HISTOGRAM,
           "Measures number of input and output tokens used.");
-      metric(
+      customMetric(
           "gen_ai.client.operation.duration",
           MetricInstrument.HISTOGRAM,
           "GenAI operation duration.");
@@ -4502,7 +4526,7 @@ public class MetadataGenerator {
     }
 
     public void add(InstrumentationBuilder builder) {
-      builder.metric(name, instrument, description);
+      builder.customMetric(name, instrument, description);
     }
   }
 }

@@ -26,7 +26,7 @@ import java.util.Map;
 import java.util.logging.Logger;
 
 @AutoService(AutoConfigurationCustomizerProvider.class)
-class SnapshotProfilingConfiguration implements AutoConfigurationCustomizerProvider {
+public class SnapshotProfilingConfiguration implements AutoConfigurationCustomizerProvider {
   private static final Logger logger =
       Logger.getLogger(SnapshotProfilingConfiguration.class.getName());
 

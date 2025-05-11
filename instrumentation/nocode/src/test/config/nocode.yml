@@ -22,7 +22,7 @@
 
 - class:
     or:
-      hasSuper: com.splunk.opentelemetry.instrumentation.nocode.NocodeInstrumentationTest$SampleClass
+      hasSuperType: com.splunk.opentelemetry.instrumentation.nocode.NocodeInstrumentationTest$SampleClass
       named: something.that.will.not.match.but.trivially.tests.the.or.Logic
   method:
     and:
@@ -37,7 +37,7 @@
 - class:
     and:
       nameMatches: .*nocode.*SampleClass
-      hasSuper: java.lang.Object
+      hasSuperType: java.lang.Object
   method:
      and:
        and:

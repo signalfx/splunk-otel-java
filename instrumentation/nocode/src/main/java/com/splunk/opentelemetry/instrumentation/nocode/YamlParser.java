@@ -24,6 +24,7 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -114,29 +115,49 @@ class YamlParser {
     if (yaml instanceof String) {
       return ElementMatchers.named(yaml.toString());
     }
-    return matcherFromYaml(yaml, true);
+    return matcherFromYaml(yaml, makeParsers(MatcherParser.hasSuperType));
   }
 
   private ElementMatcher<MethodDescription> methodMatcher(Object yaml) {
     if (yaml instanceof String) {
       return ElementMatchers.named(yaml.toString());
     }
-    return matcherFromYaml(yaml, false);
+    return matcherFromYaml(
+        yaml, makeParsers(MatcherParser.hasParameterCount, MatcherParser.hasParameterOfType));
   }
 
-  private List<ElementMatcher> matcherListFromYaml(Object yamlObject, boolean isClass) {
+  private static Map<String, MatcherParser> makeParsers(MatcherParser... extras) {
+    Map<String, MatcherParser> answer = new HashMap<>();
+    List<MatcherParser> parsers =
+        new ArrayList<>(
+            Arrays.asList(
+                MatcherParser.and,
+                MatcherParser.or,
+                MatcherParser.not,
+                MatcherParser.named,
+                MatcherParser.nameMatches));
+    parsers.addAll(Arrays.asList(extras));
+    for (MatcherParser mp : parsers) {
+      answer.put(mp.name(), mp);
+    }
+    return answer;
+  }
+
+  private static List<ElementMatcher> matcherListFromYaml(
+      Object yamlObject, Map<String, MatcherParser> parsers) {
     if (!(yamlObject instanceof Map)) {
       throw new IllegalArgumentException("Bare yaml value not expected: " + yamlObject);
     }
     Map<String, Object> yaml = (Map<String, Object>) yamlObject;
     ArrayList<ElementMatcher> answer = new ArrayList<>();
     for (String key : yaml.keySet()) {
-      answer.add(matcherFromKeyAndYamlValue(key, yaml.get(key), isClass));
+      answer.add(matcherFromKeyAndYamlValue(key, yaml.get(key), parsers));
     }
     return answer;
   }
 
-  private ElementMatcher matcherFromYaml(Object yamlObject, boolean isClass) {
+  private static ElementMatcher matcherFromYaml(
+      Object yamlObject, Map<String, MatcherParser> parsers) {
     if (!(yamlObject instanceof Map)) {
       throw new IllegalArgumentException("Bare yaml value not expected: " + yamlObject);
     }
@@ -146,37 +167,64 @@ class YamlParser {
     }
     String key = yaml.keySet().iterator().next();
     Object value = yaml.get(key);
-    return matcherFromKeyAndYamlValue(key, value, isClass);
+    return matcherFromKeyAndYamlValue(key, value, parsers);
   }
 
-  private ElementMatcher matcherFromKeyAndYamlValue(String key, Object value, boolean isClass) {
-    if (key.equals("and")) {
-      ElementMatcher.Junction matcher = ElementMatchers.any();
-      for (ElementMatcher sub : matcherListFromYaml(value, isClass)) {
-        matcher = matcher.and(sub);
-      }
-      return matcher;
-    } else if (key.equals("or")) {
-      ElementMatcher.Junction matcher = ElementMatchers.none();
-      for (ElementMatcher sub : matcherListFromYaml(value, isClass)) {
-        matcher = matcher.or(sub);
-      }
-      return matcher;
-    } else if (key.equals("not")) {
-      return ElementMatchers.not(matcherFromYaml(value, isClass));
-    } else if (key.equals("named")) {
-      return ElementMatchers.named(value.toString());
-    } else if (key.equals("nameMatches")) {
-      return ElementMatchers.nameMatches(value.toString());
+  private static ElementMatcher matcherFromKeyAndYamlValue(
+      String key, Object value, Map<String, MatcherParser> parsers) {
+    MatcherParser parser = parsers.get(key);
+    if (parser == null) {
+      throw new IllegalArgumentException("Unknown yaml element: " + key);
     }
-    if (isClass) {
-      if (key.equals("hasSuper")) {
+    return parser.parse(value, parsers);
+  }
+
+  enum MatcherParser {
+    not {
+      ElementMatcher parse(Object value, Map<String, MatcherParser> parsers) {
+        return ElementMatchers.not(matcherFromYaml(value, parsers));
+      }
+    },
+    and {
+      ElementMatcher parse(Object value, Map<String, MatcherParser> parsers) {
+        ElementMatcher.Junction matcher = ElementMatchers.any();
+        for (ElementMatcher sub : matcherListFromYaml(value, parsers)) {
+          matcher = matcher.and(sub);
+        }
+        return matcher;
+      }
+    },
+    or {
+      ElementMatcher parse(Object value, Map<String, MatcherParser> parsers) {
+        ElementMatcher.Junction matcher = ElementMatchers.none();
+        for (ElementMatcher sub : matcherListFromYaml(value, parsers)) {
+          matcher = matcher.or(sub);
+        }
+        return matcher;
+      }
+    },
+    named {
+      ElementMatcher parse(Object value, Map<String, MatcherParser> parsers) {
+        return ElementMatchers.named(value.toString());
+      }
+    },
+    nameMatches {
+      ElementMatcher parse(Object value, Map<String, MatcherParser> parsers) {
+        return ElementMatchers.nameMatches(value.toString());
+      }
+    },
+    hasSuperType {
+      ElementMatcher parse(Object value, Map<String, MatcherParser> parsers) {
         return ElementMatchers.hasSuperType(ElementMatchers.named(value.toString()));
       }
-    } else { // isMethod
-      if (key.equals("hasParameterCount")) {
+    },
+    hasParameterCount {
+      ElementMatcher parse(Object value, Map<String, MatcherParser> parsers) {
         return ElementMatchers.takesArguments(Integer.parseInt(value.toString()));
-      } else if (key.equals("hasParameterOfType")) {
+      }
+    },
+    hasParameterOfType {
+      ElementMatcher parse(Object value, Map<String, MatcherParser> parsers) {
         String[] args = ((String) value).split("\\s+");
         if (args.length != 2) {
           throw new IllegalArgumentException(
@@ -185,8 +233,9 @@ class YamlParser {
         return ElementMatchers.takesArgument(
             Integer.parseInt(args[0]), ElementMatchers.named(args[1]));
       }
-    }
-    throw new IllegalArgumentException("Unknown yaml element: " + key);
+    };
+
+    abstract ElementMatcher parse(Object value, Map<String, MatcherParser> parsers);
   }
 
   private NocodeExpression toExpression(Object ruleNode) {

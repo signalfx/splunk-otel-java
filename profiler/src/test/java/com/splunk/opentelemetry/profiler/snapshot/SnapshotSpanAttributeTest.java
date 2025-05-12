@@ -72,7 +72,8 @@ class SnapshotSpanAttributeTest {
           var remoteParentSpan = Span.wrap(remoteSpanContext);
           try (var ignored4 = Context.current().with(remoteParentSpan).makeCurrent()) {
             var downstreamEntry = (ReadWriteSpan) tracer.spanBuilder("downstreamEntry").startSpan();
-            var attribute = downstreamEntry.getAttribute(AttributeKey.booleanKey("splunk.snapshot.profiling"));
+            var attribute =
+                downstreamEntry.getAttribute(AttributeKey.booleanKey("splunk.snapshot.profiling"));
             assertThat(attribute).isTrue();
           }
         }

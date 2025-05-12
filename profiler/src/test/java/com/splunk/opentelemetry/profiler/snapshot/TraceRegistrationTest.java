@@ -83,11 +83,7 @@ class TraceRegistrationTest {
   void onlyUnregisterTraceForProfilingWhenEntrySpanEnds(Tracer tracer) {
     try (var ignored = Context.current().with(Volume.HIGHEST).makeCurrent()) {
       var root = tracer.spanBuilder("root").startSpan();
-      var child =
-          tracer
-              .spanBuilder("child")
-              .setParent(Context.current().with(root))
-              .startSpan();
+      var child = tracer.spanBuilder("child").setParent(Context.current().with(root)).startSpan();
       child.end();
       assertThat(registry.isRegistered(root.getSpanContext())).isTrue();
     }

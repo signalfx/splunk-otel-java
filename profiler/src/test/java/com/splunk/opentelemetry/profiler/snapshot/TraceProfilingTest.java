@@ -112,10 +112,7 @@ class TraceProfilingTest {
               .setSpanKind(SpanKind.CLIENT)
               .setParent(Context.current().with(root))
               .startSpan();
-      tracer
-          .spanBuilder("span")
-          .setParent(Context.current().with(client))
-          .startSpan();
+      tracer.spanBuilder("span").setParent(Context.current().with(client)).startSpan();
       assertThat(sampler.isBeingSampled(root.getSpanContext())).isFalse();
     }
   }

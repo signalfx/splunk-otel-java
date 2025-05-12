@@ -18,12 +18,12 @@ package com.splunk.opentelemetry.profiler.snapshot;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import io.opentelemetry.api.trace.SpanKind;
+import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.sdk.autoconfigure.OpenTelemetrySdkExtension;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
-import org.junit.jupiter.params.ParameterizedTest;
 
 class TraceRegistrationTest {
   private final TraceRegistry registry = new TraceRegistry();
@@ -37,59 +37,55 @@ class TraceRegistrationTest {
           .with(customizer)
           .build();
 
-  @ParameterizedTest
-  @SpanKinds.Entry
-  void registerTraceForProfilingWhenRootSpanStarts(SpanKind kind, Tracer tracer) {
+  @Test
+  void registerTraceForProfilingWhenRootSpanStarts(Tracer tracer) {
     try (var ignored = Context.current().with(Volume.HIGHEST).makeCurrent()) {
-      var root = tracer.spanBuilder("root").setSpanKind(kind).startSpan();
+      var root = tracer.spanBuilder("root").startSpan();
       assertThat(registry.isRegistered(root.getSpanContext())).isTrue();
     }
   }
 
-  @ParameterizedTest
-  @SpanKinds.NonEntry
-  void onlyRegisterTraceForProfilingWhenRootSpanIsEntrySpan(SpanKind kind, Tracer tracer) {
-    try (var ignored = Context.current().with(Volume.HIGHEST).makeCurrent()) {
-      var root = tracer.spanBuilder("root").setSpanKind(kind).startSpan();
-      assertThat(registry.isRegistered(root.getSpanContext())).isFalse();
+  @Test
+  void registerTraceForProfilingWhenDownstreamEntryStarts(Tracer tracer) {
+    var remoteSpanContext = Snapshotting.spanContext().remote().build();
+    var remoteParent = Span.wrap(remoteSpanContext);
+
+    try (var ignored = Context.current().with(Volume.HIGHEST).with(remoteParent).makeCurrent()) {
+      var root = tracer.spanBuilder("root").startSpan();
+      assertThat(registry.isRegistered(root.getSpanContext())).isTrue();
     }
   }
 
-  @ParameterizedTest
-  @SpanKinds.Entry
-  void unregisterTraceForProfilingWhenEntrySpanEnds(SpanKind kind, Tracer tracer) {
+  @Test
+  void unregisterTraceForProfilingWhenEntrySpanEnds(Tracer tracer) {
     try (var ignored = Context.current().with(Volume.HIGHEST).makeCurrent()) {
-      var root = tracer.spanBuilder("root").setSpanKind(kind).startSpan();
+      var root = tracer.spanBuilder("root").startSpan();
       root.end();
       assertThat(registry.isRegistered(root.getSpanContext())).isFalse();
     }
   }
 
-  @ParameterizedTest
-  @SpanKinds.Entry
-  void doNotRegisterTraceForProfilingWhenSnapshotVolumeIsOff(SpanKind kind, Tracer tracer) {
+  @Test
+  void doNotRegisterTraceForProfilingWhenSnapshotVolumeIsOff(Tracer tracer) {
     try (var ignored = Context.current().with(Volume.OFF).makeCurrent()) {
-      var root = tracer.spanBuilder("root").setSpanKind(kind).startSpan();
+      var root = tracer.spanBuilder("root").startSpan();
       assertThat(registry.isRegistered(root.getSpanContext())).isFalse();
     }
   }
 
-  @ParameterizedTest
-  @SpanKinds.Entry
-  void doNotRegisterTraceForProfilingWhenSnapshotVolumeIsNotfound(SpanKind kind, Tracer tracer) {
-    var root = tracer.spanBuilder("root").setSpanKind(kind).startSpan();
+  @Test
+  void doNotRegisterTraceForProfilingWhenSnapshotVolumeIsNotfound(Tracer tracer) {
+    var root = tracer.spanBuilder("root").startSpan();
     assertThat(registry.isRegistered(root.getSpanContext())).isFalse();
   }
 
-  @ParameterizedTest
-  @SpanKinds.NonEntry
-  void onlyUnregisterTraceForProfilingWhenEntrySpanEnds(SpanKind kind, Tracer tracer) {
+  @Test
+  void onlyUnregisterTraceForProfilingWhenEntrySpanEnds(Tracer tracer) {
     try (var ignored = Context.current().with(Volume.HIGHEST).makeCurrent()) {
-      var root = tracer.spanBuilder("root").setSpanKind(SpanKind.SERVER).startSpan();
+      var root = tracer.spanBuilder("root").startSpan();
       var child =
           tracer
               .spanBuilder("child")
-              .setSpanKind(kind)
               .setParent(Context.current().with(root))
               .startSpan();
       child.end();

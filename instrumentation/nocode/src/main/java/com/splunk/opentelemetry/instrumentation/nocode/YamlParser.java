@@ -19,8 +19,10 @@ package com.splunk.opentelemetry.instrumentation.nocode;
 import com.splunk.opentelemetry.javaagent.bootstrap.nocode.NocodeExpression;
 import com.splunk.opentelemetry.javaagent.bootstrap.nocode.NocodeRules;
 import io.opentelemetry.api.trace.SpanKind;
-import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.Reader;
+import java.io.StringReader;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -42,28 +44,37 @@ import org.snakeyaml.engine.v2.api.LoadSettings;
 
 class YamlParser {
   private static final Logger logger = Logger.getLogger(YamlParser.class.getName());
-  // FUTURE support method override selection - e.g., with classfile method signature or something
-  private static final String NOCODE_YMLFILE = "splunk.otel.instrumentation.nocode.yml.file";
-
   private final List<NocodeRules.Rule> instrumentationRules;
   private JexlEvaluator evaluator;
 
-  YamlParser(ConfigProperties config) {
-    instrumentationRules = Collections.unmodifiableList(new ArrayList<>(load(config)));
+  public static List<NocodeRules.Rule> parseFromFile(String yamlFileName) {
+    if (yamlFileName == null || yamlFileName.trim().isEmpty()) {
+      return Collections.emptyList();
+    }
+    try {
+      try (Reader reader = Files.newBufferedReader(Paths.get(yamlFileName.trim()))) {
+        return new YamlParser(reader).getInstrumentationRules();
+      }
+    } catch (IOException e) {
+      logger.log(Level.SEVERE, "Can't load configured nocode yaml.", e);
+      return Collections.emptyList();
+    }
+  }
+  public static List<NocodeRules.Rule> parseFromString(String yaml) {
+    return new YamlParser(new StringReader(yaml)).getInstrumentationRules();
+  }
+
+  YamlParser(Reader reader) {
+    instrumentationRules = Collections.unmodifiableList(new ArrayList<>(loadFromReader(reader)));
   }
 
   public List<NocodeRules.Rule> getInstrumentationRules() {
     return instrumentationRules;
   }
 
-  private List<NocodeRules.Rule> load(ConfigProperties config) {
-    String yamlFileName = config.getString(NOCODE_YMLFILE);
-    if (yamlFileName == null || yamlFileName.trim().isEmpty()) {
-      return Collections.emptyList();
-    }
-
+  private List<NocodeRules.Rule> loadFromReader(Reader reader) {
     try {
-      return loadUnsafe(yamlFileName);
+      return loadUnsafe(reader);
     } catch (Exception e) {
       logger.log(Level.SEVERE, "Can't load configured nocode yaml.", e);
       return Collections.emptyList();
@@ -71,40 +82,38 @@ class YamlParser {
   }
 
   @SuppressWarnings("unchecked")
-  private List<NocodeRules.Rule> loadUnsafe(String yamlFileName) throws Exception {
+  private List<NocodeRules.Rule> loadUnsafe(Reader reader) throws Exception {
     List<NocodeRules.Rule> answer = new ArrayList<>();
-    try (InputStream inputStream = Files.newInputStream(Paths.get(yamlFileName.trim()))) {
-      Load load = new Load(LoadSettings.builder().build());
-      Iterable<Object> parsedYaml = load.loadAllFromInputStream(inputStream);
-      for (Object yamlBit : parsedYaml) {
-        List<Map<String, Object>> rulesMap = (List<Map<String, Object>>) yamlBit;
-        for (Map<String, Object> yamlRule : rulesMap) {
-          // FUTURE support more complex class selection (inherits-from, etc.)
-          ElementMatcher<TypeDescription> classMatcher = classMatcher(yamlRule.get("class"));
-          ElementMatcher<MethodDescription> methodMatcher = methodMatcher(yamlRule.get("method"));
-          NocodeExpression spanName = toExpression(yamlRule.get("spanName"));
-          SpanKind spanKind = null;
-          if (yamlRule.get("spanKind") != null) {
-            String spanKindString = yamlRule.get("spanKind").toString();
-            try {
-              spanKind = SpanKind.valueOf(spanKindString.toUpperCase(Locale.ROOT));
-            } catch (IllegalArgumentException exception) {
-              logger.warning("Invalid span kind " + spanKindString);
-            }
+    Load load = new Load(LoadSettings.builder().build());
+    Iterable<Object> parsedYaml = load.loadAllFromReader(reader);
+    for (Object yamlBit : parsedYaml) {
+      List<Map<String, Object>> rulesMap = (List<Map<String, Object>>) yamlBit;
+      for (Map<String, Object> yamlRule : rulesMap) {
+        // FUTURE support more complex class selection (inherits-from, etc.)
+        ElementMatcher<TypeDescription> classMatcher = classMatcher(yamlRule.get("class"));
+        ElementMatcher<MethodDescription> methodMatcher = methodMatcher(yamlRule.get("method"));
+        NocodeExpression spanName = toExpression(yamlRule.get("spanName"));
+        SpanKind spanKind = null;
+        if (yamlRule.get("spanKind") != null) {
+          String spanKindString = yamlRule.get("spanKind").toString();
+          try {
+            spanKind = SpanKind.valueOf(spanKindString.toUpperCase(Locale.ROOT));
+          } catch (IllegalArgumentException exception) {
+            logger.warning("Invalid span kind " + spanKindString);
           }
-          NocodeExpression spanStatus = toExpression(yamlRule.get("spanStatus"));
-
-          Map<String, NocodeExpression> ruleAttributes = new HashMap<>();
-          List<Map<String, Object>> attrs = (List<Map<String, Object>>) yamlRule.get("attributes");
-          if (attrs != null) {
-            for (Map<String, Object> attr : attrs) {
-              ruleAttributes.put(attr.get("key").toString(), toExpression(attr.get("value")));
-            }
-          }
-          answer.add(
-              new NocodeRules.Rule(
-                  classMatcher, methodMatcher, spanName, spanKind, spanStatus, ruleAttributes));
         }
+        NocodeExpression spanStatus = toExpression(yamlRule.get("spanStatus"));
+
+        Map<String, NocodeExpression> ruleAttributes = new HashMap<>();
+        List<Map<String, Object>> attrs = (List<Map<String, Object>>) yamlRule.get("attributes");
+        if (attrs != null) {
+          for (Map<String, Object> attr : attrs) {
+            ruleAttributes.put(attr.get("key").toString(), toExpression(attr.get("value")));
+          }
+        }
+        answer.add(
+            new NocodeRules.Rule(
+                classMatcher, methodMatcher, spanName, spanKind, spanStatus, ruleAttributes));
       }
     }
 

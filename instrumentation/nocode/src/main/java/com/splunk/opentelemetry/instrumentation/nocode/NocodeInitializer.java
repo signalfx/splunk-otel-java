@@ -23,14 +23,17 @@ import com.splunk.opentelemetry.javaagent.bootstrap.nocode.NocodeRules;
 import io.opentelemetry.javaagent.tooling.BeforeAgentListener;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
+import java.util.List;
 
 @AutoService(BeforeAgentListener.class)
 public class NocodeInitializer implements BeforeAgentListener {
+  private static final String NOCODE_YMLFILE = "splunk.otel.instrumentation.nocode.yml.file";
 
   @Override
   public void beforeAgent(AutoConfiguredOpenTelemetrySdk autoConfiguredOpenTelemetrySdk) {
     ConfigProperties config = getConfig(autoConfiguredOpenTelemetrySdk);
-    YamlParser yp = new YamlParser(config);
-    NocodeRules.setGlobalRules(yp.getInstrumentationRules());
+    String yamlFileName = config.getString(NOCODE_YMLFILE);
+    List<NocodeRules.Rule> instrumentationRules = YamlParser.parseFromFile(yamlFileName);
+    NocodeRules.setGlobalRules(instrumentationRules);
   }
 }

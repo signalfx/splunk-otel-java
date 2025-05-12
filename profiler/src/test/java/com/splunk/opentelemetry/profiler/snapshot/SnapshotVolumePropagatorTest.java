@@ -19,18 +19,16 @@ package com.splunk.opentelemetry.profiler.snapshot;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.splunk.opentelemetry.profiler.snapshot.SnapshotVolumePropagatorTest.ToggleableSnapshotSelector.State;
-import io.opentelemetry.api.baggage.Baggage;
-import io.opentelemetry.api.trace.Tracer;
+import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.context.Context;
-import io.opentelemetry.sdk.autoconfigure.OpenTelemetrySdkExtension;
 import java.util.Collections;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
+import org.junit.jupiter.params.provider.EnumSource.Mode;
 
 class SnapshotVolumePropagatorTest {
-  @RegisterExtension
-  public final OpenTelemetrySdkExtension sdk = OpenTelemetrySdkExtension.configure().build();
-
   @RegisterExtension public final ObservableCarrier carrier = new ObservableCarrier();
 
   private final ToggleableSnapshotSelector selector = new ToggleableSnapshotSelector();
@@ -42,47 +40,64 @@ class SnapshotVolumePropagatorTest {
   }
 
   @Test
-  void attachVolumeToBaggageWhenBeginningOfTraceDetected() {
-    var context = Context.current();
+  void selectTraceForSnapshottingByAttachingHighestVolumeToBaggage() {
+    selector.toggle(State.ON);
 
-    var contextFromPropagator = propagator.extract(context, carrier, carrier);
+    var contextFromPropagator = propagator.extract(Context.root(), carrier, carrier);
 
     var volume = Volume.from(contextFromPropagator);
     assertEquals(Volume.HIGHEST, volume);
   }
 
   @Test
-  void doNotAttachVolumeToBaggageWhenTraceHasAlreadyStarted(Tracer tracer) {
-    var span = tracer.spanBuilder("span").startSpan();
-    var context = Context.current().with(span);
-
-    var contextFromPropagator = propagator.extract(context, carrier, carrier);
-
-    var baggage = Baggage.fromContext(contextFromPropagator);
-    assertEquals(Baggage.empty(), baggage);
-  }
-
-  @Test
-  void doNotAttachVolumeToBaggageWhenTraceIsNotSelectedForSnapshotting() {
+  void rejectTraceForSnapshottingByAttachingOffVolumeToBaggage() {
     selector.toggle(State.OFF);
-    var context = Context.current();
+
+    var contextFromPropagator = propagator.extract(Context.root(), carrier, carrier);
+
+    var volume = Volume.from(contextFromPropagator);
+    assertEquals(Volume.OFF, volume);
+  }
+
+  @ParameterizedTest
+  @EnumSource(value = Volume.class, mode = Mode.EXCLUDE, names = "UNSPECIFIED")
+  void retainTraceSelectionDecisionFromUpstreamServices(Volume volume) {
+    var spanContext = Snapshotting.spanContext().remote().build();
+    var parentSpan = Span.wrap(spanContext);
+    var context = Context.root().with(parentSpan).with(volume);
 
     var contextFromPropagator = propagator.extract(context, carrier, carrier);
 
-    var baggage = Baggage.fromContext(contextFromPropagator);
-    assertEquals(Baggage.empty(), baggage);
+    var volumeFromContext = Volume.from(contextFromPropagator);
+    assertEquals(volume, volumeFromContext);
   }
 
   @Test
-  void leaveBaggageUnalteredWhenVolumeEntryDetected(Tracer tracer) {
-    var span = tracer.spanBuilder("span").startSpan();
-    var context = Context.current().with(Volume.HIGHEST).with(span);
-    var baggage = Baggage.fromContext(context);
+  void selectTraceForSnapshottingDecisionLeftUndecidedAndTraceIsSelected() {
+    selector.toggle(State.ON);
+
+    var spanContext = Snapshotting.spanContext().remote().build();
+    var parentSpan = Span.wrap(spanContext);
+    var context = Context.root().with(parentSpan);
 
     var contextFromPropagator = propagator.extract(context, carrier, carrier);
 
-    var baggageAfterPropagator = Baggage.fromContext(contextFromPropagator);
-    assertEquals(baggage, baggageAfterPropagator);
+    var volumeFromContext = Volume.from(contextFromPropagator);
+    assertEquals(Volume.HIGHEST, volumeFromContext);
+  }
+
+  @Test
+  void rejectTraceForSnapshottingWhenDecisionLeftUndecidedButTraceIsRejected() {
+    selector.toggle(State.OFF);
+
+    var spanContext = Snapshotting.spanContext().remote().build();
+    var parentSpan = Span.wrap(spanContext);
+    var context = Context.root().with(parentSpan);
+
+    var contextFromPropagator = propagator.extract(context, carrier, carrier);
+
+    var volumeFromContext = Volume.from(contextFromPropagator);
+    assertEquals(Volume.OFF, volumeFromContext);
   }
 
   static class ToggleableSnapshotSelector implements SnapshotSelector {

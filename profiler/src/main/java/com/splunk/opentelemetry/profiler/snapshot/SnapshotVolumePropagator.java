@@ -16,7 +16,6 @@
 
 package com.splunk.opentelemetry.profiler.snapshot;
 
-import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.context.propagation.TextMapGetter;
 import io.opentelemetry.context.propagation.TextMapPropagator;
@@ -40,23 +39,24 @@ class SnapshotVolumePropagator implements TextMapPropagator {
   public <C> void inject(Context context, C carrier, TextMapSetter<C> setter) {}
 
   /**
-   * We're attempting to infer the start of a trace by inspecting the provided {@link Context}, and
-   * if so make a decision whether to select the trace for snapshotting. We will not have a trace ID
-   * at this time so we'll communicate the snapshotting decision to later instrumentation steps by
-   * placing an entry in OpenTelemetry's {@link io.opentelemetry.api.baggage.Baggage}. <br>
-   * <br>
-   * If we're somewhere downstream of the trace root we leave the {@link Context} unchanged.
+   * Make a decision whether a trace should be selected for snapshotting if --and only if -- that
+   * decision has not yet been made by an upstream service. Ideally a snapshotting decision will
+   * have been made only at trace root, however there are many scenarios (e.g. RUM, or language
+   * agents without snapshot support) where a trace will begin without a decision. In those
+   * instances we would like to snapshot as much of the trace as possible.
+   * <p/>
+   * Not seen here in the introduction of {@link TraceIdBasedSnapshotSelector} which will
+   * deterministically select a trace based on the Trace ID value so that all participating and
+   * capable agents can make the same snapshotting decision, if necessary.
    */
   @Override
   public <C> Context extract(Context context, C carrier, TextMapGetter<C> getter) {
-    System.out.println(context);
-    if (isTraceRoot(context) && selector.select(context)) {
-      return context.with(Volume.HIGHEST);
+    Volume volume = Volume.from(context);
+    if (volume != Volume.UNSPECIFIED) {
+      return context;
     }
-    return context;
-  }
 
-  private boolean isTraceRoot(Context context) {
-    return Span.fromContextOrNull(context) == null;
+    volume = selector.select(context) ? Volume.HIGHEST : Volume.OFF;
+    return context.with(volume);
   }
 }

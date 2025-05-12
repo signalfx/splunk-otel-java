@@ -24,14 +24,16 @@ import io.opentelemetry.context.Context;
 import java.util.Locale;
 import java.util.stream.Stream;
 import net.bytebuddy.utility.RandomString;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.EnumSource;
+import org.junit.jupiter.params.provider.EnumSource.Mode;
 import org.junit.jupiter.params.provider.MethodSource;
 
 class VolumeTest {
   @ParameterizedTest
-  @EnumSource(Volume.class)
+  @EnumSource(value = Volume.class, mode = Mode.EXCLUDE, names = { "UNSPECIFIED" })
   void toStringRepresentation(Volume volume) {
     assertEquals(volume.name().toLowerCase(Locale.ROOT), volume.toString());
   }
@@ -68,20 +70,22 @@ class VolumeTest {
         Arguments.of(Volume.HIGHEST, "hıghest"));
   }
 
-  @ParameterizedTest
-  @MethodSource("notVolumes")
-  void fromContextReturnsOffWhenMatchNotFound(String value) {
-    var baggage = Baggage.builder().put("splunk.trace.snapshot.volume", value).build();
+  @Test
+  void fromContextReturnsUnspecifiedWhenMatchNotFound() {
+    var baggage = Baggage.builder().build();
+    var context = Context.current().with(baggage);
+    assertEquals(Volume.UNSPECIFIED, Volume.from(context));
+  }
+
+  @Test
+  void fromContextReturnsOffUnsupportedValueFound() {
+    var baggage = Baggage.builder().put("splunk.trace.snapshot.volume", "not-a-volume").build();
     var context = Context.current().with(baggage);
     assertEquals(Volume.OFF, Volume.from(context));
   }
 
-  private static Stream<Arguments> notVolumes() {
-    return Stream.of(Arguments.of("not-a-volume"), Arguments.of((String) null));
-  }
-
   @ParameterizedTest
-  @EnumSource(Volume.class)
+  @EnumSource(value = Volume.class, mode = Mode.EXCLUDE, names = { "UNSPECIFIED" })
   void storeBaggageRepresentationInOpenTelemetryContext(Volume volume) {
     var context = Context.current().with(volume);
     var baggage = Baggage.fromContext(context);
@@ -92,7 +96,7 @@ class VolumeTest {
   }
 
   @ParameterizedTest
-  @EnumSource(Volume.class)
+  @EnumSource(value = Volume.class, mode = Mode.EXCLUDE, names = { "UNSPECIFIED" })
   void respectPreviousBaggageEntriesOpenTelemetryContext(Volume volume) {
     var baggageKey = "existing-baggage-entry";
     var baggageValue = RandomString.make();

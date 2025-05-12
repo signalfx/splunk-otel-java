@@ -94,7 +94,7 @@ class SnapshotVolumePropagatorTest {
     private State state = State.ON;
 
     @Override
-    public boolean select() {
+    public boolean select(Context context) {
       return state == State.ON;
     }
 

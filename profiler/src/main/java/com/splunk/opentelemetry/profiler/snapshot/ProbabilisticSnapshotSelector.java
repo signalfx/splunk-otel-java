@@ -16,6 +16,7 @@
 
 package com.splunk.opentelemetry.profiler.snapshot;
 
+import io.opentelemetry.context.Context;
 import java.util.concurrent.ThreadLocalRandom;
 
 class ProbabilisticSnapshotSelector implements SnapshotSelector {
@@ -26,7 +27,7 @@ class ProbabilisticSnapshotSelector implements SnapshotSelector {
   }
 
   @Override
-  public boolean select() {
+  public boolean select(Context context) {
     ThreadLocalRandom random = ThreadLocalRandom.current();
     return random.nextDouble() <= selectionRate;
   }

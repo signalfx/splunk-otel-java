@@ -16,6 +16,8 @@
 
 package com.splunk.opentelemetry.profiler.snapshot;
 
+import io.opentelemetry.context.Context;
+
 interface SnapshotSelector {
-  boolean select();
+  boolean select(Context context);
 }

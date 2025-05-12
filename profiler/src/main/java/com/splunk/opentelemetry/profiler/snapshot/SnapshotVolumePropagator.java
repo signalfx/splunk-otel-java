@@ -49,7 +49,7 @@ class SnapshotVolumePropagator implements TextMapPropagator {
    */
   @Override
   public <C> Context extract(Context context, C carrier, TextMapGetter<C> getter) {
-    if (isTraceRoot(context) && selector.select()) {
+    if (isTraceRoot(context) && selector.select(context)) {
       return context.with(Volume.HIGHEST);
     }
     return context;

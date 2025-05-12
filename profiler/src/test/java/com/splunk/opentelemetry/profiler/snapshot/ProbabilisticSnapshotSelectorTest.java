@@ -21,6 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.ArrayList;
 import java.util.List;
+import io.opentelemetry.context.Context;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
@@ -71,7 +72,7 @@ class ProbabilisticSnapshotSelectorTest {
   void processTraces() {
     int selected = 0;
     for (int i = 0; i < TRACES_PER_ITERATIONS; i++) {
-      if (selector.select()) {
+      if (selector.select(Context.root())) {
         selected++;
       }
     }

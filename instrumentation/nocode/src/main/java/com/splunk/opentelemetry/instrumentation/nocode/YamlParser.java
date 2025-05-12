@@ -59,6 +59,7 @@ class YamlParser {
       return Collections.emptyList();
     }
   }
+
   public static List<NocodeRules.Rule> parseFromString(String yaml) {
     return new YamlParser(new StringReader(yaml)).getInstrumentationRules();
   }

@@ -1,7 +1,3 @@
-//plugins {
-//  id("splunk.instrumentation-conventions")
-//}
-
 dependencies {
   testImplementation(project(":bootstrap"))
   testImplementation(project(":instrumentation:nocode"))

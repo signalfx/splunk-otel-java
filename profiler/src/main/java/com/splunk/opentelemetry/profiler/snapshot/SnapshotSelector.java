@@ -17,7 +17,16 @@
 package com.splunk.opentelemetry.profiler.snapshot;
 
 import io.opentelemetry.context.Context;
+import java.util.function.Predicate;
 
-interface SnapshotSelector {
+interface SnapshotSelector extends Predicate<Context> {
+  default SnapshotSelector or(SnapshotSelector other) {
+    return context -> select(context) || other.select(context);
+  }
+
+  default boolean test(Context context) {
+    return select(context);
+  }
+
   boolean select(Context context);
 }

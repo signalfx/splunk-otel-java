@@ -29,8 +29,8 @@ public final class NocodeRules {
     private static final AtomicInteger counter = new AtomicInteger();
 
     private final int id = counter.incrementAndGet();
-    private final Object classMatcher;
-    private final Object methodMatcher;
+    private final Object classMatcher; // ElementMatcher
+    private final Object methodMatcher; // ElementMatcher
     private final NocodeExpression spanName; // may be null - use default of "class.method"
     private final SpanKind spanKind; // may be null
     private final NocodeExpression spanStatus; // may be null, should return string from StatusCodes
@@ -71,10 +71,16 @@ public final class NocodeRules {
       return id;
     }
 
+    /**
+     * @return an ElementMatcher, disguised as an Object for classloader reasons
+     */
     public Object getClassMatcher() {
       return classMatcher;
     }
 
+    /**
+     * @return an ElementMatcher, disguised as an Object for classloader reasons
+     */
     public Object getMethodMatcher() {
       return methodMatcher;
     }

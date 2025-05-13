@@ -89,7 +89,6 @@ class YamlParser {
     for (Object yamlBit : parsedYaml) {
       List<Map<String, Object>> rulesMap = (List<Map<String, Object>>) yamlBit;
       for (Map<String, Object> yamlRule : rulesMap) {
-        // FUTURE support more complex class selection (inherits-from, etc.)
         ElementMatcher<TypeDescription> classMatcher = classMatcher(yamlRule.get("class"));
         ElementMatcher<MethodDescription> methodMatcher = methodMatcher(yamlRule.get("method"));
         NocodeExpression spanName = toExpression(yamlRule.get("spanName"));

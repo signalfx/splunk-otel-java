@@ -16,6 +16,7 @@
 
 package com.splunk.opentelemetry.profiler.snapshot;
 
+import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.context.Context;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -28,7 +29,15 @@ class ProbabilisticSnapshotSelector implements SnapshotSelector {
 
   @Override
   public boolean select(Context context) {
+    if (!isTraceRoot(context)) {
+      return false;
+    }
+
     ThreadLocalRandom random = ThreadLocalRandom.current();
     return random.nextDouble() <= selectionRate;
+  }
+
+  private boolean isTraceRoot(Context context) {
+    return Span.fromContextOrNull(context) == null;
   }
 }

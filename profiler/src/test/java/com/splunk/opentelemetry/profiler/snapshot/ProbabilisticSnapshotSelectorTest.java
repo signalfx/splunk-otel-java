@@ -21,6 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.ArrayList;
 import java.util.List;
+import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.context.Context;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.MethodOrderer;
@@ -103,5 +104,27 @@ class ProbabilisticSnapshotSelectorTest {
     int upper = (int) (expectedSelectionsPerIteration * 1.1);
     int lower = (int) (expectedSelectionsPerIteration * .9);
     return OUTCOMES.stream().filter(i -> i < lower || i > upper).count();
+  }
+
+  @Test
+  void selectRootTrace() {
+    var selector = new ProbabilisticSnapshotSelector(100.0);
+    assertThat(selector.select(Context.root())).isTrue();
+  }
+
+  @Test
+  void rejectRootTrace() {
+    var selector = new ProbabilisticSnapshotSelector(0.0);
+    assertThat(selector.select(Context.root())).isFalse();
+  }
+
+  @Test
+  void alwaysRejectWhenNotTraceRoot() {
+    var spanContext = Snapshotting.spanContext().remote().build();
+    var parentSpan = Span.wrap(spanContext);
+    var context = Context.root().with(parentSpan);
+
+    var selector = new ProbabilisticSnapshotSelector(100.0);
+    assertThat(selector.select(context)).isFalse();
   }
 }

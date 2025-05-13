@@ -153,7 +153,6 @@ class YamlParser {
 
   private static List<ElementMatcher> matcherListFromYaml(
       Object yamlObject, Map<String, MatcherParser> parsers) {
-    System.out.println("LIST TYPE " + yamlObject.getClass().getName());
     if (!(yamlObject instanceof List)) {
       throw new IllegalArgumentException("Yaml list value expected: " + yamlObject);
     }

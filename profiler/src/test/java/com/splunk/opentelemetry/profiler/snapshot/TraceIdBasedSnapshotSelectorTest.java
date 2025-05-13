@@ -4,12 +4,27 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.context.Context;
+import io.opentelemetry.sdk.trace.IdGenerator;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
 class TraceIdBasedSnapshotSelectorTest {
+
+  public static void main(String[] args) {
+    boolean keepGoing = true;
+    while (keepGoing) {
+      var traceId = IdGenerator.random().generateTraceId();
+      int hash = traceId.hashCode();
+      int asPercent = hash % 100;
+      if (asPercent == -10) {
+        System.out.println(traceId);
+        keepGoing = false;
+      }
+    }
+  }
+
   @Test
   void doNotSelectTraceWhenRoot() {
     var context = Context.root();

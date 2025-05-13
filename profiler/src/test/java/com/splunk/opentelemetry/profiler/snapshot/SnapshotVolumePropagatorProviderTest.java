@@ -26,8 +26,11 @@ import io.opentelemetry.sdk.autoconfigure.spi.internal.DefaultConfigProperties;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Map;
-import org.junit.jupiter.api.Nested;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 class SnapshotVolumePropagatorProviderTest {
   private final SnapshotVolumePropagatorProvider provider = new SnapshotVolumePropagatorProvider();
@@ -43,47 +46,48 @@ class SnapshotVolumePropagatorProviderTest {
     assertEquals("splunk-snapshot", provider.getName());
   }
 
-  @Nested
-  class ProvidedPropagatorTest {
-    private final ObservableCarrier carrier = new ObservableCarrier();
+  /**
+   * Has a roughly 0.0025% chance to fail.
+   */
+  @Test
+  void probabilisticSelectorIsConfigured() {
+    var properties = DefaultConfigProperties.create(Map.of(
+        "splunk.snapshot.selection.rate", "0.10"
+    ));
 
-    /**
-     * Has a roughly 0.0025% chance to fail.
-     */
-    @Test
-    void probabilisticSelectorIsConfigured() {
-      var properties = DefaultConfigProperties.create(Map.of(
-          "splunk.snapshot.selection.rate", "0.10"
-      ));
+    var carrier = new ObservableCarrier();
+    var propagator = provider.getPropagator(properties);
 
-      var propagator = provider.getPropagator(properties);
-
-      var volumes = new ArrayList<Volume>();
-      for (int i = 0; i < 100; i++) {
-        var contextFromPropagator = propagator.extract(Context.root(), carrier, carrier);
-        var volume = Volume.from(contextFromPropagator);
-        volumes.add(volume);
-      }
-
-      assertThat(volumes).contains(Volume.HIGHEST);
-    }
-
-    @Test
-    void traceIdSelectorIsConfigured() {
-      var properties = DefaultConfigProperties.create(Map.of(
-          "splunk.snapshot.selection.rate", "0.10"
-      ));
-
-      var traceId = "a8f977212c67f101f0cfd1adafaa405a";
-      var remoteSpanContext = Snapshotting.spanContext().withTraceId(traceId).remote().build();
-      var remoteParentSpan = Span.wrap(remoteSpanContext);
-      var context = Context.root().with(remoteParentSpan);
-
-      var propagator = provider.getPropagator(properties);
-      var contextFromPropagator = propagator.extract(context, carrier, carrier);
+    var volumes = new ArrayList<Volume>();
+    for (int i = 0; i < 100; i++) {
+      var contextFromPropagator = propagator.extract(Context.root(), carrier, carrier);
       var volume = Volume.from(contextFromPropagator);
-
-      assertEquals(Volume.HIGHEST, volume);
+      volumes.add(volume);
     }
+
+    assertThat(volumes).contains(Volume.HIGHEST);
+  }
+
+  @ParameterizedTest
+  @MethodSource("traceIdsToSelect")
+  void traceIdSelectorIsConfigured(String traceId) {
+    var properties = DefaultConfigProperties.create(Map.of(
+        "splunk.snapshot.selection.rate", "0.10"
+    ));
+
+    var remoteSpanContext = Snapshotting.spanContext().withTraceId(traceId).remote().build();
+    var remoteParentSpan = Span.wrap(remoteSpanContext);
+    var context = Context.root().with(remoteParentSpan);
+
+    var carrier = new ObservableCarrier();
+    var propagator = provider.getPropagator(properties);
+    var contextFromPropagator = propagator.extract(context, carrier, carrier);
+    var volume = Volume.from(contextFromPropagator);
+
+    assertEquals(Volume.HIGHEST, volume);
+  }
+
+  private static Stream<String> traceIdsToSelect() {
+    return IntStream.range(-10, 11).mapToObj(SpecialTraceIds::forPercentile);
   }
 }

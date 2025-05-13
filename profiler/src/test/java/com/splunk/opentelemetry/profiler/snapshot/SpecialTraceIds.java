@@ -1,6 +1,11 @@
 package com.splunk.opentelemetry.profiler.snapshot;
 
+import io.opentelemetry.sdk.trace.IdGenerator;
+import java.util.ArrayDeque;
 import java.util.Map;
+import java.util.Queue;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 class SpecialTraceIds {
   /**
@@ -223,6 +228,38 @@ class SpecialTraceIds {
       Map.entry(98, "54b46a7da6653ec553e60b72ca52f56a"),
       Map.entry(99, "2852dffbf85fd78857853a4aad57f029")
   );
+
+  @Test
+  @Disabled
+  void generateTraceIds() {
+    Queue<Integer> ids = new ArrayDeque<>();
+    for (int i = -99; i <= 99; i++) {
+      ids.add(i);
+    }
+
+    var string = new StringBuilder();
+    string.append("private static final Map<Integer, String> TRACE_IDS = Map.ofEntries(");
+    while (!ids.isEmpty()) {
+      int percentile = ids.remove();
+
+      boolean keepGoing = true;
+      while (keepGoing) {
+        var traceId = IdGenerator.random().generateTraceId();
+        int hash = traceId.hashCode();
+        int asPercent = hash % 100;
+        if (asPercent == percentile) {
+          string.append("\n    Map.entry(" + percentile + ", \"" + traceId + "\")");
+          if (!ids.isEmpty()) {
+            string.append(",");
+          }
+          keepGoing = false;
+        }
+      }
+    }
+    string.append("\n};");
+
+    System.out.println(string);
+  }
 
   private SpecialTraceIds() {}
 }

@@ -154,13 +154,14 @@ class YamlParser {
 
   private static List<ElementMatcher> matcherListFromYaml(
       Object yamlObject, Map<String, MatcherParser> parsers) {
-    if (!(yamlObject instanceof Map)) {
-      throw new IllegalArgumentException("Bare yaml value not expected: " + yamlObject);
+    System.out.println("LIST TYPE " + yamlObject.getClass().getName());
+    if (!(yamlObject instanceof List)) {
+      throw new IllegalArgumentException("Yaml list value expected: " + yamlObject);
     }
-    Map<String, Object> yaml = (Map<String, Object>) yamlObject;
+    List<Object> yaml = (List<Object>) yamlObject;
     ArrayList<ElementMatcher> answer = new ArrayList<>();
-    for (String key : yaml.keySet()) {
-      answer.add(matcherFromKeyAndYamlValue(key, yaml.get(key), parsers));
+    for (Object sub : yaml) {
+      answer.add(matcherFromYaml(sub, parsers));
     }
     return answer;
   }

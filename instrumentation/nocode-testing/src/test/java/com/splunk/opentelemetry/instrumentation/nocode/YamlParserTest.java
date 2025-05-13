@@ -34,21 +34,21 @@ class YamlParserTest {
       strings = {
         "class: fooButNoWrappingYamlList\n" + "  method: thisWillNotWork",
         "- class:\n"
-            + "    named: cannotUseMultipleNameClauses\n"
-            + "    nameMatches: withoutAnAndOrOr.*\n"
+            + "    - named: cannotUseMultipleNameClauses\n"
+            + "    - nameMatches: withoutAnAndOrOr.*\n"
             + "  method: someMethodName",
         "- class:\n" + "    hasParameterCount: 1\n" + "  method: someMethodName\n",
         "- class:\n" + "    hasParameterOfType: 0 int\n" + "  method: someMethodName\n",
-        "- class:\n" + "    and:\n" + "  method: someMethodName\n",
+        "- class:\n" + "    and:\n" + "  method: someMethodName\n", // no clauses in and:
         "- class:\n"
             + "    or:\n"
-            + "      not:\n"
-            + "        named: singleRuleExpected\n"
-            + "        nameMatches: underANot.*\n"
+            + "      - not:\n"
+            + "          named: singleRuleExpected\n"
+            + "          nameMatches: underANot.*\n"
             + "  method: someMethodName\n",
         "- class:\n"
             + "    or:\n"
-            + "      not: bareValueOnlySupportedForSimpleClassNames\n"
+            + "      - not: bareValueOnlySupportedForSimpleClassNames\n"
             + "  method: someMethodName\n",
         "- class: someClassName\n"
             + "  method:\n"

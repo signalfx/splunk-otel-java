@@ -8,7 +8,10 @@ class TraceIdBasedSnapshotSelector implements SnapshotSelector {
   private final int percentile;
 
   TraceIdBasedSnapshotSelector(double selectionRate) {
-    this.percentile = (int) selectionRate * 100;
+    if (selectionRate < 0.0 || selectionRate > 1.0) {
+      throw new IllegalArgumentException("Selection rate must be between 0.0 and 1.0.");
+    }
+    this.percentile = (int)(selectionRate * 100);
   }
 
   @Override
@@ -20,6 +23,6 @@ class TraceIdBasedSnapshotSelector implements SnapshotSelector {
 
     int hash = Math.abs(spanContext.getTraceId().hashCode());
     int tracePercentile = hash % 100;
-    return tracePercentile <= (percentile * 100);
+    return tracePercentile <= percentile;
   }
 }

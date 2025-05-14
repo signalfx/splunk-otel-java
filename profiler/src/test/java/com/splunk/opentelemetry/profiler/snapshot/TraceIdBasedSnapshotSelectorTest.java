@@ -1,6 +1,7 @@
 package com.splunk.opentelemetry.profiler.snapshot;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.context.Context;
@@ -9,8 +10,15 @@ import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 class TraceIdBasedSnapshotSelectorTest {
+  @ParameterizedTest
+  @ValueSource(doubles = { -0.01, 1.01 } )
+  void requireSelectionRateBetween0_0And1_0(double selectionRate) {
+    assertThrows(IllegalArgumentException.class, () -> new TraceIdBasedSnapshotSelector(selectionRate));
+  }
+
   @Test
   void doNotSelectTraceWhenRoot() {
     var context = Context.root();

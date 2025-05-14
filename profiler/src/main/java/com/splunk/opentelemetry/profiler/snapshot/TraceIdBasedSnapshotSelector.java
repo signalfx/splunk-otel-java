@@ -19,7 +19,7 @@ class TraceIdBasedSnapshotSelector implements SnapshotSelector {
     }
 
     int hash = Math.abs(spanContext.getTraceId().hashCode());
-    int asPercent = hash % 100;
-    return asPercent <= (selectionRate * 100);
+    int percentile = hash % 100;
+    return percentile <= (selectionRate * 100);
   }
 }

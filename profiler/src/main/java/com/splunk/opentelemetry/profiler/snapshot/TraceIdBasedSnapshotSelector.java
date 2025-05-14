@@ -5,10 +5,10 @@ import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.context.Context;
 
 class TraceIdBasedSnapshotSelector implements SnapshotSelector {
-  private final double selectionRate;
+  private final int percentile;
 
   TraceIdBasedSnapshotSelector(double selectionRate) {
-    this.selectionRate = selectionRate;
+    this.percentile = (int) selectionRate * 100;
   }
 
   @Override
@@ -19,7 +19,7 @@ class TraceIdBasedSnapshotSelector implements SnapshotSelector {
     }
 
     int hash = Math.abs(spanContext.getTraceId().hashCode());
-    int percentile = hash % 100;
-    return percentile <= (selectionRate * 100);
+    int tracePercentile = hash % 100;
+    return tracePercentile <= (percentile * 100);
   }
 }

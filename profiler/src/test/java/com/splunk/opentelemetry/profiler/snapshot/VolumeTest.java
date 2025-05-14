@@ -33,7 +33,10 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 class VolumeTest {
   @ParameterizedTest
-  @EnumSource(value = Volume.class, mode = Mode.EXCLUDE, names = { "UNSPECIFIED" })
+  @EnumSource(
+      value = Volume.class,
+      mode = Mode.EXCLUDE,
+      names = {"UNSPECIFIED"})
   void toStringRepresentation(Volume volume) {
     assertEquals(volume.name().toLowerCase(Locale.ROOT), volume.toString());
   }
@@ -85,7 +88,10 @@ class VolumeTest {
   }
 
   @ParameterizedTest
-  @EnumSource(value = Volume.class, mode = Mode.EXCLUDE, names = { "UNSPECIFIED" })
+  @EnumSource(
+      value = Volume.class,
+      mode = Mode.EXCLUDE,
+      names = {"UNSPECIFIED"})
   void storeBaggageRepresentationInOpenTelemetryContext(Volume volume) {
     var context = Context.current().with(volume);
     var baggage = Baggage.fromContext(context);
@@ -96,7 +102,10 @@ class VolumeTest {
   }
 
   @ParameterizedTest
-  @EnumSource(value = Volume.class, mode = Mode.EXCLUDE, names = { "UNSPECIFIED" })
+  @EnumSource(
+      value = Volume.class,
+      mode = Mode.EXCLUDE,
+      names = {"UNSPECIFIED"})
   void respectPreviousBaggageEntriesOpenTelemetryContext(Volume volume) {
     var baggageKey = "existing-baggage-entry";
     var baggageValue = RandomString.make();

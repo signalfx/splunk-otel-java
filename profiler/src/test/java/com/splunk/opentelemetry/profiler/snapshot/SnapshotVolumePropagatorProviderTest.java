@@ -46,14 +46,11 @@ class SnapshotVolumePropagatorProviderTest {
     assertEquals("splunk-snapshot", provider.getName());
   }
 
-  /**
-   * Has a roughly 0.0025% chance to fail.
-   */
+  /** Has a roughly 0.0025% chance to fail. */
   @Test
   void probabilisticSelectorIsConfigured() {
-    var properties = DefaultConfigProperties.create(Map.of(
-        "splunk.snapshot.selection.rate", "0.10"
-    ));
+    var properties =
+        DefaultConfigProperties.create(Map.of("splunk.snapshot.selection.rate", "0.10"));
 
     var carrier = new ObservableCarrier();
     var propagator = provider.getPropagator(properties);
@@ -71,9 +68,8 @@ class SnapshotVolumePropagatorProviderTest {
   @ParameterizedTest
   @MethodSource("traceIdsToSelect")
   void traceIdSelectorIsConfigured(String traceId) {
-    var properties = DefaultConfigProperties.create(Map.of(
-        "splunk.snapshot.selection.rate", "0.10"
-    ));
+    var properties =
+        DefaultConfigProperties.create(Map.of("splunk.snapshot.selection.rate", "0.10"));
 
     var remoteSpanContext = Snapshotting.spanContext().withTraceId(traceId).remote().build();
     var remoteParentSpan = Span.wrap(remoteSpanContext);

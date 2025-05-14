@@ -44,8 +44,8 @@ class SnapshotVolumePropagator implements TextMapPropagator {
    * have been made only at trace root, however there are many scenarios (e.g. RUM, or language
    * agents without snapshot support) where a trace will begin without a decision. In those
    * instances we would like to snapshot as much of the trace as possible.
-   * <p/>
-   * Not seen here in the introduction of {@link TraceIdBasedSnapshotSelector} which will
+   *
+   * <p>Not seen here in the introduction of {@link TraceIdBasedSnapshotSelector} which will
    * deterministically select a trace based on the Trace ID value so that all participating and
    * capable agents can make the same snapshotting decision, if necessary.
    */

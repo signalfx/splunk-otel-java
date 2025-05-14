@@ -8,8 +8,8 @@ class TraceIdBasedSnapshotSelector implements SnapshotSelector {
   private final int percentile;
 
   TraceIdBasedSnapshotSelector(double selectionRate) {
-    if (selectionRate < 0.0 || selectionRate > 1.0) {
-      throw new IllegalArgumentException("Selection rate must be between 0.0 and 1.0.");
+    if (selectionRate < 0 || selectionRate > 1) {
+      throw new IllegalArgumentException("Selection rate must be between 0 and 1.");
     }
     this.percentile = (int)(selectionRate * 100);
   }

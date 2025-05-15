@@ -27,9 +27,14 @@ public class SnapshotVolumePropagatorProvider implements ConfigurablePropagatorP
   public static final String NAME = "splunk-snapshot";
 
   @Override
-  public TextMapPropagator getPropagator(ConfigProperties config) {
-    double snapshotSelectionRate = Configuration.getSnapshotSelectionRate(config);
-    return new SnapshotVolumePropagator(new ProbabilisticSnapshotSelector(snapshotSelectionRate));
+  public TextMapPropagator getPropagator(ConfigProperties properties) {
+    double snapshotSelectionRate = Configuration.getSnapshotSelectionRate(properties);
+    return new SnapshotVolumePropagator(selector(snapshotSelectionRate));
+  }
+
+  private SnapshotSelector selector(double selectionRate) {
+    return new TraceIdBasedSnapshotSelector(selectionRate)
+        .or(new ProbabilisticSnapshotSelector(selectionRate));
   }
 
   @Override

@@ -34,6 +34,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import net.bytebuddy.description.NamedElement;
 import net.bytebuddy.description.method.MethodDescription;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.matcher.ElementMatcher;
@@ -152,20 +153,20 @@ class YamlParser {
     return answer;
   }
 
-  private static List<ElementMatcher> matcherListFromYaml(
+  private static <E extends NamedElement> List<ElementMatcher<E>> matcherListFromYaml(
       Object yamlObject, Map<String, MatcherParser> parsers) {
     if (!(yamlObject instanceof List)) {
       throw new IllegalArgumentException("Yaml list value expected: " + yamlObject);
     }
     List<Object> yaml = (List<Object>) yamlObject;
-    ArrayList<ElementMatcher> answer = new ArrayList<>();
+    ArrayList<ElementMatcher<E>> answer = new ArrayList<>();
     for (Object sub : yaml) {
       answer.add(matcherFromYaml(sub, parsers));
     }
     return answer;
   }
 
-  private static ElementMatcher matcherFromYaml(
+  private static <E extends NamedElement> ElementMatcher<E> matcherFromYaml(
       Object yamlObject, Map<String, MatcherParser> parsers) {
     if (!(yamlObject instanceof Map)) {
       throw new IllegalArgumentException("Bare yaml value not expected: " + yamlObject);
@@ -179,7 +180,7 @@ class YamlParser {
     return matcherFromKeyAndYamlValue(key, value, parsers);
   }
 
-  private static ElementMatcher matcherFromKeyAndYamlValue(
+  private static <E extends NamedElement> ElementMatcher<E> matcherFromKeyAndYamlValue(
       String key, Object value, Map<String, MatcherParser> parsers) {
     MatcherParser parser = parsers.get(key);
     if (parser == null) {
@@ -190,61 +191,73 @@ class YamlParser {
 
   enum MatcherParser {
     not {
-      ElementMatcher parse(Object value, Map<String, MatcherParser> parsers) {
+      <E extends NamedElement> ElementMatcher<E> parse(
+          Object value, Map<String, MatcherParser> parsers) {
         return ElementMatchers.not(matcherFromYaml(value, parsers));
       }
     },
     and {
-      ElementMatcher parse(Object value, Map<String, MatcherParser> parsers) {
-        ElementMatcher.Junction matcher = ElementMatchers.any();
-        for (ElementMatcher sub : matcherListFromYaml(value, parsers)) {
+      <E extends NamedElement> ElementMatcher<E> parse(
+          Object value, Map<String, MatcherParser> parsers) {
+        ElementMatcher.Junction<E> matcher = ElementMatchers.any();
+        for (ElementMatcher<NamedElement> sub : matcherListFromYaml(value, parsers)) {
           matcher = matcher.and(sub);
         }
         return matcher;
       }
     },
     or {
-      ElementMatcher parse(Object value, Map<String, MatcherParser> parsers) {
-        ElementMatcher.Junction matcher = ElementMatchers.none();
-        for (ElementMatcher sub : matcherListFromYaml(value, parsers)) {
+      <E extends NamedElement> ElementMatcher<E> parse(
+          Object value, Map<String, MatcherParser> parsers) {
+        ElementMatcher.Junction<E> matcher = ElementMatchers.none();
+        for (ElementMatcher<NamedElement> sub : matcherListFromYaml(value, parsers)) {
           matcher = matcher.or(sub);
         }
         return matcher;
       }
     },
     named {
-      ElementMatcher parse(Object value, Map<String, MatcherParser> parsers) {
+      <E extends NamedElement> ElementMatcher<E> parse(
+          Object value, Map<String, MatcherParser> parsers) {
         return ElementMatchers.named(value.toString());
       }
     },
     nameMatches {
-      ElementMatcher parse(Object value, Map<String, MatcherParser> parsers) {
+      <E extends NamedElement> ElementMatcher<E> parse(
+          Object value, Map<String, MatcherParser> parsers) {
         return ElementMatchers.nameMatches(value.toString());
       }
     },
     hasSuperType {
-      ElementMatcher parse(Object value, Map<String, MatcherParser> parsers) {
-        return AgentElementMatchers.hasSuperType(ElementMatchers.named(value.toString()));
+      <E extends NamedElement> ElementMatcher<E> parse(
+          Object value, Map<String, MatcherParser> parsers) {
+        return (ElementMatcher<E>)
+            AgentElementMatchers.hasSuperType(ElementMatchers.named(value.toString()));
       }
     },
     hasParameterCount {
-      ElementMatcher parse(Object value, Map<String, MatcherParser> parsers) {
-        return ElementMatchers.takesArguments(Integer.parseInt(value.toString()));
+      <E extends NamedElement> ElementMatcher<E> parse(
+          Object value, Map<String, MatcherParser> parsers) {
+        return (ElementMatcher<E>)
+            ElementMatchers.takesArguments(Integer.parseInt(value.toString()));
       }
     },
     hasParameterOfType {
-      ElementMatcher parse(Object value, Map<String, MatcherParser> parsers) {
+      <E extends NamedElement> ElementMatcher<E> parse(
+          Object value, Map<String, MatcherParser> parsers) {
         String[] args = ((String) value).split("\\s+");
         if (args.length != 2) {
           throw new IllegalArgumentException(
               "Expected <index> <typename> as fields of hasParameterOfType");
         }
-        return ElementMatchers.takesArgument(
-            Integer.parseInt(args[0]), ElementMatchers.named(args[1]));
+        return (ElementMatcher<E>)
+            ElementMatchers.takesArgument(
+                Integer.parseInt(args[0]), ElementMatchers.named(args[1]));
       }
     };
 
-    abstract ElementMatcher parse(Object value, Map<String, MatcherParser> parsers);
+    abstract <E extends NamedElement> ElementMatcher<E> parse(
+        Object value, Map<String, MatcherParser> parsers);
   }
 
   private NocodeExpression toExpression(Object ruleNode) {

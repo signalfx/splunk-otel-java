@@ -17,7 +17,6 @@
 package com.splunk.opentelemetry.profiler.snapshot;
 
 import com.google.auto.service.AutoService;
-import com.splunk.opentelemetry.profiler.Configuration;
 import io.opentelemetry.context.propagation.TextMapPropagator;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigurablePropagatorProvider;
@@ -28,7 +27,7 @@ public class SnapshotVolumePropagatorProvider implements ConfigurablePropagatorP
 
   @Override
   public TextMapPropagator getPropagator(ConfigProperties config) {
-    double snapshotSelectionRate = Configuration.getSnapshotSelectionRate(config);
+    double snapshotSelectionRate = SnapshotProfilingConfiguration.getSnapshotSelectionRate(config);
     return new SnapshotVolumePropagator(new ProbabilisticSnapshotSelector(snapshotSelectionRate));
   }
 

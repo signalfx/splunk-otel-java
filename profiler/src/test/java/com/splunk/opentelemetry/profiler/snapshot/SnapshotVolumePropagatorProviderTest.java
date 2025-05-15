@@ -19,7 +19,6 @@ package com.splunk.opentelemetry.profiler.snapshot;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 
-import com.splunk.opentelemetry.profiler.Configuration;
 import io.opentelemetry.context.propagation.TextMapPropagator;
 import io.opentelemetry.sdk.autoconfigure.spi.internal.DefaultConfigProperties;
 import java.lang.reflect.Field;
@@ -50,7 +49,7 @@ class SnapshotVolumePropagatorProviderTest {
         provider.getPropagator(
             DefaultConfigProperties.create(
                 Map.of(
-                    Configuration.CONFIG_KEY_SNAPSHOT_SELECTION_RATE,
+                    SnapshotProfilingConfiguration.CONFIG_KEY_SNAPSHOT_SELECTION_RATE,
                     String.valueOf(selectionRate))));
     var actualSelectionRate = reflectivelyGetSelectionRate(propagator);
 

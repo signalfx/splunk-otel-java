@@ -62,7 +62,8 @@ class YamlParser {
     }
   }
 
-  public static List<NocodeRules.Rule> parseFromString(String yaml) {
+  // For unit testing purposes
+  static List<NocodeRules.Rule> parseFromString(String yaml) {
     return new YamlParser(new StringReader(yaml)).getInstrumentationRules();
   }
 

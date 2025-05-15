@@ -16,18 +16,24 @@
 
 package com.splunk.opentelemetry.profiler.snapshot;
 
+import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanContext;
+import io.opentelemetry.api.trace.SpanKind;
 import io.opentelemetry.context.Context;
+import io.opentelemetry.sdk.trace.samplers.Sampler;
+import io.opentelemetry.sdk.trace.samplers.SamplingDecision;
+import io.opentelemetry.sdk.trace.samplers.SamplingResult;
+import java.util.Collections;
 
 class TraceIdBasedSnapshotSelector implements SnapshotSelector {
-  private final int percentile;
+  private final Sampler sampler;
 
   TraceIdBasedSnapshotSelector(double selectionRate) {
     if (selectionRate < 0 || selectionRate > 1) {
       throw new IllegalArgumentException("Selection rate must be between 0 and 1.");
     }
-    this.percentile = (int) (selectionRate * 100);
+    this.sampler = Sampler.traceIdRatioBased(selectionRate);
   }
 
   @Override
@@ -37,8 +43,21 @@ class TraceIdBasedSnapshotSelector implements SnapshotSelector {
       return false;
     }
 
-    int hash = Math.abs(spanContext.getTraceId().hashCode());
-    int tracePercentile = hash % 100;
-    return tracePercentile <= percentile;
+    return shouldSample(spanContext.getTraceId()) == SamplingDecision.RECORD_AND_SAMPLE;
+  }
+
+  /**
+   * Trace ID ratio sampling only considers trace ID so other parameters can safely be placeholders.
+   */
+  private SamplingDecision shouldSample(String traceId) {
+    SamplingResult result =
+        sampler.shouldSample(
+            Context.root(),
+            traceId,
+            "",
+            SpanKind.INTERNAL,
+            Attributes.empty(),
+            Collections.emptyList());
+    return result.getDecision();
   }
 }

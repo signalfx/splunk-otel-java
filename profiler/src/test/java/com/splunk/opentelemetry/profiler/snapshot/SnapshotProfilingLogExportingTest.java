@@ -27,7 +27,6 @@ import com.splunk.opentelemetry.profiler.OtelLoggerFactory;
 import com.splunk.opentelemetry.profiler.pprof.PprofUtils;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.trace.SpanContext;
-import io.opentelemetry.api.trace.SpanKind;
 import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.context.ContextStorage;
@@ -41,10 +40,10 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.AfterEachCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.RegisterExtension;
-import org.junit.jupiter.params.ParameterizedTest;
 
 class SnapshotProfilingLogExportingTest {
   @RegisterExtension
@@ -67,12 +66,11 @@ class SnapshotProfilingLogExportingTest {
     StackTraceExporter.SUPPLIER.reset();
   }
 
-  @ParameterizedTest
-  @SpanKinds.Entry
-  void exportStackTracesForProfiledTraces(SpanKind kind, Tracer tracer) throws Exception {
+  @Test
+  void exportStackTracesForProfiledTraces(Tracer tracer) throws Exception {
     SpanContext spanContext;
     try (var ignoredScope1 = Context.root().with(Volume.HIGHEST).makeCurrent()) {
-      var span = tracer.spanBuilder("root").setSpanKind(kind).startSpan();
+      var span = tracer.spanBuilder("root").startSpan();
       try (var ignoredScope2 = span.makeCurrent()) {
         spanContext = span.getSpanContext();
         Thread.sleep(250);

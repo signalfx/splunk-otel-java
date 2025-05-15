@@ -18,13 +18,12 @@ package com.splunk.opentelemetry.profiler.snapshot;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import io.opentelemetry.api.trace.SpanKind;
 import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.sdk.autoconfigure.OpenTelemetrySdkExtension;
 import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
-import org.junit.jupiter.params.ParameterizedTest;
 
 class SnapshotProfilingFeatureFlagTest {
   private final TraceRegistry registry = new TraceRegistry();
@@ -37,11 +36,10 @@ class SnapshotProfilingFeatureFlagTest {
     public final OpenTelemetrySdkExtension s =
         OpenTelemetrySdkExtension.configure().with(customizer).build();
 
-    @ParameterizedTest
-    @SpanKinds.Entry
-    void snapshotProfilingIsDisabledByDefault(SpanKind kind, Tracer tracer) {
+    @Test
+    void snapshotProfilingIsDisabledByDefault(Tracer tracer) {
       try (var ignored = Context.current().with(Volume.HIGHEST).makeCurrent()) {
-        var root = tracer.spanBuilder("root").setSpanKind(kind).startSpan();
+        var root = tracer.spanBuilder("root").startSpan();
         assertThat(registry.isRegistered(root.getSpanContext())).isFalse();
       }
     }
@@ -56,11 +54,10 @@ class SnapshotProfilingFeatureFlagTest {
             .withProperty("splunk.snapshot.profiler.enabled", "true")
             .build();
 
-    @ParameterizedTest
-    @SpanKinds.Entry
-    void snapshotProfilingIsExplicitlyEnabled(SpanKind kind, Tracer tracer) {
+    @Test
+    void snapshotProfilingIsExplicitlyEnabled(Tracer tracer) {
       try (var ignored = Context.current().with(Volume.HIGHEST).makeCurrent()) {
-        var root = tracer.spanBuilder("root").setSpanKind(kind).startSpan();
+        var root = tracer.spanBuilder("root").startSpan();
         assertThat(registry.isRegistered(root.getSpanContext())).isTrue();
       }
     }
@@ -75,11 +72,10 @@ class SnapshotProfilingFeatureFlagTest {
             .withProperty("splunk.snapshot.profiler.enabled", "false")
             .build();
 
-    @ParameterizedTest
-    @SpanKinds.Entry
-    void snapshotProfilingIsExplicitlyEnabled(SpanKind kind, Tracer tracer) {
+    @Test
+    void snapshotProfilingIsExplicitlyEnabled(Tracer tracer) {
       try (var ignored = Context.current().with(Volume.HIGHEST).makeCurrent()) {
-        var root = tracer.spanBuilder("root").setSpanKind(kind).startSpan();
+        var root = tracer.spanBuilder("root").startSpan();
         assertThat(registry.isRegistered(root.getSpanContext())).isFalse();
       }
     }

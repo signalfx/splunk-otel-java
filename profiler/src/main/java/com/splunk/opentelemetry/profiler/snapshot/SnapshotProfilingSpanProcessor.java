@@ -18,7 +18,6 @@ package com.splunk.opentelemetry.profiler.snapshot;
 
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.SNAPSHOT_PROFILING;
 
-import io.opentelemetry.api.trace.SpanKind;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.sdk.trace.ReadWriteSpan;
 import io.opentelemetry.sdk.trace.ReadableSpan;
@@ -81,7 +80,7 @@ public class SnapshotProfilingSpanProcessor implements SpanProcessor {
   }
 
   private boolean isEntry(ReadableSpan span) {
-    return span.getKind() == SpanKind.SERVER || span.getKind() == SpanKind.CONSUMER;
+    return !span.getParentSpanContext().isValid() || span.getParentSpanContext().isRemote();
   }
 
   @Override

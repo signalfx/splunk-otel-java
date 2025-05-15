@@ -20,13 +20,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.splunk.opentelemetry.profiler.snapshot.TogglableTraceRegistry.State;
 import io.opentelemetry.api.common.AttributeKey;
-import io.opentelemetry.api.trace.SpanKind;
+import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.sdk.autoconfigure.OpenTelemetrySdkExtension;
 import io.opentelemetry.sdk.trace.ReadWriteSpan;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
-import org.junit.jupiter.params.ParameterizedTest;
 
 class SnapshotSpanAttributeTest {
   private final TogglableTraceRegistry registry = new TogglableTraceRegistry();
@@ -40,36 +40,40 @@ class SnapshotSpanAttributeTest {
           .withProperty("splunk.snapshot.profiler.enabled", "true")
           .build();
 
-  @ParameterizedTest
-  @SpanKinds.Entry
-  void addSnapshotSpanAttributeToEntrySpans(SpanKind kind, Tracer tracer) {
+  @Test
+  void addSnapshotSpanAttributeToEntrySpans(Tracer tracer) {
     try (var ignored = Context.root().with(Volume.HIGHEST).makeCurrent()) {
-      var span = (ReadWriteSpan) tracer.spanBuilder("root").setSpanKind(kind).startSpan();
+      var span = (ReadWriteSpan) tracer.spanBuilder("root").startSpan();
       var attribute = span.getAttribute(AttributeKey.booleanKey("splunk.snapshot.profiling"));
       assertThat(attribute).isTrue();
     }
   }
 
-  @ParameterizedTest
-  @SpanKinds.NonEntry
-  void onlyRegisterTraceForProfilingWhenRootSpanIsEntrySpan(SpanKind kind, Tracer tracer) {
-    try (var ignored = Context.root().with(Volume.HIGHEST).makeCurrent()) {
-      var span = (ReadWriteSpan) tracer.spanBuilder("root").setSpanKind(kind).startSpan();
-      var attribute = span.getAttribute(AttributeKey.booleanKey("splunk.snapshot.profiling"));
-      assertThat(attribute).isNull();
+  @Test
+  void doNotAddSnapshotSpanAttributeToNonEntrySpans(Tracer tracer) {
+    try (var ignored1 = Context.root().with(Volume.HIGHEST).makeCurrent()) {
+      var root = tracer.spanBuilder("root").startSpan();
+      try (var ignored2 = root.makeCurrent()) {
+        var client = (ReadWriteSpan) tracer.spanBuilder("client").startSpan();
+        var attribute = client.getAttribute(AttributeKey.booleanKey("splunk.snapshot.profiling"));
+        assertThat(attribute).isNull();
+      }
     }
   }
 
-  @ParameterizedTest
-  @SpanKinds.Entry
-  void addSnapshotSpanAttributeToAllEntrySpans(SpanKind kind, Tracer tracer) {
-    try (var contextScope = Context.root().with(Volume.HIGHEST).makeCurrent()) {
-      try (var root = tracer.spanBuilder("root").setSpanKind(kind).startSpan().makeCurrent()) {
-        try (var client =
-            tracer.spanBuilder("client").setSpanKind(SpanKind.CLIENT).startSpan().makeCurrent()) {
-          var span = (ReadWriteSpan) tracer.spanBuilder("root").setSpanKind(kind).startSpan();
-          try (var ignored = span.makeCurrent()) {
-            var attribute = span.getAttribute(AttributeKey.booleanKey("splunk.snapshot.profiling"));
+  @Test
+  void addSnapshotSpanAttributeToAllEntrySpans(Tracer tracer) {
+    try (var ignored1 = Context.root().with(Volume.HIGHEST).makeCurrent()) {
+      try (var ignored2 = tracer.spanBuilder("root").startSpan().makeCurrent()) {
+        var client = tracer.spanBuilder("client").startSpan();
+        try (var ignored3 = client.makeCurrent()) {
+
+          var remoteSpanContext = Snapshotting.spanContext().remoteFrom(client).build();
+          var remoteParentSpan = Span.wrap(remoteSpanContext);
+          try (var ignored4 = Context.current().with(remoteParentSpan).makeCurrent()) {
+            var downstreamEntry = (ReadWriteSpan) tracer.spanBuilder("downstreamEntry").startSpan();
+            var attribute =
+                downstreamEntry.getAttribute(AttributeKey.booleanKey("splunk.snapshot.profiling"));
             assertThat(attribute).isTrue();
           }
         }
@@ -77,14 +81,12 @@ class SnapshotSpanAttributeTest {
     }
   }
 
-  @ParameterizedTest
-  @SpanKinds.Entry
-  void doNotAddSnapshotSpanAttributeWhenTraceIsNotRegisteredForSnapshotting(
-      SpanKind kind, Tracer tracer) {
+  @Test
+  void doNotAddSnapshotSpanAttributeWhenTraceIsNotRegisteredForSnapshotting(Tracer tracer) {
     registry.toggle(State.OFF);
 
     try (var ignored = Context.root().with(Volume.HIGHEST).makeCurrent()) {
-      var span = (ReadWriteSpan) tracer.spanBuilder("root").setSpanKind(kind).startSpan();
+      var span = (ReadWriteSpan) tracer.spanBuilder("root").startSpan();
       var attribute = span.getAttribute(AttributeKey.booleanKey("splunk.snapshot.profiling"));
       assertThat(attribute).isNull();
     }

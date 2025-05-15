@@ -16,14 +16,15 @@
 
 package com.splunk.opentelemetry.profiler.snapshot;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import io.opentelemetry.context.Context;
-import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+
+import java.util.stream.Stream;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 class SnapshotSelectorTest {
   private static final SnapshotSelector TRUE = c -> true;
@@ -48,8 +49,8 @@ class SnapshotSelectorTest {
   void orReturnsImmediatelyUponPositiveSelection() {
     var context = Context.root();
 
-    var first = new ObservableSelector(true);
-    var second = new ObservableSelector(false);
+    var first = new ObservableSelector(TRUE);
+    var second = new ObservableSelector(TRUE);
     var selector = first.or(second);
 
     assertThat(selector.select(context)).isTrue();
@@ -58,17 +59,17 @@ class SnapshotSelectorTest {
   }
 
   static class ObservableSelector implements SnapshotSelector {
-    private final boolean selection;
+    private final SnapshotSelector selector;
     private boolean evaluated = false;
 
-    ObservableSelector(boolean selection) {
-      this.selection = selection;
+    ObservableSelector(SnapshotSelector selector) {
+      this.selector = selector;
     }
 
     @Override
     public boolean select(Context context) {
       evaluated = true;
-      return selection;
+      return selector.select(context);
     }
   }
 }

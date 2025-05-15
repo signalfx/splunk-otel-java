@@ -1,5 +1,8 @@
 - class: com.splunk.opentelemetry.instrumentation.nocode.NocodeInstrumentationTest$SampleClass
-  method: doSomething
+  method:
+    or:
+      - named: willNotMatch
+      - named: doSomething
   spanName: "this.getName()"
   attributes:
     - key: "details"
@@ -19,15 +22,34 @@
     - key: getByte
       value: this.getByte()
 
-- class: com.splunk.opentelemetry.instrumentation.nocode.NocodeInstrumentationTest$SampleClass
-  method: throwException
+- class:
+    and:
+      - hasSuperType: com.splunk.opentelemetry.instrumentation.nocode.NocodeInstrumentationTest$SampleClass
+      - or:
+        - named: something.that.will.not.match.but.trivially.tests.the.or.Logic
+        - nameMatches: .*nocode.*
+  method:
+    and:
+      - nameMatches: throwExcept.*
+      - hasParameterCount: 1
+      - hasParameterOfType: 0 int
   spanKind: SERVER
   attributes:
     - key: "five"
       value: param0.toString().substring(0)
 
-- class: com.splunk.opentelemetry.instrumentation.nocode.NocodeInstrumentationTest$SampleClass
-  method: echo
+- class:
+    and:
+      - nameMatches: .*nocode.*SampleClass
+      - hasSuperType: java.lang.Object
+  method:
+     and:
+       - and:
+           - not:
+               named: noSuchMethod
+           - nameMatches: ech[o]?
+       - hasParameterCount: 1
+       - hasParameterOfType: 0 boolean
   spanStatus: 'returnValue.booleanValue() ? "ERROR" : "OK"'
 
 

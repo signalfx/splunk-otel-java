@@ -8,6 +8,7 @@ dependencies {
   compileOnly("io.opentelemetry.javaagent:opentelemetry-javaagent-tooling")
   compileOnly("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations-support")
   compileOnly("org.snakeyaml:snakeyaml-engine:2.8")
+  testImplementation("org.snakeyaml:snakeyaml-engine:2.8")
 
   implementation("org.apache.commons:commons-jexl3:3.4.0") {
     exclude("commons-logging", "commons-logging")

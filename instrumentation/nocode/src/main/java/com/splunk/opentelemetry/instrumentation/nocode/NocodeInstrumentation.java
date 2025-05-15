@@ -29,16 +29,15 @@ import io.opentelemetry.javaagent.extension.instrumentation.TypeInstrumentation;
 import io.opentelemetry.javaagent.extension.instrumentation.TypeTransformer;
 import java.lang.reflect.Method;
 import net.bytebuddy.asm.Advice;
-import net.bytebuddy.description.method.MethodDescription;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.implementation.bytecode.assign.Assigner;
 import net.bytebuddy.matcher.ElementMatcher;
 import net.bytebuddy.utility.JavaConstant;
 
 public final class NocodeInstrumentation implements TypeInstrumentation {
-  private final NocodeRules.Rule rule;
+  private final RuleImpl rule;
 
-  public NocodeInstrumentation(NocodeRules.Rule rule) {
+  public NocodeInstrumentation(RuleImpl rule) {
     this.rule = rule;
   }
 
@@ -46,13 +45,13 @@ public final class NocodeInstrumentation implements TypeInstrumentation {
   public ElementMatcher<TypeDescription> typeMatcher() {
     // null rule is used when no rules are configured, this ensures that muzzle can collect helper
     // classes
-    return rule != null ? (ElementMatcher<TypeDescription>) rule.getClassMatcher() : none();
+    return rule != null ? rule.getClassMatcher() : none();
   }
 
   @Override
   public void transform(TypeTransformer transformer) {
     transformer.applyAdviceToMethod(
-        rule != null ? (ElementMatcher<MethodDescription>) rule.getMethodMatcher() : none(),
+        rule != null ? rule.getMethodMatcher() : none(),
         mapping ->
             mapping
                 .bind(RuleId.class, JavaConstant.Simple.ofLoaded(rule != null ? rule.getId() : -1))

@@ -114,7 +114,7 @@ class YamlParser {
           }
         }
         answer.add(
-            new NocodeRules.Rule(
+            new RuleImpl(
                 classMatcher, methodMatcher, spanName, spanKind, spanStatus, ruleAttributes));
       }
     }

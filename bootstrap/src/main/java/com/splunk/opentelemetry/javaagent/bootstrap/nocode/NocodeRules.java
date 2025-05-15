@@ -17,89 +17,22 @@
 package com.splunk.opentelemetry.javaagent.bootstrap.nocode;
 
 import io.opentelemetry.api.trace.SpanKind;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public final class NocodeRules {
+  public interface Rule {
 
-  public static final class Rule {
-    private static final AtomicInteger counter = new AtomicInteger();
+    int getId();
 
-    private final int id = counter.incrementAndGet();
-    private final Object classMatcher; // ElementMatcher
-    private final Object methodMatcher; // ElementMatcher
-    private final NocodeExpression spanName; // may be null - use default of "class.method"
-    private final SpanKind spanKind; // may be null
-    private final NocodeExpression spanStatus; // may be null, should return string from StatusCodes
+    NocodeExpression getSpanName();
 
-    private final Map<String, NocodeExpression> attributes; // key name to jexl expression
+    SpanKind getSpanKind();
 
-    public Rule(
-        Object classMatcher, // ElementMatcher
-        Object methodMatcher, // ElementMatcher
-        NocodeExpression spanName,
-        SpanKind spanKind,
-        NocodeExpression spanStatus,
-        Map<String, NocodeExpression> attributes) {
-      this.classMatcher = classMatcher;
-      this.methodMatcher = methodMatcher;
-      this.spanName = spanName;
-      this.spanKind = spanKind;
-      this.spanStatus = spanStatus;
-      this.attributes = Collections.unmodifiableMap(new HashMap<>(attributes));
-    }
+    NocodeExpression getSpanStatus();
 
-    public String toString() {
-      return "Nocode rule: "
-          + classMatcher
-          + "."
-          + methodMatcher
-          + ":spanName="
-          + spanName
-          + ":spanKind="
-          + spanKind
-          + ":spanStatus="
-          + spanStatus
-          + ",attrs="
-          + attributes;
-    }
-
-    public int getId() {
-      return id;
-    }
-
-    /**
-     * @return an ElementMatcher, disguised as an Object for classloader reasons
-     */
-    public Object getClassMatcher() {
-      return classMatcher;
-    }
-
-    /**
-     * @return an ElementMatcher, disguised as an Object for classloader reasons
-     */
-    public Object getMethodMatcher() {
-      return methodMatcher;
-    }
-
-    public NocodeExpression getSpanName() {
-      return spanName;
-    }
-
-    public SpanKind getSpanKind() {
-      return spanKind;
-    }
-
-    public NocodeExpression getSpanStatus() {
-      return spanStatus;
-    }
-
-    public Map<String, NocodeExpression> getAttributes() {
-      return attributes;
-    }
+    Map<String, NocodeExpression> getAttributes();
   }
 
   private NocodeRules() {}
@@ -109,7 +42,7 @@ public final class NocodeRules {
   // Called by the NocodeInitializer
   public static void setGlobalRules(List<Rule> rules) {
     for (Rule r : rules) {
-      ruleMap.put(r.id, r);
+      ruleMap.put(r.getId(), r);
     }
   }
 

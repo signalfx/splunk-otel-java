@@ -19,6 +19,7 @@ package com.splunk.opentelemetry.instrumentation.nocode;
 import com.splunk.opentelemetry.javaagent.bootstrap.nocode.NocodeExpression;
 import com.splunk.opentelemetry.javaagent.bootstrap.nocode.NocodeRules;
 import io.opentelemetry.api.trace.SpanKind;
+import io.opentelemetry.javaagent.extension.matcher.AgentElementMatchers;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
@@ -223,7 +224,7 @@ class YamlParser {
     },
     hasSuperType {
       ElementMatcher parse(Object value, Map<String, MatcherParser> parsers) {
-        return ElementMatchers.hasSuperType(ElementMatchers.named(value.toString()));
+        return AgentElementMatchers.hasSuperType(ElementMatchers.named(value.toString()));
       }
     },
     hasParameterCount {

@@ -21,7 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.context.Context;
-import java.util.Objects;
+import java.util.List;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
@@ -55,9 +55,8 @@ class TraceIdBasedSnapshotSelectorTest {
     assertThat(selector.select(context)).isTrue();
   }
 
-  /** Trace IDs with a note about what the expected computed value is */
   private static Stream<String> traceIdsToSelect() {
-    return IntStream.range(-5, 6).mapToObj(SpecialTraceIds::forPercentile).filter(Objects::nonNull);
+    return IntStream.range(1, 6).mapToObj(SpecialTraceIds::forPercentileNew).flatMap(List::stream);
   }
 
   @ParameterizedTest
@@ -71,10 +70,9 @@ class TraceIdBasedSnapshotSelectorTest {
     assertThat(selector.select(context)).isFalse();
   }
 
-  /** Trace IDs with a note about what the expected computed value is */
   private static Stream<String> traceIdsToNotSelect() {
-    return Stream.concat(
-        IntStream.range(-99, -5).mapToObj(SpecialTraceIds::forPercentile),
-        IntStream.range(6, 100).mapToObj(SpecialTraceIds::forPercentile));
+    return IntStream.range(6, 100)
+        .mapToObj(SpecialTraceIds::forPercentileNew)
+        .flatMap(List::stream);
   }
 }

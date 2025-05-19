@@ -20,31 +20,46 @@ import io.opentelemetry.api.trace.TraceId;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Deque;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 import java.util.Random;
 
+/**
+ * Maintains a collection of trace IDs mapped to percentiles matching the probability calculation in
+ * {@link io.opentelemetry.sdk.trace.samplers.TraceIdRatioBasedSampler}.
+ *
+ * <p>A trace ID percentile is defined as the range of values existing between {@link
+ * Long#MAX_VALUE} * (percentile / 100) and {@link Long#MAX_VALUE} * (percentile + 1 / 100)
+ *
+ * <pre>
+ * Ex. For percentile 5 the range is considered to be:
+ * lower = {@link Long#MAX_VALUE} * 0.04 = 368934881474191040
+ * upper = {@link Long#MAX_VALUE} * 0.05 = 461168601842738816
+ * </pre>
+ *
+ * <p>A trace ID is considered to be in the percentile range when the absolute value of its hash
+ * value (as calculated using {@link
+ * io.opentelemetry.api.internal.OtelEncodingUtils#longFromBase16String(traceId, 16)}) is within the
+ * range.
+ *
+ * @see io.opentelemetry.sdk.trace.samplers.TraceIdRatioBasedSampler
+ * @see io.opentelemetry.api.internal.OtelEncodingUtils#longFromBase16String(CharSequence, int)
+ */
 class SpecialTraceIds {
   /**
-   * Get trace ID known to have a computed percentile equal to the requested value. Negative values
-   * are accepted.
+   * Get trace IDs known to be within the requested percentile. At least two traces will be returned
+   * for each percentile representing both positive and negative hash value calculations.
    *
-   * @return trace ID with matching computed percentile
-   * @throws IllegalArgumentException when provided percentile's absolute value of is less than 0 or
-   *     more than 100
+   * @return trace IDs with matching computed percentile
+   * @throws IllegalArgumentException when provided percentile is less than 1 or more than 99
    */
   static List<String> forPercentileNew(int percentile) {
-    if (!isValidPercentile(percentile)) {
+    if (percentile < 1 || percentile > 99) {
       throw new IllegalArgumentException("Invalid percentile: " + percentile);
     }
     return TRACE_IDS.getOrDefault(percentile, Collections.emptyList());
-  }
-
-  private static boolean isValidPercentile(int percentile) {
-    int abs = Math.abs(percentile);
-    return abs >= 0 && abs <= 100;
   }
 
   private static final Map<Integer, List<String>> TRACE_IDS =
@@ -153,13 +168,18 @@ class SpecialTraceIds {
     return Map.entry(percentile, List.of(traceIds));
   }
 
+  /**
+   * Generates a map of percentiles to trace IDs that will pass the sampling check in {@link
+   * io.opentelemetry.sdk.trace.samplers.TraceIdRatioBasedSampler} when the corresponding
+   * probability is used (e.g., 5th percentile and 0.05).
+   */
   public static void main(String[] args) {
     var ranges = createRanges();
     var traceIds = generateTraceIds(ranges);
     System.out.println(asJavaCode(traceIds));
   }
 
-  private static Deque<PercentileRange> createRanges() {
+  private static Queue<PercentileRange> createRanges() {
     var ranges = new ArrayDeque<PercentileRange>();
     for (int percentile = 1; percentile <= 99; percentile++) {
       ranges.add(new PercentileRange(percentile, false));
@@ -168,7 +188,7 @@ class SpecialTraceIds {
     return ranges;
   }
 
-  private static Map<Integer, List<String>> generateTraceIds(Deque<PercentileRange> ranges) {
+  private static Map<Integer, List<String>> generateTraceIds(Queue<PercentileRange> ranges) {
     var map = new LinkedHashMap<Integer, List<String>>();
     while (!ranges.isEmpty()) {
       var range = ranges.remove();
@@ -193,9 +213,11 @@ class SpecialTraceIds {
 
   private static StringBuilder asJavaCode(Map<Integer, List<String>> map) {
     var string = new StringBuilder();
-    string.append("private static final Map<Integer, List<String>> TRACE_IDS_NEW = Map.ofEntries(");
+    string
+        .append("private static final Map<Integer, List<String>> TRACE_IDS =")
+        .append("\tMap.ofEntries(");
     for (var entry : map.entrySet()) {
-      string.append("\n    mapEntry(").append(entry.getKey()).append(", ");
+      string.append("\t\tmapEntry(").append(entry.getKey()).append(", ");
       for (var traceId : entry.getValue()) {
         string.append("\"").append(traceId).append("\", ");
       }
@@ -222,10 +244,6 @@ class SpecialTraceIds {
         this.upper = (long) (Long.MIN_VALUE * ((double) (value - 1) / 100));
         this.lower = (long) (Long.MIN_VALUE * ((double) (value) / 100));
       }
-    }
-
-    boolean contains(long value) {
-      return value > lower && value < upper;
     }
 
     @Override

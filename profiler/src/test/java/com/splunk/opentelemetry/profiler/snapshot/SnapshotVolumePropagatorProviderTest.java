@@ -26,6 +26,7 @@ import io.opentelemetry.sdk.autoconfigure.spi.internal.DefaultConfigProperties;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
@@ -84,6 +85,8 @@ class SnapshotVolumePropagatorProviderTest {
   }
 
   private static Stream<String> traceIdsToSelect() {
-    return IntStream.range(-10, 11).mapToObj(SpecialTraceIds::forPercentile);
+    return IntStream.range(-10, 11)
+        .mapToObj(SpecialTraceIds::forPercentile)
+        .filter(Objects::nonNull);
   }
 }

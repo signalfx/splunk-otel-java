@@ -17,13 +17,11 @@
 package com.splunk.opentelemetry.profiler.snapshot;
 
 import io.opentelemetry.api.trace.TraceId;
-import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Queue;
 import java.util.Random;
 
 /**
@@ -63,107 +61,108 @@ class SpecialTraceIds {
     return TRACE_IDS.getOrDefault(percentile, Collections.emptyList());
   }
 
+
   private static final Map<Integer, List<String>> TRACE_IDS =
       Map.ofEntries(
-          mapEntry(1, "0147ae147ae147b001073f1784a17046", "0000000000000000ffad76c12a1d565b"),
-          mapEntry(2, "028f5c28f5c28f60023dbb7062d4d2c9", "feb851eb851eb850fdeba0a4bc354dd3"),
-          mapEntry(3, "03d70a3d70a3d70002a40901032f75c4", "fd70a3d70a3d70a0fcb86674c016f02a"),
-          mapEntry(4, "051eb851eb851ec0049e41e2f6a9cf6e", "fc28f5c28f5c2900fb4fc2b616faf303"),
-          mapEntry(5, "066666666666668005ae0a9f53442a27", "fae147ae147ae140fa9bbb99a495e16d"),
-          mapEntry(6, "07ae147ae147ae00079eb83afce007c1", "f999999999999980f8f4835f770a5351"),
-          mapEntry(7, "08f5c28f5c28f60007ed8d8695d1221a", "f851eb851eb85200f75dfc1c1a791820"),
-          mapEntry(8, "0a3d70a3d70a3d800a39a132342b2ae9", "f70a3d70a3d70a00f67f22ac61bd92d5"),
-          mapEntry(9, "0b851eb851eb85000b3477896e7296a4", "f5c28f5c28f5c280f56e9f1b4c24544a"),
-          mapEntry(10, "0ccccccccccccd000c183a0c29a7ab5d", "f47ae147ae147b00f41837c3fbbc84e9"),
-          mapEntry(11, "0e147ae147ae14800def7c9d5c6b81a8", "f333333333333300f2888b89b9835c51"),
-          mapEntry(12, "0f5c28f5c28f5c000e90c56db61b066c", "f1eb851eb851eb80f1b364d2550e999a"),
-          mapEntry(13, "10a3d70a3d70a4000fbc24989cea3b00", "f0a3d70a3d70a400f02d707e24b5f5d0"),
-          mapEntry(14, "11eb851eb851ec0011ca537c5e3b9699", "ef5c28f5c28f5c00ee8fc3f71c92e22f"),
-          mapEntry(15, "133333333333330012ab7e0a68b2ba72", "ee147ae147ae1400ed20f7d931195293"),
-          mapEntry(16, "147ae147ae147b0013fd64f3dea19f03", "eccccccccccccd00ec9648a668d13ab4"),
-          mapEntry(17, "15c28f5c28f5c300151b60ac2436c477", "eb851eb851eb8500eb33e194ca339f5f"),
-          mapEntry(18, "170a3d70a3d70a0016d310af8e6ec975", "ea3d70a3d70a3d00e9a319f6b317a24e"),
-          mapEntry(19, "1851eb851eb8520017469470293eb916", "e8f5c28f5c28f600e8dc8ddc7b8c44ef"),
-          mapEntry(20, "1999999999999a001975fc3324a3bff0", "e7ae147ae147ae00e79ba07cde3b66af"),
-          mapEntry(21, "1ae147ae147ae1001a5762a82385d793", "e666666666666600e661fc2321b550a9"),
-          mapEntry(22, "1c28f5c28f5c29001bb33755c359b900", "e51eb851eb851f00e49efd22802138d0"),
-          mapEntry(23, "1d70a3d70a3d71001d2a698537c2d94b", "e3d70a3d70a3d700e39b75fe5c1f3e3b"),
-          mapEntry(24, "1eb851eb851eb8001d977027e6b6a3fc", "e28f5c28f5c28f00e24929fd9eda7075"),
-          mapEntry(25, "20000000000000001feda4fc2f3f5382", "e147ae147ae14800e04fc905fd502a5b"),
-          mapEntry(26, "2147ae147ae1480020e597a220e6c79b", "e000000000000000df30436dfeb2a1fc"),
-          mapEntry(27, "228f5c28f5c2900021a25da5f4ccc304", "deb851eb851eb800de6976711b5da5a7"),
-          mapEntry(28, "23d70a3d70a3d8002388ca6fbd1d0b6b", "dd70a3d70a3d7000dc34828317df7a7e"),
-          mapEntry(29, "251eb851eb851e0024823f09d48f3c26", "dc28f5c28f5c2800dc1761f78698d4e0"),
-          mapEntry(30, "26666666666666002601f7ca960f1fe3", "dae147ae147ae200da4c2b217b7b5bb9"),
-          mapEntry(31, "27ae147ae147ae002787036b89498c45", "d999999999999a00d8d09b94da7bfa5f"),
-          mapEntry(32, "28f5c28f5c28f60028345957ce945fac", "d851eb851eb85200d74f4ab72768a55c"),
-          mapEntry(33, "2a3d70a3d70a3e0029beca5253917719", "d70a3d70a3d70a00d675e959e36ad219"),
-          mapEntry(34, "2b851eb851eb86002b20bbe569cc085b", "d5c28f5c28f5c200d5663a00a4443d29"),
-          mapEntry(35, "2ccccccccccccc002c903a1d4d35eb4e", "d47ae147ae147a00d3c2e816871458bf"),
-          mapEntry(36, "2e147ae147ae14002d5a232e541d58fc", "d333333333333400d20dc8e2909af0c1"),
-          mapEntry(37, "2f5c28f5c28f5c002e4c3932b24afb28", "d1eb851eb851ec00d0f1ff85bfe60f54"),
-          mapEntry(38, "30a3d70a3d70a4003042b2964986afa3", "d0a3d70a3d70a400cf90fef3469572e4"),
-          mapEntry(39, "31eb851eb851ec0030a7ecf8f62d3fcd", "cf5c28f5c28f5c00cf57811d93627fd0"),
-          mapEntry(40, "3333333333333400325f4d0c39f81f19", "ce147ae147ae1400cda72efb2dfa0fe9"),
-          mapEntry(41, "347ae147ae147a0033498e449bb29a55", "cccccccccccccc00cc868a3c78e42cdb"),
-          mapEntry(42, "35c28f5c28f5c20034a0cd9360684700", "cb851eb851eb8600ca6a078dd43e7d33"),
-          mapEntry(43, "370a3d70a3d70a0035f4d4f502866c70", "ca3d70a3d70a3e00c9fb5ac145fef141"),
-          mapEntry(44, "3851eb851eb85200381740f06acef619", "c8f5c28f5c28f600c8ac1fd38fd06b39"),
-          mapEntry(45, "3999999999999a003866145448504c44", "c7ae147ae147ae00c6bb1bfce049b393"),
-          mapEntry(46, "3ae147ae147ae2003ab2a674ae3c9682", "c666666666666600c63e06f3eaa6c72e"),
-          mapEntry(47, "3c28f5c28f5c28003c11da57fa0448da", "c51eb851eb851e00c4169f19546773ca"),
-          mapEntry(48, "3d70a3d70a3d70003d3b9cb08c5d8427", "c3d70a3d70a3d800c2ab767a8536e246"),
-          mapEntry(49, "3eb851eb851eb8003e232c5be8ffa52d", "c28f5c28f5c29000c18c3d2d481d1666"),
-          mapEntry(50, "40000000000000003fefcf6bb89f812c", "c147ae147ae14800c02d769ebbaa0c57"),
-          mapEntry(51, "4147ae147ae1480040a815ec23b57087", "c000000000000000bf7bfe86a53bf919"),
-          mapEntry(52, "428f5c28f5c29000416d474c77f3d8aa", "beb851eb851eb800be2b1b0abdfaf143"),
-          mapEntry(53, "43d70a3d70a3d80042f8044fc4cf7d44", "bd70a3d70a3d7000bcdb92868c411754"),
-          mapEntry(54, "451eb851eb85200043dbac397e6bdc65", "bc28f5c28f5c2800bc09c2fcbe73ed46"),
-          mapEntry(55, "466666666666680045f5894addb9f481", "bae147ae147ae000ba00a079ce9fc4bd"),
-          mapEntry(56, "47ae147ae147b0004790196ce6b68638", "b999999999999800b9927a1bcb6bfa8e"),
-          mapEntry(57, "48f5c28f5c28f400486edc04edaff9db", "b851eb851eb85000b841259bb9e5eb80"),
-          mapEntry(58, "4a3d70a3d70a3c0049c78b49802c9541", "b70a3d70a3d70c00b5f1cfd7509fb6b3"),
-          mapEntry(59, "4b851eb851eb84004a549e1a466a0d44", "b5c28f5c28f5c400b5a385e163555fd3"),
-          mapEntry(60, "4ccccccccccccc004bfac37ea32d4579", "b47ae147ae147c00b353de2c7ebd0663"),
-          mapEntry(61, "4e147ae147ae14004cd803ece6fce1ad", "b333333333333400b206a56633e7eb9a"),
-          mapEntry(62, "4f5c28f5c28f5c004ea455bed79267ba", "b1eb851eb851ec00b0e282c4f1a5a5b0"),
-          mapEntry(63, "50a3d70a3d70a40050a1e83c083dc803", "b0a3d70a3d70a400afedc1b92d9d083c"),
-          mapEntry(64, "51eb851eb851ec0051a2fc1002cd5368", "af5c28f5c28f5c00ae59dc30481c7003"),
-          mapEntry(65, "5333333333333400525242aada0c47ec", "ae147ae147ae1400ad372d58dba4dee4"),
-          mapEntry(66, "547ae147ae147c0053354d371f298481", "accccccccccccc00aba4b115b606c9ab"),
-          mapEntry(67, "55c28f5c28f5c40055a193132114f87b", "ab851eb851eb8400ab2518abe3df887c"),
-          mapEntry(68, "570a3d70a3d70c0056f3a8db1a61e035", "aa3d70a3d70a3c00aa3a014f10ed5c22"),
-          mapEntry(69, "5851eb851eb85000571d9051f43e08b9", "a8f5c28f5c28f400a8397404438b1e54"),
-          mapEntry(70, "59999999999998005890dabed9ee1de0", "a7ae147ae147b000a695ca896a36c565"),
-          mapEntry(71, "5ae147ae147ae0005abb4923768c9a2e", "a666666666666800a635c663a89665d0"),
-          mapEntry(72, "5c28f5c28f5c28005bb772ca3bdf5cfe", "a51eb851eb852000a4e2893d12807d15"),
-          mapEntry(73, "5d70a3d70a3d70005cdaf6e7cdf847b6", "a3d70a3d70a3d800a3d28a1612362825"),
-          mapEntry(74, "5eb851eb851eb8005e8590907c5807c0", "a28f5c28f5c29000a170f07d0118cc59"),
-          mapEntry(75, "60000000000000005ffd2356e0209edd", "a147ae147ae14800a014a69cb52f309c"),
-          mapEntry(76, "6147ae147ae1480060b2582a793e4e5b", "a0000000000000009f8957b5a2095b5c"),
-          mapEntry(77, "628f5c28f5c2900061f8ecb7ccb0d928", "9eb851eb851eb8009d81cd527c2cbb46"),
-          mapEntry(78, "63d70a3d70a3d800633ab50c7ad3bc33", "9d70a3d70a3d70009d028283993f247f"),
-          mapEntry(79, "651eb851eb852000649227f9c7af6e5e", "9c28f5c28f5c28009b65e8a459ef926f"),
-          mapEntry(80, "66666666666668006565ec1db4ca0d55", "9ae147ae147ae00099b8c550afc70e06"),
-          mapEntry(81, "67ae147ae147b000667d87aba97697c6", "999999999999980098a782c02e422c26"),
-          mapEntry(82, "68f5c28f5c28f400687d389a7e683596", "9851eb851eb85000977e9df9a1674399"),
-          mapEntry(83, "6a3d70a3d70a3c006932f6b3d1b296b2", "970a3d70a3d70c0096eaa88837434f59"),
-          mapEntry(84, "6b851eb851eb84006aaf238a5e96059e", "95c28f5c28f5c40095aec458603dba39"),
-          mapEntry(85, "6ccccccccccccc006ca07fb7ecfaada7", "947ae147ae147c009342a9dd8f77dc60"),
-          mapEntry(86, "6e147ae147ae14006df6ab9da2960e30", "9333333333333400923d447fc8b10fd5"),
-          mapEntry(87, "6f5c28f5c28f5c006f2d4d597a6fc3d7", "91eb851eb851ec0090fa7eff0fb82c57"),
-          mapEntry(88, "70a3d70a3d70a4006fc7e9a6f4845d4c", "90a3d70a3d70a4008f819f78ef9bc423"),
-          mapEntry(89, "71eb851eb851ec0071b8098256025417", "8f5c28f5c28f5c008e72c4a4db735441"),
-          mapEntry(90, "733333333333340071f57a33efdc6da8", "8e147ae147ae14008df7fb9bef3bf8ce"),
-          mapEntry(91, "747ae147ae147c00740ec06e42dea4fe", "8ccccccccccccc008b99be522e684a28"),
-          mapEntry(92, "75c28f5c28f5c40074d5c2f1d2e4936e", "8b851eb851eb84008aa7035a138f3337"),
-          mapEntry(93, "770a3d70a3d70c0075e1366af3812a76", "8a3d70a3d70a3c00898302ad06cac6d5"),
-          mapEntry(94, "7851eb851eb8500077d0876e4b2354e9", "88f5c28f5c28f4008811849ccec92749"),
-          mapEntry(95, "7999999999999800798aaa2f8e2ff15f", "87ae147ae147b000866bcaf0a87b8931"),
-          mapEntry(96, "7ae147ae147ae00079a5a248e6e3f743", "866666666666680085617b507a531ed7"),
-          mapEntry(97, "7c28f5c28f5c28007b2e4cc6ef77008c", "851eb851eb85200083e4bbf269f228d6"),
-          mapEntry(98, "7d70a3d70a3d70007cedb23eee80aa1d", "83d70a3d70a3d80082c335f22168fedf"),
-          mapEntry(99, "7eb851eb851eb8007e927fc16f5b143d", "828f5c28f5c29000823d6b632e0bd12f"));
+          mapEntry(1, "00000000000000000143b39877726d4c", "0000000000000000febc4c67888d92b4"),
+          mapEntry(2, "00000000000000000148aaf1b30b99cd", "0000000000000000feb7550e4cf46633"),
+          mapEntry(3, "000000000000000002c619f84b6e3d6d", "0000000000000000fd39e607b491c293"),
+          mapEntry(4, "000000000000000003e90e2397e85e31", "0000000000000000fc16f1dc6817a1cf"),
+          mapEntry(5, "00000000000000000599e9374303b131", "0000000000000000fa6616c8bcfc4ecf"),
+          mapEntry(6, "000000000000000006b0fccea239c2b9", "0000000000000000f94f03315dc63d47"),
+          mapEntry(7, "000000000000000008ddd8dd0054e50f", "0000000000000000f7222722ffab1af1"),
+          mapEntry(8, "00000000000000000914a87beefb8944", "0000000000000000f6eb5784110476bc"),
+          mapEntry(9, "00000000000000000a81f147ae79b580", "0000000000000000f57e0eb851864a80"),
+          mapEntry(10, "00000000000000000c7a85e0e3f6e67e", "0000000000000000f3857a1f1c091982"),
+          mapEntry(11, "00000000000000000dd7c279626667d8", "0000000000000000f2283d869d999828"),
+          mapEntry(12, "00000000000000000f57cc320b3e215f", "0000000000000000f0a833cdf4c1dea1"),
+          mapEntry(13, "00000000000000000fe3a959597f1edf", "0000000000000000f01c56a6a680e121"),
+          mapEntry(14, "0000000000000000118124dcd62c13cd", "0000000000000000ee7edb2329d3ec33"),
+          mapEntry(15, "0000000000000000130ef512f84555b3", "0000000000000000ecf10aed07baaa4d"),
+          mapEntry(16, "0000000000000000141b67a6ec1e7670", "0000000000000000ebe4985913e18990"),
+          mapEntry(17, "00000000000000001585569f807b5f27", "0000000000000000ea7aa9607f84a0d9"),
+          mapEntry(18, "000000000000000015d637d48c22d1a2", "0000000000000000ea29c82b73dd2e5e"),
+          mapEntry(19, "0000000000000000179120b3146bc1dc", "0000000000000000e86edf4ceb943e24"),
+          mapEntry(20, "00000000000000001882dbfd7abfa5fb", "0000000000000000e77d240285405a05"),
+          mapEntry(21, "00000000000000001adaa7e91a829c90", "0000000000000000e5255816e57d6370"),
+          mapEntry(22, "00000000000000001b3b4b75dcb2bfa3", "0000000000000000e4c4b48a234d405d"),
+          mapEntry(23, "00000000000000001c4e3ee8733679ed", "0000000000000000e3b1c1178cc98613"),
+          mapEntry(24, "00000000000000001e603c290e5e580a", "0000000000000000e19fc3d6f1a1a7f6"),
+          mapEntry(25, "00000000000000001faa411f98ddc7cb", "0000000000000000e055bee067223835"),
+          mapEntry(26, "000000000000000020a5afbcd97e4120", "0000000000000000df5a50432681bee0"),
+          mapEntry(27, "00000000000000002209e46754395688", "0000000000000000ddf61b98abc6a978"),
+          mapEntry(28, "0000000000000000233bd49d8de75c71", "0000000000000000dcc42b627218a38f"),
+          mapEntry(29, "000000000000000023da35b710aee647", "0000000000000000dc25ca48ef5119b9"),
+          mapEntry(30, "000000000000000025d6512432116c49", "0000000000000000da29aedbcdee93b7"),
+          mapEntry(31, "00000000000000002676d70894ccaaf9", "0000000000000000d98928f76b335507"),
+          mapEntry(32, "000000000000000027b9015b4eee4f09", "0000000000000000d846fea4b111b0f7"),
+          mapEntry(33, "00000000000000002908c4007e983072", "0000000000000000d6f73bff8167cf8e"),
+          mapEntry(34, "00000000000000002a4e4a10d0eef684", "0000000000000000d5b1b5ef2f11097c"),
+          mapEntry(35, "00000000000000002caaa2529f376d41", "0000000000000000d3555dad60c892bf"),
+          mapEntry(36, "00000000000000002d777a1c645899f5", "0000000000000000d28885e39ba7660b"),
+          mapEntry(37, "00000000000000002ecf3ed7042fbbc9", "0000000000000000d130c128fbd04437"),
+          mapEntry(38, "00000000000000002ff45e5ddc9d52d6", "0000000000000000d00ba1a22362ad2a"),
+          mapEntry(39, "000000000000000030e16d4ebedf82f5", "0000000000000000cf1e92b141207d0b"),
+          mapEntry(40, "000000000000000032a03147ce4cc60a", "0000000000000000cd5fceb831b339f6"),
+          mapEntry(41, "0000000000000000345e2f0cbdce2196", "0000000000000000cba1d0f34231de6a"),
+          mapEntry(42, "000000000000000034f65c111fb8e190", "0000000000000000cb09a3eee0471e70"),
+          mapEntry(43, "00000000000000003679137f3515a89b", "0000000000000000c986ec80caea5765"),
+          mapEntry(44, "00000000000000003723c78599aa8203", "0000000000000000c8dc387a66557dfd"),
+          mapEntry(45, "0000000000000000396dd313445b8dea", "0000000000000000c6922cecbba47216"),
+          mapEntry(46, "00000000000000003aa7691ef0edc188", "0000000000000000c55896e10f123e78"),
+          mapEntry(47, "00000000000000003bb404785110eb8c", "0000000000000000c44bfb87aeef1474"),
+          mapEntry(48, "00000000000000003ca55c229d93ce23", "0000000000000000c35aa3dd626c31dd"),
+          mapEntry(49, "00000000000000003d82411baa8640cd", "0000000000000000c27dbee45579bf33"),
+          mapEntry(50, "00000000000000003edb9eb17d582b29", "0000000000000000c124614e82a7d4d7"),
+          mapEntry(51, "0000000000000000405bfc65c6b9fe1e", "0000000000000000bfa4039a394601e2"),
+          mapEntry(52, "000000000000000041d75c3fa386fee6", "0000000000000000be28a3c05c79011a"),
+          mapEntry(53, "0000000000000000437c32176ead3933", "0000000000000000bc83cde89152c6cd"),
+          mapEntry(54, "0000000000000000441eae96cca9b1ab", "0000000000000000bbe1516933564e55"),
+          mapEntry(55, "000000000000000045ad0089da3cad48", "0000000000000000ba52ff7625c352b8"),
+          mapEntry(56, "0000000000000000469b0599b4b42b74", "0000000000000000b964fa664b4bd48c"),
+          mapEntry(57, "0000000000000000483c973d7219ee64", "0000000000000000b7c368c28de6119c"),
+          mapEntry(58, "00000000000000004a2414453cee6677", "0000000000000000b5dbebbac3119989"),
+          mapEntry(59, "00000000000000004adb3965a6cbec2d", "0000000000000000b524c69a593413d3"),
+          mapEntry(60, "00000000000000004c6f922c7949ede4", "0000000000000000b3906dd386b6121c"),
+          mapEntry(61, "00000000000000004df5f13e05aa5613", "0000000000000000b20a0ec1fa55a9ed"),
+          mapEntry(62, "00000000000000004f35fe02b3e7e461", "0000000000000000b0ca01fd4c181b9f"),
+          mapEntry(63, "000000000000000050162d60064273fc", "0000000000000000afe9d29ff9bd8c04"),
+          mapEntry(64, "000000000000000050b68a04f001e2d7", "0000000000000000af4975fb0ffe1d29"),
+          mapEntry(65, "0000000000000000533189021ef11943", "0000000000000000acce76fde10ee6bd"),
+          mapEntry(66, "0000000000000000534cecedf1b7d6a6", "0000000000000000acb313120e48295a"),
+          mapEntry(67, "000000000000000055b2bd9c1c657001", "0000000000000000aa4d4263e39a8fff"),
+          mapEntry(68, "0000000000000000567949e730f262b2", "0000000000000000a986b618cf0d9d4e"),
+          mapEntry(69, "000000000000000057199fe8bc4ef161", "0000000000000000a8e6601743b10e9f"),
+          mapEntry(70, "000000000000000058cc4d0b1d6b01b5", "0000000000000000a733b2f4e294fe4b"),
+          mapEntry(71, "000000000000000059c19e1a3e2f6ca8", "0000000000000000a63e61e5c1d09358"),
+          mapEntry(72, "00000000000000005af1551116b3dbff", "0000000000000000a50eaaeee94c2401"),
+          mapEntry(73, "00000000000000005c7017b8f295b9b1", "0000000000000000a38fe8470d6a464f"),
+          mapEntry(74, "00000000000000005e4d3841617b60dd", "0000000000000000a1b2c7be9e849f23"),
+          mapEntry(75, "00000000000000005ee8f85e75a427d7", "0000000000000000a11707a18a5bd829"),
+          mapEntry(76, "00000000000000006093d2d520cc6e90", "00000000000000009f6c2d2adf339170"),
+          mapEntry(77, "00000000000000006203192ebaae234f", "00000000000000009dfce6d14551dcb1"),
+          mapEntry(78, "0000000000000000630c2fda50a965e4", "00000000000000009cf3d025af569a1c"),
+          mapEntry(79, "000000000000000064f5e269e2e24f20", "00000000000000009b0a1d961d1db0e0"),
+          mapEntry(80, "000000000000000065c9fa9afb7fd35e", "00000000000000009a36056504802ca2"),
+          mapEntry(81, "000000000000000066cb4ee73ce16f2a", "00000000000000009934b118c31e90d6"),
+          mapEntry(82, "0000000000000000683fbf3468ca8a54", "000000000000000097c040cb973575ac"),
+          mapEntry(83, "00000000000000006a3a8d3da082a9c7", "000000000000000095c572c25f7d5639"),
+          mapEntry(84, "00000000000000006aab99065ac9ddcc", "0000000000000000955466f9a5362234"),
+          mapEntry(85, "00000000000000006bde934c09acdcee", "000000000000000094216cb3f6532312"),
+          mapEntry(86, "00000000000000006d6d8a23eead7196", "0000000000000000929275dc11528e6a"),
+          mapEntry(87, "00000000000000006ee8e3f10829c598", "000000000000000091171c0ef7d63a68"),
+          mapEntry(88, "00000000000000006ff553d6a3a7c64f", "0000000000000000900aac295c5839b1"),
+          mapEntry(89, "000000000000000070ec301873be78ec", "00000000000000008f13cfe78c418714"),
+          mapEntry(90, "00000000000000007300000232767805", "00000000000000008cfffffdcd8987fb"),
+          mapEntry(91, "00000000000000007433d290acdedde0", "00000000000000008bcc2d6f53212220"),
+          mapEntry(92, "0000000000000000758737145b360ecb", "00000000000000008a78c8eba4c9f135"),
+          mapEntry(93, "0000000000000000770083adadec9c20", "000000000000000088ff7c52521363e0"),
+          mapEntry(94, "000000000000000077bb30dfbf5a4ac2", "00000000000000008844cf2040a5b53e"),
+          mapEntry(95, "0000000000000000797f17c4c31bdc02", "00000000000000008680e83b3ce423fe"),
+          mapEntry(96, "00000000000000007acff0cd846071a3", "000000000000000085300f327b9f8e5d"),
+          mapEntry(97, "00000000000000007c0554b910135b0d", "000000000000000083faab46efeca4f3"),
+          mapEntry(98, "00000000000000007c61f93693043865", "0000000000000000839e06c96cfbc79b"),
+          mapEntry(99, "00000000000000007d841f140bf3625b", "0000000000000000827be0ebf40c9da5"));
 
   private static Map.Entry<Integer, List<String>> mapEntry(int percentile, String... traceIds) {
     return Map.entry(percentile, List.of(traceIds));
@@ -175,46 +174,27 @@ class SpecialTraceIds {
    * probability is used (e.g., 5th percentile and 0.05).
    */
   public static void main(String[] args) {
-    var ranges = createRanges();
-    var traceIds = generateTraceIds(ranges);
-    System.out.println(asJavaCode(traceIds));
-  }
-
-  private static Queue<PercentileRange> createRanges() {
-    var ranges = new ArrayDeque<PercentileRange>();
-    for (int percentile = 1; percentile <= 99; percentile++) {
-      ranges.add(new PercentileRange(percentile, false));
-      ranges.add(new PercentileRange(percentile, true));
-    }
-    return ranges;
-  }
-
-  private static Map<Integer, List<String>> generateTraceIds(Queue<PercentileRange> ranges) {
     var map = new LinkedHashMap<Integer, List<String>>();
-    while (!ranges.isEmpty()) {
-      var range = ranges.remove();
-      var lower = new Random().nextLong(range.lower + 1, range.upper);
-      var traceId = TraceId.fromLongs(range.upper, lower);
-      map.compute(
-          range.value,
-          (percentile, traceIds) -> {
-            if (traceIds == null) {
-              traceIds = new ArrayList<>();
-            }
-            traceIds.add(traceId);
-            return traceIds;
-          });
+    for (int percentile = 1; percentile <= 99; percentile++) {
+      long lower = (long) (Long.MAX_VALUE * ((double) (percentile - 1) / 100));
+      long upper = (long) (Long.MAX_VALUE * ((double) (percentile) / 100));
+
+      var traceIds = new ArrayList<String>();
+      var random = new Random().nextLong(lower + 1, upper);
+      traceIds.add(TraceId.fromLongs(0, random));
+      traceIds.add(TraceId.fromLongs(0, -random));
+      map.put(percentile, traceIds);
     }
-    return map;
+    System.out.println(asJavaCode(map));
   }
 
   private static StringBuilder asJavaCode(Map<Integer, List<String>> map) {
     var string = new StringBuilder();
     string
         .append("private static final Map<Integer, List<String>> TRACE_IDS =")
-        .append("\tMap.ofEntries(");
+        .append("\n\tMap.ofEntries(");
     for (var entry : map.entrySet()) {
-      string.append("\t\tmapEntry(").append(entry.getKey()).append(", ");
+      string.append("\n\t\tmapEntry(").append(entry.getKey()).append(", ");
       for (var traceId : entry.getValue()) {
         string.append("\"").append(traceId).append("\", ");
       }
@@ -225,28 +205,6 @@ class SpecialTraceIds {
     string.deleteCharAt(string.length() - 1);
     string.append(");");
     return string;
-  }
-
-  private static class PercentileRange {
-    private final int value;
-    private final long lower;
-    private final long upper;
-
-    private PercentileRange(int value, boolean negative) {
-      this.value = value;
-      if (!negative) {
-        this.lower = (long) (Long.MAX_VALUE * ((double) (value - 1) / 100));
-        this.upper = (long) (Long.MAX_VALUE * ((double) (value) / 100));
-      } else {
-        this.upper = (long) (Long.MIN_VALUE * ((double) (value - 1) / 100));
-        this.lower = (long) (Long.MIN_VALUE * ((double) (value) / 100));
-      }
-    }
-
-    @Override
-    public String toString() {
-      return lower + " - " + upper;
-    }
   }
 
   private SpecialTraceIds() {}

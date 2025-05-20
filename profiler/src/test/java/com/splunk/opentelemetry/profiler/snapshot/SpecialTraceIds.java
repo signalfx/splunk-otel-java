@@ -24,11 +24,14 @@ import java.util.Map;
 import java.util.Random;
 
 /**
- * Maintains a collection of trace IDs mapped to percentiles matching the probability calculation in
+ * Maintains a collection of trace ids mapped to percentiles matching the probability calculation in
  * {@link io.opentelemetry.sdk.trace.samplers.TraceIdRatioBasedSampler}.
  *
  * <p>A trace ID percentile is defined as the range of values existing between {@link
- * Long#MAX_VALUE} * (percentile / 100) and {@link Long#MAX_VALUE} * (percentile + 1 / 100)
+ * Long#MAX_VALUE} * (percentile / 100) and {@link Long#MAX_VALUE} * (percentile + 1 / 100). A trace
+ * ID is placed within a percentile by using the {@link Long} representation of the last 16
+ * characters of the trace id. When that long value is negative, the absolute value is used to find
+ * the percentile the trace id belongs to.
  *
  * <pre>
  * Ex. For percentile 5 the range is considered to be:
@@ -36,8 +39,8 @@ import java.util.Random;
  * upper = {@link Long#MAX_VALUE} * 0.05 = 461168601842738816
  * </pre>
  *
- * <p>A trace ID is considered to be in the percentile range when the absolute value of its hash
- * value (as calculated using {@link
+ * <p>A trace id is considered to be in the percentile range when the absolute value of second long
+ * in the trace id characters (as calculated using {@link
  * io.opentelemetry.api.internal.OtelEncodingUtils#longFromBase16String(traceId, 16)}) is within the
  * range.
  *
@@ -46,11 +49,11 @@ import java.util.Random;
  */
 class SpecialTraceIds {
   /**
-   * Get trace IDs known to be within the requested percentile. At least two traces will be returned
-   * for each percentile representing the second long in the trace id being both positive and
-   * negative.
+   * Get trace ids known to be within the requested percentile. At least two trace ids will be
+   * returned for each percentile representing the second long in the trace id being both positive
+   * and negative.
    *
-   * @return trace IDs with matching computed percentile
+   * @return trace ids with matching computed percentile
    * @throws IllegalArgumentException when provided percentile is less than 1 or more than 99
    */
   static List<String> forPercentileNew(int percentile) {
@@ -167,7 +170,7 @@ class SpecialTraceIds {
   }
 
   /**
-   * Generates a map of percentiles to trace IDs that will pass the sampling check in {@link
+   * Generates a map of percentiles to trace ids that will pass the sampling check in {@link
    * io.opentelemetry.sdk.trace.samplers.TraceIdRatioBasedSampler} when the corresponding
    * probability is used (e.g., 5th percentile and 0.05).
    */

@@ -56,7 +56,7 @@ class SpecialTraceIds {
    * @return trace ids with matching computed percentile
    * @throws IllegalArgumentException when provided percentile is less than 1 or more than 99
    */
-  static List<String> forPercentileNew(int percentile) {
+  static List<String> forPercentile(int percentile) {
     if (percentile < 1 || percentile > 99) {
       throw new IllegalArgumentException("Invalid percentile: " + percentile);
     }

@@ -17,7 +17,6 @@
 package com.splunk.opentelemetry.profiler.snapshot;
 
 import io.opentelemetry.api.trace.TraceId;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -60,7 +59,6 @@ class SpecialTraceIds {
     }
     return TRACE_IDS.getOrDefault(percentile, Collections.emptyList());
   }
-
 
   private static final Map<Integer, List<String>> TRACE_IDS =
       Map.ofEntries(
@@ -179,11 +177,9 @@ class SpecialTraceIds {
       long lower = (long) (Long.MAX_VALUE * ((double) (percentile - 1) / 100));
       long upper = (long) (Long.MAX_VALUE * ((double) (percentile) / 100));
 
-      var traceIds = new ArrayList<String>();
       var random = new Random().nextLong(lower + 1, upper);
-      traceIds.add(TraceId.fromLongs(0, random));
-      traceIds.add(TraceId.fromLongs(0, -random));
-      map.put(percentile, traceIds);
+      // TraceIdRatioBasedSampler only considers the second number so OK to leave as 0
+      map.put(percentile, List.of(TraceId.fromLongs(0, random), TraceId.fromLongs(0, -random)));
     }
     System.out.println(asJavaCode(map));
   }

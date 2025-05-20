@@ -193,21 +193,17 @@ class SpecialTraceIds {
     var map = new LinkedHashMap<Integer, List<String>>();
     while (!ranges.isEmpty()) {
       var range = ranges.remove();
-      boolean foundTraceIdInRange = false;
-      while (!foundTraceIdInRange) {
-        var lower = new Random().nextLong(range.lower + 1, range.upper);
-        var traceId = TraceId.fromLongs(range.upper, lower);
-        map.compute(
-            range.value,
-            (percentile, traceIds) -> {
-              if (traceIds == null) {
-                traceIds = new ArrayList<>();
-              }
-              traceIds.add(traceId);
-              return traceIds;
-            });
-        foundTraceIdInRange = true;
-      }
+      var lower = new Random().nextLong(range.lower + 1, range.upper);
+      var traceId = TraceId.fromLongs(range.upper, lower);
+      map.compute(
+          range.value,
+          (percentile, traceIds) -> {
+            if (traceIds == null) {
+              traceIds = new ArrayList<>();
+            }
+            traceIds.add(traceId);
+            return traceIds;
+          });
     }
     return map;
   }

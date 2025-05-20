@@ -50,7 +50,8 @@ import java.util.Random;
 class SpecialTraceIds {
   /**
    * Get trace IDs known to be within the requested percentile. At least two traces will be returned
-   * for each percentile representing both positive and negative hash value calculations.
+   * for each percentile representing the second long in the trace id being both positive and
+   * negative.
    *
    * @return trace IDs with matching computed percentile
    * @throws IllegalArgumentException when provided percentile is less than 1 or more than 99

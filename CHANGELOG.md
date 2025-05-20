@@ -8,6 +8,18 @@ and this repository adheres to [Semantic Versioning](https://semver.org/spec/v2.
 
 ## Unreleased
 
+## v2.16.0 - 2025-05-21
+
+### General
+
+- OpenTelemetry Java SDK has been updated to version 1.50.0.
+- OpenTelemetry Instrumentation for Java has been updated to version 2.16.0.
+
+### ⚠️⚠️ Breaking changes ⚠️⚠️
+
+- Remove operation name from graphql span name (https://github.com/open-telemetry/opentelemetry-java-instrumentation/pull/13794)
+- Remove deprecated property for disabling kafka metrics (https://github.com/open-telemetry/opentelemetry-java-instrumentation/pull/13803)
+
 ## v2.15.0 - 2025-04-16
 
 ### General

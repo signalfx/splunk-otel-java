@@ -1491,6 +1491,7 @@ public class MetadataGenerator {
     // https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/instrumentation/graphql-java/README.md
     /*
     | `otel.instrumentation.graphql.query-sanitizer.enabled` | Boolean | `true`  | Whether to remove sensitive information from query source that is added as span attribute. |
+    | `otel.instrumentation.graphql.add-operation-name-to-span-name.enabled` | Boolean | `false` | Whether GraphQL operation name is added to the span name. <p>**WARNING**: GraphQL operation name is provided by the client and can have high cardinality. Use only when the server is not exposed to malicious clients. |
      */
     // graphql 20
     /*
@@ -1502,6 +1503,13 @@ public class MetadataGenerator {
             "otel.instrumentation.graphql.query-sanitizer.enabled",
             "Whether to remove sensitive information from query source that is added as span attribute.",
             "true",
+            SettingType.BOOLEAN,
+            SettingCategory.INSTRUMENTATION));
+    settings.add(
+        setting(
+            "otel.instrumentation.graphql.add-operation-name-to-span-name.enabled",
+            "Whether GraphQL operation name is added to the span name. <p>**WARNING**: GraphQL operation name is provided by the client and can have high cardinality. Use only when the server is not exposed to malicious clients.",
+            "false",
             SettingType.BOOLEAN,
             SettingCategory.INSTRUMENTATION));
     settings.add(
@@ -1638,11 +1646,27 @@ public class MetadataGenerator {
     // https://github.com/open-telemetry/opentelemetry-java-instrumentation/tree/main/instrumentation/jdbc/README.md
     /*
     | `otel.instrumentation.jdbc.statement-sanitizer.enabled` | Boolean | `true`  | Enables the DB statement sanitization. |
+    | `otel.instrumentation.jdbc.experimental.capture-query-parameters` | Boolean | `false` | Enable the capture of query parameters as span attributes. Enabling this option disables the statement sanitization. <p>WARNING: captured query parameters may contain sensitive information such as passwords, personally identifiable information or protected health info. |
+    | `otel.instrumentation.jdbc.experimental.transaction.enabled` | Boolean | `false` | Enables experimental instrumentation to create spans for COMMIT and ROLLBACK operations. |
      */
     settings.add(
         setting(
             "otel.instrumentation.jdbc.statement-sanitizer.enabled",
             "Enables the DB statement sanitization.",
+            "true",
+            SettingType.BOOLEAN,
+            SettingCategory.INSTRUMENTATION));
+    settings.add(
+        setting(
+            "otel.instrumentation.jdbc.experimental.capture-query-parameters",
+            "Enable the capture of query parameters as span attributes. Enabling this option disables the statement sanitization. <p>WARNING: captured query parameters may contain sensitive information such as passwords, personally identifiable information or protected health info.",
+            "false",
+            SettingType.BOOLEAN,
+            SettingCategory.INSTRUMENTATION));
+    settings.add(
+        setting(
+            "otel.instrumentation.jdbc.experimental.transaction.enabled",
+            "Enables experimental instrumentation to create spans for COMMIT and ROLLBACK operations.",
             "false",
             SettingType.BOOLEAN,
             SettingCategory.INSTRUMENTATION));
@@ -1663,7 +1687,6 @@ public class MetadataGenerator {
     /*
     | `otel.instrumentation.kafka.experimental-span-attributes` | Boolean | `false` | Enable the capture of experimental span attributes.                                                                        |
     | `otel.instrumentation.kafka.producer-propagation.enabled` | Boolean | `true`  | Enable context propagation for kafka message producer.                                                                     |
-    | `otel.instrumentation.kafka.metric-reporter.enabled`      | Boolean | `true`  | Enable kafka consumer and producer metrics. Deprecated, disable instrumentation with name `kafka-clients-metrics` instead. |
      */
     settings.add(
         setting(
@@ -1676,13 +1699,6 @@ public class MetadataGenerator {
         setting(
             "otel.instrumentation.kafka.producer-propagation.enabled",
             "Enable context propagation for kafka message producer.",
-            "true",
-            SettingType.BOOLEAN,
-            SettingCategory.INSTRUMENTATION));
-    settings.add(
-        setting(
-            "otel.instrumentation.kafka.metric-reporter.enabled",
-            "Enable kafka consumer and producer metrics. Deprecated, disable instrumentation with name `kafka-clients-metrics` instead.",
             "true",
             SettingType.BOOLEAN,
             SettingCategory.INSTRUMENTATION));
@@ -1935,7 +1951,7 @@ public class MetadataGenerator {
         setting(
             "otel.instrumentation.mongo.statement-sanitizer.enabled",
             "Enables the DB statement sanitization.",
-            "false",
+            "true",
             SettingType.BOOLEAN,
             SettingCategory.INSTRUMENTATION));
 
@@ -2039,7 +2055,7 @@ public class MetadataGenerator {
         setting(
             "otel.instrumentation.r2dbc.statement-sanitizer.enabled",
             "Enables the DB statement sanitization.",
-            "false",
+            "true",
             SettingType.BOOLEAN,
             SettingCategory.INSTRUMENTATION));
 
@@ -3147,6 +3163,8 @@ public class MetadataGenerator {
             .component("AsyncHttpClient", "1.9 and higher")
             .httpClientMetrics()
             .build());
+    instrumentations.add(
+        instrumentation("avaje-jex").component("Avaje Jex", "3.0 and higher").build());
     instrumentations.add(
         instrumentation("aws-lambda").component("AWS Lambda", "1.0 and higher").build());
     instrumentations.add(

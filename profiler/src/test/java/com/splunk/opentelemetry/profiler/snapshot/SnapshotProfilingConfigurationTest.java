@@ -30,6 +30,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.slf4j.event.Level;
 
 class SnapshotProfilingConfigurationTest {
   @Nested
@@ -186,7 +187,7 @@ class SnapshotProfilingConfigurationTest {
   class LoggingTest {
     @RegisterExtension
     private final LogCapturer log =
-        LogCapturer.create().captureForType(SnapshotProfilingConfiguration.class);
+        LogCapturer.create().captureForType(SnapshotProfilingConfiguration.class, Level.DEBUG);
 
     @Test
     void includeSnapshotProfilingHeading() {

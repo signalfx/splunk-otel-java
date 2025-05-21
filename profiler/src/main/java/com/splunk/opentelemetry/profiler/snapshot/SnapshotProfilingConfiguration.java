@@ -132,8 +132,8 @@ public class SnapshotProfilingConfiguration implements AutoConfigurationCustomiz
   }
 
   static void log(ConfigProperties properties) {
-    logger.info("Snapshot Profiler Configuration:");
-    logger.info("-------------------------------------------------------");
+    logger.fine("Snapshot Profiler Configuration:");
+    logger.fine("-------------------------------------------------------");
 
     log(CONFIG_KEY_ENABLE_SNAPSHOT_PROFILER, isSnapshotProfilingEnabled(properties));
     log(CONFIG_KEY_SNAPSHOT_SELECTION_RATE, getSnapshotSelectionRate(properties));
@@ -147,11 +147,11 @@ public class SnapshotProfilingConfiguration implements AutoConfigurationCustomiz
     log(
         CONFIG_KEY_SNAPSHOT_PROFILER_STAGING_CAPACITY,
         getSnapshotProfilerStagingCapacity(properties));
-    logger.info("-------------------------------------------------------");
+    logger.fine("-------------------------------------------------------");
   }
 
   private static void log(String key, Object value) {
-    logger.info(" " + pad(key) + " : " + value);
+    logger.fine(" " + pad(key) + " : " + value);
   }
 
   private static String pad(String str) {

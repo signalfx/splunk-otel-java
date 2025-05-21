@@ -28,7 +28,12 @@ public class SnapshotVolumePropagatorProvider implements ConfigurablePropagatorP
   @Override
   public TextMapPropagator getPropagator(ConfigProperties config) {
     double snapshotSelectionRate = SnapshotProfilingConfiguration.getSnapshotSelectionRate(config);
-    return new SnapshotVolumePropagator(new ProbabilisticSnapshotSelector(snapshotSelectionRate));
+    return new SnapshotVolumePropagator(selector(snapshotSelectionRate));
+  }
+
+  private SnapshotSelector selector(double selectionRate) {
+    return new TraceIdBasedSnapshotSelector(selectionRate)
+        .or(new ProbabilisticSnapshotSelector(selectionRate));
   }
 
   @Override

@@ -56,7 +56,9 @@ class TraceIdBasedSnapshotSelectorTest {
   }
 
   private static Stream<String> traceIdsToSelect() {
-    return IntStream.range(1, 6).mapToObj(SpecialTraceIds::forPercentile).flatMap(List::stream);
+    return IntStream.range(1, 6)
+        .mapToObj(SnapshotSelectorTestTraceIds::forPercentile)
+        .flatMap(List::stream);
   }
 
   @ParameterizedTest
@@ -71,6 +73,8 @@ class TraceIdBasedSnapshotSelectorTest {
   }
 
   private static Stream<String> traceIdsToNotSelect() {
-    return IntStream.range(6, 100).mapToObj(SpecialTraceIds::forPercentile).flatMap(List::stream);
+    return IntStream.range(6, 100)
+        .mapToObj(SnapshotSelectorTestTraceIds::forPercentile)
+        .flatMap(List::stream);
   }
 }

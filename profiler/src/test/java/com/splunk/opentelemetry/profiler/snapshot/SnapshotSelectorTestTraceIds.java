@@ -28,7 +28,7 @@ import java.util.Random;
  * {@link io.opentelemetry.sdk.trace.samplers.TraceIdRatioBasedSampler}.
  *
  * <p>A trace ID percentile is defined as the range of values existing between {@link
- * Long#MAX_VALUE} * (percentile / 100) and {@link Long#MAX_VALUE} * (percentile + 1 / 100). A trace
+ * Long#MAX_VALUE} * (percentile - 1 / 100) and {@link Long#MAX_VALUE} * (percentile / 100). A trace
  * ID is placed within a percentile by using the {@link Long} representation of the last 16
  * characters of the trace id. When that long value is negative, the absolute value is used to find
  * the percentile the trace id belongs to.
@@ -47,7 +47,7 @@ import java.util.Random;
  * @see io.opentelemetry.sdk.trace.samplers.TraceIdRatioBasedSampler
  * @see io.opentelemetry.api.internal.OtelEncodingUtils#longFromBase16String(CharSequence, int)
  */
-class SpecialTraceIds {
+class SnapshotSelectorTestTraceIds {
   /**
    * Get trace ids known to be within the requested percentile. At least two trace ids will be
    * returned for each percentile representing the second long in the trace id being both positive
@@ -206,5 +206,5 @@ class SpecialTraceIds {
     return string;
   }
 
-  private SpecialTraceIds() {}
+  private SnapshotSelectorTestTraceIds() {}
 }

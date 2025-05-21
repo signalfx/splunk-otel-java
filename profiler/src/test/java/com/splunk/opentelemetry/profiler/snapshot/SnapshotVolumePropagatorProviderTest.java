@@ -86,7 +86,7 @@ class SnapshotVolumePropagatorProviderTest {
 
   private static Stream<String> traceIdsToSelect() {
     return IntStream.range(1, 11)
-        .mapToObj(SpecialTraceIds::forPercentile)
+        .mapToObj(SnapshotSelectorTestTraceIds::forPercentile)
         .flatMap(Collection::stream);
   }
 }

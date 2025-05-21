@@ -23,7 +23,8 @@ import java.util.Locale;
 
 public enum Volume implements ImplicitContextKeyed {
   OFF,
-  HIGHEST;
+  HIGHEST,
+  UNSPECIFIED;
 
   private static final String SPLUNK_TRACE_SNAPSHOT_VOLUME = "splunk.trace.snapshot.volume";
 
@@ -34,7 +35,7 @@ public enum Volume implements ImplicitContextKeyed {
 
   private static Volume fromString(String value) {
     if (value == null) {
-      return OFF;
+      return UNSPECIFIED;
     }
 
     try {

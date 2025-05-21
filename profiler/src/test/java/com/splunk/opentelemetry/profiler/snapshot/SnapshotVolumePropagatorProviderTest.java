@@ -16,18 +16,22 @@
 
 package com.splunk.opentelemetry.profiler.snapshot;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 
-import com.splunk.opentelemetry.profiler.Configuration;
-import io.opentelemetry.context.propagation.TextMapPropagator;
+import io.opentelemetry.api.trace.Span;
+import io.opentelemetry.context.Context;
 import io.opentelemetry.sdk.autoconfigure.spi.internal.DefaultConfigProperties;
-import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
+import org.junit.jupiter.params.provider.MethodSource;
 
 class SnapshotVolumePropagatorProviderTest {
   private final SnapshotVolumePropagatorProvider provider = new SnapshotVolumePropagatorProvider();
@@ -43,28 +47,46 @@ class SnapshotVolumePropagatorProviderTest {
     assertEquals("splunk-snapshot", provider.getName());
   }
 
-  @ParameterizedTest
-  @ValueSource(doubles = {0.10, 0.05, 0.0})
-  void configureSnapshotSelectionRateFromConfigProperties(double selectionRate) throws Exception {
-    var propagator =
-        provider.getPropagator(
-            DefaultConfigProperties.create(
-                Map.of(
-                    Configuration.CONFIG_KEY_SNAPSHOT_SELECTION_RATE,
-                    String.valueOf(selectionRate))));
-    var actualSelectionRate = reflectivelyGetSelectionRate(propagator);
+  /** Has a roughly 0.0025% chance to fail. */
+  @Test
+  void probabilisticSelectorIsConfigured() {
+    var properties =
+        DefaultConfigProperties.create(Map.of("splunk.snapshot.selection.rate", "0.10"));
 
-    assertEquals(selectionRate, actualSelectionRate);
+    var carrier = new ObservableCarrier();
+    var propagator = provider.getPropagator(properties);
+
+    var volumes = new ArrayList<Volume>();
+    for (int i = 0; i < 100; i++) {
+      var contextFromPropagator = propagator.extract(Context.root(), carrier, carrier);
+      var volume = Volume.from(contextFromPropagator);
+      volumes.add(volume);
+    }
+
+    assertThat(volumes).contains(Volume.HIGHEST);
   }
 
-  private double reflectivelyGetSelectionRate(TextMapPropagator propagator) throws Exception {
-    Field selectorField = SnapshotVolumePropagator.class.getDeclaredField("selector");
-    selectorField.setAccessible(true);
-    var selector = selectorField.get(propagator);
+  @ParameterizedTest
+  @MethodSource("traceIdsToSelect")
+  void traceIdSelectorIsConfigured(String traceId) {
+    var properties =
+        DefaultConfigProperties.create(Map.of("splunk.snapshot.selection.rate", "0.10"));
 
-    Field selectionRateField =
-        ProbabilisticSnapshotSelector.class.getDeclaredField("selectionRate");
-    selectionRateField.setAccessible(true);
-    return (double) selectionRateField.get(selector);
+    var remoteSpanContext = Snapshotting.spanContext().withTraceId(traceId).remote().build();
+    var remoteParentSpan = Span.wrap(remoteSpanContext);
+    var context = Context.root().with(remoteParentSpan);
+
+    var carrier = new ObservableCarrier();
+    var propagator = provider.getPropagator(properties);
+    var contextFromPropagator = propagator.extract(context, carrier, carrier);
+    var volume = Volume.from(contextFromPropagator);
+
+    assertEquals(Volume.HIGHEST, volume);
+  }
+
+  private static Stream<String> traceIdsToSelect() {
+    return IntStream.range(1, 11)
+        .mapToObj(SnapshotSelectorTestTraceIds::forPercentile)
+        .flatMap(Collection::stream);
   }
 }

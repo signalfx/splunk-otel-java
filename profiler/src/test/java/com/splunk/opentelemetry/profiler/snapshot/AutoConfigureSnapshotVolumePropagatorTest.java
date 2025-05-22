@@ -18,7 +18,6 @@ package com.splunk.opentelemetry.profiler.snapshot;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.splunk.opentelemetry.profiler.Configuration;
 import io.opentelemetry.sdk.autoconfigure.OpenTelemetrySdkExtension;
 import io.opentelemetry.sdk.autoconfigure.OpenTelemetrySdkExtension.Builder;
 import org.junit.jupiter.api.Test;
@@ -84,7 +83,10 @@ class AutoConfigureSnapshotVolumePropagatorTest {
   @Test
   void doNotAddSnapshotVolumePropagatorWhenTraceSnapshottingIsDisabled() {
     try (var sdk =
-        newSdk().withProperty(Configuration.CONFIG_KEY_ENABLE_SNAPSHOT_PROFILER, "false").build()) {
+        newSdk()
+            .withProperty(
+                SnapshotProfilingConfiguration.CONFIG_KEY_ENABLE_SNAPSHOT_PROFILER, "false")
+            .build()) {
       var properties = sdk.getConfig();
       assertThat(properties.getList(OTEL_PROPAGATORS))
           .doesNotContain(SnapshotVolumePropagatorProvider.NAME);
@@ -123,7 +125,7 @@ class AutoConfigureSnapshotVolumePropagatorTest {
 
   private Builder newSdk() {
     return OpenTelemetrySdkExtension.configure()
-        .withProperty(Configuration.CONFIG_KEY_ENABLE_SNAPSHOT_PROFILER, "true")
+        .withProperty(SnapshotProfilingConfiguration.CONFIG_KEY_ENABLE_SNAPSHOT_PROFILER, "true")
         .with(new SnapshotProfilingSdkCustomizer());
   }
 }

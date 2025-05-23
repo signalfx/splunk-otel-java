@@ -126,7 +126,7 @@ class YamlParser {
     if (yaml instanceof String) {
       return ElementMatchers.named(yaml.toString());
     }
-    return matcherFromYaml(yaml, makeParsers(MatcherParser.hasSuperType));
+    return matcherFromYaml(yaml, makeParsers(MatcherParser.superType));
   }
 
   private ElementMatcher<MethodDescription> methodMatcher(Object yaml) {
@@ -134,7 +134,7 @@ class YamlParser {
       return ElementMatchers.named(yaml.toString());
     }
     return matcherFromYaml(
-        yaml, makeParsers(MatcherParser.hasParameterCount, MatcherParser.hasParameterOfType));
+        yaml, makeParsers(MatcherParser.parameterCount, MatcherParser.parameter));
   }
 
   private static Map<String, MatcherParser> makeParsers(MatcherParser... extras) {
@@ -145,8 +145,8 @@ class YamlParser {
                 MatcherParser.and,
                 MatcherParser.or,
                 MatcherParser.not,
-                MatcherParser.named,
-                MatcherParser.nameMatches));
+                MatcherParser.name,
+                MatcherParser.nameRegex));
     parsers.addAll(Arrays.asList(extras));
     for (MatcherParser mp : parsers) {
       answer.put(mp.name(), mp);
@@ -217,43 +217,49 @@ class YamlParser {
         return matcher;
       }
     },
-    named {
+    name {
       <E extends NamedElement> ElementMatcher<E> parse(
           Object value, Map<String, MatcherParser> parsers) {
         return ElementMatchers.named(value.toString());
       }
     },
-    nameMatches {
+    nameRegex {
       <E extends NamedElement> ElementMatcher<E> parse(
           Object value, Map<String, MatcherParser> parsers) {
         return ElementMatchers.nameMatches(value.toString());
       }
     },
-    hasSuperType {
+    superType {
       <E extends NamedElement> ElementMatcher<E> parse(
           Object value, Map<String, MatcherParser> parsers) {
         return (ElementMatcher<E>)
             AgentElementMatchers.hasSuperType(ElementMatchers.named(value.toString()));
       }
     },
-    hasParameterCount {
+    parameterCount {
       <E extends NamedElement> ElementMatcher<E> parse(
           Object value, Map<String, MatcherParser> parsers) {
         return (ElementMatcher<E>)
             ElementMatchers.takesArguments(Integer.parseInt(value.toString()));
       }
     },
-    hasParameterOfType {
+    parameter {
       <E extends NamedElement> ElementMatcher<E> parse(
           Object value, Map<String, MatcherParser> parsers) {
-        String[] args = ((String) value).split("\\s+");
-        if (args.length != 2) {
+        if (!(value instanceof Map)) {
           throw new IllegalArgumentException(
-              "Expected <index> <typename> as fields of hasParameterOfType");
+              "Expected index: and type: for parameter:");
+        }
+        Map<String, Object> yamlVal = (Map<String, Object>) value;
+        if (yamlVal.size() != 2 ||
+            !yamlVal.containsKey("index") ||
+            !yamlVal.containsKey("type")) {
+          throw new IllegalArgumentException(
+              "Expected index: and type: for parameter:");
         }
         return (ElementMatcher<E>)
             ElementMatchers.takesArgument(
-                Integer.parseInt(args[0]), ElementMatchers.named(args[1]));
+                Integer.parseInt(yamlVal.get("index").toString()), ElementMatchers.named(yamlVal.get("type").toString()));
       }
     };
 

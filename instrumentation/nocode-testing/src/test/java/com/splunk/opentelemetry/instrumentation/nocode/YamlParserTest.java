@@ -29,22 +29,34 @@ class YamlParserTest {
     assertEquals(1, YamlParser.parseFromString(yaml).size());
   }
 
+  // formatting of the strings with newlines makes it easier to read and
+  // reason about the test.
+  // spotless:off
   @ParameterizedTest
   @ValueSource(
       strings = {
-        "class: fooButNoWrappingYamlList\n" + "  method: thisWillNotWork",
+        "class: fooButNoWrappingYamlList\n"
+            + "  method: thisWillNotWork",
         "- class:\n"
-            + "    - named: cannotUseMultipleNameClauses\n"
-            + "    - nameMatches: withoutAnAndOrOr.*\n"
+            + "    - name: cannotUseMultipleNameClauses\n"
+            + "    - nameRegex: withoutAnAndOrOr.*\n"
             + "  method: someMethodName",
-        "- class:\n" + "    hasParameterCount: 1\n" + "  method: someMethodName\n",
-        "- class:\n" + "    hasParameterOfType: 0 int\n" + "  method: someMethodName\n",
-        "- class:\n" + "    and:\n" + "  method: someMethodName\n", // no clauses in and:
+        "- class:\n"
+            + "    parameterCount: 1\n"
+            + "    method: someMethodName\n",
+        "- class:\n"
+            + "    parameter:\n"
+            + "      index: 0\n"
+            + "      type: int\n"
+            + "  method: someMethodName\n",
+        "- class:\n"
+            + "    and:\n"
+            + "  method: someMethodName\n", // no clauses in and:
         "- class:\n"
             + "    or:\n"
             + "      - not:\n"
-            + "          named: singleRuleExpected\n"
-            + "          nameMatches: underANot.*\n"
+            + "          name: singleRuleExpected\n"
+            + "          nameRegex: underANot.*\n"
             + "  method: someMethodName\n",
         "- class:\n"
             + "    or:\n"
@@ -52,11 +64,33 @@ class YamlParserTest {
             + "  method: someMethodName\n",
         "- class: someClassName\n"
             + "  method:\n"
-            + "    hasSuperType: notExpectedForMethodMatcher\n",
-        "- class: someClassName\n" + "  method:\n" + "    hasParameterCount: notanumber\n",
-        "- class: someClassName\n" + "  method:\n" + "    hasParameterOfType: onlyOneArgument\n",
-        "- class: someClassName\n" + "  method:\n" + "    hasParameterOfType: notanumber int\n",
+            + "    superType: notExpectedForMethodMatcher\n",
+        "- class: someClassName\n"
+            + "  method:\n"
+            + "    parameterCount: notanumber\n",
+          "- class: someClassName\n"
+              + "  method:\n"
+              + "    parameter:\n"
+              + "      index: notanumber\n"
+              + "      type: int\n",
+        "- class: someClassName\n"
+            + "  method:\n"
+            + "    parameter:\n"
+            + "      index: 0\n", // no type
+          "- class: someClassName\n"
+              + "  method:\n"
+              + "    parameter:\n"
+              + "      type: int\n", // no index
+          "- class: someClassName\n"
+              + "  method:\n"
+              + "    parameter: bareValueNotSupported\n",
+          "- class: someClassName\n"
+              + "  method:\n"
+              + "    parameter:\n"
+              + "      noIndex: 1\n"
+              + "      noType: int\n",
       })
+  // spotless:on
   void invalidYamlIsInvalid(String yaml) {
     assertEquals(0, YamlParser.parseFromString(yaml).size());
   }

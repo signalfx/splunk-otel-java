@@ -1,8 +1,8 @@
 - class: com.splunk.opentelemetry.instrumentation.nocode.NocodeInstrumentationTest$SampleClass
   method:
     or:
-      - named: willNotMatch
-      - named: doSomething
+      - name: willNotMatch
+      - name: doSomething
   spanName: "this.getName()"
   attributes:
     - key: "details"
@@ -24,15 +24,17 @@
 
 - class:
     and:
-      - hasSuperType: com.splunk.opentelemetry.instrumentation.nocode.NocodeInstrumentationTest$SampleClass
+      - superType: com.splunk.opentelemetry.instrumentation.nocode.NocodeInstrumentationTest$SampleClass
       - or:
-        - named: something.that.will.not.match.but.trivially.tests.the.or.Logic
-        - nameMatches: .*nocode.*
+        - name: something.that.will.not.match.but.trivially.tests.the.or.Logic
+        - nameRegex: .*nocode.*
   method:
     and:
-      - nameMatches: throwExcept.*
-      - hasParameterCount: 1
-      - hasParameterOfType: 0 int
+      - nameRegex: throwExcept.*
+      - parameterCount: 1
+      - parameter:
+          index: 0
+          type: int
   spanKind: SERVER
   attributes:
     - key: "five"
@@ -40,16 +42,18 @@
 
 - class:
     and:
-      - nameMatches: .*nocode.*SampleClass
-      - hasSuperType: java.lang.Object
+      - nameRegex: .*nocode.*SampleClass
+      - superType: java.lang.Object
   method:
      and:
        - and:
            - not:
-               named: noSuchMethod
-           - nameMatches: ech[o]?
-       - hasParameterCount: 1
-       - hasParameterOfType: 0 boolean
+               name: noSuchMethod
+           - nameRegex: ech[o]?
+       - parameterCount: 1
+       - parameter:
+           index: 0
+           type: boolean
   spanStatus: 'returnValue.booleanValue() ? "ERROR" : "OK"'
 
 

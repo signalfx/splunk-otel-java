@@ -54,6 +54,6 @@ class SnapshotProfilingSdkCustomizerBuilder {
   }
 
   SnapshotProfilingSdkCustomizer build() {
-    return new SnapshotProfilingSdkCustomizer(registry, sampler, spanTrackingActivator);
+    return new SnapshotProfilingSdkCustomizer(new ConfigurableSupplier<>(registry), sampler, spanTrackingActivator);
   }
 }

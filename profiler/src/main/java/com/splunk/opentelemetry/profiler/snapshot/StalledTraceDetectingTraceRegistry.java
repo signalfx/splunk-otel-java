@@ -19,7 +19,6 @@ package com.splunk.opentelemetry.profiler.snapshot;
 import com.splunk.opentelemetry.profiler.util.HelpfulExecutors;
 import io.opentelemetry.api.trace.SpanContext;
 import java.time.Duration;
-import java.time.Instant;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledExecutorService;
@@ -29,17 +28,19 @@ import java.util.function.Supplier;
 class StalledTraceDetectingTraceRegistry implements TraceRegistry {
   private final ScheduledExecutorService scheduler =
       HelpfulExecutors.newSingleThreadedScheduledExecutor("stalled-trace-detector");
-  private final Map<String, RegistrationContext> traceIds = new ConcurrentHashMap<>();
+  private final Map<SpanContext, Long> traceIds = new ConcurrentHashMap<>();
   private final TraceRegistry delegate;
   private final Supplier<StackTraceSampler> sampler;
+  private final Duration stalledTimeLimit;
 
   public StalledTraceDetectingTraceRegistry(
       TraceRegistry delegate, Supplier<StackTraceSampler> sampler, Duration stalledTimeLimit) {
     this.delegate = delegate;
     this.sampler = sampler;
+    this.stalledTimeLimit = stalledTimeLimit;
 
     scheduler.scheduleAtFixedRate(
-        removeStalledTraces(stalledTimeLimit),
+        removeStalledTraces(),
         stalledTimeLimit.toMillis() / 2,
         stalledTimeLimit.toMillis() / 2,
         TimeUnit.MILLISECONDS);
@@ -48,7 +49,7 @@ class StalledTraceDetectingTraceRegistry implements TraceRegistry {
   @Override
   public void register(SpanContext spanContext) {
     delegate.register(spanContext);
-    traceIds.put(spanContext.getTraceId(), new RegistrationContext(Instant.now(), spanContext));
+    traceIds.put(spanContext, System.nanoTime() + stalledTimeLimit.toNanos());
   }
 
   @Override
@@ -59,6 +60,7 @@ class StalledTraceDetectingTraceRegistry implements TraceRegistry {
   @Override
   public void unregister(SpanContext spanContext) {
     delegate.unregister(spanContext);
+    traceIds.remove(spanContext);
   }
 
   @Override
@@ -67,30 +69,14 @@ class StalledTraceDetectingTraceRegistry implements TraceRegistry {
     delegate.close();
   }
 
-  private Runnable removeStalledTraces(Duration stalledTimeLimit) {
-    return () ->
-        traceIds
-            .entrySet()
-            .iterator()
-            .forEachRemaining(
-                entry -> {
-                  Instant now = Instant.now();
-                  RegistrationContext context = entry.getValue();
-                  Duration duration = Duration.between(now, context.registrationTime);
-                  if (duration.compareTo(stalledTimeLimit) <= 0) {
-                    unregister(context.spanContext);
-                    sampler.get().stop(context.spanContext);
-                  }
-                });
-  }
-
-  private static class RegistrationContext {
-    private final Instant registrationTime;
-    private final SpanContext spanContext;
-
-    private RegistrationContext(Instant registrationTime, SpanContext spanContext) {
-      this.registrationTime = registrationTime;
-      this.spanContext = spanContext;
-    }
+  private Runnable removeStalledTraces() {
+    return () -> traceIds.entrySet().stream()
+        .filter(entry -> entry.getValue() <= System.nanoTime())
+        .map(Map.Entry::getKey)
+        .iterator()
+        .forEachRemaining(spanContext -> {
+          unregister(spanContext);
+          sampler.get().stop(spanContext);
+        });
   }
 }

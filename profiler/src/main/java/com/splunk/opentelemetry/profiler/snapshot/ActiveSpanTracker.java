@@ -23,15 +23,16 @@ import io.opentelemetry.context.ContextStorage;
 import io.opentelemetry.context.Scope;
 import io.opentelemetry.instrumentation.api.internal.cache.Cache;
 import java.util.Optional;
+import java.util.function.Supplier;
 import javax.annotation.Nullable;
 
 class ActiveSpanTracker implements ContextStorage, SpanTracker {
   private final Cache<Thread, SpanContext> cache = Cache.weak();
 
   private final ContextStorage delegate;
-  private final TraceRegistry registry;
+  private final Supplier<TraceRegistry> registry;
 
-  ActiveSpanTracker(ContextStorage delegate, TraceRegistry registry) {
+  ActiveSpanTracker(ContextStorage delegate, Supplier<TraceRegistry> registry) {
     this.delegate = delegate;
     this.registry = registry;
   }
@@ -62,7 +63,7 @@ class ActiveSpanTracker implements ContextStorage, SpanTracker {
   }
 
   private boolean doNotTrack(SpanContext spanContext) {
-    return !spanContext.isSampled() || !registry.isRegistered(spanContext);
+    return !spanContext.isSampled() || !registry.get().isRegistered(spanContext);
   }
 
   @Nullable

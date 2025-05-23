@@ -40,7 +40,7 @@ import org.junit.jupiter.api.Test;
 class ActiveSpanTrackerTest {
   private final ContextStorage storage = ContextStorage.get();
   private final TogglableTraceRegistry registry = new TogglableTraceRegistry();
-  private final ActiveSpanTracker spanTracker = new ActiveSpanTracker(storage, registry);
+  private final ActiveSpanTracker spanTracker = new ActiveSpanTracker(storage, () -> registry);
 
   @Test
   void currentContextComesFromOpenTelemetryContextStorage() {

@@ -16,6 +16,8 @@
 
 package com.splunk.opentelemetry.profiler.snapshot;
 
+import java.util.function.Supplier;
+
 interface SpanTrackingActivator {
-  void activate(TraceRegistry registry);
+  void activate(Supplier<TraceRegistry> registry);
 }

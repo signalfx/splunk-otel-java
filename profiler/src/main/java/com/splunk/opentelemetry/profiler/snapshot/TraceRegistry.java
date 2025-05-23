@@ -19,13 +19,6 @@ package com.splunk.opentelemetry.profiler.snapshot;
 import io.opentelemetry.api.trace.SpanContext;
 
 interface TraceRegistry extends AutoCloseable {
-  TraceRegistry NOOP = new TraceRegistry() {
-    @Override public void register(SpanContext spanContext) {}
-    @Override public boolean isRegistered(SpanContext spanContext) { return false; }
-    @Override public void unregister(SpanContext spanContext) {}
-  };
-  ConfigurableSupplier<TraceRegistry> SUPPLIER = new ConfigurableSupplier<>(NOOP);
-
   void register(SpanContext spanContext);
 
   boolean isRegistered(SpanContext spanContext);

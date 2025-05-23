@@ -36,10 +36,10 @@ import java.util.function.Supplier;
  * be profiled at a time.
  */
 public class SnapshotProfilingSpanProcessor implements SpanProcessor {
-  private final TraceRegistry registry;
+  private final Supplier<TraceRegistry> registry;
   private final Supplier<StackTraceSampler> sampler;
 
-  SnapshotProfilingSpanProcessor(TraceRegistry registry, Supplier<StackTraceSampler> sampler) {
+  SnapshotProfilingSpanProcessor(Supplier<TraceRegistry> registry, Supplier<StackTraceSampler> sampler) {
     this.registry = registry;
     this.sampler = sampler;
   }
@@ -49,11 +49,11 @@ public class SnapshotProfilingSpanProcessor implements SpanProcessor {
     if (isEntry(span)) {
       Volume volume = Volume.from(context);
       if (volume == Volume.HIGHEST) {
-        registry.register(span.getSpanContext());
+        registry.get().register(span.getSpanContext());
       }
     }
 
-    if (isEntry(span) && registry.isRegistered(span.getSpanContext())) {
+    if (isEntry(span) && registry.get().isRegistered(span.getSpanContext())) {
       sampler.get().start(span.getSpanContext());
       span.setAttribute(SNAPSHOT_PROFILING, true);
     }
@@ -74,7 +74,7 @@ public class SnapshotProfilingSpanProcessor implements SpanProcessor {
   @Override
   public void onEnd(ReadableSpan span) {
     if (isEntry(span)) {
-      registry.unregister(span.getSpanContext());
+      registry.get().unregister(span.getSpanContext());
       sampler.get().stop(span.getSpanContext());
     }
   }

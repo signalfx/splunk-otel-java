@@ -247,19 +247,16 @@ class YamlParser {
       <E extends NamedElement> ElementMatcher<E> parse(
           Object value, Map<String, MatcherParser> parsers) {
         if (!(value instanceof Map)) {
-          throw new IllegalArgumentException(
-              "Expected index: and type: for parameter:");
+          throw new IllegalArgumentException("Expected index: and type: for parameter:");
         }
         Map<String, Object> yamlVal = (Map<String, Object>) value;
-        if (yamlVal.size() != 2 ||
-            !yamlVal.containsKey("index") ||
-            !yamlVal.containsKey("type")) {
-          throw new IllegalArgumentException(
-              "Expected index: and type: for parameter:");
+        if (yamlVal.size() != 2 || !yamlVal.containsKey("index") || !yamlVal.containsKey("type")) {
+          throw new IllegalArgumentException("Expected index: and type: for parameter:");
         }
         return (ElementMatcher<E>)
             ElementMatchers.takesArgument(
-                Integer.parseInt(yamlVal.get("index").toString()), ElementMatchers.named(yamlVal.get("type").toString()));
+                Integer.parseInt(yamlVal.get("index").toString()),
+                ElementMatchers.named(yamlVal.get("type").toString()));
       }
     };
 

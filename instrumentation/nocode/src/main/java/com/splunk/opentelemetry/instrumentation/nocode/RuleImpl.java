@@ -59,11 +59,11 @@ public final class RuleImpl implements NocodeRules.Rule {
         + classMatcher
         + "."
         + methodMatcher
-        + ":spanName="
+        + ":span_name="
         + spanName
-        + ":spanKind="
+        + ":span_kind="
         + spanKind
-        + ":spanStatus="
+        + ":span_status="
         + spanStatus
         + ",attrs="
         + attributes;

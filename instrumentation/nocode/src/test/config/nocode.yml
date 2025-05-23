@@ -3,7 +3,7 @@
     or:
       - name: willNotMatch
       - name: doSomething
-  spanName: "this.getName()"
+  span_name: "this.getName()"
   attributes:
     - key: "details"
       value: this.getDetails()
@@ -24,44 +24,44 @@
 
 - class:
     and:
-      - superType: com.splunk.opentelemetry.instrumentation.nocode.NocodeInstrumentationTest$SampleClass
+      - super_type: com.splunk.opentelemetry.instrumentation.nocode.NocodeInstrumentationTest$SampleClass
       - or:
         - name: something.that.will.not.match.but.trivially.tests.the.or.Logic
-        - nameRegex: .*nocode.*
+        - name_regex: .*nocode.*
   method:
     and:
-      - nameRegex: throwExcept.*
-      - parameterCount: 1
+      - name_regex: throwExcept.*
+      - parameter_count: 1
       - parameter:
           index: 0
           type: int
-  spanKind: SERVER
+  span_kind: SERVER
   attributes:
     - key: "five"
       value: param0.toString().substring(0)
 
 - class:
     and:
-      - nameRegex: .*nocode.*SampleClass
-      - superType: java.lang.Object
+      - name_regex: .*nocode.*SampleClass
+      - super_type: java.lang.Object
   method:
      and:
        - and:
            - not:
                name: noSuchMethod
-           - nameRegex: ech[o]?
-       - parameterCount: 1
+           - name_regex: ech[o]?
+       - parameter_count: 1
        - parameter:
            index: 0
            type: boolean
-  spanStatus: 'returnValue.booleanValue() ? "ERROR" : "OK"'
+  span_status: 'returnValue.booleanValue() ? "ERROR" : "OK"'
 
 
 - class: com.splunk.opentelemetry.instrumentation.nocode.NocodeInstrumentationTest$SampleClass
   method: doInvalidRule
-  spanName: "this.thereIsNoSuchMethod()"
-  spanKind: INVALID
-  spanStatus: invalid jexl that does not parse
+  span_name: "this.thereIsNoSuchMethod()"
+  span_kind: INVALID
+  span_status: invalid jexl that does not parse
   attributes:
     - key: "notpresent"
       value: "invalid.noSuchStatement()"

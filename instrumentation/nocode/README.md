@@ -20,15 +20,15 @@ Where the yml looks like
 ```yaml
 - class: foo.Foo
   method: foo
-  spanName: this.getName()
+  span_name: this.getName()
   attributes:
     - key: "business.context"
       value: this.getDetails().get("context")
 
 - class: foo.Foo
   method: doStuff
-  spanKind: CLIENT
-  spanStatus: 'returnValue.code() > 3 ? "OK" : "ERROR"'
+  span_kind: CLIENT
+  span_status: 'returnValue.code() > 3 ? "OK" : "ERROR"'
   attributes:
     - key: "special.header"
       value: 'param0.headers().get("special-header").substring(5)'
@@ -49,19 +49,21 @@ You may use more complex logic for class or method selection.  The following exa
 - class:
     and:
       - or:
-        - named: some.specific.Name
-        - nameMatches: some.*Regex.*
-      - hasSuperType: some.superclass.or.Interface
+        - name: some.specific.Name
+        - name_regex: some.*Regex.*
+      - super_type: some.superclass.or.Interface
   method:
     and:
-      - nameMatches: methodName.*Regex.*
+      - name_regex: methodName.*Regex.*
       - not:
-          nameMatches: specificMethodNameToNotMatch
-      - hasParameterCount: 2
-      - hasParameterOfType: 0 int
+          name: specificMethodNameToNotMatch
+      - parameter_count: 2
+      - parameter:
+          index: 0
+          type: int
 ```
 
-  - `and:`, `or:`, `not:`, `named:`, and `nameMatches:` apply to both class and method matchers
-  - `hasSuperType:` is only for classes and matches the given type exactly, or anything that directly or indirectly extends from or implements it
-  - `hasParameterCount:` is only for methods and requires an exact match (you can combine with `or:`/`and:`/`not:` to enable logic like "more than 1 parameter")
-  - `hasParameterOfType` uses a 0-based index and requires an exact match to the declared type of the parameter
+  - `and:`, `or:`, `not:`, `name:`, and `name_regex:` apply to both class and method matchers
+  - `super_type:` is only for classes and matches the given type exactly, or anything that directly or indirectly extends from or implements it
+  - `parameter_count:` is only for methods and requires an exact match (you can combine with `or:`/`and:`/`not:` to enable logic like "more than 1 parameter")
+  - `parameter:` uses a 0-based `index:` and requires an exact match to the declared `type:` of the parameter

@@ -94,17 +94,17 @@ class YamlParser {
       for (Map<String, Object> yamlRule : rulesMap) {
         ElementMatcher<TypeDescription> classMatcher = classMatcher(yamlRule.get("class"));
         ElementMatcher<MethodDescription> methodMatcher = methodMatcher(yamlRule.get("method"));
-        NocodeExpression spanName = toExpression(yamlRule.get("spanName"));
+        NocodeExpression spanName = toExpression(yamlRule.get("span_name"));
         SpanKind spanKind = null;
-        if (yamlRule.get("spanKind") != null) {
-          String spanKindString = yamlRule.get("spanKind").toString();
+        if (yamlRule.get("span_kind") != null) {
+          String spanKindString = yamlRule.get("span_kind").toString();
           try {
             spanKind = SpanKind.valueOf(spanKindString.toUpperCase(Locale.ROOT));
           } catch (IllegalArgumentException exception) {
             logger.warning("Invalid span kind " + spanKindString);
           }
         }
-        NocodeExpression spanStatus = toExpression(yamlRule.get("spanStatus"));
+        NocodeExpression spanStatus = toExpression(yamlRule.get("span_status"));
 
         Map<String, NocodeExpression> ruleAttributes = new HashMap<>();
         List<Map<String, Object>> attrs = (List<Map<String, Object>>) yamlRule.get("attributes");
@@ -126,7 +126,7 @@ class YamlParser {
     if (yaml instanceof String) {
       return ElementMatchers.named(yaml.toString());
     }
-    return matcherFromYaml(yaml, makeParsers(MatcherParser.superType));
+    return matcherFromYaml(yaml, makeParsers(MatcherParser.super_type));
   }
 
   private ElementMatcher<MethodDescription> methodMatcher(Object yaml) {
@@ -134,7 +134,7 @@ class YamlParser {
       return ElementMatchers.named(yaml.toString());
     }
     return matcherFromYaml(
-        yaml, makeParsers(MatcherParser.parameterCount, MatcherParser.parameter));
+        yaml, makeParsers(MatcherParser.parameter_count, MatcherParser.parameter));
   }
 
   private static Map<String, MatcherParser> makeParsers(MatcherParser... extras) {
@@ -146,7 +146,7 @@ class YamlParser {
                 MatcherParser.or,
                 MatcherParser.not,
                 MatcherParser.name,
-                MatcherParser.nameRegex));
+                MatcherParser.name_regex));
     parsers.addAll(Arrays.asList(extras));
     for (MatcherParser mp : parsers) {
       answer.put(mp.name(), mp);
@@ -223,20 +223,20 @@ class YamlParser {
         return ElementMatchers.named(value.toString());
       }
     },
-    nameRegex {
+    name_regex {
       <E extends NamedElement> ElementMatcher<E> parse(
           Object value, Map<String, MatcherParser> parsers) {
         return ElementMatchers.nameMatches(value.toString());
       }
     },
-    superType {
+    super_type {
       <E extends NamedElement> ElementMatcher<E> parse(
           Object value, Map<String, MatcherParser> parsers) {
         return (ElementMatcher<E>)
             AgentElementMatchers.hasSuperType(ElementMatchers.named(value.toString()));
       }
     },
-    parameterCount {
+    parameter_count {
       <E extends NamedElement> ElementMatcher<E> parse(
           Object value, Map<String, MatcherParser> parsers) {
         return (ElementMatcher<E>)

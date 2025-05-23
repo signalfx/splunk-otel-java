@@ -39,10 +39,10 @@ class YamlParserTest {
             + "  method: thisWillNotWork",
         "- class:\n"
             + "    - name: cannotUseMultipleNameClauses\n"
-            + "    - nameRegex: withoutAnAndOrOr.*\n"
+            + "    - name_regex: withoutAnAndOrOr.*\n"
             + "  method: someMethodName",
         "- class:\n"
-            + "    parameterCount: 1\n"
+            + "    parameter_count: 1\n"
             + "    method: someMethodName\n",
         "- class:\n"
             + "    parameter:\n"
@@ -56,7 +56,7 @@ class YamlParserTest {
             + "    or:\n"
             + "      - not:\n"
             + "          name: singleRuleExpected\n"
-            + "          nameRegex: underANot.*\n"
+            + "          name_regex: underANot.*\n"
             + "  method: someMethodName\n",
         "- class:\n"
             + "    or:\n"
@@ -64,10 +64,10 @@ class YamlParserTest {
             + "  method: someMethodName\n",
         "- class: someClassName\n"
             + "  method:\n"
-            + "    superType: notExpectedForMethodMatcher\n",
+            + "    super_type: notExpectedForMethodMatcher\n",
         "- class: someClassName\n"
             + "  method:\n"
-            + "    parameterCount: notanumber\n",
+            + "    parameter_count: notanumber\n",
           "- class: someClassName\n"
               + "  method:\n"
               + "    parameter:\n"

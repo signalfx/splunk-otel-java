@@ -19,6 +19,7 @@ package com.splunk.opentelemetry.profiler.snapshot;
 import com.google.common.annotations.VisibleForTesting;
 import io.opentelemetry.context.ContextStorage;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 
 class InterceptingContextStorageSpanTrackingActivator implements SpanTrackingActivator {
@@ -35,7 +36,7 @@ class InterceptingContextStorageSpanTrackingActivator implements SpanTrackingAct
   }
 
   @Override
-  public void activate(TraceRegistry registry) {
+  public void activate(Supplier<TraceRegistry> registry) {
     contextStorageWrappingFunction.accept(
         contextStorage -> {
           ActiveSpanTracker tracker = new ActiveSpanTracker(contextStorage, registry);

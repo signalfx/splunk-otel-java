@@ -30,16 +30,17 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 @AutoService(AutoConfigurationCustomizerProvider.class)
 public class SnapshotProfilingSdkCustomizer implements AutoConfigurationCustomizerProvider {
-  private final TraceRegistry registry;
+  private final ConfigurableSupplier<TraceRegistry> registry;
   private final Function<ConfigProperties, StackTraceSampler> samplerProvider;
   private final SpanTrackingActivator spanTrackingActivator;
 
   public SnapshotProfilingSdkCustomizer() {
     this(
-        new TraceRegistry(),
+        new ConfigurableSupplier<>(new SimpleTraceRegistry()),
         stackTraceSamplerProvider(),
         new InterceptingContextStorageSpanTrackingActivator());
   }
@@ -61,12 +62,14 @@ public class SnapshotProfilingSdkCustomizer implements AutoConfigurationCustomiz
 
   @VisibleForTesting
   SnapshotProfilingSdkCustomizer(
-      TraceRegistry registry, StackTraceSampler sampler, SpanTrackingActivator activator) {
+      ConfigurableSupplier<TraceRegistry> registry,
+      StackTraceSampler sampler,
+      SpanTrackingActivator activator) {
     this(registry, properties -> sampler, activator);
   }
 
   private SnapshotProfilingSdkCustomizer(
-      TraceRegistry registry,
+      ConfigurableSupplier<TraceRegistry> registry,
       Function<ConfigProperties, StackTraceSampler> samplerProvider,
       SpanTrackingActivator spanTrackingActivator) {
     this.registry = registry;
@@ -78,23 +81,45 @@ public class SnapshotProfilingSdkCustomizer implements AutoConfigurationCustomiz
   public void customize(AutoConfigurationCustomizer autoConfigurationCustomizer) {
     autoConfigurationCustomizer
         .addPropertiesCustomizer(autoConfigureSnapshotVolumePropagator())
+        .addPropertiesCustomizer(configureTraceRegistry(registry))
         .addTracerProviderCustomizer(snapshotProfilingSpanProcessor(registry))
         .addPropertiesCustomizer(startTrackingActiveSpans(registry))
-        .addTracerProviderCustomizer(addShutdownHook());
+        .addTracerProviderCustomizer(addShutdownHook(registry));
+  }
+
+  private Function<ConfigProperties, Map<String, String>> configureTraceRegistry(
+      ConfigurableSupplier<TraceRegistry> registry) {
+    return properties -> {
+      if (snapshotProfilingEnabled(properties)) {
+        TraceRegistry current = registry.get();
+        TraceRegistry stalledTraceDetector =
+            new StalledTraceDetectingTraceRegistry(
+                current,
+                StackTraceSampler.SUPPLIER,
+                Configuration.getSnapshotProfilerStalledTraceTimeout(properties));
+        registry.configure(stalledTraceDetector);
+      }
+      return Collections.emptyMap();
+    };
   }
 
   private BiFunction<SdkTracerProviderBuilder, ConfigProperties, SdkTracerProviderBuilder>
-      addShutdownHook() {
+      addShutdownHook(Supplier<TraceRegistry> registry) {
     return (builder, properties) -> {
       if (snapshotProfilingEnabled(properties)) {
-        builder.addSpanProcessor(new SdkShutdownHook());
+        builder.addSpanProcessor(
+            new SdkShutdownHook(
+                registry,
+                StackTraceSampler.SUPPLIER,
+                StagingArea.SUPPLIER,
+                StackTraceExporter.SUPPLIER));
       }
       return builder;
     };
   }
 
   private BiFunction<SdkTracerProviderBuilder, ConfigProperties, SdkTracerProviderBuilder>
-      snapshotProfilingSpanProcessor(TraceRegistry registry) {
+      snapshotProfilingSpanProcessor(Supplier<TraceRegistry> registry) {
     return (builder, properties) -> {
       if (snapshotProfilingEnabled(properties)) {
         StackTraceSampler sampler = samplerProvider.apply(properties);
@@ -141,7 +166,7 @@ public class SnapshotProfilingSdkCustomizer implements AutoConfigurationCustomiz
   }
 
   private Function<ConfigProperties, Map<String, String>> startTrackingActiveSpans(
-      TraceRegistry registry) {
+      Supplier<TraceRegistry> registry) {
     return properties -> {
       if (snapshotProfilingEnabled(properties)) {
         spanTrackingActivator.activate(registry);

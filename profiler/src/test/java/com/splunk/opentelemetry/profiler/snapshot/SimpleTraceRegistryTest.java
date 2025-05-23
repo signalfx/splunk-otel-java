@@ -16,13 +16,14 @@
 
 package com.splunk.opentelemetry.profiler.snapshot;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
 
-class TraceRegistryTest {
-  private final TraceRegistry registry = new TraceRegistry();
+class SimpleTraceRegistryTest {
+  private final SimpleTraceRegistry registry = new SimpleTraceRegistry();
 
   @Test
   void registerTrace() {
@@ -45,5 +46,29 @@ class TraceRegistryTest {
     registry.unregister(spanContext);
 
     assertFalse(registry.isRegistered(spanContext));
+  }
+
+  @Test
+  void unregisterTracesWhenClosed() {
+    var spanContext1 = Snapshotting.spanContext().build();
+    var spanContext2 = Snapshotting.spanContext().build();
+
+    registry.register(spanContext1);
+    registry.register(spanContext2);
+
+    registry.close();
+
+    assertThat(registry.isRegistered(spanContext1)).isFalse();
+    assertThat(registry.isRegistered(spanContext2)).isFalse();
+  }
+
+  @Test
+  void doNotRegisterNewTracesWhenClosed() {
+    var spanContext = Snapshotting.spanContext().build();
+
+    registry.close();
+    registry.register(spanContext);
+
+    assertThat(registry.isRegistered(spanContext)).isFalse();
   }
 }

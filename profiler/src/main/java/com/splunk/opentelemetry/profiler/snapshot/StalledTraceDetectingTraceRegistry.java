@@ -17,7 +17,6 @@
 package com.splunk.opentelemetry.profiler.snapshot;
 
 import io.opentelemetry.api.trace.SpanContext;
-
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
@@ -57,7 +56,7 @@ class StalledTraceDetectingTraceRegistry implements TraceRegistry {
   }
 
   @Override
-  public void close() throws Exception {
+  public void close() {
     delegate.close();
     stalledTraceDetector.shutdown();
   }
@@ -102,7 +101,7 @@ class StalledTraceDetectingTraceRegistry implements TraceRegistry {
             if (command.action == Action.SHUTDOWN) {
               traceIds.clear();
               return;
-            } else if(command.action == Action.REGISTER) {
+            } else if (command.action == Action.REGISTER) {
               traceIds.put(command.spanContext, System.nanoTime() + timeout.toNanos());
             } else if (command.action == Action.UNREGISTER) {
               traceIds.remove(command.spanContext);

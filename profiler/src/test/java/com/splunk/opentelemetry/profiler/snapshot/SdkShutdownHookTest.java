@@ -24,7 +24,18 @@ import org.junit.jupiter.api.Test;
 
 class SdkShutdownHookTest {
   private final ClosingObserver observer = new ClosingObserver();
-  private final SdkShutdownHook shutdownHook = new SdkShutdownHook();
+  private final ConfigurableSupplier<TraceRegistry> registry =
+      new ConfigurableSupplier<>(new SimpleTraceRegistry());
+  private final SdkShutdownHook shutdownHook =
+      new SdkShutdownHook(
+          registry, StackTraceSampler.SUPPLIER, StagingArea.SUPPLIER, StackTraceExporter.SUPPLIER);
+
+  @Test
+  void shutdownTraceRegistrySampling() {
+    registry.configure(observer);
+    shutdownHook.shutdown();
+    assertThat(observer.isClosed).isTrue();
+  }
 
   @Test
   void shutdownStackTraceSampling() {
@@ -60,13 +71,24 @@ class SdkShutdownHookTest {
   }
 
   private static class ClosingObserver
-      implements StackTraceSampler, StagingArea, StackTraceExporter {
+      implements TraceRegistry, StackTraceSampler, StagingArea, StackTraceExporter {
     private boolean isClosed = false;
 
     @Override
     public void close() {
       isClosed = true;
     }
+
+    @Override
+    public void register(SpanContext spanContext) {}
+
+    @Override
+    public boolean isRegistered(SpanContext spanContext) {
+      return false;
+    }
+
+    @Override
+    public void unregister(SpanContext spanContext) {}
 
     @Override
     public void start(SpanContext spanContext) {}

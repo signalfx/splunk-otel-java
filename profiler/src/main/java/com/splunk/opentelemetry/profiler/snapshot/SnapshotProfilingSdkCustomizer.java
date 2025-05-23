@@ -84,7 +84,7 @@ public class SnapshotProfilingSdkCustomizer implements AutoConfigurationCustomiz
         .addPropertiesCustomizer(configureTraceRegistry(registry))
         .addTracerProviderCustomizer(snapshotProfilingSpanProcessor(registry))
         .addPropertiesCustomizer(startTrackingActiveSpans(registry))
-        .addTracerProviderCustomizer(addShutdownHook());
+        .addTracerProviderCustomizer(addShutdownHook(registry));
   }
 
   private Function<ConfigProperties, Map<String, String>> configureTraceRegistry(
@@ -104,10 +104,15 @@ public class SnapshotProfilingSdkCustomizer implements AutoConfigurationCustomiz
   }
 
   private BiFunction<SdkTracerProviderBuilder, ConfigProperties, SdkTracerProviderBuilder>
-      addShutdownHook() {
+      addShutdownHook(Supplier<TraceRegistry> registry) {
     return (builder, properties) -> {
       if (snapshotProfilingEnabled(properties)) {
-        builder.addSpanProcessor(new SdkShutdownHook());
+        builder.addSpanProcessor(
+            new SdkShutdownHook(
+                registry,
+                StackTraceSampler.SUPPLIER,
+                StagingArea.SUPPLIER,
+                StackTraceExporter.SUPPLIER));
       }
       return builder;
     };

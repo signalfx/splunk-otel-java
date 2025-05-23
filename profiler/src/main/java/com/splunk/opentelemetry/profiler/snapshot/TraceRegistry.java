@@ -17,8 +17,9 @@
 package com.splunk.opentelemetry.profiler.snapshot;
 
 import io.opentelemetry.api.trace.SpanContext;
+import java.io.Closeable;
 
-interface TraceRegistry extends AutoCloseable {
+interface TraceRegistry extends Closeable {
   void register(SpanContext spanContext);
 
   boolean isRegistered(SpanContext spanContext);
@@ -26,5 +27,5 @@ interface TraceRegistry extends AutoCloseable {
   void unregister(SpanContext spanContext);
 
   @Override
-  default void close() throws Exception {}
+  default void close() {}
 }

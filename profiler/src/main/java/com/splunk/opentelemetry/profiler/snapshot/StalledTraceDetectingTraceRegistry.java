@@ -71,7 +71,8 @@ class StalledTraceDetectingTraceRegistry implements TraceRegistry {
     private boolean shutdown = false;
     private long nextStallCheck;
 
-    StalledTraceDetector(TraceRegistry registry, Supplier<StackTraceSampler> sampler, Duration timeout) {
+    StalledTraceDetector(
+        TraceRegistry registry, Supplier<StackTraceSampler> sampler, Duration timeout) {
       this.registry = registry;
       this.sampler = sampler;
       this.timeout = timeout;
@@ -93,7 +94,7 @@ class StalledTraceDetectingTraceRegistry implements TraceRegistry {
 
     @Override
     public void run() {
-      while(!shutdown) {
+      while (!shutdown) {
         try {
           Command command = queue.poll(nextStallCheck - System.nanoTime(), TimeUnit.NANOSECONDS);
           if (command != null) {
@@ -122,10 +123,11 @@ class StalledTraceDetectingTraceRegistry implements TraceRegistry {
           .filter(entry -> entry.getValue() <= System.nanoTime())
           .map(Map.Entry::getKey)
           .iterator()
-          .forEachRemaining(spanContext -> {
-            registry.unregister(spanContext);
-            sampler.get().stop(spanContext);
-          });
+          .forEachRemaining(
+              spanContext -> {
+                registry.unregister(spanContext);
+                sampler.get().stop(spanContext);
+              });
     }
 
     private void updateNextExportTime() {
@@ -152,6 +154,10 @@ class StalledTraceDetectingTraceRegistry implements TraceRegistry {
       }
     }
 
-    private enum Action { REGISTER, UNREGISTER, SHUTDOWN }
+    private enum Action {
+      REGISTER,
+      UNREGISTER,
+      SHUTDOWN
+    }
   }
 }

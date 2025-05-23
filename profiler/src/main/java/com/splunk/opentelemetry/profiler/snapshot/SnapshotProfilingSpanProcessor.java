@@ -39,7 +39,8 @@ public class SnapshotProfilingSpanProcessor implements SpanProcessor {
   private final Supplier<TraceRegistry> registry;
   private final Supplier<StackTraceSampler> sampler;
 
-  SnapshotProfilingSpanProcessor(Supplier<TraceRegistry> registry, Supplier<StackTraceSampler> sampler) {
+  SnapshotProfilingSpanProcessor(
+      Supplier<TraceRegistry> registry, Supplier<StackTraceSampler> sampler) {
     this.registry = registry;
     this.sampler = sampler;
   }

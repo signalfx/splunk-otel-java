@@ -61,7 +61,10 @@ public class SnapshotProfilingSdkCustomizer implements AutoConfigurationCustomiz
   }
 
   @VisibleForTesting
-  SnapshotProfilingSdkCustomizer(ConfigurableSupplier<TraceRegistry> registry, StackTraceSampler sampler, SpanTrackingActivator activator) {
+  SnapshotProfilingSdkCustomizer(
+      ConfigurableSupplier<TraceRegistry> registry,
+      StackTraceSampler sampler,
+      SpanTrackingActivator activator) {
     this(registry, properties -> sampler, activator);
   }
 
@@ -84,11 +87,16 @@ public class SnapshotProfilingSdkCustomizer implements AutoConfigurationCustomiz
         .addTracerProviderCustomizer(addShutdownHook());
   }
 
-  private Function<ConfigProperties, Map<String, String>> configureTraceRegistry(ConfigurableSupplier<TraceRegistry> registry) {
+  private Function<ConfigProperties, Map<String, String>> configureTraceRegistry(
+      ConfigurableSupplier<TraceRegistry> registry) {
     return properties -> {
       if (snapshotProfilingEnabled(properties)) {
         TraceRegistry current = registry.get();
-        TraceRegistry stalledTraceDetector = new StalledTraceDetectingTraceRegistry(current, StackTraceSampler.SUPPLIER, Duration.ofMinutes(10));
+        TraceRegistry stalledTraceDetector =
+            new StalledTraceDetectingTraceRegistry(
+                current,
+                StackTraceSampler.SUPPLIER,
+                Configuration.getSnapshotProfilerStalledTraceTimeout(properties));
         registry.configure(stalledTraceDetector);
       }
       return Collections.emptyMap();
@@ -152,7 +160,8 @@ public class SnapshotProfilingSdkCustomizer implements AutoConfigurationCustomiz
     return configuredPropagators.isEmpty();
   }
 
-  private Function<ConfigProperties, Map<String, String>> startTrackingActiveSpans(Supplier<TraceRegistry> registry) {
+  private Function<ConfigProperties, Map<String, String>> startTrackingActiveSpans(
+      Supplier<TraceRegistry> registry) {
     return properties -> {
       if (snapshotProfilingEnabled(properties)) {
         spanTrackingActivator.activate(registry);

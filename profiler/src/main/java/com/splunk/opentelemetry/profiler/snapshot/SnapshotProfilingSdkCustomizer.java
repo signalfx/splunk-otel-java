@@ -47,10 +47,16 @@ public class SnapshotProfilingSdkCustomizer implements AutoConfigurationCustomiz
   private static Function<ConfigProperties, StackTraceSampler> stackTraceSamplerProvider() {
     return properties -> {
       Duration samplingPeriod = Configuration.getSnapshotProfilerSamplingInterval(properties);
-      ConfigurableSupplier<StagingArea> supplier = StagingArea.SUPPLIER;
-      supplier.configure(new AccumulatingStagingArea(StackTraceExporter.SUPPLIER));
-      return new ScheduledExecutorStackTraceSampler(supplier, SpanTracker.SUPPLIER, samplingPeriod);
+      StagingArea.SUPPLIER.configure(createStagingArea(properties));
+      return new ScheduledExecutorStackTraceSampler(
+          StagingArea.SUPPLIER, SpanTracker.SUPPLIER, samplingPeriod);
     };
+  }
+
+  private static StagingArea createStagingArea(ConfigProperties properties) {
+    Duration interval = Configuration.getSnapshotProfilerExportInterval(properties);
+    int capacity = Configuration.getSnapshotProfilerStagingCapacity(properties);
+    return new PeriodicallyExportingStagingArea(StackTraceExporter.SUPPLIER, interval, capacity);
   }
 
   @VisibleForTesting

@@ -19,6 +19,8 @@ package com.splunk.opentelemetry.profiler.snapshot;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import io.opentelemetry.api.trace.Span;
+import io.opentelemetry.context.Context;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.Disabled;
@@ -71,7 +73,7 @@ class ProbabilisticSnapshotSelectorTest {
   void processTraces() {
     int selected = 0;
     for (int i = 0; i < TRACES_PER_ITERATIONS; i++) {
-      if (selector.select()) {
+      if (selector.select(Context.root())) {
         selected++;
       }
     }
@@ -102,5 +104,27 @@ class ProbabilisticSnapshotSelectorTest {
     int upper = (int) (expectedSelectionsPerIteration * 1.1);
     int lower = (int) (expectedSelectionsPerIteration * .9);
     return OUTCOMES.stream().filter(i -> i < lower || i > upper).count();
+  }
+
+  @Test
+  void selectRootTrace() {
+    var selector = new ProbabilisticSnapshotSelector(100.0);
+    assertThat(selector.select(Context.root())).isTrue();
+  }
+
+  @Test
+  void rejectRootTrace() {
+    var selector = new ProbabilisticSnapshotSelector(0.0);
+    assertThat(selector.select(Context.root())).isFalse();
+  }
+
+  @Test
+  void alwaysRejectWhenNotTraceRoot() {
+    var spanContext = Snapshotting.spanContext().remote().build();
+    var parentSpan = Span.wrap(spanContext);
+    var context = Context.root().with(parentSpan);
+
+    var selector = new ProbabilisticSnapshotSelector(100.0);
+    assertThat(selector.select(context)).isFalse();
   }
 }

@@ -13,6 +13,11 @@ val otelInstrumentationVersion: String by rootProject.extra
 
 base.archivesName.set("splunk-otel-javaagent-csa")
 
+java {
+  withJavadocJar()
+  withSourcesJar()
+}
+
 val csaReleases: Configuration by configurations.creating {
   isCanBeResolved = true
   isCanBeConsumed = false
@@ -129,6 +134,7 @@ tasks {
     }
   }
 
+  val t = this
   publishing {
     publications {
       register<MavenPublication>("maven") {
@@ -137,6 +143,8 @@ tasks {
         version = project.version.toString()
 
         artifact(jar)
+        artifact(t.named("sourcesJar"))
+        artifact(t.named("javadocJar"))
 
         pom {
           name.set("splunk-otel-java with Cisco SecureApp bundle")

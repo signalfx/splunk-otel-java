@@ -91,6 +91,22 @@ class Snapshotting {
       return this;
     }
 
+    SpanContextBuilder remote() {
+      spanContext =
+          SpanContext.createFromRemoteParent(
+              spanContext.getTraceId(),
+              spanContext.getSpanId(),
+              spanContext.getTraceFlags(),
+              spanContext.getTraceState());
+      return this;
+    }
+
+    SpanContextBuilder remoteFrom(Span span) {
+      return withTraceId(span.getSpanContext().getTraceId())
+          .withSpanId(span.getSpanContext().getSpanId())
+          .remote();
+    }
+
     SpanContext build() {
       return spanContext;
     }

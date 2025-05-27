@@ -23,6 +23,7 @@ import java.lang.management.ThreadInfo;
 import java.lang.management.ThreadMXBean;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ScheduledExecutorService;
@@ -59,7 +60,8 @@ class ScheduledExecutorStackTraceSampler implements StackTraceSampler {
     }
 
     samplers.computeIfAbsent(
-        spanContext.getTraceId(), id -> new ThreadSampler(spanContext, samplingPeriod));
+        spanContext.getTraceId(),
+        id -> new ThreadSampler(TraceProfilingContext.from(spanContext), samplingPeriod));
   }
 
   @Override
@@ -67,7 +69,8 @@ class ScheduledExecutorStackTraceSampler implements StackTraceSampler {
     samplers.computeIfPresent(
         spanContext.getTraceId(),
         (traceId, sampler) -> {
-          if (spanContext.equals(sampler.getSpanContext())) {
+          TraceProfilingContext context = TraceProfilingContext.from(spanContext);
+          if (context.equals(sampler.context)) {
             sampler.shutdown();
             waitForShutdown(sampler);
             return null;
@@ -98,17 +101,15 @@ class ScheduledExecutorStackTraceSampler implements StackTraceSampler {
 
   private class ThreadSampler {
     private final ScheduledExecutorService scheduler;
-    private final SpanContext spanContext;
+    private final TraceProfilingContext context;
     private final StackTraceGatherer gatherer;
 
-    ThreadSampler(SpanContext spanContext, Duration samplingPeriod) {
-      this.spanContext = spanContext;
-      gatherer =
-          new StackTraceGatherer(
-              spanContext.getTraceId(), Thread.currentThread(), System.nanoTime());
+    ThreadSampler(TraceProfilingContext context, Duration samplingPeriod) {
+      this.context = context;
+      gatherer = new StackTraceGatherer(context.traceId, Thread.currentThread(), System.nanoTime());
       scheduler =
           HelpfulExecutors.newSingleThreadedScheduledExecutor(
-              "stack-trace-sampler-" + spanContext.getTraceId());
+              "stack-trace-sampler-" + context.traceId);
       scheduler.scheduleAtFixedRate(
           gatherer, SCHEDULER_INITIAL_DELAY, samplingPeriod.toMillis(), TimeUnit.MILLISECONDS);
     }
@@ -124,10 +125,6 @@ class ScheduledExecutorStackTraceSampler implements StackTraceSampler {
 
     boolean awaitTermination(Duration timeout) throws InterruptedException {
       return scheduler.awaitTermination(timeout.toMillis(), TimeUnit.MILLISECONDS);
-    }
-
-    SpanContext getSpanContext() {
-      return spanContext;
     }
   }
 
@@ -170,6 +167,32 @@ class ScheduledExecutorStackTraceSampler implements StackTraceSampler {
               + traceId
               + "' on profiled thread "
               + threadId;
+    }
+  }
+
+  private static class TraceProfilingContext {
+    static TraceProfilingContext from(SpanContext spanContext) {
+      return new TraceProfilingContext(spanContext.getTraceId(), spanContext.getSpanId());
+    }
+
+    private final String traceId;
+    private final String spanId;
+
+    TraceProfilingContext(String traceId, String spanId) {
+      this.traceId = traceId;
+      this.spanId = spanId;
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hash(traceId, spanId);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (o == null || getClass() != o.getClass()) return false;
+      TraceProfilingContext that = (TraceProfilingContext) o;
+      return Objects.equals(traceId, that.traceId) && Objects.equals(spanId, that.spanId);
     }
   }
 }

@@ -92,12 +92,9 @@ public class SnapshotProfilingSdkCustomizer implements AutoConfigurationCustomiz
     return properties -> {
       if (snapshotProfilingEnabled(properties)) {
         TraceRegistry current = registry.get();
-        TraceRegistry stalledTraceDetector =
-            new StalledTraceDetectingTraceRegistry(
-                current,
-                StackTraceSampler.SUPPLIER,
-                Configuration.getSnapshotProfilerStalledTraceTimeout(properties));
-        registry.configure(stalledTraceDetector);
+        TraceRegistry orphanedTraceDetector =
+            new OrphanedTraceDetectingTraceRegistry(current, StackTraceSampler.SUPPLIER);
+        registry.configure(orphanedTraceDetector);
       }
       return Collections.emptyMap();
     };

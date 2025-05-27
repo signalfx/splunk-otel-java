@@ -237,21 +237,4 @@ class ConfigurationTest {
     var properties = DefaultConfigProperties.create(Collections.emptyMap());
     assertEquals(2000, Configuration.getSnapshotProfilerStagingCapacity(properties));
   }
-
-  @ParameterizedTest
-  @ValueSource(strings = {"10s", "10m", "5h"})
-  void getConfiguredSnapshotProfilerStalledTraceTimeout(String value) {
-    var timeout = Duration.parse("PT" + value);
-    var properties =
-        DefaultConfigProperties.create(
-            Map.of("splunk.snapshot.profiler.stalled.trace.timeout", value));
-    assertEquals(timeout, Configuration.getSnapshotProfilerStalledTraceTimeout(properties));
-  }
-
-  @Test
-  void getDefaultSnapshotProfilerStalledTraceTimeout() {
-    var properties = DefaultConfigProperties.create(Collections.emptyMap());
-    var tenMinutes = Duration.ofMinutes(10);
-    assertEquals(tenMinutes, Configuration.getSnapshotProfilerStalledTraceTimeout(properties));
-  }
 }

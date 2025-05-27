@@ -89,11 +89,6 @@ public class Configuration implements AutoConfigurationCustomizerProvider {
       "splunk.snapshot.profiler.staging.capacity";
   private static final int DEFAULT_SNAPSHOT_PROFILER_STAGING_CAPACITY = 2000;
 
-  private static final String CONFIG_KEY_SNAPSHOT_PROFILER_STALLED_TRACE_TIMEOUT =
-      "splunk.snapshot.profiler.stalled.trace.timeout";
-  private static final Duration DEFAULT_SNAPSHOT_PROFILER_STALLED_TRACE_TIMEOUT =
-      Duration.ofMinutes(10);
-
   @Override
   public void customize(AutoConfigurationCustomizer autoConfiguration) {
     autoConfiguration.addPropertiesSupplier(this::defaultProperties);
@@ -250,11 +245,5 @@ public class Configuration implements AutoConfigurationCustomizerProvider {
   public static int getSnapshotProfilerStagingCapacity(ConfigProperties properties) {
     return properties.getInt(
         CONFIG_KEY_SNAPSHOT_PROFILER_STAGING_CAPACITY, DEFAULT_SNAPSHOT_PROFILER_STAGING_CAPACITY);
-  }
-
-  public static Duration getSnapshotProfilerStalledTraceTimeout(ConfigProperties properties) {
-    return properties.getDuration(
-        CONFIG_KEY_SNAPSHOT_PROFILER_STALLED_TRACE_TIMEOUT,
-        DEFAULT_SNAPSHOT_PROFILER_STALLED_TRACE_TIMEOUT);
   }
 }

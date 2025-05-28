@@ -18,7 +18,6 @@ package com.splunk.opentelemetry.profiler.snapshot;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.instrumentation.test.utils.GcUtils;
@@ -87,7 +86,25 @@ class OrphanedTraceDetectingTraceRegistryTest {
     spanContext = null;
     GcUtils.awaitGc(spanContextReference, Duration.ofSeconds(10));
 
-    await().untilAsserted(() -> assertFalse(registry.isRegistered(spanContextCopy)));
-    await().untilAsserted(() -> assertFalse(delegate.isRegistered(spanContextCopy)));
+    await().untilAsserted(() -> assertThat(delegate.isRegistered(spanContextCopy)).isFalse());
+    await().untilAsserted(() -> assertThat(registry.isRegistered(spanContextCopy)).isFalse());
+  }
+
+  @Test
+  void stopSamplingForOrphanedTraces() throws Exception {
+    var spanContext = Snapshotting.spanContext().build();
+    registry.register(spanContext);
+    var spanContextCopy =
+        SpanContext.create(
+            spanContext.getTraceId(),
+            spanContext.getSpanId(),
+            spanContext.getTraceFlags(),
+            spanContext.getTraceState());
+
+    var spanContextReference = new WeakReference<>(spanContext);
+    spanContext = null;
+    GcUtils.awaitGc(spanContextReference, Duration.ofSeconds(10));
+
+    await().untilAsserted(() -> assertThat(sampler.isBeingSampled(spanContextCopy)).isFalse());
   }
 }

@@ -61,7 +61,7 @@ class ScheduledExecutorStackTraceSampler implements StackTraceSampler {
 
     samplers.computeIfAbsent(
         spanContext.getTraceId(),
-        id -> new ThreadSampler(TraceProfilingContext.from(spanContext), samplingPeriod));
+        id -> new ThreadSampler(ProfilingSpanContext.from(spanContext), samplingPeriod));
   }
 
   @Override
@@ -69,7 +69,7 @@ class ScheduledExecutorStackTraceSampler implements StackTraceSampler {
     samplers.computeIfPresent(
         spanContext.getTraceId(),
         (traceId, sampler) -> {
-          TraceProfilingContext context = TraceProfilingContext.from(spanContext);
+          ProfilingSpanContext context = ProfilingSpanContext.from(spanContext);
           if (context.equals(sampler.context)) {
             sampler.shutdown();
             waitForShutdown(sampler);
@@ -101,10 +101,10 @@ class ScheduledExecutorStackTraceSampler implements StackTraceSampler {
 
   private class ThreadSampler {
     private final ScheduledExecutorService scheduler;
-    private final TraceProfilingContext context;
+    private final ProfilingSpanContext context;
     private final StackTraceGatherer gatherer;
 
-    ThreadSampler(TraceProfilingContext context, Duration samplingPeriod) {
+    ThreadSampler(ProfilingSpanContext context, Duration samplingPeriod) {
       this.context = context;
       gatherer = new StackTraceGatherer(context.traceId, Thread.currentThread(), System.nanoTime());
       scheduler =
@@ -170,15 +170,15 @@ class ScheduledExecutorStackTraceSampler implements StackTraceSampler {
     }
   }
 
-  private static class TraceProfilingContext {
-    static TraceProfilingContext from(SpanContext spanContext) {
-      return new TraceProfilingContext(spanContext.getTraceId(), spanContext.getSpanId());
+  private static class ProfilingSpanContext {
+    static ProfilingSpanContext from(SpanContext spanContext) {
+      return new ProfilingSpanContext(spanContext.getTraceId(), spanContext.getSpanId());
     }
 
     private final String traceId;
     private final String spanId;
 
-    TraceProfilingContext(String traceId, String spanId) {
+    ProfilingSpanContext(String traceId, String spanId) {
       this.traceId = traceId;
       this.spanId = spanId;
     }
@@ -191,7 +191,7 @@ class ScheduledExecutorStackTraceSampler implements StackTraceSampler {
     @Override
     public boolean equals(Object o) {
       if (o == null || getClass() != o.getClass()) return false;
-      TraceProfilingContext that = (TraceProfilingContext) o;
+      ProfilingSpanContext that = (ProfilingSpanContext) o;
       return Objects.equals(traceId, that.traceId) && Objects.equals(spanId, that.spanId);
     }
   }

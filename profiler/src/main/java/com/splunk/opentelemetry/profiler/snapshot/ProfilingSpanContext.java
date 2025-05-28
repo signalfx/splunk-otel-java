@@ -5,6 +5,8 @@ import io.opentelemetry.api.trace.SpanContext;
 import java.util.Objects;
 
 class ProfilingSpanContext {
+  static final ProfilingSpanContext INVALID = from(SpanContext.getInvalid());
+
   static ProfilingSpanContext from(SpanContext spanContext) {
     return new ProfilingSpanContext(spanContext.getTraceId(), spanContext.getSpanId());
   }

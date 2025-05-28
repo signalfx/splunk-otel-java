@@ -4,6 +4,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
+import io.opentelemetry.api.trace.SpanId;
+import io.opentelemetry.api.trace.TraceId;
 import org.junit.jupiter.api.Test;
 
 class ProfilingSpanContextTest {
@@ -54,5 +56,12 @@ class ProfilingSpanContextTest {
     var two = ProfilingSpanContext.from(Snapshotting.spanContext().build());
 
     assertNotEquals(one.hashCode(), two.hashCode());
+  }
+
+  @Test
+  void invalidProfilingSpanContext() {
+    var invalid = ProfilingSpanContext.INVALID;
+    assertEquals(TraceId.getInvalid(), invalid.getTraceId());
+    assertEquals(SpanId.getInvalid(), invalid.getSpanId());
   }
 }

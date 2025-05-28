@@ -23,7 +23,6 @@ import java.lang.management.ThreadInfo;
 import java.lang.management.ThreadMXBean;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ScheduledExecutorService;
@@ -106,10 +105,10 @@ class ScheduledExecutorStackTraceSampler implements StackTraceSampler {
 
     ThreadSampler(ProfilingSpanContext context, Duration samplingPeriod) {
       this.context = context;
-      gatherer = new StackTraceGatherer(context.traceId, Thread.currentThread(), System.nanoTime());
+      gatherer = new StackTraceGatherer(context.getTraceId(), Thread.currentThread(), System.nanoTime());
       scheduler =
           HelpfulExecutors.newSingleThreadedScheduledExecutor(
-              "stack-trace-sampler-" + context.traceId);
+              "stack-trace-sampler-" + context.getSpanId());
       scheduler.scheduleAtFixedRate(
           gatherer, SCHEDULER_INITIAL_DELAY, samplingPeriod.toMillis(), TimeUnit.MILLISECONDS);
     }
@@ -167,32 +166,6 @@ class ScheduledExecutorStackTraceSampler implements StackTraceSampler {
               + traceId
               + "' on profiled thread "
               + threadId;
-    }
-  }
-
-  private static class ProfilingSpanContext {
-    static ProfilingSpanContext from(SpanContext spanContext) {
-      return new ProfilingSpanContext(spanContext.getTraceId(), spanContext.getSpanId());
-    }
-
-    private final String traceId;
-    private final String spanId;
-
-    ProfilingSpanContext(String traceId, String spanId) {
-      this.traceId = traceId;
-      this.spanId = spanId;
-    }
-
-    @Override
-    public int hashCode() {
-      return Objects.hash(traceId, spanId);
-    }
-
-    @Override
-    public boolean equals(Object o) {
-      if (o == null || getClass() != o.getClass()) return false;
-      ProfilingSpanContext that = (ProfilingSpanContext) o;
-      return Objects.equals(traceId, that.traceId) && Objects.equals(spanId, that.spanId);
     }
   }
 }

@@ -105,7 +105,7 @@ class ScheduledExecutorStackTraceSampler implements StackTraceSampler {
 
     ThreadSampler(ProfilingSpanContext context, Duration samplingPeriod) {
       this.context = context;
-      gatherer = new StackTraceGatherer(context.getTraceId(), Thread.currentThread(), System.nanoTime());
+      gatherer = new StackTraceGatherer(context, Thread.currentThread(), System.nanoTime());
       scheduler =
           HelpfulExecutors.newSingleThreadedScheduledExecutor(
               "stack-trace-sampler-" + context.getSpanId());
@@ -128,12 +128,12 @@ class ScheduledExecutorStackTraceSampler implements StackTraceSampler {
   }
 
   private class StackTraceGatherer implements Runnable {
-    private final String traceId;
+    private final ProfilingSpanContext context;
     private final Thread thread;
     private volatile long timestampNanos;
 
-    StackTraceGatherer(String traceId, Thread thread, long timestampNanos) {
-      this.traceId = traceId;
+    StackTraceGatherer(ProfilingSpanContext context, Thread thread, long timestampNanos) {
+      this.context = context;
       this.thread = thread;
       this.timestampNanos = timestampNanos;
     }
@@ -147,10 +147,10 @@ class ScheduledExecutorStackTraceSampler implements StackTraceSampler {
         Duration samplingPeriod = Duration.ofNanos(currentSampleTimestamp - previousTimestampNanos);
         String spanId = retrieveActiveSpan(thread).getSpanId();
         StackTrace stackTrace =
-            StackTrace.from(Instant.now(), samplingPeriod, threadInfo, traceId, spanId);
+            StackTrace.from(Instant.now(), samplingPeriod, threadInfo, context.getTraceId(), spanId);
         stagingArea.get().stage(stackTrace);
       } catch (Exception e) {
-        logger.log(Level.SEVERE, e, samplerErrorMessage(traceId, thread.getId()));
+        logger.log(Level.SEVERE, e, samplerErrorMessage(context, thread.getId()));
       } finally {
         timestampNanos = currentSampleTimestamp;
       }
@@ -160,10 +160,10 @@ class ScheduledExecutorStackTraceSampler implements StackTraceSampler {
       return spanTracker.get().getActiveSpan(thread).orElse(SpanContext.getInvalid());
     }
 
-    private Supplier<String> samplerErrorMessage(String traceId, long threadId) {
+    private Supplier<String> samplerErrorMessage(ProfilingSpanContext context, long threadId) {
       return () ->
           "Exception thrown attempting to stage callstacks for trace ID ' "
-              + traceId
+              + context.getTraceId()
               + "' on profiled thread "
               + threadId;
     }

@@ -16,12 +16,11 @@
 
 package com.splunk.opentelemetry.profiler.snapshot;
 
-import io.opentelemetry.api.trace.SpanContext;
 import java.util.Optional;
 
 interface SpanTracker {
   SpanTracker NOOP = thread -> Optional.empty();
   ConfigurableSupplier<SpanTracker> SUPPLIER = new ConfigurableSupplier<>(SpanTracker.NOOP);
 
-  Optional<SpanContext> getActiveSpan(Thread thread);
+  Optional<ProfilingSpanContext> getActiveSpan(Thread thread);
 }

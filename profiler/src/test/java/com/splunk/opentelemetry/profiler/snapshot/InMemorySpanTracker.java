@@ -22,14 +22,15 @@ import java.util.Map;
 import java.util.Optional;
 
 class InMemorySpanTracker implements SpanTracker {
-  private final Map<Long, SpanContext> activeSpans = new HashMap<>();
+  private final Map<Long, ProfilingSpanContext> activeSpans = new HashMap<>();
 
   void store(long threadId, SpanContext spanContext) {
-    activeSpans.put(threadId, spanContext);
+    ProfilingSpanContext context = ProfilingSpanContext.from(spanContext);
+    activeSpans.put(threadId, context);
   }
 
   @Override
-  public Optional<SpanContext> getActiveSpan(Thread thread) {
+  public Optional<ProfilingSpanContext> getActiveSpan(Thread thread) {
     return Optional.ofNullable(activeSpans.get(thread.getId()));
   }
 }

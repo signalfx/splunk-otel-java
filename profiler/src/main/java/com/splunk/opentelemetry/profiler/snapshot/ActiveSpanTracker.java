@@ -22,12 +22,13 @@ import io.opentelemetry.context.Context;
 import io.opentelemetry.context.ContextStorage;
 import io.opentelemetry.context.Scope;
 import io.opentelemetry.instrumentation.api.internal.cache.Cache;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Supplier;
 import javax.annotation.Nullable;
 
 class ActiveSpanTracker implements ContextStorage, SpanTracker {
-  private final Cache<Thread, SpanContext> cache = Cache.weak();
+  private final Cache<Thread, ProfilingSpanContext> cache = Cache.weak();
 
   private final ContextStorage delegate;
   private final Supplier<TraceRegistry> registry;
@@ -40,14 +41,15 @@ class ActiveSpanTracker implements ContextStorage, SpanTracker {
   @Override
   public Scope attach(Context toAttach) {
     Scope scope = delegate.attach(toAttach);
-    SpanContext newSpanContext = Span.fromContext(toAttach).getSpanContext();
-    if (doNotTrack(newSpanContext)) {
+    SpanContext spanContext = Span.fromContext(toAttach).getSpanContext();
+    if (doNotTrack(spanContext)) {
       return scope;
     }
 
     Thread thread = Thread.currentThread();
-    SpanContext oldSpanContext = cache.get(thread);
-    if (oldSpanContext == newSpanContext) {
+    ProfilingSpanContext oldSpanContext = cache.get(thread);
+    ProfilingSpanContext newSpanContext = ProfilingSpanContext.from(spanContext);
+    if (Objects.equals(oldSpanContext, newSpanContext)) {
       return scope;
     }
 
@@ -72,7 +74,8 @@ class ActiveSpanTracker implements ContextStorage, SpanTracker {
     return delegate.current();
   }
 
-  public Optional<SpanContext> getActiveSpan(Thread thread) {
+  @Override
+  public Optional<ProfilingSpanContext> getActiveSpan(Thread thread) {
     return Optional.ofNullable(cache.get(thread));
   }
 }

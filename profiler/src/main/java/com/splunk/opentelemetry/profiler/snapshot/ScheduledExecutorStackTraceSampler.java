@@ -156,8 +156,8 @@ class ScheduledExecutorStackTraceSampler implements StackTraceSampler {
       }
     }
 
-    private SpanContext retrieveActiveSpan(Thread thread) {
-      return spanTracker.get().getActiveSpan(thread).orElse(SpanContext.getInvalid());
+    private ProfilingSpanContext retrieveActiveSpan(Thread thread) {
+      return spanTracker.get().getActiveSpan(thread).orElse(ProfilingSpanContext.from(SpanContext.getInvalid()));
     }
 
     private Supplier<String> samplerErrorMessage(ProfilingSpanContext context, long threadId) {

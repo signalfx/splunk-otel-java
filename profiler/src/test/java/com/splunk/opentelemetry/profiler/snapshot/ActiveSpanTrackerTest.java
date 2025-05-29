@@ -64,7 +64,8 @@ class ActiveSpanTrackerTest {
 
     try (var ignored = spanTracker.attach(context)) {
       var profilingSpanContext = ProfilingSpanContext.from(spanContext);
-      assertEquals(Optional.of(profilingSpanContext), spanTracker.getActiveSpan(Thread.currentThread()));
+      assertEquals(
+          Optional.of(profilingSpanContext), spanTracker.getActiveSpan(Thread.currentThread()));
     }
   }
 
@@ -93,7 +94,8 @@ class ActiveSpanTrackerTest {
       context = context.with(span);
       try (var ignoredScope2 = spanTracker.attach(context)) {
         var profilingSpanContext = ProfilingSpanContext.from(spanContext);
-        assertEquals(Optional.of(profilingSpanContext), spanTracker.getActiveSpan(Thread.currentThread()));
+        assertEquals(
+            Optional.of(profilingSpanContext), spanTracker.getActiveSpan(Thread.currentThread()));
       }
     }
   }
@@ -113,7 +115,8 @@ class ActiveSpanTrackerTest {
 
       var rootSpanContext = root.getSpanContext();
       var profilingSpanContext = ProfilingSpanContext.from(rootSpanContext);
-      assertEquals(Optional.of(profilingSpanContext), spanTracker.getActiveSpan(Thread.currentThread()));
+      assertEquals(
+          Optional.of(profilingSpanContext), spanTracker.getActiveSpan(Thread.currentThread()));
     }
   }
 
@@ -131,7 +134,8 @@ class ActiveSpanTrackerTest {
     var f2 = executor.submit(attach(span2, releaseLatch));
     releaseLatch.countDown();
 
-    try (var scope1 = f1.get(); var scope2 = f2.get()) {
+    try (var scope1 = f1.get();
+        var scope2 = f2.get()) {
       var profilingSpanContext1 = ProfilingSpanContext.from(span1.getSpanContext());
       assertEquals(Optional.of(profilingSpanContext1), spanTracker.getActiveSpan(scope1.thread));
 
@@ -200,12 +204,14 @@ class ActiveSpanTrackerTest {
     registry.register(child.getSpanContext());
 
     var executor = Executors.newSingleThreadExecutor();
-    try (var scope1 = attach(root).call(); var scope2 = executor.submit(attach(child)).get()) {
+    try (var scope1 = attach(root).call();
+        var scope2 = executor.submit(attach(child)).get()) {
       var rootProfilingSpanContext = ProfilingSpanContext.from(root.getSpanContext());
       assertEquals(Optional.of(rootProfilingSpanContext), spanTracker.getActiveSpan(scope1.thread));
 
       var childProfilingSpanContext = ProfilingSpanContext.from(child.getSpanContext());
-      assertEquals(Optional.of(childProfilingSpanContext), spanTracker.getActiveSpan(scope2.thread));
+      assertEquals(
+          Optional.of(childProfilingSpanContext), spanTracker.getActiveSpan(scope2.thread));
     } finally {
       executor.shutdown();
     }

@@ -17,6 +17,7 @@
 package com.splunk.opentelemetry.instrumentation.nocode;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -24,7 +25,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 
 class YamlParserTest {
   @Test
-  void testBasicRuleParsesOK() {
+  void testBasicRuleParsesOK() throws Exception {
     String yaml = "- class: someClass\n" + "  method: someMethod\n";
     assertEquals(1, YamlParser.parseFromString(yaml).size());
   }
@@ -92,6 +93,11 @@ class YamlParserTest {
       })
   // spotless:on
   void invalidYamlIsInvalid(String yaml) {
-    assertEquals(0, YamlParser.parseFromString(yaml).size());
+    try {
+      YamlParser.parseFromString(yaml);
+      fail("Expected an exception parsing broken yaml");
+    } catch (Exception expected) {
+      // ok
+    }
   }
 }

@@ -20,7 +20,6 @@ import com.splunk.opentelemetry.javaagent.bootstrap.nocode.NocodeExpression;
 import com.splunk.opentelemetry.javaagent.bootstrap.nocode.NocodeRules;
 import io.opentelemetry.api.trace.SpanKind;
 import io.opentelemetry.javaagent.extension.matcher.AgentElementMatchers;
-import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
 import java.nio.file.Files;
@@ -56,32 +55,23 @@ class YamlParser {
       try (Reader reader = Files.newBufferedReader(Paths.get(yamlFileName.trim()))) {
         return new YamlParser(reader).getInstrumentationRules();
       }
-    } catch (IOException e) {
+    } catch (Exception e) {
       logger.log(Level.SEVERE, "Can't load configured nocode yaml.", e);
       return Collections.emptyList();
     }
   }
 
   // For unit testing purposes
-  static List<NocodeRules.Rule> parseFromString(String yaml) {
+  static List<NocodeRules.Rule> parseFromString(String yaml) throws Exception {
     return new YamlParser(new StringReader(yaml)).getInstrumentationRules();
   }
 
-  private YamlParser(Reader reader) {
-    instrumentationRules = Collections.unmodifiableList(new ArrayList<>(loadFromReader(reader)));
+  private YamlParser(Reader reader) throws Exception {
+    instrumentationRules = Collections.unmodifiableList(new ArrayList<>(loadUnsafe(reader)));
   }
 
   public List<NocodeRules.Rule> getInstrumentationRules() {
     return instrumentationRules;
-  }
-
-  private List<NocodeRules.Rule> loadFromReader(Reader reader) {
-    try {
-      return loadUnsafe(reader);
-    } catch (Exception e) {
-      logger.log(Level.SEVERE, "Can't load configured nocode yaml.", e);
-      return Collections.emptyList();
-    }
   }
 
   @SuppressWarnings("unchecked")

@@ -67,7 +67,7 @@ class YamlParser {
     return new YamlParser(new StringReader(yaml)).getInstrumentationRules();
   }
 
-  YamlParser(Reader reader) {
+  private YamlParser(Reader reader) {
     instrumentationRules = Collections.unmodifiableList(new ArrayList<>(loadFromReader(reader)));
   }
 

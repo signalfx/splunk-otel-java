@@ -68,9 +68,12 @@ public class SnapshotProfilingSpanProcessor implements SpanProcessor {
   /**
    * Relying solely on the OpenTelemetry instrumentation to correctly notify this SpanProcessor when
    * a span has ended opens up the possibility of a memory leak in the event a bug is encountered
-   * within the instrumentation layer that prevents a span from being ended.
+   * within the instrumentation layer that prevents a span from being ended. To protect against this
+   * {@link OrphanedTraceDetectingTraceRegistry}, a specialized {@link TraceRegistry}, is installed
+   * to search for garbage collected {@link io.opentelemetry.api.trace.SpanContext} instances and
+   * automatically unregister traces and stop sampling.
    *
-   * <p>Will follow up with a more robust solution to this potential problem.
+   * @see OrphanedTraceDetectingTraceRegistry
    */
   @Override
   public void onEnd(ReadableSpan span) {

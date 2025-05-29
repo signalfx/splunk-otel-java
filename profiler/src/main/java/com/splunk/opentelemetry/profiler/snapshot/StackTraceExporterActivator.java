@@ -51,7 +51,7 @@ public class StackTraceExporterActivator implements AgentListener {
 
     SnapshotProfilingConfiguration.log(properties);
 
-    int maxDepth = SnapshotProfilingConfiguration.getSnapshotProfilerStackDepth(properties);
+    int maxDepth = SnapshotProfilingConfiguration.getStackDepth(properties);
     Logger otelLogger = buildLogger(sdk, properties);
     AsyncStackTraceExporter exporter = new AsyncStackTraceExporter(otelLogger, maxDepth);
     StackTraceExporter.SUPPLIER.configure(exporter);

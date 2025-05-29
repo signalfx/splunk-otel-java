@@ -72,8 +72,7 @@ public class SnapshotProfilingConfiguration implements AutoConfigurationCustomiz
 
   static double getSnapshotSelectionRate(ConfigProperties properties) {
     String selectionRatePropertyValue =
-        properties.getString(
-            SELECTION_RATE_KEY, String.valueOf(DEFAULT_SELECTION_RATE));
+        properties.getString(SELECTION_RATE_KEY, String.valueOf(DEFAULT_SELECTION_RATE));
     try {
       double selectionRate = Double.parseDouble(selectionRatePropertyValue);
       if (selectionRate > MAX_SELECTION_RATE) {
@@ -97,19 +96,19 @@ public class SnapshotProfilingConfiguration implements AutoConfigurationCustomiz
     }
   }
 
-  static int getSnapshotProfilerStackDepth(ConfigProperties properties) {
+  static int getStackDepth(ConfigProperties properties) {
     return properties.getInt(STACK_DEPTH_KEY, DEFAULT_STACK_DEPTH);
   }
 
-  static Duration getSnapshotProfilerSamplingInterval(ConfigProperties properties) {
+  static Duration getSamplingInterval(ConfigProperties properties) {
     return properties.getDuration(SAMPLING_INTERVAL_KEY, DEFAULT_SAMPLING_INTERVAL);
   }
 
-  static Duration getSnapshotProfilerExportInterval(ConfigProperties properties) {
+  static Duration getExportInterval(ConfigProperties properties) {
     return properties.getDuration(EXPORT_INTERVAL_KEY, DEFAULT_EXPORT_INTERVAL);
   }
 
-  static int getSnapshotProfilerStagingCapacity(ConfigProperties properties) {
+  static int getStagingCapacity(ConfigProperties properties) {
     return properties.getInt(STAGING_CAPACITY_KEY, DEFAULT_STAGING_CAPACITY);
   }
 
@@ -119,10 +118,10 @@ public class SnapshotProfilingConfiguration implements AutoConfigurationCustomiz
 
     log(CONFIG_KEY_ENABLE_SNAPSHOT_PROFILER, isSnapshotProfilingEnabled(properties));
     log(SELECTION_RATE_KEY, getSnapshotSelectionRate(properties));
-    log(STACK_DEPTH_KEY, getSnapshotProfilerStackDepth(properties));
-    log(SAMPLING_INTERVAL_KEY, getSnapshotProfilerSamplingInterval(properties));
-    log(EXPORT_INTERVAL_KEY, getSnapshotProfilerExportInterval(properties));
-    log(STAGING_CAPACITY_KEY, getSnapshotProfilerStagingCapacity(properties));
+    log(STACK_DEPTH_KEY, getStackDepth(properties));
+    log(SAMPLING_INTERVAL_KEY, getSamplingInterval(properties));
+    log(EXPORT_INTERVAL_KEY, getExportInterval(properties));
+    log(STAGING_CAPACITY_KEY, getStagingCapacity(properties));
     logger.fine("-------------------------------------------------------");
   }
 

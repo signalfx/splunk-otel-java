@@ -18,33 +18,34 @@ package com.splunk.opentelemetry.profiler.snapshot;
 
 import io.opentelemetry.api.trace.SpanContext;
 import java.util.Collections;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-/**
- * Test only version of {@link TraceRegistry} that keeps a record of every trace ID registered over
- * the lifetime of the instance.
- */
-class RecordingTraceRegistry implements TraceRegistry {
-  private final Map<String, Boolean> traceIds = new ConcurrentHashMap<>();
+class SimpleTraceRegistry implements TraceRegistry {
+  private final Set<String> traceIds = Collections.newSetFromMap(new ConcurrentHashMap<>());
+  private volatile boolean closed = false;
 
   @Override
   public void register(SpanContext spanContext) {
-    traceIds.put(spanContext.getTraceId(), true);
+    if (closed) {
+      return;
+    }
+    traceIds.add(spanContext.getTraceId());
   }
 
   @Override
   public boolean isRegistered(SpanContext spanContext) {
-    return traceIds.getOrDefault(spanContext.getTraceId(), false);
+    return traceIds.contains(spanContext.getTraceId());
   }
 
   @Override
   public void unregister(SpanContext spanContext) {
-    traceIds.put(spanContext.getTraceId(), false);
+    traceIds.remove(spanContext.getTraceId());
   }
 
-  Set<String> registeredTraceIds() {
-    return Collections.unmodifiableSet(traceIds.keySet());
+  @Override
+  public void close() {
+    closed = true;
+    traceIds.clear();
   }
 }

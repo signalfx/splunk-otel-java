@@ -26,7 +26,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 
 class OrphanedTraceDetectingTraceRegistry implements TraceRegistry {
-  private final Set<WeakSpanContext> traces = Collections.newSetFromMap(new ConcurrentHashMap<>());
+  private final Set<Key> traces = Collections.newSetFromMap(new ConcurrentHashMap<>());
   private final ReferenceQueue<Object> referenceQueue = new ReferenceQueue<>();
 
   private final TraceRegistry delegate;
@@ -57,7 +57,7 @@ class OrphanedTraceDetectingTraceRegistry implements TraceRegistry {
   @Override
   public void unregister(SpanContext spanContext) {
     delegate.unregister(spanContext);
-    traces.remove(new WeakSpanContext(spanContext, referenceQueue));
+    traces.remove(new LookupKey(spanContext));
   }
 
   public void unregisterOrphanedTraces() {
@@ -65,10 +65,10 @@ class OrphanedTraceDetectingTraceRegistry implements TraceRegistry {
       try {
         Object reference = referenceQueue.remove();
         if (reference != null) {
-          WeakSpanContext weakContext = (WeakSpanContext) reference;
-          traces.remove(weakContext);
-          delegate.unregister(weakContext.spanContext);
-          sampler.get().stop(weakContext.spanContext);
+          Key key = (Key) reference;
+          traces.remove(key);
+          delegate.unregister(key.getSpanContext());
+          sampler.get().stop(key.getSpanContext());
         }
       } catch (InterruptedException e) {
         Thread.currentThread().interrupt();
@@ -82,7 +82,24 @@ class OrphanedTraceDetectingTraceRegistry implements TraceRegistry {
     thread.interrupt();
   }
 
-  private static class WeakSpanContext extends WeakReference<SpanContext> {
+  interface Key {
+    SpanContext getSpanContext();
+  }
+
+  private static class LookupKey implements Key {
+    private final SpanContext spanContext;
+
+    private LookupKey(SpanContext spanContext) {
+      this.spanContext = spanContext;
+    }
+
+    @Override
+    public SpanContext getSpanContext() {
+      return spanContext;
+    }
+  }
+
+  private static class WeakSpanContext extends WeakReference<SpanContext> implements Key {
     private final SpanContext spanContext;
 
     public WeakSpanContext(SpanContext referent, ReferenceQueue<Object> q) {
@@ -93,6 +110,11 @@ class OrphanedTraceDetectingTraceRegistry implements TraceRegistry {
               referent.getSpanId(),
               referent.getTraceFlags(),
               referent.getTraceState());
+    }
+
+    @Override
+    public SpanContext getSpanContext() {
+      return spanContext;
     }
 
     @Override

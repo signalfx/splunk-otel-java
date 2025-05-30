@@ -17,20 +17,16 @@
 package com.splunk.opentelemetry.profiler;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import io.opentelemetry.sdk.autoconfigure.spi.internal.DefaultConfigProperties;
-import java.time.Duration;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
 
 class ConfigurationTest {
 
@@ -99,142 +95,5 @@ class ConfigurationTest {
     map.put("splunk.profiler.otlp.protocol", "test2");
     String result = Configuration.getOtlpProtocol(DefaultConfigProperties.create(map));
     assertEquals("test2", result);
-  }
-
-  @Test
-  void snapshotProfilingDisabledByDefault() {
-    Configuration configuration = new Configuration();
-    var properties = configuration.defaultProperties();
-    assertEquals("false", properties.get("splunk.snapshot.profiler.enabled"));
-  }
-
-  @Test
-  void isSnapshotProfilingEnabledIsFalseByDefault() {
-    var properties = DefaultConfigProperties.create(Collections.emptyMap());
-    assertFalse(Configuration.isSnapshotProfilingEnabled(properties));
-  }
-
-  @ParameterizedTest
-  @ValueSource(booleans = {true, false})
-  void isSnapshotProfilingEnabled(boolean enabled) {
-    var properties =
-        DefaultConfigProperties.create(
-            Map.of("splunk.snapshot.profiler.enabled", String.valueOf(enabled)));
-    assertEquals(enabled, Configuration.isSnapshotProfilingEnabled(properties));
-  }
-
-  @Test
-  void snapshotSelectionDefaultRate() {
-    Configuration configuration = new Configuration();
-    var properties = configuration.defaultProperties();
-
-    double rate = Double.parseDouble(properties.get("splunk.snapshot.selection.rate"));
-    assertEquals(0.01, rate);
-  }
-
-  @ParameterizedTest
-  @ValueSource(doubles = {0.10, 0.05, 0.0})
-  void getSnapshotSelectionRate(double selectionRate) {
-    var properties =
-        DefaultConfigProperties.create(
-            Map.of("splunk.snapshot.selection.rate", String.valueOf(selectionRate)));
-
-    double actualSelectionRate = Configuration.getSnapshotSelectionRate(properties);
-    assertEquals(selectionRate, actualSelectionRate);
-  }
-
-  @Test
-  void getSnapshotSelectionRateUsesDefaultWhenPropertyNotSet() {
-    var properties = DefaultConfigProperties.create(Collections.emptyMap());
-
-    double actualSelectionRate = Configuration.getSnapshotSelectionRate(properties);
-    assertEquals(0.01, actualSelectionRate);
-  }
-
-  @Test
-  void getSnapshotSelectionRateUsesDefaultValueIsNotNumeric() {
-    var properties =
-        DefaultConfigProperties.create(Map.of("splunk.snapshot.selection.rate", "not-a-number"));
-
-    double actualSelectionRate = Configuration.getSnapshotSelectionRate(properties);
-    assertEquals(0.01, actualSelectionRate);
-  }
-
-  @ParameterizedTest
-  @ValueSource(doubles = {1.0, 0.5, 0.11})
-  void getSnapshotSelectionRateUsesMaxSelectionRateWhenConfiguredRateIsHigher(
-      double selectionRate) {
-    var properties =
-        DefaultConfigProperties.create(
-            Map.of("splunk.snapshot.selection.rate", String.valueOf(selectionRate)));
-
-    double actualSelectionRate = Configuration.getSnapshotSelectionRate(properties);
-    assertEquals(0.10, actualSelectionRate);
-  }
-
-  @ParameterizedTest
-  @ValueSource(ints = {128, 512, 2056})
-  void getConfiguredSnapshotProfilerStackDepth(int depth) {
-    var properties =
-        DefaultConfigProperties.create(
-            Map.of("splunk.snapshot.profiler.max.stack.depth", String.valueOf(depth)));
-    assertEquals(depth, Configuration.getSnapshotProfilerStackDepth(properties));
-  }
-
-  @Test
-  void getDefaultSnapshotProfilerStackDepthWhenNotSpecified() {
-    var properties = DefaultConfigProperties.create(Collections.emptyMap());
-    assertEquals(1024, Configuration.getSnapshotProfilerStackDepth(properties));
-  }
-
-  @ParameterizedTest
-  @ValueSource(ints = {128, 512, 2056})
-  void getConfiguredSnapshotProfilerSamplingInterval(int milliseconds) {
-    var properties =
-        DefaultConfigProperties.create(
-            Map.of("splunk.snapshot.profiler.sampling.interval", String.valueOf(milliseconds)));
-    assertEquals(
-        Duration.ofMillis(milliseconds),
-        Configuration.getSnapshotProfilerSamplingInterval(properties));
-  }
-
-  @Test
-  void getDefaultSnapshotProfilerSamplingInterval() {
-    var properties = DefaultConfigProperties.create(Collections.emptyMap());
-    assertEquals(
-        Duration.ofMillis(10), Configuration.getSnapshotProfilerSamplingInterval(properties));
-  }
-
-  @ParameterizedTest
-  @ValueSource(ints = {128, 512, 2056})
-  void getConfiguredSnapshotProfilerEmptyStagingInterval(int milliseconds) {
-    var properties =
-        DefaultConfigProperties.create(
-            Map.of("splunk.snapshot.profiler.export.interval", String.valueOf(milliseconds)));
-    assertEquals(
-        Duration.ofMillis(milliseconds),
-        Configuration.getSnapshotProfilerExportInterval(properties));
-  }
-
-  @Test
-  void getDefaultSnapshotProfilerEmptyStagingInterval() {
-    var properties = DefaultConfigProperties.create(Collections.emptyMap());
-    assertEquals(
-        Duration.ofSeconds(5), Configuration.getSnapshotProfilerExportInterval(properties));
-  }
-
-  @ParameterizedTest
-  @ValueSource(ints = {100, 1000, 10_000})
-  void getConfiguredSnapshotProfilerStagingCapacity(int value) {
-    var properties =
-        DefaultConfigProperties.create(
-            Map.of("splunk.snapshot.profiler.staging.capacity", String.valueOf(value)));
-    assertEquals(value, Configuration.getSnapshotProfilerStagingCapacity(properties));
-  }
-
-  @Test
-  void getDefaultSnapshotProfilerStagingCapacity() {
-    var properties = DefaultConfigProperties.create(Collections.emptyMap());
-    assertEquals(2000, Configuration.getSnapshotProfilerStagingCapacity(properties));
   }
 }

@@ -18,7 +18,6 @@ package com.splunk.opentelemetry.profiler.snapshot;
 
 import com.google.auto.service.AutoService;
 import com.google.common.annotations.VisibleForTesting;
-import com.splunk.opentelemetry.profiler.Configuration;
 import com.splunk.opentelemetry.profiler.OtelLoggerFactory;
 import io.opentelemetry.api.logs.Logger;
 import io.opentelemetry.javaagent.extension.AgentListener;
@@ -29,6 +28,9 @@ import io.opentelemetry.sdk.resources.Resource;
 
 @AutoService(AgentListener.class)
 public class StackTraceExporterActivator implements AgentListener {
+  private static final java.util.logging.Logger logger =
+      java.util.logging.Logger.getLogger(StackTraceExporterActivator.class.getName());
+
   private final OtelLoggerFactory otelLoggerFactory;
 
   public StackTraceExporterActivator() {
@@ -41,18 +43,24 @@ public class StackTraceExporterActivator implements AgentListener {
   }
 
   @Override
-  public void afterAgent(AutoConfiguredOpenTelemetrySdk autoConfiguredOpenTelemetrySdk) {
-    ConfigProperties properties = AutoConfigureUtil.getConfig(autoConfiguredOpenTelemetrySdk);
-    if (snapshotProfilingEnabled(properties)) {
-      int maxDepth = Configuration.getSnapshotProfilerStackDepth(properties);
-      Logger logger = buildLogger(autoConfiguredOpenTelemetrySdk, properties);
-      AsyncStackTraceExporter exporter = new AsyncStackTraceExporter(logger, maxDepth);
-      StackTraceExporter.SUPPLIER.configure(exporter);
+  public void afterAgent(AutoConfiguredOpenTelemetrySdk sdk) {
+    ConfigProperties properties = AutoConfigureUtil.getConfig(sdk);
+    if (!snapshotProfilingEnabled(properties)) {
+      return;
     }
+
+    SnapshotProfilingConfiguration.log(properties);
+
+    int maxDepth = SnapshotProfilingConfiguration.getStackDepth(properties);
+    Logger otelLogger = buildLogger(sdk, properties);
+    AsyncStackTraceExporter exporter = new AsyncStackTraceExporter(otelLogger, maxDepth);
+    StackTraceExporter.SUPPLIER.configure(exporter);
+
+    logger.info("Snapshot profiling is active.");
   }
 
   private boolean snapshotProfilingEnabled(ConfigProperties properties) {
-    return Configuration.isSnapshotProfilingEnabled(properties);
+    return SnapshotProfilingConfiguration.isSnapshotProfilingEnabled(properties);
   }
 
   private Logger buildLogger(AutoConfiguredOpenTelemetrySdk sdk, ConfigProperties properties) {

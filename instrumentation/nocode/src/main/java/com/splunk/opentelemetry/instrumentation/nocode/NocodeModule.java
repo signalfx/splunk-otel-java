@@ -34,7 +34,7 @@ public final class NocodeModule extends InstrumentationModule {
   public List<TypeInstrumentation> typeInstrumentations() {
     List<TypeInstrumentation> answer = new ArrayList<>();
     for (NocodeRules.Rule rule : NocodeRules.getGlobalRules()) {
-      answer.add(new NocodeInstrumentation(rule));
+      answer.add(new NocodeInstrumentation((RuleImpl) rule));
     }
     // ensure that there is at least one instrumentation so that muzzle reference collection could
     // work

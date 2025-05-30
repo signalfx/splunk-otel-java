@@ -55,6 +55,6 @@ dependencies {
 
     api("io.opentelemetry.contrib:opentelemetry-samplers:$otelContribAlphaVersion")
     api("io.opentelemetry.contrib:opentelemetry-resource-providers:$otelContribAlphaVersion")
-    api("io.opentelemetry.proto:opentelemetry-proto:1.5.0-alpha")
+    api("io.opentelemetry.proto:opentelemetry-proto:1.7.0-alpha")
   }
 }

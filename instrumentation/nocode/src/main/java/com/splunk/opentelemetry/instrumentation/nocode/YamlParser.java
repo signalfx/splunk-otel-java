@@ -20,6 +20,7 @@ import com.splunk.opentelemetry.javaagent.bootstrap.nocode.NocodeExpression;
 import com.splunk.opentelemetry.javaagent.bootstrap.nocode.NocodeRules;
 import io.opentelemetry.api.trace.SpanKind;
 import io.opentelemetry.javaagent.extension.matcher.AgentElementMatchers;
+import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
 import java.nio.file.Files;
@@ -31,7 +32,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import net.bytebuddy.description.NamedElement;
 import net.bytebuddy.description.method.MethodDescription;
@@ -47,26 +47,18 @@ class YamlParser {
   private final List<NocodeRules.Rule> instrumentationRules;
   private JexlEvaluator evaluator;
 
-  public static List<NocodeRules.Rule> parseFromFile(String yamlFileName) {
-    if (yamlFileName == null || yamlFileName.trim().isEmpty()) {
-      return Collections.emptyList();
-    }
-    try {
-      try (Reader reader = Files.newBufferedReader(Paths.get(yamlFileName.trim()))) {
-        return new YamlParser(reader).getInstrumentationRules();
-      }
-    } catch (Exception e) {
-      logger.log(Level.SEVERE, "Can't load configured nocode yaml.", e);
-      return Collections.emptyList();
+  public static List<NocodeRules.Rule> parseFromFile(String yamlFileName) throws IOException {
+    try (Reader reader = Files.newBufferedReader(Paths.get(yamlFileName.trim()))) {
+      return new YamlParser(reader).getInstrumentationRules();
     }
   }
 
   // For unit testing purposes
-  static List<NocodeRules.Rule> parseFromString(String yaml) throws Exception {
+  static List<NocodeRules.Rule> parseFromString(String yaml) throws IOException {
     return new YamlParser(new StringReader(yaml)).getInstrumentationRules();
   }
 
-  private YamlParser(Reader reader) throws Exception {
+  private YamlParser(Reader reader) throws IOException {
     instrumentationRules = Collections.unmodifiableList(new ArrayList<>(loadUnsafe(reader)));
   }
 
@@ -75,7 +67,7 @@ class YamlParser {
   }
 
   @SuppressWarnings("unchecked")
-  private List<NocodeRules.Rule> loadUnsafe(Reader reader) throws Exception {
+  private List<NocodeRules.Rule> loadUnsafe(Reader reader) throws IOException {
     List<NocodeRules.Rule> answer = new ArrayList<>();
     Load load = new Load(LoadSettings.builder().build());
     Iterable<Object> parsedYaml = load.loadAllFromReader(reader);

@@ -18,7 +18,6 @@ package com.splunk.opentelemetry.instrumentation.nocode;
 
 import static com.splunk.opentelemetry.instrumentation.nocode.NocodeSingletons.instrumenter;
 import static io.opentelemetry.javaagent.bootstrap.Java8BytecodeBridge.currentContext;
-import static net.bytebuddy.matcher.ElementMatchers.named;
 import static net.bytebuddy.matcher.ElementMatchers.none;
 
 import com.splunk.opentelemetry.javaagent.bootstrap.nocode.NocodeRules;
@@ -36,9 +35,9 @@ import net.bytebuddy.matcher.ElementMatcher;
 import net.bytebuddy.utility.JavaConstant;
 
 public final class NocodeInstrumentation implements TypeInstrumentation {
-  private final NocodeRules.Rule rule;
+  private final RuleImpl rule;
 
-  public NocodeInstrumentation(NocodeRules.Rule rule) {
+  public NocodeInstrumentation(RuleImpl rule) {
     this.rule = rule;
   }
 
@@ -46,13 +45,13 @@ public final class NocodeInstrumentation implements TypeInstrumentation {
   public ElementMatcher<TypeDescription> typeMatcher() {
     // null rule is used when no rules are configured, this ensures that muzzle can collect helper
     // classes
-    return rule != null ? named(rule.getClassName()) : none();
+    return rule != null ? rule.getClassMatcher() : none();
   }
 
   @Override
   public void transform(TypeTransformer transformer) {
     transformer.applyAdviceToMethod(
-        rule != null ? named(rule.getMethodName()) : none(),
+        rule != null ? rule.getMethodMatcher() : none(),
         mapping ->
             mapping
                 .bind(RuleId.class, JavaConstant.Simple.ofLoaded(rule != null ? rule.getId() : -1))

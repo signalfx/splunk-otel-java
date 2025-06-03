@@ -1,6 +1,9 @@
 - class: com.splunk.opentelemetry.instrumentation.nocode.NocodeInstrumentationTest$SampleClass
-  method: doSomething
-  spanName: "this.getName()"
+  method:
+    or:
+      - name: willNotMatch
+      - name: doSomething
+  span_name: "this.getName()"
   attributes:
     - key: "details"
       value: this.getDetails()
@@ -19,23 +22,46 @@
     - key: getByte
       value: this.getByte()
 
-- class: com.splunk.opentelemetry.instrumentation.nocode.NocodeInstrumentationTest$SampleClass
-  method: throwException
-  spanKind: SERVER
+- class:
+    and:
+      - super_type: com.splunk.opentelemetry.instrumentation.nocode.NocodeInstrumentationTest$SampleClass
+      - or:
+        - name: something.that.will.not.match.but.trivially.tests.the.or.Logic
+        - name_regex: .*nocode.*
+  method:
+    and:
+      - name_regex: throwExcept.*
+      - parameter_count: 1
+      - parameter:
+          index: 0
+          type: int
+  span_kind: SERVER
   attributes:
     - key: "five"
       value: param0.toString().substring(0)
 
-- class: com.splunk.opentelemetry.instrumentation.nocode.NocodeInstrumentationTest$SampleClass
-  method: echo
-  spanStatus: 'returnValue.booleanValue() ? "ERROR" : "OK"'
+- class:
+    and:
+      - name_regex: .*nocode.*SampleClass
+      - super_type: java.lang.Object
+  method:
+     and:
+       - and:
+           - not:
+               name: noSuchMethod
+           - name_regex: ech[o]?
+       - parameter_count: 1
+       - parameter:
+           index: 0
+           type: boolean
+  span_status: 'returnValue.booleanValue() ? "ERROR" : "OK"'
 
 
 - class: com.splunk.opentelemetry.instrumentation.nocode.NocodeInstrumentationTest$SampleClass
   method: doInvalidRule
-  spanName: "this.thereIsNoSuchMethod()"
-  spanKind: INVALID
-  spanStatus: invalid jexl that does not parse
+  span_name: "this.thereIsNoSuchMethod()"
+  span_kind: INVALID
+  span_status: invalid jexl that does not parse
   attributes:
     - key: "notpresent"
       value: "invalid.noSuchStatement()"

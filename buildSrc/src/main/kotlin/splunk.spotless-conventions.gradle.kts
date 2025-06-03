@@ -9,6 +9,7 @@ extensions.configure<SpotlessExtension>("spotless") {
     googleJavaFormat()
     licenseHeaderFile(rootProject.file("gradle/spotless.license.java"), "(package|import|public|// Includes work from:)")
     target("src/**/*.java")
+    toggleOffOn()
   }
   kotlin {
     // ktfmt() // only supports 4 space indentation

@@ -23,14 +23,27 @@ import com.splunk.opentelemetry.javaagent.bootstrap.nocode.NocodeRules;
 import io.opentelemetry.javaagent.tooling.BeforeAgentListener;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
+import java.util.Collections;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 @AutoService(BeforeAgentListener.class)
 public class NocodeInitializer implements BeforeAgentListener {
+  private static final String NOCODE_YMLFILE = "splunk.otel.instrumentation.nocode.yml.file";
+  private static final Logger logger = Logger.getLogger(NocodeInitializer.class.getName());
 
   @Override
   public void beforeAgent(AutoConfiguredOpenTelemetrySdk autoConfiguredOpenTelemetrySdk) {
     ConfigProperties config = getConfig(autoConfiguredOpenTelemetrySdk);
-    YamlParser yp = new YamlParser(config);
-    NocodeRules.setGlobalRules(yp.getInstrumentationRules());
+    String yamlFileName = config.getString(NOCODE_YMLFILE);
+    List<NocodeRules.Rule> instrumentationRules = Collections.emptyList();
+    try {
+      instrumentationRules = YamlParser.parseFromFile(yamlFileName);
+      // can throw IllegalArgument and various other RuntimeExceptions too, not just IOException
+    } catch (Exception e) {
+      logger.log(Level.SEVERE, "Can't load configured nocode yaml.", e);
+    }
+    NocodeRules.setGlobalRules(instrumentationRules);
   }
 }

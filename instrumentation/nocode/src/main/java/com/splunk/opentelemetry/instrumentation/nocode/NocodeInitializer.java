@@ -37,7 +37,7 @@ public class NocodeInitializer implements BeforeAgentListener {
   public void beforeAgent(AutoConfiguredOpenTelemetrySdk autoConfiguredOpenTelemetrySdk) {
     ConfigProperties config = getConfig(autoConfiguredOpenTelemetrySdk);
     String yamlFileName = config.getString(NOCODE_YMLFILE);
-    List<NocodeRules.Rule> instrumentationRules = Collections.EMPTY_LIST;
+    List<NocodeRules.Rule> instrumentationRules = Collections.emptyList();
     try {
       instrumentationRules = YamlParser.parseFromFile(yamlFileName);
       // can throw IllegalArgument and various other RuntimeExceptions too, not just IOException

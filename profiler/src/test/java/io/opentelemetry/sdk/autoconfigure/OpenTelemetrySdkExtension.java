@@ -145,13 +145,13 @@ public class OpenTelemetrySdkExtension extends AutoConfiguredOpenTelemetrySdk
    */
   public static class Builder {
     private final SdkCustomizer customizer = new SdkCustomizer();
-    private final Map<String, String> properties = new HashMap<>();
+    private final Map<String, String> propertyOverrides = new HashMap<>();
     private final List<TextMapPropagator> propagators = new ArrayList<>();
     private final List<AgentListener> agentListeners = new ArrayList<>();
     private Sampler sampler = Sampler.alwaysOn();
 
     public Builder withProperty(String name, String value) {
-      properties.put(name, value);
+      propertyOverrides.put(name, value);
       return this;
     }
 
@@ -195,7 +195,9 @@ public class OpenTelemetrySdkExtension extends AutoConfiguredOpenTelemetrySdk
     }
 
     private ConfigProperties customizeProperties() {
-      var properties = DefaultConfigProperties.createFromMap(this.properties);
+      var properties =
+          DefaultConfigProperties.createFromMap(customizer.defaultProperties)
+              .withOverrides(propertyOverrides);
       for (var customizer : customizer.propertyCustomizers) {
         var overrides = customizer.apply(properties);
         properties = properties.withOverrides(overrides);
@@ -220,6 +222,7 @@ public class OpenTelemetrySdkExtension extends AutoConfiguredOpenTelemetrySdk
   }
 
   private static class SdkCustomizer implements AutoConfigurationCustomizer {
+    private final Map<String, String> defaultProperties = new HashMap<>();
     private final List<Function<ConfigProperties, Map<String, String>>> propertyCustomizers =
         new ArrayList<>();
     private final List<
@@ -269,6 +272,7 @@ public class OpenTelemetrySdkExtension extends AutoConfiguredOpenTelemetrySdk
     @Override
     public AutoConfigurationCustomizer addPropertiesSupplier(
         Supplier<Map<String, String>> supplier) {
+      defaultProperties.putAll(supplier.get());
       return this;
     }
   }

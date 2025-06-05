@@ -37,6 +37,9 @@ public class NocodeInitializer implements BeforeAgentListener {
   public void beforeAgent(AutoConfiguredOpenTelemetrySdk autoConfiguredOpenTelemetrySdk) {
     ConfigProperties config = getConfig(autoConfiguredOpenTelemetrySdk);
     String yamlFileName = config.getString(NOCODE_YMLFILE);
+    if (yamlFileName == null || yamlFileName.trim().isEmpty()) {
+      return;
+    }
     List<NocodeRules.Rule> instrumentationRules = Collections.emptyList();
     try {
       instrumentationRules = YamlParser.parseFromFile(yamlFileName);

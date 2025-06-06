@@ -16,16 +16,15 @@
 
 package com.splunk.opentelemetry.profiler.snapshot;
 
-import io.opentelemetry.api.trace.SpanContext;
-import io.opentelemetry.instrumentation.test.utils.GcUtils;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Test;
-
-import java.lang.ref.WeakReference;
-import java.time.Duration;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
+
+import io.opentelemetry.api.trace.SpanContext;
+import io.opentelemetry.instrumentation.test.utils.GcUtils;
+import java.lang.ref.WeakReference;
+import java.time.Duration;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 
 class OrphanedTraceDetectingTraceRegistryTest {
   private final TraceRegistry delegate = new SimpleTraceRegistry();

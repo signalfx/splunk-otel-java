@@ -18,7 +18,6 @@ package com.splunk.opentelemetry.profiler.snapshot;
 
 import com.google.common.annotations.VisibleForTesting;
 import io.opentelemetry.api.trace.SpanContext;
-
 import java.lang.ref.ReferenceQueue;
 import java.lang.ref.WeakReference;
 import java.util.Collections;
@@ -62,9 +61,7 @@ class OrphanedTraceDetectingTraceRegistry implements TraceRegistry {
     traces.remove(new LookupKey(spanContext));
   }
 
-  /**
-   * Test-specific method to inspect the weak references. DO NOT USE IN PRODUCTION CODE!
-   */
+  /** Test-specific method to inspect the weak references. DO NOT USE IN PRODUCTION CODE! */
   @VisibleForTesting
   boolean isRegisteredInternal(SpanContext spanContext) {
     return traces.contains(new LookupKey(spanContext));
@@ -122,7 +119,7 @@ class OrphanedTraceDetectingTraceRegistry implements TraceRegistry {
         return false;
       }
       Key other = (Key) o;
-      return Objects.equals(spanContext,  other.getSpanContext());
+      return Objects.equals(spanContext, other.getSpanContext());
     }
   }
 
@@ -158,7 +155,7 @@ class OrphanedTraceDetectingTraceRegistry implements TraceRegistry {
         return false;
       }
       Key other = (Key) o;
-      return Objects.equals(spanContext,  other.getSpanContext());
+      return Objects.equals(spanContext, other.getSpanContext());
     }
   }
 }

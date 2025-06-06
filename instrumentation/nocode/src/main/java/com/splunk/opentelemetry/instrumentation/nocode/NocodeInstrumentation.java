@@ -18,6 +18,7 @@ package com.splunk.opentelemetry.instrumentation.nocode;
 
 import static com.splunk.opentelemetry.instrumentation.nocode.NocodeSingletons.instrumenter;
 import static io.opentelemetry.javaagent.bootstrap.Java8BytecodeBridge.currentContext;
+import static net.bytebuddy.matcher.ElementMatchers.isMethod;
 import static net.bytebuddy.matcher.ElementMatchers.none;
 
 import com.splunk.opentelemetry.javaagent.bootstrap.nocode.NocodeRules;
@@ -51,7 +52,7 @@ public final class NocodeInstrumentation implements TypeInstrumentation {
   @Override
   public void transform(TypeTransformer transformer) {
     transformer.applyAdviceToMethod(
-        rule != null ? rule.getMethodMatcher() : none(),
+        rule != null ? isMethod().and(rule.getMethodMatcher()) : none(),
         mapping ->
             mapping
                 .bind(RuleId.class, JavaConstant.Simple.ofLoaded(rule != null ? rule.getId() : -1))

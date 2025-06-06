@@ -47,7 +47,7 @@ class YamlParser {
   private final List<NocodeRules.Rule> instrumentationRules;
   private JexlEvaluator evaluator;
 
-  public static List<NocodeRules.Rule> parseFromFile(String yamlFileName) throws IOException {
+  static List<NocodeRules.Rule> parseFromFile(String yamlFileName) throws IOException {
     try (Reader reader = Files.newBufferedReader(Paths.get(yamlFileName.trim()))) {
       return new YamlParser(reader).getInstrumentationRules();
     }
@@ -62,7 +62,7 @@ class YamlParser {
     instrumentationRules = Collections.unmodifiableList(new ArrayList<>(loadUnsafe(reader)));
   }
 
-  public List<NocodeRules.Rule> getInstrumentationRules() {
+  private List<NocodeRules.Rule> getInstrumentationRules() {
     return instrumentationRules;
   }
 

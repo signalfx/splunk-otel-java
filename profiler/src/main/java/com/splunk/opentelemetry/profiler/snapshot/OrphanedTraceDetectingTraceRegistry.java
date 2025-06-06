@@ -16,7 +16,9 @@
 
 package com.splunk.opentelemetry.profiler.snapshot;
 
+import com.google.common.annotations.VisibleForTesting;
 import io.opentelemetry.api.trace.SpanContext;
+
 import java.lang.ref.ReferenceQueue;
 import java.lang.ref.WeakReference;
 import java.util.Collections;
@@ -60,6 +62,14 @@ class OrphanedTraceDetectingTraceRegistry implements TraceRegistry {
     traces.remove(new LookupKey(spanContext));
   }
 
+  /**
+   * Test-specific method to inspect the weak references. DO NOT USE IN PRODUCTION CODE!
+   */
+  @VisibleForTesting
+  boolean isRegisteredInternal(SpanContext spanContext) {
+    return traces.contains(new LookupKey(spanContext));
+  }
+
   public void unregisterOrphanedTraces() {
     while (!Thread.interrupted()) {
       try {
@@ -82,14 +92,14 @@ class OrphanedTraceDetectingTraceRegistry implements TraceRegistry {
     thread.interrupt();
   }
 
-  interface Key {
+  public interface Key {
     SpanContext getSpanContext();
   }
 
-  private static class LookupKey implements Key {
+  public static class LookupKey implements Key {
     private final SpanContext spanContext;
 
-    private LookupKey(SpanContext spanContext) {
+    public LookupKey(SpanContext spanContext) {
       this.spanContext = spanContext;
     }
 
@@ -97,9 +107,26 @@ class OrphanedTraceDetectingTraceRegistry implements TraceRegistry {
     public SpanContext getSpanContext() {
       return spanContext;
     }
+
+    @Override
+    public int hashCode() {
+      return spanContext.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (o == this) {
+        return true;
+      }
+      if (!(o instanceof Key)) {
+        return false;
+      }
+      Key other = (Key) o;
+      return Objects.equals(spanContext,  other.getSpanContext());
+    }
   }
 
-  private static class WeakSpanContext extends WeakReference<SpanContext> implements Key {
+  public static class WeakSpanContext extends WeakReference<SpanContext> implements Key {
     private final SpanContext spanContext;
 
     public WeakSpanContext(SpanContext referent, ReferenceQueue<Object> q) {
@@ -119,14 +146,19 @@ class OrphanedTraceDetectingTraceRegistry implements TraceRegistry {
 
     @Override
     public int hashCode() {
-      return Objects.hashCode(spanContext);
+      return spanContext.hashCode();
     }
 
     @Override
     public boolean equals(Object o) {
-      if (o == null || getClass() != o.getClass()) return false;
-      WeakSpanContext that = (WeakSpanContext) o;
-      return Objects.equals(spanContext, that.spanContext);
+      if (o == this) {
+        return true;
+      }
+      if (!(o instanceof Key)) {
+        return false;
+      }
+      Key other = (Key) o;
+      return Objects.equals(spanContext,  other.getSpanContext());
     }
   }
 }

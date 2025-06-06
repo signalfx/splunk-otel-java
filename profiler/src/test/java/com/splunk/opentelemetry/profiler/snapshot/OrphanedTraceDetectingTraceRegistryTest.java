@@ -16,15 +16,16 @@
 
 package com.splunk.opentelemetry.profiler.snapshot;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.awaitility.Awaitility.await;
-
 import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.instrumentation.test.utils.GcUtils;
-import java.lang.ref.WeakReference;
-import java.time.Duration;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
+
+import java.lang.ref.WeakReference;
+import java.time.Duration;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 
 class OrphanedTraceDetectingTraceRegistryTest {
   private final TraceRegistry delegate = new SimpleTraceRegistry();
@@ -38,10 +39,27 @@ class OrphanedTraceDetectingTraceRegistryTest {
   }
 
   @Test
+  void trackRegisteredSpanContext() {
+    var spanContext = Snapshotting.spanContext().build();
+    registry.register(spanContext);
+    assertThat(registry.isRegisteredInternal(spanContext)).isTrue();
+  }
+
+  @Test
   void delegateTraceRegistration() {
     var spanContext = Snapshotting.spanContext().build();
     registry.register(spanContext);
     assertThat(delegate.isRegistered(spanContext)).isTrue();
+  }
+
+  @Test
+  void stopTrackingUnregisteredSpanContext() {
+    var spanContext = Snapshotting.spanContext().build();
+
+    registry.register(spanContext);
+    registry.unregister(spanContext);
+
+    assertThat(registry.isRegisteredInternal(spanContext)).isFalse();
   }
 
   @Test

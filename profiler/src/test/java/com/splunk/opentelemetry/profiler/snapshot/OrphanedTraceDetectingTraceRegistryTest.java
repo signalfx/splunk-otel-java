@@ -112,12 +112,14 @@ class OrphanedTraceDetectingTraceRegistryTest {
   void stopSamplingForOrphanedTraces() throws Exception {
     var spanContext = Snapshotting.spanContext().build();
     registry.register(spanContext);
+    sampler.start(spanContext);
     var spanContextCopy =
         SpanContext.create(
             spanContext.getTraceId(),
             spanContext.getSpanId(),
             spanContext.getTraceFlags(),
             spanContext.getTraceState());
+    await().untilAsserted(() -> assertThat(sampler.isBeingSampled(spanContextCopy)).isTrue());
 
     var spanContextReference = new WeakReference<>(spanContext);
     spanContext = null;

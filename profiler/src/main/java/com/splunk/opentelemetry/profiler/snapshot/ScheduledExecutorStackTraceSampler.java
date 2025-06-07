@@ -63,11 +63,11 @@ class ScheduledExecutorStackTraceSampler implements StackTraceSampler {
   }
 
   @Override
-  public void stop(SpanContext spanContext) {
+  public void stop(String traceId, String spanId) {
     samplers.computeIfPresent(
-        spanContext.getTraceId(),
-        (traceId, sampler) -> {
-          if (spanContext.equals(sampler.getSpanContext())) {
+        traceId,
+        (unused, sampler) -> {
+          if (spanId.equals(sampler.getSpanContext().getSpanId())) {
             sampler.shutdown();
             waitForShutdown(sampler);
             return null;

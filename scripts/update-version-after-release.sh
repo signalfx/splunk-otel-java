@@ -60,6 +60,7 @@ readme_sed_args=(
 
   # update SNAPSHOT link
   -e "s https://oss.sonatype.org/content/repositories/snapshots/com/splunk/splunk-otel-javaagent/${splunk_current_version}-SNAPSHOT/ https://oss.sonatype.org/content/repositories/snapshots/com/splunk/splunk-otel-javaagent/${splunk_next_version}-SNAPSHOT/ g"
+  -e "s https://central.sonatype.com/service/rest/repository/browse/maven-snapshots/com/splunk/splunk-otel-javaagent/${splunk_current_version}-SNAPSHOT/ https://central.sonatype.com/service/rest/repository/browse/maven-snapshots/com/splunk/splunk-otel-javaagent/${splunk_next_version}-SNAPSHOT/ g"
 )
 
 sed ${sed_flag} "${readme_sed_args[@]}" README.md

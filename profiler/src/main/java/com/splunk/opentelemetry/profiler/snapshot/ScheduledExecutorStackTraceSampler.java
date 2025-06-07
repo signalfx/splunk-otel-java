@@ -59,7 +59,8 @@ class ScheduledExecutorStackTraceSampler implements StackTraceSampler {
     }
 
     samplers.computeIfAbsent(
-        spanContext.getTraceId(), id -> new ThreadSampler(spanContext, samplingPeriod));
+        spanContext.getTraceId(),
+        id -> new ThreadSampler(ProfilingSpanContext.from(spanContext), samplingPeriod));
   }
 
   @Override
@@ -67,7 +68,8 @@ class ScheduledExecutorStackTraceSampler implements StackTraceSampler {
     samplers.computeIfPresent(
         spanContext.getTraceId(),
         (traceId, sampler) -> {
-          if (spanContext.equals(sampler.getSpanContext())) {
+          ProfilingSpanContext context = ProfilingSpanContext.from(spanContext);
+          if (context.equals(sampler.context)) {
             sampler.shutdown();
             waitForShutdown(sampler);
             return null;
@@ -98,17 +100,15 @@ class ScheduledExecutorStackTraceSampler implements StackTraceSampler {
 
   private class ThreadSampler {
     private final ScheduledExecutorService scheduler;
-    private final SpanContext spanContext;
+    private final ProfilingSpanContext context;
     private final StackTraceGatherer gatherer;
 
-    ThreadSampler(SpanContext spanContext, Duration samplingPeriod) {
-      this.spanContext = spanContext;
-      gatherer =
-          new StackTraceGatherer(
-              spanContext.getTraceId(), Thread.currentThread(), System.nanoTime());
+    ThreadSampler(ProfilingSpanContext context, Duration samplingPeriod) {
+      this.context = context;
+      gatherer = new StackTraceGatherer(context, Thread.currentThread(), System.nanoTime());
       scheduler =
           HelpfulExecutors.newSingleThreadedScheduledExecutor(
-              "stack-trace-sampler-" + spanContext.getTraceId());
+              "stack-trace-sampler-" + context.getSpanId());
       scheduler.scheduleAtFixedRate(
           gatherer, SCHEDULER_INITIAL_DELAY, samplingPeriod.toMillis(), TimeUnit.MILLISECONDS);
     }
@@ -125,19 +125,15 @@ class ScheduledExecutorStackTraceSampler implements StackTraceSampler {
     boolean awaitTermination(Duration timeout) throws InterruptedException {
       return scheduler.awaitTermination(timeout.toMillis(), TimeUnit.MILLISECONDS);
     }
-
-    SpanContext getSpanContext() {
-      return spanContext;
-    }
   }
 
   private class StackTraceGatherer implements Runnable {
-    private final String traceId;
+    private final ProfilingSpanContext context;
     private final Thread thread;
     private volatile long timestampNanos;
 
-    StackTraceGatherer(String traceId, Thread thread, long timestampNanos) {
-      this.traceId = traceId;
+    StackTraceGatherer(ProfilingSpanContext context, Thread thread, long timestampNanos) {
+      this.context = context;
       this.thread = thread;
       this.timestampNanos = timestampNanos;
     }
@@ -151,23 +147,24 @@ class ScheduledExecutorStackTraceSampler implements StackTraceSampler {
         Duration samplingPeriod = Duration.ofNanos(currentSampleTimestamp - previousTimestampNanos);
         String spanId = retrieveActiveSpan(thread).getSpanId();
         StackTrace stackTrace =
-            StackTrace.from(Instant.now(), samplingPeriod, threadInfo, traceId, spanId);
+            StackTrace.from(
+                Instant.now(), samplingPeriod, threadInfo, context.getTraceId(), spanId);
         stagingArea.get().stage(stackTrace);
       } catch (Exception e) {
-        logger.log(Level.SEVERE, e, samplerErrorMessage(traceId, thread.getId()));
+        logger.log(Level.SEVERE, e, samplerErrorMessage(context, thread.getId()));
       } finally {
         timestampNanos = currentSampleTimestamp;
       }
     }
 
-    private SpanContext retrieveActiveSpan(Thread thread) {
-      return spanTracker.get().getActiveSpan(thread).orElse(SpanContext.getInvalid());
+    private ProfilingSpanContext retrieveActiveSpan(Thread thread) {
+      return spanTracker.get().getActiveSpan(thread).orElse(ProfilingSpanContext.INVALID);
     }
 
-    private Supplier<String> samplerErrorMessage(String traceId, long threadId) {
+    private Supplier<String> samplerErrorMessage(ProfilingSpanContext context, long threadId) {
       return () ->
           "Exception thrown attempting to stage callstacks for trace ID ' "
-              + traceId
+              + context.getTraceId()
               + "' on profiled thread "
               + threadId;
     }

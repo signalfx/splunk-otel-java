@@ -37,6 +37,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterEach;
@@ -106,7 +107,7 @@ class SnapshotProfilingLogExportingTest {
 
   private static class ResetContextStorage implements SpanTrackingActivator, AfterEachCallback {
     @Override
-    public void activate(TraceRegistry registry) {
+    public void activate(Supplier<TraceRegistry> registry) {
       ActiveSpanTracker spanTracker =
           new ActiveSpanTracker(ContextStorage.defaultStorage(), registry);
       SpanTracker.SUPPLIER.configure(spanTracker);

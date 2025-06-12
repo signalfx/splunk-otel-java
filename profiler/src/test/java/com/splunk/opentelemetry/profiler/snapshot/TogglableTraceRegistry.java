@@ -16,8 +16,6 @@
 
 package com.splunk.opentelemetry.profiler.snapshot;
 
-import io.opentelemetry.api.trace.SpanContext;
-
 class TogglableTraceRegistry extends TraceRegistry {
   enum State {
     ON,
@@ -27,23 +25,13 @@ class TogglableTraceRegistry extends TraceRegistry {
   private State state = State.ON;
 
   @Override
-  public void register(SpanContext spanContext) {
+  public void register(String traceId) {
     if (state == State.ON) {
-      super.register(spanContext);
+      super.register(traceId);
     }
   }
 
   public void toggle(State state) {
     this.state = state;
-  }
-
-  @Override
-  public boolean isRegistered(SpanContext spanContext) {
-    return super.isRegistered(spanContext);
-  }
-
-  @Override
-  public void unregister(SpanContext spanContext) {
-    super.unregister(spanContext);
   }
 }

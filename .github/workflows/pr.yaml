@@ -108,13 +108,13 @@ jobs:
       packages: read
     strategy:
       matrix:
-        os: [ windows-2019, ubuntu-22.04 ]
+        os: [ windows-2022, ubuntu-22.04 ]
         suite: [ "glassfish", "jboss", "jetty", "liberty", "profiler", "tomcat", "tomee", "weblogic", "websphere", "wildfly", "other" ]
         exclude:
-          - os: ${{ !contains(github.event.pull_request.labels.*.name, 'test windows') && 'windows-2019' || '' }}
-          - os: windows-2019
+          - os: ${{ !contains(github.event.pull_request.labels.*.name, 'test windows') && 'windows-2022' || '' }}
+          - os: windows-2022
             suite: websphere
-          - os: windows-2019
+          - os: windows-2022
             suite: profiler
       fail-fast: false
     steps:

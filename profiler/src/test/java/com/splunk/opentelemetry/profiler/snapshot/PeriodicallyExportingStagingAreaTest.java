@@ -21,7 +21,6 @@ import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.time.Duration;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -39,7 +38,7 @@ class PeriodicallyExportingStagingAreaTest {
     var stackTrace = Snapshotting.stackTrace().build();
     try (var stagingArea =
         new PeriodicallyExportingStagingArea(() -> exporter, emptyDuration, 10)) {
-      stagingArea.stage(stackTrace);
+      stagingArea.stage(List.of(stackTrace));
       await().untilAsserted(() -> assertThat(exporter.stackTraces()).contains(stackTrace));
     }
   }
@@ -52,11 +51,10 @@ class PeriodicallyExportingStagingAreaTest {
 
     try (var stagingArea =
         new PeriodicallyExportingStagingArea(() -> exporter, emptyDuration, 10)) {
-      stagingArea.stage(stackTrace1);
+      stagingArea.stage(List.of(stackTrace1));
       await().untilAsserted(() -> assertThat(exporter.stackTraces()).contains(stackTrace1));
 
-      stagingArea.stage(stackTrace2);
-      stagingArea.stage(stackTrace3);
+      stagingArea.stage(List.of(stackTrace2, stackTrace3));
       await()
           .untilAsserted(
               () -> assertThat(exporter.stackTraces()).contains(stackTrace2, stackTrace3));
@@ -70,8 +68,7 @@ class PeriodicallyExportingStagingAreaTest {
 
     try (var stagingArea =
         new PeriodicallyExportingStagingArea(() -> exporter, emptyDuration, 10)) {
-      stagingArea.stage(stackTrace1);
-      stagingArea.stage(stackTrace2);
+      stagingArea.stage(List.of(stackTrace1, stackTrace2));
 
       await()
           .untilAsserted(
@@ -85,7 +82,7 @@ class PeriodicallyExportingStagingAreaTest {
 
     try (var stagingArea =
         new PeriodicallyExportingStagingArea(() -> exporter, emptyDuration, 10)) {
-      stagingArea.stage(stackTrace);
+      stagingArea.stage(List.of(stackTrace));
       await().until(() -> !exporter.stackTraces().isEmpty());
 
       assertEquals(List.of(stackTrace), exporter.stackTraces());
@@ -97,7 +94,7 @@ class PeriodicallyExportingStagingAreaTest {
     var stackTrace = Snapshotting.stackTrace().build();
 
     var stagingArea = new PeriodicallyExportingStagingArea(() -> exporter, Duration.ofDays(1), 10);
-    stagingArea.stage(stackTrace);
+    stagingArea.stage(List.of(stackTrace));
     stagingArea.close();
 
     await().untilAsserted(() -> assertEquals(List.of(stackTrace), exporter.stackTraces()));
@@ -109,7 +106,7 @@ class PeriodicallyExportingStagingAreaTest {
 
     var stagingArea = new PeriodicallyExportingStagingArea(() -> exporter, emptyDuration, 10);
     stagingArea.close();
-    stagingArea.stage(stackTrace);
+    stagingArea.stage(List.of(stackTrace));
 
     assertEquals(Collections.emptyList(), exporter.stackTraces());
   }
@@ -118,9 +115,10 @@ class PeriodicallyExportingStagingAreaTest {
   void exportStackTracesWhenCapacityReached() {
     try (var stagingArea =
         new PeriodicallyExportingStagingArea(() -> exporter, Duration.ofDays(1), 2)) {
-      stagingArea.stage(Snapshotting.stackTrace().build());
-      stagingArea.stage(Snapshotting.stackTrace().build());
-
+      stagingArea.stage(List.of(
+          Snapshotting.stackTrace().build(),
+          Snapshotting.stackTrace().build()
+      ));
       await().untilAsserted(() -> assertEquals(2, exporter.stackTraces().size()));
     }
   }
@@ -128,9 +126,11 @@ class PeriodicallyExportingStagingAreaTest {
   @Test
   void exportStackTracesOnNormalScheduleEvenAfterCapacityReached() {
     try (var stagingArea = new PeriodicallyExportingStagingArea(() -> exporter, emptyDuration, 2)) {
-      stagingArea.stage(Snapshotting.stackTrace().build());
-      stagingArea.stage(Snapshotting.stackTrace().build());
-      stagingArea.stage(Snapshotting.stackTrace().build());
+      stagingArea.stage(List.of(
+          Snapshotting.stackTrace().build(),
+          Snapshotting.stackTrace().build(),
+          Snapshotting.stackTrace().build()
+      ));
 
       await().untilAsserted(() -> assertEquals(3, exporter.stackTraces().size()));
     }
@@ -186,7 +186,7 @@ class PeriodicallyExportingStagingAreaTest {
     return () -> {
       try {
         startLatch.await();
-        Arrays.stream(stackTraces).forEach(stagingArea::stage);
+        stagingArea.stage(List.of(stackTraces));
       } catch (InterruptedException e) {
         Thread.currentThread().interrupt();
         throw new RuntimeException(e);

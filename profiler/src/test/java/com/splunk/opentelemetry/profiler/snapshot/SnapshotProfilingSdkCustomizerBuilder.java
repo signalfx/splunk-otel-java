@@ -38,7 +38,7 @@ class SnapshotProfilingSdkCustomizerBuilder {
         new PeriodicallyExportingStagingArea(
             StackTraceExporter.SUPPLIER, Duration.ofMillis(200), 10));
     return with(
-        new ScheduledExecutorStackTraceSampler(
+        new DaemonThreadStackTraceSampler(
             stagingAreaSupplier, SpanTracker.SUPPLIER, Duration.ofMillis(20)));
   }
 

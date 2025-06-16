@@ -19,7 +19,6 @@ package com.splunk.opentelemetry.profiler.snapshot;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
@@ -40,11 +39,6 @@ class PeriodicallyExportingStagingArea implements StagingArea {
     worker.setName(WORKER_THREAD_NAME);
     worker.setDaemon(true);
     worker.start();
-  }
-
-  @Override
-  public void stage(StackTrace stackTrace) {
-    stage(Collections.singleton(stackTrace));
   }
 
   @Override

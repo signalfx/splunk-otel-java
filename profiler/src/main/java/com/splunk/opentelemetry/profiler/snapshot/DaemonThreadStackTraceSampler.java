@@ -88,26 +88,13 @@ class DaemonThreadStackTraceSampler implements StackTraceSampler {
           Command command = queue.poll(nextSampleTime - System.nanoTime(), TimeUnit.NANOSECONDS);
           if (command == null) {
             sample(traceThreads.values());
-          }
-          if (command != null) {
+          } else {
             if (command.action == Action.SHUTDOWN) {
               return;
             } else if (command.action == Action.START) {
-              traceThreads.computeIfAbsent(command.spanContext.getTraceId(), traceId -> {
-                SamplingContext context = new SamplingContext(command.thread,
-                    command.spanContext, System.nanoTime());
-                sample(context);
-                return context;
-              });
+              startSampling(command, traceThreads);
             } else if (command.action == Action.STOP) {
-              traceThreads.computeIfPresent(command.spanContext.getTraceId(),
-                  (traceId, context) -> {
-                    if (command.spanContext.equals(context.spanContext)) {
-                      sample(context);
-                      return null;
-                    }
-                    return context;
-                  });
+              stopSampling(command, traceThreads);
             }
           }
           nextSampleTime = System.nanoTime() + delay.toNanos();
@@ -115,6 +102,26 @@ class DaemonThreadStackTraceSampler implements StackTraceSampler {
       } catch (InterruptedException e) {
         Thread.currentThread().interrupt();
       }
+    }
+
+    private void startSampling(Command command, Map<String, SamplingContext> traceThreads) {
+      traceThreads.computeIfAbsent(command.spanContext.getTraceId(), traceId -> {
+        SamplingContext context = new SamplingContext(command.thread,
+            command.spanContext, System.nanoTime());
+        sample(context);
+        return context;
+      });
+    }
+
+    private void stopSampling(Command command, Map<String, SamplingContext> traceThreads) {
+      traceThreads.computeIfPresent(command.spanContext.getTraceId(),
+          (traceId, context) -> {
+            if (command.spanContext.equals(context.spanContext)) {
+              sample(context);
+              return null;
+            }
+            return context;
+          });
     }
 
     private void sample(SamplingContext context) {
@@ -165,7 +172,7 @@ class DaemonThreadStackTraceSampler implements StackTraceSampler {
         try {
           staging.get().stage(stackTrace);
         } catch (Exception e) {
-          logger.log(Level.SEVERE, e, samplerErrorMessage(stackTrace));
+          logger.log(Level.SEVERE, e, stagingErrorMessage(stackTrace));
         }
       }
     }
@@ -174,7 +181,7 @@ class DaemonThreadStackTraceSampler implements StackTraceSampler {
       return spanTracker.get().getActiveSpan(thread).orElse(SpanContext.getInvalid()).getSpanId();
     }
 
-    private Supplier<String> samplerErrorMessage(StackTrace stackTrace) {
+    private Supplier<String> stagingErrorMessage(StackTrace stackTrace) {
       return () ->
           "Exception thrown attempting to stage callstacks for trace ID ' "
               + stackTrace.getTraceId()

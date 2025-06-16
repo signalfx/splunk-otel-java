@@ -124,7 +124,7 @@ class DaemonThreadStackTraceSampler implements StackTraceSampler {
           traceId -> {
             SamplingContext context =
                 new SamplingContext(command.thread, command.spanContext, System.nanoTime());
-            sample(context);
+            sample(Collections.singletonList(context));
             return context;
           });
     }
@@ -134,15 +134,11 @@ class DaemonThreadStackTraceSampler implements StackTraceSampler {
           command.spanContext.getTraceId(),
           (traceId, context) -> {
             if (command.spanContext.equals(context.spanContext)) {
-              sample(context);
+              sample(Collections.singletonList(context));
               return null;
             }
             return context;
           });
-    }
-
-    private void sample(SamplingContext context) {
-      sample(Collections.singletonList(context));
     }
 
     private void sample(Collection<SamplingContext> contexts) {

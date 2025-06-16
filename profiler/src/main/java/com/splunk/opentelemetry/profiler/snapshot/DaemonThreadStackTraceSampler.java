@@ -58,7 +58,6 @@ class DaemonThreadStackTraceSampler implements StackTraceSampler {
     private final Duration delay;
 
     private long nextSampleTime;
-    private boolean shutdown;
 
     private ThreadSampler(Supplier<StagingArea> staging, Supplier<SpanTracker> spanTracker,
         Duration delay) {
@@ -76,7 +75,6 @@ class DaemonThreadStackTraceSampler implements StackTraceSampler {
     }
 
     void shutdown() {
-      shutdown = true;
       queue.add(new Command(Action.SHUTDOWN, null, null));
     }
 
@@ -84,7 +82,7 @@ class DaemonThreadStackTraceSampler implements StackTraceSampler {
     public void run() {
       Map<String, SamplingContext> traceThreads = new HashMap<>();
       try {
-        while (!shutdown) {
+        while (!Thread.currentThread().isInterrupted()) {
           Command command = queue.poll(nextSampleTime - System.nanoTime(), TimeUnit.NANOSECONDS);
           if (command == null) {
             sample(traceThreads.values());

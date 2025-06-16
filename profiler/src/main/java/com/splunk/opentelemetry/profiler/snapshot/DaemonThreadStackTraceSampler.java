@@ -168,25 +168,24 @@ class DaemonThreadStackTraceSampler implements StackTraceSampler {
     }
 
     private void stage(Collection<StackTrace> stackTraces) {
-      for (StackTrace stackTrace : stackTraces) {
         try {
-          staging.get().stage(stackTrace);
+          staging.get().stage(stackTraces);
         } catch (Exception e) {
-          logger.log(Level.SEVERE, e, stagingErrorMessage(stackTrace));
+          logger.log(Level.SEVERE, e, stagingErrorMessage(stackTraces));
         }
-      }
     }
 
     private String retrieveActiveSpan(Thread thread) {
       return spanTracker.get().getActiveSpan(thread).orElse(SpanContext.getInvalid()).getSpanId();
     }
 
-    private Supplier<String> stagingErrorMessage(StackTrace stackTrace) {
+    private Supplier<String> stagingErrorMessage(Collection<StackTrace> stackTraces) {
       return () ->
-          "Exception thrown attempting to stage callstacks for trace ID ' "
-              + stackTrace.getTraceId()
-              + "' on profiled thread "
-              + stackTrace.getThreadId();
+          "Exception thrown attempting to stage callstacks for trace ids " + traceIds(stackTraces);
+    }
+
+    private String traceIds(Collection<StackTrace> stackTraces) {
+      return stackTraces.stream().map(StackTrace::getTraceId).collect(Collectors.joining(","));
     }
   }
 

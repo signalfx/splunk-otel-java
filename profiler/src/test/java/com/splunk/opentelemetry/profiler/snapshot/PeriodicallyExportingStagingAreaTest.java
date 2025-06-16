@@ -115,10 +115,8 @@ class PeriodicallyExportingStagingAreaTest {
   void exportStackTracesWhenCapacityReached() {
     try (var stagingArea =
         new PeriodicallyExportingStagingArea(() -> exporter, Duration.ofDays(1), 2)) {
-      stagingArea.stage(List.of(
-          Snapshotting.stackTrace().build(),
-          Snapshotting.stackTrace().build()
-      ));
+      stagingArea.stage(
+          List.of(Snapshotting.stackTrace().build(), Snapshotting.stackTrace().build()));
       await().untilAsserted(() -> assertEquals(2, exporter.stackTraces().size()));
     }
   }
@@ -126,11 +124,11 @@ class PeriodicallyExportingStagingAreaTest {
   @Test
   void exportStackTracesOnNormalScheduleEvenAfterCapacityReached() {
     try (var stagingArea = new PeriodicallyExportingStagingArea(() -> exporter, emptyDuration, 2)) {
-      stagingArea.stage(List.of(
-          Snapshotting.stackTrace().build(),
-          Snapshotting.stackTrace().build(),
-          Snapshotting.stackTrace().build()
-      ));
+      stagingArea.stage(
+          List.of(
+              Snapshotting.stackTrace().build(),
+              Snapshotting.stackTrace().build(),
+              Snapshotting.stackTrace().build()));
 
       await().untilAsserted(() -> assertEquals(3, exporter.stackTraces().size()));
     }

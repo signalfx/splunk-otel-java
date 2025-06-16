@@ -28,8 +28,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 class PeriodicallyExportingStagingArea implements StagingArea {
-  private static final Logger logger = Logger.getLogger(
-      PeriodicallyExportingStagingArea.class.getName());
+  private static final Logger logger =
+      Logger.getLogger(PeriodicallyExportingStagingArea.class.getName());
 
   private static final String WORKER_THREAD_NAME =
       PeriodicallyExportingStagingArea.class.getSimpleName() + "_WorkerThread";
@@ -107,7 +107,11 @@ class PeriodicallyExportingStagingArea implements StagingArea {
     }
 
     private Supplier<String> queueFullMessage(StackTrace stackTrace) {
-      return () -> "Staging area beyond maximum capacity; failed to stage stack trace for thread id: " + stackTrace.getThreadId() + ", trace id: " + stackTrace.getTraceId();
+      return () ->
+          "Staging area beyond maximum capacity; failed to stage stack trace for thread id: "
+              + stackTrace.getThreadId()
+              + ", trace id: "
+              + stackTrace.getTraceId();
     }
 
     @Override

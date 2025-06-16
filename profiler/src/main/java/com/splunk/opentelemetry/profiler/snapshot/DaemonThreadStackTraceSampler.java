@@ -1,3 +1,19 @@
+/*
+ * Copyright Splunk Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.splunk.opentelemetry.profiler.snapshot;
 
 import io.opentelemetry.api.trace.SpanContext;
@@ -22,13 +38,13 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 class DaemonThreadStackTraceSampler implements StackTraceSampler {
-  private static final Logger logger = Logger.getLogger(
-      DaemonThreadStackTraceSampler.class.getName());
+  private static final Logger logger =
+      Logger.getLogger(DaemonThreadStackTraceSampler.class.getName());
 
   private final ThreadSampler sampler;
 
-  public DaemonThreadStackTraceSampler(Supplier<StagingArea> staging,
-      Supplier<SpanTracker> spanTracker, Duration samplingPeriod) {
+  public DaemonThreadStackTraceSampler(
+      Supplier<StagingArea> staging, Supplier<SpanTracker> spanTracker, Duration samplingPeriod) {
     sampler = new ThreadSampler(staging, spanTracker, samplingPeriod);
     sampler.setName("daemon-thread-stack-trace-sampler");
     sampler.setDaemon(true);
@@ -59,8 +75,8 @@ class DaemonThreadStackTraceSampler implements StackTraceSampler {
 
     private long nextSampleTime;
 
-    private ThreadSampler(Supplier<StagingArea> staging, Supplier<SpanTracker> spanTracker,
-        Duration delay) {
+    private ThreadSampler(
+        Supplier<StagingArea> staging, Supplier<SpanTracker> spanTracker, Duration delay) {
       this.staging = staging;
       this.spanTracker = spanTracker;
       this.delay = delay;
@@ -103,16 +119,19 @@ class DaemonThreadStackTraceSampler implements StackTraceSampler {
     }
 
     private void startSampling(Command command, Map<String, SamplingContext> traceThreads) {
-      traceThreads.computeIfAbsent(command.spanContext.getTraceId(), traceId -> {
-        SamplingContext context = new SamplingContext(command.thread,
-            command.spanContext, System.nanoTime());
-        sample(context);
-        return context;
-      });
+      traceThreads.computeIfAbsent(
+          command.spanContext.getTraceId(),
+          traceId -> {
+            SamplingContext context =
+                new SamplingContext(command.thread, command.spanContext, System.nanoTime());
+            sample(context);
+            return context;
+          });
     }
 
     private void stopSampling(Command command, Map<String, SamplingContext> traceThreads) {
-      traceThreads.computeIfPresent(command.spanContext.getTraceId(),
+      traceThreads.computeIfPresent(
+          command.spanContext.getTraceId(),
           (traceId, context) -> {
             if (command.spanContext.equals(context.spanContext)) {
               sample(context);
@@ -127,13 +146,16 @@ class DaemonThreadStackTraceSampler implements StackTraceSampler {
     }
 
     private void sample(Collection<SamplingContext> contexts) {
-      Map<Long, SamplingContext> threadSamplingContexts = contexts.stream().collect(Collectors.toMap(c -> c.thread.getId(), context -> context));
-      long[] threadIds = threadSamplingContexts.keySet().stream().mapToLong(Long::longValue).toArray();
+      Map<Long, SamplingContext> threadSamplingContexts =
+          contexts.stream().collect(Collectors.toMap(c -> c.thread.getId(), context -> context));
+      long[] threadIds =
+          threadSamplingContexts.keySet().stream().mapToLong(Long::longValue).toArray();
 
       long currentSampleTimestamp = System.nanoTime();
       try {
         ThreadInfo[] threadInfos = captureStackTraces(threadIds);
-        List<StackTrace> stackTraces = toStackTraces(threadInfos, threadSamplingContexts, currentSampleTimestamp);
+        List<StackTrace> stackTraces =
+            toStackTraces(threadInfos, threadSamplingContexts, currentSampleTimestamp);
         stage(stackTraces);
       } catch (Exception e) {
         logger.log(Level.SEVERE, e, () -> "Unexpected error during callstack sampling");
@@ -144,12 +166,19 @@ class DaemonThreadStackTraceSampler implements StackTraceSampler {
       try {
         return threadMXBean.getThreadInfo(threadIds, Integer.MAX_VALUE);
       } catch (Exception e) {
-        logger.log(Level.SEVERE, e, () -> "Error taking callstack samples for thread ids [" + Arrays.toString(threadIds) + "]");
+        logger.log(
+            Level.SEVERE,
+            e,
+            () ->
+                "Error taking callstack samples for thread ids ["
+                    + Arrays.toString(threadIds)
+                    + "]");
       }
       return new ThreadInfo[0];
     }
 
-    private List<StackTrace> toStackTraces(ThreadInfo[] threadInfos, Map<Long, SamplingContext> contexts, long currentTimestamp) {
+    private List<StackTrace> toStackTraces(
+        ThreadInfo[] threadInfos, Map<Long, SamplingContext> contexts, long currentTimestamp) {
       List<StackTrace> stackTraces = new ArrayList<>(threadInfos.length);
       for (ThreadInfo threadInfo : threadInfos) {
         SamplingContext context = contexts.get(threadInfo.getThreadId());
@@ -158,19 +187,21 @@ class DaemonThreadStackTraceSampler implements StackTraceSampler {
       return stackTraces;
     }
 
-    private StackTrace toStackTrace(ThreadInfo threadInfo, SamplingContext context, long currentTimestamp) {
+    private StackTrace toStackTrace(
+        ThreadInfo threadInfo, SamplingContext context, long currentTimestamp) {
       Duration samplingPeriod = Duration.ofNanos(currentTimestamp - context.timestamp);
       context.updateTimestamp(currentTimestamp);
       String spanId = retrieveActiveSpan(context.thread);
-      return StackTrace.from(Instant.now(), samplingPeriod, threadInfo, context.spanContext.getTraceId(), spanId);
+      return StackTrace.from(
+          Instant.now(), samplingPeriod, threadInfo, context.spanContext.getTraceId(), spanId);
     }
 
     private void stage(Collection<StackTrace> stackTraces) {
-        try {
-          staging.get().stage(stackTraces);
-        } catch (Exception e) {
-          logger.log(Level.SEVERE, e, stagingErrorMessage(stackTraces));
-        }
+      try {
+        staging.get().stage(stackTraces);
+      } catch (Exception e) {
+        logger.log(Level.SEVERE, e, stagingErrorMessage(stackTraces));
+      }
     }
 
     private String retrieveActiveSpan(Thread thread) {

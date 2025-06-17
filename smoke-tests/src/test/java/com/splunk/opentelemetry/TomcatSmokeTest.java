@@ -37,15 +37,15 @@ public class TomcatSmokeTest extends AppServerTest {
   private static Stream<Arguments> supportedConfigurations() {
     return configurations("tomcat")
         .otelLinux("7.0.109", TOMCAT7_SERVER_ATTRIBUTES, VMS_HOTSPOT, "8")
-        .otelLinux("8.5.72", TOMCAT8_SERVER_ATTRIBUTES, VMS_ALL, "8", "11")
-        .otelLinux("9.0.54", TOMCAT9_SERVER_ATTRIBUTES, VMS_HOTSPOT, "8", "11")
-        .otelLinux("10.0.12", TOMCAT10_SERVER_ATTRIBUTES, VMS_HOTSPOT, "11", "17")
-        .otelLinux("10.0.12", TOMCAT10_SERVER_ATTRIBUTES, VMS_OPENJ9, "11")
+        .otelLinux("8.5.98", TOMCAT8_SERVER_ATTRIBUTES, VMS_ALL, "8", "11")
+        .otelLinux("9.0.85", TOMCAT9_SERVER_ATTRIBUTES, VMS_HOTSPOT, "8", "11")
+        .otelLinux("10.1.18", TOMCAT10_SERVER_ATTRIBUTES, VMS_HOTSPOT, "11", "17", "21")
+        .otelLinux("10.1.18", TOMCAT10_SERVER_ATTRIBUTES, VMS_OPENJ9, "11")
         .otelWindows("7.0.109", TOMCAT7_SERVER_ATTRIBUTES, VMS_ALL, "8")
-        .otelWindows("8.5.72", TOMCAT8_SERVER_ATTRIBUTES, VMS_ALL, "8", "11")
-        .otelWindows("9.0.54", TOMCAT9_SERVER_ATTRIBUTES, VMS_ALL, "8", "11")
-        .otelWindows("10.0.12", TOMCAT10_SERVER_ATTRIBUTES, VMS_HOTSPOT, "11", "17")
-        .otelWindows("10.0.12", TOMCAT10_SERVER_ATTRIBUTES, VMS_OPENJ9, "11")
+        .otelWindows("8.5.98", TOMCAT8_SERVER_ATTRIBUTES, VMS_ALL, "8", "11")
+        .otelWindows("9.0.85", TOMCAT9_SERVER_ATTRIBUTES, VMS_ALL, "8", "11")
+        .otelWindows("10.1.18", TOMCAT10_SERVER_ATTRIBUTES, VMS_HOTSPOT, "11", "17", "21")
+        .otelWindows("10.1.18", TOMCAT10_SERVER_ATTRIBUTES, VMS_OPENJ9, "11")
         .stream();
   }
 

@@ -32,16 +32,22 @@ public class LibertySmokeTest extends AppServerTest {
   public static final ExpectedServerAttributes LIBERTY20_SERVER_ATTRIBUTES =
       new LibertyAttributes("20.0.0.12");
   public static final ExpectedServerAttributes LIBERTY21_SERVER_ATTRIBUTES =
-      new LibertyAttributes("21.0.0.10");
+      new LibertyAttributes("21.0.0.12");
+  public static final ExpectedServerAttributes LIBERTY22_SERVER_ATTRIBUTES =
+      new LibertyAttributes("22.0.0.12");
+  public static final ExpectedServerAttributes LIBERTY23_SERVER_ATTRIBUTES =
+      new LibertyAttributes("23.0.0.12");
 
   private static Stream<Arguments> supportedConfigurations() {
     return configurations("liberty")
-        .otelLinux("20.0.0.12", LIBERTY20_SERVER_ATTRIBUTES, VMS_ALL, "8", "11", "16")
-        .otelLinux("21.0.0.10", LIBERTY21_SERVER_ATTRIBUTES, VMS_HOTSPOT, "8", "11", "17")
-        .otelLinux("21.0.0.10", LIBERTY21_SERVER_ATTRIBUTES, VMS_OPENJ9, "8", "11", "16")
-        .otelWindows("20.0.0.12", LIBERTY20_SERVER_ATTRIBUTES, VMS_ALL, "8", "11", "16")
-        .otelWindows("21.0.0.10", LIBERTY21_SERVER_ATTRIBUTES, VMS_HOTSPOT, "8", "11", "17")
-        .otelWindows("21.0.0.10", LIBERTY21_SERVER_ATTRIBUTES, VMS_OPENJ9, "8", "11", "16")
+        .otelLinux("20.0.0.12", LIBERTY20_SERVER_ATTRIBUTES, VMS_ALL, "8", "11")
+        .otelLinux("21.0.0.12", LIBERTY21_SERVER_ATTRIBUTES, VMS_ALL, "8", "11", "17")
+        .otelLinux("22.0.0.12", LIBERTY22_SERVER_ATTRIBUTES, VMS_ALL, "8", "11", "17")
+        .otelLinux("23.0.0.12", LIBERTY23_SERVER_ATTRIBUTES, VMS_ALL, "8", "11", "17")
+        .otelWindows("20.0.0.12", LIBERTY20_SERVER_ATTRIBUTES, VMS_ALL, "8", "11")
+        .otelWindows("21.0.0.12", LIBERTY21_SERVER_ATTRIBUTES, VMS_ALL, "8", "11", "17")
+        .otelWindows("22.0.0.12", LIBERTY22_SERVER_ATTRIBUTES, VMS_ALL, "8", "11", "17")
+        .otelWindows("23.0.0.12", LIBERTY23_SERVER_ATTRIBUTES, VMS_ALL, "8", "11", "17")
         .stream();
   }
 

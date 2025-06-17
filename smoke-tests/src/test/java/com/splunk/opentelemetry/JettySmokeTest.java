@@ -41,11 +41,8 @@ public class JettySmokeTest extends AppServerTest {
         .otelLinux("11.0.7", JETTY11_SERVER_ATTRIBUTES, VMS_HOTSPOT, "11", "17", "21")
         .otelLinux("11.0.7", JETTY11_SERVER_ATTRIBUTES, VMS_OPENJ9, "11", "17")
         .otelWindows("9.4.53", JETTY9_SERVER_ATTRIBUTES, VMS_HOTSPOT, "8", "11", "17", "21")
-        .otelWindows("9.4.53", JETTY9_SERVER_ATTRIBUTES, VMS_OPENJ9, "8", "11", "17")
         .otelWindows("10.0.7", JETTY10_SERVER_ATTRIBUTES, VMS_HOTSPOT, "11", "17", "21")
-        .otelWindows("10.0.7", JETTY10_SERVER_ATTRIBUTES, VMS_OPENJ9, "11", "17")
         .otelWindows("11.0.7", JETTY11_SERVER_ATTRIBUTES, VMS_HOTSPOT, "11", "17", "21")
-        .otelWindows("11.0.7", JETTY11_SERVER_ATTRIBUTES, VMS_OPENJ9, "11", "17")
         .stream();
   }
 

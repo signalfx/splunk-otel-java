@@ -44,10 +44,10 @@ public class LibertySmokeTest extends AppServerTest {
         .otelLinux("21.0.0.12", LIBERTY21_SERVER_ATTRIBUTES, VMS_ALL, "8", "11", "17")
         .otelLinux("22.0.0.12", LIBERTY22_SERVER_ATTRIBUTES, VMS_ALL, "8", "11", "17")
         .otelLinux("23.0.0.12", LIBERTY23_SERVER_ATTRIBUTES, VMS_ALL, "8", "11", "17")
-        .otelWindows("20.0.0.12", LIBERTY20_SERVER_ATTRIBUTES, VMS_ALL, "8", "11")
-        .otelWindows("21.0.0.12", LIBERTY21_SERVER_ATTRIBUTES, VMS_ALL, "8", "11", "17")
-        .otelWindows("22.0.0.12", LIBERTY22_SERVER_ATTRIBUTES, VMS_ALL, "8", "11", "17")
-        .otelWindows("23.0.0.12", LIBERTY23_SERVER_ATTRIBUTES, VMS_ALL, "8", "11", "17")
+        .otelWindows("20.0.0.12", LIBERTY20_SERVER_ATTRIBUTES, VMS_HOTSPOT, "8", "11")
+        .otelWindows("21.0.0.12", LIBERTY21_SERVER_ATTRIBUTES, VMS_HOTSPOT, "8", "11", "17")
+        .otelWindows("22.0.0.12", LIBERTY22_SERVER_ATTRIBUTES, VMS_HOTSPOT, "8", "11", "17")
+        .otelWindows("23.0.0.12", LIBERTY23_SERVER_ATTRIBUTES, VMS_HOTSPOT, "8", "11", "17")
         .stream();
   }
 

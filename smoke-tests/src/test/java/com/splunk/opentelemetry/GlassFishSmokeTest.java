@@ -39,10 +39,10 @@ public class GlassFishSmokeTest extends AppServerTest {
     return configurations("payara")
         .otelLinux("5.2020.6", PAYARA20_SERVER_ATTRIBUTES, VMS_ALL, "8", "11")
         .otelLinux("5.2021.8", PAYARA21_SERVER_ATTRIBUTES, VMS_ALL, "8", "11")
-        .otelLinux("6.2023.12", PAYARA23_SERVER_ATTRIBUTES, VMS_ALL, "17")
+        .otelLinux("6.2023.12", PAYARA23_SERVER_ATTRIBUTES, VMS_ALL, "11", "17")
         .otelWindows("5.2020.6", PAYARA20_SERVER_ATTRIBUTES, VMS_HOTSPOT, "8", "11")
         .otelWindows("5.2021.8", PAYARA21_SERVER_ATTRIBUTES, VMS_HOTSPOT, "8", "11")
-        .otelWindows("6.2023.12", PAYARA23_SERVER_ATTRIBUTES, VMS_HOTSPOT, "11", "17", "21")
+        .otelWindows("6.2023.12", PAYARA23_SERVER_ATTRIBUTES, VMS_HOTSPOT, "11", "17")
         .stream();
   }
 

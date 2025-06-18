@@ -18,7 +18,6 @@ package com.splunk.opentelemetry.instrumentation.jdbc.sqlserver;
 
 import static net.bytebuddy.matcher.ElementMatchers.isPublic;
 import static net.bytebuddy.matcher.ElementMatchers.nameStartsWith;
-import static net.bytebuddy.matcher.ElementMatchers.named;
 import static net.bytebuddy.matcher.ElementMatchers.namedOneOf;
 import static net.bytebuddy.matcher.ElementMatchers.takesArgument;
 import static net.bytebuddy.matcher.ElementMatchers.takesNoArguments;
@@ -35,7 +34,9 @@ public class SqlServerStatementInstrumentation implements TypeInstrumentation {
 
   @Override
   public ElementMatcher<TypeDescription> typeMatcher() {
-    return named("com.microsoft.sqlserver.jdbc.SQLServerStatement");
+    return namedOneOf(
+        "com.microsoft.sqlserver.jdbc.SQLServerStatement",
+        "com.microsoft.sqlserver.jdbc.SQLServerPreparedStatement");
   }
 
   @Override
@@ -44,8 +45,7 @@ public class SqlServerStatementInstrumentation implements TypeInstrumentation {
         isPublic()
             .and(
                 nameStartsWith("execute")
-                    .and(takesArgument(0, String.class))
-                    .or(namedOneOf("executeBatch", "executeLargeBatch").and(takesNoArguments()))),
+                    .and(takesNoArguments().or(takesArgument(0, String.class)))),
         this.getClass().getName() + "$SetContextAdvice");
   }
 

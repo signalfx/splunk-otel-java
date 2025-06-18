@@ -17,6 +17,7 @@ jobs:
         with:
           args: >-
             -v -n "*.md" "**/*.md"
+            --include-fragments
             --exclude "https://developers.redhat.com/download-manager/file/jboss-eap-.*.zip"
             --exclude "http://localhost*"
             --github-token ${{ github.token }}

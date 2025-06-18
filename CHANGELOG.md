@@ -727,7 +727,7 @@ Regular maintenance release, coordinated after the upstream/vanilla release.
 
 - We have added instrumentation for [WebLogic](https://docs.oracle.com/en/middleware/standalone/weblogic-server/)
   thread pools. The agent now collects and exports metrics for the WebLogic application server thread pools.
-- We have also added instrumentation for Netty 4.1 that will add the [server trace](docs/server-trace-info.md) headers
+- We have also added instrumentation for Netty 4.1 that will add the [server trace](https://github.com/signalfx/splunk-otel-java/blob/v1.5.0/docs/server-trace-info.md) headers
   to the HTTP response.
 - This release introduces the Java profiler. Keep in mind this feature is still experimental, and thus turned off by
   default; you can enable it by setting the `splunk.profiler.enabled` property to `true`. Find out more about Splunk

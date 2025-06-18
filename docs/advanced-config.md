@@ -126,4 +126,4 @@ Note: Setting `splunk.profiler.memory.enabled` to `true` automatically activates
 ## Other OpenTelemetry Java agent configuration
 
 You can find all other Java agent configuration options
-described [here](https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/docs/advanced-configuration-options.md).
+described [here](https://help.splunk.com/en/splunk-observability-cloud/manage-data/instrument-back-end-services/instrument-back-end-applications-to-send-spans-to-splunk-apm./instrument-a-java-application/configure-the-java-agent).

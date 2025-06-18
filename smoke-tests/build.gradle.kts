@@ -20,8 +20,6 @@ dependencies {
 
 tasks {
   test {
-    maxParallelForks = 2
-
     testLogging.showStandardStreams = true
 
     develocity.testRetry {

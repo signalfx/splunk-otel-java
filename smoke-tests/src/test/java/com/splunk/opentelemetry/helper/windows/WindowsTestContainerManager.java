@@ -125,6 +125,7 @@ public class WindowsTestContainerManager extends AbstractTestContainerManager {
       pullImage(collectorImageName);
     }
 
+    logger.info("Starting collector");
     collector =
         createAndStartContainer(
             collectorImageName,
@@ -152,6 +153,7 @@ public class WindowsTestContainerManager extends AbstractTestContainerManager {
             },
             new PortWaiter(COLLECTOR_PORT, Duration.ofMinutes(1)),
             true);
+    logger.info("Started collector");
   }
 
   @Override

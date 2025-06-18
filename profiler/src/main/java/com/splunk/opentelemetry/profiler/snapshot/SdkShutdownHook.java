@@ -24,14 +24,32 @@ import io.opentelemetry.sdk.trace.SpanProcessor;
 import java.io.Closeable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Supplier;
 
 class SdkShutdownHook implements SpanProcessor {
+  private final Supplier<TraceRegistry> registry;
+  private final Supplier<StackTraceSampler> sampler;
+  private final Supplier<StagingArea> stagingArea;
+  private final Supplier<StackTraceExporter> exporter;
+
+  SdkShutdownHook(
+      Supplier<TraceRegistry> registry,
+      Supplier<StackTraceSampler> sampler,
+      Supplier<StagingArea> stagingArea,
+      Supplier<StackTraceExporter> exporter) {
+    this.registry = registry;
+    this.sampler = sampler;
+    this.stagingArea = stagingArea;
+    this.exporter = exporter;
+  }
+
   @Override
   public CompletableResultCode shutdown() {
     List<CompletableResultCode> results = new ArrayList<>();
-    results.add(close(StackTraceSampler.SUPPLIER.get()));
-    results.add(close(StagingArea.SUPPLIER.get()));
-    results.add(close(StackTraceExporter.SUPPLIER.get()));
+    results.add(close(registry.get()));
+    results.add(close(sampler.get()));
+    results.add(close(stagingArea.get()));
+    results.add(close(exporter.get()));
     return CompletableResultCode.ofAll(results);
   }
 

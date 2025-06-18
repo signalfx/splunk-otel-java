@@ -36,10 +36,11 @@ import java.util.function.Supplier;
  * be profiled at a time.
  */
 public class SnapshotProfilingSpanProcessor implements SpanProcessor {
-  private final TraceRegistry registry;
+  private final Supplier<TraceRegistry> registry;
   private final Supplier<StackTraceSampler> sampler;
 
-  SnapshotProfilingSpanProcessor(TraceRegistry registry, Supplier<StackTraceSampler> sampler) {
+  SnapshotProfilingSpanProcessor(
+      Supplier<TraceRegistry> registry, Supplier<StackTraceSampler> sampler) {
     this.registry = registry;
     this.sampler = sampler;
   }
@@ -49,11 +50,11 @@ public class SnapshotProfilingSpanProcessor implements SpanProcessor {
     if (isEntry(span)) {
       Volume volume = Volume.from(context);
       if (volume == Volume.HIGHEST) {
-        registry.register(span.getSpanContext());
+        registry.get().register(span.getSpanContext());
       }
     }
 
-    if (isEntry(span) && registry.isRegistered(span.getSpanContext())) {
+    if (isEntry(span) && registry.get().isRegistered(span.getSpanContext())) {
       sampler.get().start(span.getSpanContext());
       span.setAttribute(SNAPSHOT_PROFILING, true);
     }
@@ -67,14 +68,17 @@ public class SnapshotProfilingSpanProcessor implements SpanProcessor {
   /**
    * Relying solely on the OpenTelemetry instrumentation to correctly notify this SpanProcessor when
    * a span has ended opens up the possibility of a memory leak in the event a bug is encountered
-   * within the instrumentation layer that prevents a span from being ended.
+   * within the instrumentation layer that prevents a span from being ended. To protect against this
+   * {@link OrphanedTraceDetectingTraceRegistry}, a specialized {@link TraceRegistry}, is installed
+   * to search for garbage collected {@link io.opentelemetry.api.trace.SpanContext} instances and
+   * automatically unregister traces and stop sampling.
    *
-   * <p>Will follow up with a more robust solution to this potential problem.
+   * @see OrphanedTraceDetectingTraceRegistry
    */
   @Override
   public void onEnd(ReadableSpan span) {
     if (isEntry(span)) {
-      registry.unregister(span.getSpanContext());
+      registry.get().unregister(span.getSpanContext());
       sampler.get().stop(span.getSpanContext());
     }
   }

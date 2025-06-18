@@ -789,7 +789,7 @@ Regular maintenance release, coordinated after the upstream/vanilla release.
   and exports metrics for both JDBC connection pools.
 - You can now set the service name using the `OTEL_SERVICE_NAME` environment variable and the `otel.service.name` system
   property (see
-  the [OpenTelemetry specification](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/sdk-environment-variables.md#general-sdk-configuration)
+  the [OpenTelemetry SDK Configuration](https://opentelemetry.io/docs/languages/sdk-configuration/general/#otel_service_name)
   . This removes the need of using `OTEL_RESOURCE_ATTRIBUTES` to set the service name.
 
 ## v1.1.0 - 2021-06-18

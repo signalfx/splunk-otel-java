@@ -46,4 +46,9 @@ public class SqlServerInstrumentationModule extends InstrumentationModule {
   public List<TypeInstrumentation> typeInstrumentations() {
     return singletonList(new SqlServerStatementInstrumentation());
   }
+
+  @Override
+  public boolean isHelperClass(String className) {
+    return className.startsWith("com.splunk.opentelemetry.instrumentation");
+  }
 }

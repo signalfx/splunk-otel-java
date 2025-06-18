@@ -28,6 +28,7 @@ include(
     "instrumentation",
     "instrumentation:compile-stub",
     "instrumentation:glassfish",
+    "instrumentation:jdbc",
     "instrumentation:jetty",
     "instrumentation:jvm-metrics",
     "instrumentation:khttp",

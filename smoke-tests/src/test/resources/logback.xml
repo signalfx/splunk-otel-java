@@ -25,6 +25,5 @@
   <logger name="LoggerIntegrationTest" level="trace"/>
   <logger name="io.opentelemetry" level="debug"/>
   <logger name="com.splunk" level="debug"/>
-  <logger name="com.github.dockerjava.api" level="debug"/>
 
 </configuration>

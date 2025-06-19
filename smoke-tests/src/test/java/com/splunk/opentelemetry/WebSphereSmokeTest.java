@@ -28,14 +28,14 @@ import org.junit.jupiter.params.provider.MethodSource;
 public class WebSphereSmokeTest extends AppServerTest {
 
   public static final ExpectedServerAttributes WEBSPHERE8_SERVER_ATTRIBUTES =
-      new WebSphereAttributes("8.5.5.19");
+      new WebSphereAttributes("8.5.5.22");
   public static final ExpectedServerAttributes WEBSPHERE9_SERVER_ATTRIBUTES =
-      new WebSphereAttributes("9.0.5.9");
+      new WebSphereAttributes("9.0.5.14");
 
   private static Stream<Arguments> supportedConfigurations() {
     return configurations("websphere")
-        .otelLinux("8.5.5.19", WEBSPHERE8_SERVER_ATTRIBUTES, VMS_OPENJ9, "8")
-        .otelLinux("9.0.5.9", WEBSPHERE9_SERVER_ATTRIBUTES, VMS_OPENJ9, "8")
+        .otelLinux("8.5.5.22", WEBSPHERE8_SERVER_ATTRIBUTES, VMS_OPENJ9, "8")
+        .otelLinux("9.0.5.14", WEBSPHERE9_SERVER_ATTRIBUTES, VMS_OPENJ9, "8")
         .stream();
   }
 

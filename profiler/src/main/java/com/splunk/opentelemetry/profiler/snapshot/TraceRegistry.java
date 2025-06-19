@@ -24,15 +24,27 @@ import java.util.concurrent.ConcurrentHashMap;
 class TraceRegistry {
   private final Set<String> traceIds = Collections.newSetFromMap(new ConcurrentHashMap<>());
 
-  public void register(SpanContext spanContext) {
-    traceIds.add(spanContext.getTraceId());
+  public final void register(SpanContext spanContext) {
+    register(spanContext.getTraceId());
   }
 
-  public boolean isRegistered(SpanContext spanContext) {
-    return traceIds.contains(spanContext.getTraceId());
+  public void register(String traceId) {
+    traceIds.add(traceId);
   }
 
-  public void unregister(SpanContext spanContext) {
-    traceIds.remove(spanContext.getTraceId());
+  public final boolean isRegistered(SpanContext spanContext) {
+    return isRegistered(spanContext.getTraceId());
+  }
+
+  public boolean isRegistered(String traceId) {
+    return traceIds.contains(traceId);
+  }
+
+  public final void unregister(SpanContext spanContext) {
+    unregister(spanContext.getTraceId());
+  }
+
+  public void unregister(String traceId) {
+    traceIds.remove(traceId);
   }
 }

@@ -33,8 +33,8 @@ public class ObservableStackTraceSampler implements StackTraceSampler {
   }
 
   @Override
-  public void stop(SpanContext spanContext) {
-    traceIds.remove(spanContext.getTraceId());
+  public void stop(String traceId, String spanId) {
+    traceIds.remove(traceId);
   }
 
   boolean isBeingSampled(SpanContext spanContext) {

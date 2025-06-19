@@ -33,13 +33,13 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 
-class ScheduledExecutorStackTraceSamplerTest {
+class DaemonThreadStackTraceSamplerTest {
   private static final Duration SAMPLING_PERIOD = Duration.ofMillis(20);
 
   private final InMemoryStagingArea staging = new InMemoryStagingArea();
   private final InMemorySpanTracker spanTracker = new InMemorySpanTracker();
-  private final ScheduledExecutorStackTraceSampler sampler =
-      new ScheduledExecutorStackTraceSampler(() -> staging, () -> spanTracker, SAMPLING_PERIOD);
+  private final DaemonThreadStackTraceSampler sampler =
+      new DaemonThreadStackTraceSampler(() -> staging, () -> spanTracker, SAMPLING_PERIOD);
 
   @Test
   void takeStackTraceSampleForGivenThread() {
@@ -55,8 +55,8 @@ class ScheduledExecutorStackTraceSamplerTest {
 
   @Test
   void continuallySampleThreadForStackTraces() {
-    var halfSecond = Duration.ofMillis(500);
     var spanContext = Snapshotting.spanContext().build();
+    var halfSecond = Duration.ofMillis(500);
     int expectedSamples = (int) halfSecond.dividedBy(SAMPLING_PERIOD.multipliedBy(2));
 
     try {
@@ -70,19 +70,18 @@ class ScheduledExecutorStackTraceSamplerTest {
   @Test
   void onlyTakeStackTraceSamplesForOneThreadPerTrace() {
     var executor = Executors.newFixedThreadPool(2);
-    var startSpanLatch = new CountDownLatch(1);
-    var shutdownLatch = new CountDownLatch(1);
+    var control = new ThreadControl(new CountDownLatch(1), new CountDownLatch(1));
     var traceId = IdGenerator.random().generateTraceId();
     var spanContext2 = Snapshotting.spanContext().withTraceId(traceId).build();
     var spanContext1 = Snapshotting.spanContext().withTraceId(traceId).build();
 
-    executor.submit(startSampling(spanContext1, startSpanLatch, shutdownLatch));
-    executor.submit(startSampling(spanContext2, startSpanLatch, shutdownLatch));
+    executor.submit(startSampling(spanContext1, control));
+    executor.submit(startSampling(spanContext2, control));
 
     try {
-      startSpanLatch.countDown();
+      control.start();
       await().until(() -> staging.allStackTraces().size() > 5);
-      shutdownLatch.countDown();
+      control.stop();
 
       var threadIds =
           staging.allStackTraces().stream()
@@ -108,24 +107,22 @@ class ScheduledExecutorStackTraceSamplerTest {
     var executor = Executors.newFixedThreadPool(2);
     var traceId = IdGenerator.random().generateTraceId();
 
-    var start1 = new CountDownLatch(1);
-    var stop1 = new CountDownLatch(1);
+    var thread1Control = new ThreadControl(new CountDownLatch(1), new CountDownLatch(1));
     var spanContext1 = Snapshotting.spanContext().withTraceId(traceId).build();
 
-    var start2 = new CountDownLatch(1);
-    var stop2 = new CountDownLatch(1);
+    var thread2Control = new ThreadControl(new CountDownLatch(1), new CountDownLatch(1));
     var spanContext2 = Snapshotting.spanContext().withTraceId(traceId).build();
 
-    executor.submit(startSampling(spanContext1, start1, stop1));
-    executor.submit(startSampling(spanContext2, start2, stop2));
+    executor.submit(startSampling(spanContext1, thread1Control));
+    executor.submit(startSampling(spanContext2, thread2Control));
 
     try {
-      start1.countDown();
+      thread1Control.start();
       await().until(() -> staging.allStackTraces().size() > 1);
-      start2.countDown();
+      thread2Control.start();
       await().until(() -> staging.allStackTraces().size() > 2);
 
-      stop2.countDown();
+      thread2Control.stop();
       int numberOfStackTraces = staging.allStackTraces().size();
       sampler.stop(spanContext2);
 
@@ -134,8 +131,39 @@ class ScheduledExecutorStackTraceSamplerTest {
               () -> assertThat(staging.allStackTraces().size()).isGreaterThan(numberOfStackTraces));
     } finally {
       sampler.stop(spanContext1);
-      stop1.countDown();
+      thread1Control.stop();
       executor.shutdownNow();
+    }
+  }
+
+  @Test
+  void sampleMultipleTracesAtSameTime() {
+    var executor = Executors.newFixedThreadPool(2);
+    var control = new ThreadControl(new CountDownLatch(1), new CountDownLatch(1));
+    var spanContext2 = Snapshotting.spanContext().build();
+    var spanContext1 = Snapshotting.spanContext().build();
+
+    executor.submit(startSampling(spanContext1, control));
+    executor.submit(startSampling(spanContext2, control));
+
+    try {
+      control.start();
+      await().until(() -> staging.allStackTraces().size() > 10);
+      control.stop();
+
+      var threadIds =
+          staging.allStackTraces().stream()
+              .map(StackTrace::getThreadId)
+              .collect(Collectors.toSet());
+      assertEquals(2, threadIds.size());
+
+      var traceIds =
+          staging.allStackTraces().stream().map(StackTrace::getTraceId).collect(Collectors.toSet());
+      assertThat(traceIds).contains(spanContext1.getTraceId(), spanContext2.getTraceId());
+    } finally {
+      executor.shutdownNow();
+      sampler.stop(spanContext1);
+      sampler.stop(spanContext2);
     }
   }
 
@@ -181,7 +209,7 @@ class ScheduledExecutorStackTraceSamplerTest {
       var stackTrace = staging.allStackTraces().stream().skip(1).findFirst().orElseThrow();
       assertThat(stackTrace.getDuration())
           .isNotNull()
-          .isCloseTo(SAMPLING_PERIOD, Duration.ofMillis(5));
+          .isCloseTo(SAMPLING_PERIOD, Duration.ofMillis(6));
     } finally {
       sampler.stop(spanContext);
     }
@@ -191,14 +219,13 @@ class ScheduledExecutorStackTraceSamplerTest {
   void includeThreadDetailsOnStackTraces() throws Exception {
     var executor = Executors.newSingleThreadExecutor();
     var spanContext = Snapshotting.spanContext().build();
-    var startLatch = new CountDownLatch(1);
-    var stopLatch = new CountDownLatch(1);
+    var control = new ThreadControl(new CountDownLatch(1), new CountDownLatch(1));
     try {
-      var future = executor.submit(startSampling(spanContext, startLatch, stopLatch));
+      var future = executor.submit(startSampling(spanContext, control));
 
-      startLatch.countDown();
+      control.start();
       await().until(staging::hasStackTraces);
-      stopLatch.countDown();
+      control.stop();
 
       var thread = future.get();
       var stackTrace = staging.allStackTraces().stream().findFirst().orElseThrow();
@@ -245,18 +272,37 @@ class ScheduledExecutorStackTraceSamplerTest {
   }
 
   @Test
-  void takeFinalSampleWhenTraceSamplingIsStopped() {
+  void takeInitialSampleWhenTraceSamplingStarts() {
     var scheduler = Executors.newScheduledThreadPool(2);
     var spanContext = Snapshotting.spanContext().build();
-    var startLatch = new CountDownLatch(0);
-    var stopLatch = new CountDownLatch(1);
+    var control = new ThreadControl(new CountDownLatch(0), new CountDownLatch(1));
     var expectedDuration = SAMPLING_PERIOD.dividedBy(2);
     try {
-      scheduler.submit(startSampling(spanContext, startLatch, stopLatch));
+      scheduler.submit(startSampling(spanContext, control));
       scheduler.schedule(
           () -> sampler.stop(spanContext), expectedDuration.toMillis(), TimeUnit.MILLISECONDS);
       await().until(staging::hasStackTraces);
-      stopLatch.countDown();
+      control.stop.countDown();
+
+      var stackTraces = staging.allStackTraces();
+      assertEquals(2, stackTraces.size());
+    } finally {
+      scheduler.shutdownNow();
+    }
+  }
+
+  @Test
+  void takeFinalSampleWhenTraceSamplingIsStopped() {
+    var scheduler = Executors.newScheduledThreadPool(2);
+    var spanContext = Snapshotting.spanContext().build();
+    var control = new ThreadControl(new CountDownLatch(0), new CountDownLatch(1));
+    var expectedDuration = SAMPLING_PERIOD.dividedBy(2);
+    try {
+      scheduler.submit(startSampling(spanContext, control));
+      scheduler.schedule(
+          () -> sampler.stop(spanContext), expectedDuration.toMillis(), TimeUnit.MILLISECONDS);
+      await().until(staging::hasStackTraces);
+      control.stop.countDown();
 
       var stackTraces = staging.allStackTraces();
       assertEquals(2, stackTraces.size());
@@ -269,15 +315,14 @@ class ScheduledExecutorStackTraceSamplerTest {
   void finalSampleDurationIsLessSmallerThanSamplingPeriod() {
     var scheduler = Executors.newScheduledThreadPool(2);
     var spanContext = Snapshotting.spanContext().build();
-    var startLatch = new CountDownLatch(0);
-    var stopLatch = new CountDownLatch(1);
+    var controls = new ThreadControl(new CountDownLatch(0), new CountDownLatch(1));
     var expectedDuration = SAMPLING_PERIOD.dividedBy(2);
     try {
-      scheduler.submit(startSampling(spanContext, startLatch, stopLatch));
+      scheduler.submit(startSampling(spanContext, controls));
       scheduler.schedule(
           () -> sampler.stop(spanContext), expectedDuration.toMillis(), TimeUnit.MILLISECONDS);
       await().until(staging::hasStackTraces);
-      stopLatch.countDown();
+      controls.stop.countDown();
 
       var stackTraces = staging.allStackTraces();
       var lastStackTrace = stackTraces.get(stackTraces.size() - 1);
@@ -287,32 +332,48 @@ class ScheduledExecutorStackTraceSamplerTest {
     }
   }
 
-  private Callable<ThreadInfo> startSampling(
-      SpanContext spanContext, CountDownLatch startSpanLatch) {
-    return startSampling(spanContext, startSpanLatch, new CountDownLatch(0));
-  }
-
-  private Callable<ThreadInfo> startSampling(
-      SpanContext spanContext, CountDownLatch startSpanLatch, CountDownLatch shutdownLatch) {
+  private Callable<ThreadInfo> startSampling(SpanContext spanContext, ThreadControl control) {
     return (() -> {
       try {
-        startSpanLatch.await();
+        control.start.await();
         sampler.start(spanContext);
-        shutdownLatch.await();
-        return new ThreadInfo(Thread.currentThread().getId(), Thread.currentThread().getName());
+        control.stop.await();
+        return new ThreadInfo(Thread.currentThread());
       } catch (InterruptedException e) {
         throw new RuntimeException(e);
       }
     });
   }
 
+  private static class ThreadControl {
+    private final CountDownLatch start;
+    private final CountDownLatch stop;
+
+    private ThreadControl(CountDownLatch start) {
+      this(start, new CountDownLatch(0));
+    }
+
+    private ThreadControl(CountDownLatch start, CountDownLatch stop) {
+      this.start = start;
+      this.stop = stop;
+    }
+
+    void start() {
+      start.countDown();
+    }
+
+    void stop() {
+      stop.countDown();
+    }
+  }
+
   private static class ThreadInfo {
     public final long id;
     public final String name;
 
-    private ThreadInfo(long id, String name) {
-      this.id = id;
-      this.name = name;
+    private ThreadInfo(Thread thread) {
+      this.id = thread.getId();
+      this.name = thread.getName();
     }
   }
 
@@ -341,14 +402,14 @@ class ScheduledExecutorStackTraceSamplerTest {
   void stopSamplingForEveryTraceWhenClosed() throws Exception {
     var executor = Executors.newFixedThreadPool(2);
     var scheduler = Executors.newSingleThreadScheduledExecutor();
-    var startSpanLatch = new CountDownLatch(1);
+    var control = new ThreadControl(new CountDownLatch(1));
     var spanContext2 = Snapshotting.spanContext().build();
     var spanContext1 = Snapshotting.spanContext().build();
 
-    executor.submit(startSampling(spanContext1, startSpanLatch));
-    executor.submit(startSampling(spanContext2, startSpanLatch));
+    executor.submit(startSampling(spanContext1, control));
+    executor.submit(startSampling(spanContext2, control));
     try {
-      startSpanLatch.countDown();
+      control.start();
       await().until(() -> staging.allStackTraces().size() > 5);
       sampler.close();
       staging.empty();

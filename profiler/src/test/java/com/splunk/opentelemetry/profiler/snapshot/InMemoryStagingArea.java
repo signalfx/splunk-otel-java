@@ -16,6 +16,7 @@
 
 package com.splunk.opentelemetry.profiler.snapshot;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -28,8 +29,8 @@ class InMemoryStagingArea implements StagingArea {
   private final List<StackTrace> stackTraces = new CopyOnWriteArrayList<>();
 
   @Override
-  public void stage(StackTrace stackTrace) {
-    stackTraces.add(stackTrace);
+  public void stage(Collection<StackTrace> stackTraces) {
+    this.stackTraces.addAll(stackTraces);
   }
 
   public void empty() {

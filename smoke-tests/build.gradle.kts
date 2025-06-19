@@ -24,6 +24,9 @@ tasks {
 
     testLogging.showStandardStreams = true
 
+    // Run smoke tests only when explicitly requested.
+    enabled = enabled && gradle.startParameter.taskNames.any { it.startsWith(":smoke-tests:") }
+
     develocity.testRetry {
       if (System.getenv().containsKey("CI")) {
         // You can see tests that were retried by this mechanism in the collected test reports and build scans.

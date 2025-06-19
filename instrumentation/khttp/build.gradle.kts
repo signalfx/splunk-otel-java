@@ -13,11 +13,7 @@ muzzle {
 }
 
 dependencies {
-  compileOnly("org.danilopianini:khttp:1.1.0")
-
-  testImplementation("org.danilopianini:khttp:1.1.0")
-
-  testRuntimeOnly("org.junit.vintage:junit-vintage-engine")
+  library("org.danilopianini:khttp:1.1.0")
 }
 
 tasks.withType<Test>().configureEach {

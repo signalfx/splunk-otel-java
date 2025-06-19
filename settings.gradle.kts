@@ -15,6 +15,14 @@ develocity {
   buildScan {
     termsOfUseUrl = "https://gradle.com/terms-of-service"
     termsOfUseAgree = if (System.getenv("CI") != null) "yes" else "no"
+
+    if (!gradle.startParameter.taskNames.contains(":metadata-generator:generateMetadata")) {
+      buildScanPublished {
+        File("build-scan.txt").printWriter().use { writer ->
+          writer.println(buildScanUri)
+        }
+      }
+    }
   }
 }
 

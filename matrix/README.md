@@ -18,14 +18,14 @@ https://github.com/oracle/docker-images
 To build the images locally you will need to follow instructions (this means that certain zip files with
 java and weblogic binaries have to be downloaded manually from links in the build instructions as the very
 first step) and first build
-[OracleJava 8](https://github.com/oracle/docker-images/blob/master/OracleJava/8/Dockerfile) and
-[OracleJava 11](https://github.com/oracle/docker-images/blob/master/OracleJava/11/Dockerfile) and
+[OracleJava 8](https://github.com/oracle/docker-images/blob/a71acdf19dc0730580457be346cf526933ec4cba/OracleJava/8/jdk/Dockerfile) and
+[OracleJava 11](https://github.com/oracle/docker-images/blob/a71acdf19dc0730580457be346cf526933ec4cba/OracleJava/11/Dockerfile) and
 then respective WebLogic versions.
 
 #### WebLogic 12.1 and 12.2
 Follow these instructions and build _developer_ (`-d` flag) image of
-[WebLogic 12.2.1.4 on Java 8](https://github.com/oracle/docker-images/tree/master/OracleWebLogic/dockerfiles/12.2.1.4) and
-[WebLogic 12.1.3 on Java 8](https://github.com/oracle/docker-images/tree/master/OracleWebLogic/dockerfiles/12.1.3)
+[WebLogic 12.2.1.4 on Java 8](https://github.com/oracle/docker-images/tree/a71acdf19dc0730580457be346cf526933ec4cba/OracleWebLogic/dockerfiles/12.2.1.4) and
+[WebLogic 12.1.3 on Java 8](https://github.com/oracle/docker-images/tree/a71acdf19dc0730580457be346cf526933ec4cba/OracleWebLogic/dockerfiles/12.2.1.3)
 
 *NB!* On MacOS run the build script without checksum verification (`-s` flag), as it uses missing MD5 checksum utility.
 

@@ -22,8 +22,11 @@ import io.opentelemetry.context.Context;
 import io.opentelemetry.context.Scope;
 import io.opentelemetry.context.propagation.TextMapGetter;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.function.UnaryOperator;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.junit.jupiter.api.extension.AfterEachCallback;
@@ -37,24 +40,26 @@ public class Server extends Thread implements BeforeEachCallback, AfterEachCallb
     return new Builder(otel);
   }
 
-  private final BlockingQueue<Message> requests = new LinkedBlockingQueue<>();
-  private final BlockingQueue<Message> responses = new LinkedBlockingQueue<>();
+  private final BlockingQueue<Request> requests = new LinkedBlockingQueue<>();
+  private final BlockingQueue<Response> responses = new LinkedBlockingQueue<>();
 
+  private final ExecutorService executor;
   private final OpenTelemetry otel;
-  private final UnaryOperator<Message> operation;
+  private final Function<Request, Response> operation;
   private boolean shutdown = false;
 
   private Server(Builder builder) {
     super(builder.name);
     this.otel = builder.otel;
     this.operation = builder.operation;
+    executor = Executors.newFixedThreadPool(builder.numberOfThreads);
   }
 
-  public void send(Message message) {
-    requests.add(message);
+  public void send(Request request) {
+    requests.add(request);
   }
 
-  public Message waitForResponse() {
+  public Response waitForResponse() {
     try {
       return responses.take();
     } catch (InterruptedException e) {
@@ -66,28 +71,29 @@ public class Server extends Thread implements BeforeEachCallback, AfterEachCallb
   public void run() {
     while (!shutdown && !Thread.currentThread().isInterrupted()) {
       try {
-        accept(requests.take());
+        var request = requests.poll(10, TimeUnit.MILLISECONDS);
+        if (request != null) {
+          executor.submit(() -> accept(request));
+        }
       } catch (InterruptedException e) {
         logger.log(Level.WARNING, e.getMessage(), e);
       }
     }
   }
 
-  private void accept(Message message) {
+  private void accept(Request request) {
     var context =
         otel.getPropagators()
             .getTextMapPropagator()
-            .extract(Context.current(), message, new MessageGetter());
-
-    try (Scope s = context.makeCurrent()) {
-      var tracer = otel.getTracer(Server.class.getName());
-      var span =
-          tracer.spanBuilder("process").setSpanKind(SpanKind.SERVER).setParent(context).startSpan();
-      try (Scope ignored = span.makeCurrent()) {
-        responses.add(operation.apply(message));
-      } finally {
-        span.end();
-      }
+            .extract(Context.root(), request, new RequestGetter());
+    var tracer = otel.getTracer(Server.class.getName());
+    var span =
+        tracer.spanBuilder("process").setSpanKind(SpanKind.SERVER).setParent(context).startSpan();
+    context = context.with(span);
+    try (Scope ignored2 = context.makeCurrent()) {
+      responses.add(operation.apply(request));
+    } finally {
+      span.end();
     }
   }
 
@@ -99,25 +105,28 @@ public class Server extends Thread implements BeforeEachCallback, AfterEachCallb
   @Override
   public void afterEach(ExtensionContext extensionContext) throws Exception {
     shutdown = true;
+    executor.shutdown();
+    executor.awaitTermination(1, TimeUnit.SECONDS);
     join(1_000);
   }
 
-  private static class MessageGetter implements TextMapGetter<Message> {
+  private static class RequestGetter implements TextMapGetter<Request> {
     @Override
-    public Iterable<String> keys(Message message) {
-      return message.keySet();
+    public Iterable<String> keys(Request request) {
+      return request.headers.keySet();
     }
 
     @Override
-    public String get(Message message, String key) {
-      return message.get(key);
+    public String get(Request request, String key) {
+      return request.headers.get(key);
     }
   }
 
   public static class Builder {
     private final OpenTelemetry otel;
     private String name;
-    private UnaryOperator<Message> operation = message -> message;
+    private Function<Request, Response> operation = Response::from;
+    private int numberOfThreads = 1;
 
     private Builder(OpenTelemetry otel) {
       this.otel = otel;
@@ -128,11 +137,16 @@ public class Server extends Thread implements BeforeEachCallback, AfterEachCallb
       return this;
     }
 
+    public Builder threads(int numberOfThreads) {
+      this.numberOfThreads = numberOfThreads;
+      return this;
+    }
+
     public Builder performing(ExitCall.Builder builder) {
       return performing(builder.with(otel).build());
     }
 
-    public Builder performing(UnaryOperator<Message> operation) {
+    public Builder performing(Function<Request, Response> operation) {
       this.operation = operation;
       return this;
     }

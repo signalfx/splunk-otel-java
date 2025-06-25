@@ -36,7 +36,7 @@ class ScheduledExecutorStackTraceSampler implements StackTraceSampler {
       Logger.getLogger(ScheduledExecutorStackTraceSampler.class.getName());
   private static final int SCHEDULER_INITIAL_DELAY = 0;
 
-  private final ConcurrentMap<String, ThreadSampler> samplers = new ConcurrentHashMap<>();
+  private final ConcurrentMap<SpanContext, ThreadSampler> samplers = new ConcurrentHashMap<>();
   private final ThreadMXBean threadMXBean = ManagementFactory.getThreadMXBean();
   private final Supplier<StagingArea> stagingArea;
   private final Supplier<SpanTracker> spanTracker;
@@ -59,21 +59,16 @@ class ScheduledExecutorStackTraceSampler implements StackTraceSampler {
     }
 
     samplers.computeIfAbsent(
-        spanContext.getTraceId(), id -> new ThreadSampler(spanContext, samplingPeriod));
+        spanContext, id -> new ThreadSampler(spanContext, samplingPeriod));
   }
 
   @Override
   public void stop(SpanContext spanContext) {
-    samplers.computeIfPresent(
-        spanContext.getTraceId(),
-        (traceId, sampler) -> {
-          if (spanContext.equals(sampler.getSpanContext())) {
-            sampler.shutdown();
-            waitForShutdown(sampler);
-            return null;
-          }
-          return sampler;
-        });
+    samplers.computeIfPresent(spanContext, (sc, sampler) -> {
+      sampler.shutdown();
+      waitForShutdown(sampler);
+      return null;
+    });
   }
 
   @Override

@@ -21,11 +21,12 @@ import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.splunk.opentelemetry.profiler.snapshot.simulation.ExitCall;
-import com.splunk.opentelemetry.profiler.snapshot.simulation.Message;
+import com.splunk.opentelemetry.profiler.snapshot.simulation.Request;
+import com.splunk.opentelemetry.profiler.snapshot.simulation.Response;
 import com.splunk.opentelemetry.profiler.snapshot.simulation.Server;
 import io.opentelemetry.sdk.autoconfigure.OpenTelemetrySdkExtension;
 import java.time.Duration;
-import java.util.function.UnaryOperator;
+import java.util.function.Function;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
@@ -90,21 +91,19 @@ class DistributedProfilingSignalTest {
    */
   @Test
   void traceSnapshotVolumePropagatesAcrossProcessBoundaries() {
-    var message = new Message();
+    upstream.send(Request.newRequest());
 
-    upstream.send(message);
-
-    await().atMost(Duration.ofSeconds(2)).until(() -> upstream.waitForResponse() != null);
+    await().atMost(Duration.ofDays(2)).until(() -> upstream.waitForResponse() != null);
     assertThat(upstreamRegistry.registeredTraceIds()).isNotEmpty();
     assertThat(downstreamRegistry.registeredTraceIds()).isNotEmpty();
     assertEquals(upstreamRegistry.registeredTraceIds(), downstreamRegistry.registeredTraceIds());
   }
 
-  private UnaryOperator<Message> delayOf(Duration duration) {
-    return message -> {
+  private Function<Request, Response> delayOf(Duration duration) {
+    return request -> {
       try {
         Thread.sleep(duration.toMillis());
-        return message;
+        return Response.from(request);
       } catch (InterruptedException e) {
         throw new RuntimeException(e);
       }

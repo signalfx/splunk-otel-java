@@ -20,13 +20,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import com.splunk.opentelemetry.profiler.snapshot.simulation.Delay;
 import com.splunk.opentelemetry.profiler.snapshot.simulation.ExitCall;
 import com.splunk.opentelemetry.profiler.snapshot.simulation.Request;
-import com.splunk.opentelemetry.profiler.snapshot.simulation.Response;
 import com.splunk.opentelemetry.profiler.snapshot.simulation.Server;
 import io.opentelemetry.sdk.autoconfigure.OpenTelemetrySdkExtension;
 import java.time.Duration;
-import java.util.function.Function;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
@@ -47,7 +46,7 @@ class DistributedProfilingSignalTest {
   public final Server downstream =
       Server.builder(downstreamSdk)
           .named("downstream")
-          .performing(delayOf(Duration.ofMillis(250)))
+          .performing(Delay.of(Duration.ofMillis(250)))
           .build();
 
   @RegisterExtension
@@ -97,16 +96,5 @@ class DistributedProfilingSignalTest {
     assertThat(upstreamRegistry.registeredTraceIds()).isNotEmpty();
     assertThat(downstreamRegistry.registeredTraceIds()).isNotEmpty();
     assertEquals(upstreamRegistry.registeredTraceIds(), downstreamRegistry.registeredTraceIds());
-  }
-
-  private Function<Request, Response> delayOf(Duration duration) {
-    return request -> {
-      try {
-        Thread.sleep(duration.toMillis());
-        return Response.from(request);
-      } catch (InterruptedException e) {
-        throw new RuntimeException(e);
-      }
-    };
   }
 }

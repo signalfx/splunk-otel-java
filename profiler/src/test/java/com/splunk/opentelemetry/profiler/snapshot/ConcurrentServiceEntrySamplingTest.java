@@ -6,6 +6,7 @@ import static org.awaitility.Awaitility.await;
 import com.google.perftools.profiles.ProfileProto;
 import com.splunk.opentelemetry.profiler.OtelLoggerFactory;
 import com.splunk.opentelemetry.profiler.pprof.PprofUtils;
+import com.splunk.opentelemetry.profiler.snapshot.simulation.Delay;
 import com.splunk.opentelemetry.profiler.snapshot.simulation.ExitCall;
 import com.splunk.opentelemetry.profiler.snapshot.simulation.Request;
 import com.splunk.opentelemetry.profiler.snapshot.simulation.Response;
@@ -60,7 +61,7 @@ class ConcurrentServiceEntrySamplingTest {
       Server.builder(downstreamSdk)
           .named("downstream")
           .threads(2)
-          .performing(delayOf(Duration.ofMillis(500)))
+          .performing(Delay.of(Duration.ofMillis(500)))
           .build();
 
   private final SnapshotProfilingSdkCustomizer upstreamCustomizer = Snapshotting.customizer()
@@ -130,17 +131,6 @@ class ConcurrentServiceEntrySamplingTest {
 
   private Predicate<Map.Entry<String, Object>> label(AttributeKey<String> key) {
     return kv -> key.getKey().equals(kv.getKey());
-  }
-
-  private Function<Request, Response> delayOf(Duration duration) {
-    return request -> {
-      try {
-        Thread.sleep(duration.toMillis());
-        return Response.from(request);
-      } catch (InterruptedException e) {
-        throw new RuntimeException(e);
-      }
-    };
   }
 
   private Function<Request, Response> concurrentExitCallsTo(int calls, Server server,

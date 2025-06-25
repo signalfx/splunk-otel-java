@@ -14,9 +14,7 @@ import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.trace.SpanId;
 import io.opentelemetry.context.Context;
-import io.opentelemetry.context.ContextStorage;
 import io.opentelemetry.sdk.autoconfigure.OpenTelemetrySdkExtension;
-import io.opentelemetry.sdk.testing.context.SettableContextStorageProvider;
 import io.opentelemetry.sdk.testing.exporter.InMemoryLogRecordExporter;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -29,12 +27,11 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.AfterEachCallback;
-import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
 class ConcurrentServiceEntrySamplingTest {
-  @RegisterExtension private final ResetContextStorage spanTrackingActivator = new ResetContextStorage();
+  @RegisterExtension
+  private final ContextStorageResettingSpanTrackingActivator spanTrackingActivator = new ContextStorageResettingSpanTrackingActivator();
 
   private final InMemoryLogRecordExporter logExporter = InMemoryLogRecordExporter.create();
   private final InMemoryStagingArea staging = new InMemoryStagingArea();
@@ -111,6 +108,9 @@ class ConcurrentServiceEntrySamplingTest {
     System.out.println(profiledSpans);
 
     // Downstream service should receive 2 requests within the same trace id so expect 3 total span ids (1 upstream, 2 downstream).
+    // Note: A total of 5 spans will be created but the CLIENT spans in the upstream service won't
+    // be profiled because they are happening in parallel in background threads which aren't yet
+    // sampled
     assertThat(profiledSpans).size().isEqualTo(3);
   }
 
@@ -166,20 +166,5 @@ class ConcurrentServiceEntrySamplingTest {
         executor.shutdown();
       }
     };
-  }
-
-  private static class ResetContextStorage implements SpanTrackingActivator, AfterEachCallback {
-    @Override
-    public void activate(TraceRegistry registry) {
-      ActiveSpanTracker spanTracker =
-          new ActiveSpanTracker(ContextStorage.defaultStorage(), registry);
-      SpanTracker.SUPPLIER.configure(spanTracker);
-      SettableContextStorageProvider.setContextStorage(spanTracker);
-    }
-
-    @Override
-    public void afterEach(ExtensionContext context) {
-      SettableContextStorageProvider.setContextStorage(ContextStorage.defaultStorage());
-    }
   }
 }

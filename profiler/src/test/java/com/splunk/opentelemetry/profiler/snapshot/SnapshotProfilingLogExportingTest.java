@@ -29,9 +29,7 @@ import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.context.Context;
-import io.opentelemetry.context.ContextStorage;
 import io.opentelemetry.sdk.autoconfigure.OpenTelemetrySdkExtension;
-import io.opentelemetry.sdk.testing.context.SettableContextStorageProvider;
 import io.opentelemetry.sdk.testing.exporter.InMemoryLogRecordExporter;
 import java.util.Map;
 import java.util.Set;
@@ -41,13 +39,11 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.AfterEachCallback;
-import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
 class SnapshotProfilingLogExportingTest {
   @RegisterExtension
-  private final ResetContextStorage spanTrackingActivator = new ResetContextStorage();
+  private final ContextStorageResettingSpanTrackingActivator spanTrackingActivator = new ContextStorageResettingSpanTrackingActivator();
 
   private final InMemoryLogRecordExporter logExporter = InMemoryLogRecordExporter.create();
   private final SnapshotProfilingSdkCustomizer customizer =
@@ -102,20 +98,5 @@ class SnapshotProfilingLogExportingTest {
 
   private Predicate<Map.Entry<String, Object>> label(AttributeKey<String> key) {
     return kv -> key.getKey().equals(kv.getKey());
-  }
-
-  private static class ResetContextStorage implements SpanTrackingActivator, AfterEachCallback {
-    @Override
-    public void activate(TraceRegistry registry) {
-      ActiveSpanTracker spanTracker =
-          new ActiveSpanTracker(ContextStorage.defaultStorage(), registry);
-      SpanTracker.SUPPLIER.configure(spanTracker);
-      SettableContextStorageProvider.setContextStorage(spanTracker);
-    }
-
-    @Override
-    public void afterEach(ExtensionContext context) {
-      SettableContextStorageProvider.setContextStorage(ContextStorage.defaultStorage());
-    }
   }
 }

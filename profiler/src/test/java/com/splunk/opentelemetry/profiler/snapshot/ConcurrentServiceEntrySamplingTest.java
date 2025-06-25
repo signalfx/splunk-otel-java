@@ -3,30 +3,23 @@ package com.splunk.opentelemetry.profiler.snapshot;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 
-import com.google.perftools.profiles.ProfileProto;
 import com.splunk.opentelemetry.profiler.OtelLoggerFactory;
-import com.splunk.opentelemetry.profiler.pprof.PprofUtils;
 import com.splunk.opentelemetry.profiler.snapshot.simulation.Delay;
 import com.splunk.opentelemetry.profiler.snapshot.simulation.ExitCall;
 import com.splunk.opentelemetry.profiler.snapshot.simulation.Request;
 import com.splunk.opentelemetry.profiler.snapshot.simulation.Response;
 import com.splunk.opentelemetry.profiler.snapshot.simulation.Server;
 import io.opentelemetry.api.OpenTelemetry;
-import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.trace.SpanId;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.sdk.autoconfigure.OpenTelemetrySdkExtension;
 import io.opentelemetry.sdk.testing.exporter.InMemoryLogRecordExporter;
 import java.time.Duration;
 import java.util.ArrayList;
-import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.function.Function;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
@@ -113,24 +106,6 @@ class ConcurrentServiceEntrySamplingTest {
     // be profiled because they are happening in parallel in background threads which aren't yet
     // sampled
     assertThat(profiledSpans).size().isEqualTo(3);
-  }
-
-  private Set<String> findLabelValues(ProfileProto.Profile profile, AttributeKey<String> key) {
-    return profile.getSampleList().stream()
-        .flatMap(sampleLabels(profile))
-        .filter(label(key))
-        .map(Map.Entry::getValue)
-        .map(String::valueOf)
-        .collect(Collectors.toSet());
-  }
-
-  private Function<ProfileProto.Sample, Stream<Map.Entry<String, Object>>> sampleLabels(
-      ProfileProto.Profile profile) {
-    return sample -> PprofUtils.toLabelString(sample, profile).entrySet().stream();
-  }
-
-  private Predicate<Map.Entry<String, Object>> label(AttributeKey<String> key) {
-    return kv -> key.getKey().equals(kv.getKey());
   }
 
   private Function<Request, Response> concurrentExitCallsTo(int calls, Server server,

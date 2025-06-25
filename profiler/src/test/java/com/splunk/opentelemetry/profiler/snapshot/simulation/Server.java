@@ -20,7 +20,6 @@ import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.api.trace.SpanKind;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.context.Scope;
-import io.opentelemetry.context.propagation.TextMapGetter;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -85,7 +84,7 @@ public class Server extends Thread implements BeforeEachCallback, AfterEachCallb
     var context =
         otel.getPropagators()
             .getTextMapPropagator()
-            .extract(Context.root(), request, new RequestGetter());
+            .extract(Context.root(), request, request);
     var tracer = otel.getTracer(Server.class.getName());
     var span =
         tracer.spanBuilder("process").setSpanKind(SpanKind.SERVER).setParent(context).startSpan();
@@ -108,18 +107,6 @@ public class Server extends Thread implements BeforeEachCallback, AfterEachCallb
     executor.shutdown();
     executor.awaitTermination(1, TimeUnit.SECONDS);
     join(1_000);
-  }
-
-  private static class RequestGetter implements TextMapGetter<Request> {
-    @Override
-    public Iterable<String> keys(Request request) {
-      return request.headers.keySet();
-    }
-
-    @Override
-    public String get(Request request, String key) {
-      return request.headers.get(key);
-    }
   }
 
   public static class Builder {

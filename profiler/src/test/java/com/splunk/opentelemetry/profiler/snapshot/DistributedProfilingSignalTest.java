@@ -91,7 +91,7 @@ class DistributedProfilingSignalTest {
    */
   @Test
   void traceSnapshotVolumePropagatesAcrossProcessBoundaries() {
-    upstream.send(Request.newRequest());
+    upstream.send(new Request());
 
     await().atMost(Duration.ofDays(2)).until(() -> upstream.waitForResponse() != null);
     assertThat(upstreamRegistry.registeredTraceIds()).isNotEmpty();

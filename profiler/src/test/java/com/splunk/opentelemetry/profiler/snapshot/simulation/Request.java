@@ -1,17 +1,28 @@
 package com.splunk.opentelemetry.profiler.snapshot.simulation;
 
+import io.opentelemetry.context.propagation.TextMapGetter;
+import io.opentelemetry.context.propagation.TextMapSetter;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import javax.annotation.Nullable;
 
-public class Request {
-  public static Request newRequest() {
-    return new Request();
+public class Request implements TextMapGetter<Request>, TextMapSetter<Request> {
+  private final Map<String, String> headers = new ConcurrentHashMap<>();
+
+  @Override
+  public Iterable<String> keys(Request carrier) {
+    return headers.keySet();
   }
 
-  public final Map<String, String> headers = new ConcurrentHashMap<>();
+  @Nullable
+  @Override
+  public String get(@Nullable Request carrier, String key) {
+    return carrier.headers.get(key);
+  }
 
-  public Request copy() {
-    return new Request();
+  @Override
+  public void set(@Nullable Request carrier, String key, String value) {
+    carrier.headers.put(key, value);
   }
 
   @Override

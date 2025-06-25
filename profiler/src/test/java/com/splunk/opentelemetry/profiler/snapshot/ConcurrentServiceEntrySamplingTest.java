@@ -97,7 +97,7 @@ class ConcurrentServiceEntrySamplingTest {
    */
   @Test
   void profileMultipleConcurrentServiceEntries() {
-    upstream.send(Request.newRequest());
+    upstream.send(new Request());
 
     await().atMost(Duration.ofSeconds(2)).until(() -> upstream.waitForResponse() != null);
 

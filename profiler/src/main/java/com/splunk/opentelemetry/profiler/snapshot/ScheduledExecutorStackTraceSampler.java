@@ -58,17 +58,18 @@ class ScheduledExecutorStackTraceSampler implements StackTraceSampler {
       return;
     }
 
-    samplers.computeIfAbsent(
-        spanContext, id -> new ThreadSampler(spanContext, samplingPeriod));
+    samplers.computeIfAbsent(spanContext, id -> new ThreadSampler(spanContext, samplingPeriod));
   }
 
   @Override
   public void stop(SpanContext spanContext) {
-    samplers.computeIfPresent(spanContext, (sc, sampler) -> {
-      sampler.shutdown();
-      waitForShutdown(sampler);
-      return null;
-    });
+    samplers.computeIfPresent(
+        spanContext,
+        (sc, sampler) -> {
+          sampler.shutdown();
+          waitForShutdown(sampler);
+          return null;
+        });
   }
 
   @Override

@@ -43,7 +43,8 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 
 class SnapshotProfilingLogExportingTest {
   @RegisterExtension
-  private final ContextStorageResettingSpanTrackingActivator spanTrackingActivator = new ContextStorageResettingSpanTrackingActivator();
+  private final ContextStorageResettingSpanTrackingActivator spanTrackingActivator =
+      new ContextStorageResettingSpanTrackingActivator();
 
   private final InMemoryLogRecordExporter logExporter = InMemoryLogRecordExporter.create();
   private final SnapshotProfilingSdkCustomizer customizer =

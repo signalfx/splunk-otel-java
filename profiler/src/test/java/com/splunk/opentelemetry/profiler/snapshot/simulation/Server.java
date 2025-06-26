@@ -82,9 +82,7 @@ public class Server extends Thread implements BeforeEachCallback, AfterEachCallb
 
   private void accept(Request request) {
     var context =
-        otel.getPropagators()
-            .getTextMapPropagator()
-            .extract(Context.root(), request, request);
+        otel.getPropagators().getTextMapPropagator().extract(Context.root(), request, request);
     var tracer = otel.getTracer(Server.class.getName());
     var span =
         tracer.spanBuilder("process").setSpanKind(SpanKind.SERVER).setParent(context).startSpan();

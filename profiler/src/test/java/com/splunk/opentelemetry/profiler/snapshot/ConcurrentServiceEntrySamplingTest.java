@@ -1,3 +1,19 @@
+/*
+ * Copyright Splunk Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.splunk.opentelemetry.profiler.snapshot;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -25,7 +41,8 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 
 class ConcurrentServiceEntrySamplingTest {
   @RegisterExtension
-  private final ContextStorageResettingSpanTrackingActivator spanTrackingActivator = new ContextStorageResettingSpanTrackingActivator();
+  private final ContextStorageResettingSpanTrackingActivator spanTrackingActivator =
+      new ContextStorageResettingSpanTrackingActivator();
 
   private final InMemoryLogRecordExporter logExporter = InMemoryLogRecordExporter.create();
   private final InMemoryStagingArea staging = new InMemoryStagingArea();
@@ -34,12 +51,12 @@ class ConcurrentServiceEntrySamplingTest {
   private StackTraceSampler newSampler(StagingArea staging) {
     var stagingAreaSupplier = StagingArea.SUPPLIER;
     stagingAreaSupplier.configure(staging);
-    return new ScheduledExecutorStackTraceSampler(stagingAreaSupplier, SpanTracker.SUPPLIER,
-        Duration.ofMillis(20));
+    return new ScheduledExecutorStackTraceSampler(
+        stagingAreaSupplier, SpanTracker.SUPPLIER, Duration.ofMillis(20));
   }
 
-  private final SnapshotProfilingSdkCustomizer downstreamCustomizer = Snapshotting.customizer()
-      .with(sampler).with(spanTrackingActivator).build();
+  private final SnapshotProfilingSdkCustomizer downstreamCustomizer =
+      Snapshotting.customizer().with(sampler).with(spanTrackingActivator).build();
 
   @RegisterExtension
   public final OpenTelemetrySdkExtension downstreamSdk =
@@ -57,8 +74,8 @@ class ConcurrentServiceEntrySamplingTest {
           .performing(Delay.of(Duration.ofMillis(500)))
           .build();
 
-  private final SnapshotProfilingSdkCustomizer upstreamCustomizer = Snapshotting.customizer()
-      .with(sampler).with(spanTrackingActivator).build();
+  private final SnapshotProfilingSdkCustomizer upstreamCustomizer =
+      Snapshotting.customizer().with(sampler).with(spanTrackingActivator).build();
 
   @RegisterExtension
   public final OpenTelemetrySdkExtension upstreamSdk =
@@ -70,13 +87,15 @@ class ConcurrentServiceEntrySamplingTest {
 
   @RegisterExtension
   public final Server upstream =
-      Server.builder(upstreamSdk).named("upstream")
-          .performing(concurrentExitCallsTo(2, downstream, upstreamSdk)).build();
+      Server.builder(upstreamSdk)
+          .named("upstream")
+          .performing(concurrentExitCallsTo(2, downstream, upstreamSdk))
+          .build();
 
   /**
    * The test is attempting to model the scenario where an upstream service makes two concurrent
-   * requests into the same downstream service within the same trace. Real scenarios may differ,
-   * but the important detail is that a Service receives multiple requests within the same trace
+   * requests into the same downstream service within the same trace. Real scenarios may differ, but
+   * the important detail is that a Service receives multiple requests within the same trace
    * concurrently. When this happens we want both threads in the downstream service to be sampled.
    *
    * <pre>{@code
@@ -95,21 +114,23 @@ class ConcurrentServiceEntrySamplingTest {
 
     await().atMost(Duration.ofSeconds(2)).until(() -> upstream.waitForResponse() != null);
 
-    var profiledSpans = staging.allStackTraces().stream()
-        .filter(s -> SpanId.isValid(s.getSpanId()))
-        .map(s -> s.getTraceId() + ":" + s.getSpanId())
-        .collect(Collectors.toSet());
+    var profiledSpans =
+        staging.allStackTraces().stream()
+            .filter(s -> SpanId.isValid(s.getSpanId()))
+            .map(s -> s.getTraceId() + ":" + s.getSpanId())
+            .collect(Collectors.toSet());
     System.out.println(profiledSpans);
 
-    // Downstream service should receive 2 requests within the same trace id so expect 3 total span ids (1 upstream, 2 downstream).
+    // Downstream service should receive 2 requests within the same trace id so expect 3 total span
+    // ids (1 upstream, 2 downstream).
     // Note: A total of 5 spans will be created, but the CLIENT spans in the upstream service won't
     // be profiled because they are happening in parallel on background threads which aren't yet
     // sampled
     assertThat(profiledSpans).size().isEqualTo(3);
   }
 
-  private Function<Request, Response> concurrentExitCallsTo(int calls, Server server,
-      OpenTelemetry otel) {
+  private Function<Request, Response> concurrentExitCallsTo(
+      int calls, Server server, OpenTelemetry otel) {
     return request -> {
       var executor = Context.current().wrap(Executors.newFixedThreadPool(calls));
       var futures = new ArrayList<Future<Response>>();

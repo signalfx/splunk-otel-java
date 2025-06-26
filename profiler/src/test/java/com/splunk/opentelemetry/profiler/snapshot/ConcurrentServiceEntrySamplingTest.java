@@ -119,7 +119,6 @@ class ConcurrentServiceEntrySamplingTest {
             .filter(s -> SpanId.isValid(s.getSpanId()))
             .map(s -> s.getTraceId() + ":" + s.getSpanId())
             .collect(Collectors.toSet());
-    System.out.println(profiledSpans);
 
     // Downstream service should receive 2 requests within the same trace id so expect 3 total span
     // ids (1 upstream, 2 downstream).

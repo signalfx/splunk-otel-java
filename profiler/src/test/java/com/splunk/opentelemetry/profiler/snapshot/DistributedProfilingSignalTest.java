@@ -22,7 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.splunk.opentelemetry.profiler.snapshot.simulation.Delay;
 import com.splunk.opentelemetry.profiler.snapshot.simulation.ExitCall;
-import com.splunk.opentelemetry.profiler.snapshot.simulation.Request;
+import com.splunk.opentelemetry.profiler.snapshot.simulation.Message;
 import com.splunk.opentelemetry.profiler.snapshot.simulation.Server;
 import io.opentelemetry.sdk.autoconfigure.OpenTelemetrySdkExtension;
 import java.time.Duration;
@@ -90,7 +90,7 @@ class DistributedProfilingSignalTest {
    */
   @Test
   void traceSnapshotVolumePropagatesAcrossProcessBoundaries() {
-    upstream.send(new Request());
+    upstream.send(new Message());
 
     await().atMost(Duration.ofDays(2)).until(() -> upstream.waitForResponse() != null);
     assertThat(upstreamRegistry.registeredTraceIds()).isNotEmpty();

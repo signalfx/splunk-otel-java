@@ -20,9 +20,9 @@ import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.api.trace.SpanKind;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.context.Scope;
-import java.util.function.Function;
+import java.util.function.UnaryOperator;
 
-public class ExitCall implements Function<Request, Response> {
+public class ExitCall implements UnaryOperator<Message> {
   public static Builder to(Server server) {
     return new Builder(server);
   }
@@ -36,7 +36,7 @@ public class ExitCall implements Function<Request, Response> {
   }
 
   @Override
-  public Response apply(Request input) {
+  public Message apply(Message input) {
     var tracer = otel.getTracer(ExitCall.class.getName());
     var span =
         tracer
@@ -46,9 +46,9 @@ public class ExitCall implements Function<Request, Response> {
             .startSpan();
 
     try (Scope ignored = span.makeCurrent()) {
-      var request = new Request();
-      otel.getPropagators().getTextMapPropagator().inject(Context.current(), request, request);
-      server.send(request);
+      var message = new Message();
+      otel.getPropagators().getTextMapPropagator().inject(Context.current(), message, Message::put);
+      server.send(message);
       return server.waitForResponse();
     } finally {
       span.end();

@@ -22,8 +22,7 @@ import static org.awaitility.Awaitility.await;
 import com.splunk.opentelemetry.profiler.OtelLoggerFactory;
 import com.splunk.opentelemetry.profiler.snapshot.simulation.Delay;
 import com.splunk.opentelemetry.profiler.snapshot.simulation.ExitCall;
-import com.splunk.opentelemetry.profiler.snapshot.simulation.Request;
-import com.splunk.opentelemetry.profiler.snapshot.simulation.Response;
+import com.splunk.opentelemetry.profiler.snapshot.simulation.Message;
 import com.splunk.opentelemetry.profiler.snapshot.simulation.Server;
 import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.api.trace.SpanId;
@@ -34,7 +33,7 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.function.Function;
+import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
@@ -110,7 +109,7 @@ class ConcurrentServiceEntrySamplingTest {
    */
   @Test
   void profileMultipleConcurrentServiceEntries() {
-    upstream.send(new Request());
+    upstream.send(new Message());
 
     await().atMost(Duration.ofSeconds(2)).until(() -> upstream.waitForResponse() != null);
 
@@ -128,14 +127,14 @@ class ConcurrentServiceEntrySamplingTest {
     assertThat(profiledSpans).size().isEqualTo(3);
   }
 
-  private Function<Request, Response> concurrentExitCallsTo(
+  private UnaryOperator<Message> concurrentExitCallsTo(
       int calls, Server server, OpenTelemetry otel) {
-    return request -> {
+    return message -> {
       var executor = Context.current().wrap(Executors.newFixedThreadPool(calls));
-      var futures = new ArrayList<Future<Response>>();
+      var futures = new ArrayList<Future<Message>>();
       try {
         for (int i = 0; i < calls; ++i) {
-          futures.add(executor.submit(() -> ExitCall.to(server).with(otel).build().apply(request)));
+          futures.add(executor.submit(() -> ExitCall.to(server).with(otel).build().apply(message)));
         }
 
         for (var future : futures) {
@@ -146,7 +145,7 @@ class ConcurrentServiceEntrySamplingTest {
           }
         }
 
-        return Response.from(request);
+        return message;
       } finally {
         executor.shutdown();
       }

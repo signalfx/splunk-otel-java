@@ -17,9 +17,9 @@
 package com.splunk.opentelemetry.profiler.snapshot.simulation;
 
 import java.time.Duration;
-import java.util.function.Function;
+import java.util.function.UnaryOperator;
 
-public class Delay implements Function<Request, Response> {
+public class Delay implements UnaryOperator<Message> {
   public static Delay of(Duration duration) {
     return new Delay(duration);
   }
@@ -31,10 +31,10 @@ public class Delay implements Function<Request, Response> {
   private final Duration duration;
 
   @Override
-  public Response apply(Request request) {
+  public Message apply(Message message) {
     try {
       Thread.sleep(duration.toMillis());
-      return Response.from(request);
+      return message;
     } catch (InterruptedException e) {
       throw new RuntimeException(e);
     }

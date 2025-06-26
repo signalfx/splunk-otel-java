@@ -17,22 +17,15 @@
 package com.splunk.opentelemetry.profiler.snapshot;
 
 import io.opentelemetry.api.trace.SpanContext;
-import java.util.Collections;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
+import java.io.Closeable;
 
-class TraceRegistry {
-  private final Set<String> traceIds = Collections.newSetFromMap(new ConcurrentHashMap<>());
+interface TraceRegistry extends Closeable {
+  void register(SpanContext spanContext);
 
-  public void register(SpanContext spanContext) {
-    traceIds.add(spanContext.getTraceId());
-  }
+  boolean isRegistered(SpanContext spanContext);
 
-  public boolean isRegistered(SpanContext spanContext) {
-    return traceIds.contains(spanContext.getTraceId());
-  }
+  void unregister(SpanContext spanContext);
 
-  public void unregister(SpanContext spanContext) {
-    traceIds.remove(spanContext.getTraceId());
-  }
+  @Override
+  default void close() {}
 }

@@ -40,7 +40,7 @@ import org.junit.jupiter.api.Test;
 class ActiveSpanTrackerTest {
   private final ContextStorage storage = ContextStorage.get();
   private final TogglableTraceRegistry registry = new TogglableTraceRegistry();
-  private final ActiveSpanTracker spanTracker = new ActiveSpanTracker(storage, registry);
+  private final ActiveSpanTracker spanTracker = new ActiveSpanTracker(storage, () -> registry);
 
   @Test
   void currentContextComesFromOpenTelemetryContextStorage() {
@@ -63,7 +63,9 @@ class ActiveSpanTrackerTest {
     registry.register(spanContext);
 
     try (var ignored = spanTracker.attach(context)) {
-      assertEquals(Optional.of(spanContext), spanTracker.getActiveSpan(Thread.currentThread()));
+      var profilingSpanContext = ProfilingSpanContext.from(spanContext);
+      assertEquals(
+          Optional.of(profilingSpanContext), spanTracker.getActiveSpan(Thread.currentThread()));
     }
   }
 
@@ -91,7 +93,9 @@ class ActiveSpanTrackerTest {
       var spanContext = span.getSpanContext();
       context = context.with(span);
       try (var ignoredScope2 = spanTracker.attach(context)) {
-        assertEquals(Optional.of(spanContext), spanTracker.getActiveSpan(Thread.currentThread()));
+        var profilingSpanContext = ProfilingSpanContext.from(spanContext);
+        assertEquals(
+            Optional.of(profilingSpanContext), spanTracker.getActiveSpan(Thread.currentThread()));
       }
     }
   }
@@ -110,7 +114,9 @@ class ActiveSpanTrackerTest {
       scope.close();
 
       var rootSpanContext = root.getSpanContext();
-      assertEquals(Optional.of(rootSpanContext), spanTracker.getActiveSpan(Thread.currentThread()));
+      var profilingSpanContext = ProfilingSpanContext.from(rootSpanContext);
+      assertEquals(
+          Optional.of(profilingSpanContext), spanTracker.getActiveSpan(Thread.currentThread()));
     }
   }
 
@@ -130,8 +136,11 @@ class ActiveSpanTrackerTest {
 
     try (var scope1 = f1.get();
         var scope2 = f2.get()) {
-      assertEquals(Optional.of(span1.getSpanContext()), spanTracker.getActiveSpan(scope1.thread));
-      assertEquals(Optional.of(span2.getSpanContext()), spanTracker.getActiveSpan(scope2.thread));
+      var profilingSpanContext1 = ProfilingSpanContext.from(span1.getSpanContext());
+      assertEquals(Optional.of(profilingSpanContext1), spanTracker.getActiveSpan(scope1.thread));
+
+      var profilingSpanContext2 = ProfilingSpanContext.from(span2.getSpanContext());
+      assertEquals(Optional.of(profilingSpanContext2), spanTracker.getActiveSpan(scope2.thread));
     } finally {
       executor.shutdown();
     }
@@ -148,8 +157,11 @@ class ActiveSpanTrackerTest {
     var executor = Executors.newFixedThreadPool(2);
     try (var scope1 = executor.submit(attach(span1)).get();
         var scope2 = executor.submit(attach(span2)).get()) {
-      assertEquals(Optional.of(span1.getSpanContext()), spanTracker.getActiveSpan(scope1.thread));
-      assertEquals(Optional.of(span2.getSpanContext()), spanTracker.getActiveSpan(scope2.thread));
+      var profilingSpanContext1 = ProfilingSpanContext.from(span1.getSpanContext());
+      assertEquals(Optional.of(profilingSpanContext1), spanTracker.getActiveSpan(scope1.thread));
+
+      var profilingSpanContext2 = ProfilingSpanContext.from(span2.getSpanContext());
+      assertEquals(Optional.of(profilingSpanContext2), spanTracker.getActiveSpan(scope2.thread));
     } finally {
       executor.shutdown();
     }
@@ -194,8 +206,12 @@ class ActiveSpanTrackerTest {
     var executor = Executors.newSingleThreadExecutor();
     try (var scope1 = attach(root).call();
         var scope2 = executor.submit(attach(child)).get()) {
-      assertEquals(Optional.of(root.getSpanContext()), spanTracker.getActiveSpan(scope1.thread));
-      assertEquals(Optional.of(child.getSpanContext()), spanTracker.getActiveSpan(scope2.thread));
+      var rootProfilingSpanContext = ProfilingSpanContext.from(root.getSpanContext());
+      assertEquals(Optional.of(rootProfilingSpanContext), spanTracker.getActiveSpan(scope1.thread));
+
+      var childProfilingSpanContext = ProfilingSpanContext.from(child.getSpanContext());
+      assertEquals(
+          Optional.of(childProfilingSpanContext), spanTracker.getActiveSpan(scope2.thread));
     } finally {
       executor.shutdown();
     }

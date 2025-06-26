@@ -124,7 +124,7 @@ public class Server extends Thread implements BeforeEachCallback, AfterEachCallb
       return this;
     }
 
-    public Builder threads(int numberOfThreads) {
+    public Builder requestProcessingThreads(int numberOfThreads) {
       this.numberOfThreads = numberOfThreads;
       return this;
     }

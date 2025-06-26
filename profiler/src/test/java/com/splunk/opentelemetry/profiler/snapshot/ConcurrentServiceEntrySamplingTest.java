@@ -53,7 +53,7 @@ class ConcurrentServiceEntrySamplingTest {
   public final Server downstream =
       Server.builder(downstreamSdk)
           .named("downstream")
-          .threads(2)
+          .requestProcessingThreads(2)
           .performing(Delay.of(Duration.ofMillis(500)))
           .build();
 

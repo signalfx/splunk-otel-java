@@ -52,7 +52,7 @@ public class Server extends Thread implements BeforeEachCallback, AfterEachCallb
     super(builder.name);
     this.otel = builder.otel;
     this.operation = builder.operation;
-    executor = Executors.newFixedThreadPool(builder.numberOfThreads);
+    executor = Executors.newFixedThreadPool(builder.requestProcessingThreads);
   }
 
   public void send(Message message) {
@@ -126,7 +126,7 @@ public class Server extends Thread implements BeforeEachCallback, AfterEachCallb
     private final OpenTelemetry otel;
     private String name;
     private UnaryOperator<Message> operation = message -> message;
-    private int numberOfThreads = 1;
+    private int requestProcessingThreads = 1;
 
     private Builder(OpenTelemetry otel) {
       this.otel = otel;
@@ -138,7 +138,7 @@ public class Server extends Thread implements BeforeEachCallback, AfterEachCallb
     }
 
     public Builder requestProcessingThreads(int numberOfThreads) {
-      this.numberOfThreads = numberOfThreads;
+      this.requestProcessingThreads = numberOfThreads;
       return this;
     }
 

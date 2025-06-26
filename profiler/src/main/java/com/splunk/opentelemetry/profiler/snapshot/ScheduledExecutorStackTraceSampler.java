@@ -58,7 +58,8 @@ class ScheduledExecutorStackTraceSampler implements StackTraceSampler {
       return;
     }
 
-    samplers.computeIfAbsent(spanContext, id -> new ThreadSampler(spanContext, samplingPeriod));
+    samplers.computeIfAbsent(
+        spanContext, id -> new ThreadSampler(spanContext.getTraceId(), samplingPeriod));
   }
 
   @Override
@@ -94,17 +95,12 @@ class ScheduledExecutorStackTraceSampler implements StackTraceSampler {
 
   private class ThreadSampler {
     private final ScheduledExecutorService scheduler;
-    private final SpanContext spanContext;
     private final StackTraceGatherer gatherer;
 
-    ThreadSampler(SpanContext spanContext, Duration samplingPeriod) {
-      this.spanContext = spanContext;
-      gatherer =
-          new StackTraceGatherer(
-              spanContext.getTraceId(), Thread.currentThread(), System.nanoTime());
+    ThreadSampler(String traceId, Duration samplingPeriod) {
+      gatherer = new StackTraceGatherer(traceId, Thread.currentThread(), System.nanoTime());
       scheduler =
-          HelpfulExecutors.newSingleThreadedScheduledExecutor(
-              "stack-trace-sampler-" + spanContext.getTraceId());
+          HelpfulExecutors.newSingleThreadedScheduledExecutor("stack-trace-sampler-" + traceId);
       scheduler.scheduleAtFixedRate(
           gatherer, SCHEDULER_INITIAL_DELAY, samplingPeriod.toMillis(), TimeUnit.MILLISECONDS);
     }
@@ -120,10 +116,6 @@ class ScheduledExecutorStackTraceSampler implements StackTraceSampler {
 
     boolean awaitTermination(Duration timeout) throws InterruptedException {
       return scheduler.awaitTermination(timeout.toMillis(), TimeUnit.MILLISECONDS);
-    }
-
-    SpanContext getSpanContext() {
-      return spanContext;
     }
   }
 

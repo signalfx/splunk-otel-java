@@ -102,8 +102,8 @@ class ConcurrentServiceEntrySamplingTest {
     System.out.println(profiledSpans);
 
     // Downstream service should receive 2 requests within the same trace id so expect 3 total span ids (1 upstream, 2 downstream).
-    // Note: A total of 5 spans will be created but the CLIENT spans in the upstream service won't
-    // be profiled because they are happening in parallel in background threads which aren't yet
+    // Note: A total of 5 spans will be created, but the CLIENT spans in the upstream service won't
+    // be profiled because they are happening in parallel on background threads which aren't yet
     // sampled
     assertThat(profiledSpans).size().isEqualTo(3);
   }

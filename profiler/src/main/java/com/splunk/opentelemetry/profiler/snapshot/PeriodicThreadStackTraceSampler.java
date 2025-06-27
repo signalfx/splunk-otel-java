@@ -141,6 +141,10 @@ class PeriodicThreadStackTraceSampler implements StackTraceSampler {
     }
 
     private void sample(Collection<SamplingContext> contexts) {
+      if (contexts.isEmpty()) {
+        return;
+      }
+
       Map<Long, SamplingContext> threadSamplingContexts =
           contexts.stream().collect(Collectors.toMap(c -> c.thread.getId(), context -> context));
       long[] threadIds =

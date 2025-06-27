@@ -73,8 +73,6 @@ class PeriodicThreadStackTraceSampler implements StackTraceSampler {
     private final Supplier<SpanTracker> spanTracker;
     private final Duration delay;
 
-    private long nextSampleTime;
-
     private ThreadSampler(
         Supplier<StagingArea> staging, Supplier<SpanTracker> spanTracker, Duration delay) {
       this.staging = staging;
@@ -97,6 +95,7 @@ class PeriodicThreadStackTraceSampler implements StackTraceSampler {
     @Override
     public void run() {
       Map<String, SamplingContext> traceThreads = new HashMap<>();
+      long nextSampleTime = System.nanoTime() + delay.toNanos();
       try {
         while (!Thread.currentThread().isInterrupted()) {
           Command command = queue.poll(nextSampleTime - System.nanoTime(), TimeUnit.NANOSECONDS);

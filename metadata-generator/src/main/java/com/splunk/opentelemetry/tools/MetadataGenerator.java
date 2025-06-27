@@ -3380,6 +3380,10 @@ public class MetadataGenerator {
                 "jvm.memory.init",
                 MetricInstrument.UP_DOWN_COUNTER,
                 "Measure of initial memory requested (disabled by default).")
+            .customMetric(
+                "jvm.file_descriptor.count",
+                MetricInstrument.UP_DOWN_COUNTER,
+                "Number of open file descriptors as reported by the JVM (disabled by default).")
             // XXX JFR metrics from runtime-telemetry-java17 are missing
             .build());
     instrumentations.add(instrumentation("javalin").component("Javalin", "5.0 and higher").build());

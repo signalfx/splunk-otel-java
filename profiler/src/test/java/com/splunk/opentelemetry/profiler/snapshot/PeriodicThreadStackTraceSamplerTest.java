@@ -33,13 +33,13 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 
-class DaemonThreadStackTraceSamplerTest {
+class PeriodicThreadStackTraceSamplerTest {
   private static final Duration SAMPLING_PERIOD = Duration.ofMillis(20);
 
   private final InMemoryStagingArea staging = new InMemoryStagingArea();
   private final InMemorySpanTracker spanTracker = new InMemorySpanTracker();
-  private final DaemonThreadStackTraceSampler sampler =
-      new DaemonThreadStackTraceSampler(() -> staging, () -> spanTracker, SAMPLING_PERIOD);
+  private final PeriodicThreadStackTraceSampler sampler =
+      new PeriodicThreadStackTraceSampler(() -> staging, () -> spanTracker, SAMPLING_PERIOD);
 
   @Test
   void takeStackTraceSampleForGivenThread() {

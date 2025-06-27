@@ -37,13 +37,13 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-class DaemonThreadStackTraceSampler implements StackTraceSampler {
+class PeriodicThreadStackTraceSampler implements StackTraceSampler {
   private static final Logger logger =
-      Logger.getLogger(DaemonThreadStackTraceSampler.class.getName());
+      Logger.getLogger(PeriodicThreadStackTraceSampler.class.getName());
 
   private final ThreadSampler sampler;
 
-  public DaemonThreadStackTraceSampler(
+  public PeriodicThreadStackTraceSampler(
       Supplier<StagingArea> staging, Supplier<SpanTracker> spanTracker, Duration samplingPeriod) {
     sampler = new ThreadSampler(staging, spanTracker, samplingPeriod);
     sampler.setName("daemon-thread-stack-trace-sampler");

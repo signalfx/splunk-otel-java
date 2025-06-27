@@ -8,25 +8,20 @@ on:
   pull_request:
 
 jobs:
-  # TODO: lycheeverse/lychee:latest on which this job depends is broken, temporarily turning it off
-  #check-links:
-  #  runs-on: ubuntu-20.04
-  #  steps:
-  #    - uses: actions/checkout@v2
+  check-links:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4.2.2
 
-  #    - name: Check all links in *.md files
-  #      id: lychee
-  #      uses: lycheeverse/lychee-action@v1.0.8
-  #      with:
-  #        args: >-
-  #          -v -n "*.md" "**/*.md"
-  #          --exclude "https://developers.redhat.com/download-manager/file/jboss-eap-.*.zip"
-  #          --exclude "http://yourendpoint.*"
-  #          --exclude "https://ingest.us0.signalfx.com.*"
-  #          --exclude "http://localhost*"
-
-  #    - name: Fail if there were link errors
-  #      run: exit ${{ steps.lychee.outputs.exit_code }}
+      - name: Check all links in *.md files
+        id: lychee
+        uses: lycheeverse/lychee-action@v2.4.1
+        with:
+          args: >-
+            -v -n "*.md" "**/*.md"
+            --include-fragments
+            --exclude "https://developers.redhat.com/download-manager/file/jboss-eap-.*.zip"
+            --exclude "http://localhost*"
 
   build:
     runs-on: ubuntu-24.04

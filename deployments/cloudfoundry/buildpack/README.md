@@ -32,7 +32,7 @@ $ cf push my-app -b splunk_otel_java_buildpack -b https://github.com/cloudfoundr
 
 ## Configuration
 
-Please read the [Getting Started](../../../README.md#getting-started) to learn how to configure the Splunk Distribution
+Please read the [Getting Started](../../../README.md#get-started) to learn how to configure the Splunk Distribution
 of OpenTelemetry Java.
 [All javaagent configuration options](../../../docs/advanced-config.md) there are supported by this buildpack.
 

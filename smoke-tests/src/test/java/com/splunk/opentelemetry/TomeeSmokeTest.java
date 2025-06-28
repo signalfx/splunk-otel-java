@@ -28,14 +28,14 @@ public class TomeeSmokeTest extends AppServerTest {
   public static final ExpectedServerAttributes TOMEE7_SERVER_ATTRIBUTES =
       new TomeeAttributes("7.0.9");
   public static final ExpectedServerAttributes TOMEE8_SERVER_ATTRIBUTES =
-      new TomeeAttributes("8.0.8");
+      new TomeeAttributes("8.0.16");
 
   private static Stream<Arguments> supportedConfigurations() {
     return configurations("tomee")
         .otelLinux("7.0.9", TOMEE7_SERVER_ATTRIBUTES, VMS_ALL, "8")
-        .otelLinux("8.0.8", TOMEE8_SERVER_ATTRIBUTES, VMS_ALL, "8", "11")
-        .otelWindows("7.0.9", TOMEE7_SERVER_ATTRIBUTES, VMS_ALL, "8")
-        .otelWindows("8.0.8", TOMEE8_SERVER_ATTRIBUTES, VMS_ALL, "8", "11")
+        .otelLinux("8.0.16", TOMEE8_SERVER_ATTRIBUTES, VMS_ALL, "8", "11", "17", "21")
+        .otelWindows("7.0.9", TOMEE7_SERVER_ATTRIBUTES, VMS_HOTSPOT, "8")
+        .otelWindows("8.0.16", TOMEE8_SERVER_ATTRIBUTES, VMS_HOTSPOT, "8", "11", "17", "21")
         .stream();
   }
 

@@ -36,7 +36,7 @@ class ScheduledExecutorStackTraceSampler implements StackTraceSampler {
       Logger.getLogger(ScheduledExecutorStackTraceSampler.class.getName());
   private static final int SCHEDULER_INITIAL_DELAY = 0;
 
-  private final ConcurrentMap<String, ThreadSampler> samplers = new ConcurrentHashMap<>();
+  private final ConcurrentMap<SpanContext, ThreadSampler> samplers = new ConcurrentHashMap<>();
   private final ThreadMXBean threadMXBean = ManagementFactory.getThreadMXBean();
   private final Supplier<StagingArea> stagingArea;
   private final Supplier<SpanTracker> spanTracker;
@@ -59,20 +59,17 @@ class ScheduledExecutorStackTraceSampler implements StackTraceSampler {
     }
 
     samplers.computeIfAbsent(
-        spanContext.getTraceId(), id -> new ThreadSampler(spanContext, samplingPeriod));
+        spanContext, id -> new ThreadSampler(spanContext.getTraceId(), samplingPeriod));
   }
 
   @Override
   public void stop(SpanContext spanContext) {
     samplers.computeIfPresent(
-        spanContext.getTraceId(),
-        (traceId, sampler) -> {
-          if (spanContext.equals(sampler.getSpanContext())) {
-            sampler.shutdown();
-            waitForShutdown(sampler);
-            return null;
-          }
-          return sampler;
+        spanContext,
+        (sc, sampler) -> {
+          sampler.shutdown();
+          waitForShutdown(sampler);
+          return null;
         });
   }
 
@@ -98,17 +95,12 @@ class ScheduledExecutorStackTraceSampler implements StackTraceSampler {
 
   private class ThreadSampler {
     private final ScheduledExecutorService scheduler;
-    private final SpanContext spanContext;
     private final StackTraceGatherer gatherer;
 
-    ThreadSampler(SpanContext spanContext, Duration samplingPeriod) {
-      this.spanContext = spanContext;
-      gatherer =
-          new StackTraceGatherer(
-              spanContext.getTraceId(), Thread.currentThread(), System.nanoTime());
+    ThreadSampler(String traceId, Duration samplingPeriod) {
+      gatherer = new StackTraceGatherer(traceId, Thread.currentThread(), System.nanoTime());
       scheduler =
-          HelpfulExecutors.newSingleThreadedScheduledExecutor(
-              "stack-trace-sampler-" + spanContext.getTraceId());
+          HelpfulExecutors.newSingleThreadedScheduledExecutor("stack-trace-sampler-" + traceId);
       scheduler.scheduleAtFixedRate(
           gatherer, SCHEDULER_INITIAL_DELAY, samplingPeriod.toMillis(), TimeUnit.MILLISECONDS);
     }
@@ -124,10 +116,6 @@ class ScheduledExecutorStackTraceSampler implements StackTraceSampler {
 
     boolean awaitTermination(Duration timeout) throws InterruptedException {
       return scheduler.awaitTermination(timeout.toMillis(), TimeUnit.MILLISECONDS);
-    }
-
-    SpanContext getSpanContext() {
-      return spanContext;
     }
   }
 

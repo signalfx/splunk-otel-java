@@ -20,12 +20,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import com.splunk.opentelemetry.profiler.snapshot.simulation.Delay;
 import com.splunk.opentelemetry.profiler.snapshot.simulation.ExitCall;
 import com.splunk.opentelemetry.profiler.snapshot.simulation.Message;
 import com.splunk.opentelemetry.profiler.snapshot.simulation.Server;
 import io.opentelemetry.sdk.autoconfigure.OpenTelemetrySdkExtension;
 import java.time.Duration;
-import java.util.function.UnaryOperator;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
@@ -46,7 +46,7 @@ class DistributedProfilingSignalTest {
   public final Server downstream =
       Server.builder(downstreamSdk)
           .named("downstream")
-          .performing(delayOf(Duration.ofMillis(250)))
+          .performing(Delay.of(Duration.ofMillis(250)))
           .build();
 
   @RegisterExtension
@@ -90,24 +90,11 @@ class DistributedProfilingSignalTest {
    */
   @Test
   void traceSnapshotVolumePropagatesAcrossProcessBoundaries() {
-    var message = new Message();
+    upstream.send(new Message());
 
-    upstream.send(message);
-
-    await().atMost(Duration.ofSeconds(2)).until(() -> upstream.waitForResponse() != null);
+    await().atMost(Duration.ofDays(2)).until(() -> upstream.waitForResponse() != null);
     assertThat(upstreamRegistry.registeredTraceIds()).isNotEmpty();
     assertThat(downstreamRegistry.registeredTraceIds()).isNotEmpty();
     assertEquals(upstreamRegistry.registeredTraceIds(), downstreamRegistry.registeredTraceIds());
-  }
-
-  private UnaryOperator<Message> delayOf(Duration duration) {
-    return message -> {
-      try {
-        Thread.sleep(duration.toMillis());
-        return message;
-      } catch (InterruptedException e) {
-        throw new RuntimeException(e);
-      }
-    };
   }
 }

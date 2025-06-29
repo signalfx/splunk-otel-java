@@ -68,7 +68,7 @@ class ScheduledExecutorStackTraceSamplerTest {
   }
 
   @Test
-  void onlyTakeStackTraceSamplesForOneThreadPerTrace() {
+  void takeStackTraceSamplesForMultipleThreadsFromSameTrace() {
     var executor = Executors.newFixedThreadPool(2);
     var startSpanLatch = new CountDownLatch(1);
     var shutdownLatch = new CountDownLatch(1);
@@ -88,7 +88,7 @@ class ScheduledExecutorStackTraceSamplerTest {
           staging.allStackTraces().stream()
               .map(StackTrace::getThreadId)
               .collect(Collectors.toSet());
-      assertEquals(1, threadIds.size());
+      assertEquals(2, threadIds.size());
     } finally {
       executor.shutdownNow();
       sampler.stop(spanContext1);

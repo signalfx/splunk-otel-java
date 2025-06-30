@@ -3,14 +3,6 @@
 telemetry for Splunk Observability Cloud. Refer to the [official documentation](https://docs.splunk.com/observability/en/gdi/get-data-in/application/java/get-started.html)
 for details.
 
-### Caution ⚠️ Deprecation Notice
-The Splunk Distribution of OpenTelemetry Java version 1.x is deprecated as of June 25, 2024 and will
-reach End of Support on June 30, 2025. Until then, only critical security fixes and bug fixes will be
-provided.
-New customers should use the latest version of the [Splunk Distribution of OpenTelemetry Java](https://docs.splunk.com/observability/en/gdi/get-data-in/application/java/get-started.html#get-started-java).
-Existing customers should consider migrating to version 2.5.0 or higher. To learn how to migrate, see
-[Migration guide for OpenTelemetry Java 2.x metrics](https://docs.splunk.com/observability/en/gdi/get-data-in/application/java/migrate-metrics.html#java-metrics-migration-guide).
-
 ---
 
 <p align="center">

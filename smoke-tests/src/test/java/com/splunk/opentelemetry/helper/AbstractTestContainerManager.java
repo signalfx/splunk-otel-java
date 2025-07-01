@@ -35,7 +35,13 @@ public abstract class AbstractTestContainerManager implements TestContainerManag
     // while modern JVMs understand linux container memory limits, they do not understand windows
     // container memory limits yet, so we need to explicitly set max heap in order to prevent the
     // JVM from taking too much memory and hitting the windows container memory limit
-    environment.put(jvmArgsEnvVarName, "-Xmx512m -javaagent:/" + TARGET_AGENT_FILENAME);
+    environment.put(
+        jvmArgsEnvVarName,
+        "-Xmx512m -javaagent:/"
+            + TARGET_AGENT_FILENAME
+            // Liberty20Jdk11, Payara6Jdk11 and Payara6Jdk17 fail with
+            // java.util.zip.ZipException: Invalid CEN header (invalid zip64 extra data field size)
+            + " -Djdk.util.zip.disableZip64ExtraFieldValidation=true");
     environment.put("OTEL_BSP_MAX_EXPORT_BATCH_SIZE", "1");
     environment.put("OTEL_BSP_SCHEDULE_DELAY", "10ms");
     environment.put(

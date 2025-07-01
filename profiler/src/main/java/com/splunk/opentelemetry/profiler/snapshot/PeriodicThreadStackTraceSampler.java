@@ -53,12 +53,12 @@ class PeriodicThreadStackTraceSampler implements StackTraceSampler {
 
   @Override
   public void start(SpanContext spanContext) {
-    sampler.add(Thread.currentThread(), spanContext);
+    sampler.add(Thread.currentThread(), spanContext.getTraceId(), spanContext.getSpanId());
   }
 
   @Override
-  public void stop(SpanContext spanContext) {
-    sampler.remove(Thread.currentThread(), spanContext);
+  public void stop(String traceId, String spanId) {
+    sampler.remove(Thread.currentThread(), traceId, spanId);
   }
 
   @Override
@@ -80,16 +80,16 @@ class PeriodicThreadStackTraceSampler implements StackTraceSampler {
       this.delay = delay;
     }
 
-    void add(Thread thread, SpanContext spanContext) {
-      queue.add(new Command(Action.START, spanContext, thread));
+    void add(Thread thread, String traceId, String spanId) {
+      queue.add(new Command(Action.START, traceId, spanId, thread));
     }
 
-    void remove(Thread thread, SpanContext spanContext) {
-      queue.add(new Command(Action.STOP, spanContext, thread));
+    void remove(Thread thread, String traceId, String spanId) {
+      queue.add(new Command(Action.STOP, traceId, spanId, thread));
     }
 
     void shutdown() {
-      queue.add(new Command(Action.SHUTDOWN, null, null));
+      queue.add(new Command(Action.SHUTDOWN, null, null, null));
     }
 
     @Override
@@ -119,10 +119,11 @@ class PeriodicThreadStackTraceSampler implements StackTraceSampler {
 
     private void startSampling(Command command, Map<String, SamplingContext> traceThreads) {
       traceThreads.computeIfAbsent(
-          command.spanContext.getTraceId(),
+          command.traceId,
           traceId -> {
             SamplingContext context =
-                new SamplingContext(command.thread, command.spanContext, System.nanoTime());
+                new SamplingContext(
+                    command.thread, command.traceId, command.spanId, System.nanoTime());
             sample(Collections.singletonList(context));
             return context;
           });
@@ -130,9 +131,9 @@ class PeriodicThreadStackTraceSampler implements StackTraceSampler {
 
     private void stopSampling(Command command, Map<String, SamplingContext> traceThreads) {
       traceThreads.computeIfPresent(
-          command.spanContext.getTraceId(),
+          command.traceId,
           (traceId, context) -> {
-            if (command.spanContext.equals(context.spanContext)) {
+            if (command.spanId.equals(context.spanId)) {
               sample(Collections.singletonList(context));
               return null;
             }
@@ -191,8 +192,7 @@ class PeriodicThreadStackTraceSampler implements StackTraceSampler {
       Duration samplingPeriod = Duration.ofNanos(currentTimestamp - context.timestamp);
       context.updateTimestamp(currentTimestamp);
       String spanId = retrieveActiveSpan(context.thread);
-      return StackTrace.from(
-          Instant.now(), samplingPeriod, threadInfo, context.spanContext.getTraceId(), spanId);
+      return StackTrace.from(Instant.now(), samplingPeriod, threadInfo, context.traceId, spanId);
     }
 
     private void stage(Collection<StackTrace> stackTraces) {
@@ -219,12 +219,14 @@ class PeriodicThreadStackTraceSampler implements StackTraceSampler {
 
   private static class Command {
     private final Action action;
-    private final SpanContext spanContext;
+    private final String traceId;
+    private final String spanId;
     private final Thread thread;
 
-    private Command(Action action, SpanContext spanContext, Thread thread) {
+    private Command(Action action, String traceId, String spanId, Thread thread) {
       this.action = action;
-      this.spanContext = spanContext;
+      this.traceId = traceId;
+      this.spanId = spanId;
       this.thread = thread;
     }
   }
@@ -237,12 +239,14 @@ class PeriodicThreadStackTraceSampler implements StackTraceSampler {
 
   private static class SamplingContext {
     private final Thread thread;
-    private final SpanContext spanContext;
+    private final String traceId;
+    private final String spanId;
     private long timestamp;
 
-    private SamplingContext(Thread thread, SpanContext spanContext, long timestamp) {
+    private SamplingContext(Thread thread, String traceId, String spanId, long timestamp) {
       this.thread = thread;
-      this.spanContext = spanContext;
+      this.traceId = traceId;
+      this.spanId = spanId;
       this.timestamp = timestamp;
     }
 

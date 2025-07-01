@@ -18,6 +18,7 @@ package com.splunk.opentelemetry.profiler.snapshot;
 
 import com.google.common.annotations.VisibleForTesting;
 import io.opentelemetry.api.trace.SpanContext;
+
 import java.lang.management.ThreadInfo;
 import java.time.Duration;
 import java.time.Instant;
@@ -175,8 +176,12 @@ class PeriodicThreadStackTraceSampler implements StackTraceSampler {
         ThreadInfo threadInfo, SamplingContext context, long currentTimestamp) {
       Duration samplingPeriod = Duration.ofNanos(currentTimestamp - context.timestamp);
       context.updateTimestamp(currentTimestamp);
-      String spanId = retrieveActiveSpan(context.thread);
+      String spanId = retrieveActiveSpan(context.thread).getSpanId();
       return StackTrace.from(Instant.now(), samplingPeriod, threadInfo, context.traceId, spanId);
+    }
+
+    private SpanContext retrieveActiveSpan(Thread thread) {
+      return spanTracker.get().getActiveSpan(thread).orElse(SpanContext.getInvalid());
     }
 
     private void stage(StackTrace stackTrace) {
@@ -189,10 +194,6 @@ class PeriodicThreadStackTraceSampler implements StackTraceSampler {
       } catch (Exception e) {
         logger.log(Level.SEVERE, e, stagingErrorMessage(stackTraces));
       }
-    }
-
-    private String retrieveActiveSpan(Thread thread) {
-      return spanTracker.get().getActiveSpan(thread).orElse(SpanContext.getInvalid()).getSpanId();
     }
 
     private Supplier<String> stagingErrorMessage(Collection<StackTrace> stackTraces) {

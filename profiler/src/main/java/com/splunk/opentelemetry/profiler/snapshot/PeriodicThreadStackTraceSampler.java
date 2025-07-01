@@ -16,20 +16,18 @@
 
 package com.splunk.opentelemetry.profiler.snapshot;
 
+import com.google.common.annotations.VisibleForTesting;
 import io.opentelemetry.api.trace.SpanContext;
-import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadInfo;
-import java.lang.management.ThreadMXBean;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
@@ -45,7 +43,16 @@ class PeriodicThreadStackTraceSampler implements StackTraceSampler {
 
   public PeriodicThreadStackTraceSampler(
       Supplier<StagingArea> staging, Supplier<SpanTracker> spanTracker, Duration samplingPeriod) {
-    sampler = new ThreadSampler(staging, spanTracker, samplingPeriod);
+    this(staging, spanTracker, new ThreadInfoCollector(), samplingPeriod);
+  }
+
+  @VisibleForTesting
+  PeriodicThreadStackTraceSampler(
+      Supplier<StagingArea> staging,
+      Supplier<SpanTracker> spanTracker,
+      ThreadInfoCollector collector,
+      Duration samplingPeriod) {
+    sampler = new ThreadSampler(staging, spanTracker, collector, samplingPeriod);
     sampler.setName("daemon-thread-stack-trace-sampler");
     sampler.setDaemon(true);
     sampler.start();
@@ -58,7 +65,7 @@ class PeriodicThreadStackTraceSampler implements StackTraceSampler {
 
   @Override
   public void stop(String traceId, String spanId) {
-    sampler.remove(Thread.currentThread(), traceId, spanId);
+    sampler.remove(traceId, spanId);
   }
 
   @Override
@@ -67,78 +74,73 @@ class PeriodicThreadStackTraceSampler implements StackTraceSampler {
   }
 
   private static class ThreadSampler extends Thread {
-    private final ThreadMXBean threadMXBean = ManagementFactory.getThreadMXBean();
-    private final BlockingQueue<Command> queue = new LinkedBlockingQueue<>();
+    private static final Object SHUTDOWN_SIGNAL = new Object();
+
+    private final Map<String, SamplingContext> traceSamplingContexts = new ConcurrentHashMap<>();
+    private final BlockingQueue<Object> queue = new LinkedBlockingQueue<>();
     private final Supplier<StagingArea> staging;
     private final Supplier<SpanTracker> spanTracker;
+    private final ThreadInfoCollector collector;
     private final Duration delay;
 
     private ThreadSampler(
-        Supplier<StagingArea> staging, Supplier<SpanTracker> spanTracker, Duration delay) {
+        Supplier<StagingArea> staging,
+        Supplier<SpanTracker> spanTracker,
+        ThreadInfoCollector collector,
+        Duration delay) {
       this.staging = staging;
       this.spanTracker = spanTracker;
+      this.collector = collector;
       this.delay = delay;
     }
 
     void add(Thread thread, String traceId, String spanId) {
-      queue.add(new Command(Action.START, traceId, spanId, thread));
+      traceSamplingContexts.computeIfAbsent(
+          traceId,
+          tid -> {
+            SamplingContext context = new SamplingContext(thread, tid, spanId, System.nanoTime());
+            sample(context);
+            return context;
+          });
     }
 
-    void remove(Thread thread, String traceId, String spanId) {
-      queue.add(new Command(Action.STOP, traceId, spanId, thread));
+    void remove(String traceId, String spanId) {
+      traceSamplingContexts.computeIfPresent(
+          traceId,
+          (t, context) -> {
+            if (spanId.equals(context.spanId)) {
+              sample(context);
+              return null;
+            }
+            return context;
+          });
+    }
+
+    private void sample(SamplingContext context) {
+      ThreadInfo threadInfo = collector.getThreadInfo(context.thread.getId());
+      StackTrace stackTrace = toStackTrace(threadInfo, context, System.nanoTime());
+      stage(stackTrace);
     }
 
     void shutdown() {
-      queue.add(new Command(Action.SHUTDOWN, null, null, null));
+      queue.add(SHUTDOWN_SIGNAL);
     }
 
     @Override
     public void run() {
-      Map<String, SamplingContext> traceThreads = new HashMap<>();
       long nextSampleTime = System.nanoTime() + delay.toNanos();
       try {
         while (!Thread.currentThread().isInterrupted()) {
-          Command command = queue.poll(nextSampleTime - System.nanoTime(), TimeUnit.NANOSECONDS);
-          if (command == null) {
-            sample(traceThreads.values());
-          } else {
-            if (command.action == Action.SHUTDOWN) {
-              return;
-            } else if (command.action == Action.START) {
-              startSampling(command, traceThreads);
-            } else if (command.action == Action.STOP) {
-              stopSampling(command, traceThreads);
-            }
+          Object object = queue.poll(nextSampleTime - System.nanoTime(), TimeUnit.NANOSECONDS);
+          if (object == SHUTDOWN_SIGNAL) {
+            return;
           }
+          sample(traceSamplingContexts.values());
           nextSampleTime = System.nanoTime() + delay.toNanos();
         }
       } catch (InterruptedException e) {
         Thread.currentThread().interrupt();
       }
-    }
-
-    private void startSampling(Command command, Map<String, SamplingContext> traceThreads) {
-      traceThreads.computeIfAbsent(
-          command.traceId,
-          traceId -> {
-            SamplingContext context =
-                new SamplingContext(
-                    command.thread, command.traceId, command.spanId, System.nanoTime());
-            sample(Collections.singletonList(context));
-            return context;
-          });
-    }
-
-    private void stopSampling(Command command, Map<String, SamplingContext> traceThreads) {
-      traceThreads.computeIfPresent(
-          command.traceId,
-          (traceId, context) -> {
-            if (command.spanId.equals(context.spanId)) {
-              sample(Collections.singletonList(context));
-              return null;
-            }
-            return context;
-          });
     }
 
     private void sample(Collection<SamplingContext> contexts) {
@@ -148,33 +150,15 @@ class PeriodicThreadStackTraceSampler implements StackTraceSampler {
 
       Map<Long, SamplingContext> threadSamplingContexts =
           contexts.stream().collect(Collectors.toMap(c -> c.thread.getId(), context -> context));
-      long[] threadIds =
-          threadSamplingContexts.keySet().stream().mapToLong(Long::longValue).toArray();
-
       long currentSampleTimestamp = System.nanoTime();
       try {
-        ThreadInfo[] threadInfos = captureStackTraces(threadIds);
+        ThreadInfo[] threadInfos = collector.getThreadInfo(threadSamplingContexts.keySet());
         List<StackTrace> stackTraces =
             toStackTraces(threadInfos, threadSamplingContexts, currentSampleTimestamp);
         stage(stackTraces);
       } catch (Exception e) {
         logger.log(Level.SEVERE, e, () -> "Unexpected error during callstack sampling");
       }
-    }
-
-    private ThreadInfo[] captureStackTraces(long[] threadIds) {
-      try {
-        return threadMXBean.getThreadInfo(threadIds, Integer.MAX_VALUE);
-      } catch (Exception e) {
-        logger.log(
-            Level.SEVERE,
-            e,
-            () ->
-                "Error taking callstack samples for thread ids ["
-                    + Arrays.toString(threadIds)
-                    + "]");
-      }
-      return new ThreadInfo[0];
     }
 
     private List<StackTrace> toStackTraces(
@@ -193,6 +177,10 @@ class PeriodicThreadStackTraceSampler implements StackTraceSampler {
       context.updateTimestamp(currentTimestamp);
       String spanId = retrieveActiveSpan(context.thread);
       return StackTrace.from(Instant.now(), samplingPeriod, threadInfo, context.traceId, spanId);
+    }
+
+    private void stage(StackTrace stackTrace) {
+      stage(Collections.singletonList(stackTrace));
     }
 
     private void stage(Collection<StackTrace> stackTraces) {
@@ -215,26 +203,6 @@ class PeriodicThreadStackTraceSampler implements StackTraceSampler {
     private String traceIds(Collection<StackTrace> stackTraces) {
       return stackTraces.stream().map(StackTrace::getTraceId).collect(Collectors.joining(","));
     }
-  }
-
-  private static class Command {
-    private final Action action;
-    private final String traceId;
-    private final String spanId;
-    private final Thread thread;
-
-    private Command(Action action, String traceId, String spanId, Thread thread) {
-      this.action = action;
-      this.traceId = traceId;
-      this.spanId = spanId;
-      this.thread = thread;
-    }
-  }
-
-  private enum Action {
-    START,
-    STOP,
-    SHUTDOWN
   }
 
   private static class SamplingContext {

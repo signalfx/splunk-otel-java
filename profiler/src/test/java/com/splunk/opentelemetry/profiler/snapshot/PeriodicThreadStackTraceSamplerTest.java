@@ -26,11 +26,13 @@ import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.sdk.trace.IdGenerator;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Collection;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 class PeriodicThreadStackTraceSamplerTest {
@@ -38,8 +40,16 @@ class PeriodicThreadStackTraceSamplerTest {
 
   private final InMemoryStagingArea staging = new InMemoryStagingArea();
   private final InMemorySpanTracker spanTracker = new InMemorySpanTracker();
+  private final DelayedThreadInfoCollector delayedThreadInfoCollector =
+      new DelayedThreadInfoCollector();
   private final PeriodicThreadStackTraceSampler sampler =
-      new PeriodicThreadStackTraceSampler(() -> staging, () -> spanTracker, SAMPLING_PERIOD);
+      new PeriodicThreadStackTraceSampler(
+          () -> staging, () -> spanTracker, delayedThreadInfoCollector, SAMPLING_PERIOD);
+
+  @AfterEach
+  void tearDown() {
+    sampler.close();
+  }
 
   @Test
   void takeStackTraceSampleForGivenThread() {
@@ -292,6 +302,38 @@ class PeriodicThreadStackTraceSamplerTest {
   }
 
   @Test
+  void aTest() {
+    delayedThreadInfoCollector.setDelay(Duration.ofMillis(100));
+
+    var spanContext1 = Snapshotting.spanContext().build();
+    var spanContext2 = Snapshotting.spanContext().build();
+    sampler.start(spanContext1);
+    spanTracker.store(Thread.currentThread().getId(), spanContext1);
+    sampler.stop(spanContext1);
+    sampler.start(spanContext2);
+    spanTracker.store(Thread.currentThread().getId(), spanContext2);
+
+    await().until(() -> staging.allStackTraces().size() > 1);
+
+    System.out.println(
+        "SpanContext: " + spanContext1.getTraceId() + "|" + spanContext1.getSpanId());
+    System.out.println(
+        "SpanContext: " + spanContext2.getTraceId() + "|" + spanContext2.getSpanId());
+    staging
+        .allStackTraces()
+        .forEach(s -> System.out.println("StackTrace: " + s.getTraceId() + "|" + s.getSpanId()));
+
+    assertThat(staging.allStackTraces())
+        .map(
+            st ->
+                Snapshotting.spanContext()
+                    .withTraceId(st.getTraceId())
+                    .withSpanId(st.getSpanId())
+                    .build())
+        .contains(spanContext1);
+  }
+
+  @Test
   void takeFinalSampleWhenTraceSamplingIsStopped() {
     var scheduler = Executors.newScheduledThreadPool(2);
     var spanContext = Snapshotting.spanContext().build();
@@ -426,5 +468,33 @@ class PeriodicThreadStackTraceSamplerTest {
 
   private Callable<Integer> reportStackTracesStaged() {
     return () -> staging.allStackTraces().size();
+  }
+
+  private static class DelayedThreadInfoCollector extends ThreadInfoCollector {
+    private Duration delay = Duration.ofMillis(0);
+
+    void setDelay(Duration delay) {
+      this.delay = delay;
+    }
+
+    @Override
+    java.lang.management.ThreadInfo getThreadInfo(long threadId) {
+      try {
+        Thread.sleep(delay.toMillis());
+        return super.getThreadInfo(threadId);
+      } catch (InterruptedException e) {
+        throw new RuntimeException(e);
+      }
+    }
+
+    @Override
+    java.lang.management.ThreadInfo[] getThreadInfo(Collection<Long> threadIds) {
+      try {
+        Thread.sleep(delay.toMillis());
+        return super.getThreadInfo(threadIds);
+      } catch (InterruptedException e) {
+        throw new RuntimeException(e);
+      }
+    }
   }
 }

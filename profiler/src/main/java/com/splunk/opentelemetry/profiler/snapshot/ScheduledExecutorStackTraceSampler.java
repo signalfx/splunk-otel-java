@@ -18,6 +18,9 @@ package com.splunk.opentelemetry.profiler.snapshot;
 
 import com.splunk.opentelemetry.profiler.util.HelpfulExecutors;
 import io.opentelemetry.api.trace.SpanContext;
+import io.opentelemetry.api.trace.TraceFlags;
+import io.opentelemetry.api.trace.TraceState;
+
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadInfo;
 import java.lang.management.ThreadMXBean;
@@ -63,7 +66,8 @@ class ScheduledExecutorStackTraceSampler implements StackTraceSampler {
   }
 
   @Override
-  public void stop(SpanContext spanContext) {
+  public void stop(String traceId, String spanId) {
+    SpanContext spanContext = SpanContext.create(traceId, spanId, TraceFlags.getDefault(), TraceState.getDefault());
     samplers.computeIfPresent(
         spanContext,
         (sc, sampler) -> {

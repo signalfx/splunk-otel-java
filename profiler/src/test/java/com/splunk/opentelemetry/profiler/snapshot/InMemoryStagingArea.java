@@ -30,6 +30,7 @@ class InMemoryStagingArea implements StagingArea {
 
   @Override
   public void stage(Collection<StackTrace> stackTraces) {
+    System.out.println("Staging Thread ID: " + Thread.currentThread().getId());
     this.stackTraces.addAll(stackTraces);
   }
 

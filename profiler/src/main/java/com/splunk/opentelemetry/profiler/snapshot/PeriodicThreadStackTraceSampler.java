@@ -18,7 +18,6 @@ package com.splunk.opentelemetry.profiler.snapshot;
 
 import com.google.common.annotations.VisibleForTesting;
 import io.opentelemetry.api.trace.SpanContext;
-
 import java.lang.management.ThreadInfo;
 import java.time.Duration;
 import java.time.Instant;
@@ -119,8 +118,9 @@ class PeriodicThreadStackTraceSampler implements StackTraceSampler {
 
     private void sample(SamplingContext context) {
       ThreadInfo threadInfo = collector.getThreadInfo(context.thread.getId());
-      StackTrace stackTrace = toStackTrace(threadInfo, context, System.nanoTime());
-      stage(stackTrace);
+      long currentTimestamp = System.nanoTime();
+      stage(toStackTrace(threadInfo, context, currentTimestamp));
+      context.updateTimestamp(currentTimestamp);
     }
 
     void shutdown() {
@@ -129,6 +129,7 @@ class PeriodicThreadStackTraceSampler implements StackTraceSampler {
 
     @Override
     public void run() {
+      System.out.println("Sampling Thread ID: " + Thread.currentThread().getId());
       long nextSampleTime = System.nanoTime() + delay.toNanos();
       try {
         while (!Thread.currentThread().isInterrupted()) {
@@ -167,17 +168,38 @@ class PeriodicThreadStackTraceSampler implements StackTraceSampler {
       List<StackTrace> stackTraces = new ArrayList<>(threadInfos.length);
       for (ThreadInfo threadInfo : threadInfos) {
         SamplingContext context = contexts.get(threadInfo.getThreadId());
-        stackTraces.add(toStackTrace(threadInfo, context, currentTimestamp));
+        if (traceSamplingContexts.containsKey(context.traceId)) {
+          SpanContext spanContext = retrieveActiveSpan(context.thread);
+          stackTraces.add(
+              toStackTrace(
+                  threadInfo, context, context.traceId, spanContext.getSpanId(), currentTimestamp));
+          context.updateTimestamp(currentTimestamp);
+        }
       }
       return stackTraces;
     }
 
     private StackTrace toStackTrace(
         ThreadInfo threadInfo, SamplingContext context, long currentTimestamp) {
+      SpanContext spanContext = retrieveActiveSpan(context.thread);
+      return toStackTrace(
+          threadInfo, context, context.traceId, spanContext.getSpanId(), currentTimestamp);
+    }
+
+    private StackTrace toStackTrace(
+        ThreadInfo threadInfo,
+        SamplingContext context,
+        String traceId,
+        String spanId,
+        long currentTimestamp) {
       Duration samplingPeriod = Duration.ofNanos(currentTimestamp - context.timestamp);
-      context.updateTimestamp(currentTimestamp);
-      String spanId = retrieveActiveSpan(context.thread).getSpanId();
-      return StackTrace.from(Instant.now(), samplingPeriod, threadInfo, context.traceId, spanId);
+      return StackTrace.from(
+          Instant.now(),
+          samplingPeriod,
+          threadInfo,
+          traceId,
+          spanId,
+          Thread.currentThread().getId());
     }
 
     private SpanContext retrieveActiveSpan(Thread thread) {

@@ -24,8 +24,8 @@ import java.util.Optional;
 class InMemorySpanTracker implements SpanTracker {
   private final Map<Long, SpanContext> activeSpans = new HashMap<>();
 
-  void store(long threadId, SpanContext spanContext) {
-    activeSpans.put(threadId, spanContext);
+  void store(Thread thread, SpanContext spanContext) {
+    activeSpans.put(thread.getId(), spanContext);
   }
 
   @Override

@@ -31,6 +31,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -99,9 +100,9 @@ class PeriodicThreadStackTraceSamplerTest {
               .collect(Collectors.toSet());
       assertEquals(1, threadIds.size());
     } finally {
-      executor.shutdownNow();
       sampler.stop(spanContext1);
       sampler.stop(spanContext2);
+      executor.shutdownNow();
     }
   }
 
@@ -171,9 +172,9 @@ class PeriodicThreadStackTraceSamplerTest {
           staging.allStackTraces().stream().map(StackTrace::getTraceId).collect(Collectors.toSet());
       assertThat(traceIds).contains(spanContext1.getTraceId(), spanContext2.getTraceId());
     } finally {
-      executor.shutdownNow();
       sampler.stop(spanContext1);
       sampler.stop(spanContext2);
+      executor.shutdownNow();
     }
   }
 
@@ -268,7 +269,7 @@ class PeriodicThreadStackTraceSamplerTest {
   @Test
   void includeActiveSpanIdOnStackTraces() {
     var spanContext = Snapshotting.spanContext().build();
-    spanTracker.store(Thread.currentThread().getId(), spanContext);
+    spanTracker.store(Thread.currentThread(), spanContext);
 
     try {
       sampler.start(spanContext);
@@ -288,6 +289,7 @@ class PeriodicThreadStackTraceSamplerTest {
     var control = new ThreadControl(new CountDownLatch(0), new CountDownLatch(1));
     var expectedDuration = SAMPLING_PERIOD.dividedBy(2);
     try {
+      sampler.start(spanContext);
       scheduler.submit(startSampling(spanContext, control));
       scheduler.schedule(
           () -> sampler.stop(spanContext), expectedDuration.toMillis(), TimeUnit.MILLISECONDS);
@@ -302,26 +304,22 @@ class PeriodicThreadStackTraceSamplerTest {
   }
 
   @Test
-  void aTest() {
+  void ensureStartAndStopSamplesAreAssociatedWithCorrectTraceAndSpanId() {
+    // When start and stop samples are taken on a background thread, this delay will cause the
+    // thread
+    // to be associated with a different trace. This will result in a StackTrace with the expected
+    // trace id but a span id from a different trace.
     delayedThreadInfoCollector.setDelay(Duration.ofMillis(100));
 
     var spanContext1 = Snapshotting.spanContext().build();
     var spanContext2 = Snapshotting.spanContext().build();
     sampler.start(spanContext1);
-    spanTracker.store(Thread.currentThread().getId(), spanContext1);
+    spanTracker.store(Thread.currentThread(), spanContext1);
     sampler.stop(spanContext1);
     sampler.start(spanContext2);
-    spanTracker.store(Thread.currentThread().getId(), spanContext2);
+    spanTracker.store(Thread.currentThread(), spanContext2);
 
     await().until(() -> staging.allStackTraces().size() > 1);
-
-    System.out.println(
-        "SpanContext: " + spanContext1.getTraceId() + "|" + spanContext1.getSpanId());
-    System.out.println(
-        "SpanContext: " + spanContext2.getTraceId() + "|" + spanContext2.getSpanId());
-    staging
-        .allStackTraces()
-        .forEach(s -> System.out.println("StackTrace: " + s.getTraceId() + "|" + s.getSpanId()));
 
     assertThat(staging.allStackTraces())
         .map(
@@ -331,6 +329,68 @@ class PeriodicThreadStackTraceSamplerTest {
                     .withSpanId(st.getSpanId())
                     .build())
         .contains(spanContext1);
+  }
+
+  /**
+   * This test is attempting to model a scenario where trace sampling is stopped, but the background
+   * sampling thread still has that trace id in its view. Specifically the test is attempting to
+   * construct the following sequence.
+   *
+   * <p>T1 - sampler.start(Trace 1 on Thread 1)
+   *
+   * <p>At some point later at roughly the same time. T2 - sampler.stop(Trace 1 on Thread 1) T2 -
+   * sampler.sample(All threads, including Thread 1)
+   *
+   * <p>The assumption sampler.sample() will include Thread 1 in its view and retrieve details about
+   * the thread. If this happens we do not want Thread 1 to have a {@link StackTrace} recorded by
+   * the background sampling thread.
+   */
+  @Test
+  void doNotStageStackTraceWhenThreadNoLongerAssociatedWithSameTraceId() throws Exception {
+    var traceThread = Executors.newScheduledThreadPool(1);
+    var scheduler = Executors.newScheduledThreadPool(1);
+    var latch = new CountDownLatch(1);
+    var collector = new CoordinatingThreadInfoCollector(latch);
+    try (var sampler =
+        new PeriodicThreadStackTraceSampler(
+            () -> staging, () -> spanTracker, collector, SAMPLING_PERIOD)) {
+      var spanContext = Snapshotting.spanContext().build();
+      var start =
+          traceThread.submit(
+              () -> sampler.start(spanContext)); // start sampling and take an initial snapshot
+      start.get();
+      collector.startWaiting(); // Begin blocking the thread info collection preventing the periodic
+      // sampling thread from continuing
+
+      // We expect only the stack trace collected by sampler.start() to be available
+      await().until(() -> !staging.allStackTraces().isEmpty());
+      assertEquals(1, staging.allStackTraces().size());
+
+      // Stop sampling, will wait for the CountDownLatch to reach 0 and return details about the
+      // thread
+      var future =
+          traceThread.submit(
+              () -> {
+                sampler.stop(spanContext);
+                return new ThreadInfo(Thread.currentThread());
+              });
+      // schedule the latch to release the periodic sampling thread and the stop sampling request at
+      // the same time
+      scheduler.schedule(latch::countDown, SAMPLING_PERIOD.toMillis(), TimeUnit.MILLISECONDS);
+
+      // Empty our staging area so it will only contain samples taken after the start sample request
+      staging.empty();
+      await().until(() -> !staging.allStackTraces().isEmpty());
+
+      // Expect only 1 stack trace and verify that its from our trace thread.
+      var threadInfo = future.get();
+      assertEquals(1, staging.allStackTraces().size());
+      assertEquals(
+          threadInfo.id,
+          staging.allStackTraces().stream().findFirst().orElseThrow().getRecordingThreadId());
+    } finally {
+      scheduler.shutdownNow();
+    }
   }
 
   @Test
@@ -491,6 +551,45 @@ class PeriodicThreadStackTraceSamplerTest {
     java.lang.management.ThreadInfo[] getThreadInfo(Collection<Long> threadIds) {
       try {
         Thread.sleep(delay.toMillis());
+        return super.getThreadInfo(threadIds);
+      } catch (InterruptedException e) {
+        throw new RuntimeException(e);
+      }
+    }
+  }
+
+  private static class CoordinatingThreadInfoCollector extends ThreadInfoCollector {
+    private final AtomicBoolean wait = new AtomicBoolean(false);
+    private final CountDownLatch latch;
+
+    private CoordinatingThreadInfoCollector(CountDownLatch latch) {
+      this.latch = latch;
+    }
+
+    void startWaiting() {
+      wait.set(true);
+    }
+
+    @Override
+    java.lang.management.ThreadInfo getThreadInfo(long threadId) {
+      try {
+        if (wait.get()) {
+          latch.await();
+          System.out.println("Get Thread Info Thread ID: " + Thread.currentThread().getId());
+        }
+        return super.getThreadInfo(threadId);
+      } catch (InterruptedException e) {
+        throw new RuntimeException(e);
+      }
+    }
+
+    @Override
+    java.lang.management.ThreadInfo[] getThreadInfo(Collection<Long> threadIds) {
+      try {
+        if (wait.get()) {
+          latch.await();
+          System.out.println("Get Thread Infos Thread ID: " + Thread.currentThread().getId());
+        }
         return super.getThreadInfo(threadIds);
       } catch (InterruptedException e) {
         throw new RuntimeException(e);

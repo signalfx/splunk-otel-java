@@ -23,7 +23,12 @@ import java.time.Instant;
 
 class StackTrace {
   static StackTrace from(
-      Instant timestamp, Duration duration, ThreadInfo thread, String traceId, String spanId) {
+      Instant timestamp,
+      Duration duration,
+      ThreadInfo thread,
+      String traceId,
+      String spanId,
+      long recordingThreadId) {
     return new StackTrace(
         timestamp,
         duration,
@@ -32,7 +37,8 @@ class StackTrace {
         thread.getThreadState(),
         thread.getStackTrace(),
         traceId,
-        spanId);
+        spanId,
+        recordingThreadId);
   }
 
   private final Instant timestamp;
@@ -43,6 +49,7 @@ class StackTrace {
   private final StackTraceElement[] stackFrames;
   private final String traceId;
   private final String spanId;
+  private final long recordingThreadId;
 
   @VisibleForTesting
   StackTrace(
@@ -53,7 +60,8 @@ class StackTrace {
       Thread.State threadState,
       StackTraceElement[] stackFrames,
       String traceId,
-      String spanId) {
+      String spanId,
+      long recordingThreadId) {
     this.timestamp = timestamp;
     this.duration = duration;
     this.threadId = threadId;
@@ -62,6 +70,7 @@ class StackTrace {
     this.stackFrames = stackFrames;
     this.traceId = traceId;
     this.spanId = spanId;
+    this.recordingThreadId = recordingThreadId;
   }
 
   Instant getTimestamp() {
@@ -94,5 +103,9 @@ class StackTrace {
 
   String getSpanId() {
     return spanId;
+  }
+
+  long getRecordingThreadId() {
+    return recordingThreadId;
   }
 }

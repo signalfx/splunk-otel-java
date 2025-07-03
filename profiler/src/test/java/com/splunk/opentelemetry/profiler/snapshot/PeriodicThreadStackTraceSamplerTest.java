@@ -575,7 +575,6 @@ class PeriodicThreadStackTraceSamplerTest {
       try {
         if (wait.get()) {
           latch.await();
-          System.out.println("Get Thread Info Thread ID: " + Thread.currentThread().getId());
         }
         return super.getThreadInfo(threadId);
       } catch (InterruptedException e) {
@@ -588,7 +587,6 @@ class PeriodicThreadStackTraceSamplerTest {
       try {
         if (wait.get()) {
           latch.await();
-          System.out.println("Get Thread Infos Thread ID: " + Thread.currentThread().getId());
         }
         return super.getThreadInfo(threadIds);
       } catch (InterruptedException e) {

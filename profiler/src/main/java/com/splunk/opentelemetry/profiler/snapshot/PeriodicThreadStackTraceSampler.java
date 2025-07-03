@@ -129,7 +129,6 @@ class PeriodicThreadStackTraceSampler implements StackTraceSampler {
 
     @Override
     public void run() {
-      System.out.println("Sampling Thread ID: " + Thread.currentThread().getId());
       long nextSampleTime = System.nanoTime() + delay.toNanos();
       try {
         while (!Thread.currentThread().isInterrupted()) {

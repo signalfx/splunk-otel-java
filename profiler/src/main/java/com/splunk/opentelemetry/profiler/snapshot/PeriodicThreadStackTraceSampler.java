@@ -53,7 +53,7 @@ class PeriodicThreadStackTraceSampler implements StackTraceSampler {
       ThreadInfoCollector collector,
       Duration samplingPeriod) {
     sampler = new ThreadSampler(staging, spanTracker, collector, samplingPeriod);
-    sampler.setName("daemon-thread-stack-trace-sampler");
+    sampler.setName("periodic-stack-trace-sampler");
     sampler.setDaemon(true);
     sampler.start();
   }

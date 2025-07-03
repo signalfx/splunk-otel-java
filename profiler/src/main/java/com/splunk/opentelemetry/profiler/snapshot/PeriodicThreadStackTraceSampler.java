@@ -18,7 +18,6 @@ package com.splunk.opentelemetry.profiler.snapshot;
 
 import com.google.common.annotations.VisibleForTesting;
 import io.opentelemetry.api.trace.SpanContext;
-
 import java.lang.management.ThreadInfo;
 import java.time.Duration;
 import java.time.Instant;

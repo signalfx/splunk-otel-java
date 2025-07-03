@@ -23,6 +23,10 @@ import java.util.Collection;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+/**
+ * This class primarily exists to provide tests with a seam in which to hook into the stack trace
+ * collection process for thread coordination purposes.
+ */
 class ThreadInfoCollector {
   private static final Logger logger = Logger.getLogger(ThreadInfoCollector.class.getName());
 

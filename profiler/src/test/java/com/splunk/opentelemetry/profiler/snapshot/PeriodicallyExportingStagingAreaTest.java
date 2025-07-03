@@ -54,7 +54,8 @@ class PeriodicallyExportingStagingAreaTest {
       stagingArea.stage(stackTrace1);
       await().untilAsserted(() -> assertThat(exporter.stackTraces()).contains(stackTrace1));
 
-      stagingArea.stage(List.of(stackTrace2, stackTrace3));
+      stagingArea.stage(stackTrace2);
+      stagingArea.stage(stackTrace3);
       await()
           .untilAsserted(
               () -> assertThat(exporter.stackTraces()).contains(stackTrace2, stackTrace3));
@@ -68,7 +69,8 @@ class PeriodicallyExportingStagingAreaTest {
 
     try (var stagingArea =
         new PeriodicallyExportingStagingArea(() -> exporter, emptyDuration, 10)) {
-      stagingArea.stage(List.of(stackTrace1, stackTrace2));
+      stagingArea.stage(stackTrace1);
+      stagingArea.stage(stackTrace2);
 
       await()
           .untilAsserted(
@@ -115,8 +117,8 @@ class PeriodicallyExportingStagingAreaTest {
   void exportStackTracesWhenCapacityReached() {
     try (var stagingArea =
         new PeriodicallyExportingStagingArea(() -> exporter, Duration.ofDays(1), 2)) {
-      stagingArea.stage(
-          List.of(Snapshotting.stackTrace().build(), Snapshotting.stackTrace().build()));
+      stagingArea.stage(Snapshotting.stackTrace().build());
+      stagingArea.stage(Snapshotting.stackTrace().build());
       await().untilAsserted(() -> assertEquals(2, exporter.stackTraces().size()));
     }
   }
@@ -124,11 +126,9 @@ class PeriodicallyExportingStagingAreaTest {
   @Test
   void exportStackTracesOnNormalScheduleEvenAfterCapacityReached() {
     try (var stagingArea = new PeriodicallyExportingStagingArea(() -> exporter, emptyDuration, 2)) {
-      stagingArea.stage(
-          List.of(
-              Snapshotting.stackTrace().build(),
-              Snapshotting.stackTrace().build(),
-              Snapshotting.stackTrace().build()));
+      stagingArea.stage(Snapshotting.stackTrace().build());
+      stagingArea.stage(Snapshotting.stackTrace().build());
+      stagingArea.stage(Snapshotting.stackTrace().build());
 
       await().untilAsserted(() -> assertEquals(3, exporter.stackTraces().size()));
     }

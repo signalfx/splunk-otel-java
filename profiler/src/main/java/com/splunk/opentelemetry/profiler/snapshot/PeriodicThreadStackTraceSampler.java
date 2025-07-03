@@ -18,12 +18,12 @@ package com.splunk.opentelemetry.profiler.snapshot;
 
 import com.google.common.annotations.VisibleForTesting;
 import io.opentelemetry.api.trace.SpanContext;
+
 import java.lang.management.ThreadInfo;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
@@ -117,9 +117,10 @@ class PeriodicThreadStackTraceSampler implements StackTraceSampler {
     }
 
     private void sample(SamplingContext context) {
-      ThreadInfo threadInfo = collector.getThreadInfo(context.thread.getId());
       long currentTimestamp = System.nanoTime();
-      stage(toStackTrace(threadInfo, context, currentTimestamp));
+      ThreadInfo threadInfo = collector.getThreadInfo(context.thread.getId());
+      StackTrace stackTrace = toStackTrace(threadInfo, context, currentTimestamp);
+      staging.get().stage(stackTrace);
       context.updateTimestamp(currentTimestamp);
     }
 
@@ -149,14 +150,13 @@ class PeriodicThreadStackTraceSampler implements StackTraceSampler {
         return;
       }
 
-      Map<Long, SamplingContext> threadSamplingContexts =
+      Map<Long, SamplingContext> threadContexts =
           contexts.stream().collect(Collectors.toMap(c -> c.thread.getId(), context -> context));
-      long currentSampleTimestamp = System.nanoTime();
+      long currentTimestamp = System.nanoTime();
       try {
-        ThreadInfo[] threadInfos = collector.getThreadInfo(threadSamplingContexts.keySet());
-        List<StackTrace> stackTraces =
-            toStackTraces(threadInfos, threadSamplingContexts, currentSampleTimestamp);
-        stage(stackTraces);
+        ThreadInfo[] threadInfos = collector.getThreadInfo(threadContexts.keySet());
+        List<StackTrace> stackTraces = toStackTraces(threadInfos, threadContexts, currentTimestamp);
+        staging.get().stage(stackTraces);
       } catch (Exception e) {
         logger.log(Level.SEVERE, e, () -> "Unexpected error during callstack sampling");
       }
@@ -203,27 +203,6 @@ class PeriodicThreadStackTraceSampler implements StackTraceSampler {
 
     private SpanContext retrieveActiveSpan(Thread thread) {
       return spanTracker.get().getActiveSpan(thread).orElse(SpanContext.getInvalid());
-    }
-
-    private void stage(StackTrace stackTrace) {
-      stage(Collections.singletonList(stackTrace));
-    }
-
-    private void stage(Collection<StackTrace> stackTraces) {
-      try {
-        staging.get().stage(stackTraces);
-      } catch (Exception e) {
-        logger.log(Level.SEVERE, e, stagingErrorMessage(stackTraces));
-      }
-    }
-
-    private Supplier<String> stagingErrorMessage(Collection<StackTrace> stackTraces) {
-      return () ->
-          "Exception thrown attempting to stage callstacks for trace ids " + traceIds(stackTraces);
-    }
-
-    private String traceIds(Collection<StackTrace> stackTraces) {
-      return stackTraces.stream().map(StackTrace::getTraceId).collect(Collectors.joining(","));
     }
   }
 

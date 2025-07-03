@@ -38,7 +38,7 @@ class PeriodicallyExportingStagingAreaTest {
     var stackTrace = Snapshotting.stackTrace().build();
     try (var stagingArea =
         new PeriodicallyExportingStagingArea(() -> exporter, emptyDuration, 10)) {
-      stagingArea.stage(List.of(stackTrace));
+      stagingArea.stage(stackTrace);
       await().untilAsserted(() -> assertThat(exporter.stackTraces()).contains(stackTrace));
     }
   }
@@ -51,7 +51,7 @@ class PeriodicallyExportingStagingAreaTest {
 
     try (var stagingArea =
         new PeriodicallyExportingStagingArea(() -> exporter, emptyDuration, 10)) {
-      stagingArea.stage(List.of(stackTrace1));
+      stagingArea.stage(stackTrace1);
       await().untilAsserted(() -> assertThat(exporter.stackTraces()).contains(stackTrace1));
 
       stagingArea.stage(List.of(stackTrace2, stackTrace3));
@@ -82,7 +82,7 @@ class PeriodicallyExportingStagingAreaTest {
 
     try (var stagingArea =
         new PeriodicallyExportingStagingArea(() -> exporter, emptyDuration, 10)) {
-      stagingArea.stage(List.of(stackTrace));
+      stagingArea.stage(stackTrace);
       await().until(() -> !exporter.stackTraces().isEmpty());
 
       assertEquals(List.of(stackTrace), exporter.stackTraces());
@@ -94,7 +94,7 @@ class PeriodicallyExportingStagingAreaTest {
     var stackTrace = Snapshotting.stackTrace().build();
 
     var stagingArea = new PeriodicallyExportingStagingArea(() -> exporter, Duration.ofDays(1), 10);
-    stagingArea.stage(List.of(stackTrace));
+    stagingArea.stage(stackTrace);
     stagingArea.close();
 
     await().untilAsserted(() -> assertEquals(List.of(stackTrace), exporter.stackTraces()));
@@ -106,7 +106,7 @@ class PeriodicallyExportingStagingAreaTest {
 
     var stagingArea = new PeriodicallyExportingStagingArea(() -> exporter, emptyDuration, 10);
     stagingArea.close();
-    stagingArea.stage(List.of(stackTrace));
+    stagingArea.stage(stackTrace);
 
     assertEquals(Collections.emptyList(), exporter.stackTraces());
   }

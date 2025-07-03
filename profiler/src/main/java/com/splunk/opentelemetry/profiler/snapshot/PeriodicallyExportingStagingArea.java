@@ -26,6 +26,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 class PeriodicallyExportingStagingArea implements StagingArea {
   private static final Logger logger =
@@ -52,9 +53,22 @@ class PeriodicallyExportingStagingArea implements StagingArea {
       return;
     }
 
-    for (StackTrace stackTrace : stackTraces) {
-      worker.add(stackTrace);
+    try {
+      for (StackTrace stackTrace : stackTraces) {
+        worker.add(stackTrace);
+      }
+    } catch (Exception e) {
+      logger.log(Level.SEVERE, e, stagingErrorMessage(stackTraces));
     }
+  }
+
+  private Supplier<String> stagingErrorMessage(Collection<StackTrace> stackTraces) {
+    return () ->
+        "Exception thrown attempting to stage callstacks for trace ids " + traceIds(stackTraces);
+  }
+
+  private String traceIds(Collection<StackTrace> stackTraces) {
+    return stackTraces.stream().map(StackTrace::getTraceId).collect(Collectors.joining(","));
   }
 
   @Override

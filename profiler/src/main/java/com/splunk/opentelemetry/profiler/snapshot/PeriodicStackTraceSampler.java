@@ -34,19 +34,18 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-class PeriodicThreadStackTraceSampler implements StackTraceSampler {
-  private static final Logger logger =
-      Logger.getLogger(PeriodicThreadStackTraceSampler.class.getName());
+class PeriodicStackTraceSampler implements StackTraceSampler {
+  private static final Logger logger = Logger.getLogger(PeriodicStackTraceSampler.class.getName());
 
   private final ThreadSampler sampler;
 
-  public PeriodicThreadStackTraceSampler(
+  public PeriodicStackTraceSampler(
       Supplier<StagingArea> staging, Supplier<SpanTracker> spanTracker, Duration samplingPeriod) {
     this(staging, spanTracker, new ThreadInfoCollector(), samplingPeriod);
   }
 
   @VisibleForTesting
-  PeriodicThreadStackTraceSampler(
+  PeriodicStackTraceSampler(
       Supplier<StagingArea> staging,
       Supplier<SpanTracker> spanTracker,
       ThreadInfoCollector collector,

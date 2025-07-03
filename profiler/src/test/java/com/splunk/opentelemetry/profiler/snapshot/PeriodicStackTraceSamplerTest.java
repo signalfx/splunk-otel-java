@@ -36,15 +36,15 @@ import java.util.stream.Collectors;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
-class PeriodicThreadStackTraceSamplerTest {
+class PeriodicStackTraceSamplerTest {
   private static final Duration SAMPLING_PERIOD = Duration.ofMillis(20);
 
   private final InMemoryStagingArea staging = new InMemoryStagingArea();
   private final InMemorySpanTracker spanTracker = new InMemorySpanTracker();
   private final DelayedThreadInfoCollector delayedThreadInfoCollector =
       new DelayedThreadInfoCollector();
-  private final PeriodicThreadStackTraceSampler sampler =
-      new PeriodicThreadStackTraceSampler(
+  private final PeriodicStackTraceSampler sampler =
+      new PeriodicStackTraceSampler(
           () -> staging, () -> spanTracker, delayedThreadInfoCollector, SAMPLING_PERIOD);
 
   @AfterEach
@@ -352,7 +352,7 @@ class PeriodicThreadStackTraceSamplerTest {
     var latch = new CountDownLatch(1);
     var collector = new CoordinatingThreadInfoCollector(latch);
     try (var sampler =
-        new PeriodicThreadStackTraceSampler(
+        new PeriodicStackTraceSampler(
             () -> staging, () -> spanTracker, collector, SAMPLING_PERIOD)) {
       var spanContext = Snapshotting.spanContext().build();
       var start =

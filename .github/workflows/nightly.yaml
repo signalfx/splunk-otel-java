@@ -20,6 +20,8 @@ jobs:
             --include-fragments
             --exclude "https://developers.redhat.com/download-manager/file/jboss-eap-.*.zip"
             --exclude "http://localhost*"
+            --exclude "https://central.sonatype.com/service/rest/repository/browse/maven-snapshots/com/splunk/"
+            --max-retries 6
             --github-token ${{ github.token }}
 
   build:

@@ -210,7 +210,7 @@ class PeriodicStackTraceSampler implements StackTraceSampler {
     private final Thread thread;
     private final String traceId;
     private final String spanId;
-    private long timestamp;
+    private volatile long timestamp;
 
     private SamplingContext(Thread thread, String traceId, String spanId, long timestamp) {
       this.thread = thread;

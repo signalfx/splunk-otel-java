@@ -113,13 +113,13 @@ class PeriodicStackTraceSampler implements StackTraceSampler {
     }
 
     private void sample(SamplingContext context) {
-      long currentTimestamp = System.nanoTime();
+      long currentSampleTime = System.nanoTime();
       ThreadInfo threadInfo = collector.getThreadInfo(context.thread.getId());
       SpanContext spanContext = retrieveActiveSpan(context.thread);
       StackTrace stackTrace = toStackTrace(
-              threadInfo, context, context.traceId, spanContext.getSpanId(), currentTimestamp);
+              threadInfo, context, context.traceId, spanContext.getSpanId(), currentSampleTime);
       staging.get().stage(stackTrace);
-      context.updateTimestamp(currentTimestamp);
+      context.updateSampleTime(currentSampleTime);
     }
 
     void shutdown() {
@@ -148,10 +148,10 @@ class PeriodicStackTraceSampler implements StackTraceSampler {
 
       Map<Long, SamplingContext> threadContexts =
           contexts.stream().collect(Collectors.toMap(c -> c.thread.getId(), context -> context));
-      long currentTimestamp = System.nanoTime();
+      long currentSampleTime = System.nanoTime();
       try {
         ThreadInfo[] threadInfos = collector.getThreadInfo(threadContexts.keySet());
-        List<StackTrace> stackTraces = toStackTraces(threadInfos, threadContexts, currentTimestamp);
+        List<StackTrace> stackTraces = toStackTraces(threadInfos, threadContexts, currentSampleTime);
         staging.get().stage(stackTraces);
       } catch (Exception e) {
         logger.log(Level.SEVERE, e, () -> "Unexpected error during callstack sampling");
@@ -159,7 +159,7 @@ class PeriodicStackTraceSampler implements StackTraceSampler {
     }
 
     private List<StackTrace> toStackTraces(
-        ThreadInfo[] threadInfos, Map<Long, SamplingContext> contexts, long currentTimestamp) {
+        ThreadInfo[] threadInfos, Map<Long, SamplingContext> contexts, long currentSampleTime) {
       List<StackTrace> stackTraces = new ArrayList<>(threadInfos.length);
       for (ThreadInfo threadInfo : threadInfos) {
         SamplingContext context = contexts.get(threadInfo.getThreadId());
@@ -170,8 +170,8 @@ class PeriodicStackTraceSampler implements StackTraceSampler {
           SpanContext spanContext = retrieveActiveSpan(context.thread);
           stackTraces.add(
               toStackTrace(
-                  threadInfo, context, context.traceId, spanContext.getSpanId(), currentTimestamp));
-          context.updateTimestamp(currentTimestamp);
+                  threadInfo, context, context.traceId, spanContext.getSpanId(), currentSampleTime));
+          context.updateSampleTime(currentSampleTime);
         }
       }
       return stackTraces;
@@ -182,8 +182,8 @@ class PeriodicStackTraceSampler implements StackTraceSampler {
         SamplingContext context,
         String traceId,
         String spanId,
-        long sampleTimestamp) {
-      Duration samplingPeriod = Duration.ofNanos(sampleTimestamp - context.timestamp);
+        long currentSampleTime) {
+      Duration samplingPeriod = Duration.ofNanos(currentSampleTime - context.sampleTime);
       return StackTrace.from(
           Instant.now(),
           samplingPeriod,
@@ -202,17 +202,17 @@ class PeriodicStackTraceSampler implements StackTraceSampler {
     private final Thread thread;
     private final String traceId;
     private final String spanId;
-    private volatile long timestamp;
+    private volatile long sampleTime;
 
-    private SamplingContext(Thread thread, String traceId, String spanId, long timestamp) {
+    private SamplingContext(Thread thread, String traceId, String spanId, long sampleTime) {
       this.thread = thread;
       this.traceId = traceId;
       this.spanId = spanId;
-      this.timestamp = timestamp;
+      this.sampleTime = sampleTime;
     }
 
-    void updateTimestamp(long timestamp) {
-      this.timestamp = timestamp;
+    void updateSampleTime(long timestamp) {
+      this.sampleTime = timestamp;
     }
   }
 }

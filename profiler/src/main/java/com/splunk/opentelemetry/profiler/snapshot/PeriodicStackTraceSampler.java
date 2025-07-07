@@ -165,6 +165,8 @@ class PeriodicStackTraceSampler implements StackTraceSampler {
       List<StackTrace> stackTraces = new ArrayList<>(threadInfos.length);
       for (ThreadInfo threadInfo : threadInfos) {
         SamplingContext context = contexts.get(threadInfo.getThreadId());
+        // It's possible for a thread to be removed from sampling AFTER the periodic sample
+        // has been taken. Do a final check to verify the thread should be sampled
         if (traceSamplingContexts.containsKey(context.traceId)) {
           SpanContext spanContext = retrieveActiveSpan(context.thread);
           stackTraces.add(

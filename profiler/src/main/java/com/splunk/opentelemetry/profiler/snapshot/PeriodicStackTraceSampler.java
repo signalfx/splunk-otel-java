@@ -18,6 +18,7 @@ package com.splunk.opentelemetry.profiler.snapshot;
 
 import com.google.common.annotations.VisibleForTesting;
 import io.opentelemetry.api.trace.SpanContext;
+
 import java.lang.management.ThreadInfo;
 import java.time.Duration;
 import java.time.Instant;
@@ -28,6 +29,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -183,7 +185,7 @@ class PeriodicStackTraceSampler implements StackTraceSampler {
         String traceId,
         String spanId,
         long currentSampleTime) {
-      Duration samplingPeriod = Duration.ofNanos(currentSampleTime - context.sampleTime);
+      Duration samplingPeriod = Duration.ofNanos(currentSampleTime - context.sampleTime.get());
       return StackTrace.from(
           Instant.now(),
           samplingPeriod,
@@ -202,17 +204,24 @@ class PeriodicStackTraceSampler implements StackTraceSampler {
     private final Thread thread;
     private final String traceId;
     private final String spanId;
-    private volatile long sampleTime;
+    private final AtomicLong sampleTime;
 
     private SamplingContext(Thread thread, String traceId, String spanId, long sampleTime) {
       this.thread = thread;
       this.traceId = traceId;
       this.spanId = spanId;
-      this.sampleTime = sampleTime;
+      this.sampleTime = new AtomicLong(sampleTime);
     }
 
     void updateSampleTime(long timestamp) {
-      this.sampleTime = timestamp;
+      this.sampleTime.updateAndGet(operand -> {
+        // Prevent sample time being updated to a "past" value due to race condition between periodic samples
+        // and stop profiling samples
+        if (timestamp <= sampleTime.get()) {
+          return operand;
+        }
+        return timestamp;
+      });
     }
   }
 }

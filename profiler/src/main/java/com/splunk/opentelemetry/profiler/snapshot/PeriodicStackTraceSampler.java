@@ -164,6 +164,7 @@ class PeriodicStackTraceSampler implements StackTraceSampler {
         // It's possible for a thread to be removed from sampling AFTER the periodic sample
         // has been taken. Do a final check to verify the thread should be sampled
         if (traceSamplingContexts.containsKey(context.traceId)) {
+          // NOTE: It's possible the active span will have changed since the sample was taken
           SpanContext spanContext = retrieveActiveSpan(context.thread);
           stackTraces.add(
               toStackTrace(

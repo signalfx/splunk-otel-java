@@ -115,7 +115,9 @@ class PeriodicStackTraceSampler implements StackTraceSampler {
     private void sample(SamplingContext context) {
       long currentTimestamp = System.nanoTime();
       ThreadInfo threadInfo = collector.getThreadInfo(context.thread.getId());
-      StackTrace stackTrace = toStackTrace(threadInfo, context, currentTimestamp);
+      SpanContext spanContext = retrieveActiveSpan(context.thread);
+      StackTrace stackTrace = toStackTrace(
+              threadInfo, context, context.traceId, spanContext.getSpanId(), currentTimestamp);
       staging.get().stage(stackTrace);
       context.updateTimestamp(currentTimestamp);
     }
@@ -173,13 +175,6 @@ class PeriodicStackTraceSampler implements StackTraceSampler {
         }
       }
       return stackTraces;
-    }
-
-    private StackTrace toStackTrace(
-        ThreadInfo threadInfo, SamplingContext context, long currentTimestamp) {
-      SpanContext spanContext = retrieveActiveSpan(context.thread);
-      return toStackTrace(
-          threadInfo, context, context.traceId, spanContext.getSpanId(), currentTimestamp);
     }
 
     private StackTrace toStackTrace(

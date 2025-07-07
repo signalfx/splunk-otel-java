@@ -25,9 +25,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 import java.util.logging.Level;
@@ -72,10 +71,9 @@ class PeriodicStackTraceSampler implements StackTraceSampler {
   }
 
   private static class ThreadSampler extends Thread {
-    private static final Object SHUTDOWN_SIGNAL = new Object();
 
     private final Map<String, SamplingContext> traceSamplingContexts = new ConcurrentHashMap<>();
-    private final BlockingQueue<Object> queue = new LinkedBlockingQueue<>();
+    private final CountDownLatch shutdownLatch = new CountDownLatch(1);
     private final Supplier<StagingArea> staging;
     private final Supplier<SpanTracker> spanTracker;
     private final ThreadInfoCollector collector;
@@ -123,20 +121,18 @@ class PeriodicStackTraceSampler implements StackTraceSampler {
     }
 
     void shutdown() {
-      queue.add(SHUTDOWN_SIGNAL);
+      shutdownLatch.countDown();
     }
 
     @Override
     public void run() {
-      long nextSampleTime = System.nanoTime() + delay.toNanos();
       try {
         while (!Thread.currentThread().isInterrupted()) {
-          Object object = queue.poll(nextSampleTime - System.nanoTime(), TimeUnit.NANOSECONDS);
-          if (object == SHUTDOWN_SIGNAL) {
+          boolean shutdown = shutdownLatch.await(delay.toNanos(), TimeUnit.NANOSECONDS);
+          if (shutdown) {
             return;
           }
           sample(traceSamplingContexts.values());
-          nextSampleTime = System.nanoTime() + delay.toNanos();
         }
       } catch (InterruptedException e) {
         Thread.currentThread().interrupt();

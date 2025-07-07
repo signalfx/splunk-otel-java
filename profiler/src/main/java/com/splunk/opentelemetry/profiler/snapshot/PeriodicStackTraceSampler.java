@@ -182,8 +182,8 @@ class PeriodicStackTraceSampler implements StackTraceSampler {
         SamplingContext context,
         String traceId,
         String spanId,
-        long currentTimestamp) {
-      Duration samplingPeriod = Duration.ofNanos(currentTimestamp - context.timestamp);
+        long sampleTimestamp) {
+      Duration samplingPeriod = Duration.ofNanos(sampleTimestamp - context.timestamp);
       return StackTrace.from(
           Instant.now(),
           samplingPeriod,

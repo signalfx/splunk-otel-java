@@ -338,48 +338,51 @@ class PeriodicStackTraceSamplerTest {
    *
    * <p>T1 - sampler.start(Trace 1 on Thread 1)
    *
-   * <p>At some point later at roughly the same time. T2 - sampler.stop(Trace 1 on Thread 1) T2 -
-   * sampler.sample(All threads, including Thread 1)
+   * <p>At some point later but roughly the same time. <br>
+   * T2 - sampler.stop(Trace 1 on Thread 1) <br>
+   * T2 - sampler.sample(All threads, including Thread 1)
    *
-   * <p>The assumption sampler.sample() will include Thread 1 in its view and retrieve details about
-   * the thread. If this happens we do not want Thread 1 to have a {@link StackTrace} recorded by
-   * the background sampling thread.
+   * <p>The assumption is sampler.sample() will include Thread 1 in its view and retrieve details
+   * about the thread. If this happens we do not want Thread 1 to have a {@link StackTrace} recorded
+   * by the background sampling thread.
    */
   @Test
   void doNotStageStackTraceWhenThreadNoLongerAssociatedWithSameTraceId() throws Exception {
-    var traceThread = Executors.newScheduledThreadPool(1);
-    var scheduler = Executors.newScheduledThreadPool(1);
+    var spanContext = Snapshotting.spanContext().build();
     var latch = new CountDownLatch(1);
     var collector = new CoordinatingThreadInfoCollector(latch);
+
+    var thread1 = Executors.newScheduledThreadPool(1);
+    var thread2 = Executors.newScheduledThreadPool(1);
     try (var sampler =
         new PeriodicStackTraceSampler(
             () -> staging, () -> spanTracker, collector, SAMPLING_PERIOD)) {
-      var spanContext = Snapshotting.spanContext().build();
-      var start =
-          traceThread.submit(
-              () -> sampler.start(spanContext)); // start sampling and take an initial snapshot
+      // start sampling and take an initial snapshot
+      var start = thread1.submit(() -> sampler.start(spanContext));
       start.get();
-      collector.startWaiting(); // Begin blocking the thread info collection preventing the periodic
+
+      // Begin blocking the thread info collection preventing the periodic
       // sampling thread from continuing
+      collector.startWaiting();
 
       // We expect only the stack trace collected by sampler.start() to be available
       await().until(() -> !staging.allStackTraces().isEmpty());
       assertEquals(1, staging.allStackTraces().size());
+      // Empty our staging area so it will only contain samples taken after the start sample request
+      staging.empty();
 
       // Stop sampling, will wait for the CountDownLatch to reach 0 and return details about the
       // thread
       var future =
-          traceThread.submit(
+          thread1.submit(
               () -> {
                 sampler.stop(spanContext);
                 return new ThreadInfo(Thread.currentThread());
               });
       // schedule the latch to release the periodic sampling thread and the stop sampling request at
       // the same time
-      scheduler.schedule(latch::countDown, SAMPLING_PERIOD.toMillis(), TimeUnit.MILLISECONDS);
+      thread2.schedule(latch::countDown, SAMPLING_PERIOD.toMillis(), TimeUnit.MILLISECONDS);
 
-      // Empty our staging area so it will only contain samples taken after the start sample request
-      staging.empty();
       await().until(() -> !staging.allStackTraces().isEmpty());
 
       // Expect only 1 stack trace and verify that its from our trace thread.
@@ -390,7 +393,8 @@ class PeriodicStackTraceSamplerTest {
           threadInfo.id,
           staging.allStackTraces().stream().findFirst().orElseThrow().getRecordingThreadId());
     } finally {
-      scheduler.shutdownNow();
+      thread1.shutdownNow();
+      thread2.shutdownNow();
     }
   }
 

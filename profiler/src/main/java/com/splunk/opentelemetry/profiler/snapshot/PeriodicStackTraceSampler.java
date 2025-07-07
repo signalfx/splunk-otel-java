@@ -18,7 +18,6 @@ package com.splunk.opentelemetry.profiler.snapshot;
 
 import com.google.common.annotations.VisibleForTesting;
 import io.opentelemetry.api.trace.SpanContext;
-
 import java.lang.management.ThreadInfo;
 import java.time.Duration;
 import java.time.Instant;
@@ -30,6 +29,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -103,22 +103,30 @@ class PeriodicStackTraceSampler implements StackTraceSampler {
     }
 
     void remove(String traceId, String spanId) {
+      AtomicReference<SamplingContext> reference = new AtomicReference<>();
       traceSamplingContexts.computeIfPresent(
           traceId,
           (t, context) -> {
             if (spanId.equals(context.spanId)) {
-              sample(context);
+              // We want to remove the Map entry ASAP so store the SamplingContext for later
+              reference.set(context);
               return null;
             }
             return context;
           });
+
+      SamplingContext context = reference.get();
+      if (context != null) {
+        sample(context);
+      }
     }
 
     private void sample(SamplingContext context) {
       long currentSampleTime = System.nanoTime();
       ThreadInfo threadInfo = collector.getThreadInfo(context.thread.getId());
       SpanContext spanContext = retrieveActiveSpan(context.thread);
-      StackTrace stackTrace = toStackTrace(
+      StackTrace stackTrace =
+          toStackTrace(
               threadInfo, context, context.traceId, spanContext.getSpanId(), currentSampleTime);
       staging.get().stage(stackTrace);
       context.updateSampleTime(currentSampleTime);
@@ -153,7 +161,8 @@ class PeriodicStackTraceSampler implements StackTraceSampler {
       long currentSampleTime = System.nanoTime();
       try {
         ThreadInfo[] threadInfos = collector.getThreadInfo(threadContexts.keySet());
-        List<StackTrace> stackTraces = toStackTraces(threadInfos, threadContexts, currentSampleTime);
+        List<StackTrace> stackTraces =
+            toStackTraces(threadInfos, threadContexts, currentSampleTime);
         staging.get().stage(stackTraces);
       } catch (Exception e) {
         logger.log(Level.SEVERE, e, () -> "Unexpected error during callstack sampling");
@@ -172,7 +181,11 @@ class PeriodicStackTraceSampler implements StackTraceSampler {
           SpanContext spanContext = retrieveActiveSpan(context.thread);
           stackTraces.add(
               toStackTrace(
-                  threadInfo, context, context.traceId, spanContext.getSpanId(), currentSampleTime));
+                  threadInfo,
+                  context,
+                  context.traceId,
+                  spanContext.getSpanId(),
+                  currentSampleTime));
           context.updateSampleTime(currentSampleTime);
         }
       }
@@ -214,14 +227,16 @@ class PeriodicStackTraceSampler implements StackTraceSampler {
     }
 
     void updateSampleTime(long timestamp) {
-      this.sampleTime.updateAndGet(operand -> {
-        // Prevent sample time being updated to a "past" value due to race condition between periodic samples
-        // and stop profiling samples
-        if (timestamp <= sampleTime.get()) {
-          return operand;
-        }
-        return timestamp;
-      });
+      this.sampleTime.updateAndGet(
+          operand -> {
+            // Prevent sample time being updated to a "past" value due to race condition between
+            // periodic samples
+            // and stop profiling samples
+            if (timestamp <= sampleTime.get()) {
+              return operand;
+            }
+            return timestamp;
+          });
     }
   }
 }

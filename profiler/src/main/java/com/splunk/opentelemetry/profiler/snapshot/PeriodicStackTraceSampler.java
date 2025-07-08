@@ -230,8 +230,7 @@ class PeriodicStackTraceSampler implements StackTraceSampler {
       this.sampleTime.updateAndGet(
           operand -> {
             // Prevent sample time being updated to a "past" value due to race condition between
-            // periodic samples
-            // and stop profiling samples
+            // periodic samples and stop profiling samples
             if (timestamp <= sampleTime.get()) {
               return operand;
             }

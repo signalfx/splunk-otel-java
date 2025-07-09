@@ -25,13 +25,13 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Supplier;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -73,7 +73,6 @@ class PeriodicStackTraceSampler implements StackTraceSampler {
   }
 
   private static class ThreadSampler extends Thread {
-
     private final Map<String, SamplingContext> traceSamplingContexts = new ConcurrentHashMap<>();
     private final CountDownLatch shutdownLatch = new CountDownLatch(1);
     private final Supplier<StagingArea> staging;
@@ -97,39 +96,37 @@ class PeriodicStackTraceSampler implements StackTraceSampler {
           traceId,
           tid -> {
             SamplingContext context = new SamplingContext(thread, tid, spanId, System.nanoTime());
-            sample(context);
+            takeOnDemandSample(context).ifPresent(staging.get()::stage);
             return context;
           });
     }
 
     void remove(String traceId, String spanId) {
-      AtomicReference<SamplingContext> reference = new AtomicReference<>();
       traceSamplingContexts.computeIfPresent(
           traceId,
           (t, context) -> {
             if (spanId.equals(context.spanId)) {
-              // We want to remove the Map entry ASAP so store the SamplingContext for later
-              reference.set(context);
+              takeOnDemandSample(context).ifPresent(staging.get()::stage);
               return null;
             }
             return context;
           });
-
-      SamplingContext context = reference.get();
-      if (context != null) {
-        sample(context);
-      }
     }
 
-    private void sample(SamplingContext context) {
+    private Optional<StackTrace> takeOnDemandSample(SamplingContext context) {
       long currentSampleTime = System.nanoTime();
-      ThreadInfo threadInfo = collector.getThreadInfo(context.thread.getId());
-      SpanContext spanContext = retrieveActiveSpan(context.thread);
-      StackTrace stackTrace =
-          toStackTrace(
-              threadInfo, context, context.traceId, spanContext.getSpanId(), currentSampleTime);
-      staging.get().stage(stackTrace);
-      context.updateSampleTime(currentSampleTime);
+      // When the context is locked, the periodic sampling thread is actively reporting
+      // a sample. No need to report both so skip the on-demand sample.
+      if (context.lock.tryLock()) {
+        try {
+          ThreadInfo threadInfo = collector.getThreadInfo(context.thread.getId());
+          SpanContext spanContext = retrieveActiveSpan(context.thread);
+          return toStackTrace(threadInfo, context, spanContext.getSpanId(), currentSampleTime);
+        } finally {
+          context.lock.unlock();
+        }
+      }
+      return Optional.empty();
     }
 
     void shutdown() {
@@ -165,7 +162,7 @@ class PeriodicStackTraceSampler implements StackTraceSampler {
             toStackTraces(threadInfos, threadContexts, currentSampleTime);
         staging.get().stage(stackTraces);
       } catch (Exception e) {
-        logger.log(Level.SEVERE, e, () -> "Unexpected error during callstack sampling");
+        logger.info("Unexpected error during callstack sampling");
       }
     }
 
@@ -174,68 +171,71 @@ class PeriodicStackTraceSampler implements StackTraceSampler {
       List<StackTrace> stackTraces = new ArrayList<>(threadInfos.length);
       for (ThreadInfo threadInfo : threadInfos) {
         SamplingContext context = contexts.get(threadInfo.getThreadId());
-        // It's possible for a thread to be removed from sampling AFTER the periodic sample
-        // has been taken. Do a final check to verify the thread should be sampled
-        if (traceSamplingContexts.containsKey(context.traceId)) {
-          // NOTE: It's possible the active span will have changed since the sample was taken
-          SpanContext spanContext = retrieveActiveSpan(context.thread);
-          stackTraces.add(
-              toStackTrace(
-                  threadInfo,
-                  context,
-                  context.traceId,
-                  spanContext.getSpanId(),
-                  currentSampleTime));
-          context.updateSampleTime(currentSampleTime);
+        // When the context is locked and on demand sample is being taken. No need to report
+        // both so skip the on-demand sample.
+        if (context.lock.tryLock()) {
+          try {
+            SpanContext spanContext = retrieveActiveSpan(context.thread);
+            toStackTrace(
+                threadInfo,
+                context,
+                spanContext.getSpanId(),
+                currentSampleTime)
+                .ifPresent(stackTraces::add);
+          } finally {
+            context.lock.unlock();
+          }
         }
       }
       return stackTraces;
     }
 
-    private StackTrace toStackTrace(
+    private Optional<StackTrace> toStackTrace(
         ThreadInfo threadInfo,
         SamplingContext context,
-        String traceId,
         String spanId,
         long currentSampleTime) {
-      Duration samplingPeriod = Duration.ofNanos(currentSampleTime - context.sampleTime.get());
-      return StackTrace.from(
-          Instant.now(),
-          samplingPeriod,
-          threadInfo,
-          traceId,
-          spanId,
-          Thread.currentThread().getId());
+      // If multiple threads have managed to take a sample for the same context
+      // one of the sampling periods may be a negative value. If this happens a
+      // previous sample fully encompasses this sample and so this sample can
+      // be safely dropped.
+      Duration samplingPeriod = Duration.ofNanos(currentSampleTime - context.sampleTime);
+      if (samplingPeriod.isNegative()) {
+        return Optional.empty();
+      }
+      context.updateSampleTime(currentSampleTime);
+      return Optional.of(
+          StackTrace.from(
+              Instant.now(),
+              samplingPeriod,
+              threadInfo,
+              context.traceId,
+              spanId,
+              Thread.currentThread().getId()));
     }
 
+    /** It's possible the active span will have changed since the sample was taken */
     private SpanContext retrieveActiveSpan(Thread thread) {
       return spanTracker.get().getActiveSpan(thread).orElse(SpanContext.getInvalid());
     }
   }
 
   private static class SamplingContext {
+    private final Lock lock = new ReentrantLock();
     private final Thread thread;
     private final String traceId;
     private final String spanId;
-    private final AtomicLong sampleTime;
+    private volatile long sampleTime;
 
     private SamplingContext(Thread thread, String traceId, String spanId, long sampleTime) {
       this.thread = thread;
       this.traceId = traceId;
       this.spanId = spanId;
-      this.sampleTime = new AtomicLong(sampleTime);
+      this.sampleTime = sampleTime;
     }
 
-    void updateSampleTime(long timestamp) {
-      this.sampleTime.updateAndGet(
-          operand -> {
-            // Prevent sample time being updated to a "past" value due to race condition between
-            // periodic samples and stop profiling samples
-            if (timestamp <= sampleTime.get()) {
-              return operand;
-            }
-            return timestamp;
-          });
+    void updateSampleTime(long sampleTime) {
+      this.sampleTime = sampleTime;
     }
   }
 }

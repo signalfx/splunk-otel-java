@@ -24,6 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.sdk.trace.IdGenerator;
+import java.lang.management.ThreadInfo;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Collection;
@@ -34,6 +35,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 
 class PeriodicStackTraceSamplerTest {
@@ -232,7 +234,7 @@ class PeriodicStackTraceSamplerTest {
     var spanContext = Snapshotting.spanContext().build();
     var control = new ThreadControl(new CountDownLatch(1), new CountDownLatch(1));
     try {
-      var future = executor.submit(startSampling(spanContext, control));
+      var future = executor.submit(captureThreadInfo(startSampling(spanContext, control)));
 
       control.start();
       await().until(staging::hasStackTraces);
@@ -345,8 +347,11 @@ class PeriodicStackTraceSamplerTest {
    * <p>The assumption is sampler.sample() will include Thread 1 in its view and retrieve details
    * about the thread. If this happens we do not want Thread 1 to have a {@link StackTrace} recorded
    * by the background sampling thread.
+   *
+   * <p>Since we can't fully coordinate the threads to consistently reproduce the scenario we
+   * repeat the test a handful of times to increase the odds the race condition will be encountered.
    */
-  @Test
+  @RepeatedTest(10)
   void doNotStageStackTraceWhenThreadNoLongerAssociatedWithSameTraceId() throws Exception {
     var spanContext = Snapshotting.spanContext().build();
     var latch = new CountDownLatch(1);
@@ -357,41 +362,68 @@ class PeriodicStackTraceSamplerTest {
     try (var sampler =
         new PeriodicStackTraceSampler(
             () -> staging, () -> spanTracker, collector, SAMPLING_PERIOD)) {
-      // start sampling and take an initial snapshot
-      var start = thread1.submit(() -> sampler.start(spanContext));
-      start.get();
+      thread1.submit(() -> sampler.start(spanContext)).get();
 
-      // Begin blocking the thread info collection preventing the periodic
-      // sampling thread from continuing
-      collector.startWaiting();
+      collector.blockThreadInfoCollection();
 
-      // We expect only the stack trace collected by sampler.start() to be available
+      // wait for the start span snapshot remove it
       await().until(() -> !staging.allStackTraces().isEmpty());
-      assertEquals(1, staging.allStackTraces().size());
-      // Empty our staging area so it will only contain samples taken after the start sample request
       staging.empty();
 
-      // Stop sampling, will wait for the CountDownLatch to reach 0 and return details about the
-      // thread
-      var future =
-          thread1.submit(
-              () -> {
-                sampler.stop(spanContext);
-                return new ThreadInfo(Thread.currentThread());
-              });
-      // schedule the latch to release the periodic sampling thread and the stop sampling request at
-      // the same time
+      var future = thread1.submit(captureThreadInfo(() -> sampler.stop(spanContext)));
       thread2.schedule(latch::countDown, SAMPLING_PERIOD.toMillis(), TimeUnit.MILLISECONDS);
-
       await().until(() -> !staging.allStackTraces().isEmpty());
 
-      // Expect only 1 stack trace and verify that its from our trace thread.
       var threadInfo = future.get();
-      // TODO
       assertEquals(1, staging.allStackTraces().size());
-      assertEquals(
-          threadInfo.id,
-          staging.allStackTraces().stream().findFirst().orElseThrow().getRecordingThreadId());
+      assertEquals(threadInfo.id, staging.allStackTraces().get(0).getRecordingThreadId());
+    } finally {
+      thread1.shutdownNow();
+      thread2.shutdownNow();
+    }
+  }
+
+  private Callable<ThreadDetails> captureThreadInfo(Runnable runnable) {
+    return () -> {
+      runnable.run();
+      return new ThreadDetails(Thread.currentThread());
+    };
+  }
+
+  /**
+   * A negative samping period means one of the two competing threads started the sampling
+   * first but ultimately lost the race. The "winning" sample's duration fully encompasses
+   * the "losing" sample and the "losing" sample's duration will be negative.
+   *
+   * <p>Since we can't fully coordinate the threads to consistently reproduce the scenario, we
+   * repeat the test a handful of times to increase the odds the race condition will be encountered.
+   */
+  @RepeatedTest(10)
+  void dropSamplesWithNegativeSamplingPeriods() throws Exception {
+    var spanContext = Snapshotting.spanContext().build();
+    var latch = new CountDownLatch(1);
+    var collector = new CoordinatingThreadInfoCollector(latch);
+
+    var thread1 = Executors.newScheduledThreadPool(1);
+    var thread2 = Executors.newScheduledThreadPool(1);
+    try (var sampler =
+        new PeriodicStackTraceSampler(
+            () -> staging, () -> spanTracker, collector, SAMPLING_PERIOD)) {
+      thread1.submit(() -> sampler.start(spanContext)).get();
+
+      collector.blockThreadInfoCollection();
+
+      // wait for the start span snapshot remove it
+      await().until(() -> !staging.allStackTraces().isEmpty());
+      staging.empty();
+
+      thread1.submit(() -> sampler.stop(spanContext));
+      thread2.schedule(latch::countDown, SAMPLING_PERIOD.toMillis(), TimeUnit.MILLISECONDS);
+      await().until(() -> !staging.allStackTraces().isEmpty());
+
+      assertThat(staging.allStackTraces())
+          .map(StackTrace::getDuration)
+          .noneMatch(Duration::isNegative);
     } finally {
       thread1.shutdownNow();
       thread2.shutdownNow();
@@ -439,13 +471,12 @@ class PeriodicStackTraceSamplerTest {
     }
   }
 
-  private Callable<ThreadInfo> startSampling(SpanContext spanContext, ThreadControl control) {
+  private Runnable startSampling(SpanContext spanContext, ThreadControl control) {
     return (() -> {
       try {
         control.start.await();
         sampler.start(spanContext);
         control.stop.await();
-        return new ThreadInfo(Thread.currentThread());
       } catch (InterruptedException e) {
         throw new RuntimeException(e);
       }
@@ -474,11 +505,11 @@ class PeriodicStackTraceSamplerTest {
     }
   }
 
-  private static class ThreadInfo {
+  private static class ThreadDetails {
     public final long id;
     public final String name;
 
-    private ThreadInfo(Thread thread) {
+    private ThreadDetails(Thread thread) {
       this.id = thread.getId();
       this.name = thread.getName();
     }
@@ -543,7 +574,7 @@ class PeriodicStackTraceSamplerTest {
     }
 
     @Override
-    java.lang.management.ThreadInfo getThreadInfo(long threadId) {
+    ThreadInfo getThreadInfo(long threadId) {
       try {
         Thread.sleep(delay.toMillis());
         return super.getThreadInfo(threadId);
@@ -553,7 +584,7 @@ class PeriodicStackTraceSamplerTest {
     }
 
     @Override
-    java.lang.management.ThreadInfo[] getThreadInfo(Collection<Long> threadIds) {
+    ThreadInfo[] getThreadInfo(Collection<Long> threadIds) {
       try {
         Thread.sleep(delay.toMillis());
         return super.getThreadInfo(threadIds);
@@ -571,29 +602,31 @@ class PeriodicStackTraceSamplerTest {
       this.latch = latch;
     }
 
-    void startWaiting() {
+    void blockThreadInfoCollection() {
       wait.set(true);
     }
 
     @Override
-    java.lang.management.ThreadInfo getThreadInfo(long threadId) {
+    ThreadInfo getThreadInfo(long threadId) {
       try {
+        var ti = super.getThreadInfo(threadId);
         if (wait.get()) {
           latch.await();
         }
-        return super.getThreadInfo(threadId);
+        return ti;
       } catch (InterruptedException e) {
         throw new RuntimeException(e);
       }
     }
 
     @Override
-    java.lang.management.ThreadInfo[] getThreadInfo(Collection<Long> threadIds) {
+    ThreadInfo[] getThreadInfo(Collection<Long> threadIds) {
       try {
+        var tis = super.getThreadInfo(threadIds);
         if (wait.get()) {
           latch.await();
         }
-        return super.getThreadInfo(threadIds);
+        return tis;
       } catch (InterruptedException e) {
         throw new RuntimeException(e);
       }

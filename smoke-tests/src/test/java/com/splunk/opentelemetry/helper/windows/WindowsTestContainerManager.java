@@ -328,7 +328,7 @@ public class WindowsTestContainerManager extends AbstractTestContainerManager {
       client
           .pullImageCmd(imageName)
           .exec(new PullImageResultCallback())
-          .awaitCompletion(10, TimeUnit.MINUTES);
+          .awaitCompletion(15, TimeUnit.MINUTES);
     } catch (InterruptedException e) {
       throw new RuntimeException(e);
     }

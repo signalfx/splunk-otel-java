@@ -47,13 +47,13 @@ public class TomeeAttributesInstrumentationModule extends InstrumentationModule 
 
     @Override
     public ElementMatcher<TypeDescription> typeMatcher() {
-      return named("org.apache.tomee.catalina.ServerListener");
+      return named("org.apache.tomee.loader.TomcatHelper");
     }
 
     @Override
     public void transform(TypeTransformer typeTransformer) {
       typeTransformer.applyAdviceToMethod(
-          isMethod().and(named("installServerInfo")),
+          isMethod().and(named("setServer")),
           TomeeAttributesInstrumentationModule.class.getName() + "$WebengineInitializedAdvice");
     }
   }

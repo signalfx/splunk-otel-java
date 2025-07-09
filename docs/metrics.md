@@ -7,8 +7,6 @@
 
 The Splunk Distribution of OpenTelemetry Java agent gathers basic application metrics.
 Because these splunk-specific metrics are still experimental they are not enabled by default.
-For more information, please see the [advanced configuration](advanced-config.md#splunk-distribution-configuration)
-for details.
 
 ## Supported libraries
 

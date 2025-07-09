@@ -32,13 +32,17 @@ public class GlassFishSmokeTest extends AppServerTest {
       new ExpectedServerAttributes("GET /*", "Payara Server", "5.2020.6");
   public static final ExpectedServerAttributes PAYARA21_SERVER_ATTRIBUTES =
       new ExpectedServerAttributes("GET /*", "Payara Server", "5.2021.8");
+  public static final ExpectedServerAttributes PAYARA23_SERVER_ATTRIBUTES =
+      new ExpectedServerAttributes("GET /*", "Payara Server", "6.2023.12");
 
   private static Stream<Arguments> supportedConfigurations() {
     return configurations("payara")
         .otelLinux("5.2020.6", PAYARA20_SERVER_ATTRIBUTES, VMS_ALL, "8", "11")
         .otelLinux("5.2021.8", PAYARA21_SERVER_ATTRIBUTES, VMS_ALL, "8", "11")
-        .otelWindows("5.2020.6", PAYARA20_SERVER_ATTRIBUTES, VMS_ALL, "8", "11")
-        .otelWindows("5.2021.8", PAYARA21_SERVER_ATTRIBUTES, VMS_ALL, "8", "11")
+        .otelLinux("6.2023.12", PAYARA23_SERVER_ATTRIBUTES, VMS_ALL, "11", "17")
+        .otelWindows("5.2020.6", PAYARA20_SERVER_ATTRIBUTES, VMS_HOTSPOT, "8", "11")
+        .otelWindows("5.2021.8", PAYARA21_SERVER_ATTRIBUTES, VMS_HOTSPOT, "8", "11")
+        .otelWindows("6.2023.12", PAYARA23_SERVER_ATTRIBUTES, VMS_HOTSPOT, "11", "17")
         .stream();
   }
 

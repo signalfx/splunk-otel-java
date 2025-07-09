@@ -31,19 +31,20 @@ public class WildFlySmokeTest extends AppServerTest {
       new ExpectedServerAttributes("GET", "WildFly Full", "17.0.1.Final");
   public static final ExpectedServerAttributes WILDFLY_21_SERVER_ATTRIBUTES =
       new ExpectedServerAttributes("GET", "WildFly Full", "21.0.0.Final");
-  public static final ExpectedServerAttributes WILDFLY_25_SERVER_ATTRIBUTES =
-      new ExpectedServerAttributes("GET", "WildFly Full", "25.0.1.Final");
+  public static final ExpectedServerAttributes WILDFLY_28_SERVER_ATTRIBUTES =
+      new ExpectedServerAttributes("GET", "WildFly Full", "28.0.1.Final");
 
   private static Stream<Arguments> supportedConfigurations() {
     return configurations("wildfly")
         .otelLinux("13.0.0.Final", WILDFLY_13_SERVER_ATTRIBUTES, VMS_ALL, "8")
         .otelLinux("17.0.1.Final", WILDFLY_17_SERVER_ATTRIBUTES, VMS_ALL, "8", "11")
-        .otelLinux("21.0.0.Final", WILDFLY_21_SERVER_ATTRIBUTES, VMS_ALL, "8", "11")
-        .otelLinux("25.0.1.Final", WILDFLY_25_SERVER_ATTRIBUTES, VMS_ALL, "8", "11")
-        .otelWindows("13.0.0.Final", WILDFLY_13_SERVER_ATTRIBUTES, VMS_ALL, "8")
-        .otelWindows("17.0.1.Final", WILDFLY_17_SERVER_ATTRIBUTES, VMS_ALL, "8", "11")
-        .otelWindows("21.0.0.Final", WILDFLY_21_SERVER_ATTRIBUTES, VMS_ALL, "8", "11")
-        .otelWindows("25.0.1.Final", WILDFLY_25_SERVER_ATTRIBUTES, VMS_ALL, "8", "11")
+        .otelLinux("21.0.0.Final", WILDFLY_21_SERVER_ATTRIBUTES, VMS_ALL, "8", "11", "17", "21")
+        .otelLinux("28.0.1.Final", WILDFLY_28_SERVER_ATTRIBUTES, VMS_ALL, "11", "17", "21")
+        .otelWindows("13.0.0.Final", WILDFLY_13_SERVER_ATTRIBUTES, VMS_HOTSPOT, "8")
+        .otelWindows("17.0.1.Final", WILDFLY_17_SERVER_ATTRIBUTES, VMS_HOTSPOT, "8", "11")
+        .otelWindows(
+            "21.0.0.Final", WILDFLY_21_SERVER_ATTRIBUTES, VMS_HOTSPOT, "8", "11", "17", "21")
+        .otelWindows("28.0.1.Final", WILDFLY_28_SERVER_ATTRIBUTES, VMS_HOTSPOT, "11", "17", "21")
         .stream();
   }
 

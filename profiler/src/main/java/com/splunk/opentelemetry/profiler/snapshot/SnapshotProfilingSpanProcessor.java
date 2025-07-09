@@ -19,6 +19,7 @@ package com.splunk.opentelemetry.profiler.snapshot;
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.SNAPSHOT_PROFILING;
 
 import io.opentelemetry.context.Context;
+import io.opentelemetry.sdk.common.CompletableResultCode;
 import io.opentelemetry.sdk.trace.ReadWriteSpan;
 import io.opentelemetry.sdk.trace.ReadableSpan;
 import io.opentelemetry.sdk.trace.SpanProcessor;
@@ -38,10 +39,12 @@ import java.util.function.Supplier;
 public class SnapshotProfilingSpanProcessor implements SpanProcessor {
   private final TraceRegistry registry;
   private final Supplier<StackTraceSampler> sampler;
+  private final OrphanedTraceCleaner orphanedTraceCleaner;
 
   SnapshotProfilingSpanProcessor(TraceRegistry registry, Supplier<StackTraceSampler> sampler) {
     this.registry = registry;
     this.sampler = sampler;
+    this.orphanedTraceCleaner = new OrphanedTraceCleaner(registry, sampler);
   }
 
   @Override
@@ -50,6 +53,7 @@ public class SnapshotProfilingSpanProcessor implements SpanProcessor {
       Volume volume = Volume.from(context);
       if (volume == Volume.HIGHEST) {
         registry.register(span.getSpanContext());
+        orphanedTraceCleaner.register(span);
       }
     }
 
@@ -75,6 +79,7 @@ public class SnapshotProfilingSpanProcessor implements SpanProcessor {
   public void onEnd(ReadableSpan span) {
     if (isEntry(span)) {
       registry.unregister(span.getSpanContext());
+      orphanedTraceCleaner.unregister(span.getSpanContext());
       sampler.get().stop(span.getSpanContext());
     }
   }
@@ -86,5 +91,11 @@ public class SnapshotProfilingSpanProcessor implements SpanProcessor {
   @Override
   public boolean isEndRequired() {
     return true;
+  }
+
+  @Override
+  public CompletableResultCode shutdown() {
+    orphanedTraceCleaner.close();
+    return SpanProcessor.super.shutdown();
   }
 }

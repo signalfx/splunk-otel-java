@@ -20,15 +20,15 @@ dependencies {
 
 tasks {
   test {
-    maxParallelForks = 2
-
     testLogging.showStandardStreams = true
+
+    // Run smoke tests only when explicitly requested.
+    enabled = enabled && gradle.startParameter.taskNames.any { it.startsWith(":smoke-tests:") }
 
     develocity.testRetry {
       if (System.getenv().containsKey("CI")) {
         // You can see tests that were retried by this mechanism in the collected test reports and build scans.
         maxRetries.set(5)
-        failOnPassedAfterRetry.set(true)
       } else {
         maxRetries.set(0)
       }
@@ -39,7 +39,7 @@ tasks {
       "jboss" to listOf("**/JBossEapSmokeTest.*"),
       "jetty" to listOf("**/JettySmokeTest.*"),
       "liberty" to listOf("**/LibertySmokeTest.*"),
-      "profiler" to listOf("**/Profiler*"),
+      "profiler" to listOf("**/Profiler*", "**/SnapshotProfiler*"),
       "tomcat" to listOf("**/TomcatSmokeTest.*"),
       "tomee" to listOf("**/TomeeSmokeTest.*"),
       "weblogic" to listOf("**/WebLogicSmokeTest.*"),

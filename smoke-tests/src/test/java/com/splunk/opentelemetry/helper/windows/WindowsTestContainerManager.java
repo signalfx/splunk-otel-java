@@ -95,7 +95,7 @@ public class WindowsTestContainerManager extends AbstractTestContainerManager {
             .getId();
 
     String backendImageName =
-        "ghcr.io/open-telemetry/opentelemetry-java-instrumentation/smoke-test-fake-backend-windows:20220411.2147767274";
+        "ghcr.io/open-telemetry/opentelemetry-java-instrumentation/smoke-test-fake-backend-windows:20221127.3559314891";
 
     if (!imageExists(backendImageName)) {
       pullImage(backendImageName);
@@ -125,6 +125,7 @@ public class WindowsTestContainerManager extends AbstractTestContainerManager {
       pullImage(collectorImageName);
     }
 
+    logger.info("Starting collector");
     collector =
         createAndStartContainer(
             collectorImageName,
@@ -152,6 +153,7 @@ public class WindowsTestContainerManager extends AbstractTestContainerManager {
             },
             new PortWaiter(COLLECTOR_PORT, Duration.ofMinutes(1)),
             true);
+    logger.info("Started collector");
   }
 
   @Override
@@ -323,7 +325,10 @@ public class WindowsTestContainerManager extends AbstractTestContainerManager {
     logger.info("Pulling {}", imageName);
 
     try {
-      client.pullImageCmd(imageName).exec(new PullImageResultCallback()).awaitCompletion();
+      client
+          .pullImageCmd(imageName)
+          .exec(new PullImageResultCallback())
+          .awaitCompletion(15, TimeUnit.MINUTES);
     } catch (InterruptedException e) {
       throw new RuntimeException(e);
     }

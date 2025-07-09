@@ -46,13 +46,17 @@ public final class SqlServerUtil {
     if (traceparent == null && existingTraceparent != null) {
       // we need to clear existing tracing state from the connection
       connectionState.set(connection, null);
-      PreparedStatement statement = connection.prepareStatement("set context_info 0x");
-      statement.executeUpdate();
+      setContextInfo(connection, new byte[0]);
     } else if (!Objects.equals(traceparent, existingTraceparent)) {
       connectionState.set(connection, traceparent);
-      PreparedStatement statement = connection.prepareStatement("set context_info ?");
-      statement.setBytes(1, traceparent.getBytes(StandardCharsets.UTF_8));
-      statement.executeUpdate();
+      setContextInfo(connection, traceparent.getBytes(StandardCharsets.UTF_8));
     }
+  }
+
+  private static void setContextInfo(Connection connection, byte[] contextInfo)
+      throws SQLException {
+    PreparedStatement statement = connection.prepareStatement("set context_info ?");
+    statement.setBytes(1, contextInfo);
+    statement.executeUpdate();
   }
 }

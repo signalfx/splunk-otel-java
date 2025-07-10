@@ -21,7 +21,6 @@ import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.time.Duration;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -120,7 +119,6 @@ class PeriodicallyExportingStagingAreaTest {
         new PeriodicallyExportingStagingArea(() -> exporter, Duration.ofDays(1), 2)) {
       stagingArea.stage(Snapshotting.stackTrace().build());
       stagingArea.stage(Snapshotting.stackTrace().build());
-
       await().untilAsserted(() -> assertEquals(2, exporter.stackTraces().size()));
     }
   }
@@ -186,7 +184,7 @@ class PeriodicallyExportingStagingAreaTest {
     return () -> {
       try {
         startLatch.await();
-        Arrays.stream(stackTraces).forEach(stagingArea::stage);
+        stagingArea.stage(List.of(stackTraces));
       } catch (InterruptedException e) {
         Thread.currentThread().interrupt();
         throw new RuntimeException(e);

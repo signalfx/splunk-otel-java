@@ -75,7 +75,7 @@ class SdkShutdownHookTest {
     public void stop(String traceId, String spanId) {}
 
     @Override
-    public void stage(StackTrace stackTrace) {}
+    public void stage(Collection<StackTrace> stackTraces) {}
 
     @Override
     public void empty() {}

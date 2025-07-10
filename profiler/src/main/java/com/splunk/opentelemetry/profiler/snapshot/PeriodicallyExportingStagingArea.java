@@ -18,13 +18,20 @@ package com.splunk.opentelemetry.profiler.snapshot;
 
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 class PeriodicallyExportingStagingArea implements StagingArea {
+  private static final Logger logger =
+      Logger.getLogger(PeriodicallyExportingStagingArea.class.getName());
+
   private static final String WORKER_THREAD_NAME =
       PeriodicallyExportingStagingArea.class.getSimpleName() + "_WorkerThread";
 
@@ -41,11 +48,27 @@ class PeriodicallyExportingStagingArea implements StagingArea {
   }
 
   @Override
-  public void stage(StackTrace stackTrace) {
+  public void stage(Collection<StackTrace> stackTraces) {
     if (closed) {
       return;
     }
-    worker.add(stackTrace);
+
+    try {
+      for (StackTrace stackTrace : stackTraces) {
+        worker.add(stackTrace);
+      }
+    } catch (Exception e) {
+      logger.log(Level.SEVERE, e, stagingErrorMessage(stackTraces));
+    }
+  }
+
+  private Supplier<String> stagingErrorMessage(Collection<StackTrace> stackTraces) {
+    return () ->
+        "Exception thrown attempting to stage callstacks for trace ids " + traceIds(stackTraces);
+  }
+
+  private String traceIds(Collection<StackTrace> stackTraces) {
+    return stackTraces.stream().map(StackTrace::getTraceId).collect(Collectors.joining(","));
   }
 
   @Override
@@ -90,8 +113,19 @@ class PeriodicallyExportingStagingArea implements StagingArea {
     }
 
     void add(StackTrace stackTrace) {
-      // If queue is full drop the stack trace, not much we can do.
-      queue.offer(stackTrace);
+      boolean added = queue.offer(stackTrace);
+      if (!added) {
+        // If queue is full drop the stack trace, not much we can do.
+        logger.log(Level.WARNING, queueFullMessage(stackTrace));
+      }
+    }
+
+    private Supplier<String> queueFullMessage(StackTrace stackTrace) {
+      return () ->
+          "Staging area beyond maximum capacity; failed to stage stack trace for thread id: "
+              + stackTrace.getThreadId()
+              + ", trace id: "
+              + stackTrace.getTraceId();
     }
 
     @Override

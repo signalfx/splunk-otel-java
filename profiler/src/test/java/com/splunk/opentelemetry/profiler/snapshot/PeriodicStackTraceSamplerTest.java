@@ -348,8 +348,8 @@ class PeriodicStackTraceSamplerTest {
    * about the thread. If this happens we do not want Thread 1 to have a {@link StackTrace} recorded
    * by the background sampling thread.
    *
-   * <p>Since we can't fully coordinate the threads to consistently reproduce the scenario we
-   * repeat the test a handful of times to increase the odds the race condition will be encountered.
+   * <p>Since we can't fully coordinate the threads to consistently reproduce the scenario we repeat
+   * the test a handful of times to increase the odds the race condition will be encountered.
    */
   @RepeatedTest(10)
   void doNotStageStackTraceWhenThreadNoLongerAssociatedWithSameTraceId() throws Exception {
@@ -391,9 +391,9 @@ class PeriodicStackTraceSamplerTest {
   }
 
   /**
-   * A negative samping period means one of the two competing threads started the sampling
-   * first but ultimately lost the race. The "winning" sample's duration fully encompasses
-   * the "losing" sample and the "losing" sample's duration will be negative.
+   * A negative samping period means one of the two competing threads started the sampling first but
+   * ultimately lost the race. The "winning" sample's duration fully encompasses the "losing" sample
+   * and the "losing" sample's duration will be negative.
    *
    * <p>Since we can't fully coordinate the threads to consistently reproduce the scenario, we
    * repeat the test a handful of times to increase the odds the race condition will be encountered.

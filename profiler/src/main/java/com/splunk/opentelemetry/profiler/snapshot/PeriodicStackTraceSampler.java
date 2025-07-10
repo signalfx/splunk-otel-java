@@ -176,11 +176,7 @@ class PeriodicStackTraceSampler implements StackTraceSampler {
         if (context.lock.tryLock()) {
           try {
             SpanContext spanContext = retrieveActiveSpan(context.thread);
-            toStackTrace(
-                threadInfo,
-                context,
-                spanContext.getSpanId(),
-                currentSampleTime)
+            toStackTrace(threadInfo, context, spanContext.getSpanId(), currentSampleTime)
                 .ifPresent(stackTraces::add);
           } finally {
             context.lock.unlock();
@@ -191,10 +187,7 @@ class PeriodicStackTraceSampler implements StackTraceSampler {
     }
 
     private Optional<StackTrace> toStackTrace(
-        ThreadInfo threadInfo,
-        SamplingContext context,
-        String spanId,
-        long currentSampleTime) {
+        ThreadInfo threadInfo, SamplingContext context, String spanId, long currentSampleTime) {
       // If multiple threads have managed to take a sample for the same context
       // one of the sampling periods may be a negative value. If this happens a
       // previous sample fully encompasses this sample and so this sample can

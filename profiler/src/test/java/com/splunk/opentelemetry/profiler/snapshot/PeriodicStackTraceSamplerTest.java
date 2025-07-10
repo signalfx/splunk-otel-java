@@ -92,9 +92,9 @@ class PeriodicStackTraceSamplerTest {
     executor.submit(startSampling(spanContext2, control));
 
     try {
-      control.start.countDown();
+      control.start();
       await().until(() -> staging.allStackTraces().size() > 5);
-      control.stop.countDown();
+      control.stop();
 
       var threadIds =
           staging.allStackTraces().stream()

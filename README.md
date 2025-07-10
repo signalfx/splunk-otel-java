@@ -36,8 +36,6 @@ for details.
 
 <p align="center">
   <strong>
-    <a href="https://github.com/signalfx/tracing-examples/tree/main/opentelemetry-tracing/opentelemetry-java-tracing">Examples</a>
-    &nbsp;&nbsp;&bull;&nbsp;&nbsp;
     <a href="https://quickdraw.splunk.com/redirect/?product=Observability&version=current&location=java.gdi.about">About the distribution</a>
     &nbsp;&nbsp;&bull;&nbsp;&nbsp;
     <a href="SECURITY.md">Security</a>

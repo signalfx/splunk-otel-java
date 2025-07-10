@@ -50,7 +50,7 @@ class ConcurrentServiceEntrySamplingTest {
   private StackTraceSampler newSampler(StagingArea staging) {
     var stagingAreaSupplier = StagingArea.SUPPLIER;
     stagingAreaSupplier.configure(staging);
-    return new ScheduledExecutorStackTraceSampler(
+    return new PeriodicStackTraceSampler(
         stagingAreaSupplier, SpanTracker.SUPPLIER, Duration.ofMillis(20));
   }
 

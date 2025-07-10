@@ -6,6 +6,24 @@ on:
   workflow_dispatch:
 
 jobs:
+  check-links:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4.2.2
+
+      - name: Check all links in *.md files
+        id: lychee
+        uses: lycheeverse/lychee-action@v2.4.1
+        with:
+          args: >-
+            -v -n "*.md" "**/*.md"
+            --include-fragments
+            --exclude "https://developers.redhat.com/download-manager/file/jboss-eap-.*.zip"
+            --exclude "http://localhost*"
+            --exclude "https://central.sonatype.com/service/rest/repository/browse/maven-snapshots/com/splunk/"
+            --max-retries 6
+            --github-token ${{ github.token }}
+
   build:
     runs-on: ubuntu-24.04
     steps:

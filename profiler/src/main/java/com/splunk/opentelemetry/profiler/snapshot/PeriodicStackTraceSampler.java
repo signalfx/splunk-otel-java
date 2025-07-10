@@ -171,8 +171,8 @@ class PeriodicStackTraceSampler implements StackTraceSampler {
       List<StackTrace> stackTraces = new ArrayList<>(threadInfos.length);
       for (ThreadInfo threadInfo : threadInfos) {
         SamplingContext context = contexts.get(threadInfo.getThreadId());
-        // When the context is locked and on demand sample is being taken. No need to report
-        // both so skip the on-demand sample.
+        // When the context is locked an on demand sample is being taken. No need to report
+        // both so skip the periodic sample.
         if (context.lock.tryLock()) {
           try {
             SpanContext spanContext = retrieveActiveSpan(context.thread);

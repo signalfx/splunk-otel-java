@@ -102,9 +102,9 @@ class PeriodicStackTraceSamplerTest {
               .collect(Collectors.toSet());
       assertEquals(2, threadIds.size());
     } finally {
-      executor.shutdownNow();
       sampler.stop(spanContext1);
       sampler.stop(spanContext2);
+      executor.shutdownNow();
     }
   }
 

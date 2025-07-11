@@ -39,6 +39,7 @@ class PeriodicStackTraceSampler implements StackTraceSampler {
   private static final Logger logger = Logger.getLogger(PeriodicStackTraceSampler.class.getName());
 
   private final ThreadSampler sampler;
+  private volatile boolean closed;
 
   public PeriodicStackTraceSampler(
       Supplier<StagingArea> staging, Supplier<SpanTracker> spanTracker, Duration samplingPeriod) {
@@ -59,17 +60,33 @@ class PeriodicStackTraceSampler implements StackTraceSampler {
 
   @Override
   public void start(SpanContext spanContext) {
+    if (closed) {
+      return;
+    }
     sampler.add(Thread.currentThread(), spanContext.getTraceId(), spanContext.getSpanId());
   }
 
   @Override
   public void stop(String traceId, String spanId) {
+    if (closed) {
+      return;
+    }
     sampler.remove(traceId, spanId);
   }
 
   @Override
   public void close() {
-    sampler.shutdown();
+    this.closed = true;
+    // Wait for the sampling thread to exit. Note that this does not guarantee an
+    // immediate shutdown as the sampling thread may be actively staging stack traces
+    // when the shutdown request is made. If this is the case, the thread will shutdown
+    // upon completion of the sample.
+    try {
+      sampler.shutdown();
+      sampler.join();
+    } catch (InterruptedException exception) {
+      Thread.currentThread().interrupt();
+    }
   }
 
   private static class ThreadSampler extends Thread {
@@ -130,6 +147,7 @@ class PeriodicStackTraceSampler implements StackTraceSampler {
     }
 
     void shutdown() {
+      traceSamplingContexts.clear();
       shutdownLatch.countDown();
     }
 

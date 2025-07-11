@@ -286,31 +286,16 @@ class PeriodicStackTraceSamplerTest {
 
   @Test
   void takeInitialSampleWhenTraceSamplingStarts() {
-    var scheduler = Executors.newScheduledThreadPool(2);
     var spanContext = Snapshotting.spanContext().build();
-    var control = new ThreadControl(new CountDownLatch(0), new CountDownLatch(1));
-    var expectedDuration = SAMPLING_PERIOD.dividedBy(2);
-    try {
-      sampler.start(spanContext);
-      scheduler.submit(startSampling(spanContext, control));
-      scheduler.schedule(
-          () -> sampler.stop(spanContext), expectedDuration.toMillis(), TimeUnit.MILLISECONDS);
-      await().until(staging::hasStackTraces);
-      control.stop.countDown();
-
-      var stackTraces = staging.allStackTraces();
-      assertEquals(2, stackTraces.size());
-    } finally {
-      scheduler.shutdownNow();
-    }
+    sampler.start(spanContext);
+    assertEquals(1, staging.allStackTraces().size());
   }
 
   @Test
   void ensureStartAndStopSamplesAreAssociatedWithCorrectTraceAndSpanId() {
-    // When start and stop samples are taken on a background thread, this delay will cause the
-    // thread
-    // to be associated with a different trace. This will result in a StackTrace with the expected
-    // trace id but a span id from a different trace.
+    // When start and stop samples are taken on a background thread, this delay
+    // will cause the thread to be associated with a different trace. The result is
+    // a StackTrace with the expected trace id but a span id from a different trace.
     delayedThreadInfoCollector.setDelay(Duration.ofMillis(100));
 
     var spanContext1 = Snapshotting.spanContext().build();
@@ -560,6 +545,29 @@ class PeriodicStackTraceSamplerTest {
       executor.shutdownNow();
       scheduler.shutdownNow();
     }
+  }
+
+  @Test
+  void doNotAcceptNewTracesForSamplingWhenClosed() {
+    var spanContext = Snapshotting.spanContext().build();
+
+    sampler.close();
+    sampler.start(spanContext);
+
+    assertEquals(0, staging.allStackTraces().size());
+  }
+
+  @Test
+  void doNotReportStackTraceForStoppingSamplingClosed() {
+    var spanContext = Snapshotting.spanContext().build();
+
+    sampler.start(spanContext);
+    sampler.close();
+    staging.empty();
+
+    sampler.stop(spanContext);
+
+    assertEquals(0, staging.allStackTraces().size());
   }
 
   private Callable<Integer> reportStackTracesStaged() {

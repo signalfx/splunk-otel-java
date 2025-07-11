@@ -72,8 +72,8 @@ class OrphanedTraceCleaner implements Closeable {
         if (reference != null) {
           Key key = (Key) reference;
           if (traces.remove(key)) {
-            traceRegistry.unregister(key.getTraceId());
-            sampler.get().stop(key.getTraceId(), key.getSpanId());
+            traceRegistry.unregister(key.getSpanContext().getTraceId());
+            sampler.get().stop(key.getSpanContext());
           }
         }
       }
@@ -88,9 +88,7 @@ class OrphanedTraceCleaner implements Closeable {
   }
 
   private interface Key {
-    String getTraceId();
-
-    String getSpanId();
+    SpanContext getSpanContext();
   }
 
   private static class LookupKey implements Key {
@@ -101,18 +99,13 @@ class OrphanedTraceCleaner implements Closeable {
     }
 
     @Override
-    public String getTraceId() {
-      return spanContext.getTraceId();
-    }
-
-    @Override
-    public String getSpanId() {
-      return spanContext.getSpanId();
+    public SpanContext getSpanContext() {
+      return spanContext;
     }
 
     @Override
     public int hashCode() {
-      return Objects.hash(getTraceId(), getSpanId());
+      return Objects.hash(spanContext);
     }
 
     @Override
@@ -124,34 +117,26 @@ class OrphanedTraceCleaner implements Closeable {
         return false;
       }
       Key key = (Key) obj;
-      return Objects.equals(getTraceId(), key.getTraceId())
-          && Objects.equals(getSpanId(), key.getSpanId());
+      return Objects.equals(spanContext, key.getSpanContext());
     }
   }
 
   private static class WeakKey extends WeakReference<Span> implements Key {
-    private final String traceId;
-    private final String spanId;
+    private final SpanContext spanContext;
 
     public WeakKey(Span referent, ReferenceQueue<Object> queue) {
       super(referent, queue);
-      this.traceId = referent.getSpanContext().getTraceId();
-      this.spanId = referent.getSpanContext().getSpanId();
+      this.spanContext = referent.getSpanContext();
     }
 
     @Override
-    public String getTraceId() {
-      return traceId;
-    }
-
-    @Override
-    public String getSpanId() {
-      return spanId;
+    public SpanContext getSpanContext() {
+      return spanContext;
     }
 
     @Override
     public int hashCode() {
-      return Objects.hash(getTraceId(), getSpanId());
+      return Objects.hash(spanContext);
     }
 
     @Override
@@ -163,8 +148,7 @@ class OrphanedTraceCleaner implements Closeable {
         return false;
       }
       Key key = (Key) obj;
-      return Objects.equals(getTraceId(), key.getTraceId())
-          && Objects.equals(getSpanId(), key.getSpanId());
+      return Objects.equals(spanContext, key.getSpanContext());
     }
   }
 }

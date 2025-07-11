@@ -21,7 +21,7 @@ import java.time.Duration;
 class SnapshotProfilingSdkCustomizerBuilder {
   private TraceRegistry registry = new TraceRegistry();
   private StackTraceSampler sampler = new ObservableStackTraceSampler();
-  private SpanTrackingActivator spanTrackingActivator = registry -> {};
+  private SpanTrackingActivator spanTrackingActivator = new ContextStorageResettingSpanTrackingActivator();
 
   SnapshotProfilingSdkCustomizerBuilder with(TraceRegistry registry) {
     this.registry = registry;
@@ -33,18 +33,29 @@ class SnapshotProfilingSdkCustomizerBuilder {
   }
 
   SnapshotProfilingSdkCustomizerBuilder withRealStackTraceSampler() {
-    var stagingAreaSupplier = StagingArea.SUPPLIER;
-    stagingAreaSupplier.configure(
-        new PeriodicallyExportingStagingArea(
-            StackTraceExporter.SUPPLIER, Duration.ofMillis(200), 10));
-    return with(
-        new PeriodicStackTraceSampler(
-            stagingAreaSupplier, SpanTracker.SUPPLIER, Duration.ofMillis(20)));
+    return withRealStackTraceSampler(Duration.ofMillis(20));
+  }
+
+  SnapshotProfilingSdkCustomizerBuilder withRealStackTraceSampler(Duration samplingPeriod) {
+    return with(new PeriodicStackTraceSampler(StagingArea.SUPPLIER, SpanTracker.SUPPLIER, samplingPeriod));
   }
 
   SnapshotProfilingSdkCustomizerBuilder with(StackTraceSampler sampler) {
     StackTraceSampler.SUPPLIER.configure(sampler);
     this.sampler = sampler;
+    return this;
+  }
+
+  SnapshotProfilingSdkCustomizerBuilder withRealStagingArea() {
+    return withRealStagingArea(Duration.ofMillis(200));
+  }
+
+  SnapshotProfilingSdkCustomizerBuilder withRealStagingArea(Duration exportPeriod) {
+    return with(new PeriodicallyExportingStagingArea(StackTraceExporter.SUPPLIER, exportPeriod, 10));
+  }
+
+  SnapshotProfilingSdkCustomizerBuilder with(StagingArea stagingArea) {
+    StagingArea.SUPPLIER.configure(stagingArea);
     return this;
   }
 

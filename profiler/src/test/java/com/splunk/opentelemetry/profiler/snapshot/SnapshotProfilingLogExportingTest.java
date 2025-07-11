@@ -47,8 +47,11 @@ class SnapshotProfilingLogExportingTest {
       new ContextStorageResettingSpanTrackingActivator();
 
   private final InMemoryLogRecordExporter logExporter = InMemoryLogRecordExporter.create();
-  private final SnapshotProfilingSdkCustomizer customizer =
-      Snapshotting.customizer().withRealStackTraceSampler().with(spanTrackingActivator).build();
+  private final SnapshotProfilingSdkCustomizer customizer = Snapshotting.customizer()
+      .withRealStackTraceSampler()
+      .withRealStagingArea()
+      .with(spanTrackingActivator)
+      .build();
 
   @RegisterExtension
   public final OpenTelemetrySdkExtension sdk =

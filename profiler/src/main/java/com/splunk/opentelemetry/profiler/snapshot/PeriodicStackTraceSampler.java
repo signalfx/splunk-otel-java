@@ -71,7 +71,7 @@ class PeriodicStackTraceSampler implements StackTraceSampler {
     if (closed) {
       return;
     }
-    sampler.remove(spanContext);
+    sampler.remove(Thread.currentThread(), spanContext);
   }
 
   @Override
@@ -90,7 +90,7 @@ class PeriodicStackTraceSampler implements StackTraceSampler {
   }
 
   private static class ThreadSampler extends Thread {
-    private final Map<SpanContext, SamplingContext> traceSamplingContexts =
+    private final Map<Thread, SamplingContext> traceSamplingContexts =
         new ConcurrentHashMap<>();
     private final CountDownLatch shutdownLatch = new CountDownLatch(1);
     private final Supplier<StagingArea> staging;
@@ -110,23 +110,21 @@ class PeriodicStackTraceSampler implements StackTraceSampler {
     }
 
     void add(Thread thread, SpanContext spanContext) {
-      traceSamplingContexts.computeIfAbsent(
-          spanContext,
-          sc -> {
-            SamplingContext context =
-                new SamplingContext(thread, sc.getTraceId(), System.nanoTime());
-            takeOnDemandSample(context).ifPresent(staging.get()::stage);
-            return context;
-          });
+      traceSamplingContexts.computeIfAbsent(thread, t -> {
+        SamplingContext context = new SamplingContext(t, spanContext, System.nanoTime());
+        takeOnDemandSample(context).ifPresent(staging.get()::stage);
+        return context;
+      });
     }
 
-    void remove(SpanContext spanContext) {
-      traceSamplingContexts.computeIfPresent(
-          spanContext,
-          (t, context) -> {
-            takeOnDemandSample(context).ifPresent(staging.get()::stage);
-            return null;
-          });
+    void remove(Thread thread, SpanContext spanContext) {
+      traceSamplingContexts.computeIfPresent(thread, (t, context) -> {
+        if (context.spanContext.equals(spanContext)) {
+          takeOnDemandSample(context).ifPresent(staging.get()::stage);
+          return null;
+        }
+        return context;
+      });
     }
 
     private Optional<StackTrace> takeOnDemandSample(SamplingContext context) {
@@ -219,7 +217,7 @@ class PeriodicStackTraceSampler implements StackTraceSampler {
               Instant.now(),
               samplingPeriod,
               threadInfo,
-              context.traceId,
+              context.spanContext.getTraceId(),
               spanId,
               Thread.currentThread().getId()));
     }
@@ -233,12 +231,12 @@ class PeriodicStackTraceSampler implements StackTraceSampler {
   private static class SamplingContext {
     private final Lock lock = new ReentrantLock();
     private final Thread thread;
-    private final String traceId;
+    private final SpanContext spanContext;
     private long sampleTime;
 
-    private SamplingContext(Thread thread, String traceId, long sampleTime) {
+    private SamplingContext(Thread thread, SpanContext spanContext, long sampleTime) {
       this.thread = thread;
-      this.traceId = traceId;
+      this.spanContext = spanContext;
       this.sampleTime = sampleTime;
     }
 

@@ -108,6 +108,31 @@ class PeriodicStackTraceSamplerTest {
     }
   }
 
+  @Test
+  void takeStackTraceSamplesForMultipleThreadsFromSameSpan() {
+    var executor = Executors.newFixedThreadPool(2);
+    var control = new ThreadControl(new CountDownLatch(1), new CountDownLatch(1));
+    var traceId = IdGenerator.random().generateTraceId();
+    var spanContext = Snapshotting.spanContext().withTraceId(traceId).build();
+
+    executor.submit(startSampling(spanContext, control));
+    executor.submit(startSampling(spanContext, control));
+
+    try {
+      control.start();
+      await().until(() -> staging.allStackTraces().size() > 5);
+      control.stop();
+
+      var threadIds =
+          staging.allStackTraces().stream()
+              .map(StackTrace::getThreadId)
+              .collect(Collectors.toSet());
+      assertEquals(2, threadIds.size());
+    } finally {
+      executor.shutdownNow();
+    }
+  }
+
   /**
    * Attempting to exercise the following scenario. <br>
    * <br>
@@ -417,36 +442,25 @@ class PeriodicStackTraceSamplerTest {
 
   @Test
   void takeFinalSampleWhenTraceSamplingIsStopped() {
-    var scheduler = Executors.newScheduledThreadPool(2);
     var spanContext = Snapshotting.spanContext().build();
-    var control = new ThreadControl(new CountDownLatch(0), new CountDownLatch(1));
-    var expectedDuration = SAMPLING_PERIOD.dividedBy(2);
-    try {
-      scheduler.submit(startSampling(spanContext, control));
-      scheduler.schedule(
-          () -> sampler.stop(spanContext), expectedDuration.toMillis(), TimeUnit.MILLISECONDS);
-      await().until(staging::hasStackTraces);
-      control.stop.countDown();
 
-      var stackTraces = staging.allStackTraces();
-      assertEquals(2, stackTraces.size());
-    } finally {
-      scheduler.shutdownNow();
-    }
+    sampler.start(spanContext);
+    sampler.stop(spanContext);
+
+    var stackTraces = staging.allStackTraces();
+    assertEquals(2, stackTraces.size());
   }
 
   @Test
-  void finalSampleDurationIsLessSmallerThanSamplingPeriod() {
-    var scheduler = Executors.newScheduledThreadPool(2);
+  void finalSampleDurationIsLessThanSamplingPeriod() {
+    var scheduler = Executors.newScheduledThreadPool(1);
     var spanContext = Snapshotting.spanContext().build();
-    var controls = new ThreadControl(new CountDownLatch(0), new CountDownLatch(1));
     var expectedDuration = SAMPLING_PERIOD.dividedBy(2);
     try {
-      scheduler.submit(startSampling(spanContext, controls));
+      scheduler.submit(() -> sampler.start(spanContext));
       scheduler.schedule(
           () -> sampler.stop(spanContext), expectedDuration.toMillis(), TimeUnit.MILLISECONDS);
       await().until(staging::hasStackTraces);
-      controls.stop.countDown();
 
       var stackTraces = staging.allStackTraces();
       var lastStackTrace = stackTraces.get(stackTraces.size() - 1);

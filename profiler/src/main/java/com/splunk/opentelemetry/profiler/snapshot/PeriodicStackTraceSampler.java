@@ -90,8 +90,7 @@ class PeriodicStackTraceSampler implements StackTraceSampler {
   }
 
   private static class ThreadSampler extends Thread {
-    private final Map<Thread, SamplingContext> traceSamplingContexts =
-        new ConcurrentHashMap<>();
+    private final Map<Thread, SamplingContext> threadSamplingContexts = new ConcurrentHashMap<>();
     private final CountDownLatch shutdownLatch = new CountDownLatch(1);
     private final Supplier<StagingArea> staging;
     private final Supplier<SpanTracker> spanTracker;
@@ -110,7 +109,7 @@ class PeriodicStackTraceSampler implements StackTraceSampler {
     }
 
     void add(Thread thread, SpanContext spanContext) {
-      traceSamplingContexts.computeIfAbsent(thread, t -> {
+      threadSamplingContexts.computeIfAbsent(thread, t -> {
         SamplingContext context = new SamplingContext(t, spanContext, System.nanoTime());
         takeOnDemandSample(context).ifPresent(staging.get()::stage);
         return context;
@@ -118,7 +117,7 @@ class PeriodicStackTraceSampler implements StackTraceSampler {
     }
 
     void remove(Thread thread, SpanContext spanContext) {
-      traceSamplingContexts.computeIfPresent(thread, (t, context) -> {
+      threadSamplingContexts.computeIfPresent(thread, (t, context) -> {
         if (context.spanContext.equals(spanContext)) {
           takeOnDemandSample(context).ifPresent(staging.get()::stage);
           return null;
@@ -144,7 +143,7 @@ class PeriodicStackTraceSampler implements StackTraceSampler {
     }
 
     void shutdown() {
-      traceSamplingContexts.clear();
+      threadSamplingContexts.clear();
       shutdownLatch.countDown();
     }
 
@@ -156,7 +155,7 @@ class PeriodicStackTraceSampler implements StackTraceSampler {
           if (shutdown) {
             return;
           }
-          sample(traceSamplingContexts.values());
+          sample(threadSamplingContexts.values());
         }
       } catch (InterruptedException e) {
         Thread.currentThread().interrupt();

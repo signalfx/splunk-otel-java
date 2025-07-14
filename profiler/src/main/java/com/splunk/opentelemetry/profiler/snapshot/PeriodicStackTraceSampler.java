@@ -155,14 +155,14 @@ class PeriodicStackTraceSampler implements StackTraceSampler {
           if (shutdown) {
             return;
           }
-          sample(threadSamplingContexts.values());
+          takePeriodicSample(threadSamplingContexts.values());
         }
       } catch (InterruptedException e) {
         Thread.currentThread().interrupt();
       }
     }
 
-    private void sample(Collection<SamplingContext> contexts) {
+    private void takePeriodicSample(Collection<SamplingContext> contexts) {
       if (contexts.isEmpty()) {
         return;
       }

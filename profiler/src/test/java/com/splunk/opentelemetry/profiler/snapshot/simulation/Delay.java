@@ -14,25 +14,29 @@
  * limitations under the License.
  */
 
-package com.splunk.opentelemetry.profiler.snapshot;
+package com.splunk.opentelemetry.profiler.snapshot.simulation;
 
-import io.opentelemetry.api.trace.SpanContext;
-import java.io.Closeable;
+import java.time.Duration;
+import java.util.function.UnaryOperator;
 
-interface StackTraceSampler extends Closeable {
-  StackTraceSampler NOOP =
-      new StackTraceSampler() {
-        @Override
-        public void start(SpanContext spanContext) {}
+public class Delay implements UnaryOperator<Message> {
+  public static Delay of(Duration duration) {
+    return new Delay(duration);
+  }
 
-        @Override
-        public void stop(SpanContext spanContext) {}
-      };
-  ConfigurableSupplier<StackTraceSampler> SUPPLIER = new ConfigurableSupplier<>(NOOP);
+  private Delay(Duration duration) {
+    this.duration = duration;
+  }
 
-  void start(SpanContext spanContext);
+  private final Duration duration;
 
-  void stop(SpanContext spanContext);
-
-  default void close() {}
+  @Override
+  public Message apply(Message message) {
+    try {
+      Thread.sleep(duration.toMillis());
+      return message;
+    } catch (InterruptedException e) {
+      throw new RuntimeException(e);
+    }
+  }
 }

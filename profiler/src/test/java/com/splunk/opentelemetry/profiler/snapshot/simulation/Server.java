@@ -22,7 +22,10 @@ import io.opentelemetry.context.Context;
 import io.opentelemetry.context.Scope;
 import io.opentelemetry.context.propagation.TextMapGetter;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 import java.util.function.UnaryOperator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -40,6 +43,7 @@ public class Server extends Thread implements BeforeEachCallback, AfterEachCallb
   private final BlockingQueue<Message> requests = new LinkedBlockingQueue<>();
   private final BlockingQueue<Message> responses = new LinkedBlockingQueue<>();
 
+  private final ExecutorService executor;
   private final OpenTelemetry otel;
   private final UnaryOperator<Message> operation;
   private boolean shutdown = false;
@@ -48,6 +52,7 @@ public class Server extends Thread implements BeforeEachCallback, AfterEachCallb
     super(builder.name);
     this.otel = builder.otel;
     this.operation = builder.operation;
+    executor = Executors.newFixedThreadPool(builder.requestProcessingThreads);
   }
 
   public void send(Message message) {
@@ -66,7 +71,10 @@ public class Server extends Thread implements BeforeEachCallback, AfterEachCallb
   public void run() {
     while (!shutdown && !Thread.currentThread().isInterrupted()) {
       try {
-        accept(requests.take());
+        var message = requests.poll(10, TimeUnit.MILLISECONDS);
+        if (message != null) {
+          executor.submit(() -> accept(message));
+        }
       } catch (InterruptedException e) {
         logger.log(Level.WARNING, e.getMessage(), e);
       }
@@ -77,29 +85,16 @@ public class Server extends Thread implements BeforeEachCallback, AfterEachCallb
     var context =
         otel.getPropagators()
             .getTextMapPropagator()
-            .extract(Context.current(), message, new MessageGetter());
-
-    try (Scope s = context.makeCurrent()) {
-      var tracer = otel.getTracer(Server.class.getName());
-      var span =
-          tracer.spanBuilder("process").setSpanKind(SpanKind.SERVER).setParent(context).startSpan();
-      try (Scope ignored = span.makeCurrent()) {
-        responses.add(operation.apply(message));
-      } finally {
-        span.end();
-      }
+            .extract(Context.root(), message, new MessageGetter());
+    var tracer = otel.getTracer(Server.class.getName());
+    var span =
+        tracer.spanBuilder("process").setSpanKind(SpanKind.SERVER).setParent(context).startSpan();
+    context = context.with(span);
+    try (Scope ignored2 = context.makeCurrent()) {
+      responses.add(operation.apply(message));
+    } finally {
+      span.end();
     }
-  }
-
-  @Override
-  public void beforeEach(ExtensionContext extensionContext) {
-    start();
-  }
-
-  @Override
-  public void afterEach(ExtensionContext extensionContext) throws Exception {
-    shutdown = true;
-    join(1_000);
   }
 
   private static class MessageGetter implements TextMapGetter<Message> {
@@ -114,10 +109,24 @@ public class Server extends Thread implements BeforeEachCallback, AfterEachCallb
     }
   }
 
+  @Override
+  public void beforeEach(ExtensionContext extensionContext) {
+    start();
+  }
+
+  @Override
+  public void afterEach(ExtensionContext extensionContext) throws Exception {
+    shutdown = true;
+    executor.shutdown();
+    executor.awaitTermination(1, TimeUnit.SECONDS);
+    join(1_000);
+  }
+
   public static class Builder {
     private final OpenTelemetry otel;
     private String name;
     private UnaryOperator<Message> operation = message -> message;
+    private int requestProcessingThreads = 1;
 
     private Builder(OpenTelemetry otel) {
       this.otel = otel;
@@ -125,6 +134,11 @@ public class Server extends Thread implements BeforeEachCallback, AfterEachCallb
 
     public Builder named(String name) {
       this.name = name;
+      return this;
+    }
+
+    public Builder requestProcessingThreads(int numberOfThreads) {
+      this.requestProcessingThreads = numberOfThreads;
       return this;
     }
 

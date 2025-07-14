@@ -46,8 +46,9 @@ public class ExitCall implements UnaryOperator<Message> {
             .startSpan();
 
     try (Scope ignored = span.makeCurrent()) {
-      otel.getPropagators().getTextMapPropagator().inject(Context.current(), input, Message::put);
-      server.send(input);
+      var message = new Message();
+      otel.getPropagators().getTextMapPropagator().inject(Context.current(), message, Message::put);
+      server.send(message);
       return server.waitForResponse();
     } finally {
       span.end();

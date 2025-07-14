@@ -81,7 +81,7 @@ class PeriodicStackTraceSamplerTest {
   }
 
   @Test
-  void onlyTakeStackTraceSamplesForOneThreadPerTrace() {
+  void takeStackTraceSamplesForMultipleThreadsFromSameTrace() {
     var executor = Executors.newFixedThreadPool(2);
     var control = new ThreadControl(new CountDownLatch(1), new CountDownLatch(1));
     var traceId = IdGenerator.random().generateTraceId();
@@ -100,7 +100,7 @@ class PeriodicStackTraceSamplerTest {
           staging.allStackTraces().stream()
               .map(StackTrace::getThreadId)
               .collect(Collectors.toSet());
-      assertEquals(1, threadIds.size());
+      assertEquals(2, threadIds.size());
     } finally {
       sampler.stop(spanContext1);
       sampler.stop(spanContext2);

@@ -29,7 +29,7 @@ class InMemorySpanTracker implements SpanTracker {
   }
 
   @Override
-  public Optional<SpanContext> getActiveSpan(Thread thread) {
-    return Optional.ofNullable(activeSpans.get(thread.getId()));
+  public Optional<SpanContext> getActiveSpan(long threadId) {
+    return Optional.ofNullable(activeSpans.get(threadId));
   }
 }

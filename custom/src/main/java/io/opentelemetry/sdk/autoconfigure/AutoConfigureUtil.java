@@ -44,9 +44,10 @@ public final class AutoConfigureUtil {
     return sdk.getResource();
   }
 
+  // TODO: This should be removed once opentelemetry-java-instrumentation changes introducing
+  //       ConfigPropertiesUtil class are released and pulled to this project.
   /** Resolve {@link ConfigProperties} from the {@code autoConfiguredOpenTelemetrySdk}. */
-  static ConfigProperties resolveConfigProperties(
-      AutoConfiguredOpenTelemetrySdk sdk) {
+  static ConfigProperties resolveConfigProperties(AutoConfiguredOpenTelemetrySdk sdk) {
     ConfigProperties sdkConfigProperties =
         io.opentelemetry.sdk.autoconfigure.internal.AutoConfigureUtil.getConfig(sdk);
     if (sdkConfigProperties != null) {

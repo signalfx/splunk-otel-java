@@ -45,12 +45,14 @@ import javax.annotation.Nullable;
  *   <li>We extract the property from the resolved {@link DeclarativeConfigProperties} using the
  *       last segment as the property key.
  * </ul>
- * If this returns null then the second lookup takes place, but this time the whole property name is split
- * into segments. This supports vendor specific properties with names that do not start with "otel.instrumentation" prefix.
  *
- * <p>For example, given the following YAML, asking for
- * {@code ConfigProperties#getString("otel.instrumentation.common.string_key")} yields "value"
- * {@code ConfigProperties#getString("acme.product.name")} yields "terminal"
+ * If this returns null then the second lookup takes place, but this time the whole property name is
+ * split into segments. This supports vendor specific properties with names that do not start with
+ * "otel.instrumentation" prefix.
+ *
+ * <p>For example, given the following YAML, asking for {@code
+ * ConfigProperties#getString("otel.instrumentation.common.string_key")} yields "value" {@code
+ * ConfigProperties#getString("acme.product.name")} yields "terminal"
  *
  * <pre>
  *   instrumentation:
@@ -63,7 +65,6 @@ import javax.annotation.Nullable;
  * </pre>
  */
 final class TmpDeclarativeConfigPropertiesBridge implements ConfigProperties {
-
   private static final String OTEL_INSTRUMENTATION_PREFIX = "otel.instrumentation.";
 
   // The node at .instrumentation.java
@@ -146,44 +147,20 @@ final class TmpDeclarativeConfigPropertiesBridge implements ConfigProperties {
   @Nullable
   private <T> T getPropertyValue(
       String property, BiFunction<DeclarativeConfigProperties, String, T> extractor) {
-    T value = getOtelPropertyValue(property, extractor);
-    if (value == null) {
-      value = getVendorPropertyValue(property, extractor);
-    }
-    return value;
-  }
-
-  @Nullable
-  private <T> T getOtelPropertyValue(
-      String property, BiFunction<DeclarativeConfigProperties, String, T> extractor) {
-    if (!property.startsWith(OTEL_INSTRUMENTATION_PREFIX)) {
-      return null;
-    }
-    String suffix = property.substring(OTEL_INSTRUMENTATION_PREFIX.length());
-    // Split the remainder of the property on ".", and walk to the N-1 entry
-    String[] segments = suffix.split("\\.");
-    if (segments.length == 0) {
+    if (instrumentationJavaNode == null) {
       return null;
     }
 
-    return getPropertyValue(segments, extractor);
-  }
-
-  @Nullable
-  private <T> T getVendorPropertyValue(
-      String property, BiFunction<DeclarativeConfigProperties, String, T> extractor) {
+    if (property.startsWith(OTEL_INSTRUMENTATION_PREFIX)) {
+      property = property.substring(OTEL_INSTRUMENTATION_PREFIX.length());
+    }
+    // Split the remainder of the property on "."
     String[] segments = property.split("\\.");
     if (segments.length == 0) {
       return null;
     }
 
-    return getPropertyValue(segments, extractor);
-  }
-
-  @Nullable
-  private <T> T getPropertyValue(
-      String[] segments, BiFunction<DeclarativeConfigProperties, String, T> extractor) {
-
+    // Extract the value by walking to the N-1 entry
     DeclarativeConfigProperties target = instrumentationJavaNode;
     if (segments.length > 1) {
       for (int i = 0; i < segments.length - 1; i++) {
@@ -191,6 +168,7 @@ final class TmpDeclarativeConfigPropertiesBridge implements ConfigProperties {
       }
     }
     String lastPart = segments[segments.length - 1];
+
     return extractor.apply(target, lastPart);
   }
 }

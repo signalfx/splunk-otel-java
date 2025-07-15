@@ -75,6 +75,11 @@ class SdkShutdownHookTest {
     public void stop(Thread thread, SpanContext spanContext) {}
 
     @Override
+    public boolean isBeingSampled(Thread thread) {
+      return false;
+    }
+
+    @Override
     public void stage(Collection<StackTrace> stackTraces) {}
 
     @Override

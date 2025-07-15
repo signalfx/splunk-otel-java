@@ -27,6 +27,11 @@ interface StackTraceSampler extends Closeable {
 
         @Override
         public void stop(Thread thread, SpanContext spanContext) {}
+
+        @Override
+        public boolean isBeingSampled(Thread thread) {
+          return false;
+        }
       };
   ConfigurableSupplier<StackTraceSampler> SUPPLIER = new ConfigurableSupplier<>(NOOP);
 
@@ -71,6 +76,8 @@ interface StackTraceSampler extends Closeable {
    * @param spanContext {@link SpanContext} to associate with the {@link Thread}
    */
   void stop(Thread  thread, SpanContext spanContext);
+
+  boolean isBeingSampled(Thread  thread);
 
   default void close() {}
 }

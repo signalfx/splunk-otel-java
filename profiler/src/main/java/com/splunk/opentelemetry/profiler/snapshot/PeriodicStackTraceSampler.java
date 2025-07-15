@@ -74,6 +74,11 @@ class PeriodicStackTraceSampler implements StackTraceSampler {
   }
 
   @Override
+  public boolean isBeingSampled(Thread thread) {
+    return sampler.isSampling(thread);
+  }
+
+  @Override
   public void close() {
     this.closed = true;
     // Wait for the sampling thread to exit. Note that this does not guarantee an
@@ -123,6 +128,10 @@ class PeriodicStackTraceSampler implements StackTraceSampler {
         }
         return context;
       });
+    }
+
+    boolean isSampling(Thread thread) {
+      return threadSamplingContexts.containsKey(thread.getId());
     }
 
     private Optional<StackTrace> takeOnDemandSample(long threadId, SamplingContext context) {

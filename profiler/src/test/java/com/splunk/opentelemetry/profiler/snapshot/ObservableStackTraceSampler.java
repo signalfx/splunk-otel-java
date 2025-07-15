@@ -40,11 +40,12 @@ public class ObservableStackTraceSampler implements StackTraceSampler {
     threads.remove(thread);
   }
 
-  boolean isBeingSampled(SpanContext spanContext) {
-    return traceIds.contains(spanContext.getTraceId());
+  @Override
+  public boolean isBeingSampled(Thread thread) {
+    return threads.contains(thread);
   }
 
-  boolean isBeingSampled(Thread thread) {
-    return threads.contains(thread);
+  boolean isBeingSampled(SpanContext spanContext) {
+    return traceIds.contains(spanContext.getTraceId());
   }
 }

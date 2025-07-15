@@ -58,19 +58,19 @@ class PeriodicStackTraceSampler implements StackTraceSampler {
   }
 
   @Override
-  public void start(SpanContext spanContext) {
+  public void start(Thread thread, SpanContext spanContext) {
     if (closed) {
       return;
     }
-    sampler.add(Thread.currentThread(), spanContext);
+    sampler.add(thread, spanContext);
   }
 
   @Override
-  public void stop(SpanContext spanContext) {
+  public void stop(Thread thread, SpanContext spanContext) {
     if (closed) {
       return;
     }
-    sampler.remove(Thread.currentThread(), spanContext);
+    sampler.remove(thread, spanContext);
   }
 
   @Override

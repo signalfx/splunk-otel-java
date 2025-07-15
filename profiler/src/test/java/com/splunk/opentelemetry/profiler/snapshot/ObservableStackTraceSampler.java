@@ -26,18 +26,25 @@ import java.util.Set;
  */
 public class ObservableStackTraceSampler implements StackTraceSampler {
   private final Set<String> traceIds = new HashSet<>();
+  private final Set<Thread> threads = new HashSet<>();
 
   @Override
-  public void start(SpanContext spanContext) {
+  public void start(Thread thread, SpanContext spanContext) {
     traceIds.add(spanContext.getTraceId());
+    threads.add(thread);
   }
 
   @Override
-  public void stop(SpanContext spanContext) {
+  public void stop(Thread thread, SpanContext spanContext) {
     traceIds.remove(spanContext.getTraceId());
+    threads.remove(thread);
   }
 
   boolean isBeingSampled(SpanContext spanContext) {
     return traceIds.contains(spanContext.getTraceId());
+  }
+
+  boolean isBeingSampled(Thread thread) {
+    return threads.contains(thread);
   }
 }

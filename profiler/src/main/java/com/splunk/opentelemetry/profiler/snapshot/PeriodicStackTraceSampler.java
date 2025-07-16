@@ -22,7 +22,7 @@ import java.lang.management.ThreadInfo;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -164,25 +164,24 @@ class PeriodicStackTraceSampler implements StackTraceSampler {
           if (shutdown) {
             return;
           }
-          Map<Thread, SamplingContext> view = new HashMap<>(threadSamplingContexts);
-          takePeriodicSample(view);
+          takePeriodicSample(threadSamplingContexts.values());
         }
       } catch (InterruptedException e) {
         Thread.currentThread().interrupt();
       }
     }
 
-    private void takePeriodicSample(Map<Thread, SamplingContext> threadSamplingContexts) {
-      if (threadSamplingContexts.isEmpty()) {
+    private void takePeriodicSample(Collection<SamplingContext> contexts) {
+      if (contexts.isEmpty()) {
         return;
       }
 
       long currentSampleTime = System.nanoTime();
       try {
-        Map<Long, SamplingContext> contexts = threadSamplingContexts.entrySet().stream().collect(
-            Collectors.toMap(e -> e.getKey().getId(), Map.Entry::getValue));
-        ThreadInfo[] threadInfos = collector.getThreadInfo(contexts.keySet());
-        List<StackTrace> stackTraces = toStackTraces(threadInfos, contexts, currentSampleTime);
+        Map<Long, SamplingContext> threadContexts =
+          contexts.stream().collect(Collectors.toMap(c -> c.thread.getId(), context -> context));
+        ThreadInfo[] threadInfos = collector.getThreadInfo(threadContexts.keySet());
+        List<StackTrace> stackTraces = toStackTraces(threadInfos, threadContexts, currentSampleTime);
         staging.get().stage(stackTraces);
       } catch (Exception e) {
         logger.info("Unexpected error during callstack sampling");

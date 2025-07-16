@@ -57,14 +57,14 @@ class PeriodicStackTraceSamplerTest {
   }
 
   @Test
-  void takeStackTraceSampleForGivenThread() {
+  void takeStackTraceSampleForThread() {
     var spanContext = Snapshotting.spanContext().build();
 
     try {
-      sampler.start(spanContext);
+      sampler.start(Thread.currentThread(), spanContext);
       await().until(staging::hasStackTraces);
     } finally {
-      sampler.stop(spanContext);
+      sampler.stop(Thread.currentThread(), spanContext);
     }
   }
 
@@ -75,23 +75,23 @@ class PeriodicStackTraceSamplerTest {
     int expectedSamples = (int) halfSecond.dividedBy(SAMPLING_PERIOD.multipliedBy(2));
 
     try {
-      sampler.start(spanContext);
+      sampler.start(Thread.currentThread(), spanContext);
       await().until(() -> staging.allStackTraces().size() >= expectedSamples);
     } finally {
-      sampler.stop(spanContext);
+      sampler.stop(Thread.currentThread(), spanContext);
     }
   }
 
   @Test
-  void takeStackTraceSamplesForMultipleThreadsFromSameTrace() {
+  void takeStackTraceSamplesForMultipleThreadsFromSameTrace() throws Exception {
     var executor = Executors.newFixedThreadPool(2);
     var control = new ThreadControl(new CountDownLatch(1), new CountDownLatch(1));
     var traceId = IdGenerator.random().generateTraceId();
     var spanContext2 = Snapshotting.spanContext().withTraceId(traceId).build();
     var spanContext1 = Snapshotting.spanContext().withTraceId(traceId).build();
 
-    executor.submit(startSampling(spanContext1, control));
-    executor.submit(startSampling(spanContext2, control));
+    var thread1 = executor.submit(captureThread(startSampling(spanContext1, control)));
+    var thread2 = executor.submit(captureThread(startSampling(spanContext2, control)));
 
     try {
       control.start();
@@ -104,8 +104,8 @@ class PeriodicStackTraceSamplerTest {
               .collect(Collectors.toSet());
       assertEquals(2, threadIds.size());
     } finally {
-      sampler.stop(spanContext1);
-      sampler.stop(spanContext2);
+      sampler.stop(thread1.get(), spanContext1);
+      sampler.stop(thread2.get(), spanContext2);
       executor.shutdownNow();
     }
   }
@@ -143,18 +143,17 @@ class PeriodicStackTraceSamplerTest {
    * stop until that same span ends.
    */
   @Test
-  void onlyStopSamplingWhenCommandOriginatesSameSpanContextThatStartedSampling() {
-    var executor = Executors.newFixedThreadPool(2);
+  void onlyStopSamplingWhenCommandOriginatesSameSpanContextThatStartedSampling() throws Exception {
     var traceId = IdGenerator.random().generateTraceId();
-
-    var thread1Control = new ThreadControl(new CountDownLatch(1), new CountDownLatch(1));
     var spanContext1 = Snapshotting.spanContext().withTraceId(traceId).build();
-
-    var thread2Control = new ThreadControl(new CountDownLatch(1), new CountDownLatch(1));
     var spanContext2 = Snapshotting.spanContext().withTraceId(traceId).build();
 
-    executor.submit(startSampling(spanContext1, thread1Control));
-    executor.submit(startSampling(spanContext2, thread2Control));
+    var thread1Control = new ThreadControl(new CountDownLatch(1), new CountDownLatch(1));
+    var thread2Control = new ThreadControl(new CountDownLatch(1), new CountDownLatch(1));
+
+    var executor = Executors.newFixedThreadPool(2);
+    var thread1 = executor.submit(captureThread(startSampling(spanContext1, thread1Control)));
+    var thread2 = executor.submit(captureThread(startSampling(spanContext2, thread2Control)));
 
     try {
       thread1Control.start();
@@ -163,28 +162,28 @@ class PeriodicStackTraceSamplerTest {
       await().until(() -> staging.allStackTraces().size() > 2);
 
       thread2Control.stop();
+      sampler.stop(thread2.get(), spanContext2);
       int numberOfStackTraces = staging.allStackTraces().size();
-      sampler.stop(spanContext2);
 
       await()
           .untilAsserted(
               () -> assertThat(staging.allStackTraces().size()).isGreaterThan(numberOfStackTraces));
     } finally {
-      sampler.stop(spanContext1);
       thread1Control.stop();
+      sampler.stop(thread1.get(), spanContext1);
       executor.shutdownNow();
     }
   }
 
   @Test
-  void sampleMultipleTracesAtSameTime() {
+  void sampleMultipleTracesAtSameTime() throws Exception {
     var executor = Executors.newFixedThreadPool(2);
     var control = new ThreadControl(new CountDownLatch(1), new CountDownLatch(1));
     var spanContext2 = Snapshotting.spanContext().build();
     var spanContext1 = Snapshotting.spanContext().build();
 
-    executor.submit(startSampling(spanContext1, control));
-    executor.submit(startSampling(spanContext2, control));
+    var thread1 = executor.submit(captureThread(startSampling(spanContext1, control)));
+    var thread2 = executor.submit(captureThread(startSampling(spanContext2, control)));
 
     try {
       control.start();
@@ -201,8 +200,8 @@ class PeriodicStackTraceSamplerTest {
           staging.allStackTraces().stream().map(StackTrace::getTraceId).collect(Collectors.toSet());
       assertThat(traceIds).contains(spanContext1.getTraceId(), spanContext2.getTraceId());
     } finally {
-      sampler.stop(spanContext1);
-      sampler.stop(spanContext2);
+      sampler.stop(thread1.get(), spanContext1);
+      sampler.stop(thread2.get(), spanContext2);
       executor.shutdownNow();
     }
   }
@@ -213,13 +212,13 @@ class PeriodicStackTraceSamplerTest {
     var spanContext = Snapshotting.spanContext().build();
 
     try {
-      sampler.start(spanContext);
+      sampler.start(Thread.currentThread(), spanContext);
       await().until(staging::hasStackTraces);
 
       var stackTrace = staging.allStackTraces().stream().findFirst().orElseThrow();
       assertThat(stackTrace.getTimestamp()).isNotNull().isAfter(now);
     } finally {
-      sampler.stop(spanContext);
+      sampler.stop(Thread.currentThread(), spanContext);
     }
   }
 
@@ -228,13 +227,13 @@ class PeriodicStackTraceSamplerTest {
     var spanContext = Snapshotting.spanContext().build();
 
     try {
-      sampler.start(spanContext);
+      sampler.start(Thread.currentThread(), spanContext);
       await().until(staging::hasStackTraces);
 
       var stackTrace = staging.allStackTraces().stream().findFirst().orElseThrow();
       assertThat(stackTrace.getDuration()).isNotNull().isGreaterThan(Duration.ZERO);
     } finally {
-      sampler.stop(spanContext);
+      sampler.stop(Thread.currentThread(), spanContext);
     }
   }
 
@@ -243,7 +242,7 @@ class PeriodicStackTraceSamplerTest {
     var spanContext = Snapshotting.spanContext().build();
 
     try {
-      sampler.start(spanContext);
+      sampler.start(Thread.currentThread(), spanContext);
       await().until(() -> staging.allStackTraces().size() > 1);
 
       var stackTrace = staging.allStackTraces().stream().skip(1).findFirst().orElseThrow();
@@ -251,7 +250,7 @@ class PeriodicStackTraceSamplerTest {
           .isNotNull()
           .isCloseTo(SAMPLING_PERIOD, Duration.ofMillis(6));
     } finally {
-      sampler.stop(spanContext);
+      sampler.stop(Thread.currentThread(), spanContext);
     }
   }
 
@@ -260,22 +259,20 @@ class PeriodicStackTraceSamplerTest {
     var executor = Executors.newSingleThreadExecutor();
     var spanContext = Snapshotting.spanContext().build();
     var control = new ThreadControl(new CountDownLatch(1), new CountDownLatch(1));
+    var thread = executor.submit(captureThread(startSampling(spanContext, control)));
     try {
-      var future = executor.submit(captureThread(startSampling(spanContext, control)));
-
       control.start();
       await().until(staging::hasStackTraces);
       control.stop();
 
-      var thread = future.get();
       var stackTrace = staging.allStackTraces().stream().findFirst().orElseThrow();
       assertAll(
-          () -> assertEquals(thread.getId(), stackTrace.getThreadId()),
-          () -> assertEquals(thread.getName(), stackTrace.getThreadName()),
+          () -> assertEquals(thread.get().getId(), stackTrace.getThreadId()),
+          () -> assertEquals(thread.get().getName(), stackTrace.getThreadName()),
           () -> assertNotNull(stackTrace.getThreadState()),
           () -> assertThat(stackTrace.getStackFrames()).isNotEmpty());
     } finally {
-      sampler.stop(spanContext);
+      sampler.stop(thread.get(), spanContext);
       executor.shutdownNow();
     }
   }
@@ -285,13 +282,13 @@ class PeriodicStackTraceSamplerTest {
     var spanContext = Snapshotting.spanContext().build();
 
     try {
-      sampler.start(spanContext);
+      sampler.start(Thread.currentThread(), spanContext);
       await().until(staging::hasStackTraces);
 
       var stackTrace = staging.allStackTraces().stream().findFirst().orElseThrow();
       assertEquals(spanContext.getTraceId(), stackTrace.getTraceId());
     } finally {
-      sampler.stop(spanContext);
+      sampler.stop(Thread.currentThread(), spanContext);
     }
   }
 
@@ -301,20 +298,20 @@ class PeriodicStackTraceSamplerTest {
     spanTracker.store(Thread.currentThread(), spanContext);
 
     try {
-      sampler.start(spanContext);
+      sampler.start(Thread.currentThread(), spanContext);
       await().until(staging::hasStackTraces);
 
       var stackTrace = staging.allStackTraces().stream().findFirst().orElseThrow();
       assertEquals(spanContext.getSpanId(), stackTrace.getSpanId());
     } finally {
-      sampler.stop(spanContext);
+      sampler.stop(Thread.currentThread(), spanContext);
     }
   }
 
   @Test
   void takeInitialSampleWhenTraceSamplingStarts() {
     var spanContext = Snapshotting.spanContext().build();
-    sampler.start(spanContext);
+    sampler.start(Thread.currentThread(), spanContext);
     assertEquals(1, staging.allStackTraces().size());
   }
 
@@ -325,13 +322,15 @@ class PeriodicStackTraceSamplerTest {
     // a StackTrace with the expected trace id but a span id from a different trace.
     delayedThreadInfoCollector.setDelay(Duration.ofMillis(100));
 
+    var thread =  Thread.currentThread();
     var spanContext1 = Snapshotting.spanContext().build();
     var spanContext2 = Snapshotting.spanContext().build();
-    sampler.start(spanContext1);
-    spanTracker.store(Thread.currentThread(), spanContext1);
-    sampler.stop(spanContext1);
-    sampler.start(spanContext2);
-    spanTracker.store(Thread.currentThread(), spanContext2);
+
+    sampler.start(thread, spanContext1);
+    spanTracker.store(thread, spanContext1);
+    sampler.stop(thread, spanContext1);
+    sampler.start(thread, spanContext2);
+    spanTracker.store(thread, spanContext2);
 
     await().until(() -> staging.allStackTraces().size() > 1);
 
@@ -374,7 +373,7 @@ class PeriodicStackTraceSamplerTest {
     try (var sampler =
         new PeriodicStackTraceSampler(
             () -> staging, () -> spanTracker, collector, SAMPLING_PERIOD)) {
-      thread1.submit(() -> sampler.start(spanContext)).get();
+      thread1.submit(() -> sampler.start(Thread.currentThread(), spanContext)).get();
 
       collector.blockThreadInfoCollection();
 
@@ -382,7 +381,7 @@ class PeriodicStackTraceSamplerTest {
       await().until(() -> !staging.allStackTraces().isEmpty());
       staging.empty();
 
-      var future = thread1.submit(captureThread(() -> sampler.stop(spanContext)));
+      var future = thread1.submit(captureThread(() -> sampler.stop(Thread.currentThread(), spanContext)));
       thread2.schedule(latch::countDown, SAMPLING_PERIOD.toMillis(), TimeUnit.MILLISECONDS);
       await().until(() -> !staging.allStackTraces().isEmpty());
 
@@ -414,7 +413,7 @@ class PeriodicStackTraceSamplerTest {
     try (var sampler =
         new PeriodicStackTraceSampler(
             () -> staging, () -> spanTracker, collector, SAMPLING_PERIOD)) {
-      thread1.submit(() -> sampler.start(spanContext)).get();
+      thread1.submit(() -> sampler.start(Thread.currentThread(), spanContext)).get();
 
       collector.blockThreadInfoCollection();
 
@@ -422,7 +421,7 @@ class PeriodicStackTraceSamplerTest {
       await().until(() -> !staging.allStackTraces().isEmpty());
       staging.empty();
 
-      thread1.submit(() -> sampler.stop(spanContext));
+      thread1.submit(() -> sampler.stop(Thread.currentThread(), spanContext));
       thread2.schedule(latch::countDown, SAMPLING_PERIOD.toMillis(), TimeUnit.MILLISECONDS);
       await().until(() -> !staging.allStackTraces().isEmpty());
 
@@ -439,8 +438,8 @@ class PeriodicStackTraceSamplerTest {
   void takeFinalSampleWhenTraceSamplingIsStopped() {
     var spanContext = Snapshotting.spanContext().build();
 
-    sampler.start(spanContext);
-    sampler.stop(spanContext);
+    sampler.start(Thread.currentThread(), spanContext);
+    sampler.stop(Thread.currentThread(), spanContext);
 
     var stackTraces = staging.allStackTraces();
     assertEquals(2, stackTraces.size());
@@ -452,9 +451,8 @@ class PeriodicStackTraceSamplerTest {
     var spanContext = Snapshotting.spanContext().build();
     var expectedDuration = SAMPLING_PERIOD.dividedBy(2);
     try {
-      scheduler.submit(() -> sampler.start(spanContext));
-      scheduler.schedule(
-          () -> sampler.stop(spanContext), expectedDuration.toMillis(), TimeUnit.MILLISECONDS);
+      scheduler.submit(startSampling(spanContext));
+      scheduler.schedule(stopSampling(spanContext), expectedDuration.toMillis(), TimeUnit.MILLISECONDS);
       await().until(staging::hasStackTraces);
 
       var stackTraces = staging.allStackTraces();
@@ -465,11 +463,15 @@ class PeriodicStackTraceSamplerTest {
     }
   }
 
+  private Runnable startSampling(SpanContext spanContext) {
+    return startSampling(spanContext, new ThreadControl());
+  }
+
   private Runnable startSampling(SpanContext spanContext, ThreadControl control) {
     return (() -> {
       try {
         control.start.await();
-        sampler.start(spanContext);
+        sampler.start(Thread.currentThread(),  spanContext);
         control.stop.await();
       } catch (InterruptedException e) {
         throw new RuntimeException(e);
@@ -477,9 +479,17 @@ class PeriodicStackTraceSamplerTest {
     });
   }
 
+  private Runnable stopSampling(SpanContext spanContext) {
+    return () -> sampler.stop(Thread.currentThread(), spanContext);
+  }
+
   private static class ThreadControl {
     private final CountDownLatch start;
     private final CountDownLatch stop;
+
+    private ThreadControl() {
+      this(new CountDownLatch(0), new CountDownLatch(0));
+    }
 
     private ThreadControl(CountDownLatch start) {
       this(start, new CountDownLatch(0));
@@ -503,7 +513,7 @@ class PeriodicStackTraceSamplerTest {
   void stopSamplingWhenClosed() throws Exception {
     var spanContext = Snapshotting.spanContext().build();
 
-    sampler.start(spanContext);
+    sampler.start(Thread.currentThread(), spanContext);
     await().until(() -> !staging.allStackTraces().isEmpty());
     sampler.close();
 
@@ -551,7 +561,7 @@ class PeriodicStackTraceSamplerTest {
     var spanContext = Snapshotting.spanContext().build();
 
     sampler.close();
-    sampler.start(spanContext);
+    sampler.start(Thread.currentThread(), spanContext);
 
     assertEquals(0, staging.allStackTraces().size());
   }
@@ -560,11 +570,11 @@ class PeriodicStackTraceSamplerTest {
   void doNotReportStackTraceForStoppingSamplingClosed() {
     var spanContext = Snapshotting.spanContext().build();
 
-    sampler.start(spanContext);
+    sampler.start(Thread.currentThread(), spanContext);
     sampler.close();
     staging.empty();
 
-    sampler.stop(spanContext);
+    sampler.stop(Thread.currentThread(), spanContext);
 
     assertEquals(0, staging.allStackTraces().size());
   }
@@ -648,7 +658,7 @@ class PeriodicStackTraceSamplerTest {
   @Test
   void threadIsBeingSampled() {
     var spanContext = Snapshotting.spanContext().build();
-    sampler.start(spanContext);
+    sampler.start(Thread.currentThread(), spanContext);
 
     assertThat(sampler.isBeingSampled(Thread.currentThread())).isTrue();
   }
@@ -658,8 +668,8 @@ class PeriodicStackTraceSamplerTest {
     var spanContext = Snapshotting.spanContext().build();
     var executor =  Executors.newFixedThreadPool(2);
     try {
-      var thread1 = executor.submit(captureThread(() -> sampler.start(spanContext)));
-      var thread2 = executor.submit(captureThread(() -> sampler.start(spanContext)));
+      var thread1 = executor.submit(captureThread(startSampling(spanContext)));
+      var thread2 = executor.submit(captureThread(startSampling(spanContext)));
 
       assertThat(sampler.isBeingSampled(thread1.get())).isTrue();
       assertThat(sampler.isBeingSampled(thread2.get())).isTrue();
@@ -670,12 +680,13 @@ class PeriodicStackTraceSamplerTest {
 
   @Test
   void threadIsNotBeingSampledAfterSamplingIsStopped() {
+    var thread = Thread.currentThread();
     var spanContext = Snapshotting.spanContext().build();
 
-    sampler.start(spanContext);
-    sampler.stop(spanContext);
+    sampler.start(thread, spanContext);
+    sampler.stop(thread, spanContext);
 
-    assertThat(sampler.isBeingSampled(Thread.currentThread())).isFalse();
+    assertThat(sampler.isBeingSampled(thread)).isFalse();
   }
 
   private Callable<Thread> captureThread(Runnable runnable) {

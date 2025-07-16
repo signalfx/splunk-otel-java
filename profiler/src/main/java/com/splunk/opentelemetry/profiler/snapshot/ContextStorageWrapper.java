@@ -21,15 +21,15 @@ import io.opentelemetry.context.ContextStorage;
 import java.util.function.Consumer;
 import java.util.function.UnaryOperator;
 
-class DefaultContextStorageWrapper {
+class ContextStorageWrapper {
   private final Consumer<UnaryOperator<ContextStorage>> wrappingFunction;
 
-  DefaultContextStorageWrapper() {
+  ContextStorageWrapper() {
     this(ContextStorage::addWrapper);
   }
 
   @VisibleForTesting
-  DefaultContextStorageWrapper(Consumer<UnaryOperator<ContextStorage>> wrappingFunction) {
+  ContextStorageWrapper(Consumer<UnaryOperator<ContextStorage>> wrappingFunction) {
     this.wrappingFunction = wrappingFunction;
   }
 

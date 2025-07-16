@@ -21,7 +21,7 @@ import io.opentelemetry.sdk.testing.context.SettableContextStorageProvider;
 import org.junit.jupiter.api.extension.AfterEachCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
 
-class ResettingContextStorageWrapper extends DefaultContextStorageWrapper implements AfterEachCallback {
+class ResettingContextStorageWrapper extends ContextStorageWrapper implements AfterEachCallback {
   ResettingContextStorageWrapper() {
     super(operator -> {
       var storage = operator.apply(ContextStorage.defaultStorage());

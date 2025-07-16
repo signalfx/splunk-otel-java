@@ -34,13 +34,13 @@ import java.util.function.Function;
 public class SnapshotProfilingSdkCustomizer implements AutoConfigurationCustomizerProvider {
   private final TraceRegistry registry;
   private final Function<ConfigProperties, StackTraceSampler> samplerProvider;
-  private final DefaultContextStorageWrapper contextStorageWrapper;
+  private final ContextStorageWrapper contextStorageWrapper;
 
   public SnapshotProfilingSdkCustomizer() {
     this(
         new TraceRegistry(),
         stackTraceSamplerProvider(),
-        new DefaultContextStorageWrapper());
+        new ContextStorageWrapper());
   }
 
   private static Function<ConfigProperties, StackTraceSampler> stackTraceSamplerProvider() {
@@ -60,14 +60,14 @@ public class SnapshotProfilingSdkCustomizer implements AutoConfigurationCustomiz
 
   @VisibleForTesting
   SnapshotProfilingSdkCustomizer(
-      TraceRegistry registry, StackTraceSampler sampler, DefaultContextStorageWrapper contextStorageWrapper) {
+      TraceRegistry registry, StackTraceSampler sampler, ContextStorageWrapper contextStorageWrapper) {
     this(registry, properties -> sampler, contextStorageWrapper);
   }
 
   private SnapshotProfilingSdkCustomizer(
       TraceRegistry registry,
       Function<ConfigProperties, StackTraceSampler> samplerProvider,
-      DefaultContextStorageWrapper contextStorageWrapper) {
+      ContextStorageWrapper contextStorageWrapper) {
     this.registry = registry;
     this.samplerProvider = samplerProvider;
     this.contextStorageWrapper = contextStorageWrapper;

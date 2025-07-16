@@ -23,10 +23,10 @@ import java.util.function.Consumer;
 import java.util.function.UnaryOperator;
 import org.junit.jupiter.api.Test;
 
-class DefaultContextStorageWrapperTest {
+class ContextStorageWrapperTest {
   private final ContextStorageRecorder delegate = new ContextStorageRecorder();
-  private final DefaultContextStorageWrapper activator =
-      new DefaultContextStorageWrapper(delegate);
+  private final ContextStorageWrapper activator =
+      new ContextStorageWrapper(delegate);
 
   @Test
   void installThreadChangeDetector() {

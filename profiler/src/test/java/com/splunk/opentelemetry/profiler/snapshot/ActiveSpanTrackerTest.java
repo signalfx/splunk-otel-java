@@ -52,26 +52,23 @@ class ActiveSpanTrackerTest {
 
   @Test
   void noActiveSpanForThreadBeforeFirstSpanInTraceIsAttachedToContext() {
-    var thread = Thread.currentThread();
-    assertEquals(Optional.empty(), spanTracker.getActiveSpan(thread));
+    assertEquals(Optional.empty(), spanTracker.getActiveSpan(Thread.currentThread()));
   }
 
   @Test
   void trackActiveSpanWhenNewContextAttached() {
-    var thread = Thread.currentThread();
     var span = Span.wrap(Snapshotting.spanContext().build());
     var spanContext = span.getSpanContext();
     var context = Context.root().with(span);
     registry.register(spanContext);
 
     try (var ignored = spanTracker.attach(context)) {
-      assertEquals(Optional.of(spanContext), spanTracker.getActiveSpan(thread));
+      assertEquals(Optional.of(spanContext), spanTracker.getActiveSpan(Thread.currentThread()));
     }
   }
 
   @Test
   void noActiveSpanForTraceAfterSpansScopeIsClosed() {
-    var thread = Thread.currentThread();
     var span = Span.wrap(Snapshotting.spanContext().build());
     var spanContext = span.getSpanContext();
     var context = Context.root().with(span);
@@ -80,12 +77,11 @@ class ActiveSpanTrackerTest {
     var scope = spanTracker.attach(context);
     scope.close();
 
-    assertEquals(Optional.empty(), spanTracker.getActiveSpan(thread));
+    assertEquals(Optional.empty(), spanTracker.getActiveSpan(Thread.currentThread()));
   }
 
   @Test
   void trackActiveSpanAcrossMultipleContextChanges() {
-    var thread = Thread.currentThread();
     var root = Span.wrap(Snapshotting.spanContext().build());
     var context = Context.root().with(root);
     registry.register(root.getSpanContext());
@@ -95,14 +91,13 @@ class ActiveSpanTrackerTest {
       var spanContext = span.getSpanContext();
       context = context.with(span);
       try (var ignoredScope2 = spanTracker.attach(context)) {
-        assertEquals(Optional.of(spanContext), spanTracker.getActiveSpan(thread));
+        assertEquals(Optional.of(spanContext), spanTracker.getActiveSpan(Thread.currentThread()));
       }
     }
   }
 
   @Test
   void restoreActiveSpanToPreviousSpanAfterScopeClosing() {
-    var thread = Thread.currentThread();
     var root = Span.wrap(Snapshotting.spanContext().build());
     var context = Context.root().with(root);
     registry.register(root.getSpanContext());
@@ -115,7 +110,7 @@ class ActiveSpanTrackerTest {
       scope.close();
 
       var rootSpanContext = root.getSpanContext();
-      assertEquals(Optional.of(rootSpanContext), spanTracker.getActiveSpan(thread));
+      assertEquals(Optional.of(rootSpanContext), spanTracker.getActiveSpan(Thread.currentThread()));
     }
   }
 
@@ -208,22 +203,20 @@ class ActiveSpanTrackerTest {
 
   @Test
   void doNotTrackSpanWhenNoSpanPresentInContext() {
-    var thread =  Thread.currentThread();
     var context = Context.root().with(ContextKey.named("test-key"), "value");
     try (var ignored = spanTracker.attach(context)) {
-      assertEquals(Optional.empty(), spanTracker.getActiveSpan(thread));
+      assertEquals(Optional.empty(), spanTracker.getActiveSpan(Thread.currentThread()));
     }
   }
 
   @Test
   void doNotTrackSpanWhenSpanIsNotSampled() {
-    var thread =  Thread.currentThread();
     var span = Span.wrap(Snapshotting.spanContext().unsampled().build());
     var context = Context.root().with(span);
     registry.register(span.getSpanContext());
 
     try (var ignored = spanTracker.attach(context)) {
-      assertEquals(Optional.empty(), spanTracker.getActiveSpan(thread));
+      assertEquals(Optional.empty(), spanTracker.getActiveSpan(Thread.currentThread()));
     }
   }
 
@@ -231,24 +224,22 @@ class ActiveSpanTrackerTest {
   void doNotTrackSpanTraceIsNotRegisteredForSnapshotting() {
     registry.toggle(TogglableTraceRegistry.State.OFF);
 
-    var thread =  Thread.currentThread();
     var span = Span.wrap(Snapshotting.spanContext().build());
     var context = Context.root().with(span);
 
     try (var ignored = spanTracker.attach(context)) {
-      assertEquals(Optional.empty(), spanTracker.getActiveSpan(thread));
+      assertEquals(Optional.empty(), spanTracker.getActiveSpan(Thread.currentThread()));
     }
   }
 
   @Test
   void doNotTrackInvalidSpans() {
-    var thread = Thread.currentThread();
     var span = Span.wrap(SpanContext.getInvalid());
     var context = Context.root().with(span);
     registry.register(span.getSpanContext());
 
     try (var ignored = spanTracker.attach(context)) {
-      assertEquals(Optional.empty(), spanTracker.getActiveSpan(thread));
+      assertEquals(Optional.empty(), spanTracker.getActiveSpan(Thread.currentThread()));
     }
   }
 
@@ -269,6 +260,7 @@ class ActiveSpanTrackerTest {
   }
 
   @Test
+  @SuppressWarnings("")
   void automaticallyRemoveUnclosedScopesAfterTheirReferencesExpire() throws Exception {
     var span = Span.wrap(Snapshotting.spanContext().build());
     registry.register(span.getSpanContext());

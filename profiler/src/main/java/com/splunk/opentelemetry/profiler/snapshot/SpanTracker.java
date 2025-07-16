@@ -23,5 +23,5 @@ interface SpanTracker {
   SpanTracker NOOP = thread -> Optional.empty();
   ConfigurableSupplier<SpanTracker> SUPPLIER = new ConfigurableSupplier<>(SpanTracker.NOOP);
 
-  Optional<SpanContext> getActiveSpan(long threadId);
+  Optional<SpanContext> getActiveSpan(Thread threadId);
 }

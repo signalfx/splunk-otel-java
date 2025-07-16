@@ -33,6 +33,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Supplier;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 class PeriodicStackTraceSampler implements StackTraceSampler {
   private static final Logger logger = Logger.getLogger(PeriodicStackTraceSampler.class.getName());
@@ -94,7 +95,7 @@ class PeriodicStackTraceSampler implements StackTraceSampler {
   }
 
   private static class ThreadSampler extends Thread {
-    private final Map<Long, SamplingContext> threadSamplingContexts = new ConcurrentHashMap<>();
+    private final Map<Thread, SamplingContext> threadSamplingContexts = new ConcurrentHashMap<>();
     private final CountDownLatch shutdownLatch = new CountDownLatch(1);
     private final Supplier<StagingArea> staging;
     private final Supplier<SpanTracker> spanTracker;
@@ -113,17 +114,17 @@ class PeriodicStackTraceSampler implements StackTraceSampler {
     }
 
     void add(Thread thread, SpanContext spanContext) {
-      threadSamplingContexts.computeIfAbsent(thread.getId(), threadId -> {
-        SamplingContext context = new SamplingContext(spanContext, System.nanoTime());
-        takeOnDemandSample(threadId, context).ifPresent(staging.get()::stage);
+      threadSamplingContexts.computeIfAbsent(thread, t -> {
+        SamplingContext context = new SamplingContext(t, spanContext, System.nanoTime());
+        takeOnDemandSample(t, context).ifPresent(staging.get()::stage);
         return context;
       });
     }
 
     void remove(Thread thread, SpanContext spanContext) {
-      threadSamplingContexts.computeIfPresent(thread.getId(), (threadId, context) -> {
+      threadSamplingContexts.computeIfPresent(thread, (t, context) -> {
         if (context.spanContext.equals(spanContext)) {
-          takeOnDemandSample(threadId, context).ifPresent(staging.get()::stage);
+          takeOnDemandSample(t, context).ifPresent(staging.get()::stage);
           return null;
         }
         return context;
@@ -131,17 +132,17 @@ class PeriodicStackTraceSampler implements StackTraceSampler {
     }
 
     boolean isSampling(Thread thread) {
-      return threadSamplingContexts.containsKey(thread.getId());
+      return threadSamplingContexts.containsKey(thread);
     }
 
-    private Optional<StackTrace> takeOnDemandSample(long threadId, SamplingContext context) {
+    private Optional<StackTrace> takeOnDemandSample(Thread thread, SamplingContext context) {
       long currentSampleTime = System.nanoTime();
       // When the context is locked, the periodic sampling thread is actively reporting
       // a sample. No need to report both so skip the on-demand sample.
       if (context.lock.tryLock()) {
         try {
-          ThreadInfo threadInfo = collector.getThreadInfo(threadId);
-          SpanContext spanContext = retrieveActiveSpan(threadId);
+          ThreadInfo threadInfo = collector.getThreadInfo(thread.getId());
+          SpanContext spanContext = retrieveActiveSpan(thread);
           return toStackTrace(threadInfo, context, spanContext.getSpanId(), currentSampleTime);
         } finally {
           context.lock.unlock();
@@ -163,7 +164,7 @@ class PeriodicStackTraceSampler implements StackTraceSampler {
           if (shutdown) {
             return;
           }
-          Map<Long, SamplingContext> view = new HashMap<>(threadSamplingContexts);
+          Map<Thread, SamplingContext> view = new HashMap<>(threadSamplingContexts);
           takePeriodicSample(view);
         }
       } catch (InterruptedException e) {
@@ -171,16 +172,17 @@ class PeriodicStackTraceSampler implements StackTraceSampler {
       }
     }
 
-    private void takePeriodicSample(Map<Long, SamplingContext> threadSamplingContexts) {
+    private void takePeriodicSample(Map<Thread, SamplingContext> threadSamplingContexts) {
       if (threadSamplingContexts.isEmpty()) {
         return;
       }
 
       long currentSampleTime = System.nanoTime();
       try {
-        ThreadInfo[] threadInfos = collector.getThreadInfo(threadSamplingContexts.keySet());
-        List<StackTrace> stackTraces =
-            toStackTraces(threadInfos, threadSamplingContexts, currentSampleTime);
+        Map<Long, SamplingContext> contexts = threadSamplingContexts.entrySet().stream().collect(
+            Collectors.toMap(e -> e.getKey().getId(), Map.Entry::getValue));
+        ThreadInfo[] threadInfos = collector.getThreadInfo(contexts.keySet());
+        List<StackTrace> stackTraces = toStackTraces(threadInfos, contexts, currentSampleTime);
         staging.get().stage(stackTraces);
       } catch (Exception e) {
         logger.info("Unexpected error during callstack sampling");
@@ -196,7 +198,7 @@ class PeriodicStackTraceSampler implements StackTraceSampler {
         // both so skip the periodic sample.
         if (context.lock.tryLock()) {
           try {
-            SpanContext spanContext = retrieveActiveSpan(threadInfo.getThreadId());
+            SpanContext spanContext = retrieveActiveSpan(context.thread);
             toStackTrace(threadInfo, context, spanContext.getSpanId(), currentSampleTime)
                 .ifPresent(stackTraces::add);
           } finally {
@@ -229,17 +231,19 @@ class PeriodicStackTraceSampler implements StackTraceSampler {
     }
 
     /** It's possible the active span will have changed since the sample was taken */
-    private SpanContext retrieveActiveSpan(long threadId) {
-      return spanTracker.get().getActiveSpan(threadId).orElse(SpanContext.getInvalid());
+    private SpanContext retrieveActiveSpan(Thread thread) {
+      return spanTracker.get().getActiveSpan(thread).orElse(SpanContext.getInvalid());
     }
   }
 
   private static class SamplingContext {
     private final Lock lock = new ReentrantLock();
+    private final Thread thread;
     private final SpanContext spanContext;
     private long sampleTime;
 
-    private SamplingContext(SpanContext spanContext, long sampleTime) {
+    private SamplingContext(Thread thread, SpanContext spanContext, long sampleTime) {
+      this.thread = thread;
       this.spanContext = spanContext;
       this.sampleTime = sampleTime;
     }

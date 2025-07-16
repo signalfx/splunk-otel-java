@@ -26,7 +26,7 @@ import java.util.Optional;
 import javax.annotation.Nullable;
 
 class ActiveSpanTracker implements ContextStorage, SpanTracker {
-  private final Cache<Long, SpanContext> cache = Cache.weak();
+  private final Cache<Thread, SpanContext> cache = Cache.weak();
 
   private final ContextStorage delegate;
   private final TraceRegistry registry;
@@ -45,17 +45,17 @@ class ActiveSpanTracker implements ContextStorage, SpanTracker {
     }
 
     Thread thread = Thread.currentThread();
-    SpanContext oldSpanContext = cache.get(thread.getId());
+    SpanContext oldSpanContext = cache.get(thread);
     if (oldSpanContext == newSpanContext) {
       return scope;
     }
 
-    cache.put(thread.getId(), newSpanContext);
+    cache.put(thread, newSpanContext);
     return () -> {
       if (oldSpanContext != null) {
-        cache.put(thread.getId(), oldSpanContext);
+        cache.put(thread, oldSpanContext);
       } else {
-        cache.remove(thread.getId());
+        cache.remove(thread);
       }
       scope.close();
     };
@@ -72,7 +72,7 @@ class ActiveSpanTracker implements ContextStorage, SpanTracker {
   }
 
   @Override
-  public Optional<SpanContext> getActiveSpan(long threadId) {
-    return Optional.ofNullable(cache.get(threadId));
+  public Optional<SpanContext> getActiveSpan(Thread thread) {
+    return Optional.ofNullable(cache.get(thread));
   }
 }

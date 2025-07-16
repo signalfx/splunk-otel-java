@@ -21,7 +21,7 @@ import io.opentelemetry.context.ContextStorage;
 import java.util.function.Consumer;
 import java.util.function.UnaryOperator;
 
-class DefaultContextStorageWrapper implements ContextStorageWrapper {
+class DefaultContextStorageWrapper {
   private final Consumer<UnaryOperator<ContextStorage>> wrappingFunction;
 
   DefaultContextStorageWrapper() {
@@ -33,8 +33,7 @@ class DefaultContextStorageWrapper implements ContextStorageWrapper {
     this.wrappingFunction = wrappingFunction;
   }
 
-  @Override
-  public void wrapContextStorage(TraceRegistry registry) {
+  void wrapContextStorage(TraceRegistry registry) {
     wrappingFunction.accept(
     storage -> {
       storage = trackActiveSpans(storage, registry);

@@ -5,14 +5,12 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.splunk.opentelemetry.profiler.snapshot.simulation.Message;
 import com.splunk.opentelemetry.profiler.snapshot.simulation.Server;
-import io.opentelemetry.api.trace.SpanId;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.sdk.autoconfigure.OpenTelemetrySdkExtension;
 import java.time.Duration;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
-import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
@@ -61,15 +59,14 @@ public class MultiThreadedTraceProfilingTest {
 
     await().atMost(Duration.ofSeconds(2)).until(() -> server.waitForResponse() != null);
 
-    var profiledThreads =
-        staging.allStackTraces().stream()
-            .filter(s -> SpanId.isValid(s.getSpanId()))
-            .map(StackTrace::getThreadId)
-            .collect(Collectors.toSet());
+    var profiledThreads = staging.allStackTraces().stream()
+        .mapToLong(StackTrace::getThreadId)
+        .distinct()
+        .count();
 
     // Server delegates some of its work to a single background thread. The background
     // thread should be included in the same trace context and be profiled.
-    assertEquals(2, profiledThreads.size());
+    assertEquals(2, profiledThreads);
   }
 }
 

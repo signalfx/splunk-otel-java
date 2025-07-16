@@ -35,8 +35,6 @@ import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 class ActiveSpanTrackerTest {
@@ -271,7 +269,6 @@ class ActiveSpanTrackerTest {
   }
 
   @Test
-  @Disabled
   void automaticallyRemoveUnclosedScopesAfterTheirReferencesExpire() throws Exception {
     var span = Span.wrap(Snapshotting.spanContext().build());
     registry.register(span.getSpanContext());

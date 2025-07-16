@@ -176,12 +176,13 @@ class PeriodicStackTraceSampler implements StackTraceSampler {
         return;
       }
 
+      Map<Long, SamplingContext> threadContexts =
+          contexts.stream().collect(Collectors.toMap(c -> c.thread.getId(), context -> context));
       long currentSampleTime = System.nanoTime();
       try {
-        Map<Long, SamplingContext> threadContexts =
-          contexts.stream().collect(Collectors.toMap(c -> c.thread.getId(), context -> context));
         ThreadInfo[] threadInfos = collector.getThreadInfo(threadContexts.keySet());
-        List<StackTrace> stackTraces = toStackTraces(threadInfos, threadContexts, currentSampleTime);
+        List<StackTrace> stackTraces =
+            toStackTraces(threadInfos, threadContexts, currentSampleTime);
         staging.get().stage(stackTraces);
       } catch (Exception e) {
         logger.info("Unexpected error during callstack sampling");

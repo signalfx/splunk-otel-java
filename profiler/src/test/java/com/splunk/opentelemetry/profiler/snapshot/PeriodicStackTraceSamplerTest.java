@@ -28,6 +28,8 @@ import java.lang.management.ThreadInfo;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
@@ -109,25 +111,25 @@ class PeriodicStackTraceSamplerTest {
   }
 
   @Test
-  void takeStackTraceSamplesForMultipleThreadsFromSameSpan() {
+  void takeStackTraceSamplesForMultipleThreadsFromSameSpan() throws Exception {
     var executor = Executors.newFixedThreadPool(2);
     var control = new ThreadControl(new CountDownLatch(1), new CountDownLatch(1));
     var traceId = IdGenerator.random().generateTraceId();
     var spanContext = Snapshotting.spanContext().withTraceId(traceId).build();
 
-    executor.submit(startSampling(spanContext, control));
-    executor.submit(startSampling(spanContext, control));
+    var thread1 = executor.submit(captureThread(startSampling(spanContext, control)));
+    var thread2 = executor.submit(captureThread(startSampling(spanContext, control)));
 
     try {
       control.start();
       await().until(() -> staging.allStackTraces().size() > 5);
       control.stop();
 
-      var threadIds =
-          staging.allStackTraces().stream()
-              .map(StackTrace::getThreadId)
-              .collect(Collectors.toSet());
-      assertEquals(2, threadIds.size());
+      var threadIds = new HashSet<>(List.of(thread1.get().getId(), thread2.get().getId()));
+      var profiledThreads = staging.allStackTraces().stream()
+          .map(StackTrace::getThreadId)
+          .collect(Collectors.toSet());
+      assertEquals(threadIds, profiledThreads);
     } finally {
       executor.shutdownNow();
     }

@@ -21,22 +21,21 @@ import io.opentelemetry.context.ContextStorage;
 import java.util.function.Consumer;
 import java.util.function.UnaryOperator;
 
-class InterceptingContextStorageSpanTrackingActivator implements SpanTrackingActivator {
-  private final Consumer<UnaryOperator<ContextStorage>> contextStorageWrappingFunction;
+class DefaultContextStorageWrapper implements ContextStorageWrapper {
+  private final Consumer<UnaryOperator<ContextStorage>> wrappingFunction;
 
-  InterceptingContextStorageSpanTrackingActivator() {
+  DefaultContextStorageWrapper() {
     this(ContextStorage::addWrapper);
   }
 
   @VisibleForTesting
-  InterceptingContextStorageSpanTrackingActivator(
-      Consumer<UnaryOperator<ContextStorage>> contextStorageWrappingFunction) {
-    this.contextStorageWrappingFunction = contextStorageWrappingFunction;
+  DefaultContextStorageWrapper(Consumer<UnaryOperator<ContextStorage>> wrappingFunction) {
+    this.wrappingFunction = wrappingFunction;
   }
 
   @Override
-  public void activate(TraceRegistry registry) {
-    contextStorageWrappingFunction.accept(
+  public void wrapContextStorage(TraceRegistry registry) {
+    wrappingFunction.accept(
     storage -> {
       storage = trackActiveSpans(storage, registry);
       storage = detectThreadChanges(storage, registry);

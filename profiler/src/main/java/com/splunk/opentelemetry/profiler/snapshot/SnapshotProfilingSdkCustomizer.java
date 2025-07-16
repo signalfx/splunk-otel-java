@@ -34,13 +34,13 @@ import java.util.function.Function;
 public class SnapshotProfilingSdkCustomizer implements AutoConfigurationCustomizerProvider {
   private final TraceRegistry registry;
   private final Function<ConfigProperties, StackTraceSampler> samplerProvider;
-  private final SpanTrackingActivator spanTrackingActivator;
+  private final ContextStorageWrapper contextStorageWrapper;
 
   public SnapshotProfilingSdkCustomizer() {
     this(
         new TraceRegistry(),
         stackTraceSamplerProvider(),
-        new InterceptingContextStorageSpanTrackingActivator());
+        new DefaultContextStorageWrapper());
   }
 
   private static Function<ConfigProperties, StackTraceSampler> stackTraceSamplerProvider() {
@@ -60,17 +60,17 @@ public class SnapshotProfilingSdkCustomizer implements AutoConfigurationCustomiz
 
   @VisibleForTesting
   SnapshotProfilingSdkCustomizer(
-      TraceRegistry registry, StackTraceSampler sampler, SpanTrackingActivator activator) {
-    this(registry, properties -> sampler, activator);
+      TraceRegistry registry, StackTraceSampler sampler, ContextStorageWrapper contextStorageWrapper) {
+    this(registry, properties -> sampler, contextStorageWrapper);
   }
 
   private SnapshotProfilingSdkCustomizer(
       TraceRegistry registry,
       Function<ConfigProperties, StackTraceSampler> samplerProvider,
-      SpanTrackingActivator spanTrackingActivator) {
+      ContextStorageWrapper contextStorageWrapper) {
     this.registry = registry;
     this.samplerProvider = samplerProvider;
-    this.spanTrackingActivator = spanTrackingActivator;
+    this.contextStorageWrapper = contextStorageWrapper;
   }
 
   @Override
@@ -143,7 +143,7 @@ public class SnapshotProfilingSdkCustomizer implements AutoConfigurationCustomiz
       TraceRegistry registry) {
     return properties -> {
       if (snapshotProfilingEnabled(properties)) {
-        spanTrackingActivator.activate(registry);
+        contextStorageWrapper.wrapContextStorage(registry);
       }
       return Collections.emptyMap();
     };

@@ -40,8 +40,8 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 
 class ConcurrentServiceEntrySamplingTest {
   @RegisterExtension
-  private final ContextStorageResettingSpanTrackingActivator spanTrackingActivator =
-      new ContextStorageResettingSpanTrackingActivator();
+  private final ResettingContextStorageWrapper spanTrackingActivator =
+      new ResettingContextStorageWrapper();
 
   private final InMemoryLogRecordExporter logExporter = InMemoryLogRecordExporter.create();
   private final InMemoryStagingArea staging = new InMemoryStagingArea();

@@ -16,6 +16,6 @@
 
 package com.splunk.opentelemetry.profiler.snapshot;
 
-interface SpanTrackingActivator {
-  void activate(TraceRegistry registry);
+interface ContextStorageWrapper {
+  void wrapContextStorage(TraceRegistry registry);
 }

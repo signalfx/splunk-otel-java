@@ -37,10 +37,20 @@ class InterceptingContextStorageSpanTrackingActivator implements SpanTrackingAct
   @Override
   public void activate(TraceRegistry registry) {
     contextStorageWrappingFunction.accept(
-        contextStorage -> {
-          ActiveSpanTracker tracker = new ActiveSpanTracker(contextStorage, registry);
-          SpanTracker.SUPPLIER.configure(tracker);
-          return tracker;
-        });
+    storage -> {
+      storage = trackActiveSpans(storage, registry);
+      storage = detectThreadChanges(storage, registry);
+      return storage;
+    });
+  }
+
+  private ContextStorage trackActiveSpans(ContextStorage storage, TraceRegistry registry) {
+    ActiveSpanTracker spanTracker = new ActiveSpanTracker(storage, registry);
+    SpanTracker.SUPPLIER.configure(spanTracker);
+    return spanTracker;
+  }
+
+  private ContextStorage detectThreadChanges(ContextStorage storage, TraceRegistry registry) {
+    return new TraceThreadChangeDetector(storage, registry, StackTraceSampler.SUPPLIER);
   }
 }

@@ -29,9 +29,19 @@ class InterceptingContextStorageSpanTrackingActivatorTest {
       new InterceptingContextStorageSpanTrackingActivator(delegate);
 
   @Test
-  void interceptContextStorage() {
+  void installThreadChangeDetector() {
     activator.activate(new TraceRegistry());
-    assertInstanceOf(ActiveSpanTracker.class, delegate.storage);
+    assertInstanceOf(TraceThreadChangeDetector.class, delegate.storage);
+  }
+
+  @Test
+  void installActiveSpanTracker() throws Exception{
+    activator.activate(new TraceRegistry());
+
+    var threadChangeDetector = (TraceThreadChangeDetector)delegate.storage;
+    var field = threadChangeDetector.getClass().getDeclaredField("delegate");
+    field.setAccessible(true);
+    assertInstanceOf(ActiveSpanTracker.class, field.get(threadChangeDetector));
   }
 
   @Test

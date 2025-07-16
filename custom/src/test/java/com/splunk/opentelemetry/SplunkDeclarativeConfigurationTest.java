@@ -42,7 +42,7 @@ class SplunkDeclarativeConfigurationTest {
   void shouldCustomizeConfigPropertiesIfUndefined(@TempDir Path tempDir) throws IOException {
     String yaml =
         """
-            file_format: "0.4"
+            file_format: "1.0-rc.1"
             instrumentation/development:
               java:
             """;
@@ -59,7 +59,7 @@ class SplunkDeclarativeConfigurationTest {
   void shouldKeepOriginalConfigProperties(@TempDir Path tempDir) throws IOException {
     String yaml =
         """
-            file_format: "0.4"
+            file_format: "1.0-rc.1"
             instrumentation/development:
               java:
                 spring-batch:
@@ -84,7 +84,7 @@ class SplunkDeclarativeConfigurationTest {
   void shouldCustomizeSamplerIfUndefined(@TempDir Path tempDir) throws IOException {
     String yaml =
         """
-            file_format: "0.4"
+            file_format: "1.0-rc.1"
             tracer_provider:
               processors:
                 - batch:
@@ -105,7 +105,7 @@ class SplunkDeclarativeConfigurationTest {
   void shouldKeepOriginalSamplerConfigurationIfDefined(@TempDir Path tempDir) throws IOException {
     String yaml =
         """
-            file_format: "0.4"
+            file_format: "1.0-rc.1"
             tracer_provider:
               processors:
                 - batch:
@@ -127,7 +127,7 @@ class SplunkDeclarativeConfigurationTest {
   void shouldCustomizeEmptyConfigurationForSplunkRealm() throws IOException {
     String yaml =
         """
-            file_format: "0.4"
+            file_format: "1.0-rc.1"
             instrumentation/development:
               java:
                 splunk:
@@ -165,10 +165,10 @@ class SplunkDeclarativeConfigurationTest {
   }
 
   @Test
-  void shouldNotAddAccessTokenIfAlreadyExists() {
+  void shouldNotUpdateAccessTokenProvidedInExporterHeaders() {
     String yaml =
         """
-            file_format: "0.4"
+            file_format: "1.0-rc.1"
             tracer_provider:
               processors:
                 - batch:
@@ -199,6 +199,19 @@ class SplunkDeclarativeConfigurationTest {
     assertThat(headers.get(0).getName()).isEqualTo("X-SF-TOKEN");
     assertThat(headers.get(0).getValue()).isEqualTo("XYZ");
   }
+
+  @Test
+  void shouldNotUpdateExistingAccessToken() {
+    String yaml =
+        """
+            file_format: "1.0-rc.1"
+            log_level: ${TEST_LOG_LEVEL:-crazy}
+            """;
+
+    OpenTelemetryConfigurationModel model = getCustomizedModel(yaml);
+    assertThat(model.getLogLevel()).isEqualTo("crazy");
+  }
+
 
   private static AutoConfiguredOpenTelemetrySdk createConfiguredSdk(String yaml, Path tempDir)
       throws IOException {

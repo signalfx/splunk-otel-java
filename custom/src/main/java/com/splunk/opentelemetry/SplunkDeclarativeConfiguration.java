@@ -74,8 +74,10 @@ public class SplunkDeclarativeConfiguration implements DeclarativeConfigurationC
   public void customize(DeclarativeConfigurationCustomizer autoConfiguration) {
     autoConfiguration.addModelCustomizer(
         model -> {
-          ExperimentalLanguageSpecificInstrumentationModel javaModel =
-              Objects.requireNonNull(model.getInstrumentationDevelopment()).getJava();
+          if (model.getInstrumentationDevelopment() == null) {
+            return model;
+          }
+          ExperimentalLanguageSpecificInstrumentationModel javaModel = model.getInstrumentationDevelopment().getJava();
           if (javaModel == null) {
             return model;
           }

@@ -67,7 +67,7 @@ public class OrphanedTraceCleanerTest {
   void stopSamplingForOrphanedTraces() throws Exception {
     var spanContext = Snapshotting.spanContext().build();
     registry.register(spanContext);
-    sampler.start(spanContext);
+    sampler.start(Thread.currentThread(), spanContext);
     var span = Span.wrap(spanContext);
     cleaner.register(span);
 

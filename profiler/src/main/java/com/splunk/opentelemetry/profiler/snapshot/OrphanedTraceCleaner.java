@@ -53,7 +53,7 @@ class OrphanedTraceCleaner implements Closeable {
   }
 
   void register(Span span) {
-    traces.add(new WeakKey(span, referenceQueue));
+    traces.add(new WeakKey(span, Thread.currentThread(), referenceQueue));
   }
 
   void unregister(SpanContext spanContext) {
@@ -70,10 +70,10 @@ class OrphanedTraceCleaner implements Closeable {
       while (!Thread.interrupted()) {
         Object reference = referenceQueue.remove();
         if (reference != null) {
-          Key key = (Key) reference;
+          WeakKey key = (WeakKey) reference;
           if (traces.remove(key)) {
             traceRegistry.unregister(key.getSpanContext().getTraceId());
-            sampler.get().stop(key.getSpanContext());
+            sampler.get().stop(key.thread, key.getSpanContext());
           }
         }
       }
@@ -123,10 +123,12 @@ class OrphanedTraceCleaner implements Closeable {
 
   private static class WeakKey extends WeakReference<Span> implements Key {
     private final SpanContext spanContext;
+    private final Thread thread;
 
-    public WeakKey(Span referent, ReferenceQueue<Object> queue) {
+    public WeakKey(Span referent, Thread thread, ReferenceQueue<Object> queue) {
       super(referent, queue);
       this.spanContext = referent.getSpanContext();
+      this.thread = thread;
     }
 
     @Override

@@ -21,6 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import io.opentelemetry.common.ComponentLoader;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import io.opentelemetry.sdk.autoconfigure.spi.internal.DefaultConfigProperties;
 import java.util.Collections;
@@ -29,6 +30,8 @@ import java.util.Map;
 import org.junit.jupiter.api.Test;
 
 class ConfigurationTest {
+  private static final ComponentLoader COMPONENT_LOADER =
+      ComponentLoader.forClassLoader(ConfigurationTest.class.getClassLoader());
 
   String logsEndpoint = "http://logs.example.com";
   String otelEndpoint = "http://otel.example.com";
@@ -75,7 +78,8 @@ class ConfigurationTest {
   @Test
   void getOtlpProtocolDefault() {
     String result =
-        Configuration.getOtlpProtocol(DefaultConfigProperties.create(Collections.emptyMap()));
+        Configuration.getOtlpProtocol(
+            DefaultConfigProperties.create(Collections.emptyMap(), COMPONENT_LOADER));
     assertEquals("http/protobuf", result);
   }
 
@@ -84,7 +88,7 @@ class ConfigurationTest {
     String result =
         Configuration.getOtlpProtocol(
             DefaultConfigProperties.create(
-                Collections.singletonMap("otel.exporter.otlp.protocol", "test")));
+                Collections.singletonMap("otel.exporter.otlp.protocol", "test"), COMPONENT_LOADER));
     assertEquals("test", result);
   }
 
@@ -93,7 +97,8 @@ class ConfigurationTest {
     Map<String, String> map = new HashMap<>();
     map.put("otel.exporter.otlp.protocol", "test1");
     map.put("splunk.profiler.otlp.protocol", "test2");
-    String result = Configuration.getOtlpProtocol(DefaultConfigProperties.create(map));
+    String result =
+        Configuration.getOtlpProtocol(DefaultConfigProperties.create(map, COMPONENT_LOADER));
     assertEquals("test2", result);
   }
 }

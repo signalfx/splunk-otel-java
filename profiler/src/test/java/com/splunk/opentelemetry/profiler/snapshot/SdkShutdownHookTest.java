@@ -72,10 +72,10 @@ class SdkShutdownHookTest {
     public void start(SpanContext spanContext) {}
 
     @Override
-    public void stop(String traceId, String spanId) {}
+    public void stop(SpanContext spanContext) {}
 
     @Override
-    public void stage(StackTrace stackTrace) {}
+    public void stage(Collection<StackTrace> stackTraces) {}
 
     @Override
     public void empty() {}

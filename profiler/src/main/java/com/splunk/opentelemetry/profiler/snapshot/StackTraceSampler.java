@@ -26,17 +26,13 @@ interface StackTraceSampler extends Closeable {
         public void start(SpanContext spanContext) {}
 
         @Override
-        public void stop(String traceId, String spanId) {}
+        public void stop(SpanContext spanContext) {}
       };
   ConfigurableSupplier<StackTraceSampler> SUPPLIER = new ConfigurableSupplier<>(NOOP);
 
   void start(SpanContext spanContext);
 
-  default void stop(SpanContext spanContext) {
-    stop(spanContext.getTraceId(), spanContext.getSpanId());
-  }
-
-  void stop(String traceId, String spanId);
+  void stop(SpanContext spanContext);
 
   default void close() {}
 }

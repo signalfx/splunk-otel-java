@@ -78,6 +78,7 @@ class StackTraceBuilder {
         state,
         exception.getStackTrace(),
         spanContext.getTraceId(),
-        spanContext.getSpanId());
+        spanContext.getSpanId(),
+        0);
   }
 }

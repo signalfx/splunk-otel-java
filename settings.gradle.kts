@@ -8,7 +8,7 @@ pluginManagement {
 }
 
 plugins {
-  id("com.gradle.develocity") version "4.0.2"
+  id("com.gradle.develocity") version "4.1"
 }
 
 develocity {
@@ -36,6 +36,7 @@ include(
     "instrumentation",
     "instrumentation:compile-stub",
     "instrumentation:glassfish",
+    "instrumentation:jdbc",
     "instrumentation:jetty",
     "instrumentation:jvm-metrics",
     "instrumentation:khttp",

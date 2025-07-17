@@ -14,22 +14,29 @@
  * limitations under the License.
  */
 
-package com.splunk.opentelemetry.profiler.snapshot;
+package com.splunk.opentelemetry.profiler.snapshot.simulation;
 
-import io.opentelemetry.api.trace.SpanContext;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.time.Duration;
+import java.util.function.UnaryOperator;
 
-class InMemorySpanTracker implements SpanTracker {
-  private final Map<Long, SpanContext> activeSpans = new HashMap<>();
-
-  void store(Thread thread, SpanContext spanContext) {
-    activeSpans.put(thread.getId(), spanContext);
+public class Delay implements UnaryOperator<Message> {
+  public static Delay of(Duration duration) {
+    return new Delay(duration);
   }
 
+  private Delay(Duration duration) {
+    this.duration = duration;
+  }
+
+  private final Duration duration;
+
   @Override
-  public Optional<SpanContext> getActiveSpan(Thread thread) {
-    return Optional.ofNullable(activeSpans.get(thread.getId()));
+  public Message apply(Message message) {
+    try {
+      Thread.sleep(duration.toMillis());
+      return message;
+    } catch (InterruptedException e) {
+      throw new RuntimeException(e);
+    }
   }
 }

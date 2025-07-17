@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.splunk.opentelemetry;
+package com.splunk.opentelemetry.sampler;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 

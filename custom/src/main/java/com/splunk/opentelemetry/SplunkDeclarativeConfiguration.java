@@ -89,9 +89,9 @@ public class SplunkDeclarativeConfiguration implements DeclarativeConfigurationC
           customizeExportersForSplunkAccessToken(model, properties);
           customizeLoggers(model, properties);
 
-          // TODO: implement this
+          // TODO: implement this in the declarative config validator
           //          EndpointProtocolValidator.validate(customized, config, logger::warning);
-          //          logger.fine(() -> "Splunk configuration customization complete: " + model);
+          // logger.fine(() -> "Splunk configuration customization complete: " + model);
 
           // TODO: This is temporary code. Remove it before release !!!
           ObjectMapper mapper = new ObjectMapper();
@@ -128,7 +128,8 @@ public class SplunkDeclarativeConfiguration implements DeclarativeConfigurationC
           && (samplerModel.getAlwaysOn() == null)
           && (samplerModel.getJaegerRemote() == null)
           && (samplerModel.getParentBased() == null)
-          && (samplerModel.getTraceIdRatioBased() == null)) {
+          && (samplerModel.getTraceIdRatioBased() == null)
+          && (samplerModel.getAdditionalProperties().isEmpty())) {
         samplerModel.withAlwaysOn(new AlwaysOnSamplerModel());
       }
     }

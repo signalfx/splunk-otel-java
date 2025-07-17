@@ -63,6 +63,7 @@ class LogExporterBuilder {
     OtlpConfigUtil.configureOtlpExporterBuilder(
         DATA_TYPE_LOGS,
         config,
+        builder::setComponentLoader,
         builder::setEndpoint,
         builder::addHeader,
         builder::setCompression,

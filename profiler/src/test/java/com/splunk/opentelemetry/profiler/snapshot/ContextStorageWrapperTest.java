@@ -25,17 +25,17 @@ import org.junit.jupiter.api.Test;
 
 class ContextStorageWrapperTest {
   private final ContextStorageRecorder delegate = new ContextStorageRecorder();
-  private final ContextStorageWrapper activator = new ContextStorageWrapper(delegate);
+  private final ContextStorageWrapper wrapper = new ContextStorageWrapper(delegate);
 
   @Test
   void installThreadChangeDetector() {
-    activator.wrapContextStorage(new TraceRegistry());
+    wrapper.wrapContextStorage(new TraceRegistry());
     assertInstanceOf(TraceThreadChangeDetector.class, delegate.storage);
   }
 
   @Test
   void installActiveSpanTracker() throws Exception {
-    activator.wrapContextStorage(new TraceRegistry());
+    wrapper.wrapContextStorage(new TraceRegistry());
 
     var threadChangeDetector = (TraceThreadChangeDetector) delegate.storage;
     var field = threadChangeDetector.getClass().getDeclaredField("delegate");
@@ -45,7 +45,7 @@ class ContextStorageWrapperTest {
 
   @Test
   void activateSpanTracker() {
-    activator.wrapContextStorage(new TraceRegistry());
+    wrapper.wrapContextStorage(new TraceRegistry());
     assertInstanceOf(ActiveSpanTracker.class, SpanTracker.SUPPLIER.get());
   }
 

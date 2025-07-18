@@ -77,6 +77,9 @@ class PeriodicStackTraceSampler implements StackTraceSampler {
 
   @Override
   public void stopAllSampling(SpanContext spanContext) {
+    if (closed) {
+      return;
+    }
     sampler.removeAll(spanContext);
   }
 

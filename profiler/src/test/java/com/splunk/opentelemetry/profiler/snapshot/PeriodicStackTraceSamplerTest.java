@@ -731,7 +731,6 @@ class PeriodicStackTraceSamplerTest {
     } finally {
       executor.shutdownNow();
     }
-
   }
 
   private Runnable startSampling(SpanContext spanContext) {

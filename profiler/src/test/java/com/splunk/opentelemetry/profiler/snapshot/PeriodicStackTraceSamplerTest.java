@@ -463,22 +463,6 @@ class PeriodicStackTraceSamplerTest {
     }
   }
 
-  private Runnable startSampling(SpanContext spanContext) {
-    return startSampling(spanContext, new ThreadControl());
-  }
-
-  private Runnable startSampling(SpanContext spanContext, ThreadControl control) {
-    return (() -> {
-      try {
-        control.start.await();
-        sampler.start(Thread.currentThread(),  spanContext);
-        control.stop.await();
-      } catch (InterruptedException e) {
-        throw new RuntimeException(e);
-      }
-    });
-  }
-
   private Runnable stopSampling(SpanContext spanContext) {
     return () -> sampler.stop(Thread.currentThread(), spanContext);
   }
@@ -687,6 +671,56 @@ class PeriodicStackTraceSamplerTest {
     sampler.stop(thread, spanContext);
 
     assertThat(sampler.isBeingSampled(thread)).isFalse();
+  }
+
+  @Test
+  void canStopSamplingForAllThreadsAssociatedWithSpanContext() throws Exception {
+    var spanContext = Snapshotting.spanContext().build();
+    var executor =  Executors.newFixedThreadPool(2);
+    try {
+      var thread1 = executor.submit(captureThread(startSampling(spanContext))).get();
+      var thread2 = executor.submit(captureThread(startSampling(spanContext))).get();
+
+      sampler.stopAllSampling(spanContext);
+
+      assertThat(sampler.isBeingSampled(thread1)).isFalse();
+      assertThat(sampler.isBeingSampled(thread2)).isFalse();
+    } finally {
+      executor.shutdownNow();
+    }
+  }
+
+  @Test
+  void takeFinalSampleForAllThreadsAssociatedWithSpanContext() throws Exception {
+    var spanContext = Snapshotting.spanContext().build();
+    var executor =  Executors.newFixedThreadPool(2);
+    try {
+      executor.submit(captureThread(startSampling(spanContext))).get();
+      executor.submit(captureThread(startSampling(spanContext))).get();
+      staging.empty();
+
+      sampler.stopAllSampling(spanContext);
+
+      assertEquals(2, staging.allStackTraces().size());
+    } finally {
+      executor.shutdownNow();
+    }
+  }
+
+  private Runnable startSampling(SpanContext spanContext) {
+    return startSampling(spanContext, new ThreadControl());
+  }
+
+  private Runnable startSampling(SpanContext spanContext, ThreadControl control) {
+    return (() -> {
+      try {
+        control.start.await();
+        sampler.start(Thread.currentThread(),  spanContext);
+        control.stop.await();
+      } catch (InterruptedException e) {
+        throw new RuntimeException(e);
+      }
+    });
   }
 
   private Callable<Thread> captureThread(Runnable runnable) {

@@ -20,6 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import io.github.netmikey.logunit.api.LogCapturer;
+import io.opentelemetry.common.ComponentLoader;
 import io.opentelemetry.sdk.autoconfigure.OpenTelemetrySdkExtension;
 import io.opentelemetry.sdk.autoconfigure.spi.internal.DefaultConfigProperties;
 import java.time.Duration;
@@ -33,6 +34,10 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.slf4j.event.Level;
 
 class SnapshotProfilingConfigurationTest {
+
+  private static final ComponentLoader COMPONENT_LOADER =
+      ComponentLoader.forClassLoader(SnapshotProfilingConfigurationTest.class.getClassLoader());
+
   @Nested
   class DefaultValuesTest {
     private final SnapshotProfilingConfiguration configuration =
@@ -56,7 +61,7 @@ class SnapshotProfilingConfigurationTest {
 
   @Test
   void isSnapshotProfilingEnabledIsFalseByDefault() {
-    var properties = DefaultConfigProperties.create(Collections.emptyMap());
+    var properties = DefaultConfigProperties.create(Collections.emptyMap(), COMPONENT_LOADER);
     assertFalse(SnapshotProfilingConfiguration.isSnapshotProfilingEnabled(properties));
   }
 
@@ -65,7 +70,7 @@ class SnapshotProfilingConfigurationTest {
   void isSnapshotProfilingEnabled(boolean enabled) {
     var properties =
         DefaultConfigProperties.create(
-            Map.of("splunk.snapshot.profiler.enabled", String.valueOf(enabled)));
+            Map.of("splunk.snapshot.profiler.enabled", String.valueOf(enabled)), COMPONENT_LOADER);
     assertEquals(enabled, SnapshotProfilingConfiguration.isSnapshotProfilingEnabled(properties));
   }
 
@@ -74,7 +79,8 @@ class SnapshotProfilingConfigurationTest {
   void getSnapshotSelectionRate(double selectionRate) {
     var properties =
         DefaultConfigProperties.create(
-            Map.of("splunk.snapshot.selection.rate", String.valueOf(selectionRate)));
+            Map.of("splunk.snapshot.selection.rate", String.valueOf(selectionRate)),
+            COMPONENT_LOADER);
 
     double actualSelectionRate =
         SnapshotProfilingConfiguration.getSnapshotSelectionRate(properties);
@@ -83,7 +89,7 @@ class SnapshotProfilingConfigurationTest {
 
   @Test
   void getSnapshotSelectionRateUsesDefaultWhenPropertyNotSet() {
-    var properties = DefaultConfigProperties.create(Collections.emptyMap());
+    var properties = DefaultConfigProperties.create(Collections.emptyMap(), COMPONENT_LOADER);
 
     double actualSelectionRate =
         SnapshotProfilingConfiguration.getSnapshotSelectionRate(properties);
@@ -93,7 +99,8 @@ class SnapshotProfilingConfigurationTest {
   @Test
   void getSnapshotSelectionRateUsesDefaultValueIsNotNumeric() {
     var properties =
-        DefaultConfigProperties.create(Map.of("splunk.snapshot.selection.rate", "not-a-number"));
+        DefaultConfigProperties.create(
+            Map.of("splunk.snapshot.selection.rate", "not-a-number"), COMPONENT_LOADER);
 
     double actualSelectionRate =
         SnapshotProfilingConfiguration.getSnapshotSelectionRate(properties);
@@ -106,7 +113,8 @@ class SnapshotProfilingConfigurationTest {
       double selectionRate) {
     var properties =
         DefaultConfigProperties.create(
-            Map.of("splunk.snapshot.selection.rate", String.valueOf(selectionRate)));
+            Map.of("splunk.snapshot.selection.rate", String.valueOf(selectionRate)),
+            COMPONENT_LOADER);
 
     double actualSelectionRate =
         SnapshotProfilingConfiguration.getSnapshotSelectionRate(properties);
@@ -118,13 +126,14 @@ class SnapshotProfilingConfigurationTest {
   void getConfiguredSnapshotProfilerStackDepth(int depth) {
     var properties =
         DefaultConfigProperties.create(
-            Map.of("splunk.snapshot.profiler.max.stack.depth", String.valueOf(depth)));
+            Map.of("splunk.snapshot.profiler.max.stack.depth", String.valueOf(depth)),
+            COMPONENT_LOADER);
     assertEquals(depth, SnapshotProfilingConfiguration.getStackDepth(properties));
   }
 
   @Test
   void getDefaultSnapshotProfilerStackDepthWhenNotSpecified() {
-    var properties = DefaultConfigProperties.create(Collections.emptyMap());
+    var properties = DefaultConfigProperties.create(Collections.emptyMap(), COMPONENT_LOADER);
     assertEquals(1024, SnapshotProfilingConfiguration.getStackDepth(properties));
   }
 
@@ -133,7 +142,8 @@ class SnapshotProfilingConfigurationTest {
   void getConfiguredSnapshotProfilerSamplingInterval(int milliseconds) {
     var properties =
         DefaultConfigProperties.create(
-            Map.of("splunk.snapshot.profiler.sampling.interval", String.valueOf(milliseconds)));
+            Map.of("splunk.snapshot.profiler.sampling.interval", String.valueOf(milliseconds)),
+            COMPONENT_LOADER);
     assertEquals(
         Duration.ofMillis(milliseconds),
         SnapshotProfilingConfiguration.getSamplingInterval(properties));
@@ -141,7 +151,7 @@ class SnapshotProfilingConfigurationTest {
 
   @Test
   void getDefaultSnapshotProfilerSamplingInterval() {
-    var properties = DefaultConfigProperties.create(Collections.emptyMap());
+    var properties = DefaultConfigProperties.create(Collections.emptyMap(), COMPONENT_LOADER);
     assertEquals(
         Duration.ofMillis(10), SnapshotProfilingConfiguration.getSamplingInterval(properties));
   }
@@ -151,7 +161,8 @@ class SnapshotProfilingConfigurationTest {
   void getConfiguredSnapshotProfilerEmptyStagingInterval(int milliseconds) {
     var properties =
         DefaultConfigProperties.create(
-            Map.of("splunk.snapshot.profiler.export.interval", String.valueOf(milliseconds)));
+            Map.of("splunk.snapshot.profiler.export.interval", String.valueOf(milliseconds)),
+            COMPONENT_LOADER);
     assertEquals(
         Duration.ofMillis(milliseconds),
         SnapshotProfilingConfiguration.getExportInterval(properties));
@@ -159,7 +170,7 @@ class SnapshotProfilingConfigurationTest {
 
   @Test
   void getDefaultSnapshotProfilerEmptyStagingInterval() {
-    var properties = DefaultConfigProperties.create(Collections.emptyMap());
+    var properties = DefaultConfigProperties.create(Collections.emptyMap(), COMPONENT_LOADER);
     assertEquals(
         Duration.ofSeconds(5), SnapshotProfilingConfiguration.getExportInterval(properties));
   }
@@ -169,13 +180,14 @@ class SnapshotProfilingConfigurationTest {
   void getConfiguredSnapshotProfilerStagingCapacity(int value) {
     var properties =
         DefaultConfigProperties.create(
-            Map.of("splunk.snapshot.profiler.staging.capacity", String.valueOf(value)));
+            Map.of("splunk.snapshot.profiler.staging.capacity", String.valueOf(value)),
+            COMPONENT_LOADER);
     assertEquals(value, SnapshotProfilingConfiguration.getStagingCapacity(properties));
   }
 
   @Test
   void getDefaultSnapshotProfilerStagingCapacity() {
-    var properties = DefaultConfigProperties.create(Collections.emptyMap());
+    var properties = DefaultConfigProperties.create(Collections.emptyMap(), COMPONENT_LOADER);
     assertEquals(2000, SnapshotProfilingConfiguration.getStagingCapacity(properties));
   }
 
@@ -187,7 +199,7 @@ class SnapshotProfilingConfigurationTest {
 
     @Test
     void includeSnapshotProfilingHeading() {
-      var properties = DefaultConfigProperties.create(Collections.emptyMap());
+      var properties = DefaultConfigProperties.create(Collections.emptyMap(), COMPONENT_LOADER);
 
       SnapshotProfilingConfiguration.log(properties);
 
@@ -200,7 +212,8 @@ class SnapshotProfilingConfigurationTest {
     void includeSnapshotProfilingEnabled(boolean enabled) {
       var properties =
           DefaultConfigProperties.create(
-              Map.of("splunk.snapshot.profiler.enabled", String.valueOf(enabled)));
+              Map.of("splunk.snapshot.profiler.enabled", String.valueOf(enabled)),
+              COMPONENT_LOADER);
       SnapshotProfilingConfiguration.log(properties);
       log.assertContains("splunk.snapshot.profiler.enabled" + " : " + enabled);
     }
@@ -210,7 +223,7 @@ class SnapshotProfilingConfigurationTest {
     void includeSnapshotProfilingSelectionRate(double rate) {
       var properties =
           DefaultConfigProperties.create(
-              Map.of("splunk.snapshot.selection.rate", String.valueOf(rate)));
+              Map.of("splunk.snapshot.selection.rate", String.valueOf(rate)), COMPONENT_LOADER);
       SnapshotProfilingConfiguration.log(properties);
       log.assertContains("splunk.snapshot.selection.rate" + " : " + rate);
     }
@@ -220,7 +233,8 @@ class SnapshotProfilingConfigurationTest {
     void includeSnapshotProfilingStackTraceDepth(int depth) {
       var properties =
           DefaultConfigProperties.create(
-              Map.of("splunk.snapshot.profiler.max.stack.depth", String.valueOf(depth)));
+              Map.of("splunk.snapshot.profiler.max.stack.depth", String.valueOf(depth)),
+              COMPONENT_LOADER);
       SnapshotProfilingConfiguration.log(properties);
       log.assertContains("splunk.snapshot.profiler.max.stack.depth" + " : " + depth);
     }
@@ -230,7 +244,7 @@ class SnapshotProfilingConfigurationTest {
     void includeSnapshotProfilingSamplingInterval(String interval) {
       var properties =
           DefaultConfigProperties.create(
-              Map.of("splunk.snapshot.profiler.sampling.interval", interval));
+              Map.of("splunk.snapshot.profiler.sampling.interval", interval), COMPONENT_LOADER);
 
       SnapshotProfilingConfiguration.log(properties);
 
@@ -243,7 +257,7 @@ class SnapshotProfilingConfigurationTest {
     void includeSnapshotProfilingExportInterval(String interval) {
       var properties =
           DefaultConfigProperties.create(
-              Map.of("splunk.snapshot.profiler.export.interval", interval));
+              Map.of("splunk.snapshot.profiler.export.interval", interval), COMPONENT_LOADER);
 
       SnapshotProfilingConfiguration.log(properties);
 
@@ -256,7 +270,8 @@ class SnapshotProfilingConfigurationTest {
     void includeSnapshotProfilingStagingCapacity(int capacity) {
       var properties =
           DefaultConfigProperties.create(
-              Map.of("splunk.snapshot.profiler.staging.capacity", String.valueOf(capacity)));
+              Map.of("splunk.snapshot.profiler.staging.capacity", String.valueOf(capacity)),
+              COMPONENT_LOADER);
       SnapshotProfilingConfiguration.log(properties);
       log.assertContains("splunk.snapshot.profiler.staging.capacity" + " : " + capacity);
     }

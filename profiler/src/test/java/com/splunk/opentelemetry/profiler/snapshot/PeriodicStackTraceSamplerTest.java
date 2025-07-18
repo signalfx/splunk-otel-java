@@ -28,8 +28,7 @@ import java.lang.management.ThreadInfo;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
@@ -125,10 +124,11 @@ class PeriodicStackTraceSamplerTest {
       await().until(() -> staging.allStackTraces().size() > 5);
       control.stop();
 
-      var threadIds = new HashSet<>(List.of(thread1.get().getId(), thread2.get().getId()));
-      var profiledThreads = staging.allStackTraces().stream()
-          .map(StackTrace::getThreadId)
-          .collect(Collectors.toSet());
+      var threadIds = Set.of(thread1.get().getId(), thread2.get().getId());
+      var profiledThreads =
+          staging.allStackTraces().stream()
+              .map(StackTrace::getThreadId)
+              .collect(Collectors.toSet());
       assertEquals(threadIds, profiledThreads);
     } finally {
       executor.shutdownNow();
@@ -322,7 +322,7 @@ class PeriodicStackTraceSamplerTest {
     // a StackTrace with the expected trace id but a span id from a different trace.
     delayedThreadInfoCollector.setDelay(Duration.ofMillis(100));
 
-    var thread =  Thread.currentThread();
+    var thread = Thread.currentThread();
     var spanContext1 = Snapshotting.spanContext().build();
     var spanContext2 = Snapshotting.spanContext().build();
 
@@ -381,7 +381,8 @@ class PeriodicStackTraceSamplerTest {
       await().until(() -> !staging.allStackTraces().isEmpty());
       staging.empty();
 
-      var future = thread1.submit(captureThread(() -> sampler.stop(Thread.currentThread(), spanContext)));
+      var future =
+          thread1.submit(captureThread(() -> sampler.stop(Thread.currentThread(), spanContext)));
       thread2.schedule(latch::countDown, SAMPLING_PERIOD.toMillis(), TimeUnit.MILLISECONDS);
       await().until(() -> !staging.allStackTraces().isEmpty());
 
@@ -452,7 +453,8 @@ class PeriodicStackTraceSamplerTest {
     var expectedDuration = SAMPLING_PERIOD.dividedBy(2);
     try {
       scheduler.submit(startSampling(spanContext));
-      scheduler.schedule(stopSampling(spanContext), expectedDuration.toMillis(), TimeUnit.MILLISECONDS);
+      scheduler.schedule(
+          stopSampling(spanContext), expectedDuration.toMillis(), TimeUnit.MILLISECONDS);
       await().until(staging::hasStackTraces);
 
       var stackTraces = staging.allStackTraces();
@@ -650,7 +652,7 @@ class PeriodicStackTraceSamplerTest {
   @Test
   void multipleThreadsAreBeingSampled() throws Exception {
     var spanContext = Snapshotting.spanContext().build();
-    var executor =  Executors.newFixedThreadPool(2);
+    var executor = Executors.newFixedThreadPool(2);
     try {
       var thread1 = executor.submit(captureThread(startSampling(spanContext)));
       var thread2 = executor.submit(captureThread(startSampling(spanContext)));
@@ -676,7 +678,7 @@ class PeriodicStackTraceSamplerTest {
   @Test
   void canStopSamplingForAllThreadsAssociatedWithSpanContext() throws Exception {
     var spanContext = Snapshotting.spanContext().build();
-    var executor =  Executors.newFixedThreadPool(2);
+    var executor = Executors.newFixedThreadPool(2);
     try {
       var thread1 = executor.submit(captureThread(startSampling(spanContext))).get();
       var thread2 = executor.submit(captureThread(startSampling(spanContext))).get();
@@ -693,7 +695,7 @@ class PeriodicStackTraceSamplerTest {
   @Test
   void takeFinalSampleForAllThreadsAssociatedWithSpanContext() throws Exception {
     var spanContext = Snapshotting.spanContext().build();
-    var executor =  Executors.newFixedThreadPool(2);
+    var executor = Executors.newFixedThreadPool(2);
     try {
       executor.submit(captureThread(startSampling(spanContext))).get();
       executor.submit(captureThread(startSampling(spanContext))).get();
@@ -715,7 +717,7 @@ class PeriodicStackTraceSamplerTest {
     return (() -> {
       try {
         control.start.await();
-        sampler.start(Thread.currentThread(),  spanContext);
+        sampler.start(Thread.currentThread(), spanContext);
         control.stop.await();
       } catch (InterruptedException e) {
         throw new RuntimeException(e);

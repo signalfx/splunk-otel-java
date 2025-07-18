@@ -39,8 +39,8 @@ interface StackTraceSampler extends Closeable {
   ConfigurableSupplier<StackTraceSampler> SUPPLIER = new ConfigurableSupplier<>(NOOP);
 
   /**
-   * Start trace sampling of the provided {@link Thread}, associating that {@link Thread}
-   * with the provided {@link SpanContext}.
+   * Start trace sampling of the provided {@link Thread}, associating that {@link Thread} with the
+   * provided {@link SpanContext}.
    *
    * @param thread {@link Thread} to sample
    * @param spanContext {@link SpanContext} to associate with the {@link Thread}
@@ -48,17 +48,15 @@ interface StackTraceSampler extends Closeable {
   void start(Thread thread, SpanContext spanContext);
 
   /**
-   * Stop sampling the {@link Thread}, assuming the provided {@link SpanContext} is
-   * associated with the {@link Thread}.
+   * Stop sampling the {@link Thread}, assuming the provided {@link SpanContext} is associated with
+   * the {@link Thread}.
    *
    * @param thread {@link Thread} to stop sampling
    * @param spanContext {@link SpanContext} to associate with the {@link Thread}
    */
-  void stop(Thread  thread, SpanContext spanContext);
+  void stop(Thread thread, SpanContext spanContext);
 
-  /**
-   * Stops sampling of all threads associated with {@link SpanContext}.
-   */
+  /** Stops sampling of all threads associated with {@link SpanContext}. */
   void stopAllSampling(SpanContext spanContext);
 
   boolean isBeingSampled(Thread thread);

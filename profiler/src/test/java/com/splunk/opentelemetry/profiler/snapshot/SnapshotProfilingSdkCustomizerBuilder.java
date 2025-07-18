@@ -37,7 +37,8 @@ class SnapshotProfilingSdkCustomizerBuilder {
   }
 
   SnapshotProfilingSdkCustomizerBuilder withRealStackTraceSampler(Duration samplingPeriod) {
-    return with(new PeriodicStackTraceSampler(StagingArea.SUPPLIER, SpanTracker.SUPPLIER, samplingPeriod));
+    return with(
+        new PeriodicStackTraceSampler(StagingArea.SUPPLIER, SpanTracker.SUPPLIER, samplingPeriod));
   }
 
   SnapshotProfilingSdkCustomizerBuilder with(StackTraceSampler sampler) {
@@ -51,7 +52,8 @@ class SnapshotProfilingSdkCustomizerBuilder {
   }
 
   SnapshotProfilingSdkCustomizerBuilder withRealStagingArea(Duration exportPeriod) {
-    return with(new PeriodicallyExportingStagingArea(StackTraceExporter.SUPPLIER, exportPeriod, 10));
+    return with(
+        new PeriodicallyExportingStagingArea(StackTraceExporter.SUPPLIER, exportPeriod, 10));
   }
 
   SnapshotProfilingSdkCustomizerBuilder with(StagingArea stagingArea) {

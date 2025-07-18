@@ -23,10 +23,11 @@ import org.junit.jupiter.api.extension.ExtensionContext;
 
 class ResettingContextStorageWrapper extends ContextStorageWrapper implements AfterEachCallback {
   ResettingContextStorageWrapper() {
-    super(operator -> {
-      var storage = operator.apply(ContextStorage.defaultStorage());
-      SettableContextStorageProvider.setContextStorage(storage);
-    });
+    super(
+        operator -> {
+          var storage = operator.apply(ContextStorage.defaultStorage());
+          SettableContextStorageProvider.setContextStorage(storage);
+        });
   }
 
   @Override

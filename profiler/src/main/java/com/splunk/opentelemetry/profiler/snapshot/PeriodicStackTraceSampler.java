@@ -120,21 +120,25 @@ class PeriodicStackTraceSampler implements StackTraceSampler {
     }
 
     void add(Thread thread, SpanContext spanContext) {
-      threadSamplingContexts.computeIfAbsent(thread, t -> {
-        SamplingContext context = new SamplingContext(t, spanContext, System.nanoTime());
-        takeOnDemandSample(t, context).ifPresent(staging.get()::stage);
-        return context;
-      });
+      threadSamplingContexts.computeIfAbsent(
+          thread,
+          t -> {
+            SamplingContext context = new SamplingContext(t, spanContext, System.nanoTime());
+            takeOnDemandSample(t, context).ifPresent(staging.get()::stage);
+            return context;
+          });
     }
 
     void remove(Thread thread, SpanContext spanContext) {
-      threadSamplingContexts.computeIfPresent(thread, (t, context) -> {
-        if (context.spanContext.equals(spanContext)) {
-          takeOnDemandSample(t, context).ifPresent(staging.get()::stage);
-          return null;
-        }
-        return context;
-      });
+      threadSamplingContexts.computeIfPresent(
+          thread,
+          (t, context) -> {
+            if (context.spanContext.equals(spanContext)) {
+              takeOnDemandSample(t, context).ifPresent(staging.get()::stage);
+              return null;
+            }
+            return context;
+          });
     }
 
     void removeAll(SpanContext spanContext) {
@@ -144,7 +148,8 @@ class PeriodicStackTraceSampler implements StackTraceSampler {
 
     private List<SamplingContext> findAndStopSamplingAssociatedThreads(SpanContext spanContext) {
       List<SamplingContext> threadsToStopSampling = new ArrayList<>();
-      Iterator<Map.Entry<Thread, SamplingContext>> iterator = threadSamplingContexts.entrySet().iterator();
+      Iterator<Map.Entry<Thread, SamplingContext>> iterator =
+          threadSamplingContexts.entrySet().iterator();
       while (iterator.hasNext()) {
         Map.Entry<Thread, SamplingContext> entry = iterator.next();
         if (entry.getValue().spanContext.equals(spanContext)) {

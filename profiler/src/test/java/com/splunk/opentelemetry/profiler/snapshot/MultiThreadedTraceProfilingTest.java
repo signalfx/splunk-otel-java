@@ -1,3 +1,19 @@
+/*
+ * Copyright Splunk Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.splunk.opentelemetry.profiler.snapshot;
 
 import static org.awaitility.Awaitility.await;
@@ -16,10 +32,8 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 
 public class MultiThreadedTraceProfilingTest {
   private final InMemoryStagingArea staging = new InMemoryStagingArea();
-  private final SnapshotProfilingSdkCustomizer customizer = Snapshotting.customizer()
-      .withRealStackTraceSampler()
-      .with(staging)
-      .build();
+  private final SnapshotProfilingSdkCustomizer customizer =
+      Snapshotting.customizer().withRealStackTraceSampler().with(staging).build();
 
   @RegisterExtension
   public final OpenTelemetrySdkExtension sdk =
@@ -31,27 +45,36 @@ public class MultiThreadedTraceProfilingTest {
 
   @RegisterExtension
   public final Server server =
-      Server.builder(sdk).named("server").performing(message -> {
-        var executor = Context.current().wrap(Executors.newSingleThreadExecutor());
-        try {
-          var future = executor.submit(() -> {
-            var span = sdk.getTracer("server-bg-thread").spanBuilder("server-background").startSpan();
-            try (var ignored = span.makeCurrent()) {
-              Thread.sleep(250);
-              return UUID.randomUUID();
-            }
-          });
+      Server.builder(sdk)
+          .named("server")
+          .performing(
+              message -> {
+                var executor = Context.current().wrap(Executors.newSingleThreadExecutor());
+                try {
+                  var future =
+                      executor.submit(
+                          () -> {
+                            var span =
+                                sdk.getTracer("server-bg-thread")
+                                    .spanBuilder("server-background")
+                                    .startSpan();
+                            try (var ignored = span.makeCurrent()) {
+                              Thread.sleep(250);
+                              return UUID.randomUUID();
+                            }
+                          });
 
-          try {
-            future.get();
-            return message;
-          } catch (InterruptedException | ExecutionException e) {
-            throw new RuntimeException(e);
-          }
-        } finally {
-          executor.shutdown();
-        }
-      }).build();
+                  try {
+                    future.get();
+                    return message;
+                  } catch (InterruptedException | ExecutionException e) {
+                    throw new RuntimeException(e);
+                  }
+                } finally {
+                  executor.shutdown();
+                }
+              })
+          .build();
 
   @Test
   void traceIsProfiledAcrossMultipleThreads() {
@@ -59,14 +82,11 @@ public class MultiThreadedTraceProfilingTest {
 
     await().atMost(Duration.ofSeconds(2)).until(() -> server.waitForResponse() != null);
 
-    var profiledThreads = staging.allStackTraces().stream()
-        .mapToLong(StackTrace::getThreadId)
-        .distinct()
-        .count();
+    var profiledThreads =
+        staging.allStackTraces().stream().mapToLong(StackTrace::getThreadId).distinct().count();
 
     // Server delegates some of its work to a single background thread. The background
     // thread should be included in the same trace context and be profiled.
     assertEquals(2, profiledThreads);
   }
 }
-

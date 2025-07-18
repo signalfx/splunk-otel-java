@@ -37,10 +37,7 @@ public class SnapshotProfilingSdkCustomizer implements AutoConfigurationCustomiz
   private final ContextStorageWrapper contextStorageWrapper;
 
   public SnapshotProfilingSdkCustomizer() {
-    this(
-        new TraceRegistry(),
-        stackTraceSamplerProvider(),
-        new ContextStorageWrapper());
+    this(new TraceRegistry(), stackTraceSamplerProvider(), new ContextStorageWrapper());
   }
 
   private static Function<ConfigProperties, StackTraceSampler> stackTraceSamplerProvider() {
@@ -60,7 +57,9 @@ public class SnapshotProfilingSdkCustomizer implements AutoConfigurationCustomiz
 
   @VisibleForTesting
   SnapshotProfilingSdkCustomizer(
-      TraceRegistry registry, StackTraceSampler sampler, ContextStorageWrapper contextStorageWrapper) {
+      TraceRegistry registry,
+      StackTraceSampler sampler,
+      ContextStorageWrapper contextStorageWrapper) {
     this(registry, properties -> sampler, contextStorageWrapper);
   }
 

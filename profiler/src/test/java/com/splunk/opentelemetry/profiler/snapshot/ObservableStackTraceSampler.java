@@ -38,6 +38,11 @@ public class ObservableStackTraceSampler implements StackTraceSampler {
   }
 
   @Override
+  public void stopAllSampling(SpanContext spanContext) {
+    threads.entrySet().removeIf(entry -> entry.getValue() == spanContext);
+  }
+
+  @Override
   public boolean isBeingSampled(Thread thread) {
     return threads.containsKey(thread);
   }

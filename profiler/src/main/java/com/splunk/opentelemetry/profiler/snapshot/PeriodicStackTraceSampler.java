@@ -139,7 +139,7 @@ class PeriodicStackTraceSampler implements StackTraceSampler {
 
     void removeAll(SpanContext spanContext) {
       List<SamplingContext> threads = findAndStopSamplingAssociatedThreads(spanContext);
-      takePeriodicSample(threads);
+      takeBulkSample(threads);
     }
 
     private List<SamplingContext> findAndStopSamplingAssociatedThreads(SpanContext spanContext) {
@@ -188,14 +188,14 @@ class PeriodicStackTraceSampler implements StackTraceSampler {
           if (shutdown) {
             return;
           }
-          takePeriodicSample(threadSamplingContexts.values());
+          takeBulkSample(threadSamplingContexts.values());
         }
       } catch (InterruptedException e) {
         Thread.currentThread().interrupt();
       }
     }
 
-    private void takePeriodicSample(Collection<SamplingContext> contexts) {
+    private void takeBulkSample(Collection<SamplingContext> contexts) {
       if (contexts.isEmpty()) {
         return;
       }

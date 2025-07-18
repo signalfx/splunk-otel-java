@@ -58,7 +58,7 @@ public class SnapshotProfilingSpanProcessor implements SpanProcessor {
     }
 
     if (isEntry(span) && registry.isRegistered(span.getSpanContext())) {
-      sampler.get().start(span.getSpanContext());
+      sampler.get().start(Thread.currentThread(), span.getSpanContext());
       span.setAttribute(SNAPSHOT_PROFILING, true);
     }
   }

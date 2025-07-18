@@ -80,7 +80,7 @@ public class SnapshotProfilingSpanProcessor implements SpanProcessor {
     if (isEntry(span)) {
       registry.unregister(span.getSpanContext());
       orphanedTraceCleaner.unregister(span.getSpanContext());
-      sampler.get().stop(span.getSpanContext());
+      sampler.get().stopAllSampling(span.getSpanContext());
     }
   }
 

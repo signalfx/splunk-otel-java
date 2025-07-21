@@ -18,6 +18,7 @@ package com.splunk.opentelemetry;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import io.opentelemetry.common.ComponentLoader;
 import io.opentelemetry.sdk.OpenTelemetrySdk;
 import io.opentelemetry.sdk.autoconfigure.AutoConfigureUtil;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
@@ -228,7 +229,7 @@ class SplunkDeclarativeConfigurationTest {
             new ByteArrayInputStream(yaml.getBytes(StandardCharsets.UTF_8)));
     DeclarativeConfiguration.create(
         configurationModel,
-        SpiHelper.serviceComponentLoader(
+        ComponentLoader.forClassLoader(
             SplunkDeclarativeConfigurationTest.class.getClassLoader()));
 
     return configurationModel;

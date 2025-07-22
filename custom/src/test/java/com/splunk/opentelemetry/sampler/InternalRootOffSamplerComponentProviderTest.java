@@ -36,10 +36,8 @@ class InternalRootOffSamplerComponentProviderTest {
                 internal_root_off:
             """;
 
-    try (OpenTelemetrySdk sdk = createAutoConfiguredSdk(yaml, tempDir).getOpenTelemetrySdk()) {
+    OpenTelemetrySdk sdk = createAutoConfiguredSdk(yaml, tempDir).getOpenTelemetrySdk();
 
-      assertThat(sdk.getSdkTracerProvider().getSampler())
-          .isInstanceOf(InternalRootOffSampler.class);
-    }
+    assertThat(sdk.getSdkTracerProvider().getSampler()).isInstanceOf(InternalRootOffSampler.class);
   }
 }

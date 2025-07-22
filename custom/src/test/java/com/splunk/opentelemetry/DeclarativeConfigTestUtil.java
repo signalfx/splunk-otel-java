@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Map;
 
 public class DeclarativeConfigTestUtil {
   public static OpenTelemetryConfigurationModel getCustomizedModel(String yaml) {
@@ -33,8 +34,7 @@ public class DeclarativeConfigTestUtil {
             new ByteArrayInputStream(yaml.getBytes(StandardCharsets.UTF_8)));
     DeclarativeConfiguration.create(
             configurationModel,
-            ComponentLoader.forClassLoader(
-                SplunkDeclarativeConfigurationTest.class.getClassLoader()))
+            ComponentLoader.forClassLoader(DeclarativeConfigTestUtil.class.getClassLoader()))
         .close();
 
     return configurationModel;
@@ -44,8 +44,10 @@ public class DeclarativeConfigTestUtil {
       throws IOException {
     Path configFilePath = tempDir.resolve("test-config.yaml");
     Files.writeString(configFilePath, yaml);
-    System.setProperty("otel.experimental.config.file", configFilePath.toString());
 
-    return AutoConfiguredOpenTelemetrySdk.builder().build();
+    return AutoConfiguredOpenTelemetrySdk.builder()
+        .addPropertiesSupplier(
+            () -> Map.of("otel.experimental.config.file", configFilePath.toString()))
+        .build();
   }
 }

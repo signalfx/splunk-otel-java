@@ -38,7 +38,7 @@ class SnapshotVolumePropagatorProviderTest {
 
   @Test
   void provideSnapshotVolumePropagator() {
-    var propagator = provider.getPropagator(DefaultConfigProperties.create(Collections.emptyMap()));
+    var propagator = provider.getPropagator(DefaultConfigProperties.createFromMap(Collections.emptyMap()));
     assertInstanceOf(SnapshotVolumePropagator.class, propagator);
   }
 
@@ -51,7 +51,7 @@ class SnapshotVolumePropagatorProviderTest {
   @Test
   void probabilisticSelectorIsConfigured() {
     var properties =
-        DefaultConfigProperties.create(Map.of("splunk.snapshot.selection.rate", "0.10"));
+        DefaultConfigProperties.createFromMap(Map.of("splunk.snapshot.selection.rate", "0.10"));
 
     var carrier = new ObservableCarrier();
     var propagator = provider.getPropagator(properties);
@@ -70,7 +70,7 @@ class SnapshotVolumePropagatorProviderTest {
   @MethodSource("traceIdsToSelect")
   void traceIdSelectorIsConfigured(String traceId) {
     var properties =
-        DefaultConfigProperties.create(Map.of("splunk.snapshot.selection.rate", "0.10"));
+        DefaultConfigProperties.createFromMap(Map.of("splunk.snapshot.selection.rate", "0.10"));
 
     var remoteSpanContext = Snapshotting.spanContext().withTraceId(traceId).remote().build();
     var remoteParentSpan = Span.wrap(remoteSpanContext);

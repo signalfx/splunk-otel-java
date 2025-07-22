@@ -32,7 +32,7 @@ class OtelLoggerFactoryTest {
 
   @Test
   void configureLoggerWithProfilingInstrumentationScopeName() {
-    var properties = DefaultConfigProperties.create(Collections.emptyMap());
+    var properties = DefaultConfigProperties.createFromMap(Collections.emptyMap());
     var resource = Resource.getDefault();
 
     var logger = factory.build(properties, resource);
@@ -44,7 +44,7 @@ class OtelLoggerFactoryTest {
 
   @Test
   void configureLoggerWithProfilingInstrumentationVersion() {
-    var properties = DefaultConfigProperties.create(Collections.emptyMap());
+    var properties = DefaultConfigProperties.createFromMap(Collections.emptyMap());
     var resource = Resource.getDefault();
 
     var logger = factory.build(properties, resource);
@@ -56,7 +56,7 @@ class OtelLoggerFactoryTest {
 
   @Test
   void configureLoggerWithOpenTelemetryResource() {
-    var properties = DefaultConfigProperties.create(Collections.emptyMap());
+    var properties = DefaultConfigProperties.createFromMap(Collections.emptyMap());
     var resource = Resource.create(Attributes.of(AttributeKey.stringKey("test"), "value"));
 
     var logger = factory.build(properties, resource);

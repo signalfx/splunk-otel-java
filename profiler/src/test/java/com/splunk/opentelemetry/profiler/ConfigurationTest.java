@@ -75,7 +75,7 @@ class ConfigurationTest {
   @Test
   void getOtlpProtocolDefault() {
     String result =
-        Configuration.getOtlpProtocol(DefaultConfigProperties.create(Collections.emptyMap()));
+        Configuration.getOtlpProtocol(DefaultConfigProperties.createFromMap(Collections.emptyMap()));
     assertEquals("http/protobuf", result);
   }
 
@@ -83,7 +83,7 @@ class ConfigurationTest {
   void getOtlpProtocolOtelPropertySet() {
     String result =
         Configuration.getOtlpProtocol(
-            DefaultConfigProperties.create(
+            DefaultConfigProperties.createFromMap(
                 Collections.singletonMap("otel.exporter.otlp.protocol", "test")));
     assertEquals("test", result);
   }
@@ -93,7 +93,7 @@ class ConfigurationTest {
     Map<String, String> map = new HashMap<>();
     map.put("otel.exporter.otlp.protocol", "test1");
     map.put("splunk.profiler.otlp.protocol", "test2");
-    String result = Configuration.getOtlpProtocol(DefaultConfigProperties.create(map));
+    String result = Configuration.getOtlpProtocol(DefaultConfigProperties.createFromMap(map));
     assertEquals("test2", result);
   }
 }

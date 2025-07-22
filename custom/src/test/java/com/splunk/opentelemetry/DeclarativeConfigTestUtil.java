@@ -1,7 +1,6 @@
 package com.splunk.opentelemetry;
 
 import io.opentelemetry.common.ComponentLoader;
-import io.opentelemetry.sdk.OpenTelemetrySdk;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.DeclarativeConfiguration;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.OpenTelemetryConfigurationModel;
@@ -19,7 +18,7 @@ public class DeclarativeConfigTestUtil {
     DeclarativeConfiguration.create(
         configurationModel,
         ComponentLoader.forClassLoader(
-            SplunkDeclarativeConfigurationTest.class.getClassLoader()));
+            SplunkDeclarativeConfigurationTest.class.getClassLoader())).close();
 
     return configurationModel;
   }

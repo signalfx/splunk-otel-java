@@ -681,28 +681,8 @@ public class MetadataGenerator {
             SettingType.INT,
             SettingCategory.INSTRUMENTATION));
 
-    // Exemplars
-    // https://github.com/open-telemetry/opentelemetry-java/blob/main/sdk-extensions/autoconfigure/README.md#exemplars
-
-    /*
-    otel.metrics.exemplar.filter	OTEL_METRICS_EXEMPLAR_FILTER	The filter for exemplar sampling. Can be ALWAYS_OFF, ALWAYS_ON or TRACE_BASED. Default is TRACE_BASED.
-     */
-
-    // XXX are exemplars even supported in our backend?
-    settings.add(
-        setting(
-            "otel.metrics.exemplar.filter",
-            "The filter for exemplar sampling. Can be ALWAYS_OFF, ALWAYS_ON or TRACE_BASED. Default is TRACE_BASED.",
-            "TRACE_BASED",
-            SettingType.STRING,
-            SettingCategory.GENERAL));
-
-    // Periodic Metric Reade
-    // https://github.com/open-telemetry/opentelemetry-java/blob/main/sdk-extensions/autoconfigure/README.md#periodic-metric-reader
-
-    /*
-    otel.metric.export.interval	OTEL_METRIC_EXPORT_INTERVAL	The interval, in milliseconds, between the start of two export attempts. Default is 60000.
-     */
+    // Metrics
+    // https://opentelemetry.io/docs/languages/java/configuration/#properties-metrics
 
     settings.add(
         setting(
@@ -711,6 +691,22 @@ public class MetadataGenerator {
             "60000",
             SettingType.INT,
             SettingCategory.EXPORTER));
+
+    settings.add(
+        setting(
+            "otel.metrics.exemplar.filter",
+            "The filter for exemplar sampling. Can be ALWAYS_OFF, ALWAYS_ON or TRACE_BASED. Default is TRACE_BASED.",
+            "TRACE_BASED",
+            SettingType.STRING,
+            SettingCategory.GENERAL));
+
+    settings.add(
+        setting(
+            "otel.java.metrics.cardinality.limit",
+            "If set, configure cardinality limit. The value dictates the maximum number of distinct points per metric. Default is 2000.",
+            "2000",
+            SettingType.INT,
+            SettingCategory.INSTRUMENTATION));
 
     // Prometheus exporter
     // https://github.com/open-telemetry/opentelemetry-java/blob/main/sdk-extensions/autoconfigure/README.md#prometheus-exporter
@@ -734,20 +730,6 @@ public class MetadataGenerator {
             "0.0.0.0",
             SettingType.INT,
             SettingCategory.EXPORTER));
-
-    // Cardinality Limits
-    // https://github.com/open-telemetry/opentelemetry-java/blob/main/sdk-extensions/autoconfigure/README.md#cardinality-limits
-
-    /*
-    otel.experimental.metrics.cardinality.limit	OTEL_EXPERIMENTAL_METRICS_CARDINALITY_LIMIT	If set, configure experimental cardinality limit. The value dictates the maximum number of distinct points per metric. Default is 2000.
-     */
-    settings.add(
-        setting(
-            "otel.experimental.metrics.cardinality.limit",
-            "If set, configure experimental cardinality limit. The value dictates the maximum number of distinct points per metric. Default is 2000.",
-            "2000",
-            SettingType.INT,
-            SettingCategory.INSTRUMENTATION));
 
     // Batch log record processor
     // https://github.com/open-telemetry/opentelemetry-java/blob/main/sdk-extensions/autoconfigure/README.md#batch-log-record-processor
@@ -1971,6 +1953,18 @@ public class MetadataGenerator {
         setting(
             "otel.instrumentation.netty.ssl-telemetry.enabled",
             "Enable SSL telemetry for Netty 4.0 and higher instrumentation.",
+            "false",
+            SettingType.BOOLEAN,
+            SettingCategory.INSTRUMENTATION));
+
+    // https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/instrumentation/openai/openai-java-1.1/javaagent/README.md
+    /*
+    | `otel.instrumentation.genai.capture-message-content` | Boolean | `false` | Record content of user and LLM messages. |
+     */
+    settings.add(
+        setting(
+            "otel.instrumentation.genai.capture-message-content",
+            "Record content of user and LLM messages.",
             "false",
             SettingType.BOOLEAN,
             SettingCategory.INSTRUMENTATION));
@@ -3469,6 +3463,11 @@ public class MetadataGenerator {
         instrumentation("opensearch")
             .component("OpenSearch REST Client", "1.0 and higher")
             .dbClientMetrics()
+            .build());
+    instrumentations.add(
+        instrumentation("openai-java")
+            .component("OpenAI Java SDK", "1.1 and higher")
+            .genAiClientMetrics()
             .build());
     instrumentations.add(
         instrumentation("opentelemetry-api").component("OpenTelemetry API", null).build());

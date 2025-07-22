@@ -16,23 +16,19 @@
 
 package com.splunk.opentelemetry;
 
+import static com.splunk.opentelemetry.DeclarativeConfigTestUtil.createAutoConfiguredSdk;
+import static com.splunk.opentelemetry.DeclarativeConfigTestUtil.getCustomizedModel;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import io.opentelemetry.common.ComponentLoader;
 import io.opentelemetry.sdk.OpenTelemetrySdk;
 import io.opentelemetry.sdk.autoconfigure.AutoConfigureUtil;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
-import io.opentelemetry.sdk.autoconfigure.internal.SpiHelper;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
-import io.opentelemetry.sdk.extension.incubator.fileconfig.DeclarativeConfiguration;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.NameStringValuePairModel;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.OpenTelemetryConfigurationModel;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.OtlpHttpExporterModel;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.OtlpHttpMetricExporterModel;
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -48,7 +44,7 @@ class SplunkDeclarativeConfigurationTest {
               java:
             """;
 
-    AutoConfiguredOpenTelemetrySdk sdk = createConfiguredSdk(yaml, tempDir);
+    AutoConfiguredOpenTelemetrySdk sdk = createAutoConfiguredSdk(yaml, tempDir);
     ConfigProperties configProperties = AutoConfigureUtil.getConfig(sdk);
     assertThat(configProperties.getBoolean("splunk.metrics.force_full_commandline")).isFalse();
     assertThat(configProperties.getBoolean("otel.instrumentation.spring-batch.enabled")).isTrue();
@@ -72,7 +68,7 @@ class SplunkDeclarativeConfigurationTest {
                     force_full_commandline: true
             """;
 
-    AutoConfiguredOpenTelemetrySdk sdk = createConfiguredSdk(yaml, tempDir);
+    AutoConfiguredOpenTelemetrySdk sdk = createAutoConfiguredSdk(yaml, tempDir);
 
     ConfigProperties configProperties = AutoConfigureUtil.getConfig(sdk);
     assertThat(configProperties.getBoolean("splunk.metrics.force_full_commandline")).isTrue();
@@ -96,7 +92,7 @@ class SplunkDeclarativeConfigurationTest {
               java:
             """;
 
-    OpenTelemetrySdk sdk = createConfiguredSdk(yaml, tempDir).getOpenTelemetrySdk();
+    OpenTelemetrySdk sdk = createAutoConfiguredSdk(yaml, tempDir).getOpenTelemetrySdk();
 
     assertThat(sdk.getSdkTracerProvider().getSampler().getDescription())
         .isEqualTo("AlwaysOnSampler");
@@ -118,7 +114,7 @@ class SplunkDeclarativeConfigurationTest {
               java:
             """;
 
-    OpenTelemetrySdk sdk = createConfiguredSdk(yaml, tempDir).getOpenTelemetrySdk();
+    OpenTelemetrySdk sdk = createAutoConfiguredSdk(yaml, tempDir).getOpenTelemetrySdk();
 
     assertThat(sdk.getSdkTracerProvider().getSampler().getDescription())
         .isEqualTo("AlwaysOffSampler");
@@ -211,27 +207,5 @@ class SplunkDeclarativeConfigurationTest {
 
     OpenTelemetryConfigurationModel model = getCustomizedModel(yaml);
     assertThat(model.getLogLevel()).isEqualTo("crazy");
-  }
-
-
-  private static AutoConfiguredOpenTelemetrySdk createConfiguredSdk(String yaml, Path tempDir)
-      throws IOException {
-    Path configFilePath = tempDir.resolve("test-config.yaml");
-    Files.writeString(configFilePath, yaml);
-    System.setProperty("otel.experimental.config.file", configFilePath.toString());
-
-    return AutoConfiguredOpenTelemetrySdk.builder().build();
-  }
-
-  private static OpenTelemetryConfigurationModel getCustomizedModel(String yaml) {
-    OpenTelemetryConfigurationModel configurationModel =
-        DeclarativeConfiguration.parse(
-            new ByteArrayInputStream(yaml.getBytes(StandardCharsets.UTF_8)));
-    DeclarativeConfiguration.create(
-        configurationModel,
-        ComponentLoader.forClassLoader(
-            SplunkDeclarativeConfigurationTest.class.getClassLoader()));
-
-    return configurationModel;
   }
 }

@@ -8,19 +8,25 @@ and this repository adheres to [Semantic Versioning](https://semver.org/spec/v2.
 
 ## Unreleased
 
-## v2.18.0 - 2025-07-18
+## v2.18.0 - 2025-07-23
 
 Note: The 1.x version of `splunk-otel-java` has reached end of support.
 
 ### General
 
 - OpenTelemetry Java SDK has been updated to version 1.52.0.
-- OpenTelemetry Instrumentation for Java has been updated to version 2.18.0.
+- OpenTelemetry Instrumentation for Java has been updated to version 2.18.1.
 
 ### 📈 Enhancements
 
 - Include ability to perform context propagation for SQL Server ([#2348](https://github.com/signalfx/splunk-otel-java/pull/2348)).
 - Trace snapshot profiler now supports thread concurrency ([#2353](https://github.com/signalfx/splunk-otel-java/pull/2353)).
+
+## v2.17.1 - 2025-07-11
+
+### General
+
+- OpenTelemetry Instrumentation for Java has been updated to version 2.17.1.
 
 ## v2.17.0 - 2025-06-28
 

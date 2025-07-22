@@ -17,8 +17,8 @@ for details.
 
 <p align="center">
   <img alt="Stable" src="https://img.shields.io/badge/status-stable-informational?style=for-the-badge">
-  <a href="https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/tag/v2.18.0">
-    <img alt="OpenTelemetry Instrumentation for Java Version" src="https://img.shields.io/badge/otel-2.18.0-blueviolet?style=for-the-badge">
+  <a href="https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/tag/v2.18.1">
+    <img alt="OpenTelemetry Instrumentation for Java Version" src="https://img.shields.io/badge/otel-2.18.1-blueviolet?style=for-the-badge">
   </a>
   <a href="https://github.com/signalfx/gdi-specification/releases/tag/v1.7.0">
     <img alt="Splunk GDI specification" src="https://img.shields.io/badge/GDI-1.7.0-blueviolet?style=for-the-badge">
@@ -111,7 +111,7 @@ The Splunk Distribution of OpenTelemetry Java version <!--SPLUNK_VERSION-->2.18.
 with:
 
 * OpenTelemetry API version <!--OTEL_VERSION-->1.52.0<!--OTEL_VERSION-->
-* OpenTelemetry Instrumentation for Java version <!--OTEL_INSTRUMENTATION_VERSION-->2.18.0<!--OTEL_INSTRUMENTATION_VERSION-->
+* OpenTelemetry Instrumentation for Java version <!--OTEL_INSTRUMENTATION_VERSION-->2.18.1<!--OTEL_INSTRUMENTATION_VERSION-->
 
 ## Snapshot builds
 

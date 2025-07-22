@@ -23,7 +23,7 @@ import io.opentelemetry.sdk.trace.samplers.Sampler;
 
 @SuppressWarnings("rawtypes")
 @AutoService(ComponentProvider.class)
-public class InternalRootOffSamplerComponentProvider implements ComponentProvider<Sampler>  {
+public class InternalRootOffSamplerComponentProvider implements ComponentProvider<Sampler> {
   @Override
   public String getName() {
     return "internal_root_off";
@@ -38,6 +38,4 @@ public class InternalRootOffSamplerComponentProvider implements ComponentProvide
   public Sampler create(DeclarativeConfigProperties samplerProperties) {
     return new InternalRootOffSampler();
   }
-
-
 }

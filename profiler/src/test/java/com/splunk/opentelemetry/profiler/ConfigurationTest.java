@@ -75,7 +75,8 @@ class ConfigurationTest {
   @Test
   void getOtlpProtocolDefault() {
     String result =
-        Configuration.getOtlpProtocol(DefaultConfigProperties.createFromMap(Collections.emptyMap()));
+        Configuration.getOtlpProtocol(
+            DefaultConfigProperties.createFromMap(Collections.emptyMap()));
     assertEquals("http/protobuf", result);
   }
 

@@ -77,7 +77,8 @@ public class SplunkDeclarativeConfiguration implements DeclarativeConfigurationC
           if (model.getInstrumentationDevelopment() == null) {
             return model;
           }
-          ExperimentalLanguageSpecificInstrumentationModel javaModel = model.getInstrumentationDevelopment().getJava();
+          ExperimentalLanguageSpecificInstrumentationModel javaModel =
+              model.getInstrumentationDevelopment().getJava();
           if (javaModel == null) {
             return model;
           }

@@ -126,7 +126,7 @@ class SplunkDeclarativeConfigurationTest {
     }
   }
 
-//  @Test
+  //  @Test
   void shouldCustomizeEmptyConfigurationForSplunkRealm() {
     String yaml =
         """
@@ -167,7 +167,7 @@ class SplunkDeclarativeConfigurationTest {
     assertThat(logExporterModel.getHeaders()).contains(tokenHeader);
   }
 
-//  @Test
+  //  @Test
   void shouldNotUpdateAccessTokenProvidedInExporterHeaders() {
     String yaml =
         """

@@ -93,7 +93,8 @@ class SnapshotProfilingConfigurationTest {
   @Test
   void getSnapshotSelectionRateUsesDefaultValueIsNotNumeric() {
     var properties =
-        DefaultConfigProperties.createFromMap(Map.of("splunk.snapshot.selection.rate", "not-a-number"));
+        DefaultConfigProperties.createFromMap(
+            Map.of("splunk.snapshot.selection.rate", "not-a-number"));
 
     double actualSelectionRate =
         SnapshotProfilingConfiguration.getSnapshotSelectionRate(properties);

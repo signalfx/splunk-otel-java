@@ -73,7 +73,7 @@ class OrphanedTraceCleaner implements Closeable {
           Key key = (Key) reference;
           if (traces.remove(key)) {
             traceRegistry.unregister(key.getSpanContext().getTraceId());
-            sampler.get().stop(key.getSpanContext());
+            sampler.get().stopAllSampling(key.getSpanContext());
           }
         }
       }

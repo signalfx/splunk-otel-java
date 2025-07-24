@@ -20,6 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
+import io.opentelemetry.common.ComponentLoader;
 import io.opentelemetry.sdk.autoconfigure.spi.internal.DefaultConfigProperties;
 import io.opentelemetry.sdk.resources.Resource;
 import io.opentelemetry.sdk.testing.exporter.InMemoryLogRecordExporter;
@@ -27,12 +28,15 @@ import java.util.Collections;
 import org.junit.jupiter.api.Test;
 
 class OtelLoggerFactoryTest {
+  private static final ComponentLoader COMPONENT_LOADER =
+      ComponentLoader.forClassLoader(OtelLoggerFactoryTest.class.getClassLoader());
+
   private final InMemoryLogRecordExporter exporter = InMemoryLogRecordExporter.create();
   private final OtelLoggerFactory factory = new OtelLoggerFactory(properties -> exporter);
 
   @Test
   void configureLoggerWithProfilingInstrumentationScopeName() {
-    var properties = DefaultConfigProperties.createFromMap(Collections.emptyMap());
+    var properties = DefaultConfigProperties.create(Collections.emptyMap(), COMPONENT_LOADER);
     var resource = Resource.getDefault();
 
     var logger = factory.build(properties, resource);
@@ -44,7 +48,7 @@ class OtelLoggerFactoryTest {
 
   @Test
   void configureLoggerWithProfilingInstrumentationVersion() {
-    var properties = DefaultConfigProperties.createFromMap(Collections.emptyMap());
+    var properties = DefaultConfigProperties.create(Collections.emptyMap(), COMPONENT_LOADER);
     var resource = Resource.getDefault();
 
     var logger = factory.build(properties, resource);
@@ -56,7 +60,7 @@ class OtelLoggerFactoryTest {
 
   @Test
   void configureLoggerWithOpenTelemetryResource() {
-    var properties = DefaultConfigProperties.createFromMap(Collections.emptyMap());
+    var properties = DefaultConfigProperties.create(Collections.emptyMap(), COMPONENT_LOADER);
     var resource = Resource.create(Attributes.of(AttributeKey.stringKey("test"), "value"));
 
     var logger = factory.build(properties, resource);

@@ -21,6 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 
 import io.opentelemetry.api.trace.Span;
+import io.opentelemetry.common.ComponentLoader;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.sdk.autoconfigure.spi.internal.DefaultConfigProperties;
 import java.util.ArrayList;
@@ -34,12 +35,15 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
 class SnapshotVolumePropagatorProviderTest {
+  private static final ComponentLoader COMPONENT_LOADER =
+      ComponentLoader.forClassLoader(SnapshotVolumePropagatorProviderTest.class.getClassLoader());
   private final SnapshotVolumePropagatorProvider provider = new SnapshotVolumePropagatorProvider();
 
   @Test
   void provideSnapshotVolumePropagator() {
     var propagator =
-        provider.getPropagator(DefaultConfigProperties.createFromMap(Collections.emptyMap()));
+        provider.getPropagator(
+            DefaultConfigProperties.create(Collections.emptyMap(), COMPONENT_LOADER));
     assertInstanceOf(SnapshotVolumePropagator.class, propagator);
   }
 
@@ -52,7 +56,8 @@ class SnapshotVolumePropagatorProviderTest {
   @Test
   void probabilisticSelectorIsConfigured() {
     var properties =
-        DefaultConfigProperties.createFromMap(Map.of("splunk.snapshot.selection.rate", "0.10"));
+        DefaultConfigProperties.create(
+            Map.of("splunk.snapshot.selection.rate", "0.10"), COMPONENT_LOADER);
 
     var carrier = new ObservableCarrier();
     var propagator = provider.getPropagator(properties);
@@ -71,7 +76,8 @@ class SnapshotVolumePropagatorProviderTest {
   @MethodSource("traceIdsToSelect")
   void traceIdSelectorIsConfigured(String traceId) {
     var properties =
-        DefaultConfigProperties.createFromMap(Map.of("splunk.snapshot.selection.rate", "0.10"));
+        DefaultConfigProperties.create(
+            Map.of("splunk.snapshot.selection.rate", "0.10"), COMPONENT_LOADER);
 
     var remoteSpanContext = Snapshotting.spanContext().withTraceId(traceId).remote().build();
     var remoteParentSpan = Span.wrap(remoteSpanContext);

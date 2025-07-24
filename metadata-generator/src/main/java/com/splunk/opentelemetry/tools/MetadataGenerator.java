@@ -2161,6 +2161,7 @@ public class MetadataGenerator {
     /*
     | `otel.instrumentation.servlet.experimental-span-attributes`            | Boolean | `false` | Enable the capture of experimental span attributes. |
     | `otel.instrumentation.servlet.experimental.capture-request-parameters` | List    | Empty   | Request parameters to be captured (experimental).   |
+    | `otel.experimental.javascript-snippet`                                 | String  | Empty   | Experimental setting to inject a JavaScript snippet into servlet responses. Snippet is injected after opening `<head>` tag. |
      */
     settings.add(
         setting(
@@ -2171,6 +2172,13 @@ public class MetadataGenerator {
             SettingCategory.INSTRUMENTATION));
     // otel.instrumentation.servlet.experimental.capture-request-parameters is already added
     // elsewhere
+    settings.add(
+        setting(
+            "otel.experimental.javascript-snippet",
+            "Experimental setting to inject a JavaScript snippet into servlet responses. Snippet is injected after opening `<head>` tag.",
+            "",
+            SettingType.STRING,
+            SettingCategory.INSTRUMENTATION));
 
     // https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/instrumentation/spring/README.md
     /*

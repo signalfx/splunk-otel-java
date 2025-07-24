@@ -16,16 +16,21 @@
 
 package com.splunk.opentelemetry.sampler;
 
-import static com.splunk.opentelemetry.DeclarativeConfigTestUtil.createAutoConfiguredSdk;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
+import com.splunk.opentelemetry.DeclarativeConfigTestExtension;
 import io.opentelemetry.sdk.OpenTelemetrySdk;
 import java.io.IOException;
 import java.nio.file.Path;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.api.io.TempDir;
 
 class InternalRootOffSamplerComponentProviderTest {
+  @RegisterExtension
+  private static final DeclarativeConfigTestExtension configTestExtension =
+      DeclarativeConfigTestExtension.create();
+
   @Test
   void shouldCreateSampler(@TempDir Path tempDir) throws IOException {
     String yaml =
@@ -36,7 +41,8 @@ class InternalRootOffSamplerComponentProviderTest {
                 internal_root_off:
             """;
 
-    OpenTelemetrySdk sdk = createAutoConfiguredSdk(yaml, tempDir).getOpenTelemetrySdk();
+    OpenTelemetrySdk sdk =
+        configTestExtension.createAutoConfiguredSdk(yaml, tempDir).getOpenTelemetrySdk();
 
     assertThat(sdk.getSdkTracerProvider().getSampler()).isInstanceOf(InternalRootOffSampler.class);
   }

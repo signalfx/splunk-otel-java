@@ -17,6 +17,7 @@
 package com.splunk.opentelemetry;
 
 import io.opentelemetry.common.ComponentLoader;
+import io.opentelemetry.instrumentation.testing.internal.AutoCleanupExtension;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.DeclarativeConfiguration;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.OpenTelemetryConfigurationModel;
@@ -26,28 +27,48 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
+import org.junit.jupiter.api.extension.AfterEachCallback;
+import org.junit.jupiter.api.extension.ExtensionContext;
 
-public class DeclarativeConfigTestUtil {
-  public static OpenTelemetryConfigurationModel getCustomizedModel(String yaml) {
-    OpenTelemetryConfigurationModel configurationModel =
+public class DeclarativeConfigTestExtension implements AfterEachCallback {
+  private final AutoCleanupExtension autoCleanupExtension = AutoCleanupExtension.create();
+
+  private DeclarativeConfigTestExtension() {}
+
+  public static DeclarativeConfigTestExtension create() {
+    return new DeclarativeConfigTestExtension();
+  }
+
+  public OpenTelemetryConfigurationModel getCustomizedModel(String yaml) {
+    var configurationModel =
         DeclarativeConfiguration.parse(
             new ByteArrayInputStream(yaml.getBytes(StandardCharsets.UTF_8)));
-    DeclarativeConfiguration.create(
+    var sdk =
+        DeclarativeConfiguration.create(
             configurationModel,
-            ComponentLoader.forClassLoader(DeclarativeConfigTestUtil.class.getClassLoader()))
-        .close();
+            ComponentLoader.forClassLoader(DeclarativeConfigTestExtension.class.getClassLoader()));
+    autoCleanupExtension.deferCleanup(sdk);
 
     return configurationModel;
   }
 
-  public static AutoConfiguredOpenTelemetrySdk createAutoConfiguredSdk(String yaml, Path tempDir)
+  public AutoConfiguredOpenTelemetrySdk createAutoConfiguredSdk(String yaml, Path tempDir)
       throws IOException {
     Path configFilePath = tempDir.resolve("test-config.yaml");
     Files.writeString(configFilePath, yaml);
 
-    return AutoConfiguredOpenTelemetrySdk.builder()
-        .addPropertiesSupplier(
-            () -> Map.of("otel.experimental.config.file", configFilePath.toString()))
-        .build();
+    var sdk =
+        AutoConfiguredOpenTelemetrySdk.builder()
+            .addPropertiesSupplier(
+                () -> Map.of("otel.experimental.config.file", configFilePath.toString()))
+            .build();
+    autoCleanupExtension.deferCleanup(sdk.getOpenTelemetrySdk());
+
+    return sdk;
+  }
+
+  @Override
+  public void afterEach(ExtensionContext context) throws Exception {
+    autoCleanupExtension.afterEach(context);
   }
 }

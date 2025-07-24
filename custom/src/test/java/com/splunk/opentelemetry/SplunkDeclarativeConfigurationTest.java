@@ -16,8 +16,6 @@
 
 package com.splunk.opentelemetry;
 
-import static com.splunk.opentelemetry.DeclarativeConfigTestUtil.createAutoConfiguredSdk;
-import static com.splunk.opentelemetry.DeclarativeConfigTestUtil.getCustomizedModel;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.opentelemetry.sdk.OpenTelemetrySdk;
@@ -32,9 +30,14 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.api.io.TempDir;
 
 class SplunkDeclarativeConfigurationTest {
+  @RegisterExtension
+  private static final DeclarativeConfigTestExtension configTestExtension =
+      DeclarativeConfigTestExtension.create();
+
   @Test
   void shouldCustomizeConfigPropertiesIfUndefined(@TempDir Path tempDir) throws IOException {
     String yaml =
@@ -44,7 +47,7 @@ class SplunkDeclarativeConfigurationTest {
               java:
             """;
 
-    AutoConfiguredOpenTelemetrySdk sdk = createAutoConfiguredSdk(yaml, tempDir);
+    AutoConfiguredOpenTelemetrySdk sdk = configTestExtension.createAutoConfiguredSdk(yaml, tempDir);
     ConfigProperties configProperties = AutoConfigureUtil.getConfig(sdk);
     assertThat(configProperties.getBoolean("splunk.metrics.force_full_commandline")).isFalse();
     assertThat(configProperties.getBoolean("otel.instrumentation.spring-batch.enabled")).isTrue();
@@ -70,7 +73,7 @@ class SplunkDeclarativeConfigurationTest {
                     force_full_commandline: true
             """;
 
-    AutoConfiguredOpenTelemetrySdk sdk = createAutoConfiguredSdk(yaml, tempDir);
+    AutoConfiguredOpenTelemetrySdk sdk = configTestExtension.createAutoConfiguredSdk(yaml, tempDir);
 
     ConfigProperties configProperties = AutoConfigureUtil.getConfig(sdk);
     assertThat(configProperties.getBoolean("splunk.metrics.force_full_commandline")).isTrue();
@@ -94,7 +97,8 @@ class SplunkDeclarativeConfigurationTest {
               java:
             """;
 
-    OpenTelemetrySdk sdk = createAutoConfiguredSdk(yaml, tempDir).getOpenTelemetrySdk();
+    OpenTelemetrySdk sdk =
+        configTestExtension.createAutoConfiguredSdk(yaml, tempDir).getOpenTelemetrySdk();
 
     assertThat(sdk.getSdkTracerProvider().getSampler().getDescription())
         .isEqualTo("AlwaysOnSampler");
@@ -116,7 +120,8 @@ class SplunkDeclarativeConfigurationTest {
               java:
             """;
 
-    OpenTelemetrySdk sdk = createAutoConfiguredSdk(yaml, tempDir).getOpenTelemetrySdk();
+    OpenTelemetrySdk sdk =
+        configTestExtension.createAutoConfiguredSdk(yaml, tempDir).getOpenTelemetrySdk();
 
     assertThat(sdk.getSdkTracerProvider().getSampler().getDescription())
         .isEqualTo("AlwaysOffSampler");
@@ -135,12 +140,19 @@ class SplunkDeclarativeConfigurationTest {
                     token: ABC123456
             """;
 
-    OpenTelemetryConfigurationModel model = getCustomizedModel(yaml);
+    OpenTelemetryConfigurationModel model = configTestExtension.getCustomizedModel(yaml);
 
     NameStringValuePairModel tokenHeader =
         new NameStringValuePairModel().withName("X-SF-TOKEN").withValue("ABC123456");
     OtlpHttpExporterModel traceExporterModel =
-        model.getTracerProvider().getProcessors().get(0).getBatch().getExporter().getOtlpHttp();
+        model.getTracerProvider().getProcessors().stream()
+            .filter(m -> m.getBatch() != null)
+            .limit(1)
+            .toList()
+            .get(0)
+            .getBatch()
+            .getExporter()
+            .getOtlpHttp();
     assertThat(traceExporterModel.getEndpoint())
         .isEqualTo("https://ingest.unreal-test-realm.signalfx.com/v1/traces");
     assertThat(traceExporterModel.getEncoding())
@@ -183,12 +195,16 @@ class SplunkDeclarativeConfigurationTest {
                     token: ABC123456
             """;
 
-    OpenTelemetryConfigurationModel model = getCustomizedModel(yaml);
+    OpenTelemetryConfigurationModel model = configTestExtension.getCustomizedModel(yaml);
 
     List<NameStringValuePairModel> headers =
         model
             .getTracerProvider()
             .getProcessors()
+            .stream()
+            .filter(m -> m.getBatch() != null)
+            .limit(1)
+            .toList()
             .get(0)
             .getBatch()
             .getExporter()
@@ -207,7 +223,7 @@ class SplunkDeclarativeConfigurationTest {
             log_level: ${TEST_LOG_LEVEL:-crazy}
             """;
 
-    OpenTelemetryConfigurationModel model = getCustomizedModel(yaml);
+    OpenTelemetryConfigurationModel model = configTestExtension.getCustomizedModel(yaml);
     assertThat(model.getLogLevel()).isEqualTo("crazy");
   }
 }

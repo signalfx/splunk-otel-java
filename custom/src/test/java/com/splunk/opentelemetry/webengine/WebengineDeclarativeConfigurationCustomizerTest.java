@@ -16,13 +16,18 @@
 
 package com.splunk.opentelemetry.webengine;
 
-import static com.splunk.opentelemetry.DeclarativeConfigTestUtil.getCustomizedModel;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
+import com.splunk.opentelemetry.DeclarativeConfigTestExtension;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.OpenTelemetryConfigurationModel;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 class WebengineDeclarativeConfigurationCustomizerTest {
+  @RegisterExtension
+  private static final DeclarativeConfigTestExtension configTestExtension =
+      DeclarativeConfigTestExtension.create();
+
   @Test
   void shouldAddWebengineSpanProcessor() {
     String yaml =
@@ -35,7 +40,7 @@ class WebengineDeclarativeConfigurationCustomizerTest {
                       console:
             """;
 
-    OpenTelemetryConfigurationModel model = getCustomizedModel(yaml);
+    OpenTelemetryConfigurationModel model = configTestExtension.getCustomizedModel(yaml);
 
     var processors = model.getTracerProvider().getProcessors();
     assertThat(processors.size()).isEqualTo(2);

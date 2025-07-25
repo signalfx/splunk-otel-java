@@ -1182,6 +1182,18 @@ public class MetadataGenerator {
             SettingType.BOOLEAN,
             SettingCategory.GENERAL));
 
+    // https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/docs/advanced-configuration-options.md#javascript-snippet-injection
+    /*
+    | otel.experimental.javascript-snippet | OTEL_EXPERIMENTAL_JAVASCRIPT_SNIPPET | Experimental setting to inject a JavaScript snippet into HTML responses after the opening `<head>` tag. The value should be a complete JavaScript snippet including `<script>` tags if needed, e.g. `-Dotel.experimental.javascript-snippet="<script>console.log('Hello world!');</script>"` |
+     */
+    settings.add(
+        setting(
+            "otel.experimental.javascript-snippet",
+            "Experimental setting to inject a JavaScript snippet into servlet HTML responses after the opening `<head>` tag.",
+            "",
+            SettingType.STRING,
+            SettingCategory.INSTRUMENTATION));
+
     // Enable Resource Providers that are disabled by default
     // https://opentelemetry.io/docs/languages/java/automatic/configuration/#enable-resource-providers-that-are-disabled-by-default
 
@@ -2161,7 +2173,6 @@ public class MetadataGenerator {
     /*
     | `otel.instrumentation.servlet.experimental-span-attributes`            | Boolean | `false` | Enable the capture of experimental span attributes. |
     | `otel.instrumentation.servlet.experimental.capture-request-parameters` | List    | Empty   | Request parameters to be captured (experimental).   |
-    | `otel.experimental.javascript-snippet`                                 | String  | Empty   | Experimental setting to inject a JavaScript snippet into servlet responses. Snippet is injected after opening `<head>` tag. |
      */
     settings.add(
         setting(
@@ -2172,13 +2183,6 @@ public class MetadataGenerator {
             SettingCategory.INSTRUMENTATION));
     // otel.instrumentation.servlet.experimental.capture-request-parameters is already added
     // elsewhere
-    settings.add(
-        setting(
-            "otel.experimental.javascript-snippet",
-            "Experimental setting to inject a JavaScript snippet into servlet responses. Snippet is injected after opening `<head>` tag.",
-            "",
-            SettingType.STRING,
-            SettingCategory.INSTRUMENTATION));
 
     // https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/instrumentation/spring/README.md
     /*

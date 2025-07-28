@@ -38,12 +38,10 @@ import java.util.function.Supplier;
  */
 public class SnapshotProfilingSpanProcessor implements SpanProcessor {
   private final TraceRegistry registry;
-  private final Supplier<StackTraceSampler> sampler;
   private final OrphanedTraceCleaner orphanedTraceCleaner;
 
   SnapshotProfilingSpanProcessor(TraceRegistry registry, Supplier<StackTraceSampler> sampler) {
     this.registry = registry;
-    this.sampler = sampler;
     this.orphanedTraceCleaner = new OrphanedTraceCleaner(registry, sampler);
   }
 
@@ -58,7 +56,6 @@ public class SnapshotProfilingSpanProcessor implements SpanProcessor {
     }
 
     if (isEntry(span) && registry.isRegistered(span.getSpanContext())) {
-//      sampler.get().start(Thread.currentThread(), span.getSpanContext());
       span.setAttribute(SNAPSHOT_PROFILING, true);
     }
   }
@@ -80,7 +77,6 @@ public class SnapshotProfilingSpanProcessor implements SpanProcessor {
     if (isEntry(span)) {
       registry.unregister(span.getSpanContext());
       orphanedTraceCleaner.unregister(span.getSpanContext());
-//      sampler.get().stopAllSampling(span.getSpanContext());
     }
   }
 

@@ -26,15 +26,7 @@ import io.opentelemetry.sdk.trace.SpanProcessor;
 import java.util.function.Supplier;
 
 /**
- * Custom {@link SpanProcessor} implementation that will 1. register traces for snapshot profiling
- * and 2. activate profiling for the thread processing the trace. <br>
- * <br>
- * <b>Implementation Note</b><br>
- * The current snapshot profiling extension supports profiling one thread per trace at a time. If
- * the trace spans multiple threads -- whether because a service is invoked multiple time
- * concurrently by an upstream caller or work is delegated to background threads -- only a single
- * thread associated with that trace (specifically the thread associated with the "Entry" span) will
- * be profiled at a time.
+ * Custom {@link SpanProcessor} implementation that will register traces for snapshot profiling<br>
  */
 public class SnapshotProfilingSpanProcessor implements SpanProcessor {
   private final TraceRegistry registry;

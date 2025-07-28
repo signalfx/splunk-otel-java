@@ -38,7 +38,7 @@ class GracefulShutdownTest {
   public final OpenTelemetrySdkExtension sdk =
       OpenTelemetrySdkExtension.configure()
           .withProperty("splunk.snapshot.profiler.enabled", "true")
-          .with(Snapshotting.customizer().real())
+          .with(Snapshotting.customizer().withRealStackTraceSampler().withRealStagingArea().build())
           .with(new StackTraceExporterActivator(new OtelLoggerFactory(properties -> logExporter)))
           .build();
 
@@ -67,10 +67,10 @@ class GracefulShutdownTest {
         var span = tracer.spanBuilder("root").setSpanKind(SpanKind.SERVER).startSpan();
         try (var ignored2 = span.makeCurrent()) {
           Thread.sleep(25);
+          span.end();
         } catch (Exception e) {
           logger.error(e.getMessage(), e);
         }
-        span.end();
       }
     };
   }

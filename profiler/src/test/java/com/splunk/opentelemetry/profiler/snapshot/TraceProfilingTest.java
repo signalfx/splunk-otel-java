@@ -41,10 +41,12 @@ class TraceProfilingTest {
           .build();
 
   @Test
-  void startTraceProfilingWhenRootSpanStarts(Tracer tracer) {
+  void startTraceProfilingWhenRootSpanContextBegins(Tracer tracer) {
     try (var ignored = Context.root().with(Volume.HIGHEST).makeCurrent()) {
       var span = tracer.spanBuilder("root").startSpan();
-      assertThat(sampler.isBeingSampled(span.getSpanContext())).isTrue();
+      try (var ignored2 = span.makeCurrent()) {
+        assertThat(sampler.isBeingSampled(span.getSpanContext())).isTrue();
+      }
     }
   }
 
@@ -57,13 +59,15 @@ class TraceProfilingTest {
   }
 
   @Test
-  void startTraceProfilingWhenDownstreamSpanStarts(Tracer tracer) {
+  void startTraceProfilingWhenDownstreamSpanContextBegins(Tracer tracer) {
     var remoteParentSpanContext = Snapshotting.spanContext().remote().build();
     var parentSpan = Span.wrap(remoteParentSpanContext);
 
     try (var ignored = Context.root().with(Volume.HIGHEST).with(parentSpan).makeCurrent()) {
       var span = tracer.spanBuilder("root").startSpan();
-      assertThat(sampler.isBeingSampled(span.getSpanContext())).isTrue();
+      try (var ignored2 = span.makeCurrent()) {
+        assertThat(sampler.isBeingSampled(span.getSpanContext())).isTrue();
+      }
     }
   }
 
@@ -118,17 +122,19 @@ class TraceProfilingTest {
   }
 
   @Test
-  void onlyStopTraceProfilingWhenEntrySpanEnds(Tracer tracer) {
+  void onlyStopTraceProfilingWhenEntrySpanContextCloses(Tracer tracer) {
     try (var ignored = Context.root().with(Volume.HIGHEST).makeCurrent()) {
       var root = tracer.spanBuilder("root").setSpanKind(SpanKind.SERVER).startSpan();
-      var child =
-          tracer
-              .spanBuilder("child")
-              .setSpanKind(SpanKind.CLIENT)
-              .setParent(Context.current().with(root))
-              .startSpan();
-      child.end();
-      assertThat(sampler.isBeingSampled(root.getSpanContext())).isTrue();
+      try (var ignoredRootContext = root.makeCurrent()) {
+        var child =
+            tracer
+                .spanBuilder("child")
+                .setSpanKind(SpanKind.CLIENT)
+                .setParent(Context.current().with(root))
+                .startSpan();
+        child.end();
+        assertThat(sampler.isBeingSampled(root.getSpanContext())).isTrue();
+      }
     }
   }
 }

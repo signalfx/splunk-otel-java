@@ -58,7 +58,7 @@ public class SnapshotProfilingSpanProcessor implements SpanProcessor {
     }
 
     if (isEntry(span) && registry.isRegistered(span.getSpanContext())) {
-      sampler.get().start(Thread.currentThread(), span.getSpanContext());
+//      sampler.get().start(Thread.currentThread(), span.getSpanContext());
       span.setAttribute(SNAPSHOT_PROFILING, true);
     }
   }
@@ -80,7 +80,7 @@ public class SnapshotProfilingSpanProcessor implements SpanProcessor {
     if (isEntry(span)) {
       registry.unregister(span.getSpanContext());
       orphanedTraceCleaner.unregister(span.getSpanContext());
-      sampler.get().stopAllSampling(span.getSpanContext());
+//      sampler.get().stopAllSampling(span.getSpanContext());
     }
   }
 

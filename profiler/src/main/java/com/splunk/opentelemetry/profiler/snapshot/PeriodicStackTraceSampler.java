@@ -151,13 +151,12 @@ class PeriodicStackTraceSampler implements StackTraceSampler {
 
     private List<SamplingContext> findAndStopSamplingAssociatedThreads(SpanContext spanContext) {
       List<SamplingContext> threadsToStopSampling = new ArrayList<>();
-      Iterator<Map.Entry<Thread, SamplingContext>> iterator =
-          threadSamplingContexts.entrySet().iterator();
+      Iterator<SamplingContext> iterator = threadSamplingContexts.values().iterator();
       while (iterator.hasNext()) {
-        Map.Entry<Thread, SamplingContext> entry = iterator.next();
-        if (entry.getValue().spanContext.equals(spanContext)) {
+        SamplingContext context = iterator.next();
+        if (context.spanContext.equals(spanContext)) {
           iterator.remove();
-          threadsToStopSampling.add(entry.getValue());
+          threadsToStopSampling.add(context);
         }
       }
       return threadsToStopSampling;

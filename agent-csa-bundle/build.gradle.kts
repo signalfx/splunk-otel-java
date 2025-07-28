@@ -8,7 +8,7 @@ plugins {
 
 // This should be updated for every CSA release, eventually in dependencyManagement?
 
-val csaVersion = "25.6.0-1351"
+val csaVersion = "25.7.0-1367"
 val otelInstrumentationVersion: String by rootProject.extra
 
 base.archivesName.set("splunk-otel-javaagent-csa")

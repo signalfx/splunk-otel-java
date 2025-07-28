@@ -68,11 +68,11 @@ class PeriodicStackTraceSampler implements StackTraceSampler {
   }
 
   @Override
-  public void stop(Thread thread, SpanContext spanContext) {
+  public void stop(Thread thread) {
     if (closed) {
       return;
     }
-    sampler.remove(thread, spanContext);
+    sampler.remove(thread);
   }
 
   @Override
@@ -132,16 +132,11 @@ class PeriodicStackTraceSampler implements StackTraceSampler {
           });
     }
 
-    void remove(Thread thread, SpanContext spanContext) {
-      threadSamplingContexts.computeIfPresent(
-          thread,
-          (t, context) -> {
-            if (context.spanContext.equals(spanContext)) {
-              takeOnDemandSample(t, context).ifPresent(staging.get()::stage);
-              return null;
-            }
-            return context;
-          });
+    void remove(Thread thread) {
+      threadSamplingContexts.computeIfPresent(thread, (t, context) -> {
+        takeOnDemandSample(t, context).ifPresent(staging.get()::stage);
+        return null;
+      });
     }
 
     void removeAll(SpanContext spanContext) {

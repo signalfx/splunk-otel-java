@@ -72,7 +72,7 @@ class SdkShutdownHookTest {
     public void start(Thread thread, SpanContext spanContext) {}
 
     @Override
-    public void stop(Thread thread, SpanContext spanContext) {}
+    public void stop(Thread thread) {}
 
     @Override
     public void stopAllSampling(SpanContext spanContext) {}

@@ -63,7 +63,7 @@ class PeriodicStackTraceSamplerTest {
       sampler.start(Thread.currentThread(), spanContext);
       await().until(staging::hasStackTraces);
     } finally {
-      sampler.stop(Thread.currentThread(), spanContext);
+      sampler.stop(Thread.currentThread());
     }
   }
 
@@ -77,7 +77,7 @@ class PeriodicStackTraceSamplerTest {
       sampler.start(Thread.currentThread(), spanContext);
       await().until(() -> staging.allStackTraces().size() >= expectedSamples);
     } finally {
-      sampler.stop(Thread.currentThread(), spanContext);
+      sampler.stop(Thread.currentThread());
     }
   }
 
@@ -103,8 +103,8 @@ class PeriodicStackTraceSamplerTest {
               .collect(Collectors.toSet());
       assertEquals(2, threadIds.size());
     } finally {
-      sampler.stop(thread1.get(), spanContext1);
-      sampler.stop(thread2.get(), spanContext2);
+      sampler.stop(thread1.get());
+      sampler.stop(thread2.get());
       executor.shutdownNow();
     }
   }
@@ -135,34 +135,6 @@ class PeriodicStackTraceSamplerTest {
     }
   }
 
-  /**
-   * Attempting to exercise the following scenario. <br>
-   * <br>
-   * Two services: A and B where A makes multiple API calls into B in parallel. If the trace is
-   * profiled the first API call into B will start profiling within B, and the profiling should not
-   * stop until that same span ends.
-   */
-  @Test
-  void onlyStopSamplingWhenCommandOriginatesSameSpanContextThatStartedSampling() throws Exception {
-    var traceId = IdGenerator.random().generateTraceId();
-    var spanContext1 = Snapshotting.spanContext().withTraceId(traceId).build();
-    var spanContext2 = Snapshotting.spanContext().withTraceId(traceId).build();
-
-    var executor = Executors.newFixedThreadPool(2);
-    try {
-      var thread1 = executor.submit(captureThread(startSampling(spanContext1))).get();
-      var thread2 = executor.submit(captureThread(startSampling(spanContext2))).get();
-
-      sampler.stop(thread1, spanContext1);
-      sampler.stop(thread2, spanContext1);
-
-      assertThat(sampler.isBeingSampled(thread1)).isFalse();
-      assertThat(sampler.isBeingSampled(thread2)).isTrue();
-    } finally {
-      executor.shutdownNow();
-    }
-  }
-
   @Test
   void sampleMultipleTracesAtSameTime() throws Exception {
     var executor = Executors.newFixedThreadPool(2);
@@ -188,8 +160,8 @@ class PeriodicStackTraceSamplerTest {
           staging.allStackTraces().stream().map(StackTrace::getTraceId).collect(Collectors.toSet());
       assertThat(traceIds).contains(spanContext1.getTraceId(), spanContext2.getTraceId());
     } finally {
-      sampler.stop(thread1.get(), spanContext1);
-      sampler.stop(thread2.get(), spanContext2);
+      sampler.stop(thread1.get());
+      sampler.stop(thread2.get());
       executor.shutdownNow();
     }
   }
@@ -206,7 +178,7 @@ class PeriodicStackTraceSamplerTest {
       var stackTrace = staging.allStackTraces().stream().findFirst().orElseThrow();
       assertThat(stackTrace.getTimestamp()).isNotNull().isAfter(now);
     } finally {
-      sampler.stop(Thread.currentThread(), spanContext);
+      sampler.stop(Thread.currentThread());
     }
   }
 
@@ -221,7 +193,7 @@ class PeriodicStackTraceSamplerTest {
       var stackTrace = staging.allStackTraces().stream().findFirst().orElseThrow();
       assertThat(stackTrace.getDuration()).isNotNull().isGreaterThan(Duration.ZERO);
     } finally {
-      sampler.stop(Thread.currentThread(), spanContext);
+      sampler.stop(Thread.currentThread());
     }
   }
 
@@ -238,7 +210,7 @@ class PeriodicStackTraceSamplerTest {
           .isNotNull()
           .isCloseTo(SAMPLING_PERIOD, Duration.ofMillis(6));
     } finally {
-      sampler.stop(Thread.currentThread(), spanContext);
+      sampler.stop(Thread.currentThread());
     }
   }
 
@@ -260,7 +232,7 @@ class PeriodicStackTraceSamplerTest {
           () -> assertNotNull(stackTrace.getThreadState()),
           () -> assertThat(stackTrace.getStackFrames()).isNotEmpty());
     } finally {
-      sampler.stop(thread.get(), spanContext);
+      sampler.stop(thread.get());
       executor.shutdownNow();
     }
   }
@@ -276,7 +248,7 @@ class PeriodicStackTraceSamplerTest {
       var stackTrace = staging.allStackTraces().stream().findFirst().orElseThrow();
       assertEquals(spanContext.getTraceId(), stackTrace.getTraceId());
     } finally {
-      sampler.stop(Thread.currentThread(), spanContext);
+      sampler.stop(Thread.currentThread());
     }
   }
 
@@ -292,7 +264,7 @@ class PeriodicStackTraceSamplerTest {
       var stackTrace = staging.allStackTraces().stream().findFirst().orElseThrow();
       assertEquals(spanContext.getSpanId(), stackTrace.getSpanId());
     } finally {
-      sampler.stop(Thread.currentThread(), spanContext);
+      sampler.stop(Thread.currentThread());
     }
   }
 
@@ -316,7 +288,7 @@ class PeriodicStackTraceSamplerTest {
 
     sampler.start(thread, spanContext1);
     spanTracker.store(thread, spanContext1);
-    sampler.stop(thread, spanContext1);
+    sampler.stop(thread);
     sampler.start(thread, spanContext2);
     spanTracker.store(thread, spanContext2);
 
@@ -369,8 +341,7 @@ class PeriodicStackTraceSamplerTest {
       await().until(() -> !staging.allStackTraces().isEmpty());
       staging.empty();
 
-      var future =
-          thread1.submit(captureThread(() -> sampler.stop(Thread.currentThread(), spanContext)));
+      var future = thread1.submit(captureThread(() -> sampler.stop(Thread.currentThread())));
       thread2.schedule(latch::countDown, SAMPLING_PERIOD.toMillis(), TimeUnit.MILLISECONDS);
       await().until(() -> !staging.allStackTraces().isEmpty());
 
@@ -410,7 +381,7 @@ class PeriodicStackTraceSamplerTest {
       await().until(() -> !staging.allStackTraces().isEmpty());
       staging.empty();
 
-      thread1.submit(() -> sampler.stop(Thread.currentThread(), spanContext));
+      thread1.submit(() -> sampler.stop(Thread.currentThread()));
       thread2.schedule(latch::countDown, SAMPLING_PERIOD.toMillis(), TimeUnit.MILLISECONDS);
       await().until(() -> !staging.allStackTraces().isEmpty());
 
@@ -428,7 +399,7 @@ class PeriodicStackTraceSamplerTest {
     var spanContext = Snapshotting.spanContext().build();
 
     sampler.start(Thread.currentThread(), spanContext);
-    sampler.stop(Thread.currentThread(), spanContext);
+    sampler.stop(Thread.currentThread());
 
     var stackTraces = staging.allStackTraces();
     assertEquals(2, stackTraces.size());
@@ -441,8 +412,7 @@ class PeriodicStackTraceSamplerTest {
     var expectedDuration = SAMPLING_PERIOD.dividedBy(2);
     try {
       scheduler.submit(startSampling(spanContext));
-      scheduler.schedule(
-          stopSampling(spanContext), expectedDuration.toMillis(), TimeUnit.MILLISECONDS);
+      scheduler.schedule(stopSampling(), expectedDuration.toMillis(), TimeUnit.MILLISECONDS);
       await().until(staging::hasStackTraces);
 
       var stackTraces = staging.allStackTraces();
@@ -453,8 +423,8 @@ class PeriodicStackTraceSamplerTest {
     }
   }
 
-  private Runnable stopSampling(SpanContext spanContext) {
-    return () -> sampler.stop(Thread.currentThread(), spanContext);
+  private Runnable stopSampling() {
+    return () -> sampler.stop(Thread.currentThread());
   }
 
   private static class ThreadControl {
@@ -548,7 +518,7 @@ class PeriodicStackTraceSamplerTest {
     sampler.close();
     staging.empty();
 
-    sampler.stop(Thread.currentThread(), spanContext);
+    sampler.stop(Thread.currentThread());
 
     assertEquals(0, staging.allStackTraces().size());
   }
@@ -658,7 +628,7 @@ class PeriodicStackTraceSamplerTest {
     var spanContext = Snapshotting.spanContext().build();
 
     sampler.start(thread, spanContext);
-    sampler.stop(thread, spanContext);
+    sampler.stop(thread);
 
     assertThat(sampler.isBeingSampled(thread)).isFalse();
   }

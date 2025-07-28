@@ -51,7 +51,7 @@ class TraceThreadChangeDetector implements ContextStorage {
 
     sampler.get().start(thread, newSpanContext);
     return () -> {
-      sampler.get().stop(thread, newSpanContext);
+      sampler.get().stop(thread);
       scope.close();
     };
   }

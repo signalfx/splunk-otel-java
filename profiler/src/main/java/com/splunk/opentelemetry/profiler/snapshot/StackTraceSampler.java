@@ -26,7 +26,7 @@ interface StackTraceSampler extends Closeable {
         public void start(Thread thread, SpanContext spanContext) {}
 
         @Override
-        public void stop(Thread thread, SpanContext spanContext) {}
+        public void stop(Thread thread) {}
 
         @Override
         public void stopAllSampling(SpanContext spanContext) {}
@@ -48,13 +48,11 @@ interface StackTraceSampler extends Closeable {
   void start(Thread thread, SpanContext spanContext);
 
   /**
-   * Stop sampling the {@link Thread}, assuming the provided {@link SpanContext} is associated with
-   * the {@link Thread}.
+   * Stop sampling the {@link Thread}.
    *
    * @param thread {@link Thread} to stop sampling
-   * @param spanContext {@link SpanContext} to associate with the {@link Thread}
    */
-  void stop(Thread thread, SpanContext spanContext);
+  void stop(Thread thread);
 
   /** Stops sampling of all threads associated with {@link SpanContext}. */
   void stopAllSampling(SpanContext spanContext);

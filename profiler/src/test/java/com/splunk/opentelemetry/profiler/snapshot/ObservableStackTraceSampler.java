@@ -33,7 +33,7 @@ public class ObservableStackTraceSampler implements StackTraceSampler {
   }
 
   @Override
-  public void stop(Thread thread, SpanContext spanContext) {
+  public void stop(Thread thread) {
     threads.remove(thread);
   }
 

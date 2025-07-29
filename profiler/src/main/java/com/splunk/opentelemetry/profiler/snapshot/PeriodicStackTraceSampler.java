@@ -133,10 +133,12 @@ class PeriodicStackTraceSampler implements StackTraceSampler {
     }
 
     void remove(Thread thread) {
-      threadSamplingContexts.computeIfPresent(thread, (t, context) -> {
-        takeOnDemandSample(t, context).ifPresent(staging.get()::stage);
-        return null;
-      });
+      threadSamplingContexts.computeIfPresent(
+          thread,
+          (t, context) -> {
+            takeOnDemandSample(t, context).ifPresent(staging.get()::stage);
+            return null;
+          });
     }
 
     void removeAll(SpanContext spanContext) {

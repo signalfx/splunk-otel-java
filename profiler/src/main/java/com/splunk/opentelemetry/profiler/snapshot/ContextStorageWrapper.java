@@ -36,8 +36,8 @@ class ContextStorageWrapper {
   void wrapContextStorage(TraceRegistry registry) {
     wrappingFunction.accept(
         storage -> {
-          storage = trackActiveSpans(storage, registry);
           storage = detectThreadChanges(storage, registry);
+          storage = trackActiveSpans(storage, registry);
           return storage;
         });
   }

@@ -28,19 +28,19 @@ class ContextStorageWrapperTest {
   private final ContextStorageWrapper wrapper = new ContextStorageWrapper(delegate);
 
   @Test
-  void installThreadChangeDetector() {
+  void installThreadChangeDetector() throws Exception {
     wrapper.wrapContextStorage(new TraceRegistry());
-    assertInstanceOf(TraceThreadChangeDetector.class, delegate.storage);
+
+    var activeSpanTracker = (ActiveSpanTracker) delegate.storage;
+    var field = activeSpanTracker.getClass().getDeclaredField("delegate");
+    field.setAccessible(true);
+    assertInstanceOf(TraceThreadChangeDetector.class, field.get(activeSpanTracker));
   }
 
   @Test
-  void installActiveSpanTracker() throws Exception {
+  void installActiveSpanTracker() {
     wrapper.wrapContextStorage(new TraceRegistry());
-
-    var threadChangeDetector = (TraceThreadChangeDetector) delegate.storage;
-    var field = threadChangeDetector.getClass().getDeclaredField("delegate");
-    field.setAccessible(true);
-    assertInstanceOf(ActiveSpanTracker.class, field.get(threadChangeDetector));
+    assertInstanceOf(ActiveSpanTracker.class, delegate.storage);
   }
 
   @Test

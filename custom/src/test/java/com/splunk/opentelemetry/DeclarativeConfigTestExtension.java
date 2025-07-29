@@ -20,9 +20,12 @@ import io.opentelemetry.common.ComponentLoader;
 import io.opentelemetry.instrumentation.testing.internal.AutoCleanupExtension;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.DeclarativeConfiguration;
+import io.opentelemetry.sdk.extension.incubator.fileconfig.DeclarativeConfigurationBuilder;
+import io.opentelemetry.sdk.extension.incubator.fileconfig.DeclarativeConfigurationCustomizerProvider;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.OpenTelemetryConfigurationModel;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -39,17 +42,20 @@ public class DeclarativeConfigTestExtension implements AfterEachCallback {
     return new DeclarativeConfigTestExtension();
   }
 
-  public OpenTelemetryConfigurationModel getCustomizedModel(String yaml) {
-    var configurationModel =
-        DeclarativeConfiguration.parse(
-            new ByteArrayInputStream(yaml.getBytes(StandardCharsets.UTF_8)));
-    var sdk =
-        DeclarativeConfiguration.create(
-            configurationModel,
-            ComponentLoader.forClassLoader(DeclarativeConfigTestExtension.class.getClassLoader()));
-    autoCleanupExtension.deferCleanup(sdk);
+  public OpenTelemetryConfigurationModel getCustomizedModel(String yaml, DeclarativeConfigurationCustomizerProvider customizer) {
+    OpenTelemetryConfigurationModel model = new OpenTelemetryConfigurationModel();
 
-    return configurationModel;
+    try (InputStream yamlStream = new ByteArrayInputStream(yaml.getBytes(StandardCharsets.UTF_8))) {
+      model = DeclarativeConfiguration.parse(yamlStream);
+      DeclarativeConfigurationBuilder builder = new DeclarativeConfigurationBuilder();
+      customizer.customize(builder);
+
+      builder.customizeModel(model);
+    } catch (IOException e) {
+      throw new RuntimeException("Could not parse YAML from string", e);
+    }
+
+    return model;
   }
 
   public AutoConfiguredOpenTelemetrySdk createAutoConfiguredSdk(String yaml, Path tempDir)

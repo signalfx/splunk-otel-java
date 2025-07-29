@@ -39,8 +39,9 @@ class WebengineDeclarativeConfigurationCustomizerTest {
                     exporter:
                       console:
             """;
+    WebengineDeclarativeConfigurationCustomizer customizer = new WebengineDeclarativeConfigurationCustomizer();
 
-    OpenTelemetryConfigurationModel model = configTestExtension.getCustomizedModel(yaml);
+    OpenTelemetryConfigurationModel model = configTestExtension.getCustomizedModel(yaml, customizer);
 
     var processors = model.getTracerProvider().getProcessors();
     assertThat(processors.size()).isEqualTo(2);

@@ -128,7 +128,7 @@ class SplunkDeclarativeConfigurationTest {
   }
 
   @Test
-  void shouldCustomizeEmptyConfigurationForSplunkRealm() throws IOException {
+  void shouldCustomizeEmptyConfigurationForSplunkRealm() {
     String yaml =
         """
             file_format: "1.0-rc.1"
@@ -139,8 +139,9 @@ class SplunkDeclarativeConfigurationTest {
                   access:
                     token: ABC123456
             """;
+    SplunkDeclarativeConfiguration customizer = new SplunkDeclarativeConfiguration();
 
-    OpenTelemetryConfigurationModel model = configTestExtension.getCustomizedModel(yaml);
+    OpenTelemetryConfigurationModel model = configTestExtension.getCustomizedModel(yaml, customizer);
 
     NameStringValuePairModel tokenHeader =
         new NameStringValuePairModel().withName("X-SF-TOKEN").withValue("ABC123456");
@@ -194,8 +195,9 @@ class SplunkDeclarativeConfigurationTest {
                   access:
                     token: ABC123456
             """;
+    SplunkDeclarativeConfiguration customizer = new SplunkDeclarativeConfiguration();
 
-    OpenTelemetryConfigurationModel model = configTestExtension.getCustomizedModel(yaml);
+    OpenTelemetryConfigurationModel model = configTestExtension.getCustomizedModel(yaml, customizer);
 
     List<NameStringValuePairModel> headers =
         model
@@ -222,8 +224,10 @@ class SplunkDeclarativeConfigurationTest {
             file_format: "1.0-rc.1"
             log_level: ${TEST_LOG_LEVEL:-crazy}
             """;
+    SplunkDeclarativeConfiguration customizer = new SplunkDeclarativeConfiguration();
 
-    OpenTelemetryConfigurationModel model = configTestExtension.getCustomizedModel(yaml);
+    OpenTelemetryConfigurationModel model = configTestExtension.getCustomizedModel(yaml, customizer);
+
     assertThat(model.getLogLevel()).isEqualTo("crazy");
   }
 }

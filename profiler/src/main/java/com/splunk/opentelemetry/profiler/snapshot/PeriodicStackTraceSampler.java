@@ -23,7 +23,6 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -73,14 +72,6 @@ class PeriodicStackTraceSampler implements StackTraceSampler {
       return;
     }
     sampler.remove(thread);
-  }
-
-  @Override
-  public void stopAllSampling(SpanContext spanContext) {
-    if (closed) {
-      return;
-    }
-    sampler.removeAll(spanContext);
   }
 
   @Override
@@ -139,24 +130,6 @@ class PeriodicStackTraceSampler implements StackTraceSampler {
             takeOnDemandSample(t, context).ifPresent(staging.get()::stage);
             return null;
           });
-    }
-
-    void removeAll(SpanContext spanContext) {
-      List<SamplingContext> threads = findAndStopSamplingAssociatedThreads(spanContext);
-      takeBulkSample(threads);
-    }
-
-    private List<SamplingContext> findAndStopSamplingAssociatedThreads(SpanContext spanContext) {
-      List<SamplingContext> threadsToStopSampling = new ArrayList<>();
-      Iterator<SamplingContext> iterator = threadSamplingContexts.values().iterator();
-      while (iterator.hasNext()) {
-        SamplingContext context = iterator.next();
-        if (context.spanContext.equals(spanContext)) {
-          iterator.remove();
-          threadsToStopSampling.add(context);
-        }
-      }
-      return threadsToStopSampling;
     }
 
     boolean isSampling(Thread thread) {

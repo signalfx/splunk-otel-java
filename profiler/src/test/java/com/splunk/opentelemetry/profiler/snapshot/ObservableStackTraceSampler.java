@@ -25,11 +25,11 @@ import java.util.Map;
  * marked for sampling and cleans up after each test.
  */
 public class ObservableStackTraceSampler implements StackTraceSampler {
-  private final Map<Thread, SpanContext> threads = new HashMap<>();
+  private final Map<Thread, String> threads = new HashMap<>();
 
   @Override
-  public void start(Thread thread, SpanContext spanContext) {
-    threads.put(thread, spanContext);
+  public void start(Thread thread, String traceId) {
+    threads.put(thread, traceId);
   }
 
   @Override
@@ -43,6 +43,6 @@ public class ObservableStackTraceSampler implements StackTraceSampler {
   }
 
   boolean isBeingSampled(SpanContext spanContext) {
-    return threads.containsValue(spanContext);
+    return threads.containsValue(spanContext.getTraceId());
   }
 }

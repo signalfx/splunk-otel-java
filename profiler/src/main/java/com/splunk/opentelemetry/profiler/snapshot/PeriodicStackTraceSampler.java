@@ -59,11 +59,11 @@ class PeriodicStackTraceSampler implements StackTraceSampler {
   }
 
   @Override
-  public void start(Thread thread, SpanContext spanContext) {
+  public void start(Thread thread, String traceId) {
     if (closed) {
       return;
     }
-    sampler.add(thread, spanContext);
+    sampler.add(thread, traceId);
   }
 
   @Override
@@ -72,6 +72,7 @@ class PeriodicStackTraceSampler implements StackTraceSampler {
       return;
     }
     sampler.remove(thread);
+
   }
 
   @Override
@@ -113,11 +114,11 @@ class PeriodicStackTraceSampler implements StackTraceSampler {
       this.delay = delay;
     }
 
-    void add(Thread thread, SpanContext spanContext) {
+    void add(Thread thread, String traceId) {
       threadSamplingContexts.computeIfAbsent(
           thread,
           t -> {
-            SamplingContext context = new SamplingContext(t, spanContext, System.nanoTime());
+            SamplingContext context = new SamplingContext(t, traceId, System.nanoTime());
             takeOnDemandSample(t, context).ifPresent(staging.get()::stage);
             return context;
           });
@@ -226,7 +227,7 @@ class PeriodicStackTraceSampler implements StackTraceSampler {
               Instant.now(),
               samplingPeriod,
               threadInfo,
-              context.spanContext.getTraceId(),
+              context.traceId,
               spanId,
               Thread.currentThread().getId()));
     }
@@ -240,12 +241,12 @@ class PeriodicStackTraceSampler implements StackTraceSampler {
   private static class SamplingContext {
     private final Lock lock = new ReentrantLock();
     private final Thread thread;
-    private final SpanContext spanContext;
+    private final String traceId;
     private long sampleTime;
 
-    private SamplingContext(Thread thread, SpanContext spanContext, long sampleTime) {
+    private SamplingContext(Thread thread, String traceId, long sampleTime) {
       this.thread = thread;
-      this.spanContext = spanContext;
+      this.traceId = traceId;
       this.sampleTime = sampleTime;
     }
 

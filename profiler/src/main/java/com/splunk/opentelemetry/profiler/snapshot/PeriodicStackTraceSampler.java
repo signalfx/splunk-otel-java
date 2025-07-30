@@ -72,7 +72,6 @@ class PeriodicStackTraceSampler implements StackTraceSampler {
       return;
     }
     sampler.remove(thread);
-
   }
 
   @Override

@@ -98,7 +98,7 @@ public class SnapshotProfilingSdkCustomizer implements AutoConfigurationCustomiz
         StackTraceSampler sampler = samplerProvider.apply(properties);
         ConfigurableSupplier<StackTraceSampler> supplier = StackTraceSampler.SUPPLIER;
         supplier.configure(sampler);
-        return builder.addSpanProcessor(new SnapshotProfilingSpanProcessor(registry, supplier));
+        return builder.addSpanProcessor(new SnapshotProfilingSpanProcessor(registry));
       }
       return builder;
     };

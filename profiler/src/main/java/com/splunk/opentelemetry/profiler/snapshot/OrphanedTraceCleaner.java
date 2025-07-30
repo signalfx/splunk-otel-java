@@ -25,7 +25,6 @@ import java.util.Collections;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Supplier;
 
 /**
  * Clear snapshot profiling info for traces where root span was not ended. If there is a bug in the
@@ -39,12 +38,10 @@ class OrphanedTraceCleaner implements Closeable {
   private final ReferenceQueue<Object> referenceQueue = new ReferenceQueue<>();
 
   private final TraceRegistry traceRegistry;
-  private final Supplier<StackTraceSampler> sampler;
   private final Thread thread;
 
-  OrphanedTraceCleaner(TraceRegistry traceRegistry, Supplier<StackTraceSampler> sampler) {
+  OrphanedTraceCleaner(TraceRegistry traceRegistry) {
     this.traceRegistry = traceRegistry;
-    this.sampler = sampler;
 
     thread = new Thread(this::unregisterOrphanedTraces);
     thread.setName("orphaned-trace-cleaner");
@@ -73,7 +70,6 @@ class OrphanedTraceCleaner implements Closeable {
           Key key = (Key) reference;
           if (traces.remove(key)) {
             traceRegistry.unregister(key.getSpanContext().getTraceId());
-            sampler.get().stopAllSampling(key.getSpanContext());
           }
         }
       }

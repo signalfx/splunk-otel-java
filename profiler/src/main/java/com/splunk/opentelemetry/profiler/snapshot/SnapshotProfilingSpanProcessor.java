@@ -23,7 +23,6 @@ import io.opentelemetry.sdk.common.CompletableResultCode;
 import io.opentelemetry.sdk.trace.ReadWriteSpan;
 import io.opentelemetry.sdk.trace.ReadableSpan;
 import io.opentelemetry.sdk.trace.SpanProcessor;
-import java.util.function.Supplier;
 
 /**
  * Custom {@link SpanProcessor} implementation that will register traces for snapshot profiling<br>
@@ -32,9 +31,9 @@ public class SnapshotProfilingSpanProcessor implements SpanProcessor {
   private final TraceRegistry registry;
   private final OrphanedTraceCleaner orphanedTraceCleaner;
 
-  SnapshotProfilingSpanProcessor(TraceRegistry registry, Supplier<StackTraceSampler> sampler) {
+  SnapshotProfilingSpanProcessor(TraceRegistry registry) {
     this.registry = registry;
-    this.orphanedTraceCleaner = new OrphanedTraceCleaner(registry, sampler);
+    this.orphanedTraceCleaner = new OrphanedTraceCleaner(registry);
   }
 
   @Override

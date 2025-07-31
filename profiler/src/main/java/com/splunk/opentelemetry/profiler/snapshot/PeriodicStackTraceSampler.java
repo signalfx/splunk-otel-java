@@ -59,19 +59,24 @@ class PeriodicStackTraceSampler implements StackTraceSampler {
   }
 
   @Override
-  public void start(SpanContext spanContext) {
+  public void start(Thread thread, String traceId) {
     if (closed) {
       return;
     }
-    sampler.add(Thread.currentThread(), spanContext);
+    sampler.add(thread, traceId);
   }
 
   @Override
-  public void stop(SpanContext spanContext) {
+  public void stop(Thread thread) {
     if (closed) {
       return;
     }
-    sampler.remove(spanContext);
+    sampler.remove(thread);
+  }
+
+  @Override
+  public boolean isBeingSampled(Thread thread) {
+    return sampler.isSampling(thread);
   }
 
   @Override
@@ -90,8 +95,7 @@ class PeriodicStackTraceSampler implements StackTraceSampler {
   }
 
   private static class ThreadSampler extends Thread {
-    private final Map<SpanContext, SamplingContext> traceSamplingContexts =
-        new ConcurrentHashMap<>();
+    private final Map<Thread, SamplingContext> threadSamplingContexts = new ConcurrentHashMap<>();
     private final CountDownLatch shutdownLatch = new CountDownLatch(1);
     private final Supplier<StagingArea> staging;
     private final Supplier<SpanTracker> spanTracker;
@@ -109,34 +113,37 @@ class PeriodicStackTraceSampler implements StackTraceSampler {
       this.delay = delay;
     }
 
-    void add(Thread thread, SpanContext spanContext) {
-      traceSamplingContexts.computeIfAbsent(
-          spanContext,
-          sc -> {
-            SamplingContext context =
-                new SamplingContext(thread, sc.getTraceId(), System.nanoTime());
-            takeOnDemandSample(context).ifPresent(staging.get()::stage);
+    void add(Thread thread, String traceId) {
+      threadSamplingContexts.computeIfAbsent(
+          thread,
+          t -> {
+            SamplingContext context = new SamplingContext(t, traceId, System.nanoTime());
+            takeOnDemandSample(t, context).ifPresent(staging.get()::stage);
             return context;
           });
     }
 
-    void remove(SpanContext spanContext) {
-      traceSamplingContexts.computeIfPresent(
-          spanContext,
+    void remove(Thread thread) {
+      threadSamplingContexts.computeIfPresent(
+          thread,
           (t, context) -> {
-            takeOnDemandSample(context).ifPresent(staging.get()::stage);
+            takeOnDemandSample(t, context).ifPresent(staging.get()::stage);
             return null;
           });
     }
 
-    private Optional<StackTrace> takeOnDemandSample(SamplingContext context) {
+    boolean isSampling(Thread thread) {
+      return threadSamplingContexts.containsKey(thread);
+    }
+
+    private Optional<StackTrace> takeOnDemandSample(Thread thread, SamplingContext context) {
       long currentSampleTime = System.nanoTime();
       // When the context is locked, the periodic sampling thread is actively reporting
       // a sample. No need to report both so skip the on-demand sample.
       if (context.lock.tryLock()) {
         try {
-          ThreadInfo threadInfo = collector.getThreadInfo(context.thread.getId());
-          SpanContext spanContext = retrieveActiveSpan(context.thread);
+          ThreadInfo threadInfo = collector.getThreadInfo(thread.getId());
+          SpanContext spanContext = retrieveActiveSpan(thread);
           return toStackTrace(threadInfo, context, spanContext.getSpanId(), currentSampleTime);
         } finally {
           context.lock.unlock();
@@ -146,7 +153,7 @@ class PeriodicStackTraceSampler implements StackTraceSampler {
     }
 
     void shutdown() {
-      traceSamplingContexts.clear();
+      threadSamplingContexts.clear();
       shutdownLatch.countDown();
     }
 
@@ -158,14 +165,14 @@ class PeriodicStackTraceSampler implements StackTraceSampler {
           if (shutdown) {
             return;
           }
-          sample(traceSamplingContexts.values());
+          takeBulkSample(threadSamplingContexts.values());
         }
       } catch (InterruptedException e) {
         Thread.currentThread().interrupt();
       }
     }
 
-    private void sample(Collection<SamplingContext> contexts) {
+    private void takeBulkSample(Collection<SamplingContext> contexts) {
       if (contexts.isEmpty()) {
         return;
       }

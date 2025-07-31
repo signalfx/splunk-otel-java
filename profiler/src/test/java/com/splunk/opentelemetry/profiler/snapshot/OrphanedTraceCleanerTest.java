@@ -28,8 +28,7 @@ import org.junit.jupiter.api.Test;
 
 public class OrphanedTraceCleanerTest {
   private final TraceRegistry registry = new TraceRegistry();
-  private final ObservableStackTraceSampler sampler = new ObservableStackTraceSampler();
-  private final OrphanedTraceCleaner cleaner = new OrphanedTraceCleaner(registry, () -> sampler);
+  private final OrphanedTraceCleaner cleaner = new OrphanedTraceCleaner(registry);
 
   @AfterEach
   void teardown() {
@@ -61,22 +60,5 @@ public class OrphanedTraceCleanerTest {
     GcUtils.awaitGc(spanReference, Duration.ofSeconds(10));
 
     await().untilAsserted(() -> assertThat(registry.isRegistered(spanContext)).isFalse());
-  }
-
-  @Test
-  void stopSamplingForOrphanedTraces() throws Exception {
-    var spanContext = Snapshotting.spanContext().build();
-    registry.register(spanContext);
-    sampler.start(spanContext);
-    var span = Span.wrap(spanContext);
-    cleaner.register(span);
-
-    assertThat(sampler.isBeingSampled(spanContext)).isTrue();
-
-    var spanReference = new WeakReference<>(span);
-    span = null;
-    GcUtils.awaitGc(spanReference, Duration.ofSeconds(10));
-
-    await().untilAsserted(() -> assertThat(sampler.isBeingSampled(spanContext)).isFalse());
   }
 }

@@ -17,27 +17,32 @@
 package com.splunk.opentelemetry.profiler.snapshot;
 
 import io.opentelemetry.api.trace.SpanContext;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Test-only implementation of the {@link StackTraceSampler}. Records which thread IDs have been
  * marked for sampling and cleans up after each test.
  */
 public class ObservableStackTraceSampler implements StackTraceSampler {
-  private final Set<String> traceIds = new HashSet<>();
+  private final Map<Thread, String> threads = new HashMap<>();
 
   @Override
-  public void start(SpanContext spanContext) {
-    traceIds.add(spanContext.getTraceId());
+  public void start(Thread thread, String traceId) {
+    threads.put(thread, traceId);
   }
 
   @Override
-  public void stop(SpanContext spanContext) {
-    traceIds.remove(spanContext.getTraceId());
+  public void stop(Thread thread) {
+    threads.remove(thread);
+  }
+
+  @Override
+  public boolean isBeingSampled(Thread thread) {
+    return threads.containsKey(thread);
   }
 
   boolean isBeingSampled(SpanContext spanContext) {
-    return traceIds.contains(spanContext.getTraceId());
+    return threads.containsValue(spanContext.getTraceId());
   }
 }

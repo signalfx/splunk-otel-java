@@ -1,0 +1,99 @@
+/*
+ * Copyright Splunk Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.splunk.opentelemetry.profiler.snapshot;
+
+import static org.awaitility.Awaitility.await;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import com.splunk.opentelemetry.profiler.snapshot.simulation.Message;
+import com.splunk.opentelemetry.profiler.snapshot.simulation.Server;
+import io.opentelemetry.context.Context;
+import io.opentelemetry.sdk.autoconfigure.OpenTelemetrySdkExtension;
+import java.time.Duration;
+import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
+
+class LongRunningBackgroundTaskTest {
+  private static final String THREAD_NAME = "server-background-thread-1";
+
+  private final InMemoryStagingArea staging = new InMemoryStagingArea();
+  private final SnapshotProfilingSdkCustomizer customizer =
+      Snapshotting.customizer().withRealStackTraceSampler().with(staging).build();
+
+  @RegisterExtension
+  public final OpenTelemetrySdkExtension sdk =
+      OpenTelemetrySdkExtension.configure()
+          .withProperty("splunk.snapshot.profiler.enabled", "true")
+          .with(customizer)
+          .with(new SnapshotVolumePropagator((c) -> true))
+          .build();
+
+  @RegisterExtension
+  public final Server server =
+      Server.builder(sdk)
+          .named("server")
+          .performing(
+              message -> {
+                var executor =
+                    Context.current()
+                        .wrap(
+                            Executors.newSingleThreadExecutor(
+                                r -> {
+                                  Thread t = new Thread(r);
+                                  t.setName(THREAD_NAME);
+                                  return t;
+                                }));
+                try {
+                  executor.submit(
+                      () -> {
+                        var span =
+                            sdk.getTracer("server-bg-thread")
+                                .spanBuilder("server-background")
+                                .startSpan();
+                        try (var ignored = span.makeCurrent()) {
+                          try {
+                            Thread.sleep(250);
+                          } catch (InterruptedException e) {
+                            e.printStackTrace();
+                          }
+                        }
+                      });
+                  return message;
+                } finally {
+                  executor.shutdown();
+                }
+              })
+          .build();
+
+  @Test
+  void traceBackgroundThreadProfilingContinuesAfterEntrySpanEnds() {
+    server.send(new Message());
+
+    await().atMost(Duration.ofSeconds(2)).until(() -> server.waitForResponse() != null);
+    staging.empty();
+    await().until(staging::hasStackTraces);
+
+    var longRunningThreads =
+        staging.allStackTraces().stream()
+            .map(StackTrace::getThreadName)
+            .collect(Collectors.toSet());
+    assertEquals(1, longRunningThreads.size());
+    assertEquals(THREAD_NAME, longRunningThreads.iterator().next());
+  }
+}

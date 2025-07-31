@@ -19,19 +19,15 @@ package com.splunk.opentelemetry.profiler.snapshot;
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import com.splunk.opentelemetry.profiler.snapshot.simulation.Background;
 import com.splunk.opentelemetry.profiler.snapshot.simulation.Message;
 import com.splunk.opentelemetry.profiler.snapshot.simulation.Server;
-import io.opentelemetry.context.Context;
 import io.opentelemetry.sdk.autoconfigure.OpenTelemetrySdkExtension;
 import java.time.Duration;
-import java.util.concurrent.Executors;
-import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
 class LongRunningBackgroundTaskTest {
-  private static final String THREAD_NAME = "server-background-thread-1";
-
   private final InMemoryStagingArea staging = new InMemoryStagingArea();
   private final SnapshotProfilingSdkCustomizer customizer =
       Snapshotting.customizer().withRealStackTraceSampler().with(staging).build();
@@ -46,40 +42,17 @@ class LongRunningBackgroundTaskTest {
 
   @RegisterExtension
   public final Server server =
-      Server.builder(sdk)
-          .named("server")
-          .performing(
-              message -> {
-                var executor =
-                    Context.current()
-                        .wrap(
-                            Executors.newSingleThreadExecutor(
-                                r -> {
-                                  Thread t = new Thread(r);
-                                  t.setName(THREAD_NAME);
-                                  return t;
-                                }));
-                try {
-                  executor.submit(
-                      () -> {
-                        var span =
-                            sdk.getTracer("server-bg-thread")
-                                .spanBuilder("server-background")
-                                .startSpan();
-                        try (var ignored = span.makeCurrent()) {
-                          try {
-                            Thread.sleep(250);
-                          } catch (InterruptedException e) {
-                            e.printStackTrace();
-                          }
-                        }
-                      });
-                  return message;
-                } finally {
-                  executor.shutdown();
-                }
-              })
-          .build();
+      Server.builder(sdk).named("server").performing(Background.task(slowTask())).build();
+
+  private Runnable slowTask() {
+    return () -> {
+      try {
+        Thread.sleep(250);
+      } catch (InterruptedException e) {
+        e.printStackTrace();
+      }
+    };
+  }
 
   @Test
   void traceBackgroundThreadProfilingContinuesAfterEntrySpanEnds() {
@@ -87,13 +60,13 @@ class LongRunningBackgroundTaskTest {
 
     await().atMost(Duration.ofSeconds(2)).until(() -> server.waitForResponse() != null);
     staging.empty();
-    await().until(staging::hasStackTraces);
+    await().until(() -> staging.allStackTraces().size() > 1);
 
-    var longRunningThreads =
-        staging.allStackTraces().stream()
-            .map(StackTrace::getThreadName)
-            .collect(Collectors.toSet());
-    assertEquals(1, longRunningThreads.size());
-    assertEquals(THREAD_NAME, longRunningThreads.iterator().next());
+    var profiledThreads =
+        staging.allStackTraces().stream().mapToLong(StackTrace::getThreadId).distinct().count();
+
+    // Expect the background thread to keep running after the server responds and for the
+    // trace profiler to continue profiling
+    assertEquals(1, profiledThreads);
   }
 }

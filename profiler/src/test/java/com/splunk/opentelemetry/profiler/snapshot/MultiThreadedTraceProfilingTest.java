@@ -19,14 +19,13 @@ package com.splunk.opentelemetry.profiler.snapshot;
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import com.splunk.opentelemetry.profiler.snapshot.simulation.Background;
 import com.splunk.opentelemetry.profiler.snapshot.simulation.Message;
 import com.splunk.opentelemetry.profiler.snapshot.simulation.Server;
-import io.opentelemetry.context.Context;
 import io.opentelemetry.sdk.autoconfigure.OpenTelemetrySdkExtension;
 import java.time.Duration;
 import java.util.UUID;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executors;
+import java.util.concurrent.Callable;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
@@ -45,36 +44,14 @@ public class MultiThreadedTraceProfilingTest {
 
   @RegisterExtension
   public final Server server =
-      Server.builder(sdk)
-          .named("server")
-          .performing(
-              message -> {
-                var executor = Context.current().wrap(Executors.newSingleThreadExecutor());
-                try {
-                  var future =
-                      executor.submit(
-                          () -> {
-                            var span =
-                                sdk.getTracer("server-bg-thread")
-                                    .spanBuilder("server-background")
-                                    .startSpan();
-                            try (var ignored = span.makeCurrent()) {
-                              Thread.sleep(250);
-                              return UUID.randomUUID();
-                            }
-                          });
+      Server.builder(sdk).named("server").performing(Background.task(slowTask())).build();
 
-                  try {
-                    future.get();
-                    return message;
-                  } catch (InterruptedException | ExecutionException e) {
-                    throw new RuntimeException(e);
-                  }
-                } finally {
-                  executor.shutdown();
-                }
-              })
-          .build();
+  private Callable<UUID> slowTask() {
+    return () -> {
+      Thread.sleep(250);
+      return UUID.randomUUID();
+    };
+  }
 
   @Test
   void traceIsProfiledAcrossMultipleThreads() {

@@ -23,7 +23,7 @@ import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.OpenTe
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
-class WebengineDeclarativeConfigurationCustomizerTest {
+class WebengineSpanProcessorCustomizerProviderTest {
   @RegisterExtension
   private static final DeclarativeConfigTestExtension configTestExtension =
       DeclarativeConfigTestExtension.create();
@@ -39,9 +39,11 @@ class WebengineDeclarativeConfigurationCustomizerTest {
                     exporter:
                       console:
             """;
-    WebengineDeclarativeConfigurationCustomizer customizer = new WebengineDeclarativeConfigurationCustomizer();
+    WebengineSpanProcessorCustomizerProvider customizer =
+        new WebengineSpanProcessorCustomizerProvider();
 
-    OpenTelemetryConfigurationModel model = configTestExtension.getCustomizedModel(yaml, customizer);
+    OpenTelemetryConfigurationModel model =
+        configTestExtension.getCustomizedModel(yaml, customizer);
 
     var processors = model.getTracerProvider().getProcessors();
     assertThat(processors.size()).isEqualTo(2);

@@ -19,22 +19,13 @@ package com.splunk.opentelemetry;
 import com.google.auto.service.AutoService;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.DeclarativeConfigurationCustomizer;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.DeclarativeConfigurationCustomizerProvider;
-import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.ResourceModel;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.SpanLimitsModel;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.TracerProviderModel;
-import io.opentelemetry.semconv.incubating.ProcessIncubatingAttributes;
-
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
 import java.util.logging.Logger;
 
-import static com.splunk.opentelemetry.SplunkConfiguration.METRICS_FULL_COMMAND_LINE;
-import static io.opentelemetry.sdk.autoconfigure.AdditionalPropertiesUtil.getAdditionalPropertyOrDefault;
-
 @AutoService(DeclarativeConfigurationCustomizerProvider.class)
-public class SplunkSpanLimitsCustomizerProvider implements DeclarativeConfigurationCustomizerProvider {
+public class SplunkSpanLimitsCustomizerProvider
+    implements DeclarativeConfigurationCustomizerProvider {
   private static final Logger logger =
       Logger.getLogger(SplunkSpanLimitsCustomizerProvider.class.getName());
 
@@ -68,7 +59,6 @@ public class SplunkSpanLimitsCustomizerProvider implements DeclarativeConfigurat
             logger.fine("Span limits defined in the configuration model.");
           }
           return model;
-        }
-    );
+        });
   }
 }

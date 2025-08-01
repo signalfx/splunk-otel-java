@@ -16,7 +16,6 @@
 
 package com.splunk.opentelemetry;
 
-import io.opentelemetry.common.ComponentLoader;
 import io.opentelemetry.instrumentation.testing.internal.AutoCleanupExtension;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.DeclarativeConfiguration;
@@ -42,20 +41,19 @@ public class DeclarativeConfigTestExtension implements AfterEachCallback {
     return new DeclarativeConfigTestExtension();
   }
 
-  public OpenTelemetryConfigurationModel getCustomizedModel(String yaml, DeclarativeConfigurationCustomizerProvider customizer) {
-    OpenTelemetryConfigurationModel model = new OpenTelemetryConfigurationModel();
-
+  public OpenTelemetryConfigurationModel getCustomizedModel(
+      String yaml, DeclarativeConfigurationCustomizerProvider customizer) {
     try (InputStream yamlStream = new ByteArrayInputStream(yaml.getBytes(StandardCharsets.UTF_8))) {
-      model = DeclarativeConfiguration.parse(yamlStream);
+      OpenTelemetryConfigurationModel model = DeclarativeConfiguration.parse(yamlStream);
       DeclarativeConfigurationBuilder builder = new DeclarativeConfigurationBuilder();
       customizer.customize(builder);
 
       builder.customizeModel(model);
+      return model;
+
     } catch (IOException e) {
       throw new RuntimeException("Could not parse YAML from string", e);
     }
-
-    return model;
   }
 
   public AutoConfiguredOpenTelemetrySdk createAutoConfiguredSdk(String yaml, Path tempDir)

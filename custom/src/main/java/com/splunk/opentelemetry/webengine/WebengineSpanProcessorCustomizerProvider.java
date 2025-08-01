@@ -23,10 +23,10 @@ import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.SpanPr
 import java.util.logging.Logger;
 
 @AutoService(DeclarativeConfigurationCustomizerProvider.class)
-public class WebengineDeclarativeConfigurationCustomizer
+public class WebengineSpanProcessorCustomizerProvider
     implements DeclarativeConfigurationCustomizerProvider {
   private static final Logger logger =
-      Logger.getLogger(WebengineDeclarativeConfigurationCustomizer.class.getName());
+      Logger.getLogger(WebengineSpanProcessorCustomizerProvider.class.getName());
 
   @Override
   public void customize(DeclarativeConfigurationCustomizer autoConfiguration) {

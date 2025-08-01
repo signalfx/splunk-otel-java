@@ -18,10 +18,8 @@ package com.splunk.opentelemetry;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import io.opentelemetry.sdk.OpenTelemetrySdk;
-import io.opentelemetry.sdk.autoconfigure.AutoConfigureUtil;
-import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
-import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
+import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
+import io.opentelemetry.sdk.extension.incubator.fileconfig.SdkConfigProvider;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.NameStringValuePairModel;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.OpenTelemetryConfigurationModel;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.OtlpHttpExporterModel;
@@ -29,37 +27,46 @@ import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.OtlpHt
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Objects;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.api.io.TempDir;
 
-class SplunkDeclarativeConfigurationTest {
+class SplunkDeclarativeConfigurationCustomizerProviderTest {
   @RegisterExtension
   private static final DeclarativeConfigTestExtension configTestExtension =
       DeclarativeConfigTestExtension.create();
 
   @Test
-  void shouldCustomizeConfigPropertiesIfUndefined(@TempDir Path tempDir) throws IOException {
-    String yaml =
+  void shouldCustomizeConfigPropertiesIfUndefined() {
+    var yaml =
         """
             file_format: "1.0-rc.1"
             instrumentation/development:
               java:
             """;
 
-    AutoConfiguredOpenTelemetrySdk sdk = configTestExtension.createAutoConfiguredSdk(yaml, tempDir);
-    ConfigProperties configProperties = AutoConfigureUtil.getConfig(sdk);
-    assertThat(configProperties.getBoolean("splunk.metrics.force_full_commandline")).isFalse();
-    assertThat(configProperties.getBoolean("otel.instrumentation.spring-batch.enabled")).isTrue();
-    assertThat(configProperties.getBoolean("otel.instrumentation.spring-batch.item.enabled"))
-        .isTrue();
+    DeclarativeConfigProperties configProperties = getCustomizedJavaInstrumentationConfig(yaml);
 
-    sdk.getOpenTelemetrySdk().close();
+    assertThat(
+            configProperties
+                .getStructured("splunk")
+                .getStructured("metrics")
+                .getBoolean("force_full_commandline"))
+        .isEqualTo(false);
+    assertThat(configProperties.getStructured("spring-batch").getBoolean("enabled"))
+        .isEqualTo(true);
+    assertThat(
+            configProperties
+                .getStructured("spring-batch")
+                .getStructured("item")
+                .getBoolean("enabled"))
+        .isEqualTo(true);
   }
 
   @Test
-  void shouldKeepOriginalConfigProperties(@TempDir Path tempDir) throws IOException {
-    String yaml =
+  void shouldKeepOriginalConfigProperties() {
+    var yaml =
         """
             file_format: "1.0-rc.1"
             instrumentation/development:
@@ -73,13 +80,22 @@ class SplunkDeclarativeConfigurationTest {
                     force_full_commandline: true
             """;
 
-    AutoConfiguredOpenTelemetrySdk sdk = configTestExtension.createAutoConfiguredSdk(yaml, tempDir);
+    DeclarativeConfigProperties configProperties = getCustomizedJavaInstrumentationConfig(yaml);
 
-    ConfigProperties configProperties = AutoConfigureUtil.getConfig(sdk);
-    assertThat(configProperties.getBoolean("splunk.metrics.force_full_commandline")).isTrue();
-    assertThat(configProperties.getBoolean("otel.instrumentation.spring-batch.enabled")).isFalse();
-    assertThat(configProperties.getBoolean("otel.instrumentation.spring-batch.item.enabled"))
-        .isFalse();
+    assertThat(
+        configProperties
+            .getStructured("splunk")
+            .getStructured("metrics")
+            .getBoolean("force_full_commandline"))
+        .isEqualTo(true);
+    assertThat(configProperties.getStructured("spring-batch").getBoolean("enabled"))
+        .isEqualTo(false);
+    assertThat(
+        configProperties
+            .getStructured("spring-batch")
+            .getStructured("item")
+            .getBoolean("enabled"))
+        .isEqualTo(false);
   }
 
   @Test
@@ -97,16 +113,14 @@ class SplunkDeclarativeConfigurationTest {
               java:
             """;
 
-    OpenTelemetrySdk sdk =
-        configTestExtension.createAutoConfiguredSdk(yaml, tempDir).getOpenTelemetrySdk();
-
-    assertThat(sdk.getSdkTracerProvider().getSampler().getDescription())
-        .isEqualTo("AlwaysOnSampler");
+    OpenTelemetryConfigurationModel model = getCustomizedModel(yaml);
+    
+    assertThat(model.getTracerProvider().getSampler().getAlwaysOn()).isNotNull();
   }
 
   @Test
   void shouldKeepOriginalSamplerConfigurationIfDefined(@TempDir Path tempDir) throws IOException {
-    String yaml =
+    var yaml =
         """
             file_format: "1.0-rc.1"
             tracer_provider:
@@ -120,16 +134,14 @@ class SplunkDeclarativeConfigurationTest {
               java:
             """;
 
-    OpenTelemetrySdk sdk =
-        configTestExtension.createAutoConfiguredSdk(yaml, tempDir).getOpenTelemetrySdk();
+    OpenTelemetryConfigurationModel model = getCustomizedModel(yaml);
 
-    assertThat(sdk.getSdkTracerProvider().getSampler().getDescription())
-        .isEqualTo("AlwaysOffSampler");
+    assertThat(model.getTracerProvider().getSampler().getAlwaysOff()).isNotNull();
   }
 
   @Test
   void shouldCustomizeEmptyConfigurationForSplunkRealm() {
-    String yaml =
+    var yaml =
         """
             file_format: "1.0-rc.1"
             instrumentation/development:
@@ -139,9 +151,7 @@ class SplunkDeclarativeConfigurationTest {
                   access:
                     token: ABC123456
             """;
-    SplunkDeclarativeConfiguration customizer = new SplunkDeclarativeConfiguration();
-
-    OpenTelemetryConfigurationModel model = configTestExtension.getCustomizedModel(yaml, customizer);
+    OpenTelemetryConfigurationModel model = getCustomizedModel(yaml);
 
     NameStringValuePairModel tokenHeader =
         new NameStringValuePairModel().withName("X-SF-TOKEN").withValue("ABC123456");
@@ -178,7 +188,7 @@ class SplunkDeclarativeConfigurationTest {
 
   @Test
   void shouldNotUpdateAccessTokenProvidedInExporterHeaders() {
-    String yaml =
+    var yaml =
         """
             file_format: "1.0-rc.1"
             tracer_provider:
@@ -195,15 +205,10 @@ class SplunkDeclarativeConfigurationTest {
                   access:
                     token: ABC123456
             """;
-    SplunkDeclarativeConfiguration customizer = new SplunkDeclarativeConfiguration();
-
-    OpenTelemetryConfigurationModel model = configTestExtension.getCustomizedModel(yaml, customizer);
+    OpenTelemetryConfigurationModel model = getCustomizedModel(yaml);
 
     List<NameStringValuePairModel> headers =
-        model
-            .getTracerProvider()
-            .getProcessors()
-            .stream()
+        model.getTracerProvider().getProcessors().stream()
             .filter(m -> m.getBatch() != null)
             .limit(1)
             .toList()
@@ -219,15 +224,25 @@ class SplunkDeclarativeConfigurationTest {
 
   @Test
   void shouldNotUpdateExistingAccessToken() {
-    String yaml =
+    var yaml =
         """
             file_format: "1.0-rc.1"
             log_level: ${TEST_LOG_LEVEL:-crazy}
             """;
-    SplunkDeclarativeConfiguration customizer = new SplunkDeclarativeConfiguration();
-
-    OpenTelemetryConfigurationModel model = configTestExtension.getCustomizedModel(yaml, customizer);
+    OpenTelemetryConfigurationModel model = getCustomizedModel(yaml);
 
     assertThat(model.getLogLevel()).isEqualTo("crazy");
+  }
+
+  private static OpenTelemetryConfigurationModel getCustomizedModel(String yaml) {
+    SplunkDeclarativeConfigurationCustomizerProvider customizer =
+        new SplunkDeclarativeConfigurationCustomizerProvider();
+    return configTestExtension.getCustomizedModel(yaml, customizer);
+  }
+
+  private static DeclarativeConfigProperties getCustomizedJavaInstrumentationConfig(String yaml) {
+    var model = getCustomizedModel(yaml);
+    var configProvider = SdkConfigProvider.create(model);
+    return Objects.requireNonNull(configProvider.getInstrumentationConfig()).getStructured("java");
   }
 }

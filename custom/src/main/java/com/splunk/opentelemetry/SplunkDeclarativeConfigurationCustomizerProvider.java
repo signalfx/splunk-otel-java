@@ -32,6 +32,7 @@ import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.Always
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.BatchLogRecordProcessorModel;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.BatchSpanProcessorModel;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.ExperimentalLanguageSpecificInstrumentationModel;
+import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.InstrumentationModel;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.LogRecordExporterModel;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.LogRecordProcessorModel;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.LoggerProviderModel;
@@ -60,9 +61,10 @@ import java.util.logging.Logger;
 import java.util.stream.Stream;
 
 @AutoService(DeclarativeConfigurationCustomizerProvider.class)
-public class SplunkDeclarativeConfiguration implements DeclarativeConfigurationCustomizerProvider {
+public class SplunkDeclarativeConfigurationCustomizerProvider
+    implements DeclarativeConfigurationCustomizerProvider {
   private static final Logger logger =
-      Logger.getLogger(SplunkDeclarativeConfiguration.class.getName());
+      Logger.getLogger(SplunkDeclarativeConfigurationCustomizerProvider.class.getName());
 
   public static final String SPLUNK_ACCESS_TOKEN = "splunk.access.token";
   public static final String PROFILER_ENABLED_PROPERTY = "splunk.profiler.enabled";
@@ -75,19 +77,20 @@ public class SplunkDeclarativeConfiguration implements DeclarativeConfigurationC
     autoConfiguration.addModelCustomizer(
         model -> {
           if (model.getInstrumentationDevelopment() == null) {
-            return model;
+            model.withInstrumentationDevelopment(new InstrumentationModel());
           }
           ExperimentalLanguageSpecificInstrumentationModel javaModel =
               model.getInstrumentationDevelopment().getJava();
           if (javaModel == null) {
-            return model;
+            javaModel = new ExperimentalLanguageSpecificInstrumentationModel();
+            model.getInstrumentationDevelopment().withJava(javaModel);
           }
           Map<String, Object> properties = javaModel.getAdditionalProperties();
 
           customizeConfigProperties(properties);
-          customizeSampler(model);
-          customizeExportersForSplunkRealm(model, properties, javaModel);
+          customizeExportersForSplunkRealm(model, properties);
           customizeExportersForSplunkAccessToken(model, properties);
+          customizeSampler(model);
           customizeLoggers(model, properties);
 
           // TODO: implement this in the declarative config validator
@@ -325,9 +328,7 @@ public class SplunkDeclarativeConfiguration implements DeclarativeConfigurationC
   }
 
   private static void customizeExportersForSplunkRealm(
-      OpenTelemetryConfigurationModel model,
-      Map<String, Object> properties,
-      ExperimentalLanguageSpecificInstrumentationModel javaModel) {
+      OpenTelemetryConfigurationModel model, Map<String, Object> properties) {
     Object realm =
         getAdditionalPropertyOrDefault(properties, SPLUNK_REALM_PROPERTY, SPLUNK_REALM_NONE);
     if (!SPLUNK_REALM_NONE.equals(realm)) {
@@ -341,6 +342,8 @@ public class SplunkDeclarativeConfiguration implements DeclarativeConfigurationC
       }
       List<SpanProcessorModel> spanProcessors = tracerProviderModel.getProcessors();
       if (spanProcessors.isEmpty()) {
+        // Add a new span processor exporting to the Splunk realm only if there was no processor
+        // defined
         spanProcessors = new ArrayList<>();
         tracerProviderModel.withProcessors(spanProcessors);
 
@@ -363,6 +366,7 @@ public class SplunkDeclarativeConfiguration implements DeclarativeConfigurationC
       }
       List<MetricReaderModel> readers = meterProviderModel.getReaders();
       if (readers.isEmpty()) {
+        // Add a new metric reader exporting to the Splunk realm only if there was no reader defined
         readers = new ArrayList<>();
         meterProviderModel.withReaders(readers);
 
@@ -387,17 +391,19 @@ public class SplunkDeclarativeConfiguration implements DeclarativeConfigurationC
         loggerProviderModel = new LoggerProviderModel();
         model.withLoggerProvider(loggerProviderModel);
       }
-      List<LogRecordProcessorModel> processors = loggerProviderModel.getProcessors();
-      if (processors.isEmpty()) {
-        processors = new ArrayList<>();
-        loggerProviderModel.withProcessors(processors);
+      List<LogRecordProcessorModel> logProcessors = loggerProviderModel.getProcessors();
+      if (logProcessors.isEmpty()) {
+        // Add a new log processor exporting to the Splunk realm only if there was no processor
+        // defined
+        logProcessors = new ArrayList<>();
+        loggerProviderModel.withProcessors(logProcessors);
 
         String logsEndpoint = "http://localhost:4318/v1/logs";
         OtlpHttpExporterModel httpExporterModel =
             new OtlpHttpExporterModel()
                 .withEndpoint(logsEndpoint)
                 .withEncoding(OtlpHttpExporterModel.OtlpHttpEncoding.PROTOBUF);
-        processors.add(
+        logProcessors.add(
             new LogRecordProcessorModel()
                 .withBatch(
                     new BatchLogRecordProcessorModel()

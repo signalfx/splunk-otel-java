@@ -20,7 +20,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.BiConsumer;
 
-// TODO: Move the methods to DeclarativeConfigurationCustomizerProvider
+// TODO: Contribute it to upstream. Move the methods to DeclarativeConfigurationCustomizerProvider
 @SuppressWarnings("unchecked")
 public class AdditionalPropertiesUtil {
   public static Object getAdditionalProperty(

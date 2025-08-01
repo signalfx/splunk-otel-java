@@ -83,18 +83,18 @@ class SplunkDeclarativeConfigurationCustomizerProviderTest {
     DeclarativeConfigProperties configProperties = getCustomizedJavaInstrumentationConfig(yaml);
 
     assertThat(
-        configProperties
-            .getStructured("splunk")
-            .getStructured("metrics")
-            .getBoolean("force_full_commandline"))
+            configProperties
+                .getStructured("splunk")
+                .getStructured("metrics")
+                .getBoolean("force_full_commandline"))
         .isEqualTo(true);
     assertThat(configProperties.getStructured("spring-batch").getBoolean("enabled"))
         .isEqualTo(false);
     assertThat(
-        configProperties
-            .getStructured("spring-batch")
-            .getStructured("item")
-            .getBoolean("enabled"))
+            configProperties
+                .getStructured("spring-batch")
+                .getStructured("item")
+                .getBoolean("enabled"))
         .isEqualTo(false);
   }
 
@@ -114,7 +114,7 @@ class SplunkDeclarativeConfigurationCustomizerProviderTest {
             """;
 
     OpenTelemetryConfigurationModel model = getCustomizedModel(yaml);
-    
+
     assertThat(model.getTracerProvider().getSampler().getAlwaysOn()).isNotNull();
   }
 

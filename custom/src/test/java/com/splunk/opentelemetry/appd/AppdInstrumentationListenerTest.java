@@ -1,0 +1,73 @@
+package com.splunk.opentelemetry.appd;
+
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+
+import io.opentelemetry.context.Context;
+import io.opentelemetry.instrumentation.testing.internal.AutoCleanupExtension;
+import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.Map;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.io.TempDir;
+
+class AppdInstrumentationListenerTest {
+  @RegisterExtension final AutoCleanupExtension autoCleanup = AutoCleanupExtension.create();
+
+  @Test
+  void shouldSetPropagatorProperties(@TempDir Path tempDir) throws IOException {
+    // given
+    AppdInstrumentationListener listener = new AppdInstrumentationListener();
+    var yaml =
+        """
+            file_format: "1.0-rc.1"
+            resource:
+              attributes:
+                - name: service.name
+                  value: test-service
+                - name: deployment.environment
+                  value: test-deployment-env
+            instrumentation/development:
+              java:
+                cisco:
+                   ctx:
+                     enabled: true
+            """;
+    AutoConfiguredOpenTelemetrySdk autoConfiguredOpenTelemetrySdk = createAutoConfiguredSdk(yaml, tempDir);
+
+    // when
+    listener.beforeAgent(autoConfiguredOpenTelemetrySdk);
+
+    // then
+    AppdBonusPropagator propagator = AppdBonusPropagator.getInstance();
+    Map<String, String> carrier = new HashMap<>();
+    Context context = Context.current();
+    propagator.inject(context, carrier,
+            (map, key, value) -> {
+              if (map != null) {
+                map.put(key, value);
+              }
+            });
+
+    assertThat(carrier.get("service.name")).isEqualTo("test-service");
+    assertThat(carrier.get("deployment.environment")).isEqualTo("test-deployment-env");
+  }
+
+  public AutoConfiguredOpenTelemetrySdk createAutoConfiguredSdk(String yaml, Path tempDir)
+      throws IOException {
+    Path configFilePath = tempDir.resolve("test-config.yaml");
+    Files.writeString(configFilePath, yaml);
+
+    var sdk =
+        AutoConfiguredOpenTelemetrySdk.builder()
+            .addPropertiesSupplier(
+                () -> Map.of("otel.experimental.config.file", configFilePath.toString()))
+            .build();
+    autoCleanup.deferCleanup(sdk.getOpenTelemetrySdk());
+
+    return sdk;
+  }
+}

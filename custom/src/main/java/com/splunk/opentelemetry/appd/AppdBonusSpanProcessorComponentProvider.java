@@ -14,17 +14,18 @@
  * limitations under the License.
  */
 
-package com.splunk.opentelemetry.webengine;
+package com.splunk.opentelemetry.appd;
 
 import com.google.auto.service.AutoService;
 import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
 import io.opentelemetry.sdk.autoconfigure.spi.internal.ComponentProvider;
+import io.opentelemetry.sdk.extension.incubator.trace.OnStartSpanProcessor;
 import io.opentelemetry.sdk.trace.SpanProcessor;
 
 @SuppressWarnings("rawtypes")
 @AutoService(ComponentProvider.class)
-public class WebengineSpanProcessorComponentProvider implements ComponentProvider<SpanProcessor> {
-  static String PROVIDER_NAME = "web_engine";
+public class AppdBonusSpanProcessorComponentProvider implements ComponentProvider<SpanProcessor> {
+  static final String COMPONENT_NAME = "appd-bonus";
 
   @Override
   public Class<SpanProcessor> getType() {
@@ -34,11 +35,11 @@ public class WebengineSpanProcessorComponentProvider implements ComponentProvide
   // TODO: Add to Splunk specific yaml config file format documentation
   @Override
   public String getName() {
-    return PROVIDER_NAME;
+    return COMPONENT_NAME;
   }
 
   @Override
-  public SpanProcessor create(DeclarativeConfigProperties config) {
-    return new WebengineAttributeSpanProcessor();
+  public SpanProcessor create(DeclarativeConfigProperties processorProperties) {
+    return OnStartSpanProcessor.create(new AppdBonusSpanProcessor());
   }
 }

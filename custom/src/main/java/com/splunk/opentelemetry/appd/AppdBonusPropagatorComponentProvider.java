@@ -14,31 +14,29 @@
  * limitations under the License.
  */
 
-package com.splunk.opentelemetry.webengine;
+package com.splunk.opentelemetry.appd;
 
 import com.google.auto.service.AutoService;
 import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
+import io.opentelemetry.context.propagation.TextMapPropagator;
 import io.opentelemetry.sdk.autoconfigure.spi.internal.ComponentProvider;
-import io.opentelemetry.sdk.trace.SpanProcessor;
 
 @SuppressWarnings("rawtypes")
 @AutoService(ComponentProvider.class)
-public class WebengineSpanProcessorComponentProvider implements ComponentProvider<SpanProcessor> {
-  static String PROVIDER_NAME = "web_engine";
-
+public class AppdBonusPropagatorComponentProvider implements ComponentProvider<TextMapPropagator> {
   @Override
-  public Class<SpanProcessor> getType() {
-    return SpanProcessor.class;
+  public Class<TextMapPropagator> getType() {
+    return TextMapPropagator.class;
   }
 
   // TODO: Add to Splunk specific yaml config file format documentation
   @Override
   public String getName() {
-    return PROVIDER_NAME;
+    return AppdBonusPropagator.NAME;
   }
 
   @Override
-  public SpanProcessor create(DeclarativeConfigProperties config) {
-    return new WebengineAttributeSpanProcessor();
+  public TextMapPropagator create(DeclarativeConfigProperties propagatorProperties) {
+    return AppdBonusPropagator.getInstance();
   }
 }

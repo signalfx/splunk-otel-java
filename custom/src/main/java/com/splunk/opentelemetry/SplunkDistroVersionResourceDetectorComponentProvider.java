@@ -48,6 +48,7 @@ public class SplunkDistroVersionResourceDetectorComponentProvider
     return Resource.class;
   }
 
+  // TODO: Add to Splunk specific yaml config file format documentation
   @Override
   public String getName() {
     return "splunk_distro_version";

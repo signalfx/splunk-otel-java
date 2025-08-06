@@ -29,13 +29,9 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Objects;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.api.io.TempDir;
 
 class SplunkDeclarativeConfigurationCustomizerProviderTest {
-  @RegisterExtension
-  private static final DeclarativeConfigTestExtension configTestExtension =
-      DeclarativeConfigTestExtension.create();
 
   @Test
   void shouldCustomizeConfigPropertiesIfUndefined() {
@@ -237,7 +233,7 @@ class SplunkDeclarativeConfigurationCustomizerProviderTest {
   private static OpenTelemetryConfigurationModel getCustomizedModel(String yaml) {
     SplunkDeclarativeConfigurationCustomizerProvider customizer =
         new SplunkDeclarativeConfigurationCustomizerProvider();
-    return configTestExtension.getCustomizedModel(yaml, customizer);
+    return DeclarativeConfigTestUtil.parseAndCustomizeModel(yaml, customizer);
   }
 
   private static DeclarativeConfigProperties getCustomizedJavaInstrumentationConfig(String yaml) {

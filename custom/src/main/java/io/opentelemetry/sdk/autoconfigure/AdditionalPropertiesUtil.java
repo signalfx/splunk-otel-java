@@ -57,6 +57,15 @@ public class AdditionalPropertiesUtil {
     return value == null ? defaultValue : value;
   }
 
+  public static Boolean getAdditionalPropertyOrDefault(
+      Map<String, Object> additionalProperties, String propertyName, boolean defaultValue) {
+    Object value = getAdditionalProperty(additionalProperties, propertyName);
+    if (value instanceof Boolean) {
+      return (Boolean) value;
+    }
+    return value == null ? defaultValue : Boolean.parseBoolean(value.toString());
+  }
+
   public static void setAdditionalProperty(
       Map<String, Object> additionalProperties, String propertyName, Object propertyValue) {
     processAdditionalProperty(

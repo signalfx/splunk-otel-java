@@ -33,7 +33,7 @@ The Splunk Distribution of OpenTelemetry Java uses the OTLP traces exporter as t
 
 | System property    | Environment variable | Default value          | Support | Description                                                                                                                                                                                                             |
 |--------------------|----------------------|------------------------|---------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `otel.propagators` | `OTEL_PROPAGATORS`   | `tracecontext,baggage` | Stable  | A comma-separated list of propagators that will be used. You can find the list of supported propagators [here](https://github.com/open-telemetry/opentelemetry-java/tree/main/sdk-extensions/autoconfigure#propagator). |
+| `otel.propagators` | `OTEL_PROPAGATORS`   | `tracecontext,baggage` | Stable  | A comma-separated list of propagators that will be used. You can find the list of supported propagators [here](https://opentelemetry.io/docs/languages/java/configuration/#properties-general). |
 
 If you wish to be compatible with older versions of the Splunk Distribution of OpenTelemetry Java (or the SignalFx
 Tracing Java Agent) you can set the trace propagator to B3:
@@ -62,7 +62,7 @@ export OTEL_PROPAGATORS=b3multi
 | `otel.traces.sampler`    | `OTEL_TRACES_SAMPLER`     | `always_on`    | Stable  | The sampler to use for tracing.	|
 
 Splunk Distribution of OpenTelemetry Java supports all standard samplers as provided by
-[OpenTelemetry Java SDK Autoconfigure](https://github.com/open-telemetry/opentelemetry-java/tree/main/sdk-extensions/autoconfigure#sampler).
+[OpenTelemetry Java SDK Autoconfigure](https://opentelemetry.io/docs/languages/java/configuration/#properties-traces).
 In addition, the distribution adds the following samplers:
 
 ### `internal_root_off`

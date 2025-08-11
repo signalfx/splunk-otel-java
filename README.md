@@ -59,7 +59,7 @@ This distribution comes with the following defaults:
 - [W3C `tracecontext`](https://www.w3.org/TR/trace-context/) and [W3C
   baggage](https://www.w3.org/TR/baggage/) context propagation;
   [B3](https://github.com/openzipkin/b3-propagation) can also be
-  [configured](https://github.com/signalfx/splunk-otel-java/blob/main/docs/advanced-config.md#trace-propagation-configuration).
+  [configured](https://github.com/signalfx/splunk-otel-java/blob/main/docs/advanced-config.md#user-content-trace-propagation-configuration).
 - [OTLP HTTP/protobuf
   exporter](https://opentelemetry.io/docs/specs/otlp/#otlphttp)
   configured to send spans to a locally running [Splunk OpenTelemetry

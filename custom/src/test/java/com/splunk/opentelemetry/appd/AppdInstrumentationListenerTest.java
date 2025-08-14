@@ -1,5 +1,7 @@
 package com.splunk.opentelemetry.appd;
 
+import static io.opentelemetry.semconv.ServiceAttributes.SERVICE_NAME;
+import static io.opentelemetry.semconv.incubating.DeploymentIncubatingAttributes.DEPLOYMENT_ENVIRONMENT_NAME;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 import io.opentelemetry.context.Context;
@@ -28,7 +30,7 @@ class AppdInstrumentationListenerTest {
               attributes:
                 - name: service.name
                   value: test-service
-                - name: deployment.environment
+                - name: deployment.environment.name
                   value: test-deployment-env
             instrumentation/development:
               java:
@@ -52,11 +54,11 @@ class AppdInstrumentationListenerTest {
               }
             });
 
-    assertThat(carrier.get("service.name")).isEqualTo("test-service");
-    assertThat(carrier.get("deployment.environment")).isEqualTo("test-deployment-env");
+    assertThat(carrier.get(SERVICE_NAME.getKey())).isEqualTo("test-service");
+    assertThat(carrier.get(DEPLOYMENT_ENVIRONMENT_NAME.getKey())).isEqualTo("test-deployment-env");
   }
 
-  public AutoConfiguredOpenTelemetrySdk createAutoConfiguredSdk(String yaml, Path tempDir)
+  private AutoConfiguredOpenTelemetrySdk createAutoConfiguredSdk(String yaml, Path tempDir)
       throws IOException {
     Path configFilePath = tempDir.resolve("test-config.yaml");
     Files.writeString(configFilePath, yaml);

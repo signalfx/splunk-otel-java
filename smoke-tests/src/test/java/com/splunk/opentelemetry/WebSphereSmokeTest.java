@@ -59,6 +59,9 @@ public class WebSphereSmokeTest extends AppServerTest {
     // server handler test not implemented
     assertWebAppTrace(expectedServerAttributes);
 
+    MetricsInspector metricsInspector = waitForMetrics();
+    metricsInspector.hasMetricsNamed("jvm.memory.used");
+
     stopTarget();
   }
 

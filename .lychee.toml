@@ -7,7 +7,7 @@ max_concurrency = 4
 include_fragments = true
 
 # Use a custom user agent to prevent being blocked by Splunk docs site
-user_agent = 'User-Agent=Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:109.0) Gecko/20100101 Firefox/115.0'
+user_agent = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:109.0) Gecko/20100101 Firefox/115.0'
 
 exclude = [
   '^https://developers.redhat.com/download-manager/file/jboss-eap-.*.zip',

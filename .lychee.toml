@@ -6,9 +6,13 @@ max_concurrency = 4
 # Check link anchors
 include_fragments = true
 
+# Use a custom header to prevent being blocked from docs site
+header = { 'User-Agent' = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:109.0) Gecko/20100101 Lychee' }
+
 exclude = [
   '^https://developers.redhat.com/download-manager/file/jboss-eap-.*.zip',
   '^http://localhost.*',
   '^https://central.sonatype.com/service/rest/repository/browse/maven-snapshots/com/splunk/',
-  '^https://quickdraw.splunk.com/redirect/.*'
+  '^https://quickdraw.splunk.com/redirect/.*',
+  '^https://docs.splunk.com/redirect/.*'
 ]

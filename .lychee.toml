@@ -6,8 +6,6 @@ max_concurrency = 4
 # Check link anchors
 include_fragments = true
 
-cache = false
-
 # Use a custom user agent to prevent being blocked by Splunk docs site
 user_agent = 'User-Agent=Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:109.0) Gecko/20100101 Firefox/115.0'
 

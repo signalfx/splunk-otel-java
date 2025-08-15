@@ -32,7 +32,6 @@ When filing an issue, do *NOT* include:
 See [SECURITY.md](SECURITY.md#reporting-security-issues) for instructions.
 
 ## Documentation
-[shit](http://192.168.66.246:4001/shit)
 
 The Splunk Observability documentation is hosted on the [Splunk Observability
 Cloud docs site](https://docs.splunk.com/Observability), which contains all the

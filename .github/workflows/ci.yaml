@@ -24,11 +24,7 @@ jobs:
           lycheeVersion: v0.18.1
           args: >-
             -v -n "*.md" "**/*.md"
-            --include-fragments
-            --exclude "https://developers.redhat.com/download-manager/file/jboss-eap-.*.zip"
-            --exclude "http://localhost*"
-            --exclude "https://central.sonatype.com/service/rest/repository/browse/maven-snapshots/com/splunk/"
-            --max-retries 6
+            --config .lychee.toml
             --github-token ${{ github.token }}
 
   build:

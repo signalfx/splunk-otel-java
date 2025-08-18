@@ -23,28 +23,17 @@ import io.opentelemetry.sdk.common.CompletableResultCode;
 import io.opentelemetry.sdk.trace.ReadWriteSpan;
 import io.opentelemetry.sdk.trace.ReadableSpan;
 import io.opentelemetry.sdk.trace.SpanProcessor;
-import java.util.function.Supplier;
 
 /**
- * Custom {@link SpanProcessor} implementation that will 1. register traces for snapshot profiling
- * and 2. activate profiling for the thread processing the trace. <br>
- * <br>
- * <b>Implementation Note</b><br>
- * The current snapshot profiling extension supports profiling one thread per trace at a time. If
- * the trace spans multiple threads -- whether because a service is invoked multiple time
- * concurrently by an upstream caller or work is delegated to background threads -- only a single
- * thread associated with that trace (specifically the thread associated with the "Entry" span) will
- * be profiled at a time.
+ * Custom {@link SpanProcessor} implementation that will register traces for snapshot profiling<br>
  */
 public class SnapshotProfilingSpanProcessor implements SpanProcessor {
   private final TraceRegistry registry;
-  private final Supplier<StackTraceSampler> sampler;
   private final OrphanedTraceCleaner orphanedTraceCleaner;
 
-  SnapshotProfilingSpanProcessor(TraceRegistry registry, Supplier<StackTraceSampler> sampler) {
+  SnapshotProfilingSpanProcessor(TraceRegistry registry) {
     this.registry = registry;
-    this.sampler = sampler;
-    this.orphanedTraceCleaner = new OrphanedTraceCleaner(registry, sampler);
+    this.orphanedTraceCleaner = new OrphanedTraceCleaner(registry);
   }
 
   @Override
@@ -58,7 +47,6 @@ public class SnapshotProfilingSpanProcessor implements SpanProcessor {
     }
 
     if (isEntry(span) && registry.isRegistered(span.getSpanContext())) {
-      sampler.get().start(span.getSpanContext());
       span.setAttribute(SNAPSHOT_PROFILING, true);
     }
   }
@@ -80,7 +68,6 @@ public class SnapshotProfilingSpanProcessor implements SpanProcessor {
     if (isEntry(span)) {
       registry.unregister(span.getSpanContext());
       orphanedTraceCleaner.unregister(span.getSpanContext());
-      sampler.get().stop(span.getSpanContext());
     }
   }
 

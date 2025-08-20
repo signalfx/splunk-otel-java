@@ -38,11 +38,11 @@ public class DeclarativeConfigTestUtil {
 
   public static OpenTelemetryConfigurationModel parseAndCustomizeModel(
       String yaml, DeclarativeConfigurationCustomizerProvider customizer) {
-      OpenTelemetryConfigurationModel model = parseModel(yaml);
-      DeclarativeConfigurationBuilder builder = new DeclarativeConfigurationBuilder();
-      customizer.customize(builder);
+    OpenTelemetryConfigurationModel model = parseModel(yaml);
+    DeclarativeConfigurationBuilder builder = new DeclarativeConfigurationBuilder();
+    customizer.customize(builder);
 
-      builder.customizeModel(model);
-      return model;
+    builder.customizeModel(model);
+    return model;
   }
 }

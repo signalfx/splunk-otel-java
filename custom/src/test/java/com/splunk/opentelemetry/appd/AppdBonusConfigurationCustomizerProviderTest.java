@@ -1,3 +1,19 @@
+/*
+ * Copyright Splunk Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.splunk.opentelemetry.appd;
 
 import static com.splunk.opentelemetry.DeclarativeConfigTestUtil.parseAndCustomizeModel;
@@ -9,7 +25,7 @@ import org.junit.jupiter.api.Test;
 class AppdBonusConfigurationCustomizerProviderTest {
 
   @Test
-  void shouldAddPropagatorAndSpanProcessorWhenFeatureIsEnabled () {
+  void shouldAddPropagatorAndSpanProcessorWhenFeatureIsEnabled() {
     var yaml =
         """
             file_format: "1.0-rc.1"
@@ -26,12 +42,14 @@ class AppdBonusConfigurationCustomizerProviderTest {
 
     assertThat(model.getPropagator().getCompositeList()).isEqualTo("appd-bonus");
     assertThat(model.getTracerProvider().getProcessors()).hasSize(1);
-    assertThat(model.getTracerProvider().getProcessors().getFirst().getAdditionalProperties()).hasSize(1);
-    assertThat(model.getTracerProvider().getProcessors().getFirst().getAdditionalProperties()).containsKey("appd-bonus");
+    assertThat(model.getTracerProvider().getProcessors().getFirst().getAdditionalProperties())
+        .hasSize(1);
+    assertThat(model.getTracerProvider().getProcessors().getFirst().getAdditionalProperties())
+        .containsKey("appd-bonus");
   }
 
   @Test
-  void shouldNotAddPropagatorAndSpanProcessorWhenFeatureIsDisabled () {
+  void shouldNotAddPropagatorAndSpanProcessorWhenFeatureIsDisabled() {
     var yaml =
         """
             file_format: "1.0-rc.1"
@@ -51,7 +69,7 @@ class AppdBonusConfigurationCustomizerProviderTest {
   }
 
   @Test
-  void shouldNotAddPropagatorAndSpanProcessorWhenFeaturePropertyIsMissing () {
+  void shouldNotAddPropagatorAndSpanProcessorWhenFeaturePropertyIsMissing() {
     var yaml =
         """
             file_format: "1.0-rc.1"

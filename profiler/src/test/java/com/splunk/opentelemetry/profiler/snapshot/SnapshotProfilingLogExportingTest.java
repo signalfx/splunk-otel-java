@@ -43,12 +43,16 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 
 class SnapshotProfilingLogExportingTest {
   @RegisterExtension
-  private final ContextStorageResettingSpanTrackingActivator spanTrackingActivator =
-      new ContextStorageResettingSpanTrackingActivator();
+  private final ResettingContextStorageWrapper spanTrackingActivator =
+      new ResettingContextStorageWrapper();
 
   private final InMemoryLogRecordExporter logExporter = InMemoryLogRecordExporter.create();
   private final SnapshotProfilingSdkCustomizer customizer =
-      Snapshotting.customizer().withRealStackTraceSampler().with(spanTrackingActivator).build();
+      Snapshotting.customizer()
+          .withRealStackTraceSampler()
+          .withRealStagingArea()
+          .with(spanTrackingActivator)
+          .build();
 
   @RegisterExtension
   public final OpenTelemetrySdkExtension sdk =

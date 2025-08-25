@@ -21,7 +21,7 @@ import java.time.Duration;
 class SnapshotProfilingSdkCustomizerBuilder {
   private TraceRegistry registry = new TraceRegistry();
   private StackTraceSampler sampler = new ObservableStackTraceSampler();
-  private SpanTrackingActivator spanTrackingActivator = registry -> {};
+  private ContextStorageWrapper contextStorageWrapper = new ResettingContextStorageWrapper();
 
   SnapshotProfilingSdkCustomizerBuilder with(TraceRegistry registry) {
     this.registry = registry;
@@ -33,13 +33,12 @@ class SnapshotProfilingSdkCustomizerBuilder {
   }
 
   SnapshotProfilingSdkCustomizerBuilder withRealStackTraceSampler() {
-    var stagingAreaSupplier = StagingArea.SUPPLIER;
-    stagingAreaSupplier.configure(
-        new PeriodicallyExportingStagingArea(
-            StackTraceExporter.SUPPLIER, Duration.ofMillis(200), 10));
+    return withRealStackTraceSampler(Duration.ofMillis(20));
+  }
+
+  SnapshotProfilingSdkCustomizerBuilder withRealStackTraceSampler(Duration samplingPeriod) {
     return with(
-        new PeriodicStackTraceSampler(
-            stagingAreaSupplier, SpanTracker.SUPPLIER, Duration.ofMillis(20)));
+        new PeriodicStackTraceSampler(StagingArea.SUPPLIER, SpanTracker.SUPPLIER, samplingPeriod));
   }
 
   SnapshotProfilingSdkCustomizerBuilder with(StackTraceSampler sampler) {
@@ -48,12 +47,26 @@ class SnapshotProfilingSdkCustomizerBuilder {
     return this;
   }
 
-  SnapshotProfilingSdkCustomizerBuilder with(SpanTrackingActivator spanTrackingActivator) {
-    this.spanTrackingActivator = spanTrackingActivator;
+  SnapshotProfilingSdkCustomizerBuilder withRealStagingArea() {
+    return withRealStagingArea(Duration.ofMillis(200));
+  }
+
+  SnapshotProfilingSdkCustomizerBuilder withRealStagingArea(Duration exportPeriod) {
+    return with(
+        new PeriodicallyExportingStagingArea(StackTraceExporter.SUPPLIER, exportPeriod, 10));
+  }
+
+  SnapshotProfilingSdkCustomizerBuilder with(StagingArea stagingArea) {
+    StagingArea.SUPPLIER.configure(stagingArea);
+    return this;
+  }
+
+  SnapshotProfilingSdkCustomizerBuilder with(ContextStorageWrapper contextStorageWrapper) {
+    this.contextStorageWrapper = contextStorageWrapper;
     return this;
   }
 
   SnapshotProfilingSdkCustomizer build() {
-    return new SnapshotProfilingSdkCustomizer(registry, sampler, spanTrackingActivator);
+    return new SnapshotProfilingSdkCustomizer(registry, sampler, contextStorageWrapper);
   }
 }

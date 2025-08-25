@@ -3,12 +3,12 @@ pluginManagement {
     id("com.bmuschko.docker-remote-api") version "9.4.0"
     id("io.github.gradle-nexus.publish-plugin") version "2.0.0"
     id("com.github.jk1.dependency-license-report") version "2.9"
-    id("com.gradleup.shadow") version "8.3.8"
+    id("com.gradleup.shadow") version "8.3.9"
   }
 }
 
 plugins {
-  id("com.gradle.develocity") version "4.1"
+  id("com.gradle.develocity") version "4.1.1"
 }
 
 develocity {

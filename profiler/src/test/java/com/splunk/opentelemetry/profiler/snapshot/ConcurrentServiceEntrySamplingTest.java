@@ -16,8 +16,8 @@
 
 package com.splunk.opentelemetry.profiler.snapshot;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.splunk.opentelemetry.profiler.OtelLoggerFactory;
 import com.splunk.opentelemetry.profiler.snapshot.simulation.Delay;
@@ -40,8 +40,8 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 
 class ConcurrentServiceEntrySamplingTest {
   @RegisterExtension
-  private final ContextStorageResettingSpanTrackingActivator spanTrackingActivator =
-      new ContextStorageResettingSpanTrackingActivator();
+  private final ResettingContextStorageWrapper spanTrackingActivator =
+      new ResettingContextStorageWrapper();
 
   private final InMemoryLogRecordExporter logExporter = InMemoryLogRecordExporter.create();
   private final InMemoryStagingArea staging = new InMemoryStagingArea();
@@ -119,12 +119,9 @@ class ConcurrentServiceEntrySamplingTest {
             .map(s -> s.getTraceId() + ":" + s.getSpanId())
             .collect(Collectors.toSet());
 
-    // Downstream service should receive 2 requests within the same trace id so expect 3 total span
-    // ids (1 upstream, 2 downstream).
-    // Note: A total of 5 spans will be created, but the CLIENT spans in the upstream service won't
-    // be profiled because they are happening in parallel on background threads which aren't yet
-    // sampled
-    assertThat(profiledSpans).size().isEqualTo(3);
+    // Downstream service should receive 2 requests with the same trace id so expect 5 total span
+    // ids (1 upstream SERVER, 2 upstream CLIENT, 2 downstream SERVER).
+    assertEquals(5, profiledSpans.size());
   }
 
   private UnaryOperator<Message> concurrentExitCallsTo(

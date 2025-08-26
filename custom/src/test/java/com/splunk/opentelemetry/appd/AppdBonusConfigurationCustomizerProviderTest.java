@@ -42,9 +42,9 @@ class AppdBonusConfigurationCustomizerProviderTest {
 
     assertThat(model.getPropagator().getCompositeList()).isEqualTo("appd-bonus");
     assertThat(model.getTracerProvider().getProcessors()).hasSize(1);
-    assertThat(model.getTracerProvider().getProcessors().getFirst().getAdditionalProperties())
+    assertThat(model.getTracerProvider().getProcessors().get(0).getAdditionalProperties())
         .hasSize(1);
-    assertThat(model.getTracerProvider().getProcessors().getFirst().getAdditionalProperties())
+    assertThat(model.getTracerProvider().getProcessors().get(0).getAdditionalProperties())
         .containsKey("appd-bonus");
   }
 

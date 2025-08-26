@@ -46,4 +46,10 @@ public class WebengineSpanProcessorCustomizerProvider
           return model;
         });
   }
+
+  @Override
+  public int order() {
+    // Make sure other customizers had a chance to add trace providers.
+    return Integer.MAX_VALUE - 1;
+  }
 }

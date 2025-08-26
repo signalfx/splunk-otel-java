@@ -38,8 +38,7 @@ public class SplunkSpanLimitsCustomizerProvider
         model -> {
           TracerProviderModel tracerProviderModel = model.getTracerProvider();
           if (tracerProviderModel == null) {
-            tracerProviderModel = new TracerProviderModel();
-            model.withTracerProvider(tracerProviderModel);
+            return model;
           }
 
           if (tracerProviderModel.getLimits() == null) {
@@ -60,5 +59,11 @@ public class SplunkSpanLimitsCustomizerProvider
           }
           return model;
         });
+  }
+
+  @Override
+  public int order() {
+    // Make sure other customizers had a chance to add trace providers
+    return Integer.MAX_VALUE - 1;
   }
 }

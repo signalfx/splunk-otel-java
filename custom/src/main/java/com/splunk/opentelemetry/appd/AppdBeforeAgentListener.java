@@ -30,8 +30,7 @@ import java.util.logging.Logger;
 
 @AutoService(BeforeAgentListener.class)
 public class AppdBeforeAgentListener implements BeforeAgentListener {
-  private static final Logger logger =
-      Logger.getLogger(AppdBeforeAgentListener.class.getName());
+  private static final Logger logger = Logger.getLogger(AppdBeforeAgentListener.class.getName());
 
   @Override
   public void beforeAgent(AutoConfiguredOpenTelemetrySdk autoConfiguredOpenTelemetrySdk) {

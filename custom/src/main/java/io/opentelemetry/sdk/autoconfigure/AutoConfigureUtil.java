@@ -56,7 +56,8 @@ public final class AutoConfigureUtil {
   // issue.
   // TODO: This method should be removed once the fix (or similar) is merged in the upstream.
   private static Resource extractResource(AutoConfiguredOpenTelemetrySdk sdk) {
-    Resource resource = extractResourceFromProvider(sdk.getOpenTelemetrySdk().getSdkTracerProvider());
+    Resource resource =
+        extractResourceFromProvider(sdk.getOpenTelemetrySdk().getSdkTracerProvider());
     if (resource == null || resource.equals(Resource.getDefault())) {
       resource = extractResourceFromProvider(sdk.getOpenTelemetrySdk().getSdkMeterProvider());
     }

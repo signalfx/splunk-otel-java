@@ -16,15 +16,15 @@
 
 package com.splunk.opentelemetry.appd;
 
-import static io.opentelemetry.semconv.ServiceAttributes.SERVICE_NAME;
-import static io.opentelemetry.semconv.incubating.DeploymentIncubatingAttributes.DEPLOYMENT_ENVIRONMENT_NAME;
+import static com.splunk.opentelemetry.DeclarativeConfigTestUtil.createAutoConfiguredSdk;
+import static com.splunk.opentelemetry.appd.AppdBonusPropagator.CTX_HEADER_ENV;
+import static com.splunk.opentelemetry.appd.AppdBonusPropagator.CTX_HEADER_SERVICE;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 import io.opentelemetry.context.Context;
 import io.opentelemetry.instrumentation.testing.internal.AutoCleanupExtension;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
@@ -56,6 +56,7 @@ class AppdBeforeAgentListenerTest {
             """;
     AutoConfiguredOpenTelemetrySdk autoConfiguredOpenTelemetrySdk =
         createAutoConfiguredSdk(yaml, tempDir);
+    autoCleanup.deferCleanup(autoConfiguredOpenTelemetrySdk.getOpenTelemetrySdk());
 
     // when
     agentListener.beforeAgent(autoConfiguredOpenTelemetrySdk);
@@ -73,22 +74,7 @@ class AppdBeforeAgentListenerTest {
           }
         });
 
-    assertThat(carrier.get(SERVICE_NAME.getKey())).isEqualTo("test-service");
-    assertThat(carrier.get(DEPLOYMENT_ENVIRONMENT_NAME.getKey())).isEqualTo("test-deployment-env");
-  }
-
-  private AutoConfiguredOpenTelemetrySdk createAutoConfiguredSdk(String yaml, Path tempDir)
-      throws IOException {
-    Path configFilePath = tempDir.resolve("test-config.yaml");
-    Files.writeString(configFilePath, yaml);
-
-    var sdk =
-        AutoConfiguredOpenTelemetrySdk.builder()
-            .addPropertiesSupplier(
-                () -> Map.of("otel.experimental.config.file", configFilePath.toString()))
-            .build();
-    autoCleanup.deferCleanup(sdk.getOpenTelemetrySdk());
-
-    return sdk;
+    assertThat(carrier.get(CTX_HEADER_SERVICE)).isEqualTo("test-service");
+    assertThat(carrier.get(CTX_HEADER_ENV)).isEqualTo("test-deployment-env");
   }
 }

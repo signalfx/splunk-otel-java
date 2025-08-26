@@ -16,6 +16,12 @@
 
 package com.splunk.opentelemetry;
 
+import io.opentelemetry.api.incubator.config.ConfigProvider;
+import io.opentelemetry.javaagent.extension.internal.DeclarativeConfigPropertiesBridgeBuilder;
+import io.opentelemetry.sdk.OpenTelemetrySdk;
+import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
+import io.opentelemetry.sdk.autoconfigure.SdkAutoconfigureAccess;
+import io.opentelemetry.sdk.autoconfigure.internal.AutoConfigureUtil;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.DeclarativeConfiguration;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.DeclarativeConfigurationBuilder;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.DeclarativeConfigurationCustomizerProvider;
@@ -24,6 +30,9 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Map;
 
 public class DeclarativeConfigTestUtil {
   private DeclarativeConfigTestUtil() {}
@@ -44,5 +53,31 @@ public class DeclarativeConfigTestUtil {
 
     builder.customizeModel(model);
     return model;
+  }
+
+  public static AutoConfiguredOpenTelemetrySdk createAutoConfiguredSdk(String yaml, Path tempDir)
+      throws IOException {
+    Path configFilePath = tempDir.resolve("test-config.yaml");
+    Files.writeString(configFilePath, yaml);
+
+    var autoConfiguredSdk =
+        AutoConfiguredOpenTelemetrySdk.builder()
+            .addPropertiesSupplier(
+                () -> Map.of("otel.experimental.config.file", configFilePath.toString()))
+            .build();
+
+    ConfigProvider configProvider = AutoConfigureUtil.getConfigProvider(autoConfiguredSdk);
+    OpenTelemetrySdk sdk = autoConfiguredSdk.getOpenTelemetrySdk();
+
+    if (configProvider != null) {
+      return SdkAutoconfigureAccess.create(
+          sdk,
+          SdkAutoconfigureAccess.getResource(autoConfiguredSdk),
+          new DeclarativeConfigPropertiesBridgeBuilder()
+              .buildFromInstrumentationConfig(configProvider.getInstrumentationConfig()),
+          configProvider);
+    }
+
+    return autoConfiguredSdk;
   }
 }

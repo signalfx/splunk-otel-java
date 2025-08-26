@@ -32,13 +32,13 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.api.io.TempDir;
 
-class AppdInstrumentationListenerTest {
+class AppdBeforeAgentListenerTest {
   @RegisterExtension final AutoCleanupExtension autoCleanup = AutoCleanupExtension.create();
 
   @Test
   void shouldSetPropagatorProperties(@TempDir Path tempDir) throws IOException {
     // given
-    AppdInstrumentationListener listener = new AppdInstrumentationListener();
+    AppdBeforeAgentListener agentListener = new AppdBeforeAgentListener();
     var yaml =
         """
             file_format: "1.0-rc.1"
@@ -58,7 +58,7 @@ class AppdInstrumentationListenerTest {
         createAutoConfiguredSdk(yaml, tempDir);
 
     // when
-    listener.beforeAgent(autoConfiguredOpenTelemetrySdk);
+    agentListener.beforeAgent(autoConfiguredOpenTelemetrySdk);
 
     // then
     AppdBonusPropagator propagator = AppdBonusPropagator.getInstance();

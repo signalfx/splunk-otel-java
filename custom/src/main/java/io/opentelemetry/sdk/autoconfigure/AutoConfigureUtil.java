@@ -16,8 +16,6 @@
 
 package io.opentelemetry.sdk.autoconfigure;
 
-import io.opentelemetry.api.incubator.config.ConfigProvider;
-import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import io.opentelemetry.sdk.resources.Resource;
 
@@ -37,33 +35,10 @@ public final class AutoConfigureUtil {
 
   /** Returns the {@link ConfigProperties} used for auto-configuration. */
   public static ConfigProperties getConfig(AutoConfiguredOpenTelemetrySdk sdk) {
-    return resolveConfigProperties(sdk);
+    return sdk.getConfig();
   }
 
   public static Resource getResource(AutoConfiguredOpenTelemetrySdk sdk) {
     return sdk.getResource();
-  }
-
-  // TODO: This should be removed once opentelemetry-java-instrumentation changes introducing
-  //       ConfigPropertiesUtil class are released and pulled to this project.
-  /** Resolve {@link ConfigProperties} from the {@code autoConfiguredOpenTelemetrySdk}. */
-  static ConfigProperties resolveConfigProperties(AutoConfiguredOpenTelemetrySdk sdk) {
-    ConfigProperties sdkConfigProperties =
-        io.opentelemetry.sdk.autoconfigure.internal.AutoConfigureUtil.getConfig(sdk);
-    if (sdkConfigProperties != null) {
-      return sdkConfigProperties;
-    }
-    ConfigProvider configProvider =
-        io.opentelemetry.sdk.autoconfigure.internal.AutoConfigureUtil.getConfigProvider(sdk);
-    if (configProvider != null) {
-      DeclarativeConfigProperties instrumentationConfig = configProvider.getInstrumentationConfig();
-
-      if (instrumentationConfig != null) {
-        return new TmpDeclarativeConfigPropertiesBridge(instrumentationConfig);
-      }
-    }
-    // Should never happen
-    throw new IllegalStateException(
-        "AutoConfiguredOpenTelemetrySdk does not have ConfigProperties or DeclarativeConfigProperties. This is likely a programming error in opentelemetry-java");
   }
 }

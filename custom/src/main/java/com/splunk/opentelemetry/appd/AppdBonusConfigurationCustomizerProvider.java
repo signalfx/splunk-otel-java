@@ -66,9 +66,8 @@ public final class AppdBonusConfigurationCustomizerProvider
     return (getAdditionalPropertyOrDefault(properties, CONFIG_CISCO_CTX_ENABLED, false));
     // TODO: What is meaning of "none" in file based config? In flat config "none"
     //       could be used as the only propagator (see PropagatorConfiguration#configurePropagators
-    // and
-    //       AppdBonusCustomizer#featureEnabled). If other propagator was specified then error was
-    //       reported.
+    //       and AppdBonusCustomizer#featureEnabled).
+    //       If other propagator was specified then error was reported.
     //       In file based config "none" is just skipped (see PropagatorFactory). Is it correct?
   }
 

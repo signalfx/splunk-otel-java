@@ -29,9 +29,9 @@ import io.opentelemetry.sdk.resources.Resource;
 import java.util.logging.Logger;
 
 @AutoService(BeforeAgentListener.class)
-public class AppdInstrumentationListener implements BeforeAgentListener {
+public class AppdBeforeAgentListener implements BeforeAgentListener {
   private static final Logger logger =
-      Logger.getLogger(AppdInstrumentationListener.class.getName());
+      Logger.getLogger(AppdBeforeAgentListener.class.getName());
 
   @Override
   public void beforeAgent(AutoConfiguredOpenTelemetrySdk autoConfiguredOpenTelemetrySdk) {

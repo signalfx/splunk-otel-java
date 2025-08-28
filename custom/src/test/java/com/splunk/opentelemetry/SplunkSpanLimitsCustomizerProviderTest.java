@@ -67,9 +67,8 @@ class SplunkSpanLimitsCustomizerProviderTest {
     OpenTelemetryConfigurationModel model = parseAndCustomizeModel(yaml, customizer);
 
     // then
-    var expectedLimitsModel = new SpanLimitsModel()
-        .withAttributeValueLengthLimit(1410)
-        .withAttributeCountLimit(33);
+    var expectedLimitsModel =
+        new SpanLimitsModel().withAttributeValueLengthLimit(1410).withAttributeCountLimit(33);
 
     assertThat(model.getTracerProvider()).isNotNull();
     assertThat(model.getTracerProvider().getLimits()).isEqualTo(expectedLimitsModel);

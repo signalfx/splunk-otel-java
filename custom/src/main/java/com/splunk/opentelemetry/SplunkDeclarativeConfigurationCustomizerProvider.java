@@ -22,9 +22,6 @@ import static io.opentelemetry.sdk.autoconfigure.AdditionalPropertiesUtil.getAdd
 import static io.opentelemetry.sdk.autoconfigure.AdditionalPropertiesUtil.setAdditionalProperty;
 import static java.util.logging.Level.WARNING;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import com.google.auto.service.AutoService;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.DeclarativeConfigurationCustomizer;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.DeclarativeConfigurationCustomizerProvider;
@@ -98,17 +95,17 @@ public class SplunkDeclarativeConfigurationCustomizerProvider
           // logger.fine(() -> "Splunk configuration customization complete: " + model);
 
           // TODO: This is temporary code. Remove it before release !!!
-          ObjectMapper mapper = new ObjectMapper();
-          String v = null;
-          try {
-            v =
-                mapper
-                    .configure(SerializationFeature.INDENT_OUTPUT, true)
-                    .writeValueAsString(model);
-            logger.info("Splunk configuration customization complete: " + v);
-          } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-          }
+          //          ObjectMapper mapper = new ObjectMapper();
+          //          String v = null;
+          //          try {
+          //            v =
+          //                mapper
+          //                    .configure(SerializationFeature.INDENT_OUTPUT, true)
+          //                    .writeValueAsString(model);
+          //            logger.info("Splunk configuration customization complete: " + v);
+          //          } catch (JsonProcessingException e) {
+          //            throw new RuntimeException(e);
+          //          }
           return model;
         });
   }

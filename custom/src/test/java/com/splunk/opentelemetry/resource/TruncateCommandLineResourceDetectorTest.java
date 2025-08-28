@@ -26,50 +26,30 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 
-class TruncateCommandLineResourceDetectorComponentProviderTest {
+class TruncateCommandLineResourceDetectorTest {
   @Test
-  public void shouldDoNothing() {
+  public void shouldDoNothingWhenNoNeedToTruncateResourceAttributes() {
     try (MockedStatic<ProcessResource> mockedStatic = mockStatic(ProcessResource.class)) {
       // given
-      Resource empty = Resource.empty();
-      mockedStatic.when(ProcessResource::get).thenReturn(empty);
+      List<String> args = List.of("ABC");
+      String commandLine = "RUN";
+      Resource detectedResource =
+          Resource.builder()
+              .put(ProcessIncubatingAttributes.PROCESS_COMMAND_ARGS, args)
+              .put(ProcessIncubatingAttributes.PROCESS_COMMAND_LINE, commandLine)
+              .build();
+      mockedStatic.when(ProcessResource::get).thenReturn(detectedResource);
 
-      TruncateCommandLineResourceDetectorComponentProvider provider =
-          new TruncateCommandLineResourceDetectorComponentProvider();
+      TruncateCommandLineResourceDetector provider = new TruncateCommandLineResourceDetector();
 
       // when
       Resource resource = provider.create(null);
 
       // then
-      assertThat(resource).isEqualTo(empty);
-    }
-  }
-
-  @Test
-  public void shouldTruncateProcessCommandArgs() {
-    try (MockedStatic<ProcessResource> mockedStatic = mockStatic(ProcessResource.class)) {
-      // given
-      String arg = "X".repeat(512);
-      Resource detectedResource =
-          Resource.builder()
-              .put(ProcessIncubatingAttributes.PROCESS_COMMAND_ARGS, List.of(arg))
-              .build();
-      mockedStatic.when(ProcessResource::get).thenReturn(detectedResource);
-
-      TruncateCommandLineResourceDetectorComponentProvider provider =
-          new TruncateCommandLineResourceDetectorComponentProvider();
-
-      // when
-      Resource createdResource = provider.create(null);
-
-      // then
-      // TODO: Seems like a small bug. It should be 252 + ...
-      String expectedArg = "X".repeat(248) + "...";
-      Resource expectedResource =
-          Resource.builder()
-              .put(ProcessIncubatingAttributes.PROCESS_COMMAND_ARGS, List.of(expectedArg))
-              .build();
-      assertThat(createdResource).isEqualTo(expectedResource);
+      assertThat(resource.getAttribute(ProcessIncubatingAttributes.PROCESS_COMMAND_ARGS))
+          .isEqualTo(List.of("ABC"));
+      assertThat(resource.getAttribute(ProcessIncubatingAttributes.PROCESS_COMMAND_LINE))
+          .isEqualTo("RUN");
     }
   }
 
@@ -77,26 +57,29 @@ class TruncateCommandLineResourceDetectorComponentProviderTest {
   public void shouldTruncateProcessCommandLine() {
     try (MockedStatic<ProcessResource> mockedStatic = mockStatic(ProcessResource.class)) {
       // given
+      List<String> args = List.of("X".repeat(512));
       String commandLine = "Y".repeat(512);
       Resource detectedResource =
           Resource.builder()
+              .put(ProcessIncubatingAttributes.PROCESS_COMMAND_ARGS, args)
               .put(ProcessIncubatingAttributes.PROCESS_COMMAND_LINE, commandLine)
               .build();
       mockedStatic.when(ProcessResource::get).thenReturn(detectedResource);
 
-      TruncateCommandLineResourceDetectorComponentProvider provider =
-          new TruncateCommandLineResourceDetectorComponentProvider();
+      TruncateCommandLineResourceDetector provider = new TruncateCommandLineResourceDetector();
 
       // when
       Resource resource = provider.create(null);
 
       // then
+      // TODO: Seems like a small bug. It should be 252 + ...
+      List<String> expectedArgs = List.of("X".repeat(248) + "...");
+      assertThat(resource.getAttribute(ProcessIncubatingAttributes.PROCESS_COMMAND_ARGS))
+          .isEqualTo(expectedArgs);
+
       String expectedCommandLine = "Y".repeat(252) + "...";
-      Resource expectedResource =
-          Resource.builder()
-              .put(ProcessIncubatingAttributes.PROCESS_COMMAND_LINE, expectedCommandLine)
-              .build();
-      assertThat(resource).isEqualTo(expectedResource);
+      assertThat(resource.getAttribute(ProcessIncubatingAttributes.PROCESS_COMMAND_LINE))
+          .isEqualTo(expectedCommandLine);
     }
   }
 }

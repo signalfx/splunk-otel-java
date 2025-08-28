@@ -16,25 +16,28 @@
 
 package com.splunk.opentelemetry.resource;
 
+import static com.splunk.opentelemetry.resource.StringListShortener.truncate;
+import static io.opentelemetry.semconv.incubating.ProcessIncubatingAttributes.PROCESS_COMMAND_ARGS;
+import static io.opentelemetry.semconv.incubating.ProcessIncubatingAttributes.PROCESS_COMMAND_LINE;
+
 import com.google.auto.service.AutoService;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
 import io.opentelemetry.instrumentation.resources.ProcessResource;
+import io.opentelemetry.instrumentation.resources.ProcessRuntimeResource;
 import io.opentelemetry.sdk.autoconfigure.spi.internal.ComponentProvider;
 import io.opentelemetry.sdk.resources.Resource;
-import io.opentelemetry.semconv.incubating.ProcessIncubatingAttributes;
 import java.util.List;
 import java.util.logging.Logger;
 
 @SuppressWarnings("rawtypes")
 @AutoService(ComponentProvider.class)
-public class TruncateCommandLineResourceDetectorComponentProvider
-    implements ComponentProvider<Resource> {
-  public static final String PROVIDER_NAME = "process-with-truncated-command-line";
+public class TruncateCommandLineResourceDetector implements ComponentProvider<Resource> {
+  public static final String PROVIDER_NAME = "truncate-command-line";
 
   private static final int MAX_COMMAND_LINE_LENGTH = 255;
   private static final Logger logger =
-      Logger.getLogger(TruncateCommandLineResourceDetectorComponentProvider.class.getName());
+      Logger.getLogger(TruncateCommandLineResourceDetector.class.getName());
 
   @Override
   public Class<Resource> getType() {
@@ -48,37 +51,24 @@ public class TruncateCommandLineResourceDetectorComponentProvider
 
   @Override
   public Resource create(DeclarativeConfigProperties config) {
-    Resource resource = ProcessResource.get();
+    Resource resource = ProcessResource.get().merge(ProcessRuntimeResource.get());
 
-    List<String> commandArgs =
-        resource.getAttribute(ProcessIncubatingAttributes.PROCESS_COMMAND_ARGS);
+    List<String> commandArgs = resource.getAttribute(PROCESS_COMMAND_ARGS);
     if (commandArgs != null) {
-      List<String> newCommandArgs =
-          StringListShortener.truncate(commandArgs, MAX_COMMAND_LINE_LENGTH);
+      logger.fine(() -> "Truncate resource attribute" + PROCESS_COMMAND_ARGS.getKey());
+      List<String> newCommandArgs = truncate(commandArgs, MAX_COMMAND_LINE_LENGTH);
       if (newCommandArgs != null) {
-        logger.fine(
-            () ->
-                "Truncate resource attribute"
-                    + ProcessIncubatingAttributes.PROCESS_COMMAND_ARGS.getKey());
         resource =
-            resource.merge(
-                Resource.create(
-                    Attributes.of(
-                        ProcessIncubatingAttributes.PROCESS_COMMAND_ARGS, newCommandArgs)));
+            resource.merge(Resource.create(Attributes.of(PROCESS_COMMAND_ARGS, newCommandArgs)));
       }
     }
 
-    String commandLine = resource.getAttribute(ProcessIncubatingAttributes.PROCESS_COMMAND_LINE);
+    String commandLine = resource.getAttribute(PROCESS_COMMAND_LINE);
     if (commandLine != null && commandLine.length() > MAX_COMMAND_LINE_LENGTH) {
-      logger.fine(
-          () ->
-              "Truncate resource attribute"
-                  + ProcessIncubatingAttributes.PROCESS_COMMAND_LINE.getKey());
+      logger.fine(() -> "Truncate resource attribute" + PROCESS_COMMAND_LINE.getKey());
       String newCommandLine = commandLine.substring(0, MAX_COMMAND_LINE_LENGTH - 3) + "...";
       resource =
-          resource.merge(
-              Resource.create(
-                  Attributes.of(ProcessIncubatingAttributes.PROCESS_COMMAND_LINE, newCommandLine)));
+          resource.merge(Resource.create(Attributes.of(PROCESS_COMMAND_LINE, newCommandLine)));
     }
 
     return resource;

@@ -31,11 +31,11 @@ import java.util.Map;
 import java.util.logging.Logger;
 
 @AutoService(DeclarativeConfigurationCustomizerProvider.class)
-public class TruncateCommandLineCustomizerProvider
+public class ProcessResourceDetectorCustomizer
     implements DeclarativeConfigurationCustomizerProvider {
 
   private static final Logger logger =
-      Logger.getLogger(TruncateCommandLineCustomizerProvider.class.getName());
+      Logger.getLogger(ProcessResourceDetectorCustomizer.class.getName());
 
   @Override
   public void customize(DeclarativeConfigurationCustomizer autoConfiguration) {
@@ -54,33 +54,35 @@ public class TruncateCommandLineCustomizerProvider
                           javaConfigProperties, METRICS_FULL_COMMAND_LINE, false)
                       .toString());
 
-          if (!forceFullCommandline) {
-            ResourceModel resourceModel = model.getResource();
-            if (resourceModel == null) {
-              resourceModel = new ResourceModel();
-              model.withResource(resourceModel);
-            }
+          ResourceModel resourceModel = model.getResource();
+          if (resourceModel == null) {
+            resourceModel = new ResourceModel();
+            model.withResource(resourceModel);
+          }
 
-            ExperimentalResourceDetectionModel detectionDevelopment =
-                resourceModel.getDetectionDevelopment();
-            if (detectionDevelopment == null) {
-              detectionDevelopment = new ExperimentalResourceDetectionModel();
-              resourceModel.withDetectionDevelopment(detectionDevelopment);
-            }
+          ExperimentalResourceDetectionModel detectionDevelopment =
+              resourceModel.getDetectionDevelopment();
+          if (detectionDevelopment == null) {
+            detectionDevelopment = new ExperimentalResourceDetectionModel();
+            resourceModel.withDetectionDevelopment(detectionDevelopment);
+          }
 
-            List<ExperimentalResourceDetectorModel> detectors = detectionDevelopment.getDetectors();
-            if (detectors == null) {
-              detectors = new ArrayList<>();
-              detectionDevelopment.withDetectors(detectors);
-            }
+          List<ExperimentalResourceDetectorModel> detectors = detectionDevelopment.getDetectors();
+          if (detectors == null) {
+            detectors = new ArrayList<>();
+            detectionDevelopment.withDetectors(detectors);
+          }
 
-            ExperimentalResourceDetectorModel truncatingDetector =
-                new ExperimentalResourceDetectorModel();
-            truncatingDetector.setAdditionalProperty(
-                TruncateCommandLineResourceDetectorComponentProvider.PROVIDER_NAME, null);
-            if (!detectors.contains(truncatingDetector)) {
-              detectors.add(truncatingDetector);
-            }
+          // Use standard ProcessResourceComponentProvider resource detector from the upstream, or
+          // truncate command line resource detector depending on the settings
+          ExperimentalResourceDetectorModel truncatingDetector =
+              new ExperimentalResourceDetectorModel();
+          String detectorName =
+              forceFullCommandline ? "process" : TruncateCommandLineResourceDetector.PROVIDER_NAME;
+          truncatingDetector.setAdditionalProperty(detectorName, null);
+
+          if (!detectors.contains(truncatingDetector)) {
+            detectors.add(truncatingDetector);
           }
 
           return model;
@@ -90,16 +92,6 @@ public class TruncateCommandLineCustomizerProvider
   @Override
   public int order() {
     // Need to run late so that we can override other resource customizers
-    return 9999;
-  }
-
-  private static final int MAX_LENGTH = 255;
-
-  public void applyCustomization(ResourceModel resourceModel, Map<String, Object> config) {
-    boolean forceFullCommandline =
-        Boolean.parseBoolean(
-            getAdditionalPropertyOrDefault(config, METRICS_FULL_COMMAND_LINE, false).toString());
-
-    if (!forceFullCommandline) {}
+    return Integer.MAX_VALUE;
   }
 }

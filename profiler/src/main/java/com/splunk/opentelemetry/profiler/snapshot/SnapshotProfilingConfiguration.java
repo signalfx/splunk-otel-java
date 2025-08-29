@@ -33,7 +33,7 @@ public class SnapshotProfilingConfiguration implements AutoConfigurationCustomiz
   private static final String PREFIX = "splunk.snapshot.profiler";
   public static final String CONFIG_KEY_ENABLE_SNAPSHOT_PROFILER = PREFIX + ".enabled";
 
-  private static final String SELECTION_RATE_KEY = "splunk.snapshot.selection.rate";
+  private static final String SELECTION_PROBABILITY_KEY = "splunk.snapshot.selection.probability";
   private static final double DEFAULT_SELECTION_RATE = 0.01;
   private static final double MAX_SELECTION_RATE = 0.10;
 
@@ -57,7 +57,7 @@ public class SnapshotProfilingConfiguration implements AutoConfigurationCustomiz
         () -> {
           Map<String, String> map = new HashMap<>();
           map.put(CONFIG_KEY_ENABLE_SNAPSHOT_PROFILER, String.valueOf(false));
-          map.put(SELECTION_RATE_KEY, String.valueOf(DEFAULT_SELECTION_RATE));
+          map.put(SELECTION_PROBABILITY_KEY, String.valueOf(DEFAULT_SELECTION_RATE));
           map.put(STACK_DEPTH_KEY, String.valueOf(DEFAULT_STACK_DEPTH));
           map.put(SAMPLING_INTERVAL_KEY, DEFAULT_SAMPLING_INTERVAL_STRING);
           map.put(EXPORT_INTERVAL_KEY, DEFAULT_EXPORT_INTERVAL_STRING);
@@ -66,13 +66,26 @@ public class SnapshotProfilingConfiguration implements AutoConfigurationCustomiz
         });
   }
 
+  static void log(ConfigProperties properties) {
+    logger.fine("Snapshot Profiler Configuration:");
+    logger.fine("-------------------------------------------------------");
+
+    log(CONFIG_KEY_ENABLE_SNAPSHOT_PROFILER, isSnapshotProfilingEnabled(properties));
+    log(SELECTION_PROBABILITY_KEY, getSnapshotSelectionProbability(properties));
+    log(STACK_DEPTH_KEY, getStackDepth(properties));
+    log(SAMPLING_INTERVAL_KEY, getSamplingInterval(properties));
+    log(EXPORT_INTERVAL_KEY, getExportInterval(properties));
+    log(STAGING_CAPACITY_KEY, getStagingCapacity(properties));
+    logger.fine("-------------------------------------------------------");
+  }
+
   static boolean isSnapshotProfilingEnabled(ConfigProperties properties) {
     return properties.getBoolean(CONFIG_KEY_ENABLE_SNAPSHOT_PROFILER, false);
   }
 
-  static double getSnapshotSelectionRate(ConfigProperties properties) {
+  static double getSnapshotSelectionProbability(ConfigProperties properties) {
     String selectionRatePropertyValue =
-        properties.getString(SELECTION_RATE_KEY, String.valueOf(DEFAULT_SELECTION_RATE));
+        properties.getString(SELECTION_PROBABILITY_KEY, String.valueOf(DEFAULT_SELECTION_RATE));
     try {
       double selectionRate = Double.parseDouble(selectionRatePropertyValue);
       if (selectionRate > MAX_SELECTION_RATE) {
@@ -110,19 +123,6 @@ public class SnapshotProfilingConfiguration implements AutoConfigurationCustomiz
 
   static int getStagingCapacity(ConfigProperties properties) {
     return properties.getInt(STAGING_CAPACITY_KEY, DEFAULT_STAGING_CAPACITY);
-  }
-
-  static void log(ConfigProperties properties) {
-    logger.fine("Snapshot Profiler Configuration:");
-    logger.fine("-------------------------------------------------------");
-
-    log(CONFIG_KEY_ENABLE_SNAPSHOT_PROFILER, isSnapshotProfilingEnabled(properties));
-    log(SELECTION_RATE_KEY, getSnapshotSelectionRate(properties));
-    log(STACK_DEPTH_KEY, getStackDepth(properties));
-    log(SAMPLING_INTERVAL_KEY, getSamplingInterval(properties));
-    log(EXPORT_INTERVAL_KEY, getExportInterval(properties));
-    log(STAGING_CAPACITY_KEY, getStagingCapacity(properties));
-    logger.fine("-------------------------------------------------------");
   }
 
   private static void log(String key, Object value) {

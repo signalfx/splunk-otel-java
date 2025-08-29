@@ -29,11 +29,11 @@ import java.util.Collections;
 class TraceIdBasedSnapshotSelector implements SnapshotSelector {
   private final Sampler sampler;
 
-  TraceIdBasedSnapshotSelector(double selectionRate) {
-    if (selectionRate < 0 || selectionRate > 1) {
-      throw new IllegalArgumentException("Selection rate must be between 0 and 1.");
+  TraceIdBasedSnapshotSelector(double selectionProbability) {
+    if (selectionProbability < 0 || selectionProbability > 1) {
+      throw new IllegalArgumentException("Selection probability must be between 0 and 1.");
     }
-    this.sampler = Sampler.traceIdRatioBased(selectionRate);
+    this.sampler = Sampler.traceIdRatioBased(selectionProbability);
   }
 
   @Override

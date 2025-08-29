@@ -156,7 +156,7 @@ public abstract class SnapshotProfilerSmokeTest {
                 "-Dotel.javaagent.debug=true",
                 "-Dotel.logs.exporter=none",
                 "-Dsplunk.snapshot.profiler.enabled=true",
-                "-Dsplunk.snapshot.selection.rate=0.1",
+                "-Dsplunk.snapshot.selection.probability=0.1",
                 "-Dsplunk.profiler.logs-endpoint=http://collector:4318/v1/logs",
                 // uncomment to enable exporting traces
                 // "-Dotel.exporter.otlp.endpoint=http://collector:4318",

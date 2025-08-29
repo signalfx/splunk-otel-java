@@ -51,7 +51,7 @@ class SnapshotProfilingConfigurationTest {
     void defaultValuesAreProvidedToOpenTelemetry() {
       var properties = sdk.getConfig();
       assertEquals("false", properties.getString("splunk.snapshot.profiler.enabled"));
-      assertEquals("0.01", properties.getString("splunk.snapshot.selection.rate"));
+      assertEquals("0.01", properties.getString("splunk.snapshot.selection.probability"));
       assertEquals("1024", properties.getString("splunk.snapshot.profiler.max.stack.depth"));
       assertEquals("10ms", properties.getString("splunk.snapshot.profiler.sampling.interval"));
       assertEquals("5s", properties.getString("splunk.snapshot.profiler.export.interval"));
@@ -76,48 +76,48 @@ class SnapshotProfilingConfigurationTest {
 
   @ParameterizedTest
   @ValueSource(doubles = {0.10, 0.05, 0.0})
-  void getSnapshotSelectionRate(double selectionRate) {
+  void getSnapshotSelectionProbability(double selectionRate) {
     var properties =
         DefaultConfigProperties.create(
-            Map.of("splunk.snapshot.selection.rate", String.valueOf(selectionRate)),
+            Map.of("splunk.snapshot.selection.probability", String.valueOf(selectionRate)),
             COMPONENT_LOADER);
 
     double actualSelectionRate =
-        SnapshotProfilingConfiguration.getSnapshotSelectionRate(properties);
+        SnapshotProfilingConfiguration.getSnapshotSelectionProbability(properties);
     assertEquals(selectionRate, actualSelectionRate);
   }
 
   @Test
-  void getSnapshotSelectionRateUsesDefaultWhenPropertyNotSet() {
+  void getSnapshotSelectionProbabilityUsesDefaultWhenPropertyNotSet() {
     var properties = DefaultConfigProperties.create(Collections.emptyMap(), COMPONENT_LOADER);
 
     double actualSelectionRate =
-        SnapshotProfilingConfiguration.getSnapshotSelectionRate(properties);
+        SnapshotProfilingConfiguration.getSnapshotSelectionProbability(properties);
     assertEquals(0.01, actualSelectionRate);
   }
 
   @Test
-  void getSnapshotSelectionRateUsesDefaultValueIsNotNumeric() {
+  void getSnapshotSelectionProbabilityUsesDefaultValueIsNotNumeric() {
     var properties =
         DefaultConfigProperties.create(
-            Map.of("splunk.snapshot.selection.rate", "not-a-number"), COMPONENT_LOADER);
+            Map.of("splunk.snapshot.selection.probability", "not-a-number"), COMPONENT_LOADER);
 
     double actualSelectionRate =
-        SnapshotProfilingConfiguration.getSnapshotSelectionRate(properties);
+        SnapshotProfilingConfiguration.getSnapshotSelectionProbability(properties);
     assertEquals(0.01, actualSelectionRate);
   }
 
   @ParameterizedTest
   @ValueSource(doubles = {1.0, 0.5, 0.11})
-  void getSnapshotSelectionRateUsesMaxSelectionRateWhenConfiguredRateIsHigher(
+  void getSnapshotSelectionRateUsesMaxSelectionRateWhenConfiguredProbabilityIsHigher(
       double selectionRate) {
     var properties =
         DefaultConfigProperties.create(
-            Map.of("splunk.snapshot.selection.rate", String.valueOf(selectionRate)),
+            Map.of("splunk.snapshot.selection.probability", String.valueOf(selectionRate)),
             COMPONENT_LOADER);
 
     double actualSelectionRate =
-        SnapshotProfilingConfiguration.getSnapshotSelectionRate(properties);
+        SnapshotProfilingConfiguration.getSnapshotSelectionProbability(properties);
     assertEquals(0.10, actualSelectionRate);
   }
 
@@ -223,9 +223,10 @@ class SnapshotProfilingConfigurationTest {
     void includeSnapshotProfilingSelectionRate(double rate) {
       var properties =
           DefaultConfigProperties.create(
-              Map.of("splunk.snapshot.selection.rate", String.valueOf(rate)), COMPONENT_LOADER);
+              Map.of("splunk.snapshot.selection.probability", String.valueOf(rate)),
+              COMPONENT_LOADER);
       SnapshotProfilingConfiguration.log(properties);
-      log.assertContains("splunk.snapshot.selection.rate" + " : " + rate);
+      log.assertContains("splunk.snapshot.selection.probability" + " : " + rate);
     }
 
     @ParameterizedTest

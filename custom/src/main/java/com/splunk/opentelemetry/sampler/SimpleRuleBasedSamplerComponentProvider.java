@@ -18,24 +18,37 @@ package com.splunk.opentelemetry.sampler;
 
 import static java.util.logging.Level.INFO;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.auto.service.AutoService;
 import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
 import io.opentelemetry.sdk.autoconfigure.spi.internal.ComponentProvider;
 import io.opentelemetry.sdk.trace.samplers.Sampler;
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
-/** This class is for file based configuration */
+// TODO: Is this class needed? see:
+//  https://github.com/open-telemetry/opentelemetry-java-contrib/tree/main/samplers
+//  https://youtu.be/u6svjtGpXO4?t=1262,
+//  The same effect can be achieved with YAML not using our :
+//    rule_based_routing:
+//      fallback_sampler:
+//        always_off:
+//      span_kind: SERVER
+//      rules:
+//        - action: DROP
+//          attribute: url.path
+//          pattern: /url1.*
+//        - action: DROP
+//          attribute: url.path
+//          pattern: /url2
+
 @SuppressWarnings("rawtypes")
 @AutoService(ComponentProvider.class)
-public class RuleBasedSamplerComponentProvider implements ComponentProvider<Sampler> {
+public class SimpleRuleBasedSamplerComponentProvider implements ComponentProvider<Sampler> {
   private static final Logger logger =
-      Logger.getLogger(RuleBasedSamplerComponentProvider.class.getName());
+      Logger.getLogger(SimpleRuleBasedSamplerComponentProvider.class.getName());
 
   @Override
   public Class<Sampler> getType() {
@@ -44,7 +57,7 @@ public class RuleBasedSamplerComponentProvider implements ComponentProvider<Samp
 
   @Override
   public String getName() {
-    return "rules";
+    return "simple_rule_based_routing";
   }
 
   @Override
@@ -54,25 +67,16 @@ public class RuleBasedSamplerComponentProvider implements ComponentProvider<Samp
         samplerConfigProperties != null
             ? DeclarativeConfigProperties.toMap(samplerConfigProperties)
             : new HashMap<>();
-    ObjectMapper objectMapper = new ObjectMapper();
-    RuleBasedSamplerConfig config =
-        objectMapper.convertValue(configPropertiesMap, RuleBasedSamplerConfig.class);
 
-    logger.log(INFO, "Received following rules: {0}", config);
+    logger.log(INFO, "Received following rules: {0}", configPropertiesMap);
 
-    return RuleBasedSamplerFactory.create(config.fallback, config.drop);
-  }
+    Object fallbackProperty = configPropertiesMap.get("fallback");
+    String fallback =
+        fallbackProperty != null ? fallbackProperty.toString() : "parentbased_always_on";
 
-  private static class RuleBasedSamplerConfig {
-    @JsonProperty("fallback")
-    private String fallback = "parentbased_always_on";
+    List<String> drop = (List<String>) configPropertiesMap.get("drop");
+    drop = drop != null ? drop : Collections.emptyList();
 
-    @JsonProperty("drop")
-    private List<String> drop = new ArrayList<>();
-
-    @Override
-    public String toString() {
-      return "RuleBasedSamplerConfig{" + "drop=" + drop + ", fallback=" + fallback + '}';
-    }
+    return RuleBasedSamplerFactory.create(fallback, drop);
   }
 }

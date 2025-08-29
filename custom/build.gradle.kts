@@ -15,7 +15,6 @@ dependencies {
   annotationProcessor("com.google.auto.service:auto-service")
   compileOnly("com.google.auto.service:auto-service")
 
-  implementation("com.fasterxml.jackson.core:jackson-databind:2.0.1") // TEMPORARY
   implementation("io.opentelemetry.contrib:opentelemetry-samplers")
   implementation("io.opentelemetry.contrib:opentelemetry-resource-providers")
 

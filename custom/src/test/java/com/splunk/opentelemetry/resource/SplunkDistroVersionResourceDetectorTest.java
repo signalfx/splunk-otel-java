@@ -26,14 +26,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import org.junit.jupiter.api.Test;
 
-class SplunkDistroVersionResourceDetectorComponentProviderTest {
+class SplunkDistroVersionResourceDetectorTest {
   @Test
   void shouldCreateResourceWithDistroVersionInformation() throws IOException {
     var properties = "telemetry.distro.version = 5.1.4";
     InputStream propertiesStream = new ByteArrayInputStream(properties.getBytes());
 
-    Resource resource =
-        SplunkDistroVersionResourceDetectorComponentProvider.createResource(propertiesStream);
+    Resource resource = SplunkDistroVersionResourceDetector.createResource(propertiesStream);
 
     assertThat(resource).isNotNull();
     assertThat(resource.getAttributes().asMap())

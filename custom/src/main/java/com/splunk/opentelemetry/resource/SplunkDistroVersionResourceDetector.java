@@ -34,10 +34,9 @@ import java.util.logging.Logger;
 
 @SuppressWarnings("rawtypes")
 @AutoService(ComponentProvider.class)
-public class SplunkDistroVersionResourceDetectorComponentProvider
-    implements ComponentProvider<Resource> {
+public class SplunkDistroVersionResourceDetector implements ComponentProvider<Resource> {
   private static final Logger logger =
-      Logger.getLogger(SplunkDistroVersionResourceDetectorComponentProvider.class.getName());
+      Logger.getLogger(SplunkDistroVersionResourceDetector.class.getName());
 
   private final AtomicReference<Resource> resourceReference = new AtomicReference<>();
 

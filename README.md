@@ -26,7 +26,7 @@ for details.
   <a href="https://github.com/signalfx/splunk-otel-java/releases">
     <img alt="GitHub release (latest SemVer)" src="https://img.shields.io/github/v/release/signalfx/splunk-otel-java?include_prereleases&style=for-the-badge">
   </a>
-  <a href="https://maven-badges.herokuapp.com/maven-central/com.splunk/splunk-otel-javaagent">
+  <a href="https://central.sonatype.com/artifact/com.splunk/splunk-otel-javaagent">
     <img alt="Maven Central" src="https://img.shields.io/maven-central/v/com.splunk/splunk-otel-javaagent?style=for-the-badge">
   </a>
   <a href="https://github.com/signalfx/splunk-otel-java/actions/workflows/ci.yaml">

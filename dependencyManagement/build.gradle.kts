@@ -28,7 +28,7 @@ javaPlatform {
 dependencies {
 
   // BOMs
-  api(enforcedPlatform("com.fasterxml.jackson:jackson-bom:2.19.2"))
+  api(enforcedPlatform("com.fasterxml.jackson:jackson-bom:2.20.0"))
   api(enforcedPlatform("com.google.protobuf:protobuf-bom:$protobufVersion"))
   api(enforcedPlatform("com.squareup.okhttp3:okhttp-bom:5.1.0"))
   api(enforcedPlatform("io.grpc:grpc-bom:1.75.0"))
@@ -55,6 +55,6 @@ dependencies {
 
     api("io.opentelemetry.contrib:opentelemetry-samplers:$otelContribAlphaVersion")
     api("io.opentelemetry.contrib:opentelemetry-resource-providers:$otelContribAlphaVersion")
-    api("io.opentelemetry.proto:opentelemetry-proto:1.7.0-alpha")
+    api("io.opentelemetry.proto:opentelemetry-proto:1.8.0-alpha")
   }
 }

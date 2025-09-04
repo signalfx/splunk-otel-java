@@ -26,16 +26,31 @@ import java.io.IOException;
 import java.io.InputStream;
 import org.junit.jupiter.api.Test;
 
-class SplunkDistroVersionResourceDetectorTest {
+class SplunkDistroVersionResourceFactoryTest {
   @Test
   void shouldCreateResourceWithDistroVersionInformation() throws IOException {
+    // given
     var properties = "telemetry.distro.version = 5.1.4";
     InputStream propertiesStream = new ByteArrayInputStream(properties.getBytes());
 
-    Resource resource = SplunkDistroVersionResourceDetector.createResource(propertiesStream);
+    // when
+    Resource resource = SplunkDistroVersionResourceFactory.createResource(propertiesStream);
 
+    // then
     assertThat(resource).isNotNull();
+    assertThat(resource.getAttributes().size()).isEqualTo(1);
     assertThat(resource.getAttributes().asMap())
         .containsOnly(entry(TELEMETRY_DISTRO_VERSION, "5.1.4"));
+  }
+
+  @Test
+  void shouldCreateEmptyResourceIfNoSplunkPropertiesFile() throws IOException {
+    // when
+    Resource resource = SplunkDistroVersionResourceFactory.createResource();
+
+    // then
+    assertThat(resource).isNotNull();
+    assertThat(resource.getAttributes().size()).isEqualTo(1);
+    assertThat(resource.getAttributes().get(TELEMETRY_DISTRO_VERSION)).isNotEmpty();
   }
 }

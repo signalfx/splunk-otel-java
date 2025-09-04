@@ -16,31 +16,17 @@
 
 package com.splunk.opentelemetry.resource;
 
-import static io.opentelemetry.semconv.incubating.TelemetryIncubatingAttributes.TELEMETRY_DISTRO_VERSION;
+import static com.splunk.opentelemetry.resource.SplunkDistroVersionResourceFactory.createResource;
 
 import com.google.auto.service.AutoService;
-import com.google.common.annotations.VisibleForTesting;
-import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
-import io.opentelemetry.sdk.autoconfigure.spi.ResourceProvider;
 import io.opentelemetry.sdk.autoconfigure.spi.internal.ComponentProvider;
 import io.opentelemetry.sdk.resources.Resource;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Properties;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 @SuppressWarnings("rawtypes")
 @AutoService(ComponentProvider.class)
 public class SplunkDistroVersionResourceDetector implements ComponentProvider<Resource> {
-  private static final Logger logger =
-      Logger.getLogger(SplunkDistroVersionResourceDetector.class.getName());
-
-  private final AtomicReference<Resource> resourceReference = new AtomicReference<>();
-
-  private static final String SPLUNK_PROPERTIES = "splunk.properties";
+  private static final Resource DISTRO_VERSION_RESOURCE = createResource();
 
   @Override
   public Class<Resource> getType() {
@@ -55,36 +41,6 @@ public class SplunkDistroVersionResourceDetector implements ComponentProvider<Re
 
   @Override
   public Resource create(DeclarativeConfigProperties config) {
-    if (resourceReference.get() == null) {
-      synchronized (resourceReference) {
-        if (resourceReference.get() == null) {
-          resourceReference.set(createResource());
-        }
-      }
-    }
-    return resourceReference.get();
-  }
-
-  @VisibleForTesting
-  static Resource createResource(InputStream inputStream) throws IOException {
-    if (inputStream == null) {
-      return Resource.empty();
-    }
-
-    Properties splunkProps = new Properties();
-    splunkProps.load(inputStream);
-    return Resource.create(
-        Attributes.of(
-            TELEMETRY_DISTRO_VERSION, splunkProps.getProperty(TELEMETRY_DISTRO_VERSION.getKey())));
-  }
-
-  private static Resource createResource() {
-    try (InputStream in =
-        ResourceProvider.class.getClassLoader().getResourceAsStream(SPLUNK_PROPERTIES)) {
-      return createResource(in);
-    } catch (IOException e) {
-      logger.log(Level.WARNING, "Failed to load " + SPLUNK_PROPERTIES, e);
-      return Resource.empty();
-    }
+    return DISTRO_VERSION_RESOURCE;
   }
 }

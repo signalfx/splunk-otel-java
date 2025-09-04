@@ -16,39 +16,16 @@
 
 package com.splunk.opentelemetry.resource;
 
-import static io.opentelemetry.semconv.incubating.TelemetryIncubatingAttributes.TELEMETRY_DISTRO_VERSION;
-
 import com.google.auto.service.AutoService;
-import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import io.opentelemetry.sdk.autoconfigure.spi.ResourceProvider;
 import io.opentelemetry.sdk.resources.Resource;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Properties;
 
 @AutoService(ResourceProvider.class)
 public class SplunkDistroVersionResourceProvider implements ResourceProvider {
 
-  private static final Resource DISTRO_VERSION_RESOURCE = initialize();
-
-  private static Resource initialize() {
-    try (InputStream in =
-        ResourceProvider.class.getClassLoader().getResourceAsStream("splunk.properties")) {
-      if (in == null) {
-        return Resource.empty();
-      }
-
-      Properties splunkProps = new Properties();
-      splunkProps.load(in);
-      return Resource.create(
-          Attributes.of(
-              TELEMETRY_DISTRO_VERSION,
-              splunkProps.getProperty(TELEMETRY_DISTRO_VERSION.getKey())));
-    } catch (IOException e) {
-      return Resource.empty();
-    }
-  }
+  private static final Resource DISTRO_VERSION_RESOURCE =
+      SplunkDistroVersionResourceFactory.createResource();
 
   @Override
   public Resource createResource(ConfigProperties config) {

@@ -14,22 +14,21 @@
  * limitations under the License.
  */
 
-package com.splunk.opentelemetry;
+package com.splunk.opentelemetry.resource;
 
 import com.google.auto.service.AutoService;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
-import io.opentelemetry.sdk.autoconfigure.spi.traces.ConfigurableSamplerProvider;
-import io.opentelemetry.sdk.trace.samplers.Sampler;
+import io.opentelemetry.sdk.autoconfigure.spi.ResourceProvider;
+import io.opentelemetry.sdk.resources.Resource;
 
-@AutoService(ConfigurableSamplerProvider.class)
-public class InternalRootOffSamplerProvider implements ConfigurableSamplerProvider {
-  @Override
-  public Sampler createSampler(ConfigProperties config) {
-    return new InternalRootOffSampler();
-  }
+@AutoService(ResourceProvider.class)
+public class SplunkDistroVersionResourceProvider implements ResourceProvider {
+
+  private static final Resource DISTRO_VERSION_RESOURCE =
+      SplunkDistroVersionResourceFactory.createResource();
 
   @Override
-  public String getName() {
-    return "internal_root_off";
+  public Resource createResource(ConfigProperties config) {
+    return DISTRO_VERSION_RESOURCE;
   }
 }

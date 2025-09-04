@@ -52,9 +52,11 @@ public class ServiceNameChecker implements BeforeAgentListener {
     if (serviceNameNotConfigured(config, resource)) {
       // TODO: For declarative configuration the message should be rephrased
       logWarn.accept(
-          "The service.name resource attribute is not set. Your service is unnamed and will be difficult to identify.\n"
-              + " Set your service name using the OTEL_SERVICE_NAME or OTEL_RESOURCE_ATTRIBUTES environment variable.\n"
-              + " E.g. `OTEL_SERVICE_NAME=\"<YOUR_SERVICE_NAME_HERE>\"`");
+          "The service.name resource attribute is not set. Your service is unnamed and will be difficult to identify."
+              + " Depending on the configuration method applied set your service name using"
+              + " the OTEL_SERVICE_NAME / OTEL_RESOURCE_ATTRIBUTES environment variable,"
+              + " the 'otel.service.name' / 'otel.resource.attributes' system property or"
+              + " resource attribute in configuration YAML file.");
     }
   }
 

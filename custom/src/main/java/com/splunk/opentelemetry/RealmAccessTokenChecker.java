@@ -46,9 +46,14 @@ public class RealmAccessTokenChecker implements BeforeAgentListener {
     ConfigProperties config = getConfig(autoConfiguredOpenTelemetrySdk);
 
     if (isRealmConfigured(config) && !isAccessTokenConfigured(config)) {
-      // TODO: For declarative configuration message wording should be different
+      // TODO: Update 'instrumentation/development' to 'instrumentation' once YAML schema stabilize
       logWarn.accept(
-          "Splunk realm is defined, which sets the default endpoint URLs to Splunk ingest URLs. However, access token is not defined, which is required for those endpoints. Please set the access token using the 'SPLUNK_ACCESS_TOKEN' environment variable or the 'splunk.access.token' system property.");
+          "Splunk realm is defined, which sets the default endpoint URLs to Splunk ingest URLs."
+              + " However, access token is not defined, which is required for those endpoints."
+              + " Depending on configuration method used please set the access token using"
+              + " the 'SPLUNK_ACCESS_TOKEN' environment variable,"
+              + " the 'splunk.access.token' system property or"
+              + " 'instrumentation/development.java.splunk.access.token' property in configuration YAML file.");
     }
   }
 

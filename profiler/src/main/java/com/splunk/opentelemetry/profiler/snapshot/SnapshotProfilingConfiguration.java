@@ -30,25 +30,21 @@ public class SnapshotProfilingConfiguration implements AutoConfigurationCustomiz
   private static final Logger logger =
       Logger.getLogger(SnapshotProfilingConfiguration.class.getName());
 
-  private static final String PREFIX = "splunk.snapshot.profiler";
-  public static final String CONFIG_KEY_ENABLE_SNAPSHOT_PROFILER = PREFIX + ".enabled";
-
+  public static final String CONFIG_KEY_ENABLE_SNAPSHOT_PROFILER =
+      "splunk.snapshot.profiler.enabled";
   private static final String SELECTION_PROBABILITY_KEY = "splunk.snapshot.selection.probability";
-  private static final double DEFAULT_SELECTION_RATE = 0.01;
-  private static final double MAX_SELECTION_RATE = 0.10;
+  private static final String STACK_DEPTH_KEY = "splunk.snapshot.profiler.max.stack.depth";
+  private static final String SAMPLING_INTERVAL_KEY = "splunk.snapshot.profiler.sampling.interval";
+  private static final String EXPORT_INTERVAL_KEY = "splunk.snapshot.profiler.export.interval";
+  private static final String STAGING_CAPACITY_KEY = "splunk.snapshot.profiler.staging.capacity";
 
-  private static final String STACK_DEPTH_KEY = PREFIX + ".max.stack.depth";
+  private static final double DEFAULT_SELECTION_PROBABILITY = 0.01;
+  private static final double MAX_SELECTION_PROBABILITY = 0.10;
   private static final int DEFAULT_STACK_DEPTH = 1024;
-
-  private static final String SAMPLING_INTERVAL_KEY = PREFIX + ".sampling.interval";
   private static final String DEFAULT_SAMPLING_INTERVAL_STRING = "10ms";
   private static final Duration DEFAULT_SAMPLING_INTERVAL = Duration.ofMillis(10);
-
-  private static final String EXPORT_INTERVAL_KEY = PREFIX + ".export.interval";
   private static final String DEFAULT_EXPORT_INTERVAL_STRING = "5s";
   private static final Duration DEFAULT_EXPORT_INTERVAL = Duration.ofSeconds(5);
-
-  private static final String STAGING_CAPACITY_KEY = PREFIX + ".staging.capacity";
   private static final int DEFAULT_STAGING_CAPACITY = 2000;
 
   @Override
@@ -57,7 +53,7 @@ public class SnapshotProfilingConfiguration implements AutoConfigurationCustomiz
         () -> {
           Map<String, String> map = new HashMap<>();
           map.put(CONFIG_KEY_ENABLE_SNAPSHOT_PROFILER, String.valueOf(false));
-          map.put(SELECTION_PROBABILITY_KEY, String.valueOf(DEFAULT_SELECTION_RATE));
+          map.put(SELECTION_PROBABILITY_KEY, String.valueOf(DEFAULT_SELECTION_PROBABILITY));
           map.put(STACK_DEPTH_KEY, String.valueOf(DEFAULT_STACK_DEPTH));
           map.put(SAMPLING_INTERVAL_KEY, DEFAULT_SAMPLING_INTERVAL_STRING);
           map.put(EXPORT_INTERVAL_KEY, DEFAULT_EXPORT_INTERVAL_STRING);
@@ -84,28 +80,29 @@ public class SnapshotProfilingConfiguration implements AutoConfigurationCustomiz
   }
 
   static double getSnapshotSelectionProbability(ConfigProperties properties) {
-    String selectionRatePropertyValue =
-        properties.getString(SELECTION_PROBABILITY_KEY, String.valueOf(DEFAULT_SELECTION_RATE));
+    String selectionProbabilityPropertyValue =
+        properties.getString(
+            SELECTION_PROBABILITY_KEY, String.valueOf(DEFAULT_SELECTION_PROBABILITY));
     try {
-      double selectionRate = Double.parseDouble(selectionRatePropertyValue);
-      if (selectionRate > MAX_SELECTION_RATE) {
+      double selectionProbability = Double.parseDouble(selectionProbabilityPropertyValue);
+      if (selectionProbability > MAX_SELECTION_PROBABILITY) {
         logger.warning(
-            "Configured snapshot selection rate of '"
-                + selectionRatePropertyValue
-                + "' is higher than the maximum allowed rate. Using maximum allowed snapshot selection rate of '"
-                + MAX_SELECTION_RATE
+            "Configured snapshot selection probability of '"
+                + selectionProbabilityPropertyValue
+                + "' is higher than the maximum allowed probability. Using maximum allowed snapshot selection probability of '"
+                + MAX_SELECTION_PROBABILITY
                 + "'");
-        return MAX_SELECTION_RATE;
+        return MAX_SELECTION_PROBABILITY;
       }
-      return selectionRate;
+      return selectionProbability;
     } catch (NumberFormatException e) {
       logger.warning(
-          "Invalid snapshot selection rate: '"
-              + selectionRatePropertyValue
-              + "', using default rate of '"
-              + DEFAULT_SELECTION_RATE
+          "Invalid snapshot selection probability: '"
+              + selectionProbabilityPropertyValue
+              + "', using default probability of '"
+              + DEFAULT_SELECTION_PROBABILITY
               + "'");
-      return DEFAULT_SELECTION_RATE;
+      return DEFAULT_SELECTION_PROBABILITY;
     }
   }
 

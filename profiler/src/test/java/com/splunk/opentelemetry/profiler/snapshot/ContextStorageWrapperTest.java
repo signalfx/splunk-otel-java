@@ -28,8 +28,8 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 
 class ContextStorageWrapperTest {
   /**
-   * {@link ResettingContextStorageWrapper} extends {@link ContextStorageWrapper} so we're still
-   * the intended functionality.
+   * {@link ResettingContextStorageWrapper} extends {@link ContextStorageWrapper} so we're still the
+   * intended functionality.
    */
   @RegisterExtension
   private final ResettingContextStorageWrapper wrapper = new ResettingContextStorageWrapper();
@@ -67,9 +67,9 @@ class ContextStorageWrapperTest {
   }
 
   /**
-   * This test implicitly tests that span tracking happens first by checking the reported
-   * span id of the first on demand sample taken when profiling is started for the current
-   * thread. When span id tracking happens 2nd, the reported span will be an invalid span id.
+   * This test implicitly tests that span tracking happens first by checking the reported span id of
+   * the first on demand sample taken when profiling is started for the current thread. When span id
+   * tracking happens 2nd, the reported span will be an invalid span id.
    */
   @Test
   void spanTrackingRunsBeforeThreadChangeDetector() {
@@ -82,12 +82,15 @@ class ContextStorageWrapperTest {
     var staging = new InMemoryStagingArea();
     StagingArea.SUPPLIER.configure(staging);
 
-    var sampler = new PeriodicStackTraceSampler(StagingArea.SUPPLIER, SpanTracker.SUPPLIER, Duration.ofMinutes(1));
+    var sampler =
+        new PeriodicStackTraceSampler(
+            StagingArea.SUPPLIER, SpanTracker.SUPPLIER, Duration.ofMinutes(1));
     StackTraceSampler.SUPPLIER.configure(sampler);
 
     wrapper.wrapContextStorage(registry);
     try (var ignored = Context.current().with(span).makeCurrent()) {
-      var activeSpan = SpanTracker.SUPPLIER.get().getActiveSpan(Thread.currentThread()).orElseThrow();
+      var activeSpan =
+          SpanTracker.SUPPLIER.get().getActiveSpan(Thread.currentThread()).orElseThrow();
       var stackTrace = staging.allStackTraces().get(0);
       assertEquals(activeSpan.getSpanId(), stackTrace.getSpanId());
     }

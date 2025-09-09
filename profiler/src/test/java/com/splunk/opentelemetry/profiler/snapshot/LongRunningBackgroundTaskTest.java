@@ -24,6 +24,8 @@ import com.splunk.opentelemetry.profiler.snapshot.simulation.Message;
 import com.splunk.opentelemetry.profiler.snapshot.simulation.Server;
 import io.opentelemetry.sdk.autoconfigure.OpenTelemetrySdkExtension;
 import java.time.Duration;
+import java.util.concurrent.CountDownLatch;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
@@ -40,6 +42,8 @@ class LongRunningBackgroundTaskTest {
           .with(new SnapshotVolumePropagator((c) -> true))
           .build();
 
+  private CountDownLatch slowTaskLatch = new CountDownLatch(1);
+
   @RegisterExtension
   public final Server server =
       Server.builder(sdk).named("server").performing(Background.task(slowTask())).build();
@@ -47,11 +51,17 @@ class LongRunningBackgroundTaskTest {
   private Runnable slowTask() {
     return () -> {
       try {
-        Thread.sleep(250);
+        slowTaskLatch.await();
       } catch (InterruptedException e) {
         e.printStackTrace();
       }
     };
+  }
+
+  @AfterEach
+  void reset() {
+    slowTaskLatch.countDown();
+    slowTaskLatch = new CountDownLatch(1);
   }
 
   @Test

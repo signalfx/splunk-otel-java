@@ -19,6 +19,7 @@ package com.splunk.opentelemetry.instrumentation.jdbc.oracle;
 import com.splunk.opentelemetry.instrumentation.jdbc.AbstractDbContextPropagator;
 import java.sql.Connection;
 import java.sql.SQLException;
+import javax.annotation.Nullable;
 
 public final class OracleContextPropagator extends AbstractDbContextPropagator {
   public static final OracleContextPropagator INSTANCE = new OracleContextPropagator();
@@ -26,7 +27,8 @@ public final class OracleContextPropagator extends AbstractDbContextPropagator {
   private OracleContextPropagator() {}
 
   @Override
-  protected void setContext(Connection connection, String contextInfo) throws SQLException {
+  protected void setContext(Connection connection, @Nullable String contextInfo)
+      throws SQLException {
     connection.setClientInfo("OCSID.ACTION", contextInfo);
   }
 }

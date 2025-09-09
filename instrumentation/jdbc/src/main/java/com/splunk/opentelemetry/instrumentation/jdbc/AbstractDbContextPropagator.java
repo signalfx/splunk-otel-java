@@ -23,6 +23,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
+import javax.annotation.Nullable;
 
 public abstract class AbstractDbContextPropagator {
   private static final VirtualField<Connection, String> connectionState =
@@ -51,5 +52,6 @@ public abstract class AbstractDbContextPropagator {
     }
   }
 
-  protected abstract void setContext(Connection connection, String contextInfo) throws SQLException;
+  protected abstract void setContext(Connection connection, @Nullable String contextInfo)
+      throws SQLException;
 }

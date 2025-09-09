@@ -21,6 +21,7 @@ import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import javax.annotation.Nullable;
 
 public final class SqlServerContextPropagator extends AbstractDbContextPropagator {
   public static final SqlServerContextPropagator INSTANCE = new SqlServerContextPropagator();
@@ -28,7 +29,8 @@ public final class SqlServerContextPropagator extends AbstractDbContextPropagato
   private SqlServerContextPropagator() {}
 
   @Override
-  protected void setContext(Connection connection, String contextInfo) throws SQLException {
+  protected void setContext(Connection connection, @Nullable String contextInfo)
+      throws SQLException {
     byte[] contextBytes =
         contextInfo == null ? new byte[0] : contextInfo.getBytes(StandardCharsets.UTF_8);
     PreparedStatement statement = connection.prepareStatement("set context_info ?");

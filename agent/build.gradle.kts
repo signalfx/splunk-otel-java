@@ -78,8 +78,6 @@ tasks {
   val relocateJavaagentLibs by registering(ShadowJar::class) {
     configurations = listOf(javaagentLibs)
 
-    duplicatesStrategy = DuplicatesStrategy.FAIL
-
     archiveFileName.set("javaagentLibs-relocated.jar")
 
     // exclude known bootstrap dependencies - they can't appear in the inst/ directory
@@ -120,7 +118,9 @@ tasks {
 
     archiveClassifier.set("all")
 
-    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    // mergeServiceFiles requires that duplicate strategy is set to include
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
+    mergeServiceFiles("inst/META-INF/services")
 
     manifest {
       attributes(

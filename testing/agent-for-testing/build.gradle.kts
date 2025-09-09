@@ -79,9 +79,12 @@ tasks {
     dependsOn(isolateJavaagentLibs)
     from(isolateJavaagentLibs.get().outputs)
 
-    // mergeServiceFiles requires that duplicate strategy is set to include
-    duplicatesStrategy = DuplicatesStrategy.INCLUDE
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     mergeServiceFiles("inst/META-INF/services")
+    // mergeServiceFiles requires that duplicate strategy is set to include
+    filesMatching("inst/META-INF/services/**") {
+      duplicatesStrategy = DuplicatesStrategy.INCLUDE
+    }
 
     manifest {
       attributes(

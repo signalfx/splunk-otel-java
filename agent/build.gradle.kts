@@ -78,6 +78,8 @@ tasks {
   val relocateJavaagentLibs by registering(ShadowJar::class) {
     configurations = listOf(javaagentLibs)
 
+    duplicatesStrategy = DuplicatesStrategy.FAIL
+
     archiveFileName.set("javaagentLibs-relocated.jar")
 
     // exclude known bootstrap dependencies - they can't appear in the inst/ directory
@@ -91,6 +93,11 @@ tasks {
       // events API and metrics advice API
       exclude(dependency("io.opentelemetry:opentelemetry-api-incubator"))
     }
+
+    exclude("META-INF/LICENSE")
+    exclude("META-INF/LICENSE.txt")
+    exclude("LICENSE.txt")
+    exclude("THIRD_PARTY_LICENSES.txt")
   }
 
   // 2. the Splunk javaagent libs are then isolated - moved to the inst/ directory
@@ -118,9 +125,12 @@ tasks {
 
     archiveClassifier.set("all")
 
-    // mergeServiceFiles requires that duplicate strategy is set to include
-    duplicatesStrategy = DuplicatesStrategy.INCLUDE
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     mergeServiceFiles("inst/META-INF/services")
+    // mergeServiceFiles requires that duplicate strategy is set to include
+    filesMatching("inst/META-INF/services/**") {
+      duplicatesStrategy = DuplicatesStrategy.INCLUDE
+    }
 
     manifest {
       attributes(
@@ -250,8 +260,7 @@ fun CopySpec.isolateClasses(jars: Iterable<File>) {
     from(zipTree(it)) {
       into("inst")
       rename("^(.*)\\.class\$", "\$1.classdata")
-      // Rename LICENSE file since it clashes with license dir on non-case sensitive FSs (i.e. Mac)
-      rename("""^LICENSE$""", "LICENSE.renamed")
+      exclude("META-INF/LICENSE")
       exclude("META-INF/INDEX.LIST")
       exclude("META-INF/*.DSA")
       exclude("META-INF/*.SF")

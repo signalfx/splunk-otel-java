@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.splunk.opentelemetry.instrumentation.jdbc.sqlserver;
+package com.splunk.opentelemetry.instrumentation.jdbc.oracle;
 
 import static net.bytebuddy.matcher.ElementMatchers.isPublic;
 import static net.bytebuddy.matcher.ElementMatchers.nameStartsWith;
@@ -30,13 +30,13 @@ import net.bytebuddy.asm.Advice;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.matcher.ElementMatcher;
 
-public class SqlServerStatementInstrumentation implements TypeInstrumentation {
+public class OracleStatementInstrumentation implements TypeInstrumentation {
 
   @Override
   public ElementMatcher<TypeDescription> typeMatcher() {
     return namedOneOf(
-        "com.microsoft.sqlserver.jdbc.SQLServerStatement",
-        "com.microsoft.sqlserver.jdbc.SQLServerPreparedStatement");
+        "oracle.jdbc.driver.OraclePreparedStatementWrapper",
+        "oracle.jdbc.driver.OracleStatementWrapper");
   }
 
   @Override
@@ -46,21 +46,21 @@ public class SqlServerStatementInstrumentation implements TypeInstrumentation {
             .and(
                 nameStartsWith("execute")
                     .and(takesNoArguments().or(takesArgument(0, String.class)))),
-        this.getClass().getName() + "$SetContextAdvice");
+        this.getClass().getName() + "$SetActionAdvice");
   }
 
   @SuppressWarnings("unused")
-  public static class SetContextAdvice {
+  public static class SetActionAdvice {
     @Advice.OnMethodEnter(suppress = Throwable.class)
     public static void onEnter(
         @Advice.This Statement statement, @Advice.Local("splunkCallDepth") CallDepth callDepth)
         throws Exception {
-      callDepth = CallDepth.forClass(SqlServerContextPropagator.class);
+      callDepth = CallDepth.forClass(OracleContextPropagator.class);
       if (callDepth.getAndIncrement() > 0) {
         return;
       }
 
-      SqlServerContextPropagator.INSTANCE.propagateContext(statement.getConnection());
+      OracleContextPropagator.INSTANCE.propagateContext(statement.getConnection());
     }
 
     @Advice.OnMethodExit(suppress = Throwable.class)

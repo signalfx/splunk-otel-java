@@ -50,6 +50,7 @@ public class ServiceNameChecker implements BeforeAgentListener {
     ConfigProperties config = getConfig(autoConfiguredOpenTelemetrySdk);
     Resource resource = getResource(autoConfiguredOpenTelemetrySdk);
     if (serviceNameNotConfigured(config, resource)) {
+      // TODO: For declarative configuration the message should be rephrased
       logWarn.accept(
           "The service.name resource attribute is not set. Your service is unnamed and will be difficult to identify.\n"
               + " Set your service name using the OTEL_SERVICE_NAME or OTEL_RESOURCE_ATTRIBUTES environment variable.\n"

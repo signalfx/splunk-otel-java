@@ -18,6 +18,7 @@ package com.splunk.opentelemetry.profiler.snapshot.simulation;
 
 import io.opentelemetry.context.Context;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.function.UnaryOperator;
@@ -44,10 +45,22 @@ public class Background {
 
   /** Perform background task within the context of the same trace. */
   public static UnaryOperator<Message> task(Runnable task) {
+    CountDownLatch latch = new CountDownLatch(1);
     return message -> {
       var executor = Context.current().wrap(Executors.newSingleThreadExecutor());
       try {
-        executor.submit(task);
+        Runnable runnable =
+            () -> {
+              latch.countDown();
+              task.run();
+            };
+        executor.submit(runnable);
+        // wait until the task has started
+        try {
+          latch.await();
+        } catch (InterruptedException e) {
+          Thread.currentThread().interrupt();
+        }
         return message;
       } finally {
         executor.shutdown();

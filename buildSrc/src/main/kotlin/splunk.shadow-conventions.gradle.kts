@@ -5,8 +5,10 @@ plugins {
 }
 
 tasks.withType<ShadowJar>().configureEach {
-  mergeServiceFiles {
-    include("inst/META-INF/services/*")
+  mergeServiceFiles()
+  // mergeServiceFiles requires that duplicate strategy is set to include
+  filesMatching("META-INF/services/**") {
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
   }
 
   exclude("**/module-info.class")

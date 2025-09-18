@@ -8,6 +8,17 @@ and this repository adheres to [Semantic Versioning](https://semver.org/spec/v2.
 
 ## Unreleased
 
+## v2.20.0 - 2025-09-17
+
+### General
+
+- OpenTelemetry Java SDK has been updated to version 1.54.0.
+- OpenTelemetry Instrumentation for Java has been updated to version 2.20.0.
+
+### 📈 Enhancements
+
+- Add experimental context propagation for oracle db [#2434](https://github.com/signalfx/splunk-otel-java/pull/2434)
+
 ## v2.19.0 - 2025-08-21
 
 ### General

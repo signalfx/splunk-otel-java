@@ -3188,8 +3188,13 @@ public class MetadataGenerator {
             .dbClientMetrics()
             .build());
     instrumentations.add(
-        instrumentation("clickhouse")
-            .component("Clickhouse Client", "0.5 and higher")
+        instrumentation("clickhouse-client-v1")
+            .component("Clickhouse Client V1", "0.5 and higher")
+            .dbClientMetrics()
+            .build());
+    instrumentations.add(
+        instrumentation("clickhouse-client-v2")
+            .component("Clickhouse Client V2", "0.8 and higher")
             .dbClientMetrics()
             .build());
     instrumentations.add(

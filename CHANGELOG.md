@@ -7,6 +7,9 @@ the [Splunk GDI specification](https://github.com/signalfx/gdi-specification/blo
 and this repository adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
+- 
+- OpenTelemetry Java SDK has been updated to version 1.54.1.
+- OpenTelemetry Instrumentation for Java has been updated to version 2.20.1.
 
 ## v2.20.0 - 2025-09-17
 

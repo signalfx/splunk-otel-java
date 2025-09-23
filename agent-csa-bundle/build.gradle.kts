@@ -104,14 +104,15 @@ tasks {
       into("inst/com/cisco/mtagent/adaptors/")
       include("AgentOSSAgentExtension.classdata", "AgentOSSAgentExtensionUtil.classdata")
     }
-    // Merge service descriptor files requires duplicatesStrategy to be set
     // Defaulted here to FAIL, because we only want to merge the one
-    duplicatesStrategy = DuplicatesStrategy.FAIL
-    mergeServiceFiles(rootPath = "inst/META-INF/services")
+    duplicatesStrategy = DuplicatesStrategy. FAIL
+    mergeServiceFiles("inst/META-INF/services")
+    // mergeServiceFiles requires that duplicate strategy is set to include
+    filesMatching("inst/META-INF/services/**") {
+      duplicatesStrategy = DuplicatesStrategy.INCLUDE
+    }
     from("build/ext-exploded/") {
       include("inst/META-INF/services/io.opentelemetry.javaagent.extension.AgentListener")
-      // Explicitly specify that this needs to be merged
-      duplicatesStrategy = DuplicatesStrategy.INCLUDE
     }
   }
 

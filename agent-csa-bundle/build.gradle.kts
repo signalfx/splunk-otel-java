@@ -105,7 +105,7 @@ tasks {
       include("AgentOSSAgentExtension.classdata", "AgentOSSAgentExtensionUtil.classdata")
     }
     // Defaulted here to FAIL, because we only want to merge the one
-    duplicatesStrategy = DuplicatesStrategy. FAIL
+    duplicatesStrategy = DuplicatesStrategy.FAIL
     mergeServiceFiles("inst/META-INF/services")
     // mergeServiceFiles requires that duplicate strategy is set to include
     filesMatching("inst/META-INF/services/**") {

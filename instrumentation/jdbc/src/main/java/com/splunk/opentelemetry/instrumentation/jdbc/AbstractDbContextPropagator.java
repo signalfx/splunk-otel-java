@@ -14,23 +14,22 @@
  * limitations under the License.
  */
 
-package com.splunk.opentelemetry.instrumentation.jdbc.sqlserver;
+package com.splunk.opentelemetry.instrumentation.jdbc;
 
 import io.opentelemetry.api.trace.propagation.W3CTraceContextPropagator;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.instrumentation.api.util.VirtualField;
-import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
+import javax.annotation.Nullable;
 
-public final class SqlServerUtil {
+public abstract class AbstractDbContextPropagator {
   private static final VirtualField<Connection, String> connectionState =
       VirtualField.find(Connection.class, String.class);
 
-  public static void propagateContext(Connection connection) throws SQLException {
+  public void propagateContext(Connection connection) throws SQLException {
     AtomicReference<String> state = new AtomicReference<>();
     W3CTraceContextPropagator.getInstance()
         .inject(
@@ -46,17 +45,13 @@ public final class SqlServerUtil {
     if (traceparent == null && existingTraceparent != null) {
       // we need to clear existing tracing state from the connection
       connectionState.set(connection, null);
-      setContextInfo(connection, new byte[0]);
+      setContext(connection, null);
     } else if (!Objects.equals(traceparent, existingTraceparent)) {
       connectionState.set(connection, traceparent);
-      setContextInfo(connection, traceparent.getBytes(StandardCharsets.UTF_8));
+      setContext(connection, traceparent);
     }
   }
 
-  private static void setContextInfo(Connection connection, byte[] contextInfo)
-      throws SQLException {
-    PreparedStatement statement = connection.prepareStatement("set context_info ?");
-    statement.setBytes(1, contextInfo);
-    statement.executeUpdate();
-  }
+  protected abstract void setContext(Connection connection, @Nullable String contextInfo)
+      throws SQLException;
 }

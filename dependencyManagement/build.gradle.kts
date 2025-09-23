@@ -2,16 +2,16 @@ plugins {
   `java-platform`
 }
 
-val otelVersion = "1.53.0"
+val otelVersion = "1.54.1"
 val otelAlphaVersion = otelVersion.replaceFirst("(-SNAPSHOT)?$".toRegex(), "-alpha$1")
-val otelInstrumentationVersion = "2.19.0"
+val otelInstrumentationVersion = "2.21.0-SNAPSHOT"
 val otelInstrumentationAlphaVersion =  otelInstrumentationVersion.replaceFirst("(-SNAPSHOT)?$".toRegex(), "-alpha$1")
-val otelContribAlphaVersion = "1.48.0-alpha"
+val otelContribAlphaVersion = "1.49.0-alpha"
 
 val autoValueVersion = "1.11.0"
 val dockerJavaVersion = "3.6.0"
-val mockitoVersion = "5.19.0"
-val protobufVersion = "4.32.0"
+val mockitoVersion = "5.20.0"
+val protobufVersion = "4.32.1"
 val slf4jVersion = "2.0.17"
 
 // instrumentation version is used to compute Implementation-Version manifest attribute
@@ -39,7 +39,7 @@ dependencies {
 
   constraints {
     api("com.google.auto.service:auto-service:1.1.1")
-    api("org.assertj:assertj-core:3.27.4")
+    api("org.assertj:assertj-core:3.27.6")
     api("org.awaitility:awaitility:4.3.0")
 
     api("com.github.docker-java:docker-java-core:$dockerJavaVersion")

@@ -40,7 +40,7 @@ If you want to use a specific version of the Java agent in your application, you
 environment variable before application deployment, either using `cf set-env` or the `manifest.yml` file:
 
 ```sh
-$ cf set-env SPLUNK_OTEL_JAVA_VERSION 2.19.0
+$ cf set-env SPLUNK_OTEL_JAVA_VERSION 2.20.0
 ```
 
 By default, the [latest](https://github.com/signalfx/splunk-otel-java/releases/latest) available agent version is used.

@@ -16,45 +16,83 @@
 
 package com.splunk.opentelemetry.profiler.snapshot;
 
-import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import io.opentelemetry.context.ContextStorage;
-import java.util.function.Consumer;
-import java.util.function.UnaryOperator;
+import io.opentelemetry.api.trace.Span;
+import io.opentelemetry.context.Context;
+import java.time.Duration;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 class ContextStorageWrapperTest {
-  private final ContextStorageRecorder delegate = new ContextStorageRecorder();
-  private final ContextStorageWrapper wrapper = new ContextStorageWrapper(delegate);
-
-  @Test
-  void installThreadChangeDetector() throws Exception {
-    wrapper.wrapContextStorage(new TraceRegistry());
-
-    var activeSpanTracker = (ActiveSpanTracker) delegate.storage;
-    var field = activeSpanTracker.getClass().getDeclaredField("delegate");
-    field.setAccessible(true);
-    assertInstanceOf(TraceThreadChangeDetector.class, field.get(activeSpanTracker));
-  }
+  /**
+   * {@link ResettingContextStorageWrapper} extends {@link ContextStorageWrapper} so we're still the
+   * intended functionality.
+   */
+  @RegisterExtension
+  private final ResettingContextStorageWrapper wrapper = new ResettingContextStorageWrapper();
 
   @Test
   void installActiveSpanTracker() {
-    wrapper.wrapContextStorage(new TraceRegistry());
-    assertInstanceOf(ActiveSpanTracker.class, delegate.storage);
+    var spanContext = Snapshotting.spanContext().build();
+    var span = Span.wrap(spanContext);
+
+    var registry = new RecordingTraceRegistry();
+    registry.register(spanContext);
+
+    wrapper.wrapContextStorage(registry);
+    try (var ignored = Context.current().with(span).makeCurrent()) {
+      var activeSpan = SpanTracker.SUPPLIER.get().getActiveSpan(Thread.currentThread());
+      assertEquals(Optional.of(spanContext), activeSpan);
+    }
   }
 
   @Test
-  void activateSpanTracker() {
-    wrapper.wrapContextStorage(new TraceRegistry());
-    assertInstanceOf(ActiveSpanTracker.class, SpanTracker.SUPPLIER.get());
+  void installThreadChangeDetector() {
+    var spanContext = Snapshotting.spanContext().build();
+    var span = Span.wrap(spanContext);
+
+    var registry = new RecordingTraceRegistry();
+    registry.register(spanContext);
+
+    var sampler = new ObservableStackTraceSampler();
+    StackTraceSampler.SUPPLIER.configure(sampler);
+
+    wrapper.wrapContextStorage(registry);
+    try (var ignored = Context.current().with(span).makeCurrent()) {
+      assertThat(sampler.isBeingSampled(Thread.currentThread())).isTrue();
+    }
   }
 
-  private static class ContextStorageRecorder implements Consumer<UnaryOperator<ContextStorage>> {
-    private ContextStorage storage = ContextStorage.defaultStorage();
+  /**
+   * This test implicitly tests that span tracking happens first by checking the reported span id of
+   * the first on demand sample taken when profiling is started for the current thread. When span id
+   * tracking happens 2nd, the reported span will be an invalid span id.
+   */
+  @Test
+  void spanTrackingRunsBeforeThreadChangeDetector() {
+    var spanContext = Snapshotting.spanContext().build();
+    var span = Span.wrap(spanContext);
 
-    @Override
-    public void accept(UnaryOperator<ContextStorage> operator) {
-      storage = operator.apply(storage);
+    var registry = new RecordingTraceRegistry();
+    registry.register(spanContext);
+
+    var staging = new InMemoryStagingArea();
+    StagingArea.SUPPLIER.configure(staging);
+
+    var sampler =
+        new PeriodicStackTraceSampler(
+            StagingArea.SUPPLIER, SpanTracker.SUPPLIER, Duration.ofMinutes(1));
+    StackTraceSampler.SUPPLIER.configure(sampler);
+
+    wrapper.wrapContextStorage(registry);
+    try (var ignored = Context.current().with(span).makeCurrent()) {
+      var activeSpan =
+          SpanTracker.SUPPLIER.get().getActiveSpan(Thread.currentThread()).orElseThrow();
+      var stackTrace = staging.allStackTraces().get(0);
+      assertEquals(activeSpan.getSpanId(), stackTrace.getSpanId());
     }
   }
 }

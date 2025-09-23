@@ -1,7 +1,7 @@
 
 # splunk-otel-javaagent
 ## Dependency License Report
-_2025-09-23 11:41:29 PDT_
+_2025-09-23 11:46:59 PDT_
 ## Apache License, Version 2.0
 
 **1** **Group:** `com.squareup.okhttp3` **Name:** `okhttp-jvm` **Version:** `5.1.0` 

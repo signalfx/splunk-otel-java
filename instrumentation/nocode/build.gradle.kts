@@ -10,7 +10,7 @@ dependencies {
   compileOnly("org.snakeyaml:snakeyaml-engine:2.8")
   testImplementation("org.snakeyaml:snakeyaml-engine:2.8")
 
-  implementation("org.apache.commons:commons-jexl3:3.4.0") {
+  implementation("org.apache.commons:commons-jexl3:3.5.0") {
     exclude("commons-logging", "commons-logging")
   }
   implementation("org.slf4j:jcl-over-slf4j")

@@ -122,6 +122,9 @@ jobs:
     steps:
       - uses: actions/checkout@v5.0.0
 
+      - name: Free disk space
+        run: .github/scripts/gha-free-disk-space.sh
+
       - name: Set up JDK 17 for running Gradle
         uses: actions/setup-java@v5.0.0
         with:

@@ -1,3 +1,5 @@
+import org.gradle.kotlin.dsl.invoke
+
 dependencies {
   compileOnly(project(":bootstrap"))
   compileOnly("io.opentelemetry:opentelemetry-sdk")
@@ -18,6 +20,7 @@ dependencies {
   implementation("io.opentelemetry.contrib:opentelemetry-samplers")
   implementation("io.opentelemetry.contrib:opentelemetry-resource-providers")
 
+  testImplementation(project(":testing:common"))
   testImplementation("io.opentelemetry:opentelemetry-sdk")
   testImplementation("io.opentelemetry:opentelemetry-sdk-testing")
   testImplementation("io.opentelemetry:opentelemetry-sdk-extension-autoconfigure")
@@ -28,7 +31,6 @@ dependencies {
   testImplementation("io.opentelemetry.instrumentation:opentelemetry-resources")
   testImplementation("io.opentelemetry.javaagent:opentelemetry-javaagent-extension-api")
   testImplementation("io.opentelemetry.javaagent:opentelemetry-javaagent-tooling")
-  testImplementation(project(":testing:common"))
 }
 
 sourceSets {

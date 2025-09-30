@@ -16,11 +16,11 @@
 
 package com.splunk.opentelemetry.appd;
 
-import static com.splunk.opentelemetry.DeclarativeConfigTestUtil.createAutoConfiguredSdk;
 import static com.splunk.opentelemetry.appd.AppdBonusPropagator.CTX_HEADER_ENV;
 import static com.splunk.opentelemetry.appd.AppdBonusPropagator.CTX_HEADER_SERVICE;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
+import com.splunk.opentelemetry.testing.declarativeconfig.DeclarativeConfigTestUtil;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.instrumentation.testing.internal.AutoCleanupExtension;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
@@ -55,7 +55,7 @@ class AppdBeforeAgentListenerTest {
                      enabled: true
             """;
     AutoConfiguredOpenTelemetrySdk autoConfiguredOpenTelemetrySdk =
-        createAutoConfiguredSdk(yaml, tempDir);
+        DeclarativeConfigTestUtil.createAutoConfiguredSdk(yaml, tempDir);
     autoCleanup.deferCleanup(autoConfiguredOpenTelemetrySdk.getOpenTelemetrySdk());
 
     // when

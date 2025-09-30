@@ -16,7 +16,7 @@
 
 package com.splunk.opentelemetry.webengine;
 
-import static com.splunk.opentelemetry.DeclarativeConfigTestUtil.parseAndCustomizeModel;
+import static com.splunk.opentelemetry.testing.declarativeconfig.DeclarativeConfigTestUtil.parseAndCustomizeModel;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.OpenTelemetryConfigurationModel;

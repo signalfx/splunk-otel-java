@@ -43,7 +43,7 @@ public class ConfigurationLogger {
     logger.info("Profiler configuration:");
     log(CONFIG_KEY_ENABLE_PROFILER, (it) -> config.getBoolean(it, false));
     log(CONFIG_KEY_PROFILER_DIRECTORY, config::getString);
-    log(CONFIG_KEY_RECORDING_DURATION, config::getString);
+    log(CONFIG_KEY_RECORDING_DURATION, config::getDuration);
     log(CONFIG_KEY_KEEP_FILES, (it) -> config.getBoolean(it, false));
     log(CONFIG_KEY_INGEST_URL, (it) -> Configuration.getConfigUrl(config));
     log(CONFIG_KEY_OTEL_OTLP_URL, (it) -> config.getString(it, null));

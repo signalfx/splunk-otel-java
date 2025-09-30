@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package com.splunk.opentelemetry;
+package com.splunk.opentelemetry.testing.declarativeconfig;
 
 import io.opentelemetry.api.incubator.config.ConfigProvider;
-import io.opentelemetry.javaagent.extension.internal.DeclarativeConfigPropertiesBridgeBuilder;
+import io.opentelemetry.instrumentation.config.bridge.DeclarativeConfigPropertiesBridgeBuilder;
 import io.opentelemetry.sdk.OpenTelemetrySdk;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 import io.opentelemetry.sdk.autoconfigure.SdkAutoconfigureAccess;
@@ -32,10 +32,15 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Map;
+import java.util.Arrays;
+import java.util.Collections;
 
 public class DeclarativeConfigTestUtil {
   private DeclarativeConfigTestUtil() {}
+
+  public static String toYamlString(String... lines) {
+    return String.join("\n", Arrays.asList(lines));
+  }
 
   public static OpenTelemetryConfigurationModel parseModel(String yaml) {
     try (InputStream yamlStream = new ByteArrayInputStream(yaml.getBytes(StandardCharsets.UTF_8))) {
@@ -58,26 +63,33 @@ public class DeclarativeConfigTestUtil {
   public static AutoConfiguredOpenTelemetrySdk createAutoConfiguredSdk(String yaml, Path tempDir)
       throws IOException {
     Path configFilePath = tempDir.resolve("test-config.yaml");
-    Files.writeString(configFilePath, yaml);
+    Files.write(configFilePath, yaml.getBytes());
+    System.setProperty("otel.experimental.config.file", configFilePath.toString());
 
-    var autoConfiguredSdk =
-        AutoConfiguredOpenTelemetrySdk.builder()
-            .addPropertiesSupplier(
-                () -> Map.of("otel.experimental.config.file", configFilePath.toString()))
-            .build();
+    try {
+      AutoConfiguredOpenTelemetrySdk autoConfiguredSdk =
+          AutoConfiguredOpenTelemetrySdk.builder()
+              .addPropertiesSupplier(
+                  () ->
+                      Collections.singletonMap(
+                          "otel.experimental.config.file", configFilePath.toString()))
+              .build();
 
-    ConfigProvider configProvider = AutoConfigureUtil.getConfigProvider(autoConfiguredSdk);
-    OpenTelemetrySdk sdk = autoConfiguredSdk.getOpenTelemetrySdk();
+      ConfigProvider configProvider = AutoConfigureUtil.getConfigProvider(autoConfiguredSdk);
+      OpenTelemetrySdk sdk = autoConfiguredSdk.getOpenTelemetrySdk();
 
-    if (configProvider != null) {
-      return SdkAutoconfigureAccess.create(
-          sdk,
-          SdkAutoconfigureAccess.getResource(autoConfiguredSdk),
-          new DeclarativeConfigPropertiesBridgeBuilder()
-              .buildFromInstrumentationConfig(configProvider.getInstrumentationConfig()),
-          configProvider);
+      if (configProvider != null) {
+        return SdkAutoconfigureAccess.create(
+            sdk,
+            SdkAutoconfigureAccess.getResource(autoConfiguredSdk),
+            new DeclarativeConfigPropertiesBridgeBuilder()
+                .buildFromInstrumentationConfig(configProvider.getInstrumentationConfig()),
+            configProvider);
+      }
+
+      return autoConfiguredSdk;
+    } finally {
+      System.clearProperty("otel.experimental.config.file");
     }
-
-    return autoConfiguredSdk;
   }
 }

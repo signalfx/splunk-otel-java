@@ -50,7 +50,7 @@ class ConfigurationLoggerTest {
 
     when(config.getBoolean(CONFIG_KEY_ENABLE_PROFILER, false)).thenReturn(true);
     when(config.getString(CONFIG_KEY_PROFILER_DIRECTORY)).thenReturn("somedir");
-    when(config.getString(CONFIG_KEY_RECORDING_DURATION)).thenReturn("33m");
+    when(config.getDuration(CONFIG_KEY_RECORDING_DURATION)).thenReturn(Duration.ofMinutes(33));
     when(config.getBoolean(CONFIG_KEY_KEEP_FILES, false)).thenReturn(true);
     when(config.getString(CONFIG_KEY_OTEL_OTLP_URL, null)).thenReturn("http://otel.example.com");
     when(config.getString(CONFIG_KEY_INGEST_URL, "http://otel.example.com"))
@@ -71,7 +71,7 @@ class ConfigurationLoggerTest {
     log.assertContains("Profiler configuration:");
     log.assertContains("                splunk.profiler.enabled : true");
     log.assertContains("              splunk.profiler.directory : somedir");
-    log.assertContains("     splunk.profiler.recording.duration : 33m");
+    log.assertContains("     splunk.profiler.recording.duration : PT33M");
     log.assertContains("             splunk.profiler.keep-files : true");
     log.assertContains("          splunk.profiler.logs-endpoint : http://example.com");
     log.assertContains("            otel.exporter.otlp.endpoint : http://otel.example.com");

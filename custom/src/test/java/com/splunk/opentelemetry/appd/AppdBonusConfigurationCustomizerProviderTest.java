@@ -16,7 +16,7 @@
 
 package com.splunk.opentelemetry.appd;
 
-import static com.splunk.opentelemetry.DeclarativeConfigTestUtil.parseAndCustomizeModel;
+import static com.splunk.opentelemetry.testing.declarativeconfig.DeclarativeConfigTestUtil.parseAndCustomizeModel;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.OpenTelemetryConfigurationModel;

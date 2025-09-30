@@ -16,6 +16,7 @@
 
 package com.splunk.opentelemetry;
 
+import static com.splunk.opentelemetry.testing.declarativeconfig.DeclarativeConfigTestUtil.parseAndCustomizeModel;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
@@ -233,7 +234,7 @@ class SplunkDeclarativeConfigurationCustomizerProviderTest {
   private static OpenTelemetryConfigurationModel getCustomizedModel(String yaml) {
     SplunkDeclarativeConfigurationCustomizerProvider customizer =
         new SplunkDeclarativeConfigurationCustomizerProvider();
-    return DeclarativeConfigTestUtil.parseAndCustomizeModel(yaml, customizer);
+    return parseAndCustomizeModel(yaml, customizer);
   }
 
   private static DeclarativeConfigProperties getCustomizedJavaInstrumentationConfig(String yaml) {

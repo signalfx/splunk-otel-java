@@ -50,7 +50,8 @@ public class ProfilerConfigurationCustomizerProvider
               if (getAdditionalPropertyOrDefault(
                   javaInstrumentationProperties, CONFIG_KEY_ENABLE_PROFILER, false)) {
 
-                Map<String, Object> defaultProperties = Configuration.declarativeConfigDefaultProperties();
+                Map<String, Object> defaultProperties =
+                    Configuration.declarativeConfigDefaultProperties();
                 defaultProperties.forEach(
                     (name, value) -> {
                       addAdditionalPropertyIfAbsent(javaInstrumentationProperties, name, value);

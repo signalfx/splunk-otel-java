@@ -25,7 +25,8 @@ import io.opentelemetry.sdk.autoconfigure.spi.internal.ComponentProvider;
 
 @SuppressWarnings("rawtypes")
 @AutoService(ComponentProvider.class)
-public class SnapshotVolumePropagatorComponentProvider implements ComponentProvider<TextMapPropagator> {
+public class SnapshotVolumePropagatorComponentProvider
+    implements ComponentProvider<TextMapPropagator> {
   public static final String NAME = "splunk-snapshot";
 
   @Override
@@ -40,7 +41,8 @@ public class SnapshotVolumePropagatorComponentProvider implements ComponentProvi
 
   @Override
   public TextMapPropagator create(DeclarativeConfigProperties propagatorProperties) {
-    ConfigProperties config = new DeclarativeConfigPropertiesBridgeBuilder().build(propagatorProperties);
+    ConfigProperties config =
+        new DeclarativeConfigPropertiesBridgeBuilder().build(propagatorProperties);
     double selectionProbability =
         SnapshotProfilingConfiguration.getSnapshotSelectionProbability(config);
     return new SnapshotVolumePropagator(selector(selectionProbability));

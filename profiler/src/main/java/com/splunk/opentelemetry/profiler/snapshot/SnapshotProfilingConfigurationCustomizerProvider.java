@@ -40,10 +40,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
-/**
- * This class combines declarative config compatible port of:
- * - SnapshotProfilingSdkCustomizer
- */
+/** This class combines declarative config compatible port of: - SnapshotProfilingSdkCustomizer */
 @AutoService(DeclarativeConfigurationCustomizerProvider.class)
 public class SnapshotProfilingConfigurationCustomizerProvider
     implements DeclarativeConfigurationCustomizerProvider {
@@ -83,11 +80,13 @@ public class SnapshotProfilingConfigurationCustomizerProvider
       propagatorsComposite = new ArrayList<>();
       propagator.withComposite(propagatorsComposite);
     }
-    if (propagatorsComposite.isEmpty() &&
-        (propagator.getCompositeList() == null || propagator.getCompositeList().isEmpty())) {
-      propagatorsComposite.add(new TextMapPropagatorModel().withTracecontext(new TraceContextPropagatorModel()));
+    if (propagatorsComposite.isEmpty()
+        && (propagator.getCompositeList() == null || propagator.getCompositeList().isEmpty())) {
+      propagatorsComposite.add(
+          new TextMapPropagatorModel().withTracecontext(new TraceContextPropagatorModel()));
     }
-    propagatorsComposite.add(new TextMapPropagatorModel().withBaggage(new BaggagePropagatorModel()));
+    propagatorsComposite.add(
+        new TextMapPropagatorModel().withBaggage(new BaggagePropagatorModel()));
 
     propagatorsComposite.add(getSnapshotVolumePropagator(model));
   }
@@ -97,19 +96,23 @@ public class SnapshotProfilingConfigurationCustomizerProvider
     TextMapPropagatorModel snapshotVolumePropagator = new TextMapPropagatorModel();
     Map<String, Object> config = null;
     if (model.getInstrumentationDevelopment() != null) {
-      ExperimentalLanguageSpecificInstrumentationModel java = model.getInstrumentationDevelopment().getJava();
+      ExperimentalLanguageSpecificInstrumentationModel java =
+          model.getInstrumentationDevelopment().getJava();
       if (java != null) {
-        // Pass reference to existing java instrumentation config, so ComponentProvider can access these properties
+        // Pass reference to existing java instrumentation config, so ComponentProvider can access
+        // these properties
         config = java.getAdditionalProperties();
       }
     }
-    snapshotVolumePropagator.setAdditionalProperty(SnapshotVolumePropagatorComponentProvider.NAME, config);
+    snapshotVolumePropagator.setAdditionalProperty(
+        SnapshotVolumePropagatorComponentProvider.NAME, config);
     return snapshotVolumePropagator;
   }
 
   private void customizeSpanProcessor(OpenTelemetryConfigurationModel model) {
-    SpanProcessorModel spanProcessor = new SpanProcessorModel().withAdditionalProperty(
-        SnapshotProfilingSpanProcessorComponentProvider.NAME, null);
+    SpanProcessorModel spanProcessor =
+        new SpanProcessorModel()
+            .withAdditionalProperty(SnapshotProfilingSpanProcessorComponentProvider.NAME, null);
     SnapshotProfilingSpanProcessorComponentProvider.setTraceRegistry(registry);
 
     TracerProviderModel tracerProvider = model.getTracerProvider();
@@ -122,9 +125,11 @@ public class SnapshotProfilingConfigurationCustomizerProvider
   }
 
   private void setupStackTraceSampler(OpenTelemetryConfigurationModel model) {
-    DeclarativeConfigProperties instrumentationConfig = SdkConfigProvider.create(model)
-        .getInstrumentationConfig();
-    ConfigProperties properties = new DeclarativeConfigPropertiesBridgeBuilder().buildFromInstrumentationConfig(instrumentationConfig);
+    DeclarativeConfigProperties instrumentationConfig =
+        SdkConfigProvider.create(model).getInstrumentationConfig();
+    ConfigProperties properties =
+        new DeclarativeConfigPropertiesBridgeBuilder()
+            .buildFromInstrumentationConfig(instrumentationConfig);
     StackTraceSampler sampler = samplerProvider.apply(properties);
     ConfigurableSupplier<StackTraceSampler> supplier = StackTraceSampler.SUPPLIER;
     supplier.configure(sampler);
@@ -134,7 +139,12 @@ public class SnapshotProfilingConfigurationCustomizerProvider
     if (model.getTracerProvider() == null) {
       model.withTracerProvider(new TracerProviderModel());
     }
-    model.getTracerProvider().getProcessors().add(new SpanProcessorModel().withAdditionalProperty(SdkShutdownHookComponentProvider.NAME, null));
+    model
+        .getTracerProvider()
+        .getProcessors()
+        .add(
+            new SpanProcessorModel()
+                .withAdditionalProperty(SdkShutdownHookComponentProvider.NAME, null));
   }
 
   private void initActiveSpansTracking() {

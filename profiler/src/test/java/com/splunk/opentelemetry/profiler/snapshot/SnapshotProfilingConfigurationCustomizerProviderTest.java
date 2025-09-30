@@ -22,10 +22,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.splunk.opentelemetry.testing.declarativeconfig.DeclarativeConfigTestUtil;
 import io.opentelemetry.instrumentation.testing.internal.AutoCleanupExtension;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.OpenTelemetryConfigurationModel;
+import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.SpanProcessorModel;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Map;
-import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.SpanProcessorModel;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.api.io.TempDir;
@@ -69,11 +69,14 @@ class SnapshotProfilingConfigurationCustomizerProviderTest {
     assertThat(model.getPropagator().getComposite()).hasSize(3);
     assertThat(model.getPropagator().getComposite().get(0).getTracecontext()).isNotNull();
     assertThat(model.getPropagator().getComposite().get(1).getBaggage()).isNotNull();
-    Map<String, Object> propagatorProperties = model.getPropagator().getComposite().get(2).getAdditionalProperties();
+    Map<String, Object> propagatorProperties =
+        model.getPropagator().getComposite().get(2).getAdditionalProperties();
     assertThat(propagatorProperties).isNotNull();
-    Map<String, Object> snapshotPropagatorProperties = (Map<String, Object>) propagatorProperties.get("splunk-snapshot");
+    Map<String, Object> snapshotPropagatorProperties =
+        (Map<String, Object>) propagatorProperties.get("splunk-snapshot");
     assertThat(snapshotPropagatorProperties).isNotNull();
-    assertThat(snapshotPropagatorProperties.get("splunk")).isNotNull(); // Copied java instrumentation config
+    assertThat(snapshotPropagatorProperties.get("splunk"))
+        .isNotNull(); // Copied java instrumentation config
   }
 
   @Test

@@ -19,6 +19,8 @@ package com.splunk.opentelemetry.profiler.snapshot;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 
+import com.splunk.opentelemetry.profiler.snapshot.registry.TraceRegistry;
+import com.splunk.opentelemetry.profiler.snapshot.registry.TraceRegistryHolder;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.instrumentation.test.utils.GcUtils;
 import java.lang.ref.WeakReference;
@@ -27,7 +29,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 public class OrphanedTraceCleanerTest {
-  private final TraceRegistry registry = new TraceRegistry();
+  private final TraceRegistry registry = TraceRegistryHolder.getTraceRegistry();
   private final OrphanedTraceCleaner cleaner = new OrphanedTraceCleaner(registry);
 
   @AfterEach

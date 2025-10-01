@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package com.splunk.opentelemetry.profiler.snapshot;
+package com.splunk.opentelemetry.profiler.snapshot.registry;
 
-class TogglableTraceRegistry extends TraceRegistry {
-  enum State {
+public class TogglableTraceRegistry extends TraceRegistry {
+  public enum State {
     ON,
     OFF
   }

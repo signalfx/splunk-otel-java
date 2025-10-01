@@ -18,6 +18,8 @@ package com.splunk.opentelemetry.profiler.snapshot;
 
 import com.google.auto.service.AutoService;
 import com.google.common.annotations.VisibleForTesting;
+import com.splunk.opentelemetry.profiler.snapshot.registry.TraceRegistry;
+import com.splunk.opentelemetry.profiler.snapshot.registry.TraceRegistryHolder;
 import io.opentelemetry.sdk.autoconfigure.spi.AutoConfigurationCustomizer;
 import io.opentelemetry.sdk.autoconfigure.spi.AutoConfigurationCustomizerProvider;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
@@ -37,7 +39,7 @@ public class SnapshotProfilingSdkCustomizer implements AutoConfigurationCustomiz
   private final ContextStorageWrapper contextStorageWrapper;
 
   public SnapshotProfilingSdkCustomizer() {
-    this(new TraceRegistry(), stackTraceSamplerProvider(), new ContextStorageWrapper());
+    this(TraceRegistryHolder.getTraceRegistry(), stackTraceSamplerProvider(), new ContextStorageWrapper());
   }
 
   private static Function<ConfigProperties, StackTraceSampler> stackTraceSamplerProvider() {

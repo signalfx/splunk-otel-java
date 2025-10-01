@@ -25,7 +25,10 @@ import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.OpenTe
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.SpanProcessorModel;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Map;
+import org.assertj.core.util.Sets;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.api.io.TempDir;
@@ -105,7 +108,7 @@ class SnapshotProfilingConfigurationCustomizerProviderTest {
   }
 
   @Test
-  void shouldAddSnapshotSpanProcessor() {
+  void shouldAddSnapshotSpanProcessorAndShutdownHookSpanProcessor() {
     // given
     String yaml =
         toYamlString(
@@ -122,9 +125,10 @@ class SnapshotProfilingConfigurationCustomizerProviderTest {
     // then
     assertThat(model).isNotNull();
     assertThat(model.getTracerProvider()).isNotNull();
-    assertThat(model.getTracerProvider().getProcessors()).hasSize(1);
-    SpanProcessorModel spanProcessor = model.getTracerProvider().getProcessors().get(0);
-    assertThat(spanProcessor.getAdditionalProperties()).containsKey("splunk-snapshot-profiling");
+    assertThat(model.getTracerProvider().getProcessors()).hasSize(2);
+    assertThat(model.getTracerProvider().getProcessors())
+        .extracting(processor -> processor.getAdditionalProperties().keySet())
+        .containsOnlyOnceElementsOf(Arrays.asList(Sets.set("splunk-snapshot-profiling"), Sets.set("sdk-shutdown-hook")));
   }
 
   private static OpenTelemetryConfigurationModel getCustomizedModel(String yaml) {

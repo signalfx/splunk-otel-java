@@ -19,6 +19,7 @@ package com.splunk.opentelemetry.profiler.snapshot;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import com.splunk.opentelemetry.profiler.snapshot.registry.RecordingTraceRegistry;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.context.Context;
 import java.time.Duration;

@@ -20,6 +20,8 @@ import static com.splunk.opentelemetry.profiler.util.ProfilerDeclarativeConfigUt
 
 import com.google.auto.service.AutoService;
 import com.google.common.annotations.VisibleForTesting;
+import com.splunk.opentelemetry.profiler.snapshot.registry.TraceRegistry;
+import com.splunk.opentelemetry.profiler.snapshot.registry.TraceRegistryHolder;
 import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
 import io.opentelemetry.instrumentation.config.bridge.DeclarativeConfigPropertiesBridgeBuilder;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
@@ -49,7 +51,7 @@ public class SnapshotProfilingConfigurationCustomizerProvider
   private final ContextStorageWrapper contextStorageWrapper;
 
   public SnapshotProfilingConfigurationCustomizerProvider() {
-    this(new TraceRegistry(), stackTraceSamplerProvider(), new ContextStorageWrapper());
+    this(TraceRegistryHolder.getTraceRegistry(), stackTraceSamplerProvider(), new ContextStorageWrapper());
   }
 
   public void customize(DeclarativeConfigurationCustomizer configurationCustomizer) {
@@ -68,7 +70,7 @@ public class SnapshotProfilingConfigurationCustomizerProvider
 
   private void customizePropagators(OpenTelemetryConfigurationModel model) {
     // TODO: How we should handle "none" ? (see
-    // SnapshotProfilingSdkCustomizer::autoConfigureSnapshotVolumePropagator which )
+    // SnapshotProfilingSdkCustomizer::autoConfigureSnapshotVolumePropagator )
     PropagatorModel propagator = model.getPropagator();
     if (propagator == null) { // TODO: make an utility for this kind of code ( getOrAddXXX(model) )
       propagator = new PropagatorModel();
@@ -113,7 +115,6 @@ public class SnapshotProfilingConfigurationCustomizerProvider
     SpanProcessorModel spanProcessor =
         new SpanProcessorModel()
             .withAdditionalProperty(SnapshotProfilingSpanProcessorComponentProvider.NAME, null);
-    SnapshotProfilingSpanProcessorComponentProvider.setTraceRegistry(registry);
 
     TracerProviderModel tracerProvider = model.getTracerProvider();
     if (tracerProvider == null) {

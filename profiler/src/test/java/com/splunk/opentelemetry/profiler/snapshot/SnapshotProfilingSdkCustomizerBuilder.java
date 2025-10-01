@@ -16,10 +16,12 @@
 
 package com.splunk.opentelemetry.profiler.snapshot;
 
+import com.splunk.opentelemetry.profiler.snapshot.registry.TraceRegistry;
+import com.splunk.opentelemetry.profiler.snapshot.registry.TraceRegistryHolder;
 import java.time.Duration;
 
 class SnapshotProfilingSdkCustomizerBuilder {
-  private TraceRegistry registry = new TraceRegistry();
+  private TraceRegistry registry = TraceRegistryHolder.getTraceRegistry();
   private StackTraceSampler sampler = new ObservableStackTraceSampler();
   private ContextStorageWrapper contextStorageWrapper = new ResettingContextStorageWrapper();
 

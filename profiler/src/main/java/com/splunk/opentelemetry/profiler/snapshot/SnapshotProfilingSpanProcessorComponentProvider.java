@@ -17,6 +17,8 @@
 package com.splunk.opentelemetry.profiler.snapshot;
 
 import com.google.auto.service.AutoService;
+import com.splunk.opentelemetry.profiler.snapshot.registry.TraceRegistry;
+import com.splunk.opentelemetry.profiler.snapshot.registry.TraceRegistryHolder;
 import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
 import io.opentelemetry.sdk.autoconfigure.spi.internal.ComponentProvider;
 import io.opentelemetry.sdk.trace.SpanProcessor;
@@ -28,7 +30,13 @@ public class SnapshotProfilingSpanProcessorComponentProvider
   public static final String NAME = "splunk-snapshot-profiling";
   private static TraceRegistry traceRegistry;
 
-  public SnapshotProfilingSpanProcessorComponentProvider() {}
+  public SnapshotProfilingSpanProcessorComponentProvider() {
+    this(TraceRegistryHolder.getTraceRegistry());
+  }
+
+  SnapshotProfilingSpanProcessorComponentProvider(TraceRegistry traceRegistry) {
+    this.traceRegistry = traceRegistry;
+  }
 
   @Override
   public Class<SpanProcessor> getType() {
@@ -44,9 +52,5 @@ public class SnapshotProfilingSpanProcessorComponentProvider
   public SnapshotProfilingSpanProcessor create(
       DeclarativeConfigProperties declarativeConfigProperties) {
     return new SnapshotProfilingSpanProcessor(traceRegistry);
-  }
-
-  static void setTraceRegistry(TraceRegistry registry) {
-    traceRegistry = registry;
   }
 }

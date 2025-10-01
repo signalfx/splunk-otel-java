@@ -18,6 +18,8 @@ package com.splunk.opentelemetry.profiler.snapshot;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.splunk.opentelemetry.profiler.snapshot.registry.TraceRegistry;
+import com.splunk.opentelemetry.profiler.snapshot.registry.TraceRegistryHolder;
 import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.sdk.autoconfigure.OpenTelemetrySdkExtension;
@@ -26,7 +28,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
 class SnapshotProfilingFeatureFlagTest {
-  private final TraceRegistry registry = new TraceRegistry();
+  private final TraceRegistry registry = TraceRegistryHolder.getTraceRegistry();
   private final SnapshotProfilingSdkCustomizer customizer =
       Snapshotting.customizer().with(registry).build();
 

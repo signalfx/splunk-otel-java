@@ -51,7 +51,10 @@ public class SnapshotProfilingConfigurationCustomizerProvider
   private final ContextStorageWrapper contextStorageWrapper;
 
   public SnapshotProfilingConfigurationCustomizerProvider() {
-    this(TraceRegistryHolder.getTraceRegistry(), stackTraceSamplerProvider(), new ContextStorageWrapper());
+    this(
+        TraceRegistryHolder.getTraceRegistry(),
+        stackTraceSamplerProvider(),
+        new ContextStorageWrapper());
   }
 
   public void customize(DeclarativeConfigurationCustomizer configurationCustomizer) {

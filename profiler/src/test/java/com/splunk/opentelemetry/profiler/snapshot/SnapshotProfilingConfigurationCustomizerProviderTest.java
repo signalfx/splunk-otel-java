@@ -22,10 +22,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.splunk.opentelemetry.testing.declarativeconfig.DeclarativeConfigTestUtil;
 import io.opentelemetry.instrumentation.testing.internal.AutoCleanupExtension;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.OpenTelemetryConfigurationModel;
-import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.SpanProcessorModel;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Map;
 import org.assertj.core.util.Sets;
@@ -128,7 +126,8 @@ class SnapshotProfilingConfigurationCustomizerProviderTest {
     assertThat(model.getTracerProvider().getProcessors()).hasSize(2);
     assertThat(model.getTracerProvider().getProcessors())
         .extracting(processor -> processor.getAdditionalProperties().keySet())
-        .containsOnlyOnceElementsOf(Arrays.asList(Sets.set("splunk-snapshot-profiling"), Sets.set("sdk-shutdown-hook")));
+        .containsOnlyOnceElementsOf(
+            Arrays.asList(Sets.set("splunk-snapshot-profiling"), Sets.set("sdk-shutdown-hook")));
   }
 
   private static OpenTelemetryConfigurationModel getCustomizedModel(String yaml) {

@@ -42,7 +42,11 @@ public class DeclarativeConfigTestUtil {
     return String.join("\n", Arrays.asList(lines));
   }
 
-  public static OpenTelemetryConfigurationModel parseModel(String yaml) {
+  public static OpenTelemetryConfigurationModel parse(String... lines) {
+    return parse(toYamlString(lines));
+  }
+
+  public static OpenTelemetryConfigurationModel parse(String yaml) {
     try (InputStream yamlStream = new ByteArrayInputStream(yaml.getBytes(StandardCharsets.UTF_8))) {
       return DeclarativeConfiguration.parse(yamlStream);
     } catch (IOException e) {
@@ -52,7 +56,7 @@ public class DeclarativeConfigTestUtil {
 
   public static OpenTelemetryConfigurationModel parseAndCustomizeModel(
       String yaml, DeclarativeConfigurationCustomizerProvider customizer) {
-    OpenTelemetryConfigurationModel model = parseModel(yaml);
+    OpenTelemetryConfigurationModel model = parse(yaml);
     DeclarativeConfigurationBuilder builder = new DeclarativeConfigurationBuilder();
     customizer.customize(builder);
 

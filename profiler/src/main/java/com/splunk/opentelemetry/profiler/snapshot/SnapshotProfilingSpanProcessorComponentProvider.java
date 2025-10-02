@@ -28,7 +28,7 @@ import io.opentelemetry.sdk.trace.SpanProcessor;
 public class SnapshotProfilingSpanProcessorComponentProvider
     implements ComponentProvider<SpanProcessor> {
   public static final String NAME = "splunk-snapshot-profiling";
-  private static TraceRegistry traceRegistry;
+  private final TraceRegistry traceRegistry;
 
   public SnapshotProfilingSpanProcessorComponentProvider() {
     this(TraceRegistryHolder.getTraceRegistry());

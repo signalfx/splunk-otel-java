@@ -58,17 +58,19 @@ public class SnapshotProfilingConfigurationCustomizerProvider
   }
 
   public void customize(DeclarativeConfigurationCustomizer configurationCustomizer) {
-    configurationCustomizer.addModelCustomizer(
-        model -> {
-          if (isProfilerEnabled(model)) {
-            customizePropagators(model);
-            customizeSpanProcessor(model);
-            setupStackTraceSampler(model);
-            addShutdownHookSpanProcessor(model);
-            initActiveSpansTracking();
-          }
-          return model;
-        });
+    configurationCustomizer.addModelCustomizer(this::customizeModel);
+  }
+
+  @VisibleForTesting
+  OpenTelemetryConfigurationModel customizeModel(OpenTelemetryConfigurationModel model) {
+    if (isProfilerEnabled(model)) {
+      customizePropagators(model);
+      customizeSpanProcessor(model);
+      setupStackTraceSampler(model);
+      addShutdownHookSpanProcessor(model);
+      initActiveSpansTracking();
+    }
+    return model;
   }
 
   private void customizePropagators(OpenTelemetryConfigurationModel model) {

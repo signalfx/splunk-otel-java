@@ -18,7 +18,10 @@ package com.splunk.opentelemetry.profiler.snapshot;
 
 import static com.splunk.opentelemetry.testing.declarativeconfig.DeclarativeConfigTestUtil.toYamlString;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
+import com.splunk.opentelemetry.profiler.snapshot.registry.TraceRegistry;
 import com.splunk.opentelemetry.testing.declarativeconfig.DeclarativeConfigTestUtil;
 import io.opentelemetry.instrumentation.testing.internal.AutoCleanupExtension;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.OpenTelemetryConfigurationModel;
@@ -81,7 +84,7 @@ class SnapshotProfilingConfigurationCustomizerProviderTest {
   }
 
   @Test
-  void shouldNotAddTracecontextIfSomePropagatorsPredefinedInConfig() {
+  void shouldNotAddTraceContextIfSomePropagatorsPredefinedInConfig() {
     // given
     String yaml =
         toYamlString(
@@ -128,6 +131,33 @@ class SnapshotProfilingConfigurationCustomizerProviderTest {
         .extracting(processor -> processor.getAdditionalProperties().keySet())
         .containsOnlyOnceElementsOf(
             Arrays.asList(Sets.set("splunk-snapshot-profiling"), Sets.set("sdk-shutdown-hook")));
+  }
+
+  @Test
+  void shouldInitialize() {
+    // given
+    OpenTelemetryConfigurationModel model =
+        DeclarativeConfigTestUtil.parse(
+            "file_format: \"1.0-rc.1\"",
+            "instrumentation/development:",
+            "  java:",
+            "    splunk:",
+            "      profiler:",
+            "        enabled: true");
+
+    TraceRegistry traceRegistryMock = mock(TraceRegistry.class);
+    StackTraceSampler stackTraceSamplerMock = mock(StackTraceSampler.class);
+    ContextStorageWrapper contextStorageWrapperMock = mock(ContextStorageWrapper.class);
+
+    SnapshotProfilingConfigurationCustomizerProvider customizerProvider =
+        new SnapshotProfilingConfigurationCustomizerProvider(
+            traceRegistryMock, stackTraceSamplerMock, contextStorageWrapperMock);
+
+    // when
+    customizerProvider.customizeModel(model);
+
+    // then
+    verify(contextStorageWrapperMock).wrapContextStorage(traceRegistryMock);
   }
 
   private static OpenTelemetryConfigurationModel getCustomizedModel(String yaml) {

@@ -19,6 +19,8 @@ package com.splunk.opentelemetry.profiler.snapshot;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import com.splunk.opentelemetry.profiler.snapshot.registry.TraceRegistry;
+import com.splunk.opentelemetry.profiler.snapshot.registry.TraceRegistryHolder;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.context.ContextKey;
@@ -30,7 +32,7 @@ import org.junit.jupiter.api.Test;
 
 class TraceThreadChangeDetectorTest {
   private final ContextStorage storage = ContextStorage.get();
-  private final TraceRegistry registry = new TraceRegistry();
+  private final TraceRegistry registry = TraceRegistryHolder.getTraceRegistry();
   private final ObservableStackTraceSampler sampler = new ObservableStackTraceSampler();
   private final TraceThreadChangeDetector detector =
       new TraceThreadChangeDetector(storage, registry, () -> sampler);

@@ -14,15 +14,17 @@
  * limitations under the License.
  */
 
-package com.splunk.opentelemetry.profiler.snapshot;
+package com.splunk.opentelemetry.profiler.snapshot.registry;
 
 import io.opentelemetry.api.trace.SpanContext;
 import java.util.Collections;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-class TraceRegistry {
+public class TraceRegistry {
   private final Set<String> traceIds = Collections.newSetFromMap(new ConcurrentHashMap<>());
+
+  TraceRegistry() {}
 
   public final void register(SpanContext spanContext) {
     register(spanContext.getTraceId());

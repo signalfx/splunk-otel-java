@@ -14,22 +14,30 @@
  * limitations under the License.
  */
 
-package com.splunk.opentelemetry;
+package com.splunk.opentelemetry.profiler.snapshot;
 
 import com.google.auto.service.AutoService;
-import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
-import io.opentelemetry.sdk.autoconfigure.spi.traces.ConfigurableSamplerProvider;
-import io.opentelemetry.sdk.trace.samplers.Sampler;
+import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
+import io.opentelemetry.sdk.autoconfigure.spi.internal.ComponentProvider;
+import io.opentelemetry.sdk.trace.SpanProcessor;
 
-@AutoService(ConfigurableSamplerProvider.class)
-public class InternalRootOffSamplerProvider implements ConfigurableSamplerProvider {
+@SuppressWarnings("rawtypes")
+@AutoService(ComponentProvider.class)
+public class SdkShutdownHookComponentProvider implements ComponentProvider<SpanProcessor> {
+  public static final String NAME = "sdk-shutdown-hook";
+
   @Override
-  public Sampler createSampler(ConfigProperties config) {
-    return new InternalRootOffSampler();
+  public Class<SpanProcessor> getType() {
+    return SpanProcessor.class;
   }
 
   @Override
   public String getName() {
-    return "internal_root_off";
+    return NAME;
+  }
+
+  @Override
+  public SpanProcessor create(DeclarativeConfigProperties config) {
+    return new SdkShutdownHook();
   }
 }

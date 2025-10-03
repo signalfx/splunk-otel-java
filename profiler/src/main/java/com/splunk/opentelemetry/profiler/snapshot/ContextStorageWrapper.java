@@ -17,6 +17,7 @@
 package com.splunk.opentelemetry.profiler.snapshot;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.splunk.opentelemetry.profiler.snapshot.registry.TraceRegistry;
 import io.opentelemetry.context.ContextStorage;
 import java.util.function.Consumer;
 import java.util.function.UnaryOperator;

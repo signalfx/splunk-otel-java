@@ -69,7 +69,7 @@ public class SplunkConfiguration implements AutoConfigurationCustomizerProvider 
           customized,
           config,
           "otel.exporter.otlp.endpoint",
-          "https://ingest." + realm + ".signalfx.com");
+          RealmUrls.INSTANCE.otlpEndpoint(realm));
 
       // metrics ingest doesn't currently accept grpc
       addIfAbsent(customized, config, "otel.exporter.otlp.metrics.protocol", "http/protobuf");
@@ -77,7 +77,7 @@ public class SplunkConfiguration implements AutoConfigurationCustomizerProvider 
           customized,
           config,
           "otel.exporter.otlp.metrics.endpoint",
-          "https://ingest." + realm + ".signalfx.com/v2/datapoint/otlp");
+          RealmUrls.INSTANCE.otlpMetrics(realm));
 
       if (config.getString("otel.exporter.otlp.logs.endpoint") == null) {
         String logsEndpoint = getDefaultLogsEndpoint(config);
@@ -85,7 +85,7 @@ public class SplunkConfiguration implements AutoConfigurationCustomizerProvider 
             WARNING,
             "Logs can not be sent to {0}, using {1} instead. "
                 + "You can override it by setting otel.exporter.otlp.logs.endpoint",
-            new Object[] {"https://ingest." + realm + ".signalfx.com", logsEndpoint});
+            new Object[] {RealmUrls.INSTANCE.otlpLogs(realm), logsEndpoint});
 
         addIfAbsent(customized, config, "otel.exporter.otlp.logs.endpoint", logsEndpoint);
       }

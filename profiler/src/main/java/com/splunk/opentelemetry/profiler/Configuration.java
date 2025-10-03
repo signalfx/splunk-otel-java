@@ -21,6 +21,7 @@ import static com.splunk.opentelemetry.SplunkConfiguration.PROFILER_MEMORY_ENABL
 import static java.util.logging.Level.WARNING;
 
 import com.google.auto.service.AutoService;
+import com.splunk.opentelemetry.RealmUrls;
 import io.opentelemetry.sdk.autoconfigure.spi.AutoConfigurationCustomizer;
 import io.opentelemetry.sdk.autoconfigure.spi.AutoConfigurationCustomizerProvider;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
@@ -89,8 +90,7 @@ public class Configuration implements AutoConfigurationCustomizerProvider {
   public static String getConfigUrl(ConfigProperties config) {
     String ingestUrl = config.getString(CONFIG_KEY_OTEL_OTLP_URL, null);
     if (ingestUrl != null) {
-      if (ingestUrl.startsWith("https://ingest.")
-          && ingestUrl.endsWith(".signalfx.com")
+      if (RealmUrls.INSTANCE.isIngestUrl(ingestUrl)
           && config.getString(CONFIG_KEY_INGEST_URL) == null) {
         logger.log(
             WARNING,

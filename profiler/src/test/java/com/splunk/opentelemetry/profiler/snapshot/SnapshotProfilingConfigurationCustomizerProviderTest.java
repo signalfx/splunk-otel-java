@@ -61,8 +61,9 @@ class SnapshotProfilingConfigurationCustomizerProviderTest {
             "instrumentation/development:",
             "  java:",
             "    splunk:",
-            "      profiler:",
-            "        enabled: true");
+            "      snapshot:",
+            "        profiler:",
+            "          enabled: true");
 
     // when
     OpenTelemetryConfigurationModel model = getCustomizedModel(yaml);
@@ -94,8 +95,9 @@ class SnapshotProfilingConfigurationCustomizerProviderTest {
             "instrumentation/development:",
             "  java:",
             "    splunk:",
-            "      profiler:",
-            "        enabled: true");
+            "      snapshot:",
+            "        profiler:",
+            "          enabled: true");
 
     // when
     OpenTelemetryConfigurationModel model = getCustomizedModel(yaml);
@@ -117,8 +119,9 @@ class SnapshotProfilingConfigurationCustomizerProviderTest {
             "instrumentation/development:",
             "  java:",
             "    splunk:",
-            "      profiler:",
-            "        enabled: true");
+            "      snapshot:",
+            "        profiler:",
+            "          enabled: true");
 
     // when
     OpenTelemetryConfigurationModel model = getCustomizedModel(yaml);
@@ -142,8 +145,9 @@ class SnapshotProfilingConfigurationCustomizerProviderTest {
             "instrumentation/development:",
             "  java:",
             "    splunk:",
-            "      profiler:",
-            "        enabled: true");
+            "      snapshot:",
+            "        profiler:",
+            "          enabled: true");
 
     TraceRegistry traceRegistryMock = mock(TraceRegistry.class);
     StackTraceSampler stackTraceSamplerMock = mock(StackTraceSampler.class);

@@ -16,25 +16,42 @@
 
 package com.splunk.opentelemetry.profiler.util;
 
-import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_ENABLE_PROFILER;
 import static io.opentelemetry.sdk.autoconfigure.AdditionalPropertiesUtil.getAdditionalPropertyOrDefault;
 
+import com.splunk.opentelemetry.profiler.Configuration;
+import com.splunk.opentelemetry.profiler.snapshot.SnapshotProfilingConfiguration;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.ExperimentalLanguageSpecificInstrumentationModel;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.OpenTelemetryConfigurationModel;
 import java.util.Map;
 
 public class ProfilerDeclarativeConfigUtil {
   public static boolean isProfilerEnabled(OpenTelemetryConfigurationModel model) {
+    return getBoolean(model, Configuration.CONFIG_KEY_ENABLE_PROFILER);
+  }
+
+  public static boolean isProfilerEnabled(Map<String, Object> javaInstrumentationProperties) {
+    return getBoolean(javaInstrumentationProperties, Configuration.CONFIG_KEY_ENABLE_PROFILER);
+  }
+
+  public static boolean isSnapshotProfilingEnabled(OpenTelemetryConfigurationModel model) {
+    return getBoolean(model, SnapshotProfilingConfiguration.CONFIG_KEY_ENABLE_SNAPSHOT_PROFILER);
+  }
+
+  private static boolean getBoolean(OpenTelemetryConfigurationModel model, String propertyName) {
     if (model.getInstrumentationDevelopment() != null) {
       ExperimentalLanguageSpecificInstrumentationModel java =
           model.getInstrumentationDevelopment().getJava();
 
       if (java != null) {
         Map<String, Object> javaInstrumentationProperties = java.getAdditionalProperties();
-        return getAdditionalPropertyOrDefault(
-            javaInstrumentationProperties, CONFIG_KEY_ENABLE_PROFILER, false);
+        return getBoolean(javaInstrumentationProperties, propertyName);
       }
     }
     return false;
+  }
+
+  private static boolean getBoolean(
+      Map<String, Object> javaInstrumentationProperties, String propertyName) {
+    return getAdditionalPropertyOrDefault(javaInstrumentationProperties, propertyName, false);
   }
 }

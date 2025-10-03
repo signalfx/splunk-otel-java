@@ -16,7 +16,7 @@
 
 package com.splunk.opentelemetry.profiler.snapshot;
 
-import static com.splunk.opentelemetry.profiler.util.ProfilerDeclarativeConfigUtil.isProfilerEnabled;
+import static com.splunk.opentelemetry.profiler.util.ProfilerDeclarativeConfigUtil.isSnapshotProfilingEnabled;
 
 import com.google.auto.service.AutoService;
 import com.google.common.annotations.VisibleForTesting;
@@ -63,7 +63,7 @@ public class SnapshotProfilingConfigurationCustomizerProvider
 
   @VisibleForTesting
   OpenTelemetryConfigurationModel customizeModel(OpenTelemetryConfigurationModel model) {
-    if (isProfilerEnabled(model)) {
+    if (isSnapshotProfilingEnabled(model)) {
       customizePropagators(model);
       customizeSpanProcessor(model);
       setupStackTraceSampler(model);

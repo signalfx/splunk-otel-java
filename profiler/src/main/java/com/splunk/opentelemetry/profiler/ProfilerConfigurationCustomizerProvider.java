@@ -16,10 +16,8 @@
 
 package com.splunk.opentelemetry.profiler;
 
-import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_ENABLE_PROFILER;
 import static com.splunk.opentelemetry.profiler.util.ProfilerDeclarativeConfigUtil.isProfilerEnabled;
 import static io.opentelemetry.sdk.autoconfigure.AdditionalPropertiesUtil.addAdditionalPropertyIfAbsent;
-import static io.opentelemetry.sdk.autoconfigure.AdditionalPropertiesUtil.getAdditionalPropertyOrDefault;
 
 import com.google.auto.service.AutoService;
 import io.opentelemetry.context.ContextStorage;
@@ -47,9 +45,7 @@ public class ProfilerConfigurationCustomizerProvider
             if (javaModel != null) {
               Map<String, Object> javaInstrumentationProperties =
                   javaModel.getAdditionalProperties();
-              if (getAdditionalPropertyOrDefault(
-                  javaInstrumentationProperties, CONFIG_KEY_ENABLE_PROFILER, false)) {
-
+              if (isProfilerEnabled(javaInstrumentationProperties)) {
                 Map<String, Object> defaultProperties =
                     Configuration.declarativeConfigDefaultProperties();
                 defaultProperties.forEach(
@@ -57,7 +53,7 @@ public class ProfilerConfigurationCustomizerProvider
                       addAdditionalPropertyIfAbsent(javaInstrumentationProperties, name, value);
                     });
 
-                if (jfrIsAvailable() && isProfilerEnabled(model)) {
+                if (jfrIsAvailable()) {
                   ContextStorage.addWrapper(JfrContextStorage::new);
                 }
               }

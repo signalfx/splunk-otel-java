@@ -48,8 +48,8 @@ class SplunkConfigurationTest {
   @Test
   void realmIsNotHardcoded() {
     var config = configuration(() -> Map.of(SplunkConfiguration.SPLUNK_REALM_PROPERTY, "test1"));
-
-    assertThat(config.getString(OTLP_ENDPOINT)).isEqualTo("https://ingest.test1.signalfx.com");
+    var expected = RealmUrls.INSTANCE.otlpEndpoint("test1");
+    assertThat(config.getString(OTLP_ENDPOINT)).isEqualTo(expected);
   }
 
   @Test

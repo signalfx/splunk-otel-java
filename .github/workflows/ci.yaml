@@ -39,7 +39,7 @@ jobs:
           java-version: 17
 
       - name: Cache Gradle Wrapper
-        uses: actions/cache@v4.2.4
+        uses: actions/cache@v4.3.0
         with:
           path: ~/.gradle/wrapper
           key: ${{ runner.os }}-gradle-wrapper-cache-${{ hashFiles('gradle/wrapper/gradle-wrapper.properties') }}
@@ -66,7 +66,7 @@ jobs:
           java-version: 17
 
       - name: Cache Gradle Wrapper
-        uses: actions/cache@v4.2.4
+        uses: actions/cache@v4.3.0
         with:
           path: ~/.gradle/wrapper
           key: ${{ runner.os }}-gradle-wrapper-cache-${{ hashFiles('gradle/wrapper/gradle-wrapper.properties') }}
@@ -91,7 +91,7 @@ jobs:
           java-version: 17
 
       - name: Cache Gradle Wrapper
-        uses: actions/cache@v4.2.4
+        uses: actions/cache@v4.3.0
         with:
           path: ~/.gradle/wrapper
           key: ${{ runner.os }}-gradle-wrapper-cache-${{ hashFiles('gradle/wrapper/gradle-wrapper.properties') }}
@@ -122,6 +122,9 @@ jobs:
     steps:
       - uses: actions/checkout@v5.0.0
 
+      - name: Free disk space
+        run: .github/scripts/gha-free-disk-space.sh
+
       - name: Set up JDK 17 for running Gradle
         uses: actions/setup-java@v5.0.0
         with:
@@ -129,13 +132,13 @@ jobs:
           java-version: 17
 
       - name: Cache Gradle Wrapper
-        uses: actions/cache@v4.2.4
+        uses: actions/cache@v4.3.0
         with:
           path: ~/.gradle/wrapper
           key: ${{ runner.os }}-gradle-wrapper-cache-${{ hashFiles('gradle/wrapper/gradle-wrapper.properties') }}
 
       - name: Login to GitHub Container Registry
-        uses: docker/login-action@v3.5.0
+        uses: docker/login-action@v3.6.0
         with:
           registry: ghcr.io
           username: ${{ github.repository_owner }}

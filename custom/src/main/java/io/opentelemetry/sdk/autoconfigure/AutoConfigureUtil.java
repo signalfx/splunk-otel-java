@@ -42,9 +42,9 @@ public final class AutoConfigureUtil {
   public static Resource getResource(AutoConfiguredOpenTelemetrySdk sdk) {
     Resource resource = sdk.getResource();
 
-    //    if (resource.equals(Resource.getDefault())) {
-    //      resource = extractResource(sdk);
-    //    }
+    if (resource.equals(Resource.getDefault())) {
+      resource = extractResource(sdk);
+    }
 
     return resource;
   }
@@ -52,9 +52,10 @@ public final class AutoConfigureUtil {
   // This is a workaround for the issue with resource not being correctly initialized.
   // Currently, AutoConfiguredOpenTelemetrySdk gets a default Resource when created, but providers
   // that were created based on the model get correctly configured instance of the Resource.
-  // See: https://github.com/open-telemetry/opentelemetry-java/pull/7418 for potential fix of the
+  // See: https://github.com/open-telemetry/opentelemetry-java/pull/7639 for potential fix of the
   // issue.
-  // TODO: This method should be removed once the fix (or similar) is merged in the upstream.
+  // TODO: This method should be removed once the fix (or similar) is merged in the upstream and
+  //       released.
   private static Resource extractResource(AutoConfiguredOpenTelemetrySdk sdk) {
     Resource resource =
         extractResourceFromProvider(sdk.getOpenTelemetrySdk().getSdkTracerProvider());
@@ -72,9 +73,8 @@ public final class AutoConfigureUtil {
   }
 
   private static Resource extractResourceFromProvider(Object provider) {
-    Field sharedStateField = null;
     try {
-      sharedStateField = provider.getClass().getDeclaredField("sharedState");
+      Field sharedStateField = provider.getClass().getDeclaredField("sharedState");
       sharedStateField.setAccessible(true);
       Object sharedState = sharedStateField.get(provider);
 

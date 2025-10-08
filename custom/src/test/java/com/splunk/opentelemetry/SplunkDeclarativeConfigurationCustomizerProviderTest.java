@@ -21,11 +21,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.SdkConfigProvider;
+import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.LogRecordProcessorModel;
+import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.MetricReaderModel;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.NameStringValuePairModel;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.OpenTelemetryConfigurationModel;
-import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.OtlpHttpExporterModel;
-import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.OtlpHttpMetricExporterModel;
-import java.io.IOException;
+import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.SpanProcessorModel;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Objects;
@@ -36,6 +36,7 @@ class SplunkDeclarativeConfigurationCustomizerProviderTest {
 
   @Test
   void shouldCustomizeConfigPropertiesIfUndefined() {
+    // given
     var yaml =
         """
             file_format: "1.0-rc.1"
@@ -43,8 +44,10 @@ class SplunkDeclarativeConfigurationCustomizerProviderTest {
               java:
             """;
 
+    // when
     DeclarativeConfigProperties configProperties = getCustomizedJavaInstrumentationConfig(yaml);
 
+    // then
     assertThat(
             configProperties
                 .getStructured("splunk")
@@ -63,6 +66,7 @@ class SplunkDeclarativeConfigurationCustomizerProviderTest {
 
   @Test
   void shouldKeepOriginalConfigProperties() {
+    // given
     var yaml =
         """
             file_format: "1.0-rc.1"
@@ -77,8 +81,10 @@ class SplunkDeclarativeConfigurationCustomizerProviderTest {
                     force_full_commandline: true
             """;
 
+    // when
     DeclarativeConfigProperties configProperties = getCustomizedJavaInstrumentationConfig(yaml);
 
+    // then
     assertThat(
             configProperties
                 .getStructured("splunk")
@@ -96,7 +102,8 @@ class SplunkDeclarativeConfigurationCustomizerProviderTest {
   }
 
   @Test
-  void shouldCustomizeSamplerIfUndefined(@TempDir Path tempDir) throws IOException {
+  void shouldCustomizeSamplerIfUndefined(@TempDir Path tempDir) {
+    // given
     String yaml =
         """
             file_format: "1.0-rc.1"
@@ -110,13 +117,16 @@ class SplunkDeclarativeConfigurationCustomizerProviderTest {
               java:
             """;
 
+    // when
     OpenTelemetryConfigurationModel model = getCustomizedModel(yaml);
 
+    // then
     assertThat(model.getTracerProvider().getSampler().getAlwaysOn()).isNotNull();
   }
 
   @Test
-  void shouldKeepOriginalSamplerConfigurationIfDefined(@TempDir Path tempDir) throws IOException {
+  void shouldKeepOriginalSamplerConfigurationIfDefined(@TempDir Path tempDir) {
+    // given
     var yaml =
         """
             file_format: "1.0-rc.1"
@@ -131,16 +141,49 @@ class SplunkDeclarativeConfigurationCustomizerProviderTest {
               java:
             """;
 
+    // when
     OpenTelemetryConfigurationModel model = getCustomizedModel(yaml);
 
+    // then
     assertThat(model.getTracerProvider().getSampler().getAlwaysOff()).isNotNull();
   }
 
   @Test
-  void shouldCustomizeEmptyConfigurationForSplunkRealm() {
+  void shouldCustomizeSpanExporters() {
+    // given
     var yaml =
         """
             file_format: "1.0-rc.1"
+            tracer_provider:
+              processors:
+                - batch:
+                    exporter:
+                      otlp_http:
+                - batch:
+                    exporter:
+                      otlp_http:
+                        endpoint: "http://untouched:1"
+                - batch:
+                    exporter:
+                      otlp_grpc:
+                - batch:
+                    exporter:
+                      otlp_grpc:
+                        endpoint: "http://untouched:2"
+                - simple:
+                    exporter:
+                      otlp_http:
+                - simple:
+                    exporter:
+                      otlp_http:
+                        endpoint: "http://untouched:3"
+                - simple:
+                    exporter:
+                      otlp_grpc:
+                - simple:
+                    exporter:
+                      otlp_grpc:
+                        endpoint: "http://untouched:4"
             instrumentation/development:
               java:
                 splunk:
@@ -148,43 +191,210 @@ class SplunkDeclarativeConfigurationCustomizerProviderTest {
                   access:
                     token: ABC123456
             """;
+
+    // when
     OpenTelemetryConfigurationModel model = getCustomizedModel(yaml);
 
+    // then
     NameStringValuePairModel tokenHeader =
         new NameStringValuePairModel().withName("X-SF-TOKEN").withValue("ABC123456");
-    OtlpHttpExporterModel traceExporterModel =
-        model.getTracerProvider().getProcessors().stream()
-            .filter(m -> m.getBatch() != null)
-            .limit(1)
-            .toList()
-            .get(0)
-            .getBatch()
-            .getExporter()
-            .getOtlpHttp();
-    assertThat(traceExporterModel.getEndpoint())
-        .isEqualTo("https://ingest.unreal-test-realm.signalfx.com/v1/traces");
-    assertThat(traceExporterModel.getEncoding())
-        .isEqualTo(OtlpHttpExporterModel.OtlpHttpEncoding.PROTOBUF);
-    assertThat(traceExporterModel.getHeaders()).contains(tokenHeader);
+    String httpEndpoint = "https://ingest.unreal-test-realm.signalfx.com/v1/traces";
+    String grpcEndpoint = "https://ingest.unreal-test-realm.signalfx.com";
 
-    OtlpHttpMetricExporterModel metricExporterModel =
-        model.getMeterProvider().getReaders().get(0).getPeriodic().getExporter().getOtlpHttp();
-    assertThat(metricExporterModel.getEndpoint())
-        .isEqualTo("https://ingest.unreal-test-realm.signalfx.com/v2/datapoint/otlp");
-    assertThat(metricExporterModel.getEncoding())
-        .isEqualTo(OtlpHttpExporterModel.OtlpHttpEncoding.PROTOBUF);
-    assertThat(metricExporterModel.getHeaders()).contains(tokenHeader);
+    assertThat(getSpanProcessorModel(model, 0).getBatch().getExporter().getOtlpHttp())
+        .matches((m) -> m.getEndpoint().equals(httpEndpoint))
+        .matches((m) -> m.getHeaders().contains(tokenHeader));
 
-    OtlpHttpExporterModel logExporterModel =
-        model.getLoggerProvider().getProcessors().get(0).getBatch().getExporter().getOtlpHttp();
-    assertThat(logExporterModel.getEndpoint()).isEqualTo("http://localhost:4318/v1/logs");
-    assertThat(logExporterModel.getEncoding())
-        .isEqualTo(OtlpHttpExporterModel.OtlpHttpEncoding.PROTOBUF);
-    assertThat(logExporterModel.getHeaders()).contains(tokenHeader);
+    assertThat(getSpanProcessorModel(model, 1).getBatch().getExporter().getOtlpHttp())
+        .matches((m) -> m.getEndpoint().equals("http://untouched:1"))
+        .matches((m) -> m.getHeaders().contains(tokenHeader));
+
+    assertThat(getSpanProcessorModel(model, 2).getBatch().getExporter().getOtlpGrpc())
+        .matches((m) -> m.getEndpoint().equals(grpcEndpoint))
+        .matches((m) -> m.getHeaders().contains(tokenHeader));
+
+    assertThat(getSpanProcessorModel(model, 3).getBatch().getExporter().getOtlpGrpc())
+        .matches((m) -> m.getEndpoint().equals("http://untouched:2"))
+        .matches((m) -> m.getHeaders().contains(tokenHeader));
+
+    assertThat(getSpanProcessorModel(model, 4).getSimple().getExporter().getOtlpHttp())
+        .matches((m) -> m.getEndpoint().equals(httpEndpoint))
+        .matches((m) -> m.getHeaders().contains(tokenHeader));
+
+    assertThat(getSpanProcessorModel(model, 5).getSimple().getExporter().getOtlpHttp())
+        .matches((m) -> m.getEndpoint().equals("http://untouched:3"))
+        .matches((m) -> m.getHeaders().contains(tokenHeader));
+
+    assertThat(getSpanProcessorModel(model, 6).getSimple().getExporter().getOtlpGrpc())
+        .matches((m) -> m.getEndpoint().equals(grpcEndpoint))
+        .matches((m) -> m.getHeaders().contains(tokenHeader));
+
+    assertThat(getSpanProcessorModel(model, 7).getSimple().getExporter().getOtlpGrpc())
+        .matches((m) -> m.getEndpoint().equals("http://untouched:4"))
+        .matches((m) -> m.getHeaders().contains(tokenHeader));
+  }
+
+  @Test
+  void shouldCustomizeMetricExporters() {
+    // given
+    var yaml =
+        """
+            file_format: "1.0-rc.1"
+            meter_provider:
+              readers:
+                - periodic:
+                    exporter:
+                      otlp_http:
+                - periodic:
+                    exporter:
+                      otlp_http:
+                        endpoint: "http://untouched:1"
+                - periodic:
+                    exporter:
+                      otlp_grpc:
+                - periodic:
+                    exporter:
+                      otlp_grpc:
+                        endpoint: "http://untouched:2"
+            instrumentation/development:
+              java:
+                splunk:
+                  realm: unreal-test-realm
+                  access:
+                    token: ABC123456
+            """;
+
+    // when
+    OpenTelemetryConfigurationModel model = getCustomizedModel(yaml);
+
+    // then
+    NameStringValuePairModel tokenHeader =
+        new NameStringValuePairModel().withName("X-SF-TOKEN").withValue("ABC123456");
+    String httpEndpoint = "https://ingest.unreal-test-realm.signalfx.com/v2/datapoint/otlp";
+
+    assertThat(getMetricReaderModel(model, 0).getPeriodic().getExporter().getOtlpHttp())
+        .matches((m) -> m.getEndpoint().equals(httpEndpoint))
+        .matches((m) -> m.getHeaders().contains(tokenHeader));
+
+    assertThat(getMetricReaderModel(model, 1).getPeriodic().getExporter().getOtlpHttp())
+        .matches((m) -> m.getEndpoint().equals("http://untouched:1"))
+        .matches((m) -> m.getHeaders().contains(tokenHeader));
+
+    assertThat(getMetricReaderModel(model, 2).getPeriodic().getExporter().getOtlpGrpc())
+        .matches((m) -> m.getEndpoint() == null)
+        .matches((m) -> m.getHeaders().contains(tokenHeader));
+
+    assertThat(getMetricReaderModel(model, 3).getPeriodic().getExporter().getOtlpGrpc())
+        .matches((m) -> m.getEndpoint().equals("http://untouched:2"))
+        .matches((m) -> m.getHeaders().contains(tokenHeader));
+  }
+
+  @Test
+  void shouldCustomizeLogRecordExporters() {
+    // given
+    var yaml =
+        """
+            file_format: "1.0-rc.1"
+            logger_provider:
+              processors:
+                - batch:
+                    exporter:
+                      otlp_http:
+                - batch:
+                    exporter:
+                      otlp_http:
+                        endpoint: "http://untouched:1"
+                - batch:
+                    exporter:
+                      otlp_grpc:
+                - batch:
+                    exporter:
+                      otlp_grpc:
+                        endpoint: "http://untouched:2"
+                - simple:
+                    exporter:
+                      otlp_http:
+                - simple:
+                    exporter:
+                      otlp_http:
+                        endpoint: "http://untouched:3"
+                - simple:
+                    exporter:
+                      otlp_grpc:
+                - simple:
+                    exporter:
+                      otlp_grpc:
+                        endpoint: "http://untouched:4"
+            instrumentation/development:
+              java:
+                splunk:
+                  realm: unreal-test-realm
+                  access:
+                    token: ABC123456
+            """;
+
+    // when
+    OpenTelemetryConfigurationModel model = getCustomizedModel(yaml);
+
+    // then
+    NameStringValuePairModel tokenHeader =
+        new NameStringValuePairModel().withName("X-SF-TOKEN").withValue("ABC123456");
+    String httpEndpoint = "http://localhost:4318/v1/logs";
+    String grpcEndpoint = "http://localhost:4317";
+
+    assertThat(getLogRecordProcessorModel(model, 0).getBatch().getExporter().getOtlpHttp())
+        .matches((m) -> m.getEndpoint().equals(httpEndpoint))
+        .matches((m) -> m.getHeaders().contains(tokenHeader));
+
+    assertThat(getLogRecordProcessorModel(model, 1).getBatch().getExporter().getOtlpHttp())
+        .matches((m) -> m.getEndpoint().equals("http://untouched:1"))
+        .matches((m) -> m.getHeaders().contains(tokenHeader));
+
+    assertThat(getLogRecordProcessorModel(model, 2).getBatch().getExporter().getOtlpGrpc())
+        .matches((m) -> m.getEndpoint().equals(grpcEndpoint))
+        .matches((m) -> m.getHeaders().contains(tokenHeader));
+
+    assertThat(getLogRecordProcessorModel(model, 3).getBatch().getExporter().getOtlpGrpc())
+        .matches((m) -> m.getEndpoint().equals("http://untouched:2"))
+        .matches((m) -> m.getHeaders().contains(tokenHeader));
+
+    assertThat(getLogRecordProcessorModel(model, 4).getSimple().getExporter().getOtlpHttp())
+        .matches((m) -> m.getEndpoint().equals(httpEndpoint))
+        .matches((m) -> m.getHeaders().contains(tokenHeader));
+
+    assertThat(getLogRecordProcessorModel(model, 5).getSimple().getExporter().getOtlpHttp())
+        .matches((m) -> m.getEndpoint().equals("http://untouched:3"))
+        .matches((m) -> m.getHeaders().contains(tokenHeader));
+
+    assertThat(getLogRecordProcessorModel(model, 6).getSimple().getExporter().getOtlpGrpc())
+        .matches((m) -> m.getEndpoint().equals(grpcEndpoint))
+        .matches((m) -> m.getHeaders().contains(tokenHeader));
+
+    assertThat(getLogRecordProcessorModel(model, 7).getSimple().getExporter().getOtlpGrpc())
+        .matches((m) -> m.getEndpoint().equals("http://untouched:4"))
+        .matches((m) -> m.getHeaders().contains(tokenHeader));
+  }
+
+  private SpanProcessorModel getSpanProcessorModel(
+      OpenTelemetryConfigurationModel model, int index) {
+    assertThat(model.getTracerProvider()).isNotNull();
+    return model.getTracerProvider().getProcessors().get(index);
+  }
+
+  private MetricReaderModel getMetricReaderModel(OpenTelemetryConfigurationModel model, int index) {
+    assertThat(model.getMeterProvider()).isNotNull();
+    return model.getMeterProvider().getReaders().get(index);
+  }
+
+  private LogRecordProcessorModel getLogRecordProcessorModel(
+      OpenTelemetryConfigurationModel model, int index) {
+    assertThat(model.getLoggerProvider()).isNotNull();
+    return model.getLoggerProvider().getProcessors().get(index);
   }
 
   @Test
   void shouldNotUpdateAccessTokenProvidedInExporterHeaders() {
+    // given
     var yaml =
         """
             file_format: "1.0-rc.1"
@@ -202,8 +412,11 @@ class SplunkDeclarativeConfigurationCustomizerProviderTest {
                   access:
                     token: ABC123456
             """;
+
+    // when
     OpenTelemetryConfigurationModel model = getCustomizedModel(yaml);
 
+    // then
     List<NameStringValuePairModel> headers =
         model.getTracerProvider().getProcessors().stream()
             .filter(m -> m.getBatch() != null)
@@ -217,18 +430,6 @@ class SplunkDeclarativeConfigurationCustomizerProviderTest {
     assertThat(headers.size()).isEqualTo(1);
     assertThat(headers.get(0).getName()).isEqualTo("X-SF-TOKEN");
     assertThat(headers.get(0).getValue()).isEqualTo("XYZ");
-  }
-
-  @Test
-  void shouldNotUpdateExistingAccessToken() {
-    var yaml =
-        """
-            file_format: "1.0-rc.1"
-            log_level: ${TEST_LOG_LEVEL:-crazy}
-            """;
-    OpenTelemetryConfigurationModel model = getCustomizedModel(yaml);
-
-    assertThat(model.getLogLevel()).isEqualTo("crazy");
   }
 
   private static OpenTelemetryConfigurationModel getCustomizedModel(String yaml) {

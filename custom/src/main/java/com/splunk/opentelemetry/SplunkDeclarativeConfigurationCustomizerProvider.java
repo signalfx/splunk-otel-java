@@ -18,9 +18,7 @@ package com.splunk.opentelemetry;
 
 import static io.opentelemetry.sdk.autoconfigure.AdditionalPropertiesUtil.addAdditionalPropertyIfAbsent;
 import static io.opentelemetry.sdk.autoconfigure.AdditionalPropertiesUtil.getAdditionalProperty;
-import static io.opentelemetry.sdk.autoconfigure.AdditionalPropertiesUtil.getAdditionalPropertyOrDefault;
 import static io.opentelemetry.sdk.autoconfigure.AdditionalPropertiesUtil.setAdditionalProperty;
-import static java.util.logging.Level.WARNING;
 
 import com.google.auto.service.AutoService;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.DeclarativeConfigurationCustomizer;
@@ -64,10 +62,7 @@ public class SplunkDeclarativeConfigurationCustomizerProvider
       Logger.getLogger(SplunkDeclarativeConfigurationCustomizerProvider.class.getName());
 
   public static final String SPLUNK_ACCESS_TOKEN = "splunk.access.token";
-  public static final String PROFILER_ENABLED_PROPERTY = "splunk.profiler.enabled";
-  public static final String PROFILER_MEMORY_ENABLED_PROPERTY = "splunk.profiler.memory.enabled";
   public static final String SPLUNK_REALM_PROPERTY = "splunk.realm";
-  public static final String SPLUNK_REALM_NONE = "none";
 
   @Override
   public void customize(DeclarativeConfigurationCustomizer autoConfiguration) {
@@ -85,27 +80,14 @@ public class SplunkDeclarativeConfigurationCustomizerProvider
           Map<String, Object> properties = javaModel.getAdditionalProperties();
 
           customizeConfigProperties(properties);
-          customizeExportersForSplunkRealm(model, properties);
-          customizeExportersForSplunkAccessToken(model, properties);
+          customizeExporters(model, properties);
           customizeSampler(model);
           customizeLoggers(model, properties);
 
+          logger.fine(() -> "Customized model: " + model);
+
           // TODO: implement this in the declarative config validator
           //          EndpointProtocolValidator.validate(customized, config, logger::warning);
-          // logger.fine(() -> "Splunk configuration customization complete: " + model);
-
-          // TODO: This is temporary code. Remove it before release !!!
-          //          ObjectMapper mapper = new ObjectMapper();
-          //          String v = null;
-          //          try {
-          //            v =
-          //                mapper
-          //                    .configure(SerializationFeature.INDENT_OUTPUT, true)
-          //                    .writeValueAsString(model);
-          //            logger.info("Splunk configuration customization complete: " + v);
-          //          } catch (JsonProcessingException e) {
-          //            throw new RuntimeException(e);
-          //          }
           return model;
         });
   }
@@ -158,81 +140,148 @@ public class SplunkDeclarativeConfigurationCustomizerProvider
     }
   }
 
-  // TODO: Can't we just enforce token put directly in the YAML in exporters' headers ?
-  private static void customizeExportersForSplunkAccessToken(
+  private static void customizeExporters(
       OpenTelemetryConfigurationModel model, Map<String, Object> properties) {
-    Object accessToken = getAdditionalProperty(properties, SPLUNK_ACCESS_TOKEN);
-    if (accessToken != null) {
-      if (model.getTracerProvider() != null) {
-        iterateBatchSpanExporters(model.getTracerProvider())
-            .map(SpanExporterModel::getOtlpHttp)
-            .filter(Objects::nonNull)
-            .forEach(
-                exporterTransportModel ->
-                    addTokenHeader(exporterTransportModel, accessToken.toString()));
-        iterateBatchSpanExporters(model.getTracerProvider())
-            .map(SpanExporterModel::getOtlpGrpc)
-            .filter(Objects::nonNull)
-            .forEach(
-                exporterTransportModel ->
-                    addTokenHeader(exporterTransportModel, accessToken.toString()));
+    String accessToken =
+        Optional.ofNullable(getAdditionalProperty(properties, SPLUNK_ACCESS_TOKEN))
+            .map(Object::toString)
+            .orElse(null);
+    String baseEndpointUrl =
+        Optional.ofNullable(getAdditionalProperty(properties, SPLUNK_REALM_PROPERTY))
+            .map((realm) -> "https://ingest." + realm + ".signalfx.com")
+            .orElse(null);
 
-        iterateSimpleSpanExporters(model.getTracerProvider())
-            .map(SpanExporterModel::getOtlpHttp)
-            .filter(Objects::nonNull)
-            .forEach(
-                exporterTransportModel ->
-                    addTokenHeader(exporterTransportModel, accessToken.toString()));
-        iterateSimpleSpanExporters(model.getTracerProvider())
-            .map(SpanExporterModel::getOtlpGrpc)
-            .filter(Objects::nonNull)
-            .forEach(
-                exporterTransportModel ->
-                    addTokenHeader(exporterTransportModel, accessToken.toString()));
-      }
+    if (model.getTracerProvider() != null) {
+      customizeSpanExporters(model.getTracerProvider(), baseEndpointUrl, accessToken);
+    }
 
-      if (model.getMeterProvider() != null) {
-        iteratePeriodicMetricExporters(model.getMeterProvider())
-            .map(PushMetricExporterModel::getOtlpHttp)
-            .filter(Objects::nonNull)
-            .forEach(
-                exporterTransportModel ->
-                    addTokenHeader(exporterTransportModel, accessToken.toString()));
-        iteratePeriodicMetricExporters(model.getMeterProvider())
-            .map(PushMetricExporterModel::getOtlpGrpc)
-            .filter(Objects::nonNull)
-            .forEach(
-                exporterTransportModel ->
-                    addTokenHeader(exporterTransportModel, accessToken.toString()));
-      }
+    if (model.getMeterProvider() != null) {
+      customizeMetricExporters(model.getMeterProvider(), baseEndpointUrl, accessToken);
+    }
 
-      if (model.getLoggerProvider() != null) {
-        iterateBatchLogRecordExporters(model.getLoggerProvider())
-            .map(LogRecordExporterModel::getOtlpHttp)
-            .filter(Objects::nonNull)
-            .forEach(
-                exporterTransportModel ->
-                    addTokenHeader(exporterTransportModel, accessToken.toString()));
-        iterateBatchLogRecordExporters(model.getLoggerProvider())
-            .map(LogRecordExporterModel::getOtlpGrpc)
-            .filter(Objects::nonNull)
-            .forEach(
-                exporterTransportModel ->
-                    addTokenHeader(exporterTransportModel, accessToken.toString()));
+    if (model.getLoggerProvider() != null) {
+      customizeLogRecordExporters(model.getLoggerProvider(), accessToken);
+    }
+  }
 
-        iterateSimpleLogRecordExporters(model.getLoggerProvider())
-            .map(LogRecordExporterModel::getOtlpHttp)
-            .filter(Objects::nonNull)
-            .forEach(
-                exporterTransportModel ->
-                    addTokenHeader(exporterTransportModel, accessToken.toString()));
-        iterateSimpleLogRecordExporters(model.getLoggerProvider())
-            .map(LogRecordExporterModel::getOtlpGrpc)
-            .filter(Objects::nonNull)
-            .forEach(
-                exporterTransportModel ->
-                    addTokenHeader(exporterTransportModel, accessToken.toString()));
-      }
+  private static void customizeSpanExporters(
+      TracerProviderModel model, String baseEndpointUrl, String accessToken) {
+    String endpointUrl =
+        Optional.ofNullable(baseEndpointUrl).map((url) -> url + "/v1/traces").orElse(null);
+
+    iterateBatchSpanExporters(model)
+        .map(SpanExporterModel::getOtlpHttp)
+        .filter(Objects::nonNull)
+        .forEach(
+            exporterModel -> {
+              maybeAddTokenHeader(exporterModel, accessToken);
+              maybeSetEndpoint(exporterModel, endpointUrl);
+            });
+    iterateBatchSpanExporters(model)
+        .map(SpanExporterModel::getOtlpGrpc)
+        .filter(Objects::nonNull)
+        .forEach(
+            exporterModel -> {
+              maybeAddTokenHeader(exporterModel, accessToken);
+              maybeSetEndpoint(exporterModel, baseEndpointUrl);
+            });
+
+    iterateSimpleSpanExporters(model)
+        .map(SpanExporterModel::getOtlpHttp)
+        .filter(Objects::nonNull)
+        .forEach(
+            exporterModel -> {
+              maybeAddTokenHeader(exporterModel, accessToken);
+              maybeSetEndpoint(exporterModel, endpointUrl);
+            });
+    iterateSimpleSpanExporters(model)
+        .map(SpanExporterModel::getOtlpGrpc)
+        .filter(Objects::nonNull)
+        .forEach(
+            exporterModel -> {
+              maybeAddTokenHeader(exporterModel, accessToken);
+              maybeSetEndpoint(exporterModel, baseEndpointUrl);
+            });
+  }
+
+  private static void customizeMetricExporters(
+      MeterProviderModel model, String baseEndpointUrl, String accessToken) {
+    String endpointUrl =
+        Optional.ofNullable(baseEndpointUrl).map((url) -> url + "/v2/datapoint/otlp").orElse(null);
+
+    iteratePeriodicMetricExporters(model)
+        .map(PushMetricExporterModel::getOtlpHttp)
+        .filter(Objects::nonNull)
+        .forEach(
+            exporterModel -> {
+              maybeAddTokenHeader(exporterModel, accessToken);
+              maybeSetEndpoint(exporterModel, endpointUrl);
+            });
+    iteratePeriodicMetricExporters(model)
+        .map(PushMetricExporterModel::getOtlpGrpc)
+        .filter(Objects::nonNull)
+        .forEach(
+            exporterModel -> {
+              maybeAddTokenHeader(exporterModel, accessToken);
+              // metrics ingest doesn't currently accept grpc
+            });
+  }
+
+  private static void customizeLogRecordExporters(LoggerProviderModel model, String accessToken) {
+    String httpEndpoint = "http://localhost:4318/v1/logs";
+    String grpcEndpoint = "http://localhost:4317";
+
+    iterateBatchLogRecordExporters(model)
+        .map(LogRecordExporterModel::getOtlpHttp)
+        .filter(Objects::nonNull)
+        .forEach(
+            exporterModel -> {
+              maybeAddTokenHeader(exporterModel, accessToken);
+              maybeSetEndpoint(exporterModel, httpEndpoint);
+            });
+    iterateBatchLogRecordExporters(model)
+        .map(LogRecordExporterModel::getOtlpGrpc)
+        .filter(Objects::nonNull)
+        .forEach(
+            exporterModel -> {
+              maybeAddTokenHeader(exporterModel, accessToken);
+              maybeSetEndpoint(exporterModel, grpcEndpoint);
+            });
+
+    iterateSimpleLogRecordExporters(model)
+        .map(LogRecordExporterModel::getOtlpHttp)
+        .filter(Objects::nonNull)
+        .forEach(
+            exporterModel -> {
+              maybeAddTokenHeader(exporterModel, accessToken);
+              maybeSetEndpoint(exporterModel, httpEndpoint);
+            });
+    iterateSimpleLogRecordExporters(model)
+        .map(LogRecordExporterModel::getOtlpGrpc)
+        .filter(Objects::nonNull)
+        .forEach(
+            exporterModel -> {
+              maybeAddTokenHeader(exporterModel, accessToken);
+              maybeSetEndpoint(exporterModel, grpcEndpoint);
+            });
+  }
+
+  private static void maybeSetEndpoint(OtlpHttpMetricExporterModel exporterModel, String endpoint) {
+    if ((endpoint != null) && (exporterModel.getEndpoint() == null)) {
+      exporterModel.withEndpoint(endpoint);
+      exporterModel.withEncoding(OtlpHttpExporterModel.OtlpHttpEncoding.PROTOBUF);
+    }
+  }
+
+  private static void maybeSetEndpoint(OtlpGrpcExporterModel exporterModel, String endpoint) {
+    if ((endpoint != null) && (exporterModel.getEndpoint() == null)) {
+      exporterModel.withEndpoint(endpoint);
+    }
+  }
+
+  private static void maybeSetEndpoint(OtlpHttpExporterModel exporterModel, String endpoint) {
+    if ((endpoint != null) && (exporterModel.getEndpoint() == null)) {
+      exporterModel.withEndpoint(endpoint);
     }
   }
 
@@ -279,140 +328,57 @@ public class SplunkDeclarativeConfigurationCustomizerProvider
         .filter(Objects::nonNull);
   }
 
-  private static void addTokenHeader(OtlpHttpExporterModel model, String accessToken) {
-    List<NameStringValuePairModel> headers = model.getHeaders();
-    if (headers == null) {
-      headers = new ArrayList<>();
-      model.withHeaders(headers);
+  private static void maybeAddTokenHeader(OtlpHttpExporterModel model, String accessToken) {
+    if (accessToken != null) {
+      List<NameStringValuePairModel> headers = model.getHeaders();
+      if (headers == null) {
+        headers = new ArrayList<>();
+        model.withHeaders(headers);
+      }
+      maybeAddTokenHeader(headers, accessToken);
     }
-    addTokenHeader(headers, accessToken);
   }
 
-  private static void addTokenHeader(OtlpGrpcMetricExporterModel model, String accessToken) {
-    List<NameStringValuePairModel> headers = model.getHeaders();
-    if (headers == null) {
-      headers = new ArrayList<>();
-      model.withHeaders(headers);
+  private static void maybeAddTokenHeader(OtlpGrpcMetricExporterModel model, String accessToken) {
+    if (accessToken != null) {
+      List<NameStringValuePairModel> headers = model.getHeaders();
+      if (headers == null) {
+        headers = new ArrayList<>();
+        model.withHeaders(headers);
+      }
+      maybeAddTokenHeader(headers, accessToken);
     }
-    addTokenHeader(headers, accessToken);
   }
 
-  private static void addTokenHeader(OtlpHttpMetricExporterModel model, String accessToken) {
-    List<NameStringValuePairModel> headers = model.getHeaders();
-    if (headers == null) {
-      headers = new ArrayList<>();
-      model.withHeaders(headers);
+  private static void maybeAddTokenHeader(OtlpHttpMetricExporterModel model, String accessToken) {
+    if (accessToken != null) {
+      List<NameStringValuePairModel> headers = model.getHeaders();
+      if (headers == null) {
+        headers = new ArrayList<>();
+        model.withHeaders(headers);
+      }
+      maybeAddTokenHeader(headers, accessToken);
     }
-    addTokenHeader(headers, accessToken);
   }
 
-  private static void addTokenHeader(OtlpGrpcExporterModel model, String accessToken) {
-    List<NameStringValuePairModel> headers = model.getHeaders();
-    if (headers == null) {
-      headers = new ArrayList<>();
-      model.withHeaders(headers);
+  private static void maybeAddTokenHeader(OtlpGrpcExporterModel model, String accessToken) {
+    if (accessToken != null) {
+      List<NameStringValuePairModel> headers = model.getHeaders();
+      if (headers == null) {
+        headers = new ArrayList<>();
+        model.withHeaders(headers);
+      }
+      maybeAddTokenHeader(headers, accessToken);
     }
-    addTokenHeader(headers, accessToken);
   }
 
-  private static void addTokenHeader(List<NameStringValuePairModel> headers, String accessToken) {
+  private static void maybeAddTokenHeader(
+      List<NameStringValuePairModel> headers, String accessToken) {
     NameStringValuePairModel accessTokenHeader =
         new NameStringValuePairModel().withName("X-SF-TOKEN").withValue(accessToken);
     if (headers.stream()
         .noneMatch(header -> Objects.equals(header.getName(), accessTokenHeader.getName()))) {
       headers.add(accessTokenHeader);
-    }
-  }
-
-  private static void customizeExportersForSplunkRealm(
-      OpenTelemetryConfigurationModel model, Map<String, Object> properties) {
-    Object realm =
-        getAdditionalPropertyOrDefault(properties, SPLUNK_REALM_PROPERTY, SPLUNK_REALM_NONE);
-    if (!SPLUNK_REALM_NONE.equals(realm)) {
-      String realmBaseUrl = "https://ingest." + realm + ".signalfx.com";
-
-      // Trace providers exporter configuration
-      TracerProviderModel tracerProviderModel = model.getTracerProvider();
-      if (tracerProviderModel == null) {
-        tracerProviderModel = new TracerProviderModel();
-        model.withTracerProvider(tracerProviderModel);
-      }
-      List<SpanProcessorModel> spanProcessors = tracerProviderModel.getProcessors();
-      if (spanProcessors.isEmpty()) {
-        // Add a new span processor exporting to the Splunk realm only if there was no processor
-        // defined
-        spanProcessors = new ArrayList<>();
-        tracerProviderModel.withProcessors(spanProcessors);
-
-        OtlpHttpExporterModel httpExporterModel =
-            new OtlpHttpExporterModel()
-                .withEndpoint(realmBaseUrl + "/v1/traces")
-                .withEncoding(OtlpHttpExporterModel.OtlpHttpEncoding.PROTOBUF);
-        spanProcessors.add(
-            new SpanProcessorModel()
-                .withBatch(
-                    new BatchSpanProcessorModel()
-                        .withExporter(new SpanExporterModel().withOtlpHttp(httpExporterModel))));
-      }
-
-      // Meter providers exporter configuration
-      MeterProviderModel meterProviderModel = model.getMeterProvider();
-      if (meterProviderModel == null) {
-        meterProviderModel = new MeterProviderModel();
-        model.withMeterProvider(meterProviderModel);
-      }
-      List<MetricReaderModel> readers = meterProviderModel.getReaders();
-      if (readers.isEmpty()) {
-        // Add a new metric reader exporting to the Splunk realm only if there was no reader defined
-        readers = new ArrayList<>();
-        meterProviderModel.withReaders(readers);
-
-        OtlpHttpMetricExporterModel httpExporterModel =
-            new OtlpHttpMetricExporterModel()
-                .withEndpoint(realmBaseUrl + "/v2/datapoint/otlp")
-                .withEncoding(OtlpHttpExporterModel.OtlpHttpEncoding.PROTOBUF);
-        readers.add(
-            new MetricReaderModel()
-                .withPeriodic(
-                    new PeriodicMetricReaderModel()
-                        .withExporter(
-                            new PushMetricExporterModel().withOtlpHttp(httpExporterModel))));
-      }
-
-      // Log providers exporter configuration
-      // Just accept what is defined in the YAML, or add http/protobuf exporter.
-      // Flat config provides a support for GRPC based logger, but with file based config it is
-      // impossible
-      LoggerProviderModel loggerProviderModel = model.getLoggerProvider();
-      if (loggerProviderModel == null) {
-        loggerProviderModel = new LoggerProviderModel();
-        model.withLoggerProvider(loggerProviderModel);
-      }
-      List<LogRecordProcessorModel> logProcessors = loggerProviderModel.getProcessors();
-      if (logProcessors.isEmpty()) {
-        // Add a new log processor exporting to the Splunk realm only if there was no processor
-        // defined
-        logProcessors = new ArrayList<>();
-        loggerProviderModel.withProcessors(logProcessors);
-
-        String logsEndpoint = "http://localhost:4318/v1/logs";
-        OtlpHttpExporterModel httpExporterModel =
-            new OtlpHttpExporterModel()
-                .withEndpoint(logsEndpoint)
-                .withEncoding(OtlpHttpExporterModel.OtlpHttpEncoding.PROTOBUF);
-        logProcessors.add(
-            new LogRecordProcessorModel()
-                .withBatch(
-                    new BatchLogRecordProcessorModel()
-                        .withExporter(
-                            new LogRecordExporterModel().withOtlpHttp(httpExporterModel))));
-
-        logger.log(
-            WARNING,
-            "Logs can not be sent to {0}, using {1} instead. "
-                + "You can override it by providing log exporter definition in YAML config file.",
-            new Object[] {realmBaseUrl, logsEndpoint});
-      }
     }
   }
 }

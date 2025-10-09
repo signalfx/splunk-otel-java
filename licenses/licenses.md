@@ -1,18 +1,18 @@
 
 # splunk-otel-javaagent
 ## Dependency License Report
-_2025-09-23 11:46:59 PDT_
+_2025-10-08 16:41:35 PDT_
 ## Apache License, Version 2.0
 
-**1** **Group:** `com.squareup.okhttp3` **Name:** `okhttp-jvm` **Version:** `5.1.0` 
+**1** **Group:** `com.squareup.okhttp3` **Name:** `okhttp-jvm` **Version:** `5.2.0` 
 > - **POM Project URL**: [https://square.github.io/okhttp/](https://square.github.io/okhttp/)
 > - **POM License**: Apache License, Version 2.0 - [https://www.apache.org/licenses/LICENSE-2.0](https://www.apache.org/licenses/LICENSE-2.0)
 
-**2** **Group:** `com.squareup.okio` **Name:** `okio` **Version:** `3.15.0` 
+**2** **Group:** `com.squareup.okio` **Name:** `okio` **Version:** `3.16.0` 
 > - **POM Project URL**: [https://github.com/square/okio/](https://github.com/square/okio/)
 > - **POM License**: Apache License, Version 2.0 - [https://www.apache.org/licenses/LICENSE-2.0](https://www.apache.org/licenses/LICENSE-2.0)
 
-**3** **Group:** `com.squareup.okio` **Name:** `okio-jvm` **Version:** `3.15.0` 
+**3** **Group:** `com.squareup.okio` **Name:** `okio-jvm` **Version:** `3.16.0` 
 > - **POM Project URL**: [https://github.com/square/okio/](https://github.com/square/okio/)
 > - **POM License**: Apache License, Version 2.0 - [https://www.apache.org/licenses/LICENSE-2.0](https://www.apache.org/licenses/LICENSE-2.0)
 
@@ -91,7 +91,7 @@ _2025-09-23 11:46:59 PDT_
 > - **POM Project URL**: [http://www.jetbrains.org](http://www.jetbrains.org)
 > - **POM License**: Apache License, Version 2.0 - [https://www.apache.org/licenses/LICENSE-2.0](https://www.apache.org/licenses/LICENSE-2.0)
 
-**22** **Group:** `org.jetbrains.kotlin` **Name:** `kotlin-stdlib` **Version:** `2.2.0` 
+**22** **Group:** `org.jetbrains.kotlin` **Name:** `kotlin-stdlib` **Version:** `2.2.20` 
 > - **POM Project URL**: [https://kotlinlang.org/](https://kotlinlang.org/)
 > - **POM License**: Apache License, Version 2.0 - [https://www.apache.org/licenses/LICENSE-2.0](https://www.apache.org/licenses/LICENSE-2.0)
 

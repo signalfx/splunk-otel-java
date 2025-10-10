@@ -69,7 +69,7 @@ class ConfigurationTest {
   void getConfigUrlSplunkRealm() {
     ConfigProperties config = mock(ConfigProperties.class);
     when(config.getString(Configuration.CONFIG_KEY_OTEL_OTLP_URL, null))
-        .thenReturn("https://ingest.us0.signalfx.com");
+        .thenReturn("https://ingest.y33t.whatever.doesntmatter.com");
     when(config.getString(Configuration.CONFIG_KEY_INGEST_URL, null)).thenReturn(null);
     String result = Configuration.getConfigUrl(config);
     assertNull(result);

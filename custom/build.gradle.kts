@@ -1,3 +1,5 @@
+import org.gradle.kotlin.dsl.invoke
+
 dependencies {
   compileOnly(project(":bootstrap"))
   compileOnly("io.opentelemetry:opentelemetry-sdk")
@@ -7,6 +9,7 @@ dependencies {
   compileOnly("io.opentelemetry.semconv:opentelemetry-semconv")
   compileOnly("io.opentelemetry.semconv:opentelemetry-semconv-incubating")
   compileOnly("io.opentelemetry.instrumentation:opentelemetry-instrumentation-api")
+  compileOnly("io.opentelemetry.instrumentation:opentelemetry-resources")
   compileOnly("io.opentelemetry.javaagent:opentelemetry-javaagent-extension-api")
   compileOnly("io.opentelemetry.javaagent:opentelemetry-javaagent-tooling")
   compileOnly("io.opentelemetry.javaagent:opentelemetry-javaagent-internal-logging-simple")
@@ -17,6 +20,7 @@ dependencies {
   implementation("io.opentelemetry.contrib:opentelemetry-samplers")
   implementation("io.opentelemetry.contrib:opentelemetry-resource-providers")
 
+  testImplementation(project(":testing:common"))
   testImplementation("io.opentelemetry:opentelemetry-sdk")
   testImplementation("io.opentelemetry:opentelemetry-sdk-testing")
   testImplementation("io.opentelemetry:opentelemetry-sdk-extension-autoconfigure")
@@ -24,9 +28,9 @@ dependencies {
   testImplementation("io.opentelemetry:opentelemetry-sdk-extension-incubator")
   testImplementation("io.opentelemetry.semconv:opentelemetry-semconv")
   testImplementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-api")
+  testImplementation("io.opentelemetry.instrumentation:opentelemetry-resources")
   testImplementation("io.opentelemetry.javaagent:opentelemetry-javaagent-extension-api")
   testImplementation("io.opentelemetry.javaagent:opentelemetry-javaagent-tooling")
-  testImplementation(project(":testing:common"))
 }
 
 sourceSets {

@@ -14,27 +14,24 @@
  * limitations under the License.
  */
 
-package com.splunk.opentelemetry.profiler.snapshot;
+package com.splunk.opentelemetry.profiler.snapshot.registry;
 
-import java.util.Collections;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
+public class TogglableTraceRegistry extends TraceRegistry {
+  public enum State {
+    ON,
+    OFF
+  }
 
-/**
- * Test only version of {@link TraceRegistry} that keeps a record of every trace ID registered over
- * the lifetime of the instance.
- */
-class RecordingTraceRegistry extends TraceRegistry {
-  private final Set<String> registeredTraceIds =
-      Collections.newSetFromMap(new ConcurrentHashMap<>());
+  private State state = State.ON;
 
   @Override
   public void register(String traceId) {
-    registeredTraceIds.add(traceId);
-    super.register(traceId);
+    if (state == State.ON) {
+      super.register(traceId);
+    }
   }
 
-  Set<String> registeredTraceIds() {
-    return Collections.unmodifiableSet(registeredTraceIds);
+  public void toggle(State state) {
+    this.state = state;
   }
 }

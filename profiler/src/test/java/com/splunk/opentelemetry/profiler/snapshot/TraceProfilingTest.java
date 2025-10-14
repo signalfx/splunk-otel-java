@@ -18,7 +18,8 @@ package com.splunk.opentelemetry.profiler.snapshot;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.splunk.opentelemetry.profiler.snapshot.TogglableTraceRegistry.State;
+import com.splunk.opentelemetry.profiler.snapshot.registry.TogglableTraceRegistry;
+import com.splunk.opentelemetry.profiler.snapshot.registry.TogglableTraceRegistry.State;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanKind;
 import io.opentelemetry.api.trace.Tracer;

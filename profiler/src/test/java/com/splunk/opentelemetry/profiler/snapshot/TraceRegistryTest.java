@@ -19,10 +19,12 @@ package com.splunk.opentelemetry.profiler.snapshot;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.splunk.opentelemetry.profiler.snapshot.registry.TraceRegistry;
+import com.splunk.opentelemetry.profiler.snapshot.registry.TraceRegistryHolder;
 import org.junit.jupiter.api.Test;
 
 class TraceRegistryTest {
-  private final TraceRegistry registry = new TraceRegistry();
+  private final TraceRegistry registry = TraceRegistryHolder.getTraceRegistry();
 
   @Test
   void registerTrace() {

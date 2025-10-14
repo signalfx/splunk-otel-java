@@ -14,24 +14,21 @@
  * limitations under the License.
  */
 
-package com.splunk.opentelemetry.profiler.snapshot;
+package com.splunk.opentelemetry.resource;
 
-class TogglableTraceRegistry extends TraceRegistry {
-  enum State {
-    ON,
-    OFF
-  }
+import com.google.auto.service.AutoService;
+import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
+import io.opentelemetry.sdk.autoconfigure.spi.ResourceProvider;
+import io.opentelemetry.sdk.resources.Resource;
 
-  private State state = State.ON;
+@AutoService(ResourceProvider.class)
+public class SplunkDistroVersionResourceProvider implements ResourceProvider {
+
+  private static final Resource DISTRO_VERSION_RESOURCE =
+      SplunkDistroVersionResourceFactory.createResource();
 
   @Override
-  public void register(String traceId) {
-    if (state == State.ON) {
-      super.register(traceId);
-    }
-  }
-
-  public void toggle(State state) {
-    this.state = state;
+  public Resource createResource(ConfigProperties config) {
+    return DISTRO_VERSION_RESOURCE;
   }
 }

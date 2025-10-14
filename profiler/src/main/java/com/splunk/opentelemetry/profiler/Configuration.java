@@ -20,21 +20,17 @@ import static com.splunk.opentelemetry.SplunkConfiguration.PROFILER_ENABLED_PROP
 import static com.splunk.opentelemetry.SplunkConfiguration.PROFILER_MEMORY_ENABLED_PROPERTY;
 import static java.util.logging.Level.WARNING;
 
-import com.google.auto.service.AutoService;
-import io.opentelemetry.sdk.autoconfigure.spi.AutoConfigurationCustomizer;
-import io.opentelemetry.sdk.autoconfigure.spi.AutoConfigurationCustomizerProvider;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
 
-@AutoService(AutoConfigurationCustomizerProvider.class)
-public class Configuration implements AutoConfigurationCustomizerProvider {
+public class Configuration {
   private static final Logger logger = Logger.getLogger(Configuration.class.getName());
   private static final boolean HAS_OBJECT_ALLOCATION_SAMPLE_EVENT = getJavaVersion() >= 16;
 
-  private static final String DEFAULT_RECORDING_DURATION = "20s";
+  private static final Duration DEFAULT_RECORDING_DURATION = Duration.ofSeconds(20);
   public static final boolean DEFAULT_MEMORY_ENABLED = false;
   public static final Duration DEFAULT_CALL_STACK_INTERVAL = Duration.ofSeconds(10);
   public static final boolean DEFAULT_INCLUDE_INTERNAL_STACKS = false;
@@ -69,20 +65,27 @@ public class Configuration implements AutoConfigurationCustomizerProvider {
   public static final String CONFIG_KEY_TRACING_STACKS_ONLY = "splunk.profiler.tracing.stacks.only";
   private static final String CONFIG_KEY_STACK_DEPTH = "splunk.profiler.max.stack.depth";
 
-  @Override
-  public void customize(AutoConfigurationCustomizer autoConfiguration) {
-    autoConfiguration.addPropertiesSupplier(this::defaultProperties);
-  }
-
-  Map<String, String> defaultProperties() {
+  static Map<String, String> defaultProperties() {
     HashMap<String, String> config = new HashMap<>();
     config.put(CONFIG_KEY_ENABLE_PROFILER, "false");
     config.put(CONFIG_KEY_PROFILER_DIRECTORY, System.getProperty("java.io.tmpdir"));
-    config.put(CONFIG_KEY_RECORDING_DURATION, DEFAULT_RECORDING_DURATION);
+    config.put(CONFIG_KEY_RECORDING_DURATION, DEFAULT_RECORDING_DURATION.toMillis() + "ms");
     config.put(CONFIG_KEY_KEEP_FILES, "false");
     config.put(CONFIG_KEY_MEMORY_ENABLED, String.valueOf(DEFAULT_MEMORY_ENABLED));
     config.put(CONFIG_KEY_MEMORY_EVENT_RATE, DEFAULT_MEMORY_EVENT_RATE);
     config.put(CONFIG_KEY_CALL_STACK_INTERVAL, DEFAULT_CALL_STACK_INTERVAL.toMillis() + "ms");
+    return config;
+  }
+
+  static Map<String, Object> declarativeConfigDefaultProperties() {
+    HashMap<String, Object> config = new HashMap<>();
+    config.put(CONFIG_KEY_ENABLE_PROFILER, false);
+    config.put(CONFIG_KEY_PROFILER_DIRECTORY, System.getProperty("java.io.tmpdir"));
+    config.put(CONFIG_KEY_RECORDING_DURATION, DEFAULT_RECORDING_DURATION.toMillis());
+    config.put(CONFIG_KEY_KEEP_FILES, false);
+    config.put(CONFIG_KEY_MEMORY_ENABLED, DEFAULT_MEMORY_ENABLED);
+    config.put(CONFIG_KEY_MEMORY_EVENT_RATE, DEFAULT_MEMORY_EVENT_RATE);
+    config.put(CONFIG_KEY_CALL_STACK_INTERVAL, DEFAULT_CALL_STACK_INTERVAL.toMillis());
     return config;
   }
 

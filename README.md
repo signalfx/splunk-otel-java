@@ -11,7 +11,7 @@ for details.
     &nbsp;&nbsp;&bull;&nbsp;&nbsp;
     <a href="CONTRIBUTING.md">Get Involved</a>
     &nbsp;&nbsp;&bull;&nbsp;&nbsp;
-    <a href="https://quickdraw.splunk.com/redirect/?product=Observability&version=current&location=java.otel.repo.migration">Migrate from SignalFx Java Agent</a>
+    <a href="https://help.splunk.com/en/splunk-observability-cloud/manage-data/available-data-sources/supported-integrations-in-splunk-observability-cloud/apm-instrumentation/instrument-a-java-application/migrate-from-signalfx-java-agent">Migrate from SignalFx Java Agent</a>
   </strong>
 </p>
 
@@ -36,13 +36,13 @@ for details.
 
 <p align="center">
   <strong>
-    <a href="https://quickdraw.splunk.com/redirect/?product=Observability&version=current&location=java.gdi.about">About the distribution</a>
+    <a href="https://help.splunk.com/en/splunk-observability-cloud/manage-data/available-data-sources/supported-integrations-in-splunk-observability-cloud/apm-instrumentation/instrument-a-java-application/about-splunk-otel-java">About the distribution</a>
     &nbsp;&nbsp;&bull;&nbsp;&nbsp;
     <a href="SECURITY.md">Security</a>
     &nbsp;&nbsp;&bull;&nbsp;&nbsp;
-    <a href="https://quickdraw.splunk.com/redirect/?product=Observability&version=current&location=java.gdi.requirements">Supported Libraries</a>
+    <a href="https://help.splunk.com/en/splunk-observability-cloud/manage-data/available-data-sources/supported-integrations-in-splunk-observability-cloud/apm-instrumentation/instrument-a-java-application/requirements#supported-libraries-and-frameworks-0">Supported Libraries</a>
     &nbsp;&nbsp;&bull;&nbsp;&nbsp;
-    <a href="https://quickdraw.splunk.com/redirect/?product=Observability&version=current&location=java.gdi.troubleshooting">Troubleshooting</a>
+    <a href="https://help.splunk.com/en/splunk-observability-cloud/manage-data/available-data-sources/supported-integrations-in-splunk-observability-cloud/apm-instrumentation/instrument-a-java-application/troubleshoot-the-java-agent">Troubleshooting</a>
   </strong>
 </p>
 
@@ -52,7 +52,7 @@ The Splunk Distribution of [OpenTelemetry Instrumentation for
 Java](https://github.com/open-telemetry/opentelemetry-java-instrumentation)
 provides a Java Virtual Machine (JVM)
 agent that automatically instruments your Java application to capture and report
-distributed traces to [Splunk APM](https://quickdraw.splunk.com/redirect/?product=Observability&version=current&location=apm-intro).
+distributed traces to [Splunk APM](https://help.splunk.com/en/splunk-observability-cloud/monitor-application-performance/introduction-to-splunk-apm).
 
 This distribution comes with the following defaults:
 
@@ -70,7 +70,7 @@ This distribution comes with the following defaults:
 
 If you're currently using the SignalFx Java Agent and want to
 migrate to the Splunk Distribution of OpenTelemetry Java,
-see [Migrate from the SignalFx Java Agent](https://quickdraw.splunk.com/redirect/?product=Observability&version=current&location=java.otel.repo.migration).
+see [Migrate from the SignalFx Java Agent](https://help.splunk.com/en/splunk-observability-cloud/manage-data/available-data-sources/supported-integrations-in-splunk-observability-cloud/apm-instrumentation/instrument-a-java-application/migrate-from-signalfx-java-agent).
 
 ---
 
@@ -84,29 +84,29 @@ The following documentation refers to the in-development version of `splunk-otel
 
 ## Requirements
 
-The agent works with Java runtimes version 8 and higher. For the full list of requirements and supported libraries and versions, see [Requirements for the Java agent](https://quickdraw.splunk.com/redirect/?product=Observability&version=current&location=java.gdi.requirements) in the official Splunk documentation.
+The agent works with Java runtimes version 8 and higher. For the full list of requirements and supported libraries and versions, see [Requirements for the Java agent](https://help.splunk.com/en/splunk-observability-cloud/manage-data/available-data-sources/supported-integrations-in-splunk-observability-cloud/apm-instrumentation/instrument-a-java-application/requirements) in the official Splunk documentation.
 
 ## Get started
 
-For complete instructions on how to get started with the Splunk Distribution of OpenTelemetry Java, see [Instrument Java services for Observability Cloud](https://quickdraw.splunk.com/redirect/?product=Observability&version=current&location=learnmore.java.gdi) in the official Splunk documentation.
+For complete instructions on how to get started with the Splunk Distribution of OpenTelemetry Java, see [Instrument Java services for Observability Cloud](https://help.splunk.com/en/splunk-observability-cloud/manage-data/available-data-sources/supported-integrations-in-splunk-observability-cloud/apm-instrumentation/instrument-a-java-application) in the official Splunk documentation.
 
 To see the Java Agent in action with sample applications, see the OpenTelemetry
 [examples](https://github.com/open-telemetry/opentelemetry-java-examples/tree/main/javaagent).
 
 ## Advanced configuration
 
-To fully configure the agent of the Splunk Distribution of OpenTelemetry Java, see [Configure the Java agent](https://quickdraw.splunk.com/redirect/?product=Observability&version=current&location=java.gdi.settings) in the official Splunk documentation.
+To fully configure the agent of the Splunk Distribution of OpenTelemetry Java, see [Configure the Java agent](https://help.splunk.com/en/splunk-observability-cloud/manage-data/available-data-sources/supported-integrations-in-splunk-observability-cloud/apm-instrumentation/instrument-a-java-application/configure-the-java-agent) in the official Splunk documentation.
 
 ## Correlating traces with logs
 
-The Splunk Distribution of OpenTelemetry Java provides a way to correlate traces with logs. For more information see [Connect Java application trace data with logs](https://quickdraw.splunk.com/redirect/?product=Observability&version=current&location=java.gdi.correlate) 
+The Splunk Distribution of OpenTelemetry Java provides a way to correlate traces with logs. For more information see [Connect Java application trace data with logs](https://help.splunk.com/en/splunk-observability-cloud/manage-data/available-data-sources/supported-integrations-in-splunk-observability-cloud/apm-instrumentation/instrument-a-java-application/connect-trace-data-with-logs) 
 in the Splunk Observability Cloud user documentation.
 
 ## Manually instrument a Java application
 
 Documentation on how to manually instrument a Java application is available in the 
 [OpenTelemetry official documentation](https://opentelemetry.io/docs/instrumentation/java/manual/).
-To learn how to add custom metrics to your application see [Manual instrumentation](https://quickdraw.splunk.com/redirect/?product=Observability&version=current&location=java.gdi.custom.metrics).
+To learn how to add custom metrics to your application see [Manual instrumentation](https://help.splunk.com/en/splunk-observability-cloud/manage-data/available-data-sources/supported-integrations-in-splunk-observability-cloud/apm-instrumentation/instrument-a-java-application/manual-instrumentation#send-custom-java-application-metrics-0).
 
 To extend the instrumentation with the OpenTelemetry Instrumentation for Java,
 you have to use a compatible API version.
@@ -126,11 +126,11 @@ for production use.
 
 ## Upgrades
 
-For information and best practices around upgrades, see the [Upgrading documentation](https://quickdraw.splunk.com/redirect/?product=Observability&version=current&location=java.gdi.upgrades).
+For information and best practices around upgrades, see the [Upgrading documentation](https://help.splunk.com/en/splunk-observability-cloud/manage-data/available-data-sources/supported-integrations-in-splunk-observability-cloud/apm-instrumentation/instrument-a-java-application/instrument-your-java-application#upgrade-the-splunk-distribution-of-opentelemetry-java-0).
 
 ## Troubleshooting
 
-For troubleshooting information and known issues, see [Troubleshooting Java instrumentation](https://quickdraw.splunk.com/redirect/?product=Observability&version=current&location=java.gdi.troubleshooting) 
+For troubleshooting information and known issues, see [Troubleshooting Java instrumentation](https://help.splunk.com/en/splunk-observability-cloud/manage-data/available-data-sources/supported-integrations-in-splunk-observability-cloud/apm-instrumentation/instrument-a-java-application/troubleshoot-the-java-agent) 
 in the Splunk Observability Cloud user documentation.
 
 # License

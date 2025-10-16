@@ -19,6 +19,8 @@ package io.opentelemetry.sdk.autoconfigure;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import io.opentelemetry.sdk.resources.Resource;
 import java.lang.reflect.Field;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * This class is a hack to allows us to call getResource() and getConfig() on the
@@ -31,6 +33,7 @@ import java.lang.reflect.Field;
  * <p>This class is internal and is not intended for public use.
  */
 public final class AutoConfigureUtil {
+  private static final Logger logger = Logger.getLogger(AutoConfigureUtil.class.getName());
 
   private AutoConfigureUtil() {}
 
@@ -82,6 +85,10 @@ public final class AutoConfigureUtil {
       resourceField.setAccessible(true);
       return (Resource) resourceField.get(sharedState);
     } catch (Exception e) {
+      logger.log(
+          Level.SEVERE,
+          "Could not extract resource from provider: " + provider.getClass().getName(),
+          e);
       return null;
     }
   }

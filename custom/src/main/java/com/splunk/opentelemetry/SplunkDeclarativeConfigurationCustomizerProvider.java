@@ -125,11 +125,8 @@ public class SplunkDeclarativeConfigurationCustomizerProvider
     if (model.getLoggerProvider() != null) {
       List<LogRecordProcessorModel> processors = model.getLoggerProvider().getProcessors();
       if (processors != null) {
-        Optional<LogRecordProcessorModel> found =
-            processors.stream()
-                .filter(p -> p.getBatch() != null || p.getSimple() != null)
-                .findFirst();
-        loggerExporterDefined = found.isPresent();
+        loggerExporterDefined =
+            processors.stream().anyMatch(p -> p.getBatch() != null || p.getSimple() != null);
       }
     }
     if (!loggerExporterDefined) {

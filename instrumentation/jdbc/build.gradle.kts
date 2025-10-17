@@ -21,11 +21,11 @@ dependencies {
 
   // SQL Server
   testLibrary("com.microsoft.sqlserver:mssql-jdbc:6.1.0.jre8")
-  testImplementation("org.testcontainers:mssqlserver")
+  testImplementation("org.testcontainers:testcontainers-mssqlserver")
 
   // Oracle
   testLibrary("com.oracle.database.jdbc:ojdbc8:23.9.0.25.07")
-  testImplementation("org.testcontainers:oracle-free")
+  testImplementation("org.testcontainers:testcontainers-oracle-free")
 }
 
 tasks.withType<Test>().configureEach {

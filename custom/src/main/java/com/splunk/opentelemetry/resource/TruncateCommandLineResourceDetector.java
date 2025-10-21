@@ -33,8 +33,6 @@ import java.util.logging.Logger;
 @SuppressWarnings("rawtypes")
 @AutoService(ComponentProvider.class)
 public class TruncateCommandLineResourceDetector implements ComponentProvider<Resource> {
-  public static final String NAME = "truncate_command_line_process";
-
   private static final int MAX_COMMAND_LINE_LENGTH = 255;
   private static final Logger logger =
       Logger.getLogger(TruncateCommandLineResourceDetector.class.getName());
@@ -46,7 +44,7 @@ public class TruncateCommandLineResourceDetector implements ComponentProvider<Re
 
   @Override
   public String getName() {
-    return NAME;
+    return "truncate_command_line_process";
   }
 
   @Override

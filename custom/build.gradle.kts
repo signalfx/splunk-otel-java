@@ -1,5 +1,3 @@
-import org.gradle.kotlin.dsl.invoke
-
 dependencies {
   compileOnly(project(":bootstrap"))
   compileOnly("io.opentelemetry:opentelemetry-sdk")

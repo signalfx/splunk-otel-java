@@ -1619,13 +1619,14 @@ public class MetadataGenerator {
 
     // https://github.com/open-telemetry/opentelemetry-java-instrumentation/tree/main/instrumentation/jboss-logmanager/README.md
     /*
-    | `otel.instrumentation.jboss-logmanager.experimental-log-attributes`         | Boolean | `false` | Enable the capture of experimental log attributes.                                                           |
-    | `otel.instrumentation.jboss-logmanager.experimental.capture-mdc-attributes` | String  |         | Comma separated list of MDC attributes to capture. Use the wildcard character `*` to capture all attributes. |
+    | `otel.instrumentation.jboss-logmanager.experimental-log-attributes`         | Boolean | `false` | Enable the capture of experimental log attributes `thread.name` and `thread.id`.                                                   |
+    | `otel.instrumentation.jboss-logmanager.experimental.capture-mdc-attributes` | String  |         | Comma separated list of MDC attributes to capture. Use the wildcard character `*` to capture all attributes.                       |
+    | `otel.instrumentation.jboss-logmanager.experimental.capture-event-name`     | Boolean | `false` | Enable moving the `event.name` attribute (captured by one of the other mechanisms of capturing attributes) to the log event name.  |
      */
     settings.add(
         setting(
             "otel.instrumentation.jboss-logmanager.experimental-log-attributes",
-            "Enable the capture of experimental log attributes.",
+            "Enable the capture of experimental log attributes `thread.name` and `thread.id`.",
             "false",
             SettingType.BOOLEAN,
             SettingCategory.INSTRUMENTATION));
@@ -1636,12 +1637,20 @@ public class MetadataGenerator {
             "",
             SettingType.STRING,
             SettingCategory.INSTRUMENTATION));
+    settings.add(
+        setting(
+            "otel.instrumentation.jboss-logmanager.experimental.capture-event-name",
+            "Enable moving the `event.name` attribute (captured by one of the other mechanisms of capturing attributes) to the log event name.",
+            "false",
+            SettingType.BOOLEAN,
+            SettingCategory.INSTRUMENTATION));
 
     // https://github.com/open-telemetry/opentelemetry-java-instrumentation/tree/main/instrumentation/jdbc/README.md
     /*
-    | `otel.instrumentation.jdbc.statement-sanitizer.enabled` | Boolean | `true`  | Enables the DB statement sanitization. |
-    | `otel.instrumentation.jdbc.experimental.capture-query-parameters` | Boolean | `false` | Enable the capture of query parameters as span attributes. Enabling this option disables the statement sanitization. <p>WARNING: captured query parameters may contain sensitive information such as passwords, personally identifiable information or protected health info. |
-    | `otel.instrumentation.jdbc.experimental.transaction.enabled` | Boolean | `false` | Enables experimental instrumentation to create spans for COMMIT and ROLLBACK operations. |
+    | `otel.instrumentation.jdbc.statement-sanitizer.enabled`           | Boolean | `true`  | Enables the DB statement sanitization.                                                                                                                                                                                                                                                                                                       |
+    | `otel.instrumentation.jdbc.experimental.capture-query-parameters` | Boolean | `false` | Enable the capture of query parameters as span attributes. Enabling this option disables the statement sanitization. <p>WARNING: captured query parameters may contain sensitive information such as passwords, personally identifiable information or protected health info.                                                                |
+    | `otel.instrumentation.jdbc.experimental.transaction.enabled`      | Boolean | `false` | Enables experimental instrumentation to create spans for COMMIT and ROLLBACK operations.                                                                                                                                                                                                                                                     |
+    | `otel.instrumentation.jdbc.experimental.sqlcommenter.enabled`     | Boolean | `false` | Enables augmenting queries with a comment containing the tracing information. See [sqlcommenter](https://google.github.io/sqlcommenter/) for more info. WARNING: augmenting queries with tracing context will make query texts unique, which may have adverse impact on database performance. Consult with database experts before enabling. |
      */
     settings.add(
         setting(
@@ -1661,6 +1670,13 @@ public class MetadataGenerator {
         setting(
             "otel.instrumentation.jdbc.experimental.transaction.enabled",
             "Enables experimental instrumentation to create spans for COMMIT and ROLLBACK operations.",
+            "false",
+            SettingType.BOOLEAN,
+            SettingCategory.INSTRUMENTATION));
+    settings.add(
+        setting(
+            "otel.instrumentation.jdbc.experimental.sqlcommenter.enabled",
+            "Enables augmenting queries with a comment containing the tracing information. See [sqlcommenter](https://google.github.io/sqlcommenter/) for more info. WARNING: augmenting queries with tracing context will make query texts unique, which may have adverse impact on database performance. Consult with database experts before enabling.",
             "false",
             SettingType.BOOLEAN,
             SettingCategory.INSTRUMENTATION));
@@ -1723,11 +1739,12 @@ public class MetadataGenerator {
 
     // https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/instrumentation/log4j/log4j-appender-2.17/javaagent/README.md
     /*
-     | `otel.instrumentation.log4j-appender.experimental-log-attributes`                 | Boolean | `false` | Enable the capture of experimental log attributes `thread.name` and `thread.id`.                                                              |
-     | `otel.instrumentation.log4j-appender.experimental.capture-code-attributes`        | Boolean | `false` | Enable the capture of [source code attributes]. Note that capturing source code attributes at logging sites might add a performance overhead. |
-     | `otel.instrumentation.log4j-appender.experimental.capture-map-message-attributes` | Boolean | `false` | Enable the capture of `MapMessage` attributes.                                                                                                |
-     | `otel.instrumentation.log4j-appender.experimental.capture-marker-attribute`       | Boolean | `false` | Enable the capture of Log4j markers as attributes.                                                                                            |
-     | `otel.instrumentation.log4j-appender.experimental.capture-mdc-attributes`         | String  |         | Comma separated list of context data attributes to capture. Use the wildcard character `*` to capture all attributes.                         |
+    | `otel.instrumentation.log4j-appender.experimental-log-attributes`                 | Boolean | `false` | Enable the capture of experimental log attributes `thread.name` and `thread.id`.                                                              |
+    | `otel.instrumentation.log4j-appender.experimental.capture-code-attributes`        | Boolean | `false` | Enable the capture of [source code attributes]. Note that capturing source code attributes at logging sites might add a performance overhead. |
+    | `otel.instrumentation.log4j-appender.experimental.capture-map-message-attributes` | Boolean | `false` | Enable the capture of `MapMessage` attributes.                                                                                                |
+    | `otel.instrumentation.log4j-appender.experimental.capture-marker-attribute`       | Boolean | `false` | Enable the capture of Log4j markers as attributes.                                                                                            |
+    | `otel.instrumentation.log4j-appender.experimental.capture-mdc-attributes`         | String  |         | Comma separated list of context data attributes to capture. Use the wildcard character `*` to capture all attributes.                         |
+    | `otel.instrumentation.log4j-appender.experimental.capture-event-name`             | Boolean | `false` | Enable moving the `event.name` attribute (captured by one of the other mechanisms of capturing attributes) to the log event name.             |
     */
     settings.add(
         setting(
@@ -1763,6 +1780,13 @@ public class MetadataGenerator {
             "Comma separated list of context data attributes to capture. Use the wildcard character `*` to capture all attributes.",
             "",
             SettingType.STRING,
+            SettingCategory.INSTRUMENTATION));
+    settings.add(
+        setting(
+            "otel.instrumentation.log4j-appender.experimental.capture-event-name",
+            "Enable moving the `event.name` attribute (captured by one of the other mechanisms of capturing attributes) to the log event name.",
+            "false",
+            SettingType.BOOLEAN,
             SettingCategory.INSTRUMENTATION));
 
     // https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/instrumentation/log4j/log4j-context-data/log4j-context-data-2.17/javaagent/README.md
@@ -1816,13 +1840,16 @@ public class MetadataGenerator {
 
     // https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/instrumentation/logback/logback-appender-1.0/javaagent/README.md
     /*
-    | `otel.instrumentation.logback-appender.experimental-log-attributes`                    | Boolean | `false` | Enable the capture of experimental log attributes `thread.name` and `thread.id`.                                                              |
-    | `otel.instrumentation.logback-appender.experimental.capture-code-attributes`           | Boolean | `false` | Enable the capture of [source code attributes]. Note that capturing source code attributes at logging sites might add a performance overhead. |
-    | `otel.instrumentation.logback-appender.experimental.capture-marker-attribute`          | Boolean | `false` | Enable the capture of Logback markers as attributes.                                                                                          |
-    | `otel.instrumentation.logback-appender.experimental.capture-key-value-pair-attributes` | Boolean | `false` | Enable the capture of Logback key value pairs as attributes.                                                                                  |
-    | `otel.instrumentation.logback-appender.experimental.capture-logger-context-attributes` | Boolean | `false` | Enable the capture of Logback logger context properties as attributes.                                                                        |
-    | `otel.instrumentation.logback-appender.experimental.capture-arguments`                 | Boolean | `false` | Enable the capture of Logback logger arguments.                                                                                               |
-    | `otel.instrumentation.logback-appender.experimental.capture-mdc-attributes`            | String  |         | Comma separated list of MDC attributes to capture. Use the wildcard character `*` to capture all attributes.                                  |
+    | `otel.instrumentation.logback-appender.experimental-log-attributes`                        | Boolean | `false` | Enable the capture of experimental log attributes `thread.name` and `thread.id`.                                                                                                           |
+    | `otel.instrumentation.logback-appender.experimental.capture-code-attributes`               | Boolean | `false` | Enable the capture of [source code attributes]. Note that capturing source code attributes at logging sites might add a performance overhead.                                              |
+    | `otel.instrumentation.logback-appender.experimental.capture-marker-attribute`              | Boolean | `false` | Enable the capture of Logback markers as attributes.                                                                                                                                       |
+    | `otel.instrumentation.logback-appender.experimental.capture-key-value-pair-attributes`     | Boolean | `false` | Enable the capture of Logback key value pairs as attributes.                                                                                                                               |
+    | `otel.instrumentation.logback-appender.experimental.capture-logger-context-attributes`     | Boolean | `false` | Enable the capture of Logback logger context properties as attributes.                                                                                                                     |
+    | `otel.instrumentation.logback-appender.experimental.capture-arguments`                     | Boolean | `false` | Enable the capture of Logback logger arguments.                                                                                                                                            |
+    | `otel.instrumentation.logback-appender.experimental.capture-logstash-marker-attributes`    | Boolean | `false` | Enable the capture of Logstash markers, supported are those added to logs via `Markers.append()`, `Markers.appendEntries()`, `Markers.appendArray()` and `Markers.appendRaw()` methods.     |
+    | `otel.instrumentation.logback-appender.experimental.capture-logstash-structured-arguments` | Boolean | `false` | Enable the capture of Logstash StructuredArguments as attributes (e.g., `StructuredArguments.v()` and `StructuredArguments.keyValue()`).                                                |
+    | `otel.instrumentation.logback-appender.experimental.capture-mdc-attributes`                | String  |         | Comma separated list of MDC attributes to capture. Use the wildcard character `*` to capture all attributes.                                                                               |
+    | `otel.instrumentation.logback-appender.experimental.capture-event-name`                    | Boolean | `false` | Enable moving the `event.name` attribute (captured by one of the other mechanisms of capturing attributes) to the log event name.                                                          |
      */
     settings.add(
         setting(
@@ -1868,10 +1895,31 @@ public class MetadataGenerator {
             SettingCategory.INSTRUMENTATION));
     settings.add(
         setting(
+            "otel.instrumentation.logback-appender.experimental.capture-logstash-marker-attributes",
+            "Enable the capture of Logstash markers, supported are those added to logs via `Markers.append()`, `Markers.appendEntries()`, `Markers.appendArray()` and `Markers.appendRaw()` methods.",
+            "false",
+            SettingType.BOOLEAN,
+            SettingCategory.INSTRUMENTATION));
+    settings.add(
+        setting(
+            "otel.instrumentation.logback-appender.experimental.capture-logstash-structured-arguments",
+            "Enable the capture of Logstash StructuredArguments as attributes (e.g., `StructuredArguments.v()` and `StructuredArguments.keyValue()`).",
+            "false",
+            SettingType.BOOLEAN,
+            SettingCategory.INSTRUMENTATION));
+    settings.add(
+        setting(
             "otel.instrumentation.logback-appender.experimental.capture-mdc-attributes",
             "Comma separated list of MDC attributes to capture. Use the wildcard character `*` to capture all attributes.",
             "",
             SettingType.STRING,
+            SettingCategory.INSTRUMENTATION));
+    settings.add(
+        setting(
+            "otel.instrumentation.logback-appender.experimental.capture-event-name",
+            "Enable moving the `event.name` attribute (captured by one of the other mechanisms of capturing attributes) to the log event name.",
+            "false",
+            SettingType.BOOLEAN,
             SettingCategory.INSTRUMENTATION));
 
     // https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/instrumentation/logback/logback-mdc-1.0/javaagent/README.md
@@ -2402,7 +2450,11 @@ public class MetadataGenerator {
                 DbPoolMetrics.MAX)
             .build());
     instrumentations.add(
-        instrumentation("apache-dubbo").component("Apache DBCP", "2.7 and higher").build());
+        instrumentation("apache-dubbo")
+            .component("Apache DBCP", "2.7 and higher")
+            .rpcClientMetrics(false)
+            .rpcServerMetrics(false)
+            .build());
     instrumentations.add(
         instrumentation("apache-httpasyncclient")
             .component("Apache HttpAsyncClient", "4.1 and higher")
@@ -2419,6 +2471,7 @@ public class MetadataGenerator {
                 "Consult documentation of the used kafka version for the exact metrics it generates.")
             .component("Apache Kafka Producer/Consumer API", "0.11 and higher")
             .component("Apache Kafka Streams API", "0.11 and higher")
+            .component("Apache Kafka Connect API", "2.6 and higher")
             // https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/instrumentation/kafka/kafka-clients/kafka-clients-2.6/library/README.md
             // these metrics are created by kafka, we only collect these as otel metrics
             .customMetric(
@@ -3161,8 +3214,8 @@ public class MetadataGenerator {
     instrumentations.add(
         instrumentation("armeria")
             .component("Armeria gRPC", "1.14 and higher")
-            .rpcClientMetrics()
-            .rpcServerMetrics()
+            .rpcClientMetrics(true)
+            .rpcServerMetrics(true)
             .build());
     instrumentations.add(
         instrumentation("async-http-client")
@@ -3269,14 +3322,19 @@ public class MetadataGenerator {
     instrumentations.add(
         instrumentation("grpc")
             .component("gRPC", "1.6 and higher")
-            .rpcClientMetrics()
-            .rpcServerMetrics()
+            .rpcClientMetrics(true)
+            .rpcServerMetrics(true)
             .build());
     instrumentations.add(
         instrumentation("guava").component("Guava ListenableFuture", "0.9.2 and higher").build());
     instrumentations.add(instrumentation("gwt").component("GWT", "0.9.2 and higher").build());
     instrumentations.add(
-        instrumentation("hibernate").component("Hibernate", "3.3 and higher").build());
+        instrumentation("helidon").component("Helidon", "0.9.2 and higher").build());
+    instrumentations.add(
+        instrumentation("hibernate")
+            .component("Hibernate", "4.3 and higher")
+            .httpServerMetrics()
+            .build());
     instrumentations.add(
         instrumentation("hibernate-reactive")
             .component("Hibernate Reactive", "1.0 and higher")
@@ -3477,8 +3535,11 @@ public class MetadataGenerator {
             .httpServerMetrics()
             .build());
     instrumentations.add(
+        instrumentation("nats").component("NATS Client", "2.17.2 and higher").build());
+    instrumentations.add(
         instrumentation("opensearch")
             .component("OpenSearch REST Client", "1.0 and higher")
+            .component("OpenSearch Java Client", "3.0 and higher")
             .dbClientMetrics()
             .build());
     instrumentations.add(
@@ -4270,20 +4331,42 @@ public class MetadataGenerator {
       return this;
     }
 
-    InstrumentationBuilder rpcClientMetrics() {
+    InstrumentationBuilder rpcClientMetrics(boolean supportsSizeMetrics) {
       customMetric(
           "rpc.client.duration",
           MetricInstrument.HISTOGRAM,
           "The duration of an outbound RPC invocation.");
 
+      if (supportsSizeMetrics) {
+        customMetric(
+            "rpc.client.request.size",
+            MetricInstrument.HISTOGRAM,
+            "Measures the size of RPC request messages (uncompressed).");
+        customMetric(
+            "rpc.client.response.size",
+            MetricInstrument.HISTOGRAM,
+            "Measures the size of RPC response messages (uncompressed).");
+      }
+
       return this;
     }
 
-    InstrumentationBuilder rpcServerMetrics() {
+    InstrumentationBuilder rpcServerMetrics(boolean supportsSizeMetrics) {
       customMetric(
           "rpc.server.duration",
           MetricInstrument.HISTOGRAM,
           "The duration of an inbound RPC invocation.");
+
+      if (supportsSizeMetrics) {
+        customMetric(
+            "rpc.server.request.size",
+            MetricInstrument.HISTOGRAM,
+            "Measures the size of RPC request messages (uncompressed).");
+        customMetric(
+            "rpc.server.response.size",
+            MetricInstrument.HISTOGRAM,
+            "Measures the size of RPC response messages (uncompressed).");
+      }
 
       return this;
     }

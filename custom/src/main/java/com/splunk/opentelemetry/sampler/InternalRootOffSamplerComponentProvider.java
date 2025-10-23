@@ -24,7 +24,6 @@ import io.opentelemetry.sdk.trace.samplers.Sampler;
 @SuppressWarnings("rawtypes")
 @AutoService(ComponentProvider.class)
 public class InternalRootOffSamplerComponentProvider implements ComponentProvider<Sampler> {
-  // TODO: Add to Splunk specific yaml config file format documentation
   @Override
   public String getName() {
     return "internal_root_off";

@@ -24,17 +24,14 @@ import io.opentelemetry.sdk.trace.SpanProcessor;
 @SuppressWarnings("rawtypes")
 @AutoService(ComponentProvider.class)
 public class WebengineSpanProcessorComponentProvider implements ComponentProvider<SpanProcessor> {
-  static String PROVIDER_NAME = "web_engine";
-
   @Override
   public Class<SpanProcessor> getType() {
     return SpanProcessor.class;
   }
 
-  // TODO: Add to Splunk specific yaml config file format documentation
   @Override
   public String getName() {
-    return PROVIDER_NAME;
+    return "web_engine";
   }
 
   @Override

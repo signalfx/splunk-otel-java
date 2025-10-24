@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.splunk.opentelemetry;
+package com.splunk.opentelemetry.sampler;
 
 import static java.util.logging.Level.INFO;
 import static java.util.logging.Level.WARNING;

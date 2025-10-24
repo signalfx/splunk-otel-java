@@ -33,9 +33,10 @@ import java.util.logging.Logger;
 @SuppressWarnings("rawtypes")
 @AutoService(ComponentProvider.class)
 public class TruncateCommandLineResourceDetector implements ComponentProvider<Resource> {
-  private static final int MAX_COMMAND_LINE_LENGTH = 255;
   private static final Logger logger =
       Logger.getLogger(TruncateCommandLineResourceDetector.class.getName());
+
+  private static final int MAX_COMMAND_LINE_LENGTH = 255;
 
   @Override
   public Class<Resource> getType() {
@@ -53,7 +54,7 @@ public class TruncateCommandLineResourceDetector implements ComponentProvider<Re
 
     List<String> commandArgs = resource.getAttribute(PROCESS_COMMAND_ARGS);
     if (commandArgs != null) {
-      logger.fine(() -> "Truncate resource attribute" + PROCESS_COMMAND_ARGS.getKey());
+      logger.fine(() -> "Truncate resource attribute " + PROCESS_COMMAND_ARGS.getKey());
       List<String> newCommandArgs = truncate(commandArgs, MAX_COMMAND_LINE_LENGTH);
       if (newCommandArgs != null) {
         resource =
@@ -63,7 +64,7 @@ public class TruncateCommandLineResourceDetector implements ComponentProvider<Re
 
     String commandLine = resource.getAttribute(PROCESS_COMMAND_LINE);
     if (commandLine != null && commandLine.length() > MAX_COMMAND_LINE_LENGTH) {
-      logger.fine(() -> "Truncate resource attribute" + PROCESS_COMMAND_LINE.getKey());
+      logger.fine(() -> "Truncate resource attribute " + PROCESS_COMMAND_LINE.getKey());
       String newCommandLine = commandLine.substring(0, MAX_COMMAND_LINE_LENGTH - 3) + "...";
       resource =
           resource.merge(Resource.create(Attributes.of(PROCESS_COMMAND_LINE, newCommandLine)));

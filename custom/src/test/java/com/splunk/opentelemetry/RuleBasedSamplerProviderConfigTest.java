@@ -18,6 +18,7 @@ package com.splunk.opentelemetry;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.splunk.opentelemetry.sampler.RuleBasedSamplerProvider;
 import io.opentelemetry.sdk.trace.samplers.Sampler;
 import org.junit.jupiter.api.Test;
 

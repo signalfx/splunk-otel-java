@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-package com.splunk.opentelemetry;
+package com.splunk.opentelemetry.sampler;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.splunk.opentelemetry.sampler.RuleBasedSamplerProvider;
 import io.opentelemetry.sdk.trace.samplers.Sampler;
 import org.junit.jupiter.api.Test;
 

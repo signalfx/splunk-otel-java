@@ -49,8 +49,7 @@ public final class AppdBonusConfigurationCustomizerProvider
               // Appd propagator has been added so add also a corresponding Appd span processor
               SpanProcessorModel appdSpanProcessorModel =
                   new SpanProcessorModel()
-                      .withAdditionalProperty(
-                          AppdBonusSpanProcessorComponentProvider.NAME, null);
+                      .withAdditionalProperty(AppdBonusSpanProcessorComponentProvider.NAME, null);
               if (model.getTracerProvider() == null) {
                 model.withTracerProvider(new TracerProviderModel());
               }

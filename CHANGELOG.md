@@ -8,6 +8,8 @@ and this repository adheres to [Semantic Versioning](https://semver.org/spec/v2.
 
 ## Unreleased
 
+- Update CSA version to 25.10.0-1399 
+
 ## v2.21.0 - 2025-10-22
 
 ### General

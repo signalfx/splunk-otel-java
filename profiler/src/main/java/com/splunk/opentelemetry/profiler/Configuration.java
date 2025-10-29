@@ -123,8 +123,7 @@ public class Configuration {
   }
 
   public static boolean getMemoryEventRateLimitEnabled(ConfigProperties config) {
-    return config.getBoolean(
-        CONFIG_KEY_MEMORY_EVENT_RATE_LIMIT_ENABLED, true);
+    return config.getBoolean(CONFIG_KEY_MEMORY_EVENT_RATE_LIMIT_ENABLED, true);
   }
 
   public static String getMemoryEventRate(ConfigProperties config) {
@@ -142,14 +141,12 @@ public class Configuration {
   }
 
   public static boolean getIncludeAgentInternalStacks(ConfigProperties config) {
-    boolean includeInternals =
-        config.getBoolean(CONFIG_KEY_INCLUDE_INTERNAL_STACKS, false);
+    boolean includeInternals = config.getBoolean(CONFIG_KEY_INCLUDE_INTERNAL_STACKS, false);
     return config.getBoolean(CONFIG_KEY_INCLUDE_AGENT_INTERNALS, includeInternals);
   }
 
   public static boolean getIncludeJvmInternalStacks(ConfigProperties config) {
-    boolean includeInternals =
-        config.getBoolean(CONFIG_KEY_INCLUDE_INTERNAL_STACKS, false);
+    boolean includeInternals = config.getBoolean(CONFIG_KEY_INCLUDE_INTERNAL_STACKS, false);
     return config.getBoolean(CONFIG_KEY_INCLUDE_JVM_INTERNALS, includeInternals);
   }
 

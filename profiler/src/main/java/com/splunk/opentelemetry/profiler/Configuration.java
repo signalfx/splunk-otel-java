@@ -54,15 +54,9 @@ public class Configuration {
 
   private static final boolean HAS_OBJECT_ALLOCATION_SAMPLE_EVENT = getJavaVersion() >= 16;
 
+  private static final String DEFAULT_PROFILER_DIRECTORY = System.getProperty("java.io.tmpdir");
   private static final Duration DEFAULT_RECORDING_DURATION = Duration.ofSeconds(20);
-  private static final boolean DEFAULT_MEMORY_ENABLED = false;
   private static final Duration DEFAULT_CALL_STACK_INTERVAL = Duration.ofSeconds(10);
-  private static final boolean DEFAULT_INCLUDE_INTERNAL_STACKS = false;
-  private static final boolean DEFAULT_TRACING_STACKS_ONLY = false;
-  private static final int DEFAULT_STACK_DEPTH = 1024;
-  private static final boolean DEFAULT_MEMORY_EVENT_RATE_LIMIT_ENABLED = true;
-  // ObjectAllocationSample event uses 150/s in default and 300/s in profiling configuration
-  private static final String DEFAULT_MEMORY_EVENT_RATE = "150/s";
 
   public static void log(ConfigProperties config) {
     logger.info("-----------------------");
@@ -125,16 +119,16 @@ public class Configuration {
   }
 
   public static boolean getMemoryEnabled(ConfigProperties config) {
-    return config.getBoolean(CONFIG_KEY_MEMORY_ENABLED, DEFAULT_MEMORY_ENABLED);
+    return config.getBoolean(CONFIG_KEY_MEMORY_ENABLED, false);
   }
 
   public static boolean getMemoryEventRateLimitEnabled(ConfigProperties config) {
     return config.getBoolean(
-        CONFIG_KEY_MEMORY_EVENT_RATE_LIMIT_ENABLED, DEFAULT_MEMORY_EVENT_RATE_LIMIT_ENABLED);
+        CONFIG_KEY_MEMORY_EVENT_RATE_LIMIT_ENABLED, true);
   }
 
   public static String getMemoryEventRate(ConfigProperties config) {
-    return config.getString(CONFIG_KEY_MEMORY_EVENT_RATE, DEFAULT_MEMORY_EVENT_RATE);
+    return config.getString(CONFIG_KEY_MEMORY_EVENT_RATE, "150/s");
   }
 
   public static boolean getUseAllocationSampleEvent(ConfigProperties config) {
@@ -149,22 +143,22 @@ public class Configuration {
 
   public static boolean getIncludeAgentInternalStacks(ConfigProperties config) {
     boolean includeInternals =
-        config.getBoolean(CONFIG_KEY_INCLUDE_INTERNAL_STACKS, DEFAULT_INCLUDE_INTERNAL_STACKS);
+        config.getBoolean(CONFIG_KEY_INCLUDE_INTERNAL_STACKS, false);
     return config.getBoolean(CONFIG_KEY_INCLUDE_AGENT_INTERNALS, includeInternals);
   }
 
   public static boolean getIncludeJvmInternalStacks(ConfigProperties config) {
     boolean includeInternals =
-        config.getBoolean(CONFIG_KEY_INCLUDE_INTERNAL_STACKS, DEFAULT_INCLUDE_INTERNAL_STACKS);
+        config.getBoolean(CONFIG_KEY_INCLUDE_INTERNAL_STACKS, false);
     return config.getBoolean(CONFIG_KEY_INCLUDE_JVM_INTERNALS, includeInternals);
   }
 
   public static boolean getTracingStacksOnly(ConfigProperties config) {
-    return config.getBoolean(CONFIG_KEY_TRACING_STACKS_ONLY, DEFAULT_TRACING_STACKS_ONLY);
+    return config.getBoolean(CONFIG_KEY_TRACING_STACKS_ONLY, false);
   }
 
   public static int getStackDepth(ConfigProperties config) {
-    return config.getInt(CONFIG_KEY_STACK_DEPTH, DEFAULT_STACK_DEPTH);
+    return config.getInt(CONFIG_KEY_STACK_DEPTH, 1024);
   }
 
   public static boolean getKeepFiles(ConfigProperties config) {
@@ -172,7 +166,7 @@ public class Configuration {
   }
 
   public static String getProfilerDirectory(ConfigProperties config) {
-    return config.getString(CONFIG_KEY_PROFILER_DIRECTORY, System.getProperty("java.io.tmpdir"));
+    return config.getString(CONFIG_KEY_PROFILER_DIRECTORY, DEFAULT_PROFILER_DIRECTORY);
   }
 
   public static Duration getRecordingDuration(ConfigProperties config) {

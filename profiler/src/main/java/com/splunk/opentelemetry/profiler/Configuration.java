@@ -20,74 +20,77 @@ import static com.splunk.opentelemetry.SplunkConfiguration.PROFILER_ENABLED_PROP
 import static com.splunk.opentelemetry.SplunkConfiguration.PROFILER_MEMORY_ENABLED_PROPERTY;
 import static java.util.logging.Level.WARNING;
 
-import com.google.auto.service.AutoService;
-import io.opentelemetry.sdk.autoconfigure.spi.AutoConfigurationCustomizer;
-import io.opentelemetry.sdk.autoconfigure.spi.AutoConfigurationCustomizerProvider;
+import com.splunk.opentelemetry.SplunkConfiguration;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import java.time.Duration;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.function.Function;
 import java.util.logging.Logger;
 
-@AutoService(AutoConfigurationCustomizerProvider.class)
-public class Configuration implements AutoConfigurationCustomizerProvider {
+public class Configuration {
   private static final Logger logger = Logger.getLogger(Configuration.class.getName());
-  private static final boolean HAS_OBJECT_ALLOCATION_SAMPLE_EVENT = getJavaVersion() >= 16;
 
-  private static final String DEFAULT_RECORDING_DURATION = "20s";
-  public static final boolean DEFAULT_MEMORY_ENABLED = false;
-  public static final Duration DEFAULT_CALL_STACK_INTERVAL = Duration.ofSeconds(10);
-  public static final boolean DEFAULT_INCLUDE_INTERNAL_STACKS = false;
-  public static final boolean DEFAULT_TRACING_STACKS_ONLY = false;
-  private static final int DEFAULT_STACK_DEPTH = 1024;
-  private static final boolean DEFAULT_MEMORY_EVENT_RATE_LIMIT_ENABLED = true;
-
-  public static final String CONFIG_KEY_ENABLE_PROFILER = PROFILER_ENABLED_PROPERTY;
-  public static final String CONFIG_KEY_PROFILER_DIRECTORY = "splunk.profiler.directory";
-  public static final String CONFIG_KEY_RECORDING_DURATION = "splunk.profiler.recording.duration";
-  public static final String CONFIG_KEY_KEEP_FILES = "splunk.profiler.keep-files";
-  public static final String CONFIG_KEY_INGEST_URL = "splunk.profiler.logs-endpoint";
-  public static final String CONFIG_KEY_PROFILER_OTLP_PROTOCOL = "splunk.profiler.otlp.protocol";
-  public static final String CONFIG_KEY_OTLP_PROTOCOL = "otel.exporter.otlp.protocol";
-  public static final String CONFIG_KEY_OTEL_OTLP_URL = "otel.exporter.otlp.endpoint";
-  public static final String CONFIG_KEY_MEMORY_ENABLED = PROFILER_MEMORY_ENABLED_PROPERTY;
-  public static final String CONFIG_KEY_MEMORY_EVENT_RATE_LIMIT_ENABLED =
+  /* Keys visible for testing */
+  static final String CONFIG_KEY_PROFILER_DIRECTORY = "splunk.profiler.directory";
+  static final String CONFIG_KEY_RECORDING_DURATION = "splunk.profiler.recording.duration";
+  static final String CONFIG_KEY_KEEP_FILES = "splunk.profiler.keep-files";
+  static final String CONFIG_KEY_INGEST_URL = "splunk.profiler.logs-endpoint";
+  static final String CONFIG_KEY_PROFILER_OTLP_PROTOCOL = "splunk.profiler.otlp.protocol";
+  static final String CONFIG_KEY_OTLP_PROTOCOL = "otel.exporter.otlp.protocol";
+  static final String CONFIG_KEY_OTEL_OTLP_URL = "otel.exporter.otlp.endpoint";
+  static final String CONFIG_KEY_MEMORY_ENABLED = PROFILER_MEMORY_ENABLED_PROPERTY;
+  static final String CONFIG_KEY_MEMORY_EVENT_RATE_LIMIT_ENABLED =
       "splunk.profiler.memory.event.rate-limit.enabled";
-  // ObjectAllocationSample event uses 150/s in default and 300/s in profiling configuration
-  private static final String DEFAULT_MEMORY_EVENT_RATE = "150/s";
-  public static final String CONFIG_KEY_MEMORY_EVENT_RATE = "splunk.profiler.memory.event.rate";
-  public static final String CONFIG_KEY_MEMORY_NATIVE_SAMPLING =
-      "splunk.profiler.memory.native.sampling";
-  public static final String CONFIG_KEY_CALL_STACK_INTERVAL = "splunk.profiler.call.stack.interval";
-  public static final String CONFIG_KEY_INCLUDE_AGENT_INTERNALS =
+  static final String CONFIG_KEY_MEMORY_EVENT_RATE = "splunk.profiler.memory.event.rate";
+  static final String CONFIG_KEY_MEMORY_NATIVE_SAMPLING = "splunk.profiler.memory.native.sampling";
+  static final String CONFIG_KEY_CALL_STACK_INTERVAL = "splunk.profiler.call.stack.interval";
+  static final String CONFIG_KEY_INCLUDE_AGENT_INTERNALS =
       "splunk.profiler.include.agent.internals";
   // Include stacks where every frame starts with jvm/sun/jdk
-  public static final String CONFIG_KEY_INCLUDE_JVM_INTERNALS =
-      "splunk.profiler.include.jvm.internals";
-  public static final String CONFIG_KEY_INCLUDE_INTERNAL_STACKS =
+  static final String CONFIG_KEY_INCLUDE_JVM_INTERNALS = "splunk.profiler.include.jvm.internals";
+  static final String CONFIG_KEY_INCLUDE_INTERNAL_STACKS =
       "splunk.profiler.include.internal.stacks";
-  public static final String CONFIG_KEY_TRACING_STACKS_ONLY = "splunk.profiler.tracing.stacks.only";
-  private static final String CONFIG_KEY_STACK_DEPTH = "splunk.profiler.max.stack.depth";
+  static final String CONFIG_KEY_TRACING_STACKS_ONLY = "splunk.profiler.tracing.stacks.only";
+  static final String CONFIG_KEY_STACK_DEPTH = "splunk.profiler.max.stack.depth";
 
-  @Override
-  public void customize(AutoConfigurationCustomizer autoConfiguration) {
-    autoConfiguration.addPropertiesSupplier(this::defaultProperties);
+  private static final boolean HAS_OBJECT_ALLOCATION_SAMPLE_EVENT = getJavaVersion() >= 16;
+
+  private static final Duration DEFAULT_RECORDING_DURATION = Duration.ofSeconds(20);
+  private static final boolean DEFAULT_MEMORY_ENABLED = false;
+  private static final Duration DEFAULT_CALL_STACK_INTERVAL = Duration.ofSeconds(10);
+  private static final boolean DEFAULT_INCLUDE_INTERNAL_STACKS = false;
+  private static final boolean DEFAULT_TRACING_STACKS_ONLY = false;
+  private static final int DEFAULT_STACK_DEPTH = 1024;
+  private static final boolean DEFAULT_MEMORY_EVENT_RATE_LIMIT_ENABLED = true;
+  // ObjectAllocationSample event uses 150/s in default and 300/s in profiling configuration
+  private static final String DEFAULT_MEMORY_EVENT_RATE = "150/s";
+
+  public static void log(ConfigProperties config) {
+    logger.info("-----------------------");
+    logger.info("Profiler configuration:");
+    log(PROFILER_ENABLED_PROPERTY, (it) -> SplunkConfiguration.isProfilerEnabled(config));
+    log(CONFIG_KEY_PROFILER_DIRECTORY, (it) -> getProfilerDirectory(config));
+    log(CONFIG_KEY_RECORDING_DURATION, (it) -> getRecordingDuration(config));
+    log(CONFIG_KEY_KEEP_FILES, (it) -> getKeepFiles(config));
+    log(CONFIG_KEY_INGEST_URL, (it) -> getConfigUrl(config));
+    log(CONFIG_KEY_OTEL_OTLP_URL, config::getString);
+    log(CONFIG_KEY_MEMORY_ENABLED, (it) -> getMemoryEnabled(config));
+    if (getMemoryEventRateLimitEnabled(config)) {
+      log(CONFIG_KEY_MEMORY_EVENT_RATE, (it) -> getMemoryEventRate(config));
+    }
+    log(CONFIG_KEY_CALL_STACK_INTERVAL, (it) -> getCallStackInterval(config));
+    log(CONFIG_KEY_INCLUDE_AGENT_INTERNALS, (it) -> getIncludeAgentInternalStacks(config));
+    log(CONFIG_KEY_INCLUDE_JVM_INTERNALS, (it) -> getIncludeJvmInternalStacks(config));
+    log(CONFIG_KEY_TRACING_STACKS_ONLY, (it) -> getTracingStacksOnly(config));
+    log(CONFIG_KEY_STACK_DEPTH, (it) -> getStackDepth(config));
+    logger.info("-----------------------");
   }
 
-  Map<String, String> defaultProperties() {
-    HashMap<String, String> config = new HashMap<>();
-    config.put(CONFIG_KEY_ENABLE_PROFILER, "false");
-    config.put(CONFIG_KEY_PROFILER_DIRECTORY, System.getProperty("java.io.tmpdir"));
-    config.put(CONFIG_KEY_RECORDING_DURATION, DEFAULT_RECORDING_DURATION);
-    config.put(CONFIG_KEY_KEEP_FILES, "false");
-    config.put(CONFIG_KEY_MEMORY_ENABLED, String.valueOf(DEFAULT_MEMORY_ENABLED));
-    config.put(CONFIG_KEY_MEMORY_EVENT_RATE, DEFAULT_MEMORY_EVENT_RATE);
-    config.put(CONFIG_KEY_CALL_STACK_INTERVAL, DEFAULT_CALL_STACK_INTERVAL.toMillis() + "ms");
-    return config;
+  private static void log(String key, Function<String, Object> getter) {
+    logger.info(String.format("%39s : %s", key, getter.apply(key)));
   }
 
   public static String getConfigUrl(ConfigProperties config) {
-    String ingestUrl = config.getString(CONFIG_KEY_OTEL_OTLP_URL, null);
+    String ingestUrl = config.getString(CONFIG_KEY_OTEL_OTLP_URL);
     if (ingestUrl != null) {
       if (ingestUrl.startsWith("https://ingest.")
           && ingestUrl.endsWith(".signalfx.com")
@@ -162,6 +165,18 @@ public class Configuration implements AutoConfigurationCustomizerProvider {
 
   public static int getStackDepth(ConfigProperties config) {
     return config.getInt(CONFIG_KEY_STACK_DEPTH, DEFAULT_STACK_DEPTH);
+  }
+
+  public static boolean getKeepFiles(ConfigProperties config) {
+    return config.getBoolean(CONFIG_KEY_KEEP_FILES, false);
+  }
+
+  public static String getProfilerDirectory(ConfigProperties config) {
+    return config.getString(CONFIG_KEY_PROFILER_DIRECTORY, System.getProperty("java.io.tmpdir"));
+  }
+
+  public static Duration getRecordingDuration(ConfigProperties config) {
+    return config.getDuration(CONFIG_KEY_RECORDING_DURATION, DEFAULT_RECORDING_DURATION);
   }
 
   private static int getJavaVersion() {

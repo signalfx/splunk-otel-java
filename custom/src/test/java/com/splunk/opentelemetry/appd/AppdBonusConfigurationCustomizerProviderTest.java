@@ -40,7 +40,8 @@ class AppdBonusConfigurationCustomizerProviderTest {
         new AppdBonusConfigurationCustomizerProvider();
     OpenTelemetryConfigurationModel model = parseAndCustomizeModel(yaml, customizer);
 
-    assertThat(model.getPropagator().getCompositeList()).isEqualTo("appd-bonus,tracecontext,baggage");
+    assertThat(model.getPropagator().getCompositeList())
+        .isEqualTo("appd-bonus,tracecontext,baggage");
     assertThat(model.getTracerProvider().getProcessors()).hasSize(1);
     assertThat(model.getTracerProvider().getProcessors().get(0).getAdditionalProperties())
         .hasSize(1);

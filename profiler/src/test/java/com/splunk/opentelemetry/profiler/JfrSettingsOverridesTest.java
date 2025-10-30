@@ -19,6 +19,8 @@ package com.splunk.opentelemetry.profiler;
 import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_CALL_STACK_INTERVAL;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -32,7 +34,7 @@ class JfrSettingsOverridesTest {
   @Test
   void testOverrides() {
     ConfigProperties config = mock(ConfigProperties.class);
-    when(config.getDuration(CONFIG_KEY_CALL_STACK_INTERVAL, Duration.ZERO))
+    when(config.getDuration(eq(CONFIG_KEY_CALL_STACK_INTERVAL), any(Duration.class)))
         .thenReturn(Duration.ofMillis(163));
     when(config.getBoolean("splunk.profiler.memory.enabled", false)).thenReturn(true);
     JfrSettingsOverrides overrides = new JfrSettingsOverrides(config);

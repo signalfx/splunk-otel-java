@@ -25,6 +25,8 @@ import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.OpenTe
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.PropagatorModel;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.SpanProcessorModel;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.TracerProviderModel;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 @AutoService(DeclarativeConfigurationCustomizerProvider.class)
@@ -32,6 +34,7 @@ public final class AppdBonusConfigurationCustomizerProvider
     implements DeclarativeConfigurationCustomizerProvider {
 
   private static final String CONFIG_CISCO_CTX_ENABLED = "cisco.ctx.enabled";
+  private static final String DEFAULT_PROPAGATORS = "tracecontext,baggage";
 
   @Override
   public void customize(DeclarativeConfigurationCustomizer autoConfiguration) {
@@ -90,7 +93,7 @@ public final class AppdBonusConfigurationCustomizerProvider
     // Possible duplicates are handled by the upstream
     compositeList =
         compositeList.isEmpty()
-            ? AppdBonusPropagator.NAME
+            ? AppdBonusPropagator.NAME + "," + DEFAULT_PROPAGATORS
             : AppdBonusPropagator.NAME + "," + compositeList;
 
     model.getPropagator().withCompositeList(compositeList);

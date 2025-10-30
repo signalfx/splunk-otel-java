@@ -25,7 +25,7 @@ import org.junit.jupiter.api.Test;
 class AppdBonusConfigurationCustomizerProviderTest {
 
   @Test
-  void shouldAddPropagatorAndSpanProcessorWhenFeatureIsEnabled() {
+  void shouldAddAppdPropagatorWithDefaultPropagatorsAndSpanProcessorWhenFeatureIsEnabled() {
     var yaml =
         """
             file_format: "1.0-rc.1"
@@ -40,7 +40,33 @@ class AppdBonusConfigurationCustomizerProviderTest {
         new AppdBonusConfigurationCustomizerProvider();
     OpenTelemetryConfigurationModel model = parseAndCustomizeModel(yaml, customizer);
 
-    assertThat(model.getPropagator().getCompositeList()).isEqualTo("appd-bonus");
+    assertThat(model.getPropagator().getCompositeList()).isEqualTo("appd-bonus,tracecontext,baggage");
+    assertThat(model.getTracerProvider().getProcessors()).hasSize(1);
+    assertThat(model.getTracerProvider().getProcessors().get(0).getAdditionalProperties())
+        .hasSize(1);
+    assertThat(model.getTracerProvider().getProcessors().get(0).getAdditionalProperties())
+        .containsKey("appd-bonus");
+  }
+
+  @Test
+  void shouldAddAppdPropagatorToExistingListAndSpanProcessorWhenFeatureIsEnabled() {
+    var yaml =
+        """
+            file_format: "1.0-rc.1"
+            propagator:
+               composite_list: "b3"
+            instrumentation/development:
+              java:
+                cisco:
+                   ctx:
+                     enabled: true
+            """;
+
+    AppdBonusConfigurationCustomizerProvider customizer =
+        new AppdBonusConfigurationCustomizerProvider();
+    OpenTelemetryConfigurationModel model = parseAndCustomizeModel(yaml, customizer);
+
+    assertThat(model.getPropagator().getCompositeList()).isEqualTo("appd-bonus,b3");
     assertThat(model.getTracerProvider().getProcessors()).hasSize(1);
     assertThat(model.getTracerProvider().getProcessors().get(0).getAdditionalProperties())
         .hasSize(1);

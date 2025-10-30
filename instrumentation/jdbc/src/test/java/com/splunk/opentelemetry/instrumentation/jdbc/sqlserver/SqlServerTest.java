@@ -31,8 +31,8 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.testcontainers.containers.MSSQLServerContainer;
 import org.testcontainers.containers.output.Slf4jLogConsumer;
+import org.testcontainers.mssqlserver.MSSQLServerContainer;
 
 class SqlServerTest extends AbstractDbContextPropagationTest {
   private static final Logger logger = LoggerFactory.getLogger(SqlServerTest.class);

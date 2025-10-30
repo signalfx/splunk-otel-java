@@ -63,7 +63,7 @@ public final class AppdBonusConfigurationCustomizerProvider
 
   private static boolean isFeatureEnabled(
       OpenTelemetryConfigurationModel model, Map<String, Object> properties) {
-    return (getAdditionalPropertyOrDefault(properties, CONFIG_CISCO_CTX_ENABLED, false));
+    return getAdditionalPropertyOrDefault(properties, CONFIG_CISCO_CTX_ENABLED, false);
   }
 
   private static boolean canAddPropagator(String compositeList) {

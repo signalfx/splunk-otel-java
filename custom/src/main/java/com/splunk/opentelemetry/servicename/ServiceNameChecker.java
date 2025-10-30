@@ -20,6 +20,8 @@ import static io.opentelemetry.sdk.autoconfigure.AutoConfigureUtil.getConfig;
 import static io.opentelemetry.sdk.autoconfigure.AutoConfigureUtil.getResource;
 
 import com.google.auto.service.AutoService;
+import io.opentelemetry.api.incubator.config.ConfigProvider;
+import io.opentelemetry.api.incubator.config.GlobalConfigProvider;
 import io.opentelemetry.javaagent.tooling.BeforeAgentListener;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
@@ -50,10 +52,16 @@ public class ServiceNameChecker implements BeforeAgentListener {
     ConfigProperties config = getConfig(autoConfiguredOpenTelemetrySdk);
     Resource resource = getResource(autoConfiguredOpenTelemetrySdk);
     if (serviceNameNotConfigured(config, resource)) {
-      logWarn.accept(
-          "The service.name resource attribute is not set. Your service is unnamed and will be difficult to identify.\n"
-              + " Set your service name using the OTEL_SERVICE_NAME or OTEL_RESOURCE_ATTRIBUTES environment variable.\n"
-              + " E.g. `OTEL_SERVICE_NAME=\"<YOUR_SERVICE_NAME_HERE>\"`");
+      if (isDeclarativeConfigInUse()) {
+        logWarn.accept(
+            "The service.name resource attribute is not set. Your service is unnamed and will be difficult to identify.\n"
+                + " Set your service name in '.resource.attributes' node, or specify appropriate resource detector in the configuration YAML file.");
+      } else {
+        logWarn.accept(
+            "The service.name resource attribute is not set. Your service is unnamed and will be difficult to identify.\n"
+                + " Set your service name using the OTEL_SERVICE_NAME or OTEL_RESOURCE_ATTRIBUTES environment variable.\n"
+                + " E.g. `OTEL_SERVICE_NAME=\"<YOUR_SERVICE_NAME_HERE>\"`");
+      }
     }
   }
 
@@ -69,5 +77,9 @@ public class ServiceNameChecker implements BeforeAgentListener {
     return serviceName == null
         && !resourceAttributes.containsKey(ServiceAttributes.SERVICE_NAME.getKey())
         && "unknown_service:java".equals(resource.getAttribute(ServiceAttributes.SERVICE_NAME));
+  }
+
+  private static boolean isDeclarativeConfigInUse() {
+    return !GlobalConfigProvider.get().equals(ConfigProvider.noop());
   }
 }

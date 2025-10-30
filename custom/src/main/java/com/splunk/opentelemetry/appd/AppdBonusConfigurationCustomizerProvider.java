@@ -90,9 +90,9 @@ public final class AppdBonusConfigurationCustomizerProvider
 
     // Possible duplicates are handled by the upstream
     compositeList =
-        compositeList.isEmpty()
-            ? AppdBonusPropagator.NAME + "," + DEFAULT_PROPAGATORS
-            : AppdBonusPropagator.NAME + "," + compositeList;
+        AppdBonusPropagator.NAME
+            + ","
+            + (compositeList.isEmpty() ? DEFAULT_PROPAGATORS : compositeList);
 
     model.getPropagator().withCompositeList(compositeList);
 

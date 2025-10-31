@@ -17,6 +17,7 @@
 package com.splunk.opentelemetry.opamp;
 
 import static io.opentelemetry.sdk.autoconfigure.AutoConfigureUtil.getConfig;
+import static io.opentelemetry.sdk.autoconfigure.AutoConfigureUtil.getResource;
 import static java.util.logging.Level.WARNING;
 
 import com.google.auto.service.AutoService;
@@ -28,6 +29,9 @@ import io.opentelemetry.opamp.client.internal.request.service.HttpRequestService
 import io.opentelemetry.opamp.client.internal.response.MessageData;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
+import io.opentelemetry.sdk.resources.Resource;
+import io.opentelemetry.semconv.ServiceAttributes;
+import java.util.Map;
 import java.util.logging.Logger;
 import opamp.proto.ServerErrorResponse;
 import org.jetbrains.annotations.Nullable;
@@ -46,9 +50,13 @@ public class OpampActivator implements AgentListener {
       return;
     }
 
+    Resource resource = getResource(autoConfiguredOpenTelemetrySdk);
+    String serviceName = getServiceName(config, resource);
+
     String endpoint = config.getString(OP_AMP_ENDPOINT);
     startOpampClient(
         endpoint,
+        serviceName,
         new OpampClient.Callbacks() {
           @Override
           public void onConnect() {}
@@ -68,10 +76,28 @@ public class OpampActivator implements AgentListener {
         });
   }
 
-  static OpampClient startOpampClient(String endpoint, OpampClient.Callbacks callbacks) {
+  private static String getServiceName(ConfigProperties config, Resource resource) {
+    String serviceName = config.getString("otel.service.name");
+    if (serviceName != null) {
+      return serviceName;
+    }
+    Map<String, String> resourceAttributes = config.getMap("otel.resource.attributes");
+    serviceName = resourceAttributes.get(ServiceAttributes.SERVICE_NAME.getKey());
+    if (serviceName != null) {
+      return serviceName;
+    }
+    return resource.getAttribute(ServiceAttributes.SERVICE_NAME);
+  }
+
+  static OpampClient startOpampClient(
+      String endpoint, String serviceName, OpampClient.Callbacks callbacks) {
     OpampClientBuilder builder = OpampClient.builder();
+    builder.enableRemoteConfig();
     if (endpoint != null) {
       builder.setRequestService(HttpRequestService.create(OkHttpSender.create(endpoint)));
+    }
+    if (serviceName != null) {
+      builder.putIdentifyingAttribute("service.name", serviceName);
     }
 
     return builder.build(callbacks);

@@ -16,8 +16,6 @@
 
 package com.splunk.opentelemetry.profiler;
 
-import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_CALL_STACK_INTERVAL;
-
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import java.time.Duration;
 import java.util.HashMap;
@@ -38,19 +36,11 @@ class JfrSettingsOverrides {
 
   Map<String, String> apply(Map<String, String> jfrSettings) {
     Map<String, String> settings = new HashMap<>(jfrSettings);
-    Duration customInterval = getCustomInterval();
-    if (customInterval != Duration.ZERO) {
+    Duration customInterval = Configuration.getCallStackInterval(config);
+    if (!Duration.ZERO.equals(customInterval)) {
       settings.put("jdk.ThreadDump#period", customInterval.toMillis() + " ms");
     }
     return maybeEnableTLABs(settings);
-  }
-
-  private Duration getCustomInterval() {
-    Duration customInterval = config.getDuration(CONFIG_KEY_CALL_STACK_INTERVAL, Duration.ZERO);
-    if (customInterval != Duration.ZERO) {
-      return customInterval;
-    }
-    return Duration.ZERO;
   }
 
   private Map<String, String> maybeEnableTLABs(Map<String, String> settings) {

@@ -119,7 +119,7 @@ class LogExporterBuilderTest {
 
     when(config.getString(Configuration.CONFIG_KEY_PROFILER_OTLP_PROTOCOL, null))
         .thenReturn("grpc");
-    when(config.getString(Configuration.CONFIG_KEY_OTEL_OTLP_URL, null))
+    when(config.getString(Configuration.CONFIG_KEY_OTEL_OTLP_URL))
         .thenReturn("http://shadowed.example.com:9122/");
     when(config.getString(Configuration.CONFIG_KEY_INGEST_URL, "http://shadowed.example.com:9122/"))
         .thenReturn(endpoint);
@@ -142,7 +142,7 @@ class LogExporterBuilderTest {
 
     when(config.getString(Configuration.CONFIG_KEY_PROFILER_OTLP_PROTOCOL, null))
         .thenReturn("http/protobuf");
-    when(config.getString(Configuration.CONFIG_KEY_OTEL_OTLP_URL, null))
+    when(config.getString(Configuration.CONFIG_KEY_OTEL_OTLP_URL))
         .thenReturn("http://shadowed.example.com:9122/");
     when(config.getString(
             Configuration.CONFIG_KEY_INGEST_URL, "http://shadowed.example.com:9122/v1/logs"))

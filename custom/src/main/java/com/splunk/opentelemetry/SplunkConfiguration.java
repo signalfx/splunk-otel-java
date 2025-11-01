@@ -123,6 +123,10 @@ public class SplunkConfiguration implements AutoConfigurationCustomizerProvider 
         "otel.exporter.otlp.logs.protocol", config.getString("otel.exporter.otlp.protocol"));
   }
 
+  public static boolean isProfilerEnabled(ConfigProperties config) {
+    return config.getBoolean(PROFILER_ENABLED_PROPERTY, false);
+  }
+
   private static void addIfAbsent(
       Map<String, String> customized, ConfigProperties config, String key, String value) {
     if (config.getString(key) == null) {

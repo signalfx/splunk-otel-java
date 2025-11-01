@@ -16,16 +16,13 @@
 
 package com.splunk.opentelemetry.profiler;
 
-import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_ENABLE_PROFILER;
-import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_KEEP_FILES;
-import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_PROFILER_DIRECTORY;
-import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_RECORDING_DURATION;
 import static com.splunk.opentelemetry.profiler.util.Runnables.logUncaught;
 import static io.opentelemetry.sdk.autoconfigure.AutoConfigureUtil.getConfig;
 import static io.opentelemetry.sdk.autoconfigure.AutoConfigureUtil.getResource;
 import static java.util.logging.Level.WARNING;
 
 import com.google.auto.service.AutoService;
+import com.splunk.opentelemetry.SplunkConfiguration;
 import com.splunk.opentelemetry.profiler.allocation.exporter.AllocationEventExporter;
 import com.splunk.opentelemetry.profiler.allocation.exporter.PprofAllocationEventExporter;
 import com.splunk.opentelemetry.profiler.context.SpanContextualizer;
@@ -55,7 +52,6 @@ public class JfrActivator implements AgentListener {
   private static final java.util.logging.Logger logger =
       java.util.logging.Logger.getLogger(JfrActivator.class.getName());
   private final ExecutorService executor = HelpfulExecutors.newSingleThreadExecutor("JFR Profiler");
-  private final ConfigurationLogger configurationLogger = new ConfigurationLogger();
 
   @Override
   public void afterAgent(AutoConfiguredOpenTelemetrySdk autoConfiguredOpenTelemetrySdk) {
@@ -64,7 +60,7 @@ public class JfrActivator implements AgentListener {
       return;
     }
 
-    configurationLogger.log(config);
+    Configuration.log(config);
     logger.info("Profiler is active.");
     executor.submit(
         logUncaught(
@@ -72,7 +68,7 @@ public class JfrActivator implements AgentListener {
   }
 
   private boolean notClearForTakeoff(ConfigProperties config) {
-    if (!config.getBoolean(CONFIG_KEY_ENABLE_PROFILER, false)) {
+    if (!SplunkConfiguration.isProfilerEnabled(config)) {
       logger.fine("Profiler is not enabled.");
       return true;
     }
@@ -113,8 +109,8 @@ public class JfrActivator implements AgentListener {
   }
 
   private void activateJfrAndRunForever(ConfigProperties config, Resource resource) {
-    boolean keepFiles = keepFiles(config);
-    Path outputDir = Paths.get(config.getString(CONFIG_KEY_PROFILER_DIRECTORY));
+    boolean keepFiles = Configuration.getKeepFiles(config);
+    Path outputDir = Paths.get(Configuration.getProfilerDirectory(config));
     if (keepFiles && !checkOutputDir(outputDir)) {
       keepFiles = false;
     }
@@ -124,7 +120,7 @@ public class JfrActivator implements AgentListener {
     JFR.instance.setStackDepth(stackDepth);
 
     // can't be null, default value is set in Configuration.getProperties
-    Duration recordingDuration = config.getDuration(CONFIG_KEY_RECORDING_DURATION, null);
+    Duration recordingDuration = Configuration.getRecordingDuration(config);
     Map<String, String> jfrSettings = buildJfrSettings(config);
 
     EventReader eventReader = new EventReader();
@@ -221,9 +217,5 @@ public class JfrActivator implements AgentListener {
     Map<String, String> jfrSettings = settingsReader.read();
     JfrSettingsOverrides overrides = new JfrSettingsOverrides(config);
     return overrides.apply(jfrSettings);
-  }
-
-  private boolean keepFiles(ConfigProperties config) {
-    return config.getBoolean(CONFIG_KEY_KEEP_FILES, false);
   }
 }

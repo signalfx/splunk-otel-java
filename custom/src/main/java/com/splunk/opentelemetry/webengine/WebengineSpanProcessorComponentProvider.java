@@ -24,6 +24,8 @@ import io.opentelemetry.sdk.trace.SpanProcessor;
 @SuppressWarnings("rawtypes")
 @AutoService(ComponentProvider.class)
 public class WebengineSpanProcessorComponentProvider implements ComponentProvider<SpanProcessor> {
+  static final String NAME = "web_engine";
+
   @Override
   public Class<SpanProcessor> getType() {
     return SpanProcessor.class;
@@ -31,7 +33,7 @@ public class WebengineSpanProcessorComponentProvider implements ComponentProvide
 
   @Override
   public String getName() {
-    return "web_engine";
+    return NAME;
   }
 
   @Override

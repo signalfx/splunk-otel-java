@@ -45,19 +45,17 @@ public final class AppdBonusConfigurationCustomizerProvider
           Map<String, Object> properties =
               model.getInstrumentationDevelopment().getJava().getAdditionalProperties();
 
-          if (isFeatureEnabled(model, properties)) {
-            if (maybeAddAppdBonusPropagator(model)) {
-              // Appd propagator has been added so add also a corresponding Appd span processor
-              SpanProcessorModel appdSpanProcessorModel =
-                  new SpanProcessorModel()
-                      .withAdditionalProperty(AppdBonusSpanProcessorComponentProvider.NAME, null);
-              if (model.getTracerProvider() == null) {
-                model.withTracerProvider(new TracerProviderModel());
-              }
-              model.getTracerProvider().getProcessors().add(appdSpanProcessorModel);
-            }
+          if (!isFeatureEnabled(model, properties) || !maybeAddAppdBonusPropagator(model)) {
+              return model;
           }
-
+          // Appd propagator has been added so add also a corresponding Appd span processor
+          SpanProcessorModel appdSpanProcessorModel =
+              new SpanProcessorModel()
+                  .withAdditionalProperty(AppdBonusSpanProcessorComponentProvider.NAME, null);
+          if (model.getTracerProvider() == null) {
+            model.withTracerProvider(new TracerProviderModel());
+          }
+          model.getTracerProvider().getProcessors().add(appdSpanProcessorModel);
           return model;
         });
   }

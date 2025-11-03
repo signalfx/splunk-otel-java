@@ -79,8 +79,8 @@ public class Configuration {
     logger.info("-----------------------");
   }
 
-  private static void log(String key, Function<String, Object> getter) {
-    logger.info(String.format("%39s : %s", key, getter.apply(key)));
+  private static void log(String key, @Nullable Object value) {
+    logger.info(String.format("%39s : %s", key, value));
   }
 
   public static String getConfigUrl(ConfigProperties config) {

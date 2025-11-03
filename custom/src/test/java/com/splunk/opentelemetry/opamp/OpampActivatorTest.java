@@ -18,6 +18,7 @@ package com.splunk.opentelemetry.opamp;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import io.opentelemetry.instrumentation.testing.internal.AutoCleanupExtension;
 import io.opentelemetry.opamp.client.internal.OpampClient;
 import io.opentelemetry.opamp.client.internal.response.MessageData;
 import io.opentelemetry.testing.internal.armeria.common.HttpResponse;
@@ -25,6 +26,7 @@ import io.opentelemetry.testing.internal.armeria.common.HttpStatus;
 import io.opentelemetry.testing.internal.armeria.common.MediaType;
 import io.opentelemetry.testing.internal.armeria.testing.junit5.server.mock.MockWebServerExtension;
 import java.util.Collections;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import okio.ByteString;
@@ -38,9 +40,12 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 class OpampActivatorTest {
   private static final MockWebServerExtension server = new MockWebServerExtension();
+
+  @RegisterExtension static final AutoCleanupExtension cleanup = AutoCleanupExtension.create();
 
   @BeforeAll
   static void setUp() {
@@ -59,19 +64,15 @@ class OpampActivatorTest {
 
   @Test
   void testOpamp() throws Exception {
+    Map<String, AgentConfigFile> configMap =
+        Collections.singletonMap(
+            "test-key",
+            new AgentConfigFile.Builder().body(ByteString.encodeUtf8("test-value")).build());
     ServerToAgent response =
         new ServerToAgent.Builder()
             .remote_config(
                 new AgentRemoteConfig.Builder()
-                    .config(
-                        new AgentConfigMap.Builder()
-                            .config_map(
-                                Collections.singletonMap(
-                                    "test-key",
-                                    new AgentConfigFile.Builder()
-                                        .body(ByteString.encodeUtf8("test-value"))
-                                        .build()))
-                            .build())
+                    .config(new AgentConfigMap.Builder().config_map(configMap).build())
                     .build())
             .build();
     server.enqueue(HttpResponse.of(HttpStatus.OK, MediaType.X_PROTOBUF, response.encode()));
@@ -101,12 +102,11 @@ class OpampActivatorTest {
                 result.complete(messageData);
               }
             });
+    cleanup.deferCleanup(client);
 
     MessageData message = result.get(5, TimeUnit.SECONDS);
     AgentRemoteConfig remoteConfig = message.getRemoteConfig();
     assertThat(remoteConfig).isNotNull();
     assertThat(remoteConfig.config.config_map.get("test-key").body.utf8()).isEqualTo("test-value");
-
-    client.close();
   }
 }

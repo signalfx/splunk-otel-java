@@ -31,7 +31,6 @@ import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import io.opentelemetry.sdk.resources.Resource;
 import io.opentelemetry.semconv.ServiceAttributes;
-import java.util.Map;
 import java.util.logging.Logger;
 import opamp.proto.ServerErrorResponse;
 import org.jetbrains.annotations.Nullable;
@@ -51,7 +50,7 @@ public class OpampActivator implements AgentListener {
     }
 
     Resource resource = getResource(autoConfiguredOpenTelemetrySdk);
-    String serviceName = getServiceName(config, resource);
+    String serviceName = resource.getAttribute(ServiceAttributes.SERVICE_NAME);
 
     String endpoint = config.getString(OP_AMP_ENDPOINT);
     startOpampClient(
@@ -74,19 +73,6 @@ public class OpampActivator implements AgentListener {
           @Override
           public void onMessage(MessageData messageData) {}
         });
-  }
-
-  private static String getServiceName(ConfigProperties config, Resource resource) {
-    String serviceName = config.getString("otel.service.name");
-    if (serviceName != null) {
-      return serviceName;
-    }
-    Map<String, String> resourceAttributes = config.getMap("otel.resource.attributes");
-    serviceName = resourceAttributes.get(ServiceAttributes.SERVICE_NAME.getKey());
-    if (serviceName != null) {
-      return serviceName;
-    }
-    return resource.getAttribute(ServiceAttributes.SERVICE_NAME);
   }
 
   static OpampClient startOpampClient(

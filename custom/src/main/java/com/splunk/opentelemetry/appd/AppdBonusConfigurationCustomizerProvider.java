@@ -38,16 +38,10 @@ public final class AppdBonusConfigurationCustomizerProvider
   public void customize(DeclarativeConfigurationCustomizer autoConfiguration) {
     autoConfiguration.addModelCustomizer(
         model -> {
-          if (model.getInstrumentationDevelopment() == null
-              || model.getInstrumentationDevelopment().getJava() == null) {
+          if (!maybeAddAppdBonusPropagator(model)) {
             return model;
           }
-          Map<String, Object> properties =
-              model.getInstrumentationDevelopment().getJava().getAdditionalProperties();
 
-          if (!isFeatureEnabled(model, properties) || !maybeAddAppdBonusPropagator(model)) {
-              return model;
-          }
           // Appd propagator has been added so add also a corresponding Appd span processor
           SpanProcessorModel appdSpanProcessorModel =
               new SpanProcessorModel()
@@ -56,12 +50,20 @@ public final class AppdBonusConfigurationCustomizerProvider
             model.withTracerProvider(new TracerProviderModel());
           }
           model.getTracerProvider().getProcessors().add(appdSpanProcessorModel);
+
           return model;
         });
   }
 
-  private static boolean isFeatureEnabled(
-      OpenTelemetryConfigurationModel model, Map<String, Object> properties) {
+  private static boolean isFeatureEnabled(OpenTelemetryConfigurationModel model) {
+    if (model.getInstrumentationDevelopment() == null
+        || model.getInstrumentationDevelopment().getJava() == null) {
+      return false;
+    }
+
+    Map<String, Object> properties =
+        model.getInstrumentationDevelopment().getJava().getAdditionalProperties();
+
     return getAdditionalPropertyOrDefault(properties, CONFIG_CISCO_CTX_ENABLED, false);
   }
 
@@ -75,6 +77,10 @@ public final class AppdBonusConfigurationCustomizerProvider
   }
 
   private static boolean maybeAddAppdBonusPropagator(OpenTelemetryConfigurationModel model) {
+    if (!isFeatureEnabled(model)) {
+      return false;
+    }
+
     if (model.getPropagator() == null) {
       model.withPropagator(new PropagatorModel());
     }
@@ -82,7 +88,8 @@ public final class AppdBonusConfigurationCustomizerProvider
     String compositeList = model.getPropagator().getCompositeList();
     if (compositeList == null) {
       compositeList = "";
-    } else if (!canAddPropagator(compositeList)) {
+    }
+    if (!canAddPropagator(compositeList)) {
       return false;
     }
 

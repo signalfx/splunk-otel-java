@@ -39,7 +39,7 @@ class ConfigurationTest {
   @Test
   void getConfigUrl_endpointDefined() {
     ConfigProperties config = mock(ConfigProperties.class);
-    when(config.getString(Configuration.CONFIG_KEY_OTEL_OTLP_URL, null)).thenReturn(otelEndpoint);
+    when(config.getString(Configuration.CONFIG_KEY_OTEL_OTLP_URL)).thenReturn(otelEndpoint);
     when(config.getString(Configuration.CONFIG_KEY_INGEST_URL, otelEndpoint))
         .thenReturn(logsEndpoint);
     String result = Configuration.getConfigUrl(config);
@@ -49,7 +49,7 @@ class ConfigurationTest {
   @Test
   void getConfigUrl_endpointNotDefined() {
     ConfigProperties config = mock(ConfigProperties.class);
-    when(config.getString(Configuration.CONFIG_KEY_OTEL_OTLP_URL, null)).thenReturn(otelEndpoint);
+    when(config.getString(Configuration.CONFIG_KEY_OTEL_OTLP_URL)).thenReturn(otelEndpoint);
     when(config.getString(Configuration.CONFIG_KEY_INGEST_URL, otelEndpoint))
         .thenReturn(otelEndpoint);
     String result = Configuration.getConfigUrl(config);
@@ -68,7 +68,7 @@ class ConfigurationTest {
   @Test
   void getConfigUrlSplunkRealm() {
     ConfigProperties config = mock(ConfigProperties.class);
-    when(config.getString(Configuration.CONFIG_KEY_OTEL_OTLP_URL, null))
+    when(config.getString(Configuration.CONFIG_KEY_OTEL_OTLP_URL))
         .thenReturn("https://ingest.us0.signalfx.com");
     when(config.getString(Configuration.CONFIG_KEY_INGEST_URL, null)).thenReturn(null);
     String result = Configuration.getConfigUrl(config);

@@ -104,8 +104,6 @@ public class Configuration {
         }
         ingestUrl += "v1/logs";
       }
-    } else {
-      ingestUrl = getDefaultLogsEndpoint(config);
     }
     return config.getString(CONFIG_KEY_INGEST_URL, ingestUrl);
   }

@@ -23,8 +23,8 @@ import static java.util.logging.Level.WARNING;
 import com.splunk.opentelemetry.SplunkConfiguration;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import java.time.Duration;
-import java.util.function.Function;
 import java.util.logging.Logger;
+import javax.annotation.Nullable;
 
 public class Configuration {
   private static final Logger logger = Logger.getLogger(Configuration.class.getName());
@@ -61,21 +61,21 @@ public class Configuration {
   public static void log(ConfigProperties config) {
     logger.info("-----------------------");
     logger.info("Profiler configuration:");
-    log(PROFILER_ENABLED_PROPERTY, (it) -> SplunkConfiguration.isProfilerEnabled(config));
-    log(CONFIG_KEY_PROFILER_DIRECTORY, (it) -> getProfilerDirectory(config));
-    log(CONFIG_KEY_RECORDING_DURATION, (it) -> getRecordingDuration(config));
-    log(CONFIG_KEY_KEEP_FILES, (it) -> getKeepFiles(config));
-    log(CONFIG_KEY_INGEST_URL, (it) -> getConfigUrl(config));
-    log(CONFIG_KEY_OTEL_OTLP_URL, config::getString);
-    log(CONFIG_KEY_MEMORY_ENABLED, (it) -> getMemoryEnabled(config));
+    log(PROFILER_ENABLED_PROPERTY, SplunkConfiguration.isProfilerEnabled(config));
+    log(CONFIG_KEY_PROFILER_DIRECTORY, getProfilerDirectory(config));
+    log(CONFIG_KEY_RECORDING_DURATION, getRecordingDuration(config));
+    log(CONFIG_KEY_KEEP_FILES, getKeepFiles(config));
+    log(CONFIG_KEY_INGEST_URL, getConfigUrl(config));
+    log(CONFIG_KEY_OTEL_OTLP_URL, config.getString(CONFIG_KEY_OTEL_OTLP_URL));
+    log(CONFIG_KEY_MEMORY_ENABLED, getMemoryEnabled(config));
     if (getMemoryEventRateLimitEnabled(config)) {
-      log(CONFIG_KEY_MEMORY_EVENT_RATE, (it) -> getMemoryEventRate(config));
+      log(CONFIG_KEY_MEMORY_EVENT_RATE, getMemoryEventRate(config));
     }
-    log(CONFIG_KEY_CALL_STACK_INTERVAL, (it) -> getCallStackInterval(config));
-    log(CONFIG_KEY_INCLUDE_AGENT_INTERNALS, (it) -> getIncludeAgentInternalStacks(config));
-    log(CONFIG_KEY_INCLUDE_JVM_INTERNALS, (it) -> getIncludeJvmInternalStacks(config));
-    log(CONFIG_KEY_TRACING_STACKS_ONLY, (it) -> getTracingStacksOnly(config));
-    log(CONFIG_KEY_STACK_DEPTH, (it) -> getStackDepth(config));
+    log(CONFIG_KEY_CALL_STACK_INTERVAL, getCallStackInterval(config));
+    log(CONFIG_KEY_INCLUDE_AGENT_INTERNALS, getIncludeAgentInternalStacks(config));
+    log(CONFIG_KEY_INCLUDE_JVM_INTERNALS, getIncludeJvmInternalStacks(config));
+    log(CONFIG_KEY_TRACING_STACKS_ONLY, getTracingStacksOnly(config));
+    log(CONFIG_KEY_STACK_DEPTH, getStackDepth(config));
     logger.info("-----------------------");
   }
 

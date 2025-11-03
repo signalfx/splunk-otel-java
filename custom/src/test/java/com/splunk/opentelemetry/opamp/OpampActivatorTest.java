@@ -64,6 +64,7 @@ class OpampActivatorTest {
 
   @Test
   void testOpamp() throws Exception {
+    // given
     Map<String, AgentConfigFile> configMap =
         Collections.singletonMap(
             "test-key",
@@ -104,8 +105,11 @@ class OpampActivatorTest {
             });
     cleanup.deferCleanup(client);
 
+    // when
     MessageData message = result.get(5, TimeUnit.SECONDS);
     AgentRemoteConfig remoteConfig = message.getRemoteConfig();
+
+    // then
     assertThat(remoteConfig).isNotNull();
     assertThat(remoteConfig.config.config_map.get("test-key").body.utf8()).isEqualTo("test-value");
   }

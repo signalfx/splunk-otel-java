@@ -17,7 +17,6 @@
 package com.splunk.opentelemetry.profiler;
 
 import static com.splunk.opentelemetry.SplunkConfiguration.PROFILER_ENABLED_PROPERTY;
-import static com.splunk.opentelemetry.SplunkConfiguration.PROFILER_MEMORY_ENABLED_PROPERTY;
 import static java.util.logging.Level.WARNING;
 
 import com.splunk.opentelemetry.SplunkConfiguration;
@@ -29,15 +28,16 @@ import javax.annotation.Nullable;
 public class Configuration {
   private static final Logger logger = Logger.getLogger(Configuration.class.getName());
 
+  static final String CONFIG_KEY_OTLP_PROTOCOL = "otel.exporter.otlp.protocol";
+  static final String CONFIG_KEY_OTEL_OTLP_URL = "otel.exporter.otlp.endpoint";
+
   /* Keys visible for testing */
   static final String CONFIG_KEY_PROFILER_DIRECTORY = "splunk.profiler.directory";
   static final String CONFIG_KEY_RECORDING_DURATION = "splunk.profiler.recording.duration";
   static final String CONFIG_KEY_KEEP_FILES = "splunk.profiler.keep-files";
   static final String CONFIG_KEY_INGEST_URL = "splunk.profiler.logs-endpoint";
   static final String CONFIG_KEY_PROFILER_OTLP_PROTOCOL = "splunk.profiler.otlp.protocol";
-  static final String CONFIG_KEY_OTLP_PROTOCOL = "otel.exporter.otlp.protocol";
-  static final String CONFIG_KEY_OTEL_OTLP_URL = "otel.exporter.otlp.endpoint";
-  static final String CONFIG_KEY_MEMORY_ENABLED = PROFILER_MEMORY_ENABLED_PROPERTY;
+  static final String CONFIG_KEY_MEMORY_ENABLED = "splunk.profiler.memory.enabled";
   static final String CONFIG_KEY_MEMORY_EVENT_RATE_LIMIT_ENABLED =
       "splunk.profiler.memory.event.rate-limit.enabled";
   static final String CONFIG_KEY_MEMORY_EVENT_RATE = "splunk.profiler.memory.event.rate";
@@ -63,15 +63,17 @@ public class Configuration {
     logger.info("Profiler configuration:");
     log(PROFILER_ENABLED_PROPERTY, SplunkConfiguration.isProfilerEnabled(config));
     log(CONFIG_KEY_PROFILER_DIRECTORY, getProfilerDirectory(config));
-    log(CONFIG_KEY_RECORDING_DURATION, getRecordingDuration(config));
+    log(CONFIG_KEY_RECORDING_DURATION, getRecordingDuration(config).toMillis() + "ms");
     log(CONFIG_KEY_KEEP_FILES, getKeepFiles(config));
+    log(CONFIG_KEY_PROFILER_OTLP_PROTOCOL, getOtlpProtocol(config));
     log(CONFIG_KEY_INGEST_URL, getConfigUrl(config));
     log(CONFIG_KEY_OTEL_OTLP_URL, config.getString(CONFIG_KEY_OTEL_OTLP_URL));
     log(CONFIG_KEY_MEMORY_ENABLED, getMemoryEnabled(config));
     if (getMemoryEventRateLimitEnabled(config)) {
       log(CONFIG_KEY_MEMORY_EVENT_RATE, getMemoryEventRate(config));
     }
-    log(CONFIG_KEY_CALL_STACK_INTERVAL, getCallStackInterval(config));
+    log(CONFIG_KEY_MEMORY_NATIVE_SAMPLING, getUseAllocationSampleEvent(config));
+    log(CONFIG_KEY_CALL_STACK_INTERVAL, getCallStackInterval(config).toMillis() + "ms");
     log(CONFIG_KEY_INCLUDE_AGENT_INTERNALS, getIncludeAgentInternalStacks(config));
     log(CONFIG_KEY_INCLUDE_JVM_INTERNALS, getIncludeJvmInternalStacks(config));
     log(CONFIG_KEY_TRACING_STACKS_ONLY, getTracingStacksOnly(config));
@@ -102,6 +104,8 @@ public class Configuration {
         }
         ingestUrl += "v1/logs";
       }
+    } else {
+      ingestUrl = getDefaultLogsEndpoint(config);
     }
     return config.getString(CONFIG_KEY_INGEST_URL, ingestUrl);
   }

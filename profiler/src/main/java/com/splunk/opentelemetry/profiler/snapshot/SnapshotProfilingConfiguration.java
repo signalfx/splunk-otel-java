@@ -34,7 +34,7 @@ public class SnapshotProfilingConfiguration implements AutoConfigurationCustomiz
       "splunk.snapshot.profiler.enabled";
   private static final String SELECTION_PROBABILITY_KEY = "splunk.snapshot.selection.probability";
   private static final String STACK_DEPTH_KEY = "splunk.snapshot.profiler.max.stack.depth";
-  private static final String SAMPLING_INTERVAL_KEY = "splunk.snapshot.profiler.sampling.interval";
+  private static final String SAMPLING_INTERVAL_KEY = "splunk.snapshot.sampling.interval";
   private static final String EXPORT_INTERVAL_KEY = "splunk.snapshot.profiler.export.interval";
   private static final String STAGING_CAPACITY_KEY = "splunk.snapshot.profiler.staging.capacity";
 

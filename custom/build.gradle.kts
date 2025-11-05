@@ -17,6 +17,7 @@ dependencies {
 
   implementation("io.opentelemetry.contrib:opentelemetry-samplers")
   implementation("io.opentelemetry.contrib:opentelemetry-resource-providers")
+  implementation("io.opentelemetry.contrib:opentelemetry-opamp-client")
 
   testImplementation(project(":testing:common"))
   testImplementation("io.opentelemetry:opentelemetry-sdk")

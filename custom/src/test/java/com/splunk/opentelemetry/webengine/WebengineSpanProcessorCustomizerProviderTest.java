@@ -46,7 +46,7 @@ class WebengineSpanProcessorCustomizerProviderTest {
             processors
                 .get(0)
                 .getAdditionalProperties()
-                .containsKey(WebengineSpanProcessorComponentProvider.PROVIDER_NAME))
+                .containsKey(WebengineSpanProcessorComponentProvider.NAME))
         .isTrue();
     assertThat(processors.get(1).getSimple()).isNotNull();
   }

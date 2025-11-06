@@ -41,7 +41,7 @@ public class WebengineSpanProcessorCustomizerProvider
                     0,
                     new SpanProcessorModel()
                         .withAdditionalProperty(
-                            WebengineSpanProcessorComponentProvider.PROVIDER_NAME, null));
+                            WebengineSpanProcessorComponentProvider.NAME, null));
           }
           return model;
         });

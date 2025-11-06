@@ -53,7 +53,7 @@ class SnapshotProfilingConfigurationTest {
       assertEquals("false", properties.getString("splunk.snapshot.profiler.enabled"));
       assertEquals("0.01", properties.getString("splunk.snapshot.selection.probability"));
       assertEquals("1024", properties.getString("splunk.snapshot.profiler.max.stack.depth"));
-      assertEquals("10ms", properties.getString("splunk.snapshot.profiler.sampling.interval"));
+      assertEquals("10ms", properties.getString("splunk.snapshot.sampling.interval"));
       assertEquals("5s", properties.getString("splunk.snapshot.profiler.export.interval"));
       assertEquals("2000", properties.getString("splunk.snapshot.profiler.staging.capacity"));
     }
@@ -142,7 +142,7 @@ class SnapshotProfilingConfigurationTest {
   void getConfiguredSnapshotProfilerSamplingInterval(int milliseconds) {
     var properties =
         DefaultConfigProperties.create(
-            Map.of("splunk.snapshot.profiler.sampling.interval", String.valueOf(milliseconds)),
+            Map.of("splunk.snapshot.sampling.interval", String.valueOf(milliseconds)),
             COMPONENT_LOADER);
     assertEquals(
         Duration.ofMillis(milliseconds),
@@ -245,12 +245,12 @@ class SnapshotProfilingConfigurationTest {
     void includeSnapshotProfilingSamplingInterval(String interval) {
       var properties =
           DefaultConfigProperties.create(
-              Map.of("splunk.snapshot.profiler.sampling.interval", interval), COMPONENT_LOADER);
+              Map.of("splunk.snapshot.sampling.interval", interval), COMPONENT_LOADER);
 
       SnapshotProfilingConfiguration.log(properties);
 
-      var duration = properties.getDuration("splunk.snapshot.profiler.sampling.interval");
-      log.assertContains("splunk.snapshot.profiler.sampling.interval" + " : " + duration);
+      var duration = properties.getDuration("splunk.snapshot.sampling.interval");
+      log.assertContains("splunk.snapshot.sampling.interval" + " : " + duration);
     }
 
     @ParameterizedTest

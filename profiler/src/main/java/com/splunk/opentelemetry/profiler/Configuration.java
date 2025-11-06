@@ -66,7 +66,7 @@ public class Configuration {
     log(CONFIG_KEY_RECORDING_DURATION, getRecordingDuration(config).toMillis() + "ms");
     log(CONFIG_KEY_KEEP_FILES, getKeepFiles(config));
     log(CONFIG_KEY_PROFILER_OTLP_PROTOCOL, getOtlpProtocol(config));
-    log(CONFIG_KEY_INGEST_URL, getConfigUrl(config));
+    log(CONFIG_KEY_INGEST_URL, getIngestUrl(config));
     log(CONFIG_KEY_OTEL_OTLP_URL, config.getString(CONFIG_KEY_OTEL_OTLP_URL));
     log(CONFIG_KEY_MEMORY_ENABLED, getMemoryEnabled(config));
     if (getMemoryEventRateLimitEnabled(config)) {
@@ -85,27 +85,40 @@ public class Configuration {
     logger.info(String.format("%39s : %s", key, value));
   }
 
-  public static String getConfigUrl(ConfigProperties config) {
-    String ingestUrl = config.getString(CONFIG_KEY_OTEL_OTLP_URL);
-    if (ingestUrl != null) {
-      if (ingestUrl.startsWith("https://ingest.")
-          && ingestUrl.endsWith(".signalfx.com")
-          && config.getString(CONFIG_KEY_INGEST_URL) == null) {
+  public static String getIngestUrl(ConfigProperties config) {
+    String ingestUrl = config.getString(CONFIG_KEY_INGEST_URL);
+
+    if (ingestUrl == null) {
+      String defaultIngestUrl = getDefaultLogsEndpoint(config);
+      ingestUrl = config.getString(CONFIG_KEY_OTEL_OTLP_URL, defaultIngestUrl);
+
+      if (ingestUrl.startsWith("https://ingest.") && ingestUrl.endsWith(".signalfx.com")) {
         logger.log(
             WARNING,
             "Profiling data can not be sent to {0}, using {1} instead. "
-                + "You can override it by setting splunk.profiler.logs-endpoint",
-            new Object[] {ingestUrl, getDefaultLogsEndpoint(config)});
-        return null;
+                + "You can override it by setting "
+                + CONFIG_KEY_INGEST_URL,
+            new Object[] {ingestUrl, defaultIngestUrl});
+        return defaultIngestUrl;
       }
+
       if ("http/protobuf".equals(getOtlpProtocol(config))) {
-        if (!ingestUrl.endsWith("/")) {
-          ingestUrl += "/";
-        }
-        ingestUrl += "v1/logs";
+        ingestUrl = maybeAppendHttpPath(ingestUrl);
       }
     }
-    return config.getString(CONFIG_KEY_INGEST_URL, ingestUrl);
+
+    return ingestUrl;
+  }
+
+  private static String maybeAppendHttpPath(String ingestUrl) {
+    if (!ingestUrl.endsWith("v1/logs")) {
+      if (!ingestUrl.endsWith("/")) {
+        ingestUrl += "/";
+      }
+      ingestUrl += "v1/logs";
+    }
+
+    return ingestUrl;
   }
 
   private static String getDefaultLogsEndpoint(ConfigProperties config) {

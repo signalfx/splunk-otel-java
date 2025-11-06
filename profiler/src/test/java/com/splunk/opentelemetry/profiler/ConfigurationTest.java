@@ -16,8 +16,10 @@
 
 package com.splunk.opentelemetry.profiler;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -35,44 +37,89 @@ class ConfigurationTest {
 
   String logsEndpoint = "http://logs.example.com";
   String otelEndpoint = "http://otel.example.com";
+  String defaultLogsEndpoint = "http://localhost:4318/v1/logs";
 
   @Test
-  void getConfigUrl_endpointDefined() {
+  void getIngestUrl_endpointDefined() {
+    // given
     ConfigProperties config = mock(ConfigProperties.class);
-    when(config.getString(Configuration.CONFIG_KEY_OTEL_OTLP_URL)).thenReturn(otelEndpoint);
-    when(config.getString(Configuration.CONFIG_KEY_INGEST_URL, otelEndpoint))
-        .thenReturn(logsEndpoint);
-    String result = Configuration.getConfigUrl(config);
-    assertEquals(logsEndpoint, result);
+    when(config.getString(Configuration.CONFIG_KEY_INGEST_URL)).thenReturn(logsEndpoint);
+
+    // when
+    String result = Configuration.getIngestUrl(config);
+
+    // then
+    assertThat(result).isEqualTo(logsEndpoint);
   }
 
   @Test
-  void getConfigUrl_endpointNotDefined() {
+  void getIngestUrl_endpointNotDefined_usedOtelGrpc() {
+    // given
     ConfigProperties config = mock(ConfigProperties.class);
-    when(config.getString(Configuration.CONFIG_KEY_OTEL_OTLP_URL)).thenReturn(otelEndpoint);
-    when(config.getString(Configuration.CONFIG_KEY_INGEST_URL, otelEndpoint))
+    when(config.getString(Configuration.CONFIG_KEY_INGEST_URL)).thenReturn(null);
+    when(config.getString(eq(Configuration.CONFIG_KEY_OTEL_OTLP_URL), anyString()))
         .thenReturn(otelEndpoint);
-    String result = Configuration.getConfigUrl(config);
-    assertEquals(otelEndpoint, result);
+    when(config.getString(eq(Configuration.CONFIG_KEY_PROFILER_OTLP_PROTOCOL), any()))
+        .thenReturn("grpc");
+
+    // when
+    String result = Configuration.getIngestUrl(config);
+
+    // then
+    assertThat(result).isEqualTo(otelEndpoint);
   }
 
   @Test
-  void getConfigUrlNull() {
+  void getIngestUrl_endpointNotDefined_usedOtelHttpProtobuf() {
+    // given
     ConfigProperties config = mock(ConfigProperties.class);
-    when(config.getString(Configuration.CONFIG_KEY_OTEL_OTLP_URL, null)).thenReturn(null);
-    when(config.getString(Configuration.CONFIG_KEY_INGEST_URL, null)).thenReturn(null);
-    String result = Configuration.getConfigUrl(config);
-    assertNull(result);
+    when(config.getString(Configuration.CONFIG_KEY_INGEST_URL)).thenReturn(null);
+    when(config.getString(eq(Configuration.CONFIG_KEY_OTEL_OTLP_URL), anyString()))
+        .thenReturn(otelEndpoint);
+    when(config.getString(eq(Configuration.CONFIG_KEY_PROFILER_OTLP_PROTOCOL), any()))
+        .thenReturn("http/protobuf");
+
+    // when
+    String result = Configuration.getIngestUrl(config);
+
+    // then
+    assertThat(result).isEqualTo(otelEndpoint + "/v1/logs");
   }
 
   @Test
-  void getConfigUrlSplunkRealm() {
+  void getIngestUrl_endpointNotDefined_usedOtelHttpProtobufWithPath() {
+    // given
+    String endpoint = otelEndpoint + "/v1/logs";
+
     ConfigProperties config = mock(ConfigProperties.class);
-    when(config.getString(Configuration.CONFIG_KEY_OTEL_OTLP_URL))
+    when(config.getString(Configuration.CONFIG_KEY_INGEST_URL)).thenReturn(null);
+    when(config.getString(eq(Configuration.CONFIG_KEY_OTEL_OTLP_URL), anyString()))
+        .thenReturn(endpoint);
+    when(config.getString(eq(Configuration.CONFIG_KEY_PROFILER_OTLP_PROTOCOL), any()))
+        .thenReturn("http/protobuf");
+
+    // when
+    String result = Configuration.getIngestUrl(config);
+
+    // then
+    assertThat(result).isEqualTo(endpoint);
+  }
+
+  @Test
+  void getIngestUrlSplunkRealm() {
+    // given
+    ConfigProperties config = mock(ConfigProperties.class);
+    when(config.getString(Configuration.CONFIG_KEY_INGEST_URL)).thenReturn(null);
+    when(config.getString(eq(Configuration.CONFIG_KEY_OTEL_OTLP_URL), anyString()))
         .thenReturn("https://ingest.us0.signalfx.com");
-    when(config.getString(Configuration.CONFIG_KEY_INGEST_URL, null)).thenReturn(null);
-    String result = Configuration.getConfigUrl(config);
-    assertNull(result);
+    when(config.getString(eq(Configuration.CONFIG_KEY_PROFILER_OTLP_PROTOCOL), any()))
+        .thenReturn("http/protobuf");
+
+    // when
+    String result = Configuration.getIngestUrl(config);
+
+    // then
+    assertThat(result).isEqualTo(defaultLogsEndpoint);
   }
 
   @Test
@@ -80,7 +127,8 @@ class ConfigurationTest {
     String result =
         Configuration.getOtlpProtocol(
             DefaultConfigProperties.create(Collections.emptyMap(), COMPONENT_LOADER));
-    assertEquals("http/protobuf", result);
+
+    assertThat(result).isEqualTo("http/protobuf");
   }
 
   @Test
@@ -89,16 +137,22 @@ class ConfigurationTest {
         Configuration.getOtlpProtocol(
             DefaultConfigProperties.create(
                 Collections.singletonMap("otel.exporter.otlp.protocol", "test"), COMPONENT_LOADER));
-    assertEquals("test", result);
+
+    assertThat(result).isEqualTo("test");
   }
 
   @Test
   void getOtlpProtocol() {
+    // given
     Map<String, String> map = new HashMap<>();
     map.put("otel.exporter.otlp.protocol", "test1");
     map.put("splunk.profiler.otlp.protocol", "test2");
+
+    // when
     String result =
         Configuration.getOtlpProtocol(DefaultConfigProperties.create(map, COMPONENT_LOADER));
-    assertEquals("test2", result);
+
+    // then
+    assertThat(result).isEqualTo("test2");
   }
 }

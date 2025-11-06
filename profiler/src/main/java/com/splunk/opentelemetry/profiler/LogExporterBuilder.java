@@ -47,10 +47,9 @@ class LogExporterBuilder {
   static LogRecordExporter buildGrpcExporter(
       ConfigProperties config, Supplier<OtlpGrpcLogRecordExporterBuilder> makeBuilder) {
     OtlpGrpcLogRecordExporterBuilder builder = makeBuilder.get();
-    String ingestUrl = Configuration.getConfigUrl(config);
-    if (ingestUrl != null) {
-      builder.setEndpoint(ingestUrl);
-    }
+    String ingestUrl = Configuration.getIngestUrl(config);
+    builder.setEndpoint(ingestUrl);
+
     return builder.addHeader(EXTRA_CONTENT_TYPE, STACKTRACES_HEADER_VALUE).build();
   }
 
@@ -58,7 +57,7 @@ class LogExporterBuilder {
   static LogRecordExporter buildHttpExporter(
       ConfigProperties config, Supplier<OtlpHttpLogRecordExporterBuilder> makeBuilder) {
     OtlpHttpLogRecordExporterBuilder builder = makeBuilder.get();
-    String ingestUrl = Configuration.getConfigUrl(config);
+    String ingestUrl = Configuration.getIngestUrl(config);
 
     OtlpConfigUtil.configureOtlpExporterBuilder(
         DATA_TYPE_LOGS,
@@ -73,9 +72,8 @@ class LogExporterBuilder {
         builder::setRetryPolicy,
         builder::setMemoryMode);
 
-    if (ingestUrl != null) {
-      builder.setEndpoint(ingestUrl);
-    }
+    builder.setEndpoint(ingestUrl);
+
     return builder.addHeader(EXTRA_CONTENT_TYPE, STACKTRACES_HEADER_VALUE).build();
   }
 }

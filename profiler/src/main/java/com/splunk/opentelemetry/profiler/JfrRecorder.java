@@ -132,7 +132,7 @@ class JfrRecorder {
     private RecordingFileNamingConvention namingConvention;
     private Map<String, String> settings;
     private Duration maxAgeDuration;
-    private JFR jfr = JFR.instance;
+    private JFR jfr = JFR.getInstance();
     private Consumer<InputStream> onNewRecording;
     private boolean keepRecordingFiles;
 

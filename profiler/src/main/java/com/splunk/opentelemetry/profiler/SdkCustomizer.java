@@ -40,7 +40,7 @@ public class SdkCustomizer implements AutoConfigurationCustomizerProvider {
   }
 
   private boolean jfrIsAvailable() {
-    return JFR.instance.isAvailable();
+    return JFR.getInstance().isAvailable();
   }
 
   private boolean jfrIsEnabledInConfig(ConfigProperties config) {

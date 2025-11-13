@@ -34,6 +34,16 @@
       // of that release instead of the unstable version for a future release
       "ignoreUnstable": false,
       "allowedVersions": "!/\\-SNAPSHOT$/"
+    },
+    {
+      // snakeyaml-engine 3+ requires Java 11+
+      matchUpdateTypes: [
+        'major',
+      ],
+      enabled: false,
+      matchPackageNames: [
+        'org.snakeyaml:snakeyaml-engine'
+      ],
     }
   ]
 }

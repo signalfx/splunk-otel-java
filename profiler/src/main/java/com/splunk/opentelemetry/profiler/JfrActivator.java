@@ -57,10 +57,7 @@ public class JfrActivator implements AgentListener {
   private final JFR jfr;
 
   public JfrActivator() {
-    this(
-        JFR.getInstance(),
-        HelpfulExecutors.newSingleThreadExecutor("JFR Profiler")
-    );
+    this(JFR.getInstance(), HelpfulExecutors.newSingleThreadExecutor("JFR Profiler"));
   }
 
   @VisibleForTesting

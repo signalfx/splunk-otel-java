@@ -21,8 +21,7 @@ import org.mockito.MockedStatic;
 class JfrActivatorTest {
   @Test
   void shouldActivateJfrRecording(@TempDir Path tempDir) throws IOException {
-    try (MockedStatic<JFR> jfrMock = mockStatic(JFR.class);
-        MockedStatic<ContextStorage> contextStorageMock = mockStatic(ContextStorage.class)) {
+    try (MockedStatic<ContextStorage> contextStorageMock = mockStatic(ContextStorage.class)) {
 
       // given
       String yaml = toYamlString(
@@ -35,12 +34,11 @@ class JfrActivatorTest {
       );
       AutoConfiguredOpenTelemetrySdk sdk = createAutoConfiguredSdk(yaml, tempDir);
 
-      var jfrInstanceMock = mock(JFR.class);
-      when(jfrInstanceMock.isAvailable()).thenReturn(true);
-      jfrMock.when(JFR::getInstance).thenReturn(jfrInstanceMock);
+      var jfrMock = mock(JFR.class);
+      when(jfrMock.isAvailable()).thenReturn(true);
 
       ExecutorService executorMock = mock(ExecutorService.class);
-      JfrActivator activator = new JfrActivator(executorMock);
+      JfrActivator activator = new JfrActivator(jfrMock, executorMock);
 
       // when
       activator.afterAgent(sdk);
@@ -53,8 +51,7 @@ class JfrActivatorTest {
 
   @Test
   void shouldNotActivateJfrRecording_JfrNotAvailable(@TempDir Path tempDir) throws IOException {
-    try (MockedStatic<JFR> jfrMock = mockStatic(JFR.class);
-        MockedStatic<ContextStorage> contextStorageMock = mockStatic(ContextStorage.class)) {
+    try (MockedStatic<ContextStorage> contextStorageMock = mockStatic(ContextStorage.class)) {
 
       // given
       String yaml = toYamlString(
@@ -67,12 +64,11 @@ class JfrActivatorTest {
       );
       AutoConfiguredOpenTelemetrySdk sdk = createAutoConfiguredSdk(yaml, tempDir);
 
-      var jfrInstanceMock = mock(JFR.class);
-      when(jfrInstanceMock.isAvailable()).thenReturn(false);
-      jfrMock.when(JFR::getInstance).thenReturn(jfrInstanceMock);
+      var jfrMock = mock(JFR.class);
+      when(jfrMock.isAvailable()).thenReturn(false);
 
       ExecutorService executorMock = mock(ExecutorService.class);
-      JfrActivator activator = new JfrActivator(executorMock);
+      JfrActivator activator = new JfrActivator(jfrMock, executorMock);
 
       // when
       activator.afterAgent(sdk);
@@ -85,8 +81,7 @@ class JfrActivatorTest {
 
   @Test
   void shouldNotActivateJfrRecording_profilerDisabled(@TempDir Path tempDir) throws IOException {
-    try (MockedStatic<JFR> jfrMock = mockStatic(JFR.class);
-        MockedStatic<ContextStorage> contextStorageMock = mockStatic(ContextStorage.class)) {
+    try (MockedStatic<ContextStorage> contextStorageMock = mockStatic(ContextStorage.class)) {
 
       // given
       String yaml = toYamlString(
@@ -96,12 +91,11 @@ class JfrActivatorTest {
       );
       AutoConfiguredOpenTelemetrySdk sdk = createAutoConfiguredSdk(yaml, tempDir);
 
-      var jfrInstanceMock = mock(JFR.class);
-      when(jfrInstanceMock.isAvailable()).thenReturn(true);
-      jfrMock.when(JFR::getInstance).thenReturn(jfrInstanceMock);
+      var jfrMock = mock(JFR.class);
+      when(jfrMock.isAvailable()).thenReturn(true);
 
       ExecutorService executorMock = mock(ExecutorService.class);
-      JfrActivator activator = new JfrActivator(executorMock);
+      JfrActivator activator = new JfrActivator(jfrMock, executorMock);
 
       // when
       activator.afterAgent(sdk);

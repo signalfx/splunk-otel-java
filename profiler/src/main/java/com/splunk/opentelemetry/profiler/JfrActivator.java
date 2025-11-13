@@ -54,13 +54,18 @@ public class JfrActivator implements AgentListener {
   private static final java.util.logging.Logger logger =
       java.util.logging.Logger.getLogger(JfrActivator.class.getName());
   private final ExecutorService executor;
+  private final JFR jfr;
 
   public JfrActivator() {
-    this(HelpfulExecutors.newSingleThreadExecutor("JFR Profiler"));
+    this(
+        JFR.getInstance(),
+        HelpfulExecutors.newSingleThreadExecutor("JFR Profiler")
+    );
   }
 
   @VisibleForTesting
-  JfrActivator(ExecutorService executor) {
+  JfrActivator(JFR jfr, ExecutorService executor) {
+    this.jfr = jfr;
     this.executor = executor;
   }
 
@@ -85,7 +90,7 @@ public class JfrActivator implements AgentListener {
       logger.fine("Profiler is not enabled.");
       return true;
     }
-    if (!JFR.getInstance().isAvailable()) {
+    if (!jfr.isAvailable()) {
       logger.warning(
           "JDK Flight Recorder (JFR) is not available in this JVM. Profiling is disabled.");
       return true;
@@ -130,7 +135,7 @@ public class JfrActivator implements AgentListener {
     RecordingFileNamingConvention namingConvention = new RecordingFileNamingConvention(outputDir);
 
     int stackDepth = Configuration.getStackDepth(config);
-    JFR.getInstance().setStackDepth(stackDepth);
+    jfr.setStackDepth(stackDepth);
 
     // can't be null, default value is set in Configuration.getProperties
     Duration recordingDuration = Configuration.getRecordingDuration(config);
@@ -178,7 +183,7 @@ public class JfrActivator implements AgentListener {
         JfrRecorder.builder()
             .settings(jfrSettings)
             .maxAgeDuration(recordingDuration.multipliedBy(10))
-            .jfr(JFR.getInstance())
+            .jfr(jfr)
             .onNewRecording(jfrRecordingHandler)
             .namingConvention(namingConvention)
             .keepRecordingFiles(keepFiles)

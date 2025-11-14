@@ -8,10 +8,10 @@ val otelInstrumentationVersion = "2.21.0"
 val otelInstrumentationAlphaVersion =  otelInstrumentationVersion.replaceFirst("(-SNAPSHOT)?$".toRegex(), "-alpha$1")
 val otelContribAlphaVersion = "1.49.0-alpha"
 
-val autoValueVersion = "1.11.0"
-val dockerJavaVersion = "3.6.0"
+val autoValueVersion = "1.11.1"
+val dockerJavaVersion = "3.7.0"
 val mockitoVersion = "5.20.0"
-val protobufVersion = "4.33.0"
+val protobufVersion = "4.33.1"
 val slf4jVersion = "2.0.17"
 
 // instrumentation version is used to compute Implementation-Version manifest attribute
@@ -35,7 +35,7 @@ dependencies {
   api(enforcedPlatform("io.opentelemetry:opentelemetry-bom-alpha:$otelAlphaVersion"))
   api(enforcedPlatform("io.opentelemetry.instrumentation:opentelemetry-instrumentation-bom-alpha:$otelInstrumentationAlphaVersion"))
   api(enforcedPlatform("org.junit:junit-bom:6.0.1"))
-  api(enforcedPlatform("org.testcontainers:testcontainers-bom:2.0.1"))
+  api(enforcedPlatform("org.testcontainers:testcontainers-bom:2.0.2"))
 
   constraints {
     api("com.google.auto.service:auto-service:1.1.1")

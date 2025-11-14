@@ -22,6 +22,7 @@ import static io.opentelemetry.sdk.autoconfigure.AutoConfigureUtil.getResource;
 import static java.util.logging.Level.WARNING;
 
 import com.google.auto.service.AutoService;
+import com.google.common.annotations.VisibleForTesting;
 import com.splunk.opentelemetry.SplunkConfiguration;
 import com.splunk.opentelemetry.profiler.allocation.exporter.AllocationEventExporter;
 import com.splunk.opentelemetry.profiler.allocation.exporter.PprofAllocationEventExporter;
@@ -30,6 +31,7 @@ import com.splunk.opentelemetry.profiler.exporter.CpuEventExporter;
 import com.splunk.opentelemetry.profiler.exporter.PprofCpuEventExporter;
 import com.splunk.opentelemetry.profiler.util.HelpfulExecutors;
 import io.opentelemetry.api.logs.Logger;
+import io.opentelemetry.context.ContextStorage;
 import io.opentelemetry.javaagent.extension.AgentListener;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
@@ -51,7 +53,18 @@ public class JfrActivator implements AgentListener {
 
   private static final java.util.logging.Logger logger =
       java.util.logging.Logger.getLogger(JfrActivator.class.getName());
-  private final ExecutorService executor = HelpfulExecutors.newSingleThreadExecutor("JFR Profiler");
+  private final ExecutorService executor;
+  private final JFR jfr;
+
+  public JfrActivator() {
+    this(JFR.getInstance(), HelpfulExecutors.newSingleThreadExecutor("JFR Profiler"));
+  }
+
+  @VisibleForTesting
+  JfrActivator(JFR jfr, ExecutorService executor) {
+    this.jfr = jfr;
+    this.executor = executor;
+  }
 
   @Override
   public void afterAgent(AutoConfiguredOpenTelemetrySdk autoConfiguredOpenTelemetrySdk) {
@@ -62,6 +75,8 @@ public class JfrActivator implements AgentListener {
 
     Configuration.log(config);
     logger.info("Profiler is active.");
+    setupContextStorage();
+
     executor.submit(
         logUncaught(
             () -> activateJfrAndRunForever(config, getResource(autoConfiguredOpenTelemetrySdk))));
@@ -72,7 +87,7 @@ public class JfrActivator implements AgentListener {
       logger.fine("Profiler is not enabled.");
       return true;
     }
-    if (!JFR.instance.isAvailable()) {
+    if (!jfr.isAvailable()) {
       logger.warning(
           "JDK Flight Recorder (JFR) is not available in this JVM. Profiling is disabled.");
       return true;
@@ -117,7 +132,7 @@ public class JfrActivator implements AgentListener {
     RecordingFileNamingConvention namingConvention = new RecordingFileNamingConvention(outputDir);
 
     int stackDepth = Configuration.getStackDepth(config);
-    JFR.instance.setStackDepth(stackDepth);
+    jfr.setStackDepth(stackDepth);
 
     // can't be null, default value is set in Configuration.getProperties
     Duration recordingDuration = Configuration.getRecordingDuration(config);
@@ -165,7 +180,7 @@ public class JfrActivator implements AgentListener {
         JfrRecorder.builder()
             .settings(jfrSettings)
             .maxAgeDuration(recordingDuration.multipliedBy(10))
-            .jfr(JFR.instance)
+            .jfr(jfr)
             .onNewRecording(jfrRecordingHandler)
             .namingConvention(namingConvention)
             .keepRecordingFiles(keepFiles)
@@ -217,5 +232,9 @@ public class JfrActivator implements AgentListener {
     Map<String, String> jfrSettings = settingsReader.read();
     JfrSettingsOverrides overrides = new JfrSettingsOverrides(config);
     return overrides.apply(jfrSettings);
+  }
+
+  private static void setupContextStorage() {
+    ContextStorage.addWrapper(JfrContextStorage::new);
   }
 }

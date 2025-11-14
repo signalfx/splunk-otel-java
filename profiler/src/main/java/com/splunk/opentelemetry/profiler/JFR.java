@@ -36,8 +36,12 @@ import net.bytebuddy.utility.JavaModule;
 class JFR {
   private static final Logger logger = Logger.getLogger(JFR.class.getName());
 
-  public static final JFR instance = new JFR();
+  private static final JFR instance = new JFR();
   private static final boolean jfrAvailable = checkJfr();
+
+  public static JFR getInstance() {
+    return instance;
+  }
 
   private static boolean checkJfr() {
     try {

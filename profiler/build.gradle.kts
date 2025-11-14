@@ -41,6 +41,7 @@ dependencies {
   compileOnly("com.google.auto.service:auto-service")
 
   testImplementation(project(":custom"))
+  testImplementation(project(":testing:common"))
   testImplementation("io.opentelemetry.javaagent:opentelemetry-javaagent-extension-api")
   testImplementation("io.opentelemetry.javaagent:opentelemetry-testing-common")
   testImplementation("io.grpc:grpc-netty")

@@ -16,12 +16,12 @@
 
 package com.splunk.opentelemetry.profiler.snapshot;
 
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import io.github.netmikey.logunit.api.LogCapturer;
 import io.opentelemetry.common.ComponentLoader;
-import io.opentelemetry.sdk.autoconfigure.OpenTelemetrySdkExtension;
+import io.opentelemetry.instrumentation.config.bridge.DeclarativeConfigPropertiesBridgeBuilder;
 import io.opentelemetry.sdk.autoconfigure.spi.internal.DefaultConfigProperties;
 import java.time.Duration;
 import java.util.Collections;
@@ -38,31 +38,19 @@ class SnapshotProfilingConfigurationTest {
   private static final ComponentLoader COMPONENT_LOADER =
       ComponentLoader.forClassLoader(SnapshotProfilingConfigurationTest.class.getClassLoader());
 
-  @Nested
-  class DefaultValuesTest {
-    private final SnapshotProfilingConfiguration configuration =
-        new SnapshotProfilingConfiguration();
-
-    @RegisterExtension
-    private final OpenTelemetrySdkExtension sdk =
-        OpenTelemetrySdkExtension.configure().with(configuration).build();
-
-    @Test
-    void defaultValuesAreProvidedToOpenTelemetry() {
-      var properties = sdk.getConfig();
-      assertEquals("false", properties.getString("splunk.snapshot.profiler.enabled"));
-      assertEquals("0.01", properties.getString("splunk.snapshot.selection.probability"));
-      assertEquals("1024", properties.getString("splunk.snapshot.profiler.max.stack.depth"));
-      assertEquals("10ms", properties.getString("splunk.snapshot.sampling.interval"));
-      assertEquals("5s", properties.getString("splunk.snapshot.profiler.export.interval"));
-      assertEquals("2000", properties.getString("splunk.snapshot.profiler.staging.capacity"));
-    }
-  }
-
   @Test
-  void isSnapshotProfilingEnabledIsFalseByDefault() {
+  void verifyDefaultValues() {
     var properties = DefaultConfigProperties.create(Collections.emptyMap(), COMPONENT_LOADER);
-    assertFalse(SnapshotProfilingConfiguration.isSnapshotProfilingEnabled(properties));
+
+    assertThat(SnapshotProfilingConfiguration.isSnapshotProfilingEnabled(properties)).isFalse();
+    assertThat(SnapshotProfilingConfiguration.getSnapshotSelectionProbability(properties))
+        .isEqualTo(0.01);
+    assertThat(SnapshotProfilingConfiguration.getStackDepth(properties)).isEqualTo(1024);
+    assertThat(SnapshotProfilingConfiguration.getSamplingInterval(properties))
+        .isEqualTo(Duration.ofMillis(10));
+    assertThat(SnapshotProfilingConfiguration.getExportInterval(properties))
+        .isEqualTo(Duration.ofSeconds(5));
+    assertThat(SnapshotProfilingConfiguration.getStagingCapacity(properties)).isEqualTo(2000);
   }
 
   @ParameterizedTest
@@ -85,15 +73,6 @@ class SnapshotProfilingConfigurationTest {
     double actualSelectionRate =
         SnapshotProfilingConfiguration.getSnapshotSelectionProbability(properties);
     assertEquals(selectionRate, actualSelectionRate);
-  }
-
-  @Test
-  void getSnapshotSelectionProbabilityUsesDefaultWhenPropertyNotSet() {
-    var properties = DefaultConfigProperties.create(Collections.emptyMap(), COMPONENT_LOADER);
-
-    double actualSelectionRate =
-        SnapshotProfilingConfiguration.getSnapshotSelectionProbability(properties);
-    assertEquals(0.01, actualSelectionRate);
   }
 
   @Test
@@ -131,15 +110,9 @@ class SnapshotProfilingConfigurationTest {
     assertEquals(depth, SnapshotProfilingConfiguration.getStackDepth(properties));
   }
 
-  @Test
-  void getDefaultSnapshotProfilerStackDepthWhenNotSpecified() {
-    var properties = DefaultConfigProperties.create(Collections.emptyMap(), COMPONENT_LOADER);
-    assertEquals(1024, SnapshotProfilingConfiguration.getStackDepth(properties));
-  }
-
   @ParameterizedTest
-  @ValueSource(ints = {128, 512, 2056})
-  void getConfiguredSnapshotProfilerSamplingInterval(int milliseconds) {
+  @ValueSource(longs = {128, 512, 2056})
+  void getConfiguredSnapshotProfilerSamplingInterval(long milliseconds) {
     var properties =
         DefaultConfigProperties.create(
             Map.of("splunk.snapshot.sampling.interval", String.valueOf(milliseconds)),
@@ -149,16 +122,9 @@ class SnapshotProfilingConfigurationTest {
         SnapshotProfilingConfiguration.getSamplingInterval(properties));
   }
 
-  @Test
-  void getDefaultSnapshotProfilerSamplingInterval() {
-    var properties = DefaultConfigProperties.create(Collections.emptyMap(), COMPONENT_LOADER);
-    assertEquals(
-        Duration.ofMillis(10), SnapshotProfilingConfiguration.getSamplingInterval(properties));
-  }
-
   @ParameterizedTest
-  @ValueSource(ints = {128, 512, 2056})
-  void getConfiguredSnapshotProfilerEmptyStagingInterval(int milliseconds) {
+  @ValueSource(longs = {128, 512, 2056})
+  void getConfiguredSnapshotProfilerEmptyStagingInterval(long milliseconds) {
     var properties =
         DefaultConfigProperties.create(
             Map.of("splunk.snapshot.profiler.export.interval", String.valueOf(milliseconds)),
@@ -166,13 +132,6 @@ class SnapshotProfilingConfigurationTest {
     assertEquals(
         Duration.ofMillis(milliseconds),
         SnapshotProfilingConfiguration.getExportInterval(properties));
-  }
-
-  @Test
-  void getDefaultSnapshotProfilerEmptyStagingInterval() {
-    var properties = DefaultConfigProperties.create(Collections.emptyMap(), COMPONENT_LOADER);
-    assertEquals(
-        Duration.ofSeconds(5), SnapshotProfilingConfiguration.getExportInterval(properties));
   }
 
   @ParameterizedTest
@@ -185,10 +144,101 @@ class SnapshotProfilingConfigurationTest {
     assertEquals(value, SnapshotProfilingConfiguration.getStagingCapacity(properties));
   }
 
-  @Test
-  void getDefaultSnapshotProfilerStagingCapacity() {
-    var properties = DefaultConfigProperties.create(Collections.emptyMap(), COMPONENT_LOADER);
-    assertEquals(2000, SnapshotProfilingConfiguration.getStagingCapacity(properties));
+  @Nested
+  class DeclarativeConfigTest {
+
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void isSnapshotProfilingEnabled(boolean enabled) {
+      DeclarativeConfigPropertiesBridgeBuilder builder =
+          new DeclarativeConfigPropertiesBridgeBuilder();
+      builder.addOverride("splunk.snapshot.profiler.enabled", enabled);
+
+      var properties = builder.buildFromInstrumentationConfig(null);
+
+      assertEquals(enabled, SnapshotProfilingConfiguration.isSnapshotProfilingEnabled(properties));
+    }
+
+    @ParameterizedTest
+    @ValueSource(doubles = {0.10, 0.05, 0.0})
+    void getSnapshotSelectionProbability(double selectionRate) {
+      DeclarativeConfigPropertiesBridgeBuilder builder =
+          new DeclarativeConfigPropertiesBridgeBuilder();
+      builder.addOverride("splunk.snapshot.selection.probability", selectionRate);
+
+      var properties = builder.buildFromInstrumentationConfig(null);
+
+      double actualSelectionRate =
+          SnapshotProfilingConfiguration.getSnapshotSelectionProbability(properties);
+      assertEquals(selectionRate, actualSelectionRate);
+    }
+
+    @ParameterizedTest
+    @ValueSource(doubles = {1.0, 0.5, 0.11})
+    void getSnapshotSelectionRateUsesMaxSelectionRateWhenConfiguredProbabilityIsHigher(
+        double selectionRate) {
+      DeclarativeConfigPropertiesBridgeBuilder builder =
+          new DeclarativeConfigPropertiesBridgeBuilder();
+      builder.addOverride("splunk.snapshot.selection.probability", selectionRate);
+
+      var properties = builder.buildFromInstrumentationConfig(null);
+
+      double actualSelectionRate =
+          SnapshotProfilingConfiguration.getSnapshotSelectionProbability(properties);
+      assertEquals(0.10, actualSelectionRate);
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = {128, 512, 2056})
+    void getConfiguredSnapshotProfilerStackDepth(int depth) {
+      DeclarativeConfigPropertiesBridgeBuilder builder =
+          new DeclarativeConfigPropertiesBridgeBuilder();
+      builder.addOverride("splunk.snapshot.profiler.max.stack.depth", depth);
+
+      var properties = builder.buildFromInstrumentationConfig(null);
+
+      assertEquals(depth, SnapshotProfilingConfiguration.getStackDepth(properties));
+    }
+
+    @ParameterizedTest
+    @ValueSource(longs = {128, 512, 2056})
+    void getConfiguredSnapshotProfilerSamplingInterval(long milliseconds) {
+      DeclarativeConfigPropertiesBridgeBuilder builder =
+          new DeclarativeConfigPropertiesBridgeBuilder();
+      builder.addOverride("splunk.snapshot.sampling.interval", milliseconds);
+
+      var properties = builder.buildFromInstrumentationConfig(null);
+
+      assertEquals(
+          Duration.ofMillis(milliseconds),
+          SnapshotProfilingConfiguration.getSamplingInterval(properties));
+    }
+
+    @ParameterizedTest
+    @ValueSource(longs = {128, 512, 2056})
+    void getConfiguredSnapshotProfilerEmptyStagingInterval(long milliseconds) {
+      DeclarativeConfigPropertiesBridgeBuilder builder =
+          new DeclarativeConfigPropertiesBridgeBuilder();
+      builder.addOverride("splunk.snapshot.profiler.export.interval", milliseconds);
+
+      var properties = builder.buildFromInstrumentationConfig(null);
+
+      assertEquals(
+          Duration.ofMillis(milliseconds),
+          SnapshotProfilingConfiguration.getExportInterval(properties));
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = {100, 1000, 10_000})
+    void getConfiguredSnapshotProfilerStagingCapacity(int value) {
+      DeclarativeConfigPropertiesBridgeBuilder builder =
+          new DeclarativeConfigPropertiesBridgeBuilder();
+      builder.addOverride("splunk.snapshot.profiler.staging.capacity", value);
+
+      var properties = builder.buildFromInstrumentationConfig(null);
+
+      assertEquals(value, SnapshotProfilingConfiguration.getStagingCapacity(properties));
+    }
   }
 
   @Nested

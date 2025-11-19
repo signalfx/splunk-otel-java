@@ -22,8 +22,8 @@ import static java.util.logging.Level.WARNING;
 
 import com.google.auto.service.AutoService;
 import io.opentelemetry.javaagent.extension.AgentListener;
-import io.opentelemetry.opamp.client.internal.OpampClient;
-import io.opentelemetry.opamp.client.internal.OpampClientBuilder;
+import io.opentelemetry.opamp.client.OpampClient;
+import io.opentelemetry.opamp.client.OpampClientBuilder;
 import io.opentelemetry.opamp.client.internal.connectivity.http.OkHttpSender;
 import io.opentelemetry.opamp.client.internal.request.service.HttpRequestService;
 import io.opentelemetry.opamp.client.internal.response.MessageData;
@@ -58,20 +58,21 @@ public class OpampActivator implements AgentListener {
         serviceName,
         new OpampClient.Callbacks() {
           @Override
-          public void onConnect() {}
+          public void onConnect(OpampClient opampClient) {}
 
           @Override
-          public void onConnectFailed(@Nullable Throwable throwable) {
+          public void onConnectFailed(OpampClient opampClient, @Nullable Throwable throwable) {
             logger.log(WARNING, "Connection to OpAMP server failed", throwable);
           }
 
           @Override
-          public void onErrorResponse(ServerErrorResponse errorResponse) {
-            logger.log(WARNING, "OpAMP server returned error " + errorResponse);
+          public void onErrorResponse(
+              OpampClient opampClient, ServerErrorResponse serverErrorResponse) {
+            logger.log(WARNING, "OpAMP server returned error " + serverErrorResponse);
           }
 
           @Override
-          public void onMessage(MessageData messageData) {}
+          public void onMessage(OpampClient opampClient, MessageData messageData) {}
         });
   }
 

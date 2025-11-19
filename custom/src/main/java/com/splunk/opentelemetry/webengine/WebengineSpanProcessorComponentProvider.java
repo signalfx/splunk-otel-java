@@ -21,9 +21,8 @@ import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
 import io.opentelemetry.sdk.autoconfigure.spi.internal.ComponentProvider;
 import io.opentelemetry.sdk.trace.SpanProcessor;
 
-@SuppressWarnings("rawtypes")
 @AutoService(ComponentProvider.class)
-public class WebengineSpanProcessorComponentProvider implements ComponentProvider<SpanProcessor> {
+public class WebengineSpanProcessorComponentProvider implements ComponentProvider {
   static final String NAME = "web_engine";
 
   @Override

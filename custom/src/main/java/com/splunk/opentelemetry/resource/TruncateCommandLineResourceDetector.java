@@ -30,9 +30,8 @@ import io.opentelemetry.sdk.resources.Resource;
 import java.util.List;
 import java.util.logging.Logger;
 
-@SuppressWarnings("rawtypes")
 @AutoService(ComponentProvider.class)
-public class TruncateCommandLineResourceDetector implements ComponentProvider<Resource> {
+public class TruncateCommandLineResourceDetector implements ComponentProvider {
   private static final Logger logger =
       Logger.getLogger(TruncateCommandLineResourceDetector.class.getName());
 

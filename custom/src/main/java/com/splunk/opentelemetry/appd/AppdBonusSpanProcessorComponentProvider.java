@@ -22,9 +22,8 @@ import io.opentelemetry.sdk.autoconfigure.spi.internal.ComponentProvider;
 import io.opentelemetry.sdk.extension.incubator.trace.OnStartSpanProcessor;
 import io.opentelemetry.sdk.trace.SpanProcessor;
 
-@SuppressWarnings("rawtypes")
 @AutoService(ComponentProvider.class)
-public class AppdBonusSpanProcessorComponentProvider implements ComponentProvider<SpanProcessor> {
+public class AppdBonusSpanProcessorComponentProvider implements ComponentProvider {
   static final String NAME = "appd-bonus";
 
   @Override

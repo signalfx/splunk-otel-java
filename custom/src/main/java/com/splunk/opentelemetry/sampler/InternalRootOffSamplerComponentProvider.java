@@ -21,9 +21,8 @@ import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
 import io.opentelemetry.sdk.autoconfigure.spi.internal.ComponentProvider;
 import io.opentelemetry.sdk.trace.samplers.Sampler;
 
-@SuppressWarnings("rawtypes")
 @AutoService(ComponentProvider.class)
-public class InternalRootOffSamplerComponentProvider implements ComponentProvider<Sampler> {
+public class InternalRootOffSamplerComponentProvider implements ComponentProvider {
   @Override
   public String getName() {
     return "internal_root_off";

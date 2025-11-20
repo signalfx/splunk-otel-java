@@ -16,17 +16,11 @@
 
 package com.splunk.opentelemetry.profiler.snapshot;
 
-import com.google.auto.service.AutoService;
-import io.opentelemetry.sdk.autoconfigure.spi.AutoConfigurationCustomizer;
-import io.opentelemetry.sdk.autoconfigure.spi.AutoConfigurationCustomizerProvider;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import java.time.Duration;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.logging.Logger;
 
-@AutoService(AutoConfigurationCustomizerProvider.class)
-public class SnapshotProfilingConfiguration implements AutoConfigurationCustomizerProvider {
+public class SnapshotProfilingConfiguration {
   private static final Logger logger =
       Logger.getLogger(SnapshotProfilingConfiguration.class.getName());
 
@@ -41,26 +35,9 @@ public class SnapshotProfilingConfiguration implements AutoConfigurationCustomiz
   private static final double DEFAULT_SELECTION_PROBABILITY = 0.01;
   private static final double MAX_SELECTION_PROBABILITY = 0.10;
   private static final int DEFAULT_STACK_DEPTH = 1024;
-  private static final String DEFAULT_SAMPLING_INTERVAL_STRING = "10ms";
   private static final Duration DEFAULT_SAMPLING_INTERVAL = Duration.ofMillis(10);
-  private static final String DEFAULT_EXPORT_INTERVAL_STRING = "5s";
   private static final Duration DEFAULT_EXPORT_INTERVAL = Duration.ofSeconds(5);
   private static final int DEFAULT_STAGING_CAPACITY = 2000;
-
-  @Override
-  public void customize(AutoConfigurationCustomizer autoConfiguration) {
-    autoConfiguration.addPropertiesSupplier(
-        () -> {
-          Map<String, String> map = new HashMap<>();
-          map.put(CONFIG_KEY_ENABLE_SNAPSHOT_PROFILER, String.valueOf(false));
-          map.put(SELECTION_PROBABILITY_KEY, String.valueOf(DEFAULT_SELECTION_PROBABILITY));
-          map.put(STACK_DEPTH_KEY, String.valueOf(DEFAULT_STACK_DEPTH));
-          map.put(SAMPLING_INTERVAL_KEY, DEFAULT_SAMPLING_INTERVAL_STRING);
-          map.put(EXPORT_INTERVAL_KEY, DEFAULT_EXPORT_INTERVAL_STRING);
-          map.put(STAGING_CAPACITY_KEY, String.valueOf(DEFAULT_STAGING_CAPACITY));
-          return map;
-        });
-  }
 
   static void log(ConfigProperties properties) {
     logger.fine("Snapshot Profiler Configuration:");

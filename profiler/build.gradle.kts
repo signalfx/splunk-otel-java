@@ -27,6 +27,7 @@ dependencies {
   compileOnly("io.opentelemetry:opentelemetry-sdk-extension-incubator")
   compileOnly("io.opentelemetry.javaagent:opentelemetry-javaagent-extension-api")
   compileOnly("io.opentelemetry.instrumentation:opentelemetry-instrumentation-api")
+  compileOnly("io.opentelemetry.instrumentation:opentelemetry-declarative-config-bridge")
   compileOnly("io.opentelemetry.semconv:opentelemetry-semconv")
   // required to access InstrumentationHolder
   compileOnly("io.opentelemetry.javaagent:opentelemetry-javaagent-bootstrap")

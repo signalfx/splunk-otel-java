@@ -21,9 +21,8 @@ import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
 import io.opentelemetry.sdk.autoconfigure.spi.internal.ComponentProvider;
 import io.opentelemetry.sdk.trace.SpanProcessor;
 
-@SuppressWarnings("rawtypes")
 @AutoService(ComponentProvider.class)
-public class SdkShutdownHookComponentProvider implements ComponentProvider<SpanProcessor> {
+public class SdkShutdownHookComponentProvider implements ComponentProvider {
   public static final String NAME = "sdk_shutdown_hook";
 
   @Override

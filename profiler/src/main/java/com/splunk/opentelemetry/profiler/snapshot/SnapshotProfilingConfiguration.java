@@ -17,7 +17,6 @@
 package com.splunk.opentelemetry.profiler.snapshot;
 
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
-import io.opentelemetry.sdk.autoconfigure.spi.ConfigurationException;
 import java.time.Duration;
 import java.util.logging.Logger;
 
@@ -58,41 +57,30 @@ public class SnapshotProfilingConfiguration {
   }
 
   static double getSnapshotSelectionProbability(ConfigProperties properties) {
-    Double selectionProbability = null;
-
+    String selectionProbabilityPropertyValue =
+        properties.getString(
+            SELECTION_PROBABILITY_KEY, String.valueOf(DEFAULT_SELECTION_PROBABILITY));
     try {
-      selectionProbability = properties.getDouble(SELECTION_PROBABILITY_KEY);
-      if (selectionProbability == null) {
-        return DEFAULT_SELECTION_PROBABILITY;
-      }
-    } catch (ConfigurationException ex) {
-      String selectionProbabilityPropertyValue =
-          properties.getString(
-              SELECTION_PROBABILITY_KEY, String.valueOf(DEFAULT_SELECTION_PROBABILITY));
-      try {
-        selectionProbability = Double.valueOf(selectionProbabilityPropertyValue);
-      } catch (NumberFormatException e) {
+      double selectionProbability = Double.parseDouble(selectionProbabilityPropertyValue);
+      if (selectionProbability > MAX_SELECTION_PROBABILITY) {
         logger.warning(
-            "Invalid snapshot selection probability: '"
+            "Configured snapshot selection probability of '"
                 + selectionProbabilityPropertyValue
-                + "', using default probability of '"
-                + DEFAULT_SELECTION_PROBABILITY
+                + "' is higher than the maximum allowed probability. Using maximum allowed snapshot selection probability of '"
+                + MAX_SELECTION_PROBABILITY
                 + "'");
-        return DEFAULT_SELECTION_PROBABILITY;
+        return MAX_SELECTION_PROBABILITY;
       }
-    }
-
-    if (selectionProbability > MAX_SELECTION_PROBABILITY) {
+      return selectionProbability;
+    } catch (NumberFormatException e) {
       logger.warning(
-          "Configured snapshot selection probability of '"
-              + selectionProbability
-              + "' is higher than the maximum allowed probability. Using maximum allowed snapshot selection probability of '"
-              + MAX_SELECTION_PROBABILITY
+          "Invalid snapshot selection probability: '"
+              + selectionProbabilityPropertyValue
+              + "', using default probability of '"
+              + DEFAULT_SELECTION_PROBABILITY
               + "'");
-      return MAX_SELECTION_PROBABILITY;
+      return DEFAULT_SELECTION_PROBABILITY;
     }
-
-    return selectionProbability;
   }
 
   static int getStackDepth(ConfigProperties properties) {

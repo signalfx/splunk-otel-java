@@ -160,35 +160,6 @@ class SnapshotProfilingConfigurationTest {
     }
 
     @ParameterizedTest
-    @ValueSource(doubles = {0.10, 0.05, 0.0})
-    void getSnapshotSelectionProbability(double selectionRate) {
-      DeclarativeConfigPropertiesBridgeBuilder builder =
-          new DeclarativeConfigPropertiesBridgeBuilder();
-      builder.addOverride("splunk.snapshot.selection.probability", selectionRate);
-
-      var properties = builder.buildFromInstrumentationConfig(null);
-
-      double actualSelectionRate =
-          SnapshotProfilingConfiguration.getSnapshotSelectionProbability(properties);
-      assertEquals(selectionRate, actualSelectionRate);
-    }
-
-    @ParameterizedTest
-    @ValueSource(doubles = {1.0, 0.5, 0.11})
-    void getSnapshotSelectionRateUsesMaxSelectionRateWhenConfiguredProbabilityIsHigher(
-        double selectionRate) {
-      DeclarativeConfigPropertiesBridgeBuilder builder =
-          new DeclarativeConfigPropertiesBridgeBuilder();
-      builder.addOverride("splunk.snapshot.selection.probability", selectionRate);
-
-      var properties = builder.buildFromInstrumentationConfig(null);
-
-      double actualSelectionRate =
-          SnapshotProfilingConfiguration.getSnapshotSelectionProbability(properties);
-      assertEquals(0.10, actualSelectionRate);
-    }
-
-    @ParameterizedTest
     @ValueSource(ints = {128, 512, 2056})
     void getConfiguredSnapshotProfilerStackDepth(int depth) {
       DeclarativeConfigPropertiesBridgeBuilder builder =

@@ -19,7 +19,7 @@ package com.splunk.opentelemetry.opamp;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.opentelemetry.instrumentation.testing.internal.AutoCleanupExtension;
-import io.opentelemetry.opamp.client.internal.OpampClient;
+import io.opentelemetry.opamp.client.OpampClient;
 import io.opentelemetry.opamp.client.internal.response.MessageData;
 import io.opentelemetry.testing.internal.armeria.common.HttpResponse;
 import io.opentelemetry.testing.internal.armeria.common.HttpStatus;
@@ -85,21 +85,22 @@ class OpampActivatorTest {
             "test",
             new OpampClient.Callbacks() {
               @Override
-              public void onConnect() {}
+              public void onConnect(OpampClient opampClient) {}
 
               @Override
-              public void onConnectFailed(@Nullable Throwable throwable) {
+              public void onConnectFailed(OpampClient opampClient, @Nullable Throwable throwable) {
                 result.completeExceptionally(throwable);
               }
 
               @Override
-              public void onErrorResponse(ServerErrorResponse serverErrorResponse) {
+              public void onErrorResponse(
+                  OpampClient opampClient, ServerErrorResponse serverErrorResponse) {
                 result.completeExceptionally(
                     new IllegalStateException(serverErrorResponse.toString()));
               }
 
               @Override
-              public void onMessage(MessageData messageData) {
+              public void onMessage(OpampClient opampClient, MessageData messageData) {
                 result.complete(messageData);
               }
             });

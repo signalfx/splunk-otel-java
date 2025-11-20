@@ -21,7 +21,6 @@ import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
 import io.opentelemetry.context.propagation.TextMapPropagator;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigurationException;
 import io.opentelemetry.sdk.autoconfigure.spi.internal.ComponentProvider;
-import java.util.logging.Logger;
 
 @AutoService(ComponentProvider.class)
 public class SnapshotVolumePropagatorComponentProvider implements ComponentProvider {

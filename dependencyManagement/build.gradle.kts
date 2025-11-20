@@ -2,11 +2,11 @@ plugins {
   `java-platform`
 }
 
-val otelVersion = "1.55.0"
+val otelVersion = "1.56.0"
 val otelAlphaVersion = otelVersion.replaceFirst("(-SNAPSHOT)?$".toRegex(), "-alpha$1")
-val otelInstrumentationVersion = "2.21.0"
+val otelInstrumentationVersion = "2.22.0-SNAPSHOT"
 val otelInstrumentationAlphaVersion =  otelInstrumentationVersion.replaceFirst("(-SNAPSHOT)?$".toRegex(), "-alpha$1")
-val otelContribAlphaVersion = "1.49.0-alpha"
+val otelContribAlphaVersion = "1.51.0-alpha"
 
 val autoValueVersion = "1.11.1"
 val dockerJavaVersion = "3.7.0"
@@ -30,7 +30,7 @@ dependencies {
   // BOMs
   api(enforcedPlatform("com.fasterxml.jackson:jackson-bom:2.20.1"))
   api(enforcedPlatform("com.google.protobuf:protobuf-bom:$protobufVersion"))
-  api(enforcedPlatform("com.squareup.okhttp3:okhttp-bom:5.3.1"))
+  api(enforcedPlatform("com.squareup.okhttp3:okhttp-bom:5.3.2"))
   api(enforcedPlatform("io.grpc:grpc-bom:1.77.0"))
   api(enforcedPlatform("io.opentelemetry:opentelemetry-bom-alpha:$otelAlphaVersion"))
   api(enforcedPlatform("io.opentelemetry.instrumentation:opentelemetry-instrumentation-bom-alpha:$otelInstrumentationAlphaVersion"))

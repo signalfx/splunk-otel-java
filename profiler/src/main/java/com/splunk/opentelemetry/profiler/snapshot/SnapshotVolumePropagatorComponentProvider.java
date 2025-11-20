@@ -14,31 +14,35 @@
  * limitations under the License.
  */
 
-package com.splunk.opentelemetry.resource;
-
-import static com.splunk.opentelemetry.resource.SplunkDistroVersionResourceFactory.createResource;
+package com.splunk.opentelemetry.profiler.snapshot;
 
 import com.google.auto.service.AutoService;
 import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
+import io.opentelemetry.context.propagation.TextMapPropagator;
 import io.opentelemetry.sdk.autoconfigure.spi.internal.ComponentProvider;
-import io.opentelemetry.sdk.resources.Resource;
 
 @AutoService(ComponentProvider.class)
-public class SplunkDistroVersionResourceDetector implements ComponentProvider {
-  private static final Resource DISTRO_VERSION_RESOURCE = createResource();
+public class SnapshotVolumePropagatorComponentProvider implements ComponentProvider {
 
   @Override
-  public Class<Resource> getType() {
-    return Resource.class;
+  public Class<TextMapPropagator> getType() {
+    return TextMapPropagator.class;
   }
 
   @Override
   public String getName() {
-    return "splunk_distro_version";
+    return "splunk_snapshot_volume";
   }
 
   @Override
-  public Resource create(DeclarativeConfigProperties config) {
-    return DISTRO_VERSION_RESOURCE;
+  public TextMapPropagator create(DeclarativeConfigProperties propagatorProperties) {
+    double selectionProbability =
+        propagatorProperties.getDouble("snapshot_selection_probability", 0.01);
+    return new SnapshotVolumePropagator(selector(selectionProbability));
+  }
+
+  private SnapshotSelector selector(double selectionProbability) {
+    return new TraceIdBasedSnapshotSelector(selectionProbability)
+        .or(new ProbabilisticSnapshotSelector(selectionProbability));
   }
 }

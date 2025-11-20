@@ -55,7 +55,7 @@ class SnapshotVolumePropagatorComponentProviderTest {
   }
 
   @ParameterizedTest
-  @ValueSource(doubles = {0.000001, 0.01, 0.1})
+  @ValueSource(doubles = {0, 0.01, 0.1})
   void shouldCreatePropagatorWithProvidedValidSelectionProbability(double selectionProbability) {
     // given
     var yaml =
@@ -80,7 +80,7 @@ class SnapshotVolumePropagatorComponentProviderTest {
   }
 
   @ParameterizedTest
-  @ValueSource(doubles = {-1, 0, 0.100001, 100})
+  @ValueSource(doubles = {-1, -0.000001, 0.100001, 100})
   void shouldThrowExceptionWhenInvalidSelectionProbability(double selectionProbability) {
     // given
     var yaml =

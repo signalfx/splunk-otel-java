@@ -48,13 +48,13 @@ public class SnapshotVolumePropagatorComponentProvider implements ComponentProvi
   }
 
   private static void validateConfiguration(double selectionProbability) {
-    if ((selectionProbability <= 0) || (selectionProbability > MAX_SELECTION_PROBABILITY)) {
+    if ((selectionProbability < 0) || (selectionProbability > MAX_SELECTION_PROBABILITY)) {
       throw new ConfigurationException(
           "Invalid value of "
               + SELECTION_PROBABILITY_PROPERTY
               + " property: "
               + selectionProbability
-              + " - should be in range (0, "
+              + " - should be in range [0, "
               + MAX_SELECTION_PROBABILITY
               + "]");
     }

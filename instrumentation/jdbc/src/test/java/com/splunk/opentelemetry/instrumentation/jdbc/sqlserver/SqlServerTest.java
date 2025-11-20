@@ -16,7 +16,7 @@
 
 package com.splunk.opentelemetry.instrumentation.jdbc.sqlserver;
 
-import com.splunk.opentelemetry.instrumentation.jdbc.AbstractDbContextPropagationTest;
+import com.splunk.opentelemetry.instrumentation.jdbc.AbstractConnectionUsingDbContextPropagationTest;
 import io.opentelemetry.instrumentation.testing.junit.AgentInstrumentationExtension;
 import io.opentelemetry.instrumentation.testing.junit.InstrumentationExtension;
 import io.opentelemetry.javaagent.bootstrap.CallDepth;
@@ -34,24 +34,23 @@ import org.slf4j.LoggerFactory;
 import org.testcontainers.containers.output.Slf4jLogConsumer;
 import org.testcontainers.mssqlserver.MSSQLServerContainer;
 
-class SqlServerTest extends AbstractDbContextPropagationTest {
+class SqlServerTest extends AbstractConnectionUsingDbContextPropagationTest {
   private static final Logger logger = LoggerFactory.getLogger(SqlServerTest.class);
 
   @RegisterExtension
   static final AgentInstrumentationExtension testing = AgentInstrumentationExtension.create();
 
   private static final MSSQLServerContainer sqlServer =
-      new MSSQLServerContainer("mcr.microsoft.com/mssql/server:2022-latest").acceptLicense();
-
-  static {
-    sqlServer.withLogConsumer(new Slf4jLogConsumer(logger));
-  }
+      new MSSQLServerContainer("mcr.microsoft.com/mssql/server:2022-latest")
+          .acceptLicense()
+          .withLogConsumer(new Slf4jLogConsumer(logger));
 
   @BeforeAll
   static void setup() throws Exception {
     sqlServer.start();
     try (Connection connection =
-        DriverManager.getConnection(sqlServer.getJdbcUrl(), "sa", sqlServer.getPassword())) {
+        DriverManager.getConnection(
+            sqlServer.getJdbcUrl(), sqlServer.getUsername(), sqlServer.getPassword())) {
       try (Statement createTable = connection.createStatement()) {
         createTable.execute("CREATE TABLE test_table (value INT NOT NULL)");
       }
@@ -73,7 +72,8 @@ class SqlServerTest extends AbstractDbContextPropagationTest {
 
   @Override
   protected Connection newConnection() throws SQLException {
-    return DriverManager.getConnection(sqlServer.getJdbcUrl(), "sa", sqlServer.getPassword());
+    return DriverManager.getConnection(
+        sqlServer.getJdbcUrl(), sqlServer.getUsername(), sqlServer.getPassword());
   }
 
   @Override

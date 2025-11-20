@@ -54,7 +54,6 @@ class SnapshotVolumePropagatorComponentProviderTest {
     assertThat(propagator).isInstanceOf(SnapshotVolumePropagator.class);
   }
 
-
   @ParameterizedTest
   @ValueSource(doubles = {0.000001, 0.01, 0.1})
   void shouldCreatePropagatorWithProvidedValidSelectionProbability(double selectionProbability) {
@@ -80,7 +79,6 @@ class SnapshotVolumePropagatorComponentProviderTest {
     assertThat(propagator).isInstanceOf(SnapshotVolumePropagator.class);
   }
 
-
   @ParameterizedTest
   @ValueSource(doubles = {-1, 0, 0.100001, 100})
   void shouldThrowExceptionWhenInvalidSelectionProbability(double selectionProbability) {
@@ -92,7 +90,7 @@ class SnapshotVolumePropagatorComponentProviderTest {
               composite:
                 - splunk_snapshot_volume:
                     snapshot_selection_probability: %f
-        """
+            """
             .formatted(selectionProbability);
 
     var propagatorProperties = getPropagatorProperties(DeclarativeConfigTestUtil.parse(yaml));

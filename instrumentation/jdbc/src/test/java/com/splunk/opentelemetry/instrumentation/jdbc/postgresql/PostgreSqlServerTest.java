@@ -30,7 +30,6 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.RegisterExtension;
@@ -73,7 +72,6 @@ class PostgreSqlServerTest extends AbstractDbContextPropagationTest {
   }
 
   @BeforeEach
-  @AfterEach
   void cleanupTest() {
     executedSql.clear();
   }

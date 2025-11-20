@@ -17,12 +17,18 @@
 package com.splunk.opentelemetry.instrumentation.jdbc;
 
 import com.google.auto.service.AutoService;
+import io.opentelemetry.api.trace.propagation.W3CTraceContextPropagator;
+import io.opentelemetry.context.propagation.TextMapPropagator;
 import io.opentelemetry.instrumentation.api.incubator.semconv.db.internal.SqlCommenterBuilder;
 import io.opentelemetry.javaagent.bootstrap.internal.AgentInstrumentationConfig;
 import io.opentelemetry.javaagent.bootstrap.internal.sqlcommenter.SqlCommenterCustomizer;
 
 @AutoService(SqlCommenterCustomizer.class)
 public class SqlCommenterInitializer implements SqlCommenterCustomizer {
+  // propagates service.name and other static attribute
+  static TextMapPropagator defaultPropagator = TextMapPropagator.noop();
+  // propagates static attributes and traceparent
+  static TextMapPropagator traceContextPropagator = W3CTraceContextPropagator.getInstance();
 
   @Override
   public void customize(SqlCommenterBuilder sqlCommenterBuilder) {
@@ -34,12 +40,12 @@ public class SqlCommenterInitializer implements SqlCommenterCustomizer {
           // for postgres we add traceparent to comments, oracle and mssql use other means to
           // propagate context and other databases are currently unsupported
           if (connection.getClass().getName().startsWith("org.postgresql.jdbc")) {
-            return PropagatorInitializer.traceContextPropagator;
+            return traceContextPropagator;
           }
 
           // note that besides jdbc this applies to r2dbc and other data access apis that upstream
           // has sqlcommenter support for
-          return PropagatorInitializer.defaultPropagator;
+          return defaultPropagator;
         });
   }
 }

@@ -13,6 +13,7 @@ muzzle {
 
 dependencies {
   compileOnly("io.opentelemetry:opentelemetry-api")
+  compileOnly("io.opentelemetry.semconv:opentelemetry-semconv-incubating")
   compileOnly(project(":custom"))
 
   testInstrumentation("io.opentelemetry.javaagent.instrumentation:opentelemetry-javaagent-jdbc")

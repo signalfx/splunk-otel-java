@@ -16,59 +16,33 @@
 
 package com.splunk.opentelemetry.instrumentation.jdbc;
 
+import static com.splunk.opentelemetry.instrumentation.jdbc.SqlCommenterInitializer.defaultPropagator;
+import static com.splunk.opentelemetry.instrumentation.jdbc.SqlCommenterInitializer.traceContextPropagator;
 import static io.opentelemetry.sdk.autoconfigure.AutoConfigureUtil.getResource;
 import static io.opentelemetry.semconv.ServiceAttributes.SERVICE_NAME;
+import static io.opentelemetry.semconv.incubating.DeploymentIncubatingAttributes.DEPLOYMENT_ENVIRONMENT_NAME;
+import static io.opentelemetry.semconv.incubating.ServiceIncubatingAttributes.SERVICE_NAMESPACE;
 
 import com.google.auto.service.AutoService;
 import io.opentelemetry.api.trace.propagation.W3CTraceContextPropagator;
-import io.opentelemetry.context.Context;
-import io.opentelemetry.context.propagation.TextMapGetter;
 import io.opentelemetry.context.propagation.TextMapPropagator;
-import io.opentelemetry.context.propagation.TextMapSetter;
 import io.opentelemetry.javaagent.extension.AgentListener;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 import io.opentelemetry.sdk.resources.Resource;
-import java.util.Collection;
-import java.util.Collections;
 
 @AutoService(AgentListener.class)
 public class PropagatorInitializer implements AgentListener {
-  // propagates service.name attribute
-  static TextMapPropagator defaultPropagator = TextMapPropagator.noop();
-  // propagates service.name attribute and traceparent
-  static TextMapPropagator traceContextPropagator = W3CTraceContextPropagator.getInstance();
 
   @Override
   public void afterAgent(AutoConfiguredOpenTelemetrySdk sdk) {
     Resource resource = getResource(sdk);
     String serviceName = resource.getAttribute(SERVICE_NAME);
-    if (!"unknown_service:java".equals(serviceName)) {
-      defaultPropagator = new ServiceAttributePropagator(serviceName);
-      traceContextPropagator =
-          TextMapPropagator.composite(defaultPropagator, traceContextPropagator);
-    }
-  }
+    String serviceNamespace = resource.getAttribute(SERVICE_NAMESPACE);
+    String deploymentEnvironment = resource.getAttribute(DEPLOYMENT_ENVIRONMENT_NAME);
 
-  private static class ServiceAttributePropagator implements TextMapPropagator {
-    private final String serviceName;
-
-    ServiceAttributePropagator(String serviceName) {
-      this.serviceName = serviceName;
-    }
-
-    @Override
-    public <C> void inject(Context context, C carrier, TextMapSetter<C> setter) {
-      setter.set(carrier, SERVICE_NAME.getKey(), serviceName);
-    }
-
-    @Override
-    public <C> Context extract(Context context, C carrier, TextMapGetter<C> getter) {
-      return context;
-    }
-
-    @Override
-    public Collection<String> fields() {
-      return Collections.emptyList();
-    }
+    defaultPropagator =
+        new ServiceAttributePropagator(serviceName, serviceNamespace, deploymentEnvironment);
+    traceContextPropagator =
+        TextMapPropagator.composite(defaultPropagator, W3CTraceContextPropagator.getInstance());
   }
 }

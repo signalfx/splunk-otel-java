@@ -16,7 +16,7 @@
 
 package com.splunk.opentelemetry.instrumentation.jdbc.oracle;
 
-import com.splunk.opentelemetry.instrumentation.jdbc.AbstractDbContextPropagationTest;
+import com.splunk.opentelemetry.instrumentation.jdbc.AbstractConnectionUsingDbContextPropagationTest;
 import io.opentelemetry.instrumentation.testing.junit.AgentInstrumentationExtension;
 import io.opentelemetry.instrumentation.testing.junit.InstrumentationExtension;
 import java.sql.Connection;
@@ -31,18 +31,15 @@ import org.slf4j.LoggerFactory;
 import org.testcontainers.containers.output.Slf4jLogConsumer;
 import org.testcontainers.oracle.OracleContainer;
 
-class OracleTest extends AbstractDbContextPropagationTest {
+class OracleTest extends AbstractConnectionUsingDbContextPropagationTest {
   private static final Logger logger = LoggerFactory.getLogger(OracleTest.class);
 
   @RegisterExtension
   static final AgentInstrumentationExtension testing = AgentInstrumentationExtension.create();
 
   private static final OracleContainer oracle =
-      new OracleContainer("gvenzl/oracle-free:slim-faststart");
-
-  static {
-    oracle.withLogConsumer(new Slf4jLogConsumer(logger));
-  }
+      new OracleContainer("gvenzl/oracle-free:slim-faststart")
+          .withLogConsumer(new Slf4jLogConsumer(logger));
 
   @BeforeAll
   static void setup() throws Exception {

@@ -25,9 +25,6 @@ import java.util.logging.Logger;
 
 @AutoService(ComponentProvider.class)
 public class SnapshotVolumePropagatorComponentProvider implements ComponentProvider {
-  private static final Logger logger =
-      Logger.getLogger(SnapshotVolumePropagatorComponentProvider.class.getName());
-
   private static final double MAX_SELECTION_PROBABILITY = 0.1;
   private static final String SELECTION_PROBABILITY_PROPERTY = "snapshot_selection_probability";
 

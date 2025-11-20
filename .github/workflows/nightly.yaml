@@ -9,7 +9,7 @@ jobs:
   check-links:
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v5.0.1
+      - uses: actions/checkout@v6.0.0
 
       - name: Check all links in *.md files
         id: lychee
@@ -24,7 +24,7 @@ jobs:
   build:
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v5.0.1
+      - uses: actions/checkout@v6.0.0
 
       - name: Set up JDK 17 for running Gradle
         uses: actions/setup-java@v5.0.0
@@ -51,7 +51,7 @@ jobs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
       - name: Check out repository
-        uses: actions/checkout@v5.0.1
+        uses: actions/checkout@v6.0.0
 
       - name: Set up JDK 17 for running Gradle
         uses: actions/setup-java@v5.0.0
@@ -76,7 +76,7 @@ jobs:
       fail-fast: false
     steps:
       - name: Check out repository
-        uses: actions/checkout@v5.0.1
+        uses: actions/checkout@v6.0.0
 
       - name: Set up JDK 17 for running Gradle
         uses: actions/setup-java@v5.0.0
@@ -114,7 +114,7 @@ jobs:
             suite: profiler
       fail-fast: false
     steps:
-      - uses: actions/checkout@v5.0.1
+      - uses: actions/checkout@v6.0.0
 
       - name: Free disk space
         run: .github/scripts/gha-free-disk-space.sh
@@ -162,7 +162,7 @@ jobs:
       # You can get conclusion by env (env.WORKFLOW_CONCLUSION)
       - uses: technote-space/workflow-conclusion-action@v3.0.3
 
-      - uses: actions/checkout@v5.0.1
+      - uses: actions/checkout@v6.0.0
 
       - name: Create issue
         if: env.WORKFLOW_CONCLUSION == 'failure' # notify only if failure
@@ -185,7 +185,7 @@ jobs:
   shellcheck:
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v5.0.1
+      - uses: actions/checkout@v6.0.0
 
       - name: Install shell check
         run: wget -qO- "https://github.com/koalaman/shellcheck/releases/download/v0.8.0/shellcheck-v0.8.0.linux.x86_64.tar.xz" | tar -xJv

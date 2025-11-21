@@ -37,7 +37,10 @@ public class SnapshotProfilingSdkCustomizer implements AutoConfigurationCustomiz
   private final ContextStorageWrapper contextStorageWrapper;
 
   public SnapshotProfilingSdkCustomizer() {
-    this(new TraceRegistry(), stackTraceSamplerProvider(), new ContextStorageWrapper());
+    this(
+        TraceRegistryHolder.getTraceRegistry(),
+        stackTraceSamplerProvider(),
+        new ContextStorageWrapper());
   }
 
   private static Function<ConfigProperties, StackTraceSampler> stackTraceSamplerProvider() {

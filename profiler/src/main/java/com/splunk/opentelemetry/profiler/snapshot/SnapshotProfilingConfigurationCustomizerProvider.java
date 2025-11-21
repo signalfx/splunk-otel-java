@@ -30,7 +30,6 @@ import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.Tracer
 import java.time.Duration;
 import java.util.function.Function;
 
-/** This class combines declarative config compatible port of: - SnapshotProfilingSdkCustomizer */
 @AutoService(DeclarativeConfigurationCustomizerProvider.class)
 public class SnapshotProfilingConfigurationCustomizerProvider
     implements DeclarativeConfigurationCustomizerProvider {
@@ -39,7 +38,10 @@ public class SnapshotProfilingConfigurationCustomizerProvider
   private final ContextStorageWrapper contextStorageWrapper;
 
   public SnapshotProfilingConfigurationCustomizerProvider() {
-    this(new TraceRegistry(), stackTraceSamplerProvider(), new ContextStorageWrapper());
+    this(
+        TraceRegistryHolder.getTraceRegistry(),
+        stackTraceSamplerProvider(),
+        new ContextStorageWrapper());
   }
 
   public void customize(DeclarativeConfigurationCustomizer configurationCustomizer) {

@@ -42,7 +42,7 @@ class JfrActivatorTest {
       // given
       String yaml =
           toYamlString(
-              "file_format: \"1.0-rc.1\"",
+              "file_format: \"1.0-rc.2\"",
               "instrumentation/development:",
               "  java:",
               "    splunk:",
@@ -72,7 +72,7 @@ class JfrActivatorTest {
       // given
       String yaml =
           toYamlString(
-              "file_format: \"1.0-rc.1\"",
+              "file_format: \"1.0-rc.2\"",
               "instrumentation/development:",
               "  java:",
               "    splunk:",
@@ -101,7 +101,7 @@ class JfrActivatorTest {
 
       // given
       String yaml =
-          toYamlString("file_format: \"1.0-rc.1\"", "instrumentation/development:", "  java:");
+          toYamlString("file_format: \"1.0-rc.2\"", "instrumentation/development:", "  java:");
       AutoConfiguredOpenTelemetrySdk sdk = createAutoConfiguredSdk(yaml, tempDir);
 
       var jfrMock = mock(JFR.class);

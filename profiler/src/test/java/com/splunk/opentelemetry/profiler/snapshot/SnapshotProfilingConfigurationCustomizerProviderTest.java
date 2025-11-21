@@ -38,7 +38,7 @@ class SnapshotProfilingConfigurationCustomizerProviderTest {
   void shouldDoNothingIfProfilerIsNotEnabled(@TempDir Path tempDir) throws IOException {
     // given
     String yaml =
-        toYamlString("file_format: \"1.0-rc.1\"", "instrumentation/development:", "  java:");
+        toYamlString("file_format: \"1.0-rc.2\"", "instrumentation/development:", "  java:");
 
     // when
     OpenTelemetryConfigurationModel model = getCustomizedModel(yaml);
@@ -53,7 +53,7 @@ class SnapshotProfilingConfigurationCustomizerProviderTest {
     // given
     String yaml =
         toYamlString(
-            "file_format: \"1.0-rc.1\"",
+            "file_format: \"1.0-rc.2\"",
             "instrumentation/development:",
             "  java:",
             "    splunk:",
@@ -78,7 +78,7 @@ class SnapshotProfilingConfigurationCustomizerProviderTest {
     // given
     OpenTelemetryConfigurationModel model =
         DeclarativeConfigTestUtil.parse(
-            "file_format: \"1.0-rc.1\"",
+            "file_format: \"1.0-rc.2\"",
             "instrumentation/development:",
             "  java:",
             "    splunk:",

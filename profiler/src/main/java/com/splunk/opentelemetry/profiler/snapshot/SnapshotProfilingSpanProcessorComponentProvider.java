@@ -21,10 +21,8 @@ import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
 import io.opentelemetry.sdk.autoconfigure.spi.internal.ComponentProvider;
 import io.opentelemetry.sdk.trace.SpanProcessor;
 
-@SuppressWarnings("rawtypes")
 @AutoService(ComponentProvider.class)
-public class SnapshotProfilingSpanProcessorComponentProvider
-    implements ComponentProvider<SpanProcessor> {
+public class SnapshotProfilingSpanProcessorComponentProvider implements ComponentProvider {
   private final TraceRegistry traceRegistry;
 
   public SnapshotProfilingSpanProcessorComponentProvider() {

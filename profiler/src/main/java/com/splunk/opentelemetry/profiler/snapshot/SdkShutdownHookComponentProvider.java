@@ -14,31 +14,29 @@
  * limitations under the License.
  */
 
-package com.splunk.opentelemetry.resource;
-
-import static com.splunk.opentelemetry.resource.SplunkDistroVersionResourceFactory.createResource;
+package com.splunk.opentelemetry.profiler.snapshot;
 
 import com.google.auto.service.AutoService;
 import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
 import io.opentelemetry.sdk.autoconfigure.spi.internal.ComponentProvider;
-import io.opentelemetry.sdk.resources.Resource;
+import io.opentelemetry.sdk.trace.SpanProcessor;
 
 @AutoService(ComponentProvider.class)
-public class SplunkDistroVersionResourceDetector implements ComponentProvider {
-  private static final Resource DISTRO_VERSION_RESOURCE = createResource();
+public class SdkShutdownHookComponentProvider implements ComponentProvider {
+  public static final String NAME = "sdk_shutdown_hook";
 
   @Override
-  public Class<Resource> getType() {
-    return Resource.class;
+  public Class<SpanProcessor> getType() {
+    return SpanProcessor.class;
   }
 
   @Override
   public String getName() {
-    return "splunk_distro_version";
+    return NAME;
   }
 
   @Override
-  public Resource create(DeclarativeConfigProperties config) {
-    return DISTRO_VERSION_RESOURCE;
+  public SpanProcessor create(DeclarativeConfigProperties config) {
+    return new SdkShutdownHook();
   }
 }

@@ -18,8 +18,6 @@ package io.opentelemetry.sdk.autoconfigure;
 
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import io.opentelemetry.sdk.resources.Resource;
-import java.lang.reflect.Field;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -43,53 +41,6 @@ public final class AutoConfigureUtil {
   }
 
   public static Resource getResource(AutoConfiguredOpenTelemetrySdk sdk) {
-    Resource resource = sdk.getResource();
-
-    if (resource.equals(Resource.getDefault())) {
-      resource = extractResource(sdk);
-    }
-
-    return resource;
-  }
-
-  // This is a workaround for the issue with resource not being correctly initialized.
-  // Currently, AutoConfiguredOpenTelemetrySdk gets a default Resource when created, but providers
-  // that were created based on the model get correctly configured instance of the Resource.
-  // See: https://github.com/open-telemetry/opentelemetry-java/pull/7639 for potential fix of the
-  // issue.
-  // TODO: This method should be removed once the fix (or similar) is merged in the upstream and
-  //       released.
-  private static Resource extractResource(AutoConfiguredOpenTelemetrySdk sdk) {
-    Resource resource =
-        extractResourceFromProvider(sdk.getOpenTelemetrySdk().getSdkTracerProvider());
-    if (resource == null || resource.equals(Resource.getDefault())) {
-      resource = extractResourceFromProvider(sdk.getOpenTelemetrySdk().getSdkMeterProvider());
-    }
-    if (resource == null || resource.equals(Resource.getDefault())) {
-      resource = extractResourceFromProvider(sdk.getOpenTelemetrySdk().getSdkLoggerProvider());
-    }
-    if (resource == null) {
-      resource = Resource.getDefault();
-    }
-
-    return resource;
-  }
-
-  private static Resource extractResourceFromProvider(Object provider) {
-    try {
-      Field sharedStateField = provider.getClass().getDeclaredField("sharedState");
-      sharedStateField.setAccessible(true);
-      Object sharedState = sharedStateField.get(provider);
-
-      Field resourceField = sharedState.getClass().getDeclaredField("resource");
-      resourceField.setAccessible(true);
-      return (Resource) resourceField.get(sharedState);
-    } catch (Exception e) {
-      logger.log(
-          Level.SEVERE,
-          "Could not extract resource from provider: " + provider.getClass().getName(),
-          e);
-      return null;
-    }
+    return sdk.getResource();
   }
 }

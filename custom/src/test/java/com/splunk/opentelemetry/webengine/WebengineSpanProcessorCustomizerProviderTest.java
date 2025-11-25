@@ -28,7 +28,7 @@ class WebengineSpanProcessorCustomizerProviderTest {
   void shouldAddWebengineSpanProcessor() {
     String yaml =
         """
-            file_format: "1.0-rc.1"
+            file_format: "1.0-rc.2"
             tracer_provider:
               processors:
                 - simple:

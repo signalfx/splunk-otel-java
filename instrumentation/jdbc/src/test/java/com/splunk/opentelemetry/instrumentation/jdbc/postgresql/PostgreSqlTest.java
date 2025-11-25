@@ -19,12 +19,14 @@ package com.splunk.opentelemetry.instrumentation.jdbc.postgresql;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 
-import com.splunk.opentelemetry.instrumentation.jdbc.AbstractDbContextPropagationTest;
+import com.splunk.opentelemetry.instrumentation.jdbc.AbstractConnectionUsingDbContextPropagationTest;
 import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.instrumentation.testing.junit.AgentInstrumentationExtension;
 import io.opentelemetry.instrumentation.testing.junit.InstrumentationExtension;
+import io.opentelemetry.javaagent.bootstrap.CallDepth;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
@@ -38,8 +40,8 @@ import org.slf4j.LoggerFactory;
 import org.testcontainers.containers.output.Slf4jLogConsumer;
 import org.testcontainers.postgresql.PostgreSQLContainer;
 
-class PostgreSqlServerTest extends AbstractDbContextPropagationTest {
-  private static final Logger logger = LoggerFactory.getLogger(PostgreSqlServerTest.class);
+class PostgreSqlTest extends AbstractConnectionUsingDbContextPropagationTest {
+  private static final Logger logger = LoggerFactory.getLogger(PostgreSqlTest.class);
 
   @RegisterExtension
   static final AgentInstrumentationExtension testing = AgentInstrumentationExtension.create();
@@ -107,14 +109,31 @@ class PostgreSqlServerTest extends AbstractDbContextPropagationTest {
   }
 
   @Override
-  protected void assertBeforeQuery(Connection connection) {}
+  protected String getTraceparent(Connection connection) throws SQLException {
+    CallDepth callDepthSplunk = CallDepth.forClass(PostgreSqlContextPropagator.class);
+    CallDepth callDepthJdbc = CallDepth.forClass(Statement.class);
+    // disable instrumentation, so we could read the current value
+    callDepthSplunk.getAndIncrement();
+    // disable jdbc instrumentation, so it wouldn't create a span for the statement execution
+    callDepthJdbc.getAndIncrement();
+    try (Statement statement = connection.createStatement()) {
+      statement.execute("SELECT CURRENT_SETTING('application_name')");
+      try (ResultSet resultSet = statement.getResultSet()) {
+        resultSet.next();
+        return resultSet.getString(1);
+      }
+    } finally {
+      callDepthJdbc.decrementAndGet();
+      callDepthSplunk.decrementAndGet();
+    }
+  }
 
   @Override
-  protected void assertAfterQuery(Connection connection, SpanContext parent, SpanContext jdbc) {
-    String expectedComment =
-        String.format(
-            "/*service.name='test-service', traceparent='00-%s-%s-01'",
-            parent.getTraceId(), parent.getSpanId());
+  protected void assertAfterQuery(Connection connection, SpanContext parent, SpanContext jdbc)
+      throws Exception {
+    super.assertAfterQuery(connection, parent, jdbc);
+
+    String expectedComment = "/*service.name='test-service'";
     await()
         .untilAsserted(
             () -> assertThat(executedSql).anyMatch(sql -> sql.contains(expectedComment)));

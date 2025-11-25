@@ -16,16 +16,13 @@
 
 package com.splunk.opentelemetry.instrumentation.jdbc;
 
-import static com.splunk.opentelemetry.instrumentation.jdbc.SqlCommenterInitializer.defaultPropagator;
-import static com.splunk.opentelemetry.instrumentation.jdbc.SqlCommenterInitializer.traceContextPropagator;
+import static com.splunk.opentelemetry.instrumentation.jdbc.SqlCommenterInitializer.propagator;
 import static io.opentelemetry.sdk.autoconfigure.AutoConfigureUtil.getResource;
 import static io.opentelemetry.semconv.ServiceAttributes.SERVICE_NAME;
 import static io.opentelemetry.semconv.incubating.DeploymentIncubatingAttributes.DEPLOYMENT_ENVIRONMENT_NAME;
 import static io.opentelemetry.semconv.incubating.ServiceIncubatingAttributes.SERVICE_NAMESPACE;
 
 import com.google.auto.service.AutoService;
-import io.opentelemetry.api.trace.propagation.W3CTraceContextPropagator;
-import io.opentelemetry.context.propagation.TextMapPropagator;
 import io.opentelemetry.javaagent.extension.AgentListener;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 import io.opentelemetry.sdk.resources.Resource;
@@ -40,9 +37,7 @@ public class PropagatorInitializer implements AgentListener {
     String serviceNamespace = resource.getAttribute(SERVICE_NAMESPACE);
     String deploymentEnvironment = resource.getAttribute(DEPLOYMENT_ENVIRONMENT_NAME);
 
-    defaultPropagator =
+    propagator =
         new ServiceAttributePropagator(serviceName, serviceNamespace, deploymentEnvironment);
-    traceContextPropagator =
-        TextMapPropagator.composite(defaultPropagator, W3CTraceContextPropagator.getInstance());
   }
 }

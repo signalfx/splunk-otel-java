@@ -16,7 +16,6 @@
 
 package com.splunk.opentelemetry.instrumentation.jdbc;
 
-import static com.splunk.opentelemetry.instrumentation.jdbc.SqlCommenterInitializer.propagator;
 import static io.opentelemetry.sdk.autoconfigure.AutoConfigureUtil.getResource;
 import static io.opentelemetry.semconv.ServiceAttributes.SERVICE_NAME;
 import static io.opentelemetry.semconv.incubating.DeploymentIncubatingAttributes.DEPLOYMENT_ENVIRONMENT_NAME;
@@ -37,7 +36,7 @@ public class PropagatorInitializer implements AgentListener {
     String serviceNamespace = resource.getAttribute(SERVICE_NAMESPACE);
     String deploymentEnvironment = resource.getAttribute(DEPLOYMENT_ENVIRONMENT_NAME);
 
-    propagator =
+    SqlCommenterInitializer.propagator =
         new ServiceAttributePropagator(serviceName, serviceNamespace, deploymentEnvironment);
   }
 }

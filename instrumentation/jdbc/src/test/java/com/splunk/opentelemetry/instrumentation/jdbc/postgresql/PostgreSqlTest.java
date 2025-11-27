@@ -14,43 +14,51 @@
  * limitations under the License.
  */
 
-package com.splunk.opentelemetry.instrumentation.jdbc.sqlserver;
+package com.splunk.opentelemetry.instrumentation.jdbc.postgresql;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 
 import com.splunk.opentelemetry.instrumentation.jdbc.AbstractConnectionUsingDbContextPropagationTest;
+import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.instrumentation.testing.junit.AgentInstrumentationExtension;
 import io.opentelemetry.instrumentation.testing.junit.InstrumentationExtension;
 import io.opentelemetry.javaagent.bootstrap.CallDepth;
-import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testcontainers.containers.output.Slf4jLogConsumer;
-import org.testcontainers.mssqlserver.MSSQLServerContainer;
+import org.testcontainers.postgresql.PostgreSQLContainer;
 
-class SqlServerTest extends AbstractConnectionUsingDbContextPropagationTest {
-  private static final Logger logger = LoggerFactory.getLogger(SqlServerTest.class);
+class PostgreSqlTest extends AbstractConnectionUsingDbContextPropagationTest {
+  private static final Logger logger = LoggerFactory.getLogger(PostgreSqlTest.class);
 
   @RegisterExtension
   static final AgentInstrumentationExtension testing = AgentInstrumentationExtension.create();
 
-  private static final MSSQLServerContainer sqlServer =
-      new MSSQLServerContainer("mcr.microsoft.com/mssql/server:2022-latest")
-          .acceptLicense()
+  private static final PostgreSQLContainer postgres =
+      new PostgreSQLContainer("postgres:9.6.8")
+          .withCommand("postgres -c log_statement=all")
+          .withLogConsumer(outputFrame -> captureLog(outputFrame.getUtf8String()))
           .withLogConsumer(new Slf4jLogConsumer(logger));
+  private static final List<String> executedSql = new ArrayList<>();
 
   @BeforeAll
   static void setup() throws Exception {
-    sqlServer.start();
+    postgres.start();
     try (Connection connection =
         DriverManager.getConnection(
-            sqlServer.getJdbcUrl(), sqlServer.getUsername(), sqlServer.getPassword())) {
+            postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword())) {
       try (Statement createTable = connection.createStatement()) {
         createTable.execute("CREATE TABLE test_table (value INT NOT NULL)");
       }
@@ -62,7 +70,21 @@ class SqlServerTest extends AbstractConnectionUsingDbContextPropagationTest {
 
   @AfterAll
   static void cleanup() {
-    sqlServer.stop();
+    postgres.stop();
+  }
+
+  @BeforeEach
+  void cleanupTest() {
+    executedSql.clear();
+  }
+
+  private static void captureLog(String log) {
+    String prefix = "LOG:  execute <unnamed>: ";
+    if (!log.startsWith(prefix)) {
+      return;
+    }
+    String sql = log.substring(prefix.length()).trim();
+    executedSql.add(sql);
   }
 
   @Override
@@ -71,25 +93,34 @@ class SqlServerTest extends AbstractConnectionUsingDbContextPropagationTest {
   }
 
   @Override
+  protected boolean supportsColumnIndexes() {
+    return false;
+  }
+
+  @Override
+  protected boolean supportsLarge() {
+    return Boolean.getBoolean("testLatestDeps");
+  }
+
+  @Override
   protected Connection newConnection() throws SQLException {
     return DriverManager.getConnection(
-        sqlServer.getJdbcUrl(), sqlServer.getUsername(), sqlServer.getPassword());
+        postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword());
   }
 
   @Override
   protected String getTraceparent(Connection connection) throws SQLException {
-    CallDepth callDepthSplunk = CallDepth.forClass(SqlServerContextPropagator.class);
+    CallDepth callDepthSplunk = CallDepth.forClass(PostgreSqlContextPropagator.class);
     CallDepth callDepthJdbc = CallDepth.forClass(Statement.class);
     // disable instrumentation, so we could read the current value
     callDepthSplunk.getAndIncrement();
     // disable jdbc instrumentation, so it wouldn't create a span for the statement execution
     callDepthJdbc.getAndIncrement();
     try (Statement statement = connection.createStatement()) {
-      statement.execute("SELECT CONTEXT_INFO()");
+      statement.execute("SELECT CURRENT_SETTING('application_name')");
       try (ResultSet resultSet = statement.getResultSet()) {
         resultSet.next();
-        byte[] bytes = resultSet.getBytes(1);
-        return bytes == null ? null : toString(bytes);
+        return resultSet.getString(1);
       }
     } finally {
       callDepthJdbc.decrementAndGet();
@@ -97,13 +128,14 @@ class SqlServerTest extends AbstractConnectionUsingDbContextPropagationTest {
     }
   }
 
-  private static String toString(byte[] bytes) {
-    // CONTEXT_INFO() returns a 128 byte array that is padded with zeroes
-    for (int i = 0; i < bytes.length; i++) {
-      if (bytes[i] == 0) {
-        return new String(bytes, 0, i, StandardCharsets.UTF_8);
-      }
-    }
-    return new String(bytes, StandardCharsets.UTF_8);
+  @Override
+  protected void assertAfterQuery(Connection connection, SpanContext parent, SpanContext jdbc)
+      throws Exception {
+    super.assertAfterQuery(connection, parent, jdbc);
+
+    String expectedComment = "/*service.name='test-service'";
+    await()
+        .untilAsserted(
+            () -> assertThat(executedSql).anyMatch(sql -> sql.contains(expectedComment)));
   }
 }

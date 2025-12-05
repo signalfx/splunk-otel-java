@@ -31,9 +31,9 @@ import java.util.HashMap;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 
-class ConfigurationTest {
+class ProfilerEnvVarsConfigurationTest {
   private static final ComponentLoader COMPONENT_LOADER =
-      ComponentLoader.forClassLoader(ConfigurationTest.class.getClassLoader());
+      ComponentLoader.forClassLoader(ProfilerEnvVarsConfigurationTest.class.getClassLoader());
 
   String logsEndpoint = "http://logs.example.com";
   String otelEndpoint = "http://otel.example.com";
@@ -43,10 +43,12 @@ class ConfigurationTest {
   void getIngestUrl_endpointDefined() {
     // given
     ConfigProperties config = mock(ConfigProperties.class);
-    when(config.getString(Configuration.CONFIG_KEY_INGEST_URL)).thenReturn(logsEndpoint);
+    ProfilerEnvVarsConfiguration profilerConfiguration = new ProfilerEnvVarsConfiguration(config);
+    when(config.getString(ProfilerEnvVarsConfiguration.CONFIG_KEY_INGEST_URL))
+        .thenReturn(logsEndpoint);
 
     // when
-    String result = Configuration.getIngestUrl(config);
+    String result = profilerConfiguration.getIngestUrl();
 
     // then
     assertThat(result).isEqualTo(logsEndpoint);
@@ -56,14 +58,16 @@ class ConfigurationTest {
   void getIngestUrl_endpointNotDefined_usedOtelGrpc() {
     // given
     ConfigProperties config = mock(ConfigProperties.class);
-    when(config.getString(Configuration.CONFIG_KEY_INGEST_URL)).thenReturn(null);
-    when(config.getString(eq(Configuration.CONFIG_KEY_OTEL_OTLP_URL), anyString()))
+    ProfilerEnvVarsConfiguration profilerConfiguration = new ProfilerEnvVarsConfiguration(config);
+    when(config.getString(ProfilerEnvVarsConfiguration.CONFIG_KEY_INGEST_URL)).thenReturn(null);
+    when(config.getString(eq(ProfilerEnvVarsConfiguration.CONFIG_KEY_OTEL_OTLP_URL), anyString()))
         .thenReturn(otelEndpoint);
-    when(config.getString(eq(Configuration.CONFIG_KEY_PROFILER_OTLP_PROTOCOL), any()))
+    when(config.getString(
+            eq(ProfilerEnvVarsConfiguration.CONFIG_KEY_PROFILER_OTLP_PROTOCOL), any()))
         .thenReturn("grpc");
 
     // when
-    String result = Configuration.getIngestUrl(config);
+    String result = profilerConfiguration.getIngestUrl();
 
     // then
     assertThat(result).isEqualTo(otelEndpoint);
@@ -73,14 +77,16 @@ class ConfigurationTest {
   void getIngestUrl_endpointNotDefined_usedOtelHttpProtobuf() {
     // given
     ConfigProperties config = mock(ConfigProperties.class);
-    when(config.getString(Configuration.CONFIG_KEY_INGEST_URL)).thenReturn(null);
-    when(config.getString(eq(Configuration.CONFIG_KEY_OTEL_OTLP_URL), anyString()))
+    ProfilerEnvVarsConfiguration profilerConfiguration = new ProfilerEnvVarsConfiguration(config);
+    when(config.getString(ProfilerEnvVarsConfiguration.CONFIG_KEY_INGEST_URL)).thenReturn(null);
+    when(config.getString(eq(ProfilerEnvVarsConfiguration.CONFIG_KEY_OTEL_OTLP_URL), anyString()))
         .thenReturn(otelEndpoint);
-    when(config.getString(eq(Configuration.CONFIG_KEY_PROFILER_OTLP_PROTOCOL), any()))
+    when(config.getString(
+            eq(ProfilerEnvVarsConfiguration.CONFIG_KEY_PROFILER_OTLP_PROTOCOL), any()))
         .thenReturn("http/protobuf");
 
     // when
-    String result = Configuration.getIngestUrl(config);
+    String result = profilerConfiguration.getIngestUrl();
 
     // then
     assertThat(result).isEqualTo(otelEndpoint + "/v1/logs");
@@ -92,14 +98,16 @@ class ConfigurationTest {
     String endpoint = otelEndpoint + "/v1/logs";
 
     ConfigProperties config = mock(ConfigProperties.class);
-    when(config.getString(Configuration.CONFIG_KEY_INGEST_URL)).thenReturn(null);
-    when(config.getString(eq(Configuration.CONFIG_KEY_OTEL_OTLP_URL), anyString()))
+    ProfilerEnvVarsConfiguration profilerConfiguration = new ProfilerEnvVarsConfiguration(config);
+    when(config.getString(ProfilerEnvVarsConfiguration.CONFIG_KEY_INGEST_URL)).thenReturn(null);
+    when(config.getString(eq(ProfilerEnvVarsConfiguration.CONFIG_KEY_OTEL_OTLP_URL), anyString()))
         .thenReturn(endpoint);
-    when(config.getString(eq(Configuration.CONFIG_KEY_PROFILER_OTLP_PROTOCOL), any()))
+    when(config.getString(
+            eq(ProfilerEnvVarsConfiguration.CONFIG_KEY_PROFILER_OTLP_PROTOCOL), any()))
         .thenReturn("http/protobuf");
 
     // when
-    String result = Configuration.getIngestUrl(config);
+    String result = profilerConfiguration.getIngestUrl();
 
     // then
     assertThat(result).isEqualTo(endpoint);
@@ -109,14 +117,16 @@ class ConfigurationTest {
   void getIngestUrlSplunkRealm() {
     // given
     ConfigProperties config = mock(ConfigProperties.class);
-    when(config.getString(Configuration.CONFIG_KEY_INGEST_URL)).thenReturn(null);
-    when(config.getString(eq(Configuration.CONFIG_KEY_OTEL_OTLP_URL), anyString()))
+    ProfilerEnvVarsConfiguration profilerConfiguration = new ProfilerEnvVarsConfiguration(config);
+    when(config.getString(ProfilerEnvVarsConfiguration.CONFIG_KEY_INGEST_URL)).thenReturn(null);
+    when(config.getString(eq(ProfilerEnvVarsConfiguration.CONFIG_KEY_OTEL_OTLP_URL), anyString()))
         .thenReturn("https://ingest.us0.signalfx.com");
-    when(config.getString(eq(Configuration.CONFIG_KEY_PROFILER_OTLP_PROTOCOL), any()))
+    when(config.getString(
+            eq(ProfilerEnvVarsConfiguration.CONFIG_KEY_PROFILER_OTLP_PROTOCOL), any()))
         .thenReturn("http/protobuf");
 
     // when
-    String result = Configuration.getIngestUrl(config);
+    String result = profilerConfiguration.getIngestUrl();
 
     // then
     assertThat(result).isEqualTo(defaultLogsEndpoint);
@@ -124,20 +134,30 @@ class ConfigurationTest {
 
   @Test
   void getOtlpProtocolDefault() {
-    String result =
-        Configuration.getOtlpProtocol(
+    // given
+    ProfilerEnvVarsConfiguration profilerConfiguration =
+        new ProfilerEnvVarsConfiguration(
             DefaultConfigProperties.create(Collections.emptyMap(), COMPONENT_LOADER));
 
+    // when
+    String result = profilerConfiguration.getOtlpProtocol();
+
+    // then
     assertThat(result).isEqualTo("http/protobuf");
   }
 
   @Test
   void getOtlpProtocolOtelPropertySet() {
-    String result =
-        Configuration.getOtlpProtocol(
+    // given
+    ProfilerEnvVarsConfiguration profilerConfiguration =
+        new ProfilerEnvVarsConfiguration(
             DefaultConfigProperties.create(
                 Collections.singletonMap("otel.exporter.otlp.protocol", "test"), COMPONENT_LOADER));
 
+    // when
+    String result = profilerConfiguration.getOtlpProtocol();
+
+    // then
     assertThat(result).isEqualTo("test");
   }
 
@@ -148,9 +168,11 @@ class ConfigurationTest {
     map.put("otel.exporter.otlp.protocol", "test1");
     map.put("splunk.profiler.otlp.protocol", "test2");
 
+    ProfilerEnvVarsConfiguration profilerConfiguration =
+        new ProfilerEnvVarsConfiguration(DefaultConfigProperties.create(map, COMPONENT_LOADER));
+
     // when
-    String result =
-        Configuration.getOtlpProtocol(DefaultConfigProperties.create(map, COMPONENT_LOADER));
+    String result = profilerConfiguration.getOtlpProtocol();
 
     // then
     assertThat(result).isEqualTo("test2");

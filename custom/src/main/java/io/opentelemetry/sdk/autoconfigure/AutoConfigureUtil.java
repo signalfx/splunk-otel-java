@@ -16,9 +16,14 @@
 
 package io.opentelemetry.sdk.autoconfigure;
 
+import static io.opentelemetry.api.incubator.config.DeclarativeConfigProperties.empty;
+
+import io.opentelemetry.api.incubator.config.ConfigProvider;
+import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import io.opentelemetry.sdk.resources.Resource;
 import java.util.logging.Logger;
+import javax.annotation.Nullable;
 
 /**
  * This class is a hack to allows us to call getResource() and getConfig() on the
@@ -38,6 +43,33 @@ public final class AutoConfigureUtil {
   /** Returns the {@link ConfigProperties} used for auto-configuration. */
   public static ConfigProperties getConfig(AutoConfiguredOpenTelemetrySdk sdk) {
     return sdk.getConfig();
+  }
+
+  public static boolean isDeclarativeConfig(AutoConfiguredOpenTelemetrySdk sdk) {
+    return sdk.getConfigProvider() != null;
+  }
+
+  @Nullable
+  public static DeclarativeConfigProperties getDistributionConfig(
+      AutoConfiguredOpenTelemetrySdk sdk) {
+    ConfigProvider configProvider = (ConfigProvider) sdk.getConfigProvider();
+    if (configProvider == null) {
+      return null;
+    }
+
+    // TODO: This is temporary solution until distribution config support is implemented in the
+    // upstream.
+    //       For now assume that distribution node is located under
+    // .instrumentation/development.java.distribution
+    //       Replace this code with `return sdk.getConfigProvider().getDistributionConfig()` once is
+    // implemented
+    DeclarativeConfigProperties instrumentationConfig = configProvider.getInstrumentationConfig();
+    if (instrumentationConfig == null) {
+      return null;
+    }
+    return instrumentationConfig
+        .getStructured("java", empty())
+        .getStructured("distribution", empty());
   }
 
   public static Resource getResource(AutoConfiguredOpenTelemetrySdk sdk) {

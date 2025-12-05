@@ -58,11 +58,10 @@ public final class AutoConfigureUtil {
     }
 
     // TODO: This is temporary solution until distribution config support is implemented in the
-    // upstream.
-    //       For now assume that distribution node is located under
-    // .instrumentation/development.java.distribution
+    //       upstream. For now assume that distribution node is located under
+    //       .instrumentation/development.java.distribution
     //       Replace this code with `return sdk.getConfigProvider().getDistributionConfig()` once is
-    // implemented
+    //       implemented
     DeclarativeConfigProperties instrumentationConfig = configProvider.getInstrumentationConfig();
     if (instrumentationConfig == null) {
       return null;

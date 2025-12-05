@@ -16,7 +16,6 @@
 
 package com.splunk.opentelemetry.profiler;
 
-import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_MEMORY_ENABLED;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.mock;
@@ -33,7 +32,6 @@ import io.opentelemetry.api.trace.SpanId;
 import io.opentelemetry.api.trace.TraceFlags;
 import io.opentelemetry.api.trace.TraceId;
 import io.opentelemetry.api.trace.TraceState;
-import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -64,8 +62,8 @@ class TLABProcessorTest {
     IItem event = mock(IItem.class);
     when(eventReader.getStackTrace(event)).thenReturn(null); // just to be explicit
 
-    ConfigProperties config = mock(ConfigProperties.class);
-    when(config.getBoolean(CONFIG_KEY_MEMORY_ENABLED, false)).thenReturn(true);
+    ProfilerConfiguration config = mock(ProfilerConfiguration.class);
+    when(config.getMemoryEnabled()).thenReturn(true);
 
     TLABProcessor processor = TLABProcessor.builder(config).eventReader(eventReader).build();
     processor.accept(event);
@@ -85,8 +83,8 @@ class TLABProcessorTest {
               }
             });
 
-    ConfigProperties config = mock(ConfigProperties.class);
-    when(config.getBoolean(CONFIG_KEY_MEMORY_ENABLED, false)).thenReturn(false);
+    ProfilerConfiguration config = mock(ProfilerConfiguration.class);
+    when(config.getMemoryEnabled()).thenReturn(false);
 
     TLABProcessor processor = TLABProcessor.builder(config).build();
     processor.accept(event);
@@ -99,8 +97,8 @@ class TLABProcessorTest {
 
     IItem event = createMockEvent(serializer, now);
 
-    ConfigProperties config = mock(ConfigProperties.class);
-    when(config.getBoolean(CONFIG_KEY_MEMORY_ENABLED, false)).thenReturn(true);
+    ProfilerConfiguration config = mock(ProfilerConfiguration.class);
+    when(config.getMemoryEnabled()).thenReturn(true);
 
     SpanContext spanContext =
         SpanContext.create(
@@ -153,8 +151,8 @@ class TLABProcessorTest {
     SpanContextualizer spanContextualizer = mock(SpanContextualizer.class);
     when(spanContextualizer.link(anyLong())).thenReturn(SpanLinkage.NONE);
 
-    ConfigProperties config = mock(ConfigProperties.class);
-    when(config.getBoolean(CONFIG_KEY_MEMORY_ENABLED, false)).thenReturn(true);
+    ProfilerConfiguration config = mock(ProfilerConfiguration.class);
+    when(config.getMemoryEnabled()).thenReturn(true);
 
     TestAllocationEventExporter allocationEventExporter = new TestAllocationEventExporter();
 

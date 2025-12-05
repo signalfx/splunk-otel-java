@@ -21,7 +21,6 @@ import com.splunk.opentelemetry.profiler.allocation.sampler.AllocationEventSampl
 import com.splunk.opentelemetry.profiler.allocation.sampler.RateLimitingAllocationEventSampler;
 import com.splunk.opentelemetry.profiler.context.SpanContextualizer;
 import io.opentelemetry.api.trace.SpanContext;
-import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import org.openjdk.jmc.common.IMCStackTrace;
 import org.openjdk.jmc.common.IMCThread;
 import org.openjdk.jmc.common.item.IItem;
@@ -83,12 +82,11 @@ public class TLABProcessor {
     return sampler;
   }
 
-  static Builder builder(ConfigProperties config) {
-    boolean enabled = Configuration.getMemoryEnabled(config);
+  static Builder builder(ProfilerConfiguration config) {
+    boolean enabled = config.getMemoryEnabled();
     Builder builder = new Builder(enabled);
-    if (Configuration.getMemoryEventRateLimitEnabled(config)
-        && !Configuration.getUseAllocationSampleEvent(config)) {
-      String rateLimit = Configuration.getMemoryEventRate(config);
+    if (config.getMemoryEventRateLimitEnabled() && !config.getUseAllocationSampleEvent()) {
+      String rateLimit = config.getMemoryEventRate();
       builder.sampler(new RateLimitingAllocationEventSampler(rateLimit));
     }
     return builder;

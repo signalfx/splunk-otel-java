@@ -16,15 +16,11 @@
 
 package com.splunk.opentelemetry.profiler;
 
-import static com.splunk.opentelemetry.profiler.Configuration.CONFIG_KEY_CALL_STACK_INTERVAL;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import java.time.Duration;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
@@ -32,22 +28,82 @@ import org.junit.jupiter.api.Test;
 class JfrSettingsOverridesTest {
 
   @Test
-  void testOverrides() {
-    ConfigProperties config = mock(ConfigProperties.class);
-    when(config.getDuration(eq(CONFIG_KEY_CALL_STACK_INTERVAL), any(Duration.class)))
-        .thenReturn(Duration.ofMillis(163));
-    when(config.getBoolean("splunk.profiler.memory.enabled", false)).thenReturn(true);
+  void shouldOverride_memoryEnabled_noAllocationSampling() {
+    // given
+    ProfilerConfiguration config = mock(ProfilerConfiguration.class);
+    when(config.getCallStackInterval()).thenReturn(Duration.ofMillis(163));
+    when(config.getMemoryEnabled()).thenReturn(true);
+    when(config.getMemoryEventRateLimitEnabled()).thenReturn(false);
+    when(config.getUseAllocationSampleEvent()).thenReturn(false);
+
+    JfrSettingsOverrides overrides = new JfrSettingsOverrides(config);
+    Map<String, String> jfrSettings =
+        Map.of(
+            "jdk.ThreadDump#period", "12",
+            "jdk.ThreadDump#enabled", "true");
+
+    // when
+    Map<String, String> result = overrides.apply(jfrSettings);
+
+    // then
+    assertNotSame(result, jfrSettings);
+    assertThat(result.get("jdk.ThreadDump#period")).isEqualTo("163 ms");
+    assertThat(result.get("jdk.ThreadDump#enabled")).isEqualTo("true");
+    assertThat(result.get("jdk.ObjectAllocationInNewTLAB#enabled")).isEqualTo("true");
+    assertThat(result.get("jdk.ObjectAllocationOutsideTLAB#enabled")).isEqualTo("true");
+    assertThat(result).hasSize(4);
+  }
+
+  @Test
+  void shouldOverride_memoryEnabled_allocationSampling() {
+    // given
+    ProfilerConfiguration config = mock(ProfilerConfiguration.class);
+    when(config.getCallStackInterval()).thenReturn(Duration.ofMillis(163));
+    when(config.getMemoryEnabled()).thenReturn(true);
+    when(config.getMemoryEventRateLimitEnabled()).thenReturn(true);
+    when(config.getUseAllocationSampleEvent()).thenReturn(true);
+    when(config.getMemoryEventRate()).thenReturn("200/s");
+
     JfrSettingsOverrides overrides = new JfrSettingsOverrides(config);
     Map<String, String> jfrSettings =
         Map.of(
             "jdk.ThreadDump#period", "12",
             "jdk.ThreadDump#enabled", "true",
-            "jdk.ObjectAllocationInNewTLAB#enabled", "true",
-            "jdk.ObjectAllocationOutsideTLAB#enabled", "true");
+            "jdk.ObjectAllocationSample#enabled", "false",
+            "jdk.ObjectAllocationSample#throttle", "123/s");
+
+    // when
     Map<String, String> result = overrides.apply(jfrSettings);
+
+    // then
     assertNotSame(result, jfrSettings);
-    assertEquals("163 ms", result.get("jdk.ThreadDump#period"));
-    assertEquals("true", result.get("jdk.ObjectAllocationInNewTLAB#enabled"));
-    assertEquals("true", result.get("jdk.ObjectAllocationOutsideTLAB#enabled"));
+    assertThat(result.get("jdk.ThreadDump#period")).isEqualTo("163 ms");
+    assertThat(result.get("jdk.ThreadDump#enabled")).isEqualTo("true");
+    assertThat(result.get("jdk.ObjectAllocationSample#enabled")).isEqualTo("true");
+    assertThat(result.get("jdk.ObjectAllocationSample#throttle")).isEqualTo("200/s");
+    assertThat(result).hasSize(4);
+  }
+
+  @Test
+  void shouldNotOverrideWhenMemoryDisabledAndIntervalIsZero() {
+    // given
+    ProfilerConfiguration config = mock(ProfilerConfiguration.class);
+    when(config.getCallStackInterval()).thenReturn(Duration.ofMillis(0));
+    when(config.getMemoryEnabled()).thenReturn(false);
+
+    JfrSettingsOverrides overrides = new JfrSettingsOverrides(config);
+    Map<String, String> jfrSettings =
+        Map.of(
+            "jdk.ThreadDump#period", "12",
+            "jdk.ThreadDump#enabled", "false");
+
+    // when
+    Map<String, String> result = overrides.apply(jfrSettings);
+
+    // then
+    assertNotSame(result, jfrSettings);
+    assertThat(result.get("jdk.ThreadDump#period")).isEqualTo("12");
+    assertThat(result.get("jdk.ThreadDump#enabled")).isEqualTo("false");
+    assertThat(result).hasSize(2);
   }
 }

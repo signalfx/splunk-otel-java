@@ -18,7 +18,6 @@ package com.splunk.opentelemetry.profiler;
 
 import static io.opentelemetry.api.incubator.config.DeclarativeConfigProperties.empty;
 
-import com.splunk.opentelemetry.SplunkConfiguration;
 import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
 import java.time.Duration;
 import java.util.logging.Logger;

@@ -161,7 +161,7 @@ class LogExporterBuilderTest {
       // given
       OpenTelemetryConfigurationModel model =
           DeclarativeConfigTestUtil.parse(
-          """
+              """
             file_format: "1.0-rc.2"
             instrumentation/development:
               java:
@@ -171,8 +171,7 @@ class LogExporterBuilderTest {
                       exporter:
                         otlp_http:
                           endpoint: "http://acme.com"
-          """
-          );
+          """);
 
       DeclarativeConfigProperties exporterConfig = getExporterConfig(model);
 
@@ -198,8 +197,7 @@ class LogExporterBuilderTest {
                           exporter:
                             otlp_grpc:
                               endpoint: "http://acme.com"
-              """
-          );
+              """);
 
       DeclarativeConfigProperties exporterConfig = getExporterConfig(model);
 
@@ -224,20 +222,23 @@ class LogExporterBuilderTest {
                         profiling:
                           exporter:
                             unsupported:
-              """
-          );
+              """);
 
       DeclarativeConfigProperties exporterConfig = getExporterConfig(model);
 
       // when, then
-      assertThatThrownBy(() -> LogExporterBuilder.fromConfig(exporterConfig)).isInstanceOf(ConfigurationException.class);
+      assertThatThrownBy(() -> LogExporterBuilder.fromConfig(exporterConfig))
+          .isInstanceOf(ConfigurationException.class);
     }
 
-    private static DeclarativeConfigProperties getExporterConfig(OpenTelemetryConfigurationModel model) {
-      Map<String, Object> properties = model.getInstrumentationDevelopment().getJava()
-          .getAdditionalProperties();
-      ComponentLoader componentLoader = ComponentLoader.forClassLoader(DeclarativeConfigProperties.class.getClassLoader());
-      DeclarativeConfigProperties declarativeConfigProperties = YamlDeclarativeConfigProperties.create(properties, componentLoader);
+    private static DeclarativeConfigProperties getExporterConfig(
+        OpenTelemetryConfigurationModel model) {
+      Map<String, Object> properties =
+          model.getInstrumentationDevelopment().getJava().getAdditionalProperties();
+      ComponentLoader componentLoader =
+          ComponentLoader.forClassLoader(DeclarativeConfigProperties.class.getClassLoader());
+      DeclarativeConfigProperties declarativeConfigProperties =
+          YamlDeclarativeConfigProperties.create(properties, componentLoader);
       return declarativeConfigProperties
           .getStructured("distribution", empty())
           .getStructured("splunk", empty())

@@ -42,7 +42,7 @@ public class ProfilerDeclarativeConfiguration implements ProfilerConfiguration {
 
   @Override
   public boolean isEnabled() {
-    return !getConfigRoot().equals(empty());
+    return !config.equals(empty());
   }
 
   @Override

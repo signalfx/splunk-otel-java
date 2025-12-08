@@ -1,3 +1,19 @@
+/*
+ * Copyright Splunk Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.splunk.opentelemetry.profiler;
 
 import static io.opentelemetry.api.incubator.config.DeclarativeConfigProperties.empty;
@@ -17,6 +33,7 @@ class ProfilerDeclarativeConfigurationTest {
 
   @Test
   void shouldMapYamlToConfiguration() {
+    // given
     OpenTelemetryConfigurationModel model =
         DeclarativeConfigTestUtil.parse(
             """
@@ -44,8 +61,10 @@ class ProfilerDeclarativeConfigurationTest {
 
     DeclarativeConfigProperties profilingConfig = getProfilingConfig(model);
 
+    // when
     ProfilerDeclarativeConfiguration config = new ProfilerDeclarativeConfiguration(profilingConfig);
 
+    // then
     assertThat(config.isEnabled()).isTrue();
     assertThat(config.getIncludeAgentInternalStacks()).isTrue();
     assertThat(config.getIncludeJvmInternalStacks()).isTrue();
@@ -64,7 +83,8 @@ class ProfilerDeclarativeConfigurationTest {
     assertThrows(UnsupportedOperationException.class, config::getOtlpProtocol);
   }
 
-  private static DeclarativeConfigProperties getProfilingConfig(OpenTelemetryConfigurationModel model) {
+  private static DeclarativeConfigProperties getProfilingConfig(
+      OpenTelemetryConfigurationModel model) {
     Map<String, Object> properties =
         model.getInstrumentationDevelopment().getJava().getAdditionalProperties();
     ComponentLoader componentLoader =

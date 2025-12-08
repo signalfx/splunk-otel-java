@@ -80,8 +80,7 @@ public class JfrActivator implements AgentListener {
               distributionConfig
                   .getStructured("splunk", empty())
                   .getStructured("profiling", empty())
-                  .getStructured("always_on", empty())
-          );
+                  .getStructured("always_on", empty()));
     } else {
       ConfigProperties configProperties = AutoConfigureUtil.getConfig(sdk);
       config = new ProfilerEnvVarsConfiguration(configProperties);

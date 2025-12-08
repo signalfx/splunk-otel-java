@@ -231,8 +231,9 @@ class LogExporterBuilderTest {
           .isInstanceOf(ConfigurationException.class);
     }
 
-    // TODO: Once ConfigProvider exposes ".distribution" config this method and YAMLs in tests must be
-    //       updated to use valid location. For now it is temporary placed under instrumentation
+    // TODO: This method and test YAMLs with "distribution" node must be updated to use valid
+    //       location once ConfigProvider exposes ".distribution" config.
+    //       For now it is temporary placed under the instrumentation node.
     private static DeclarativeConfigProperties getExporterConfig(
         OpenTelemetryConfigurationModel model) {
       Map<String, Object> properties =

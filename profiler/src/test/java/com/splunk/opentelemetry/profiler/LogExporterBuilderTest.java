@@ -18,130 +18,235 @@ package com.splunk.opentelemetry.profiler;
 
 import static com.splunk.opentelemetry.profiler.LogExporterBuilder.EXTRA_CONTENT_TYPE;
 import static com.splunk.opentelemetry.profiler.LogExporterBuilder.STACKTRACES_HEADER_VALUE;
+import static io.opentelemetry.api.incubator.config.DeclarativeConfigProperties.empty;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.splunk.opentelemetry.testing.declarativeconfig.DeclarativeConfigTestUtil;
+import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
+import io.opentelemetry.common.ComponentLoader;
 import io.opentelemetry.exporter.otlp.http.logs.OtlpHttpLogRecordExporter;
 import io.opentelemetry.exporter.otlp.http.logs.OtlpHttpLogRecordExporterBuilder;
 import io.opentelemetry.exporter.otlp.logs.OtlpGrpcLogRecordExporter;
 import io.opentelemetry.exporter.otlp.logs.OtlpGrpcLogRecordExporterBuilder;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
+import io.opentelemetry.sdk.autoconfigure.spi.ConfigurationException;
+import io.opentelemetry.sdk.extension.incubator.fileconfig.YamlDeclarativeConfigProperties;
+import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.OpenTelemetryConfigurationModel;
 import io.opentelemetry.sdk.logs.export.LogRecordExporter;
 import java.util.Map;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.mockito.MockedStatic;
 
 class LogExporterBuilderTest {
-  static final String DEFAULT_HTTP_LOG_ENDPOINT = "http://localhost:4318/v1/logs";
-  static final String DEFAULT_GRPC_LOG_ENDPOINT = "http://localhost:4317";
 
-  private MockedStatic<Configuration> configurationMock;
+  @Nested
+  class EnvVarBasedConfig {
+    static final String DEFAULT_HTTP_LOG_ENDPOINT = "http://localhost:4318/v1/logs";
+    static final String DEFAULT_GRPC_LOG_ENDPOINT = "http://localhost:4317";
 
-  @BeforeEach
-  void setUp() {
-    configurationMock = mockStatic(Configuration.class);
+    @Test
+    void testBuildSimpleGrpc() {
+      // given
+      ProfilerEnvVarsConfiguration config = mock(ProfilerEnvVarsConfiguration.class);
+      OtlpGrpcLogRecordExporterBuilder builder = mock(OtlpGrpcLogRecordExporterBuilder.class);
+      OtlpGrpcLogRecordExporter expected = mock(OtlpGrpcLogRecordExporter.class);
+
+      when(builder.addHeader(EXTRA_CONTENT_TYPE, STACKTRACES_HEADER_VALUE)).thenReturn(builder);
+      when(builder.build()).thenReturn(expected);
+      when(config.getIngestUrl()).thenReturn(DEFAULT_GRPC_LOG_ENDPOINT);
+
+      // when
+      LogRecordExporter exporter = LogExporterBuilder.buildGrpcExporter(config, () -> builder);
+
+      // then
+      assertThat(exporter).isSameAs(expected);
+      verify(builder).setEndpoint(DEFAULT_GRPC_LOG_ENDPOINT);
+    }
+
+    @Test
+    void testBuildSimpleHttp() {
+      // given
+      ProfilerEnvVarsConfiguration config = mock(ProfilerEnvVarsConfiguration.class);
+      ConfigProperties configProperties = mock(ConfigProperties.class);
+      OtlpHttpLogRecordExporterBuilder builder = mock(OtlpHttpLogRecordExporterBuilder.class);
+      OtlpHttpLogRecordExporter expected = mock(OtlpHttpLogRecordExporter.class);
+
+      when(builder.addHeader(EXTRA_CONTENT_TYPE, STACKTRACES_HEADER_VALUE)).thenReturn(builder);
+      when(builder.build()).thenReturn(expected);
+      when(config.getConfigProperties()).thenReturn(configProperties);
+      when(configProperties.getString(eq("otel.exporter.otlp.protocol"), anyString()))
+          .thenReturn("http/protobuf");
+      when(config.getIngestUrl()).thenReturn(DEFAULT_HTTP_LOG_ENDPOINT);
+
+      // when
+      LogRecordExporter exporter = LogExporterBuilder.buildHttpExporter(config, () -> builder);
+
+      // then
+      assertThat(exporter).isSameAs(expected);
+      verify(builder).setEndpoint(DEFAULT_HTTP_LOG_ENDPOINT);
+    }
+
+    @Test
+    void extraOtlpHeaders() {
+      // given
+      ProfilerEnvVarsConfiguration config = mock(ProfilerEnvVarsConfiguration.class);
+      ConfigProperties configProperties = mock(ConfigProperties.class);
+      when(config.getConfigProperties()).thenReturn(configProperties);
+      when(config.getOtlpProtocol()).thenReturn("http/protobuf");
+      when(config.getIngestUrl()).thenReturn(DEFAULT_HTTP_LOG_ENDPOINT);
+      when(configProperties.getMap("otel.exporter.otlp.headers"))
+          .thenReturn(Map.of("foo", "bar", "bar", "baz"));
+      when(configProperties.getMap("otel.exporter.otlp.logs.headers"))
+          .thenReturn(Map.of("log", "lady"));
+      when(configProperties.getString("otel.exporter.otlp.protocol", "grpc"))
+          .thenReturn("http/protobuf");
+
+      OtlpHttpLogRecordExporterBuilder builder = mock(OtlpHttpLogRecordExporterBuilder.class);
+      OtlpHttpLogRecordExporter expected = mock(OtlpHttpLogRecordExporter.class);
+
+      when(builder.addHeader(anyString(), anyString())).thenReturn(builder);
+      when(builder.build()).thenReturn(expected);
+
+      // when
+      LogRecordExporter exporter = LogExporterBuilder.buildHttpExporter(config, () -> builder);
+
+      // then
+      assertThat(exporter).isSameAs(expected);
+      verify(builder).addHeader(EXTRA_CONTENT_TYPE, STACKTRACES_HEADER_VALUE);
+      verify(builder).addHeader("log", "lady");
+      verify(builder, never()).addHeader("foo", "bar");
+      verify(builder, never()).addHeader("bar", "baz");
+    }
+
+    @Test
+    void extraOtlpLogSpecificHeaders() {
+      // given
+      ProfilerEnvVarsConfiguration config = mock(ProfilerEnvVarsConfiguration.class);
+      ConfigProperties configProperties = mock(ConfigProperties.class);
+      when(config.getConfigProperties()).thenReturn(configProperties);
+      when(config.getOtlpProtocol()).thenReturn("http/protobuf");
+      when(config.getIngestUrl()).thenReturn(DEFAULT_HTTP_LOG_ENDPOINT);
+      when(configProperties.getMap("otel.exporter.otlp.headers"))
+          .thenReturn(Map.of("foo", "bar", "bar", "baz"));
+      when(configProperties.getString("otel.exporter.otlp.protocol", "grpc"))
+          .thenReturn("http/protobuf");
+
+      OtlpHttpLogRecordExporterBuilder builder = mock(OtlpHttpLogRecordExporterBuilder.class);
+      OtlpHttpLogRecordExporter expected = mock(OtlpHttpLogRecordExporter.class);
+
+      when(builder.addHeader(anyString(), anyString())).thenReturn(builder);
+      when(builder.build()).thenReturn(expected);
+
+      // when
+      LogRecordExporter exporter = LogExporterBuilder.buildHttpExporter(config, () -> builder);
+
+      // then
+      assertThat(exporter).isSameAs(expected);
+      verify(builder).addHeader(EXTRA_CONTENT_TYPE, STACKTRACES_HEADER_VALUE);
+    }
   }
 
-  @AfterEach
-  void tearDown() {
-    configurationMock.close();
-  }
+  @Nested
+  class DeclarativeConfig {
 
-  @Test
-  void testBuildSimpleGrpc() {
-    // given
-    ConfigProperties config = mock(ConfigProperties.class);
-    OtlpGrpcLogRecordExporterBuilder builder = mock(OtlpGrpcLogRecordExporterBuilder.class);
-    OtlpGrpcLogRecordExporter expected = mock(OtlpGrpcLogRecordExporter.class);
+    @Test
+    void shouldCreateHttpExporter() {
+      // given
+      OpenTelemetryConfigurationModel model =
+          DeclarativeConfigTestUtil.parse(
+              """
+            file_format: "1.0-rc.2"
+            instrumentation/development:
+              java:
+                distribution:
+                  splunk:
+                    profiling:
+                      exporter:
+                        otlp_http:
+                          endpoint: "http://acme.com"
+          """);
 
-    when(builder.addHeader(EXTRA_CONTENT_TYPE, STACKTRACES_HEADER_VALUE)).thenReturn(builder);
-    when(builder.build()).thenReturn(expected);
-    configurationMock
-        .when(() -> Configuration.getIngestUrl(config))
-        .thenReturn(DEFAULT_GRPC_LOG_ENDPOINT);
+      DeclarativeConfigProperties exporterConfig = getExporterConfig(model);
 
-    // when
-    LogRecordExporter exporter = LogExporterBuilder.buildGrpcExporter(config, () -> builder);
+      // when
+      LogRecordExporter exporter = LogExporterBuilder.fromConfig(exporterConfig);
 
-    // then
-    assertThat(exporter).isSameAs(expected);
-    verify(builder).setEndpoint(DEFAULT_GRPC_LOG_ENDPOINT);
-  }
+      // then
+      assertThat(exporter).isNotNull();
+    }
 
-  @Test
-  void testBuildSimpleHttp() {
-    // given
-    ConfigProperties config = mock(ConfigProperties.class);
-    OtlpHttpLogRecordExporterBuilder builder = mock(OtlpHttpLogRecordExporterBuilder.class);
-    OtlpHttpLogRecordExporter expected = mock(OtlpHttpLogRecordExporter.class);
+    @Test
+    void shouldCreateGrpcExporter() {
+      // given
+      OpenTelemetryConfigurationModel model =
+          DeclarativeConfigTestUtil.parse(
+              """
+                file_format: "1.0-rc.2"
+                instrumentation/development:
+                  java:
+                    distribution:
+                      splunk:
+                        profiling:
+                          exporter:
+                            otlp_grpc:
+                              endpoint: "http://acme.com"
+              """);
 
-    when(builder.addHeader(EXTRA_CONTENT_TYPE, STACKTRACES_HEADER_VALUE)).thenReturn(builder);
-    when(builder.build()).thenReturn(expected);
-    when(config.getString("otel.exporter.otlp.protocol", "grpc")).thenReturn("http/protobuf");
-    configurationMock
-        .when(() -> Configuration.getIngestUrl(config))
-        .thenReturn(DEFAULT_HTTP_LOG_ENDPOINT);
+      DeclarativeConfigProperties exporterConfig = getExporterConfig(model);
 
-    // when
-    LogRecordExporter exporter = LogExporterBuilder.buildHttpExporter(config, () -> builder);
+      // when
+      LogRecordExporter exporter = LogExporterBuilder.fromConfig(exporterConfig);
 
-    // then
-    assertThat(exporter).isSameAs(expected);
-    verify(builder).setEndpoint(DEFAULT_HTTP_LOG_ENDPOINT);
-  }
+      // then
+      assertThat(exporter).isNotNull();
+    }
 
-  @Test
-  void extraOtlpHeaders() {
-    // given
-    ConfigProperties config = mock(ConfigProperties.class);
-    when(config.getMap("otel.exporter.otlp.headers"))
-        .thenReturn(Map.of("foo", "bar", "bar", "baz"));
-    when(config.getMap("otel.exporter.otlp.logs.headers")).thenReturn(Map.of("log", "lady"));
-    when(config.getString("otel.exporter.otlp.protocol", "grpc")).thenReturn("http/protobuf");
+    @Test
+    void shouldThrowExceptionForInvalidProtocol() {
+      // given
+      OpenTelemetryConfigurationModel model =
+          DeclarativeConfigTestUtil.parse(
+              """
+                file_format: "1.0-rc.2"
+                instrumentation/development:
+                  java:
+                    distribution:
+                      splunk:
+                        profiling:
+                          exporter:
+                            unsupported:
+              """);
 
-    OtlpHttpLogRecordExporterBuilder builder = mock(OtlpHttpLogRecordExporterBuilder.class);
-    OtlpHttpLogRecordExporter expected = mock(OtlpHttpLogRecordExporter.class);
+      DeclarativeConfigProperties exporterConfig = getExporterConfig(model);
 
-    when(builder.addHeader(anyString(), anyString())).thenReturn(builder);
-    when(builder.build()).thenReturn(expected);
+      // when, then
+      assertThatThrownBy(() -> LogExporterBuilder.fromConfig(exporterConfig))
+          .isInstanceOf(ConfigurationException.class);
+    }
 
-    // when
-    LogRecordExporter exporter = LogExporterBuilder.buildHttpExporter(config, () -> builder);
-
-    // then
-    assertThat(exporter).isSameAs(expected);
-    verify(builder).addHeader(EXTRA_CONTENT_TYPE, STACKTRACES_HEADER_VALUE);
-    verify(builder).addHeader("log", "lady");
-    verify(builder, never()).addHeader("foo", "bar");
-    verify(builder, never()).addHeader("bar", "baz");
-  }
-
-  @Test
-  void extraOtlpLogSpecificHeaders() {
-    // given
-    ConfigProperties config = mock(ConfigProperties.class);
-    when(config.getMap("otel.exporter.otlp.headers"))
-        .thenReturn(Map.of("foo", "bar", "bar", "baz"));
-    when(config.getString("otel.exporter.otlp.protocol", "grpc")).thenReturn("http/protobuf");
-
-    OtlpHttpLogRecordExporterBuilder builder = mock(OtlpHttpLogRecordExporterBuilder.class);
-    OtlpHttpLogRecordExporter expected = mock(OtlpHttpLogRecordExporter.class);
-
-    when(builder.addHeader(anyString(), anyString())).thenReturn(builder);
-    when(builder.build()).thenReturn(expected);
-
-    // when
-    LogRecordExporter exporter = LogExporterBuilder.buildHttpExporter(config, () -> builder);
-
-    // then
-    assertThat(exporter).isSameAs(expected);
-    verify(builder).addHeader(EXTRA_CONTENT_TYPE, STACKTRACES_HEADER_VALUE);
+    // TODO: This method and test YAMLs with "distribution" node must be updated to use valid
+    //       location once ConfigProvider exposes ".distribution" config.
+    //       For now it is temporary placed under the instrumentation node.
+    private static DeclarativeConfigProperties getExporterConfig(
+        OpenTelemetryConfigurationModel model) {
+      Map<String, Object> properties =
+          model.getInstrumentationDevelopment().getJava().getAdditionalProperties();
+      ComponentLoader componentLoader =
+          ComponentLoader.forClassLoader(DeclarativeConfigProperties.class.getClassLoader());
+      DeclarativeConfigProperties declarativeConfigProperties =
+          YamlDeclarativeConfigProperties.create(properties, componentLoader);
+      return declarativeConfigProperties
+          .getStructured("distribution", empty())
+          .getStructured("splunk", empty())
+          .getStructured("profiling", empty())
+          .getStructured("exporter", empty());
+    }
   }
 }

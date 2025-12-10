@@ -16,7 +16,6 @@
 
 package com.splunk.opentelemetry.profiler;
 
-import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
@@ -28,15 +27,15 @@ import java.util.Map;
  */
 class JfrSettingsOverrides {
 
-  private final ConfigProperties config;
+  private final ProfilerConfiguration config;
 
-  JfrSettingsOverrides(ConfigProperties config) {
+  JfrSettingsOverrides(ProfilerConfiguration config) {
     this.config = config;
   }
 
   Map<String, String> apply(Map<String, String> jfrSettings) {
     Map<String, String> settings = new HashMap<>(jfrSettings);
-    Duration customInterval = Configuration.getCallStackInterval(config);
+    Duration customInterval = config.getCallStackInterval();
     if (!Duration.ZERO.equals(customInterval)) {
       settings.put("jdk.ThreadDump#period", customInterval.toMillis() + " ms");
     }
@@ -44,12 +43,10 @@ class JfrSettingsOverrides {
   }
 
   private Map<String, String> maybeEnableTLABs(Map<String, String> settings) {
-    if (Configuration.getMemoryEnabled(config)) {
-      if (Configuration.getMemoryEventRateLimitEnabled(config)
-          && Configuration.getUseAllocationSampleEvent(config)) {
+    if (config.getMemoryEnabled()) {
+      if (config.getMemoryEventRateLimitEnabled() && config.getUseAllocationSampleEvent()) {
         settings.put("jdk.ObjectAllocationSample#enabled", "true");
-        settings.put(
-            "jdk.ObjectAllocationSample#throttle", Configuration.getMemoryEventRate(config));
+        settings.put("jdk.ObjectAllocationSample#throttle", config.getMemoryEventRate());
       } else {
         settings.put("jdk.ObjectAllocationInNewTLAB#enabled", "true");
         settings.put("jdk.ObjectAllocationOutsideTLAB#enabled", "true");

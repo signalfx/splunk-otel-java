@@ -17,22 +17,23 @@
 package com.splunk.opentelemetry.profiler;
 
 import static com.splunk.opentelemetry.profiler.util.Runnables.logUncaught;
-import static io.opentelemetry.sdk.autoconfigure.AutoConfigureUtil.getConfig;
+import static io.opentelemetry.api.incubator.config.DeclarativeConfigProperties.empty;
 import static io.opentelemetry.sdk.autoconfigure.AutoConfigureUtil.getResource;
 import static java.util.logging.Level.WARNING;
 
 import com.google.auto.service.AutoService;
 import com.google.common.annotations.VisibleForTesting;
-import com.splunk.opentelemetry.SplunkConfiguration;
 import com.splunk.opentelemetry.profiler.allocation.exporter.AllocationEventExporter;
 import com.splunk.opentelemetry.profiler.allocation.exporter.PprofAllocationEventExporter;
 import com.splunk.opentelemetry.profiler.context.SpanContextualizer;
 import com.splunk.opentelemetry.profiler.exporter.CpuEventExporter;
 import com.splunk.opentelemetry.profiler.exporter.PprofCpuEventExporter;
 import com.splunk.opentelemetry.profiler.util.HelpfulExecutors;
+import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
 import io.opentelemetry.api.logs.Logger;
 import io.opentelemetry.context.ContextStorage;
 import io.opentelemetry.javaagent.extension.AgentListener;
+import io.opentelemetry.sdk.autoconfigure.AutoConfigureUtil;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import io.opentelemetry.sdk.logs.LogRecordProcessor;
@@ -46,6 +47,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 
 @AutoService(AgentListener.class)
@@ -67,23 +69,42 @@ public class JfrActivator implements AgentListener {
   }
 
   @Override
-  public void afterAgent(AutoConfiguredOpenTelemetrySdk autoConfiguredOpenTelemetrySdk) {
-    ConfigProperties config = getConfig(autoConfiguredOpenTelemetrySdk);
+  public void afterAgent(AutoConfiguredOpenTelemetrySdk sdk) {
+    ProfilerConfiguration config = getProfilerConfiguration(sdk);
+
     if (notClearForTakeoff(config)) {
       return;
     }
 
-    Configuration.log(config);
+    config.log();
     logger.info("Profiler is active.");
     setupContextStorage();
 
-    executor.submit(
-        logUncaught(
-            () -> activateJfrAndRunForever(config, getResource(autoConfiguredOpenTelemetrySdk))));
+    startJfr(getResource(sdk), config);
   }
 
-  private boolean notClearForTakeoff(ConfigProperties config) {
-    if (!SplunkConfiguration.isProfilerEnabled(config)) {
+  private static ProfilerConfiguration getProfilerConfiguration(
+      AutoConfiguredOpenTelemetrySdk sdk) {
+    if (AutoConfigureUtil.isDeclarativeConfig(sdk)) {
+      DeclarativeConfigProperties distributionConfig = AutoConfigureUtil.getDistributionConfig(sdk);
+      distributionConfig = Optional.ofNullable(distributionConfig).orElse(empty());
+      return new ProfilerDeclarativeConfiguration(
+          distributionConfig
+              .getStructured("splunk", empty())
+              .getStructured("profiling", empty())
+              .getStructured("always_on", empty()));
+    } else {
+      ConfigProperties configProperties = AutoConfigureUtil.getConfig(sdk);
+      return new ProfilerEnvVarsConfiguration(configProperties);
+    }
+  }
+
+  private void startJfr(Resource resource, ProfilerConfiguration config) {
+    executor.submit(logUncaught(() -> activateJfrAndRunForever(config, resource)));
+  }
+
+  private boolean notClearForTakeoff(ProfilerConfiguration config) {
+    if (!config.isEnabled()) {
       logger.fine("Profiler is not enabled.");
       return true;
     }
@@ -123,29 +144,28 @@ public class JfrActivator implements AgentListener {
     logger.log(WARNING, "The configured output directory {0} {1}.", new Object[] {dir, suffix});
   }
 
-  private void activateJfrAndRunForever(ConfigProperties config, Resource resource) {
-    boolean keepFiles = Configuration.getKeepFiles(config);
-    Path outputDir = Paths.get(Configuration.getProfilerDirectory(config));
+  private void activateJfrAndRunForever(ProfilerConfiguration config, Resource resource) {
+    boolean keepFiles = config.getKeepFiles();
+    Path outputDir = Paths.get(config.getProfilerDirectory());
     if (keepFiles && !checkOutputDir(outputDir)) {
       keepFiles = false;
     }
     RecordingFileNamingConvention namingConvention = new RecordingFileNamingConvention(outputDir);
 
-    int stackDepth = Configuration.getStackDepth(config);
+    int stackDepth = config.getStackDepth();
     jfr.setStackDepth(stackDepth);
 
-    // can't be null, default value is set in Configuration.getProperties
-    Duration recordingDuration = Configuration.getRecordingDuration(config);
+    Duration recordingDuration = config.getRecordingDuration();
     Map<String, String> jfrSettings = buildJfrSettings(config);
 
     EventReader eventReader = new EventReader();
     SpanContextualizer spanContextualizer = new SpanContextualizer(eventReader);
-    LogRecordExporter logsExporter = LogExporterBuilder.fromConfig(config);
+    LogRecordExporter logsExporter = createLogRecordExporter(config.getConfigProperties());
 
     CpuEventExporter cpuEventExporter =
         PprofCpuEventExporter.builder()
             .otelLogger(buildOtelLogger(SimpleLogRecordProcessor.create(logsExporter), resource))
-            .period(Configuration.getCallStackInterval(config))
+            .period(config.getCallStackInterval())
             .stackDepth(stackDepth)
             .build();
 
@@ -195,6 +215,19 @@ public class JfrActivator implements AgentListener {
     sequencer.start();
   }
 
+  private static LogRecordExporter createLogRecordExporter(Object configProperties) {
+    if (configProperties instanceof DeclarativeConfigProperties) {
+      DeclarativeConfigProperties exporterConfig =
+          ((DeclarativeConfigProperties) configProperties).getStructured("exporter", empty());
+      return LogExporterBuilder.fromConfig(exporterConfig);
+    }
+    if (configProperties instanceof ConfigProperties) {
+      return LogExporterBuilder.fromConfig((ConfigProperties) configProperties);
+    }
+    throw new IllegalArgumentException(
+        "Unsupported config properties type: " + configProperties.getClass().getName());
+  }
+
   private Logger buildOtelLogger(LogRecordProcessor logProcessor, Resource resource) {
     return SdkLoggerProvider.builder()
         .addLogRecordProcessor(logProcessor)
@@ -210,24 +243,25 @@ public class JfrActivator implements AgentListener {
       SpanContextualizer spanContextualizer,
       CpuEventExporter profilingEventExporter,
       StackTraceFilter stackTraceFilter,
-      ConfigProperties config) {
+      ProfilerConfiguration config) {
     return ThreadDumpProcessor.builder()
         .eventReader(eventReader)
         .spanContextualizer(spanContextualizer)
         .cpuEventExporter(profilingEventExporter)
         .stackTraceFilter(stackTraceFilter)
-        .onlyTracingSpans(Configuration.getTracingStacksOnly(config))
+        .onlyTracingSpans(config.getTracingStacksOnly())
         .build();
   }
 
   /** Based on config, filters out agent internal stacks and/or JVM internal stacks */
-  private StackTraceFilter buildStackTraceFilter(ConfigProperties config, EventReader eventReader) {
-    boolean includeAgentInternalStacks = Configuration.getIncludeAgentInternalStacks(config);
-    boolean includeJVMInternalStacks = Configuration.getIncludeJvmInternalStacks(config);
+  private StackTraceFilter buildStackTraceFilter(
+      ProfilerConfiguration config, EventReader eventReader) {
+    boolean includeAgentInternalStacks = config.getIncludeAgentInternalStacks();
+    boolean includeJVMInternalStacks = config.getIncludeJvmInternalStacks();
     return new StackTraceFilter(eventReader, includeAgentInternalStacks, includeJVMInternalStacks);
   }
 
-  private Map<String, String> buildJfrSettings(ConfigProperties config) {
+  private Map<String, String> buildJfrSettings(ProfilerConfiguration config) {
     JfrSettingsReader settingsReader = new JfrSettingsReader();
     Map<String, String> jfrSettings = settingsReader.read();
     JfrSettingsOverrides overrides = new JfrSettingsOverrides(config);

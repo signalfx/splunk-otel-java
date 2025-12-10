@@ -70,21 +70,7 @@ public class JfrActivator implements AgentListener {
 
   @Override
   public void afterAgent(AutoConfiguredOpenTelemetrySdk sdk) {
-    ProfilerConfiguration config;
-
-    if (AutoConfigureUtil.isDeclarativeConfig(sdk)) {
-      DeclarativeConfigProperties distributionConfig = AutoConfigureUtil.getDistributionConfig(sdk);
-      distributionConfig = Optional.ofNullable(distributionConfig).orElse(empty());
-      config =
-          new ProfilerDeclarativeConfiguration(
-              distributionConfig
-                  .getStructured("splunk", empty())
-                  .getStructured("profiling", empty())
-                  .getStructured("always_on", empty()));
-    } else {
-      ConfigProperties configProperties = AutoConfigureUtil.getConfig(sdk);
-      config = new ProfilerEnvVarsConfiguration(configProperties);
-    }
+    ProfilerConfiguration config = getProfilerConfiguration(sdk);
 
     if (notClearForTakeoff(config)) {
       return;
@@ -95,6 +81,22 @@ public class JfrActivator implements AgentListener {
     setupContextStorage();
 
     startJfr(getResource(sdk), config);
+  }
+
+  private static ProfilerConfiguration getProfilerConfiguration(
+      AutoConfiguredOpenTelemetrySdk sdk) {
+    if (AutoConfigureUtil.isDeclarativeConfig(sdk)) {
+      DeclarativeConfigProperties distributionConfig = AutoConfigureUtil.getDistributionConfig(sdk);
+      distributionConfig = Optional.ofNullable(distributionConfig).orElse(empty());
+      return new ProfilerDeclarativeConfiguration(
+          distributionConfig
+              .getStructured("splunk", empty())
+              .getStructured("profiling", empty())
+              .getStructured("always_on", empty()));
+    } else {
+      ConfigProperties configProperties = AutoConfigureUtil.getConfig(sdk);
+      return new ProfilerEnvVarsConfiguration(configProperties);
+    }
   }
 
   private void startJfr(Resource resource, ProfilerConfiguration config) {
@@ -218,12 +220,12 @@ public class JfrActivator implements AgentListener {
       DeclarativeConfigProperties exporterConfig =
           ((DeclarativeConfigProperties) configProperties).getStructured("exporter", empty());
       return LogExporterBuilder.fromConfig(exporterConfig);
-    } 
+    }
     if (configProperties instanceof ConfigProperties) {
       return LogExporterBuilder.fromConfig((ConfigProperties) configProperties);
     }
     throw new IllegalArgumentException(
-          "Unsupported config properties type: " + configProperties.getClass().getName());
+        "Unsupported config properties type: " + configProperties.getClass().getName());
   }
 
   private Logger buildOtelLogger(LogRecordProcessor logProcessor, Resource resource) {

@@ -214,18 +214,16 @@ public class JfrActivator implements AgentListener {
   }
 
   private static LogRecordExporter createLogRecordExporter(Object configProperties) {
-    LogRecordExporter logsExporter;
     if (configProperties instanceof DeclarativeConfigProperties) {
       DeclarativeConfigProperties exporterConfig =
           ((DeclarativeConfigProperties) configProperties).getStructured("exporter", empty());
-      logsExporter = LogExporterBuilder.fromConfig(exporterConfig);
-    } else if (configProperties instanceof ConfigProperties) {
-      logsExporter = LogExporterBuilder.fromConfig((ConfigProperties) configProperties);
-    } else {
-      throw new IllegalArgumentException(
-          "Unsupported config properties type: " + configProperties.getClass().getName());
+      return LogExporterBuilder.fromConfig(exporterConfig);
+    } 
+    if (configProperties instanceof ConfigProperties) {
+      return LogExporterBuilder.fromConfig((ConfigProperties) configProperties);
     }
-    return logsExporter;
+    throw new IllegalArgumentException(
+          "Unsupported config properties type: " + configProperties.getClass().getName());
   }
 
   private Logger buildOtelLogger(LogRecordProcessor logProcessor, Resource resource) {

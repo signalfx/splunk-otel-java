@@ -71,6 +71,14 @@ public class SnapshotProfilingConfiguration {
                 + "'");
         return MAX_SELECTION_PROBABILITY;
       }
+      if (selectionProbability <= 0) {
+        logger.warning(
+            "Snapshot selection probability must be greater than 0. Using default snapshot"
+                + "selection probability of '"
+                + DEFAULT_SELECTION_PROBABILITY
+                + "' instead.");
+        return DEFAULT_SELECTION_PROBABILITY;
+      }
       return selectionProbability;
     } catch (NumberFormatException e) {
       logger.warning(

@@ -15,7 +15,7 @@ jobs:
   check-links:
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v6.0.0
+      - uses: actions/checkout@v6.0.1
 
       - name: Check all links in *.md files
         id: lychee
@@ -30,16 +30,16 @@ jobs:
   build:
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v6.0.0
+      - uses: actions/checkout@v6.0.1
 
       - name: Set up JDK 17 for running Gradle
-        uses: actions/setup-java@v5.0.0
+        uses: actions/setup-java@v5.1.0
         with:
           distribution: temurin
           java-version: 17
 
       - name: Cache Gradle Wrapper
-        uses: actions/cache@v4.3.0
+        uses: actions/cache@v5.0.0
         with:
           path: ~/.gradle/wrapper
           key: ${{ runner.os }}-gradle-wrapper-cache-${{ hashFiles('gradle/wrapper/gradle-wrapper.properties') }}
@@ -57,16 +57,16 @@ jobs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
       - name: Check out repository
-        uses: actions/checkout@v6.0.0
+        uses: actions/checkout@v6.0.1
 
       - name: Set up JDK 17 for running Gradle
-        uses: actions/setup-java@v5.0.0
+        uses: actions/setup-java@v5.1.0
         with:
           distribution: temurin
           java-version: 17
 
       - name: Cache Gradle Wrapper
-        uses: actions/cache@v4.3.0
+        uses: actions/cache@v5.0.0
         with:
           path: ~/.gradle/wrapper
           key: ${{ runner.os }}-gradle-wrapper-cache-${{ hashFiles('gradle/wrapper/gradle-wrapper.properties') }}
@@ -82,16 +82,16 @@ jobs:
       fail-fast: false
     steps:
       - name: Check out repository
-        uses: actions/checkout@v6.0.0
+        uses: actions/checkout@v6.0.1
 
       - name: Set up JDK 17 for running Gradle
-        uses: actions/setup-java@v5.0.0
+        uses: actions/setup-java@v5.1.0
         with:
           distribution: temurin
           java-version: 17
 
       - name: Cache Gradle Wrapper
-        uses: actions/cache@v4.3.0
+        uses: actions/cache@v5.0.0
         with:
           path: ~/.gradle/wrapper
           key: ${{ runner.os }}-gradle-wrapper-cache-${{ hashFiles('gradle/wrapper/gradle-wrapper.properties') }}
@@ -120,19 +120,19 @@ jobs:
             suite: profiler
       fail-fast: false
     steps:
-      - uses: actions/checkout@v6.0.0
+      - uses: actions/checkout@v6.0.1
 
       - name: Free disk space
         run: .github/scripts/gha-free-disk-space.sh
 
       - name: Set up JDK 17 for running Gradle
-        uses: actions/setup-java@v5.0.0
+        uses: actions/setup-java@v5.1.0
         with:
           distribution: temurin
           java-version: 17
 
       - name: Cache Gradle Wrapper
-        uses: actions/cache@v4.3.0
+        uses: actions/cache@v5.0.0
         with:
           path: ~/.gradle/wrapper
           key: ${{ runner.os }}-gradle-wrapper-cache-${{ hashFiles('gradle/wrapper/gradle-wrapper.properties') }}
@@ -159,7 +159,7 @@ jobs:
   shellcheck:
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v6.0.0
+      - uses: actions/checkout@v6.0.1
 
       - name: Install shell check
         run: wget -qO- "https://github.com/koalaman/shellcheck/releases/download/v0.8.0/shellcheck-v0.8.0.linux.x86_64.tar.xz" | tar -xJv

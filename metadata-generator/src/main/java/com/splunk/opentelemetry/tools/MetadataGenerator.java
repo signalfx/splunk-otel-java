@@ -3219,7 +3219,7 @@ public class MetadataGenerator {
             .build());
     instrumentations.add(
         instrumentation("async-http-client")
-            .component("AsyncHttpClient", "1.9 and higher")
+            .component("AsyncHttpClient", "1.8 and higher")
             .httpClientMetrics()
             .build());
     instrumentations.add(
@@ -3474,6 +3474,7 @@ public class MetadataGenerator {
             .build());
     instrumentations.add(
         instrumentation("jedis").component("Jedis", "1.4 and higher").dbClientMetrics().build());
+    instrumentations.add(instrumentation("jfinal").component("JFinal", "3.2 and higher").build());
     instrumentations.add(instrumentation("jms").component("JMS", "1.1 and higher").build());
     instrumentations.add(
         instrumentation("jodd-http")

@@ -13,6 +13,8 @@ muzzle {
 
 dependencies {
   compileOnly("io.opentelemetry:opentelemetry-api")
+  compileOnly("io.opentelemetry.semconv:opentelemetry-semconv-incubating")
+  compileOnly(project(":custom"))
 
   testInstrumentation("io.opentelemetry.javaagent.instrumentation:opentelemetry-javaagent-jdbc")
 
@@ -26,8 +28,14 @@ dependencies {
   // Oracle
   testLibrary("com.oracle.database.jdbc:ojdbc8:23.9.0.25.07")
   testImplementation("org.testcontainers:testcontainers-oracle-free")
+
+  // PostgreSQL
+  testLibrary("org.postgresql:postgresql:42.1.1")
+  testImplementation("org.testcontainers:testcontainers-postgresql")
 }
 
 tasks.withType<Test>().configureEach {
+  systemProperty("testLatestDeps", findProperty("testLatestDeps") as Boolean)
   jvmArgs("-Dotel.instrumentation.splunk-jdbc.enabled=true")
+  jvmArgs("-Dotel.service.name=test-service")
 }

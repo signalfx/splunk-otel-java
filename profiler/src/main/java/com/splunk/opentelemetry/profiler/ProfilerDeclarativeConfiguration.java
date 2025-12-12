@@ -32,7 +32,7 @@ public class ProfilerDeclarativeConfiguration implements ProfilerConfiguration {
   private static final long DEFAULT_SAMPLING_INTERVAL = Duration.ofSeconds(10).toMillis();
 
   private static final String MEMORY_PROFILER = "memory_profiler";
-  private static final String MEMORY_EVENT_RATE = "event_rate";
+  private static final String MEMORY_SAMPLING_INTERVAL = "sampling_interval";
 
   private final DeclarativeConfigProperties config;
 
@@ -87,12 +87,15 @@ public class ProfilerDeclarativeConfiguration implements ProfilerConfiguration {
 
   @Override
   public boolean getMemoryEventRateLimitEnabled() {
-    return getMemoryProfilerConfig().getString(MEMORY_EVENT_RATE) != null;
+    return getMemoryProfilerConfig().getLong(MEMORY_SAMPLING_INTERVAL) != null;
   }
 
   @Override
   public String getMemoryEventRate() {
-    return getMemoryProfilerConfig().getString(MEMORY_EVENT_RATE, "150/s");
+    long memorySamplingInterval =
+        getMemoryProfilerConfig().getLong(MEMORY_SAMPLING_INTERVAL, DEFAULT_SAMPLING_INTERVAL);
+    long rate = 1000L / memorySamplingInterval;
+    return rate + "/s";
   }
 
   @Override

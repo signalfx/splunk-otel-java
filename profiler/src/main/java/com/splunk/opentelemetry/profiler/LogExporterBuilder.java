@@ -39,14 +39,16 @@ class LogExporterBuilder {
   static LogRecordExporter fromConfig(DeclarativeConfigProperties exporterConfigProperties) {
     if (exporterConfigProperties != null) {
 
-      DeclarativeConfigProperties otlpHttp = exporterConfigProperties.getStructured("otlp_http");
+      DeclarativeConfigProperties otlpHttp =
+          exporterConfigProperties.getStructured("otlp_log_http");
       if (otlpHttp != null) {
         OtlpHttpLogRecordExporterComponentProvider provider =
             new OtlpHttpLogRecordExporterComponentProvider();
         return provider.create(otlpHttp);
       }
 
-      DeclarativeConfigProperties otlpGrpc = exporterConfigProperties.getStructured("otlp_grpc");
+      DeclarativeConfigProperties otlpGrpc =
+          exporterConfigProperties.getStructured("otlp_log_grpc");
       if (otlpGrpc != null) {
         OtlpHttpLogRecordExporterComponentProvider provider =
             new OtlpHttpLogRecordExporterComponentProvider();

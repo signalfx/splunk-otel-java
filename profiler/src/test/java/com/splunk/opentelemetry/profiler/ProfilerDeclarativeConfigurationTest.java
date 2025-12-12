@@ -55,7 +55,7 @@ class ProfilerDeclarativeConfigurationTest {
                         cpu_profiler:
                           sampling_interval: 1410
                         memory_profiler:
-                          event_rate: "250/s"
+                          sampling_interval: 4
                           native_sampling: true
             """);
 

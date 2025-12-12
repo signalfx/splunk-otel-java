@@ -169,7 +169,7 @@ class LogExporterBuilderTest {
                   splunk:
                     profiling:
                       exporter:
-                        otlp_http:
+                        otlp_log_http:
                           endpoint: "http://acme.com"
           """);
 
@@ -195,7 +195,7 @@ class LogExporterBuilderTest {
                       splunk:
                         profiling:
                           exporter:
-                            otlp_grpc:
+                            otlp_log_http:
                               endpoint: "http://acme.com"
               """);
 

@@ -58,7 +58,7 @@ dependencies {
     api("io.opentelemetry.contrib:opentelemetry-opamp-client:${otelContribAlphaVersion}")
     api("io.opentelemetry.proto:opentelemetry-proto:1.9.0-alpha")
 
-    api("org.apache.commons:commons-jexl3:3.6.0")
+    api("org.apache.commons:commons-jexl3:3.6.1")
     api("org.snakeyaml:snakeyaml-engine:2.10")
   }
 }

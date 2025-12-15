@@ -98,7 +98,7 @@ class SnapshotProfilingConfigurationTest {
   }
 
   @ParameterizedTest
-  @ValueSource(doubles = {1.0, 0.5, 0.11})
+  @ValueSource(doubles = {1.1, 5.0, 1.9, 1.0})
   void getSnapshotSelectionRateUsesMaxSelectionRateWhenConfiguredProbabilityIsHigher(
       double selectionRate) {
     var properties =
@@ -108,7 +108,7 @@ class SnapshotProfilingConfigurationTest {
 
     double actualSelectionRate =
         SnapshotProfilingConfiguration.getSnapshotSelectionProbability(properties);
-    assertEquals(0.10, actualSelectionRate);
+    assertEquals(1.0, actualSelectionRate);
   }
 
   @ParameterizedTest

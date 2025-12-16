@@ -33,7 +33,7 @@ public class SnapshotProfilingConfiguration {
   private static final String STAGING_CAPACITY_KEY = "splunk.snapshot.profiler.staging.capacity";
 
   private static final double DEFAULT_SELECTION_PROBABILITY = 0.01;
-  private static final double MAX_SELECTION_PROBABILITY = 0.10;
+  private static final double MAX_SELECTION_PROBABILITY = 1.0;
   private static final int DEFAULT_STACK_DEPTH = 1024;
   private static final Duration DEFAULT_SAMPLING_INTERVAL = Duration.ofMillis(10);
   private static final Duration DEFAULT_EXPORT_INTERVAL = Duration.ofSeconds(5);

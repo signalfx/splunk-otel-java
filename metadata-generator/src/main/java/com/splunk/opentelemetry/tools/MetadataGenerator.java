@@ -1438,6 +1438,18 @@ public class MetadataGenerator {
             SettingType.BOOLEAN,
             SettingCategory.INSTRUMENTATION));
 
+    // https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/instrumentation/apache-elasticjob-3.0/README.md
+    /*
+    | `otel.instrumentation.apache-elasticjob.experimental-span-attributes` | Boolean | `false` | Enable the capture of experimental span attributes. |
+     */
+    settings.add(
+        setting(
+            "otel.instrumentation.apache-elasticjob.experimental-span-attributes",
+            "Enable the capture of experimental span attributes.",
+            "false",
+            SettingType.BOOLEAN,
+            SettingCategory.INSTRUMENTATION));
+
     // https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/instrumentation/apache-shenyu-2.4/README.md
     /*
     | `otel.instrumentation.apache-shenyu.experimental-span-attributes`   | Boolean | `false` | Enable the capture of experimental span attributes. |
@@ -1486,6 +1498,7 @@ public class MetadataGenerator {
     /*
     | `otel.instrumentation.graphql.query-sanitizer.enabled` | Boolean | `true`  | Whether to remove sensitive information from query source that is added as span attribute. |
     | `otel.instrumentation.graphql.add-operation-name-to-span-name.enabled` | Boolean | `false` | Whether GraphQL operation name is added to the span name. <p>**WARNING**: GraphQL operation name is provided by the client and can have high cardinality. Use only when the server is not exposed to malicious clients. |
+    | `otel.instrumentation.graphql.capture-query`                           | Boolean | `true`  | Whether to capture the query in `graphql.document` span attribute.                                                                                                                                                      |
      */
     // graphql 20
     /*
@@ -1504,6 +1517,13 @@ public class MetadataGenerator {
             "otel.instrumentation.graphql.add-operation-name-to-span-name.enabled",
             "Whether GraphQL operation name is added to the span name. <p>**WARNING**: GraphQL operation name is provided by the client and can have high cardinality. Use only when the server is not exposed to malicious clients.",
             "false",
+            SettingType.BOOLEAN,
+            SettingCategory.INSTRUMENTATION));
+    settings.add(
+        setting(
+            "otel.instrumentation.graphql.capture-query",
+            "Whether to capture the query in `graphql.document` span attribute.",
+            "true",
             SettingType.BOOLEAN,
             SettingCategory.INSTRUMENTATION));
     settings.add(
@@ -2221,6 +2241,7 @@ public class MetadataGenerator {
     /*
     | `otel.instrumentation.servlet.experimental-span-attributes`            | Boolean | `false` | Enable the capture of experimental span attributes. |
     | `otel.instrumentation.servlet.experimental.capture-request-parameters` | List    | Empty   | Request parameters to be captured (experimental).   |
+    | `otel.instrumentation.servlet.experimental.add-trace-id-request-attribute` | Boolean | `true`  | Add `trace_id` and `span_id` as request attributes. |
      */
     settings.add(
         setting(
@@ -2231,6 +2252,13 @@ public class MetadataGenerator {
             SettingCategory.INSTRUMENTATION));
     // otel.instrumentation.servlet.experimental.capture-request-parameters is already added
     // elsewhere
+    settings.add(
+        setting(
+            "`otel.instrumentation.servlet.experimental.add-trace-id-request-attribute",
+            "Add `trace_id` and `span_id` as request attributes.",
+            "true",
+            SettingType.BOOLEAN,
+            SettingCategory.INSTRUMENTATION));
 
     // https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/instrumentation/spring/README.md
     /*
@@ -2454,6 +2482,10 @@ public class MetadataGenerator {
             .component("Apache DBCP", "2.7 and higher")
             .rpcClientMetrics(false)
             .rpcServerMetrics(false)
+            .build());
+    instrumentations.add(
+        instrumentation("apache-elasticjob")
+            .component("Apache ElasticJob", "3.0 and higher")
             .build());
     instrumentations.add(
         instrumentation("apache-httpasyncclient")

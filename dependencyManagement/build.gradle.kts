@@ -2,9 +2,9 @@ plugins {
   `java-platform`
 }
 
-val otelVersion = "1.56.0"
+val otelVersion = "1.57.0"
 val otelAlphaVersion = otelVersion.replaceFirst("(-SNAPSHOT)?$".toRegex(), "-alpha$1")
-val otelInstrumentationVersion = "2.22.0"
+val otelInstrumentationVersion = "2.23.0"
 val otelInstrumentationAlphaVersion =  otelInstrumentationVersion.replaceFirst("(-SNAPSHOT)?$".toRegex(), "-alpha$1")
 val otelContribAlphaVersion = "1.52.0-alpha"
 
@@ -35,7 +35,7 @@ dependencies {
   api(enforcedPlatform("io.opentelemetry:opentelemetry-bom-alpha:$otelAlphaVersion"))
   api(enforcedPlatform("io.opentelemetry.instrumentation:opentelemetry-instrumentation-bom-alpha:$otelInstrumentationAlphaVersion"))
   api(enforcedPlatform("org.junit:junit-bom:6.0.1"))
-  api(enforcedPlatform("org.testcontainers:testcontainers-bom:2.0.2"))
+  api(enforcedPlatform("org.testcontainers:testcontainers-bom:2.0.3"))
 
   constraints {
     api("com.google.auto.service:auto-service:1.1.1")
@@ -58,7 +58,7 @@ dependencies {
     api("io.opentelemetry.contrib:opentelemetry-opamp-client:${otelContribAlphaVersion}")
     api("io.opentelemetry.proto:opentelemetry-proto:1.9.0-alpha")
 
-    api("org.apache.commons:commons-jexl3:3.6.0")
+    api("org.apache.commons:commons-jexl3:3.6.1")
     api("org.snakeyaml:snakeyaml-engine:2.10")
   }
 }

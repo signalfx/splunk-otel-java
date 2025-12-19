@@ -63,7 +63,7 @@ class SnapshotProfilingConfigurationTest {
   }
 
   @ParameterizedTest
-  @ValueSource(doubles = {0.10, 0.05, 0.0})
+  @ValueSource(doubles = {0.10, 0.05, 0.01})
   void getSnapshotSelectionProbability(double selectionRate) {
     var properties =
         DefaultConfigProperties.create(
@@ -73,6 +73,17 @@ class SnapshotProfilingConfigurationTest {
     double actualSelectionRate =
         SnapshotProfilingConfiguration.getSnapshotSelectionProbability(properties);
     assertEquals(selectionRate, actualSelectionRate);
+  }
+
+  @Test
+  void zeroFallsBackToDefault() {
+    var properties =
+        DefaultConfigProperties.create(
+            Map.of("splunk.snapshot.selection.probability", "0"), COMPONENT_LOADER);
+
+    double actualSelectionRate =
+        SnapshotProfilingConfiguration.getSnapshotSelectionProbability(properties);
+    assertEquals(0.01, actualSelectionRate);
   }
 
   @Test
@@ -87,7 +98,7 @@ class SnapshotProfilingConfigurationTest {
   }
 
   @ParameterizedTest
-  @ValueSource(doubles = {1.0, 0.5, 0.11})
+  @ValueSource(doubles = {1.1, 5.0, 1.9, 1.0})
   void getSnapshotSelectionRateUsesMaxSelectionRateWhenConfiguredProbabilityIsHigher(
       double selectionRate) {
     var properties =
@@ -97,7 +108,7 @@ class SnapshotProfilingConfigurationTest {
 
     double actualSelectionRate =
         SnapshotProfilingConfiguration.getSnapshotSelectionProbability(properties);
-    assertEquals(0.10, actualSelectionRate);
+    assertEquals(1.0, actualSelectionRate);
   }
 
   @ParameterizedTest

@@ -17,9 +17,10 @@
 package com.splunk.opentelemetry.instrumentation.jdbc;
 
 import com.google.auto.service.AutoService;
+import io.opentelemetry.api.GlobalOpenTelemetry;
 import io.opentelemetry.context.propagation.TextMapPropagator;
+import io.opentelemetry.instrumentation.api.incubator.config.internal.DeclarativeConfigUtil;
 import io.opentelemetry.instrumentation.api.incubator.semconv.db.internal.SqlCommenterBuilder;
-import io.opentelemetry.javaagent.bootstrap.internal.AgentInstrumentationConfig;
 import io.opentelemetry.javaagent.bootstrap.internal.sqlcommenter.SqlCommenterCustomizer;
 
 @AutoService(SqlCommenterCustomizer.class)
@@ -30,8 +31,8 @@ public class SqlCommenterInitializer implements SqlCommenterCustomizer {
   @Override
   public void customize(SqlCommenterBuilder sqlCommenterBuilder) {
     sqlCommenterBuilder.setEnabled(
-        AgentInstrumentationConfig.get()
-            .getBoolean("otel.instrumentation.splunk-jdbc.enabled", false));
+        DeclarativeConfigUtil.getInstrumentationConfig(GlobalOpenTelemetry.get(), "splunk-jdbc")
+            .getBoolean("enabled", false));
     sqlCommenterBuilder.setPropagator(
         (connection, executed) -> {
           // note that besides jdbc this applies to r2dbc and other data access apis that upstream

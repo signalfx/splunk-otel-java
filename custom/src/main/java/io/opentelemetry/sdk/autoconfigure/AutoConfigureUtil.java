@@ -46,7 +46,7 @@ public final class AutoConfigureUtil {
   }
 
   public static boolean isDeclarativeConfig(AutoConfiguredOpenTelemetrySdk sdk) {
-    return sdk.getConfigProvider() != null;
+    return sdk.getConfig() == null;
   }
 
   @Nullable

@@ -8,6 +8,7 @@ dependencies {
   compileOnly("io.opentelemetry.semconv:opentelemetry-semconv-incubating")
   compileOnly("io.opentelemetry.instrumentation:opentelemetry-instrumentation-api")
   compileOnly("io.opentelemetry.instrumentation:opentelemetry-resources")
+  compileOnly("io.opentelemetry.instrumentation:opentelemetry-declarative-config-bridge")
   compileOnly("io.opentelemetry.javaagent:opentelemetry-javaagent-extension-api")
   compileOnly("io.opentelemetry.javaagent:opentelemetry-javaagent-tooling")
   compileOnly("io.opentelemetry.javaagent:opentelemetry-javaagent-internal-logging-simple")

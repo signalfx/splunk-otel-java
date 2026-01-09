@@ -20,6 +20,7 @@ import static io.opentelemetry.api.incubator.config.DeclarativeConfigProperties.
 
 import io.opentelemetry.api.incubator.config.ConfigProvider;
 import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
+import io.opentelemetry.instrumentation.config.bridge.ConfigPropertiesBackedConfigProvider;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import io.opentelemetry.sdk.resources.Resource;
 import java.util.logging.Logger;
@@ -46,7 +47,7 @@ public final class AutoConfigureUtil {
   }
 
   public static boolean isDeclarativeConfig(AutoConfiguredOpenTelemetrySdk sdk) {
-    return sdk.getConfigProvider() != null;
+    return !(sdk.getConfigProvider() instanceof ConfigPropertiesBackedConfigProvider);
   }
 
   @Nullable

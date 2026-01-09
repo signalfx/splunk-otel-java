@@ -65,8 +65,7 @@ public class SnapshotProfilingConfigurationCustomizerProvider
 
   private void initStackTraceSampler(
       SnapshotProfilingDeclarativeConfiguration snapshotProfilingConfig) {
-    StackTraceSamplerInitializer stackTraceSamplerInitializer = new StackTraceSamplerInitializer();
-    stackTraceSamplerInitializer.setupStackTraceSampler(snapshotProfilingConfig);
+    StackTraceSamplerInitializer.setupStackTraceSampler(snapshotProfilingConfig);
   }
 
   private void addShutdownHookSpanProcessor(OpenTelemetryConfigurationModel model) {

@@ -15,42 +15,19 @@
  */
 
 package com.splunk.opentelemetry.profiler.snapshot;
-
-import com.google.common.annotations.VisibleForTesting;
 import java.time.Duration;
-import java.util.function.Function;
 
 class StackTraceSamplerInitializer {
-  private final Function<SnapshotProfilingConfiguration, StackTraceSampler> samplerProvider;
+  public StackTraceSamplerInitializer() {}
 
-  public StackTraceSamplerInitializer() {
-    this(stackTraceSamplerProvider());
-  }
+  static void setupStackTraceSampler(SnapshotProfilingConfiguration configuration) {
+    Duration samplingPeriod = configuration.getSamplingInterval();
+    StagingArea.SUPPLIER.configure(createStagingArea(configuration));
 
-  // TODO: Add UTest for this class
-  @VisibleForTesting
-  StackTraceSamplerInitializer(StackTraceSampler sampler) {
-    this(properties -> sampler);
-  }
+    StackTraceSampler sampler = new PeriodicStackTraceSampler(
+        StagingArea.SUPPLIER, SpanTracker.SUPPLIER, samplingPeriod);
 
-  private StackTraceSamplerInitializer(
-      Function<SnapshotProfilingConfiguration, StackTraceSampler> samplerProvider) {
-    this.samplerProvider = samplerProvider;
-  }
-
-  void setupStackTraceSampler(SnapshotProfilingConfiguration configuration) {
-    StackTraceSampler sampler = samplerProvider.apply(configuration);
     StackTraceSampler.SUPPLIER.configure(sampler);
-  }
-
-  private static Function<SnapshotProfilingConfiguration, StackTraceSampler>
-      stackTraceSamplerProvider() {
-    return configuration -> {
-      Duration samplingPeriod = configuration.getSamplingInterval();
-      StagingArea.SUPPLIER.configure(createStagingArea(configuration));
-      return new PeriodicStackTraceSampler(
-          StagingArea.SUPPLIER, SpanTracker.SUPPLIER, samplingPeriod);
-    };
   }
 
   private static StagingArea createStagingArea(SnapshotProfilingConfiguration configuration) {

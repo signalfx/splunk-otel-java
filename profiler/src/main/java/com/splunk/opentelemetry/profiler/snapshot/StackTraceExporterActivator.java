@@ -16,6 +16,8 @@
 
 package com.splunk.opentelemetry.profiler.snapshot;
 
+import static io.opentelemetry.api.incubator.config.DeclarativeConfigProperties.empty;
+
 import com.google.auto.service.AutoService;
 import com.google.common.annotations.VisibleForTesting;
 import com.splunk.opentelemetry.profiler.OtelLoggerFactory;
@@ -26,8 +28,6 @@ import io.opentelemetry.sdk.autoconfigure.AutoConfigureUtil;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import io.opentelemetry.sdk.resources.Resource;
-
-import static io.opentelemetry.api.incubator.config.DeclarativeConfigProperties.empty;
 
 // TODO: Improve tests for this class to cover declarative config
 @AutoService(AgentListener.class)

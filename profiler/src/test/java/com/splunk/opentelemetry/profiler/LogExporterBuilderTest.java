@@ -18,6 +18,7 @@ package com.splunk.opentelemetry.profiler;
 
 import static com.splunk.opentelemetry.profiler.LogExporterBuilder.EXTRA_CONTENT_TYPE;
 import static com.splunk.opentelemetry.profiler.LogExporterBuilder.STACKTRACES_HEADER_VALUE;
+import static com.splunk.opentelemetry.testing.declarativeconfig.DeclarativeConfigTestUtil.getProfilingConfig;
 import static io.opentelemetry.api.incubator.config.DeclarativeConfigProperties.empty;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
@@ -30,14 +31,12 @@ import static org.mockito.Mockito.when;
 
 import com.splunk.opentelemetry.testing.declarativeconfig.DeclarativeConfigTestUtil;
 import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
-import io.opentelemetry.common.ComponentLoader;
 import io.opentelemetry.exporter.otlp.http.logs.OtlpHttpLogRecordExporter;
 import io.opentelemetry.exporter.otlp.http.logs.OtlpHttpLogRecordExporterBuilder;
 import io.opentelemetry.exporter.otlp.logs.OtlpGrpcLogRecordExporter;
 import io.opentelemetry.exporter.otlp.logs.OtlpGrpcLogRecordExporterBuilder;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigurationException;
-import io.opentelemetry.sdk.extension.incubator.fileconfig.YamlDeclarativeConfigProperties;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.OpenTelemetryConfigurationModel;
 import io.opentelemetry.sdk.logs.export.LogRecordExporter;
 import java.util.Map;
@@ -231,22 +230,9 @@ class LogExporterBuilderTest {
           .isInstanceOf(ConfigurationException.class);
     }
 
-    // TODO: This method and test YAMLs with "distribution" node must be updated to use valid
-    //       location once ConfigProvider exposes ".distribution" config.
-    //       For now it is temporary placed under the instrumentation node.
     private static DeclarativeConfigProperties getExporterConfig(
         OpenTelemetryConfigurationModel model) {
-      Map<String, Object> properties =
-          model.getInstrumentationDevelopment().getJava().getAdditionalProperties();
-      ComponentLoader componentLoader =
-          ComponentLoader.forClassLoader(DeclarativeConfigProperties.class.getClassLoader());
-      DeclarativeConfigProperties declarativeConfigProperties =
-          YamlDeclarativeConfigProperties.create(properties, componentLoader);
-      return declarativeConfigProperties
-          .getStructured("distribution", empty())
-          .getStructured("splunk", empty())
-          .getStructured("profiling", empty())
-          .getStructured("exporter", empty());
+      return getProfilingConfig(model).getStructured("exporter", empty());
     }
   }
 }

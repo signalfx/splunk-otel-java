@@ -20,8 +20,13 @@ import static io.opentelemetry.api.incubator.config.DeclarativeConfigProperties.
 
 import io.opentelemetry.api.incubator.config.ConfigProvider;
 import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
+import io.opentelemetry.common.ComponentLoader;
 import io.opentelemetry.instrumentation.config.bridge.ConfigPropertiesBackedConfigProvider;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
+import io.opentelemetry.sdk.extension.incubator.fileconfig.YamlDeclarativeConfigProperties;
+import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.ExperimentalLanguageSpecificInstrumentationModel;
+import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.InstrumentationModel;
+import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.OpenTelemetryConfigurationModel;
 import io.opentelemetry.sdk.resources.Resource;
 import java.util.logging.Logger;
 import javax.annotation.Nullable;
@@ -50,6 +55,8 @@ public final class AutoConfigureUtil {
     return !(sdk.getConfigProvider() instanceof ConfigPropertiesBackedConfigProvider);
   }
 
+  // TODO: This is temporary solution. For now assume that distribution node is located under
+  //       .instrumentation/development.java.distribution
   @Nullable
   public static DeclarativeConfigProperties getDistributionConfig(
       AutoConfiguredOpenTelemetrySdk sdk) {
@@ -58,16 +65,32 @@ public final class AutoConfigureUtil {
       return null;
     }
 
-    // TODO: This is temporary solution until distribution config support is implemented in the
-    //       upstream. For now assume that distribution node is located under
-    //       .instrumentation/development.java.distribution
-    //       Replace this code with `return sdk.getConfigProvider().getDistributionConfig()` once is
-    //       implemented
     DeclarativeConfigProperties instrumentationConfig = configProvider.getInstrumentationConfig();
     if (instrumentationConfig == null) {
       return null;
     }
     return instrumentationConfig.getStructured("java", empty()).getStructured("distribution");
+  }
+
+  public static DeclarativeConfigProperties getDistributionConfig(
+      OpenTelemetryConfigurationModel model) {
+    InstrumentationModel instrumentationModel = model.getInstrumentationDevelopment();
+    if (instrumentationModel == null) {
+      return empty();
+    }
+
+    ExperimentalLanguageSpecificInstrumentationModel javaModel = instrumentationModel.getJava();
+    if (javaModel == null) {
+      return empty();
+    }
+
+    ComponentLoader componentLoader =
+        ComponentLoader.forClassLoader(DeclarativeConfigProperties.class.getClassLoader());
+    DeclarativeConfigProperties config =
+        YamlDeclarativeConfigProperties.create(
+            javaModel.getAdditionalProperties(), componentLoader);
+
+    return config.getStructured("distribution", empty());
   }
 
   public static Resource getResource(AutoConfiguredOpenTelemetrySdk sdk) {

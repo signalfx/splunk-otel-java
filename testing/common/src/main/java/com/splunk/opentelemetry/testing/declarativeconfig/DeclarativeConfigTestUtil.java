@@ -16,7 +16,11 @@
 
 package com.splunk.opentelemetry.testing.declarativeconfig;
 
+import static io.opentelemetry.api.incubator.config.DeclarativeConfigProperties.empty;
+
 import io.opentelemetry.api.incubator.config.ConfigProvider;
+import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
+import io.opentelemetry.common.ComponentLoader;
 import io.opentelemetry.instrumentation.config.bridge.DeclarativeConfigPropertiesBridgeBuilder;
 import io.opentelemetry.sdk.OpenTelemetrySdk;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
@@ -25,6 +29,7 @@ import io.opentelemetry.sdk.autoconfigure.internal.AutoConfigureUtil;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.DeclarativeConfiguration;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.DeclarativeConfigurationBuilder;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.DeclarativeConfigurationCustomizerProvider;
+import io.opentelemetry.sdk.extension.incubator.fileconfig.YamlDeclarativeConfigProperties;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.OpenTelemetryConfigurationModel;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -34,6 +39,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Map;
 
 public class DeclarativeConfigTestUtil {
   private DeclarativeConfigTestUtil() {}
@@ -95,5 +101,24 @@ public class DeclarativeConfigTestUtil {
     } finally {
       System.clearProperty("otel.experimental.config.file");
     }
+  }
+
+  // TODO: This method and test YAMLs with "distribution" node must be updated to use valid
+  //       location once ConfigProvider exposes ".distribution" config.
+  //       For now it is temporary placed under the instrumentation node.
+  public static DeclarativeConfigProperties getProfilingConfig(
+      OpenTelemetryConfigurationModel model) {
+
+    Map<String, Object> properties =
+        model.getInstrumentationDevelopment().getJava().getAdditionalProperties();
+    ComponentLoader componentLoader =
+        ComponentLoader.forClassLoader(DeclarativeConfigProperties.class.getClassLoader());
+    DeclarativeConfigProperties declarativeConfigProperties =
+        YamlDeclarativeConfigProperties.create(properties, componentLoader);
+
+    return declarativeConfigProperties
+        .getStructured("distribution", empty())
+        .getStructured("splunk", empty())
+        .getStructured("profiling", empty());
   }
 }

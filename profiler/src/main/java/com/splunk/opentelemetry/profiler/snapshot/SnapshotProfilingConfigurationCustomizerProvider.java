@@ -17,13 +17,13 @@
 package com.splunk.opentelemetry.profiler.snapshot;
 
 import static io.opentelemetry.api.incubator.config.DeclarativeConfigProperties.empty;
+import static io.opentelemetry.sdk.autoconfigure.AutoConfigureUtil.getDistributionConfig;
 
 import com.google.auto.service.AutoService;
 import com.google.common.annotations.VisibleForTesting;
 import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.DeclarativeConfigurationCustomizer;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.DeclarativeConfigurationCustomizerProvider;
-import io.opentelemetry.sdk.extension.incubator.fileconfig.YamlDeclarativeConfigProperties;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.OpenTelemetryConfigurationModel;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.SpanProcessorModel;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.TracerProviderModel;
@@ -40,31 +40,22 @@ public class SnapshotProfilingConfigurationCustomizerProvider
 
   public void customize(DeclarativeConfigurationCustomizer configurationCustomizer) {
     configurationCustomizer.addModelCustomizer(this::customizeModel);
-    configurationCustomizer.addModelCustomizer(this::initSnapshotProfiler);
   }
 
   @VisibleForTesting
   OpenTelemetryConfigurationModel customizeModel(OpenTelemetryConfigurationModel model) {
     if (isSnapshotProfilingEnabled(model)) {
+      initActiveSpansTracking();
+      initStackTraceSampler(model);
       addShutdownHookSpanProcessor(model);
     }
     return model;
   }
 
-  @VisibleForTesting
-  OpenTelemetryConfigurationModel initSnapshotProfiler(OpenTelemetryConfigurationModel model) {
+  private void initStackTraceSampler(OpenTelemetryConfigurationModel model) {
     SnapshotProfilingDeclarativeConfiguration snapshotProfilingConfig =
         getSnapshotProfilingConfig(model);
 
-    if (snapshotProfilingConfig.isEnabled()) {
-      initActiveSpansTracking();
-      initStackTraceSampler(snapshotProfilingConfig);
-    }
-    return model;
-  }
-
-  private void initStackTraceSampler(
-      SnapshotProfilingDeclarativeConfiguration snapshotProfilingConfig) {
     StackTraceSamplerInitializer.setupStackTraceSampler(snapshotProfilingConfig);
   }
 
@@ -86,18 +77,11 @@ public class SnapshotProfilingConfigurationCustomizerProvider
 
   private static SnapshotProfilingDeclarativeConfiguration getSnapshotProfilingConfig(
       OpenTelemetryConfigurationModel model) {
-    DeclarativeConfigProperties config =
-        YamlDeclarativeConfigProperties.create(model.getAdditionalProperties(), null);
-
-    config =
-        config
-            .getStructured("instrumentation/development", empty())
-            .getStructured("java", empty())
-            .getStructured("distribution", empty())
+    DeclarativeConfigProperties profilingConfig =
+        getDistributionConfig(model)
             .getStructured("splunk", empty())
             .getStructured("profiling", empty());
-
-    return new SnapshotProfilingDeclarativeConfiguration(config);
+    return new SnapshotProfilingDeclarativeConfiguration(profilingConfig);
   }
 
   private static boolean isSnapshotProfilingEnabled(OpenTelemetryConfigurationModel model) {

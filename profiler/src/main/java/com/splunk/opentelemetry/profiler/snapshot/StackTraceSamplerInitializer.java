@@ -15,6 +15,7 @@
  */
 
 package com.splunk.opentelemetry.profiler.snapshot;
+
 import java.time.Duration;
 
 class StackTraceSamplerInitializer {
@@ -24,8 +25,8 @@ class StackTraceSamplerInitializer {
     Duration samplingPeriod = configuration.getSamplingInterval();
     StagingArea.SUPPLIER.configure(createStagingArea(configuration));
 
-    StackTraceSampler sampler = new PeriodicStackTraceSampler(
-        StagingArea.SUPPLIER, SpanTracker.SUPPLIER, samplingPeriod);
+    StackTraceSampler sampler =
+        new PeriodicStackTraceSampler(StagingArea.SUPPLIER, SpanTracker.SUPPLIER, samplingPeriod);
 
     StackTraceSampler.SUPPLIER.configure(sampler);
   }

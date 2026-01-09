@@ -16,17 +16,14 @@
 
 package com.splunk.opentelemetry.profiler;
 
-import static io.opentelemetry.api.incubator.config.DeclarativeConfigProperties.empty;
+import static com.splunk.opentelemetry.testing.declarativeconfig.DeclarativeConfigTestUtil.getProfilingConfig;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.splunk.opentelemetry.testing.declarativeconfig.DeclarativeConfigTestUtil;
 import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
-import io.opentelemetry.common.ComponentLoader;
-import io.opentelemetry.sdk.extension.incubator.fileconfig.YamlDeclarativeConfigProperties;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.OpenTelemetryConfigurationModel;
 import java.time.Duration;
-import java.util.Map;
 import org.junit.jupiter.api.Test;
 
 class ProfilerDeclarativeConfigurationTest {
@@ -81,19 +78,5 @@ class ProfilerDeclarativeConfigurationTest {
 
     assertThrows(UnsupportedOperationException.class, config::getIngestUrl);
     assertThrows(UnsupportedOperationException.class, config::getOtlpProtocol);
-  }
-
-  private static DeclarativeConfigProperties getProfilingConfig(
-      OpenTelemetryConfigurationModel model) {
-    Map<String, Object> properties =
-        model.getInstrumentationDevelopment().getJava().getAdditionalProperties();
-    ComponentLoader componentLoader =
-        ComponentLoader.forClassLoader(DeclarativeConfigProperties.class.getClassLoader());
-    DeclarativeConfigProperties declarativeConfigProperties =
-        YamlDeclarativeConfigProperties.create(properties, componentLoader);
-    return declarativeConfigProperties
-        .getStructured("distribution", empty())
-        .getStructured("splunk", empty())
-        .getStructured("profiling", empty());
   }
 }

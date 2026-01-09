@@ -56,10 +56,11 @@ class SnapshotProfilingConfigurationCustomizerProviderTest {
             "file_format: \"1.0-rc.2\"",
             "instrumentation/development:",
             "  java:",
-            "    splunk:",
-            "      snapshot:",
-            "        profiler:",
-            "          enabled: true");
+            "    distribution:",
+            "      splunk:",
+            "        snapshot:",
+            "          profiler:",
+            "            enabled: true");
 
     // when
     OpenTelemetryConfigurationModel model = getCustomizedModel(yaml);
@@ -87,12 +88,11 @@ class SnapshotProfilingConfigurationCustomizerProviderTest {
             "          enabled: true");
 
     TraceRegistry traceRegistryMock = mock(TraceRegistry.class);
-    StackTraceSampler stackTraceSamplerMock = mock(StackTraceSampler.class);
     ContextStorageWrapper contextStorageWrapperMock = mock(ContextStorageWrapper.class);
 
     SnapshotProfilingConfigurationCustomizerProvider customizerProvider =
         new SnapshotProfilingConfigurationCustomizerProvider(
-            traceRegistryMock, stackTraceSamplerMock, contextStorageWrapperMock);
+            traceRegistryMock, contextStorageWrapperMock);
 
     // when
     customizerProvider.customizeModel(model);

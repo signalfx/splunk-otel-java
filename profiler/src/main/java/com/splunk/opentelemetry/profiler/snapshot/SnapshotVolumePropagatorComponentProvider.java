@@ -19,12 +19,10 @@ package com.splunk.opentelemetry.profiler.snapshot;
 import com.google.auto.service.AutoService;
 import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
 import io.opentelemetry.context.propagation.TextMapPropagator;
-import io.opentelemetry.sdk.autoconfigure.spi.ConfigurationException;
 import io.opentelemetry.sdk.autoconfigure.spi.internal.ComponentProvider;
 
 @AutoService(ComponentProvider.class)
 public class SnapshotVolumePropagatorComponentProvider implements ComponentProvider {
-  private static final double MAX_SELECTION_PROBABILITY = 0.1;
   private static final String SELECTION_PROBABILITY_PROPERTY = "snapshot_selection_probability";
 
   @Override
@@ -39,25 +37,13 @@ public class SnapshotVolumePropagatorComponentProvider implements ComponentProvi
 
   @Override
   public TextMapPropagator create(DeclarativeConfigProperties propagatorProperties) {
+    // TODO: This class probably should use SnapshotProfilingDeclarativeConfiguration class instead
+    // of propagatorProperties
+    //       to get config values
     double selectionProbability =
         propagatorProperties.getDouble(SELECTION_PROBABILITY_PROPERTY, 0.01);
 
-    validateConfiguration(selectionProbability);
-
     return new SnapshotVolumePropagator(selector(selectionProbability));
-  }
-
-  private static void validateConfiguration(double selectionProbability) {
-    if ((selectionProbability < 0) || (selectionProbability > MAX_SELECTION_PROBABILITY)) {
-      throw new ConfigurationException(
-          "Invalid value of "
-              + SELECTION_PROBABILITY_PROPERTY
-              + " property: "
-              + selectionProbability
-              + " - should be in range [0, "
-              + MAX_SELECTION_PROBABILITY
-              + "]");
-    }
   }
 
   private SnapshotSelector selector(double selectionProbability) {

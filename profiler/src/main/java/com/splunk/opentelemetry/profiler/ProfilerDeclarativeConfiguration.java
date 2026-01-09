@@ -32,17 +32,17 @@ public class ProfilerDeclarativeConfiguration implements ProfilerConfiguration {
   private static final long DEFAULT_SAMPLING_INTERVAL = Duration.ofSeconds(10).toMillis();
 
   private static final String MEMORY_PROFILER = "memory_profiler";
-  private static final String MEMORY_SAMPLING_INTERVAL = "sampling_interval";
+  private static final String MEMORY_EVENT_RATE = "event_rate";
 
-  private final DeclarativeConfigProperties config;
+  private final DeclarativeConfigProperties profilingConfig;
 
-  public ProfilerDeclarativeConfiguration(DeclarativeConfigProperties config) {
-    this.config = config;
+  public ProfilerDeclarativeConfiguration(DeclarativeConfigProperties profilingConfig) {
+    this.profilingConfig = profilingConfig;
   }
 
   @Override
   public boolean isEnabled() {
-    return !config.equals(empty());
+    return !profilingConfig.equals(empty());
   }
 
   @Override
@@ -87,15 +87,12 @@ public class ProfilerDeclarativeConfiguration implements ProfilerConfiguration {
 
   @Override
   public boolean getMemoryEventRateLimitEnabled() {
-    return getMemoryProfilerConfig().getLong(MEMORY_SAMPLING_INTERVAL) != null;
+    return getMemoryProfilerConfig().getString(MEMORY_EVENT_RATE) != null;
   }
 
   @Override
   public String getMemoryEventRate() {
-    long memorySamplingInterval =
-        getMemoryProfilerConfig().getLong(MEMORY_SAMPLING_INTERVAL, DEFAULT_SAMPLING_INTERVAL);
-    long rate = 1000L / memorySamplingInterval;
-    return rate + "/s";
+    return getMemoryProfilerConfig().getString(MEMORY_EVENT_RATE, "150/s");
   }
 
   @Override
@@ -130,7 +127,7 @@ public class ProfilerDeclarativeConfiguration implements ProfilerConfiguration {
 
   @Override
   public int getStackDepth() {
-    return getConfigRoot().getInt("stack_depth_limit", 1024);
+    return getConfigRoot().getInt("stack_depth", 1024);
   }
 
   @Override
@@ -150,11 +147,11 @@ public class ProfilerDeclarativeConfiguration implements ProfilerConfiguration {
 
   @Override
   public DeclarativeConfigProperties getConfigProperties() {
-    return config;
+    return profilingConfig;
   }
 
   private DeclarativeConfigProperties getConfigRoot() {
-    return config.getStructured("always_on", empty());
+    return profilingConfig.getStructured("always_on", empty());
   }
 
   private DeclarativeConfigProperties getMemoryProfilerConfig() {

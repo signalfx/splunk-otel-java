@@ -39,7 +39,10 @@ class GracefulShutdownTest {
       OpenTelemetrySdkExtension.configure()
           .withProperty("splunk.snapshot.profiler.enabled", "true")
           .with(Snapshotting.customizer().withRealStackTraceSampler().withRealStagingArea().build())
-          .with(new StackTraceExporterActivator(new OtelLoggerFactory(properties -> logExporter)))
+          .with(
+              new StackTraceExporterActivator(
+                  new OtelLoggerFactory(
+                      properties -> logExporter, declarativeConfigProperties -> logExporter)))
           .build();
 
   @Test

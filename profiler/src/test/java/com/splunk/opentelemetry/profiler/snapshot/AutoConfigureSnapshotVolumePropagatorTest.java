@@ -85,7 +85,7 @@ class AutoConfigureSnapshotVolumePropagatorTest {
     try (var sdk =
         newSdk()
             .withProperty(
-                SnapshotProfilingConfiguration.CONFIG_KEY_ENABLE_SNAPSHOT_PROFILER, "false")
+                SnapshotProfilingEnvVarsConfiguration.CONFIG_KEY_ENABLE_SNAPSHOT_PROFILER, "false")
             .build()) {
       var properties = sdk.getConfig();
       assertThat(properties.getList(OTEL_PROPAGATORS))
@@ -125,7 +125,8 @@ class AutoConfigureSnapshotVolumePropagatorTest {
 
   private Builder newSdk() {
     return OpenTelemetrySdkExtension.configure()
-        .withProperty(SnapshotProfilingConfiguration.CONFIG_KEY_ENABLE_SNAPSHOT_PROFILER, "true")
+        .withProperty(
+            SnapshotProfilingEnvVarsConfiguration.CONFIG_KEY_ENABLE_SNAPSHOT_PROFILER, "true")
         .with(new SnapshotProfilingSdkCustomizer());
   }
 }

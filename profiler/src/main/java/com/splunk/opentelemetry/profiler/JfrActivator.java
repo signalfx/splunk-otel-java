@@ -89,10 +89,7 @@ public class JfrActivator implements AgentListener {
       DeclarativeConfigProperties distributionConfig = AutoConfigureUtil.getDistributionConfig(sdk);
       distributionConfig = Optional.ofNullable(distributionConfig).orElse(empty());
       return new ProfilerDeclarativeConfiguration(
-          distributionConfig
-              .getStructured("splunk", empty())
-              .getStructured("profiling", empty())
-              .getStructured("always_on", empty()));
+          distributionConfig.getStructured("splunk", empty()).getStructured("profiling", empty()));
     } else {
       ConfigProperties configProperties = AutoConfigureUtil.getConfig(sdk);
       return new ProfilerEnvVarsConfiguration(configProperties);

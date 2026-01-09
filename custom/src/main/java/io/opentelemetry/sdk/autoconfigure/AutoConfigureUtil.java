@@ -66,9 +66,7 @@ public final class AutoConfigureUtil {
     if (instrumentationConfig == null) {
       return null;
     }
-    return instrumentationConfig
-        .getStructured("java", empty())
-        .getStructured("distribution", empty());
+    return instrumentationConfig.getStructured("java", empty()).getStructured("distribution");
   }
 
   public static Resource getResource(AutoConfiguredOpenTelemetrySdk sdk) {

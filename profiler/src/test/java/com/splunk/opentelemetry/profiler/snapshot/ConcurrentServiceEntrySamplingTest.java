@@ -62,7 +62,10 @@ class ConcurrentServiceEntrySamplingTest {
       OpenTelemetrySdkExtension.configure()
           .withProperty("splunk.snapshot.profiler.enabled", "true")
           .with(downstreamCustomizer)
-          .with(new StackTraceExporterActivator(new OtelLoggerFactory(properties -> logExporter)))
+          .with(
+              new StackTraceExporterActivator(
+                  new OtelLoggerFactory(
+                      properties -> logExporter, declarativeConfigProperties -> logExporter)))
           .build();
 
   @RegisterExtension

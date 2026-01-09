@@ -28,7 +28,7 @@ public class SnapshotVolumePropagatorProvider implements ConfigurablePropagatorP
   @Override
   public TextMapPropagator getPropagator(ConfigProperties config) {
     double selectionProbability =
-        SnapshotProfilingConfiguration.getSnapshotSelectionProbability(config);
+        new SnapshotProfilingEnvVarsConfiguration(config).getSnapshotSelectionProbability();
     return new SnapshotVolumePropagator(selector(selectionProbability));
   }
 

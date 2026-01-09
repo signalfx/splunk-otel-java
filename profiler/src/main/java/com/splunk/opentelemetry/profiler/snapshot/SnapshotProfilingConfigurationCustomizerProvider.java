@@ -16,57 +16,57 @@
 
 package com.splunk.opentelemetry.profiler.snapshot;
 
+import static io.opentelemetry.api.incubator.config.DeclarativeConfigProperties.empty;
+
 import com.google.auto.service.AutoService;
 import com.google.common.annotations.VisibleForTesting;
 import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
-import io.opentelemetry.instrumentation.config.bridge.DeclarativeConfigPropertiesBridgeBuilder;
-import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.DeclarativeConfigurationCustomizer;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.DeclarativeConfigurationCustomizerProvider;
-import io.opentelemetry.sdk.extension.incubator.fileconfig.SdkConfigProvider;
+import io.opentelemetry.sdk.extension.incubator.fileconfig.YamlDeclarativeConfigProperties;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.OpenTelemetryConfigurationModel;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.SpanProcessorModel;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.TracerProviderModel;
-import java.time.Duration;
-import java.util.function.Function;
 
 @AutoService(DeclarativeConfigurationCustomizerProvider.class)
 public class SnapshotProfilingConfigurationCustomizerProvider
     implements DeclarativeConfigurationCustomizerProvider {
   private final TraceRegistry registry;
-  private final Function<ConfigProperties, StackTraceSampler> samplerProvider;
   private final ContextStorageWrapper contextStorageWrapper;
 
   public SnapshotProfilingConfigurationCustomizerProvider() {
-    this(
-        TraceRegistryHolder.getTraceRegistry(),
-        stackTraceSamplerProvider(),
-        new ContextStorageWrapper());
+    this(TraceRegistryHolder.getTraceRegistry(), new ContextStorageWrapper());
   }
 
   public void customize(DeclarativeConfigurationCustomizer configurationCustomizer) {
     configurationCustomizer.addModelCustomizer(this::customizeModel);
+    configurationCustomizer.addModelCustomizer(this::initSnapshotProfiler);
   }
 
   @VisibleForTesting
   OpenTelemetryConfigurationModel customizeModel(OpenTelemetryConfigurationModel model) {
     if (isSnapshotProfilingEnabled(model)) {
-      setupStackTraceSampler(model);
       addShutdownHookSpanProcessor(model);
-      initActiveSpansTracking();
     }
     return model;
   }
 
-  private void setupStackTraceSampler(OpenTelemetryConfigurationModel model) {
-    DeclarativeConfigProperties instrumentationConfig =
-        SdkConfigProvider.create(model).getInstrumentationConfig();
-    ConfigProperties properties =
-        new DeclarativeConfigPropertiesBridgeBuilder()
-            .buildFromInstrumentationConfig(instrumentationConfig);
-    StackTraceSampler sampler = samplerProvider.apply(properties);
-    ConfigurableSupplier<StackTraceSampler> supplier = StackTraceSampler.SUPPLIER;
-    supplier.configure(sampler);
+  @VisibleForTesting
+  OpenTelemetryConfigurationModel initSnapshotProfiler(OpenTelemetryConfigurationModel model) {
+    SnapshotProfilingDeclarativeConfiguration snapshotProfilingConfig =
+        getSnapshotProfilingConfig(model);
+
+    if (snapshotProfilingConfig.isEnabled()) {
+      initActiveSpansTracking();
+      initStackTraceSampler(snapshotProfilingConfig);
+    }
+    return model;
+  }
+
+  private void initStackTraceSampler(
+      SnapshotProfilingDeclarativeConfiguration snapshotProfilingConfig) {
+    StackTraceSamplerInitializer stackTraceSamplerInitializer = new StackTraceSamplerInitializer();
+    stackTraceSamplerInitializer.setupStackTraceSampler(snapshotProfilingConfig);
   }
 
   private void addShutdownHookSpanProcessor(OpenTelemetryConfigurationModel model) {
@@ -85,49 +85,32 @@ public class SnapshotProfilingConfigurationCustomizerProvider
     contextStorageWrapper.wrapContextStorage(registry);
   }
 
-  private static Function<ConfigProperties, StackTraceSampler> stackTraceSamplerProvider() {
-    return properties -> {
-      Duration samplingPeriod = SnapshotProfilingConfiguration.getSamplingInterval(properties);
-      StagingArea.SUPPLIER.configure(createStagingArea(properties));
-      return new PeriodicStackTraceSampler(
-          StagingArea.SUPPLIER, SpanTracker.SUPPLIER, samplingPeriod);
-    };
-  }
+  private static SnapshotProfilingDeclarativeConfiguration getSnapshotProfilingConfig(
+      OpenTelemetryConfigurationModel model) {
+    DeclarativeConfigProperties config =
+        YamlDeclarativeConfigProperties.create(model.getAdditionalProperties(), null);
 
-  private static StagingArea createStagingArea(ConfigProperties properties) {
-    Duration interval = SnapshotProfilingConfiguration.getExportInterval(properties);
-    int capacity = SnapshotProfilingConfiguration.getStagingCapacity(properties);
-    return new PeriodicallyExportingStagingArea(StackTraceExporter.SUPPLIER, interval, capacity);
+    config =
+        config
+            .getStructured("instrumentation/development", empty())
+            .getStructured("java", empty())
+            .getStructured("distribution", empty())
+            .getStructured("splunk", empty())
+            .getStructured("profiling", empty());
+
+    return new SnapshotProfilingDeclarativeConfiguration(config);
   }
 
   private static boolean isSnapshotProfilingEnabled(OpenTelemetryConfigurationModel model) {
-    SdkConfigProvider configProvider = SdkConfigProvider.create(model);
-    if (configProvider.getInstrumentationConfig() == null) {
-      return false;
-    }
-    return configProvider
-        .getInstrumentationConfig()
-        .getStructured("java", DeclarativeConfigProperties.empty())
-        .getStructured("splunk", DeclarativeConfigProperties.empty())
-        .getStructured("snapshot", DeclarativeConfigProperties.empty())
-        .getStructured("profiler", DeclarativeConfigProperties.empty())
-        .getBoolean("enabled", false);
+    SnapshotProfilingDeclarativeConfiguration snapshotProfilingConfig =
+        getSnapshotProfilingConfig(model);
+    return snapshotProfilingConfig.isEnabled();
   }
 
   @VisibleForTesting
   SnapshotProfilingConfigurationCustomizerProvider(
-      TraceRegistry registry,
-      StackTraceSampler sampler,
-      ContextStorageWrapper contextStorageWrapper) {
-    this(registry, properties -> sampler, contextStorageWrapper);
-  }
-
-  private SnapshotProfilingConfigurationCustomizerProvider(
-      TraceRegistry registry,
-      Function<ConfigProperties, StackTraceSampler> samplerProvider,
-      ContextStorageWrapper contextStorageWrapper) {
+      TraceRegistry registry, ContextStorageWrapper contextStorageWrapper) {
     this.registry = registry;
-    this.samplerProvider = samplerProvider;
     this.contextStorageWrapper = contextStorageWrapper;
   }
 }

@@ -19,6 +19,7 @@ package com.splunk.opentelemetry.profiler.snapshot;
 import com.google.auto.service.AutoService;
 import com.google.common.annotations.VisibleForTesting;
 import com.splunk.opentelemetry.profiler.OtelLoggerFactory;
+import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
 import io.opentelemetry.api.logs.Logger;
 import io.opentelemetry.javaagent.extension.AgentListener;
 import io.opentelemetry.sdk.autoconfigure.AutoConfigureUtil;
@@ -26,6 +27,9 @@ import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import io.opentelemetry.sdk.resources.Resource;
 
+import static io.opentelemetry.api.incubator.config.DeclarativeConfigProperties.empty;
+
+// TODO: Improve tests for this class to cover declarative config
 @AutoService(AgentListener.class)
 public class StackTraceExporterActivator implements AgentListener {
   private static final java.util.logging.Logger logger =
@@ -44,27 +48,32 @@ public class StackTraceExporterActivator implements AgentListener {
 
   @Override
   public void afterAgent(AutoConfiguredOpenTelemetrySdk sdk) {
-    ConfigProperties properties = AutoConfigureUtil.getConfig(sdk);
-    if (!snapshotProfilingEnabled(properties)) {
+    SnapshotProfilingConfiguration configuration = SnapshotProfilingConfiguration.fromSdk(sdk);
+    if (!configuration.isEnabled()) {
       return;
     }
 
-    SnapshotProfilingConfiguration.log(properties);
+    configuration.log();
 
-    int maxDepth = SnapshotProfilingConfiguration.getStackDepth(properties);
-    Logger otelLogger = buildLogger(sdk, properties);
+    int maxDepth = configuration.getStackDepth();
+    Logger otelLogger = buildLogger(sdk, configuration.getConfigProperties());
     AsyncStackTraceExporter exporter = new AsyncStackTraceExporter(otelLogger, maxDepth);
     StackTraceExporter.SUPPLIER.configure(exporter);
 
     logger.info("Snapshot profiling is active.");
   }
 
-  private boolean snapshotProfilingEnabled(ConfigProperties properties) {
-    return SnapshotProfilingConfiguration.isSnapshotProfilingEnabled(properties);
-  }
-
-  private Logger buildLogger(AutoConfiguredOpenTelemetrySdk sdk, ConfigProperties properties) {
+  private Logger buildLogger(AutoConfiguredOpenTelemetrySdk sdk, Object configProperties) {
     Resource resource = AutoConfigureUtil.getResource(sdk);
-    return otelLoggerFactory.build(properties, resource);
+    if (configProperties instanceof DeclarativeConfigProperties) {
+      DeclarativeConfigProperties exporterConfig =
+          ((DeclarativeConfigProperties) configProperties).getStructured("exporter", empty());
+      return otelLoggerFactory.build(exporterConfig, resource);
+    }
+    if (configProperties instanceof ConfigProperties) {
+      return otelLoggerFactory.build((ConfigProperties) configProperties, resource);
+    }
+    throw new IllegalArgumentException(
+        "Unsupported config properties type: " + configProperties.getClass().getName());
   }
 }

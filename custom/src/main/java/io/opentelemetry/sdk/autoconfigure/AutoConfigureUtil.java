@@ -52,7 +52,8 @@ public final class AutoConfigureUtil {
   }
 
   public static boolean isDeclarativeConfig(AutoConfiguredOpenTelemetrySdk sdk) {
-    return (sdk.getConfigProvider() != null) && !(sdk.getConfigProvider() instanceof ConfigPropertiesBackedConfigProvider);
+    return (sdk.getConfigProvider() != null)
+        && !(sdk.getConfigProvider() instanceof ConfigPropertiesBackedConfigProvider);
   }
 
   // TODO: This is temporary solution. For now assume that distribution node is located under

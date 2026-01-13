@@ -24,6 +24,7 @@ import com.splunk.opentelemetry.testing.declarativeconfig.DeclarativeConfigTestU
 import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
 import io.opentelemetry.common.ComponentLoader;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.YamlDeclarativeConfigProperties;
+import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.ExperimentalLanguageSpecificInstrumentationPropertyModel;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.OpenTelemetryConfigurationModel;
 import java.time.Duration;
 import java.util.Map;
@@ -85,8 +86,10 @@ class ProfilerDeclarativeConfigurationTest {
 
   private static DeclarativeConfigProperties getProfilingConfig(
       OpenTelemetryConfigurationModel model) {
-    Map<String, Object> properties =
+    Map<String, ExperimentalLanguageSpecificInstrumentationPropertyModel> original =
         model.getInstrumentationDevelopment().getJava().getAdditionalProperties();
+    Map<String, Object> properties =
+        Map.of("distribution", original.get("distribution").getAdditionalProperties());
     ComponentLoader componentLoader =
         ComponentLoader.forClassLoader(DeclarativeConfigProperties.class.getClassLoader());
     DeclarativeConfigProperties declarativeConfigProperties =

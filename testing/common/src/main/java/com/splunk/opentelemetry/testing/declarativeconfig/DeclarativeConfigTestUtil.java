@@ -16,12 +16,12 @@
 
 package com.splunk.opentelemetry.testing.declarativeconfig;
 
+import io.opentelemetry.api.incubator.ExtendedOpenTelemetry;
 import io.opentelemetry.api.incubator.config.ConfigProvider;
 import io.opentelemetry.instrumentation.config.bridge.DeclarativeConfigPropertiesBridgeBuilder;
 import io.opentelemetry.sdk.OpenTelemetrySdk;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 import io.opentelemetry.sdk.autoconfigure.SdkAutoconfigureAccess;
-import io.opentelemetry.sdk.autoconfigure.internal.AutoConfigureUtil;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.DeclarativeConfiguration;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.DeclarativeConfigurationBuilder;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.DeclarativeConfigurationCustomizerProvider;
@@ -79,7 +79,8 @@ public class DeclarativeConfigTestUtil {
                           "otel.experimental.config.file", configFilePath.toString()))
               .build();
 
-      ConfigProvider configProvider = AutoConfigureUtil.getConfigProvider(autoConfiguredSdk);
+      ConfigProvider configProvider =
+          ((ExtendedOpenTelemetry) autoConfiguredSdk.getOpenTelemetrySdk()).getConfigProvider();
       OpenTelemetrySdk sdk = autoConfiguredSdk.getOpenTelemetrySdk();
 
       if (configProvider != null) {
@@ -87,8 +88,7 @@ public class DeclarativeConfigTestUtil {
             sdk,
             SdkAutoconfigureAccess.getResource(autoConfiguredSdk),
             new DeclarativeConfigPropertiesBridgeBuilder()
-                .buildFromInstrumentationConfig(configProvider.getInstrumentationConfig()),
-            configProvider);
+                .buildFromInstrumentationConfig(configProvider.getInstrumentationConfig()));
       }
 
       return autoConfiguredSdk;

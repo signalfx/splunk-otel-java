@@ -38,6 +38,7 @@ import io.opentelemetry.exporter.otlp.logs.OtlpGrpcLogRecordExporterBuilder;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigurationException;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.YamlDeclarativeConfigProperties;
+import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.ExperimentalLanguageSpecificInstrumentationPropertyModel;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.OpenTelemetryConfigurationModel;
 import io.opentelemetry.sdk.logs.export.LogRecordExporter;
 import java.util.Map;
@@ -236,8 +237,10 @@ class LogExporterBuilderTest {
     //       For now it is temporary placed under the instrumentation node.
     private static DeclarativeConfigProperties getExporterConfig(
         OpenTelemetryConfigurationModel model) {
-      Map<String, Object> properties =
+      Map<String, ExperimentalLanguageSpecificInstrumentationPropertyModel> original =
           model.getInstrumentationDevelopment().getJava().getAdditionalProperties();
+      Map<String, Object> properties =
+          Map.of("distribution", original.get("distribution").getAdditionalProperties());
       ComponentLoader componentLoader =
           ComponentLoader.forClassLoader(DeclarativeConfigProperties.class.getClassLoader());
       DeclarativeConfigProperties declarativeConfigProperties =

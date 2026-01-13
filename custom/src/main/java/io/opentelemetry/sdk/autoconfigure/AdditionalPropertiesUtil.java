@@ -39,7 +39,13 @@ public class AdditionalPropertiesUtil {
         target = ((Map<String, Object>) target).get(propertyNameSegments[i]);
         if (target == null) {
           return null;
-        } else if (!(target instanceof Map)) {
+        }
+        if (target instanceof ExperimentalLanguageSpecificInstrumentationPropertyModel) {
+          target =
+              ((ExperimentalLanguageSpecificInstrumentationPropertyModel) target)
+                  .getAdditionalProperties();
+        }
+        if (!(target instanceof Map)) {
           throw new IllegalArgumentException(
               "Property name: "
                   + propertyName

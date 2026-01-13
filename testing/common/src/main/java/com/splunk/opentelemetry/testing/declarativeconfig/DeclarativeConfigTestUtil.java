@@ -30,6 +30,7 @@ import io.opentelemetry.sdk.extension.incubator.fileconfig.DeclarativeConfigurat
 import io.opentelemetry.sdk.extension.incubator.fileconfig.DeclarativeConfigurationBuilder;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.DeclarativeConfigurationCustomizerProvider;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.YamlDeclarativeConfigProperties;
+import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.ExperimentalLanguageSpecificInstrumentationPropertyModel;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.OpenTelemetryConfigurationModel;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -109,8 +110,10 @@ public class DeclarativeConfigTestUtil {
   public static DeclarativeConfigProperties getProfilingConfig(
       OpenTelemetryConfigurationModel model) {
 
-    Map<String, Object> properties =
+    Map<String, ExperimentalLanguageSpecificInstrumentationPropertyModel> original =
         model.getInstrumentationDevelopment().getJava().getAdditionalProperties();
+    Map<String, Object> properties =
+        Map.of("distribution", original.get("distribution").getAdditionalProperties());
     ComponentLoader componentLoader =
         ComponentLoader.forClassLoader(DeclarativeConfigProperties.class.getClassLoader());
     DeclarativeConfigProperties declarativeConfigProperties =

@@ -26,10 +26,13 @@ import io.opentelemetry.common.ComponentLoader;
 import io.opentelemetry.instrumentation.config.bridge.ConfigPropertiesBackedConfigProvider;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.YamlDeclarativeConfigProperties;
+import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.ExperimentalInstrumentationModel;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.ExperimentalLanguageSpecificInstrumentationModel;
-import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.InstrumentationModel;
+import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.ExperimentalLanguageSpecificInstrumentationPropertyModel;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.OpenTelemetryConfigurationModel;
 import io.opentelemetry.sdk.resources.Resource;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Logger;
 import javax.annotation.Nullable;
 
@@ -85,7 +88,7 @@ public final class AutoConfigureUtil {
 
   public static DeclarativeConfigProperties getDistributionConfig(
       OpenTelemetryConfigurationModel model) {
-    InstrumentationModel instrumentationModel = model.getInstrumentationDevelopment();
+    ExperimentalInstrumentationModel instrumentationModel = model.getInstrumentationDevelopment();
     if (instrumentationModel == null) {
       return empty();
     }
@@ -97,9 +100,14 @@ public final class AutoConfigureUtil {
 
     ComponentLoader componentLoader =
         ComponentLoader.forClassLoader(DeclarativeConfigProperties.class.getClassLoader());
+    Map<String, ExperimentalLanguageSpecificInstrumentationPropertyModel> original =
+        javaModel.getAdditionalProperties();
+    Map<String, Object> properties = new HashMap<>();
+    ExperimentalLanguageSpecificInstrumentationPropertyModel distribution = original.get(
+        "distribution");
+    properties.put("distribution", distribution != null ? distribution.getAdditionalProperties() : null);
     DeclarativeConfigProperties config =
-        YamlDeclarativeConfigProperties.create(
-            javaModel.getAdditionalProperties(), componentLoader);
+        YamlDeclarativeConfigProperties.create(properties, componentLoader);
 
     return config.getStructured("distribution", empty()); // Should this empty() be there?
   }

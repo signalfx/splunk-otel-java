@@ -27,6 +27,8 @@ public class ProfilerDeclarativeConfiguration implements ProfilerConfiguration {
   private static final Logger logger =
       Logger.getLogger(ProfilerDeclarativeConfiguration.class.getName());
 
+  private static final String ROOT_NODE_NAME = "always_on";
+
   private static final String DEFAULT_PROFILER_DIRECTORY = System.getProperty("java.io.tmpdir");
   private static final long DEFAULT_RECORDING_DURATION = Duration.ofSeconds(20).toMillis();
   private static final long DEFAULT_SAMPLING_INTERVAL = Duration.ofSeconds(10).toMillis();
@@ -42,7 +44,7 @@ public class ProfilerDeclarativeConfiguration implements ProfilerConfiguration {
 
   @Override
   public boolean isEnabled() {
-    return !getConfigRoot().equals(empty());
+    return (profilingConfig != null) && profilingConfig.getPropertyKeys().contains(ROOT_NODE_NAME);
   }
 
   @Override
@@ -151,7 +153,7 @@ public class ProfilerDeclarativeConfiguration implements ProfilerConfiguration {
   }
 
   private DeclarativeConfigProperties getConfigRoot() {
-    return profilingConfig.getStructured("always_on", empty());
+    return profilingConfig.getStructured(ROOT_NODE_NAME, empty());
   }
 
   private DeclarativeConfigProperties getMemoryProfilerConfig() {

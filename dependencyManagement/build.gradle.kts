@@ -2,7 +2,7 @@ plugins {
   `java-platform`
 }
 
-val otelVersion = "1.57.0"
+val otelVersion = "1.58.0"
 val otelAlphaVersion = otelVersion.replaceFirst("(-SNAPSHOT)?$".toRegex(), "-alpha$1")
 val otelInstrumentationVersion = "2.24.0-SNAPSHOT"
 val otelInstrumentationAlphaVersion =  otelInstrumentationVersion.replaceFirst("(-SNAPSHOT)?$".toRegex(), "-alpha$1")
@@ -11,7 +11,7 @@ val otelContribAlphaVersion = "1.52.0-alpha"
 val autoValueVersion = "1.11.1"
 val dockerJavaVersion = "3.7.0"
 val mockitoVersion = "5.21.0"
-val protobufVersion = "4.33.2"
+val protobufVersion = "4.33.4"
 val slf4jVersion = "2.0.17"
 
 // instrumentation version is used to compute Implementation-Version manifest attribute

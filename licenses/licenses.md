@@ -1,7 +1,7 @@
 
 # splunk-otel-javaagent
 ## Dependency License Report
-_2026-01-07 08:08:24 EET_
+_2026-01-13 17:56:42 EET_
 ## Apache License, Version 2.0
 
 **1** **Group:** `com.squareup.okhttp3` **Name:** `okhttp` **Version:** `5.3.2` 
@@ -28,55 +28,55 @@ _2026-01-07 08:08:24 EET_
 > - **POM Project URL**: [https://github.com/square/wire/](https://github.com/square/wire/)
 > - **POM License**: Apache License, Version 2.0 - [https://www.apache.org/licenses/LICENSE-2.0](https://www.apache.org/licenses/LICENSE-2.0)
 
-**7** **Group:** `io.opentelemetry` **Name:** `opentelemetry-api` **Version:** `1.57.0` 
+**7** **Group:** `io.opentelemetry` **Name:** `opentelemetry-api` **Version:** `1.58.0` 
 > - **POM Project URL**: [https://github.com/open-telemetry/opentelemetry-java](https://github.com/open-telemetry/opentelemetry-java)
 > - **POM License**: Apache License, Version 2.0 - [https://www.apache.org/licenses/LICENSE-2.0](https://www.apache.org/licenses/LICENSE-2.0)
 
-**8** **Group:** `io.opentelemetry` **Name:** `opentelemetry-common` **Version:** `1.57.0` 
+**8** **Group:** `io.opentelemetry` **Name:** `opentelemetry-common` **Version:** `1.58.0` 
 > - **POM Project URL**: [https://github.com/open-telemetry/opentelemetry-java](https://github.com/open-telemetry/opentelemetry-java)
 > - **POM License**: Apache License, Version 2.0 - [https://www.apache.org/licenses/LICENSE-2.0](https://www.apache.org/licenses/LICENSE-2.0)
 
-**9** **Group:** `io.opentelemetry` **Name:** `opentelemetry-context` **Version:** `1.57.0` 
+**9** **Group:** `io.opentelemetry` **Name:** `opentelemetry-context` **Version:** `1.58.0` 
 > - **POM Project URL**: [https://github.com/open-telemetry/opentelemetry-java](https://github.com/open-telemetry/opentelemetry-java)
 > - **POM License**: Apache License, Version 2.0 - [https://www.apache.org/licenses/LICENSE-2.0](https://www.apache.org/licenses/LICENSE-2.0)
 
-**10** **Group:** `io.opentelemetry` **Name:** `opentelemetry-exporter-common` **Version:** `1.57.0` 
+**10** **Group:** `io.opentelemetry` **Name:** `opentelemetry-exporter-common` **Version:** `1.58.0` 
 > - **POM Project URL**: [https://github.com/open-telemetry/opentelemetry-java](https://github.com/open-telemetry/opentelemetry-java)
 > - **POM License**: Apache License, Version 2.0 - [https://www.apache.org/licenses/LICENSE-2.0](https://www.apache.org/licenses/LICENSE-2.0)
 
-**11** **Group:** `io.opentelemetry` **Name:** `opentelemetry-exporter-otlp` **Version:** `1.57.0` 
+**11** **Group:** `io.opentelemetry` **Name:** `opentelemetry-exporter-otlp` **Version:** `1.58.0` 
 > - **POM Project URL**: [https://github.com/open-telemetry/opentelemetry-java](https://github.com/open-telemetry/opentelemetry-java)
 > - **POM License**: Apache License, Version 2.0 - [https://www.apache.org/licenses/LICENSE-2.0](https://www.apache.org/licenses/LICENSE-2.0)
 
-**12** **Group:** `io.opentelemetry` **Name:** `opentelemetry-exporter-otlp-common` **Version:** `1.57.0` 
+**12** **Group:** `io.opentelemetry` **Name:** `opentelemetry-exporter-otlp-common` **Version:** `1.58.0` 
 > - **POM Project URL**: [https://github.com/open-telemetry/opentelemetry-java](https://github.com/open-telemetry/opentelemetry-java)
 > - **POM License**: Apache License, Version 2.0 - [https://www.apache.org/licenses/LICENSE-2.0](https://www.apache.org/licenses/LICENSE-2.0)
 
-**13** **Group:** `io.opentelemetry` **Name:** `opentelemetry-exporter-sender-okhttp` **Version:** `1.57.0` 
+**13** **Group:** `io.opentelemetry` **Name:** `opentelemetry-exporter-sender-okhttp` **Version:** `1.58.0` 
 > - **POM Project URL**: [https://github.com/open-telemetry/opentelemetry-java](https://github.com/open-telemetry/opentelemetry-java)
 > - **POM License**: Apache License, Version 2.0 - [https://www.apache.org/licenses/LICENSE-2.0](https://www.apache.org/licenses/LICENSE-2.0)
 
-**14** **Group:** `io.opentelemetry` **Name:** `opentelemetry-sdk` **Version:** `1.57.0` 
+**14** **Group:** `io.opentelemetry` **Name:** `opentelemetry-sdk` **Version:** `1.58.0` 
 > - **POM Project URL**: [https://github.com/open-telemetry/opentelemetry-java](https://github.com/open-telemetry/opentelemetry-java)
 > - **POM License**: Apache License, Version 2.0 - [https://www.apache.org/licenses/LICENSE-2.0](https://www.apache.org/licenses/LICENSE-2.0)
 
-**15** **Group:** `io.opentelemetry` **Name:** `opentelemetry-sdk-common` **Version:** `1.57.0` 
+**15** **Group:** `io.opentelemetry` **Name:** `opentelemetry-sdk-common` **Version:** `1.58.0` 
 > - **POM Project URL**: [https://github.com/open-telemetry/opentelemetry-java](https://github.com/open-telemetry/opentelemetry-java)
 > - **POM License**: Apache License, Version 2.0 - [https://www.apache.org/licenses/LICENSE-2.0](https://www.apache.org/licenses/LICENSE-2.0)
 
-**16** **Group:** `io.opentelemetry` **Name:** `opentelemetry-sdk-extension-autoconfigure-spi` **Version:** `1.57.0` 
+**16** **Group:** `io.opentelemetry` **Name:** `opentelemetry-sdk-extension-autoconfigure-spi` **Version:** `1.58.0` 
 > - **POM Project URL**: [https://github.com/open-telemetry/opentelemetry-java](https://github.com/open-telemetry/opentelemetry-java)
 > - **POM License**: Apache License, Version 2.0 - [https://www.apache.org/licenses/LICENSE-2.0](https://www.apache.org/licenses/LICENSE-2.0)
 
-**17** **Group:** `io.opentelemetry` **Name:** `opentelemetry-sdk-logs` **Version:** `1.57.0` 
+**17** **Group:** `io.opentelemetry` **Name:** `opentelemetry-sdk-logs` **Version:** `1.58.0` 
 > - **POM Project URL**: [https://github.com/open-telemetry/opentelemetry-java](https://github.com/open-telemetry/opentelemetry-java)
 > - **POM License**: Apache License, Version 2.0 - [https://www.apache.org/licenses/LICENSE-2.0](https://www.apache.org/licenses/LICENSE-2.0)
 
-**18** **Group:** `io.opentelemetry` **Name:** `opentelemetry-sdk-metrics` **Version:** `1.57.0` 
+**18** **Group:** `io.opentelemetry` **Name:** `opentelemetry-sdk-metrics` **Version:** `1.58.0` 
 > - **POM Project URL**: [https://github.com/open-telemetry/opentelemetry-java](https://github.com/open-telemetry/opentelemetry-java)
 > - **POM License**: Apache License, Version 2.0 - [https://www.apache.org/licenses/LICENSE-2.0](https://www.apache.org/licenses/LICENSE-2.0)
 
-**19** **Group:** `io.opentelemetry` **Name:** `opentelemetry-sdk-trace` **Version:** `1.57.0` 
+**19** **Group:** `io.opentelemetry` **Name:** `opentelemetry-sdk-trace` **Version:** `1.58.0` 
 > - **POM Project URL**: [https://github.com/open-telemetry/opentelemetry-java](https://github.com/open-telemetry/opentelemetry-java)
 > - **POM License**: Apache License, Version 2.0 - [https://www.apache.org/licenses/LICENSE-2.0](https://www.apache.org/licenses/LICENSE-2.0)
 
@@ -138,7 +138,7 @@ _2026-01-07 08:08:24 EET_
 
 ## The 3-Clause BSD License
 
-**31** **Group:** `com.google.protobuf` **Name:** `protobuf-java` **Version:** `4.33.2` 
+**31** **Group:** `com.google.protobuf` **Name:** `protobuf-java` **Version:** `4.33.4` 
 > - **Manifest Project URL**: [https://developers.google.com/protocol-buffers/](https://developers.google.com/protocol-buffers/)
 > - **Manifest License**: The 3-Clause BSD License (Not Packaged)
 > - **POM License**: The 3-Clause BSD License - [https://opensource.org/licenses/BSD-3-Clause](https://opensource.org/licenses/BSD-3-Clause)

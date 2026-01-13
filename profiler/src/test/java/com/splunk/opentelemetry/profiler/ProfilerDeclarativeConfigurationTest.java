@@ -22,6 +22,9 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.splunk.opentelemetry.testing.declarativeconfig.DeclarativeConfigTestUtil;
 import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
+import io.opentelemetry.common.ComponentLoader;
+import io.opentelemetry.sdk.extension.incubator.fileconfig.YamlDeclarativeConfigProperties;
+import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.ExperimentalLanguageSpecificInstrumentationPropertyModel;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.OpenTelemetryConfigurationModel;
 import java.time.Duration;
 import org.junit.jupiter.api.Test;

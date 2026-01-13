@@ -18,6 +18,8 @@ package io.opentelemetry.sdk.autoconfigure;
 
 import static io.opentelemetry.api.incubator.config.DeclarativeConfigProperties.empty;
 
+import io.opentelemetry.api.OpenTelemetry;
+import io.opentelemetry.api.incubator.ExtendedOpenTelemetry;
 import io.opentelemetry.api.incubator.config.ConfigProvider;
 import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
 import io.opentelemetry.common.ComponentLoader;
@@ -52,8 +54,12 @@ public final class AutoConfigureUtil {
   }
 
   public static boolean isDeclarativeConfig(AutoConfiguredOpenTelemetrySdk sdk) {
-    return (sdk.getConfigProvider() != null)
-        && !(sdk.getConfigProvider() instanceof ConfigPropertiesBackedConfigProvider);
+    OpenTelemetry openTelemetry = sdk.getOpenTelemetrySdk();
+    if (openTelemetry instanceof ExtendedOpenTelemetry) {
+      return !(((ExtendedOpenTelemetry) openTelemetry).getConfigProvider()
+          instanceof ConfigPropertiesBackedConfigProvider);
+    }
+    return false;
   }
 
   // TODO: This is temporary solution. For now assume that distribution node is located under
@@ -61,7 +67,11 @@ public final class AutoConfigureUtil {
   @Nullable
   public static DeclarativeConfigProperties getDistributionConfig(
       AutoConfiguredOpenTelemetrySdk sdk) {
-    ConfigProvider configProvider = (ConfigProvider) sdk.getConfigProvider();
+    OpenTelemetry openTelemetry = sdk.getOpenTelemetrySdk();
+    if (!(openTelemetry instanceof ExtendedOpenTelemetry)) {
+      return null;
+    }
+    ConfigProvider configProvider = ((ExtendedOpenTelemetry) openTelemetry).getConfigProvider();
     if (configProvider == null) {
       return null;
     }
@@ -91,7 +101,7 @@ public final class AutoConfigureUtil {
         YamlDeclarativeConfigProperties.create(
             javaModel.getAdditionalProperties(), componentLoader);
 
-    return config.getStructured("distribution", empty());
+    return config.getStructured("distribution", empty()); // Should this empty() be there?
   }
 
   public static Resource getResource(AutoConfiguredOpenTelemetrySdk sdk) {

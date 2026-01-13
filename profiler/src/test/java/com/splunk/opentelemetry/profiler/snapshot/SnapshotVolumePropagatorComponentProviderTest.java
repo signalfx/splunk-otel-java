@@ -23,7 +23,7 @@ import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
 import io.opentelemetry.context.propagation.TextMapPropagator;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.YamlDeclarativeConfigProperties;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.OpenTelemetryConfigurationModel;
-import java.util.Map;
+import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.TextMapPropagatorPropertyModel;
 import org.junit.jupiter.api.Test;
 
 class SnapshotVolumePropagatorComponentProviderTest {
@@ -75,7 +75,7 @@ class SnapshotVolumePropagatorComponentProviderTest {
 
   static DeclarativeConfigProperties getPropagatorProperties(
       OpenTelemetryConfigurationModel model) {
-    Object config =
+    TextMapPropagatorPropertyModel config =
         model
             .getPropagator()
             .getComposite()
@@ -85,6 +85,6 @@ class SnapshotVolumePropagatorComponentProviderTest {
     if (config == null) {
       return DeclarativeConfigProperties.empty();
     }
-    return YamlDeclarativeConfigProperties.create((Map<String, Object>) config, null);
+    return YamlDeclarativeConfigProperties.create(config.getAdditionalProperties(), null);
   }
 }

@@ -16,6 +16,7 @@
 
 package io.opentelemetry.sdk.autoconfigure;
 
+import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.ExperimentalLanguageSpecificInstrumentationPropertyModel;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.BiConsumer;
@@ -24,7 +25,8 @@ import java.util.function.BiConsumer;
 @SuppressWarnings("unchecked")
 public class AdditionalPropertiesUtil {
   public static Object getAdditionalProperty(
-      Map<String, Object> additionalProperties, String propertyName) {
+      Map<String, ExperimentalLanguageSpecificInstrumentationPropertyModel> additionalProperties,
+      String propertyName) {
     String[] propertyNameSegments = propertyName.trim().split("\\.");
     if (propertyNameSegments.length == 0) {
       throw new IllegalArgumentException("Empty property name");
@@ -52,13 +54,17 @@ public class AdditionalPropertiesUtil {
   }
 
   public static Object getAdditionalPropertyOrDefault(
-      Map<String, Object> additionalProperties, String propertyName, Object defaultValue) {
+      Map<String, ExperimentalLanguageSpecificInstrumentationPropertyModel> additionalProperties,
+      String propertyName,
+      Object defaultValue) {
     Object value = getAdditionalProperty(additionalProperties, propertyName);
     return value == null ? defaultValue : value;
   }
 
   public static Boolean getAdditionalPropertyOrDefault(
-      Map<String, Object> additionalProperties, String propertyName, boolean defaultValue) {
+      Map<String, ExperimentalLanguageSpecificInstrumentationPropertyModel> additionalProperties,
+      String propertyName,
+      boolean defaultValue) {
     Object value = getAdditionalProperty(additionalProperties, propertyName);
     if (value instanceof Boolean) {
       return (Boolean) value;

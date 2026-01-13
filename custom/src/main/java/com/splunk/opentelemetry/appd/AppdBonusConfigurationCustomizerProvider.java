@@ -21,6 +21,7 @@ import static io.opentelemetry.sdk.autoconfigure.AdditionalPropertiesUtil.getAdd
 import com.google.auto.service.AutoService;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.DeclarativeConfigurationCustomizer;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.DeclarativeConfigurationCustomizerProvider;
+import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.ExperimentalLanguageSpecificInstrumentationPropertyModel;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.OpenTelemetryConfigurationModel;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.PropagatorModel;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.SpanProcessorModel;
@@ -61,7 +62,7 @@ public final class AppdBonusConfigurationCustomizerProvider
       return false;
     }
 
-    Map<String, Object> properties =
+    Map<String, ExperimentalLanguageSpecificInstrumentationPropertyModel> properties =
         model.getInstrumentationDevelopment().getJava().getAdditionalProperties();
 
     return getAdditionalPropertyOrDefault(properties, CONFIG_CISCO_CTX_ENABLED, false);

@@ -122,11 +122,6 @@ public class OpenTelemetrySdkExtension extends AutoConfiguredOpenTelemetrySdk
   }
 
   @Override
-  Object getConfigProvider() {
-    return null;
-  }
-
-  @Override
   public boolean supportsParameter(
       ParameterContext parameterContext, ExtensionContext extensionContext) {
     return parameterContext.getParameter().getType() == Tracer.class;

@@ -43,7 +43,7 @@ class AsyncStackTraceExporter implements StackTraceExporter {
 
   @Override
   public void export(Collection<StackTrace> stackTraces) {
-    if (closed) {
+    if (closed || stackTraces.isEmpty()) {
       return;
     }
     executor.submit(pprofExporter(otelLogger, stackTraces));

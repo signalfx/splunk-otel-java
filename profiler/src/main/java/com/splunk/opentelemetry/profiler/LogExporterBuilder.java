@@ -23,6 +23,7 @@ import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
 import io.opentelemetry.exporter.otlp.http.logs.OtlpHttpLogRecordExporter;
 import io.opentelemetry.exporter.otlp.http.logs.OtlpHttpLogRecordExporterBuilder;
 import io.opentelemetry.exporter.otlp.internal.OtlpConfigUtil;
+import io.opentelemetry.exporter.otlp.internal.OtlpGrpcLogRecordExporterComponentProvider;
 import io.opentelemetry.exporter.otlp.internal.OtlpHttpLogRecordExporterComponentProvider;
 import io.opentelemetry.exporter.otlp.logs.OtlpGrpcLogRecordExporter;
 import io.opentelemetry.exporter.otlp.logs.OtlpGrpcLogRecordExporterBuilder;
@@ -50,8 +51,8 @@ class LogExporterBuilder {
       DeclarativeConfigProperties otlpGrpc =
           exporterConfigProperties.getStructured("otlp_log_grpc");
       if (otlpGrpc != null) {
-        OtlpHttpLogRecordExporterComponentProvider provider =
-            new OtlpHttpLogRecordExporterComponentProvider();
+        OtlpGrpcLogRecordExporterComponentProvider provider =
+            new OtlpGrpcLogRecordExporterComponentProvider();
         return provider.create(otlpGrpc);
       }
     }

@@ -103,9 +103,10 @@ public final class AutoConfigureUtil {
     Map<String, ExperimentalLanguageSpecificInstrumentationPropertyModel> original =
         javaModel.getAdditionalProperties();
     Map<String, Object> properties = new HashMap<>();
-    ExperimentalLanguageSpecificInstrumentationPropertyModel distribution = original.get(
-        "distribution");
-    properties.put("distribution", distribution != null ? distribution.getAdditionalProperties() : null);
+    ExperimentalLanguageSpecificInstrumentationPropertyModel distribution =
+        original.get("distribution");
+    properties.put(
+        "distribution", distribution != null ? distribution.getAdditionalProperties() : null);
     DeclarativeConfigProperties config =
         YamlDeclarativeConfigProperties.create(properties, componentLoader);
 

@@ -27,11 +27,6 @@ public class SnapshotProfilingDeclarativeConfiguration implements SnapshotProfil
       Logger.getLogger(SnapshotProfilingDeclarativeConfiguration.class.getName());
   private final DeclarativeConfigProperties profilingConfig;
 
-  private static final int DEFAULT_STACK_DEPTH = 1024;
-  private static final long DEFAULT_SAMPLING_INTERVAL = 10;
-  private static final long DEFAULT_EXPORT_INTERVAL = 5000;
-  private static final int DEFAULT_STAGING_CAPACITY = 2000;
-
   private static final String ROOT_NODE_NAME = "callgraphs";
 
   SnapshotProfilingDeclarativeConfiguration(DeclarativeConfigProperties profilingConfig) {

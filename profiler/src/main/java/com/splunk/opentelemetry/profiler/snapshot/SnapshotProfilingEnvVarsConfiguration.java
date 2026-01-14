@@ -34,11 +34,6 @@ class SnapshotProfilingEnvVarsConfiguration implements SnapshotProfilingConfigur
   static final String EXPORT_INTERVAL_KEY = "splunk.snapshot.profiler.export.interval";
   static final String STAGING_CAPACITY_KEY = "splunk.snapshot.profiler.staging.capacity";
 
-  private static final int DEFAULT_STACK_DEPTH = 1024;
-  private static final Duration DEFAULT_SAMPLING_INTERVAL = Duration.ofMillis(10);
-  private static final Duration DEFAULT_EXPORT_INTERVAL = Duration.ofSeconds(5);
-  private static final int DEFAULT_STAGING_CAPACITY = 2000;
-
   SnapshotProfilingEnvVarsConfiguration(ConfigProperties properties) {
     this.properties = properties;
   }
@@ -89,12 +84,13 @@ class SnapshotProfilingEnvVarsConfiguration implements SnapshotProfilingConfigur
 
   @Override
   public Duration getSamplingInterval() {
-    return properties.getDuration(SAMPLING_INTERVAL_KEY, DEFAULT_SAMPLING_INTERVAL);
+    return properties.getDuration(
+        SAMPLING_INTERVAL_KEY, Duration.ofMillis(DEFAULT_SAMPLING_INTERVAL));
   }
 
   @Override
   public Duration getExportInterval() {
-    return properties.getDuration(EXPORT_INTERVAL_KEY, DEFAULT_EXPORT_INTERVAL);
+    return properties.getDuration(EXPORT_INTERVAL_KEY, Duration.ofMillis(DEFAULT_EXPORT_INTERVAL));
   }
 
   @Override

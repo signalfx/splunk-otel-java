@@ -29,6 +29,10 @@ import java.util.logging.Logger;
 public interface SnapshotProfilingConfiguration {
   double MAX_SELECTION_PROBABILITY = 1.0;
   double DEFAULT_SELECTION_PROBABILITY = 0.01;
+  int DEFAULT_STACK_DEPTH = 1024;
+  long DEFAULT_SAMPLING_INTERVAL = 10;
+  long DEFAULT_EXPORT_INTERVAL = 5000;
+  int DEFAULT_STAGING_CAPACITY = 2000;
 
   void log();
 

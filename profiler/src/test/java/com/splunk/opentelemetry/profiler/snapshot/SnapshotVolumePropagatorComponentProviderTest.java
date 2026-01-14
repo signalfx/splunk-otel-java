@@ -33,7 +33,7 @@ class SnapshotVolumePropagatorComponentProviderTest {
     // given
     var yaml =
         """
-            file_format: "1.0-rc.2"
+            file_format: "1.0-rc.3"
             propagator:
               composite:
                 - splunk_snapshot_volume:
@@ -55,7 +55,7 @@ class SnapshotVolumePropagatorComponentProviderTest {
     // given
     var yaml =
         """
-            file_format: "1.0-rc.2"
+            file_format: "1.0-rc.3"
             propagator:
               composite:
                 - splunk_snapshot_volume:

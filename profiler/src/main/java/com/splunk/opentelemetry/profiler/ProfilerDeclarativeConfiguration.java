@@ -27,6 +27,8 @@ public class ProfilerDeclarativeConfiguration implements ProfilerConfiguration {
   private static final Logger logger =
       Logger.getLogger(ProfilerDeclarativeConfiguration.class.getName());
 
+  private static final String ROOT_NODE_NAME = "always_on";
+
   private static final String DEFAULT_PROFILER_DIRECTORY = System.getProperty("java.io.tmpdir");
   private static final long DEFAULT_RECORDING_DURATION = Duration.ofSeconds(20).toMillis();
   private static final long DEFAULT_SAMPLING_INTERVAL = Duration.ofSeconds(10).toMillis();
@@ -34,15 +36,15 @@ public class ProfilerDeclarativeConfiguration implements ProfilerConfiguration {
   private static final String MEMORY_PROFILER = "memory_profiler";
   private static final String MEMORY_EVENT_RATE = "event_rate";
 
-  private final DeclarativeConfigProperties config;
+  private final DeclarativeConfigProperties profilingConfig;
 
-  public ProfilerDeclarativeConfiguration(DeclarativeConfigProperties config) {
-    this.config = config;
+  public ProfilerDeclarativeConfiguration(DeclarativeConfigProperties profilingConfig) {
+    this.profilingConfig = profilingConfig;
   }
 
   @Override
   public boolean isEnabled() {
-    return !config.equals(empty());
+    return (profilingConfig != null) && profilingConfig.getPropertyKeys().contains(ROOT_NODE_NAME);
   }
 
   @Override
@@ -127,7 +129,7 @@ public class ProfilerDeclarativeConfiguration implements ProfilerConfiguration {
 
   @Override
   public int getStackDepth() {
-    return getConfigRoot().getInt("stack_depth_limit", 1024);
+    return getConfigRoot().getInt("stack_depth", 1024);
   }
 
   @Override
@@ -147,11 +149,11 @@ public class ProfilerDeclarativeConfiguration implements ProfilerConfiguration {
 
   @Override
   public DeclarativeConfigProperties getConfigProperties() {
-    return config;
+    return profilingConfig;
   }
 
   private DeclarativeConfigProperties getConfigRoot() {
-    return config.getStructured("always_on", empty());
+    return profilingConfig.getStructured(ROOT_NODE_NAME, empty());
   }
 
   private DeclarativeConfigProperties getMemoryProfilerConfig() {

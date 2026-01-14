@@ -16,102 +16,70 @@
 
 package com.splunk.opentelemetry.profiler.snapshot;
 
+import static io.opentelemetry.api.incubator.config.DeclarativeConfigProperties.empty;
+
+import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
+import io.opentelemetry.sdk.autoconfigure.AutoConfigureUtil;
+import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import java.time.Duration;
+import java.util.Optional;
 import java.util.logging.Logger;
 
-public class SnapshotProfilingConfiguration {
-  private static final Logger logger =
-      Logger.getLogger(SnapshotProfilingConfiguration.class.getName());
+public interface SnapshotProfilingConfiguration {
+  double MAX_SELECTION_PROBABILITY = 1.0;
+  double DEFAULT_SELECTION_PROBABILITY = 0.01;
+  int DEFAULT_STACK_DEPTH = 1024;
+  long DEFAULT_SAMPLING_INTERVAL = 10;
+  long DEFAULT_EXPORT_INTERVAL = 5000;
+  int DEFAULT_STAGING_CAPACITY = 2000;
 
-  public static final String CONFIG_KEY_ENABLE_SNAPSHOT_PROFILER =
-      "splunk.snapshot.profiler.enabled";
-  private static final String SELECTION_PROBABILITY_KEY = "splunk.snapshot.selection.probability";
-  private static final String STACK_DEPTH_KEY = "splunk.snapshot.profiler.max.stack.depth";
-  private static final String SAMPLING_INTERVAL_KEY = "splunk.snapshot.sampling.interval";
-  private static final String EXPORT_INTERVAL_KEY = "splunk.snapshot.profiler.export.interval";
-  private static final String STAGING_CAPACITY_KEY = "splunk.snapshot.profiler.staging.capacity";
+  void log();
 
-  private static final double DEFAULT_SELECTION_PROBABILITY = 0.01;
-  private static final double MAX_SELECTION_PROBABILITY = 1.0;
-  private static final int DEFAULT_STACK_DEPTH = 1024;
-  private static final Duration DEFAULT_SAMPLING_INTERVAL = Duration.ofMillis(10);
-  private static final Duration DEFAULT_EXPORT_INTERVAL = Duration.ofSeconds(5);
-  private static final int DEFAULT_STAGING_CAPACITY = 2000;
+  boolean isEnabled();
 
-  static void log(ConfigProperties properties) {
-    logger.fine("Snapshot Profiler Configuration:");
-    logger.fine("-------------------------------------------------------");
+  double getSnapshotSelectionProbability();
 
-    log(CONFIG_KEY_ENABLE_SNAPSHOT_PROFILER, isSnapshotProfilingEnabled(properties));
-    log(SELECTION_PROBABILITY_KEY, getSnapshotSelectionProbability(properties));
-    log(STACK_DEPTH_KEY, getStackDepth(properties));
-    log(SAMPLING_INTERVAL_KEY, getSamplingInterval(properties));
-    log(EXPORT_INTERVAL_KEY, getExportInterval(properties));
-    log(STAGING_CAPACITY_KEY, getStagingCapacity(properties));
-    logger.fine("-------------------------------------------------------");
-  }
+  int getStackDepth();
 
-  static boolean isSnapshotProfilingEnabled(ConfigProperties properties) {
-    return properties.getBoolean(CONFIG_KEY_ENABLE_SNAPSHOT_PROFILER, false);
-  }
+  Duration getSamplingInterval();
 
-  static double getSnapshotSelectionProbability(ConfigProperties properties) {
-    String selectionProbabilityPropertyValue =
-        properties.getString(
-            SELECTION_PROBABILITY_KEY, String.valueOf(DEFAULT_SELECTION_PROBABILITY));
-    try {
-      double selectionProbability = Double.parseDouble(selectionProbabilityPropertyValue);
-      if (selectionProbability > MAX_SELECTION_PROBABILITY) {
-        logger.warning(
-            "Configured snapshot selection probability of '"
-                + selectionProbabilityPropertyValue
-                + "' is higher than the maximum allowed probability. Using maximum allowed snapshot selection probability of '"
-                + MAX_SELECTION_PROBABILITY
-                + "'");
-        return MAX_SELECTION_PROBABILITY;
-      }
-      if (selectionProbability <= 0) {
-        logger.warning(
-            "Snapshot selection probability must be greater than 0. Using default snapshot"
-                + "selection probability of '"
-                + DEFAULT_SELECTION_PROBABILITY
-                + "' instead.");
-        return DEFAULT_SELECTION_PROBABILITY;
-      }
-      return selectionProbability;
-    } catch (NumberFormatException e) {
-      logger.warning(
-          "Invalid snapshot selection probability: '"
-              + selectionProbabilityPropertyValue
-              + "', using default probability of '"
-              + DEFAULT_SELECTION_PROBABILITY
-              + "'");
-      return DEFAULT_SELECTION_PROBABILITY;
+  Duration getExportInterval();
+
+  int getStagingCapacity();
+
+  Object getConfigProperties();
+
+  static SnapshotProfilingConfiguration fromSdk(AutoConfiguredOpenTelemetrySdk sdk) {
+    if (AutoConfigureUtil.isDeclarativeConfig(sdk)) {
+      DeclarativeConfigProperties distributionConfig = AutoConfigureUtil.getDistributionConfig(sdk);
+      distributionConfig = Optional.ofNullable(distributionConfig).orElse(empty());
+      return new SnapshotProfilingDeclarativeConfiguration(
+          distributionConfig.getStructured("splunk", empty()).getStructured("profiling", empty()));
+    } else {
+      ConfigProperties configProperties = AutoConfigureUtil.getConfig(sdk);
+      return new SnapshotProfilingEnvVarsConfiguration(configProperties);
     }
   }
 
-  static int getStackDepth(ConfigProperties properties) {
-    return properties.getInt(STACK_DEPTH_KEY, DEFAULT_STACK_DEPTH);
-  }
-
-  static Duration getSamplingInterval(ConfigProperties properties) {
-    return properties.getDuration(SAMPLING_INTERVAL_KEY, DEFAULT_SAMPLING_INTERVAL);
-  }
-
-  static Duration getExportInterval(ConfigProperties properties) {
-    return properties.getDuration(EXPORT_INTERVAL_KEY, DEFAULT_EXPORT_INTERVAL);
-  }
-
-  static int getStagingCapacity(ConfigProperties properties) {
-    return properties.getInt(STAGING_CAPACITY_KEY, DEFAULT_STAGING_CAPACITY);
-  }
-
-  private static void log(String key, Object value) {
-    logger.fine(" " + pad(key) + " : " + value);
-  }
-
-  private static String pad(String str) {
-    return String.format("%42s", str);
+  static double validateSelectionProbability(double selectionProbability, Logger logger) {
+    if (selectionProbability > MAX_SELECTION_PROBABILITY) {
+      logger.warning(
+          "Configured snapshot selection probability of '"
+              + selectionProbability
+              + "' is higher than the maximum allowed probability. Using maximum allowed snapshot selection probability of '"
+              + MAX_SELECTION_PROBABILITY
+              + "'");
+      return MAX_SELECTION_PROBABILITY;
+    }
+    if (selectionProbability <= 0) {
+      logger.warning(
+          "Snapshot selection probability must be greater than 0. Using default snapshot"
+              + "selection probability of '"
+              + DEFAULT_SELECTION_PROBABILITY
+              + "' instead.");
+      return DEFAULT_SELECTION_PROBABILITY;
+    }
+    return selectionProbability;
   }
 }

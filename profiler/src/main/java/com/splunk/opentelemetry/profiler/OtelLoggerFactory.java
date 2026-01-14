@@ -17,6 +17,7 @@
 package com.splunk.opentelemetry.profiler;
 
 import com.google.common.annotations.VisibleForTesting;
+import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
 import io.opentelemetry.api.logs.Logger;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import io.opentelemetry.sdk.logs.LogRecordProcessor;
@@ -28,14 +29,19 @@ import java.util.function.Function;
 
 public class OtelLoggerFactory {
   private final Function<ConfigProperties, LogRecordExporter> logRecordExporter;
+  private final Function<DeclarativeConfigProperties, LogRecordExporter>
+      declarativeLogRecordExporter;
 
   public OtelLoggerFactory() {
-    this(LogExporterBuilder::fromConfig);
+    this(LogExporterBuilder::fromConfig, LogExporterBuilder::fromConfig);
   }
 
   @VisibleForTesting
-  public OtelLoggerFactory(Function<ConfigProperties, LogRecordExporter> logRecordExporter) {
+  public OtelLoggerFactory(
+      Function<ConfigProperties, LogRecordExporter> logRecordExporter,
+      Function<DeclarativeConfigProperties, LogRecordExporter> declarativeLogRecordExporter) {
     this.logRecordExporter = logRecordExporter;
+    this.declarativeLogRecordExporter = declarativeLogRecordExporter;
   }
 
   public Logger build(ConfigProperties properties, Resource resource) {
@@ -44,8 +50,18 @@ public class OtelLoggerFactory {
     return buildOtelLogger(processor, resource);
   }
 
+  public Logger build(DeclarativeConfigProperties properties, Resource resource) {
+    LogRecordExporter exporter = createLogRecordExporter(properties);
+    LogRecordProcessor processor = SimpleLogRecordProcessor.create(exporter);
+    return buildOtelLogger(processor, resource);
+  }
+
   private LogRecordExporter createLogRecordExporter(ConfigProperties properties) {
     return logRecordExporter.apply(properties);
+  }
+
+  private LogRecordExporter createLogRecordExporter(DeclarativeConfigProperties properties) {
+    return declarativeLogRecordExporter.apply(properties);
   }
 
   private Logger buildOtelLogger(LogRecordProcessor logProcessor, Resource resource) {

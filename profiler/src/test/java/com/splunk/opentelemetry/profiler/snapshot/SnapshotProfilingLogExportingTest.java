@@ -59,7 +59,10 @@ class SnapshotProfilingLogExportingTest {
       OpenTelemetrySdkExtension.configure()
           .withProperty("splunk.snapshot.profiler.enabled", "true")
           .with(customizer)
-          .with(new StackTraceExporterActivator(new OtelLoggerFactory(properties -> logExporter)))
+          .with(
+              new StackTraceExporterActivator(
+                  new OtelLoggerFactory(
+                      properties -> logExporter, declarativeConfigProperties -> logExporter)))
           .build();
 
   @AfterEach

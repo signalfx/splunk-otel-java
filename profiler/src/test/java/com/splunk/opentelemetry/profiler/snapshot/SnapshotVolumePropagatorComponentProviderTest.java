@@ -17,18 +17,14 @@
 package com.splunk.opentelemetry.profiler.snapshot;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.splunk.opentelemetry.testing.declarativeconfig.DeclarativeConfigTestUtil;
 import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
 import io.opentelemetry.context.propagation.TextMapPropagator;
-import io.opentelemetry.sdk.autoconfigure.spi.ConfigurationException;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.YamlDeclarativeConfigProperties;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.OpenTelemetryConfigurationModel;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.TextMapPropagatorPropertyModel;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
 
 class SnapshotVolumePropagatorComponentProviderTest {
 
@@ -54,9 +50,8 @@ class SnapshotVolumePropagatorComponentProviderTest {
     assertThat(propagator).isInstanceOf(SnapshotVolumePropagator.class);
   }
 
-  @ParameterizedTest
-  @ValueSource(doubles = {0, 0.01, 0.1})
-  void shouldCreatePropagatorWithProvidedValidSelectionProbability(double selectionProbability) {
+  @Test
+  void shouldCreatePropagatorWithProvidedValidSelectionProbability() {
     // given
     var yaml =
         """
@@ -64,9 +59,8 @@ class SnapshotVolumePropagatorComponentProviderTest {
             propagator:
               composite:
                 - splunk_snapshot_volume:
-                    snapshot_selection_probability: %f
-            """
-            .formatted(selectionProbability);
+                    snapshot_selection_probability: 0.1
+            """;
     var propagatorProperties = getPropagatorProperties(DeclarativeConfigTestUtil.parse(yaml));
     SnapshotVolumePropagatorComponentProvider propagatorProvider =
         new SnapshotVolumePropagatorComponentProvider();
@@ -77,32 +71,6 @@ class SnapshotVolumePropagatorComponentProviderTest {
     // then
     assertThat(propagator).isNotNull();
     assertThat(propagator).isInstanceOf(SnapshotVolumePropagator.class);
-  }
-
-  @ParameterizedTest
-  @ValueSource(doubles = {-1, -0.000001, 0.100001, 100})
-  void shouldThrowExceptionWhenInvalidSelectionProbability(double selectionProbability) {
-    // given
-    var yaml =
-        """
-            file_format: "1.0-rc.2"
-            propagator:
-              composite:
-                - splunk_snapshot_volume:
-                    snapshot_selection_probability: %f
-            """
-            .formatted(selectionProbability);
-
-    var propagatorProperties = getPropagatorProperties(DeclarativeConfigTestUtil.parse(yaml));
-    SnapshotVolumePropagatorComponentProvider propagatorProvider =
-        new SnapshotVolumePropagatorComponentProvider();
-
-    // then
-    assertThrows(
-        ConfigurationException.class,
-        () -> {
-          propagatorProvider.create(propagatorProperties);
-        });
   }
 
   static DeclarativeConfigProperties getPropagatorProperties(

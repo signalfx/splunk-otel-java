@@ -45,16 +45,19 @@ public class SnapshotProfilingSdkCustomizer implements AutoConfigurationCustomiz
 
   private static Function<ConfigProperties, StackTraceSampler> stackTraceSamplerProvider() {
     return properties -> {
-      Duration samplingPeriod = SnapshotProfilingConfiguration.getSamplingInterval(properties);
-      StagingArea.SUPPLIER.configure(createStagingArea(properties));
+      SnapshotProfilingEnvVarsConfiguration configuration =
+          new SnapshotProfilingEnvVarsConfiguration(properties);
+      Duration samplingPeriod = configuration.getSamplingInterval();
+      StagingArea.SUPPLIER.configure(createStagingArea(configuration));
       return new PeriodicStackTraceSampler(
           StagingArea.SUPPLIER, SpanTracker.SUPPLIER, samplingPeriod);
     };
   }
 
-  private static StagingArea createStagingArea(ConfigProperties properties) {
-    Duration interval = SnapshotProfilingConfiguration.getExportInterval(properties);
-    int capacity = SnapshotProfilingConfiguration.getStagingCapacity(properties);
+  private static StagingArea createStagingArea(
+      SnapshotProfilingEnvVarsConfiguration configuration) {
+    Duration interval = configuration.getExportInterval();
+    int capacity = configuration.getStagingCapacity();
     return new PeriodicallyExportingStagingArea(StackTraceExporter.SUPPLIER, interval, capacity);
   }
 
@@ -161,6 +164,6 @@ public class SnapshotProfilingSdkCustomizer implements AutoConfigurationCustomiz
   }
 
   private boolean snapshotProfilingEnabled(ConfigProperties properties) {
-    return SnapshotProfilingConfiguration.isSnapshotProfilingEnabled(properties);
+    return new SnapshotProfilingEnvVarsConfiguration(properties).isEnabled();
   }
 }

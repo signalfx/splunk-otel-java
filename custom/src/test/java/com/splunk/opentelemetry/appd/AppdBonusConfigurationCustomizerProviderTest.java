@@ -28,7 +28,7 @@ class AppdBonusConfigurationCustomizerProviderTest {
   void shouldAddAppdPropagatorWithDefaultPropagatorsAndSpanProcessorWhenFeatureIsEnabled() {
     var yaml =
         """
-            file_format: "1.0-rc.2"
+            file_format: "1.0-rc.3"
             instrumentation/development:
               java:
                 cisco:
@@ -53,7 +53,7 @@ class AppdBonusConfigurationCustomizerProviderTest {
   void shouldAddAppdPropagatorToExistingListAndSpanProcessorWhenFeatureIsEnabled() {
     var yaml =
         """
-            file_format: "1.0-rc.2"
+            file_format: "1.0-rc.3"
             propagator:
                composite_list: "b3"
             instrumentation/development:
@@ -79,7 +79,7 @@ class AppdBonusConfigurationCustomizerProviderTest {
   void shouldNotAddPropagatorAndSpanProcessorWhenFeatureIsDisabled() {
     var yaml =
         """
-            file_format: "1.0-rc.2"
+            file_format: "1.0-rc.3"
             instrumentation/development:
               java:
                 cisco:
@@ -99,7 +99,7 @@ class AppdBonusConfigurationCustomizerProviderTest {
   void shouldNotAddPropagatorAndSpanProcessorWhenFeaturePropertyIsMissing() {
     var yaml =
         """
-            file_format: "1.0-rc.2"
+            file_format: "1.0-rc.3"
             instrumentation/development:
               java:
             """;

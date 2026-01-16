@@ -21,6 +21,7 @@ dependencies {
   implementation("io.opentelemetry.contrib:opentelemetry-opamp-client")
 
   testImplementation(project(":testing:common"))
+  testImplementation(project(":profiler"))
   testImplementation("io.opentelemetry:opentelemetry-sdk")
   testImplementation("io.opentelemetry:opentelemetry-sdk-testing")
   testImplementation("io.opentelemetry:opentelemetry-sdk-extension-autoconfigure")

@@ -20,6 +20,8 @@ import static com.splunk.opentelemetry.appd.AppdBonusPropagator.CTX_HEADER_ENV;
 import static com.splunk.opentelemetry.appd.AppdBonusPropagator.CTX_HEADER_SERVICE;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
+import com.splunk.opentelemetry.profiler.ProfilerDeclarativeConfiguration;
+import com.splunk.opentelemetry.profiler.snapshot.SnapshotProfilingDeclarativeConfiguration;
 import com.splunk.opentelemetry.testing.declarativeconfig.DeclarativeConfigTestUtil;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.instrumentation.testing.internal.AutoCleanupExtension;
@@ -37,7 +39,7 @@ class AppdBeforeAgentListenerTest {
   @RegisterExtension final AutoCleanupExtension autoCleanup = AutoCleanupExtension.create();
 
   @AfterEach
-  void resetDeclarativeConfigSuppliers() {
+  void resetSuppliers() {
     ProfilerDeclarativeConfiguration.SUPPLIER.reset();
     SnapshotProfilingDeclarativeConfiguration.SUPPLIER.reset();
   }

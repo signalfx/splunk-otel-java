@@ -27,12 +27,21 @@ import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.OpenTe
 import java.io.IOException;
 import java.nio.file.Path;
 import org.assertj.core.util.Sets;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.api.io.TempDir;
 
 class SnapshotProfilingConfigurationCustomizerProviderTest {
   @RegisterExtension final AutoCleanupExtension autoCleanup = AutoCleanupExtension.create();
+
+  @AfterEach
+  void resetSuppliers() {
+    SnapshotProfilingDeclarativeConfiguration.SUPPLIER.reset();
+    StackTraceSampler.SUPPLIER.reset();
+    StagingArea.SUPPLIER.reset();
+    SpanTracker.SUPPLIER.reset();
+  }
 
   @Test
   void shouldDoNothingIfProfilerIsNotEnabled(@TempDir Path tempDir) throws IOException {

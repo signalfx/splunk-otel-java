@@ -115,7 +115,8 @@ class JfrActivatorTest {
 
   @ParameterizedTest
   @MethodSource("generateNoProfilerYamlStrings")
-  void shouldNotActivateJfrRecording_profilerDisabled(String yaml, @TempDir Path tempDir) throws IOException {
+  void shouldNotActivateJfrRecording_profilerDisabled(String yaml, @TempDir Path tempDir)
+      throws IOException {
     try (MockedStatic<ContextStorage> contextStorageMock = mockStatic(ContextStorage.class)) {
 
       // given
@@ -141,7 +142,8 @@ class JfrActivatorTest {
         Arguments.of("file_format: \"1.0-rc.3\""),
         Arguments.of(toYamlString("file_format: \"1.0-rc.3\"", "distribution:")),
         Arguments.of(toYamlString("file_format: \"1.0-rc.3\"", "distribution:", "  splunk:")),
-        Arguments.of(toYamlString("file_format: \"1.0-rc.3\"", "distribution:", "  splunk:", "    something:"))
-    );
+        Arguments.of(
+            toYamlString(
+                "file_format: \"1.0-rc.3\"", "distribution:", "  splunk:", "    something:")));
   }
 }

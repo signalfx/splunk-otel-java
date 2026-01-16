@@ -20,21 +20,16 @@ import static io.opentelemetry.api.incubator.config.DeclarativeConfigProperties.
 
 import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.api.incubator.ExtendedOpenTelemetry;
-import io.opentelemetry.api.incubator.config.ConfigProvider;
 import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
 import io.opentelemetry.common.ComponentLoader;
 import io.opentelemetry.instrumentation.config.bridge.ConfigPropertiesBackedConfigProvider;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.YamlDeclarativeConfigProperties;
-import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.ExperimentalInstrumentationModel;
-import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.ExperimentalLanguageSpecificInstrumentationModel;
-import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.ExperimentalLanguageSpecificInstrumentationPropertyModel;
+import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.DistributionModel;
+import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.DistributionPropertyModel;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.OpenTelemetryConfigurationModel;
 import io.opentelemetry.sdk.resources.Resource;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.logging.Logger;
-import javax.annotation.Nullable;
 
 /**
  * This class is a hack to allows us to call getResource() and getConfig() on the
@@ -65,52 +60,23 @@ public final class AutoConfigureUtil {
     return false;
   }
 
-  // TODO: This is temporary solution. For now assume that distribution node is located under
-  //       .instrumentation/development.java.distribution
-  @Nullable
-  public static DeclarativeConfigProperties getDistributionConfig(
-      AutoConfiguredOpenTelemetrySdk sdk) {
-    OpenTelemetry openTelemetry = sdk.getOpenTelemetrySdk();
-    if (!(openTelemetry instanceof ExtendedOpenTelemetry)) {
-      return null;
-    }
-    ConfigProvider configProvider = ((ExtendedOpenTelemetry) openTelemetry).getConfigProvider();
-    if (configProvider == null) {
-      return null;
-    }
-
-    DeclarativeConfigProperties instrumentationConfig = configProvider.getInstrumentationConfig();
-    if (instrumentationConfig == null) {
-      return null;
-    }
-    return instrumentationConfig.getStructured("java", empty()).getStructured("distribution");
-  }
-
   public static DeclarativeConfigProperties getDistributionConfig(
       OpenTelemetryConfigurationModel model) {
-    ExperimentalInstrumentationModel instrumentationModel = model.getInstrumentationDevelopment();
-    if (instrumentationModel == null) {
+    DistributionModel distributionModel = model.getDistribution();
+    if (distributionModel == null) {
       return empty();
     }
 
-    ExperimentalLanguageSpecificInstrumentationModel javaModel = instrumentationModel.getJava();
-    if (javaModel == null) {
+    DistributionPropertyModel splunkModel =
+        distributionModel.getAdditionalProperties().get("splunk");
+    if (splunkModel == null) {
       return empty();
     }
 
     ComponentLoader componentLoader =
-        ComponentLoader.forClassLoader(DeclarativeConfigProperties.class.getClassLoader());
-    Map<String, ExperimentalLanguageSpecificInstrumentationPropertyModel> original =
-        javaModel.getAdditionalProperties();
-    Map<String, Object> properties = new HashMap<>();
-    ExperimentalLanguageSpecificInstrumentationPropertyModel distribution =
-        original.get("distribution");
-    properties.put(
-        "distribution", distribution != null ? distribution.getAdditionalProperties() : null);
-    DeclarativeConfigProperties config =
-        YamlDeclarativeConfigProperties.create(properties, componentLoader);
-
-    return config.getStructured("distribution", empty()); // Should this empty() be there?
+        ComponentLoader.forClassLoader(AutoConfigureUtil.class.getClassLoader());
+    return YamlDeclarativeConfigProperties.create(
+        splunkModel.getAdditionalProperties(), componentLoader);
   }
 
   public static Resource getResource(AutoConfiguredOpenTelemetrySdk sdk) {

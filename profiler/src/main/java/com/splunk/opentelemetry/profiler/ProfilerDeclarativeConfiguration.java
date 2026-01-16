@@ -18,12 +18,16 @@ package com.splunk.opentelemetry.profiler;
 
 import static io.opentelemetry.api.incubator.config.DeclarativeConfigProperties.empty;
 
+import com.splunk.opentelemetry.profiler.util.OptionalConfigurableSupplier;
 import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
 import java.time.Duration;
 import java.util.logging.Logger;
 import javax.annotation.Nullable;
 
 public class ProfilerDeclarativeConfiguration implements ProfilerConfiguration {
+  public static final OptionalConfigurableSupplier<ProfilerDeclarativeConfiguration> SUPPLIER =
+      new OptionalConfigurableSupplier<>();
+
   private static final Logger logger =
       Logger.getLogger(ProfilerDeclarativeConfiguration.class.getName());
 

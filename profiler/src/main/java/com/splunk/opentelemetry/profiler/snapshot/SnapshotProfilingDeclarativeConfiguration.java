@@ -18,11 +18,15 @@ package com.splunk.opentelemetry.profiler.snapshot;
 
 import static io.opentelemetry.api.incubator.config.DeclarativeConfigProperties.empty;
 
+import com.splunk.opentelemetry.profiler.util.OptionalConfigurableSupplier;
 import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
 import java.time.Duration;
 import java.util.logging.Logger;
 
 public class SnapshotProfilingDeclarativeConfiguration implements SnapshotProfilingConfiguration {
+  public static final OptionalConfigurableSupplier<SnapshotProfilingDeclarativeConfiguration>
+      SUPPLIER = new OptionalConfigurableSupplier<>();
+
   private static final Logger logger =
       Logger.getLogger(SnapshotProfilingDeclarativeConfiguration.class.getName());
   private final DeclarativeConfigProperties profilingConfig;

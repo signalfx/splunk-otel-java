@@ -35,25 +35,23 @@ class ProfilerDeclarativeConfigurationTest {
         DeclarativeConfigTestUtil.parse(
             """
             file_format: "1.0-rc.3"
-            instrumentation/development:
-              java:
-                distribution:
-                  splunk:
-                    profiling:
-                      always_on:
-                        include_agent_internals: true
-                        include_jvm_internals: true
-                        tracing_stacks_only: true
-                        stack_depth: 73
-                        keep_recording_files: true
-                        recording_directory: "/tmp/prof"
-                        recording_duration: 12345
+            distribution:
+              splunk:
+                profiling:
+                  always_on:
+                    include_agent_internals: true
+                    include_jvm_internals: true
+                    tracing_stacks_only: true
+                    stack_depth: 73
+                    keep_recording_files: true
+                    recording_directory: "/tmp/prof"
+                    recording_duration: 12345
 
-                        cpu_profiler:
-                          sampling_interval: 1410
-                        memory_profiler:
-                          event_rate: "250/s"
-                          native_sampling: true
+                    cpu_profiler:
+                      sampling_interval: 1410
+                    memory_profiler:
+                      event_rate: "250/s"
+                      native_sampling: true
             """);
 
     DeclarativeConfigProperties profilingConfig = getProfilingConfig(model);

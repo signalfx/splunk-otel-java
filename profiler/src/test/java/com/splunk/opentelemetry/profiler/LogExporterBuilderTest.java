@@ -162,14 +162,12 @@ class LogExporterBuilderTest {
           DeclarativeConfigTestUtil.parse(
               """
             file_format: "1.0-rc.3"
-            instrumentation/development:
-              java:
-                distribution:
-                  splunk:
-                    profiling:
-                      exporter:
-                        otlp_log_http:
-                          endpoint: "http://acme.com"
+            distribution:
+              splunk:
+                profiling:
+                  exporter:
+                    otlp_log_http:
+                      endpoint: "http://acme.com"
           """);
 
       DeclarativeConfigProperties exporterConfig = getExporterConfig(model);
@@ -188,14 +186,12 @@ class LogExporterBuilderTest {
           DeclarativeConfigTestUtil.parse(
               """
                 file_format: "1.0-rc.3"
-                instrumentation/development:
-                  java:
-                    distribution:
-                      splunk:
-                        profiling:
-                          exporter:
-                            otlp_log_http:
-                              endpoint: "http://acme.com"
+                distribution:
+                  splunk:
+                    profiling:
+                      exporter:
+                        otlp_log_http:
+                          endpoint: "http://acme.com"
               """);
 
       DeclarativeConfigProperties exporterConfig = getExporterConfig(model);
@@ -214,13 +210,11 @@ class LogExporterBuilderTest {
           DeclarativeConfigTestUtil.parse(
               """
                 file_format: "1.0-rc.3"
-                instrumentation/development:
-                  java:
-                    distribution:
-                      splunk:
-                        profiling:
-                          exporter:
-                            unsupported:
+                distribution:
+                  splunk:
+                    profiling:
+                      exporter:
+                        unsupported:
               """);
 
       DeclarativeConfigProperties exporterConfig = getExporterConfig(model);

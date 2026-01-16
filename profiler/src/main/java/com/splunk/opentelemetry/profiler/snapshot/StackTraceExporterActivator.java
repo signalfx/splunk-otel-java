@@ -48,7 +48,7 @@ public class StackTraceExporterActivator implements AgentListener {
 
   @Override
   public void afterAgent(AutoConfiguredOpenTelemetrySdk sdk) {
-    SnapshotProfilingConfiguration configuration = SnapshotProfilingConfiguration.fromSdk(sdk);
+    SnapshotProfilingConfiguration configuration = getSnapshotProfilingConfiguration(sdk);
     if (!configuration.isEnabled()) {
       return;
     }
@@ -75,5 +75,15 @@ public class StackTraceExporterActivator implements AgentListener {
     }
     throw new IllegalArgumentException(
         "Unsupported config properties type: " + configProperties.getClass().getName());
+  }
+
+  private static SnapshotProfilingConfiguration getSnapshotProfilingConfiguration(
+      AutoConfiguredOpenTelemetrySdk sdk) {
+    if (SnapshotProfilingDeclarativeConfiguration.SUPPLIER.isConfigured()) {
+      return SnapshotProfilingDeclarativeConfiguration.SUPPLIER.get();
+    } else {
+      ConfigProperties configProperties = AutoConfigureUtil.getConfig(sdk);
+      return new SnapshotProfilingEnvVarsConfiguration(configProperties);
+    }
   }
 }

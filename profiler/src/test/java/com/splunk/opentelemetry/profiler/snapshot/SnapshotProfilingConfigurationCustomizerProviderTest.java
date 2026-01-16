@@ -54,12 +54,10 @@ class SnapshotProfilingConfigurationCustomizerProviderTest {
     String yaml =
         toYamlString(
             "file_format: \"1.0-rc.3\"",
-            "instrumentation/development:",
-            "  java:",
-            "    distribution:",
-            "      splunk:",
-            "        profiling:",
-            "          callgraphs:");
+            "distribution:",
+            "  splunk:",
+            "    profiling:",
+            "      callgraphs:");
 
     // when
     OpenTelemetryConfigurationModel model = getCustomizedModel(yaml);
@@ -79,12 +77,10 @@ class SnapshotProfilingConfigurationCustomizerProviderTest {
     OpenTelemetryConfigurationModel model =
         DeclarativeConfigTestUtil.parse(
             "file_format: \"1.0-rc.3\"",
-            "instrumentation/development:",
-            "  java:",
-            "    distribution:",
-            "      splunk:",
-            "        profiling:",
-            "          callgraphs:");
+            "distribution:",
+            "  splunk:",
+            "    profiling:",
+            "      callgraphs:");
 
     TraceRegistry traceRegistryMock = mock(TraceRegistry.class);
     ContextStorageWrapper contextStorageWrapperMock = mock(ContextStorageWrapper.class);

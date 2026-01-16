@@ -28,12 +28,19 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.api.io.TempDir;
 
 class AppdBeforeAgentListenerTest {
   @RegisterExtension final AutoCleanupExtension autoCleanup = AutoCleanupExtension.create();
+
+  @AfterEach
+  void resetDeclarativeConfigSuppliers() {
+    ProfilerDeclarativeConfiguration.SUPPLIER.reset();
+    SnapshotProfilingDeclarativeConfiguration.SUPPLIER.reset();
+  }
 
   @Test
   void shouldSetPropagatorProperties(@TempDir Path tempDir) throws IOException {
@@ -55,8 +62,7 @@ class AppdBeforeAgentListenerTest {
                      enabled: true
             """;
     AutoConfiguredOpenTelemetrySdk autoConfiguredOpenTelemetrySdk =
-        DeclarativeConfigTestUtil.createAutoConfiguredSdk(yaml, tempDir);
-    autoCleanup.deferCleanup(autoConfiguredOpenTelemetrySdk.getOpenTelemetrySdk());
+        DeclarativeConfigTestUtil.createAutoConfiguredSdk(yaml, tempDir, autoCleanup);
 
     // when
     agentListener.beforeAgent(autoConfiguredOpenTelemetrySdk);

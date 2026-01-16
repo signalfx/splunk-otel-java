@@ -16,14 +16,7 @@
 
 package com.splunk.opentelemetry.profiler.snapshot;
 
-import static io.opentelemetry.api.incubator.config.DeclarativeConfigProperties.empty;
-
-import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
-import io.opentelemetry.sdk.autoconfigure.AutoConfigureUtil;
-import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
-import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import java.time.Duration;
-import java.util.Optional;
 import java.util.logging.Logger;
 
 public interface SnapshotProfilingConfiguration {
@@ -49,18 +42,6 @@ public interface SnapshotProfilingConfiguration {
   int getStagingCapacity();
 
   Object getConfigProperties();
-
-  static SnapshotProfilingConfiguration fromSdk(AutoConfiguredOpenTelemetrySdk sdk) {
-    if (AutoConfigureUtil.isDeclarativeConfig(sdk)) {
-      DeclarativeConfigProperties distributionConfig = AutoConfigureUtil.getDistributionConfig(sdk);
-      distributionConfig = Optional.ofNullable(distributionConfig).orElse(empty());
-      return new SnapshotProfilingDeclarativeConfiguration(
-          distributionConfig.getStructured("splunk", empty()).getStructured("profiling", empty()));
-    } else {
-      ConfigProperties configProperties = AutoConfigureUtil.getConfig(sdk);
-      return new SnapshotProfilingEnvVarsConfiguration(configProperties);
-    }
-  }
 
   static double validateSelectionProbability(double selectionProbability, Logger logger) {
     if (selectionProbability > MAX_SELECTION_PROBABILITY) {

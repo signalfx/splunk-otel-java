@@ -204,6 +204,52 @@ class LogExporterBuilderTest {
     }
 
     @Test
+    void shouldCreateHttpExporter_defaultEndpoint() {
+      // given
+      OpenTelemetryConfigurationModel model =
+          DeclarativeConfigTestUtil.parse(
+              """
+            file_format: "1.0-rc.3"
+            distribution:
+              splunk:
+                profiling:
+                  exporter:
+                    otlp_log_http:
+          """);
+
+      DeclarativeConfigProperties exporterConfig = getExporterConfig(model);
+
+      // when
+      LogRecordExporter exporter = LogExporterBuilder.fromConfig(exporterConfig);
+
+      // then
+      assertThat(exporter).isNotNull();
+    }
+
+    @Test
+    void shouldCreateGrpcExporter_defaultEndpoint() {
+      // given
+      OpenTelemetryConfigurationModel model =
+          DeclarativeConfigTestUtil.parse(
+              """
+                file_format: "1.0-rc.3"
+                distribution:
+                  splunk:
+                    profiling:
+                      exporter:
+                        otlp_log_http:
+              """);
+
+      DeclarativeConfigProperties exporterConfig = getExporterConfig(model);
+
+      // when
+      LogRecordExporter exporter = LogExporterBuilder.fromConfig(exporterConfig);
+
+      // then
+      assertThat(exporter).isNotNull();
+    }
+
+    @Test
     void shouldThrowExceptionForInvalidProtocol() {
       // given
       OpenTelemetryConfigurationModel model =

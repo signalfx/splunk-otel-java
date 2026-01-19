@@ -16,6 +16,7 @@
 
 package com.splunk.opentelemetry.profiler;
 
+import static io.opentelemetry.api.incubator.config.DeclarativeConfigProperties.empty;
 import static io.opentelemetry.exporter.otlp.internal.OtlpConfigUtil.DATA_TYPE_LOGS;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -30,6 +31,7 @@ import io.opentelemetry.exporter.otlp.logs.OtlpGrpcLogRecordExporterBuilder;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigurationException;
 import io.opentelemetry.sdk.logs.export.LogRecordExporter;
+import java.util.Set;
 import java.util.function.Supplier;
 
 class LogExporterBuilder {
@@ -39,18 +41,19 @@ class LogExporterBuilder {
 
   static LogRecordExporter fromConfig(DeclarativeConfigProperties exporterConfigProperties) {
     if (exporterConfigProperties != null) {
+      Set<String> propertyKeys = exporterConfigProperties.getPropertyKeys();
 
-      DeclarativeConfigProperties otlpHttp =
-          exporterConfigProperties.getStructured("otlp_log_http");
-      if (otlpHttp != null) {
+      if (propertyKeys.contains("otlp_log_http")) {
+        DeclarativeConfigProperties otlpHttp =
+            exporterConfigProperties.getStructured("otlp_log_http", empty());
         OtlpHttpLogRecordExporterComponentProvider provider =
             new OtlpHttpLogRecordExporterComponentProvider();
         return provider.create(otlpHttp);
       }
 
-      DeclarativeConfigProperties otlpGrpc =
-          exporterConfigProperties.getStructured("otlp_log_grpc");
-      if (otlpGrpc != null) {
+      if (propertyKeys.contains("otlp_log_grpc")) {
+        DeclarativeConfigProperties otlpGrpc =
+            exporterConfigProperties.getStructured("otlp_log_grpc", empty());
         OtlpGrpcLogRecordExporterComponentProvider provider =
             new OtlpGrpcLogRecordExporterComponentProvider();
         return provider.create(otlpGrpc);

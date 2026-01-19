@@ -16,32 +16,29 @@
 
 package com.splunk.opentelemetry.profiler.util;
 
-import java.util.Optional;
+import java.util.Objects;
 import java.util.function.Supplier;
 
 public class OptionalConfigurableSupplier<T> implements Supplier<T> {
-  private final Optional<T> defaultValue;
-  private volatile Optional<T> value;
-
-  public OptionalConfigurableSupplier() {
-    this.defaultValue = Optional.empty();
-    this.value = Optional.empty();
-  }
+  private volatile T value = null;
 
   @Override
   public T get() {
-    return value.orElseThrow(() -> new IllegalStateException("No value present"));
+    if (value == null) {
+      throw new IllegalStateException("No value present");
+    }
+    return value;
   }
 
   public void configure(T value) {
-    this.value = Optional.of(value);
+    this.value = Objects.requireNonNull(value);
   }
 
   public boolean isConfigured() {
-    return value.isPresent();
+    return value != null;
   }
 
   public void reset() {
-    this.value = Optional.empty();
+    this.value = null;
   }
 }

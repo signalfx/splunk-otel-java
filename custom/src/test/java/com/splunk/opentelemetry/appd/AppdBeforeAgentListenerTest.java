@@ -20,8 +20,6 @@ import static com.splunk.opentelemetry.appd.AppdBonusPropagator.CTX_HEADER_ENV;
 import static com.splunk.opentelemetry.appd.AppdBonusPropagator.CTX_HEADER_SERVICE;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
-import com.splunk.opentelemetry.profiler.ProfilerDeclarativeConfiguration;
-import com.splunk.opentelemetry.profiler.snapshot.SnapshotProfilingDeclarativeConfiguration;
 import com.splunk.opentelemetry.testing.declarativeconfig.DeclarativeConfigTestUtil;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.instrumentation.testing.internal.AutoCleanupExtension;
@@ -30,19 +28,12 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.api.io.TempDir;
 
 class AppdBeforeAgentListenerTest {
   @RegisterExtension final AutoCleanupExtension autoCleanup = AutoCleanupExtension.create();
-
-  @AfterEach
-  void resetSuppliers() {
-    ProfilerDeclarativeConfiguration.SUPPLIER.reset();
-    SnapshotProfilingDeclarativeConfiguration.SUPPLIER.reset();
-  }
 
   @Test
   void shouldSetPropagatorProperties(@TempDir Path tempDir) throws IOException {

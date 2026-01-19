@@ -190,7 +190,7 @@ class LogExporterBuilderTest {
                   splunk:
                     profiling:
                       exporter:
-                        otlp_log_http:
+                        otlp_log_grpc:
                           endpoint: "http://acme.com"
               """);
 
@@ -237,7 +237,7 @@ class LogExporterBuilderTest {
                   splunk:
                     profiling:
                       exporter:
-                        otlp_log_http:
+                        otlp_log_grpc:
               """);
 
       DeclarativeConfigProperties exporterConfig = getExporterConfig(model);

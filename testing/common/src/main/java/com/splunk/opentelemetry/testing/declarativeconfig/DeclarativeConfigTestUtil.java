@@ -37,19 +37,10 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Arrays;
 import java.util.Collections;
 
 public class DeclarativeConfigTestUtil {
   private DeclarativeConfigTestUtil() {}
-
-  public static String toYamlString(String... lines) {
-    return String.join("\n", Arrays.asList(lines));
-  }
-
-  public static OpenTelemetryConfigurationModel parse(String... lines) {
-    return parse(toYamlString(lines));
-  }
 
   public static OpenTelemetryConfigurationModel parse(String yaml) {
     try (InputStream yamlStream = new ByteArrayInputStream(yaml.getBytes(StandardCharsets.UTF_8))) {

@@ -25,16 +25,34 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import com.splunk.opentelemetry.profiler.snapshot.SnapshotProfilingDeclarativeConfiguration;
 import io.opentelemetry.context.ContextStorage;
+import io.opentelemetry.instrumentation.testing.internal.AutoCleanupExtension;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.MockedStatic;
 
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class JfrActivatorTest {
+  @RegisterExtension final AutoCleanupExtension autoCleanup = AutoCleanupExtension.create();
+
+  @AfterEach
+  void resetDeclarativeConfigSuppliers() {
+    ProfilerDeclarativeConfiguration.SUPPLIER.reset();
+    SnapshotProfilingDeclarativeConfiguration.SUPPLIER.reset();
+  }
+
   @Test
   void shouldActivateJfrRecording(@TempDir Path tempDir) throws IOException {
     try (MockedStatic<ContextStorage> contextStorageMock = mockStatic(ContextStorage.class)) {
@@ -43,14 +61,12 @@ class JfrActivatorTest {
       String yaml =
           """
             file_format: "1.0-rc.3"
-            instrumentation/development:
-              java:
-                distribution:
-                  splunk:
-                    profiling:
-                      always_on:
+            distribution:
+              splunk:
+                profiling:
+                  always_on:
             """;
-      AutoConfiguredOpenTelemetrySdk sdk = createAutoConfiguredSdk(yaml, tempDir);
+      AutoConfiguredOpenTelemetrySdk sdk = createAutoConfiguredSdk(yaml, tempDir, autoCleanup);
 
       var jfrMock = mock(JFR.class);
       when(jfrMock.isAvailable()).thenReturn(true);
@@ -75,14 +91,12 @@ class JfrActivatorTest {
       String yaml =
           """
             file_format: "1.0-rc.3"
-            instrumentation/development:
-              java:
-                distribution:
-                  splunk:
-                    profiling:
-                      always_on:
+            distribution:
+              splunk:
+                profiling:
+                  always_on:
             """;
-      AutoConfiguredOpenTelemetrySdk sdk = createAutoConfiguredSdk(yaml, tempDir);
+      AutoConfiguredOpenTelemetrySdk sdk = createAutoConfiguredSdk(yaml, tempDir, autoCleanup);
 
       var jfrMock = mock(JFR.class);
       when(jfrMock.isAvailable()).thenReturn(false);
@@ -99,14 +113,14 @@ class JfrActivatorTest {
     }
   }
 
-  @Test
-  void shouldNotActivateJfrRecording_profilerDisabled(@TempDir Path tempDir) throws IOException {
+  @ParameterizedTest
+  @MethodSource("generateNoProfilerYamlStrings")
+  void shouldNotActivateJfrRecording_profilerDisabled(String yaml, @TempDir Path tempDir)
+      throws IOException {
     try (MockedStatic<ContextStorage> contextStorageMock = mockStatic(ContextStorage.class)) {
 
       // given
-      String yaml =
-          toYamlString("file_format: \"1.0-rc.3\"", "instrumentation/development:", "  java:");
-      AutoConfiguredOpenTelemetrySdk sdk = createAutoConfiguredSdk(yaml, tempDir);
+      AutoConfiguredOpenTelemetrySdk sdk = createAutoConfiguredSdk(yaml, tempDir, autoCleanup);
 
       var jfrMock = mock(JFR.class);
       when(jfrMock.isAvailable()).thenReturn(true);
@@ -121,5 +135,15 @@ class JfrActivatorTest {
       contextStorageMock.verifyNoInteractions();
       verifyNoInteractions(executorMock);
     }
+  }
+
+  private List<Arguments> generateNoProfilerYamlStrings() {
+    return List.of(
+        Arguments.of("file_format: \"1.0-rc.3\""),
+        Arguments.of(toYamlString("file_format: \"1.0-rc.3\"", "distribution:")),
+        Arguments.of(toYamlString("file_format: \"1.0-rc.3\"", "distribution:", "  splunk:")),
+        Arguments.of(
+            toYamlString(
+                "file_format: \"1.0-rc.3\"", "distribution:", "  splunk:", "    something:")));
   }
 }

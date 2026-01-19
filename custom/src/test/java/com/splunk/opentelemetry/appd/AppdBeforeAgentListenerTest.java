@@ -55,8 +55,7 @@ class AppdBeforeAgentListenerTest {
                      enabled: true
             """;
     AutoConfiguredOpenTelemetrySdk autoConfiguredOpenTelemetrySdk =
-        DeclarativeConfigTestUtil.createAutoConfiguredSdk(yaml, tempDir);
-    autoCleanup.deferCleanup(autoConfiguredOpenTelemetrySdk.getOpenTelemetrySdk());
+        DeclarativeConfigTestUtil.createAutoConfiguredSdk(yaml, tempDir, autoCleanup);
 
     // when
     agentListener.beforeAgent(autoConfiguredOpenTelemetrySdk);

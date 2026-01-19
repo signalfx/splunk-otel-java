@@ -17,20 +17,19 @@
 package com.splunk.opentelemetry.testing.declarativeconfig;
 
 import static io.opentelemetry.api.incubator.config.DeclarativeConfigProperties.empty;
+import static io.opentelemetry.sdk.autoconfigure.AutoConfigureUtil.getDistributionConfig;
 
 import io.opentelemetry.api.incubator.ExtendedOpenTelemetry;
 import io.opentelemetry.api.incubator.config.ConfigProvider;
 import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
-import io.opentelemetry.common.ComponentLoader;
 import io.opentelemetry.instrumentation.config.bridge.DeclarativeConfigPropertiesBridgeBuilder;
+import io.opentelemetry.instrumentation.testing.internal.AutoCleanupExtension;
 import io.opentelemetry.sdk.OpenTelemetrySdk;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 import io.opentelemetry.sdk.autoconfigure.SdkAutoconfigureAccess;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.DeclarativeConfiguration;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.DeclarativeConfigurationBuilder;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.DeclarativeConfigurationCustomizerProvider;
-import io.opentelemetry.sdk.extension.incubator.fileconfig.YamlDeclarativeConfigProperties;
-import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.ExperimentalLanguageSpecificInstrumentationPropertyModel;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.OpenTelemetryConfigurationModel;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -40,7 +39,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Map;
 
 public class DeclarativeConfigTestUtil {
   private DeclarativeConfigTestUtil() {}
@@ -71,8 +69,8 @@ public class DeclarativeConfigTestUtil {
     return model;
   }
 
-  public static AutoConfiguredOpenTelemetrySdk createAutoConfiguredSdk(String yaml, Path tempDir)
-      throws IOException {
+  public static AutoConfiguredOpenTelemetrySdk createAutoConfiguredSdk(
+      String yaml, Path tempDir, AutoCleanupExtension autoCleanup) throws IOException {
     Path configFilePath = tempDir.resolve("test-config.yaml");
     Files.write(configFilePath, yaml.getBytes());
     System.setProperty("otel.experimental.config.file", configFilePath.toString());
@@ -90,6 +88,8 @@ public class DeclarativeConfigTestUtil {
           ((ExtendedOpenTelemetry) autoConfiguredSdk.getOpenTelemetrySdk()).getConfigProvider();
       OpenTelemetrySdk sdk = autoConfiguredSdk.getOpenTelemetrySdk();
 
+      autoCleanup.deferCleanup(sdk);
+
       if (configProvider != null) {
         return SdkAutoconfigureAccess.create(
             sdk,
@@ -104,24 +104,9 @@ public class DeclarativeConfigTestUtil {
     }
   }
 
-  // TODO: This method and test YAMLs with "distribution" node must be updated to use valid
-  //       location once ConfigProvider exposes ".distribution" config.
-  //       For now it is temporary placed under the instrumentation node.
   public static DeclarativeConfigProperties getProfilingConfig(
       OpenTelemetryConfigurationModel model) {
 
-    Map<String, ExperimentalLanguageSpecificInstrumentationPropertyModel> original =
-        model.getInstrumentationDevelopment().getJava().getAdditionalProperties();
-    Map<String, Object> properties =
-        Map.of("distribution", original.get("distribution").getAdditionalProperties());
-    ComponentLoader componentLoader =
-        ComponentLoader.forClassLoader(DeclarativeConfigProperties.class.getClassLoader());
-    DeclarativeConfigProperties declarativeConfigProperties =
-        YamlDeclarativeConfigProperties.create(properties, componentLoader);
-
-    return declarativeConfigProperties
-        .getStructured("distribution", empty())
-        .getStructured("splunk", empty())
-        .getStructured("profiling", empty());
+    return getDistributionConfig(model).getStructured("profiling", empty());
   }
 }

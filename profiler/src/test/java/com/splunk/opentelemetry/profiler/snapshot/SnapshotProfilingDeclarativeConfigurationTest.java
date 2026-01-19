@@ -21,12 +21,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.splunk.opentelemetry.testing.declarativeconfig.DeclarativeConfigTestUtil;
 import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
-import io.opentelemetry.common.ComponentLoader;
-import io.opentelemetry.sdk.extension.incubator.fileconfig.YamlDeclarativeConfigProperties;
-import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.ExperimentalLanguageSpecificInstrumentationPropertyModel;
+import io.opentelemetry.sdk.autoconfigure.AutoConfigureUtil;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.OpenTelemetryConfigurationModel;
 import java.time.Duration;
-import java.util.Map;
 import org.junit.jupiter.api.Test;
 
 class SnapshotProfilingDeclarativeConfigurationTest {
@@ -37,17 +34,15 @@ class SnapshotProfilingDeclarativeConfigurationTest {
         DeclarativeConfigTestUtil.parse(
             """
             file_format: "1.0-rc.3"
-            instrumentation/development:
-              java:
-                distribution:
-                  splunk:
-                    profiling:
-                      callgraphs:                     # SPLUNK_SNAPSHOT_PROFILER_ENABLED
-                        sampling_interval: 10         # SPLUNK_SNAPSHOT_SAMPLING_INTERVAL
-                        export_interval: 20           # SPLUNK_SNAPSHOT_EXPORT_INTERVAL
-                        selection_probability: 0.0123 # SPLUNK_SNAPSHOT_SELECTION_PROBABILITY
-                        stack_depth: 200              # SPLUNK_SNAPSHOT_STACK_DEPTH
-                        staging_capacity: 7           # SPLUNK_SNAPSHOT_STAGING_CAPACITY
+            distribution:
+              splunk:
+                profiling:
+                  callgraphs:                     # SPLUNK_SNAPSHOT_PROFILER_ENABLED
+                    sampling_interval: 10         # SPLUNK_SNAPSHOT_SAMPLING_INTERVAL
+                    export_interval: 20           # SPLUNK_SNAPSHOT_EXPORT_INTERVAL
+                    selection_probability: 0.0123 # SPLUNK_SNAPSHOT_SELECTION_PROBABILITY
+                    stack_depth: 200              # SPLUNK_SNAPSHOT_STACK_DEPTH
+                    staging_capacity: 7           # SPLUNK_SNAPSHOT_STAGING_CAPACITY
             """);
 
     DeclarativeConfigProperties profilingConfig = getProfilingConfig(model);
@@ -72,12 +67,10 @@ class SnapshotProfilingDeclarativeConfigurationTest {
         DeclarativeConfigTestUtil.parse(
             """
             file_format: "1.0-rc.3"
-            instrumentation/development:
-              java:
-                distribution:
-                  splunk:
-                    profiling:
-                      callgraphs:                     # SPLUNK_SNAPSHOT_PROFILER_ENABLED
+            distribution:
+              splunk:
+                profiling:
+                  callgraphs:                     # SPLUNK_SNAPSHOT_PROFILER_ENABLED
             """);
 
     DeclarativeConfigProperties snapshotProfilingConfig = getProfilingConfig(model);
@@ -102,11 +95,9 @@ class SnapshotProfilingDeclarativeConfigurationTest {
         DeclarativeConfigTestUtil.parse(
             """
             file_format: "1.0-rc.3"
-            instrumentation/development:
-              java:
-                distribution:
-                  splunk:
-                    profiling:
+            distribution:
+              splunk:
+                profiling:
             """);
 
     DeclarativeConfigProperties profilingConfig = getProfilingConfig(model);
@@ -126,13 +117,11 @@ class SnapshotProfilingDeclarativeConfigurationTest {
         DeclarativeConfigTestUtil.parse(
             """
             file_format: "1.0-rc.3"
-            instrumentation/development:
-              java:
-                distribution:
-                  splunk:
-                    profiling:
-                      callgraphs:
-                        selection_probability: 1.1
+            distribution:
+              splunk:
+                profiling:
+                  callgraphs:
+                    selection_probability: 1.1
             """);
 
     DeclarativeConfigProperties profilingConfig = getProfilingConfig(model);
@@ -153,13 +142,11 @@ class SnapshotProfilingDeclarativeConfigurationTest {
         DeclarativeConfigTestUtil.parse(
             """
             file_format: "1.0-rc.3"
-            instrumentation/development:
-              java:
-                distribution:
-                  splunk:
-                    profiling:
-                      callgraphs:
-                        selection_probability: 0
+            distribution:
+              splunk:
+                profiling:
+                  callgraphs:
+                    selection_probability: 0
             """);
 
     DeclarativeConfigProperties profilingConfig = getProfilingConfig(model);
@@ -169,23 +156,14 @@ class SnapshotProfilingDeclarativeConfigurationTest {
         new SnapshotProfilingDeclarativeConfiguration(profilingConfig);
 
     // then
+    assertThat(config.isEnabled()).isTrue();
     assertThat(config.getSnapshotSelectionProbability())
         .isEqualTo(SnapshotProfilingConfiguration.DEFAULT_SELECTION_PROBABILITY);
   }
 
   private static DeclarativeConfigProperties getProfilingConfig(
       OpenTelemetryConfigurationModel model) {
-    Map<String, ExperimentalLanguageSpecificInstrumentationPropertyModel> original =
-        model.getInstrumentationDevelopment().getJava().getAdditionalProperties();
-    Map<String, Object> properties =
-        Map.of("distribution", original.get("distribution").getAdditionalProperties());
-    ComponentLoader componentLoader =
-        ComponentLoader.forClassLoader(DeclarativeConfigProperties.class.getClassLoader());
-    DeclarativeConfigProperties declarativeConfigProperties =
-        YamlDeclarativeConfigProperties.create(properties, componentLoader);
-    return declarativeConfigProperties
-        .getStructured("distribution", empty())
-        .getStructured("splunk", empty())
-        .getStructured("profiling", empty());
+    DeclarativeConfigProperties distributionConfig = AutoConfigureUtil.getDistributionConfig(model);
+    return distributionConfig.getStructured("profiling", empty());
   }
 }

@@ -47,7 +47,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 
 @AutoService(AgentListener.class)
@@ -85,11 +84,8 @@ public class JfrActivator implements AgentListener {
 
   private static ProfilerConfiguration getProfilerConfiguration(
       AutoConfiguredOpenTelemetrySdk sdk) {
-    if (AutoConfigureUtil.isDeclarativeConfig(sdk)) {
-      DeclarativeConfigProperties distributionConfig = AutoConfigureUtil.getDistributionConfig(sdk);
-      distributionConfig = Optional.ofNullable(distributionConfig).orElse(empty());
-      return new ProfilerDeclarativeConfiguration(
-          distributionConfig.getStructured("splunk", empty()).getStructured("profiling", empty()));
+    if (ProfilerDeclarativeConfiguration.SUPPLIER.isConfigured()) {
+      return ProfilerDeclarativeConfiguration.SUPPLIER.get();
     } else {
       ConfigProperties configProperties = AutoConfigureUtil.getConfig(sdk);
       return new ProfilerEnvVarsConfiguration(configProperties);

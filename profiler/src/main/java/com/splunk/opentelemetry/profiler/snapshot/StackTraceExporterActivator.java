@@ -29,7 +29,6 @@ import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import io.opentelemetry.sdk.resources.Resource;
 
-// TODO: Improve tests for this class to cover declarative config
 @AutoService(AgentListener.class)
 public class StackTraceExporterActivator implements AgentListener {
   private static final java.util.logging.Logger logger =

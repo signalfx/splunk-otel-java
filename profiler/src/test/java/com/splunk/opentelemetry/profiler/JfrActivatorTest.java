@@ -17,7 +17,6 @@
 package com.splunk.opentelemetry.profiler;
 
 import static com.splunk.opentelemetry.testing.declarativeconfig.DeclarativeConfigTestUtil.createAutoConfiguredSdk;
-import static com.splunk.opentelemetry.testing.declarativeconfig.DeclarativeConfigTestUtil.toYamlString;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
@@ -140,10 +139,23 @@ class JfrActivatorTest {
   private List<Arguments> generateNoProfilerYamlStrings() {
     return List.of(
         Arguments.of("file_format: \"1.0-rc.3\""),
-        Arguments.of(toYamlString("file_format: \"1.0-rc.3\"", "distribution:")),
-        Arguments.of(toYamlString("file_format: \"1.0-rc.3\"", "distribution:", "  splunk:")),
         Arguments.of(
-            toYamlString(
-                "file_format: \"1.0-rc.3\"", "distribution:", "  splunk:", "    something:")));
+            """
+              file_format: "1.0-rc.3"
+              distribution:
+              """),
+        Arguments.of(
+            """
+              file_format: "1.0-rc.3"
+              distribution:
+                splunk:
+              """),
+        Arguments.of(
+            """
+              file_format: "1.0-rc.3"
+              distribution:
+                splunk:
+                  something:
+              """));
   }
 }

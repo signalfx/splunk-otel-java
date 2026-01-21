@@ -16,7 +16,6 @@
 
 package com.splunk.opentelemetry.profiler.snapshot;
 
-import static com.splunk.opentelemetry.testing.declarativeconfig.DeclarativeConfigTestUtil.toYamlString;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -47,7 +46,11 @@ class SnapshotProfilingConfigurationCustomizerProviderTest {
   void shouldDoNothingIfProfilerIsNotEnabled(@TempDir Path tempDir) throws IOException {
     // given
     String yaml =
-        toYamlString("file_format: \"1.0-rc.3\"", "instrumentation/development:", "  java:");
+        """
+          file_format: "1.0-rc.3"
+          instrumentation/development:
+            java:
+          """;
 
     // when
     OpenTelemetryConfigurationModel model = getCustomizedModel(yaml);
@@ -61,12 +64,13 @@ class SnapshotProfilingConfigurationCustomizerProviderTest {
   void shouldAddShutdownHookSpanProcessor() {
     // given
     String yaml =
-        toYamlString(
-            "file_format: \"1.0-rc.3\"",
-            "distribution:",
-            "  splunk:",
-            "    profiling:",
-            "      callgraphs:");
+        """
+          file_format: "1.0-rc.3"
+          distribution:
+            splunk:
+              profiling:
+                callgraphs:
+          """;
 
     // when
     OpenTelemetryConfigurationModel model = getCustomizedModel(yaml);
@@ -85,11 +89,13 @@ class SnapshotProfilingConfigurationCustomizerProviderTest {
     // given
     OpenTelemetryConfigurationModel model =
         DeclarativeConfigTestUtil.parse(
-            "file_format: \"1.0-rc.3\"",
-            "distribution:",
-            "  splunk:",
-            "    profiling:",
-            "      callgraphs:");
+            """
+              file_format: "1.0-rc.3"
+              distribution:
+                splunk:
+                  profiling:
+                    callgraphs:
+              """);
 
     TraceRegistry traceRegistryMock = mock(TraceRegistry.class);
     ContextStorageWrapper contextStorageWrapperMock = mock(ContextStorageWrapper.class);

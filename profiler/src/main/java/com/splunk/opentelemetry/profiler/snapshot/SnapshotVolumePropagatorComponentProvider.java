@@ -25,6 +25,8 @@ import io.opentelemetry.sdk.autoconfigure.spi.internal.ComponentProvider;
 
 @AutoService(ComponentProvider.class)
 public class SnapshotVolumePropagatorComponentProvider implements ComponentProvider {
+  final static String NAME = "splunk_snapshot_volume";
+
   @Override
   public Class<TextMapPropagator> getType() {
     return TextMapPropagator.class;
@@ -32,7 +34,7 @@ public class SnapshotVolumePropagatorComponentProvider implements ComponentProvi
 
   @Override
   public String getName() {
-    return "splunk_snapshot_volume";
+    return NAME;
   }
 
   @Override

@@ -25,8 +25,15 @@ import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.DeclarativeConfigurationCustomizer;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.DeclarativeConfigurationCustomizerProvider;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.OpenTelemetryConfigurationModel;
+import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.PropagatorModel;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.SpanProcessorModel;
+import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.TextMapPropagatorModel;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.TracerProviderModel;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 @AutoService(DeclarativeConfigurationCustomizerProvider.class)
 public class SnapshotProfilingConfigurationCustomizerProvider
@@ -50,10 +57,29 @@ public class SnapshotProfilingConfigurationCustomizerProvider
     if (snapshotProfiling.isEnabled()) {
       initActiveSpansTracking();
       initStackTraceSampler(snapshotProfiling);
+      addSnapshotVolumePropagator(model);
       addShutdownHookSpanProcessor(model);
     }
 
     return model;
+  }
+
+  private void addSnapshotVolumePropagator(OpenTelemetryConfigurationModel model) {
+    PropagatorModel propagatorModel = model.getPropagator();
+    if (propagatorModel == null) {
+      propagatorModel = new PropagatorModel();
+      model.withPropagator(propagatorModel);
+    }
+
+    String volumePropagatorName = SnapshotVolumePropagatorComponentProvider.NAME;
+    String propagators = propagatorModel.getCompositeList();
+    // Possible propagator duplicates with propagatorModel.getComposite() are resolved by the upstream
+    if (propagators == null || propagators.trim().isEmpty()) {
+      propagators = volumePropagatorName;
+    } else {
+      propagators = String.join(",", propagators, volumePropagatorName);
+    }
+    propagatorModel.withCompositeList(propagators);
   }
 
   private void initStackTraceSampler(

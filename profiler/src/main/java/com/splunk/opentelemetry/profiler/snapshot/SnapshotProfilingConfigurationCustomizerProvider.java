@@ -27,13 +27,7 @@ import io.opentelemetry.sdk.extension.incubator.fileconfig.DeclarativeConfigurat
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.OpenTelemetryConfigurationModel;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.PropagatorModel;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.SpanProcessorModel;
-import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.TextMapPropagatorModel;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.TracerProviderModel;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
 @AutoService(DeclarativeConfigurationCustomizerProvider.class)
 public class SnapshotProfilingConfigurationCustomizerProvider
@@ -73,7 +67,8 @@ public class SnapshotProfilingConfigurationCustomizerProvider
 
     String volumePropagatorName = SnapshotVolumePropagatorComponentProvider.NAME;
     String propagators = propagatorModel.getCompositeList();
-    // Possible propagator duplicates with propagatorModel.getComposite() are resolved by the upstream
+    // Possible propagator duplicates with propagatorModel.getComposite() are resolved by the
+    // upstream
     if (propagators == null || propagators.trim().isEmpty()) {
       propagators = volumePropagatorName;
     } else {

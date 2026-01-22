@@ -14,6 +14,39 @@ stages:
   - verify
   - release
   - post-release
+  - troubleshooting
+
+troubleshoot-start:
+  stage: troubleshooting
+  script:
+    - echo "The troubleshooting has begun"
+troubleshoot-any-tag:
+  stage: troubleshooting
+  rules:
+    - if: '$CI_COMMIT_TAG != ""'
+  script:
+    - echo "We have a non-empty commit tag. Fun! $CI_COMMIT_TAG"
+# Temporary job to use while investigating release tag issues
+troubleshoot-tag:
+  stage: troubleshooting
+  artifacts: # Not necessary, but mimicking real release job
+    when: always
+    paths:
+      - dist/
+  rules:
+    - if: $CI_COMMIT_TAG =~ /^troubleshoot-v[0-9]+\.[0-9]+\.[0-9]+/
+  before_script:
+    # Only keeping this here because the release job has it
+    - ./scripts/install-gh-deps.sh
+  script:
+    - echo "YES! We are running with $CI_COMMIT_TAG"
+troubleshoot-end:
+  stage: troubleshooting
+  rules:
+    # Maybe single quotes break it now?
+    - if: '$CI_COMMIT_TAG =~ /^troubleshoot-v[0-9]+\.[0-9]+\.[0-9]+/'
+  script:
+    - echo "This concludes our troubleshooting session. $CI_COMMIT_TAG"
 
 build:
   stage: build

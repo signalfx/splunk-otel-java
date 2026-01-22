@@ -26,9 +26,6 @@ import com.splunk.opentelemetry.testing.declarativeconfig.DeclarativeConfigTestU
 import io.opentelemetry.api.incubator.config.DeclarativeConfigException;
 import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
 import io.opentelemetry.context.propagation.TextMapPropagator;
-import io.opentelemetry.sdk.extension.incubator.fileconfig.YamlDeclarativeConfigProperties;
-import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.OpenTelemetryConfigurationModel;
-import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.TextMapPropagatorPropertyModel;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
@@ -55,10 +52,6 @@ class SnapshotVolumePropagatorComponentProviderTest {
     var yaml =
         """
             file_format: "1.0-rc.3"
-            propagator:
-              composite:
-                - splunk_snapshot_volume:
-
             distribution:
               splunk:
                 profiling:
@@ -89,10 +82,6 @@ class SnapshotVolumePropagatorComponentProviderTest {
     var yaml =
         """
             file_format: "1.0-rc.3"
-            propagator:
-              composite:
-                - splunk_snapshot_volume:
-
             distribution:
               splunk:
                 profiling:
@@ -115,20 +104,5 @@ class SnapshotVolumePropagatorComponentProviderTest {
     assertThat(propagator).isNotNull();
     assertThat(propagator).isInstanceOf(SnapshotVolumePropagator.class);
     verify(propagatorProvider).selector(0.123);
-  }
-
-  static DeclarativeConfigProperties getPropagatorProperties(
-      OpenTelemetryConfigurationModel model) {
-    TextMapPropagatorPropertyModel config =
-        model
-            .getPropagator()
-            .getComposite()
-            .get(0)
-            .getAdditionalProperties()
-            .get("splunk_snapshot_volume");
-    if (config == null) {
-      return DeclarativeConfigProperties.empty();
-    }
-    return YamlDeclarativeConfigProperties.create(config.getAdditionalProperties(), null);
   }
 }

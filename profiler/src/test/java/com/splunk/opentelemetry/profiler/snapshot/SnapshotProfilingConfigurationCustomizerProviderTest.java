@@ -25,6 +25,7 @@ import io.opentelemetry.instrumentation.testing.internal.AutoCleanupExtension;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.OpenTelemetryConfigurationModel;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.Set;
 import org.assertj.core.util.Sets;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -48,8 +49,6 @@ class SnapshotProfilingConfigurationCustomizerProviderTest {
     String yaml =
         """
           file_format: "1.0-rc.3"
-          instrumentation/development:
-            java:
           """;
 
     // when
@@ -61,7 +60,7 @@ class SnapshotProfilingConfigurationCustomizerProviderTest {
   }
 
   @Test
-  void shouldAddShutdownHookSpanProcessor() {
+  void shouldAddRequiredComponents() {
     // given
     String yaml =
         """
@@ -78,10 +77,36 @@ class SnapshotProfilingConfigurationCustomizerProviderTest {
     // then
     assertThat(model).isNotNull();
     assertThat(model.getTracerProvider()).isNotNull();
+
     assertThat(model.getTracerProvider().getProcessors()).hasSize(1);
     assertThat(model.getTracerProvider().getProcessors())
         .extracting(processor -> processor.getAdditionalProperties().keySet())
         .containsOnlyOnce(Sets.set("sdk_shutdown_hook"));
+
+    assertThat(model.getPropagator().getCompositeList()).isEqualTo("splunk_snapshot_volume");
+  }
+
+  @Test
+  void shouldKeepPropagatorsDefinedInCompositeList() {
+    // given
+    String yaml =
+        """
+          file_format: "1.0-rc.3"
+          propagator:
+            composite_list: "propagator1,propagator2"
+          distribution:
+            splunk:
+              profiling:
+                callgraphs:
+          """;
+
+    // when
+    OpenTelemetryConfigurationModel model = getCustomizedModel(yaml);
+
+    // then
+    Set<String> propagators = Set.of(model.getPropagator().getCompositeList().split(","));
+    assertThat(propagators)
+        .isEqualTo(Set.of("propagator1", "propagator2", "splunk_snapshot_volume"));
   }
 
   @Test

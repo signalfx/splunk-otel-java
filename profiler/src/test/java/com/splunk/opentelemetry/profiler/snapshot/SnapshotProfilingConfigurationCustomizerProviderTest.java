@@ -22,11 +22,14 @@ import static org.mockito.Mockito.verify;
 
 import com.splunk.opentelemetry.testing.declarativeconfig.DeclarativeConfigTestUtil;
 import io.opentelemetry.instrumentation.testing.internal.AutoCleanupExtension;
+import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.BatchSpanProcessorModel;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.OpenTelemetryConfigurationModel;
+import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.SimpleSpanProcessorModel;
+import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.SpanProcessorModel;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Set;
-import org.assertj.core.util.Sets;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
@@ -57,10 +60,11 @@ class SnapshotProfilingConfigurationCustomizerProviderTest {
     // then
     assertThat(model).isNotNull();
     assertThat(model.getPropagator()).isNull();
+    assertThat(model.getTracerProvider()).isNull();
   }
 
   @Test
-  void shouldAddRequiredComponents() {
+  void shouldAddRequiredPropagator() {
     // given
     String yaml =
         """
@@ -75,14 +79,6 @@ class SnapshotProfilingConfigurationCustomizerProviderTest {
     OpenTelemetryConfigurationModel model = getCustomizedModel(yaml);
 
     // then
-    assertThat(model).isNotNull();
-    assertThat(model.getTracerProvider()).isNotNull();
-
-    assertThat(model.getTracerProvider().getProcessors()).hasSize(1);
-    assertThat(model.getTracerProvider().getProcessors())
-        .extracting(processor -> processor.getAdditionalProperties().keySet())
-        .containsOnlyOnce(Sets.set("sdk_shutdown_hook"));
-
     assertThat(model.getPropagator().getCompositeList()).isEqualTo("splunk_snapshot_volume");
   }
 
@@ -110,7 +106,42 @@ class SnapshotProfilingConfigurationCustomizerProviderTest {
   }
 
   @Test
-  void shouldInitialize() {
+  void shouldAddSpanProcessors() {
+    // given
+    String yaml =
+        """
+          file_format: "1.0-rc.3"
+          tracer_provider:
+            processors:
+              - batch:
+              - simple:
+          distribution:
+            splunk:
+              profiling:
+                callgraphs:
+          """;
+
+    // when
+    OpenTelemetryConfigurationModel model = getCustomizedModel(yaml);
+
+    // then
+    List<SpanProcessorModel> expectedProcessors =
+        List.of(
+            new SpanProcessorModel().withBatch(new BatchSpanProcessorModel()),
+            new SpanProcessorModel().withSimple(new SimpleSpanProcessorModel()),
+            new SpanProcessorModel()
+                .withAdditionalProperty(SnapshotProfilingSpanProcessorComponentProvider.NAME, null),
+            new SpanProcessorModel()
+                .withAdditionalProperty(SdkShutdownHookComponentProvider.NAME, null));
+
+    assertThat(model).isNotNull();
+    assertThat(model.getTracerProvider()).isNotNull();
+    assertThat(model.getTracerProvider().getProcessors()).hasSize(4);
+    assertThat(model.getTracerProvider().getProcessors()).containsAll(expectedProcessors);
+  }
+
+  @Test
+  void shouldInitializeActiveSpansTracking() {
     // given
     OpenTelemetryConfigurationModel model =
         DeclarativeConfigTestUtil.parse(

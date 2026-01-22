@@ -28,6 +28,7 @@ import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.OpenTe
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.PropagatorModel;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.SpanProcessorModel;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.TracerProviderModel;
+import java.util.List;
 
 @AutoService(DeclarativeConfigurationCustomizerProvider.class)
 public class SnapshotProfilingConfigurationCustomizerProvider
@@ -52,7 +53,7 @@ public class SnapshotProfilingConfigurationCustomizerProvider
       initActiveSpansTracking();
       initStackTraceSampler(snapshotProfiling);
       addSnapshotVolumePropagator(model);
-      addShutdownHookSpanProcessor(model);
+      addSpanProcessors(model);
     }
 
     return model;
@@ -74,6 +75,7 @@ public class SnapshotProfilingConfigurationCustomizerProvider
     } else {
       propagators = String.join(",", propagators, volumePropagatorName);
     }
+
     propagatorModel.withCompositeList(propagators);
   }
 
@@ -82,16 +84,20 @@ public class SnapshotProfilingConfigurationCustomizerProvider
     StackTraceSamplerInitializer.setupStackTraceSampler(snapshotProfilingConfig);
   }
 
-  private void addShutdownHookSpanProcessor(OpenTelemetryConfigurationModel model) {
-    if (model.getTracerProvider() == null) {
-      model.withTracerProvider(new TracerProviderModel());
+  private void addSpanProcessors(OpenTelemetryConfigurationModel model) {
+    TracerProviderModel tracerProviderModel = model.getTracerProvider();
+    if (tracerProviderModel == null) {
+      tracerProviderModel = new TracerProviderModel();
+      model.withTracerProvider(tracerProviderModel);
     }
-    model
-        .getTracerProvider()
-        .getProcessors()
-        .add(
-            new SpanProcessorModel()
-                .withAdditionalProperty(SdkShutdownHookComponentProvider.NAME, null));
+
+    List<SpanProcessorModel> processors = tracerProviderModel.getProcessors();
+    processors.add(
+        new SpanProcessorModel()
+            .withAdditionalProperty(SnapshotProfilingSpanProcessorComponentProvider.NAME, null));
+    processors.add(
+        new SpanProcessorModel()
+            .withAdditionalProperty(SdkShutdownHookComponentProvider.NAME, null));
   }
 
   private void initActiveSpansTracking() {

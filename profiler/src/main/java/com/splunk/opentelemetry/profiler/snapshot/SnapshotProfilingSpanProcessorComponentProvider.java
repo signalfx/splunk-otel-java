@@ -23,6 +23,7 @@ import io.opentelemetry.sdk.trace.SpanProcessor;
 
 @AutoService(ComponentProvider.class)
 public class SnapshotProfilingSpanProcessorComponentProvider implements ComponentProvider {
+  static final String NAME = "splunk_snapshot_profiling";
   private final TraceRegistry traceRegistry;
 
   public SnapshotProfilingSpanProcessorComponentProvider() {
@@ -40,7 +41,7 @@ public class SnapshotProfilingSpanProcessorComponentProvider implements Componen
 
   @Override
   public String getName() {
-    return "splunk_snapshot_profiling";
+    return NAME;
   }
 
   @Override

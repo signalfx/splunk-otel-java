@@ -55,9 +55,11 @@ tasks {
             exclude(it)
           }
         }
+
         suites.containsKey(smokeTestSuite) -> {
           include(suites.getValue(smokeTestSuite!!))
         }
+
         else -> {
           throw GradleException("Unknown smoke test suite: $smokeTestSuite")
         }

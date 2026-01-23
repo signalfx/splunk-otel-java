@@ -1,0 +1,64 @@
+name: Release OTel Manager Binaries
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag (vX.Y.Z)"
+        required: false
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-upload:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: linux
+            arch: amd64
+          - os: linux
+            arch: arm64
+          - os: darwin
+            arch: amd64
+          - os: darwin
+            arch: arm64
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.21"
+      - name: Set release tag
+        run: |
+          if [ -n "${{ github.event.release.tag_name }}" ]; then
+            echo "RELEASE_TAG=${{ github.event.release.tag_name }}" >> "$GITHUB_ENV"
+          elif [ -n "${{ github.event.inputs.tag }}" ]; then
+            echo "RELEASE_TAG=${{ github.event.inputs.tag }}" >> "$GITHUB_ENV"
+          else
+            echo "RELEASE_TAG=${GITHUB_REF_NAME}" >> "$GITHUB_ENV"
+          fi
+      - name: Build binary
+        env:
+          BINARY_NAME: splunk-otel-manager-${{ matrix.os }}-${{ matrix.arch }}
+        run: |
+          mkdir -p dist
+          GOOS=${{ matrix.os }} GOARCH=${{ matrix.arch }} \
+            go build -C go-module -o ../dist/"${BINARY_NAME}" ./cmd/splunk-otel-manager
+      - name: Generate checksum
+        env:
+          BINARY_NAME: splunk-otel-manager-${{ matrix.os }}-${{ matrix.arch }}
+        run: |
+          sha256sum dist/"${BINARY_NAME}" > dist/"${BINARY_NAME}".sha256
+      - name: Upload release assets
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ env.RELEASE_TAG }}
+          files: |
+            dist/splunk-otel-manager-${{ matrix.os }}-${{ matrix.arch }}
+            dist/splunk-otel-manager-${{ matrix.os }}-${{ matrix.arch }}.sha256

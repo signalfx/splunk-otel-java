@@ -1,0 +1,13 @@
+---
+agent_action: install
+agent_version: "latest"
+splunk_access_token: ""
+otel_exporter_otlp_endpoint: ""
+splunk_dest_folder: "/opt/splunk-java-agent"
+keep_backup: true
+
+manager_repo: "signalfx/splunk-otel-java"
+manager_version: "latest"
+manager_download_url_override: ""
+manager_checksum_override: ""
+manager_checksum_url_override: ""

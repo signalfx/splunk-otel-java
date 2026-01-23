@@ -1,283 +1,45 @@
 ---
-- name: Unified Test Playbook - Install, Uninstall, Rollback, and Upgrade Splunk Java Agent
+- name: Splunk Java Agent Manager
   hosts: all
   become: true
   vars:
+    agent_action: install
     agent_version: "latest"
     splunk_access_token: ""
     otel_exporter_otlp_endpoint: ""
     splunk_dest_folder: "/opt/splunk-java-agent"
     keep_backup: true
+
     manager_repo: "signalfx/splunk-otel-java"
     manager_version: "latest"
     manager_download_url_override: ""
     manager_checksum_override: ""
     manager_checksum_url_override: ""
 
-    test_operations: ["install", "upgrade", "rollback", "uninstall"]
-    current_operation: ""
-
   tasks:
-    - name: Detect OS and architecture
-      ansible.builtin.set_fact:
-        binary_suffix: "{{ 'darwin' if ansible_os_family == 'Darwin' else 'linux' }}-{{ 'arm64' if ansible_architecture in ['arm64', 'aarch64'] else 'amd64' }}"
-        binary_name: "splunk-otel-manager-{{ 'darwin' if ansible_os_family == 'Darwin' else 'linux' }}-{{ 'arm64' if ansible_architecture in ['arm64', 'aarch64'] else 'amd64' }}"
-
-    - name: Set binary release base URL
-      ansible.builtin.set_fact:
-        manager_release_base_url: "https://github.com/{{ manager_repo }}/releases/{{ 'latest/download' if manager_version == 'latest' else 'download/' + manager_version }}"
-
-    - name: Set binary download configuration
-      ansible.builtin.set_fact:
-        manager_download_url: "{{ manager_download_url_override if manager_download_url_override != '' else manager_release_base_url ~ '/' ~ binary_name }}"
-        manager_checksum_url: "{{ manager_checksum_url_override if manager_checksum_url_override != '' else manager_release_base_url ~ '/' ~ binary_name ~ '.sha256' }}"
-        manager_checksum_path: "/tmp/{{ binary_name }}.sha256"
-        go_binary_path: "/tmp/splunk-otel-manager"
-
-    - name: Download binary checksum
-      ansible.builtin.get_url:
-        url: "{{ manager_checksum_url }}"
-        dest: "{{ manager_checksum_path }}"
-        mode: '0644'
-      when: manager_checksum_override == ""
-
-    - name: Read checksum file
-      ansible.builtin.slurp:
-        src: "{{ manager_checksum_path }}"
-      register: manager_checksum_file
-      when: manager_checksum_override == ""
-
-    - name: Parse checksum value
-      ansible.builtin.set_fact:
-        manager_checksum: "{{ manager_checksum_file.content | b64decode | regex_search('([a-fA-F0-9]{64})', '\\1') }}"
-      when: manager_checksum_override == ""
-
-    - name: Set checksum from override
-      ansible.builtin.set_fact:
-        manager_checksum: "{{ manager_checksum_override }}"
-      when: manager_checksum_override != ""
-
-    - name: Fail if checksum is missing
-      ansible.builtin.fail:
-        msg: "Failed to parse checksum from {{ manager_checksum_url }}"
-      when: manager_checksum is not defined or manager_checksum == ""
-
-    - name: Download binary
-      ansible.builtin.get_url:
-        url: "{{ manager_download_url }}"
-        dest: "{{ go_binary_path }}"
-        mode: '0755'
-
-    - name: Compute downloaded binary checksum
-      ansible.builtin.stat:
-        path: "{{ go_binary_path }}"
-        checksum_algorithm: sha256
-      register: manager_binary_stat
-
-    - name: Verify binary checksum
-      ansible.builtin.fail:
-        msg: "Checksum mismatch for {{ go_binary_path }} (expected {{ manager_checksum }}, got {{ manager_binary_stat.stat.checksum }})"
-      when: manager_binary_stat.stat.checksum != manager_checksum
-
-    - name: Display test banner
-      ansible.builtin.debug:
-        msg: |
-          ========================================
-          Splunk Java Agent - Unified Test Suite
-          ========================================
-          Testing operations: {{ test_operations | join(', ') }}
-          Go binary: {{ go_binary_path }}
-          Destination: {{ splunk_dest_folder }}
-          ========================================
+    - name: Setup manager binary
+      ansible.builtin.include_tasks: ../tasks/manager-setup.yml
 
     - name: Validate required credentials
       ansible.builtin.fail:
         msg: "splunk_access_token and otel_exporter_otlp_endpoint must be set via vars (e.g., -e \"splunk_access_token=... otel_exporter_otlp_endpoint=...\")"
-      when: splunk_access_token == "" or otel_exporter_otlp_endpoint == ""
+      when: agent_action in ["install", "upgrade"] and (splunk_access_token == "" or otel_exporter_otlp_endpoint == "")
 
-    - name: Verify Go binary exists
-      ansible.builtin.stat:
-        path: "{{ go_binary_path }}"
-      register: go_binary_stat
-      failed_when: not go_binary_stat.stat.exists
-
-    - name: Display Go binary info
-      ansible.builtin.debug:
-        msg: "Go binary found at {{ go_binary_path }} ({{ go_binary_stat.stat.size }} bytes)"
-
-    # INSTALL OPERATION
-    - name: "=== INSTALL OPERATION ==="
-      ansible.builtin.debug:
-        msg: "Starting INSTALL operation..."
-
-    - name: Execute install operation
+    - name: Execute manager action
       ansible.builtin.command:
         cmd: >
-          {{ go_binary_path }} install
+          {{ go_binary_path }} {{ agent_action }}
           --dest-folder "{{ splunk_dest_folder }}"
-          --version "{{ agent_version }}"
-          --access-token "{{ splunk_access_token }}"
-          --otlp-endpoint "{{ otel_exporter_otlp_endpoint }}"
+          {% if agent_action in ["install", "upgrade"] %}--version "{{ agent_version }}"{% endif %}
+          {% if agent_action in ["install", "upgrade"] %}--access-token "{{ splunk_access_token }}"{% endif %}
+          {% if agent_action in ["install", "upgrade"] %}--otlp-endpoint "{{ otel_exporter_otlp_endpoint }}"{% endif %}
+          {% if agent_action == "uninstall" %}{% if keep_backup %}--keep-backup{% else %}--keep-backup=false{% endif %}{% endif %}
           --verbose
-      register: install_result
+      register: manager_result
       changed_when: true
 
-    - name: Display install result
+    - name: Display result
       ansible.builtin.debug:
         msg: |
-          INSTALL RESULT:
-          {{ install_result.stdout }}
-
-    - name: Parse install JSON result
-      ansible.builtin.set_fact:
-        install_parsed: "{{ install_result.stdout | from_json }}"
-      when: install_result.stdout != ""
-      ignore_errors: true
-
-    - name: Display parsed install result
-      ansible.builtin.debug:
-        var: install_parsed
-      when: install_parsed is defined
-
-    - name: Wait between operations
-      ansible.builtin.pause:
-        seconds: 3
-
-    # UPGRADE OPERATION
-    - name: "=== UPGRADE OPERATION ==="
-      ansible.builtin.debug:
-        msg: "Starting UPGRADE operation..."
-
-    - name: Execute upgrade operation
-      ansible.builtin.command:
-        cmd: >
-          {{ go_binary_path }} upgrade
-          --dest-folder "{{ splunk_dest_folder }}"
-          --version "{{ agent_version }}"
-          --access-token "{{ splunk_access_token }}"
-          --otlp-endpoint "{{ otel_exporter_otlp_endpoint }}"
-          --verbose
-      register: upgrade_result
-      changed_when: true
-      ignore_errors: true
-
-    - name: Display upgrade result
-      ansible.builtin.debug:
-        msg: |
-          UPGRADE RESULT:
-          {{ upgrade_result.stdout }}
-
-    - name: Parse upgrade JSON result
-      ansible.builtin.set_fact:
-        upgrade_parsed: "{{ upgrade_result.stdout | from_json }}"
-      when: upgrade_result.stdout != "" and upgrade_result.rc == 0
-      ignore_errors: true
-
-    - name: Display parsed upgrade result
-      ansible.builtin.debug:
-        var: upgrade_parsed
-      when: upgrade_parsed is defined
-
-    - name: Wait between operations
-      ansible.builtin.pause:
-        seconds: 3
-
-    # ROLLBACK OPERATION
-    - name: "=== ROLLBACK OPERATION ==="
-      ansible.builtin.debug:
-        msg: "Starting ROLLBACK operation..."
-
-    - name: Execute rollback operation
-      ansible.builtin.command:
-        cmd: >
-          {{ go_binary_path }} rollback
-          --dest-folder "{{ splunk_dest_folder }}"
-          --verbose
-      register: rollback_result
-      changed_when: true
-      ignore_errors: true
-
-    - name: Display rollback result
-      ansible.builtin.debug:
-        msg: |
-          ROLLBACK RESULT:
-          {{ rollback_result.stdout }}
-
-    - name: Parse rollback JSON result
-      ansible.builtin.set_fact:
-        rollback_parsed: "{{ rollback_result.stdout | from_json }}"
-      when: rollback_result.stdout != "" and rollback_result.rc == 0
-      ignore_errors: true
-
-    - name: Display parsed rollback result
-      ansible.builtin.debug:
-        var: rollback_parsed
-      when: rollback_parsed is defined
-
-    - name: Wait between operations
-      ansible.builtin.pause:
-        seconds: 3
-
-    # UNINSTALL OPERATION
-    - name: "=== UNINSTALL OPERATION ==="
-      ansible.builtin.debug:
-        msg: "Starting UNINSTALL operation..."
-
-    - name: Execute uninstall operation
-      ansible.builtin.command:
-        cmd: >
-          {{ go_binary_path }} uninstall
-          --dest-folder "{{ splunk_dest_folder }}"
-          {% if keep_backup %}--keep-backup{% else %}--keep-backup=false{% endif %}
-          --verbose
-      register: uninstall_result
-      changed_when: true
-
-    - name: Display uninstall result
-      ansible.builtin.debug:
-        msg: |
-          UNINSTALL RESULT:
-          {{ uninstall_result.stdout }}
-
-    - name: Parse uninstall JSON result
-      ansible.builtin.set_fact:
-        uninstall_parsed: "{{ uninstall_result.stdout | from_json }}"
-      when: uninstall_result.stdout != ""
-      ignore_errors: true
-
-    - name: Display parsed uninstall result
-      ansible.builtin.debug:
-        var: uninstall_parsed
-      when: uninstall_parsed is defined
-
-    # SUMMARY
-    - name: "=== TEST SUMMARY ==="
-      ansible.builtin.debug:
-        msg: |
-          ========================================
-          TEST EXECUTION SUMMARY
-          ========================================
-          Install:   {{ 'SUCCESS' if install_result.rc == 0 else 'FAILED' }}
-          Upgrade:   {{ 'SUCCESS' if upgrade_result.rc == 0 else 'FAILED' }}
-          Rollback:  {{ 'SUCCESS' if rollback_result.rc == 0 else 'FAILED' }}
-          Uninstall: {{ 'SUCCESS' if uninstall_result.rc == 0 else 'FAILED' }}
-          ========================================
-
-    - name: Display operation return codes
-      ansible.builtin.debug:
-        msg: |
-          Return Codes:
-          - Install: {{ install_result.rc }}
-          - Upgrade: {{ upgrade_result.rc | default('N/A') }}
-          - Rollback: {{ rollback_result.rc | default('N/A') }}
-          - Uninstall: {{ uninstall_result.rc }}
-
-    - name: Check for any failures
-      ansible.builtin.fail:
-        msg: "One or more operations failed. Check the output above for details."
-      when: >
-        install_result.rc != 0 or
-        uninstall_result.rc != 0 or
-        (upgrade_result.rc is defined and upgrade_result.rc != 0) or
-        (rollback_result.rc is defined and rollback_result.rc != 0)
-      ignore_errors: true
+          RESULT:
+          {{ manager_result.stdout }}

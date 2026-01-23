@@ -1,0 +1,53 @@
+name: Release OTel Manager Binaries (Dry Run)
+on:
+  pull_request:
+    paths:
+      - go-module/**
+      - .github/workflows/release-otel-manager.yml
+      - .github/workflows/release-otel-manager-dry-run.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-archive:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: linux
+            arch: amd64
+          - os: linux
+            arch: arm64
+          - os: darwin
+            arch: amd64
+          - os: darwin
+            arch: arm64
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.21"
+      - name: Build binary
+        env:
+          BINARY_NAME: splunk-otel-manager-${{ matrix.os }}-${{ matrix.arch }}
+        run: |
+          mkdir -p dist
+          GOOS=${{ matrix.os }} GOARCH=${{ matrix.arch }} \
+            go build -C go-module -o ../dist/"${BINARY_NAME}" ./cmd/splunk-otel-manager
+      - name: Generate checksum
+        env:
+          BINARY_NAME: splunk-otel-manager-${{ matrix.os }}-${{ matrix.arch }}
+        run: |
+          sha256sum dist/"${BINARY_NAME}" > dist/"${BINARY_NAME}".sha256
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: otel-manager-${{ matrix.os }}-${{ matrix.arch }}
+          path: |
+            dist/splunk-otel-manager-${{ matrix.os }}-${{ matrix.arch }}
+            dist/splunk-otel-manager-${{ matrix.os }}-${{ matrix.arch }}.sha256

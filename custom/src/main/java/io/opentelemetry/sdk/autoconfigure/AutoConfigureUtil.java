@@ -29,7 +29,9 @@ import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.Distri
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.DistributionPropertyModel;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.OpenTelemetryConfigurationModel;
 import io.opentelemetry.sdk.resources.Resource;
+import java.util.Map;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 /**
  * This class is a hack to allows us to call getResource() and getConfig() on the
@@ -77,6 +79,29 @@ public final class AutoConfigureUtil {
         ComponentLoader.forClassLoader(AutoConfigureUtil.class.getClassLoader());
     return YamlDeclarativeConfigProperties.create(
         splunkModel.getAdditionalProperties(), componentLoader);
+  }
+
+  public static DeclarativeConfigProperties getInstrumentationConfig(
+      OpenTelemetryConfigurationModel model) {
+    if (model.getInstrumentationDevelopment() == null
+        || model.getInstrumentationDevelopment().getJava() == null) {
+      return empty();
+    }
+
+    Map<String, Object> properties =
+        model
+            .getInstrumentationDevelopment()
+            .getJava()
+            .getAdditionalProperties()
+            .entrySet()
+            .stream()
+            .collect(
+                Collectors.toMap(Map.Entry::getKey, v -> v.getValue().getAdditionalProperties()));
+
+    ComponentLoader componentLoader =
+        ComponentLoader.forClassLoader(AutoConfigureUtil.class.getClassLoader());
+
+    return YamlDeclarativeConfigProperties.create(properties, componentLoader);
   }
 
   public static Resource getResource(AutoConfiguredOpenTelemetrySdk sdk) {

@@ -22,8 +22,6 @@ import static com.splunk.opentelemetry.appd.AppdBonusSpanProcessor.APPD_ATTR_ACC
 import static com.splunk.opentelemetry.appd.AppdBonusSpanProcessor.APPD_ATTR_APP;
 import static com.splunk.opentelemetry.appd.AppdBonusSpanProcessor.APPD_ATTR_BT;
 import static com.splunk.opentelemetry.appd.AppdBonusSpanProcessor.APPD_ATTR_TIER;
-import static io.opentelemetry.semconv.ServiceAttributes.SERVICE_NAME;
-import static io.opentelemetry.semconv.incubating.DeploymentIncubatingAttributes.DEPLOYMENT_ENVIRONMENT_NAME;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -35,7 +33,6 @@ import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.sdk.autoconfigure.spi.AutoConfigurationCustomizer;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
-import io.opentelemetry.sdk.resources.Resource;
 import io.opentelemetry.sdk.trace.ReadWriteSpan;
 import io.opentelemetry.sdk.trace.SdkTracerProviderBuilder;
 import io.opentelemetry.sdk.trace.SpanProcessor;
@@ -57,7 +54,6 @@ class AppdBonusCustomizerTest {
   @Mock Context context;
   @Mock AppdBonusPropagator propagator;
   @Mock SpanProcessor defaultSpanProcessor;
-  @Mock Resource resource;
 
   @Test
   void customizeEnabled() {
@@ -66,8 +62,6 @@ class AppdBonusCustomizerTest {
     when(context.get(CONTEXT_KEY)).thenReturn(appdContext);
     when(config.getBoolean("cisco.ctx.enabled", false)).thenReturn(true);
     when(config.getList("otel.propagators", DEFAULT_PROPAGATORS)).thenReturn(DEFAULT_PROPAGATORS);
-    when(resource.getAttribute(SERVICE_NAME)).thenReturn("amazingService");
-    when(resource.getAttribute(DEPLOYMENT_ENVIRONMENT_NAME)).thenReturn("amazingEnv");
 
     AppdBonusCustomizer testClass = new AppdBonusCustomizer();
     testClass.customize(customizer, propagator);
@@ -75,10 +69,6 @@ class AppdBonusCustomizerTest {
     ArgumentCaptor<Function<ConfigProperties, Map<String, String>>> pcCaptor =
         ArgumentCaptor.forClass(Function.class);
     verify(customizer).addPropertiesCustomizer(pcCaptor.capture());
-
-    ArgumentCaptor<BiFunction<Resource, ConfigProperties, Resource>> rcCaptor =
-        ArgumentCaptor.forClass(BiFunction.class);
-    verify(customizer).addResourceCustomizer(rcCaptor.capture());
 
     ArgumentCaptor<BiFunction<SdkTracerProviderBuilder, ConfigProperties, SdkTracerProviderBuilder>>
         tpcCaptor = ArgumentCaptor.forClass(BiFunction.class);
@@ -89,11 +79,6 @@ class AppdBonusCustomizerTest {
 
     defaultSpanProcessor.onStart(mock(), mock());
     verify(defaultSpanProcessor).onStart(any(), any());
-
-    Resource res = rcCaptor.getValue().apply(resource, config);
-    assertThat(res).isSameAs(resource);
-    verify(propagator).setServiceName("amazingService");
-    verify(propagator).setEnvironmentName("amazingEnv");
 
     SdkTracerProviderBuilder builder = mock();
     tpcCaptor.getValue().apply(builder, config);
@@ -116,8 +101,6 @@ class AppdBonusCustomizerTest {
   @Test
   void customizeNotEnabled() {
     when(config.getBoolean("cisco.ctx.enabled", false)).thenReturn(false);
-    when(resource.getAttribute(SERVICE_NAME)).thenReturn("amazingService");
-    when(resource.getAttribute(DEPLOYMENT_ENVIRONMENT_NAME)).thenReturn("amazingEnv");
 
     AppdBonusCustomizer testClass = new AppdBonusCustomizer();
     testClass.customize(customizer, propagator);
@@ -125,10 +108,6 @@ class AppdBonusCustomizerTest {
     ArgumentCaptor<Function<ConfigProperties, Map<String, String>>> pcCaptor =
         ArgumentCaptor.forClass(Function.class);
     verify(customizer).addPropertiesCustomizer(pcCaptor.capture());
-
-    ArgumentCaptor<BiFunction<Resource, ConfigProperties, Resource>> rcCaptor =
-        ArgumentCaptor.forClass(BiFunction.class);
-    verify(customizer).addResourceCustomizer(rcCaptor.capture());
 
     ArgumentCaptor<BiFunction<SdkTracerProviderBuilder, ConfigProperties, SdkTracerProviderBuilder>>
         tpcCaptor = ArgumentCaptor.forClass(BiFunction.class);
@@ -139,11 +118,6 @@ class AppdBonusCustomizerTest {
 
     defaultSpanProcessor.onStart(mock(), mock());
     verify(defaultSpanProcessor).onStart(any(), any());
-
-    Resource res = rcCaptor.getValue().apply(resource, config);
-    assertThat(res).isSameAs(resource);
-    verify(propagator).setServiceName("amazingService");
-    verify(propagator).setEnvironmentName("amazingEnv");
 
     SdkTracerProviderBuilder builder = mock();
     tpcCaptor.getValue().apply(builder, config);

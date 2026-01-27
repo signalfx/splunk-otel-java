@@ -16,9 +16,6 @@
 
 package com.splunk.opentelemetry.appd;
 
-import static io.opentelemetry.semconv.ServiceAttributes.SERVICE_NAME;
-import static io.opentelemetry.semconv.incubating.DeploymentIncubatingAttributes.DEPLOYMENT_ENVIRONMENT_NAME;
-
 import com.google.auto.service.AutoService;
 import com.google.common.annotations.VisibleForTesting;
 import io.opentelemetry.sdk.autoconfigure.spi.AutoConfigurationCustomizer;
@@ -56,12 +53,6 @@ public final class AppdBonusCustomizer implements AutoConfigurationCustomizerPro
             return builder.addSpanProcessor(processor);
           }
           return builder;
-        });
-    customizer.addResourceCustomizer(
-        (resource, configProperties) -> {
-          propagator.setEnvironmentName(resource.getAttribute(DEPLOYMENT_ENVIRONMENT_NAME));
-          propagator.setServiceName(resource.getAttribute(SERVICE_NAME));
-          return resource;
         });
   }
 

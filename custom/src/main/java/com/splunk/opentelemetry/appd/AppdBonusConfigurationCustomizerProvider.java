@@ -16,17 +16,17 @@
 
 package com.splunk.opentelemetry.appd;
 
-import static io.opentelemetry.sdk.autoconfigure.AdditionalPropertiesUtil.getAdditionalPropertyOrDefault;
+import static io.opentelemetry.api.incubator.config.DeclarativeConfigProperties.empty;
 
 import com.google.auto.service.AutoService;
+import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
+import io.opentelemetry.sdk.autoconfigure.AutoConfigureUtil;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.DeclarativeConfigurationCustomizer;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.DeclarativeConfigurationCustomizerProvider;
-import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.ExperimentalLanguageSpecificInstrumentationPropertyModel;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.OpenTelemetryConfigurationModel;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.PropagatorModel;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.SpanProcessorModel;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.TracerProviderModel;
-import java.util.Map;
 
 @AutoService(DeclarativeConfigurationCustomizerProvider.class)
 public final class AppdBonusConfigurationCustomizerProvider
@@ -57,15 +57,12 @@ public final class AppdBonusConfigurationCustomizerProvider
   }
 
   private static boolean isFeatureEnabled(OpenTelemetryConfigurationModel model) {
-    if (model.getInstrumentationDevelopment() == null
-        || model.getInstrumentationDevelopment().getJava() == null) {
-      return false;
-    }
+    DeclarativeConfigProperties config = AutoConfigureUtil.getInstrumentationConfig(model);
 
-    Map<String, ExperimentalLanguageSpecificInstrumentationPropertyModel> properties =
-        model.getInstrumentationDevelopment().getJava().getAdditionalProperties();
-
-    return getAdditionalPropertyOrDefault(properties, CONFIG_CISCO_CTX_ENABLED, false);
+    return config
+        .getStructured("cisco", empty())
+        .getStructured("ctx", empty())
+        .getBoolean("enabled", false);
   }
 
   private static boolean canAddPropagator(String compositeList) {

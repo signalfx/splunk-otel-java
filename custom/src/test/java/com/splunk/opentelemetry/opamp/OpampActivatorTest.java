@@ -16,15 +16,23 @@
 
 package com.splunk.opentelemetry.opamp;
 
+import static io.opentelemetry.semconv.ServiceAttributes.SERVICE_NAME;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Fail.fail;
 
+import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.instrumentation.testing.internal.AutoCleanupExtension;
 import io.opentelemetry.opamp.client.OpampClient;
 import io.opentelemetry.opamp.client.internal.response.MessageData;
+import io.opentelemetry.sdk.resources.Resource;
+import io.opentelemetry.testing.internal.armeria.common.HttpData;
+import io.opentelemetry.testing.internal.armeria.common.HttpRequest;
 import io.opentelemetry.testing.internal.armeria.common.HttpResponse;
 import io.opentelemetry.testing.internal.armeria.common.HttpStatus;
 import io.opentelemetry.testing.internal.armeria.common.MediaType;
 import io.opentelemetry.testing.internal.armeria.testing.junit5.server.mock.MockWebServerExtension;
+import io.opentelemetry.testing.internal.armeria.testing.junit5.server.mock.RecordedRequest;
+import java.io.IOException;
 import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -33,6 +41,9 @@ import okio.ByteString;
 import opamp.proto.AgentConfigFile;
 import opamp.proto.AgentConfigMap;
 import opamp.proto.AgentRemoteConfig;
+import opamp.proto.AgentToServer;
+import opamp.proto.AnyValue;
+import opamp.proto.KeyValue;
 import opamp.proto.ServerErrorResponse;
 import opamp.proto.ServerToAgent;
 import org.jetbrains.annotations.Nullable;
@@ -65,6 +76,7 @@ class OpampActivatorTest {
   @Test
   void testOpamp() throws Exception {
     // given
+    Resource resource = Resource.create(Attributes.of(SERVICE_NAME, "test"));
     Map<String, AgentConfigFile> configMap =
         Collections.singletonMap(
             "test-key",
@@ -82,7 +94,7 @@ class OpampActivatorTest {
     OpampClient client =
         OpampActivator.startOpampClient(
             server.httpUri().toString(),
-            "test",
+            resource,
             new OpampClient.Callbacks() {
               @Override
               public void onConnect(OpampClient opampClient) {}

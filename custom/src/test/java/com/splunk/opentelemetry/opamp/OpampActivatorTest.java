@@ -16,11 +16,14 @@
 
 package com.splunk.opentelemetry.opamp;
 
+import static io.opentelemetry.semconv.ServiceAttributes.SERVICE_NAME;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.instrumentation.testing.internal.AutoCleanupExtension;
 import io.opentelemetry.opamp.client.OpampClient;
 import io.opentelemetry.opamp.client.internal.response.MessageData;
+import io.opentelemetry.sdk.resources.Resource;
 import io.opentelemetry.testing.internal.armeria.common.HttpResponse;
 import io.opentelemetry.testing.internal.armeria.common.HttpStatus;
 import io.opentelemetry.testing.internal.armeria.common.MediaType;
@@ -65,6 +68,7 @@ class OpampActivatorTest {
   @Test
   void testOpamp() throws Exception {
     // given
+    Resource resource = Resource.create(Attributes.of(SERVICE_NAME, "test"));
     Map<String, AgentConfigFile> configMap =
         Collections.singletonMap(
             "test-key",
@@ -82,7 +86,7 @@ class OpampActivatorTest {
     OpampClient client =
         OpampActivator.startOpampClient(
             server.httpUri().toString(),
-            "test",
+            resource,
             new OpampClient.Callbacks() {
               @Override
               public void onConnect(OpampClient opampClient) {}

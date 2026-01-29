@@ -1,0 +1,18 @@
+# Example configuration file for Splunk OpenTelemetry Java Agent Manager
+# Copy this file to $HOME/.splunk-otel-manager.yaml and customize as needed
+
+# Agent installation settings
+dest_folder: /opt/splunk-java-agent
+backup_folder: /opt/splunk-java-agent/backup
+agent_version: latest
+keep_backup: true
+
+# Splunk configuration
+access_token: "YOUR_SPLUNK_ACCESS_TOKEN_HERE"
+otlp_endpoint: "https://ingest.us0.signalfx.com/v2/trace/otlp"
+
+# Java-specific settings
+java_home: "/usr/lib/jvm/java-11"
+service_name: "my-java-service"
+
+# Additional configuration can be added here as needed

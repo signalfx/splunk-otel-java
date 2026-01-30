@@ -1,0 +1,65 @@
+---
+- name: Detect OS and architecture
+  ansible.builtin.set_fact:
+    binary_suffix: "{{ 'darwin' if ansible_os_family == 'Darwin' else 'linux' }}-{{ 'arm64' if ansible_architecture in ['arm64', 'aarch64'] else 'amd64' }}"
+    binary_name: "splunk-otel-manager-{{ 'darwin' if ansible_os_family == 'Darwin' else 'linux' }}-{{ 'arm64' if ansible_architecture in ['arm64', 'aarch64'] else 'amd64' }}"
+
+- name: Set binary release base URL
+  ansible.builtin.set_fact:
+    manager_release_base_url: "https://github.com/{{ manager_repo }}/releases/{{ 'latest/download' if manager_version == 'latest' else 'download/' + manager_version }}"
+
+- name: Set binary download configuration
+  ansible.builtin.set_fact:
+    manager_download_url: "{{ manager_download_url_override if manager_download_url_override != '' else manager_release_base_url ~ '/' ~ binary_name }}"
+    manager_checksum_url: "{{ manager_checksum_url_override if manager_checksum_url_override != '' else manager_release_base_url ~ '/' ~ binary_name ~ '.sha256' }}"
+    manager_checksum_path: "/tmp/{{ binary_name }}.sha256"
+    go_binary_path: "/tmp/splunk-otel-manager"
+
+- name: Download binary checksum
+  ansible.builtin.get_url:
+    url: "{{ manager_checksum_url }}"
+    dest: "{{ manager_checksum_path }}"
+    mode: '0644'
+  when: manager_checksum_override == ""
+
+- name: Read checksum file
+  ansible.builtin.slurp:
+    src: "{{ manager_checksum_path }}"
+  register: manager_checksum_file
+  when: manager_checksum_override == ""
+
+- name: Parse checksum value
+  ansible.builtin.set_fact:
+    manager_checksum: "{{ (manager_checksum_file.content | b64decode | regex_findall('[a-fA-F0-9]{64}')) | first | default('') | trim }}"
+  when: manager_checksum_override == ""
+
+- name: Set checksum from override
+  ansible.builtin.set_fact:
+    manager_checksum: "{{ manager_checksum_override | trim }}"
+  when: manager_checksum_override != ""
+
+- name: Normalize checksum value
+  ansible.builtin.set_fact:
+    manager_checksum_normalized: "{{ (manager_checksum | string) | regex_replace('[^a-fA-F0-9]', '') }}"
+
+- name: Fail if checksum is missing
+  ansible.builtin.fail:
+    msg: "Failed to parse checksum from {{ manager_checksum_url }}"
+  when: manager_checksum_normalized is not defined or manager_checksum_normalized | length != 64
+
+- name: Download binary
+  ansible.builtin.get_url:
+    url: "{{ manager_download_url }}"
+    dest: "{{ go_binary_path }}"
+    mode: '0755'
+
+- name: Compute downloaded binary checksum
+  ansible.builtin.stat:
+    path: "{{ go_binary_path }}"
+    checksum_algorithm: sha256
+  register: manager_binary_stat
+
+- name: Verify binary checksum
+  ansible.builtin.fail:
+    msg: "Checksum mismatch for {{ go_binary_path }} (expected {{ manager_checksum_normalized | string }}, got {{ manager_binary_stat.stat.checksum }})"
+  when: manager_binary_stat.stat.checksum != manager_checksum_normalized

@@ -1,0 +1,27 @@
+---
+- name: Setup manager binary
+  ansible.builtin.include_tasks: manager-setup.yml
+
+- name: Validate required credentials
+  ansible.builtin.fail:
+    msg: "splunk_access_token and otel_exporter_otlp_endpoint must be set via vars (e.g., -e \"splunk_access_token=... otel_exporter_otlp_endpoint=...\")"
+  when: agent_action in ["install", "upgrade"] and (splunk_access_token == "" or otel_exporter_otlp_endpoint == "")
+
+- name: Execute manager action
+  ansible.builtin.command:
+    cmd: >
+      {{ go_binary_path }} {{ agent_action }}
+      --dest-folder "{{ splunk_dest_folder }}"
+      {% if agent_action in ["install", "upgrade"] %}--version "{{ agent_version }}"{% endif %}
+      {% if agent_action in ["install", "upgrade"] %}--access-token "{{ splunk_access_token }}"{% endif %}
+      {% if agent_action in ["install", "upgrade"] %}--otlp-endpoint "{{ otel_exporter_otlp_endpoint }}"{% endif %}
+      {% if agent_action == "uninstall" %}{% if keep_backup %}--keep-backup{% else %}--keep-backup=false{% endif %}{% endif %}
+      --verbose
+  register: manager_result
+  changed_when: true
+
+- name: Display result
+  ansible.builtin.debug:
+    msg: |
+      RESULT:
+      {{ manager_result.stdout }}

@@ -20,6 +20,7 @@ import static io.opentelemetry.sdk.autoconfigure.AutoConfigureUtil.getConfig;
 import static io.opentelemetry.sdk.autoconfigure.AutoConfigureUtil.getResource;
 import static io.opentelemetry.semconv.ServiceAttributes.SERVICE_NAME;
 import static io.opentelemetry.semconv.ServiceAttributes.SERVICE_VERSION;
+import static io.opentelemetry.semconv.incubating.DeploymentIncubatingAttributes.DEPLOYMENT_ENVIRONMENT_NAME;
 import static io.opentelemetry.semconv.incubating.OsIncubatingAttributes.OS_NAME;
 import static io.opentelemetry.semconv.incubating.OsIncubatingAttributes.OS_TYPE;
 import static io.opentelemetry.semconv.incubating.OsIncubatingAttributes.OS_VERSION;
@@ -90,6 +91,7 @@ public class OpampActivator implements AgentListener {
     if (endpoint != null) {
       builder.setRequestService(HttpRequestService.create(OkHttpSender.create(endpoint)));
     }
+    addIdentifying(builder, resource, DEPLOYMENT_ENVIRONMENT_NAME);
     addIdentifying(builder, resource, SERVICE_NAME);
     addIdentifying(builder, resource, SERVICE_VERSION);
     addIdentifying(builder, resource, SERVICE_NAMESPACE);

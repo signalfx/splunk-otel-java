@@ -18,6 +18,7 @@ package com.splunk.opentelemetry.opamp;
 
 import static io.opentelemetry.semconv.ServiceAttributes.SERVICE_NAME;
 import static io.opentelemetry.semconv.ServiceAttributes.SERVICE_VERSION;
+import static io.opentelemetry.semconv.incubating.DeploymentIncubatingAttributes.DEPLOYMENT_ENVIRONMENT_NAME;
 import static io.opentelemetry.semconv.incubating.OsIncubatingAttributes.OS_NAME;
 import static io.opentelemetry.semconv.incubating.OsIncubatingAttributes.OS_TYPE;
 import static io.opentelemetry.semconv.incubating.OsIncubatingAttributes.OS_VERSION;
@@ -78,15 +79,22 @@ class OpampActivatorTest {
   @Test
   void testOpamp() throws Exception {
     // given
-    Resource resource =
-        Resource.create(
-            Attributes.of(
-                SERVICE_NAME, "test-service",
-                SERVICE_VERSION, "test-ver",
-                SERVICE_NAMESPACE, "test-ns",
-                OS_NAME, "test-os-name",
-                OS_TYPE, "test-os-type",
-                OS_VERSION, "test-os-ver"));
+    Attributes attributes =
+        Attributes.of(
+                DEPLOYMENT_ENVIRONMENT_NAME,
+                "test-deployment-env",
+                SERVICE_NAME,
+                "test-service",
+                SERVICE_VERSION,
+                "test-ver",
+                SERVICE_NAMESPACE,
+                "test-ns")
+            .toBuilder()
+            .put(OS_NAME, "test-os-name")
+            .put(OS_TYPE, "test-os-type")
+            .put(OS_VERSION, "test-os-ver")
+            .build();
+    Resource resource = Resource.create(attributes);
     Map<String, AgentConfigFile> configMap =
         Collections.singletonMap(
             "test-key",
@@ -139,6 +147,7 @@ class OpampActivatorTest {
     RecordedRequest recordedRequest = server.takeRequest();
     byte[] body = recordedRequest.request().content().array();
     AgentToServer agentToServer = AgentToServer.ADAPTER.decode(body);
+    assertIdentifying(agentToServer, DEPLOYMENT_ENVIRONMENT_NAME, "test-deployment-env");
     assertIdentifying(agentToServer, SERVICE_NAME, "test-service");
     assertIdentifying(agentToServer, SERVICE_VERSION, "test-ver");
     assertIdentifying(agentToServer, SERVICE_NAMESPACE, "test-ns");

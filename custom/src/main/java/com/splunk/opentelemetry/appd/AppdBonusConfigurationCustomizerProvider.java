@@ -32,7 +32,6 @@ import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.Tracer
 public final class AppdBonusConfigurationCustomizerProvider
     implements DeclarativeConfigurationCustomizerProvider {
 
-  private static final String CONFIG_CISCO_CTX_ENABLED = "cisco.ctx.enabled";
   private static final String DEFAULT_PROPAGATORS = "tracecontext,baggage";
 
   @Override

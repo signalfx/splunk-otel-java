@@ -18,9 +18,18 @@ package com.splunk.opentelemetry.opamp;
 
 import static io.opentelemetry.sdk.autoconfigure.AutoConfigureUtil.getConfig;
 import static io.opentelemetry.sdk.autoconfigure.AutoConfigureUtil.getResource;
+import static io.opentelemetry.semconv.ServiceAttributes.SERVICE_NAME;
+import static io.opentelemetry.semconv.ServiceAttributes.SERVICE_VERSION;
+import static io.opentelemetry.semconv.incubating.DeploymentIncubatingAttributes.DEPLOYMENT_ENVIRONMENT_NAME;
+import static io.opentelemetry.semconv.incubating.OsIncubatingAttributes.OS_NAME;
+import static io.opentelemetry.semconv.incubating.OsIncubatingAttributes.OS_TYPE;
+import static io.opentelemetry.semconv.incubating.OsIncubatingAttributes.OS_VERSION;
+import static io.opentelemetry.semconv.incubating.ServiceIncubatingAttributes.SERVICE_INSTANCE_ID;
+import static io.opentelemetry.semconv.incubating.ServiceIncubatingAttributes.SERVICE_NAMESPACE;
 import static java.util.logging.Level.WARNING;
 
 import com.google.auto.service.AutoService;
+import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.javaagent.extension.AgentListener;
 import io.opentelemetry.opamp.client.OpampClient;
 import io.opentelemetry.opamp.client.OpampClientBuilder;
@@ -30,7 +39,6 @@ import io.opentelemetry.opamp.client.internal.response.MessageData;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import io.opentelemetry.sdk.resources.Resource;
-import io.opentelemetry.semconv.ServiceAttributes;
 import java.util.logging.Logger;
 import opamp.proto.ServerErrorResponse;
 import org.jetbrains.annotations.Nullable;
@@ -50,12 +58,11 @@ public class OpampActivator implements AgentListener {
     }
 
     Resource resource = getResource(autoConfiguredOpenTelemetrySdk);
-    String serviceName = resource.getAttribute(ServiceAttributes.SERVICE_NAME);
 
     String endpoint = config.getString(OP_AMP_ENDPOINT);
     startOpampClient(
         endpoint,
-        serviceName,
+        resource,
         new OpampClient.Callbacks() {
           @Override
           public void onConnect(OpampClient opampClient) {}
@@ -77,16 +84,39 @@ public class OpampActivator implements AgentListener {
   }
 
   static OpampClient startOpampClient(
-      String endpoint, String serviceName, OpampClient.Callbacks callbacks) {
+      String endpoint, Resource resource, OpampClient.Callbacks callbacks) {
+
     OpampClientBuilder builder = OpampClient.builder();
     builder.enableRemoteConfig();
     if (endpoint != null) {
       builder.setRequestService(HttpRequestService.create(OkHttpSender.create(endpoint)));
     }
-    if (serviceName != null) {
-      builder.putIdentifyingAttribute("service.name", serviceName);
-    }
+    addIdentifying(builder, resource, DEPLOYMENT_ENVIRONMENT_NAME);
+    addIdentifying(builder, resource, SERVICE_NAME);
+    addIdentifying(builder, resource, SERVICE_VERSION);
+    addIdentifying(builder, resource, SERVICE_NAMESPACE);
+    addIdentifying(builder, resource, SERVICE_INSTANCE_ID);
+
+    addNonIdentifying(builder, resource, OS_NAME);
+    addNonIdentifying(builder, resource, OS_TYPE);
+    addNonIdentifying(builder, resource, OS_VERSION);
 
     return builder.build(callbacks);
+  }
+
+  static void addIdentifying(
+      OpampClientBuilder builder, Resource res, AttributeKey<String> resourceAttr) {
+    String attr = res.getAttribute(resourceAttr);
+    if (attr != null) {
+      builder.putIdentifyingAttribute(resourceAttr.getKey(), attr);
+    }
+  }
+
+  static void addNonIdentifying(
+      OpampClientBuilder builder, Resource res, AttributeKey<String> resourceAttr) {
+    String attr = res.getAttribute(resourceAttr);
+    if (attr != null) {
+      builder.putNonIdentifyingAttribute(resourceAttr.getKey(), attr);
+    }
   }
 }

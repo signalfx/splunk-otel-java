@@ -20,8 +20,8 @@ for details.
   <a href="https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/tag/v2.24.0">
     <img alt="OpenTelemetry Instrumentation for Java Version" src="https://img.shields.io/badge/otel-2.24.0-blueviolet?style=for-the-badge">
   </a>
-  <a href="https://github.com/signalfx/gdi-specification/releases/tag/v1.7.0">
-    <img alt="Splunk GDI specification" src="https://img.shields.io/badge/GDI-1.7.0-blueviolet?style=for-the-badge">
+  <a href="https://github.com/signalfx/gdi-specification/releases/tag/v1.8.0">
+    <img alt="Splunk GDI specification" src="https://img.shields.io/badge/GDI-1.8.0-blueviolet?style=for-the-badge">
   </a>
   <a href="https://github.com/signalfx/splunk-otel-java/releases">
     <img alt="GitHub release (latest SemVer)" src="https://img.shields.io/github/v/release/signalfx/splunk-otel-java?include_prereleases&style=for-the-badge">

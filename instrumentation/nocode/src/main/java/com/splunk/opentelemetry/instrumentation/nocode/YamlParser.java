@@ -18,6 +18,7 @@ package com.splunk.opentelemetry.instrumentation.nocode;
 
 import com.splunk.opentelemetry.javaagent.bootstrap.nocode.NocodeExpression;
 import com.splunk.opentelemetry.javaagent.bootstrap.nocode.NocodeRules;
+import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
 import io.opentelemetry.api.trace.SpanKind;
 import io.opentelemetry.javaagent.extension.matcher.AgentElementMatchers;
 import java.io.IOException;
@@ -33,6 +34,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import net.bytebuddy.description.NamedElement;
 import net.bytebuddy.description.method.MethodDescription;
 import net.bytebuddy.description.type.TypeDescription;
@@ -58,8 +60,20 @@ class YamlParser {
     return new YamlParser(new StringReader(yaml)).getInstrumentationRules();
   }
 
+  static List<NocodeRules.Rule> parseFromDeclarativeConfig(
+      List<DeclarativeConfigProperties> ruleNodes) {
+    List<Map<String, Object>> rulesList =
+        ruleNodes.stream().map(DeclarativeConfigProperties::toMap).collect(Collectors.toList());
+
+    return new YamlParser(rulesList).getInstrumentationRules();
+  }
+
   private YamlParser(Reader reader) throws IOException {
     instrumentationRules = Collections.unmodifiableList(new ArrayList<>(loadUnsafe(reader)));
+  }
+
+  private YamlParser(List<Map<String, Object>> ruleListNode) {
+    instrumentationRules = Collections.unmodifiableList(loadUnsafe(ruleListNode));
   }
 
   private List<NocodeRules.Rule> getInstrumentationRules() {
@@ -67,38 +81,48 @@ class YamlParser {
   }
 
   @SuppressWarnings("unchecked")
+  private List<NocodeRules.Rule> loadUnsafe(List<Map<String, Object>> ruleListNode) {
+    List<NocodeRules.Rule> answer = new ArrayList<>();
+
+    for (Map<String, Object> yamlRule : ruleListNode) {
+      ElementMatcher<TypeDescription> classMatcher = classMatcher(yamlRule.get("class"));
+      ElementMatcher<MethodDescription> methodMatcher = methodMatcher(yamlRule.get("method"));
+      NocodeExpression spanName = toExpression(yamlRule.get("span_name"));
+      SpanKind spanKind = null;
+      if (yamlRule.get("span_kind") != null) {
+        String spanKindString = yamlRule.get("span_kind").toString();
+        try {
+          spanKind = SpanKind.valueOf(spanKindString.toUpperCase(Locale.ROOT));
+        } catch (IllegalArgumentException exception) {
+          logger.warning("Invalid span kind " + spanKindString);
+        }
+      }
+      NocodeExpression spanStatus = toExpression(yamlRule.get("span_status"));
+
+      Map<String, NocodeExpression> ruleAttributes = new HashMap<>();
+      List<Map<String, Object>> attrs = (List<Map<String, Object>>) yamlRule.get("attributes");
+      if (attrs != null) {
+        for (Map<String, Object> attr : attrs) {
+          ruleAttributes.put(attr.get("key").toString(), toExpression(attr.get("value")));
+        }
+      }
+      answer.add(
+          new RuleImpl(
+              classMatcher, methodMatcher, spanName, spanKind, spanStatus, ruleAttributes));
+    }
+
+    return answer;
+  }
+
+  @SuppressWarnings("unchecked")
   private List<NocodeRules.Rule> loadUnsafe(Reader reader) throws IOException {
     List<NocodeRules.Rule> answer = new ArrayList<>();
     Load load = new Load(LoadSettings.builder().build());
     Iterable<Object> parsedYaml = load.loadAllFromReader(reader);
+
     for (Object yamlBit : parsedYaml) {
       List<Map<String, Object>> rulesMap = (List<Map<String, Object>>) yamlBit;
-      for (Map<String, Object> yamlRule : rulesMap) {
-        ElementMatcher<TypeDescription> classMatcher = classMatcher(yamlRule.get("class"));
-        ElementMatcher<MethodDescription> methodMatcher = methodMatcher(yamlRule.get("method"));
-        NocodeExpression spanName = toExpression(yamlRule.get("span_name"));
-        SpanKind spanKind = null;
-        if (yamlRule.get("span_kind") != null) {
-          String spanKindString = yamlRule.get("span_kind").toString();
-          try {
-            spanKind = SpanKind.valueOf(spanKindString.toUpperCase(Locale.ROOT));
-          } catch (IllegalArgumentException exception) {
-            logger.warning("Invalid span kind " + spanKindString);
-          }
-        }
-        NocodeExpression spanStatus = toExpression(yamlRule.get("span_status"));
-
-        Map<String, NocodeExpression> ruleAttributes = new HashMap<>();
-        List<Map<String, Object>> attrs = (List<Map<String, Object>>) yamlRule.get("attributes");
-        if (attrs != null) {
-          for (Map<String, Object> attr : attrs) {
-            ruleAttributes.put(attr.get("key").toString(), toExpression(attr.get("value")));
-          }
-        }
-        answer.add(
-            new RuleImpl(
-                classMatcher, methodMatcher, spanName, spanKind, spanStatus, ruleAttributes));
-      }
+      answer.addAll(loadUnsafe(rulesMap));
     }
 
     return answer;

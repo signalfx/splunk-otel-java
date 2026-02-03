@@ -17,14 +17,19 @@
 package com.splunk.opentelemetry.instrumentation.nocode;
 
 import static io.opentelemetry.sdk.autoconfigure.AutoConfigureUtil.getConfig;
+import static io.opentelemetry.sdk.autoconfigure.AutoConfigureUtil.getConfigProvider;
+import static io.opentelemetry.sdk.autoconfigure.AutoConfigureUtil.isDeclarativeConfig;
 
 import com.google.auto.service.AutoService;
 import com.splunk.opentelemetry.javaagent.bootstrap.nocode.NocodeRules;
+import io.opentelemetry.api.incubator.config.ConfigProvider;
+import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
 import io.opentelemetry.javaagent.tooling.BeforeAgentListener;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -35,7 +40,25 @@ public class NocodeInitializer implements BeforeAgentListener {
 
   @Override
   public void beforeAgent(AutoConfiguredOpenTelemetrySdk autoConfiguredOpenTelemetrySdk) {
-    ConfigProperties config = getConfig(autoConfiguredOpenTelemetrySdk);
+    if (isDeclarativeConfig(autoConfiguredOpenTelemetrySdk)) {
+      processEmbeddedRules(getConfigProvider(autoConfiguredOpenTelemetrySdk));
+    }
+    processRulesFromExternalFile(getConfig(autoConfiguredOpenTelemetrySdk));
+  }
+
+  private static void processEmbeddedRules(ConfigProvider configProvider) {
+    Objects.requireNonNull(configProvider);
+    DeclarativeConfigProperties config = configProvider.getInstrumentationConfig("splunk");
+
+    if (config != null) {
+      List<DeclarativeConfigProperties> nocodeRules = config.getStructuredList("nocode");
+      if (nocodeRules != null) {
+        NocodeRules.setGlobalRules(YamlParser.parseFromDeclarativeConfig(nocodeRules));
+      }
+    }
+  }
+
+  private static void processRulesFromExternalFile(ConfigProperties config) {
     String yamlFileName = config.getString(NOCODE_YMLFILE);
     if (yamlFileName == null || yamlFileName.trim().isEmpty()) {
       return;

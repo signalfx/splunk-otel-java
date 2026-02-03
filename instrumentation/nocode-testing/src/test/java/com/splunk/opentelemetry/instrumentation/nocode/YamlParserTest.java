@@ -16,9 +16,17 @@
 
 package com.splunk.opentelemetry.instrumentation.nocode;
 
+import static io.opentelemetry.api.incubator.config.DeclarativeConfigProperties.empty;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.fail;
 
+import com.splunk.opentelemetry.javaagent.bootstrap.nocode.NocodeRules;
+import com.splunk.opentelemetry.testing.declarativeconfig.DeclarativeConfigTestUtil;
+import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
+import io.opentelemetry.sdk.autoconfigure.AutoConfigureUtil;
+import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.OpenTelemetryConfigurationModel;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -93,11 +101,33 @@ class YamlParserTest {
       })
   // spotless:on
   void invalidYamlIsInvalid(String yaml) {
-    try {
-      YamlParser.parseFromString(yaml);
-      fail("Expected an exception parsing broken yaml");
-    } catch (Exception expected) {
-      // ok
-    }
+    assertThatThrownBy(() -> YamlParser.parseFromString(yaml)).isInstanceOf(RuntimeException.class);
+  }
+
+  @Test
+  void shouldParseFromDeclarativeConfigYaml() {
+    // given
+    var yaml =
+        """
+            file_format: "1.0-rc.3"
+            instrumentation/development:
+              java:
+                splunk:
+                  nocode:
+                    - class: foo.Foo
+                      method: foo
+                    - class: foo.Foo
+                      method: throwSomething
+        """;
+    OpenTelemetryConfigurationModel model = DeclarativeConfigTestUtil.parse(yaml);
+    DeclarativeConfigProperties splunkRoot =
+        AutoConfigureUtil.getInstrumentationConfig(model).getStructured("splunk", empty());
+    List<DeclarativeConfigProperties> ruleNodes = splunkRoot.getStructuredList("nocode");
+
+    // when
+    List<NocodeRules.Rule> rules = YamlParser.parseFromDeclarativeConfig(ruleNodes);
+
+    // then
+    assertThat(rules).hasSize(2);
   }
 }

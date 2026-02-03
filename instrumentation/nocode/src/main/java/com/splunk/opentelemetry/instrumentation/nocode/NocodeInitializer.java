@@ -51,7 +51,7 @@ public class NocodeInitializer implements BeforeAgentListener {
     DeclarativeConfigProperties config = configProvider.getInstrumentationConfig("splunk");
 
     if (config != null) {
-      List<DeclarativeConfigProperties> nocodeRules = config.getStructuredList("nocode");
+      List<DeclarativeConfigProperties> nocodeRules = config.getStructuredList("no_code");
       if (nocodeRules != null) {
         NocodeRules.setGlobalRules(YamlParser.parseFromDeclarativeConfig(nocodeRules));
       }

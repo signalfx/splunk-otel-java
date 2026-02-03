@@ -113,7 +113,7 @@ class YamlParserTest {
             instrumentation/development:
               java:
                 splunk:
-                  nocode:
+                  no_code:
                     - class: foo.Foo
                       method: foo
                     - class: foo.Foo
@@ -122,7 +122,7 @@ class YamlParserTest {
     OpenTelemetryConfigurationModel model = DeclarativeConfigTestUtil.parse(yaml);
     DeclarativeConfigProperties splunkRoot =
         AutoConfigureUtil.getInstrumentationConfig(model).getStructured("splunk", empty());
-    List<DeclarativeConfigProperties> ruleNodes = splunkRoot.getStructuredList("nocode");
+    List<DeclarativeConfigProperties> ruleNodes = splunkRoot.getStructuredList("no_code");
 
     // when
     List<NocodeRules.Rule> rules = YamlParser.parseFromDeclarativeConfig(ruleNodes);

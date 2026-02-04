@@ -833,7 +833,7 @@ Regular maintenance release, coordinated after the upstream/vanilla release.
 ### Enhancements
 
 - Middleware attributes (`middleware.name` and `middleware.version`) have been renamed
-  to [webengine](https://help.splunk.com/en/splunk-observability-cloud/manage-data/instrument-back-end-services/instrument-back-end-applications-to-send-spans-to-splunk-apm./instrument-a-java-application/metrics-and-attributes#webengine-attributes-0) attributes (`webengine.name` and `webengine.version`) to follow
+  to [webengine](https://help.splunk.com/en/splunk-observability-cloud/manage-data/instrument-back-end-services/instrument-back-end-applications-to-send-spans-to-splunk-apm/instrument-a-java-application/metrics-and-attributes#webengine-attributes-0) attributes (`webengine.name` and `webengine.version`) to follow
   the [OpenTelemetry specification](https://github.com/open-telemetry/semantic-conventions/blob/main/docs/resource/webengine.md)
   .
 - We have added instrumentations for [c3p0](https://www.mchange.com/projects/c3p0/)

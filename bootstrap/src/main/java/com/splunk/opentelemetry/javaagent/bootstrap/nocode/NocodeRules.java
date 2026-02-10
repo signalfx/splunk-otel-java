@@ -53,4 +53,8 @@ public final class NocodeRules {
   public static Rule find(int id) {
     return ruleMap.get(id);
   }
+
+  public static void clearGlobalRules() {
+    ruleMap.clear();
+  }
 }

@@ -58,7 +58,7 @@ public class NocodeInitializer implements BeforeAgentListener {
       if (noCodeRules != null) {
         if (rulesFile != null) {
           throw new IllegalStateException(
-              "Ambiguous NoCode rules definition. Rules cannot be at the same time embedded in declarative config, and provided in rules file");
+              "Ambiguous NoCode rules definition (choose declarative config or rules file, not both)");
         }
         return YamlParser.parseFromDeclarativeConfig(noCodeRules);
       }

@@ -17,14 +17,18 @@
 package com.splunk.opentelemetry.instrumentation.nocode;
 
 import static io.opentelemetry.sdk.autoconfigure.AutoConfigureUtil.getConfig;
+import static io.opentelemetry.sdk.autoconfigure.AutoConfigureUtil.getConfigProvider;
+import static io.opentelemetry.sdk.autoconfigure.AutoConfigureUtil.isDeclarativeConfig;
 
 import com.google.auto.service.AutoService;
 import com.splunk.opentelemetry.javaagent.bootstrap.nocode.NocodeRules;
+import io.opentelemetry.api.incubator.config.ConfigProvider;
+import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
 import io.opentelemetry.javaagent.tooling.BeforeAgentListener;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
-import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -34,19 +38,48 @@ public class NocodeInitializer implements BeforeAgentListener {
   private static final Logger logger = Logger.getLogger(NocodeInitializer.class.getName());
 
   @Override
-  public void beforeAgent(AutoConfiguredOpenTelemetrySdk autoConfiguredOpenTelemetrySdk) {
-    ConfigProperties config = getConfig(autoConfiguredOpenTelemetrySdk);
-    String yamlFileName = config.getString(NOCODE_YMLFILE);
-    if (yamlFileName == null || yamlFileName.trim().isEmpty()) {
-      return;
+  public void beforeAgent(AutoConfiguredOpenTelemetrySdk sdk) {
+    List<NocodeRules.Rule> rules =
+        isDeclarativeConfig(sdk)
+            ? readDeclarativeConfigRules(getConfigProvider(sdk))
+            : readRulesFromFile(getConfig(sdk).getString(NOCODE_YMLFILE));
+
+    NocodeRules.setGlobalRules(rules);
+  }
+
+  static List<NocodeRules.Rule> readDeclarativeConfigRules(ConfigProvider configProvider) {
+    Objects.requireNonNull(configProvider);
+    DeclarativeConfigProperties config = configProvider.getInstrumentationConfig("splunk");
+
+    if (config != null) {
+      String rulesFile = config.getString("no_code_file");
+      List<DeclarativeConfigProperties> noCodeRules = config.getStructuredList("no_code");
+
+      if (noCodeRules != null) {
+        if (rulesFile != null) {
+          throw new IllegalStateException(
+              "Ambiguous NoCode rules definition (choose declarative config or rules file, not both)");
+        }
+        return YamlParser.parseFromDeclarativeConfig(noCodeRules);
+      }
+
+      return readRulesFromFile(rulesFile);
     }
+
+    return Collections.emptyList();
+  }
+
+  static List<NocodeRules.Rule> readRulesFromFile(String yamlFileName) {
     List<NocodeRules.Rule> instrumentationRules = Collections.emptyList();
+    if (yamlFileName == null || yamlFileName.trim().isEmpty()) {
+      return instrumentationRules;
+    }
     try {
       instrumentationRules = YamlParser.parseFromFile(yamlFileName);
       // can throw IllegalArgument and various other RuntimeExceptions too, not just IOException
     } catch (Exception e) {
       logger.log(Level.SEVERE, "Can't load configured nocode yaml.", e);
     }
-    NocodeRules.setGlobalRules(instrumentationRules);
+    return instrumentationRules;
   }
 }

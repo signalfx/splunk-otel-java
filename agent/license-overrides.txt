@@ -1,3 +1,3 @@
-org.openjdk.jmc:flightrecorder|https://github.com/openjdk/jmc/tree/master/core/org.openjdk.jmc.flightrecorder|Universal Permissive License Version 1.0 or The 3-Clause BSD License|https://github.com/openjdk/jmc/blob/master/core/license/LICENSE.txt
-org.openjdk.jmc:common|https://github.com/openjdk/jmc/tree/master/core/org.openjdk.jmc.common|Universal Permissive License Version 1.0 or The 3-Clause BSD License|https://github.com/openjdk/jmc/blob/master/core/license/LICENSE.txt
-com.squareup.okio:okio:3.2.0|https://github.com/square/okio/|Apache License, Version 2.0|https://www.apache.org/licenses/LICENSE-2.0
+# opentelemetry-sdk-trace jar includes META-INF/maven/org.jctools/jctools-core Hopefully this will get removed in the next release and we won't need these overrides
+io.opentelemetry:opentelemetry-sdk-trace:1.58.0|https://github.com/open-telemetry/opentelemetry-java|Apache License, Version 2.0|https://www.apache.org/licenses/LICENSE-2.0
+io.opentelemetry:opentelemetry-sdk-trace:1.59.0|https://github.com/open-telemetry/opentelemetry-java|Apache License, Version 2.0|https://www.apache.org/licenses/LICENSE-2.0

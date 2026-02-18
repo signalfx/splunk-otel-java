@@ -23,7 +23,6 @@ import io.opentelemetry.api.incubator.ExtendedOpenTelemetry;
 import io.opentelemetry.api.incubator.config.ConfigProvider;
 import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
 import io.opentelemetry.common.ComponentLoader;
-import io.opentelemetry.instrumentation.config.bridge.ConfigPropertiesBackedConfigProvider;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.YamlDeclarativeConfigProperties;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.DistributionModel;
@@ -31,7 +30,6 @@ import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.Distri
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.OpenTelemetryConfigurationModel;
 import io.opentelemetry.sdk.resources.Resource;
 import java.util.Map;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 /**
@@ -45,7 +43,17 @@ import java.util.stream.Collectors;
  * <p>This class is internal and is not intended for public use.
  */
 public final class AutoConfigureUtil {
-  private static final Logger logger = Logger.getLogger(AutoConfigureUtil.class.getName());
+  private static final Class<?> DECLARATIVE_CONFIG_PROPERTIES_BRIDGE_CLASS;
+
+  static {
+    try {
+      DECLARATIVE_CONFIG_PROPERTIES_BRIDGE_CLASS =
+          Class.forName(
+              "io.opentelemetry.instrumentation.config.bridge.DeclarativeConfigPropertiesBridge");
+    } catch (ClassNotFoundException exception) {
+      throw new IllegalStateException(exception);
+    }
+  }
 
   private AutoConfigureUtil() {}
 
@@ -55,9 +63,10 @@ public final class AutoConfigureUtil {
   }
 
   public static boolean isDeclarativeConfig(AutoConfiguredOpenTelemetrySdk sdk) {
-    ConfigProvider configProvider = getConfigProvider(sdk);
-    return configProvider != null
-        && !(configProvider instanceof ConfigPropertiesBackedConfigProvider);
+    ConfigProperties configProperties =
+        io.opentelemetry.sdk.autoconfigure.internal.AutoConfigureUtil.getConfig(sdk);
+    return configProperties == null
+        || DECLARATIVE_CONFIG_PROPERTIES_BRIDGE_CLASS.isInstance(configProperties);
   }
 
   public static ConfigProvider getConfigProvider(AutoConfiguredOpenTelemetrySdk sdk) {

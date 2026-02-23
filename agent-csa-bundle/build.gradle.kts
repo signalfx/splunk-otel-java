@@ -29,26 +29,17 @@ val splunkAgent: Configuration by configurations.creating {
 }
 
 repositories {
-  ivy {
-    // Required to source artifact directly from github release page
-    // https://github.com/signalfx/csa-releases/releases/download/<version>/oss-agent-mtagent-extension-deployment.jar
-    url = uri("https://github.com/")
-    metadataSources {
-      artifact()
-    }
-    patternLayout {
-      ivy("[organisation]/[module]/releases/download/[revision]/[artifact].[ext]")
-      artifact("[organisation]/[module]/releases/download/[revision]/[artifact].[ext]")
-    }
+  maven {
+    url = uri("https://artifactory.bare.appdynamics.com/artifactory/maven-releases/")
   }
 }
 
 dependencies {
   splunkAgent(project(":agent", configuration = "shadow"))
-  csaReleases("signalfx:csa-releases:$csaVersion") {
+  csaReleases("com.cisco.security:secureapp-otel-java-extension:$csaVersion") {
     artifact {
-      name = "oss-agent-mtagent-extension-deployment"
-      extension = "jar"
+      name = "secureapp-otel-java-extension"
+      extension = "zip"
     }
   }
 }

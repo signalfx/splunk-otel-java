@@ -49,7 +49,6 @@ class NocodeInitializerTest {
     previousRules = new ArrayList<>();
     NocodeRules.getGlobalRules().forEach(previousRules::add);
     AgentDistributionConfig.resetForTest();
-
   }
 
   @AfterEach

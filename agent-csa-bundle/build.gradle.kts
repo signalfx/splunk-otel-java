@@ -108,6 +108,7 @@ tasks {
   }
 
   jar {
+    enabled = System.getenv("GITLAB_CI") != null
     dependsOn(shadowCsaClasses)
     from(zipTree(shadowCsaClasses.get().archiveFile.get()))
     from(copyCsaJar.get().archiveFile.get())

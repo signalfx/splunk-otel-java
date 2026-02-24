@@ -25,6 +25,7 @@ import com.splunk.opentelemetry.javaagent.bootstrap.nocode.NocodeRules;
 import com.splunk.opentelemetry.testing.declarativeconfig.DeclarativeConfigTestUtil;
 import io.opentelemetry.api.incubator.config.ConfigProvider;
 import io.opentelemetry.instrumentation.testing.internal.AutoCleanupExtension;
+import io.opentelemetry.javaagent.extension.instrumentation.internal.AgentDistributionConfig;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -47,6 +48,8 @@ class NocodeInitializerTest {
   void captureRules() {
     previousRules = new ArrayList<>();
     NocodeRules.getGlobalRules().forEach(previousRules::add);
+    AgentDistributionConfig.resetForTest();
+
   }
 
   @AfterEach

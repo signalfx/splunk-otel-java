@@ -11,6 +11,7 @@ dependencies {
     exclude("io.opentelemetry.javaagent", "opentelemetry-javaagent-bootstrap")
   }
   testImplementation("org.snakeyaml:snakeyaml-engine")
+  testImplementation("io.opentelemetry.javaagent:opentelemetry-javaagent-extension-api")
 }
 
 tasks {

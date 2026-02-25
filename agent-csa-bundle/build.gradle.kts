@@ -47,9 +47,6 @@ dependencies {
 tasks {
   // This exists purely to get the extension jar into our build dir
   val copyCsaJar by registering(Jar::class) {
-    onlyIf("csa is only built from gitlab") {
-      System.getenv("GITLAB_CI") != null
-    }
     archiveFileName.set("oss-agent-mtagent-extension-deployment.jar")
     doFirst {
       from(zipTree(csaReleases.singleFile))
@@ -58,9 +55,6 @@ tasks {
 
   // Extract and rename extension classes
   val extractExtensionClasses by registering(Copy::class) {
-    onlyIf("csa is only built from gitlab") {
-      System.getenv("GITLAB_CI") != null
-    }
     dependsOn(copyCsaJar)
     from(zipTree(copyCsaJar.get().archiveFile))
     into("build/ext-exploded")
@@ -68,9 +62,6 @@ tasks {
 
   // Rename class to classdata
   val renameClasstoClassdata by registering(Copy::class) {
-    onlyIf("csa is only built from gitlab") {
-      System.getenv("GITLAB_CI") != null
-    }
     dependsOn(extractExtensionClasses)
     from("build/ext-exploded/com/cisco/mtagent/adaptors/")
     into("build/ext-exploded/com/cisco/mtagent/adaptors/")
@@ -81,18 +72,12 @@ tasks {
 
   // Copy service file so path on disk matches path in jar
   val copyServiceFile by registering(Copy::class) {
-    onlyIf("csa is only built from gitlab") {
-      System.getenv("GITLAB_CI") != null
-    }
     dependsOn(extractExtensionClasses)
     from("build/ext-exploded/META-INF/services/")
     into("build/ext-exploded/inst/META-INF/services/")
   }
 
   val shadowCsaClasses by registering(ShadowJar::class) {
-    onlyIf("csa is only built from gitlab") {
-      System.getenv("GITLAB_CI") != null
-    }
     archiveFileName.set("shadow-csa-classes.jar")
     dependsOn(copyServiceFile, renameClasstoClassdata, splunkAgent)
 

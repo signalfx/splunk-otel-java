@@ -1,10 +1,3 @@
-## Important
-**Splunk OpenTelemetry Java Instrumentation 2.x** is available and recommended to collect and export
-telemetry for Splunk Observability Cloud. Refer to the [official documentation](https://docs.splunk.com/observability/en/gdi/get-data-in/application/java/get-started.html)
-for details.
-
----
-
 <p align="center">
   <strong>
     <a href="#get-started">Get Started</a>

@@ -435,14 +435,18 @@ public class WindowsTestContainerManager extends AbstractTestContainerManager {
       waiter = new NoOpWaiter();
     }
 
+    logger.info("Execute startContainerCmd for {}", imageName);
     client.startContainerCmd(containerId).exec();
     ContainerLogHandler logHandler = consumeLogs(containerId, waiter);
 
+    logger.info("Execute inspectContainerCmd for {}", imageName);
     InspectContainerResponse inspectResponse =
         inspect ? client.inspectContainerCmd(containerId).exec() : null;
     Container container = new Container(imageName, containerId, logHandler, inspectResponse);
 
+    logger.info("Start wait for container {} using {}", imageName, waiter);
     waiter.waitFor(container);
+    logger.info("Completed wait for container {}", imageName);
     return container;
   }
 

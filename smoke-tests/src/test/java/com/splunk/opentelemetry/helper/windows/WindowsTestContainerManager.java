@@ -95,7 +95,7 @@ public class WindowsTestContainerManager extends AbstractTestContainerManager {
             .getId();
 
     String backendImageName =
-        "ghcr.io/open-telemetry/opentelemetry-java-instrumentation/smoke-test-fake-backend-windows:20221127.3559314891";
+        "ghcr.io/open-telemetry/opentelemetry-java-instrumentation/smoke-test-fake-backend-windows:20251117.19421579342";
 
     if (!imageExists(backendImageName)) {
       pullImage(backendImageName);
@@ -418,6 +418,7 @@ public class WindowsTestContainerManager extends AbstractTestContainerManager {
 
   private String createContainer(
       String imageName, Consumer<CreateContainerCmd> createAction, Consumer<String> prepareAction) {
+    logger.info("Create container {}", imageName);
     CreateContainerCmd createCommand = client.createContainerCmd(imageName);
     createAction.accept(createCommand);
 
@@ -429,6 +430,7 @@ public class WindowsTestContainerManager extends AbstractTestContainerManager {
 
   private Container startContainer(
       String imageName, String containerId, Waiter waiter, boolean inspect) {
+    logger.info("Start container {}", imageName);
     if (waiter == null) {
       waiter = new NoOpWaiter();
     }

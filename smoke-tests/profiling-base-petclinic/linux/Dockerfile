@@ -5,7 +5,7 @@ ARG jdkVersion=8
 FROM eclipse-temurin:${jdkVersion}
 
 RUN apt update && apt install -y git
-RUN git clone https://github.com/spring-petclinic/spring-petclinic-rest.git /src
+RUN git clone --depth 1 --branch v2.6.2 https://github.com/spring-petclinic/spring-petclinic-rest.git /src
 
 WORKDIR /src
 RUN ./mvnw -Dmaven.test.skip=true package

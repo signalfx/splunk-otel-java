@@ -4,7 +4,7 @@ ARG jdkVersion=8
 
 FROM eclipse-temurin:${jdkVersion}-windowsservercore-1809 as builder
 
-ADD https://github.com/spring-petclinic/spring-petclinic-rest/archive/refs/heads/master.zip /src.zip
+ADD https://github.com/spring-petclinic/spring-petclinic-rest/archive/refs/tags/v2.6.2.zip /src.zip
 RUN ["powershell", "-Command", "expand-archive -Path /src.zip -DestinationPath /src"]
 
 WORKDIR /src/spring-petclinic-rest-master/

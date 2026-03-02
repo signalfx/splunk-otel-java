@@ -29,6 +29,7 @@ import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.instrumentation.testing.internal.AutoCleanupExtension;
 import io.opentelemetry.opamp.client.OpampClient;
+import io.opentelemetry.opamp.client.internal.request.service.HttpRequestService;
 import io.opentelemetry.opamp.client.internal.response.MessageData;
 import io.opentelemetry.sdk.resources.Resource;
 import io.opentelemetry.testing.internal.armeria.common.HttpResponse;

@@ -33,7 +33,7 @@ public class SecurityManagerSmokeTest extends SmokeTest {
     return linuxImage(
         "ghcr.io/open-telemetry/opentelemetry-java-instrumentation/smoke-test-security-manager:jdk"
             + jdk
-            + "-20230323.4502979551");
+            + "-20251116.19402383852");
   }
 
   @Override

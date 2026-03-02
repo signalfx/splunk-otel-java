@@ -7,13 +7,13 @@ FROM eclipse-temurin:${jdkVersion}-windowsservercore-ltsc2022 as builder
 ADD https://github.com/spring-petclinic/spring-petclinic-rest/archive/refs/tags/v2.6.2.zip /src.zip
 RUN ["powershell", "-Command", "expand-archive -Path /src.zip -DestinationPath /src"]
 
-WORKDIR /src/spring-petclinic-rest-master/
-RUN ["/src/spring-petclinic-rest-master/mvnw.cmd", "-Dmaven.test.skip=true", "package"]
-WORKDIR /src/spring-petclinic-rest-master/target
+WORKDIR /src/spring-petclinic-rest-2.6.2/
+RUN ["/src/spring-petclinic-rest-2.6.2/mvnw.cmd", "-Dmaven.test.skip=true", "package"]
+WORKDIR /src/spring-petclinic-rest-2.6.2/target
 RUN ["powershell", "-Command", "Get-ChildItem -Path spring-petclinic-rest-*.jar | ForEach { Rename-Item $_.FullName -NewName spring-petclinic-rest.jar }"]
 
-FROM eclipse-temurin:${jdkVersion}-windowsservercore-1809
+FROM eclipse-temurin:${jdkVersion}-windowsservercore-ltsc2022
 
 RUN ["powershell", "-Command", "New-Item -ItemType directory -Path /app"]
-COPY --from=builder /src/spring-petclinic-rest-master/target/spring-petclinic-rest.jar /app/spring-petclinic-rest.jar
+COPY --from=builder /src/spring-petclinic-rest-2.6.2/target/spring-petclinic-rest.jar /app/spring-petclinic-rest.jar
 WORKDIR /app

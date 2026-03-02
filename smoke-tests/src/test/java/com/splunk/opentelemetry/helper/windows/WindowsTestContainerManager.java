@@ -418,7 +418,6 @@ public class WindowsTestContainerManager extends AbstractTestContainerManager {
 
   private String createContainer(
       String imageName, Consumer<CreateContainerCmd> createAction, Consumer<String> prepareAction) {
-    logger.info("Create container {}", imageName);
     CreateContainerCmd createCommand = client.createContainerCmd(imageName);
     createAction.accept(createCommand);
 
@@ -430,23 +429,18 @@ public class WindowsTestContainerManager extends AbstractTestContainerManager {
 
   private Container startContainer(
       String imageName, String containerId, Waiter waiter, boolean inspect) {
-    logger.info("Start container {}", imageName);
     if (waiter == null) {
       waiter = new NoOpWaiter();
     }
 
-    logger.info("Execute startContainerCmd for {}", imageName);
     client.startContainerCmd(containerId).exec();
     ContainerLogHandler logHandler = consumeLogs(containerId, waiter);
 
-    logger.info("Execute inspectContainerCmd for {}", imageName);
     InspectContainerResponse inspectResponse =
         inspect ? client.inspectContainerCmd(containerId).exec() : null;
     Container container = new Container(imageName, containerId, logHandler, inspectResponse);
 
-    logger.info("Start wait for container {} using {}", imageName, waiter);
     waiter.waitFor(container);
-    logger.info("Completed wait for container {}", imageName);
     return container;
   }
 

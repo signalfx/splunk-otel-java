@@ -2,7 +2,7 @@
 # Builds petclinic-rest using the specified JDK version (minimum is 8 for JFR)
 ARG jdkVersion=8
 
-FROM eclipse-temurin:${jdkVersion}-windowsservercore-1809 as builder
+FROM eclipse-temurin:${jdkVersion}-windowsservercore-ltsc2022 as builder
 
 ADD https://github.com/spring-petclinic/spring-petclinic-rest/archive/refs/tags/v2.6.2.zip /src.zip
 RUN ["powershell", "-Command", "expand-archive -Path /src.zip -DestinationPath /src"]

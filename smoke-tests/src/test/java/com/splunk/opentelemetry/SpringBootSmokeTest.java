@@ -37,7 +37,7 @@ public class SpringBootSmokeTest extends AppServerTest {
     return linuxImage(
         "ghcr.io/open-telemetry/opentelemetry-java-instrumentation/smoke-test-spring-boot:jdk"
             + jdk
-            + "-20230509.4927886820");
+            + "-20251116.19402383847");
   }
 
   @Override

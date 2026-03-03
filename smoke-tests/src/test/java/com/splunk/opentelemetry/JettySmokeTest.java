@@ -26,7 +26,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 public class JettySmokeTest extends AppServerTest {
 
   public static final ExpectedServerAttributes JETTY9_SERVER_ATTRIBUTES =
-      new ExpectedServerAttributes("GET", "jetty", "9.4.53.v20250814");
+      new ExpectedServerAttributes("GET", "jetty", "9.4.58.v20250814");
   public static final ExpectedServerAttributes JETTY10_SERVER_ATTRIBUTES =
       new ExpectedServerAttributes("GET", "jetty", "10.0.26");
   public static final ExpectedServerAttributes JETTY11_SERVER_ATTRIBUTES =

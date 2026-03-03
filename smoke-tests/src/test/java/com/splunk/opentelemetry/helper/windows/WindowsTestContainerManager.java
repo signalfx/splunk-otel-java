@@ -95,7 +95,7 @@ public class WindowsTestContainerManager extends AbstractTestContainerManager {
             .getId();
 
     String backendImageName =
-        "ghcr.io/open-telemetry/opentelemetry-java-instrumentation/smoke-test-fake-backend-windows:20221127.3559314891";
+        "ghcr.io/open-telemetry/opentelemetry-java-instrumentation/smoke-test-fake-backend-windows:20251117.19421579342";
 
     if (!imageExists(backendImageName)) {
       pullImage(backendImageName);
@@ -120,7 +120,7 @@ public class WindowsTestContainerManager extends AbstractTestContainerManager {
             new HttpWaiter(BACKEND_PORT, "/health", Duration.ofSeconds(60)),
             true);
 
-    String collectorImageName = "quay.io/signalfx/splunk-otel-collector-windows:latest";
+    String collectorImageName = "quay.io/signalfx/splunk-otel-collector-windows:latest-2022";
     if (!imageExists(collectorImageName)) {
       pullImage(collectorImageName);
     }

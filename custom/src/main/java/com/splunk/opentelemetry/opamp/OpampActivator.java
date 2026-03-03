@@ -99,7 +99,8 @@ public class OpampActivator implements AgentListener {
       OpampClient.Callbacks callbacks) {
 
     OpampClientBuilder builder = OpampClient.builder();
-    builder.enableRemoteConfig();
+    // TODO: Uncomment once we are able to report our effective config
+    //builder.enableEffectiveConfigReporting();
     if (endpoint != null) {
       PeriodicDelay pollingDelay =
           PeriodicDelay.ofFixedDuration(Duration.ofMillis(pollingDurationMillis));

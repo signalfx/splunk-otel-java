@@ -108,8 +108,6 @@ public class OpampActivator implements AgentListener {
       HttpRequestService httpSender =
           HttpRequestService.create(okhttp, pollingDelay, DEFAULT_DELAY_BETWEEN_RETRIES);
       builder.setRequestService(httpSender);
-
-      builder.setRequestService(HttpRequestService.create(OkHttpSender.create(endpoint)));
     }
     addIdentifying(builder, resource, DEPLOYMENT_ENVIRONMENT_NAME);
     addIdentifying(builder, resource, SERVICE_NAME);

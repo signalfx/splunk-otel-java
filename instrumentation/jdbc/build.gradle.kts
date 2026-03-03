@@ -9,6 +9,21 @@ muzzle {
     module.set("mssql-jdbc")
     versions.set("(,)")
   }
+  pass {
+    group.set("com.oracle.database.jdbc")
+    module.set("ojdbc8")
+    versions.set("(,)")
+  }
+  pass {
+    group.set("com.mysql")
+    module.set("mysql-connector-j")
+    versions.set("(,)")
+  }
+  pass {
+    group.set("org.mariadb.jdbc")
+    module.set("mariadb-java-client")
+    versions.set("(,)")
+  }
 }
 
 dependencies {
@@ -32,6 +47,15 @@ dependencies {
   // PostgreSQL
   testLibrary("org.postgresql:postgresql:42.1.1")
   testImplementation("org.testcontainers:testcontainers-postgresql")
+
+  // MySQL
+  testLibrary("com.mysql:mysql-connector-j:8.0.31")
+  testImplementation("org.testcontainers:testcontainers-mysql")
+
+  // MariaDB
+  // testLibrary("org.mariadb.jdbc:mariadb-java-client:3.0.3")
+  testLibrary("org.mariadb.jdbc:mariadb-java-client:2.0.1")
+  testImplementation("org.testcontainers:testcontainers-mariadb")
 }
 
 tasks.withType<Test>().configureEach {

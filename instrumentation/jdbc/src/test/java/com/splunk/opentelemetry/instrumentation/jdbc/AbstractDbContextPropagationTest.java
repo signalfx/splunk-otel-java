@@ -266,7 +266,11 @@ public abstract class AbstractDbContextPropagationTest {
                 "CallableStatement.execute",
                 (Action)
                     connection -> {
-                      try (CallableStatement statement = connection.prepareCall("SELECT 1")) {
+                      String sql =
+                          connection.getClass().getName().contains("mariadb")
+                              ? "CALL nothing()"
+                              : "SELECT 1";
+                      try (CallableStatement statement = connection.prepareCall(sql)) {
                         statement.execute();
                       }
                     })));

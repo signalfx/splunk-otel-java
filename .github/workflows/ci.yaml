@@ -45,7 +45,31 @@ jobs:
           key: ${{ runner.os }}-gradle-wrapper-cache-${{ hashFiles('gradle/wrapper/gradle-wrapper.properties') }}
 
       - name: Build and test
-        run: ./gradlew build -x :smoke-tests:test --scan --no-daemon
+        run: ./gradlew build --scan --no-daemon
+
+      - name: Build scan
+        if: ${{ !cancelled() && hashFiles('build-scan.txt') != '' }}
+        run: cat build-scan.txt
+
+  test-latest-deps:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6.0.2
+
+      - name: Set up JDK 17 for running Gradle
+        uses: actions/setup-java@v5.2.0
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Cache Gradle Wrapper
+        uses: actions/cache@v5.0.3
+        with:
+          path: ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-wrapper-cache-${{ hashFiles('gradle/wrapper/gradle-wrapper.properties') }}
+
+      - name: Build and test
+        run: ./gradlew check -x spotlessCheck -PtestLatestDeps=true --scan --no-daemon
 
       - name: Build scan
         if: ${{ !cancelled() && hashFiles('build-scan.txt') != '' }}

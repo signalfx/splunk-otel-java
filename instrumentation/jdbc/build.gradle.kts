@@ -53,7 +53,6 @@ dependencies {
   testImplementation("org.testcontainers:testcontainers-mysql")
 
   // MariaDB
-  // testLibrary("org.mariadb.jdbc:mariadb-java-client:3.0.3")
   testLibrary("org.mariadb.jdbc:mariadb-java-client:2.0.1")
   testImplementation("org.testcontainers:testcontainers-mariadb")
 }

@@ -30,7 +30,6 @@ import static io.opentelemetry.semconv.incubating.K8sIncubatingAttributes.K8S_CL
 import static io.opentelemetry.semconv.incubating.K8sIncubatingAttributes.K8S_DEPLOYMENT_NAME;
 import static io.opentelemetry.semconv.incubating.K8sIncubatingAttributes.K8S_NAMESPACE_NAME;
 import static io.opentelemetry.semconv.incubating.K8sIncubatingAttributes.K8S_NODE_NAME;
-import static io.opentelemetry.semconv.incubating.K8sIncubatingAttributes.K8S_POD_NAME;
 import static io.opentelemetry.semconv.incubating.OsIncubatingAttributes.OS_NAME;
 import static io.opentelemetry.semconv.incubating.OsIncubatingAttributes.OS_TYPE;
 import static io.opentelemetry.semconv.incubating.OsIncubatingAttributes.OS_VERSION;

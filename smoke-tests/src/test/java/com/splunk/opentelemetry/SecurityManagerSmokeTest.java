@@ -53,7 +53,7 @@ public class SecurityManagerSmokeTest extends SmokeTest {
   }
 
   @ParameterizedTest(name = "{index} => SecurityManager SmokeTest On JDK{0}.")
-  @ValueSource(ints = {8, 11, 17, 19})
+  @ValueSource(ints = {8, 11, 17, 21})
   void securityManagerSmokeTestOnJDK(int jdk) throws IOException, InterruptedException {
     startTargetOrSkipTest(getTargetImage(jdk));
 

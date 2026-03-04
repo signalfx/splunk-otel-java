@@ -75,6 +75,18 @@ public abstract class SnapshotProfilerSmokeTest {
     }
   }
 
+  public static class TestJdk21 extends SnapshotProfilerSmokeTest {
+    TestJdk21() {
+      super("21");
+    }
+  }
+
+  public static class TestJdk25 extends SnapshotProfilerSmokeTest {
+    TestJdk25() {
+      super("25");
+    }
+  }
+
   @BeforeAll
   void setupEnvironment() {
     containerManager = SmokeTest.createContainerManager();

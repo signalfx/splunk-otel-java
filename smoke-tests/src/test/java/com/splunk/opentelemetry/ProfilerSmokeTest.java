@@ -89,6 +89,18 @@ public abstract class ProfilerSmokeTest {
     }
   }
 
+  public static class TestJdk21 extends ProfilerSmokeTest {
+    TestJdk21() {
+      super("21");
+    }
+  }
+
+  public static class TestJdk25 extends ProfilerSmokeTest {
+    TestJdk25() {
+      super("25");
+    }
+  }
+
   @BeforeAll
   void setupEnvironment() {
     containerManager = SmokeTest.createContainerManager();

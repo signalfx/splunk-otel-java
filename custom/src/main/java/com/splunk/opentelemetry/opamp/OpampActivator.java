@@ -16,6 +16,8 @@
 
 package com.splunk.opentelemetry.opamp;
 
+import static io.opentelemetry.opamp.client.internal.request.service.HttpRequestService.DEFAULT_DELAY_BETWEEN_REQUESTS;
+import static io.opentelemetry.opamp.client.internal.request.service.HttpRequestService.DEFAULT_DELAY_BETWEEN_RETRIES;
 import static io.opentelemetry.sdk.autoconfigure.AutoConfigureUtil.getConfig;
 import static io.opentelemetry.sdk.autoconfigure.AutoConfigureUtil.getResource;
 import static io.opentelemetry.semconv.ServiceAttributes.SERVICE_INSTANCE_ID;
@@ -34,11 +36,13 @@ import io.opentelemetry.javaagent.extension.AgentListener;
 import io.opentelemetry.opamp.client.OpampClient;
 import io.opentelemetry.opamp.client.OpampClientBuilder;
 import io.opentelemetry.opamp.client.internal.connectivity.http.OkHttpSender;
+import io.opentelemetry.opamp.client.internal.request.delay.PeriodicDelay;
 import io.opentelemetry.opamp.client.internal.request.service.HttpRequestService;
 import io.opentelemetry.opamp.client.internal.response.MessageData;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import io.opentelemetry.sdk.resources.Resource;
+import java.time.Duration;
 import java.util.logging.Logger;
 import opamp.proto.ServerErrorResponse;
 import org.jetbrains.annotations.Nullable;
@@ -49,6 +53,7 @@ public class OpampActivator implements AgentListener {
 
   private static final String OP_AMP_ENABLED_PROPERTY = "splunk.opamp.enabled";
   private static final String OP_AMP_ENDPOINT = "splunk.opamp.endpoint";
+  private static final String OP_AMP_POLLING_INTERVAL = "splunk.opamp.polling.interval";
 
   @Override
   public void afterAgent(AutoConfiguredOpenTelemetrySdk autoConfiguredOpenTelemetrySdk) {
@@ -58,11 +63,15 @@ public class OpampActivator implements AgentListener {
     }
 
     Resource resource = getResource(autoConfiguredOpenTelemetrySdk);
+    long pollingDuration =
+        config.getLong(
+            OP_AMP_POLLING_INTERVAL, DEFAULT_DELAY_BETWEEN_REQUESTS.getNextDelay().toMillis());
 
     String endpoint = config.getString(OP_AMP_ENDPOINT);
     startOpampClient(
         endpoint,
         resource,
+        pollingDuration,
         new OpampClient.Callbacks() {
           @Override
           public void onConnect(OpampClient opampClient) {}
@@ -84,12 +93,21 @@ public class OpampActivator implements AgentListener {
   }
 
   static OpampClient startOpampClient(
-      String endpoint, Resource resource, OpampClient.Callbacks callbacks) {
+      String endpoint,
+      Resource resource,
+      long pollingDurationMillis,
+      OpampClient.Callbacks callbacks) {
 
     OpampClientBuilder builder = OpampClient.builder();
-    builder.enableRemoteConfig();
+    // TODO: Uncomment once we are able to report our effective config
+    // builder.enableEffectiveConfigReporting();
     if (endpoint != null) {
-      builder.setRequestService(HttpRequestService.create(OkHttpSender.create(endpoint)));
+      PeriodicDelay pollingDelay =
+          PeriodicDelay.ofFixedDuration(Duration.ofMillis(pollingDurationMillis));
+      OkHttpSender okhttp = OkHttpSender.create(endpoint);
+      HttpRequestService httpSender =
+          HttpRequestService.create(okhttp, pollingDelay, DEFAULT_DELAY_BETWEEN_RETRIES);
+      builder.setRequestService(httpSender);
     }
     addIdentifying(builder, resource, DEPLOYMENT_ENVIRONMENT_NAME);
     addIdentifying(builder, resource, SERVICE_NAME);

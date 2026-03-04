@@ -113,6 +113,7 @@ class OpampActivatorTest {
         OpampActivator.startOpampClient(
             server.httpUri().toString(),
             resource,
+            500,
             new OpampClient.Callbacks() {
               @Override
               public void onConnect(OpampClient opampClient) {}

@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package com.splunk.opentelemetry.instrumentation.jdbc.mysql;
+package com.splunk.opentelemetry.instrumentation.jdbc.mariadb;
 
 import com.splunk.opentelemetry.instrumentation.jdbc.AbstractMySqlDbContextPropagator;
 
-public final class MySqlContextPropagator extends AbstractMySqlDbContextPropagator {
-  public static final MySqlContextPropagator INSTANCE = new MySqlContextPropagator();
+public final class MariaDbContextPropagator extends AbstractMySqlDbContextPropagator {
+  public static final MariaDbContextPropagator INSTANCE = new MariaDbContextPropagator();
 
-  private MySqlContextPropagator() {}
+  private MariaDbContextPropagator() {}
 }

@@ -24,7 +24,6 @@ import static net.bytebuddy.matcher.ElementMatchers.namedOneOf;
 import static net.bytebuddy.matcher.ElementMatchers.takesArgument;
 import static net.bytebuddy.matcher.ElementMatchers.takesNoArguments;
 
-import com.splunk.opentelemetry.instrumentation.jdbc.mysql.MySqlContextPropagator;
 import io.opentelemetry.javaagent.bootstrap.CallDepth;
 import io.opentelemetry.javaagent.extension.instrumentation.TypeInstrumentation;
 import io.opentelemetry.javaagent.extension.instrumentation.TypeTransformer;
@@ -64,12 +63,12 @@ public class MariaDbStatementInstrumentation implements TypeInstrumentation {
     public static void onEnter(
         @Advice.This Statement statement, @Advice.Local("splunkCallDepth") CallDepth callDepth)
         throws Exception {
-      callDepth = CallDepth.forClass(MySqlContextPropagator.class);
+      callDepth = CallDepth.forClass(MariaDbContextPropagator.class);
       if (callDepth.getAndIncrement() > 0) {
         return;
       }
 
-      MySqlContextPropagator.INSTANCE.propagateContext(statement.getConnection());
+      MariaDbContextPropagator.INSTANCE.propagateContext(statement.getConnection());
     }
 
     @Advice.OnMethodExit(suppress = Throwable.class)

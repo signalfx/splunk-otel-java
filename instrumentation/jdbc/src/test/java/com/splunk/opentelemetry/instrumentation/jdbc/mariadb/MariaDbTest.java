@@ -77,6 +77,6 @@ class MariaDbTest extends AbstractConnectionUsingDbContextPropagationTest {
 
   @Override
   protected String getTraceparent(Connection connection) throws SQLException {
-    return MySqlTestUtil.getTraceparent(connection);
+    return MySqlTestUtil.getTraceparent(connection, MariaDbContextPropagator.class);
   }
 }

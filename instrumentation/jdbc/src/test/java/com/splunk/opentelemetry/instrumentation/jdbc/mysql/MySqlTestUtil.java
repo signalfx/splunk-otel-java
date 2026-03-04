@@ -16,6 +16,7 @@
 
 package com.splunk.opentelemetry.instrumentation.jdbc.mysql;
 
+import com.splunk.opentelemetry.instrumentation.jdbc.AbstractMySqlDbContextPropagator;
 import io.opentelemetry.javaagent.bootstrap.CallDepth;
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -24,8 +25,10 @@ import java.sql.Statement;
 
 public class MySqlTestUtil {
 
-  public static String getTraceparent(Connection connection) throws SQLException {
-    CallDepth callDepthSplunk = CallDepth.forClass(MySqlContextPropagator.class);
+  public static String getTraceparent(
+      Connection connection, Class<? extends AbstractMySqlDbContextPropagator> propagatorClass)
+      throws SQLException {
+    CallDepth callDepthSplunk = CallDepth.forClass(propagatorClass);
     CallDepth callDepthJdbc = CallDepth.forClass(Statement.class);
     // disable instrumentation, so we could read the current value
     callDepthSplunk.getAndIncrement();

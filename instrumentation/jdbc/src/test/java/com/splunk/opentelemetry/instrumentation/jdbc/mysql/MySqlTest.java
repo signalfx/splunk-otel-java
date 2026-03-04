@@ -78,6 +78,6 @@ class MySqlTest extends AbstractConnectionUsingDbContextPropagationTest {
 
   @Override
   protected String getTraceparent(Connection connection) throws SQLException {
-    return MySqlTestUtil.getTraceparent(connection);
+    return MySqlTestUtil.getTraceparent(connection, MySqlContextPropagator.class);
   }
 }

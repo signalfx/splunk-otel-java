@@ -14,12 +14,20 @@
  * limitations under the License.
  */
 
-package com.splunk.opentelemetry.instrumentation.jdbc.mysql;
+package com.splunk.opentelemetry.instrumentation.jdbc;
 
-import com.splunk.opentelemetry.instrumentation.jdbc.AbstractMySqlDbContextPropagator;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import javax.annotation.Nullable;
 
-public final class MySqlContextPropagator extends AbstractMySqlDbContextPropagator {
-  public static final MySqlContextPropagator INSTANCE = new MySqlContextPropagator();
+public class AbstractMySqlDbContextPropagator extends AbstractDbContextPropagator {
 
-  private MySqlContextPropagator() {}
+  @Override
+  protected void setContext(Connection connection, @Nullable String contextInfo)
+      throws SQLException {
+    PreparedStatement statement = connection.prepareStatement("set @traceparent=?");
+    statement.setString(1, contextInfo);
+    statement.executeUpdate();
+  }
 }

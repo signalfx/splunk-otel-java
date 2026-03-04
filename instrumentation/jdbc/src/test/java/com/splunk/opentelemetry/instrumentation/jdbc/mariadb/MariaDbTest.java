@@ -17,13 +17,11 @@
 package com.splunk.opentelemetry.instrumentation.jdbc.mariadb;
 
 import com.splunk.opentelemetry.instrumentation.jdbc.AbstractConnectionUsingDbContextPropagationTest;
-import com.splunk.opentelemetry.instrumentation.jdbc.mysql.MySqlContextPropagator;
+import com.splunk.opentelemetry.instrumentation.jdbc.mysql.MySqlTestUtil;
 import io.opentelemetry.instrumentation.testing.junit.AgentInstrumentationExtension;
 import io.opentelemetry.instrumentation.testing.junit.InstrumentationExtension;
-import io.opentelemetry.javaagent.bootstrap.CallDepth;
 import java.sql.Connection;
 import java.sql.DriverManager;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import org.junit.jupiter.api.AfterAll;
@@ -79,21 +77,6 @@ class MariaDbTest extends AbstractConnectionUsingDbContextPropagationTest {
 
   @Override
   protected String getTraceparent(Connection connection) throws SQLException {
-    CallDepth callDepthSplunk = CallDepth.forClass(MySqlContextPropagator.class);
-    CallDepth callDepthJdbc = CallDepth.forClass(Statement.class);
-    // disable instrumentation, so we could read the current value
-    callDepthSplunk.getAndIncrement();
-    // disable jdbc instrumentation, so it wouldn't create a span for the statement execution
-    callDepthJdbc.getAndIncrement();
-    try (Statement statement = connection.createStatement()) {
-      statement.execute("SELECT @traceparent");
-      try (ResultSet resultSet = statement.getResultSet()) {
-        resultSet.next();
-        return resultSet.getString(1);
-      }
-    } finally {
-      callDepthJdbc.decrementAndGet();
-      callDepthSplunk.decrementAndGet();
-    }
+    return MySqlTestUtil.getTraceparent(connection);
   }
 }

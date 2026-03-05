@@ -1,0 +1,16 @@
+# SRS configuration file
+# Generated from .fossa.yml
+#
+# WARNING: The following FOSSA features are NOT supported in SRS
+# (only skip-files and skip-dirs are supported for now):
+#
+#   - experimental.gradle.configurations-only: ['runtimeClasspath', 'runtime', 'runtimeOnly', 'runtimeOnlyDependenciesMetadata']
+#     FOSSA was configured to scan only Gradle configurations: ['runtimeClasspath', 'runtime', 'runtimeOnly', 'runtimeOnlyDependenciesMetadata']
+#     SRS does not support Gradle configuration filtering.
+#     Only 'compileClasspath', 'runtimeClasspath' configurations will be scanned.
+#
+
+scan:
+  scanners:
+  - vuln
+  - license

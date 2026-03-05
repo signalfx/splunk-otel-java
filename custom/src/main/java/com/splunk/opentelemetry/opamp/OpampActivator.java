@@ -25,9 +25,16 @@ import static io.opentelemetry.semconv.ServiceAttributes.SERVICE_NAME;
 import static io.opentelemetry.semconv.ServiceAttributes.SERVICE_NAMESPACE;
 import static io.opentelemetry.semconv.ServiceAttributes.SERVICE_VERSION;
 import static io.opentelemetry.semconv.incubating.DeploymentIncubatingAttributes.DEPLOYMENT_ENVIRONMENT_NAME;
+import static io.opentelemetry.semconv.incubating.HostIncubatingAttributes.HOST_NAME;
+import static io.opentelemetry.semconv.incubating.K8sIncubatingAttributes.K8S_CLUSTER_NAME;
+import static io.opentelemetry.semconv.incubating.K8sIncubatingAttributes.K8S_DEPLOYMENT_NAME;
+import static io.opentelemetry.semconv.incubating.K8sIncubatingAttributes.K8S_NAMESPACE_NAME;
+import static io.opentelemetry.semconv.incubating.K8sIncubatingAttributes.K8S_NODE_NAME;
 import static io.opentelemetry.semconv.incubating.OsIncubatingAttributes.OS_NAME;
 import static io.opentelemetry.semconv.incubating.OsIncubatingAttributes.OS_TYPE;
 import static io.opentelemetry.semconv.incubating.OsIncubatingAttributes.OS_VERSION;
+import static io.opentelemetry.semconv.incubating.TelemetryIncubatingAttributes.TELEMETRY_DISTRO_NAME;
+import static io.opentelemetry.semconv.incubating.TelemetryIncubatingAttributes.TELEMETRY_DISTRO_VERSION;
 import static java.util.logging.Level.WARNING;
 
 import com.google.auto.service.AutoService;
@@ -118,6 +125,13 @@ public class OpampActivator implements AgentListener {
     addNonIdentifying(builder, resource, OS_NAME);
     addNonIdentifying(builder, resource, OS_TYPE);
     addNonIdentifying(builder, resource, OS_VERSION);
+    addNonIdentifying(builder, resource, HOST_NAME);
+    addNonIdentifying(builder, resource, TELEMETRY_DISTRO_VERSION);
+    addNonIdentifying(builder, resource, TELEMETRY_DISTRO_NAME);
+    addNonIdentifying(builder, resource, K8S_CLUSTER_NAME);
+    addNonIdentifying(builder, resource, K8S_NAMESPACE_NAME);
+    addNonIdentifying(builder, resource, K8S_NODE_NAME);
+    addNonIdentifying(builder, resource, K8S_DEPLOYMENT_NAME);
 
     return builder.build(callbacks);
   }

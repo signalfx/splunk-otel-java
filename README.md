@@ -1,45 +1,19 @@
-<p align="center">
-  <strong>
-    <a href="#get-started">Get Started</a>
-    &nbsp;&nbsp;&bull;&nbsp;&nbsp;
-    <a href="CONTRIBUTING.md">Get Involved</a>
-    &nbsp;&nbsp;&bull;&nbsp;&nbsp;
-    <a href="https://help.splunk.com/en/splunk-observability-cloud/manage-data/available-data-sources/supported-integrations-in-splunk-observability-cloud/apm-instrumentation/instrument-a-java-application/migrate-from-signalfx-java-agent">Migrate from SignalFx Java Agent</a>
-  </strong>
-</p>
-
-<p align="center">
-  <img alt="Stable" src="https://img.shields.io/badge/status-stable-informational?style=for-the-badge">
-  <a href="https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/tag/v2.25.0">
-    <img alt="OpenTelemetry Instrumentation for Java Version" src="https://img.shields.io/badge/otel-2.25.0-blueviolet?style=for-the-badge">
-  </a>
-  <a href="https://github.com/signalfx/gdi-specification/releases/tag/v1.8.0">
-    <img alt="Splunk GDI specification" src="https://img.shields.io/badge/GDI-1.8.0-blueviolet?style=for-the-badge">
-  </a>
-  <a href="https://github.com/signalfx/splunk-otel-java/releases">
-    <img alt="GitHub release (latest SemVer)" src="https://img.shields.io/github/v/release/signalfx/splunk-otel-java?include_prereleases&style=for-the-badge">
-  </a>
-  <a href="https://central.sonatype.com/artifact/com.splunk/splunk-otel-javaagent">
-    <img alt="Maven Central" src="https://img.shields.io/maven-central/v/com.splunk/splunk-otel-javaagent?style=for-the-badge">
-  </a>
-  <a href="https://github.com/signalfx/splunk-otel-java/actions/workflows/ci.yaml">
-    <img alt="Build Status" src="https://img.shields.io/github/actions/workflow/status/signalfx/splunk-otel-java/ci.yaml?branch=main&style=for-the-badge">
-  </a>
-</p>
-
-<p align="center">
-  <strong>
-    <a href="https://help.splunk.com/en/splunk-observability-cloud/manage-data/available-data-sources/supported-integrations-in-splunk-observability-cloud/apm-instrumentation/instrument-a-java-application/about-splunk-otel-java">About the distribution</a>
-    &nbsp;&nbsp;&bull;&nbsp;&nbsp;
-    <a href="SECURITY.md">Security</a>
-    &nbsp;&nbsp;&bull;&nbsp;&nbsp;
-    <a href="https://help.splunk.com/en/splunk-observability-cloud/manage-data/available-data-sources/supported-integrations-in-splunk-observability-cloud/apm-instrumentation/instrument-a-java-application/requirements#supported-libraries-and-frameworks-0">Supported Libraries</a>
-    &nbsp;&nbsp;&bull;&nbsp;&nbsp;
-    <a href="https://help.splunk.com/en/splunk-observability-cloud/manage-data/available-data-sources/supported-integrations-in-splunk-observability-cloud/apm-instrumentation/instrument-a-java-application/troubleshoot-the-java-agent">Troubleshooting</a>
-  </strong>
-</p>
-
 # Splunk Distribution of OpenTelemetry Java
+
+![Stable](https://img.shields.io/badge/status-stable-informational)
+[![OpenTelemetry Instrumentation for Java Version](https://img.shields.io/badge/otel-2.25.0-blueviolet)](https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/tag/v2.25.0)
+[![Splunk GDI specification](https://img.shields.io/badge/GDI-1.8.0-blueviolet)](https://github.com/signalfx/gdi-specification/releases/tag/v1.8.0)
+[![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/signalfx/splunk-otel-java?include_prereleases)](https://github.com/signalfx/splunk-otel-java/releases)
+[![Maven Central](https://img.shields.io/maven-central/v/com.splunk/splunk-otel-javaagent)](https://central.sonatype.com/artifact/com.splunk/splunk-otel-javaagent)
+[![Build Status](https://img.shields.io/github/actions/workflow/status/signalfx/splunk-otel-java/ci.yaml?branch=main)](https://github.com/signalfx/splunk-otel-java/actions/workflows/ci.yaml)
+
+* [Get Started](#get-started)
+* [Get Involved](CONTRIBUTING.md)
+* [Migrate from SignalFx Java Agent](https://help.splunk.com/en/splunk-observability-cloud/manage-data/available-data-sources/supported-integrations-in-splunk-observability-cloud/apm-instrumentation/instrument-a-java-application/migrate-from-signalfx-java-agent)
+* [About the distribution](https://help.splunk.com/en/splunk-observability-cloud/manage-data/available-data-sources/supported-integrations-in-splunk-observability-cloud/apm-instrumentation/instrument-a-java-application/about-splunk-otel-java)
+* [Security](SECURITY.md)
+* [Supported Libraries](https://help.splunk.com/en/splunk-observability-cloud/manage-data/available-data-sources/supported-integrations-in-splunk-observability-cloud/apm-instrumentation/instrument-a-java-application/requirements#supported-libraries-and-frameworks-0)
+* [Troubleshooting](https://help.splunk.com/en/splunk-observability-cloud/manage-data/available-data-sources/supported-integrations-in-splunk-observability-cloud/apm-instrumentation/instrument-a-java-application/troubleshoot-the-java-agent)
 
 The Splunk Distribution of [OpenTelemetry Instrumentation for
 Java](https://github.com/open-telemetry/opentelemetry-java-instrumentation)

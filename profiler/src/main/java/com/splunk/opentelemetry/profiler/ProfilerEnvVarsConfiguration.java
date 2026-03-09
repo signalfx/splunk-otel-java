@@ -103,7 +103,7 @@ public class ProfilerEnvVarsConfiguration implements ProfilerConfiguration {
       String defaultIngestUrl = getDefaultLogsEndpoint();
       ingestUrl = config.getString(CONFIG_KEY_OTEL_OTLP_URL, defaultIngestUrl);
 
-      if (ingestUrl.startsWith("https://ingest.") && ingestUrl.endsWith(".signalfx.com")) {
+      if (ingestUrl.startsWith("https://ingest.") && ingestUrl.endsWith(".observability.splunkcloud.com")) {
         logger.log(
             WARNING,
             "Profiling data can not be sent to {0}, using {1} instead. "

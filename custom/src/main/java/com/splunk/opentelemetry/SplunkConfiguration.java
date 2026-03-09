@@ -85,7 +85,9 @@ public class SplunkConfiguration implements AutoConfigurationCustomizerProvider 
             WARNING,
             "Logs can not be sent to {0}, using {1} instead. "
                 + "You can override it by setting otel.exporter.otlp.logs.endpoint",
-            new Object[] {"https://ingest." + realm + ".observability.splunkcloud.com", logsEndpoint});
+            new Object[] {
+              "https://ingest." + realm + ".observability.splunkcloud.com", logsEndpoint
+            });
 
         addIfAbsent(customized, config, "otel.exporter.otlp.logs.endpoint", logsEndpoint);
       }

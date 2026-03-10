@@ -50,6 +50,7 @@ import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import io.opentelemetry.sdk.resources.Resource;
 import java.time.Duration;
+import java.util.List;
 import java.util.logging.Logger;
 import opamp.proto.ServerErrorResponse;
 import org.jetbrains.annotations.Nullable;
@@ -116,39 +117,60 @@ public class OpampActivator implements AgentListener {
           HttpRequestService.create(okhttp, pollingDelay, DEFAULT_DELAY_BETWEEN_RETRIES);
       builder.setRequestService(httpSender);
     }
-    addIdentifying(builder, resource, DEPLOYMENT_ENVIRONMENT_NAME);
-    addIdentifying(builder, resource, SERVICE_NAME);
-    addIdentifying(builder, resource, SERVICE_VERSION);
-    addIdentifying(builder, resource, SERVICE_NAMESPACE);
-    addIdentifying(builder, resource, SERVICE_INSTANCE_ID);
-
-    addNonIdentifying(builder, resource, OS_NAME);
-    addNonIdentifying(builder, resource, OS_TYPE);
-    addNonIdentifying(builder, resource, OS_VERSION);
-    addNonIdentifying(builder, resource, HOST_NAME);
-    addNonIdentifying(builder, resource, TELEMETRY_DISTRO_VERSION);
-    addNonIdentifying(builder, resource, TELEMETRY_DISTRO_NAME);
-    addNonIdentifying(builder, resource, K8S_CLUSTER_NAME);
-    addNonIdentifying(builder, resource, K8S_NAMESPACE_NAME);
-    addNonIdentifying(builder, resource, K8S_NODE_NAME);
-    addNonIdentifying(builder, resource, K8S_DEPLOYMENT_NAME);
+    addIdentifyingAttributes(builder, resource);
 
     return builder.build(callbacks);
   }
 
-  static void addIdentifying(
-      OpampClientBuilder builder, Resource res, AttributeKey<String> resourceAttr) {
-    String attr = res.getAttribute(resourceAttr);
-    if (attr != null) {
-      builder.putIdentifyingAttribute(resourceAttr.getKey(), attr);
-    }
-  }
-
-  static void addNonIdentifying(
-      OpampClientBuilder builder, Resource res, AttributeKey<String> resourceAttr) {
-    String attr = res.getAttribute(resourceAttr);
-    if (attr != null) {
-      builder.putNonIdentifyingAttribute(resourceAttr.getKey(), attr);
-    }
+  static void addIdentifyingAttributes(OpampClientBuilder builder, Resource res){
+    res.getAttributes().forEach((key,value) -> {
+      if(value instanceof Integer){
+        builder.putIdentifyingAttribute(key.getKey(), (int)value);
+      }
+      else if(value instanceof Long){
+        builder.putIdentifyingAttribute(key.getKey(), (long)value);
+      }
+      else if(value instanceof Double){
+        builder.putIdentifyingAttribute(key.getKey(), (double)value);
+      }
+      else if(value instanceof Boolean){
+        builder.putIdentifyingAttribute(key.getKey(), (boolean)value);
+      }
+      else if(value.getClass().isAssignableFrom(List.class)){
+        List<?> valueList = (List<?>)value;
+        if(valueList.get(0) instanceof String){
+          List<String> typedValueList = (List<String>)value;
+          String[] array = typedValueList.toArray(new String[]{});
+          builder.putIdentifyingAttribute(key.getKey(), array);
+        }
+        else if(valueList.get(0) instanceof Long){
+          List<Long> typedValueList = (List<Long>)value;
+          long[] primitiveArray = new long[typedValueList.size()];
+          for (int i = 0; i < primitiveArray.length; i++) {
+            primitiveArray[i] = typedValueList.get(i);
+          }
+          builder.putIdentifyingAttribute(key.getKey(), primitiveArray);
+        }
+        else if(valueList.get(0) instanceof Double){
+          List<Double> typedValueList = (List<Double>)value;
+          double[] primitiveArray = new double[typedValueList.size()];
+          for (int i = 0; i < primitiveArray.length; i++) {
+            primitiveArray[i] = typedValueList.get(i);
+          }
+          builder.putIdentifyingAttribute(key.getKey(), primitiveArray);
+        }
+        else if(valueList.get(0) instanceof Boolean){
+          List<Boolean> typedValueList = (List<Boolean>)value;
+          boolean[] primitiveArray = new boolean[typedValueList.size()];
+          for (int i = 0; i < primitiveArray.length; i++) {
+            primitiveArray[i] = typedValueList.get(i);
+          }
+          builder.putIdentifyingAttribute(key.getKey(), primitiveArray);
+        }
+      }
+      else {
+        builder.putIdentifyingAttribute(key.getKey(), value.toString());
+      }
+    });
   }
 }

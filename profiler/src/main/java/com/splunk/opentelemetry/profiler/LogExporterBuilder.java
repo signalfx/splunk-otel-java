@@ -104,7 +104,8 @@ class LogExporterBuilder {
         builder::setTrustedCertificates,
         builder::setClientTls,
         builder::setRetryPolicy,
-        builder::setMemoryMode);
+        builder::setMemoryMode,
+        builder::setInternalTelemetryVersion);
 
     builder.setEndpoint(ingestUrl);
 

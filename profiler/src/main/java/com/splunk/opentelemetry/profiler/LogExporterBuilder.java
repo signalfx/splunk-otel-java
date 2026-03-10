@@ -116,6 +116,7 @@ class LogExporterBuilder {
     return builder.addHeader(EXTRA_CONTENT_TYPE, STACKTRACES_HEADER_VALUE).build();
   }
 
+  // TODO: find a different solution
   public static ExtendedDeclarativeConfigProperties toExtended(
       DeclarativeConfigProperties properties) {
     if (properties instanceof ExtendedDeclarativeConfigProperties) {

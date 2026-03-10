@@ -18,6 +18,7 @@ package com.splunk.opentelemetry.profiler.snapshot;
 
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.SNAPSHOT_PROFILING;
 
+import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.sdk.common.CompletableResultCode;
 import io.opentelemetry.sdk.trace.ReadWriteSpan;
@@ -29,19 +30,22 @@ import io.opentelemetry.sdk.trace.SpanProcessor;
  */
 public class SnapshotProfilingSpanProcessor implements SpanProcessor {
   private final TraceRegistry registry;
+  private final SnapshotSelector selector;
   private final OrphanedTraceCleaner orphanedTraceCleaner;
 
-  SnapshotProfilingSpanProcessor(TraceRegistry registry) {
+  SnapshotProfilingSpanProcessor(TraceRegistry registry, SnapshotSelector selector) {
     this.registry = registry;
+    this.selector = selector;
     this.orphanedTraceCleaner = new OrphanedTraceCleaner(registry);
   }
 
   @Override
   public void onStart(Context context, ReadWriteSpan span) {
     if (isEntry(span)) {
-      Volume volume = Volume.from(context);
-      if (volume == Volume.HIGHEST) {
-        registry.register(span.getSpanContext());
+      SpanContext spanContext = span.getSpanContext();
+      boolean selected = selector.select(spanContext);
+      if (selected) {
+        registry.register(spanContext);
         orphanedTraceCleaner.register(span);
       }
     }

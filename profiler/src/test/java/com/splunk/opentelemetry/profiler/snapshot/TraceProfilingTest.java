@@ -37,12 +37,13 @@ class TraceProfilingTest {
   public final OpenTelemetrySdkExtension sdk =
       OpenTelemetrySdkExtension.configure()
           .withProperty("splunk.snapshot.profiler.enabled", "true")
+          .withProperty("splunk.snapshot.selection.probability", "1.0")
           .with(customizer)
           .build();
 
   @Test
   void startTraceProfilingWhenRootSpanContextBegins(Tracer tracer) {
-    try (var ignored = Context.root().with(Volume.HIGHEST).makeCurrent()) {
+    try (var ignored = Context.root().makeCurrent()) {
       var span = tracer.spanBuilder("root").startSpan();
       try (var ignored2 = span.makeCurrent()) {
         assertThat(sampler.isBeingSampled(span.getSpanContext())).isTrue();
@@ -63,7 +64,7 @@ class TraceProfilingTest {
     var remoteParentSpanContext = Snapshotting.spanContext().remote().build();
     var parentSpan = Span.wrap(remoteParentSpanContext);
 
-    try (var ignored = Context.root().with(Volume.HIGHEST).with(parentSpan).makeCurrent()) {
+    try (var ignored = Context.root().with(parentSpan).makeCurrent()) {
       var span = tracer.spanBuilder("root").startSpan();
       try (var ignored2 = span.makeCurrent()) {
         assertThat(sampler.isBeingSampled(span.getSpanContext())).isTrue();
@@ -84,7 +85,7 @@ class TraceProfilingTest {
 
   @Test
   void stopTraceProfilingWhenEntrySpanEnds(Tracer tracer) {
-    try (var ignored = Context.root().with(Volume.HIGHEST).makeCurrent()) {
+    try (var ignored = Context.root().makeCurrent()) {
       var entry = tracer.spanBuilder("entry").startSpan();
       entry.end();
       assertThat(sampler.isBeingSampled(entry.getSpanContext())).isFalse();
@@ -93,7 +94,7 @@ class TraceProfilingTest {
 
   @Test
   void canStopTraceProfilingFromDifferentThread(Tracer tracer) throws Exception {
-    try (var ignored = Context.root().with(Volume.HIGHEST).makeCurrent()) {
+    try (var ignored = Context.root().makeCurrent()) {
       var entry = tracer.spanBuilder("entry").startSpan();
 
       var endingThread = new Thread(entry::end);
@@ -108,7 +109,7 @@ class TraceProfilingTest {
   void doNotStartTraceProfilingWhenTraceIsNotRegistered(Tracer tracer) {
     registry.toggle(State.OFF);
 
-    try (var ignored = Context.root().with(Volume.HIGHEST).makeCurrent()) {
+    try (var ignored = Context.root().makeCurrent()) {
       var root = tracer.spanBuilder("root").setSpanKind(SpanKind.SERVER).startSpan();
       var client =
           tracer
@@ -123,7 +124,7 @@ class TraceProfilingTest {
 
   @Test
   void onlyStopTraceProfilingWhenEntrySpanContextCloses(Tracer tracer) {
-    try (var ignored = Context.root().with(Volume.HIGHEST).makeCurrent()) {
+    try (var ignored = Context.root().makeCurrent()) {
       var root = tracer.spanBuilder("root").setSpanKind(SpanKind.SERVER).startSpan();
       try (var ignoredRootContext = root.makeCurrent()) {
         var child =

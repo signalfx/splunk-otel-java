@@ -38,6 +38,7 @@ class GracefulShutdownTest {
   public final OpenTelemetrySdkExtension sdk =
       OpenTelemetrySdkExtension.configure()
           .withProperty("splunk.snapshot.profiler.enabled", "true")
+          .withProperty("splunk.snapshot.selection.probability", "1.0")
           .with(Snapshotting.customizer().withRealStackTraceSampler().withRealStagingArea().build())
           .with(
               new StackTraceExporterActivator(
@@ -66,7 +67,7 @@ class GracefulShutdownTest {
   private Runnable startNewTrace(Tracer tracer) {
     var logger = LoggerFactory.getLogger(GracefulShutdownTest.class);
     return () -> {
-      try (var ignored1 = Context.root().with(Volume.HIGHEST).makeCurrent()) {
+      try (var ignored1 = Context.root().makeCurrent()) {
         var span = tracer.spanBuilder("root").setSpanKind(SpanKind.SERVER).startSpan();
         try (var ignored2 = span.makeCurrent()) {
           Thread.sleep(25);

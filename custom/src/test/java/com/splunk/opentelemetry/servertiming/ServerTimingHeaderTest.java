@@ -76,7 +76,7 @@ class ServerTimingHeaderTest {
             + spanContext.getTraceId()
             + "-"
             + spanContext.getSpanId()
-            + "-01\"";
+            + "-03\"";
     assertEquals(serverTimingHeaderValue, headers.get(SERVER_TIMING));
     assertEquals(SERVER_TIMING, headers.get(EXPOSE_HEADERS));
   }

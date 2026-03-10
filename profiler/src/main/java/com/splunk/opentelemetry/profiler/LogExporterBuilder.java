@@ -20,6 +20,7 @@ import static io.opentelemetry.api.incubator.config.DeclarativeConfigProperties.
 import static io.opentelemetry.exporter.otlp.internal.OtlpConfigUtil.DATA_TYPE_LOGS;
 
 import com.google.common.annotations.VisibleForTesting;
+import io.opentelemetry.api.incubator.config.ConfigProvider;
 import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
 import io.opentelemetry.exporter.otlp.http.logs.OtlpHttpLogRecordExporter;
 import io.opentelemetry.exporter.otlp.http.logs.OtlpHttpLogRecordExporterBuilder;
@@ -30,7 +31,10 @@ import io.opentelemetry.exporter.otlp.logs.OtlpGrpcLogRecordExporter;
 import io.opentelemetry.exporter.otlp.logs.OtlpGrpcLogRecordExporterBuilder;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigurationException;
+import io.opentelemetry.sdk.autoconfigure.spi.internal.ExtendedDeclarativeConfigProperties;
 import io.opentelemetry.sdk.logs.export.LogRecordExporter;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Proxy;
 import java.util.Set;
 import java.util.function.Supplier;
 
@@ -48,7 +52,7 @@ class LogExporterBuilder {
             exporterConfigProperties.getStructured("otlp_log_http", empty());
         OtlpHttpLogRecordExporterComponentProvider provider =
             new OtlpHttpLogRecordExporterComponentProvider();
-        return provider.create(otlpHttp);
+        return provider.create(toExtended(otlpHttp));
       }
 
       if (propertyKeys.contains("otlp_log_grpc")) {
@@ -56,7 +60,7 @@ class LogExporterBuilder {
             exporterConfigProperties.getStructured("otlp_log_grpc", empty());
         OtlpGrpcLogRecordExporterComponentProvider provider =
             new OtlpGrpcLogRecordExporterComponentProvider();
-        return provider.create(otlpGrpc);
+        return provider.create(toExtended(otlpGrpc));
       }
     }
 
@@ -104,10 +108,33 @@ class LogExporterBuilder {
         builder::setTrustedCertificates,
         builder::setClientTls,
         builder::setRetryPolicy,
-        builder::setMemoryMode);
+        builder::setMemoryMode,
+        builder::setInternalTelemetryVersion);
 
     builder.setEndpoint(ingestUrl);
 
     return builder.addHeader(EXTRA_CONTENT_TYPE, STACKTRACES_HEADER_VALUE).build();
+  }
+
+  // TODO: find a different solution
+  public static ExtendedDeclarativeConfigProperties toExtended(
+      DeclarativeConfigProperties properties) {
+    if (properties instanceof ExtendedDeclarativeConfigProperties) {
+      return (ExtendedDeclarativeConfigProperties) properties;
+    }
+    return (ExtendedDeclarativeConfigProperties)
+        Proxy.newProxyInstance(
+            LogExporterBuilder.class.getClassLoader(),
+            new Class[] {ExtendedDeclarativeConfigProperties.class},
+            (proxy, method, args) -> {
+              if ("getConfigProvider".equals(method.getName())) {
+                return ConfigProvider.noop();
+              }
+              try {
+                return method.invoke(properties, args);
+              } catch (InvocationTargetException exception) {
+                throw exception.getCause();
+              }
+            });
   }
 }

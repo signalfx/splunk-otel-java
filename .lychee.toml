@@ -3,6 +3,10 @@ retry_wait_time = 10
 max_retries = 2
 max_concurrency = 2
 
+# Global per-host defaults
+host_concurrency = 2
+host_request_interval = "500ms"
+
 [hosts."github.com"]
 concurrency = 1
 request_interval = "1s"

@@ -20,25 +20,9 @@ import static io.opentelemetry.opamp.client.internal.request.service.HttpRequest
 import static io.opentelemetry.opamp.client.internal.request.service.HttpRequestService.DEFAULT_DELAY_BETWEEN_RETRIES;
 import static io.opentelemetry.sdk.autoconfigure.AutoConfigureUtil.getConfig;
 import static io.opentelemetry.sdk.autoconfigure.AutoConfigureUtil.getResource;
-import static io.opentelemetry.semconv.ServiceAttributes.SERVICE_INSTANCE_ID;
-import static io.opentelemetry.semconv.ServiceAttributes.SERVICE_NAME;
-import static io.opentelemetry.semconv.ServiceAttributes.SERVICE_NAMESPACE;
-import static io.opentelemetry.semconv.ServiceAttributes.SERVICE_VERSION;
-import static io.opentelemetry.semconv.incubating.DeploymentIncubatingAttributes.DEPLOYMENT_ENVIRONMENT_NAME;
-import static io.opentelemetry.semconv.incubating.HostIncubatingAttributes.HOST_NAME;
-import static io.opentelemetry.semconv.incubating.K8sIncubatingAttributes.K8S_CLUSTER_NAME;
-import static io.opentelemetry.semconv.incubating.K8sIncubatingAttributes.K8S_DEPLOYMENT_NAME;
-import static io.opentelemetry.semconv.incubating.K8sIncubatingAttributes.K8S_NAMESPACE_NAME;
-import static io.opentelemetry.semconv.incubating.K8sIncubatingAttributes.K8S_NODE_NAME;
-import static io.opentelemetry.semconv.incubating.OsIncubatingAttributes.OS_NAME;
-import static io.opentelemetry.semconv.incubating.OsIncubatingAttributes.OS_TYPE;
-import static io.opentelemetry.semconv.incubating.OsIncubatingAttributes.OS_VERSION;
-import static io.opentelemetry.semconv.incubating.TelemetryIncubatingAttributes.TELEMETRY_DISTRO_NAME;
-import static io.opentelemetry.semconv.incubating.TelemetryIncubatingAttributes.TELEMETRY_DISTRO_VERSION;
 import static java.util.logging.Level.WARNING;
 
 import com.google.auto.service.AutoService;
-import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.javaagent.extension.AgentListener;
 import io.opentelemetry.opamp.client.OpampClient;
 import io.opentelemetry.opamp.client.OpampClientBuilder;
@@ -122,55 +106,64 @@ public class OpampActivator implements AgentListener {
     return builder.build(callbacks);
   }
 
-  static void addIdentifyingAttributes(OpampClientBuilder builder, Resource res){
-    res.getAttributes().forEach((key,value) -> {
-      if(value instanceof Integer){
-        builder.putIdentifyingAttribute(key.getKey(), (int)value);
-      }
-      else if(value instanceof Long){
-        builder.putIdentifyingAttribute(key.getKey(), (long)value);
-      }
-      else if(value instanceof Double){
-        builder.putIdentifyingAttribute(key.getKey(), (double)value);
-      }
-      else if(value instanceof Boolean){
-        builder.putIdentifyingAttribute(key.getKey(), (boolean)value);
-      }
-      else if(value.getClass().isAssignableFrom(List.class)){
-        List<?> valueList = (List<?>)value;
-        if(valueList.get(0) instanceof String){
-          List<String> typedValueList = (List<String>)value;
-          String[] array = typedValueList.toArray(new String[]{});
-          builder.putIdentifyingAttribute(key.getKey(), array);
-        }
-        else if(valueList.get(0) instanceof Long){
-          List<Long> typedValueList = (List<Long>)value;
-          long[] primitiveArray = new long[typedValueList.size()];
-          for (int i = 0; i < primitiveArray.length; i++) {
-            primitiveArray[i] = typedValueList.get(i);
-          }
-          builder.putIdentifyingAttribute(key.getKey(), primitiveArray);
-        }
-        else if(valueList.get(0) instanceof Double){
-          List<Double> typedValueList = (List<Double>)value;
-          double[] primitiveArray = new double[typedValueList.size()];
-          for (int i = 0; i < primitiveArray.length; i++) {
-            primitiveArray[i] = typedValueList.get(i);
-          }
-          builder.putIdentifyingAttribute(key.getKey(), primitiveArray);
-        }
-        else if(valueList.get(0) instanceof Boolean){
-          List<Boolean> typedValueList = (List<Boolean>)value;
-          boolean[] primitiveArray = new boolean[typedValueList.size()];
-          for (int i = 0; i < primitiveArray.length; i++) {
-            primitiveArray[i] = typedValueList.get(i);
-          }
-          builder.putIdentifyingAttribute(key.getKey(), primitiveArray);
-        }
-      }
-      else {
-        builder.putIdentifyingAttribute(key.getKey(), value.toString());
-      }
-    });
+  static void addIdentifyingAttributes(OpampClientBuilder builder, Resource res) {
+    res.getAttributes()
+        .forEach(
+            (key, value) -> {
+              switch (key.getType()) {
+                case STRING:
+                  builder.putIdentifyingAttribute(key.getKey(), (String) value);
+                  break;
+                case LONG:
+                  builder.putIdentifyingAttribute(key.getKey(), (long) value);
+                  break;
+                case DOUBLE:
+                  builder.putIdentifyingAttribute(key.getKey(), (double) value);
+                  break;
+                case BOOLEAN:
+                  builder.putIdentifyingAttribute(key.getKey(), (boolean) value);
+                  break;
+                case VALUE:
+                  builder.putIdentifyingAttribute(key.getKey(), value.toString());
+                  break;
+                case STRING_ARRAY:
+                  {
+                    List<String> typedValueList = (List<String>) value;
+                    String[] array = typedValueList.toArray(new String[] {});
+                    builder.putIdentifyingAttribute(key.getKey(), array);
+                    break;
+                  }
+                case LONG_ARRAY:
+                  {
+                    List<Long> typedValueList = (List<Long>) value;
+                    long[] primitiveArray = new long[typedValueList.size()];
+                    for (int i = 0; i < typedValueList.size(); i++) {
+                      primitiveArray[i] = typedValueList.get(i);
+                    }
+                    builder.putIdentifyingAttribute(key.getKey(), primitiveArray);
+                    break;
+                  }
+                case DOUBLE_ARRAY:
+                  {
+                    List<Double> typedValueList = (List<Double>) value;
+                    double[] primitiveArray = new double[typedValueList.size()];
+                    for (int i = 0; i < typedValueList.size(); i++) {
+                      primitiveArray[i] = typedValueList.get(i);
+                    }
+                    builder.putIdentifyingAttribute(key.getKey(), primitiveArray);
+                    break;
+                  }
+                case BOOLEAN_ARRAY:
+                  {
+                    List<Boolean> typedValueList = (List<Boolean>) value;
+                    boolean[] primitiveArray = new boolean[typedValueList.size()];
+                    for (int i = 0; i < typedValueList.size(); i++) {
+                      primitiveArray[i] = typedValueList.get(i);
+                    }
+                    builder.putIdentifyingAttribute(key.getKey(), primitiveArray);
+                    break;
+                  }
+              }
+            });
   }
 }

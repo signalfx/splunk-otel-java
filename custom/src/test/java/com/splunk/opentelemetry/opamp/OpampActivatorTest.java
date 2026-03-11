@@ -16,6 +16,10 @@
 
 package com.splunk.opentelemetry.opamp;
 
+import static io.opentelemetry.api.common.AttributeKey.booleanKey;
+import static io.opentelemetry.api.common.AttributeKey.doubleKey;
+import static io.opentelemetry.api.common.AttributeKey.longKey;
+import static io.opentelemetry.api.common.AttributeKey.valueKey;
 import static io.opentelemetry.semconv.ServiceAttributes.SERVICE_NAME;
 import static io.opentelemetry.semconv.ServiceAttributes.SERVICE_NAMESPACE;
 import static io.opentelemetry.semconv.ServiceAttributes.SERVICE_VERSION;
@@ -27,6 +31,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
+import io.opentelemetry.api.common.Value;
 import io.opentelemetry.instrumentation.testing.internal.AutoCleanupExtension;
 import io.opentelemetry.opamp.client.OpampClient;
 import io.opentelemetry.opamp.client.internal.response.MessageData;
@@ -36,6 +41,7 @@ import io.opentelemetry.testing.internal.armeria.common.HttpStatus;
 import io.opentelemetry.testing.internal.armeria.common.MediaType;
 import io.opentelemetry.testing.internal.armeria.testing.junit5.server.mock.MockWebServerExtension;
 import io.opentelemetry.testing.internal.armeria.testing.junit5.server.mock.RecordedRequest;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -46,7 +52,7 @@ import opamp.proto.AgentConfigMap;
 import opamp.proto.AgentRemoteConfig;
 import opamp.proto.AgentToServer;
 import opamp.proto.AnyValue;
-import opamp.proto.KeyValue;
+import opamp.proto.ArrayValue;
 import opamp.proto.ServerErrorResponse;
 import opamp.proto.ServerToAgent;
 import org.jetbrains.annotations.Nullable;
@@ -93,6 +99,18 @@ class OpampActivatorTest {
             .put(OS_NAME, "test-os-name")
             .put(OS_TYPE, "test-os-type")
             .put(OS_VERSION, "test-os-ver")
+            .put(longKey("long"), 12L)
+            .put(doubleKey("double"), 99.0)
+            .put(booleanKey("bool"), true)
+            .put(valueKey("val"), Value.of("vvv"))
+            .put("longarr", new long[] {2L, 3L, 5L})
+            .put(AttributeKey.longArrayKey("longobjarr"), Arrays.asList(2L, 3L, 5L))
+            .put("doublearr", new double[] {2.0, 3.0})
+            .put(AttributeKey.doubleArrayKey("doubleobjarr"), Arrays.asList(5.0, 6.0))
+            .put("stringarr", new String[] {"foo", "flimflam"})
+            .put(AttributeKey.stringArrayKey("stringobjarr"), Arrays.asList("flim", "jibberjo"))
+            .put("boolarr", new boolean[] {true, false})
+            .put(AttributeKey.booleanArrayKey("boolobjarr"), Arrays.asList(true, true, false, true))
             .build();
     Resource resource = Resource.create(attributes);
     Map<String, AgentConfigFile> configMap =
@@ -148,26 +166,133 @@ class OpampActivatorTest {
     RecordedRequest recordedRequest = server.takeRequest();
     byte[] body = recordedRequest.request().content().array();
     AgentToServer agentToServer = AgentToServer.ADAPTER.decode(body);
-    assertIdentifying(agentToServer, DEPLOYMENT_ENVIRONMENT_NAME, "test-deployment-env");
-    assertIdentifying(agentToServer, SERVICE_NAME, "test-service");
-    assertIdentifying(agentToServer, SERVICE_VERSION, "test-ver");
-    assertIdentifying(agentToServer, SERVICE_NAMESPACE, "test-ns");
-    assertNonIdentifying(agentToServer, OS_NAME, "test-os-name");
-    assertNonIdentifying(agentToServer, OS_TYPE, "test-os-type");
-    assertNonIdentifying(agentToServer, OS_VERSION, "test-os-ver");
+
+    assertIdentifyingString(agentToServer, DEPLOYMENT_ENVIRONMENT_NAME, "test-deployment-env");
+    assertIdentifyingString(agentToServer, SERVICE_NAME, "test-service");
+    assertIdentifyingString(agentToServer, SERVICE_VERSION, "test-ver");
+    assertIdentifyingString(agentToServer, SERVICE_NAMESPACE, "test-ns");
+
+    assertThat(agentToServer.agent_description.identifying_attributes)
+        .anyMatch(kv -> kv.key.equals("long") && kv.value.int_value.equals(12L));
+    assertThat(agentToServer.agent_description.identifying_attributes)
+        .anyMatch(kv -> kv.key.equals("double") && kv.value.double_value.equals(99.0));
+    assertThat(agentToServer.agent_description.identifying_attributes)
+        .anyMatch(kv -> kv.key.equals("bool") && kv.value.bool_value.equals(true));
+    assertThat(agentToServer.agent_description.identifying_attributes)
+        .anyMatch(kv -> kv.key.equals("val") && kv.value.string_value.equals("vvv"));
+    AnyValue longsArray =
+        new AnyValue.Builder()
+            .array_value(
+                new ArrayValue.Builder()
+                    .values(
+                        Arrays.asList(
+                            new AnyValue.Builder().int_value(2L).build(),
+                            new AnyValue.Builder().int_value(3L).build(),
+                            new AnyValue.Builder().int_value(5L).build()))
+                    .build())
+            .build();
+    assertThat(agentToServer.agent_description.identifying_attributes)
+        .anyMatch(kv -> kv.key.equals("longarr") && kv.value.equals(longsArray));
+    assertThat(agentToServer.agent_description.identifying_attributes)
+        .anyMatch(kv -> kv.key.equals("longobjarr") && kv.value.equals(longsArray));
+    assertThat(agentToServer.agent_description.identifying_attributes)
+        .anyMatch(
+            kv ->
+                kv.key.equals("doublearr")
+                    && kv.value.equals(
+                        new AnyValue.Builder()
+                            .array_value(
+                                new ArrayValue.Builder()
+                                    .values(
+                                        Arrays.asList(
+                                            new AnyValue.Builder().double_value(2.0).build(),
+                                            new AnyValue.Builder().double_value(3.0).build()))
+                                    .build())
+                            .build()));
+    assertThat(agentToServer.agent_description.identifying_attributes)
+        .anyMatch(
+            kv ->
+                kv.key.equals("doubleobjarr")
+                    && kv.value.equals(
+                        new AnyValue.Builder()
+                            .array_value(
+                                new ArrayValue.Builder()
+                                    .values(
+                                        Arrays.asList(
+                                            new AnyValue.Builder().double_value(5.0).build(),
+                                            new AnyValue.Builder().double_value(6.0).build()))
+                                    .build())
+                            .build()));
+
+    assertThat(agentToServer.agent_description.identifying_attributes)
+        .anyMatch(
+            kv ->
+                kv.key.equals("stringarr")
+                    && kv.value.equals(
+                        new AnyValue.Builder()
+                            .array_value(
+                                new ArrayValue.Builder()
+                                    .values(
+                                        Arrays.asList(
+                                            new AnyValue.Builder().string_value("foo").build(),
+                                            new AnyValue.Builder()
+                                                .string_value("flimflam")
+                                                .build()))
+                                    .build())
+                            .build()));
+    assertThat(agentToServer.agent_description.identifying_attributes)
+        .anyMatch(
+            kv ->
+                kv.key.equals("stringobjarr")
+                    && kv.value.equals(
+                        new AnyValue.Builder()
+                            .array_value(
+                                new ArrayValue.Builder()
+                                    .values(
+                                        Arrays.asList(
+                                            new AnyValue.Builder().string_value("flim").build(),
+                                            new AnyValue.Builder()
+                                                .string_value("jibberjo")
+                                                .build()))
+                                    .build())
+                            .build()));
+    assertThat(agentToServer.agent_description.identifying_attributes)
+        .anyMatch(
+            kv ->
+                kv.key.equals("boolarr")
+                    && kv.value.equals(
+                        new AnyValue.Builder()
+                            .array_value(
+                                new ArrayValue.Builder()
+                                    .values(
+                                        Arrays.asList(
+                                            new AnyValue.Builder().bool_value(true).build(),
+                                            new AnyValue.Builder().bool_value(false).build()))
+                                    .build())
+                            .build()));
+    assertThat(agentToServer.agent_description.identifying_attributes)
+        .anyMatch(
+            kv ->
+                kv.key.equals("boolobjarr")
+                    && kv.value.equals(
+                        new AnyValue.Builder()
+                            .array_value(
+                                new ArrayValue.Builder()
+                                    .values(
+                                        Arrays.asList(
+                                            new AnyValue.Builder().bool_value(true).build(),
+                                            new AnyValue.Builder().bool_value(true).build(),
+                                            new AnyValue.Builder().bool_value(false).build(),
+                                            new AnyValue.Builder().bool_value(true).build()))
+                                    .build())
+                            .build()));
+
+    assertThat(agentToServer.agent_description.non_identifying_attributes).isEmpty();
   }
 
-  private void assertIdentifying(
+  private void assertIdentifyingString(
       AgentToServer agentToServer, AttributeKey<String> attr, String expected) {
-    KeyValue kv =
-        new KeyValue(attr.getKey(), new AnyValue.Builder().string_value(expected).build());
-    assertThat(agentToServer.agent_description.identifying_attributes).contains(kv);
-  }
-
-  private void assertNonIdentifying(
-      AgentToServer agentToServer, AttributeKey<String> attr, String expected) {
-    KeyValue kv =
-        new KeyValue(attr.getKey(), new AnyValue.Builder().string_value(expected).build());
-    assertThat(agentToServer.agent_description.non_identifying_attributes).contains(kv);
+    assertThat(agentToServer.agent_description.identifying_attributes)
+        .anyMatch(kv -> kv.key.equals(attr.getKey()) && kv.value.string_value.equals(expected));
   }
 }

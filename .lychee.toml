@@ -1,7 +1,7 @@
 timeout = 30
 retry_wait_time = 5
 max_retries = 6
-max_concurrency = 4
+max_concurrency = 2
 
 # Check link anchors
 include_fragments = true

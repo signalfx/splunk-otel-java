@@ -43,8 +43,7 @@ class TraceIdBasedSnapshotSelector implements SnapshotSelector {
       // Zero or near-zero probability, special case
       return null;
     }
-    String hexValue = String.format(HEX_FORMATTER, threshold);
-    return hexValue;
+    return String.format(HEX_FORMATTER, threshold);
   }
 
   @Override

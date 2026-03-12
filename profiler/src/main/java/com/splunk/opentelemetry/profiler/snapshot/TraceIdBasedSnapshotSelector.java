@@ -33,8 +33,7 @@ class TraceIdBasedSnapshotSelector implements SnapshotSelector {
       throw new IllegalArgumentException("Selection probability must be between 0 and 1.");
     }
 
-    String hex = thresholdFor(selectionProbability);
-    this.threshold = hex;
+    this.threshold = thresholdFor(selectionProbability);
   }
 
   private static String thresholdFor(double probability) {

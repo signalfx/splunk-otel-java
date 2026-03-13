@@ -19,7 +19,9 @@ package com.splunk.opentelemetry.instrumentation.khttp;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 
+import io.opentelemetry.instrumentation.api.internal.HttpConstants;
 import io.opentelemetry.instrumentation.api.semconv.http.HttpClientAttributesGetter;
+import java.net.URI;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -74,10 +76,16 @@ final class KHttpHttpClientHttpAttributesGetter
   @Nullable
   @Override
   public Integer getServerPort(RequestWrapper requestWrapper) {
-    if (requestWrapper.parsedUri != null && requestWrapper.parsedUri.getPort() > 0) {
-      return requestWrapper.parsedUri.getPort();
+    Integer port = null;
+    String scheme = null;
+    URI uri = requestWrapper.parsedUri;
+    if (uri != null) {
+      if (uri.getPort() > 0) {
+        port = uri.getPort();
+      }
+      scheme = uri.getScheme();
     }
-    return null;
+    return HttpConstants.portOrDefaultFromScheme(port, scheme);
   }
 
   @Nullable

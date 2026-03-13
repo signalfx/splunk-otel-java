@@ -43,6 +43,7 @@ import io.opentelemetry.testing.internal.armeria.testing.junit5.server.mock.Mock
 import io.opentelemetry.testing.internal.armeria.testing.junit5.server.mock.RecordedRequest;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -53,6 +54,7 @@ import opamp.proto.AgentRemoteConfig;
 import opamp.proto.AgentToServer;
 import opamp.proto.AnyValue;
 import opamp.proto.ArrayValue;
+import opamp.proto.KeyValue;
 import opamp.proto.ServerErrorResponse;
 import opamp.proto.ServerToAgent;
 import org.jetbrains.annotations.Nullable;
@@ -172,122 +174,83 @@ class OpampActivatorTest {
     assertIdentifyingString(agentToServer, SERVICE_VERSION, "test-ver");
     assertIdentifyingString(agentToServer, SERVICE_NAMESPACE, "test-ns");
 
-    assertThat(agentToServer.agent_description.identifying_attributes)
+    List<KeyValue> identifyingAttributes = agentToServer.agent_description.identifying_attributes;
+    assertThat(identifyingAttributes)
         .anyMatch(kv -> kv.key.equals("long") && kv.value.int_value.equals(12L));
-    assertThat(agentToServer.agent_description.identifying_attributes)
+    assertThat(identifyingAttributes)
         .anyMatch(kv -> kv.key.equals("double") && kv.value.double_value.equals(99.0));
-    assertThat(agentToServer.agent_description.identifying_attributes)
+    assertThat(identifyingAttributes)
         .anyMatch(kv -> kv.key.equals("bool") && kv.value.bool_value.equals(true));
-    assertThat(agentToServer.agent_description.identifying_attributes)
+    assertThat(identifyingAttributes)
         .anyMatch(kv -> kv.key.equals("val") && kv.value.string_value.equals("vvv"));
     AnyValue longsArray =
-        new AnyValue.Builder()
-            .array_value(
-                new ArrayValue.Builder()
-                    .values(
-                        Arrays.asList(
-                            new AnyValue.Builder().int_value(2L).build(),
-                            new AnyValue.Builder().int_value(3L).build(),
-                            new AnyValue.Builder().int_value(5L).build()))
-                    .build())
-            .build();
-    assertThat(agentToServer.agent_description.identifying_attributes)
+        createArrayAttribute(
+            new AnyValue.Builder().int_value(2L).build(),
+            new AnyValue.Builder().int_value(3L).build(),
+            new AnyValue.Builder().int_value(5L).build());
+    assertThat(identifyingAttributes)
         .anyMatch(kv -> kv.key.equals("longarr") && kv.value.equals(longsArray));
-    assertThat(agentToServer.agent_description.identifying_attributes)
+    assertThat(identifyingAttributes)
         .anyMatch(kv -> kv.key.equals("longobjarr") && kv.value.equals(longsArray));
-    assertThat(agentToServer.agent_description.identifying_attributes)
+    assertThat(identifyingAttributes)
         .anyMatch(
             kv ->
                 kv.key.equals("doublearr")
                     && kv.value.equals(
-                        new AnyValue.Builder()
-                            .array_value(
-                                new ArrayValue.Builder()
-                                    .values(
-                                        Arrays.asList(
-                                            new AnyValue.Builder().double_value(2.0).build(),
-                                            new AnyValue.Builder().double_value(3.0).build()))
-                                    .build())
-                            .build()));
-    assertThat(agentToServer.agent_description.identifying_attributes)
+                        createArrayAttribute(
+                            new AnyValue.Builder().double_value(2.0).build(),
+                            new AnyValue.Builder().double_value(3.0).build())));
+    assertThat(identifyingAttributes)
         .anyMatch(
             kv ->
                 kv.key.equals("doubleobjarr")
                     && kv.value.equals(
-                        new AnyValue.Builder()
-                            .array_value(
-                                new ArrayValue.Builder()
-                                    .values(
-                                        Arrays.asList(
-                                            new AnyValue.Builder().double_value(5.0).build(),
-                                            new AnyValue.Builder().double_value(6.0).build()))
-                                    .build())
-                            .build()));
+                        createArrayAttribute(
+                            new AnyValue.Builder().double_value(5.0).build(),
+                            new AnyValue.Builder().double_value(6.0).build())));
 
-    assertThat(agentToServer.agent_description.identifying_attributes)
+    assertThat(identifyingAttributes)
         .anyMatch(
             kv ->
                 kv.key.equals("stringarr")
                     && kv.value.equals(
-                        new AnyValue.Builder()
-                            .array_value(
-                                new ArrayValue.Builder()
-                                    .values(
-                                        Arrays.asList(
-                                            new AnyValue.Builder().string_value("foo").build(),
-                                            new AnyValue.Builder()
-                                                .string_value("flimflam")
-                                                .build()))
-                                    .build())
-                            .build()));
-    assertThat(agentToServer.agent_description.identifying_attributes)
+                        createArrayAttribute(
+                            new AnyValue.Builder().string_value("foo").build(),
+                            new AnyValue.Builder().string_value("flimflam").build())));
+    assertThat(identifyingAttributes)
         .anyMatch(
             kv ->
                 kv.key.equals("stringobjarr")
                     && kv.value.equals(
-                        new AnyValue.Builder()
-                            .array_value(
-                                new ArrayValue.Builder()
-                                    .values(
-                                        Arrays.asList(
-                                            new AnyValue.Builder().string_value("flim").build(),
-                                            new AnyValue.Builder()
-                                                .string_value("jibberjo")
-                                                .build()))
-                                    .build())
-                            .build()));
-    assertThat(agentToServer.agent_description.identifying_attributes)
+                        createArrayAttribute(
+                            new AnyValue.Builder().string_value("flim").build(),
+                            new AnyValue.Builder().string_value("jibberjo").build())));
+    assertThat(identifyingAttributes)
         .anyMatch(
             kv ->
                 kv.key.equals("boolarr")
                     && kv.value.equals(
-                        new AnyValue.Builder()
-                            .array_value(
-                                new ArrayValue.Builder()
-                                    .values(
-                                        Arrays.asList(
-                                            new AnyValue.Builder().bool_value(true).build(),
-                                            new AnyValue.Builder().bool_value(false).build()))
-                                    .build())
-                            .build()));
-    assertThat(agentToServer.agent_description.identifying_attributes)
+                        createArrayAttribute(
+                            new AnyValue.Builder().bool_value(true).build(),
+                            new AnyValue.Builder().bool_value(false).build())));
+    assertThat(identifyingAttributes)
         .anyMatch(
             kv ->
                 kv.key.equals("boolobjarr")
                     && kv.value.equals(
-                        new AnyValue.Builder()
-                            .array_value(
-                                new ArrayValue.Builder()
-                                    .values(
-                                        Arrays.asList(
-                                            new AnyValue.Builder().bool_value(true).build(),
-                                            new AnyValue.Builder().bool_value(true).build(),
-                                            new AnyValue.Builder().bool_value(false).build(),
-                                            new AnyValue.Builder().bool_value(true).build()))
-                                    .build())
-                            .build()));
+                        createArrayAttribute(
+                            new AnyValue.Builder().bool_value(true).build(),
+                            new AnyValue.Builder().bool_value(true).build(),
+                            new AnyValue.Builder().bool_value(false).build(),
+                            new AnyValue.Builder().bool_value(true).build())));
 
     assertThat(agentToServer.agent_description.non_identifying_attributes).isEmpty();
+  }
+
+  private static AnyValue createArrayAttribute(AnyValue... values) {
+    return new AnyValue.Builder()
+        .array_value(new ArrayValue.Builder().values(Arrays.asList(values)).build())
+        .build();
   }
 
   private void assertIdentifyingString(

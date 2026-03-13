@@ -236,7 +236,7 @@ class OpampActivatorTest {
     assertThat(agentToServer.agent_description.non_identifying_attributes).isEmpty();
   }
 
-  private Predicate<? super KeyValue> matching(String key, AnyValue... values) {
+  private static Predicate<? super KeyValue> matching(String key, AnyValue... values) {
     return kv -> kv.key.equals(key) && kv.value.equals(createArrayAttribute(values));
   }
 

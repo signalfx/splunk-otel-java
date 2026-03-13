@@ -47,6 +47,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Predicate;
 import okio.ByteString;
 import opamp.proto.AgentConfigFile;
 import opamp.proto.AgentConfigMap;
@@ -194,57 +195,49 @@ class OpampActivatorTest {
         .anyMatch(kv -> kv.key.equals("longobjarr") && kv.value.equals(longsArray));
     assertThat(identifyingAttributes)
         .anyMatch(
-            kv ->
-                kv.key.equals("doublearr")
-                    && kv.value.equals(
-                        createArrayAttribute(
-                            new AnyValue.Builder().double_value(2.0).build(),
-                            new AnyValue.Builder().double_value(3.0).build())));
+            matching(
+                "doublearr",
+                new AnyValue.Builder().double_value(2.0).build(),
+                new AnyValue.Builder().double_value(3.0).build()));
     assertThat(identifyingAttributes)
         .anyMatch(
-            kv ->
-                kv.key.equals("doubleobjarr")
-                    && kv.value.equals(
-                        createArrayAttribute(
-                            new AnyValue.Builder().double_value(5.0).build(),
-                            new AnyValue.Builder().double_value(6.0).build())));
+            matching(
+                "doubleobjarr",
+                new AnyValue.Builder().double_value(5.0).build(),
+                new AnyValue.Builder().double_value(6.0).build()));
 
     assertThat(identifyingAttributes)
         .anyMatch(
-            kv ->
-                kv.key.equals("stringarr")
-                    && kv.value.equals(
-                        createArrayAttribute(
-                            new AnyValue.Builder().string_value("foo").build(),
-                            new AnyValue.Builder().string_value("flimflam").build())));
+            matching(
+                "stringarr",
+                new AnyValue.Builder().string_value("foo").build(),
+                new AnyValue.Builder().string_value("flimflam").build()));
     assertThat(identifyingAttributes)
         .anyMatch(
-            kv ->
-                kv.key.equals("stringobjarr")
-                    && kv.value.equals(
-                        createArrayAttribute(
-                            new AnyValue.Builder().string_value("flim").build(),
-                            new AnyValue.Builder().string_value("jibberjo").build())));
+            matching(
+                "stringobjarr",
+                new AnyValue.Builder().string_value("flim").build(),
+                new AnyValue.Builder().string_value("jibberjo").build()));
     assertThat(identifyingAttributes)
         .anyMatch(
-            kv ->
-                kv.key.equals("boolarr")
-                    && kv.value.equals(
-                        createArrayAttribute(
-                            new AnyValue.Builder().bool_value(true).build(),
-                            new AnyValue.Builder().bool_value(false).build())));
+            matching(
+                "boolarr",
+                new AnyValue.Builder().bool_value(true).build(),
+                new AnyValue.Builder().bool_value(false).build()));
     assertThat(identifyingAttributes)
         .anyMatch(
-            kv ->
-                kv.key.equals("boolobjarr")
-                    && kv.value.equals(
-                        createArrayAttribute(
-                            new AnyValue.Builder().bool_value(true).build(),
-                            new AnyValue.Builder().bool_value(true).build(),
-                            new AnyValue.Builder().bool_value(false).build(),
-                            new AnyValue.Builder().bool_value(true).build())));
+            matching(
+                "boolobjarr",
+                new AnyValue.Builder().bool_value(true).build(),
+                new AnyValue.Builder().bool_value(true).build(),
+                new AnyValue.Builder().bool_value(false).build(),
+                new AnyValue.Builder().bool_value(true).build()));
 
     assertThat(agentToServer.agent_description.non_identifying_attributes).isEmpty();
+  }
+
+  private Predicate<? super KeyValue> matching(String key, AnyValue... values) {
+    return kv -> kv.key.equals(key) && kv.value.equals(createArrayAttribute(values));
   }
 
   private static AnyValue createArrayAttribute(AnyValue... values) {

@@ -76,16 +76,10 @@ final class KHttpHttpClientHttpAttributesGetter
   @Nullable
   @Override
   public Integer getServerPort(RequestWrapper requestWrapper) {
-    Integer port = null;
-    String scheme = null;
     URI uri = requestWrapper.parsedUri;
-    if (uri != null) {
-      if (uri.getPort() > 0) {
-        port = uri.getPort();
-      }
-      scheme = uri.getScheme();
-    }
-    return HttpConstants.portOrDefaultFromScheme(port, scheme);
+    return uri != null
+        ? HttpConstants.portOrDefaultFromScheme(uri.getPort(), uri.getScheme())
+        : null;
   }
 
   @Nullable

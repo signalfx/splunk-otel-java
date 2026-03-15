@@ -61,6 +61,7 @@ class ConcurrentServiceEntrySamplingTest {
   public final OpenTelemetrySdkExtension downstreamSdk =
       OpenTelemetrySdkExtension.configure()
           .withProperty("splunk.snapshot.profiler.enabled", "true")
+          .withProperty("splunk.snapshot.selection.probability", "1.0")
           .with(downstreamCustomizer)
           .with(
               new StackTraceExporterActivator(
@@ -83,8 +84,8 @@ class ConcurrentServiceEntrySamplingTest {
   public final OpenTelemetrySdkExtension upstreamSdk =
       OpenTelemetrySdkExtension.configure()
           .withProperty("splunk.snapshot.profiler.enabled", "true")
+          .withProperty("splunk.snapshot.selection.probability", "1.0")
           .with(upstreamCustomizer)
-          .with(new SnapshotVolumePropagator((c) -> true))
           .build();
 
   @RegisterExtension

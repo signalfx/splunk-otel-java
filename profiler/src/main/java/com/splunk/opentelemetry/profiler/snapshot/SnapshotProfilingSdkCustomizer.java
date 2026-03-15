@@ -24,7 +24,6 @@ import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import io.opentelemetry.sdk.trace.SdkTracerProviderBuilder;
 import java.time.Duration;
 import java.util.Collections;
-import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.BiFunction;
@@ -81,7 +80,6 @@ public class SnapshotProfilingSdkCustomizer implements AutoConfigurationCustomiz
   @Override
   public void customize(AutoConfigurationCustomizer autoConfigurationCustomizer) {
     autoConfigurationCustomizer
-        .addPropertiesCustomizer(autoConfigureSnapshotVolumePropagator())
         .addTracerProviderCustomizer(snapshotProfilingSpanProcessor(registry))
         .addPropertiesCustomizer(setupStackTraceSampler())
         .addPropertiesCustomizer(startTrackingActiveSpans(registry))
@@ -102,39 +100,14 @@ public class SnapshotProfilingSdkCustomizer implements AutoConfigurationCustomiz
       snapshotProfilingSpanProcessor(TraceRegistry registry) {
     return (builder, properties) -> {
       if (snapshotProfilingEnabled(properties)) {
-        return builder.addSpanProcessor(new SnapshotProfilingSpanProcessor(registry));
+        double selectionProbability =
+            new SnapshotProfilingEnvVarsConfiguration(properties).getSnapshotSelectionProbability();
+
+        return builder.addSpanProcessor(
+            new SnapshotProfilingSpanProcessor(
+                registry, new TraceIdBasedSnapshotSelector(selectionProbability)));
       }
       return builder;
-    };
-  }
-
-  /**
-   * Attempt to autoconfigure the OpenTelemetry propagators to include the Splunk snapshot volume
-   * propagator and ensure it runs after the W3C Baggage propagator and ensure that a trace context
-   * propagator is configured. In addition, take care to retain any propagators explicitly
-   * configured prior.
-   *
-   * <p>The Java agent uses the "otel.propagators" property and the value is assumed to be a comma
-   * seperated list of propagator names. See <a
-   * href="https://opentelemetry.io/docs/languages/java/configuration/#properties-general">OpenTelemetry's
-   * Java Agent Configuration</a> for more details.
-   */
-  private Function<ConfigProperties, Map<String, String>> autoConfigureSnapshotVolumePropagator() {
-    return properties -> {
-      if (snapshotProfilingEnabled(properties)) {
-        Set<String> propagators = new LinkedHashSet<>(properties.getList("otel.propagators"));
-        if (propagators.contains("none")) {
-          return Collections.emptyMap();
-        }
-
-        if (includeTraceContextPropagator(propagators)) {
-          propagators.add("tracecontext");
-        }
-        propagators.add("baggage");
-        propagators.add(SnapshotVolumePropagatorProvider.NAME);
-        return Collections.singletonMap("otel.propagators", String.join(",", propagators));
-      }
-      return Collections.emptyMap();
     };
   }
 

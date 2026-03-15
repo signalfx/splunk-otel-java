@@ -38,8 +38,8 @@ public class MultiThreadedTraceProfilingTest {
   public final OpenTelemetrySdkExtension sdk =
       OpenTelemetrySdkExtension.configure()
           .withProperty("splunk.snapshot.profiler.enabled", "true")
+          .withProperty("splunk.snapshot.selection.probability", "1.0")
           .with(customizer)
-          .with(new SnapshotVolumePropagator((c) -> true))
           .build();
 
   @RegisterExtension

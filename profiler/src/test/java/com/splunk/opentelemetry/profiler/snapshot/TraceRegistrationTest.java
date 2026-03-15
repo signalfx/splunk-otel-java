@@ -34,12 +34,13 @@ class TraceRegistrationTest {
   public final OpenTelemetrySdkExtension s =
       OpenTelemetrySdkExtension.configure()
           .withProperty("splunk.snapshot.profiler.enabled", "true")
+          .withProperty("splunk.snapshot.selection.probability", "1.0")
           .with(customizer)
           .build();
 
   @Test
   void registerTraceForProfilingWhenRootSpanStarts(Tracer tracer) {
-    try (var ignored = Context.current().with(Volume.HIGHEST).makeCurrent()) {
+    try (var ignored = Context.current().makeCurrent()) {
       var root = tracer.spanBuilder("root").startSpan();
       assertThat(registry.isRegistered(root.getSpanContext())).isTrue();
     }
@@ -50,7 +51,7 @@ class TraceRegistrationTest {
     var remoteSpanContext = Snapshotting.spanContext().remote().build();
     var remoteParent = Span.wrap(remoteSpanContext);
 
-    try (var ignored = Context.current().with(Volume.HIGHEST).with(remoteParent).makeCurrent()) {
+    try (var ignored = Context.current().with(remoteParent).makeCurrent()) {
       var root = tracer.spanBuilder("root").startSpan();
       assertThat(registry.isRegistered(root.getSpanContext())).isTrue();
     }
@@ -58,7 +59,7 @@ class TraceRegistrationTest {
 
   @Test
   void unregisterTraceForProfilingWhenEntrySpanEnds(Tracer tracer) {
-    try (var ignored = Context.current().with(Volume.HIGHEST).makeCurrent()) {
+    try (var ignored = Context.current().makeCurrent()) {
       var root = tracer.spanBuilder("root").startSpan();
       root.end();
       assertThat(registry.isRegistered(root.getSpanContext())).isFalse();
@@ -66,22 +67,14 @@ class TraceRegistrationTest {
   }
 
   @Test
-  void doNotRegisterTraceForProfilingWhenSnapshotVolumeIsOff(Tracer tracer) {
-    try (var ignored = Context.current().with(Volume.OFF).makeCurrent()) {
-      var root = tracer.spanBuilder("root").startSpan();
-      assertThat(registry.isRegistered(root.getSpanContext())).isFalse();
-    }
-  }
-
-  @Test
-  void doNotRegisterTraceForProfilingWhenSnapshotVolumeIsNotfound(Tracer tracer) {
+  void registerTraceForProfilingWhenSnapshotVolumeIsNotfound(Tracer tracer) {
     var root = tracer.spanBuilder("root").startSpan();
-    assertThat(registry.isRegistered(root.getSpanContext())).isFalse();
+    assertThat(registry.isRegistered(root.getSpanContext())).isTrue();
   }
 
   @Test
   void onlyUnregisterTraceForProfilingWhenEntrySpanEnds(Tracer tracer) {
-    try (var ignored = Context.current().with(Volume.HIGHEST).makeCurrent()) {
+    try (var ignored = Context.current().makeCurrent()) {
       var root = tracer.spanBuilder("root").startSpan();
       var child = tracer.spanBuilder("child").setParent(Context.current().with(root)).startSpan();
       child.end();

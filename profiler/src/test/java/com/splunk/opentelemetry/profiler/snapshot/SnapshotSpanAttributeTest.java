@@ -38,11 +38,12 @@ class SnapshotSpanAttributeTest {
       OpenTelemetrySdkExtension.configure()
           .with(customizer)
           .withProperty("splunk.snapshot.profiler.enabled", "true")
+          .withProperty("splunk.snapshot.selection.probability", "1.0")
           .build();
 
   @Test
   void addSnapshotSpanAttributeToEntrySpans(Tracer tracer) {
-    try (var ignored = Context.root().with(Volume.HIGHEST).makeCurrent()) {
+    try (var ignored = Context.root().makeCurrent()) {
       var span = (ReadWriteSpan) tracer.spanBuilder("root").startSpan();
       var attribute = span.getAttribute(AttributeKey.booleanKey("splunk.snapshot.profiling"));
       assertThat(attribute).isTrue();
@@ -51,7 +52,7 @@ class SnapshotSpanAttributeTest {
 
   @Test
   void doNotAddSnapshotSpanAttributeToNonEntrySpans(Tracer tracer) {
-    try (var ignored1 = Context.root().with(Volume.HIGHEST).makeCurrent()) {
+    try (var ignored1 = Context.root().makeCurrent()) {
       var root = tracer.spanBuilder("root").startSpan();
       try (var ignored2 = root.makeCurrent()) {
         var client = (ReadWriteSpan) tracer.spanBuilder("client").startSpan();
@@ -63,7 +64,7 @@ class SnapshotSpanAttributeTest {
 
   @Test
   void addSnapshotSpanAttributeToAllEntrySpans(Tracer tracer) {
-    try (var ignored1 = Context.root().with(Volume.HIGHEST).makeCurrent()) {
+    try (var ignored1 = Context.root().makeCurrent()) {
       try (var ignored2 = tracer.spanBuilder("root").startSpan().makeCurrent()) {
         var client = tracer.spanBuilder("client").startSpan();
         try (var ignored3 = client.makeCurrent()) {
@@ -85,7 +86,7 @@ class SnapshotSpanAttributeTest {
   void doNotAddSnapshotSpanAttributeWhenTraceIsNotRegisteredForSnapshotting(Tracer tracer) {
     registry.toggle(State.OFF);
 
-    try (var ignored = Context.root().with(Volume.HIGHEST).makeCurrent()) {
+    try (var ignored = Context.root().makeCurrent()) {
       var span = (ReadWriteSpan) tracer.spanBuilder("root").startSpan();
       var attribute = span.getAttribute(AttributeKey.booleanKey("splunk.snapshot.profiling"));
       assertThat(attribute).isNull();

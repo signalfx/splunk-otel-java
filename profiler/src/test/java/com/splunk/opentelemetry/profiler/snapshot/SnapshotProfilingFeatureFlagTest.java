@@ -38,7 +38,7 @@ class SnapshotProfilingFeatureFlagTest {
 
     @Test
     void snapshotProfilingIsDisabledByDefault(Tracer tracer) {
-      try (var ignored = Context.current().with(Volume.HIGHEST).makeCurrent()) {
+      try (var ignored = Context.current().makeCurrent()) {
         var root = tracer.spanBuilder("root").startSpan();
         assertThat(registry.isRegistered(root.getSpanContext())).isFalse();
       }
@@ -52,11 +52,12 @@ class SnapshotProfilingFeatureFlagTest {
         OpenTelemetrySdkExtension.configure()
             .with(customizer)
             .withProperty("splunk.snapshot.profiler.enabled", "true")
+            .withProperty("splunk.snapshot.selection.probability", "1.0")
             .build();
 
     @Test
     void snapshotProfilingIsExplicitlyEnabled(Tracer tracer) {
-      try (var ignored = Context.current().with(Volume.HIGHEST).makeCurrent()) {
+      try (var ignored = Context.current().makeCurrent()) {
         var root = tracer.spanBuilder("root").startSpan();
         assertThat(registry.isRegistered(root.getSpanContext())).isTrue();
       }
@@ -74,7 +75,7 @@ class SnapshotProfilingFeatureFlagTest {
 
     @Test
     void snapshotProfilingIsExplicitlyEnabled(Tracer tracer) {
-      try (var ignored = Context.current().with(Volume.HIGHEST).makeCurrent()) {
+      try (var ignored = Context.current().makeCurrent()) {
         var root = tracer.spanBuilder("root").startSpan();
         assertThat(registry.isRegistered(root.getSpanContext())).isFalse();
       }

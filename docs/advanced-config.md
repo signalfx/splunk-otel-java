@@ -83,7 +83,7 @@ All requests to downstream services that happen as a consequence of calling an e
 The value of `OTEL_TRACES_SAMPLER_ARG` is interpreted as a semicolon-separated list of rules.
 The following types of rules are supported:
 
-- `drop=<value>`: The sampler drops a span if its `http.target` attribute has a substring equal to the provided value.
+- `drop=<value>`: The sampler drops a span if its `url.path` attribute has a substring equal to the provided value.
   You can provide as many `drop` rules as you want.
 - `fallback=sampler`: Fallback sampler used if no `drop` rule matched a  given span.
   Supported fallback samplers are `always_on` and `parentbased_always_on`.

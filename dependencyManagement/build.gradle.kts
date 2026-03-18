@@ -9,7 +9,7 @@ val otelInstrumentationAlphaVersion =  otelInstrumentationVersion.replaceFirst("
 val otelContribAlphaVersion = "1.54.0-alpha"
 
 val autoValueVersion = "1.11.1"
-val dockerJavaVersion = "3.7.0"
+val dockerJavaVersion = "3.7.1"
 val mockitoVersion = "5.23.0"
 val protobufVersion = "4.34.0"
 val slf4jVersion = "2.0.17"

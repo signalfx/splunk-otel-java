@@ -774,12 +774,12 @@ public class MetadataGenerator {
     // https://github.com/open-telemetry/opentelemetry-java/blob/main/sdk-extensions/autoconfigure/README.md#file-configuration
 
     /*
-    otel.experimental.config.file	OTEL_EXPERIMENTAL_CONFIG_FILE	The path to the SDK configuration file. Defaults to unset.
+    otel.config.file	OTEL_CONFIG_FILE	The path to the SDK configuration file. Defaults to unset.
      */
 
     settings.add(
         setting(
-            "otel.experimental.config.file",
+            "otel.config.file",
             "The path to the SDK configuration file. Defaults to unset.",
             "",
             SettingType.STRING,

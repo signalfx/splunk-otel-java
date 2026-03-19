@@ -82,7 +82,7 @@ class StackTraceExporterActivatorTest {
     void configureStackTraceExporterProvider(@TempDir Path tempDir) throws IOException {
       String yaml =
           """
-            file_format: "1.0-rc.3"
+            file_format: "1.0"
             distribution:
               splunk:
                 profiling:
@@ -104,7 +104,7 @@ class StackTraceExporterActivatorTest {
         throws IOException {
       String yaml =
           """
-            file_format: "1.0-rc.3"
+            file_format: "1.0"
             distribution:
               splunk:
                 profiling:

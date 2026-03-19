@@ -935,6 +935,20 @@ public class MetadataGenerator {
             "",
             SettingType.STRING,
             SettingCategory.INSTRUMENTATION));
+    settings.add(
+        setting(
+            "otel.instrumentation.sanitization.url.experimental.sensitive-query-parameters",
+            "A comma-separated list of HTTP url parameter names. HTTP server and client instrumentations will redact the values of give url parameters.",
+            "AWSAccessKeyId, Signature, sig, X-Goog-Signature",
+            SettingType.STRING,
+            SettingCategory.INSTRUMENTATION));
+    settings.add(
+        setting(
+            "otel.instrumentation.http.known-methods",
+            "A comma-separated list of known HTTP methods. `_OTHER` will be used for methods not in this list.",
+            "CONNECT, DELETE, GET, HEAD, OPTIONS, PATCH, POST, PUT, TRACE",
+            SettingType.STRING,
+            SettingCategory.INSTRUMENTATION));
 
     // Capturing servlet request parameters
     // https://opentelemetry.io/docs/instrumentation/java/automatic/agent-config/#capturing-servlet-request-parameters
@@ -1050,6 +1064,8 @@ public class MetadataGenerator {
             "false",
             SettingType.BOOLEAN,
             SettingCategory.INSTRUMENTATION));
+    // deprecated in favor of
+    // otel.instrumentation.sanitization.url.experimental.sensitive-query-parameters
     settings.add(
         setting(
             "otel.instrumentation.http.client.experimental.redact-query-parameters",
@@ -2046,6 +2062,26 @@ public class MetadataGenerator {
             "otel.instrumentation.genai.capture-message-content",
             "Record content of user and LLM messages.",
             "false",
+            SettingType.BOOLEAN,
+            SettingCategory.INSTRUMENTATION));
+
+    // https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/instrumentation/opensearch/README.md
+    /*
+    | `otel.instrumentation.opensearch.experimental-span-attributes` | Boolean | `false` | Enable the capture of experimental span attributes.  |
+    | `otel.instrumentation.opensearch.capture-search-query`         | Boolean | `true`  | Enable the capture of sanitized search query bodies. |
+     */
+    settings.add(
+        setting(
+            "otel.instrumentation.opensearch.experimental-span-attributes",
+            "Enable the capture of experimental span attributes.",
+            "false",
+            SettingType.BOOLEAN,
+            SettingCategory.INSTRUMENTATION));
+    settings.add(
+        setting(
+            "otel.instrumentation.opensearch.capture-search-query",
+            "Enable the capture of sanitized search query bodies.",
+            "true",
             SettingType.BOOLEAN,
             SettingCategory.INSTRUMENTATION));
 
@@ -3485,6 +3521,10 @@ public class MetadataGenerator {
                 "jvm.file_descriptor.count",
                 MetricInstrument.UP_DOWN_COUNTER,
                 "Number of open file descriptors as reported by the JVM (disabled by default).")
+            .customMetric(
+                "jvm.file_descriptor.limit",
+                MetricInstrument.UP_DOWN_COUNTER,
+                "Measure of max open file descriptors as reported by the JVM (disabled by default).")
             // XXX JFR metrics from runtime-telemetry-java17 are missing
             .build());
     instrumentations.add(instrumentation("javalin").component("Javalin", "5.0 and higher").build());
@@ -3757,6 +3797,8 @@ public class MetadataGenerator {
     instrumentations.add(
         instrumentation("xxl-job").component("XXL-JOB", "1.9.2 and higher").build());
     instrumentations.add(instrumentation("zio").component("ZIO", "2.0 and higher").build());
+    instrumentations.add(
+        instrumentation("zio-http").component("ZIO HTTP", "3.0 and higher").build());
 
     // splunk instrumentations
     instrumentations.add(
@@ -3866,7 +3908,7 @@ public class MetadataGenerator {
         resourceProvider(
                 "io.opentelemetry.instrumentation.resources.OsResourceProvider",
                 "Os detector.",
-                List.of("os.type", "os.description"))
+                List.of("os.type", "os.description", "os.version"))
             .dependency(
                 "OpenTelemetry Java Instrumentation Resource Providers",
                 "https://github.com/open-telemetry/opentelemetry-java-instrumentation/tree/main/instrumentation/resources/library",

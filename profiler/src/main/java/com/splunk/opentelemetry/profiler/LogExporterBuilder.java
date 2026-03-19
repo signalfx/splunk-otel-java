@@ -22,6 +22,7 @@ import static io.opentelemetry.exporter.otlp.internal.OtlpConfigUtil.DATA_TYPE_L
 import com.google.common.annotations.VisibleForTesting;
 import io.opentelemetry.api.incubator.config.ConfigProvider;
 import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
+import io.opentelemetry.common.ComponentLoader;
 import io.opentelemetry.exporter.otlp.http.logs.OtlpHttpLogRecordExporter;
 import io.opentelemetry.exporter.otlp.http.logs.OtlpHttpLogRecordExporterBuilder;
 import io.opentelemetry.exporter.otlp.internal.OtlpConfigUtil;
@@ -33,10 +34,10 @@ import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigurationException;
 import io.opentelemetry.sdk.autoconfigure.spi.internal.ExtendedDeclarativeConfigProperties;
 import io.opentelemetry.sdk.logs.export.LogRecordExporter;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Proxy;
+import java.util.List;
 import java.util.Set;
 import java.util.function.Supplier;
+import javax.annotation.Nullable;
 
 class LogExporterBuilder {
 
@@ -116,25 +117,94 @@ class LogExporterBuilder {
     return builder.addHeader(EXTRA_CONTENT_TYPE, STACKTRACES_HEADER_VALUE).build();
   }
 
-  // TODO: find a different solution
   public static ExtendedDeclarativeConfigProperties toExtended(
       DeclarativeConfigProperties properties) {
     if (properties instanceof ExtendedDeclarativeConfigProperties) {
       return (ExtendedDeclarativeConfigProperties) properties;
     }
-    return (ExtendedDeclarativeConfigProperties)
-        Proxy.newProxyInstance(
-            LogExporterBuilder.class.getClassLoader(),
-            new Class[] {ExtendedDeclarativeConfigProperties.class},
-            (proxy, method, args) -> {
-              if ("getConfigProvider".equals(method.getName())) {
-                return ConfigProvider.noop();
-              }
-              try {
-                return method.invoke(properties, args);
-              } catch (InvocationTargetException exception) {
-                throw exception.getCause();
-              }
-            });
+    return new ExtendedDeclarativeConfigPropertiesImpl(properties, ConfigProvider.noop());
+  }
+
+  // TODO: This class is copied from the upstream. It should be removed if upstream implementation
+  //       is made public, or upstream changes makes it obsolete
+  private static class ExtendedDeclarativeConfigPropertiesImpl
+      implements ExtendedDeclarativeConfigProperties {
+
+    private final DeclarativeConfigProperties delegate;
+    private final ConfigProvider configProvider;
+
+    ExtendedDeclarativeConfigPropertiesImpl(
+        DeclarativeConfigProperties delegate, ConfigProvider configProvider) {
+      this.delegate = delegate;
+      this.configProvider = configProvider;
+    }
+
+    @Override
+    public ConfigProvider getConfigProvider() {
+      return configProvider;
+    }
+
+    @Nullable
+    @Override
+    public String getString(String name) {
+      return delegate.getString(name);
+    }
+
+    @Nullable
+    @Override
+    public Boolean getBoolean(String name) {
+      return delegate.getBoolean(name);
+    }
+
+    @Nullable
+    @Override
+    public Integer getInt(String name) {
+      return delegate.getInt(name);
+    }
+
+    @Nullable
+    @Override
+    public Long getLong(String name) {
+      return delegate.getLong(name);
+    }
+
+    @Nullable
+    @Override
+    public Double getDouble(String name) {
+      return delegate.getDouble(name);
+    }
+
+    @Nullable
+    @Override
+    public <T> List<T> getScalarList(String name, Class<T> scalarType) {
+      return delegate.getScalarList(name, scalarType);
+    }
+
+    @Nullable
+    @Override
+    public DeclarativeConfigProperties getStructured(String name) {
+      return delegate.getStructured(name);
+    }
+
+    @Nullable
+    @Override
+    public List<DeclarativeConfigProperties> getStructuredList(String name) {
+      return delegate.getStructuredList(name);
+    }
+
+    @Override
+    public Set<String> getPropertyKeys() {
+      return delegate.getPropertyKeys();
+    }
+
+    @Override
+    public ComponentLoader getComponentLoader() {
+      return delegate.getComponentLoader();
+    }
+
+    @Override
+    public String toString() {
+      return "ExtendedDeclarativeConfigPropertiesImpl{" + delegate + '}';
+    }
   }
 }

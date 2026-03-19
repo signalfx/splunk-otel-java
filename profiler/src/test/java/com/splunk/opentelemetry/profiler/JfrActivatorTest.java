@@ -59,7 +59,7 @@ class JfrActivatorTest {
       // given
       String yaml =
           """
-            file_format: "1.0-rc.3"
+            file_format: "1.0"
             distribution:
               splunk:
                 profiling:
@@ -89,7 +89,7 @@ class JfrActivatorTest {
       // given
       String yaml =
           """
-            file_format: "1.0-rc.3"
+            file_format: "1.0"
             distribution:
               splunk:
                 profiling:
@@ -138,21 +138,21 @@ class JfrActivatorTest {
 
   private List<Arguments> generateNoProfilerYamlStrings() {
     return List.of(
-        Arguments.of("file_format: \"1.0-rc.3\""),
+        Arguments.of("file_format: \"1.0\""),
         Arguments.of(
             """
-              file_format: "1.0-rc.3"
+              file_format: "1.0"
               distribution:
               """),
         Arguments.of(
             """
-              file_format: "1.0-rc.3"
+              file_format: "1.0"
               distribution:
                 splunk:
               """),
         Arguments.of(
             """
-              file_format: "1.0-rc.3"
+              file_format: "1.0"
               distribution:
                 splunk:
                   something:

@@ -34,7 +34,7 @@ class ProfilerDeclarativeConfigurationTest {
     OpenTelemetryConfigurationModel model =
         DeclarativeConfigTestUtil.parse(
             """
-            file_format: "1.0-rc.3"
+            file_format: "1.0"
             distribution:
               splunk:
                 profiling:

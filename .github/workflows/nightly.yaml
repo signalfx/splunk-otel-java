@@ -7,19 +7,9 @@ on:
 
 jobs:
   check-links:
-    runs-on: ubuntu-24.04
-    steps:
-      - uses: actions/checkout@v6.0.2
-
-      - name: Check all links in *.md files
-        id: lychee
-        uses: lycheeverse/lychee-action@v2.8.0
-        with:
-          lycheeVersion: v0.18.1
-          args: >-
-            -v -n "*.md" "**/*.md"
-            --config .lychee.toml
-            --github-token ${{ github.token }}
+    # release branches are excluded
+    if: "!startsWith(github.ref_name, 'release/')"
+    uses: ./.github/workflows/reusable-link-check.yml
 
   build:
     runs-on: ubuntu-24.04
@@ -33,7 +23,7 @@ jobs:
           java-version: 17
 
       - name: Cache Gradle Wrapper
-        uses: actions/cache@v5.0.3
+        uses: actions/cache@v5.0.4
         with:
           path: ~/.gradle/wrapper
           key: ${{ runner.os }}-gradle-wrapper-cache-${{ hashFiles('gradle/wrapper/gradle-wrapper.properties') }}
@@ -57,7 +47,7 @@ jobs:
           java-version: 17
 
       - name: Cache Gradle Wrapper
-        uses: actions/cache@v5.0.3
+        uses: actions/cache@v5.0.4
         with:
           path: ~/.gradle/wrapper
           key: ${{ runner.os }}-gradle-wrapper-cache-${{ hashFiles('gradle/wrapper/gradle-wrapper.properties') }}
@@ -84,7 +74,7 @@ jobs:
           java-version: 17
 
       - name: Cache Gradle Wrapper
-        uses: actions/cache@v5.0.3
+        uses: actions/cache@v5.0.4
         with:
           path: ~/.gradle/wrapper
           key: ${{ runner.os }}-gradle-wrapper-cache-${{ hashFiles('gradle/wrapper/gradle-wrapper.properties') }}
@@ -109,7 +99,7 @@ jobs:
           java-version: 17
 
       - name: Cache Gradle Wrapper
-        uses: actions/cache@v5.0.3
+        uses: actions/cache@v5.0.4
         with:
           path: ~/.gradle/wrapper
           key: ${{ runner.os }}-gradle-wrapper-cache-${{ hashFiles('gradle/wrapper/gradle-wrapper.properties') }}
@@ -150,7 +140,7 @@ jobs:
           java-version: 17
 
       - name: Cache Gradle Wrapper
-        uses: actions/cache@v5.0.3
+        uses: actions/cache@v5.0.4
         with:
           path: ~/.gradle/wrapper
           key: ${{ runner.os }}-gradle-wrapper-cache-${{ hashFiles('gradle/wrapper/gradle-wrapper.properties') }}

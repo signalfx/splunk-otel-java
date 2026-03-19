@@ -20,18 +20,9 @@ import static io.opentelemetry.opamp.client.internal.request.service.HttpRequest
 import static io.opentelemetry.opamp.client.internal.request.service.HttpRequestService.DEFAULT_DELAY_BETWEEN_RETRIES;
 import static io.opentelemetry.sdk.autoconfigure.AutoConfigureUtil.getConfig;
 import static io.opentelemetry.sdk.autoconfigure.AutoConfigureUtil.getResource;
-import static io.opentelemetry.semconv.ServiceAttributes.SERVICE_INSTANCE_ID;
-import static io.opentelemetry.semconv.ServiceAttributes.SERVICE_NAME;
-import static io.opentelemetry.semconv.ServiceAttributes.SERVICE_NAMESPACE;
-import static io.opentelemetry.semconv.ServiceAttributes.SERVICE_VERSION;
-import static io.opentelemetry.semconv.incubating.DeploymentIncubatingAttributes.DEPLOYMENT_ENVIRONMENT_NAME;
-import static io.opentelemetry.semconv.incubating.OsIncubatingAttributes.OS_NAME;
-import static io.opentelemetry.semconv.incubating.OsIncubatingAttributes.OS_TYPE;
-import static io.opentelemetry.semconv.incubating.OsIncubatingAttributes.OS_VERSION;
 import static java.util.logging.Level.WARNING;
 
 import com.google.auto.service.AutoService;
-import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.javaagent.extension.AgentListener;
 import io.opentelemetry.opamp.client.OpampClient;
 import io.opentelemetry.opamp.client.OpampClientBuilder;
@@ -43,6 +34,7 @@ import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import io.opentelemetry.sdk.resources.Resource;
 import java.time.Duration;
+import java.util.List;
 import java.util.logging.Logger;
 import opamp.proto.ServerErrorResponse;
 import org.jetbrains.annotations.Nullable;
@@ -109,32 +101,69 @@ public class OpampActivator implements AgentListener {
           HttpRequestService.create(okhttp, pollingDelay, DEFAULT_DELAY_BETWEEN_RETRIES);
       builder.setRequestService(httpSender);
     }
-    addIdentifying(builder, resource, DEPLOYMENT_ENVIRONMENT_NAME);
-    addIdentifying(builder, resource, SERVICE_NAME);
-    addIdentifying(builder, resource, SERVICE_VERSION);
-    addIdentifying(builder, resource, SERVICE_NAMESPACE);
-    addIdentifying(builder, resource, SERVICE_INSTANCE_ID);
-
-    addNonIdentifying(builder, resource, OS_NAME);
-    addNonIdentifying(builder, resource, OS_TYPE);
-    addNonIdentifying(builder, resource, OS_VERSION);
+    addIdentifyingAttributes(builder, resource);
 
     return builder.build(callbacks);
   }
 
-  static void addIdentifying(
-      OpampClientBuilder builder, Resource res, AttributeKey<String> resourceAttr) {
-    String attr = res.getAttribute(resourceAttr);
-    if (attr != null) {
-      builder.putIdentifyingAttribute(resourceAttr.getKey(), attr);
-    }
-  }
-
-  static void addNonIdentifying(
-      OpampClientBuilder builder, Resource res, AttributeKey<String> resourceAttr) {
-    String attr = res.getAttribute(resourceAttr);
-    if (attr != null) {
-      builder.putNonIdentifyingAttribute(resourceAttr.getKey(), attr);
-    }
+  static void addIdentifyingAttributes(OpampClientBuilder builder, Resource res) {
+    res.getAttributes()
+        .forEach(
+            (key, value) -> {
+              switch (key.getType()) {
+                case STRING:
+                  builder.putIdentifyingAttribute(key.getKey(), (String) value);
+                  break;
+                case LONG:
+                  builder.putIdentifyingAttribute(key.getKey(), (long) value);
+                  break;
+                case DOUBLE:
+                  builder.putIdentifyingAttribute(key.getKey(), (double) value);
+                  break;
+                case BOOLEAN:
+                  builder.putIdentifyingAttribute(key.getKey(), (boolean) value);
+                  break;
+                case VALUE:
+                  builder.putIdentifyingAttribute(key.getKey(), value.toString());
+                  break;
+                case STRING_ARRAY:
+                  {
+                    List<String> typedValueList = (List<String>) value;
+                    String[] array = typedValueList.toArray(new String[] {});
+                    builder.putIdentifyingAttribute(key.getKey(), array);
+                    break;
+                  }
+                case LONG_ARRAY:
+                  {
+                    List<Long> typedValueList = (List<Long>) value;
+                    long[] primitiveArray = new long[typedValueList.size()];
+                    for (int i = 0; i < typedValueList.size(); i++) {
+                      primitiveArray[i] = typedValueList.get(i);
+                    }
+                    builder.putIdentifyingAttribute(key.getKey(), primitiveArray);
+                    break;
+                  }
+                case DOUBLE_ARRAY:
+                  {
+                    List<Double> typedValueList = (List<Double>) value;
+                    double[] primitiveArray = new double[typedValueList.size()];
+                    for (int i = 0; i < typedValueList.size(); i++) {
+                      primitiveArray[i] = typedValueList.get(i);
+                    }
+                    builder.putIdentifyingAttribute(key.getKey(), primitiveArray);
+                    break;
+                  }
+                case BOOLEAN_ARRAY:
+                  {
+                    List<Boolean> typedValueList = (List<Boolean>) value;
+                    boolean[] primitiveArray = new boolean[typedValueList.size()];
+                    for (int i = 0; i < typedValueList.size(); i++) {
+                      primitiveArray[i] = typedValueList.get(i);
+                    }
+                    builder.putIdentifyingAttribute(key.getKey(), primitiveArray);
+                    break;
+                  }
+              }
+            });
   }
 }

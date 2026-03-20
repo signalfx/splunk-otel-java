@@ -64,15 +64,13 @@ public class DeclarativeConfigTestUtil {
       String yaml, Path tempDir, AutoCleanupExtension autoCleanup) throws IOException {
     Path configFilePath = tempDir.resolve("test-config.yaml");
     Files.write(configFilePath, yaml.getBytes());
-    System.setProperty("otel.experimental.config.file", configFilePath.toString());
+    System.setProperty("otel.config.file", configFilePath.toString());
 
     try {
       AutoConfiguredOpenTelemetrySdk autoConfiguredSdk =
           AutoConfiguredOpenTelemetrySdk.builder()
               .addPropertiesSupplier(
-                  () ->
-                      Collections.singletonMap(
-                          "otel.experimental.config.file", configFilePath.toString()))
+                  () -> Collections.singletonMap("otel.config.file", configFilePath.toString()))
               .build();
 
       ConfigProvider configProvider =
@@ -91,7 +89,7 @@ public class DeclarativeConfigTestUtil {
 
       return autoConfiguredSdk;
     } finally {
-      System.clearProperty("otel.experimental.config.file");
+      System.clearProperty("otel.config.file");
     }
   }
 

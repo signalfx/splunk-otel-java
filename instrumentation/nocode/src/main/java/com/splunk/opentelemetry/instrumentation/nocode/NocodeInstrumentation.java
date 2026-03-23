@@ -22,6 +22,7 @@ import static net.bytebuddy.matcher.ElementMatchers.isMethod;
 import static net.bytebuddy.matcher.ElementMatchers.none;
 
 import com.splunk.opentelemetry.javaagent.bootstrap.nocode.NocodeRules;
+import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.context.Scope;
 import io.opentelemetry.instrumentation.api.annotation.support.async.AsyncOperationEndSupport;
@@ -87,6 +88,14 @@ public final class NocodeInstrumentation implements TypeInstrumentation {
           new NocodeMethodInvocation(
               rule, ClassAndMethod.create(declaringClass, methodName), thiz, methodParams);
       Context parentContext = currentContext();
+      if (rule != null && rule.isCurrentSpan()) {
+        Span currentSpan = Span.fromContext(parentContext);
+        if (!currentSpan.getSpanContext().isValid()) {
+          return;
+        }
+        NocodeAttributesExtractor.applyToSpan(currentSpan, otelInvocation);
+        return;
+      }
 
       if (!instrumenter().shouldStart(parentContext, otelInvocation)) {
         return;

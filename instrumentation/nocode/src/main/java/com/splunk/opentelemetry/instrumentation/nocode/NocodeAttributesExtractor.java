@@ -18,11 +18,13 @@ package com.splunk.opentelemetry.instrumentation.nocode;
 
 import com.splunk.opentelemetry.javaagent.bootstrap.nocode.NocodeExpression;
 import io.opentelemetry.api.common.AttributesBuilder;
+import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.instrumentation.api.incubator.semconv.code.CodeAttributesExtractor;
 import io.opentelemetry.instrumentation.api.incubator.semconv.util.ClassAndMethod;
 import io.opentelemetry.instrumentation.api.instrumenter.AttributesExtractor;
 import java.util.Map;
+import java.util.function.BiConsumer;
 import javax.annotation.Nullable;
 
 class NocodeAttributesExtractor implements AttributesExtractor<NocodeMethodInvocation, Object> {
@@ -37,23 +39,53 @@ class NocodeAttributesExtractor implements AttributesExtractor<NocodeMethodInvoc
       AttributesBuilder attributesBuilder, Context context, NocodeMethodInvocation mi) {
     codeExtractor.onStart(attributesBuilder, context, mi.getClassAndMethod());
 
+    applyRuleAttributes(mi, (key, value) -> putAttribute(attributesBuilder, key, value));
+  }
+
+  static void applyToSpan(Span span, NocodeMethodInvocation mi) {
+    applyRuleAttributes(mi, (key, value) -> setAttribute(span, key, value));
+  }
+
+  private static void applyRuleAttributes(
+      NocodeMethodInvocation mi, BiConsumer<String, Object> attributeConsumer) {
     Map<String, NocodeExpression> attributes = mi.getRuleAttributes();
     for (Map.Entry<String, NocodeExpression> entry : attributes.entrySet()) {
-      String key = entry.getKey();
-      NocodeExpression expression = entry.getValue();
-      Object value = mi.evaluate(expression);
-      if (value instanceof Long
-          || value instanceof Integer
-          || value instanceof Short
-          || value instanceof Byte) {
-        attributesBuilder.put(key, ((Number) value).longValue());
-      } else if (value instanceof Float || value instanceof Double) {
-        attributesBuilder.put(key, ((Number) value).doubleValue());
-      } else if (value instanceof Boolean) {
-        attributesBuilder.put(key, (Boolean) value);
-      } else if (value != null) {
-        attributesBuilder.put(key, value.toString());
+      Object value = mi.evaluate(entry.getValue());
+      if (value != null) {
+        attributeConsumer.accept(entry.getKey(), value);
       }
+    }
+  }
+
+  // The duplication between these two methods is unfortunate but kinda unavodable without
+  // introducing an abstracting interface over the two ways the otel apis work
+  private static void putAttribute(AttributesBuilder attributesBuilder, String key, Object value) {
+    if (value instanceof Long
+        || value instanceof Integer
+        || value instanceof Short
+        || value instanceof Byte) {
+      attributesBuilder.put(key, ((Number) value).longValue());
+    } else if (value instanceof Float || value instanceof Double) {
+      attributesBuilder.put(key, ((Number) value).doubleValue());
+    } else if (value instanceof Boolean) {
+      attributesBuilder.put(key, (Boolean) value);
+    } else {
+      attributesBuilder.put(key, value.toString());
+    }
+  }
+
+  private static void setAttribute(Span span, String key, Object value) {
+    if (value instanceof Long
+        || value instanceof Integer
+        || value instanceof Short
+        || value instanceof Byte) {
+      span.setAttribute(key, ((Number) value).longValue());
+    } else if (value instanceof Float || value instanceof Double) {
+      span.setAttribute(key, ((Number) value).doubleValue());
+    } else if (value instanceof Boolean) {
+      span.setAttribute(key, (Boolean) value);
+    } else {
+      span.setAttribute(key, value.toString());
     }
   }
 

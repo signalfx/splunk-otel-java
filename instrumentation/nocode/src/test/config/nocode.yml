@@ -66,3 +66,31 @@
     - key: "notpresent"
       value: "invalid.noSuchStatement()"
 
+- class: com.splunk.opentelemetry.instrumentation.nocode.NocodeInstrumentationTest$SampleClass
+  method: currentSpanOnly
+  current_span: true
+  attributes:
+    - key: "current.value"
+      value: param0
+
+- class: com.splunk.opentelemetry.instrumentation.nocode.NocodeInstrumentationTest$SampleClass
+  method: regularThenCurrent
+  span_name: "'regularThenCurrent.child'"
+
+- class: com.splunk.opentelemetry.instrumentation.nocode.NocodeInstrumentationTest$SampleClass
+  method: regularThenCurrent
+  current_span: true
+  attributes:
+    - key: "current.target"
+      value: param0
+
+- class: com.splunk.opentelemetry.instrumentation.nocode.NocodeInstrumentationTest$SampleClass
+  method: currentThenRegular
+  current_span: true
+  attributes:
+    - key: "current.target"
+      value: param0
+
+- class: com.splunk.opentelemetry.instrumentation.nocode.NocodeInstrumentationTest$SampleClass
+  method: currentThenRegular
+  span_name: "'currentThenRegular.child'"

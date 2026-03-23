@@ -109,6 +109,60 @@ class NocodeInstrumentationTest {
                     span.hasName("SampleClass.echo").hasStatusSatisfying(StatusDataAssert::isOk)));
   }
 
+  @Test
+  void testCurrentSpanAddsAttributesToActiveSpan() {
+    testing.runWithSpan("parent", () -> new SampleClass().currentSpanOnly("value-from-parent"));
+
+    testing.waitAndAssertTraces(
+        trace ->
+            trace.hasSpansSatisfyingExactly(
+                span ->
+                    span.hasName("parent")
+                        .hasNoParent()
+                        .hasAttributesSatisfying(
+                            equalTo(
+                                AttributeKey.stringKey("current.value"), "value-from-parent"))));
+  }
+
+  @Test
+  void testCurrentSpanRuleDoesNothingWhenNoSpanIsActive() {
+    new SampleClass().currentSpanOnly("orphan-value");
+    testing.runWithSpan("flush", () -> {});
+
+    testing.waitAndAssertTraces(
+        trace -> trace.hasSpansSatisfyingExactly(span -> span.hasName("flush").hasNoParent()));
+  }
+
+  @Test
+  void testRegularRuleBeforeCurrentSpanTargetsNewSpan() {
+    testing.runWithSpan("parent", () -> new SampleClass().regularThenCurrent("child-target"));
+
+    testing.waitAndAssertTraces(
+        trace ->
+            trace.hasSpansSatisfyingExactly(
+                span -> span.hasName("parent").hasNoParent(),
+                span ->
+                    span.hasName("regularThenCurrent.child")
+                        .hasParent(trace.getSpan(0))
+                        .hasAttributesSatisfying(
+                            equalTo(AttributeKey.stringKey("current.target"), "child-target"))));
+  }
+
+  @Test
+  void testCurrentSpanRuleBeforeRegularTargetsParentSpan() {
+    testing.runWithSpan("parent", () -> new SampleClass().currentThenRegular("parent-target"));
+
+    testing.waitAndAssertTraces(
+        trace ->
+            trace.hasSpansSatisfyingExactly(
+                span ->
+                    span.hasName("parent")
+                        .hasNoParent()
+                        .hasAttributesSatisfying(
+                            equalTo(AttributeKey.stringKey("current.target"), "parent-target")),
+                span -> span.hasName("currentThenRegular.child").hasParent(trace.getSpan(0))));
+  }
+
   public static class SampleClass {
     public String getName() {
       return "name";
@@ -156,5 +210,11 @@ class NocodeInstrumentationTest {
     public boolean echo(boolean b) {
       return b;
     }
+
+    public void currentSpanOnly(String value) {}
+
+    public void regularThenCurrent(String value) {}
+
+    public void currentThenRegular(String value) {}
   }
 }

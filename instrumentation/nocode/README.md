@@ -41,6 +41,30 @@ the following variables:
   - `returnValue` which is only defined for `spanStatus` and may be null (if an exception is thrown or the method returns void)
   - `error` which is only defined for `spanStatus` and is the `Throwable` thrown by the method invocation (or null if a normal return)
 
+## Adding attributes to the current span
+
+By default, each matching nocode rule creates a new span. If you want a rule to add attributes to the
+current/active span instead, set `current_span: true`.
+
+```yaml
+- class: foo.Foo
+  method: doStuff
+  current_span: true
+  attributes:
+    - key: "business.context"
+      value: this.getDetails().get("context")
+```
+
+For `current_span: true` rules:
+  - No new span is created
+  - Attributes are added to the current/active span
+  - If there is no active span, the rule does nothing
+  - `span_name:` and `span_status:` are ignored and a warning is logged
+
+If multiple nocode rules match the same method, they are applied in the order they appear in the yaml file.
+This matters when mixing "regular" rules with `current_span: true`, since a current-span rule may see either
+the parent span or a span created by an earlier nocode rule on that same method.
+
 ## More complex class/method selection
 
 You may use more complex logic for class or method selection.  The following example shows all the options:

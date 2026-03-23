@@ -39,19 +39,23 @@ public final class RuleImpl implements NocodeRules.Rule {
 
   private final Map<String, NocodeExpression> attributes; // key name to jexl expression
 
+  private final boolean isCurrentSpan;
+
   public RuleImpl(
       ElementMatcher<TypeDescription> classMatcher, // ElementMatcher
       ElementMatcher<MethodDescription> methodMatcher, // ElementMatcher
       NocodeExpression spanName,
       SpanKind spanKind,
       NocodeExpression spanStatus,
-      Map<String, NocodeExpression> attributes) {
+      Map<String, NocodeExpression> attributes,
+      boolean isCurrentSpan) {
     this.classMatcher = classMatcher;
     this.methodMatcher = methodMatcher;
     this.spanName = spanName;
     this.spanKind = spanKind;
     this.spanStatus = spanStatus;
     this.attributes = Collections.unmodifiableMap(new HashMap<>(attributes));
+    this.isCurrentSpan = isCurrentSpan;
   }
 
   public String toString() {
@@ -66,7 +70,9 @@ public final class RuleImpl implements NocodeRules.Rule {
         + ":span_status="
         + spanStatus
         + ",attrs="
-        + attributes;
+        + attributes
+        + ",isCurrentSpan="
+        + isCurrentSpan;
   }
 
   @Override
@@ -100,5 +106,10 @@ public final class RuleImpl implements NocodeRules.Rule {
   @Override
   public Map<String, NocodeExpression> getAttributes() {
     return attributes;
+  }
+
+  @Override
+  public boolean isCurrentSpan() {
+    return isCurrentSpan;
   }
 }

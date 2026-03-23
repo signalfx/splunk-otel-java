@@ -26,7 +26,12 @@ import com.splunk.opentelemetry.testing.declarativeconfig.DeclarativeConfigTestU
 import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
 import io.opentelemetry.sdk.autoconfigure.AutoConfigureUtil;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.OpenTelemetryConfigurationModel;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Handler;
+import java.util.logging.Level;
+import java.util.logging.LogRecord;
+import java.util.logging.Logger;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -129,5 +134,59 @@ class YamlParserTest {
 
     // then
     assertThat(rules).hasSize(2);
+  }
+
+  @Test
+  void shouldParseCurrentSpanRuleAndWarnAboutUnsupportedFields() throws Exception {
+    String yaml =
+        """
+            - class: someClass
+              method: someMethod
+              current_span: true
+              span_name: ignoredName
+              span_status: ignoredStatus
+              attributes:
+                - key: key
+                  value: this.toString()
+            """;
+
+    Logger logger = Logger.getLogger(YamlParser.class.getName());
+    CapturingHandler handler = new CapturingHandler();
+    Level previousLevel = logger.getLevel();
+    boolean previousUseParentHandlers = logger.getUseParentHandlers();
+    logger.addHandler(handler);
+    logger.setUseParentHandlers(false);
+    logger.setLevel(Level.ALL);
+
+    try {
+      List<NocodeRules.Rule> rules = YamlParser.parseFromString(yaml);
+
+      assertThat(rules).hasSize(1);
+      assertThat(rules.get(0).isCurrentSpan()).isTrue();
+      assertThat(rules.get(0).getSpanName()).isNull();
+      assertThat(rules.get(0).getSpanStatus()).isNull();
+      assertThat(handler.messages)
+          .anyMatch(message -> message.contains("current_span") && message.contains("span_name"))
+          .anyMatch(message -> message.contains("current_span") && message.contains("span_status"));
+    } finally {
+      logger.removeHandler(handler);
+      logger.setUseParentHandlers(previousUseParentHandlers);
+      logger.setLevel(previousLevel);
+    }
+  }
+
+  private static final class CapturingHandler extends Handler {
+    private final List<String> messages = new ArrayList<>();
+
+    @Override
+    public void publish(LogRecord record) {
+      messages.add(record.getMessage());
+    }
+
+    @Override
+    public void flush() {}
+
+    @Override
+    public void close() {}
   }
 }

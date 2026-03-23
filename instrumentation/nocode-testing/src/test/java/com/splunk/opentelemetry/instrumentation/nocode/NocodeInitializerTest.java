@@ -89,6 +89,24 @@ class NocodeInitializerTest {
     assertThat(NocodeRules.getGlobalRules().iterator().hasNext()).isTrue();
   }
 
+  @Test
+  void shouldReplaceRulesWhilePreservingOrder() {
+    NocodeRules.Rule first = mock(NocodeRules.Rule.class);
+    when(first.getId()).thenReturn(1);
+    NocodeRules.Rule second = mock(NocodeRules.Rule.class);
+    when(second.getId()).thenReturn(2);
+    NocodeRules.Rule third = mock(NocodeRules.Rule.class);
+    when(third.getId()).thenReturn(3);
+
+    NocodeRules.setGlobalRules(List.of(first, second));
+    NocodeRules.setGlobalRules(List.of(third, first));
+
+    List<NocodeRules.Rule> rules = new ArrayList<>();
+    NocodeRules.getGlobalRules().forEach(rules::add);
+
+    assertThat(rules).containsExactly(third, first);
+  }
+
   @Nested
   class DeclarativeConfigRules {
     @Test

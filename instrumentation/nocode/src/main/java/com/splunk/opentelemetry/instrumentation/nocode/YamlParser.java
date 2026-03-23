@@ -87,7 +87,11 @@ class YamlParser {
     for (Map<String, Object> yamlRule : ruleListNode) {
       ElementMatcher<TypeDescription> classMatcher = classMatcher(yamlRule.get("class"));
       ElementMatcher<MethodDescription> methodMatcher = methodMatcher(yamlRule.get("method"));
-      NocodeExpression spanName = toExpression(yamlRule.get("span_name"));
+      boolean isCurrentSpan = isCurrentSpanRule(yamlRule.get("current_span"));
+      NocodeExpression spanName =
+          isCurrentSpan
+              ? ignoreCurrentSpanField("span_name", yamlRule.get("span_name"))
+              : toExpression(yamlRule.get("span_name"));
       SpanKind spanKind = null;
       if (yamlRule.get("span_kind") != null) {
         String spanKindString = yamlRule.get("span_kind").toString();
@@ -97,7 +101,10 @@ class YamlParser {
           logger.warning("Invalid span kind " + spanKindString);
         }
       }
-      NocodeExpression spanStatus = toExpression(yamlRule.get("span_status"));
+      NocodeExpression spanStatus =
+          isCurrentSpan
+              ? ignoreCurrentSpanField("span_status", yamlRule.get("span_status"))
+              : toExpression(yamlRule.get("span_status"));
 
       Map<String, NocodeExpression> ruleAttributes = new HashMap<>();
       List<Map<String, Object>> attrs = (List<Map<String, Object>>) yamlRule.get("attributes");
@@ -108,7 +115,13 @@ class YamlParser {
       }
       answer.add(
           new RuleImpl(
-              classMatcher, methodMatcher, spanName, spanKind, spanStatus, ruleAttributes));
+              classMatcher,
+              methodMatcher,
+              spanName,
+              spanKind,
+              spanStatus,
+              ruleAttributes,
+              isCurrentSpan));
     }
 
     return answer;
@@ -126,6 +139,17 @@ class YamlParser {
     }
 
     return answer;
+  }
+
+  private static boolean isCurrentSpanRule(Object yamlValue) {
+    return yamlValue != null && Boolean.parseBoolean(yamlValue.toString());
+  }
+
+  private static NocodeExpression ignoreCurrentSpanField(String fieldName, Object yamlValue) {
+    if (yamlValue != null) {
+      logger.warning("current_span rules do not support " + fieldName + "; ignoring it");
+    }
+    return null;
   }
 
   private ElementMatcher<TypeDescription> classMatcher(Object yaml) {

@@ -42,7 +42,8 @@ public final class NocodeRules {
   private NocodeRules() {}
 
   private static final HashMap<Integer, Rule> ruleMap = new HashMap<>();
-  private static final List<Rule> orderedRules = new ArrayList<>(); // for preserving order from the yaml file
+  private static final List<Rule> orderedRules =
+      new ArrayList<>(); // for preserving order from the yaml file
 
   // Called by the NocodeInitializer
   public static void setGlobalRules(List<Rule> rules) {

@@ -1,7 +1,7 @@
 # Splunk Distribution of OpenTelemetry Java
 
 ![Stable](https://img.shields.io/badge/status-stable-informational)
-[![OpenTelemetry Instrumentation for Java Version](https://img.shields.io/badge/otel-2.26.0-blueviolet)](https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/tag/v2.26.0)
+[![OpenTelemetry Instrumentation for Java Version](https://img.shields.io/badge/otel-2.26.1-blueviolet)](https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/tag/v2.26.1)
 [![Splunk GDI specification](https://img.shields.io/badge/GDI-1.8.0-blueviolet)](https://github.com/signalfx/gdi-specification/releases/tag/v1.8.0)
 [![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/signalfx/splunk-otel-java?include_prereleases)](https://github.com/signalfx/splunk-otel-java/releases)
 [![Maven Central](https://img.shields.io/maven-central/v/com.splunk/splunk-otel-javaagent)](https://central.sonatype.com/artifact/com.splunk/splunk-otel-javaagent)
@@ -74,11 +74,11 @@ To extend the instrumentation with the OpenTelemetry Instrumentation for Java,
 you have to use a compatible API version.
 
 <!-- IMPORTANT: do not change comments or break those lines below -->
-The Splunk Distribution of OpenTelemetry Java version <!--SPLUNK_VERSION-->2.26.0<!--SPLUNK_VERSION--> is compatible
+The Splunk Distribution of OpenTelemetry Java version <!--SPLUNK_VERSION-->2.26.1<!--SPLUNK_VERSION--> is compatible
 with:
 
 * OpenTelemetry API version <!--OTEL_VERSION-->1.60.1<!--OTEL_VERSION-->
-* OpenTelemetry Instrumentation for Java version <!--OTEL_INSTRUMENTATION_VERSION-->2.26.0<!--OTEL_INSTRUMENTATION_VERSION-->
+* OpenTelemetry Instrumentation for Java version <!--OTEL_INSTRUMENTATION_VERSION-->2.26.1<!--OTEL_INSTRUMENTATION_VERSION-->
 
 ## Snapshot builds
 

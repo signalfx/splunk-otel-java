@@ -8,12 +8,32 @@ and this repository adheres to [Semantic Versioning](https://semver.org/spec/v2.
 
 ## Unreleased
 
+## v2.26.1 - 2026-03-23
+
+### General
+
+- OpenTelemetry Instrumentation for Java has been updated to version 2.26.1.
+
+### 🔒 Security fixes
+
+- Fix unsafe deserialization in RMI instrumentation that could lead to remote code execution
+  ([CVE-2026-33701](https://github.com/signalfx/splunk-otel-java/security/advisories/GHSA-h8w2-rv57-vc6f),
+  [#16979](https://github.com/open-telemetry/opentelemetry-java-instrumentation/pull/16979))
+
+### ⚠️⚠️ Breaking changes ⚠️⚠️
+
+- Context propagation format for RMI was changed [#16979](https://github.com/open-telemetry/opentelemetry-java-instrumentation/pull/16979)
+
 ## v2.26.0 - 2026-03-18
+
+### General
 
 - OpenTelemetry Java SDK has been updated to version 1.60.1.
 - OpenTelemetry Instrumentation for Java has been updated to version 2.26.0.
 
 ## v2.25.1 - 2026-02-26
+
+### General
 
 - Update CSA to version 26.2.1-1436.
 
@@ -47,6 +67,8 @@ and this repository adheres to [Semantic Versioning](https://semver.org/spec/v2.
 - OpenTelemetry Instrumentation for Java has been updated to version 2.22.0.
 
 ## v2.21.1 - 2025-10-28
+
+### General
 
 - Update CSA version to 25.10.0-1399 
 

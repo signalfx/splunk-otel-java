@@ -52,19 +52,17 @@ public class SqlServerStatementInstrumentation implements TypeInstrumentation {
   @SuppressWarnings("unused")
   public static class SetContextAdvice {
     @Advice.OnMethodEnter(suppress = Throwable.class)
-    public static void onEnter(
-        @Advice.This Statement statement, @Advice.Local("splunkCallDepth") CallDepth callDepth)
-        throws Exception {
-      callDepth = CallDepth.forClass(SqlServerContextPropagator.class);
-      if (callDepth.getAndIncrement() > 0) {
-        return;
+    public static CallDepth onEnter(@Advice.This Statement statement) throws Exception {
+      CallDepth callDepth = CallDepth.forClass(SqlServerContextPropagator.class);
+      if (callDepth.getAndIncrement() == 0) {
+        SqlServerContextPropagator.INSTANCE.propagateContext(statement.getConnection());
       }
 
-      SqlServerContextPropagator.INSTANCE.propagateContext(statement.getConnection());
+      return callDepth;
     }
 
     @Advice.OnMethodExit(suppress = Throwable.class)
-    public static void onExit(@Advice.Local("splunkCallDepth") CallDepth callDepth) {
+    public static void onExit(@Advice.Enter CallDepth callDepth) {
       callDepth.decrementAndGet();
     }
   }

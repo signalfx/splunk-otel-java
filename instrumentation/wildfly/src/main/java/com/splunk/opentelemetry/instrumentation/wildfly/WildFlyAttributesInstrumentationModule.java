@@ -68,14 +68,15 @@ public class WildFlyAttributesInstrumentationModule extends InstrumentationModul
   @SuppressWarnings("unused")
   public static class WebengineInitializedAdvice {
     @Advice.OnMethodEnter
-    public static void onEnter(@Advice.Local("splunkCallDepth") CallDepth callDepth) {
-      callDepth = CallDepth.forClass(ProductConfig.class);
+    public static CallDepth onEnter() {
+      CallDepth callDepth = CallDepth.forClass(ProductConfig.class);
       callDepth.getAndIncrement();
+      return callDepth;
     }
 
     @Advice.OnMethodExit(suppress = Throwable.class)
     public static void onExit(
-        @Advice.Local("splunkCallDepth") CallDepth callDepth,
+        @Advice.Enter CallDepth callDepth,
         @Advice.FieldValue("productConfig") ProductConfig productConfig) {
       if (callDepth.decrementAndGet() == 0 && productConfig != null) {
         WebengineHolder.trySetName(productConfig.resolveName());

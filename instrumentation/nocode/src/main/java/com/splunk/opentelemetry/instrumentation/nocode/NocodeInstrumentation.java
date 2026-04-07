@@ -17,7 +17,6 @@
 package com.splunk.opentelemetry.instrumentation.nocode;
 
 import static com.splunk.opentelemetry.instrumentation.nocode.NocodeSingletons.instrumenter;
-import static io.opentelemetry.javaagent.bootstrap.Java8BytecodeBridge.currentContext;
 import static net.bytebuddy.matcher.ElementMatchers.isMethod;
 import static net.bytebuddy.matcher.ElementMatchers.none;
 
@@ -28,7 +27,7 @@ import io.opentelemetry.instrumentation.api.annotation.support.async.AsyncOperat
 import io.opentelemetry.instrumentation.api.incubator.semconv.util.ClassAndMethod;
 import io.opentelemetry.javaagent.extension.instrumentation.TypeInstrumentation;
 import io.opentelemetry.javaagent.extension.instrumentation.TypeTransformer;
-import java.lang.reflect.Method;
+import javax.annotation.Nullable;
 import net.bytebuddy.asm.Advice;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.implementation.bytecode.assign.Assigner;
@@ -72,45 +71,67 @@ public final class NocodeInstrumentation implements TypeInstrumentation {
 
   @SuppressWarnings("unused")
   public static class NocodeAdvice {
+    public static class AdviceScope {
+      private final NocodeMethodInvocation otelInvocation;
+      private final Context context;
+      private final Scope scope;
+
+      private AdviceScope(NocodeMethodInvocation otelInvocation, Context context, Scope scope) {
+        this.otelInvocation = otelInvocation;
+        this.context = context;
+        this.scope = scope;
+      }
+
+      @Nullable
+      public static AdviceScope start(
+          int ruleId,
+          Class<?> declaringClass,
+          String methodName,
+          Object thiz,
+          Object[] methodParams) {
+        NocodeRules.Rule rule = NocodeRules.find(ruleId);
+        NocodeMethodInvocation otelInvocation =
+            new NocodeMethodInvocation(
+                rule, ClassAndMethod.create(declaringClass, methodName), thiz, methodParams);
+
+        Context parentContext = Context.current();
+        if (!instrumenter().shouldStart(parentContext, otelInvocation)) {
+          return null;
+        }
+        Context context = instrumenter().start(parentContext, otelInvocation);
+        return new AdviceScope(otelInvocation, context, context.makeCurrent());
+      }
+
+      public Object end(
+          Class<?> methodReturnType, Object returnValue, @Nullable Throwable throwable) {
+        scope.close();
+        return AsyncOperationEndSupport.create(instrumenter(), Object.class, methodReturnType)
+            .asyncEnd(context, otelInvocation, returnValue, throwable);
+      }
+    }
+
     @Advice.OnMethodEnter(suppress = Throwable.class)
-    public static void onEnter(
+    @Nullable
+    public static AdviceScope onEnter(
         @RuleId int ruleId,
         @Advice.Origin("#t") Class<?> declaringClass,
         @Advice.Origin("#m") String methodName,
-        @Advice.Local("otelInvocation") NocodeMethodInvocation otelInvocation,
-        @Advice.Local("otelContext") Context context,
-        @Advice.Local("otelScope") Scope scope,
         @Advice.This Object thiz,
         @Advice.AllArguments Object[] methodParams) {
-      NocodeRules.Rule rule = NocodeRules.find(ruleId);
-      otelInvocation =
-          new NocodeMethodInvocation(
-              rule, ClassAndMethod.create(declaringClass, methodName), thiz, methodParams);
-      Context parentContext = currentContext();
-
-      if (!instrumenter().shouldStart(parentContext, otelInvocation)) {
-        return;
-      }
-      context = instrumenter().start(parentContext, otelInvocation);
-      scope = context.makeCurrent();
+      return AdviceScope.start(ruleId, declaringClass, methodName, thiz, methodParams);
     }
 
+    @Advice.AssignReturned.ToReturned
     @Advice.OnMethodExit(onThrowable = Throwable.class, suppress = Throwable.class)
-    public static void stopSpan(
-        @Advice.Origin Method method,
-        @Advice.Local("otelInvocation") NocodeMethodInvocation otelInvocation,
-        @Advice.Local("otelContext") Context context,
-        @Advice.Local("otelScope") Scope scope,
-        @Advice.Return(readOnly = false, typing = Assigner.Typing.DYNAMIC) Object returnValue,
+    public static Object stopSpan(
+        @MethodReturnType Class<?> methodReturnType,
+        @Advice.Enter @Nullable AdviceScope adviceScope,
+        @Advice.Return(typing = Assigner.Typing.DYNAMIC) Object returnValue,
         @Advice.Thrown Throwable error) {
-      if (scope == null) {
-        return;
+      if (adviceScope != null) {
+        return adviceScope.end(methodReturnType, returnValue, error);
       }
-      scope.close();
-
-      returnValue =
-          AsyncOperationEndSupport.create(instrumenter(), Object.class, method.getReturnType())
-              .asyncEnd(context, otelInvocation, returnValue, error);
+      return returnValue;
     }
   }
 }

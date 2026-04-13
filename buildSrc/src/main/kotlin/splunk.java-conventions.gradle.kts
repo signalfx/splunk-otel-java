@@ -47,5 +47,9 @@ tasks.withType<Test>().configureEach {
 }
 
 tasks.withType<JavaCompile>().configureEach {
-  options.isDeprecation = true
+  with(options) {
+    isDeprecation = true
+    // suppress warning about source/target 8 being obsolete
+    compilerArgs.add("-Xlint:-options")
+  }
 }

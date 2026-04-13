@@ -462,14 +462,11 @@ public class MetadataGenerator {
             SettingType.STRING,
             SettingCategory.EXPORTER));
 
-    /*
-    otel.experimental.exporter.otlp.retry.enabled	OTEL_EXPERIMENTAL_EXPORTER_OTLP_RETRY_ENABLED	If true, enable experimental retry support. Default is false.
-     */
     settings.add(
         setting(
-            "otel.experimental.exporter.otlp.retry.enabled",
-            "If true, enable experimental retry support. Default is false.",
-            "false",
+            "otel.java.exporter.otlp.retry.disabled",
+            "If false, retry on when transient errors occur.",
+            "true",
             SettingType.BOOLEAN,
             SettingCategory.EXPORTER));
 

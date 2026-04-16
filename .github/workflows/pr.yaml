@@ -37,6 +37,13 @@ jobs:
         if: ${{ !cancelled() && hashFiles('build-scan.txt') != '' }}
         run: cat build-scan.txt
 
+      - name: Upload agent jar
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        with:
+          name: opentelemetry-javaagent.jar
+          path: agent/build/libs/splunk-otel-javaagent-*-SNAPSHOT.jar
+          if-no-files-found: ignore
+
   test-latest-deps:
     runs-on: ubuntu-24.04
     steps:

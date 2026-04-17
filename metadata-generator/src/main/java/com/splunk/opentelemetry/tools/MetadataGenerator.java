@@ -1220,6 +1220,11 @@ public class MetadataGenerator {
     Environment variable: OTEL_RESOURCE_PROVIDERS_GCP_ENABLED
     Default: false
     Description: Enables the GCP Resource Provider.
+
+    System property: otel.resource.providers.azure.enabled
+    Environment variable: OTEL_RESOURCE_PROVIDERS_AZURE_ENABLED
+    Default: false
+    Description: Enables the Azure Resource Provider.
      */
 
     settings.add(
@@ -1233,6 +1238,13 @@ public class MetadataGenerator {
         setting(
             "otel.resource.providers.gcp.enabled",
             "Enables the GCP Resource Provider.",
+            "false",
+            SettingType.BOOLEAN,
+            SettingCategory.RESOURCE_PROVIDER));
+    settings.add(
+        setting(
+            "otel.resource.providers.azure.enabled",
+            "Enables the Azure Resource Provider.",
             "false",
             SettingType.BOOLEAN,
             SettingCategory.RESOURCE_PROVIDER));

@@ -3799,7 +3799,7 @@ public class MetadataGenerator {
 
     // splunk instrumentations
     instrumentations.add(
-        splunkInstrumentation("jvm-metrics.splunk")
+        splunkInstrumentation("jvm-metrics-splunk")
             .component("Java Platform", null)
             .bundledMetric(
                 "jvm.memory.allocated",
@@ -3815,7 +3815,10 @@ public class MetadataGenerator {
                 "Time spent in GC pause. This metric will be removed in a future release.")
             .build());
     instrumentations.add(
-        splunkInstrumentation("khttp").component("khttp", "0.1 and higher").build());
+        splunkInstrumentation("khttp")
+            .component("khttp", "0.1 and higher")
+            .httpClientMetrics()
+            .build());
     instrumentations.add(
         splunkInstrumentation("glassfish").component("GlassFish", "5.0 and higher").build());
     // XXX jetty, liberty and tomcat have the same key as an existing otel instrumentation
@@ -3824,15 +3827,11 @@ public class MetadataGenerator {
     instrumentations.add(
         splunkInstrumentation("liberty").component("Liberty", "20.0 and higher").build());
     instrumentations.add(
-        splunkInstrumentation(List.of("tomcat", "tomcat-metrics-splunk"))
-            .component("Tomcat", "7.0 and higher")
-            .build());
+        splunkInstrumentation("tomcat").component("Tomcat", "7.0 and higher").build());
     instrumentations.add(
         splunkInstrumentation("tomee").component("TomEE", "7.0 and higher").build());
     instrumentations.add(
-        splunkInstrumentation(List.of("weblogic", "weblogic-metrics-splunk"))
-            .component("WebLogic", "12.1 and higher")
-            .build());
+        splunkInstrumentation("weblogic").component("WebLogic", "12.1 and higher").build());
     instrumentations.add(
         splunkInstrumentation("websphere").component("WebSphere", "8.5.5 and higher").build());
     instrumentations.add(
@@ -4305,14 +4304,6 @@ public class MetadataGenerator {
 
   static InstrumentationBuilder splunkInstrumentation(String key, String description) {
     return instrumentation(key, description, Stability.EXPERIMENTAL, Support.SUPPORTED);
-  }
-
-  static InstrumentationBuilder splunkInstrumentation(List<String> keys) {
-    return splunkInstrumentation(keys, null);
-  }
-
-  static InstrumentationBuilder splunkInstrumentation(List<String> keys, String description) {
-    return instrumentation(keys, description, Stability.EXPERIMENTAL, Support.SUPPORTED);
   }
 
   private static class InstrumentationBuilder {

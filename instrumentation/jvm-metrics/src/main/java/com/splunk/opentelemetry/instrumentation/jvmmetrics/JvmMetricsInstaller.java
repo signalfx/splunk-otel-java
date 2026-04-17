@@ -33,7 +33,7 @@ public class JvmMetricsInstaller implements AgentListener {
   public void afterAgent(AutoConfiguredOpenTelemetrySdk autoConfiguredOpenTelemetrySdk) {
     ConfigProperties config = getConfig(autoConfiguredOpenTelemetrySdk);
     boolean metricsEnabled = config.getBoolean(PROFILER_MEMORY_ENABLED_PROPERTY, false);
-    if (!config.getBoolean("otel.instrumentation.jvm-metrics.splunk.enabled", metricsEnabled)) {
+    if (!config.getBoolean("otel.instrumentation.jvm-metrics-splunk.enabled", metricsEnabled)) {
       return;
     }
 

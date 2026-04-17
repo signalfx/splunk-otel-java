@@ -29,7 +29,7 @@ import net.bytebuddy.matcher.ElementMatcher;
 public class TomcatAttributesInstrumentationModule extends InstrumentationModule {
 
   public TomcatAttributesInstrumentationModule() {
-    super("tomcat");
+    super("tomcat-splunk", "tomcat");
   }
 
   @Override

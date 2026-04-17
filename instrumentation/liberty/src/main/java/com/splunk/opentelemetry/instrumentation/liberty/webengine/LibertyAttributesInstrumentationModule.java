@@ -37,7 +37,7 @@ import net.bytebuddy.matcher.ElementMatcher;
 public class LibertyAttributesInstrumentationModule extends InstrumentationModule {
 
   public LibertyAttributesInstrumentationModule() {
-    super("liberty");
+    super("liberty-splunk", "liberty");
   }
 
   @Override

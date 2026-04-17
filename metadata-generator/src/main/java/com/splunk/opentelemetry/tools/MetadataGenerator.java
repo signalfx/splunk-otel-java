@@ -18,14 +18,21 @@ package com.splunk.opentelemetry.tools;
 
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.Writer;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
 
@@ -33,6 +40,25 @@ public class MetadataGenerator {
   private static final String BUNDLED_METRIC =
       "APM bundled, if data points for the metric contain `telemetry.sdk.language` attribute.";
   private static final String CUSTOM_METRIC = "Custom metric.";
+
+  // java instrumentation metrics marked as bundled by mts-category-generator
+  private static final Set<String> bundledMetrics =
+      new HashSet<>(
+          Arrays.asList(
+              "http.client.request.duration",
+              "http.server.request.duration",
+              "jvm.class.loaded",
+              "jvm.class.unloaded",
+              "jvm.class.count",
+              "jvm.cpu.time",
+              "jvm.cpu.count",
+              "jvm.cpu.recent_utilization",
+              "jvm.gc.duration",
+              "jvm.memory.used",
+              "jvm.memory.committed",
+              "jvm.memory.limit",
+              "jvm.memory.used_after_last_gc",
+              "jvm.thread.count"));
 
   private static String getRequiredSystemProperty(String name) {
     String value = System.getProperty(name);
@@ -866,7 +892,7 @@ public class MetadataGenerator {
             SettingCategory.INSTRUMENTATION));
 
     // DB statement sanitization
-    // https://opentelemetry.io/docs/instrumentation/java/automatic/agent-config/#db-statement-sanitization
+    // https://opentelemetry.io/docs/zero-code/java/agent/instrumentation/#db-statement-sanitization
 
     /*
     System property: otel.instrumentation.common.db-statement-sanitizer.enabled
@@ -877,8 +903,8 @@ public class MetadataGenerator {
 
     settings.add(
         setting(
-            "otel.instrumentation.common.db-statement-sanitizer.enabled",
-            "Enables the DB statement sanitization.",
+            "otel.instrumentation.common.db.query-sanitization.enabled",
+            "Enables the DB query sanitization.",
             "true",
             SettingType.BOOLEAN,
             SettingCategory.INSTRUMENTATION));
@@ -1413,1034 +1439,6 @@ public class MetadataGenerator {
             SettingType.STRING,
             SettingCategory.PROFILER));
 
-    // instrumentation specific configuration
-
-    // https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/instrumentation/aws-sdk/README.md
-    /*
-    | `otel.instrumentation.aws-sdk.experimental-span-attributes`              | Boolean | `false` | Enable the capture of experimental span attributes.                                         |
-    | `otel.instrumentation.aws-sdk.experimental-use-propagator-for-messaging` | Boolean | `false` | v2 only, inject into SNS/SQS attributes with configured propagator: See [v2 README](aws-sdk-2.2/library/README.md#trace-propagation). |
-    | `otel.instrumentation.aws-sdk.experimental-record-individual-http-error` | Boolean | `false` | v2 only, record errors returned by each individual HTTP request as events for the SDK span. |
-    | `otel.instrumentation.genai.capture-message-content`                     | Boolean | `false` | v2 only, record content of user and LLM messages when using Bedrock.                                                                  |
-     */
-    settings.add(
-        setting(
-            "otel.instrumentation.aws-sdk.experimental-span-attributes",
-            "Enable the capture of experimental span attributes.",
-            "false",
-            SettingType.BOOLEAN,
-            SettingCategory.INSTRUMENTATION));
-    settings.add(
-        setting(
-            "otel.instrumentation.aws-sdk.experimental-use-propagator-for-messaging",
-            "v2 only, inject into SNS/SQS attributes with configured propagator.",
-            "false",
-            SettingType.BOOLEAN,
-            SettingCategory.INSTRUMENTATION));
-    settings.add(
-        setting(
-            "otel.instrumentation.aws-sdk.experimental-use-propagator-for-messaging",
-            "v2 only, record errors returned by each individual HTTP request as events for the SDK span.",
-            "false",
-            SettingType.BOOLEAN,
-            SettingCategory.INSTRUMENTATION));
-    settings.add(
-        setting(
-            "otel.instrumentation.genai.capture-message-content",
-            "v2 only, record content of user and LLM messages when using Bedrock.",
-            "false",
-            SettingType.BOOLEAN,
-            SettingCategory.INSTRUMENTATION));
-
-    // https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/instrumentation/camel-2.20/README.md
-    /*
-    | `otel.instrumentation.camel.experimental-span-attributes` | Boolean | `false` | Enable the capture of experimental span attributes. |
-     */
-    settings.add(
-        setting(
-            "otel.instrumentation.camel.experimental-span-attributes",
-            "Enable the capture of experimental span attributes.",
-            "false",
-            SettingType.BOOLEAN,
-            SettingCategory.INSTRUMENTATION));
-
-    // https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/instrumentation/apache-elasticjob-3.0/README.md
-    /*
-    | `otel.instrumentation.apache-elasticjob.experimental-span-attributes` | Boolean | `false` | Enable the capture of experimental span attributes. |
-     */
-    settings.add(
-        setting(
-            "otel.instrumentation.apache-elasticjob.experimental-span-attributes",
-            "Enable the capture of experimental span attributes.",
-            "false",
-            SettingType.BOOLEAN,
-            SettingCategory.INSTRUMENTATION));
-
-    // https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/instrumentation/apache-shenyu-2.4/README.md
-    /*
-    | `otel.instrumentation.apache-shenyu.experimental-span-attributes`   | Boolean | `false` | Enable the capture of experimental span attributes. |
-     */
-    settings.add(
-        setting(
-            "otel.instrumentation.apache-shenyu.experimental-span-attributes",
-            "Enable the capture of experimental span attributes.",
-            "false",
-            SettingType.BOOLEAN,
-            SettingCategory.INSTRUMENTATION));
-
-    // https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/instrumentation/couchbase/README.md
-    /*
-    | `otel.instrumentation.couchbase.experimental-span-attributes` | Boolean | `false` | Enables the capture of experimental span attributes (for version 2.6 and higher of this instrumentation). |
-     */
-    settings.add(
-        setting(
-            "otel.instrumentation.couchbase.experimental-span-attributes",
-            "Enables the capture of experimental span attributes (for version 2.6 and higher of this instrumentation).",
-            "false",
-            SettingType.BOOLEAN,
-            SettingCategory.INSTRUMENTATION));
-
-    // https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/instrumentation/elasticsearch/README.md
-    /*
-    | `otel.instrumentation.elasticsearch.capture-search-query` | Boolean | `false` | Enable the capture of search query bodies. Attention: Elasticsearch queries may contain personal or sensitive information. |
-    | `otel.instrumentation.elasticsearch.experimental-span-attributes` | Boolean | `false` | Enable the capture of experimental span attributes. |
-     */
-    settings.add(
-        setting(
-            "otel.instrumentation.elasticsearch.capture-search-query",
-            "Enable the capture of search query bodies. Attention: Elasticsearch queries may contain personal or sensitive information.",
-            "false",
-            SettingType.BOOLEAN,
-            SettingCategory.INSTRUMENTATION));
-    settings.add(
-        setting(
-            "otel.instrumentation.elasticsearch.experimental-span-attributes",
-            "Enable the capture of experimental span attributes.",
-            "false",
-            SettingType.BOOLEAN,
-            SettingCategory.INSTRUMENTATION));
-
-    // https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/instrumentation/graphql-java/README.md
-    /*
-    | `otel.instrumentation.graphql.query-sanitizer.enabled` | Boolean | `true`  | Whether to remove sensitive information from query source that is added as span attribute. |
-    | `otel.instrumentation.graphql.add-operation-name-to-span-name.enabled` | Boolean | `false` | Whether GraphQL operation name is added to the span name. <p>**WARNING**: GraphQL operation name is provided by the client and can have high cardinality. Use only when the server is not exposed to malicious clients. |
-    | `otel.instrumentation.graphql.capture-query`                           | Boolean | `true`  | Whether to capture the query in `graphql.document` span attribute.                                                                                                                                                      |
-     */
-    // graphql 20
-    /*
-    | `otel.instrumentation.graphql.data-fetcher.enabled`         | Boolean | `false` | Whether to create spans for data fetchers.                                                                                        |
-    | `otel.instrumentation.graphql.trivial-data-fetcher.enabled` | Boolean | `false` | Whether to create spans for trivial data fetchers. A trivial data fetcher is one that simply maps data from an object to a field. |
-     */
-    settings.add(
-        setting(
-            "otel.instrumentation.graphql.query-sanitizer.enabled",
-            "Whether to remove sensitive information from query source that is added as span attribute.",
-            "true",
-            SettingType.BOOLEAN,
-            SettingCategory.INSTRUMENTATION));
-    settings.add(
-        setting(
-            "otel.instrumentation.graphql.add-operation-name-to-span-name.enabled",
-            "Whether GraphQL operation name is added to the span name. <p>**WARNING**: GraphQL operation name is provided by the client and can have high cardinality. Use only when the server is not exposed to malicious clients.",
-            "false",
-            SettingType.BOOLEAN,
-            SettingCategory.INSTRUMENTATION));
-    settings.add(
-        setting(
-            "otel.instrumentation.graphql.capture-query",
-            "Whether to capture the query in `graphql.document` span attribute.",
-            "true",
-            SettingType.BOOLEAN,
-            SettingCategory.INSTRUMENTATION));
-    settings.add(
-        setting(
-            "otel.instrumentation.graphql.data-fetcher.enabled",
-            "Whether to create spans for data fetchers (GraphQL 20 and later).",
-            "false",
-            SettingType.BOOLEAN,
-            SettingCategory.INSTRUMENTATION));
-    settings.add(
-        setting(
-            "otel.instrumentation.graphql.trivial-data-fetcher.enabled",
-            "Whether to create spans for trivial data fetchers. A trivial data fetcher is one that simply maps data from an object to a field (GraphQL 20 and later).",
-            "false",
-            SettingType.BOOLEAN,
-            SettingCategory.INSTRUMENTATION));
-
-    // https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/instrumentation/grpc-1.6/README.md
-    /*
-    | `otel.instrumentation.grpc.emit-message-events`             | Boolean | `true`  | Determines whether to emit span event for each individual message received and sent.
-    | `otel.instrumentation.grpc.experimental-span-attributes` | Boolean | `false` | Enable the capture of experimental span attributes. |
-    | `otel.instrumentation.grpc.capture-metadata.client.request` | String  |         | A comma-separated list of request metadata keys. gRPC client instrumentation will capture metadata values corresponding to configured keys as span attributes. |
-    | `otel.instrumentation.grpc.capture-metadata.server.request` | String  |         | A comma-separated list of request metadata keys. gRPC server instrumentation will capture metadata values corresponding to configured keys as span attributes. |
-     */
-    settings.add(
-        setting(
-            "otel.instrumentation.grpc.emit-message-events",
-            "Determines whether to emit span event for each individual message received and sent.",
-            "true",
-            SettingType.BOOLEAN,
-            SettingCategory.INSTRUMENTATION));
-    settings.add(
-        setting(
-            "otel.instrumentation.grpc.experimental-span-attributes",
-            "Enable the capture of experimental span attributes.",
-            "false",
-            SettingType.BOOLEAN,
-            SettingCategory.INSTRUMENTATION));
-    settings.add(
-        setting(
-            "otel.instrumentation.grpc.capture-metadata.client.request",
-            "A comma-separated list of request metadata keys. gRPC client instrumentation will capture metadata values corresponding to configured keys as span attributes.",
-            "",
-            SettingType.STRING,
-            SettingCategory.INSTRUMENTATION));
-    settings.add(
-        setting(
-            "otel.instrumentation.grpc.capture-metadata.server.request",
-            "A comma-separated list of request metadata keys. gRPC server instrumentation will capture metadata values corresponding to configured keys as span attributes.",
-            "",
-            SettingType.STRING,
-            SettingCategory.INSTRUMENTATION));
-
-    // https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/instrumentation/guava-10.0/README.md
-    /*
-    | `otel.instrumentation.guava.experimental-span-attributes` | Boolean | `false` | Enable the capture of experimental span attributes. |
-     */
-    settings.add(
-        setting(
-            "otel.instrumentation.guava.experimental-span-attributes",
-            "Enable the capture of experimental span attributes.",
-            "false",
-            SettingType.BOOLEAN,
-            SettingCategory.INSTRUMENTATION));
-
-    // https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/instrumentation/hibernate/README.md
-    /*
-    | `otel.instrumentation.hibernate.experimental-span-attributes` | Boolean | `false` | Enable the capture of experimental span attributes. |
-     */
-    settings.add(
-        setting(
-            "otel.instrumentation.hibernate.experimental-span-attributes",
-            "Enable the capture of experimental span attributes.",
-            "false",
-            SettingType.BOOLEAN,
-            SettingCategory.INSTRUMENTATION));
-
-    // https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/instrumentation/hystrix-1.4/javaagent/README.md
-    /*
-    | `otel.instrumentation.hystrix.experimental-span-attributes` | Boolean | `false` | Enable the capture of experimental span attributes. |
-     */
-    settings.add(
-        setting(
-            "otel.instrumentation.hystrix.experimental-span-attributes",
-            "Enable the capture of experimental span attributes.",
-            "false",
-            SettingType.BOOLEAN,
-            SettingCategory.INSTRUMENTATION));
-
-    // https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/instrumentation/java-util-logging/javaagent/README.md
-    /*
-    | `otel.instrumentation.java-util-logging.experimental-log-attributes` | Boolean | `false` | Enable the capture of experimental log attributes `thread.name` and `thread.id`. |
-     */
-    settings.add(
-        setting(
-            "otel.instrumentation.java-util-logging.experimental-log-attributes",
-            "Enable the capture of experimental log attributes `thread.name` and `thread.id`.",
-            "false",
-            SettingType.BOOLEAN,
-            SettingCategory.INSTRUMENTATION));
-
-    // https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/instrumentation/jaxrs/README.md
-    /*
-    | `otel.instrumentation.jaxrs.experimental-span-attributes` | Boolean | `false` | Enable the capture of experimental span attributes. |
-     */
-    settings.add(
-        setting(
-            "otel.instrumentation.jaxrs.experimental-span-attributes",
-            "Enable the capture of experimental span attributes.",
-            "false",
-            SettingType.BOOLEAN,
-            SettingCategory.INSTRUMENTATION));
-
-    // https://github.com/open-telemetry/opentelemetry-java-instrumentation/tree/main/instrumentation/jboss-logmanager/README.md
-    /*
-    | `otel.instrumentation.jboss-logmanager.experimental-log-attributes`         | Boolean | `false` | Enable the capture of experimental log attributes `thread.name` and `thread.id`.                                                   |
-    | `otel.instrumentation.jboss-logmanager.experimental.capture-mdc-attributes` | String  |         | Comma separated list of MDC attributes to capture. Use the wildcard character `*` to capture all attributes.                       |
-    | `otel.instrumentation.jboss-logmanager.experimental.capture-event-name`     | Boolean | `false` | Enable moving the `event.name` attribute (captured by one of the other mechanisms of capturing attributes) to the log event name.  |
-     */
-    settings.add(
-        setting(
-            "otel.instrumentation.jboss-logmanager.experimental-log-attributes",
-            "Enable the capture of experimental log attributes `thread.name` and `thread.id`.",
-            "false",
-            SettingType.BOOLEAN,
-            SettingCategory.INSTRUMENTATION));
-    settings.add(
-        setting(
-            "otel.instrumentation.jboss-logmanager.experimental.capture-mdc-attributes",
-            "Comma separated list of MDC attributes to capture. Use the wildcard character `*` to capture all attributes.",
-            "",
-            SettingType.STRING,
-            SettingCategory.INSTRUMENTATION));
-    settings.add(
-        setting(
-            "otel.instrumentation.jboss-logmanager.experimental.capture-event-name",
-            "Enable moving the `event.name` attribute (captured by one of the other mechanisms of capturing attributes) to the log event name.",
-            "false",
-            SettingType.BOOLEAN,
-            SettingCategory.INSTRUMENTATION));
-
-    // https://github.com/open-telemetry/opentelemetry-java-instrumentation/tree/main/instrumentation/jdbc/README.md
-    /*
-    | `otel.instrumentation.jdbc.statement-sanitizer.enabled`           | Boolean | `true`  | Enables the DB statement sanitization.                                                                                                                                                                                                                                                                                                       |
-    | `otel.instrumentation.jdbc.experimental.capture-query-parameters` | Boolean | `false` | Enable the capture of query parameters as span attributes. Enabling this option disables the statement sanitization. <p>WARNING: captured query parameters may contain sensitive information such as passwords, personally identifiable information or protected health info.                                                                |
-    | `otel.instrumentation.jdbc.experimental.transaction.enabled`      | Boolean | `false` | Enables experimental instrumentation to create spans for COMMIT and ROLLBACK operations.                                                                                                                                                                                                                                                     |
-    | `otel.instrumentation.jdbc.experimental.sqlcommenter.enabled`     | Boolean | `false` | Enables augmenting queries with a comment containing the tracing information. See [sqlcommenter](https://google.github.io/sqlcommenter/) for more info. WARNING: augmenting queries with tracing context will make query texts unique, which may have adverse impact on database performance. Consult with database experts before enabling. |
-     */
-    settings.add(
-        setting(
-            "otel.instrumentation.jdbc.statement-sanitizer.enabled",
-            "Enables the DB statement sanitization.",
-            "true",
-            SettingType.BOOLEAN,
-            SettingCategory.INSTRUMENTATION));
-    settings.add(
-        setting(
-            "otel.instrumentation.jdbc.experimental.capture-query-parameters",
-            "Enable the capture of query parameters as span attributes. Enabling this option disables the statement sanitization. <p>WARNING: captured query parameters may contain sensitive information such as passwords, personally identifiable information or protected health info.",
-            "false",
-            SettingType.BOOLEAN,
-            SettingCategory.INSTRUMENTATION));
-    settings.add(
-        setting(
-            "otel.instrumentation.jdbc.experimental.transaction.enabled",
-            "Enables experimental instrumentation to create spans for COMMIT and ROLLBACK operations.",
-            "false",
-            SettingType.BOOLEAN,
-            SettingCategory.INSTRUMENTATION));
-    settings.add(
-        setting(
-            "otel.instrumentation.jdbc.experimental.sqlcommenter.enabled",
-            "Enables augmenting queries with a comment containing the tracing information. See [sqlcommenter](https://google.github.io/sqlcommenter/) for more info. WARNING: augmenting queries with tracing context will make query texts unique, which may have adverse impact on database performance. Consult with database experts before enabling.",
-            "false",
-            SettingType.BOOLEAN,
-            SettingCategory.INSTRUMENTATION));
-
-    // https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/instrumentation/jsp-2.3/README.md
-    /*
-    | `otel.instrumentation.jsp.experimental-span-attributes` | Boolean | `false` | Enable the capture of experimental span attributes. |
-     */
-    settings.add(
-        setting(
-            "otel.instrumentation.jsp.experimental-span-attributes",
-            "Enable the capture of experimental span attributes.",
-            "false",
-            SettingType.BOOLEAN,
-            SettingCategory.INSTRUMENTATION));
-
-    // https://github.com/open-telemetry/opentelemetry-java-instrumentation/tree/main/instrumentation/kafka/README.md
-    /*
-    | `otel.instrumentation.kafka.experimental-span-attributes` | Boolean | `false` | Enable the capture of experimental span attributes.                                                                        |
-    | `otel.instrumentation.kafka.producer-propagation.enabled` | Boolean | `true`  | Enable context propagation for kafka message producer.                                                                     |
-     */
-    settings.add(
-        setting(
-            "otel.instrumentation.kafka.experimental-span-attributes",
-            "Enable the capture of experimental span attributes.",
-            "false",
-            SettingType.BOOLEAN,
-            SettingCategory.INSTRUMENTATION));
-    settings.add(
-        setting(
-            "otel.instrumentation.kafka.producer-propagation.enabled",
-            "Enable context propagation for kafka message producer.",
-            "true",
-            SettingType.BOOLEAN,
-            SettingCategory.INSTRUMENTATION));
-
-    // https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/instrumentation/kubernetes-client-7.0/README.md
-    /*
-    | `otel.instrumentation.kubernetes-client.experimental-span-attributes` | Boolean | `false` | Enable the capture of experimental span attributes. |
-     */
-    settings.add(
-        setting(
-            "otel.instrumentation.kubernetes-client.experimental-span-attributes",
-            "Enable the capture of experimental span attributes.",
-            "false",
-            SettingType.BOOLEAN,
-            SettingCategory.INSTRUMENTATION));
-
-    // https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/instrumentation/lettuce/README.md
-    /*
-    | `otel.instrumentation.lettuce.experimental-span-attributes` | Boolean | `false` | Enable the capture of experimental span attributes. |
-     */
-    settings.add(
-        setting(
-            "otel.instrumentation.lettuce.experimental-span-attributes",
-            "Enable the capture of experimental span attributes.",
-            "false",
-            SettingType.BOOLEAN,
-            SettingCategory.INSTRUMENTATION));
-
-    // https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/instrumentation/log4j/log4j-appender-2.17/javaagent/README.md
-    /*
-    | `otel.instrumentation.log4j-appender.experimental-log-attributes`                 | Boolean | `false` | Enable the capture of experimental log attributes `thread.name` and `thread.id`.                                                              |
-    | `otel.instrumentation.log4j-appender.experimental.capture-code-attributes`        | Boolean | `false` | Enable the capture of [source code attributes]. Note that capturing source code attributes at logging sites might add a performance overhead. |
-    | `otel.instrumentation.log4j-appender.experimental.capture-map-message-attributes` | Boolean | `false` | Enable the capture of `MapMessage` attributes.                                                                                                |
-    | `otel.instrumentation.log4j-appender.experimental.capture-marker-attribute`       | Boolean | `false` | Enable the capture of Log4j markers as attributes.                                                                                            |
-    | `otel.instrumentation.log4j-appender.experimental.capture-mdc-attributes`         | String  |         | Comma separated list of context data attributes to capture. Use the wildcard character `*` to capture all attributes.                         |
-    | `otel.instrumentation.log4j-appender.experimental.capture-event-name`             | Boolean | `false` | Enable moving the `event.name` attribute (captured by one of the other mechanisms of capturing attributes) to the log event name.             |
-    */
-    settings.add(
-        setting(
-            "otel.instrumentation.log4j-appender.experimental-log-attributes",
-            "Enable the capture of experimental log attributes `thread.name` and `thread.id`.",
-            "false",
-            SettingType.BOOLEAN,
-            SettingCategory.INSTRUMENTATION));
-    settings.add(
-        setting(
-            "otel.instrumentation.log4j-appender.experimental.capture-code-attributes",
-            "Enable the capture of [source code attributes](https://github.com/open-telemetry/semantic-conventions/blob/main/docs/general/attributes.md#source-code-attributes). Note that capturing source code attributes at logging sites might add a performance overhead.",
-            "false",
-            SettingType.BOOLEAN,
-            SettingCategory.INSTRUMENTATION));
-    settings.add(
-        setting(
-            "otel.instrumentation.log4j-appender.experimental.capture-map-message-attributes",
-            "Enable the capture of `MapMessage` attributes.",
-            "false",
-            SettingType.BOOLEAN,
-            SettingCategory.INSTRUMENTATION));
-    settings.add(
-        setting(
-            "otel.instrumentation.log4j-appender.experimental.capture-marker-attribute",
-            "Enable the capture of Log4j markers as attributes.",
-            "false",
-            SettingType.BOOLEAN,
-            SettingCategory.INSTRUMENTATION));
-    settings.add(
-        setting(
-            "otel.instrumentation.log4j-appender.experimental.capture-mdc-attributes",
-            "Comma separated list of context data attributes to capture. Use the wildcard character `*` to capture all attributes.",
-            "",
-            SettingType.STRING,
-            SettingCategory.INSTRUMENTATION));
-    settings.add(
-        setting(
-            "otel.instrumentation.log4j-appender.experimental.capture-event-name",
-            "Enable moving the `event.name` attribute (captured by one of the other mechanisms of capturing attributes) to the log event name.",
-            "false",
-            SettingType.BOOLEAN,
-            SettingCategory.INSTRUMENTATION));
-
-    // https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/instrumentation/log4j/log4j-context-data/log4j-context-data-2.17/javaagent/README.md
-    /*
-    | `otel.instrumentation.log4j-context-data.add-baggage` | Boolean | `false`       | Enable exposing baggage attributes through MDC. |
-     */
-    settings.add(
-        setting(
-            "otel.instrumentation.log4j-context-data.add-baggage",
-            "Enable exposing baggage attributes through MDC.",
-            "false",
-            SettingType.BOOLEAN,
-            SettingCategory.INSTRUMENTATION));
-
-    // https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/instrumentation/log4j/log4j-context-data/log4j-context-data-2.17/javaagent/README.md
-    // https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/instrumentation/log4j/log4j-mdc-1.2/javaagent/README.md
-    /*
-    | `otel.instrumentation.common.mdc.resource-attributes` | String  |               | Comma separated list of resource attributes to expose through MDC. |
-    | `otel.instrumentation.common.logging.trace-id`        | String  | `trace_id`    | Customize MDC key name for the trace id.                           |
-    | `otel.instrumentation.common.logging.span-id`         | String  | `span_id`     | Customize MDC key name for the span id.                            |
-    | `otel.instrumentation.common.logging.trace-flags`     | String  | `trace_flags` | Customize MDC key name for the trace flags.                        |
-     */
-    settings.add(
-        setting(
-            "otel.instrumentation.common.mdc.resource-attributes",
-            "Comma separated list of resource attributes to expose through MDC.",
-            "",
-            SettingType.STRING,
-            SettingCategory.INSTRUMENTATION));
-    settings.add(
-        setting(
-            "otel.instrumentation.common.logging.trace-id",
-            "Customize MDC key name for the trace id.",
-            "trace_id",
-            SettingType.STRING,
-            SettingCategory.INSTRUMENTATION));
-    settings.add(
-        setting(
-            "otel.instrumentation.common.logging.span-id",
-            "Customize MDC key name for the span id.",
-            "span_id",
-            SettingType.STRING,
-            SettingCategory.INSTRUMENTATION));
-    settings.add(
-        setting(
-            "otel.instrumentation.common.logging.trace-flags",
-            "Customize MDC key name for the trace flags.",
-            "trace_flags",
-            SettingType.STRING,
-            SettingCategory.INSTRUMENTATION));
-
-    // https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/instrumentation/logback/logback-appender-1.0/javaagent/README.md
-    /*
-    | `otel.instrumentation.logback-appender.experimental-log-attributes`                        | Boolean | `false` | Enable the capture of experimental log attributes `thread.name` and `thread.id`.                                                                                                           |
-    | `otel.instrumentation.logback-appender.experimental.capture-code-attributes`               | Boolean | `false` | Enable the capture of [source code attributes]. Note that capturing source code attributes at logging sites might add a performance overhead.                                              |
-    | `otel.instrumentation.logback-appender.experimental.capture-marker-attribute`              | Boolean | `false` | Enable the capture of Logback markers as attributes.                                                                                                                                       |
-    | `otel.instrumentation.logback-appender.experimental.capture-key-value-pair-attributes`     | Boolean | `false` | Enable the capture of Logback key value pairs as attributes.                                                                                                                               |
-    | `otel.instrumentation.logback-appender.experimental.capture-logger-context-attributes`     | Boolean | `false` | Enable the capture of Logback logger context properties as attributes.                                                                                                                     |
-    | `otel.instrumentation.logback-appender.experimental.capture-arguments`                     | Boolean | `false` | Enable the capture of Logback logger arguments.                                                                                                                                            |
-    | `otel.instrumentation.logback-appender.experimental.capture-logstash-marker-attributes`    | Boolean | `false` | Enable the capture of Logstash markers, supported are those added to logs via `Markers.append()`, `Markers.appendEntries()`, `Markers.appendArray()` and `Markers.appendRaw()` methods.     |
-    | `otel.instrumentation.logback-appender.experimental.capture-logstash-structured-arguments` | Boolean | `false` | Enable the capture of Logstash StructuredArguments as attributes (e.g., `StructuredArguments.v()` and `StructuredArguments.keyValue()`).                                                |
-    | `otel.instrumentation.logback-appender.experimental.capture-mdc-attributes`                | String  |         | Comma separated list of MDC attributes to capture. Use the wildcard character `*` to capture all attributes.                                                                               |
-    | `otel.instrumentation.logback-appender.experimental.capture-event-name`                    | Boolean | `false` | Enable moving the `event.name` attribute (captured by one of the other mechanisms of capturing attributes) to the log event name.                                                          |
-     */
-    settings.add(
-        setting(
-            "otel.instrumentation.logback-appender.experimental-log-attributes",
-            "Enable the capture of experimental log attributes `thread.name` and `thread.id`.",
-            "false",
-            SettingType.BOOLEAN,
-            SettingCategory.INSTRUMENTATION));
-    settings.add(
-        setting(
-            "otel.instrumentation.logback-appender.experimental.capture-code-attributes",
-            "Enable the capture of [source code attributes](https://github.com/open-telemetry/semantic-conventions/blob/main/docs/general/attributes.md#source-code-attributes). Note that capturing source code attributes at logging sites might add a performance overhead.",
-            "false",
-            SettingType.BOOLEAN,
-            SettingCategory.INSTRUMENTATION));
-    settings.add(
-        setting(
-            "otel.instrumentation.logback-appender.experimental.capture-marker-attribute",
-            "Enable the capture of Logback markers as attributes.",
-            "false",
-            SettingType.BOOLEAN,
-            SettingCategory.INSTRUMENTATION));
-    settings.add(
-        setting(
-            "otel.instrumentation.logback-appender.experimental.capture-key-value-pair-attributes",
-            "Enable the capture of Logback key value pairs as attributes.",
-            "false",
-            SettingType.BOOLEAN,
-            SettingCategory.INSTRUMENTATION));
-    settings.add(
-        setting(
-            "otel.instrumentation.logback-appender.experimental.capture-logger-context-attributes",
-            "Enable the capture of Logback logger context properties as attributes.",
-            "false",
-            SettingType.BOOLEAN,
-            SettingCategory.INSTRUMENTATION));
-    settings.add(
-        setting(
-            "otel.instrumentation.logback-appender.experimental.capture-arguments",
-            "Enable the capture of Logback logger arguments.",
-            "false",
-            SettingType.BOOLEAN,
-            SettingCategory.INSTRUMENTATION));
-    settings.add(
-        setting(
-            "otel.instrumentation.logback-appender.experimental.capture-logstash-marker-attributes",
-            "Enable the capture of Logstash markers, supported are those added to logs via `Markers.append()`, `Markers.appendEntries()`, `Markers.appendArray()` and `Markers.appendRaw()` methods.",
-            "false",
-            SettingType.BOOLEAN,
-            SettingCategory.INSTRUMENTATION));
-    settings.add(
-        setting(
-            "otel.instrumentation.logback-appender.experimental.capture-logstash-structured-arguments",
-            "Enable the capture of Logstash StructuredArguments as attributes (e.g., `StructuredArguments.v()` and `StructuredArguments.keyValue()`).",
-            "false",
-            SettingType.BOOLEAN,
-            SettingCategory.INSTRUMENTATION));
-    settings.add(
-        setting(
-            "otel.instrumentation.logback-appender.experimental.capture-mdc-attributes",
-            "Comma separated list of MDC attributes to capture. Use the wildcard character `*` to capture all attributes.",
-            "",
-            SettingType.STRING,
-            SettingCategory.INSTRUMENTATION));
-    settings.add(
-        setting(
-            "otel.instrumentation.logback-appender.experimental.capture-event-name",
-            "Enable moving the `event.name` attribute (captured by one of the other mechanisms of capturing attributes) to the log event name.",
-            "false",
-            SettingType.BOOLEAN,
-            SettingCategory.INSTRUMENTATION));
-
-    // https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/instrumentation/logback/logback-mdc-1.0/javaagent/README.md
-    /*
-    | `otel.instrumentation.logback-mdc.add-baggage`        | Boolean | `false` | Enable exposing baggage attributes through MDC.                    |
-    | `otel.instrumentation.common.mdc.resource-attributes` | String  |         | Comma separated list of resource attributes to expose through MDC. |
-     */
-    settings.add(
-        setting(
-            "otel.instrumentation.logback-mdc.add-baggage",
-            "Enable exposing baggage attributes through MDC.",
-            "false",
-            SettingType.BOOLEAN,
-            SettingCategory.INSTRUMENTATION));
-    settings.add(
-        setting(
-            "otel.instrumentation.common.mdc.resource-attributes",
-            "Comma separated list of resource attributes to expose through MDC.",
-            "",
-            SettingType.STRING,
-            SettingCategory.INSTRUMENTATION));
-
-    // https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/instrumentation/methods/README.md
-    /*
-    | `otel.instrumentation.methods.include` | String | None    | List of methods to include for tracing. For more information, see [Creating spans around methods with `otel.instrumentation.methods.include`][cs]. |
-
-    [cs]: https://opentelemetry.io/docs/instrumentation/java/annotations/#creating-spans-around-methods-with-otelinstrumentationmethodsinclude
-     */
-    // already added
-    /*
-    settings.add(setting(toEnvVar("otel.instrumentation.methods.include"),
-            "List of methods to include for tracing. For more information, see [Creating spans around methods with `otel.instrumentation.methods.include`][https://opentelemetry.io/docs/instrumentation/java/annotations/#creating-spans-around-methods-with-otelinstrumentationmethodsinclude].",
-            "",
-            SettingType.STRING,
-            SettingCategory.INSTRUMENTATION));
-     */
-
-    // https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/instrumentation/micrometer/micrometer-1.5/javaagent/README.md
-    /*
-    | `otel.instrumentation.micrometer.base-time-unit`           | String  | `s`     | Set the base time unit for the OpenTelemetry `MeterRegistry` implementation. <details><summary>Valid values</summary>`ns`, `nanoseconds`, `us`, `microseconds`, `ms`, `milliseconds`, `s`, `seconds`, `min`, `minutes`, `h`, `hours`, `d`, `days`</details> |
-    | `otel.instrumentation.micrometer.prometheus-mode.enabled`  | boolean | false   | Enable the "Prometheus mode" this will simulate the behavior of Micrometer's PrometheusMeterRegistry. The instruments will be renamed to match Micrometer instrument naming, and the base time unit will be set to seconds.                                 |
-    | `otel.instrumentation.micrometer.histogram-gauges.enabled` | boolean | false   | Enables the generation of gauge-based Micrometer histograms for `DistributionSummary` and `Timer` instruments.                                                                                                                                              |
-     */
-    settings.add(
-        setting(
-            "otel.instrumentation.micrometer.base-time-unit",
-            "Set the base time unit for the OpenTelemetry `MeterRegistry` implementation. <details><summary>Valid values</summary>`ns`, `nanoseconds`, `us`, `microseconds`, `ms`, `milliseconds`, `s`, `seconds`, `min`, `minutes`, `h`, `hours`, `d`, `days`</details>",
-            "s",
-            SettingType.STRING,
-            SettingCategory.INSTRUMENTATION));
-    settings.add(
-        setting(
-            "otel.instrumentation.micrometer.prometheus-mode.enabled",
-            "Enable the \"Prometheus mode\" this will simulate the behavior of Micrometer's PrometheusMeterRegistry. The instruments will be renamed to match Micrometer instrument naming, and the base time unit will be set to seconds.",
-            "false",
-            SettingType.BOOLEAN,
-            SettingCategory.INSTRUMENTATION));
-    settings.add(
-        setting(
-            "otel.instrumentation.micrometer.histogram-gauges.enabled",
-            "Enables the generation of gauge-based Micrometer histograms for `DistributionSummary` and `Timer` instruments.",
-            "false",
-            SettingType.BOOLEAN,
-            SettingCategory.INSTRUMENTATION));
-
-    // https://github.com/open-telemetry/opentelemetry-java-instrumentation/tree/main/instrumentation/mongo/README.md
-    /*
-    | `otel.instrumentation.mongo.statement-sanitizer.enabled` | Boolean | `true`  | Enables the DB statement sanitization. |
-     */
-    settings.add(
-        setting(
-            "otel.instrumentation.mongo.statement-sanitizer.enabled",
-            "Enables the DB statement sanitization.",
-            "true",
-            SettingType.BOOLEAN,
-            SettingCategory.INSTRUMENTATION));
-
-    // https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/instrumentation/netty/README.md
-    /*
-    | `otel.instrumentation.netty.connection-telemetry.enabled` | Boolean | `false` | Enable the creation of Connect and DNS spans by default for Netty 4.0 and higher instrumentation. |
-    | `otel.instrumentation.netty.ssl-telemetry.enabled`        | Boolean | `false` | Enable SSL telemetry for Netty 4.0 and higher instrumentation.                                    |
-     */
-    settings.add(
-        setting(
-            "otel.instrumentation.netty.connection-telemetry.enabled",
-            "Enable the creation of Connect and DNS spans by default for Netty 4.0 and higher instrumentation.",
-            "false",
-            SettingType.BOOLEAN,
-            SettingCategory.INSTRUMENTATION));
-    settings.add(
-        setting(
-            "otel.instrumentation.netty.ssl-telemetry.enabled",
-            "Enable SSL telemetry for Netty 4.0 and higher instrumentation.",
-            "false",
-            SettingType.BOOLEAN,
-            SettingCategory.INSTRUMENTATION));
-
-    // https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/instrumentation/openai/openai-java-1.1/javaagent/README.md
-    /*
-    | `otel.instrumentation.genai.capture-message-content` | Boolean | `false` | Record content of user and LLM messages. |
-     */
-    settings.add(
-        setting(
-            "otel.instrumentation.genai.capture-message-content",
-            "Record content of user and LLM messages.",
-            "false",
-            SettingType.BOOLEAN,
-            SettingCategory.INSTRUMENTATION));
-
-    // https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/instrumentation/opensearch/README.md
-    /*
-    | `otel.instrumentation.opensearch.experimental-span-attributes` | Boolean | `false` | Enable the capture of experimental span attributes.  |
-    | `otel.instrumentation.opensearch.capture-search-query`         | Boolean | `true`  | Enable the capture of sanitized search query bodies. |
-     */
-    settings.add(
-        setting(
-            "otel.instrumentation.opensearch.experimental-span-attributes",
-            "Enable the capture of experimental span attributes.",
-            "false",
-            SettingType.BOOLEAN,
-            SettingCategory.INSTRUMENTATION));
-    settings.add(
-        setting(
-            "otel.instrumentation.opensearch.capture-search-query",
-            "Enable the capture of sanitized search query bodies.",
-            "true",
-            SettingType.BOOLEAN,
-            SettingCategory.INSTRUMENTATION));
-
-    // https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/instrumentation/opentelemetry-extension-annotations-1.0/README.md
-    /*
-    | `otel.instrumentation.opentelemetry-annotations.exclude-methods` | String |         | All methods to be excluded from auto-instrumentation by annotation-based advices. |
-     */
-    settings.add(
-        setting(
-            "otel.instrumentation.opentelemetry-annotations.exclude-methods",
-            "All methods to be excluded from auto-instrumentation by annotation-based advices.",
-            "",
-            SettingType.STRING,
-            SettingCategory.INSTRUMENTATION));
-
-    // https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/instrumentation/opentelemetry-instrumentation-annotations-1.16/README.md
-    /*
-    | `otel.instrumentation.opentelemetry-instrumentation-annotations.exclude-methods` | String |         | All methods to be excluded from auto-instrumentation by annotation-based advices. |
-     */
-    settings.add(
-        setting(
-            "otel.instrumentation.opentelemetry-instrumentation-annotations.exclude-methods",
-            "All methods to be excluded from auto-instrumentation by annotation-based advices.",
-            "",
-            SettingType.STRING,
-            SettingCategory.INSTRUMENTATION));
-
-    // https://github.com/open-telemetry/opentelemetry-java-instrumentation/tree/main/instrumentation/oshi/README.md
-    /*
-    | `otel.instrumentation.oshi.experimental-metrics.enabled`  | Boolean | `false` | Enable the OSHI metrics. |
-     */
-    settings.add(
-        setting(
-            "otel.instrumentation.oshi.experimental-metrics.enabled",
-            "Enable the OSHI metrics.",
-            "false",
-            SettingType.BOOLEAN,
-            SettingCategory.INSTRUMENTATION));
-
-    // https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/instrumentation/powerjob-4.0/README.md
-    /*
-    | `otel.instrumentation.powerjob.experimental-span-attributes` | Boolean | `false` | Enable the capture of experimental span attributes. |
-     */
-    settings.add(
-        setting(
-            "otel.instrumentation.powerjob.experimental-span-attributes",
-            "Enable the capture of experimental span attributes.",
-            "false",
-            SettingType.BOOLEAN,
-            SettingCategory.INSTRUMENTATION));
-
-    // https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/instrumentation/pulsar/pulsar-2.8/README.md
-    /*
-    | `otel.instrumentation.pulsar.experimental-span-attributes` | Boolean | `false` | Enable the capture of experimental span attributes. |
-     */
-    settings.add(
-        setting(
-            "otel.instrumentation.pulsar.experimental-span-attributes",
-            "Enable the capture of experimental span attributes.",
-            "false",
-            SettingType.BOOLEAN,
-            SettingCategory.INSTRUMENTATION));
-
-    // https://github.com/open-telemetry/opentelemetry-java-instrumentation/tree/main/instrumentation/quartz-2.0/README.md
-    /*
-    | `otel.instrumentation.quartz.experimental-span-attributes` | Boolean | `false` | Enable the capture of experimental span attributes. |
-     */
-    settings.add(
-        setting(
-            "otel.instrumentation.quartz.experimental-span-attributes",
-            "Enable the capture of experimental span attributes.",
-            "false",
-            SettingType.BOOLEAN,
-            SettingCategory.INSTRUMENTATION));
-
-    // https://github.com/open-telemetry/opentelemetry-java-instrumentation/tree/main/instrumentation/r2dbc-1.0/README.md
-    /*
-    | `otel.instrumentation.r2dbc.statement-sanitizer.enabled` | Boolean | `true`  | Enables the DB statement sanitization. |
-     */
-    settings.add(
-        setting(
-            "otel.instrumentation.r2dbc.statement-sanitizer.enabled",
-            "Enables the DB statement sanitization.",
-            "true",
-            SettingType.BOOLEAN,
-            SettingCategory.INSTRUMENTATION));
-
-    // https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/instrumentation/rabbitmq-2.7/README.md
-    /*
-    | `otel.instrumentation.rabbitmq.experimental-span-attributes` | Boolean | `false` | Enable the capture of experimental span attributes. |
-     */
-    settings.add(
-        setting(
-            "otel.instrumentation.rabbitmq.experimental-span-attributes",
-            "Enable the capture of experimental span attributes.",
-            "false",
-            SettingType.BOOLEAN,
-            SettingCategory.INSTRUMENTATION));
-
-    // https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/instrumentation/reactor/reactor-3.1/README.md
-    /*
-    | `otel.instrumentation.reactor.experimental-span-attributes` | Boolean | `false` | Enable the capture of experimental span attributes. |
-     */
-    settings.add(
-        setting(
-            "otel.instrumentation.reactor.experimental-span-attributes",
-            "Enable the capture of experimental span attributes.",
-            "false",
-            SettingType.BOOLEAN,
-            SettingCategory.INSTRUMENTATION));
-
-    // https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/instrumentation/reactor/reactor-netty/README.md
-    /*
-    | `otel.instrumentation.reactor-netty.connection-telemetry.enabled` | Boolean | `false` | Enable the creation of Connect and DNS spans by default. |
-     */
-    settings.add(
-        setting(
-            "otel.instrumentation.reactor-netty.connection-telemetry.enabled",
-            "Enable the creation of Connect and DNS spans by default.",
-            "false",
-            SettingType.BOOLEAN,
-            SettingCategory.INSTRUMENTATION));
-
-    // https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/instrumentation/rocketmq/rocketmq-client/rocketmq-client-4.8/README.md
-    /*
-    | `otel.instrumentation.rocketmq-client.experimental-span-attributes` | Boolean | `false` | Enable the capture of experimental span attributes. |
-     */
-    settings.add(
-        setting(
-            "otel.instrumentation.rocketmq-client.experimental-span-attributes",
-            "Enable the capture of experimental span attributes.",
-            "false",
-            SettingType.BOOLEAN,
-            SettingCategory.INSTRUMENTATION));
-
-    // https://github.com/open-telemetry/opentelemetry-java-instrumentation/tree/main/instrumentation/runtime-telemetry/README.md
-    /*
-    | `otel.instrumentation.runtime-telemetry.emit-experimental-telemetry`     | Boolean | `false` | Enable the capture of experimental metrics.                       |
-    | `otel.instrumentation.runtime-telemetry-java17.enable-all`               | Boolean | `false` | Enable the capture of all JFR based metrics.                      |
-    | `otel.instrumentation.runtime-telemetry-java17.enabled`                  | Boolean | `false` | Enable the capture of JFR based metrics.                          |
-    | `otel.instrumentation.runtime-telemetry.package-emitter.enabled`         | Boolean | `false` | Enable creating events for JAR libraries used by the application. |
-    | `otel.instrumentation.runtime-telemetry.package-emitter.jars-per-second` | Integer | 10      | The number of JAR files processed per second.                     |
-     */
-    settings.add(
-        setting(
-            "otel.instrumentation.runtime-telemetry.emit-experimental-telemetry",
-            "Enable the capture of experimental metrics.",
-            "false",
-            SettingType.BOOLEAN,
-            SettingCategory.INSTRUMENTATION));
-    settings.add(
-        setting(
-            "otel.instrumentation.runtime-telemetry-java17.enable-all",
-            "Enable the capture of all JFR based metrics.",
-            "false",
-            SettingType.BOOLEAN,
-            SettingCategory.INSTRUMENTATION));
-    settings.add(
-        setting(
-            "otel.instrumentation.runtime-telemetry-java17.enabled",
-            "Enable the capture of JFR based metrics.",
-            "false",
-            SettingType.BOOLEAN,
-            SettingCategory.INSTRUMENTATION));
-    settings.add(
-        setting(
-            "otel.instrumentation.runtime-telemetry.package-emitter.enabled",
-            "Enable creating events for JAR libraries used by the application.",
-            "false",
-            SettingType.BOOLEAN,
-            SettingCategory.INSTRUMENTATION));
-    settings.add(
-        setting(
-            "otel.instrumentation.runtime-telemetry.package-emitter.jars-per-second",
-            "The number of JAR files processed per second.",
-            "10",
-            SettingType.INT,
-            SettingCategory.INSTRUMENTATION));
-
-    // https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/instrumentation/rxjava/README.md
-    /*
-    | `otel.instrumentation.rxjava.experimental-span-attributes` | Boolean | `false` | Enable the capture of experimental span attributes for RxJava 2 and 3 instrumentation. |
-     */
-    settings.add(
-        setting(
-            "otel.instrumentation.rxjava.experimental-span-attributes",
-            "Enable the capture of experimental span attributes.",
-            "false",
-            SettingType.BOOLEAN,
-            SettingCategory.INSTRUMENTATION));
-
-    // https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/instrumentation/servlet/README.md
-    /*
-    | `otel.instrumentation.servlet.experimental-span-attributes`            | Boolean | `false` | Enable the capture of experimental span attributes. |
-    | `otel.instrumentation.servlet.experimental.capture-request-parameters` | List    | Empty   | Request parameters to be captured (experimental).   |
-    | `otel.instrumentation.servlet.experimental.add-trace-id-request-attribute` | Boolean | `true`  | Add `trace_id` and `span_id` as request attributes. |
-     */
-    settings.add(
-        setting(
-            "otel.instrumentation.servlet.experimental-span-attributes",
-            "Enable the capture of experimental span attributes.",
-            "false",
-            SettingType.BOOLEAN,
-            SettingCategory.INSTRUMENTATION));
-    // otel.instrumentation.servlet.experimental.capture-request-parameters is already added
-    // elsewhere
-    settings.add(
-        setting(
-            "`otel.instrumentation.servlet.experimental.add-trace-id-request-attribute",
-            "Add `trace_id` and `span_id` as request attributes.",
-            "true",
-            SettingType.BOOLEAN,
-            SettingCategory.INSTRUMENTATION));
-
-    // https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/instrumentation/spring/README.md
-    /*
-    | `otel.instrumentation.spring-batch.item.enabled`                              | Boolean | `false` | Enable creating span for each item.                                                                                                                                                                                                                                                                                                                     |
-    | `otel.instrumentation.spring-batch.experimental.chunk.new-trace`              | Boolean | `false` | Enable staring a new trace for each chunk.                                                                                                                                                                                                                                                                                                              |
-    | `otel.instrumentation.spring-batch.experimental-span-attributes`              | Boolean | `false` | Enable the capture of experimental span attributes for Spring Batch version 3.0.                                                                                                                                                                                                                                                                        |
-    | `otel.instrumentation.spring-integration.global-channel-interceptor-patterns` | List    | `*`     | An array of Spring channel name patterns that will be intercepted. See [Spring Integration docs](https://docs.spring.io/spring-integration/reference/channel/configuration.html#global-channel-configuration-interceptors) for more details.                                                                                                            |
-    | `otel.instrumentation.spring-integration.producer.enabled`                    | Boolean | `false` | Create producer spans when messages are sent to an output channel. Enable when you're using a messaging library that doesn't have its own instrumentation for generating producer spans. Note that the detection of output channels only works for [Spring Cloud Stream](https://spring.io/projects/spring-cloud-stream) `DirectWithAttributesChannel`. |
-    | `otel.instrumentation.spring-scheduling.experimental-span-attributes`         | Boolean | `false` | Enable the capture of experimental span attributes for Spring Scheduling version 3.1.                                                                                                                                                                                                                                                                   |
-    | `otel.instrumentation.spring-webflux.experimental-span-attributes`            | Boolean | `false` | Enable the capture of experimental span attributes for Spring WebFlux version 5.0.                                                                                                                                                                                                                                                                      |
-    | `otel.instrumentation.spring-webmvc.experimental-span-attributes`             | Boolean | `false` | Enable the capture of experimental span attributes for Spring Web MVC version 3.1.                                                                                                                                                                                                                                                                      |
-     */
-    settings.add(
-        setting(
-            "otel.instrumentation.spring-batch.item.enabled",
-            "Enable creating span for each item.",
-            "false",
-            SettingType.BOOLEAN,
-            SettingCategory.INSTRUMENTATION));
-    settings.add(
-        setting(
-            "otel.instrumentation.spring-batch.experimental.chunk.new-trace",
-            "Enable staring a new trace for each chunk.",
-            "false",
-            SettingType.BOOLEAN,
-            SettingCategory.INSTRUMENTATION));
-    settings.add(
-        setting(
-            "otel.instrumentation.spring-scheduling.experimental-span-attributes",
-            "Enable the capture of experimental span attributes for Spring Batch version 3.0.",
-            "false",
-            SettingType.BOOLEAN,
-            SettingCategory.INSTRUMENTATION));
-    settings.add(
-        setting(
-            "otel.instrumentation.spring-integration.global-channel-interceptor-patterns",
-            "An array of Spring channel name patterns that will be intercepted. See [Spring Integration docs](https://docs.spring.io/spring-integration/reference/channel/configuration.html#global-channel-configuration-interceptors) for more details.",
-            "*",
-            SettingType.STRING,
-            SettingCategory.INSTRUMENTATION));
-    settings.add(
-        setting(
-            "otel.instrumentation.spring-integration.producer.enabled",
-            "Create producer spans when messages are sent to an output channel. Enable when you're using a messaging library that doesn't have its own instrumentation for generating producer spans. Note that the detection of output channels only works for [Spring Cloud Stream](https://spring.io/projects/spring-cloud-stream) `DirectWithAttributesChannel`.",
-            "false",
-            SettingType.BOOLEAN,
-            SettingCategory.INSTRUMENTATION));
-    settings.add(
-        setting(
-            "otel.instrumentation.spring-scheduling.experimental-span-attributes",
-            "Enable the capture of experimental span attributes for Spring Scheduling version 3.1.",
-            "false",
-            SettingType.BOOLEAN,
-            SettingCategory.INSTRUMENTATION));
-    settings.add(
-        setting(
-            "otel.instrumentation.spring-webflux.experimental-span-attributes",
-            "Enable the capture of experimental span attributes for Spring WebFlux version 5.0.",
-            "false",
-            SettingType.BOOLEAN,
-            SettingCategory.INSTRUMENTATION));
-    settings.add(
-        setting(
-            "otel.instrumentation.spring-webmvc.experimental-span-attributes",
-            "Enable the capture of experimental span attributes for Spring Web MVC version 3.1.",
-            "false",
-            SettingType.BOOLEAN,
-            SettingCategory.INSTRUMENTATION));
-
-    // https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/instrumentation/spring/spring-cloud-gateway/README.md
-    /*
-    | `otel.instrumentation.spring-cloud-gateway.experimental-span-attributes` | Boolean | `false` | Enable the capture of experimental span attributes.                                         |
-     */
-    settings.add(
-        setting(
-            "otel.instrumentation.spring-cloud-gateway.experimental-span-attributes",
-            "Enable the capture of experimental span attributes.",
-            "false",
-            SettingType.BOOLEAN,
-            SettingCategory.INSTRUMENTATION));
-
-    // https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/instrumentation/spring/spring-security-config-6.0/javaagent/README.md
-    /*
-    | `otel.instrumentation.spring-security.enduser.role.granted-authority-prefix`  | String  | `ROLE_`  | Prefix of granted authorities identifying roles to capture in the `enduser.role` semantic attribute.    |
-    | `otel.instrumentation.spring-security.enduser.scope.granted-authority-prefix` | String  | `SCOPE_` | Prefix of granted authorities identifying scopes to capture in the `enduser.scopes` semantic attribute. |
-     */
-    settings.add(
-        setting(
-            "otel.instrumentation.spring-security.enduser.role.granted-authority-prefix",
-            "Prefix of granted authorities identifying roles to capture in the `enduser.role` semantic attribute.",
-            "ROLE_",
-            SettingType.STRING,
-            SettingCategory.INSTRUMENTATION));
-    settings.add(
-        setting(
-            "otel.instrumentation.spring-security.enduser.scope.granted-authority-prefix",
-            "Prefix of granted authorities identifying scopes to capture in the `enduser.scopes` semantic attribute.",
-            "SCOPE_",
-            SettingType.STRING,
-            SettingCategory.INSTRUMENTATION));
-
-    // https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/instrumentation/spymemcached-2.12/README.md
-    /*
-    | `otel.instrumentation.spymemcached.experimental-span-attributes` | Boolean | `false` | Enables the capture of experimental span attributes. |
-     */
-    settings.add(
-        setting(
-            "otel.instrumentation.spymemcached.experimental-span-attributes",
-            "Enable the capture of experimental span attributes.",
-            "false",
-            SettingType.BOOLEAN,
-            SettingCategory.INSTRUMENTATION));
-
-    // https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/instrumentation/twilio-6.6/README.md
-    /*
-    | `otel.instrumentation.twilio.experimental-span-attributes` | Boolean | `false` | Enables the capture of experimental span attributes. |
-     */
-    settings.add(
-        setting(
-            "otel.instrumentation.twilio.experimental-span-attributes",
-            "Enable the capture of experimental span attributes.",
-            "false",
-            SettingType.BOOLEAN,
-            SettingCategory.INSTRUMENTATION));
-
-    // https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/instrumentation/xxl-job/README.md
-    /*
-    | `otel.instrumentation.xxl-job.experimental-span-attributes` | Boolean | `false` | Enable the capture of experimental span attributes. |
-     */
-    settings.add(
-        setting(
-            "otel.instrumentation.xxl-job.experimental-span-attributes",
-            "Enable the capture of experimental span attributes.",
-            "false",
-            SettingType.BOOLEAN,
-            SettingCategory.INSTRUMENTATION));
-
     // metrics from the Java SDK, .NET SDK does not have built-in metrics so this is not present in
     // their yaml
     List<Map<String, Object>> metrics = new ArrayList<>();
@@ -2486,1332 +1484,13 @@ public class MetadataGenerator {
     List<Map<String, Object>> instrumentations = new ArrayList<>();
     root.put("instrumentations", instrumentations);
 
-    instrumentations.add(
-        instrumentation("activej-http")
-            .component("ActiveJ HTTP Server", "6.0 and higher")
-            .httpServerMetrics()
-            .build());
-    instrumentations.add(
-        instrumentation("methods").component("Additional methods tracing", null).build());
-    instrumentations.add(
-        instrumentation("external-annotations")
-            .component("Additional tracing annotations", null)
-            .build());
-    instrumentations.add(
-        instrumentation("akka-actor").component("Akka Actors", "2.3 and higher").build());
-    instrumentations.add(
-        instrumentation("akka-http")
-            .component("Akka HTTP", "10.0 and higher")
-            .httpClientMetrics()
-            .httpServerMetrics()
-            .build());
-    instrumentations.add(
-        instrumentation("axis2").component("Apache Axis2", "1.6 and higher").build());
-    instrumentations.add(instrumentation("camel").component("Apache Camel", "2.20 to 3.0").build());
-    instrumentations.add(
-        instrumentation("cxf")
-            .component("Apache CXF JAX-RS", "3.2 and higher")
-            .component("Apache CXF JAX-WS", "3.0 and higher")
-            .build());
-    instrumentations.add(
-        instrumentation("apache-dbcp")
-            .component("Apache DBCP", "2.0 and higher")
-            .dbPoolMetrics(
-                DbPoolMetrics.USAGE,
-                DbPoolMetrics.IDLE_MAX,
-                DbPoolMetrics.IDLE_MIN,
-                DbPoolMetrics.MAX)
-            .build());
-    instrumentations.add(
-        instrumentation("apache-dubbo")
-            .component("Apache DBCP", "2.7 and higher")
-            .rpcClientMetrics(false)
-            .rpcServerMetrics(false)
-            .build());
-    instrumentations.add(
-        instrumentation("apache-elasticjob")
-            .component("Apache ElasticJob", "3.0 and higher")
-            .build());
-    instrumentations.add(
-        instrumentation("apache-httpasyncclient")
-            .component("Apache HttpAsyncClient", "4.1 and higher")
-            .httpClientMetrics()
-            .build());
-    instrumentations.add(
-        instrumentation("apache-httpclient")
-            .component("Apache HttpClient", "2.0 and higher")
-            .httpClientMetrics()
-            .build());
-    instrumentations.add(
-        instrumentation(
-                List.of("kafka", "kafka-clients-metrics"),
-                "Consult documentation of the used kafka version for the exact metrics it generates.")
-            .component("Apache Kafka Producer/Consumer API", "0.11 and higher")
-            .component("Apache Kafka Streams API", "0.11 and higher")
-            .component("Apache Kafka Connect API", "2.6 and higher")
-            // https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/instrumentation/kafka/kafka-clients/kafka-clients-2.6/library/README.md
-            // these metrics are created by kafka, we only collect these as otel metrics
-            .customMetric(
-                "kafka.consumer.assigned_partitions",
-                MetricInstrument.GAUGE,
-                "The number of partitions currently assigned to this consumer.")
-            .customMetric(
-                "kafka.consumer.commit_latency_avg",
-                MetricInstrument.GAUGE,
-                "The average time taken for a commit request.")
-            .customMetric(
-                "kafka.consumer.commit_latency_max",
-                MetricInstrument.GAUGE,
-                "The max time taken for a commit request.")
-            .customMetric(
-                "kafka.consumer.commit_rate",
-                MetricInstrument.GAUGE,
-                "The number of commit calls per second.")
-            .customMetric(
-                "kafka.consumer.commit_total",
-                MetricInstrument.COUNTER,
-                "The total number of commit calls.")
-            .customMetric(
-                "kafka.consumer.failed_rebalance_rate_per_hour",
-                MetricInstrument.GAUGE,
-                "The number of failed rebalance events per hour.")
-            .customMetric(
-                "kafka.consumer.failed_rebalance_total",
-                MetricInstrument.COUNTER,
-                "The total number of failed rebalance events.")
-            .customMetric(
-                "kafka.consumer.heartbeat_rate",
-                MetricInstrument.GAUGE,
-                "The number of heartbeats per second.")
-            .customMetric(
-                "kafka.consumer.heartbeat_response_time_max",
-                MetricInstrument.GAUGE,
-                "The max time taken to receive a response to a heartbeat request.")
-            .customMetric(
-                "kafka.consumer.heartbeat_total",
-                MetricInstrument.COUNTER,
-                "The total number of heartbeats.")
-            .customMetric(
-                "kafka.consumer.join_rate",
-                MetricInstrument.GAUGE,
-                "The number of group joins per second.")
-            .customMetric(
-                "kafka.consumer.join_time_avg",
-                MetricInstrument.GAUGE,
-                "The average time taken for a group rejoin.")
-            .customMetric(
-                "kafka.consumer.join_time_max",
-                MetricInstrument.GAUGE,
-                "The max time taken for a group rejoin.")
-            .customMetric(
-                "kafka.consumer.join_total",
-                MetricInstrument.COUNTER,
-                "The total number of group joins.")
-            .customMetric(
-                "kafka.consumer.last_heartbeat_seconds_ago",
-                MetricInstrument.GAUGE,
-                "The number of seconds since the last coordinator heartbeat was sent.")
-            .customMetric(
-                "kafka.consumer.last_rebalance_seconds_ago",
-                MetricInstrument.GAUGE,
-                "The number of seconds since the last successful rebalance event.")
-            .customMetric(
-                "kafka.consumer.partition_assigned_latency_avg",
-                MetricInstrument.GAUGE,
-                "The average time taken for a partition-assigned rebalance listener callback.")
-            .customMetric(
-                "kafka.consumer.partition_assigned_latency_max",
-                MetricInstrument.GAUGE,
-                "The max time taken for a partition-assigned rebalance listener callback.")
-            .customMetric(
-                "kafka.consumer.partition_lost_latency_avg",
-                MetricInstrument.GAUGE,
-                "The average time taken for a partition-lost rebalance listener callback.")
-            .customMetric(
-                "kafka.consumer.partition_lost_latency_max",
-                MetricInstrument.GAUGE,
-                "The max time taken for a partition-lost rebalance listener callback.")
-            .customMetric(
-                "kafka.consumer.partition_revoked_latency_avg",
-                MetricInstrument.GAUGE,
-                "The average time taken for a partition-revoked rebalance listener callback.")
-            .customMetric(
-                "kafka.consumer.partition_revoked_latency_max",
-                MetricInstrument.GAUGE,
-                "The max time taken for a partition-revoked rebalance listener callback.")
-            .customMetric(
-                "kafka.consumer.rebalance_latency_avg",
-                MetricInstrument.GAUGE,
-                "The average time taken for a group to complete a successful rebalance, which may be composed of several failed re-trials until it succeeded.")
-            .customMetric(
-                "kafka.consumer.rebalance_latency_max",
-                MetricInstrument.GAUGE,
-                "The max time taken for a group to complete a successful rebalance, which may be composed of several failed re-trials until it succeeded.")
-            .customMetric(
-                "kafka.consumer.rebalance_latency_total",
-                MetricInstrument.COUNTER,
-                "The total number of milliseconds this consumer has spent in successful rebalances since creation.")
-            .customMetric(
-                "kafka.consumer.rebalance_rate_per_hour",
-                MetricInstrument.GAUGE,
-                "The number of successful rebalance events per hour, each event is composed of several failed re-trials until it succeeded.")
-            .customMetric(
-                "kafka.consumer.rebalance_total",
-                MetricInstrument.COUNTER,
-                "The total number of successful rebalance events, each event is composed of several failed re-trials until it succeeded.")
-            .customMetric(
-                "kafka.consumer.sync_rate",
-                MetricInstrument.GAUGE,
-                "The number of group syncs per second.")
-            .customMetric(
-                "kafka.consumer.sync_time_avg",
-                MetricInstrument.GAUGE,
-                "The average time taken for a group sync.")
-            .customMetric(
-                "kafka.consumer.sync_time_max",
-                MetricInstrument.GAUGE,
-                "The max time taken for a group sync.")
-            .customMetric(
-                "kafka.consumer.sync_total",
-                MetricInstrument.COUNTER,
-                "The total number of group syncs.")
-            .customMetric(
-                "kafka.consumer.bytes_consumed_rate",
-                MetricInstrument.GAUGE,
-                "The average number of bytes consumed per second.")
-            .customMetric(
-                "kafka.consumer.bytes_consumed_total",
-                MetricInstrument.COUNTER,
-                "The total number of bytes consumed.")
-            .customMetric(
-                "kafka.consumer.fetch_latency_avg",
-                MetricInstrument.GAUGE,
-                "The average time taken for a fetch request.")
-            .customMetric(
-                "kafka.consumer.fetch_latency_max",
-                MetricInstrument.GAUGE,
-                "The max time taken for any fetch request.")
-            .customMetric(
-                "kafka.consumer.fetch_rate",
-                MetricInstrument.GAUGE,
-                "The number of fetch requests per second.")
-            .customMetric(
-                "kafka.consumer.fetch_size_avg",
-                MetricInstrument.GAUGE,
-                "The average number of bytes fetched per request.")
-            .customMetric(
-                "kafka.consumer.fetch_size_max",
-                MetricInstrument.GAUGE,
-                "The maximum number of bytes fetched per request.")
-            .customMetric(
-                "kafka.consumer.fetch_throttle_time_avg",
-                MetricInstrument.GAUGE,
-                "The average throttle time in ms.")
-            .customMetric(
-                "kafka.consumer.fetch_throttle_time_max",
-                MetricInstrument.GAUGE,
-                "The maximum throttle time in ms.")
-            .customMetric(
-                "kafka.consumer.fetch_total",
-                MetricInstrument.COUNTER,
-                "The total number of fetch requests.")
-            .customMetric(
-                "kafka.consumer.records_consumed_rate",
-                MetricInstrument.GAUGE,
-                "The average number of records consumed per second.")
-            .customMetric(
-                "kafka.consumer.records_consumed_total",
-                MetricInstrument.COUNTER,
-                "The total number of records consumed.")
-            .customMetric(
-                "kafka.consumer.records_lag",
-                MetricInstrument.GAUGE,
-                "The latest lag of the partition.")
-            .customMetric(
-                "kafka.consumer.records_lag_avg",
-                MetricInstrument.GAUGE,
-                "The average lag of the partition.")
-            .customMetric(
-                "kafka.consumer.records_lag_max",
-                MetricInstrument.GAUGE,
-                "The maximum lag in terms of number of records for any partition in this window. NOTE: This is based on current offset and not committed offset.")
-            .customMetric(
-                "kafka.consumer.records_lead",
-                MetricInstrument.GAUGE,
-                "The latest lead of the partition.")
-            .customMetric(
-                "kafka.consumer.records_lead_avg",
-                MetricInstrument.GAUGE,
-                "The average lead of the partition.")
-            .customMetric(
-                "kafka.consumer.records_lead_min",
-                MetricInstrument.GAUGE,
-                "The minimum lead in terms of number of records for any partition in this window.")
-            .customMetric(
-                "kafka.consumer.records_per_request_avg",
-                MetricInstrument.GAUGE,
-                "The average number of records in each request.")
-            .customMetric(
-                "kafka.consumer.commit_sync_time_ns_total",
-                MetricInstrument.COUNTER,
-                "The total time the consumer has spent in commitSync in nanoseconds.")
-            .customMetric(
-                "kafka.consumer.committed_time_ns_total",
-                MetricInstrument.COUNTER,
-                "The total time the consumer has spent in committed in nanoseconds.")
-            .customMetric(
-                "kafka.consumer.connection_close_rate",
-                MetricInstrument.GAUGE,
-                "The number of connections closed per second.")
-            .customMetric(
-                "kafka.consumer.connection_close_total",
-                MetricInstrument.COUNTER,
-                "The total number of connections closed.")
-            .customMetric(
-                "kafka.consumer.connection_count",
-                MetricInstrument.GAUGE,
-                "The current number of active connections.")
-            .customMetric(
-                "kafka.consumer.connection_creation_rate",
-                MetricInstrument.GAUGE,
-                "The number of new connections established per second.")
-            .customMetric(
-                "kafka.consumer.connection_creation_total",
-                MetricInstrument.COUNTER,
-                "The total number of new connections established.")
-            .customMetric(
-                "kafka.consumer.failed_authentication_rate",
-                MetricInstrument.GAUGE,
-                "The number of connections with failed authentication per second.")
-            .customMetric(
-                "kafka.consumer.failed_authentication_total",
-                MetricInstrument.COUNTER,
-                "The total number of connections with failed authentication.")
-            .customMetric(
-                "kafka.consumer.failed_reauthentication_rate",
-                MetricInstrument.GAUGE,
-                "The number of failed re-authentication of connections per second.")
-            .customMetric(
-                "kafka.consumer.failed_reauthentication_total",
-                MetricInstrument.COUNTER,
-                "The total number of failed re-authentication of connections.")
-            .customMetric(
-                "kafka.consumer.io_ratio",
-                MetricInstrument.GAUGE,
-                " *Deprecated* The fraction of time the I/O thread spent doing I/O.")
-            .customMetric(
-                "kafka.consumer.io_time_ns_avg",
-                MetricInstrument.GAUGE,
-                "The average length of time for I/O per select call in nanoseconds.")
-            .customMetric(
-                "kafka.consumer.io_time_ns_total",
-                MetricInstrument.COUNTER,
-                "The total time the I/O thread spent doing I/O.")
-            .customMetric(
-                "kafka.consumer.io_wait_ratio",
-                MetricInstrument.GAUGE,
-                "*Deprecated* The fraction of time the I/O thread spent waiting.")
-            .customMetric(
-                "kafka.consumer.io_wait_time_ns_avg",
-                MetricInstrument.GAUGE,
-                "The average length of time the I/O thread spent waiting for a socket ready for reads or writes in nanoseconds.")
-            .customMetric(
-                "kafka.consumer.io_wait_time_ns_total",
-                MetricInstrument.COUNTER,
-                "The total time the I/O thread spent waiting")
-            .customMetric(
-                "kafka.consumer.io_waittime_total",
-                MetricInstrument.COUNTER,
-                "*Deprecated* The total time the I/O thread spent waiting.")
-            .customMetric(
-                "kafka.consumer.iotime_total",
-                MetricInstrument.COUNTER,
-                "*Deprecated* The total time the I/O thread spent doing I/O.")
-            .customMetric(
-                "kafka.consumer.last_poll_seconds_ago",
-                MetricInstrument.GAUGE,
-                "The number of seconds since the last poll() invocation.")
-            .customMetric(
-                "kafka.consumer.network_io_rate",
-                MetricInstrument.GAUGE,
-                "The number of network operations (reads or writes) on all connections per second.")
-            .customMetric(
-                "kafka.consumer.network_io_total",
-                MetricInstrument.COUNTER,
-                "The total number of network operations (reads or writes) on all connections.")
-            .customMetric(
-                "kafka.consumer.poll_idle_ratio_avg",
-                MetricInstrument.GAUGE,
-                "The average fraction of time the consumer's poll() is idle as opposed to waiting for the user code to process records.")
-            .customMetric(
-                "kafka.consumer.reauthentication_latency_avg",
-                MetricInstrument.GAUGE,
-                "The average latency observed due to re-authentication.")
-            .customMetric(
-                "kafka.consumer.reauthentication_latency_max",
-                MetricInstrument.GAUGE,
-                "The max latency observed due to re-authentication.")
-            .customMetric(
-                "kafka.consumer.select_rate",
-                MetricInstrument.GAUGE,
-                "The number of times the I/O layer checked for new I/O to perform per second.")
-            .customMetric(
-                "kafka.consumer.select_total",
-                MetricInstrument.COUNTER,
-                "The total number of times the I/O layer checked for new I/O to perform.")
-            .customMetric(
-                "kafka.consumer.successful_authentication_no_reauth_total",
-                MetricInstrument.COUNTER,
-                "The total number of connections with successful authentication where the client does not support re-authentication.")
-            .customMetric(
-                "kafka.consumer.successful_authentication_rate",
-                MetricInstrument.GAUGE,
-                "The number of connections with successful authentication per second.")
-            .customMetric(
-                "kafka.consumer.successful_authentication_total",
-                MetricInstrument.COUNTER,
-                "The total number of connections with successful authentication.")
-            .customMetric(
-                "kafka.consumer.successful_reauthentication_rate",
-                MetricInstrument.GAUGE,
-                "The number of successful re-authentication of connections per second.")
-            .customMetric(
-                "kafka.consumer.successful_reauthentication_total",
-                MetricInstrument.COUNTER,
-                "The total number of successful re-authentication of connections.")
-            .customMetric(
-                "kafka.consumer.time_between_poll_avg",
-                MetricInstrument.GAUGE,
-                "The average delay between invocations of poll() in milliseconds.")
-            .customMetric(
-                "kafka.consumer.time_between_poll_max",
-                MetricInstrument.GAUGE,
-                "The max delay between invocations of poll() in milliseconds.")
-            .customMetric(
-                "kafka.consumer.incoming_byte_rate",
-                MetricInstrument.GAUGE,
-                "The number of bytes read off all sockets per second.")
-            .customMetric(
-                "kafka.consumer.incoming_byte_total",
-                MetricInstrument.COUNTER,
-                "The total number of bytes read off all sockets.")
-            .customMetric(
-                "kafka.consumer.outgoing_byte_rate",
-                MetricInstrument.GAUGE,
-                "The number of outgoing bytes sent to all servers per second.")
-            .customMetric(
-                "kafka.consumer.outgoing_byte_total",
-                MetricInstrument.COUNTER,
-                "The total number of outgoing bytes sent to all servers.")
-            .customMetric(
-                "kafka.consumer.request_latency_avg",
-                MetricInstrument.GAUGE,
-                "The average request latency in ms.")
-            .customMetric(
-                "kafka.consumer.request_latency_max",
-                MetricInstrument.GAUGE,
-                "The maximum request latency in ms.")
-            .customMetric(
-                "kafka.consumer.request_rate",
-                MetricInstrument.GAUGE,
-                "The number of requests sent per second.")
-            .customMetric(
-                "kafka.consumer.request_size_avg",
-                MetricInstrument.GAUGE,
-                "The average size of requests sent.")
-            .customMetric(
-                "kafka.consumer.request_size_max",
-                MetricInstrument.GAUGE,
-                "The maximum size of any request sent.")
-            .customMetric(
-                "kafka.consumer.request_total",
-                MetricInstrument.COUNTER,
-                "The total number of requests sent.")
-            .customMetric(
-                "kafka.consumer.response_rate",
-                MetricInstrument.GAUGE,
-                "The number of responses received per second.")
-            .customMetric(
-                "kafka.consumer.response_total",
-                MetricInstrument.COUNTER,
-                "The total number of responses received.")
-            .customMetric(
-                "kafka.producer.batch_size_avg",
-                MetricInstrument.GAUGE,
-                "The average number of bytes sent per partition per-request.")
-            .customMetric(
-                "kafka.producer.batch_size_max",
-                MetricInstrument.GAUGE,
-                "The max number of bytes sent per partition per-request.")
-            .customMetric(
-                "kafka.producer.batch_split_rate",
-                MetricInstrument.GAUGE,
-                "The average number of batch splits per second.")
-            .customMetric(
-                "kafka.producer.batch_split_total",
-                MetricInstrument.COUNTER,
-                "The total number of batch splits.")
-            .customMetric(
-                "kafka.producer.buffer_available_bytes",
-                MetricInstrument.GAUGE,
-                "The total amount of buffer memory that is not being used (either unallocated or in the free list).")
-            .customMetric(
-                "kafka.producer.buffer_exhausted_rate",
-                MetricInstrument.GAUGE,
-                "The average per-second number of record sends that are dropped due to buffer exhaustion.")
-            .customMetric(
-                "kafka.producer.buffer_exhausted_total",
-                MetricInstrument.COUNTER,
-                "The total number of record sends that are dropped due to buffer exhaustion.")
-            .customMetric(
-                "kafka.producer.buffer_total_bytes",
-                MetricInstrument.GAUGE,
-                "The maximum amount of buffer memory the client can use (whether or not it is currently used).")
-            .customMetric(
-                "kafka.producer.bufferpool_wait_ratio",
-                MetricInstrument.GAUGE,
-                "The fraction of time an appender waits for space allocation.")
-            .customMetric(
-                "kafka.producer.bufferpool_wait_time_ns_total",
-                MetricInstrument.COUNTER,
-                "The total time in nanoseconds an appender waits for space allocation.")
-            .customMetric(
-                "kafka.producer.bufferpool_wait_time_total",
-                MetricInstrument.COUNTER,
-                "*Deprecated* The total time an appender waits for space allocation.")
-            .customMetric(
-                "kafka.producer.compression_rate_avg",
-                MetricInstrument.GAUGE,
-                "The average compression rate of record batches.")
-            .customMetric(
-                "kafka.producer.connection_close_rate",
-                MetricInstrument.GAUGE,
-                "The number of connections closed per second.")
-            .customMetric(
-                "kafka.producer.connection_close_total",
-                MetricInstrument.COUNTER,
-                "The total number of connections closed.")
-            .customMetric(
-                "kafka.producer.connection_count",
-                MetricInstrument.GAUGE,
-                "The current number of active connections.")
-            .customMetric(
-                "kafka.producer.connection_creation_rate",
-                MetricInstrument.GAUGE,
-                "The number of new connections established per second.")
-            .customMetric(
-                "kafka.producer.connection_creation_total",
-                MetricInstrument.COUNTER,
-                "The total number of new connections established.")
-            .customMetric(
-                "kafka.producer.failed_authentication_rate",
-                MetricInstrument.GAUGE,
-                "The number of connections with failed authentication per second.")
-            .customMetric(
-                "kafka.producer.failed_authentication_total",
-                MetricInstrument.COUNTER,
-                "The total number of connections with failed authentication.")
-            .customMetric(
-                "kafka.producer.failed_reauthentication_rate",
-                MetricInstrument.GAUGE,
-                "The number of failed re-authentication of connections per second.")
-            .customMetric(
-                "kafka.producer.failed_reauthentication_total",
-                MetricInstrument.COUNTER,
-                "The total number of failed re-authentication of connections.")
-            .customMetric(
-                "kafka.producer.flush_time_ns_total",
-                MetricInstrument.COUNTER,
-                "Total time producer has spent in flush in nanoseconds.")
-            .customMetric(
-                "kafka.producer.io_ratio",
-                MetricInstrument.GAUGE,
-                "*Deprecated* The fraction of time the I/O thread spent doing I/O.")
-            .customMetric(
-                "kafka.producer.io_time_ns_avg",
-                MetricInstrument.GAUGE,
-                "The average length of time for I/O per select call in nanoseconds.")
-            .customMetric(
-                "kafka.producer.io_time_ns_total",
-                MetricInstrument.COUNTER,
-                "The total time the I/O thread spent doing I/O.")
-            .customMetric(
-                "kafka.producer.io_wait_ratio",
-                MetricInstrument.GAUGE,
-                "*Deprecated* The fraction of time the I/O thread spent waiting.")
-            .customMetric(
-                "kafka.producer.io_wait_time_ns_avg",
-                MetricInstrument.GAUGE,
-                "The average length of time the I/O thread spent waiting for a socket ready for reads or writes in nanoseconds.")
-            .customMetric(
-                "kafka.producer.io_wait_time_ns_total",
-                MetricInstrument.COUNTER,
-                "The total time the I/O thread spent waiting.")
-            .customMetric(
-                "kafka.producer.io_waittime_total",
-                MetricInstrument.COUNTER,
-                "*Deprecated* The total time the I/O thread spent waiting.")
-            .customMetric(
-                "kafka.producer.iotime_total",
-                MetricInstrument.COUNTER,
-                "*Deprecated* The total time the I/O thread spent doing I/O.")
-            .customMetric(
-                "kafka.producer.metadata_age",
-                MetricInstrument.GAUGE,
-                "The age in seconds of the current producer metadata being used.")
-            .customMetric(
-                "kafka.producer.metadata_wait_time_ns_total",
-                MetricInstrument.COUNTER,
-                "Total time producer has spent waiting on topic metadata in nanoseconds.")
-            .customMetric(
-                "kafka.producer.network_io_rate",
-                MetricInstrument.GAUGE,
-                "The number of network operations (reads or writes) on all connections per second.")
-            .customMetric(
-                "kafka.producer.network_io_total",
-                MetricInstrument.COUNTER,
-                "The total number of network operations (reads or writes) on all connections.")
-            .customMetric(
-                "kafka.producer.produce_throttle_time_avg",
-                MetricInstrument.GAUGE,
-                "The average time in ms a request was throttled by a broker.")
-            .customMetric(
-                "kafka.producer.produce_throttle_time_max",
-                MetricInstrument.GAUGE,
-                "The maximum time in ms a request was throttled by a broker.")
-            .customMetric(
-                "kafka.producer.reauthentication_latency_avg",
-                MetricInstrument.GAUGE,
-                "The average latency observed due to re-authentication.")
-            .customMetric(
-                "kafka.producer.reauthentication_latency_max",
-                MetricInstrument.GAUGE,
-                "The max latency observed due to re-authentication.")
-            .customMetric(
-                "kafka.producer.record_queue_time_avg",
-                MetricInstrument.GAUGE,
-                "The average time in ms record batches spent in the send buffer.")
-            .customMetric(
-                "kafka.producer.record_queue_time_max",
-                MetricInstrument.GAUGE,
-                "The maximum time in ms record batches spent in the send buffer.")
-            .customMetric(
-                "kafka.producer.record_size_avg",
-                MetricInstrument.GAUGE,
-                "The average record size.")
-            .customMetric(
-                "kafka.producer.record_size_max",
-                MetricInstrument.GAUGE,
-                "The maximum record size.")
-            .customMetric(
-                "kafka.producer.records_per_request_avg",
-                MetricInstrument.GAUGE,
-                "The average number of records per request.")
-            .customMetric(
-                "kafka.producer.requests_in_flight",
-                MetricInstrument.GAUGE,
-                "The current number of in-flight requests awaiting a response.")
-            .customMetric(
-                "kafka.producer.select_rate",
-                MetricInstrument.GAUGE,
-                "The number of times the I/O layer checked for new I/O to perform per second.")
-            .customMetric(
-                "kafka.producer.select_total",
-                MetricInstrument.COUNTER,
-                "The total number of times the I/O layer checked for new I/O to perform.")
-            .customMetric(
-                "kafka.producer.successful_authentication_no_reauth_total",
-                MetricInstrument.COUNTER,
-                "The total number of connections with successful authentication where the client does not support re-authentication.")
-            .customMetric(
-                "kafka.producer.successful_authentication_rate",
-                MetricInstrument.GAUGE,
-                "The number of connections with successful authentication per second.")
-            .customMetric(
-                "kafka.producer.successful_authentication_total",
-                MetricInstrument.COUNTER,
-                "The total number of connections with successful authentication.")
-            .customMetric(
-                "kafka.producer.successful_reauthentication_rate",
-                MetricInstrument.GAUGE,
-                "The number of successful re-authentication of connections per second.")
-            .customMetric(
-                "kafka.producer.successful_reauthentication_total",
-                MetricInstrument.COUNTER,
-                "The total number of successful re-authentication of connections.")
-            .customMetric(
-                "kafka.producer.txn_abort_time_ns_total",
-                MetricInstrument.COUNTER,
-                "Total time producer has spent in abortTransaction in nanoseconds.")
-            .customMetric(
-                "kafka.producer.txn_begin_time_ns_total",
-                MetricInstrument.COUNTER,
-                "Total time producer has spent in beginTransaction in nanoseconds.")
-            .customMetric(
-                "kafka.producer.txn_commit_time_ns_total",
-                MetricInstrument.COUNTER,
-                "Total time producer has spent in commitTransaction in nanoseconds.")
-            .customMetric(
-                "kafka.producer.txn_init_time_ns_total",
-                MetricInstrument.COUNTER,
-                "Total time producer has spent in initTransactions in nanoseconds.")
-            .customMetric(
-                "kafka.producer.txn_send_offsets_time_ns_total",
-                MetricInstrument.COUNTER,
-                "Total time producer has spent in sendOffsetsToTransaction in nanoseconds.")
-            .customMetric(
-                "kafka.producer.waiting_threads",
-                MetricInstrument.GAUGE,
-                "The number of user threads blocked waiting for buffer memory to enqueue their records.")
-            .customMetric(
-                "kafka.producer.incoming_byte_rate",
-                MetricInstrument.GAUGE,
-                "The number of bytes read off all sockets per second.")
-            .customMetric(
-                "kafka.producer.incoming_byte_total",
-                MetricInstrument.COUNTER,
-                "The total number of bytes read off all sockets.")
-            .customMetric(
-                "kafka.producer.outgoing_byte_rate",
-                MetricInstrument.GAUGE,
-                "The number of outgoing bytes sent to all servers per second.")
-            .customMetric(
-                "kafka.producer.outgoing_byte_total",
-                MetricInstrument.COUNTER,
-                "The total number of outgoing bytes sent to all servers.")
-            .customMetric(
-                "kafka.producer.request_latency_avg",
-                MetricInstrument.GAUGE,
-                "The average request latency in ms.")
-            .customMetric(
-                "kafka.producer.request_latency_max",
-                MetricInstrument.GAUGE,
-                "The maximum request latency in ms.")
-            .customMetric(
-                "kafka.producer.request_rate",
-                MetricInstrument.GAUGE,
-                "The number of requests sent per second.")
-            .customMetric(
-                "kafka.producer.request_size_avg",
-                MetricInstrument.GAUGE,
-                "The average size of requests sent.")
-            .customMetric(
-                "kafka.producer.request_size_max",
-                MetricInstrument.GAUGE,
-                "The maximum size of any request sent.")
-            .customMetric(
-                "kafka.producer.request_total",
-                MetricInstrument.COUNTER,
-                "The total number of requests sent.")
-            .customMetric(
-                "kafka.producer.response_rate",
-                MetricInstrument.GAUGE,
-                "The number of responses received per second.")
-            .customMetric(
-                "kafka.producer.response_total",
-                MetricInstrument.COUNTER,
-                "The total number of responses received.")
-            .customMetric(
-                "kafka.producer.byte_rate",
-                MetricInstrument.GAUGE,
-                "The average number of bytes sent per second for a topic.")
-            .customMetric(
-                "kafka.producer.byte_total",
-                MetricInstrument.COUNTER,
-                "The total number of bytes sent for a topic.")
-            .customMetric(
-                "kafka.producer.compression_rate",
-                MetricInstrument.GAUGE,
-                "The average compression rate of record batches for a topic.")
-            .customMetric(
-                "kafka.producer.record_error_rate",
-                MetricInstrument.GAUGE,
-                "The average per-second number of record sends that resulted in errors.")
-            .customMetric(
-                "kafka.producer.record_error_total",
-                MetricInstrument.COUNTER,
-                "The total number of record sends that resulted in errors.")
-            .customMetric(
-                "kafka.producer.record_retry_rate",
-                MetricInstrument.GAUGE,
-                "The average per-second number of retried record sends.")
-            .customMetric(
-                "kafka.producer.record_retry_total",
-                MetricInstrument.COUNTER,
-                "The total number of retried record sends.")
-            .customMetric(
-                "kafka.producer.record_send_rate",
-                MetricInstrument.GAUGE,
-                "The average number of records sent per second.")
-            .customMetric(
-                "kafka.producer.record_send_total",
-                MetricInstrument.COUNTER,
-                "The total number of records sent.")
-            .build());
-    instrumentations.add(
-        instrumentation("jsf-myfaces").component("Apache MyFaces", "1.2 and higher").build());
-    instrumentations.add(
-        instrumentation("pekko-actor").component("Apache Pekko Actors", "1.0 and higher").build());
-    instrumentations.add(
-        instrumentation("pekko-http")
-            .component("Apache Pekko HTTP", "1.0 and higher")
-            .httpClientMetrics()
-            .httpServerMetrics()
-            .build());
-    instrumentations.add(
-        instrumentation("pulsar")
-            .component("Apache Pulsar", "2.8 and higher")
-            .messagingPublisherMetrics()
-            .messagingConsumerMetrics()
-            .build());
-    instrumentations.add(
-        instrumentation("rocketmq-client")
-            .component("Apache RocketMQ gRPC/Protobuf-based Client", "5.0 and higher")
-            .component("Apache RocketMQ Remoting-based Client", "4.8 and higher")
-            .build());
-    instrumentations.add(
-        instrumentation("apache-shenyu").component("Apache ShenYu", "2.4 and higher").build());
-    instrumentations.add(
-        instrumentation("struts").component("Apache Struts 2", "2.3 and higher").build());
-    instrumentations.add(
-        instrumentation("tomcat")
-            .component("Apache Tomcat", "7.0 and higher")
-            .httpServerMetrics()
-            .build());
-    instrumentations.add(
-        instrumentation("tapestry").component("Apache Tapestry", "5.4 and higher").build());
-    instrumentations.add(
-        instrumentation("wicket").component("Apache Wicket", "8.0 and higher").build());
-    instrumentations.add(
-        instrumentation("armeria")
-            .component("Armeria", "1.3 and higher")
-            .httpClientMetrics()
-            .httpServerMetrics()
-            .build());
-    instrumentations.add(
-        instrumentation("armeria")
-            .component("Armeria gRPC", "1.14 and higher")
-            .rpcClientMetrics(true)
-            .rpcServerMetrics(true)
-            .build());
-    instrumentations.add(
-        instrumentation("async-http-client")
-            .component("AsyncHttpClient", "1.8 and higher")
-            .httpClientMetrics()
-            .build());
-    instrumentations.add(
-        instrumentation("avaje-jex").component("Avaje Jex", "3.0 and higher").build());
-    instrumentations.add(
-        instrumentation("aws-lambda").component("AWS Lambda", "1.0 and higher").build());
-    instrumentations.add(
-        instrumentation("aws-sdk")
-            .component("AWS SDK 1", "1.11 and higher")
-            .component("AWS SDK 2", "2.2 and higher")
-            .dbClientMetrics()
-            .genAiClientMetrics()
-            .build());
-    instrumentations.add(
-        instrumentation("azure-core").component("Azure Core", "1.14 and higher").build());
-    instrumentations.add(
-        instrumentation("cassandra")
-            .component("Cassandra Driver", "3.0 and higher")
-            .dbClientMetrics()
-            .build());
-    instrumentations.add(
-        instrumentation("clickhouse-client-v1")
-            .component("Clickhouse Client V1", "0.5 and higher")
-            .dbClientMetrics()
-            .build());
-    instrumentations.add(
-        instrumentation("clickhouse-client-v2")
-            .component("Clickhouse Client V2", "0.8 and higher")
-            .dbClientMetrics()
-            .build());
-    instrumentations.add(
-        instrumentation("couchbase")
-            .component("Couchbase Client", "2.0 to 3.0 and 3.1 and higher")
-            .dbClientMetrics()
-            .build());
-    instrumentations.add(
-        instrumentation("c3p0")
-            .component("c3p0", "0.9.2 and higher")
-            .dbPoolMetrics(DbPoolMetrics.USAGE, DbPoolMetrics.PENDING_REQUESTS)
-            .build());
-    instrumentations.add(
-        instrumentation("dropwizard-metrics", "Disabled by default")
-            .component("Dropwizard Metrics", "4.0 and higher")
-            .build());
-    instrumentations.add(
-        instrumentation("dropwizard-views")
-            .component("Dropwizard Views", "0.7 and higher")
-            .build());
-    instrumentations.add(
-        instrumentation("grizzly")
-            .component("Eclipse Grizzly", "2.3 and higher")
-            .httpServerMetrics()
-            .build());
-    instrumentations.add(
-        instrumentation("jersey").component("Eclipse Jersey", "2.0 and higher").build());
-    instrumentations.add(
-        instrumentation("jetty")
-            .component("Eclipse Jetty", "8.0 and higher")
-            .httpServerMetrics()
-            .build());
-    instrumentations.add(
-        instrumentation("jetty-httpclient")
-            .component("Eclipse Jetty HTTP Client", "9.2 to 10.0, 12.0 and higher")
-            .httpClientMetrics()
-            .build());
-    instrumentations.add(
-        instrumentation("metro").component("Eclipse Metro", "2.2 and higher").build());
-    instrumentations.add(
-        instrumentation("jsf-mojarra").component("Eclipse Mojarra", "1.2 and higher").build());
-    instrumentations.add(
-        instrumentation("elasticsearch-api-client")
-            .component("Elasticsearch API Client", "7.16 and higher")
-            .build());
-    instrumentations.add(
-        instrumentation("elasticsearch-rest")
-            .component("Elasticsearch REST Client", "5.0 and higher")
-            .dbClientMetrics()
-            .build());
-    instrumentations.add(
-        instrumentation("elasticsearch-transport")
-            .component("Elasticsearch Transport Client", "5.0 and higher")
-            .dbClientMetrics()
-            .build());
-    instrumentations.add(
-        instrumentation("finagle-http").component("Finagle", "23.11 and higher").build());
-    instrumentations.add(instrumentation("finatra").component("Finatra", "2.9 and higher").build());
-    instrumentations.add(
-        instrumentation("geode")
-            .component("Geode Client", "1.4 and higher")
-            .dbClientMetrics()
-            .build());
-    instrumentations.add(
-        instrumentation("google-http-client")
-            .component("Google HTTP Client", "1.19 and higher")
-            .httpClientMetrics()
-            .build());
-    instrumentations.add(instrumentation("grails").component("Grails", "3.0 and higher").build());
-    instrumentations.add(
-        instrumentation("graphql-java").component("GaphQL Java", "12.0 and higher").build());
-    instrumentations.add(
-        instrumentation("grpc")
-            .component("gRPC", "1.6 and higher")
-            .rpcClientMetrics(true)
-            .rpcServerMetrics(true)
-            .build());
-    instrumentations.add(
-        instrumentation("guava").component("Guava ListenableFuture", "0.9.2 and higher").build());
-    instrumentations.add(instrumentation("gwt").component("GWT", "0.9.2 and higher").build());
-    instrumentations.add(
-        instrumentation("helidon").component("Helidon", "0.9.2 and higher").build());
-    instrumentations.add(
-        instrumentation("hibernate")
-            .component("Hibernate", "4.3 and higher")
-            .httpServerMetrics()
-            .build());
-    instrumentations.add(
-        instrumentation("hibernate-reactive")
-            .component("Hibernate Reactive", "1.0 and higher")
-            .build());
-    instrumentations.add(
-        instrumentation("hikaricp")
-            .component("HikariCP", "3.0 and higher")
-            .dbPoolMetrics(
-                DbPoolMetrics.USAGE,
-                DbPoolMetrics.IDLE_MIN,
-                DbPoolMetrics.MAX,
-                DbPoolMetrics.PENDING_REQUESTS,
-                DbPoolMetrics.TIMEOUTS,
-                DbPoolMetrics.CREATE_TIME,
-                DbPoolMetrics.USE_TIME,
-                DbPoolMetrics.WAIT_TIME)
-            .build());
-    instrumentations.add(
-        instrumentation("http-url-connection")
-            .component("HttpURLConnection", null)
-            .httpClientMetrics()
-            .build());
-    instrumentations.add(instrumentation("hystrix").component("Hystrix", "1.4 and higher").build());
-    instrumentations.add(
-        instrumentation("influxdb")
-            .component("InfluxDB Client", "2.4 and higher")
-            .dbClientMetrics()
-            .build());
-    instrumentations.add(instrumentation("executors").component("Java Executors", null).build());
-    instrumentations.add(
-        instrumentation("java-http-client")
-            .component("Java HTTP Client", null)
-            .httpClientMetrics()
-            .build());
-    instrumentations.add(
-        instrumentation("java-http-server")
-            .component("Java HTTP Server", null)
-            .httpServerMetrics()
-            .build());
-    instrumentations.add(
-        instrumentation("java-util-logging").component("java.util.logging", null).build());
-    instrumentations.add(
-        instrumentation("runtime-telemetry")
-            .component("Java Platform", null)
-            .bundledMetric(
-                "jvm.class.loaded",
-                MetricInstrument.COUNTER,
-                "Number of classes loaded since JVM start.")
-            .bundledMetric(
-                "jvm.class.unloaded",
-                MetricInstrument.COUNTER,
-                "Number of classes unloaded since JVM start.")
-            .bundledMetric(
-                "jvm.class.count",
-                MetricInstrument.UP_DOWN_COUNTER,
-                "Number of classes currently loaded.")
-            .bundledMetric(
-                "jvm.cpu.time",
-                MetricInstrument.COUNTER,
-                "CPU time used by the process as reported by the JVM.")
-            .bundledMetric(
-                "jvm.cpu.count",
-                MetricInstrument.UP_DOWN_COUNTER,
-                "Number of processors available to the Java virtual machine.")
-            .bundledMetric(
-                "jvm.cpu.recent_utilization",
-                MetricInstrument.GAUGE,
-                "Recent CPU utilization for the process as reported by the JVM.")
-            .bundledMetric(
-                "jvm.gc.duration",
-                MetricInstrument.HISTOGRAM,
-                "Duration of JVM garbage collection actions.")
-            .bundledMetric(
-                "jvm.memory.used", MetricInstrument.UP_DOWN_COUNTER, "Measure of memory used.")
-            .bundledMetric(
-                "jvm.memory.committed",
-                MetricInstrument.UP_DOWN_COUNTER,
-                "Measure of memory committed.")
-            .bundledMetric(
-                "jvm.memory.limit",
-                MetricInstrument.UP_DOWN_COUNTER,
-                "Measure of max obtainable memory.")
-            .bundledMetric(
-                "jvm.memory.used_after_last_gc",
-                MetricInstrument.UP_DOWN_COUNTER,
-                "Measure of memory used, as measured after the most recent garbage collection event on this pool.")
-            .bundledMetric(
-                "jvm.thread.count",
-                MetricInstrument.UP_DOWN_COUNTER,
-                "Number of executing platform threads (disabled by default).")
-            .customMetric(
-                "jvm.buffer.memory.used",
-                MetricInstrument.UP_DOWN_COUNTER,
-                "Measure of memory used by buffers (disabled by default).")
-            .customMetric(
-                "jvm.buffer.memory.limit",
-                MetricInstrument.UP_DOWN_COUNTER,
-                "Measure of total memory capacity of buffers (disabled by default).")
-            .customMetric(
-                "jvm.buffer.count",
-                MetricInstrument.UP_DOWN_COUNTER,
-                "Number of buffers in the pool (disabled by default).")
-            .customMetric(
-                "jvm.system.cpu.load_1m",
-                MetricInstrument.GAUGE,
-                "Average CPU load of the whole system for the last minute as reported by the JVM (disabled by default).")
-            .customMetric(
-                "jvm.system.cpu.utilization",
-                MetricInstrument.GAUGE,
-                "Recent CPU utilization for the whole system as reported by the JVM (disabled by default).")
-            .customMetric(
-                "jvm.memory.init",
-                MetricInstrument.UP_DOWN_COUNTER,
-                "Measure of initial memory requested (disabled by default).")
-            .customMetric(
-                "jvm.file_descriptor.count",
-                MetricInstrument.UP_DOWN_COUNTER,
-                "Number of open file descriptors as reported by the JVM (disabled by default).")
-            .customMetric(
-                "jvm.file_descriptor.limit",
-                MetricInstrument.UP_DOWN_COUNTER,
-                "Measure of max open file descriptors as reported by the JVM (disabled by default).")
-            // XXX JFR metrics from runtime-telemetry-java17 are missing
-            .build());
-    instrumentations.add(instrumentation("javalin").component("Javalin", "5.0 and higher").build());
-    instrumentations.add(instrumentation("jaxrs").component("JAX-RS", "0.5 and higher").build());
-    instrumentations.add(
-        instrumentation("jaxrs-client")
-            .component("JAX-RS Client", "1.1 and higher")
-            .httpClientMetrics()
-            .build());
-    instrumentations.add(instrumentation("jaxws").component("JAX-WS", "2.0 to 3.0").build());
-    instrumentations.add(
-        instrumentation(List.of("jboss-logmanager-appender", "jboss-logmanager-mdc"))
-            .component("JBoss Log Manager", "1.1 and higher")
-            .build());
-    instrumentations.add(
-        instrumentation(List.of("jdbc", "jdbc-datasource"))
-            .component("JDBC", null)
-            .dbClientMetrics()
-            .build());
-    instrumentations.add(
-        instrumentation("jedis").component("Jedis", "1.4 and higher").dbClientMetrics().build());
-    instrumentations.add(instrumentation("jfinal").component("JFinal", "3.2 and higher").build());
-    instrumentations.add(instrumentation("jms").component("JMS", "1.1 and higher").build());
-    instrumentations.add(
-        instrumentation("jodd-http")
-            .component("Jodd HTTP", "4.2 and higher")
-            .httpClientMetrics()
-            .build());
-    instrumentations.add(instrumentation("jsp").component("JSP", "2.3 and higher").build());
-    instrumentations.add(
-        instrumentation("kotlinx-coroutines")
-            .component("Kotlin Coroutines", "1.0 and higher")
-            .build());
-    instrumentations.add(
-        instrumentation("ktor")
-            .component("Ktor", "2.0 and higher")
-            .httpClientMetrics()
-            .httpServerMetrics()
-            .build());
-    instrumentations.add(
-        instrumentation("kubernetes-client")
-            .component("Kubernetes Client", "7.0 and higher")
-            .build());
-    instrumentations.add(
-        instrumentation("lettuce")
-            .component("Lettuce", "4.0 and higher")
-            .dbClientMetrics()
-            .build());
-    instrumentations.add(
-        instrumentation("liberty").component("Liberty", "20.0 and higher").build());
-    instrumentations.add(
-        instrumentation(List.of("log4j-appender", "log4j-mdc", "log4j-context-data"))
-            .component("Log4j", "1.2 and higher")
-            .build());
-    instrumentations.add(
-        instrumentation(List.of("logback-appender", "logback-mdc"))
-            .component("Logback", "1.0 and higher")
-            .build());
-    instrumentations.add(
-        instrumentation("micrometer").component("Micrometer", "1.5 and higher").build());
-    instrumentations.add(
-        instrumentation("mongo")
-            .component("MongoDB Drive", "3.1 and higher")
-            .dbClientMetrics()
-            .build());
-    instrumentations.add(instrumentation("mybatis").component("MyBatis", "3.2 and higher").build());
-    instrumentations.add(
-        instrumentation("netty")
-            .component("Netty", "3.8 and higher")
-            .httpClientMetrics()
-            .httpServerMetrics()
-            .build());
-    instrumentations.add(
-        instrumentation("okhttp")
-            .component("OkHttp", "2.2 and higher")
-            .httpClientMetrics()
-            .build());
-    instrumentations.add(
-        instrumentation("liberty")
-            .component("OpenLiberty", "20.0 and higher")
-            .httpServerMetrics()
-            .build());
-    instrumentations.add(
-        instrumentation("nats").component("NATS Client", "2.17.2 and higher").build());
-    instrumentations.add(
-        instrumentation("opensearch")
-            .component("OpenSearch REST Client", "1.0 and higher")
-            .component("OpenSearch Java Client", "3.0 and higher")
-            .dbClientMetrics()
-            .build());
-    instrumentations.add(
-        instrumentation("openai-java")
-            .component("OpenAI Java SDK", "1.1 and higher")
-            .genAiClientMetrics()
-            .build());
-    instrumentations.add(
-        instrumentation("opentelemetry-api").component("OpenTelemetry API", null).build());
-    instrumentations.add(
-        instrumentation("opentelemetry-extension-annotations")
-            .component("OpenTelemetry Extension Annotations", null)
-            .build());
-    instrumentations.add(
-        instrumentation("opentelemetry-instrumentation-annotations")
-            .component("OpenTelemetry Instrumentation Annotations", null)
-            .build());
-    instrumentations.add(
-        instrumentation("oracle-ucp")
-            .component("Oracle UCP", "11.2 and higher")
-            .dbPoolMetrics(DbPoolMetrics.USAGE, DbPoolMetrics.MAX, DbPoolMetrics.PENDING_REQUESTS)
-            .build());
-    instrumentations.add(instrumentation("oshi").component("OSHI", "5.3.1 and higher").build());
-    instrumentations.add(instrumentation("payara").component("Payara", "5.0 and higher").build());
-    instrumentations.add(instrumentation("play-mvc").component("Play", "2.4 and higher").build());
-    instrumentations.add(
-        instrumentation("play-ws")
-            .component("Play WS", "1.0 and higher")
-            .httpClientMetrics()
-            .build());
-    instrumentations.add(
-        instrumentation("powerjob").component("PowerJob", "4.0 and higher").build());
-    instrumentations.add(
-        instrumentation("quarkus-resteasy-reactive")
-            .component("Quarkus Resteasy Reactive", "2.16.7 and higher")
-            .build());
-    instrumentations.add(instrumentation("quartz").component("Quartz", "2.0 and higher").build());
-    instrumentations.add(
-        instrumentation("r2dbc").component("R2DBC", "1.0 and higher").dbClientMetrics().build());
-    instrumentations.add(
-        instrumentation("rabbitmq").component("RabbitMQ Client", "2.7 and higher").build());
-    instrumentations.add(
-        instrumentation("ratpack")
-            .component("Ratpack", "1.4 and higher")
-            .httpClientMetrics()
-            .httpServerMetrics()
-            .build());
-    instrumentations.add(instrumentation("reactor").component("Reactor", "3.1 and higher").build());
-    instrumentations.add(
-        instrumentation("reactor-netty")
-            .component("Reactor Netty", "0.9 and higher")
-            .httpClientMetrics()
-            .build());
-    instrumentations.add(
-        instrumentation("rediscala")
-            .component("Rediscala", "1.8 and higher")
-            .dbClientMetrics()
-            .build());
-    instrumentations.add(
-        instrumentation("redisson")
-            .component("Redisson", "3.0 and higher")
-            .dbClientMetrics()
-            .build());
-    instrumentations.add(
-        instrumentation("resteasy").component("RESTEasy", "3.0 and higher").build());
-    instrumentations.add(
-        instrumentation("restlet")
-            .component("Restlet", "1.0 and higher")
-            .httpServerMetrics()
-            .build());
-    instrumentations.add(instrumentation("rmi").component("RMI", null).build());
-    instrumentations.add(instrumentation("rxjava").component("RxJava", "2.2 and higher").build());
-    instrumentations.add(
-        instrumentation("scala-fork-join")
-            .component("Scala ForkJoinPool", "2.8 and higher")
-            .build());
-    instrumentations.add(
-        instrumentation("servlet")
-            .component("Servlet", "2.2 and higher")
-            .httpServerMetrics()
-            .build());
-    instrumentations.add(
-        instrumentation("spark").component("Spark Web Framework", "2.3 and higher").build());
-    instrumentations.add(
-        instrumentation("spring-batch", "Disabled by default")
-            .component("Spring Batch", "2.0 and higher")
-            .build());
-    instrumentations.add(
-        instrumentation("spring-cloud-gateway")
-            .component("Spring Cloud AWS", "3.0 and higher")
-            .build());
-    instrumentations.add(
-        instrumentation("spring-cloud-gateway")
-            .component("Spring Cloud Gateway", "1.8 and higher")
-            .build());
-    instrumentations.add(
-        instrumentation("spring-core").component("Spring Core", "2.0 and higher").build());
-    instrumentations.add(
-        instrumentation("spring-data").component("Spring Data", "1.8 and higher").build());
-    instrumentations.add(
-        instrumentation("spring-integration")
-            .component("Spring Integration", "4.1 to 6.0")
-            .build());
-    instrumentations.add(
-        instrumentation("spring-jms").component("Spring JMS", "2.0 and higher").build());
-    instrumentations.add(
-        instrumentation("spring-kafka").component("Spring Kafka", "2.7 and higher").build());
-    instrumentations.add(
-        instrumentation("spring-pulsar").component("Spring Pulsar", "1.0 and higher").build());
-    instrumentations.add(
-        instrumentation("spring-rabbit").component("Spring RabbitMQ", "1.0 and higher").build());
-    instrumentations.add(
-        instrumentation("spring-web")
-            .component("Spring RestTemplate", "3.1 and higher")
-            .httpClientMetrics()
-            .build());
-    instrumentations.add(
-        instrumentation("spring-rmi").component("Spring RMI", "4.0 and higher").build());
-    instrumentations.add(
-        instrumentation("spring-scheduling")
-            .component("Spring Scheduling", "3.1 and higher")
-            .build());
-    instrumentations.add(
-        instrumentation("spring-webmvc").component("Spring Web MVC", "3.1 and higher").build());
-    instrumentations.add(
-        instrumentation("spring-ws").component("Spring Web Service", "2.0 and higher").build());
-    instrumentations.add(
-        instrumentation("spring-webflux")
-            .component("Spring WebFlux", "5.3 and higher")
-            .httpClientMetrics()
-            .build());
-    instrumentations.add(
-        instrumentation("spymemcached")
-            .component("Spymemcached", "2.12 and higher")
-            .dbClientMetrics()
-            .build());
-    instrumentations.add(
-        instrumentation("tomcat-jdbc")
-            .component("Tomcat JDBC", "8.5 and higher")
-            .dbPoolMetrics(
-                DbPoolMetrics.USAGE,
-                DbPoolMetrics.IDLE_MAX,
-                DbPoolMetrics.IDLE_MIN,
-                DbPoolMetrics.MAX,
-                DbPoolMetrics.PENDING_REQUESTS)
-            .build());
-    instrumentations.add(instrumentation("twilio").component("Twilio", "6.6 to 8.0").build());
-    instrumentations.add(
-        instrumentation("undertow")
-            .component("Undertow", "1.4 and higher")
-            .httpServerMetrics()
-            .build());
-    instrumentations.add(instrumentation("vaadin").component("Vaadin", "14.2 and higher").build());
-    instrumentations.add(
-        instrumentation("vertx-http-client")
-            .component("Vert.x HttpClient", "3.0 and higher")
-            .httpClientMetrics()
-            .build());
-    instrumentations.add(
-        instrumentation("vertx-kafka-client")
-            .component("Vert.x Kafka Client", "3.6 and higher")
-            .build());
-    instrumentations.add(
-        instrumentation("vertx-redis-client")
-            .component("Vert.x Redis Client", "3.0 and higher")
-            .dbClientMetrics()
-            .build());
-    instrumentations.add(
-        instrumentation("vertx-rx-java").component("Vert.x RxJava2", "3.5 and higher").build());
-    instrumentations.add(
-        instrumentation("vertx-sql-client")
-            .component("Vert.x SQL Client", "4.0 and higher")
-            .dbClientMetrics()
-            .build());
-    instrumentations.add(
-        instrumentation("vertx-web").component("Vert.x Web", "3.0 and higher").build());
-    instrumentations.add(
-        instrumentation("vibur-dbcp")
-            .component("Vibur DBCP", "11.0 and higher")
-            .dbPoolMetrics(DbPoolMetrics.USAGE, DbPoolMetrics.MAX)
-            .build());
-    instrumentations.add(
-        instrumentation("xxl-job").component("XXL-JOB", "1.9.2 and higher").build());
-    instrumentations.add(instrumentation("zio").component("ZIO", "2.0 and higher").build());
-    instrumentations.add(
-        instrumentation("zio-http").component("ZIO HTTP", "3.0 and higher").build());
+    instrumentations.addAll(parseInstrumentations(otelJavaInstrumentationVersion));
 
     // splunk instrumentations
     instrumentations.add(
-        splunkInstrumentation("jvm-metrics-splunk")
+        splunkInstrumentation(
+                "jvm-metrics-splunk",
+                "This instrumentation enables additional JVM metrics used by profiling dashboards.")
             .component("Java Platform", null)
             .bundledMetric(
                 "jvm.memory.allocated",
@@ -3826,28 +1505,85 @@ public class MetadataGenerator {
                 MetricInstrument.COUNTER,
                 "Time spent in GC pause. This metric will be removed in a future release.")
             .build());
+
     instrumentations.add(
-        splunkInstrumentation("khttp")
+        splunkInstrumentation(
+                "khttp",
+                "This instrumentation enables HTTP client spans and HTTP client metrics for khttp.")
             .component("khttp", "0.1 and higher")
             .httpClientMetrics()
+            .addSetting(
+                setting(
+                    "otel.instrumentation.http.known-methods",
+                    "Configures the instrumentation to recognize an alternative set of HTTP request methods. All other methods will be treated as `_OTHER`.",
+                    "CONNECT,DELETE,GET,HEAD,OPTIONS,PATCH,POST,PUT,TRACE",
+                    SettingType.LIST,
+                    SettingCategory.INSTRUMENTATION))
+            .addSetting(
+                setting(
+                    "otel.instrumentation.http.client.capture-request-headers",
+                    "List of HTTP request headers to capture in HTTP client telemetry.",
+                    "",
+                    SettingType.LIST,
+                    SettingCategory.INSTRUMENTATION))
+            .addSetting(
+                setting(
+                    "otel.instrumentation.http.client.capture-response-headers",
+                    "List of HTTP response headers to capture in HTTP client telemetry.",
+                    "",
+                    SettingType.LIST,
+                    SettingCategory.INSTRUMENTATION))
+            .addSetting(
+                setting(
+                    "otel.instrumentation.common.peer-service-mapping",
+                    "Used to specify a mapping from host names or IP addresses to peer services.",
+                    "",
+                    SettingType.MAP,
+                    SettingCategory.INSTRUMENTATION))
+            .addSetting(
+                setting(
+                    "otel.instrumentation.http.client.experimental.redact-query-parameters",
+                    "Redact sensitive URL parameters. See https://opentelemetry.io/docs/specs/semconv/http/http-spans.",
+                    "true",
+                    SettingType.BOOLEAN,
+                    SettingCategory.INSTRUMENTATION))
+            .build());
+    String webengineInstrumentationDesc =
+        "Adds `webengine.name` and `webengine.version` attributes to spans.";
+    instrumentations.add(
+        splunkInstrumentation("glassfish-splunk", webengineInstrumentationDesc)
+            .component("GlassFish", "5.0 and higher")
             .build());
     instrumentations.add(
-        splunkInstrumentation("glassfish").component("GlassFish", "5.0 and higher").build());
-    // XXX jetty, liberty and tomcat have the same key as an existing otel instrumentation
+        splunkInstrumentation("jetty-splunk", webengineInstrumentationDesc)
+            .component("Jetty", "9.4 and higher")
+            .build());
     instrumentations.add(
-        splunkInstrumentation("jetty").component("Jetty", "9.4 and higher").build());
+        splunkInstrumentation("liberty-splunk", webengineInstrumentationDesc)
+            .component("Liberty", "20.0 and higher")
+            .build());
     instrumentations.add(
-        splunkInstrumentation("liberty").component("Liberty", "20.0 and higher").build());
+        splunkInstrumentation("tomcat-splunk", webengineInstrumentationDesc)
+            .component("Tomcat", "7.0 and higher")
+            .build());
     instrumentations.add(
-        splunkInstrumentation("tomcat").component("Tomcat", "7.0 and higher").build());
+        splunkInstrumentation("tomee-splunk", webengineInstrumentationDesc)
+            .component("TomEE", "7.0 and higher")
+            .build());
     instrumentations.add(
-        splunkInstrumentation("tomee").component("TomEE", "7.0 and higher").build());
+        splunkInstrumentation("weblogic-splunk", webengineInstrumentationDesc)
+            .component("WebLogic", "12.1 and higher")
+            .build());
     instrumentations.add(
-        splunkInstrumentation("weblogic").component("WebLogic", "12.1 and higher").build());
+        splunkInstrumentation("websphere-splunk", webengineInstrumentationDesc)
+            .component("WebSphere", "8.5.5 and higher")
+            .build());
     instrumentations.add(
-        splunkInstrumentation("websphere").component("WebSphere", "8.5.5 and higher").build());
-    instrumentations.add(
-        splunkInstrumentation("wildfly").component("WildFly", "13.0 and higher").build());
+        splunkInstrumentation("wildfly-splunk", webengineInstrumentationDesc)
+            .component("WildFly", "13.0 and higher")
+            .build());
+
+    Collections.sort(instrumentations, Comparator.comparing(i -> Objects.toString(i.get("keys"))));
 
     List<Map<String, Object>> resourceProviders = new ArrayList<>();
     root.put("resource_detectors", resourceProviders);
@@ -4221,6 +1957,93 @@ public class MetadataGenerator {
     }
   }
 
+  private static List<Map<String, Object>> parseInstrumentations(
+      String otelJavaInstrumentationVersion) throws IOException {
+    String url;
+    if (otelJavaInstrumentationVersion.endsWith("-SNAPSHOT")) {
+      url =
+          "https://raw.githubusercontent.com/open-telemetry/opentelemetry-java-instrumentation/HEAD/docs/instrumentation-list.yaml";
+    } else {
+      url =
+          "https://raw.githubusercontent.com/open-telemetry/opentelemetry-java-instrumentation/refs/tags/v"
+              + otelJavaInstrumentationVersion
+              + "/docs/instrumentation-list.yaml";
+    }
+    return parseInstrumentations(new URL(url));
+  }
+
+  private static List<Map<String, Object>> parseInstrumentations(URL url) throws IOException {
+    Yaml yaml = new Yaml();
+    Map<String, Object> metadata;
+    try (InputStream inputStream = url.openStream()) {
+      metadata = yaml.load(inputStream);
+    }
+
+    if (!"0.5".equals(metadata.get("file_format").toString())) {
+      throw new IllegalStateException(
+          "unexpected file format version: " + metadata.get("file_format"));
+    }
+    List<Map<String, Object>> result = new ArrayList<>();
+
+    handle(result, (List<Map<String, Object>>) metadata.get("libraries"));
+    handle(result, (List<Map<String, Object>>) metadata.get("custom"));
+
+    return result;
+  }
+
+  private static void handle(
+      List<Map<String, Object>> instrumentations, List<Map<String, Object>> infos) {
+    for (Map<String, Object> info : infos) {
+      // only javaagent instrumentations
+      if (Boolean.TRUE.equals(info.get("has_javaagent"))) {
+        InstrumentationBuilder builder =
+            instrumentation(info.get("name").toString(), info.get("description").toString());
+        String displayName = Objects.toString(info.get("display_name"), null);
+        if (displayName != null) {
+          builder.component(
+              displayName, Objects.toString(info.get("javaagent_target_versions"), null));
+        }
+
+        List<Map<String, Object>> configurations =
+            (List<Map<String, Object>>) info.get("configurations");
+        if (configurations != null) {
+          for (Map<String, Object> configuration : configurations) {
+            builder.addSetting(
+                setting(
+                    configuration.get("name").toString(),
+                    configuration.get("description").toString(),
+                    configuration.get("default").toString(),
+                    toSettingType(configuration.get("type").toString()),
+                    MetadataGenerator.SettingCategory.INSTRUMENTATION));
+          }
+        }
+
+        List<Map<String, Object>> telemetry = (List<Map<String, Object>>) info.get("telemetry");
+        if (telemetry != null) {
+          for (Map<String, Object> telemetryConfiguration : telemetry) {
+            if (!"default".equals(telemetryConfiguration.get("when"))) {
+              continue;
+            }
+            List<Map<String, Object>> metrics =
+                (List<Map<String, Object>>) telemetryConfiguration.get("metrics");
+            if (metrics != null) {
+              for (Map<String, Object> metric : metrics) {
+                String metricName = metric.get("name").toString();
+                builder.metric(
+                    metricName,
+                    toMetricInstrument(metric.get("instrument").toString()),
+                    metric.get("description").toString(),
+                    bundledMetrics.contains(metricName) ? BUNDLED_METRIC : CUSTOM_METRIC);
+              }
+            }
+          }
+        }
+
+        instrumentations.add(builder.build());
+      }
+    }
+  }
+
   private static Map<String, Object> dependency(
       String name, String source, String version, Stability stability) {
     Map<String, Object> map = new LinkedHashMap<>();
@@ -4284,20 +2107,40 @@ public class MetadataGenerator {
     return systemProperty.toUpperCase(Locale.ROOT).replace('.', '_').replace('-', '_');
   }
 
-  static InstrumentationBuilder instrumentation(String key) {
-    return instrumentation(key, null);
+  static MetadataGenerator.SettingType toSettingType(String value) {
+    switch (value) {
+      case "boolean":
+        return MetadataGenerator.SettingType.BOOLEAN;
+      case "int":
+        return MetadataGenerator.SettingType.INT;
+      case "string":
+        return MetadataGenerator.SettingType.STRING;
+      case "list":
+        return MetadataGenerator.SettingType.LIST;
+      case "map":
+        return MetadataGenerator.SettingType.MAP;
+      default:
+        throw new IllegalArgumentException("Unsupported setting type: " + value);
+    }
+  }
+
+  static MetadataGenerator.MetricInstrument toMetricInstrument(String value) {
+    switch (value) {
+      case "counter":
+        return MetadataGenerator.MetricInstrument.COUNTER;
+      case "gauge":
+        return MetadataGenerator.MetricInstrument.GAUGE;
+      case "histogram":
+        return MetadataGenerator.MetricInstrument.HISTOGRAM;
+      case "updowncounter":
+        return MetadataGenerator.MetricInstrument.UP_DOWN_COUNTER;
+      default:
+        throw new IllegalArgumentException("Unsupported metric instrument: " + value);
+    }
   }
 
   static InstrumentationBuilder instrumentation(String key, String description) {
     return instrumentation(key, description, Stability.EXPERIMENTAL, Support.COMMUNITY);
-  }
-
-  static InstrumentationBuilder instrumentation(List<String> keys) {
-    return instrumentation(keys, null);
-  }
-
-  static InstrumentationBuilder instrumentation(List<String> keys, String description) {
-    return instrumentation(keys, description, Stability.EXPERIMENTAL, Support.COMMUNITY);
   }
 
   static InstrumentationBuilder instrumentation(
@@ -4310,10 +2153,6 @@ public class MetadataGenerator {
     return new InstrumentationBuilder(keys, description, stability, support);
   }
 
-  static InstrumentationBuilder splunkInstrumentation(String key) {
-    return splunkInstrumentation(key, null);
-  }
-
   static InstrumentationBuilder splunkInstrumentation(String key, String description) {
     return instrumentation(key, description, Stability.EXPERIMENTAL, Support.SUPPORTED);
   }
@@ -4324,7 +2163,7 @@ public class MetadataGenerator {
     private final Stability stability;
     private final Support support;
     private final List<Object> instrumentedComponents = new ArrayList<>();
-    private final List<Object> dependencies = new ArrayList<>();
+    private final List<Map<String, Object>> settings = new ArrayList<>();
     private final List<Object> metrics = new ArrayList<>();
 
     InstrumentationBuilder(
@@ -4342,6 +2181,12 @@ public class MetadataGenerator {
       if (supportedVersions != null) {
         map.put("supported_versions", supportedVersions);
       }
+
+      return this;
+    }
+
+    InstrumentationBuilder addSetting(Map<String, Object> setting) {
+      settings.add(setting);
 
       return this;
     }
@@ -4385,135 +2230,6 @@ public class MetadataGenerator {
       return this;
     }
 
-    InstrumentationBuilder httpServerMetrics() {
-      bundledMetric(
-          "http.server.request.duration",
-          MetricInstrument.HISTOGRAM,
-          "Duration of HTTP server requests.");
-      customMetric(
-          "http.server.active_requests",
-          MetricInstrument.UP_DOWN_COUNTER,
-          "Number of active HTTP server requests (disabled by default).");
-      customMetric(
-          "http.server.request.body.size",
-          MetricInstrument.HISTOGRAM,
-          "Size of HTTP server request bodies (disabled by default).");
-      customMetric(
-          "http.server.response.body.size",
-          MetricInstrument.HISTOGRAM,
-          "Size of HTTP server response bodies (disabled by default).");
-
-      return this;
-    }
-
-    InstrumentationBuilder rpcClientMetrics(boolean supportsSizeMetrics) {
-      customMetric(
-          "rpc.client.duration",
-          MetricInstrument.HISTOGRAM,
-          "The duration of an outbound RPC invocation.");
-
-      if (supportsSizeMetrics) {
-        customMetric(
-            "rpc.client.request.size",
-            MetricInstrument.HISTOGRAM,
-            "Measures the size of RPC request messages (uncompressed).");
-        customMetric(
-            "rpc.client.response.size",
-            MetricInstrument.HISTOGRAM,
-            "Measures the size of RPC response messages (uncompressed).");
-      }
-
-      return this;
-    }
-
-    InstrumentationBuilder rpcServerMetrics(boolean supportsSizeMetrics) {
-      customMetric(
-          "rpc.server.duration",
-          MetricInstrument.HISTOGRAM,
-          "The duration of an inbound RPC invocation.");
-
-      if (supportsSizeMetrics) {
-        customMetric(
-            "rpc.server.request.size",
-            MetricInstrument.HISTOGRAM,
-            "Measures the size of RPC request messages (uncompressed).");
-        customMetric(
-            "rpc.server.response.size",
-            MetricInstrument.HISTOGRAM,
-            "Measures the size of RPC response messages (uncompressed).");
-      }
-
-      return this;
-    }
-
-    InstrumentationBuilder messagingPublisherMetrics() {
-      customMetric(
-          "messaging.publish.duration",
-          MetricInstrument.HISTOGRAM,
-          "Measures the duration of publish operation.");
-
-      return this;
-    }
-
-    InstrumentationBuilder messagingConsumerMetrics() {
-      customMetric(
-          "messaging.receive.duration",
-          MetricInstrument.HISTOGRAM,
-          "Measures the duration of receive operation.");
-      customMetric(
-          "messaging.receive.messages",
-          MetricInstrument.COUNTER,
-          "Measures the number of received messages.");
-
-      return this;
-    }
-
-    InstrumentationBuilder dbPoolMetrics(DbPoolMetrics... dbPoolMetrics) {
-      for (DbPoolMetrics metric : dbPoolMetrics) {
-        metric.add(this);
-      }
-
-      return this;
-    }
-
-    InstrumentationBuilder dbClientMetrics() {
-      // only with stable semconv opt-in
-      customMetric(
-          "db.client.operation.duration",
-          MetricInstrument.HISTOGRAM,
-          "Duration of database client operations.");
-
-      return this;
-    }
-
-    InstrumentationBuilder genAiClientMetrics() {
-      customMetric(
-          "gen_ai.client.token.usage",
-          MetricInstrument.HISTOGRAM,
-          "Measures number of input and output tokens used.");
-      customMetric(
-          "gen_ai.client.operation.duration",
-          MetricInstrument.HISTOGRAM,
-          "GenAI operation duration.");
-
-      return this;
-    }
-
-    InstrumentationBuilder dependency(
-        String name, String sourceUrl, String packageUrl, String version, Stability stability) {
-      Map<String, Object> map = new LinkedHashMap<>();
-      dependencies.add(map);
-      map.put("name", name);
-      map.put("source_href", sourceUrl);
-      if (packageUrl != null) {
-        map.put("package_href", packageUrl);
-      }
-      map.put("version", version);
-      map.put("stability", stability.value());
-
-      return this;
-    }
-
     Map<String, Object> build() {
       Map<String, Object> map = new LinkedHashMap<>();
       map.put("keys", keys);
@@ -4528,11 +2244,11 @@ public class MetadataGenerator {
       if (!metrics.isEmpty()) {
         signals.add(Collections.singletonMap("metrics", metrics));
       }
-      if (!dependencies.isEmpty()) {
-        map.put("dependencies", dependencies);
-      }
       if (!signals.isEmpty()) {
         map.put("signals", signals);
+      }
+      if (!settings.isEmpty()) {
+        map.put("settings", settings);
       }
 
       return map;
@@ -4632,7 +2348,9 @@ public class MetadataGenerator {
   enum SettingType {
     BOOLEAN,
     INT,
-    STRING;
+    STRING,
+    LIST,
+    MAP;
 
     String value() {
       return name().toLowerCase(Locale.ROOT);
@@ -4669,60 +2387,6 @@ public class MetadataGenerator {
 
     String value() {
       return name().toLowerCase(Locale.ROOT).replace("_", "");
-    }
-  }
-
-  enum DbPoolMetrics {
-    // renamed to db.client.connection.count in stable semconv
-    USAGE(
-        "db.client.connections.usage",
-        MetricInstrument.UP_DOWN_COUNTER,
-        "The number of connections that are currently in state described by the state attribute."),
-    IDLE_MAX(
-        "db.client.connections.idle.max",
-        MetricInstrument.UP_DOWN_COUNTER,
-        "The maximum number of idle open connections allowed."),
-    IDLE_MIN(
-        "db.client.connections.idle.min",
-        MetricInstrument.UP_DOWN_COUNTER,
-        "The minimum number of idle open connections allowed."),
-    MAX(
-        "db.client.connections.max",
-        MetricInstrument.UP_DOWN_COUNTER,
-        "The maximum number of open connections allowed."),
-    PENDING_REQUESTS(
-        "db.client.connections.pending_requests",
-        MetricInstrument.UP_DOWN_COUNTER,
-        "The number of pending requests for an open connection, cumulative for the entire pool."),
-    TIMEOUTS(
-        "db.client.connections.timeouts",
-        MetricInstrument.COUNTER,
-        "The number of connection timeouts that have occurred trying to obtain a connection from the pool."),
-    CREATE_TIME(
-        "db.client.connections.create_time",
-        MetricInstrument.HISTOGRAM,
-        "The time it took to create a new connection."),
-    WAIT_TIME(
-        "db.client.connections.wait_time",
-        MetricInstrument.HISTOGRAM,
-        "The time it took to obtain an open connection from the pool."),
-    USE_TIME(
-        "db.client.connections.use_time",
-        MetricInstrument.HISTOGRAM,
-        "The time between borrowing a connection and returning it to the pool.");
-
-    private final String name;
-    private final MetricInstrument instrument;
-    private final String description;
-
-    DbPoolMetrics(String name, MetricInstrument instrument, String description) {
-      this.name = name;
-      this.instrument = instrument;
-      this.description = description;
-    }
-
-    public void add(InstrumentationBuilder builder) {
-      builder.customMetric(name, instrument, description);
     }
   }
 }

@@ -35,7 +35,7 @@ import net.bytebuddy.matcher.ElementMatcher;
 public class WebSphereAttributesInstrumentationModule extends InstrumentationModule {
 
   public WebSphereAttributesInstrumentationModule() {
-    super("websphere");
+    super("websphere-splunk", "websphere");
   }
 
   @Override

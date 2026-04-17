@@ -35,7 +35,7 @@ import org.apache.openejb.util.OpenEjbVersion;
 public class TomeeAttributesInstrumentationModule extends InstrumentationModule {
 
   public TomeeAttributesInstrumentationModule() {
-    super("tomee");
+    super("tomee-splunk", "tomee");
   }
 
   @Override

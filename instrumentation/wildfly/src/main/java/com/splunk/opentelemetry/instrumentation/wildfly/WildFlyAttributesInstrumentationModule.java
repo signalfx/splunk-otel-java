@@ -37,7 +37,7 @@ import org.jboss.as.version.ProductConfig;
 public class WildFlyAttributesInstrumentationModule extends InstrumentationModule {
 
   public WildFlyAttributesInstrumentationModule() {
-    super("wildfly");
+    super("wildfly-splunk", "wildfly");
   }
 
   @Override

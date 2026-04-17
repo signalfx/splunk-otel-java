@@ -2061,6 +2061,11 @@ public class MetadataGenerator {
       String defaultValue,
       SettingType type,
       SettingCategory category) {
+    if ("otel.instrumentation.spring-batch.item.enabled".equals(property)) {
+      // SplunkConfiguration overrides the default value of this settings to true
+      defaultValue = "true";
+    }
+
     Map<String, Object> map = new LinkedHashMap<>();
     map.put("property", property);
     map.put("env", toEnvVar(property));

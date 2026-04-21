@@ -36,7 +36,7 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.api.io.TempDir;
 
 class SnapshotProfilingConfigurationCustomizerProviderTest {
-  @RegisterExtension final AutoCleanupExtension autoCleanup = AutoCleanupExtension.create();
+  @RegisterExtension static final AutoCleanupExtension autoCleanup = AutoCleanupExtension.create();
 
   @AfterEach
   void resetSuppliers() {

@@ -42,7 +42,7 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.api.io.TempDir;
 
 class AppdBeforeAgentListenerTest {
-  @RegisterExtension final AutoCleanupExtension autoCleanup = AutoCleanupExtension.create();
+  @RegisterExtension static final AutoCleanupExtension autoCleanup = AutoCleanupExtension.create();
 
   @Test
   void shouldSetPropagatorProperties_declarativeConfig(@TempDir Path tempDir) throws IOException {

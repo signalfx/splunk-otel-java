@@ -1996,8 +1996,17 @@ public class MetadataGenerator {
     for (Map<String, Object> info : infos) {
       // only javaagent instrumentations
       if (Boolean.TRUE.equals(info.get("has_javaagent"))) {
-        InstrumentationBuilder builder =
-            instrumentation(info.get("name").toString(), info.get("description").toString());
+        String name = info.get("name").toString();
+        String description = info.get("description").toString();
+        boolean disabledByDefault = Boolean.TRUE.equals(info.get("disabled_by_default"));
+        // spring batch is disabled by default in upstream but enabled in our distro
+        if (disabledByDefault && !name.startsWith("spring-batch")) {
+          if (!description.isEmpty() && !description.endsWith("\n")) {
+            description += "\n";
+          }
+          description += "This instrumentation is disabled by default.";
+        }
+        InstrumentationBuilder builder = instrumentation(name, description);
         String displayName = Objects.toString(info.get("display_name"), null);
         if (displayName != null) {
           builder.component(

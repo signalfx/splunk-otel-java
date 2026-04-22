@@ -1,7 +1,7 @@
 # Splunk Distribution of OpenTelemetry Java
 
 ![Stable](https://img.shields.io/badge/status-stable-informational)
-[![OpenTelemetry Instrumentation for Java Version](https://img.shields.io/badge/otel-2.26.1-blueviolet)](https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/tag/v2.26.1)
+[![OpenTelemetry Instrumentation for Java Version](https://img.shields.io/badge/otel-2.27.0-blueviolet)](https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/tag/v2.27.0)
 [![Splunk GDI specification](https://img.shields.io/badge/GDI-1.9.0-blueviolet)](https://github.com/signalfx/gdi-specification/releases/tag/v1.9.0)
 [![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/signalfx/splunk-otel-java?include_prereleases)](https://github.com/signalfx/splunk-otel-java/releases)
 [![Maven Central](https://img.shields.io/maven-central/v/com.splunk/splunk-otel-javaagent)](https://central.sonatype.com/artifact/com.splunk/splunk-otel-javaagent)
@@ -43,11 +43,6 @@ see [Migrate from the SignalFx Java Agent](https://help.splunk.com/en/splunk-obs
 
 <!-- Comments, spacing, empty and new lines in the section below are intentional, please do not modify them! -->
 <!--DEV_DOCS_WARNING-->
-<!--DEV_DOCS_WARNING_START-->
-The following documentation refers to the in-development version of `splunk-otel-java`. Docs for the latest version ([v2.26.0](https://github.com/signalfx/splunk-otel-java/releases/latest)) can be found [here](https://github.com/signalfx/splunk-otel-java/blob/v2.26.0/README.md).
-
----
-<!--DEV_DOCS_WARNING_END-->
 
 ## Requirements
 
@@ -79,11 +74,11 @@ To extend the instrumentation with the OpenTelemetry Instrumentation for Java,
 you have to use a compatible API version.
 
 <!-- IMPORTANT: do not change comments or break those lines below -->
-The Splunk Distribution of OpenTelemetry Java version <!--SPLUNK_VERSION-->2.26.1<!--SPLUNK_VERSION--> is compatible
+The Splunk Distribution of OpenTelemetry Java version <!--SPLUNK_VERSION-->2.27.0<!--SPLUNK_VERSION--> is compatible
 with:
 
-* OpenTelemetry API version <!--OTEL_VERSION-->1.60.1<!--OTEL_VERSION-->
-* OpenTelemetry Instrumentation for Java version <!--OTEL_INSTRUMENTATION_VERSION-->2.26.1<!--OTEL_INSTRUMENTATION_VERSION-->
+* OpenTelemetry API version <!--OTEL_VERSION-->1.61.0<!--OTEL_VERSION-->
+* OpenTelemetry Instrumentation for Java version <!--OTEL_INSTRUMENTATION_VERSION-->2.27.0<!--OTEL_INSTRUMENTATION_VERSION-->
 
 ## Snapshot builds
 

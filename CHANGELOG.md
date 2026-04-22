@@ -8,6 +8,10 @@ and this repository adheres to [Semantic Versioning](https://semver.org/spec/v2.
 
 ## Unreleased
 
+## v2.27.0 - 2026-04-22
+
+- OpenTelemetry Java SDK has been updated to version 1.61.0.
+- OpenTelemetry Instrumentation for Java has been updated to version 2.27.0.
 - Comply with [GDI spec version 1.9.0](https://github.com/signalfx/gdi-specification/releases/tag/v1.9.0)
 
 ## v2.26.1 - 2026-03-23

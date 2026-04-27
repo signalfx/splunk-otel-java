@@ -1087,15 +1087,6 @@ public class MetadataGenerator {
             "false",
             SettingType.BOOLEAN,
             SettingCategory.INSTRUMENTATION));
-    // deprecated in favor of
-    // otel.instrumentation.sanitization.url.experimental.sensitive-query-parameters
-    settings.add(
-        setting(
-            "otel.instrumentation.http.client.experimental.redact-query-parameters",
-            "Redact sensitive parameter values from URL query string, see https://opentelemetry.io/docs/specs/semconv/http/http-spans.",
-            "true",
-            SettingType.BOOLEAN,
-            SettingCategory.INSTRUMENTATION));
 
     // Enable only specific instrumentation
     // https://opentelemetry.io/docs/instrumentation/java/automatic/agent-config/#enable-only-specific-instrumentation

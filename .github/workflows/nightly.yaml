@@ -166,20 +166,17 @@ jobs:
 
   issue:
     name: Open issue on failure
-    needs: [ build, muzzle, smoke-test ]
+    # This must be the complete list of all jobs in this file (excluding this one)
+    needs: [ check-links, build, test-latest-deps, muzzle, smoke-test, shellcheck ]
     runs-on: ubuntu-24.04
     permissions:
       issues: write
-    if: always()
+    # reads weird, but always() ensures that the issue job isn't skipped when a need fails.
+    if: ${{ always() && contains(needs.*.result, 'failure') }}
     steps:
-      # run this action to get workflow conclusion
-      # You can get conclusion by env (env.WORKFLOW_CONCLUSION)
-      - uses: technote-space/workflow-conclusion-action@45ce8e0eb155657ab8ccf346ade734257fd196a5 # v3.0.3
-
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Create issue
-        if: env.WORKFLOW_CONCLUSION == 'failure' # notify only if failure
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |

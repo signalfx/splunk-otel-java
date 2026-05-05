@@ -2001,8 +2001,8 @@ public class MetadataGenerator {
         boolean disabledByDefault = Boolean.TRUE.equals(info.get("disabled_by_default"));
         // spring batch is disabled by default in upstream but enabled in our distro
         if (disabledByDefault && !name.startsWith("spring-batch")) {
-          if (!description.isEmpty() && !description.endsWith("\n")) {
-            description += "\n";
+          if (!description.isEmpty()) {
+            description = description.trim() + "\n";
           }
           description += "This instrumentation is disabled by default.";
         }
@@ -2070,8 +2070,8 @@ public class MetadataGenerator {
                 } else {
                   seenMetrics.add(metricName);
                   // metric is not present in default configuration
-                  if (!metricDescription.isEmpty() && !metricDescription.endsWith("\n")) {
-                    metricDescription += "\n";
+                  if (!metricDescription.isEmpty()) {
+                    metricDescription = metricDescription.trim() + "\n";
                   }
                   metricDescription +=
                       "This metric is disabled by default and can be enabled with `"

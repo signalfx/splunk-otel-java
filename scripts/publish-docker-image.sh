@@ -28,11 +28,14 @@ fi
 release_tag="$1"
 
 build_docker_image() {
-  echo ">>> Building the operator docker image ..."
-  docker build -t splunk-otel-instrumentation-java .
-  docker tag splunk-otel-instrumentation-java quay.io/signalfx/splunk-otel-instrumentation-java:latest
-  docker tag splunk-otel-instrumentation-java "quay.io/signalfx/splunk-otel-instrumentation-java:v$(get_major_version "$release_tag")"
-  docker tag splunk-otel-instrumentation-java "quay.io/signalfx/splunk-otel-instrumentation-java:$release_tag"
+  local image_name="$1"
+  local jar_file="$2"
+
+  echo ">>> Building operator docker image ${image_name} ..."
+  docker build --build-arg "JAR_FILE=${jar_file}" -t "${image_name}" .
+  docker tag "${image_name}" "quay.io/signalfx/${image_name}:latest"
+  docker tag "${image_name}" "quay.io/signalfx/${image_name}:v$(get_major_version "$release_tag")"
+  docker tag "${image_name}" "quay.io/signalfx/${image_name}:$release_tag"
 }
 
 login_to_quay_io() {
@@ -41,18 +44,27 @@ login_to_quay_io() {
 }
 
 publish_docker_image() {
-  echo ">>> Publishing the operator docker image ..."
-  docker push quay.io/signalfx/splunk-otel-instrumentation-java:latest
-  docker push "quay.io/signalfx/splunk-otel-instrumentation-java:v$(get_major_version "$release_tag")"
-  docker push "quay.io/signalfx/splunk-otel-instrumentation-java:$release_tag"
+  local image_name="$1"
+
+  echo ">>> Publishing the operator docker image ${image_name} ..."
+  docker push "quay.io/signalfx/${image_name}:latest"
+  docker push "quay.io/signalfx/${image_name}:v$(get_major_version "$release_tag")"
+  docker push "quay.io/signalfx/${image_name}:$release_tag"
 }
 
 sign_published_docker_image() {
-  echo ">>> Signing the published operator docker image ..."
-  artifact-ci sign docker "quay.io/signalfx/splunk-otel-instrumentation-java:$release_tag"
+  local image_name="$1"
+
+  echo ">>> Signing the published operator docker image ${image_name} ..."
+  artifact-ci sign docker "quay.io/signalfx/${image_name}:$release_tag"
 }
 
-build_docker_image
 login_to_quay_io
-publish_docker_image
-sign_published_docker_image
+
+build_docker_image splunk-otel-instrumentation-java splunk-otel-javaagent.jar
+publish_docker_image splunk-otel-instrumentation-java
+sign_published_docker_image splunk-otel-instrumentation-java
+
+build_docker_image splunk-otel-instrumentation-java-csa splunk-otel-javaagent-csa.jar
+publish_docker_image splunk-otel-instrumentation-java-csa
+sign_published_docker_image splunk-otel-instrumentation-java-csa

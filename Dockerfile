@@ -1,3 +1,5 @@
-FROM busybox 
+FROM busybox
 
-ADD dist/splunk-otel-javaagent.jar /
+ARG JAR_FILE=splunk-otel-javaagent.jar
+
+ADD dist/${JAR_FILE} /

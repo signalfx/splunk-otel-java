@@ -1,6 +1,6 @@
 # To build an auto-instrumentation image for Java, please:
-#  - Grant the necessary access to the jar. `chmod 644  /splunk-otel-javaagent.jar`
-#  - Symlink '/splunk-otel-javaagent.jar' to `/javaagent.jar` to support compatability with the
+#  - Grant the necessary access to the jar.
+#  - Symlink the jar to `/javaagent.jar` to support compatability with the
 #    https://github.com/open-telemetry/opentelemetry-operator project.
 #  - For this docker image to be used for auto-instrumentation by container injection, we use the
 #    busybox image because it contains the Linux command cp which must be available.
@@ -10,8 +10,9 @@ LABEL org.opencontainers.image.source="https://github.com/signalfx/splunk-otel-j
 LABEL org.opencontainers.image.description="Splunk Distribution of OpenTelemetry Java Instrumentation"
 
 ARG RELEASE_VER
+ARG JAR_FILE=splunk-otel-javaagent.jar
 ENV RELEASE_VER=$RELEASE_VER
 
-ADD https://github.com/signalfx/splunk-otel-java/releases/download/${RELEASE_VER}/splunk-otel-javaagent.jar /
-RUN chmod 644 /splunk-otel-javaagent.jar
-RUN ln -s /splunk-otel-javaagent.jar /javaagent.jar
+ADD https://github.com/signalfx/splunk-otel-java/releases/download/${RELEASE_VER}/${JAR_FILE} /
+RUN chmod 644 "/${JAR_FILE}"
+RUN ln -s "/${JAR_FILE}" /javaagent.jar

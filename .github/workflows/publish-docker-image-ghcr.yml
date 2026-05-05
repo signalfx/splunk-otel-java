@@ -54,3 +54,16 @@ jobs:
             ghcr.io/signalfx/splunk-otel-java/splunk-otel-java:${{ env.MAJOR_VERSION }}
             ghcr.io/signalfx/splunk-otel-java/splunk-otel-java:${{ env.RELEASE_VERSION }}
 
+      - name: build and publish CSA container
+        uses: docker/build-push-action@bcafcacb16a39f128d818304e6c9c0c18556b85f # v7.1.0
+        with:
+          push: true
+          file: Dockerfile-ghcr
+          platforms: linux/amd64,linux/arm64,linux/ppc64le
+          build-args: |
+            RELEASE_VER=${{ env.RELEASE_VERSION }}
+            JAR_FILE=splunk-otel-javaagent-csa.jar
+          tags: |
+            ghcr.io/signalfx/splunk-otel-java/splunk-otel-java-csa:latest
+            ghcr.io/signalfx/splunk-otel-java/splunk-otel-java-csa:${{ env.MAJOR_VERSION }}
+            ghcr.io/signalfx/splunk-otel-java/splunk-otel-java-csa:${{ env.RELEASE_VERSION }}

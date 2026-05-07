@@ -37,13 +37,14 @@ class SpanSamplingTest {
     public final OpenTelemetrySdkExtension s =
         OpenTelemetrySdkExtension.configure()
             .withProperty("splunk.snapshot.profiler.enabled", "true")
+            .withProperty("splunk.snapshot.selection.probability", "1.0")
             .withSampler(Sampler.alwaysOff())
             .with(customizer)
             .build();
 
     @Test
     void doNotRegisterTraceForProfilingWhenSpanSamplingIsOff(Tracer tracer) {
-      try (var ignored = Context.current().with(Volume.HIGHEST).makeCurrent()) {
+      try (var ignored = Context.current().makeCurrent()) {
         var root = tracer.spanBuilder("root").startSpan();
         assertThat(registry.isRegistered(root.getSpanContext())).isFalse();
       }
@@ -56,13 +57,14 @@ class SpanSamplingTest {
     public final OpenTelemetrySdkExtension s =
         OpenTelemetrySdkExtension.configure()
             .withProperty("splunk.snapshot.profiler.enabled", "true")
+            .withProperty("splunk.snapshot.selection.probability", "1.0")
             .withSampler(Sampler.alwaysOn())
             .with(customizer)
             .build();
 
     @Test
     void registerTraceForProfilingWhenSpanSamplingIsOn(Tracer tracer) {
-      try (var ignored = Context.current().with(Volume.HIGHEST).makeCurrent()) {
+      try (var ignored = Context.current().makeCurrent()) {
         var root = tracer.spanBuilder("root").startSpan();
         assertThat(registry.isRegistered(root.getSpanContext())).isTrue();
       }

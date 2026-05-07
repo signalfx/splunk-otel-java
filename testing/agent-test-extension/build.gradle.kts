@@ -7,8 +7,6 @@ dependencies {
   compileOnly("io.opentelemetry.instrumentation:opentelemetry-instrumentation-api")
   compileOnly("io.opentelemetry.javaagent:opentelemetry-javaagent-extension-api")
   compileOnly("io.opentelemetry.javaagent:opentelemetry-javaagent-tooling")
-  compileOnly(project(":bootstrap"))
-  compileOnly(project(":custom"))
 }
 
 tasks {

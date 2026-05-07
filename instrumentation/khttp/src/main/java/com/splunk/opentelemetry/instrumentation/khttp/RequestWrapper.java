@@ -33,6 +33,10 @@ public class RequestWrapper {
     this.parsedUri = parseUri(uri);
   }
 
+  public Map<String, String> getHeaders() {
+    return headers;
+  }
+
   private static URI parseUri(String uri) {
     if (uri == null) {
       return null;

@@ -120,7 +120,7 @@ class ProfilerEnvVarsConfigurationTest {
     ProfilerEnvVarsConfiguration profilerConfiguration = new ProfilerEnvVarsConfiguration(config);
     when(config.getString(ProfilerEnvVarsConfiguration.CONFIG_KEY_INGEST_URL)).thenReturn(null);
     when(config.getString(eq(ProfilerEnvVarsConfiguration.CONFIG_KEY_OTEL_OTLP_URL), anyString()))
-        .thenReturn("https://ingest.us0.signalfx.com");
+        .thenReturn("https://ingest.us0.observability.splunkcloud.com");
     when(config.getString(
             eq(ProfilerEnvVarsConfiguration.CONFIG_KEY_PROFILER_OTLP_PROTOCOL), any()))
         .thenReturn("http/protobuf");

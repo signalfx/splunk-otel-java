@@ -58,6 +58,7 @@ class SnapshotProfilingLogExportingTest {
   public final OpenTelemetrySdkExtension sdk =
       OpenTelemetrySdkExtension.configure()
           .withProperty("splunk.snapshot.profiler.enabled", "true")
+          .withProperty("splunk.snapshot.selection.probability", "1.0")
           .with(customizer)
           .with(
               new StackTraceExporterActivator(
@@ -73,7 +74,7 @@ class SnapshotProfilingLogExportingTest {
   @Test
   void exportStackTracesForProfiledTraces(Tracer tracer) throws Exception {
     SpanContext spanContext;
-    try (var ignoredScope1 = Context.root().with(Volume.HIGHEST).makeCurrent()) {
+    try (var ignoredScope1 = Context.root().makeCurrent()) {
       var span = tracer.spanBuilder("root").startSpan();
       try (var ignoredScope2 = span.makeCurrent()) {
         spanContext = span.getSpanContext();

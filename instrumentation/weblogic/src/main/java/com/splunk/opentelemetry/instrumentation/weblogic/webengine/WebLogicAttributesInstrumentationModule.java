@@ -48,7 +48,7 @@ import net.bytebuddy.matcher.ElementMatcher;
 @AutoService(InstrumentationModule.class)
 public class WebLogicAttributesInstrumentationModule extends InstrumentationModule {
   public WebLogicAttributesInstrumentationModule() {
-    super("weblogic");
+    super("weblogic-splunk", "weblogic");
   }
 
   @Override

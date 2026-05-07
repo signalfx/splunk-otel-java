@@ -16,7 +16,7 @@
 
 package com.splunk.opentelemetry.resource;
 
-import static com.splunk.opentelemetry.SplunkConfiguration.METRICS_FULL_COMMAND_LINE;
+import static com.splunk.opentelemetry.SplunkConfigurationCustomizer.METRICS_FULL_COMMAND_LINE;
 
 import com.google.auto.service.AutoService;
 import com.google.common.annotations.VisibleForTesting;

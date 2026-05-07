@@ -19,8 +19,6 @@ package com.splunk.opentelemetry.profiler.snapshot;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import io.opentelemetry.api.trace.Span;
-import io.opentelemetry.context.Context;
 import java.util.List;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -38,21 +36,20 @@ class TraceIdBasedSnapshotSelectorTest {
   }
 
   @Test
-  void doNotSelectTraceWhenRoot() {
-    var context = Context.root();
-    var selector = new TraceIdBasedSnapshotSelector(0.05);
-    assertThat(selector.select(context)).isFalse();
+  void doSelectTraceWhenRoot() {
+    var spanContext =
+        Snapshotting.spanContext().withTraceId("00000000000000004adb3965a6cbec2d").build();
+    var selector = new TraceIdBasedSnapshotSelector(1.0);
+    assertThat(selector.select(spanContext)).isTrue();
   }
 
   @ParameterizedTest
   @MethodSource("traceIdsToSelect")
   void selectTraceWhenTraceIdIsComputedToBeLessThanOrEqualToSelectionRate(String traceId) {
     var spanContext = Snapshotting.spanContext().withTraceId(traceId).build();
-    var span = Span.wrap(spanContext);
-    var context = Context.root().with(span);
 
     var selector = new TraceIdBasedSnapshotSelector(0.05);
-    assertThat(selector.select(context)).isTrue();
+    assertThat(selector.select(spanContext)).isTrue();
   }
 
   private static Stream<String> traceIdsToSelect() {
@@ -65,11 +62,9 @@ class TraceIdBasedSnapshotSelectorTest {
   @MethodSource("traceIdsToNotSelect")
   void doNotSelectTraceWhenTraceIdIsComputedToBeMoreThanSelectionRate(String traceId) {
     var spanContext = Snapshotting.spanContext().withTraceId(traceId).build();
-    var span = Span.wrap(spanContext);
-    var context = Context.root().with(span);
 
     var selector = new TraceIdBasedSnapshotSelector(0.05);
-    assertThat(selector.select(context)).isFalse();
+    assertThat(selector.select(spanContext)).isFalse();
   }
 
   private static Stream<String> traceIdsToNotSelect() {

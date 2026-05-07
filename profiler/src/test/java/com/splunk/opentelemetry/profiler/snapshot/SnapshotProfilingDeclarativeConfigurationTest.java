@@ -16,12 +16,11 @@
 
 package com.splunk.opentelemetry.profiler.snapshot;
 
-import static io.opentelemetry.api.incubator.config.DeclarativeConfigProperties.empty;
+import static com.splunk.opentelemetry.testing.declarativeconfig.DeclarativeConfigTestUtil.getProfilingConfig;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.splunk.opentelemetry.testing.declarativeconfig.DeclarativeConfigTestUtil;
 import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
-import io.opentelemetry.sdk.autoconfigure.AutoConfigureUtil;
 import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.OpenTelemetryConfigurationModel;
 import java.time.Duration;
 import org.junit.jupiter.api.Test;
@@ -159,11 +158,5 @@ class SnapshotProfilingDeclarativeConfigurationTest {
     assertThat(config.isEnabled()).isTrue();
     assertThat(config.getSnapshotSelectionProbability())
         .isEqualTo(SnapshotProfilingConfiguration.DEFAULT_SELECTION_PROBABILITY);
-  }
-
-  private static DeclarativeConfigProperties getProfilingConfig(
-      OpenTelemetryConfigurationModel model) {
-    DeclarativeConfigProperties distributionConfig = AutoConfigureUtil.getDistributionConfig(model);
-    return distributionConfig.getStructured("profiling", empty());
   }
 }

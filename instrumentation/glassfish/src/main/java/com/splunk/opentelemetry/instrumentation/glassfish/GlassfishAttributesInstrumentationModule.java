@@ -36,7 +36,7 @@ import net.bytebuddy.matcher.ElementMatcher;
 public class GlassfishAttributesInstrumentationModule extends InstrumentationModule {
 
   public GlassfishAttributesInstrumentationModule() {
-    super("glassfish");
+    super("glassfish-splunk", "glassfish");
   }
 
   @Override

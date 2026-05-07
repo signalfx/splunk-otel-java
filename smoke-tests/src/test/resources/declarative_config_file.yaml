@@ -1,0 +1,15 @@
+file_format: "1.0"
+
+resource:
+  attributes:
+    - name: service.name
+      value: test-service
+    - name: deployment.environment.name
+      value: test-deployment
+
+tracer_provider:
+  processors:
+    - simple:
+        exporter:
+          otlp_http:
+            endpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT:-http://localhost:4318}/v1/traces

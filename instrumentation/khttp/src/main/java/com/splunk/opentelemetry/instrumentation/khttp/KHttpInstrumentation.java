@@ -17,7 +17,6 @@
 package com.splunk.opentelemetry.instrumentation.khttp;
 
 import static com.splunk.opentelemetry.instrumentation.khttp.KHttpSingletons.instrumenter;
-import static io.opentelemetry.javaagent.bootstrap.Java8BytecodeBridge.currentContext;
 import static io.opentelemetry.javaagent.extension.matcher.AgentElementMatchers.extendsClass;
 import static io.opentelemetry.javaagent.extension.matcher.AgentElementMatchers.hasClassesNamed;
 import static net.bytebuddy.matcher.ElementMatchers.isAbstract;
@@ -33,8 +32,11 @@ import io.opentelemetry.javaagent.extension.instrumentation.TypeInstrumentation;
 import io.opentelemetry.javaagent.extension.instrumentation.TypeTransformer;
 import java.util.HashMap;
 import java.util.Map;
+import javax.annotation.Nullable;
 import khttp.responses.Response;
 import net.bytebuddy.asm.Advice;
+import net.bytebuddy.asm.Advice.AssignReturned;
+import net.bytebuddy.asm.Advice.AssignReturned.ToArguments.ToArgument;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.matcher.ElementMatcher;
 
@@ -62,41 +64,67 @@ public class KHttpInstrumentation implements TypeInstrumentation {
         KHttpInstrumentation.class.getName() + "$RequestAdvice");
   }
 
+  @SuppressWarnings("unused")
   public static class RequestAdvice {
 
-    @Advice.OnMethodEnter(suppress = Throwable.class)
-    public static void methodEnter(
-        @Advice.Argument(value = 0) String method,
-        @Advice.Argument(value = 1) String uri,
-        @Advice.Argument(value = 2, readOnly = false) Map<String, String> headers,
-        @Advice.Local("otelRequest") RequestWrapper request,
-        @Advice.Local("otelContext") Context context,
-        @Advice.Local("otelScope") Scope scope) {
-      Context parentContext = currentContext();
-      // Kotlin likes to use read-only data structures, so wrap into new writable map
-      headers = new HashMap<>(headers);
-      request = new RequestWrapper(method, uri, headers);
-      if (!instrumenter().shouldStart(parentContext, request)) {
-        return;
+    public static class AdviceScope {
+      private final RequestWrapper request;
+      private final Context context;
+      private final Scope scope;
+
+      private AdviceScope(RequestWrapper request, Context context, Scope scope) {
+        this.request = request;
+        this.context = context;
+        this.scope = scope;
       }
 
-      context = instrumenter().start(parentContext, request);
-      scope = context.makeCurrent();
+      @Nullable
+      public static AdviceScope start(String method, String uri, Map<String, String> headers) {
+        Context parentContext = Context.current();
+        // Kotlin likes to use read-only data structures, so wrap into new writable map
+        headers = new HashMap<>(headers);
+        RequestWrapper request = new RequestWrapper(method, uri, headers);
+        if (!instrumenter().shouldStart(parentContext, request)) {
+          return null;
+        }
+
+        Context context = instrumenter().start(parentContext, request);
+        return new AdviceScope(request, context, context.makeCurrent());
+      }
+
+      public void end(Response response, @Nullable Throwable throwable) {
+        scope.close();
+        instrumenter().end(context, request, response, throwable);
+      }
+
+      public Map<String, String> getHeaders() {
+        return request.getHeaders();
+      }
+    }
+
+    @AssignReturned.ToArguments(@ToArgument(value = 2, index = 1))
+    @Advice.OnMethodEnter(suppress = Throwable.class)
+    public static Object[] methodEnter(
+        @Advice.Argument(0) String method,
+        @Advice.Argument(1) String uri,
+        @Advice.Argument(2) Map<String, String> headers) {
+      AdviceScope adviceScope = AdviceScope.start(method, uri, headers);
+      if (adviceScope == null) {
+        return new Object[] {null, headers};
+      }
+
+      return new Object[] {adviceScope, adviceScope.getHeaders()};
     }
 
     @Advice.OnMethodExit(onThrowable = Throwable.class, suppress = Throwable.class)
     public static void methodExit(
         @Advice.Return Response response,
         @Advice.Thrown Throwable throwable,
-        @Advice.Local("otelRequest") RequestWrapper request,
-        @Advice.Local("otelContext") Context context,
-        @Advice.Local("otelScope") Scope scope) {
-      if (scope == null) {
-        return;
+        @Advice.Enter Object[] enterResult) {
+      AdviceScope adviceScope = (AdviceScope) enterResult[0];
+      if (adviceScope != null) {
+        adviceScope.end(response, throwable);
       }
-
-      scope.close();
-      instrumenter().end(context, request, response, throwable);
     }
   }
 }

@@ -33,7 +33,7 @@ public class SnapshotProfilingDeclarativeConfiguration implements SnapshotProfil
 
   private static final String ROOT_NODE_NAME = "callgraphs";
 
-  SnapshotProfilingDeclarativeConfiguration(DeclarativeConfigProperties profilingConfig) {
+  public SnapshotProfilingDeclarativeConfiguration(DeclarativeConfigProperties profilingConfig) {
     this.profilingConfig = profilingConfig;
   }
 

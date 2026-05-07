@@ -18,7 +18,6 @@ package com.splunk.opentelemetry.profiler;
 
 import static java.util.logging.Level.WARNING;
 
-import com.splunk.opentelemetry.SplunkConfiguration;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import java.time.Duration;
 import java.util.logging.Logger;
@@ -32,25 +31,28 @@ public class ProfilerEnvVarsConfiguration implements ProfilerConfiguration {
   static final String CONFIG_KEY_OTEL_OTLP_URL = "otel.exporter.otlp.endpoint";
 
   /* Keys visible for testing */
-  static final String CONFIG_KEY_PROFILER_DIRECTORY = "splunk.profiler.directory";
-  static final String CONFIG_KEY_RECORDING_DURATION = "splunk.profiler.recording.duration";
-  static final String CONFIG_KEY_KEEP_FILES = "splunk.profiler.keep-files";
-  static final String CONFIG_KEY_INGEST_URL = "splunk.profiler.logs-endpoint";
-  static final String CONFIG_KEY_PROFILER_OTLP_PROTOCOL = "splunk.profiler.otlp.protocol";
-  static final String CONFIG_KEY_MEMORY_ENABLED = "splunk.profiler.memory.enabled";
-  static final String CONFIG_KEY_MEMORY_EVENT_RATE_LIMIT_ENABLED =
+  public static final String CONFIG_KEY_PROFILER_ENABLED = "splunk.profiler.enabled";
+  public static final String CONFIG_KEY_PROFILER_DIRECTORY = "splunk.profiler.directory";
+  public static final String CONFIG_KEY_RECORDING_DURATION = "splunk.profiler.recording.duration";
+  public static final String CONFIG_KEY_KEEP_FILES = "splunk.profiler.keep-files";
+  public static final String CONFIG_KEY_INGEST_URL = "splunk.profiler.logs-endpoint";
+  public static final String CONFIG_KEY_PROFILER_OTLP_PROTOCOL = "splunk.profiler.otlp.protocol";
+  public static final String CONFIG_KEY_MEMORY_ENABLED = "splunk.profiler.memory.enabled";
+  public static final String CONFIG_KEY_MEMORY_EVENT_RATE_LIMIT_ENABLED =
       "splunk.profiler.memory.event.rate-limit.enabled";
-  static final String CONFIG_KEY_MEMORY_EVENT_RATE = "splunk.profiler.memory.event.rate";
-  static final String CONFIG_KEY_MEMORY_NATIVE_SAMPLING = "splunk.profiler.memory.native.sampling";
-  static final String CONFIG_KEY_CALL_STACK_INTERVAL = "splunk.profiler.call.stack.interval";
-  static final String CONFIG_KEY_INCLUDE_AGENT_INTERNALS =
+  public static final String CONFIG_KEY_MEMORY_EVENT_RATE = "splunk.profiler.memory.event.rate";
+  public static final String CONFIG_KEY_MEMORY_NATIVE_SAMPLING =
+      "splunk.profiler.memory.native.sampling";
+  public static final String CONFIG_KEY_CALL_STACK_INTERVAL = "splunk.profiler.call.stack.interval";
+  public static final String CONFIG_KEY_INCLUDE_AGENT_INTERNALS =
       "splunk.profiler.include.agent.internals";
   // Include stacks where every frame starts with jvm/sun/jdk
-  static final String CONFIG_KEY_INCLUDE_JVM_INTERNALS = "splunk.profiler.include.jvm.internals";
-  static final String CONFIG_KEY_INCLUDE_INTERNAL_STACKS =
+  public static final String CONFIG_KEY_INCLUDE_JVM_INTERNALS =
+      "splunk.profiler.include.jvm.internals";
+  public static final String CONFIG_KEY_INCLUDE_INTERNAL_STACKS =
       "splunk.profiler.include.internal.stacks";
-  static final String CONFIG_KEY_TRACING_STACKS_ONLY = "splunk.profiler.tracing.stacks.only";
-  static final String CONFIG_KEY_STACK_DEPTH = "splunk.profiler.max.stack.depth";
+  public static final String CONFIG_KEY_TRACING_STACKS_ONLY = "splunk.profiler.tracing.stacks.only";
+  public static final String CONFIG_KEY_STACK_DEPTH = "splunk.profiler.max.stack.depth";
 
   private static final String DEFAULT_PROFILER_DIRECTORY = System.getProperty("java.io.tmpdir");
   private static final Duration DEFAULT_RECORDING_DURATION = Duration.ofSeconds(20);
@@ -66,7 +68,7 @@ public class ProfilerEnvVarsConfiguration implements ProfilerConfiguration {
   public void log() {
     logger.info("-----------------------");
     logger.info("Profiler env vars based configuration:");
-    log(SplunkConfiguration.PROFILER_ENABLED_PROPERTY, isEnabled());
+    log(CONFIG_KEY_PROFILER_ENABLED, isEnabled());
     log(CONFIG_KEY_PROFILER_DIRECTORY, getProfilerDirectory());
     log(CONFIG_KEY_RECORDING_DURATION, getRecordingDuration().toMillis() + "ms");
     log(CONFIG_KEY_KEEP_FILES, getKeepFiles());
@@ -92,18 +94,18 @@ public class ProfilerEnvVarsConfiguration implements ProfilerConfiguration {
 
   @Override
   public boolean isEnabled() {
-    return SplunkConfiguration.isProfilerEnabled(config);
+    return config.getBoolean(CONFIG_KEY_PROFILER_ENABLED, false);
   }
 
   @Override
   public String getIngestUrl() {
     String ingestUrl = config.getString(CONFIG_KEY_INGEST_URL);
-
     if (ingestUrl == null) {
       String defaultIngestUrl = getDefaultLogsEndpoint();
       ingestUrl = config.getString(CONFIG_KEY_OTEL_OTLP_URL, defaultIngestUrl);
 
-      if (ingestUrl.startsWith("https://ingest.") && ingestUrl.endsWith(".signalfx.com")) {
+      if (ingestUrl.startsWith("https://ingest.")
+          && ingestUrl.endsWith(".observability.splunkcloud.com")) {
         logger.log(
             WARNING,
             "Profiling data can not be sent to {0}, using {1} instead. "

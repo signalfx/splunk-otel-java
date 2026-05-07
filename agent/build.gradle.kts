@@ -44,6 +44,7 @@ dependencies {
   bootstrapLibs(project(":bootstrap"))
 
   javaagentLibs(project(":custom"))
+  javaagentLibs(project(":opamp"))
   javaagentLibs(project(":profiler"))
 
   upstreamAgent("io.opentelemetry.javaagent:opentelemetry-javaagent")

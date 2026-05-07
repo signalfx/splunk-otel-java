@@ -4,8 +4,8 @@ plugins {
 
 dependencies {
   testImplementation(project(":bootstrap"))
-  testImplementation(project(":custom"))
   testImplementation(project(":instrumentation:nocode"))
+  testImplementation(testFixtures(project(":custom")))
   testCompileOnly("io.opentelemetry.javaagent:opentelemetry-javaagent-tooling")
   testRuntimeOnly("io.opentelemetry.javaagent:opentelemetry-javaagent-tooling") {
     exclude("io.opentelemetry.javaagent", "opentelemetry-javaagent-bootstrap")

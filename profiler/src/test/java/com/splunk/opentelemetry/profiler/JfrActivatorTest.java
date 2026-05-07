@@ -44,7 +44,7 @@ import org.mockito.MockedStatic;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class JfrActivatorTest {
-  @RegisterExtension final AutoCleanupExtension autoCleanup = AutoCleanupExtension.create();
+  @RegisterExtension static final AutoCleanupExtension autoCleanup = AutoCleanupExtension.create();
 
   @AfterEach
   void resetDeclarativeConfigSuppliers() {

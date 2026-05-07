@@ -36,7 +36,7 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.api.io.TempDir;
 
 class SnapshotProfilingConfigurationCustomizerProviderTest {
-  @RegisterExtension final AutoCleanupExtension autoCleanup = AutoCleanupExtension.create();
+  @RegisterExtension static final AutoCleanupExtension autoCleanup = AutoCleanupExtension.create();
 
   @AfterEach
   void resetSuppliers() {
@@ -64,25 +64,6 @@ class SnapshotProfilingConfigurationCustomizerProviderTest {
   }
 
   @Test
-  void shouldAddRequiredPropagator() {
-    // given
-    String yaml =
-        """
-          file_format: "1.0"
-          distribution:
-            splunk:
-              profiling:
-                callgraphs:
-          """;
-
-    // when
-    OpenTelemetryConfigurationModel model = getCustomizedModel(yaml);
-
-    // then
-    assertThat(model.getPropagator().getCompositeList()).isEqualTo("splunk_snapshot_volume");
-  }
-
-  @Test
   void shouldKeepPropagatorsDefinedInCompositeList() {
     // given
     String yaml =
@@ -101,8 +82,7 @@ class SnapshotProfilingConfigurationCustomizerProviderTest {
 
     // then
     Set<String> propagators = Set.of(model.getPropagator().getCompositeList().split(","));
-    assertThat(propagators)
-        .isEqualTo(Set.of("propagator1", "propagator2", "splunk_snapshot_volume"));
+    assertThat(propagators).isEqualTo(Set.of("propagator1", "propagator2"));
   }
 
   @Test

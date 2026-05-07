@@ -38,8 +38,8 @@ class DistributedProfilingSignalTest {
   public final OpenTelemetrySdkExtension downstreamSdk =
       OpenTelemetrySdkExtension.configure()
           .withProperty("splunk.snapshot.profiler.enabled", "true")
+          .withProperty("splunk.snapshot.selection.probability", "1.0")
           .with(downstreamCustomizer)
-          .with(new SnapshotVolumePropagator((c) -> true))
           .build();
 
   @RegisterExtension
@@ -64,8 +64,8 @@ class DistributedProfilingSignalTest {
   public final OpenTelemetrySdkExtension upstreamSdk =
       OpenTelemetrySdkExtension.configure()
           .withProperty("splunk.snapshot.profiler.enabled", "true")
+          .withProperty("splunk.snapshot.selection.probability", "1.0")
           .with(upstreamCustomizer)
-          .with(new SnapshotVolumePropagator((c) -> true))
           .build();
 
   @RegisterExtension
@@ -86,10 +86,10 @@ class DistributedProfilingSignalTest {
    * 2. Middle is instrumented with a vanilla OpenTelemetry agent <br>
    * 3. Downstream is instrumented with the snapshot profiling agent extension <br>
    * We want for the upstream service instrumentation to initially register the trace for profiling
-   * and for that signal to propagate through the middle service to the downstream service.
+   * and for the downstream service to register the same trace for profiling as well.
    */
   @Test
-  void traceSnapshotVolumePropagatesAcrossProcessBoundaries() {
+  void traceSnapshotSelectionPropagatesAcrossProcessBoundaries() {
     upstream.send(new Message());
 
     await().atMost(Duration.ofDays(2)).until(() -> upstream.waitForResponse() != null);

@@ -16,9 +16,9 @@
 
 package com.splunk.opentelemetry;
 
-import static com.splunk.opentelemetry.SplunkConfiguration.SPLUNK_ACCESS_TOKEN;
-import static com.splunk.opentelemetry.SplunkConfiguration.SPLUNK_REALM_NONE;
-import static com.splunk.opentelemetry.SplunkConfiguration.SPLUNK_REALM_PROPERTY;
+import static com.splunk.opentelemetry.SplunkConfigurationCustomizer.SPLUNK_ACCESS_TOKEN;
+import static com.splunk.opentelemetry.SplunkConfigurationCustomizer.SPLUNK_REALM_NONE;
+import static com.splunk.opentelemetry.SplunkConfigurationCustomizer.SPLUNK_REALM_PROPERTY;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;

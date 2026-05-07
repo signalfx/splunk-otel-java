@@ -16,7 +16,7 @@
 
 package com.splunk.opentelemetry;
 
-import static com.splunk.opentelemetry.SplunkConfigurationTest.configuration;
+import static com.splunk.opentelemetry.SplunkConfigurationCustomizerTest.configuration;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;

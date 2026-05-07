@@ -20,21 +20,22 @@ import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import java.time.Duration;
 import java.util.logging.Logger;
 
-class SnapshotProfilingEnvVarsConfiguration implements SnapshotProfilingConfiguration {
+public class SnapshotProfilingEnvVarsConfiguration implements SnapshotProfilingConfiguration {
   private static final Logger logger =
       Logger.getLogger(SnapshotProfilingEnvVarsConfiguration.class.getName());
 
   private final ConfigProperties properties;
 
   // Visible for tests
-  static final String CONFIG_KEY_ENABLE_SNAPSHOT_PROFILER = "splunk.snapshot.profiler.enabled";
-  static final String SELECTION_PROBABILITY_KEY = "splunk.snapshot.selection.probability";
-  static final String STACK_DEPTH_KEY = "splunk.snapshot.profiler.max.stack.depth";
-  static final String SAMPLING_INTERVAL_KEY = "splunk.snapshot.sampling.interval";
-  static final String EXPORT_INTERVAL_KEY = "splunk.snapshot.profiler.export.interval";
-  static final String STAGING_CAPACITY_KEY = "splunk.snapshot.profiler.staging.capacity";
+  public static final String CONFIG_KEY_ENABLE_SNAPSHOT_PROFILER =
+      "splunk.snapshot.profiler.enabled";
+  public static final String SELECTION_PROBABILITY_KEY = "splunk.snapshot.selection.probability";
+  public static final String STACK_DEPTH_KEY = "splunk.snapshot.profiler.max.stack.depth";
+  public static final String SAMPLING_INTERVAL_KEY = "splunk.snapshot.sampling.interval";
+  public static final String EXPORT_INTERVAL_KEY = "splunk.snapshot.profiler.export.interval";
+  public static final String STAGING_CAPACITY_KEY = "splunk.snapshot.profiler.staging.capacity";
 
-  SnapshotProfilingEnvVarsConfiguration(ConfigProperties properties) {
+  public SnapshotProfilingEnvVarsConfiguration(ConfigProperties properties) {
     this.properties = properties;
   }
 

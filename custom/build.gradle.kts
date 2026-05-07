@@ -1,3 +1,7 @@
+plugins {
+  id("java-test-fixtures")
+}
+
 dependencies {
   compileOnly(project(":bootstrap"))
   compileOnly("io.opentelemetry:opentelemetry-sdk")
@@ -18,9 +22,7 @@ dependencies {
 
   implementation("io.opentelemetry.contrib:opentelemetry-samplers")
   implementation("io.opentelemetry.contrib:opentelemetry-resource-providers")
-  implementation("io.opentelemetry.contrib:opentelemetry-opamp-client")
-
-  testImplementation(project(":testing:common"))
+  testFixturesApi(project(":testing:common"))
   testImplementation("io.opentelemetry:opentelemetry-sdk")
   testImplementation("io.opentelemetry:opentelemetry-sdk-testing")
   testImplementation("io.opentelemetry:opentelemetry-sdk-extension-autoconfigure")
@@ -42,6 +44,11 @@ sourceSets {
 tasks {
   compileJava {
     options.release.set(8)
+  }
+
+  compileTestFixturesJava {
+    sourceCompatibility = JavaVersion.VERSION_17.toString()
+    targetCompatibility = JavaVersion.VERSION_17.toString()
   }
 
   // TODO: investigate why adding to processResources throws UnsupportedOperationException, but only in GHA

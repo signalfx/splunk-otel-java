@@ -76,7 +76,8 @@ class StackTraceExporterActivatorTest {
 
   @Nested
   class DeclarativeConfig {
-    @RegisterExtension final AutoCleanupExtension autoCleanup = AutoCleanupExtension.create();
+    @RegisterExtension
+    static final AutoCleanupExtension autoCleanup = AutoCleanupExtension.create();
 
     @Test
     void configureStackTraceExporterProvider(@TempDir Path tempDir) throws IOException {

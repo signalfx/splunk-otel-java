@@ -3,10 +3,8 @@ plugins {
 }
 
 dependencies {
-  compileOnly(project(":bootstrap"))
-  compileOnly(project(":custom"))
-
   api("io.opentelemetry.javaagent:opentelemetry-testing-common")
+  api("io.opentelemetry.javaagent:opentelemetry-javaagent-extension-api")
   api("com.squareup.okhttp3:okhttp")
   api("org.mockito:mockito-core")
   api("io.opentelemetry:opentelemetry-sdk-extension-incubator")

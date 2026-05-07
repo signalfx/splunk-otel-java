@@ -37,7 +37,7 @@ import org.eclipse.jetty.server.Server;
 public class JettyAttributesInstrumentationModule extends InstrumentationModule {
 
   public JettyAttributesInstrumentationModule() {
-    super("jetty");
+    super("jetty-splunk", "jetty");
   }
 
   @Override

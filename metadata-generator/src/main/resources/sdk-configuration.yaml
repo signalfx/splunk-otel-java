@@ -1,0 +1,341 @@
+# created with AI from https://opentelemetry.io/docs/languages/java/configuration/
+properties:
+  - system_property: "otel.sdk.disabled"
+    category: "general"
+    description: "If true, disable the OpenTelemetry SDK."
+    default: "false"
+
+  - system_property: "otel.attribute.value.length.limit"
+    category: "instrumentation"
+    description: "The maximum length of attribute values. Applies to spans and logs. Overridden by otel.span.attribute.value.length.limit and otel.span.attribute.count.limit."
+    default: "No limit"
+
+  - system_property: "otel.attribute.count.limit"
+    category: "instrumentation"
+    description: "The maximum number of attributes. Applies to spans, span events, span links, and logs."
+    default: "128"
+
+  - system_property: "otel.propagators"
+    category: "general"
+    description: "Comma-separated list of propagators. Known values include tracecontext, baggage, b3, b3multi, jaeger, ottrace, xray, xray-lambda."
+    default: "tracecontext,baggage"
+
+  - system_property: "otel.service.name"
+    category: "instrumentation"
+    description: "Specify logical service name. Takes precedence over service.name defined with otel.resource.attributes."
+    default: "unknown_service:java"
+
+  - system_property: "otel.resource.attributes"
+    category: "instrumentation"
+    description: "Specify resource attributes in the following format: key1=val1,key2=val2,key3=val3."
+    default: ""
+
+  - system_property: "otel.resource.disabled.keys"
+    category: "instrumentation"
+    description: "Specify resource attribute keys to filter."
+    default: ""
+
+  - system_property: "otel.java.enabled.resource.providers"
+    category: "resource_provider"
+    description: "Comma-separated list of ResourceProvider fully qualified class names to enable."
+    default: "If unset, all resource providers are enabled"
+
+  - system_property: "otel.java.disabled.resource.providers"
+    category: "resource_provider"
+    description: "Comma-separated list of ResourceProvider fully qualified class names to disable."
+    default: ""
+
+  - system_property: "otel.bsp.schedule.delay"
+    category: "general"
+    description: "The interval, in milliseconds, between two consecutive exports."
+    default: "5000"
+
+  - system_property: "otel.bsp.max.queue.size"
+    category: "general"
+    description: "The maximum number of spans that can be queued before batching."
+    default: "2048"
+
+  - system_property: "otel.bsp.max.export.batch.size"
+    category: "general"
+    description: "The maximum number of spans to export in a single batch."
+    default: "512"
+
+  - system_property: "otel.bsp.export.timeout"
+    category: "general"
+    description: "The maximum allowed time, in milliseconds, to export data."
+    default: "30000"
+
+  - system_property: "otel.traces.sampler"
+    category: "general"
+    description: "The sampler to use. Known values include always_on, always_off, traceidratio, parentbased_always_on, parentbased_always_off, parentbased_traceidratio, jaeger_remote."
+    default: "parentbased_always_on"
+
+  - system_property: "otel.traces.sampler.arg"
+    category: "general"
+    description: "An argument to the configured tracer if supported, for example a ratio."
+    default: ""
+
+  - system_property: "otel.span.attribute.value.length.limit"
+    category: "instrumentation"
+    description: "The maximum length of span attribute values. Takes precedence over otel.attribute.value.length.limit."
+    default: "No limit"
+
+  - system_property: "otel.span.attribute.count.limit"
+    category: "instrumentation"
+    description: "The maximum number of attributes per span. Takes precedence over otel.attribute.count.limit."
+    default: "128"
+
+  - system_property: "otel.span.event.count.limit"
+    category: "instrumentation"
+    description: "The maximum number of events per span."
+    default: "128"
+
+  - system_property: "otel.span.link.count.limit"
+    category: "instrumentation"
+    description: "The maximum number of links per span."
+    default: "128"
+
+  - system_property: "otel.metric.export.interval"
+    category: "exporter"
+    description: "The interval, in milliseconds, between the start of two export attempts."
+    default: "60000"
+
+  - system_property: "otel.metrics.exemplar.filter"
+    category: "general"
+    description: "The filter for exemplar sampling. Can be ALWAYS_OFF, ALWAYS_ON or TRACE_BASED."
+    default: "TRACE_BASED"
+
+  - system_property: "otel.java.metrics.cardinality.limit"
+    category: "instrumentation"
+    description: "If set, configure cardinality limit. The value dictates the maximum number of distinct points per metric."
+    default: "2000"
+
+  - system_property: "otel.blrp.schedule.delay"
+    category: "general"
+    description: "The interval, in milliseconds, between two consecutive exports."
+    default: "1000"
+
+  - system_property: "otel.blrp.max.queue.size"
+    category: "general"
+    description: "The maximum number of log records that can be queued before batching."
+    default: "2048"
+
+  - system_property: "otel.blrp.max.export.batch.size"
+    category: "general"
+    description: "The maximum number of log records to export in a single batch."
+    default: "512"
+
+  - system_property: "otel.blrp.export.timeout"
+    category: "general"
+    description: "The maximum allowed time, in milliseconds, to export data."
+    default: "30000"
+
+  - system_property: "otel.traces.exporter"
+    category: "exporter"
+    description: "Comma-separated list of span exporters. Known values include otlp, zipkin, console, logging-otlp, none."
+    default: "otlp"
+
+  - system_property: "otel.metrics.exporter"
+    category: "exporter"
+    description: "Comma-separated list of metric exporters. Known values include otlp, prometheus, none."
+    default: "otlp"
+
+  - system_property: "otel.logs.exporter"
+    category: "exporter"
+    description: "Comma-separated list of log record exporters. Known values include otlp, console, logging-otlp, none."
+    default: "otlp"
+
+  - system_property: "otel.java.exporter.memory_mode"
+    category: "exporter"
+    description: "If reusable_data, enable reusable memory mode on exporters which support it to reduce allocations. Known values include reusable_data and immutable_data."
+    default: "reusable_data"
+
+  - system_property: "otel.exporter.otlp.protocol"
+    category: "exporter"
+    description: "The transport protocol to use on OTLP trace, metric, and log requests. Options include grpc and http/protobuf."
+    default: "http/protobuf"
+
+  - system_property: "otel.exporter.otlp.traces.protocol"
+    category: "exporter"
+    description: "The transport protocol to use on OTLP traces requests. Options include grpc and http/protobuf."
+    default: "http/protobuf"
+
+  - system_property: "otel.exporter.otlp.metrics.protocol"
+    category: "exporter"
+    description: "The transport protocol to use on OTLP metrics requests. Options include grpc and http/protobuf."
+    default: "http/protobuf"
+
+  - system_property: "otel.exporter.otlp.logs.protocol"
+    category: "exporter"
+    description: "The transport protocol to use on OTLP logs requests. Options include grpc and http/protobuf."
+    default: "http/protobuf"
+
+  - system_property: "otel.exporter.otlp.endpoint"
+    category: "exporter"
+    description: "The endpoint to send all OTLP traces, metrics, and logs to. Must be a URL with http or https."
+    default: "http://localhost:4317 when protocol is grpc, and http://localhost:4318 when protocol is http/protobuf"
+
+  - system_property: "otel.exporter.otlp.traces.endpoint"
+    category: "exporter"
+    description: "The endpoint to send OTLP traces to."
+    default: "http://localhost:4317 when protocol is grpc, and http://localhost:4318/v1/traces when protocol is http/protobuf"
+
+  - system_property: "otel.exporter.otlp.metrics.endpoint"
+    category: "exporter"
+    description: "The endpoint to send OTLP metrics to."
+    default: "http://localhost:4317 when protocol is grpc, and http://localhost:4318/v1/metrics when protocol is http/protobuf"
+
+  - system_property: "otel.exporter.otlp.logs.endpoint"
+    category: "exporter"
+    description: "The endpoint to send OTLP logs to."
+    default: "http://localhost:4317 when protocol is grpc, and http://localhost:4318/v1/logs when protocol is http/protobuf"
+
+  - system_property: "otel.exporter.otlp.certificate"
+    category: "exporter"
+    description: "Path to trusted certificates for verifying OTLP server TLS."
+    default: "System default truststore"
+
+  - system_property: "otel.exporter.otlp.traces.certificate"
+    category: "exporter"
+    description: "Path to trusted certificates for verifying OTLP traces server TLS."
+    default: "System default truststore"
+
+  - system_property: "otel.exporter.otlp.metrics.certificate"
+    category: "exporter"
+    description: "Path to trusted certificates for verifying OTLP metrics server TLS."
+    default: "System default truststore"
+
+  - system_property: "otel.exporter.otlp.logs.certificate"
+    category: "exporter"
+    description: "Path to trusted certificates for verifying OTLP logs server TLS."
+    default: "System default truststore"
+
+  - system_property: "otel.exporter.otlp.client.key"
+    category: "exporter"
+    description: "Path to private client key for OTLP TLS."
+    default: "No client key file is used"
+
+  - system_property: "otel.exporter.otlp.traces.client.key"
+    category: "exporter"
+    description: "Path to private client key for OTLP traces TLS."
+    default: "No client key file is used"
+
+  - system_property: "otel.exporter.otlp.metrics.client.key"
+    category: "exporter"
+    description: "Path to private client key for OTLP metrics TLS."
+    default: "No client key file is used"
+
+  - system_property: "otel.exporter.otlp.logs.client.key"
+    category: "exporter"
+    description: "Path to private client key for OTLP logs TLS."
+    default: "No client key file is used"
+
+  - system_property: "otel.exporter.otlp.client.certificate"
+    category: "exporter"
+    description: "Path to client certificate chain for OTLP TLS."
+    default: "No chain file is used"
+
+  - system_property: "otel.exporter.otlp.traces.client.certificate"
+    category: "exporter"
+    description: "Path to client certificate chain for OTLP traces TLS."
+    default: "No chain file is used"
+
+  - system_property: "otel.exporter.otlp.metrics.client.certificate"
+    category: "exporter"
+    description: "Path to client certificate chain for OTLP metrics TLS."
+    default: "No chain file is used"
+
+  - system_property: "otel.exporter.otlp.logs.client.certificate"
+    category: "exporter"
+    description: "Path to client certificate chain for OTLP logs TLS."
+    default: "No chain file is used"
+
+  - system_property: "otel.exporter.otlp.headers"
+    category: "exporter"
+    description: "Headers for OTLP requests."
+    default: ""
+
+  - system_property: "otel.exporter.otlp.traces.headers"
+    category: "exporter"
+    description: "Headers for OTLP traces requests."
+    default: ""
+
+  - system_property: "otel.exporter.otlp.metrics.headers"
+    category: "exporter"
+    description: "Headers for OTLP metrics requests."
+    default: ""
+
+  - system_property: "otel.exporter.otlp.logs.headers"
+    category: "exporter"
+    description: "Headers for OTLP logs requests."
+    default: ""
+
+  - system_property: "otel.exporter.otlp.compression"
+    category: "exporter"
+    description: "Compression type for OTLP requests."
+    default: "No compression will be used"
+
+  - system_property: "otel.exporter.otlp.traces.compression"
+    category: "exporter"
+    description: "Compression type for OTLP traces requests."
+    default: "No compression will be used"
+
+  - system_property: "otel.exporter.otlp.metrics.compression"
+    category: "exporter"
+    description: "Compression type for OTLP metrics requests."
+    default: "No compression will be used"
+
+  - system_property: "otel.exporter.otlp.logs.compression"
+    category: "exporter"
+    description: "Compression type for OTLP logs requests."
+    default: "No compression will be used"
+
+  - system_property: "otel.exporter.otlp.timeout"
+    category: "exporter"
+    description: "Timeout for OTLP requests in milliseconds."
+    default: "10000"
+
+  - system_property: "otel.exporter.otlp.traces.timeout"
+    category: "exporter"
+    description: "Timeout for OTLP traces requests."
+    default: "10000"
+
+  - system_property: "otel.exporter.otlp.metrics.timeout"
+    category: "exporter"
+    description: "Timeout for OTLP metrics requests."
+    default: "10000"
+
+  - system_property: "otel.exporter.otlp.logs.timeout"
+    category: "exporter"
+    description: "Timeout for OTLP logs requests."
+    default: "10000"
+
+  - system_property: "otel.exporter.otlp.metrics.temporality.preference"
+    category: "exporter"
+    description: "Preferred metrics aggregation temporality."
+    default: "CUMULATIVE"
+
+  - system_property: "otel.exporter.otlp.metrics.default.histogram.aggregation"
+    category: "exporter"
+    description: "Preferred histogram aggregation."
+    default: "EXPLICIT_BUCKET_HISTOGRAM"
+
+  - system_property: "otel.java.exporter.otlp.retry.disabled"
+    category: "exporter"
+    description: "Disable retries on transient errors."
+    default: "false"
+
+  - system_property: "otel.exporter.zipkin.endpoint"
+    category: "exporter"
+    description: "Zipkin endpoint."
+    default: "http://localhost:9411/api/v2/spans"
+
+  - system_property: "otel.exporter.prometheus.port"
+    category: "exporter"
+    description: "Prometheus server port."
+    default: "9464"
+
+  - system_property: "otel.exporter.prometheus.host"
+    category: "exporter"
+    description: "Prometheus server host."
+    default: "localhost"

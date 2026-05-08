@@ -82,22 +82,24 @@ class NocodeAttributesExtractor implements AttributesExtractor<NocodeMethodInvoc
 
   @Override
   public void onStart(
-      AttributesBuilder attributesBuilder, Context context, NocodeMethodInvocation mi) {
-    codeExtractor.onStart(attributesBuilder, context, mi.getClassAndMethod());
+      AttributesBuilder attributesBuilder, Context context, NocodeMethodInvocation invocation) {
+    codeExtractor.onStart(attributesBuilder, context, invocation.getClassAndMethod());
 
     applyRuleAttributes(
-        mi, (key, value) -> setAttribute(attributesBuilderSetter, attributesBuilder, key, value));
+        invocation,
+        (key, value) -> setAttribute(attributesBuilderSetter, attributesBuilder, key, value));
   }
 
-  static void applyToSpan(Span span, NocodeMethodInvocation mi) {
-    applyRuleAttributes(mi, (key, value) -> setAttribute(spanAttributeSetter, span, key, value));
+  static void applyToSpan(Span span, NocodeMethodInvocation invocation) {
+    applyRuleAttributes(
+        invocation, (key, value) -> setAttribute(spanAttributeSetter, span, key, value));
   }
 
   private static void applyRuleAttributes(
-      NocodeMethodInvocation mi, BiConsumer<String, Object> attributeConsumer) {
-    Map<String, NocodeExpression> attributes = mi.getRuleAttributes();
+      NocodeMethodInvocation invocation, BiConsumer<String, Object> attributeConsumer) {
+    Map<String, NocodeExpression> attributes = invocation.getRuleAttributes();
     for (Map.Entry<String, NocodeExpression> entry : attributes.entrySet()) {
-      Object value = mi.evaluate(entry.getValue());
+      Object value = invocation.evaluate(entry.getValue());
       if (value != null) {
         attributeConsumer.accept(entry.getKey(), value);
       }

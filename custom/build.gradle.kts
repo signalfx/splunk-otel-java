@@ -53,11 +53,12 @@ tasks {
 
   // TODO: investigate why adding to processResources throws UnsupportedOperationException, but only in GHA
   register("generateVersionResource") {
+    val version = project.version as String
     val propertiesDir = file("build/generated/properties")
     outputs.dir(propertiesDir)
 
     doLast {
-      File(propertiesDir, "splunk.properties").writeText("telemetry.distro.version=${project.version}")
+      File(propertiesDir, "splunk.properties").writeText("telemetry.distro.version=$version")
     }
   }
 }

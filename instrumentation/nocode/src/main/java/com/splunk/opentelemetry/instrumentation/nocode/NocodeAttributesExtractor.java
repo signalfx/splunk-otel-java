@@ -28,6 +28,52 @@ import java.util.function.BiConsumer;
 import javax.annotation.Nullable;
 
 class NocodeAttributesExtractor implements AttributesExtractor<NocodeMethodInvocation, Object> {
+  private static final AttributeSetter<AttributesBuilder> attributesBuilderSetter =
+      new AttributeSetter<AttributesBuilder>() {
+        @Override
+        public void set(AttributesBuilder attributesBuilder, String key, long value) {
+          attributesBuilder.put(key, value);
+        }
+
+        @Override
+        public void set(AttributesBuilder attributesBuilder, String key, double value) {
+          attributesBuilder.put(key, value);
+        }
+
+        @Override
+        public void set(AttributesBuilder attributesBuilder, String key, boolean value) {
+          attributesBuilder.put(key, value);
+        }
+
+        @Override
+        public void set(AttributesBuilder attributesBuilder, String key, String value) {
+          attributesBuilder.put(key, value);
+        }
+      };
+
+  private static final AttributeSetter<Span> spanAttributeSetter =
+      new AttributeSetter<Span>() {
+        @Override
+        public void set(Span span, String key, long value) {
+          span.setAttribute(key, value);
+        }
+
+        @Override
+        public void set(Span span, String key, double value) {
+          span.setAttribute(key, value);
+        }
+
+        @Override
+        public void set(Span span, String key, boolean value) {
+          span.setAttribute(key, value);
+        }
+
+        @Override
+        public void set(Span span, String key, String value) {
+          span.setAttribute(key, value);
+        }
+      };
+
   private final AttributesExtractor<ClassAndMethod, Object> codeExtractor;
 
   public NocodeAttributesExtractor() {
@@ -39,11 +85,12 @@ class NocodeAttributesExtractor implements AttributesExtractor<NocodeMethodInvoc
       AttributesBuilder attributesBuilder, Context context, NocodeMethodInvocation mi) {
     codeExtractor.onStart(attributesBuilder, context, mi.getClassAndMethod());
 
-    applyRuleAttributes(mi, (key, value) -> putAttribute(attributesBuilder, key, value));
+    applyRuleAttributes(
+        mi, (key, value) -> setAttribute(attributesBuilderSetter, attributesBuilder, key, value));
   }
 
   static void applyToSpan(Span span, NocodeMethodInvocation mi) {
-    applyRuleAttributes(mi, (key, value) -> setAttribute(span, key, value));
+    applyRuleAttributes(mi, (key, value) -> setAttribute(spanAttributeSetter, span, key, value));
   }
 
   private static void applyRuleAttributes(
@@ -57,35 +104,19 @@ class NocodeAttributesExtractor implements AttributesExtractor<NocodeMethodInvoc
     }
   }
 
-  // The duplication between these two methods is unfortunate but kinda unavodable without
-  // introducing an abstracting interface over the two ways the otel apis work
-  private static void putAttribute(AttributesBuilder attributesBuilder, String key, Object value) {
+  private static <T> void setAttribute(
+      AttributeSetter<T> setter, T target, String key, Object value) {
     if (value instanceof Long
         || value instanceof Integer
         || value instanceof Short
         || value instanceof Byte) {
-      attributesBuilder.put(key, ((Number) value).longValue());
+      setter.set(target, key, ((Number) value).longValue());
     } else if (value instanceof Float || value instanceof Double) {
-      attributesBuilder.put(key, ((Number) value).doubleValue());
+      setter.set(target, key, ((Number) value).doubleValue());
     } else if (value instanceof Boolean) {
-      attributesBuilder.put(key, (Boolean) value);
+      setter.set(target, key, (Boolean) value);
     } else {
-      attributesBuilder.put(key, value.toString());
-    }
-  }
-
-  private static void setAttribute(Span span, String key, Object value) {
-    if (value instanceof Long
-        || value instanceof Integer
-        || value instanceof Short
-        || value instanceof Byte) {
-      span.setAttribute(key, ((Number) value).longValue());
-    } else if (value instanceof Float || value instanceof Double) {
-      span.setAttribute(key, ((Number) value).doubleValue());
-    } else if (value instanceof Boolean) {
-      span.setAttribute(key, (Boolean) value);
-    } else {
-      span.setAttribute(key, value.toString());
+      setter.set(target, key, value.toString());
     }
   }
 
@@ -98,5 +129,15 @@ class NocodeAttributesExtractor implements AttributesExtractor<NocodeMethodInvoc
       @Nullable Throwable throwable) {
     codeExtractor.onEnd(
         attributesBuilder, context, nocodeMethodInvocation.getClassAndMethod(), unused, throwable);
+  }
+
+  private interface AttributeSetter<T> {
+    void set(T target, String key, long value);
+
+    void set(T target, String key, double value);
+
+    void set(T target, String key, boolean value);
+
+    void set(T target, String key, String value);
   }
 }

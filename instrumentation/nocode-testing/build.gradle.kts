@@ -12,6 +12,7 @@ dependencies {
   }
   testImplementation("org.snakeyaml:snakeyaml-engine")
   testImplementation("io.opentelemetry.javaagent:opentelemetry-javaagent-extension-api")
+  testImplementation("io.github.netmikey.logunit:logunit-jul:1.1.3")
 }
 
 tasks {

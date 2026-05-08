@@ -98,10 +98,9 @@ public final class NocodeInstrumentation implements TypeInstrumentation {
         Context parentContext = Context.current();
         if (rule != null && rule.isCurrentSpan()) {
           Span currentSpan = Span.fromContext(parentContext);
-          if (!currentSpan.getSpanContext().isValid()) {
-            return null;
+          if (currentSpan.isRecording()) {
+            NocodeAttributesExtractor.applyToSpan(currentSpan, otelInvocation);
           }
-          NocodeAttributesExtractor.applyToSpan(currentSpan, otelInvocation);
           return null;
         }
 

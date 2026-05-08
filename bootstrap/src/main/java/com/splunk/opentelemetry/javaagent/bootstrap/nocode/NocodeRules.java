@@ -17,9 +17,8 @@
 package com.splunk.opentelemetry.javaagent.bootstrap.nocode;
 
 import io.opentelemetry.api.trace.SpanKind;
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -41,30 +40,22 @@ public final class NocodeRules {
 
   private NocodeRules() {}
 
-  private static final HashMap<Integer, Rule> ruleMap = new HashMap<>();
-  private static final List<Rule> orderedRules =
-      new ArrayList<>(); // for preserving order from the yaml file
+  // LinkedHashMap is used for preserving order from the yaml file
+  private static final Map<Integer, Rule> ruleMap = new LinkedHashMap<>();
 
   // Called by the NocodeInitializer
   public static void setGlobalRules(List<Rule> rules) {
-    orderedRules.clear();
     ruleMap.clear();
-    orderedRules.addAll(rules);
     for (Rule r : rules) {
       ruleMap.put(r.getId(), r);
     }
   }
 
   public static Iterable<Rule> getGlobalRules() {
-    return Collections.unmodifiableList(orderedRules);
+    return Collections.unmodifiableCollection(ruleMap.values());
   }
 
   public static Rule find(int id) {
     return ruleMap.get(id);
-  }
-
-  public static void clearGlobalRules() {
-    orderedRules.clear();
-    ruleMap.clear();
   }
 }

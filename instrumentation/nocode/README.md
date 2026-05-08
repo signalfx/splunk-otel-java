@@ -59,7 +59,7 @@ For `current_span: true` rules:
   - No new span is created
   - Attributes are added to the current/active span
   - If there is no active span, the rule does nothing
-  - `span_name:` and `span_status:` are ignored and a warning is logged
+  - `span_name:`, `span_kind:`, and `span_status:` are ignored and a warning is logged
 
 If multiple nocode rules match the same method, they are applied in the order they appear in the yaml file.
 This matters when mixing "regular" rules with `current_span: true`, since a current-span rule may see either

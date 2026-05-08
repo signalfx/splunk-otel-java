@@ -143,6 +143,7 @@ class YamlParserTest {
               method: someMethod
               current_span: true
               span_name: ignoredName
+              span_kind: CLIENT
               span_status: ignoredStatus
               attributes:
                 - key: key
@@ -154,9 +155,11 @@ class YamlParserTest {
     assertThat(rules).hasSize(1);
     assertThat(rules.get(0).isCurrentSpan()).isTrue();
     assertThat(rules.get(0).getSpanName()).isNull();
+    assertThat(((RuleImpl) rules.get(0)).getSpanKind()).isNull();
     assertThat(rules.get(0).getSpanStatus()).isNull();
 
     logs.assertContains("current_span rules do not support span_name; ignoring it");
+    logs.assertContains("current_span rules do not support span_kind; ignoring it");
     logs.assertContains("current_span rules do not support span_status; ignoring it");
   }
 }

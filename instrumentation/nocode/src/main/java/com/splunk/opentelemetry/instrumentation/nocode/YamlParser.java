@@ -93,7 +93,9 @@ class YamlParser {
               ? ignoreCurrentSpanField("span_name", yamlRule.get("span_name"))
               : toExpression(yamlRule.get("span_name"));
       SpanKind spanKind = null;
-      if (yamlRule.get("span_kind") != null) {
+      if (isCurrentSpan) {
+        ignoreCurrentSpanField("span_kind", yamlRule.get("span_kind"));
+      } else if (yamlRule.get("span_kind") != null) {
         String spanKindString = yamlRule.get("span_kind").toString();
         try {
           spanKind = SpanKind.valueOf(spanKindString.toUpperCase(Locale.ROOT));

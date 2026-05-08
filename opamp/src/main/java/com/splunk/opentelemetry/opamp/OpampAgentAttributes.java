@@ -52,34 +52,38 @@ class OpampAgentAttributes {
     return entry -> {
       AttributeKey<?> key = entry.getKey();
       Object value = entry.getValue();
+      if (value == null) {
+        return;
+      }
       AttributeType type = key.getType();
 
-      // The java type system is truly insufferable.
       switch (type) {
-        case STRING:
         case VALUE:
-          builder.putIdentifyingAttribute(key.getKey(), (String) makeValue(type, value));
+          builder.putIdentifyingAttribute(key.getKey(), value.toString());
+          break;
+        case STRING:
+          builder.putIdentifyingAttribute(key.getKey(), (String) value);
           break;
         case LONG:
-          builder.putIdentifyingAttribute(key.getKey(), (long) makeValue(type, value));
+          builder.putIdentifyingAttribute(key.getKey(), (long) value);
           break;
         case DOUBLE:
-          builder.putIdentifyingAttribute(key.getKey(), (double) makeValue(type, value));
+          builder.putIdentifyingAttribute(key.getKey(), (double) value);
           break;
         case BOOLEAN:
-          builder.putIdentifyingAttribute(key.getKey(), (boolean) makeValue(type, value));
+          builder.putIdentifyingAttribute(key.getKey(), (boolean) value);
           break;
         case STRING_ARRAY:
-          builder.putIdentifyingAttribute(key.getKey(), (String[]) makeValue(type, value));
+          builder.putIdentifyingAttribute(key.getKey(), toStringArray((List<?>) value));
           break;
         case LONG_ARRAY:
-          builder.putIdentifyingAttribute(key.getKey(), (long[]) makeValue(type, value));
+          builder.putIdentifyingAttribute(key.getKey(), toLongArray((List<?>) value));
           break;
         case DOUBLE_ARRAY:
-          builder.putIdentifyingAttribute(key.getKey(), (double[]) makeValue(type, value));
+          builder.putIdentifyingAttribute(key.getKey(), toDoubleArray((List<?>) value));
           break;
         case BOOLEAN_ARRAY:
-          builder.putIdentifyingAttribute(key.getKey(), (boolean[]) makeValue(type, value));
+          builder.putIdentifyingAttribute(key.getKey(), toBooleanArray((List<?>) value));
           break;
       }
     };
@@ -90,74 +94,60 @@ class OpampAgentAttributes {
     return entry -> {
       AttributeKey<?> key = entry.getKey();
       Object value = entry.getValue();
+      if (value == null) {
+        return;
+      }
       AttributeType type = key.getType();
 
-      // The java type system is truly insufferable.
       switch (type) {
-        case STRING:
         case VALUE:
-          builder.putNonIdentifyingAttribute(key.getKey(), (String) makeValue(type, value));
+          builder.putNonIdentifyingAttribute(key.getKey(), value.toString());
+          break;
+        case STRING:
+          builder.putNonIdentifyingAttribute(key.getKey(), (String) value);
           break;
         case LONG:
-          builder.putNonIdentifyingAttribute(key.getKey(), (long) makeValue(type, value));
+          builder.putNonIdentifyingAttribute(key.getKey(), (long) value);
           break;
         case DOUBLE:
-          builder.putNonIdentifyingAttribute(key.getKey(), (double) makeValue(type, value));
+          builder.putNonIdentifyingAttribute(key.getKey(), (double) value);
           break;
         case BOOLEAN:
-          builder.putNonIdentifyingAttribute(key.getKey(), (boolean) makeValue(type, value));
+          builder.putNonIdentifyingAttribute(key.getKey(), (boolean) value);
           break;
         case STRING_ARRAY:
-          builder.putNonIdentifyingAttribute(key.getKey(), (String[]) makeValue(type, value));
+          builder.putNonIdentifyingAttribute(key.getKey(), toStringArray((List<?>) value));
           break;
         case LONG_ARRAY:
-          builder.putNonIdentifyingAttribute(key.getKey(), (long[]) makeValue(type, value));
+          builder.putNonIdentifyingAttribute(key.getKey(), toLongArray((List<?>) value));
           break;
         case DOUBLE_ARRAY:
-          builder.putNonIdentifyingAttribute(key.getKey(), (double[]) makeValue(type, value));
+          builder.putNonIdentifyingAttribute(key.getKey(), toDoubleArray((List<?>) value));
           break;
         case BOOLEAN_ARRAY:
-          builder.putNonIdentifyingAttribute(key.getKey(), (boolean[]) makeValue(type, value));
+          builder.putNonIdentifyingAttribute(key.getKey(), toBooleanArray((List<?>) value));
           break;
       }
     };
   }
 
-  private Object makeValue(AttributeType attrType, Object value) {
-    // More java type insanity
-    switch (attrType) {
-      case STRING:
-      case LONG:
-      case DOUBLE:
-      case BOOLEAN:
-        return value;
-      case VALUE:
-        return value.toString();
-      case STRING_ARRAY:
-        List<String> typedValueList = (List<String>) value;
-        return typedValueList.toArray(new String[] {});
-      case LONG_ARRAY:
-        List<Long> longList = (List<Long>) value;
-        long[] longArray = new long[longList.size()];
-        for (int i = 0; i < longList.size(); i++) {
-          longArray[i] = longList.get(i);
-        }
-        return longArray;
-      case DOUBLE_ARRAY:
-        List<Double> doubleList = (List<Double>) value;
-        double[] doubleArray = new double[doubleList.size()];
-        for (int i = 0; i < doubleList.size(); i++) {
-          doubleArray[i] = doubleList.get(i);
-        }
-        return doubleArray;
-      case BOOLEAN_ARRAY:
-        List<Boolean> booleanList = (List<Boolean>) value;
-        boolean[] booleanArray = new boolean[booleanList.size()];
-        for (int i = 0; i < booleanList.size(); i++) {
-          booleanArray[i] = booleanList.get(i);
-        }
-        return booleanArray;
+  private String[] toStringArray(List<?> value) {
+    return value.stream().map(v -> (String) v).toArray(String[]::new);
+  }
+
+  private long[] toLongArray(List<?> value) {
+    return value.stream().mapToLong(v -> (Long) v).toArray();
+  }
+
+  private double[] toDoubleArray(List<?> value) {
+    return value.stream().mapToDouble(v -> (Double) v).toArray();
+  }
+
+  private boolean[] toBooleanArray(List<?> value) {
+    boolean[] result = new boolean[value.size()];
+    for (int i = 0; i < value.size(); i++) {
+      result[i] = (Boolean) value.get(i);
     }
-    return null;
+    return result;
   }
 }

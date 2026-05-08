@@ -190,7 +190,7 @@ jobs:
             --label bug \
             --label area:build \
             --label automated \
-            --assignee agoallikmaa,breedx-splk,laurit,robsunday \
+            --assignee breedx-splk,laurit,robsunday \
             --body-file body.txt
 
   shellcheck:

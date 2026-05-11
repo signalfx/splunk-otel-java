@@ -21,12 +21,14 @@ import static io.opentelemetry.api.incubator.config.DeclarativeConfigProperties.
 import com.google.auto.service.AutoService;
 import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
 import io.opentelemetry.sdk.autoconfigure.AutoConfigureUtil;
-import io.opentelemetry.sdk.extension.incubator.fileconfig.DeclarativeConfigurationCustomizer;
-import io.opentelemetry.sdk.extension.incubator.fileconfig.DeclarativeConfigurationCustomizerProvider;
-import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.OpenTelemetryConfigurationModel;
-import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.PropagatorModel;
-import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.SpanProcessorModel;
-import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.TracerProviderModel;
+import io.opentelemetry.sdk.autoconfigure.declarativeconfig.DeclarativeConfigurationCustomizer;
+import io.opentelemetry.sdk.autoconfigure.declarativeconfig.DeclarativeConfigurationCustomizerProvider;
+import io.opentelemetry.sdk.declarativeconfig.internal.model.OpenTelemetryConfigurationModel;
+import io.opentelemetry.sdk.declarativeconfig.internal.model.PropagatorModel;
+import io.opentelemetry.sdk.declarativeconfig.internal.model.SpanProcessorModel;
+import io.opentelemetry.sdk.declarativeconfig.internal.model.TracerProviderModel;
+import java.util.ArrayList;
+import java.util.List;
 
 @AutoService(DeclarativeConfigurationCustomizerProvider.class)
 public final class AppdBonusConfigurationCustomizerProvider
@@ -49,7 +51,12 @@ public final class AppdBonusConfigurationCustomizerProvider
           if (model.getTracerProvider() == null) {
             model.withTracerProvider(new TracerProviderModel());
           }
-          model.getTracerProvider().getProcessors().add(appdSpanProcessorModel);
+          List<SpanProcessorModel> processors = model.getTracerProvider().getProcessors();
+          if (processors == null) {
+            processors = new ArrayList<>();
+            model.getTracerProvider().withProcessors(processors);
+          }
+          processors.add(appdSpanProcessorModel);
 
           return model;
         });

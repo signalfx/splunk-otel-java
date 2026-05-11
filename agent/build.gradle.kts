@@ -99,6 +99,8 @@ tasks {
     exclude("META-INF/LICENSE.txt")
     exclude("LICENSE.txt")
     exclude("THIRD_PARTY_LICENSES.txt")
+    exclude("META-INF/maven/**")
+    exclude("META-INF/versions/*/OSGI-INF/MANIFEST.MF")
   }
 
   // 2. the Splunk javaagent libs are then isolated - moved to the inst/ directory

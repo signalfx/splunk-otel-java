@@ -21,16 +21,16 @@ import com.splunk.opentelemetry.profiler.ProfilerConfiguration;
 import com.splunk.opentelemetry.profiler.ProfilerDeclarativeConfiguration;
 import com.splunk.opentelemetry.profiler.snapshot.SnapshotProfilingConfiguration;
 import com.splunk.opentelemetry.profiler.snapshot.SnapshotProfilingDeclarativeConfiguration;
-import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.LogRecordExporterModel;
-import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.LogRecordProcessorModel;
-import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.LoggerProviderModel;
-import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.MeterProviderModel;
-import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.MetricReaderModel;
-import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.OpenTelemetryConfigurationModel;
-import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.PushMetricExporterModel;
-import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.SpanExporterModel;
-import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.SpanProcessorModel;
-import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.TracerProviderModel;
+import io.opentelemetry.sdk.declarativeconfig.internal.model.LogRecordExporterModel;
+import io.opentelemetry.sdk.declarativeconfig.internal.model.LogRecordProcessorModel;
+import io.opentelemetry.sdk.declarativeconfig.internal.model.LoggerProviderModel;
+import io.opentelemetry.sdk.declarativeconfig.internal.model.MeterProviderModel;
+import io.opentelemetry.sdk.declarativeconfig.internal.model.MetricReaderModel;
+import io.opentelemetry.sdk.declarativeconfig.internal.model.OpenTelemetryConfigurationModel;
+import io.opentelemetry.sdk.declarativeconfig.internal.model.PushMetricExporterModel;
+import io.opentelemetry.sdk.declarativeconfig.internal.model.SpanExporterModel;
+import io.opentelemetry.sdk.declarativeconfig.internal.model.SpanProcessorModel;
+import io.opentelemetry.sdk.declarativeconfig.internal.model.TracerProviderModel;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -80,7 +80,7 @@ class DeclarativeEffectiveConfigFileFactory implements EffectiveConfigFactory {
 
   private List<String> getTracesEndpoints(TracerProviderModel tracerProvider) {
     List<String> endpoints = new ArrayList<>();
-    if (tracerProvider != null) {
+    if (tracerProvider != null && tracerProvider.getProcessors() != null) {
       for (SpanProcessorModel spanProcessor : tracerProvider.getProcessors()) {
         String endpoint = getEndpoint(getSpanExporter(spanProcessor));
         if (endpoint != null) {
@@ -93,7 +93,7 @@ class DeclarativeEffectiveConfigFileFactory implements EffectiveConfigFactory {
 
   private List<String> getMetricsEndpoints(MeterProviderModel meterProvider) {
     List<String> endpoints = new ArrayList<>();
-    if (meterProvider != null) {
+    if (meterProvider != null && meterProvider.getReaders() != null) {
       for (MetricReaderModel metricReader : meterProvider.getReaders()) {
         String endpoint = getEndpoint(getMetricExporter(metricReader));
         if (endpoint != null) {
@@ -106,7 +106,7 @@ class DeclarativeEffectiveConfigFileFactory implements EffectiveConfigFactory {
 
   private List<String> getLogsEndpoints(LoggerProviderModel loggerProvider) {
     List<String> endpoints = new ArrayList<>();
-    if (loggerProvider != null) {
+    if (loggerProvider != null && loggerProvider.getProcessors() != null) {
       for (LogRecordProcessorModel processor : loggerProvider.getProcessors()) {
         String endpoint = getEndpoint(getLogRecordExporter(processor));
         if (endpoint != null) {

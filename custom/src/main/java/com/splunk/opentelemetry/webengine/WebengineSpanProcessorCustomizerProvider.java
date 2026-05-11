@@ -17,9 +17,11 @@
 package com.splunk.opentelemetry.webengine;
 
 import com.google.auto.service.AutoService;
-import io.opentelemetry.sdk.extension.incubator.fileconfig.DeclarativeConfigurationCustomizer;
-import io.opentelemetry.sdk.extension.incubator.fileconfig.DeclarativeConfigurationCustomizerProvider;
-import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.SpanProcessorModel;
+import io.opentelemetry.sdk.autoconfigure.declarativeconfig.DeclarativeConfigurationCustomizer;
+import io.opentelemetry.sdk.autoconfigure.declarativeconfig.DeclarativeConfigurationCustomizerProvider;
+import io.opentelemetry.sdk.declarativeconfig.internal.model.SpanProcessorModel;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Logger;
 
 @AutoService(DeclarativeConfigurationCustomizerProvider.class)
@@ -34,14 +36,15 @@ public class WebengineSpanProcessorCustomizerProvider
         model -> {
           if (model.getTracerProvider() != null) {
             logger.fine("Adding webengine span processor to the configuration");
-            model
-                .getTracerProvider()
-                .getProcessors()
-                .add(
-                    0,
-                    new SpanProcessorModel()
-                        .withAdditionalProperty(
-                            WebengineSpanProcessorComponentProvider.NAME, null));
+            List<SpanProcessorModel> processors = model.getTracerProvider().getProcessors();
+            if (processors == null) {
+              processors = new ArrayList<>();
+              model.getTracerProvider().withProcessors(processors);
+            }
+            processors.add(
+                0,
+                new SpanProcessorModel()
+                    .withAdditionalProperty(WebengineSpanProcessorComponentProvider.NAME, null));
           }
           return model;
         });

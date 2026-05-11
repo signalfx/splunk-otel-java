@@ -22,11 +22,12 @@ import static io.opentelemetry.sdk.autoconfigure.AutoConfigureUtil.getDistributi
 import com.google.auto.service.AutoService;
 import com.google.common.annotations.VisibleForTesting;
 import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
-import io.opentelemetry.sdk.extension.incubator.fileconfig.DeclarativeConfigurationCustomizer;
-import io.opentelemetry.sdk.extension.incubator.fileconfig.DeclarativeConfigurationCustomizerProvider;
-import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.OpenTelemetryConfigurationModel;
-import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.SpanProcessorModel;
-import io.opentelemetry.sdk.extension.incubator.fileconfig.internal.model.TracerProviderModel;
+import io.opentelemetry.sdk.autoconfigure.declarativeconfig.DeclarativeConfigurationCustomizer;
+import io.opentelemetry.sdk.autoconfigure.declarativeconfig.DeclarativeConfigurationCustomizerProvider;
+import io.opentelemetry.sdk.declarativeconfig.internal.model.OpenTelemetryConfigurationModel;
+import io.opentelemetry.sdk.declarativeconfig.internal.model.SpanProcessorModel;
+import io.opentelemetry.sdk.declarativeconfig.internal.model.TracerProviderModel;
+import java.util.ArrayList;
 import java.util.List;
 
 @AutoService(DeclarativeConfigurationCustomizerProvider.class)
@@ -70,6 +71,10 @@ public class SnapshotProfilingConfigurationCustomizerProvider
     }
 
     List<SpanProcessorModel> processors = tracerProviderModel.getProcessors();
+    if (processors == null) {
+      processors = new ArrayList<>();
+      tracerProviderModel.withProcessors(processors);
+    }
     processors.add(
         new SpanProcessorModel()
             .withAdditionalProperty(SnapshotProfilingSpanProcessorComponentProvider.NAME, null));

@@ -1,7 +1,7 @@
 
 # splunk-otel-javaagent
 ## Dependency License Report
-_2026-05-11 11:09:32 EEST_
+_2026-05-13 09:01:19 EEST_
 ## Apache License, Version 2.0
 
 **1** **Group:** `com.squareup.okhttp3` **Name:** `okhttp` **Version:** `5.3.2` 
@@ -111,12 +111,12 @@ _2026-05-11 11:09:32 EEST_
 > - **POM Project URL**: [https://kotlinlang.org/](https://kotlinlang.org/)
 > - **POM License**: Apache License, Version 2.0 - [https://www.apache.org/licenses/LICENSE-2.0](https://www.apache.org/licenses/LICENSE-2.0)
 
-**27** **Group:** `org.slf4j` **Name:** `jcl-over-slf4j` **Version:** `2.0.17` 
+**27** **Group:** `org.slf4j` **Name:** `jcl-over-slf4j` **Version:** `2.0.18` 
 > - **Project URL**: [http://www.slf4j.org](http://www.slf4j.org)
 > - **Manifest License**: Apache License, Version 2.0 (Not Packaged)
 > - **POM License**: Apache License, Version 2.0 - [https://www.apache.org/licenses/LICENSE-2.0](https://www.apache.org/licenses/LICENSE-2.0)
 > - **POM License**: MIT License - [https://opensource.org/licenses/MIT](https://opensource.org/licenses/MIT)
-> - **Embedded license files**: [jcl-over-slf4j-2.0.17.jar/META-INF/LICENSE.txt](jcl-over-slf4j-2.0.17.jar/META-INF/LICENSE.txt)
+> - **Embedded license files**: [jcl-over-slf4j-2.0.18.jar/META-INF/LICENSE.txt](jcl-over-slf4j-2.0.18.jar/META-INF/LICENSE.txt)
 
 ## MIT License
 
@@ -124,17 +124,17 @@ _2026-05-11 11:09:32 EEST_
 > - **POM Project URL**: [https://github.com/f4b6a3/uuid-creator](https://github.com/f4b6a3/uuid-creator)
 > - **POM License**: MIT License - [https://opensource.org/licenses/MIT](https://opensource.org/licenses/MIT)
 
-**29** **Group:** `org.slf4j` **Name:** `jcl-over-slf4j` **Version:** `2.0.17` 
+**29** **Group:** `org.slf4j` **Name:** `jcl-over-slf4j` **Version:** `2.0.18` 
 > - **Project URL**: [http://www.slf4j.org](http://www.slf4j.org)
 > - **Manifest License**: Apache License, Version 2.0 (Not Packaged)
 > - **POM License**: Apache License, Version 2.0 - [https://www.apache.org/licenses/LICENSE-2.0](https://www.apache.org/licenses/LICENSE-2.0)
 > - **POM License**: MIT License - [https://opensource.org/licenses/MIT](https://opensource.org/licenses/MIT)
-> - **Embedded license files**: [jcl-over-slf4j-2.0.17.jar/META-INF/LICENSE.txt](jcl-over-slf4j-2.0.17.jar/META-INF/LICENSE.txt)
+> - **Embedded license files**: [jcl-over-slf4j-2.0.18.jar/META-INF/LICENSE.txt](jcl-over-slf4j-2.0.18.jar/META-INF/LICENSE.txt)
 
-**30** **Group:** `org.slf4j` **Name:** `slf4j-api` **Version:** `2.0.17` 
+**30** **Group:** `org.slf4j` **Name:** `slf4j-api` **Version:** `2.0.18` 
 > - **Project URL**: [http://www.slf4j.org](http://www.slf4j.org)
 > - **POM License**: MIT License - [https://opensource.org/licenses/MIT](https://opensource.org/licenses/MIT)
-> - **Embedded license files**: [slf4j-api-2.0.17.jar/META-INF/LICENSE.txt](slf4j-api-2.0.17.jar/META-INF/LICENSE.txt)
+> - **Embedded license files**: [slf4j-api-2.0.18.jar/META-INF/LICENSE.txt](slf4j-api-2.0.18.jar/META-INF/LICENSE.txt)
 
 ## The 3-Clause BSD License
 

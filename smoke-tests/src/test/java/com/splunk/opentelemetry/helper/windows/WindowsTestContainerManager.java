@@ -44,6 +44,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.Socket;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
@@ -74,15 +75,40 @@ public class WindowsTestContainerManager extends AbstractTestContainerManager {
   private static final String NPIPE_URI = "npipe:////./pipe/docker_engine";
   private static final String COLLECTOR_CONFIG_FILE_PATH = "/collector-config.yml";
 
-  private final DockerClient client =
-      DockerClientImpl.getInstance(
-          new DefaultDockerClientConfig.Builder().withDockerHost(NPIPE_URI).build(),
-          new ApacheDockerHttpClient.Builder().dockerHost(URI.create(NPIPE_URI)).build());
+  private final DockerClient client = buidlDockerClient();
 
   private String natNetworkId = null;
   private Container backend;
   private Container collector;
   private Container target;
+
+  private static DockerClient buidlDockerClient() {
+    ProcessBuilder pb =
+        new ProcessBuilder("docker", "context", "inspect", "-f", "{{ .Endpoints.docker.Host }}");
+    pb.redirectErrorStream(true);
+
+    String uri = NPIPE_URI;
+    try {
+      Process process = pb.start();
+      String text = new String(process.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+      int exitCode = process.waitFor();
+      if (exitCode == 0) {
+        uri = text.trim();
+      } else {
+        logger.warn(
+            "Failed to get docker context inspect output, exit code: {}, output: {}",
+            exitCode,
+            text);
+      }
+    } catch (Exception e) {
+      logger.warn("Docker inspect command failed", e);
+    }
+
+    logger.info("Using docker host {}", uri);
+    return DockerClientImpl.getInstance(
+        new DefaultDockerClientConfig.Builder().withDockerHost(NPIPE_URI).build(),
+        new ApacheDockerHttpClient.Builder().dockerHost(URI.create(NPIPE_URI)).build());
+  }
 
   @Override
   public void startEnvironment() {

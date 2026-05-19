@@ -54,7 +54,7 @@ dependencies {
   testImplementation("io.opentelemetry:opentelemetry-api")
   testImplementation("io.opentelemetry:opentelemetry-sdk")
   testImplementation("io.opentelemetry:opentelemetry-sdk-testing")
-  testImplementation("io.github.netmikey.logunit:logunit-jul:2.0.0")
+  testImplementation("io.github.netmikey.logunit:logunit-jul")
 }
 
 tasks {

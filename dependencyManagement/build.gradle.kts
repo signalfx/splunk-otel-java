@@ -60,5 +60,6 @@ dependencies {
 
     api("org.apache.commons:commons-jexl3:3.6.2")
     api("org.snakeyaml:snakeyaml-engine:2.10")
+    api("io.github.netmikey.logunit:logunit-jul:2.0.0")
   }
 }

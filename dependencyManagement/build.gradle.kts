@@ -34,7 +34,7 @@ dependencies {
   api(enforcedPlatform("io.grpc:grpc-bom:1.81.0"))
   api(enforcedPlatform("io.opentelemetry:opentelemetry-bom-alpha:$otelAlphaVersion"))
   api(enforcedPlatform("io.opentelemetry.instrumentation:opentelemetry-instrumentation-bom-alpha:$otelInstrumentationAlphaVersion"))
-  api(enforcedPlatform("org.junit:junit-bom:6.0.3"))
+  api(enforcedPlatform("org.junit:junit-bom:6.1.0"))
   api(enforcedPlatform("org.testcontainers:testcontainers-bom:2.0.5"))
 
   constraints {

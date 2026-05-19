@@ -106,8 +106,8 @@ public class WindowsTestContainerManager extends AbstractTestContainerManager {
 
     logger.info("Using docker host {}", uri);
     return DockerClientImpl.getInstance(
-        new DefaultDockerClientConfig.Builder().withDockerHost(NPIPE_URI).build(),
-        new ApacheDockerHttpClient.Builder().dockerHost(URI.create(NPIPE_URI)).build());
+        new DefaultDockerClientConfig.Builder().withDockerHost(uri).build(),
+        new ApacheDockerHttpClient.Builder().dockerHost(URI.create(uri)).build());
   }
 
   @Override

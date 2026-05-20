@@ -54,7 +54,7 @@ public class LinuxTestContainerManager extends AbstractTestContainerManager {
     backend.start();
 
     hecBackend =
-        new GenericContainer<>(DockerImageName.parse("mockserver/mockserver:5.15.0"))
+        new GenericContainer<>(DockerImageName.parse("mockserver/mockserver:6.0.0"))
             .withExposedPorts(HEC_BACKEND_PORT)
             .waitingFor(Wait.forLogMessage(".*started on port.*", 1))
             .withNetwork(network)

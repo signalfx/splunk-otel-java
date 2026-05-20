@@ -51,9 +51,9 @@ class EnvVarsEffectiveConfigFileFactoryTest {
             "SPLUNK_SNAPSHOT_PROFILER_ENABLED", "true",
             "SPLUNK_SNAPSHOT_PROFILER_SAMPLING_INTERVAL", "\"26ms\"",
             "SPLUNK_PROFILER_CALL_STACK_INTERVAL", "\"1235ms\"",
-            "OTEL_EXPORTER_OTLP_TRACES_ENDPOINTS", "\"https://traces.example.com\"",
-            "OTEL_EXPORTER_OTLP_METRICS_ENDPOINTS", "\"https://metrics.example.com\"",
-            "OTEL_EXPORTER_OTLP_LOGS_ENDPOINTS", "\"https://logs.example.com\""));
+            "OTEL_EXPORTER_OTLP_TRACES_ENDPOINT", "\"https://traces.example.com\"",
+            "OTEL_EXPORTER_OTLP_METRICS_ENDPOINT", "\"https://metrics.example.com\"",
+            "OTEL_EXPORTER_OTLP_LOGS_ENDPOINT", "\"https://logs.example.com\""));
     assertThat(fileContent.size()).isEqualTo(8);
   }
 
@@ -69,9 +69,9 @@ class EnvVarsEffectiveConfigFileFactoryTest {
             "SPLUNK_SNAPSHOT_PROFILER_ENABLED", "false",
             "SPLUNK_SNAPSHOT_PROFILER_SAMPLING_INTERVAL", "\"10ms\"",
             "SPLUNK_PROFILER_CALL_STACK_INTERVAL", "\"10000ms\"",
-            "OTEL_EXPORTER_OTLP_TRACES_ENDPOINTS", "\"http://localhost:4318/v1/traces\"",
-            "OTEL_EXPORTER_OTLP_METRICS_ENDPOINTS", "\"http://localhost:4318/v1/metrics\"",
-            "OTEL_EXPORTER_OTLP_LOGS_ENDPOINTS", "\"http://localhost:4318/v1/logs\""));
+            "OTEL_EXPORTER_OTLP_TRACES_ENDPOINT", "\"http://localhost:4318/v1/traces\"",
+            "OTEL_EXPORTER_OTLP_METRICS_ENDPOINT", "\"http://localhost:4318/v1/metrics\"",
+            "OTEL_EXPORTER_OTLP_LOGS_ENDPOINT", "\"http://localhost:4318/v1/logs\""));
     assertThat(fileContent.size()).isEqualTo(8);
   }
 
@@ -83,9 +83,9 @@ class EnvVarsEffectiveConfigFileFactoryTest {
     assertProperties(
         fileContent,
         Map.of(
-            "OTEL_EXPORTER_OTLP_TRACES_ENDPOINTS", "\"https://collector:4318/v1/traces\"",
-            "OTEL_EXPORTER_OTLP_METRICS_ENDPOINTS", "\"https://collector:4318/v1/metrics\"",
-            "OTEL_EXPORTER_OTLP_LOGS_ENDPOINTS", "\"https://collector:4318/v1/logs\""));
+            "OTEL_EXPORTER_OTLP_TRACES_ENDPOINT", "\"https://collector:4318/v1/traces\"",
+            "OTEL_EXPORTER_OTLP_METRICS_ENDPOINT", "\"https://collector:4318/v1/metrics\"",
+            "OTEL_EXPORTER_OTLP_LOGS_ENDPOINT", "\"https://collector:4318/v1/logs\""));
   }
 
   @Test
@@ -99,9 +99,9 @@ class EnvVarsEffectiveConfigFileFactoryTest {
     assertProperties(
         fileContent,
         Map.of(
-            "OTEL_EXPORTER_OTLP_TRACES_ENDPOINTS", "\"https://collector:4317\"",
-            "OTEL_EXPORTER_OTLP_METRICS_ENDPOINTS", "\"https://collector:4317\"",
-            "OTEL_EXPORTER_OTLP_LOGS_ENDPOINTS", "\"https://collector:4317\""));
+            "OTEL_EXPORTER_OTLP_TRACES_ENDPOINT", "\"https://collector:4317\"",
+            "OTEL_EXPORTER_OTLP_METRICS_ENDPOINT", "\"https://collector:4317\"",
+            "OTEL_EXPORTER_OTLP_LOGS_ENDPOINT", "\"https://collector:4317\""));
   }
 
   @Test
@@ -117,9 +117,9 @@ class EnvVarsEffectiveConfigFileFactoryTest {
     assertProperties(
         fileContent,
         Map.of(
-            "OTEL_EXPORTER_OTLP_TRACES_ENDPOINTS", "\"https://collector:4317\"",
-            "OTEL_EXPORTER_OTLP_METRICS_ENDPOINTS", "\"https://collector:4317\"",
-            "OTEL_EXPORTER_OTLP_LOGS_ENDPOINTS", "\"https://collector:4317\""));
+            "OTEL_EXPORTER_OTLP_TRACES_ENDPOINT", "\"https://collector:4317\"",
+            "OTEL_EXPORTER_OTLP_METRICS_ENDPOINT", "\"https://collector:4317\"",
+            "OTEL_EXPORTER_OTLP_LOGS_ENDPOINT", "\"https://collector:4317\""));
   }
 
   private static String createFileContent(Map<String, String> configMap) {

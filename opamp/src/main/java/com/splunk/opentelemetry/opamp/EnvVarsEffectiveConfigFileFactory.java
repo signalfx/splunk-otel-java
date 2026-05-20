@@ -51,9 +51,9 @@ class EnvVarsEffectiveConfigFileFactory implements EffectiveConfigFactory {
 
   private EffectiveConfigBuilder addOtelEnvVars(EffectiveConfigBuilder builder) {
     return builder
-        .add(OTEL_EXPORTER_OTLP_TRACES_ENDPOINTS, getSignalEndpoint(config, OTLP_SIGNAL_TRACES))
-        .add(OTEL_EXPORTER_OTLP_METRICS_ENDPOINTS, getSignalEndpoint(config, OTLP_SIGNAL_METRICS))
-        .add(OTEL_EXPORTER_OTLP_LOGS_ENDPOINTS, getSignalEndpoint(config, OTLP_SIGNAL_LOGS));
+        .add(OTEL_EXPORTER_OTLP_TRACES_ENDPOINT, getSignalEndpoint(config, OTLP_SIGNAL_TRACES))
+        .add(OTEL_EXPORTER_OTLP_METRICS_ENDPOINT, getSignalEndpoint(config, OTLP_SIGNAL_METRICS))
+        .add(OTEL_EXPORTER_OTLP_LOGS_ENDPOINT, getSignalEndpoint(config, OTLP_SIGNAL_LOGS));
   }
 
   private static String getSignalEndpoint(ConfigProperties config, String signal) {

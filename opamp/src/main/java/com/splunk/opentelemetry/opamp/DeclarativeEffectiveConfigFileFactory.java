@@ -68,13 +68,13 @@ class DeclarativeEffectiveConfigFileFactory implements EffectiveConfigFactory {
       EffectiveConfigBuilder builder, OpenTelemetryConfigurationModel configurationModel) {
     builder
         .add(
-            OTEL_EXPORTER_OTLP_TRACES_ENDPOINTS,
+            OTEL_EXPORTER_OTLP_TRACES_ENDPOINT,
             getTracesEndpoints(configurationModel.getTracerProvider()))
         .add(
-            OTEL_EXPORTER_OTLP_METRICS_ENDPOINTS,
+            OTEL_EXPORTER_OTLP_METRICS_ENDPOINT,
             getMetricsEndpoints(configurationModel.getMeterProvider()))
         .add(
-            OTEL_EXPORTER_OTLP_LOGS_ENDPOINTS,
+            OTEL_EXPORTER_OTLP_LOGS_ENDPOINT,
             getLogsEndpoints(configurationModel.getLoggerProvider()));
   }
 

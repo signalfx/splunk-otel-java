@@ -108,9 +108,9 @@ class DeclarativeEffectiveConfigFileFactoryTest {
     assertProperties(
         properties,
         Map.of(
-            "OTEL_EXPORTER_OTLP_TRACES_ENDPOINTS", "\"https://traces.example.com\"",
-            "OTEL_EXPORTER_OTLP_METRICS_ENDPOINTS", "\"https://metrics.example.com\"",
-            "OTEL_EXPORTER_OTLP_LOGS_ENDPOINTS", "\"https://logs.example.com\""));
+            "OTEL_EXPORTER_OTLP_TRACES_ENDPOINT", "\"https://traces.example.com\"",
+            "OTEL_EXPORTER_OTLP_METRICS_ENDPOINT", "\"https://metrics.example.com\"",
+            "OTEL_EXPORTER_OTLP_LOGS_ENDPOINT", "\"https://logs.example.com\""));
   }
 
   @Test
@@ -124,9 +124,9 @@ class DeclarativeEffectiveConfigFileFactoryTest {
     assertProperties(
         properties,
         Map.of(
-            "OTEL_EXPORTER_OTLP_TRACES_ENDPOINTS", "",
-            "OTEL_EXPORTER_OTLP_METRICS_ENDPOINTS", "",
-            "OTEL_EXPORTER_OTLP_LOGS_ENDPOINTS", ""));
+            "OTEL_EXPORTER_OTLP_TRACES_ENDPOINT", "",
+            "OTEL_EXPORTER_OTLP_METRICS_ENDPOINT", "",
+            "OTEL_EXPORTER_OTLP_LOGS_ENDPOINT", ""));
   }
 
   @Test
@@ -159,9 +159,9 @@ class DeclarativeEffectiveConfigFileFactoryTest {
     assertProperties(
         properties,
         Map.of(
-            "OTEL_EXPORTER_OTLP_TRACES_ENDPOINTS", "\"http://localhost:4318/v1/traces\"",
-            "OTEL_EXPORTER_OTLP_METRICS_ENDPOINTS", "\"http://localhost:4318/v1/metrics\"",
-            "OTEL_EXPORTER_OTLP_LOGS_ENDPOINTS", "\"http://localhost:4318/v1/logs\""));
+            "OTEL_EXPORTER_OTLP_TRACES_ENDPOINT", "\"http://localhost:4318/v1/traces\"",
+            "OTEL_EXPORTER_OTLP_METRICS_ENDPOINT", "\"http://localhost:4318/v1/metrics\"",
+            "OTEL_EXPORTER_OTLP_LOGS_ENDPOINT", "\"http://localhost:4318/v1/logs\""));
   }
 
   @Test
@@ -194,9 +194,9 @@ class DeclarativeEffectiveConfigFileFactoryTest {
     assertProperties(
         properties,
         Map.of(
-            "OTEL_EXPORTER_OTLP_TRACES_ENDPOINTS", "\"http://localhost:4317\"",
-            "OTEL_EXPORTER_OTLP_METRICS_ENDPOINTS", "\"http://localhost:4317\"",
-            "OTEL_EXPORTER_OTLP_LOGS_ENDPOINTS", "\"http://localhost:4317\""));
+            "OTEL_EXPORTER_OTLP_TRACES_ENDPOINT", "\"http://localhost:4317\"",
+            "OTEL_EXPORTER_OTLP_METRICS_ENDPOINT", "\"http://localhost:4317\"",
+            "OTEL_EXPORTER_OTLP_LOGS_ENDPOINT", "\"http://localhost:4317\""));
   }
 
   @Test
@@ -243,11 +243,11 @@ class DeclarativeEffectiveConfigFileFactoryTest {
     assertProperties(
         properties,
         Map.of(
-            "OTEL_EXPORTER_OTLP_TRACES_ENDPOINTS",
+            "OTEL_EXPORTER_OTLP_TRACES_ENDPOINT",
                 "\"https://traces.example.com\", \"http://localhost:4317\"",
-            "OTEL_EXPORTER_OTLP_METRICS_ENDPOINTS",
+            "OTEL_EXPORTER_OTLP_METRICS_ENDPOINT",
                 "\"https://metrics.example.com\", \"https://acme.com/\"",
-            "OTEL_EXPORTER_OTLP_LOGS_ENDPOINTS",
+            "OTEL_EXPORTER_OTLP_LOGS_ENDPOINT",
                 "\"https://logs.example.com\", \"https://acme.com\""));
   }
 

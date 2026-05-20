@@ -68,7 +68,9 @@ public class OpampActivator implements AgentListener {
             config.getPollingInterval(),
             new OpampClient.Callbacks() {
               @Override
-              public void onConnect(OpampClient opampClient) {}
+              public void onConnect(OpampClient opampClient) {
+                logger.fine("Connected to OpAMP server");
+              }
 
               @Override
               public void onConnectFailed(OpampClient opampClient, @Nullable Throwable throwable) {
@@ -82,7 +84,9 @@ public class OpampActivator implements AgentListener {
               }
 
               @Override
-              public void onMessage(OpampClient opampClient, MessageData messageData) {}
+              public void onMessage(OpampClient opampClient, MessageData messageData) {
+                logger.fine(messageData::toString);
+              }
             });
 
     Runtime.getRuntime()

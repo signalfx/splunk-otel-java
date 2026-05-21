@@ -38,7 +38,10 @@ class YamlParserTest {
 
   @Test
   void testBasicRuleParsesOK() throws Exception {
-    String yaml = "- class: someClass\n" + "  method: someMethod\n";
+    String yaml = """
+        - class: someClass
+          method: someMethod
+        """;
     assertEquals(1, YamlParser.parseFromString(yaml).size());
   }
 
@@ -48,60 +51,86 @@ class YamlParserTest {
   @ParameterizedTest
   @ValueSource(
       strings = {
-        "class: fooButNoWrappingYamlList\n"
-            + "  method: thisWillNotWork",
-        "- class:\n"
-            + "    - name: cannotUseMultipleNameClauses\n"
-            + "    - name_regex: withoutAnAndOrOr.*\n"
-            + "  method: someMethodName",
-        "- class:\n"
-            + "    parameter_count: 1\n"
-            + "    method: someMethodName\n",
-        "- class:\n"
-            + "    parameter:\n"
-            + "      index: 0\n"
-            + "      type: int\n"
-            + "  method: someMethodName\n",
-        "- class:\n"
-            + "    and:\n"
-            + "  method: someMethodName\n", // no clauses in and:
-        "- class:\n"
-            + "    or:\n"
-            + "      - not:\n"
-            + "          name: singleRuleExpected\n"
-            + "          name_regex: underANot.*\n"
-            + "  method: someMethodName\n",
-        "- class:\n"
-            + "    or:\n"
-            + "      - not: bareValueOnlySupportedForSimpleClassNames\n"
-            + "  method: someMethodName\n",
-        "- class: someClassName\n"
-            + "  method:\n"
-            + "    super_type: notExpectedForMethodMatcher\n",
-        "- class: someClassName\n"
-            + "  method:\n"
-            + "    parameter_count: notanumber\n",
-          "- class: someClassName\n"
-              + "  method:\n"
-              + "    parameter:\n"
-              + "      index: notanumber\n"
-              + "      type: int\n",
-        "- class: someClassName\n"
-            + "  method:\n"
-            + "    parameter:\n"
-            + "      index: 0\n", // no type
-          "- class: someClassName\n"
-              + "  method:\n"
-              + "    parameter:\n"
-              + "      type: int\n", // no index
-          "- class: someClassName\n"
-              + "  method:\n"
-              + "    parameter: bareValueNotSupported\n",
-          "- class: someClassName\n"
-              + "  method:\n"
-              + "    parameter:\n"
-              + "      noIndex: 1\n"
-              + "      noType: int\n",
+          """
+              class: fooButNoWrappingYamlList
+                method: thisWillNotWork""",
+          """
+              - class:
+                  - name: cannotUseMultipleNameClauses
+                  - name_regex: withoutAnAndOrOr.*
+                method: someMethodName""",
+          """
+              - class:
+                  parameter_count: 1
+                  method: someMethodName
+              """,
+          """
+              - class:
+                  parameter:
+                    index: 0
+                    type: int
+                method: someMethodName
+              """,
+          """
+              - class:
+                  and:
+                method: someMethodName
+              """, // no clauses in and:
+          """
+              - class:
+                  or:
+                    - not:
+                        name: singleRuleExpected
+                        name_regex: underANot.*
+                method: someMethodName
+              """,
+          """
+              - class:
+                  or:
+                    - not: bareValueOnlySupportedForSimpleClassNames
+                method: someMethodName
+              """,
+          """
+              - class: someClassName
+                method:
+                  super_type: notExpectedForMethodMatcher
+              """,
+          """
+              - class: someClassName
+                method:
+                  parameter_count: notanumber
+              """,
+          """
+              - class: someClassName
+                method:
+                  parameter:
+                    index: notanumber
+                    type: int
+              """,
+          """
+              - class: someClassName
+                method:
+                  parameter:
+                    index: 0
+              """, // no type
+          """
+              - class: someClassName
+                method:
+                  parameter:
+                    type: int
+              """, // no index
+          """
+              - class: someClassName
+                method:
+                  parameter: bareValueNotSupported
+              """,
+          """
+              - class: someClassName
+                method:
+                  parameter:
+                    noIndex: 1
+                    noType: int
+              """,
       })
   // spotless:on
   void invalidYamlIsInvalid(String yaml) {
@@ -153,10 +182,11 @@ class YamlParserTest {
     List<NocodeRules.Rule> rules = YamlParser.parseFromString(yaml);
 
     assertThat(rules).hasSize(1);
-    assertThat(rules.get(0).isCurrentSpan()).isTrue();
-    assertThat(rules.get(0).getSpanName()).isNull();
-    assertThat(((RuleImpl) rules.get(0)).getSpanKind()).isNull();
-    assertThat(rules.get(0).getSpanStatus()).isNull();
+    NocodeRules.Rule rule = rules.getFirst();
+    assertThat(rule.isCurrentSpan()).isTrue();
+    assertThat(rule.getSpanName()).isNull();
+    assertThat(rule.getSpanKind()).isNull();
+    assertThat(rule.getSpanStatus()).isNull();
 
     logs.assertContains("current_span rules do not support span_name; ignoring it");
     logs.assertContains("current_span rules do not support span_kind; ignoring it");

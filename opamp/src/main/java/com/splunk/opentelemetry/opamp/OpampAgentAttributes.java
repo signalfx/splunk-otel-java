@@ -60,40 +60,40 @@ class OpampAgentAttributes {
   }
 
   private void putIdentifyingAttribute(
-      OpampClientBuilder builder, AttributeKey<?> sourceAttributeKey, String targetAttributeName) {
-    Object value = resource.getAttribute(sourceAttributeKey);
+      OpampClientBuilder builder, AttributeKey<?> resourceAttributeKey, String agentAttributeName) {
+    Object value = resource.getAttribute(resourceAttributeKey);
     if (value == null) {
       return;
     }
-    AttributeType type = sourceAttributeKey.getType();
+    AttributeType type = resourceAttributeKey.getType();
 
     switch (type) {
       case VALUE:
-        builder.putIdentifyingAttribute(targetAttributeName, value.toString());
+        builder.putIdentifyingAttribute(agentAttributeName, value.toString());
         break;
       case STRING:
-        builder.putIdentifyingAttribute(targetAttributeName, (String) value);
+        builder.putIdentifyingAttribute(agentAttributeName, (String) value);
         break;
       case LONG:
-        builder.putIdentifyingAttribute(targetAttributeName, (long) value);
+        builder.putIdentifyingAttribute(agentAttributeName, (long) value);
         break;
       case DOUBLE:
-        builder.putIdentifyingAttribute(targetAttributeName, (double) value);
+        builder.putIdentifyingAttribute(agentAttributeName, (double) value);
         break;
       case BOOLEAN:
-        builder.putIdentifyingAttribute(targetAttributeName, (boolean) value);
+        builder.putIdentifyingAttribute(agentAttributeName, (boolean) value);
         break;
       case STRING_ARRAY:
-        builder.putIdentifyingAttribute(targetAttributeName, toStringArray((List<?>) value));
+        builder.putIdentifyingAttribute(agentAttributeName, toStringArray((List<?>) value));
         break;
       case LONG_ARRAY:
-        builder.putIdentifyingAttribute(targetAttributeName, toLongArray((List<?>) value));
+        builder.putIdentifyingAttribute(agentAttributeName, toLongArray((List<?>) value));
         break;
       case DOUBLE_ARRAY:
-        builder.putIdentifyingAttribute(targetAttributeName, toDoubleArray((List<?>) value));
+        builder.putIdentifyingAttribute(agentAttributeName, toDoubleArray((List<?>) value));
         break;
       case BOOLEAN_ARRAY:
-        builder.putIdentifyingAttribute(targetAttributeName, toBooleanArray((List<?>) value));
+        builder.putIdentifyingAttribute(agentAttributeName, toBooleanArray((List<?>) value));
         break;
     }
   }

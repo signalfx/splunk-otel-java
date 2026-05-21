@@ -27,16 +27,13 @@ import io.opentelemetry.api.common.AttributeType;
 import io.opentelemetry.opamp.client.OpampClientBuilder;
 import io.opentelemetry.sdk.resources.Resource;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
 class OpampAgentAttributes {
-  private static final List<AttributeKey<?>> IDENTIFYING_ATTRIBUTES =
-      Arrays.asList(SERVICE_NAME, SERVICE_NAMESPACE, SERVICE_INSTANCE_ID);
   private static final List<AttributeKey<?>> SKIPPED_NONIDENTIFYING_ATTRIBUTES =
-      Collections.singletonList(TELEMETRY_DISTRO_VERSION);
+      Arrays.asList(SERVICE_NAME, SERVICE_NAMESPACE, SERVICE_INSTANCE_ID, TELEMETRY_DISTRO_VERSION);
 
   private final Resource resource;
 
@@ -45,59 +42,58 @@ class OpampAgentAttributes {
   }
 
   void addIdentifyingAttributes(OpampClientBuilder builder) {
-    IDENTIFYING_ATTRIBUTES.forEach(
-        (key) -> {
-          putIdentifyingAttribute(builder, key);
-        });
-
+    putIdentifyingAttribute(builder, SERVICE_NAME);
+    putIdentifyingAttribute(builder, SERVICE_NAMESPACE);
+    putIdentifyingAttribute(builder, SERVICE_INSTANCE_ID);
     // An agent version must be reported as a service version in identifying attributes
-    String distroVersion = resource.getAttribute(TELEMETRY_DISTRO_VERSION);
-    if (distroVersion != null) {
-      builder.putIdentifyingAttribute(SERVICE_VERSION.getKey(), distroVersion);
-    }
+    putIdentifyingAttribute(builder, TELEMETRY_DISTRO_VERSION, SERVICE_VERSION.getKey());
   }
 
   void addNonIdentifyingAttributes(OpampClientBuilder builder) {
     resource.getAttributes().asMap().entrySet().stream()
-        .filter(entry -> !IDENTIFYING_ATTRIBUTES.contains(entry.getKey()))
         .filter(entry -> !SKIPPED_NONIDENTIFYING_ATTRIBUTES.contains(entry.getKey()))
         .forEach(putNonIdentifyingAttribute(builder));
   }
 
-  private void putIdentifyingAttribute(OpampClientBuilder builder, AttributeKey<?> key) {
-    Object value = resource.getAttribute(key);
+  private void putIdentifyingAttribute(OpampClientBuilder builder, AttributeKey<?> attributeKey) {
+    putIdentifyingAttribute(builder, attributeKey, attributeKey.getKey());
+  }
+
+  private void putIdentifyingAttribute(
+      OpampClientBuilder builder, AttributeKey<?> sourceAttributeKey, String targetAttributeName) {
+    Object value = resource.getAttribute(sourceAttributeKey);
     if (value == null) {
       return;
     }
-    AttributeType type = key.getType();
+    AttributeType type = sourceAttributeKey.getType();
 
     switch (type) {
       case VALUE:
-        builder.putIdentifyingAttribute(key.getKey(), value.toString());
+        builder.putIdentifyingAttribute(targetAttributeName, value.toString());
         break;
       case STRING:
-        builder.putIdentifyingAttribute(key.getKey(), (String) value);
+        builder.putIdentifyingAttribute(targetAttributeName, (String) value);
         break;
       case LONG:
-        builder.putIdentifyingAttribute(key.getKey(), (long) value);
+        builder.putIdentifyingAttribute(targetAttributeName, (long) value);
         break;
       case DOUBLE:
-        builder.putIdentifyingAttribute(key.getKey(), (double) value);
+        builder.putIdentifyingAttribute(targetAttributeName, (double) value);
         break;
       case BOOLEAN:
-        builder.putIdentifyingAttribute(key.getKey(), (boolean) value);
+        builder.putIdentifyingAttribute(targetAttributeName, (boolean) value);
         break;
       case STRING_ARRAY:
-        builder.putIdentifyingAttribute(key.getKey(), toStringArray((List<?>) value));
+        builder.putIdentifyingAttribute(targetAttributeName, toStringArray((List<?>) value));
         break;
       case LONG_ARRAY:
-        builder.putIdentifyingAttribute(key.getKey(), toLongArray((List<?>) value));
+        builder.putIdentifyingAttribute(targetAttributeName, toLongArray((List<?>) value));
         break;
       case DOUBLE_ARRAY:
-        builder.putIdentifyingAttribute(key.getKey(), toDoubleArray((List<?>) value));
+        builder.putIdentifyingAttribute(targetAttributeName, toDoubleArray((List<?>) value));
         break;
       case BOOLEAN_ARRAY:
-        builder.putIdentifyingAttribute(key.getKey(), toBooleanArray((List<?>) value));
+        builder.putIdentifyingAttribute(targetAttributeName, toBooleanArray((List<?>) value));
         break;
     }
   }

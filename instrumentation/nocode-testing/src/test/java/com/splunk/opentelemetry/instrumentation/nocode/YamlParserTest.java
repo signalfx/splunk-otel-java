@@ -38,7 +38,8 @@ class YamlParserTest {
 
   @Test
   void testBasicRuleParsesOK() throws Exception {
-    String yaml = """
+    String yaml =
+        """
         - class: someClass
           method: someMethod
         """;

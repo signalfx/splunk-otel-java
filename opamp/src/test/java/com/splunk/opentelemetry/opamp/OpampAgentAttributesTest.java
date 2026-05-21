@@ -24,6 +24,7 @@ import static io.opentelemetry.semconv.ServiceAttributes.SERVICE_INSTANCE_ID;
 import static io.opentelemetry.semconv.ServiceAttributes.SERVICE_NAME;
 import static io.opentelemetry.semconv.ServiceAttributes.SERVICE_NAMESPACE;
 import static io.opentelemetry.semconv.ServiceAttributes.SERVICE_VERSION;
+import static io.opentelemetry.semconv.TelemetryAttributes.TELEMETRY_DISTRO_VERSION;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -46,6 +47,8 @@ class OpampAgentAttributesTest {
               "test-namespace",
               SERVICE_INSTANCE_ID,
               "test-instance",
+              TELEMETRY_DISTRO_VERSION,
+              "1.2.3",
               SERVICE_VERSION,
               "test-version")
           .toBuilder()
@@ -73,6 +76,7 @@ class OpampAgentAttributesTest {
 
     verify(builder).putIdentifyingAttribute(SERVICE_NAME.getKey(), "test-service");
     verify(builder).putIdentifyingAttribute(SERVICE_NAMESPACE.getKey(), "test-namespace");
+    verify(builder).putIdentifyingAttribute(SERVICE_VERSION.getKey(), "1.2.3");
     verify(builder).putIdentifyingAttribute(SERVICE_INSTANCE_ID.getKey(), "test-instance");
     verifyNoMoreInteractions(builder);
   }
@@ -84,8 +88,9 @@ class OpampAgentAttributesTest {
     OpampAgentAttributes testClass = new OpampAgentAttributes(resource);
 
     testClass.addNonIdentifyingAttributes(builder);
+    // Make sure original service name is reported in nonidentifying attributes
+    verify(builder).putNonIdentifyingAttribute("service.version", "test-version");
 
-    verify(builder).putNonIdentifyingAttribute(SERVICE_VERSION.getKey(), "test-version");
     verify(builder).putNonIdentifyingAttribute("long", 12L);
     verify(builder).putNonIdentifyingAttribute("double", 99.0);
     verify(builder).putNonIdentifyingAttribute("bool", true);

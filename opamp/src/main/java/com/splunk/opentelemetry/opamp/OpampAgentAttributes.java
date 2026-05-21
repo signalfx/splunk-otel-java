@@ -16,18 +16,27 @@
 
 package com.splunk.opentelemetry.opamp;
 
+import static io.opentelemetry.semconv.ServiceAttributes.SERVICE_INSTANCE_ID;
+import static io.opentelemetry.semconv.ServiceAttributes.SERVICE_NAME;
+import static io.opentelemetry.semconv.ServiceAttributes.SERVICE_NAMESPACE;
+import static io.opentelemetry.semconv.ServiceAttributes.SERVICE_VERSION;
+import static io.opentelemetry.semconv.TelemetryAttributes.TELEMETRY_DISTRO_VERSION;
+
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.AttributeType;
 import io.opentelemetry.opamp.client.OpampClientBuilder;
 import io.opentelemetry.sdk.resources.Resource;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
 class OpampAgentAttributes {
-  private static final List<String> IDENTIFYING_ATTRIBUTES =
-      Arrays.asList("service.name", "service.namespace", "service.instance.id");
+  private static final List<AttributeKey<?>> IDENTIFYING_ATTRIBUTES =
+      Arrays.asList(SERVICE_NAME, SERVICE_NAMESPACE, SERVICE_INSTANCE_ID);
+  private static final List<AttributeKey<?>> SKIPPED_NONIDENTIFYING_ATTRIBUTES =
+      Collections.singletonList(TELEMETRY_DISTRO_VERSION);
 
   private final Resource resource;
 
@@ -36,57 +45,61 @@ class OpampAgentAttributes {
   }
 
   void addIdentifyingAttributes(OpampClientBuilder builder) {
-    resource.getAttributes().asMap().entrySet().stream()
-        .filter(entry -> IDENTIFYING_ATTRIBUTES.contains(entry.getKey().getKey()))
-        .forEach(putIdentifyingAttribute(builder));
+    IDENTIFYING_ATTRIBUTES.forEach(
+        (key) -> {
+          putIdentifyingAttribute(builder, key);
+        });
+
+    // An agent version must be reported as a service version in identifying attributes
+    String distroVersion = resource.getAttribute(TELEMETRY_DISTRO_VERSION);
+    if (distroVersion != null) {
+      builder.putIdentifyingAttribute(SERVICE_VERSION.getKey(), distroVersion);
+    }
   }
 
   void addNonIdentifyingAttributes(OpampClientBuilder builder) {
     resource.getAttributes().asMap().entrySet().stream()
-        .filter(entry -> !IDENTIFYING_ATTRIBUTES.contains(entry.getKey().getKey()))
+        .filter(entry -> !IDENTIFYING_ATTRIBUTES.contains(entry.getKey()))
+        .filter(entry -> !SKIPPED_NONIDENTIFYING_ATTRIBUTES.contains(entry.getKey()))
         .forEach(putNonIdentifyingAttribute(builder));
   }
 
-  private Consumer<? super Map.Entry<AttributeKey<?>, Object>> putIdentifyingAttribute(
-      OpampClientBuilder builder) {
-    return entry -> {
-      AttributeKey<?> key = entry.getKey();
-      Object value = entry.getValue();
-      if (value == null) {
-        return;
-      }
-      AttributeType type = key.getType();
+  private void putIdentifyingAttribute(OpampClientBuilder builder, AttributeKey<?> key) {
+    Object value = resource.getAttribute(key);
+    if (value == null) {
+      return;
+    }
+    AttributeType type = key.getType();
 
-      switch (type) {
-        case VALUE:
-          builder.putIdentifyingAttribute(key.getKey(), value.toString());
-          break;
-        case STRING:
-          builder.putIdentifyingAttribute(key.getKey(), (String) value);
-          break;
-        case LONG:
-          builder.putIdentifyingAttribute(key.getKey(), (long) value);
-          break;
-        case DOUBLE:
-          builder.putIdentifyingAttribute(key.getKey(), (double) value);
-          break;
-        case BOOLEAN:
-          builder.putIdentifyingAttribute(key.getKey(), (boolean) value);
-          break;
-        case STRING_ARRAY:
-          builder.putIdentifyingAttribute(key.getKey(), toStringArray((List<?>) value));
-          break;
-        case LONG_ARRAY:
-          builder.putIdentifyingAttribute(key.getKey(), toLongArray((List<?>) value));
-          break;
-        case DOUBLE_ARRAY:
-          builder.putIdentifyingAttribute(key.getKey(), toDoubleArray((List<?>) value));
-          break;
-        case BOOLEAN_ARRAY:
-          builder.putIdentifyingAttribute(key.getKey(), toBooleanArray((List<?>) value));
-          break;
-      }
-    };
+    switch (type) {
+      case VALUE:
+        builder.putIdentifyingAttribute(key.getKey(), value.toString());
+        break;
+      case STRING:
+        builder.putIdentifyingAttribute(key.getKey(), (String) value);
+        break;
+      case LONG:
+        builder.putIdentifyingAttribute(key.getKey(), (long) value);
+        break;
+      case DOUBLE:
+        builder.putIdentifyingAttribute(key.getKey(), (double) value);
+        break;
+      case BOOLEAN:
+        builder.putIdentifyingAttribute(key.getKey(), (boolean) value);
+        break;
+      case STRING_ARRAY:
+        builder.putIdentifyingAttribute(key.getKey(), toStringArray((List<?>) value));
+        break;
+      case LONG_ARRAY:
+        builder.putIdentifyingAttribute(key.getKey(), toLongArray((List<?>) value));
+        break;
+      case DOUBLE_ARRAY:
+        builder.putIdentifyingAttribute(key.getKey(), toDoubleArray((List<?>) value));
+        break;
+      case BOOLEAN_ARRAY:
+        builder.putIdentifyingAttribute(key.getKey(), toBooleanArray((List<?>) value));
+        break;
+    }
   }
 
   private Consumer<? super Map.Entry<AttributeKey<?>, Object>> putNonIdentifyingAttribute(

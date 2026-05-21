@@ -182,7 +182,7 @@ class YamlParserTest {
     List<NocodeRules.Rule> rules = YamlParser.parseFromString(yaml);
 
     assertThat(rules).hasSize(1);
-    NocodeRules.Rule rule = rules.getFirst();
+    NocodeRules.Rule rule = rules.get(0);
     assertThat(rule.isCurrentSpan()).isTrue();
     assertThat(rule.getSpanName()).isNull();
     assertThat(rule.getSpanKind()).isNull();

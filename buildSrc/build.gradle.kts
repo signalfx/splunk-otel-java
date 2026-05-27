@@ -2,7 +2,7 @@ plugins {
   `kotlin-dsl`
 
   // When updating, update below in dependencies too
-  id("com.diffplug.spotless") version "8.5.1"
+  id("com.diffplug.spotless") version "8.6.0"
 }
 
 spotless {
@@ -40,7 +40,7 @@ repositories {
 dependencies {
   implementation(gradleApi())
 
-  implementation("com.diffplug.spotless:spotless-plugin-gradle:8.5.1")
+  implementation("com.diffplug.spotless:spotless-plugin-gradle:8.6.0")
   implementation("io.opentelemetry.instrumentation:gradle-plugins:2.27.0-alpha")
 
   // keep these versions in sync with settings.gradle.kts

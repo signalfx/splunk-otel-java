@@ -40,19 +40,6 @@ public final class NocodeMethodInvocation {
     return rule;
   }
 
-  public Object getThiz() {
-    return thiz;
-  }
-
-  /**
-   * Please be careful with this, it's directly tied to @Advice.AllArguments.
-   *
-   * @return @Advice.AllArguments - please be careful
-   */
-  public Object[] getParameters() {
-    return parameters;
-  }
-
   public ClassAndMethod getClassAndMethod() {
     return classAndMethod;
   }

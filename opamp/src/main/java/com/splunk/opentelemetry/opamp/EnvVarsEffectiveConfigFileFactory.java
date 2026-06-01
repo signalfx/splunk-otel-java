@@ -58,7 +58,8 @@ class EnvVarsEffectiveConfigFileFactory implements EffectiveConfigFactory {
         .add("SPLUNK_PROFILER_MEMORY_ENABLED", profilerConfiguration.getMemoryEnabled())
         .add("SPLUNK_SNAPSHOT_PROFILER_ENABLED", snapshotConfiguration.isEnabled())
         .add(
-            "SPLUNK_SNAPSHOT_PROFILER_SAMPLING_INTERVAL", snapshotConfiguration.getSamplingInterval())
+            "SPLUNK_SNAPSHOT_PROFILER_SAMPLING_INTERVAL",
+            snapshotConfiguration.getSamplingInterval())
         .add("SPLUNK_PROFILER_CALL_STACK_INTERVAL", profilerConfiguration.getCallStackInterval());
   }
 
@@ -67,8 +68,8 @@ class EnvVarsEffectiveConfigFileFactory implements EffectiveConfigFactory {
         .add("OTEL_EXPORTER_OTLP_TRACES_ENDPOINT", getSignalEndpoint(config, "traces"))
         .add("OTEL_EXPORTER_OTLP_METRICS_ENDPOINT", getSignalEndpoint(config, "metrics"))
         .add("OTEL_EXPORTER_OTLP_LOGS_ENDPOINT", getSignalEndpoint(config, "logs"))
-        .add("OTEL_CONFIG_FILE", (String)null)
-        .add("OTEL_EXPERIMENTAL_CONFIG_FILE", (String)null);
+        .add("OTEL_CONFIG_FILE", (String) null)
+        .add("OTEL_EXPERIMENTAL_CONFIG_FILE", (String) null);
   }
 
   private static String getSignalEndpoint(ConfigProperties config, String signal) {

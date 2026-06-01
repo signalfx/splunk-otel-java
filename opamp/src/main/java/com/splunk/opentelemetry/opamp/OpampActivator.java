@@ -35,11 +35,7 @@ import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 import io.opentelemetry.sdk.resources.Resource;
 import java.io.IOException;
 import java.time.Duration;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.logging.Logger;
-import opamp.proto.AgentConfigFile;
-import opamp.proto.AgentConfigMap;
 import opamp.proto.ServerErrorResponse;
 import org.jetbrains.annotations.Nullable;
 
@@ -137,12 +133,7 @@ public class OpampActivator implements AgentListener {
     return new State.EffectiveConfig() {
       @Override
       public opamp.proto.EffectiveConfig get() {
-        AgentConfigFile file = effectiveConfigFactory.createFile();
-
-        Map<String, AgentConfigFile> configItems = new HashMap<>();
-        configItems.put("config", file);
-        AgentConfigMap configMap = new AgentConfigMap(configItems);
-        return new opamp.proto.EffectiveConfig(configMap);
+        return new opamp.proto.EffectiveConfig(effectiveConfigFactory.createEffectiveConfigMap());
       }
     };
   }

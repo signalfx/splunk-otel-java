@@ -16,8 +16,6 @@
 
 package com.splunk.opentelemetry.opamp;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
-
 import com.google.common.annotations.VisibleForTesting;
 import io.opentelemetry.sdk.declarativeconfig.internal.model.LogRecordExporterModel;
 import io.opentelemetry.sdk.declarativeconfig.internal.model.LogRecordProcessorModel;
@@ -32,8 +30,6 @@ import io.opentelemetry.sdk.declarativeconfig.internal.model.TracerProviderModel
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import okio.ByteString;
-import opamp.proto.AgentConfigFile;
 
 class DeclarativeEffectiveConfigFileFactory implements EffectiveConfigFactory {
   private static final String GRPC_DEFAULT_ENDPOINT = "http://localhost:4317";
@@ -41,12 +37,16 @@ class DeclarativeEffectiveConfigFileFactory implements EffectiveConfigFactory {
   DeclarativeEffectiveConfigFileFactory() {}
 
   @Override
-  public AgentConfigFile createFile() {
-    ByteString content = new ByteString(buildFileContent().getBytes(UTF_8));
-    return new AgentConfigFile(content, "application/yaml; vendor=splunk; v=1.0.0");
+  public String getContentType() {
+    return "application/yaml; vendor=splunk; v=1.0.0";
   }
 
-  public String buildFileContent() {
+  @Override
+  public String getFileName() {
+    return "";
+  }
+
+  public String createEffectiveConfigContent() {
     OpenTelemetryConfigurationModel model =
         DeclarativeConfigurationInterceptor.getConfigurationModel();
     if (model == null) {

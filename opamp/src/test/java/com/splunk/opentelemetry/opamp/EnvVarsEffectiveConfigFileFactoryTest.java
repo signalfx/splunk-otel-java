@@ -23,7 +23,6 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.util.Map;
 import java.util.Properties;
-import opamp.proto.AgentConfigFile;
 import org.junit.jupiter.api.Test;
 
 class EnvVarsEffectiveConfigFileFactoryTest {
@@ -31,10 +30,9 @@ class EnvVarsEffectiveConfigFileFactoryTest {
   @Test
   void createFile_reportsCorrectContentType() {
     DefaultConfigProperties config = DefaultConfigProperties.createFromMap(Map.of());
-    AgentConfigFile file = new EnvVarsEffectiveConfigFileFactory(config).createFile();
+    String contentType = new EnvVarsEffectiveConfigFileFactory(config).getContentType();
 
-    assertThat(file.content_type)
-        .isEqualTo("text/plain; format=properties; vendor=splunk; v=1.0.0");
+    assertThat(contentType).isEqualTo("text/plain; format=properties; vendor=splunk; v=1.0.0");
   }
 
   @Test
@@ -152,7 +150,8 @@ class EnvVarsEffectiveConfigFileFactoryTest {
 
   private static Properties createFileContent(Map<String, String> configMap) throws IOException {
     DefaultConfigProperties config = DefaultConfigProperties.createFromMap(configMap);
-    String fileContent = new EnvVarsEffectiveConfigFileFactory(config).buildFileContent();
+    String fileContent =
+        new EnvVarsEffectiveConfigFileFactory(config).createEffectiveConfigContent();
 
     Properties properties = new Properties();
     properties.load(new StringReader(fileContent));

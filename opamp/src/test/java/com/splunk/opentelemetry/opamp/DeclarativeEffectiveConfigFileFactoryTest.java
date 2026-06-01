@@ -236,7 +236,7 @@ class DeclarativeEffectiveConfigFileFactoryTest {
         builder.customizeModel(model);
       }
 
-      System.out.print(new DeclarativeEffectiveConfigFileFactory().buildFileContent());
+      System.out.print(new DeclarativeEffectiveConfigFileFactory().createEffectiveConfigContent());
     }
   }
 

@@ -16,15 +16,11 @@
 
 package com.splunk.opentelemetry.opamp;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
-
 import com.splunk.opentelemetry.profiler.ProfilerConfiguration;
 import com.splunk.opentelemetry.profiler.ProfilerEnvVarsConfiguration;
 import com.splunk.opentelemetry.profiler.snapshot.SnapshotProfilingConfiguration;
 import com.splunk.opentelemetry.profiler.snapshot.SnapshotProfilingEnvVarsConfiguration;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
-import okio.ByteString;
-import opamp.proto.AgentConfigFile;
 
 class EnvVarsEffectiveConfigFileFactory implements EffectiveConfigFactory {
   private static final String SPLUNK_PROFILER_ENABLED = "SPLUNK_PROFILER_ENABLED";
@@ -55,12 +51,16 @@ class EnvVarsEffectiveConfigFileFactory implements EffectiveConfigFactory {
   }
 
   @Override
-  public AgentConfigFile createFile() {
-    ByteString content = new ByteString(buildFileContent().getBytes(UTF_8));
-    return new AgentConfigFile(content, "text/plain; format=properties; vendor=splunk; v=1.0.0");
+  public String getContentType() {
+    return "text/plain; format=properties; vendor=splunk; v=1.0.0";
   }
 
-  public String buildFileContent() {
+  @Override
+  public String getFileName() {
+    return "environment";
+  }
+
+  public String createEffectiveConfigContent() {
     EffectiveConfigBuilder builder = new EffectiveConfigBuilder();
 
     addOtelEnvVars(builder);
@@ -91,7 +91,7 @@ class EnvVarsEffectiveConfigFileFactory implements EffectiveConfigFactory {
   }
 
   private static String getSignalEndpoint(ConfigProperties config, String signal) {
-    // If otlp exporter is not enabled for given signal then return empty string
+    // If otlp exporter is not enabled for given signal then return an empty string
     String exporterPropertyName = "otel." + signal + ".exporter";
     if (!"otlp".equals(config.getString(exporterPropertyName, "otlp"))) {
       return "";

@@ -61,8 +61,10 @@ class EnvVarsEffectiveConfigFileFactoryTest {
             "SPLUNK_PROFILER_CALL_STACK_INTERVAL", "1235ms",
             "OTEL_EXPORTER_OTLP_TRACES_ENDPOINT", "https://traces.example.com",
             "OTEL_EXPORTER_OTLP_METRICS_ENDPOINT", "https://metrics.example.com",
-            "OTEL_EXPORTER_OTLP_LOGS_ENDPOINT", "https://logs.example.com"));
-    assertThat(fileContent.size()).isEqualTo(8);
+            "OTEL_EXPORTER_OTLP_LOGS_ENDPOINT", "https://logs.example.com",
+            "OTEL_CONFIG_FILE", "null",
+            "OTEL_EXPERIMENTAL_CONFIG_FILE", "null"));
+    assertThat(fileContent.size()).isEqualTo(10);
   }
 
   @Test
@@ -79,8 +81,10 @@ class EnvVarsEffectiveConfigFileFactoryTest {
             "SPLUNK_PROFILER_CALL_STACK_INTERVAL", "10000ms",
             "OTEL_EXPORTER_OTLP_TRACES_ENDPOINT", "http://localhost:4318/v1/traces",
             "OTEL_EXPORTER_OTLP_METRICS_ENDPOINT", "http://localhost:4318/v1/metrics",
-            "OTEL_EXPORTER_OTLP_LOGS_ENDPOINT", "http://localhost:4318/v1/logs"));
-    assertThat(fileContent.size()).isEqualTo(8);
+            "OTEL_EXPORTER_OTLP_LOGS_ENDPOINT", "http://localhost:4318/v1/logs",
+            "OTEL_CONFIG_FILE", "null",
+            "OTEL_EXPERIMENTAL_CONFIG_FILE", "null"));
+    assertThat(fileContent.size()).isEqualTo(10);
   }
 
   @Test

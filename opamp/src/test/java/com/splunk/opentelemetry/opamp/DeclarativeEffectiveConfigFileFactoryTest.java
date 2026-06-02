@@ -29,11 +29,8 @@ import io.opentelemetry.sdk.autoconfigure.declarativeconfig.DeclarativeConfigura
 import io.opentelemetry.sdk.declarativeconfig.internal.model.OpenTelemetryConfigurationModel;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
-import java.io.StringReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Map;
-import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -49,7 +46,7 @@ class DeclarativeEffectiveConfigFileFactoryTest {
   }
 
   @Test
-  void buildFileContent_reportsSignalEndpoints(@TempDir Path tempDir) throws Exception {
+  void buildFileContent(@TempDir Path tempDir) throws Exception {
     // given
     Path configFile = tempDir.resolve("declarative-config.yaml");
     Files.writeString(
@@ -104,21 +101,41 @@ class DeclarativeEffectiveConfigFileFactoryTest {
     String fileContent = new String(process.getInputStream().readAllBytes(), UTF_8);
     assertThat(process.exitValue()).describedAs(fileContent).isZero();
 
-    // TODO: Add endpoints assertions
+    assertThat(fileContent)
+        .isEqualTo(
+            """
+            tracer_provider:
+              processors:
+                - batch:
+                    exporter:
+                      otlp_http:
+                        endpoint: https://traces.example.com
+            meter_provider:
+              readers:
+                - periodic:
+                    exporter:
+                      otlp_grpc:
+                        endpoint: https://metrics.example.com
+            logger_provider:
+              processors:
+                - simple:
+                    exporter:
+                      otlp_http:
+                        endpoint: https://logs.example.com
+            """);
   }
 
   @Test
-  void addOtelVars_reportsMissingEndpointAsEmptyStrings() throws Exception {
-    OpenTelemetryConfigurationModel model = parseModel("file_format: 1.0");
+  void handlesBlankConfig() throws Exception {
+    OpenTelemetryConfigurationModel model = parseModel("");
 
-    EffectiveConfigBuilder builder = new EffectiveConfigBuilder();
-    new DeclarativeEffectiveConfigFileFactory().addOtelVars(builder, model);
+    String yaml = new DeclarativeEffectiveConfigFileFactory().processModel(model, null, null);
 
-    // TODO: Add endpoints assertions
+    assertThat(yaml).isEqualTo("");
   }
 
   @Test
-  void addOtelVars_usesDefaultHttpEndpointsWhenEndpointsAreOmitted() throws Exception {
+  void usesDefaultHttpEndpointsWhenEndpointsAreOmitted() throws Exception {
     OpenTelemetryConfigurationModel model =
         parseModel(
             """
@@ -140,14 +157,34 @@ class DeclarativeEffectiveConfigFileFactoryTest {
                       otlp_http:
             """);
 
-    EffectiveConfigBuilder builder = new EffectiveConfigBuilder();
-    new DeclarativeEffectiveConfigFileFactory().addOtelVars(builder, model);
+    String yaml = new DeclarativeEffectiveConfigFileFactory().processModel(model, null, null);
 
-    // TODO: Add endpoints assertions
+    assertThat(yaml)
+        .isEqualTo(
+            """
+            tracer_provider:
+              processors:
+                - batch:
+                    exporter:
+                      otlp_http:
+                        endpoint: http://localhost:4318/v1/traces
+            meter_provider:
+              readers:
+                - periodic:
+                    exporter:
+                      otlp_http:
+                        endpoint: http://localhost:4318/v1/metrics
+            logger_provider:
+              processors:
+                - simple:
+                    exporter:
+                      otlp_http:
+                        endpoint: http://localhost:4318/v1/logs
+            """);
   }
 
   @Test
-  void addOtelVars_usesDefaultGrpcEndpointsWhenEndpointsAreOmitted() throws Exception {
+  void usesDefaultGrpcEndpointsWhenEndpointsAreOmitted() throws Exception {
     OpenTelemetryConfigurationModel model =
         parseModel(
             """
@@ -169,14 +206,34 @@ class DeclarativeEffectiveConfigFileFactoryTest {
                       otlp_grpc:
             """);
 
-    EffectiveConfigBuilder builder = new EffectiveConfigBuilder();
-    new DeclarativeEffectiveConfigFileFactory().addOtelVars(builder, model);
+    String yaml = new DeclarativeEffectiveConfigFileFactory().processModel(model, null, null);
 
-    // TODO: Add endpoints assertions
+    assertThat(yaml)
+        .isEqualTo(
+            """
+            tracer_provider:
+              processors:
+                - batch:
+                    exporter:
+                      otlp_grpc:
+                        endpoint: http://localhost:4317
+            meter_provider:
+              readers:
+                - periodic:
+                    exporter:
+                      otlp_grpc:
+                        endpoint: http://localhost:4317
+            logger_provider:
+              processors:
+                - simple:
+                    exporter:
+                      otlp_grpc:
+                        endpoint: http://localhost:4317
+            """);
   }
 
   @Test
-  void addOtelVars_whenMultipleEndpointsDefined() throws Exception {
+  void supportsMultipleEndpointsDefined() throws Exception {
     OpenTelemetryConfigurationModel model =
         parseModel(
             """
@@ -187,6 +244,9 @@ class DeclarativeEffectiveConfigFileFactoryTest {
                     exporter:
                       otlp_http:
                         endpoint: https://traces.example.com
+                - simple:
+                    exporter:
+                      console:
                 - simple:
                     exporter:
                       otlp_grpc:
@@ -210,12 +270,47 @@ class DeclarativeEffectiveConfigFileFactoryTest {
                     exporter:
                       otlp_grpc:
                         endpoint: https://acme.com
+                - simple:
+                    exporter:
+                      console:
             """);
 
-    EffectiveConfigBuilder builder = new EffectiveConfigBuilder();
-    new DeclarativeEffectiveConfigFileFactory().addOtelVars(builder, model);
+    String yaml = new DeclarativeEffectiveConfigFileFactory().processModel(model, null, null);
 
-    // TODO: Add endpoints assertions
+    assertThat(yaml)
+        .isEqualTo(
+            """
+            tracer_provider:
+              processors:
+                - batch:
+                    exporter:
+                      otlp_http:
+                        endpoint: https://traces.example.com
+                - simple:
+                    exporter:
+                      otlp_grpc:
+                        endpoint: http://localhost:4317
+            meter_provider:
+              readers:
+                - periodic:
+                    exporter:
+                      otlp_grpc:
+                        endpoint: https://metrics.example.com
+                - periodic:
+                    exporter:
+                      otlp_http:
+                        endpoint: https://acme.com/
+            logger_provider:
+              processors:
+                - simple:
+                    exporter:
+                      otlp_http:
+                        endpoint: https://logs.example.com
+                - batch:
+                    exporter:
+                      otlp_grpc:
+                        endpoint: https://acme.com
+            """);
   }
 
   private static class FactoryRunner {
@@ -242,17 +337,5 @@ class DeclarativeEffectiveConfigFileFactoryTest {
 
   private static OpenTelemetryConfigurationModel parseModel(String yaml) throws Exception {
     return DeclarativeConfiguration.parse(new ByteArrayInputStream(yaml.getBytes(UTF_8)));
-  }
-
-  private static Properties loadProperties(String content) throws Exception {
-    Properties properties = new Properties();
-    properties.load(new StringReader(content));
-    return properties;
-  }
-
-  private static void assertProperties(Properties fileContent, Map<String, String> expectedValues) {
-    expectedValues.forEach(
-        (propertyName, expectedValue) ->
-            assertThat(fileContent.getProperty(propertyName)).isNotNull().isEqualTo(expectedValue));
   }
 }

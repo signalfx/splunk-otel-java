@@ -10,6 +10,7 @@ dependencies {
   compileOnly("io.opentelemetry:opentelemetry-sdk-extension-autoconfigure")
   compileOnly("io.opentelemetry:opentelemetry-sdk-extension-autoconfigure-spi")
   compileOnly("io.opentelemetry.javaagent:opentelemetry-javaagent-extension-api")
+  compileOnly("org.snakeyaml:snakeyaml-engine")
 
   annotationProcessor("com.google.auto.service:auto-service")
   compileOnly("com.google.auto.service:auto-service")
@@ -28,6 +29,7 @@ dependencies {
   testImplementation("io.opentelemetry.semconv:opentelemetry-semconv-incubating")
   testImplementation("io.opentelemetry.javaagent:opentelemetry-javaagent-extension-api")
   testImplementation("io.opentelemetry.javaagent:opentelemetry-testing-common")
+  testImplementation("org.snakeyaml:snakeyaml-engine")
 }
 
 tasks {

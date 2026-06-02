@@ -52,35 +52,35 @@ class DeclarativeEffectiveConfigFileFactoryTest {
     Files.writeString(
         configFile,
         """
-            file_format: 1.0
-            tracer_provider:
-              processors:
-                - batch:
-                    exporter:
-                      otlp_http:
-                        endpoint: https://traces.example.com
-            meter_provider:
-              readers:
-                - periodic:
-                    exporter:
-                      otlp_grpc:
-                        endpoint: https://metrics.example.com
-            logger_provider:
-              processors:
-                - simple:
-                    exporter:
-                      otlp_http:
-                        endpoint: https://logs.example.com
-            distribution:
-              splunk:
-                profiling:
-                  always_on:
-                    cpu_profiler:
-                      sampling_interval: 1410
-                    memory_profiler:
-                  callgraphs:
-                    sampling_interval: 10
-            """,
+        file_format: 1.0
+        tracer_provider:
+          processors:
+            - batch:
+                exporter:
+                  otlp_http:
+                    endpoint: https://traces.example.com
+        meter_provider:
+          readers:
+            - periodic:
+                exporter:
+                  otlp_grpc:
+                    endpoint: https://metrics.example.com
+        logger_provider:
+          processors:
+            - simple:
+                exporter:
+                  otlp_http:
+                    endpoint: https://logs.example.com
+        distribution:
+          splunk:
+            profiling:
+              always_on:
+                cpu_profiler:
+                  sampling_interval: 1410
+                memory_profiler:
+              callgraphs:
+                sampling_interval: 10
+        """,
         UTF_8);
 
     ProcessBuilder processBuilder =
@@ -127,11 +127,29 @@ class DeclarativeEffectiveConfigFileFactoryTest {
 
   @Test
   void handlesBlankConfig() throws Exception {
-    OpenTelemetryConfigurationModel model = parseModel("");
+    OpenTelemetryConfigurationModel model = parseModel("file_format: 1.0");
 
     String yaml = new DeclarativeEffectiveConfigFileFactory().processModel(model, null, null);
 
     assertThat(yaml).isEqualTo("");
+  }
+
+  @Test
+  void usesDeclarativeConfigFileName() {
+    String previousConfigFile = System.getProperty("otel.config.file");
+    try {
+      System.setProperty("otel.config.file", "/opt/splunk/declarative-config.yaml");
+
+      String fileName = new DeclarativeEffectiveConfigFileFactory().getFileName();
+
+      assertThat(fileName).isEqualTo("/opt/splunk/declarative-config.yaml");
+    } finally {
+      if (previousConfigFile == null) {
+        System.clearProperty("otel.config.file");
+      } else {
+        System.setProperty("otel.config.file", previousConfigFile);
+      }
+    }
   }
 
   @Test

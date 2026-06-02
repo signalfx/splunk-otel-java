@@ -52,7 +52,11 @@ class DeclarativeEffectiveConfigFileFactory implements EffectiveConfigFactory {
 
   @Override
   public String getFileName() {
-    return "";
+    String fileName = getProperty("otel.config.file");
+    if (fileName == null || fileName.isEmpty()) {
+      fileName = getProperty("otel.experimental.config.file");
+    }
+    return fileName;
   }
 
   public String createEffectiveConfigContent() {
@@ -73,10 +77,6 @@ class DeclarativeEffectiveConfigFileFactory implements EffectiveConfigFactory {
       OpenTelemetryConfigurationModel model,
       ProfilerConfiguration profilerConfiguration,
       SnapshotProfilingConfiguration snapshotConfiguration) {
-    if (model == null) {
-      return "";
-    }
-
     YamlNodeBuilder rootBuilder = YamlNodeBuilder.create();
 
     addTraceProviderNode(model.getTracerProvider(), rootBuilder);
@@ -232,5 +232,18 @@ class DeclarativeEffectiveConfigFileFactory implements EffectiveConfigFactory {
 
   private static String getEndpoint(OtlpGrpcMetricExporterModel exporter) {
     return Optional.ofNullable(exporter.getEndpoint()).orElse(GRPC_DEFAULT_ENDPOINT);
+  }
+
+  private static String getProperty(String systemPropertyName) {
+    String property = System.getProperty(systemPropertyName);
+    if (property == null) {
+      String envVarName = toEnvVarName(systemPropertyName);
+      property = System.getenv(envVarName);
+    }
+    return property;
+  }
+
+  static String toEnvVarName(String systemPropertyName) {
+    return systemPropertyName.toUpperCase().replace('.', '_').replace('-', '_');
   }
 }

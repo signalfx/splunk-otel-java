@@ -27,7 +27,7 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 
 @ExtendWith(AgentInstrumentationExtension.class)
 class OtelJvmMetricsTest {
-  private static final String INSTRUMENTATION_NAME = "com.splunk.javaagent.jvm-metrics-splunk";
+  private static final String INSTRUMENTATION_NAME = "com.splunk.jvm-metrics";
 
   @RegisterExtension
   static final InstrumentationExtension testing = AgentInstrumentationExtension.create();

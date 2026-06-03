@@ -19,12 +19,24 @@ package com.splunk.opentelemetry.instrumentation.jvmmetrics.otel;
 import io.opentelemetry.api.GlobalOpenTelemetry;
 import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.api.metrics.Meter;
+import io.opentelemetry.api.metrics.MeterBuilder;
+import io.opentelemetry.instrumentation.api.internal.EmbeddedInstrumentationProperties;
 
 class OtelMeterProvider {
-  private static final String INSTRUMENTATION_NAME = "com.splunk.javaagent.jvm-metrics-splunk";
+  private static final String INSTRUMENTATION_NAME = "com.splunk.jvm-metrics";
+  private static final Meter meter = buildMeter();
+
+  private static Meter buildMeter() {
+    OpenTelemetry openTelemetry = GlobalOpenTelemetry.get();
+    MeterBuilder meterBuilder = openTelemetry.getMeterProvider().meterBuilder(INSTRUMENTATION_NAME);
+    String version = EmbeddedInstrumentationProperties.findVersion(INSTRUMENTATION_NAME);
+    if (version != null) {
+      meterBuilder.setInstrumentationVersion(version);
+    }
+    return meterBuilder.build();
+  }
 
   static Meter get() {
-    OpenTelemetry openTelemetry = GlobalOpenTelemetry.get();
-    return openTelemetry.getMeter(INSTRUMENTATION_NAME);
+    return meter;
   }
 }

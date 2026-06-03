@@ -17,29 +17,12 @@
 package com.splunk.opentelemetry.opamp;
 
 import java.time.Duration;
-import java.util.List;
 
 class EffectiveConfigBuilder {
   private final StringBuilder stringBuilder = new StringBuilder();
 
-  EffectiveConfigBuilder add(String propertyName, String value) {
-    stringBuilder.append(propertyName).append("=\"").append(value).append("\"\n");
-    return this;
-  }
-
   EffectiveConfigBuilder add(String propertyName, Object value) {
     stringBuilder.append(propertyName).append('=').append(value).append('\n');
-    return this;
-  }
-
-  EffectiveConfigBuilder add(String propertyName, List<String> valueList) {
-    stringBuilder.append(propertyName).append('=');
-    if (!valueList.isEmpty()) {
-      stringBuilder.append('"');
-      stringBuilder.append(String.join("\", \"", valueList));
-      stringBuilder.append('"');
-    }
-    stringBuilder.append('\n');
     return this;
   }
 

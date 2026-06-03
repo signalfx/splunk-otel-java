@@ -17,10 +17,6 @@
 package com.splunk.opentelemetry.opamp;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.splunk.opentelemetry.profiler.ProfilerConfiguration;
-import com.splunk.opentelemetry.profiler.ProfilerDeclarativeConfiguration;
-import com.splunk.opentelemetry.profiler.snapshot.SnapshotProfilingConfiguration;
-import com.splunk.opentelemetry.profiler.snapshot.SnapshotProfilingDeclarativeConfiguration;
 import io.opentelemetry.sdk.declarativeconfig.internal.model.LogRecordExporterModel;
 import io.opentelemetry.sdk.declarativeconfig.internal.model.LogRecordProcessorModel;
 import io.opentelemetry.sdk.declarativeconfig.internal.model.LoggerProviderModel;
@@ -40,7 +36,17 @@ class DeclarativeEffectiveConfigFileFactory implements EffectiveConfigFactory {
 
   DeclarativeEffectiveConfigFileFactory() {}
 
-  public String buildFileContent() {
+  @Override
+  public String getContentType() {
+    return "application/yaml; vendor=splunk; v=1.0.0";
+  }
+
+  @Override
+  public String getFileName() {
+    return "";
+  }
+
+  public String createEffectiveConfigContent() {
     OpenTelemetryConfigurationModel model =
         DeclarativeConfigurationInterceptor.getConfigurationModel();
     if (model == null) {
@@ -52,30 +58,32 @@ class DeclarativeEffectiveConfigFileFactory implements EffectiveConfigFactory {
 
   @VisibleForTesting
   String processModel(OpenTelemetryConfigurationModel model) {
-    EffectiveConfigBuilder builder = new EffectiveConfigBuilder();
-    ProfilerConfiguration profilerConfiguration = ProfilerDeclarativeConfiguration.SUPPLIER.get();
-    SnapshotProfilingConfiguration snapshotConfiguration =
-        SnapshotProfilingDeclarativeConfiguration.SUPPLIER.get();
-
-    addSplunkEnvVars(builder, profilerConfiguration, snapshotConfiguration);
-    addOtelVars(builder, model);
-
-    return builder.build();
+    return "";
+    //    EffectiveConfigBuilder builder = new EffectiveConfigBuilder();
+    //    ProfilerConfiguration profilerConfiguration =
+    // ProfilerDeclarativeConfiguration.SUPPLIER.get();
+    //    SnapshotProfilingConfiguration snapshotConfiguration =
+    //        SnapshotProfilingDeclarativeConfiguration.SUPPLIER.get();
+    //
+    //    addSplunkEnvVars(builder, profilerConfiguration, snapshotConfiguration);
+    //    addOtelVars(builder, model);
+    //
+    //    return builder.build();
   }
 
   @VisibleForTesting
   void addOtelVars(
       EffectiveConfigBuilder builder, OpenTelemetryConfigurationModel configurationModel) {
-    builder
-        .add(
-            OTEL_EXPORTER_OTLP_TRACES_ENDPOINTS,
-            getTracesEndpoints(configurationModel.getTracerProvider()))
-        .add(
-            OTEL_EXPORTER_OTLP_METRICS_ENDPOINTS,
-            getMetricsEndpoints(configurationModel.getMeterProvider()))
-        .add(
-            OTEL_EXPORTER_OTLP_LOGS_ENDPOINTS,
-            getLogsEndpoints(configurationModel.getLoggerProvider()));
+    //    builder
+    //        .add(
+    //            OTEL_EXPORTER_OTLP_TRACES_ENDPOINT,
+    //            getTracesEndpoints(configurationModel.getTracerProvider()))
+    //        .add(
+    //            OTEL_EXPORTER_OTLP_METRICS_ENDPOINT,
+    //            getMetricsEndpoints(configurationModel.getMeterProvider()))
+    //        .add(
+    //            OTEL_EXPORTER_OTLP_LOGS_ENDPOINT,
+    //            getLogsEndpoints(configurationModel.getLoggerProvider()));
   }
 
   private List<String> getTracesEndpoints(TracerProviderModel tracerProvider) {

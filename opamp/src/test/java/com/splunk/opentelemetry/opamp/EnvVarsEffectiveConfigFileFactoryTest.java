@@ -28,9 +28,17 @@ import org.junit.jupiter.api.Test;
 class EnvVarsEffectiveConfigFileFactoryTest {
 
   @Test
+  void createFile_reportsCorrectContentType() {
+    DefaultConfigProperties config = DefaultConfigProperties.createFromMap(Map.of());
+    String contentType = new EnvVarsEffectiveConfigFileFactory(config).getContentType();
+
+    assertThat(contentType).isEqualTo("text/plain; format=properties; vendor=splunk; v=1.0.0");
+  }
+
+  @Test
   void buildFileContent_reportsConfiguredValues() throws IOException {
     Properties fileContent =
-        loadProperties(
+        createFileContent(
             Map.of(
                 "splunk.profiler.enabled", "true",
                 "splunk.profiler.memory.enabled", "true",
@@ -49,17 +57,19 @@ class EnvVarsEffectiveConfigFileFactoryTest {
             "SPLUNK_PROFILER_ENABLED", "true",
             "SPLUNK_PROFILER_MEMORY_ENABLED", "true",
             "SPLUNK_SNAPSHOT_PROFILER_ENABLED", "true",
-            "SPLUNK_SNAPSHOT_PROFILER_SAMPLING_INTERVAL", "\"26ms\"",
-            "SPLUNK_PROFILER_CALL_STACK_INTERVAL", "\"1235ms\"",
-            "OTEL_EXPORTER_OTLP_TRACES_ENDPOINTS", "\"https://traces.example.com\"",
-            "OTEL_EXPORTER_OTLP_METRICS_ENDPOINTS", "\"https://metrics.example.com\"",
-            "OTEL_EXPORTER_OTLP_LOGS_ENDPOINTS", "\"https://logs.example.com\""));
-    assertThat(fileContent.size()).isEqualTo(8);
+            "SPLUNK_SNAPSHOT_PROFILER_SAMPLING_INTERVAL", "26ms",
+            "SPLUNK_PROFILER_CALL_STACK_INTERVAL", "1235ms",
+            "OTEL_EXPORTER_OTLP_TRACES_ENDPOINT", "https://traces.example.com",
+            "OTEL_EXPORTER_OTLP_METRICS_ENDPOINT", "https://metrics.example.com",
+            "OTEL_EXPORTER_OTLP_LOGS_ENDPOINT", "https://logs.example.com",
+            "OTEL_CONFIG_FILE", "null",
+            "OTEL_EXPERIMENTAL_CONFIG_FILE", "null"));
+    assertThat(fileContent.size()).isEqualTo(10);
   }
 
   @Test
   void buildFileContent_reportsDefaultValuesWhenNotConfigured() throws IOException {
-    Properties fileContent = loadProperties(Map.of());
+    Properties fileContent = createFileContent(Map.of());
 
     assertProperties(
         fileContent,
@@ -67,31 +77,51 @@ class EnvVarsEffectiveConfigFileFactoryTest {
             "SPLUNK_PROFILER_ENABLED", "false",
             "SPLUNK_PROFILER_MEMORY_ENABLED", "false",
             "SPLUNK_SNAPSHOT_PROFILER_ENABLED", "false",
-            "SPLUNK_SNAPSHOT_PROFILER_SAMPLING_INTERVAL", "\"10ms\"",
-            "SPLUNK_PROFILER_CALL_STACK_INTERVAL", "\"10000ms\"",
-            "OTEL_EXPORTER_OTLP_TRACES_ENDPOINTS", "\"http://localhost:4318/v1/traces\"",
-            "OTEL_EXPORTER_OTLP_METRICS_ENDPOINTS", "\"http://localhost:4318/v1/metrics\"",
-            "OTEL_EXPORTER_OTLP_LOGS_ENDPOINTS", "\"http://localhost:4318/v1/logs\""));
-    assertThat(fileContent.size()).isEqualTo(8);
+            "SPLUNK_SNAPSHOT_PROFILER_SAMPLING_INTERVAL", "10ms",
+            "SPLUNK_PROFILER_CALL_STACK_INTERVAL", "10000ms",
+            "OTEL_EXPORTER_OTLP_TRACES_ENDPOINT", "http://localhost:4318/v1/traces",
+            "OTEL_EXPORTER_OTLP_METRICS_ENDPOINT", "http://localhost:4318/v1/metrics",
+            "OTEL_EXPORTER_OTLP_LOGS_ENDPOINT", "http://localhost:4318/v1/logs",
+            "OTEL_CONFIG_FILE", "null",
+            "OTEL_EXPERIMENTAL_CONFIG_FILE", "null"));
+    assertThat(fileContent.size()).isEqualTo(10);
   }
 
   @Test
   void buildFileContent_appendsSignalPathsToBaseHttpProtobufEndpoint() throws IOException {
     Properties fileContent =
-        loadProperties(Map.of("otel.exporter.otlp.endpoint", "https://collector:4318"));
+        createFileContent(Map.of("otel.exporter.otlp.endpoint", "https://collector:4318"));
 
     assertProperties(
         fileContent,
         Map.of(
-            "OTEL_EXPORTER_OTLP_TRACES_ENDPOINTS", "\"https://collector:4318/v1/traces\"",
-            "OTEL_EXPORTER_OTLP_METRICS_ENDPOINTS", "\"https://collector:4318/v1/metrics\"",
-            "OTEL_EXPORTER_OTLP_LOGS_ENDPOINTS", "\"https://collector:4318/v1/logs\""));
+            "OTEL_EXPORTER_OTLP_TRACES_ENDPOINT", "https://collector:4318/v1/traces",
+            "OTEL_EXPORTER_OTLP_METRICS_ENDPOINT", "https://collector:4318/v1/metrics",
+            "OTEL_EXPORTER_OTLP_LOGS_ENDPOINT", "https://collector:4318/v1/logs"));
+  }
+
+  @Test
+  void buildFileContent_reportsEmptySignalEndpointsWhenExportersAreNotOtlp() throws IOException {
+    Properties fileContent =
+        createFileContent(
+            Map.of(
+                "otel.exporter.otlp.endpoint", "https://collector:4318",
+                "otel.traces.exporter", "custom",
+                "otel.metrics.exporter", "console",
+                "otel.logs.exporter", "none"));
+
+    assertProperties(
+        fileContent,
+        Map.of(
+            "OTEL_EXPORTER_OTLP_TRACES_ENDPOINT", "",
+            "OTEL_EXPORTER_OTLP_METRICS_ENDPOINT", "",
+            "OTEL_EXPORTER_OTLP_LOGS_ENDPOINT", ""));
   }
 
   @Test
   void buildFileContent_usesBaseGrpcEndpointForAllSignals() throws IOException {
     Properties fileContent =
-        loadProperties(
+        createFileContent(
             Map.of(
                 "otel.exporter.otlp.endpoint", "https://collector:4317",
                 "otel.exporter.otlp.protocol", "grpc"));
@@ -99,15 +129,15 @@ class EnvVarsEffectiveConfigFileFactoryTest {
     assertProperties(
         fileContent,
         Map.of(
-            "OTEL_EXPORTER_OTLP_TRACES_ENDPOINTS", "\"https://collector:4317\"",
-            "OTEL_EXPORTER_OTLP_METRICS_ENDPOINTS", "\"https://collector:4317\"",
-            "OTEL_EXPORTER_OTLP_LOGS_ENDPOINTS", "\"https://collector:4317\""));
+            "OTEL_EXPORTER_OTLP_TRACES_ENDPOINT", "https://collector:4317",
+            "OTEL_EXPORTER_OTLP_METRICS_ENDPOINT", "https://collector:4317",
+            "OTEL_EXPORTER_OTLP_LOGS_ENDPOINT", "https://collector:4317"));
   }
 
   @Test
   void buildFileContent_usesSignalSpecificProtocolWhenResolvingEndpoints() throws IOException {
     Properties fileContent =
-        loadProperties(
+        createFileContent(
             Map.of(
                 "otel.exporter.otlp.endpoint", "https://collector:4317",
                 "otel.exporter.otlp.traces.protocol", "grpc",
@@ -117,19 +147,18 @@ class EnvVarsEffectiveConfigFileFactoryTest {
     assertProperties(
         fileContent,
         Map.of(
-            "OTEL_EXPORTER_OTLP_TRACES_ENDPOINTS", "\"https://collector:4317\"",
-            "OTEL_EXPORTER_OTLP_METRICS_ENDPOINTS", "\"https://collector:4317\"",
-            "OTEL_EXPORTER_OTLP_LOGS_ENDPOINTS", "\"https://collector:4317\""));
+            "OTEL_EXPORTER_OTLP_TRACES_ENDPOINT", "https://collector:4317",
+            "OTEL_EXPORTER_OTLP_METRICS_ENDPOINT", "https://collector:4317",
+            "OTEL_EXPORTER_OTLP_LOGS_ENDPOINT", "https://collector:4317"));
   }
 
-  private static String createFileContent(Map<String, String> configMap) {
+  private static Properties createFileContent(Map<String, String> configMap) throws IOException {
     DefaultConfigProperties config = DefaultConfigProperties.createFromMap(configMap);
-    return new EnvVarsEffectiveConfigFileFactory(config).buildFileContent();
-  }
+    String fileContent =
+        new EnvVarsEffectiveConfigFileFactory(config).createEffectiveConfigContent();
 
-  private static Properties loadProperties(Map<String, String> configMap) throws IOException {
     Properties properties = new Properties();
-    properties.load(new StringReader(createFileContent(configMap)));
+    properties.load(new StringReader(fileContent));
     return properties;
   }
 

@@ -23,13 +23,6 @@ import com.splunk.opentelemetry.profiler.snapshot.SnapshotProfilingEnvVarsConfig
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 
 class EnvVarsEffectiveConfigFileFactory implements EffectiveConfigFactory {
-  private static final String OTEL_EXPORTER_OTLP_ENDPOINT = "otel.exporter.otlp.endpoint";
-  private static final String OTEL_EXPORTER_OTLP_PROTOCOL = "otel.exporter.otlp.protocol";
-  private static final String OTLP_PROTOCOL_HTTP_PROTOBUF = "http/protobuf";
-  private static final String OTLP_SIGNAL_LOGS = "logs";
-  private static final String OTLP_SIGNAL_METRICS = "metrics";
-  private static final String OTLP_SIGNAL_TRACES = "traces";
-
   private final ConfigProperties config;
 
   EnvVarsEffectiveConfigFileFactory(ConfigProperties config) {
@@ -37,38 +30,69 @@ class EnvVarsEffectiveConfigFileFactory implements EffectiveConfigFactory {
   }
 
   @Override
-  public String buildFileContent() {
-    return addOtelEnvVars(addSplunkEnvVars(new EffectiveConfigBuilder())).build();
+  public String getContentType() {
+    return "text/plain; format=properties; vendor=splunk; v=1.0.0";
   }
 
-  private EffectiveConfigBuilder addSplunkEnvVars(EffectiveConfigBuilder builder) {
+  @Override
+  public String getFileName() {
+    return "environment";
+  }
+
+  public String createEffectiveConfigContent() {
+    EffectiveConfigBuilder builder = new EffectiveConfigBuilder();
+
+    addOtelEnvVars(builder);
+    addSplunkEnvVars(builder);
+
+    return builder.build();
+  }
+
+  private void addSplunkEnvVars(EffectiveConfigBuilder builder) {
     ProfilerConfiguration profilerConfiguration = new ProfilerEnvVarsConfiguration(config);
     SnapshotProfilingConfiguration snapshotConfiguration =
         new SnapshotProfilingEnvVarsConfiguration(config);
 
-    return addSplunkEnvVars(builder, profilerConfiguration, snapshotConfiguration);
+    builder
+        .add("SPLUNK_PROFILER_ENABLED", profilerConfiguration.isEnabled())
+        .add("SPLUNK_PROFILER_MEMORY_ENABLED", profilerConfiguration.getMemoryEnabled())
+        .add("SPLUNK_SNAPSHOT_PROFILER_ENABLED", snapshotConfiguration.isEnabled())
+        .add(
+            "SPLUNK_SNAPSHOT_PROFILER_SAMPLING_INTERVAL",
+            snapshotConfiguration.getSamplingInterval())
+        .add("SPLUNK_PROFILER_CALL_STACK_INTERVAL", profilerConfiguration.getCallStackInterval());
   }
 
-  private EffectiveConfigBuilder addOtelEnvVars(EffectiveConfigBuilder builder) {
-    return builder
-        .add(OTEL_EXPORTER_OTLP_TRACES_ENDPOINTS, getSignalEndpoint(config, OTLP_SIGNAL_TRACES))
-        .add(OTEL_EXPORTER_OTLP_METRICS_ENDPOINTS, getSignalEndpoint(config, OTLP_SIGNAL_METRICS))
-        .add(OTEL_EXPORTER_OTLP_LOGS_ENDPOINTS, getSignalEndpoint(config, OTLP_SIGNAL_LOGS));
+  private void addOtelEnvVars(EffectiveConfigBuilder builder) {
+    builder
+        .add("OTEL_EXPORTER_OTLP_TRACES_ENDPOINT", getSignalEndpoint(config, "traces"))
+        .add("OTEL_EXPORTER_OTLP_METRICS_ENDPOINT", getSignalEndpoint(config, "metrics"))
+        .add("OTEL_EXPORTER_OTLP_LOGS_ENDPOINT", getSignalEndpoint(config, "logs"))
+        .add("OTEL_CONFIG_FILE", (String) null)
+        .add("OTEL_EXPERIMENTAL_CONFIG_FILE", (String) null);
   }
 
   private static String getSignalEndpoint(ConfigProperties config, String signal) {
+    // If otlp exporter is not enabled for given signal then return an empty string
+    String exporterPropertyName = "otel." + signal + ".exporter";
+    if (!"otlp".equals(config.getString(exporterPropertyName, "otlp"))) {
+      return "";
+    }
+
+    // Attempt to get specified endpoint for given signal
     String propertyName = "otel.exporter.otlp." + signal + ".endpoint";
     String endpoint = config.getString(propertyName);
     if (endpoint != null) {
       return endpoint;
     }
 
-    String baseEndpoint = config.getString(OTEL_EXPORTER_OTLP_ENDPOINT);
-    boolean isProtBuf = OTLP_PROTOCOL_HTTP_PROTOBUF.equals(getSignalOtlpProtocol(config, signal));
+    // If no endpoint specified explicitly then deduce from the default endpoint and protocol used
+    String baseEndpoint = config.getString("otel.exporter.otlp.endpoint");
+    boolean isGrpc = "grpc".equals(getSignalOtlpProtocol(config, signal));
     if (baseEndpoint == null) {
-      return isProtBuf ? "http://localhost:4318/v1/" + signal : "http://localhost:4317";
+      return isGrpc ? "http://localhost:4317" : "http://localhost:4318/v1/" + signal;
     }
-    if (isProtBuf) {
+    if (!isGrpc) {
       return appendSignalPath(baseEndpoint, signal);
     }
     return baseEndpoint;
@@ -80,7 +104,7 @@ class EnvVarsEffectiveConfigFileFactory implements EffectiveConfigFactory {
   }
 
   private static String getOtlpProtocol(ConfigProperties config) {
-    return config.getString(OTEL_EXPORTER_OTLP_PROTOCOL, OTLP_PROTOCOL_HTTP_PROTOBUF);
+    return config.getString("otel.exporter.otlp.protocol", "http/protobuf");
   }
 
   private static String appendSignalPath(String endpoint, String signal) {

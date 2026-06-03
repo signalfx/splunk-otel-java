@@ -17,25 +17,17 @@
 package com.splunk.opentelemetry.instrumentation.khttp;
 
 import io.opentelemetry.instrumentation.api.instrumenter.Instrumenter;
-import io.opentelemetry.instrumentation.api.semconv.http.HttpClientAttributesGetter;
 import io.opentelemetry.javaagent.bootstrap.internal.JavaagentHttpClientInstrumenters;
 import khttp.responses.Response;
 
 public final class KHttpSingletons {
   private static final String INSTRUMENTATION_NAME = "com.splunk.khttp";
 
-  private static final Instrumenter<RequestWrapper, Response> INSTRUMENTER;
-
-  static {
-    HttpClientAttributesGetter<RequestWrapper, Response> httpAttributesGetter =
-        new KHttpHttpClientHttpAttributesGetter();
-
-    INSTRUMENTER =
-        JavaagentHttpClientInstrumenters.create(
-            INSTRUMENTATION_NAME,
-            new KHttpHttpClientHttpAttributesGetter(),
-            KHttpHttpHeaderSetter.INSTANCE);
-  }
+  private static final Instrumenter<RequestWrapper, Response> INSTRUMENTER =
+      JavaagentHttpClientInstrumenters.create(
+          INSTRUMENTATION_NAME,
+          new KHttpHttpClientHttpAttributesGetter(),
+          KHttpHttpHeaderSetter.INSTANCE);
 
   public static Instrumenter<RequestWrapper, Response> instrumenter() {
     return INSTRUMENTER;

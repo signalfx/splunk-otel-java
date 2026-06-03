@@ -8,6 +8,16 @@ and this repository adheres to [Semantic Versioning](https://semver.org/spec/v2.
 
 ## Unreleased
 
+## v2.28.0 - 2026-05-22
+
+- OpenTelemetry Java SDK has been updated to version 1.62.0.
+- OpenTelemetry Instrumentation for Java has been updated to version 2.28.1.
+- We now include CSA jars as build artifacts, and publish docker images that include CSA.
+  [#2804](https://github.com/signalfx/splunk-otel-java/pull/2804), 
+  [#2805](https://github.com/signalfx/splunk-otel-java/pull/2805)
+- Nocode instrumentation: Add ability to continue the current span instead of 
+  starting a new span. [#2726](https://github.com/signalfx/splunk-otel-java/pull/2726) 
+
 ## v2.27.0 - 2026-04-22
 
 - OpenTelemetry Java SDK has been updated to version 1.61.0.

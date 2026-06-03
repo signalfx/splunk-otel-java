@@ -1,18 +1,11 @@
-plugins {
-  id("splunk.instrumentation-conventions")
-}
-
 dependencies {
   testImplementation(project(":bootstrap"))
   testImplementation(project(":instrumentation:nocode"))
   testImplementation(testFixtures(project(":custom")))
-  testCompileOnly("io.opentelemetry.javaagent:opentelemetry-javaagent-tooling")
-  testRuntimeOnly("io.opentelemetry.javaagent:opentelemetry-javaagent-tooling") {
-    exclude("io.opentelemetry.javaagent", "opentelemetry-javaagent-bootstrap")
-  }
+  testImplementation("io.opentelemetry.javaagent:opentelemetry-javaagent-tooling")
   testImplementation("org.snakeyaml:snakeyaml-engine")
   testImplementation("io.opentelemetry.javaagent:opentelemetry-javaagent-extension-api")
-  testImplementation("io.github.netmikey.logunit:logunit-jul:1.1.3")
+  testImplementation("io.github.netmikey.logunit:logunit-jul")
 }
 
 tasks {

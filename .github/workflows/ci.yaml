@@ -28,14 +28,11 @@ jobs:
           distribution: temurin
           java-version: 17
 
-      - name: Cache Gradle Wrapper
-        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
-        with:
-          path: ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-wrapper-cache-${{ hashFiles('gradle/wrapper/gradle-wrapper.properties') }}
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@50e97c2cd7a37755bbfafc9c5b7cafaece252f6e # v6.1.0
 
       - name: Build and test
-        run: ./gradlew build --scan --no-daemon
+        run: ./gradlew build
 
       - name: Build scan
         if: ${{ !cancelled() && hashFiles('build-scan.txt') != '' }}
@@ -52,14 +49,11 @@ jobs:
           distribution: temurin
           java-version: 17
 
-      - name: Cache Gradle Wrapper
-        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
-        with:
-          path: ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-wrapper-cache-${{ hashFiles('gradle/wrapper/gradle-wrapper.properties') }}
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@50e97c2cd7a37755bbfafc9c5b7cafaece252f6e # v6.1.0
 
       - name: Build and test
-        run: ./gradlew check -x spotlessCheck -PtestLatestDeps=true --scan --no-daemon
+        run: ./gradlew check -x spotlessCheck -PtestLatestDeps=true
 
       - name: Build scan
         if: ${{ !cancelled() && hashFiles('build-scan.txt') != '' }}
@@ -79,11 +73,8 @@ jobs:
           distribution: temurin
           java-version: 17
 
-      - name: Cache Gradle Wrapper
-        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
-        with:
-          path: ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-wrapper-cache-${{ hashFiles('gradle/wrapper/gradle-wrapper.properties') }}
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@50e97c2cd7a37755bbfafc9c5b7cafaece252f6e # v6.1.0
 
       - id: set-matrix
         run: echo "matrix={\"module\":[\"$(./gradlew -q instrumentation:listMuzzleInstrumentations | xargs echo | sed 's/ /","/g')\"]}" >> $GITHUB_OUTPUT
@@ -104,11 +95,8 @@ jobs:
           distribution: temurin
           java-version: 17
 
-      - name: Cache Gradle Wrapper
-        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
-        with:
-          path: ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-wrapper-cache-${{ hashFiles('gradle/wrapper/gradle-wrapper.properties') }}
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@50e97c2cd7a37755bbfafc9c5b7cafaece252f6e # v6.1.0
 
       - name: Run muzzle
         # using retry because of sporadic gradle download failures
@@ -117,7 +105,7 @@ jobs:
           # timing out has not been a problem, these jobs typically finish in 2-3 minutes
           timeout_minutes: 15
           max_attempts: 3
-          command: ./gradlew ${{ matrix.module }}:muzzle --stacktrace --no-daemon
+          command: ./gradlew ${{ matrix.module }}:muzzle
 
   smoke-test:
     runs-on: ${{ matrix.os }}
@@ -153,11 +141,8 @@ jobs:
           distribution: temurin
           java-version: 17
 
-      - name: Cache Gradle Wrapper
-        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
-        with:
-          path: ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-wrapper-cache-${{ hashFiles('gradle/wrapper/gradle-wrapper.properties') }}
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@50e97c2cd7a37755bbfafc9c5b7cafaece252f6e # v6.1.0
 
       - name: Login to GitHub Container Registry
         uses: docker/login-action@650006c6eb7dba73a995cc03b0b2d7f5ca915bee # v4.2.0
@@ -168,11 +153,11 @@ jobs:
         if: startsWith(matrix.os, 'ubuntu')
 
       - name: Pull proprietary images
-        run: ./gradlew pullProprietaryTestImages --scan --no-daemon
+        run: ./gradlew pullProprietaryTestImages
         if: startsWith(matrix.os, 'ubuntu')
 
       - name: Test
-        run: ./gradlew :smoke-tests:test -PsmokeTestSuite=${{ matrix.suite }} --scan --no-daemon
+        run: ./gradlew :smoke-tests:test -PsmokeTestSuite=${{ matrix.suite }}
 
       - name: Build scan
         if: ${{ !cancelled() && hashFiles('build-scan.txt') != '' }}

@@ -14,23 +14,17 @@
  * limitations under the License.
  */
 
-package com.splunk.opentelemetry.opamp;
+package com.splunk.opentelemetry.opamp.effectiveconfig.yaml.model;
 
-import java.time.Duration;
+import com.splunk.opentelemetry.opamp.effectiveconfig.yaml.YamlProperty;
+import java.util.ArrayList;
+import java.util.List;
 
-class EffectiveConfigBuilder {
-  private final StringBuilder stringBuilder = new StringBuilder();
+public class LoggerProviderYamlModel {
+  @YamlProperty(value = "processors", order = 0)
+  private final List<ProcessorYamlModel> processors = new ArrayList<>();
 
-  EffectiveConfigBuilder add(String propertyName, Object value) {
-    stringBuilder.append(propertyName).append('=').append(value).append('\n');
-    return this;
-  }
-
-  EffectiveConfigBuilder add(String propertyName, Duration value) {
-    return add(propertyName, value.toMillis() + "ms");
-  }
-
-  String build() {
-    return stringBuilder.toString();
+  public void addProcessor(String processorType, ExporterYamlModel exporter) {
+    processors.add(ProcessorYamlModel.create(processorType, exporter));
   }
 }

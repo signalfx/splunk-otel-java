@@ -88,7 +88,7 @@ public class ProfilerDeclarativeConfiguration implements ProfilerConfiguration {
 
   @Override
   public boolean getMemoryEnabled() {
-    return getConfigRoot().getStructured(MEMORY_PROFILER) != null;
+    return getConfigRoot().getPropertyKeys().contains(MEMORY_PROFILER);
   }
 
   @Override

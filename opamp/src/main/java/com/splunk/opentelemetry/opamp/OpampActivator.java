@@ -22,6 +22,9 @@ import static io.opentelemetry.sdk.autoconfigure.AutoConfigureUtil.getResource;
 import static java.util.logging.Level.WARNING;
 
 import com.google.auto.service.AutoService;
+import com.splunk.opentelemetry.opamp.effectiveconfig.DeclarativeEffectiveConfigFileFactory;
+import com.splunk.opentelemetry.opamp.effectiveconfig.EffectiveConfigFactory;
+import com.splunk.opentelemetry.opamp.effectiveconfig.EnvVarsEffectiveConfigFileFactory;
 import io.opentelemetry.javaagent.extension.AgentListener;
 import io.opentelemetry.opamp.client.OpampClient;
 import io.opentelemetry.opamp.client.OpampClientBuilder;

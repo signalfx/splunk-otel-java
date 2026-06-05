@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.splunk.opentelemetry.opamp;
+package com.splunk.opentelemetry.opamp.effectiveconfig;
 
 import com.splunk.opentelemetry.profiler.ProfilerConfiguration;
 import com.splunk.opentelemetry.profiler.ProfilerEnvVarsConfiguration;
@@ -22,10 +22,10 @@ import com.splunk.opentelemetry.profiler.snapshot.SnapshotProfilingConfiguration
 import com.splunk.opentelemetry.profiler.snapshot.SnapshotProfilingEnvVarsConfiguration;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 
-class EnvVarsEffectiveConfigFileFactory implements EffectiveConfigFactory {
+public class EnvVarsEffectiveConfigFileFactory implements EffectiveConfigFactory {
   private final ConfigProperties config;
 
-  EnvVarsEffectiveConfigFileFactory(ConfigProperties config) {
+  public EnvVarsEffectiveConfigFileFactory(ConfigProperties config) {
     this.config = config;
   }
 
@@ -40,7 +40,7 @@ class EnvVarsEffectiveConfigFileFactory implements EffectiveConfigFactory {
   }
 
   public String createEffectiveConfigContent() {
-    EffectiveConfigBuilder builder = new EffectiveConfigBuilder();
+    EnvVarsEffectiveConfigBuilder builder = new EnvVarsEffectiveConfigBuilder();
 
     addOtelEnvVars(builder);
     addSplunkEnvVars(builder);
@@ -48,7 +48,7 @@ class EnvVarsEffectiveConfigFileFactory implements EffectiveConfigFactory {
     return builder.build();
   }
 
-  private void addSplunkEnvVars(EffectiveConfigBuilder builder) {
+  private void addSplunkEnvVars(EnvVarsEffectiveConfigBuilder builder) {
     ProfilerConfiguration profilerConfiguration = new ProfilerEnvVarsConfiguration(config);
     SnapshotProfilingConfiguration snapshotConfiguration =
         new SnapshotProfilingEnvVarsConfiguration(config);
@@ -63,7 +63,7 @@ class EnvVarsEffectiveConfigFileFactory implements EffectiveConfigFactory {
         .add("SPLUNK_PROFILER_CALL_STACK_INTERVAL", profilerConfiguration.getCallStackInterval());
   }
 
-  private void addOtelEnvVars(EffectiveConfigBuilder builder) {
+  private void addOtelEnvVars(EnvVarsEffectiveConfigBuilder builder) {
     builder
         .add("OTEL_EXPORTER_OTLP_TRACES_ENDPOINT", getSignalEndpoint(config, "traces"))
         .add("OTEL_EXPORTER_OTLP_METRICS_ENDPOINT", getSignalEndpoint(config, "metrics"))

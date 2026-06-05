@@ -151,8 +151,8 @@ public class YamlNodeBuilder {
    * Create a map containing a single chain of nested child nodes.
    *
    * <p>The {@code key} is split using '.' as a separator. The deepest child node gets the provided
-   * value. This is a convenience wrapper for {@code
-   * YamlNodeBuilder.create().addNestedNode(key, value).build()}.
+   * value. This is a convenience wrapper for {@code YamlNodeBuilder.create().addNestedNode(key,
+   * value).build()}.
    *
    * @param key dot separated chain of nested nodes names
    * @param value a value of the last child node

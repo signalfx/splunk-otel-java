@@ -80,66 +80,65 @@ class DeclarativeEffectiveConfigFileFactory implements EffectiveConfigFactory {
       OpenTelemetryConfigurationModel model,
       ProfilerConfiguration profilerConfiguration,
       SnapshotProfilingConfiguration snapshotConfiguration) {
-    YamlNodeBuilder rootBuilder = YamlNodeBuilder.create();
+    YamlNodeBuilder root = YamlNodeBuilder.create();
 
-    addDeclarativeConfigFiles(rootBuilder);
-    addTraceProviderNode(model.getTracerProvider(), rootBuilder);
-    addMeterProviderNode(model.getMeterProvider(), rootBuilder);
-    addLogsProviderNode(model.getLoggerProvider(), rootBuilder);
-    addDistributionConfigNode(profilerConfiguration, snapshotConfiguration, rootBuilder);
+    addConfigFilesNodes(root);
+    addTraceProviderNode(model.getTracerProvider(), root);
+    addMeterProviderNode(model.getMeterProvider(), root);
+    addLogsProviderNode(model.getLoggerProvider(), root);
+    addDistributionConfigNode(profilerConfiguration, snapshotConfiguration, root);
 
-    Map<String, Object> root = rootBuilder.build();
-    if (root.isEmpty()) {
+    Map<String, Object> yamlTree = root.build();
+    if (yamlTree.isEmpty()) {
       return "";
     }
-    return toYamlString(root);
+    return toYamlString(yamlTree);
   }
 
   private static void addDistributionConfigNode(
       ProfilerConfiguration profilerConfiguration,
       SnapshotProfilingConfiguration snapshotConfiguration,
-      YamlNodeBuilder rootBuilder) {
+      YamlNodeBuilder root) {
 
-    YamlNodeBuilder profilingNodeBuilder = YamlNodeBuilder.create();
-    buildAlwaysOnProfilerNode(profilerConfiguration, profilingNodeBuilder);
-    buildCallgraphsNode(snapshotConfiguration, profilingNodeBuilder);
-    Map<String, Object> profilingNode = profilingNodeBuilder.build();
-
-    if (!profilingNode.isEmpty()) {
-      rootBuilder.addNestedNode("distribution.splunk.profiling", profilingNode);
-    }
+    root.addNestedNode(
+        "distribution.splunk.profiling",
+        profiling -> {
+          addAlwaysOnProfilerNode(profilerConfiguration, profiling);
+          addCallgraphsNode(snapshotConfiguration, profiling);
+        });
   }
 
-  private static void buildCallgraphsNode(
-      SnapshotProfilingConfiguration snapshotConfiguration, YamlNodeBuilder profilingNodeBuilder) {
+  private static void addCallgraphsNode(
+      SnapshotProfilingConfiguration snapshotConfiguration, YamlNodeBuilder profiling) {
     if (snapshotConfiguration.isEnabled()) {
-      profilingNodeBuilder.addNestedNode(
+      profiling.addNestedNode(
           "callgraphs.sampling_interval", snapshotConfiguration.getSamplingInterval().toMillis());
     }
   }
 
-  private static void buildAlwaysOnProfilerNode(
-      ProfilerConfiguration profilerConfiguration, YamlNodeBuilder profilingNodeBuilder) {
+  private static void addAlwaysOnProfilerNode(
+      ProfilerConfiguration profilerConfiguration, YamlNodeBuilder profiling) {
     if (profilerConfiguration.isEnabled()) {
-      YamlNodeBuilder alwaysOnNodeBuilder = YamlNodeBuilder.create();
-      alwaysOnNodeBuilder.addNestedNode(
-          "cpu_profiler.sampling_interval",
-          profilerConfiguration.getCallStackInterval().toMillis());
-      if (profilerConfiguration.getMemoryEnabled()) {
-        alwaysOnNodeBuilder.addNode("memory_profiler", EmptyYamlNode.INSTANCE);
-      }
-
-      profilingNodeBuilder.addNode("always_on", alwaysOnNodeBuilder.build());
+      profiling.addNestedNode(
+          "always_on",
+          alwaysOn -> {
+            alwaysOn.addNestedNode(
+                "cpu_profiler.sampling_interval",
+                profilerConfiguration.getCallStackInterval().toMillis());
+            if (profilerConfiguration.getMemoryEnabled()) {
+              alwaysOn.addNode("memory_profiler", EmptyYamlNode.INSTANCE);
+            }
+          });
     }
   }
 
-  private static void addDeclarativeConfigFiles(YamlNodeBuilder rootBuilder) {
-    rootBuilder.addNode("otel_config_file", getProperty("otel.config.file"));
-    rootBuilder.addNode(
-        "otel_experimental_config_file", getProperty("otel.experimental.config.file"));
+  private static void addConfigFilesNodes(YamlNodeBuilder root) {
+    root.addNode("otel_config_file", getProperty("otel.config.file"));
+    root.addNode("otel_experimental_config_file", getProperty("otel.experimental.config.file"));
   }
 
-  private static void addTraceProviderNode(TracerProviderModel model, YamlNodeBuilder rootBuilder) {
+  private static void addTraceProviderNode(
+      TracerProviderModel model, YamlNodeBuilder root) {
     if (model == null || model.getProcessors() == null) {
       return;
     }
@@ -159,11 +158,11 @@ class DeclarativeEffectiveConfigFileFactory implements EffectiveConfigFactory {
             }));
 
     if (!processors.isEmpty()) {
-      rootBuilder.addNestedNode("tracer_provider.processors", processors);
+      root.addNestedNode("tracer_provider.processors", processors);
     }
   }
 
-  private static void addLogsProviderNode(LoggerProviderModel model, YamlNodeBuilder rootBuilder) {
+  private static void addLogsProviderNode(LoggerProviderModel model, YamlNodeBuilder root) {
     if (model == null || model.getProcessors() == null) {
       return;
     }
@@ -182,11 +181,11 @@ class DeclarativeEffectiveConfigFileFactory implements EffectiveConfigFactory {
             });
 
     if (!processors.isEmpty()) {
-      rootBuilder.addNestedNode("logger_provider.processors", processors);
+      root.addNestedNode("logger_provider.processors", processors);
     }
   }
 
-  private static void addMeterProviderNode(MeterProviderModel model, YamlNodeBuilder rootBuilder) {
+  private static void addMeterProviderNode(MeterProviderModel model, YamlNodeBuilder root) {
     if (model == null || model.getReaders() == null) {
       return;
     }
@@ -203,7 +202,7 @@ class DeclarativeEffectiveConfigFileFactory implements EffectiveConfigFactory {
             });
 
     if (!readers.isEmpty()) {
-      rootBuilder.addNestedNode("meter_provider.readers", readers);
+      root.addNestedNode("meter_provider.readers", readers);
     }
   }
 
@@ -249,16 +248,20 @@ class DeclarativeEffectiveConfigFileFactory implements EffectiveConfigFactory {
 
   private static void addOtlpHttpExporterNode(
       String parentNodeName, String endpoint, List<Map<String, Object>> nodes) {
-    nodes.add(
-        YamlNodeBuilder.createNestedNode(
-            parentNodeName + ".exporter.otlp_http.endpoint", endpoint));
+    addExporterNode(parentNodeName, "otlp_http", endpoint, nodes);
   }
 
   private static void addOtlpGrpcExporterNode(
       String parentNodeName, String endpoint, List<Map<String, Object>> nodes) {
+    addExporterNode(parentNodeName, "otlp_grpc", endpoint, nodes);
+  }
+
+  private static void addExporterNode(
+      String parentNodeName, String exporterName, String endpoint, List<Map<String, Object>> nodes) {
     nodes.add(
-        YamlNodeBuilder.createNestedNode(
-            parentNodeName + ".exporter.otlp_grpc.endpoint", endpoint));
+        YamlNodeBuilder.create()
+            .addNestedNode(parentNodeName + ".exporter." + exporterName + ".endpoint", endpoint)
+            .build());
   }
 
   private static String toYamlString(Map<String, Object> rootNode) {

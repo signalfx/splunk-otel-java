@@ -18,6 +18,7 @@ package com.splunk.opentelemetry.opamp;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public class YamlNodeBuilder {
@@ -47,6 +48,14 @@ public class YamlNodeBuilder {
     return this;
   }
 
+  public YamlNodeBuilder addNode(String name, Consumer<YamlNodeBuilder> value) {
+    Map<String, Object> node = buildNode(value);
+    if (node.isEmpty()) {
+      return this;
+    }
+    return addNode(name, node);
+  }
+
   public YamlNodeBuilder addNestedNode(String name, Object value) {
     if (name.startsWith(".") || name.endsWith(".")) {
       throw new IllegalArgumentException("Invalid nested node name format: " + name);
@@ -60,6 +69,14 @@ public class YamlNodeBuilder {
       String remainingNameSegments = name.substring(separatorIndex + 1);
       return addNode(currentNameSegment, createNestedNode(remainingNameSegments, value));
     }
+  }
+
+  public YamlNodeBuilder addNestedNode(String name, Consumer<YamlNodeBuilder> value) {
+    Map<String, Object> node = buildNode(value);
+    if (node.isEmpty()) {
+      return this;
+    }
+    return addNestedNode(name, node);
   }
 
   public YamlNodeBuilder addNestedNode(String name, Supplier<Object> value) {
@@ -76,5 +93,11 @@ public class YamlNodeBuilder {
 
   public static Map<String, Object> createNestedNode(String key, Object value) {
     return create().addNestedNode(key, value).build();
+  }
+
+  private static Map<String, Object> buildNode(Consumer<YamlNodeBuilder> value) {
+    YamlNodeBuilder builder = create();
+    value.accept(builder);
+    return builder.build();
   }
 }

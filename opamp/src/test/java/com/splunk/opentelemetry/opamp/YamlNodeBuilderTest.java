@@ -23,6 +23,7 @@ import org.junit.jupiter.api.Test;
 
 class YamlNodeBuilderTest {
   @Test
+  @SuppressWarnings("unchecked")
   void addNestedNode() {
     Map<String, Object> level1 = YamlNodeBuilder.createNestedNode("abc.def.ghi", 123);
 
@@ -41,5 +42,58 @@ class YamlNodeBuilderTest {
     assertThat(level3).hasSize(1);
     assertThat(level3).containsKey("ghi");
     assertThat(level3.get("ghi")).isEqualTo(123);
+  }
+
+  @Test
+  void addNodeWithChildBuilder() {
+    Map<String, Object> root =
+        YamlNodeBuilder.create()
+            .addNode(
+                "distribution",
+                distribution ->
+                    distribution.addNode(
+                        "splunk",
+                        splunk ->
+                            splunk.addNode(
+                                "profiling",
+                                profiling ->
+                                    profiling
+                                        .addNestedNode(
+                                            "always_on.cpu_profiler.sampling_interval", 1410)
+                                        .addNestedNode("callgraphs.sampling_interval", 10))))
+            .build();
+
+    Map<String, Object> distribution = node(root, "distribution");
+    Map<String, Object> splunk = node(distribution, "splunk");
+    Map<String, Object> profiling = node(splunk, "profiling");
+    Map<String, Object> alwaysOn = node(profiling, "always_on");
+    Map<String, Object> cpuProfiler = node(alwaysOn, "cpu_profiler");
+    Map<String, Object> callgraphs = node(profiling, "callgraphs");
+
+    assertThat(cpuProfiler).containsEntry("sampling_interval", 1410);
+    assertThat(callgraphs).containsEntry("sampling_interval", 10);
+  }
+
+  @Test
+  void skipsEmptyChildBuilder() {
+    Map<String, Object> root =
+        YamlNodeBuilder.create()
+            .addNode(
+                "parent",
+                parent -> {
+                  parent.addNode("present", "yes");
+                })
+            .addNode(
+                "empty_parent",
+                parent -> {
+                })
+            .build();
+
+    assertThat(root).containsOnlyKeys("parent");
+  }
+
+  @SuppressWarnings("unchecked")
+  private static Map<String, Object> node(Map<String, Object> node, String key) {
+    return (Map<String, Object>) node.get(key);
   }
 }

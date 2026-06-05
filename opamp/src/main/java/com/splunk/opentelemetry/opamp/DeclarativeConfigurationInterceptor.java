@@ -35,7 +35,7 @@ public class DeclarativeConfigurationInterceptor
   }
 
   @VisibleForTesting
-  static void reset() {
+  public static void reset() {
     configurationModel = null;
   }
 

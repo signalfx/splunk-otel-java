@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.splunk.opentelemetry.opamp;
+package com.splunk.opentelemetry.opamp.effectiveconfig;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
@@ -24,7 +24,7 @@ import okio.ByteString;
 import opamp.proto.AgentConfigFile;
 import opamp.proto.AgentConfigMap;
 
-interface EffectiveConfigFactory {
+public interface EffectiveConfigFactory {
   /**
    * Build <code>AgentConfigMap</code> object containing current effective config with proper
    * content type and file name

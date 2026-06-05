@@ -30,6 +30,7 @@ import static io.opentelemetry.semconv.incubating.OsIncubatingAttributes.OS_TYPE
 import static io.opentelemetry.semconv.incubating.OsIncubatingAttributes.OS_VERSION;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.splunk.opentelemetry.opamp.effectiveconfig.EnvVarsEffectiveConfigFileFactory;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.common.Value;

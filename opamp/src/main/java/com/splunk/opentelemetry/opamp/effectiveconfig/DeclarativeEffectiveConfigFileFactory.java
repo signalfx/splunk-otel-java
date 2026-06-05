@@ -88,11 +88,9 @@ public class DeclarativeEffectiveConfigFileFactory implements EffectiveConfigFac
       OpenTelemetryConfigurationModel model,
       ProfilerConfiguration profilerConfiguration,
       SnapshotProfilingConfiguration snapshotConfiguration) {
-    EffectiveConfigYamlModel root =
-        new EffectiveConfigYamlModel()
-            .configFiles(
-                getProperty("otel.config.file"), getProperty("otel.experimental.config.file"));
+    EffectiveConfigYamlModel root = new EffectiveConfigYamlModel();
 
+    addDeclarativeConfigFileNodes(root);
     addTraceProviderNode(model.getTracerProvider(), root.tracerProvider());
     addMeterProviderNode(model.getMeterProvider(), root.meterProvider());
     addLogsProviderNode(model.getLoggerProvider(), root.loggerProvider());
@@ -103,6 +101,10 @@ public class DeclarativeEffectiveConfigFileFactory implements EffectiveConfigFac
       return "";
     }
     return toYamlString(yamlTree);
+  }
+
+  private static void addDeclarativeConfigFileNodes(EffectiveConfigYamlModel root) {
+    root.configFiles(getProperty("otel.config.file"), getProperty("otel.experimental.config.file"));
   }
 
   private static void addDistributionConfigNode(

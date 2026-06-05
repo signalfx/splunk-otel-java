@@ -18,6 +18,7 @@ package com.splunk.opentelemetry.opamp;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.function.Supplier;
 
 public class YamlNodeBuilder {
   private final Map<String, Object> map = new LinkedHashMap<>();
@@ -35,6 +36,13 @@ public class YamlNodeBuilder {
     if (map.containsKey(name)) {
       throw new IllegalStateException("Node " + name + " already present");
     }
+
+    // Additional argument check to avoid scenario when build() method is not called before add.
+    // This may happen when building complex trees.
+    if (value instanceof YamlNodeBuilder) {
+      throw new IllegalArgumentException("Cannot add a builder as \"" + name + "\" node");
+    }
+
     map.put(name, value);
     return this;
   }
@@ -52,6 +60,10 @@ public class YamlNodeBuilder {
       String remainingNameSegments = name.substring(separatorIndex + 1);
       return addNode(currentNameSegment, createNestedNode(remainingNameSegments, value));
     }
+  }
+
+  public YamlNodeBuilder addNestedNode(String name, Supplier<Object> value) {
+    return addNestedNode(name, value.get());
   }
 
   public Map<String, Object> build() {

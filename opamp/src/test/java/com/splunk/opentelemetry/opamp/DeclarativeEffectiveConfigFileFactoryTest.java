@@ -20,23 +20,39 @@ import static io.opentelemetry.api.incubator.config.DeclarativeConfigProperties.
 import static io.opentelemetry.sdk.autoconfigure.AutoConfigureUtil.getDistributionConfig;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 
+import com.splunk.opentelemetry.profiler.ProfilerConfiguration;
 import com.splunk.opentelemetry.profiler.ProfilerDeclarativeConfiguration;
+import com.splunk.opentelemetry.profiler.snapshot.SnapshotProfilingConfiguration;
 import com.splunk.opentelemetry.profiler.snapshot.SnapshotProfilingDeclarativeConfiguration;
+import com.splunk.opentelemetry.testing.declarativeconfig.DeclarativeConfigTestUtil;
 import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
+import io.opentelemetry.instrumentation.testing.internal.AutoCleanupExtension;
+import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.DeclarativeConfiguration;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.DeclarativeConfigurationBuilder;
 import io.opentelemetry.sdk.declarativeconfig.internal.model.OpenTelemetryConfigurationModel;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.time.Duration;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.api.io.TempDir;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
+@ExtendWith(MockitoExtension.class)
 class DeclarativeEffectiveConfigFileFactoryTest {
+  @RegisterExtension static final AutoCleanupExtension autoCleanup = AutoCleanupExtension.create();
+
+  @Mock private ProfilerConfiguration mockProfilerConfiguration;
+  @Mock private SnapshotProfilingConfiguration mockSnapshotConfiguration;
 
   @AfterEach
   void afterEach() {
@@ -46,42 +62,10 @@ class DeclarativeEffectiveConfigFileFactoryTest {
   }
 
   @Test
-  void buildFileContent(@TempDir Path tempDir) throws Exception {
+  void buildFileContent_handleRealConfigPaths(@TempDir Path tempDir) throws Exception {
     // given
     Path configFile = tempDir.resolve("declarative-config.yaml");
-    Files.writeString(
-        configFile,
-        """
-        file_format: 1.0
-        tracer_provider:
-          processors:
-            - batch:
-                exporter:
-                  otlp_http:
-                    endpoint: https://traces.example.com
-        meter_provider:
-          readers:
-            - periodic:
-                exporter:
-                  otlp_grpc:
-                    endpoint: https://metrics.example.com
-        logger_provider:
-          processors:
-            - simple:
-                exporter:
-                  otlp_http:
-                    endpoint: https://logs.example.com
-        distribution:
-          splunk:
-            profiling:
-              always_on:
-                cpu_profiler:
-                  sampling_interval: 1410
-                memory_profiler:
-              callgraphs:
-                sampling_interval: 10
-        """,
-        UTF_8);
+    Files.writeString(configFile,"file_format: 1.0", UTF_8);
 
     ProcessBuilder processBuilder =
         new ProcessBuilder(
@@ -89,6 +73,7 @@ class DeclarativeEffectiveConfigFileFactoryTest {
                 "-cp",
                 System.getProperty("java.class.path"),
                 "-Dotel.config.file=" + configFile,
+                "-Dotel.experimental.config.file=test.yaml",
                 FactoryRunner.class.getName())
             .redirectErrorStream(true);
 
@@ -102,26 +87,50 @@ class DeclarativeEffectiveConfigFileFactoryTest {
     assertThat(process.exitValue()).describedAs(fileContent).isZero();
 
     assertThat(fileContent)
+        .matches(
+            """
+            otel_config_file: .*declarative-config\\.yaml
+            otel_experimental_config_file: test\\.yaml
+            """);
+  }
+
+  @Test
+  void handlesDistributionConfig(@TempDir Path tempDir) throws Exception {
+    // given
+    String configurationYaml =
+        """
+        file_format: 1.0
+        distribution:
+          splunk:
+            profiling:
+              always_on:
+                cpu_profiler:
+                  sampling_interval: 1410
+                memory_profiler:
+              callgraphs:
+                sampling_interval: 10
+        """;
+
+    // when
+    DeclarativeConfigTestUtil.createAutoConfiguredSdk(configurationYaml, tempDir, autoCleanup);
+    String effectiveConfigYaml =
+        new DeclarativeEffectiveConfigFileFactory().createEffectiveConfigContent();
+
+    // then
+    assertThat(effectiveConfigYaml)
         .isEqualTo(
             """
-            tracer_provider:
-              processors:
-                - batch:
-                    exporter:
-                      otlp_http:
-                        endpoint: https://traces.example.com
-            meter_provider:
-              readers:
-                - periodic:
-                    exporter:
-                      otlp_grpc:
-                        endpoint: https://metrics.example.com
-            logger_provider:
-              processors:
-                - simple:
-                    exporter:
-                      otlp_http:
-                        endpoint: https://logs.example.com
+            otel_config_file: null
+            otel_experimental_config_file: null
+            distribution:
+              splunk:
+                profiling:
+                  always_on:
+                    cpu_profiler:
+                      sampling_interval: 1410
+                    memory_profiler:
+                  callgraphs:
+                    sampling_interval: 10
             """);
   }
 
@@ -129,13 +138,20 @@ class DeclarativeEffectiveConfigFileFactoryTest {
   void handlesBlankConfig() throws Exception {
     OpenTelemetryConfigurationModel model = parseModel("file_format: 1.0");
 
-    String yaml = new DeclarativeEffectiveConfigFileFactory().processModel(model, null, null);
+    String yaml =
+        new DeclarativeEffectiveConfigFileFactory()
+            .processModel(model, mockProfilerConfiguration, mockSnapshotConfiguration);
 
-    assertThat(yaml).isEqualTo("");
+    assertThat(yaml)
+        .isEqualTo(
+            """
+            otel_config_file: null
+            otel_experimental_config_file: null
+            """);
   }
 
   @Test
-  void usesDeclarativeConfigFileName() {
+  void getFileName_usesDeclarativeConfigFileName() {
     String previousConfigFile = System.getProperty("otel.config.file");
     try {
       System.setProperty("otel.config.file", "/opt/splunk/declarative-config.yaml");
@@ -175,11 +191,15 @@ class DeclarativeEffectiveConfigFileFactoryTest {
                       otlp_http:
             """);
 
-    String yaml = new DeclarativeEffectiveConfigFileFactory().processModel(model, null, null);
+    String yaml =
+        new DeclarativeEffectiveConfigFileFactory()
+            .processModel(model, mockProfilerConfiguration, mockSnapshotConfiguration);
 
     assertThat(yaml)
         .isEqualTo(
             """
+            otel_config_file: null
+            otel_experimental_config_file: null
             tracer_provider:
               processors:
                 - batch:
@@ -224,11 +244,15 @@ class DeclarativeEffectiveConfigFileFactoryTest {
                       otlp_grpc:
             """);
 
-    String yaml = new DeclarativeEffectiveConfigFileFactory().processModel(model, null, null);
+    String yaml =
+        new DeclarativeEffectiveConfigFileFactory()
+            .processModel(model, mockProfilerConfiguration, mockSnapshotConfiguration);
 
     assertThat(yaml)
         .isEqualTo(
             """
+            otel_config_file: null
+            otel_experimental_config_file: null
             tracer_provider:
               processors:
                 - batch:
@@ -293,11 +317,15 @@ class DeclarativeEffectiveConfigFileFactoryTest {
                       console:
             """);
 
-    String yaml = new DeclarativeEffectiveConfigFileFactory().processModel(model, null, null);
+    String yaml =
+        new DeclarativeEffectiveConfigFileFactory()
+            .processModel(model, mockProfilerConfiguration, mockSnapshotConfiguration);
 
     assertThat(yaml)
         .isEqualTo(
             """
+            otel_config_file: null
+            otel_experimental_config_file: null
             tracer_provider:
               processors:
                 - batch:
@@ -328,6 +356,37 @@ class DeclarativeEffectiveConfigFileFactoryTest {
                     exporter:
                       otlp_grpc:
                         endpoint: https://acme.com
+            """);
+  }
+
+
+  @Test
+  void supportsAlwaysOnProfiler() throws Exception {
+    OpenTelemetryConfigurationModel model = parseModel("file_format: 1.0");
+    when(mockProfilerConfiguration.isEnabled()).thenReturn(true);
+    when(mockProfilerConfiguration.getCallStackInterval()).thenReturn(Duration.ofMillis(1410));
+    when(mockProfilerConfiguration.getMemoryEnabled()).thenReturn(true);
+    when(mockSnapshotConfiguration.isEnabled()).thenReturn(true);
+    when(mockSnapshotConfiguration.getSamplingInterval()).thenReturn(Duration.ofMillis(10));
+
+    String yaml =
+        new DeclarativeEffectiveConfigFileFactory()
+            .processModel(model, mockProfilerConfiguration, mockSnapshotConfiguration);
+
+    assertThat(yaml)
+        .isEqualTo(
+            """
+            otel_config_file: null
+            otel_experimental_config_file: null
+            distribution:
+              splunk:
+                profiling:
+                  always_on:
+                    cpu_profiler:
+                      sampling_interval: 1410
+                    memory_profiler:
+                  callgraphs:
+                    sampling_interval: 10
             """);
   }
 

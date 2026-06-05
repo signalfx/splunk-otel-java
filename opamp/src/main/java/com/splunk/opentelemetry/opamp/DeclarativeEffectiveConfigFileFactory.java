@@ -39,6 +39,9 @@ import java.util.Optional;
 import org.snakeyaml.engine.v2.api.Dump;
 import org.snakeyaml.engine.v2.api.DumpSettings;
 import org.snakeyaml.engine.v2.common.FlowStyle;
+import org.snakeyaml.engine.v2.common.ScalarStyle;
+import org.snakeyaml.engine.v2.nodes.Tag;
+import org.snakeyaml.engine.v2.representer.StandardRepresenter;
 
 class DeclarativeEffectiveConfigFileFactory implements EffectiveConfigFactory {
   private static final String GRPC_DEFAULT_ENDPOINT = "http://localhost:4317";
@@ -79,15 +82,61 @@ class DeclarativeEffectiveConfigFileFactory implements EffectiveConfigFactory {
       SnapshotProfilingConfiguration snapshotConfiguration) {
     YamlNodeBuilder rootBuilder = YamlNodeBuilder.create();
 
+    addDeclarativeConfigFiles(rootBuilder);
     addTraceProviderNode(model.getTracerProvider(), rootBuilder);
     addMeterProviderNode(model.getMeterProvider(), rootBuilder);
     addLogsProviderNode(model.getLoggerProvider(), rootBuilder);
+    addDistributionConfigNode(profilerConfiguration, snapshotConfiguration, rootBuilder);
 
     Map<String, Object> root = rootBuilder.build();
     if (root.isEmpty()) {
       return "";
     }
     return toYamlString(root);
+  }
+
+  private static void addDistributionConfigNode(
+      ProfilerConfiguration profilerConfiguration,
+      SnapshotProfilingConfiguration snapshotConfiguration,
+      YamlNodeBuilder rootBuilder) {
+
+    YamlNodeBuilder profilingNodeBuilder = YamlNodeBuilder.create();
+    buildAlwaysOnProfilerNode(profilerConfiguration, profilingNodeBuilder);
+    buildCallgraphsNode(snapshotConfiguration, profilingNodeBuilder);
+    Map<String, Object> profilingNode = profilingNodeBuilder.build();
+
+    if (!profilingNode.isEmpty()) {
+      rootBuilder.addNestedNode("distribution.splunk.profiling", profilingNode);
+    }
+  }
+
+  private static void buildCallgraphsNode(
+      SnapshotProfilingConfiguration snapshotConfiguration, YamlNodeBuilder profilingNodeBuilder) {
+    if (snapshotConfiguration.isEnabled()) {
+      profilingNodeBuilder.addNestedNode(
+          "callgraphs.sampling_interval", snapshotConfiguration.getSamplingInterval().toMillis());
+    }
+  }
+
+  private static void buildAlwaysOnProfilerNode(
+      ProfilerConfiguration profilerConfiguration, YamlNodeBuilder profilingNodeBuilder) {
+    if (profilerConfiguration.isEnabled()) {
+      YamlNodeBuilder alwaysOnNodeBuilder = YamlNodeBuilder.create();
+      alwaysOnNodeBuilder.addNestedNode(
+          "cpu_profiler.sampling_interval",
+          profilerConfiguration.getCallStackInterval().toMillis());
+      if (profilerConfiguration.getMemoryEnabled()) {
+        alwaysOnNodeBuilder.addNode("memory_profiler", EmptyYamlNode.INSTANCE);
+      }
+
+      profilingNodeBuilder.addNode("always_on", alwaysOnNodeBuilder.build());
+    }
+  }
+
+  private static void addDeclarativeConfigFiles(YamlNodeBuilder rootBuilder) {
+    rootBuilder.addNode("otel_config_file", getProperty("otel.config.file"));
+    rootBuilder.addNode(
+        "otel_experimental_config_file", getProperty("otel.experimental.config.file"));
   }
 
   private static void addTraceProviderNode(TracerProviderModel model, YamlNodeBuilder rootBuilder) {
@@ -109,7 +158,9 @@ class DeclarativeEffectiveConfigFileFactory implements EffectiveConfigFactory {
               }
             }));
 
-    rootBuilder.addNestedNode("tracer_provider.processors", processors);
+    if (!processors.isEmpty()) {
+      rootBuilder.addNestedNode("tracer_provider.processors", processors);
+    }
   }
 
   private static void addLogsProviderNode(LoggerProviderModel model, YamlNodeBuilder rootBuilder) {
@@ -130,7 +181,9 @@ class DeclarativeEffectiveConfigFileFactory implements EffectiveConfigFactory {
               }
             });
 
-    rootBuilder.addNestedNode("logger_provider.processors", processors);
+    if (!processors.isEmpty()) {
+      rootBuilder.addNestedNode("logger_provider.processors", processors);
+    }
   }
 
   private static void addMeterProviderNode(MeterProviderModel model, YamlNodeBuilder rootBuilder) {
@@ -149,7 +202,9 @@ class DeclarativeEffectiveConfigFileFactory implements EffectiveConfigFactory {
               }
             });
 
-    rootBuilder.addNestedNode("meter_provider.readers", readers);
+    if (!readers.isEmpty()) {
+      rootBuilder.addNestedNode("meter_provider.readers", readers);
+    }
   }
 
   private static void addSpanExporterNode(
@@ -215,7 +270,7 @@ class DeclarativeEffectiveConfigFileFactory implements EffectiveConfigFactory {
             .setIndicatorIndent(2)
             .build();
 
-    return new Dump(settings).dumpToString(rootNode);
+    return new Dump(settings, new EffectiveConfigRepresenter(settings)).dumpToString(rootNode);
   }
 
   private static String getEndpoint(OtlpHttpExporterModel exporter, String signal) {
@@ -245,5 +300,17 @@ class DeclarativeEffectiveConfigFileFactory implements EffectiveConfigFactory {
 
   static String toEnvVarName(String systemPropertyName) {
     return systemPropertyName.toUpperCase().replace('.', '_').replace('-', '_');
+  }
+
+  private enum EmptyYamlNode {
+    INSTANCE
+  }
+
+  private static class EffectiveConfigRepresenter extends StandardRepresenter {
+    EffectiveConfigRepresenter(DumpSettings settings) {
+      super(settings);
+      representers.put(
+          EmptyYamlNode.class, value -> representScalar(Tag.NULL, "", ScalarStyle.PLAIN));
+    }
   }
 }

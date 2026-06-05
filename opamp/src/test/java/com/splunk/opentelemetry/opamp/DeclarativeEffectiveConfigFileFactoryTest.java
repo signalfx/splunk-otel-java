@@ -29,15 +29,14 @@ import com.splunk.opentelemetry.profiler.snapshot.SnapshotProfilingDeclarativeCo
 import com.splunk.opentelemetry.testing.declarativeconfig.DeclarativeConfigTestUtil;
 import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
 import io.opentelemetry.instrumentation.testing.internal.AutoCleanupExtension;
-import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.DeclarativeConfiguration;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.DeclarativeConfigurationBuilder;
 import io.opentelemetry.sdk.declarativeconfig.internal.model.OpenTelemetryConfigurationModel;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
-import java.time.Duration;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -65,7 +64,7 @@ class DeclarativeEffectiveConfigFileFactoryTest {
   void buildFileContent_handleRealConfigPaths(@TempDir Path tempDir) throws Exception {
     // given
     Path configFile = tempDir.resolve("declarative-config.yaml");
-    Files.writeString(configFile,"file_format: 1.0", UTF_8);
+    Files.writeString(configFile, "file_format: 1.0", UTF_8);
 
     ProcessBuilder processBuilder =
         new ProcessBuilder(
@@ -358,7 +357,6 @@ class DeclarativeEffectiveConfigFileFactoryTest {
                         endpoint: https://acme.com
             """);
   }
-
 
   @Test
   void supportsAlwaysOnProfiler() throws Exception {

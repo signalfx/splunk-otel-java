@@ -83,10 +83,8 @@ class YamlNodeBuilderTest {
                 parent -> {
                   parent.addNode("present", "yes");
                 })
-            .addNode(
-                "empty_parent",
-                parent -> {
-                })
+            .addNode("empty_parent", parent -> {})
+            .addNestedNode("nested.empty_parent", parent -> {})
             .build();
 
     assertThat(root).containsOnlyKeys("parent");

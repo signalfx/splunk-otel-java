@@ -137,8 +137,7 @@ class DeclarativeEffectiveConfigFileFactory implements EffectiveConfigFactory {
     root.addNode("otel_experimental_config_file", getProperty("otel.experimental.config.file"));
   }
 
-  private static void addTraceProviderNode(
-      TracerProviderModel model, YamlNodeBuilder root) {
+  private static void addTraceProviderNode(TracerProviderModel model, YamlNodeBuilder root) {
     if (model == null || model.getProcessors() == null) {
       return;
     }
@@ -257,7 +256,10 @@ class DeclarativeEffectiveConfigFileFactory implements EffectiveConfigFactory {
   }
 
   private static void addExporterNode(
-      String parentNodeName, String exporterName, String endpoint, List<Map<String, Object>> nodes) {
+      String parentNodeName,
+      String exporterName,
+      String endpoint,
+      List<Map<String, Object>> nodes) {
     nodes.add(
         YamlNodeBuilder.create()
             .addNestedNode(parentNodeName + ".exporter." + exporterName + ".endpoint", endpoint)

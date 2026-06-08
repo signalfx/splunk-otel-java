@@ -16,7 +16,6 @@
 
 package com.splunk.opentelemetry.profiler;
 
-import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import io.opentelemetry.sdk.autoconfigure.spi.internal.DefaultConfigProperties;
 import java.time.Duration;
 import java.util.Map;
@@ -36,7 +35,7 @@ class TestProfilingConfig implements ProfilerConfiguration {
   boolean memoryEventRateLimitEnabled = true;
   String memoryEventRate = "150/s";
   boolean useAllocationSampleEvent;
-  ConfigProperties configProperties =
+  Object configProperties =
       DefaultConfigProperties.createFromMap(
           Map.of(
               "otel.exporter.otlp.protocol",

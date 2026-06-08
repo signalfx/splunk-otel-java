@@ -50,7 +50,7 @@ class RecordingSequencerBuilder {
   }
 
   RecordingSequencer build(ProfilerConfiguration config, Resource resource) {
-    if(jfr == null) {
+    if (jfr == null) {
       jfr = JFR.getInstance();
     }
     boolean keepFiles = config.getKeepFiles();

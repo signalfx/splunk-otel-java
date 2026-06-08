@@ -20,7 +20,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.Consumer;
 
-public class YamlNodeBuilder {
+class YamlNodeBuilder {
   private final Map<String, Object> map = new LinkedHashMap<>();
 
   private YamlNodeBuilder() {}

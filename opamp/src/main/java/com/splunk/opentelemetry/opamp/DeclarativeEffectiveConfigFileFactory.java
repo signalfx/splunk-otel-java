@@ -34,6 +34,7 @@ import io.opentelemetry.sdk.declarativeconfig.internal.model.SpanExporterModel;
 import io.opentelemetry.sdk.declarativeconfig.internal.model.TracerProviderModel;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import org.snakeyaml.engine.v2.api.Dump;
@@ -304,7 +305,7 @@ class DeclarativeEffectiveConfigFileFactory implements EffectiveConfigFactory {
   }
 
   static String toEnvVarName(String systemPropertyName) {
-    return systemPropertyName.toUpperCase().replace('.', '_').replace('-', '_');
+    return systemPropertyName.toUpperCase(Locale.ROOT).replace('.', '_').replace('-', '_');
   }
 
   private enum EmptyYamlNode {

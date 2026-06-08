@@ -24,7 +24,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
-import io.opentelemetry.sdk.autoconfigure.spi.internal.DefaultConfigProperties;
 import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -46,7 +45,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class ProfilingSupervisorTest {
 
   @Mock JFR jfr;
-  @Mock ProfilerConfiguration config;
+  TestProfilingConfig config;
   AutoConfiguredOpenTelemetrySdk sdk;
 
   ExecutorService executor;
@@ -55,6 +54,7 @@ class ProfilingSupervisorTest {
   @BeforeEach
   void setUp() {
     executor = Executors.newSingleThreadExecutor();
+    config = new TestProfilingConfig();
     sdk =
         AutoConfiguredOpenTelemetrySdk.builder()
             .disableShutdownHook()
@@ -87,17 +87,17 @@ class ProfilingSupervisorTest {
     supervisor.requestStart();
 
     await().untilAsserted(() -> verify(jfr).isAvailable());
-    verify(config, never()).log();
+    assertThat(config.logCalled).isFalse();
     verify(jfr, never()).setStackDepth(anyInt());
     assertThat(currentSequencer()).isNull();
   }
 
   @Test
   void requestStartBuildsAndStartsRecordingSequencer(@TempDir Path tempDir) {
-    int stackDepth = 4321;
-    Duration callStackInterval = Duration.ofMillis(123);
-    Duration recordingDuration = Duration.ofDays(1);
-    stubStartConfig(tempDir, stackDepth, callStackInterval, recordingDuration, false);
+    config.profilerDirectory = tempDir.toString();
+    config.stackDepth = 4321;
+    config.callStackInterval = Duration.ofMillis(123);
+    config.recordingDuration = Duration.ofMinutes(1);
     when(jfr.isAvailable()).thenReturn(true);
 
     supervisor = createSupervisor();
@@ -113,23 +113,22 @@ class ProfilingSupervisorTest {
     JfrRecorder actualRecorder = fieldValue(sequencer, "recorder");
     Object recording = fieldValue(recorder, "recording");
 
-    verify(config).log();
-    verify(jfr).setStackDepth(stackDepth);
-    assertThat(actualRecordingDuration).isEqualTo(recordingDuration);
+    assertThat(config.logCalled).isTrue();
+    verify(jfr).setStackDepth(4321);
+    assertThat(actualRecordingDuration).isEqualTo(Duration.ofMinutes(1));
     assertThat(actualJfr).isSameAs(jfr);
-    assertThat(actualMaxAgeDuration).isEqualTo(recordingDuration.multipliedBy(10));
+    assertThat(actualMaxAgeDuration).isEqualTo(Duration.ofMinutes(1).multipliedBy(10));
     assertThat(actualKeepRecordingFiles).isFalse();
     assertThat(actualRecorder).isSameAs(recorder);
     assertThat(recording).isNotNull();
 
-    @SuppressWarnings("unchecked")
     Map<String, String> settings = fieldValue(recorder, "settings");
     assertThat(settings).containsEntry("jdk.ThreadDump#period", "123 ms");
   }
 
   @Test
   void requestStartOnlyStartsOnce(@TempDir Path tempDir) {
-    stubStartConfig(tempDir, 1024, Duration.ofSeconds(10), Duration.ofDays(1), false);
+    config.profilerDirectory = tempDir.toString();
     when(jfr.isAvailable()).thenReturn(true);
 
     supervisor = createSupervisor();
@@ -141,14 +140,16 @@ class ProfilingSupervisorTest {
     await()
         .during(Duration.ofMillis(200))
         .untilAsserted(() -> assertThat(currentSequencer()).isSameAs(sequencer));
-    verify(config).log();
+    assertThat(config.logCalled).isTrue();
     verify(jfr).setStackDepth(1024);
   }
 
   @Test
   void requestStartCreatesConfiguredOutputDirectoryWhenKeepingFiles(@TempDir Path tempDir) {
     Path outputDir = tempDir.resolve("profiling-output");
-    stubStartConfig(outputDir, 1024, Duration.ZERO, Duration.ofDays(1), true);
+    config.profilerDirectory = outputDir.toString();
+    config.callStackInterval = Duration.ZERO;
+    config.keepFiles = true;
     when(jfr.isAvailable()).thenReturn(true);
 
     supervisor = createSupervisor();
@@ -166,7 +167,9 @@ class ProfilingSupervisorTest {
       throws Exception {
     Path outputPath = tempDir.resolve("not-a-directory");
     Files.writeString(outputPath, "already a file");
-    stubStartConfig(outputPath, 1024, Duration.ZERO, Duration.ofDays(1), true);
+    config.profilerDirectory = outputPath.toString();
+    config.callStackInterval = Duration.ZERO;
+    config.keepFiles = true;
     when(jfr.isAvailable()).thenReturn(true);
 
     supervisor = createSupervisor();
@@ -207,34 +210,6 @@ class ProfilingSupervisorTest {
         recorder.stop();
       }
     }
-  }
-
-  private void stubStartConfig(
-      Path outputDir,
-      int stackDepth,
-      Duration callStackInterval,
-      Duration recordingDuration,
-      boolean keepFiles) {
-    when(config.getProfilerDirectory()).thenReturn(outputDir.toString());
-    when(config.getKeepFiles()).thenReturn(keepFiles);
-    when(config.getStackDepth()).thenReturn(stackDepth);
-    when(config.getRecordingDuration()).thenReturn(recordingDuration);
-    when(config.getCallStackInterval()).thenReturn(callStackInterval);
-    when(config.getIncludeAgentInternalStacks()).thenReturn(false);
-    when(config.getIncludeJvmInternalStacks()).thenReturn(false);
-    when(config.getTracingStacksOnly()).thenReturn(false);
-    when(config.getMemoryEnabled()).thenReturn(false);
-    when(config.getMemoryEventRateLimitEnabled()).thenReturn(true);
-    when(config.getMemoryEventRate()).thenReturn("150/s");
-    when(config.getUseAllocationSampleEvent()).thenReturn(false);
-    when(config.getConfigProperties())
-        .thenReturn(
-            DefaultConfigProperties.createFromMap(
-                Map.of(
-                    "otel.exporter.otlp.protocol",
-                    "http/protobuf",
-                    "otel.exporter.otlp.endpoint",
-                    "http://localhost:4318")));
   }
 
   @SuppressWarnings("unchecked")

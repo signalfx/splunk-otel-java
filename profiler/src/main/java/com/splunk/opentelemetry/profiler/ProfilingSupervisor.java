@@ -16,12 +16,11 @@
 
 package com.splunk.opentelemetry.profiler;
 
-import static com.splunk.opentelemetry.profiler.util.Runnables.logUncaught;
 import static io.opentelemetry.api.incubator.config.DeclarativeConfigProperties.empty;
 import static io.opentelemetry.sdk.autoconfigure.AutoConfigureUtil.getResource;
+import static java.util.logging.Level.FINE;
 import static java.util.logging.Level.WARNING;
 
-import com.google.auto.service.AutoService;
 import com.google.common.annotations.VisibleForTesting;
 import com.splunk.opentelemetry.profiler.allocation.exporter.AllocationEventExporter;
 import com.splunk.opentelemetry.profiler.allocation.exporter.PprofAllocationEventExporter;
@@ -32,8 +31,6 @@ import com.splunk.opentelemetry.profiler.util.HelpfulExecutors;
 import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
 import io.opentelemetry.api.logs.Logger;
 import io.opentelemetry.context.ContextStorage;
-import io.opentelemetry.javaagent.extension.AgentListener;
-import io.opentelemetry.sdk.autoconfigure.AutoConfigureUtil;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import io.opentelemetry.sdk.logs.LogRecordProcessor;
@@ -47,67 +44,112 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.Map;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.atomic.AtomicReference;
 
-@AutoService(AgentListener.class)
-public class JfrActivator implements AgentListener {
+/**
+ * This class oversees the profiling subsystem. It runs for the entire time that the agent is
+ * running.
+ */
+public class ProfilingSupervisor {
 
   private static final java.util.logging.Logger logger =
-      java.util.logging.Logger.getLogger(JfrActivator.class.getName());
-  private final ExecutorService executor;
+      java.util.logging.Logger.getLogger(ProfilingSupervisor.class.getName());
+  private final ProfilerConfiguration config;
   private final JFR jfr;
+  private final AutoConfiguredOpenTelemetrySdk sdk;
+  private final BlockingQueue<ProfilingCommand> commandQueue;
+  private final AtomicReference<RecordingSequencer> sequencer = new AtomicReference<>();
 
-  public JfrActivator() {
-    this(JFR.getInstance(), HelpfulExecutors.newSingleThreadExecutor("JFR Profiler"));
+  private ProfilingSupervisor(
+      ProfilerConfiguration config,
+      JFR jfr,
+      AutoConfiguredOpenTelemetrySdk sdk,
+      BlockingQueue<ProfilingCommand> commandQueue) {
+    this.config = config;
+    this.jfr = jfr;
+    this.sdk = sdk;
+    this.commandQueue = commandQueue;
+  }
+
+  static ProfilingSupervisor createAndStart(
+      AutoConfiguredOpenTelemetrySdk sdk, ProfilerConfiguration config) {
+    return createAndStart(
+        config, JFR.getInstance(), HelpfulExecutors.newSingleThreadExecutor("JFR Profiler"), sdk);
   }
 
   @VisibleForTesting
-  JfrActivator(JFR jfr, ExecutorService executor) {
-    this.jfr = jfr;
-    this.executor = executor;
-  }
-
-  @Override
-  public void afterAgent(AutoConfiguredOpenTelemetrySdk sdk) {
-    ProfilerConfiguration config = getProfilerConfiguration(sdk);
-
-    if (notClearForTakeoff(config)) {
-      return;
-    }
-
-    config.log();
-    logger.info("Profiler is active.");
-    setupContextStorage();
-
-    startJfr(getResource(sdk), config);
-  }
-
-  private static ProfilerConfiguration getProfilerConfiguration(
+  static ProfilingSupervisor createAndStart(
+      ProfilerConfiguration config,
+      JFR jfr,
+      ExecutorService executor,
       AutoConfiguredOpenTelemetrySdk sdk) {
-    if (ProfilerDeclarativeConfiguration.SUPPLIER.isConfigured()) {
-      return ProfilerDeclarativeConfiguration.SUPPLIER.get();
-    } else {
-      ConfigProperties configProperties = AutoConfigureUtil.getConfig(sdk);
-      return new ProfilerEnvVarsConfiguration(configProperties);
+    // TODO: What if already started?
+    BlockingQueue<ProfilingCommand> queue = new LinkedBlockingQueue<>();
+    ProfilingSupervisor supervisor = new ProfilingSupervisor(config, jfr, sdk, queue);
+    executor.submit(supervisor::forever);
+    return supervisor;
+  }
+
+  private void forever() {
+    while (true) {
+      try {
+        ProfilingCommand command = commandQueue.take();
+        handleCommand(command);
+      } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+        logger.fine("ProfilingSupervisor is shutting down");
+        return;
+      } catch (Exception e) {
+        logger.log(FINE, "ProfilingSupervisor encountered an unexpected exception", e);
+      }
     }
   }
 
-  private void startJfr(Resource resource, ProfilerConfiguration config) {
-    executor.submit(logUncaught(() -> activateJfrAndRunForever(config, resource)));
+  public void requestStart() {
+    commandQueue.add(ProfilingCommand.START);
   }
 
-  private boolean notClearForTakeoff(ProfilerConfiguration config) {
-    if (!config.isEnabled()) {
-      logger.fine("Profiler is not enabled.");
-      return true;
+  public void requestStop() {
+    commandQueue.add(ProfilingCommand.STOP);
+  }
+
+  private void handleCommand(ProfilingCommand command) {
+    switch (command) {
+      case START:
+        tryStart();
+        break;
+      case STOP:
+        // TODO: Build me
+        logger.warning("ProfilingSupervisor STOP not yet implemented");
+        break;
+    }
+  }
+
+  /**
+   * Try and start the profiler. This does not check configuration, just responds to a command
+   * request.
+   */
+  private void tryStart() {
+    if (alreadyRunning()) {
+      logger.warning("JFR is already running, not starting again.");
+      return;
     }
     if (!jfr.isAvailable()) {
       logger.warning(
-          "JDK Flight Recorder (JFR) is not available in this JVM. Profiling is disabled.");
-      return true;
+          "JDK Flight Recorder (JFR) is not available in this JVM. Profiling will not start.");
+      return;
     }
+    config.log();
+    logger.info("Profiler is active.");
+    setupContextStorage();
+    activateJfrAndRunUntilStopped(config, getResource(sdk));
+  }
 
-    return false;
+  private boolean alreadyRunning() {
+    return sequencer.get() != null;
   }
 
   private boolean checkOutputDir(Path outputDir) {
@@ -137,7 +179,7 @@ public class JfrActivator implements AgentListener {
     logger.log(WARNING, "The configured output directory {0} {1}.", new Object[] {dir, suffix});
   }
 
-  private void activateJfrAndRunForever(ProfilerConfiguration config, Resource resource) {
+  private void activateJfrAndRunUntilStopped(ProfilerConfiguration config, Resource resource) {
     boolean keepFiles = config.getKeepFiles();
     Path outputDir = Paths.get(config.getProfilerDirectory());
     if (keepFiles && !checkOutputDir(outputDir)) {
@@ -199,13 +241,14 @@ public class JfrActivator implements AgentListener {
             .keepRecordingFiles(keepFiles)
             .build();
 
-    RecordingSequencer sequencer =
+    RecordingSequencer recordingSequencer =
         RecordingSequencer.builder()
             .recordingDuration(recordingDuration)
             .recorder(recorder)
             .build();
-
-    sequencer.start();
+    if (sequencer.compareAndSet(null, recordingSequencer)) {
+      recordingSequencer.start();
+    }
   }
 
   private static LogRecordExporter createLogRecordExporter(Object configProperties) {
@@ -263,5 +306,10 @@ public class JfrActivator implements AgentListener {
 
   private static void setupContextStorage() {
     ContextStorage.addWrapper(JfrContextStorage::new);
+  }
+
+  enum ProfilingCommand {
+    START,
+    STOP
   }
 }

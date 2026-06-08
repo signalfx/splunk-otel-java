@@ -60,13 +60,13 @@ class JfrAgentListenerTest {
         """;
     AutoConfiguredOpenTelemetrySdk sdk = createAutoConfiguredSdk(yaml, tempDir, autoCleanup);
 
-    var jfrMock = mock(JFR.class);
+    var jfr = mock(JFR.class);
     var supervisor = mock(ProfilingSupervisor.class);
 
-    when(jfrMock.isAvailable()).thenReturn(true);
+    when(jfr.isAvailable()).thenReturn(true);
 
     JfrAgentListener listener =
-        new JfrAgentListener(jfrMock) {
+        new JfrAgentListener(jfr) {
           @Override
           ProfilingSupervisor makeProfilingSupervisor(
               AutoConfiguredOpenTelemetrySdk sdk, ProfilerConfiguration config) {
@@ -96,11 +96,11 @@ class JfrAgentListenerTest {
     AutoConfiguredOpenTelemetrySdk sdk = createAutoConfiguredSdk(yaml, tempDir, autoCleanup);
 
     var supervisor = mock(ProfilingSupervisor.class);
-    var jfrMock = mock(JFR.class);
-    when(jfrMock.isAvailable()).thenReturn(false);
+    var jfr = mock(JFR.class);
+    when(jfr.isAvailable()).thenReturn(false);
 
     JfrAgentListener listener =
-        new JfrAgentListener(jfrMock) {
+        new JfrAgentListener(jfr) {
           @Override
           ProfilingSupervisor makeProfilingSupervisor(
               AutoConfiguredOpenTelemetrySdk sdk, ProfilerConfiguration config) {
@@ -123,12 +123,12 @@ class JfrAgentListenerTest {
     // given
     AutoConfiguredOpenTelemetrySdk sdk = createAutoConfiguredSdk(yaml, tempDir, autoCleanup);
 
-    var jfrMock = mock(JFR.class);
+    var jfr = mock(JFR.class);
     var supervisor = mock(ProfilingSupervisor.class);
-    when(jfrMock.isAvailable()).thenReturn(true);
+    when(jfr.isAvailable()).thenReturn(true);
 
     JfrAgentListener listener =
-        new JfrAgentListener(jfrMock) {
+        new JfrAgentListener(jfr) {
           @Override
           ProfilingSupervisor makeProfilingSupervisor(
               AutoConfiguredOpenTelemetrySdk sdk, ProfilerConfiguration config) {

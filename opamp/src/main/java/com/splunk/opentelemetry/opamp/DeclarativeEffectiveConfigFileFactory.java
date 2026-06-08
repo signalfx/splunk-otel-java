@@ -17,19 +17,32 @@
 package com.splunk.opentelemetry.opamp;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.splunk.opentelemetry.profiler.ProfilerConfiguration;
+import com.splunk.opentelemetry.profiler.ProfilerDeclarativeConfiguration;
+import com.splunk.opentelemetry.profiler.snapshot.SnapshotProfilingConfiguration;
+import com.splunk.opentelemetry.profiler.snapshot.SnapshotProfilingDeclarativeConfiguration;
 import io.opentelemetry.sdk.declarativeconfig.internal.model.LogRecordExporterModel;
-import io.opentelemetry.sdk.declarativeconfig.internal.model.LogRecordProcessorModel;
 import io.opentelemetry.sdk.declarativeconfig.internal.model.LoggerProviderModel;
 import io.opentelemetry.sdk.declarativeconfig.internal.model.MeterProviderModel;
-import io.opentelemetry.sdk.declarativeconfig.internal.model.MetricReaderModel;
 import io.opentelemetry.sdk.declarativeconfig.internal.model.OpenTelemetryConfigurationModel;
+import io.opentelemetry.sdk.declarativeconfig.internal.model.OtlpGrpcExporterModel;
+import io.opentelemetry.sdk.declarativeconfig.internal.model.OtlpGrpcMetricExporterModel;
+import io.opentelemetry.sdk.declarativeconfig.internal.model.OtlpHttpExporterModel;
+import io.opentelemetry.sdk.declarativeconfig.internal.model.OtlpHttpMetricExporterModel;
 import io.opentelemetry.sdk.declarativeconfig.internal.model.PushMetricExporterModel;
 import io.opentelemetry.sdk.declarativeconfig.internal.model.SpanExporterModel;
-import io.opentelemetry.sdk.declarativeconfig.internal.model.SpanProcessorModel;
 import io.opentelemetry.sdk.declarativeconfig.internal.model.TracerProviderModel;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
+import org.snakeyaml.engine.v2.api.Dump;
+import org.snakeyaml.engine.v2.api.DumpSettings;
+import org.snakeyaml.engine.v2.common.FlowStyle;
+import org.snakeyaml.engine.v2.common.ScalarStyle;
+import org.snakeyaml.engine.v2.nodes.Tag;
+import org.snakeyaml.engine.v2.representer.StandardRepresenter;
 
 class DeclarativeEffectiveConfigFileFactory implements EffectiveConfigFactory {
   private static final String GRPC_DEFAULT_ENDPOINT = "http://localhost:4317";
@@ -43,7 +56,11 @@ class DeclarativeEffectiveConfigFileFactory implements EffectiveConfigFactory {
 
   @Override
   public String getFileName() {
-    return "";
+    String fileName = getProperty("otel.config.file");
+    if (fileName == null || fileName.isEmpty()) {
+      fileName = getProperty("otel.experimental.config.file");
+    }
+    return fileName;
   }
 
   public String createEffectiveConfigContent() {
@@ -52,146 +69,254 @@ class DeclarativeEffectiveConfigFileFactory implements EffectiveConfigFactory {
     if (model == null) {
       return "";
     }
+    ProfilerConfiguration profilerConfiguration = ProfilerDeclarativeConfiguration.SUPPLIER.get();
+    SnapshotProfilingConfiguration snapshotConfiguration =
+        SnapshotProfilingDeclarativeConfiguration.SUPPLIER.get();
 
-    return processModel(model);
+    return processModel(model, profilerConfiguration, snapshotConfiguration);
   }
 
   @VisibleForTesting
-  String processModel(OpenTelemetryConfigurationModel model) {
-    return "";
-    //    EffectiveConfigBuilder builder = new EffectiveConfigBuilder();
-    //    ProfilerConfiguration profilerConfiguration =
-    // ProfilerDeclarativeConfiguration.SUPPLIER.get();
-    //    SnapshotProfilingConfiguration snapshotConfiguration =
-    //        SnapshotProfilingDeclarativeConfiguration.SUPPLIER.get();
-    //
-    //    addSplunkEnvVars(builder, profilerConfiguration, snapshotConfiguration);
-    //    addOtelVars(builder, model);
-    //
-    //    return builder.build();
+  String processModel(
+      OpenTelemetryConfigurationModel model,
+      ProfilerConfiguration profilerConfiguration,
+      SnapshotProfilingConfiguration snapshotConfiguration) {
+    YamlNodeBuilder root = YamlNodeBuilder.create();
+
+    addConfigFilesNodes(root);
+    addTraceProviderNode(model.getTracerProvider(), root);
+    addMeterProviderNode(model.getMeterProvider(), root);
+    addLogsProviderNode(model.getLoggerProvider(), root);
+    addDistributionConfigNode(profilerConfiguration, snapshotConfiguration, root);
+
+    Map<String, Object> yamlTree = root.build();
+    if (yamlTree.isEmpty()) {
+      return "";
+    }
+    return toYamlString(yamlTree);
   }
 
-  @VisibleForTesting
-  void addOtelVars(
-      EffectiveConfigBuilder builder, OpenTelemetryConfigurationModel configurationModel) {
-    //    builder
-    //        .add(
-    //            OTEL_EXPORTER_OTLP_TRACES_ENDPOINT,
-    //            getTracesEndpoints(configurationModel.getTracerProvider()))
-    //        .add(
-    //            OTEL_EXPORTER_OTLP_METRICS_ENDPOINT,
-    //            getMetricsEndpoints(configurationModel.getMeterProvider()))
-    //        .add(
-    //            OTEL_EXPORTER_OTLP_LOGS_ENDPOINT,
-    //            getLogsEndpoints(configurationModel.getLoggerProvider()));
+  private static void addDistributionConfigNode(
+      ProfilerConfiguration profilerConfiguration,
+      SnapshotProfilingConfiguration snapshotConfiguration,
+      YamlNodeBuilder root) {
+
+    root.addNestedNode(
+        "distribution.splunk.profiling",
+        profiling -> {
+          addAlwaysOnProfilerNode(profilerConfiguration, profiling);
+          addCallgraphsNode(snapshotConfiguration, profiling);
+        });
   }
 
-  private List<String> getTracesEndpoints(TracerProviderModel tracerProvider) {
-    List<String> endpoints = new ArrayList<>();
-    if (tracerProvider != null && tracerProvider.getProcessors() != null) {
-      for (SpanProcessorModel spanProcessor : tracerProvider.getProcessors()) {
-        String endpoint = getEndpoint(getSpanExporter(spanProcessor));
-        if (endpoint != null) {
-          endpoints.add(endpoint);
-        }
-      }
+  private static void addCallgraphsNode(
+      SnapshotProfilingConfiguration snapshotConfiguration, YamlNodeBuilder profiling) {
+    if (snapshotConfiguration.isEnabled()) {
+      profiling.addNestedNode(
+          "callgraphs.sampling_interval", snapshotConfiguration.getSamplingInterval().toMillis());
     }
-    return endpoints;
   }
 
-  private List<String> getMetricsEndpoints(MeterProviderModel meterProvider) {
-    List<String> endpoints = new ArrayList<>();
-    if (meterProvider != null && meterProvider.getReaders() != null) {
-      for (MetricReaderModel metricReader : meterProvider.getReaders()) {
-        String endpoint = getEndpoint(getMetricExporter(metricReader));
-        if (endpoint != null) {
-          endpoints.add(endpoint);
-        }
-      }
+  private static void addAlwaysOnProfilerNode(
+      ProfilerConfiguration profilerConfiguration, YamlNodeBuilder profiling) {
+    if (profilerConfiguration.isEnabled()) {
+      profiling.addNestedNode(
+          "always_on",
+          alwaysOn -> {
+            alwaysOn.addNestedNode(
+                "cpu_profiler.sampling_interval",
+                profilerConfiguration.getCallStackInterval().toMillis());
+            if (profilerConfiguration.getMemoryEnabled()) {
+              alwaysOn.addNode("memory_profiler", EmptyYamlNode.INSTANCE);
+            }
+          });
     }
-    return endpoints;
   }
 
-  private List<String> getLogsEndpoints(LoggerProviderModel loggerProvider) {
-    List<String> endpoints = new ArrayList<>();
-    if (loggerProvider != null && loggerProvider.getProcessors() != null) {
-      for (LogRecordProcessorModel processor : loggerProvider.getProcessors()) {
-        String endpoint = getEndpoint(getLogRecordExporter(processor));
-        if (endpoint != null) {
-          endpoints.add(endpoint);
-        }
-      }
-    }
-    return endpoints;
+  private static void addConfigFilesNodes(YamlNodeBuilder root) {
+    root.addNode("otel_config_file", getProperty("otel.config.file"));
+    root.addNode("otel_experimental_config_file", getProperty("otel.experimental.config.file"));
   }
 
-  private static SpanExporterModel getSpanExporter(SpanProcessorModel processor) {
-    if (processor.getBatch() != null) {
-      return processor.getBatch().getExporter();
+  private static void addTraceProviderNode(TracerProviderModel model, YamlNodeBuilder root) {
+    if (model == null || model.getProcessors() == null) {
+      return;
     }
-    if (processor.getSimple() != null) {
-      return processor.getSimple().getExporter();
+
+    List<Map<String, Object>> processors = new ArrayList<>();
+    model
+        .getProcessors()
+        .forEach(
+            (spanProcessorModel -> {
+              if (spanProcessorModel.getBatch() != null) {
+                addSpanExporterNode(
+                    "batch", spanProcessorModel.getBatch().getExporter(), processors);
+              } else if (spanProcessorModel.getSimple() != null) {
+                addSpanExporterNode(
+                    "simple", spanProcessorModel.getSimple().getExporter(), processors);
+              }
+            }));
+
+    if (!processors.isEmpty()) {
+      root.addNestedNode("tracer_provider.processors", processors);
     }
-    return null;
   }
 
-  private static PushMetricExporterModel getMetricExporter(MetricReaderModel metricReader) {
-    if (metricReader.getPeriodic() != null) {
-      return metricReader.getPeriodic().getExporter();
+  private static void addLogsProviderNode(LoggerProviderModel model, YamlNodeBuilder root) {
+    if (model == null || model.getProcessors() == null) {
+      return;
     }
-    return null;
+
+    List<Map<String, Object>> processors = new ArrayList<>();
+    model
+        .getProcessors()
+        .forEach(
+            logProcessorModel -> {
+              if (logProcessorModel.getBatch() != null) {
+                addLogExporterNode("batch", logProcessorModel.getBatch().getExporter(), processors);
+              } else if (logProcessorModel.getSimple() != null) {
+                addLogExporterNode(
+                    "simple", logProcessorModel.getSimple().getExporter(), processors);
+              }
+            });
+
+    if (!processors.isEmpty()) {
+      root.addNestedNode("logger_provider.processors", processors);
+    }
   }
 
-  private static LogRecordExporterModel getLogRecordExporter(LogRecordProcessorModel processor) {
-    if (processor.getBatch() != null) {
-      return processor.getBatch().getExporter();
+  private static void addMeterProviderNode(MeterProviderModel model, YamlNodeBuilder root) {
+    if (model == null || model.getReaders() == null) {
+      return;
     }
-    if (processor.getSimple() != null) {
-      return processor.getSimple().getExporter();
+
+    List<Map<String, Object>> readers = new ArrayList<>();
+    model
+        .getReaders()
+        .forEach(
+            metricReaderModel -> {
+              if (metricReaderModel.getPeriodic() != null) {
+                addMetricExporterNode(
+                    "periodic", metricReaderModel.getPeriodic().getExporter(), readers);
+              }
+            });
+
+    if (!readers.isEmpty()) {
+      root.addNestedNode("meter_provider.readers", readers);
     }
-    return null;
   }
 
-  private static String getEndpoint(SpanExporterModel exporter) {
+  private static void addSpanExporterNode(
+      String processorType, SpanExporterModel exporter, List<Map<String, Object>> processorList) {
     if (exporter == null) {
-      return null;
+      return;
     }
     if (exporter.getOtlpHttp() != null) {
-      return Optional.ofNullable(exporter.getOtlpHttp().getEndpoint())
-          .orElse("http://localhost:4318/v1/traces");
+      addOtlpHttpExporterNode(
+          processorType, getEndpoint(exporter.getOtlpHttp(), "traces"), processorList);
     } else if (exporter.getOtlpGrpc() != null) {
-      return Optional.ofNullable(exporter.getOtlpGrpc().getEndpoint())
-          .orElse(GRPC_DEFAULT_ENDPOINT);
+      addOtlpGrpcExporterNode(processorType, getEndpoint(exporter.getOtlpGrpc()), processorList);
     }
-    return null;
   }
 
-  private static String getEndpoint(PushMetricExporterModel exporter) {
+  private static void addLogExporterNode(
+      String processorType,
+      LogRecordExporterModel exporter,
+      List<Map<String, Object>> processorList) {
     if (exporter == null) {
-      return null;
+      return;
     }
     if (exporter.getOtlpHttp() != null) {
-      return Optional.ofNullable(exporter.getOtlpHttp().getEndpoint())
-          .orElse("http://localhost:4318/v1/metrics");
+      addOtlpHttpExporterNode(
+          processorType, getEndpoint(exporter.getOtlpHttp(), "logs"), processorList);
     } else if (exporter.getOtlpGrpc() != null) {
-      return Optional.ofNullable(exporter.getOtlpGrpc().getEndpoint())
-          .orElse(GRPC_DEFAULT_ENDPOINT);
+      addOtlpGrpcExporterNode(processorType, getEndpoint(exporter.getOtlpGrpc()), processorList);
     }
-    return null;
   }
 
-  private static String getEndpoint(LogRecordExporterModel exporter) {
+  private static void addMetricExporterNode(
+      String readerType, PushMetricExporterModel exporter, List<Map<String, Object>> readerList) {
     if (exporter == null) {
-      return null;
+      return;
     }
     if (exporter.getOtlpHttp() != null) {
-      return Optional.ofNullable(exporter.getOtlpHttp().getEndpoint())
-          .orElse("http://localhost:4318/v1/logs");
+      addOtlpHttpExporterNode(readerType, getEndpoint(exporter.getOtlpHttp()), readerList);
     } else if (exporter.getOtlpGrpc() != null) {
-      return Optional.ofNullable(exporter.getOtlpGrpc().getEndpoint())
-          .orElse(GRPC_DEFAULT_ENDPOINT);
+      addOtlpGrpcExporterNode(readerType, getEndpoint(exporter.getOtlpGrpc()), readerList);
     }
+  }
 
-    return null;
+  private static void addOtlpHttpExporterNode(
+      String parentNodeName, String endpoint, List<Map<String, Object>> nodes) {
+    addExporterNode(parentNodeName, "otlp_http", endpoint, nodes);
+  }
+
+  private static void addOtlpGrpcExporterNode(
+      String parentNodeName, String endpoint, List<Map<String, Object>> nodes) {
+    addExporterNode(parentNodeName, "otlp_grpc", endpoint, nodes);
+  }
+
+  private static void addExporterNode(
+      String parentNodeName,
+      String exporterName,
+      String endpoint,
+      List<Map<String, Object>> nodes) {
+    nodes.add(
+        YamlNodeBuilder.create()
+            .addNestedNode(parentNodeName + ".exporter." + exporterName + ".endpoint", endpoint)
+            .build());
+  }
+
+  private static String toYamlString(Map<String, Object> rootNode) {
+    DumpSettings settings =
+        DumpSettings.builder()
+            .setDefaultFlowStyle(FlowStyle.BLOCK)
+            .setIndent(2)
+            .setIndentWithIndicator(true)
+            .setIndicatorIndent(2)
+            .build();
+
+    return new Dump(settings, new EffectiveConfigRepresenter(settings)).dumpToString(rootNode);
+  }
+
+  private static String getEndpoint(OtlpHttpExporterModel exporter, String signal) {
+    return Optional.ofNullable(exporter.getEndpoint()).orElse("http://localhost:4318/v1/" + signal);
+  }
+
+  private static String getEndpoint(OtlpGrpcExporterModel exporter) {
+    return Optional.ofNullable(exporter.getEndpoint()).orElse(GRPC_DEFAULT_ENDPOINT);
+  }
+
+  private static String getEndpoint(OtlpHttpMetricExporterModel exporter) {
+    return Optional.ofNullable(exporter.getEndpoint()).orElse("http://localhost:4318/v1/metrics");
+  }
+
+  private static String getEndpoint(OtlpGrpcMetricExporterModel exporter) {
+    return Optional.ofNullable(exporter.getEndpoint()).orElse(GRPC_DEFAULT_ENDPOINT);
+  }
+
+  private static String getProperty(String systemPropertyName) {
+    String property = System.getProperty(systemPropertyName);
+    if (property == null) {
+      String envVarName = toEnvVarName(systemPropertyName);
+      property = System.getenv(envVarName);
+    }
+    return property;
+  }
+
+  static String toEnvVarName(String systemPropertyName) {
+    return systemPropertyName.toUpperCase(Locale.ROOT).replace('.', '_').replace('-', '_');
+  }
+
+  private enum EmptyYamlNode {
+    INSTANCE
+  }
+
+  private static class EffectiveConfigRepresenter extends StandardRepresenter {
+    EffectiveConfigRepresenter(DumpSettings settings) {
+      super(settings);
+      representers.put(
+          EmptyYamlNode.class, value -> representScalar(Tag.NULL, "", ScalarStyle.PLAIN));
+    }
   }
 }

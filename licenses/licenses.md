@@ -1,14 +1,14 @@
 
 # splunk-otel-javaagent
 ## Dependency License Report
-_2026-05-22 15:43:43 EEST_
+_2026-06-09 09:33:33 EEST_
 ## Apache License, Version 2.0
 
-**1** **Group:** `com.squareup.okhttp3` **Name:** `okhttp` **Version:** `5.3.2` 
+**1** **Group:** `com.squareup.okhttp3` **Name:** `okhttp` **Version:** `5.4.0` 
 > - **POM Project URL**: [https://square.github.io/okhttp/](https://square.github.io/okhttp/)
 > - **POM License**: Apache License, Version 2.0 - [https://www.apache.org/licenses/LICENSE-2.0](https://www.apache.org/licenses/LICENSE-2.0)
 
-**2** **Group:** `com.squareup.okhttp3` **Name:** `okhttp-jvm` **Version:** `5.3.2` 
+**2** **Group:** `com.squareup.okhttp3` **Name:** `okhttp-jvm` **Version:** `5.4.0` 
 > - **POM Project URL**: [https://square.github.io/okhttp/](https://square.github.io/okhttp/)
 > - **POM License**: Apache License, Version 2.0 - [https://www.apache.org/licenses/LICENSE-2.0](https://www.apache.org/licenses/LICENSE-2.0)
 

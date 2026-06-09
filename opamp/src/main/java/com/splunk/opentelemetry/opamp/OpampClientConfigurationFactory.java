@@ -16,14 +16,11 @@
 
 package com.splunk.opentelemetry.opamp;
 
-import static io.opentelemetry.api.incubator.config.DeclarativeConfigProperties.empty;
 import static io.opentelemetry.opamp.client.internal.request.service.HttpRequestService.DEFAULT_DELAY_BETWEEN_REQUESTS;
 
 import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
-import io.opentelemetry.common.ComponentLoader;
 import io.opentelemetry.sdk.autoconfigure.AutoConfigureUtil;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
-import io.opentelemetry.sdk.autoconfigure.declarativeconfig.YamlDeclarativeConfigProperties;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import io.opentelemetry.sdk.declarativeconfig.internal.model.OpenTelemetryConfigurationModel;
 import java.util.Objects;
@@ -39,27 +36,20 @@ public class OpampClientConfigurationFactory {
   }
 
   private static OpampClientConfiguration createConfigurationFromDeclarativeConfig() {
-    OpenTelemetryConfigurationModel configurationModel =
+    OpenTelemetryConfigurationModel config =
         Objects.requireNonNull(DeclarativeConfigurationInterceptor.getConfigurationModel());
 
-    OpampClientConfiguration.Builder builder = OpampClientConfiguration.builder();
-    DeclarativeConfigProperties properties =
-        YamlDeclarativeConfigProperties.create(
-            configurationModel.getAdditionalProperties(),
-            ComponentLoader.forClassLoader(DeclarativeConfigProperties.class.getClassLoader()));
+    DeclarativeConfigProperties opampProperties =
+        AutoConfigureUtil.getDistributionConfig(config).getStructured("opamp/development");
 
-    DeclarativeConfigProperties opampProperties = properties.getStructured("opamp/development");
+    OpampClientConfiguration.Builder builder = OpampClientConfiguration.builder();
     if (opampProperties != null) {
       builder.withEnabled(true);
-      DeclarativeConfigProperties connection = opampProperties.getStructured("transport", empty());
-      DeclarativeConfigProperties http = connection.getStructured("http");
-      if (http != null) {
-        builder
-            .withEndpoint(http.getString("endpoint"))
-            .withPollingInterval(
-                http.getLong(
-                    "polling_interval", DEFAULT_DELAY_BETWEEN_REQUESTS.getNextDelay().toMillis()));
-      }
+      builder
+          .withEndpoint(opampProperties.getString("endpoint"))
+          .withPollingInterval(
+              opampProperties.getLong(
+                  "polling_interval", DEFAULT_DELAY_BETWEEN_REQUESTS.getNextDelay().toMillis()));
     }
 
     return builder.build();

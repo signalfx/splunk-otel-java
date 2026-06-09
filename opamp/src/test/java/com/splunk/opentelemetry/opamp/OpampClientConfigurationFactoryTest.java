@@ -64,10 +64,10 @@ class OpampClientConfigurationFactoryTest {
     String yaml =
         """
             file_format: "1.0"
-            opamp/development:
-              transport:
-                http:
-                  endpoint: https://opamp.example.com
+            distribution:
+              splunk:
+                opamp/development:
+                  endpoint: http://some.opamp-host.com:3420/v1/opamp
                   polling_interval: 4567
             """;
     AutoConfiguredOpenTelemetrySdk sdk =
@@ -79,7 +79,7 @@ class OpampClientConfigurationFactoryTest {
 
     // then
     assertThat(configuration.isEnabled()).isTrue();
-    assertThat(configuration.getEndpoint()).isEqualTo("https://opamp.example.com");
+    assertThat(configuration.getEndpoint()).isEqualTo("http://some.opamp-host.com:3420/v1/opamp");
     assertThat(configuration.getPollingInterval()).isEqualTo(4567);
   }
 

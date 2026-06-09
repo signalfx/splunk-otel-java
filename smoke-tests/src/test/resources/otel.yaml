@@ -12,7 +12,6 @@ receivers:
         endpoint: 0.0.0.0:4317
       http:
         endpoint: 0.0.0.0:4318
-  signalfx:
 
 processors:
   batch:
@@ -41,7 +40,7 @@ service:
       processors: [ batch ]
       exporters: [ debug/logging_debug, otlp ]
     metrics:
-      receivers: [ signalfx, otlp ]
+      receivers: [ otlp ]
       processors: [ batch ]
       exporters: [ debug/logging_info, otlp ]
     logs:

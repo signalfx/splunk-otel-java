@@ -1548,6 +1548,7 @@ public class MetadataGenerator {
       case "string":
         return MetadataGenerator.SettingType.STRING;
       case "list":
+      case "structured_list":
         return MetadataGenerator.SettingType.LIST;
       case "map":
         return MetadataGenerator.SettingType.MAP;

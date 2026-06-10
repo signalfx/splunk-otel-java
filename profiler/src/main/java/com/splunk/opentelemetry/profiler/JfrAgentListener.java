@@ -22,12 +22,12 @@ import io.opentelemetry.javaagent.extension.AgentListener;
 import io.opentelemetry.sdk.autoconfigure.AutoConfigureUtil;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
+import java.util.logging.Logger;
 
 @AutoService(AgentListener.class)
 public class JfrAgentListener implements AgentListener {
 
-  private static final java.util.logging.Logger logger =
-      java.util.logging.Logger.getLogger(JfrAgentListener.class.getName());
+  private static final Logger logger = Logger.getLogger(JfrAgentListener.class.getName());
   private final JFR jfr;
 
   public JfrAgentListener() {

@@ -1,7 +1,7 @@
 
 # splunk-otel-javaagent
 ## Dependency License Report
-_2026-06-09 09:33:33 EEST_
+_2026-06-10 10:46:36 EEST_
 ## Apache License, Version 2.0
 
 **1** **Group:** `com.squareup.okhttp3` **Name:** `okhttp` **Version:** `5.4.0` 
@@ -98,7 +98,7 @@ _2026-06-09 09:33:33 EEST_
 
 **24** **Group:** `org.apache.commons` **Name:** `commons-jexl3` **Version:** `3.6.2` 
 > - **Project URL**: [https://commons.apache.org/proper/commons-jexl/](https://commons.apache.org/proper/commons-jexl/)
-> - **Manifest License**: Apache License, Version 2.0 (Not Packaged)
+> - **Manifest License**: [https://www.apache.org/licenses/LICENSE-2.0](Apache License, Version 2.0)
 > - **POM License**: Apache License, Version 2.0 - [https://www.apache.org/licenses/LICENSE-2.0](https://www.apache.org/licenses/LICENSE-2.0)
 > - **Embedded license files**: [commons-jexl3-3.6.2.jar/META-INF/LICENSE.txt](commons-jexl3-3.6.2.jar/META-INF/LICENSE.txt) 
     - [commons-jexl3-3.6.2.jar/META-INF/NOTICE.txt](commons-jexl3-3.6.2.jar/META-INF/NOTICE.txt)
@@ -113,7 +113,7 @@ _2026-06-09 09:33:33 EEST_
 
 **27** **Group:** `org.slf4j` **Name:** `jcl-over-slf4j` **Version:** `2.0.18` 
 > - **Project URL**: [http://www.slf4j.org](http://www.slf4j.org)
-> - **Manifest License**: Apache License, Version 2.0 (Not Packaged)
+> - **Manifest License**: [https://www.apache.org/licenses/LICENSE-2.0](Apache License, Version 2.0)
 > - **POM License**: Apache License, Version 2.0 - [https://www.apache.org/licenses/LICENSE-2.0](https://www.apache.org/licenses/LICENSE-2.0)
 > - **POM License**: MIT License - [https://opensource.org/licenses/MIT](https://opensource.org/licenses/MIT)
 > - **Embedded license files**: [jcl-over-slf4j-2.0.18.jar/META-INF/LICENSE.txt](jcl-over-slf4j-2.0.18.jar/META-INF/LICENSE.txt)
@@ -126,7 +126,7 @@ _2026-06-09 09:33:33 EEST_
 
 **29** **Group:** `org.slf4j` **Name:** `jcl-over-slf4j` **Version:** `2.0.18` 
 > - **Project URL**: [http://www.slf4j.org](http://www.slf4j.org)
-> - **Manifest License**: Apache License, Version 2.0 (Not Packaged)
+> - **Manifest License**: [https://www.apache.org/licenses/LICENSE-2.0](Apache License, Version 2.0)
 > - **POM License**: Apache License, Version 2.0 - [https://www.apache.org/licenses/LICENSE-2.0](https://www.apache.org/licenses/LICENSE-2.0)
 > - **POM License**: MIT License - [https://opensource.org/licenses/MIT](https://opensource.org/licenses/MIT)
 > - **Embedded license files**: [jcl-over-slf4j-2.0.18.jar/META-INF/LICENSE.txt](jcl-over-slf4j-2.0.18.jar/META-INF/LICENSE.txt)
@@ -140,12 +140,12 @@ _2026-06-09 09:33:33 EEST_
 
 **31** **Group:** `com.google.protobuf` **Name:** `protobuf-java` **Version:** `4.35.0` 
 > - **Manifest Project URL**: [https://developers.google.com/protocol-buffers/](https://developers.google.com/protocol-buffers/)
-> - **Manifest License**: The 3-Clause BSD License (Not Packaged)
+> - **Manifest License**: [https://opensource.org/licenses/BSD-3-Clause](The 3-Clause BSD License)
 > - **POM License**: The 3-Clause BSD License - [https://opensource.org/licenses/BSD-3-Clause](https://opensource.org/licenses/BSD-3-Clause)
 
 **32** **Group:** `org.owasp.encoder` **Name:** `encoder` **Version:** `1.2.3` 
 > - **Manifest Project URL**: [https://www.owasp.org/](https://www.owasp.org/)
-> - **Manifest License**: The 3-Clause BSD License (Not Packaged)
+> - **Manifest License**: [https://opensource.org/licenses/BSD-3-Clause](The 3-Clause BSD License)
 > - **POM License**: The 3-Clause BSD License - [https://opensource.org/licenses/BSD-3-Clause](https://opensource.org/licenses/BSD-3-Clause)
 > - **Embedded license files**: [encoder-1.2.3.jar/META-INF/LICENSE](encoder-1.2.3.jar/META-INF/LICENSE)
 

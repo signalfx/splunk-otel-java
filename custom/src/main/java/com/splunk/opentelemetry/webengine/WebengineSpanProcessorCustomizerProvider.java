@@ -19,7 +19,7 @@ package com.splunk.opentelemetry.webengine;
 import com.google.auto.service.AutoService;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.DeclarativeConfigurationCustomizer;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.DeclarativeConfigurationCustomizerProvider;
-import io.opentelemetry.sdk.declarativeconfig.internal.model.SpanProcessorModel;
+import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.SpanProcessorModel;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;

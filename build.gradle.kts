@@ -30,3 +30,11 @@ subprojects {
   }
 }
 
+// recheck SNAPSHOT dependencies on CI to ensure we are using the latest versions
+if (System.getenv("CI") != null) {
+  subprojects {
+    configurations.configureEach {
+      resolutionStrategy.cacheChangingModulesFor(0, "seconds")
+    }
+  }
+}

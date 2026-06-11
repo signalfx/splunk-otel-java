@@ -21,8 +21,8 @@ import static io.opentelemetry.opamp.client.internal.request.service.HttpRequest
 import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
 import io.opentelemetry.sdk.autoconfigure.AutoConfigureUtil;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
+import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.OpenTelemetryConfigurationModel;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
-import io.opentelemetry.sdk.declarativeconfig.internal.model.OpenTelemetryConfigurationModel;
 import java.util.Objects;
 
 public class OpampClientConfigurationFactory {

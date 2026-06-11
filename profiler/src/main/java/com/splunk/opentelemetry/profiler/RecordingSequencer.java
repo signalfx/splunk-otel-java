@@ -20,6 +20,7 @@ import static java.util.logging.Level.SEVERE;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.splunk.opentelemetry.profiler.util.HelpfulExecutors;
+import io.opentelemetry.sdk.resources.Resource;
 import java.time.Duration;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -34,9 +35,9 @@ class RecordingSequencer {
   private final Duration recordingDuration;
   private final JfrRecorder recorder;
 
-  private RecordingSequencer(Builder builder) {
-    this.recordingDuration = builder.recordingDuration;
-    this.recorder = builder.recorder;
+  RecordingSequencer(JfrRecorder recorder, Duration recordingDuration) {
+    this.recordingDuration = recordingDuration;
+    this.recorder = recorder;
   }
 
   public void start() {
@@ -58,26 +59,7 @@ class RecordingSequencer {
     }
   }
 
-  public static Builder builder() {
-    return new Builder();
-  }
-
-  public static class Builder {
-    private Duration recordingDuration;
-    private JfrRecorder recorder;
-
-    public Builder recordingDuration(Duration duration) {
-      this.recordingDuration = duration;
-      return this;
-    }
-
-    public Builder recorder(JfrRecorder recorder) {
-      this.recorder = recorder;
-      return this;
-    }
-
-    public RecordingSequencer build() {
-      return new RecordingSequencer(this);
-    }
+  public static RecordingSequencerBuilder builder(ProfilerConfiguration config, Resource resource) {
+    return new RecordingSequencerBuilder(config, resource);
   }
 }

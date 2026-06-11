@@ -45,7 +45,7 @@ class RecordingSequencerBuilderTest {
     try (MockedConstruction<JfrRecorder> recorderConstruction =
         mockConstruction(JfrRecorder.class)) {
       RecordingSequencer sequencer =
-          new RecordingSequencerBuilder().jfr(jfr).build(config, Resource.empty());
+          RecordingSequencer.builder(config, Resource.empty()).jfr(jfr).build();
 
       assertThat(sequencer).isNotNull();
       assertThat(recorderConstruction.constructed()).hasSize(1);
@@ -70,7 +70,7 @@ class RecordingSequencerBuilderTest {
     try (MockedConstruction<JfrRecorder> recorderConstruction =
         mockConstruction(JfrRecorder.class)) {
       RecordingSequencer sequencer =
-          new RecordingSequencerBuilder().jfr(jfr).build(config, Resource.empty());
+          RecordingSequencer.builder(config, Resource.empty()).jfr(jfr).build();
 
       assertThat(sequencer).isNotNull();
       assertThat(outputDir).isDirectory();
@@ -89,7 +89,7 @@ class RecordingSequencerBuilderTest {
     try (MockedConstruction<JfrRecorder> recorderConstruction =
         mockConstruction(JfrRecorder.class)) {
       RecordingSequencer sequencer =
-          new RecordingSequencerBuilder().jfr(jfr).build(config, Resource.empty());
+          RecordingSequencer.builder(config, Resource.empty()).jfr(jfr).build();
 
       assertThat(sequencer).isNotNull();
       assertThat(recorderConstruction.constructed()).hasSize(1);
@@ -103,7 +103,7 @@ class RecordingSequencerBuilderTest {
     config.configProperties = new Object();
 
     assertThatThrownBy(
-            () -> new RecordingSequencerBuilder().jfr(jfr).build(config, Resource.empty()))
+            () ->  RecordingSequencer.builder(config, Resource.empty()).jfr(jfr).build())
         .isInstanceOf(IllegalArgumentException.class)
         .hasMessageStartingWith("Unsupported config properties type:");
   }

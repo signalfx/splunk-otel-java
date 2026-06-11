@@ -131,15 +131,15 @@ class ProfilingSupervisor {
 
   private void activateJfrAndRunUntilStopped(Resource resource) {
     RecordingSequencer recordingSequencer =
-        makeRecordingSequencerBuilder().jfr(jfr).build(config, resource);
+        makeRecordingSequencerBuilder(resource).jfr(jfr).build();
     if (sequencer.compareAndSet(null, recordingSequencer)) {
       recordingSequencer.start();
     }
   }
 
   // Exists for testing
-  RecordingSequencerBuilder makeRecordingSequencerBuilder() {
-    return new RecordingSequencerBuilder();
+  RecordingSequencerBuilder makeRecordingSequencerBuilder(Resource resource) {
+    return RecordingSequencer.builder(config, resource);
   }
 
   private static void setupContextStorage() {

@@ -41,15 +41,22 @@ import java.util.Map;
 class RecordingSequencerBuilder {
   private static final java.util.logging.Logger logger =
       java.util.logging.Logger.getLogger(RecordingSequencerBuilder.class.getName());
+  private final ProfilerConfiguration config;
+  private final Resource resource;
 
   private JFR jfr;
+
+  public RecordingSequencerBuilder(ProfilerConfiguration config, Resource resource) {
+    this.config = config;
+    this.resource = resource;
+  }
 
   RecordingSequencerBuilder jfr(JFR jfr) {
     this.jfr = jfr;
     return this;
   }
 
-  RecordingSequencer build(ProfilerConfiguration config, Resource resource) {
+  RecordingSequencer build() {
     if (jfr == null) {
       jfr = JFR.getInstance();
     }
@@ -114,10 +121,7 @@ class RecordingSequencerBuilder {
             .keepRecordingFiles(keepFiles)
             .build();
 
-    return RecordingSequencer.builder()
-        .recordingDuration(recordingDuration)
-        .recorder(recorder)
-        .build();
+    return new RecordingSequencer(recorder, recordingDuration);
   }
 
   private io.opentelemetry.api.logs.Logger buildOtelLogger(

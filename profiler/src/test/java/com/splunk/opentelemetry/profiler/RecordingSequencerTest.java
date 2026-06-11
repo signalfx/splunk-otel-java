@@ -20,6 +20,7 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+import io.opentelemetry.sdk.resources.Resource;
 import java.time.Duration;
 import java.util.Collections;
 import java.util.concurrent.CountDownLatch;
@@ -69,7 +70,7 @@ class RecordingSequencerTest {
   }
 
   private RecordingSequencer buildSequencer(JfrRecorder recorder) {
-    return RecordingSequencer.builder().recordingDuration(duration).recorder(recorder).build();
+    return new RecordingSequencer(recorder, duration);
   }
 
   private class MockRecorder extends JfrRecorder {

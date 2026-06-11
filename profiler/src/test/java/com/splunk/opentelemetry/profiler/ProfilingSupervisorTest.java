@@ -54,7 +54,7 @@ class ProfilingSupervisorTest {
   void setUp(@TempDir Path tempDir) {
     config = new TestProfilingConfig();
     config.profilerDirectory = tempDir.toString();
-    builder = new TestRecordingSequencerBuilder();
+    builder = new TestRecordingSequencerBuilder(config, mock(Resource.class));
     executor = Executors.newSingleThreadExecutor();
     sdk =
         AutoConfiguredOpenTelemetrySdk.builder()
@@ -133,18 +133,24 @@ class ProfilingSupervisorTest {
     }
 
     @Override
-    RecordingSequencerBuilder makeRecordingSequencerBuilder() {
+    RecordingSequencerBuilder makeRecordingSequencerBuilder(Resource resource) {
       return builder;
     }
   }
 
   private static class TestRecordingSequencerBuilder extends RecordingSequencerBuilder {
     final RecordingSequencer sequencer = mock(RecordingSequencer.class);
+    private final ProfilerConfiguration config;
+    private final Resource resource;
     JFR jfr;
-    ProfilerConfiguration config;
-    Resource resource;
     boolean buildCalled;
     int buildCount;
+
+    public TestRecordingSequencerBuilder(ProfilerConfiguration config, Resource resource){
+      super(config, resource);
+      this.config = config;
+      this.resource = resource;
+    }
 
     @Override
     RecordingSequencerBuilder jfr(JFR jfr) {
@@ -153,9 +159,7 @@ class ProfilingSupervisorTest {
     }
 
     @Override
-    RecordingSequencer build(ProfilerConfiguration config, Resource resource) {
-      this.config = config;
-      this.resource = resource;
+    RecordingSequencer build() {
       buildCalled = true;
       buildCount++;
       return sequencer;

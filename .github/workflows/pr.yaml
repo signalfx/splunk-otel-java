@@ -30,7 +30,7 @@ jobs:
           cache-read-only: true
 
       - name: Build and test
-        run: ./gradlew build
+        run: ./gradlew build --refresh-dependencies
 
       - name: Build scan
         if: ${{ !cancelled() && hashFiles('build-scan.txt') != '' }}

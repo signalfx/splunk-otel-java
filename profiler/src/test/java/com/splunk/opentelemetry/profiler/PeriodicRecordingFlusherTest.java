@@ -30,7 +30,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class RecordingSequencerTest {
+class PeriodicRecordingFlusherTest {
 
   Duration duration = Duration.ofMillis(10);
 
@@ -40,7 +40,7 @@ class RecordingSequencerTest {
   @Test
   void canContinueNotStarted() {
     when(recorder.isStarted()).thenReturn(false);
-    RecordingSequencer sequencer = buildSequencer();
+    PeriodicRecordingFlusher sequencer = buildSequencer();
     sequencer.handleInterval();
     verify(recorder).start();
     verifyNoMoreInteractions(recorder);
@@ -49,7 +49,7 @@ class RecordingSequencerTest {
   @Test
   void canContinueAlreadyStarted() {
     when(recorder.isStarted()).thenReturn(true);
-    RecordingSequencer sequencer = buildSequencer();
+    PeriodicRecordingFlusher sequencer = buildSequencer();
     sequencer.handleInterval();
     verify(recorder).flushSnapshot();
     verifyNoMoreInteractions(recorder);
@@ -59,17 +59,17 @@ class RecordingSequencerTest {
   void startThroughFlushSequence() throws Exception {
     CountDownLatch latch = new CountDownLatch(3);
     recorder = new MockRecorder(latch);
-    RecordingSequencer sequencer = buildSequencer();
+    PeriodicRecordingFlusher sequencer = buildSequencer();
     sequencer.start();
     assertTrue(latch.await(5, SECONDS));
   }
 
-  private RecordingSequencer buildSequencer() {
+  private PeriodicRecordingFlusher buildSequencer() {
     return buildSequencer(recorder);
   }
 
-  private RecordingSequencer buildSequencer(JfrRecorder recorder) {
-    return RecordingSequencer.builder().recordingDuration(duration).recorder(recorder).build();
+  private PeriodicRecordingFlusher buildSequencer(JfrRecorder recorder) {
+    return new PeriodicRecordingFlusher(recorder, duration);
   }
 
   private class MockRecorder extends JfrRecorder {

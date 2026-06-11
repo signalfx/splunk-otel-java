@@ -103,7 +103,7 @@ class PeriodicRecordingFlusherBuilderTest {
     config.configProperties = new Object();
 
     assertThatThrownBy(
-            () ->  PeriodicRecordingFlusher.builder(config, Resource.empty()).jfr(jfr).build())
+            () -> PeriodicRecordingFlusher.builder(config, Resource.empty()).jfr(jfr).build())
         .isInstanceOf(IllegalArgumentException.class)
         .hasMessageStartingWith("Unsupported config properties type:");
   }

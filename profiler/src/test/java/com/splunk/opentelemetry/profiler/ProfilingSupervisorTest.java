@@ -146,7 +146,7 @@ class ProfilingSupervisorTest {
     boolean buildCalled;
     int buildCount;
 
-    public TestRecordingSequencerBuilder(ProfilerConfiguration config, Resource resource){
+    public TestRecordingSequencerBuilder(ProfilerConfiguration config, Resource resource) {
       super(config, resource);
       this.config = config;
       this.resource = resource;

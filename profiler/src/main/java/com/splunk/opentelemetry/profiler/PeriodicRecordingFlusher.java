@@ -27,15 +27,15 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
 /** Responsible for periodically generating a sequence of JFR recordings. */
-class RecordingSequencer {
-  private static final Logger logger = Logger.getLogger(RecordingSequencer.class.getName());
+class PeriodicRecordingFlusher {
+  private static final Logger logger = Logger.getLogger(PeriodicRecordingFlusher.class.getName());
 
   private final ScheduledExecutorService executor =
       HelpfulExecutors.newSingleThreadedScheduledExecutor("JFR Recording Sequencer");
   private final Duration recordingDuration;
   private final JfrRecorder recorder;
 
-  RecordingSequencer(JfrRecorder recorder, Duration recordingDuration) {
+  PeriodicRecordingFlusher(JfrRecorder recorder, Duration recordingDuration) {
     this.recordingDuration = recordingDuration;
     this.recorder = recorder;
   }

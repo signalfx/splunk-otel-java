@@ -41,7 +41,7 @@ class ProfilingSupervisor {
   private final JFR jfr;
   private final AutoConfiguredOpenTelemetrySdk sdk;
   private final BlockingQueue<ProfilingCommand> commandQueue;
-  private final AtomicReference<RecordingSequencer> sequencer = new AtomicReference<>();
+  private final AtomicReference<PeriodicRecordingFlusher> sequencer = new AtomicReference<>();
 
   @VisibleForTesting
   ProfilingSupervisor(
@@ -130,16 +130,16 @@ class ProfilingSupervisor {
   }
 
   private void activateJfrAndRunUntilStopped(Resource resource) {
-    RecordingSequencer recordingSequencer =
+    PeriodicRecordingFlusher periodicRecordingFlusher =
         makeRecordingSequencerBuilder(resource).jfr(jfr).build();
-    if (sequencer.compareAndSet(null, recordingSequencer)) {
-      recordingSequencer.start();
+    if (sequencer.compareAndSet(null, periodicRecordingFlusher)) {
+      periodicRecordingFlusher.start();
     }
   }
 
   // Exists for testing
   RecordingSequencerBuilder makeRecordingSequencerBuilder(Resource resource) {
-    return RecordingSequencer.builder(config, resource);
+    return PeriodicRecordingFlusher.builder(config, resource);
   }
 
   private static void setupContextStorage() {

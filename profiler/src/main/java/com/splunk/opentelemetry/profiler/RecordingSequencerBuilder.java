@@ -56,7 +56,7 @@ class RecordingSequencerBuilder {
     return this;
   }
 
-  RecordingSequencer build() {
+  PeriodicRecordingFlusher build() {
     if (jfr == null) {
       jfr = JFR.getInstance();
     }
@@ -121,7 +121,7 @@ class RecordingSequencerBuilder {
             .keepRecordingFiles(keepFiles)
             .build();
 
-    return new RecordingSequencer(recorder, recordingDuration);
+    return new PeriodicRecordingFlusher(recorder, recordingDuration);
   }
 
   private io.opentelemetry.api.logs.Logger buildOtelLogger(

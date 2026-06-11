@@ -31,7 +31,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.mockito.MockedConstruction;
 
-class RecordingSequencerBuilderTest {
+class PeriodicRecordingFlusherBuilderTest {
 
   @TempDir Path tempDir;
 
@@ -44,8 +44,8 @@ class RecordingSequencerBuilderTest {
 
     try (MockedConstruction<JfrRecorder> recorderConstruction =
         mockConstruction(JfrRecorder.class)) {
-      RecordingSequencer sequencer =
-          RecordingSequencer.builder(config, Resource.empty()).jfr(jfr).build();
+      PeriodicRecordingFlusher sequencer =
+          PeriodicRecordingFlusher.builder(config, Resource.empty()).jfr(jfr).build();
 
       assertThat(sequencer).isNotNull();
       assertThat(recorderConstruction.constructed()).hasSize(1);
@@ -69,8 +69,8 @@ class RecordingSequencerBuilderTest {
 
     try (MockedConstruction<JfrRecorder> recorderConstruction =
         mockConstruction(JfrRecorder.class)) {
-      RecordingSequencer sequencer =
-          RecordingSequencer.builder(config, Resource.empty()).jfr(jfr).build();
+      PeriodicRecordingFlusher sequencer =
+          PeriodicRecordingFlusher.builder(config, Resource.empty()).jfr(jfr).build();
 
       assertThat(sequencer).isNotNull();
       assertThat(outputDir).isDirectory();
@@ -88,8 +88,8 @@ class RecordingSequencerBuilderTest {
 
     try (MockedConstruction<JfrRecorder> recorderConstruction =
         mockConstruction(JfrRecorder.class)) {
-      RecordingSequencer sequencer =
-          RecordingSequencer.builder(config, Resource.empty()).jfr(jfr).build();
+      PeriodicRecordingFlusher sequencer =
+          PeriodicRecordingFlusher.builder(config, Resource.empty()).jfr(jfr).build();
 
       assertThat(sequencer).isNotNull();
       assertThat(recorderConstruction.constructed()).hasSize(1);
@@ -103,7 +103,7 @@ class RecordingSequencerBuilderTest {
     config.configProperties = new Object();
 
     assertThatThrownBy(
-            () ->  RecordingSequencer.builder(config, Resource.empty()).jfr(jfr).build())
+            () ->  PeriodicRecordingFlusher.builder(config, Resource.empty()).jfr(jfr).build())
         .isInstanceOf(IllegalArgumentException.class)
         .hasMessageStartingWith("Unsupported config properties type:");
   }

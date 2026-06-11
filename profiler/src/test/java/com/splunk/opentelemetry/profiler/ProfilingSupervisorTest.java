@@ -139,7 +139,7 @@ class ProfilingSupervisorTest {
   }
 
   private static class TestRecordingSequencerBuilder extends RecordingSequencerBuilder {
-    final RecordingSequencer sequencer = mock(RecordingSequencer.class);
+    final PeriodicRecordingFlusher sequencer = mock(PeriodicRecordingFlusher.class);
     private final ProfilerConfiguration config;
     private final Resource resource;
     JFR jfr;
@@ -159,7 +159,7 @@ class ProfilingSupervisorTest {
     }
 
     @Override
-    RecordingSequencer build() {
+    PeriodicRecordingFlusher build() {
       buildCalled = true;
       buildCount++;
       return sequencer;

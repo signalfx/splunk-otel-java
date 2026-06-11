@@ -19,7 +19,7 @@ package com.splunk.opentelemetry.webengine;
 import static com.splunk.opentelemetry.testing.declarativeconfig.DeclarativeConfigTestUtil.parseAndCustomizeModel;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
-import io.opentelemetry.sdk.declarativeconfig.internal.model.OpenTelemetryConfigurationModel;
+import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.OpenTelemetryConfigurationModel;
 import org.junit.jupiter.api.Test;
 
 class WebengineSpanProcessorCustomizerProviderTest {

@@ -22,10 +22,14 @@ import io.opentelemetry.javaagent.extension.AgentListener;
 import io.opentelemetry.sdk.autoconfigure.AutoConfigureUtil;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Logger;
 
 @AutoService(AgentListener.class)
 public class JfrAgentListener implements AgentListener {
+  // Awful POC code
+  public static final AtomicReference<ProfilingSupervisor> profilingSupervisor =
+      new AtomicReference<>();
 
   private static final Logger logger = Logger.getLogger(JfrAgentListener.class.getName());
   private final JFR jfr;
@@ -45,6 +49,7 @@ public class JfrAgentListener implements AgentListener {
     ProfilerConfiguration config = getProfilerConfiguration(sdk);
     // Always start the supervisor, because we may need to start it later elsewhere.
     ProfilingSupervisor supervisor = makeProfilingSupervisor(sdk, config);
+    profilingSupervisor.set(supervisor);
 
     if (notClearForTakeoff(config)) {
       return;

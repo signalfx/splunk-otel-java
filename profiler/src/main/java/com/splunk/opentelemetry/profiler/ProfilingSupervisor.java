@@ -33,7 +33,10 @@ import java.util.concurrent.atomic.AtomicReference;
  * This class oversees the profiling subsystem. It runs for the entire time that the agent is
  * running.
  */
-class ProfilingSupervisor {
+public class ProfilingSupervisor {
+  static {
+    setupContextStorage();
+  }
 
   private static final java.util.logging.Logger logger =
       java.util.logging.Logger.getLogger(ProfilingSupervisor.class.getName());
@@ -100,9 +103,14 @@ class ProfilingSupervisor {
         break;
       case STOP:
         // TODO: Build me
+        disableContextStorage();
         logger.warning("ProfilingSupervisor STOP not yet implemented");
         break;
     }
+  }
+
+  private void disableContextStorage() {
+    JfrContextStorage.setEnabled(false);
   }
 
   /**
@@ -121,8 +129,12 @@ class ProfilingSupervisor {
     }
     config.log();
     logger.info("Profiler is active.");
-    setupContextStorage();
+    enableContextStorage();
     activateJfrAndRunUntilStopped(getResource(sdk));
+  }
+
+  private void enableContextStorage() {
+    JfrContextStorage.setEnabled(true);
   }
 
   private boolean alreadyRunning() {

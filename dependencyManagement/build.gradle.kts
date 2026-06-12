@@ -2,7 +2,7 @@ plugins {
   `java-platform`
 }
 
-val otelVersion = "1.62.0"
+val otelVersion = "1.63.0"
 val otelAlphaVersion = otelVersion.replaceFirst("(-SNAPSHOT)?$".toRegex(), "-alpha$1")
 val otelInstrumentationVersion = "2.29.0-SNAPSHOT"
 val otelInstrumentationAlphaVersion =  otelInstrumentationVersion.replaceFirst("(-SNAPSHOT)?$".toRegex(), "-alpha$1")
@@ -11,7 +11,7 @@ val otelContribAlphaVersion = "1.57.0-alpha"
 val autoValueVersion = "1.11.1"
 val dockerJavaVersion = "3.7.1"
 val mockitoVersion = "5.23.0"
-val protobufVersion = "4.35.0"
+val protobufVersion = "4.35.1"
 val slf4jVersion = "2.0.18"
 
 // instrumentation version is used to compute Implementation-Version manifest attribute
@@ -31,7 +31,7 @@ dependencies {
   api(enforcedPlatform("com.fasterxml.jackson:jackson-bom:2.22.0"))
   api(enforcedPlatform("com.google.protobuf:protobuf-bom:$protobufVersion"))
   api(enforcedPlatform("com.squareup.okhttp3:okhttp-bom:5.4.0"))
-  api(enforcedPlatform("io.grpc:grpc-bom:1.81.0"))
+  api(enforcedPlatform("io.grpc:grpc-bom:1.82.0"))
   api(enforcedPlatform("io.opentelemetry:opentelemetry-bom-alpha:$otelAlphaVersion"))
   api(enforcedPlatform("io.opentelemetry.instrumentation:opentelemetry-instrumentation-bom-alpha:$otelInstrumentationAlphaVersion"))
   api(enforcedPlatform("org.junit:junit-bom:6.1.0"))

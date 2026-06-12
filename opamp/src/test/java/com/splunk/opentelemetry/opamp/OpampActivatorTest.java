@@ -138,12 +138,17 @@ class OpampActivatorTest {
         buildEffectiveConfig(new EnvVarsEffectiveConfigFileFactory(config));
 
     CompletableFuture<MessageData> result = new CompletableFuture<>();
+    OpampClientConfiguration opampClientConfiguration =
+        OpampClientConfiguration.builder()
+            .withEnabled(true)
+            .withEndpoint(server.httpUri().toString())
+            .withPollingInterval(500)
+            .build();
     OpampClient client =
         OpampActivator.startOpampClient(
-            effectiveConfig,
-            server.httpUri().toString(),
+            opampClientConfiguration,
             resource,
-            500,
+            effectiveConfig,
             new OpampClient.Callbacks() {
               @Override
               public void onConnect(OpampClient opampClient) {}

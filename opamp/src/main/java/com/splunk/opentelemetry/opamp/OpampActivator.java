@@ -45,9 +45,9 @@ public class OpampActivator implements AgentListener {
 
   @Override
   public void afterAgent(AutoConfiguredOpenTelemetrySdk autoConfiguredOpenTelemetrySdk) {
-    OpampClientConfiguration config =
+    OpampClientConfiguration opampClientConfiguration =
         OpampClientConfigurationFactory.createConfiguration(autoConfiguredOpenTelemetrySdk);
-    if (!config.isEnabled()) {
+    if (!opampClientConfiguration.isEnabled()) {
       return;
     }
 
@@ -56,12 +56,13 @@ public class OpampActivator implements AgentListener {
         createEffectiveConfigFactory(autoConfiguredOpenTelemetrySdk);
     State.EffectiveConfig effectiveConfig = buildEffectiveConfig(effectiveConfigFactory);
 
+    ServerToAgentMessageHandler serverToAgentMessageHandler = new ServerToAgentMessageHandler();
+
     OpampClient client =
         startOpampClient(
-            effectiveConfig,
-            config.getEndpoint(),
+            opampClientConfiguration,
             resource,
-            config.getPollingInterval(),
+            effectiveConfig,
             new OpampClient.Callbacks() {
               @Override
               public void onConnect(OpampClient opampClient) {
@@ -81,7 +82,8 @@ public class OpampActivator implements AgentListener {
 
               @Override
               public void onMessage(OpampClient opampClient, MessageData messageData) {
-                logger.fine(messageData::toString);
+                logger.fine(() -> "Received message: " + messageData);
+                serverToAgentMessageHandler.handleMessage(messageData, opampClient);
               }
             });
 
@@ -105,14 +107,17 @@ public class OpampActivator implements AgentListener {
   }
 
   static OpampClient startOpampClient(
-      State.EffectiveConfig effectiveConfig,
-      String endpoint,
+      OpampClientConfiguration opampClientConfiguration,
       Resource resource,
-      long pollingDurationMillis,
+      State.EffectiveConfig effectiveConfig,
       OpampClient.Callbacks callbacks) {
 
     OpampClientBuilder builder = OpampClient.builder();
     builder.enableEffectiveConfigReporting();
+    builder.enableRemoteConfig();
+
+    String endpoint = opampClientConfiguration.getEndpoint();
+    long pollingDurationMillis = opampClientConfiguration.getPollingInterval();
     if (endpoint != null) {
       PeriodicDelay pollingDelay =
           PeriodicDelay.ofFixedDuration(Duration.ofMillis(pollingDurationMillis));
@@ -121,6 +126,7 @@ public class OpampActivator implements AgentListener {
           HttpRequestService.create(okhttp, pollingDelay, DEFAULT_DELAY_BETWEEN_RETRIES);
       builder.setRequestService(httpSender);
     }
+
     OpampAgentAttributes agentAttributes = new OpampAgentAttributes(resource);
     agentAttributes.addIdentifyingAttributes(builder);
     agentAttributes.addNonIdentifyingAttributes(builder);

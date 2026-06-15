@@ -16,25 +16,15 @@
 
 package com.splunk.opentelemetry.profiler;
 
-import static com.splunk.opentelemetry.profiler.util.Runnables.logUncaught;
 import static io.opentelemetry.api.incubator.config.DeclarativeConfigProperties.empty;
-import static io.opentelemetry.sdk.autoconfigure.AutoConfigureUtil.getResource;
 import static java.util.logging.Level.WARNING;
 
-import com.google.auto.service.AutoService;
-import com.google.common.annotations.VisibleForTesting;
 import com.splunk.opentelemetry.profiler.allocation.exporter.AllocationEventExporter;
 import com.splunk.opentelemetry.profiler.allocation.exporter.PprofAllocationEventExporter;
 import com.splunk.opentelemetry.profiler.context.SpanContextualizer;
 import com.splunk.opentelemetry.profiler.exporter.CpuEventExporter;
 import com.splunk.opentelemetry.profiler.exporter.PprofCpuEventExporter;
-import com.splunk.opentelemetry.profiler.util.HelpfulExecutors;
 import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
-import io.opentelemetry.api.logs.Logger;
-import io.opentelemetry.context.ContextStorage;
-import io.opentelemetry.javaagent.extension.AgentListener;
-import io.opentelemetry.sdk.autoconfigure.AutoConfigureUtil;
-import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import io.opentelemetry.sdk.logs.LogRecordProcessor;
 import io.opentelemetry.sdk.logs.SdkLoggerProvider;
@@ -47,97 +37,29 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
 
-@AutoService(AgentListener.class)
-public class JfrActivator implements AgentListener {
-
+class RecordingSequencerBuilder {
   private static final java.util.logging.Logger logger =
-      java.util.logging.Logger.getLogger(JfrActivator.class.getName());
-  private final ExecutorService executor;
-  private final JFR jfr;
+      java.util.logging.Logger.getLogger(RecordingSequencerBuilder.class.getName());
+  private final ProfilerConfiguration config;
+  private final Resource resource;
 
-  public JfrActivator() {
-    this(JFR.getInstance(), HelpfulExecutors.newSingleThreadExecutor("JFR Profiler"));
+  private JFR jfr;
+
+  public RecordingSequencerBuilder(ProfilerConfiguration config, Resource resource) {
+    this.config = config;
+    this.resource = resource;
   }
 
-  @VisibleForTesting
-  JfrActivator(JFR jfr, ExecutorService executor) {
+  RecordingSequencerBuilder jfr(JFR jfr) {
     this.jfr = jfr;
-    this.executor = executor;
+    return this;
   }
 
-  @Override
-  public void afterAgent(AutoConfiguredOpenTelemetrySdk sdk) {
-    ProfilerConfiguration config = getProfilerConfiguration(sdk);
-
-    if (notClearForTakeoff(config)) {
-      return;
+  PeriodicRecordingFlusher build() {
+    if (jfr == null) {
+      jfr = JFR.getInstance();
     }
-
-    config.log();
-    logger.info("Profiler is active.");
-    setupContextStorage();
-
-    startJfr(getResource(sdk), config);
-  }
-
-  private static ProfilerConfiguration getProfilerConfiguration(
-      AutoConfiguredOpenTelemetrySdk sdk) {
-    if (ProfilerDeclarativeConfiguration.SUPPLIER.isConfigured()) {
-      return ProfilerDeclarativeConfiguration.SUPPLIER.get();
-    } else {
-      ConfigProperties configProperties = AutoConfigureUtil.getConfig(sdk);
-      return new ProfilerEnvVarsConfiguration(configProperties);
-    }
-  }
-
-  private void startJfr(Resource resource, ProfilerConfiguration config) {
-    executor.submit(logUncaught(() -> activateJfrAndRunForever(config, resource)));
-  }
-
-  private boolean notClearForTakeoff(ProfilerConfiguration config) {
-    if (!config.isEnabled()) {
-      logger.fine("Profiler is not enabled.");
-      return true;
-    }
-    if (!jfr.isAvailable()) {
-      logger.warning(
-          "JDK Flight Recorder (JFR) is not available in this JVM. Profiling is disabled.");
-      return true;
-    }
-
-    return false;
-  }
-
-  private boolean checkOutputDir(Path outputDir) {
-    if (!Files.exists(outputDir)) {
-      // Try creating the directory for the user...
-      try {
-        Files.createDirectories(outputDir);
-      } catch (IOException e) {
-        outdirWarn(outputDir, "does not exist and could not be created");
-        return false;
-      }
-    }
-    if (!Files.isDirectory(outputDir)) {
-      outdirWarn(outputDir, "exists but is not a directory");
-      return false;
-    }
-
-    if (!Files.isWritable(outputDir)) {
-      outdirWarn(outputDir, "exists but is not writable");
-      return false;
-    }
-
-    return true;
-  }
-
-  private void outdirWarn(Path dir, String suffix) {
-    logger.log(WARNING, "The configured output directory {0} {1}.", new Object[] {dir, suffix});
-  }
-
-  private void activateJfrAndRunForever(ProfilerConfiguration config, Resource resource) {
     boolean keepFiles = config.getKeepFiles();
     Path outputDir = Paths.get(config.getProfilerDirectory());
     if (keepFiles && !checkOutputDir(outputDir)) {
@@ -199,29 +121,11 @@ public class JfrActivator implements AgentListener {
             .keepRecordingFiles(keepFiles)
             .build();
 
-    RecordingSequencer sequencer =
-        RecordingSequencer.builder()
-            .recordingDuration(recordingDuration)
-            .recorder(recorder)
-            .build();
-
-    sequencer.start();
+    return new PeriodicRecordingFlusher(recorder, recordingDuration);
   }
 
-  private static LogRecordExporter createLogRecordExporter(Object configProperties) {
-    if (configProperties instanceof DeclarativeConfigProperties) {
-      DeclarativeConfigProperties exporterConfig =
-          ((DeclarativeConfigProperties) configProperties).getStructured("exporter", empty());
-      return LogExporterBuilder.fromConfig(exporterConfig);
-    }
-    if (configProperties instanceof ConfigProperties) {
-      return LogExporterBuilder.fromConfig((ConfigProperties) configProperties);
-    }
-    throw new IllegalArgumentException(
-        "Unsupported config properties type: " + configProperties.getClass().getName());
-  }
-
-  private Logger buildOtelLogger(LogRecordProcessor logProcessor, Resource resource) {
+  private io.opentelemetry.api.logs.Logger buildOtelLogger(
+      LogRecordProcessor logProcessor, Resource resource) {
     return SdkLoggerProvider.builder()
         .addLogRecordProcessor(logProcessor)
         .setResource(resource)
@@ -254,6 +158,42 @@ public class JfrActivator implements AgentListener {
     return new StackTraceFilter(eventReader, includeAgentInternalStacks, includeJVMInternalStacks);
   }
 
+  private static LogRecordExporter createLogRecordExporter(Object configProperties) {
+    if (configProperties instanceof DeclarativeConfigProperties) {
+      DeclarativeConfigProperties exporterConfig =
+          ((DeclarativeConfigProperties) configProperties).getStructured("exporter", empty());
+      return LogExporterBuilder.fromConfig(exporterConfig);
+    }
+    if (configProperties instanceof ConfigProperties) {
+      return LogExporterBuilder.fromConfig((ConfigProperties) configProperties);
+    }
+    throw new IllegalArgumentException(
+        "Unsupported config properties type: " + configProperties.getClass().getName());
+  }
+
+  private boolean checkOutputDir(Path outputDir) {
+    if (!Files.exists(outputDir)) {
+      // Try creating the directory for the user...
+      try {
+        Files.createDirectories(outputDir);
+      } catch (IOException e) {
+        outdirWarn(outputDir, "does not exist and could not be created");
+        return false;
+      }
+    }
+    if (!Files.isDirectory(outputDir)) {
+      outdirWarn(outputDir, "exists but is not a directory");
+      return false;
+    }
+
+    if (!Files.isWritable(outputDir)) {
+      outdirWarn(outputDir, "exists but is not writable");
+      return false;
+    }
+
+    return true;
+  }
+
   private Map<String, String> buildJfrSettings(ProfilerConfiguration config) {
     JfrSettingsReader settingsReader = new JfrSettingsReader();
     Map<String, String> jfrSettings = settingsReader.read();
@@ -261,7 +201,7 @@ public class JfrActivator implements AgentListener {
     return overrides.apply(jfrSettings);
   }
 
-  private static void setupContextStorage() {
-    ContextStorage.addWrapper(JfrContextStorage::new);
+  private void outdirWarn(Path dir, String suffix) {
+    logger.log(WARNING, "The configured output directory {0} {1}.", new Object[] {dir, suffix});
   }
 }

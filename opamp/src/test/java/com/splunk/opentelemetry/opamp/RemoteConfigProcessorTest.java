@@ -22,6 +22,7 @@ import static org.mockito.Mockito.verify;
 
 import io.opentelemetry.opamp.client.OpampClient;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 import okio.ByteString;
 import opamp.proto.AgentConfigFile;
 import opamp.proto.AgentConfigMap;
@@ -32,7 +33,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
 class RemoteConfigProcessorTest {
-  private final RemoteConfigProcessor handler = new RemoteConfigProcessor();
+  private final RemoteConfigProcessor handler = new RemoteConfigProcessor(new AtomicReference<>());
   private final OpampClient opampClient = org.mockito.Mockito.mock(OpampClient.class);
 
   @Test

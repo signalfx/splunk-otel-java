@@ -24,14 +24,16 @@ import io.opentelemetry.api.trace.TraceFlags;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.context.ContextStorage;
 import io.opentelemetry.context.Scope;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 import javax.annotation.Nullable;
 
 class JfrContextStorage implements ContextStorage {
-
   private final ContextStorage delegate;
   private final Function<SpanContext, ContextAttached> newEvent;
   private final ThreadLocal<Span> activeSpan = ThreadLocal.withInitial(Span::getInvalid);
+
+  private static final AtomicBoolean enabled = new AtomicBoolean(false);
 
   JfrContextStorage(ContextStorage delegate) {
     this(delegate, JfrContextStorage::newEvent);
@@ -41,6 +43,14 @@ class JfrContextStorage implements ContextStorage {
   JfrContextStorage(ContextStorage delegate, Function<SpanContext, ContextAttached> newEvent) {
     this.delegate = delegate;
     this.newEvent = newEvent;
+  }
+
+  public static void setEnabled(boolean enabled) {
+    JfrContextStorage.enabled.set(enabled);
+  }
+
+  public static boolean isEnabled() {
+    return enabled.get();
   }
 
   static ContextAttached newEvent(SpanContext spanContext) {
@@ -54,6 +64,9 @@ class JfrContextStorage implements ContextStorage {
   @Override
   public Scope attach(Context toAttach) {
     Scope delegatedScope = delegate.attach(toAttach);
+    if (!isEnabled()) {
+      return delegatedScope;
+    }
     Span span = Span.fromContext(toAttach);
     Span current = activeSpan.get();
     // do nothing when active span didn't change

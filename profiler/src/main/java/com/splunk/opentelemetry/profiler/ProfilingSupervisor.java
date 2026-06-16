@@ -21,6 +21,7 @@ import static java.util.logging.Level.FINE;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.splunk.opentelemetry.profiler.util.HelpfulExecutors;
+import com.splunk.opentelemetry.profiler.util.OptionalConfigurableSupplier;
 import io.opentelemetry.context.ContextStorage;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 import io.opentelemetry.sdk.resources.Resource;
@@ -38,13 +39,18 @@ public class ProfilingSupervisor {
     setupContextStorage();
   }
 
+  public static final OptionalConfigurableSupplier<ProfilingSupervisor> SUPPLIER =
+      new OptionalConfigurableSupplier<>();
   private static final java.util.logging.Logger logger =
       java.util.logging.Logger.getLogger(ProfilingSupervisor.class.getName());
+
   private final ProfilerConfiguration config;
   private final JFR jfr;
   private final AutoConfiguredOpenTelemetrySdk sdk;
   private final BlockingQueue<ProfilingCommand> commandQueue;
   private final AtomicReference<PeriodicRecordingFlusher> sequencer = new AtomicReference<>();
+  private static final AtomicReference<JfrContextStorage> jfrContextStorage =
+      new AtomicReference<>();
 
   @VisibleForTesting
   ProfilingSupervisor(
@@ -60,11 +66,15 @@ public class ProfilingSupervisor {
 
   static ProfilingSupervisor createAndStart(
       AutoConfiguredOpenTelemetrySdk sdk, ProfilerConfiguration config) {
+    if (SUPPLIER.isConfigured()) {
+      throw new IllegalStateException("Already started");
+    }
     ExecutorService executor = HelpfulExecutors.newSingleThreadExecutor("JFR Profiler");
-    // TODO: What if already started?
     BlockingQueue<ProfilingCommand> queue = new LinkedBlockingQueue<>();
     ProfilingSupervisor supervisor = new ProfilingSupervisor(config, JFR.getInstance(), sdk, queue);
+    SUPPLIER.configure(supervisor);
     supervisor.start(executor);
+
     return supervisor;
   }
 
@@ -103,14 +113,17 @@ public class ProfilingSupervisor {
         break;
       case STOP:
         // TODO: Build me
-        disableContextStorage();
+        setJfrContextStorageEnabled(false);
         logger.warning("ProfilingSupervisor STOP not yet implemented");
         break;
     }
   }
 
-  private void disableContextStorage() {
-    JfrContextStorage.setEnabled(false);
+  private void setJfrContextStorageEnabled(boolean enabled) {
+    JfrContextStorage contextStorage = jfrContextStorage.get();
+    if (contextStorage != null) {
+      contextStorage.setEnabled(enabled);
+    }
   }
 
   /**
@@ -129,12 +142,8 @@ public class ProfilingSupervisor {
     }
     config.log();
     logger.info("Profiler is active.");
-    enableContextStorage();
+    setJfrContextStorageEnabled(true);
     activateJfrAndRunUntilStopped(getResource(sdk));
-  }
-
-  private void enableContextStorage() {
-    JfrContextStorage.setEnabled(true);
   }
 
   private boolean alreadyRunning() {
@@ -155,7 +164,14 @@ public class ProfilingSupervisor {
   }
 
   private static void setupContextStorage() {
-    ContextStorage.addWrapper(JfrContextStorage::new);
+    if (JFR.getInstance().isAvailable()) {
+      ContextStorage.addWrapper(
+          (delegate) -> {
+            JfrContextStorage storage = new JfrContextStorage(delegate);
+            jfrContextStorage.set(storage);
+            return storage;
+          });
+    }
   }
 
   enum ProfilingCommand {

@@ -27,7 +27,6 @@ import io.opentelemetry.sdk.autoconfigure.declarativeconfig.DeclarativeConfigura
 import java.io.ByteArrayInputStream;
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Logger;
 import opamp.proto.AgentConfigFile;
 import opamp.proto.AgentRemoteConfig;
@@ -39,10 +38,10 @@ public class RemoteConfigProcessor {
 
   private static final String REMOTE_CONFIG_FILE_NAME = "splunk.remote.config";
 
-  public AtomicReference<ProfilingSupervisor> profilingSupervisor;
+  public ProfilingSupervisor profilingSupervisor;
 
-  public RemoteConfigProcessor(AtomicReference<ProfilingSupervisor> profilingSupervisor) {
-    this.profilingSupervisor = profilingSupervisor;
+  public RemoteConfigProcessor(ProfilingSupervisor profilingSupervisor) {
+    this.profilingSupervisor = Objects.requireNonNull(profilingSupervisor);
   }
 
   public void applyConfig(AgentRemoteConfig remoteConfig, OpampClient opampClient) {
@@ -75,9 +74,9 @@ public class RemoteConfigProcessor {
       //       configuration refactoring and some listeners implemented for profiler configuration
       //       changes. For POC use this temporary solution
       if (profilingConfig.isEnabled()) {
-        profilingSupervisor.get().requestStart();
+        profilingSupervisor.requestStart();
       } else {
-        profilingSupervisor.get().requestStop();
+        profilingSupervisor.requestStop();
       }
     }
 

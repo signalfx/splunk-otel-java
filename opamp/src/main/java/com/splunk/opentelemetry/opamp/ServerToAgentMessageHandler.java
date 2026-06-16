@@ -20,12 +20,11 @@ import com.google.common.annotations.VisibleForTesting;
 import com.splunk.opentelemetry.profiler.ProfilingSupervisor;
 import io.opentelemetry.opamp.client.OpampClient;
 import io.opentelemetry.opamp.client.internal.response.MessageData;
-import java.util.concurrent.atomic.AtomicReference;
 
 public class ServerToAgentMessageHandler {
   private final RemoteConfigProcessor remoteConfigProcessor;
 
-  public ServerToAgentMessageHandler(AtomicReference<ProfilingSupervisor> profilingSupervisor) {
+  public ServerToAgentMessageHandler(ProfilingSupervisor profilingSupervisor) {
     this(new RemoteConfigProcessor(profilingSupervisor));
   }
 

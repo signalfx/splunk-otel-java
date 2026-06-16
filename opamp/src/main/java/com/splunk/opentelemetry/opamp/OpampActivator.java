@@ -22,7 +22,7 @@ import static io.opentelemetry.sdk.autoconfigure.AutoConfigureUtil.getResource;
 import static java.util.logging.Level.WARNING;
 
 import com.google.auto.service.AutoService;
-import com.splunk.opentelemetry.profiler.JfrAgentListener;
+import com.splunk.opentelemetry.profiler.ProfilingSupervisor;
 import io.opentelemetry.javaagent.extension.AgentListener;
 import io.opentelemetry.opamp.client.OpampClient;
 import io.opentelemetry.opamp.client.OpampClientBuilder;
@@ -58,7 +58,7 @@ public class OpampActivator implements AgentListener {
     State.EffectiveConfig effectiveConfig = buildEffectiveConfig(effectiveConfigFactory);
 
     ServerToAgentMessageHandler serverToAgentMessageHandler =
-        new ServerToAgentMessageHandler(JfrAgentListener.profilingSupervisor);
+        new ServerToAgentMessageHandler(ProfilingSupervisor.SUPPLIER.get());
 
     OpampClient client =
         startOpampClient(

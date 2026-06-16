@@ -17,6 +17,7 @@
 package com.splunk.opentelemetry.helper;
 
 import java.time.Duration;
+import org.mockserver.client.MockServerClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testcontainers.DockerClientFactory;
@@ -54,7 +55,10 @@ public class LinuxTestContainerManager extends AbstractTestContainerManager {
     backend.start();
 
     hecBackend =
-        new GenericContainer<>(DockerImageName.parse("mockserver/mockserver:7.0.0"))
+        new GenericContainer<>(
+                DockerImageName.parse(
+                    "mockserver/mockserver:"
+                        + MockServerClient.class.getPackage().getImplementationVersion()))
             .withExposedPorts(HEC_BACKEND_PORT)
             .waitingFor(
                 Wait.forHttp("/mockserver/status").withMethod("PUT").forPort(HEC_BACKEND_PORT))

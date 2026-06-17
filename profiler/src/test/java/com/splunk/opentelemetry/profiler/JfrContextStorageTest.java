@@ -83,6 +83,7 @@ class JfrContextStorageTest {
     when(newEvent.apply(SpanContext.getInvalid())).thenReturn(outEvent);
 
     JfrContextStorage contextStorage = new JfrContextStorage(delegate, newEvent);
+    contextStorage.setEnabled(true);
 
     Scope resultScope = contextStorage.attach(newContext);
     verify(inEvent).begin();

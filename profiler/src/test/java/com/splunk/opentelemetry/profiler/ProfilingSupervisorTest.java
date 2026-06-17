@@ -21,6 +21,7 @@ import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -45,7 +46,7 @@ class ProfilingSupervisorTest {
   @Mock JFR jfr;
 
   TestProfilingConfig config;
-  TestRecordingSequencerBuilder builder;
+  TestPeriodicRecordingFlusherBuilder builder;
   AutoConfiguredOpenTelemetrySdk sdk;
   ExecutorService executor;
   ProfilingSupervisor supervisor;
@@ -54,7 +55,7 @@ class ProfilingSupervisorTest {
   void setUp(@TempDir Path tempDir) {
     config = new TestProfilingConfig();
     config.profilerDirectory = tempDir.toString();
-    builder = new TestRecordingSequencerBuilder(config, mock(Resource.class));
+    builder = new TestPeriodicRecordingFlusherBuilder(config, mock(Resource.class));
     executor = Executors.newSingleThreadExecutor();
     sdk =
         AutoConfiguredOpenTelemetrySdk.builder()
@@ -84,7 +85,7 @@ class ProfilingSupervisorTest {
   void requestStartDoesNotStartProfilerWhenJfrIsUnavailable() {
     when(jfr.isAvailable()).thenReturn(false);
 
-    supervisor.requestStart();
+    supervisor.requestStartProfiling();
 
     await().untilAsserted(() -> verify(jfr).isAvailable());
     assertThat(config.logCalled).isFalse();
@@ -93,67 +94,94 @@ class ProfilingSupervisorTest {
   }
 
   @Test
-  void requestStartBuildsAndStartsRecordingSequencer() {
+  void requestStartProfilingBuildsAndStartsRecordingSequencer() {
     config.stackDepth = 4321;
     config.recordingDuration = Duration.ofMinutes(1);
     when(jfr.isAvailable()).thenReturn(true);
 
-    supervisor.requestStart();
+    supervisor.requestStartProfiling();
 
     await().untilAsserted(() -> assertThat(builder.buildCalled).isTrue());
     assertThat(config.logCalled).isTrue();
     assertThat(builder.jfr).isSameAs(jfr);
     assertThat(builder.config).isSameAs(config);
     assertThat(builder.resource).isNotNull();
-    verify(builder.sequencer).start();
+    verify(builder.flusher).start();
   }
 
   @Test
-  void requestStartOnlyStartsOnce() {
+  void requestStartProfilingOnlyStartsOnce() {
     when(jfr.isAvailable()).thenReturn(true);
 
-    supervisor.requestStart();
+    supervisor.requestStartProfiling();
     await().untilAsserted(() -> assertThat(builder.buildCalled).isTrue());
-    supervisor.requestStart();
+    supervisor.requestStartProfiling();
 
-    await().during(Duration.ofMillis(200)).untilAsserted(() -> verify(builder.sequencer).start());
+    await().during(Duration.ofMillis(200)).untilAsserted(() -> verify(builder.flusher).start());
     assertThat(builder.buildCount).isEqualTo(1);
   }
 
+  @Test
+  void requestStopProfilingStopsActiveRecordingFlusher() {
+    when(jfr.isAvailable()).thenReturn(true);
+
+    supervisor.requestStartProfiling();
+    await().untilAsserted(() -> verify(builder.flusher).start());
+
+    supervisor.requestStopProfiling();
+
+    await().untilAsserted(() -> verify(builder.flusher).stop());
+  }
+
+  @Test
+  void requestStartProfilingCanStartAgainAfterStop() {
+    when(jfr.isAvailable()).thenReturn(true);
+
+    supervisor.requestStartProfiling();
+    await().untilAsserted(() -> verify(builder.flusher).start());
+    supervisor.requestStopProfiling();
+    await().untilAsserted(() -> verify(builder.flusher).stop());
+
+    supervisor.requestStartProfiling();
+
+    await().untilAsserted(() -> verify(builder.flusher, times(2)).start());
+    assertThat(builder.buildCount).isEqualTo(2);
+  }
+
   private static class TestProfilingSupervisor extends ProfilingSupervisor {
-    private final RecordingSequencerBuilder builder;
+    private final PeriodicRecordingFlusherBuilder builder;
 
     TestProfilingSupervisor(
         ProfilerConfiguration config,
         JFR jfr,
         AutoConfiguredOpenTelemetrySdk sdk,
-        RecordingSequencerBuilder builder) {
+        PeriodicRecordingFlusherBuilder builder) {
       super(config, jfr, sdk, new LinkedBlockingQueue<>());
       this.builder = builder;
     }
 
     @Override
-    RecordingSequencerBuilder makeRecordingSequencerBuilder(Resource resource) {
+    PeriodicRecordingFlusherBuilder makeRecordingFlusherBuilder(Resource resource) {
       return builder;
     }
   }
 
-  private static class TestRecordingSequencerBuilder extends RecordingSequencerBuilder {
-    final PeriodicRecordingFlusher sequencer = mock(PeriodicRecordingFlusher.class);
+  private static class TestPeriodicRecordingFlusherBuilder extends PeriodicRecordingFlusherBuilder {
+    final PeriodicRecordingFlusher flusher = mock(PeriodicRecordingFlusher.class);
     private final ProfilerConfiguration config;
     private final Resource resource;
     JFR jfr;
     boolean buildCalled;
     int buildCount;
 
-    public TestRecordingSequencerBuilder(ProfilerConfiguration config, Resource resource) {
+    public TestPeriodicRecordingFlusherBuilder(ProfilerConfiguration config, Resource resource) {
       super(config, resource);
       this.config = config;
       this.resource = resource;
     }
 
     @Override
-    RecordingSequencerBuilder jfr(JFR jfr) {
+    PeriodicRecordingFlusherBuilder jfr(JFR jfr) {
       this.jfr = jfr;
       return this;
     }
@@ -162,7 +190,7 @@ class ProfilingSupervisorTest {
     PeriodicRecordingFlusher build() {
       buildCalled = true;
       buildCount++;
-      return sequencer;
+      return flusher;
     }
   }
 }

@@ -78,7 +78,7 @@ class JfrAgentListenerTest {
     listener.afterAgent(sdk);
 
     // then
-    verify(supervisor).requestStart();
+    verify(supervisor).requestStartProfiling();
   }
 
   @Test

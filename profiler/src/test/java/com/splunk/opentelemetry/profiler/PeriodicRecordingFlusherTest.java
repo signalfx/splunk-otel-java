@@ -40,8 +40,8 @@ class PeriodicRecordingFlusherTest {
   @Test
   void canContinueNotStarted() {
     when(recorder.isStarted()).thenReturn(false);
-    PeriodicRecordingFlusher sequencer = buildSequencer();
-    sequencer.handleInterval();
+    PeriodicRecordingFlusher recordingFlusher = buildRecordingFlusher();
+    recordingFlusher.handleInterval();
     verify(recorder).start();
     verifyNoMoreInteractions(recorder);
   }
@@ -49,8 +49,8 @@ class PeriodicRecordingFlusherTest {
   @Test
   void canContinueAlreadyStarted() {
     when(recorder.isStarted()).thenReturn(true);
-    PeriodicRecordingFlusher sequencer = buildSequencer();
-    sequencer.handleInterval();
+    PeriodicRecordingFlusher recordingFlusher = buildRecordingFlusher();
+    recordingFlusher.handleInterval();
     verify(recorder).flushSnapshot();
     verifyNoMoreInteractions(recorder);
   }
@@ -59,16 +59,29 @@ class PeriodicRecordingFlusherTest {
   void startThroughFlushSequence() throws Exception {
     CountDownLatch latch = new CountDownLatch(3);
     recorder = new MockRecorder(latch);
-    PeriodicRecordingFlusher sequencer = buildSequencer();
-    sequencer.start();
+    PeriodicRecordingFlusher recordingFlusher = buildRecordingFlusher();
+    recordingFlusher.start();
     assertTrue(latch.await(5, SECONDS));
   }
 
-  private PeriodicRecordingFlusher buildSequencer() {
-    return buildSequencer(recorder);
+  @Test
+  void stopCancelsScheduledFutureAndStopsRecorder() {
+    @SuppressWarnings("unchecked")
+    PeriodicRecordingFlusher recordingFlusher = buildRecordingFlusher();
+
+    recordingFlusher.start();
+    recordingFlusher.stop();
+
+    verify(recorder).start();
+    verify(recorder).stop();
+    verifyNoMoreInteractions(recorder);
   }
 
-  private PeriodicRecordingFlusher buildSequencer(JfrRecorder recorder) {
+  private PeriodicRecordingFlusher buildRecordingFlusher() {
+    return buildRecordingFlusher(recorder);
+  }
+
+  private PeriodicRecordingFlusher buildRecordingFlusher(JfrRecorder recorder) {
     return new PeriodicRecordingFlusher(recorder, duration);
   }
 

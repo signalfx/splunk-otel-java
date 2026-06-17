@@ -37,6 +37,7 @@ public class RemoteConfigProcessor {
   private static final Logger logger = Logger.getLogger(RemoteConfigProcessor.class.getName());
 
   private static final String REMOTE_CONFIG_FILE_NAME = "splunk.remote.config";
+  private static final String PROFILING_NODE_NAME = "profiling";
 
   public ProfilingSupervisor profilingSupervisor;
 
@@ -60,24 +61,27 @@ public class RemoteConfigProcessor {
 
     // TODO: provide implementation
     DeclarativeConfigProperties remoteConfigProperties = toDeclarativeConfigProperties(configFile);
-    DeclarativeConfigProperties profilingConfigProperties =
+    DeclarativeConfigProperties splunkDistributionConfigProperties =
         remoteConfigProperties
             .getStructured("distribution", empty())
-            .getStructured("splunk", empty())
-            .getStructured("profiling");
+            .getStructured("splunk", empty());
 
     // Update profiler configuration only when profiling node exists
-    if (profilingConfigProperties != null) {
-      ProfilerDeclarativeConfiguration profilingConfig =
-          new ProfilerDeclarativeConfiguration(profilingConfigProperties);
-      // TODO: should be merged with current profiling config. Probably we will need profiler
-      //       configuration refactoring and some listeners implemented for profiler configuration
-      //       changes. For POC use this temporary solution
-      if (profilingConfig.isEnabled()) {
-        profilingSupervisor.requestStart();
-      } else {
-        profilingSupervisor.requestStop();
-      }
+    if (!splunkDistributionConfigProperties.getPropertyKeys().contains(PROFILING_NODE_NAME)) {
+      return;
+    }
+
+    DeclarativeConfigProperties profilingConfigProperties =
+        splunkDistributionConfigProperties.getStructured(PROFILING_NODE_NAME, empty());
+    ProfilerDeclarativeConfiguration profilingConfig =
+        new ProfilerDeclarativeConfiguration(profilingConfigProperties);
+    // TODO: should be merged with current profiling config. Probably we will need profiler
+    //       configuration refactoring and some listeners implemented for profiler configuration
+    //       changes. For POC use this temporary solution
+    if (profilingConfig.isEnabled()) {
+      profilingSupervisor.requestStartProfiling();
+    } else {
+      profilingSupervisor.requestStopProfiling();
     }
 
     // Confirm to the OpAMP Server that remote config has been applied.

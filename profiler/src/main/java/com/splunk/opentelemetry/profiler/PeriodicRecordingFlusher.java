@@ -23,6 +23,7 @@ import com.splunk.opentelemetry.profiler.util.HelpfulExecutors;
 import io.opentelemetry.sdk.resources.Resource;
 import java.time.Duration;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
@@ -34,6 +35,7 @@ class PeriodicRecordingFlusher {
       HelpfulExecutors.newSingleThreadedScheduledExecutor("JFR Recording Sequencer");
   private final Duration recordingDuration;
   private final JfrRecorder recorder;
+  private ScheduledFuture<?> scheduledFlushFuture = null;
 
   PeriodicRecordingFlusher(JfrRecorder recorder, Duration recordingDuration) {
     this.recordingDuration = recordingDuration;
@@ -42,8 +44,17 @@ class PeriodicRecordingFlusher {
 
   public void start() {
     recorder.start();
-    executor.scheduleAtFixedRate(
-        this::handleInterval, 0, recordingDuration.toMillis(), TimeUnit.MILLISECONDS);
+    scheduledFlushFuture =
+        executor.scheduleAtFixedRate(
+            this::handleInterval, 0, recordingDuration.toMillis(), TimeUnit.MILLISECONDS);
+  }
+
+  public void stop() {
+    if (scheduledFlushFuture != null) {
+      scheduledFlushFuture.cancel(true);
+      scheduledFlushFuture = null;
+    }
+    recorder.stop();
   }
 
   @VisibleForTesting
@@ -59,7 +70,8 @@ class PeriodicRecordingFlusher {
     }
   }
 
-  public static RecordingSequencerBuilder builder(ProfilerConfiguration config, Resource resource) {
-    return new RecordingSequencerBuilder(config, resource);
+  public static PeriodicRecordingFlusherBuilder builder(
+      ProfilerConfiguration config, Resource resource) {
+    return new PeriodicRecordingFlusherBuilder(config, resource);
   }
 }

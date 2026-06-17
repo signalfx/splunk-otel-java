@@ -48,7 +48,7 @@ public class JfrAgentListener implements AgentListener {
     if (notClearForTakeoff(config)) {
       return;
     }
-    supervisor.requestStart();
+    supervisor.requestStartProfiling();
   }
 
   // Exists for testing

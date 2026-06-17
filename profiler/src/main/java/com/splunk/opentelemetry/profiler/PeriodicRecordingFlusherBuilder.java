@@ -38,20 +38,20 @@ import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.Map;
 
-class RecordingSequencerBuilder {
+class PeriodicRecordingFlusherBuilder {
   private static final java.util.logging.Logger logger =
-      java.util.logging.Logger.getLogger(RecordingSequencerBuilder.class.getName());
+      java.util.logging.Logger.getLogger(PeriodicRecordingFlusherBuilder.class.getName());
   private final ProfilerConfiguration config;
   private final Resource resource;
 
   private JFR jfr;
 
-  public RecordingSequencerBuilder(ProfilerConfiguration config, Resource resource) {
+  public PeriodicRecordingFlusherBuilder(ProfilerConfiguration config, Resource resource) {
     this.config = config;
     this.resource = resource;
   }
 
-  RecordingSequencerBuilder jfr(JFR jfr) {
+  PeriodicRecordingFlusherBuilder jfr(JFR jfr) {
     this.jfr = jfr;
     return this;
   }

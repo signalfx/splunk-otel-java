@@ -59,7 +59,6 @@ public class RemoteConfigProcessor {
       return;
     }
 
-    // TODO: provide implementation
     DeclarativeConfigProperties remoteConfigProperties = toDeclarativeConfigProperties(configFile);
     DeclarativeConfigProperties splunkDistributionConfigProperties =
         remoteConfigProperties
@@ -67,21 +66,19 @@ public class RemoteConfigProcessor {
             .getStructured("splunk", empty());
 
     // Update profiler configuration only when profiling node exists
-    if (!splunkDistributionConfigProperties.getPropertyKeys().contains(PROFILING_NODE_NAME)) {
-      return;
-    }
-
-    DeclarativeConfigProperties profilingConfigProperties =
-        splunkDistributionConfigProperties.getStructured(PROFILING_NODE_NAME, empty());
-    ProfilerDeclarativeConfiguration profilingConfig =
-        new ProfilerDeclarativeConfiguration(profilingConfigProperties);
-    // TODO: should be merged with current profiling config. Probably we will need profiler
-    //       configuration refactoring and some listeners implemented for profiler configuration
-    //       changes. For POC use this temporary solution
-    if (profilingConfig.isEnabled()) {
-      profilingSupervisor.requestStartProfiling();
-    } else {
-      profilingSupervisor.requestStopProfiling();
+    if (splunkDistributionConfigProperties.getPropertyKeys().contains(PROFILING_NODE_NAME)) {
+      DeclarativeConfigProperties profilingConfigProperties =
+          splunkDistributionConfigProperties.getStructured(PROFILING_NODE_NAME, empty());
+      ProfilerDeclarativeConfiguration profilingConfig =
+          new ProfilerDeclarativeConfiguration(profilingConfigProperties);
+      // TODO: should be merged with current profiling config. Probably we will need profiler
+      //       configuration refactoring and some listeners implemented for profiler configuration
+      //       changes. For POC use this temporary solution
+      if (profilingConfig.isEnabled()) {
+        profilingSupervisor.requestStartProfiling();
+      } else {
+        profilingSupervisor.requestStopProfiling();
+      }
     }
 
     // Confirm to the OpAMP Server that remote config has been applied.

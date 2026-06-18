@@ -28,6 +28,7 @@ import io.opentelemetry.sdk.resources.Resource;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -35,10 +36,6 @@ import java.util.concurrent.atomic.AtomicReference;
  * running.
  */
 public class ProfilingSupervisor {
-  static {
-    setupContextStorage();
-  }
-
   public static final OptionalConfigurableSupplier<ProfilingSupervisor> SUPPLIER =
       new OptionalConfigurableSupplier<>();
   private static final java.util.logging.Logger logger =
@@ -52,6 +49,7 @@ public class ProfilingSupervisor {
       new AtomicReference<>();
   private static final AtomicReference<JfrContextStorage> jfrContextStorage =
       new AtomicReference<>();
+  private static final AtomicBoolean contextStorageSetup = new AtomicBoolean();
 
   @VisibleForTesting
   ProfilingSupervisor(
@@ -178,15 +176,17 @@ public class ProfilingSupervisor {
     return PeriodicRecordingFlusher.builder(config, resource);
   }
 
-  private static void setupContextStorage() {
-    if (JFR.getInstance().isAvailable()) {
-      ContextStorage.addWrapper(
-          (delegate) -> {
-            JfrContextStorage storage = new JfrContextStorage(delegate);
-            jfrContextStorage.set(storage);
-            return storage;
-          });
+  static void setupJfrContextStorage() {
+    if (!contextStorageSetup.compareAndSet(false, true)) {
+      return;
     }
+
+    ContextStorage.addWrapper(
+        (delegate) -> {
+          JfrContextStorage storage = new JfrContextStorage(delegate);
+          jfrContextStorage.set(storage);
+          return storage;
+        });
   }
 
   enum ProfilingCommand {

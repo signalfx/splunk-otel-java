@@ -32,7 +32,7 @@ class PeriodicRecordingFlusher {
   private static final Logger logger = Logger.getLogger(PeriodicRecordingFlusher.class.getName());
 
   private final ScheduledExecutorService executor =
-      HelpfulExecutors.newSingleThreadedScheduledExecutor("JFR Recording Sequencer");
+      HelpfulExecutors.newSingleThreadedScheduledExecutor("JFR Recording Flusher");
   private final Duration recordingDuration;
   private final JfrRecorder recorder;
   private ScheduledFuture<?> scheduledFlushFuture = null;
@@ -50,11 +50,11 @@ class PeriodicRecordingFlusher {
   }
 
   public void stop() {
+    recorder.stop();
     if (scheduledFlushFuture != null) {
       scheduledFlushFuture.cancel(true);
       scheduledFlushFuture = null;
     }
-    recorder.stop();
   }
 
   @VisibleForTesting

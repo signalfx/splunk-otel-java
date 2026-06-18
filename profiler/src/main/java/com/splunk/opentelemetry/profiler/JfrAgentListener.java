@@ -42,7 +42,7 @@ public class JfrAgentListener implements AgentListener {
   public void afterAgent(AutoConfiguredOpenTelemetrySdk sdk) {
 
     ProfilerConfiguration config = getProfilerConfiguration(sdk);
-    // Always start the supervisor, because we may need to start it later elsewhere.
+    // Always start the supervisor, so it can start profiling later elsewhere.
     ProfilingSupervisor supervisor = makeProfilingSupervisor(sdk, config);
 
     if (notClearForTakeoff(config)) {

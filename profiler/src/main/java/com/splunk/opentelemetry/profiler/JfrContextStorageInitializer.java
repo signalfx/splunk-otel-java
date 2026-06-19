@@ -32,16 +32,22 @@ public final class JfrContextStorageInitializer
 
   @Override
   public void customize(@NonNull AutoConfigurationCustomizer autoConfiguration) {
-    ProfilingSupervisor.setupJfrContextStorage();
+    setupJfrContextStorage();
   }
 
   @Override
   public void customize(DeclarativeConfigurationCustomizer configurationCustomizer) {
-    ProfilingSupervisor.setupJfrContextStorage();
+    setupJfrContextStorage();
   }
 
   @Override
   public int order() {
     return Integer.MIN_VALUE;
+  }
+
+  private void setupJfrContextStorage() {
+    if (JFR.getInstance().isAvailable()) {
+      ProfilingSupervisor.setupJfrContextStorage();
+    }
   }
 }

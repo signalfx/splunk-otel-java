@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package com.splunk.opentelemetry.opamp;
+package com.splunk.opentelemetry.opamp.effectiveconfig;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.splunk.opentelemetry.opamp.DeclarativeConfigurationInterceptor;
 import com.splunk.opentelemetry.profiler.ProfilerConfiguration;
 import com.splunk.opentelemetry.profiler.ProfilerDeclarativeConfiguration;
 import com.splunk.opentelemetry.profiler.snapshot.SnapshotProfilingConfiguration;

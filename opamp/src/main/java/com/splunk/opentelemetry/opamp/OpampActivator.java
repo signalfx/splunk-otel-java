@@ -17,11 +17,12 @@
 package com.splunk.opentelemetry.opamp;
 
 import static io.opentelemetry.opamp.client.internal.request.service.HttpRequestService.DEFAULT_DELAY_BETWEEN_RETRIES;
-import static io.opentelemetry.sdk.autoconfigure.AutoConfigureUtil.getConfig;
 import static io.opentelemetry.sdk.autoconfigure.AutoConfigureUtil.getResource;
 import static java.util.logging.Level.WARNING;
 
 import com.google.auto.service.AutoService;
+import com.splunk.opentelemetry.opamp.effectiveconfig.EffectiveConfigReporter;
+import com.splunk.opentelemetry.opamp.effectiveconfig.UpdatableEffectiveConfigState;
 import com.splunk.opentelemetry.profiler.ProfilingSupervisor;
 import io.opentelemetry.javaagent.extension.AgentListener;
 import io.opentelemetry.opamp.client.OpampClient;
@@ -31,7 +32,6 @@ import io.opentelemetry.opamp.client.internal.request.delay.PeriodicDelay;
 import io.opentelemetry.opamp.client.internal.request.service.HttpRequestService;
 import io.opentelemetry.opamp.client.internal.response.MessageData;
 import io.opentelemetry.opamp.client.internal.state.State;
-import io.opentelemetry.sdk.autoconfigure.AutoConfigureUtil;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 import io.opentelemetry.sdk.resources.Resource;
 import java.io.IOException;
@@ -53,18 +53,19 @@ public class OpampActivator implements AgentListener {
     }
 
     Resource resource = getResource(autoConfiguredOpenTelemetrySdk);
-    EffectiveConfigFactory effectiveConfigFactory =
-        createEffectiveConfigFactory(autoConfiguredOpenTelemetrySdk);
-    State.EffectiveConfig effectiveConfig = buildEffectiveConfig(effectiveConfigFactory);
+    UpdatableEffectiveConfigState effectiveConfigState = new UpdatableEffectiveConfigState();
+    EffectiveConfigReporter effectiveConfigReporter =
+        EffectiveConfigReporter.create(autoConfiguredOpenTelemetrySdk, effectiveConfigState);
+    effectiveConfigReporter.reportEffectiveConfigIfChanged();
 
     ServerToAgentMessageHandler serverToAgentMessageHandler =
-        new ServerToAgentMessageHandler(ProfilingSupervisor.SUPPLIER.get());
+        new ServerToAgentMessageHandler(ProfilingSupervisor.SUPPLIER.get(), effectiveConfigReporter);
 
     OpampClient client =
         startOpampClient(
             opampClientConfiguration,
             resource,
-            effectiveConfig,
+            effectiveConfigState,
             new OpampClient.Callbacks() {
               @Override
               public void onConnect(OpampClient opampClient) {
@@ -106,13 +107,6 @@ public class OpampActivator implements AgentListener {
     return Integer.MAX_VALUE;
   }
 
-  private EffectiveConfigFactory createEffectiveConfigFactory(AutoConfiguredOpenTelemetrySdk sdk) {
-    if (AutoConfigureUtil.isDeclarativeConfig(sdk)) {
-      return new DeclarativeEffectiveConfigFileFactory();
-    }
-    return new EnvVarsEffectiveConfigFileFactory(getConfig(sdk));
-  }
-
   static OpampClient startOpampClient(
       OpampClientConfiguration opampClientConfiguration,
       Resource resource,
@@ -140,14 +134,5 @@ public class OpampActivator implements AgentListener {
 
     builder.setEffectiveConfigState(effectiveConfig);
     return builder.build(callbacks);
-  }
-
-  static State.EffectiveConfig buildEffectiveConfig(EffectiveConfigFactory effectiveConfigFactory) {
-    return new State.EffectiveConfig() {
-      @Override
-      public opamp.proto.EffectiveConfig get() {
-        return new opamp.proto.EffectiveConfig(effectiveConfigFactory.createEffectiveConfigMap());
-      }
-    };
   }
 }

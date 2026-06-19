@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.splunk.opentelemetry.opamp;
+package com.splunk.opentelemetry.opamp.effectiveconfig;
 
 import static io.opentelemetry.api.incubator.config.DeclarativeConfigProperties.empty;
 import static io.opentelemetry.sdk.autoconfigure.AutoConfigureUtil.getDistributionConfig;
@@ -22,6 +22,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
+import com.splunk.opentelemetry.opamp.DeclarativeConfigurationInterceptor;
 import com.splunk.opentelemetry.profiler.ProfilerConfiguration;
 import com.splunk.opentelemetry.profiler.ProfilerDeclarativeConfiguration;
 import com.splunk.opentelemetry.profiler.snapshot.SnapshotProfilingConfiguration;

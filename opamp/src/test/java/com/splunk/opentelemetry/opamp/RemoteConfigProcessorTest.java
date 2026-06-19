@@ -21,6 +21,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
+import com.splunk.opentelemetry.opamp.effectiveconfig.EffectiveConfigReporter;
 import io.opentelemetry.opamp.client.OpampClient;
 import java.util.Map;
 import okio.ByteString;
@@ -29,12 +30,23 @@ import opamp.proto.AgentConfigMap;
 import opamp.proto.AgentRemoteConfig;
 import opamp.proto.RemoteConfigStatus;
 import opamp.proto.RemoteConfigStatuses;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
+@ExtendWith(MockitoExtension.class)
 class RemoteConfigProcessorTest {
-  private final RemoteConfigProcessor handler = new RemoteConfigProcessor(mock());
-  private final OpampClient opampClient = mock(OpampClient.class);
+  @Mock EffectiveConfigReporter effectiveConfigReporter;
+  @Mock OpampClient opampClient;
+  private RemoteConfigProcessor handler;
+
+  @BeforeEach
+  void setUp() {
+    handler = new RemoteConfigProcessor(mock(), effectiveConfigReporter);
+  }
 
   @Test
   void shouldMarkRemoteConfigAsApplied() {
@@ -60,6 +72,7 @@ class RemoteConfigProcessorTest {
     RemoteConfigStatus status = statusCaptor.getValue();
     assertThat(status.last_remote_config_hash).isEqualTo(configHash);
     assertThat(status.status).isEqualTo(RemoteConfigStatuses.RemoteConfigStatuses_APPLIED);
+    verify(effectiveConfigReporter).reportEffectiveConfigIfChanged();
   }
 
   @Test

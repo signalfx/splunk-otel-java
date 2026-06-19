@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.splunk.opentelemetry.opamp;
+package com.splunk.opentelemetry.opamp.effectiveconfig;
 
 import com.splunk.opentelemetry.profiler.ProfilerConfiguration;
 import com.splunk.opentelemetry.profiler.ProfilerEnvVarsConfiguration;

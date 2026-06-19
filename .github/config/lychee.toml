@@ -17,3 +17,7 @@ exclude = [
   '^http://localhost.*',
   '^https://central.sonatype.com/service/rest/repository/browse/maven-snapshots/com/splunk/',
 ]
+
+exclude_path = [
+  'licenses/licenses.md'
+]

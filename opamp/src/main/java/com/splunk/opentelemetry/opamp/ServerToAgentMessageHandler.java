@@ -25,8 +25,8 @@ import io.opentelemetry.opamp.client.internal.response.MessageData;
 public class ServerToAgentMessageHandler {
   private final RemoteConfigProcessor remoteConfigProcessor;
 
-  public ServerToAgentMessageHandler(ProfilingSupervisor profilingSupervisor,
-      EffectiveConfigReporter effectiveConfigReporter) {
+  public ServerToAgentMessageHandler(
+      ProfilingSupervisor profilingSupervisor, EffectiveConfigReporter effectiveConfigReporter) {
     this(new RemoteConfigProcessor(profilingSupervisor, effectiveConfigReporter));
   }
 

@@ -59,7 +59,8 @@ public class OpampActivator implements AgentListener {
     effectiveConfigReporter.reportEffectiveConfigIfChanged();
 
     ServerToAgentMessageHandler serverToAgentMessageHandler =
-        new ServerToAgentMessageHandler(ProfilingSupervisor.SUPPLIER.get(), effectiveConfigReporter);
+        new ServerToAgentMessageHandler(
+            ProfilingSupervisor.SUPPLIER.get(), effectiveConfigReporter);
 
     OpampClient client =
         startOpampClient(

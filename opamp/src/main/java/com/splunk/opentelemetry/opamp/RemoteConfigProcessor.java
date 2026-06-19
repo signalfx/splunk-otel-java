@@ -43,8 +43,8 @@ public class RemoteConfigProcessor {
   private final ProfilingSupervisor profilingSupervisor;
   private final EffectiveConfigReporter effectiveConfigReporter;
 
-  public RemoteConfigProcessor(ProfilingSupervisor profilingSupervisor,
-      EffectiveConfigReporter effectiveConfigReporter) {
+  public RemoteConfigProcessor(
+      ProfilingSupervisor profilingSupervisor, EffectiveConfigReporter effectiveConfigReporter) {
     this.profilingSupervisor = Objects.requireNonNull(profilingSupervisor);
     this.effectiveConfigReporter = effectiveConfigReporter;
   }

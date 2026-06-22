@@ -16,7 +16,15 @@
 
 package com.splunk.opentelemetry.opamp;
 
+import static io.opentelemetry.api.incubator.config.DeclarativeConfigProperties.empty;
+
+import com.google.common.annotations.VisibleForTesting;
+import com.splunk.opentelemetry.profiler.ProfilerDeclarativeConfiguration;
+import com.splunk.opentelemetry.profiler.ProfilingSupervisor;
+import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
 import io.opentelemetry.opamp.client.OpampClient;
+import io.opentelemetry.sdk.autoconfigure.declarativeconfig.DeclarativeConfiguration;
+import java.io.ByteArrayInputStream;
 import java.util.Map;
 import java.util.Objects;
 import java.util.logging.Logger;
@@ -29,6 +37,13 @@ public class RemoteConfigProcessor {
   private static final Logger logger = Logger.getLogger(RemoteConfigProcessor.class.getName());
 
   private static final String REMOTE_CONFIG_FILE_NAME = "splunk.remote.config";
+  private static final String PROFILING_NODE_NAME = "profiling";
+
+  public ProfilingSupervisor profilingSupervisor;
+
+  public RemoteConfigProcessor(ProfilingSupervisor profilingSupervisor) {
+    this.profilingSupervisor = Objects.requireNonNull(profilingSupervisor);
+  }
 
   public void applyConfig(AgentRemoteConfig remoteConfig, OpampClient opampClient) {
     Objects.requireNonNull(opampClient);
@@ -44,7 +59,27 @@ public class RemoteConfigProcessor {
       return;
     }
 
-    // TODO: provide implementation
+    DeclarativeConfigProperties remoteConfigProperties = toDeclarativeConfigProperties(configFile);
+    DeclarativeConfigProperties splunkDistributionConfigProperties =
+        remoteConfigProperties
+            .getStructured("distribution", empty())
+            .getStructured("splunk", empty());
+
+    // Update profiler configuration only when profiling node exists
+    if (splunkDistributionConfigProperties.getPropertyKeys().contains(PROFILING_NODE_NAME)) {
+      DeclarativeConfigProperties profilingConfigProperties =
+          splunkDistributionConfigProperties.getStructured(PROFILING_NODE_NAME, empty());
+      ProfilerDeclarativeConfiguration profilingConfig =
+          new ProfilerDeclarativeConfiguration(profilingConfigProperties);
+      // TODO: should be merged with current profiling config. Probably we will need profiler
+      //       configuration refactoring and some listeners implemented for profiler configuration
+      //       changes. For POC use this temporary solution
+      if (profilingConfig.isEnabled()) {
+        profilingSupervisor.requestStartProfiling();
+      } else {
+        profilingSupervisor.requestStopProfiling();
+      }
+    }
 
     // Confirm to the OpAMP Server that remote config has been applied.
     opampClient.setRemoteConfigStatus(
@@ -52,5 +87,11 @@ public class RemoteConfigProcessor {
             .last_remote_config_hash(remoteConfig.config_hash)
             .status(RemoteConfigStatuses.RemoteConfigStatuses_APPLIED)
             .build());
+  }
+
+  @VisibleForTesting
+  static DeclarativeConfigProperties toDeclarativeConfigProperties(AgentConfigFile configFile) {
+    return DeclarativeConfiguration.toConfigProperties(
+        new ByteArrayInputStream(configFile.body.toByteArray()));
   }
 }

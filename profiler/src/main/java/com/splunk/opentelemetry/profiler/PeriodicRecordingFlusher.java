@@ -20,29 +20,41 @@ import static java.util.logging.Level.SEVERE;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.splunk.opentelemetry.profiler.util.HelpfulExecutors;
+import io.opentelemetry.sdk.resources.Resource;
 import java.time.Duration;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
 /** Responsible for periodically generating a sequence of JFR recordings. */
-class RecordingSequencer {
-  private static final Logger logger = Logger.getLogger(RecordingSequencer.class.getName());
+class PeriodicRecordingFlusher {
+  private static final Logger logger = Logger.getLogger(PeriodicRecordingFlusher.class.getName());
 
   private final ScheduledExecutorService executor =
-      HelpfulExecutors.newSingleThreadedScheduledExecutor("JFR Recording Sequencer");
+      HelpfulExecutors.newSingleThreadedScheduledExecutor("JFR Recording Flusher");
   private final Duration recordingDuration;
   private final JfrRecorder recorder;
+  private ScheduledFuture<?> scheduledFlushFuture = null;
 
-  private RecordingSequencer(Builder builder) {
-    this.recordingDuration = builder.recordingDuration;
-    this.recorder = builder.recorder;
+  PeriodicRecordingFlusher(JfrRecorder recorder, Duration recordingDuration) {
+    this.recordingDuration = recordingDuration;
+    this.recorder = recorder;
   }
 
   public void start() {
     recorder.start();
-    executor.scheduleAtFixedRate(
-        this::handleInterval, 0, recordingDuration.toMillis(), TimeUnit.MILLISECONDS);
+    scheduledFlushFuture =
+        executor.scheduleAtFixedRate(
+            this::handleInterval, 0, recordingDuration.toMillis(), TimeUnit.MILLISECONDS);
+  }
+
+  public void stop() {
+    recorder.stop();
+    if (scheduledFlushFuture != null) {
+      scheduledFlushFuture.cancel(false);
+      scheduledFlushFuture = null;
+    }
   }
 
   @VisibleForTesting
@@ -58,26 +70,8 @@ class RecordingSequencer {
     }
   }
 
-  public static Builder builder() {
-    return new Builder();
-  }
-
-  public static class Builder {
-    private Duration recordingDuration;
-    private JfrRecorder recorder;
-
-    public Builder recordingDuration(Duration duration) {
-      this.recordingDuration = duration;
-      return this;
-    }
-
-    public Builder recorder(JfrRecorder recorder) {
-      this.recorder = recorder;
-      return this;
-    }
-
-    public RecordingSequencer build() {
-      return new RecordingSequencer(this);
-    }
+  public static PeriodicRecordingFlusherBuilder builder(
+      ProfilerConfiguration config, Resource resource) {
+    return new PeriodicRecordingFlusherBuilder(config, resource);
   }
 }

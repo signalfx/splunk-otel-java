@@ -17,14 +17,15 @@
 package com.splunk.opentelemetry.opamp;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.splunk.opentelemetry.profiler.ProfilingSupervisor;
 import io.opentelemetry.opamp.client.OpampClient;
 import io.opentelemetry.opamp.client.internal.response.MessageData;
 
 public class ServerToAgentMessageHandler {
   private final RemoteConfigProcessor remoteConfigProcessor;
 
-  public ServerToAgentMessageHandler() {
-    this(new RemoteConfigProcessor());
+  public ServerToAgentMessageHandler(ProfilingSupervisor profilingSupervisor) {
+    this(new RemoteConfigProcessor(profilingSupervisor));
   }
 
   @VisibleForTesting

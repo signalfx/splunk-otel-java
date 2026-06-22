@@ -66,6 +66,17 @@ class JfrRecorderTest {
   }
 
   @Test
+  void testStop() {
+    JfrRecorder jfrRecorder = buildJfrRecorder(mock(JFR.class));
+    jfrRecorder.start();
+    when(recording.getState()).thenReturn(RecordingState.RUNNING);
+
+    jfrRecorder.stop();
+
+    verify(recording).stop();
+  }
+
+  @Test
   void testFlushSnapshot() throws Exception {
     JFR jfr = mock(JFR.class);
     Recording snap = mock(Recording.class);
@@ -105,8 +116,11 @@ class JfrRecorderTest {
     JFR jfr = mock(JFR.class);
     JfrRecorder jfrRecorder = buildJfrRecorder(jfr);
     assertFalse(jfrRecorder.isStarted());
+
     jfrRecorder.start();
     verify(recording, never()).stop();
+
+    when(recording.getState()).thenReturn(RecordingState.RUNNING);
     jfrRecorder.stop();
     verify(recording).stop();
     assertFalse(jfrRecorder.isStarted());

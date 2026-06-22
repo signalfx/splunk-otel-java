@@ -17,6 +17,7 @@
 package com.splunk.opentelemetry.opamp;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
@@ -32,19 +33,22 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
 class RemoteConfigProcessorTest {
-  private final RemoteConfigProcessor handler = new RemoteConfigProcessor();
-  private final OpampClient opampClient = org.mockito.Mockito.mock(OpampClient.class);
+  private final RemoteConfigProcessor handler = new RemoteConfigProcessor(mock());
+  private final OpampClient opampClient = mock(OpampClient.class);
 
   @Test
   void shouldMarkRemoteConfigAsApplied() {
     // given
+    String remoteConfigYaml = "test-config:";
     ByteString configHash = ByteString.encodeUtf8("test-config-hash");
     AgentRemoteConfig remoteConfig =
         createRemoteConfig(
             configHash,
             Map.of(
                 "splunk.remote.config",
-                new AgentConfigFile.Builder().body(ByteString.encodeUtf8("test-config")).build()));
+                new AgentConfigFile.Builder()
+                    .body(ByteString.encodeUtf8(remoteConfigYaml))
+                    .build()));
 
     // when
     handler.applyConfig(remoteConfig, opampClient);

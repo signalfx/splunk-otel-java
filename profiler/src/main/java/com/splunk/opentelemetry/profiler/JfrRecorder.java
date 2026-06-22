@@ -60,6 +60,9 @@ class JfrRecorder {
   }
 
   public void start() {
+    if (isStarted()) {
+      throw new IllegalStateException("Already started");
+    }
     logger.fine("Profiler is starting a JFR recording");
     recording = newRecording();
     recording.setSettings(settings);
@@ -68,6 +71,13 @@ class JfrRecorder {
     recording.setDuration(null); // record forever
     recording.setMaxAge(maxAgeDuration);
     recording.start();
+  }
+
+  public void stop() {
+    if (isStarted()) {
+      recording.stop();
+    }
+    recording = null;
   }
 
   @VisibleForTesting
@@ -117,11 +127,6 @@ class JfrRecorder {
 
   public boolean isStarted() {
     return (recording != null) && RecordingState.RUNNING.equals(recording.getState());
-  }
-
-  public void stop() {
-    recording.stop();
-    recording = null;
   }
 
   public static Builder builder() {

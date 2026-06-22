@@ -28,10 +28,11 @@ import java.util.function.Function;
 import javax.annotation.Nullable;
 
 class JfrContextStorage implements ContextStorage {
-
   private final ContextStorage delegate;
   private final Function<SpanContext, ContextAttached> newEvent;
   private final ThreadLocal<Span> activeSpan = ThreadLocal.withInitial(Span::getInvalid);
+
+  private volatile boolean enabled = false;
 
   JfrContextStorage(ContextStorage delegate) {
     this(delegate, JfrContextStorage::newEvent);
@@ -41,6 +42,14 @@ class JfrContextStorage implements ContextStorage {
   JfrContextStorage(ContextStorage delegate, Function<SpanContext, ContextAttached> newEvent) {
     this.delegate = delegate;
     this.newEvent = newEvent;
+  }
+
+  public void setEnabled(boolean enabled) {
+    this.enabled = enabled;
+  }
+
+  public boolean isEnabled() {
+    return enabled;
   }
 
   static ContextAttached newEvent(SpanContext spanContext) {
@@ -54,6 +63,9 @@ class JfrContextStorage implements ContextStorage {
   @Override
   public Scope attach(Context toAttach) {
     Scope delegatedScope = delegate.attach(toAttach);
+    if (!isEnabled()) {
+      return delegatedScope;
+    }
     Span span = Span.fromContext(toAttach);
     Span current = activeSpan.get();
     // do nothing when active span didn't change

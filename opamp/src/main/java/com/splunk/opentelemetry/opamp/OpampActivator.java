@@ -141,15 +141,6 @@ public class OpampActivator implements AgentListener {
     return builder.build(callbacks);
   }
 
-  static State.EffectiveConfig buildEffectiveConfig(EffectiveConfigFactory effectiveConfigFactory) {
-    return new State.EffectiveConfig() {
-      @Override
-      public opamp.proto.EffectiveConfig get() {
-        return new opamp.proto.EffectiveConfig(effectiveConfigFactory.createEffectiveConfigMap());
-      }
-    };
-  }
-
   private static ComponentHealth createInitialHealthReport() {
     Instant now = Instant.now();
     long nowNanos = now.getEpochSecond() * 1_000_000_000L + now.getNano();

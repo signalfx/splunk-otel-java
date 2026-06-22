@@ -52,7 +52,7 @@ class PeriodicRecordingFlusher {
   public void stop() {
     recorder.stop();
     if (scheduledFlushFuture != null) {
-      scheduledFlushFuture.cancel(true);
+      scheduledFlushFuture.cancel(false);
       scheduledFlushFuture = null;
     }
   }

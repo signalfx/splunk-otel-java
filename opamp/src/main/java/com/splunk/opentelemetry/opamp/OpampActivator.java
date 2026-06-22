@@ -36,7 +36,9 @@ import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 import io.opentelemetry.sdk.resources.Resource;
 import java.io.IOException;
 import java.time.Duration;
+import java.time.Instant;
 import java.util.logging.Logger;
+import opamp.proto.ComponentHealth;
 import opamp.proto.ServerErrorResponse;
 import org.jetbrains.annotations.Nullable;
 
@@ -134,6 +136,28 @@ public class OpampActivator implements AgentListener {
     agentAttributes.addNonIdentifyingAttributes(builder);
 
     builder.setEffectiveConfigState(effectiveConfig);
+    builder.enableHealthReporting(createInitialHealthReport());
+
     return builder.build(callbacks);
+  }
+
+  static State.EffectiveConfig buildEffectiveConfig(EffectiveConfigFactory effectiveConfigFactory) {
+    return new State.EffectiveConfig() {
+      @Override
+      public opamp.proto.EffectiveConfig get() {
+        return new opamp.proto.EffectiveConfig(effectiveConfigFactory.createEffectiveConfigMap());
+      }
+    };
+  }
+
+  private static ComponentHealth createInitialHealthReport() {
+    Instant now = Instant.now();
+    long nowNanos = now.getEpochSecond() * 1_000_000_000L + now.getNano();
+    return new ComponentHealth.Builder()
+        .healthy(true)
+        .status("OK")
+        .start_time_unix_nano(nowNanos)
+        .status_time_unix_nano(nowNanos)
+        .build();
   }
 }

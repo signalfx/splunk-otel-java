@@ -75,6 +75,9 @@ public class RemoteConfigProcessor {
           splunkDistributionConfigProperties.getStructured(PROFILING_NODE_NAME, empty());
       ProfilerDeclarativeConfiguration profilingConfig =
           new ProfilerDeclarativeConfiguration(profilingConfigProperties);
+      // TODO: should be merged with current profiling config. Probably we will need profiler
+      //       configuration refactoring and some listeners implemented for profiler configuration
+      //       changes. For POC use this temporary solution
       if (profilingConfig.isEnabled()) {
         profilingSupervisor.requestStartProfiling();
       } else {

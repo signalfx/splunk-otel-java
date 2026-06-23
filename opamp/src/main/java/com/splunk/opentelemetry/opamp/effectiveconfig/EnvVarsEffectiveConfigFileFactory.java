@@ -17,7 +17,6 @@
 package com.splunk.opentelemetry.opamp.effectiveconfig;
 
 import com.splunk.opentelemetry.profiler.ProfilerConfiguration;
-import com.splunk.opentelemetry.profiler.ProfilerEnvVarsConfiguration;
 import com.splunk.opentelemetry.profiler.snapshot.SnapshotProfilingConfiguration;
 import com.splunk.opentelemetry.profiler.snapshot.SnapshotProfilingEnvVarsConfiguration;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
@@ -49,7 +48,7 @@ class EnvVarsEffectiveConfigFileFactory implements EffectiveConfigFactory {
   }
 
   private void addSplunkEnvVars(EffectiveConfigBuilder builder) {
-    ProfilerConfiguration profilerConfiguration = new ProfilerEnvVarsConfiguration(config);
+    ProfilerConfiguration profilerConfiguration = ProfilerConfiguration.SUPPLIER.get();
     SnapshotProfilingConfiguration snapshotConfiguration =
         new SnapshotProfilingEnvVarsConfiguration(config);
 

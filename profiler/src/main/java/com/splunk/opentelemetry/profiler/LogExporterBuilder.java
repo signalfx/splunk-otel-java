@@ -44,7 +44,8 @@ class LogExporterBuilder {
   static final String EXTRA_CONTENT_TYPE = "Extra-Content-Type";
   static final String STACKTRACES_HEADER_VALUE = "otel-profiling-stacktraces";
 
-  static LogRecordExporter fromConfig(DeclarativeConfigProperties exporterConfigProperties) {
+  static LogRecordExporter fromDeclarativeConfig(
+      DeclarativeConfigProperties exporterConfigProperties) {
     if (exporterConfigProperties != null) {
       Set<String> propertyKeys = exporterConfigProperties.getPropertyKeys();
 
@@ -68,11 +69,8 @@ class LogExporterBuilder {
     throw new ConfigurationException("Profiler exporter configuration is invalid");
   }
 
-  static LogRecordExporter fromConfig(ConfigProperties config) {
-    return fromConfig(new ProfilerEnvVarsConfiguration(config));
-  }
-
-  static LogRecordExporter fromConfig(ProfilerEnvVarsConfiguration config) {
+  static LogRecordExporter fromEnvironmentConfig() {
+    ProfilerConfiguration config = ProfilerConfiguration.SUPPLIER.get();
     String protocol = config.getOtlpProtocol();
     if ("http/protobuf".equals(protocol)) {
       return buildHttpExporter(config, OtlpHttpLogRecordExporter::builder);
@@ -84,7 +82,7 @@ class LogExporterBuilder {
 
   @VisibleForTesting
   static LogRecordExporter buildGrpcExporter(
-      ProfilerEnvVarsConfiguration config, Supplier<OtlpGrpcLogRecordExporterBuilder> makeBuilder) {
+      ProfilerConfiguration config, Supplier<OtlpGrpcLogRecordExporterBuilder> makeBuilder) {
     OtlpGrpcLogRecordExporterBuilder builder = makeBuilder.get();
     String ingestUrl = config.getIngestUrl();
     builder.setEndpoint(ingestUrl);
@@ -94,13 +92,13 @@ class LogExporterBuilder {
 
   @VisibleForTesting
   static LogRecordExporter buildHttpExporter(
-      ProfilerEnvVarsConfiguration config, Supplier<OtlpHttpLogRecordExporterBuilder> makeBuilder) {
+      ProfilerConfiguration config, Supplier<OtlpHttpLogRecordExporterBuilder> makeBuilder) {
     OtlpHttpLogRecordExporterBuilder builder = makeBuilder.get();
     String ingestUrl = config.getIngestUrl();
 
     OtlpConfigUtil.configureOtlpExporterBuilder(
         DATA_TYPE_LOGS,
-        config.getConfigProperties(),
+        (ConfigProperties) config.getConfigProperties(),
         builder::setComponentLoader,
         builder::setEndpoint,
         builder::addHeader,

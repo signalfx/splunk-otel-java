@@ -17,7 +17,6 @@
 package com.splunk.opentelemetry.profiler;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.verify;
@@ -27,6 +26,7 @@ import io.opentelemetry.sdk.resources.Resource;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.mockito.MockedConstruction;
@@ -35,12 +35,18 @@ class PeriodicRecordingFlusherBuilderTest {
 
   @TempDir Path tempDir;
 
+  @AfterEach
+  void tearDown() {
+    ProfilerConfiguration.SUPPLIER.reset();
+  }
+
   @Test
   void buildConfiguresJfrAndWiresRecorderIntoSequencer() {
     JFR jfr = mock(JFR.class);
     TestProfilingConfig config = config(tempDir);
     config.stackDepth = 73;
     config.recordingDuration = Duration.ofMillis(100);
+    ProfilerConfiguration.SUPPLIER.configure(config);
 
     try (MockedConstruction<JfrRecorder> recorderConstruction =
         mockConstruction(JfrRecorder.class)) {
@@ -66,6 +72,7 @@ class PeriodicRecordingFlusherBuilderTest {
     JFR jfr = mock(JFR.class);
     TestProfilingConfig config = config(outputDir);
     config.keepFiles = true;
+    ProfilerConfiguration.SUPPLIER.configure(config);
 
     try (MockedConstruction<JfrRecorder> recorderConstruction =
         mockConstruction(JfrRecorder.class)) {
@@ -85,6 +92,7 @@ class PeriodicRecordingFlusherBuilderTest {
     JFR jfr = mock(JFR.class);
     TestProfilingConfig config = config(outputFile);
     config.keepFiles = true;
+    ProfilerConfiguration.SUPPLIER.configure(config);
 
     try (MockedConstruction<JfrRecorder> recorderConstruction =
         mockConstruction(JfrRecorder.class)) {
@@ -94,18 +102,6 @@ class PeriodicRecordingFlusherBuilderTest {
       assertThat(sequencer).isNotNull();
       assertThat(recorderConstruction.constructed()).hasSize(1);
     }
-  }
-
-  @Test
-  void buildRejectsUnsupportedConfigProperties() {
-    JFR jfr = mock(JFR.class);
-    TestProfilingConfig config = config(tempDir);
-    config.configProperties = new Object();
-
-    assertThatThrownBy(
-            () -> PeriodicRecordingFlusher.builder(config, Resource.empty()).jfr(jfr).build())
-        .isInstanceOf(IllegalArgumentException.class)
-        .hasMessageStartingWith("Unsupported config properties type:");
   }
 
   private TestProfilingConfig config(Path outputDir) {

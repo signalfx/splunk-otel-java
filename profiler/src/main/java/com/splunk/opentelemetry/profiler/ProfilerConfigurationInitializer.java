@@ -23,16 +23,25 @@ import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
 import io.opentelemetry.sdk.autoconfigure.AutoConfigureUtil;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.DeclarativeConfigurationCustomizer;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.DeclarativeConfigurationCustomizerProvider;
+import io.opentelemetry.sdk.autoconfigure.spi.AutoConfigurationCustomizer;
+import io.opentelemetry.sdk.autoconfigure.spi.AutoConfigurationCustomizerProvider;
+import java.util.Collections;
 
 /**
  * Purpose of this class is to configure the supplier of ProfilerDeclarativeConfiguration.
  * ProfilerDeclarativeConfiguration class object can then be used in code executed after SDK is
  * created, such as AgentListeners.
  */
-@AutoService(DeclarativeConfigurationCustomizerProvider.class)
-public class ProfilerDeclarativeConfigurationInitializer
-    implements DeclarativeConfigurationCustomizerProvider {
+@AutoService({
+  DeclarativeConfigurationCustomizerProvider.class,
+  AutoConfigurationCustomizerProvider.class
+})
+public class ProfilerConfigurationInitializer
+    implements DeclarativeConfigurationCustomizerProvider, AutoConfigurationCustomizerProvider {
+
+  @Override
   public void customize(DeclarativeConfigurationCustomizer configurationCustomizer) {
+    // Initialize profiler configuration from declarative config
     configurationCustomizer.addModelCustomizer(
         (model) -> {
           DeclarativeConfigProperties distributionConfig =
@@ -40,10 +49,27 @@ public class ProfilerDeclarativeConfigurationInitializer
           DeclarativeConfigProperties profilingConfig =
               distributionConfig.getStructured("profiling", empty());
 
-          ProfilerDeclarativeConfiguration.SUPPLIER.configure(
-              new ProfilerDeclarativeConfiguration(profilingConfig));
+          ProfilerDeclarativeConfiguration profilerConfiguration =
+              new ProfilerDeclarativeConfiguration(profilingConfig);
+          ProfilerConfiguration.SUPPLIER.configure(profilerConfiguration);
 
           return model;
         });
+  }
+
+  @Override
+  public void customize(AutoConfigurationCustomizer autoConfiguration) {
+    // Initialize profiler configuration from environment config
+    autoConfiguration.addPropertiesCustomizer(
+        configProperties -> {
+          ProfilerConfiguration.SUPPLIER.configure(
+              new ProfilerEnvVarsConfiguration(configProperties));
+          return Collections.emptyMap();
+        });
+  }
+
+  @Override
+  public int order() {
+    return Integer.MAX_VALUE;
   }
 }

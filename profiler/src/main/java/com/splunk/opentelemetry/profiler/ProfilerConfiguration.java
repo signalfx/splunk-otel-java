@@ -16,9 +16,13 @@
 
 package com.splunk.opentelemetry.profiler;
 
+import com.splunk.opentelemetry.profiler.util.OptionalConfigurableSupplier;
 import java.time.Duration;
 
 public interface ProfilerConfiguration {
+  OptionalConfigurableSupplier<ProfilerConfiguration> SUPPLIER =
+      new OptionalConfigurableSupplier<>();
+
   boolean HAS_OBJECT_ALLOCATION_SAMPLE_EVENT = getJavaVersion() >= 16;
 
   boolean isEnabled();

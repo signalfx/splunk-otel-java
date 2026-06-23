@@ -173,7 +173,7 @@ class LogExporterBuilderTest {
       DeclarativeConfigProperties exporterConfig = getExporterConfig(model);
 
       // when
-      LogRecordExporter exporter = LogExporterBuilder.fromConfig(exporterConfig);
+      LogRecordExporter exporter = LogExporterBuilder.fromDeclarativeConfig(exporterConfig);
 
       // then
       assertThat(exporter).isNotNull();
@@ -197,7 +197,7 @@ class LogExporterBuilderTest {
       DeclarativeConfigProperties exporterConfig = getExporterConfig(model);
 
       // when
-      LogRecordExporter exporter = LogExporterBuilder.fromConfig(exporterConfig);
+      LogRecordExporter exporter = LogExporterBuilder.fromDeclarativeConfig(exporterConfig);
 
       // then
       assertThat(exporter).isNotNull();
@@ -220,7 +220,7 @@ class LogExporterBuilderTest {
       DeclarativeConfigProperties exporterConfig = getExporterConfig(model);
 
       // when
-      LogRecordExporter exporter = LogExporterBuilder.fromConfig(exporterConfig);
+      LogRecordExporter exporter = LogExporterBuilder.fromDeclarativeConfig(exporterConfig);
 
       // then
       assertThat(exporter).isNotNull();
@@ -243,7 +243,7 @@ class LogExporterBuilderTest {
       DeclarativeConfigProperties exporterConfig = getExporterConfig(model);
 
       // when
-      LogRecordExporter exporter = LogExporterBuilder.fromConfig(exporterConfig);
+      LogRecordExporter exporter = LogExporterBuilder.fromDeclarativeConfig(exporterConfig);
 
       // then
       assertThat(exporter).isNotNull();
@@ -266,7 +266,7 @@ class LogExporterBuilderTest {
       DeclarativeConfigProperties exporterConfig = getExporterConfig(model);
 
       // when, then
-      assertThatThrownBy(() -> LogExporterBuilder.fromConfig(exporterConfig))
+      assertThatThrownBy(() -> LogExporterBuilder.fromDeclarativeConfig(exporterConfig))
           .isInstanceOf(ConfigurationException.class);
     }
 

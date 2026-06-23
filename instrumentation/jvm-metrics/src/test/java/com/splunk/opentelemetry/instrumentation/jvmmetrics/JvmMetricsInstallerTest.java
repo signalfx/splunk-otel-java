@@ -23,6 +23,8 @@ import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.verify;
 
 import com.splunk.opentelemetry.instrumentation.jvmmetrics.otel.OtelAllocatedMemoryMetrics;
+import com.splunk.opentelemetry.profiler.ProfilerConfiguration;
+import com.splunk.opentelemetry.profiler.ProfilerEnvVarsConfiguration;
 import com.splunk.opentelemetry.testing.declarativeconfig.DeclarativeConfigTestUtil;
 import io.opentelemetry.instrumentation.config.bridge.DeclarativeConfigPropertiesBridgeBuilder;
 import io.opentelemetry.sdk.autoconfigure.AutoConfigureUtil;
@@ -30,11 +32,17 @@ import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import io.opentelemetry.sdk.autoconfigure.spi.internal.DefaultConfigProperties;
 import java.util.Map;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedConstruction;
 import org.mockito.MockedStatic;
 
 class JvmMetricsInstallerTest {
+
+  @AfterEach
+  void tearDown() {
+    ProfilerConfiguration.SUPPLIER.reset();
+  }
 
   @Test
   void shouldInstallJvmMetrics_declarativeConfig() {
@@ -53,6 +61,7 @@ class JvmMetricsInstallerTest {
         new DeclarativeConfigPropertiesBridgeBuilder()
             .build(
                 AutoConfigureUtil.getInstrumentationConfig(DeclarativeConfigTestUtil.parse(yaml)));
+    ProfilerConfiguration.SUPPLIER.configure(new ProfilerEnvVarsConfiguration(config));
 
     try (MockedStatic<AutoConfigureUtil> autoConfigureUtil = mockStatic(AutoConfigureUtil.class);
         MockedConstruction<OtelAllocatedMemoryMetrics> allocatedMetrics =
@@ -78,6 +87,7 @@ class JvmMetricsInstallerTest {
     ConfigProperties config =
         DefaultConfigProperties.createFromMap(
             Map.of("otel.instrumentation.jvm-metrics-splunk.enabled", "true"));
+    ProfilerConfiguration.SUPPLIER.configure(new ProfilerEnvVarsConfiguration(config));
 
     try (MockedStatic<AutoConfigureUtil> autoConfigureUtil = mockStatic(AutoConfigureUtil.class);
         MockedConstruction<OtelAllocatedMemoryMetrics> allocatedMetrics =

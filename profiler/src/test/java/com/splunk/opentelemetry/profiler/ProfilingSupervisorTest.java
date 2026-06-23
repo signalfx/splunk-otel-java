@@ -25,6 +25,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.splunk.opentelemetry.profiler.util.OptionalConfigurableSupplier;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 import io.opentelemetry.sdk.resources.Resource;
 import java.nio.file.Path;
@@ -156,13 +157,21 @@ class ProfilingSupervisorTest {
         JFR jfr,
         AutoConfiguredOpenTelemetrySdk sdk,
         PeriodicRecordingFlusherBuilder builder) {
-      super(config, jfr, sdk, new LinkedBlockingQueue<>());
+      super(configSupplier(config), jfr, sdk, new LinkedBlockingQueue<>());
       this.builder = builder;
     }
 
     @Override
     PeriodicRecordingFlusherBuilder makeRecordingFlusherBuilder(Resource resource) {
       return builder;
+    }
+
+    private static OptionalConfigurableSupplier<ProfilerConfiguration> configSupplier(
+        ProfilerConfiguration config) {
+      OptionalConfigurableSupplier<ProfilerConfiguration> supplier =
+          new OptionalConfigurableSupplier<>();
+      supplier.configure(config);
+      return supplier;
     }
   }
 

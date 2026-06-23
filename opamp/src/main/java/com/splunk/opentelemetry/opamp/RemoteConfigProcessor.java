@@ -41,13 +41,17 @@ public class RemoteConfigProcessor {
   private static final String REMOTE_CONFIG_FILE_NAME = "splunk.remote.config";
   private static final String PROFILING_NODE_NAME = "profiling";
 
+  private final ProfilerRemoteConfiguration profilerRemoteConfiguration;
   private final ProfilingSupervisor profilingSupervisor;
   private final EffectiveConfigReporter effectiveConfigReporter;
 
   public RemoteConfigProcessor(
-      ProfilingSupervisor profilingSupervisor, EffectiveConfigReporter effectiveConfigReporter) {
+      ProfilerRemoteConfiguration profilerRemoteConfiguration,
+      ProfilingSupervisor profilingSupervisor,
+      EffectiveConfigReporter effectiveConfigReporter) {
+    this.profilerRemoteConfiguration = Objects.requireNonNull(profilerRemoteConfiguration);
     this.profilingSupervisor = Objects.requireNonNull(profilingSupervisor);
-    this.effectiveConfigReporter = effectiveConfigReporter;
+    this.effectiveConfigReporter = Objects.requireNonNull(effectiveConfigReporter);
   }
 
   public void applyConfig(AgentRemoteConfig remoteConfig, OpampClient opampClient) {
@@ -67,21 +71,20 @@ public class RemoteConfigProcessor {
     try {
       DeclarativeConfigProperties remoteConfigProperties =
           toDeclarativeConfigProperties(configFile);
-      DeclarativeConfigProperties splunkDistributionConfigProperties =
+      DeclarativeConfigProperties distributionRemoteConfigProperties =
           remoteConfigProperties
               .getStructured("distribution", empty())
               .getStructured("splunk", empty());
 
       // Update profiler configuration only when profiling node exists
-      if (splunkDistributionConfigProperties.getPropertyKeys().contains(PROFILING_NODE_NAME)) {
-        DeclarativeConfigProperties profilingConfigProperties =
-            splunkDistributionConfigProperties.getStructured(PROFILING_NODE_NAME, empty());
-        ProfilerDeclarativeConfiguration profilingRemoteConfig =
-            new ProfilerDeclarativeConfiguration(profilingConfigProperties);
-        // TODO: should be merged with current profiling config. Probably we will need profiler
-        //       configuration refactoring and some listeners implemented for profiler configuration
-        //       changes. For POC use this temporary solution
-        if (profilingRemoteConfig.isEnabled()) {
+      if (distributionRemoteConfigProperties.getPropertyKeys().contains(PROFILING_NODE_NAME)) {
+        ProfilerDeclarativeConfiguration receivedProfilerConfig =
+            new ProfilerDeclarativeConfiguration(
+                distributionRemoteConfigProperties.getStructured(PROFILING_NODE_NAME, empty()));
+
+        profilerRemoteConfiguration.setEnabled(receivedProfilerConfig.isEnabled());
+
+        if (profilerRemoteConfiguration.isEnabled()) {
           profilingSupervisor.requestStartProfiling();
         } else {
           profilingSupervisor.requestStopProfiling();
@@ -92,7 +95,7 @@ public class RemoteConfigProcessor {
       reportRemoteConfigStatus(
           remoteConfig.config_hash,
           RemoteConfigStatuses.RemoteConfigStatuses_APPLIED,
-          null,
+          "",
           opampClient);
 
     } catch (Exception e) {

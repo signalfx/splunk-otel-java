@@ -17,11 +17,13 @@
 package com.splunk.opentelemetry.opamp;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 
 import com.splunk.opentelemetry.opamp.effectiveconfig.EffectiveConfigReporter;
+import com.splunk.opentelemetry.profiler.ProfilerConfiguration;
+import com.splunk.opentelemetry.profiler.ProfilingSupervisor;
 import io.opentelemetry.opamp.client.OpampClient;
 import java.util.Map;
 import okio.ByteString;
@@ -39,17 +41,23 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class RemoteConfigProcessorTest {
+  @Mock ProfilerConfiguration profilerConfiguration;
+  @Mock ProfilingSupervisor profilingSupervisor;
   @Mock EffectiveConfigReporter effectiveConfigReporter;
   @Mock OpampClient opampClient;
+  private ProfilerRemoteConfiguration profilerRemoteConfiguration;
   private RemoteConfigProcessor handler;
 
   @BeforeEach
   void setUp() {
-    handler = new RemoteConfigProcessor(mock(), effectiveConfigReporter);
+    profilerRemoteConfiguration = new ProfilerRemoteConfiguration(profilerConfiguration);
+    handler =
+        new RemoteConfigProcessor(
+            profilerRemoteConfiguration, profilingSupervisor, effectiveConfigReporter);
   }
 
   @Test
-  void shouldMarkRemoteConfigAsApplied() {
+  void shouldMarkRemoteConfigAsAppliedWhenProfilingConfigIsNotProvided() {
     // given
     String remoteConfigYaml = "test-config:";
     ByteString configHash = ByteString.encodeUtf8("test-config-hash");
@@ -66,12 +74,66 @@ class RemoteConfigProcessorTest {
     handler.applyConfig(remoteConfig, opampClient);
 
     // then
-    ArgumentCaptor<RemoteConfigStatus> statusCaptor =
-        ArgumentCaptor.forClass(RemoteConfigStatus.class);
-    verify(opampClient).setRemoteConfigStatus(statusCaptor.capture());
-    RemoteConfigStatus status = statusCaptor.getValue();
+    RemoteConfigStatus status = getReportedRemoteConfigStatus();
     assertThat(status.last_remote_config_hash).isEqualTo(configHash);
     assertThat(status.status).isEqualTo(RemoteConfigStatuses.RemoteConfigStatuses_APPLIED);
+    assertThat(status.error_message).isEmpty();
+    assertThat(profilerRemoteConfiguration.isEnabled()).isFalse();
+    verify(effectiveConfigReporter).reportEffectiveConfigIfChanged();
+    verifyNoInteractions(profilingSupervisor);
+  }
+
+  @Test
+  void shouldStartProfilingWhenRemoteConfigEnablesProfiler() {
+    // given
+    String remoteConfigYaml =
+        """
+        distribution:
+          splunk:
+            profiling:
+              always_on:
+                cpu_profiler:
+    """;
+    ByteString configHash = ByteString.encodeUtf8("test-config-hash");
+    AgentRemoteConfig remoteConfig = createRemoteConfig(configHash, remoteConfigYaml);
+
+    // when
+    handler.applyConfig(remoteConfig, opampClient);
+
+    // then
+    RemoteConfigStatus status = getReportedRemoteConfigStatus();
+    assertThat(status.last_remote_config_hash).isEqualTo(configHash);
+    assertThat(status.status).isEqualTo(RemoteConfigStatuses.RemoteConfigStatuses_APPLIED);
+    assertThat(status.error_message).isEmpty();
+    assertThat(profilerRemoteConfiguration.isEnabled()).isTrue();
+    verify(profilingSupervisor).requestStartProfiling();
+    verify(profilingSupervisor, never()).requestStopProfiling();
+    verify(effectiveConfigReporter).reportEffectiveConfigIfChanged();
+  }
+
+  @Test
+  void shouldStopProfilingWhenRemoteConfigDisablesProfiler() {
+    // given
+    String remoteConfigYaml =
+        """
+        distribution:
+          splunk:
+            profiling:
+    """;
+    ByteString configHash = ByteString.encodeUtf8("test-config-hash");
+    AgentRemoteConfig remoteConfig = createRemoteConfig(configHash, remoteConfigYaml);
+
+    // when
+    handler.applyConfig(remoteConfig, opampClient);
+
+    // then
+    RemoteConfigStatus status = getReportedRemoteConfigStatus();
+    assertThat(status.last_remote_config_hash).isEqualTo(configHash);
+    assertThat(status.status).isEqualTo(RemoteConfigStatuses.RemoteConfigStatuses_APPLIED);
+    assertThat(status.error_message).isEmpty();
+    assertThat(profilerRemoteConfiguration.isEnabled()).isFalse();
+    verify(profilingSupervisor).requestStopProfiling();
+    verify(profilingSupervisor, never()).requestStartProfiling();
     verify(effectiveConfigReporter).reportEffectiveConfigIfChanged();
   }
 
@@ -89,7 +151,24 @@ class RemoteConfigProcessorTest {
     handler.applyConfig(remoteConfig, opampClient);
 
     // then
-    verify(opampClient, never()).setRemoteConfigStatus(org.mockito.ArgumentMatchers.any());
+    assertThat(profilerRemoteConfiguration.isEnabled()).isFalse();
+    verifyNoInteractions(opampClient, profilingSupervisor);
+    verify(effectiveConfigReporter, never()).reportEffectiveConfigIfChanged();
+  }
+
+  private RemoteConfigStatus getReportedRemoteConfigStatus() {
+    ArgumentCaptor<RemoteConfigStatus> statusCaptor =
+        ArgumentCaptor.forClass(RemoteConfigStatus.class);
+    verify(opampClient).setRemoteConfigStatus(statusCaptor.capture());
+    return statusCaptor.getValue();
+  }
+
+  private static AgentRemoteConfig createRemoteConfig(ByteString configHash, String config) {
+    return createRemoteConfig(
+        configHash,
+        Map.of(
+            "splunk.remote.config",
+            new AgentConfigFile.Builder().body(ByteString.encodeUtf8(config)).build()));
   }
 
   private static AgentRemoteConfig createRemoteConfig(

@@ -33,7 +33,7 @@ class OtelLoggerFactoryTest {
 
   private final InMemoryLogRecordExporter exporter = InMemoryLogRecordExporter.create();
   private final OtelLoggerFactory factory =
-      new OtelLoggerFactory(properties -> exporter, declarativeConfigProperties -> exporter);
+      new OtelLoggerFactory(() -> exporter, declarativeConfigProperties -> exporter);
 
   @Test
   void configureLoggerWithProfilingInstrumentationScopeName() {

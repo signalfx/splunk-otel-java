@@ -25,7 +25,6 @@ import com.splunk.opentelemetry.profiler.context.SpanContextualizer;
 import com.splunk.opentelemetry.profiler.exporter.CpuEventExporter;
 import com.splunk.opentelemetry.profiler.exporter.PprofCpuEventExporter;
 import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
-import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import io.opentelemetry.sdk.logs.LogRecordProcessor;
 import io.opentelemetry.sdk.logs.SdkLoggerProvider;
 import io.opentelemetry.sdk.logs.export.LogRecordExporter;
@@ -162,13 +161,9 @@ class PeriodicRecordingFlusherBuilder {
     if (configProperties instanceof DeclarativeConfigProperties) {
       DeclarativeConfigProperties exporterConfig =
           ((DeclarativeConfigProperties) configProperties).getStructured("exporter", empty());
-      return LogExporterBuilder.fromConfig(exporterConfig);
+      return LogExporterBuilder.fromDeclarativeConfig(exporterConfig);
     }
-    if (configProperties instanceof ConfigProperties) {
-      return LogExporterBuilder.fromConfig((ConfigProperties) configProperties);
-    }
-    throw new IllegalArgumentException(
-        "Unsupported config properties type: " + configProperties.getClass().getName());
+    return LogExporterBuilder.fromEnvironmentConfig();
   }
 
   private boolean checkOutputDir(Path outputDir) {

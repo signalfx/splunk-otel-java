@@ -26,8 +26,12 @@ public class ServerToAgentMessageHandler {
   private final RemoteConfigProcessor remoteConfigProcessor;
 
   public ServerToAgentMessageHandler(
-      ProfilingSupervisor profilingSupervisor, EffectiveConfigReporter effectiveConfigReporter) {
-    this(new RemoteConfigProcessor(profilingSupervisor, effectiveConfigReporter));
+      ProfilerRemoteConfiguration profilerRemoteConfiguration,
+      ProfilingSupervisor profilingSupervisor,
+      EffectiveConfigReporter effectiveConfigReporter) {
+    this(
+        new RemoteConfigProcessor(
+            profilerRemoteConfiguration, profilingSupervisor, effectiveConfigReporter));
   }
 
   @VisibleForTesting

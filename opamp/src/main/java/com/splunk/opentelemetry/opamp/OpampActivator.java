@@ -23,6 +23,7 @@ import static java.util.logging.Level.WARNING;
 import com.google.auto.service.AutoService;
 import com.splunk.opentelemetry.opamp.effectiveconfig.EffectiveConfigReporter;
 import com.splunk.opentelemetry.opamp.effectiveconfig.UpdatableEffectiveConfigState;
+import com.splunk.opentelemetry.profiler.ProfilerConfiguration;
 import com.splunk.opentelemetry.profiler.ProfilingSupervisor;
 import io.opentelemetry.javaagent.extension.AgentListener;
 import io.opentelemetry.opamp.client.OpampClient;
@@ -54,6 +55,7 @@ public class OpampActivator implements AgentListener {
       return;
     }
 
+    ProfilerRemoteConfiguration profilerRemoteConfiguration = setupProfilerConfiguration();
     Resource resource = getResource(autoConfiguredOpenTelemetrySdk);
     UpdatableEffectiveConfigState effectiveConfigState = new UpdatableEffectiveConfigState();
     EffectiveConfigReporter effectiveConfigReporter =
@@ -62,7 +64,9 @@ public class OpampActivator implements AgentListener {
 
     ServerToAgentMessageHandler serverToAgentMessageHandler =
         new ServerToAgentMessageHandler(
-            ProfilingSupervisor.SUPPLIER.get(), effectiveConfigReporter);
+            profilerRemoteConfiguration,
+            ProfilingSupervisor.SUPPLIER.get(),
+            effectiveConfigReporter);
 
     OpampClient client =
         startOpampClient(
@@ -103,6 +107,15 @@ public class OpampActivator implements AgentListener {
                     logger.log(WARNING, "Error shutting down OpAMP client", e);
                   }
                 }));
+  }
+
+  private ProfilerRemoteConfiguration setupProfilerConfiguration() {
+    ProfilerConfiguration originalConfig = ProfilerConfiguration.SUPPLIER.get();
+    ProfilerRemoteConfiguration remoteConfig = new ProfilerRemoteConfiguration(originalConfig);
+
+    ProfilerConfiguration.SUPPLIER.configure(remoteConfig);
+
+    return remoteConfig;
   }
 
   @Override

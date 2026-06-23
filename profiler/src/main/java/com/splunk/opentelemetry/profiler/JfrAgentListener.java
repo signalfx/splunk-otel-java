@@ -40,10 +40,10 @@ public class JfrAgentListener implements AgentListener {
   public void afterAgent(AutoConfiguredOpenTelemetrySdk sdk) {
     ProfilingSupervisor.setupJfrContextStorage();
 
-    ProfilerConfiguration config = ProfilerConfiguration.SUPPLIER.get();
     // Always start the supervisor, so it can start profiling later elsewhere.
     ProfilingSupervisor supervisor = makeProfilingSupervisor(sdk);
 
+    ProfilerConfiguration config = ProfilerConfiguration.SUPPLIER.get();
     if (notClearForTakeoff(config)) {
       return;
     }
@@ -59,7 +59,7 @@ public class JfrAgentListener implements AgentListener {
 
   // Exists for testing
   ProfilingSupervisor makeProfilingSupervisor(AutoConfiguredOpenTelemetrySdk sdk) {
-    return ProfilingSupervisor.createAndStart(sdk, ProfilerConfiguration.SUPPLIER);
+    return ProfilingSupervisor.createAndStart(sdk);
   }
 
   private boolean notClearForTakeoff(ProfilerConfiguration config) {

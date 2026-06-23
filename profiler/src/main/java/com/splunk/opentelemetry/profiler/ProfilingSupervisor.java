@@ -63,16 +63,14 @@ public class ProfilingSupervisor {
     this.commandQueue = commandQueue;
   }
 
-  static ProfilingSupervisor createAndStart(
-      AutoConfiguredOpenTelemetrySdk sdk,
-      OptionalConfigurableSupplier<ProfilerConfiguration> configSupplier) {
+  static ProfilingSupervisor createAndStart(AutoConfiguredOpenTelemetrySdk sdk) {
     if (SUPPLIER.isConfigured()) {
       throw new IllegalStateException("Already started");
     }
     ExecutorService executor = HelpfulExecutors.newSingleThreadExecutor("JFR Profiler");
     BlockingQueue<ProfilingCommand> queue = new LinkedBlockingQueue<>();
     ProfilingSupervisor supervisor =
-        new ProfilingSupervisor(configSupplier, JFR.getInstance(), sdk, queue);
+        new ProfilingSupervisor(ProfilerConfiguration.SUPPLIER, JFR.getInstance(), sdk, queue);
     SUPPLIER.configure(supervisor);
     supervisor.start(executor);
 

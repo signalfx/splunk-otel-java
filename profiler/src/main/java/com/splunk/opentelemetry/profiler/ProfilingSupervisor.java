@@ -138,9 +138,9 @@ public class ProfilingSupervisor {
       return;
     }
     config.log();
-    logger.info("Profiler is active.");
     setJfrContextStorageEnabled(true);
     activateJfrRecording(getResource(sdk));
+    logger.info("Profiler is active.");
   }
 
   private void tryStop() {
@@ -150,6 +150,7 @@ public class ProfilingSupervisor {
     }
     setJfrContextStorageEnabled(false);
     deactivateJfrRecording();
+    logger.info("Profiler is deactivated.");
   }
 
   private boolean isJfrRecordingActive() {

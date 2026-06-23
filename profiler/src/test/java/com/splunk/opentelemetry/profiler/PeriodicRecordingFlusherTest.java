@@ -23,6 +23,9 @@ import static org.mockito.Mockito.*;
 import java.time.Duration;
 import java.util.Collections;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -36,6 +39,8 @@ class PeriodicRecordingFlusherTest {
 
   @Mock JfrRecorder recorder;
   @Mock RecordingFileNamingConvention namingConvention;
+  @Mock ScheduledExecutorService executor;
+  @Mock ScheduledFuture<?> scheduledFlushFuture;
 
   @Test
   void canContinueNotStarted() {
@@ -66,15 +71,24 @@ class PeriodicRecordingFlusherTest {
 
   @Test
   void stopCancelsScheduledFutureAndStopsRecorder() {
-    @SuppressWarnings("unchecked")
-    PeriodicRecordingFlusher recordingFlusher = buildRecordingFlusher();
+    doReturn(scheduledFlushFuture)
+        .when(executor)
+        .scheduleAtFixedRate(
+            any(Runnable.class), eq(0L), eq(duration.toMillis()), eq(TimeUnit.MILLISECONDS));
+    PeriodicRecordingFlusher recordingFlusher =
+        new PeriodicRecordingFlusher(recorder, duration, executor);
 
     recordingFlusher.start();
     recordingFlusher.stop();
 
     verify(recorder).start();
     verify(recorder).stop();
+    verify(executor)
+        .scheduleAtFixedRate(
+            any(Runnable.class), eq(0L), eq(duration.toMillis()), eq(TimeUnit.MILLISECONDS));
+    verify(scheduledFlushFuture).cancel(false);
     verifyNoMoreInteractions(recorder);
+    verifyNoMoreInteractions(executor, scheduledFlushFuture);
   }
 
   private PeriodicRecordingFlusher buildRecordingFlusher() {

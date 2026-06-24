@@ -38,7 +38,9 @@ public class JfrAgentListener implements AgentListener {
 
   @Override
   public void afterAgent(AutoConfiguredOpenTelemetrySdk sdk) {
-    ProfilingSupervisor.setupJfrContextStorage();
+    if (jfr.isAvailable()) {
+      ProfilingSupervisor.setupJfrContextStorage();
+    }
 
     // Always start the supervisor, so it can start profiling later elsewhere.
     ProfilingSupervisor supervisor = makeProfilingSupervisor(sdk);

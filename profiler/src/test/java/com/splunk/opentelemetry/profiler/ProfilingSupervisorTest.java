@@ -21,10 +21,12 @@ import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.splunk.opentelemetry.profiler.util.OptionalConfigurableSupplier;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 import io.opentelemetry.sdk.resources.Resource;
 import java.nio.file.Path;
@@ -45,7 +47,7 @@ class ProfilingSupervisorTest {
 
   @Mock JFR jfr;
 
-  TestProfilingConfig config;
+  ProfilerConfiguration config;
   TestPeriodicRecordingFlusherBuilder builder;
   AutoConfiguredOpenTelemetrySdk sdk;
   ExecutorService executor;
@@ -53,8 +55,14 @@ class ProfilingSupervisorTest {
 
   @BeforeEach
   void setUp(@TempDir Path tempDir) {
-    config = new TestProfilingConfig();
-    config.profilerDirectory = tempDir.toString();
+    config =
+        spy(
+            ProfilerConfiguration.builder()
+                .setEnabled(true)
+                .setProfilerDirectory(tempDir.toString())
+                .setStackDepth(4321)
+                .setRecordingDuration(Duration.ofMinutes(1))
+                .build());
     builder = new TestPeriodicRecordingFlusherBuilder(config, mock(Resource.class));
     executor = Executors.newSingleThreadExecutor();
     sdk =
@@ -88,21 +96,19 @@ class ProfilingSupervisorTest {
     supervisor.requestStartProfiling();
 
     await().untilAsserted(() -> verify(jfr).isAvailable());
-    assertThat(config.logCalled).isFalse();
+    verify(config, never()).log();
     verify(jfr, never()).setStackDepth(anyInt());
     assertThat(builder.buildCalled).isFalse();
   }
 
   @Test
   void requestStartProfilingBuildsAndStartsRecordingSequencer() {
-    config.stackDepth = 4321;
-    config.recordingDuration = Duration.ofMinutes(1);
     when(jfr.isAvailable()).thenReturn(true);
 
     supervisor.requestStartProfiling();
 
     await().untilAsserted(() -> assertThat(builder.buildCalled).isTrue());
-    assertThat(config.logCalled).isTrue();
+    verify(config).log();
     assertThat(builder.jfr).isSameAs(jfr);
     assertThat(builder.config).isSameAs(config);
     assertThat(builder.resource).isNotNull();
@@ -156,13 +162,21 @@ class ProfilingSupervisorTest {
         JFR jfr,
         AutoConfiguredOpenTelemetrySdk sdk,
         PeriodicRecordingFlusherBuilder builder) {
-      super(config, jfr, sdk, new LinkedBlockingQueue<>());
+      super(configSupplier(config), jfr, sdk, new LinkedBlockingQueue<>());
       this.builder = builder;
     }
 
     @Override
     PeriodicRecordingFlusherBuilder makeRecordingFlusherBuilder(Resource resource) {
       return builder;
+    }
+
+    private static OptionalConfigurableSupplier<ProfilerConfiguration> configSupplier(
+        ProfilerConfiguration config) {
+      OptionalConfigurableSupplier<ProfilerConfiguration> supplier =
+          new OptionalConfigurableSupplier<>();
+      supplier.configure(config);
+      return supplier;
     }
   }
 

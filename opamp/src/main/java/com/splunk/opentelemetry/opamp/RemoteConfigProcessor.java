@@ -19,7 +19,8 @@ package com.splunk.opentelemetry.opamp;
 import static io.opentelemetry.api.incubator.config.DeclarativeConfigProperties.empty;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.splunk.opentelemetry.profiler.ProfilerDeclarativeConfiguration;
+import com.splunk.opentelemetry.profiler.ProfilerConfiguration;
+import com.splunk.opentelemetry.profiler.ProfilerDeclarativeConfigurationFactory;
 import com.splunk.opentelemetry.profiler.ProfilingSupervisor;
 import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
 import io.opentelemetry.opamp.client.OpampClient;
@@ -69,8 +70,8 @@ public class RemoteConfigProcessor {
     if (splunkDistributionConfigProperties.getPropertyKeys().contains(PROFILING_NODE_NAME)) {
       DeclarativeConfigProperties profilingConfigProperties =
           splunkDistributionConfigProperties.getStructured(PROFILING_NODE_NAME, empty());
-      ProfilerDeclarativeConfiguration profilingConfig =
-          new ProfilerDeclarativeConfiguration(profilingConfigProperties);
+      ProfilerConfiguration profilingConfig =
+          ProfilerDeclarativeConfigurationFactory.create(profilingConfigProperties);
       // TODO: should be merged with current profiling config. Probably we will need profiler
       //       configuration refactoring and some listeners implemented for profiler configuration
       //       changes. For POC use this temporary solution

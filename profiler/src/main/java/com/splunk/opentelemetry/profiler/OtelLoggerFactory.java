@@ -26,26 +26,27 @@ import io.opentelemetry.sdk.logs.export.LogRecordExporter;
 import io.opentelemetry.sdk.logs.export.SimpleLogRecordProcessor;
 import io.opentelemetry.sdk.resources.Resource;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 public class OtelLoggerFactory {
-  private final Function<ConfigProperties, LogRecordExporter> logRecordExporter;
+  private final Supplier<LogRecordExporter> logRecordExporter;
   private final Function<DeclarativeConfigProperties, LogRecordExporter>
       declarativeLogRecordExporter;
 
   public OtelLoggerFactory() {
-    this(LogExporterBuilder::fromConfig, LogExporterBuilder::fromConfig);
+    this(LogExporterBuilder::fromEnvironmentConfig, LogExporterBuilder::fromDeclarativeConfig);
   }
 
   @VisibleForTesting
   public OtelLoggerFactory(
-      Function<ConfigProperties, LogRecordExporter> logRecordExporter,
+      Supplier<LogRecordExporter> logRecordExporter,
       Function<DeclarativeConfigProperties, LogRecordExporter> declarativeLogRecordExporter) {
     this.logRecordExporter = logRecordExporter;
     this.declarativeLogRecordExporter = declarativeLogRecordExporter;
   }
 
   public Logger build(ConfigProperties properties, Resource resource) {
-    LogRecordExporter exporter = createLogRecordExporter(properties);
+    LogRecordExporter exporter = createLogRecordExporter();
     LogRecordProcessor processor = SimpleLogRecordProcessor.create(exporter);
     return buildOtelLogger(processor, resource);
   }
@@ -56,8 +57,8 @@ public class OtelLoggerFactory {
     return buildOtelLogger(processor, resource);
   }
 
-  private LogRecordExporter createLogRecordExporter(ConfigProperties properties) {
-    return logRecordExporter.apply(properties);
+  private LogRecordExporter createLogRecordExporter() {
+    return logRecordExporter.get();
   }
 
   private LogRecordExporter createLogRecordExporter(DeclarativeConfigProperties properties) {

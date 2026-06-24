@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.splunk.opentelemetry.opamp;
+package com.splunk.opentelemetry.opamp.effectiveconfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

@@ -14,23 +14,21 @@
  * limitations under the License.
  */
 
-package com.splunk.opentelemetry.opamp;
+package com.splunk.opentelemetry.opamp.effectiveconfig;
 
-import java.time.Duration;
+import io.opentelemetry.opamp.client.internal.state.State;
+import opamp.proto.AgentConfigMap;
 
-class EffectiveConfigBuilder {
-  private final StringBuilder stringBuilder = new StringBuilder();
+public class UpdatableEffectiveConfigState extends State.EffectiveConfig {
+  private AgentConfigMap agentConfigMap;
 
-  EffectiveConfigBuilder add(String propertyName, Object value) {
-    stringBuilder.append(propertyName).append('=').append(value).append('\n');
-    return this;
+  public void set(AgentConfigMap configMap) {
+    agentConfigMap = configMap;
+    notifyUpdate();
   }
 
-  EffectiveConfigBuilder add(String propertyName, Duration value) {
-    return add(propertyName, value.toMillis() + "ms");
-  }
-
-  String build() {
-    return stringBuilder.toString();
+  @Override
+  public opamp.proto.EffectiveConfig get() {
+    return new opamp.proto.EffectiveConfig(agentConfigMap);
   }
 }

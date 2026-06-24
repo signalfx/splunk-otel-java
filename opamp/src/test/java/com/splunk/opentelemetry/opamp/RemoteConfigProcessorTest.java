@@ -32,6 +32,7 @@ import opamp.proto.AgentConfigMap;
 import opamp.proto.AgentRemoteConfig;
 import opamp.proto.RemoteConfigStatus;
 import opamp.proto.RemoteConfigStatuses;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -41,19 +42,20 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class RemoteConfigProcessorTest {
-  @Mock ProfilerConfiguration profilerConfiguration;
   @Mock ProfilingSupervisor profilingSupervisor;
   @Mock EffectiveConfigReporter effectiveConfigReporter;
   @Mock OpampClient opampClient;
-  private ProfilerRemoteConfiguration profilerRemoteConfiguration;
   private RemoteConfigProcessor handler;
 
   @BeforeEach
   void setUp() {
-    profilerRemoteConfiguration = new ProfilerRemoteConfiguration(profilerConfiguration);
-    handler =
-        new RemoteConfigProcessor(
-            profilerRemoteConfiguration, profilingSupervisor, effectiveConfigReporter);
+    ProfilerConfiguration.SUPPLIER.configure(ProfilerConfiguration.builder().build());
+    handler = new RemoteConfigProcessor(profilingSupervisor, effectiveConfigReporter);
+  }
+
+  @AfterEach
+  void tearDown() {
+    ProfilerConfiguration.SUPPLIER.reset();
   }
 
   @Test
@@ -78,7 +80,7 @@ class RemoteConfigProcessorTest {
     assertThat(status.last_remote_config_hash).isEqualTo(configHash);
     assertThat(status.status).isEqualTo(RemoteConfigStatuses.RemoteConfigStatuses_APPLIED);
     assertThat(status.error_message).isEmpty();
-    assertThat(profilerRemoteConfiguration.isEnabled()).isFalse();
+    assertThat(ProfilerConfiguration.SUPPLIER.get().isEnabled()).isFalse();
     verify(effectiveConfigReporter).reportEffectiveConfigIfChanged();
     verifyNoInteractions(profilingSupervisor);
   }
@@ -105,7 +107,7 @@ class RemoteConfigProcessorTest {
     assertThat(status.last_remote_config_hash).isEqualTo(configHash);
     assertThat(status.status).isEqualTo(RemoteConfigStatuses.RemoteConfigStatuses_APPLIED);
     assertThat(status.error_message).isEmpty();
-    assertThat(profilerRemoteConfiguration.isEnabled()).isTrue();
+    assertThat(ProfilerConfiguration.SUPPLIER.get().isEnabled()).isTrue();
     verify(profilingSupervisor).requestStartProfiling();
     verify(profilingSupervisor, never()).requestStopProfiling();
     verify(effectiveConfigReporter).reportEffectiveConfigIfChanged();
@@ -131,7 +133,7 @@ class RemoteConfigProcessorTest {
     assertThat(status.last_remote_config_hash).isEqualTo(configHash);
     assertThat(status.status).isEqualTo(RemoteConfigStatuses.RemoteConfigStatuses_APPLIED);
     assertThat(status.error_message).isEmpty();
-    assertThat(profilerRemoteConfiguration.isEnabled()).isFalse();
+    assertThat(ProfilerConfiguration.SUPPLIER.get().isEnabled()).isFalse();
     verify(profilingSupervisor).requestStopProfiling();
     verify(profilingSupervisor, never()).requestStartProfiling();
     verify(effectiveConfigReporter).reportEffectiveConfigIfChanged();
@@ -151,7 +153,7 @@ class RemoteConfigProcessorTest {
     handler.applyConfig(remoteConfig, opampClient);
 
     // then
-    assertThat(profilerRemoteConfiguration.isEnabled()).isFalse();
+    assertThat(ProfilerConfiguration.SUPPLIER.get().isEnabled()).isFalse();
     verifyNoInteractions(opampClient, profilingSupervisor);
     verify(effectiveConfigReporter, never()).reportEffectiveConfigIfChanged();
   }

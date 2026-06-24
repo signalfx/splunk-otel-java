@@ -28,9 +28,8 @@ import io.opentelemetry.sdk.autoconfigure.spi.AutoConfigurationCustomizerProvide
 import java.util.Collections;
 
 /**
- * Purpose of this class is to configure the supplier of ProfilerDeclarativeConfiguration.
- * ProfilerDeclarativeConfiguration class object can then be used in code executed after SDK is
- * created, such as AgentListeners.
+ * Purpose of this class is to configure the supplier of ProfilerConfiguration. The configured
+ * object can then be used in code executed after SDK is created, such as AgentListeners.
  */
 @AutoService({
   DeclarativeConfigurationCustomizerProvider.class,
@@ -49,9 +48,8 @@ public class ProfilerConfigurationInitializer
           DeclarativeConfigProperties profilingConfig =
               distributionConfig.getStructured("profiling", empty());
 
-          ProfilerDeclarativeConfiguration profilerConfiguration =
-              new ProfilerDeclarativeConfiguration(profilingConfig);
-          ProfilerConfiguration.SUPPLIER.configure(profilerConfiguration);
+          ProfilerConfiguration.SUPPLIER.configure(
+              ProfilerDeclarativeConfigurationFactory.create(profilingConfig));
 
           return model;
         });
@@ -63,7 +61,7 @@ public class ProfilerConfigurationInitializer
     autoConfiguration.addPropertiesCustomizer(
         configProperties -> {
           ProfilerConfiguration.SUPPLIER.configure(
-              new ProfilerEnvVarsConfiguration(configProperties));
+              ProfilerEnvVarsConfigurationFactory.create(configProperties));
           return Collections.emptyMap();
         });
   }

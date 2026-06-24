@@ -53,7 +53,7 @@ class LogExporterBuilderTest {
     @Test
     void testBuildSimpleGrpc() {
       // given
-      ProfilerEnvVarsConfiguration config = mock(ProfilerEnvVarsConfiguration.class);
+      ProfilerConfiguration config = mock(ProfilerConfiguration.class);
       OtlpGrpcLogRecordExporterBuilder builder = mock(OtlpGrpcLogRecordExporterBuilder.class);
       OtlpGrpcLogRecordExporter expected = mock(OtlpGrpcLogRecordExporter.class);
 
@@ -72,7 +72,7 @@ class LogExporterBuilderTest {
     @Test
     void testBuildSimpleHttp() {
       // given
-      ProfilerEnvVarsConfiguration config = mock(ProfilerEnvVarsConfiguration.class);
+      ProfilerConfiguration config = mock(ProfilerConfiguration.class);
       ConfigProperties configProperties = mock(ConfigProperties.class);
       OtlpHttpLogRecordExporterBuilder builder = mock(OtlpHttpLogRecordExporterBuilder.class);
       OtlpHttpLogRecordExporter expected = mock(OtlpHttpLogRecordExporter.class);
@@ -95,7 +95,7 @@ class LogExporterBuilderTest {
     @Test
     void extraOtlpHeaders() {
       // given
-      ProfilerEnvVarsConfiguration config = mock(ProfilerEnvVarsConfiguration.class);
+      ProfilerConfiguration config = mock(ProfilerConfiguration.class);
       ConfigProperties configProperties = mock(ConfigProperties.class);
       when(config.getConfigProperties()).thenReturn(configProperties);
       when(config.getOtlpProtocol()).thenReturn("http/protobuf");
@@ -127,7 +127,7 @@ class LogExporterBuilderTest {
     @Test
     void extraOtlpLogSpecificHeaders() {
       // given
-      ProfilerEnvVarsConfiguration config = mock(ProfilerEnvVarsConfiguration.class);
+      ProfilerConfiguration config = mock(ProfilerConfiguration.class);
       ConfigProperties configProperties = mock(ConfigProperties.class);
       when(config.getConfigProperties()).thenReturn(configProperties);
       when(config.getOtlpProtocol()).thenReturn("http/protobuf");

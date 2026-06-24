@@ -18,52 +18,287 @@ package com.splunk.opentelemetry.profiler;
 
 import com.splunk.opentelemetry.profiler.util.OptionalConfigurableSupplier;
 import java.time.Duration;
+import java.util.Objects;
+import java.util.logging.Logger;
+import javax.annotation.Nullable;
 
-public interface ProfilerConfiguration {
-  OptionalConfigurableSupplier<ProfilerConfiguration> SUPPLIER =
+public class ProfilerConfiguration {
+  public static final OptionalConfigurableSupplier<ProfilerConfiguration> SUPPLIER =
       new OptionalConfigurableSupplier<>();
 
-  boolean HAS_OBJECT_ALLOCATION_SAMPLE_EVENT = getJavaVersion() >= 16;
+  public static final boolean HAS_OBJECT_ALLOCATION_SAMPLE_EVENT = getJavaVersion() >= 16;
 
-  boolean isEnabled();
+  private static final Logger logger = Logger.getLogger(ProfilerConfiguration.class.getName());
+  private static final String DEFAULT_PROFILER_DIRECTORY = System.getProperty("java.io.tmpdir");
+  private static final Duration DEFAULT_RECORDING_DURATION = Duration.ofSeconds(20);
+  private static final Duration DEFAULT_CALL_STACK_INTERVAL = Duration.ofSeconds(10);
 
-  void log();
+  private final boolean enabled;
+  @Nullable private final String ingestUrl;
+  @Nullable private final String otlpProtocol;
+  private final boolean memoryEnabled;
+  private final boolean memoryEventRateLimitEnabled;
+  private final String memoryEventRate;
+  private final boolean useAllocationSampleEvent;
+  private final Duration callStackInterval;
+  private final boolean includeAgentInternalStacks;
+  private final boolean includeJvmInternalStacks;
+  private final boolean tracingStacksOnly;
+  private final int stackDepth;
+  private final boolean keepFiles;
+  private final String profilerDirectory;
+  private final Duration recordingDuration;
+  @Nullable private final Object configProperties;
 
-  String getIngestUrl();
+  private ProfilerConfiguration(Builder builder) {
+    enabled = builder.enabled;
+    ingestUrl = builder.ingestUrl;
+    otlpProtocol = builder.otlpProtocol;
+    memoryEnabled = builder.memoryEnabled;
+    memoryEventRateLimitEnabled = builder.memoryEventRateLimitEnabled;
+    memoryEventRate = builder.memoryEventRate;
+    useAllocationSampleEvent = builder.useAllocationSampleEvent;
+    callStackInterval = builder.callStackInterval;
+    includeAgentInternalStacks = builder.includeAgentInternalStacks;
+    includeJvmInternalStacks = builder.includeJvmInternalStacks;
+    tracingStacksOnly = builder.tracingStacksOnly;
+    stackDepth = builder.stackDepth;
+    keepFiles = builder.keepFiles;
+    profilerDirectory = builder.profilerDirectory;
+    recordingDuration = builder.recordingDuration;
+    configProperties = builder.configProperties;
+  }
 
-  String getOtlpProtocol();
+  public static Builder builder() {
+    return new Builder();
+  }
 
-  boolean getMemoryEnabled();
+  public Builder newBuilder() {
+    return new Builder(this);
+  }
 
-  boolean getMemoryEventRateLimitEnabled();
+  public boolean isEnabled() {
+    return enabled;
+  }
 
-  String getMemoryEventRate();
+  public void log() {
+    logger.info("-----------------------");
+    logger.info("Profiler configuration:");
+    log("Enabled", isEnabled());
+    log("ProfilerDirectory", getProfilerDirectory());
+    log("RecordingDuration", getRecordingDuration().toMillis() + "ms");
+    log("KeepFiles", getKeepFiles());
+    log("OtlpProtocol", getOtlpProtocol());
+    log("IngestUrl", getIngestUrl());
+    log("MemoryEnabled", getMemoryEnabled());
+    if (getMemoryEventRateLimitEnabled()) {
+      log("MemoryEventRate", getMemoryEventRate());
+    }
+    log("UseAllocationSampleEvent", getUseAllocationSampleEvent());
+    log("CallStackInterval", getCallStackInterval().toMillis() + "ms");
+    log("IncludeAgentInternalStacks", getIncludeAgentInternalStacks());
+    log("IncludeJvmInternalStacks", getIncludeJvmInternalStacks());
+    log("TracingStacksOnly", getTracingStacksOnly());
+    log("StackDepth", getStackDepth());
+    logger.info("-----------------------");
+  }
 
-  boolean getUseAllocationSampleEvent();
+  private static void log(String key, @Nullable Object value) {
+    logger.info(String.format("%30s : %s", key, value));
+  }
 
-  Duration getCallStackInterval();
+  @Nullable
+  public String getIngestUrl() {
+    return ingestUrl;
+  }
 
-  boolean getIncludeAgentInternalStacks();
+  @Nullable
+  public String getOtlpProtocol() {
+    return otlpProtocol;
+  }
 
-  boolean getIncludeJvmInternalStacks();
+  public boolean getMemoryEnabled() {
+    return memoryEnabled;
+  }
 
-  boolean getTracingStacksOnly();
+  public boolean getMemoryEventRateLimitEnabled() {
+    return memoryEventRateLimitEnabled;
+  }
 
-  int getStackDepth();
+  public String getMemoryEventRate() {
+    return memoryEventRate;
+  }
 
-  boolean getKeepFiles();
+  public boolean getUseAllocationSampleEvent() {
+    return useAllocationSampleEvent;
+  }
 
-  String getProfilerDirectory();
+  public Duration getCallStackInterval() {
+    return callStackInterval;
+  }
 
-  Duration getRecordingDuration();
+  public boolean getIncludeAgentInternalStacks() {
+    return includeAgentInternalStacks;
+  }
 
-  Object getConfigProperties();
+  public boolean getIncludeJvmInternalStacks() {
+    return includeJvmInternalStacks;
+  }
 
-  static int getJavaVersion() {
+  public boolean getTracingStacksOnly() {
+    return tracingStacksOnly;
+  }
+
+  public int getStackDepth() {
+    return stackDepth;
+  }
+
+  public boolean getKeepFiles() {
+    return keepFiles;
+  }
+
+  public String getProfilerDirectory() {
+    return profilerDirectory;
+  }
+
+  public Duration getRecordingDuration() {
+    return recordingDuration;
+  }
+
+  @Nullable
+  public Object getConfigProperties() {
+    return configProperties;
+  }
+
+  public static int getJavaVersion() {
     String javaSpecVersion = System.getProperty("java.specification.version");
     if ("1.8".equals(javaSpecVersion)) {
       return 8;
     }
     return Integer.parseInt(javaSpecVersion);
+  }
+
+  public static class Builder {
+    private boolean enabled;
+    @Nullable private String ingestUrl;
+    @Nullable private String otlpProtocol;
+    private boolean memoryEnabled;
+    private boolean memoryEventRateLimitEnabled = true;
+    private String memoryEventRate = "150/s";
+    private boolean useAllocationSampleEvent;
+    private Duration callStackInterval = DEFAULT_CALL_STACK_INTERVAL;
+    private boolean includeAgentInternalStacks;
+    private boolean includeJvmInternalStacks;
+    private boolean tracingStacksOnly;
+    private int stackDepth = 1024;
+    private boolean keepFiles;
+    private String profilerDirectory = DEFAULT_PROFILER_DIRECTORY;
+    private Duration recordingDuration = DEFAULT_RECORDING_DURATION;
+    @Nullable private Object configProperties;
+
+    private Builder() {}
+
+    private Builder(ProfilerConfiguration config) {
+      enabled = config.enabled;
+      ingestUrl = config.ingestUrl;
+      otlpProtocol = config.otlpProtocol;
+      memoryEnabled = config.memoryEnabled;
+      memoryEventRateLimitEnabled = config.memoryEventRateLimitEnabled;
+      memoryEventRate = config.memoryEventRate;
+      useAllocationSampleEvent = config.useAllocationSampleEvent;
+      callStackInterval = config.callStackInterval;
+      includeAgentInternalStacks = config.includeAgentInternalStacks;
+      includeJvmInternalStacks = config.includeJvmInternalStacks;
+      tracingStacksOnly = config.tracingStacksOnly;
+      stackDepth = config.stackDepth;
+      keepFiles = config.keepFiles;
+      profilerDirectory = config.profilerDirectory;
+      recordingDuration = config.recordingDuration;
+      configProperties = config.configProperties;
+    }
+
+    public ProfilerConfiguration build() {
+      return new ProfilerConfiguration(this);
+    }
+
+    public Builder setEnabled(boolean enabled) {
+      this.enabled = enabled;
+      return this;
+    }
+
+    public Builder setIngestUrl(@Nullable String ingestUrl) {
+      this.ingestUrl = ingestUrl;
+      return this;
+    }
+
+    public Builder setOtlpProtocol(@Nullable String otlpProtocol) {
+      this.otlpProtocol = otlpProtocol;
+      return this;
+    }
+
+    public Builder setMemoryEnabled(boolean memoryEnabled) {
+      this.memoryEnabled = memoryEnabled;
+      return this;
+    }
+
+    public Builder setMemoryEventRateLimitEnabled(boolean memoryEventRateLimitEnabled) {
+      this.memoryEventRateLimitEnabled = memoryEventRateLimitEnabled;
+      return this;
+    }
+
+    public Builder setMemoryEventRate(String memoryEventRate) {
+      this.memoryEventRate = Objects.requireNonNull(memoryEventRate);
+      return this;
+    }
+
+    public Builder setUseAllocationSampleEvent(boolean useAllocationSampleEvent) {
+      this.useAllocationSampleEvent = useAllocationSampleEvent;
+      return this;
+    }
+
+    public Builder setCallStackInterval(Duration callStackInterval) {
+      this.callStackInterval = Objects.requireNonNull(callStackInterval);
+      return this;
+    }
+
+    public Builder setIncludeAgentInternalStacks(boolean includeAgentInternalStacks) {
+      this.includeAgentInternalStacks = includeAgentInternalStacks;
+      return this;
+    }
+
+    public Builder setIncludeJvmInternalStacks(boolean includeJvmInternalStacks) {
+      this.includeJvmInternalStacks = includeJvmInternalStacks;
+      return this;
+    }
+
+    public Builder setTracingStacksOnly(boolean tracingStacksOnly) {
+      this.tracingStacksOnly = tracingStacksOnly;
+      return this;
+    }
+
+    public Builder setStackDepth(int stackDepth) {
+      this.stackDepth = stackDepth;
+      return this;
+    }
+
+    public Builder setKeepFiles(boolean keepFiles) {
+      this.keepFiles = keepFiles;
+      return this;
+    }
+
+    public Builder setProfilerDirectory(String profilerDirectory) {
+      this.profilerDirectory = Objects.requireNonNull(profilerDirectory);
+      return this;
+    }
+
+    public Builder setRecordingDuration(Duration recordingDuration) {
+      this.recordingDuration = Objects.requireNonNull(recordingDuration);
+      return this;
+    }
+
+    public Builder setConfigProperties(@Nullable Object configProperties) {
+      this.configProperties = configProperties;
+      return this;
+    }
   }
 }

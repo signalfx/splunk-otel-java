@@ -20,7 +20,8 @@ import static io.opentelemetry.api.incubator.config.DeclarativeConfigProperties.
 
 import com.google.common.annotations.VisibleForTesting;
 import com.splunk.opentelemetry.opamp.effectiveconfig.EffectiveConfigReporter;
-import com.splunk.opentelemetry.profiler.ProfilerDeclarativeConfiguration;
+import com.splunk.opentelemetry.profiler.ProfilerConfiguration;
+import com.splunk.opentelemetry.profiler.ProfilerDeclarativeConfigurationFactory;
 import com.splunk.opentelemetry.profiler.ProfilingSupervisor;
 import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
 import io.opentelemetry.opamp.client.OpampClient;
@@ -41,15 +42,11 @@ public class RemoteConfigProcessor {
   private static final String REMOTE_CONFIG_FILE_NAME = "splunk.remote.config";
   private static final String PROFILING_NODE_NAME = "profiling";
 
-  private final ProfilerRemoteConfiguration profilerRemoteConfiguration;
   private final ProfilingSupervisor profilingSupervisor;
   private final EffectiveConfigReporter effectiveConfigReporter;
 
   public RemoteConfigProcessor(
-      ProfilerRemoteConfiguration profilerRemoteConfiguration,
-      ProfilingSupervisor profilingSupervisor,
-      EffectiveConfigReporter effectiveConfigReporter) {
-    this.profilerRemoteConfiguration = Objects.requireNonNull(profilerRemoteConfiguration);
+      ProfilingSupervisor profilingSupervisor, EffectiveConfigReporter effectiveConfigReporter) {
     this.profilingSupervisor = Objects.requireNonNull(profilingSupervisor);
     this.effectiveConfigReporter = Objects.requireNonNull(effectiveConfigReporter);
   }
@@ -78,13 +75,19 @@ public class RemoteConfigProcessor {
 
       // Update profiler configuration only when profiling node exists
       if (distributionRemoteConfigProperties.getPropertyKeys().contains(PROFILING_NODE_NAME)) {
-        ProfilerDeclarativeConfiguration receivedProfilerConfig =
-            new ProfilerDeclarativeConfiguration(
+        ProfilerConfiguration receivedProfilerConfig =
+            ProfilerDeclarativeConfigurationFactory.create(
                 distributionRemoteConfigProperties.getStructured(PROFILING_NODE_NAME, empty()));
 
-        profilerRemoteConfiguration.setEnabled(receivedProfilerConfig.isEnabled());
+        ProfilerConfiguration updatedProfilerConfig =
+            ProfilerConfiguration.SUPPLIER
+                .get()
+                .newBuilder()
+                .setEnabled(receivedProfilerConfig.isEnabled())
+                .build();
+        ProfilerConfiguration.SUPPLIER.configure(updatedProfilerConfig);
 
-        if (profilerRemoteConfiguration.isEnabled()) {
+        if (updatedProfilerConfig.isEnabled()) {
           profilingSupervisor.requestStartProfiling();
         } else {
           profilingSupervisor.requestStopProfiling();

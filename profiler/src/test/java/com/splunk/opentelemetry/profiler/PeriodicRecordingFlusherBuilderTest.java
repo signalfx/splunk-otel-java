@@ -22,10 +22,12 @@ import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import io.opentelemetry.sdk.autoconfigure.spi.internal.DefaultConfigProperties;
 import io.opentelemetry.sdk.resources.Resource;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
+import java.util.Map;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -43,9 +45,8 @@ class PeriodicRecordingFlusherBuilderTest {
   @Test
   void buildConfiguresJfrAndWiresRecorderIntoSequencer() {
     JFR jfr = mock(JFR.class);
-    TestProfilingConfig config = config(tempDir);
-    config.stackDepth = 73;
-    config.recordingDuration = Duration.ofMillis(100);
+    ProfilerConfiguration config =
+        config(tempDir).setStackDepth(73).setRecordingDuration(Duration.ofMillis(100)).build();
     ProfilerConfiguration.SUPPLIER.configure(config);
 
     try (MockedConstruction<JfrRecorder> recorderConstruction =
@@ -70,8 +71,7 @@ class PeriodicRecordingFlusherBuilderTest {
   void buildCreatesMissingOutputDirectoryWhenKeepingFiles() {
     Path outputDir = tempDir.resolve("profiler-output");
     JFR jfr = mock(JFR.class);
-    TestProfilingConfig config = config(outputDir);
-    config.keepFiles = true;
+    ProfilerConfiguration config = config(outputDir).setKeepFiles(true).build();
     ProfilerConfiguration.SUPPLIER.configure(config);
 
     try (MockedConstruction<JfrRecorder> recorderConstruction =
@@ -90,8 +90,7 @@ class PeriodicRecordingFlusherBuilderTest {
     Path outputFile = tempDir.resolve("profiler-output");
     Files.createFile(outputFile);
     JFR jfr = mock(JFR.class);
-    TestProfilingConfig config = config(outputFile);
-    config.keepFiles = true;
+    ProfilerConfiguration config = config(outputFile).setKeepFiles(true).build();
     ProfilerConfiguration.SUPPLIER.configure(config);
 
     try (MockedConstruction<JfrRecorder> recorderConstruction =
@@ -104,9 +103,19 @@ class PeriodicRecordingFlusherBuilderTest {
     }
   }
 
-  private TestProfilingConfig config(Path outputDir) {
-    TestProfilingConfig config = new TestProfilingConfig();
-    config.profilerDirectory = outputDir.toString();
-    return config;
+  private ProfilerConfiguration.Builder config(Path outputDir) {
+    return ProfilerConfiguration.builder()
+        .setEnabled(true)
+        .setIngestUrl("http://localhost:4318/v1/logs")
+        .setOtlpProtocol("http/protobuf")
+        .setProfilerDirectory(outputDir.toString())
+        .setRecordingDuration(Duration.ofDays(1))
+        .setConfigProperties(
+            DefaultConfigProperties.createFromMap(
+                Map.of(
+                    "otel.exporter.otlp.protocol",
+                    "http/protobuf",
+                    "otel.exporter.otlp.endpoint",
+                    "http://localhost:4318")));
   }
 }

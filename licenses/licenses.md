@@ -1,7 +1,7 @@
 
 # splunk-otel-javaagent
 ## Dependency License Report
-_2026-06-20 10:34:26 EEST_
+_2026-06-24 14:18:04 CEST_
 ## Apache License, Version 2.0
 
 **1** **Group:** `com.squareup.okhttp3` **Name:** `okhttp` **Version:** `5.4.0` 
@@ -92,12 +92,12 @@ _2026-06-20 10:34:26 EEST_
 > - **POM Project URL**: [https://github.com/open-telemetry/opentelemetry-java-instrumentation](https://github.com/open-telemetry/opentelemetry-java-instrumentation)
 > - **POM License**: Apache License, Version 2.0 - [https://www.apache.org/licenses/LICENSE-2.0](https://www.apache.org/licenses/LICENSE-2.0)
 
-**23** **Group:** `org.apache.commons` **Name:** `commons-jexl3` **Version:** `3.6.2` 
+**23** **Group:** `org.apache.commons` **Name:** `commons-jexl3` **Version:** `3.6.3` 
 > - **Project URL**: [https://commons.apache.org/proper/commons-jexl/](https://commons.apache.org/proper/commons-jexl/)
 > - **Manifest License**: [https://www.apache.org/licenses/LICENSE-2.0](Apache License, Version 2.0)
 > - **POM License**: Apache License, Version 2.0 - [https://www.apache.org/licenses/LICENSE-2.0](https://www.apache.org/licenses/LICENSE-2.0)
-> - **Embedded license files**: [commons-jexl3-3.6.2.jar/META-INF/LICENSE.txt](commons-jexl3-3.6.2.jar/META-INF/LICENSE.txt) 
-    - [commons-jexl3-3.6.2.jar/META-INF/NOTICE.txt](commons-jexl3-3.6.2.jar/META-INF/NOTICE.txt)
+> - **Embedded license files**: [commons-jexl3-3.6.3.jar/META-INF/LICENSE.txt](commons-jexl3-3.6.3.jar/META-INF/LICENSE.txt) 
+    - [commons-jexl3-3.6.3.jar/META-INF/NOTICE.txt](commons-jexl3-3.6.3.jar/META-INF/NOTICE.txt)
 
 **24** **Group:** `org.jetbrains` **Name:** `annotations` **Version:** `13.0` 
 > - **POM Project URL**: [http://www.jetbrains.org](http://www.jetbrains.org)

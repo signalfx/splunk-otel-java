@@ -82,7 +82,7 @@ public class RemoteConfigProcessor {
         ProfilerConfiguration updatedProfilerConfig =
             ProfilerConfiguration.SUPPLIER
                 .get()
-                .newBuilder()
+                .toBuilder()
                 .setEnabled(receivedProfilerConfig.isEnabled())
                 .build();
         ProfilerConfiguration.SUPPLIER.configure(updatedProfilerConfig);

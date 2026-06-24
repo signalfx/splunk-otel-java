@@ -24,8 +24,39 @@ import org.junit.jupiter.api.Test;
 class ProfilerConfigurationTest {
 
   @Test
-  void newBuilderCopiesExistingConfigurationAndAllowsMutation() {
+  void toBuilder_shouldCopyExistingConfigurationWithoutMutation() {
     Object configProperties = new Object();
+    ProfilerConfiguration original =
+        ProfilerConfiguration.builder()
+            .setEnabled(true)
+            .setIngestUrl("https://logs.example.com")
+            .setOtlpProtocol("grpc")
+            .setMemoryEnabled(true)
+            .setMemoryEventRateLimitEnabled(false)
+            .setMemoryEventRate("250/s")
+            .setUseAllocationSampleEvent(true)
+            .setCallStackInterval(Duration.ofMillis(1410))
+            .setIncludeAgentInternalStacks(true)
+            .setIncludeJvmInternalStacks(true)
+            .setTracingStacksOnly(true)
+            .setStackDepth(73)
+            .setKeepFiles(true)
+            .setProfilerDirectory("/tmp/profiler")
+            .setRecordingDuration(Duration.ofSeconds(30))
+            .setConfigProperties(configProperties)
+            .build();
+
+    ProfilerConfiguration copy = original.toBuilder().build();
+
+    assertThat(copy).isNotSameAs(original);
+    assertThat(copy).usingRecursiveComparison().isEqualTo(original);
+    assertThat(copy.getConfigProperties()).isSameAs(configProperties);
+  }
+
+  @Test
+  void toBuilder_shouldCopyExistingConfigurationAndAllowMutation() {
+    Object configProperties = new Object();
+    Object mutatedConfigProperties = new Object();
     ProfilerConfiguration original =
         ProfilerConfiguration.builder()
             .setEnabled(false)
@@ -46,28 +77,41 @@ class ProfilerConfigurationTest {
             .setConfigProperties(configProperties)
             .build();
 
-    ProfilerConfiguration copy = original.newBuilder().setEnabled(true).build();
+    ProfilerConfiguration copy =
+        original.toBuilder()
+            .setEnabled(true)
+            .setIngestUrl("https://mutated-logs.example.com")
+            .setOtlpProtocol("http/protobuf")
+            .setMemoryEnabled(false)
+            .setMemoryEventRateLimitEnabled(true)
+            .setMemoryEventRate("333/s")
+            .setUseAllocationSampleEvent(false)
+            .setCallStackInterval(Duration.ofMillis(2500))
+            .setIncludeAgentInternalStacks(false)
+            .setIncludeJvmInternalStacks(false)
+            .setTracingStacksOnly(false)
+            .setStackDepth(142)
+            .setKeepFiles(false)
+            .setProfilerDirectory("/tmp/mutated-profiler")
+            .setRecordingDuration(Duration.ofSeconds(60))
+            .setConfigProperties(mutatedConfigProperties)
+            .build();
 
-    assertThat(original.isEnabled()).isFalse();
     assertThat(copy.isEnabled()).isTrue();
-    assertThat(copy.getIngestUrl()).isEqualTo(original.getIngestUrl());
-    assertThat(copy.getOtlpProtocol()).isEqualTo(original.getOtlpProtocol());
-    assertThat(copy.getMemoryEnabled()).isEqualTo(original.getMemoryEnabled());
-    assertThat(copy.getMemoryEventRateLimitEnabled())
-        .isEqualTo(original.getMemoryEventRateLimitEnabled());
-    assertThat(copy.getMemoryEventRate()).isEqualTo(original.getMemoryEventRate());
-    assertThat(copy.getUseAllocationSampleEvent())
-        .isEqualTo(original.getUseAllocationSampleEvent());
-    assertThat(copy.getCallStackInterval()).isEqualTo(original.getCallStackInterval());
-    assertThat(copy.getIncludeAgentInternalStacks())
-        .isEqualTo(original.getIncludeAgentInternalStacks());
-    assertThat(copy.getIncludeJvmInternalStacks())
-        .isEqualTo(original.getIncludeJvmInternalStacks());
-    assertThat(copy.getTracingStacksOnly()).isEqualTo(original.getTracingStacksOnly());
-    assertThat(copy.getStackDepth()).isEqualTo(original.getStackDepth());
-    assertThat(copy.getKeepFiles()).isEqualTo(original.getKeepFiles());
-    assertThat(copy.getProfilerDirectory()).isEqualTo(original.getProfilerDirectory());
-    assertThat(copy.getRecordingDuration()).isEqualTo(original.getRecordingDuration());
-    assertThat(copy.getConfigProperties()).isSameAs(configProperties);
+    assertThat(copy.getIngestUrl()).isEqualTo("https://mutated-logs.example.com");
+    assertThat(copy.getOtlpProtocol()).isEqualTo("http/protobuf");
+    assertThat(copy.getMemoryEnabled()).isFalse();
+    assertThat(copy.getMemoryEventRateLimitEnabled()).isTrue();
+    assertThat(copy.getMemoryEventRate()).isEqualTo("333/s");
+    assertThat(copy.getUseAllocationSampleEvent()).isFalse();
+    assertThat(copy.getCallStackInterval()).isEqualTo(Duration.ofMillis(2500));
+    assertThat(copy.getIncludeAgentInternalStacks()).isFalse();
+    assertThat(copy.getIncludeJvmInternalStacks()).isFalse();
+    assertThat(copy.getTracingStacksOnly()).isFalse();
+    assertThat(copy.getStackDepth()).isEqualTo(142);
+    assertThat(copy.getKeepFiles()).isFalse();
+    assertThat(copy.getProfilerDirectory()).isEqualTo("/tmp/mutated-profiler");
+    assertThat(copy.getRecordingDuration()).isEqualTo(Duration.ofSeconds(60));
+    assertThat(copy.getConfigProperties()).isSameAs(mutatedConfigProperties);
   }
 }

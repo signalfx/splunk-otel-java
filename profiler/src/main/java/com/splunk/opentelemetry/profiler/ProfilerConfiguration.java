@@ -73,7 +73,7 @@ public class ProfilerConfiguration {
     return new Builder();
   }
 
-  public Builder newBuilder() {
+  public Builder toBuilder() {
     return new Builder(this);
   }
 

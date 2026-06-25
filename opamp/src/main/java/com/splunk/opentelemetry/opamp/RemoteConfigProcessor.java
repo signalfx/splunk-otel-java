@@ -82,14 +82,11 @@ public class RemoteConfigProcessor {
         ProfilerConfiguration updatedProfilerConfig =
             ProfilerConfiguration.SUPPLIER.get().toBuilder()
                 .setEnabled(receivedProfilerConfig.isEnabled())
+                .setCallStackInterval(receivedProfilerConfig.getCallStackInterval())
                 .build();
         ProfilerConfiguration.SUPPLIER.configure(updatedProfilerConfig);
 
-        if (updatedProfilerConfig.isEnabled()) {
-          profilingSupervisor.requestStartProfiling();
-        } else {
-          profilingSupervisor.requestStopProfiling();
-        }
+        profilingSupervisor.requestReinitializeProfiling();
       }
 
       // Confirm to the OpAMP Server that remote config has been applied.

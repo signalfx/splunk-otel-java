@@ -105,6 +105,10 @@ public class ProfilingSupervisor {
     commandQueue.add(ProfilingCommand.STOP);
   }
 
+  public void requestReinitializeProfiling() {
+    commandQueue.add(ProfilingCommand.REINITIALIZE);
+  }
+
   private void handleCommand(ProfilingCommand command) {
     switch (command) {
       case START:
@@ -112,6 +116,9 @@ public class ProfilingSupervisor {
         break;
       case STOP:
         tryStop();
+        break;
+      case REINITIALIZE:
+        tryReinitialize();
         break;
     }
   }
@@ -153,6 +160,19 @@ public class ProfilingSupervisor {
     logger.info("Profiler is deactivated.");
   }
 
+  private void tryReinitialize() {
+    logger.info("Reinitializing profiler.");
+    // Stop if currently running
+    if (isJfrRecordingActive()) {
+      tryStop();
+    }
+    // Start with current setting if profiling is enabled. If settings changed since last start they
+    // will be applied.
+    if (configSupplier.get().isEnabled()) {
+      tryStart();
+    }
+  }
+
   private boolean isJfrRecordingActive() {
     return recordingFlusher.get() != null;
   }
@@ -192,6 +212,7 @@ public class ProfilingSupervisor {
 
   enum ProfilingCommand {
     START,
-    STOP
+    STOP,
+    REINITIALIZE
   }
 }

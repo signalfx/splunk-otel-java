@@ -80,9 +80,7 @@ public class RemoteConfigProcessor {
                 distributionRemoteConfigProperties.getStructured(PROFILING_NODE_NAME, empty()));
 
         ProfilerConfiguration updatedProfilerConfig =
-            ProfilerConfiguration.SUPPLIER
-                .get()
-                .toBuilder()
+            ProfilerConfiguration.SUPPLIER.get().toBuilder()
                 .setEnabled(receivedProfilerConfig.isEnabled())
                 .build();
         ProfilerConfiguration.SUPPLIER.configure(updatedProfilerConfig);

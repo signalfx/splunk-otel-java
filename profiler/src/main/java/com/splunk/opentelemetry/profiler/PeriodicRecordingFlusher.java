@@ -31,15 +31,24 @@ import java.util.logging.Logger;
 class PeriodicRecordingFlusher {
   private static final Logger logger = Logger.getLogger(PeriodicRecordingFlusher.class.getName());
 
-  private final ScheduledExecutorService executor =
-      HelpfulExecutors.newSingleThreadedScheduledExecutor("JFR Recording Flusher");
+  private final ScheduledExecutorService executor;
   private final Duration recordingDuration;
   private final JfrRecorder recorder;
   private ScheduledFuture<?> scheduledFlushFuture = null;
 
   PeriodicRecordingFlusher(JfrRecorder recorder, Duration recordingDuration) {
+    this(
+        recorder,
+        recordingDuration,
+        HelpfulExecutors.newSingleThreadedScheduledExecutor("JFR Recording Flusher"));
+  }
+
+  @VisibleForTesting
+  PeriodicRecordingFlusher(
+      JfrRecorder recorder, Duration recordingDuration, ScheduledExecutorService executor) {
     this.recordingDuration = recordingDuration;
     this.recorder = recorder;
+    this.executor = executor;
   }
 
   public void start() {

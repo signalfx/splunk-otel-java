@@ -41,7 +41,7 @@ public class ProfilingSupervisor {
   private static final java.util.logging.Logger logger =
       java.util.logging.Logger.getLogger(ProfilingSupervisor.class.getName());
 
-  private final ProfilerConfiguration config;
+  private final OptionalConfigurableSupplier<ProfilerConfiguration> configSupplier;
   private final JFR jfr;
   private final AutoConfiguredOpenTelemetrySdk sdk;
   private final BlockingQueue<ProfilingCommand> commandQueue;
@@ -53,24 +53,24 @@ public class ProfilingSupervisor {
 
   @VisibleForTesting
   ProfilingSupervisor(
-      ProfilerConfiguration config,
+      OptionalConfigurableSupplier<ProfilerConfiguration> configSupplier,
       JFR jfr,
       AutoConfiguredOpenTelemetrySdk sdk,
       BlockingQueue<ProfilingCommand> commandQueue) {
-    this.config = config;
+    this.configSupplier = configSupplier;
     this.jfr = jfr;
     this.sdk = sdk;
     this.commandQueue = commandQueue;
   }
 
-  static ProfilingSupervisor createAndStart(
-      AutoConfiguredOpenTelemetrySdk sdk, ProfilerConfiguration config) {
+  static ProfilingSupervisor createAndStart(AutoConfiguredOpenTelemetrySdk sdk) {
     if (SUPPLIER.isConfigured()) {
       throw new IllegalStateException("Already started");
     }
     ExecutorService executor = HelpfulExecutors.newSingleThreadExecutor("JFR Profiler");
     BlockingQueue<ProfilingCommand> queue = new LinkedBlockingQueue<>();
-    ProfilingSupervisor supervisor = new ProfilingSupervisor(config, JFR.getInstance(), sdk, queue);
+    ProfilingSupervisor supervisor =
+        new ProfilingSupervisor(ProfilerConfiguration.SUPPLIER, JFR.getInstance(), sdk, queue);
     SUPPLIER.configure(supervisor);
     supervisor.start(executor);
 
@@ -137,10 +137,10 @@ public class ProfilingSupervisor {
           "JDK Flight Recorder (JFR) is not available in this JVM. Profiling will not start.");
       return;
     }
-    config.log();
-    logger.info("Profiler is active.");
+    configSupplier.get().log();
     setJfrContextStorageEnabled(true);
     activateJfrRecording(getResource(sdk));
+    logger.info("Profiler is active.");
   }
 
   private void tryStop() {
@@ -150,6 +150,7 @@ public class ProfilingSupervisor {
     }
     setJfrContextStorageEnabled(false);
     deactivateJfrRecording();
+    logger.info("Profiler is deactivated.");
   }
 
   private boolean isJfrRecordingActive() {
@@ -173,7 +174,7 @@ public class ProfilingSupervisor {
 
   // Exists for testing
   PeriodicRecordingFlusherBuilder makeRecordingFlusherBuilder(Resource resource) {
-    return PeriodicRecordingFlusher.builder(config, resource);
+    return PeriodicRecordingFlusher.builder(configSupplier.get(), resource);
   }
 
   static void setupJfrContextStorage() {

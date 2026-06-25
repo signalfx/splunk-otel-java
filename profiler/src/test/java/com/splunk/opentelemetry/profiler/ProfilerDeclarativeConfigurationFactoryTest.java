@@ -18,7 +18,6 @@ package com.splunk.opentelemetry.profiler;
 
 import static com.splunk.opentelemetry.testing.declarativeconfig.DeclarativeConfigTestUtil.getProfilingConfig;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.splunk.opentelemetry.testing.declarativeconfig.DeclarativeConfigTestUtil;
 import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
@@ -26,11 +25,10 @@ import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.OpenTelemetryC
 import java.time.Duration;
 import org.junit.jupiter.api.Test;
 
-class ProfilerDeclarativeConfigurationTest {
+class ProfilerDeclarativeConfigurationFactoryTest {
 
   @Test
   void shouldMapYamlToConfiguration() {
-    // given
     OpenTelemetryConfigurationModel model =
         DeclarativeConfigTestUtil.parse(
             """
@@ -56,10 +54,8 @@ class ProfilerDeclarativeConfigurationTest {
 
     DeclarativeConfigProperties profilingConfig = getProfilingConfig(model);
 
-    // when
-    ProfilerDeclarativeConfiguration config = new ProfilerDeclarativeConfiguration(profilingConfig);
+    ProfilerConfiguration config = ProfilerDeclarativeConfigurationFactory.create(profilingConfig);
 
-    // then
     assertThat(config.isEnabled()).isTrue();
     assertThat(config.getIncludeAgentInternalStacks()).isTrue();
     assertThat(config.getIncludeJvmInternalStacks()).isTrue();
@@ -72,9 +68,29 @@ class ProfilerDeclarativeConfigurationTest {
     assertThat(config.getMemoryEnabled()).isTrue();
     assertThat(config.getMemoryEventRateLimitEnabled()).isTrue();
     assertThat(config.getMemoryEventRate()).isEqualTo("250/s");
-    assertThat(config.getUseAllocationSampleEvent()).isTrue();
+    assertThat(config.getUseAllocationSampleEvent())
+        .isEqualTo(ProfilerConfiguration.HAS_OBJECT_ALLOCATION_SAMPLE_EVENT);
+    assertThat(config.getConfigProperties()).isSameAs(profilingConfig);
+  }
 
-    assertThrows(UnsupportedOperationException.class, config::getIngestUrl);
-    assertThrows(UnsupportedOperationException.class, config::getOtlpProtocol);
+  @Test
+  void shouldDisableProfilerWhenAlwaysOnIsMissing() {
+    OpenTelemetryConfigurationModel model =
+        DeclarativeConfigTestUtil.parse(
+            """
+            file_format: "1.0"
+            distribution:
+              splunk:
+                profiling:
+            """);
+
+    ProfilerConfiguration config =
+        ProfilerDeclarativeConfigurationFactory.create(getProfilingConfig(model));
+
+    assertThat(config.isEnabled()).isFalse();
+    assertThat(config.getMemoryEnabled()).isFalse();
+    assertThat(config.getMemoryEventRateLimitEnabled()).isFalse();
+    assertThat(config.getCallStackInterval()).isEqualTo(Duration.ofSeconds(10));
+    assertThat(config.getRecordingDuration()).isEqualTo(Duration.ofSeconds(20));
   }
 }

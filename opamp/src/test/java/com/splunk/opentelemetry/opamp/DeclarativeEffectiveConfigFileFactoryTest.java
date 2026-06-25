@@ -23,7 +23,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
 import com.splunk.opentelemetry.profiler.ProfilerConfiguration;
-import com.splunk.opentelemetry.profiler.ProfilerDeclarativeConfiguration;
+import com.splunk.opentelemetry.profiler.ProfilerDeclarativeConfigurationFactory;
 import com.splunk.opentelemetry.profiler.snapshot.SnapshotProfilingConfiguration;
 import com.splunk.opentelemetry.profiler.snapshot.SnapshotProfilingDeclarativeConfiguration;
 import com.splunk.opentelemetry.testing.declarativeconfig.DeclarativeConfigTestUtil;
@@ -56,7 +56,7 @@ class DeclarativeEffectiveConfigFileFactoryTest {
   @AfterEach
   void afterEach() {
     DeclarativeConfigurationInterceptor.reset();
-    ProfilerDeclarativeConfiguration.SUPPLIER.reset();
+    ProfilerConfiguration.SUPPLIER.reset();
     SnapshotProfilingDeclarativeConfiguration.SUPPLIER.reset();
   }
 
@@ -396,8 +396,8 @@ class DeclarativeEffectiveConfigFileFactoryTest {
 
         DeclarativeConfigProperties profilingConfig =
             getDistributionConfig(model).getStructured("profiling", empty());
-        ProfilerDeclarativeConfiguration.SUPPLIER.configure(
-            new ProfilerDeclarativeConfiguration(profilingConfig));
+        ProfilerConfiguration.SUPPLIER.configure(
+            ProfilerDeclarativeConfigurationFactory.create(profilingConfig));
         SnapshotProfilingDeclarativeConfiguration.SUPPLIER.configure(
             new SnapshotProfilingDeclarativeConfiguration(profilingConfig));
 

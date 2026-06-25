@@ -43,7 +43,7 @@ class JfrAgentListenerTest {
 
   @AfterEach
   void resetDeclarativeConfigSuppliers() {
-    ProfilerDeclarativeConfiguration.SUPPLIER.reset();
+    ProfilerConfiguration.SUPPLIER.reset();
     SnapshotProfilingDeclarativeConfiguration.SUPPLIER.reset();
   }
 
@@ -68,8 +68,7 @@ class JfrAgentListenerTest {
     JfrAgentListener listener =
         new JfrAgentListener(jfr) {
           @Override
-          ProfilingSupervisor makeProfilingSupervisor(
-              AutoConfiguredOpenTelemetrySdk sdk, ProfilerConfiguration config) {
+          ProfilingSupervisor makeProfilingSupervisor(AutoConfiguredOpenTelemetrySdk sdk) {
             return supervisor;
           }
         };
@@ -102,8 +101,7 @@ class JfrAgentListenerTest {
     JfrAgentListener listener =
         new JfrAgentListener(jfr) {
           @Override
-          ProfilingSupervisor makeProfilingSupervisor(
-              AutoConfiguredOpenTelemetrySdk sdk, ProfilerConfiguration config) {
+          ProfilingSupervisor makeProfilingSupervisor(AutoConfiguredOpenTelemetrySdk sdk) {
             return supervisor;
           }
         };
@@ -130,8 +128,7 @@ class JfrAgentListenerTest {
     JfrAgentListener listener =
         new JfrAgentListener(jfr) {
           @Override
-          ProfilingSupervisor makeProfilingSupervisor(
-              AutoConfiguredOpenTelemetrySdk sdk, ProfilerConfiguration config) {
+          ProfilingSupervisor makeProfilingSupervisor(AutoConfiguredOpenTelemetrySdk sdk) {
             return supervisor;
           }
         };

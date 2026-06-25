@@ -43,7 +43,7 @@ class GracefulShutdownTest {
           .with(
               new StackTraceExporterActivator(
                   new OtelLoggerFactory(
-                      properties -> logExporter, declarativeConfigProperties -> logExporter)))
+                      () -> logExporter, declarativeConfigProperties -> logExporter)))
           .build();
 
   @Test

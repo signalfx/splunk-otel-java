@@ -19,9 +19,7 @@ package com.splunk.opentelemetry.profiler;
 import com.google.auto.service.AutoService;
 import com.google.common.annotations.VisibleForTesting;
 import io.opentelemetry.javaagent.extension.AgentListener;
-import io.opentelemetry.sdk.autoconfigure.AutoConfigureUtil;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
-import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import java.util.logging.Logger;
 
 @AutoService(AgentListener.class)
@@ -40,12 +38,14 @@ public class JfrAgentListener implements AgentListener {
 
   @Override
   public void afterAgent(AutoConfiguredOpenTelemetrySdk sdk) {
-    ProfilingSupervisor.setupJfrContextStorage();
+    if (jfr.isAvailable()) {
+      ProfilingSupervisor.setupJfrContextStorage();
+    }
 
-    ProfilerConfiguration config = getProfilerConfiguration(sdk);
     // Always start the supervisor, so it can start profiling later elsewhere.
-    ProfilingSupervisor supervisor = makeProfilingSupervisor(sdk, config);
+    ProfilingSupervisor supervisor = makeProfilingSupervisor(sdk);
 
+    ProfilerConfiguration config = ProfilerConfiguration.SUPPLIER.get();
     if (notClearForTakeoff(config)) {
       return;
     }
@@ -60,19 +60,8 @@ public class JfrAgentListener implements AgentListener {
   }
 
   // Exists for testing
-  ProfilingSupervisor makeProfilingSupervisor(
-      AutoConfiguredOpenTelemetrySdk sdk, ProfilerConfiguration config) {
-    return ProfilingSupervisor.createAndStart(sdk, config);
-  }
-
-  private static ProfilerConfiguration getProfilerConfiguration(
-      AutoConfiguredOpenTelemetrySdk sdk) {
-    if (ProfilerDeclarativeConfiguration.SUPPLIER.isConfigured()) {
-      return ProfilerDeclarativeConfiguration.SUPPLIER.get();
-    } else {
-      ConfigProperties configProperties = AutoConfigureUtil.getConfig(sdk);
-      return new ProfilerEnvVarsConfiguration(configProperties);
-    }
+  ProfilingSupervisor makeProfilingSupervisor(AutoConfiguredOpenTelemetrySdk sdk) {
+    return ProfilingSupervisor.createAndStart(sdk);
   }
 
   private boolean notClearForTakeoff(ProfilerConfiguration config) {

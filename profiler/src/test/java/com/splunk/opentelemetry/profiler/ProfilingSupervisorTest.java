@@ -16,10 +16,11 @@
 
 package com.splunk.opentelemetry.profiler;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.Mockito.mock;
+import static org.mockito.ArgumentMatchers.same;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
@@ -46,10 +47,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class ProfilingSupervisorTest {
 
   @Mock JFR jfr;
+  @Mock PeriodicRecordingFlusherFactory recordingFlusherFactory;
+  @Mock PeriodicRecordingFlusher recordingFlusher;
 
   ProfilerConfiguration config;
   OptionalConfigurableSupplier<ProfilerConfiguration> configSupplier;
-  TestPeriodicRecordingFlusherFactory recordingFlusherFactory;
   AutoConfiguredOpenTelemetrySdk sdk;
   ExecutorService executor;
   ProfilingSupervisor supervisor;
@@ -66,7 +68,11 @@ class ProfilingSupervisorTest {
                 .build());
     configSupplier = new OptionalConfigurableSupplier<>();
     configSupplier.configure(config);
-    recordingFlusherFactory = new TestPeriodicRecordingFlusherFactory();
+    lenient()
+        .when(
+            recordingFlusherFactory.create(
+                any(ProfilerConfiguration.class), any(Resource.class), any(JFR.class)))
+        .thenReturn(recordingFlusher);
     executor = Executors.newSingleThreadExecutor();
     sdk =
         AutoConfiguredOpenTelemetrySdk.builder()
@@ -106,7 +112,7 @@ class ProfilingSupervisorTest {
     await().untilAsserted(() -> verify(jfr).isAvailable());
     verify(config, never()).log();
     verify(jfr, never()).setStackDepth(anyInt());
-    assertThat(recordingFlusherFactory.createCalled).isFalse();
+    verify(recordingFlusherFactory, never()).create(any(), any(), any());
   }
 
   @Test
@@ -118,12 +124,9 @@ class ProfilingSupervisorTest {
     supervisor.requestStartProfiling();
 
     // then
-    await().untilAsserted(() -> assertThat(recordingFlusherFactory.createCalled).isTrue());
+    await().untilAsserted(() -> verify(recordingFlusher).start());
     verify(config).log();
-    assertThat(recordingFlusherFactory.jfr).isSameAs(jfr);
-    assertThat(recordingFlusherFactory.config).isSameAs(config);
-    assertThat(recordingFlusherFactory.resource).isNotNull();
-    verify(recordingFlusherFactory.flusher).start();
+    verifyRecordingFlusherCreatedWith(config);
   }
 
   @Test
@@ -133,14 +136,17 @@ class ProfilingSupervisorTest {
 
     // when
     supervisor.requestStartProfiling();
-    await().untilAsserted(() -> assertThat(recordingFlusherFactory.createCalled).isTrue());
+    await().untilAsserted(() -> verify(recordingFlusherFactory).create(any(), any(), any()));
     supervisor.requestStartProfiling();
 
     // then
     await()
         .during(Duration.ofMillis(200))
-        .untilAsserted(() -> verify(recordingFlusherFactory.flusher).start());
-    assertThat(recordingFlusherFactory.createCount).isEqualTo(1);
+        .untilAsserted(
+            () -> {
+              verify(recordingFlusher).start();
+              verifyRecordingFlusherCreated(1);
+            });
   }
 
   @Test
@@ -148,13 +154,13 @@ class ProfilingSupervisorTest {
     // given
     when(jfr.isAvailable()).thenReturn(true);
     supervisor.requestStartProfiling();
-    await().untilAsserted(() -> verify(recordingFlusherFactory.flusher).start());
+    await().untilAsserted(() -> verify(recordingFlusher).start());
 
     // when
     supervisor.requestStopProfiling();
 
     // then
-    await().untilAsserted(() -> verify(recordingFlusherFactory.flusher).stop());
+    await().untilAsserted(() -> verify(recordingFlusher).stop());
   }
 
   @Test
@@ -162,16 +168,16 @@ class ProfilingSupervisorTest {
     // given
     when(jfr.isAvailable()).thenReturn(true);
     supervisor.requestStartProfiling();
-    await().untilAsserted(() -> verify(recordingFlusherFactory.flusher).start());
+    await().untilAsserted(() -> verify(recordingFlusher).start());
     supervisor.requestStopProfiling();
-    await().untilAsserted(() -> verify(recordingFlusherFactory.flusher).stop());
+    await().untilAsserted(() -> verify(recordingFlusher).stop());
 
     // when
     supervisor.requestStartProfiling();
 
     // then
-    await().untilAsserted(() -> verify(recordingFlusherFactory.flusher, times(2)).start());
-    assertThat(recordingFlusherFactory.createCount).isEqualTo(2);
+    await().untilAsserted(() -> verify(recordingFlusher, times(2)).start());
+    verifyRecordingFlusherCreated(2);
   }
 
   @Test
@@ -179,7 +185,7 @@ class ProfilingSupervisorTest {
     // given
     when(jfr.isAvailable()).thenReturn(true);
     supervisor.requestStartProfiling();
-    await().untilAsserted(() -> verify(recordingFlusherFactory.flusher).start());
+    await().untilAsserted(() -> verify(recordingFlusher).start());
 
     ProfilerConfiguration updatedConfig = spy(config.toBuilder().setStackDepth(1234).build());
     configSupplier.configure(updatedConfig);
@@ -188,11 +194,11 @@ class ProfilingSupervisorTest {
     supervisor.requestReinitializeProfiling();
 
     // then
-    await().untilAsserted(() -> verify(recordingFlusherFactory.flusher, times(2)).start());
-    verify(recordingFlusherFactory.flusher).stop();
+    await().untilAsserted(() -> verify(recordingFlusher, times(2)).start());
+    verify(recordingFlusher).stop();
     verify(updatedConfig).log();
-    assertThat(recordingFlusherFactory.createCount).isEqualTo(2);
-    assertThat(recordingFlusherFactory.config).isSameAs(updatedConfig);
+    verifyRecordingFlusherCreated(2);
+    verifyRecordingFlusherCreatedWith(updatedConfig);
   }
 
   @Test
@@ -200,7 +206,7 @@ class ProfilingSupervisorTest {
     // given
     when(jfr.isAvailable()).thenReturn(true);
     supervisor.requestStartProfiling();
-    await().untilAsserted(() -> verify(recordingFlusherFactory.flusher).start());
+    await().untilAsserted(() -> verify(recordingFlusher).start());
 
     ProfilerConfiguration disabledConfig = spy(config.toBuilder().setEnabled(false).build());
     configSupplier.configure(disabledConfig);
@@ -209,12 +215,15 @@ class ProfilingSupervisorTest {
     supervisor.requestReinitializeProfiling();
 
     // then
-    await().untilAsserted(() -> verify(recordingFlusherFactory.flusher).stop());
+    await().untilAsserted(() -> verify(recordingFlusher).stop());
     verify(disabledConfig).isEnabled();
     await()
         .during(Duration.ofMillis(200))
-        .untilAsserted(() -> verify(recordingFlusherFactory.flusher).start());
-    assertThat(recordingFlusherFactory.createCount).isEqualTo(1);
+        .untilAsserted(
+            () -> {
+              verify(recordingFlusher).start();
+              verifyRecordingFlusherCreated(1);
+            });
   }
 
   @Test
@@ -228,10 +237,10 @@ class ProfilingSupervisorTest {
     supervisor.requestReinitializeProfiling();
 
     // then
-    await().untilAsserted(() -> verify(recordingFlusherFactory.flusher).start());
-    verify(recordingFlusherFactory.flusher, never()).stop();
+    await().untilAsserted(() -> verify(recordingFlusher).start());
+    verify(recordingFlusher, never()).stop();
     verify(updatedConfig).log();
-    assertThat(recordingFlusherFactory.config).isSameAs(updatedConfig);
+    verifyRecordingFlusherCreatedWith(updatedConfig);
   }
 
   @Test
@@ -246,27 +255,16 @@ class ProfilingSupervisorTest {
     // then
     await().untilAsserted(() -> verify(disabledConfig).isEnabled());
     verify(jfr, never()).isAvailable();
-    verify(recordingFlusherFactory.flusher, never()).start();
-    verify(recordingFlusherFactory.flusher, never()).stop();
-    assertThat(recordingFlusherFactory.createCalled).isFalse();
+    verify(recordingFlusher, never()).start();
+    verify(recordingFlusher, never()).stop();
+    verify(recordingFlusherFactory, never()).create(any(), any(), any());
   }
 
-  private static class TestPeriodicRecordingFlusherFactory extends PeriodicRecordingFlusherFactory {
-    final PeriodicRecordingFlusher flusher = mock(PeriodicRecordingFlusher.class);
-    private ProfilerConfiguration config;
-    private Resource resource;
-    JFR jfr;
-    boolean createCalled;
-    int createCount;
+  private void verifyRecordingFlusherCreated(int count) {
+    verify(recordingFlusherFactory, times(count)).create(any(), any(), any());
+  }
 
-    @Override
-    PeriodicRecordingFlusher create(ProfilerConfiguration config, Resource resource, JFR jfr) {
-      this.config = config;
-      this.resource = resource;
-      this.jfr = jfr;
-      createCalled = true;
-      createCount++;
-      return flusher;
-    }
+  private void verifyRecordingFlusherCreatedWith(ProfilerConfiguration config) {
+    verify(recordingFlusherFactory).create(same(config), any(Resource.class), same(jfr));
   }
 }

@@ -108,7 +108,7 @@ class RemoteConfigProcessorTest {
     assertThat(status.status).isEqualTo(RemoteConfigStatuses.RemoteConfigStatuses_APPLIED);
     assertThat(status.error_message).isEmpty();
     assertThat(ProfilerConfiguration.SUPPLIER.get().isEnabled()).isTrue();
-    verify(profilingSupervisor).requestStartProfiling();
+    verify(profilingSupervisor).requestReinitializeProfiling();
     verify(profilingSupervisor, never()).requestStopProfiling();
     verify(effectiveConfigReporter).reportEffectiveConfigIfChanged();
   }
@@ -116,6 +116,8 @@ class RemoteConfigProcessorTest {
   @Test
   void shouldStopProfilingWhenRemoteConfigDisablesProfiler() {
     // given
+    ProfilerConfiguration.SUPPLIER.configure(
+        ProfilerConfiguration.builder().setEnabled(true).build());
     String remoteConfigYaml =
         """
         distribution:
@@ -134,7 +136,7 @@ class RemoteConfigProcessorTest {
     assertThat(status.status).isEqualTo(RemoteConfigStatuses.RemoteConfigStatuses_APPLIED);
     assertThat(status.error_message).isEmpty();
     assertThat(ProfilerConfiguration.SUPPLIER.get().isEnabled()).isFalse();
-    verify(profilingSupervisor).requestStopProfiling();
+    verify(profilingSupervisor).requestReinitializeProfiling();
     verify(profilingSupervisor, never()).requestStartProfiling();
     verify(effectiveConfigReporter).reportEffectiveConfigIfChanged();
   }

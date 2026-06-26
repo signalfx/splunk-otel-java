@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 import com.splunk.opentelemetry.opamp.effectiveconfig.EffectiveConfigReporter;
 import com.splunk.opentelemetry.profiler.ProfilerConfiguration;
@@ -109,7 +110,65 @@ class RemoteConfigProcessorTest {
     assertThat(status.error_message).isEmpty();
     assertThat(ProfilerConfiguration.SUPPLIER.get().isEnabled()).isTrue();
     verify(profilingSupervisor).requestReinitializeProfiling();
-    verify(profilingSupervisor, never()).requestStopProfiling();
+    verifyNoMoreInteractions(profilingSupervisor);
+    verify(effectiveConfigReporter).reportEffectiveConfigIfChanged();
+  }
+
+  @Test
+  void shouldReportErrorWhenRemoteConfigProcessingFailed() {
+    // given
+    String remoteConfigYaml =
+        """
+        distribution:
+          splunk:
+            profiling:
+        INVALID YAML HERE
+    """;
+    ByteString configHash = ByteString.encodeUtf8("test-config-hash");
+    AgentRemoteConfig remoteConfig = createRemoteConfig(configHash, remoteConfigYaml);
+
+    // when
+    handler.applyConfig(remoteConfig, opampClient);
+
+    // then
+    RemoteConfigStatus status = getReportedRemoteConfigStatus();
+    assertThat(status.last_remote_config_hash).isEqualTo(configHash);
+    assertThat(status.status).isEqualTo(RemoteConfigStatuses.RemoteConfigStatuses_FAILED);
+    assertThat(status.error_message).startsWith("Exception occurred:");
+    assertThat(ProfilerConfiguration.SUPPLIER.get().isEnabled()).isFalse();
+    assertThat(ProfilerConfiguration.SUPPLIER.get().getCallStackInterval().toMillis())
+        .isEqualTo(10000);
+    verifyNoInteractions(profilingSupervisor);
+    verify(effectiveConfigReporter).reportEffectiveConfigIfChanged();
+  }
+
+  @Test
+  void shouldUpdateProfilerConfigWhileRunning() {
+    // given
+    ProfilerConfiguration.SUPPLIER.configure(
+        ProfilerConfiguration.builder().setEnabled(true).build());
+
+    String remoteConfigYaml =
+        """
+        distribution:
+          splunk:
+            profiling:
+              always_on:
+                cpu_profiler:
+                  sampling_interval: 123
+    """;
+    ByteString configHash = ByteString.encodeUtf8("test-config-hash");
+    AgentRemoteConfig remoteConfig = createRemoteConfig(configHash, remoteConfigYaml);
+
+    // when
+    handler.applyConfig(remoteConfig, opampClient);
+
+    // then
+    assertThat(ProfilerConfiguration.SUPPLIER.get().isEnabled()).isTrue();
+    assertThat(ProfilerConfiguration.SUPPLIER.get().getCallStackInterval().toMillis())
+        .isEqualTo(123);
+    verify(profilingSupervisor).requestReinitializeProfiling();
+    verifyNoMoreInteractions(profilingSupervisor);
     verify(effectiveConfigReporter).reportEffectiveConfigIfChanged();
   }
 

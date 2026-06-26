@@ -51,7 +51,7 @@ class ProfilingSupervisorTest {
   TestPeriodicRecordingFlusherBuilder builder;
   AutoConfiguredOpenTelemetrySdk sdk;
   ExecutorService executor;
-  ProfilingSupervisor supervisor;
+  TestProfilingSupervisor supervisor;
 
   @BeforeEach
   void setUp(@TempDir Path tempDir) {
@@ -90,11 +90,14 @@ class ProfilingSupervisorTest {
   }
 
   @Test
-  void requestStartDoesNotStartProfilerWhenJfrIsUnavailable() {
+  void requestStartProfiling_doesNotStartProfilerWhenJfrIsUnavailable() {
+    // given
     when(jfr.isAvailable()).thenReturn(false);
 
+    // when
     supervisor.requestStartProfiling();
 
+    // then
     await().untilAsserted(() -> verify(jfr).isAvailable());
     verify(config, never()).log();
     verify(jfr, never()).setStackDepth(anyInt());
@@ -102,11 +105,14 @@ class ProfilingSupervisorTest {
   }
 
   @Test
-  void requestStartProfilingBuildsAndStartsRecordingSequencer() {
+  void requestStartProfiling_buildsAndStartsRecordingFlusher() {
+    // given
     when(jfr.isAvailable()).thenReturn(true);
 
+    // when
     supervisor.requestStartProfiling();
 
+    // then
     await().untilAsserted(() -> assertThat(builder.buildCalled).isTrue());
     verify(config).log();
     assertThat(builder.jfr).isSameAs(jfr);
@@ -116,59 +122,155 @@ class ProfilingSupervisorTest {
   }
 
   @Test
-  void requestStartProfilingOnlyStartsOnce() {
+  void requestStartProfiling_startsOnlyOnce() {
+    // given
     when(jfr.isAvailable()).thenReturn(true);
 
+    // when
     supervisor.requestStartProfiling();
     await().untilAsserted(() -> assertThat(builder.buildCalled).isTrue());
     supervisor.requestStartProfiling();
 
+    // then
     await().during(Duration.ofMillis(200)).untilAsserted(() -> verify(builder.flusher).start());
     assertThat(builder.buildCount).isEqualTo(1);
   }
 
   @Test
-  void requestStopProfilingStopsActiveRecordingFlusher() {
+  void requestStopProfiling_stopsActiveRecordingFlusher() {
+    // given
     when(jfr.isAvailable()).thenReturn(true);
-
     supervisor.requestStartProfiling();
     await().untilAsserted(() -> verify(builder.flusher).start());
 
+    // when
     supervisor.requestStopProfiling();
 
+    // then
     await().untilAsserted(() -> verify(builder.flusher).stop());
   }
 
   @Test
-  void requestStartProfilingCanStartAgainAfterStop() {
+  void requestStartProfiling_startsAfterStop() {
+    // given
     when(jfr.isAvailable()).thenReturn(true);
-
     supervisor.requestStartProfiling();
     await().untilAsserted(() -> verify(builder.flusher).start());
     supervisor.requestStopProfiling();
     await().untilAsserted(() -> verify(builder.flusher).stop());
 
+    // when
     supervisor.requestStartProfiling();
 
+    // then
     await().untilAsserted(() -> verify(builder.flusher, times(2)).start());
     assertThat(builder.buildCount).isEqualTo(2);
   }
 
+  @Test
+  void requestReinitializeProfiling_restartsActiveProfilerWhenEnabled() {
+    // given
+    when(jfr.isAvailable()).thenReturn(true);
+    supervisor.requestStartProfiling();
+    await().untilAsserted(() -> verify(builder.flusher).start());
+
+    ProfilerConfiguration updatedConfig = spy(config.toBuilder().setStackDepth(1234).build());
+    supervisor.configureProfilerConfiguration(updatedConfig);
+
+    // when
+    supervisor.requestReinitializeProfiling();
+
+    // then
+    await().untilAsserted(() -> verify(builder.flusher, times(2)).start());
+    verify(builder.flusher).stop();
+    verify(updatedConfig).log();
+    assertThat(builder.buildCount).isEqualTo(2);
+    assertThat(builder.config).isSameAs(updatedConfig);
+  }
+
+  @Test
+  void requestReinitializeProfiling_stopsActiveProfilerWhenDisabled() {
+    // given
+    when(jfr.isAvailable()).thenReturn(true);
+    supervisor.requestStartProfiling();
+    await().untilAsserted(() -> verify(builder.flusher).start());
+
+    ProfilerConfiguration disabledConfig = spy(config.toBuilder().setEnabled(false).build());
+    supervisor.configureProfilerConfiguration(disabledConfig);
+
+    // when
+    supervisor.requestReinitializeProfiling();
+
+    // then
+    await().untilAsserted(() -> verify(builder.flusher).stop());
+    verify(disabledConfig).isEnabled();
+    await().during(Duration.ofMillis(200)).untilAsserted(() -> verify(builder.flusher).start());
+    assertThat(builder.buildCount).isEqualTo(1);
+  }
+
+  @Test
+  void requestReinitializeProfiling_startsInactiveProfilerWhenEnabled() {
+    // given
+    when(jfr.isAvailable()).thenReturn(true);
+    ProfilerConfiguration updatedConfig = spy(config.toBuilder().setStackDepth(1234).build());
+    supervisor.configureProfilerConfiguration(updatedConfig);
+
+    // when
+    supervisor.requestReinitializeProfiling();
+
+    // then
+    await().untilAsserted(() -> verify(builder.flusher).start());
+    verify(builder.flusher, never()).stop();
+    verify(updatedConfig).log();
+    assertThat(builder.config).isSameAs(updatedConfig);
+  }
+
+  @Test
+  void requestReinitializeProfiling_keepsInactiveProfilerStoppedWhenDisabled() {
+    // given
+    ProfilerConfiguration disabledConfig = spy(config.toBuilder().setEnabled(false).build());
+    supervisor.configureProfilerConfiguration(disabledConfig);
+
+    // when
+    supervisor.requestReinitializeProfiling();
+
+    // then
+    await().untilAsserted(() -> verify(disabledConfig).isEnabled());
+    verify(jfr, never()).isAvailable();
+    verify(builder.flusher, never()).start();
+    verify(builder.flusher, never()).stop();
+    assertThat(builder.buildCalled).isFalse();
+  }
+
   private static class TestProfilingSupervisor extends ProfilingSupervisor {
-    private final PeriodicRecordingFlusherBuilder builder;
+    private final TestPeriodicRecordingFlusherBuilder builder;
+    private final OptionalConfigurableSupplier<ProfilerConfiguration> configSupplier;
 
     TestProfilingSupervisor(
         ProfilerConfiguration config,
         JFR jfr,
         AutoConfiguredOpenTelemetrySdk sdk,
-        PeriodicRecordingFlusherBuilder builder) {
-      super(configSupplier(config), jfr, sdk, new LinkedBlockingQueue<>());
+        TestPeriodicRecordingFlusherBuilder builder) {
+      this(configSupplier(config), jfr, sdk, builder);
+    }
+
+    private TestProfilingSupervisor(
+        OptionalConfigurableSupplier<ProfilerConfiguration> configSupplier,
+        JFR jfr,
+        AutoConfiguredOpenTelemetrySdk sdk,
+        TestPeriodicRecordingFlusherBuilder builder) {
+      super(configSupplier, jfr, sdk, new LinkedBlockingQueue<>());
       this.builder = builder;
+      this.configSupplier = configSupplier;
+    }
+
+    void configureProfilerConfiguration(ProfilerConfiguration config) {
+      configSupplier.configure(config);
     }
 
     @Override
     PeriodicRecordingFlusherBuilder makeRecordingFlusherBuilder(Resource resource) {
-      return builder;
+      return builder.withConfigAndResource(configSupplier.get(), resource);
     }
 
     private static OptionalConfigurableSupplier<ProfilerConfiguration> configSupplier(
@@ -182,8 +284,8 @@ class ProfilingSupervisorTest {
 
   private static class TestPeriodicRecordingFlusherBuilder extends PeriodicRecordingFlusherBuilder {
     final PeriodicRecordingFlusher flusher = mock(PeriodicRecordingFlusher.class);
-    private final ProfilerConfiguration config;
-    private final Resource resource;
+    private ProfilerConfiguration config;
+    private Resource resource;
     JFR jfr;
     boolean buildCalled;
     int buildCount;
@@ -192,6 +294,13 @@ class ProfilingSupervisorTest {
       super(config, resource);
       this.config = config;
       this.resource = resource;
+    }
+
+    TestPeriodicRecordingFlusherBuilder withConfigAndResource(
+        ProfilerConfiguration config, Resource resource) {
+      this.config = config;
+      this.resource = resource;
+      return this;
     }
 
     @Override

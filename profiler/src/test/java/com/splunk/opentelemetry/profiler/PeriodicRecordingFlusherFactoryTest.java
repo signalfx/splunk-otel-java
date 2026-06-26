@@ -33,7 +33,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.mockito.MockedConstruction;
 
-class PeriodicRecordingFlusherBuilderTest {
+class PeriodicRecordingFlusherFactoryTest {
 
   @TempDir Path tempDir;
 
@@ -43,62 +43,62 @@ class PeriodicRecordingFlusherBuilderTest {
   }
 
   @Test
-  void buildConfiguresJfrAndWiresRecorderIntoSequencer() {
+  void createConfiguresJfrAndWiresRecorderIntoSequencer() {
     JFR jfr = mock(JFR.class);
     ProfilerConfiguration config =
         config(tempDir).setStackDepth(73).setRecordingDuration(Duration.ofMillis(100)).build();
     ProfilerConfiguration.SUPPLIER.configure(config);
+    PeriodicRecordingFlusherFactory factory = new PeriodicRecordingFlusherFactory();
 
     try (MockedConstruction<JfrRecorder> recorderConstruction =
         mockConstruction(JfrRecorder.class)) {
-      PeriodicRecordingFlusher sequencer =
-          PeriodicRecordingFlusher.builder(config, Resource.empty()).jfr(jfr).build();
+      PeriodicRecordingFlusher flusher = factory.create(config, Resource.empty(), jfr);
 
-      assertThat(sequencer).isNotNull();
+      assertThat(flusher).isNotNull();
       assertThat(recorderConstruction.constructed()).hasSize(1);
       verify(jfr).setStackDepth(73);
 
       JfrRecorder recorder = recorderConstruction.constructed().get(0);
       when(recorder.isStarted()).thenReturn(true);
 
-      sequencer.handleInterval();
+      flusher.handleInterval();
 
       verify(recorder).flushSnapshot();
     }
   }
 
   @Test
-  void buildCreatesMissingOutputDirectoryWhenKeepingFiles() {
+  void createCreatesMissingOutputDirectoryWhenKeepingFiles() {
     Path outputDir = tempDir.resolve("profiler-output");
     JFR jfr = mock(JFR.class);
     ProfilerConfiguration config = config(outputDir).setKeepFiles(true).build();
     ProfilerConfiguration.SUPPLIER.configure(config);
+    PeriodicRecordingFlusherFactory factory = new PeriodicRecordingFlusherFactory();
 
     try (MockedConstruction<JfrRecorder> recorderConstruction =
         mockConstruction(JfrRecorder.class)) {
-      PeriodicRecordingFlusher sequencer =
-          PeriodicRecordingFlusher.builder(config, Resource.empty()).jfr(jfr).build();
+      PeriodicRecordingFlusher flusher = factory.create(config, Resource.empty(), jfr);
 
-      assertThat(sequencer).isNotNull();
+      assertThat(flusher).isNotNull();
       assertThat(outputDir).isDirectory();
       assertThat(recorderConstruction.constructed()).hasSize(1);
     }
   }
 
   @Test
-  void buildContinuesWhenKeepFilesPathIsNotADirectory() throws Exception {
+  void createContinuesWhenKeepFilesPathIsNotADirectory() throws Exception {
     Path outputFile = tempDir.resolve("profiler-output");
     Files.createFile(outputFile);
     JFR jfr = mock(JFR.class);
     ProfilerConfiguration config = config(outputFile).setKeepFiles(true).build();
     ProfilerConfiguration.SUPPLIER.configure(config);
+    PeriodicRecordingFlusherFactory factory = new PeriodicRecordingFlusherFactory();
 
     try (MockedConstruction<JfrRecorder> recorderConstruction =
         mockConstruction(JfrRecorder.class)) {
-      PeriodicRecordingFlusher sequencer =
-          PeriodicRecordingFlusher.builder(config, Resource.empty()).jfr(jfr).build();
+      PeriodicRecordingFlusher flusher = factory.create(config, Resource.empty(), jfr);
 
-      assertThat(sequencer).isNotNull();
+      assertThat(flusher).isNotNull();
       assertThat(recorderConstruction.constructed()).hasSize(1);
     }
   }

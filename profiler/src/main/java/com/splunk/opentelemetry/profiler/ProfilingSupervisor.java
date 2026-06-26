@@ -45,6 +45,7 @@ public class ProfilingSupervisor {
   private final JFR jfr;
   private final AutoConfiguredOpenTelemetrySdk sdk;
   private final BlockingQueue<ProfilingCommand> commandQueue;
+  private final PeriodicRecordingFlusherFactory recordingFlusherFactory;
   private final AtomicReference<PeriodicRecordingFlusher> recordingFlusher =
       new AtomicReference<>();
   private static final AtomicReference<JfrContextStorage> jfrContextStorage =
@@ -57,10 +58,21 @@ public class ProfilingSupervisor {
       JFR jfr,
       AutoConfiguredOpenTelemetrySdk sdk,
       BlockingQueue<ProfilingCommand> commandQueue) {
+    this(configSupplier, jfr, sdk, commandQueue, new PeriodicRecordingFlusherFactory());
+  }
+
+  @VisibleForTesting
+  ProfilingSupervisor(
+      OptionalConfigurableSupplier<ProfilerConfiguration> configSupplier,
+      JFR jfr,
+      AutoConfiguredOpenTelemetrySdk sdk,
+      BlockingQueue<ProfilingCommand> commandQueue,
+      PeriodicRecordingFlusherFactory recordingFlusherFactory) {
     this.configSupplier = configSupplier;
     this.jfr = jfr;
     this.sdk = sdk;
     this.commandQueue = commandQueue;
+    this.recordingFlusherFactory = recordingFlusherFactory;
   }
 
   static ProfilingSupervisor createAndStart(AutoConfiguredOpenTelemetrySdk sdk) {
@@ -179,7 +191,7 @@ public class ProfilingSupervisor {
 
   private void activateJfrRecording(Resource resource) {
     PeriodicRecordingFlusher recordingFlusher =
-        makeRecordingFlusherBuilder(resource).jfr(jfr).build();
+        recordingFlusherFactory.create(configSupplier.get(), resource, jfr);
     if (this.recordingFlusher.compareAndSet(null, recordingFlusher)) {
       recordingFlusher.start();
     }
@@ -190,11 +202,6 @@ public class ProfilingSupervisor {
     if (recordingFlusher != null) {
       recordingFlusher.stop();
     }
-  }
-
-  // Exists for testing
-  PeriodicRecordingFlusherBuilder makeRecordingFlusherBuilder(Resource resource) {
-    return PeriodicRecordingFlusher.builder(configSupplier.get(), resource);
   }
 
   static void setupJfrContextStorage() {

@@ -14,18 +14,26 @@
  * limitations under the License.
  */
 
-package com.splunk.opentelemetry.opamp;
+package com.splunk.opentelemetry.opamp.effectiveconfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.splunk.opentelemetry.profiler.ProfilerConfiguration;
+import com.splunk.opentelemetry.profiler.ProfilerEnvVarsConfigurationFactory;
 import io.opentelemetry.sdk.autoconfigure.spi.internal.DefaultConfigProperties;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.Map;
 import java.util.Properties;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 class EnvVarsEffectiveConfigFileFactoryTest {
+
+  @AfterEach
+  void tearDown() {
+    ProfilerConfiguration.SUPPLIER.reset();
+  }
 
   @Test
   void createFile_reportsCorrectContentType() {
@@ -154,6 +162,7 @@ class EnvVarsEffectiveConfigFileFactoryTest {
 
   private static Properties createFileContent(Map<String, String> configMap) throws IOException {
     DefaultConfigProperties config = DefaultConfigProperties.createFromMap(configMap);
+    ProfilerConfiguration.SUPPLIER.configure(ProfilerEnvVarsConfigurationFactory.create(config));
     String fileContent =
         new EnvVarsEffectiveConfigFileFactory(config).createEffectiveConfigContent();
 

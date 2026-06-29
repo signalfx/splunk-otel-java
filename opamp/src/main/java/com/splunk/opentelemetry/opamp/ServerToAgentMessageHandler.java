@@ -17,6 +17,7 @@
 package com.splunk.opentelemetry.opamp;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.splunk.opentelemetry.opamp.effectiveconfig.EffectiveConfigReporter;
 import com.splunk.opentelemetry.profiler.ProfilingSupervisor;
 import io.opentelemetry.opamp.client.OpampClient;
 import io.opentelemetry.opamp.client.internal.response.MessageData;
@@ -24,8 +25,9 @@ import io.opentelemetry.opamp.client.internal.response.MessageData;
 public class ServerToAgentMessageHandler {
   private final RemoteConfigProcessor remoteConfigProcessor;
 
-  public ServerToAgentMessageHandler(ProfilingSupervisor profilingSupervisor) {
-    this(new RemoteConfigProcessor(profilingSupervisor));
+  public ServerToAgentMessageHandler(
+      ProfilingSupervisor profilingSupervisor, EffectiveConfigReporter effectiveConfigReporter) {
+    this(new RemoteConfigProcessor(profilingSupervisor, effectiveConfigReporter));
   }
 
   @VisibleForTesting

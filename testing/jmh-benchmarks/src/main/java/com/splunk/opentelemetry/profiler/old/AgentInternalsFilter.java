@@ -28,7 +28,7 @@ public class AgentInternalsFilter implements Predicate<String> {
         "\"JFR Recorder Thread\"",
         "\"JFR Periodic Tasks\"",
         "\"JFR Recording Scheduler\"",
-        "\"JFR Recording Sequencer\""
+        "\"JFR Recording Flusher\""
       };
 
   @Override

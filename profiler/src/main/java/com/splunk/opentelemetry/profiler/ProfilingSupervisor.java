@@ -174,12 +174,11 @@ public class ProfilingSupervisor {
 
   private void tryReinitialize() {
     logger.info("Reinitializing profiler.");
-    // Stop if currently running
+    // Stop the profiler if it is currently running
     if (isJfrRecordingActive()) {
       tryStop();
     }
-    // Start with current setting if profiling is enabled. If settings changed since last start they
-    // will be applied.
+    // Start the profiler with current settings if it is enabled. New settings will be applied.
     if (configSupplier.get().isEnabled()) {
       tryStart();
     }

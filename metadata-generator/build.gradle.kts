@@ -8,12 +8,12 @@ tasks {
   }
 
   val splunkAgentVersion = project.version
-  val otelInstrumentationVersion: String by rootProject.extra
-  val otelVersion: String by rootProject.extra
-  val otelContribVersion: String by rootProject.extra
+  val otelInstrumentationVersion: String = rootProject.extra["otelInstrumentationVersion"] as String
+  val otelVersion: String = rootProject.extra["otelVersion"] as String
+  val otelContribVersion: String = rootProject.extra["otelContribVersion"] as String
   val outputPath = layout.buildDirectory.file("splunk-otel-java-metadata.yaml")
 
-  val generateMetadata by registering(JavaExec::class) {
+  register<JavaExec>("generateMetadata") {
     dependsOn(classes)
 
     outputs.file(outputPath)

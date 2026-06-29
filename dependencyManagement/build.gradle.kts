@@ -34,7 +34,7 @@ dependencies {
   api(enforcedPlatform("io.grpc:grpc-bom:1.82.1"))
   api(enforcedPlatform("io.opentelemetry:opentelemetry-bom-alpha:$otelAlphaVersion"))
   api(enforcedPlatform("io.opentelemetry.instrumentation:opentelemetry-instrumentation-bom-alpha:$otelInstrumentationAlphaVersion"))
-  api(enforcedPlatform("org.junit:junit-bom:6.1.0"))
+  api(enforcedPlatform("org.junit:junit-bom:6.1.1"))
   api(enforcedPlatform("org.testcontainers:testcontainers-bom:2.0.5"))
 
   constraints {
@@ -58,7 +58,7 @@ dependencies {
     api("io.opentelemetry.contrib:opentelemetry-opamp-client:${otelContribAlphaVersion}")
     api("io.opentelemetry.proto:opentelemetry-proto:1.10.0-alpha")
 
-    api("org.apache.commons:commons-jexl3:3.6.3")
+    api("org.apache.commons:commons-jexl3:3.6.4")
     api("org.snakeyaml:snakeyaml-engine:2.10")
     api("io.github.netmikey.logunit:logunit-jul:2.0.0")
   }

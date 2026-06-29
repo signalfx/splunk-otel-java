@@ -9,7 +9,7 @@ plugins {
 // This should be updated for every CSA release, eventually in dependencyManagement?
 
 val csaVersion = "26.3.0-1440"
-val otelInstrumentationVersion: String by rootProject.extra
+val otelInstrumentationVersion: String = rootProject.extra["otelInstrumentationVersion"] as String
 
 base.archivesName.set("splunk-otel-javaagent-csa")
 
@@ -18,12 +18,12 @@ java {
   withSourcesJar()
 }
 
-val csaReleases: Configuration by configurations.creating {
+val csaReleases = configurations.create("csaReleases") {
   isCanBeResolved = true
   isCanBeConsumed = false
 }
 
-val splunkAgent: Configuration by configurations.creating {
+val splunkAgent = configurations.create("splunkAgent") {
   isCanBeResolved = true
   isCanBeConsumed = false
 }
@@ -55,7 +55,7 @@ dependencies {
 
 tasks {
   // This exists purely to get the extension jar into our build dir
-  val copyCsaJar by registering(Jar::class) {
+  val copyCsaJar = register<Jar>("copyCsaJar") {
     archiveFileName.set("oss-agent-mtagent-extension-deployment.jar")
     doFirst {
       from(zipTree(csaReleases.singleFile))
@@ -63,14 +63,14 @@ tasks {
   }
 
   // Extract and rename extension classes
-  val extractExtensionClasses by registering(Copy::class) {
+  val extractExtensionClasses = register<Copy>("extractExtensionClasses") {
     dependsOn(copyCsaJar)
     from(zipTree(copyCsaJar.get().archiveFile))
     into("build/ext-exploded")
   }
 
   // Rename class to classdata
-  val renameClasstoClassdata by registering(Copy::class) {
+  val renameClasstoClassdata = register<Copy>("renameClasstoClassdata") {
     dependsOn(extractExtensionClasses)
     from("build/ext-exploded/com/cisco/mtagent/adaptors/")
     into("build/ext-exploded/com/cisco/mtagent/adaptors/")
@@ -80,13 +80,13 @@ tasks {
   }
 
   // Copy service file so path on disk matches path in jar
-  val copyServiceFile by registering(Copy::class) {
+  val copyServiceFile = register<Copy>("copyServiceFile") {
     dependsOn(extractExtensionClasses)
     from("build/ext-exploded/META-INF/services/")
     into("build/ext-exploded/inst/META-INF/services/")
   }
 
-  val shadowCsaClasses by registering(ShadowJar::class) {
+  val shadowCsaClasses = register<ShadowJar>("shadowCsaClasses") {
     archiveFileName.set("shadow-csa-classes.jar")
     dependsOn(copyServiceFile, renameClasstoClassdata, splunkAgent)
 

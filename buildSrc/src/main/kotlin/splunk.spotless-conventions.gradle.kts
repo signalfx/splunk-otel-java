@@ -70,7 +70,7 @@ extensions.configure<SpotlessExtension>("spotless") {
   }
 }
 
-val formatCode by tasks.registering {
+tasks.register("formatCode") {
   dependsOn(tasks.named("spotlessApply"))
 }
 

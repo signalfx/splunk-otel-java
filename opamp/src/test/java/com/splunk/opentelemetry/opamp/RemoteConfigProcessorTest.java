@@ -156,6 +156,7 @@ class RemoteConfigProcessorTest {
               always_on:
                 cpu_profiler:
                   sampling_interval: 123
+                memory_profiler:
     """;
     ByteString configHash = ByteString.encodeUtf8("test-config-hash");
     AgentRemoteConfig remoteConfig = createRemoteConfig(configHash, remoteConfigYaml);
@@ -167,6 +168,7 @@ class RemoteConfigProcessorTest {
     assertThat(ProfilerConfiguration.SUPPLIER.get().isEnabled()).isTrue();
     assertThat(ProfilerConfiguration.SUPPLIER.get().getCallStackInterval().toMillis())
         .isEqualTo(123);
+    assertThat(ProfilerConfiguration.SUPPLIER.get().getMemoryEnabled()).isTrue();
     verify(profilingSupervisor).requestReinitializeProfiling();
     verifyNoMoreInteractions(profilingSupervisor);
     verify(effectiveConfigReporter).reportEffectiveConfigIfChanged();

@@ -17,7 +17,7 @@
 package com.splunk.opentelemetry.profiler;
 
 import static io.opentelemetry.sdk.autoconfigure.AutoConfigureUtil.getResource;
-import static java.util.logging.Level.FINE;
+import static java.util.logging.Level.WARNING;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.splunk.opentelemetry.profiler.util.HelpfulExecutors;
@@ -92,7 +92,7 @@ public class ProfilingSupervisor {
         logger.fine("ProfilingSupervisor is shutting down");
         return;
       } catch (Exception e) {
-        logger.log(FINE, "ProfilingSupervisor encountered an unexpected exception", e);
+        logger.log(WARNING, "ProfilingSupervisor encountered an unexpected exception", e);
       }
     }
   }

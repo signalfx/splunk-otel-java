@@ -54,7 +54,7 @@ jobs:
             ghcr.io/signalfx/splunk-otel-java/splunk-otel-java:${{ env.MAJOR_VERSION }}
             ghcr.io/signalfx/splunk-otel-java/splunk-otel-java:${{ env.RELEASE_VERSION }}
 
-      - name: build and publish CSA container
+      - name: build and publish SecureApp container
         uses: docker/build-push-action@f9f3042f7e2789586610d6e8b85c8f03e5195baf # v7.2.0
         with:
           push: true
@@ -62,8 +62,8 @@ jobs:
           platforms: linux/amd64,linux/arm64,linux/ppc64le
           build-args: |
             RELEASE_VER=${{ env.RELEASE_VERSION }}
-            JAR_FILE=splunk-otel-javaagent-csa.jar
+            JAR_FILE=splunk-otel-javaagent-secureapp.jar
           tags: |
-            ghcr.io/signalfx/splunk-otel-java/splunk-otel-java-csa:latest
-            ghcr.io/signalfx/splunk-otel-java/splunk-otel-java-csa:${{ env.MAJOR_VERSION }}
-            ghcr.io/signalfx/splunk-otel-java/splunk-otel-java-csa:${{ env.RELEASE_VERSION }}
+            ghcr.io/signalfx/splunk-otel-java/splunk-otel-java-secureapp:latest
+            ghcr.io/signalfx/splunk-otel-java/splunk-otel-java-secureapp:${{ env.MAJOR_VERSION }}
+            ghcr.io/signalfx/splunk-otel-java/splunk-otel-java-secureapp:${{ env.RELEASE_VERSION }}

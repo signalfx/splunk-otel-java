@@ -6,19 +6,19 @@ plugins {
   id("com.gradleup.shadow")
 }
 
-// This should be updated for every CSA release, eventually in dependencyManagement?
+// This should be updated for every SecureApp release, eventually in dependencyManagement?
 
-val csaVersion = "26.3.0-1440"
+val secureAppVersion = "26.3.0-1440"
 val otelInstrumentationVersion: String = rootProject.extra["otelInstrumentationVersion"] as String
 
-base.archivesName.set("splunk-otel-javaagent-csa")
+base.archivesName.set("splunk-otel-javaagent-secureapp")
 
 java {
   withJavadocJar()
   withSourcesJar()
 }
 
-val csaReleases = configurations.create("csaReleases") {
+val secureAppReleases = configurations.create("secureAppReleases") {
   isCanBeResolved = true
   isCanBeConsumed = false
 }
@@ -45,7 +45,7 @@ repositories {
 
 dependencies {
   splunkAgent(project(":agent", configuration = "shadow"))
-  csaReleases("signalfx:csa-releases:$csaVersion") {
+  secureAppReleases("signalfx:csa-releases:$secureAppVersion") {
     artifact {
       name = "oss-agent-mtagent-extension-deployment"
       extension = "jar"
@@ -55,17 +55,17 @@ dependencies {
 
 tasks {
   // This exists purely to get the extension jar into our build dir
-  val copyCsaJar = register<Jar>("copyCsaJar") {
+  val copySecureAppJar = register<Jar>("copySecureAppJar") {
     archiveFileName.set("oss-agent-mtagent-extension-deployment.jar")
     doFirst {
-      from(zipTree(csaReleases.singleFile))
+      from(zipTree(secureAppReleases.singleFile))
     }
   }
 
   // Extract and rename extension classes
   val extractExtensionClasses = register<Copy>("extractExtensionClasses") {
-    dependsOn(copyCsaJar)
-    from(zipTree(copyCsaJar.get().archiveFile))
+    dependsOn(copySecureAppJar)
+    from(zipTree(copySecureAppJar.get().archiveFile))
     into("build/ext-exploded")
   }
 
@@ -86,8 +86,8 @@ tasks {
     into("build/ext-exploded/inst/META-INF/services/")
   }
 
-  val shadowCsaClasses = register<ShadowJar>("shadowCsaClasses") {
-    archiveFileName.set("shadow-csa-classes.jar")
+  val shadowSecureAppClasses = register<ShadowJar>("shadowSecureAppClasses") {
+    archiveFileName.set("shadow-secureapp-classes.jar")
     dependsOn(copyServiceFile, renameClasstoClassdata, splunkAgent)
 
     doFirst {
@@ -117,9 +117,9 @@ tasks {
   }
 
   jar {
-    dependsOn(shadowCsaClasses)
-    from(zipTree(shadowCsaClasses.get().archiveFile.get()))
-    from(copyCsaJar.get().archiveFile.get())
+    dependsOn(shadowSecureAppClasses)
+    from(zipTree(shadowSecureAppClasses.get().archiveFile.get()))
+    from(copySecureAppJar.get().archiveFile.get())
 
     manifest {
       attributes(
@@ -131,7 +131,7 @@ tasks {
           "Can-Retransform-Classes" to "true",
           "Implementation-Vendor" to "Splunk",
           "Implementation-Version" to "splunk-${project.version}-otel-$otelInstrumentationVersion",
-          "Cisco-Secure-Application-Version" to csaVersion,
+          "Cisco-Secure-Application-Version" to secureAppVersion,
         )
       )
     }
@@ -141,7 +141,7 @@ tasks {
   publishing {
     publications {
       register<MavenPublication>("maven") {
-        artifactId = "splunk-otel-javaagent-csa"
+        artifactId = "splunk-otel-javaagent-secureapp"
         groupId = "com.splunk"
         version = project.version.toString()
 

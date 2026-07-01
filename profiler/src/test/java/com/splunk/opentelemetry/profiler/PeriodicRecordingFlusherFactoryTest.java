@@ -50,7 +50,7 @@ class PeriodicRecordingFlusherFactoryTest {
   }
 
   @Test
-  void createConfiguresJfrAndWiresRecorderIntoSequencer() {
+  void createConfiguresJfrAndWiresRecorderIntoFlusher() {
     JFR jfr = mock(JFR.class);
     ProfilerConfiguration config =
         config(tempDir).setStackDepth(73).setRecordingDuration(Duration.ofMillis(100)).build();
@@ -118,13 +118,13 @@ class PeriodicRecordingFlusherFactoryTest {
     JFR jfr = mock(JFR.class);
     ProfilerConfiguration config = config(tempDir).setConfigProperties(configProperties).build();
     ProfilerConfiguration.SUPPLIER.configure(config);
+    PeriodicRecordingFlusherFactory factory = new PeriodicRecordingFlusherFactory();
 
     try (MockedConstruction<JfrRecorder> recorderConstruction =
         mockConstruction(JfrRecorder.class)) {
-      PeriodicRecordingFlusher sequencer =
-          PeriodicRecordingFlusher.builder(config, Resource.empty()).jfr(jfr).build();
+      PeriodicRecordingFlusher flusher = factory.create(config, Resource.empty(), jfr);
 
-      assertThat(sequencer).isNotNull();
+      assertThat(flusher).isNotNull();
       assertThat(recorderConstruction.constructed()).hasSize(1);
       assertThat(componentLoader.loaded(HttpSenderProvider.class)).isTrue();
     }
@@ -148,7 +148,7 @@ class PeriodicRecordingFlusherFactoryTest {
 
   private static class RecordingComponentLoader implements ComponentLoader {
     private final ComponentLoader delegate =
-        ComponentLoader.forClassLoader(PeriodicRecordingFlusherBuilderTest.class.getClassLoader());
+        ComponentLoader.forClassLoader(PeriodicRecordingFlusherFactoryTest.class.getClassLoader());
     private final List<Class<?>> loadedSpiClasses = new ArrayList<>();
 
     @Override

@@ -305,7 +305,12 @@ public class ProfilerConfiguration {
     }
 
     public Builder setCallStackInterval(Duration callStackInterval) {
-      this.callStackInterval = Objects.requireNonNull(callStackInterval);
+      Objects.requireNonNull(callStackInterval);
+      if (callStackInterval.isNegative()) {
+        throw new IllegalArgumentException(
+            "Invalid call stack interval: " + callStackInterval.toMillis() + ". Must be >= 0.");
+      }
+      this.callStackInterval = callStackInterval;
       return this;
     }
 
@@ -325,6 +330,9 @@ public class ProfilerConfiguration {
     }
 
     public Builder setStackDepth(int stackDepth) {
+      if (stackDepth <= 0) {
+        throw new IllegalArgumentException("Invalid stack depth: " + stackDepth + ". Must be > 0.");
+      }
       this.stackDepth = stackDepth;
       return this;
     }
@@ -340,7 +348,13 @@ public class ProfilerConfiguration {
     }
 
     public Builder setRecordingDuration(Duration recordingDuration) {
-      this.recordingDuration = Objects.requireNonNull(recordingDuration);
+      Objects.requireNonNull(recordingDuration);
+      if (recordingDuration.isNegative()) {
+        throw new IllegalArgumentException(
+            "Invalid recording duration: " + recordingDuration.toMillis() + ". Must be >= 0.");
+      }
+      this.recordingDuration = recordingDuration;
+
       return this;
     }
 

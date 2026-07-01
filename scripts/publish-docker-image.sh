@@ -65,6 +65,6 @@ build_docker_image splunk-otel-instrumentation-java splunk-otel-javaagent.jar
 publish_docker_image splunk-otel-instrumentation-java
 sign_published_docker_image splunk-otel-instrumentation-java
 
-build_docker_image splunk-otel-instrumentation-java-csa splunk-otel-javaagent-csa.jar
-publish_docker_image splunk-otel-instrumentation-java-csa
-sign_published_docker_image splunk-otel-instrumentation-java-csa
+build_docker_image splunk-otel-instrumentation-java-secureapp splunk-otel-javaagent-secureapp.jar
+publish_docker_image splunk-otel-instrumentation-java-secureapp
+sign_published_docker_image splunk-otel-instrumentation-java-secureapp

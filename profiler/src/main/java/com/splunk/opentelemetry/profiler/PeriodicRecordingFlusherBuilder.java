@@ -16,7 +16,6 @@
 
 package com.splunk.opentelemetry.profiler;
 
-import static io.opentelemetry.api.incubator.config.DeclarativeConfigProperties.empty;
 import static java.util.logging.Level.WARNING;
 
 import com.splunk.opentelemetry.profiler.allocation.exporter.AllocationEventExporter;
@@ -25,6 +24,7 @@ import com.splunk.opentelemetry.profiler.context.SpanContextualizer;
 import com.splunk.opentelemetry.profiler.exporter.CpuEventExporter;
 import com.splunk.opentelemetry.profiler.exporter.PprofCpuEventExporter;
 import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
+import io.opentelemetry.sdk.autoconfigure.declarativeconfig.YamlDeclarativeConfigProperties;
 import io.opentelemetry.sdk.logs.LogRecordProcessor;
 import io.opentelemetry.sdk.logs.SdkLoggerProvider;
 import io.opentelemetry.sdk.logs.export.LogRecordExporter;
@@ -35,6 +35,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
+import java.util.Collections;
 import java.util.Map;
 
 class PeriodicRecordingFlusherBuilder {
@@ -160,10 +161,22 @@ class PeriodicRecordingFlusherBuilder {
   private static LogRecordExporter createLogRecordExporter(Object configProperties) {
     if (configProperties instanceof DeclarativeConfigProperties) {
       DeclarativeConfigProperties exporterConfig =
-          ((DeclarativeConfigProperties) configProperties).getStructured("exporter", empty());
+          getExporterConfig((DeclarativeConfigProperties) configProperties);
       return LogExporterBuilder.fromDeclarativeConfig(exporterConfig);
     }
     return LogExporterBuilder.fromEnvironmentConfig();
+  }
+
+  private static DeclarativeConfigProperties getExporterConfig(
+      DeclarativeConfigProperties configProperties) {
+    DeclarativeConfigProperties exporterConfig = configProperties.getStructured("exporter");
+    if (exporterConfig != null) {
+      return exporterConfig;
+    }
+    // DeclarativeConfigProperties.empty() is not used because it does not preserve the original
+    // component loader that is used later when creating default exporter
+    return YamlDeclarativeConfigProperties.create(
+        Collections.emptyMap(), configProperties.getComponentLoader());
   }
 
   private boolean checkOutputDir(Path outputDir) {

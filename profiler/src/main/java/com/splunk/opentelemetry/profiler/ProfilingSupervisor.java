@@ -148,7 +148,7 @@ public class ProfilingSupervisor {
    */
   private void tryStart() {
     if (isJfrRecordingActive()) {
-      logger.warning("JFR is already running, not starting again.");
+      logger.fine("JFR is already running, not starting again.");
       return;
     }
     if (!jfr.isAvailable()) {
@@ -164,7 +164,7 @@ public class ProfilingSupervisor {
 
   private void tryStop() {
     if (!isJfrRecordingActive()) {
-      logger.warning("JFR is not running already, not stopping again.");
+      logger.fine("JFR is not running already, not stopping again.");
       return;
     }
     setJfrContextStorageEnabled(false);
@@ -173,15 +173,8 @@ public class ProfilingSupervisor {
   }
 
   private void tryReinitialize() {
-    logger.info("Reinitializing profiler.");
-    // Stop the profiler if it is currently running
-    if (isJfrRecordingActive()) {
-      tryStop();
-    }
-    // Start the profiler with current settings if it is enabled. New settings will be applied.
-    if (configSupplier.get().isEnabled()) {
-      tryStart();
-    }
+    tryStop();
+    tryStart();
   }
 
   private boolean isJfrRecordingActive() {

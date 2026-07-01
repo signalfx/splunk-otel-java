@@ -21,6 +21,7 @@ sourceSets {
 
 dependencies {
   compileOnly(project(":custom"))
+  compileOnly(project(":instrumentation:jvm-metrics"))
   compileOnly("io.opentelemetry:opentelemetry-sdk")
   compileOnly("io.opentelemetry:opentelemetry-sdk-extension-autoconfigure")
   compileOnly("io.opentelemetry:opentelemetry-sdk-extension-autoconfigure-spi")
@@ -42,6 +43,7 @@ dependencies {
   compileOnly("com.google.auto.service:auto-service")
 
   testImplementation(testFixtures(project(":custom")))
+  testImplementation(project(":instrumentation:jvm-metrics"))
   testImplementation("io.opentelemetry.javaagent:opentelemetry-javaagent-extension-api")
   testImplementation("io.opentelemetry.javaagent:opentelemetry-testing-common")
   testImplementation("io.grpc:grpc-netty")

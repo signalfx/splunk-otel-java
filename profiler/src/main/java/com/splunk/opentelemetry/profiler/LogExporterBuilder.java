@@ -30,11 +30,14 @@ import io.opentelemetry.exporter.otlp.internal.OtlpGrpcLogRecordExporterComponen
 import io.opentelemetry.exporter.otlp.internal.OtlpHttpLogRecordExporterComponentProvider;
 import io.opentelemetry.exporter.otlp.logs.OtlpGrpcLogRecordExporter;
 import io.opentelemetry.exporter.otlp.logs.OtlpGrpcLogRecordExporterBuilder;
+import io.opentelemetry.sdk.autoconfigure.declarativeconfig.YamlDeclarativeConfigProperties;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigurationException;
 import io.opentelemetry.sdk.autoconfigure.spi.internal.ExtendedDeclarativeConfigProperties;
 import io.opentelemetry.sdk.logs.export.LogRecordExporter;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Supplier;
 import javax.annotation.Nullable;
@@ -43,11 +46,18 @@ class LogExporterBuilder {
 
   static final String EXTRA_CONTENT_TYPE = "Extra-Content-Type";
   static final String STACKTRACES_HEADER_VALUE = "otel-profiling-stacktraces";
+  private static final String DEFAULT_HTTP_LOG_ENDPOINT = "http://localhost:4318/v1/logs";
 
   static LogRecordExporter fromDeclarativeConfig(
       DeclarativeConfigProperties exporterConfigProperties) {
     if (exporterConfigProperties != null) {
       Set<String> propertyKeys = exporterConfigProperties.getPropertyKeys();
+      if (propertyKeys.isEmpty()) {
+        DeclarativeConfigProperties otlpHttp = defaultOtlpHttpConfig(exporterConfigProperties);
+        OtlpHttpLogRecordExporterComponentProvider provider =
+            new OtlpHttpLogRecordExporterComponentProvider();
+        return provider.create(toExtended(otlpHttp));
+      }
 
       if (propertyKeys.contains("otlp_log_http")) {
         DeclarativeConfigProperties otlpHttp =
@@ -67,6 +77,16 @@ class LogExporterBuilder {
     }
 
     throw new ConfigurationException("Profiler exporter configuration is invalid");
+  }
+
+  private static DeclarativeConfigProperties defaultOtlpHttpConfig(
+      DeclarativeConfigProperties exporterConfigProperties) {
+    Map<String, Object> properties = new HashMap<>();
+    properties.put("endpoint", DEFAULT_HTTP_LOG_ENDPOINT);
+    properties.put("encoding", "protobuf");
+    // Keep the original component loader so OTLP sender providers remain discoverable.
+    return YamlDeclarativeConfigProperties.create(
+        properties, exporterConfigProperties.getComponentLoader());
   }
 
   static LogRecordExporter fromEnvironmentConfig() {

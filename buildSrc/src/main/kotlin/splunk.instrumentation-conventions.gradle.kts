@@ -38,7 +38,7 @@ plugins {
   id("splunk.shadow-conventions")
 }
 
-val testInstrumentation by configurations.creating
+val testInstrumentation = configurations.create("testInstrumentation")
 
 dependencies {
   add("testInstrumentation", platform(project(":dependencyManagement")))
@@ -161,20 +161,20 @@ abstract class TestLatestDepsRule : ComponentMetadataRule {
 }
 
 configurations {
-  val library by creating {
+  val library = configurations.create("library") {
     isCanBeResolved = false
     isCanBeConsumed = false
   }
-  val testLibrary by creating {
+  val testLibrary = configurations.create("testLibrary") {
     isCanBeResolved = false
     isCanBeConsumed = false
   }
-  val latestDepTestLibrary by creating {
+  val latestDepTestLibrary = configurations.create("latestDepTestLibrary") {
     isCanBeResolved = false
     isCanBeConsumed = false
   }
 
-  val testImplementation by getting
+  val testImplementation = configurations.getByName("testImplementation")
 
   listOf(library, testLibrary).forEach { configuration ->
     // We use whenObjectAdded and copy into the real configurations instead of extension to allow
@@ -225,7 +225,7 @@ if (testLatestDeps) {
     }
 
     if (tasks.names.contains("latestDepTest")) {
-      val latestDepTest by tasks.existing
+      val latestDepTest = tasks.getByName("latestDepTest")
       tasks.named("test").configure {
         dependsOn(latestDepTest)
       }

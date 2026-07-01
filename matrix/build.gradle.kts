@@ -16,13 +16,13 @@ tasks {
   }
 }
 
-val buildProprietaryTestImages by tasks.registering {
+val buildProprietaryTestImages = tasks.register("buildProprietaryTestImages") {
   group = "build"
   description = "Builds all Docker images for the test matrix for proprietary app servers"
 }
 
 // Intentionally left without group to remain hidden
-val pullProprietaryTestImages by tasks.registering
+val pullProprietaryTestImages = tasks.register("pullProprietaryTestImages")
 
 data class Arguments(
   val versions: List<String>,

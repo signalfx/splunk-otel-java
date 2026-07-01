@@ -47,7 +47,7 @@ tasks {
       "wildfly" to listOf("**/WildFlySmokeTest.*"),
     )
 
-    val smokeTestSuite: String? by project
+    val smokeTestSuite = project.findProperty("smokeTestSuite") as String?
     if (smokeTestSuite != null) {
       when {
         "other" == smokeTestSuite -> {
@@ -57,7 +57,7 @@ tasks {
         }
 
         suites.containsKey(smokeTestSuite) -> {
-          include(suites.getValue(smokeTestSuite!!))
+          include(suites.getValue(smokeTestSuite))
         }
 
         else -> {

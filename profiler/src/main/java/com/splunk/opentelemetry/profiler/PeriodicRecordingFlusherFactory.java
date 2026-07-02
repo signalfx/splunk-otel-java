@@ -38,25 +38,11 @@ import java.time.Duration;
 import java.util.Collections;
 import java.util.Map;
 
-class PeriodicRecordingFlusherBuilder {
+class PeriodicRecordingFlusherFactory {
   private static final java.util.logging.Logger logger =
-      java.util.logging.Logger.getLogger(PeriodicRecordingFlusherBuilder.class.getName());
-  private final ProfilerConfiguration config;
-  private final Resource resource;
+      java.util.logging.Logger.getLogger(PeriodicRecordingFlusherFactory.class.getName());
 
-  private JFR jfr;
-
-  public PeriodicRecordingFlusherBuilder(ProfilerConfiguration config, Resource resource) {
-    this.config = config;
-    this.resource = resource;
-  }
-
-  PeriodicRecordingFlusherBuilder jfr(JFR jfr) {
-    this.jfr = jfr;
-    return this;
-  }
-
-  PeriodicRecordingFlusher build() {
+  PeriodicRecordingFlusher create(ProfilerConfiguration config, Resource resource, JFR jfr) {
     if (jfr == null) {
       jfr = JFR.getInstance();
     }

@@ -20,7 +20,6 @@ import static java.util.logging.Level.SEVERE;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.splunk.opentelemetry.profiler.util.HelpfulExecutors;
-import io.opentelemetry.sdk.resources.Resource;
 import java.time.Duration;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -77,10 +76,5 @@ class PeriodicRecordingFlusher {
     } catch (Throwable throwable) {
       logger.log(SEVERE, "Profiler periodic task failed.", throwable);
     }
-  }
-
-  public static PeriodicRecordingFlusherBuilder builder(
-      ProfilerConfiguration config, Resource resource) {
-    return new PeriodicRecordingFlusherBuilder(config, resource);
   }
 }

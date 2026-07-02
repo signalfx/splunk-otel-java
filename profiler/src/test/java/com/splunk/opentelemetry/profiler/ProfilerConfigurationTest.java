@@ -49,7 +49,8 @@ class ProfilerConfigurationTest {
     ProfilerConfiguration copy = original.toBuilder().build();
 
     assertThat(copy).isNotSameAs(original);
-    assertThat(copy).usingRecursiveComparison().isEqualTo(original);
+    assertThat(copy).isEqualTo(original);
+    assertThat(copy.hashCode()).isEqualTo(original.hashCode());
     assertThat(copy.getConfigProperties()).isSameAs(configProperties);
   }
 
@@ -97,6 +98,7 @@ class ProfilerConfigurationTest {
             .setConfigProperties(mutatedConfigProperties)
             .build();
 
+    assertThat(copy).isNotEqualTo(original);
     assertThat(copy.isEnabled()).isTrue();
     assertThat(copy.getIngestUrl()).isEqualTo("https://mutated-logs.example.com");
     assertThat(copy.getOtlpProtocol()).isEqualTo("http/protobuf");

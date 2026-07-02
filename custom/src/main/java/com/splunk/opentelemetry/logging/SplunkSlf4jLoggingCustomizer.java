@@ -59,7 +59,7 @@ public class SplunkSlf4jLoggingCustomizer implements LoggingCustomizer {
 
       // Silence the following warning on jdk21, this warning should go away with an update to jfr
       // parser
-      // [otel.javaagent 2023-10-09 14:38:17:665 +0000] [JFR Recording Sequencer] WARN
+      // [otel.javaagent 2023-10-09 14:38:17:665 +0000] [JFR Recording Flusher] WARN
       // org.openjdk.jmc.flightrecorder.internal.parser.v1.ValueReaders$ReflectiveReader - Could not
       // find field with name 'virtual' in reader for 'thread'
       setLogLevelIfNotSet(

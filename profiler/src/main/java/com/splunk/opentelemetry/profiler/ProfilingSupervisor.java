@@ -45,6 +45,7 @@ public class ProfilingSupervisor {
   private final JFR jfr;
   private final AutoConfiguredOpenTelemetrySdk sdk;
   private final BlockingQueue<ProfilingCommand> commandQueue;
+  private final PeriodicRecordingFlusherFactory recordingFlusherFactory;
   private final AtomicReference<PeriodicRecordingFlusher> recordingFlusher =
       new AtomicReference<>();
   private static final AtomicReference<JfrContextStorage> jfrContextStorage =
@@ -57,10 +58,21 @@ public class ProfilingSupervisor {
       JFR jfr,
       AutoConfiguredOpenTelemetrySdk sdk,
       BlockingQueue<ProfilingCommand> commandQueue) {
+    this(configSupplier, jfr, sdk, commandQueue, new PeriodicRecordingFlusherFactory());
+  }
+
+  @VisibleForTesting
+  ProfilingSupervisor(
+      OptionalConfigurableSupplier<ProfilerConfiguration> configSupplier,
+      JFR jfr,
+      AutoConfiguredOpenTelemetrySdk sdk,
+      BlockingQueue<ProfilingCommand> commandQueue,
+      PeriodicRecordingFlusherFactory recordingFlusherFactory) {
     this.configSupplier = configSupplier;
     this.jfr = jfr;
     this.sdk = sdk;
     this.commandQueue = commandQueue;
+    this.recordingFlusherFactory = recordingFlusherFactory;
   }
 
   static ProfilingSupervisor createAndStart(AutoConfiguredOpenTelemetrySdk sdk) {
@@ -105,6 +117,10 @@ public class ProfilingSupervisor {
     commandQueue.add(ProfilingCommand.STOP);
   }
 
+  public void requestReinitializeProfiling() {
+    commandQueue.add(ProfilingCommand.REINITIALIZE);
+  }
+
   private void handleCommand(ProfilingCommand command) {
     switch (command) {
       case START:
@@ -112,6 +128,9 @@ public class ProfilingSupervisor {
         break;
       case STOP:
         tryStop();
+        break;
+      case REINITIALIZE:
+        tryReinitialize();
         break;
     }
   }
@@ -129,7 +148,7 @@ public class ProfilingSupervisor {
    */
   private void tryStart() {
     if (isJfrRecordingActive()) {
-      logger.warning("JFR is already running, not starting again.");
+      logger.fine("JFR is already running, not starting again.");
       return;
     }
     if (!jfr.isAvailable()) {
@@ -145,12 +164,20 @@ public class ProfilingSupervisor {
 
   private void tryStop() {
     if (!isJfrRecordingActive()) {
-      logger.warning("JFR is not running already, not stopping again.");
+      logger.fine("JFR is not running already, not stopping again.");
       return;
     }
     setJfrContextStorageEnabled(false);
     deactivateJfrRecording();
     logger.info("Profiler is deactivated.");
+  }
+
+  private void tryReinitialize() {
+    tryStop();
+    // Start the profiler with current settings if it is enabled. New settings will be applied.
+    if (configSupplier.get().isEnabled()) {
+      tryStart();
+    }
   }
 
   private boolean isJfrRecordingActive() {
@@ -159,7 +186,7 @@ public class ProfilingSupervisor {
 
   private void activateJfrRecording(Resource resource) {
     PeriodicRecordingFlusher recordingFlusher =
-        makeRecordingFlusherBuilder(resource).jfr(jfr).build();
+        recordingFlusherFactory.create(configSupplier.get(), resource, jfr);
     if (this.recordingFlusher.compareAndSet(null, recordingFlusher)) {
       recordingFlusher.start();
     }
@@ -170,11 +197,6 @@ public class ProfilingSupervisor {
     if (recordingFlusher != null) {
       recordingFlusher.stop();
     }
-  }
-
-  // Exists for testing
-  PeriodicRecordingFlusherBuilder makeRecordingFlusherBuilder(Resource resource) {
-    return PeriodicRecordingFlusher.builder(configSupplier.get(), resource);
   }
 
   static void setupJfrContextStorage() {
@@ -192,6 +214,7 @@ public class ProfilingSupervisor {
 
   enum ProfilingCommand {
     START,
-    STOP
+    STOP,
+    REINITIALIZE
   }
 }

@@ -38,6 +38,10 @@ val licenseReportDependencies = configurations.create("licenseReportDependencies
 }
 
 val otelInstrumentationVersion: String = rootProject.extra["otelInstrumentationVersion"] as String
+val javaagentInstrumentationProjects =
+  project(":instrumentation").subprojects.filter {
+    it.name !in setOf("compile-stub", "nocode-testing")
+  }
 
 dependencies {
   add("upstreamAgent", platform(project(":dependencyManagement")))
@@ -46,20 +50,9 @@ dependencies {
   javaagentLibs(project(":custom"))
   javaagentLibs(project(":opamp"))
   javaagentLibs(project(":profiler"))
+  javaagentInstrumentationProjects.forEach { add(javaagentLibs.name, project(it.path)) }
 
   upstreamAgent("io.opentelemetry.javaagent:opentelemetry-javaagent")
-}
-
-val javaagentDependencies = dependencies
-
-// collect all instrumentation sub projects
-project(":instrumentation").subprojects {
-  val subProj = this
-  plugins.withId("splunk.instrumentation-conventions") {
-    javaagentDependencies.run {
-      add(javaagentLibs.name, project(subProj.path))
-    }
-  }
 }
 
 tasks {

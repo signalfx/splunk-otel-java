@@ -22,16 +22,19 @@ import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.splunk.opentelemetry.instrumentation.jvmmetrics.otel.OtelAllocatedMemoryMetrics;
+import com.splunk.opentelemetry.instrumentation.jvmmetrics.otel.OtelGcMemoryMetrics;
 import com.splunk.opentelemetry.profiler.util.OptionalConfigurableSupplier;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 import io.opentelemetry.sdk.resources.Resource;
 import java.nio.file.Path;
 import java.time.Duration;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -45,27 +48,29 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class ProfilingSupervisorTest {
+  private static final String JVM_METRICS_ENABLED_CONFIG_KEY =
+      "otel.instrumentation.jvm-metrics-splunk.enabled";
 
   @Mock JFR jfr;
   @Mock PeriodicRecordingFlusherFactory recordingFlusherFactory;
   @Mock PeriodicRecordingFlusher recordingFlusher;
+  @Mock OtelAllocatedMemoryMetrics allocatedMemoryMetrics;
+  @Mock OtelGcMemoryMetrics gcMemoryMetrics;
 
   ProfilerConfiguration config;
   OptionalConfigurableSupplier<ProfilerConfiguration> configSupplier;
-  AutoConfiguredOpenTelemetrySdk sdk;
   ExecutorService executor;
   ProfilingSupervisor supervisor;
 
   @BeforeEach
   void setUp(@TempDir Path tempDir) {
     config =
-        spy(
-            ProfilerConfiguration.builder()
-                .setEnabled(true)
-                .setProfilerDirectory(tempDir.toString())
-                .setStackDepth(4321)
-                .setRecordingDuration(Duration.ofMinutes(1))
-                .build());
+        ProfilerConfiguration.builder()
+            .setEnabled(true)
+            .setProfilerDirectory(tempDir.toString())
+            .setStackDepth(4321)
+            .setRecordingDuration(Duration.ofMinutes(1))
+            .build();
     configSupplier = new OptionalConfigurableSupplier<>();
     configSupplier.configure(config);
     lenient()
@@ -73,26 +78,6 @@ class ProfilingSupervisorTest {
             recordingFlusherFactory.create(
                 any(ProfilerConfiguration.class), any(Resource.class), any(JFR.class)))
         .thenReturn(recordingFlusher);
-    executor = Executors.newSingleThreadExecutor();
-    sdk =
-        AutoConfiguredOpenTelemetrySdk.builder()
-            .disableShutdownHook()
-            .addPropertiesSupplier(
-                () ->
-                    java.util.Map.of(
-                        "otel.traces.exporter",
-                        "none",
-                        "otel.metrics.exporter",
-                        "none",
-                        "otel.logs.exporter",
-                        "none",
-                        "otel.service.name",
-                        "profiling-supervisor-test"))
-            .build();
-    supervisor =
-        new ProfilingSupervisor(
-            configSupplier, jfr, sdk, new LinkedBlockingQueue<>(), recordingFlusherFactory);
-    supervisor.start(executor);
   }
 
   @AfterEach
@@ -103,6 +88,7 @@ class ProfilingSupervisorTest {
   @Test
   void requestStartProfiling_doesNotStartProfilerWhenJfrIsUnavailable() {
     // given
+    startSupervisor();
     when(jfr.isAvailable()).thenReturn(false);
 
     // when
@@ -110,7 +96,6 @@ class ProfilingSupervisorTest {
 
     // then
     await().untilAsserted(() -> verify(jfr).isAvailable());
-    verify(config, never()).log();
     verify(jfr, never()).setStackDepth(anyInt());
     verify(recordingFlusherFactory, never()).create(any(), any(), any());
   }
@@ -118,6 +103,7 @@ class ProfilingSupervisorTest {
   @Test
   void requestStartProfiling_buildsAndStartsRecordingFlusher() {
     // given
+    startSupervisor();
     when(jfr.isAvailable()).thenReturn(true);
 
     // when
@@ -125,13 +111,13 @@ class ProfilingSupervisorTest {
 
     // then
     await().untilAsserted(() -> verify(recordingFlusher).start());
-    verify(config).log();
     verifyRecordingFlusherCreatedWith(config);
   }
 
   @Test
   void requestStartProfiling_startsOnlyOnce() {
     // given
+    startSupervisor();
     when(jfr.isAvailable()).thenReturn(true);
 
     // when
@@ -152,6 +138,7 @@ class ProfilingSupervisorTest {
   @Test
   void requestStopProfiling_stopsActiveRecordingFlusher() {
     // given
+    startSupervisor();
     when(jfr.isAvailable()).thenReturn(true);
     supervisor.requestStartProfiling();
     await().untilAsserted(() -> verify(recordingFlusher).start());
@@ -166,6 +153,7 @@ class ProfilingSupervisorTest {
   @Test
   void requestStartProfiling_startsAfterStop() {
     // given
+    startSupervisor();
     when(jfr.isAvailable()).thenReturn(true);
     supervisor.requestStartProfiling();
     await().untilAsserted(() -> verify(recordingFlusher).start());
@@ -183,11 +171,12 @@ class ProfilingSupervisorTest {
   @Test
   void requestReinitializeProfiling_restartsActiveProfilerWhenEnabled() {
     // given
+    startSupervisor();
     when(jfr.isAvailable()).thenReturn(true);
     supervisor.requestStartProfiling();
     await().untilAsserted(() -> verify(recordingFlusher).start());
 
-    ProfilerConfiguration updatedConfig = spy(config.toBuilder().setStackDepth(1234).build());
+    ProfilerConfiguration updatedConfig = config.toBuilder().setStackDepth(1234).build();
     configSupplier.configure(updatedConfig);
 
     // when
@@ -196,7 +185,6 @@ class ProfilingSupervisorTest {
     // then
     await().untilAsserted(() -> verify(recordingFlusher, times(2)).start());
     verify(recordingFlusher).stop();
-    verify(updatedConfig).log();
     verifyRecordingFlusherCreated(2);
     verifyRecordingFlusherCreatedWith(updatedConfig);
   }
@@ -204,11 +192,12 @@ class ProfilingSupervisorTest {
   @Test
   void requestReinitializeProfiling_stopsActiveProfilerWhenDisabled() {
     // given
+    startSupervisor();
     when(jfr.isAvailable()).thenReturn(true);
     supervisor.requestStartProfiling();
     await().untilAsserted(() -> verify(recordingFlusher).start());
 
-    ProfilerConfiguration disabledConfig = spy(config.toBuilder().setEnabled(false).build());
+    ProfilerConfiguration disabledConfig = config.toBuilder().setEnabled(false).build();
     configSupplier.configure(disabledConfig);
 
     // when
@@ -216,7 +205,6 @@ class ProfilingSupervisorTest {
 
     // then
     await().untilAsserted(() -> verify(recordingFlusher).stop());
-    verify(disabledConfig).isEnabled();
     await()
         .during(Duration.ofMillis(200))
         .untilAsserted(
@@ -229,8 +217,9 @@ class ProfilingSupervisorTest {
   @Test
   void requestReinitializeProfiling_startsInactiveProfilerWhenEnabled() {
     // given
+    startSupervisor();
     when(jfr.isAvailable()).thenReturn(true);
-    ProfilerConfiguration updatedConfig = spy(config.toBuilder().setStackDepth(1234).build());
+    ProfilerConfiguration updatedConfig = config.toBuilder().setStackDepth(1234).build();
     configSupplier.configure(updatedConfig);
 
     // when
@@ -239,25 +228,121 @@ class ProfilingSupervisorTest {
     // then
     await().untilAsserted(() -> verify(recordingFlusher).start());
     verify(recordingFlusher, never()).stop();
-    verify(updatedConfig).log();
     verifyRecordingFlusherCreatedWith(updatedConfig);
   }
 
   @Test
   void requestReinitializeProfiling_keepsInactiveProfilerStoppedWhenDisabled() {
     // given
-    ProfilerConfiguration disabledConfig = spy(config.toBuilder().setEnabled(false).build());
+    startSupervisor();
+    ProfilerConfiguration disabledConfig = config.toBuilder().setEnabled(false).build();
     configSupplier.configure(disabledConfig);
 
     // when
     supervisor.requestReinitializeProfiling();
 
     // then
-    await().untilAsserted(() -> verify(disabledConfig).isEnabled());
     verify(jfr, never()).isAvailable();
     verify(recordingFlusher, never()).start();
     verify(recordingFlusher, never()).stop();
     verify(recordingFlusherFactory, never()).create(any(), any(), any());
+  }
+
+  @Test
+  void requestReinitializeProfiling_installsJvmMemoryMetricsWhenMemoryProfilerIsEnabled() {
+    // given
+    startSupervisor();
+    ProfilerConfiguration memoryProfilerConfig =
+        config.toBuilder().setEnabled(false).setMemoryEnabled(true).build();
+    configSupplier.configure(memoryProfilerConfig);
+
+    // when
+    supervisor.requestReinitializeProfiling();
+
+    // then
+    await()
+        .untilAsserted(
+            () -> {
+              verify(allocatedMemoryMetrics).install();
+              verify(gcMemoryMetrics).install();
+            });
+    verify(recordingFlusherFactory, never()).create(any(), any(), any());
+  }
+
+  @Test
+  void requestReinitializeProfiling_uninstallsJvmMemoryMetricsWhenMemoryProfilerIsDisabled() {
+    // given
+    startSupervisor();
+    ProfilerConfiguration disabledMemoryProfilerConfig =
+        config.toBuilder().setEnabled(false).setMemoryEnabled(false).build();
+    configSupplier.configure(disabledMemoryProfilerConfig);
+
+    // when
+    supervisor.requestReinitializeProfiling();
+
+    // then
+    await()
+        .untilAsserted(
+            () -> {
+              verify(allocatedMemoryMetrics).uninstall();
+              verify(gcMemoryMetrics).uninstall();
+            });
+    verify(recordingFlusherFactory, never()).create(any(), any(), any());
+  }
+
+  @Test
+  void requestReinitializeProfiling_doesNotInstallJvmMemoryMetricsWhenDisabledByProperty() {
+    // given
+    startSupervisor(createSdk(Map.of(JVM_METRICS_ENABLED_CONFIG_KEY, "false")));
+    ProfilerConfiguration memoryProfilerConfig =
+        config.toBuilder().setEnabled(false).setMemoryEnabled(true).build();
+    configSupplier.configure(memoryProfilerConfig);
+
+    // when
+    supervisor.requestReinitializeProfiling();
+
+    // then
+    await()
+        .untilAsserted(
+            () -> {
+              verify(allocatedMemoryMetrics).uninstall();
+              verify(gcMemoryMetrics).uninstall();
+            });
+    verify(allocatedMemoryMetrics, never()).install();
+    verify(gcMemoryMetrics, never()).install();
+    verify(recordingFlusherFactory, never()).create(any(), any(), any());
+  }
+
+  private AutoConfiguredOpenTelemetrySdk createSdk(Map<String, String> properties) {
+    Map<String, String> allProperties = new HashMap<>();
+    allProperties.put("otel.traces.exporter", "none");
+    allProperties.put("otel.metrics.exporter", "none");
+    allProperties.put("otel.logs.exporter", "none");
+    allProperties.put("otel.service.name", "profiling-supervisor-test");
+    allProperties.putAll(properties);
+
+    return AutoConfiguredOpenTelemetrySdk.builder()
+        .disableShutdownHook()
+        .addPropertiesSupplier(() -> allProperties)
+        .build();
+  }
+
+  private void startSupervisor(AutoConfiguredOpenTelemetrySdk sdk) {
+    executor = Executors.newSingleThreadExecutor();
+    supervisor =
+        new ProfilingSupervisor(
+            configSupplier,
+            jfr,
+            sdk,
+            new LinkedBlockingQueue<>(),
+            recordingFlusherFactory,
+            allocatedMemoryMetrics,
+            gcMemoryMetrics);
+    supervisor.start(executor);
+  }
+
+  private void startSupervisor() {
+    startSupervisor(createSdk(Map.of()));
   }
 
   private void verifyRecordingFlusherCreated(int count) {

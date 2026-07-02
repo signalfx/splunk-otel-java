@@ -20,9 +20,12 @@ import static io.opentelemetry.sdk.autoconfigure.AutoConfigureUtil.getResource;
 import static java.util.logging.Level.WARNING;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.splunk.opentelemetry.instrumentation.jvmmetrics.otel.OtelAllocatedMemoryMetrics;
+import com.splunk.opentelemetry.instrumentation.jvmmetrics.otel.OtelGcMemoryMetrics;
 import com.splunk.opentelemetry.profiler.util.HelpfulExecutors;
 import com.splunk.opentelemetry.profiler.util.OptionalConfigurableSupplier;
 import io.opentelemetry.context.ContextStorage;
+import io.opentelemetry.sdk.autoconfigure.AutoConfigureUtil;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 import io.opentelemetry.sdk.resources.Resource;
 import java.util.concurrent.BlockingQueue;
@@ -40,12 +43,16 @@ public class ProfilingSupervisor {
       new OptionalConfigurableSupplier<>();
   private static final java.util.logging.Logger logger =
       java.util.logging.Logger.getLogger(ProfilingSupervisor.class.getName());
+  private static final String JVM_METRICS_ENABLED_CONFIG_KEY =
+      "otel.instrumentation.jvm-metrics-splunk.enabled";
 
   private final OptionalConfigurableSupplier<ProfilerConfiguration> configSupplier;
   private final JFR jfr;
   private final AutoConfiguredOpenTelemetrySdk sdk;
   private final BlockingQueue<ProfilingCommand> commandQueue;
   private final PeriodicRecordingFlusherFactory recordingFlusherFactory;
+  private final OtelAllocatedMemoryMetrics allocatedMemoryMetrics;
+  private final OtelGcMemoryMetrics gcMemoryMetrics;
   private final AtomicReference<PeriodicRecordingFlusher> recordingFlusher =
       new AtomicReference<>();
   private static final AtomicReference<JfrContextStorage> jfrContextStorage =
@@ -57,22 +64,17 @@ public class ProfilingSupervisor {
       OptionalConfigurableSupplier<ProfilerConfiguration> configSupplier,
       JFR jfr,
       AutoConfiguredOpenTelemetrySdk sdk,
-      BlockingQueue<ProfilingCommand> commandQueue) {
-    this(configSupplier, jfr, sdk, commandQueue, new PeriodicRecordingFlusherFactory());
-  }
-
-  @VisibleForTesting
-  ProfilingSupervisor(
-      OptionalConfigurableSupplier<ProfilerConfiguration> configSupplier,
-      JFR jfr,
-      AutoConfiguredOpenTelemetrySdk sdk,
       BlockingQueue<ProfilingCommand> commandQueue,
-      PeriodicRecordingFlusherFactory recordingFlusherFactory) {
+      PeriodicRecordingFlusherFactory recordingFlusherFactory,
+      OtelAllocatedMemoryMetrics allocatedMemoryMetrics,
+      OtelGcMemoryMetrics gcMemoryMetrics) {
     this.configSupplier = configSupplier;
     this.jfr = jfr;
     this.sdk = sdk;
     this.commandQueue = commandQueue;
     this.recordingFlusherFactory = recordingFlusherFactory;
+    this.allocatedMemoryMetrics = allocatedMemoryMetrics;
+    this.gcMemoryMetrics = gcMemoryMetrics;
   }
 
   static ProfilingSupervisor createAndStart(AutoConfiguredOpenTelemetrySdk sdk) {
@@ -82,9 +84,17 @@ public class ProfilingSupervisor {
     ExecutorService executor = HelpfulExecutors.newSingleThreadExecutor("JFR Profiler");
     BlockingQueue<ProfilingCommand> queue = new LinkedBlockingQueue<>();
     ProfilingSupervisor supervisor =
-        new ProfilingSupervisor(ProfilerConfiguration.SUPPLIER, JFR.getInstance(), sdk, queue);
+        new ProfilingSupervisor(
+            ProfilerConfiguration.SUPPLIER,
+            JFR.getInstance(),
+            sdk,
+            queue,
+            new PeriodicRecordingFlusherFactory(),
+            new OtelAllocatedMemoryMetrics(),
+            new OtelGcMemoryMetrics());
     SUPPLIER.configure(supervisor);
     supervisor.start(executor);
+    supervisor.updateJvmMemoryMetrics();
 
     return supervisor;
   }
@@ -147,6 +157,7 @@ public class ProfilingSupervisor {
    * request.
    */
   private void tryStart() {
+    updateJvmMemoryMetrics();
     if (isJfrRecordingActive()) {
       logger.fine("JFR is already running, not starting again.");
       return;
@@ -173,6 +184,7 @@ public class ProfilingSupervisor {
   }
 
   private void tryReinitialize() {
+    updateJvmMemoryMetrics();
     tryStop();
     // Start the profiler with current settings if it is enabled. New settings will be applied.
     if (configSupplier.get().isEnabled()) {
@@ -197,6 +209,22 @@ public class ProfilingSupervisor {
     if (recordingFlusher != null) {
       recordingFlusher.stop();
     }
+  }
+
+  private void updateJvmMemoryMetrics() {
+    if (isJvmMemoryMetricsEnabled()) {
+      allocatedMemoryMetrics.install();
+      gcMemoryMetrics.install();
+    } else {
+      allocatedMemoryMetrics.uninstall();
+      gcMemoryMetrics.uninstall();
+    }
+  }
+
+  private boolean isJvmMemoryMetricsEnabled() {
+    ProfilerConfiguration config = configSupplier.get();
+    return AutoConfigureUtil.getConfig(sdk)
+        .getBoolean(JVM_METRICS_ENABLED_CONFIG_KEY, config.getMemoryEnabled());
   }
 
   static void setupJfrContextStorage() {

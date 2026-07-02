@@ -17,7 +17,7 @@
 package com.splunk.opentelemetry.profiler;
 
 import static io.opentelemetry.sdk.autoconfigure.AutoConfigureUtil.getResource;
-import static java.util.logging.Level.FINE;
+import static java.util.logging.Level.WARNING;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.splunk.opentelemetry.instrumentation.jvmmetrics.otel.OtelAllocatedMemoryMetrics;
@@ -114,7 +114,7 @@ public class ProfilingSupervisor {
         logger.fine("ProfilingSupervisor is shutting down");
         return;
       } catch (Exception e) {
-        logger.log(FINE, "ProfilingSupervisor encountered an unexpected exception", e);
+        logger.log(WARNING, "ProfilingSupervisor encountered an unexpected exception", e);
       }
     }
   }
@@ -159,7 +159,7 @@ public class ProfilingSupervisor {
   private void tryStart() {
     updateJvmMemoryMetrics();
     if (isJfrRecordingActive()) {
-      logger.warning("JFR is already running, not starting again.");
+      logger.fine("JFR is already running, not starting again.");
       return;
     }
     if (!jfr.isAvailable()) {
@@ -175,7 +175,7 @@ public class ProfilingSupervisor {
 
   private void tryStop() {
     if (!isJfrRecordingActive()) {
-      logger.warning("JFR is not running already, not stopping again.");
+      logger.fine("JFR is not running already, not stopping again.");
       return;
     }
     setJfrContextStorageEnabled(false);
@@ -184,12 +184,8 @@ public class ProfilingSupervisor {
   }
 
   private void tryReinitialize() {
-    logger.info("Reinitializing profiler.");
     updateJvmMemoryMetrics();
-    // Stop the profiler if it is currently running
-    if (isJfrRecordingActive()) {
-      tryStop();
-    }
+    tryStop();
     // Start the profiler with current settings if it is enabled. New settings will be applied.
     if (configSupplier.get().isEnabled()) {
       tryStart();

@@ -21,7 +21,7 @@ sourceSets {
 
 dependencies {
   compileOnly(project(":custom"))
-  compileOnly(project(":instrumentation:jvm-metrics"))
+  implementation(project(":instrumentation:jvm-metrics"))
   compileOnly("io.opentelemetry:opentelemetry-sdk")
   compileOnly("io.opentelemetry:opentelemetry-sdk-extension-autoconfigure")
   compileOnly("io.opentelemetry:opentelemetry-sdk-extension-autoconfigure-spi")

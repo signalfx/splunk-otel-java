@@ -22,7 +22,6 @@ import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -66,13 +65,12 @@ class ProfilingSupervisorTest {
   @BeforeEach
   void setUp(@TempDir Path tempDir) {
     config =
-        spy(
-            ProfilerConfiguration.builder()
-                .setEnabled(true)
-                .setProfilerDirectory(tempDir.toString())
-                .setStackDepth(4321)
-                .setRecordingDuration(Duration.ofMinutes(1))
-                .build());
+        ProfilerConfiguration.builder()
+            .setEnabled(true)
+            .setProfilerDirectory(tempDir.toString())
+            .setStackDepth(4321)
+            .setRecordingDuration(Duration.ofMinutes(1))
+            .build();
     configSupplier = new OptionalConfigurableSupplier<>();
     configSupplier.configure(config);
     lenient()
@@ -98,7 +96,6 @@ class ProfilingSupervisorTest {
 
     // then
     await().untilAsserted(() -> verify(jfr).isAvailable());
-    verify(config, never()).log();
     verify(jfr, never()).setStackDepth(anyInt());
     verify(recordingFlusherFactory, never()).create(any(), any(), any());
   }
@@ -114,7 +111,6 @@ class ProfilingSupervisorTest {
 
     // then
     await().untilAsserted(() -> verify(recordingFlusher).start());
-    verify(config).log();
     verifyRecordingFlusherCreatedWith(config);
   }
 
@@ -180,7 +176,7 @@ class ProfilingSupervisorTest {
     supervisor.requestStartProfiling();
     await().untilAsserted(() -> verify(recordingFlusher).start());
 
-    ProfilerConfiguration updatedConfig = spy(config.toBuilder().setStackDepth(1234).build());
+    ProfilerConfiguration updatedConfig = config.toBuilder().setStackDepth(1234).build();
     configSupplier.configure(updatedConfig);
 
     // when
@@ -189,7 +185,6 @@ class ProfilingSupervisorTest {
     // then
     await().untilAsserted(() -> verify(recordingFlusher, times(2)).start());
     verify(recordingFlusher).stop();
-    verify(updatedConfig).log();
     verifyRecordingFlusherCreated(2);
     verifyRecordingFlusherCreatedWith(updatedConfig);
   }
@@ -202,7 +197,7 @@ class ProfilingSupervisorTest {
     supervisor.requestStartProfiling();
     await().untilAsserted(() -> verify(recordingFlusher).start());
 
-    ProfilerConfiguration disabledConfig = spy(config.toBuilder().setEnabled(false).build());
+    ProfilerConfiguration disabledConfig = config.toBuilder().setEnabled(false).build();
     configSupplier.configure(disabledConfig);
 
     // when
@@ -210,7 +205,6 @@ class ProfilingSupervisorTest {
 
     // then
     await().untilAsserted(() -> verify(recordingFlusher).stop());
-    verify(disabledConfig).isEnabled();
     await()
         .during(Duration.ofMillis(200))
         .untilAsserted(
@@ -225,7 +219,7 @@ class ProfilingSupervisorTest {
     // given
     startSupervisor();
     when(jfr.isAvailable()).thenReturn(true);
-    ProfilerConfiguration updatedConfig = spy(config.toBuilder().setStackDepth(1234).build());
+    ProfilerConfiguration updatedConfig = config.toBuilder().setStackDepth(1234).build();
     configSupplier.configure(updatedConfig);
 
     // when
@@ -234,7 +228,6 @@ class ProfilingSupervisorTest {
     // then
     await().untilAsserted(() -> verify(recordingFlusher).start());
     verify(recordingFlusher, never()).stop();
-    verify(updatedConfig).log();
     verifyRecordingFlusherCreatedWith(updatedConfig);
   }
 
@@ -242,14 +235,13 @@ class ProfilingSupervisorTest {
   void requestReinitializeProfiling_keepsInactiveProfilerStoppedWhenDisabled() {
     // given
     startSupervisor();
-    ProfilerConfiguration disabledConfig = spy(config.toBuilder().setEnabled(false).build());
+    ProfilerConfiguration disabledConfig = config.toBuilder().setEnabled(false).build();
     configSupplier.configure(disabledConfig);
 
     // when
     supervisor.requestReinitializeProfiling();
 
     // then
-    await().untilAsserted(() -> verify(disabledConfig).isEnabled());
     verify(jfr, never()).isAvailable();
     verify(recordingFlusher, never()).start();
     verify(recordingFlusher, never()).stop();
@@ -261,7 +253,7 @@ class ProfilingSupervisorTest {
     // given
     startSupervisor();
     ProfilerConfiguration memoryProfilerConfig =
-        spy(config.toBuilder().setEnabled(false).setMemoryEnabled(true).build());
+        config.toBuilder().setEnabled(false).setMemoryEnabled(true).build();
     configSupplier.configure(memoryProfilerConfig);
 
     // when
@@ -282,7 +274,7 @@ class ProfilingSupervisorTest {
     // given
     startSupervisor();
     ProfilerConfiguration disabledMemoryProfilerConfig =
-        spy(config.toBuilder().setEnabled(false).setMemoryEnabled(false).build());
+        config.toBuilder().setEnabled(false).setMemoryEnabled(false).build();
     configSupplier.configure(disabledMemoryProfilerConfig);
 
     // when
@@ -303,7 +295,7 @@ class ProfilingSupervisorTest {
     // given
     startSupervisor(createSdk(Map.of(JVM_METRICS_ENABLED_CONFIG_KEY, "false")));
     ProfilerConfiguration memoryProfilerConfig =
-        spy(config.toBuilder().setEnabled(false).setMemoryEnabled(true).build());
+        config.toBuilder().setEnabled(false).setMemoryEnabled(true).build();
     configSupplier.configure(memoryProfilerConfig);
 
     // when

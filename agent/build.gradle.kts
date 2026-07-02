@@ -17,27 +17,31 @@ java {
 }
 
 // this configuration collects libs that will be placed in the bootstrap classloader
-val bootstrapLibs: Configuration by configurations.creating {
+val bootstrapLibs = configurations.create("bootstrapLibs") {
   isCanBeResolved = true
   isCanBeConsumed = false
 }
 // this configuration collects libs that will be placed in the agent classloader, isolated from the instrumented application code
-val javaagentLibs: Configuration by configurations.creating {
+val javaagentLibs = configurations.create("javaagentLibs") {
   isCanBeResolved = true
   isCanBeConsumed = false
 }
 // this configuration stores the upstream agent dep that's extended by this project
-val upstreamAgent: Configuration by configurations.creating {
+val upstreamAgent = configurations.create("upstreamAgent") {
   isCanBeResolved = true
   isCanBeConsumed = false
 }
 
-val licenseReportDependencies: Configuration by configurations.creating {
+val licenseReportDependencies = configurations.create("licenseReportDependencies") {
   extendsFrom(bootstrapLibs)
   extendsFrom(javaagentLibs)
 }
 
-val otelInstrumentationVersion: String by rootProject.extra
+val otelInstrumentationVersion: String = rootProject.extra["otelInstrumentationVersion"] as String
+val javaagentInstrumentationProjects =
+  project(":instrumentation").subprojects.filter {
+    it.name !in setOf("compile-stub", "nocode-testing")
+  }
 
 dependencies {
   add("upstreamAgent", platform(project(":dependencyManagement")))
@@ -46,20 +50,9 @@ dependencies {
   javaagentLibs(project(":custom"))
   javaagentLibs(project(":opamp"))
   javaagentLibs(project(":profiler"))
+  javaagentInstrumentationProjects.forEach { add(javaagentLibs.name, project(it.path)) }
 
   upstreamAgent("io.opentelemetry.javaagent:opentelemetry-javaagent")
-}
-
-val javaagentDependencies = dependencies
-
-// collect all instrumentation sub projects
-project(":instrumentation").subprojects {
-  val subProj = this
-  plugins.withId("splunk.instrumentation-conventions") {
-    javaagentDependencies.run {
-      add(javaagentLibs.name, project(subProj.path))
-    }
-  }
 }
 
 tasks {
@@ -76,7 +69,7 @@ tasks {
   // building the final javaagent jar is done in 3 steps:
 
   // 1. all Splunk-specific javaagent libs are relocated (by the splunk.shadow-conventions plugin)
-  val relocateJavaagentLibs by registering(ShadowJar::class) {
+  val relocateJavaagentLibs = register<ShadowJar>("relocateJavaagentLibs") {
     configurations = listOf(javaagentLibs)
 
     duplicatesStrategy = DuplicatesStrategy.FAIL
@@ -107,7 +100,7 @@ tasks {
   // having a separate task for isolating javaagent libs is required to avoid duplicates with the upstream javaagent
   // duplicatesStrategy in shadowJar won't be applied when adding files with with(CopySpec) because each CopySpec has
   // its own duplicatesStrategy
-  val isolateJavaagentLibs by registering(Copy::class) {
+  val isolateJavaagentLibs = register<Copy>("isolateJavaagentLibs") {
     dependsOn(relocateJavaagentLibs)
     isolateClasses(relocateJavaagentLibs.get().outputs.files)
 
@@ -152,7 +145,7 @@ tasks {
 
   // a separate task to create a no-classifier jar that's exactly the same as the -all one
   // because a no-classifier (main) jar is required by sonatype
-  val mainShadowJar by registering(Jar::class) {
+  val mainShadowJar = register<Jar>("mainShadowJar") {
     archiveClassifier.set("")
 
     from(zipTree(shadowJar.get().archiveFile))
@@ -220,7 +213,7 @@ tasks {
     }
   }
 
-  val cleanLicenses by registering(Delete::class) {
+  val cleanLicenses = register<Delete>("cleanLicenses") {
     delete(rootProject.file("licenses"))
   }
 

@@ -102,7 +102,7 @@ public class RemoteConfigProcessor {
           opampClient);
 
     } catch (Exception e) {
-      logger.log(Level.WARNING, "Remote config not applied due to exception", e);
+      logger.log(Level.WARNING, "Remote configuration not applied due to exception.", e);
       reportRemoteConfigStatus(
           remoteConfig.config_hash,
           RemoteConfigStatuses.RemoteConfigStatuses_FAILED,

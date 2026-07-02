@@ -22,11 +22,18 @@ import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
+import io.opentelemetry.common.ComponentLoader;
+import io.opentelemetry.sdk.autoconfigure.declarativeconfig.YamlDeclarativeConfigProperties;
 import io.opentelemetry.sdk.autoconfigure.spi.internal.DefaultConfigProperties;
+import io.opentelemetry.sdk.common.export.HttpSenderProvider;
 import io.opentelemetry.sdk.resources.Resource;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -43,7 +50,7 @@ class PeriodicRecordingFlusherFactoryTest {
   }
 
   @Test
-  void createConfiguresJfrAndWiresRecorderIntoSequencer() {
+  void createConfiguresJfrAndWiresRecorderIntoFlusher() {
     JFR jfr = mock(JFR.class);
     ProfilerConfiguration config =
         config(tempDir).setStackDepth(73).setRecordingDuration(Duration.ofMillis(100)).build();
@@ -103,6 +110,26 @@ class PeriodicRecordingFlusherFactoryTest {
     }
   }
 
+  @Test
+  void buildUsesProfilerConfigComponentLoaderWhenExporterNodeIsAbsent() {
+    RecordingComponentLoader componentLoader = new RecordingComponentLoader();
+    DeclarativeConfigProperties configProperties =
+        YamlDeclarativeConfigProperties.create(Collections.emptyMap(), componentLoader);
+    JFR jfr = mock(JFR.class);
+    ProfilerConfiguration config = config(tempDir).setConfigProperties(configProperties).build();
+    ProfilerConfiguration.SUPPLIER.configure(config);
+    PeriodicRecordingFlusherFactory factory = new PeriodicRecordingFlusherFactory();
+
+    try (MockedConstruction<JfrRecorder> recorderConstruction =
+        mockConstruction(JfrRecorder.class)) {
+      PeriodicRecordingFlusher flusher = factory.create(config, Resource.empty(), jfr);
+
+      assertThat(flusher).isNotNull();
+      assertThat(recorderConstruction.constructed()).hasSize(1);
+      assertThat(componentLoader.loaded(HttpSenderProvider.class)).isTrue();
+    }
+  }
+
   private ProfilerConfiguration.Builder config(Path outputDir) {
     return ProfilerConfiguration.builder()
         .setEnabled(true)
@@ -117,5 +144,21 @@ class PeriodicRecordingFlusherFactoryTest {
                     "http/protobuf",
                     "otel.exporter.otlp.endpoint",
                     "http://localhost:4318")));
+  }
+
+  private static class RecordingComponentLoader implements ComponentLoader {
+    private final ComponentLoader delegate =
+        ComponentLoader.forClassLoader(PeriodicRecordingFlusherFactoryTest.class.getClassLoader());
+    private final List<Class<?>> loadedSpiClasses = new ArrayList<>();
+
+    @Override
+    public <T> Iterable<T> load(Class<T> spiClass) {
+      loadedSpiClasses.add(spiClass);
+      return delegate.load(spiClass);
+    }
+
+    boolean loaded(Class<?> spiClass) {
+      return loadedSpiClasses.contains(spiClass);
+    }
   }
 }

@@ -82,7 +82,9 @@ class ProfilingSupervisorTest {
 
   @AfterEach
   void tearDown() {
-    executor.shutdownNow();
+    if (executor != null) {
+      executor.shutdownNow();
+    }
   }
 
   @Test

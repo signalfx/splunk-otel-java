@@ -38,10 +38,6 @@ val licenseReportDependencies = configurations.create("licenseReportDependencies
 }
 
 val otelInstrumentationVersion: String = rootProject.extra["otelInstrumentationVersion"] as String
-val javaagentInstrumentationProjects =
-  project(":instrumentation").subprojects.filter {
-    it.name !in setOf("compile-stub", "nocode-testing")
-  }
 
 dependencies {
   add("upstreamAgent", platform(project(":dependencyManagement")))
@@ -50,7 +46,18 @@ dependencies {
   javaagentLibs(project(":custom"))
   javaagentLibs(project(":opamp"))
   javaagentLibs(project(":profiler"))
-  javaagentInstrumentationProjects.forEach { add(javaagentLibs.name, project(it.path)) }
+  javaagentLibs(project(":instrumentation:glassfish"))
+  javaagentLibs(project(":instrumentation:jdbc"))
+  javaagentLibs(project(":instrumentation:jetty"))
+  javaagentLibs(project(":instrumentation:jvm-metrics"))
+  javaagentLibs(project(":instrumentation:khttp"))
+  javaagentLibs(project(":instrumentation:liberty"))
+  javaagentLibs(project(":instrumentation:nocode"))
+  javaagentLibs(project(":instrumentation:tomcat"))
+  javaagentLibs(project(":instrumentation:tomee"))
+  javaagentLibs(project(":instrumentation:weblogic"))
+  javaagentLibs(project(":instrumentation:websphere"))
+  javaagentLibs(project(":instrumentation:wildfly"))
 
   upstreamAgent("io.opentelemetry.javaagent:opentelemetry-javaagent")
 }

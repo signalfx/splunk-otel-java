@@ -96,7 +96,7 @@ class OtelAllocatedMemoryMetricsTest {
 
     private TestFixture() {
       when(meter.counterBuilder(METRIC_NAME)).thenReturn(builder);
-      when(builder.setUnit("bytes")).thenReturn(builder);
+      when(builder.setUnit("By")).thenReturn(builder);
       when(builder.setDescription(DESCRIPTION)).thenReturn(builder);
       when(builder.buildWithCallback(any())).thenReturn(firstCounter, secondCounter);
 

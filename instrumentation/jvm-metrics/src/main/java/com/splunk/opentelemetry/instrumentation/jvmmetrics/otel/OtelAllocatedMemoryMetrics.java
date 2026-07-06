@@ -45,7 +45,7 @@ public class OtelAllocatedMemoryMetrics {
     allocatedMemoryCounter =
         meter
             .counterBuilder(METRIC_NAME)
-            .setUnit("bytes")
+            .setUnit("By")
             .setDescription("Approximate sum of heap allocations.")
             .buildWithCallback(
                 measurement ->

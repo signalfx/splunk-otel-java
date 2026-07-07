@@ -33,7 +33,7 @@ public class StackTraceFilter {
         "\"JFR Recorder Thread\"",
         "\"JFR Periodic Tasks\"",
         "\"JFR Recording Scheduler\"",
-        "\"JFR Recording Sequencer\"",
+        "\"JFR Recording Flusher\"",
         "\"Reference Handler\"",
         "\"Finalizer\"",
         "\"C1 CompilerThread",

@@ -16,7 +16,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - uses: docker/setup-buildx-action@d7f5e7f509e45cec5c76c4d5afdd7de93d0b3df5 # v4.1.0
+      - uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4.2.0
 
       - name: Get the latest release version
         run: |
@@ -35,14 +35,14 @@ jobs:
         run: echo MAJOR_VERSION=${GITHUB_REF_NAME} | sed -e 's/\..*//' >> $GITHUB_ENV
 
       - name: Login to GitHub Container Registry
-        uses: docker/login-action@650006c6eb7dba73a995cc03b0b2d7f5ca915bee # v4.2.0
+        uses: docker/login-action@af1e73f918a031802d376d3c8bbc3fe56130a9b0 # v4.4.0
         with:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: build and publish container
-        uses: docker/build-push-action@f9f3042f7e2789586610d6e8b85c8f03e5195baf # v7.2.0
+        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7.3.0
         with:
           push: true
           file: Dockerfile-ghcr
@@ -54,8 +54,8 @@ jobs:
             ghcr.io/signalfx/splunk-otel-java/splunk-otel-java:${{ env.MAJOR_VERSION }}
             ghcr.io/signalfx/splunk-otel-java/splunk-otel-java:${{ env.RELEASE_VERSION }}
 
-      - name: build and publish SecureApp container
-        uses: docker/build-push-action@f9f3042f7e2789586610d6e8b85c8f03e5195baf # v7.2.0
+      - name: build and publish CSA container
+        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7.3.0
         with:
           push: true
           file: Dockerfile-ghcr

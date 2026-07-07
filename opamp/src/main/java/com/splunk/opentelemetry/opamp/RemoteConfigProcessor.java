@@ -29,6 +29,7 @@ import io.opentelemetry.sdk.autoconfigure.declarativeconfig.DeclarativeConfigura
 import java.io.ByteArrayInputStream;
 import java.util.Map;
 import java.util.Objects;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import okio.ByteString;
 import opamp.proto.AgentConfigFile;
@@ -79,16 +80,16 @@ public class RemoteConfigProcessor {
             ProfilerDeclarativeConfigurationFactory.create(
                 distributionRemoteConfigProperties.getStructured(PROFILING_NODE_NAME, empty()));
 
+        ProfilerConfiguration currentProfilerConfiguration = ProfilerConfiguration.SUPPLIER.get();
         ProfilerConfiguration updatedProfilerConfig =
-            ProfilerConfiguration.SUPPLIER.get().toBuilder()
+            currentProfilerConfiguration.toBuilder()
                 .setEnabled(receivedProfilerConfig.isEnabled())
+                .setCallStackInterval(receivedProfilerConfig.getCallStackInterval())
                 .build();
-        ProfilerConfiguration.SUPPLIER.configure(updatedProfilerConfig);
 
-        if (updatedProfilerConfig.isEnabled()) {
-          profilingSupervisor.requestStartProfiling();
-        } else {
-          profilingSupervisor.requestStopProfiling();
+        if (!currentProfilerConfiguration.equals(updatedProfilerConfig)) {
+          ProfilerConfiguration.SUPPLIER.configure(updatedProfilerConfig);
+          profilingSupervisor.requestReinitializeProfiling();
         }
       }
 
@@ -100,12 +101,12 @@ public class RemoteConfigProcessor {
           opampClient);
 
     } catch (Exception e) {
+      logger.log(Level.WARNING, "Remote configuration not applied due to exception.", e);
       reportRemoteConfigStatus(
           remoteConfig.config_hash,
           RemoteConfigStatuses.RemoteConfigStatuses_FAILED,
           "Exception occurred: " + e.getMessage(),
           opampClient);
-      throw e;
     }
 
     // TODO: Maybe should be postponed after profiler is enabled/disabled?

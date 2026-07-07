@@ -170,6 +170,54 @@ public class ProfilerConfiguration {
     return configProperties;
   }
 
+  @Override
+  public boolean equals(Object other) {
+    if (this == other) {
+      return true;
+    }
+    if (!(other instanceof ProfilerConfiguration)) {
+      return false;
+    }
+    ProfilerConfiguration that = (ProfilerConfiguration) other;
+    return enabled == that.enabled
+        && memoryEnabled == that.memoryEnabled
+        && memoryEventRateLimitEnabled == that.memoryEventRateLimitEnabled
+        && useAllocationSampleEvent == that.useAllocationSampleEvent
+        && includeAgentInternalStacks == that.includeAgentInternalStacks
+        && includeJvmInternalStacks == that.includeJvmInternalStacks
+        && tracingStacksOnly == that.tracingStacksOnly
+        && stackDepth == that.stackDepth
+        && keepFiles == that.keepFiles
+        && Objects.equals(ingestUrl, that.ingestUrl)
+        && Objects.equals(otlpProtocol, that.otlpProtocol)
+        && Objects.equals(memoryEventRate, that.memoryEventRate)
+        && Objects.equals(callStackInterval, that.callStackInterval)
+        && Objects.equals(profilerDirectory, that.profilerDirectory)
+        && Objects.equals(recordingDuration, that.recordingDuration)
+        && Objects.equals(configProperties, that.configProperties);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(
+        enabled,
+        ingestUrl,
+        otlpProtocol,
+        memoryEnabled,
+        memoryEventRateLimitEnabled,
+        memoryEventRate,
+        useAllocationSampleEvent,
+        callStackInterval,
+        includeAgentInternalStacks,
+        includeJvmInternalStacks,
+        tracingStacksOnly,
+        stackDepth,
+        keepFiles,
+        profilerDirectory,
+        recordingDuration,
+        configProperties);
+  }
+
   public static int getJavaVersion() {
     String javaSpecVersion = System.getProperty("java.specification.version");
     if ("1.8".equals(javaSpecVersion)) {
@@ -257,7 +305,12 @@ public class ProfilerConfiguration {
     }
 
     public Builder setCallStackInterval(Duration callStackInterval) {
-      this.callStackInterval = Objects.requireNonNull(callStackInterval);
+      Objects.requireNonNull(callStackInterval);
+      if (callStackInterval.isNegative()) {
+        throw new IllegalArgumentException(
+            "Invalid call stack interval: " + callStackInterval.toMillis() + ". Must be >= 0.");
+      }
+      this.callStackInterval = callStackInterval;
       return this;
     }
 
@@ -277,6 +330,9 @@ public class ProfilerConfiguration {
     }
 
     public Builder setStackDepth(int stackDepth) {
+      if (stackDepth <= 0) {
+        throw new IllegalArgumentException("Invalid stack depth: " + stackDepth + ". Must be > 0.");
+      }
       this.stackDepth = stackDepth;
       return this;
     }
@@ -292,7 +348,13 @@ public class ProfilerConfiguration {
     }
 
     public Builder setRecordingDuration(Duration recordingDuration) {
-      this.recordingDuration = Objects.requireNonNull(recordingDuration);
+      Objects.requireNonNull(recordingDuration);
+      if (recordingDuration.isNegative()) {
+        throw new IllegalArgumentException(
+            "Invalid recording duration: " + recordingDuration.toMillis() + ". Must be >= 0.");
+      }
+      this.recordingDuration = recordingDuration;
+
       return this;
     }
 

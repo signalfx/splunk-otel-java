@@ -23,8 +23,8 @@ import com.splunk.opentelemetry.profiler.allocation.exporter.PprofAllocationEven
 import com.splunk.opentelemetry.profiler.context.SpanContextualizer;
 import com.splunk.opentelemetry.profiler.exporter.CpuEventExporter;
 import com.splunk.opentelemetry.profiler.exporter.PprofCpuEventExporter;
+import com.splunk.opentelemetry.profiler.util.DeclarativeConfigPropertiesUtil;
 import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
-import io.opentelemetry.sdk.autoconfigure.declarativeconfig.YamlDeclarativeConfigProperties;
 import io.opentelemetry.sdk.logs.LogRecordProcessor;
 import io.opentelemetry.sdk.logs.SdkLoggerProvider;
 import io.opentelemetry.sdk.logs.export.LogRecordExporter;
@@ -35,7 +35,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
-import java.util.Collections;
 import java.util.Map;
 
 class PeriodicRecordingFlusherFactory {
@@ -147,22 +146,11 @@ class PeriodicRecordingFlusherFactory {
   private static LogRecordExporter createLogRecordExporter(Object configProperties) {
     if (configProperties instanceof DeclarativeConfigProperties) {
       DeclarativeConfigProperties exporterConfig =
-          getExporterConfig((DeclarativeConfigProperties) configProperties);
+          DeclarativeConfigPropertiesUtil.getStructuredOrEmpty(
+              (DeclarativeConfigProperties) configProperties, "exporter");
       return LogExporterBuilder.fromDeclarativeConfig(exporterConfig);
     }
     return LogExporterBuilder.fromEnvironmentConfig();
-  }
-
-  private static DeclarativeConfigProperties getExporterConfig(
-      DeclarativeConfigProperties configProperties) {
-    DeclarativeConfigProperties exporterConfig = configProperties.getStructured("exporter");
-    if (exporterConfig != null) {
-      return exporterConfig;
-    }
-    // DeclarativeConfigProperties.empty() is not used because it does not preserve the original
-    // component loader that is used later when creating default exporter
-    return YamlDeclarativeConfigProperties.create(
-        Collections.emptyMap(), configProperties.getComponentLoader());
   }
 
   private boolean checkOutputDir(Path outputDir) {

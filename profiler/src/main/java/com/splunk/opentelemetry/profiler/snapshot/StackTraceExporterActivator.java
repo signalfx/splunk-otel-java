@@ -19,15 +19,14 @@ package com.splunk.opentelemetry.profiler.snapshot;
 import com.google.auto.service.AutoService;
 import com.google.common.annotations.VisibleForTesting;
 import com.splunk.opentelemetry.profiler.OtelLoggerFactory;
+import com.splunk.opentelemetry.profiler.util.DeclarativeConfigPropertiesUtil;
 import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
 import io.opentelemetry.api.logs.Logger;
 import io.opentelemetry.javaagent.extension.AgentListener;
 import io.opentelemetry.sdk.autoconfigure.AutoConfigureUtil;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
-import io.opentelemetry.sdk.autoconfigure.declarativeconfig.YamlDeclarativeConfigProperties;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import io.opentelemetry.sdk.resources.Resource;
-import java.util.Collections;
 
 @AutoService(AgentListener.class)
 public class StackTraceExporterActivator implements AgentListener {
@@ -66,7 +65,8 @@ public class StackTraceExporterActivator implements AgentListener {
     Resource resource = AutoConfigureUtil.getResource(sdk);
     if (configProperties instanceof DeclarativeConfigProperties) {
       DeclarativeConfigProperties exporterConfig =
-          getExporterConfig((DeclarativeConfigProperties) configProperties);
+          DeclarativeConfigPropertiesUtil.getStructuredOrEmpty(
+              (DeclarativeConfigProperties) configProperties, "exporter");
       return otelLoggerFactory.build(exporterConfig, resource);
     }
     if (configProperties instanceof ConfigProperties) {
@@ -74,17 +74,5 @@ public class StackTraceExporterActivator implements AgentListener {
     }
     throw new IllegalArgumentException(
         "Unsupported config properties type: " + configProperties.getClass().getName());
-  }
-
-  private static DeclarativeConfigProperties getExporterConfig(
-      DeclarativeConfigProperties configProperties) {
-    DeclarativeConfigProperties exporterConfig = configProperties.getStructured("exporter");
-    if (exporterConfig != null) {
-      return exporterConfig;
-    }
-    // DeclarativeConfigProperties.empty() would drop the component loader that discovers OTLP
-    // sender providers.
-    return YamlDeclarativeConfigProperties.create(
-        Collections.emptyMap(), configProperties.getComponentLoader());
   }
 }

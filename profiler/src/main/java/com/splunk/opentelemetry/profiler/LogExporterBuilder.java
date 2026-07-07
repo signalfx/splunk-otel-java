@@ -16,10 +16,10 @@
 
 package com.splunk.opentelemetry.profiler;
 
-import static io.opentelemetry.api.incubator.config.DeclarativeConfigProperties.empty;
 import static io.opentelemetry.exporter.otlp.internal.OtlpConfigUtil.DATA_TYPE_LOGS;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.splunk.opentelemetry.profiler.util.DeclarativeConfigPropertiesUtil;
 import io.opentelemetry.api.incubator.config.ConfigProvider;
 import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
 import io.opentelemetry.common.ComponentLoader;
@@ -30,7 +30,6 @@ import io.opentelemetry.exporter.otlp.internal.OtlpGrpcLogRecordExporterComponen
 import io.opentelemetry.exporter.otlp.internal.OtlpHttpLogRecordExporterComponentProvider;
 import io.opentelemetry.exporter.otlp.logs.OtlpGrpcLogRecordExporter;
 import io.opentelemetry.exporter.otlp.logs.OtlpGrpcLogRecordExporterBuilder;
-import io.opentelemetry.sdk.autoconfigure.declarativeconfig.YamlDeclarativeConfigProperties;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigurationException;
 import io.opentelemetry.sdk.autoconfigure.spi.internal.ExtendedDeclarativeConfigProperties;
@@ -61,7 +60,8 @@ class LogExporterBuilder {
 
       if (propertyKeys.contains("otlp_log_http")) {
         DeclarativeConfigProperties otlpHttp =
-            exporterConfigProperties.getStructured("otlp_log_http", empty());
+            DeclarativeConfigPropertiesUtil.getStructuredOrEmpty(
+                exporterConfigProperties, "otlp_log_http");
         OtlpHttpLogRecordExporterComponentProvider provider =
             new OtlpHttpLogRecordExporterComponentProvider();
         return provider.create(toExtended(otlpHttp));
@@ -69,7 +69,8 @@ class LogExporterBuilder {
 
       if (propertyKeys.contains("otlp_log_grpc")) {
         DeclarativeConfigProperties otlpGrpc =
-            exporterConfigProperties.getStructured("otlp_log_grpc", empty());
+            DeclarativeConfigPropertiesUtil.getStructuredOrEmpty(
+                exporterConfigProperties, "otlp_log_grpc");
         OtlpGrpcLogRecordExporterComponentProvider provider =
             new OtlpGrpcLogRecordExporterComponentProvider();
         return provider.create(toExtended(otlpGrpc));
@@ -84,9 +85,8 @@ class LogExporterBuilder {
     Map<String, Object> properties = new HashMap<>();
     properties.put("endpoint", DEFAULT_HTTP_LOG_ENDPOINT);
     properties.put("encoding", "protobuf");
-    // Keep the original component loader so OTLP sender providers remain discoverable.
-    return YamlDeclarativeConfigProperties.create(
-        properties, exporterConfigProperties.getComponentLoader());
+    return DeclarativeConfigPropertiesUtil.createPreservingLoader(
+        exporterConfigProperties, properties);
   }
 
   static LogRecordExporter fromEnvironmentConfig() {

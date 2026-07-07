@@ -31,14 +31,21 @@ import static org.mockito.Mockito.when;
 
 import com.splunk.opentelemetry.testing.declarativeconfig.DeclarativeConfigTestUtil;
 import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
+import io.opentelemetry.common.ComponentLoader;
 import io.opentelemetry.exporter.otlp.http.logs.OtlpHttpLogRecordExporter;
 import io.opentelemetry.exporter.otlp.http.logs.OtlpHttpLogRecordExporterBuilder;
 import io.opentelemetry.exporter.otlp.logs.OtlpGrpcLogRecordExporter;
 import io.opentelemetry.exporter.otlp.logs.OtlpGrpcLogRecordExporterBuilder;
+import io.opentelemetry.sdk.autoconfigure.declarativeconfig.YamlDeclarativeConfigProperties;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.OpenTelemetryConfigurationModel;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigurationException;
+import io.opentelemetry.sdk.common.export.GrpcSenderProvider;
+import io.opentelemetry.sdk.common.export.HttpSenderProvider;
 import io.opentelemetry.sdk.logs.export.LogRecordExporter;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -250,6 +257,36 @@ class LogExporterBuilderTest {
     }
 
     @Test
+    void shouldCreateHttpExporterWithEmptyNodeUsingParentComponentLoader() {
+      // given
+      RecordingComponentLoader componentLoader = new RecordingComponentLoader();
+      DeclarativeConfigProperties exporterConfig =
+          exporterConfigWithEmptyNode("otlp_log_http", componentLoader);
+
+      // when
+      LogRecordExporter exporter = LogExporterBuilder.fromDeclarativeConfig(exporterConfig);
+
+      // then
+      assertThat(exporter).isNotNull();
+      assertThat(componentLoader.loaded(HttpSenderProvider.class)).isTrue();
+    }
+
+    @Test
+    void shouldCreateGrpcExporterWithEmptyNodeUsingParentComponentLoader() {
+      // given
+      RecordingComponentLoader componentLoader = new RecordingComponentLoader();
+      DeclarativeConfigProperties exporterConfig =
+          exporterConfigWithEmptyNode("otlp_log_grpc", componentLoader);
+
+      // when
+      LogRecordExporter exporter = LogExporterBuilder.fromDeclarativeConfig(exporterConfig);
+
+      // then
+      assertThat(exporter).isNotNull();
+      assertThat(componentLoader.loaded(GrpcSenderProvider.class)).isTrue();
+    }
+
+    @Test
     void shouldThrowExceptionForInvalidProtocol() {
       // given
       OpenTelemetryConfigurationModel model =
@@ -273,6 +310,29 @@ class LogExporterBuilderTest {
     private static DeclarativeConfigProperties getExporterConfig(
         OpenTelemetryConfigurationModel model) {
       return getProfilingConfig(model).getStructured("exporter", empty());
+    }
+
+    private static DeclarativeConfigProperties exporterConfigWithEmptyNode(
+        String exporterName, ComponentLoader componentLoader) {
+      Map<String, Object> properties = new HashMap<>();
+      properties.put(exporterName, null);
+      return YamlDeclarativeConfigProperties.create(properties, componentLoader);
+    }
+
+    private static class RecordingComponentLoader implements ComponentLoader {
+      private final ComponentLoader delegate =
+          ComponentLoader.forClassLoader(LogExporterBuilderTest.class.getClassLoader());
+      private final List<Class<?>> loadedSpiClasses = new ArrayList<>();
+
+      @Override
+      public <T> Iterable<T> load(Class<T> spiClass) {
+        loadedSpiClasses.add(spiClass);
+        return delegate.load(spiClass);
+      }
+
+      boolean loaded(Class<?> spiClass) {
+        return loadedSpiClasses.contains(spiClass);
+      }
     }
   }
 }

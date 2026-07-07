@@ -16,8 +16,6 @@
 
 package com.splunk.opentelemetry.profiler.snapshot;
 
-import static io.opentelemetry.api.incubator.config.DeclarativeConfigProperties.empty;
-
 import com.google.auto.service.AutoService;
 import com.google.common.annotations.VisibleForTesting;
 import com.splunk.opentelemetry.profiler.OtelLoggerFactory;
@@ -26,8 +24,10 @@ import io.opentelemetry.api.logs.Logger;
 import io.opentelemetry.javaagent.extension.AgentListener;
 import io.opentelemetry.sdk.autoconfigure.AutoConfigureUtil;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
+import io.opentelemetry.sdk.autoconfigure.declarativeconfig.YamlDeclarativeConfigProperties;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import io.opentelemetry.sdk.resources.Resource;
+import java.util.Collections;
 
 @AutoService(AgentListener.class)
 public class StackTraceExporterActivator implements AgentListener {
@@ -47,7 +47,7 @@ public class StackTraceExporterActivator implements AgentListener {
 
   @Override
   public void afterAgent(AutoConfiguredOpenTelemetrySdk sdk) {
-    SnapshotProfilingConfiguration configuration = getSnapshotProfilingConfiguration(sdk);
+    SnapshotProfilingConfiguration configuration = SnapshotProfilingConfiguration.SUPPLIER.get();
     if (!configuration.isEnabled()) {
       return;
     }
@@ -66,7 +66,7 @@ public class StackTraceExporterActivator implements AgentListener {
     Resource resource = AutoConfigureUtil.getResource(sdk);
     if (configProperties instanceof DeclarativeConfigProperties) {
       DeclarativeConfigProperties exporterConfig =
-          ((DeclarativeConfigProperties) configProperties).getStructured("exporter", empty());
+          getExporterConfig((DeclarativeConfigProperties) configProperties);
       return otelLoggerFactory.build(exporterConfig, resource);
     }
     if (configProperties instanceof ConfigProperties) {
@@ -76,13 +76,15 @@ public class StackTraceExporterActivator implements AgentListener {
         "Unsupported config properties type: " + configProperties.getClass().getName());
   }
 
-  private static SnapshotProfilingConfiguration getSnapshotProfilingConfiguration(
-      AutoConfiguredOpenTelemetrySdk sdk) {
-    if (SnapshotProfilingDeclarativeConfiguration.SUPPLIER.isConfigured()) {
-      return SnapshotProfilingDeclarativeConfiguration.SUPPLIER.get();
-    } else {
-      ConfigProperties configProperties = AutoConfigureUtil.getConfig(sdk);
-      return new SnapshotProfilingEnvVarsConfiguration(configProperties);
+  private static DeclarativeConfigProperties getExporterConfig(
+      DeclarativeConfigProperties configProperties) {
+    DeclarativeConfigProperties exporterConfig = configProperties.getStructured("exporter");
+    if (exporterConfig != null) {
+      return exporterConfig;
     }
+    // DeclarativeConfigProperties.empty() would drop the component loader that discovers OTLP
+    // sender providers.
+    return YamlDeclarativeConfigProperties.create(
+        Collections.emptyMap(), configProperties.getComponentLoader());
   }
 }

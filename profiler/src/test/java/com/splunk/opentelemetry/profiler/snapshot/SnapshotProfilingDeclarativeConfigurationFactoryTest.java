@@ -25,7 +25,7 @@ import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.OpenTelemetryC
 import java.time.Duration;
 import org.junit.jupiter.api.Test;
 
-class SnapshotProfilingDeclarativeConfigurationTest {
+class SnapshotProfilingDeclarativeConfigurationFactoryTest {
   @Test
   void shouldMapYamlToConfiguration() {
     // given
@@ -47,8 +47,8 @@ class SnapshotProfilingDeclarativeConfigurationTest {
     DeclarativeConfigProperties profilingConfig = getProfilingConfig(model);
 
     // when
-    SnapshotProfilingDeclarativeConfiguration config =
-        new SnapshotProfilingDeclarativeConfiguration(profilingConfig);
+    SnapshotProfilingConfiguration config =
+        SnapshotProfilingDeclarativeConfigurationFactory.create(profilingConfig);
 
     // then
     assertThat(config.isEnabled()).isTrue();
@@ -75,8 +75,8 @@ class SnapshotProfilingDeclarativeConfigurationTest {
     DeclarativeConfigProperties snapshotProfilingConfig = getProfilingConfig(model);
 
     // when
-    SnapshotProfilingDeclarativeConfiguration config =
-        new SnapshotProfilingDeclarativeConfiguration(snapshotProfilingConfig);
+    SnapshotProfilingConfiguration config =
+        SnapshotProfilingDeclarativeConfigurationFactory.create(snapshotProfilingConfig);
 
     // then
     assertThat(config.isEnabled()).isTrue();
@@ -102,8 +102,8 @@ class SnapshotProfilingDeclarativeConfigurationTest {
     DeclarativeConfigProperties profilingConfig = getProfilingConfig(model);
 
     // when
-    SnapshotProfilingDeclarativeConfiguration config =
-        new SnapshotProfilingDeclarativeConfiguration(profilingConfig);
+    SnapshotProfilingConfiguration config =
+        SnapshotProfilingDeclarativeConfigurationFactory.create(profilingConfig);
 
     // then
     assertThat(config.isEnabled()).isFalse();
@@ -126,8 +126,8 @@ class SnapshotProfilingDeclarativeConfigurationTest {
     DeclarativeConfigProperties profilingConfig = getProfilingConfig(model);
 
     // when
-    SnapshotProfilingDeclarativeConfiguration config =
-        new SnapshotProfilingDeclarativeConfiguration(profilingConfig);
+    SnapshotProfilingConfiguration config =
+        SnapshotProfilingDeclarativeConfigurationFactory.create(profilingConfig);
 
     // then
     assertThat(config.getSnapshotSelectionProbability())
@@ -151,8 +151,8 @@ class SnapshotProfilingDeclarativeConfigurationTest {
     DeclarativeConfigProperties profilingConfig = getProfilingConfig(model);
 
     // when
-    SnapshotProfilingDeclarativeConfiguration config =
-        new SnapshotProfilingDeclarativeConfiguration(profilingConfig);
+    SnapshotProfilingConfiguration config =
+        SnapshotProfilingDeclarativeConfigurationFactory.create(profilingConfig);
 
     // then
     assertThat(config.isEnabled()).isTrue();

@@ -26,11 +26,11 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-class SnapshotProfilingEnvVarsConfigurationTest {
+class SnapshotProfilingEnvVarsConfigurationFactoryTest {
 
   private static final ComponentLoader COMPONENT_LOADER =
       ComponentLoader.forClassLoader(
-          SnapshotProfilingEnvVarsConfigurationTest.class.getClassLoader());
+          SnapshotProfilingEnvVarsConfigurationFactoryTest.class.getClassLoader());
 
   @ParameterizedTest
   @ValueSource(booleans = {true, false})
@@ -39,10 +39,10 @@ class SnapshotProfilingEnvVarsConfigurationTest {
     var properties =
         DefaultConfigProperties.create(
             Map.of(
-                SnapshotProfilingEnvVarsConfiguration.CONFIG_KEY_ENABLE_SNAPSHOT_PROFILER,
+                SnapshotProfilingEnvVarsConfigurationFactory.CONFIG_KEY_ENABLE_SNAPSHOT_PROFILER,
                 String.valueOf(enabled)),
             COMPONENT_LOADER);
-    var configuration = new SnapshotProfilingEnvVarsConfiguration(properties);
+    var configuration = SnapshotProfilingEnvVarsConfigurationFactory.create(properties);
 
     // when
     boolean actual = configuration.isEnabled();
@@ -58,10 +58,10 @@ class SnapshotProfilingEnvVarsConfigurationTest {
     var properties =
         DefaultConfigProperties.create(
             Map.of(
-                SnapshotProfilingEnvVarsConfiguration.SELECTION_PROBABILITY_KEY,
+                SnapshotProfilingEnvVarsConfigurationFactory.SELECTION_PROBABILITY_KEY,
                 String.valueOf(selectionRate)),
             COMPONENT_LOADER);
-    var configuration = new SnapshotProfilingEnvVarsConfiguration(properties);
+    var configuration = SnapshotProfilingEnvVarsConfigurationFactory.create(properties);
 
     // when
     double actualSelectionRate = configuration.getSnapshotSelectionProbability();
@@ -77,10 +77,10 @@ class SnapshotProfilingEnvVarsConfigurationTest {
     var properties =
         DefaultConfigProperties.create(
             Map.of(
-                SnapshotProfilingEnvVarsConfiguration.SELECTION_PROBABILITY_KEY,
+                SnapshotProfilingEnvVarsConfigurationFactory.SELECTION_PROBABILITY_KEY,
                 String.valueOf(selectionRate)),
             COMPONENT_LOADER);
-    var configuration = new SnapshotProfilingEnvVarsConfiguration(properties);
+    var configuration = SnapshotProfilingEnvVarsConfigurationFactory.create(properties);
 
     // when
     double actualSelectionRate = configuration.getSnapshotSelectionProbability();
@@ -94,9 +94,9 @@ class SnapshotProfilingEnvVarsConfigurationTest {
     // given
     var properties =
         DefaultConfigProperties.create(
-            Map.of(SnapshotProfilingEnvVarsConfiguration.SELECTION_PROBABILITY_KEY, "0"),
+            Map.of(SnapshotProfilingEnvVarsConfigurationFactory.SELECTION_PROBABILITY_KEY, "0"),
             COMPONENT_LOADER);
-    var configuration = new SnapshotProfilingEnvVarsConfiguration(properties);
+    var configuration = SnapshotProfilingEnvVarsConfigurationFactory.create(properties);
 
     // when
     double actualSelectionRate = configuration.getSnapshotSelectionProbability();
@@ -110,9 +110,11 @@ class SnapshotProfilingEnvVarsConfigurationTest {
     // given
     var properties =
         DefaultConfigProperties.create(
-            Map.of(SnapshotProfilingEnvVarsConfiguration.SELECTION_PROBABILITY_KEY, "not-a-number"),
+            Map.of(
+                SnapshotProfilingEnvVarsConfigurationFactory.SELECTION_PROBABILITY_KEY,
+                "not-a-number"),
             COMPONENT_LOADER);
-    var configuration = new SnapshotProfilingEnvVarsConfiguration(properties);
+    var configuration = SnapshotProfilingEnvVarsConfigurationFactory.create(properties);
 
     // when
     double actualSelectionRate = configuration.getSnapshotSelectionProbability();
@@ -127,9 +129,11 @@ class SnapshotProfilingEnvVarsConfigurationTest {
     int depth = 123;
     var properties =
         DefaultConfigProperties.create(
-            Map.of(SnapshotProfilingEnvVarsConfiguration.STACK_DEPTH_KEY, String.valueOf(depth)),
+            Map.of(
+                SnapshotProfilingEnvVarsConfigurationFactory.STACK_DEPTH_KEY,
+                String.valueOf(depth)),
             COMPONENT_LOADER);
-    var configuration = new SnapshotProfilingEnvVarsConfiguration(properties);
+    var configuration = SnapshotProfilingEnvVarsConfigurationFactory.create(properties);
 
     // when
     int actualDepth = configuration.getStackDepth();
@@ -145,10 +149,10 @@ class SnapshotProfilingEnvVarsConfigurationTest {
     var properties =
         DefaultConfigProperties.create(
             Map.of(
-                SnapshotProfilingEnvVarsConfiguration.SAMPLING_INTERVAL_KEY,
+                SnapshotProfilingEnvVarsConfigurationFactory.SAMPLING_INTERVAL_KEY,
                 samplingInterval + "ms"),
             COMPONENT_LOADER);
-    var configuration = new SnapshotProfilingEnvVarsConfiguration(properties);
+    var configuration = SnapshotProfilingEnvVarsConfigurationFactory.create(properties);
 
     // when
     Duration actual = configuration.getSamplingInterval();
@@ -164,9 +168,10 @@ class SnapshotProfilingEnvVarsConfigurationTest {
     var properties =
         DefaultConfigProperties.create(
             Map.of(
-                SnapshotProfilingEnvVarsConfiguration.EXPORT_INTERVAL_KEY, exportInterval + "ms"),
+                SnapshotProfilingEnvVarsConfigurationFactory.EXPORT_INTERVAL_KEY,
+                exportInterval + "ms"),
             COMPONENT_LOADER);
-    var configuration = new SnapshotProfilingEnvVarsConfiguration(properties);
+    var configuration = SnapshotProfilingEnvVarsConfigurationFactory.create(properties);
 
     // when
     Duration actual = configuration.getExportInterval();
@@ -182,10 +187,10 @@ class SnapshotProfilingEnvVarsConfigurationTest {
     var properties =
         DefaultConfigProperties.create(
             Map.of(
-                SnapshotProfilingEnvVarsConfiguration.STAGING_CAPACITY_KEY,
+                SnapshotProfilingEnvVarsConfigurationFactory.STAGING_CAPACITY_KEY,
                 String.valueOf(capacity)),
             COMPONENT_LOADER);
-    var configuration = new SnapshotProfilingEnvVarsConfiguration(properties);
+    var configuration = SnapshotProfilingEnvVarsConfigurationFactory.create(properties);
 
     // when
     int actual = configuration.getStagingCapacity();
@@ -204,13 +209,13 @@ class SnapshotProfilingEnvVarsConfigurationTest {
       DeclarativeConfigPropertiesBridgeBuilder builder =
           new DeclarativeConfigPropertiesBridgeBuilder();
       builder.addOverride(
-          SnapshotProfilingEnvVarsConfiguration.CONFIG_KEY_ENABLE_SNAPSHOT_PROFILER, enabled);
+          SnapshotProfilingEnvVarsConfigurationFactory.CONFIG_KEY_ENABLE_SNAPSHOT_PROFILER, enabled);
 
       // when
       var properties = builder.buildFromInstrumentationConfig(null);
 
       // then
-      assertThat(new SnapshotProfilingEnvVarsConfiguration(properties).isSnapshotProfilingEnabled())
+      assertThat(SnapshotProfilingEnvVarsConfigurationFactory.create(properties).isSnapshotProfilingEnabled())
           .isEqualTo(enabled);
     }
 
@@ -220,13 +225,13 @@ class SnapshotProfilingEnvVarsConfigurationTest {
       // given
       DeclarativeConfigPropertiesBridgeBuilder builder =
           new DeclarativeConfigPropertiesBridgeBuilder();
-      builder.addOverride(SnapshotProfilingEnvVarsConfiguration.STACK_DEPTH_KEY, depth);
+      builder.addOverride(SnapshotProfilingEnvVarsConfigurationFactory.STACK_DEPTH_KEY, depth);
 
       // when
       var properties = builder.buildFromInstrumentationConfig(null);
 
       // then
-      assertThat(new SnapshotProfilingEnvVarsConfiguration(properties).getStackDepth())
+      assertThat(SnapshotProfilingEnvVarsConfigurationFactory.create(properties).getStackDepth())
           .isEqualTo(depth);
     }
 
@@ -237,13 +242,13 @@ class SnapshotProfilingEnvVarsConfigurationTest {
       DeclarativeConfigPropertiesBridgeBuilder builder =
           new DeclarativeConfigPropertiesBridgeBuilder();
       builder.addOverride(
-          SnapshotProfilingEnvVarsConfiguration.SAMPLING_INTERVAL_KEY, milliseconds);
+          SnapshotProfilingEnvVarsConfigurationFactory.SAMPLING_INTERVAL_KEY, milliseconds);
 
       // when
       var properties = builder.buildFromInstrumentationConfig(null);
 
       // then
-      assertThat(new SnapshotProfilingEnvVarsConfiguration(properties).getSamplingInterval())
+      assertThat(SnapshotProfilingEnvVarsConfigurationFactory.create(properties).getSamplingInterval())
           .isEqualTo(Duration.ofMillis(milliseconds));
     }
 
@@ -253,13 +258,13 @@ class SnapshotProfilingEnvVarsConfigurationTest {
       // given
       DeclarativeConfigPropertiesBridgeBuilder builder =
           new DeclarativeConfigPropertiesBridgeBuilder();
-      builder.addOverride(SnapshotProfilingEnvVarsConfiguration.EXPORT_INTERVAL_KEY, milliseconds);
+      builder.addOverride(SnapshotProfilingEnvVarsConfigurationFactory.EXPORT_INTERVAL_KEY, milliseconds);
 
       // when
       var properties = builder.buildFromInstrumentationConfig(null);
 
       // then
-      assertThat(new SnapshotProfilingEnvVarsConfiguration(properties).getExportInterval())
+      assertThat(SnapshotProfilingEnvVarsConfigurationFactory.create(properties).getExportInterval())
           .isEqualTo(Duration.ofMillis(milliseconds));
     }
 
@@ -269,13 +274,13 @@ class SnapshotProfilingEnvVarsConfigurationTest {
       // given
       DeclarativeConfigPropertiesBridgeBuilder builder =
           new DeclarativeConfigPropertiesBridgeBuilder();
-      builder.addOverride(SnapshotProfilingEnvVarsConfiguration.STAGING_CAPACITY_KEY, value);
+      builder.addOverride(SnapshotProfilingEnvVarsConfigurationFactory.STAGING_CAPACITY_KEY, value);
 
       // when
       var properties = builder.buildFromInstrumentationConfig(null);
 
       // then
-      assertThat(new SnapshotProfilingEnvVarsConfiguration(properties).getStagingCapacity())
+      assertThat(SnapshotProfilingEnvVarsConfigurationFactory.create(properties).getStagingCapacity())
           .isEqualTo(value);
     }
   }
@@ -285,7 +290,7 @@ class SnapshotProfilingEnvVarsConfigurationTest {
     @RegisterExtension
     private final LogCapturer log =
         LogCapturer.create()
-            .captureForType(SnapshotProfilingEnvVarsConfiguration.class, Level.DEBUG);
+            .captureForType(SnapshotProfilingEnvVarsConfigurationFactory.class, Level.DEBUG);
 
     @Test
     void includeSnapshotProfilingHeading() {
@@ -293,7 +298,7 @@ class SnapshotProfilingEnvVarsConfigurationTest {
       var properties = DefaultConfigProperties.create(Collections.emptyMap(), COMPONENT_LOADER);
 
       // when
-      new SnapshotProfilingEnvVarsConfiguration(properties).log();
+      SnapshotProfilingEnvVarsConfigurationFactory.create(properties).log();
 
       // then
       log.assertContains("-----------------------");
@@ -307,14 +312,14 @@ class SnapshotProfilingEnvVarsConfigurationTest {
       var properties =
           DefaultConfigProperties.create(
               Map.of(
-                  SnapshotProfilingEnvVarsConfiguration.CONFIG_KEY_ENABLE_SNAPSHOT_PROFILER,
+                  SnapshotProfilingEnvVarsConfigurationFactory.CONFIG_KEY_ENABLE_SNAPSHOT_PROFILER,
                   String.valueOf(enabled)),
               COMPONENT_LOADER);
       // when
-      new SnapshotProfilingEnvVarsConfiguration(properties).log();
+      SnapshotProfilingEnvVarsConfigurationFactory.create(properties).log();
       // then
       log.assertContains(
-          SnapshotProfilingEnvVarsConfiguration.CONFIG_KEY_ENABLE_SNAPSHOT_PROFILER
+          SnapshotProfilingEnvVarsConfigurationFactory.CONFIG_KEY_ENABLE_SNAPSHOT_PROFILER
               + " : "
               + enabled);
     }
@@ -326,14 +331,14 @@ class SnapshotProfilingEnvVarsConfigurationTest {
       var properties =
           DefaultConfigProperties.create(
               Map.of(
-                  SnapshotProfilingEnvVarsConfiguration.SELECTION_PROBABILITY_KEY,
+                  SnapshotProfilingEnvVarsConfigurationFactory.SELECTION_PROBABILITY_KEY,
                   String.valueOf(rate)),
               COMPONENT_LOADER);
       // when
-      new SnapshotProfilingEnvVarsConfiguration(properties).log();
+      SnapshotProfilingEnvVarsConfigurationFactory.create(properties).log();
       // then
       log.assertContains(
-          SnapshotProfilingEnvVarsConfiguration.SELECTION_PROBABILITY_KEY + " : " + rate);
+          SnapshotProfilingEnvVarsConfigurationFactory.SELECTION_PROBABILITY_KEY + " : " + rate);
     }
 
     @ParameterizedTest
@@ -342,12 +347,12 @@ class SnapshotProfilingEnvVarsConfigurationTest {
       // given
       var properties =
           DefaultConfigProperties.create(
-              Map.of(SnapshotProfilingEnvVarsConfiguration.STACK_DEPTH_KEY, String.valueOf(depth)),
+              Map.of(SnapshotProfilingEnvVarsConfigurationFactory.STACK_DEPTH_KEY, String.valueOf(depth)),
               COMPONENT_LOADER);
       // when
-      new SnapshotProfilingEnvVarsConfiguration(properties).log();
+      SnapshotProfilingEnvVarsConfigurationFactory.create(properties).log();
       // then
-      log.assertContains(SnapshotProfilingEnvVarsConfiguration.STACK_DEPTH_KEY + " : " + depth);
+      log.assertContains(SnapshotProfilingEnvVarsConfigurationFactory.STACK_DEPTH_KEY + " : " + depth);
     }
 
     @ParameterizedTest
@@ -356,17 +361,17 @@ class SnapshotProfilingEnvVarsConfigurationTest {
       // given
       var properties =
           DefaultConfigProperties.create(
-              Map.of(SnapshotProfilingEnvVarsConfiguration.SAMPLING_INTERVAL_KEY, interval),
+              Map.of(SnapshotProfilingEnvVarsConfigurationFactory.SAMPLING_INTERVAL_KEY, interval),
               COMPONENT_LOADER);
 
       // when
-      new SnapshotProfilingEnvVarsConfiguration(properties).log();
+      SnapshotProfilingEnvVarsConfigurationFactory.create(properties).log();
 
       // then
       var duration =
-          properties.getDuration(SnapshotProfilingEnvVarsConfiguration.SAMPLING_INTERVAL_KEY);
+          properties.getDuration(SnapshotProfilingEnvVarsConfigurationFactory.SAMPLING_INTERVAL_KEY);
       log.assertContains(
-          SnapshotProfilingEnvVarsConfiguration.SAMPLING_INTERVAL_KEY + " : " + duration);
+          SnapshotProfilingEnvVarsConfigurationFactory.SAMPLING_INTERVAL_KEY + " : " + duration);
     }
 
     @ParameterizedTest
@@ -375,17 +380,17 @@ class SnapshotProfilingEnvVarsConfigurationTest {
       // given
       var properties =
           DefaultConfigProperties.create(
-              Map.of(SnapshotProfilingEnvVarsConfiguration.EXPORT_INTERVAL_KEY, interval),
+              Map.of(SnapshotProfilingEnvVarsConfigurationFactory.EXPORT_INTERVAL_KEY, interval),
               COMPONENT_LOADER);
 
       // when
-      new SnapshotProfilingEnvVarsConfiguration(properties).log();
+      SnapshotProfilingEnvVarsConfigurationFactory.create(properties).log();
 
       // then
       var duration =
-          properties.getDuration(SnapshotProfilingEnvVarsConfiguration.EXPORT_INTERVAL_KEY);
+          properties.getDuration(SnapshotProfilingEnvVarsConfigurationFactory.EXPORT_INTERVAL_KEY);
       log.assertContains(
-          SnapshotProfilingEnvVarsConfiguration.EXPORT_INTERVAL_KEY + " : " + duration);
+          SnapshotProfilingEnvVarsConfigurationFactory.EXPORT_INTERVAL_KEY + " : " + duration);
     }
 
     @ParameterizedTest
@@ -395,14 +400,14 @@ class SnapshotProfilingEnvVarsConfigurationTest {
       var properties =
           DefaultConfigProperties.create(
               Map.of(
-                  SnapshotProfilingEnvVarsConfiguration.STAGING_CAPACITY_KEY,
+                  SnapshotProfilingEnvVarsConfigurationFactory.STAGING_CAPACITY_KEY,
                   String.valueOf(capacity)),
               COMPONENT_LOADER);
       // when
-      new SnapshotProfilingEnvVarsConfiguration(properties).log();
+      SnapshotProfilingEnvVarsConfigurationFactory.create(properties).log();
       // then
       log.assertContains(
-          SnapshotProfilingEnvVarsConfiguration.STAGING_CAPACITY_KEY + " : " + capacity);
+          SnapshotProfilingEnvVarsConfigurationFactory.STAGING_CAPACITY_KEY + " : " + capacity);
     }
   }*/
 }

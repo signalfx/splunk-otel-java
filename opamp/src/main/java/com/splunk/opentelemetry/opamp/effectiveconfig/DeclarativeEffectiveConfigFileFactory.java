@@ -20,7 +20,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.splunk.opentelemetry.opamp.DeclarativeConfigurationInterceptor;
 import com.splunk.opentelemetry.profiler.ProfilerConfiguration;
 import com.splunk.opentelemetry.profiler.snapshot.SnapshotProfilingConfiguration;
-import com.splunk.opentelemetry.profiler.snapshot.SnapshotProfilingDeclarativeConfiguration;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.LogRecordExporterModel;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.LoggerProviderModel;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.MeterProviderModel;
@@ -71,7 +70,7 @@ class DeclarativeEffectiveConfigFileFactory implements EffectiveConfigFactory {
     }
     ProfilerConfiguration profilerConfiguration = ProfilerConfiguration.SUPPLIER.get();
     SnapshotProfilingConfiguration snapshotConfiguration =
-        SnapshotProfilingDeclarativeConfiguration.SUPPLIER.get();
+        SnapshotProfilingConfiguration.SUPPLIER.get();
 
     return processModel(model, profilerConfiguration, snapshotConfiguration);
   }

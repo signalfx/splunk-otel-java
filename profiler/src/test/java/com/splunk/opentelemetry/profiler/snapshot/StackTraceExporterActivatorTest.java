@@ -16,106 +16,102 @@
 
 package com.splunk.opentelemetry.profiler.snapshot;
 
-import static com.splunk.opentelemetry.testing.declarativeconfig.DeclarativeConfigTestUtil.createAutoConfiguredSdk;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import io.opentelemetry.instrumentation.testing.internal.AutoCleanupExtension;
+import com.splunk.opentelemetry.profiler.OtelLoggerFactory;
+import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
+import io.opentelemetry.common.ComponentLoader;
 import io.opentelemetry.sdk.autoconfigure.OpenTelemetrySdkExtension;
-import java.io.IOException;
-import java.nio.file.Path;
+import io.opentelemetry.sdk.autoconfigure.declarativeconfig.YamlDeclarativeConfigProperties;
+import io.opentelemetry.sdk.common.export.HttpSenderProvider;
+import io.opentelemetry.sdk.testing.exporter.InMemoryLogRecordExporter;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
-import org.junit.jupiter.api.io.TempDir;
 
 class StackTraceExporterActivatorTest {
+  @RegisterExtension
+  public final OpenTelemetrySdkExtension sdk = OpenTelemetrySdkExtension.configure().build();
+
   @AfterEach
   void tearDown() {
     SpanTracker.SUPPLIER.reset();
     StackTraceSampler.SUPPLIER.reset();
     StagingArea.SUPPLIER.reset();
-    SnapshotProfilingDeclarativeConfiguration.SUPPLIER.reset();
+    SnapshotProfilingConfiguration.SUPPLIER.reset();
     StackTraceExporter.SUPPLIER.reset();
   }
 
-  @Nested
-  class SnapshotProfilingEnabled {
-    @RegisterExtension
-    public final OpenTelemetrySdkExtension s =
-        OpenTelemetrySdkExtension.configure()
-            .withProperty("splunk.snapshot.profiler.enabled", "true")
-            .with(new StackTraceExporterActivator())
+  @Test
+  void configureStackTraceExporterProvider() {
+    var logExporter = InMemoryLogRecordExporter.create();
+    SnapshotProfilingConfiguration configuration =
+        SnapshotProfilingConfiguration.builder()
+            .setEnabled(true)
+            .setConfigProperties(sdk.getConfig())
             .build();
+    SnapshotProfilingConfiguration.SUPPLIER.configure(configuration);
 
-    @Test
-    void configureStackTraceExporterProvider() {
-      var exporter = StackTraceExporter.SUPPLIER.get();
-      assertNotSame(StackTraceExporter.NOOP, exporter);
-      assertInstanceOf(AsyncStackTraceExporter.class, exporter);
-    }
+    new StackTraceExporterActivator(
+            new OtelLoggerFactory(() -> logExporter, declarativeConfigProperties -> logExporter))
+        .afterAgent(sdk);
+
+    var exporter = StackTraceExporter.SUPPLIER.get();
+    assertNotSame(StackTraceExporter.NOOP, exporter);
+    assertInstanceOf(AsyncStackTraceExporter.class, exporter);
   }
 
-  @Nested
-  class SnapshotProfilingDisabled {
-    @RegisterExtension
-    public final OpenTelemetrySdkExtension s =
-        OpenTelemetrySdkExtension.configure()
-            .withProperty("splunk.snapshot.profiler.enabled", "false")
-            .with(new StackTraceExporterActivator())
+  @Test
+  void declarativeConfigWithoutExporterPreservesComponentLoader() {
+    RecordingComponentLoader componentLoader = new RecordingComponentLoader();
+    DeclarativeConfigProperties configProperties =
+        YamlDeclarativeConfigProperties.create(Collections.emptyMap(), componentLoader);
+    SnapshotProfilingConfiguration configuration =
+        SnapshotProfilingConfiguration.builder()
+            .setEnabled(true)
+            .setConfigProperties(configProperties)
             .build();
+    SnapshotProfilingConfiguration.SUPPLIER.configure(configuration);
 
-    @Test
-    void doNotConfigureStackTraceExporterProvider() {
-      var exporter = StackTraceExporter.SUPPLIER.get();
-      assertSame(StackTraceExporter.NOOP, exporter);
-    }
+    new StackTraceExporterActivator().afterAgent(sdk);
+
+    var exporter = StackTraceExporter.SUPPLIER.get();
+    assertNotSame(StackTraceExporter.NOOP, exporter);
+    assertInstanceOf(AsyncStackTraceExporter.class, exporter);
+    assertTrue(componentLoader.loaded(HttpSenderProvider.class));
   }
 
-  @Nested
-  class DeclarativeConfig {
-    @RegisterExtension
-    static final AutoCleanupExtension autoCleanup = AutoCleanupExtension.create();
+  @Test
+  void doNotConfigureStackTraceExporterProvider() {
+    SnapshotProfilingConfiguration configuration =
+        SnapshotProfilingConfiguration.builder().setEnabled(false).build();
+    SnapshotProfilingConfiguration.SUPPLIER.configure(configuration);
 
-    @Test
-    void configureStackTraceExporterProvider(@TempDir Path tempDir) throws IOException {
-      String yaml =
-          """
-            file_format: "1.0"
-            distribution:
-              splunk:
-                profiling:
-                  exporter:
-                    otlp_log_http:
-                  callgraphs:
-            """;
-      var sdk = createAutoConfiguredSdk(yaml, tempDir, autoCleanup);
+    new StackTraceExporterActivator().afterAgent(sdk);
 
-      new StackTraceExporterActivator().afterAgent(sdk);
+    var exporter = StackTraceExporter.SUPPLIER.get();
+    assertSame(StackTraceExporter.NOOP, exporter);
+  }
 
-      var exporter = StackTraceExporter.SUPPLIER.get();
-      assertNotSame(StackTraceExporter.NOOP, exporter);
-      assertInstanceOf(AsyncStackTraceExporter.class, exporter);
+  private static class RecordingComponentLoader implements ComponentLoader {
+    private final ComponentLoader delegate =
+        ComponentLoader.forClassLoader(StackTraceExporterActivatorTest.class.getClassLoader());
+    private final List<Class<?>> loadedSpiClasses = new ArrayList<>();
+
+    @Override
+    public <T> Iterable<T> load(Class<T> spiClass) {
+      loadedSpiClasses.add(spiClass);
+      return delegate.load(spiClass);
     }
 
-    @Test
-    void doNotConfigureStackTraceExporterProviderWhenNoCallgraphs(@TempDir Path tempDir)
-        throws IOException {
-      String yaml =
-          """
-            file_format: "1.0"
-            distribution:
-              splunk:
-                profiling:
-            """;
-      var sdk = createAutoConfiguredSdk(yaml, tempDir, autoCleanup);
-
-      new StackTraceExporterActivator().afterAgent(sdk);
-
-      var exporter = StackTraceExporter.SUPPLIER.get();
-      assertSame(StackTraceExporter.NOOP, exporter);
+    boolean loaded(Class<?> spiClass) {
+      return loadedSpiClasses.contains(spiClass);
     }
   }
 }

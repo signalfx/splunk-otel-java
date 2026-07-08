@@ -59,7 +59,14 @@ public class SnapshotProfilingConfiguration {
   }
 
   public Builder toBuilder() {
-    return new Builder(this);
+    return new Builder()
+        .setEnabled(enabled)
+        .setSnapshotSelectionProbability(snapshotSelectionProbability)
+        .setStackDepth(stackDepth)
+        .setSamplingInterval(samplingInterval)
+        .setExportInterval(exportInterval)
+        .setStagingCapacity(stagingCapacity)
+        .setConfigProperties(configProperties);
   }
 
   public void log() {
@@ -170,16 +177,6 @@ public class SnapshotProfilingConfiguration {
     @Nullable private Object configProperties;
 
     private Builder() {}
-
-    private Builder(SnapshotProfilingConfiguration config) {
-      enabled = config.enabled;
-      snapshotSelectionProbability = config.snapshotSelectionProbability;
-      stackDepth = config.stackDepth;
-      samplingInterval = config.samplingInterval;
-      exportInterval = config.exportInterval;
-      stagingCapacity = config.stagingCapacity;
-      configProperties = config.configProperties;
-    }
 
     public SnapshotProfilingConfiguration build() {
       return new SnapshotProfilingConfiguration(this);

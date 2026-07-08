@@ -46,20 +46,20 @@ dependencies {
   javaagentLibs(project(":custom"))
   javaagentLibs(project(":opamp"))
   javaagentLibs(project(":profiler"))
-  javaagentLibs(project(":instrumentation:glassfish"))
-  javaagentLibs(project(":instrumentation:jdbc"))
-  javaagentLibs(project(":instrumentation:jetty"))
-  javaagentLibs(project(":instrumentation:jvm-metrics"))
-  javaagentLibs(project(":instrumentation:khttp"))
-  javaagentLibs(project(":instrumentation:liberty"))
-  javaagentLibs(project(":instrumentation:nocode"))
-  javaagentLibs(project(":instrumentation:tomcat"))
-  javaagentLibs(project(":instrumentation:tomee"))
-  javaagentLibs(project(":instrumentation:weblogic"))
-  javaagentLibs(project(":instrumentation:websphere"))
-  javaagentLibs(project(":instrumentation:wildfly"))
 
   upstreamAgent("io.opentelemetry.javaagent:opentelemetry-javaagent")
+}
+
+val javaagentDependencies = dependencies
+
+// collect all instrumentation sub projects
+project(":instrumentation").subprojects {
+  val subProj = this
+  plugins.withId("splunk.instrumentation-conventions") {
+    javaagentDependencies.run {
+      add(javaagentLibs.name, project(subProj.path))
+    }
+  }
 }
 
 tasks {

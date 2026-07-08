@@ -38,8 +38,12 @@ import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.logging.Logger;
+import okhttp3.Interceptor;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
 import opamp.proto.ComponentHealth;
 import opamp.proto.ServerErrorResponse;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 @AutoService(AgentListener.class)
@@ -125,10 +129,10 @@ public class OpampActivator implements AgentListener {
     if (endpoint != null) {
       PeriodicDelay pollingDelay =
           PeriodicDelay.ofFixedDuration(Duration.ofMillis(pollingDurationMillis));
-      OkHttpSender okhttp = OkHttpSender.create(endpoint);
-      HttpRequestService httpSender =
+      OkHttpSender okhttp = buildOkHttpSender(opampClientConfiguration);
+      HttpRequestService httpRequestService =
           HttpRequestService.create(okhttp, pollingDelay, DEFAULT_DELAY_BETWEEN_RETRIES);
-      builder.setRequestService(httpSender);
+      builder.setRequestService(httpRequestService);
     }
 
     OpampAgentAttributes agentAttributes = new OpampAgentAttributes(resource);
@@ -139,6 +143,22 @@ public class OpampActivator implements AgentListener {
     builder.enableHealthReporting(createInitialHealthReport());
 
     return builder.build(callbacks);
+  }
+
+  @NotNull
+  private static OkHttpSender buildOkHttpSender(OpampClientConfiguration config) {
+    String token = config.getAccessToken();
+    if (token == null) {
+      return OkHttpSender.create(config.getEndpoint());
+    }
+    Interceptor tokenFlinger =
+        chain -> {
+          Request.Builder requestBuilder = chain.request().newBuilder();
+          requestBuilder.addHeader("X-SF-TOKEN", token);
+          return chain.proceed(requestBuilder.build());
+        };
+    OkHttpClient okhttpClient = new OkHttpClient.Builder().addInterceptor(tokenFlinger).build();
+    return OkHttpSender.create(config.getEndpoint(), okhttpClient);
   }
 
   private static ComponentHealth createInitialHealthReport() {

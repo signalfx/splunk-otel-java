@@ -19,6 +19,7 @@ package com.splunk.opentelemetry.opamp;
 public class OpampClientConfiguration {
   private boolean enabled;
   private String endpoint;
+  private String accessToken = null;
   private long pollingInterval;
 
   private OpampClientConfiguration() {}
@@ -39,6 +40,10 @@ public class OpampClientConfiguration {
     return pollingInterval;
   }
 
+  public String getAccessToken() {
+    return accessToken;
+  }
+
   @Override
   public String toString() {
     return "OpampClientConfiguration{"
@@ -47,6 +52,9 @@ public class OpampClientConfiguration {
         + '\''
         + ", endpoint='"
         + endpoint
+        + '\''
+        + ", accessToken='"
+        + (accessToken == null ? "<null>" : "***redacted***")
         + '\''
         + ", pollingInterval="
         + pollingInterval
@@ -70,6 +78,11 @@ public class OpampClientConfiguration {
 
     public Builder withPollingInterval(long pollingInterval) {
       configuredInstance.pollingInterval = pollingInterval;
+      return this;
+    }
+
+    public Builder withAccessToken(String accessToken) {
+      configuredInstance.accessToken = accessToken;
       return this;
     }
 

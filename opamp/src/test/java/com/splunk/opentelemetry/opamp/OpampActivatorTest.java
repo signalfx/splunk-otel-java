@@ -138,6 +138,7 @@ class OpampActivatorTest {
         OpampClientConfiguration.builder()
             .withEnabled(true)
             .withEndpoint(server.httpUri().toString())
+            .withAccessToken("test-access-token")
             .withPollingInterval(500)
             .build();
     OpampClient client =
@@ -177,6 +178,8 @@ class OpampActivatorTest {
     assertThat(remoteConfig.config.config_map.get("test-key").body.utf8()).isEqualTo("test-value");
 
     RecordedRequest recordedRequest = server.takeRequest();
+    assertThat(recordedRequest.request().headers().get("X-SF-TOKEN"))
+        .isEqualTo("test-access-token");
     byte[] body = recordedRequest.request().content().array();
     AgentToServer agentToServer = AgentToServer.ADAPTER.decode(body);
 

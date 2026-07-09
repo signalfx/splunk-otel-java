@@ -19,7 +19,7 @@ package com.splunk.opentelemetry.opamp;
 public class OpampClientConfiguration {
   private boolean enabled;
   private String endpoint;
-  private String accessToken = null;
+  private String accessToken;
   private long pollingInterval;
 
   private OpampClientConfiguration() {}

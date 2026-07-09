@@ -31,8 +31,6 @@
  * limitations under the License.
  */
 
-import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
-
 plugins {
   id("splunk.instrumentation-testing-conventions")
 }

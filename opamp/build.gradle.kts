@@ -20,6 +20,7 @@ dependencies {
   testImplementation(project(":custom"))
   testImplementation(testFixtures(project(":custom")))
   testImplementation(project(":profiler"))
+  testImplementation(project(":instrumentation:jvm-metrics"))
   testImplementation(project(":testing:common"))
   testImplementation("io.opentelemetry:opentelemetry-sdk")
   testImplementation("io.opentelemetry:opentelemetry-sdk-testing")

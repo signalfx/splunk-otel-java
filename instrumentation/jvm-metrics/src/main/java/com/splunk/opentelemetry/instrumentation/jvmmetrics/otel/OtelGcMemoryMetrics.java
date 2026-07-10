@@ -42,10 +42,15 @@ import io.opentelemetry.api.metrics.LongCounter;
 import io.opentelemetry.api.metrics.Meter;
 
 public class OtelGcMemoryMetrics {
+  private GcMemoryMetrics gcMemoryMetrics;
 
-  public void install() {
-    GcMemoryMetrics gcMemoryMetrics = new GcMemoryMetrics();
-    if (gcMemoryMetrics.isUnavailable()) {
+  public synchronized void install() {
+    if (gcMemoryMetrics != null) {
+      return;
+    }
+
+    GcMemoryMetrics newGcMemoryMetrics = new GcMemoryMetrics();
+    if (newGcMemoryMetrics.isUnavailable()) {
       return;
     }
 
@@ -64,7 +69,7 @@ public class OtelGcMemoryMetrics {
                 "Time spent in GC pause. This metric will be removed in a future release.")
             .build();
 
-    gcMemoryMetrics.registerListener(
+    newGcMemoryMetrics.registerListener(
         notificationInfo -> {
           GcInfo gcInfo = notificationInfo.getGcInfo();
           String gcName = notificationInfo.getGcName();
@@ -84,6 +89,16 @@ public class OtelGcMemoryMetrics {
             gcPauseTime.add(duration, attributes);
           }
         });
+    gcMemoryMetrics = newGcMemoryMetrics;
+  }
+
+  public synchronized void uninstall() {
+    if (gcMemoryMetrics == null) {
+      return;
+    }
+
+    gcMemoryMetrics.close();
+    gcMemoryMetrics = null;
   }
 
   private static boolean isConcurrentPhase(String cause, String name) {

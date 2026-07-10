@@ -23,11 +23,18 @@ import com.splunk.opentelemetry.instrumentation.jvmmetrics.AllocatedMemoryMetric
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.metrics.Meter;
+import io.opentelemetry.api.metrics.ObservableLongCounter;
 
 public class OtelAllocatedMemoryMetrics {
   private static final AttributeKey<String> TYPE = stringKey("type");
 
-  public void install() {
+  private ObservableLongCounter allocatedMemoryCounter;
+
+  public synchronized void install() {
+    if (allocatedMemoryCounter != null) {
+      return;
+    }
+
     AllocatedMemoryMetrics allocatedMemoryMetrics = new AllocatedMemoryMetrics();
     if (allocatedMemoryMetrics.isUnavailable()) {
       return;
@@ -35,13 +42,23 @@ public class OtelAllocatedMemoryMetrics {
 
     Meter meter = OtelMeterProvider.get();
     Attributes attributes = Attributes.of(TYPE, "heap");
-    meter
-        .counterBuilder(METRIC_NAME)
-        .setUnit("bytes")
-        .setDescription("Approximate sum of heap allocations.")
-        .buildWithCallback(
-            measurement ->
-                measurement.record(
-                    allocatedMemoryMetrics.getCumulativeAllocationTotal(), attributes));
+    allocatedMemoryCounter =
+        meter
+            .counterBuilder(METRIC_NAME)
+            .setUnit("By")
+            .setDescription("Approximate sum of heap allocations.")
+            .buildWithCallback(
+                measurement ->
+                    measurement.record(
+                        allocatedMemoryMetrics.getCumulativeAllocationTotal(), attributes));
+  }
+
+  public synchronized void uninstall() {
+    if (allocatedMemoryCounter == null) {
+      return;
+    }
+
+    allocatedMemoryCounter.close();
+    allocatedMemoryCounter = null;
   }
 }

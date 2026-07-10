@@ -85,6 +85,7 @@ public class RemoteConfigProcessor {
             currentProfilerConfiguration.toBuilder()
                 .setEnabled(receivedProfilerConfig.isEnabled())
                 .setCallStackInterval(receivedProfilerConfig.getCallStackInterval())
+                .setMemoryEnabled(receivedProfilerConfig.getMemoryEnabled())
                 .build();
 
         if (!currentProfilerConfiguration.equals(updatedProfilerConfig)) {

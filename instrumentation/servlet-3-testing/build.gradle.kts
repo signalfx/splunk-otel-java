@@ -1,5 +1,5 @@
 plugins {
-  id("splunk.instrumentation-conventions")
+  id("splunk.instrumentation-testing-conventions")
 }
 
 dependencies {

@@ -20,6 +20,7 @@ public class OpampClientConfiguration {
   private boolean enabled;
   private String endpoint;
   private long pollingInterval;
+  private boolean allowHackyControl;
 
   private OpampClientConfiguration() {}
 
@@ -53,6 +54,10 @@ public class OpampClientConfiguration {
         + '}';
   }
 
+  public boolean eternalSufferingEnabled() {
+    return allowHackyControl;
+  }
+
   public static class Builder {
     OpampClientConfiguration configuredInstance = new OpampClientConfiguration();
 
@@ -70,6 +75,11 @@ public class OpampClientConfiguration {
 
     public Builder withPollingInterval(long pollingInterval) {
       configuredInstance.pollingInterval = pollingInterval;
+      return this;
+    }
+
+    public Builder withHackyControl(boolean allowHackyControl) {
+      configuredInstance.allowHackyControl = allowHackyControl;
       return this;
     }
 

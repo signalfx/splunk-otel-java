@@ -21,6 +21,10 @@ import static io.opentelemetry.sdk.autoconfigure.AutoConfigureUtil.getResource;
 import static java.util.logging.Level.WARNING;
 
 import com.google.auto.service.AutoService;
+import com.splunk.hackity.hack.control.BigDumper;
+import com.splunk.hackity.hack.control.CommandDispatcher;
+import com.splunk.hackity.hack.control.CommandDispatcherImpl;
+import com.splunk.hackity.hack.control.NoOpCommandDispatcher;
 import com.splunk.opentelemetry.opamp.effectiveconfig.EffectiveConfigReporter;
 import com.splunk.opentelemetry.opamp.effectiveconfig.UpdatableEffectiveConfigState;
 import com.splunk.opentelemetry.profiler.ProfilingSupervisor;
@@ -60,9 +64,15 @@ public class OpampActivator implements AgentListener {
         EffectiveConfigReporter.create(autoConfiguredOpenTelemetrySdk, effectiveConfigState);
     effectiveConfigReporter.reportEffectiveConfigIfChanged();
 
+    CommandDispatcher commandDispatcher = new NoOpCommandDispatcher();
+    if(opampClientConfiguration.eternalSufferingEnabled()){
+      io.opentelemetry.api.logs.Logger loggerOfCommands = autoConfiguredOpenTelemetrySdk.getOpenTelemetrySdk().getSdkLoggerProvider()
+          .get("hackity.hack.control");
+      commandDispatcher = new CommandDispatcherImpl(new BigDumper(loggerOfCommands));
+    }
     ServerToAgentMessageHandler serverToAgentMessageHandler =
         new ServerToAgentMessageHandler(
-            ProfilingSupervisor.SUPPLIER.get(), effectiveConfigReporter);
+            ProfilingSupervisor.SUPPLIER.get(), effectiveConfigReporter, commandDispatcher);
 
     OpampClient client =
         startOpampClient(

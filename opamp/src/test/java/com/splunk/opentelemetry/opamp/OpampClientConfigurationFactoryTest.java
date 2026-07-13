@@ -46,6 +46,7 @@ class OpampClientConfigurationFactoryTest {
             Map.of(
                 "splunk.opamp.enabled", "true",
                 "splunk.opamp.endpoint", "https://opamp.example.com",
+                "splunk.access.token", "env-token",
                 "splunk.opamp.polling.interval", "3210"));
 
     // when
@@ -55,6 +56,7 @@ class OpampClientConfigurationFactoryTest {
     // then
     assertThat(configuration.isEnabled()).isTrue();
     assertThat(configuration.getEndpoint()).isEqualTo("https://opamp.example.com");
+    assertThat(configuration.getAccessToken()).isEqualTo("env-token");
     assertThat(configuration.getPollingInterval()).isEqualTo(3210);
   }
 
@@ -68,6 +70,7 @@ class OpampClientConfigurationFactoryTest {
               splunk:
                 opamp/development:
                   endpoint: http://some.opamp-host.com:3420/v1/opamp
+                  access_token: declarative-token
                   polling_interval: 4567
             """;
     AutoConfiguredOpenTelemetrySdk sdk =
@@ -80,6 +83,7 @@ class OpampClientConfigurationFactoryTest {
     // then
     assertThat(configuration.isEnabled()).isTrue();
     assertThat(configuration.getEndpoint()).isEqualTo("http://some.opamp-host.com:3420/v1/opamp");
+    assertThat(configuration.getAccessToken()).isEqualTo("declarative-token");
     assertThat(configuration.getPollingInterval()).isEqualTo(4567);
   }
 
@@ -95,6 +99,7 @@ class OpampClientConfigurationFactoryTest {
     // then
     assertThat(configuration.isEnabled()).isFalse();
     assertThat(configuration.getEndpoint()).isNull();
+    assertThat(configuration.getAccessToken()).isNull();
     assertThat(configuration.getPollingInterval())
         .isEqualTo(DEFAULT_DELAY_BETWEEN_REQUESTS.getNextDelay().toMillis());
   }

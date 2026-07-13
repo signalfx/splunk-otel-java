@@ -16,6 +16,7 @@
 
 package com.splunk.opentelemetry.opamp;
 
+import static com.splunk.opentelemetry.SplunkConfigurationCustomizer.SPLUNK_ACCESS_TOKEN;
 import static io.opentelemetry.opamp.client.internal.request.service.HttpRequestService.DEFAULT_DELAY_BETWEEN_REQUESTS;
 
 import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
@@ -47,6 +48,7 @@ public class OpampClientConfigurationFactory {
       builder.withEnabled(true);
       builder
           .withEndpoint(opampProperties.getString("endpoint"))
+          .withAccessToken(opampProperties.getString("access_token"))
           .withPollingInterval(
               opampProperties.getLong(
                   "polling_interval", DEFAULT_DELAY_BETWEEN_REQUESTS.getNextDelay().toMillis()));
@@ -59,6 +61,7 @@ public class OpampClientConfigurationFactory {
     return OpampClientConfiguration.builder()
         .withEnabled(config.getBoolean("splunk.opamp.enabled", false))
         .withEndpoint(config.getString("splunk.opamp.endpoint"))
+        .withAccessToken(config.getString(SPLUNK_ACCESS_TOKEN))
         .withPollingInterval(
             config.getLong(
                 "splunk.opamp.polling.interval",

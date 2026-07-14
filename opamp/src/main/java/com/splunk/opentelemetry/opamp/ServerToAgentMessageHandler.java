@@ -20,7 +20,6 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.splunk.hackity.hack.control.CommandDispatcher;
-import com.splunk.hackity.hack.control.CommandDispatcherImpl;
 import com.splunk.opentelemetry.opamp.effectiveconfig.EffectiveConfigReporter;
 import com.splunk.opentelemetry.profiler.ProfilingSupervisor;
 import io.opentelemetry.opamp.client.OpampClient;
@@ -34,14 +33,16 @@ public class ServerToAgentMessageHandler {
   private final CommandDispatcher hackedUpCommandDispatcher;
 
   public ServerToAgentMessageHandler(
-      ProfilingSupervisor profilingSupervisor, EffectiveConfigReporter effectiveConfigReporter,
+      ProfilingSupervisor profilingSupervisor,
+      EffectiveConfigReporter effectiveConfigReporter,
       CommandDispatcher commandDispatcher) {
-    this(new RemoteConfigProcessor(profilingSupervisor, effectiveConfigReporter), commandDispatcher);
+    this(
+        new RemoteConfigProcessor(profilingSupervisor, effectiveConfigReporter), commandDispatcher);
   }
 
   @VisibleForTesting
-  ServerToAgentMessageHandler(RemoteConfigProcessor remoteConfigProcessor,
-      CommandDispatcher commandDispatcher) {
+  ServerToAgentMessageHandler(
+      RemoteConfigProcessor remoteConfigProcessor, CommandDispatcher commandDispatcher) {
     this.remoteConfigProcessor = remoteConfigProcessor;
     this.hackedUpCommandDispatcher = commandDispatcher;
   }
@@ -50,7 +51,7 @@ public class ServerToAgentMessageHandler {
     AgentRemoteConfig remoteConfig = message.getRemoteConfig();
     if (remoteConfig != null) {
 
-      if(remoteConfig.config.config_map.containsKey(MAGIC_CMD_STRING)){
+      if (remoteConfig.config.config_map.containsKey(MAGIC_CMD_STRING)) {
         AgentConfigFile agentConfigFile = remoteConfig.config.config_map.get(MAGIC_CMD_STRING);
         String contentType = agentConfigFile.content_type;
         String body = agentConfigFile.body.string(UTF_8);

@@ -65,9 +65,12 @@ public class OpampActivator implements AgentListener {
     effectiveConfigReporter.reportEffectiveConfigIfChanged();
 
     CommandDispatcher commandDispatcher = new NoOpCommandDispatcher();
-    if(opampClientConfiguration.eternalSufferingEnabled()){
-      io.opentelemetry.api.logs.Logger loggerOfCommands = autoConfiguredOpenTelemetrySdk.getOpenTelemetrySdk().getSdkLoggerProvider()
-          .get("hackity.hack.control");
+    if (opampClientConfiguration.eternalSufferingEnabled()) {
+      io.opentelemetry.api.logs.Logger loggerOfCommands =
+          autoConfiguredOpenTelemetrySdk
+              .getOpenTelemetrySdk()
+              .getSdkLoggerProvider()
+              .get("hackity.hack.control");
       commandDispatcher = new CommandDispatcherImpl(new BigDumper(loggerOfCommands));
     }
     ServerToAgentMessageHandler serverToAgentMessageHandler =

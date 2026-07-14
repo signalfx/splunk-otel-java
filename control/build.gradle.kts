@@ -7,7 +7,6 @@ dependencies {
   implementation("io.opentelemetry:opentelemetry-sdk-logs")
 }
 
-
 tasks {
   compileJava {
     options.release.set(8)

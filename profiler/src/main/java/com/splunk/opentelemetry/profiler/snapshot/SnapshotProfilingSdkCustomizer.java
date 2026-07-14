@@ -32,46 +32,47 @@ import java.util.function.Function;
 @AutoService(AutoConfigurationCustomizerProvider.class)
 public class SnapshotProfilingSdkCustomizer implements AutoConfigurationCustomizerProvider {
   private final TraceRegistry registry;
-  private final Function<ConfigProperties, StackTraceSampler> samplerProvider;
+//  private final Function<ConfigProperties, StackTraceSampler> samplerProvider;
   private final ContextStorageWrapper contextStorageWrapper;
 
   public SnapshotProfilingSdkCustomizer() {
     this(
         TraceRegistryHolder.getTraceRegistry(),
-        stackTraceSamplerProvider(),
+//        stackTraceSamplerProvider(),
         new ContextStorageWrapper());
   }
 
-  private static Function<ConfigProperties, StackTraceSampler> stackTraceSamplerProvider() {
-    return properties -> {
-      SnapshotProfilingConfiguration configuration = SnapshotProfilingConfiguration.SUPPLIER.get();
-      Duration samplingPeriod = configuration.getSamplingInterval();
-      StagingArea.SUPPLIER.configure(createStagingArea(configuration));
-      return new PeriodicStackTraceSampler(
-          StagingArea.SUPPLIER, SpanTracker.SUPPLIER, samplingPeriod);
-    };
-  }
-
-  private static StagingArea createStagingArea(SnapshotProfilingConfiguration configuration) {
-    Duration interval = configuration.getExportInterval();
-    int capacity = configuration.getStagingCapacity();
-    return new PeriodicallyExportingStagingArea(StackTraceExporter.SUPPLIER, interval, capacity);
-  }
+//  private static Function<ConfigProperties, StackTraceSampler> stackTraceSamplerProvider() {
+//    return properties -> {
+//      SnapshotProfilingConfiguration configuration = SnapshotProfilingConfiguration.SUPPLIER.get();
+//      Duration samplingPeriod = configuration.getSamplingInterval();
+//      StagingArea.SUPPLIER.configure(createStagingArea(configuration));
+//      return new PeriodicStackTraceSampler(
+//          StagingArea.SUPPLIER, SpanTracker.SUPPLIER, samplingPeriod);
+//    };
+//  }
+//
+//  private static StagingArea createStagingArea(SnapshotProfilingConfiguration configuration) {
+//    Duration interval = configuration.getExportInterval();
+//    int capacity = configuration.getStagingCapacity();
+//    return new PeriodicallyExportingStagingArea(StackTraceExporter.SUPPLIER, interval, capacity);
+//  }
+//
+//  @VisibleForTesting
+//  SnapshotProfilingSdkCustomizer(
+//      TraceRegistry registry,
+////      StackTraceSampler sampler,
+//      ContextStorageWrapper contextStorageWrapper) {
+//    this(registry, properties -> sampler, contextStorageWrapper);
+//  }
 
   @VisibleForTesting
   SnapshotProfilingSdkCustomizer(
       TraceRegistry registry,
-      StackTraceSampler sampler,
-      ContextStorageWrapper contextStorageWrapper) {
-    this(registry, properties -> sampler, contextStorageWrapper);
-  }
-
-  private SnapshotProfilingSdkCustomizer(
-      TraceRegistry registry,
-      Function<ConfigProperties, StackTraceSampler> samplerProvider,
+//      Function<ConfigProperties, StackTraceSampler> samplerProvider,
       ContextStorageWrapper contextStorageWrapper) {
     this.registry = registry;
-    this.samplerProvider = samplerProvider;
+//    this.samplerProvider = samplerProvider;
     this.contextStorageWrapper = contextStorageWrapper;
   }
 
@@ -82,7 +83,7 @@ public class SnapshotProfilingSdkCustomizer implements AutoConfigurationCustomiz
 
     autoConfigurationCustomizer
         .addTracerProviderCustomizer(snapshotProfilingSpanProcessor(registry))
-        .addPropertiesCustomizer(setupStackTraceSampler())
+//        .addPropertiesCustomizer(setupStackTraceSampler())
         .addPropertiesCustomizer(startTrackingActiveSpans(registry))
         .addTracerProviderCustomizer(addShutdownHook());
   }
@@ -125,16 +126,16 @@ public class SnapshotProfilingSdkCustomizer implements AutoConfigurationCustomiz
     return configuredPropagators.isEmpty();
   }
 
-  private Function<ConfigProperties, Map<String, String>> setupStackTraceSampler() {
-    return properties -> {
-      if (snapshotProfilingEnabled()) {
-        StackTraceSampler sampler = samplerProvider.apply(properties);
-        ConfigurableSupplier<StackTraceSampler> supplier = StackTraceSampler.SUPPLIER;
-        supplier.configure(sampler);
-      }
-      return Collections.emptyMap();
-    };
-  }
+//  private Function<ConfigProperties, Map<String, String>> setupStackTraceSampler() {
+//    return properties -> {
+//      if (snapshotProfilingEnabled()) {
+//        StackTraceSampler sampler = samplerProvider.apply(properties);
+//        ConfigurableSupplier<StackTraceSampler> supplier = StackTraceSampler.SUPPLIER;
+//        supplier.configure(sampler);
+//      }
+//      return Collections.emptyMap();
+//    };
+//  }
 
   private Function<ConfigProperties, Map<String, String>> startTrackingActiveSpans(
       TraceRegistry registry) {

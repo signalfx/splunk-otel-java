@@ -64,7 +64,7 @@ class ConcurrentServiceEntrySamplingTest {
           .withProperty("splunk.snapshot.selection.probability", "1.0")
           .with(downstreamCustomizer)
           .with(
-              new StackTraceExporterActivator(
+              new SnapshotProfilingAgentListener(
                   new OtelLoggerFactory(
                       () -> logExporter, declarativeConfigProperties -> logExporter)))
           .build();

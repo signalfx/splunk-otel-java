@@ -41,7 +41,7 @@ class GracefulShutdownTest {
           .withProperty("splunk.snapshot.selection.probability", "1.0")
           .with(Snapshotting.customizer().withRealStackTraceSampler().withRealStagingArea().build())
           .with(
-              new StackTraceExporterActivator(
+              new SnapshotProfilingAgentListener(
                   new OtelLoggerFactory(
                       () -> logExporter, declarativeConfigProperties -> logExporter)))
           .build();

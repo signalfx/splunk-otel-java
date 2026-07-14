@@ -35,7 +35,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
-class StackTraceExporterActivatorTest {
+class SnapshotProfilingAgentListenerTest {
   @RegisterExtension
   public final OpenTelemetrySdkExtension sdk = OpenTelemetrySdkExtension.configure().build();
 
@@ -58,7 +58,7 @@ class StackTraceExporterActivatorTest {
             .build();
     SnapshotProfilingConfiguration.SUPPLIER.configure(configuration);
 
-    new StackTraceExporterActivator(
+    new SnapshotProfilingAgentListener(
             new OtelLoggerFactory(() -> logExporter, declarativeConfigProperties -> logExporter))
         .afterAgent(sdk);
 
@@ -79,7 +79,7 @@ class StackTraceExporterActivatorTest {
             .build();
     SnapshotProfilingConfiguration.SUPPLIER.configure(configuration);
 
-    new StackTraceExporterActivator().afterAgent(sdk);
+    new SnapshotProfilingAgentListener().afterAgent(sdk);
 
     var exporter = StackTraceExporter.SUPPLIER.get();
     assertNotSame(StackTraceExporter.NOOP, exporter);
@@ -93,7 +93,7 @@ class StackTraceExporterActivatorTest {
         SnapshotProfilingConfiguration.builder().setEnabled(false).build();
     SnapshotProfilingConfiguration.SUPPLIER.configure(configuration);
 
-    new StackTraceExporterActivator().afterAgent(sdk);
+    new SnapshotProfilingAgentListener().afterAgent(sdk);
 
     var exporter = StackTraceExporter.SUPPLIER.get();
     assertSame(StackTraceExporter.NOOP, exporter);
@@ -101,7 +101,7 @@ class StackTraceExporterActivatorTest {
 
   private static class RecordingComponentLoader implements ComponentLoader {
     private final ComponentLoader delegate =
-        ComponentLoader.forClassLoader(StackTraceExporterActivatorTest.class.getClassLoader());
+        ComponentLoader.forClassLoader(SnapshotProfilingAgentListenerTest.class.getClassLoader());
     private final List<Class<?>> loadedSpiClasses = new ArrayList<>();
 
     @Override

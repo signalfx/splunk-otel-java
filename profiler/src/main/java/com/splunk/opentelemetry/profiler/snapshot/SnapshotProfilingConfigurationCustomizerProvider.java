@@ -49,18 +49,33 @@ public class SnapshotProfilingConfigurationCustomizerProvider
     SnapshotProfilingConfiguration snapshotProfiling = getSnapshotProfilingConfig(model);
     SnapshotProfilingConfiguration.SUPPLIER.configure(snapshotProfiling);
 
+    // Rzeczy konfigurowany dla snapshot profilera
+//
+//    W StackTraceSamplerInitializer:
+//	⁃	StagingArea.SUPPLIER
+//	⁃	StackTraceSampler.SUPPLIER
+//
+//    W ContextStorageWrapper
+//	⁃	SpanTracker.SUPPLIER
+//    To cos trzeba będzie więcej pomachać
+//
+//    W SnapshotProfilingConfigurationCustomizerProvider są dodawane dwa providery
+//	⁃	SnapshotProfilingSpanProcessorComponentProvider -> SnapshotProfilingSpanProcessor
+//	⁃	SdkShutdownHookComponentProvider -> SdkShutdownHook (raczej nie wymaga zmian)
+
+
     if (snapshotProfiling.isEnabled()) {
       initActiveSpansTracking();
-      initStackTraceSampler(snapshotProfiling);
+//      initStackTraceSampler(snapshotProfiling);
       addSpanProcessors(model);
     }
 
     return model;
   }
-
-  private void initStackTraceSampler(SnapshotProfilingConfiguration snapshotProfilingConfig) {
-    StackTraceSamplerInitializer.setupStackTraceSampler(snapshotProfilingConfig);
-  }
+//
+//  private void initStackTraceSampler(SnapshotProfilingConfiguration snapshotProfilingConfig) {
+//    StackTraceSamplerInitializer.setupStackTraceSampler(snapshotProfilingConfig);
+//  }
 
   private void addSpanProcessors(OpenTelemetryConfigurationModel model) {
     TracerProviderModel tracerProviderModel = model.getTracerProvider();

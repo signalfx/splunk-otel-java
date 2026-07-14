@@ -40,7 +40,7 @@ class SnapshotProfilingConfigurationCustomizerProviderTest {
 
   @AfterEach
   void resetSuppliers() {
-    SnapshotProfilingDeclarativeConfiguration.SUPPLIER.reset();
+    SnapshotProfilingConfiguration.SUPPLIER.reset();
     StackTraceSampler.SUPPLIER.reset();
     StagingArea.SUPPLIER.reset();
     SpanTracker.SUPPLIER.reset();

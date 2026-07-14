@@ -26,7 +26,7 @@ import com.splunk.opentelemetry.opamp.DeclarativeConfigurationInterceptor;
 import com.splunk.opentelemetry.profiler.ProfilerConfiguration;
 import com.splunk.opentelemetry.profiler.ProfilerDeclarativeConfigurationFactory;
 import com.splunk.opentelemetry.profiler.snapshot.SnapshotProfilingConfiguration;
-import com.splunk.opentelemetry.profiler.snapshot.SnapshotProfilingDeclarativeConfiguration;
+import com.splunk.opentelemetry.profiler.snapshot.SnapshotProfilingDeclarativeConfigurationFactory;
 import com.splunk.opentelemetry.testing.declarativeconfig.DeclarativeConfigTestUtil;
 import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
 import io.opentelemetry.instrumentation.testing.internal.AutoCleanupExtension;
@@ -58,7 +58,7 @@ class DeclarativeEffectiveConfigFileFactoryTest {
   void afterEach() {
     DeclarativeConfigurationInterceptor.reset();
     ProfilerConfiguration.SUPPLIER.reset();
-    SnapshotProfilingDeclarativeConfiguration.SUPPLIER.reset();
+    SnapshotProfilingConfiguration.SUPPLIER.reset();
   }
 
   @Test
@@ -399,8 +399,8 @@ class DeclarativeEffectiveConfigFileFactoryTest {
             getDistributionConfig(model).getStructured("profiling", empty());
         ProfilerConfiguration.SUPPLIER.configure(
             ProfilerDeclarativeConfigurationFactory.create(profilingConfig));
-        SnapshotProfilingDeclarativeConfiguration.SUPPLIER.configure(
-            new SnapshotProfilingDeclarativeConfiguration(profilingConfig));
+        SnapshotProfilingConfiguration.SUPPLIER.configure(
+            SnapshotProfilingDeclarativeConfigurationFactory.create(profilingConfig));
 
         DeclarativeConfigurationBuilder builder = new DeclarativeConfigurationBuilder();
         new DeclarativeConfigurationInterceptor().customize(builder);

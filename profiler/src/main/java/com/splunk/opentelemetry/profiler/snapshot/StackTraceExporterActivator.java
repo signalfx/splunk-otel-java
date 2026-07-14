@@ -16,11 +16,10 @@
 
 package com.splunk.opentelemetry.profiler.snapshot;
 
-import static io.opentelemetry.api.incubator.config.DeclarativeConfigProperties.empty;
-
 import com.google.auto.service.AutoService;
 import com.google.common.annotations.VisibleForTesting;
 import com.splunk.opentelemetry.profiler.OtelLoggerFactory;
+import com.splunk.opentelemetry.profiler.util.DeclarativeConfigPropertiesUtil;
 import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
 import io.opentelemetry.api.logs.Logger;
 import io.opentelemetry.javaagent.extension.AgentListener;
@@ -47,7 +46,7 @@ public class StackTraceExporterActivator implements AgentListener {
 
   @Override
   public void afterAgent(AutoConfiguredOpenTelemetrySdk sdk) {
-    SnapshotProfilingConfiguration configuration = getSnapshotProfilingConfiguration(sdk);
+    SnapshotProfilingConfiguration configuration = SnapshotProfilingConfiguration.SUPPLIER.get();
     if (!configuration.isEnabled()) {
       return;
     }
@@ -66,7 +65,8 @@ public class StackTraceExporterActivator implements AgentListener {
     Resource resource = AutoConfigureUtil.getResource(sdk);
     if (configProperties instanceof DeclarativeConfigProperties) {
       DeclarativeConfigProperties exporterConfig =
-          ((DeclarativeConfigProperties) configProperties).getStructured("exporter", empty());
+          DeclarativeConfigPropertiesUtil.getStructuredOrEmpty(
+              (DeclarativeConfigProperties) configProperties, "exporter");
       return otelLoggerFactory.build(exporterConfig, resource);
     }
     if (configProperties instanceof ConfigProperties) {
@@ -74,15 +74,5 @@ public class StackTraceExporterActivator implements AgentListener {
     }
     throw new IllegalArgumentException(
         "Unsupported config properties type: " + configProperties.getClass().getName());
-  }
-
-  private static SnapshotProfilingConfiguration getSnapshotProfilingConfiguration(
-      AutoConfiguredOpenTelemetrySdk sdk) {
-    if (SnapshotProfilingDeclarativeConfiguration.SUPPLIER.isConfigured()) {
-      return SnapshotProfilingDeclarativeConfiguration.SUPPLIER.get();
-    } else {
-      ConfigProperties configProperties = AutoConfigureUtil.getConfig(sdk);
-      return new SnapshotProfilingEnvVarsConfiguration(configProperties);
-    }
   }
 }

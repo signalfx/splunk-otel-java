@@ -74,7 +74,23 @@ public class ProfilerConfiguration {
   }
 
   public Builder toBuilder() {
-    return new Builder(this);
+    return new Builder()
+        .setEnabled(enabled)
+        .setIngestUrl(ingestUrl)
+        .setOtlpProtocol(otlpProtocol)
+        .setMemoryEnabled(memoryEnabled)
+        .setMemoryEventRateLimitEnabled(memoryEventRateLimitEnabled)
+        .setMemoryEventRate(memoryEventRate)
+        .setUseAllocationSampleEvent(useAllocationSampleEvent)
+        .setCallStackInterval(callStackInterval)
+        .setIncludeAgentInternalStacks(includeAgentInternalStacks)
+        .setIncludeJvmInternalStacks(includeJvmInternalStacks)
+        .setTracingStacksOnly(tracingStacksOnly)
+        .setStackDepth(stackDepth)
+        .setKeepFiles(keepFiles)
+        .setProfilerDirectory(profilerDirectory)
+        .setRecordingDuration(recordingDuration)
+        .setConfigProperties(configProperties);
   }
 
   public boolean isEnabled() {
@@ -245,25 +261,6 @@ public class ProfilerConfiguration {
     @Nullable private Object configProperties;
 
     private Builder() {}
-
-    private Builder(ProfilerConfiguration config) {
-      enabled = config.enabled;
-      ingestUrl = config.ingestUrl;
-      otlpProtocol = config.otlpProtocol;
-      memoryEnabled = config.memoryEnabled;
-      memoryEventRateLimitEnabled = config.memoryEventRateLimitEnabled;
-      memoryEventRate = config.memoryEventRate;
-      useAllocationSampleEvent = config.useAllocationSampleEvent;
-      callStackInterval = config.callStackInterval;
-      includeAgentInternalStacks = config.includeAgentInternalStacks;
-      includeJvmInternalStacks = config.includeJvmInternalStacks;
-      tracingStacksOnly = config.tracingStacksOnly;
-      stackDepth = config.stackDepth;
-      keepFiles = config.keepFiles;
-      profilerDirectory = config.profilerDirectory;
-      recordingDuration = config.recordingDuration;
-      configProperties = config.configProperties;
-    }
 
     public ProfilerConfiguration build() {
       return new ProfilerConfiguration(this);

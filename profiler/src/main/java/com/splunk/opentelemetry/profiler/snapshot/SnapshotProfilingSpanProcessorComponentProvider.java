@@ -48,8 +48,7 @@ public class SnapshotProfilingSpanProcessorComponentProvider implements Componen
   public SnapshotProfilingSpanProcessor create(
       DeclarativeConfigProperties declarativeConfigProperties) {
     double selectionProbability =
-        new SnapshotProfilingDeclarativeConfiguration(declarativeConfigProperties)
-            .getSnapshotSelectionProbability();
+        SnapshotProfilingConfiguration.SUPPLIER.get().getSnapshotSelectionProbability();
     return new SnapshotProfilingSpanProcessor(
         traceRegistry, new TraceIdBasedSnapshotSelector(selectionProbability));
   }

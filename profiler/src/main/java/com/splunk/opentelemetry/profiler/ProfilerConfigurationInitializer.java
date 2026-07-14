@@ -17,11 +17,11 @@
 package com.splunk.opentelemetry.profiler;
 
 import com.google.auto.service.AutoService;
+import com.splunk.opentelemetry.profiler.util.DeclarativeConfigPropertiesUtil;
 import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
 import io.opentelemetry.sdk.autoconfigure.AutoConfigureUtil;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.DeclarativeConfigurationCustomizer;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.DeclarativeConfigurationCustomizerProvider;
-import io.opentelemetry.sdk.autoconfigure.declarativeconfig.YamlDeclarativeConfigProperties;
 import io.opentelemetry.sdk.autoconfigure.spi.AutoConfigurationCustomizer;
 import io.opentelemetry.sdk.autoconfigure.spi.AutoConfigurationCustomizerProvider;
 import java.util.Collections;
@@ -44,7 +44,8 @@ public class ProfilerConfigurationInitializer
         (model) -> {
           DeclarativeConfigProperties distributionConfig =
               AutoConfigureUtil.getDistributionConfig(model);
-          DeclarativeConfigProperties profilingConfig = getProfilingConfig(distributionConfig);
+          DeclarativeConfigProperties profilingConfig =
+              DeclarativeConfigPropertiesUtil.getStructuredOrEmpty(distributionConfig, "profiling");
 
           ProfilerConfiguration.SUPPLIER.configure(
               ProfilerDeclarativeConfigurationFactory.create(profilingConfig));
@@ -67,17 +68,5 @@ public class ProfilerConfigurationInitializer
   @Override
   public int order() {
     return Integer.MAX_VALUE;
-  }
-
-  private static DeclarativeConfigProperties getProfilingConfig(
-      DeclarativeConfigProperties distributionConfig) {
-    DeclarativeConfigProperties profilingConfig = distributionConfig.getStructured("profiling");
-    if (profilingConfig != null) {
-      return profilingConfig;
-    }
-    // DeclarativeConfigProperties.empty() is not used because it does not preserve the original
-    // component loader that is used later when creating default exporter
-    return YamlDeclarativeConfigProperties.create(
-        Collections.emptyMap(), distributionConfig.getComponentLoader());
   }
 }

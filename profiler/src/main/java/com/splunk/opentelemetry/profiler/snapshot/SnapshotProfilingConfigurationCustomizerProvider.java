@@ -46,8 +46,8 @@ public class SnapshotProfilingConfigurationCustomizerProvider
 
   @VisibleForTesting
   OpenTelemetryConfigurationModel customizeModel(OpenTelemetryConfigurationModel model) {
-    SnapshotProfilingDeclarativeConfiguration snapshotProfiling = getSnapshotProfilingConfig(model);
-    SnapshotProfilingDeclarativeConfiguration.SUPPLIER.configure(snapshotProfiling);
+    SnapshotProfilingConfiguration snapshotProfiling = getSnapshotProfilingConfig(model);
+    SnapshotProfilingConfiguration.SUPPLIER.configure(snapshotProfiling);
 
     if (snapshotProfiling.isEnabled()) {
       initActiveSpansTracking();
@@ -58,8 +58,7 @@ public class SnapshotProfilingConfigurationCustomizerProvider
     return model;
   }
 
-  private void initStackTraceSampler(
-      SnapshotProfilingDeclarativeConfiguration snapshotProfilingConfig) {
+  private void initStackTraceSampler(SnapshotProfilingConfiguration snapshotProfilingConfig) {
     StackTraceSamplerInitializer.setupStackTraceSampler(snapshotProfilingConfig);
   }
 
@@ -87,11 +86,11 @@ public class SnapshotProfilingConfigurationCustomizerProvider
     contextStorageWrapper.wrapContextStorage(registry);
   }
 
-  private static SnapshotProfilingDeclarativeConfiguration getSnapshotProfilingConfig(
+  private static SnapshotProfilingConfiguration getSnapshotProfilingConfig(
       OpenTelemetryConfigurationModel model) {
     DeclarativeConfigProperties profilingConfig =
         getDistributionConfig(model).getStructured("profiling", empty());
-    return new SnapshotProfilingDeclarativeConfiguration(profilingConfig);
+    return SnapshotProfilingDeclarativeConfigurationFactory.create(profilingConfig);
   }
 
   @VisibleForTesting

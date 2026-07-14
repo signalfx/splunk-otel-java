@@ -44,8 +44,7 @@ public class SnapshotProfilingSdkCustomizer implements AutoConfigurationCustomiz
 
   private static Function<ConfigProperties, StackTraceSampler> stackTraceSamplerProvider() {
     return properties -> {
-      SnapshotProfilingEnvVarsConfiguration configuration =
-          new SnapshotProfilingEnvVarsConfiguration(properties);
+      SnapshotProfilingConfiguration configuration = SnapshotProfilingConfiguration.SUPPLIER.get();
       Duration samplingPeriod = configuration.getSamplingInterval();
       StagingArea.SUPPLIER.configure(createStagingArea(configuration));
       return new PeriodicStackTraceSampler(
@@ -53,8 +52,7 @@ public class SnapshotProfilingSdkCustomizer implements AutoConfigurationCustomiz
     };
   }
 
-  private static StagingArea createStagingArea(
-      SnapshotProfilingEnvVarsConfiguration configuration) {
+  private static StagingArea createStagingArea(SnapshotProfilingConfiguration configuration) {
     Duration interval = configuration.getExportInterval();
     int capacity = configuration.getStagingCapacity();
     return new PeriodicallyExportingStagingArea(StackTraceExporter.SUPPLIER, interval, capacity);
@@ -79,6 +77,9 @@ public class SnapshotProfilingSdkCustomizer implements AutoConfigurationCustomiz
 
   @Override
   public void customize(AutoConfigurationCustomizer autoConfigurationCustomizer) {
+    // initializeSnapshotProfilingConfiguration must be executed first
+    autoConfigurationCustomizer.addPropertiesCustomizer(initializeSnapshotProfilingConfiguration());
+
     autoConfigurationCustomizer
         .addTracerProviderCustomizer(snapshotProfilingSpanProcessor(registry))
         .addPropertiesCustomizer(setupStackTraceSampler())
@@ -86,10 +87,19 @@ public class SnapshotProfilingSdkCustomizer implements AutoConfigurationCustomiz
         .addTracerProviderCustomizer(addShutdownHook());
   }
 
+  private Function<ConfigProperties, Map<String, String>>
+      initializeSnapshotProfilingConfiguration() {
+    return properties -> {
+      SnapshotProfilingConfiguration.SUPPLIER.configure(
+          SnapshotProfilingEnvVarsConfigurationFactory.create(properties));
+      return Collections.emptyMap();
+    };
+  }
+
   private BiFunction<SdkTracerProviderBuilder, ConfigProperties, SdkTracerProviderBuilder>
       addShutdownHook() {
     return (builder, properties) -> {
-      if (snapshotProfilingEnabled(properties)) {
+      if (snapshotProfilingEnabled()) {
         builder.addSpanProcessor(new SdkShutdownHook());
       }
       return builder;
@@ -99,9 +109,9 @@ public class SnapshotProfilingSdkCustomizer implements AutoConfigurationCustomiz
   private BiFunction<SdkTracerProviderBuilder, ConfigProperties, SdkTracerProviderBuilder>
       snapshotProfilingSpanProcessor(TraceRegistry registry) {
     return (builder, properties) -> {
-      if (snapshotProfilingEnabled(properties)) {
+      if (snapshotProfilingEnabled()) {
         double selectionProbability =
-            new SnapshotProfilingEnvVarsConfiguration(properties).getSnapshotSelectionProbability();
+            SnapshotProfilingConfiguration.SUPPLIER.get().getSnapshotSelectionProbability();
 
         return builder.addSpanProcessor(
             new SnapshotProfilingSpanProcessor(
@@ -117,7 +127,7 @@ public class SnapshotProfilingSdkCustomizer implements AutoConfigurationCustomiz
 
   private Function<ConfigProperties, Map<String, String>> setupStackTraceSampler() {
     return properties -> {
-      if (snapshotProfilingEnabled(properties)) {
+      if (snapshotProfilingEnabled()) {
         StackTraceSampler sampler = samplerProvider.apply(properties);
         ConfigurableSupplier<StackTraceSampler> supplier = StackTraceSampler.SUPPLIER;
         supplier.configure(sampler);
@@ -129,14 +139,14 @@ public class SnapshotProfilingSdkCustomizer implements AutoConfigurationCustomiz
   private Function<ConfigProperties, Map<String, String>> startTrackingActiveSpans(
       TraceRegistry registry) {
     return properties -> {
-      if (snapshotProfilingEnabled(properties)) {
+      if (snapshotProfilingEnabled()) {
         contextStorageWrapper.wrapContextStorage(registry);
       }
       return Collections.emptyMap();
     };
   }
 
-  private boolean snapshotProfilingEnabled(ConfigProperties properties) {
-    return new SnapshotProfilingEnvVarsConfiguration(properties).isEnabled();
+  private boolean snapshotProfilingEnabled() {
+    return SnapshotProfilingConfiguration.SUPPLIER.get().isEnabled();
   }
 }

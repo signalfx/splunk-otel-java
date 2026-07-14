@@ -22,7 +22,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-import com.splunk.opentelemetry.profiler.snapshot.SnapshotProfilingDeclarativeConfiguration;
+import com.splunk.opentelemetry.profiler.snapshot.SnapshotProfilingConfiguration;
 import io.opentelemetry.instrumentation.testing.internal.AutoCleanupExtension;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 import java.io.IOException;
@@ -44,7 +44,7 @@ class JfrAgentListenerTest {
   @AfterEach
   void resetDeclarativeConfigSuppliers() {
     ProfilerConfiguration.SUPPLIER.reset();
-    SnapshotProfilingDeclarativeConfiguration.SUPPLIER.reset();
+    SnapshotProfilingConfiguration.SUPPLIER.reset();
   }
 
   @Test

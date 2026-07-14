@@ -3,6 +3,8 @@ plugins {
 }
 
 dependencies {
+  implementation(project(":profiler"))
+  implementation("com.google.protobuf:protobuf-java")
   implementation("io.opentelemetry:opentelemetry-api")
   implementation("io.opentelemetry:opentelemetry-sdk-logs")
 }

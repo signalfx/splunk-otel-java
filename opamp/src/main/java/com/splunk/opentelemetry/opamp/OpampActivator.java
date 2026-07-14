@@ -27,7 +27,11 @@ import com.splunk.hackity.hack.control.CommandDispatcherImpl;
 import com.splunk.hackity.hack.control.NoOpCommandDispatcher;
 import com.splunk.opentelemetry.opamp.effectiveconfig.EffectiveConfigReporter;
 import com.splunk.opentelemetry.opamp.effectiveconfig.UpdatableEffectiveConfigState;
+import com.splunk.opentelemetry.profiler.InstrumentationSource;
+import com.splunk.opentelemetry.profiler.ProfilingDataType;
 import com.splunk.opentelemetry.profiler.ProfilingSupervisor;
+import com.splunk.opentelemetry.profiler.exporter.PprofLogDataExporter;
+import com.splunk.hackity.hack.control.PprofThreadDumpExporter;
 import io.opentelemetry.javaagent.extension.AgentListener;
 import io.opentelemetry.opamp.client.OpampClient;
 import io.opentelemetry.opamp.client.OpampClientBuilder;
@@ -70,8 +74,14 @@ public class OpampActivator implements AgentListener {
           autoConfiguredOpenTelemetrySdk
               .getOpenTelemetrySdk()
               .getSdkLoggerProvider()
-              .get("hackity.hack.control");
-      commandDispatcher = new CommandDispatcherImpl(new BigDumper(loggerOfCommands));
+//              .get("hackity.hack.control");
+              .get("otel.profiling"); // it's a sad sad thing to lie about this...
+      PprofLogDataExporter logDataExporter =
+          new PprofLogDataExporter(
+//              loggerOfCommands, ProfilingDataType.CPU, InstrumentationSource.SNAPSHOT);
+              loggerOfCommands, ProfilingDataType.CPU, InstrumentationSource.CONTINUOUS); // this is why I hate
+      PprofThreadDumpExporter threadDumpExporter = new PprofThreadDumpExporter(logDataExporter);
+      commandDispatcher = new CommandDispatcherImpl(new BigDumper(threadDumpExporter::export));
     }
     ServerToAgentMessageHandler serverToAgentMessageHandler =
         new ServerToAgentMessageHandler(

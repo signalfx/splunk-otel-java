@@ -16,6 +16,7 @@
 
 package com.splunk.opentelemetry.opamp;
 
+import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.OTEL_INSTRUMENTATION_NAME;
 import static io.opentelemetry.opamp.client.internal.request.service.HttpRequestService.DEFAULT_DELAY_BETWEEN_RETRIES;
 import static io.opentelemetry.sdk.autoconfigure.AutoConfigureUtil.getResource;
 import static java.util.logging.Level.WARNING;
@@ -74,11 +75,9 @@ public class OpampActivator implements AgentListener {
           autoConfiguredOpenTelemetrySdk
               .getOpenTelemetrySdk()
               .getSdkLoggerProvider()
-//              .get("hackity.hack.control");
-              .get("otel.profiling"); // it's a sad sad thing to lie about this...
+              .get(OTEL_INSTRUMENTATION_NAME); // it's a sad sad thing to lie about this...
       PprofLogDataExporter logDataExporter =
           new PprofLogDataExporter(
-//              loggerOfCommands, ProfilingDataType.CPU, InstrumentationSource.SNAPSHOT);
               loggerOfCommands, ProfilingDataType.CPU, InstrumentationSource.CONTINUOUS); // this is why I hate
       PprofThreadDumpExporter threadDumpExporter = new PprofThreadDumpExporter(logDataExporter);
       commandDispatcher = new CommandDispatcherImpl(new BigDumper(threadDumpExporter::export));

@@ -18,29 +18,38 @@ package com.splunk.opentelemetry.profiler.snapshot;
 
 import com.google.auto.service.AutoService;
 import com.google.common.annotations.VisibleForTesting;
+import com.splunk.opentelemetry.profiler.OtelLoggerFactory;
 import io.opentelemetry.javaagent.extension.AgentListener;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 import java.util.function.Function;
 
 @AutoService(AgentListener.class)
 public class SnapshotProfilingAgentListener implements AgentListener {
-  private static final java.util.logging.Logger logger =
-      java.util.logging.Logger.getLogger(SnapshotProfilingAgentListener.class.getName());
-
-  private final Function<AutoConfiguredOpenTelemetrySdk, SnapshotProfilingSupervisor> snapshotProfilingSupervisorFactory;
+  private final Function<AutoConfiguredOpenTelemetrySdk, SnapshotProfilingSupervisor>
+      snapshotProfilingSupervisorMaker;
 
   public SnapshotProfilingAgentListener() {
     this(SnapshotProfilingSupervisor::initialize);
   }
 
   @VisibleForTesting
-  SnapshotProfilingAgentListener(Function<AutoConfiguredOpenTelemetrySdk, SnapshotProfilingSupervisor> snapshotProfilingSupervisorFactory) {
-    this.snapshotProfilingSupervisorFactory = snapshotProfilingSupervisorFactory;
+  SnapshotProfilingAgentListener(OtelLoggerFactory otelLoggerFactory) {
+    this(
+        sdk ->
+            new SnapshotProfilingSupervisor(
+                SnapshotProfilingConfiguration.SUPPLIER, sdk, otelLoggerFactory));
+  }
+
+  private SnapshotProfilingAgentListener(
+      Function<AutoConfiguredOpenTelemetrySdk, SnapshotProfilingSupervisor>
+          snapshotProfilingSupervisorMaker) {
+    this.snapshotProfilingSupervisorMaker = snapshotProfilingSupervisorMaker;
   }
 
   @Override
   public void afterAgent(AutoConfiguredOpenTelemetrySdk sdk) {
-    SnapshotProfilingSupervisor supervisor = snapshotProfilingSupervisorFactory.apply(sdk);
+    // Must be always executed to initialize supervisor
+    SnapshotProfilingSupervisor supervisor = snapshotProfilingSupervisorMaker.apply(sdk);
 
     SnapshotProfilingConfiguration configuration = SnapshotProfilingConfiguration.SUPPLIER.get();
     if (!configuration.isEnabled()) {

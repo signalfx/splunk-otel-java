@@ -20,8 +20,6 @@ import com.splunk.opentelemetry.profiler.OtelLoggerFactory;
 import com.splunk.opentelemetry.profiler.util.DeclarativeConfigPropertiesUtil;
 import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
 import io.opentelemetry.api.logs.Logger;
-import io.opentelemetry.sdk.autoconfigure.AutoConfigureUtil;
-import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import io.opentelemetry.sdk.resources.Resource;
 import java.time.Duration;
@@ -39,9 +37,13 @@ class StackTraceSamplerInitializer {
     StackTraceSampler.SUPPLIER.configure(sampler);
   }
 
-  static void setupStackTraceExporter(SnapshotProfilingConfiguration configuration, Resource resource, OtelLoggerFactory otelLoggerFactory) {
+  static void setupStackTraceExporter(
+      SnapshotProfilingConfiguration configuration,
+      Resource resource,
+      OtelLoggerFactory otelLoggerFactory) {
     int maxDepth = configuration.getStackDepth();
-    Logger otelLogger = buildLogger(otelLoggerFactory, resource, configuration.getConfigProperties());
+    Logger otelLogger =
+        buildLogger(otelLoggerFactory, resource, configuration.getConfigProperties());
     AsyncStackTraceExporter exporter = new AsyncStackTraceExporter(otelLogger, maxDepth);
     StackTraceExporter.SUPPLIER.configure(exporter);
   }
@@ -52,8 +54,8 @@ class StackTraceSamplerInitializer {
     return new PeriodicallyExportingStagingArea(StackTraceExporter.SUPPLIER, interval, capacity);
   }
 
-
-  private static Logger buildLogger(OtelLoggerFactory otelLoggerFactory, Resource resource , Object configProperties) {
+  private static Logger buildLogger(
+      OtelLoggerFactory otelLoggerFactory, Resource resource, Object configProperties) {
     if (configProperties instanceof DeclarativeConfigProperties) {
       DeclarativeConfigProperties exporterConfig =
           DeclarativeConfigPropertiesUtil.getStructuredOrEmpty(
@@ -66,5 +68,4 @@ class StackTraceSamplerInitializer {
     throw new IllegalArgumentException(
         "Unsupported config properties type: " + configProperties.getClass().getName());
   }
-
 }

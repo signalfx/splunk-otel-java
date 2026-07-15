@@ -22,7 +22,6 @@ import io.opentelemetry.sdk.autoconfigure.spi.AutoConfigurationCustomizer;
 import io.opentelemetry.sdk.autoconfigure.spi.AutoConfigurationCustomizerProvider;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import io.opentelemetry.sdk.trace.SdkTracerProviderBuilder;
-import java.time.Duration;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
@@ -32,47 +31,19 @@ import java.util.function.Function;
 @AutoService(AutoConfigurationCustomizerProvider.class)
 public class SnapshotProfilingSdkCustomizer implements AutoConfigurationCustomizerProvider {
   private final TraceRegistry registry;
-//  private final Function<ConfigProperties, StackTraceSampler> samplerProvider;
   private final ContextStorageWrapper contextStorageWrapper;
 
   public SnapshotProfilingSdkCustomizer() {
     this(
         TraceRegistryHolder.getTraceRegistry(),
-//        stackTraceSamplerProvider(),
         new ContextStorageWrapper());
   }
-
-//  private static Function<ConfigProperties, StackTraceSampler> stackTraceSamplerProvider() {
-//    return properties -> {
-//      SnapshotProfilingConfiguration configuration = SnapshotProfilingConfiguration.SUPPLIER.get();
-//      Duration samplingPeriod = configuration.getSamplingInterval();
-//      StagingArea.SUPPLIER.configure(createStagingArea(configuration));
-//      return new PeriodicStackTraceSampler(
-//          StagingArea.SUPPLIER, SpanTracker.SUPPLIER, samplingPeriod);
-//    };
-//  }
-//
-//  private static StagingArea createStagingArea(SnapshotProfilingConfiguration configuration) {
-//    Duration interval = configuration.getExportInterval();
-//    int capacity = configuration.getStagingCapacity();
-//    return new PeriodicallyExportingStagingArea(StackTraceExporter.SUPPLIER, interval, capacity);
-//  }
-//
-//  @VisibleForTesting
-//  SnapshotProfilingSdkCustomizer(
-//      TraceRegistry registry,
-////      StackTraceSampler sampler,
-//      ContextStorageWrapper contextStorageWrapper) {
-//    this(registry, properties -> sampler, contextStorageWrapper);
-//  }
 
   @VisibleForTesting
   SnapshotProfilingSdkCustomizer(
       TraceRegistry registry,
-//      Function<ConfigProperties, StackTraceSampler> samplerProvider,
       ContextStorageWrapper contextStorageWrapper) {
     this.registry = registry;
-//    this.samplerProvider = samplerProvider;
     this.contextStorageWrapper = contextStorageWrapper;
   }
 
@@ -83,7 +54,6 @@ public class SnapshotProfilingSdkCustomizer implements AutoConfigurationCustomiz
 
     autoConfigurationCustomizer
         .addTracerProviderCustomizer(snapshotProfilingSpanProcessor(registry))
-//        .addPropertiesCustomizer(setupStackTraceSampler())
         .addPropertiesCustomizer(startTrackingActiveSpans(registry))
         .addTracerProviderCustomizer(addShutdownHook());
   }
@@ -125,17 +95,6 @@ public class SnapshotProfilingSdkCustomizer implements AutoConfigurationCustomiz
   private boolean includeTraceContextPropagator(Set<String> configuredPropagators) {
     return configuredPropagators.isEmpty();
   }
-
-//  private Function<ConfigProperties, Map<String, String>> setupStackTraceSampler() {
-//    return properties -> {
-//      if (snapshotProfilingEnabled()) {
-//        StackTraceSampler sampler = samplerProvider.apply(properties);
-//        ConfigurableSupplier<StackTraceSampler> supplier = StackTraceSampler.SUPPLIER;
-//        supplier.configure(sampler);
-//      }
-//      return Collections.emptyMap();
-//    };
-//  }
 
   private Function<ConfigProperties, Map<String, String>> startTrackingActiveSpans(
       TraceRegistry registry) {

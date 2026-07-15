@@ -32,6 +32,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
@@ -41,6 +42,14 @@ class SnapshotProfilingAgentListenerTest {
 
   @AfterEach
   void tearDown() {
+    resetSnapshotProfiling();
+  }
+
+  private void resetSnapshotProfiling() {
+    if (SnapshotProfilingSupervisor.SUPPLIER.isConfigured()) {
+      SnapshotProfilingSupervisor.SUPPLIER.get().stopProfiling();
+      SnapshotProfilingSupervisor.SUPPLIER.reset();
+    }
     SpanTracker.SUPPLIER.reset();
     StackTraceSampler.SUPPLIER.reset();
     StagingArea.SUPPLIER.reset();

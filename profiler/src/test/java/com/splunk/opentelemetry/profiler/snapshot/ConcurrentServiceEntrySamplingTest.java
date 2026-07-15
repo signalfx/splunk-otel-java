@@ -19,7 +19,6 @@ package com.splunk.opentelemetry.profiler.snapshot;
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import com.splunk.opentelemetry.profiler.OtelLoggerFactory;
 import com.splunk.opentelemetry.profiler.snapshot.simulation.Delay;
 import com.splunk.opentelemetry.profiler.snapshot.simulation.ExitCall;
 import com.splunk.opentelemetry.profiler.snapshot.simulation.Message;
@@ -28,7 +27,6 @@ import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.api.trace.SpanId;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.sdk.autoconfigure.OpenTelemetrySdkExtension;
-import io.opentelemetry.sdk.testing.exporter.InMemoryLogRecordExporter;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.concurrent.Executors;
@@ -43,7 +41,6 @@ class ConcurrentServiceEntrySamplingTest {
   private final ResettingContextStorageWrapper spanTrackingActivator =
       new ResettingContextStorageWrapper();
 
-  private final InMemoryLogRecordExporter logExporter = InMemoryLogRecordExporter.create();
   private final InMemoryStagingArea staging = new InMemoryStagingArea();
   private final StackTraceSampler sampler = newSampler(staging);
 
@@ -63,10 +60,6 @@ class ConcurrentServiceEntrySamplingTest {
           .withProperty("splunk.snapshot.profiler.enabled", "true")
           .withProperty("splunk.snapshot.selection.probability", "1.0")
           .with(downstreamCustomizer)
-          .with(
-              new SnapshotProfilingAgentListener(
-                  new OtelLoggerFactory(
-                      () -> logExporter, declarativeConfigProperties -> logExporter)))
           .build();
 
   @RegisterExtension

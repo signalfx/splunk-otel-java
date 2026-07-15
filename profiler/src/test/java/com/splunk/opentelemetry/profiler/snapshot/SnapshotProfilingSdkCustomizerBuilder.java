@@ -67,6 +67,6 @@ class SnapshotProfilingSdkCustomizerBuilder {
   }
 
   SnapshotProfilingSdkCustomizer build() {
-    return new SnapshotProfilingSdkCustomizer(registry, sampler, contextStorageWrapper);
+    return new SnapshotProfilingSdkCustomizer(registry, contextStorageWrapper);
   }
 }

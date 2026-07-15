@@ -33,6 +33,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
@@ -87,6 +88,11 @@ class ConcurrentServiceEntrySamplingTest {
           .named("upstream")
           .performing(concurrentExitCallsTo(2, downstream, upstreamSdk))
           .build();
+
+  @BeforeEach
+  void enableActiveSpanTracking() {
+    SpanTracker.SUPPLIER.get().setEnabled(true);
+  }
 
   /**
    * The test is attempting to model the scenario where an upstream service makes two concurrent

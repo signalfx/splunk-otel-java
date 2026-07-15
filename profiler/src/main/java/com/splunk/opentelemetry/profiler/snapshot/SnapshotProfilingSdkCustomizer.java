@@ -24,7 +24,6 @@ import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import io.opentelemetry.sdk.trace.SdkTracerProviderBuilder;
 import java.util.Collections;
 import java.util.Map;
-import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
@@ -34,15 +33,12 @@ public class SnapshotProfilingSdkCustomizer implements AutoConfigurationCustomiz
   private final ContextStorageWrapper contextStorageWrapper;
 
   public SnapshotProfilingSdkCustomizer() {
-    this(
-        TraceRegistryHolder.getTraceRegistry(),
-        new ContextStorageWrapper());
+    this(TraceRegistryHolder.getTraceRegistry(), new ContextStorageWrapper());
   }
 
   @VisibleForTesting
   SnapshotProfilingSdkCustomizer(
-      TraceRegistry registry,
-      ContextStorageWrapper contextStorageWrapper) {
+      TraceRegistry registry, ContextStorageWrapper contextStorageWrapper) {
     this.registry = registry;
     this.contextStorageWrapper = contextStorageWrapper;
   }
@@ -70,9 +66,7 @@ public class SnapshotProfilingSdkCustomizer implements AutoConfigurationCustomiz
   private BiFunction<SdkTracerProviderBuilder, ConfigProperties, SdkTracerProviderBuilder>
       addShutdownHook() {
     return (builder, properties) -> {
-      if (snapshotProfilingEnabled()) {
-        builder.addSpanProcessor(new SdkShutdownHook());
-      }
+      builder.addSpanProcessor(new SdkShutdownHook());
       return builder;
     };
   }
@@ -92,16 +86,10 @@ public class SnapshotProfilingSdkCustomizer implements AutoConfigurationCustomiz
     };
   }
 
-  private boolean includeTraceContextPropagator(Set<String> configuredPropagators) {
-    return configuredPropagators.isEmpty();
-  }
-
   private Function<ConfigProperties, Map<String, String>> startTrackingActiveSpans(
       TraceRegistry registry) {
     return properties -> {
-      if (snapshotProfilingEnabled()) {
-        contextStorageWrapper.wrapContextStorage(registry);
-      }
+      contextStorageWrapper.wrapContextStorage(registry);
       return Collections.emptyMap();
     };
   }

@@ -43,6 +43,7 @@ class ContextStorageWrapperTest {
     registry.register(spanContext);
 
     wrapper.wrapContextStorage(registry);
+    SpanTracker.SUPPLIER.get().setEnabled(true);
     try (var ignored = Context.current().with(span).makeCurrent()) {
       var activeSpan = SpanTracker.SUPPLIER.get().getActiveSpan(Thread.currentThread());
       assertEquals(Optional.of(spanContext), activeSpan);
@@ -88,6 +89,7 @@ class ContextStorageWrapperTest {
     StackTraceSampler.SUPPLIER.configure(sampler);
 
     wrapper.wrapContextStorage(registry);
+    SpanTracker.SUPPLIER.get().setEnabled(true);
     try (var ignored = Context.current().with(span).makeCurrent()) {
       var activeSpan =
           SpanTracker.SUPPLIER.get().getActiveSpan(Thread.currentThread()).orElseThrow();

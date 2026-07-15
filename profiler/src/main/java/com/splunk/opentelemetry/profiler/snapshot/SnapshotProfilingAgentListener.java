@@ -32,6 +32,7 @@ public class SnapshotProfilingAgentListener implements AgentListener {
     this(SnapshotProfilingSupervisor::initialize);
   }
 
+  // TODO: Get rid of this constructor
   @VisibleForTesting
   SnapshotProfilingAgentListener(OtelLoggerFactory otelLoggerFactory) {
     this(

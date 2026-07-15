@@ -31,6 +31,8 @@ class ActiveSpanTracker implements ContextStorage, SpanTracker {
   private final ContextStorage delegate;
   private final TraceRegistry registry;
 
+  private boolean enabled;
+
   ActiveSpanTracker(ContextStorage delegate, TraceRegistry registry) {
     this.delegate = delegate;
     this.registry = registry;
@@ -39,6 +41,10 @@ class ActiveSpanTracker implements ContextStorage, SpanTracker {
   @Override
   public Scope attach(Context toAttach) {
     Scope scope = delegate.attach(toAttach);
+    if (!isEnabled()) {
+      return scope;
+    }
+
     SpanContext newSpanContext = Span.fromContext(toAttach).getSpanContext();
     if (doNotTrack(newSpanContext)) {
       return scope;
@@ -59,6 +65,16 @@ class ActiveSpanTracker implements ContextStorage, SpanTracker {
       }
       scope.close();
     };
+  }
+
+  @Override
+  public void setEnabled(boolean enabled) {
+    this.enabled = enabled;
+  }
+
+  @Override
+  public boolean isEnabled() {
+    return enabled;
   }
 
   private boolean doNotTrack(SpanContext spanContext) {

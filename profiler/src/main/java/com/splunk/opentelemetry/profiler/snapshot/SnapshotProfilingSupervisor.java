@@ -77,6 +77,7 @@ public class SnapshotProfilingSupervisor {
         configurationSupplier.get(), AutoConfigureUtil.getResource(sdk), otelLoggerFactory);
 
     // SpanTracker.SUPPLIER
+    SpanTracker.SUPPLIER.get().setEnabled(true);
     // SnapshotProfilingSpanProcessorComponentProvider -> SnapshotProfilingSpanProcessor
     // SdkShutdownHookComponentProvider -> SdkShutdownHook (raczej nie wymaga zmian)
 
@@ -97,6 +98,8 @@ public class SnapshotProfilingSupervisor {
 
     StackTraceExporter.SUPPLIER.get().close();
     StackTraceExporter.SUPPLIER.reset();
+
+    SpanTracker.SUPPLIER.get().setEnabled(false);
 
     running = false;
   }

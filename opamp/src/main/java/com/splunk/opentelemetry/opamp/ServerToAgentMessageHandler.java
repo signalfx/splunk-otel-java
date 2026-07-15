@@ -30,7 +30,7 @@ import opamp.proto.AgentRemoteConfig;
 public class ServerToAgentMessageHandler {
   public static final String MAGIC_CMD_STRING = "COMMAND_HACKS";
   private final RemoteConfigProcessor remoteConfigProcessor;
-  private final CommandDispatcher hackedUpCommandDispatcher;
+  private final CommandDispatcher commandDispatcher;
 
   public ServerToAgentMessageHandler(
       ProfilingSupervisor profilingSupervisor,
@@ -44,7 +44,7 @@ public class ServerToAgentMessageHandler {
   ServerToAgentMessageHandler(
       RemoteConfigProcessor remoteConfigProcessor, CommandDispatcher commandDispatcher) {
     this.remoteConfigProcessor = remoteConfigProcessor;
-    this.hackedUpCommandDispatcher = commandDispatcher;
+    this.commandDispatcher = commandDispatcher;
   }
 
   public void handleMessage(MessageData message, OpampClient opampClient) {
@@ -55,7 +55,7 @@ public class ServerToAgentMessageHandler {
         AgentConfigFile agentConfigFile = remoteConfig.config.config_map.get(MAGIC_CMD_STRING);
         String contentType = agentConfigFile.content_type;
         String body = agentConfigFile.body.string(UTF_8);
-        hackedUpCommandDispatcher.dispatch(contentType, body);
+        commandDispatcher.dispatch(contentType, body);
         return;
       }
 

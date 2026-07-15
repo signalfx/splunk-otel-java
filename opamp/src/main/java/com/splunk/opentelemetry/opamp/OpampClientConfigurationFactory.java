@@ -50,7 +50,7 @@ public class OpampClientConfigurationFactory {
           .withPollingInterval(
               opampProperties.getLong(
                   "polling_interval", DEFAULT_DELAY_BETWEEN_REQUESTS.getNextDelay().toMillis()))
-          .withHackyRemoteControl(opampProperties.getBoolean("experimental_control"));
+          .withHackyRemoteControl(opampProperties.getBoolean("experimental_control", false));
     }
 
     return builder.build();

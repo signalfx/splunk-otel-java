@@ -81,6 +81,30 @@ class OpampClientConfigurationFactoryTest {
     assertThat(configuration.isEnabled()).isTrue();
     assertThat(configuration.getEndpoint()).isEqualTo("http://some.opamp-host.com:3420/v1/opamp");
     assertThat(configuration.getPollingInterval()).isEqualTo(4567);
+    assertThat(configuration.remoteControlIsAllowed()).isFalse();
+  }
+
+  @Test
+  void shouldEnableRemoteControlFromDeclarativeConfig(@TempDir Path tempDir) throws IOException {
+    // given
+    String yaml =
+        """
+            file_format: "1.0"
+            distribution:
+              splunk:
+                opamp/development:
+                  endpoint: http://some.opamp-host.com:3420/v1/opamp
+                  experimental_control: true
+            """;
+    AutoConfiguredOpenTelemetrySdk sdk =
+        DeclarativeConfigTestUtil.createAutoConfiguredSdk(yaml, tempDir, autoCleanup);
+
+    // when
+    OpampClientConfiguration configuration =
+        OpampClientConfigurationFactory.createConfiguration(sdk);
+
+    // then
+    assertThat(configuration.remoteControlIsAllowed()).isTrue();
   }
 
   @Test

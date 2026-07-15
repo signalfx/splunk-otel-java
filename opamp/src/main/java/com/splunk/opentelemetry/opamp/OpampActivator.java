@@ -26,13 +26,13 @@ import com.splunk.hackity.hack.control.BigDumper;
 import com.splunk.hackity.hack.control.CommandDispatcher;
 import com.splunk.hackity.hack.control.CommandDispatcherImpl;
 import com.splunk.hackity.hack.control.NoOpCommandDispatcher;
+import com.splunk.hackity.hack.control.PprofThreadDumpExporter;
 import com.splunk.opentelemetry.opamp.effectiveconfig.EffectiveConfigReporter;
 import com.splunk.opentelemetry.opamp.effectiveconfig.UpdatableEffectiveConfigState;
 import com.splunk.opentelemetry.profiler.InstrumentationSource;
 import com.splunk.opentelemetry.profiler.ProfilingDataType;
 import com.splunk.opentelemetry.profiler.ProfilingSupervisor;
 import com.splunk.opentelemetry.profiler.exporter.PprofLogDataExporter;
-import com.splunk.hackity.hack.control.PprofThreadDumpExporter;
 import io.opentelemetry.javaagent.extension.AgentListener;
 import io.opentelemetry.opamp.client.OpampClient;
 import io.opentelemetry.opamp.client.OpampClientBuilder;
@@ -78,7 +78,7 @@ public class OpampActivator implements AgentListener {
               .get(OTEL_INSTRUMENTATION_NAME); // it's a sad sad thing to lie about this...
       PprofLogDataExporter logDataExporter =
           new PprofLogDataExporter(
-              loggerOfCommands, ProfilingDataType.CPU, InstrumentationSource.CONTINUOUS); // this is why I hate
+              loggerOfCommands, ProfilingDataType.CPU, InstrumentationSource.THREADDUMP);
       PprofThreadDumpExporter threadDumpExporter = new PprofThreadDumpExporter(logDataExporter);
       commandDispatcher = new CommandDispatcherImpl(new BigDumper(threadDumpExporter::export));
     }

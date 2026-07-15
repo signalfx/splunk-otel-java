@@ -20,7 +20,8 @@ import java.util.Locale;
 
 public enum InstrumentationSource {
   CONTINUOUS,
-  SNAPSHOT;
+  SNAPSHOT,
+  THREADDUMP;
 
   private final String value;
 

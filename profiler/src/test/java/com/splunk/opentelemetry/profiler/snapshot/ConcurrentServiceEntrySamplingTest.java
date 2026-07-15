@@ -52,7 +52,7 @@ class ConcurrentServiceEntrySamplingTest {
   }
 
   private final SnapshotProfilingSdkCustomizer downstreamCustomizer =
-      Snapshotting.customizer().with(sampler).with(spanTrackingActivator).build();
+      Snapshotting.customizer().with(spanTrackingActivator).build();
 
   @RegisterExtension
   public final OpenTelemetrySdkExtension downstreamSdk =

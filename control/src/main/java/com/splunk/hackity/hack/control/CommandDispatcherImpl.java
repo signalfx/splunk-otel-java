@@ -16,7 +16,11 @@
 
 package com.splunk.hackity.hack.control;
 
+import java.time.Duration;
+import java.util.Arrays;
+import java.util.List;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 public class CommandDispatcherImpl implements CommandDispatcher {
 
@@ -35,13 +39,28 @@ public class CommandDispatcherImpl implements CommandDispatcher {
       LOGGER.warning("Missing useful command body.");
       return;
     }
-    String command = parts[0].trim();
+    List<String> lines = Arrays.stream(parts)
+        .map(String::trim)
+        .collect(Collectors.toList());
+    String command = lines.get(0);
     switch (command) {
       case "thread.dump":
-        threadDumper.dump();
+        startThreadDump(lines);
         break;
       default:
         LOGGER.warning("Unknown command: " + command);
     }
+  }
+
+  private boolean startThreadDump(List<String> lines) {
+    int count = 1;
+    if(lines.size() > 1){
+      count = Integer.parseInt(lines.get(1));
+    }
+    Duration interval = Duration.ofSeconds(1);
+    if(lines.size() > 2){
+      interval = Duration.ofMillis(Integer.parseInt(lines.get(2)));
+    }
+    return threadDumper.startPeriodicDumper(count, interval);
   }
 }

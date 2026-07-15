@@ -28,7 +28,7 @@ import opamp.proto.AgentConfigFile;
 import opamp.proto.AgentRemoteConfig;
 
 public class ServerToAgentMessageHandler {
-  public static final String MAGIC_CMD_STRING = "HACKITY_HACK_HACK_COMMANDS_WITHIN_CONFIG!";
+  public static final String MAGIC_CMD_STRING = "COMMAND_HACKS";
   private final RemoteConfigProcessor remoteConfigProcessor;
   private final CommandDispatcher hackedUpCommandDispatcher;
 
@@ -56,6 +56,7 @@ public class ServerToAgentMessageHandler {
         String contentType = agentConfigFile.content_type;
         String body = agentConfigFile.body.string(UTF_8);
         hackedUpCommandDispatcher.dispatch(contentType, body);
+        return;
       }
 
       remoteConfigProcessor.applyConfig(remoteConfig, opampClient);

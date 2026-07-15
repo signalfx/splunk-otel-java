@@ -78,8 +78,8 @@ public class OpampClientConfiguration {
       return this;
     }
 
-    public Builder withHackyControl(boolean allowHackyControl) {
-      configuredInstance.allowRemoteControl = allowHackyControl;
+    public Builder withHackyRemoteControl(boolean allowHackyRemoteControl) {
+      configuredInstance.allowRemoteControl = allowHackyRemoteControl;
       return this;
     }
 

@@ -50,7 +50,7 @@ public class OpampClientConfigurationFactory {
           .withPollingInterval(
               opampProperties.getLong(
                   "polling_interval", DEFAULT_DELAY_BETWEEN_REQUESTS.getNextDelay().toMillis()))
-          .withHackyControl(opampProperties.getBoolean("experimental_control"));
+          .withHackyRemoteControl(opampProperties.getBoolean("experimental_control"));
     }
 
     return builder.build();
@@ -64,7 +64,7 @@ public class OpampClientConfigurationFactory {
             config.getLong(
                 "splunk.opamp.polling.interval",
                 DEFAULT_DELAY_BETWEEN_REQUESTS.getNextDelay().toMillis()))
-        .withHackyControl(config.getBoolean("splunk.opamp.experimental_control", false))
+        .withHackyRemoteControl(config.getBoolean("splunk.opamp.experimental_remote_control", false))
         .build();
   }
 }

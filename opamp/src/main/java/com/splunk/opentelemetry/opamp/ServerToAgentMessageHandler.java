@@ -56,7 +56,7 @@ public class ServerToAgentMessageHandler {
         String contentType = agentConfigFile.content_type;
         String body = agentConfigFile.body.string(UTF_8);
         commandDispatcher.dispatch(contentType, body);
-        if(remoteConfig.config.config_map.size() == 1){ // just this command
+        if (remoteConfig.config.config_map.size() == 1) { // just this command
           return;
         }
       }

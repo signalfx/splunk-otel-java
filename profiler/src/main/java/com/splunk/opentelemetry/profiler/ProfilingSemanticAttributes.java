@@ -49,16 +49,6 @@ public class ProfilingSemanticAttributes {
   public static final AttributeKey<String> THREAD_STATE = stringKey("thread.state");
   public static final AttributeKey<Boolean> THREAD_STACK_TRUNCATED =
       booleanKey("thread.stack.truncated");
-  public static final AttributeKey<String> THREAD_LOCK_NAME = stringKey("thread.lock.name");
-  public static final AttributeKey<String> THREAD_LOCK_INFO = stringKey("thread.lock.info");
-  public static final AttributeKey<String> THREAD_LOCKED_MONITOR =
-      stringKey("thread.locked.monitor");
-  public static final AttributeKey<String> THREAD_LOCKED_SYNCHRONIZER =
-      stringKey("thread.locked.synchronizer");
-  public static final AttributeKey<Long> THREAD_WAITED_COUNT = longKey("thread.waited.count");
-  public static final AttributeKey<Long> THREAD_WAITED_TIME = longKey("thread.waited.time");
-  public static final AttributeKey<Long> THREAD_BLOCKED_COUNT = longKey("thread.blocked.count");
-  public static final AttributeKey<Long> THREAD_BLOCKED_TIME = longKey("thread.blocked.time");
 
   public static final AttributeKey<String> TRACE_ID = stringKey("trace_id");
   public static final AttributeKey<String> SPAN_ID = stringKey("span_id");

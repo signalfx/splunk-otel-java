@@ -17,19 +17,10 @@
 package com.splunk.hackity.hack.control;
 
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.SOURCE_EVENT_NAME;
-import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.SOURCE_EVENT_PERIOD;
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.SOURCE_EVENT_TIME;
-import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.THREAD_BLOCKED_COUNT;
-import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.THREAD_BLOCKED_TIME;
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.THREAD_ID;
-import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.THREAD_LOCKED_MONITOR;
-import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.THREAD_LOCKED_SYNCHRONIZER;
-import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.THREAD_LOCK_INFO;
-import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.THREAD_LOCK_NAME;
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.THREAD_NAME;
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.THREAD_STATE;
-import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.THREAD_WAITED_COUNT;
-import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.THREAD_WAITED_TIME;
 
 import com.google.perftools.profiles.ProfileProto.Sample;
 import com.splunk.opentelemetry.profiler.ThreadDumpProcessor;
@@ -40,41 +31,42 @@ import java.lang.management.ThreadInfo;
 
 /** Marshals a {@link ThreadInfo} snapshot into the pprof shape used by profiling call stacks. */
 public class PprofThreadDumpMarshaler {
+  static final String LOCK_WAITING_ON = "lock.waiting_on";
+  static final String LOCK_OWNER_THREAD = "lock.owner_thread";
+  static final String LOCK_HELD_PREFIX = "lock.held.";
+  static final String PROFILING_JOB_ID = "profiling.job.id";
 
-  public Pprof marshal(ThreadInfo[] threadInfos) {
+  public Pprof marshal(String jobId, ThreadInfo[] threadInfos) {
     Pprof pprof = new Pprof();
     long eventTime = System.currentTimeMillis();
 
     for (ThreadInfo threadInfo : threadInfos) {
       if (threadInfo != null) {
-        addThread(pprof, threadInfo, eventTime);
+        addThread(jobId, pprof, threadInfo, eventTime);
       }
     }
     return pprof;
   }
 
-  private static void addThread(Pprof pprof, ThreadInfo threadInfo, long eventTime) {
+  private static void addThread(String jobId, Pprof pprof, ThreadInfo threadInfo, long eventTime) {
     Sample.Builder sample = Sample.newBuilder();
     pprof.addLabel(sample, THREAD_ID, threadInfo.getThreadId());
     pprof.addLabel(sample, THREAD_NAME, threadInfo.getThreadName());
     pprof.addLabel(sample, THREAD_STATE, threadInfo.getThreadState().name());
     pprof.addLabel(sample, SOURCE_EVENT_NAME, ThreadDumpProcessor.EVENT_NAME);
-    pprof.addLabel(sample, SOURCE_EVENT_PERIOD, 1);
     pprof.addLabel(sample, SOURCE_EVENT_TIME, eventTime);
+    pprof.addLabel(sample, PROFILING_JOB_ID, jobId);
 
-    pprof.addLabel(sample, THREAD_LOCK_NAME, threadInfo.getLockName());
-    addLockInfo(pprof, sample, threadInfo.getLockInfo());
+    addLockInfo(pprof, sample, LOCK_WAITING_ON, threadInfo.getLockInfo());
+    pprof.addLabel(sample, LOCK_OWNER_THREAD, threadInfo.getLockOwnerName());
+
+    int heldLockIndex = 0;
     for (MonitorInfo monitor : threadInfo.getLockedMonitors()) {
-      pprof.addLabel(sample, THREAD_LOCKED_MONITOR, formatMonitor(monitor));
+      pprof.addLabel(sample, LOCK_HELD_PREFIX + heldLockIndex++, formatLock(monitor));
     }
     for (LockInfo synchronizer : threadInfo.getLockedSynchronizers()) {
-      pprof.addLabel(sample, THREAD_LOCKED_SYNCHRONIZER, formatLock(synchronizer));
+      pprof.addLabel(sample, LOCK_HELD_PREFIX + heldLockIndex++, formatLock(synchronizer));
     }
-
-    pprof.addLabel(sample, THREAD_WAITED_COUNT, threadInfo.getWaitedCount());
-    pprof.addLabel(sample, THREAD_WAITED_TIME, threadInfo.getWaitedTime());
-    pprof.addLabel(sample, THREAD_BLOCKED_COUNT, threadInfo.getBlockedCount());
-    pprof.addLabel(sample, THREAD_BLOCKED_TIME, threadInfo.getBlockedTime());
 
     for (StackTraceElement frame : threadInfo.getStackTrace()) {
       String fileName = frame.getFileName() == null ? "unknown" : frame.getFileName();
@@ -89,21 +81,14 @@ public class PprofThreadDumpMarshaler {
     pprof.getProfileBuilder().addSample(sample);
   }
 
-  private static void addLockInfo(Pprof pprof, Sample.Builder sample, LockInfo lockInfo) {
+  private static void addLockInfo(
+      Pprof pprof, Sample.Builder sample, String labelName, LockInfo lockInfo) {
     if (lockInfo != null) {
-      pprof.addLabel(sample, THREAD_LOCK_INFO, formatLock(lockInfo));
+      pprof.addLabel(sample, labelName, formatLock(lockInfo));
     }
   }
 
   private static String formatLock(LockInfo lockInfo) {
     return lockInfo.getClassName() + '@' + Integer.toHexString(lockInfo.getIdentityHashCode());
-  }
-
-  private static String formatMonitor(MonitorInfo monitor) {
-    return formatLock(monitor)
-        + ";stackDepth="
-        + monitor.getLockedStackDepth()
-        + ";stackFrame="
-        + monitor.getLockedStackFrame();
   }
 }

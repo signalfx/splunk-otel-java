@@ -16,6 +16,8 @@
 
 package com.splunk.hackity.hack.control;
 
+import static java.util.logging.Level.WARNING;
+
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
@@ -35,13 +37,11 @@ public class CommandDispatcherImpl implements CommandDispatcher {
   @Override
   public void dispatch(String contentType, String body) {
     String[] parts = body.split("\n");
-    if (parts.length < 1) {
+    if (parts.length == 0) {
       LOGGER.warning("Missing useful command body.");
       return;
     }
-    List<String> lines = Arrays.stream(parts)
-        .map(String::trim)
-        .collect(Collectors.toList());
+    List<String> lines = Arrays.stream(parts).map(String::trim).collect(Collectors.toList());
     String command = lines.get(0);
     switch (command) {
       case "thread.dump":
@@ -53,14 +53,26 @@ public class CommandDispatcherImpl implements CommandDispatcher {
   }
 
   private boolean startThreadDump(List<String> lines) {
-    int count = 1;
-    if(lines.size() > 1){
-      count = Integer.parseInt(lines.get(1));
+    if (lines.size() < 2 || lines.get(1).isEmpty()) {
+      LOGGER.warning("Missing thread dump job ID.");
+      return false;
     }
-    Duration interval = Duration.ofSeconds(1);
-    if(lines.size() > 2){
-      interval = Duration.ofMillis(Integer.parseInt(lines.get(2)));
+
+    String jobId = lines.get(1);
+    try {
+      int count = lines.size() > 2 ? Integer.parseInt(lines.get(2)) : 1;
+      int intervalMillis = lines.size() > 3 ? Integer.parseInt(lines.get(3)) : 1000;
+      if (count < 1 || intervalMillis < 1) {
+        LOGGER.warning("Thread dump count and interval must be positive integers.");
+        return false;
+      }
+      return threadDumper.startPeriodicDumper(jobId, count, Duration.ofMillis(intervalMillis));
+    } catch (NumberFormatException exception) {
+      LOGGER.warning("Thread dump count and interval must be valid 32-bit integers.");
+      return false;
+    } catch (RuntimeException exception) {
+      LOGGER.log(WARNING, "Thread dump command failed.", exception);
+      return false;
     }
-    return threadDumper.startPeriodicDumper(count, interval);
   }
 }

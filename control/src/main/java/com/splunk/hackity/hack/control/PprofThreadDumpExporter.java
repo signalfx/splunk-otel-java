@@ -35,8 +35,8 @@ public class PprofThreadDumpExporter {
     this.logDataExporter = logDataExporter;
   }
 
-  public void export(ThreadInfo[] threadInfos) {
-    Pprof pprof = marshaler.marshal(threadInfos);
+  public void export(String jobId, ThreadInfo[] threadInfos) {
+    Pprof pprof = marshaler.marshal(jobId, threadInfos);
     if (pprof.hasSamples()) {
       logDataExporter.export(pprof.serialize(), pprof.frameCount());
     }

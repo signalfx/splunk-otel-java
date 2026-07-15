@@ -1394,9 +1394,13 @@ public class MetadataGenerator {
             (List<Map<String, Object>>) info.get("configurations");
         if (configurations != null) {
           for (Map<String, Object> configuration : configurations) {
+            Object propertyName = configuration.get("name");
+            if (propertyName == null) {
+              continue;
+            }
             builder.addSetting(
                 setting(
-                    configuration.get("name").toString(),
+                    propertyName.toString(),
                     configuration.get("description").toString(),
                     configuration.get("default").toString(),
                     toSettingType(configuration.get("type").toString()),

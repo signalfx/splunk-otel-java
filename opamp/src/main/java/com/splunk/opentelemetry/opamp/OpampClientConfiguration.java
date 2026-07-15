@@ -20,7 +20,7 @@ public class OpampClientConfiguration {
   private boolean enabled;
   private String endpoint;
   private long pollingInterval;
-  private boolean allowHackyControl;
+  private boolean allowRemoteControl;
 
   private OpampClientConfiguration() {}
 
@@ -54,8 +54,8 @@ public class OpampClientConfiguration {
         + '}';
   }
 
-  public boolean eternalSufferingEnabled() {
-    return allowHackyControl;
+  public boolean remoteControlIsAllowed() {
+    return allowRemoteControl;
   }
 
   public static class Builder {
@@ -79,7 +79,7 @@ public class OpampClientConfiguration {
     }
 
     public Builder withHackyControl(boolean allowHackyControl) {
-      configuredInstance.allowHackyControl = allowHackyControl;
+      configuredInstance.allowRemoteControl = allowHackyControl;
       return this;
     }
 

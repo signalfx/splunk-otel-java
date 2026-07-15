@@ -70,7 +70,7 @@ public class OpampActivator implements AgentListener {
     effectiveConfigReporter.reportEffectiveConfigIfChanged();
 
     CommandDispatcher commandDispatcher = new NoOpCommandDispatcher();
-    if (opampClientConfiguration.eternalSufferingEnabled()) {
+    if (opampClientConfiguration.remoteControlIsAllowed()) {
       io.opentelemetry.api.logs.Logger loggerOfCommands =
           autoConfiguredOpenTelemetrySdk
               .getOpenTelemetrySdk()

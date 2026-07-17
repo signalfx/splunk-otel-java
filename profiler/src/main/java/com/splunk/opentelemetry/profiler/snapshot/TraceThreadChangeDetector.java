@@ -26,7 +26,8 @@ import java.util.function.Supplier;
 import javax.annotation.Nullable;
 
 class TraceThreadChangeDetector implements ContextStorage {
-  static OptionalConfigurableSupplier<TraceThreadChangeDetector> SUPPLIER = new OptionalConfigurableSupplier<>();
+  static OptionalConfigurableSupplier<TraceThreadChangeDetector> SUPPLIER =
+      new OptionalConfigurableSupplier<>();
 
   private final ContextStorage delegate;
   private final TraceRegistry registry;

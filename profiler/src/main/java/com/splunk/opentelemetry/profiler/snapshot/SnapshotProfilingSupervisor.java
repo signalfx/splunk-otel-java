@@ -30,6 +30,9 @@ public class SnapshotProfilingSupervisor {
       Logger.getLogger(SnapshotProfilingSupervisor.class.getName());
 
   private final OptionalConfigurableSupplier<SnapshotProfilingConfiguration> configurationSupplier;
+  private final ConfigurableSupplier<SpanTracker> spanTrackerSupplier;
+  private final OptionalConfigurableSupplier<TraceThreadChangeDetector>
+      traceThreadChangeDetectorSupplier;
   private final AutoConfiguredOpenTelemetrySdk sdk;
   private final OtelLoggerFactory otelLoggerFactory;
   private boolean running;
@@ -37,9 +40,13 @@ public class SnapshotProfilingSupervisor {
   @VisibleForTesting
   SnapshotProfilingSupervisor(
       OptionalConfigurableSupplier<SnapshotProfilingConfiguration> configurationSupplier,
+      ConfigurableSupplier<SpanTracker> spanTrackerSupplier,
+      OptionalConfigurableSupplier<TraceThreadChangeDetector> traceThreadChangeDetectorSupplier,
       AutoConfiguredOpenTelemetrySdk sdk,
       OtelLoggerFactory otelLoggerFactory) {
     this.configurationSupplier = configurationSupplier;
+    this.spanTrackerSupplier = spanTrackerSupplier;
+    this.traceThreadChangeDetectorSupplier = traceThreadChangeDetectorSupplier;
     this.sdk = sdk;
     this.otelLoggerFactory = otelLoggerFactory;
   }
@@ -51,7 +58,11 @@ public class SnapshotProfilingSupervisor {
 
     SnapshotProfilingSupervisor supervisor =
         new SnapshotProfilingSupervisor(
-            SnapshotProfilingConfiguration.SUPPLIER, sdk, new OtelLoggerFactory());
+            SnapshotProfilingConfiguration.SUPPLIER,
+            SpanTracker.SUPPLIER,
+            TraceThreadChangeDetector.SUPPLIER,
+            sdk,
+            new OtelLoggerFactory());
     SUPPLIER.configure(supervisor);
 
     return supervisor;
@@ -72,10 +83,11 @@ public class SnapshotProfilingSupervisor {
         configurationSupplier.get(), AutoConfigureUtil.getResource(sdk), otelLoggerFactory);
 
     // SpanTracker.SUPPLIER
-    SpanTracker.SUPPLIER.get().setEnabled(true);
-    TraceThreadChangeDetector.SUPPLIER.get().setEnabled(true);
+    spanTrackerSupplier.get().setEnabled(true);
+    traceThreadChangeDetectorSupplier.get().setEnabled(true);
 
-    // SnapshotProfilingSdkCustomizer/SnapshotProfilingSpanProcessorComponentProvider -> SnapshotProfilingSpanProcessor
+    // SnapshotProfilingSdkCustomizer/SnapshotProfilingSpanProcessorComponentProvider ->
+    // SnapshotProfilingSpanProcessor
     // SdkShutdownHookComponentProvider -> SdkShutdownHook
 
     running = true;

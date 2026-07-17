@@ -20,6 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
 
 import com.splunk.opentelemetry.profiler.OtelLoggerFactory;
 import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
@@ -32,12 +33,18 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
 class SnapshotProfilingAgentListenerTest {
   @RegisterExtension
   public final OpenTelemetrySdkExtension sdk = OpenTelemetrySdkExtension.configure().build();
+
+  @BeforeEach
+  void setUp() {
+    TraceThreadChangeDetector.SUPPLIER.configure(mock(TraceThreadChangeDetector.class));
+  }
 
   @AfterEach
   void tearDown() {
@@ -50,6 +57,7 @@ class SnapshotProfilingAgentListenerTest {
       SnapshotProfilingSupervisor.SUPPLIER.reset();
     }
     SpanTracker.SUPPLIER.reset();
+    TraceThreadChangeDetector.SUPPLIER.reset();
     StackTraceSampler.SUPPLIER.reset();
     StagingArea.SUPPLIER.reset();
     SnapshotProfilingConfiguration.SUPPLIER.reset();

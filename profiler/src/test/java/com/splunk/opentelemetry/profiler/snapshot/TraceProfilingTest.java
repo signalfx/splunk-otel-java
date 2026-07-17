@@ -24,6 +24,7 @@ import io.opentelemetry.api.trace.SpanKind;
 import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.sdk.autoconfigure.OpenTelemetrySdkExtension;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
@@ -40,6 +41,11 @@ class TraceProfilingTest {
           .withProperty("splunk.snapshot.selection.probability", "1.0")
           .with(customizer)
           .build();
+
+  @BeforeEach
+  void enableThreadChangeDetection() {
+    TraceThreadChangeDetector.SUPPLIER.get().setEnabled(true);
+  }
 
   @Test
   void startTraceProfilingWhenRootSpanContextBegins(Tracer tracer) {

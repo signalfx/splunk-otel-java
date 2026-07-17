@@ -44,6 +44,7 @@ class SnapshotProfilingConfigurationCustomizerProviderTest {
     StackTraceSampler.SUPPLIER.reset();
     StagingArea.SUPPLIER.reset();
     SpanTracker.SUPPLIER.reset();
+    TraceThreadChangeDetector.SUPPLIER.reset();
   }
 
   @Test

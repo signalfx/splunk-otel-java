@@ -26,6 +26,7 @@ import io.opentelemetry.sdk.autoconfigure.OpenTelemetrySdkExtension;
 import java.time.Duration;
 import java.util.UUID;
 import java.util.concurrent.Callable;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
@@ -45,6 +46,11 @@ public class MultiThreadedTraceProfilingTest {
   @RegisterExtension
   public final Server server =
       Server.builder(sdk).named("server").performing(Background.task(slowTask())).build();
+
+  @BeforeEach
+  void enableThreadChangeDetection() {
+    TraceThreadChangeDetector.SUPPLIER.get().setEnabled(true);
+  }
 
   private Callable<UUID> slowTask() {
     return () -> {

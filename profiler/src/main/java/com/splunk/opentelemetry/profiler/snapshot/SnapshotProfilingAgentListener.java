@@ -38,7 +38,11 @@ public class SnapshotProfilingAgentListener implements AgentListener {
     this(
         sdk ->
             new SnapshotProfilingSupervisor(
-                SnapshotProfilingConfiguration.SUPPLIER, sdk, otelLoggerFactory));
+                SnapshotProfilingConfiguration.SUPPLIER,
+                SpanTracker.SUPPLIER,
+                TraceThreadChangeDetector.SUPPLIER,
+                sdk,
+                otelLoggerFactory));
   }
 
   private SnapshotProfilingAgentListener(

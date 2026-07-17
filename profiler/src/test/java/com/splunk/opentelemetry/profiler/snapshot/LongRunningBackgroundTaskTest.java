@@ -26,6 +26,7 @@ import io.opentelemetry.sdk.autoconfigure.OpenTelemetrySdkExtension;
 import java.time.Duration;
 import java.util.concurrent.CountDownLatch;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
@@ -47,6 +48,11 @@ class LongRunningBackgroundTaskTest {
   @RegisterExtension
   public final Server server =
       Server.builder(sdk).named("server").performing(Background.task(slowTask())).build();
+
+  @BeforeEach
+  void enableThreadChangeDetection() {
+    TraceThreadChangeDetector.SUPPLIER.get().setEnabled(true);
+  }
 
   private Runnable slowTask() {
     return () -> {

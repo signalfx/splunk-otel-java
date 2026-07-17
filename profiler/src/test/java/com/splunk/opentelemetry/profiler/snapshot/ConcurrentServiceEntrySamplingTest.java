@@ -90,8 +90,9 @@ class ConcurrentServiceEntrySamplingTest {
           .build();
 
   @BeforeEach
-  void enableActiveSpanTracking() {
+  void enableContextTracking() {
     SpanTracker.SUPPLIER.get().setEnabled(true);
+    TraceThreadChangeDetector.SUPPLIER.get().setEnabled(true);
   }
 
   /**

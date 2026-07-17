@@ -62,6 +62,7 @@ class ContextStorageWrapperTest {
     StackTraceSampler.SUPPLIER.configure(sampler);
 
     wrapper.wrapContextStorage(registry);
+    TraceThreadChangeDetector.SUPPLIER.get().setEnabled(true);
     try (var ignored = Context.current().with(span).makeCurrent()) {
       assertThat(sampler.isBeingSampled(Thread.currentThread())).isTrue();
     }
@@ -90,6 +91,7 @@ class ContextStorageWrapperTest {
 
     wrapper.wrapContextStorage(registry);
     SpanTracker.SUPPLIER.get().setEnabled(true);
+    TraceThreadChangeDetector.SUPPLIER.get().setEnabled(true);
     try (var ignored = Context.current().with(span).makeCurrent()) {
       var activeSpan =
           SpanTracker.SUPPLIER.get().getActiveSpan(Thread.currentThread()).orElseThrow();

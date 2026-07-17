@@ -20,6 +20,7 @@ import static java.util.logging.Level.WARNING;
 
 import java.time.Duration;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -43,25 +44,29 @@ public class CommandDispatcherImpl implements CommandDispatcher {
     }
     List<String> lines = Arrays.stream(parts).map(String::trim).collect(Collectors.toList());
     String command = lines.get(0);
+    List<String> params = Collections.emptyList();
+    if (lines.size() > 1) {
+      params = lines.subList(1, lines.size());
+    }
     switch (command) {
       case "thread.dump":
-        startThreadDump(lines);
+        startThreadDump(params);
         break;
       default:
         logger.warning("Unknown command: " + command);
     }
   }
 
-  private boolean startThreadDump(List<String> lines) {
-    if (lines.size() < 2 || lines.get(1).isEmpty()) {
+  private boolean startThreadDump(List<String> params) {
+    if (params.isEmpty() || params.get(0).isEmpty()) {
       logger.warning("Missing thread dump job ID.");
       return false;
     }
 
-    String jobId = lines.get(1);
+    String jobId = params.get(0);
     try {
-      int count = lines.size() > 2 ? Integer.parseInt(lines.get(2)) : 1;
-      int intervalMillis = lines.size() > 3 ? Integer.parseInt(lines.get(3)) : 1000;
+      int count = params.size() > 1 ? Integer.parseInt(params.get(1)) : 1;
+      int intervalMillis = params.size() > 2 ? Integer.parseInt(params.get(2)) : 1000;
       if (count < 1 || intervalMillis < 1) {
         logger.warning("Thread dump count and interval must be positive integers.");
         return false;

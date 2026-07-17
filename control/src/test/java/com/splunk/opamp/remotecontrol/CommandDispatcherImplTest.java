@@ -39,6 +39,16 @@ class CommandDispatcherImplTest {
   }
 
   @Test
+  void acceptsMaximumThreadDumpCountAndInterval() {
+    BigDumper threadDumper = mock(BigDumper.class);
+    CommandDispatcher dispatcher = new CommandDispatcherImpl(threadDumper);
+
+    dispatcher.dispatch("text/plain", "thread.dump\njob-123\n100\n300000");
+
+    verify(threadDumper).startPeriodicDumper("job-123", 100, Duration.ofMinutes(5));
+  }
+
+  @Test
   void usesThreadDumpDefaults() {
     BigDumper threadDumper = mock(BigDumper.class);
     when(threadDumper.startPeriodicDumper("job-123", 1, Duration.ofMillis(1000))).thenReturn(true);
@@ -65,6 +75,8 @@ class CommandDispatcherImplTest {
     CommandDispatcher dispatcher = new CommandDispatcherImpl(threadDumper);
 
     assertDoesNotThrow(() -> dispatcher.dispatch("text/plain", "thread.dump\njob-123\n0\n1000"));
+    assertDoesNotThrow(() -> dispatcher.dispatch("text/plain", "thread.dump\njob-123\n101\n1000"));
+    assertDoesNotThrow(() -> dispatcher.dispatch("text/plain", "thread.dump\njob-123\n1\n300001"));
     assertDoesNotThrow(
         () -> dispatcher.dispatch("text/plain", "thread.dump\njob-123\n1\nnot-a-number"));
 

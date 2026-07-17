@@ -28,6 +28,8 @@ import java.util.stream.Collectors;
 public class CommandDispatcherImpl implements CommandDispatcher {
 
   public static final Logger logger = Logger.getLogger(CommandDispatcherImpl.class.getName());
+  private static final int MAX_THREAD_DUMP_COUNT = 100;
+  private static final int MAX_THREAD_DUMP_INTERVAL_MILLIS = 300_000;
 
   private final BigDumper threadDumper;
 
@@ -69,8 +71,12 @@ public class CommandDispatcherImpl implements CommandDispatcher {
     try {
       int count = getParamOrDefault(params, 1, 1);
       int intervalMillis = getParamOrDefault(params, 2, 1000);
-      if (count < 1 || intervalMillis < 1) {
-        logger.warning("Thread dump count and interval must be positive integers.");
+      if (count < 1 || count > MAX_THREAD_DUMP_COUNT) {
+        logger.warning("Thread dump count must be between 1 and 100.");
+        return false;
+      }
+      if (intervalMillis < 1 || intervalMillis > MAX_THREAD_DUMP_INTERVAL_MILLIS) {
+        logger.warning("Thread dump interval must be between 1 and 300000 milliseconds.");
         return false;
       }
       return threadDumper.startPeriodicDumper(jobId, count, Duration.ofMillis(intervalMillis));

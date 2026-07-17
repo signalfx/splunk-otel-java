@@ -76,10 +76,7 @@ class AsyncStackTraceExporter implements StackTraceExporter {
 
         for (StackTrace stackTrace : stackTraces) {
           cpuEventExporter.export(
-              stackTrace.getThreadId(),
-              stackTrace.getThreadName(),
-              stackTrace.getThreadState(),
-              stackTrace.getStackFrames(),
+              stackTrace.getThreadInfo(),
               stackTrace.getTimestamp(),
               stackTrace.getTraceId(),
               stackTrace.getSpanId(),

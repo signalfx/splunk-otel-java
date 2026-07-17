@@ -16,6 +16,7 @@
 
 package com.splunk.opentelemetry.profiler.snapshot;
 
+import com.google.common.annotations.VisibleForTesting;
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadInfo;
 import java.lang.management.ThreadMXBean;
@@ -30,11 +31,21 @@ import java.util.logging.Logger;
 class ThreadInfoCollector {
   private static final Logger logger = Logger.getLogger(ThreadInfoCollector.class.getName());
 
-  private final ThreadMXBean threadMXBean = ManagementFactory.getThreadMXBean();
+  private final ThreadMXBean threadMXBean;
+
+  ThreadInfoCollector() {
+    this(ManagementFactory.getThreadMXBean());
+  }
+
+  @VisibleForTesting
+  ThreadInfoCollector(ThreadMXBean threadMXBean) {
+    this.threadMXBean = threadMXBean;
+  }
 
   ThreadInfo getThreadInfo(long threadId) {
     try {
-      return threadMXBean.getThreadInfo(threadId, Integer.MAX_VALUE);
+      ThreadInfo[] threadInfos = collectThreadInfo(new long[] {threadId});
+      return threadInfos.length == 0 ? null : threadInfos[0];
     } catch (Exception e) {
       logger.log(Level.SEVERE, e, () -> "Error taking callstack sample for thread id " + threadId);
     }
@@ -44,7 +55,7 @@ class ThreadInfoCollector {
   ThreadInfo[] getThreadInfo(Collection<Long> threadIds) {
     try {
       long[] threadIdArray = threadIds.stream().mapToLong(Long::longValue).toArray();
-      return threadMXBean.getThreadInfo(threadIdArray, Integer.MAX_VALUE);
+      return collectThreadInfo(threadIdArray);
     } catch (Exception e) {
       logger.log(
           Level.SEVERE,
@@ -52,5 +63,12 @@ class ThreadInfoCollector {
           () -> "Error taking callstack samples for thread ids [" + threadIds + "]");
     }
     return new ThreadInfo[0];
+  }
+
+  private ThreadInfo[] collectThreadInfo(long[] threadIds) {
+    return threadMXBean.getThreadInfo(
+        threadIds,
+        threadMXBean.isObjectMonitorUsageSupported(),
+        threadMXBean.isSynchronizerUsageSupported());
   }
 }

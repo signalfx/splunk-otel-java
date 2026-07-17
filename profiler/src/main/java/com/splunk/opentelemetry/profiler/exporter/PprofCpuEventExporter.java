@@ -16,6 +16,9 @@
 
 package com.splunk.opentelemetry.profiler.exporter;
 
+import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.LOCK_HELD_PREFIX;
+import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.LOCK_OWNER_THREAD;
+import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.LOCK_WAITING_ON;
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.SOURCE_EVENT_NAME;
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.SOURCE_EVENT_PERIOD;
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.SOURCE_EVENT_TIME;
@@ -36,6 +39,9 @@ import io.opentelemetry.api.logs.Logger;
 import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.api.trace.SpanId;
 import io.opentelemetry.api.trace.TraceId;
+import java.lang.management.LockInfo;
+import java.lang.management.MonitorInfo;
+import java.lang.management.ThreadInfo;
 import java.time.Duration;
 import java.time.Instant;
 
@@ -96,6 +102,16 @@ public class PprofCpuEventExporter implements CpuEventExporter {
 
   @Override
   public void export(
+      ThreadInfo threadInfo, Instant eventTime, String traceId, String spanId, Duration duration) {
+    Sample.Builder sample = Sample.newBuilder();
+    addThreadInfo(
+        sample, threadInfo.getThreadId(), threadInfo.getThreadName(), threadInfo.getThreadState());
+    addLockInfo(sample, threadInfo);
+    addSample(sample, threadInfo.getStackTrace(), eventTime, traceId, spanId, duration);
+  }
+
+  @Override
+  public void export(
       long threadId,
       String threadName,
       Thread.State threadState,
@@ -105,11 +121,24 @@ public class PprofCpuEventExporter implements CpuEventExporter {
       String spanId,
       Duration duration) {
     Sample.Builder sample = Sample.newBuilder();
+    addThreadInfo(sample, threadId, threadName, threadState);
+    addSample(sample, stackTrace, eventTime, traceId, spanId, duration);
+  }
 
+  private void addThreadInfo(
+      Sample.Builder sample, long threadId, String threadName, Thread.State threadState) {
     pprof.addLabel(sample, THREAD_ID, threadId);
     pprof.addLabel(sample, THREAD_NAME, threadName);
     pprof.addLabel(sample, THREAD_STATE, threadState.name());
+  }
 
+  private void addSample(
+      Sample.Builder sample,
+      StackTraceElement[] stackTrace,
+      Instant eventTime,
+      String traceId,
+      String spanId,
+      Duration duration) {
     if (stackTrace.length > stackDepth) {
       pprof.addLabel(sample, THREAD_STACK_TRUNCATED, true);
     }
@@ -139,6 +168,26 @@ public class PprofCpuEventExporter implements CpuEventExporter {
     }
 
     pprof.getProfileBuilder().addSample(sample);
+  }
+
+  private void addLockInfo(Sample.Builder sample, ThreadInfo threadInfo) {
+    LockInfo waitingOn = threadInfo.getLockInfo();
+    if (waitingOn != null) {
+      pprof.addLabel(sample, LOCK_WAITING_ON, formatLock(waitingOn));
+    }
+    pprof.addLabel(sample, LOCK_OWNER_THREAD, threadInfo.getLockOwnerName());
+
+    int heldLockIndex = 0;
+    for (MonitorInfo monitor : threadInfo.getLockedMonitors()) {
+      pprof.addLabel(sample, LOCK_HELD_PREFIX + heldLockIndex++, formatLock(monitor));
+    }
+    for (LockInfo synchronizer : threadInfo.getLockedSynchronizers()) {
+      pprof.addLabel(sample, LOCK_HELD_PREFIX + heldLockIndex++, formatLock(synchronizer));
+    }
+  }
+
+  private static String formatLock(LockInfo lockInfo) {
+    return lockInfo.getClassName() + '@' + Integer.toHexString(lockInfo.getIdentityHashCode());
   }
 
   private static Pprof createPprof() {

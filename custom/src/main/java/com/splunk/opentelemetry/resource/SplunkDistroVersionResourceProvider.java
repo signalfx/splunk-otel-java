@@ -31,4 +31,10 @@ public class SplunkDistroVersionResourceProvider implements ResourceProvider {
   public Resource createResource(ConfigProperties config) {
     return DISTRO_VERSION_RESOURCE;
   }
+
+  // Should be executed after all upstream resource providers, so the value is not overwritten
+  @Override
+  public int order() {
+    return Integer.MAX_VALUE - 1;
+  }
 }

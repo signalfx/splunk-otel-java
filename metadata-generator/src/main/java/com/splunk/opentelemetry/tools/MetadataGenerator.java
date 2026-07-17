@@ -1506,14 +1506,15 @@ public class MetadataGenerator {
     }
 
     List<String> references = (List<String>) source.get(referenceKey);
-    if (references != null) {
-      for (String reference : references) {
-        Map<String, Object> definition = definitions.get(reference);
-        if (definition == null) {
-          throw new IllegalStateException("missing " + inlineKey + " definition: " + reference);
-        }
-        result.add(definition);
+    if (references == null) {
+      return result;
+    }
+    for (String reference : references) {
+      Map<String, Object> definition = definitions.get(reference);
+      if (definition == null) {
+        throw new IllegalStateException("missing " + inlineKey + " definition: " + reference);
       }
+      result.add(definition);
     }
 
     return result;

@@ -49,6 +49,8 @@ class ContextStorageWrapper {
   }
 
   private ContextStorage detectThreadChanges(ContextStorage storage, TraceRegistry registry) {
-    return new TraceThreadChangeDetector(storage, registry, StackTraceSampler.SUPPLIER);
+    TraceThreadChangeDetector detector = new TraceThreadChangeDetector(storage, registry, StackTraceSampler.SUPPLIER);
+    TraceThreadChangeDetector.SUPPLIER.configure(detector);
+    return detector;
   }
 }

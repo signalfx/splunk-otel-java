@@ -62,11 +62,6 @@ public class SnapshotProfilingSupervisor {
       return;
     }
 
-    // TODO: Is it needed
-    if (!configurationSupplier.get().isEnabled()) {
-      throw new IllegalStateException("Snapshot profiling not enabled in configuration");
-    }
-
     configurationSupplier.get().log();
 
     // StagingArea.SUPPLIER
@@ -78,8 +73,10 @@ public class SnapshotProfilingSupervisor {
 
     // SpanTracker.SUPPLIER
     SpanTracker.SUPPLIER.get().setEnabled(true);
-    // SnapshotProfilingSpanProcessorComponentProvider -> SnapshotProfilingSpanProcessor
-    // SdkShutdownHookComponentProvider -> SdkShutdownHook (raczej nie wymaga zmian)
+    TraceThreadChangeDetector.SUPPLIER.get().setEnabled(true);
+
+    // SnapshotProfilingSdkCustomizer/SnapshotProfilingSpanProcessorComponentProvider -> SnapshotProfilingSpanProcessor
+    // SdkShutdownHookComponentProvider -> SdkShutdownHook
 
     running = true;
     logger.info("Snapshot profiling is active.");
@@ -100,6 +97,7 @@ public class SnapshotProfilingSupervisor {
     StackTraceExporter.SUPPLIER.reset();
 
     SpanTracker.SUPPLIER.get().setEnabled(false);
+    TraceThreadChangeDetector.SUPPLIER.get().setEnabled(false);
 
     running = false;
   }

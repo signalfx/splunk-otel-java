@@ -16,6 +16,7 @@
 
 package com.splunk.opentelemetry.profiler.snapshot;
 
+import com.splunk.opentelemetry.profiler.util.OptionalConfigurableSupplier;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.context.Context;
@@ -25,9 +26,13 @@ import java.util.function.Supplier;
 import javax.annotation.Nullable;
 
 class TraceThreadChangeDetector implements ContextStorage {
+  static OptionalConfigurableSupplier<TraceThreadChangeDetector> SUPPLIER = new OptionalConfigurableSupplier<>();
+
   private final ContextStorage delegate;
   private final TraceRegistry registry;
   private final Supplier<StackTraceSampler> sampler;
+
+  private boolean enabled;
 
   TraceThreadChangeDetector(
       ContextStorage delegate, TraceRegistry registry, Supplier<StackTraceSampler> sampler) {
@@ -36,9 +41,21 @@ class TraceThreadChangeDetector implements ContextStorage {
     this.sampler = sampler;
   }
 
+  void setEnabled(boolean enabled) {
+    this.enabled = enabled;
+  }
+
+  boolean isEnabled() {
+    return enabled;
+  }
+
   @Override
   public Scope attach(Context toAttach) {
     Scope scope = delegate.attach(toAttach);
+    if (!isEnabled()) {
+      return scope;
+    }
+
     SpanContext newSpanContext = Span.fromContext(toAttach).getSpanContext();
     if (doNotTrack(newSpanContext)) {
       return scope;

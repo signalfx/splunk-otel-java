@@ -74,15 +74,12 @@ public class SnapshotProfilingSdkCustomizer implements AutoConfigurationCustomiz
   private BiFunction<SdkTracerProviderBuilder, ConfigProperties, SdkTracerProviderBuilder>
       snapshotProfilingSpanProcessor(TraceRegistry registry) {
     return (builder, properties) -> {
-      if (snapshotProfilingEnabled()) {
-        double selectionProbability =
-            SnapshotProfilingConfiguration.SUPPLIER.get().getSnapshotSelectionProbability();
+      double selectionProbability =
+          SnapshotProfilingConfiguration.SUPPLIER.get().getSnapshotSelectionProbability();
 
-        return builder.addSpanProcessor(
-            new SnapshotProfilingSpanProcessor(
-                registry, new TraceIdBasedSnapshotSelector(selectionProbability)));
-      }
-      return builder;
+      return builder.addSpanProcessor(
+          new SnapshotProfilingSpanProcessor(
+              registry, new TraceIdBasedSnapshotSelector(selectionProbability)));
     };
   }
 

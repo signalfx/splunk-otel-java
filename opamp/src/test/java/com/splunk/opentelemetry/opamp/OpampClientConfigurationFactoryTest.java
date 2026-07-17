@@ -46,7 +46,8 @@ class OpampClientConfigurationFactoryTest {
             Map.of(
                 "splunk.opamp.enabled", "true",
                 "splunk.opamp.endpoint", "https://opamp.example.com",
-                "splunk.opamp.polling.interval", "3210"));
+                "splunk.opamp.polling.interval", "3210",
+                "splunk.opamp.experimental.remote.control", "true"));
 
     // when
     OpampClientConfiguration configuration =
@@ -56,6 +57,7 @@ class OpampClientConfigurationFactoryTest {
     assertThat(configuration.isEnabled()).isTrue();
     assertThat(configuration.getEndpoint()).isEqualTo("https://opamp.example.com");
     assertThat(configuration.getPollingInterval()).isEqualTo(3210);
+    assertThat(configuration.remoteControlIsAllowed()).isTrue();
   }
 
   @Test

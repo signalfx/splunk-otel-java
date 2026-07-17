@@ -48,20 +48,7 @@ class SnapshotProfilingAgentListenerTest {
 
   @AfterEach
   void tearDown() {
-    resetSnapshotProfiling();
-  }
-
-  private void resetSnapshotProfiling() {
-    if (SnapshotProfilingSupervisor.SUPPLIER.isConfigured()) {
-      SnapshotProfilingSupervisor.SUPPLIER.get().stopProfiling();
-      SnapshotProfilingSupervisor.SUPPLIER.reset();
-    }
-    SpanTracker.SUPPLIER.reset();
-    TraceThreadChangeDetector.SUPPLIER.reset();
-    StackTraceSampler.SUPPLIER.reset();
-    StagingArea.SUPPLIER.reset();
-    SnapshotProfilingConfiguration.SUPPLIER.reset();
-    StackTraceExporter.SUPPLIER.reset();
+    Snapshotting.resetProfiling();
   }
 
   @Test
@@ -74,7 +61,7 @@ class SnapshotProfilingAgentListenerTest {
             .build();
     SnapshotProfilingConfiguration.SUPPLIER.configure(configuration);
 
-    new SnapshotProfilingAgentListener(
+    Snapshotting.agentListener(
             new OtelLoggerFactory(() -> logExporter, declarativeConfigProperties -> logExporter))
         .afterAgent(sdk);
 

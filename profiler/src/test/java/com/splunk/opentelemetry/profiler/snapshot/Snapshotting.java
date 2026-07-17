@@ -16,6 +16,7 @@
 
 package com.splunk.opentelemetry.profiler.snapshot;
 
+import com.splunk.opentelemetry.profiler.OtelLoggerFactory;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.api.trace.TraceFlags;
@@ -30,6 +31,30 @@ class Snapshotting {
 
   static SnapshotProfilingSdkCustomizerBuilder customizer() {
     return new SnapshotProfilingSdkCustomizerBuilder();
+  }
+
+  static SnapshotProfilingAgentListener agentListener(OtelLoggerFactory otelLoggerFactory) {
+    return new SnapshotProfilingAgentListener(
+        sdk ->
+            new SnapshotProfilingSupervisor(
+                SnapshotProfilingConfiguration.SUPPLIER,
+                SpanTracker.SUPPLIER,
+                TraceThreadChangeDetector.SUPPLIER,
+                sdk,
+                otelLoggerFactory));
+  }
+
+  static void resetProfiling() {
+    if (SnapshotProfilingSupervisor.SUPPLIER.isConfigured()) {
+      SnapshotProfilingSupervisor.SUPPLIER.get().stopProfiling();
+      SnapshotProfilingSupervisor.SUPPLIER.reset();
+    }
+    SpanTracker.SUPPLIER.reset();
+    TraceThreadChangeDetector.SUPPLIER.reset();
+    StackTraceSampler.SUPPLIER.reset();
+    StagingArea.SUPPLIER.reset();
+    SnapshotProfilingConfiguration.SUPPLIER.reset();
+    StackTraceExporter.SUPPLIER.reset();
   }
 
   static StackTraceBuilder stackTrace() {

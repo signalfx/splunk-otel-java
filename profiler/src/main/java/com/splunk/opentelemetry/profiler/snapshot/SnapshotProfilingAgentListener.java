@@ -18,7 +18,6 @@ package com.splunk.opentelemetry.profiler.snapshot;
 
 import com.google.auto.service.AutoService;
 import com.google.common.annotations.VisibleForTesting;
-import com.splunk.opentelemetry.profiler.OtelLoggerFactory;
 import io.opentelemetry.javaagent.extension.AgentListener;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 import java.util.function.Function;
@@ -32,20 +31,8 @@ public class SnapshotProfilingAgentListener implements AgentListener {
     this(SnapshotProfilingSupervisor::initialize);
   }
 
-  // TODO: Get rid of this constructor
   @VisibleForTesting
-  SnapshotProfilingAgentListener(OtelLoggerFactory otelLoggerFactory) {
-    this(
-        sdk ->
-            new SnapshotProfilingSupervisor(
-                SnapshotProfilingConfiguration.SUPPLIER,
-                SpanTracker.SUPPLIER,
-                TraceThreadChangeDetector.SUPPLIER,
-                sdk,
-                otelLoggerFactory));
-  }
-
-  private SnapshotProfilingAgentListener(
+  SnapshotProfilingAgentListener(
       Function<AutoConfiguredOpenTelemetrySdk, SnapshotProfilingSupervisor>
           snapshotProfilingSupervisorMaker) {
     this.snapshotProfilingSupervisorMaker = snapshotProfilingSupervisorMaker;

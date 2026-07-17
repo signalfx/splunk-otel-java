@@ -61,7 +61,7 @@ class SnapshotProfilingLogExportingTest {
           .withProperty("splunk.snapshot.selection.probability", "1.0")
           .with(customizer)
           .with(
-              new SnapshotProfilingAgentListener(
+              Snapshotting.agentListener(
                   new OtelLoggerFactory(
                       () -> logExporter, declarativeConfigProperties -> logExporter)))
           .build();

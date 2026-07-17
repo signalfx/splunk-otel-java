@@ -27,6 +27,7 @@ import io.opentelemetry.sdk.autoconfigure.OpenTelemetrySdkExtension;
 import io.opentelemetry.sdk.testing.exporter.InMemoryLogRecordExporter;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.slf4j.LoggerFactory;
@@ -41,10 +42,16 @@ class GracefulShutdownTest {
           .withProperty("splunk.snapshot.selection.probability", "1.0")
           .with(Snapshotting.customizer().withRealStackTraceSampler().withRealStagingArea().build())
           .with(
-              new SnapshotProfilingAgentListener(
+              Snapshotting.agentListener(
                   new OtelLoggerFactory(
                       () -> logExporter, declarativeConfigProperties -> logExporter)))
           .build();
+
+  @AfterEach
+  void tearDown() {
+    sdk.close();
+    Snapshotting.resetProfiling();
+  }
 
   @Test
   void stopSnapshotProfilingExtensionWhenOpenTelemetrySdkIsShutdown(Tracer tracer)

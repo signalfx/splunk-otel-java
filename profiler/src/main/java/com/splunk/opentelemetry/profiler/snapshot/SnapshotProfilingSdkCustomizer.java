@@ -90,8 +90,4 @@ public class SnapshotProfilingSdkCustomizer implements AutoConfigurationCustomiz
       return Collections.emptyMap();
     };
   }
-
-  private boolean snapshotProfilingEnabled() {
-    return SnapshotProfilingConfiguration.SUPPLIER.get().isEnabled();
-  }
 }

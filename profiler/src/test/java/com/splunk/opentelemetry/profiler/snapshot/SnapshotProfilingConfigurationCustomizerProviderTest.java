@@ -26,14 +26,11 @@ import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.BatchSpanProce
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.OpenTelemetryConfigurationModel;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.SimpleSpanProcessorModel;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.SpanProcessorModel;
-import java.io.IOException;
-import java.nio.file.Path;
 import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
-import org.junit.jupiter.api.io.TempDir;
 
 class SnapshotProfilingConfigurationCustomizerProviderTest {
   @RegisterExtension static final AutoCleanupExtension autoCleanup = AutoCleanupExtension.create();
@@ -48,7 +45,7 @@ class SnapshotProfilingConfigurationCustomizerProviderTest {
   }
 
   @Test
-  void shouldDoNothingIfProfilerIsNotEnabled(@TempDir Path tempDir) throws IOException {
+  void shouldAddComponentsNeededToEnableProfilingIfProfilerIsNotEnabledInitially() {
     // given
     String yaml =
         """
@@ -59,9 +56,18 @@ class SnapshotProfilingConfigurationCustomizerProviderTest {
     OpenTelemetryConfigurationModel model = getCustomizedModel(yaml);
 
     // then
+    List<SpanProcessorModel> expectedProcessors =
+        List.of(
+            new SpanProcessorModel()
+                .withAdditionalProperty(SnapshotProfilingSpanProcessorComponentProvider.NAME, null),
+            new SpanProcessorModel()
+                .withAdditionalProperty(SdkShutdownHookComponentProvider.NAME, null));
+
     assertThat(model).isNotNull();
     assertThat(model.getPropagator()).isNull();
-    assertThat(model.getTracerProvider()).isNull();
+    assertThat(model.getTracerProvider()).isNotNull();
+    assertThat(model.getTracerProvider().getProcessors()).hasSize(2);
+    assertThat(model.getTracerProvider().getProcessors()).containsAll(expectedProcessors);
   }
 
   @Test

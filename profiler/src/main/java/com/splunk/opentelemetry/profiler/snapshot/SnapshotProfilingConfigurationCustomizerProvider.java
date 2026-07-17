@@ -50,9 +50,7 @@ public class SnapshotProfilingConfigurationCustomizerProvider
     SnapshotProfilingConfiguration.SUPPLIER.configure(snapshotProfiling);
 
     initActiveSpansTracking();
-    if (snapshotProfiling.isEnabled()) {
-      addSpanProcessors(model);
-    }
+    addSpanProcessors(model);
 
     return model;
   }

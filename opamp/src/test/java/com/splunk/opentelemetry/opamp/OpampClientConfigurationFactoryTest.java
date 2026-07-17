@@ -94,7 +94,8 @@ class OpampClientConfigurationFactoryTest {
               splunk:
                 opamp/development:
                   endpoint: http://some.opamp-host.com:3420/v1/opamp
-                  experimental_control: true
+                  features:
+                    experimental_control:
             """;
     AutoConfiguredOpenTelemetrySdk sdk =
         DeclarativeConfigTestUtil.createAutoConfiguredSdk(yaml, tempDir, autoCleanup);

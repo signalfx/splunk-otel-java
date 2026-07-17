@@ -44,13 +44,15 @@ public class OpampClientConfigurationFactory {
 
     OpampClientConfiguration.Builder builder = OpampClientConfiguration.builder();
     if (opampProperties != null) {
+      DeclarativeConfigProperties features = opampProperties.getStructured("features");
       builder.withEnabled(true);
       builder
           .withEndpoint(opampProperties.getString("endpoint"))
           .withPollingInterval(
               opampProperties.getLong(
                   "polling_interval", DEFAULT_DELAY_BETWEEN_REQUESTS.getNextDelay().toMillis()))
-          .withHackyRemoteControl(opampProperties.getBoolean("experimental_control", false));
+          .withHackyRemoteControl(
+              features != null && features.getPropertyKeys().contains("experimental_control"));
     }
 
     return builder.build();

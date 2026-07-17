@@ -1349,27 +1349,45 @@ public class MetadataGenerator {
     return parseInstrumentations(new URL(url));
   }
 
-  private static List<Map<String, Object>> parseInstrumentations(URL url) throws IOException {
+  static List<Map<String, Object>> parseInstrumentations(URL url) throws IOException {
     Yaml yaml = new Yaml();
     Map<String, Object> metadata;
     try (InputStream inputStream = url.openStream()) {
       metadata = yaml.load(inputStream);
     }
 
-    if (!"0.5".equals(metadata.get("file_format").toString())) {
+    if (!"0.6".equals(metadata.get("file_format").toString())) {
       throw new IllegalStateException(
           "unexpected file format version: " + metadata.get("file_format"));
     }
+
+    Map<String, Object> definitions = (Map<String, Object>) metadata.get("definitions");
+    Map<String, Map<String, Object>> configurationDefinitions =
+        (Map<String, Map<String, Object>>) definitions.get("configurations");
+    Map<String, Map<String, Object>> metricDefinitions =
+        (Map<String, Map<String, Object>>) definitions.get("metrics");
+
     List<Map<String, Object>> result = new ArrayList<>();
 
-    handle(result, (List<Map<String, Object>>) metadata.get("libraries"));
-    handle(result, (List<Map<String, Object>>) metadata.get("custom"));
+    handle(
+        result,
+        (List<Map<String, Object>>) metadata.get("libraries"),
+        configurationDefinitions,
+        metricDefinitions);
+    handle(
+        result,
+        (List<Map<String, Object>>) metadata.get("custom"),
+        configurationDefinitions,
+        metricDefinitions);
 
     return result;
   }
 
   private static void handle(
-      List<Map<String, Object>> instrumentations, List<Map<String, Object>> infos) {
+      List<Map<String, Object>> instrumentations,
+      List<Map<String, Object>> infos,
+      Map<String, Map<String, Object>> configurationDefinitions,
+      Map<String, Map<String, Object>> metricDefinitions) {
     for (Map<String, Object> info : infos) {
       // only javaagent instrumentations
       if (Boolean.TRUE.equals(info.get("has_javaagent"))) {
@@ -1391,21 +1409,20 @@ public class MetadataGenerator {
         }
 
         List<Map<String, Object>> configurations =
-            (List<Map<String, Object>>) info.get("configurations");
-        if (configurations != null) {
-          for (Map<String, Object> configuration : configurations) {
-            Object propertyName = configuration.get("name");
-            if (propertyName == null) {
-              continue;
-            }
-            builder.addSetting(
-                setting(
-                    propertyName.toString(),
-                    configuration.get("description").toString(),
-                    configuration.get("default").toString(),
-                    toSettingType(configuration.get("type").toString()),
-                    MetadataGenerator.SettingCategory.INSTRUMENTATION));
+            resolveDefinitions(
+                info, "configurations", "configuration_refs", configurationDefinitions);
+        for (Map<String, Object> configuration : configurations) {
+          Object propertyName = configuration.get("name");
+          if (propertyName == null) {
+            continue;
           }
+          builder.addSetting(
+              setting(
+                  propertyName.toString(),
+                  configuration.get("description").toString(),
+                  configuration.get("default").toString(),
+                  toSettingType(configuration.get("type").toString()),
+                  MetadataGenerator.SettingCategory.INSTRUMENTATION));
         }
 
         List<Map<String, Object>> telemetry = (List<Map<String, Object>>) info.get("telemetry");
@@ -1419,7 +1436,8 @@ public class MetadataGenerator {
             String configuration = telemetryConfiguration.get("when").toString();
             boolean isDefault = "default".equals(configuration);
             List<Map<String, Object>> metrics =
-                (List<Map<String, Object>>) telemetryConfiguration.get("metrics");
+                resolveDefinitions(
+                    telemetryConfiguration, "metrics", "metric_refs", metricDefinitions);
 
             if (isDefault) {
               defaultSeen = true;
@@ -1473,6 +1491,32 @@ public class MetadataGenerator {
         instrumentations.add(builder.build());
       }
     }
+  }
+
+  private static List<Map<String, Object>> resolveDefinitions(
+      Map<String, Object> source,
+      String inlineKey,
+      String referenceKey,
+      Map<String, Map<String, Object>> definitions) {
+    List<Map<String, Object>> result = new ArrayList<>();
+
+    List<Map<String, Object>> inlineValues = (List<Map<String, Object>>) source.get(inlineKey);
+    if (inlineValues != null) {
+      result.addAll(inlineValues);
+    }
+
+    List<String> references = (List<String>) source.get(referenceKey);
+    if (references != null) {
+      for (String reference : references) {
+        Map<String, Object> definition = definitions.get(reference);
+        if (definition == null) {
+          throw new IllegalStateException("missing " + inlineKey + " definition: " + reference);
+        }
+        result.add(definition);
+      }
+    }
+
+    return result;
   }
 
   private static Map<String, Object> dependency(

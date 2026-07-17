@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
 
 public class CommandDispatcherImpl implements CommandDispatcher {
 
-  public static final Logger LOGGER = Logger.getLogger(CommandDispatcherImpl.class.getName());
+  public static final Logger logger = Logger.getLogger(CommandDispatcherImpl.class.getName());
 
   private final BigDumper threadDumper;
 
@@ -38,7 +38,7 @@ public class CommandDispatcherImpl implements CommandDispatcher {
   public void dispatch(String contentType, String body) {
     String[] parts = body.split("\n");
     if (parts.length == 0) {
-      LOGGER.warning("Missing useful command body.");
+      logger.warning("Missing useful command body.");
       return;
     }
     List<String> lines = Arrays.stream(parts).map(String::trim).collect(Collectors.toList());
@@ -48,13 +48,13 @@ public class CommandDispatcherImpl implements CommandDispatcher {
         startThreadDump(lines);
         break;
       default:
-        LOGGER.warning("Unknown command: " + command);
+        logger.warning("Unknown command: " + command);
     }
   }
 
   private boolean startThreadDump(List<String> lines) {
     if (lines.size() < 2 || lines.get(1).isEmpty()) {
-      LOGGER.warning("Missing thread dump job ID.");
+      logger.warning("Missing thread dump job ID.");
       return false;
     }
 
@@ -63,15 +63,15 @@ public class CommandDispatcherImpl implements CommandDispatcher {
       int count = lines.size() > 2 ? Integer.parseInt(lines.get(2)) : 1;
       int intervalMillis = lines.size() > 3 ? Integer.parseInt(lines.get(3)) : 1000;
       if (count < 1 || intervalMillis < 1) {
-        LOGGER.warning("Thread dump count and interval must be positive integers.");
+        logger.warning("Thread dump count and interval must be positive integers.");
         return false;
       }
       return threadDumper.startPeriodicDumper(jobId, count, Duration.ofMillis(intervalMillis));
     } catch (NumberFormatException exception) {
-      LOGGER.warning("Thread dump count and interval must be valid 32-bit integers.");
+      logger.warning("Thread dump count and interval must be valid 32-bit integers.");
       return false;
     } catch (RuntimeException exception) {
-      LOGGER.log(WARNING, "Thread dump command failed.", exception);
+      logger.log(WARNING, "Thread dump command failed.", exception);
       return false;
     }
   }

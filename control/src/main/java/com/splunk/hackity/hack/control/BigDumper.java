@@ -29,7 +29,7 @@ import java.util.logging.Level;
 
 public class BigDumper {
 
-  private static final java.util.logging.Logger LOGGER =
+  private static final java.util.logging.Logger logger =
       java.util.logging.Logger.getLogger(BigDumper.class.getName());
 
   private final ThreadMXBean threadMXBean;
@@ -45,17 +45,17 @@ public class BigDumper {
 
   public boolean startPeriodicDumper(String jobId, int count, Duration interval) {
     if (count < 1) {
-      LOGGER.warning("Thread dump count must be positive.");
+      logger.warning("Thread dump count must be positive.");
       return false;
     }
     if (interval.isZero() || interval.isNegative()) {
-      LOGGER.warning("Thread dump interval must be positive.");
+      logger.warning("Thread dump interval must be positive.");
       return false;
     }
 
     synchronized (lock) {
       if (dumping) {
-        LOGGER.info("Periodic thread dumping is already started. Skipping request.");
+        logger.info("Periodic thread dumping is already started. Skipping request.");
         return false;
       }
       dumping = true;
@@ -74,7 +74,7 @@ public class BigDumper {
     }
 
     synchronized (lock) {
-      LOGGER.info("Starting periodic thread dumps: count = " + count + " interval = " + interval);
+      logger.info("Starting periodic thread dumps: count = " + count + " interval = " + interval);
 
       AtomicInteger counter = new AtomicInteger(count);
       executorService.scheduleWithFixedDelay(
@@ -82,11 +82,11 @@ public class BigDumper {
             try {
               dump(jobId);
               if (counter.decrementAndGet() == 0) {
-                LOGGER.fine("Periodic thread dumping complete.");
+                logger.fine("Periodic thread dumping complete.");
                 finishDumping();
               }
             } catch (RuntimeException exception) {
-              LOGGER.log(Level.WARNING, "Periodic thread dumping failed.", exception);
+              logger.log(Level.WARNING, "Periodic thread dumping failed.", exception);
               finishDumping();
             }
           },
@@ -108,7 +108,7 @@ public class BigDumper {
   }
 
   public void dump(String jobId) {
-    LOGGER.fine("Taking a thread dump");
+    logger.fine("Taking a thread dump");
     ThreadInfo[] threadInfos = threadMXBean.dumpAllThreads(true, true);
     threadDumpExporter.accept(jobId, threadInfos);
   }

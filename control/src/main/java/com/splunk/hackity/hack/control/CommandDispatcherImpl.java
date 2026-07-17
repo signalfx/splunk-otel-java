@@ -57,7 +57,9 @@ public class CommandDispatcherImpl implements CommandDispatcher {
     }
   }
 
+  /** params look like this: - job id - count (default: 1) - interval (default: 1000) */
   private boolean startThreadDump(List<String> params) {
+    // The first param is the job id, and it's required
     if (params.isEmpty() || params.get(0).isEmpty()) {
       logger.warning("Missing thread dump job ID.");
       return false;
@@ -65,8 +67,8 @@ public class CommandDispatcherImpl implements CommandDispatcher {
 
     String jobId = params.get(0);
     try {
-      int count = params.size() > 1 ? Integer.parseInt(params.get(1)) : 1;
-      int intervalMillis = params.size() > 2 ? Integer.parseInt(params.get(2)) : 1000;
+      int count = getParamOrDefault(params, 1, 1);
+      int intervalMillis = getParamOrDefault(params, 2, 1000);
       if (count < 1 || intervalMillis < 1) {
         logger.warning("Thread dump count and interval must be positive integers.");
         return false;
@@ -79,5 +81,9 @@ public class CommandDispatcherImpl implements CommandDispatcher {
       logger.log(WARNING, "Thread dump command failed.", exception);
       return false;
     }
+  }
+
+  private static int getParamOrDefault(List<String> params, int index, int defaultValue) {
+    return params.size() > index ? Integer.parseInt(params.get(index)) : defaultValue;
   }
 }

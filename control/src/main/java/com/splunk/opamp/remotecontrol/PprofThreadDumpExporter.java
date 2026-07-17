@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.splunk.hackity.hack.control;
+package com.splunk.opamp.remotecontrol;
 
 import com.splunk.opentelemetry.profiler.exporter.PprofLogDataExporter;
 import com.splunk.opentelemetry.profiler.pprof.Pprof;

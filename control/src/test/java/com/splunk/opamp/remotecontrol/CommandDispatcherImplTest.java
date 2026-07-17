@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.splunk.hackity.hack.control;
+package com.splunk.opamp.remotecontrol;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.mockito.Mockito.mock;

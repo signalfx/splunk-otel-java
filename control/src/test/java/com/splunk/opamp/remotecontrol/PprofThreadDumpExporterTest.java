@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.splunk.hackity.hack.control;
+package com.splunk.opamp.remotecontrol;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;

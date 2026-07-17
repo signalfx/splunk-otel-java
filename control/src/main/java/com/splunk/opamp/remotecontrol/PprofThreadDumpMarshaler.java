@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.splunk.hackity.hack.control;
+package com.splunk.opamp.remotecontrol;
 
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.SOURCE_EVENT_NAME;
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.SOURCE_EVENT_TIME;

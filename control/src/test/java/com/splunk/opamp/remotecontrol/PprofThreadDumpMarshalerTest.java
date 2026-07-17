@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.splunk.hackity.hack.control;
+package com.splunk.opamp.remotecontrol;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;

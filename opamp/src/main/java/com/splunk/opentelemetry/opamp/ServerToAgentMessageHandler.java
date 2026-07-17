@@ -19,7 +19,7 @@ package com.splunk.opentelemetry.opamp;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.splunk.hackity.hack.control.CommandDispatcher;
+import com.splunk.opamp.remotecontrol.CommandDispatcher;
 import com.splunk.opentelemetry.opamp.effectiveconfig.EffectiveConfigReporter;
 import com.splunk.opentelemetry.profiler.ProfilingSupervisor;
 import io.opentelemetry.opamp.client.OpampClient;

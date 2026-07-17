@@ -22,11 +22,11 @@ import static io.opentelemetry.sdk.autoconfigure.AutoConfigureUtil.getResource;
 import static java.util.logging.Level.WARNING;
 
 import com.google.auto.service.AutoService;
-import com.splunk.hackity.hack.control.BigDumper;
-import com.splunk.hackity.hack.control.CommandDispatcher;
-import com.splunk.hackity.hack.control.CommandDispatcherImpl;
-import com.splunk.hackity.hack.control.NoOpCommandDispatcher;
-import com.splunk.hackity.hack.control.PprofThreadDumpExporter;
+import com.splunk.opamp.remotecontrol.BigDumper;
+import com.splunk.opamp.remotecontrol.CommandDispatcher;
+import com.splunk.opamp.remotecontrol.CommandDispatcherImpl;
+import com.splunk.opamp.remotecontrol.NoOpCommandDispatcher;
+import com.splunk.opamp.remotecontrol.PprofThreadDumpExporter;
 import com.splunk.opentelemetry.opamp.effectiveconfig.EffectiveConfigReporter;
 import com.splunk.opentelemetry.opamp.effectiveconfig.UpdatableEffectiveConfigState;
 import com.splunk.opentelemetry.profiler.InstrumentationSource;

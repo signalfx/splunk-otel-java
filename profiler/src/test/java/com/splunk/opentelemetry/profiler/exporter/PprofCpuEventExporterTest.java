@@ -17,6 +17,9 @@
 package com.splunk.opentelemetry.profiler.exporter;
 
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.FRAME_COUNT;
+import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.LOCK_HELD_PREFIX;
+import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.LOCK_OWNER_THREAD;
+import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.LOCK_WAITING_ON;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -361,11 +364,10 @@ class PprofCpuEventExporterTest {
     var labels = PprofUtils.toLabelString(profile.getSample(0), profile);
 
     assertThat(labels)
-        .containsEntry(ProfilingSemanticAttributes.LOCK_WAITING_ON, "example.WaitingLock@12ab")
-        .containsEntry(ProfilingSemanticAttributes.LOCK_OWNER_THREAD, "lock-owner")
-        .containsEntry(ProfilingSemanticAttributes.LOCK_HELD_PREFIX + "0", "example.Monitor@23bc")
-        .containsEntry(
-            ProfilingSemanticAttributes.LOCK_HELD_PREFIX + "1", "example.Synchronizer@34cd");
+        .containsEntry(LOCK_WAITING_ON, "example.WaitingLock@12ab")
+        .containsEntry(LOCK_OWNER_THREAD, "lock-owner")
+        .containsEntry(LOCK_HELD_PREFIX + "0", "example.Monitor@23bc")
+        .containsEntry(LOCK_HELD_PREFIX + "1", "example.Synchronizer@34cd");
   }
 
   @Test

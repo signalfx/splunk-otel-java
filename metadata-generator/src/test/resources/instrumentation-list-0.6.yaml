@@ -1,0 +1,29 @@
+file_format: 0.6
+
+definitions:
+  configurations:
+    test.enabled:
+      name: otel.instrumentation.test.enabled
+      description: Enables test instrumentation.
+      type: boolean
+      default: true
+  metrics:
+    test.requests-abcd1234:
+      name: test.requests
+      description: Number of test requests.
+      instrument: counter
+
+libraries:
+- name: test-library
+  display_name: Test Library
+  description: Test instrumentation.
+  has_javaagent: true
+  javaagent_target_versions: 1.0+
+  configuration_refs:
+  - test.enabled
+  telemetry:
+  - when: default
+    metric_refs:
+    - test.requests-abcd1234
+
+custom: []

@@ -33,7 +33,8 @@ public class SnapshotProfilingSupervisor {
   private final ConfigurableSupplier<SpanTracker> spanTrackerSupplier;
   private final OptionalConfigurableSupplier<TraceThreadChangeDetector>
       traceThreadChangeDetectorSupplier;
-  private final OptionalConfigurableSupplier<SnapshotProfilingSpanProcessor> profilingSpanProcessorSupplier;
+  private final OptionalConfigurableSupplier<SnapshotProfilingSpanProcessor>
+      profilingSpanProcessorSupplier;
   private final AutoConfiguredOpenTelemetrySdk sdk;
   private final OtelLoggerFactory otelLoggerFactory;
   private boolean running;

@@ -30,7 +30,8 @@ import io.opentelemetry.sdk.trace.SpanProcessor;
  * Custom {@link SpanProcessor} implementation that will register traces for snapshot profiling<br>
  */
 public class SnapshotProfilingSpanProcessor implements SpanProcessor {
-  public final static OptionalConfigurableSupplier<SnapshotProfilingSpanProcessor> SUPPLIER = new OptionalConfigurableSupplier<>();
+  public static final OptionalConfigurableSupplier<SnapshotProfilingSpanProcessor> SUPPLIER =
+      new OptionalConfigurableSupplier<>();
   private final TraceRegistry registry;
   private final SnapshotSelector selector;
   private final OrphanedTraceCleaner orphanedTraceCleaner;

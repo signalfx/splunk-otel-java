@@ -22,14 +22,21 @@ import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.sdk.autoconfigure.OpenTelemetrySdkExtension;
 import io.opentelemetry.sdk.trace.samplers.Sampler;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
 class SpanSamplingTest {
   private final TraceRegistry registry = new TraceRegistry();
+  private final SnapshotProfilingAgentListener agentListener = Snapshotting.agentListener();
   private final SnapshotProfilingSdkCustomizer customizer =
       Snapshotting.customizer().with(registry).build();
+
+  @AfterEach
+  void tearDown() {
+    Snapshotting.resetProfiling();
+  }
 
   @Nested
   class SpanSamplingDisabled {
@@ -40,6 +47,7 @@ class SpanSamplingTest {
             .withProperty("splunk.snapshot.selection.probability", "1.0")
             .withSampler(Sampler.alwaysOff())
             .with(customizer)
+            .with(agentListener)
             .build();
 
     @Test
@@ -60,6 +68,7 @@ class SpanSamplingTest {
             .withProperty("splunk.snapshot.selection.probability", "1.0")
             .withSampler(Sampler.alwaysOn())
             .with(customizer)
+            .with(agentListener)
             .build();
 
     @Test

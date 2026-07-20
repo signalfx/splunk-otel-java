@@ -44,6 +44,7 @@ class SnapshotProfilingAgentListenerTest {
   @BeforeEach
   void setUp() {
     TraceThreadChangeDetector.SUPPLIER.configure(mock(TraceThreadChangeDetector.class));
+    SnapshotProfilingSpanProcessor.SUPPLIER.configure(mock(SnapshotProfilingSpanProcessor.class));
   }
 
   @AfterEach

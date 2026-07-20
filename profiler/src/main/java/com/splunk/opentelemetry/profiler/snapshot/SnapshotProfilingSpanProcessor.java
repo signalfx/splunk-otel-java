@@ -18,6 +18,7 @@ package com.splunk.opentelemetry.profiler.snapshot;
 
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.SNAPSHOT_PROFILING;
 
+import com.splunk.opentelemetry.profiler.util.OptionalConfigurableSupplier;
 import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.sdk.common.CompletableResultCode;
@@ -29,9 +30,11 @@ import io.opentelemetry.sdk.trace.SpanProcessor;
  * Custom {@link SpanProcessor} implementation that will register traces for snapshot profiling<br>
  */
 public class SnapshotProfilingSpanProcessor implements SpanProcessor {
+  public final static OptionalConfigurableSupplier<SnapshotProfilingSpanProcessor> SUPPLIER = new OptionalConfigurableSupplier<>();
   private final TraceRegistry registry;
   private final SnapshotSelector selector;
   private final OrphanedTraceCleaner orphanedTraceCleaner;
+  private boolean enabled;
 
   SnapshotProfilingSpanProcessor(TraceRegistry registry, SnapshotSelector selector) {
     this.registry = registry;
@@ -41,6 +44,9 @@ public class SnapshotProfilingSpanProcessor implements SpanProcessor {
 
   @Override
   public void onStart(Context context, ReadWriteSpan span) {
+    if (!isEnabled()) {
+      return;
+    }
     if (isEntry(span)) {
       SpanContext spanContext = span.getSpanContext();
       boolean selected = selector.select(spanContext);
@@ -70,6 +76,8 @@ public class SnapshotProfilingSpanProcessor implements SpanProcessor {
   @Override
   public void onEnd(ReadableSpan span) {
     if (isEntry(span)) {
+      // To prevent memory leaks do the cleanup even if this processor is disabled.
+      // Some spans may have been started when processor was enabled.
       registry.unregister(span.getSpanContext());
       orphanedTraceCleaner.unregister(span.getSpanContext());
     }
@@ -88,5 +96,13 @@ public class SnapshotProfilingSpanProcessor implements SpanProcessor {
   public CompletableResultCode shutdown() {
     orphanedTraceCleaner.close();
     return SpanProcessor.super.shutdown();
+  }
+
+  public void setEnabled(boolean enabled) {
+    this.enabled = enabled;
+  }
+
+  public boolean isEnabled() {
+    return enabled;
   }
 }

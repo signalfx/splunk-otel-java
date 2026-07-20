@@ -26,12 +26,14 @@ import io.opentelemetry.sdk.autoconfigure.OpenTelemetrySdkExtension;
 import java.time.Duration;
 import java.util.UUID;
 import java.util.concurrent.Callable;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
 public class MultiThreadedTraceProfilingTest {
   private final InMemoryStagingArea staging = new InMemoryStagingArea();
+  private final SnapshotProfilingAgentListener agentListener = Snapshotting.agentListener();
   private final SnapshotProfilingSdkCustomizer customizer =
       Snapshotting.customizer().withRealStackTraceSampler().with(staging).build();
 
@@ -41,6 +43,7 @@ public class MultiThreadedTraceProfilingTest {
           .withProperty("splunk.snapshot.profiler.enabled", "true")
           .withProperty("splunk.snapshot.selection.probability", "1.0")
           .with(customizer)
+          .with(agentListener)
           .build();
 
   @RegisterExtension
@@ -49,7 +52,13 @@ public class MultiThreadedTraceProfilingTest {
 
   @BeforeEach
   void enableThreadChangeDetection() {
+    Snapshotting.customizer().withRealStackTraceSampler().with(staging);
     TraceThreadChangeDetector.SUPPLIER.get().setEnabled(true);
+  }
+
+  @AfterEach
+  void tearDown() {
+    Snapshotting.resetProfiling();
   }
 
   private Callable<UUID> slowTask() {

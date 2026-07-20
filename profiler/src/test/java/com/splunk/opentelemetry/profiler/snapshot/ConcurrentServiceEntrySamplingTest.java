@@ -33,6 +33,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
@@ -44,6 +45,7 @@ class ConcurrentServiceEntrySamplingTest {
 
   private final InMemoryStagingArea staging = new InMemoryStagingArea();
   private final StackTraceSampler sampler = newSampler(staging);
+  private final SnapshotProfilingAgentListener agentListener = Snapshotting.agentListener();
 
   private StackTraceSampler newSampler(StagingArea staging) {
     var stagingAreaSupplier = StagingArea.SUPPLIER;
@@ -61,7 +63,11 @@ class ConcurrentServiceEntrySamplingTest {
           .withProperty("splunk.snapshot.profiler.enabled", "true")
           .withProperty("splunk.snapshot.selection.probability", "1.0")
           .with(downstreamCustomizer)
+          .with(agentListener)
           .build();
+
+  private final SnapshotProfilingSpanProcessor downstreamSpanProcessor =
+      SnapshotProfilingSpanProcessor.SUPPLIER.get();
 
   @RegisterExtension
   public final Server downstream =
@@ -80,7 +86,11 @@ class ConcurrentServiceEntrySamplingTest {
           .withProperty("splunk.snapshot.profiler.enabled", "true")
           .withProperty("splunk.snapshot.selection.probability", "1.0")
           .with(upstreamCustomizer)
+          .with(agentListener)
           .build();
+
+  private final SnapshotProfilingSpanProcessor upstreamSpanProcessor =
+      SnapshotProfilingSpanProcessor.SUPPLIER.get();
 
   @RegisterExtension
   public final Server upstream =
@@ -91,8 +101,15 @@ class ConcurrentServiceEntrySamplingTest {
 
   @BeforeEach
   void enableContextTracking() {
+    Snapshotting.enable(downstreamSpanProcessor, upstreamSpanProcessor);
+    Snapshotting.customizer().with(sampler).with(staging);
     SpanTracker.SUPPLIER.get().setEnabled(true);
     TraceThreadChangeDetector.SUPPLIER.get().setEnabled(true);
+  }
+
+  @AfterEach
+  void tearDown() {
+    Snapshotting.resetProfiling();
   }
 
   /**

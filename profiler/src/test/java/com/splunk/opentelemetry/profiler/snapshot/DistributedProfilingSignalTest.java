@@ -26,10 +26,13 @@ import com.splunk.opentelemetry.profiler.snapshot.simulation.Message;
 import com.splunk.opentelemetry.profiler.snapshot.simulation.Server;
 import io.opentelemetry.sdk.autoconfigure.OpenTelemetrySdkExtension;
 import java.time.Duration;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
 class DistributedProfilingSignalTest {
+  private final SnapshotProfilingAgentListener agentListener = Snapshotting.agentListener();
   private final RecordingTraceRegistry downstreamRegistry = new RecordingTraceRegistry();
   private final SnapshotProfilingSdkCustomizer downstreamCustomizer =
       Snapshotting.customizer().with(downstreamRegistry).build();
@@ -40,7 +43,11 @@ class DistributedProfilingSignalTest {
           .withProperty("splunk.snapshot.profiler.enabled", "true")
           .withProperty("splunk.snapshot.selection.probability", "1.0")
           .with(downstreamCustomizer)
+          .with(agentListener)
           .build();
+
+  private final SnapshotProfilingSpanProcessor downstreamSpanProcessor =
+      SnapshotProfilingSpanProcessor.SUPPLIER.get();
 
   @RegisterExtension
   public final Server downstream =
@@ -66,11 +73,25 @@ class DistributedProfilingSignalTest {
           .withProperty("splunk.snapshot.profiler.enabled", "true")
           .withProperty("splunk.snapshot.selection.probability", "1.0")
           .with(upstreamCustomizer)
+          .with(agentListener)
           .build();
+
+  private final SnapshotProfilingSpanProcessor upstreamSpanProcessor =
+      SnapshotProfilingSpanProcessor.SUPPLIER.get();
 
   @RegisterExtension
   public final Server upstream =
       Server.builder(upstreamSdk).named("upstream").performing(ExitCall.to(middle)).build();
+
+  @BeforeEach
+  void enableSpanProcessors() {
+    Snapshotting.enable(downstreamSpanProcessor, upstreamSpanProcessor);
+  }
+
+  @AfterEach
+  void tearDown() {
+    Snapshotting.resetProfiling();
+  }
 
   /**
    * The test below is asserting a few things are happening. First, consider the following

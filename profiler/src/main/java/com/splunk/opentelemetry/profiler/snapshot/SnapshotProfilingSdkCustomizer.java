@@ -77,9 +77,12 @@ public class SnapshotProfilingSdkCustomizer implements AutoConfigurationCustomiz
       double selectionProbability =
           SnapshotProfilingConfiguration.SUPPLIER.get().getSnapshotSelectionProbability();
 
-      return builder.addSpanProcessor(
+      SnapshotProfilingSpanProcessor spanProcessor =
           new SnapshotProfilingSpanProcessor(
-              registry, new TraceIdBasedSnapshotSelector(selectionProbability)));
+              registry, new TraceIdBasedSnapshotSelector(selectionProbability));
+      SnapshotProfilingSpanProcessor.SUPPLIER.configure(spanProcessor);
+
+      return builder.addSpanProcessor(spanProcessor);
     };
   }
 

@@ -25,11 +25,13 @@ import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.sdk.autoconfigure.OpenTelemetrySdkExtension;
 import io.opentelemetry.sdk.trace.ReadWriteSpan;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
 class SnapshotSpanAttributeTest {
   private final TogglableTraceRegistry registry = new TogglableTraceRegistry();
+  private final SnapshotProfilingAgentListener agentListener = Snapshotting.agentListener();
   private final SnapshotProfilingSdkCustomizer customizer =
       Snapshotting.customizer().with(registry).build();
 
@@ -39,7 +41,13 @@ class SnapshotSpanAttributeTest {
           .with(customizer)
           .withProperty("splunk.snapshot.profiler.enabled", "true")
           .withProperty("splunk.snapshot.selection.probability", "1.0")
+          .with(agentListener)
           .build();
+
+  @AfterEach
+  void tearDown() {
+    Snapshotting.resetProfiling();
+  }
 
   @Test
   void addSnapshotSpanAttributeToEntrySpans(Tracer tracer) {

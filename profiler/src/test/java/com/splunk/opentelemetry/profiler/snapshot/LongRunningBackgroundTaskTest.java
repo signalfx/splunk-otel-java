@@ -32,6 +32,7 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 
 class LongRunningBackgroundTaskTest {
   private final InMemoryStagingArea staging = new InMemoryStagingArea();
+  private final SnapshotProfilingAgentListener agentListener = Snapshotting.agentListener();
   private final SnapshotProfilingSdkCustomizer customizer =
       Snapshotting.customizer().withRealStackTraceSampler().with(staging).build();
 
@@ -41,6 +42,7 @@ class LongRunningBackgroundTaskTest {
           .withProperty("splunk.snapshot.profiler.enabled", "true")
           .withProperty("splunk.snapshot.selection.probability", "1.0")
           .with(customizer)
+          .with(agentListener)
           .build();
 
   private CountDownLatch slowTaskLatch = new CountDownLatch(1);
@@ -51,6 +53,7 @@ class LongRunningBackgroundTaskTest {
 
   @BeforeEach
   void enableThreadChangeDetection() {
+    Snapshotting.customizer().withRealStackTraceSampler().with(staging);
     TraceThreadChangeDetector.SUPPLIER.get().setEnabled(true);
   }
 
@@ -68,6 +71,7 @@ class LongRunningBackgroundTaskTest {
   void reset() {
     slowTaskLatch.countDown();
     slowTaskLatch = new CountDownLatch(1);
+    Snapshotting.resetProfiling();
   }
 
   @Test

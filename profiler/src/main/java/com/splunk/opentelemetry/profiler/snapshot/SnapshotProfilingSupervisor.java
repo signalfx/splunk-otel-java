@@ -33,6 +33,7 @@ public class SnapshotProfilingSupervisor {
   private final ConfigurableSupplier<SpanTracker> spanTrackerSupplier;
   private final OptionalConfigurableSupplier<TraceThreadChangeDetector>
       traceThreadChangeDetectorSupplier;
+  private final OptionalConfigurableSupplier<SnapshotProfilingSpanProcessor> profilingSpanProcessorSupplier;
   private final AutoConfiguredOpenTelemetrySdk sdk;
   private final OtelLoggerFactory otelLoggerFactory;
   private boolean running;
@@ -42,11 +43,13 @@ public class SnapshotProfilingSupervisor {
       OptionalConfigurableSupplier<SnapshotProfilingConfiguration> configurationSupplier,
       ConfigurableSupplier<SpanTracker> spanTrackerSupplier,
       OptionalConfigurableSupplier<TraceThreadChangeDetector> traceThreadChangeDetectorSupplier,
+      OptionalConfigurableSupplier<SnapshotProfilingSpanProcessor> profilingSpanProcessorSupplier,
       AutoConfiguredOpenTelemetrySdk sdk,
       OtelLoggerFactory otelLoggerFactory) {
     this.configurationSupplier = configurationSupplier;
     this.spanTrackerSupplier = spanTrackerSupplier;
     this.traceThreadChangeDetectorSupplier = traceThreadChangeDetectorSupplier;
+    this.profilingSpanProcessorSupplier = profilingSpanProcessorSupplier;
     this.sdk = sdk;
     this.otelLoggerFactory = otelLoggerFactory;
   }
@@ -61,6 +64,7 @@ public class SnapshotProfilingSupervisor {
             SnapshotProfilingConfiguration.SUPPLIER,
             SpanTracker.SUPPLIER,
             TraceThreadChangeDetector.SUPPLIER,
+            SnapshotProfilingSpanProcessor.SUPPLIER,
             sdk,
             new OtelLoggerFactory());
     SUPPLIER.configure(supervisor);
@@ -75,20 +79,14 @@ public class SnapshotProfilingSupervisor {
 
     configurationSupplier.get().log();
 
-    // StagingArea.SUPPLIER
-    // StackTraceSampler.SUPPLIER
-    // StackTraceExporter.SUPPLIER = AsyncStackTraceExporter
     StackTraceSamplerInitializer.setupStackTraceSampler(configurationSupplier.get());
     StackTraceSamplerInitializer.setupStackTraceExporter(
         configurationSupplier.get(), AutoConfigureUtil.getResource(sdk), otelLoggerFactory);
 
-    // SpanTracker.SUPPLIER
     spanTrackerSupplier.get().setEnabled(true);
     traceThreadChangeDetectorSupplier.get().setEnabled(true);
 
-    // SnapshotProfilingSdkCustomizer/SnapshotProfilingSpanProcessorComponentProvider ->
-    // SnapshotProfilingSpanProcessor
-    // SdkShutdownHookComponentProvider -> SdkShutdownHook
+    profilingSpanProcessorSupplier.get().setEnabled(true);
 
     running = true;
     logger.info("Snapshot profiling is active.");
@@ -108,8 +106,10 @@ public class SnapshotProfilingSupervisor {
     StackTraceExporter.SUPPLIER.get().close();
     StackTraceExporter.SUPPLIER.reset();
 
-    SpanTracker.SUPPLIER.get().setEnabled(false);
-    TraceThreadChangeDetector.SUPPLIER.get().setEnabled(false);
+    spanTrackerSupplier.get().setEnabled(false);
+    traceThreadChangeDetectorSupplier.get().setEnabled(false);
+
+    profilingSpanProcessorSupplier.get().setEnabled(false);
 
     running = false;
   }

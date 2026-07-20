@@ -94,3 +94,7 @@
 - class: com.splunk.opentelemetry.instrumentation.nocode.NocodeInstrumentationTest$SampleClass
   method: currentThenRegular
   span_name: "'currentThenRegular.child'"
+
+- class: com.splunk.opentelemetry.instrumentation.nocode.NocodeInstrumentationTest$SampleClass
+  method:
+    name_regex: methodPrefix.*

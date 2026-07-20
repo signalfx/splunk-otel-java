@@ -16,6 +16,7 @@
 
 package com.splunk.opentelemetry.tools;
 
+import com.google.common.annotations.VisibleForTesting;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
@@ -1349,6 +1350,7 @@ public class MetadataGenerator {
     return parseInstrumentations(new URL(url));
   }
 
+  @VisibleForTesting
   static List<Map<String, Object>> parseInstrumentations(URL url) throws IOException {
     Yaml yaml = new Yaml();
     Map<String, Object> metadata;
@@ -1362,23 +1364,10 @@ public class MetadataGenerator {
     }
 
     Map<String, Object> definitions = (Map<String, Object>) metadata.get("definitions");
-    Map<String, Map<String, Object>> configurationDefinitions =
-        (Map<String, Map<String, Object>>) definitions.get("configurations");
-    Map<String, Map<String, Object>> metricDefinitions =
-        (Map<String, Map<String, Object>>) definitions.get("metrics");
-
     List<Map<String, Object>> result = new ArrayList<>();
 
-    handle(
-        result,
-        (List<Map<String, Object>>) metadata.get("libraries"),
-        configurationDefinitions,
-        metricDefinitions);
-    handle(
-        result,
-        (List<Map<String, Object>>) metadata.get("custom"),
-        configurationDefinitions,
-        metricDefinitions);
+    handle(result, (List<Map<String, Object>>) metadata.get("libraries"), definitions);
+    handle(result, (List<Map<String, Object>>) metadata.get("custom"), definitions);
 
     return result;
   }
@@ -1386,8 +1375,12 @@ public class MetadataGenerator {
   private static void handle(
       List<Map<String, Object>> instrumentations,
       List<Map<String, Object>> infos,
-      Map<String, Map<String, Object>> configurationDefinitions,
-      Map<String, Map<String, Object>> metricDefinitions) {
+      Map<String, Object> definitions) {
+    Map<String, Map<String, Object>> configurationDefinitions =
+        (Map<String, Map<String, Object>>) definitions.get("configurations");
+    Map<String, Map<String, Object>> metricDefinitions =
+        (Map<String, Map<String, Object>>) definitions.get("metrics");
+
     for (Map<String, Object> info : infos) {
       // only javaagent instrumentations
       if (Boolean.TRUE.equals(info.get("has_javaagent"))) {

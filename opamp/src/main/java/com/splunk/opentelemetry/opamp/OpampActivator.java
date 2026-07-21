@@ -49,6 +49,7 @@ import java.time.Instant;
 import java.util.logging.Logger;
 import opamp.proto.ComponentHealth;
 import opamp.proto.ServerErrorResponse;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 @AutoService(AgentListener.class)
@@ -69,19 +70,8 @@ public class OpampActivator implements AgentListener {
         EffectiveConfigReporter.create(autoConfiguredOpenTelemetrySdk, effectiveConfigState);
     effectiveConfigReporter.reportEffectiveConfigIfChanged();
 
-    CommandDispatcher commandDispatcher = new NoOpCommandDispatcher();
-    if (opampClientConfiguration.remoteControlIsAllowed()) {
-      io.opentelemetry.api.logs.Logger loggerOfCommands =
-          autoConfiguredOpenTelemetrySdk
-              .getOpenTelemetrySdk()
-              .getSdkLoggerProvider()
-              .get(OTEL_INSTRUMENTATION_NAME); // it's a sad sad thing to lie about this...
-      PprofLogDataExporter logDataExporter =
-          new PprofLogDataExporter(
-              loggerOfCommands, ProfilingDataType.CPU, InstrumentationSource.THREADDUMP);
-      PprofThreadDumpExporter threadDumpExporter = new PprofThreadDumpExporter(logDataExporter);
-      commandDispatcher = new CommandDispatcherImpl(new BigDumper(threadDumpExporter::export));
-    }
+    CommandDispatcher commandDispatcher =
+        buildCommandDispatcher(autoConfiguredOpenTelemetrySdk, opampClientConfiguration);
     ServerToAgentMessageHandler serverToAgentMessageHandler =
         new ServerToAgentMessageHandler(
             ProfilingSupervisor.SUPPLIER.get(), effectiveConfigReporter, commandDispatcher);
@@ -125,6 +115,25 @@ public class OpampActivator implements AgentListener {
                     logger.log(WARNING, "Error shutting down OpAMP client", e);
                   }
                 }));
+  }
+
+  @NotNull
+  private static CommandDispatcher buildCommandDispatcher(
+      AutoConfiguredOpenTelemetrySdk autoConfiguredOpenTelemetrySdk,
+      OpampClientConfiguration opampClientConfiguration) {
+    if (!opampClientConfiguration.isRemoteControlAllowed()) {
+      return new NoOpCommandDispatcher();
+    }
+    io.opentelemetry.api.logs.Logger loggerOfCommands =
+        autoConfiguredOpenTelemetrySdk
+            .getOpenTelemetrySdk()
+            .getSdkLoggerProvider()
+            .get(OTEL_INSTRUMENTATION_NAME); // it's a sad sad thing to lie about this...
+    PprofLogDataExporter logDataExporter =
+        new PprofLogDataExporter(
+            loggerOfCommands, ProfilingDataType.CPU, InstrumentationSource.THREADDUMP);
+    PprofThreadDumpExporter threadDumpExporter = new PprofThreadDumpExporter(logDataExporter);
+    return new CommandDispatcherImpl(new BigDumper(threadDumpExporter::export));
   }
 
   @Override

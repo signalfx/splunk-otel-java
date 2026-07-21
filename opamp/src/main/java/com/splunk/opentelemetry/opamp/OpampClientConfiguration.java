@@ -54,7 +54,7 @@ public class OpampClientConfiguration {
         + '}';
   }
 
-  public boolean remoteControlIsAllowed() {
+  public boolean isRemoteControlAllowed() {
     return allowRemoteControl;
   }
 
@@ -78,8 +78,8 @@ public class OpampClientConfiguration {
       return this;
     }
 
-    public Builder withHackyRemoteControl(boolean allowHackyRemoteControl) {
-      configuredInstance.allowRemoteControl = allowHackyRemoteControl;
+    public Builder withRemoteControlAllowed(boolean allowRemoteControl) {
+      configuredInstance.allowRemoteControl = allowRemoteControl;
       return this;
     }
 

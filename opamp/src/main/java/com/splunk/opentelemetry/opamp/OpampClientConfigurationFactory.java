@@ -16,6 +16,7 @@
 
 package com.splunk.opentelemetry.opamp;
 
+import static io.opentelemetry.api.incubator.config.DeclarativeConfigProperties.empty;
 import static io.opentelemetry.opamp.client.internal.request.service.HttpRequestService.DEFAULT_DELAY_BETWEEN_REQUESTS;
 
 import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
@@ -44,15 +45,14 @@ public class OpampClientConfigurationFactory {
 
     OpampClientConfiguration.Builder builder = OpampClientConfiguration.builder();
     if (opampProperties != null) {
-      DeclarativeConfigProperties features = opampProperties.getStructured("features");
+      DeclarativeConfigProperties features = opampProperties.getStructured("features", empty());
       builder.withEnabled(true);
       builder
           .withEndpoint(opampProperties.getString("endpoint"))
           .withPollingInterval(
               opampProperties.getLong(
                   "polling_interval", DEFAULT_DELAY_BETWEEN_REQUESTS.getNextDelay().toMillis()))
-          .withHackyRemoteControl(
-              features != null && features.getPropertyKeys().contains("experimental_control"));
+          .withRemoteControlAllowed(features.getPropertyKeys().contains("experimental_control"));
     }
 
     return builder.build();
@@ -66,7 +66,7 @@ public class OpampClientConfigurationFactory {
             config.getLong(
                 "splunk.opamp.polling.interval",
                 DEFAULT_DELAY_BETWEEN_REQUESTS.getNextDelay().toMillis()))
-        .withHackyRemoteControl(
+        .withRemoteControlAllowed(
             config.getBoolean("splunk.opamp.experimental.remote.control", false))
         .build();
   }

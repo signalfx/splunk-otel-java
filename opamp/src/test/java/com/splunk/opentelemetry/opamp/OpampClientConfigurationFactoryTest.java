@@ -57,7 +57,7 @@ class OpampClientConfigurationFactoryTest {
     assertThat(configuration.isEnabled()).isTrue();
     assertThat(configuration.getEndpoint()).isEqualTo("https://opamp.example.com");
     assertThat(configuration.getPollingInterval()).isEqualTo(3210);
-    assertThat(configuration.remoteControlIsAllowed()).isTrue();
+    assertThat(configuration.isRemoteControlAllowed()).isTrue();
   }
 
   @Test
@@ -83,7 +83,7 @@ class OpampClientConfigurationFactoryTest {
     assertThat(configuration.isEnabled()).isTrue();
     assertThat(configuration.getEndpoint()).isEqualTo("http://some.opamp-host.com:3420/v1/opamp");
     assertThat(configuration.getPollingInterval()).isEqualTo(4567);
-    assertThat(configuration.remoteControlIsAllowed()).isFalse();
+    assertThat(configuration.isRemoteControlAllowed()).isFalse();
   }
 
   @Test
@@ -107,7 +107,7 @@ class OpampClientConfigurationFactoryTest {
         OpampClientConfigurationFactory.createConfiguration(sdk);
 
     // then
-    assertThat(configuration.remoteControlIsAllowed()).isTrue();
+    assertThat(configuration.isRemoteControlAllowed()).isTrue();
   }
 
   @Test

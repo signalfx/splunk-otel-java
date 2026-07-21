@@ -113,5 +113,16 @@ public class SnapshotProfilingSupervisor {
     profilingSpanProcessorSupplier.get().setEnabled(false);
 
     running = false;
+    logger.info("Snapshot profiling is deactivated.");
+  }
+
+  public synchronized void reinitializeProfiling() {
+    if (running) {
+      stopProfiling();
+    }
+
+    if (configurationSupplier.get().isEnabled()) {
+      startProfiling();
+    }
   }
 }

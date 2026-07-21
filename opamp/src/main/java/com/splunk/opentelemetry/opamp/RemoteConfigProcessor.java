@@ -23,6 +23,9 @@ import com.splunk.opentelemetry.opamp.effectiveconfig.EffectiveConfigReporter;
 import com.splunk.opentelemetry.profiler.ProfilerConfiguration;
 import com.splunk.opentelemetry.profiler.ProfilerDeclarativeConfigurationFactory;
 import com.splunk.opentelemetry.profiler.ProfilingSupervisor;
+import com.splunk.opentelemetry.profiler.snapshot.SnapshotProfilingConfiguration;
+import com.splunk.opentelemetry.profiler.snapshot.SnapshotProfilingDeclarativeConfigurationFactory;
+import com.splunk.opentelemetry.profiler.snapshot.SnapshotProfilingSupervisor;
 import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
 import io.opentelemetry.opamp.client.OpampClient;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.DeclarativeConfiguration;
@@ -44,11 +47,15 @@ public class RemoteConfigProcessor {
   private static final String PROFILING_NODE_NAME = "profiling";
 
   private final ProfilingSupervisor profilingSupervisor;
+  private final SnapshotProfilingSupervisor snapshotProfilingSupervisor;
   private final EffectiveConfigReporter effectiveConfigReporter;
 
   public RemoteConfigProcessor(
-      ProfilingSupervisor profilingSupervisor, EffectiveConfigReporter effectiveConfigReporter) {
+      ProfilingSupervisor profilingSupervisor,
+      SnapshotProfilingSupervisor snapshotProfilingSupervisor,
+      EffectiveConfigReporter effectiveConfigReporter) {
     this.profilingSupervisor = Objects.requireNonNull(profilingSupervisor);
+    this.snapshotProfilingSupervisor = Objects.requireNonNull(snapshotProfilingSupervisor);
     this.effectiveConfigReporter = Objects.requireNonNull(effectiveConfigReporter);
   }
 
@@ -76,22 +83,8 @@ public class RemoteConfigProcessor {
 
       // Update profiler configuration only when profiling node exists
       if (distributionRemoteConfigProperties.getPropertyKeys().contains(PROFILING_NODE_NAME)) {
-        ProfilerConfiguration receivedProfilerConfig =
-            ProfilerDeclarativeConfigurationFactory.create(
-                distributionRemoteConfigProperties.getStructured(PROFILING_NODE_NAME, empty()));
-
-        ProfilerConfiguration currentProfilerConfiguration = ProfilerConfiguration.SUPPLIER.get();
-        ProfilerConfiguration updatedProfilerConfig =
-            currentProfilerConfiguration.toBuilder()
-                .setEnabled(receivedProfilerConfig.isEnabled())
-                .setCallStackInterval(receivedProfilerConfig.getCallStackInterval())
-                .setMemoryEnabled(receivedProfilerConfig.getMemoryEnabled())
-                .build();
-
-        if (!currentProfilerConfiguration.equals(updatedProfilerConfig)) {
-          ProfilerConfiguration.SUPPLIER.configure(updatedProfilerConfig);
-          profilingSupervisor.requestReinitializeProfiling();
-        }
+        applyAlwaysOnProfilingConfiguration(distributionRemoteConfigProperties);
+        applySnapshotProfilingConfiguration(distributionRemoteConfigProperties);
       }
 
       // Confirm to the OpAMP Server that remote config has been applied.
@@ -112,6 +105,43 @@ public class RemoteConfigProcessor {
 
     // TODO: Maybe should be postponed after profiler is enabled/disabled?
     effectiveConfigReporter.reportEffectiveConfigIfChanged();
+  }
+
+  private void applyAlwaysOnProfilingConfiguration(
+      DeclarativeConfigProperties distributionRemoteConfigProperties) {
+    ProfilerConfiguration receivedConfiguration =
+        ProfilerDeclarativeConfigurationFactory.create(
+            distributionRemoteConfigProperties.getStructured(PROFILING_NODE_NAME, empty()));
+
+    ProfilerConfiguration currentConfiguration = ProfilerConfiguration.SUPPLIER.get();
+    ProfilerConfiguration updatedConfiguration =
+        currentConfiguration.toBuilder()
+            .setEnabled(receivedConfiguration.isEnabled())
+            .setCallStackInterval(receivedConfiguration.getCallStackInterval())
+            .setMemoryEnabled(receivedConfiguration.getMemoryEnabled())
+            .build();
+
+    if (!currentConfiguration.equals(updatedConfiguration)) {
+      ProfilerConfiguration.SUPPLIER.configure(updatedConfiguration);
+      profilingSupervisor.requestReinitializeProfiling();
+    }
+  }
+
+  private void applySnapshotProfilingConfiguration(
+      DeclarativeConfigProperties distributionRemoteConfigProperties) {
+    SnapshotProfilingConfiguration receivedConfiguration =
+        SnapshotProfilingDeclarativeConfigurationFactory.create(
+            distributionRemoteConfigProperties.getStructured(PROFILING_NODE_NAME, empty()));
+
+    SnapshotProfilingConfiguration currentConfiguration =
+        SnapshotProfilingConfiguration.SUPPLIER.get();
+    SnapshotProfilingConfiguration updatedConfiguration =
+        currentConfiguration.toBuilder().setEnabled(receivedConfiguration.isEnabled()).build();
+
+    if (!currentConfiguration.equals(updatedConfiguration)) {
+      SnapshotProfilingConfiguration.SUPPLIER.configure(updatedConfiguration);
+      snapshotProfilingSupervisor.reinitializeProfiling();
+    }
   }
 
   @VisibleForTesting

@@ -32,6 +32,7 @@ include(
     "agent",
     "agent-csa-bundle",
     "bootstrap",
+    "control",
     "custom",
     "opamp",
     "instrumentation",

@@ -163,6 +163,18 @@ class NocodeInstrumentationTest {
                 span -> span.hasName("currentThenRegular.child").hasParent(trace.getSpan(0))));
   }
 
+  @Test
+  void testCanMatchMethodPrefixAndGenerateSeparateSpans() {
+    new SampleClass().methodPrefixFoo();
+    // foo calls bar, bar calls baz.
+    testing.waitAndAssertTraces(
+        trace ->
+            trace.hasSpansSatisfyingExactly(
+                span -> span.hasName("SampleClass.methodPrefixFoo"),
+                span -> span.hasName("SampleClass.methodPrefixBar"),
+                span -> span.hasName("SampleClass.methodPrefixBaz")));
+  }
+
   public static class SampleClass {
     public String getName() {
       return "name";
@@ -216,5 +228,15 @@ class NocodeInstrumentationTest {
     public void regularThenCurrent(String value) {}
 
     public void currentThenRegular(String value) {}
+
+    public void methodPrefixFoo() {
+      methodPrefixBar();
+    }
+
+    public void methodPrefixBar() {
+      methodPrefixBaz();
+    }
+
+    public void methodPrefixBaz() {}
   }
 }

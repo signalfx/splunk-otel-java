@@ -15,6 +15,7 @@ dependencies {
   annotationProcessor("com.google.auto.service:auto-service")
   compileOnly("com.google.auto.service:auto-service")
 
+  implementation(project(":control"))
   implementation("io.opentelemetry.contrib:opentelemetry-opamp-client")
 
   testImplementation(project(":custom"))

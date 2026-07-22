@@ -16,15 +16,24 @@
 
 package com.splunk.opentelemetry.opamp;
 
+import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.OTEL_INSTRUMENTATION_NAME;
 import static io.opentelemetry.opamp.client.internal.request.service.HttpRequestService.DEFAULT_DELAY_BETWEEN_RETRIES;
 import static io.opentelemetry.sdk.autoconfigure.AutoConfigureUtil.getResource;
 import static java.util.logging.Level.WARNING;
 
 import com.google.auto.service.AutoService;
+import com.splunk.opamp.remotecontrol.BigDumper;
+import com.splunk.opamp.remotecontrol.CommandDispatcher;
+import com.splunk.opamp.remotecontrol.CommandDispatcherImpl;
+import com.splunk.opamp.remotecontrol.NoOpCommandDispatcher;
+import com.splunk.opamp.remotecontrol.PprofThreadDumpExporter;
 import com.splunk.opentelemetry.opamp.effectiveconfig.EffectiveConfigReporter;
 import com.splunk.opentelemetry.opamp.effectiveconfig.UpdatableEffectiveConfigState;
+import com.splunk.opentelemetry.profiler.InstrumentationSource;
+import com.splunk.opentelemetry.profiler.ProfilingDataType;
 import com.splunk.opentelemetry.profiler.ProfilingSupervisor;
 import com.splunk.opentelemetry.profiler.snapshot.SnapshotProfilingSupervisor;
+import com.splunk.opentelemetry.profiler.exporter.PprofLogDataExporter;
 import io.opentelemetry.javaagent.extension.AgentListener;
 import io.opentelemetry.opamp.client.OpampClient;
 import io.opentelemetry.opamp.client.OpampClientBuilder;
@@ -41,6 +50,7 @@ import java.time.Instant;
 import java.util.logging.Logger;
 import opamp.proto.ComponentHealth;
 import opamp.proto.ServerErrorResponse;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 @AutoService(AgentListener.class)
@@ -61,11 +71,14 @@ public class OpampActivator implements AgentListener {
         EffectiveConfigReporter.create(autoConfiguredOpenTelemetrySdk, effectiveConfigState);
     effectiveConfigReporter.reportEffectiveConfigIfChanged();
 
+    CommandDispatcher commandDispatcher =
+        buildCommandDispatcher(autoConfiguredOpenTelemetrySdk, opampClientConfiguration);
     ServerToAgentMessageHandler serverToAgentMessageHandler =
         new ServerToAgentMessageHandler(
             ProfilingSupervisor.SUPPLIER.get(),
             SnapshotProfilingSupervisor.SUPPLIER.get(),
-            effectiveConfigReporter);
+            effectiveConfigReporter,
+            commandDispatcher);
 
     OpampClient client =
         startOpampClient(
@@ -106,6 +119,25 @@ public class OpampActivator implements AgentListener {
                     logger.log(WARNING, "Error shutting down OpAMP client", e);
                   }
                 }));
+  }
+
+  @NotNull
+  private static CommandDispatcher buildCommandDispatcher(
+      AutoConfiguredOpenTelemetrySdk autoConfiguredOpenTelemetrySdk,
+      OpampClientConfiguration opampClientConfiguration) {
+    if (!opampClientConfiguration.isRemoteControlAllowed()) {
+      return new NoOpCommandDispatcher();
+    }
+    io.opentelemetry.api.logs.Logger loggerOfCommands =
+        autoConfiguredOpenTelemetrySdk
+            .getOpenTelemetrySdk()
+            .getSdkLoggerProvider()
+            .get(OTEL_INSTRUMENTATION_NAME); // it's a sad sad thing to lie about this...
+    PprofLogDataExporter logDataExporter =
+        new PprofLogDataExporter(
+            loggerOfCommands, ProfilingDataType.CPU, InstrumentationSource.THREADDUMP);
+    PprofThreadDumpExporter threadDumpExporter = new PprofThreadDumpExporter(logDataExporter);
+    return new CommandDispatcherImpl(new BigDumper(threadDumpExporter::export));
   }
 
   @Override

@@ -32,8 +32,8 @@ import com.splunk.opentelemetry.opamp.effectiveconfig.UpdatableEffectiveConfigSt
 import com.splunk.opentelemetry.profiler.InstrumentationSource;
 import com.splunk.opentelemetry.profiler.ProfilingDataType;
 import com.splunk.opentelemetry.profiler.ProfilingSupervisor;
-import com.splunk.opentelemetry.profiler.snapshot.SnapshotProfilingSupervisor;
 import com.splunk.opentelemetry.profiler.exporter.PprofLogDataExporter;
+import com.splunk.opentelemetry.profiler.snapshot.SnapshotProfilingSupervisor;
 import io.opentelemetry.javaagent.extension.AgentListener;
 import io.opentelemetry.opamp.client.OpampClient;
 import io.opentelemetry.opamp.client.OpampClientBuilder;

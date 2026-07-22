@@ -40,7 +40,8 @@ public class ServerToAgentMessageHandler {
       CommandDispatcher commandDispatcher) {
     this(
         new RemoteConfigProcessor(
-            profilingSupervisor, snapshotProfilingSupervisor, effectiveConfigReporter), commandDispatcher);
+            profilingSupervisor, snapshotProfilingSupervisor, effectiveConfigReporter),
+        commandDispatcher);
   }
 
   @VisibleForTesting

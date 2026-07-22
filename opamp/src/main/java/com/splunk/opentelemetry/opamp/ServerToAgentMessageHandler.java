@@ -16,28 +16,52 @@
 
 package com.splunk.opentelemetry.opamp;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 import com.google.common.annotations.VisibleForTesting;
+import com.splunk.opamp.remotecontrol.CommandDispatcher;
 import com.splunk.opentelemetry.opamp.effectiveconfig.EffectiveConfigReporter;
 import com.splunk.opentelemetry.profiler.ProfilingSupervisor;
 import io.opentelemetry.opamp.client.OpampClient;
 import io.opentelemetry.opamp.client.internal.response.MessageData;
+import opamp.proto.AgentConfigFile;
+import opamp.proto.AgentRemoteConfig;
 
 public class ServerToAgentMessageHandler {
+  public static final String MAGIC_CMD_STRING = "COMMAND_HACKS";
   private final RemoteConfigProcessor remoteConfigProcessor;
+  private final CommandDispatcher commandDispatcher;
 
   public ServerToAgentMessageHandler(
-      ProfilingSupervisor profilingSupervisor, EffectiveConfigReporter effectiveConfigReporter) {
-    this(new RemoteConfigProcessor(profilingSupervisor, effectiveConfigReporter));
+      ProfilingSupervisor profilingSupervisor,
+      EffectiveConfigReporter effectiveConfigReporter,
+      CommandDispatcher commandDispatcher) {
+    this(
+        new RemoteConfigProcessor(profilingSupervisor, effectiveConfigReporter), commandDispatcher);
   }
 
   @VisibleForTesting
-  ServerToAgentMessageHandler(RemoteConfigProcessor remoteConfigProcessor) {
+  ServerToAgentMessageHandler(
+      RemoteConfigProcessor remoteConfigProcessor, CommandDispatcher commandDispatcher) {
     this.remoteConfigProcessor = remoteConfigProcessor;
+    this.commandDispatcher = commandDispatcher;
   }
 
   public void handleMessage(MessageData message, OpampClient opampClient) {
-    if (message.getRemoteConfig() != null) {
-      remoteConfigProcessor.applyConfig(message.getRemoteConfig(), opampClient);
+    AgentRemoteConfig remoteConfig = message.getRemoteConfig();
+    if (remoteConfig != null) {
+
+      if (remoteConfig.config.config_map.containsKey(MAGIC_CMD_STRING)) {
+        AgentConfigFile agentConfigFile = remoteConfig.config.config_map.get(MAGIC_CMD_STRING);
+        String contentType = agentConfigFile.content_type;
+        String body = agentConfigFile.body.string(UTF_8);
+        commandDispatcher.dispatch(contentType, body);
+        if (remoteConfig.config.config_map.size() == 1) { // just this command
+          return;
+        }
+      }
+
+      remoteConfigProcessor.applyConfig(remoteConfig, opampClient);
     }
   }
 }

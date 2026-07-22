@@ -14,22 +14,8 @@
  * limitations under the License.
  */
 
-package com.splunk.opentelemetry.profiler;
+package com.splunk.opamp.remotecontrol;
 
-import java.util.Locale;
-
-public enum InstrumentationSource {
-  CONTINUOUS,
-  SNAPSHOT,
-  THREADDUMP;
-
-  private final String value;
-
-  InstrumentationSource() {
-    this.value = name().toLowerCase(Locale.ROOT);
-  }
-
-  public String value() {
-    return value;
-  }
+public interface CommandDispatcher {
+  void dispatch(String contentType, String body);
 }

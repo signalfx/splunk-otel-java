@@ -39,6 +39,9 @@ class Snapshotting {
         sdk ->
             new SnapshotProfilingSupervisor(
                 SnapshotProfilingConfiguration.SUPPLIER,
+                StagingArea.SUPPLIER,
+                StackTraceSampler.SUPPLIER,
+                StackTraceExporter.SUPPLIER,
                 SpanTracker.SUPPLIER,
                 TraceThreadChangeDetector.SUPPLIER,
                 SnapshotProfilingSpanProcessor.SUPPLIER,

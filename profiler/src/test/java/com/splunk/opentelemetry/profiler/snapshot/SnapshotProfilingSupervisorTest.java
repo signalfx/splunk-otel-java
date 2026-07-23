@@ -21,7 +21,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -30,6 +29,7 @@ import com.splunk.opentelemetry.profiler.OtelLoggerFactory;
 import com.splunk.opentelemetry.profiler.util.OptionalConfigurableSupplier;
 import io.opentelemetry.sdk.autoconfigure.AutoConfigureUtil;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
+import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import io.opentelemetry.sdk.resources.Resource;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -52,10 +52,13 @@ class SnapshotProfilingSupervisorTest {
   @Mock StackTraceSampler stackTraceSampler;
   @Mock StagingArea stagingArea;
   @Mock StackTraceExporter stackTraceExporter;
+  @Mock ConfigProperties configProperties;
 
   private OptionalConfigurableSupplier<SnapshotProfilingConfiguration> configurationSupplier;
+  private ConfigurableSupplier<StackTraceSampler> stackTraceSamplerSupplier;
+  private ConfigurableSupplier<StagingArea> stagingAreaSupplier;
+  private ConfigurableSupplier<StackTraceExporter> stackTraceExporterSupplier;
   private SnapshotProfilingSupervisor supervisor;
-  private MockedStatic<StackTraceSamplerInitializer> stackTraceSamplerInitializer;
   private MockedStatic<AutoConfigureUtil> autoConfigureUtil;
 
   @BeforeEach
@@ -69,17 +72,22 @@ class SnapshotProfilingSupervisorTest {
     OptionalConfigurableSupplier<SnapshotProfilingSpanProcessor> profilingSpanProcessorSupplier =
         new OptionalConfigurableSupplier<>();
     profilingSpanProcessorSupplier.configure(profilingSpanProcessor);
+    stackTraceSamplerSupplier = new ConfigurableSupplier<>(StackTraceSampler.NOOP);
+    stagingAreaSupplier = new ConfigurableSupplier<>(StagingArea.NOOP);
+    stackTraceExporterSupplier = new ConfigurableSupplier<>(StackTraceExporter.NOOP);
 
     supervisor =
         new SnapshotProfilingSupervisor(
             configurationSupplier,
+            stagingAreaSupplier,
+            stackTraceSamplerSupplier,
+            stackTraceExporterSupplier,
             spanTrackerSupplier,
             traceThreadChangeDetectorSupplier,
             profilingSpanProcessorSupplier,
             sdk,
             otelLoggerFactory);
 
-    stackTraceSamplerInitializer = mockStatic(StackTraceSamplerInitializer.class);
     autoConfigureUtil = mockStatic(AutoConfigureUtil.class);
     autoConfigureUtil.when(() -> AutoConfigureUtil.getResource(sdk)).thenReturn(RESOURCE);
   }
@@ -87,7 +95,6 @@ class SnapshotProfilingSupervisorTest {
   @AfterEach
   void tearDown() {
     supervisor.stopProfiling();
-    stackTraceSamplerInitializer.close();
     autoConfigureUtil.close();
     Snapshotting.resetProfiling();
   }
@@ -108,16 +115,16 @@ class SnapshotProfilingSupervisorTest {
     configurationSupplier.configure(configuration);
 
     supervisor.startProfiling();
+    StackTraceSampler configuredSampler = stackTraceSamplerSupplier.get();
+    StagingArea configuredStagingArea = stagingAreaSupplier.get();
+    StackTraceExporter configuredExporter = stackTraceExporterSupplier.get();
     supervisor.startProfiling();
 
     verifyEnabled(true);
-    stackTraceSamplerInitializer.verify(
-        () -> StackTraceSamplerInitializer.setupStackTraceSampler(configuration), times(1));
-    stackTraceSamplerInitializer.verify(
-        () ->
-            StackTraceSamplerInitializer.setupStackTraceExporter(
-                configuration, RESOURCE, otelLoggerFactory),
-        times(1));
+    assertThat(stackTraceSamplerSupplier.get()).isSameAs(configuredSampler);
+    assertThat(stagingAreaSupplier.get()).isSameAs(configuredStagingArea);
+    assertThat(stackTraceExporterSupplier.get()).isSameAs(configuredExporter);
+    assertRuntimeComponentsConfigured();
   }
 
   @Test
@@ -148,7 +155,7 @@ class SnapshotProfilingSupervisorTest {
     supervisor.reinitializeProfiling();
 
     verifyNoInteractions(spanTracker, traceThreadChangeDetector, profilingSpanProcessor);
-    stackTraceSamplerInitializer.verifyNoInteractions();
+    assertRuntimeComponentsReset();
   }
 
   @Test
@@ -156,6 +163,9 @@ class SnapshotProfilingSupervisorTest {
     SnapshotProfilingConfiguration initialConfiguration = configuration(true);
     configurationSupplier.configure(initialConfiguration);
     supervisor.startProfiling();
+    StackTraceSampler initialSampler = stackTraceSamplerSupplier.get();
+    StagingArea initialStagingArea = stagingAreaSupplier.get();
+    StackTraceExporter initialExporter = stackTraceExporterSupplier.get();
     configureRuntimeComponents();
     clearInvocations(spanTracker, traceThreadChangeDetector, profilingSpanProcessor);
 
@@ -173,10 +183,10 @@ class SnapshotProfilingSupervisorTest {
     inOrder.verify(traceThreadChangeDetector).setEnabled(true);
     inOrder.verify(profilingSpanProcessor).setEnabled(true);
     inOrder.verifyNoMoreInteractions();
-    stackTraceSamplerInitializer.verify(
-        () -> StackTraceSamplerInitializer.setupStackTraceSampler(initialConfiguration), times(1));
-    stackTraceSamplerInitializer.verify(
-        () -> StackTraceSamplerInitializer.setupStackTraceSampler(updatedConfiguration), times(1));
+    assertThat(stackTraceSamplerSupplier.get()).isNotSameAs(initialSampler);
+    assertThat(stagingAreaSupplier.get()).isNotSameAs(initialStagingArea);
+    assertThat(stackTraceExporterSupplier.get()).isNotSameAs(initialExporter);
+    assertRuntimeComponentsConfigured();
   }
 
   @Test
@@ -193,17 +203,16 @@ class SnapshotProfilingSupervisorTest {
 
     verifyClosedRuntimeComponents();
     verifyEnabled(false);
-    stackTraceSamplerInitializer.verify(
-        () -> StackTraceSamplerInitializer.setupStackTraceSampler(initialConfiguration), times(1));
-    stackTraceSamplerInitializer.verify(
-        () -> StackTraceSamplerInitializer.setupStackTraceSampler(disabledConfiguration), times(0));
     assertRuntimeComponentsReset();
   }
 
   private void configureRuntimeComponents() {
-    StackTraceSampler.SUPPLIER.configure(stackTraceSampler);
-    StagingArea.SUPPLIER.configure(stagingArea);
-    StackTraceExporter.SUPPLIER.configure(stackTraceExporter);
+    stackTraceSamplerSupplier.get().close();
+    stagingAreaSupplier.get().close();
+    stackTraceExporterSupplier.get().close();
+    stackTraceSamplerSupplier.configure(stackTraceSampler);
+    stagingAreaSupplier.configure(stagingArea);
+    stackTraceExporterSupplier.configure(stackTraceExporter);
   }
 
   private void verifyClosedRuntimeComponents() {
@@ -219,13 +228,22 @@ class SnapshotProfilingSupervisorTest {
     verifyNoMoreInteractions(spanTracker, traceThreadChangeDetector, profilingSpanProcessor);
   }
 
-  private static void assertRuntimeComponentsReset() {
-    assertThat(StackTraceSampler.SUPPLIER.get()).isSameAs(StackTraceSampler.NOOP);
-    assertThat(StagingArea.SUPPLIER.get()).isSameAs(StagingArea.NOOP);
-    assertThat(StackTraceExporter.SUPPLIER.get()).isSameAs(StackTraceExporter.NOOP);
+  private void assertRuntimeComponentsConfigured() {
+    assertThat(stackTraceSamplerSupplier.get()).isInstanceOf(PeriodicStackTraceSampler.class);
+    assertThat(stagingAreaSupplier.get()).isInstanceOf(PeriodicallyExportingStagingArea.class);
+    assertThat(stackTraceExporterSupplier.get()).isInstanceOf(AsyncStackTraceExporter.class);
   }
 
-  private static SnapshotProfilingConfiguration configuration(boolean enabled) {
-    return SnapshotProfilingConfiguration.builder().setEnabled(enabled).build();
+  private void assertRuntimeComponentsReset() {
+    assertThat(stackTraceSamplerSupplier.get()).isSameAs(StackTraceSampler.NOOP);
+    assertThat(stagingAreaSupplier.get()).isSameAs(StagingArea.NOOP);
+    assertThat(stackTraceExporterSupplier.get()).isSameAs(StackTraceExporter.NOOP);
+  }
+
+  private SnapshotProfilingConfiguration configuration(boolean enabled) {
+    return SnapshotProfilingConfiguration.builder()
+        .setEnabled(enabled)
+        .setConfigProperties(configProperties)
+        .build();
   }
 }

@@ -65,7 +65,7 @@ class OpampClientConfigurationFactoryTest {
     // given
     String yaml =
         """
-            file_format: "1.0"
+            file_format: "1.1"
             distribution:
               splunk:
                 opamp/development:
@@ -91,7 +91,7 @@ class OpampClientConfigurationFactoryTest {
     // given
     String yaml =
         """
-            file_format: "1.0"
+            file_format: "1.1"
             distribution:
               splunk:
                 opamp/development:

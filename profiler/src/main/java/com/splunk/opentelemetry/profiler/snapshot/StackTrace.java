@@ -29,24 +29,12 @@ class StackTrace {
       String traceId,
       String spanId,
       long recordingThreadId) {
-    return new StackTrace(
-        timestamp,
-        duration,
-        thread.getThreadId(),
-        thread.getThreadName(),
-        thread.getThreadState(),
-        thread.getStackTrace(),
-        traceId,
-        spanId,
-        recordingThreadId);
+    return new StackTrace(timestamp, duration, thread, traceId, spanId, recordingThreadId);
   }
 
   private final Instant timestamp;
   private final Duration duration;
-  private final long threadId;
-  private final String threadName;
-  private final Thread.State threadState;
-  private final StackTraceElement[] stackFrames;
+  private final ThreadInfo threadInfo;
   private final String traceId;
   private final String spanId;
   private final long recordingThreadId;
@@ -55,19 +43,13 @@ class StackTrace {
   StackTrace(
       Instant timestamp,
       Duration duration,
-      long threadId,
-      String threadName,
-      Thread.State threadState,
-      StackTraceElement[] stackFrames,
+      ThreadInfo threadInfo,
       String traceId,
       String spanId,
       long recordingThreadId) {
     this.timestamp = timestamp;
     this.duration = duration;
-    this.threadId = threadId;
-    this.threadName = threadName;
-    this.threadState = threadState;
-    this.stackFrames = stackFrames;
+    this.threadInfo = threadInfo;
     this.traceId = traceId;
     this.spanId = spanId;
     this.recordingThreadId = recordingThreadId;
@@ -82,19 +64,23 @@ class StackTrace {
   }
 
   long getThreadId() {
-    return threadId;
+    return threadInfo.getThreadId();
   }
 
   String getThreadName() {
-    return threadName;
+    return threadInfo.getThreadName();
   }
 
   Thread.State getThreadState() {
-    return threadState;
+    return threadInfo.getThreadState();
   }
 
   StackTraceElement[] getStackFrames() {
-    return stackFrames;
+    return threadInfo.getStackTrace();
+  }
+
+  ThreadInfo getThreadInfo() {
+    return threadInfo;
   }
 
   String getTraceId() {

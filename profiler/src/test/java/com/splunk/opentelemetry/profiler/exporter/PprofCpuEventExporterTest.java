@@ -17,9 +17,14 @@
 package com.splunk.opentelemetry.profiler.exporter;
 
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.FRAME_COUNT;
+import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.LOCK_HELD_PREFIX;
+import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.LOCK_OWNER_THREAD;
+import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.LOCK_WAITING_ON;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import com.google.perftools.profiles.ProfileProto.Location;
 import com.google.perftools.profiles.ProfileProto.Profile;
@@ -30,6 +35,9 @@ import com.splunk.opentelemetry.profiler.pprof.PprofUtils;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.sdk.trace.IdGenerator;
 import java.io.IOException;
+import java.lang.management.LockInfo;
+import java.lang.management.MonitorInfo;
+import java.lang.management.ThreadInfo;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -331,6 +339,35 @@ class PprofCpuEventExporterTest {
     assertThat(labels).contains(entry(ProfilingSemanticAttributes.THREAD_ID, threadId));
     assertThat(labels).contains(entry(ProfilingSemanticAttributes.THREAD_NAME, threadName));
     assertThat(labels).contains(entry(ProfilingSemanticAttributes.THREAD_STATE, state.toString()));
+  }
+
+  @Test
+  void includeThreadLockInformationInSamples() throws Exception {
+    var frame = new StackTraceElement("example.Worker", "run", "Worker.java", 42);
+    ThreadInfo threadInfo = mock(ThreadInfo.class);
+    when(threadInfo.getThreadId()).thenReturn(17L);
+    when(threadInfo.getThreadName()).thenReturn("worker-17");
+    when(threadInfo.getThreadState()).thenReturn(Thread.State.BLOCKED);
+    when(threadInfo.getStackTrace()).thenReturn(new StackTraceElement[] {frame});
+    when(threadInfo.getLockInfo()).thenReturn(new LockInfo("example.WaitingLock", 0x12ab));
+    when(threadInfo.getLockOwnerName()).thenReturn("lock-owner");
+    when(threadInfo.getLockedMonitors())
+        .thenReturn(new MonitorInfo[] {new MonitorInfo("example.Monitor", 0x23bc, 0, frame)});
+    when(threadInfo.getLockedSynchronizers())
+        .thenReturn(new LockInfo[] {new LockInfo("example.Synchronizer", 0x34cd)});
+
+    exporter.export(threadInfo, Instant.now(), "", "", Duration.ZERO);
+    exporter.flush();
+
+    var logRecord = logger.records().get(0);
+    var profile = Profile.parseFrom(PprofUtils.deserialize(logRecord));
+    var labels = PprofUtils.toLabelString(profile.getSample(0), profile);
+
+    assertThat(labels)
+        .containsEntry(LOCK_WAITING_ON, "example.WaitingLock@12ab")
+        .containsEntry(LOCK_OWNER_THREAD, "lock-owner")
+        .containsEntry(LOCK_HELD_PREFIX + "0", "example.Monitor@23bc")
+        .containsEntry(LOCK_HELD_PREFIX + "1", "example.Synchronizer@34cd");
   }
 
   @Test

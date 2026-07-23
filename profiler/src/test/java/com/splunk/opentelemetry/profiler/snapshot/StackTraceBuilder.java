@@ -16,6 +16,12 @@
 
 package com.splunk.opentelemetry.profiler.snapshot;
 
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+import java.lang.management.LockInfo;
+import java.lang.management.MonitorInfo;
+import java.lang.management.ThreadInfo;
 import java.time.Duration;
 import java.time.Instant;
 
@@ -26,6 +32,7 @@ class StackTraceBuilder {
   private String threadName;
   private Thread.State state;
   private Exception exception;
+  private ThreadInfo threadInfo;
   private Snapshotting.SpanContextBuilder spanContextBuilder = Snapshotting.spanContext();
 
   public StackTraceBuilder with(Instant timestamp) {
@@ -58,6 +65,11 @@ class StackTraceBuilder {
     return this;
   }
 
+  public StackTraceBuilder with(ThreadInfo threadInfo) {
+    this.threadInfo = threadInfo;
+    return this;
+  }
+
   public StackTraceBuilder withTraceId(String traceId) {
     spanContextBuilder = spanContextBuilder.withTraceId(traceId);
     return this;
@@ -71,14 +83,20 @@ class StackTraceBuilder {
   StackTrace build() {
     var spanContext = spanContextBuilder.build();
     return new StackTrace(
-        timestamp,
-        duration,
-        threadId,
-        threadName,
-        state,
-        exception.getStackTrace(),
-        spanContext.getTraceId(),
-        spanContext.getSpanId(),
-        0);
+        timestamp, duration, threadInfo(), spanContext.getTraceId(), spanContext.getSpanId(), 0);
+  }
+
+  private ThreadInfo threadInfo() {
+    if (threadInfo != null) {
+      return threadInfo;
+    }
+    ThreadInfo result = mock(ThreadInfo.class);
+    when(result.getThreadId()).thenReturn(threadId);
+    when(result.getThreadName()).thenReturn(threadName);
+    when(result.getThreadState()).thenReturn(state);
+    when(result.getStackTrace()).thenReturn(exception.getStackTrace());
+    when(result.getLockedMonitors()).thenReturn(new MonitorInfo[0]);
+    when(result.getLockedSynchronizers()).thenReturn(new LockInfo[0]);
+    return result;
   }
 }

@@ -51,7 +51,7 @@ class SnapshotProfilingConfigurationCustomizerProviderTest {
     // given
     String yaml =
         """
-          file_format: "1.0"
+          file_format: "1.1"
           """;
 
     // when
@@ -68,7 +68,7 @@ class SnapshotProfilingConfigurationCustomizerProviderTest {
     // given
     String yaml =
         """
-          file_format: "1.0"
+          file_format: "1.1"
           propagator:
             composite_list: "propagator1,propagator2"
           distribution:
@@ -90,7 +90,7 @@ class SnapshotProfilingConfigurationCustomizerProviderTest {
     // given
     String yaml =
         """
-          file_format: "1.0"
+          file_format: "1.1"
           tracer_provider:
             processors:
               - batch:
@@ -126,7 +126,7 @@ class SnapshotProfilingConfigurationCustomizerProviderTest {
     OpenTelemetryConfigurationModel model =
         DeclarativeConfigTestUtil.parse(
             """
-              file_format: "1.0"
+              file_format: "1.1"
               distribution:
                 splunk:
                   profiling:

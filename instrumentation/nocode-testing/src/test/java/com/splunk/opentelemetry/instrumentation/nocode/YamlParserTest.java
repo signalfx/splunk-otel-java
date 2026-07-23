@@ -143,7 +143,7 @@ class YamlParserTest {
     // given
     var yaml =
         """
-            file_format: "1.0"
+            file_format: "1.1"
             instrumentation/development:
               java:
                 splunk:

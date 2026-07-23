@@ -65,7 +65,7 @@ class DeclarativeEffectiveConfigFileFactoryTest {
   void buildFileContent_handleRealConfigPaths(@TempDir Path tempDir) throws Exception {
     // given
     Path configFile = tempDir.resolve("declarative-config.yaml");
-    Files.writeString(configFile, "file_format: 1.0", UTF_8);
+    Files.writeString(configFile, "file_format: 1.1", UTF_8);
 
     ProcessBuilder processBuilder =
         new ProcessBuilder(
@@ -99,7 +99,7 @@ class DeclarativeEffectiveConfigFileFactoryTest {
     // given
     String configurationYaml =
         """
-        file_format: 1.0
+        file_format: 1.1
         distribution:
           splunk:
             profiling:
@@ -136,7 +136,7 @@ class DeclarativeEffectiveConfigFileFactoryTest {
 
   @Test
   void handlesBlankConfig() throws Exception {
-    OpenTelemetryConfigurationModel model = parseModel("file_format: 1.0");
+    OpenTelemetryConfigurationModel model = parseModel("file_format: 1.1");
 
     String yaml =
         new DeclarativeEffectiveConfigFileFactory()
@@ -173,7 +173,7 @@ class DeclarativeEffectiveConfigFileFactoryTest {
     OpenTelemetryConfigurationModel model =
         parseModel(
             """
-            file_format: 1.0
+            file_format: 1.1
             tracer_provider:
               processors:
                 - batch:
@@ -226,7 +226,7 @@ class DeclarativeEffectiveConfigFileFactoryTest {
     OpenTelemetryConfigurationModel model =
         parseModel(
             """
-            file_format: 1.0
+            file_format: 1.1
             tracer_provider:
               processors:
                 - batch:
@@ -279,7 +279,7 @@ class DeclarativeEffectiveConfigFileFactoryTest {
     OpenTelemetryConfigurationModel model =
         parseModel(
             """
-            file_format: 1.0
+            file_format: 1.1
             tracer_provider:
               processors:
                 - batch:
@@ -361,7 +361,7 @@ class DeclarativeEffectiveConfigFileFactoryTest {
 
   @Test
   void supportsAlwaysOnProfiler() throws Exception {
-    OpenTelemetryConfigurationModel model = parseModel("file_format: 1.0");
+    OpenTelemetryConfigurationModel model = parseModel("file_format: 1.1");
     when(mockProfilerConfiguration.isEnabled()).thenReturn(true);
     when(mockProfilerConfiguration.getCallStackInterval()).thenReturn(Duration.ofMillis(1410));
     when(mockProfilerConfiguration.getMemoryEnabled()).thenReturn(true);

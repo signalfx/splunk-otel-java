@@ -35,7 +35,7 @@ public class SnapshotProfilingSpanProcessor implements SpanProcessor {
   private final TraceRegistry registry;
   private final SnapshotSelector selector;
   private final OrphanedTraceCleaner orphanedTraceCleaner;
-  private boolean enabled;
+  private volatile boolean enabled;
 
   SnapshotProfilingSpanProcessor(TraceRegistry registry, SnapshotSelector selector) {
     this.registry = registry;

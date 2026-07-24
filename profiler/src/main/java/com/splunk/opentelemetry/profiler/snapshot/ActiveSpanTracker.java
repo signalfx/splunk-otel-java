@@ -31,7 +31,7 @@ class ActiveSpanTracker implements ContextStorage, SpanTracker {
   private final ContextStorage delegate;
   private final TraceRegistry registry;
 
-  private boolean enabled;
+  private volatile boolean enabled;
 
   ActiveSpanTracker(ContextStorage delegate, TraceRegistry registry) {
     this.delegate = delegate;

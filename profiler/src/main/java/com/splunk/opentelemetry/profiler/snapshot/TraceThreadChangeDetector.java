@@ -33,7 +33,7 @@ class TraceThreadChangeDetector implements ContextStorage {
   private final TraceRegistry registry;
   private final Supplier<StackTraceSampler> sampler;
 
-  private boolean enabled;
+  private volatile boolean enabled;
 
   TraceThreadChangeDetector(
       ContextStorage delegate, TraceRegistry registry, Supplier<StackTraceSampler> sampler) {

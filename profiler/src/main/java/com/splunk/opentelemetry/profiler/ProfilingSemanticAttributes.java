@@ -49,6 +49,9 @@ public class ProfilingSemanticAttributes {
   public static final AttributeKey<String> THREAD_STATE = stringKey("thread.state");
   public static final AttributeKey<Boolean> THREAD_STACK_TRUNCATED =
       booleanKey("thread.stack.truncated");
+  public static final String LOCK_WAITING_ON = "lock.waiting_on";
+  public static final String LOCK_OWNER_THREAD = "lock.owner_thread";
+  public static final String LOCK_HELD_PREFIX = "lock.held.";
 
   public static final AttributeKey<String> TRACE_ID = stringKey("trace_id");
   public static final AttributeKey<String> SPAN_ID = stringKey("span_id");

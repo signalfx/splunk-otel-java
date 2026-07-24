@@ -20,6 +20,9 @@ import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.DATA
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.DATA_TYPE;
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.FRAME_COUNT;
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.INSTRUMENTATION_SOURCE;
+import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.LOCK_HELD_PREFIX;
+import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.LOCK_OWNER_THREAD;
+import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.LOCK_WAITING_ON;
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.SOURCE_EVENT_TIME;
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.SOURCE_TYPE;
 import static com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes.SPAN_ID;
@@ -28,11 +31,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import com.google.perftools.profiles.ProfileProto.Profile;
 import com.splunk.opentelemetry.profiler.exporter.InMemoryOtelLogger;
 import com.splunk.opentelemetry.profiler.pprof.PprofUtils;
 import java.io.ByteArrayInputStream;
+import java.lang.management.LockInfo;
+import java.lang.management.MonitorInfo;
+import java.lang.management.ThreadInfo;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executors;
@@ -201,6 +209,34 @@ class AsyncStackTraceExporterTest {
 
     var labels = PprofUtils.toLabelString(sample, profile);
     assertThat(labels).containsEntry(SPAN_ID.getKey(), stackTrace.getSpanId());
+  }
+
+  @Test
+  void includeThreadLockInformationInSamples() throws Exception {
+    var frame = new StackTraceElement("example.Worker", "run", "Worker.java", 42);
+    ThreadInfo threadInfo = mock(ThreadInfo.class);
+    when(threadInfo.getThreadId()).thenReturn(17L);
+    when(threadInfo.getThreadName()).thenReturn("worker-17");
+    when(threadInfo.getThreadState()).thenReturn(Thread.State.BLOCKED);
+    when(threadInfo.getStackTrace()).thenReturn(new StackTraceElement[] {frame});
+    when(threadInfo.getLockInfo()).thenReturn(new LockInfo("example.WaitingLock", 0x12ab));
+    when(threadInfo.getLockOwnerName()).thenReturn("lock-owner");
+    when(threadInfo.getLockedMonitors())
+        .thenReturn(new MonitorInfo[] {new MonitorInfo("example.Monitor", 0x23bc, 0, frame)});
+    when(threadInfo.getLockedSynchronizers())
+        .thenReturn(new LockInfo[] {new LockInfo("example.Synchronizer", 0x34cd)});
+    var stackTrace = Snapshotting.stackTrace().with(threadInfo).build();
+
+    exporter.export(List.of(stackTrace));
+    await().until(() -> !logger.records().isEmpty());
+
+    var profile = Profile.parseFrom(PprofUtils.deserialize(logger.records().get(0)));
+    var labels = PprofUtils.toLabelString(profile.getSample(0), profile);
+    assertThat(labels)
+        .containsEntry(LOCK_WAITING_ON, "example.WaitingLock@12ab")
+        .containsEntry(LOCK_OWNER_THREAD, "lock-owner")
+        .containsEntry(LOCK_HELD_PREFIX + "0", "example.Monitor@23bc")
+        .containsEntry(LOCK_HELD_PREFIX + "1", "example.Synchronizer@34cd");
   }
 
   @Test

@@ -22,11 +22,13 @@ import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.sdk.autoconfigure.OpenTelemetrySdkExtension;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
 class TraceRegistrationTest {
   private final TraceRegistry registry = new TraceRegistry();
+  private final SnapshotProfilingAgentListener agentListener = Snapshotting.agentListener();
   private final SnapshotProfilingSdkCustomizer customizer =
       Snapshotting.customizer().with(registry).build();
 
@@ -36,7 +38,13 @@ class TraceRegistrationTest {
           .withProperty("splunk.snapshot.profiler.enabled", "true")
           .withProperty("splunk.snapshot.selection.probability", "1.0")
           .with(customizer)
+          .with(agentListener)
           .build();
+
+  @AfterEach
+  void tearDown() {
+    Snapshotting.resetProfiling();
+  }
 
   @Test
   void registerTraceForProfilingWhenRootSpanStarts(Tracer tracer) {

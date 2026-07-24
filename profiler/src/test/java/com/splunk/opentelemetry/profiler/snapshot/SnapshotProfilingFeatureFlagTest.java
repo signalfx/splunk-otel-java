@@ -21,6 +21,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.sdk.autoconfigure.OpenTelemetrySdkExtension;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
@@ -29,12 +30,18 @@ class SnapshotProfilingFeatureFlagTest {
   private final TraceRegistry registry = new TraceRegistry();
   private final SnapshotProfilingSdkCustomizer customizer =
       Snapshotting.customizer().with(registry).build();
+  private final SnapshotProfilingAgentListener agentListener = Snapshotting.agentListener();
+
+  @AfterEach
+  void tearDown() {
+    Snapshotting.resetProfiling();
+  }
 
   @Nested
   class SnapshotProfilingDisabledByDefaultTest {
     @RegisterExtension
     public final OpenTelemetrySdkExtension s =
-        OpenTelemetrySdkExtension.configure().with(customizer).build();
+        OpenTelemetrySdkExtension.configure().with(customizer).with(agentListener).build();
 
     @Test
     void snapshotProfilingIsDisabledByDefault(Tracer tracer) {
@@ -53,6 +60,7 @@ class SnapshotProfilingFeatureFlagTest {
             .with(customizer)
             .withProperty("splunk.snapshot.profiler.enabled", "true")
             .withProperty("splunk.snapshot.selection.probability", "1.0")
+            .with(agentListener)
             .build();
 
     @Test
@@ -71,6 +79,7 @@ class SnapshotProfilingFeatureFlagTest {
         OpenTelemetrySdkExtension.configure()
             .with(customizer)
             .withProperty("splunk.snapshot.profiler.enabled", "false")
+            .with(agentListener)
             .build();
 
     @Test

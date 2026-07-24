@@ -20,8 +20,27 @@ import io.opentelemetry.api.trace.SpanContext;
 import java.util.Optional;
 
 interface SpanTracker {
-  SpanTracker NOOP = thread -> Optional.empty();
+  SpanTracker NOOP =
+      new SpanTracker() {
+        @Override
+        public Optional<SpanContext> getActiveSpan(Thread thread) {
+          return Optional.empty();
+        }
+
+        @Override
+        public void setEnabled(boolean enabled) {}
+
+        @Override
+        public boolean isEnabled() {
+          return false;
+        }
+      };
+
   ConfigurableSupplier<SpanTracker> SUPPLIER = new ConfigurableSupplier<>(SpanTracker.NOOP);
 
   Optional<SpanContext> getActiveSpan(Thread thread);
+
+  void setEnabled(boolean enabled);
+
+  boolean isEnabled();
 }

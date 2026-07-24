@@ -26,6 +26,7 @@ import io.opentelemetry.context.ContextStorage;
 import io.opentelemetry.context.Scope;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executors;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 class TraceThreadChangeDetectorTest {
@@ -34,6 +35,11 @@ class TraceThreadChangeDetectorTest {
   private final ObservableStackTraceSampler sampler = new ObservableStackTraceSampler();
   private final TraceThreadChangeDetector detector =
       new TraceThreadChangeDetector(storage, registry, () -> sampler);
+
+  @BeforeEach
+  void setUp() {
+    detector.setEnabled(true);
+  }
 
   @Test
   void currentContextComesFromOpenTelemetryContextStorage() {
@@ -103,6 +109,25 @@ class TraceThreadChangeDetectorTest {
     var context = Context.root().with(span);
 
     var executor = Executors.newSingleThreadExecutor();
+    try (var ts = executor.submit(captureThread(() -> detector.attach(context))).get()) {
+      assertThat(sampler.isBeingSampled(ts.thread)).isFalse();
+    } finally {
+      executor.shutdownNow();
+    }
+  }
+
+  @Test
+  void doNotPerformSamplingWhenNotEnabled() throws Exception {
+    var spanContext = Snapshotting.spanContext().build();
+    registry.register(spanContext);
+    sampler.start(Thread.currentThread(), spanContext);
+
+    var span = Span.wrap(spanContext);
+    var context = Context.root().with(span);
+
+    var executor = Executors.newSingleThreadExecutor();
+    detector.setEnabled(false);
+
     try (var ts = executor.submit(captureThread(() -> detector.attach(context))).get()) {
       assertThat(sampler.isBeingSampled(ts.thread)).isFalse();
     } finally {

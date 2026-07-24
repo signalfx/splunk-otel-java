@@ -49,17 +49,10 @@ public class SnapshotProfilingConfigurationCustomizerProvider
     SnapshotProfilingConfiguration snapshotProfiling = getSnapshotProfilingConfig(model);
     SnapshotProfilingConfiguration.SUPPLIER.configure(snapshotProfiling);
 
-    if (snapshotProfiling.isEnabled()) {
-      initActiveSpansTracking();
-      initStackTraceSampler(snapshotProfiling);
-      addSpanProcessors(model);
-    }
+    initActiveSpansTracking();
+    addSpanProcessors(model);
 
     return model;
-  }
-
-  private void initStackTraceSampler(SnapshotProfilingConfiguration snapshotProfilingConfig) {
-    StackTraceSamplerInitializer.setupStackTraceSampler(snapshotProfilingConfig);
   }
 
   private void addSpanProcessors(OpenTelemetryConfigurationModel model) {

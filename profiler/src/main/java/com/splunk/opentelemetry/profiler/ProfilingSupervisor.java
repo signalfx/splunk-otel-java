@@ -157,17 +157,19 @@ public class ProfilingSupervisor {
    * request.
    */
   private void tryStart() {
-    updateJvmMemoryMetrics();
     if (isJfrRecordingActive()) {
       logger.fine("JFR is already running, not starting again.");
       return;
     }
+
     if (!jfr.isAvailable()) {
       logger.warning(
           "JDK Flight Recorder (JFR) is not available in this JVM. Profiling will not start.");
       return;
     }
+
     configSupplier.get().log();
+    updateJvmMemoryMetrics();
     setJfrContextStorageEnabled(true);
     activateJfrRecording(getResource(sdk));
     logger.info("Profiler is active.");

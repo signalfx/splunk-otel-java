@@ -23,6 +23,7 @@ import java.util.Optional;
 
 class InMemorySpanTracker implements SpanTracker {
   private final Map<Long, SpanContext> activeSpans = new HashMap<>();
+  private boolean enabled = true;
 
   void store(Thread thread, SpanContext spanContext) {
     activeSpans.put(thread.getId(), spanContext);
@@ -31,5 +32,15 @@ class InMemorySpanTracker implements SpanTracker {
   @Override
   public Optional<SpanContext> getActiveSpan(Thread thread) {
     return Optional.ofNullable(activeSpans.get(thread.getId()));
+  }
+
+  @Override
+  public void setEnabled(boolean enabled) {
+    this.enabled = enabled;
+  }
+
+  @Override
+  public boolean isEnabled() {
+    return enabled;
   }
 }

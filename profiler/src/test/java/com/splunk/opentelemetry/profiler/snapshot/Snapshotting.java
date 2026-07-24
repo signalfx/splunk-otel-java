@@ -16,10 +16,12 @@
 
 package com.splunk.opentelemetry.profiler.snapshot;
 
+import com.splunk.opentelemetry.profiler.OtelLoggerFactory;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.api.trace.TraceFlags;
 import io.opentelemetry.api.trace.TraceState;
+import io.opentelemetry.sdk.testing.exporter.InMemoryLogRecordExporter;
 import io.opentelemetry.sdk.trace.IdGenerator;
 import java.time.Duration;
 import java.time.Instant;
@@ -30,6 +32,48 @@ class Snapshotting {
 
   static SnapshotProfilingSdkCustomizerBuilder customizer() {
     return new SnapshotProfilingSdkCustomizerBuilder();
+  }
+
+  static SnapshotProfilingAgentListener agentListener(OtelLoggerFactory otelLoggerFactory) {
+    return new SnapshotProfilingAgentListener(
+        sdk ->
+            new SnapshotProfilingSupervisor(
+                SnapshotProfilingConfiguration.SUPPLIER,
+                SpanTracker.SUPPLIER,
+                TraceThreadChangeDetector.SUPPLIER,
+                SnapshotProfilingSpanProcessor.SUPPLIER,
+                sdk,
+                otelLoggerFactory));
+  }
+
+  static SnapshotProfilingAgentListener agentListener() {
+    var logExporter = InMemoryLogRecordExporter.create();
+    return agentListener(
+        new OtelLoggerFactory(() -> logExporter, declarativeConfigProperties -> logExporter));
+  }
+
+  static void enable(SnapshotProfilingSpanProcessor... spanProcessors) {
+    for (SnapshotProfilingSpanProcessor spanProcessor : spanProcessors) {
+      spanProcessor.setEnabled(true);
+    }
+  }
+
+  static void resetProfiling() {
+    SnapshotProfilingConfiguration.SUPPLIER.reset();
+
+    if (SnapshotProfilingSupervisor.SUPPLIER.isConfigured()) {
+      SnapshotProfilingSupervisor.SUPPLIER.get().stopProfiling();
+      SnapshotProfilingSupervisor.SUPPLIER.reset();
+    }
+
+    StackTraceSampler.SUPPLIER.reset();
+    StagingArea.SUPPLIER.reset();
+    StackTraceExporter.SUPPLIER.reset();
+
+    SpanTracker.SUPPLIER.reset();
+    TraceThreadChangeDetector.SUPPLIER.reset();
+
+    SnapshotProfilingSpanProcessor.SUPPLIER.reset();
   }
 
   static StackTraceBuilder stackTrace() {

@@ -35,12 +35,18 @@ import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 class ActiveSpanTrackerTest {
   private final ContextStorage storage = ContextStorage.get();
   private final TogglableTraceRegistry registry = new TogglableTraceRegistry();
   private final ActiveSpanTracker spanTracker = new ActiveSpanTracker(storage, registry);
+
+  @BeforeEach
+  void setUp() {
+    spanTracker.setEnabled(true);
+  }
 
   @Test
   void currentContextComesFromOpenTelemetryContextStorage() {
@@ -204,6 +210,19 @@ class ActiveSpanTrackerTest {
   @Test
   void doNotTrackSpanWhenNoSpanPresentInContext() {
     var context = Context.root().with(ContextKey.named("test-key"), "value");
+    try (var ignored = spanTracker.attach(context)) {
+      assertEquals(Optional.empty(), spanTracker.getActiveSpan(Thread.currentThread()));
+    }
+  }
+
+  @Test
+  void doNotTrackSpanWhenTrackerIsDisabled() {
+    spanTracker.setEnabled(false);
+
+    var span = Span.wrap(Snapshotting.spanContext().build());
+    var context = Context.root().with(span);
+    registry.register(span.getSpanContext());
+
     try (var ignored = spanTracker.attach(context)) {
       assertEquals(Optional.empty(), spanTracker.getActiveSpan(Thread.currentThread()));
     }

@@ -20,16 +20,11 @@ import java.time.Duration;
 
 class SnapshotProfilingSdkCustomizerBuilder {
   private TraceRegistry registry = new TraceRegistry();
-  private StackTraceSampler sampler = new ObservableStackTraceSampler();
   private ContextStorageWrapper contextStorageWrapper = new ResettingContextStorageWrapper();
 
   SnapshotProfilingSdkCustomizerBuilder with(TraceRegistry registry) {
     this.registry = registry;
     return this;
-  }
-
-  SnapshotProfilingSdkCustomizer real() {
-    return new SnapshotProfilingSdkCustomizer();
   }
 
   SnapshotProfilingSdkCustomizerBuilder withRealStackTraceSampler() {
@@ -43,7 +38,6 @@ class SnapshotProfilingSdkCustomizerBuilder {
 
   SnapshotProfilingSdkCustomizerBuilder with(StackTraceSampler sampler) {
     StackTraceSampler.SUPPLIER.configure(sampler);
-    this.sampler = sampler;
     return this;
   }
 
@@ -67,6 +61,6 @@ class SnapshotProfilingSdkCustomizerBuilder {
   }
 
   SnapshotProfilingSdkCustomizer build() {
-    return new SnapshotProfilingSdkCustomizer(registry, sampler, contextStorageWrapper);
+    return new SnapshotProfilingSdkCustomizer(registry, contextStorageWrapper);
   }
 }

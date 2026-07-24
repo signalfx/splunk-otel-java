@@ -1,0 +1,117 @@
+/*
+ * Copyright Splunk Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.splunk.opentelemetry.profiler.snapshot;
+
+import com.google.common.annotations.VisibleForTesting;
+import com.splunk.opentelemetry.profiler.OtelLoggerFactory;
+import com.splunk.opentelemetry.profiler.util.OptionalConfigurableSupplier;
+import io.opentelemetry.sdk.autoconfigure.AutoConfigureUtil;
+import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
+import java.util.logging.Logger;
+
+public class SnapshotProfilingSupervisor {
+  public static final OptionalConfigurableSupplier<SnapshotProfilingSupervisor> SUPPLIER =
+      new OptionalConfigurableSupplier<>();
+  private static final Logger logger =
+      Logger.getLogger(SnapshotProfilingSupervisor.class.getName());
+
+  private final OptionalConfigurableSupplier<SnapshotProfilingConfiguration> configurationSupplier;
+  private final ConfigurableSupplier<SpanTracker> spanTrackerSupplier;
+  private final OptionalConfigurableSupplier<TraceThreadChangeDetector>
+      traceThreadChangeDetectorSupplier;
+  private final OptionalConfigurableSupplier<SnapshotProfilingSpanProcessor>
+      profilingSpanProcessorSupplier;
+  private final AutoConfiguredOpenTelemetrySdk sdk;
+  private final OtelLoggerFactory otelLoggerFactory;
+  private boolean running;
+
+  @VisibleForTesting
+  SnapshotProfilingSupervisor(
+      OptionalConfigurableSupplier<SnapshotProfilingConfiguration> configurationSupplier,
+      ConfigurableSupplier<SpanTracker> spanTrackerSupplier,
+      OptionalConfigurableSupplier<TraceThreadChangeDetector> traceThreadChangeDetectorSupplier,
+      OptionalConfigurableSupplier<SnapshotProfilingSpanProcessor> profilingSpanProcessorSupplier,
+      AutoConfiguredOpenTelemetrySdk sdk,
+      OtelLoggerFactory otelLoggerFactory) {
+    this.configurationSupplier = configurationSupplier;
+    this.spanTrackerSupplier = spanTrackerSupplier;
+    this.traceThreadChangeDetectorSupplier = traceThreadChangeDetectorSupplier;
+    this.profilingSpanProcessorSupplier = profilingSpanProcessorSupplier;
+    this.sdk = sdk;
+    this.otelLoggerFactory = otelLoggerFactory;
+  }
+
+  public static SnapshotProfilingSupervisor initialize(AutoConfiguredOpenTelemetrySdk sdk) {
+    if (SUPPLIER.isConfigured()) {
+      throw new IllegalStateException("Snapshot profiling already initialized");
+    }
+
+    SnapshotProfilingSupervisor supervisor =
+        new SnapshotProfilingSupervisor(
+            SnapshotProfilingConfiguration.SUPPLIER,
+            SpanTracker.SUPPLIER,
+            TraceThreadChangeDetector.SUPPLIER,
+            SnapshotProfilingSpanProcessor.SUPPLIER,
+            sdk,
+            new OtelLoggerFactory());
+    SUPPLIER.configure(supervisor);
+
+    return supervisor;
+  }
+
+  public synchronized void startProfiling() {
+    if (running) {
+      return;
+    }
+
+    configurationSupplier.get().log();
+
+    StackTraceSamplerInitializer.setupStackTraceSampler(configurationSupplier.get());
+    StackTraceSamplerInitializer.setupStackTraceExporter(
+        configurationSupplier.get(), AutoConfigureUtil.getResource(sdk), otelLoggerFactory);
+
+    spanTrackerSupplier.get().setEnabled(true);
+    traceThreadChangeDetectorSupplier.get().setEnabled(true);
+
+    profilingSpanProcessorSupplier.get().setEnabled(true);
+
+    running = true;
+    logger.info("Snapshot profiling is active.");
+  }
+
+  public synchronized void stopProfiling() {
+    if (!running) {
+      return;
+    }
+
+    StackTraceSampler.SUPPLIER.get().close();
+    StackTraceSampler.SUPPLIER.reset();
+
+    StagingArea.SUPPLIER.get().close();
+    StagingArea.SUPPLIER.reset();
+
+    StackTraceExporter.SUPPLIER.get().close();
+    StackTraceExporter.SUPPLIER.reset();
+
+    spanTrackerSupplier.get().setEnabled(false);
+    traceThreadChangeDetectorSupplier.get().setEnabled(false);
+
+    profilingSpanProcessorSupplier.get().setEnabled(false);
+
+    running = false;
+  }
+}

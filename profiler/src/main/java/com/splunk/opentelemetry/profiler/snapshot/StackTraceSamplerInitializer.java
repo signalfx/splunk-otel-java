@@ -16,10 +16,16 @@
 
 package com.splunk.opentelemetry.profiler.snapshot;
 
+import com.splunk.opentelemetry.profiler.OtelLoggerFactory;
+import com.splunk.opentelemetry.profiler.util.DeclarativeConfigPropertiesUtil;
+import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
+import io.opentelemetry.api.logs.Logger;
+import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
+import io.opentelemetry.sdk.resources.Resource;
 import java.time.Duration;
 
 class StackTraceSamplerInitializer {
-  public StackTraceSamplerInitializer() {}
+  private StackTraceSamplerInitializer() {}
 
   static void setupStackTraceSampler(SnapshotProfilingConfiguration configuration) {
     Duration samplingPeriod = configuration.getSamplingInterval();
@@ -31,9 +37,35 @@ class StackTraceSamplerInitializer {
     StackTraceSampler.SUPPLIER.configure(sampler);
   }
 
+  static void setupStackTraceExporter(
+      SnapshotProfilingConfiguration configuration,
+      Resource resource,
+      OtelLoggerFactory otelLoggerFactory) {
+    int maxDepth = configuration.getStackDepth();
+    Logger otelLogger =
+        buildLogger(otelLoggerFactory, resource, configuration.getConfigProperties());
+    AsyncStackTraceExporter exporter = new AsyncStackTraceExporter(otelLogger, maxDepth);
+    StackTraceExporter.SUPPLIER.configure(exporter);
+  }
+
   private static StagingArea createStagingArea(SnapshotProfilingConfiguration configuration) {
     Duration interval = configuration.getExportInterval();
     int capacity = configuration.getStagingCapacity();
     return new PeriodicallyExportingStagingArea(StackTraceExporter.SUPPLIER, interval, capacity);
+  }
+
+  private static Logger buildLogger(
+      OtelLoggerFactory otelLoggerFactory, Resource resource, Object configProperties) {
+    if (configProperties instanceof DeclarativeConfigProperties) {
+      DeclarativeConfigProperties exporterConfig =
+          DeclarativeConfigPropertiesUtil.getStructuredOrEmpty(
+              (DeclarativeConfigProperties) configProperties, "exporter");
+      return otelLoggerFactory.build(exporterConfig, resource);
+    }
+    if (configProperties instanceof ConfigProperties) {
+      return otelLoggerFactory.build((ConfigProperties) configProperties, resource);
+    }
+    throw new IllegalArgumentException(
+        "Unsupported config properties type: " + configProperties.getClass().getName());
   }
 }

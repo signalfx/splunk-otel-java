@@ -22,6 +22,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.splunk.opamp.remotecontrol.CommandDispatcher;
 import com.splunk.opentelemetry.opamp.effectiveconfig.EffectiveConfigReporter;
 import com.splunk.opentelemetry.profiler.ProfilingSupervisor;
+import com.splunk.opentelemetry.profiler.snapshot.SnapshotProfilingSupervisor;
 import io.opentelemetry.opamp.client.OpampClient;
 import io.opentelemetry.opamp.client.internal.response.MessageData;
 import opamp.proto.AgentConfigFile;
@@ -34,10 +35,13 @@ public class ServerToAgentMessageHandler {
 
   public ServerToAgentMessageHandler(
       ProfilingSupervisor profilingSupervisor,
+      SnapshotProfilingSupervisor snapshotProfilingSupervisor,
       EffectiveConfigReporter effectiveConfigReporter,
       CommandDispatcher commandDispatcher) {
     this(
-        new RemoteConfigProcessor(profilingSupervisor, effectiveConfigReporter), commandDispatcher);
+        new RemoteConfigProcessor(
+            profilingSupervisor, snapshotProfilingSupervisor, effectiveConfigReporter),
+        commandDispatcher);
   }
 
   @VisibleForTesting

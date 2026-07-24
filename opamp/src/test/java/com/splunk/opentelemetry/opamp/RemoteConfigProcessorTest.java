@@ -25,6 +25,8 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import com.splunk.opentelemetry.opamp.effectiveconfig.EffectiveConfigReporter;
 import com.splunk.opentelemetry.profiler.ProfilerConfiguration;
 import com.splunk.opentelemetry.profiler.ProfilingSupervisor;
+import com.splunk.opentelemetry.profiler.snapshot.SnapshotProfilingConfiguration;
+import com.splunk.opentelemetry.profiler.snapshot.SnapshotProfilingSupervisor;
 import io.opentelemetry.opamp.client.OpampClient;
 import java.util.Map;
 import okio.ByteString;
@@ -35,6 +37,7 @@ import opamp.proto.RemoteConfigStatus;
 import opamp.proto.RemoteConfigStatuses;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -44,6 +47,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class RemoteConfigProcessorTest {
   @Mock ProfilingSupervisor profilingSupervisor;
+  @Mock SnapshotProfilingSupervisor snapshotProfilingSupervisor;
   @Mock EffectiveConfigReporter effectiveConfigReporter;
   @Mock OpampClient opampClient;
   private RemoteConfigProcessor handler;
@@ -51,12 +55,17 @@ class RemoteConfigProcessorTest {
   @BeforeEach
   void setUp() {
     ProfilerConfiguration.SUPPLIER.configure(ProfilerConfiguration.builder().build());
-    handler = new RemoteConfigProcessor(profilingSupervisor, effectiveConfigReporter);
+    SnapshotProfilingConfiguration.SUPPLIER.configure(
+        SnapshotProfilingConfiguration.builder().build());
+    handler =
+        new RemoteConfigProcessor(
+            profilingSupervisor, snapshotProfilingSupervisor, effectiveConfigReporter);
   }
 
   @AfterEach
   void tearDown() {
     ProfilerConfiguration.SUPPLIER.reset();
+    SnapshotProfilingConfiguration.SUPPLIER.reset();
   }
 
   @Test
@@ -83,35 +92,7 @@ class RemoteConfigProcessorTest {
     assertThat(status.error_message).isEmpty();
     assertThat(ProfilerConfiguration.SUPPLIER.get().isEnabled()).isFalse();
     verify(effectiveConfigReporter).reportEffectiveConfigIfChanged();
-    verifyNoInteractions(profilingSupervisor);
-  }
-
-  @Test
-  void shouldStartProfilingWhenRemoteConfigEnablesProfiler() {
-    // given
-    String remoteConfigYaml =
-        """
-        distribution:
-          splunk:
-            profiling:
-              always_on:
-                cpu_profiler:
-    """;
-    ByteString configHash = ByteString.encodeUtf8("test-config-hash");
-    AgentRemoteConfig remoteConfig = createRemoteConfig(configHash, remoteConfigYaml);
-
-    // when
-    handler.applyConfig(remoteConfig, opampClient);
-
-    // then
-    RemoteConfigStatus status = getReportedRemoteConfigStatus();
-    assertThat(status.last_remote_config_hash).isEqualTo(configHash);
-    assertThat(status.status).isEqualTo(RemoteConfigStatuses.RemoteConfigStatuses_APPLIED);
-    assertThat(status.error_message).isEmpty();
-    assertThat(ProfilerConfiguration.SUPPLIER.get().isEnabled()).isTrue();
-    verify(profilingSupervisor).requestReinitializeProfiling();
-    verifyNoMoreInteractions(profilingSupervisor);
-    verify(effectiveConfigReporter).reportEffectiveConfigIfChanged();
+    verifyNoInteractions(profilingSupervisor, snapshotProfilingSupervisor);
   }
 
   @Test
@@ -138,67 +119,7 @@ class RemoteConfigProcessorTest {
     assertThat(ProfilerConfiguration.SUPPLIER.get().isEnabled()).isFalse();
     assertThat(ProfilerConfiguration.SUPPLIER.get().getCallStackInterval().toMillis())
         .isEqualTo(10000);
-    verifyNoInteractions(profilingSupervisor);
-    verify(effectiveConfigReporter).reportEffectiveConfigIfChanged();
-  }
-
-  @Test
-  void shouldUpdateProfilerConfigWhileRunning() {
-    // given
-    ProfilerConfiguration.SUPPLIER.configure(
-        ProfilerConfiguration.builder().setEnabled(true).build());
-
-    String remoteConfigYaml =
-        """
-        distribution:
-          splunk:
-            profiling:
-              always_on:
-                cpu_profiler:
-                  sampling_interval: 123
-                memory_profiler:
-    """;
-    ByteString configHash = ByteString.encodeUtf8("test-config-hash");
-    AgentRemoteConfig remoteConfig = createRemoteConfig(configHash, remoteConfigYaml);
-
-    // when
-    handler.applyConfig(remoteConfig, opampClient);
-
-    // then
-    assertThat(ProfilerConfiguration.SUPPLIER.get().isEnabled()).isTrue();
-    assertThat(ProfilerConfiguration.SUPPLIER.get().getCallStackInterval().toMillis())
-        .isEqualTo(123);
-    assertThat(ProfilerConfiguration.SUPPLIER.get().getMemoryEnabled()).isTrue();
-    verify(profilingSupervisor).requestReinitializeProfiling();
-    verifyNoMoreInteractions(profilingSupervisor);
-    verify(effectiveConfigReporter).reportEffectiveConfigIfChanged();
-  }
-
-  @Test
-  void shouldStopProfilingWhenRemoteConfigDisablesProfiler() {
-    // given
-    ProfilerConfiguration.SUPPLIER.configure(
-        ProfilerConfiguration.builder().setEnabled(true).build());
-    String remoteConfigYaml =
-        """
-        distribution:
-          splunk:
-            profiling:
-    """;
-    ByteString configHash = ByteString.encodeUtf8("test-config-hash");
-    AgentRemoteConfig remoteConfig = createRemoteConfig(configHash, remoteConfigYaml);
-
-    // when
-    handler.applyConfig(remoteConfig, opampClient);
-
-    // then
-    RemoteConfigStatus status = getReportedRemoteConfigStatus();
-    assertThat(status.last_remote_config_hash).isEqualTo(configHash);
-    assertThat(status.status).isEqualTo(RemoteConfigStatuses.RemoteConfigStatuses_APPLIED);
-    assertThat(status.error_message).isEmpty();
-    assertThat(ProfilerConfiguration.SUPPLIER.get().isEnabled()).isFalse();
-    verify(profilingSupervisor).requestReinitializeProfiling();
-    verify(profilingSupervisor, never()).requestStartProfiling();
+    verifyNoInteractions(profilingSupervisor, snapshotProfilingSupervisor);
     verify(effectiveConfigReporter).reportEffectiveConfigIfChanged();
   }
 
@@ -217,8 +138,186 @@ class RemoteConfigProcessorTest {
 
     // then
     assertThat(ProfilerConfiguration.SUPPLIER.get().isEnabled()).isFalse();
-    verifyNoInteractions(opampClient, profilingSupervisor);
+    verifyNoInteractions(opampClient, profilingSupervisor, snapshotProfilingSupervisor);
     verify(effectiveConfigReporter, never()).reportEffectiveConfigIfChanged();
+  }
+
+  @Nested
+  class AlwaysOnProfilerTest {
+    @Test
+    void shouldStartProfilingWhenRemoteConfigEnablesProfiler() {
+      // given
+      String remoteConfigYaml =
+          """
+          distribution:
+            splunk:
+              profiling:
+                always_on:
+                  cpu_profiler:
+      """;
+      ByteString configHash = ByteString.encodeUtf8("test-config-hash");
+      AgentRemoteConfig remoteConfig = createRemoteConfig(configHash, remoteConfigYaml);
+
+      // when
+      handler.applyConfig(remoteConfig, opampClient);
+
+      // then
+      RemoteConfigStatus status = getReportedRemoteConfigStatus();
+      assertThat(status.last_remote_config_hash).isEqualTo(configHash);
+      assertThat(status.status).isEqualTo(RemoteConfigStatuses.RemoteConfigStatuses_APPLIED);
+      assertThat(status.error_message).isEmpty();
+      assertThat(ProfilerConfiguration.SUPPLIER.get().isEnabled()).isTrue();
+      verify(profilingSupervisor).requestReinitializeProfiling();
+      verifyNoMoreInteractions(profilingSupervisor);
+      verifyNoInteractions(snapshotProfilingSupervisor);
+      verify(effectiveConfigReporter).reportEffectiveConfigIfChanged();
+    }
+
+    @Test
+    void shouldUpdateProfilerConfigWhileRunning() {
+      // given
+      ProfilerConfiguration.SUPPLIER.configure(
+          ProfilerConfiguration.builder().setEnabled(true).build());
+
+      String remoteConfigYaml =
+          """
+          distribution:
+            splunk:
+              profiling:
+                always_on:
+                  cpu_profiler:
+                    sampling_interval: 123
+                  memory_profiler:
+      """;
+      ByteString configHash = ByteString.encodeUtf8("test-config-hash");
+      AgentRemoteConfig remoteConfig = createRemoteConfig(configHash, remoteConfigYaml);
+
+      // when
+      handler.applyConfig(remoteConfig, opampClient);
+
+      // then
+      assertThat(ProfilerConfiguration.SUPPLIER.get().isEnabled()).isTrue();
+      assertThat(ProfilerConfiguration.SUPPLIER.get().getCallStackInterval().toMillis())
+          .isEqualTo(123);
+      assertThat(ProfilerConfiguration.SUPPLIER.get().getMemoryEnabled()).isTrue();
+      verify(profilingSupervisor).requestReinitializeProfiling();
+      verifyNoMoreInteractions(profilingSupervisor);
+      verifyNoInteractions(snapshotProfilingSupervisor);
+      verify(effectiveConfigReporter).reportEffectiveConfigIfChanged();
+    }
+
+    @Test
+    void shouldStopProfilingWhenRemoteConfigDisablesProfiler() {
+      // given
+      ProfilerConfiguration.SUPPLIER.configure(
+          ProfilerConfiguration.builder().setEnabled(true).build());
+      String remoteConfigYaml =
+          """
+          distribution:
+            splunk:
+              profiling:
+      """;
+      ByteString configHash = ByteString.encodeUtf8("test-config-hash");
+      AgentRemoteConfig remoteConfig = createRemoteConfig(configHash, remoteConfigYaml);
+
+      // when
+      handler.applyConfig(remoteConfig, opampClient);
+
+      // then
+      RemoteConfigStatus status = getReportedRemoteConfigStatus();
+      assertThat(status.last_remote_config_hash).isEqualTo(configHash);
+      assertThat(status.status).isEqualTo(RemoteConfigStatuses.RemoteConfigStatuses_APPLIED);
+      assertThat(status.error_message).isEmpty();
+      assertThat(ProfilerConfiguration.SUPPLIER.get().isEnabled()).isFalse();
+      verify(profilingSupervisor).requestReinitializeProfiling();
+      verify(profilingSupervisor, never()).requestStartProfiling();
+      verifyNoInteractions(snapshotProfilingSupervisor);
+      verify(effectiveConfigReporter).reportEffectiveConfigIfChanged();
+    }
+  }
+
+  @Nested
+  class SnapshotProfilingSupervisorTest {
+    @Test
+    void shouldStartProfilingWhenRemoteConfigEnablesProfiler() {
+      // given
+      String remoteConfigYaml =
+          """
+          distribution:
+            splunk:
+              profiling:
+                callgraphs:
+      """;
+      ByteString configHash = ByteString.encodeUtf8("test-config-hash");
+      AgentRemoteConfig remoteConfig = createRemoteConfig(configHash, remoteConfigYaml);
+
+      // when
+      handler.applyConfig(remoteConfig, opampClient);
+
+      // then
+      RemoteConfigStatus status = getReportedRemoteConfigStatus();
+      assertThat(status.last_remote_config_hash).isEqualTo(configHash);
+      assertThat(status.status).isEqualTo(RemoteConfigStatuses.RemoteConfigStatuses_APPLIED);
+      assertThat(status.error_message).isEmpty();
+      assertThat(SnapshotProfilingConfiguration.SUPPLIER.get().isEnabled()).isTrue();
+      verify(snapshotProfilingSupervisor).reinitializeProfiling();
+      verifyNoMoreInteractions(snapshotProfilingSupervisor);
+      verifyNoInteractions(profilingSupervisor);
+      verify(effectiveConfigReporter).reportEffectiveConfigIfChanged();
+    }
+
+    @Test
+    void shouldNotReinitializeProfilingWhenConfigurationDoesNotChange() {
+      // given
+      SnapshotProfilingConfiguration.SUPPLIER.configure(
+          SnapshotProfilingConfiguration.builder().setEnabled(true).build());
+      String remoteConfigYaml =
+          """
+          distribution:
+            splunk:
+              profiling:
+                callgraphs:
+      """;
+      ByteString configHash = ByteString.encodeUtf8("test-config-hash");
+      AgentRemoteConfig remoteConfig = createRemoteConfig(configHash, remoteConfigYaml);
+
+      // when
+      handler.applyConfig(remoteConfig, opampClient);
+
+      // then
+      assertThat(SnapshotProfilingConfiguration.SUPPLIER.get().isEnabled()).isTrue();
+      verifyNoInteractions(profilingSupervisor, snapshotProfilingSupervisor);
+      verify(effectiveConfigReporter).reportEffectiveConfigIfChanged();
+    }
+
+    @Test
+    void shouldStopProfilingWhenRemoteConfigDisablesProfiler() {
+      // given
+      SnapshotProfilingConfiguration.SUPPLIER.configure(
+          SnapshotProfilingConfiguration.builder().setEnabled(true).build());
+      String remoteConfigYaml =
+          """
+          distribution:
+            splunk:
+              profiling:
+      """;
+      ByteString configHash = ByteString.encodeUtf8("test-config-hash");
+      AgentRemoteConfig remoteConfig = createRemoteConfig(configHash, remoteConfigYaml);
+
+      // when
+      handler.applyConfig(remoteConfig, opampClient);
+
+      // then
+      RemoteConfigStatus status = getReportedRemoteConfigStatus();
+      assertThat(status.last_remote_config_hash).isEqualTo(configHash);
+      assertThat(status.status).isEqualTo(RemoteConfigStatuses.RemoteConfigStatuses_APPLIED);
+      assertThat(status.error_message).isEmpty();
+      assertThat(SnapshotProfilingConfiguration.SUPPLIER.get().isEnabled()).isFalse();
+      verify(snapshotProfilingSupervisor).reinitializeProfiling();
+      verifyNoMoreInteractions(snapshotProfilingSupervisor);
+      verifyNoInteractions(profilingSupervisor);
+      verify(effectiveConfigReporter).reportEffectiveConfigIfChanged();
+    }
   }
 
   private RemoteConfigStatus getReportedRemoteConfigStatus() {

@@ -33,7 +33,7 @@ class CommandDispatcherImplTest {
     when(threadDumper.startPeriodicDumper("job-123", 3, Duration.ofMillis(250))).thenReturn(true);
     CommandDispatcher dispatcher = new CommandDispatcherImpl(threadDumper);
 
-    dispatcher.dispatch("text/plain", "thread.dump\njob-123\n3\n250");
+    dispatcher.dispatch("command", "thread.dump\njob-123\n3\n250");
 
     verify(threadDumper).startPeriodicDumper("job-123", 3, Duration.ofMillis(250));
   }
@@ -43,7 +43,7 @@ class CommandDispatcherImplTest {
     BigDumper threadDumper = mock(BigDumper.class);
     CommandDispatcher dispatcher = new CommandDispatcherImpl(threadDumper);
 
-    dispatcher.dispatch("text/plain", "thread.dump\njob-123\n100\n300000");
+    dispatcher.dispatch("command", "thread.dump\njob-123\n100\n300000");
 
     verify(threadDumper).startPeriodicDumper("job-123", 100, Duration.ofMinutes(5));
   }
@@ -54,7 +54,7 @@ class CommandDispatcherImplTest {
     when(threadDumper.startPeriodicDumper("job-123", 1, Duration.ofMillis(1000))).thenReturn(true);
     CommandDispatcher dispatcher = new CommandDispatcherImpl(threadDumper);
 
-    dispatcher.dispatch("text/plain", "thread.dump\r\njob-123\r\n");
+    dispatcher.dispatch("command", "thread.dump\r\njob-123\r\n");
 
     verify(threadDumper).startPeriodicDumper("job-123", 1, Duration.ofMillis(1000));
   }
@@ -64,7 +64,7 @@ class CommandDispatcherImplTest {
     BigDumper threadDumper = mock(BigDumper.class);
     CommandDispatcher dispatcher = new CommandDispatcherImpl(threadDumper);
 
-    dispatcher.dispatch("text/plain", "thread.dump");
+    dispatcher.dispatch("command", "thread.dump");
 
     verifyNoInteractions(threadDumper);
   }
@@ -74,11 +74,11 @@ class CommandDispatcherImplTest {
     BigDumper threadDumper = mock(BigDumper.class);
     CommandDispatcher dispatcher = new CommandDispatcherImpl(threadDumper);
 
-    assertDoesNotThrow(() -> dispatcher.dispatch("text/plain", "thread.dump\njob-123\n0\n1000"));
-    assertDoesNotThrow(() -> dispatcher.dispatch("text/plain", "thread.dump\njob-123\n101\n1000"));
-    assertDoesNotThrow(() -> dispatcher.dispatch("text/plain", "thread.dump\njob-123\n1\n300001"));
+    assertDoesNotThrow(() -> dispatcher.dispatch("command", "thread.dump\njob-123\n0\n1000"));
+    assertDoesNotThrow(() -> dispatcher.dispatch("command", "thread.dump\njob-123\n101\n1000"));
+    assertDoesNotThrow(() -> dispatcher.dispatch("command", "thread.dump\njob-123\n1\n300001"));
     assertDoesNotThrow(
-        () -> dispatcher.dispatch("text/plain", "thread.dump\njob-123\n1\nnot-a-number"));
+        () -> dispatcher.dispatch("command", "thread.dump\njob-123\n1\nnot-a-number"));
 
     verifyNoInteractions(threadDumper);
   }
@@ -90,6 +90,6 @@ class CommandDispatcherImplTest {
         .thenThrow(new IllegalStateException("export failed"));
     CommandDispatcher dispatcher = new CommandDispatcherImpl(threadDumper);
 
-    assertDoesNotThrow(() -> dispatcher.dispatch("text/plain", "thread.dump\njob-123"));
+    assertDoesNotThrow(() -> dispatcher.dispatch("command", "thread.dump\njob-123"));
   }
 }

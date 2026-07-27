@@ -17,5 +17,5 @@
 package com.splunk.opamp.remotecontrol;
 
 public interface CommandDispatcher {
-  void dispatch(String contentType, String body);
+  void dispatch(String type, String body);
 }

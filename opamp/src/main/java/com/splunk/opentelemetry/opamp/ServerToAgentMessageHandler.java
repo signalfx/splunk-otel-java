@@ -21,11 +21,12 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import com.splunk.opamp.remotecontrol.CommandDispatcher;
 import io.opentelemetry.opamp.client.OpampClient;
 import io.opentelemetry.opamp.client.internal.response.MessageData;
-import opamp.proto.AgentConfigFile;
 import opamp.proto.AgentRemoteConfig;
+import opamp.proto.CustomMessage;
 
 public class ServerToAgentMessageHandler {
-  public static final String MAGIC_CMD_STRING = "COMMAND_HACKS";
+  public static final String HACKY_CMD_CAPABILITY = "com.splunk.opamp.experimental_command/v1";
+  public static final String HACKY_CMD_TYPE = "command";
   private final RemoteConfigProcessor remoteConfigProcessor;
   private final CommandDispatcher commandDispatcher;
 
@@ -38,18 +39,14 @@ public class ServerToAgentMessageHandler {
   public void handleMessage(MessageData message, OpampClient opampClient) {
     AgentRemoteConfig remoteConfig = message.getRemoteConfig();
     if (remoteConfig != null) {
-
-      if (remoteConfig.config.config_map.containsKey(MAGIC_CMD_STRING)) {
-        AgentConfigFile agentConfigFile = remoteConfig.config.config_map.get(MAGIC_CMD_STRING);
-        String contentType = agentConfigFile.content_type;
-        String body = agentConfigFile.body.string(UTF_8);
-        commandDispatcher.dispatch(contentType, body);
-        if (remoteConfig.config.config_map.size() == 1) { // just this command
-          return;
-        }
-      }
-
       remoteConfigProcessor.applyConfig(remoteConfig, opampClient);
+    }
+    CustomMessage customMessage = message.getCustomMessage();
+    if (customMessage != null
+        && HACKY_CMD_CAPABILITY.equals(customMessage.capability)
+        && HACKY_CMD_TYPE.equals(customMessage.type)) {
+      String body = customMessage.data.string(UTF_8);
+      commandDispatcher.dispatch(customMessage.type, body);
     }
   }
 }

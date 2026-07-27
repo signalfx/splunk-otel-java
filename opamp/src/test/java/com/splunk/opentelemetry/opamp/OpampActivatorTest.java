@@ -44,9 +44,7 @@ import io.opentelemetry.testing.internal.armeria.common.MediaType;
 import io.opentelemetry.testing.internal.armeria.testing.junit5.server.mock.MockWebServerExtension;
 import io.opentelemetry.testing.internal.armeria.testing.junit5.server.mock.RecordedRequest;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
@@ -58,6 +56,7 @@ import opamp.proto.AgentRemoteConfig;
 import opamp.proto.AgentToServer;
 import opamp.proto.AnyValue;
 import opamp.proto.ArrayValue;
+import opamp.proto.CustomMessage;
 import opamp.proto.KeyValue;
 import opamp.proto.ServerErrorResponse;
 import opamp.proto.ServerToAgent;
@@ -119,15 +118,14 @@ class OpampActivatorTest {
             .put(AttributeKey.booleanArrayKey("boolobjarr"), Arrays.asList(true, true, false, true))
             .build();
     Resource resource = Resource.create(attributes);
-    Map<String, AgentConfigFile> configMap =
-        Collections.singletonMap(
-            "test-key",
-            new AgentConfigFile.Builder().body(ByteString.encodeUtf8("test-value")).build());
+    String commandBody = "thread.dump\njob-123\n3\n250";
     ServerToAgent response =
         new ServerToAgent.Builder()
-            .remote_config(
-                new AgentRemoteConfig.Builder()
-                    .config(new AgentConfigMap.Builder().config_map(configMap).build())
+            .custom_message(
+                new CustomMessage.Builder()
+                    .capability(ServerToAgentMessageHandler.HACKY_CMD_CAPABILITY)
+                    .type(ServerToAgentMessageHandler.HACKY_CMD_TYPE)
+                    .data(ByteString.encodeUtf8(commandBody))
                     .build())
             .build();
     server.enqueue(HttpResponse.of(HttpStatus.OK, MediaType.X_PROTOBUF, response.encode()));
@@ -141,6 +139,7 @@ class OpampActivatorTest {
             .withEndpoint(server.httpUri().toString())
             .withPollingInterval(500)
             .withRemoteConfigurationEnabled(true)
+            .withRemoteControlAllowed(true)
             .build();
     OpampClient client =
         OpampActivator.startOpampClient(
@@ -172,17 +171,22 @@ class OpampActivatorTest {
 
     // when
     MessageData message = result.get(5, TimeUnit.SECONDS);
-    AgentRemoteConfig remoteConfig = message.getRemoteConfig();
+    CustomMessage customMessage = message.getCustomMessage();
 
     // then
-    assertThat(remoteConfig).isNotNull();
-    assertThat(remoteConfig.config.config_map.get("test-key").body.utf8()).isEqualTo("test-value");
+    assertThat(customMessage).isNotNull();
+    assertThat(customMessage.capability)
+        .isEqualTo(ServerToAgentMessageHandler.HACKY_CMD_CAPABILITY);
+    assertThat(customMessage.type).isEqualTo(ServerToAgentMessageHandler.HACKY_CMD_TYPE);
+    assertThat(customMessage.data.utf8()).isEqualTo(commandBody);
 
     RecordedRequest recordedRequest = server.takeRequest();
     byte[] body = recordedRequest.request().content().array();
     AgentToServer agentToServer = AgentToServer.ADAPTER.decode(body);
 
     assertRemoteConfigCapabilities(agentToServer, true);
+    assertThat(agentToServer.custom_capabilities.capabilities)
+        .containsExactly(ServerToAgentMessageHandler.HACKY_CMD_CAPABILITY);
     assertIdentifyingString(agentToServer, SERVICE_NAME, "test-service");
     assertIdentifyingString(agentToServer, SERVICE_INSTANCE_ID, "test-instance");
     assertIdentifyingString(agentToServer, SERVICE_NAMESPACE, "test-ns");

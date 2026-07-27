@@ -18,7 +18,7 @@ package com.splunk.opamp.remotecontrol;
 
 public class NoOpCommandDispatcher implements CommandDispatcher {
   @Override
-  public void dispatch(String contentType, String body) {
+  public void dispatch(String type, String body) {
     // nop
   }
 }

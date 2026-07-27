@@ -178,6 +178,10 @@ public class OpampActivator implements AgentListener {
       builder.enableRemoteConfig();
     }
 
+    if (opampClientConfiguration.isRemoteControlAllowed()) {
+      builder.addCustomCapability(ServerToAgentMessageHandler.HACKY_CMD_CAPABILITY);
+    }
+
     String endpoint = opampClientConfiguration.getEndpoint();
     long pollingDurationMillis = opampClientConfiguration.getPollingInterval();
     if (endpoint != null) {

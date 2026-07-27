@@ -406,14 +406,13 @@ class PeriodicStackTraceSamplerTest {
   }
 
   @Test
-  void finalSampleDurationIsLessThanSamplingPeriod() {
-    var scheduler = Executors.newScheduledThreadPool(1);
+  void finalSampleDurationIsLessThanSamplingPeriod() throws Exception {
+    var scheduler = Executors.newSingleThreadScheduledExecutor();
     var spanContext = Snapshotting.spanContext().build();
     var expectedDuration = SAMPLING_PERIOD.dividedBy(2);
     try {
-      scheduler.submit(startSampling(spanContext));
-      scheduler.schedule(stopSampling(), expectedDuration.toMillis(), TimeUnit.MILLISECONDS);
-      await().until(staging::hasStackTraces);
+      scheduler.submit(startSampling(spanContext)).get();
+      scheduler.schedule(stopSampling(), expectedDuration.toMillis(), TimeUnit.MILLISECONDS).get();
 
       var stackTraces = staging.allStackTraces();
       var lastStackTrace = stackTraces.get(stackTraces.size() - 1);

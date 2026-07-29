@@ -23,6 +23,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import io.opentelemetry.api.trace.SpanContext;
+import io.opentelemetry.sdk.testing.time.TestClock;
 import io.opentelemetry.sdk.trace.IdGenerator;
 import java.lang.management.ThreadInfo;
 import java.time.Duration;
@@ -406,24 +407,22 @@ class PeriodicStackTraceSamplerTest {
   }
 
   @Test
-  void finalSampleDurationIsLessThanSamplingPeriod() throws Exception {
-    var scheduler = Executors.newSingleThreadScheduledExecutor();
+  void finalSampleDurationIsLessThanSamplingPeriod() {
+    var samplingPeriod = Duration.ofDays(1);
+    var expectedDuration = samplingPeriod.dividedBy(2);
+    var clock = TestClock.create();
     var spanContext = Snapshotting.spanContext().build();
-    var expectedDuration = SAMPLING_PERIOD.dividedBy(2);
-    try {
-      scheduler.submit(startSampling(spanContext)).get();
-      scheduler.schedule(stopSampling(), expectedDuration.toMillis(), TimeUnit.MILLISECONDS).get();
-
-      var stackTraces = staging.allStackTraces();
-      var lastStackTrace = stackTraces.get(stackTraces.size() - 1);
-      assertThat(lastStackTrace.getDuration()).isLessThan(SAMPLING_PERIOD);
-    } finally {
-      scheduler.shutdownNow();
+    try (var sampler =
+        new PeriodicStackTraceSampler(
+            () -> staging, () -> spanTracker, delayedThreadInfoCollector, samplingPeriod, clock)) {
+      sampler.start(Thread.currentThread(), spanContext);
+      clock.advance(expectedDuration);
+      sampler.stop(Thread.currentThread());
     }
-  }
 
-  private Runnable stopSampling() {
-    return () -> sampler.stop(Thread.currentThread());
+    var stackTraces = staging.allStackTraces();
+    var lastStackTrace = stackTraces.get(stackTraces.size() - 1);
+    assertThat(lastStackTrace.getDuration()).isEqualTo(expectedDuration);
   }
 
   private static class ThreadControl {

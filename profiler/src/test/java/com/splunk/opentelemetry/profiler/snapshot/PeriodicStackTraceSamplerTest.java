@@ -41,6 +41,7 @@ import org.junit.jupiter.api.Test;
 
 class PeriodicStackTraceSamplerTest {
   private static final Duration SAMPLING_PERIOD = Duration.ofMillis(20);
+  private static final Duration STACKTRACE_DURATION_TOLERANCE = Duration.ofMillis(6);
 
   private final InMemoryStagingArea staging = new InMemoryStagingArea();
   private final InMemorySpanTracker spanTracker = new InMemorySpanTracker();
@@ -208,7 +209,7 @@ class PeriodicStackTraceSamplerTest {
       var stackTrace = staging.allStackTraces().stream().skip(1).findFirst().orElseThrow();
       assertThat(stackTrace.getDuration())
           .isNotNull()
-          .isCloseTo(SAMPLING_PERIOD, Duration.ofMillis(6));
+          .isCloseTo(SAMPLING_PERIOD, STACKTRACE_DURATION_TOLERANCE);
     } finally {
       sampler.stop(Thread.currentThread());
     }
@@ -416,7 +417,8 @@ class PeriodicStackTraceSamplerTest {
 
       var stackTraces = staging.allStackTraces();
       var lastStackTrace = stackTraces.get(stackTraces.size() - 1);
-      assertThat(lastStackTrace.getDuration()).isLessThan(SAMPLING_PERIOD);
+      assertThat(lastStackTrace.getDuration()).isCloseTo(expectedDuration,
+          STACKTRACE_DURATION_TOLERANCE);
     } finally {
       scheduler.shutdownNow();
     }

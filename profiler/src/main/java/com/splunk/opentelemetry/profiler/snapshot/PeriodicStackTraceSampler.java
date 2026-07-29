@@ -18,6 +18,7 @@ package com.splunk.opentelemetry.profiler.snapshot;
 
 import com.google.common.annotations.VisibleForTesting;
 import io.opentelemetry.api.trace.SpanContext;
+import io.opentelemetry.sdk.common.Clock;
 import java.lang.management.ThreadInfo;
 import java.time.Duration;
 import java.time.Instant;
@@ -43,7 +44,7 @@ class PeriodicStackTraceSampler implements StackTraceSampler {
 
   public PeriodicStackTraceSampler(
       Supplier<StagingArea> staging, Supplier<SpanTracker> spanTracker, Duration samplingPeriod) {
-    this(staging, spanTracker, new ThreadInfoCollector(), samplingPeriod);
+    this(staging, spanTracker, new ThreadInfoCollector(), samplingPeriod, Clock.getDefault());
   }
 
   @VisibleForTesting
@@ -52,7 +53,17 @@ class PeriodicStackTraceSampler implements StackTraceSampler {
       Supplier<SpanTracker> spanTracker,
       ThreadInfoCollector collector,
       Duration samplingPeriod) {
-    sampler = new ThreadSampler(staging, spanTracker, collector, samplingPeriod);
+    this(staging, spanTracker, collector, samplingPeriod, Clock.getDefault());
+  }
+
+  @VisibleForTesting
+  PeriodicStackTraceSampler(
+      Supplier<StagingArea> staging,
+      Supplier<SpanTracker> spanTracker,
+      ThreadInfoCollector collector,
+      Duration samplingPeriod,
+      Clock clock) {
+    sampler = new ThreadSampler(staging, spanTracker, collector, samplingPeriod, clock);
     sampler.setName("periodic-stack-trace-sampler");
     sampler.setDaemon(true);
     sampler.start();
@@ -101,23 +112,26 @@ class PeriodicStackTraceSampler implements StackTraceSampler {
     private final Supplier<SpanTracker> spanTracker;
     private final ThreadInfoCollector collector;
     private final Duration delay;
+    private final Clock clock;
 
     private ThreadSampler(
         Supplier<StagingArea> staging,
         Supplier<SpanTracker> spanTracker,
         ThreadInfoCollector collector,
-        Duration delay) {
+        Duration delay,
+        Clock clock) {
       this.staging = staging;
       this.spanTracker = spanTracker;
       this.collector = collector;
       this.delay = delay;
+      this.clock = clock;
     }
 
     void add(Thread thread, String traceId) {
       threadSamplingContexts.computeIfAbsent(
           thread,
           t -> {
-            SamplingContext context = new SamplingContext(t, traceId, System.nanoTime());
+            SamplingContext context = new SamplingContext(t, traceId, clock.nanoTime());
             takeOnDemandSample(t, context).ifPresent(staging.get()::stage);
             return context;
           });
@@ -137,7 +151,7 @@ class PeriodicStackTraceSampler implements StackTraceSampler {
     }
 
     private Optional<StackTrace> takeOnDemandSample(Thread thread, SamplingContext context) {
-      long currentSampleTime = System.nanoTime();
+      long currentSampleTime = clock.nanoTime();
       // When the context is locked, the periodic sampling thread is actively reporting
       // a sample. No need to report both so skip the on-demand sample.
       if (context.lock.tryLock()) {
@@ -182,7 +196,7 @@ class PeriodicStackTraceSampler implements StackTraceSampler {
 
       Map<Long, SamplingContext> threadContexts =
           contexts.stream().collect(Collectors.toMap(c -> c.thread.getId(), context -> context));
-      long currentSampleTime = System.nanoTime();
+      long currentSampleTime = clock.nanoTime();
       try {
         ThreadInfo[] threadInfos = collector.getThreadInfo(threadContexts.keySet());
         List<StackTrace> stackTraces =

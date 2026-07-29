@@ -333,7 +333,7 @@ class PeriodicStackTraceSamplerTest {
     try (var sampler =
         new PeriodicStackTraceSampler(
             () -> staging, () -> spanTracker, collector, SAMPLING_PERIOD)) {
-      thread1.submit(() -> sampler.start(Thread.currentThread(), spanContext)).get();
+      thread1.submit(startSampling(sampler, spanContext)).get();
 
       collector.blockThreadInfoCollection();
 
@@ -341,7 +341,7 @@ class PeriodicStackTraceSamplerTest {
       await().until(() -> !staging.allStackTraces().isEmpty());
       staging.empty();
 
-      var future = thread1.submit(captureThread(() -> sampler.stop(Thread.currentThread())));
+      var future = thread1.submit(captureThread(stopSampling(sampler)));
       thread2.schedule(latch::countDown, SAMPLING_PERIOD.toMillis(), TimeUnit.MILLISECONDS);
       await().until(() -> !staging.allStackTraces().isEmpty());
 
@@ -373,7 +373,7 @@ class PeriodicStackTraceSamplerTest {
     try (var sampler =
         new PeriodicStackTraceSampler(
             () -> staging, () -> spanTracker, collector, SAMPLING_PERIOD)) {
-      thread1.submit(() -> sampler.start(Thread.currentThread(), spanContext)).get();
+      thread1.submit(startSampling(sampler, spanContext)).get();
 
       collector.blockThreadInfoCollection();
 
@@ -381,7 +381,7 @@ class PeriodicStackTraceSamplerTest {
       await().until(() -> !staging.allStackTraces().isEmpty());
       staging.empty();
 
-      thread1.submit(() -> sampler.stop(Thread.currentThread()));
+      thread1.submit(stopSampling(sampler));
       thread2.schedule(latch::countDown, SAMPLING_PERIOD.toMillis(), TimeUnit.MILLISECONDS);
       await().until(() -> !staging.allStackTraces().isEmpty());
 
@@ -409,21 +409,23 @@ class PeriodicStackTraceSamplerTest {
   void finalSampleDurationIsLessThanSamplingPeriod() throws Exception {
     var scheduler = Executors.newSingleThreadScheduledExecutor();
     var spanContext = Snapshotting.spanContext().build();
-    var expectedDuration = SAMPLING_PERIOD.dividedBy(2);
-    try {
-      scheduler.submit(startSampling(spanContext)).get();
-      scheduler.schedule(stopSampling(), expectedDuration.toMillis(), TimeUnit.MILLISECONDS).get();
+    var samplingPeriod = Duration.ofSeconds(1);
+    var stopDelay = Duration.ofMillis(10);
+    try (var testSampler =
+        new PeriodicStackTraceSampler(
+            () -> staging, () -> spanTracker, delayedThreadInfoCollector, samplingPeriod)) {
+      scheduler.submit(startSampling(testSampler, spanContext)).get();
+      scheduler
+          .schedule(stopSampling(testSampler), stopDelay.toMillis(), TimeUnit.MILLISECONDS)
+          .get();
 
       var stackTraces = staging.allStackTraces();
+      assertThat(stackTraces).hasSize(2);
       var lastStackTrace = stackTraces.get(stackTraces.size() - 1);
-      assertThat(lastStackTrace.getDuration()).isLessThan(SAMPLING_PERIOD);
+      assertThat(lastStackTrace.getDuration()).isLessThan(samplingPeriod);
     } finally {
       scheduler.shutdownNow();
     }
-  }
-
-  private Runnable stopSampling() {
-    return () -> sampler.stop(Thread.currentThread());
   }
 
   private static class ThreadControl {
@@ -646,6 +648,14 @@ class PeriodicStackTraceSamplerTest {
         throw new RuntimeException(e);
       }
     });
+  }
+
+  private static Runnable startSampling(PeriodicStackTraceSampler sampler, SpanContext spanContext) {
+    return () -> sampler.start(Thread.currentThread(), spanContext);
+  }
+
+  private static Runnable stopSampling(PeriodicStackTraceSampler sampler) {
+    return () -> sampler.stop(Thread.currentThread());
   }
 
   private Callable<Thread> captureThread(Runnable runnable) {

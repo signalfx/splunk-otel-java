@@ -50,9 +50,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 import okio.ByteString;
 import opamp.proto.AgentCapabilities;
-import opamp.proto.AgentConfigFile;
-import opamp.proto.AgentConfigMap;
-import opamp.proto.AgentRemoteConfig;
 import opamp.proto.AgentToServer;
 import opamp.proto.AnyValue;
 import opamp.proto.ArrayValue;
@@ -270,10 +267,20 @@ class OpampActivatorTest {
   }
 
   @Test
-  void shouldAdvertiseRemoteConfigCapabilitiesWhenRemoteControlIsAllowed() throws Exception {
+  void shouldAdvertiseCustomCapabilityWhenRemoteControlIsAllowed() throws Exception {
     AgentToServer agentToServer = startClientAndTakeInitialRequest(false, true);
 
+    assertRemoteConfigCapabilities(agentToServer, false);
+    assertThat(agentToServer.custom_capabilities.capabilities)
+        .containsExactly(ServerToAgentMessageHandler.HACKY_CMD_CAPABILITY);
+  }
+
+  @Test
+  void shouldAdvertiseRemoteConfigCapabilitiesOnlyWhenRemoteConfigIsEnabled() throws Exception {
+    AgentToServer agentToServer = startClientAndTakeInitialRequest(true, false);
+
     assertRemoteConfigCapabilities(agentToServer, true);
+    assertThat(agentToServer.custom_capabilities).isNull();
   }
 
   @Test
@@ -281,6 +288,7 @@ class OpampActivatorTest {
     AgentToServer agentToServer = startClientAndTakeInitialRequest(false, false);
 
     assertRemoteConfigCapabilities(agentToServer, false);
+    assertThat(agentToServer.custom_capabilities).isNull();
   }
 
   private AgentToServer startClientAndTakeInitialRequest(

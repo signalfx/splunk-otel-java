@@ -153,9 +153,8 @@ public class OpampActivator implements AgentListener {
     if (opampClientConfiguration.isRemoteConfigurationEnabled()) {
       return new RemoteConfigProcessorImpl(
           ProfilingSupervisor.SUPPLIER.get(), effectiveConfigReporter);
-    } else {
-      return RemoteConfigProcessor.NOOP;
     }
+    return RemoteConfigProcessor.NOOP;
   }
 
   @Override
@@ -171,6 +170,9 @@ public class OpampActivator implements AgentListener {
 
     OpampClientBuilder builder = OpampClient.builder();
     builder.enableEffectiveConfigReporting();
+
+    // Remote control uses OpAMP remote configuration as its transport, so advertise the
+    // remote configuration capabilities when either feature is enabled.
     if (opampClientConfiguration.isRemoteConfigurationEnabled()
         || opampClientConfiguration.isRemoteControlAllowed()) {
       builder.enableRemoteConfig();

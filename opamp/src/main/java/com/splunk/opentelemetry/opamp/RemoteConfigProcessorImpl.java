@@ -37,8 +37,8 @@ import opamp.proto.AgentRemoteConfig;
 import opamp.proto.RemoteConfigStatus;
 import opamp.proto.RemoteConfigStatuses;
 
-public class RemoteConfigProcessor {
-  private static final Logger logger = Logger.getLogger(RemoteConfigProcessor.class.getName());
+public class RemoteConfigProcessorImpl implements RemoteConfigProcessor {
+  private static final Logger logger = Logger.getLogger(RemoteConfigProcessorImpl.class.getName());
 
   private static final String REMOTE_CONFIG_FILE_NAME = "splunk.remote.config";
   private static final String PROFILING_NODE_NAME = "profiling";
@@ -46,12 +46,13 @@ public class RemoteConfigProcessor {
   private final ProfilingSupervisor profilingSupervisor;
   private final EffectiveConfigReporter effectiveConfigReporter;
 
-  public RemoteConfigProcessor(
+  public RemoteConfigProcessorImpl(
       ProfilingSupervisor profilingSupervisor, EffectiveConfigReporter effectiveConfigReporter) {
     this.profilingSupervisor = Objects.requireNonNull(profilingSupervisor);
     this.effectiveConfigReporter = Objects.requireNonNull(effectiveConfigReporter);
   }
 
+  @Override
   public void applyConfig(AgentRemoteConfig remoteConfig, OpampClient opampClient) {
     Objects.requireNonNull(opampClient);
 

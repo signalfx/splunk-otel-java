@@ -42,16 +42,16 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class RemoteConfigProcessorTest {
+class RemoteConfigProcessorImplTest {
   @Mock ProfilingSupervisor profilingSupervisor;
   @Mock EffectiveConfigReporter effectiveConfigReporter;
   @Mock OpampClient opampClient;
-  private RemoteConfigProcessor handler;
+  private RemoteConfigProcessorImpl handler;
 
   @BeforeEach
   void setUp() {
     ProfilerConfiguration.SUPPLIER.configure(ProfilerConfiguration.builder().build());
-    handler = new RemoteConfigProcessor(profilingSupervisor, effectiveConfigReporter);
+    handler = new RemoteConfigProcessorImpl(profilingSupervisor, effectiveConfigReporter);
   }
 
   @AfterEach

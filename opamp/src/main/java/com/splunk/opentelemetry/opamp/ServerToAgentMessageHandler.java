@@ -18,10 +18,7 @@ package com.splunk.opentelemetry.opamp;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.splunk.opamp.remotecontrol.CommandDispatcher;
-import com.splunk.opentelemetry.opamp.effectiveconfig.EffectiveConfigReporter;
-import com.splunk.opentelemetry.profiler.ProfilingSupervisor;
 import io.opentelemetry.opamp.client.OpampClient;
 import io.opentelemetry.opamp.client.internal.response.MessageData;
 import opamp.proto.AgentConfigFile;
@@ -32,15 +29,6 @@ public class ServerToAgentMessageHandler {
   private final RemoteConfigProcessor remoteConfigProcessor;
   private final CommandDispatcher commandDispatcher;
 
-  public ServerToAgentMessageHandler(
-      ProfilingSupervisor profilingSupervisor,
-      EffectiveConfigReporter effectiveConfigReporter,
-      CommandDispatcher commandDispatcher) {
-    this(
-        new RemoteConfigProcessor(profilingSupervisor, effectiveConfigReporter), commandDispatcher);
-  }
-
-  @VisibleForTesting
   ServerToAgentMessageHandler(
       RemoteConfigProcessor remoteConfigProcessor, CommandDispatcher commandDispatcher) {
     this.remoteConfigProcessor = remoteConfigProcessor;

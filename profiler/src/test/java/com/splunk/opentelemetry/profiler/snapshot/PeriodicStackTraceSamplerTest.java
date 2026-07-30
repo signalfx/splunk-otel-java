@@ -200,18 +200,28 @@ class PeriodicStackTraceSamplerTest {
 
   @Test
   void calculateSamplingPeriodAfterFirstRecordedStackTraces() {
+    var clock = TestClock.create();
+    var initialSampleCollector =
+        new ThreadInfoCollector() {
+          @Override
+          ThreadInfo getThreadInfo(long threadId) {
+            var threadInfo = super.getThreadInfo(threadId);
+            // The initial sample time has already been captured. Advance the clock before the
+            // context becomes visible to the periodic sampling thread.
+            clock.advance(SAMPLING_PERIOD);
+            return threadInfo;
+          }
+        };
     var spanContext = Snapshotting.spanContext().build();
 
-    try {
+    try (var sampler =
+        new PeriodicStackTraceSampler(
+            () -> staging, () -> spanTracker, initialSampleCollector, SAMPLING_PERIOD, clock)) {
       sampler.start(Thread.currentThread(), spanContext);
       await().until(() -> staging.allStackTraces().size() > 1);
 
       var stackTrace = staging.allStackTraces().stream().skip(1).findFirst().orElseThrow();
-      assertThat(stackTrace.getDuration())
-          .isNotNull()
-          .isCloseTo(SAMPLING_PERIOD, Duration.ofMillis(6));
-    } finally {
-      sampler.stop(Thread.currentThread());
+      assertThat(stackTrace.getDuration()).isEqualTo(SAMPLING_PERIOD);
     }
   }
 

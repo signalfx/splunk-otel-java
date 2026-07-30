@@ -182,12 +182,7 @@ class OpampActivatorTest {
     byte[] body = recordedRequest.request().content().array();
     AgentToServer agentToServer = AgentToServer.ADAPTER.decode(body);
 
-    assertThat(
-            hasCapability(agentToServer, AgentCapabilities.AgentCapabilities_AcceptsRemoteConfig))
-        .isTrue();
-    assertThat(
-            hasCapability(agentToServer, AgentCapabilities.AgentCapabilities_ReportsRemoteConfig))
-        .isTrue();
+    assertRemoteConfigCapabilities(agentToServer, true);
     assertIdentifyingString(agentToServer, SERVICE_NAME, "test-service");
     assertIdentifyingString(agentToServer, SERVICE_INSTANCE_ID, "test-instance");
     assertIdentifyingString(agentToServer, SERVICE_NAMESPACE, "test-ns");
@@ -271,7 +266,21 @@ class OpampActivatorTest {
   }
 
   @Test
-  void shouldNotAdvertiseRemoteConfigCapabilitiesWithoutOptIn() throws Exception {
+  void shouldAdvertiseRemoteConfigCapabilitiesWhenRemoteControlIsAllowed() throws Exception {
+    AgentToServer agentToServer = startClientAndTakeInitialRequest(false, true);
+
+    assertRemoteConfigCapabilities(agentToServer, true);
+  }
+
+  @Test
+  void shouldNotAdvertiseRemoteConfigCapabilitiesWhenRemoteFeaturesAreDisabled() throws Exception {
+    AgentToServer agentToServer = startClientAndTakeInitialRequest(false, false);
+
+    assertRemoteConfigCapabilities(agentToServer, false);
+  }
+
+  private AgentToServer startClientAndTakeInitialRequest(
+      boolean remoteConfigurationEnabled, boolean remoteControlAllowed) throws Exception {
     ServerToAgent response = new ServerToAgent.Builder().build();
     server.enqueue(HttpResponse.of(HttpStatus.OK, MediaType.X_PROTOBUF, response.encode()));
 
@@ -280,6 +289,8 @@ class OpampActivatorTest {
             .withEnabled(true)
             .withEndpoint(server.httpUri().toString())
             .withPollingInterval(500)
+            .withRemoteConfigurationEnabled(remoteConfigurationEnabled)
+            .withRemoteControlAllowed(remoteControlAllowed)
             .build();
     OpampClient client =
         OpampActivator.startOpampClient(
@@ -287,15 +298,17 @@ class OpampActivatorTest {
     cleanup.deferCleanup(client);
 
     RecordedRequest recordedRequest = server.takeRequest();
-    AgentToServer agentToServer =
-        AgentToServer.ADAPTER.decode(recordedRequest.request().content().array());
+    return AgentToServer.ADAPTER.decode(recordedRequest.request().content().array());
+  }
 
+  private static void assertRemoteConfigCapabilities(
+      AgentToServer agentToServer, boolean expected) {
     assertThat(
             hasCapability(agentToServer, AgentCapabilities.AgentCapabilities_AcceptsRemoteConfig))
-        .isFalse();
+        .isEqualTo(expected);
     assertThat(
             hasCapability(agentToServer, AgentCapabilities.AgentCapabilities_ReportsRemoteConfig))
-        .isFalse();
+        .isEqualTo(expected);
   }
 
   private static boolean hasCapability(AgentToServer agentToServer, AgentCapabilities capability) {

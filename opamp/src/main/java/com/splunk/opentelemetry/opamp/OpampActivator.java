@@ -171,7 +171,8 @@ public class OpampActivator implements AgentListener {
 
     OpampClientBuilder builder = OpampClient.builder();
     builder.enableEffectiveConfigReporting();
-    if (opampClientConfiguration.isRemoteConfigurationEnabled()) {
+    if (opampClientConfiguration.isRemoteConfigurationEnabled()
+        || opampClientConfiguration.isRemoteControlAllowed()) {
       builder.enableRemoteConfig();
     }
 

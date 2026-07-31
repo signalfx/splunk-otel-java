@@ -57,7 +57,9 @@ class RemoteConfigProcessorImplTest {
     ProfilerConfiguration.SUPPLIER.configure(ProfilerConfiguration.builder().build());
     SnapshotProfilingConfiguration.SUPPLIER.configure(
         SnapshotProfilingConfiguration.builder().build());
-    handler = new RemoteConfigProcessorImpl(profilingSupervisor, effectiveConfigReporter);
+    handler =
+        new RemoteConfigProcessorImpl(
+            profilingSupervisor, snapshotProfilingSupervisor, effectiveConfigReporter);
   }
 
   @AfterEach

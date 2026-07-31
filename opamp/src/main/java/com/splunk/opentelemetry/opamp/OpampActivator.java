@@ -153,7 +153,9 @@ public class OpampActivator implements AgentListener {
       OpampClientConfiguration opampClientConfiguration) {
     if (opampClientConfiguration.isRemoteConfigurationEnabled()) {
       return new RemoteConfigProcessorImpl(
-          ProfilingSupervisor.SUPPLIER.get(), SnapshotProfilingSupervisor.SUPPLIER.get(), effectiveConfigReporter);
+          ProfilingSupervisor.SUPPLIER.get(),
+          SnapshotProfilingSupervisor.SUPPLIER.get(),
+          effectiveConfigReporter);
     }
     return RemoteConfigProcessor.NOOP;
   }

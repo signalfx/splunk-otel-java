@@ -51,6 +51,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 import okio.ByteString;
+import opamp.proto.AgentCapabilities;
 import opamp.proto.AgentConfigFile;
 import opamp.proto.AgentConfigMap;
 import opamp.proto.AgentRemoteConfig;
@@ -139,6 +140,7 @@ class OpampActivatorTest {
             .withEnabled(true)
             .withEndpoint(server.httpUri().toString())
             .withPollingInterval(500)
+            .withRemoteConfigurationEnabled(true)
             .build();
     OpampClient client =
         OpampActivator.startOpampClient(
@@ -180,6 +182,7 @@ class OpampActivatorTest {
     byte[] body = recordedRequest.request().content().array();
     AgentToServer agentToServer = AgentToServer.ADAPTER.decode(body);
 
+    assertRemoteConfigCapabilities(agentToServer, true);
     assertIdentifyingString(agentToServer, SERVICE_NAME, "test-service");
     assertIdentifyingString(agentToServer, SERVICE_INSTANCE_ID, "test-instance");
     assertIdentifyingString(agentToServer, SERVICE_NAMESPACE, "test-ns");
@@ -260,6 +263,56 @@ class OpampActivatorTest {
         .anyMatch(
             kv ->
                 kv.key.equals(OS_VERSION.getKey()) && kv.value.string_value.equals("test-os-ver"));
+  }
+
+  @Test
+  void shouldAdvertiseRemoteConfigCapabilitiesWhenRemoteControlIsAllowed() throws Exception {
+    AgentToServer agentToServer = startClientAndTakeInitialRequest(false, true);
+
+    assertRemoteConfigCapabilities(agentToServer, true);
+  }
+
+  @Test
+  void shouldNotAdvertiseRemoteConfigCapabilitiesWhenRemoteFeaturesAreDisabled() throws Exception {
+    AgentToServer agentToServer = startClientAndTakeInitialRequest(false, false);
+
+    assertRemoteConfigCapabilities(agentToServer, false);
+  }
+
+  private AgentToServer startClientAndTakeInitialRequest(
+      boolean remoteConfigurationEnabled, boolean remoteControlAllowed) throws Exception {
+    ServerToAgent response = new ServerToAgent.Builder().build();
+    server.enqueue(HttpResponse.of(HttpStatus.OK, MediaType.X_PROTOBUF, response.encode()));
+
+    OpampClientConfiguration configuration =
+        OpampClientConfiguration.builder()
+            .withEnabled(true)
+            .withEndpoint(server.httpUri().toString())
+            .withPollingInterval(500)
+            .withRemoteConfigurationEnabled(remoteConfigurationEnabled)
+            .withRemoteControlAllowed(remoteControlAllowed)
+            .build();
+    OpampClient client =
+        OpampActivator.startOpampClient(
+            configuration, Resource.empty(), mock(), mock(OpampClient.Callbacks.class));
+    cleanup.deferCleanup(client);
+
+    RecordedRequest recordedRequest = server.takeRequest();
+    return AgentToServer.ADAPTER.decode(recordedRequest.request().content().array());
+  }
+
+  private static void assertRemoteConfigCapabilities(
+      AgentToServer agentToServer, boolean expected) {
+    assertThat(
+            hasCapability(agentToServer, AgentCapabilities.AgentCapabilities_AcceptsRemoteConfig))
+        .isEqualTo(expected);
+    assertThat(
+            hasCapability(agentToServer, AgentCapabilities.AgentCapabilities_ReportsRemoteConfig))
+        .isEqualTo(expected);
+  }
+
+  private static boolean hasCapability(AgentToServer agentToServer, AgentCapabilities capability) {
+    return (agentToServer.capabilities & capability.getValue()) != 0;
   }
 
   private static Predicate<? super KeyValue> matching(String key, AnyValue... values) {

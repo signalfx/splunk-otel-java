@@ -71,14 +71,9 @@ public class OpampActivator implements AgentListener {
         EffectiveConfigReporter.create(autoConfiguredOpenTelemetrySdk, effectiveConfigState);
     effectiveConfigReporter.reportEffectiveConfigIfChanged();
 
-    CommandDispatcher commandDispatcher =
-        buildCommandDispatcher(autoConfiguredOpenTelemetrySdk, opampClientConfiguration);
     ServerToAgentMessageHandler serverToAgentMessageHandler =
-        new ServerToAgentMessageHandler(
-            ProfilingSupervisor.SUPPLIER.get(),
-            SnapshotProfilingSupervisor.SUPPLIER.get(),
-            effectiveConfigReporter,
-            commandDispatcher);
+        buildServerToAgentMessageHandler(
+            autoConfiguredOpenTelemetrySdk, opampClientConfiguration, effectiveConfigReporter);
 
     OpampClient client =
         startOpampClient(
@@ -122,6 +117,18 @@ public class OpampActivator implements AgentListener {
   }
 
   @NotNull
+  private static ServerToAgentMessageHandler buildServerToAgentMessageHandler(
+      AutoConfiguredOpenTelemetrySdk autoConfiguredOpenTelemetrySdk,
+      OpampClientConfiguration opampClientConfiguration,
+      EffectiveConfigReporter effectiveConfigReporter) {
+    RemoteConfigProcessor remoteConfigProcessor =
+        buildRemoteConfigProcessor(effectiveConfigReporter, opampClientConfiguration);
+    CommandDispatcher commandDispatcher =
+        buildCommandDispatcher(autoConfiguredOpenTelemetrySdk, opampClientConfiguration);
+    return new ServerToAgentMessageHandler(remoteConfigProcessor, commandDispatcher);
+  }
+
+  @NotNull
   private static CommandDispatcher buildCommandDispatcher(
       AutoConfiguredOpenTelemetrySdk autoConfiguredOpenTelemetrySdk,
       OpampClientConfiguration opampClientConfiguration) {
@@ -140,6 +147,17 @@ public class OpampActivator implements AgentListener {
     return new CommandDispatcherImpl(new BigDumper(threadDumpExporter::export));
   }
 
+  @NotNull
+  private static RemoteConfigProcessor buildRemoteConfigProcessor(
+      EffectiveConfigReporter effectiveConfigReporter,
+      OpampClientConfiguration opampClientConfiguration) {
+    if (opampClientConfiguration.isRemoteConfigurationEnabled()) {
+      return new RemoteConfigProcessorImpl(
+          ProfilingSupervisor.SUPPLIER.get(), SnapshotProfilingSupervisor.SUPPLIER.get(), effectiveConfigReporter);
+    }
+    return RemoteConfigProcessor.NOOP;
+  }
+
   @Override
   public int order() {
     return Integer.MAX_VALUE;
@@ -153,7 +171,13 @@ public class OpampActivator implements AgentListener {
 
     OpampClientBuilder builder = OpampClient.builder();
     builder.enableEffectiveConfigReporting();
-    builder.enableRemoteConfig();
+
+    // Remote control uses OpAMP remote configuration as its transport, so advertise the
+    // remote configuration capabilities when either feature is enabled.
+    if (opampClientConfiguration.isRemoteConfigurationEnabled()
+        || opampClientConfiguration.isRemoteControlAllowed()) {
+      builder.enableRemoteConfig();
+    }
 
     String endpoint = opampClientConfiguration.getEndpoint();
     long pollingDurationMillis = opampClientConfiguration.getPollingInterval();

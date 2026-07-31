@@ -60,7 +60,7 @@ class ServiceNameCheckerTest {
   void shouldLogWarnWhenDeclarativeConfigDoesNotDefineServiceName(@TempDir Path tempDir)
       throws IOException {
     AutoConfiguredOpenTelemetrySdk autoConfiguredSdk =
-        createAutoConfiguredSdk("file_format: \"1.0\"", tempDir, autoCleanup);
+        createAutoConfiguredSdk("file_format: \"1.1\"", tempDir, autoCleanup);
     List<String> warnings = new ArrayList<>();
 
     new ServiceNameChecker(warnings::add).beforeAgent(autoConfiguredSdk);

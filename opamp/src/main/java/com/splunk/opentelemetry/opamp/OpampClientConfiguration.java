@@ -21,6 +21,7 @@ public class OpampClientConfiguration {
   private String endpoint;
   private long pollingInterval;
   private boolean allowRemoteControl;
+  private boolean remoteConfigurationEnabled;
 
   private OpampClientConfiguration() {}
 
@@ -40,6 +41,14 @@ public class OpampClientConfiguration {
     return pollingInterval;
   }
 
+  public boolean isRemoteConfigurationEnabled() {
+    return remoteConfigurationEnabled;
+  }
+
+  public boolean isRemoteControlAllowed() {
+    return allowRemoteControl;
+  }
+
   @Override
   public String toString() {
     return "OpampClientConfiguration{"
@@ -51,11 +60,13 @@ public class OpampClientConfiguration {
         + '\''
         + ", pollingInterval="
         + pollingInterval
+        + '\''
+        + ", remoteConfigurationEnabled="
+        + remoteConfigurationEnabled
+        + '\''
+        + ", allowRemoteControl="
+        + allowRemoteControl
         + '}';
-  }
-
-  public boolean isRemoteControlAllowed() {
-    return allowRemoteControl;
   }
 
   public static class Builder {
@@ -75,6 +86,11 @@ public class OpampClientConfiguration {
 
     public Builder withPollingInterval(long pollingInterval) {
       configuredInstance.pollingInterval = pollingInterval;
+      return this;
+    }
+
+    public Builder withRemoteConfigurationEnabled(boolean remoteConfigurationEnabled) {
+      configuredInstance.remoteConfigurationEnabled = remoteConfigurationEnabled;
       return this;
     }
 

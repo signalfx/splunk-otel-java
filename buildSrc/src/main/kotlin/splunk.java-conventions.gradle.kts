@@ -1,3 +1,5 @@
+import org.gradle.api.tasks.testing.logging.TestExceptionFormat
+
 plugins {
   java
 }
@@ -41,6 +43,12 @@ dependencies {
 
 tasks.withType<Test>().configureEach {
   useJUnitPlatform()
+  testLogging {
+    exceptionFormat = TestExceptionFormat.FULL
+    showExceptions = true
+    showCauses = true
+    showStackTraces = true
+  }
   reports {
     junitXml.isOutputPerTestCase = true
   }

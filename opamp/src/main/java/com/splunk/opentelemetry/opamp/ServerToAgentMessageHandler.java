@@ -46,7 +46,7 @@ public class ServerToAgentMessageHandler {
         && HACKY_CMD_CAPABILITY.equals(customMessage.capability)
         && HACKY_CMD_TYPE.equals(customMessage.type)) {
       String body = customMessage.data.string(UTF_8);
-      commandDispatcher.dispatch(customMessage.type, body);
+      commandDispatcher.dispatch(body);
     }
   }
 }

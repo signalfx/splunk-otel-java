@@ -58,7 +58,7 @@ class ServerToAgentMessageHandlerTest {
 
     handler.handleMessage(message, opampClient);
 
-    verify(commandDispatcher).dispatch(ServerToAgentMessageHandler.HACKY_CMD_TYPE, body);
+    verify(commandDispatcher).dispatch(body);
     verifyNoInteractions(remoteConfigProcessor, opampClient);
   }
 
@@ -111,7 +111,7 @@ class ServerToAgentMessageHandlerTest {
     handler.handleMessage(message, opampClient);
 
     verify(remoteConfigProcessor).applyConfig(remoteConfig, opampClient);
-    verify(commandDispatcher).dispatch(ServerToAgentMessageHandler.HACKY_CMD_TYPE, body);
+    verify(commandDispatcher).dispatch(body);
   }
 
   private static CustomMessage customMessage(String capability, String type, String body) {

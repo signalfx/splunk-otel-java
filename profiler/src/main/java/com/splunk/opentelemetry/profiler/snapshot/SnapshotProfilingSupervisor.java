@@ -41,7 +41,7 @@ public class SnapshotProfilingSupervisor {
       Logger.getLogger(SnapshotProfilingSupervisor.class.getName());
 
   private final OptionalConfigurableSupplier<SnapshotProfilingConfiguration> configurationSupplier;
-  private final BlockingQueue<ProfilingCommand> commandQueue;
+  private final BlockingQueue<ProfilingCommand> commandQueue = new LinkedBlockingQueue<>();
   private final ConfigurableSupplier<StagingArea> stagingAreaSupplier;
   private final ConfigurableSupplier<StackTraceSampler> stackTraceSamplerSupplier;
   private final ConfigurableSupplier<StackTraceExporter> stackTraceExporterSupplier;
@@ -57,7 +57,6 @@ public class SnapshotProfilingSupervisor {
   @VisibleForTesting
   SnapshotProfilingSupervisor(
       OptionalConfigurableSupplier<SnapshotProfilingConfiguration> configurationSupplier,
-      BlockingQueue<ProfilingCommand> commandQueue,
       ConfigurableSupplier<StagingArea> stagingAreaSupplier,
       ConfigurableSupplier<StackTraceSampler> stackTraceSamplerSupplier,
       ConfigurableSupplier<StackTraceExporter> stackTraceExporterSupplier,
@@ -67,7 +66,6 @@ public class SnapshotProfilingSupervisor {
       AutoConfiguredOpenTelemetrySdk sdk,
       OtelLoggerFactory otelLoggerFactory) {
     this.configurationSupplier = configurationSupplier;
-    this.commandQueue = commandQueue;
     this.stagingAreaSupplier = stagingAreaSupplier;
     this.stackTraceSamplerSupplier = stackTraceSamplerSupplier;
     this.stackTraceExporterSupplier = stackTraceExporterSupplier;
@@ -85,11 +83,9 @@ public class SnapshotProfilingSupervisor {
 
     ExecutorService executor =
         HelpfulExecutors.newSingleThreadExecutor("Snapshot Profiling Supervisor");
-    BlockingQueue<ProfilingCommand> queue = new LinkedBlockingQueue<>();
     SnapshotProfilingSupervisor supervisor =
         new SnapshotProfilingSupervisor(
             SnapshotProfilingConfiguration.SUPPLIER,
-            queue,
             StagingArea.SUPPLIER,
             StackTraceSampler.SUPPLIER,
             StackTraceExporter.SUPPLIER,

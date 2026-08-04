@@ -30,7 +30,6 @@ import io.opentelemetry.sdk.trace.IdGenerator;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Random;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicReference;
 
 class Snapshotting {
@@ -47,7 +46,6 @@ class Snapshotting {
           SnapshotProfilingSupervisor supervisor =
               new SnapshotProfilingSupervisor(
                   SnapshotProfilingConfiguration.SUPPLIER,
-                  new LinkedBlockingQueue<>(),
                   StagingArea.SUPPLIER,
                   StackTraceSampler.SUPPLIER,
                   StackTraceExporter.SUPPLIER,

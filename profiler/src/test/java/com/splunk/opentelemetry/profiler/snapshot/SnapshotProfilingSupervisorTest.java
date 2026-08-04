@@ -34,7 +34,6 @@ import io.opentelemetry.sdk.resources.Resource;
 import java.time.Duration;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.LinkedBlockingQueue;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -83,7 +82,6 @@ class SnapshotProfilingSupervisorTest {
     supervisor =
         new SnapshotProfilingSupervisor(
             configurationSupplier,
-            new LinkedBlockingQueue<>(),
             stagingAreaSupplier,
             stackTraceSamplerSupplier,
             stackTraceExporterSupplier,

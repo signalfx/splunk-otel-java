@@ -140,7 +140,7 @@ public class RemoteConfigProcessorImpl implements RemoteConfigProcessor {
 
     if (!currentConfiguration.equals(updatedConfiguration)) {
       SnapshotProfilingConfiguration.SUPPLIER.configure(updatedConfiguration);
-      snapshotProfilingSupervisor.reinitializeProfiling();
+      snapshotProfilingSupervisor.requestReinitializeProfiling();
     }
   }
 

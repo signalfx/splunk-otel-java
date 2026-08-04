@@ -16,9 +16,12 @@
 
 package com.splunk.opentelemetry.profiler.snapshot;
 
+import static java.util.logging.Level.WARNING;
+
 import com.google.common.annotations.VisibleForTesting;
 import com.splunk.opentelemetry.profiler.OtelLoggerFactory;
 import com.splunk.opentelemetry.profiler.util.DeclarativeConfigPropertiesUtil;
+import com.splunk.opentelemetry.profiler.util.HelpfulExecutors;
 import com.splunk.opentelemetry.profiler.util.OptionalConfigurableSupplier;
 import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
 import io.opentelemetry.sdk.autoconfigure.AutoConfigureUtil;
@@ -26,6 +29,9 @@ import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import io.opentelemetry.sdk.resources.Resource;
 import java.time.Duration;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.logging.Logger;
 
 public class SnapshotProfilingSupervisor {
@@ -35,6 +41,7 @@ public class SnapshotProfilingSupervisor {
       Logger.getLogger(SnapshotProfilingSupervisor.class.getName());
 
   private final OptionalConfigurableSupplier<SnapshotProfilingConfiguration> configurationSupplier;
+  private final BlockingQueue<ProfilingCommand> commandQueue;
   private final ConfigurableSupplier<StagingArea> stagingAreaSupplier;
   private final ConfigurableSupplier<StackTraceSampler> stackTraceSamplerSupplier;
   private final ConfigurableSupplier<StackTraceExporter> stackTraceExporterSupplier;
@@ -45,11 +52,12 @@ public class SnapshotProfilingSupervisor {
       profilingSpanProcessorSupplier;
   private final AutoConfiguredOpenTelemetrySdk sdk;
   private final OtelLoggerFactory otelLoggerFactory;
-  private boolean running;
+  private volatile boolean running;
 
   @VisibleForTesting
   SnapshotProfilingSupervisor(
       OptionalConfigurableSupplier<SnapshotProfilingConfiguration> configurationSupplier,
+      BlockingQueue<ProfilingCommand> commandQueue,
       ConfigurableSupplier<StagingArea> stagingAreaSupplier,
       ConfigurableSupplier<StackTraceSampler> stackTraceSamplerSupplier,
       ConfigurableSupplier<StackTraceExporter> stackTraceExporterSupplier,
@@ -59,6 +67,7 @@ public class SnapshotProfilingSupervisor {
       AutoConfiguredOpenTelemetrySdk sdk,
       OtelLoggerFactory otelLoggerFactory) {
     this.configurationSupplier = configurationSupplier;
+    this.commandQueue = commandQueue;
     this.stagingAreaSupplier = stagingAreaSupplier;
     this.stackTraceSamplerSupplier = stackTraceSamplerSupplier;
     this.stackTraceExporterSupplier = stackTraceExporterSupplier;
@@ -74,9 +83,13 @@ public class SnapshotProfilingSupervisor {
       throw new IllegalStateException("Snapshot profiling already initialized");
     }
 
+    ExecutorService executor =
+        HelpfulExecutors.newSingleThreadExecutor("Snapshot Profiling Supervisor");
+    BlockingQueue<ProfilingCommand> queue = new LinkedBlockingQueue<>();
     SnapshotProfilingSupervisor supervisor =
         new SnapshotProfilingSupervisor(
             SnapshotProfilingConfiguration.SUPPLIER,
+            queue,
             StagingArea.SUPPLIER,
             StackTraceSampler.SUPPLIER,
             StackTraceExporter.SUPPLIER,
@@ -86,11 +99,63 @@ public class SnapshotProfilingSupervisor {
             sdk,
             new OtelLoggerFactory());
     SUPPLIER.configure(supervisor);
+    supervisor.start(executor);
 
     return supervisor;
   }
 
-  public synchronized void startProfiling() {
+  @VisibleForTesting
+  void start(ExecutorService executor) {
+    executor.submit(this::commandLoop);
+  }
+
+  private void commandLoop() {
+    while (true) {
+      try {
+        ProfilingCommand command = commandQueue.take();
+        handleCommand(command);
+      } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+        logger.fine("SnapshotProfilingSupervisor is shutting down");
+        return;
+      } catch (Exception e) {
+        logger.log(WARNING, "SnapshotProfilingSupervisor encountered an unexpected exception", e);
+      }
+    }
+  }
+
+  public void requestStartProfiling() {
+    commandQueue.add(ProfilingCommand.START);
+  }
+
+  public void requestStopProfiling() {
+    commandQueue.add(ProfilingCommand.STOP);
+  }
+
+  public void requestReinitializeProfiling() {
+    commandQueue.add(ProfilingCommand.REINITIALIZE);
+  }
+
+  @VisibleForTesting
+  boolean isRunning() {
+    return running;
+  }
+
+  private void handleCommand(ProfilingCommand command) {
+    switch (command) {
+      case START:
+        tryStart();
+        break;
+      case STOP:
+        tryStop();
+        break;
+      case REINITIALIZE:
+        tryReinitialize();
+        break;
+    }
+  }
+
+  private void tryStart() {
     if (running) {
       return;
     }
@@ -112,7 +177,7 @@ public class SnapshotProfilingSupervisor {
     logger.info("Snapshot profiling is active.");
   }
 
-  public synchronized void stopProfiling() {
+  private void tryStop() {
     if (!running) {
       return;
     }
@@ -136,13 +201,13 @@ public class SnapshotProfilingSupervisor {
     logger.info("Snapshot profiling is deactivated.");
   }
 
-  public synchronized void reinitializeProfiling() {
+  private void tryReinitialize() {
     if (running) {
-      stopProfiling();
+      tryStop();
     }
 
     if (configurationSupplier.get().isEnabled()) {
-      startProfiling();
+      tryStart();
     }
   }
 
@@ -178,5 +243,11 @@ public class SnapshotProfilingSupervisor {
     }
     throw new IllegalArgumentException(
         "Unsupported config properties type: " + configProperties.getClass().getName());
+  }
+
+  enum ProfilingCommand {
+    START,
+    STOP,
+    REINITIALIZE
   }
 }

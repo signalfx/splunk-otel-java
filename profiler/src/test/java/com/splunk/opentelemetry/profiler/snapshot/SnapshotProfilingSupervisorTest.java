@@ -18,8 +18,8 @@ package com.splunk.opentelemetry.profiler.snapshot;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.awaitility.Awaitility.await;
 import static org.mockito.Mockito.clearInvocations;
-import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -31,11 +31,14 @@ import io.opentelemetry.sdk.autoconfigure.AutoConfigureUtil;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import io.opentelemetry.sdk.resources.Resource;
+import java.time.Duration;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -58,6 +61,7 @@ class SnapshotProfilingSupervisorTest {
   private ConfigurableSupplier<StackTraceSampler> stackTraceSamplerSupplier;
   private ConfigurableSupplier<StagingArea> stagingAreaSupplier;
   private ConfigurableSupplier<StackTraceExporter> stackTraceExporterSupplier;
+  private ExecutorService executor;
   private SnapshotProfilingSupervisor supervisor;
   private MockedStatic<AutoConfigureUtil> autoConfigureUtil;
 
@@ -79,6 +83,7 @@ class SnapshotProfilingSupervisorTest {
     supervisor =
         new SnapshotProfilingSupervisor(
             configurationSupplier,
+            new LinkedBlockingQueue<>(),
             stagingAreaSupplier,
             stackTraceSamplerSupplier,
             stackTraceExporterSupplier,
@@ -87,6 +92,8 @@ class SnapshotProfilingSupervisorTest {
             profilingSpanProcessorSupplier,
             sdk,
             otelLoggerFactory);
+    executor = Executors.newSingleThreadExecutor();
+    supervisor.start(executor);
 
     autoConfigureUtil = mockStatic(AutoConfigureUtil.class);
     autoConfigureUtil.when(() -> AutoConfigureUtil.getResource(sdk)).thenReturn(RESOURCE);
@@ -94,7 +101,9 @@ class SnapshotProfilingSupervisorTest {
 
   @AfterEach
   void tearDown() {
-    supervisor.stopProfiling();
+    supervisor.requestStopProfiling();
+    await().untilAsserted(this::assertRuntimeComponentsReset);
+    executor.shutdownNow();
     autoConfigureUtil.close();
     Snapshotting.resetProfiling();
   }
@@ -114,30 +123,35 @@ class SnapshotProfilingSupervisorTest {
     SnapshotProfilingConfiguration configuration = configuration(true);
     configurationSupplier.configure(configuration);
 
-    supervisor.startProfiling();
+    requestStartProfiling();
     StackTraceSampler configuredSampler = stackTraceSamplerSupplier.get();
     StagingArea configuredStagingArea = stagingAreaSupplier.get();
     StackTraceExporter configuredExporter = stackTraceExporterSupplier.get();
-    supervisor.startProfiling();
+    supervisor.requestStartProfiling();
 
-    verifyEnabled(true);
-    assertThat(stackTraceSamplerSupplier.get()).isSameAs(configuredSampler);
-    assertThat(stagingAreaSupplier.get()).isSameAs(configuredStagingArea);
-    assertThat(stackTraceExporterSupplier.get()).isSameAs(configuredExporter);
-    assertRuntimeComponentsConfigured();
+    await()
+        .during(Duration.ofMillis(200))
+        .untilAsserted(
+            () -> {
+              verifyEnabled(true);
+              assertThat(stackTraceSamplerSupplier.get()).isSameAs(configuredSampler);
+              assertThat(stagingAreaSupplier.get()).isSameAs(configuredStagingArea);
+              assertThat(stackTraceExporterSupplier.get()).isSameAs(configuredExporter);
+              assertRuntimeComponentsConfigured();
+            });
   }
 
   @Test
   void stopProfilingOnlyOnce() {
     SnapshotProfilingConfiguration configuration = configuration(true);
     configurationSupplier.configure(configuration);
-    supervisor.startProfiling();
+    requestStartProfiling();
     configureRuntimeComponents();
 
-    supervisor.stopProfiling();
-    supervisor.stopProfiling();
+    supervisor.requestStopProfiling();
+    supervisor.requestStopProfiling();
 
-    verifyClosedRuntimeComponents();
+    await().untilAsserted(this::verifyClosedRuntimeComponents);
     verify(spanTracker).setEnabled(true);
     verify(spanTracker).setEnabled(false);
     verify(traceThreadChangeDetector).setEnabled(true);
@@ -152,17 +166,22 @@ class SnapshotProfilingSupervisorTest {
   void doNotStartProfilingWhenReinitializedWithDisabledConfiguration() {
     configurationSupplier.configure(configuration(false));
 
-    supervisor.reinitializeProfiling();
+    supervisor.requestReinitializeProfiling();
 
-    verifyNoInteractions(spanTracker, traceThreadChangeDetector, profilingSpanProcessor);
-    assertRuntimeComponentsReset();
+    await()
+        .during(Duration.ofMillis(200))
+        .untilAsserted(
+            () -> {
+              verifyNoInteractions(spanTracker, traceThreadChangeDetector, profilingSpanProcessor);
+              assertRuntimeComponentsReset();
+            });
   }
 
   @Test
   void restartProfilingWhenReinitializedWithEnabledConfiguration() {
     SnapshotProfilingConfiguration initialConfiguration = configuration(true);
     configurationSupplier.configure(initialConfiguration);
-    supervisor.startProfiling();
+    requestStartProfiling();
     StackTraceSampler initialSampler = stackTraceSamplerSupplier.get();
     StagingArea initialStagingArea = stagingAreaSupplier.get();
     StackTraceExporter initialExporter = stackTraceExporterSupplier.get();
@@ -172,17 +191,21 @@ class SnapshotProfilingSupervisorTest {
     SnapshotProfilingConfiguration updatedConfiguration =
         configuration(true).toBuilder().setStackDepth(512).build();
     configurationSupplier.configure(updatedConfiguration);
-    supervisor.reinitializeProfiling();
+    supervisor.requestReinitializeProfiling();
 
-    verifyClosedRuntimeComponents();
-    InOrder inOrder = inOrder(spanTracker, traceThreadChangeDetector, profilingSpanProcessor);
-    inOrder.verify(spanTracker).setEnabled(false);
-    inOrder.verify(traceThreadChangeDetector).setEnabled(false);
-    inOrder.verify(profilingSpanProcessor).setEnabled(false);
-    inOrder.verify(spanTracker).setEnabled(true);
-    inOrder.verify(traceThreadChangeDetector).setEnabled(true);
-    inOrder.verify(profilingSpanProcessor).setEnabled(true);
-    inOrder.verifyNoMoreInteractions();
+    await()
+        .untilAsserted(
+            () -> {
+              verifyClosedRuntimeComponents();
+              verify(spanTracker).setEnabled(false);
+              verify(spanTracker).setEnabled(true);
+              verify(traceThreadChangeDetector).setEnabled(false);
+              verify(traceThreadChangeDetector).setEnabled(true);
+              verify(profilingSpanProcessor).setEnabled(false);
+              verify(profilingSpanProcessor).setEnabled(true);
+              verifyNoMoreInteractions(
+                  spanTracker, traceThreadChangeDetector, profilingSpanProcessor);
+            });
     assertThat(stackTraceSamplerSupplier.get()).isNotSameAs(initialSampler);
     assertThat(stagingAreaSupplier.get()).isNotSameAs(initialStagingArea);
     assertThat(stackTraceExporterSupplier.get()).isNotSameAs(initialExporter);
@@ -193,17 +216,26 @@ class SnapshotProfilingSupervisorTest {
   void stopProfilingWhenReinitializedWithDisabledConfiguration() {
     SnapshotProfilingConfiguration initialConfiguration = configuration(true);
     configurationSupplier.configure(initialConfiguration);
-    supervisor.startProfiling();
+    requestStartProfiling();
     configureRuntimeComponents();
     clearInvocations(spanTracker, traceThreadChangeDetector, profilingSpanProcessor);
 
     SnapshotProfilingConfiguration disabledConfiguration = configuration(false);
     configurationSupplier.configure(disabledConfiguration);
-    supervisor.reinitializeProfiling();
+    supervisor.requestReinitializeProfiling();
 
-    verifyClosedRuntimeComponents();
-    verifyEnabled(false);
-    assertRuntimeComponentsReset();
+    await()
+        .untilAsserted(
+            () -> {
+              verifyClosedRuntimeComponents();
+              verifyEnabled(false);
+              assertRuntimeComponentsReset();
+            });
+  }
+
+  private void requestStartProfiling() {
+    supervisor.requestStartProfiling();
+    await().untilAsserted(this::assertRuntimeComponentsConfigured);
   }
 
   private void configureRuntimeComponents() {

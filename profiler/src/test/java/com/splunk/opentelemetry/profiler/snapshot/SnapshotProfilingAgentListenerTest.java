@@ -16,8 +16,8 @@
 
 package com.splunk.opentelemetry.profiler.snapshot;
 
+import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
-import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
@@ -66,8 +66,8 @@ class SnapshotProfilingAgentListenerTest {
             new OtelLoggerFactory(() -> logExporter, declarativeConfigProperties -> logExporter))
         .afterAgent(sdk);
 
+    await().until(() -> StackTraceExporter.SUPPLIER.get() != StackTraceExporter.NOOP);
     var exporter = StackTraceExporter.SUPPLIER.get();
-    assertNotSame(StackTraceExporter.NOOP, exporter);
     assertInstanceOf(AsyncStackTraceExporter.class, exporter);
   }
 
@@ -85,8 +85,8 @@ class SnapshotProfilingAgentListenerTest {
 
     new SnapshotProfilingAgentListener().afterAgent(sdk);
 
+    await().until(() -> StackTraceExporter.SUPPLIER.get() != StackTraceExporter.NOOP);
     var exporter = StackTraceExporter.SUPPLIER.get();
-    assertNotSame(StackTraceExporter.NOOP, exporter);
     assertInstanceOf(AsyncStackTraceExporter.class, exporter);
     assertTrue(componentLoader.loaded(HttpSenderProvider.class));
   }

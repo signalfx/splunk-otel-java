@@ -260,7 +260,7 @@ class RemoteConfigProcessorImplTest {
       assertThat(status.status).isEqualTo(RemoteConfigStatuses.RemoteConfigStatuses_APPLIED);
       assertThat(status.error_message).isEmpty();
       assertThat(SnapshotProfilingConfiguration.SUPPLIER.get().isEnabled()).isTrue();
-      verify(snapshotProfilingSupervisor).reinitializeProfiling();
+      verify(snapshotProfilingSupervisor).requestReinitializeProfiling();
       verifyNoMoreInteractions(snapshotProfilingSupervisor);
       verifyNoInteractions(profilingSupervisor);
       verify(effectiveConfigReporter).reportEffectiveConfigIfChanged();
@@ -313,7 +313,7 @@ class RemoteConfigProcessorImplTest {
       assertThat(status.status).isEqualTo(RemoteConfigStatuses.RemoteConfigStatuses_APPLIED);
       assertThat(status.error_message).isEmpty();
       assertThat(SnapshotProfilingConfiguration.SUPPLIER.get().isEnabled()).isFalse();
-      verify(snapshotProfilingSupervisor).reinitializeProfiling();
+      verify(snapshotProfilingSupervisor).requestReinitializeProfiling();
       verifyNoMoreInteractions(snapshotProfilingSupervisor);
       verifyNoInteractions(profilingSupervisor);
       verify(effectiveConfigReporter).reportEffectiveConfigIfChanged();

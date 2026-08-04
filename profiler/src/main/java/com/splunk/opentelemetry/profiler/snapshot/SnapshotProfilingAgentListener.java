@@ -45,7 +45,7 @@ public class SnapshotProfilingAgentListener implements AgentListener {
 
     SnapshotProfilingConfiguration configuration = SnapshotProfilingConfiguration.SUPPLIER.get();
     if (configuration.isEnabled()) {
-      supervisor.startProfiling();
+      supervisor.requestStartProfiling();
     }
   }
 }

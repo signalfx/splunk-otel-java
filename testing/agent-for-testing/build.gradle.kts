@@ -49,6 +49,11 @@ tasks {
 
     archiveFileName.set("javaagentLibs-relocated.jar")
 
+    // avoid warning about duplicate kotlin module files being silently dropped
+    filesMatching("inst/META-INF/*.kotlin_module") {
+      duplicatesStrategy = DuplicatesStrategy.INCLUDE
+    }
+
     // exclude known bootstrap dependencies - they can't appear in the inst/ directory
     dependencies {
       exclude(dependency("org.slf4j:slf4j-api"))
@@ -85,6 +90,10 @@ tasks {
     mergeServiceFiles("inst/META-INF/services")
     // mergeServiceFiles requires that duplicate strategy is set to include
     filesMatching("inst/META-INF/services/**") {
+      duplicatesStrategy = DuplicatesStrategy.INCLUDE
+    }
+    // avoid warning about duplicate kotlin module files being silently dropped
+    filesMatching("inst/META-INF/*.kotlin_module") {
       duplicatesStrategy = DuplicatesStrategy.INCLUDE
     }
 

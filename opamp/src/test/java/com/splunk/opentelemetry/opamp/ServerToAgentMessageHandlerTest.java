@@ -51,8 +51,8 @@ class ServerToAgentMessageHandlerTest {
         MessageData.builder()
             .setCustomMessage(
                 customMessage(
-                    ServerToAgentMessageHandler.HACKY_CMD_CAPABILITY,
-                    ServerToAgentMessageHandler.HACKY_CMD_TYPE,
+                    ServerToAgentMessageHandler.CMD_CAPABILITY,
+                    ServerToAgentMessageHandler.CMD_TYPE,
                     body))
             .build();
 
@@ -69,7 +69,7 @@ class ServerToAgentMessageHandlerTest {
             .setCustomMessage(
                 customMessage(
                     "com.example.other/v1",
-                    ServerToAgentMessageHandler.HACKY_CMD_TYPE,
+                    ServerToAgentMessageHandler.CMD_TYPE,
                     "thread.dump\njob-123"))
             .build();
 
@@ -84,7 +84,7 @@ class ServerToAgentMessageHandlerTest {
         MessageData.builder()
             .setCustomMessage(
                 customMessage(
-                    ServerToAgentMessageHandler.HACKY_CMD_CAPABILITY,
+                    ServerToAgentMessageHandler.CMD_CAPABILITY,
                     "not-a-command",
                     "thread.dump\njob-123"))
             .build();
@@ -103,8 +103,8 @@ class ServerToAgentMessageHandlerTest {
             .setRemoteConfig(remoteConfig)
             .setCustomMessage(
                 customMessage(
-                    ServerToAgentMessageHandler.HACKY_CMD_CAPABILITY,
-                    ServerToAgentMessageHandler.HACKY_CMD_TYPE,
+                    ServerToAgentMessageHandler.CMD_CAPABILITY,
+                    ServerToAgentMessageHandler.CMD_TYPE,
                     body))
             .build();
 

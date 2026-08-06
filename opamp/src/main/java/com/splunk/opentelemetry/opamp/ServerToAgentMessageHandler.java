@@ -25,8 +25,8 @@ import opamp.proto.AgentRemoteConfig;
 import opamp.proto.CustomMessage;
 
 public class ServerToAgentMessageHandler {
-  public static final String HACKY_CMD_CAPABILITY = "com.splunk.opamp.experimental_command/v1";
-  public static final String HACKY_CMD_TYPE = "command";
+  public static final String CMD_CAPABILITY = "com.splunk.opamp.experimental_command/v1";
+  public static final String CMD_TYPE = "command";
   private final RemoteConfigProcessor remoteConfigProcessor;
   private final CommandDispatcher commandDispatcher;
 
@@ -43,8 +43,8 @@ public class ServerToAgentMessageHandler {
     }
     CustomMessage customMessage = message.getCustomMessage();
     if (customMessage != null
-        && HACKY_CMD_CAPABILITY.equals(customMessage.capability)
-        && HACKY_CMD_TYPE.equals(customMessage.type)) {
+        && CMD_CAPABILITY.equals(customMessage.capability)
+        && CMD_TYPE.equals(customMessage.type)) {
       String body = customMessage.data.string(UTF_8);
       commandDispatcher.dispatch(body);
     }

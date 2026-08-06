@@ -120,8 +120,8 @@ class OpampActivatorTest {
         new ServerToAgent.Builder()
             .custom_message(
                 new CustomMessage.Builder()
-                    .capability(ServerToAgentMessageHandler.HACKY_CMD_CAPABILITY)
-                    .type(ServerToAgentMessageHandler.HACKY_CMD_TYPE)
+                    .capability(ServerToAgentMessageHandler.CMD_CAPABILITY)
+                    .type(ServerToAgentMessageHandler.CMD_TYPE)
                     .data(ByteString.encodeUtf8(commandBody))
                     .build())
             .build();
@@ -173,8 +173,8 @@ class OpampActivatorTest {
     // then
     assertThat(customMessage).isNotNull();
     assertThat(customMessage.capability)
-        .isEqualTo(ServerToAgentMessageHandler.HACKY_CMD_CAPABILITY);
-    assertThat(customMessage.type).isEqualTo(ServerToAgentMessageHandler.HACKY_CMD_TYPE);
+        .isEqualTo(ServerToAgentMessageHandler.CMD_CAPABILITY);
+    assertThat(customMessage.type).isEqualTo(ServerToAgentMessageHandler.CMD_TYPE);
     assertThat(customMessage.data.utf8()).isEqualTo(commandBody);
 
     RecordedRequest recordedRequest = server.takeRequest();
@@ -183,7 +183,7 @@ class OpampActivatorTest {
 
     assertRemoteConfigCapabilities(agentToServer, true);
     assertThat(agentToServer.custom_capabilities.capabilities)
-        .containsExactly(ServerToAgentMessageHandler.HACKY_CMD_CAPABILITY);
+        .containsExactly(ServerToAgentMessageHandler.CMD_CAPABILITY);
     assertIdentifyingString(agentToServer, SERVICE_NAME, "test-service");
     assertIdentifyingString(agentToServer, SERVICE_INSTANCE_ID, "test-instance");
     assertIdentifyingString(agentToServer, SERVICE_NAMESPACE, "test-ns");
@@ -272,7 +272,7 @@ class OpampActivatorTest {
 
     assertRemoteConfigCapabilities(agentToServer, false);
     assertThat(agentToServer.custom_capabilities.capabilities)
-        .containsExactly(ServerToAgentMessageHandler.HACKY_CMD_CAPABILITY);
+        .containsExactly(ServerToAgentMessageHandler.CMD_CAPABILITY);
   }
 
   @Test

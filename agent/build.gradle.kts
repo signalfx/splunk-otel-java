@@ -134,6 +134,10 @@ tasks {
     filesMatching("inst/META-INF/services/**") {
       duplicatesStrategy = DuplicatesStrategy.INCLUDE
     }
+    // avoid warning about duplicate kotlin module files being silently dropped
+    filesMatching("inst/META-INF/*.kotlin_module") {
+      duplicatesStrategy = DuplicatesStrategy.INCLUDE
+    }
 
     manifest {
       attributes(

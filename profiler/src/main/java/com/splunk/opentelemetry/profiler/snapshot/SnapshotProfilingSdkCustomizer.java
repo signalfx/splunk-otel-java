@@ -78,7 +78,7 @@ public class SnapshotProfilingSdkCustomizer implements AutoConfigurationCustomiz
           SnapshotProfilingConfiguration.SUPPLIER.get().getSnapshotSelectionProbability();
 
       SnapshotProfilingSpanProcessor spanProcessor =
-          new SnapshotProfilingSpanProcessor(
+          new SnapshotProfilingSpanProcessorImpl(
               registry, new TraceIdBasedSnapshotSelector(selectionProbability));
       SnapshotProfilingSpanProcessor.SUPPLIER.configure(spanProcessor);
 

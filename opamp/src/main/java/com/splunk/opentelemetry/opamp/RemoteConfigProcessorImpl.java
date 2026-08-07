@@ -74,6 +74,11 @@ public class RemoteConfigProcessorImpl implements RemoteConfigProcessor {
     }
 
     try {
+      reportRemoteConfigStatus(
+          remoteConfig.config_hash,
+          RemoteConfigStatuses.RemoteConfigStatuses_APPLYING,
+          opampClient);
+
       DeclarativeConfigProperties remoteConfigProperties =
           toDeclarativeConfigProperties(configFile);
       DeclarativeConfigProperties distributionRemoteConfigProperties =
@@ -89,18 +94,12 @@ public class RemoteConfigProcessorImpl implements RemoteConfigProcessor {
 
       // Confirm to the OpAMP Server that remote config has been applied.
       reportRemoteConfigStatus(
-          remoteConfig.config_hash,
-          RemoteConfigStatuses.RemoteConfigStatuses_APPLIED,
-          "",
-          opampClient);
+          remoteConfig.config_hash, RemoteConfigStatuses.RemoteConfigStatuses_APPLIED, opampClient);
 
     } catch (Exception e) {
       logger.log(Level.WARNING, "Remote configuration not applied due to exception.", e);
-      reportRemoteConfigStatus(
-          remoteConfig.config_hash,
-          RemoteConfigStatuses.RemoteConfigStatuses_FAILED,
-          "Exception occurred: " + e.getMessage(),
-          opampClient);
+      reportRemoteConfigFailure(
+          remoteConfig.config_hash, "Exception occurred: " + e.getMessage(), opampClient);
     }
 
     // TODO: Maybe should be postponed after profiler is enabled/disabled?
@@ -151,15 +150,21 @@ public class RemoteConfigProcessorImpl implements RemoteConfigProcessor {
   }
 
   private void reportRemoteConfigStatus(
-      ByteString configHash,
-      RemoteConfigStatuses status,
-      String errorMessage,
-      OpampClient opampClient) {
+      ByteString configHash, RemoteConfigStatuses status, OpampClient opampClient) {
+    opampClient.setRemoteConfigStatus(
+        new RemoteConfigStatus.Builder()
+            .last_remote_config_hash(configHash)
+            .status(status)
+            .build());
+  }
+
+  private void reportRemoteConfigFailure(
+      ByteString configHash, String errorMessage, OpampClient opampClient) {
     opampClient.setRemoteConfigStatus(
         new RemoteConfigStatus.Builder()
             .last_remote_config_hash(configHash)
             .error_message(errorMessage)
-            .status(status)
+            .status(RemoteConfigStatuses.RemoteConfigStatuses_FAILED)
             .build());
   }
 }

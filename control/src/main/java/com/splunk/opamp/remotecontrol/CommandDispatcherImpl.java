@@ -38,7 +38,7 @@ public class CommandDispatcherImpl implements CommandDispatcher {
   }
 
   @Override
-  public void dispatch(String contentType, String body) {
+  public void dispatch(String body) {
     String[] parts = body.split("\n");
     if (parts.length == 0) {
       logger.warning("Missing useful command body.");

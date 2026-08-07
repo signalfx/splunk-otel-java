@@ -33,6 +33,7 @@ import com.splunk.opentelemetry.profiler.InstrumentationSource;
 import com.splunk.opentelemetry.profiler.ProfilingDataType;
 import com.splunk.opentelemetry.profiler.ProfilingSupervisor;
 import com.splunk.opentelemetry.profiler.exporter.PprofLogDataExporter;
+import com.splunk.opentelemetry.profiler.snapshot.SnapshotProfilingSupervisor;
 import io.opentelemetry.javaagent.extension.AgentListener;
 import io.opentelemetry.opamp.client.OpampClient;
 import io.opentelemetry.opamp.client.OpampClientBuilder;
@@ -152,7 +153,9 @@ public class OpampActivator implements AgentListener {
       OpampClientConfiguration opampClientConfiguration) {
     if (opampClientConfiguration.isRemoteConfigurationEnabled()) {
       return new RemoteConfigProcessorImpl(
-          ProfilingSupervisor.SUPPLIER.get(), effectiveConfigReporter);
+          ProfilingSupervisor.SUPPLIER.get(),
+          SnapshotProfilingSupervisor.SUPPLIER.get(),
+          effectiveConfigReporter);
     }
     return RemoteConfigProcessor.NOOP;
   }

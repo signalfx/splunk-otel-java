@@ -37,7 +37,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.LinkedBlockingQueue;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -336,7 +335,6 @@ class ProfilingSupervisorTest {
             configSupplier,
             jfr,
             sdk,
-            new LinkedBlockingQueue<>(),
             recordingFlusherFactory,
             allocatedMemoryMetrics,
             gcMemoryMetrics);

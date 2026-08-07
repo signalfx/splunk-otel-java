@@ -49,7 +49,7 @@ public class ProfilingSupervisor {
   private final OptionalConfigurableSupplier<ProfilerConfiguration> configSupplier;
   private final JFR jfr;
   private final AutoConfiguredOpenTelemetrySdk sdk;
-  private final BlockingQueue<ProfilingCommand> commandQueue;
+  private final BlockingQueue<ProfilingCommand> commandQueue = new LinkedBlockingQueue<>();
   private final PeriodicRecordingFlusherFactory recordingFlusherFactory;
   private final OtelAllocatedMemoryMetrics allocatedMemoryMetrics;
   private final OtelGcMemoryMetrics gcMemoryMetrics;
@@ -64,14 +64,12 @@ public class ProfilingSupervisor {
       OptionalConfigurableSupplier<ProfilerConfiguration> configSupplier,
       JFR jfr,
       AutoConfiguredOpenTelemetrySdk sdk,
-      BlockingQueue<ProfilingCommand> commandQueue,
       PeriodicRecordingFlusherFactory recordingFlusherFactory,
       OtelAllocatedMemoryMetrics allocatedMemoryMetrics,
       OtelGcMemoryMetrics gcMemoryMetrics) {
     this.configSupplier = configSupplier;
     this.jfr = jfr;
     this.sdk = sdk;
-    this.commandQueue = commandQueue;
     this.recordingFlusherFactory = recordingFlusherFactory;
     this.allocatedMemoryMetrics = allocatedMemoryMetrics;
     this.gcMemoryMetrics = gcMemoryMetrics;
@@ -82,13 +80,11 @@ public class ProfilingSupervisor {
       throw new IllegalStateException("Already started");
     }
     ExecutorService executor = HelpfulExecutors.newSingleThreadExecutor("JFR Profiler");
-    BlockingQueue<ProfilingCommand> queue = new LinkedBlockingQueue<>();
     ProfilingSupervisor supervisor =
         new ProfilingSupervisor(
             ProfilerConfiguration.SUPPLIER,
             JFR.getInstance(),
             sdk,
-            queue,
             new PeriodicRecordingFlusherFactory(),
             new OtelAllocatedMemoryMetrics(),
             new OtelGcMemoryMetrics());

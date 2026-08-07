@@ -16,16 +16,21 @@
 
 package com.splunk.opentelemetry.profiler.snapshot;
 
+import static org.awaitility.Awaitility.await;
+
 import com.splunk.opentelemetry.profiler.OtelLoggerFactory;
+import com.splunk.opentelemetry.profiler.util.HelpfulExecutors;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.api.trace.TraceFlags;
 import io.opentelemetry.api.trace.TraceState;
+import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 import io.opentelemetry.sdk.testing.exporter.InMemoryLogRecordExporter;
 import io.opentelemetry.sdk.trace.IdGenerator;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Random;
+import java.util.concurrent.atomic.AtomicReference;
 
 class Snapshotting {
   private static final Random RANDOM = new Random();
@@ -35,15 +40,34 @@ class Snapshotting {
   }
 
   static SnapshotProfilingAgentListener agentListener(OtelLoggerFactory otelLoggerFactory) {
+    AtomicReference<SnapshotProfilingSupervisor> supervisorReference = new AtomicReference<>();
     return new SnapshotProfilingAgentListener(
-        sdk ->
-            new SnapshotProfilingSupervisor(
-                SnapshotProfilingConfiguration.SUPPLIER,
-                SpanTracker.SUPPLIER,
-                TraceThreadChangeDetector.SUPPLIER,
-                SnapshotProfilingSpanProcessor.SUPPLIER,
-                sdk,
-                otelLoggerFactory));
+        sdk -> {
+          SnapshotProfilingSupervisor supervisor =
+              new SnapshotProfilingSupervisor(
+                  SnapshotProfilingConfiguration.SUPPLIER,
+                  StagingArea.SUPPLIER,
+                  StackTraceSampler.SUPPLIER,
+                  StackTraceExporter.SUPPLIER,
+                  SpanTracker.SUPPLIER,
+                  TraceThreadChangeDetector.SUPPLIER,
+                  SnapshotProfilingSpanProcessor.SUPPLIER,
+                  sdk,
+                  otelLoggerFactory);
+          supervisorReference.set(supervisor);
+          supervisor.start(
+              HelpfulExecutors.newSingleThreadExecutor("Test Snapshot Profiling Supervisor"));
+          SnapshotProfilingSupervisor.SUPPLIER.configure(supervisor);
+          return supervisor;
+        }) {
+      @Override
+      public void afterAgent(AutoConfiguredOpenTelemetrySdk sdk) {
+        super.afterAgent(sdk);
+        if (SnapshotProfilingConfiguration.SUPPLIER.get().isEnabled()) {
+          await().until(() -> supervisorReference.get().isRunning());
+        }
+      }
+    };
   }
 
   static SnapshotProfilingAgentListener agentListener() {
@@ -62,7 +86,8 @@ class Snapshotting {
     SnapshotProfilingConfiguration.SUPPLIER.reset();
 
     if (SnapshotProfilingSupervisor.SUPPLIER.isConfigured()) {
-      SnapshotProfilingSupervisor.SUPPLIER.get().stopProfiling();
+      SnapshotProfilingSupervisor.SUPPLIER.get().requestStopProfiling();
+      await().until(() -> !SnapshotProfilingSupervisor.SUPPLIER.get().isRunning());
       SnapshotProfilingSupervisor.SUPPLIER.reset();
     }
 

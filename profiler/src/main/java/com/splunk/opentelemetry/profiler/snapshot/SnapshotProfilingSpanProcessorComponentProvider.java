@@ -51,7 +51,7 @@ public class SnapshotProfilingSpanProcessorComponentProvider implements Componen
         SnapshotProfilingConfiguration.SUPPLIER.get().getSnapshotSelectionProbability();
 
     SnapshotProfilingSpanProcessor spanProcessor =
-        new SnapshotProfilingSpanProcessor(
+        new SnapshotProfilingSpanProcessorImpl(
             traceRegistry, new TraceIdBasedSnapshotSelector(selectionProbability));
     SnapshotProfilingSpanProcessor.SUPPLIER.configure(spanProcessor);
     return spanProcessor;

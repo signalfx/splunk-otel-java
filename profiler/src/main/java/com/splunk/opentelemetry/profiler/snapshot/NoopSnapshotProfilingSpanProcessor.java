@@ -16,14 +16,32 @@
 
 package com.splunk.opentelemetry.profiler.snapshot;
 
-import com.splunk.opentelemetry.profiler.util.OptionalConfigurableSupplier;
-import io.opentelemetry.sdk.trace.SpanProcessor;
+import io.opentelemetry.context.Context;
+import io.opentelemetry.sdk.trace.ReadWriteSpan;
+import io.opentelemetry.sdk.trace.ReadableSpan;
 
-public interface SnapshotProfilingSpanProcessor extends SpanProcessor {
-  OptionalConfigurableSupplier<SnapshotProfilingSpanProcessor> SUPPLIER =
-      new OptionalConfigurableSupplier<>(new NoopSnapshotProfilingSpanProcessor());
+class NoopSnapshotProfilingSpanProcessor implements SnapshotProfilingSpanProcessor {
+  @Override
+  public void onStart(Context parentContext, ReadWriteSpan span) {}
 
-  void setEnabled(boolean enabled);
+  @Override
+  public boolean isStartRequired() {
+    return false;
+  }
 
-  boolean isEnabled();
+  @Override
+  public void onEnd(ReadableSpan span) {}
+
+  @Override
+  public boolean isEndRequired() {
+    return false;
+  }
+
+  @Override
+  public void setEnabled(boolean enabled) {}
+
+  @Override
+  public boolean isEnabled() {
+    return false;
+  }
 }

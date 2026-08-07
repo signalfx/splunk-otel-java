@@ -134,6 +134,21 @@ public class MetadataGenerator {
 
     settings.addAll(parseSdkConfiguration());
 
+    // Disabling the agent entirely
+    // https://opentelemetry.io/docs/zero-code/java/agent/disable/#disabling-the-agent-entirely
+
+    /*
+    otel.javaagent.enabled	OTEL_JAVAAGENT_ENABLED	Set the value to `false` to disable the agent entirely.
+     */
+
+    settings.add(
+        setting(
+            "otel.javaagent.enabled",
+            "Set the value to `false` to disable the agent entirely.",
+            "true",
+            SettingType.BOOLEAN,
+            SettingCategory.GENERAL));
+
     // File Configuration
     // https://github.com/open-telemetry/opentelemetry-java/blob/main/sdk-extensions/autoconfigure/README.md#file-configuration
 

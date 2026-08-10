@@ -172,8 +172,7 @@ class OpampActivatorTest {
 
     // then
     assertThat(customMessage).isNotNull();
-    assertThat(customMessage.capability)
-        .isEqualTo(ServerToAgentMessageHandler.CMD_CAPABILITY);
+    assertThat(customMessage.capability).isEqualTo(ServerToAgentMessageHandler.CMD_CAPABILITY);
     assertThat(customMessage.type).isEqualTo(ServerToAgentMessageHandler.CMD_TYPE);
     assertThat(customMessage.data.utf8()).isEqualTo(commandBody);
 

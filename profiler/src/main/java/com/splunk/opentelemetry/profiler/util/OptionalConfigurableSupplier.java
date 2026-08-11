@@ -20,7 +20,15 @@ import java.util.Objects;
 import java.util.function.Supplier;
 
 public class OptionalConfigurableSupplier<T> implements Supplier<T> {
-  private volatile T value = null;
+  private volatile T value;
+
+  public OptionalConfigurableSupplier() {
+    this(null);
+  }
+
+  public OptionalConfigurableSupplier(T initialValue) {
+    value = initialValue;
+  }
 
   @Override
   public T get() {

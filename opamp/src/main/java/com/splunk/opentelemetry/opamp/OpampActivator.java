@@ -174,11 +174,12 @@ public class OpampActivator implements AgentListener {
     OpampClientBuilder builder = OpampClient.builder();
     builder.enableEffectiveConfigReporting();
 
-    // Remote control uses OpAMP remote configuration as its transport, so advertise the
-    // remote configuration capabilities when either feature is enabled.
-    if (opampClientConfiguration.isRemoteConfigurationEnabled()
-        || opampClientConfiguration.isRemoteControlAllowed()) {
+    if (opampClientConfiguration.isRemoteConfigurationEnabled()) {
       builder.enableRemoteConfig();
+    }
+
+    if (opampClientConfiguration.isRemoteControlAllowed()) {
+      builder.addCustomCapability(ServerToAgentMessageHandler.CMD_CAPABILITY);
     }
 
     String endpoint = opampClientConfiguration.getEndpoint();

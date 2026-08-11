@@ -18,6 +18,7 @@ package com.splunk.opentelemetry.opamp;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -28,6 +29,7 @@ import com.splunk.opentelemetry.profiler.ProfilingSupervisor;
 import com.splunk.opentelemetry.profiler.snapshot.SnapshotProfilingConfiguration;
 import com.splunk.opentelemetry.profiler.snapshot.SnapshotProfilingSupervisor;
 import io.opentelemetry.opamp.client.OpampClient;
+import java.util.List;
 import java.util.Map;
 import okio.ByteString;
 import opamp.proto.AgentConfigFile;
@@ -69,6 +71,22 @@ class RemoteConfigProcessorImplTest {
   }
 
   @Test
+  void shouldMarkRemoteConfigAsApplyingWhenProcessingStarts() {
+    // given
+    ByteString configHash = ByteString.encodeUtf8("test-config-hash");
+    AgentRemoteConfig remoteConfig = createRemoteConfig(configHash, "test-config:");
+
+    // when
+    handler.applyConfig(remoteConfig, opampClient);
+
+    // then
+    RemoteConfigStatus status = getInitialReportedRemoteConfigStatus();
+    assertThat(status.last_remote_config_hash).isEqualTo(configHash);
+    assertThat(status.status).isEqualTo(RemoteConfigStatuses.RemoteConfigStatuses_APPLYING);
+    assertThat(status.error_message).isEmpty();
+  }
+
+  @Test
   void shouldMarkRemoteConfigAsAppliedWhenProfilingConfigIsNotProvided() {
     // given
     String remoteConfigYaml = "test-config:";
@@ -86,7 +104,7 @@ class RemoteConfigProcessorImplTest {
     handler.applyConfig(remoteConfig, opampClient);
 
     // then
-    RemoteConfigStatus status = getReportedRemoteConfigStatus();
+    RemoteConfigStatus status = getFinalReportedRemoteConfigStatus();
     assertThat(status.last_remote_config_hash).isEqualTo(configHash);
     assertThat(status.status).isEqualTo(RemoteConfigStatuses.RemoteConfigStatuses_APPLIED);
     assertThat(status.error_message).isEmpty();
@@ -112,7 +130,7 @@ class RemoteConfigProcessorImplTest {
     handler.applyConfig(remoteConfig, opampClient);
 
     // then
-    RemoteConfigStatus status = getReportedRemoteConfigStatus();
+    RemoteConfigStatus status = getFinalReportedRemoteConfigStatus();
     assertThat(status.last_remote_config_hash).isEqualTo(configHash);
     assertThat(status.status).isEqualTo(RemoteConfigStatuses.RemoteConfigStatuses_FAILED);
     assertThat(status.error_message).startsWith("Exception occurred:");
@@ -162,7 +180,7 @@ class RemoteConfigProcessorImplTest {
       handler.applyConfig(remoteConfig, opampClient);
 
       // then
-      RemoteConfigStatus status = getReportedRemoteConfigStatus();
+      RemoteConfigStatus status = getFinalReportedRemoteConfigStatus();
       assertThat(status.last_remote_config_hash).isEqualTo(configHash);
       assertThat(status.status).isEqualTo(RemoteConfigStatuses.RemoteConfigStatuses_APPLIED);
       assertThat(status.error_message).isEmpty();
@@ -224,7 +242,7 @@ class RemoteConfigProcessorImplTest {
       handler.applyConfig(remoteConfig, opampClient);
 
       // then
-      RemoteConfigStatus status = getReportedRemoteConfigStatus();
+      RemoteConfigStatus status = getFinalReportedRemoteConfigStatus();
       assertThat(status.last_remote_config_hash).isEqualTo(configHash);
       assertThat(status.status).isEqualTo(RemoteConfigStatuses.RemoteConfigStatuses_APPLIED);
       assertThat(status.error_message).isEmpty();
@@ -255,7 +273,7 @@ class RemoteConfigProcessorImplTest {
       handler.applyConfig(remoteConfig, opampClient);
 
       // then
-      RemoteConfigStatus status = getReportedRemoteConfigStatus();
+      RemoteConfigStatus status = getFinalReportedRemoteConfigStatus();
       assertThat(status.last_remote_config_hash).isEqualTo(configHash);
       assertThat(status.status).isEqualTo(RemoteConfigStatuses.RemoteConfigStatuses_APPLIED);
       assertThat(status.error_message).isEmpty();
@@ -308,7 +326,7 @@ class RemoteConfigProcessorImplTest {
       handler.applyConfig(remoteConfig, opampClient);
 
       // then
-      RemoteConfigStatus status = getReportedRemoteConfigStatus();
+      RemoteConfigStatus status = getFinalReportedRemoteConfigStatus();
       assertThat(status.last_remote_config_hash).isEqualTo(configHash);
       assertThat(status.status).isEqualTo(RemoteConfigStatuses.RemoteConfigStatuses_APPLIED);
       assertThat(status.error_message).isEmpty();
@@ -320,11 +338,19 @@ class RemoteConfigProcessorImplTest {
     }
   }
 
-  private RemoteConfigStatus getReportedRemoteConfigStatus() {
+  private RemoteConfigStatus getInitialReportedRemoteConfigStatus() {
+    return getReportedRemoteConfigStatuses().get(0);
+  }
+
+  private RemoteConfigStatus getFinalReportedRemoteConfigStatus() {
+    return getReportedRemoteConfigStatuses().get(1);
+  }
+
+  private List<RemoteConfigStatus> getReportedRemoteConfigStatuses() {
     ArgumentCaptor<RemoteConfigStatus> statusCaptor =
         ArgumentCaptor.forClass(RemoteConfigStatus.class);
-    verify(opampClient).setRemoteConfigStatus(statusCaptor.capture());
-    return statusCaptor.getValue();
+    verify(opampClient, times(2)).setRemoteConfigStatus(statusCaptor.capture());
+    return statusCaptor.getAllValues();
   }
 
   private static AgentRemoteConfig createRemoteConfig(ByteString configHash, String config) {

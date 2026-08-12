@@ -16,6 +16,7 @@ exclude = [
   '^https://developers.redhat.com/download-manager/file/jboss-eap-.*.zip',
   '^http://localhost.*',
   '^https://central.sonatype.com/service/rest/repository/browse/maven-snapshots/com/splunk/',
+  '^https://nvd.nist.gov/vuln/.*',
 ]
 
 exclude_path = [

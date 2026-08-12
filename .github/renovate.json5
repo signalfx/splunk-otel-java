@@ -3,8 +3,26 @@
   "extends": [
     "config:base"
   ],
+  "customDatasources": {
+    "csa-latest": {
+      "defaultRegistryUrlTemplate": "https://api.github.com/repos/signalfx/csa-releases/releases/latest",
+      "transformTemplates": [
+        "{\"releases\": $exists(assets[name = 'oss-agent-mtagent-extension-deployment.jar']) ? [{\"version\": tag_name, \"changelogUrl\": html_url}] : [], \"sourceUrl\": \"https://github.com/signalfx/csa-releases\"}"
+      ]
+    }
+  },
   "ignorePaths": ["instrumentation/**"],
   "packageRules": [
+    {
+      "description": "Update the bundled CSA release",
+      "matchManagers": ["gradle"],
+      "matchDatasources": ["maven"],
+      "matchPackageNames": ["signalfx:csa-releases"],
+      "matchFileNames": ["agent-csa-bundle/build.gradle.kts"],
+      "overrideDatasource": "custom.csa-latest",
+      "overridePackageName": "signalfx/csa-releases",
+      "versioning": "regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)-(?<build>\\d+)$"
+    },
     {
       "matchPackagePrefixes": ["com.diffplug.spotless"],
       "groupName": "spotless packages"

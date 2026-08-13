@@ -20,7 +20,9 @@ import static com.splunk.opentelemetry.helper.TestImage.linuxImage;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import com.splunk.opentelemetry.helper.TargetWaitStrategy;
 import java.io.IOException;
+import java.time.Duration;
 import java.util.Map;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -35,6 +37,12 @@ public class RulesBasedSamplerSmokeTest extends AppServerTest {
         "drop=/front;fallback=parentbased_always_on",
         "OTEL_INSTRUMENTATION_COMMON_EXPERIMENTAL_CONTROLLER_TELEMETRY_ENABLED",
         "true");
+  }
+
+  @Override
+  protected TargetWaitStrategy getWaitStrategy() {
+    return new TargetWaitStrategy.Log(
+        Duration.ofMinutes(1), ".*Started SpringbootApplication in.*");
   }
 
   @Test

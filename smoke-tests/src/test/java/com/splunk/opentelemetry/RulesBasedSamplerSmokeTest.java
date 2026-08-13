@@ -41,7 +41,7 @@ public class RulesBasedSamplerSmokeTest extends AppServerTest {
   void shouldIgnoreSampledUrl() throws IOException, InterruptedException {
     startTargetOrSkipTest(
         linuxImage(
-            "ghcr.io/open-telemetry/opentelemetry-java-instrumentation/smoke-test-spring-boot:jdk11-20210918.1248928124"));
+            "ghcr.io/open-telemetry/opentelemetry-java-instrumentation/smoke-test-spring-boot:jdk11-20260804.30870621863"));
 
     Request request = new Request.Builder().url(getUrl("/greeting", false)).get().build();
     Response response = client.newCall(request).execute();

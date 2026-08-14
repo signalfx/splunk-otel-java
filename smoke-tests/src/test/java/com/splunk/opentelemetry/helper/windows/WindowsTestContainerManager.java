@@ -95,7 +95,7 @@ public class WindowsTestContainerManager extends AbstractTestContainerManager {
             .getId();
 
     String backendImageName =
-        "ghcr.io/open-telemetry/opentelemetry-java-instrumentation/smoke-test-fake-backend-windows:20251117.19421579342";
+        "ghcr.io/open-telemetry/opentelemetry-java-instrumentation/smoke-test-fake-backend-windows:20260812.31619536298";
 
     if (!imageExists(backendImageName)) {
       pullImage(backendImageName);

@@ -20,7 +20,9 @@ import static com.splunk.opentelemetry.helper.TestImage.linuxImage;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import com.splunk.opentelemetry.helper.TargetWaitStrategy;
 import java.io.IOException;
+import java.time.Duration;
 import java.util.Map;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -37,11 +39,17 @@ public class RulesBasedSamplerSmokeTest extends AppServerTest {
         "true");
   }
 
+  @Override
+  protected TargetWaitStrategy getWaitStrategy() {
+    return new TargetWaitStrategy.Log(
+        Duration.ofMinutes(1), ".*Started SpringbootApplication in.*");
+  }
+
   @Test
   void shouldIgnoreSampledUrl() throws IOException, InterruptedException {
     startTargetOrSkipTest(
         linuxImage(
-            "ghcr.io/open-telemetry/opentelemetry-java-instrumentation/smoke-test-spring-boot:jdk11-20210918.1248928124"));
+            "ghcr.io/open-telemetry/opentelemetry-java-instrumentation/smoke-test-spring-boot:jdk17-20260804.30870621863"));
 
     Request request = new Request.Builder().url(getUrl("/greeting", false)).get().build();
     Response response = client.newCall(request).execute();

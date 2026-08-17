@@ -7,7 +7,7 @@ plugins {
 }
 
 // Updated from the latest signalfx/csa-releases GitHub release by Renovate.
-val csaVersion = "26.8.0-1482"
+val csaVersion = "26.8.0-1484"
 val otelInstrumentationVersion: String = rootProject.extra["otelInstrumentationVersion"] as String
 
 base.archivesName.set("splunk-otel-javaagent-csa")

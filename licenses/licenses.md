@@ -1,23 +1,23 @@
 
 # splunk-otel-javaagent
 ## Dependency License Report
-_2026-07-30 15:18:51 PDT_
+_2026-08-17 09:11:39 EEST_
 ## Apache License, Version 2.0
 
-**1** **Group:** `com.squareup.okhttp3` **Name:** `okhttp` **Version:** `5.4.0` 
-> - **POM Project URL**: [https://square.github.io/okhttp/](https://square.github.io/okhttp/)
+**1** **Group:** `com.squareup.okhttp3` **Name:** `okhttp` **Version:** `5.5.0` 
+> - **POM Project URL**: [https://lysine.dev/okhttp/](https://lysine.dev/okhttp/)
 > - **POM License**: Apache License, Version 2.0 - [https://www.apache.org/licenses/LICENSE-2.0](https://www.apache.org/licenses/LICENSE-2.0)
 
-**2** **Group:** `com.squareup.okhttp3` **Name:** `okhttp-jvm` **Version:** `5.4.0` 
-> - **POM Project URL**: [https://square.github.io/okhttp/](https://square.github.io/okhttp/)
+**2** **Group:** `com.squareup.okhttp3` **Name:** `okhttp-jvm` **Version:** `5.5.0` 
+> - **POM Project URL**: [https://lysine.dev/okhttp/](https://lysine.dev/okhttp/)
 > - **POM License**: Apache License, Version 2.0 - [https://www.apache.org/licenses/LICENSE-2.0](https://www.apache.org/licenses/LICENSE-2.0)
 
-**3** **Group:** `com.squareup.okio` **Name:** `okio` **Version:** `3.17.0` 
-> - **POM Project URL**: [https://github.com/square/okio/](https://github.com/square/okio/)
+**3** **Group:** `com.squareup.okio` **Name:** `okio` **Version:** `3.18.1` 
+> - **POM Project URL**: [https://github.com/lysine-dev/okio/](https://github.com/lysine-dev/okio/)
 > - **POM License**: Apache License, Version 2.0 - [https://www.apache.org/licenses/LICENSE-2.0](https://www.apache.org/licenses/LICENSE-2.0)
 
-**4** **Group:** `com.squareup.okio` **Name:** `okio-jvm` **Version:** `3.17.0` 
-> - **POM Project URL**: [https://github.com/square/okio/](https://github.com/square/okio/)
+**4** **Group:** `com.squareup.okio` **Name:** `okio-jvm` **Version:** `3.18.1` 
+> - **POM Project URL**: [https://github.com/lysine-dev/okio/](https://github.com/lysine-dev/okio/)
 > - **POM License**: Apache License, Version 2.0 - [https://www.apache.org/licenses/LICENSE-2.0](https://www.apache.org/licenses/LICENSE-2.0)
 
 **5** **Group:** `com.squareup.wire` **Name:** `wire-runtime` **Version:** `6.4.5` 

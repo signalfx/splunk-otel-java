@@ -16,37 +16,21 @@
 
 package com.splunk.opentelemetry.opamp;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
-
-import com.splunk.opamp.remotecontrol.CommandDispatcher;
 import io.opentelemetry.opamp.client.OpampClient;
 import io.opentelemetry.opamp.client.internal.response.MessageData;
 import opamp.proto.AgentRemoteConfig;
-import opamp.proto.CustomMessage;
 
 public class ServerToAgentMessageHandler {
-  public static final String CMD_CAPABILITY = "com.splunk.opamp.experimental_command/v1";
-  public static final String CMD_TYPE = "command";
   private final RemoteConfigProcessor remoteConfigProcessor;
-  private final CommandDispatcher commandDispatcher;
 
-  ServerToAgentMessageHandler(
-      RemoteConfigProcessor remoteConfigProcessor, CommandDispatcher commandDispatcher) {
+  ServerToAgentMessageHandler(RemoteConfigProcessor remoteConfigProcessor) {
     this.remoteConfigProcessor = remoteConfigProcessor;
-    this.commandDispatcher = commandDispatcher;
   }
 
   public void handleMessage(MessageData message, OpampClient opampClient) {
     AgentRemoteConfig remoteConfig = message.getRemoteConfig();
     if (remoteConfig != null) {
       remoteConfigProcessor.applyConfig(remoteConfig, opampClient);
-    }
-    CustomMessage customMessage = message.getCustomMessage();
-    if (customMessage != null
-        && CMD_CAPABILITY.equals(customMessage.capability)
-        && CMD_TYPE.equals(customMessage.type)) {
-      String body = customMessage.data.string(UTF_8);
-      commandDispatcher.dispatch(body);
     }
   }
 }

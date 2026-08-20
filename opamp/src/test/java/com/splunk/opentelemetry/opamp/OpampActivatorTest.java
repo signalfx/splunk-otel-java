@@ -44,16 +44,20 @@ import io.opentelemetry.testing.internal.armeria.common.MediaType;
 import io.opentelemetry.testing.internal.armeria.testing.junit5.server.mock.MockWebServerExtension;
 import io.opentelemetry.testing.internal.armeria.testing.junit5.server.mock.RecordedRequest;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 import okio.ByteString;
 import opamp.proto.AgentCapabilities;
+import opamp.proto.AgentConfigFile;
+import opamp.proto.AgentConfigMap;
+import opamp.proto.AgentRemoteConfig;
 import opamp.proto.AgentToServer;
 import opamp.proto.AnyValue;
 import opamp.proto.ArrayValue;
-import opamp.proto.CustomMessage;
 import opamp.proto.KeyValue;
 import opamp.proto.ServerErrorResponse;
 import opamp.proto.ServerToAgent;
@@ -115,14 +119,15 @@ class OpampActivatorTest {
             .put(AttributeKey.booleanArrayKey("boolobjarr"), Arrays.asList(true, true, false, true))
             .build();
     Resource resource = Resource.create(attributes);
-    String commandBody = "thread.dump\njob-123\n3\n250";
+    Map<String, AgentConfigFile> configMap =
+        Collections.singletonMap(
+            "test-key",
+            new AgentConfigFile.Builder().body(ByteString.encodeUtf8("test-value")).build());
     ServerToAgent response =
         new ServerToAgent.Builder()
-            .custom_message(
-                new CustomMessage.Builder()
-                    .capability(ServerToAgentMessageHandler.CMD_CAPABILITY)
-                    .type(ServerToAgentMessageHandler.CMD_TYPE)
-                    .data(ByteString.encodeUtf8(commandBody))
+            .remote_config(
+                new AgentRemoteConfig.Builder()
+                    .config(new AgentConfigMap.Builder().config_map(configMap).build())
                     .build())
             .build();
     server.enqueue(HttpResponse.of(HttpStatus.OK, MediaType.X_PROTOBUF, response.encode()));
@@ -136,7 +141,6 @@ class OpampActivatorTest {
             .withEndpoint(server.httpUri().toString())
             .withPollingInterval(500)
             .withRemoteConfigurationEnabled(true)
-            .withRemoteControlAllowed(true)
             .build();
     OpampClient client =
         OpampActivator.startOpampClient(
@@ -168,21 +172,18 @@ class OpampActivatorTest {
 
     // when
     MessageData message = result.get(5, TimeUnit.SECONDS);
-    CustomMessage customMessage = message.getCustomMessage();
+    AgentRemoteConfig remoteConfig = message.getRemoteConfig();
 
     // then
-    assertThat(customMessage).isNotNull();
-    assertThat(customMessage.capability).isEqualTo(ServerToAgentMessageHandler.CMD_CAPABILITY);
-    assertThat(customMessage.type).isEqualTo(ServerToAgentMessageHandler.CMD_TYPE);
-    assertThat(customMessage.data.utf8()).isEqualTo(commandBody);
+    assertThat(remoteConfig).isNotNull();
+    assertThat(remoteConfig.config.config_map.get("test-key").body.utf8()).isEqualTo("test-value");
 
     RecordedRequest recordedRequest = server.takeRequest();
     byte[] body = recordedRequest.request().content().array();
     AgentToServer agentToServer = AgentToServer.ADAPTER.decode(body);
 
     assertRemoteConfigCapabilities(agentToServer, true);
-    assertThat(agentToServer.custom_capabilities.capabilities)
-        .containsExactly(ServerToAgentMessageHandler.CMD_CAPABILITY);
+    assertThat(agentToServer.custom_capabilities).isNull();
     assertIdentifyingString(agentToServer, SERVICE_NAME, "test-service");
     assertIdentifyingString(agentToServer, SERVICE_INSTANCE_ID, "test-instance");
     assertIdentifyingString(agentToServer, SERVICE_NAMESPACE, "test-ns");
@@ -266,32 +267,23 @@ class OpampActivatorTest {
   }
 
   @Test
-  void shouldAdvertiseCustomCapabilityWhenRemoteControlIsAllowed() throws Exception {
-    AgentToServer agentToServer = startClientAndTakeInitialRequest(false, true);
-
-    assertRemoteConfigCapabilities(agentToServer, false);
-    assertThat(agentToServer.custom_capabilities.capabilities)
-        .containsExactly(ServerToAgentMessageHandler.CMD_CAPABILITY);
-  }
-
-  @Test
   void shouldAdvertiseRemoteConfigCapabilitiesOnlyWhenRemoteConfigIsEnabled() throws Exception {
-    AgentToServer agentToServer = startClientAndTakeInitialRequest(true, false);
+    AgentToServer agentToServer = startClientAndTakeInitialRequest(true);
 
     assertRemoteConfigCapabilities(agentToServer, true);
     assertThat(agentToServer.custom_capabilities).isNull();
   }
 
   @Test
-  void shouldNotAdvertiseRemoteConfigCapabilitiesWhenRemoteFeaturesAreDisabled() throws Exception {
-    AgentToServer agentToServer = startClientAndTakeInitialRequest(false, false);
+  void shouldNotAdvertiseRemoteConfigCapabilitiesWhenRemoteConfigIsDisabled() throws Exception {
+    AgentToServer agentToServer = startClientAndTakeInitialRequest(false);
 
     assertRemoteConfigCapabilities(agentToServer, false);
     assertThat(agentToServer.custom_capabilities).isNull();
   }
 
-  private AgentToServer startClientAndTakeInitialRequest(
-      boolean remoteConfigurationEnabled, boolean remoteControlAllowed) throws Exception {
+  private AgentToServer startClientAndTakeInitialRequest(boolean remoteConfigurationEnabled)
+      throws Exception {
     ServerToAgent response = new ServerToAgent.Builder().build();
     server.enqueue(HttpResponse.of(HttpStatus.OK, MediaType.X_PROTOBUF, response.encode()));
 
@@ -301,7 +293,6 @@ class OpampActivatorTest {
             .withEndpoint(server.httpUri().toString())
             .withPollingInterval(500)
             .withRemoteConfigurationEnabled(remoteConfigurationEnabled)
-            .withRemoteControlAllowed(remoteControlAllowed)
             .build();
     OpampClient client =
         OpampActivator.startOpampClient(

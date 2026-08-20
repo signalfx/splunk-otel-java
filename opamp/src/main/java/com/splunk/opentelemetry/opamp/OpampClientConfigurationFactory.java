@@ -52,8 +52,7 @@ public class OpampClientConfigurationFactory {
           .withPollingInterval(
               opampProperties.getLong(
                   "polling_interval", DEFAULT_DELAY_BETWEEN_REQUESTS.getNextDelay().toMillis()))
-          .withRemoteConfigurationEnabled(features.getPropertyKeys().contains("remote_config"))
-          .withRemoteControlAllowed(features.getPropertyKeys().contains("experimental_control"));
+          .withRemoteConfigurationEnabled(features.getPropertyKeys().contains("remote_config"));
     }
 
     return builder.build();
@@ -68,8 +67,6 @@ public class OpampClientConfigurationFactory {
                 "splunk.opamp.polling.interval",
                 DEFAULT_DELAY_BETWEEN_REQUESTS.getNextDelay().toMillis()))
         .withRemoteConfigurationEnabled(config.getBoolean("splunk.opamp.remote.config", false))
-        .withRemoteControlAllowed(
-            config.getBoolean("splunk.opamp.experimental.remote.control", false))
         .build();
   }
 }

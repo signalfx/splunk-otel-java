@@ -1,7 +1,7 @@
 
 # splunk-otel-javaagent
 ## Dependency License Report
-_2026-08-17 09:11:39 EEST_
+_2026-08-21 10:16:26 PDT_
 ## Apache License, Version 2.0
 
 **1** **Group:** `com.squareup.okhttp3` **Name:** `okhttp` **Version:** `5.5.0` 
@@ -134,7 +134,7 @@ _2026-08-17 09:11:39 EEST_
 
 ## The 3-Clause BSD License
 
-**30** **Group:** `com.google.protobuf` **Name:** `protobuf-java` **Version:** `4.35.1` 
+**30** **Group:** `com.google.protobuf` **Name:** `protobuf-java` **Version:** `4.36.0` 
 > - **Manifest Project URL**: [https://developers.google.com/protocol-buffers/](https://developers.google.com/protocol-buffers/)
 > - **Manifest License**: [https://opensource.org/licenses/BSD-3-Clause](The 3-Clause BSD License)
 > - **POM License**: The 3-Clause BSD License - [https://opensource.org/licenses/BSD-3-Clause](https://opensource.org/licenses/BSD-3-Clause)

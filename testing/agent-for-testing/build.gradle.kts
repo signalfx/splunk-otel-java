@@ -50,7 +50,7 @@ tasks {
     archiveFileName.set("javaagentLibs-relocated.jar")
 
     // avoid warning about duplicate kotlin module files being silently dropped
-    filesMatching("inst/META-INF/*.kotlin_module") {
+    filesMatching("META-INF/*.kotlin_module") {
       duplicatesStrategy = DuplicatesStrategy.INCLUDE
     }
 

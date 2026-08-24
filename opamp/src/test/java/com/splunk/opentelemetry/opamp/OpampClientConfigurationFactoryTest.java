@@ -47,8 +47,7 @@ class OpampClientConfigurationFactoryTest {
                 "splunk.opamp.enabled", "true",
                 "splunk.opamp.endpoint", "https://opamp.example.com",
                 "splunk.opamp.polling.interval", "3210",
-                "splunk.opamp.remote.config", "true",
-                "splunk.opamp.experimental.remote.control", "true"));
+                "splunk.opamp.remote.config", "true"));
 
     // when
     OpampClientConfiguration configuration =
@@ -59,7 +58,6 @@ class OpampClientConfigurationFactoryTest {
     assertThat(configuration.getEndpoint()).isEqualTo("https://opamp.example.com");
     assertThat(configuration.getPollingInterval()).isEqualTo(3210);
     assertThat(configuration.isRemoteConfigurationEnabled()).isTrue();
-    assertThat(configuration.isRemoteControlAllowed()).isTrue();
   }
 
   @Test
@@ -86,7 +84,6 @@ class OpampClientConfigurationFactoryTest {
     assertThat(configuration.getEndpoint()).isEqualTo("http://some.opamp-host.com:3420/v1/opamp");
     assertThat(configuration.getPollingInterval()).isEqualTo(4567);
     assertThat(configuration.isRemoteConfigurationEnabled()).isFalse();
-    assertThat(configuration.isRemoteControlAllowed()).isFalse();
   }
 
   @Test
@@ -115,30 +112,6 @@ class OpampClientConfigurationFactoryTest {
   }
 
   @Test
-  void shouldEnableRemoteControlFromDeclarativeConfig(@TempDir Path tempDir) throws IOException {
-    // given
-    String yaml =
-        """
-            file_format: "1.1"
-            distribution:
-              splunk:
-                opamp/development:
-                  endpoint: http://some.opamp-host.com:3420/v1/opamp
-                  features:
-                    experimental_control:
-            """;
-    AutoConfiguredOpenTelemetrySdk sdk =
-        DeclarativeConfigTestUtil.createAutoConfiguredSdk(yaml, tempDir, autoCleanup);
-
-    // when
-    OpampClientConfiguration configuration =
-        OpampClientConfigurationFactory.createConfiguration(sdk);
-
-    // then
-    assertThat(configuration.isRemoteControlAllowed()).isTrue();
-  }
-
-  @Test
   void shouldUseDefaults() {
     // given
     AutoConfiguredOpenTelemetrySdk sdk = createSdk(Map.of());
@@ -153,7 +126,6 @@ class OpampClientConfigurationFactoryTest {
     assertThat(configuration.getPollingInterval())
         .isEqualTo(DEFAULT_DELAY_BETWEEN_REQUESTS.getNextDelay().toMillis());
     assertThat(configuration.isRemoteConfigurationEnabled()).isFalse();
-    assertThat(configuration.isRemoteControlAllowed()).isFalse();
   }
 
   private static AutoConfiguredOpenTelemetrySdk createSdk(Map<String, String> properties) {

@@ -8,6 +8,11 @@ and this repository adheres to [Semantic Versioning](https://semver.org/spec/v2.
 
 ## Unreleased
 
+## v2.31.0 - 2026-08-25
+
+- OpenTelemetry Java SDK has been updated to version [1.65.0](https://github.com/open-telemetry/opentelemetry-java/releases/tag/v1.65.0).
+- OpenTelemetry Instrumentation for Java has been updated to version [2.31.1](https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/tag/v2.31.1).
+
 ## v2.30.2 - 2026-08-14
 
 - CSA updated to 26.8.0-1484
@@ -20,7 +25,6 @@ and this repository adheres to [Semantic Versioning](https://semver.org/spec/v2.
 
 - OpenTelemetry Java SDK has been updated to version [1.64.0](https://github.com/open-telemetry/opentelemetry-java/releases/tag/v1.64.0).
 - OpenTelemetry Instrumentation for Java has been updated to version [2.30.0](https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/tag/v2.30.0).
-
 
 ## v2.29.0 - 2026-06-20
 

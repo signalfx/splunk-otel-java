@@ -97,6 +97,8 @@ tasks.withType<Test>().configureEach {
   jvmArgs("-Djavax.net.ssl.trustStore=${trustStore.absolutePath}")
   jvmArgs("-Djavax.net.ssl.trustStorePassword=testing")
 
+  jvmArgs("-Dotel.instrumentation.common.peer-service-mapping=127.0.0.1=test-peer-service,localhost=test-peer-service,192.0.2.1=test-peer-service")
+
   // The sources are packaged into the testing jar so we need to make sure to exclude from the test
   // classpath, which automatically inherits them, to ensure our shaded versions are used.
   classpath = classpath.filter {

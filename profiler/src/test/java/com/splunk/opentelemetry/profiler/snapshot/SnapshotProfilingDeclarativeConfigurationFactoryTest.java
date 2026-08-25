@@ -42,6 +42,8 @@ class SnapshotProfilingDeclarativeConfigurationFactoryTest {
                     selection_probability: 0.0123 # SPLUNK_SNAPSHOT_SELECTION_PROBABILITY
                     stack_depth: 200              # SPLUNK_SNAPSHOT_STACK_DEPTH
                     staging_capacity: 7           # SPLUNK_SNAPSHOT_STAGING_CAPACITY
+                    locks:
+                      enabled: true
             """);
 
     DeclarativeConfigProperties profilingConfig = getProfilingConfig(model);
@@ -57,6 +59,7 @@ class SnapshotProfilingDeclarativeConfigurationFactoryTest {
     assertThat(config.getSamplingInterval()).isEqualTo(Duration.ofMillis(10));
     assertThat(config.getExportInterval()).isEqualTo(Duration.ofMillis(20));
     assertThat(config.getStagingCapacity()).isEqualTo(7);
+    assertThat(config.getLocksEnabled()).isTrue();
   }
 
   @Test
@@ -85,6 +88,7 @@ class SnapshotProfilingDeclarativeConfigurationFactoryTest {
     assertThat(config.getSamplingInterval()).isEqualTo(Duration.ofMillis(10));
     assertThat(config.getExportInterval()).isEqualTo(Duration.ofSeconds(5));
     assertThat(config.getStagingCapacity()).isEqualTo(2000);
+    assertThat(config.getLocksEnabled()).isFalse();
   }
 
   @Test

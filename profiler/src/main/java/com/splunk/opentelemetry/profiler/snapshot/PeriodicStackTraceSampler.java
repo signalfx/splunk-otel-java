@@ -44,7 +44,20 @@ class PeriodicStackTraceSampler implements StackTraceSampler {
 
   public PeriodicStackTraceSampler(
       Supplier<StagingArea> staging, Supplier<SpanTracker> spanTracker, Duration samplingPeriod) {
-    this(staging, spanTracker, new ThreadInfoCollector(), samplingPeriod, Clock.getDefault());
+    this(staging, spanTracker, samplingPeriod, false);
+  }
+
+  public PeriodicStackTraceSampler(
+      Supplier<StagingArea> staging,
+      Supplier<SpanTracker> spanTracker,
+      Duration samplingPeriod,
+      boolean locksEnabled) {
+    this(
+        staging,
+        spanTracker,
+        new ThreadInfoCollector(locksEnabled),
+        samplingPeriod,
+        Clock.getDefault());
   }
 
   @VisibleForTesting

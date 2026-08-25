@@ -42,6 +42,7 @@ public class SnapshotProfilingConfiguration {
   private final Duration samplingInterval;
   private final Duration exportInterval;
   private final int stagingCapacity;
+  private final boolean locksEnabled;
   @Nullable private final Object configProperties;
 
   private SnapshotProfilingConfiguration(Builder builder) {
@@ -51,6 +52,7 @@ public class SnapshotProfilingConfiguration {
     samplingInterval = builder.samplingInterval;
     exportInterval = builder.exportInterval;
     stagingCapacity = builder.stagingCapacity;
+    locksEnabled = builder.locksEnabled;
     configProperties = builder.configProperties;
   }
 
@@ -66,6 +68,7 @@ public class SnapshotProfilingConfiguration {
         .setSamplingInterval(samplingInterval)
         .setExportInterval(exportInterval)
         .setStagingCapacity(stagingCapacity)
+        .setLocksEnabled(locksEnabled)
         .setConfigProperties(configProperties);
   }
 
@@ -79,6 +82,7 @@ public class SnapshotProfilingConfiguration {
     log("SamplingInterval", getSamplingInterval().toMillis() + "ms");
     log("ExportInterval", getExportInterval().toMillis() + "ms");
     log("StagingCapacity", getStagingCapacity());
+    log("LocksEnabled", getLocksEnabled());
 
     logger.info("--------------------------------");
   }
@@ -107,6 +111,10 @@ public class SnapshotProfilingConfiguration {
     return stagingCapacity;
   }
 
+  public boolean getLocksEnabled() {
+    return locksEnabled;
+  }
+
   @Nullable
   public Object getConfigProperties() {
     return configProperties;
@@ -125,6 +133,7 @@ public class SnapshotProfilingConfiguration {
         && Double.compare(that.snapshotSelectionProbability, snapshotSelectionProbability) == 0
         && stackDepth == that.stackDepth
         && stagingCapacity == that.stagingCapacity
+        && locksEnabled == that.locksEnabled
         && Objects.equals(samplingInterval, that.samplingInterval)
         && Objects.equals(exportInterval, that.exportInterval)
         && Objects.equals(configProperties, that.configProperties);
@@ -139,6 +148,7 @@ public class SnapshotProfilingConfiguration {
         samplingInterval,
         exportInterval,
         stagingCapacity,
+        locksEnabled,
         configProperties);
   }
 
@@ -174,6 +184,7 @@ public class SnapshotProfilingConfiguration {
     private Duration samplingInterval = Duration.ofMillis(DEFAULT_SAMPLING_INTERVAL);
     private Duration exportInterval = Duration.ofMillis(DEFAULT_EXPORT_INTERVAL);
     private int stagingCapacity = DEFAULT_STAGING_CAPACITY;
+    private boolean locksEnabled;
     @Nullable private Object configProperties;
 
     private Builder() {}
@@ -209,6 +220,11 @@ public class SnapshotProfilingConfiguration {
 
     public Builder setStagingCapacity(int stagingCapacity) {
       this.stagingCapacity = stagingCapacity;
+      return this;
+    }
+
+    public Builder setLocksEnabled(boolean locksEnabled) {
+      this.locksEnabled = locksEnabled;
       return this;
     }
 

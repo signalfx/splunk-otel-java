@@ -34,10 +34,6 @@ class ThreadInfoCollector {
   private final ThreadMXBean threadMXBean;
   private final boolean locksEnabled;
 
-  ThreadInfoCollector() {
-    this(ManagementFactory.getThreadMXBean(), false);
-  }
-
   ThreadInfoCollector(boolean locksEnabled) {
     this(ManagementFactory.getThreadMXBean(), locksEnabled);
   }

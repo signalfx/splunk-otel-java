@@ -113,6 +113,8 @@ class DeclarativeEffectiveConfigFileFactory implements EffectiveConfigFactory {
     if (snapshotConfiguration.isEnabled()) {
       profiling.addNestedNode(
           "callgraphs.sampling_interval", snapshotConfiguration.getSamplingInterval().toMillis());
+      profiling.addNestedNode(
+          "callgraphs.selection_probability", snapshotConfiguration.getSnapshotSelectionProbability());
     }
   }
 

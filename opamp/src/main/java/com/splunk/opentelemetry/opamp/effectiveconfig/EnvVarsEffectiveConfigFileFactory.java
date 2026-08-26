@@ -58,6 +58,7 @@ class EnvVarsEffectiveConfigFileFactory implements EffectiveConfigFactory {
         .add(
             "SPLUNK_SNAPSHOT_PROFILER_SAMPLING_INTERVAL",
             snapshotConfiguration.getSamplingInterval())
+        .add("SPLUNK_SNAPSHOT_SELECTION_PROBABILITY", snapshotConfiguration.getSnapshotSelectionProbability())
         .add("SPLUNK_PROFILER_CALL_STACK_INTERVAL", profilerConfiguration.getCallStackInterval());
   }
 

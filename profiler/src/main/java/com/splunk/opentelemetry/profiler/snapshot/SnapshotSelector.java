@@ -20,4 +20,6 @@ import io.opentelemetry.api.trace.SpanContext;
 
 interface SnapshotSelector {
   boolean select(SpanContext context);
+
+  void setSnapshotSelectionProbability(double probability);
 }

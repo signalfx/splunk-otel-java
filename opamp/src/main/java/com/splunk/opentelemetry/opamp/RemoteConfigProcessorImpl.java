@@ -135,7 +135,12 @@ public class RemoteConfigProcessorImpl implements RemoteConfigProcessor {
     SnapshotProfilingConfiguration currentConfiguration =
         SnapshotProfilingConfiguration.SUPPLIER.get();
     SnapshotProfilingConfiguration updatedConfiguration =
-        currentConfiguration.toBuilder().setEnabled(receivedConfiguration.isEnabled()).build();
+        currentConfiguration.toBuilder()
+            .setEnabled(receivedConfiguration.isEnabled())
+            .setSamplingInterval(receivedConfiguration.getSamplingInterval())
+            .setSnapshotSelectionProbability(
+                receivedConfiguration.getSnapshotSelectionProbability())
+            .build();
 
     if (!currentConfiguration.equals(updatedConfiguration)) {
       SnapshotProfilingConfiguration.SUPPLIER.configure(updatedConfiguration);

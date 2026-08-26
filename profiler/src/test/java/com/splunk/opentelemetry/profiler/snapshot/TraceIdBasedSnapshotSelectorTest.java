@@ -43,6 +43,21 @@ class TraceIdBasedSnapshotSelectorTest {
     assertThat(selector.select(spanContext)).isTrue();
   }
 
+  @Test
+  void useUpdatedSelectionProbability() {
+    var spanContext =
+        Snapshotting.spanContext()
+            .withTraceId(SnapshotSelectorTestTraceIds.forPercentile(6).get(0))
+            .build();
+    var selector = new TraceIdBasedSnapshotSelector(0.05);
+
+    assertThat(selector.select(spanContext)).isFalse();
+
+    selector.setSnapshotSelectionProbability(0.06);
+
+    assertThat(selector.select(spanContext)).isTrue();
+  }
+
   @ParameterizedTest
   @MethodSource("traceIdsToSelect")
   void selectTraceWhenTraceIdIsComputedToBeLessThanOrEqualToSelectionRate(String traceId) {

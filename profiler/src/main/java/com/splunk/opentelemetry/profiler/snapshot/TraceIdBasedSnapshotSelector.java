@@ -18,7 +18,7 @@ package com.splunk.opentelemetry.profiler.snapshot;
 
 import io.opentelemetry.api.trace.SpanContext;
 
-class TraceIdBasedSnapshotSelector implements SnapshotSelector {
+final class TraceIdBasedSnapshotSelector implements SnapshotSelector {
   // the length of trace-id represented as a hex string
   private static final int TRACE_ID_LENGTH = 32;
   // number of characters taken from the tail of trace-id as the trace randomness
@@ -26,14 +26,10 @@ class TraceIdBasedSnapshotSelector implements SnapshotSelector {
   private static final String HEX_FORMATTER = "%07x";
   // to convert probability to threshold
   private static final int MULTIPLIER = (1 << (4 * CHARS)) - 1;
-  private final String threshold;
+  private volatile String threshold;
 
   TraceIdBasedSnapshotSelector(double selectionProbability) {
-    if (selectionProbability < 0 || selectionProbability > 1) {
-      throw new IllegalArgumentException("Selection probability must be between 0 and 1.");
-    }
-
-    this.threshold = thresholdFor(selectionProbability);
+    setSnapshotSelectionProbability(selectionProbability);
   }
 
   private static String thresholdFor(double probability) {
@@ -47,13 +43,23 @@ class TraceIdBasedSnapshotSelector implements SnapshotSelector {
 
   @Override
   public boolean select(SpanContext spanContext) {
-    if (threshold == null || !spanContext.isValid()) {
+    String currentThreshold = threshold;
+    if (currentThreshold == null || !spanContext.isValid()) {
       return false;
     }
 
     String traceId = spanContext.getTraceId();
     String randomness = traceId.substring(TRACE_ID_LENGTH - CHARS);
     // Select if randomness is lesser or equal to threshold
-    return randomness.compareTo(threshold) < 1;
+    return randomness.compareTo(currentThreshold) < 1;
+  }
+
+  @Override
+  public void setSnapshotSelectionProbability(double selectionProbability) {
+    if (selectionProbability < 0 || selectionProbability > 1) {
+      throw new IllegalArgumentException("Selection probability must be between 0 and 1.");
+    }
+
+    this.threshold = thresholdFor(selectionProbability);
   }
 }

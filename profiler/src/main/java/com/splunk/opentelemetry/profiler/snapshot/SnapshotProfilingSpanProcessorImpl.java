@@ -41,6 +41,11 @@ public class SnapshotProfilingSpanProcessorImpl implements SnapshotProfilingSpan
   }
 
   @Override
+  public void setSnapshotSelectionProbability(double probability) {
+    this.selector.setSnapshotSelectionProbability(probability);
+  }
+
+  @Override
   public void onStart(Context context, ReadWriteSpan span) {
     if (!isEnabled()) {
       return;

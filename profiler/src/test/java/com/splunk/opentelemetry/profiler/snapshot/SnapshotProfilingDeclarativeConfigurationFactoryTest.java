@@ -42,8 +42,7 @@ class SnapshotProfilingDeclarativeConfigurationFactoryTest {
                     selection_probability: 0.0123 # SPLUNK_SNAPSHOT_SELECTION_PROBABILITY
                     stack_depth: 200              # SPLUNK_SNAPSHOT_STACK_DEPTH
                     staging_capacity: 7           # SPLUNK_SNAPSHOT_STAGING_CAPACITY
-                    locks:
-                      enabled: true
+                    report_locks: true
             """);
 
     DeclarativeConfigProperties profilingConfig = getProfilingConfig(model);

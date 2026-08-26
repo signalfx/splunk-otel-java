@@ -43,8 +43,16 @@ class PeriodicStackTraceSampler implements StackTraceSampler {
   private volatile boolean closed;
 
   public PeriodicStackTraceSampler(
-      Supplier<StagingArea> staging, Supplier<SpanTracker> spanTracker, Duration samplingPeriod) {
-    this(staging, spanTracker, new ThreadInfoCollector(), samplingPeriod, Clock.getDefault());
+      Supplier<StagingArea> staging,
+      Supplier<SpanTracker> spanTracker,
+      Duration samplingPeriod,
+      boolean locksEnabled) {
+    this(
+        staging,
+        spanTracker,
+        new ThreadInfoCollector(locksEnabled),
+        samplingPeriod,
+        Clock.getDefault());
   }
 
   @VisibleForTesting

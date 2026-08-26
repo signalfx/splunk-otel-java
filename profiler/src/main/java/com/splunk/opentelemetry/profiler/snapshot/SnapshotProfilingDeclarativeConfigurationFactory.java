@@ -52,6 +52,7 @@ public final class SnapshotProfilingDeclarativeConfigurationFactory {
         .setStagingCapacity(
             configRoot.getInt(
                 "staging_capacity", SnapshotProfilingConfiguration.DEFAULT_STAGING_CAPACITY))
+        .setLocksEnabled(configRoot.getBoolean("report_locks", false))
         .setConfigProperties(config)
         .build();
   }

@@ -32,14 +32,21 @@ class ThreadInfoCollector {
   private static final Logger logger = Logger.getLogger(ThreadInfoCollector.class.getName());
 
   private final ThreadMXBean threadMXBean;
+  private final boolean locksEnabled;
 
-  ThreadInfoCollector() {
-    this(ManagementFactory.getThreadMXBean());
+  ThreadInfoCollector(boolean locksEnabled) {
+    this(ManagementFactory.getThreadMXBean(), locksEnabled);
   }
 
   @VisibleForTesting
   ThreadInfoCollector(ThreadMXBean threadMXBean) {
+    this(threadMXBean, false);
+  }
+
+  @VisibleForTesting
+  ThreadInfoCollector(ThreadMXBean threadMXBean, boolean locksEnabled) {
     this.threadMXBean = threadMXBean;
+    this.locksEnabled = locksEnabled;
   }
 
   ThreadInfo getThreadInfo(long threadId) {
@@ -68,7 +75,7 @@ class ThreadInfoCollector {
   private ThreadInfo[] collectThreadInfo(long[] threadIds) {
     return threadMXBean.getThreadInfo(
         threadIds,
-        threadMXBean.isObjectMonitorUsageSupported(),
-        threadMXBean.isSynchronizerUsageSupported());
+        locksEnabled && threadMXBean.isObjectMonitorUsageSupported(),
+        locksEnabled && threadMXBean.isSynchronizerUsageSupported());
   }
 }

@@ -51,7 +51,7 @@ class ConcurrentServiceEntrySamplingTest {
     var stagingAreaSupplier = StagingArea.SUPPLIER;
     stagingAreaSupplier.configure(staging);
     return new PeriodicStackTraceSampler(
-        stagingAreaSupplier, SpanTracker.SUPPLIER, Duration.ofMillis(20));
+        stagingAreaSupplier, SpanTracker.SUPPLIER, Duration.ofMillis(20), false);
   }
 
   private final SnapshotProfilingSdkCustomizer downstreamCustomizer =

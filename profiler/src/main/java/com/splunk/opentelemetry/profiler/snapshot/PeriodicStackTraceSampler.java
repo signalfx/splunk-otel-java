@@ -43,11 +43,6 @@ class PeriodicStackTraceSampler implements StackTraceSampler {
   private volatile boolean closed;
 
   public PeriodicStackTraceSampler(
-      Supplier<StagingArea> staging, Supplier<SpanTracker> spanTracker, Duration samplingPeriod) {
-    this(staging, spanTracker, samplingPeriod, false);
-  }
-
-  public PeriodicStackTraceSampler(
       Supplier<StagingArea> staging,
       Supplier<SpanTracker> spanTracker,
       Duration samplingPeriod,

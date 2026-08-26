@@ -86,7 +86,7 @@ class ContextStorageWrapperTest {
 
     var sampler =
         new PeriodicStackTraceSampler(
-            StagingArea.SUPPLIER, SpanTracker.SUPPLIER, Duration.ofMinutes(1));
+            StagingArea.SUPPLIER, SpanTracker.SUPPLIER, Duration.ofMinutes(1), false);
     StackTraceSampler.SUPPLIER.configure(sampler);
 
     wrapper.wrapContextStorage(registry);

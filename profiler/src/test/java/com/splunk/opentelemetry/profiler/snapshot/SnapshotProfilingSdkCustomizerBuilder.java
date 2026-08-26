@@ -33,7 +33,7 @@ class SnapshotProfilingSdkCustomizerBuilder {
 
   SnapshotProfilingSdkCustomizerBuilder withRealStackTraceSampler(Duration samplingPeriod) {
     return with(
-        new PeriodicStackTraceSampler(StagingArea.SUPPLIER, SpanTracker.SUPPLIER, samplingPeriod));
+        new PeriodicStackTraceSampler(StagingArea.SUPPLIER, SpanTracker.SUPPLIER, samplingPeriod, false));
   }
 
   SnapshotProfilingSdkCustomizerBuilder with(StackTraceSampler sampler) {

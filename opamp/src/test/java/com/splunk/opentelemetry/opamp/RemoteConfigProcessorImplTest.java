@@ -29,6 +29,7 @@ import com.splunk.opentelemetry.profiler.ProfilingSupervisor;
 import com.splunk.opentelemetry.profiler.snapshot.SnapshotProfilingConfiguration;
 import com.splunk.opentelemetry.profiler.snapshot.SnapshotProfilingSupervisor;
 import io.opentelemetry.opamp.client.OpampClient;
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import okio.ByteString;
@@ -306,6 +307,33 @@ class RemoteConfigProcessorImplTest {
       assertThat(SnapshotProfilingConfiguration.SUPPLIER.get().isEnabled()).isTrue();
       verifyNoInteractions(profilingSupervisor, snapshotProfilingSupervisor);
       verify(effectiveConfigReporter).reportEffectiveConfigIfChanged();
+    }
+
+    @Test
+    void shouldUpdateCallgraphsSettingsFromRemoteConfig() {
+      SnapshotProfilingConfiguration.SUPPLIER.configure(
+          SnapshotProfilingConfiguration.builder().setEnabled(true).build());
+      String remoteConfigYaml =
+          """
+          distribution:
+            splunk:
+              profiling:
+                callgraphs:
+                  selection_probability: 0.5
+                  sampling_interval: 123
+          """;
+      AgentRemoteConfig remoteConfig =
+          createRemoteConfig(ByteString.encodeUtf8("test-config-hash"), remoteConfigYaml);
+
+      handler.applyConfig(remoteConfig, opampClient);
+
+      assertThat(SnapshotProfilingConfiguration.SUPPLIER.get().getSnapshotSelectionProbability())
+          .isEqualTo(0.5);
+      assertThat(SnapshotProfilingConfiguration.SUPPLIER.get().getSamplingInterval())
+          .isEqualTo(Duration.ofMillis(123));
+      verify(snapshotProfilingSupervisor).requestReinitializeProfiling();
+      verifyNoMoreInteractions(snapshotProfilingSupervisor);
+      verifyNoInteractions(profilingSupervisor);
     }
 
     @Test

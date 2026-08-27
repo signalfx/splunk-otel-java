@@ -53,13 +53,15 @@ class EnvVarsEffectiveConfigFileFactory implements EffectiveConfigFactory {
 
     builder
         .add("SPLUNK_PROFILER_ENABLED", profilerConfiguration.isEnabled())
+        .add("SPLUNK_PROFILER_CALL_STACK_INTERVAL", profilerConfiguration.getCallStackInterval())
         .add("SPLUNK_PROFILER_MEMORY_ENABLED", profilerConfiguration.getMemoryEnabled())
         .add("SPLUNK_SNAPSHOT_PROFILER_ENABLED", snapshotConfiguration.isEnabled())
         .add(
             "SPLUNK_SNAPSHOT_PROFILER_SAMPLING_INTERVAL",
             snapshotConfiguration.getSamplingInterval())
-        .add("SPLUNK_SNAPSHOT_SELECTION_PROBABILITY", snapshotConfiguration.getSnapshotSelectionProbability())
-        .add("SPLUNK_PROFILER_CALL_STACK_INTERVAL", profilerConfiguration.getCallStackInterval());
+        .add(
+            "SPLUNK_SNAPSHOT_SELECTION_PROBABILITY",
+            snapshotConfiguration.getSnapshotSelectionProbability());
   }
 
   private void addOtelEnvVars(EffectiveConfigBuilder builder) {

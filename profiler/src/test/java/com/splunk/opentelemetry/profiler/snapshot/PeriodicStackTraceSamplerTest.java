@@ -202,7 +202,7 @@ class PeriodicStackTraceSamplerTest {
   void calculateSamplingPeriodAfterFirstRecordedStackTraces() {
     var clock = TestClock.create();
     var initialSampleCollector =
-        new ThreadInfoCollector() {
+        new ThreadInfoCollector(false) {
           @Override
           ThreadInfo getThreadInfo(long threadId) {
             var threadInfo = super.getThreadInfo(threadId);
@@ -542,6 +542,10 @@ class PeriodicStackTraceSamplerTest {
       this.delay = delay;
     }
 
+    DelayedThreadInfoCollector() {
+      super(false);
+    }
+
     @Override
     ThreadInfo getThreadInfo(long threadId) {
       try {
@@ -568,6 +572,7 @@ class PeriodicStackTraceSamplerTest {
     private final CountDownLatch latch;
 
     private CoordinatingThreadInfoCollector(CountDownLatch latch) {
+      super(false);
       this.latch = latch;
     }
 

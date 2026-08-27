@@ -48,12 +48,14 @@ import java.time.Instant;
 public class PprofCpuEventExporter implements CpuEventExporter {
   private final Duration period;
   private final int stackDepth;
+  private final boolean locksEnabled;
   private final PprofLogDataExporter pprofLogDataExporter;
   private Pprof pprof = createPprof();
 
   private PprofCpuEventExporter(Builder builder) {
     this.period = builder.period;
     this.stackDepth = builder.stackDepth;
+    this.locksEnabled = builder.locksEnabled;
     this.pprofLogDataExporter =
         new PprofLogDataExporter(
             builder.otelLogger, ProfilingDataType.CPU, builder.instrumentationSource);
@@ -106,7 +108,9 @@ public class PprofCpuEventExporter implements CpuEventExporter {
     Sample.Builder sample = Sample.newBuilder();
     addThreadInfo(
         sample, threadInfo.getThreadId(), threadInfo.getThreadName(), threadInfo.getThreadState());
-    addLockInfo(sample, threadInfo);
+    if (locksEnabled) {
+      addLockInfo(sample, threadInfo);
+    }
     addSample(sample, threadInfo.getStackTrace(), eventTime, traceId, spanId, duration);
   }
 
@@ -219,6 +223,7 @@ public class PprofCpuEventExporter implements CpuEventExporter {
     private Logger otelLogger;
     private Duration period;
     private int stackDepth;
+    private boolean locksEnabled;
     private InstrumentationSource instrumentationSource = InstrumentationSource.CONTINUOUS;
 
     public PprofCpuEventExporter build() {
@@ -237,6 +242,11 @@ public class PprofCpuEventExporter implements CpuEventExporter {
 
     public Builder stackDepth(int stackDepth) {
       this.stackDepth = stackDepth;
+      return this;
+    }
+
+    public Builder locksEnabled(boolean locksEnabled) {
+      this.locksEnabled = locksEnabled;
       return this;
     }
 

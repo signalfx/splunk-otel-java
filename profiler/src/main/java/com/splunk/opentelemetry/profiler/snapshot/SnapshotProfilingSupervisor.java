@@ -219,7 +219,8 @@ public class SnapshotProfilingSupervisor {
 
   StackTraceSampler createStackTraceSampler(SnapshotProfilingConfiguration configuration) {
     Duration samplingPeriod = configuration.getSamplingInterval();
-    return new PeriodicStackTraceSampler(stagingAreaSupplier, spanTrackerSupplier, samplingPeriod);
+    return new PeriodicStackTraceSampler(
+        stagingAreaSupplier, spanTrackerSupplier, samplingPeriod, configuration.getLocksEnabled());
   }
 
   StackTraceExporter createStackTraceExporter(SnapshotProfilingConfiguration configuration) {
@@ -227,7 +228,8 @@ public class SnapshotProfilingSupervisor {
     io.opentelemetry.api.logs.Logger otelLogger =
         buildLogger(otelLoggerFactory, resource, configuration.getConfigProperties());
 
-    return new AsyncStackTraceExporter(otelLogger, configuration.getStackDepth());
+    return new AsyncStackTraceExporter(
+        otelLogger, configuration.getStackDepth(), configuration.getLocksEnabled());
   }
 
   private io.opentelemetry.api.logs.Logger buildLogger(

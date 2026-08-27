@@ -32,14 +32,30 @@ import org.mockito.ArgumentCaptor;
 class ThreadInfoCollectorTest {
 
   @Test
-  void requestsLockInformationForCollectedThreads() {
+  void doesNotRequestLockInformationByDefault() {
+    ThreadMXBean threadMXBean = mock(ThreadMXBean.class);
+    ThreadInfo threadInfo = mock(ThreadInfo.class);
+    when(threadMXBean.getThreadInfo(any(long[].class), eq(false), eq(false)))
+        .thenReturn(new ThreadInfo[] {threadInfo});
+    ThreadInfoCollector collector = new ThreadInfoCollector(threadMXBean);
+
+    ThreadInfo[] result = collector.getThreadInfo(List.of(17L));
+
+    ArgumentCaptor<long[]> threadIds = ArgumentCaptor.forClass(long[].class);
+    verify(threadMXBean).getThreadInfo(threadIds.capture(), eq(false), eq(false));
+    assertThat(threadIds.getValue()).containsExactly(17L);
+    assertThat(result).containsExactly(threadInfo);
+  }
+
+  @Test
+  void requestsLockInformationWhenEnabled() {
     ThreadMXBean threadMXBean = mock(ThreadMXBean.class);
     ThreadInfo threadInfo = mock(ThreadInfo.class);
     when(threadMXBean.isObjectMonitorUsageSupported()).thenReturn(true);
     when(threadMXBean.isSynchronizerUsageSupported()).thenReturn(true);
     when(threadMXBean.getThreadInfo(any(long[].class), eq(true), eq(true)))
         .thenReturn(new ThreadInfo[] {threadInfo});
-    ThreadInfoCollector collector = new ThreadInfoCollector(threadMXBean);
+    ThreadInfoCollector collector = new ThreadInfoCollector(threadMXBean, true);
 
     ThreadInfo[] result = collector.getThreadInfo(List.of(17L));
 

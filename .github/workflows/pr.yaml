@@ -1,11 +1,17 @@
 name: PR build
 
 concurrency:
-  group: pr-${{ github.event.pull_request.number }}
+  group: pr-${{ github.event.pull_request.number || inputs.pull_request_number || github.ref_name }}
   cancel-in-progress: true
 
 on:
   pull_request:
+  workflow_dispatch:
+    inputs:
+      pull_request_number:
+        description: Pull request number associated with the branch
+        required: true
+        type: number
 
 permissions:
   contents: read
@@ -207,6 +213,10 @@ jobs:
 
   license-check:
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    outputs:
+      report-outdated: ${{ steps.check_licenses.outputs.report-outdated }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -227,14 +237,17 @@ jobs:
         run: ./gradlew generateLicenseReport
 
       - name: Check licenses
+        id: check_licenses
         run: |
           # add any untracked folders that may have been added by generateLicenseReport
           git add licenses
+          echo "report-outdated=false" >> "$GITHUB_OUTPUT"
           # there's always going to one line difference due to the timestamp included in the report
           if [[ $(git diff --cached --shortstat licenses) == " 1 file changed, 1 insertion(+), 1 deletion(-)" ]]
           then
             echo "Licenses are up-to-date."
           else
+            echo "report-outdated=true" >> "$GITHUB_OUTPUT"
             echo "Licenses are not up-to-date, please run './gradlew generateLicenseReport' locally and commit."
             echo
             echo "$(git diff --cached --stat licenses)"
@@ -242,6 +255,60 @@ jobs:
             echo "$(git diff --cached licenses)"
             exit 1
           fi
+
+  update-renovate-license-report:
+    needs: license-check
+    if: >-
+      always() &&
+      github.event_name == 'pull_request' &&
+      needs.license-check.result == 'failure' &&
+      needs.license-check.outputs.report-outdated == 'true' &&
+      github.event.pull_request.user.login == 'renovate[bot]' &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      startsWith(github.event.pull_request.head.ref, 'renovate/')
+    runs-on: ubuntu-24.04
+    permissions:
+      actions: write
+      contents: write
+    steps:
+      - name: Check out Renovate branch
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Set up JDK 17 for running Gradle
+        uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5.7.0
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@9c971963bec38e04b3d30dcc455b5382be2fdbfb # v6.3.0
+        with:
+          cache-read-only: true
+
+      - name: Generate license report
+        run: ./gradlew generateLicenseReport
+
+      - name: Commit and push generated license report
+        env:
+          GH_TOKEN: ${{ github.token }}
+          HEAD_REF: ${{ github.event.pull_request.head.ref }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          git add licenses
+
+          if git diff --cached --quiet
+          then
+            echo "License report is already up-to-date on the Renovate branch."
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Regenerate license report"
+          git push origin "HEAD:${HEAD_REF}"
+          gh workflow run pr.yaml --ref "$HEAD_REF" -f pull_request_number="$PR_NUMBER"
 
   generate-metadata:
     runs-on: ubuntu-24.04

@@ -1,5 +1,5 @@
 // do NOT update that variable manually - it is managed by the pre/post release scripts
-val distroVersion = "2.32.0-SNAPSHOT"
+val distroVersion = "2.31.1"
 
 allprojects {
   version = distroVersion

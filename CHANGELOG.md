@@ -8,6 +8,10 @@ and this repository adheres to [Semantic Versioning](https://semver.org/spec/v2.
 
 ## Unreleased
 
+## v2.31.1 - 2026-08-28
+
+- Disable collecting lock info for call graphs by default [#3035](https://github.com/signalfx/splunk-otel-java/pull/3035)
+
 ## v2.31.0 - 2026-08-25
 
 - OpenTelemetry Java SDK has been updated to version [1.65.0](https://github.com/open-telemetry/opentelemetry-java/releases/tag/v1.65.0).

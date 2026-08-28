@@ -16,9 +16,13 @@
 
 package com.splunk.opentelemetry.servertiming;
 
+import static io.opentelemetry.api.incubator.config.DeclarativeConfigProperties.empty;
 import static io.opentelemetry.sdk.autoconfigure.AutoConfigureUtil.getConfig;
+import static io.opentelemetry.sdk.autoconfigure.AutoConfigureUtil.getConfigProvider;
+import static io.opentelemetry.sdk.autoconfigure.AutoConfigureUtil.isDeclarativeConfig;
 
 import com.google.auto.service.AutoService;
+import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
 import io.opentelemetry.javaagent.extension.AgentListener;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
@@ -29,9 +33,19 @@ public class ServerTimingHeaderActivator implements AgentListener {
 
   @Override
   public void afterAgent(AutoConfiguredOpenTelemetrySdk autoConfiguredOpenTelemetrySdk) {
-    ConfigProperties config = getConfig(autoConfiguredOpenTelemetrySdk);
-    if (config.getBoolean(EMIT_RESPONSE_HEADERS, true)) {
+    if (isEmitResponseHeadersEnabled(autoConfiguredOpenTelemetrySdk)) {
       ServerTimingHeaderCustomizer.enabled = true;
     }
+  }
+
+  private static boolean isEmitResponseHeadersEnabled(AutoConfiguredOpenTelemetrySdk sdk) {
+    if (isDeclarativeConfig(sdk)) {
+      DeclarativeConfigProperties config =
+          getConfigProvider(sdk).getInstrumentationConfig("splunk");
+      return config.getStructured("trace_response_header", empty()).getBoolean("enabled", true);
+    }
+
+    ConfigProperties config = getConfig(sdk);
+    return config.getBoolean(EMIT_RESPONSE_HEADERS, true);
   }
 }

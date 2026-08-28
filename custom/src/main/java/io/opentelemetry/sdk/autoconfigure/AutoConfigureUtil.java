@@ -23,7 +23,6 @@ import io.opentelemetry.api.incubator.ExtendedOpenTelemetry;
 import io.opentelemetry.api.incubator.config.ConfigProvider;
 import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
 import io.opentelemetry.common.ComponentLoader;
-import io.opentelemetry.instrumentation.config.bridge.DeclarativeConfigPropertiesBridgeBuilder;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.YamlDeclarativeConfigProperties;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.DistributionModel;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.DistributionPropertyModel;
@@ -31,6 +30,7 @@ import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.OpenTelemetryC
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import io.opentelemetry.sdk.resources.Resource;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -44,44 +44,29 @@ import java.util.stream.Collectors;
  * <p>This class is internal and is not intended for public use.
  */
 public final class AutoConfigureUtil {
-  private static final Class<?> DECLARATIVE_CONFIG_PROPERTIES_BRIDGE_CLASS;
-
-  static {
-    try {
-      DECLARATIVE_CONFIG_PROPERTIES_BRIDGE_CLASS =
-          Class.forName(
-              "io.opentelemetry.instrumentation.config.bridge.DeclarativeConfigPropertiesBridge");
-    } catch (ClassNotFoundException exception) {
-      throw new IllegalStateException(exception);
-    }
-  }
-
   private AutoConfigureUtil() {}
 
-  /** Returns the {@link ConfigProperties} used for auto-configuration. */
+  /** Returns the {@link ConfigProperties} used for non-declarative autoconfiguration. */
   public static ConfigProperties getConfig(AutoConfiguredOpenTelemetrySdk sdk) {
-    ConfigProperties config =
-        io.opentelemetry.sdk.autoconfigure.internal.AutoConfigureUtil.getConfig(sdk);
-    if (config == null) {
-      config = new DeclarativeConfigPropertiesBridgeBuilder().build(sdk);
-    }
-
-    return config;
+    return Objects.requireNonNull(
+        io.opentelemetry.sdk.autoconfigure.internal.AutoConfigureUtil.getConfig(sdk),
+        "ConfigProperties are unavailable when declarative configuration is used");
   }
 
   public static boolean isDeclarativeConfig(AutoConfiguredOpenTelemetrySdk sdk) {
-    ConfigProperties configProperties =
-        io.opentelemetry.sdk.autoconfigure.internal.AutoConfigureUtil.getConfig(sdk);
-    return configProperties == null
-        || DECLARATIVE_CONFIG_PROPERTIES_BRIDGE_CLASS.isInstance(configProperties);
+    return io.opentelemetry.sdk.autoconfigure.internal.AutoConfigureUtil.getConfig(sdk) == null;
   }
 
   public static ConfigProvider getConfigProvider(AutoConfiguredOpenTelemetrySdk sdk) {
     OpenTelemetry openTelemetry = sdk.getOpenTelemetrySdk();
-    if (openTelemetry instanceof ExtendedOpenTelemetry) {
-      return ((ExtendedOpenTelemetry) openTelemetry).getConfigProvider();
+    if (!(openTelemetry instanceof ExtendedOpenTelemetry)) {
+      throw new IllegalStateException(
+          "ConfigProvider is unavailable because declarative configuration is not in use");
     }
-    return null;
+
+    return Objects.requireNonNull(
+        ((ExtendedOpenTelemetry) openTelemetry).getConfigProvider(),
+        "ConfigProvider is unavailable");
   }
 
   public static DeclarativeConfigProperties getDistributionConfig(

@@ -16,6 +16,7 @@
 
 package com.splunk.opentelemetry.profiler;
 
+import static io.opentelemetry.api.incubator.config.DeclarativeConfigProperties.empty;
 import static io.opentelemetry.sdk.autoconfigure.AutoConfigureUtil.getResource;
 import static java.util.logging.Level.WARNING;
 
@@ -221,6 +222,14 @@ public class ProfilingSupervisor {
 
   private boolean isJvmMemoryMetricsEnabled() {
     ProfilerConfiguration config = configSupplier.get();
+    if (AutoConfigureUtil.isDeclarativeConfig(sdk)) {
+      return AutoConfigureUtil.getConfigProvider(sdk)
+          .getInstrumentationConfig()
+          .get("java")
+          .getStructured("jvm-metrics-splunk", empty())
+          .getBoolean("enabled", config.getMemoryEnabled());
+    }
+
     return AutoConfigureUtil.getConfig(sdk)
         .getBoolean(JVM_METRICS_ENABLED_CONFIG_KEY, config.getMemoryEnabled());
   }

@@ -8,30 +8,48 @@ and this repository adheres to [Semantic Versioning](https://semver.org/spec/v2.
 
 ## Unreleased
 
+## v2.31.1 - 2026-08-28
+
+### General
+
+- Disable collecting lock info for call graphs by default [#3035](https://github.com/signalfx/splunk-otel-java/pull/3035)
+
 ## v2.31.0 - 2026-08-25
+
+### General
 
 - OpenTelemetry Java SDK has been updated to version [1.65.0](https://github.com/open-telemetry/opentelemetry-java/releases/tag/v1.65.0).
 - OpenTelemetry Instrumentation for Java has been updated to version [2.31.1](https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/tag/v2.31.1).
 
 ## v2.30.2 - 2026-08-14
 
+### General
+
 - CSA updated to 26.8.0-1484
 
 ## v2.30.1 - 2026-08-12
 
+### General
+
 - CSA updated to 26.8.0-1482
 
 ## v2.30.0 - 2026-07-30
+
+### General
 
 - OpenTelemetry Java SDK has been updated to version [1.64.0](https://github.com/open-telemetry/opentelemetry-java/releases/tag/v1.64.0).
 - OpenTelemetry Instrumentation for Java has been updated to version [2.30.0](https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/tag/v2.30.0).
 
 ## v2.29.0 - 2026-06-20
 
+### General
+
 - OpenTelemetry Java SDK has been updated to version [1.63.0](https://github.com/open-telemetry/opentelemetry-java/releases/tag/v1.63.0).
 - OpenTelemetry Instrumentation for Java has been updated to version [2.29.0](https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/tag/v2.29.0).
 
 ## v2.28.0 - 2026-05-22
+
+### General
 
 - OpenTelemetry Java SDK has been updated to version 1.62.0.
 - OpenTelemetry Instrumentation for Java has been updated to version 2.28.1.
@@ -42,6 +60,8 @@ and this repository adheres to [Semantic Versioning](https://semver.org/spec/v2.
   starting a new span. [#2726](https://github.com/signalfx/splunk-otel-java/pull/2726) 
 
 ## v2.27.0 - 2026-04-22
+
+### General
 
 - OpenTelemetry Java SDK has been updated to version 1.61.0.
 - OpenTelemetry Instrumentation for Java has been updated to version 2.27.0.

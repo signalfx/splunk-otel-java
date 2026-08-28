@@ -343,6 +343,14 @@ class PprofCpuEventExporterTest {
 
   @Test
   void includeThreadLockInformationInSamples() throws Exception {
+    var locksEnabledExporter =
+        PprofCpuEventExporter.builder()
+            .otelLogger(logger)
+            .period(Duration.ofMillis(20))
+            .stackDepth(1024)
+            .locksEnabled(true)
+            .instrumentationSource(InstrumentationSource.SNAPSHOT)
+            .build();
     var frame = new StackTraceElement("example.Worker", "run", "Worker.java", 42);
     ThreadInfo threadInfo = mock(ThreadInfo.class);
     when(threadInfo.getThreadId()).thenReturn(17L);
@@ -356,8 +364,8 @@ class PprofCpuEventExporterTest {
     when(threadInfo.getLockedSynchronizers())
         .thenReturn(new LockInfo[] {new LockInfo("example.Synchronizer", 0x34cd)});
 
-    exporter.export(threadInfo, Instant.now(), "", "", Duration.ZERO);
-    exporter.flush();
+    locksEnabledExporter.export(threadInfo, Instant.now(), "", "", Duration.ZERO);
+    locksEnabledExporter.flush();
 
     var logRecord = logger.records().get(0);
     var profile = Profile.parseFrom(PprofUtils.deserialize(logRecord));
@@ -368,6 +376,25 @@ class PprofCpuEventExporterTest {
         .containsEntry(LOCK_OWNER_THREAD, "lock-owner")
         .containsEntry(LOCK_HELD_PREFIX + "0", "example.Monitor@23bc")
         .containsEntry(LOCK_HELD_PREFIX + "1", "example.Synchronizer@34cd");
+  }
+
+  @Test
+  void doesNotIncludeThreadLockInformationByDefault() throws Exception {
+    ThreadInfo threadInfo = mock(ThreadInfo.class);
+    when(threadInfo.getThreadId()).thenReturn(17L);
+    when(threadInfo.getThreadName()).thenReturn("worker-17");
+    when(threadInfo.getThreadState()).thenReturn(Thread.State.BLOCKED);
+    when(threadInfo.getStackTrace()).thenReturn(new StackTraceElement[0]);
+
+    exporter.export(threadInfo, Instant.now(), "", "", Duration.ZERO);
+    exporter.flush();
+
+    var logRecord = logger.records().get(0);
+    var profile = Profile.parseFrom(PprofUtils.deserialize(logRecord));
+    var labels = PprofUtils.toLabelString(profile.getSample(0), profile);
+
+    assertThat(labels)
+        .doesNotContainKeys(LOCK_WAITING_ON, LOCK_OWNER_THREAD, LOCK_HELD_PREFIX + "0");
   }
 
   @Test

@@ -52,6 +52,21 @@ class SnapshotProfilingEnvVarsConfigurationFactoryTest {
   }
 
   @ParameterizedTest
+  @ValueSource(booleans = {true, false})
+  void shouldMapLocksEnabled(boolean enabled) {
+    var properties =
+        DefaultConfigProperties.create(
+            Map.of(
+                SnapshotProfilingEnvVarsConfigurationFactory.LOCKS_ENABLED_KEY,
+                String.valueOf(enabled)),
+            COMPONENT_LOADER);
+
+    var configuration = SnapshotProfilingEnvVarsConfigurationFactory.create(properties);
+
+    assertThat(configuration.getLocksEnabled()).isEqualTo(enabled);
+  }
+
+  @ParameterizedTest
   @ValueSource(doubles = {0.10, 0.05, 0.00001})
   void shouldReturnValidSelectionProbability(double selectionRate) {
     // given

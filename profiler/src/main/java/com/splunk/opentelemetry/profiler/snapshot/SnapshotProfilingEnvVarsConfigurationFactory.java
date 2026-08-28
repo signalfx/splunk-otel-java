@@ -31,6 +31,7 @@ public final class SnapshotProfilingEnvVarsConfigurationFactory {
   static final String SAMPLING_INTERVAL_KEY = "splunk.snapshot.sampling.interval";
   static final String EXPORT_INTERVAL_KEY = "splunk.snapshot.profiler.export.interval";
   static final String STAGING_CAPACITY_KEY = "splunk.snapshot.profiler.staging.capacity";
+  static final String LOCKS_ENABLED_KEY = "splunk.profiler.locks.enabled";
 
   private SnapshotProfilingEnvVarsConfigurationFactory() {}
 
@@ -51,6 +52,7 @@ public final class SnapshotProfilingEnvVarsConfigurationFactory {
         .setStagingCapacity(
             properties.getInt(
                 STAGING_CAPACITY_KEY, SnapshotProfilingConfiguration.DEFAULT_STAGING_CAPACITY))
+        .setLocksEnabled(properties.getBoolean(LOCKS_ENABLED_KEY, false))
         .setConfigProperties(properties)
         .build();
   }

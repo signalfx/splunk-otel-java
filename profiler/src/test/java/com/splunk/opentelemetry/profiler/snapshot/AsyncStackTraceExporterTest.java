@@ -213,6 +213,7 @@ class AsyncStackTraceExporterTest {
 
   @Test
   void includeThreadLockInformationInSamples() throws Exception {
+    var locksEnabledExporter = new AsyncStackTraceExporter(logger, 200, true);
     var frame = new StackTraceElement("example.Worker", "run", "Worker.java", 42);
     ThreadInfo threadInfo = mock(ThreadInfo.class);
     when(threadInfo.getThreadId()).thenReturn(17L);
@@ -227,7 +228,7 @@ class AsyncStackTraceExporterTest {
         .thenReturn(new LockInfo[] {new LockInfo("example.Synchronizer", 0x34cd)});
     var stackTrace = Snapshotting.stackTrace().with(threadInfo).build();
 
-    exporter.export(List.of(stackTrace));
+    locksEnabledExporter.export(List.of(stackTrace));
     await().until(() -> !logger.records().isEmpty());
 
     var profile = Profile.parseFrom(PprofUtils.deserialize(logger.records().get(0)));
@@ -237,6 +238,7 @@ class AsyncStackTraceExporterTest {
         .containsEntry(LOCK_OWNER_THREAD, "lock-owner")
         .containsEntry(LOCK_HELD_PREFIX + "0", "example.Monitor@23bc")
         .containsEntry(LOCK_HELD_PREFIX + "1", "example.Synchronizer@34cd");
+    locksEnabledExporter.close();
   }
 
   @Test

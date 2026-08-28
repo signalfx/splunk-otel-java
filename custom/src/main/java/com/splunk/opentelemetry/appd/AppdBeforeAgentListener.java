@@ -16,12 +16,16 @@
 
 package com.splunk.opentelemetry.appd;
 
+import static io.opentelemetry.api.incubator.config.DeclarativeConfigProperties.empty;
 import static io.opentelemetry.sdk.autoconfigure.AutoConfigureUtil.getConfig;
+import static io.opentelemetry.sdk.autoconfigure.AutoConfigureUtil.getConfigProvider;
 import static io.opentelemetry.sdk.autoconfigure.AutoConfigureUtil.getResource;
+import static io.opentelemetry.sdk.autoconfigure.AutoConfigureUtil.isDeclarativeConfig;
 import static io.opentelemetry.semconv.DeploymentAttributes.DEPLOYMENT_ENVIRONMENT_NAME;
 import static io.opentelemetry.semconv.ServiceAttributes.SERVICE_NAME;
 
 import com.google.auto.service.AutoService;
+import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
 import io.opentelemetry.javaagent.tooling.BeforeAgentListener;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
@@ -34,8 +38,7 @@ public class AppdBeforeAgentListener implements BeforeAgentListener {
 
   @Override
   public void beforeAgent(AutoConfiguredOpenTelemetrySdk autoConfiguredOpenTelemetrySdk) {
-    ConfigProperties config = getConfig(autoConfiguredOpenTelemetrySdk);
-    if (!config.getBoolean("cisco.ctx.enabled", false)) {
+    if (!isFeatureEnabled(autoConfiguredOpenTelemetrySdk)) {
       return;
     }
 
@@ -45,5 +48,15 @@ public class AppdBeforeAgentListener implements BeforeAgentListener {
     AppdBonusPropagator appdBonusPropagator = AppdBonusPropagator.getInstance();
     appdBonusPropagator.setEnvironmentName(resource.getAttribute(DEPLOYMENT_ENVIRONMENT_NAME));
     appdBonusPropagator.setServiceName(resource.getAttribute(SERVICE_NAME));
+  }
+
+  private static boolean isFeatureEnabled(AutoConfiguredOpenTelemetrySdk sdk) {
+    if (isDeclarativeConfig(sdk)) {
+      DeclarativeConfigProperties config = getConfigProvider(sdk).getInstrumentationConfig("cisco");
+      return config.getStructured("ctx", empty()).getBoolean("enabled", false);
+    }
+
+    ConfigProperties config = getConfig(sdk);
+    return config.getBoolean("cisco.ctx.enabled", false);
   }
 }

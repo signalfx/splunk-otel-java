@@ -1,6 +1,6 @@
 dependencies {
   compileOnly("com.google.auto.service:auto-service")
-  implementation("org.yaml:snakeyaml:2.6")
+  implementation("org.yaml:snakeyaml:2.7")
 }
 
 tasks {

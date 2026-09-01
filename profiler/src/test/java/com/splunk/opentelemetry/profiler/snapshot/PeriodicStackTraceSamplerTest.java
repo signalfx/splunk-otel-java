@@ -22,6 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+import com.splunk.opentelemetry.profiler.ThreadInfoCollector;
 import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.sdk.testing.time.TestClock;
 import io.opentelemetry.sdk.trace.IdGenerator;
@@ -204,7 +205,7 @@ class PeriodicStackTraceSamplerTest {
     var initialSampleCollector =
         new ThreadInfoCollector(false) {
           @Override
-          ThreadInfo getThreadInfo(long threadId) {
+          public ThreadInfo getThreadInfo(long threadId) {
             var threadInfo = super.getThreadInfo(threadId);
             // The initial sample time has already been captured. Advance the clock before the
             // context becomes visible to the periodic sampling thread.
@@ -547,7 +548,7 @@ class PeriodicStackTraceSamplerTest {
     }
 
     @Override
-    ThreadInfo getThreadInfo(long threadId) {
+    public ThreadInfo getThreadInfo(long threadId) {
       try {
         Thread.sleep(delay.toMillis());
         return super.getThreadInfo(threadId);
@@ -557,7 +558,7 @@ class PeriodicStackTraceSamplerTest {
     }
 
     @Override
-    ThreadInfo[] getThreadInfo(Collection<Long> threadIds) {
+    public ThreadInfo[] getThreadInfo(Collection<Long> threadIds) {
       try {
         Thread.sleep(delay.toMillis());
         return super.getThreadInfo(threadIds);
@@ -581,7 +582,7 @@ class PeriodicStackTraceSamplerTest {
     }
 
     @Override
-    ThreadInfo getThreadInfo(long threadId) {
+    public ThreadInfo getThreadInfo(long threadId) {
       try {
         var ti = super.getThreadInfo(threadId);
         if (wait.get()) {
@@ -594,7 +595,7 @@ class PeriodicStackTraceSamplerTest {
     }
 
     @Override
-    ThreadInfo[] getThreadInfo(Collection<Long> threadIds) {
+    public ThreadInfo[] getThreadInfo(Collection<Long> threadIds) {
       try {
         var tis = super.getThreadInfo(threadIds);
         if (wait.get()) {

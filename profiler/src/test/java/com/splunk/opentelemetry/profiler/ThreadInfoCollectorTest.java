@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.splunk.opentelemetry.profiler.snapshot;
+package com.splunk.opentelemetry.profiler;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;

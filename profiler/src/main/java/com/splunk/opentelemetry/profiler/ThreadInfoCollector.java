@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.splunk.opentelemetry.profiler.snapshot;
+package com.splunk.opentelemetry.profiler;
 
 import com.google.common.annotations.VisibleForTesting;
 import java.lang.management.ManagementFactory;
@@ -24,32 +24,29 @@ import java.util.Collection;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-/**
- * This class primarily exists to provide tests with a seam in which to hook into the stack trace
- * collection process for thread coordination purposes.
- */
-class ThreadInfoCollector {
+/** Collects thread stack and optional lock information from the JVM. */
+public class ThreadInfoCollector {
   private static final Logger logger = Logger.getLogger(ThreadInfoCollector.class.getName());
 
   private final ThreadMXBean threadMXBean;
   private final boolean locksEnabled;
 
-  ThreadInfoCollector(boolean locksEnabled) {
+  public ThreadInfoCollector(boolean locksEnabled) {
     this(ManagementFactory.getThreadMXBean(), locksEnabled);
   }
 
   @VisibleForTesting
-  ThreadInfoCollector(ThreadMXBean threadMXBean) {
+  public ThreadInfoCollector(ThreadMXBean threadMXBean) {
     this(threadMXBean, false);
   }
 
   @VisibleForTesting
-  ThreadInfoCollector(ThreadMXBean threadMXBean, boolean locksEnabled) {
+  public ThreadInfoCollector(ThreadMXBean threadMXBean, boolean locksEnabled) {
     this.threadMXBean = threadMXBean;
     this.locksEnabled = locksEnabled;
   }
 
-  ThreadInfo getThreadInfo(long threadId) {
+  public ThreadInfo getThreadInfo(long threadId) {
     try {
       ThreadInfo[] threadInfos = collectThreadInfo(new long[] {threadId});
       return threadInfos.length == 0 ? null : threadInfos[0];
@@ -59,7 +56,7 @@ class ThreadInfoCollector {
     return null;
   }
 
-  ThreadInfo[] getThreadInfo(Collection<Long> threadIds) {
+  public ThreadInfo[] getThreadInfo(Collection<Long> threadIds) {
     try {
       long[] threadIdArray = threadIds.stream().mapToLong(Long::longValue).toArray();
       return collectThreadInfo(threadIdArray);

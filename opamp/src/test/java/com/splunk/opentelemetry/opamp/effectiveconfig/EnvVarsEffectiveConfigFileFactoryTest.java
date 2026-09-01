@@ -40,7 +40,7 @@ class EnvVarsEffectiveConfigFileFactoryTest {
 
   @Test
   void createFile_reportsCorrectContentType() {
-    DefaultConfigProperties config = DefaultConfigProperties.createFromMap(Map.of());
+    DefaultConfigProperties config = DefaultConfigProperties.createFromMap(Map.ofEntries());
     String contentType = new EnvVarsEffectiveConfigFileFactory(config).getContentType();
 
     assertThat(contentType).isEqualTo("text/plain; format=properties; vendor=splunk; v=1.0.0");
@@ -50,117 +50,121 @@ class EnvVarsEffectiveConfigFileFactoryTest {
   void buildFileContent_reportsConfiguredValues() throws IOException {
     Properties fileContent =
         createFileContent(
-            Map.of(
-                "splunk.profiler.enabled", "true",
-                "splunk.profiler.memory.enabled", "true",
-                "splunk.snapshot.profiler.enabled", "true",
-                "splunk.snapshot.sampling.interval", "26ms",
-                "splunk.profiler.call.stack.interval", "1235ms",
-                "otel.exporter.otlp.endpoint", "https://base.example.com",
-                "otel.exporter.otlp.traces.endpoint", "https://traces.example.com",
-                "otel.exporter.otlp.metrics.endpoint", "https://metrics.example.com",
-                "otel.exporter.otlp.logs.endpoint", "https://logs.example.com",
-                "otel.service.name", "checkout"));
+            Map.ofEntries(
+                Map.entry("splunk.profiler.enabled", "true"),
+                Map.entry("splunk.profiler.memory.enabled", "true"),
+                Map.entry("splunk.snapshot.profiler.enabled", "true"),
+                Map.entry("splunk.snapshot.sampling.interval", "26ms"),
+                Map.entry("splunk.snapshot.selection.probability", "0.0123"),
+                Map.entry("splunk.profiler.call.stack.interval", "1235ms"),
+                Map.entry("otel.exporter.otlp.endpoint", "https://base.example.com"),
+                Map.entry("otel.exporter.otlp.traces.endpoint", "https://traces.example.com"),
+                Map.entry("otel.exporter.otlp.metrics.endpoint", "https://metrics.example.com"),
+                Map.entry("otel.exporter.otlp.logs.endpoint", "https://logs.example.com"),
+                Map.entry("otel.service.name", "checkout")));
 
     assertProperties(
         fileContent,
-        Map.of(
-            "SPLUNK_PROFILER_ENABLED", "true",
-            "SPLUNK_PROFILER_MEMORY_ENABLED", "true",
-            "SPLUNK_SNAPSHOT_PROFILER_ENABLED", "true",
-            "SPLUNK_SNAPSHOT_PROFILER_SAMPLING_INTERVAL", "26ms",
-            "SPLUNK_PROFILER_CALL_STACK_INTERVAL", "1235ms",
-            "OTEL_EXPORTER_OTLP_TRACES_ENDPOINT", "https://traces.example.com",
-            "OTEL_EXPORTER_OTLP_METRICS_ENDPOINT", "https://metrics.example.com",
-            "OTEL_EXPORTER_OTLP_LOGS_ENDPOINT", "https://logs.example.com",
-            "OTEL_CONFIG_FILE", "null",
-            "OTEL_EXPERIMENTAL_CONFIG_FILE", "null"));
-    assertThat(fileContent.size()).isEqualTo(10);
+        Map.ofEntries(
+            Map.entry("SPLUNK_PROFILER_ENABLED", "true"),
+            Map.entry("SPLUNK_PROFILER_MEMORY_ENABLED", "true"),
+            Map.entry("SPLUNK_SNAPSHOT_PROFILER_ENABLED", "true"),
+            Map.entry("SPLUNK_SNAPSHOT_PROFILER_SAMPLING_INTERVAL", "26ms"),
+            Map.entry("SPLUNK_SNAPSHOT_SELECTION_PROBABILITY", "0.0123"),
+            Map.entry("SPLUNK_PROFILER_CALL_STACK_INTERVAL", "1235ms"),
+            Map.entry("OTEL_EXPORTER_OTLP_TRACES_ENDPOINT", "https://traces.example.com"),
+            Map.entry("OTEL_EXPORTER_OTLP_METRICS_ENDPOINT", "https://metrics.example.com"),
+            Map.entry("OTEL_EXPORTER_OTLP_LOGS_ENDPOINT", "https://logs.example.com"),
+            Map.entry("OTEL_CONFIG_FILE", "null"),
+            Map.entry("OTEL_EXPERIMENTAL_CONFIG_FILE", "null")));
+    assertThat(fileContent.size()).isEqualTo(11);
   }
 
   @Test
   void buildFileContent_reportsDefaultValuesWhenNotConfigured() throws IOException {
-    Properties fileContent = createFileContent(Map.of());
+    Properties fileContent = createFileContent(Map.ofEntries());
 
     assertProperties(
         fileContent,
-        Map.of(
-            "SPLUNK_PROFILER_ENABLED", "false",
-            "SPLUNK_PROFILER_MEMORY_ENABLED", "false",
-            "SPLUNK_SNAPSHOT_PROFILER_ENABLED", "false",
-            "SPLUNK_SNAPSHOT_PROFILER_SAMPLING_INTERVAL", "10ms",
-            "SPLUNK_PROFILER_CALL_STACK_INTERVAL", "10000ms",
-            "OTEL_EXPORTER_OTLP_TRACES_ENDPOINT", "http://localhost:4318/v1/traces",
-            "OTEL_EXPORTER_OTLP_METRICS_ENDPOINT", "http://localhost:4318/v1/metrics",
-            "OTEL_EXPORTER_OTLP_LOGS_ENDPOINT", "http://localhost:4318/v1/logs",
-            "OTEL_CONFIG_FILE", "null",
-            "OTEL_EXPERIMENTAL_CONFIG_FILE", "null"));
-    assertThat(fileContent.size()).isEqualTo(10);
+        Map.ofEntries(
+            Map.entry("SPLUNK_PROFILER_ENABLED", "false"),
+            Map.entry("SPLUNK_PROFILER_MEMORY_ENABLED", "false"),
+            Map.entry("SPLUNK_SNAPSHOT_PROFILER_ENABLED", "false"),
+            Map.entry("SPLUNK_SNAPSHOT_PROFILER_SAMPLING_INTERVAL", "10ms"),
+            Map.entry("SPLUNK_SNAPSHOT_SELECTION_PROBABILITY", "0.01"),
+            Map.entry("SPLUNK_PROFILER_CALL_STACK_INTERVAL", "10000ms"),
+            Map.entry("OTEL_EXPORTER_OTLP_TRACES_ENDPOINT", "http://localhost:4318/v1/traces"),
+            Map.entry("OTEL_EXPORTER_OTLP_METRICS_ENDPOINT", "http://localhost:4318/v1/metrics"),
+            Map.entry("OTEL_EXPORTER_OTLP_LOGS_ENDPOINT", "http://localhost:4318/v1/logs"),
+            Map.entry("OTEL_CONFIG_FILE", "null"),
+            Map.entry("OTEL_EXPERIMENTAL_CONFIG_FILE", "null")));
+    assertThat(fileContent.size()).isEqualTo(11);
   }
 
   @Test
   void buildFileContent_appendsSignalPathsToBaseHttpProtobufEndpoint() throws IOException {
     Properties fileContent =
-        createFileContent(Map.of("otel.exporter.otlp.endpoint", "https://collector:4318"));
+        createFileContent(
+            Map.ofEntries(Map.entry("otel.exporter.otlp.endpoint", "https://collector:4318")));
 
     assertProperties(
         fileContent,
-        Map.of(
-            "OTEL_EXPORTER_OTLP_TRACES_ENDPOINT", "https://collector:4318/v1/traces",
-            "OTEL_EXPORTER_OTLP_METRICS_ENDPOINT", "https://collector:4318/v1/metrics",
-            "OTEL_EXPORTER_OTLP_LOGS_ENDPOINT", "https://collector:4318/v1/logs"));
+        Map.ofEntries(
+            Map.entry("OTEL_EXPORTER_OTLP_TRACES_ENDPOINT", "https://collector:4318/v1/traces"),
+            Map.entry("OTEL_EXPORTER_OTLP_METRICS_ENDPOINT", "https://collector:4318/v1/metrics"),
+            Map.entry("OTEL_EXPORTER_OTLP_LOGS_ENDPOINT", "https://collector:4318/v1/logs")));
   }
 
   @Test
   void buildFileContent_reportsEmptySignalEndpointsWhenExportersAreNotOtlp() throws IOException {
     Properties fileContent =
         createFileContent(
-            Map.of(
-                "otel.exporter.otlp.endpoint", "https://collector:4318",
-                "otel.traces.exporter", "custom",
-                "otel.metrics.exporter", "console",
-                "otel.logs.exporter", "none"));
+            Map.ofEntries(
+                Map.entry("otel.exporter.otlp.endpoint", "https://collector:4318"),
+                Map.entry("otel.traces.exporter", "custom"),
+                Map.entry("otel.metrics.exporter", "console"),
+                Map.entry("otel.logs.exporter", "none")));
 
     assertProperties(
         fileContent,
-        Map.of(
-            "OTEL_EXPORTER_OTLP_TRACES_ENDPOINT", "",
-            "OTEL_EXPORTER_OTLP_METRICS_ENDPOINT", "",
-            "OTEL_EXPORTER_OTLP_LOGS_ENDPOINT", ""));
+        Map.ofEntries(
+            Map.entry("OTEL_EXPORTER_OTLP_TRACES_ENDPOINT", ""),
+            Map.entry("OTEL_EXPORTER_OTLP_METRICS_ENDPOINT", ""),
+            Map.entry("OTEL_EXPORTER_OTLP_LOGS_ENDPOINT", "")));
   }
 
   @Test
   void buildFileContent_usesBaseGrpcEndpointForAllSignals() throws IOException {
     Properties fileContent =
         createFileContent(
-            Map.of(
-                "otel.exporter.otlp.endpoint", "https://collector:4317",
-                "otel.exporter.otlp.protocol", "grpc"));
+            Map.ofEntries(
+                Map.entry("otel.exporter.otlp.endpoint", "https://collector:4317"),
+                Map.entry("otel.exporter.otlp.protocol", "grpc")));
 
     assertProperties(
         fileContent,
-        Map.of(
-            "OTEL_EXPORTER_OTLP_TRACES_ENDPOINT", "https://collector:4317",
-            "OTEL_EXPORTER_OTLP_METRICS_ENDPOINT", "https://collector:4317",
-            "OTEL_EXPORTER_OTLP_LOGS_ENDPOINT", "https://collector:4317"));
+        Map.ofEntries(
+            Map.entry("OTEL_EXPORTER_OTLP_TRACES_ENDPOINT", "https://collector:4317"),
+            Map.entry("OTEL_EXPORTER_OTLP_METRICS_ENDPOINT", "https://collector:4317"),
+            Map.entry("OTEL_EXPORTER_OTLP_LOGS_ENDPOINT", "https://collector:4317")));
   }
 
   @Test
   void buildFileContent_usesSignalSpecificProtocolWhenResolvingEndpoints() throws IOException {
     Properties fileContent =
         createFileContent(
-            Map.of(
-                "otel.exporter.otlp.endpoint", "https://collector:4317",
-                "otel.exporter.otlp.traces.protocol", "grpc",
-                "otel.exporter.otlp.metrics.protocol", "grpc",
-                "otel.exporter.otlp.logs.protocol", "grpc"));
+            Map.ofEntries(
+                Map.entry("otel.exporter.otlp.endpoint", "https://collector:4317"),
+                Map.entry("otel.exporter.otlp.traces.protocol", "grpc"),
+                Map.entry("otel.exporter.otlp.metrics.protocol", "grpc"),
+                Map.entry("otel.exporter.otlp.logs.protocol", "grpc")));
 
     assertProperties(
         fileContent,
-        Map.of(
-            "OTEL_EXPORTER_OTLP_TRACES_ENDPOINT", "https://collector:4317",
-            "OTEL_EXPORTER_OTLP_METRICS_ENDPOINT", "https://collector:4317",
-            "OTEL_EXPORTER_OTLP_LOGS_ENDPOINT", "https://collector:4317"));
+        Map.ofEntries(
+            Map.entry("OTEL_EXPORTER_OTLP_TRACES_ENDPOINT", "https://collector:4317"),
+            Map.entry("OTEL_EXPORTER_OTLP_METRICS_ENDPOINT", "https://collector:4317"),
+            Map.entry("OTEL_EXPORTER_OTLP_LOGS_ENDPOINT", "https://collector:4317")));
   }
 
   private static Properties createFileContent(Map<String, String> configMap) throws IOException {

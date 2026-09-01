@@ -26,4 +26,6 @@ public interface SnapshotProfilingSpanProcessor extends SpanProcessor {
   void setEnabled(boolean enabled);
 
   boolean isEnabled();
+
+  void setSnapshotSelectionProbability(double probability);
 }

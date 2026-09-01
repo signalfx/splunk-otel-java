@@ -131,6 +131,9 @@ class SnapshotProfilingSupervisorTest {
         .during(Duration.ofMillis(200))
         .untilAsserted(
             () -> {
+              verify(profilingSpanProcessor)
+                  .setSnapshotSelectionProbability(
+                      SnapshotProfilingConfiguration.DEFAULT_SELECTION_PROBABILITY);
               verifyEnabled(true);
               assertThat(stackTraceSamplerSupplier.get()).isSameAs(configuredSampler);
               assertThat(stagingAreaSupplier.get()).isSameAs(configuredStagingArea);
@@ -156,6 +159,9 @@ class SnapshotProfilingSupervisorTest {
     verify(traceThreadChangeDetector).setEnabled(false);
     verify(profilingSpanProcessor).setEnabled(true);
     verify(profilingSpanProcessor).setEnabled(false);
+    verify(profilingSpanProcessor)
+        .setSnapshotSelectionProbability(
+            SnapshotProfilingConfiguration.DEFAULT_SELECTION_PROBABILITY);
     verifyNoMoreInteractions(spanTracker, traceThreadChangeDetector, profilingSpanProcessor);
     assertRuntimeComponentsReset();
   }
@@ -200,6 +206,9 @@ class SnapshotProfilingSupervisorTest {
               verify(traceThreadChangeDetector).setEnabled(false);
               verify(traceThreadChangeDetector).setEnabled(true);
               verify(profilingSpanProcessor).setEnabled(false);
+              verify(profilingSpanProcessor)
+                  .setSnapshotSelectionProbability(
+                      SnapshotProfilingConfiguration.DEFAULT_SELECTION_PROBABILITY);
               verify(profilingSpanProcessor).setEnabled(true);
               verifyNoMoreInteractions(
                   spanTracker, traceThreadChangeDetector, profilingSpanProcessor);
@@ -208,6 +217,25 @@ class SnapshotProfilingSupervisorTest {
     assertThat(stagingAreaSupplier.get()).isNotSameAs(initialStagingArea);
     assertThat(stackTraceExporterSupplier.get()).isNotSameAs(initialExporter);
     assertRuntimeComponentsConfigured();
+  }
+
+  @Test
+  void selectionProbabilityIsUpdatedWhenReinitialized() {
+    configurationSupplier.configure(configuration(true));
+    requestStartProfiling();
+    clearInvocations(spanTracker, traceThreadChangeDetector, profilingSpanProcessor);
+
+    configurationSupplier.configure(
+        configuration(true).toBuilder().setSnapshotSelectionProbability(0.5).build());
+    supervisor.requestReinitializeProfiling();
+
+    await()
+        .untilAsserted(
+            () -> {
+              verify(profilingSpanProcessor).setEnabled(false);
+              verify(profilingSpanProcessor).setSnapshotSelectionProbability(0.5);
+              verify(profilingSpanProcessor).setEnabled(true);
+            });
   }
 
   @Test

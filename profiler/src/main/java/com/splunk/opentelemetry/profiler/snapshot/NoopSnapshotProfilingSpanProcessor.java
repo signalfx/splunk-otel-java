@@ -44,4 +44,7 @@ class NoopSnapshotProfilingSpanProcessor implements SnapshotProfilingSpanProcess
   public boolean isEnabled() {
     return false;
   }
+
+  @Override
+  public void setSnapshotSelectionProbability(double probability) {}
 }

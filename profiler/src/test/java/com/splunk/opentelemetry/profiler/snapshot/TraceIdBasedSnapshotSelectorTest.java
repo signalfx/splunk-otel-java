@@ -35,12 +35,48 @@ class TraceIdBasedSnapshotSelectorTest {
         IllegalArgumentException.class, () -> new TraceIdBasedSnapshotSelector(selectionRate));
   }
 
+  @ParameterizedTest
+  @ValueSource(doubles = {-0.01, 1.01})
+  void requireUpdatedSelectionRateBetween0_0And1_0(double selectionRate) {
+    var selector = new TraceIdBasedSnapshotSelector(0.5);
+
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> selector.setSnapshotSelectionProbability(selectionRate));
+  }
+
   @Test
   void doSelectTraceWhenRoot() {
     var spanContext =
         Snapshotting.spanContext().withTraceId("00000000000000004adb3965a6cbec2d").build();
     var selector = new TraceIdBasedSnapshotSelector(1.0);
     assertThat(selector.select(spanContext)).isTrue();
+  }
+
+  @Test
+  void useUpdatedSelectionProbability() {
+    var spanContext =
+        Snapshotting.spanContext()
+            .withTraceId(SnapshotSelectorTestTraceIds.forPercentile(6).get(0))
+            .build();
+    var selector = new TraceIdBasedSnapshotSelector(0.05);
+
+    assertThat(selector.select(spanContext)).isFalse();
+
+    selector.setSnapshotSelectionProbability(0.06);
+
+    assertThat(selector.select(spanContext)).isTrue();
+  }
+
+  @Test
+  void doNotSelectTraceAfterProbabilityIsUpdatedToZero() {
+    var spanContext =
+        Snapshotting.spanContext().withTraceId("00000000000000004adb3965a6cbec2d").build();
+    var selector = new TraceIdBasedSnapshotSelector(1.0);
+
+    selector.setSnapshotSelectionProbability(0.0);
+
+    assertThat(selector.select(spanContext)).isFalse();
   }
 
   @ParameterizedTest

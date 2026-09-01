@@ -109,6 +109,7 @@ class DeclarativeEffectiveConfigFileFactoryTest {
                 memory_profiler:
               callgraphs:
                 sampling_interval: 10
+                selection_probability: 0.1507
         """;
 
     // when
@@ -131,6 +132,7 @@ class DeclarativeEffectiveConfigFileFactoryTest {
                     memory_profiler:
                   callgraphs:
                     sampling_interval: 10
+                    selection_probability: 0.1507
             """);
   }
 
@@ -365,8 +367,6 @@ class DeclarativeEffectiveConfigFileFactoryTest {
     when(mockProfilerConfiguration.isEnabled()).thenReturn(true);
     when(mockProfilerConfiguration.getCallStackInterval()).thenReturn(Duration.ofMillis(1410));
     when(mockProfilerConfiguration.getMemoryEnabled()).thenReturn(true);
-    when(mockSnapshotConfiguration.isEnabled()).thenReturn(true);
-    when(mockSnapshotConfiguration.getSamplingInterval()).thenReturn(Duration.ofMillis(10));
 
     String yaml =
         new DeclarativeEffectiveConfigFileFactory()
@@ -384,8 +384,31 @@ class DeclarativeEffectiveConfigFileFactoryTest {
                     cpu_profiler:
                       sampling_interval: 1410
                     memory_profiler:
+            """);
+  }
+
+  @Test
+  void supportsSnapshotProfiler() throws Exception {
+    OpenTelemetryConfigurationModel model = parseModel("file_format: 1.1");
+    when(mockSnapshotConfiguration.isEnabled()).thenReturn(true);
+    when(mockSnapshotConfiguration.getSamplingInterval()).thenReturn(Duration.ofMillis(10));
+    when(mockSnapshotConfiguration.getSnapshotSelectionProbability()).thenReturn(0.0123);
+
+    String yaml =
+        new DeclarativeEffectiveConfigFileFactory()
+            .processModel(model, mockProfilerConfiguration, mockSnapshotConfiguration);
+
+    assertThat(yaml)
+        .isEqualTo(
+            """
+            otel_config_file: null
+            otel_experimental_config_file: null
+            distribution:
+              splunk:
+                profiling:
                   callgraphs:
                     sampling_interval: 10
+                    selection_probability: 0.0123
             """);
   }
 

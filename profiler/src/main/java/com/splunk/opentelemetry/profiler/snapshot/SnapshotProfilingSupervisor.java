@@ -167,6 +167,10 @@ public class SnapshotProfilingSupervisor {
     // Enable components created during SDK initialization
     spanTrackerSupplier.get().setEnabled(true);
     traceThreadChangeDetectorSupplier.get().setEnabled(true);
+
+    profilingSpanProcessorSupplier
+        .get()
+        .setSnapshotSelectionProbability(configuration.getSnapshotSelectionProbability());
     profilingSpanProcessorSupplier.get().setEnabled(true);
 
     running = true;

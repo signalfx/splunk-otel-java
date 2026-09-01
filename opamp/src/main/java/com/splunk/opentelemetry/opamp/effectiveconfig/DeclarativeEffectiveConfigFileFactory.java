@@ -111,15 +111,21 @@ class DeclarativeEffectiveConfigFileFactory implements EffectiveConfigFactory {
   private static void addCallgraphsNode(
       SnapshotProfilingConfiguration snapshotConfiguration, YamlNodeBuilder profiling) {
     if (snapshotConfiguration.isEnabled()) {
-      profiling.addNestedNode(
-          "callgraphs.sampling_interval", snapshotConfiguration.getSamplingInterval().toMillis());
+      profiling.addNode(
+          "callgraphs",
+          callgraphs -> {
+            callgraphs.addNode(
+                "sampling_interval", snapshotConfiguration.getSamplingInterval().toMillis());
+            callgraphs.addNode(
+                "selection_probability", snapshotConfiguration.getSnapshotSelectionProbability());
+          });
     }
   }
 
   private static void addAlwaysOnProfilerNode(
       ProfilerConfiguration profilerConfiguration, YamlNodeBuilder profiling) {
     if (profilerConfiguration.isEnabled()) {
-      profiling.addNestedNode(
+      profiling.addNode(
           "always_on",
           alwaysOn -> {
             alwaysOn.addNestedNode(

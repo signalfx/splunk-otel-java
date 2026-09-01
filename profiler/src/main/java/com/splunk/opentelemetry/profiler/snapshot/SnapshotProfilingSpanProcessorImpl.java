@@ -42,7 +42,7 @@ public class SnapshotProfilingSpanProcessorImpl implements SnapshotProfilingSpan
 
   @Override
   public void setSnapshotSelectionProbability(double probability) {
-    this.selector.setSnapshotSelectionProbability(probability);
+    selector.setSnapshotSelectionProbability(probability);
   }
 
   @Override

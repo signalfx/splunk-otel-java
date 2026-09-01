@@ -43,6 +43,8 @@ final class TraceIdBasedSnapshotSelector implements SnapshotSelector {
 
   @Override
   public boolean select(SpanContext spanContext) {
+    // Capture the volatile threshold into a local variable so a concurrent configuration update
+    // cannot change the threshold value used during method execution.
     String currentThreshold = threshold;
     if (currentThreshold == null || !spanContext.isValid()) {
       return false;

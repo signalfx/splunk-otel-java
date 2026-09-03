@@ -114,21 +114,6 @@ public class PprofCpuEventExporter implements CpuEventExporter {
     addSample(sample, threadInfo.getStackTrace(), eventTime, traceId, spanId, duration);
   }
 
-  @Override
-  public void export(
-      long threadId,
-      String threadName,
-      Thread.State threadState,
-      StackTraceElement[] stackTrace,
-      Instant eventTime,
-      String traceId,
-      String spanId,
-      Duration duration) {
-    Sample.Builder sample = Sample.newBuilder();
-    addThreadInfo(sample, threadId, threadName, threadState);
-    addSample(sample, stackTrace, eventTime, traceId, spanId, duration);
-  }
-
   private void addThreadInfo(
       Sample.Builder sample, long threadId, String threadName, Thread.State threadState) {
     pprof.addLabel(sample, THREAD_ID, threadId);

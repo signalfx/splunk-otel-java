@@ -28,15 +28,5 @@ public interface CpuEventExporter {
   default void export(
       ThreadInfo threadInfo, Instant eventTime, String traceId, String spanId, Duration duration) {}
 
-  default void export(
-      long threadId,
-      String threadName,
-      Thread.State threadState,
-      StackTraceElement[] stackTrace,
-      Instant eventTime,
-      String traceId,
-      String spanId,
-      Duration duration) {}
-
   default void flush() {}
 }

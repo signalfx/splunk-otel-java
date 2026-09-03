@@ -34,9 +34,12 @@ public class StackTraceFilter {
         "\"JFR Periodic Tasks\"",
         "\"JFR Recording Scheduler\"",
         "\"JFR Recording Flusher\"",
+        "\"JFR Profiler\"",
+        "\"Snapshot Profiling Supervisor\"",
         "\"Reference Handler\"",
         "\"Finalizer\"",
         "\"C1 CompilerThread",
+        "\"C2 CompilerThread",
         "\"Common-Cleaner\""
       };
 

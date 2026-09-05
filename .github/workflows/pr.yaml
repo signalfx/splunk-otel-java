@@ -290,11 +290,8 @@ jobs:
       - name: Generate license report
         run: ./gradlew generateLicenseReport
 
-      - name: Commit and push generated license report
-        env:
-          GH_TOKEN: ${{ github.token }}
-          HEAD_REF: ${{ github.event.pull_request.head.ref }}
-          PR_NUMBER: ${{ github.event.pull_request.number }}
+      - name: Check generated license report
+        id: check-licenses
         run: |
           git add licenses
 
@@ -303,11 +300,27 @@ jobs:
             echo "License report is already up-to-date on the Renovate branch."
             exit 0
           fi
+          echo "changed=true" >> $GITHUB_OUTPUT
 
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git commit -m "Regenerate license report"
-          git push origin "HEAD:${HEAD_REF}"
+      - name: Commit and push generated license report
+        id: commit-licenses
+        uses: IAreKyleW00t/verified-bot-commit@42a042b0407248f3c0acac00c389e729e3476e86 # v2.3.5
+        if: ${{ success() && steps.check-licenses.outputs.changed == 'true'  }}
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          auto-stage: false
+          if-no-commit: info
+          message: "Regenerate license report"
+          files: |
+            licenses/**
+
+      - name: Run workflow
+        env:
+          GH_TOKEN: ${{ github.token }}
+          HEAD_REF: ${{ github.event.pull_request.head.ref }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        if: ${{ success() && steps.commit-licenses.outputs.commit != '' }}
+        run: |
           gh workflow run pr.yaml --ref "$HEAD_REF" -f pull_request_number="$PR_NUMBER"
 
   generate-metadata:

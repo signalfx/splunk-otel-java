@@ -1132,6 +1132,7 @@ public class MetadataGenerator {
                     "aws.log.group.arns",
                     "aws.log.stream.arns",
                     "aws.ecs.task.arn",
+                    "aws.ecs.task.id",
                     "aws.ecs.launchtype",
                     "aws.ecs.task.family",
                     "aws.ecs.task.revision"))

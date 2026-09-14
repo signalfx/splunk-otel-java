@@ -19,11 +19,12 @@ package com.splunk.opentelemetry.profiler;
 import com.google.auto.service.AutoService;
 import com.google.common.annotations.VisibleForTesting;
 import io.opentelemetry.javaagent.extension.AgentListener;
+import io.opentelemetry.javaagent.tooling.BeforeAgentListener;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 import java.util.logging.Logger;
 
-@AutoService(AgentListener.class)
-public class JfrAgentListener implements AgentListener {
+@AutoService({AgentListener.class, BeforeAgentListener.class})
+public class JfrAgentListener implements AgentListener, BeforeAgentListener {
   private static final Logger logger = Logger.getLogger(JfrAgentListener.class.getName());
   private final JFR jfr;
 
@@ -37,11 +38,14 @@ public class JfrAgentListener implements AgentListener {
   }
 
   @Override
-  public void afterAgent(AutoConfiguredOpenTelemetrySdk sdk) {
+  public void beforeAgent(AutoConfiguredOpenTelemetrySdk sdk) {
     if (jfr.isAvailable()) {
       ProfilingSupervisor.setupJfrContextStorage();
     }
+  }
 
+  @Override
+  public void afterAgent(AutoConfiguredOpenTelemetrySdk sdk) {
     // Always start the supervisor, so it can start profiling later elsewhere.
     ProfilingSupervisor supervisor = makeProfilingSupervisor(sdk);
 

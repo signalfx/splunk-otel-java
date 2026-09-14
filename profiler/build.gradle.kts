@@ -32,6 +32,7 @@ dependencies {
   compileOnly("io.opentelemetry.semconv:opentelemetry-semconv")
   // required to access InstrumentationHolder
   compileOnly("io.opentelemetry.javaagent:opentelemetry-javaagent-bootstrap")
+  compileOnly("io.opentelemetry.javaagent:opentelemetry-javaagent-tooling")
   implementation("io.opentelemetry:opentelemetry-sdk-logs")
   implementation("io.opentelemetry:opentelemetry-exporter-otlp")
   implementation("com.google.protobuf:protobuf-java")
@@ -45,6 +46,7 @@ dependencies {
   testImplementation(testFixtures(project(":custom")))
   testImplementation(project(":instrumentation:jvm-metrics"))
   testImplementation("io.opentelemetry.javaagent:opentelemetry-javaagent-extension-api")
+  testImplementation("io.opentelemetry.javaagent:opentelemetry-javaagent-tooling")
   testImplementation("io.opentelemetry.javaagent:opentelemetry-testing-common")
   testImplementation("io.grpc:grpc-netty")
   testImplementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-api")

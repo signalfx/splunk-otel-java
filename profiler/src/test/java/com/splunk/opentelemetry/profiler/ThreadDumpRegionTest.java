@@ -31,10 +31,12 @@ import org.junit.jupiter.api.Test;
 class ThreadDumpRegionTest {
   @Test
   void testAllStacksFound() {
-    ThreadDumpRegion region = new ThreadDumpRegion(readDumpFromResource("thread-dump1.txt"), 0, 0);
+    ThreadDumpRegion.Iterator iterator =
+        new ThreadDumpRegion.Iterator(readDumpFromResource("thread-dump1.txt"));
     List<String> result = new ArrayList<>();
 
-    while (region.findNextStack()) {
+    ThreadDumpRegion region;
+    while ((region = iterator.findNextStack()) != null) {
       result.add(region.getCurrentRegion());
     }
 
@@ -43,24 +45,26 @@ class ThreadDumpRegionTest {
 
   @Test
   void skipClustersWithoutDoubleQuote() {
-    ThreadDumpRegion region = new ThreadDumpRegion("something\n\n\"else\"", 0, 0);
-    assertTrue(region.findNextStack());
+    ThreadDumpRegion.Iterator iterator = new ThreadDumpRegion.Iterator("something\n\n\"else\"");
+    ThreadDumpRegion region = iterator.findNextStack();
+    assertTrue(region != null);
     assertEquals(region.getCurrentRegion(), "\"else\"");
-    assertFalse(region.findNextStack());
+    assertFalse(iterator.findNextStack() != null);
   }
 
   @Test
   void edgeCase1_simplyHitsEnd() {
-    ThreadDumpRegion region = new ThreadDumpRegion("\"something\"\n\n", 0, 0);
-    assertTrue(region.findNextStack());
+    ThreadDumpRegion.Iterator iterator = new ThreadDumpRegion.Iterator("\"something\"\n\n");
+    ThreadDumpRegion region = iterator.findNextStack();
+    assertTrue(region != null);
     assertEquals(region.getCurrentRegion(), "\"something\"");
-    assertFalse(region.findNextStack());
+    assertFalse(iterator.findNextStack() != null);
   }
 
   @Test
   void edgeCase2_emptyString() {
-    ThreadDumpRegion region = new ThreadDumpRegion("", 0, 0);
-    assertFalse(region.findNextStack());
+    ThreadDumpRegion.Iterator iterator = new ThreadDumpRegion.Iterator("");
+    assertFalse(iterator.findNextStack() != null);
   }
 
   @Test

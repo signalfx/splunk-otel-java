@@ -132,6 +132,7 @@ class PeriodicRecordingFlusherFactory {
         .cpuEventExporter(profilingEventExporter)
         .stackTraceFilter(stackTraceFilter)
         .onlyTracingSpans(config.getTracingStacksOnly())
+        .locksEnabled(config.getLocksEnabled())
         .build();
   }
 

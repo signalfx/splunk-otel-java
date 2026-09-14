@@ -16,14 +16,16 @@
 
 package com.splunk.opentelemetry.profiler;
 
+import javax.annotation.Nullable;
+
 /**
  * Points to region within a thread dump, currently intended for accessing stack traces within it
  * without extracting them as separate strings.
  */
 public class ThreadDumpRegion {
   public final String threadDump;
-  public int startIndex;
-  public int endIndex;
+  public final int startIndex;
+  public final int endIndex;
 
   public ThreadDumpRegion(String threadDump, int startIndex, int endIndex) {
     this.threadDump = threadDump;
@@ -49,48 +51,59 @@ public class ThreadDumpRegion {
     return result;
   }
 
-  /**
-   * Find next stack trace in the thread dump this region is using. Modifies the region this
-   * instance points to, to that stack trace. Returns false if no more stacks were found, in which
-   * case the region it points to afterwards is undefined.
-   */
-  public boolean findNextStack() {
-    while (findNextSection()) {
-      if (threadDump.charAt(startIndex) == '"') {
-        return true;
-      }
+  public static class Iterator {
+    private final String threadDump;
+    private int startIndex;
+    private int endIndex;
+
+    public Iterator(String threadDump) {
+      this.threadDump = threadDump;
     }
 
-    return false;
-  }
+    /**
+     * Find next stack trace in the thread dump this region is using.
+     *
+     * @return next stack trace, or {@code null} if no more stack traces found
+     */
+    @Nullable
+    public ThreadDumpRegion findNextStack() {
+      while (findNextSection()) {
+        if (threadDump.charAt(startIndex) == '"') {
+          return new ThreadDumpRegion(threadDump, startIndex, endIndex);
+        }
+      }
 
-  private boolean findNextSection() {
-    int start = endIndex;
+      return null;
+    }
 
-    // skip over any newlines, returning failure in case we reach end of string this way
-    while (true) {
-      if (start >= threadDump.length()) {
+    private boolean findNextSection() {
+      int start = endIndex;
+
+      // skip over any newlines, returning failure in case we reach end of string this way
+      while (true) {
+        if (start >= threadDump.length()) {
+          return false;
+        } else if (threadDump.charAt(start) != '\n') {
+          break;
+        }
+        start++;
+      }
+
+      int end = threadDump.indexOf("\n\n", start);
+      if (end == -1) {
+        end = threadDump.lastIndexOf('\n', start);
+      }
+      if (end == -1) {
         return false;
-      } else if (threadDump.charAt(start) != '\n') {
-        break;
       }
-      start++;
-    }
+      // Reached the end of the wall, so just set next to the end
+      if (end < start) {
+        end = threadDump.length();
+      }
 
-    int end = threadDump.indexOf("\n\n", start);
-    if (end == -1) {
-      end = threadDump.lastIndexOf('\n', start);
+      startIndex = start;
+      endIndex = end;
+      return true;
     }
-    if (end == -1) {
-      return false;
-    }
-    // Reached the end of the wall, so just set next to the end
-    if (end < start) {
-      end = threadDump.length();
-    }
-
-    startIndex = start;
-    endIndex = end;
-    return true;
   }
 }

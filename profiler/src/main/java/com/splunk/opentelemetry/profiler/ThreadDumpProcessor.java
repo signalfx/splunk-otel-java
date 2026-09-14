@@ -22,17 +22,23 @@ import com.splunk.opentelemetry.profiler.context.SpanContextualizer;
 import com.splunk.opentelemetry.profiler.context.SpanLinkage;
 import com.splunk.opentelemetry.profiler.context.StackToSpanLinkage;
 import com.splunk.opentelemetry.profiler.exporter.CpuEventExporter;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.logging.Logger;
 import org.openjdk.jmc.common.item.IItem;
 
 public class ThreadDumpProcessor {
   public static final String EVENT_NAME = "jdk.ThreadDump";
+  private static final String LOCKED_PREFIX = "- locked ";
   private static final Logger logger = Logger.getLogger(ThreadDumpProcessor.class.getName());
   private final EventReader eventReader;
   private final SpanContextualizer contextualizer;
   private final CpuEventExporter cpuEventExporter;
   private final StackTraceFilter stackTraceFilter;
   private final boolean onlyTracingSpans;
+  private final boolean locksEnabled;
 
   private ThreadDumpProcessor(Builder builder) {
     this.eventReader = builder.eventReader;
@@ -40,6 +46,7 @@ public class ThreadDumpProcessor {
     this.cpuEventExporter = builder.cpuEventExporter;
     this.stackTraceFilter = builder.stackTraceFilter;
     this.onlyTracingSpans = builder.onlyTracingSpans;
+    this.locksEnabled = builder.locksEnabled;
   }
 
   public void accept(IItem event) {
@@ -47,21 +54,81 @@ public class ThreadDumpProcessor {
     logger.log(FINE, "Processing JFR event {0}", eventName);
     String wallOfStacks = eventReader.getThreadDumpResult(event);
 
-    ThreadDumpRegion stack = new ThreadDumpRegion(wallOfStacks, 0, 0);
+    List<ThreadDumpRegion> stackRegions = extractStackRegions(wallOfStacks);
 
-    while (stack.findNextStack()) {
-      if (!stackTraceFilter.test(stack)) {
-        continue;
-      }
-      SpanLinkage linkage = contextualizer.link(stack);
+    List<StackToSpanLinkage> spansWithLinkages = new ArrayList<>();
+    for (ThreadDumpRegion stackRegion : stackRegions) {
+      SpanLinkage linkage = contextualizer.link(stackRegion);
       if (onlyTracingSpans && !linkage.getSpanContext().isValid()) {
         continue;
       }
       StackToSpanLinkage spanWithLinkage =
           new StackToSpanLinkage(
-              eventReader.getStartInstant(event), stack.getCurrentRegion(), eventName, linkage);
-      cpuEventExporter.export(spanWithLinkage);
+              eventReader.getStartInstant(event), stackRegion.getCurrentRegion(), eventName,
+              linkage);
+      spansWithLinkages.add(spanWithLinkage);
     }
+
+    spansWithLinkages.forEach(cpuEventExporter::export);
+  }
+
+  private List<ThreadDumpRegion> extractStackRegions(String wallOfStacks) {
+    List<ThreadDumpRegion> stacks = new ArrayList<>();
+
+    ThreadDumpRegion.Iterator iterator = new ThreadDumpRegion.Iterator(wallOfStacks);
+    ThreadDumpRegion stack;
+    while ((stack = iterator.findNextStack()) != null) {
+      if (stackTraceFilter.test(stack)) {
+        stacks.add(stack);
+      }
+    }
+
+    return stacks;
+  }
+
+  Map<String, String> buildLockToOwningThreadMapping(List<ThreadDumpRegion> stackRegions) {
+    Map<String, String> lockOwners = new HashMap<>();
+
+    for (ThreadDumpRegion stackRegion : stackRegions) {
+      String threadDump = stackRegion.threadDump;
+      int startIndex = stackRegion.startIndex;
+      int endIndex = stackRegion.endIndex;
+
+      int headerEnd = threadDump.indexOf('\n', startIndex);
+      if (headerEnd == -1 || headerEnd > endIndex) {
+        headerEnd = endIndex;
+      }
+      int threadNameEnd = threadDump.lastIndexOf('"', headerEnd - 1);
+      if (threadNameEnd <= startIndex) {
+        continue;
+      }
+      String threadName = threadDump.substring(startIndex + 1, threadNameEnd);
+
+      for (int lineStart = headerEnd + 1; lineStart < endIndex; ) {
+        int lineEnd = threadDump.indexOf('\n', lineStart);
+        if (lineEnd == -1 || lineEnd > endIndex) {
+          lineEnd = endIndex;
+        }
+
+        int contentStart = lineStart;
+        while (contentStart < lineEnd && Character.isWhitespace(threadDump.charAt(contentStart))) {
+          contentStart++;
+        }
+
+        if (threadDump.regionMatches(
+            contentStart, LOCKED_PREFIX, 0, LOCKED_PREFIX.length())) {
+          int lockStart = threadDump.indexOf('<', contentStart + LOCKED_PREFIX.length());
+          int lockEnd = lockStart == -1 ? -1 : threadDump.indexOf('>', lockStart + 1);
+          if (lockStart != -1 && lockEnd != -1 && lockEnd < lineEnd) {
+            lockOwners.put(threadDump.substring(lockStart + 1, lockEnd), threadName);
+          }
+        }
+
+        lineStart = lineEnd + 1;
+      }
+    }
+
+    return lockOwners;
   }
 
   public void flush() {
@@ -78,6 +145,7 @@ public class ThreadDumpProcessor {
     private CpuEventExporter cpuEventExporter;
     private StackTraceFilter stackTraceFilter;
     private boolean onlyTracingSpans;
+    private boolean locksEnabled;
 
     public Builder eventReader(EventReader eventReader) {
       this.eventReader = eventReader;
@@ -101,6 +169,11 @@ public class ThreadDumpProcessor {
 
     public Builder onlyTracingSpans(boolean onlyTracingSpans) {
       this.onlyTracingSpans = onlyTracingSpans;
+      return this;
+    }
+
+    public Builder locksEnabled(boolean locksEnabled) {
+      this.locksEnabled = locksEnabled;
       return this;
     }
 

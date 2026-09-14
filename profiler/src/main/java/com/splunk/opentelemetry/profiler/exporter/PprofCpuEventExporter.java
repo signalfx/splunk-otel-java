@@ -44,6 +44,7 @@ import java.lang.management.MonitorInfo;
 import java.lang.management.ThreadInfo;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Map;
 
 public class PprofCpuEventExporter implements CpuEventExporter {
   private final Duration period;
@@ -98,6 +99,8 @@ public class PprofCpuEventExporter implements CpuEventExporter {
       pprof.addLabel(sample, TRACE_ID, spanContext.getTraceId());
       pprof.addLabel(sample, SPAN_ID, spanContext.getSpanId());
     }
+
+//    addLockInfo(sample, threadInfo);
 
     pprof.getProfileBuilder().addSample(sample);
   }
@@ -172,6 +175,21 @@ public class PprofCpuEventExporter implements CpuEventExporter {
     }
     for (LockInfo synchronizer : threadInfo.getLockedSynchronizers()) {
       pprof.addLabel(sample, LOCK_HELD_PREFIX + heldLockIndex++, formatLock(synchronizer));
+    }
+  }
+
+  private void addLockInfo(Sample.Builder sample, ThreadLockData threadInfo) {
+    if (threadInfo.getWaitingOn() != null) {
+      pprof.addLabel(sample, LOCK_WAITING_ON, threadInfo.getWaitingOn());
+    }
+    pprof.addLabel(sample, LOCK_OWNER_THREAD, threadInfo.getLockOwner());
+
+    int heldLockIndex = 0;
+    for (String monitor : threadInfo.getLockedMonitors()) {
+      pprof.addLabel(sample, LOCK_HELD_PREFIX + heldLockIndex++, monitor);
+    }
+    for (String synchronizer : threadInfo.getLockedSynchronizers()) {
+      pprof.addLabel(sample, LOCK_HELD_PREFIX + heldLockIndex++, synchronizer);
     }
   }
 

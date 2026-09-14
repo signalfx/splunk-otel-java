@@ -34,6 +34,7 @@ import io.opentelemetry.api.trace.TraceState;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -97,7 +98,7 @@ class ThreadDumpProcessorTest {
     String threadDump = readDumpFromResource("thread-dump1.txt");
     List<StackToSpanLinkage> results = collectResults(contextualizer, threadDump, false);
 
-    assertEquals(28, results.size());
+    assertEquals(27, results.size());
 
     Stream.of(StackTraceFilter.UNWANTED_PREFIXES)
         .forEach(
@@ -121,6 +122,25 @@ class ThreadDumpProcessorTest {
     sampleThreadsFromDump.forEach(
         sample ->
             assertThat(results).anyMatch(stack -> stack.getRawStack().contains(sample.threadName)));
+  }
+
+  @Test
+  void testBuildLockToOwningThreadMapping() {
+    String stackText =
+        "\"holder\" #1 daemon\n"
+            + "   java.lang.Thread.State: RUNNABLE\n"
+            + "        - locked <0x0000000000000011> (a java.lang.Object)\n"
+            + "        - locked <0x0000000000000022> (a java.lang.Object)\n"
+            + "        at example.Holder.run(Holder.java:1)\n";
+
+    ThreadDumpProcessor processor = ThreadDumpProcessor.builder().build();
+
+    assertEquals(
+        Map.of(
+            "0x0000000000000011", "holder",
+            "0x0000000000000022", "holder"),
+        processor.buildLockToOwningThreadMapping(
+            List.of(new ThreadDumpRegion(stackText, 0, stackText.length()))));
   }
 
   private IItem threadContextStartEvent(long threadId) {

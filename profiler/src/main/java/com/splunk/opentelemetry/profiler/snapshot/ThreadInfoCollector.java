@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.splunk.opentelemetry.profiler;
+package com.splunk.opentelemetry.profiler.snapshot;
 
 import com.google.common.annotations.VisibleForTesting;
 import java.lang.management.ManagementFactory;
@@ -24,29 +24,32 @@ import java.util.Collection;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-/** Collects thread stack and optional lock information from the JVM. */
-public class ThreadInfoCollector {
+/**
+ * This class primarily exists to provide tests with a seam in which to hook into the stack trace
+ * collection process for thread coordination purposes.
+ */
+class ThreadInfoCollector {
   private static final Logger logger = Logger.getLogger(ThreadInfoCollector.class.getName());
 
   private final ThreadMXBean threadMXBean;
   private final boolean locksEnabled;
 
-  public ThreadInfoCollector(boolean locksEnabled) {
+  ThreadInfoCollector(boolean locksEnabled) {
     this(ManagementFactory.getThreadMXBean(), locksEnabled);
   }
 
   @VisibleForTesting
-  public ThreadInfoCollector(ThreadMXBean threadMXBean) {
+  ThreadInfoCollector(ThreadMXBean threadMXBean) {
     this(threadMXBean, false);
   }
 
   @VisibleForTesting
-  public ThreadInfoCollector(ThreadMXBean threadMXBean, boolean locksEnabled) {
+  ThreadInfoCollector(ThreadMXBean threadMXBean, boolean locksEnabled) {
     this.threadMXBean = threadMXBean;
     this.locksEnabled = locksEnabled;
   }
 
-  public ThreadInfo getThreadInfo(long threadId) {
+  ThreadInfo getThreadInfo(long threadId) {
     try {
       ThreadInfo[] threadInfos = collectThreadInfo(new long[] {threadId});
       return threadInfos.length == 0 ? null : threadInfos[0];
@@ -56,7 +59,7 @@ public class ThreadInfoCollector {
     return null;
   }
 
-  public ThreadInfo[] getThreadInfo(Collection<Long> threadIds) {
+  ThreadInfo[] getThreadInfo(Collection<Long> threadIds) {
     try {
       long[] threadIdArray = threadIds.stream().mapToLong(Long::longValue).toArray();
       return collectThreadInfo(threadIdArray);

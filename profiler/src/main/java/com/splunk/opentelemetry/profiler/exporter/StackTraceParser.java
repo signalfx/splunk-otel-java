@@ -21,9 +21,15 @@ import java.util.List;
 import java.util.function.Consumer;
 
 class StackTraceParser {
-  private static final String STACK_LINE_PREFIX = "\tat ";
+  private static final String STACK_LINE_PREFIX = "at ";
   private static final String THREAD_STATE_PREFIX = "java.lang.Thread.State: ";
   private static final String THREAD_NATIVE_ID_PREFIX = "nid=0x";
+
+  private static final String WAITING_ON_PREFIX = "- waiting on ";
+  private static final String WAITING_TO_RELOCK_PREFIX = "- waiting to re-lock in wait() ";
+  private static final String LOCKED_PREFIX = "- locked ";
+  private static final String PARKING_TO_WAIT_FOR_PREFIX = "- parking to wait for";
+  private static final String WAITING_TO_LOCK_PREFIX = "- waiting to lock ";
 
   public static StackTrace parse(String stackTrace, int stackDepth) {
     // \\R - Any Unicode linebreak sequence
@@ -42,13 +48,88 @@ class StackTraceParser {
         builder.setTruncated();
         break;
       }
-      StackTraceLine stackTraceLine = parseStackTraceLine(lines[i]);
-      if (stackTraceLine != null) {
-        builder.addStackTraceLine(stackTraceLine);
-      }
+      parseLine(builder, lines[i]);
     }
 
     return builder.build();
+  }
+
+  private static void parseLine(StackTraceBuilder builder, String line) {
+    int startIndex = findStartIndex(line);
+    StackTraceLine stackTraceLine = parseStackTraceLine(line, startIndex);
+    if (stackTraceLine != null) {
+      builder.addStackTraceLine(stackTraceLine);
+    } else {
+      parseLockLine(builder, line, startIndex);
+    }
+  }
+
+  private static void parseLockLine(StackTraceBuilder builder, String line, int startIndex) {
+    if (line.startsWith(WAITING_ON_PREFIX, startIndex)) {
+      builder
+          .getThreadLockDataBuilder()
+          .setWaitingOn(parseLock(line, startIndex, WAITING_ON_PREFIX));
+    } else if (line.startsWith(WAITING_TO_RELOCK_PREFIX, startIndex)) {
+      builder
+          .getThreadLockDataBuilder()
+          .setWaitingOn(parseLock(line, startIndex, WAITING_TO_RELOCK_PREFIX));
+    } else if (line.startsWith(WAITING_TO_LOCK_PREFIX, startIndex)) {
+      builder
+          .getThreadLockDataBuilder()
+          .setWaitingOn(parseLock(line, startIndex, WAITING_TO_LOCK_PREFIX));
+    } else if (line.startsWith(PARKING_TO_WAIT_FOR_PREFIX, startIndex)) {
+      builder
+          .getThreadLockDataBuilder()
+          .setWaitingOn(parseLock(line, startIndex, PARKING_TO_WAIT_FOR_PREFIX));
+    } else if (line.startsWith(LOCKED_PREFIX, startIndex)) {
+      String lock = parseLock(line, startIndex, LOCKED_PREFIX);
+      if (lock != null) {
+        builder.getThreadLockDataBuilder().addLockedMonitor(lock);
+      }
+    }
+  }
+
+  private static String parseLock(String line, int startIndex, String prefix) {
+    int objectStart = line.indexOf('<', startIndex + prefix.length());
+    if (objectStart == -1) {
+      return null;
+    }
+    int objectEnd = line.indexOf('>', objectStart + 1);
+    if (objectEnd == -1) {
+      return null;
+    }
+
+    String classPrefix = "(a ";
+    int classStart = line.indexOf(classPrefix, objectEnd + 1);
+    if (classStart == -1) {
+      return null;
+    }
+    int classEnd = line.indexOf(')', classStart + classPrefix.length());
+    if (classEnd == -1) {
+      return null;
+    }
+
+    String objectId = line.substring(objectStart + 1, objectEnd);
+    if (objectId.startsWith("0x")) {
+      objectId = objectId.substring(2);
+    }
+    int firstNonZero = 0;
+    while (firstNonZero < objectId.length() - 1 && objectId.charAt(firstNonZero) == '0') {
+      firstNonZero++;
+    }
+
+    return line.substring(classStart + classPrefix.length(), classEnd)
+        + '@'
+        + objectId.substring(firstNonZero);
+  }
+
+  private static int findStartIndex(String line) {
+    int lineLength = line.length();
+    int startIndex = 0;
+    while (startIndex < lineLength && Character.isWhitespace(line.charAt(startIndex))) {
+      startIndex++;
+    }
+    return startIndex;
   }
 
   private static void parseHeader(StackTraceBuilder builder, String header) {
@@ -109,17 +190,19 @@ class StackTraceParser {
     return status.substring(i + THREAD_STATE_PREFIX.length());
   }
 
-  private static StackTraceLine parseStackTraceLine(String line) {
+  private static StackTraceLine parseStackTraceLine(String line, int startIndex) {
     // we expect the stack trace line to look like
     // at java.lang.Thread.run(java.base@11.0.9.1/Thread.java:834)
-    if (!line.startsWith(STACK_LINE_PREFIX)) {
-      return null;
-    }
     if (!line.endsWith(")")) {
       return null;
     }
-    // remove "\tat " and trailing ")"
-    line = line.substring(STACK_LINE_PREFIX.length(), line.length() - 1);
+
+    // Skip white spaces and check for stack trace code location prefix
+    if (!line.startsWith(STACK_LINE_PREFIX, startIndex)) {
+      return null;
+    }
+    // remove "at " and trailing ")"
+    line = line.substring(startIndex + STACK_LINE_PREFIX.length(), line.length() - 1);
     int i = line.lastIndexOf('(');
     if (i == -1) {
       return null;
@@ -156,6 +239,7 @@ class StackTraceParser {
     private String threadName;
     private int osThreadId = 0;
     private String threadState;
+    private final ThreadLockData.Builder threadLockDataBuilder = ThreadLockData.builder();
     private List<StackTraceLine> stackTraceLines = new ArrayList<>();
     private boolean truncated;
 
@@ -195,6 +279,14 @@ class StackTraceParser {
       this.threadState = threadState;
     }
 
+    ThreadLockData.Builder getThreadLockDataBuilder() {
+      return threadLockDataBuilder;
+    }
+
+    ThreadLockData getThreadLockData() {
+      return threadLockDataBuilder.build();
+    }
+
     List<StackTraceLine> getStackTraceLines() {
       return stackTraceLines;
     }
@@ -217,6 +309,7 @@ class StackTraceParser {
     private final String threadName;
     private final int osThreadId;
     private final String threadState;
+    private final ThreadLockData threadLockData;
     private final List<StackTraceLine> stackTraceLines;
     private final boolean truncated;
 
@@ -225,6 +318,7 @@ class StackTraceParser {
       this.threadName = builder.getThreadName();
       this.osThreadId = builder.getOsThreadId();
       this.threadState = builder.getThreadState();
+      this.threadLockData = builder.getThreadLockData();
       this.stackTraceLines = builder.getStackTraceLines();
       this.truncated = builder.isTruncated();
     }
@@ -243,6 +337,10 @@ class StackTraceParser {
 
     String getThreadState() {
       return threadState;
+    }
+
+    ThreadLockData getThreadLockData() {
+      return threadLockData;
     }
 
     List<StackTraceLine> getStackTraceLines() {

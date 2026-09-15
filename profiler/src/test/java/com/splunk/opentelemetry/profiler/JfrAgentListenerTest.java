@@ -57,6 +57,7 @@ class JfrAgentListenerTest {
           splunk:
             profiling:
               always_on:
+                cpu_profiler:
         """;
     AutoConfiguredOpenTelemetrySdk sdk = createAutoConfiguredSdk(yaml, tempDir, autoCleanup);
 
@@ -91,6 +92,7 @@ class JfrAgentListenerTest {
           splunk:
             profiling:
               always_on:
+                cpu_profiler:
         """;
     AutoConfiguredOpenTelemetrySdk sdk = createAutoConfiguredSdk(yaml, tempDir, autoCleanup);
 

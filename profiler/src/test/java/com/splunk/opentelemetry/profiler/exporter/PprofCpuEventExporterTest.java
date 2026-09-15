@@ -31,7 +31,12 @@ import com.google.perftools.profiles.ProfileProto.Profile;
 import com.google.perftools.profiles.ProfileProto.Sample;
 import com.splunk.opentelemetry.profiler.InstrumentationSource;
 import com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes;
+import com.splunk.opentelemetry.profiler.context.SpanLinkage;
+import com.splunk.opentelemetry.profiler.context.StackToSpanLinkage;
 import com.splunk.opentelemetry.profiler.pprof.PprofUtils;
+import com.splunk.opentelemetry.profiler.threaddump.StackTraceData;
+import com.splunk.opentelemetry.profiler.threaddump.StackTraceParser;
+import com.splunk.opentelemetry.profiler.threaddump.ThreadLockData;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.sdk.trace.IdGenerator;
 import java.io.IOException;
@@ -338,6 +343,45 @@ class PprofCpuEventExporterTest {
         .thenReturn(new LockInfo[] {new LockInfo("example.Synchronizer", 0x34cd)});
 
     locksEnabledExporter.export(threadInfo, Instant.now(), "", "", Duration.ZERO);
+    locksEnabledExporter.flush();
+
+    var logRecord = logger.records().get(0);
+    var profile = Profile.parseFrom(PprofUtils.deserialize(logRecord));
+    var labels = PprofUtils.toLabelString(profile.getSample(0), profile);
+
+    assertThat(labels)
+        .containsEntry(LOCK_WAITING_ON, "example.WaitingLock@12ab")
+        .containsEntry(LOCK_OWNER_THREAD, "lock-owner")
+        .containsEntry(LOCK_HELD_PREFIX + "0", "example.Monitor@23bc")
+        .containsEntry(LOCK_HELD_PREFIX + "1", "example.Synchronizer@34cd");
+  }
+
+  @Test
+  void includeStackToSpanLinkageLockInformationInSamples() throws Exception {
+    var locksEnabledExporter =
+        PprofCpuEventExporter.builder()
+            .otelLogger(logger)
+            .period(Duration.ofMillis(20))
+            .stackDepth(1024)
+            .locksEnabled(true)
+            .instrumentationSource(InstrumentationSource.SNAPSHOT)
+            .build();
+    StackTraceData stackTrace =
+        StackTraceParser.parse(
+            "\"worker\" #17\n"
+                + "  java.lang.Thread.State: BLOCKED\n"
+                + "  at example.Worker.run(Worker.java:42)\n",
+            1024,
+            true);
+    ThreadLockData lockData = stackTrace.getThreadLockData();
+    lockData.setWaitingOn("example.WaitingLock@12ab");
+    lockData.setLockOwner("lock-owner");
+    lockData.addLockedMonitor("example.Monitor@23bc");
+    lockData.addLockedSynchronizer("example.Synchronizer@34cd");
+
+    locksEnabledExporter.export(
+        new StackToSpanLinkage(
+            Instant.now(), stackTrace, "thread-dump", SpanLinkage.NONE));
     locksEnabledExporter.flush();
 
     var logRecord = logger.records().get(0);

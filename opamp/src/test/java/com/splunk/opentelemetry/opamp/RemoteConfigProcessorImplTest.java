@@ -235,6 +235,7 @@ class RemoteConfigProcessorImplTest {
           distribution:
             splunk:
               profiling:
+                always_on:
       """;
       ByteString configHash = ByteString.encodeUtf8("test-config-hash");
       AgentRemoteConfig remoteConfig = createRemoteConfig(configHash, remoteConfigYaml);
@@ -252,6 +253,29 @@ class RemoteConfigProcessorImplTest {
       verify(profilingSupervisor, never()).requestStartProfiling();
       verifyNoInteractions(snapshotProfilingSupervisor);
       verify(effectiveConfigReporter).reportEffectiveConfigIfChanged();
+    }
+
+    @Test
+    void shouldNotReconfigureProfilingWhenThereIsNoAlwaysOnProfilerConfig() {
+      // given
+      ProfilerConfiguration initialConfiguration =
+          ProfilerConfiguration.builder().setEnabled(true).build();
+      ProfilerConfiguration.SUPPLIER.configure(initialConfiguration);
+      String remoteConfigYaml =
+          """
+          distribution:
+            splunk:
+              profiling:
+      """;
+      ByteString configHash = ByteString.encodeUtf8("test-config-hash");
+      AgentRemoteConfig remoteConfig = createRemoteConfig(configHash, remoteConfigYaml);
+
+      // when
+      handler.applyConfig(remoteConfig, opampClient);
+
+      // then
+      assertThat(ProfilerConfiguration.SUPPLIER.get()).isSameAs(initialConfiguration);
+      verifyNoInteractions(profilingSupervisor);
     }
   }
 

@@ -29,6 +29,7 @@ public final class ProfilerDeclarativeConfigurationFactory {
   private static final long DEFAULT_SAMPLING_INTERVAL = Duration.ofSeconds(10).toMillis();
 
   private static final String MEMORY_PROFILER = "memory_profiler";
+  private static final String CPU_PROFILER = "cpu_profiler";
   private static final String MEMORY_EVENT_RATE = "event_rate";
 
   private ProfilerDeclarativeConfigurationFactory() {}
@@ -48,7 +49,7 @@ public final class ProfilerDeclarativeConfigurationFactory {
             DEFAULT_SAMPLING_INTERVAL);
 
     return ProfilerConfiguration.builder()
-        .setEnabled(config.getPropertyKeys().contains(ROOT_NODE_NAME))
+        .setEnabled(configRoot.getPropertyKeys().contains(CPU_PROFILER))
         .setMemoryEnabled(configRoot.getPropertyKeys().contains(MEMORY_PROFILER))
         .setMemoryEventRateLimitEnabled(memoryProfilerConfig.getString(MEMORY_EVENT_RATE) != null)
         .setMemoryEventRate(memoryProfilerConfig.getString(MEMORY_EVENT_RATE, "150/s"))

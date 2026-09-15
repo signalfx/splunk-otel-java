@@ -139,6 +139,17 @@ class ThreadDumpProcessorTest {
   }
 
   @Test
+  void shouldUseConfiguredStackDepth() {
+    SpanContextualizer contextualizer = new SpanContextualizer(eventReader);
+
+    List<StackToSpanLinkage> results =
+        collectResults(contextualizer, readDumpFromResource("thread-dump2.txt"), false, false, 1);
+
+    assertEquals(1, results.getFirst().getStackTrace().getStackTraceLines().size());
+    assertTrue(results.getFirst().getStackTrace().isTruncated());
+  }
+
+  @Test
   void testBuildLockToOwningThreadMapping() {
     String stackText =
         "\"holder\" #1 daemon\n"
@@ -221,6 +232,15 @@ class ThreadDumpProcessorTest {
       String threadDump,
       boolean onlyTracingSpans,
       boolean enableLocks) {
+    return collectResults(contextualizer, threadDump, onlyTracingSpans, enableLocks, 1024);
+  }
+
+  private static List<StackToSpanLinkage> collectResults(
+      SpanContextualizer contextualizer,
+      String threadDump,
+      boolean onlyTracingSpans,
+      boolean enableLocks,
+      int stackDepth) {
     EventReader eventReader = mock(EventReader.class);
     List<StackToSpanLinkage> results = new ArrayList<>();
     CpuEventExporter profilingEventExporter = results::add;
@@ -231,6 +251,7 @@ class ThreadDumpProcessorTest {
             .cpuEventExporter(profilingEventExporter)
             .stackTraceFilter(new StackTraceFilter(eventReader, false))
             .onlyTracingSpans(onlyTracingSpans)
+            .stackDepth(stackDepth)
             .locksEnabled(enableLocks)
             .build();
 

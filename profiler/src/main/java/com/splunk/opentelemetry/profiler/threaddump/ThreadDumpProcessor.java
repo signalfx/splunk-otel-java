@@ -39,6 +39,7 @@ public class ThreadDumpProcessor {
   private final CpuEventExporter cpuEventExporter;
   private final StackTraceFilter stackTraceFilter;
   private final boolean onlyTracingSpans;
+  private final int stackDepth;
   private final boolean locksEnabled;
 
   private ThreadDumpProcessor(Builder builder) {
@@ -47,6 +48,7 @@ public class ThreadDumpProcessor {
     this.cpuEventExporter = builder.cpuEventExporter;
     this.stackTraceFilter = builder.stackTraceFilter;
     this.onlyTracingSpans = builder.onlyTracingSpans;
+    this.stackDepth = builder.stackDepth;
     this.locksEnabled = builder.locksEnabled;
   }
 
@@ -73,8 +75,8 @@ public class ThreadDumpProcessor {
       StackTraceData stackTrace =
           StackTraceParser.parse(
               stackRegion.getCurrentRegion(),
-              1500100900,
-              locksEnabled); // TODO: Get rid of stack depth here, leave it in exporter
+              stackDepth,
+              locksEnabled);
       if (stackTrace == null) {
         continue;
       }
@@ -186,6 +188,7 @@ public class ThreadDumpProcessor {
     private CpuEventExporter cpuEventExporter;
     private StackTraceFilter stackTraceFilter;
     private boolean onlyTracingSpans;
+    private int stackDepth = 1024;
     private boolean locksEnabled;
 
     public Builder eventReader(EventReader eventReader) {
@@ -210,6 +213,11 @@ public class ThreadDumpProcessor {
 
     public Builder onlyTracingSpans(boolean onlyTracingSpans) {
       this.onlyTracingSpans = onlyTracingSpans;
+      return this;
+    }
+
+    public Builder stackDepth(int stackDepth) {
+      this.stackDepth = stackDepth;
       return this;
     }
 

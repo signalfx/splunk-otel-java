@@ -18,7 +18,7 @@ package com.splunk.opentelemetry.profiler.threaddump;
 
 import java.util.function.Consumer;
 
-class StackTraceParser {
+public class StackTraceParser {
   private static final String STACK_LINE_PREFIX = "at ";
   private static final String THREAD_STATE_PREFIX = "java.lang.Thread.State: ";
   private static final String THREAD_NATIVE_ID_PREFIX = "nid=0x";

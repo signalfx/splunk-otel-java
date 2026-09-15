@@ -55,11 +55,16 @@ public class ThreadDumpProcessor {
     logger.log(FINE, "Processing JFR event {0}", eventName);
     String wallOfStacks = eventReader.getThreadDumpResult(event);
 
-    List<ThreadDumpRegion> stackRegions = extractStackRegions(wallOfStacks);
+    Map<String, String> lockToOwnerNameMapping = locksEnabled ? new HashMap<>() : null;
+    List<StackToSpanLinkage> waitingStacks = locksEnabled ? new ArrayList<>() : null;
 
-    Map<String, String> lockToOwnerNameMapping = new HashMap<>();
-    List<StackToSpanLinkage> spansWithLinkages = new ArrayList<>();
-    for (ThreadDumpRegion stackRegion : stackRegions) {
+    ThreadDumpRegion.Iterator iterator = new ThreadDumpRegion.Iterator(wallOfStacks);
+    ThreadDumpRegion stackRegion;
+    while ((stackRegion = iterator.findNextStack()) != null) {
+      if (!stackTraceFilter.test(stackRegion)) {
+        continue;
+      }
+
       SpanLinkage linkage = contextualizer.link(stackRegion);
       if (onlyTracingSpans && !linkage.getSpanContext().isValid()) {
         continue;
@@ -68,39 +73,42 @@ public class ThreadDumpProcessor {
       StackTraceData stackTrace =
           StackTraceParser.parse(
               stackRegion.getCurrentRegion(),
-              1500100900); // TODO: Get rid of stack depth here, leave it in exporter
+              1500100900,
+              locksEnabled); // TODO: Get rid of stack depth here, leave it in exporter
       if (stackTrace == null) {
         continue;
       }
-      maybeAddToLockOwners(stackTrace, lockToOwnerNameMapping);
+      if (locksEnabled) {
+        maybeAddToLockOwners(stackTrace, lockToOwnerNameMapping);
+      }
 
       StackToSpanLinkage spanWithLinkage =
           new StackToSpanLinkage(
               eventReader.getStartInstant(event), stackTrace, eventName, linkage);
-      spansWithLinkages.add(spanWithLinkage);
+      if (locksEnabled && stackTrace.getThreadLockData().getWaitingOn() != null) {
+        waitingStacks.add(spanWithLinkage);
+      } else {
+        cpuEventExporter.export(spanWithLinkage);
+      }
     }
 
-    assignLockOwnerThreadNames(spansWithLinkages, lockToOwnerNameMapping);
-
-    spansWithLinkages.forEach(cpuEventExporter::export);
+    if (locksEnabled) {
+      waitingStacks.forEach(
+          span -> assignLockOwnerThreadName(span.getStackTrace(), lockToOwnerNameMapping));
+      waitingStacks.forEach(cpuEventExporter::export);
+    }
   }
 
-  private void assignLockOwnerThreadNames(
-      List<StackToSpanLinkage> spansWithLinkages, Map<String, String> lockToOwnerNameMapping) {
-    if (!locksEnabled) {
+  private void assignLockOwnerThreadName(
+      StackTraceData stackTrace, Map<String, String> lockToOwnerNameMapping) {
+    String waitingOn = stackTrace.getThreadLockData().getWaitingOn();
+    if (waitingOn == null) {
       return;
     }
-    spansWithLinkages.forEach(
-        span -> {
-          ThreadLockData threadLockData = span.getStackTrace().getThreadLockData();
-          String waitingOn = threadLockData.getWaitingOn();
-          if (waitingOn != null) {
-            String owner = lockToOwnerNameMapping.get(waitingOn);
-            if (owner != null) {
-              threadLockData.setLockOwner(owner);
-            }
-          }
-        });
+    String owner = lockToOwnerNameMapping.get(waitingOn);
+    if (owner != null) {
+      stackTrace.getThreadLockData().setLockOwner(owner);
+    }
   }
 
   private void maybeAddToLockOwners(
@@ -118,20 +126,6 @@ public class ThreadDumpProcessor {
             lockId -> {
               lockToOwnerNameMapping.put(lockId, stackTrace.getThreadName());
             });
-  }
-
-  private List<ThreadDumpRegion> extractStackRegions(String wallOfStacks) {
-    List<ThreadDumpRegion> stacks = new ArrayList<>();
-
-    ThreadDumpRegion.Iterator iterator = new ThreadDumpRegion.Iterator(wallOfStacks);
-    ThreadDumpRegion stack;
-    while ((stack = iterator.findNextStack()) != null) {
-      if (stackTraceFilter.test(stack)) {
-        stacks.add(stack);
-      }
-    }
-
-    return stacks;
   }
 
   Map<String, String> buildLockToOwningThreadMapping(List<ThreadDumpRegion> stackRegions) {

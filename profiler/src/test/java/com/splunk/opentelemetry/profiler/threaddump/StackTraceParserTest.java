@@ -152,6 +152,23 @@ class StackTraceParserTest {
     assertNull(stackTrace.getThreadLockData().getLockOwner());
   }
 
+  @Test
+  void skipLockData() {
+    String stackText =
+        "\"thread\" #1\n"
+            + "   java.lang.Thread.State: WAITING (on object monitor)\n"
+            + "        - waiting on <0x0000000000000011> (a java.lang.Object)\n"
+            + "        - locked <0x0000000000000022> (a java.lang.Object)\n"
+            + "        at example.Thread.run(Thread.java:1)\n";
+
+    StackTraceData stackTrace = StackTraceParser.parse(stackText, 128, false);
+
+    assertNotNull(stackTrace);
+    assertEquals(1, stackTrace.getStackTraceLines().size());
+    assertNull(stackTrace.getThreadLockData().getWaitingOn());
+    assertTrue(stackTrace.getThreadLockData().getLockedMonitors().isEmpty());
+  }
+
   static String readDumpFromResource(String resourcePath) {
     try (InputStream in = StackTraceParserTest.class.getResourceAsStream("/" + resourcePath)) {
       return new String(Objects.requireNonNull(in).readAllBytes(), StandardCharsets.UTF_8);

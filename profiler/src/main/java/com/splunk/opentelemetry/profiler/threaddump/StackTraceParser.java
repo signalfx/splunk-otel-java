@@ -30,6 +30,10 @@ public class StackTraceParser {
   private static final String WAITING_TO_LOCK_PREFIX = "- waiting to lock ";
 
   public static StackTraceData parse(String stackTrace, int stackDepth) {
+    return parse(stackTrace, stackDepth, true);
+  }
+
+  public static StackTraceData parse(String stackTrace, int stackDepth, boolean parseLockData) {
     // \\R - Any Unicode linebreak sequence
     String[] lines = stackTrace.split("\\R");
     if (lines.length < 2) {
@@ -46,18 +50,19 @@ public class StackTraceParser {
         builder.setTruncated();
         break;
       }
-      parseLine(builder, lines[i]);
+      parseLine(builder, lines[i], parseLockData);
     }
 
     return builder.build();
   }
 
-  private static void parseLine(StackTraceData.Builder builder, String line) {
+  private static void parseLine(
+      StackTraceData.Builder builder, String line, boolean parseLockData) {
     int startIndex = findStartIndex(line);
     StackTraceData.StackTraceLine stackTraceLine = parseStackTraceLine(line, startIndex);
     if (stackTraceLine != null) {
       builder.addStackTraceLine(stackTraceLine);
-    } else {
+    } else if (parseLockData) {
       parseLockLine(builder, line, startIndex);
     }
   }

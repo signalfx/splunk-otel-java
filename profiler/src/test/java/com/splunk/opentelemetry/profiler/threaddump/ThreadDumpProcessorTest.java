@@ -94,8 +94,8 @@ class ThreadDumpProcessorTest {
     assertEquals("overHereDoingSpanThings", stackTraceLine.getMethod());
 
     assertFalse(results.get(2).hasSpanInfo());
-    assertThat(results.get(2).getStackTrace().getThreadLockData().getWaitingOn())
-        .contains("625152778");
+    assertNull(results.get(2).getStackTrace().getThreadLockData().getWaitingOn());
+    assertTrue(results.get(2).getStackTrace().getThreadLockData().getLockedMonitors().isEmpty());
   }
 
   @Test
@@ -170,27 +170,35 @@ class ThreadDumpProcessorTest {
     assertEquals(21, results.size());
 
     // check successfully mapped intrinsic locks
-    assertEquals("OkHttp TaskRunner", results.get(6).getStackTrace().getThreadName());
-    assertEquals(
-        "OkHttp TaskRunner", results.get(6).getStackTrace().getThreadLockData().getLockOwner());
+    assertThat(results)
+        .anyMatch(
+            stack ->
+                "OkHttp TaskRunner".equals(stack.getStackTrace().getThreadName())
+                    && "OkHttp TaskRunner"
+                        .equals(stack.getStackTrace().getThreadLockData().getLockOwner()));
 
-    assertEquals("TEST-BLOCKED-2-BLOCKED", results.get(10).getStackTrace().getThreadName());
-    assertEquals(
-        "TEST-BLOCKED-2-HOLDER",
-        results.get(10).getStackTrace().getThreadLockData().getLockOwner());
+    StackTraceData blockedThread2 = findStack(results, "TEST-BLOCKED-2-BLOCKED");
+    assertEquals("TEST-BLOCKED-2-HOLDER", blockedThread2.getThreadLockData().getLockOwner());
 
-    assertEquals("TEST-BLOCKED-5-BLOCKED", results.get(16).getStackTrace().getThreadName());
-    assertEquals(
-        "TEST-BLOCKED-5-HOLDER",
-        results.get(16).getStackTrace().getThreadLockData().getLockOwner());
+    StackTraceData blockedThread5 = findStack(results, "TEST-BLOCKED-5-BLOCKED");
+    assertEquals("TEST-BLOCKED-5-HOLDER", blockedThread5.getThreadLockData().getLockOwner());
 
     // check example with ownable locks that cannot be mapped.
     // these locks are listed in thread dumps with prefix: "- parking to wait for"
-    assertEquals("TEST-OWNABLE-6-WAITER", results.get(18).getStackTrace().getThreadName());
+    StackTraceData ownableLockWaiter = findStack(results, "TEST-OWNABLE-6-WAITER");
     assertEquals(
         "java.util.concurrent.locks.ReentrantLock$NonfairSync@b92f63cb8",
-        results.get(18).getStackTrace().getThreadLockData().getWaitingOn());
-    assertNull(results.get(18).getStackTrace().getThreadLockData().getLockOwner());
+        ownableLockWaiter.getThreadLockData().getWaitingOn());
+    assertNull(ownableLockWaiter.getThreadLockData().getLockOwner());
+  }
+
+  private static StackTraceData findStack(
+      List<StackToSpanLinkage> results, String threadName) {
+    return results.stream()
+        .map(StackToSpanLinkage::getStackTrace)
+        .filter(stack -> threadName.equals(stack.getThreadName()))
+        .findFirst()
+        .orElseThrow();
   }
 
   private IItem threadContextStartEvent(long threadId) {

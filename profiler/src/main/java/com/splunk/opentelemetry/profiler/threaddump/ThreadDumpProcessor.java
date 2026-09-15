@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-package com.splunk.opentelemetry.profiler;
+package com.splunk.opentelemetry.profiler.threaddump;
 
 import static java.util.logging.Level.FINE;
 
+import com.splunk.opentelemetry.profiler.EventReader;
 import com.splunk.opentelemetry.profiler.context.SpanContextualizer;
 import com.splunk.opentelemetry.profiler.context.SpanLinkage;
 import com.splunk.opentelemetry.profiler.context.StackToSpanLinkage;
@@ -56,20 +57,71 @@ public class ThreadDumpProcessor {
 
     List<ThreadDumpRegion> stackRegions = extractStackRegions(wallOfStacks);
 
+    Map<String, String> lockToOwnerNameMapping = new HashMap<>();
     List<StackToSpanLinkage> spansWithLinkages = new ArrayList<>();
     for (ThreadDumpRegion stackRegion : stackRegions) {
       SpanLinkage linkage = contextualizer.link(stackRegion);
       if (onlyTracingSpans && !linkage.getSpanContext().isValid()) {
         continue;
       }
+
+      StackTraceData stackTrace =
+          StackTraceParser.parse(
+              stackRegion.getCurrentRegion(),
+              1500100900); // TODO: Get rid of stack depth here, leave it in exporter
+      if (stackTrace == null) {
+        continue;
+      }
+      maybeAddToLockOwners(stackTrace, lockToOwnerNameMapping);
+
       StackToSpanLinkage spanWithLinkage =
           new StackToSpanLinkage(
-              eventReader.getStartInstant(event), stackRegion.getCurrentRegion(), eventName,
+              eventReader.getStartInstant(event),
+              stackRegion.getCurrentRegion(),
+              stackTrace,
+              eventName,
               linkage);
       spansWithLinkages.add(spanWithLinkage);
     }
 
+    assignLockOwnerThreadNames(spansWithLinkages, lockToOwnerNameMapping);
+
     spansWithLinkages.forEach(cpuEventExporter::export);
+  }
+
+  private void assignLockOwnerThreadNames(
+      List<StackToSpanLinkage> spansWithLinkages, Map<String, String> lockToOwnerNameMapping) {
+    if (!locksEnabled) {
+      return;
+    }
+    spansWithLinkages.forEach(
+        span -> {
+          ThreadLockData threadLockData = span.getStackTrace().getThreadLockData();
+          String waitingOn = threadLockData.getWaitingOn();
+          if (waitingOn != null) {
+            String owner = lockToOwnerNameMapping.get(waitingOn);
+            if (owner != null) {
+              threadLockData.setLockOwner(owner);
+            }
+          }
+        });
+  }
+
+  private void maybeAddToLockOwners(
+      StackTraceData stackTrace, Map<String, String> lockToOwnerNameMapping) {
+    if (!locksEnabled) {
+      return;
+    }
+    if (stackTrace.getThreadName() == null) {
+      return;
+    }
+    stackTrace
+        .getThreadLockData()
+        .getLockedMonitors()
+        .forEach(
+            lockId -> {
+              lockToOwnerNameMapping.put(lockId, stackTrace.getThreadName());
+            });
   }
 
   private List<ThreadDumpRegion> extractStackRegions(String wallOfStacks) {
@@ -115,8 +167,7 @@ public class ThreadDumpProcessor {
           contentStart++;
         }
 
-        if (threadDump.regionMatches(
-            contentStart, LOCKED_PREFIX, 0, LOCKED_PREFIX.length())) {
+        if (threadDump.regionMatches(contentStart, LOCKED_PREFIX, 0, LOCKED_PREFIX.length())) {
           int lockStart = threadDump.indexOf('<', contentStart + LOCKED_PREFIX.length());
           int lockEnd = lockStart == -1 ? -1 : threadDump.indexOf('>', lockStart + 1);
           if (lockStart != -1 && lockEnd != -1 && lockEnd < lineEnd) {

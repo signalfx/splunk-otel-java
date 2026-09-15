@@ -18,9 +18,9 @@ package com.splunk.opentelemetry.profiler.old;
 
 import static java.util.logging.Level.FINE;
 
-import com.splunk.opentelemetry.profiler.ThreadDumpRegion;
 import com.splunk.opentelemetry.profiler.context.SpanContextualizer;
 import com.splunk.opentelemetry.profiler.context.StackToSpanLinkage;
+import com.splunk.opentelemetry.profiler.threaddump.ThreadDumpRegion;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.logging.Logger;

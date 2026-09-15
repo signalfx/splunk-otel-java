@@ -23,6 +23,8 @@ import com.splunk.opentelemetry.profiler.allocation.exporter.PprofAllocationEven
 import com.splunk.opentelemetry.profiler.context.SpanContextualizer;
 import com.splunk.opentelemetry.profiler.exporter.CpuEventExporter;
 import com.splunk.opentelemetry.profiler.exporter.PprofCpuEventExporter;
+import com.splunk.opentelemetry.profiler.threaddump.StackTraceFilter;
+import com.splunk.opentelemetry.profiler.threaddump.ThreadDumpProcessor;
 import com.splunk.opentelemetry.profiler.util.DeclarativeConfigPropertiesUtil;
 import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
 import io.opentelemetry.sdk.logs.LogRecordProcessor;

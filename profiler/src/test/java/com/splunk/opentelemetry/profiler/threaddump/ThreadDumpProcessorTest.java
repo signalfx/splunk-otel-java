@@ -14,16 +14,18 @@
  * limitations under the License.
  */
 
-package com.splunk.opentelemetry.profiler;
+package com.splunk.opentelemetry.profiler.threaddump;
 
-import static com.splunk.opentelemetry.profiler.ThreadDumpRegionTest.readDumpFromResource;
+import static com.splunk.opentelemetry.profiler.threaddump.StackTraceParserTest.readDumpFromResource;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import com.splunk.opentelemetry.profiler.EventReader;
 import com.splunk.opentelemetry.profiler.context.SpanContextualizer;
 import com.splunk.opentelemetry.profiler.context.StackToSpanLinkage;
 import com.splunk.opentelemetry.profiler.events.ContextAttached;
@@ -74,7 +76,7 @@ class ThreadDumpProcessorTest {
     contextualizer.updateContext(threadContextStartEvent(idOfThreadRunningTheSpan));
 
     String threadDump = readDumpFromResource("thread-dump2.txt");
-    List<StackToSpanLinkage> results = collectResults(contextualizer, threadDump, false);
+    List<StackToSpanLinkage> results = collectResults(contextualizer, threadDump, false, false);
 
     assertEquals(3, results.size());
 
@@ -96,7 +98,7 @@ class ThreadDumpProcessorTest {
     SpanContextualizer contextualizer = new SpanContextualizer(new EventReader());
 
     String threadDump = readDumpFromResource("thread-dump1.txt");
-    List<StackToSpanLinkage> results = collectResults(contextualizer, threadDump, false);
+    List<StackToSpanLinkage> results = collectResults(contextualizer, threadDump, false, false);
 
     assertEquals(27, results.size());
 
@@ -115,7 +117,7 @@ class ThreadDumpProcessorTest {
         it -> contextualizer.updateContext(threadContextStartEvent(it.threadId)));
 
     String threadDump = readDumpFromResource("thread-dump1.txt");
-    List<StackToSpanLinkage> results = collectResults(contextualizer, threadDump, true);
+    List<StackToSpanLinkage> results = collectResults(contextualizer, threadDump, true, false);
 
     assertEquals(sampleThreadsFromDump.size(), results.size());
 
@@ -143,6 +145,42 @@ class ThreadDumpProcessorTest {
             List.of(new ThreadDumpRegion(stackText, 0, stackText.length()))));
   }
 
+  @Test
+  void shouldReportMatchedLockOwnerThreadNameForIntrinsicLock() {
+    // Given
+    SpanContextualizer contextualizer = new SpanContextualizer(eventReader);
+    String threadDump = readDumpFromResource("thread-dump3.txt");
+
+    // When
+    List<StackToSpanLinkage> results = collectResults(contextualizer, threadDump, false, true);
+
+    // Then
+    assertEquals(21, results.size());
+
+    // check successfully mapped intrinsic locks
+    assertEquals("OkHttp TaskRunner", results.get(6).getStackTrace().getThreadName());
+    assertEquals(
+        "OkHttp TaskRunner", results.get(6).getStackTrace().getThreadLockData().getLockOwner());
+
+    assertEquals("TEST-BLOCKED-2-BLOCKED", results.get(10).getStackTrace().getThreadName());
+    assertEquals(
+        "TEST-BLOCKED-2-HOLDER",
+        results.get(10).getStackTrace().getThreadLockData().getLockOwner());
+
+    assertEquals("TEST-BLOCKED-5-BLOCKED", results.get(16).getStackTrace().getThreadName());
+    assertEquals(
+        "TEST-BLOCKED-5-HOLDER",
+        results.get(16).getStackTrace().getThreadLockData().getLockOwner());
+
+    // check example with ownable locks that cannot be mapped.
+    // these locks are listed in thread dumps with prefix: "- parking to wait for"
+    assertEquals("TEST-OWNABLE-6-WAITER", results.get(18).getStackTrace().getThreadName());
+    assertEquals(
+        "java.util.concurrent.locks.ReentrantLock$NonfairSync@b92f63cb8",
+        results.get(18).getStackTrace().getThreadLockData().getWaitingOn());
+    assertNull(results.get(18).getStackTrace().getThreadLockData().getLockOwner());
+  }
+
   private IItem threadContextStartEvent(long threadId) {
     IItem event = mock(IItem.class);
     IType eventType = mock(IType.class);
@@ -159,7 +197,10 @@ class ThreadDumpProcessorTest {
   }
 
   private static List<StackToSpanLinkage> collectResults(
-      SpanContextualizer contextualizer, String threadDump, boolean onlyTracingSpans) {
+      SpanContextualizer contextualizer,
+      String threadDump,
+      boolean onlyTracingSpans,
+      boolean enableLocks) {
     EventReader eventReader = mock(EventReader.class);
     List<StackToSpanLinkage> results = new ArrayList<>();
     CpuEventExporter profilingEventExporter = results::add;
@@ -170,6 +211,7 @@ class ThreadDumpProcessorTest {
             .cpuEventExporter(profilingEventExporter)
             .stackTraceFilter(new StackTraceFilter(eventReader, false))
             .onlyTracingSpans(onlyTracingSpans)
+            .locksEnabled(enableLocks)
             .build();
 
     IItem event = mock(IItem.class);

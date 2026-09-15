@@ -20,6 +20,7 @@ import static java.util.logging.Level.FINE;
 import static java.util.logging.Level.SEVERE;
 
 import com.splunk.opentelemetry.profiler.events.ContextAttached;
+import com.splunk.opentelemetry.profiler.threaddump.ThreadDumpProcessor;
 import java.io.InputStream;
 import java.lang.reflect.Method;
 import java.time.Duration;

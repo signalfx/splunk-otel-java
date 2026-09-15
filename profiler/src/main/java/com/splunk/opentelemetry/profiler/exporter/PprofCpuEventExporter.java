@@ -33,8 +33,9 @@ import com.google.perftools.profiles.ProfileProto.Sample;
 import com.splunk.opentelemetry.profiler.InstrumentationSource;
 import com.splunk.opentelemetry.profiler.ProfilingDataType;
 import com.splunk.opentelemetry.profiler.context.StackToSpanLinkage;
-import com.splunk.opentelemetry.profiler.exporter.StackTraceParser.StackTrace;
 import com.splunk.opentelemetry.profiler.pprof.Pprof;
+import com.splunk.opentelemetry.profiler.threaddump.StackTraceData;
+import com.splunk.opentelemetry.profiler.threaddump.ThreadLockData;
 import io.opentelemetry.api.logs.Logger;
 import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.api.trace.SpanId;
@@ -44,7 +45,6 @@ import java.lang.management.MonitorInfo;
 import java.lang.management.ThreadInfo;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Map;
 
 public class PprofCpuEventExporter implements CpuEventExporter {
   private final Duration period;
@@ -64,7 +64,7 @@ public class PprofCpuEventExporter implements CpuEventExporter {
 
   @Override
   public void export(StackToSpanLinkage stackToSpanLinkage) {
-    StackTrace stackTrace = StackTraceParser.parse(stackToSpanLinkage.getRawStack(), stackDepth);
+    StackTraceData stackTrace = stackToSpanLinkage.getStackTrace();
     if (stackTrace == null || stackTrace.getStackTraceLines().isEmpty()) {
       return;
     }
@@ -81,7 +81,7 @@ public class PprofCpuEventExporter implements CpuEventExporter {
       pprof.addLabel(sample, THREAD_STACK_TRUNCATED, true);
     }
 
-    for (StackTraceParser.StackTraceLine stl : stackTrace.getStackTraceLines()) {
+    for (StackTraceData.StackTraceLine stl : stackTrace.getStackTraceLines()) {
       sample.addLocationId(
           pprof.getLocationId(
               stl.getLocation(), stl.getClassName(), stl.getMethod(), stl.getLineNumber()));
@@ -100,7 +100,7 @@ public class PprofCpuEventExporter implements CpuEventExporter {
       pprof.addLabel(sample, SPAN_ID, spanContext.getSpanId());
     }
 
-//    addLockInfo(sample, threadInfo);
+    //    addLockInfo(sample, threadInfo);
 
     pprof.getProfileBuilder().addSample(sample);
   }

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.splunk.opentelemetry.profiler;
+package com.splunk.opentelemetry.profiler.threaddump;
 
 import javax.annotation.Nullable;
 
@@ -49,6 +49,16 @@ public class ThreadDumpRegion {
       return -1;
     }
     return result;
+  }
+
+  @Override
+  public String toString() {
+    final StringBuffer sb = new StringBuffer("ThreadDumpRegion{");
+    sb.append("region='").append(getCurrentRegion()).append('\'');
+    sb.append(", startIndex=").append(startIndex);
+    sb.append(", endIndex=").append(endIndex);
+    sb.append('}');
+    return sb.toString();
   }
 
   public static class Iterator {

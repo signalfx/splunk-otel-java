@@ -20,7 +20,7 @@ import static com.splunk.opentelemetry.profiler.context.StackDescriptorLineParse
 import static java.util.logging.Level.FINE;
 
 import com.splunk.opentelemetry.profiler.EventReader;
-import com.splunk.opentelemetry.profiler.ThreadDumpRegion;
+import com.splunk.opentelemetry.profiler.threaddump.ThreadDumpRegion;
 import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.api.trace.TraceFlags;
 import io.opentelemetry.api.trace.TraceState;

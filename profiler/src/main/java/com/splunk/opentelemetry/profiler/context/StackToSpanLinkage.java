@@ -16,6 +16,7 @@
 
 package com.splunk.opentelemetry.profiler.context;
 
+import com.splunk.opentelemetry.profiler.threaddump.StackTraceData;
 import io.opentelemetry.api.trace.SpanContext;
 import java.time.Instant;
 
@@ -23,13 +24,19 @@ import java.time.Instant;
 public class StackToSpanLinkage {
   private final Instant time;
   private final String rawStack;
+  private final StackTraceData stackTrace;
   private final String sourceEventName;
   private final SpanLinkage spanLinkage;
 
   public StackToSpanLinkage(
-      Instant time, String rawStack, String sourceEventName, SpanLinkage spanLinkage) {
+      Instant time,
+      String rawStack,
+      StackTraceData stackTrace,
+      String sourceEventName,
+      SpanLinkage spanLinkage) {
     this.time = time;
     this.rawStack = rawStack;
+    this.stackTrace = stackTrace;
     this.sourceEventName = sourceEventName;
     this.spanLinkage = spanLinkage;
   }
@@ -46,6 +53,10 @@ public class StackToSpanLinkage {
     return rawStack;
   }
 
+  public StackTraceData getStackTrace() {
+    return stackTrace;
+  }
+
   public SpanContext getSpanContext() {
     return spanLinkage.getSpanContext();
   }
@@ -56,10 +67,5 @@ public class StackToSpanLinkage {
 
   public String getSourceEventName() {
     return sourceEventName;
-  }
-
-  public static StackToSpanLinkage withoutLinkage(
-      Instant time, String rawStack, String sourceEventName) {
-    return new StackToSpanLinkage(time, rawStack, sourceEventName, SpanLinkage.NONE);
   }
 }

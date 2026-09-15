@@ -14,10 +14,8 @@
  * limitations under the License.
  */
 
-package com.splunk.opentelemetry.profiler.exporter;
+package com.splunk.opentelemetry.profiler.threaddump;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.function.Consumer;
 
 class StackTraceParser {
@@ -31,14 +29,14 @@ class StackTraceParser {
   private static final String PARKING_TO_WAIT_FOR_PREFIX = "- parking to wait for";
   private static final String WAITING_TO_LOCK_PREFIX = "- waiting to lock ";
 
-  public static StackTrace parse(String stackTrace, int stackDepth) {
+  public static StackTraceData parse(String stackTrace, int stackDepth) {
     // \\R - Any Unicode linebreak sequence
     String[] lines = stackTrace.split("\\R");
     if (lines.length < 2) {
       return null;
     }
 
-    StackTraceBuilder builder = new StackTraceBuilder();
+    StackTraceData.Builder builder = StackTraceData.builder();
 
     parseHeader(builder, lines[0]);
     builder.setThreadState(parseThreadState(lines[1]));
@@ -54,9 +52,9 @@ class StackTraceParser {
     return builder.build();
   }
 
-  private static void parseLine(StackTraceBuilder builder, String line) {
+  private static void parseLine(StackTraceData.Builder builder, String line) {
     int startIndex = findStartIndex(line);
-    StackTraceLine stackTraceLine = parseStackTraceLine(line, startIndex);
+    StackTraceData.StackTraceLine stackTraceLine = parseStackTraceLine(line, startIndex);
     if (stackTraceLine != null) {
       builder.addStackTraceLine(stackTraceLine);
     } else {
@@ -64,27 +62,23 @@ class StackTraceParser {
     }
   }
 
-  private static void parseLockLine(StackTraceBuilder builder, String line, int startIndex) {
+  private static void parseLockLine(StackTraceData.Builder builder, String line, int startIndex) {
     if (line.startsWith(WAITING_ON_PREFIX, startIndex)) {
-      builder
-          .getThreadLockDataBuilder()
-          .setWaitingOn(parseLock(line, startIndex, WAITING_ON_PREFIX));
+      builder.getThreadLockData().setWaitingOn(parseLock(line, startIndex, WAITING_ON_PREFIX));
     } else if (line.startsWith(WAITING_TO_RELOCK_PREFIX, startIndex)) {
       builder
-          .getThreadLockDataBuilder()
+          .getThreadLockData()
           .setWaitingOn(parseLock(line, startIndex, WAITING_TO_RELOCK_PREFIX));
     } else if (line.startsWith(WAITING_TO_LOCK_PREFIX, startIndex)) {
-      builder
-          .getThreadLockDataBuilder()
-          .setWaitingOn(parseLock(line, startIndex, WAITING_TO_LOCK_PREFIX));
+      builder.getThreadLockData().setWaitingOn(parseLock(line, startIndex, WAITING_TO_LOCK_PREFIX));
     } else if (line.startsWith(PARKING_TO_WAIT_FOR_PREFIX, startIndex)) {
       builder
-          .getThreadLockDataBuilder()
+          .getThreadLockData()
           .setWaitingOn(parseLock(line, startIndex, PARKING_TO_WAIT_FOR_PREFIX));
     } else if (line.startsWith(LOCKED_PREFIX, startIndex)) {
       String lock = parseLock(line, startIndex, LOCKED_PREFIX);
       if (lock != null) {
-        builder.getThreadLockDataBuilder().addLockedMonitor(lock);
+        builder.getThreadLockData().addLockedMonitor(lock);
       }
     }
   }
@@ -132,7 +126,7 @@ class StackTraceParser {
     return startIndex;
   }
 
-  private static void parseHeader(StackTraceBuilder builder, String header) {
+  private static void parseHeader(StackTraceData.Builder builder, String header) {
     if (header.indexOf('"') != 0) {
       return;
     }
@@ -190,7 +184,7 @@ class StackTraceParser {
     return status.substring(i + THREAD_STATE_PREFIX.length());
   }
 
-  private static StackTraceLine parseStackTraceLine(String line, int startIndex) {
+  private static StackTraceData.StackTraceLine parseStackTraceLine(String line, int startIndex) {
     // we expect the stack trace line to look like
     // at java.lang.Thread.run(java.base@11.0.9.1/Thread.java:834)
     if (!line.endsWith(")")) {
@@ -231,154 +225,6 @@ class StackTraceParser {
       location = location.substring(0, i);
     }
 
-    return new StackTraceLine(className, method, location, lineNumber);
-  }
-
-  private static class StackTraceBuilder {
-    private int threadId = 0;
-    private String threadName;
-    private int osThreadId = 0;
-    private String threadState;
-    private final ThreadLockData.Builder threadLockDataBuilder = ThreadLockData.builder();
-    private List<StackTraceLine> stackTraceLines = new ArrayList<>();
-    private boolean truncated;
-
-    StackTrace build() {
-      return new StackTrace(this);
-    }
-
-    int getThreadId() {
-      return threadId;
-    }
-
-    void setThreadId(int threadId) {
-      this.threadId = threadId;
-    }
-
-    String getThreadName() {
-      return threadName;
-    }
-
-    void setThreadName(String threadName) {
-      this.threadName = threadName;
-    }
-
-    int getOsThreadId() {
-      return osThreadId;
-    }
-
-    void setOsThreadId(int osThreadId) {
-      this.osThreadId = osThreadId;
-    }
-
-    String getThreadState() {
-      return threadState;
-    }
-
-    void setThreadState(String threadState) {
-      this.threadState = threadState;
-    }
-
-    ThreadLockData.Builder getThreadLockDataBuilder() {
-      return threadLockDataBuilder;
-    }
-
-    ThreadLockData getThreadLockData() {
-      return threadLockDataBuilder.build();
-    }
-
-    List<StackTraceLine> getStackTraceLines() {
-      return stackTraceLines;
-    }
-
-    void addStackTraceLine(StackTraceLine stackTraceLine) {
-      stackTraceLines.add(stackTraceLine);
-    }
-
-    boolean isTruncated() {
-      return truncated;
-    }
-
-    void setTruncated() {
-      this.truncated = true;
-    }
-  }
-
-  static class StackTrace {
-    private final int threadId;
-    private final String threadName;
-    private final int osThreadId;
-    private final String threadState;
-    private final ThreadLockData threadLockData;
-    private final List<StackTraceLine> stackTraceLines;
-    private final boolean truncated;
-
-    StackTrace(StackTraceBuilder builder) {
-      this.threadId = builder.getThreadId();
-      this.threadName = builder.getThreadName();
-      this.osThreadId = builder.getOsThreadId();
-      this.threadState = builder.getThreadState();
-      this.threadLockData = builder.getThreadLockData();
-      this.stackTraceLines = builder.getStackTraceLines();
-      this.truncated = builder.isTruncated();
-    }
-
-    int getThreadId() {
-      return threadId;
-    }
-
-    String getThreadName() {
-      return threadName;
-    }
-
-    int getOsThreadId() {
-      return osThreadId;
-    }
-
-    String getThreadState() {
-      return threadState;
-    }
-
-    ThreadLockData getThreadLockData() {
-      return threadLockData;
-    }
-
-    List<StackTraceLine> getStackTraceLines() {
-      return stackTraceLines;
-    }
-
-    boolean isTruncated() {
-      return truncated;
-    }
-  }
-
-  static class StackTraceLine {
-    private final String className;
-    private final String method;
-    private final String location;
-    private final int lineNumber;
-
-    StackTraceLine(String className, String method, String location, int lineNumber) {
-      this.className = className;
-      this.method = method;
-      this.location = location;
-      this.lineNumber = lineNumber;
-    }
-
-    String getClassName() {
-      return className;
-    }
-
-    String getMethod() {
-      return method;
-    }
-
-    String getLocation() {
-      return location;
-    }
-
-    int getLineNumber() {
-      return lineNumber;
-    }
+    return new StackTraceData.StackTraceLine(className, method, location, lineNumber);
   }
 }

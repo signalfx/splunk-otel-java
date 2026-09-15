@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.splunk.opentelemetry.profiler.exporter;
+package com.splunk.opentelemetry.profiler.threaddump;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -23,9 +23,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.splunk.opentelemetry.profiler.ThreadDumpRegion;
-import com.splunk.opentelemetry.profiler.exporter.StackTraceParser.StackTrace;
-import com.splunk.opentelemetry.profiler.exporter.StackTraceParser.StackTraceLine;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -43,7 +40,7 @@ class StackTraceParserTest {
     boolean found = false;
     ThreadDumpRegion stack;
     while ((stack = iterator.findNextStack()) != null) {
-      StackTrace stackTrace = StackTraceParser.parse(stack.getCurrentRegion(), 128);
+      StackTraceData stackTrace = StackTraceParser.parse(stack.getCurrentRegion(), 128);
       if (stackTrace == null) {
         continue;
       }
@@ -62,21 +59,21 @@ class StackTraceParserTest {
         assertEquals("TIMED_WAITING (sleeping)", stackTrace.getThreadState());
         assertEquals(3, stackTrace.getStackTraceLines().size());
         {
-          StackTraceLine stackTraceLine = stackTrace.getStackTraceLines().get(0);
+          StackTraceData.StackTraceLine stackTraceLine = stackTrace.getStackTraceLines().get(0);
           assertEquals("java.lang.Thread", stackTraceLine.getClassName());
           assertEquals("sleep", stackTraceLine.getMethod());
           assertEquals("Native Method", stackTraceLine.getLocation());
           assertEquals(0, stackTraceLine.getLineNumber());
         }
         {
-          StackTraceLine stackTraceLine = stackTrace.getStackTraceLines().get(1);
+          StackTraceData.StackTraceLine stackTraceLine = stackTrace.getStackTraceLines().get(1);
           assertEquals("org.apache.catalina.core.StandardServer", stackTraceLine.getClassName());
           assertEquals("await", stackTraceLine.getMethod());
           assertEquals("StandardServer.java", stackTraceLine.getLocation());
           assertEquals(570, stackTraceLine.getLineNumber());
         }
         {
-          StackTraceLine stackTraceLine = stackTrace.getStackTraceLines().get(2);
+          StackTraceData.StackTraceLine stackTraceLine = stackTrace.getStackTraceLines().get(2);
           assertEquals(
               "org.springframework.boot.web.embedded.tomcat.TomcatWebServer$1",
               stackTraceLine.getClassName());
@@ -117,7 +114,7 @@ class StackTraceParserTest {
         """;
 
     ThreadDumpRegion stack = new ThreadDumpRegion(stackText, 0, stackText.length());
-    StackTrace stackTrace = StackTraceParser.parse(stack.getCurrentRegion(), 128);
+    StackTraceData stackTrace = StackTraceParser.parse(stack.getCurrentRegion(), 128);
     assertNotNull(stackTrace);
     assertThat(stackTrace.getStackTraceLines().size()).isEqualTo(10);
     assertThat(stackTrace.getThreadLockData().getWaitingOn())
@@ -144,13 +141,12 @@ class StackTraceParserTest {
         """;
 
     ThreadDumpRegion stack = new ThreadDumpRegion(stackText, 0, stackText.length());
-    StackTrace stackTrace = StackTraceParser.parse(stack.getCurrentRegion(), 128);
+    StackTraceData stackTrace = StackTraceParser.parse(stack.getCurrentRegion(), 128);
     assertNotNull(stackTrace);
     assertThat(stackTrace.getStackTraceLines().size()).isEqualTo(6);
     assertNull(stackTrace.getThreadLockData().getWaitingOn());
     assertEquals(
-        List.of(
-            "sun.nio.ch.Util$2@5d4a03490", "sun.nio.ch.KQueueSelectorImpl@5d4a01510"),
+        List.of("sun.nio.ch.Util$2@5d4a03490", "sun.nio.ch.KQueueSelectorImpl@5d4a01510"),
         stackTrace.getThreadLockData().getLockedMonitors());
     assertTrue(stackTrace.getThreadLockData().getLockedSynchronizers().isEmpty());
     assertNull(stackTrace.getThreadLockData().getLockOwner());

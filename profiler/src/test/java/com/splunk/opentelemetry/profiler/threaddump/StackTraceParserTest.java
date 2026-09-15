@@ -40,7 +40,7 @@ class StackTraceParserTest {
     boolean found = false;
     ThreadDumpRegion stack;
     while ((stack = iterator.findNextStack()) != null) {
-      StackTraceData stackTrace = StackTraceParser.parse(stack.getCurrentRegion(), 128);
+      StackTraceData stackTrace = StackTraceParser.parse(stack.getCurrentRegion(), 128, true);
       if (stackTrace == null) {
         continue;
       }
@@ -114,7 +114,7 @@ class StackTraceParserTest {
         """;
 
     ThreadDumpRegion stack = new ThreadDumpRegion(stackText, 0, stackText.length());
-    StackTraceData stackTrace = StackTraceParser.parse(stack.getCurrentRegion(), 128);
+    StackTraceData stackTrace = StackTraceParser.parse(stack.getCurrentRegion(), 128, true);
     assertNotNull(stackTrace);
     assertThat(stackTrace.getStackTraceLines().size()).isEqualTo(10);
     assertThat(stackTrace.getThreadLockData().getWaitingOn())
@@ -122,6 +122,15 @@ class StackTraceParserTest {
     assertThat(stackTrace.getThreadLockData().getLockedMonitors())
         .isEqualTo(List.of("okhttp3.internal.concurrent.TaskRunner@301810958"));
     assertTrue(stackTrace.getThreadLockData().getLockedSynchronizers().isEmpty());
+
+    StackTraceData truncatedStackTrace = StackTraceParser.parse(stack.getCurrentRegion(), 1, true);
+    assertNotNull(truncatedStackTrace);
+    assertThat(truncatedStackTrace.getStackTraceLines().size()).isEqualTo(1);
+    assertThat(truncatedStackTrace.getThreadLockData().getWaitingOn())
+        .isEqualTo("okhttp3.internal.concurrent.TaskRunner@301810958");
+    assertThat(truncatedStackTrace.getThreadLockData().getLockedMonitors())
+        .isEqualTo(List.of("okhttp3.internal.concurrent.TaskRunner@301810958"));
+    assertTrue(truncatedStackTrace.isTruncated());
   }
 
   @Test
@@ -141,7 +150,7 @@ class StackTraceParserTest {
         """;
 
     ThreadDumpRegion stack = new ThreadDumpRegion(stackText, 0, stackText.length());
-    StackTraceData stackTrace = StackTraceParser.parse(stack.getCurrentRegion(), 128);
+    StackTraceData stackTrace = StackTraceParser.parse(stack.getCurrentRegion(), 128, true);
     assertNotNull(stackTrace);
     assertThat(stackTrace.getStackTraceLines().size()).isEqualTo(6);
     assertNull(stackTrace.getThreadLockData().getWaitingOn());

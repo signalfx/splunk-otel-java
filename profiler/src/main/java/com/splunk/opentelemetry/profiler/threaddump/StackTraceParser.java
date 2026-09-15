@@ -29,10 +29,6 @@ public class StackTraceParser {
   private static final String PARKING_TO_WAIT_FOR_PREFIX = "- parking to wait for";
   private static final String WAITING_TO_LOCK_PREFIX = "- waiting to lock ";
 
-  public static StackTraceData parse(String stackTrace, int stackDepth) {
-    return parse(stackTrace, stackDepth, true);
-  }
-
   public static StackTraceData parse(String stackTrace, int stackDepth, boolean parseLockData) {
     // \\R - Any Unicode linebreak sequence
     String[] lines = stackTrace.split("\\R");
@@ -44,27 +40,44 @@ public class StackTraceParser {
 
     parseHeader(builder, lines[0]);
     builder.setThreadState(parseThreadState(lines[1]));
+    int stackTraceLineCount = 0;
     for (int i = 2; i < lines.length; i++) {
-      // truncate the bottom stack frames the same way as jfr stack frame limiting does
-      if (i > stackDepth + 2) {
+      boolean canStoreNextLine = stackTraceLineCount < stackDepth;
+      // When lock reporting is disabled, there is no reason to scan the rest of the region
+      // after enough stack frames have been collected. When it is enabled, continue parsing the
+      // entire region so lock lines below the retained stack frames are still found.
+      if (!parseLockData && !canStoreNextLine) {
         builder.setTruncated();
         break;
       }
-      parseLine(builder, lines[i], parseLockData);
+      if (parseLine(builder, lines[i], parseLockData, canStoreNextLine)) {
+        stackTraceLineCount++;
+      }
     }
 
     return builder.build();
   }
 
-  private static void parseLine(
-      StackTraceData.Builder builder, String line, boolean parseLockData) {
+  private static boolean parseLine(
+      StackTraceData.Builder builder,
+      String line,
+      boolean parseLockData,
+      boolean retainStackTraceLine) {
     int startIndex = findStartIndex(line);
     StackTraceData.StackTraceLine stackTraceLine = parseStackTraceLine(line, startIndex);
     if (stackTraceLine != null) {
-      builder.addStackTraceLine(stackTraceLine);
+      if (retainStackTraceLine) {
+        builder.addStackTraceLine(stackTraceLine);
+      } else {
+        builder.setTruncated();
+      }
+      return true;
+
     } else if (parseLockData) {
+      // If line was not recognized as code location line then it may be a lock information line
       parseLockLine(builder, line, startIndex);
     }
+    return false;
   }
 
   private static void parseLockLine(StackTraceData.Builder builder, String line, int startIndex) {

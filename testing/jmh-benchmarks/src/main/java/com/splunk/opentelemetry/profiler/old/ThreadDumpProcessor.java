@@ -57,7 +57,8 @@ public class ThreadDumpProcessor {
         .filter(agentInternalsFilter)
         .map(
             stack -> {
-              StackTraceData stackTraceData = StackTraceParser.parse(stack, Integer.MAX_VALUE);
+              StackTraceData stackTraceData =
+                  StackTraceParser.parse(stack, Integer.MAX_VALUE, true);
               return new StackToSpanLinkage(
                   event.getStartTime(),
                   stackTraceData,

@@ -81,16 +81,21 @@ class ThreadDumpProcessorTest {
     assertEquals(3, results.size());
 
     assertFalse(results.get(0).hasSpanInfo());
-    assertTrue(
-        results.get(0).getRawStack().contains("at java.lang.ref.Reference$ReferenceHandler"));
+    StackTraceData.StackTraceLine stackTraceLine =
+        results.get(0).getStackTrace().getStackTraceLines().getLast();
+    assertEquals("java.lang.ref.Reference$ReferenceHandler", stackTraceLine.getClassName());
+    assertEquals("run", stackTraceLine.getMethod());
 
     assertTrue(results.get(1).hasSpanInfo());
     assertEquals(expectedContext, results.get(1).getSpanContext());
     assertEquals(idOfThreadRunningTheSpan, results.get(1).getSpanStartThread());
-    assertTrue(results.get(1).getRawStack().contains("AwesomeThinger.overHereDoingSpanThings"));
+    stackTraceLine = results.get(1).getStackTrace().getStackTraceLines().getLast();
+    assertEquals("com.something.something.AwesomeThinger", stackTraceLine.getClassName());
+    assertEquals("overHereDoingSpanThings", stackTraceLine.getMethod());
 
     assertFalse(results.get(2).hasSpanInfo());
-    assertTrue(results.get(2).getRawStack().contains("0x0000000625152778"));
+    assertThat(results.get(2).getStackTrace().getThreadLockData().getWaitingOn())
+        .contains("625152778");
   }
 
   @Test
@@ -103,9 +108,14 @@ class ThreadDumpProcessorTest {
     assertEquals(27, results.size());
 
     Stream.of(StackTraceFilter.UNWANTED_PREFIXES)
+        .map(prefix -> prefix.endsWith("\"")
+            ? prefix.substring(1, prefix.length() - 1)
+            : prefix.substring(1))
         .forEach(
             prefix -> {
-              assertThat(results).noneMatch(stack -> stack.getRawStack().contains(prefix));
+              assertThat(results)
+                  .noneMatch(
+                      stack -> stack.getStackTrace().getThreadName().startsWith(prefix));
             });
   }
 
@@ -123,7 +133,9 @@ class ThreadDumpProcessorTest {
 
     sampleThreadsFromDump.forEach(
         sample ->
-            assertThat(results).anyMatch(stack -> stack.getRawStack().contains(sample.threadName)));
+            assertThat(results)
+                .anyMatch(
+                    stack -> stack.getStackTrace().getThreadName().equals(sample.threadName)));
   }
 
   @Test

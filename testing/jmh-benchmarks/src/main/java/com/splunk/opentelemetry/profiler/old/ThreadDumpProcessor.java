@@ -60,7 +60,6 @@ public class ThreadDumpProcessor {
               StackTraceData stackTraceData = StackTraceParser.parse(stack, Integer.MAX_VALUE);
               return new StackToSpanLinkage(
                   event.getStartTime(),
-                  stack,
                   stackTraceData,
                   event.getEventType().getName(),
                   contextualizer.link(new ThreadDumpRegion(stack, 0, stack.length())));

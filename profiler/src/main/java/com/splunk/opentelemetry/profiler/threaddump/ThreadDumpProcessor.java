@@ -76,11 +76,7 @@ public class ThreadDumpProcessor {
 
       StackToSpanLinkage spanWithLinkage =
           new StackToSpanLinkage(
-              eventReader.getStartInstant(event),
-              stackRegion.getCurrentRegion(),
-              stackTrace,
-              eventName,
-              linkage);
+              eventReader.getStartInstant(event), stackTrace, eventName, linkage);
       spansWithLinkages.add(spanWithLinkage);
     }
 

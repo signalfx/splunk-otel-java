@@ -23,19 +23,13 @@ import java.time.Instant;
 /** A wrapper for a RecordedEvent that may or may not have accompanying span information. */
 public class StackToSpanLinkage {
   private final Instant time;
-  private final String rawStack;
   private final StackTraceData stackTrace;
   private final String sourceEventName;
   private final SpanLinkage spanLinkage;
 
   public StackToSpanLinkage(
-      Instant time,
-      String rawStack,
-      StackTraceData stackTrace,
-      String sourceEventName,
-      SpanLinkage spanLinkage) {
+      Instant time, StackTraceData stackTrace, String sourceEventName, SpanLinkage spanLinkage) {
     this.time = time;
-    this.rawStack = rawStack;
     this.stackTrace = stackTrace;
     this.sourceEventName = sourceEventName;
     this.spanLinkage = spanLinkage;
@@ -47,10 +41,6 @@ public class StackToSpanLinkage {
 
   public Instant getTime() {
     return time;
-  }
-
-  public String getRawStack() {
-    return rawStack;
   }
 
   public StackTraceData getStackTrace() {

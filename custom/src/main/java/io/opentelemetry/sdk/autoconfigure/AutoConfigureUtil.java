@@ -25,8 +25,9 @@ import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
 import io.opentelemetry.common.ComponentLoader;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.YamlDeclarativeConfigProperties;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.DistributionModel;
-import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.DistributionPropertyModel;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.OpenTelemetryConfigurationModel;
+import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.internal.ExperimentalInstrumentationModel;
+import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.internal.OpenTelemetryConfigurationModelAccessor;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import io.opentelemetry.sdk.resources.Resource;
 import java.util.Map;
@@ -76,32 +77,24 @@ public final class AutoConfigureUtil {
       return empty();
     }
 
-    DistributionPropertyModel splunkModel =
-        distributionModel.getAdditionalProperties().get("splunk");
-    if (splunkModel == null) {
-      return empty();
-    }
-
     ComponentLoader componentLoader =
         ComponentLoader.forClassLoader(AutoConfigureUtil.class.getClassLoader());
-    return YamlDeclarativeConfigProperties.create(
-        splunkModel.getAdditionalProperties(), componentLoader);
+    DeclarativeConfigProperties distributionConfig =
+        YamlDeclarativeConfigProperties.create(
+            distributionModel.getExtensionProperties(), componentLoader);
+    return distributionConfig.getStructured("splunk", empty());
   }
 
   public static DeclarativeConfigProperties getInstrumentationConfig(
       OpenTelemetryConfigurationModel model) {
-    if (model.getInstrumentationDevelopment() == null
-        || model.getInstrumentationDevelopment().getJava() == null) {
+    ExperimentalInstrumentationModel instrumentationModel =
+        OpenTelemetryConfigurationModelAccessor.getInstrumentation(model);
+    if (instrumentationModel == null || instrumentationModel.getJava() == null) {
       return empty();
     }
 
     Map<String, Object> properties =
-        model
-            .getInstrumentationDevelopment()
-            .getJava()
-            .getAdditionalProperties()
-            .entrySet()
-            .stream()
+        instrumentationModel.getJava().getAdditionalProperties().entrySet().stream()
             .collect(
                 Collectors.toMap(Map.Entry::getKey, v -> v.getValue().getAdditionalProperties()));
 

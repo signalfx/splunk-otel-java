@@ -43,9 +43,9 @@ class AppdBonusConfigurationCustomizerProviderTest {
     assertThat(model.getPropagator().getCompositeList())
         .isEqualTo("appd-bonus,tracecontext,baggage");
     assertThat(model.getTracerProvider().getProcessors()).hasSize(1);
-    assertThat(model.getTracerProvider().getProcessors().get(0).getAdditionalProperties())
+    assertThat(model.getTracerProvider().getProcessors().get(0).getExtensionProperties())
         .hasSize(1);
-    assertThat(model.getTracerProvider().getProcessors().get(0).getAdditionalProperties())
+    assertThat(model.getTracerProvider().getProcessors().get(0).getExtensionProperties())
         .containsKey("appd-bonus");
   }
 
@@ -69,9 +69,9 @@ class AppdBonusConfigurationCustomizerProviderTest {
 
     assertThat(model.getPropagator().getCompositeList()).isEqualTo("appd-bonus,b3");
     assertThat(model.getTracerProvider().getProcessors()).hasSize(1);
-    assertThat(model.getTracerProvider().getProcessors().get(0).getAdditionalProperties())
+    assertThat(model.getTracerProvider().getProcessors().get(0).getExtensionProperties())
         .hasSize(1);
-    assertThat(model.getTracerProvider().getProcessors().get(0).getAdditionalProperties())
+    assertThat(model.getTracerProvider().getProcessors().get(0).getExtensionProperties())
         .containsKey("appd-bonus");
   }
 

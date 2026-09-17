@@ -24,6 +24,7 @@ import com.splunk.opentelemetry.profiler.context.SpanLinkage;
 import com.splunk.opentelemetry.profiler.context.StackToSpanLinkage;
 import com.splunk.opentelemetry.profiler.exporter.CpuEventExporter;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -57,8 +58,10 @@ public class ThreadDumpProcessor {
     logger.log(FINE, "Processing JFR event {0}", eventName);
     String wallOfStacks = eventReader.getThreadDumpResult(event);
 
-    Map<String, String> lockToOwnerNameMapping = locksEnabled ? new HashMap<>() : null;
-    List<StackToSpanLinkage> waitingStacks = locksEnabled ? new ArrayList<>() : null;
+    Map<String, String> lockToOwnerNameMapping =
+        locksEnabled ? new HashMap<>() : Collections.emptyMap();
+    List<StackToSpanLinkage> waitingStacks =
+        locksEnabled ? new ArrayList<>() : Collections.emptyList();
 
     ThreadDumpRegion.Iterator iterator = new ThreadDumpRegion.Iterator(wallOfStacks);
     ThreadDumpRegion stackRegion;
@@ -73,16 +76,11 @@ public class ThreadDumpProcessor {
       }
 
       StackTraceData stackTrace =
-          StackTraceParser.parse(
-              stackRegion.getCurrentRegion(),
-              stackDepth,
-              locksEnabled);
+          StackTraceParser.parse(stackRegion.getCurrentRegion(), stackDepth, locksEnabled);
       if (stackTrace == null) {
         continue;
       }
-      if (locksEnabled) {
-        maybeAddToLockOwners(stackTrace, lockToOwnerNameMapping);
-      }
+      maybeAddToLockOwners(stackTrace, lockToOwnerNameMapping);
 
       StackToSpanLinkage spanWithLinkage =
           new StackToSpanLinkage(
@@ -94,22 +92,23 @@ public class ThreadDumpProcessor {
       }
     }
 
-    if (locksEnabled) {
-      waitingStacks.forEach(
-          span -> assignLockOwnerThreadName(span.getStackTrace(), lockToOwnerNameMapping));
-      waitingStacks.forEach(cpuEventExporter::export);
-    }
+    waitingStacks.forEach(
+        spanLinkage -> {
+          resolveLockOwnerThreadName(
+              spanLinkage.getStackTrace().getThreadLockData(), lockToOwnerNameMapping);
+          cpuEventExporter.export(spanLinkage);
+        });
   }
 
-  private void assignLockOwnerThreadName(
-      StackTraceData stackTrace, Map<String, String> lockToOwnerNameMapping) {
-    String waitingOn = stackTrace.getThreadLockData().getWaitingOn();
+  private void resolveLockOwnerThreadName(
+      ThreadLockData threadLockData, Map<String, String> lockToOwnerNameMapping) {
+    String waitingOn = threadLockData.getWaitingOn();
     if (waitingOn == null) {
       return;
     }
     String owner = lockToOwnerNameMapping.get(waitingOn);
     if (owner != null) {
-      stackTrace.getThreadLockData().setLockOwner(owner);
+      threadLockData.setLockOwner(owner);
     }
   }
 

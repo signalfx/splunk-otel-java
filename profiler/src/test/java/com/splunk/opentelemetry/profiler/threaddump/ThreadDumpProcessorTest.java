@@ -80,22 +80,30 @@ class ThreadDumpProcessorTest {
 
     assertEquals(3, results.size());
 
-    assertFalse(results.get(0).hasSpanInfo());
-    StackTraceData.StackTraceLine stackTraceLine =
-        results.get(0).getStackTrace().getStackTraceLines().getLast();
+    // first stack trace
+    StackToSpanLinkage stackToSpanLinkage = results.get(0);
+    List<StackTraceData.StackTraceLine> stackTraceLines =
+        stackToSpanLinkage.getStackTrace().getStackTraceLines();
+    StackTraceData.StackTraceLine stackTraceLine = stackTraceLines.get(stackTraceLines.size() - 1);
+    assertFalse(stackToSpanLinkage.hasSpanInfo());
     assertEquals("java.lang.ref.Reference$ReferenceHandler", stackTraceLine.getClassName());
     assertEquals("run", stackTraceLine.getMethod());
 
-    assertTrue(results.get(1).hasSpanInfo());
-    assertEquals(expectedContext, results.get(1).getSpanContext());
-    assertEquals(idOfThreadRunningTheSpan, results.get(1).getSpanStartThread());
-    stackTraceLine = results.get(1).getStackTrace().getStackTraceLines().getLast();
+    // second stack trace
+    stackToSpanLinkage = results.get(1);
+    stackTraceLines = stackToSpanLinkage.getStackTrace().getStackTraceLines();
+    stackTraceLine = stackTraceLines.get(stackTraceLines.size() - 1);
+    assertTrue(stackToSpanLinkage.hasSpanInfo());
+    assertEquals(expectedContext, stackToSpanLinkage.getSpanContext());
+    assertEquals(idOfThreadRunningTheSpan, stackToSpanLinkage.getSpanStartThread());
     assertEquals("com.something.something.AwesomeThinger", stackTraceLine.getClassName());
     assertEquals("overHereDoingSpanThings", stackTraceLine.getMethod());
 
-    assertFalse(results.get(2).hasSpanInfo());
-    assertNull(results.get(2).getStackTrace().getThreadLockData().getWaitingOn());
-    assertTrue(results.get(2).getStackTrace().getThreadLockData().getLockedMonitors().isEmpty());
+    // third stack trace
+    stackToSpanLinkage = results.get(2);
+    assertFalse(stackToSpanLinkage.hasSpanInfo());
+    assertNull(stackToSpanLinkage.getStackTrace().getThreadLockData().getWaitingOn());
+    assertTrue(stackToSpanLinkage.getStackTrace().getThreadLockData().getLockedMonitors().isEmpty());
   }
 
   @Test
@@ -108,14 +116,15 @@ class ThreadDumpProcessorTest {
     assertEquals(27, results.size());
 
     Stream.of(StackTraceFilter.UNWANTED_PREFIXES)
-        .map(prefix -> prefix.endsWith("\"")
-            ? prefix.substring(1, prefix.length() - 1)
-            : prefix.substring(1))
+        .map(
+            prefix ->
+                prefix.endsWith("\"")
+                    ? prefix.substring(1, prefix.length() - 1)
+                    : prefix.substring(1))
         .forEach(
             prefix -> {
               assertThat(results)
-                  .noneMatch(
-                      stack -> stack.getStackTrace().getThreadName().startsWith(prefix));
+                  .noneMatch(stack -> stack.getStackTrace().getThreadName().startsWith(prefix));
             });
   }
 
@@ -145,8 +154,8 @@ class ThreadDumpProcessorTest {
     List<StackToSpanLinkage> results =
         collectResults(contextualizer, readDumpFromResource("thread-dump2.txt"), false, false, 1);
 
-    assertEquals(1, results.getFirst().getStackTrace().getStackTraceLines().size());
-    assertTrue(results.getFirst().getStackTrace().isTruncated());
+    assertEquals(1, results.get(0).getStackTrace().getStackTraceLines().size());
+    assertTrue(results.get(0).getStackTrace().isTruncated());
   }
 
   @Test
@@ -203,8 +212,7 @@ class ThreadDumpProcessorTest {
     assertNull(ownableLockWaiter.getThreadLockData().getLockOwner());
   }
 
-  private static StackTraceData findStack(
-      List<StackToSpanLinkage> results, String threadName) {
+  private static StackTraceData findStack(List<StackToSpanLinkage> results, String threadName) {
     return results.stream()
         .map(StackToSpanLinkage::getStackTrace)
         .filter(stack -> threadName.equals(stack.getThreadName()))

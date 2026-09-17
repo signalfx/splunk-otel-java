@@ -380,8 +380,7 @@ class PprofCpuEventExporterTest {
     lockData.addLockedSynchronizer("example.Synchronizer@34cd");
 
     locksEnabledExporter.export(
-        new StackToSpanLinkage(
-            Instant.now(), stackTrace, "thread-dump", SpanLinkage.NONE));
+        new StackToSpanLinkage(Instant.now(), stackTrace, "thread-dump", SpanLinkage.NONE));
     locksEnabledExporter.flush();
 
     var logRecord = logger.records().get(0);

@@ -70,6 +70,20 @@ public class StackTraceData {
     return truncated;
   }
 
+  @Override
+  public String toString() {
+    final StringBuffer sb = new StringBuffer("StackTraceData{");
+    sb.append("threadId=").append(threadId);
+    sb.append(", threadName='").append(threadName).append('\'');
+    sb.append(", osThreadId=").append(osThreadId);
+    sb.append(", threadState='").append(threadState).append('\'');
+    sb.append(", threadLockData=").append(threadLockData);
+    sb.append(", stackTraceLines=").append(stackTraceLines);
+    sb.append(", truncated=").append(truncated);
+    sb.append('}');
+    return sb.toString();
+  }
+
   public static class StackTraceLine {
     private final String className;
     private final String method;
@@ -97,6 +111,17 @@ public class StackTraceData {
 
     public int getLineNumber() {
       return lineNumber;
+    }
+
+    @Override
+    public String toString() {
+      final StringBuffer sb = new StringBuffer("StackTraceLine{");
+      sb.append("className='").append(className).append('\'');
+      sb.append(", method='").append(method).append('\'');
+      sb.append(", location='").append(location).append('\'');
+      sb.append(", lineNumber=").append(lineNumber);
+      sb.append('}');
+      return sb.toString();
     }
   }
 

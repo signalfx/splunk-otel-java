@@ -96,6 +96,9 @@ public class ThreadDumpProcessor {
         spanLinkage -> {
           resolveLockOwnerThreadName(
               spanLinkage.getStackTrace().getThreadLockData(), lockToOwnerNameMapping);
+          if (spanLinkage.getStackTrace().getThreadLockData().getLockOwner() == null) {
+            logger.info("No thread owner found for " + spanLinkage.getStackTrace());
+          }
           cpuEventExporter.export(spanLinkage);
         });
   }

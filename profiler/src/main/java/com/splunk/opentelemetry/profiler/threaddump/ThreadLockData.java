@@ -59,4 +59,15 @@ public class ThreadLockData {
   public void addLockedSynchronizer(String lockedSynchronizer) {
     lockedSynchronizers.add(lockedSynchronizer);
   }
+
+  @Override
+  public String toString() {
+    final StringBuffer sb = new StringBuffer("ThreadLockData{");
+    sb.append("waitingOn='").append(waitingOn).append('\'');
+    sb.append(", lockOwner='").append(lockOwner).append('\'');
+    sb.append(", lockedMonitors=").append(lockedMonitors);
+    sb.append(", lockedSynchronizers=").append(lockedSynchronizers);
+    sb.append('}');
+    return sb.toString();
+  }
 }

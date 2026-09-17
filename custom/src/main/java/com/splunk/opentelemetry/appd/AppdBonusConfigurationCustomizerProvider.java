@@ -47,14 +47,14 @@ public final class AppdBonusConfigurationCustomizerProvider
           // Appd propagator has been added so add also a corresponding Appd span processor
           SpanProcessorModel appdSpanProcessorModel =
               new SpanProcessorModel()
-                  .withAdditionalProperty(AppdBonusSpanProcessorComponentProvider.NAME, null);
+                  .setExtensionProperty(AppdBonusSpanProcessorComponentProvider.NAME, null);
           if (model.getTracerProvider() == null) {
-            model.withTracerProvider(new TracerProviderModel());
+            model.setTracerProvider(new TracerProviderModel());
           }
           List<SpanProcessorModel> processors = model.getTracerProvider().getProcessors();
           if (processors == null) {
             processors = new ArrayList<>();
-            model.getTracerProvider().withProcessors(processors);
+            model.getTracerProvider().setProcessors(processors);
           }
           processors.add(appdSpanProcessorModel);
 
@@ -86,7 +86,7 @@ public final class AppdBonusConfigurationCustomizerProvider
     }
 
     if (model.getPropagator() == null) {
-      model.withPropagator(new PropagatorModel());
+      model.setPropagator(new PropagatorModel());
     }
 
     String compositeList = model.getPropagator().getCompositeList();
@@ -103,7 +103,7 @@ public final class AppdBonusConfigurationCustomizerProvider
             + ","
             + (compositeList.isEmpty() ? DEFAULT_PROPAGATORS : compositeList);
 
-    model.getPropagator().withCompositeList(compositeList);
+    model.getPropagator().setCompositeList(compositeList);
 
     return true;
   }

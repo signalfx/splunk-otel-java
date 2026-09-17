@@ -59,20 +59,19 @@ public class SnapshotProfilingConfigurationCustomizerProvider
     TracerProviderModel tracerProviderModel = model.getTracerProvider();
     if (tracerProviderModel == null) {
       tracerProviderModel = new TracerProviderModel();
-      model.withTracerProvider(tracerProviderModel);
+      model.setTracerProvider(tracerProviderModel);
     }
 
     List<SpanProcessorModel> processors = tracerProviderModel.getProcessors();
     if (processors == null) {
       processors = new ArrayList<>();
-      tracerProviderModel.withProcessors(processors);
+      tracerProviderModel.setProcessors(processors);
     }
     processors.add(
         new SpanProcessorModel()
-            .withAdditionalProperty(SnapshotProfilingSpanProcessorComponentProvider.NAME, null));
+            .setExtensionProperty(SnapshotProfilingSpanProcessorComponentProvider.NAME, null));
     processors.add(
-        new SpanProcessorModel()
-            .withAdditionalProperty(SdkShutdownHookComponentProvider.NAME, null));
+        new SpanProcessorModel().setExtensionProperty(SdkShutdownHookComponentProvider.NAME, null));
   }
 
   private void initActiveSpansTracking() {

@@ -59,9 +59,9 @@ class SnapshotProfilingConfigurationCustomizerProviderTest {
     List<SpanProcessorModel> expectedProcessors =
         List.of(
             new SpanProcessorModel()
-                .withAdditionalProperty(SnapshotProfilingSpanProcessorComponentProvider.NAME, null),
+                .setExtensionProperty(SnapshotProfilingSpanProcessorComponentProvider.NAME, null),
             new SpanProcessorModel()
-                .withAdditionalProperty(SdkShutdownHookComponentProvider.NAME, null));
+                .setExtensionProperty(SdkShutdownHookComponentProvider.NAME, null));
 
     assertThat(model).isNotNull();
     assertThat(model.getPropagator()).isNull();
@@ -114,12 +114,12 @@ class SnapshotProfilingConfigurationCustomizerProviderTest {
     // then
     List<SpanProcessorModel> expectedProcessors =
         List.of(
-            new SpanProcessorModel().withBatch(new BatchSpanProcessorModel()),
-            new SpanProcessorModel().withSimple(new SimpleSpanProcessorModel()),
+            new SpanProcessorModel().setBatch(new BatchSpanProcessorModel()),
+            new SpanProcessorModel().setSimple(new SimpleSpanProcessorModel()),
             new SpanProcessorModel()
-                .withAdditionalProperty(SnapshotProfilingSpanProcessorComponentProvider.NAME, null),
+                .setExtensionProperty(SnapshotProfilingSpanProcessorComponentProvider.NAME, null),
             new SpanProcessorModel()
-                .withAdditionalProperty(SdkShutdownHookComponentProvider.NAME, null));
+                .setExtensionProperty(SdkShutdownHookComponentProvider.NAME, null));
 
     assertThat(model).isNotNull();
     assertThat(model.getTracerProvider()).isNotNull();

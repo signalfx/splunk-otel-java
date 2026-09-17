@@ -45,6 +45,7 @@ public class RemoteConfigProcessorImpl implements RemoteConfigProcessor {
 
   private static final String REMOTE_CONFIG_FILE_NAME = "splunk.remote.config";
   private static final String PROFILING_NODE_NAME = "profiling";
+  private static final String ALWAYS_ON_NODE_NAME = "always_on";
 
   private final ProfilingSupervisor profilingSupervisor;
   private final SnapshotProfilingSupervisor snapshotProfilingSupervisor;
@@ -108,9 +109,16 @@ public class RemoteConfigProcessorImpl implements RemoteConfigProcessor {
 
   private void applyAlwaysOnProfilingConfiguration(
       DeclarativeConfigProperties distributionRemoteConfigProperties) {
+    DeclarativeConfigProperties profilingConfig =
+        distributionRemoteConfigProperties.getStructured(PROFILING_NODE_NAME, empty());
+    if (!profilingConfig.getPropertyKeys().contains(ALWAYS_ON_NODE_NAME)) {
+      // Always On Profiling is managed by profiling.always_on.cpu_profiler node so if parent
+      // node is missing then there is nothing to do.
+      return;
+    }
+
     ProfilerConfiguration receivedConfiguration =
-        ProfilerDeclarativeConfigurationFactory.create(
-            distributionRemoteConfigProperties.getStructured(PROFILING_NODE_NAME, empty()));
+        ProfilerDeclarativeConfigurationFactory.create(profilingConfig);
 
     ProfilerConfiguration currentConfiguration = ProfilerConfiguration.SUPPLIER.get();
     ProfilerConfiguration updatedConfiguration =

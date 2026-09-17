@@ -39,12 +39,12 @@ public class WebengineSpanProcessorCustomizerProvider
             List<SpanProcessorModel> processors = model.getTracerProvider().getProcessors();
             if (processors == null) {
               processors = new ArrayList<>();
-              model.getTracerProvider().withProcessors(processors);
+              model.getTracerProvider().setProcessors(processors);
             }
             processors.add(
                 0,
                 new SpanProcessorModel()
-                    .withAdditionalProperty(WebengineSpanProcessorComponentProvider.NAME, null));
+                    .setExtensionProperty(WebengineSpanProcessorComponentProvider.NAME, null));
           }
           return model;
         });

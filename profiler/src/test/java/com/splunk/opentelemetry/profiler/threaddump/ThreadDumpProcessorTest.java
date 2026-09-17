@@ -103,7 +103,8 @@ class ThreadDumpProcessorTest {
     stackToSpanLinkage = results.get(2);
     assertFalse(stackToSpanLinkage.hasSpanInfo());
     assertNull(stackToSpanLinkage.getStackTrace().getThreadLockData().getWaitingOn());
-    assertTrue(stackToSpanLinkage.getStackTrace().getThreadLockData().getLockedMonitors().isEmpty());
+    assertTrue(
+        stackToSpanLinkage.getStackTrace().getThreadLockData().getLockedMonitors().isEmpty());
   }
 
   @Test

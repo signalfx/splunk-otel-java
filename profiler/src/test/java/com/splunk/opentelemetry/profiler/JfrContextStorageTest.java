@@ -25,6 +25,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.splunk.opentelemetry.profiler.events.ContextAttached;
+import com.splunk.opentelemetry.profiler.events.JfrEvent;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.api.trace.SpanId;
@@ -72,9 +73,9 @@ class JfrContextStorageTest {
 
   @Test
   void testAttachLifecycle() {
-    ContextAttached inEvent = mock(ContextAttached.class);
-    ContextAttached outEvent = mock(ContextAttached.class);
-    Function<SpanContext, ContextAttached> newEvent = mock(Function.class);
+    JfrEvent inEvent = mock(JfrEvent.class);
+    JfrEvent outEvent = mock(JfrEvent.class);
+    Function<SpanContext, JfrEvent> newEvent = mock(Function.class);
 
     when(delegate.attach(newContext)).thenReturn(delegatedScope);
     when(inEvent.shouldCommit()).thenReturn(true);
@@ -105,7 +106,7 @@ class JfrContextStorageTest {
     span = Span.wrap(spanContext);
     newContext = Context.root().with(span);
 
-    Function<SpanContext, ContextAttached> newEvent =
+    Function<SpanContext, JfrEvent> newEvent =
         sc -> {
           fail("Should not have attempted to create events");
           throw new RuntimeException("boom");
@@ -144,7 +145,7 @@ class JfrContextStorageTest {
     when(delegate.attach(newContext)).thenReturn(scope);
 
     AtomicBoolean newEventWasCalled = new AtomicBoolean(false);
-    Function<SpanContext, ContextAttached> newEvent =
+    Function<SpanContext, JfrEvent> newEvent =
         x -> {
           newEventWasCalled.set(true);
           return null;

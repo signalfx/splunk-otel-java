@@ -36,7 +36,6 @@ import io.opentelemetry.api.trace.TraceState;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -160,26 +159,7 @@ class ThreadDumpProcessorTest {
   }
 
   @Test
-  void testBuildLockToOwningThreadMapping() {
-    String stackText =
-        "\"holder\" #1 daemon\n"
-            + "   java.lang.Thread.State: RUNNABLE\n"
-            + "        - locked <0x0000000000000011> (a java.lang.Object)\n"
-            + "        - locked <0x0000000000000022> (a java.lang.Object)\n"
-            + "        at example.Holder.run(Holder.java:1)\n";
-
-    ThreadDumpProcessor processor = ThreadDumpProcessor.builder().build();
-
-    assertEquals(
-        Map.of(
-            "0x0000000000000011", "holder",
-            "0x0000000000000022", "holder"),
-        processor.buildLockToOwningThreadMapping(
-            List.of(new ThreadDumpRegion(stackText, 0, stackText.length()))));
-  }
-
-  @Test
-  void shouldReportMatchedLockOwnerThreadNameForIntrinsicLock() {
+  void shouldReportMatchedLockOwnerThreadName() {
     // Given
     SpanContextualizer contextualizer = new SpanContextualizer(eventReader);
     String threadDump = readDumpFromResource("thread-dump3.txt");
@@ -204,8 +184,20 @@ class ThreadDumpProcessorTest {
     StackTraceData blockedThread5 = findStack(results, "TEST-BLOCKED-5-BLOCKED");
     assertEquals("TEST-BLOCKED-5-HOLDER", blockedThread5.getThreadLockData().getLockOwner());
 
-    // check example with ownable locks that cannot be mapped.
-    // these locks are listed in thread dumps with prefix: "- parking to wait for"
+    // Ownable synchronizer owners are available in the deadlock summary.
+    StackTraceData deadlockedThread1A = findWaitingStack(results, "TEST-DEADLOCK-1-A");
+    assertEquals("TEST-DEADLOCK-1-B", deadlockedThread1A.getThreadLockData().getLockOwner());
+
+    StackTraceData deadlockedThread1B = findWaitingStack(results, "TEST-DEADLOCK-1-B");
+    assertEquals("TEST-DEADLOCK-1-A", deadlockedThread1B.getThreadLockData().getLockOwner());
+
+    StackTraceData deadlockedThread4A = findWaitingStack(results, "TEST-DEADLOCK-4-A");
+    assertEquals("TEST-DEADLOCK-4-B", deadlockedThread4A.getThreadLockData().getLockOwner());
+
+    StackTraceData deadlockedThread4B = findWaitingStack(results, "TEST-DEADLOCK-4-B");
+    assertEquals("TEST-DEADLOCK-4-A", deadlockedThread4B.getThreadLockData().getLockOwner());
+
+    // Non-deadlocked ownable synchronizer owners are not present in a jdk.ThreadDump event.
     StackTraceData ownableLockWaiter = findStack(results, "TEST-OWNABLE-6-WAITER");
     assertEquals(
         "java.util.concurrent.locks.ReentrantLock$NonfairSync@b92f63cb8",
@@ -217,6 +209,16 @@ class ThreadDumpProcessorTest {
     return results.stream()
         .map(StackToSpanLinkage::getStackTrace)
         .filter(stack -> threadName.equals(stack.getThreadName()))
+        .findFirst()
+        .orElseThrow();
+  }
+
+  private static StackTraceData findWaitingStack(
+      List<StackToSpanLinkage> results, String threadName) {
+    return results.stream()
+        .map(StackToSpanLinkage::getStackTrace)
+        .filter(stack -> threadName.equals(stack.getThreadName()))
+        .filter(stack -> stack.getThreadLockData().getWaitingOn() != null)
         .findFirst()
         .orElseThrow();
   }

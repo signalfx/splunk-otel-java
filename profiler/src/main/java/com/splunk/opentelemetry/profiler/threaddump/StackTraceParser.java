@@ -122,6 +122,11 @@ public class StackTraceParser {
     }
 
     String objectId = line.substring(objectStart + 1, objectEnd);
+    String className = line.substring(classStart + classPrefix.length(), classEnd);
+    return formatLock(objectId, className);
+  }
+
+  static String formatLock(String objectId, String className) {
     if (objectId.startsWith("0x")) {
       objectId = objectId.substring(2);
     }
@@ -130,9 +135,7 @@ public class StackTraceParser {
       firstNonZero++;
     }
 
-    return line.substring(classStart + classPrefix.length(), classEnd)
-        + '@'
-        + objectId.substring(firstNonZero);
+    return className + '@' + objectId.substring(firstNonZero);
   }
 
   private static int findStartIndex(String line) {

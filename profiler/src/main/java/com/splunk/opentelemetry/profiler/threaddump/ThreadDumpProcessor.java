@@ -25,7 +25,6 @@ import com.splunk.opentelemetry.profiler.context.StackToSpanLinkage;
 import com.splunk.opentelemetry.profiler.exporter.CpuEventExporter;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -33,8 +32,9 @@ import org.openjdk.jmc.common.item.IItem;
 
 public class ThreadDumpProcessor {
   public static final String EVENT_NAME = "jdk.ThreadDump";
-  private static final String LOCKED_PREFIX = "- locked ";
+
   private static final Logger logger = Logger.getLogger(ThreadDumpProcessor.class.getName());
+
   private final EventReader eventReader;
   private final SpanContextualizer contextualizer;
   private final CpuEventExporter cpuEventExporter;
@@ -59,7 +59,9 @@ public class ThreadDumpProcessor {
     String wallOfStacks = eventReader.getThreadDumpResult(event);
 
     Map<String, String> lockToOwnerNameMapping =
-        locksEnabled ? new HashMap<>() : Collections.emptyMap();
+        locksEnabled
+            ? DeadlockDataExtractor.extractLockOwners(wallOfStacks)
+            : Collections.emptyMap();
     List<StackToSpanLinkage> waitingStacks =
         locksEnabled ? new ArrayList<>() : Collections.emptyList();
 
@@ -96,9 +98,6 @@ public class ThreadDumpProcessor {
         spanLinkage -> {
           resolveLockOwnerThreadName(
               spanLinkage.getStackTrace().getThreadLockData(), lockToOwnerNameMapping);
-          if (spanLinkage.getStackTrace().getThreadLockData().getLockOwner() == null) {
-            logger.info("No thread owner found for " + spanLinkage.getStackTrace());
-          }
           cpuEventExporter.export(spanLinkage);
         });
   }
@@ -120,7 +119,9 @@ public class ThreadDumpProcessor {
     if (!locksEnabled) {
       return;
     }
-    if (stackTrace.getThreadName() == null) {
+
+    String stackTraceThreadName = stackTrace.getThreadName();
+    if (stackTraceThreadName == null) {
       return;
     }
     stackTrace
@@ -128,52 +129,8 @@ public class ThreadDumpProcessor {
         .getLockedMonitors()
         .forEach(
             lockId -> {
-              lockToOwnerNameMapping.put(lockId, stackTrace.getThreadName());
+              lockToOwnerNameMapping.put(lockId, stackTraceThreadName);
             });
-  }
-
-  Map<String, String> buildLockToOwningThreadMapping(List<ThreadDumpRegion> stackRegions) {
-    Map<String, String> lockOwners = new HashMap<>();
-
-    for (ThreadDumpRegion stackRegion : stackRegions) {
-      String threadDump = stackRegion.threadDump;
-      int startIndex = stackRegion.startIndex;
-      int endIndex = stackRegion.endIndex;
-
-      int headerEnd = threadDump.indexOf('\n', startIndex);
-      if (headerEnd == -1 || headerEnd > endIndex) {
-        headerEnd = endIndex;
-      }
-      int threadNameEnd = threadDump.lastIndexOf('"', headerEnd - 1);
-      if (threadNameEnd <= startIndex) {
-        continue;
-      }
-      String threadName = threadDump.substring(startIndex + 1, threadNameEnd);
-
-      for (int lineStart = headerEnd + 1; lineStart < endIndex; ) {
-        int lineEnd = threadDump.indexOf('\n', lineStart);
-        if (lineEnd == -1 || lineEnd > endIndex) {
-          lineEnd = endIndex;
-        }
-
-        int contentStart = lineStart;
-        while (contentStart < lineEnd && Character.isWhitespace(threadDump.charAt(contentStart))) {
-          contentStart++;
-        }
-
-        if (threadDump.regionMatches(contentStart, LOCKED_PREFIX, 0, LOCKED_PREFIX.length())) {
-          int lockStart = threadDump.indexOf('<', contentStart + LOCKED_PREFIX.length());
-          int lockEnd = lockStart == -1 ? -1 : threadDump.indexOf('>', lockStart + 1);
-          if (lockStart != -1 && lockEnd != -1 && lockEnd < lineEnd) {
-            lockOwners.put(threadDump.substring(lockStart + 1, lockEnd), threadName);
-          }
-        }
-
-        lineStart = lineEnd + 1;
-      }
-    }
-
-    return lockOwners;
   }
 
   public void flush() {

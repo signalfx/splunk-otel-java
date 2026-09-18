@@ -22,8 +22,8 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.splunk.opentelemetry.profiler.EventReader;
-import com.splunk.opentelemetry.profiler.ThreadDumpRegion;
 import com.splunk.opentelemetry.profiler.events.ContextAttached;
+import com.splunk.opentelemetry.profiler.threaddump.ThreadDumpRegion;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;

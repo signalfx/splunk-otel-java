@@ -31,7 +31,12 @@ import com.google.perftools.profiles.ProfileProto.Profile;
 import com.google.perftools.profiles.ProfileProto.Sample;
 import com.splunk.opentelemetry.profiler.InstrumentationSource;
 import com.splunk.opentelemetry.profiler.ProfilingSemanticAttributes;
+import com.splunk.opentelemetry.profiler.context.SpanLinkage;
+import com.splunk.opentelemetry.profiler.context.StackToSpanLinkage;
 import com.splunk.opentelemetry.profiler.pprof.PprofUtils;
+import com.splunk.opentelemetry.profiler.threaddump.StackTraceData;
+import com.splunk.opentelemetry.profiler.threaddump.StackTraceParser;
+import com.splunk.opentelemetry.profiler.threaddump.ThreadLockData;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.sdk.trace.IdGenerator;
 import java.io.IOException;
@@ -71,10 +76,7 @@ class PprofCpuEventExporterTest {
     var exception = new RuntimeException();
 
     exporter.export(
-        1,
-        "thread-name",
-        Thread.State.RUNNABLE,
-        exception.getStackTrace(),
+        buildThreadInfo(1, "thread-name", Thread.State.RUNNABLE, exception.getStackTrace()),
         Instant.now(),
         "",
         "",
@@ -106,10 +108,7 @@ class PprofCpuEventExporterTest {
             .build();
 
     exporter.export(
-        1,
-        "thread-name",
-        Thread.State.RUNNABLE,
-        exception.getStackTrace(),
+        buildThreadInfo(1, "thread-name", Thread.State.RUNNABLE, exception.getStackTrace()),
         Instant.now(),
         "",
         "",
@@ -138,10 +137,7 @@ class PprofCpuEventExporterTest {
             .build();
 
     exporter.export(
-        1,
-        "thread-name",
-        Thread.State.RUNNABLE,
-        exception.getStackTrace(),
+        buildThreadInfo(1, "thread-name", Thread.State.RUNNABLE, exception.getStackTrace()),
         Instant.now(),
         "",
         "",
@@ -176,10 +172,7 @@ class PprofCpuEventExporterTest {
     var exception = new RuntimeException();
 
     exporter.export(
-        1,
-        "thread-name",
-        Thread.State.RUNNABLE,
-        exception.getStackTrace(),
+        buildThreadInfo(1, "thread-name", Thread.State.RUNNABLE, exception.getStackTrace()),
         Instant.now(),
         "",
         "",
@@ -256,10 +249,7 @@ class PprofCpuEventExporterTest {
     var exception = new RuntimeException();
 
     exporter.export(
-        1,
-        "thread-name",
-        Thread.State.RUNNABLE,
-        exception.getStackTrace(),
+        buildThreadInfo(1, "thread-name", Thread.State.RUNNABLE, exception.getStackTrace()),
         Instant.now(),
         "",
         "",
@@ -277,28 +267,19 @@ class PprofCpuEventExporterTest {
     var exception3 = new IOException();
 
     exporter.export(
-        1,
-        "thread-name",
-        Thread.State.RUNNABLE,
-        exception1.getStackTrace(),
+        buildThreadInfo(1, "thread-name", Thread.State.RUNNABLE, exception1.getStackTrace()),
         Instant.now(),
         "",
         "",
         Duration.ZERO);
     exporter.export(
-        1,
-        "thread-name",
-        Thread.State.RUNNABLE,
-        exception2.getStackTrace(),
+        buildThreadInfo(1, "thread-name", Thread.State.RUNNABLE, exception2.getStackTrace()),
         Instant.now(),
         "",
         "",
         Duration.ZERO);
     exporter.export(
-        1,
-        "thread-name",
-        Thread.State.RUNNABLE,
-        exception3.getStackTrace(),
+        buildThreadInfo(1, "thread-name", Thread.State.RUNNABLE, exception3.getStackTrace()),
         Instant.now(),
         "",
         "",
@@ -321,10 +302,7 @@ class PprofCpuEventExporterTest {
     var threadName = "thread-name-" + random.nextInt(1000);
 
     exporter.export(
-        threadId,
-        threadName,
-        state,
-        new RuntimeException().getStackTrace(),
+        buildThreadInfo(threadId, threadName, state, new RuntimeException().getStackTrace()),
         Instant.now(),
         "",
         "",
@@ -379,6 +357,44 @@ class PprofCpuEventExporterTest {
   }
 
   @Test
+  void includeStackToSpanLinkageLockInformationInSamples() throws Exception {
+    var locksEnabledExporter =
+        PprofCpuEventExporter.builder()
+            .otelLogger(logger)
+            .period(Duration.ofMillis(20))
+            .stackDepth(1024)
+            .locksEnabled(true)
+            .instrumentationSource(InstrumentationSource.SNAPSHOT)
+            .build();
+    StackTraceData stackTrace =
+        StackTraceParser.parse(
+            "\"worker\" #17\n"
+                + "  java.lang.Thread.State: BLOCKED\n"
+                + "  at example.Worker.run(Worker.java:42)\n",
+            1024,
+            true);
+    ThreadLockData lockData = stackTrace.getThreadLockData();
+    lockData.setWaitingOn("example.WaitingLock@12ab");
+    lockData.setLockOwner("lock-owner");
+    lockData.addLockedMonitor("example.Monitor@23bc");
+    lockData.addLockedSynchronizer("example.Synchronizer@34cd");
+
+    locksEnabledExporter.export(
+        new StackToSpanLinkage(Instant.now(), stackTrace, "thread-dump", SpanLinkage.NONE));
+    locksEnabledExporter.flush();
+
+    var logRecord = logger.records().get(0);
+    var profile = Profile.parseFrom(PprofUtils.deserialize(logRecord));
+    var labels = PprofUtils.toLabelString(profile.getSample(0), profile);
+
+    assertThat(labels)
+        .containsEntry(LOCK_WAITING_ON, "example.WaitingLock@12ab")
+        .containsEntry(LOCK_OWNER_THREAD, "lock-owner")
+        .containsEntry(LOCK_HELD_PREFIX + "0", "example.Monitor@23bc")
+        .containsEntry(LOCK_HELD_PREFIX + "1", "example.Synchronizer@34cd");
+  }
+
+  @Test
   void doesNotIncludeThreadLockInformationByDefault() throws Exception {
     ThreadInfo threadInfo = mock(ThreadInfo.class);
     when(threadInfo.getThreadId()).thenReturn(17L);
@@ -402,10 +418,8 @@ class PprofCpuEventExporterTest {
     var traceId = IdGenerator.random().generateTraceId();
 
     exporter.export(
-        1,
-        "thread-name",
-        Thread.State.RUNNABLE,
-        new RuntimeException().getStackTrace(),
+        buildThreadInfo(
+            1, "thread-name", Thread.State.RUNNABLE, new RuntimeException().getStackTrace()),
         Instant.now(),
         traceId,
         "",
@@ -423,10 +437,8 @@ class PprofCpuEventExporterTest {
   @Test
   void doNotIncludeInvalidTraceIdsInformationInSamples() throws Exception {
     exporter.export(
-        1,
-        "thread-name",
-        Thread.State.RUNNABLE,
-        new RuntimeException().getStackTrace(),
+        buildThreadInfo(
+            1, "thread-name", Thread.State.RUNNABLE, new RuntimeException().getStackTrace()),
         Instant.now(),
         "",
         "",
@@ -446,10 +458,8 @@ class PprofCpuEventExporterTest {
     var spanId = IdGenerator.random().generateSpanId();
 
     exporter.export(
-        1,
-        "thread-name",
-        Thread.State.RUNNABLE,
-        new RuntimeException().getStackTrace(),
+        buildThreadInfo(
+            1, "thread-name", Thread.State.RUNNABLE, new RuntimeException().getStackTrace()),
         Instant.now(),
         "",
         spanId,
@@ -467,10 +477,8 @@ class PprofCpuEventExporterTest {
   @Test
   void doNotIncludeInvalidSpanIdsInformationInSamples() throws Exception {
     exporter.export(
-        1,
-        "thread-name",
-        Thread.State.RUNNABLE,
-        new RuntimeException().getStackTrace(),
+        buildThreadInfo(
+            1, "thread-name", Thread.State.RUNNABLE, new RuntimeException().getStackTrace()),
         Instant.now(),
         "",
         "",
@@ -490,10 +498,8 @@ class PprofCpuEventExporterTest {
     var time = Instant.now();
 
     exporter.export(
-        1,
-        "thread-name",
-        Thread.State.RUNNABLE,
-        new RuntimeException().getStackTrace(),
+        buildThreadInfo(
+            1, "thread-name", Thread.State.RUNNABLE, new RuntimeException().getStackTrace()),
         time,
         "",
         "",
@@ -513,10 +519,8 @@ class PprofCpuEventExporterTest {
   void includeStackTraceDurationInSamples() throws Exception {
     var duration = Duration.ofMillis(33);
     exporter.export(
-        1,
-        "thread-name",
-        Thread.State.RUNNABLE,
-        new RuntimeException().getStackTrace(),
+        buildThreadInfo(
+            1, "thread-name", Thread.State.RUNNABLE, new RuntimeException().getStackTrace()),
         Instant.now(),
         "",
         "",
@@ -530,6 +534,16 @@ class PprofCpuEventExporterTest {
     var labels = PprofUtils.toLabelString(sample, profile);
     assertThat(labels)
         .contains(entry(ProfilingSemanticAttributes.SOURCE_EVENT_PERIOD, duration.toMillis()));
+  }
+
+  private ThreadInfo buildThreadInfo(
+      long threadId, String threadName, Thread.State threadState, StackTraceElement[] stackTrace) {
+    ThreadInfo threadInfo = mock(ThreadInfo.class);
+    when(threadInfo.getThreadId()).thenReturn(threadId);
+    when(threadInfo.getThreadName()).thenReturn(threadName);
+    when(threadInfo.getThreadState()).thenReturn(threadState);
+    when(threadInfo.getStackTrace()).thenReturn(stackTrace);
+    return threadInfo;
   }
 
   private <T> Map.Entry<String, T> entry(AttributeKey<T> attribute, T value) {

@@ -16,7 +16,7 @@
 
 package com.splunk.opentelemetry.profiler.context;
 
-import com.splunk.opentelemetry.profiler.ThreadDumpRegion;
+import com.splunk.opentelemetry.profiler.threaddump.ThreadDumpRegion;
 
 /**
  * Class that parses the "descriptor" line from a stack trace. At the moment, it only parses out the

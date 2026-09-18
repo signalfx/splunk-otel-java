@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package com.splunk.opentelemetry.profiler;
+package com.splunk.opentelemetry.profiler.threaddump;
 
+import com.splunk.opentelemetry.profiler.EventReader;
 import java.util.stream.Stream;
 import org.openjdk.jmc.common.IMCFrame;
 import org.openjdk.jmc.common.IMCMethod;
@@ -30,13 +31,17 @@ public class StackTraceFilter {
       new String[] {
         "\"Batched Logs Exporter\"",
         "\"BatchSpanProcessor_WorkerThread-",
+        "\"PeriodicMetricReader-",
         "\"JFR Recorder Thread\"",
         "\"JFR Periodic Tasks\"",
         "\"JFR Recording Scheduler\"",
         "\"JFR Recording Flusher\"",
+        "\"JFR Profiler\"",
+        "\"Snapshot Profiling Supervisor\"",
         "\"Reference Handler\"",
         "\"Finalizer\"",
         "\"C1 CompilerThread",
+        "\"C2 CompilerThread",
         "\"Common-Cleaner\""
       };
 

@@ -20,6 +20,7 @@ import com.splunk.opentelemetry.profiler.context.SpanContextualizer;
 import com.splunk.opentelemetry.profiler.context.StackToSpanLinkage;
 import com.splunk.opentelemetry.profiler.exporter.CpuEventExporter;
 import com.splunk.opentelemetry.profiler.old.AgentInternalsFilter;
+import com.splunk.opentelemetry.profiler.threaddump.ThreadDumpProcessor;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;

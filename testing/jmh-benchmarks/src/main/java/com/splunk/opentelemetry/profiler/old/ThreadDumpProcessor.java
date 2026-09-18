@@ -18,9 +18,11 @@ package com.splunk.opentelemetry.profiler.old;
 
 import static java.util.logging.Level.FINE;
 
-import com.splunk.opentelemetry.profiler.ThreadDumpRegion;
 import com.splunk.opentelemetry.profiler.context.SpanContextualizer;
 import com.splunk.opentelemetry.profiler.context.StackToSpanLinkage;
+import com.splunk.opentelemetry.profiler.threaddump.StackTraceData;
+import com.splunk.opentelemetry.profiler.threaddump.StackTraceParser;
+import com.splunk.opentelemetry.profiler.threaddump.ThreadDumpRegion;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
@@ -29,7 +31,6 @@ import java.util.stream.Stream;
 import jdk.jfr.consumer.RecordedEvent;
 
 public class ThreadDumpProcessor {
-  public static final String EVENT_NAME = "jdk.ThreadDump";
   private static final Logger logger = Logger.getLogger(ThreadDumpProcessor.class.getName());
   private final Pattern stackSeparator = Pattern.compile("\n\n");
   private final SpanContextualizer contextualizer;
@@ -55,12 +56,15 @@ public class ThreadDumpProcessor {
         .filter(stack -> stack.charAt(0) == '"') // omit non-stack entries
         .filter(agentInternalsFilter)
         .map(
-            stack ->
-                new StackToSpanLinkage(
-                    event.getStartTime(),
-                    stack,
-                    event.getEventType().getName(),
-                    contextualizer.link(new ThreadDumpRegion(stack, 0, stack.length()))))
+            stack -> {
+              StackTraceData stackTraceData =
+                  StackTraceParser.parse(stack, Integer.MAX_VALUE, true);
+              return new StackToSpanLinkage(
+                  event.getStartTime(),
+                  stackTraceData,
+                  event.getEventType().getName(),
+                  contextualizer.link(new ThreadDumpRegion(stack, 0, stack.length())));
+            })
         .forEach(processor);
   }
 }

@@ -21,7 +21,7 @@ jobs:
     uses: ./.github/workflows/reusable-link-check.yml
 
   build:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -44,7 +44,7 @@ jobs:
         run: cat build-scan.txt
 
   test-latest-deps:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -67,7 +67,7 @@ jobs:
         run: cat build-scan.txt
 
   setup-muzzle-matrix:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
@@ -90,7 +90,7 @@ jobs:
 
   muzzle:
     needs: setup-muzzle-matrix
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     strategy:
       matrix: ${{fromJson(needs.setup-muzzle-matrix.outputs.matrix)}}
       fail-fast: false
@@ -177,7 +177,7 @@ jobs:
         run: cat build-scan.txt
 
   shellcheck:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:

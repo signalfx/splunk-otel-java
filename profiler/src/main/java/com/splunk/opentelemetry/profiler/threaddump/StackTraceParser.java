@@ -58,6 +58,9 @@ public class StackTraceParser {
     return builder.build();
   }
 
+  /**
+   * Returns {@code true} if parsed line was retained as a stacktrace element.
+   */
   private static boolean parseLine(
       StackTraceData.Builder builder,
       String line,
@@ -68,10 +71,10 @@ public class StackTraceParser {
     if (stackTraceLine != null) {
       if (retainStackTraceLine) {
         builder.addStackTraceLine(stackTraceLine);
+        return true;
       } else {
         builder.setTruncated();
       }
-      return true;
 
     } else if (parseLockData) {
       // If line was not recognized as code location line then it may be a lock information line

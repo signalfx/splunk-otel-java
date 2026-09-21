@@ -23,7 +23,7 @@ jobs:
     uses: ./.github/workflows/reusable-link-check.yml
 
   build:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -55,7 +55,7 @@ jobs:
           if-no-files-found: ignore
 
   test-latest-deps:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -80,7 +80,7 @@ jobs:
         run: cat build-scan.txt
 
   setup-muzzle-matrix:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
@@ -105,7 +105,7 @@ jobs:
 
   muzzle:
     needs: setup-muzzle-matrix
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     strategy:
       matrix: ${{fromJson(needs.setup-muzzle-matrix.outputs.matrix)}}
       fail-fast: false
@@ -199,7 +199,7 @@ jobs:
         run: cat build-scan.txt
 
   shellcheck:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -212,7 +212,7 @@ jobs:
         run: shellcheck-v0.8.0/shellcheck --format=gcc $(find scripts -name '*.sh')
 
   license-check:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     permissions:
       contents: read
     outputs:
@@ -266,7 +266,7 @@ jobs:
       github.event.pull_request.user.login == 'renovate[bot]' &&
       github.event.pull_request.head.repo.full_name == github.repository &&
       startsWith(github.event.pull_request.head.ref, 'renovate/')
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     permissions:
       actions: write
       contents: write
@@ -324,7 +324,7 @@ jobs:
           gh workflow run pr.yaml --ref "$HEAD_REF" -f pull_request_number="$PR_NUMBER"
 
   generate-metadata:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:

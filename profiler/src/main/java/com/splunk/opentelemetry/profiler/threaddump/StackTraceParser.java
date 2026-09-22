@@ -58,9 +58,7 @@ public class StackTraceParser {
     return builder.build();
   }
 
-  /**
-   * Returns {@code true} if parsed line was retained as a stacktrace element.
-   */
+  /** Returns {@code true} if parsed line was retained as a stacktrace element. */
   private static boolean parseLine(
       StackTraceData.Builder builder,
       String line,

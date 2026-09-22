@@ -84,34 +84,61 @@ public class ThreadDumpProcessor {
       }
       maybeAddToLockOwners(stackTrace, lockToOwnerNameMapping);
 
-      StackToSpanLinkage spanWithLinkage =
+      StackToSpanLinkage stackLinkedToSpan =
           new StackToSpanLinkage(
               eventReader.getStartInstant(event), stackTrace, eventName, linkage);
-      if (locksEnabled && stackTrace.getThreadLockData().getWaitingOn() != null) {
-        waitingStacks.add(spanWithLinkage);
-      } else {
-        cpuEventExporter.export(spanWithLinkage);
-      }
+      exportOrWaitForLockOwnerName(stackLinkedToSpan, lockToOwnerNameMapping, waitingStacks);
     }
 
+    exportWaitingStacks(waitingStacks, lockToOwnerNameMapping);
+  }
+
+  private void exportOrWaitForLockOwnerName(
+      StackToSpanLinkage stackLinkedToSpan,
+      Map<String, String> lockToOwnerNameMapping,
+      List<StackToSpanLinkage> waitingStacks) {
+    ThreadLockData lockData = stackLinkedToSpan.getStackTrace().getThreadLockData();
+    if (locksEnabled && lockData.getWaitingOn() != null) {
+      if (resolveLockOwnerThreadName(lockData, lockToOwnerNameMapping)) {
+        // Export immediately if lock owner thread name was already registered
+        cpuEventExporter.export(stackLinkedToSpan);
+      } else {
+        // Enqueue stack to be exported later on, when lock owner thread name is possibly known
+        waitingStacks.add(stackLinkedToSpan);
+      }
+    } else {
+      // No need to process lock - export immediately
+      cpuEventExporter.export(stackLinkedToSpan);
+    }
+  }
+
+  private void exportWaitingStacks(
+      List<StackToSpanLinkage> waitingStacks, Map<String, String> lockToOwnerNameMapping) {
     waitingStacks.forEach(
         spanLinkage -> {
-          resolveLockOwnerThreadName(
-              spanLinkage.getStackTrace().getThreadLockData(), lockToOwnerNameMapping);
+          if (!resolveLockOwnerThreadName(
+              spanLinkage.getStackTrace().getThreadLockData(), lockToOwnerNameMapping)) {
+            logger.fine(
+                () ->
+                    "No lock owner name for thread \""
+                        + spanLinkage.getStackTrace().getThreadName()
+                        + "\" waiting on lock "
+                        + spanLinkage.getStackTrace().getThreadLockData().getWaitingOn());
+          }
+          // Stack trace is exported even if it was impossible to resolve lock owner thread name
           cpuEventExporter.export(spanLinkage);
         });
   }
 
-  private void resolveLockOwnerThreadName(
+  private boolean resolveLockOwnerThreadName(
       ThreadLockData threadLockData, Map<String, String> lockToOwnerNameMapping) {
     String waitingOn = threadLockData.getWaitingOn();
-    if (waitingOn == null) {
-      return;
-    }
     String owner = lockToOwnerNameMapping.get(waitingOn);
     if (owner != null) {
       threadLockData.setLockOwner(owner);
+      return true;
     }
+    return false;
   }
 
   private void maybeAddToLockOwners(

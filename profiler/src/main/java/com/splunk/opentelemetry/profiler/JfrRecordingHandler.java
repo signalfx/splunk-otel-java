@@ -94,7 +94,7 @@ class JfrRecordingHandler implements Consumer<InputStream> {
       Instant end = Instant.now();
       long timeElapsed = Duration.between(start, end).toMillis();
       if (logger.isLoggable(FINE)) {
-        logger.log(FINE, "Processed recording in {1}ms", new Object[] {timeElapsed});
+        logger.log(FINE, "Processed recording in {0}ms", timeElapsed);
       }
       eventProcessingChain.logEventStats();
     }

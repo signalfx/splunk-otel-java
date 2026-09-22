@@ -16,6 +16,21 @@
 
 package com.splunk.opentelemetry.profiler.events;
 
+/**
+ * Test-only abstraction for the JFR event lifecycle methods used by the profiler.
+ *
+ * <p>{@link ContextAttached} extends {@link jdk.jfr.Event}, whose lifecycle methods are final. When
+ * tests run on Java 21, Mockito's inline mock maker does not reliably intercept those inherited JFR
+ * methods. As a result, the real JFR method is invoked and Mockito reports a
+ * {@code MissingMethodInvocationException} when the test tries to stub it.
+ *
+ * <p>Production JFR events implement this interface, while the code under test depends on the
+ * interface rather than directly on the concrete JFR event. Mockito can then mock these ordinary,
+ * non-final interface methods without instrumenting {@code jdk.jfr.Event}.
+ *
+ * @see ContextAttached
+ * @see jdk.jfr.Event
+ */
 public interface JfrEvent {
   void begin();
 

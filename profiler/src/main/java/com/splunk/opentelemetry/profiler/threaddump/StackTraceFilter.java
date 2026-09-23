@@ -85,14 +85,12 @@ public class StackTraceFilter {
       if (Stream.of(StackTraceFilter.UNWANTED_PREFIXES)
           .anyMatch(
               prefix ->
-                  wallOfStacks.regionMatches(
-                      region.getStartIndex(), prefix, 0, prefix.length()))) {
+                  wallOfStacks.regionMatches(region.getStartIndex(), prefix, 0, prefix.length()))) {
         return false;
       }
     }
     if (!includeJvmInternalStacks) {
-      if (everyFrameIsJvmInternal(
-          wallOfStacks, region.getStartIndex(), region.getEndIndex() - 1)) {
+      if (everyFrameIsJvmInternal(wallOfStacks, region.getStartIndex(), region.getEndIndex() - 1)) {
         return false;
       }
     }

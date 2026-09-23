@@ -98,17 +98,18 @@ public class ThreadDumpProcessor {
       Map<String, String> lockToOwnerNameMapping,
       List<StackToSpanLinkage> waitingStacks) {
     ThreadLockData lockData = stackLinkedToSpan.getStackTrace().getThreadLockData();
-    if (locksEnabled && lockData.getWaitingOn() != null) {
-      if (resolveLockOwnerThreadName(lockData, lockToOwnerNameMapping)) {
-        // Export immediately if lock owner thread name was already registered
-        cpuEventExporter.export(stackLinkedToSpan);
-      } else {
-        // Enqueue stack to be exported later on, when lock owner thread name is possibly known
-        waitingStacks.add(stackLinkedToSpan);
-      }
-    } else {
+    if (!locksEnabled || lockData.getWaitingOn() == null || lockData.getLockOwner() != null) {
       // No need to process lock - export immediately
       cpuEventExporter.export(stackLinkedToSpan);
+      return;
+    }
+
+    if (resolveLockOwnerThreadName(lockData, lockToOwnerNameMapping)) {
+      // Export immediately if lock owner thread name was already registered
+      cpuEventExporter.export(stackLinkedToSpan);
+    } else {
+      // Enqueue stack to be exported later on, when lock owner thread name is possibly known
+      waitingStacks.add(stackLinkedToSpan);
     }
   }
 

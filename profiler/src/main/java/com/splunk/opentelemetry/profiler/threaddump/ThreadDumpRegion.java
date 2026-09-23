@@ -23,14 +23,26 @@ import javax.annotation.Nullable;
  * without extracting them as separate strings.
  */
 public class ThreadDumpRegion {
-  public final String threadDump;
-  public final int startIndex;
-  public final int endIndex;
+  private final String threadDump;
+  private final int startIndex;
+  private final int endIndex;
 
   public ThreadDumpRegion(String threadDump, int startIndex, int endIndex) {
     this.threadDump = threadDump;
     this.startIndex = startIndex;
     this.endIndex = endIndex;
+  }
+
+  public String getThreadDump() {
+    return threadDump;
+  }
+
+  public int getStartIndex() {
+    return startIndex;
+  }
+
+  public int getEndIndex() {
+    return endIndex;
   }
 
   public String getCurrentRegion() {

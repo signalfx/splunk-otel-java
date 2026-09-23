@@ -100,9 +100,9 @@ public class SpanContextualizer {
   }
 
   private boolean isStacklessThread(ThreadDumpRegion stack) {
-    int firstNewline = stack.indexOf('\n', stack.startIndex);
+    int firstNewline = stack.indexOf('\n', stack.getStartIndex());
     return (firstNewline == -1)
-        || (firstNewline == stack.endIndex - 1)
+        || (firstNewline == stack.getEndIndex() - 1)
         || (stack.indexOf('\n', firstNewline + 1) == -1);
   }
 

@@ -26,6 +26,7 @@ import com.splunk.opentelemetry.profiler.exporter.CpuEventExporter;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -63,6 +64,8 @@ public class ThreadDumpProcessor {
         locksEnabled
             ? DeadlockDataExtractor.extractOwnableSynchronizersLockOwners(wallOfStacks)
             : Collections.emptyMap();
+    Map<String, List<String>> ownableSynchronizersByOwnerName =
+        groupOwnableSynchronizersByOwnerName(lockToOwnerNameMapping);
     List<StackToSpanLinkage> waitingStacks =
         locksEnabled ? new ArrayList<>() : Collections.emptyList();
     Instant eventTime = eventReader.getStartInstant(event);
@@ -70,7 +73,13 @@ public class ThreadDumpProcessor {
     ThreadDumpRegion.Iterator iterator = new ThreadDumpRegion.Iterator(wallOfStacks);
     ThreadDumpRegion stackRegion;
     while ((stackRegion = iterator.findNextStack()) != null) {
-      processStack(stackRegion, eventTime, eventName, lockToOwnerNameMapping, waitingStacks);
+      processStack(
+          stackRegion,
+          eventTime,
+          eventName,
+          lockToOwnerNameMapping,
+          ownableSynchronizersByOwnerName,
+          waitingStacks);
     }
 
     exportWaitingStacks(waitingStacks, lockToOwnerNameMapping);
@@ -81,6 +90,7 @@ public class ThreadDumpProcessor {
       Instant eventTime,
       String eventName,
       Map<String, String> lockToOwnerNameMapping,
+      Map<String, List<String>> ownableSynchronizersByOwnerName,
       List<StackToSpanLinkage> waitingStacks) {
     if (!stackTraceFilter.test(stackRegion)) {
       return;
@@ -98,6 +108,7 @@ public class ThreadDumpProcessor {
       return;
     }
 
+    addOwnedSynchronizers(ownableSynchronizersByOwnerName, stackTrace);
     maybeAddToLockOwners(stackTrace, lockToOwnerNameMapping);
     if (!shouldExport) {
       return;
@@ -106,6 +117,29 @@ public class ThreadDumpProcessor {
     StackToSpanLinkage stackLinkedToSpan =
         new StackToSpanLinkage(eventTime, stackTrace, eventName, linkage);
     exportOrWaitForLockOwnerName(stackLinkedToSpan, lockToOwnerNameMapping, waitingStacks);
+  }
+
+  /**
+   * Reverses the ownable-synchronizer-to-owner mapping extracted from deadlock summaries so that
+   * held synchronizers can be added to each owner's lock data. An owner maps to a list because a
+   * thread can own multiple synchronizers.
+   */
+  private static Map<String, List<String>> groupOwnableSynchronizersByOwnerName(
+      Map<String, String> lockToOwnerNameMapping) {
+    Map<String, List<String>> synchronizersByOwnerName = new HashMap<>();
+    lockToOwnerNameMapping.forEach(
+        (lock, ownerName) ->
+            synchronizersByOwnerName
+                .computeIfAbsent(ownerName, ignored -> new ArrayList<>())
+                .add(lock));
+    return synchronizersByOwnerName;
+  }
+
+  private static void addOwnedSynchronizers(
+      Map<String, List<String>> ownableSynchronizersByOwnerName, StackTraceData stackTrace) {
+    ownableSynchronizersByOwnerName
+        .getOrDefault(stackTrace.getThreadName(), Collections.emptyList())
+        .forEach(stackTrace.getThreadLockData()::addLockedSynchronizer);
   }
 
   private void exportOrWaitForLockOwnerName(

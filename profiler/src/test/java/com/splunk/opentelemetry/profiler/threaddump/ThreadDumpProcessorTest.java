@@ -215,9 +215,13 @@ class ThreadDumpProcessorTest {
     // Ownable synchronizer owners are available in the deadlock summary.
     StackTraceData deadlockedThread1A = findWaitingStack(results, "TEST-DEADLOCK-1-A");
     assertEquals("TEST-DEADLOCK-1-B", deadlockedThread1A.getThreadLockData().getLockOwner());
+    assertThat(deadlockedThread1A.getThreadLockData().getLockedSynchronizers())
+        .containsExactly("java.util.concurrent.locks.ReentrantLock$NonfairSync@5e3ba30a0");
 
     StackTraceData deadlockedThread1B = findWaitingStack(results, "TEST-DEADLOCK-1-B");
     assertEquals("TEST-DEADLOCK-1-A", deadlockedThread1B.getThreadLockData().getLockOwner());
+    assertThat(deadlockedThread1B.getThreadLockData().getLockedSynchronizers())
+        .containsExactly("java.util.concurrent.locks.ReentrantLock$NonfairSync@5e3ba30d0");
 
     // Non-deadlocked ownable synchronizer owners are not present in a jdk.ThreadDump event.
     StackTraceData ownableLockWaiter = findStack(results, "TEST-OWNABLE-4-WAITER");

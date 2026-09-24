@@ -16,6 +16,8 @@
 
 package com.splunk.opentelemetry.profiler.threaddump;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Consumer;
 
 public class StackTraceParser {
@@ -37,6 +39,7 @@ public class StackTraceParser {
     }
 
     StackTraceData.Builder builder = StackTraceData.builder();
+    LockParsingState lockParsingState = parseLockData ? new LockParsingState() : null;
 
     parseHeader(builder, lines[0]);
     builder.setThreadState(parseThreadState(lines[1]));
@@ -50,19 +53,27 @@ public class StackTraceParser {
         builder.setTruncated();
         break;
       }
-      if (parseLine(builder, lines[i], parseLockData, canStoreNextLine)) {
+      if (parseLine(builder, lines[i], lockParsingState, canStoreNextLine)) {
         stackTraceLineCount++;
       }
     }
+    processLockParsingState(lockParsingState, builder);
 
     return builder.build();
+  }
+
+  private static void processLockParsingState(
+      LockParsingState lockParsingState, StackTraceData.Builder builder) {
+    if (lockParsingState != null) {
+      lockParsingState.applyTo(builder.getThreadLockData());
+    }
   }
 
   /** Returns {@code true} if parsed line was retained as a stacktrace element. */
   private static boolean parseLine(
       StackTraceData.Builder builder,
       String line,
-      boolean parseLockData,
+      LockParsingState lockParsingState,
       boolean retainStackTraceLine) {
     int startIndex = findStartIndex(line);
     StackTraceData.StackTraceLine stackTraceLine = parseStackTraceLine(line, startIndex);
@@ -74,33 +85,26 @@ public class StackTraceParser {
         builder.setTruncated();
       }
 
-    } else if (parseLockData) {
+    } else if (lockParsingState != null) {
       // If line was not recognized as code location line then it may be a lock information line
-      parseLockLine(builder, line, startIndex);
+      parseLockLine(lockParsingState, line, startIndex);
     }
     return false;
   }
 
-  private static void parseLockLine(StackTraceData.Builder builder, String line, int startIndex) {
+  private static void parseLockLine(
+      LockParsingState lockParsingState, String line, int startIndex) {
     if (line.startsWith(WAITING_ON_PREFIX, startIndex)) {
-      builder
-          .getThreadLockData()
-          .setWaitingOnReleasedMonitor(parseLock(line, startIndex, WAITING_ON_PREFIX));
+      lockParsingState.recordWaitingOn(parseLock(line, startIndex, WAITING_ON_PREFIX), true);
     } else if (line.startsWith(WAITING_TO_RELOCK_PREFIX, startIndex)) {
-      builder
-          .getThreadLockData()
-          .setWaitingOnReleasedMonitor(parseLock(line, startIndex, WAITING_TO_RELOCK_PREFIX));
+      lockParsingState.recordWaitingOn(parseLock(line, startIndex, WAITING_TO_RELOCK_PREFIX), true);
     } else if (line.startsWith(WAITING_TO_LOCK_PREFIX, startIndex)) {
-      builder.getThreadLockData().setWaitingOn(parseLock(line, startIndex, WAITING_TO_LOCK_PREFIX));
+      lockParsingState.recordWaitingOn(parseLock(line, startIndex, WAITING_TO_LOCK_PREFIX), false);
     } else if (line.startsWith(PARKING_TO_WAIT_FOR_PREFIX, startIndex)) {
-      builder
-          .getThreadLockData()
-          .setWaitingOn(parseLock(line, startIndex, PARKING_TO_WAIT_FOR_PREFIX));
+      lockParsingState.recordWaitingOn(
+          parseLock(line, startIndex, PARKING_TO_WAIT_FOR_PREFIX), false);
     } else if (line.startsWith(LOCKED_PREFIX, startIndex)) {
-      String lock = parseLock(line, startIndex, LOCKED_PREFIX);
-      if (lock != null) {
-        builder.getThreadLockData().addLockedMonitor(lock);
-      }
+      lockParsingState.recordLockedMonitor(parseLock(line, startIndex, LOCKED_PREFIX));
     }
   }
 
@@ -250,5 +254,37 @@ public class StackTraceParser {
     }
 
     return new StackTraceData.StackTraceLine(className, method, location, lineNumber);
+  }
+
+  private static final class LockParsingState {
+    private String waitingOnLock;
+    private boolean waitingOnLockIsReleasedMonitor;
+    private final List<String> lockedMonitors = new ArrayList<>();
+
+    private void recordWaitingOn(String lock, boolean lockIsReleasedMonitor) {
+      if (lock == null) {
+        return;
+      }
+      waitingOnLock = lock;
+      waitingOnLockIsReleasedMonitor = lockIsReleasedMonitor;
+    }
+
+    private void recordLockedMonitor(String lock) {
+      if (lock != null) {
+        lockedMonitors.add(lock);
+      }
+    }
+
+    private void applyTo(ThreadLockData lockData) {
+      lockData.setWaitingOn(waitingOnLock);
+
+      // Object.wait() releases the waited-on intrinsic monitor while the thread is waiting, but a
+      // JFR thread dump can still report that monitor in both a waiting line and a "- locked" line.
+      // Exclude only the matching monitor because the thread may still hold other intrinsic
+      // monitors.
+      lockedMonitors.stream()
+          .filter(lock -> !(waitingOnLockIsReleasedMonitor && lock.equals(waitingOnLock)))
+          .forEach(lockData::addLockedMonitor);
+    }
   }
 }

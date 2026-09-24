@@ -23,7 +23,6 @@ import java.util.List;
 public class ThreadLockData {
   private String waitingOn;
   private String lockOwner;
-  private String releasedMonitor;
   private final List<String> lockedMonitors = new ArrayList<>();
   private final List<String> lockedSynchronizers = new ArrayList<>();
 
@@ -47,15 +46,6 @@ public class ThreadLockData {
 
   public void setWaitingOn(String waitingOn) {
     this.waitingOn = waitingOn;
-    releasedMonitor = null;
-  }
-
-  void setWaitingOnReleasedMonitor(String waitingOn) {
-    this.waitingOn = waitingOn;
-    releasedMonitor = waitingOn;
-    if (waitingOn != null) {
-      lockedMonitors.removeIf(waitingOn::equals);
-    }
   }
 
   public void setLockOwner(String lockOwner) {
@@ -63,9 +53,7 @@ public class ThreadLockData {
   }
 
   public void addLockedMonitor(String lockedMonitor) {
-    if (releasedMonitor == null || !releasedMonitor.equals(lockedMonitor)) {
-      lockedMonitors.add(lockedMonitor);
-    }
+    lockedMonitors.add(lockedMonitor);
   }
 
   public void addLockedSynchronizer(String lockedSynchronizer) {

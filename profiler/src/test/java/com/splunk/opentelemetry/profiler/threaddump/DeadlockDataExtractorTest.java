@@ -26,23 +26,21 @@ class DeadlockDataExtractorTest {
   @Test
   void extractsOwnableSynchronizerOwners() {
     Map<String, String> lockOwners =
-        DeadlockDataExtractor.extractLockOwners(readDumpFromResource("thread-dump3.txt"));
+        DeadlockDataExtractor.extractOwnableSynchronizersLockOwners(
+            readDumpFromResource("thread-dump3.txt"));
 
     assertThat(lockOwners)
         .containsExactlyInAnyOrderEntriesOf(
             Map.of(
-                "java.util.concurrent.locks.ReentrantLock$NonfairSync@b937b3e60",
+                "java.util.concurrent.locks.ReentrantLock$NonfairSync@5e3ba30d0",
                 "TEST-DEADLOCK-1-B",
-                "java.util.concurrent.locks.ReentrantLock$NonfairSync@b937b3e30",
-                "TEST-DEADLOCK-1-A",
-                "java.util.concurrent.locks.ReentrantLock$NonfairSync@b9215d890",
-                "TEST-DEADLOCK-4-B",
-                "java.util.concurrent.locks.ReentrantLock$NonfairSync@b9215d860",
-                "TEST-DEADLOCK-4-A"));
+                "java.util.concurrent.locks.ReentrantLock$NonfairSync@5e3ba30a0",
+                "TEST-DEADLOCK-1-A"));
   }
 
   @Test
   void returnsEmptyMapWhenNoDeadlocksArePresent() {
-    assertThat(DeadlockDataExtractor.extractLockOwners("No deadlocks found.")).isEmpty();
+    assertThat(DeadlockDataExtractor.extractOwnableSynchronizersLockOwners("No deadlocks found."))
+        .isEmpty();
   }
 }

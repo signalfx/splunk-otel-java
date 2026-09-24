@@ -83,11 +83,13 @@ public class StackTraceParser {
 
   private static void parseLockLine(StackTraceData.Builder builder, String line, int startIndex) {
     if (line.startsWith(WAITING_ON_PREFIX, startIndex)) {
-      builder.getThreadLockData().setWaitingOn(parseLock(line, startIndex, WAITING_ON_PREFIX));
+      builder
+          .getThreadLockData()
+          .setWaitingOnReleasedMonitor(parseLock(line, startIndex, WAITING_ON_PREFIX));
     } else if (line.startsWith(WAITING_TO_RELOCK_PREFIX, startIndex)) {
       builder
           .getThreadLockData()
-          .setWaitingOn(parseLock(line, startIndex, WAITING_TO_RELOCK_PREFIX));
+          .setWaitingOnReleasedMonitor(parseLock(line, startIndex, WAITING_TO_RELOCK_PREFIX));
     } else if (line.startsWith(WAITING_TO_LOCK_PREFIX, startIndex)) {
       builder.getThreadLockData().setWaitingOn(parseLock(line, startIndex, WAITING_TO_LOCK_PREFIX));
     } else if (line.startsWith(PARKING_TO_WAIT_FOR_PREFIX, startIndex)) {

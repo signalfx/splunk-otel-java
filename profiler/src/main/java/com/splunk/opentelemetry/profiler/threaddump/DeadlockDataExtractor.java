@@ -30,7 +30,24 @@ final class DeadlockDataExtractor {
 
   private DeadlockDataExtractor() {}
 
-  static Map<String, String> extractLockOwners(String threadDump) {
+  /**
+   * Extracts ownable-synchronizer lock owners from Java-level deadlock summaries in a JFR thread
+   * dump.
+   *
+   * <p>Regular thread stack sections identify the ownable synchronizer on which a thread is
+   * waiting, but do not identify its owner. For deadlocked ownable synchronizers, the deadlock
+   * summary adds a {@code which is held by} line that makes this mapping available. Returned map
+   * keys use the same {@code className@identityHash} format as {@link StackTraceParser}; values are
+   * owner thread names.
+   *
+   * <p>This method does not extract intrinsic-monitor owners, which are derived from {@code -
+   * locked} lines in regular stack sections. It also cannot determine owners of non-deadlocked
+   * ownable synchronizers because JFR thread dumps do not report them.
+   *
+   * @param threadDump complete text of a JFR thread dump
+   * @return ownable synchronizer to owner thread-name mappings found in deadlock summaries
+   */
+  static Map<String, String> extractOwnableSynchronizersLockOwners(String threadDump) {
     Map<String, String> lockOwners = new HashMap<>();
     Matcher matcher = OWNABLE_SYNCHRONIZER_OWNER.matcher(threadDump);
     while (matcher.find()) {

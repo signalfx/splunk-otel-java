@@ -94,7 +94,7 @@ class StackTraceParserTest {
   }
 
   @Test
-  void testLockData_waitingOnAndLocked() {
+  void testLockData_waitingMonitorIsNotReportedAsLocked() {
     String stackText =
         """
         "OkHttp TaskRunner" #49 [65283] daemon prio=5 os_prio=31 cpu=10.20ms elapsed=9.96s tid=0x00000008fe322300 nid=65283 in Object.wait()  [0x000000017462e000]
@@ -119,8 +119,7 @@ class StackTraceParserTest {
     assertThat(stackTrace.getStackTraceLines().size()).isEqualTo(10);
     assertThat(stackTrace.getThreadLockData().getWaitingOn())
         .isEqualTo("okhttp3.internal.concurrent.TaskRunner@301810958");
-    assertThat(stackTrace.getThreadLockData().getLockedMonitors())
-        .isEqualTo(List.of("okhttp3.internal.concurrent.TaskRunner@301810958"));
+    assertTrue(stackTrace.getThreadLockData().getLockedMonitors().isEmpty());
     assertTrue(stackTrace.getThreadLockData().getLockedSynchronizers().isEmpty());
 
     StackTraceData truncatedStackTrace = StackTraceParser.parse(stack.getCurrentRegion(), 1, true);
@@ -128,9 +127,42 @@ class StackTraceParserTest {
     assertThat(truncatedStackTrace.getStackTraceLines().size()).isEqualTo(1);
     assertThat(truncatedStackTrace.getThreadLockData().getWaitingOn())
         .isEqualTo("okhttp3.internal.concurrent.TaskRunner@301810958");
-    assertThat(truncatedStackTrace.getThreadLockData().getLockedMonitors())
-        .isEqualTo(List.of("okhttp3.internal.concurrent.TaskRunner@301810958"));
+    assertTrue(truncatedStackTrace.getThreadLockData().getLockedMonitors().isEmpty());
     assertTrue(truncatedStackTrace.isTruncated());
+  }
+
+  @Test
+  void testLockData_waitingMonitorIsExcludedRegardlessOfLineOrder() {
+    String stackText =
+        "\"thread\" #1\n"
+            + "   java.lang.Thread.State: WAITING (on object monitor)\n"
+            + "        - locked <0x0000000000000011> (a java.lang.Object)\n"
+            + "        - locked <0x0000000000000022> (a java.lang.Object)\n"
+            + "        - waiting to re-lock in wait() <0x0000000000000011> (a java.lang.Object)\n"
+            + "        at example.Thread.run(Thread.java:1)\n";
+
+    StackTraceData stackTrace = StackTraceParser.parse(stackText, 128, true);
+
+    assertNotNull(stackTrace);
+    assertEquals("java.lang.Object@11", stackTrace.getThreadLockData().getWaitingOn());
+    assertEquals(
+        List.of("java.lang.Object@22"), stackTrace.getThreadLockData().getLockedMonitors());
+  }
+
+  @Test
+  void testLockData_parkingDoesNotReleaseAnIntrinsicMonitorOnTheSameObject() {
+    String stackText =
+        "\"thread\" #1\n"
+            + "   java.lang.Thread.State: WAITING (parking)\n"
+            + "        - parking to wait for <0x0000000000000011> (a example.Lock)\n"
+            + "        - locked <0x0000000000000011> (a example.Lock)\n"
+            + "        at example.Thread.run(Thread.java:1)\n";
+
+    StackTraceData stackTrace = StackTraceParser.parse(stackText, 128, true);
+
+    assertNotNull(stackTrace);
+    assertEquals("example.Lock@11", stackTrace.getThreadLockData().getWaitingOn());
+    assertEquals(List.of("example.Lock@11"), stackTrace.getThreadLockData().getLockedMonitors());
   }
 
   @Test

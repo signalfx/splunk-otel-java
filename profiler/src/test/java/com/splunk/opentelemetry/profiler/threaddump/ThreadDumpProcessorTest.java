@@ -71,6 +71,16 @@ class ThreadDumpProcessorTest {
           "        at example.LockWaiter.run(LockWaiter.java:1)",
           "        - waiting to lock <0x0000000000000001> (a java.lang.Object)");
 
+  private static final String OBJECT_WAIT_STACK =
+      String.join(
+          "\n",
+          "\"waiting-thread\" #103 prio=5",
+          "   java.lang.Thread.State: TIMED_WAITING (on object monitor)",
+          "        at java.lang.Object.wait0(Native Method)",
+          "        - waiting on <0x0000000000000001> (a java.lang.Object)",
+          "        at example.Waiter.waitForWork(Waiter.java:1)",
+          "        - locked <0x0000000000000001> (a java.lang.Object)");
+
   @Mock EventReader eventReader;
 
   // Some handpicked entries of thread ID to name from threadDumpResult to test filtering
@@ -184,21 +194,23 @@ class ThreadDumpProcessorTest {
     List<StackToSpanLinkage> results = collectResults(contextualizer, threadDump, false, true);
 
     // Then
-    assertEquals(21, results.size());
+    assertEquals(36, results.size());
 
     // check successfully mapped intrinsic locks
-    assertThat(results)
-        .anyMatch(
-            stack ->
-                "OkHttp TaskRunner".equals(stack.getStackTrace().getThreadName())
-                    && "OkHttp TaskRunner"
-                        .equals(stack.getStackTrace().getThreadLockData().getLockOwner()));
+    StackTraceData intrinsicDeadlockedThread2A =
+        findWaitingStack(results, "TEST-INTRINSIC-DEADLOCK-2-A");
+    assertEquals(
+        "TEST-INTRINSIC-DEADLOCK-2-B",
+        intrinsicDeadlockedThread2A.getThreadLockData().getLockOwner());
 
-    StackTraceData blockedThread2 = findStack(results, "TEST-BLOCKED-2-BLOCKED");
-    assertEquals("TEST-BLOCKED-2-HOLDER", blockedThread2.getThreadLockData().getLockOwner());
+    StackTraceData intrinsicDeadlockedThread2B =
+        findWaitingStack(results, "TEST-INTRINSIC-DEADLOCK-2-B");
+    assertEquals(
+        "TEST-INTRINSIC-DEADLOCK-2-A",
+        intrinsicDeadlockedThread2B.getThreadLockData().getLockOwner());
 
-    StackTraceData blockedThread5 = findStack(results, "TEST-BLOCKED-5-BLOCKED");
-    assertEquals("TEST-BLOCKED-5-HOLDER", blockedThread5.getThreadLockData().getLockOwner());
+    StackTraceData blockedThread3 = findStack(results, "TEST-BLOCKED-3-BLOCKED");
+    assertEquals("TEST-BLOCKED-3-HOLDER", blockedThread3.getThreadLockData().getLockOwner());
 
     // Ownable synchronizer owners are available in the deadlock summary.
     StackTraceData deadlockedThread1A = findWaitingStack(results, "TEST-DEADLOCK-1-A");
@@ -207,16 +219,10 @@ class ThreadDumpProcessorTest {
     StackTraceData deadlockedThread1B = findWaitingStack(results, "TEST-DEADLOCK-1-B");
     assertEquals("TEST-DEADLOCK-1-A", deadlockedThread1B.getThreadLockData().getLockOwner());
 
-    StackTraceData deadlockedThread4A = findWaitingStack(results, "TEST-DEADLOCK-4-A");
-    assertEquals("TEST-DEADLOCK-4-B", deadlockedThread4A.getThreadLockData().getLockOwner());
-
-    StackTraceData deadlockedThread4B = findWaitingStack(results, "TEST-DEADLOCK-4-B");
-    assertEquals("TEST-DEADLOCK-4-A", deadlockedThread4B.getThreadLockData().getLockOwner());
-
     // Non-deadlocked ownable synchronizer owners are not present in a jdk.ThreadDump event.
-    StackTraceData ownableLockWaiter = findStack(results, "TEST-OWNABLE-6-WAITER");
+    StackTraceData ownableLockWaiter = findStack(results, "TEST-OWNABLE-4-WAITER");
     assertEquals(
-        "java.util.concurrent.locks.ReentrantLock$NonfairSync@b92f63cb8",
+        "java.util.concurrent.locks.ReentrantLock$NonfairSync@5e3ff0480",
         ownableLockWaiter.getThreadLockData().getWaitingOn());
     assertNull(ownableLockWaiter.getThreadLockData().getLockOwner());
   }
@@ -231,6 +237,20 @@ class ThreadDumpProcessorTest {
   void shouldResolveLockOwnerWithoutSpanThatAppearsAfterWaiterWithSpan() {
     assertLockOwnerWithoutSpanIsUsed(
         String.join("\n\n", LOCK_WAITER_WITH_SPAN_STACK, LOCK_OWNER_WITHOUT_SPAN_STACK) + "\n\n");
+  }
+
+  @Test
+  void shouldNotResolveWaitingThreadAsItsOwnLockOwner() {
+    SpanContextualizer contextualizer = new SpanContextualizer(eventReader);
+
+    List<StackToSpanLinkage> results =
+        collectResults(contextualizer, OBJECT_WAIT_STACK + "\n\n", false, true);
+
+    assertEquals(1, results.size());
+    ThreadLockData lockData = results.get(0).getStackTrace().getThreadLockData();
+    assertEquals("java.lang.Object@1", lockData.getWaitingOn());
+    assertTrue(lockData.getLockedMonitors().isEmpty());
+    assertNull(lockData.getLockOwner());
   }
 
   private void assertLockOwnerWithoutSpanIsUsed(String threadDump) {

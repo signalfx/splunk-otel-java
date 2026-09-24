@@ -61,7 +61,7 @@ public class ThreadDumpProcessor {
 
     Map<String, String> lockToOwnerNameMapping =
         locksEnabled
-            ? DeadlockDataExtractor.extractLockOwners(wallOfStacks)
+            ? DeadlockDataExtractor.extractOwnableSynchronizersLockOwners(wallOfStacks)
             : Collections.emptyMap();
     List<StackToSpanLinkage> waitingStacks =
         locksEnabled ? new ArrayList<>() : Collections.emptyList();

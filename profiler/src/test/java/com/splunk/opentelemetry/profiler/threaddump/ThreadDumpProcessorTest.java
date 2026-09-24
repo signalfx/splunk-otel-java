@@ -55,6 +55,22 @@ class ThreadDumpProcessorTest {
   static String spanId = "0123012301230123";
   static byte traceFlags = TraceFlags.getSampled().asByte();
 
+  private static final String LOCK_OWNER_WITHOUT_SPAN_STACK =
+      String.join(
+          "\n",
+          "\"lock-owner\" #101 prio=5",
+          "   java.lang.Thread.State: WAITING",
+          "        at example.LockOwner.run(LockOwner.java:1)",
+          "        - locked <0x0000000000000001> (a java.lang.Object)");
+
+  private static final String LOCK_WAITER_WITH_SPAN_STACK =
+      String.join(
+          "\n",
+          "\"lock-waiter\" #102 prio=5",
+          "   java.lang.Thread.State: BLOCKED",
+          "        at example.LockWaiter.run(LockWaiter.java:1)",
+          "        - waiting to lock <0x0000000000000001> (a java.lang.Object)");
+
   @Mock EventReader eventReader;
 
   // Some handpicked entries of thread ID to name from threadDumpResult to test filtering
@@ -203,6 +219,31 @@ class ThreadDumpProcessorTest {
         "java.util.concurrent.locks.ReentrantLock$NonfairSync@b92f63cb8",
         ownableLockWaiter.getThreadLockData().getWaitingOn());
     assertNull(ownableLockWaiter.getThreadLockData().getLockOwner());
+  }
+
+  @Test
+  void shouldResolveLockOwnerWithoutSpanThatAppearsBeforeWaiterWithSpan() {
+    assertLockOwnerWithoutSpanIsUsed(
+        String.join("\n\n", LOCK_OWNER_WITHOUT_SPAN_STACK, LOCK_WAITER_WITH_SPAN_STACK) + "\n\n");
+  }
+
+  @Test
+  void shouldResolveLockOwnerWithoutSpanThatAppearsAfterWaiterWithSpan() {
+    assertLockOwnerWithoutSpanIsUsed(
+        String.join("\n\n", LOCK_WAITER_WITH_SPAN_STACK, LOCK_OWNER_WITHOUT_SPAN_STACK) + "\n\n");
+  }
+
+  private void assertLockOwnerWithoutSpanIsUsed(String threadDump) {
+    SpanContextualizer contextualizer = new SpanContextualizer(eventReader);
+    contextualizer.updateContext(threadContextStartEvent(102));
+
+    List<StackToSpanLinkage> results = collectResults(contextualizer, threadDump, true, true);
+
+    assertEquals(1, results.size());
+    assertTrue(results.get(0).hasSpanInfo());
+    StackTraceData waiter = findStack(results, "lock-waiter");
+    assertEquals("java.lang.Object@1", waiter.getThreadLockData().getWaitingOn());
+    assertEquals("lock-owner", waiter.getThreadLockData().getLockOwner());
   }
 
   private static StackTraceData findStack(List<StackToSpanLinkage> results, String threadName) {

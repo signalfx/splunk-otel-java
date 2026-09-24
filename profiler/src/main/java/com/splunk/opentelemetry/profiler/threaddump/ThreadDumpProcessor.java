@@ -73,7 +73,7 @@ public class ThreadDumpProcessor {
       }
 
       SpanLinkage linkage = contextualizer.link(stackRegion);
-      if (onlyTracingSpans && !linkage.getSpanContext().isValid()) {
+      if (onlyTracingSpans && !linkage.getSpanContext().isValid() && !locksEnabled) {
         continue;
       }
 
@@ -83,6 +83,9 @@ public class ThreadDumpProcessor {
         continue;
       }
       maybeAddToLockOwners(stackTrace, lockToOwnerNameMapping);
+      if (onlyTracingSpans && !linkage.getSpanContext().isValid()) {
+        continue;
+      }
 
       StackToSpanLinkage stackLinkedToSpan =
           new StackToSpanLinkage(

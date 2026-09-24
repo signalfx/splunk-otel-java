@@ -23,6 +23,7 @@ import com.splunk.opentelemetry.profiler.context.SpanContextualizer;
 import com.splunk.opentelemetry.profiler.context.SpanLinkage;
 import com.splunk.opentelemetry.profiler.context.StackToSpanLinkage;
 import com.splunk.opentelemetry.profiler.exporter.CpuEventExporter;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -64,36 +65,47 @@ public class ThreadDumpProcessor {
             : Collections.emptyMap();
     List<StackToSpanLinkage> waitingStacks =
         locksEnabled ? new ArrayList<>() : Collections.emptyList();
+    Instant eventTime = eventReader.getStartInstant(event);
 
     ThreadDumpRegion.Iterator iterator = new ThreadDumpRegion.Iterator(wallOfStacks);
     ThreadDumpRegion stackRegion;
     while ((stackRegion = iterator.findNextStack()) != null) {
-      if (!stackTraceFilter.test(stackRegion)) {
-        continue;
-      }
-
-      SpanLinkage linkage = contextualizer.link(stackRegion);
-      if (onlyTracingSpans && !linkage.getSpanContext().isValid() && !locksEnabled) {
-        continue;
-      }
-
-      StackTraceData stackTrace =
-          StackTraceParser.parse(stackRegion.getCurrentRegion(), stackDepth, locksEnabled);
-      if (stackTrace == null) {
-        continue;
-      }
-      maybeAddToLockOwners(stackTrace, lockToOwnerNameMapping);
-      if (onlyTracingSpans && !linkage.getSpanContext().isValid()) {
-        continue;
-      }
-
-      StackToSpanLinkage stackLinkedToSpan =
-          new StackToSpanLinkage(
-              eventReader.getStartInstant(event), stackTrace, eventName, linkage);
-      exportOrWaitForLockOwnerName(stackLinkedToSpan, lockToOwnerNameMapping, waitingStacks);
+      processStack(stackRegion, eventTime, eventName, lockToOwnerNameMapping, waitingStacks);
     }
 
     exportWaitingStacks(waitingStacks, lockToOwnerNameMapping);
+  }
+
+  private void processStack(
+      ThreadDumpRegion stackRegion,
+      Instant eventTime,
+      String eventName,
+      Map<String, String> lockToOwnerNameMapping,
+      List<StackToSpanLinkage> waitingStacks) {
+    if (!stackTraceFilter.test(stackRegion)) {
+      return;
+    }
+
+    SpanLinkage linkage = contextualizer.link(stackRegion);
+    boolean shouldExport = !onlyTracingSpans || linkage.getSpanContext().isValid();
+    if (!shouldExport && !locksEnabled) {
+      return;
+    }
+
+    StackTraceData stackTrace =
+        StackTraceParser.parse(stackRegion.getCurrentRegion(), stackDepth, locksEnabled);
+    if (stackTrace == null) {
+      return;
+    }
+
+    maybeAddToLockOwners(stackTrace, lockToOwnerNameMapping);
+    if (!shouldExport) {
+      return;
+    }
+
+    StackToSpanLinkage stackLinkedToSpan =
+        new StackToSpanLinkage(eventTime, stackTrace, eventName, linkage);
+    exportOrWaitForLockOwnerName(stackLinkedToSpan, lockToOwnerNameMapping, waitingStacks);
   }
 
   private void exportOrWaitForLockOwnerName(

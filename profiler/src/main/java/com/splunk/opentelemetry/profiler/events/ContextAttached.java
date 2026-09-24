@@ -28,7 +28,7 @@ import jdk.jfr.StackTrace;
 @Label("otel context attached")
 @Category("opentelemetry")
 @StackTrace(false)
-public class ContextAttached extends Event {
+public class ContextAttached extends Event implements JfrEvent {
 
   public static final String EVENT_NAME = "otel.ContextAttached";
 

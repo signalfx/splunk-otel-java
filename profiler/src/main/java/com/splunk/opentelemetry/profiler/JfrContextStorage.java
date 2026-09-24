@@ -18,6 +18,7 @@ package com.splunk.opentelemetry.profiler;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.splunk.opentelemetry.profiler.events.ContextAttached;
+import com.splunk.opentelemetry.profiler.events.JfrEvent;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.api.trace.TraceFlags;
@@ -29,7 +30,7 @@ import javax.annotation.Nullable;
 
 class JfrContextStorage implements ContextStorage {
   private final ContextStorage delegate;
-  private final Function<SpanContext, ContextAttached> newEvent;
+  private final Function<SpanContext, JfrEvent> newEvent;
   private final ThreadLocal<Span> activeSpan = ThreadLocal.withInitial(Span::getInvalid);
 
   private volatile boolean enabled = false;
@@ -39,7 +40,7 @@ class JfrContextStorage implements ContextStorage {
   }
 
   @VisibleForTesting
-  JfrContextStorage(ContextStorage delegate, Function<SpanContext, ContextAttached> newEvent) {
+  JfrContextStorage(ContextStorage delegate, Function<SpanContext, JfrEvent> newEvent) {
     this.delegate = delegate;
     this.newEvent = newEvent;
   }
@@ -87,7 +88,7 @@ class JfrContextStorage implements ContextStorage {
 
   private void generateEvent(Span span) {
     SpanContext context = span.getSpanContext();
-    ContextAttached event = newEvent.apply(context);
+    JfrEvent event = newEvent.apply(context);
     event.begin();
     if (event.shouldCommit()) {
       event.commit();

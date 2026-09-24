@@ -15,7 +15,7 @@ jobs:
     uses: ./.github/workflows/reusable-link-check.yml
 
   build:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -38,7 +38,7 @@ jobs:
         run: cat build-scan.txt
 
   test-latest-deps:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -61,7 +61,7 @@ jobs:
         run: cat build-scan.txt
 
   setup-muzzle-matrix:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
@@ -84,7 +84,7 @@ jobs:
 
   muzzle:
     needs: setup-muzzle-matrix
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     strategy:
       matrix: ${{fromJson(needs.setup-muzzle-matrix.outputs.matrix)}}
       fail-fast: false
@@ -174,7 +174,7 @@ jobs:
     name: Open issue on failure
     # This must be the complete list of all jobs in this file (excluding this one)
     needs: [ check-links, build, test-latest-deps, muzzle, smoke-test, shellcheck ]
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     permissions:
       issues: write
     # reads weird, but always() ensures that the issue job isn't skipped when a need fails.
@@ -202,7 +202,7 @@ jobs:
             --body-file body.txt
 
   shellcheck:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:

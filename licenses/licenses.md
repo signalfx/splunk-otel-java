@@ -1,7 +1,7 @@
 
 # splunk-otel-javaagent
 ## Dependency License Report
-_2026-09-16 12:27:49 CEST_
+_2026-09-22 18:00:12 UTC_
 ## Apache License, Version 2.0
 
 **1** **Group:** `com.squareup.okhttp3` **Name:** `okhttp` **Version:** `5.5.0` 
@@ -107,12 +107,12 @@ _2026-09-16 12:27:49 CEST_
 > - **POM Project URL**: [https://kotlinlang.org/](https://kotlinlang.org/)
 > - **POM License**: Apache License, Version 2.0 - [https://www.apache.org/licenses/LICENSE-2.0](https://www.apache.org/licenses/LICENSE-2.0)
 
-**26** **Group:** `org.slf4j` **Name:** `jcl-over-slf4j` **Version:** `2.0.19` 
+**26** **Group:** `org.slf4j` **Name:** `jcl-over-slf4j` **Version:** `2.0.20` 
 > - **Project URL**: [http://www.slf4j.org](http://www.slf4j.org)
 > - **Manifest License**: [https://www.apache.org/licenses/LICENSE-2.0](Apache License, Version 2.0)
 > - **POM License**: Apache License, Version 2.0 - [https://www.apache.org/licenses/LICENSE-2.0](https://www.apache.org/licenses/LICENSE-2.0)
 > - **POM License**: MIT License - [https://opensource.org/licenses/MIT](https://opensource.org/licenses/MIT)
-> - **Embedded license files**: [jcl-over-slf4j-2.0.19.jar/META-INF/LICENSE.txt](jcl-over-slf4j-2.0.19.jar/META-INF/LICENSE.txt)
+> - **Embedded license files**: [jcl-over-slf4j-2.0.20.jar/META-INF/LICENSE.txt](jcl-over-slf4j-2.0.20.jar/META-INF/LICENSE.txt)
 
 ## MIT License
 
@@ -120,21 +120,21 @@ _2026-09-16 12:27:49 CEST_
 > - **POM Project URL**: [https://github.com/f4b6a3/uuid-creator](https://github.com/f4b6a3/uuid-creator)
 > - **POM License**: MIT License - [https://opensource.org/licenses/MIT](https://opensource.org/licenses/MIT)
 
-**28** **Group:** `org.slf4j` **Name:** `jcl-over-slf4j` **Version:** `2.0.19` 
+**28** **Group:** `org.slf4j` **Name:** `jcl-over-slf4j` **Version:** `2.0.20` 
 > - **Project URL**: [http://www.slf4j.org](http://www.slf4j.org)
 > - **Manifest License**: [https://www.apache.org/licenses/LICENSE-2.0](Apache License, Version 2.0)
 > - **POM License**: Apache License, Version 2.0 - [https://www.apache.org/licenses/LICENSE-2.0](https://www.apache.org/licenses/LICENSE-2.0)
 > - **POM License**: MIT License - [https://opensource.org/licenses/MIT](https://opensource.org/licenses/MIT)
-> - **Embedded license files**: [jcl-over-slf4j-2.0.19.jar/META-INF/LICENSE.txt](jcl-over-slf4j-2.0.19.jar/META-INF/LICENSE.txt)
+> - **Embedded license files**: [jcl-over-slf4j-2.0.20.jar/META-INF/LICENSE.txt](jcl-over-slf4j-2.0.20.jar/META-INF/LICENSE.txt)
 
-**29** **Group:** `org.slf4j` **Name:** `slf4j-api` **Version:** `2.0.19` 
+**29** **Group:** `org.slf4j` **Name:** `slf4j-api` **Version:** `2.0.20` 
 > - **Project URL**: [http://www.slf4j.org](http://www.slf4j.org)
 > - **POM License**: MIT License - [https://opensource.org/licenses/MIT](https://opensource.org/licenses/MIT)
-> - **Embedded license files**: [slf4j-api-2.0.19.jar/META-INF/LICENSE.txt](slf4j-api-2.0.19.jar/META-INF/LICENSE.txt)
+> - **Embedded license files**: [slf4j-api-2.0.20.jar/META-INF/LICENSE.txt](slf4j-api-2.0.20.jar/META-INF/LICENSE.txt)
 
 ## The 3-Clause BSD License
 
-**30** **Group:** `com.google.protobuf` **Name:** `protobuf-java` **Version:** `4.36.1` 
+**30** **Group:** `com.google.protobuf` **Name:** `protobuf-java` **Version:** `4.36.2` 
 > - **Manifest Project URL**: [https://developers.google.com/protocol-buffers/](https://developers.google.com/protocol-buffers/)
 > - **Manifest License**: [https://opensource.org/licenses/BSD-3-Clause](The 3-Clause BSD License)
 > - **POM License**: The 3-Clause BSD License - [https://opensource.org/licenses/BSD-3-Clause](https://opensource.org/licenses/BSD-3-Clause)

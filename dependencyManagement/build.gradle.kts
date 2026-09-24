@@ -10,9 +10,9 @@ val otelContribAlphaVersion = "1.59.0-alpha"
 
 val autoValueVersion = "1.11.1"
 val dockerJavaVersion = "3.7.1"
-val mockitoVersion = "5.23.0"
-val protobufVersion = "4.36.1"
-val slf4jVersion = "2.0.19"
+val mockitoVersion = "5.24.0"
+val protobufVersion = "4.36.2"
+val slf4jVersion = "2.0.20"
 
 // instrumentation version is used to compute Implementation-Version manifest attribute
 rootProject.extra["otelInstrumentationVersion"] = otelInstrumentationVersion
@@ -28,7 +28,7 @@ javaPlatform {
 dependencies {
 
   // BOMs
-  api(enforcedPlatform("com.fasterxml.jackson:jackson-bom:2.22.2"))
+  api(enforcedPlatform("com.fasterxml.jackson:jackson-bom:2.22.3"))
   api(enforcedPlatform("com.google.protobuf:protobuf-bom:$protobufVersion"))
   api(enforcedPlatform("com.squareup.okhttp3:okhttp-bom:5.5.0"))
   api(enforcedPlatform("io.grpc:grpc-bom:1.84.0"))

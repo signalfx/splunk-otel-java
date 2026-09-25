@@ -204,7 +204,7 @@ class PeriodicStackTraceSamplerTest {
     var initialSampleCollector =
         new ThreadInfoCollector(false) {
           @Override
-          ThreadInfo getThreadInfo(long threadId) {
+          public ThreadInfo getThreadInfo(long threadId) {
             var threadInfo = super.getThreadInfo(threadId);
             // The initial sample time has already been captured. Advance the clock before the
             // context becomes visible to the periodic sampling thread.
@@ -547,7 +547,7 @@ class PeriodicStackTraceSamplerTest {
     }
 
     @Override
-    ThreadInfo getThreadInfo(long threadId) {
+    public ThreadInfo getThreadInfo(long threadId) {
       try {
         Thread.sleep(delay.toMillis());
         return super.getThreadInfo(threadId);
@@ -557,7 +557,7 @@ class PeriodicStackTraceSamplerTest {
     }
 
     @Override
-    ThreadInfo[] getThreadInfo(Collection<Long> threadIds) {
+    public ThreadInfo[] getThreadInfo(Collection<Long> threadIds) {
       try {
         Thread.sleep(delay.toMillis());
         return super.getThreadInfo(threadIds);
@@ -581,7 +581,7 @@ class PeriodicStackTraceSamplerTest {
     }
 
     @Override
-    ThreadInfo getThreadInfo(long threadId) {
+    public ThreadInfo getThreadInfo(long threadId) {
       try {
         var ti = super.getThreadInfo(threadId);
         if (wait.get()) {
@@ -594,7 +594,7 @@ class PeriodicStackTraceSamplerTest {
     }
 
     @Override
-    ThreadInfo[] getThreadInfo(Collection<Long> threadIds) {
+    public ThreadInfo[] getThreadInfo(Collection<Long> threadIds) {
       try {
         var tis = super.getThreadInfo(threadIds);
         if (wait.get()) {

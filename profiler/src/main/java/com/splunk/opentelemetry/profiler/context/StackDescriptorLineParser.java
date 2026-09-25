@@ -16,7 +16,7 @@
 
 package com.splunk.opentelemetry.profiler.context;
 
-import com.splunk.opentelemetry.profiler.ThreadDumpRegion;
+import com.splunk.opentelemetry.profiler.threaddump.ThreadDumpRegion;
 
 /**
  * Class that parses the "descriptor" line from a stack trace. At the moment, it only parses out the
@@ -31,17 +31,18 @@ class StackDescriptorLineParser {
    * method parses out the thread id, which is the second field (space separated).
    */
   long parseThreadId(ThreadDumpRegion stack) {
-    String threadDump = stack.threadDump;
+    String threadDump = stack.getThreadDump();
     // Require a quoted thread name field at the start
-    if (stack.startIndex >= stack.endIndex || threadDump.charAt(stack.startIndex) != '"') {
+    if (stack.getStartIndex() >= stack.getEndIndex()
+        || threadDump.charAt(stack.getStartIndex()) != '"') {
       return CANT_PARSE_THREAD_ID;
     }
-    int secondQuote = stack.indexOf('"', stack.startIndex + 1);
+    int secondQuote = stack.indexOf('"', stack.getStartIndex() + 1);
     if (secondQuote == -1) {
       return CANT_PARSE_THREAD_ID;
     }
     int firstSpaceAfterSecondQuote = secondQuote + 1;
-    if (firstSpaceAfterSecondQuote >= stack.endIndex - 2
+    if (firstSpaceAfterSecondQuote >= stack.getEndIndex() - 2
         || threadDump.charAt(firstSpaceAfterSecondQuote) != ' ') {
       return CANT_PARSE_THREAD_ID;
     }

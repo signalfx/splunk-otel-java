@@ -1363,18 +1363,19 @@ public class MetadataGenerator {
               + otelJavaInstrumentationVersion
               + "/docs/instrumentation-list.yaml";
     }
-    return parseInstrumentations(new URL(url));
+    return parseInstrumentations(new URL(url), true);
   }
 
   @VisibleForTesting
-  static List<Map<String, Object>> parseInstrumentations(URL url) throws IOException {
+  static List<Map<String, Object>> parseInstrumentations(URL url, boolean checkFileFormat)
+      throws IOException {
     Yaml yaml = new Yaml();
     Map<String, Object> metadata;
     try (InputStream inputStream = url.openStream()) {
       metadata = yaml.load(inputStream);
     }
 
-    if (!"0.8".equals(metadata.get("file_format").toString())) {
+    if (checkFileFormat && !"0.8".equals(metadata.get("file_format").toString())) {
       throw new IllegalStateException(
           "unexpected file format version: " + metadata.get("file_format"));
     }

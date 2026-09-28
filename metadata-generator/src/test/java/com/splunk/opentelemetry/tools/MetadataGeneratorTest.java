@@ -56,6 +56,6 @@ class MetadataGeneratorTest {
       throws IOException {
     URL resource = MetadataGeneratorTest.class.getResource("/" + resourceName);
     assertThat(resource).isNotNull();
-    return MetadataGenerator.parseInstrumentations(resource);
+    return MetadataGenerator.parseInstrumentations(resource, false);
   }
 }

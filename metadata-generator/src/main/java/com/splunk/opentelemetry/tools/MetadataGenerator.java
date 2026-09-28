@@ -1374,7 +1374,7 @@ public class MetadataGenerator {
       metadata = yaml.load(inputStream);
     }
 
-    if (!"0.6".equals(metadata.get("file_format").toString())) {
+    if (!"0.8".equals(metadata.get("file_format").toString())) {
       throw new IllegalStateException(
           "unexpected file format version: " + metadata.get("file_format"));
     }
@@ -1429,7 +1429,7 @@ public class MetadataGenerator {
               setting(
                   propertyName.toString(),
                   configuration.get("description").toString(),
-                  configuration.get("default").toString(),
+                  Objects.toString(configuration.get("default"),  ""),
                   toSettingType(configuration.get("type").toString()),
                   MetadataGenerator.SettingCategory.INSTRUMENTATION));
         }

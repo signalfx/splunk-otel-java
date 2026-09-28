@@ -1429,7 +1429,7 @@ public class MetadataGenerator {
               setting(
                   propertyName.toString(),
                   configuration.get("description").toString(),
-                  Objects.toString(configuration.get("default"),  ""),
+                  Objects.toString(configuration.get("default"), ""),
                   toSettingType(configuration.get("type").toString()),
                   MetadataGenerator.SettingCategory.INSTRUMENTATION));
         }

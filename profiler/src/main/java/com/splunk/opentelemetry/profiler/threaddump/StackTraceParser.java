@@ -261,6 +261,32 @@ public class StackTraceParser {
     private boolean waitingOnLockIsReleasedMonitor;
     private final List<String> lockedMonitors = new ArrayList<>();
 
+    /**
+     * Records the lock reported by a waiting line in a thread dump. The most common case is that
+     * the lock appears once per stack trace, but sometimes the same lock may appear on multiple
+     * lines, such as {@code - waiting on} and {@code - waiting to re-lock in wait()}.
+     *
+     * <p>After JIT compilation, HotSpot may be unable to recover the {@code Object.wait()} receiver
+     * from a compiled native frame. It then prints {@code - waiting on <no object reference
+     * available>}, for which {@code parseLock} returns null which is ignored. Often a later line
+     * identifies the lock, so valid lock is recorded, as in this stack trace:
+     *
+     * <pre>{@code
+     * "Finalizer" #3 daemon prio=8 os_prio=31 in Object.wait()
+     *    java.lang.Thread.State: WAITING (on object monitor)
+     *        at java.lang.Object.wait(java.base@11.0.9.1/Native Method)
+     *        - waiting on <no object reference available>
+     *        at java.lang.ref.ReferenceQueue.remove(java.base@11.0.9.1/ReferenceQueue.java:155)
+     *        - waiting to re-lock in wait() <0x0000000600401608> (a java.lang.ref.ReferenceQueue$Lock)
+     * }</pre>
+     *
+     * <p>Some dumps have no later waiting line, so the waiting lock remains unknown. For {@code -
+     * parking to wait for}, the reported object is an ownable synchronizer.
+     *
+     * @param lock the parsed lock, or {@code null} if it could not be identified
+     * @param lockIsReleasedMonitor {@code true} for an {@code Object.wait()} monitor line; {@code
+     *     false} otherwise
+     */
     private void recordWaitingOn(String lock, boolean lockIsReleasedMonitor) {
       if (lock == null) {
         return;
@@ -269,6 +295,11 @@ public class StackTraceParser {
       waitingOnLockIsReleasedMonitor = lockIsReleasedMonitor;
     }
 
+    /**
+     * Record a locked monitor that this thread holds.
+     *
+     * @param lock a lock this thread holds
+     */
     private void recordLockedMonitor(String lock) {
       if (lock != null) {
         lockedMonitors.add(lock);

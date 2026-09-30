@@ -23,6 +23,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.time.Duration;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.extension.RegisterExtension;
@@ -39,7 +40,8 @@ class OracleTest extends AbstractConnectionUsingDbContextPropagationTest {
 
   private static final OracleContainer oracle =
       new OracleContainer("gvenzl/oracle-free:slim-faststart")
-          .withLogConsumer(new Slf4jLogConsumer(logger));
+          .withLogConsumer(new Slf4jLogConsumer(logger))
+          .withStartupTimeout(Duration.ofMinutes(5));
 
   @BeforeAll
   static void setup() throws Exception {

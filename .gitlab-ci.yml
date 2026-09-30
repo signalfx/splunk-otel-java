@@ -17,6 +17,9 @@ stages:
 
 build:
   stage: build
+  before_script:
+    - ./scripts/install-docker-deps.sh
+    - ./scripts/install-gh-deps.sh
   script:
     - ./gradlew build -x :smoke-tests:test --scan --no-daemon --stacktrace
 

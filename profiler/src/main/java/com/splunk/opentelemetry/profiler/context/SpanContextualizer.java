@@ -52,7 +52,7 @@ public class SpanContextualizer {
    * ContextAttached events.
    */
   public void updateContext(IItem event) {
-    // JDK doesn't report thread for events that happened on a thread that has terminated by now
+    // JFR doesn't report thread for events that happened on a thread that has terminated by now
     IMCThread eventThread = eventReader.getThread(event);
     if (eventThread == null) {
       return;

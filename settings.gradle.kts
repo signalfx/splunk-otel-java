@@ -15,6 +15,7 @@ develocity {
   buildScan {
     termsOfUseUrl = "https://gradle.com/terms-of-service"
     termsOfUseAgree = if (System.getenv("CI") != null) "yes" else "no"
+    uploadInBackground = System.getenv("CI") == null
 
     if (!gradle.startParameter.taskNames.contains(":metadata-generator:generateMetadata")) {
       buildScanPublished {

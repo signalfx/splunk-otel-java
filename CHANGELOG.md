@@ -8,6 +8,10 @@ and this repository adheres to [Semantic Versioning](https://semver.org/spec/v2.
 
 ## Unreleased
 
+## v2.31.2 - 2026-09-30
+
+- Fix turning off CPU profiling with remote configuration [#3054](https://github.com/signalfx/splunk-otel-java/pull/3054)
+
 ## v2.31.1 - 2026-08-28
 
 - Disable collecting lock info for call graphs by default [#3035](https://github.com/signalfx/splunk-otel-java/pull/3035)

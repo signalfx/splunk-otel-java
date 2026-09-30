@@ -48,6 +48,7 @@ tasks.withType<Test>().configureEach {
     showExceptions = true
     showCauses = true
     showStackTraces = true
+    showStandardStreams = true
   }
   reports {
     junitXml.isOutputPerTestCase = true

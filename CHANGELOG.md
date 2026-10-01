@@ -8,6 +8,12 @@ and this repository adheres to [Semantic Versioning](https://semver.org/spec/v2.
 
 ## Unreleased
 
+## v2.31.3 - 2026-10-01
+
+### General
+
+- Fix publishing of docker image
+
 ## v2.31.2 - 2026-09-30
 
 ### General

@@ -20,6 +20,7 @@ import static java.util.logging.Level.FINE;
 import static java.util.logging.Level.SEVERE;
 
 import com.splunk.opentelemetry.profiler.events.ContextAttached;
+import com.splunk.opentelemetry.profiler.threaddump.ThreadDumpProcessor;
 import java.io.InputStream;
 import java.lang.reflect.Method;
 import java.time.Duration;
@@ -93,7 +94,7 @@ class JfrRecordingHandler implements Consumer<InputStream> {
       Instant end = Instant.now();
       long timeElapsed = Duration.between(start, end).toMillis();
       if (logger.isLoggable(FINE)) {
-        logger.log(FINE, "Processed recording in {1}ms", new Object[] {timeElapsed});
+        logger.log(FINE, "Processed recording in {0}ms", timeElapsed);
       }
       eventProcessingChain.logEventStats();
     }

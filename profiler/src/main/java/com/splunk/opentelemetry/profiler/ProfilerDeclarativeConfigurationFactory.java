@@ -58,6 +58,7 @@ public final class ProfilerDeclarativeConfigurationFactory {
         .setIncludeAgentInternalStacks(configRoot.getBoolean("include_agent_internals", false))
         .setIncludeJvmInternalStacks(configRoot.getBoolean("include_jvm_internals", false))
         .setTracingStacksOnly(configRoot.getBoolean("tracing_stacks_only", false))
+        .setLocksEnabled(configRoot.getBoolean("report_locks", false))
         .setStackDepth(configRoot.getInt("stack_depth", 1024))
         .setKeepFiles(configRoot.getBoolean("keep_recording_files", false))
         .setProfilerDirectory(

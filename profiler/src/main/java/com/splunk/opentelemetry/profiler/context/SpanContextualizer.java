@@ -20,7 +20,7 @@ import static com.splunk.opentelemetry.profiler.context.StackDescriptorLineParse
 import static java.util.logging.Level.FINE;
 
 import com.splunk.opentelemetry.profiler.EventReader;
-import com.splunk.opentelemetry.profiler.ThreadDumpRegion;
+import com.splunk.opentelemetry.profiler.threaddump.ThreadDumpRegion;
 import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.api.trace.TraceFlags;
 import io.opentelemetry.api.trace.TraceState;
@@ -100,9 +100,9 @@ public class SpanContextualizer {
   }
 
   private boolean isStacklessThread(ThreadDumpRegion stack) {
-    int firstNewline = stack.indexOf('\n', stack.startIndex);
+    int firstNewline = stack.indexOf('\n', stack.getStartIndex());
     return (firstNewline == -1)
-        || (firstNewline == stack.endIndex - 1)
+        || (firstNewline == stack.getEndIndex() - 1)
         || (stack.indexOf('\n', firstNewline + 1) == -1);
   }
 

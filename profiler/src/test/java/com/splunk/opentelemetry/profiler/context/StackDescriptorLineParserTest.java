@@ -19,7 +19,7 @@ package com.splunk.opentelemetry.profiler.context;
 import static com.splunk.opentelemetry.profiler.context.StackDescriptorLineParser.CANT_PARSE_THREAD_ID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import com.splunk.opentelemetry.profiler.ThreadDumpRegion;
+import com.splunk.opentelemetry.profiler.threaddump.ThreadDumpRegion;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 

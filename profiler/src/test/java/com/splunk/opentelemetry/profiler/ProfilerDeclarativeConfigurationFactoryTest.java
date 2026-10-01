@@ -40,6 +40,7 @@ class ProfilerDeclarativeConfigurationFactoryTest {
                     include_agent_internals: true
                     include_jvm_internals: true
                     tracing_stacks_only: true
+                    report_locks: true
                     stack_depth: 73
                     keep_recording_files: true
                     recording_directory: "/tmp/prof"
@@ -60,6 +61,7 @@ class ProfilerDeclarativeConfigurationFactoryTest {
     assertThat(config.getIncludeAgentInternalStacks()).isTrue();
     assertThat(config.getIncludeJvmInternalStacks()).isTrue();
     assertThat(config.getTracingStacksOnly()).isTrue();
+    assertThat(config.getLocksEnabled()).isTrue();
     assertThat(config.getStackDepth()).isEqualTo(73);
     assertThat(config.getKeepFiles()).isTrue();
     assertThat(config.getProfilerDirectory()).isEqualTo("/tmp/prof");

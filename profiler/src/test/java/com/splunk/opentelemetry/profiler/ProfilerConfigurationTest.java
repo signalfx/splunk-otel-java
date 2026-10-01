@@ -39,6 +39,7 @@ class ProfilerConfigurationTest {
             .setIncludeAgentInternalStacks(true)
             .setIncludeJvmInternalStacks(true)
             .setTracingStacksOnly(true)
+            .setLocksEnabled(true)
             .setStackDepth(73)
             .setKeepFiles(true)
             .setProfilerDirectory("/tmp/profiler")
@@ -71,6 +72,7 @@ class ProfilerConfigurationTest {
             .setIncludeAgentInternalStacks(true)
             .setIncludeJvmInternalStacks(true)
             .setTracingStacksOnly(true)
+            .setLocksEnabled(true)
             .setStackDepth(73)
             .setKeepFiles(true)
             .setProfilerDirectory("/tmp/profiler")
@@ -91,6 +93,7 @@ class ProfilerConfigurationTest {
             .setIncludeAgentInternalStacks(false)
             .setIncludeJvmInternalStacks(false)
             .setTracingStacksOnly(false)
+            .setLocksEnabled(false)
             .setStackDepth(142)
             .setKeepFiles(false)
             .setProfilerDirectory("/tmp/mutated-profiler")
@@ -110,6 +113,7 @@ class ProfilerConfigurationTest {
     assertThat(copy.getIncludeAgentInternalStacks()).isFalse();
     assertThat(copy.getIncludeJvmInternalStacks()).isFalse();
     assertThat(copy.getTracingStacksOnly()).isFalse();
+    assertThat(copy.getLocksEnabled()).isFalse();
     assertThat(copy.getStackDepth()).isEqualTo(142);
     assertThat(copy.getKeepFiles()).isFalse();
     assertThat(copy.getProfilerDirectory()).isEqualTo("/tmp/mutated-profiler");

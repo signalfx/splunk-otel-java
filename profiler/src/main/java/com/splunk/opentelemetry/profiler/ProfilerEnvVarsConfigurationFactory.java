@@ -49,6 +49,7 @@ public final class ProfilerEnvVarsConfigurationFactory {
   static final String CONFIG_KEY_INCLUDE_INTERNAL_STACKS =
       "splunk.profiler.include.internal.stacks";
   static final String CONFIG_KEY_TRACING_STACKS_ONLY = "splunk.profiler.tracing.stacks.only";
+  static final String CONFIG_KEY_LOCKS_ENABLED = "splunk.profiler.locks.enabled";
   static final String CONFIG_KEY_STACK_DEPTH = "splunk.profiler.max.stack.depth";
 
   private static final String DEFAULT_PROFILER_DIRECTORY = System.getProperty("java.io.tmpdir");
@@ -80,6 +81,7 @@ public final class ProfilerEnvVarsConfigurationFactory {
         .setIncludeJvmInternalStacks(
             config.getBoolean(CONFIG_KEY_INCLUDE_JVM_INTERNALS, includeInternals))
         .setTracingStacksOnly(config.getBoolean(CONFIG_KEY_TRACING_STACKS_ONLY, false))
+        .setLocksEnabled(config.getBoolean(CONFIG_KEY_LOCKS_ENABLED, false))
         .setStackDepth(config.getInt(CONFIG_KEY_STACK_DEPTH, 1024))
         .setKeepFiles(config.getBoolean(CONFIG_KEY_KEEP_FILES, false))
         .setProfilerDirectory(

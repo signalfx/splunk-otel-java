@@ -55,6 +55,7 @@ class ProfilerEnvVarsConfigurationFactoryTest {
                 Map.entry("splunk.profiler.include.agent.internals", "true"),
                 Map.entry("splunk.profiler.include.jvm.internals", "true"),
                 Map.entry("splunk.profiler.tracing.stacks.only", "true"),
+                Map.entry("splunk.profiler.locks.enabled", "true"),
                 Map.entry("splunk.profiler.max.stack.depth", "73")));
 
     ProfilerConfiguration profilerConfiguration =
@@ -72,6 +73,7 @@ class ProfilerEnvVarsConfigurationFactoryTest {
     assertThat(profilerConfiguration.getIncludeAgentInternalStacks()).isTrue();
     assertThat(profilerConfiguration.getIncludeJvmInternalStacks()).isTrue();
     assertThat(profilerConfiguration.getTracingStacksOnly()).isTrue();
+    assertThat(profilerConfiguration.getLocksEnabled()).isTrue();
     assertThat(profilerConfiguration.getStackDepth()).isEqualTo(73);
     assertThat(profilerConfiguration.getKeepFiles()).isTrue();
     assertThat(profilerConfiguration.getProfilerDirectory()).isEqualTo("/tmp/prof");

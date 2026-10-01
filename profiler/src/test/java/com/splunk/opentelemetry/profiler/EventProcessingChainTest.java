@@ -28,6 +28,7 @@ import com.splunk.opentelemetry.profiler.allocation.exporter.AllocationEventExpo
 import com.splunk.opentelemetry.profiler.allocation.sampler.RateLimitingAllocationEventSampler;
 import com.splunk.opentelemetry.profiler.context.SpanContextualizer;
 import com.splunk.opentelemetry.profiler.events.ContextAttached;
+import com.splunk.opentelemetry.profiler.threaddump.ThreadDumpProcessor;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;

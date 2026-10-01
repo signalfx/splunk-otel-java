@@ -44,6 +44,7 @@ public class ProfilerConfiguration {
   private final boolean includeAgentInternalStacks;
   private final boolean includeJvmInternalStacks;
   private final boolean tracingStacksOnly;
+  private final boolean locksEnabled;
   private final int stackDepth;
   private final boolean keepFiles;
   private final String profilerDirectory;
@@ -62,6 +63,7 @@ public class ProfilerConfiguration {
     includeAgentInternalStacks = builder.includeAgentInternalStacks;
     includeJvmInternalStacks = builder.includeJvmInternalStacks;
     tracingStacksOnly = builder.tracingStacksOnly;
+    locksEnabled = builder.locksEnabled;
     stackDepth = builder.stackDepth;
     keepFiles = builder.keepFiles;
     profilerDirectory = builder.profilerDirectory;
@@ -86,6 +88,7 @@ public class ProfilerConfiguration {
         .setIncludeAgentInternalStacks(includeAgentInternalStacks)
         .setIncludeJvmInternalStacks(includeJvmInternalStacks)
         .setTracingStacksOnly(tracingStacksOnly)
+        .setLocksEnabled(locksEnabled)
         .setStackDepth(stackDepth)
         .setKeepFiles(keepFiles)
         .setProfilerDirectory(profilerDirectory)
@@ -115,6 +118,7 @@ public class ProfilerConfiguration {
     log("IncludeAgentInternalStacks", getIncludeAgentInternalStacks());
     log("IncludeJvmInternalStacks", getIncludeJvmInternalStacks());
     log("TracingStacksOnly", getTracingStacksOnly());
+    log("LocksEnabled", getLocksEnabled());
     log("StackDepth", getStackDepth());
     logger.info("-----------------------");
   }
@@ -165,6 +169,10 @@ public class ProfilerConfiguration {
     return tracingStacksOnly;
   }
 
+  public boolean getLocksEnabled() {
+    return locksEnabled;
+  }
+
   public int getStackDepth() {
     return stackDepth;
   }
@@ -202,6 +210,7 @@ public class ProfilerConfiguration {
         && includeAgentInternalStacks == that.includeAgentInternalStacks
         && includeJvmInternalStacks == that.includeJvmInternalStacks
         && tracingStacksOnly == that.tracingStacksOnly
+        && locksEnabled == that.locksEnabled
         && stackDepth == that.stackDepth
         && keepFiles == that.keepFiles
         && Objects.equals(ingestUrl, that.ingestUrl)
@@ -227,6 +236,7 @@ public class ProfilerConfiguration {
         includeAgentInternalStacks,
         includeJvmInternalStacks,
         tracingStacksOnly,
+        locksEnabled,
         stackDepth,
         keepFiles,
         profilerDirectory,
@@ -254,6 +264,7 @@ public class ProfilerConfiguration {
     private boolean includeAgentInternalStacks;
     private boolean includeJvmInternalStacks;
     private boolean tracingStacksOnly;
+    private boolean locksEnabled;
     private int stackDepth = 1024;
     private boolean keepFiles;
     private String profilerDirectory = DEFAULT_PROFILER_DIRECTORY;
@@ -323,6 +334,11 @@ public class ProfilerConfiguration {
 
     public Builder setTracingStacksOnly(boolean tracingStacksOnly) {
       this.tracingStacksOnly = tracingStacksOnly;
+      return this;
+    }
+
+    public Builder setLocksEnabled(boolean locksEnabled) {
+      this.locksEnabled = locksEnabled;
       return this;
     }
 

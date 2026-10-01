@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-package com.splunk.opentelemetry.profiler;
+package com.splunk.opentelemetry.profiler.threaddump;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import com.splunk.opentelemetry.profiler.EventReader;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;

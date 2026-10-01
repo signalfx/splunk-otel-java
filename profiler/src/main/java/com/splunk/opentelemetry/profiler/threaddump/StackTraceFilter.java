@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package com.splunk.opentelemetry.profiler;
+package com.splunk.opentelemetry.profiler.threaddump;
 
+import com.splunk.opentelemetry.profiler.EventReader;
 import java.util.stream.Stream;
 import org.openjdk.jmc.common.IMCFrame;
 import org.openjdk.jmc.common.IMCMethod;
@@ -30,13 +31,17 @@ public class StackTraceFilter {
       new String[] {
         "\"Batched Logs Exporter\"",
         "\"BatchSpanProcessor_WorkerThread-",
+        "\"PeriodicMetricReader-",
         "\"JFR Recorder Thread\"",
         "\"JFR Periodic Tasks\"",
         "\"JFR Recording Scheduler\"",
         "\"JFR Recording Flusher\"",
+        "\"JFR Profiler\"",
+        "\"Snapshot Profiling Supervisor\"",
         "\"Reference Handler\"",
         "\"Finalizer\"",
         "\"C1 CompilerThread",
+        "\"C2 CompilerThread",
         "\"Common-Cleaner\""
       };
 
@@ -58,34 +63,34 @@ public class StackTraceFilter {
   }
 
   public boolean test(ThreadDumpRegion region) {
-    if (region.startIndex >= region.endIndex) {
+    if (region.getStartIndex() >= region.getEndIndex()) {
       return false;
     }
-    String wallOfStacks = region.threadDump;
+    String wallOfStacks = region.getThreadDump();
     // Must start with a quote for the thread name
-    if (wallOfStacks.charAt(region.startIndex) != '"') {
+    if (wallOfStacks.charAt(region.getStartIndex()) != '"') {
       return false;
     }
     // If the last newline before next is before the start, that means we have one line, so skip
     // that
-    int previousNewlineIndex = wallOfStacks.lastIndexOf('\n', region.endIndex - 2);
-    if (previousNewlineIndex <= region.startIndex) {
+    int previousNewlineIndex = wallOfStacks.lastIndexOf('\n', region.getEndIndex() - 2);
+    if (previousNewlineIndex <= region.getStartIndex()) {
       return false;
     }
     // two line cases
-    if (wallOfStacks.lastIndexOf('\n', previousNewlineIndex - 1) <= region.startIndex) {
+    if (wallOfStacks.lastIndexOf('\n', previousNewlineIndex - 1) <= region.getStartIndex()) {
       return false;
     }
     if (!includeAgentInternalStacks) {
       if (Stream.of(StackTraceFilter.UNWANTED_PREFIXES)
           .anyMatch(
               prefix ->
-                  wallOfStacks.regionMatches(region.startIndex, prefix, 0, prefix.length()))) {
+                  wallOfStacks.regionMatches(region.getStartIndex(), prefix, 0, prefix.length()))) {
         return false;
       }
     }
     if (!includeJvmInternalStacks) {
-      if (everyFrameIsJvmInternal(wallOfStacks, region.startIndex, region.endIndex - 1)) {
+      if (everyFrameIsJvmInternal(wallOfStacks, region.getStartIndex(), region.getEndIndex() - 1)) {
         return false;
       }
     }

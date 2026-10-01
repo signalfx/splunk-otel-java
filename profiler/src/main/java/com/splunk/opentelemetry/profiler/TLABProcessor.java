@@ -20,6 +20,7 @@ import com.splunk.opentelemetry.profiler.allocation.exporter.AllocationEventExpo
 import com.splunk.opentelemetry.profiler.allocation.sampler.AllocationEventSampler;
 import com.splunk.opentelemetry.profiler.allocation.sampler.RateLimitingAllocationEventSampler;
 import com.splunk.opentelemetry.profiler.context.SpanContextualizer;
+import com.splunk.opentelemetry.profiler.threaddump.StackTraceFilter;
 import io.opentelemetry.api.trace.SpanContext;
 import org.openjdk.jmc.common.IMCStackTrace;
 import org.openjdk.jmc.common.IMCThread;

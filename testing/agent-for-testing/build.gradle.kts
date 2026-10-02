@@ -20,6 +20,8 @@ val upstreamAgent = configurations.create("upstreamAgent") {
   isCanBeConsumed = false
 }
 
+val otelInstrumentationVersion: String = rootProject.extra["otelInstrumentationVersion"] as String
+
 dependencies {
   add("bootstrapLibs", platform(project(":dependencyManagement")))
   add("javaagentLibs", platform(project(":dependencyManagement")))
@@ -105,6 +107,8 @@ tasks {
           "Premain-Class" to "io.opentelemetry.javaagent.OpenTelemetryAgent",
           "Can-Redefine-Classes" to true,
           "Can-Retransform-Classes" to true,
+          "Implementation-Vendor" to "Splunk",
+          "Implementation-Version" to "splunk-${project.version}-otel-$otelInstrumentationVersion",
         ),
       )
     }

@@ -27,21 +27,6 @@ val splunkAgent = configurations.create("splunkAgent") {
   isCanBeConsumed = false
 }
 
-repositories {
-  ivy {
-    // Required to source artifact directly from github release page
-    // https://github.com/signalfx/csa-releases/releases/download/<version>/oss-agent-mtagent-extension-deployment.jar
-    url = uri("https://github.com/")
-    metadataSources {
-      artifact()
-    }
-    patternLayout {
-      ivy("[organisation]/[module]/releases/download/[revision]/[artifact].[ext]")
-      artifact("[organisation]/[module]/releases/download/[revision]/[artifact].[ext]")
-    }
-  }
-}
-
 dependencies {
   splunkAgent(project(":agent", configuration = "shadow"))
   csaReleases("signalfx:csa-releases:$csaVersion") {

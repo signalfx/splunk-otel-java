@@ -41,6 +41,10 @@ class InMemoryStagingArea implements StagingArea {
     return !stackTraces.isEmpty();
   }
 
+  boolean hasStackTraces(int count) {
+    return stackTraces.size() >= count;
+  }
+
   List<StackTrace> allStackTraces() {
     return Collections.unmodifiableList(stackTraces);
   }

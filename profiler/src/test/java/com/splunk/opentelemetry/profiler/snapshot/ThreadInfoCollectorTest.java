@@ -23,8 +23,11 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.splunk.opentelemetry.profiler.exporter.ThreadData;
+import com.splunk.opentelemetry.profiler.util.ThreadUtil;
 import java.lang.management.ThreadInfo;
 import java.lang.management.ThreadMXBean;
+import java.util.Collection;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -35,33 +38,39 @@ class ThreadInfoCollectorTest {
   void doesNotRequestLockInformationByDefault() {
     ThreadMXBean threadMXBean = mock(ThreadMXBean.class);
     ThreadInfo threadInfo = mock(ThreadInfo.class);
+    when(threadInfo.getThreadName()).thenReturn("test-thread");
     when(threadMXBean.getThreadInfo(any(long[].class), eq(false), eq(false)))
         .thenReturn(new ThreadInfo[] {threadInfo});
     ThreadInfoCollector collector = new ThreadInfoCollector(threadMXBean);
 
-    ThreadInfo[] result = collector.getThreadInfo(List.of(17L));
+    Collection<ThreadData> result = collector.getThreadInfo(List.of(Thread.currentThread()));
 
     ArgumentCaptor<long[]> threadIds = ArgumentCaptor.forClass(long[].class);
     verify(threadMXBean).getThreadInfo(threadIds.capture(), eq(false), eq(false));
-    assertThat(threadIds.getValue()).containsExactly(17L);
-    assertThat(result).containsExactly(threadInfo);
+    assertThat(threadIds.getValue())
+        .containsExactly(ThreadUtil.getThreadId(Thread.currentThread()));
+    assertThat(result)
+        .satisfiesExactly(thread -> assertThat(thread.getThreadName()).isEqualTo("test-thread"));
   }
 
   @Test
   void requestsLockInformationWhenEnabled() {
     ThreadMXBean threadMXBean = mock(ThreadMXBean.class);
     ThreadInfo threadInfo = mock(ThreadInfo.class);
+    when(threadInfo.getThreadName()).thenReturn("test-thread");
     when(threadMXBean.isObjectMonitorUsageSupported()).thenReturn(true);
     when(threadMXBean.isSynchronizerUsageSupported()).thenReturn(true);
     when(threadMXBean.getThreadInfo(any(long[].class), eq(true), eq(true)))
         .thenReturn(new ThreadInfo[] {threadInfo});
     ThreadInfoCollector collector = new ThreadInfoCollector(threadMXBean, true);
 
-    ThreadInfo[] result = collector.getThreadInfo(List.of(17L));
+    Collection<ThreadData> result = collector.getThreadInfo(List.of(Thread.currentThread()));
 
     ArgumentCaptor<long[]> threadIds = ArgumentCaptor.forClass(long[].class);
     verify(threadMXBean).getThreadInfo(threadIds.capture(), eq(true), eq(true));
-    assertThat(threadIds.getValue()).containsExactly(17L);
-    assertThat(result).containsExactly(threadInfo);
+    assertThat(threadIds.getValue())
+        .containsExactly(ThreadUtil.getThreadId(Thread.currentThread()));
+    assertThat(result)
+        .satisfiesExactly(thread -> assertThat(thread.getThreadName()).isEqualTo("test-thread"));
   }
 }

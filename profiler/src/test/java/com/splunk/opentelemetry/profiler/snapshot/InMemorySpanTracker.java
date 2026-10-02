@@ -16,6 +16,8 @@
 
 package com.splunk.opentelemetry.profiler.snapshot;
 
+import static com.splunk.opentelemetry.profiler.util.ThreadUtil.getThreadId;
+
 import io.opentelemetry.api.trace.SpanContext;
 import java.util.HashMap;
 import java.util.Map;
@@ -26,12 +28,12 @@ class InMemorySpanTracker implements SpanTracker {
   private boolean enabled = true;
 
   void store(Thread thread, SpanContext spanContext) {
-    activeSpans.put(thread.getId(), spanContext);
+    activeSpans.put(getThreadId(thread), spanContext);
   }
 
   @Override
   public Optional<SpanContext> getActiveSpan(Thread thread) {
-    return Optional.ofNullable(activeSpans.get(thread.getId()));
+    return Optional.ofNullable(activeSpans.get(getThreadId(thread)));
   }
 
   @Override

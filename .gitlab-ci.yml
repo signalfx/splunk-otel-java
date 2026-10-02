@@ -7,7 +7,7 @@ include:
     file: '/prodsec/.oss-scan.yml'
 
 image:
-  name: "docker.repo.splunkdev.net/ci-cd/ci-container/maven-3.8-jdk-17:6.2.0"
+  name: "docker.repo.splunkdev.net/ci-cd/ci-container/maven-3.9-jdk-25:6.3.0"
 
 default:
   id_tokens:

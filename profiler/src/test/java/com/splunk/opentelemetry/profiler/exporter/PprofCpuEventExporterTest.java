@@ -342,7 +342,7 @@ class PprofCpuEventExporterTest {
     when(threadInfo.getLockedSynchronizers())
         .thenReturn(new LockInfo[] {new LockInfo("example.Synchronizer", 0x34cd)});
 
-    locksEnabledExporter.export(threadInfo, Instant.now(), "", "", Duration.ZERO);
+    locksEnabledExporter.export(ThreadData.from(threadInfo), Instant.now(), "", "", Duration.ZERO);
     locksEnabledExporter.flush();
 
     var logRecord = logger.records().get(0);
@@ -402,7 +402,7 @@ class PprofCpuEventExporterTest {
     when(threadInfo.getThreadState()).thenReturn(Thread.State.BLOCKED);
     when(threadInfo.getStackTrace()).thenReturn(new StackTraceElement[0]);
 
-    exporter.export(threadInfo, Instant.now(), "", "", Duration.ZERO);
+    exporter.export(ThreadData.from(threadInfo), Instant.now(), "", "", Duration.ZERO);
     exporter.flush();
 
     var logRecord = logger.records().get(0);
@@ -536,14 +536,14 @@ class PprofCpuEventExporterTest {
         .contains(entry(ProfilingSemanticAttributes.SOURCE_EVENT_PERIOD, duration.toMillis()));
   }
 
-  private ThreadInfo buildThreadInfo(
+  private ThreadData buildThreadInfo(
       long threadId, String threadName, Thread.State threadState, StackTraceElement[] stackTrace) {
     ThreadInfo threadInfo = mock(ThreadInfo.class);
     when(threadInfo.getThreadId()).thenReturn(threadId);
     when(threadInfo.getThreadName()).thenReturn(threadName);
     when(threadInfo.getThreadState()).thenReturn(threadState);
     when(threadInfo.getStackTrace()).thenReturn(stackTrace);
-    return threadInfo;
+    return ThreadData.from(threadInfo);
   }
 
   private <T> Map.Entry<String, T> entry(AttributeKey<T> attribute, T value) {

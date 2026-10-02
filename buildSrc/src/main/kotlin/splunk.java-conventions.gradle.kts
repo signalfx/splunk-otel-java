@@ -51,3 +51,10 @@ tasks.withType<JavaCompile>().configureEach {
     compilerArgs.add("-Xlint:-options")
   }
 }
+
+tasks {
+  named<Jar>("jar") {
+    // fail fast on jars with duplicate elements
+    duplicatesStrategy = DuplicatesStrategy.FAIL
+  }
+}

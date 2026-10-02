@@ -4,17 +4,6 @@ plugins {
   java
 }
 
-repositories {
-  mavenCentral()
-  maven {
-    name = "sonatypeReleases"
-    url = uri("https://oss.sonatype.org/content/repositories/releases/")
-  }
-  maven {
-    name = "sonatypeSnapshots"
-    url = uri("https://central.sonatype.com/repository/maven-snapshots/")
-  }
-}
 evaluationDependsOn(":dependencyManagement")
 val dependencyManagementConf = configurations.create("dependencyManagement") {
   isCanBeConsumed = false

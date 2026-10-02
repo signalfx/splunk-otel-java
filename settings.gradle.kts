@@ -11,6 +11,47 @@ plugins {
   id("com.gradle.develocity") version "4.6.0"
 }
 
+val artifactoryUrl: String? = System.getenv("MAVEN_REPOSITORY_URL")
+if (artifactoryUrl != null) {
+  pluginManagement {
+    repositories {
+      maven {
+        name = "artifactory"
+        url = uri(artifactoryUrl)
+        credentials(PasswordCredentials::class)
+      }
+    }
+  }
+}
+dependencyResolutionManagement {
+  repositories {
+    if (artifactoryUrl != null) {
+      maven {
+        url = uri(artifactoryUrl)
+        credentials(PasswordCredentials::class)
+      }
+    } else {
+      mavenCentral()
+    }
+    maven {
+      name = "sonatypeSnapshots"
+      url = uri("https://central.sonatype.com/repository/maven-snapshots/")
+    }
+    ivy {
+      // Required to source artifact directly from github release page
+      // https://github.com/signalfx/csa-releases/releases/download/<version>/oss-agent-mtagent-extension-deployment.jar
+      url = uri("https://github.com/")
+      metadataSources {
+        artifact()
+      }
+      patternLayout {
+        ivy("[organisation]/[module]/releases/download/[revision]/[artifact].[ext]")
+        artifact("[organisation]/[module]/releases/download/[revision]/[artifact].[ext]")
+      }
+    }
+  }
+}
+
 develocity {
   buildScan {
     termsOfUseUrl = "https://gradle.com/terms-of-service"

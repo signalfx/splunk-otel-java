@@ -15,7 +15,21 @@ stages:
   - release
   - post-release
 
+.gradle-job:
+  before_script:
+    - creds-helper init
+    - |
+      if [ "$CI_COMMIT_REF_PROTECTED" = "true" ]; then
+        MAVEN_READER_ROLE="maven-reader-role"
+        export MAVEN_REPOSITORY_URL="https://repo.splunkdev.net/artifactory/maven"
+      else
+        MAVEN_READER_ROLE="maven-test-reader-role"
+        export MAVEN_REPOSITORY_URL="https://repo.splunkdev.net/artifactory/maven-test"
+      fi
+      eval "$(creds-helper gradle "artifactory:v2/cloud/role/$MAVEN_READER_ROLE")"
+
 build:
+  extends: .gradle-job
   stage: build
   script:
     - ./gradlew build -x :smoke-tests:test --scan --no-daemon --stacktrace
@@ -38,6 +52,7 @@ oss-scan:
   tags: []
 
 snapshot:
+  extends: .gradle-job
   stage: release
   rules:
     - if: '$CI_COMMIT_REF_NAME == "main"'
@@ -45,6 +60,7 @@ snapshot:
     - ./gradlew assemble publishToSonatype --no-daemon --stacktrace
 
 release:
+  extends: .gradle-job
   stage: release
   artifacts:
     when: always

@@ -3,10 +3,6 @@ plugins {
   id("me.champeau.jmh") version "0.7.3"
 }
 
-repositories {
-  mavenCentral()
-}
-
 dependencies {
   implementation(project(":profiler"))
   testImplementation("org.junit.jupiter:junit-jupiter-api")

@@ -27,6 +27,7 @@ dependencyResolutionManagement {
   repositories {
     if (artifactoryUrl != null) {
       maven {
+        name = "artifactory"
         url = uri(artifactoryUrl)
         credentials(PasswordCredentials::class)
       }

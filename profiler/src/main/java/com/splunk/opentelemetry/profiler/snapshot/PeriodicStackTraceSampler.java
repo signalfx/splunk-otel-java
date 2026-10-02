@@ -103,7 +103,7 @@ class PeriodicStackTraceSampler implements StackTraceSampler {
     this.closed = true;
     // Wait for the sampling thread to exit. Note that this does not guarantee an
     // immediate shutdown as the sampling thread may be actively staging stack traces
-    // when the shutdown request is made. If this is the case, the thread will shutdown
+    // when the shutdown request is made. If this is the case, the thread will shut down
     // upon completion of the sample.
     try {
       sampler.shutdown();
@@ -164,7 +164,7 @@ class PeriodicStackTraceSampler implements StackTraceSampler {
       // a sample. No need to report both so skip the on-demand sample.
       if (context.lock.tryLock()) {
         try {
-          ThreadInfo threadInfo = collector.getThreadInfo(thread.getId());
+          ThreadInfo threadInfo = collector.getThreadInfo(getThreadId(thread));
           if (threadInfo == null) {
             return Optional.empty();
           }
@@ -203,7 +203,8 @@ class PeriodicStackTraceSampler implements StackTraceSampler {
       }
 
       Map<Long, SamplingContext> threadContexts =
-          contexts.stream().collect(Collectors.toMap(c -> c.thread.getId(), context -> context));
+          contexts.stream()
+              .collect(Collectors.toMap(c -> getThreadId(c.thread), context -> context));
       long currentSampleTime = clock.nanoTime();
       try {
         ThreadInfo[] threadInfos = collector.getThreadInfo(threadContexts.keySet());
@@ -257,7 +258,14 @@ class PeriodicStackTraceSampler implements StackTraceSampler {
               threadInfo,
               context.traceId,
               spanId,
-              Thread.currentThread().getId()));
+              getThreadId(Thread.currentThread())));
+    }
+
+    // Thread.threadId() is only available since Java 19; getId() is needed for Java 8
+    // compatibility.
+    @SuppressWarnings("deprecation")
+    private static long getThreadId(Thread thread) {
+      return thread.getId();
     }
 
     /** It's possible the active span will have changed since the sample was taken */

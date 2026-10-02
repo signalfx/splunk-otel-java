@@ -9,6 +9,11 @@ include:
 image:
   name: "docker.repo.splunkdev.net/ci-cd/ci-container/maven-3.8-jdk-17:6.2.0"
 
+default:
+  id_tokens:
+    CI_JOB_JWT:
+      aud: $CICD_VAULT_ADDR
+
 stages:
   - build
   - verify

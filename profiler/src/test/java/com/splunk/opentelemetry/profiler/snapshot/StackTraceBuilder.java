@@ -19,6 +19,7 @@ package com.splunk.opentelemetry.profiler.snapshot;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import com.splunk.opentelemetry.profiler.exporter.ThreadData;
 import java.lang.management.LockInfo;
 import java.lang.management.MonitorInfo;
 import java.lang.management.ThreadInfo;
@@ -83,7 +84,12 @@ class StackTraceBuilder {
   StackTrace build() {
     var spanContext = spanContextBuilder.build();
     return new StackTrace(
-        timestamp, duration, threadInfo(), spanContext.getTraceId(), spanContext.getSpanId(), 0);
+        timestamp,
+        duration,
+        ThreadData.from(threadInfo()),
+        spanContext.getTraceId(),
+        spanContext.getSpanId(),
+        0);
   }
 
   private ThreadInfo threadInfo() {

@@ -17,7 +17,7 @@
 package com.splunk.opentelemetry.profiler.snapshot;
 
 import com.google.common.annotations.VisibleForTesting;
-import java.lang.management.ThreadInfo;
+import com.splunk.opentelemetry.profiler.exporter.ThreadData;
 import java.time.Duration;
 import java.time.Instant;
 
@@ -25,7 +25,7 @@ class StackTrace {
   static StackTrace from(
       Instant timestamp,
       Duration duration,
-      ThreadInfo thread,
+      ThreadData thread,
       String traceId,
       String spanId,
       long recordingThreadId) {
@@ -34,7 +34,7 @@ class StackTrace {
 
   private final Instant timestamp;
   private final Duration duration;
-  private final ThreadInfo threadInfo;
+  private final ThreadData threadInfo;
   private final String traceId;
   private final String spanId;
   private final long recordingThreadId;
@@ -43,7 +43,7 @@ class StackTrace {
   StackTrace(
       Instant timestamp,
       Duration duration,
-      ThreadInfo threadInfo,
+      ThreadData threadInfo,
       String traceId,
       String spanId,
       long recordingThreadId) {
@@ -79,7 +79,7 @@ class StackTrace {
     return threadInfo.getStackTrace();
   }
 
-  ThreadInfo getThreadInfo() {
+  ThreadData getThreadInfo() {
     return threadInfo;
   }
 

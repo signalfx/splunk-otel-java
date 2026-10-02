@@ -33,6 +33,7 @@ import com.google.perftools.profiles.ProfileProto.Sample;
 import com.splunk.opentelemetry.profiler.InstrumentationSource;
 import com.splunk.opentelemetry.profiler.ProfilingDataType;
 import com.splunk.opentelemetry.profiler.context.StackToSpanLinkage;
+import com.splunk.opentelemetry.profiler.exporter.ThreadData.LockData;
 import com.splunk.opentelemetry.profiler.pprof.Pprof;
 import com.splunk.opentelemetry.profiler.threaddump.StackTraceData;
 import com.splunk.opentelemetry.profiler.threaddump.ThreadLockData;
@@ -40,9 +41,6 @@ import io.opentelemetry.api.logs.Logger;
 import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.api.trace.SpanId;
 import io.opentelemetry.api.trace.TraceId;
-import java.lang.management.LockInfo;
-import java.lang.management.MonitorInfo;
-import java.lang.management.ThreadInfo;
 import java.time.Duration;
 import java.time.Instant;
 
@@ -107,7 +105,7 @@ public class PprofCpuEventExporter implements CpuEventExporter {
 
   @Override
   public void export(
-      ThreadInfo threadInfo, Instant eventTime, String traceId, String spanId, Duration duration) {
+      ThreadData threadInfo, Instant eventTime, String traceId, String spanId, Duration duration) {
     Sample.Builder sample = Sample.newBuilder();
     addThreadInfo(
         sample, threadInfo.getThreadId(), threadInfo.getThreadName(), threadInfo.getThreadState());
@@ -162,18 +160,18 @@ public class PprofCpuEventExporter implements CpuEventExporter {
     pprof.getProfileBuilder().addSample(sample);
   }
 
-  private void addLockInfo(Sample.Builder sample, ThreadInfo threadInfo) {
-    LockInfo waitingOn = threadInfo.getLockInfo();
+  private void addLockInfo(Sample.Builder sample, ThreadData threadInfo) {
+    LockData waitingOn = threadInfo.getLockInfo();
     if (waitingOn != null) {
       pprof.addLabel(sample, LOCK_WAITING_ON, formatLock(waitingOn));
     }
     pprof.addLabel(sample, LOCK_OWNER_THREAD, threadInfo.getLockOwnerName());
 
     int heldLockIndex = 0;
-    for (MonitorInfo monitor : threadInfo.getLockedMonitors()) {
+    for (LockData monitor : threadInfo.getLockedMonitors()) {
       pprof.addLabel(sample, LOCK_HELD_PREFIX + heldLockIndex++, formatLock(monitor));
     }
-    for (LockInfo synchronizer : threadInfo.getLockedSynchronizers()) {
+    for (LockData synchronizer : threadInfo.getLockedSynchronizers()) {
       pprof.addLabel(sample, LOCK_HELD_PREFIX + heldLockIndex++, formatLock(synchronizer));
     }
   }
@@ -193,7 +191,7 @@ public class PprofCpuEventExporter implements CpuEventExporter {
     }
   }
 
-  private static String formatLock(LockInfo lockInfo) {
+  private static String formatLock(LockData lockInfo) {
     return lockInfo.getClassName() + '@' + Integer.toHexString(lockInfo.getIdentityHashCode());
   }
 

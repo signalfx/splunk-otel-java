@@ -38,7 +38,7 @@ class TruncateCommandLineResourceDetectorTest {
               .put(ProcessIncubatingAttributes.PROCESS_COMMAND_ARGS, args)
               .put(ProcessIncubatingAttributes.PROCESS_COMMAND_LINE, commandLine)
               .build();
-      mockedStatic.when(ProcessResource::get).thenReturn(detectedResource);
+      mockedStatic.when(() -> ProcessResource.create(true)).thenReturn(detectedResource);
 
       TruncateCommandLineResourceDetector provider = new TruncateCommandLineResourceDetector();
 
@@ -64,7 +64,7 @@ class TruncateCommandLineResourceDetectorTest {
               .put(ProcessIncubatingAttributes.PROCESS_COMMAND_ARGS, args)
               .put(ProcessIncubatingAttributes.PROCESS_COMMAND_LINE, commandLine)
               .build();
-      mockedStatic.when(ProcessResource::get).thenReturn(detectedResource);
+      mockedStatic.when(() -> ProcessResource.create(true)).thenReturn(detectedResource);
 
       TruncateCommandLineResourceDetector provider = new TruncateCommandLineResourceDetector();
 

@@ -49,7 +49,7 @@ public class TruncateCommandLineResourceDetector implements ComponentProvider {
 
   @Override
   public Resource create(DeclarativeConfigProperties config) {
-    Resource resource = ProcessResource.get().merge(ProcessRuntimeResource.get());
+    Resource resource = ProcessResource.create(true).merge(ProcessRuntimeResource.get());
 
     List<String> commandArgs = resource.getAttribute(PROCESS_COMMAND_ARGS);
     if (commandArgs != null) {

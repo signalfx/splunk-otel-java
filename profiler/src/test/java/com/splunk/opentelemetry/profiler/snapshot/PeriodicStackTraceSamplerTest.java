@@ -89,7 +89,7 @@ class PeriodicStackTraceSamplerTest {
     try {
       sampler.start(thread, spanContext);
       // one on demand sample taken on start and at least one periodic sample from background thread
-      await().until(() -> staging.hasStackTraces(2));
+      await().until(() -> staging.allStackTraces().size() >= 2);
     } finally {
       latch.countDown();
       sampler.stop(thread);

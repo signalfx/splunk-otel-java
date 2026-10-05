@@ -22,12 +22,14 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+import com.splunk.opentelemetry.profiler.exporter.ThreadData;
+import com.splunk.opentelemetry.profiler.util.ThreadUtil;
 import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.sdk.testing.time.TestClock;
 import io.opentelemetry.sdk.trace.IdGenerator;
-import java.lang.management.ThreadInfo;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Collection;
 import java.util.Set;
 import java.util.concurrent.Callable;
@@ -65,6 +67,33 @@ class PeriodicStackTraceSamplerTest {
       await().until(staging::hasStackTraces);
     } finally {
       sampler.stop(Thread.currentThread());
+    }
+  }
+
+  @Test
+  void takeStackTraceSampleForVirtualThread() throws InterruptedException {
+    CountDownLatch latch = new CountDownLatch(1);
+    Thread thread =
+        Thread.ofVirtual()
+            .start(
+                () -> {
+                  try {
+                    latch.await();
+                  } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                  }
+                });
+
+    var spanContext = Snapshotting.spanContext().build();
+
+    try {
+      sampler.start(thread, spanContext);
+      // one on demand sample taken on start and at least one periodic sample from background thread
+      await().until(() -> staging.allStackTraces().size() >= 2);
+    } finally {
+      latch.countDown();
+      sampler.stop(thread);
+      thread.join(Duration.of(10, ChronoUnit.SECONDS));
     }
   }
 
@@ -125,7 +154,8 @@ class PeriodicStackTraceSamplerTest {
       await().until(() -> staging.allStackTraces().size() > 5);
       control.stop();
 
-      var threadIds = Set.of(thread1.get().getId(), thread2.get().getId());
+      var threadIds =
+          Set.of(ThreadUtil.getThreadId(thread1.get()), ThreadUtil.getThreadId(thread2.get()));
       var profiledThreads =
           staging.allStackTraces().stream()
               .map(StackTrace::getThreadId)
@@ -204,8 +234,8 @@ class PeriodicStackTraceSamplerTest {
     var initialSampleCollector =
         new ThreadInfoCollector(false) {
           @Override
-          public ThreadInfo getThreadInfo(long threadId) {
-            var threadInfo = super.getThreadInfo(threadId);
+          public ThreadData getThreadInfo(Thread thread) {
+            var threadInfo = super.getThreadInfo(thread);
             // The initial sample time has already been captured. Advance the clock before the
             // context becomes visible to the periodic sampling thread.
             clock.advance(SAMPLING_PERIOD);
@@ -238,7 +268,7 @@ class PeriodicStackTraceSamplerTest {
 
       var stackTrace = staging.allStackTraces().stream().findFirst().orElseThrow();
       assertAll(
-          () -> assertEquals(thread.get().getId(), stackTrace.getThreadId()),
+          () -> assertEquals(ThreadUtil.getThreadId(thread.get()), stackTrace.getThreadId()),
           () -> assertEquals(thread.get().getName(), stackTrace.getThreadName()),
           () -> assertNotNull(stackTrace.getThreadState()),
           () -> assertThat(stackTrace.getStackFrames()).isNotEmpty());
@@ -358,7 +388,8 @@ class PeriodicStackTraceSamplerTest {
 
       var thread = future.get();
       assertEquals(1, staging.allStackTraces().size());
-      assertEquals(thread.getId(), staging.allStackTraces().get(0).getRecordingThreadId());
+      assertEquals(
+          ThreadUtil.getThreadId(thread), staging.allStackTraces().get(0).getRecordingThreadId());
     } finally {
       thread1.shutdownNow();
       thread2.shutdownNow();
@@ -547,20 +578,20 @@ class PeriodicStackTraceSamplerTest {
     }
 
     @Override
-    public ThreadInfo getThreadInfo(long threadId) {
+    public ThreadData getThreadInfo(Thread thread) {
       try {
         Thread.sleep(delay.toMillis());
-        return super.getThreadInfo(threadId);
+        return super.getThreadInfo(thread);
       } catch (InterruptedException e) {
         throw new RuntimeException(e);
       }
     }
 
     @Override
-    public ThreadInfo[] getThreadInfo(Collection<Long> threadIds) {
+    public Collection<ThreadData> getThreadInfo(Collection<Thread> threads) {
       try {
         Thread.sleep(delay.toMillis());
-        return super.getThreadInfo(threadIds);
+        return super.getThreadInfo(threads);
       } catch (InterruptedException e) {
         throw new RuntimeException(e);
       }
@@ -581,9 +612,9 @@ class PeriodicStackTraceSamplerTest {
     }
 
     @Override
-    public ThreadInfo getThreadInfo(long threadId) {
+    public ThreadData getThreadInfo(Thread thread) {
       try {
-        var ti = super.getThreadInfo(threadId);
+        var ti = super.getThreadInfo(thread);
         if (wait.get()) {
           latch.await();
         }
@@ -594,9 +625,9 @@ class PeriodicStackTraceSamplerTest {
     }
 
     @Override
-    public ThreadInfo[] getThreadInfo(Collection<Long> threadIds) {
+    public Collection<ThreadData> getThreadInfo(Collection<Thread> threads) {
       try {
-        var tis = super.getThreadInfo(threadIds);
+        var tis = super.getThreadInfo(threads);
         if (wait.get()) {
           latch.await();
         }

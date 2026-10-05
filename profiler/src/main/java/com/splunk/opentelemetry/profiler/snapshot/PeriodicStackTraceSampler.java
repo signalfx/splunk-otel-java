@@ -17,9 +17,10 @@
 package com.splunk.opentelemetry.profiler.snapshot;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.splunk.opentelemetry.profiler.exporter.ThreadData;
+import com.splunk.opentelemetry.profiler.util.ThreadUtil;
 import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.sdk.common.Clock;
-import java.lang.management.ThreadInfo;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -103,7 +104,7 @@ class PeriodicStackTraceSampler implements StackTraceSampler {
     this.closed = true;
     // Wait for the sampling thread to exit. Note that this does not guarantee an
     // immediate shutdown as the sampling thread may be actively staging stack traces
-    // when the shutdown request is made. If this is the case, the thread will shutdown
+    // when the shutdown request is made. If this is the case, the thread will shut down
     // upon completion of the sample.
     try {
       sampler.shutdown();
@@ -164,7 +165,7 @@ class PeriodicStackTraceSampler implements StackTraceSampler {
       // a sample. No need to report both so skip the on-demand sample.
       if (context.lock.tryLock()) {
         try {
-          ThreadInfo threadInfo = collector.getThreadInfo(thread.getId());
+          ThreadData threadInfo = collector.getThreadInfo(thread);
           if (threadInfo == null) {
             return Optional.empty();
           }
@@ -203,10 +204,15 @@ class PeriodicStackTraceSampler implements StackTraceSampler {
       }
 
       Map<Long, SamplingContext> threadContexts =
-          contexts.stream().collect(Collectors.toMap(c -> c.thread.getId(), context -> context));
+          contexts.stream()
+              .collect(Collectors.toMap(c -> ThreadUtil.getThreadId(c.thread), context -> context));
+      List<Thread> threads =
+          threadContexts.values().stream()
+              .map(context -> context.thread)
+              .collect(Collectors.toList());
       long currentSampleTime = clock.nanoTime();
       try {
-        ThreadInfo[] threadInfos = collector.getThreadInfo(threadContexts.keySet());
+        Collection<ThreadData> threadInfos = collector.getThreadInfo(threads);
         List<StackTrace> stackTraces =
             toStackTraces(threadInfos, threadContexts, currentSampleTime);
         staging.get().stage(stackTraces);
@@ -216,13 +222,11 @@ class PeriodicStackTraceSampler implements StackTraceSampler {
     }
 
     private List<StackTrace> toStackTraces(
-        ThreadInfo[] threadInfos, Map<Long, SamplingContext> contexts, long currentSampleTime) {
-      List<StackTrace> stackTraces = new ArrayList<>(threadInfos.length);
-      for (ThreadInfo threadInfo : threadInfos) {
-        if (threadInfo == null) {
-          // thread info is null for virtual threads
-          continue;
-        }
+        Collection<ThreadData> threadInfos,
+        Map<Long, SamplingContext> contexts,
+        long currentSampleTime) {
+      List<StackTrace> stackTraces = new ArrayList<>(threadInfos.size());
+      for (ThreadData threadInfo : threadInfos) {
         SamplingContext context = contexts.get(threadInfo.getThreadId());
         // When the context is locked an on demand sample is being taken. No need to report
         // both so skip the periodic sample.
@@ -240,7 +244,7 @@ class PeriodicStackTraceSampler implements StackTraceSampler {
     }
 
     private Optional<StackTrace> toStackTrace(
-        ThreadInfo threadInfo, SamplingContext context, String spanId, long currentSampleTime) {
+        ThreadData threadInfo, SamplingContext context, String spanId, long currentSampleTime) {
       // If multiple threads have managed to take a sample for the same context
       // one of the sampling periods may be a negative value. If this happens a
       // previous sample fully encompasses this sample and so this sample can
@@ -257,7 +261,7 @@ class PeriodicStackTraceSampler implements StackTraceSampler {
               threadInfo,
               context.traceId,
               spanId,
-              Thread.currentThread().getId()));
+              ThreadUtil.getThreadId(Thread.currentThread())));
     }
 
     /** It's possible the active span will have changed since the sample was taken */

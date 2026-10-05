@@ -35,6 +35,7 @@ class JfrSettingsOverridesTest {
     when(config.getMemoryEnabled()).thenReturn(true);
     when(config.getMemoryEventRateLimitEnabled()).thenReturn(false);
     when(config.getUseAllocationSampleEvent()).thenReturn(false);
+    when(config.getCpuMode()).thenReturn(ProfilerConfiguration.CpuMode.JFR);
 
     JfrSettingsOverrides overrides = new JfrSettingsOverrides(config);
     Map<String, String> jfrSettings =
@@ -63,6 +64,7 @@ class JfrSettingsOverridesTest {
     when(config.getMemoryEventRateLimitEnabled()).thenReturn(true);
     when(config.getUseAllocationSampleEvent()).thenReturn(true);
     when(config.getMemoryEventRate()).thenReturn("200/s");
+    when(config.getCpuMode()).thenReturn(ProfilerConfiguration.CpuMode.JFR);
 
     JfrSettingsOverrides overrides = new JfrSettingsOverrides(config);
     Map<String, String> jfrSettings =

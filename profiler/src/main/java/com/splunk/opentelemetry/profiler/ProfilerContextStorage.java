@@ -73,7 +73,8 @@ class ProfilerContextStorage implements ContextStorage {
     return activeContext;
   }
 
-  static ContextAttached newEvent(SpanContext spanContext) {
+  @VisibleForTesting
+  static JfrEvent newEvent(SpanContext spanContext) {
     if (spanContext.isValid()) {
       return new ContextAttached(
           spanContext.getTraceId(), spanContext.getSpanId(), spanContext.getTraceFlags().asByte());

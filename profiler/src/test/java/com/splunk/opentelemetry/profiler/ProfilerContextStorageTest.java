@@ -66,7 +66,7 @@ class ProfilerContextStorageTest {
 
   @Test
   void testNewEvent() {
-    ContextAttached result = ProfilerContextStorage.newEvent(spanContext);
+    ContextAttached result = (ContextAttached) ProfilerContextStorage.newEvent(spanContext);
     assertEquals(traceId, result.getTraceId());
     assertEquals(spanId, result.getSpanId());
   }

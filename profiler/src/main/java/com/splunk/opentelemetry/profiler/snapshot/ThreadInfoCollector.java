@@ -63,7 +63,7 @@ class ThreadInfoCollector {
       ThreadInfo[] threadInfos = collectThreadInfo(new long[] {ThreadUtil.getThreadId(thread)});
       return threadInfos.length == 0 ? null : ThreadData.from(threadInfos[0]);
     } catch (Exception e) {
-      logger.log(Level.SEVERE, e, () -> "Error taking callstack sample for thread " + thread);
+      logger.log(Level.WARNING, e, () -> "Error taking callstack sample for thread " + thread);
     }
     return null;
   }
@@ -86,7 +86,9 @@ class ThreadInfoCollector {
       }
     } catch (Exception e) {
       logger.log(
-          Level.SEVERE, e, () -> "Error taking callstack samples for thread ids [" + threads + "]");
+          Level.WARNING,
+          e,
+          () -> "Error taking callstack samples for thread ids [" + threads + "]");
       return Collections.emptyList();
     }
 

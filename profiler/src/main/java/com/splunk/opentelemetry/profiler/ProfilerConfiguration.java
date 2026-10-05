@@ -18,6 +18,7 @@ package com.splunk.opentelemetry.profiler;
 
 import com.splunk.opentelemetry.profiler.util.OptionalConfigurableSupplier;
 import java.time.Duration;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.logging.Logger;
 import javax.annotation.Nullable;
@@ -49,6 +50,7 @@ public class ProfilerConfiguration {
   private final boolean keepFiles;
   private final String profilerDirectory;
   private final Duration recordingDuration;
+  private final CpuMode cpuMode;
   @Nullable private final Object configProperties;
 
   private ProfilerConfiguration(Builder builder) {
@@ -68,6 +70,7 @@ public class ProfilerConfiguration {
     keepFiles = builder.keepFiles;
     profilerDirectory = builder.profilerDirectory;
     recordingDuration = builder.recordingDuration;
+    cpuMode = builder.cpuMode;
     configProperties = builder.configProperties;
   }
 
@@ -93,6 +96,7 @@ public class ProfilerConfiguration {
         .setKeepFiles(keepFiles)
         .setProfilerDirectory(profilerDirectory)
         .setRecordingDuration(recordingDuration)
+        .setCpuMode(cpuMode)
         .setConfigProperties(configProperties);
   }
 
@@ -189,6 +193,10 @@ public class ProfilerConfiguration {
     return recordingDuration;
   }
 
+  public CpuMode getCpuMode() {
+    return cpuMode;
+  }
+
   @Nullable
   public Object getConfigProperties() {
     return configProperties;
@@ -213,6 +221,7 @@ public class ProfilerConfiguration {
         && locksEnabled == that.locksEnabled
         && stackDepth == that.stackDepth
         && keepFiles == that.keepFiles
+        && cpuMode == that.cpuMode
         && Objects.equals(ingestUrl, that.ingestUrl)
         && Objects.equals(otlpProtocol, that.otlpProtocol)
         && Objects.equals(memoryEventRate, that.memoryEventRate)
@@ -241,6 +250,7 @@ public class ProfilerConfiguration {
         keepFiles,
         profilerDirectory,
         recordingDuration,
+        cpuMode,
         configProperties);
   }
 
@@ -269,6 +279,7 @@ public class ProfilerConfiguration {
     private boolean keepFiles;
     private String profilerDirectory = DEFAULT_PROFILER_DIRECTORY;
     private Duration recordingDuration = DEFAULT_RECORDING_DURATION;
+    private CpuMode cpuMode = CpuMode.JFR;
     @Nullable private Object configProperties;
 
     private Builder() {}
@@ -371,9 +382,28 @@ public class ProfilerConfiguration {
       return this;
     }
 
+    public Builder setCpuMode(String cpuMode) {
+      try {
+        return setCpuMode(
+            CpuMode.valueOf(Objects.requireNonNull(cpuMode).toUpperCase(Locale.ROOT)));
+      } catch (IllegalArgumentException exception) {
+        throw new IllegalArgumentException("Invalid cpu mode: " + cpuMode, exception);
+      }
+    }
+
+    public Builder setCpuMode(CpuMode cpuMode) {
+      this.cpuMode = cpuMode;
+      return this;
+    }
+
     public Builder setConfigProperties(@Nullable Object configProperties) {
       this.configProperties = configProperties;
       return this;
     }
+  }
+
+  public enum CpuMode {
+    JFR,
+    JAVA
   }
 }

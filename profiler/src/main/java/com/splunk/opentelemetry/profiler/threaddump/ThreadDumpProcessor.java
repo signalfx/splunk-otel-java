@@ -44,6 +44,7 @@ public class ThreadDumpProcessor {
   private final boolean onlyTracingSpans;
   private final int stackDepth;
   private final boolean locksEnabled;
+  private final boolean enabled;
 
   private ThreadDumpProcessor(Builder builder) {
     this.eventReader = builder.eventReader;
@@ -53,9 +54,14 @@ public class ThreadDumpProcessor {
     this.onlyTracingSpans = builder.onlyTracingSpans;
     this.stackDepth = builder.stackDepth;
     this.locksEnabled = builder.locksEnabled;
+    this.enabled = builder.enabled;
   }
 
   public void accept(IItem event) {
+    if (!enabled) {
+      return;
+    }
+
     String eventName = event.getType().getIdentifier();
     logger.log(FINE, "Processing JFR event {0}", eventName);
     String wallOfStacks = eventReader.getThreadDumpResult(event);
@@ -226,6 +232,7 @@ public class ThreadDumpProcessor {
     private boolean onlyTracingSpans;
     private int stackDepth = 1024;
     private boolean locksEnabled;
+    private boolean enabled = true;
 
     public Builder eventReader(EventReader eventReader) {
       this.eventReader = eventReader;
@@ -259,6 +266,11 @@ public class ThreadDumpProcessor {
 
     public Builder locksEnabled(boolean locksEnabled) {
       this.locksEnabled = locksEnabled;
+      return this;
+    }
+
+    public Builder enabled(boolean enabled) {
+      this.enabled = enabled;
       return this;
     }
 

@@ -39,11 +39,12 @@ import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.Map;
 
-class PeriodicRecordingFlusherFactory {
+class ProfilerFactory {
   private static final java.util.logging.Logger logger =
-      java.util.logging.Logger.getLogger(PeriodicRecordingFlusherFactory.class.getName());
+      java.util.logging.Logger.getLogger(ProfilerFactory.class.getName());
 
-  PeriodicRecordingFlusher create(ProfilerConfiguration config, Resource resource, JFR jfr) {
+  PeriodicRecordingFlusher createJfrProfiler(
+      ProfilerConfiguration config, Resource resource, JFR jfr) {
     if (jfr == null) {
       jfr = JFR.getInstance();
     }
@@ -111,7 +112,26 @@ class PeriodicRecordingFlusherFactory {
     return new PeriodicRecordingFlusher(recorder, recordingDuration);
   }
 
-  private io.opentelemetry.api.logs.Logger buildOtelLogger(
+  JavaProfiler createJavaProfiler(
+      ProfilerConfiguration config, Resource resource, ProfilerContextStorage contextStorage) {
+    int stackDepth = config.getStackDepth();
+    LogRecordExporter logsExporter =
+        ProfilerFactory.createLogRecordExporter(config.getConfigProperties());
+    CpuEventExporter cpuEventExporter =
+        PprofCpuEventExporter.builder()
+            .otelLogger(
+                ProfilerFactory.buildOtelLogger(
+                    SimpleLogRecordProcessor.create(logsExporter), resource))
+            .period(config.getCallStackInterval())
+            .stackDepth(stackDepth)
+            .build();
+
+    StackTraceFilter stackTraceFilter = ProfilerFactory.buildStackTraceFilter(config, null);
+
+    return new JavaProfiler(config, cpuEventExporter, stackTraceFilter, contextStorage);
+  }
+
+  private static io.opentelemetry.api.logs.Logger buildOtelLogger(
       LogRecordProcessor logProcessor, Resource resource) {
     return SdkLoggerProvider.builder()
         .addLogRecordProcessor(logProcessor)
@@ -122,7 +142,7 @@ class PeriodicRecordingFlusherFactory {
         .build();
   }
 
-  private ThreadDumpProcessor buildThreadDumpProcessor(
+  private static ThreadDumpProcessor buildThreadDumpProcessor(
       EventReader eventReader,
       SpanContextualizer spanContextualizer,
       CpuEventExporter profilingEventExporter,
@@ -136,11 +156,12 @@ class PeriodicRecordingFlusherFactory {
         .onlyTracingSpans(config.getTracingStacksOnly())
         .stackDepth(config.getStackDepth())
         .locksEnabled(config.getLocksEnabled())
+        .enabled(config.getCpuMode() == ProfilerConfiguration.CpuMode.JFR)
         .build();
   }
 
   /** Based on config, filters out agent internal stacks and/or JVM internal stacks */
-  private StackTraceFilter buildStackTraceFilter(
+  private static StackTraceFilter buildStackTraceFilter(
       ProfilerConfiguration config, EventReader eventReader) {
     boolean includeAgentInternalStacks = config.getIncludeAgentInternalStacks();
     boolean includeJVMInternalStacks = config.getIncludeJvmInternalStacks();
@@ -157,7 +178,7 @@ class PeriodicRecordingFlusherFactory {
     return LogExporterBuilder.fromEnvironmentConfig();
   }
 
-  private boolean checkOutputDir(Path outputDir) {
+  private static boolean checkOutputDir(Path outputDir) {
     if (!Files.exists(outputDir)) {
       // Try creating the directory for the user...
       try {
@@ -180,14 +201,14 @@ class PeriodicRecordingFlusherFactory {
     return true;
   }
 
-  private Map<String, String> buildJfrSettings(ProfilerConfiguration config) {
+  private static Map<String, String> buildJfrSettings(ProfilerConfiguration config) {
     JfrSettingsReader settingsReader = new JfrSettingsReader();
     Map<String, String> jfrSettings = settingsReader.read();
     JfrSettingsOverrides overrides = new JfrSettingsOverrides(config);
     return overrides.apply(jfrSettings);
   }
 
-  private void outdirWarn(Path dir, String suffix) {
+  private static void outdirWarn(Path dir, String suffix) {
     logger.log(WARNING, "The configured output directory {0} {1}.", new Object[] {dir, suffix});
   }
 }

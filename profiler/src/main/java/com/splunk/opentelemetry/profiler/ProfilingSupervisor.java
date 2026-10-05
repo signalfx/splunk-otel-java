@@ -51,12 +51,14 @@ public class ProfilingSupervisor {
   private final JFR jfr;
   private final AutoConfiguredOpenTelemetrySdk sdk;
   private final BlockingQueue<ProfilingCommand> commandQueue = new LinkedBlockingQueue<>();
-  private final PeriodicRecordingFlusherFactory recordingFlusherFactory;
+  private final ProfilerFactory profilerFactory;
   private final OtelAllocatedMemoryMetrics allocatedMemoryMetrics;
   private final OtelGcMemoryMetrics gcMemoryMetrics;
+  private final AtomicBoolean started = new AtomicBoolean(false);
   private final AtomicReference<PeriodicRecordingFlusher> recordingFlusher =
       new AtomicReference<>();
-  private static final AtomicReference<JfrContextStorage> jfrContextStorage =
+  private final AtomicReference<JavaProfiler> javaProfiler = new AtomicReference<>();
+  private static final AtomicReference<ProfilerContextStorage> profilerContextStorage =
       new AtomicReference<>();
   private static final AtomicBoolean contextStorageSetup = new AtomicBoolean();
 
@@ -65,13 +67,13 @@ public class ProfilingSupervisor {
       OptionalConfigurableSupplier<ProfilerConfiguration> configSupplier,
       JFR jfr,
       AutoConfiguredOpenTelemetrySdk sdk,
-      PeriodicRecordingFlusherFactory recordingFlusherFactory,
+      ProfilerFactory profilerFactory,
       OtelAllocatedMemoryMetrics allocatedMemoryMetrics,
       OtelGcMemoryMetrics gcMemoryMetrics) {
     this.configSupplier = configSupplier;
     this.jfr = jfr;
     this.sdk = sdk;
-    this.recordingFlusherFactory = recordingFlusherFactory;
+    this.profilerFactory = profilerFactory;
     this.allocatedMemoryMetrics = allocatedMemoryMetrics;
     this.gcMemoryMetrics = gcMemoryMetrics;
   }
@@ -80,13 +82,13 @@ public class ProfilingSupervisor {
     if (SUPPLIER.isConfigured()) {
       throw new IllegalStateException("Already started");
     }
-    ExecutorService executor = HelpfulExecutors.newSingleThreadExecutor("JFR Profiler");
+    ExecutorService executor = HelpfulExecutors.newSingleThreadExecutor("Splunk Profiler");
     ProfilingSupervisor supervisor =
         new ProfilingSupervisor(
             ProfilerConfiguration.SUPPLIER,
             JFR.getInstance(),
             sdk,
-            new PeriodicRecordingFlusherFactory(),
+            new ProfilerFactory(),
             new OtelAllocatedMemoryMetrics(),
             new OtelGcMemoryMetrics());
     SUPPLIER.configure(supervisor);
@@ -142,10 +144,13 @@ public class ProfilingSupervisor {
     }
   }
 
-  private void setJfrContextStorageEnabled(boolean enabled) {
-    JfrContextStorage contextStorage = jfrContextStorage.get();
+  private void setJfrContextStorageEnabled(
+      boolean enabled, boolean emitJrfContextEvents, boolean trackActiveContext) {
+    ProfilerContextStorage contextStorage = profilerContextStorage.get();
     if (contextStorage != null) {
       contextStorage.setEnabled(enabled);
+      contextStorage.setEmitJfrEvents(emitJrfContextEvents);
+      contextStorage.setTrackActiveContext(trackActiveContext);
     }
   }
 
@@ -154,31 +159,42 @@ public class ProfilingSupervisor {
    * request.
    */
   private void tryStart() {
-    if (isJfrRecordingActive()) {
-      logger.fine("JFR is already running, not starting again.");
+    if (started.get()) {
+      logger.fine("Profiler is already running, not starting again.");
       return;
     }
 
-    if (!jfr.isAvailable()) {
+    ProfilerConfiguration config = configSupplier.get();
+    ProfilerConfiguration.CpuMode cpuMode = config.getCpuMode();
+    boolean jfrUsed = cpuMode == ProfilerConfiguration.CpuMode.JFR || config.getMemoryEnabled();
+    if (jfrUsed && !jfr.isAvailable()) {
       logger.warning(
           "JDK Flight Recorder (JFR) is not available in this JVM. Profiling will not start.");
       return;
     }
 
-    configSupplier.get().log();
+    config.log();
     updateJvmMemoryMetrics();
-    setJfrContextStorageEnabled(true);
-    activateJfrRecording(getResource(sdk));
+    setJfrContextStorageEnabled(true, jfrUsed, cpuMode == ProfilerConfiguration.CpuMode.JAVA);
+    if (jfrUsed) {
+      activateJfrRecording(getResource(sdk));
+    }
+    if (cpuMode == ProfilerConfiguration.CpuMode.JAVA) {
+      activateJavaCpuProfiler(getResource(sdk));
+    }
+    started.set(true);
     logger.info("Profiler is active.");
   }
 
   private void tryStop() {
-    if (!isJfrRecordingActive()) {
-      logger.fine("JFR is not running already, not stopping again.");
+    if (!started.get()) {
+      logger.fine("Profiler is not running, not stopping again.");
       return;
     }
-    setJfrContextStorageEnabled(false);
+    setJfrContextStorageEnabled(false, false, false);
     deactivateJfrRecording();
+    deactivateJavaCpuProfiler();
+    started.set(false);
     logger.info("Profiler is deactivated.");
   }
 
@@ -191,13 +207,9 @@ public class ProfilingSupervisor {
     }
   }
 
-  private boolean isJfrRecordingActive() {
-    return recordingFlusher.get() != null;
-  }
-
   private void activateJfrRecording(Resource resource) {
     PeriodicRecordingFlusher recordingFlusher =
-        recordingFlusherFactory.create(configSupplier.get(), resource, jfr);
+        profilerFactory.createJfrProfiler(configSupplier.get(), resource, jfr);
     if (this.recordingFlusher.compareAndSet(null, recordingFlusher)) {
       recordingFlusher.start();
     }
@@ -207,6 +219,22 @@ public class ProfilingSupervisor {
     PeriodicRecordingFlusher recordingFlusher = this.recordingFlusher.getAndSet(null);
     if (recordingFlusher != null) {
       recordingFlusher.stop();
+    }
+  }
+
+  private void activateJavaCpuProfiler(Resource resource) {
+    JavaProfiler javaProfiler =
+        profilerFactory.createJavaProfiler(
+            configSupplier.get(), resource, profilerContextStorage.get());
+    if (this.javaProfiler.compareAndSet(null, javaProfiler)) {
+      javaProfiler.start();
+    }
+  }
+
+  private void deactivateJavaCpuProfiler() {
+    JavaProfiler javaProfiler = this.javaProfiler.getAndSet(null);
+    if (javaProfiler != null) {
+      javaProfiler.stop();
     }
   }
 
@@ -241,8 +269,8 @@ public class ProfilingSupervisor {
 
     ContextStorage.addWrapper(
         (delegate) -> {
-          JfrContextStorage storage = new JfrContextStorage(delegate);
-          jfrContextStorage.set(storage);
+          ProfilerContextStorage storage = new ProfilerContextStorage(delegate);
+          profilerContextStorage.set(storage);
           return storage;
         });
   }

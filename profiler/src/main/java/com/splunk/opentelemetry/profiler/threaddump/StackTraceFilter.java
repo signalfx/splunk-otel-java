@@ -36,7 +36,8 @@ public class StackTraceFilter {
         "\"JFR Periodic Tasks\"",
         "\"JFR Recording Scheduler\"",
         "\"JFR Recording Flusher\"",
-        "\"JFR Profiler\"",
+        "\"Splunk Profiler\"",
+        "\"Splunk CPU Profiler\"",
         "\"Snapshot Profiling Supervisor\"",
         "\"Reference Handler\"",
         "\"Finalizer\"",
@@ -89,10 +90,10 @@ public class StackTraceFilter {
         return false;
       }
     }
-    if (!includeJvmInternalStacks) {
-      if (everyFrameIsJvmInternal(wallOfStacks, region.getStartIndex(), region.getEndIndex() - 1)) {
-        return false;
-      }
+    if (!includeJvmInternalStacks
+        && everyFrameIsJvmInternal(
+            wallOfStacks, region.getStartIndex(), region.getEndIndex() - 1)) {
+      return false;
     }
     return true;
   }
@@ -105,26 +106,42 @@ public class StackTraceFilter {
 
     if (!includeAgentInternalStacks) {
       String threadName = thread.getThreadName();
-      for (String prefix : UNWANTED_PREFIXES) {
-        // if prefix ends with " we expect it to match thread name
-        if (prefix.endsWith("\"")) {
-          // prefix is surrounded by "
-          if (threadName.regionMatches(0, prefix, 1, prefix.length() - 2)) {
-            return false;
-          }
-          // prefix starts with "
-        } else if (threadName.regionMatches(0, prefix, 1, prefix.length() - 1)) {
-          return false;
-        }
-      }
-    }
-    if (!includeJvmInternalStacks) {
-      if (everyFrameIsJvmInternal(eventReader.getStackTrace(event))) {
+      if (isInternalThread(threadName)) {
         return false;
       }
     }
+    if (!includeJvmInternalStacks && everyFrameIsJvmInternal(eventReader.getStackTrace(event))) {
+      return false;
+    }
 
     return true;
+  }
+
+  public boolean test(String threadName, StackTraceElement[] threadDump) {
+    if (!includeAgentInternalStacks && isInternalThread(threadName)) {
+      return false;
+    }
+    if (!includeJvmInternalStacks && everyFrameIsJvmInternal(threadDump)) {
+      return false;
+    }
+
+    return true;
+  }
+
+  private static boolean isInternalThread(String threadName) {
+    for (String prefix : UNWANTED_PREFIXES) {
+      // if prefix ends with " we expect it to match thread name
+      if (prefix.endsWith("\"")) {
+        // prefix is surrounded by "
+        if (threadName.regionMatches(0, prefix, 1, prefix.length() - 2)) {
+          return true;
+        }
+        // prefix starts with "
+      } else if (threadName.regionMatches(0, prefix, 1, prefix.length() - 1)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   /**
@@ -172,12 +189,32 @@ public class StackTraceFilter {
       if (className == null) {
         continue;
       }
-      if (!className.startsWith("java.")
-          && !className.startsWith("jdk.")
-          && !className.startsWith("sun.")) {
+      if (!isJvmInternalClassName(className)) {
         return false;
       }
     }
     return true;
+  }
+
+  private static boolean everyFrameIsJvmInternal(StackTraceElement[] stackTrace) {
+    if (stackTrace == null) {
+      return false;
+    }
+    for (StackTraceElement frame : stackTrace) {
+      String className = frame.getClassName();
+      if (className == null) {
+        continue;
+      }
+      if (!isJvmInternalClassName(className)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  private static boolean isJvmInternalClassName(String className) {
+    return className.startsWith("java.")
+        || className.startsWith("jdk.")
+        || className.startsWith("sun.");
   }
 }

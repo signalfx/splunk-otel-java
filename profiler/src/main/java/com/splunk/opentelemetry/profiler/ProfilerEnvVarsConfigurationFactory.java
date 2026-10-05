@@ -51,10 +51,12 @@ public final class ProfilerEnvVarsConfigurationFactory {
   static final String CONFIG_KEY_TRACING_STACKS_ONLY = "splunk.profiler.tracing.stacks.only";
   static final String CONFIG_KEY_LOCKS_ENABLED = "splunk.profiler.locks.enabled";
   static final String CONFIG_KEY_STACK_DEPTH = "splunk.profiler.max.stack.depth";
+  static final String CONFIG_KEY_CPU_MODE = "splunk.profiler.cpu.mode";
 
   private static final String DEFAULT_PROFILER_DIRECTORY = System.getProperty("java.io.tmpdir");
   private static final Duration DEFAULT_RECORDING_DURATION = Duration.ofSeconds(20);
   private static final Duration DEFAULT_CALL_STACK_INTERVAL = Duration.ofSeconds(10);
+  private static final String DEFAULT_CPU_MODE = "jfr";
 
   private ProfilerEnvVarsConfigurationFactory() {}
 
@@ -88,6 +90,7 @@ public final class ProfilerEnvVarsConfigurationFactory {
             config.getString(CONFIG_KEY_PROFILER_DIRECTORY, DEFAULT_PROFILER_DIRECTORY))
         .setRecordingDuration(
             config.getDuration(CONFIG_KEY_RECORDING_DURATION, DEFAULT_RECORDING_DURATION))
+        .setCpuMode(config.getString(CONFIG_KEY_CPU_MODE, DEFAULT_CPU_MODE))
         .setConfigProperties(config)
         .build();
   }

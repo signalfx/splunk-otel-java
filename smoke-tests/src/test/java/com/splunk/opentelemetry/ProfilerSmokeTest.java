@@ -38,9 +38,14 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 import jdk.jfr.consumer.RecordedEvent;
 import jdk.jfr.consumer.RecordingFile;
@@ -66,9 +71,15 @@ public abstract class ProfilerSmokeTest {
   private TestContainerManager containerManager;
   private TelemetryRetriever telemetryRetriever;
   private final String jdkVersion;
+  private final boolean useJfrCpu;
 
   ProfilerSmokeTest(String jdkVersion) {
+    this(jdkVersion, true);
+  }
+
+  ProfilerSmokeTest(String jdkVersion, boolean useJfrCpu) {
     this.jdkVersion = jdkVersion;
+    this.useJfrCpu = useJfrCpu;
   }
 
   public static class TestJdk8 extends ProfilerSmokeTest {
@@ -98,6 +109,12 @@ public abstract class ProfilerSmokeTest {
   public static class TestJdk25 extends ProfilerSmokeTest {
     TestJdk25() {
       super("25");
+    }
+  }
+
+  public static class TestJdk21JavaProfiler extends ProfilerSmokeTest {
+    TestJdk21JavaProfiler() {
+      super("21", false);
     }
   }
 
@@ -169,6 +186,8 @@ public abstract class ProfilerSmokeTest {
         .isNotEmpty()
         .allMatch(sample -> sample.getAllocated() > 0)
         .allMatch(sample -> sample.getThreadName() != null);
+
+    assertThat(threadDumpEventsFound()).isEqualTo(useJfrCpu);
   }
 
   @Test
@@ -212,30 +231,45 @@ public abstract class ProfilerSmokeTest {
   }
 
   private boolean contextEventHasStackTrace(Path path) {
-    if (!Files.isReadable(path)) {
-      makeReadable(path);
-    }
-    try {
-      return RecordingFile.readAllEvents(path).stream()
-          .filter(ProfilerSmokeTest::isContextAttachedEvent)
-          .anyMatch(event -> event.getStackTrace() != null);
-    } catch (IOException e) {
-      throw new AssertionError("Failed to open JFR file " + path, e);
-    }
+    return checkJfrStream(
+        path,
+        stream ->
+            stream
+                .filter(ProfilerSmokeTest::isContextAttachedEvent)
+                .anyMatch(event -> event.getStackTrace() != null));
   }
 
   private boolean spanThreadContextEventsFound() throws Exception {
+    return checkJfr(this::containsContextAttached);
+  }
+
+  private boolean threadDumpEventsFound() throws Exception {
+    return checkJfr(this::containsThreadDump);
+  }
+
+  private boolean checkJfr(Predicate<Path> predicate) throws Exception {
     List<Path> files = findJfrFilesInOutputDir();
-    return files.stream().anyMatch(this::containsContextAttached);
+    return files.stream().anyMatch(predicate);
   }
 
   private boolean containsContextAttached(Path path) {
+    return checkJfrStream(
+        path, stream -> stream.anyMatch(ProfilerSmokeTest::isContextAttachedEvent));
+  }
+
+  private boolean containsThreadDump(Path path) {
+    return checkJfrStream(
+        path,
+        stream ->
+            stream.anyMatch(event -> "jdk.ThreadDump".equals(event.getEventType().getName())));
+  }
+
+  private boolean checkJfrStream(Path path, Function<Stream<RecordedEvent>, Boolean> action) {
     if (!Files.isReadable(path)) {
       makeReadable(path);
     }
     try {
-      return RecordingFile.readAllEvents(path).stream()
-          .anyMatch(ProfilerSmokeTest::isContextAttachedEvent);
+      return action.apply(RecordingFile.readAllEvents(path).stream());
     } catch (IOException e) {
       throw new AssertionError("Failed to open JFR file " + path, e);
     }
@@ -271,6 +305,27 @@ public abstract class ProfilerSmokeTest {
   }
 
   private void startPetclinic() {
+    List<String> command =
+        new ArrayList<>(
+            Arrays.asList(
+                "-javaagent:/" + TestContainerManager.TARGET_AGENT_FILENAME,
+                "-Dotel.resource.attributes=service.name=smoketest,deployment.environment=smokeytown",
+                "-Dotel.javaagent.debug=true",
+                "-Dotel.logs.exporter=none",
+                "-Dsplunk.profiler.enabled=true",
+                "-Dsplunk.profiler.memory.enabled=true",
+                "-Dsplunk.profiler.directory=/app/jfr",
+                "-Dsplunk.profiler.keep-files=true",
+                "-Dsplunk.profiler.call.stack.interval=1001",
+                "-Dsplunk.profiler.logs-endpoint=http://collector:4318/v1/logs"
+                // uncomment to enable exporting traces
+                // "-Dotel.exporter.otlp.endpoint=http://collector:4318",
+                ));
+    if (!useJfrCpu) {
+      command.add("-Dsplunk.profiler.cpu.mode=java");
+    }
+    command.addAll(Arrays.asList("-jar", "/app/spring-petclinic-rest.jar"));
+
     containerManager.startTarget(
         new TargetContainerBuilder(getPetclinicImageName())
             .withTargetPort(PETCLINIC_PORT)
@@ -283,21 +338,7 @@ public abstract class ProfilerSmokeTest {
             .withWaitStrategy(
                 new TargetWaitStrategy.Http(Duration.ofMinutes(5), "/petclinic/api/vets"))
             .withUseDefaultAgentConfiguration(false)
-            .withCommand(
-                "-javaagent:/" + TestContainerManager.TARGET_AGENT_FILENAME,
-                "-Dotel.resource.attributes=service.name=smoketest,deployment.environment=smokeytown",
-                "-Dotel.javaagent.debug=true",
-                "-Dotel.logs.exporter=none",
-                "-Dsplunk.profiler.enabled=true",
-                "-Dsplunk.profiler.memory.enabled=true",
-                "-Dsplunk.profiler.directory=/app/jfr",
-                "-Dsplunk.profiler.keep-files=true",
-                "-Dsplunk.profiler.call.stack.interval=1001",
-                "-Dsplunk.profiler.logs-endpoint=http://collector:4318/v1/logs",
-                // uncomment to enable exporting traces
-                // "-Dotel.exporter.otlp.endpoint=http://collector:4318",
-                "-jar",
-                "/app/spring-petclinic-rest.jar"));
+            .withCommand(command));
 
     logger.info("Petclinic has been started.");
 

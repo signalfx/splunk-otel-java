@@ -25,22 +25,27 @@ import io.opentelemetry.api.trace.TraceFlags;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.context.ContextStorage;
 import io.opentelemetry.context.Scope;
+import io.opentelemetry.instrumentation.api.internal.cache.weaklockfree.WeakConcurrentMap;
 import java.util.function.Function;
 import javax.annotation.Nullable;
 
-class JfrContextStorage implements ContextStorage {
+class ProfilerContextStorage implements ContextStorage {
   private final ContextStorage delegate;
   private final Function<SpanContext, JfrEvent> newEvent;
   private final ThreadLocal<Span> activeSpan = ThreadLocal.withInitial(Span::getInvalid);
+  private final WeakConcurrentMap<Thread, SpanContext> activeContext =
+      new WeakConcurrentMap.WithInlinedExpunction<>();
 
   private volatile boolean enabled = false;
+  private volatile boolean emitJfrEvents = false;
+  private volatile boolean trackActiveContext = false;
 
-  JfrContextStorage(ContextStorage delegate) {
-    this(delegate, JfrContextStorage::newEvent);
+  ProfilerContextStorage(ContextStorage delegate) {
+    this(delegate, ProfilerContextStorage::newEvent);
   }
 
   @VisibleForTesting
-  JfrContextStorage(ContextStorage delegate, Function<SpanContext, JfrEvent> newEvent) {
+  ProfilerContextStorage(ContextStorage delegate, Function<SpanContext, JfrEvent> newEvent) {
     this.delegate = delegate;
     this.newEvent = newEvent;
   }
@@ -51,6 +56,21 @@ class JfrContextStorage implements ContextStorage {
 
   public boolean isEnabled() {
     return enabled;
+  }
+
+  public void setEmitJfrEvents(boolean emitJfrEvents) {
+    this.emitJfrEvents = emitJfrEvents;
+  }
+
+  public void setTrackActiveContext(boolean trackActiveContext) {
+    this.trackActiveContext = trackActiveContext;
+    if (!trackActiveContext) {
+      activeContext.clear();
+    }
+  }
+
+  public WeakConcurrentMap<Thread, SpanContext> getActiveContextMap() {
+    return activeContext;
   }
 
   static ContextAttached newEvent(SpanContext spanContext) {
@@ -77,16 +97,39 @@ class JfrContextStorage implements ContextStorage {
 
     // mark new span as active and generate event
     activeSpan.set(span);
-    generateEvent(span);
+    activateSpan(span);
+
     return () -> {
       // restore previous active span
       activeSpan.set(current);
-      generateEvent(current);
+      activateSpan(current);
       delegatedScope.close();
     };
   }
 
+  protected void activateSpan(Span span) {
+    generateEvent(span);
+    trackActiveContext(span);
+  }
+
+  private void trackActiveContext(Span span) {
+    if (!trackActiveContext) {
+      return;
+    }
+
+    SpanContext context = span.getSpanContext();
+    if (context.isValid()) {
+      activeContext.put(Thread.currentThread(), context);
+    } else {
+      activeContext.remove(Thread.currentThread());
+    }
+  }
+
   private void generateEvent(Span span) {
+    if (!emitJfrEvents) {
+      return;
+    }
+
     SpanContext context = span.getSpanContext();
     JfrEvent event = newEvent.apply(context);
     event.begin();

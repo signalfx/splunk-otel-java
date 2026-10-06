@@ -8,6 +8,14 @@ and this repository adheres to [Semantic Versioning](https://semver.org/spec/v2.
 
 ## Unreleased
 
+## v2.32.0 - 2026-10-07
+
+### General
+
+- OpenTelemetry Java SDK has been updated to version [1.66.0](https://github.com/open-telemetry/opentelemetry-java/releases/tag/v1.66.0).
+- OpenTelemetry Instrumentation for Java has been updated to version [2.32.0](https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/tag/v2.32.0).
+- Capture virtual threads in call graphs [#3097](https://github.com/signalfx/splunk-otel-java/pull/3097)
+
 ## v2.31.3 - 2026-10-01
 
 ### General

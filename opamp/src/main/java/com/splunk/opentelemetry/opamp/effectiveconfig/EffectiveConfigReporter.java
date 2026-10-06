@@ -30,12 +30,12 @@ import opamp.proto.AgentConfigMap;
 
 public class EffectiveConfigReporter {
   private final UpdatableEffectiveConfigState effectiveConfigState;
-  private final EffectiveConfigFactory effectiveConfigFactory;
+  private final EffectiveConfigFileFactory effectiveConfigFactory;
   private String lastReportedConfigContent;
 
   @VisibleForTesting
   EffectiveConfigReporter(
-      EffectiveConfigFactory effectiveConfigFactory,
+      EffectiveConfigFileFactory effectiveConfigFactory,
       UpdatableEffectiveConfigState effectiveConfigState) {
     this.effectiveConfigFactory = effectiveConfigFactory;
     this.effectiveConfigState = effectiveConfigState;
@@ -65,7 +65,7 @@ public class EffectiveConfigReporter {
     return true;
   }
 
-  private static EffectiveConfigFactory createEffectiveConfigFactory(
+  private static EffectiveConfigFileFactory createEffectiveConfigFactory(
       AutoConfiguredOpenTelemetrySdk sdk) {
     if (AutoConfigureUtil.isDeclarativeConfig(sdk)) {
       return new DeclarativeEffectiveConfigFileFactory();

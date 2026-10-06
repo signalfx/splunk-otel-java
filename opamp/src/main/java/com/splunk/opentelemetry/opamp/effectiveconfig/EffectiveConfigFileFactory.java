@@ -16,36 +16,7 @@
 
 package com.splunk.opentelemetry.opamp.effectiveconfig;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
-
-import java.util.HashMap;
-import java.util.Map;
-import okio.ByteString;
-import opamp.proto.AgentConfigFile;
-import opamp.proto.AgentConfigMap;
-
-interface EffectiveConfigFactory {
-  /**
-   * Build <code>AgentConfigMap</code> object containing current effective config with proper
-   * content type and file name
-   *
-   * @return agent config map containing effective config.
-   * @see AgentConfigMap
-   * @see AgentConfigFile
-   * @see #createEffectiveConfigContent()
-   * @see #getContentType()
-   * @see #getFileName()
-   */
-  default AgentConfigMap createEffectiveConfigMap() {
-    Map<String, AgentConfigFile> configMap = new HashMap<>();
-
-    ByteString content = new ByteString(createEffectiveConfigContent().getBytes(UTF_8));
-    AgentConfigFile configFile = new AgentConfigFile(content, getContentType());
-    configMap.put(getFileName(), configFile);
-
-    return new AgentConfigMap(configMap);
-  }
-
+interface EffectiveConfigFileFactory {
   /**
    * Create an appropriately formatted string containing effective config of the agent. Format and
    * content may vary depending on the agent configuration.

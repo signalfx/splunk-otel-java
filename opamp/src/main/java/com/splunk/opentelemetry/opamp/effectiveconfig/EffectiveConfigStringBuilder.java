@@ -18,15 +18,15 @@ package com.splunk.opentelemetry.opamp.effectiveconfig;
 
 import java.time.Duration;
 
-class EffectiveConfigBuilder {
+class EffectiveConfigStringBuilder {
   private final StringBuilder stringBuilder = new StringBuilder();
 
-  EffectiveConfigBuilder add(String propertyName, Object value) {
+  EffectiveConfigStringBuilder add(String propertyName, Object value) {
     stringBuilder.append(propertyName).append('=').append(value).append('\n');
     return this;
   }
 
-  EffectiveConfigBuilder add(String propertyName, Duration value) {
+  EffectiveConfigStringBuilder add(String propertyName, Duration value) {
     return add(propertyName, value.toMillis() + "ms");
   }
 

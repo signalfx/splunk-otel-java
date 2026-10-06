@@ -43,7 +43,7 @@ import org.snakeyaml.engine.v2.common.ScalarStyle;
 import org.snakeyaml.engine.v2.nodes.Tag;
 import org.snakeyaml.engine.v2.representer.StandardRepresenter;
 
-class DeclarativeEffectiveConfigFileFactory implements EffectiveConfigFactory {
+class DeclarativeEffectiveConfigFileFactory implements EffectiveConfigFileFactory {
   private static final String GRPC_DEFAULT_ENDPOINT = "http://localhost:4317";
 
   DeclarativeEffectiveConfigFileFactory() {}

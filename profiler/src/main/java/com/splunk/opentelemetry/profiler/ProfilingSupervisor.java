@@ -29,7 +29,9 @@ import io.opentelemetry.context.ContextStorage;
 import io.opentelemetry.sdk.autoconfigure.AutoConfigureUtil;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 import io.opentelemetry.sdk.resources.Resource;
+import java.util.List;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -54,6 +56,7 @@ public class ProfilingSupervisor {
   private final PeriodicRecordingFlusherFactory recordingFlusherFactory;
   private final OtelAllocatedMemoryMetrics allocatedMemoryMetrics;
   private final OtelGcMemoryMetrics gcMemoryMetrics;
+  private final List<AlwaysOnProfilerStateListener> listeners = new CopyOnWriteArrayList<>();
   private final AtomicReference<PeriodicRecordingFlusher> recordingFlusher =
       new AtomicReference<>();
   private static final AtomicReference<JfrContextStorage> jfrContextStorage =
@@ -96,6 +99,14 @@ public class ProfilingSupervisor {
     return supervisor;
   }
 
+  public void addAlwaysOnProfilerStateListener(AlwaysOnProfilerStateListener listener) {
+    listeners.add(listener);
+  }
+
+  public void removeAlwaysOnProfilerStateListener(AlwaysOnProfilerStateListener listener) {
+    listeners.remove(listener);
+  }
+
   @VisibleForTesting
   void start(ExecutorService executor) {
     executor.submit(this::commandLoop);
@@ -131,10 +142,10 @@ public class ProfilingSupervisor {
   private void handleCommand(ProfilingCommand command) {
     switch (command) {
       case START:
-        tryStart();
+        tryStart(true);
         break;
       case STOP:
-        tryStop();
+        tryStop(true);
         break;
       case REINITIALIZE:
         tryReinitialize();
@@ -153,7 +164,7 @@ public class ProfilingSupervisor {
    * Try and start the profiler. This does not check configuration, just responds to a command
    * request.
    */
-  private void tryStart() {
+  private void tryStart(boolean sendStateChangeNotification) {
     if (isJfrRecordingActive()) {
       logger.fine("JFR is already running, not starting again.");
       return;
@@ -170,9 +181,13 @@ public class ProfilingSupervisor {
     setJfrContextStorageEnabled(true);
     activateJfrRecording(getResource(sdk));
     logger.info("Profiler is active.");
+
+    if (sendStateChangeNotification) {
+      notifyStateChanged();
+    }
   }
 
-  private void tryStop() {
+  private void tryStop(boolean sendStateChangeNotification) {
     if (!isJfrRecordingActive()) {
       logger.fine("JFR is not running already, not stopping again.");
       return;
@@ -180,15 +195,30 @@ public class ProfilingSupervisor {
     setJfrContextStorageEnabled(false);
     deactivateJfrRecording();
     logger.info("Profiler is deactivated.");
+
+    if (sendStateChangeNotification) {
+      notifyStateChanged();
+    }
   }
 
   private void tryReinitialize() {
+    boolean wasRunning = isJfrRecordingActive();
+
     updateJvmMemoryMetrics();
-    tryStop();
+    tryStop(false);
     // Start the profiler with current settings if it is enabled. New settings will be applied.
     if (configSupplier.get().isEnabled()) {
-      tryStart();
+      tryStart(false);
     }
+
+    if (wasRunning != isJfrRecordingActive()) {
+      notifyStateChanged();
+    }
+  }
+
+  private void notifyStateChanged() {
+    boolean enabled = isJfrRecordingActive();
+    listeners.forEach(listener -> listener.onAlwaysOnProfilerStateChanged(enabled));
   }
 
   private boolean isJfrRecordingActive() {

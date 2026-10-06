@@ -36,7 +36,7 @@ class EffectiveConfigReporterTest {
   private static final String CONFIG_FILE_NAME = "splunk-effective-config.properties";
   private static final String CONTENT_TYPE = "text/plain; format=properties; vendor=splunk";
 
-  @Mock private EffectiveConfigFactory effectiveConfigFactory;
+  @Mock private EffectiveConfigFileFactory effectiveConfigFactory;
   @Mock private UpdatableEffectiveConfigState effectiveConfigState;
 
   private EffectiveConfigReporter reporter;

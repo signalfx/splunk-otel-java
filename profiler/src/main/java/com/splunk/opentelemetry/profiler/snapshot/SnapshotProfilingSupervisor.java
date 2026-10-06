@@ -29,7 +29,9 @@ import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import io.opentelemetry.sdk.resources.Resource;
 import java.time.Duration;
+import java.util.List;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.logging.Logger;
@@ -50,6 +52,7 @@ public class SnapshotProfilingSupervisor {
       traceThreadChangeDetectorSupplier;
   private final OptionalConfigurableSupplier<SnapshotProfilingSpanProcessor>
       profilingSpanProcessorSupplier;
+  private final List<SnapshotProfilerStateListener> listeners = new CopyOnWriteArrayList<>();
   private final AutoConfiguredOpenTelemetrySdk sdk;
   private final OtelLoggerFactory otelLoggerFactory;
   private volatile boolean running;
@@ -100,6 +103,14 @@ public class SnapshotProfilingSupervisor {
     return supervisor;
   }
 
+  public void addSnapshotProfilerStateListener(SnapshotProfilerStateListener listener) {
+    listeners.add(listener);
+  }
+
+  public void removeSnapshotProfilerStateListener(SnapshotProfilerStateListener listener) {
+    listeners.remove(listener);
+  }
+
   @VisibleForTesting
   void start(ExecutorService executor) {
     executor.submit(this::commandLoop);
@@ -140,10 +151,10 @@ public class SnapshotProfilingSupervisor {
   private void handleCommand(ProfilingCommand command) {
     switch (command) {
       case START:
-        tryStart();
+        tryStart(true);
         break;
       case STOP:
-        tryStop();
+        tryStop(true);
         break;
       case REINITIALIZE:
         tryReinitialize();
@@ -151,7 +162,7 @@ public class SnapshotProfilingSupervisor {
     }
   }
 
-  private void tryStart() {
+  private void tryStart(boolean sendStateChangeNotification) {
     if (running) {
       return;
     }
@@ -175,9 +186,13 @@ public class SnapshotProfilingSupervisor {
 
     running = true;
     logger.info("Snapshot profiling is active.");
+
+    if (sendStateChangeNotification) {
+      notifyStateChanged();
+    }
   }
 
-  private void tryStop() {
+  private void tryStop(boolean sendStateChangeNotification) {
     if (!running) {
       return;
     }
@@ -199,16 +214,30 @@ public class SnapshotProfilingSupervisor {
 
     running = false;
     logger.info("Snapshot profiling is deactivated.");
+
+    if (sendStateChangeNotification) {
+      notifyStateChanged();
+    }
   }
 
   private void tryReinitialize() {
+    boolean wasRunning = running;
+
     if (running) {
-      tryStop();
+      tryStop(false);
     }
 
     if (configurationSupplier.get().isEnabled()) {
-      tryStart();
+      tryStart(false);
     }
+
+    if (wasRunning != running) {
+      notifyStateChanged();
+    }
+  }
+
+  private void notifyStateChanged() {
+    listeners.forEach(listener -> listener.onSnapshotProfilerStateChanged(isRunning()));
   }
 
   StagingArea createStagingArea(SnapshotProfilingConfiguration configuration) {

@@ -20,7 +20,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.awaitility.Awaitility.await;
 import static org.mockito.Mockito.clearInvocations;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -55,6 +58,7 @@ class SnapshotProfilingSupervisorTest {
   @Mock StagingArea stagingArea;
   @Mock StackTraceExporter stackTraceExporter;
   @Mock ConfigProperties configProperties;
+  @Mock SnapshotProfilerStateListener listener;
 
   private OptionalConfigurableSupplier<SnapshotProfilingConfiguration> configurationSupplier;
   private ConfigurableSupplier<StackTraceSampler> stackTraceSamplerSupplier;
@@ -147,12 +151,27 @@ class SnapshotProfilingSupervisorTest {
     SnapshotProfilingConfiguration configuration = configuration(true);
     configurationSupplier.configure(configuration);
     requestStartProfiling();
+    await()
+        .untilAsserted(
+            () -> assertThat(supervisor.getEffectiveConfiguration()).isEqualTo(configuration));
+    supervisor.addSnapshotProfilerStateListener(listener);
     configureRuntimeComponents();
+    configurationSupplier.configure(
+        configuration.toBuilder()
+            .setEnabled(false)
+            .setSamplingInterval(Duration.ofMillis(20))
+            .setSnapshotSelectionProbability(0.5)
+            .build());
+    SnapshotProfilingConfiguration disabledConfiguration =
+        configuration.toBuilder().setEnabled(false).build();
 
     supervisor.requestStopProfiling();
     supervisor.requestStopProfiling();
 
-    await().untilAsserted(this::verifyClosedRuntimeComponents);
+    await()
+        .untilAsserted(
+            () -> verify(listener, times(2)).onSnapshotProfilerStateChanged(disabledConfiguration));
+    verifyClosedRuntimeComponents();
     verify(spanTracker).setEnabled(true);
     verify(spanTracker).setEnabled(false);
     verify(traceThreadChangeDetector).setEnabled(true);
@@ -164,6 +183,8 @@ class SnapshotProfilingSupervisorTest {
             SnapshotProfilingConfiguration.DEFAULT_SELECTION_PROBABILITY);
     verifyNoMoreInteractions(spanTracker, traceThreadChangeDetector, profilingSpanProcessor);
     assertRuntimeComponentsReset();
+    assertThat(supervisor.isRunning()).isFalse();
+    assertThat(supervisor.getEffectiveConfiguration()).isEqualTo(disabledConfiguration);
   }
 
   @Test
@@ -236,6 +257,94 @@ class SnapshotProfilingSupervisorTest {
               verify(profilingSpanProcessor).setSnapshotSelectionProbability(0.5);
               verify(profilingSpanProcessor).setEnabled(true);
             });
+  }
+
+  @Test
+  void reportsDisabledBeforeStartupAndAfterStartupFailure() {
+    configurationSupplier.configure(configuration(true));
+    supervisor.addSnapshotProfilerStateListener(listener);
+    verify(listener).onSnapshotProfilerStateChanged(configuration(false));
+    clearInvocations(listener);
+    assertThat(supervisor.getEffectiveConfiguration().isEnabled()).isFalse();
+    doThrow(new IllegalStateException("Cannot enable snapshot profiling"))
+        .doNothing()
+        .when(profilingSpanProcessor)
+        .setEnabled(true);
+    doNothing().when(profilingSpanProcessor).setEnabled(false);
+
+    supervisor.requestStartProfiling();
+
+    await()
+        .untilAsserted(() -> verify(listener).onSnapshotProfilerStateChanged(configuration(false)));
+    assertThat(supervisor.getEffectiveConfiguration().isEnabled()).isFalse();
+    assertRuntimeComponentsReset();
+
+    supervisor.requestStartProfiling();
+
+    await()
+        .untilAsserted(() -> verify(listener).onSnapshotProfilerStateChanged(configuration(true)));
+    assertThat(supervisor.getEffectiveConfiguration()).isEqualTo(configuration(true));
+  }
+
+  @Test
+  void reportsAppliedSettingsUntilReinitializationCompletes() {
+    SnapshotProfilingConfiguration initialConfiguration = configuration(true);
+    configurationSupplier.configure(initialConfiguration);
+    supervisor.addSnapshotProfilerStateListener(listener);
+    requestStartProfiling();
+    await()
+        .untilAsserted(() -> verify(listener).onSnapshotProfilerStateChanged(initialConfiguration));
+    SnapshotProfilingConfiguration updatedConfiguration =
+        initialConfiguration.toBuilder()
+            .setSamplingInterval(Duration.ofMillis(20))
+            .setSnapshotSelectionProbability(0.5)
+            .build();
+    configurationSupplier.configure(updatedConfiguration);
+
+    assertThat(supervisor.getEffectiveConfiguration()).isEqualTo(initialConfiguration);
+    supervisor.requestReinitializeProfiling();
+
+    await()
+        .untilAsserted(() -> verify(listener).onSnapshotProfilerStateChanged(updatedConfiguration));
+    assertThat(supervisor.getEffectiveConfiguration()).isEqualTo(updatedConfiguration);
+  }
+
+  @Test
+  void reportsDisabledAfterReinitializationFailure() {
+    configurationSupplier.configure(configuration(true));
+    supervisor.addSnapshotProfilerStateListener(listener);
+    clearInvocations(listener);
+    requestStartProfiling();
+    await()
+        .untilAsserted(() -> verify(listener).onSnapshotProfilerStateChanged(configuration(true)));
+    doThrow(new IllegalStateException("Cannot restart snapshot profiling"))
+        .when(profilingSpanProcessor)
+        .setEnabled(true);
+    doNothing().when(profilingSpanProcessor).setEnabled(false);
+
+    supervisor.requestReinitializeProfiling();
+
+    await()
+        .untilAsserted(() -> verify(listener).onSnapshotProfilerStateChanged(configuration(false)));
+    assertThat(supervisor.getEffectiveConfiguration().isEnabled()).isFalse();
+    assertRuntimeComponentsReset();
+  }
+
+  @Test
+  void registeringListenerDeliversCurrentEffectiveConfiguration() {
+    configurationSupplier.configure(configuration(true));
+    supervisor.addSnapshotProfilerStateListener(listener);
+    verify(listener).onSnapshotProfilerStateChanged(configuration(false));
+
+    requestStartProfiling();
+    await()
+        .untilAsserted(() -> verify(listener).onSnapshotProfilerStateChanged(configuration(true)));
+    supervisor.removeSnapshotProfilerStateListener(listener);
+    clearInvocations(listener);
+
+    supervisor.addSnapshotProfilerStateListener(listener);
+
+    verify(listener).onSnapshotProfilerStateChanged(configuration(true));
   }
 
   @Test

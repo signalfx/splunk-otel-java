@@ -36,6 +36,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
+import javax.annotation.Nullable;
 
 /**
  * This class oversees the profiling subsystem. It runs for the entire time that the agent is
@@ -59,6 +60,7 @@ public class ProfilingSupervisor {
   private final List<AlwaysOnProfilerStateListener> listeners = new CopyOnWriteArrayList<>();
   private final AtomicReference<PeriodicRecordingFlusher> recordingFlusher =
       new AtomicReference<>();
+  @Nullable private volatile ProfilerConfiguration activeConfiguration;
   private static final AtomicReference<JfrContextStorage> jfrContextStorage =
       new AtomicReference<>();
   private static final AtomicBoolean contextStorageSetup = new AtomicBoolean();
@@ -99,12 +101,23 @@ public class ProfilingSupervisor {
     return supervisor;
   }
 
-  public void addAlwaysOnProfilerStateListener(AlwaysOnProfilerStateListener listener) {
+  public synchronized void addAlwaysOnProfilerStateListener(
+      AlwaysOnProfilerStateListener listener) {
     listeners.add(listener);
+    // Serialize the initial callback with notifications so a newer snapshot cannot be overwritten.
+    listener.onAlwaysOnProfilerStateChanged(getEffectiveConfiguration());
   }
 
   public void removeAlwaysOnProfilerStateListener(AlwaysOnProfilerStateListener listener) {
     listeners.remove(listener);
+  }
+
+  /** Returns the configuration applied to the running profiler, or disabled if it is inactive. */
+  public ProfilerConfiguration getEffectiveConfiguration() {
+    ProfilerConfiguration configuration = activeConfiguration;
+    return configuration != null
+        ? configuration
+        : configSupplier.get().toBuilder().setEnabled(false).setMemoryEnabled(false).build();
   }
 
   @VisibleForTesting
@@ -140,16 +153,21 @@ public class ProfilingSupervisor {
   }
 
   private void handleCommand(ProfilingCommand command) {
-    switch (command) {
-      case START:
-        tryStart(true);
-        break;
-      case STOP:
-        tryStop(true);
-        break;
-      case REINITIALIZE:
-        tryReinitialize();
-        break;
+    try {
+      switch (command) {
+        case START:
+          tryStart();
+          break;
+        case STOP:
+          tryStop();
+          break;
+        case REINITIALIZE:
+          tryReinitialize();
+          break;
+      }
+    } finally {
+      // Configuration can change without changing enabled state, including after a failed start.
+      notifyStateChanged();
     }
   }
 
@@ -164,7 +182,7 @@ public class ProfilingSupervisor {
    * Try and start the profiler. This does not check configuration, just responds to a command
    * request.
    */
-  private void tryStart(boolean sendStateChangeNotification) {
+  private void tryStart() {
     if (isJfrRecordingActive()) {
       logger.fine("JFR is already running, not starting again.");
       return;
@@ -176,18 +194,16 @@ public class ProfilingSupervisor {
       return;
     }
 
-    configSupplier.get().log();
+    ProfilerConfiguration configuration = configSupplier.get();
+    configuration.log();
     updateJvmMemoryMetrics();
+    activateJfrRecording(configuration, getResource(sdk));
+    activeConfiguration = configuration.toBuilder().setEnabled(true).build();
     setJfrContextStorageEnabled(true);
-    activateJfrRecording(getResource(sdk));
     logger.info("Profiler is active.");
-
-    if (sendStateChangeNotification) {
-      notifyStateChanged();
-    }
   }
 
-  private void tryStop(boolean sendStateChangeNotification) {
+  private void tryStop() {
     if (!isJfrRecordingActive()) {
       logger.fine("JFR is not running already, not stopping again.");
       return;
@@ -195,48 +211,53 @@ public class ProfilingSupervisor {
     setJfrContextStorageEnabled(false);
     deactivateJfrRecording();
     logger.info("Profiler is deactivated.");
-
-    if (sendStateChangeNotification) {
-      notifyStateChanged();
-    }
   }
 
   private void tryReinitialize() {
-    boolean wasRunning = isJfrRecordingActive();
-
     updateJvmMemoryMetrics();
-    tryStop(false);
+    tryStop();
     // Start the profiler with current settings if it is enabled. New settings will be applied.
     if (configSupplier.get().isEnabled()) {
-      tryStart(false);
-    }
-
-    if (wasRunning != isJfrRecordingActive()) {
-      notifyStateChanged();
+      tryStart();
     }
   }
 
-  private void notifyStateChanged() {
-    boolean enabled = isJfrRecordingActive();
-    listeners.forEach(listener -> listener.onAlwaysOnProfilerStateChanged(enabled));
+  private synchronized void notifyStateChanged() {
+    if (listeners.isEmpty()) {
+      return;
+    }
+    ProfilerConfiguration effectiveConfiguration = getEffectiveConfiguration();
+    listeners.forEach(listener -> listener.onAlwaysOnProfilerStateChanged(effectiveConfiguration));
   }
 
   private boolean isJfrRecordingActive() {
     return recordingFlusher.get() != null;
   }
 
-  private void activateJfrRecording(Resource resource) {
+  private void activateJfrRecording(ProfilerConfiguration configuration, Resource resource) {
     PeriodicRecordingFlusher recordingFlusher =
-        recordingFlusherFactory.create(configSupplier.get(), resource, jfr);
-    if (this.recordingFlusher.compareAndSet(null, recordingFlusher)) {
+        recordingFlusherFactory.create(configuration, resource, jfr);
+    try {
       recordingFlusher.start();
+    } catch (RuntimeException e) {
+      recordingFlusher.stop();
+      throw e;
     }
+    this.recordingFlusher.set(recordingFlusher);
   }
 
   private void deactivateJfrRecording() {
     PeriodicRecordingFlusher recordingFlusher = this.recordingFlusher.getAndSet(null);
     if (recordingFlusher != null) {
-      recordingFlusher.stop();
+      try {
+        recordingFlusher.stop();
+      } finally {
+        activeConfiguration =
+            getEffectiveConfiguration().toBuilder()
+                .setEnabled(false)
+                .setMemoryEnabled(false)
+                .build();
+      }
     }
   }
 

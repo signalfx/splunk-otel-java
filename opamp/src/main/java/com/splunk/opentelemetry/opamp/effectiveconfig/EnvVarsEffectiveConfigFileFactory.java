@@ -37,20 +37,21 @@ class EnvVarsEffectiveConfigFileFactory implements EffectiveConfigFileFactory {
     return "environment";
   }
 
-  public String createEffectiveConfigContent() {
+  public String createEffectiveConfigContent(
+      ProfilerConfiguration profilerConfiguration,
+      SnapshotProfilingConfiguration snapshotConfiguration) {
     EffectiveConfigStringBuilder builder = new EffectiveConfigStringBuilder();
 
     addOtelEnvVars(builder);
-    addSplunkEnvVars(builder);
+    addSplunkEnvVars(builder, profilerConfiguration, snapshotConfiguration);
 
     return builder.build();
   }
 
-  private void addSplunkEnvVars(EffectiveConfigStringBuilder builder) {
-    ProfilerConfiguration profilerConfiguration = ProfilerConfiguration.SUPPLIER.get();
-    SnapshotProfilingConfiguration snapshotConfiguration =
-        SnapshotProfilingConfiguration.SUPPLIER.get();
-
+  private void addSplunkEnvVars(
+      EffectiveConfigStringBuilder builder,
+      ProfilerConfiguration profilerConfiguration,
+      SnapshotProfilingConfiguration snapshotConfiguration) {
     builder
         .add("SPLUNK_PROFILER_ENABLED", profilerConfiguration.isEnabled())
         .add("SPLUNK_PROFILER_CALL_STACK_INTERVAL", profilerConfiguration.getCallStackInterval())

@@ -275,6 +275,79 @@ class OpampActivatorTest {
   }
 
   @Test
+  void sendsChangedEffectiveConfigBeforeTheNextScheduledHeartbeat() throws Exception {
+    ServerToAgent response = new ServerToAgent.Builder().build();
+    server.enqueue(HttpResponse.of(HttpStatus.OK, MediaType.X_PROTOBUF, response.encode()));
+    server.enqueue(HttpResponse.of(HttpStatus.OK, MediaType.X_PROTOBUF, response.encode()));
+
+    AgentConfigMap initialConfig =
+        new AgentConfigMap(
+            Map.of(
+                "environment",
+                new AgentConfigFile(
+                    ByteString.encodeUtf8("SPLUNK_PROFILER_ENABLED=false"), "text/plain")));
+    UpdatableEffectiveConfigState effectiveConfig = new UpdatableEffectiveConfigState();
+    effectiveConfig.set(initialConfig);
+    OpampClientConfiguration configuration =
+        OpampClientConfiguration.builder()
+            .withEnabled(true)
+            .withEndpoint(server.httpUri().toString())
+            .withPollingInterval(60_000)
+            .build();
+    CompletableFuture<Void> initialResponse = new CompletableFuture<>();
+    CompletableFuture<Void> updatedResponse = new CompletableFuture<>();
+    OpampClient client =
+        OpampActivator.startOpampClient(
+            configuration,
+            Resource.empty(),
+            effectiveConfig,
+            new OpampClient.Callbacks() {
+              @Override
+              public void onConnect(OpampClient opampClient) {
+                if (!initialResponse.complete(null)) {
+                  updatedResponse.complete(null);
+                }
+              }
+
+              @Override
+              public void onConnectFailed(OpampClient opampClient, @Nullable Throwable throwable) {
+                initialResponse.completeExceptionally(new IllegalStateException(throwable));
+                updatedResponse.completeExceptionally(new IllegalStateException(throwable));
+              }
+
+              @Override
+              public void onErrorResponse(
+                  OpampClient opampClient, ServerErrorResponse serverErrorResponse) {
+                initialResponse.completeExceptionally(
+                    new IllegalStateException(serverErrorResponse.toString()));
+                updatedResponse.completeExceptionally(
+                    new IllegalStateException(serverErrorResponse.toString()));
+              }
+
+              @Override
+              public void onMessage(OpampClient opampClient, MessageData messageData) {}
+            });
+    cleanup.deferCleanup(client);
+    initialResponse.get(5, TimeUnit.SECONDS);
+    AgentToServer initialRequest =
+        AgentToServer.ADAPTER.decode(server.takeRequest().request().content().array());
+    assertThat(initialRequest.effective_config.config_map).isEqualTo(initialConfig);
+
+    AgentConfigMap updatedConfig =
+        new AgentConfigMap(
+            Map.of(
+                "environment",
+                new AgentConfigFile(
+                    ByteString.encodeUtf8("SPLUNK_PROFILER_ENABLED=true"), "text/plain")));
+    effectiveConfig.set(updatedConfig);
+
+    updatedResponse.get(5, TimeUnit.SECONDS);
+    AgentToServer updatedRequest =
+        AgentToServer.ADAPTER.decode(server.takeRequest().request().content().array());
+    assertThat(updatedRequest.effective_config.config_map).isEqualTo(updatedConfig);
+  }
+
+  @Test
   void shouldNotAdvertiseRemoteConfigCapabilitiesWhenRemoteConfigIsDisabled() throws Exception {
     AgentToServer agentToServer = startClientAndTakeInitialRequest(false);
 

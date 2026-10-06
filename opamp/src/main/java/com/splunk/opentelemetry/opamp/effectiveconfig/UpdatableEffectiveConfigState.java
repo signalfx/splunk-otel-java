@@ -20,7 +20,7 @@ import io.opentelemetry.opamp.client.internal.state.State;
 import opamp.proto.AgentConfigMap;
 
 public class UpdatableEffectiveConfigState extends State.EffectiveConfig {
-  private AgentConfigMap agentConfigMap;
+  private volatile AgentConfigMap agentConfigMap;
 
   public void set(AgentConfigMap configMap) {
     agentConfigMap = configMap;

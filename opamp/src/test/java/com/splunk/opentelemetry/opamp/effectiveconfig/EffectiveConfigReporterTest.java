@@ -22,6 +22,8 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.splunk.opentelemetry.profiler.ProfilerConfiguration;
+import com.splunk.opentelemetry.profiler.snapshot.SnapshotProfilingConfiguration;
 import opamp.proto.AgentConfigFile;
 import opamp.proto.AgentConfigMap;
 import org.junit.jupiter.api.BeforeEach;
@@ -39,48 +41,51 @@ class EffectiveConfigReporterTest {
   @Mock private EffectiveConfigFileFactory effectiveConfigFactory;
   @Mock private UpdatableEffectiveConfigState effectiveConfigState;
 
+  private final ProfilerConfiguration profilerConfiguration =
+      ProfilerConfiguration.builder().setEnabled(false).build();
+  private final SnapshotProfilingConfiguration snapshotConfiguration =
+      SnapshotProfilingConfiguration.builder().setEnabled(false).build();
+
   private EffectiveConfigReporter reporter;
 
   @BeforeEach
   void setUp() {
-    when(effectiveConfigFactory.getFileName()).thenReturn(CONFIG_FILE_NAME);
-    when(effectiveConfigFactory.getContentType()).thenReturn(CONTENT_TYPE);
     reporter = new EffectiveConfigReporter(effectiveConfigFactory, effectiveConfigState);
   }
 
   @Test
   void reportEffectiveConfigIfChanged_reportsGeneratedConfig() {
-    when(effectiveConfigFactory.createEffectiveConfigContent()).thenReturn("first-config");
+    stubConfig("first-config");
 
-    boolean reported = reporter.reportEffectiveConfigIfChanged();
+    notifyInitialConfigurations();
 
-    assertThat(reported).isTrue();
     AgentConfigFile configFile = captureReportedConfigFile();
     assertThat(configFile.body.utf8()).isEqualTo("first-config");
     assertThat(configFile.content_type).isEqualTo(CONTENT_TYPE);
+    verify(effectiveConfigFactory, times(2))
+        .createEffectiveConfigContent(profilerConfiguration, snapshotConfiguration);
   }
 
   @Test
   void reportEffectiveConfigIfChanged_skipsUnchangedConfig() {
-    when(effectiveConfigFactory.createEffectiveConfigContent()).thenReturn("same-config");
+    stubConfig("same-config");
 
-    boolean firstReport = reporter.reportEffectiveConfigIfChanged();
-    boolean secondReport = reporter.reportEffectiveConfigIfChanged();
+    notifyInitialConfigurations();
+    boolean reported = reporter.reportEffectiveConfigIfChanged();
+    reporter.onAlwaysOnProfilerStateChanged(profilerConfiguration);
+    reporter.onSnapshotProfilerStateChanged(snapshotConfiguration);
 
-    assertThat(firstReport).isTrue();
-    assertThat(secondReport).isFalse();
+    assertThat(reported).isFalse();
     verify(effectiveConfigState, times(1)).set(any());
   }
 
   @Test
   void reportEffectiveConfigIfChanged_reportsUpdatedConfig() {
-    when(effectiveConfigFactory.createEffectiveConfigContent())
-        .thenReturn("first-config", "second-config");
+    stubConfig("first-config", "second-config");
 
-    boolean firstReport = reporter.reportEffectiveConfigIfChanged();
+    reporter.onAlwaysOnProfilerStateChanged(profilerConfiguration);
     boolean secondReport = reporter.reportEffectiveConfigIfChanged();
 
-    assertThat(firstReport).isTrue();
     assertThat(secondReport).isTrue();
 
     ArgumentCaptor<AgentConfigMap> configMapCaptor = ArgumentCaptor.forClass(AgentConfigMap.class);
@@ -88,6 +93,54 @@ class EffectiveConfigReporterTest {
     assertThat(configMapCaptor.getAllValues())
         .extracting(configMap -> configMap.config_map.get(CONFIG_FILE_NAME).body.utf8())
         .containsExactly("first-config", "second-config");
+  }
+
+  @Test
+  void reportsChangesFromBothProfilersAndSkipsUnchangedNotifications() {
+    stubConfig("initial", "initial", "always-on-started", "both-started", "both-started");
+    notifyInitialConfigurations();
+
+    ProfilerConfiguration activeProfilerConfiguration =
+        profilerConfiguration.toBuilder().setEnabled(true).build();
+    reporter.onAlwaysOnProfilerStateChanged(activeProfilerConfiguration);
+    SnapshotProfilingConfiguration activeSnapshotConfiguration =
+        snapshotConfiguration.toBuilder().setEnabled(true).build();
+    reporter.onSnapshotProfilerStateChanged(activeSnapshotConfiguration);
+    reporter.onSnapshotProfilerStateChanged(activeSnapshotConfiguration);
+
+    ArgumentCaptor<AgentConfigMap> configMaps = ArgumentCaptor.forClass(AgentConfigMap.class);
+    verify(effectiveConfigState, times(3)).set(configMaps.capture());
+    assertThat(configMaps.getAllValues())
+        .extracting(configMap -> configMap.config_map.get(CONFIG_FILE_NAME).body.utf8())
+        .containsExactly("initial", "always-on-started", "both-started");
+    verify(effectiveConfigFactory)
+        .createEffectiveConfigContent(activeProfilerConfiguration, snapshotConfiguration);
+    verify(effectiveConfigFactory, times(2))
+        .createEffectiveConfigContent(activeProfilerConfiguration, activeSnapshotConfiguration);
+  }
+
+  @Test
+  void reportsFirstListenerConfigurationWithOtherProfilerDisabled() {
+    stubConfig("initial");
+    SnapshotProfilingConfiguration activeSnapshotConfiguration =
+        snapshotConfiguration.toBuilder().setEnabled(true).build();
+    reporter.onSnapshotProfilerStateChanged(activeSnapshotConfiguration);
+
+    assertThat(captureReportedConfigFile().body.utf8()).isEqualTo("initial");
+    verify(effectiveConfigFactory)
+        .createEffectiveConfigContent(profilerConfiguration, activeSnapshotConfiguration);
+  }
+
+  private void stubConfig(String firstConfig, String... subsequentConfigs) {
+    when(effectiveConfigFactory.getFileName()).thenReturn(CONFIG_FILE_NAME);
+    when(effectiveConfigFactory.getContentType()).thenReturn(CONTENT_TYPE);
+    when(effectiveConfigFactory.createEffectiveConfigContent(any(), any()))
+        .thenReturn(firstConfig, subsequentConfigs);
+  }
+
+  private void notifyInitialConfigurations() {
+    reporter.onAlwaysOnProfilerStateChanged(profilerConfiguration);
+    reporter.onSnapshotProfilerStateChanged(snapshotConfiguration);
   }
 
   private AgentConfigFile captureReportedConfigFile() {

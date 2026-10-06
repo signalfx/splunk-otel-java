@@ -35,6 +35,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.logging.Logger;
+import javax.annotation.Nullable;
 
 public class SnapshotProfilingSupervisor {
   public static final OptionalConfigurableSupplier<SnapshotProfilingSupervisor> SUPPLIER =
@@ -55,7 +56,7 @@ public class SnapshotProfilingSupervisor {
   private final List<SnapshotProfilerStateListener> listeners = new CopyOnWriteArrayList<>();
   private final AutoConfiguredOpenTelemetrySdk sdk;
   private final OtelLoggerFactory otelLoggerFactory;
-  private volatile boolean running;
+  @Nullable private volatile SnapshotProfilingConfiguration activeConfiguration;
 
   @VisibleForTesting
   SnapshotProfilingSupervisor(
@@ -103,12 +104,23 @@ public class SnapshotProfilingSupervisor {
     return supervisor;
   }
 
-  public void addSnapshotProfilerStateListener(SnapshotProfilerStateListener listener) {
+  public synchronized void addSnapshotProfilerStateListener(
+      SnapshotProfilerStateListener listener) {
     listeners.add(listener);
+    // Serialize the initial callback with notifications so a newer snapshot cannot be overwritten.
+    listener.onSnapshotProfilerStateChanged(getEffectiveConfiguration());
   }
 
   public void removeSnapshotProfilerStateListener(SnapshotProfilerStateListener listener) {
     listeners.remove(listener);
+  }
+
+  /** Returns the configuration applied to the running profiler, or disabled if it is inactive. */
+  public SnapshotProfilingConfiguration getEffectiveConfiguration() {
+    SnapshotProfilingConfiguration configuration = activeConfiguration;
+    return configuration != null
+        ? configuration
+        : configurationSupplier.get().toBuilder().setEnabled(false).build();
   }
 
   @VisibleForTesting
@@ -145,58 +157,71 @@ public class SnapshotProfilingSupervisor {
 
   @VisibleForTesting
   boolean isRunning() {
-    return running;
+    SnapshotProfilingConfiguration configuration = activeConfiguration;
+    return configuration != null && configuration.isEnabled();
   }
 
   private void handleCommand(ProfilingCommand command) {
-    switch (command) {
-      case START:
-        tryStart(true);
-        break;
-      case STOP:
-        tryStop(true);
-        break;
-      case REINITIALIZE:
-        tryReinitialize();
-        break;
+    try {
+      switch (command) {
+        case START:
+          tryStart();
+          break;
+        case STOP:
+          tryStop();
+          break;
+        case REINITIALIZE:
+          tryReinitialize();
+          break;
+      }
+    } finally {
+      // Configuration can change without changing enabled state, including after a failed start.
+      notifyStateChanged();
     }
   }
 
-  private void tryStart(boolean sendStateChangeNotification) {
-    if (running) {
+  private void tryStart() {
+    if (isRunning()) {
       return;
     }
 
     SnapshotProfilingConfiguration configuration = configurationSupplier.get();
     configuration.log();
 
-    // Create a new components
-    stagingAreaSupplier.configure(createStagingArea(configuration));
-    stackTraceSamplerSupplier.configure(createStackTraceSampler(configuration));
-    stackTraceExporterSupplier.configure(createStackTraceExporter(configuration));
+    try {
+      // Create new components
+      stagingAreaSupplier.configure(createStagingArea(configuration));
+      stackTraceSamplerSupplier.configure(createStackTraceSampler(configuration));
+      stackTraceExporterSupplier.configure(createStackTraceExporter(configuration));
 
-    // Enable components created during SDK initialization
-    spanTrackerSupplier.get().setEnabled(true);
-    traceThreadChangeDetectorSupplier.get().setEnabled(true);
+      // Enable components created during SDK initialization
+      spanTrackerSupplier.get().setEnabled(true);
+      traceThreadChangeDetectorSupplier.get().setEnabled(true);
 
-    profilingSpanProcessorSupplier
-        .get()
-        .setSnapshotSelectionProbability(configuration.getSnapshotSelectionProbability());
-    profilingSpanProcessorSupplier.get().setEnabled(true);
-
-    running = true;
-    logger.info("Snapshot profiling is active.");
-
-    if (sendStateChangeNotification) {
-      notifyStateChanged();
+      profilingSpanProcessorSupplier
+          .get()
+          .setSnapshotSelectionProbability(configuration.getSnapshotSelectionProbability());
+      profilingSpanProcessorSupplier.get().setEnabled(true);
+    } catch (RuntimeException e) {
+      stopRuntimeComponents();
+      throw e;
     }
+
+    activeConfiguration = configuration.toBuilder().setEnabled(true).build();
+    logger.info("Snapshot profiling is active.");
   }
 
-  private void tryStop(boolean sendStateChangeNotification) {
-    if (!running) {
+  private void tryStop() {
+    if (!isRunning()) {
       return;
     }
 
+    stopRuntimeComponents();
+    activeConfiguration = getEffectiveConfiguration().toBuilder().setEnabled(false).build();
+    logger.info("Snapshot profiling is deactivated.");
+  }
+
+  private void stopRuntimeComponents() {
     // Dispose components that can be recreated
     stackTraceSamplerSupplier.get().close();
     stackTraceSamplerSupplier.reset();
@@ -211,33 +236,22 @@ public class SnapshotProfilingSupervisor {
     spanTrackerSupplier.get().setEnabled(false);
     traceThreadChangeDetectorSupplier.get().setEnabled(false);
     profilingSpanProcessorSupplier.get().setEnabled(false);
-
-    running = false;
-    logger.info("Snapshot profiling is deactivated.");
-
-    if (sendStateChangeNotification) {
-      notifyStateChanged();
-    }
   }
 
   private void tryReinitialize() {
-    boolean wasRunning = running;
-
-    if (running) {
-      tryStop(false);
-    }
+    tryStop();
 
     if (configurationSupplier.get().isEnabled()) {
-      tryStart(false);
-    }
-
-    if (wasRunning != running) {
-      notifyStateChanged();
+      tryStart();
     }
   }
 
-  private void notifyStateChanged() {
-    listeners.forEach(listener -> listener.onSnapshotProfilerStateChanged(isRunning()));
+  private synchronized void notifyStateChanged() {
+    if (listeners.isEmpty()) {
+      return;
+    }
+    SnapshotProfilingConfiguration effectiveConfiguration = getEffectiveConfiguration();
+    listeners.forEach(listener -> listener.onSnapshotProfilerStateChanged(effectiveConfiguration));
   }
 
   StagingArea createStagingArea(SnapshotProfilingConfiguration configuration) {

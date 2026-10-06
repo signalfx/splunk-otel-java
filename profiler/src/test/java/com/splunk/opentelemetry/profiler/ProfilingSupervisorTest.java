@@ -16,10 +16,14 @@
 
 package com.splunk.opentelemetry.profiler;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.same;
+import static org.mockito.Mockito.clearInvocations;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -35,8 +39,10 @@ import java.nio.file.Path;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -55,6 +61,7 @@ class ProfilingSupervisorTest {
   @Mock PeriodicRecordingFlusher recordingFlusher;
   @Mock OtelAllocatedMemoryMetrics allocatedMemoryMetrics;
   @Mock OtelGcMemoryMetrics gcMemoryMetrics;
+  @Mock AlwaysOnProfilerStateListener listener;
 
   ProfilerConfiguration config;
   OptionalConfigurableSupplier<ProfilerConfiguration> configSupplier;
@@ -99,6 +106,121 @@ class ProfilingSupervisorTest {
     await().untilAsserted(() -> verify(jfr).isAvailable());
     verify(jfr, never()).setStackDepth(anyInt());
     verify(recordingFlusherFactory, never()).create(any(), any(), any());
+    assertThat(supervisor.getEffectiveConfiguration().isEnabled()).isFalse();
+    assertThat(supervisor.getEffectiveConfiguration().getMemoryEnabled()).isFalse();
+  }
+
+  @Test
+  void reportsDisabledUntilStartupCompletes() throws InterruptedException {
+    startSupervisor();
+    when(jfr.isAvailable()).thenReturn(true);
+    CountDownLatch starting = new CountDownLatch(1);
+    CountDownLatch finishStartup = new CountDownLatch(1);
+    doAnswer(
+            invocation -> {
+              starting.countDown();
+              finishStartup.await(5, TimeUnit.SECONDS);
+              return null;
+            })
+        .when(recordingFlusher)
+        .start();
+
+    supervisor.requestStartProfiling();
+    try {
+      assertThat(starting.await(5, TimeUnit.SECONDS)).isTrue();
+      assertThat(supervisor.getEffectiveConfiguration().isEnabled()).isFalse();
+    } finally {
+      finishStartup.countDown();
+    }
+    await()
+        .untilAsserted(() -> assertThat(supervisor.getEffectiveConfiguration()).isEqualTo(config));
+  }
+
+  @Test
+  void reportsDisabledAfterStartupFailureAndCanRetry() {
+    startSupervisor();
+    when(jfr.isAvailable()).thenReturn(true);
+    supervisor.addAlwaysOnProfilerStateListener(listener);
+    clearInvocations(listener);
+    doThrow(new IllegalStateException("Cannot start JFR"))
+        .doNothing()
+        .when(recordingFlusher)
+        .start();
+
+    supervisor.requestStartProfiling();
+
+    await()
+        .untilAsserted(
+            () -> verify(listener).onAlwaysOnProfilerStateChanged(disabledConfiguration()));
+    assertThat(supervisor.getEffectiveConfiguration().isEnabled()).isFalse();
+    assertThat(supervisor.getEffectiveConfiguration().getMemoryEnabled()).isFalse();
+    verify(recordingFlusher).stop();
+
+    supervisor.requestStartProfiling();
+
+    await().untilAsserted(() -> verify(listener).onAlwaysOnProfilerStateChanged(config));
+    assertThat(supervisor.getEffectiveConfiguration()).isEqualTo(config);
+  }
+
+  @Test
+  void reportsAppliedSettingsUntilReinitializationCompletes() {
+    startSupervisor();
+    when(jfr.isAvailable()).thenReturn(true);
+    supervisor.addAlwaysOnProfilerStateListener(listener);
+    supervisor.requestStartProfiling();
+    await().untilAsserted(() -> verify(listener).onAlwaysOnProfilerStateChanged(config));
+    ProfilerConfiguration updatedConfiguration =
+        config.toBuilder()
+            .setCallStackInterval(Duration.ofMillis(50))
+            .setMemoryEnabled(true)
+            .build();
+    configSupplier.configure(updatedConfiguration);
+
+    assertThat(supervisor.getEffectiveConfiguration()).isEqualTo(config);
+    supervisor.requestReinitializeProfiling();
+
+    await()
+        .untilAsserted(() -> verify(listener).onAlwaysOnProfilerStateChanged(updatedConfiguration));
+    assertThat(supervisor.getEffectiveConfiguration()).isEqualTo(updatedConfiguration);
+  }
+
+  @Test
+  void reportsDisabledAfterReinitializationFailure() {
+    startSupervisor();
+    when(jfr.isAvailable()).thenReturn(true);
+    supervisor.addAlwaysOnProfilerStateListener(listener);
+    clearInvocations(listener);
+    supervisor.requestStartProfiling();
+    await().untilAsserted(() -> verify(listener).onAlwaysOnProfilerStateChanged(config));
+    doThrow(new IllegalStateException("Cannot restart JFR")).when(recordingFlusher).start();
+
+    supervisor.requestReinitializeProfiling();
+
+    await()
+        .untilAsserted(
+            () -> verify(listener).onAlwaysOnProfilerStateChanged(disabledConfiguration()));
+    assertThat(supervisor.getEffectiveConfiguration().isEnabled()).isFalse();
+  }
+
+  @Test
+  void registeringListenerDeliversCurrentEffectiveConfiguration() {
+    startSupervisor();
+    when(jfr.isAvailable()).thenReturn(true);
+    supervisor.addAlwaysOnProfilerStateListener(listener);
+    verify(listener).onAlwaysOnProfilerStateChanged(disabledConfiguration());
+
+    supervisor.requestStartProfiling();
+    await().untilAsserted(() -> verify(listener).onAlwaysOnProfilerStateChanged(config));
+    supervisor.removeAlwaysOnProfilerStateListener(listener);
+    clearInvocations(listener);
+
+    supervisor.addAlwaysOnProfilerStateListener(listener);
+
+    verify(listener).onAlwaysOnProfilerStateChanged(config);
+  }
+
+  private ProfilerConfiguration disabledConfiguration() {
+    return config.toBuilder().setEnabled(false).setMemoryEnabled(false).build();
   }
 
   @Test
@@ -142,13 +264,25 @@ class ProfilingSupervisorTest {
     startSupervisor();
     when(jfr.isAvailable()).thenReturn(true);
     supervisor.requestStartProfiling();
-    await().untilAsserted(() -> verify(recordingFlusher).start());
+    await()
+        .untilAsserted(() -> assertThat(supervisor.getEffectiveConfiguration()).isEqualTo(config));
+    supervisor.addAlwaysOnProfilerStateListener(listener);
+    configSupplier.configure(
+        config.toBuilder()
+            .setEnabled(false)
+            .setCallStackInterval(Duration.ofMillis(50))
+            .setMemoryEnabled(true)
+            .build());
 
     // when
     supervisor.requestStopProfiling();
 
     // then
-    await().untilAsserted(() -> verify(recordingFlusher).stop());
+    await()
+        .untilAsserted(
+            () -> verify(listener).onAlwaysOnProfilerStateChanged(disabledConfiguration()));
+    verify(recordingFlusher).stop();
+    assertThat(supervisor.getEffectiveConfiguration()).isEqualTo(disabledConfiguration());
   }
 
   @Test

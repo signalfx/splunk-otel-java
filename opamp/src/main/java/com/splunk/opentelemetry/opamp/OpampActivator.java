@@ -60,7 +60,10 @@ public class OpampActivator implements AgentListener {
     UpdatableEffectiveConfigState effectiveConfigState = new UpdatableEffectiveConfigState();
     EffectiveConfigReporter effectiveConfigReporter =
         EffectiveConfigReporter.create(autoConfiguredOpenTelemetrySdk, effectiveConfigState);
-    effectiveConfigReporter.reportEffectiveConfigIfChanged();
+    ProfilingSupervisor.SUPPLIER.get().addAlwaysOnProfilerStateListener(effectiveConfigReporter);
+    SnapshotProfilingSupervisor.SUPPLIER
+        .get()
+        .addSnapshotProfilerStateListener(effectiveConfigReporter);
 
     ServerToAgentMessageHandler serverToAgentMessageHandler =
         buildServerToAgentMessageHandler(opampClientConfiguration, effectiveConfigReporter);

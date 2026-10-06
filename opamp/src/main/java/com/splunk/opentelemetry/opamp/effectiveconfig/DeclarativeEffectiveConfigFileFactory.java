@@ -62,16 +62,14 @@ class DeclarativeEffectiveConfigFileFactory implements EffectiveConfigFileFactor
     return fileName;
   }
 
-  public String createEffectiveConfigContent() {
+  public String createEffectiveConfigContent(
+      ProfilerConfiguration profilerConfiguration,
+      SnapshotProfilingConfiguration snapshotConfiguration) {
     OpenTelemetryConfigurationModel model =
         DeclarativeConfigurationInterceptor.getConfigurationModel();
     if (model == null) {
       return "";
     }
-    ProfilerConfiguration profilerConfiguration = ProfilerConfiguration.SUPPLIER.get();
-    SnapshotProfilingConfiguration snapshotConfiguration =
-        SnapshotProfilingConfiguration.SUPPLIER.get();
-
     return processModel(model, profilerConfiguration, snapshotConfiguration);
   }
 

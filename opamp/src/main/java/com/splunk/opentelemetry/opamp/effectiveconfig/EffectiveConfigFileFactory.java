@@ -16,6 +16,9 @@
 
 package com.splunk.opentelemetry.opamp.effectiveconfig;
 
+import com.splunk.opentelemetry.profiler.ProfilerConfiguration;
+import com.splunk.opentelemetry.profiler.snapshot.SnapshotProfilingConfiguration;
+
 interface EffectiveConfigFileFactory {
   /**
    * Create an appropriately formatted string containing effective config of the agent. Format and
@@ -26,7 +29,9 @@ interface EffectiveConfigFileFactory {
    *     href="https://github.com/signalfx/gdi-specification/blob/main/specification/opamp_datamodel.md#effective-configuration">GDI
    *     Spec</a> for details
    */
-  String createEffectiveConfigContent();
+  String createEffectiveConfigContent(
+      ProfilerConfiguration profilerConfiguration,
+      SnapshotProfilingConfiguration snapshotConfiguration);
 
   /**
    * Return content type that needs to be associated with content of the effective config.

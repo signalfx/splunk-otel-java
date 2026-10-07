@@ -30,6 +30,7 @@ import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import io.opentelemetry.sdk.resources.Resource;
 import java.time.Duration;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
@@ -164,10 +165,10 @@ public class SnapshotProfilingSupervisor {
   private void handleCommand(ProfilingCommand command) {
     switch (command) {
       case START:
-        tryStart();
+        tryStart(true);
         break;
       case STOP:
-        tryStop();
+        tryStop(true);
         break;
       case REINITIALIZE:
         tryReinitialize();
@@ -175,7 +176,7 @@ public class SnapshotProfilingSupervisor {
     }
   }
 
-  private void tryStart() {
+  private void tryStart(boolean notifyListeners) {
     if (isRunning()) {
       return;
     }
@@ -202,17 +203,18 @@ public class SnapshotProfilingSupervisor {
       throw e;
     }
 
-    updateActiveConfiguration(configuration.toBuilder().setEnabled(true).build());
+    updateActiveConfiguration(configuration.toBuilder().setEnabled(true).build(), notifyListeners);
     logger.info("Snapshot profiling is active.");
   }
 
-  private void tryStop() {
+  private void tryStop(boolean notifyListeners) {
     if (!isRunning()) {
       return;
     }
 
     stopRuntimeComponents();
-    updateActiveConfiguration(getEffectiveConfiguration().toBuilder().setEnabled(false).build());
+    updateActiveConfiguration(
+        getEffectiveConfiguration().toBuilder().setEnabled(false).build(), notifyListeners);
     logger.info("Snapshot profiling is deactivated.");
   }
 
@@ -233,20 +235,36 @@ public class SnapshotProfilingSupervisor {
     profilingSpanProcessorSupplier.get().setEnabled(false);
   }
 
-  private void tryReinitialize() {
-    tryStop();
+  // Serialize registration with the full restart so initial callbacks see the completed state.
+  private synchronized void tryReinitialize() {
+    SnapshotProfilingConfiguration previousConfiguration = activeConfiguration;
+    try {
+      tryStop(false);
 
-    if (configurationSupplier.get().isEnabled()) {
-      tryStart();
+      if (configurationSupplier.get().isEnabled()) {
+        tryStart(false);
+      }
+    } finally {
+      // Report only the final state, including after a failed restart.
+      if (!Objects.equals(activeConfiguration, previousConfiguration)) {
+        notifyStateChanged();
+      }
     }
   }
 
   private synchronized void updateActiveConfiguration(
-      SnapshotProfilingConfiguration effectiveConfiguration) {
+      SnapshotProfilingConfiguration effectiveConfiguration, boolean notifyListeners) {
     if (effectiveConfiguration.equals(activeConfiguration)) {
       return;
     }
     activeConfiguration = effectiveConfiguration;
+    if (notifyListeners) {
+      notifyStateChanged();
+    }
+  }
+
+  private void notifyStateChanged() {
+    SnapshotProfilingConfiguration effectiveConfiguration = getEffectiveConfiguration();
     listeners.forEach(listener -> listener.onSnapshotProfilerStateChanged(effectiveConfiguration));
   }
 

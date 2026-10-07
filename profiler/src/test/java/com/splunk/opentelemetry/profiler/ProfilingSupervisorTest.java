@@ -184,6 +184,7 @@ class ProfilingSupervisorTest {
     supervisor.addAlwaysOnProfilerStateListener(listener);
     supervisor.requestStartProfiling();
     await().untilAsserted(() -> verify(listener).onAlwaysOnProfilerStateChanged(config));
+    clearInvocations(listener);
     ProfilerConfiguration updatedConfiguration =
         config.toBuilder()
             .setCallStackInterval(Duration.ofMillis(50))
@@ -201,8 +202,26 @@ class ProfilingSupervisorTest {
 
     // then
     await()
-        .untilAsserted(() -> verify(listener).onAlwaysOnProfilerStateChanged(updatedConfiguration));
+        .untilAsserted(
+            () -> {
+              verify(listener).onAlwaysOnProfilerStateChanged(updatedConfiguration);
+              verifyNoMoreInteractions(listener);
+            });
     assertThat(supervisor.getEffectiveConfiguration()).isEqualTo(updatedConfiguration);
+
+    // when: restart again with the same settings
+    clearInvocations(listener);
+    supervisor.requestReinitializeProfiling();
+
+    // then: the unchanged final configuration produces no notification
+    await()
+        .during(Duration.ofMillis(200))
+        .untilAsserted(
+            () -> {
+              verify(recordingFlusher, times(3)).start();
+              assertThat(supervisor.getEffectiveConfiguration()).isEqualTo(updatedConfiguration);
+              verifyNoInteractions(listener);
+            });
   }
 
   @Test
@@ -211,10 +230,9 @@ class ProfilingSupervisorTest {
     startSupervisor();
     when(jfr.isAvailable()).thenReturn(true);
     supervisor.addAlwaysOnProfilerStateListener(listener);
-    // Ignore the initial disabled notification when checking the failed restart.
-    clearInvocations(listener);
     supervisor.requestStartProfiling();
     await().untilAsserted(() -> verify(listener).onAlwaysOnProfilerStateChanged(config));
+    clearInvocations(listener);
     doThrow(new IllegalStateException("Cannot restart JFR")).when(recordingFlusher).start();
 
     // when
@@ -222,8 +240,13 @@ class ProfilingSupervisorTest {
 
     // then
     // Wait for cleanup of the previous recording and the failed restart.
-    await().untilAsserted(() -> verify(recordingFlusher, times(2)).stop());
-    verify(listener).onAlwaysOnProfilerStateChanged(disabledConfiguration());
+    await()
+        .untilAsserted(
+            () -> {
+              verify(recordingFlusher, times(2)).stop();
+              verify(listener).onAlwaysOnProfilerStateChanged(disabledConfiguration());
+              verifyNoMoreInteractions(listener);
+            });
     assertThat(supervisor.getEffectiveConfiguration().isEnabled()).isFalse();
   }
 

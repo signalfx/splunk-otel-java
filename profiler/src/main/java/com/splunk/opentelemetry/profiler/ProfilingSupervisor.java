@@ -30,6 +30,7 @@ import io.opentelemetry.sdk.autoconfigure.AutoConfigureUtil;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 import io.opentelemetry.sdk.resources.Resource;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
@@ -155,10 +156,10 @@ public class ProfilingSupervisor {
   private void handleCommand(ProfilingCommand command) {
     switch (command) {
       case START:
-        tryStart();
+        tryStart(true);
         break;
       case STOP:
-        tryStop();
+        tryStop(true);
         break;
       case REINITIALIZE:
         tryReinitialize();
@@ -177,7 +178,7 @@ public class ProfilingSupervisor {
    * Try and start the profiler. This does not check configuration, just responds to a command
    * request.
    */
-  private void tryStart() {
+  private void tryStart(boolean notifyListeners) {
     if (isJfrRecordingActive()) {
       logger.fine("JFR is already running, not starting again.");
       return;
@@ -193,36 +194,58 @@ public class ProfilingSupervisor {
     configuration.log();
     updateJvmMemoryMetrics();
     activateJfrRecording(configuration, getResource(sdk));
-    updateActiveConfiguration(configuration.toBuilder().setEnabled(true).build());
     setJfrContextStorageEnabled(true);
+    updateActiveConfiguration(configuration.toBuilder().setEnabled(true).build(), notifyListeners);
     logger.info("Profiler is active.");
   }
 
-  private void tryStop() {
+  private void tryStop(boolean notifyListeners) {
     if (!isJfrRecordingActive()) {
       logger.fine("JFR is not running already, not stopping again.");
       return;
     }
     setJfrContextStorageEnabled(false);
     deactivateJfrRecording();
+    updateActiveConfiguration(
+        getEffectiveConfiguration().toBuilder()
+            .setEnabled(false)
+            .setMemoryEnabled(false)
+            .build(),
+        notifyListeners);
     logger.info("Profiler is deactivated.");
   }
 
-  private void tryReinitialize() {
-    updateJvmMemoryMetrics();
-    tryStop();
-    // Start the profiler with current settings if it is enabled. New settings will be applied.
-    if (configSupplier.get().isEnabled()) {
-      tryStart();
+  // Serialize registration with the full restart so initial callbacks see the completed state.
+  private synchronized void tryReinitialize() {
+    ProfilerConfiguration previousConfiguration = activeConfiguration;
+    try {
+      updateJvmMemoryMetrics();
+      tryStop(false);
+      // Start the profiler with current settings if it is enabled. New settings will be applied.
+      if (configSupplier.get().isEnabled()) {
+        tryStart(false);
+      }
+    } finally {
+      // Report only the final state, including after a failed restart.
+      if (!Objects.equals(activeConfiguration, previousConfiguration)) {
+        notifyStateChanged();
+      }
     }
   }
 
   private synchronized void updateActiveConfiguration(
-      ProfilerConfiguration effectiveConfiguration) {
+      ProfilerConfiguration effectiveConfiguration, boolean notifyListeners) {
     if (effectiveConfiguration.equals(activeConfiguration)) {
       return;
     }
     activeConfiguration = effectiveConfiguration;
+    if (notifyListeners) {
+      notifyStateChanged();
+    }
+  }
+
+  private void notifyStateChanged() {
+    ProfilerConfiguration effectiveConfiguration = getEffectiveConfiguration();
     listeners.forEach(listener -> listener.onAlwaysOnProfilerStateChanged(effectiveConfiguration));
   }
 
@@ -245,15 +268,7 @@ public class ProfilingSupervisor {
   private void deactivateJfrRecording() {
     PeriodicRecordingFlusher recordingFlusher = this.recordingFlusher.getAndSet(null);
     if (recordingFlusher != null) {
-      try {
         recordingFlusher.stop();
-      } finally {
-        updateActiveConfiguration(
-            getEffectiveConfiguration().toBuilder()
-                .setEnabled(false)
-                .setMemoryEnabled(false)
-                .build());
-      }
     }
   }
 

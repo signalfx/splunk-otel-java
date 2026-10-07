@@ -124,6 +124,8 @@ class SnapshotProfilingSupervisorTest {
   void startProfilingOnlyOnce() {
     SnapshotProfilingConfiguration configuration = configuration(true);
     configurationSupplier.configure(configuration);
+    supervisor.addSnapshotProfilerStateListener(listener);
+    clearInvocations(listener);
 
     requestStartProfiling();
     StackTraceSampler configuredSampler = stackTraceSamplerSupplier.get();
@@ -143,6 +145,8 @@ class SnapshotProfilingSupervisorTest {
               assertThat(stagingAreaSupplier.get()).isSameAs(configuredStagingArea);
               assertThat(stackTraceExporterSupplier.get()).isSameAs(configuredExporter);
               assertRuntimeComponentsConfigured();
+              verify(listener).onSnapshotProfilerStateChanged(configuration);
+              verifyNoMoreInteractions(listener);
             });
   }
 
@@ -156,6 +160,7 @@ class SnapshotProfilingSupervisorTest {
         .untilAsserted(
             () -> assertThat(supervisor.getEffectiveConfiguration()).isEqualTo(configuration));
     supervisor.addSnapshotProfilerStateListener(listener);
+    clearInvocations(listener);
     configureRuntimeComponents();
     // Request different settings to check that stopping preserves the last applied settings.
     configurationSupplier.configure(
@@ -172,10 +177,12 @@ class SnapshotProfilingSupervisorTest {
     supervisor.requestStopProfiling();
 
     // then
-    // Both commands report disabled, but runtime components should be closed only once.
+    // The second stop changes nothing, so there should be just one disabled notification.
     await()
+        .during(Duration.ofMillis(200))
         .untilAsserted(
-            () -> verify(listener, times(2)).onSnapshotProfilerStateChanged(disabledConfiguration));
+            () -> verify(listener).onSnapshotProfilerStateChanged(disabledConfiguration));
+    verifyNoMoreInteractions(listener);
     verifyClosedRuntimeComponents();
     verify(spanTracker).setEnabled(true);
     verify(spanTracker).setEnabled(false);
@@ -271,7 +278,7 @@ class SnapshotProfilingSupervisorTest {
     // Registration reports disabled even though the requested configuration enables profiling.
     supervisor.addSnapshotProfilerStateListener(listener);
     verify(listener).onSnapshotProfilerStateChanged(configuration(false));
-    // Ignore the registration callback so the failed start must produce a new notification.
+    // Clear the initial callback to check that a failed start sends no duplicate notification.
     clearInvocations(listener);
     assertThat(supervisor.getEffectiveConfiguration().isEnabled()).isFalse();
     // Fail the first start attempt and allow the retry to succeed.
@@ -285,10 +292,10 @@ class SnapshotProfilingSupervisorTest {
     supervisor.requestStartProfiling();
 
     // then
-    await()
-        .untilAsserted(() -> verify(listener).onSnapshotProfilerStateChanged(configuration(false)));
+    await().untilAsserted(() -> verify(profilingSpanProcessor).setEnabled(false));
     assertThat(supervisor.getEffectiveConfiguration().isEnabled()).isFalse();
     assertRuntimeComponentsReset();
+    verifyNoInteractions(listener);
 
     // when: retry startup after the failure
     supervisor.requestStartProfiling();
@@ -348,8 +355,9 @@ class SnapshotProfilingSupervisorTest {
     supervisor.requestReinitializeProfiling();
 
     // then
-    await()
-        .untilAsserted(() -> verify(listener).onSnapshotProfilerStateChanged(configuration(false)));
+    // Wait for cleanup of the previous profiler and the failed restart.
+    await().untilAsserted(() -> verify(profilingSpanProcessor, times(2)).setEnabled(false));
+    verify(listener).onSnapshotProfilerStateChanged(configuration(false));
     assertThat(supervisor.getEffectiveConfiguration().isEnabled()).isFalse();
     assertRuntimeComponentsReset();
   }

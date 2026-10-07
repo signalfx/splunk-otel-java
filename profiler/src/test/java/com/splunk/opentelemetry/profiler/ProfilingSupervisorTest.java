@@ -28,6 +28,8 @@ import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import com.splunk.opentelemetry.instrumentation.jvmmetrics.otel.OtelAllocatedMemoryMetrics;
@@ -149,7 +151,7 @@ class ProfilingSupervisorTest {
     startSupervisor();
     when(jfr.isAvailable()).thenReturn(true);
     supervisor.addAlwaysOnProfilerStateListener(listener);
-    // Ignore the registration callback so the failed start must produce a new notification.
+    // Clear the initial callback to check that a failed start sends no duplicate notification.
     clearInvocations(listener);
     // Fail the first start attempt and allow the retry to succeed.
     doThrow(new IllegalStateException("Cannot start JFR"))
@@ -161,12 +163,10 @@ class ProfilingSupervisorTest {
     supervisor.requestStartProfiling();
 
     // then
-    await()
-        .untilAsserted(
-            () -> verify(listener).onAlwaysOnProfilerStateChanged(disabledConfiguration()));
+    await().untilAsserted(() -> verify(recordingFlusher).stop());
     assertThat(supervisor.getEffectiveConfiguration().isEnabled()).isFalse();
     assertThat(supervisor.getEffectiveConfiguration().getMemoryEnabled()).isFalse();
-    verify(recordingFlusher).stop();
+    verifyNoInteractions(listener);
 
     // when: retry startup after the failure
     supervisor.requestStartProfiling();
@@ -221,9 +221,9 @@ class ProfilingSupervisorTest {
     supervisor.requestReinitializeProfiling();
 
     // then
-    await()
-        .untilAsserted(
-            () -> verify(listener).onAlwaysOnProfilerStateChanged(disabledConfiguration()));
+    // Wait for cleanup of the previous recording and the failed restart.
+    await().untilAsserted(() -> verify(recordingFlusher, times(2)).stop());
+    verify(listener).onAlwaysOnProfilerStateChanged(disabledConfiguration());
     assertThat(supervisor.getEffectiveConfiguration().isEnabled()).isFalse();
   }
 
@@ -275,6 +275,8 @@ class ProfilingSupervisorTest {
     // given
     startSupervisor();
     when(jfr.isAvailable()).thenReturn(true);
+    supervisor.addAlwaysOnProfilerStateListener(listener);
+    clearInvocations(listener);
 
     // when
     supervisor.requestStartProfiling();
@@ -288,6 +290,8 @@ class ProfilingSupervisorTest {
             () -> {
               verify(recordingFlusher).start();
               verifyRecordingFlusherCreated(1);
+              verify(listener).onAlwaysOnProfilerStateChanged(config);
+              verifyNoMoreInteractions(listener);
             });
   }
 
@@ -300,6 +304,7 @@ class ProfilingSupervisorTest {
     await()
         .untilAsserted(() -> assertThat(supervisor.getEffectiveConfiguration()).isEqualTo(config));
     supervisor.addAlwaysOnProfilerStateListener(listener);
+    clearInvocations(listener);
     // Request different settings to check that stopping preserves the last applied settings.
     configSupplier.configure(
         config.toBuilder()
@@ -310,11 +315,14 @@ class ProfilingSupervisorTest {
 
     // when
     supervisor.requestStopProfiling();
+    supervisor.requestStopProfiling();
 
     // then
     await()
+        .during(Duration.ofMillis(200))
         .untilAsserted(
             () -> verify(listener).onAlwaysOnProfilerStateChanged(disabledConfiguration()));
+    verifyNoMoreInteractions(listener);
     verify(recordingFlusher).stop();
     assertThat(supervisor.getEffectiveConfiguration()).isEqualTo(disabledConfiguration());
   }

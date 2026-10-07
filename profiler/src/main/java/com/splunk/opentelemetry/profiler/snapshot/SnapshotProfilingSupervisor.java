@@ -162,21 +162,16 @@ public class SnapshotProfilingSupervisor {
   }
 
   private void handleCommand(ProfilingCommand command) {
-    try {
-      switch (command) {
-        case START:
-          tryStart();
-          break;
-        case STOP:
-          tryStop();
-          break;
-        case REINITIALIZE:
-          tryReinitialize();
-          break;
-      }
-    } finally {
-      // Configuration can change without changing enabled state, including after a failed start.
-      notifyStateChanged();
+    switch (command) {
+      case START:
+        tryStart();
+        break;
+      case STOP:
+        tryStop();
+        break;
+      case REINITIALIZE:
+        tryReinitialize();
+        break;
     }
   }
 
@@ -207,7 +202,7 @@ public class SnapshotProfilingSupervisor {
       throw e;
     }
 
-    activeConfiguration = configuration.toBuilder().setEnabled(true).build();
+    updateActiveConfiguration(configuration.toBuilder().setEnabled(true).build());
     logger.info("Snapshot profiling is active.");
   }
 
@@ -217,7 +212,7 @@ public class SnapshotProfilingSupervisor {
     }
 
     stopRuntimeComponents();
-    activeConfiguration = getEffectiveConfiguration().toBuilder().setEnabled(false).build();
+    updateActiveConfiguration(getEffectiveConfiguration().toBuilder().setEnabled(false).build());
     logger.info("Snapshot profiling is deactivated.");
   }
 
@@ -246,11 +241,12 @@ public class SnapshotProfilingSupervisor {
     }
   }
 
-  private synchronized void notifyStateChanged() {
-    if (listeners.isEmpty()) {
+  private synchronized void updateActiveConfiguration(
+      SnapshotProfilingConfiguration effectiveConfiguration) {
+    if (effectiveConfiguration.equals(activeConfiguration)) {
       return;
     }
-    SnapshotProfilingConfiguration effectiveConfiguration = getEffectiveConfiguration();
+    activeConfiguration = effectiveConfiguration;
     listeners.forEach(listener -> listener.onSnapshotProfilerStateChanged(effectiveConfiguration));
   }
 

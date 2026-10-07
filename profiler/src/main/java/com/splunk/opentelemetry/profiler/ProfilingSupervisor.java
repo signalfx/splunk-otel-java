@@ -153,21 +153,16 @@ public class ProfilingSupervisor {
   }
 
   private void handleCommand(ProfilingCommand command) {
-    try {
-      switch (command) {
-        case START:
-          tryStart();
-          break;
-        case STOP:
-          tryStop();
-          break;
-        case REINITIALIZE:
-          tryReinitialize();
-          break;
-      }
-    } finally {
-      // Configuration can change without changing enabled state, including after a failed start.
-      notifyStateChanged();
+    switch (command) {
+      case START:
+        tryStart();
+        break;
+      case STOP:
+        tryStop();
+        break;
+      case REINITIALIZE:
+        tryReinitialize();
+        break;
     }
   }
 
@@ -198,7 +193,7 @@ public class ProfilingSupervisor {
     configuration.log();
     updateJvmMemoryMetrics();
     activateJfrRecording(configuration, getResource(sdk));
-    activeConfiguration = configuration.toBuilder().setEnabled(true).build();
+    updateActiveConfiguration(configuration.toBuilder().setEnabled(true).build());
     setJfrContextStorageEnabled(true);
     logger.info("Profiler is active.");
   }
@@ -222,11 +217,12 @@ public class ProfilingSupervisor {
     }
   }
 
-  private synchronized void notifyStateChanged() {
-    if (listeners.isEmpty()) {
+  private synchronized void updateActiveConfiguration(
+      ProfilerConfiguration effectiveConfiguration) {
+    if (effectiveConfiguration.equals(activeConfiguration)) {
       return;
     }
-    ProfilerConfiguration effectiveConfiguration = getEffectiveConfiguration();
+    activeConfiguration = effectiveConfiguration;
     listeners.forEach(listener -> listener.onAlwaysOnProfilerStateChanged(effectiveConfiguration));
   }
 
@@ -252,11 +248,11 @@ public class ProfilingSupervisor {
       try {
         recordingFlusher.stop();
       } finally {
-        activeConfiguration =
+        updateActiveConfiguration(
             getEffectiveConfiguration().toBuilder()
                 .setEnabled(false)
                 .setMemoryEnabled(false)
-                .build();
+                .build());
       }
     }
   }

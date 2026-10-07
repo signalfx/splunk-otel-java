@@ -148,6 +148,7 @@ class SnapshotProfilingSupervisorTest {
 
   @Test
   void stopProfilingOnlyOnce() {
+    // given
     SnapshotProfilingConfiguration configuration = configuration(true);
     configurationSupplier.configure(configuration);
     requestStartProfiling();
@@ -156,6 +157,7 @@ class SnapshotProfilingSupervisorTest {
             () -> assertThat(supervisor.getEffectiveConfiguration()).isEqualTo(configuration));
     supervisor.addSnapshotProfilerStateListener(listener);
     configureRuntimeComponents();
+    // Request different settings to check that stopping preserves the last applied settings.
     configurationSupplier.configure(
         configuration.toBuilder()
             .setEnabled(false)
@@ -165,9 +167,12 @@ class SnapshotProfilingSupervisorTest {
     SnapshotProfilingConfiguration disabledConfiguration =
         configuration.toBuilder().setEnabled(false).build();
 
+    // when
     supervisor.requestStopProfiling();
     supervisor.requestStopProfiling();
 
+    // then
+    // Both commands report disabled, but runtime components should be closed only once.
     await()
         .untilAsserted(
             () -> verify(listener, times(2)).onSnapshotProfilerStateChanged(disabledConfiguration));
@@ -261,26 +266,34 @@ class SnapshotProfilingSupervisorTest {
 
   @Test
   void reportsDisabledBeforeStartupAndAfterStartupFailure() {
+    // given
     configurationSupplier.configure(configuration(true));
+    // Registration reports disabled even though the requested configuration enables profiling.
     supervisor.addSnapshotProfilerStateListener(listener);
     verify(listener).onSnapshotProfilerStateChanged(configuration(false));
+    // Ignore the registration callback so the failed start must produce a new notification.
     clearInvocations(listener);
     assertThat(supervisor.getEffectiveConfiguration().isEnabled()).isFalse();
+    // Fail the first start attempt and allow the retry to succeed.
     doThrow(new IllegalStateException("Cannot enable snapshot profiling"))
         .doNothing()
         .when(profilingSpanProcessor)
         .setEnabled(true);
     doNothing().when(profilingSpanProcessor).setEnabled(false);
 
+    // when
     supervisor.requestStartProfiling();
 
+    // then
     await()
         .untilAsserted(() -> verify(listener).onSnapshotProfilerStateChanged(configuration(false)));
     assertThat(supervisor.getEffectiveConfiguration().isEnabled()).isFalse();
     assertRuntimeComponentsReset();
 
+    // when: retry startup after the failure
     supervisor.requestStartProfiling();
 
+    // then
     await()
         .untilAsserted(() -> verify(listener).onSnapshotProfilerStateChanged(configuration(true)));
     assertThat(supervisor.getEffectiveConfiguration()).isEqualTo(configuration(true));
@@ -288,6 +301,7 @@ class SnapshotProfilingSupervisorTest {
 
   @Test
   void reportsAppliedSettingsUntilReinitializationCompletes() {
+    // given
     SnapshotProfilingConfiguration initialConfiguration = configuration(true);
     configurationSupplier.configure(initialConfiguration);
     supervisor.addSnapshotProfilerStateListener(listener);
@@ -299,11 +313,17 @@ class SnapshotProfilingSupervisorTest {
             .setSamplingInterval(Duration.ofMillis(20))
             .setSnapshotSelectionProbability(0.5)
             .build();
+
+    // when
     configurationSupplier.configure(updatedConfiguration);
 
+    // then: the profiler still reports the settings it is currently using
     assertThat(supervisor.getEffectiveConfiguration()).isEqualTo(initialConfiguration);
+
+    // when: reinitialize to apply the new settings
     supervisor.requestReinitializeProfiling();
 
+    // then
     await()
         .untilAsserted(() -> verify(listener).onSnapshotProfilerStateChanged(updatedConfiguration));
     assertThat(supervisor.getEffectiveConfiguration()).isEqualTo(updatedConfiguration);
@@ -311,8 +331,10 @@ class SnapshotProfilingSupervisorTest {
 
   @Test
   void reportsDisabledAfterReinitializationFailure() {
+    // given
     configurationSupplier.configure(configuration(true));
     supervisor.addSnapshotProfilerStateListener(listener);
+    // Ignore the initial disabled notification when checking the failed restart.
     clearInvocations(listener);
     requestStartProfiling();
     await()
@@ -322,8 +344,10 @@ class SnapshotProfilingSupervisorTest {
         .setEnabled(true);
     doNothing().when(profilingSpanProcessor).setEnabled(false);
 
+    // when
     supervisor.requestReinitializeProfiling();
 
+    // then
     await()
         .untilAsserted(() -> verify(listener).onSnapshotProfilerStateChanged(configuration(false)));
     assertThat(supervisor.getEffectiveConfiguration().isEnabled()).isFalse();
@@ -332,18 +356,26 @@ class SnapshotProfilingSupervisorTest {
 
   @Test
   void registeringListenerDeliversCurrentEffectiveConfiguration() {
+    // given
     configurationSupplier.configure(configuration(true));
+
+    // when: register before profiling starts
     supervisor.addSnapshotProfilerStateListener(listener);
+
+    // then
     verify(listener).onSnapshotProfilerStateChanged(configuration(false));
 
+    // given: profiling is now running
     requestStartProfiling();
     await()
         .untilAsserted(() -> verify(listener).onSnapshotProfilerStateChanged(configuration(true)));
     supervisor.removeSnapshotProfilerStateListener(listener);
     clearInvocations(listener);
 
+    // when: register again while profiling is running
     supervisor.addSnapshotProfilerStateListener(listener);
 
+    // then
     verify(listener).onSnapshotProfilerStateChanged(configuration(true));
   }
 

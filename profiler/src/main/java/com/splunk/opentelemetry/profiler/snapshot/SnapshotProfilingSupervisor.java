@@ -107,7 +107,7 @@ public class SnapshotProfilingSupervisor {
   public synchronized void addSnapshotProfilerStateListener(
       SnapshotProfilerStateListener listener) {
     listeners.add(listener);
-    // Serialize the initial callback with notifications so a newer snapshot cannot be overwritten.
+    // Send current state immediately to the newly added listener.
     listener.onSnapshotProfilerStateChanged(getEffectiveConfiguration());
   }
 

@@ -104,7 +104,7 @@ public class ProfilingSupervisor {
   public synchronized void addAlwaysOnProfilerStateListener(
       AlwaysOnProfilerStateListener listener) {
     listeners.add(listener);
-    // Serialize the initial callback with notifications so a newer snapshot cannot be overwritten.
+    // Send current state immediately to the newly added listener.
     listener.onAlwaysOnProfilerStateChanged(getEffectiveConfiguration());
   }
 

@@ -17,6 +17,11 @@
 package com.splunk.opentelemetry.profiler;
 
 public interface AlwaysOnProfilerStateListener {
-  /** Called on registration and after commands complete with the configuration actually in use. */
+  /**
+   * Receives the current effective configuration on registration and subsequent configuration
+   * changes.
+   *
+   * @param effectiveConfiguration the configuration describing the profiler's current state
+   */
   void onAlwaysOnProfilerStateChanged(ProfilerConfiguration effectiveConfiguration);
 }

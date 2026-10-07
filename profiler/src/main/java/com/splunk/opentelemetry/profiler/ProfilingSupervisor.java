@@ -102,6 +102,11 @@ public class ProfilingSupervisor {
     return supervisor;
   }
 
+  /**
+   * Registers a listener and immediately reports the current effective configuration to it.
+   *
+   * <p>Registration waits for an ongoing reinitialization to finish.
+   */
   public synchronized void addAlwaysOnProfilerStateListener(
       AlwaysOnProfilerStateListener listener) {
     listeners.add(listener);
@@ -113,7 +118,13 @@ public class ProfilingSupervisor {
     listeners.remove(listener);
   }
 
-  /** Returns the configuration applied to the running profiler, or disabled if it is inactive. */
+  /**
+   * Returns the last applied settings, with profiling and memory profiling disabled after a
+   * successful stop.
+   *
+   * <p>Before the first successful start, returns the requested settings with profiling and memory
+   * profiling disabled.
+   */
   public ProfilerConfiguration getEffectiveConfiguration() {
     ProfilerConfiguration configuration = activeConfiguration;
     return configuration != null
@@ -175,8 +186,10 @@ public class ProfilingSupervisor {
   }
 
   /**
-   * Try and start the profiler. This does not check configuration, just responds to a command
-   * request.
+   * Starts an inactive profiler with the requested settings when JFR is available. The start
+   * command overrides the supplied configuration's enabled flag.
+   *
+   * @param notifyListeners whether to notify listeners if the effective configuration changes
    */
   private void tryStart(boolean notifyListeners) {
     if (isJfrRecordingActive()) {
@@ -199,6 +212,12 @@ public class ProfilingSupervisor {
     logger.info("Profiler is active.");
   }
 
+  /**
+   * Stops an active profiler and marks its current state as disabled in the effective
+   * configuration.
+   *
+   * @param notifyListeners whether to notify listeners if the effective configuration changes
+   */
   private void tryStop(boolean notifyListeners) {
     if (!isJfrRecordingActive()) {
       logger.fine("JFR is not running already, not stopping again.");
@@ -207,15 +226,17 @@ public class ProfilingSupervisor {
     setJfrContextStorageEnabled(false);
     deactivateJfrRecording();
     updateActiveConfiguration(
-        getEffectiveConfiguration().toBuilder()
-            .setEnabled(false)
-            .setMemoryEnabled(false)
-            .build(),
+        getEffectiveConfiguration().toBuilder().setEnabled(false).setMemoryEnabled(false).build(),
         notifyListeners);
     logger.info("Profiler is deactivated.");
   }
 
-  // Serialize registration with the full restart so initial callbacks see the completed state.
+  /**
+   * Stops profiling and starts it with the requested settings if profiling is enabled.
+   *
+   * <p>Notifies listeners at most once after reinitialization finishes, if the final effective
+   * configuration changed, including when the restart fails.
+   */
   private synchronized void tryReinitialize() {
     ProfilerConfiguration previousConfiguration = activeConfiguration;
     try {
@@ -268,7 +289,7 @@ public class ProfilingSupervisor {
   private void deactivateJfrRecording() {
     PeriodicRecordingFlusher recordingFlusher = this.recordingFlusher.getAndSet(null);
     if (recordingFlusher != null) {
-        recordingFlusher.stop();
+      recordingFlusher.stop();
     }
   }
 

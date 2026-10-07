@@ -105,6 +105,11 @@ public class SnapshotProfilingSupervisor {
     return supervisor;
   }
 
+  /**
+   * Registers a listener and immediately reports the current effective configuration to it.
+   *
+   * <p>Registration waits for an ongoing reinitialization to finish.
+   */
   public synchronized void addSnapshotProfilerStateListener(
       SnapshotProfilerStateListener listener) {
     listeners.add(listener);
@@ -116,7 +121,11 @@ public class SnapshotProfilingSupervisor {
     listeners.remove(listener);
   }
 
-  /** Returns the configuration applied to the running profiler, or disabled if it is inactive. */
+  /**
+   * Returns the last applied settings, with profiling disabled after a successful stop.
+   *
+   * <p>Before the first successful start, returns the requested settings with profiling disabled.
+   */
   public SnapshotProfilingConfiguration getEffectiveConfiguration() {
     SnapshotProfilingConfiguration configuration = activeConfiguration;
     return configuration != null
@@ -176,6 +185,13 @@ public class SnapshotProfilingSupervisor {
     }
   }
 
+  /**
+   * Starts an inactive profiler with the requested settings. The start command does not check if
+   * profiler is enabled in supplied configuration, but marks profiler as enabled in the effective
+   * configuration.
+   *
+   * @param notifyListeners whether to notify listeners if the effective configuration changes
+   */
   private void tryStart(boolean notifyListeners) {
     if (isRunning()) {
       return;
@@ -207,6 +223,12 @@ public class SnapshotProfilingSupervisor {
     logger.info("Snapshot profiling is active.");
   }
 
+  /**
+   * Stops an active profiler and marks its current state as disabled in the effective
+   * configuration.
+   *
+   * @param notifyListeners whether to notify listeners if the effective configuration changes
+   */
   private void tryStop(boolean notifyListeners) {
     if (!isRunning()) {
       return;
@@ -235,7 +257,12 @@ public class SnapshotProfilingSupervisor {
     profilingSpanProcessorSupplier.get().setEnabled(false);
   }
 
-  // Serialize registration with the full restart so initial callbacks see the completed state.
+  /**
+   * Stops profiling and starts it with the requested settings if profiling is enabled.
+   *
+   * <p>Notifies listeners at most once after reinitialization finishes, if the final effective
+   * configuration changed, including when the restart fails.
+   */
   private synchronized void tryReinitialize() {
     SnapshotProfilingConfiguration previousConfiguration = activeConfiguration;
     try {

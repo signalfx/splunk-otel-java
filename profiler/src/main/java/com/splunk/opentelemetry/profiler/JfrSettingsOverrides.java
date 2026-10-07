@@ -52,7 +52,7 @@ class JfrSettingsOverrides {
         settings.put("jdk.ObjectAllocationOutsideTLAB#enabled", "true");
       }
     }
-    if (config.getCpuMode() != ProfilerConfiguration.CpuMode.JFR) {
+    if (config.getCpuProfilingMode() != ProfilerConfiguration.CpuProfilingMode.JFR) {
       settings.put("jdk.ThreadDump#enabled", "false");
     }
     return settings;

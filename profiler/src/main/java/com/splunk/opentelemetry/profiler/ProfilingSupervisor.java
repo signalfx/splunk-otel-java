@@ -165,8 +165,9 @@ public class ProfilingSupervisor {
     }
 
     ProfilerConfiguration config = configSupplier.get();
-    ProfilerConfiguration.CpuMode cpuMode = config.getCpuMode();
-    boolean jfrUsed = cpuMode == ProfilerConfiguration.CpuMode.JFR || config.getMemoryEnabled();
+    ProfilerConfiguration.CpuProfilingMode cpuProfilingMode = config.getCpuProfilingMode();
+    boolean jfrUsed =
+        cpuProfilingMode == ProfilerConfiguration.CpuProfilingMode.JFR || config.getMemoryEnabled();
     if (jfrUsed && !jfr.isAvailable()) {
       logger.warning(
           "JDK Flight Recorder (JFR) is not available in this JVM. Profiling will not start.");
@@ -175,11 +176,12 @@ public class ProfilingSupervisor {
 
     config.log();
     updateJvmMemoryMetrics();
-    setJfrContextStorageEnabled(true, jfrUsed, cpuMode == ProfilerConfiguration.CpuMode.JAVA);
+    setJfrContextStorageEnabled(
+        true, jfrUsed, cpuProfilingMode == ProfilerConfiguration.CpuProfilingMode.JAVA);
     if (jfrUsed) {
       activateJfrRecording(getResource(sdk));
     }
-    if (cpuMode == ProfilerConfiguration.CpuMode.JAVA) {
+    if (cpuProfilingMode == ProfilerConfiguration.CpuProfilingMode.JAVA) {
       activateJavaCpuProfiler(getResource(sdk));
     }
     started.set(true);

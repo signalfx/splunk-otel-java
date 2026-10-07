@@ -18,7 +18,7 @@ package com.splunk.opentelemetry.profiler;
 
 import com.google.auto.service.AutoService;
 import com.google.common.annotations.VisibleForTesting;
-import com.splunk.opentelemetry.profiler.ProfilerConfiguration.CpuMode;
+import com.splunk.opentelemetry.profiler.ProfilerConfiguration.CpuProfilingMode;
 import io.opentelemetry.javaagent.extension.AgentListener;
 import io.opentelemetry.javaagent.tooling.BeforeAgentListener;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
@@ -54,8 +54,9 @@ public class ProfilerAgentListener implements AgentListener, BeforeAgentListener
       return;
     }
 
-    CpuMode cpuMode = config.getCpuMode();
-    if ((cpuMode == CpuMode.JFR || config.getMemoryEnabled()) && !jfr.isAvailable()) {
+    CpuProfilingMode cpuProfilingMode = config.getCpuProfilingMode();
+    if ((cpuProfilingMode == CpuProfilingMode.JFR || config.getMemoryEnabled())
+        && !jfr.isAvailable()) {
       logger.warning(
           "JDK Flight Recorder (JFR) is not available in this JVM. Profiling is disabled.");
       return;

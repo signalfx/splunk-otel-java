@@ -90,7 +90,7 @@ public final class ProfilerEnvVarsConfigurationFactory {
             config.getString(CONFIG_KEY_PROFILER_DIRECTORY, DEFAULT_PROFILER_DIRECTORY))
         .setRecordingDuration(
             config.getDuration(CONFIG_KEY_RECORDING_DURATION, DEFAULT_RECORDING_DURATION))
-        .setCpuMode(config.getString(CONFIG_KEY_CPU_MODE, DEFAULT_CPU_MODE))
+        .setCpuProfilingMode(config.getString(CONFIG_KEY_CPU_MODE, DEFAULT_CPU_MODE))
         .setConfigProperties(config)
         .build();
   }

@@ -20,7 +20,7 @@ import com.splunk.opentelemetry.profiler.context.SpanContextualizer;
 import com.splunk.opentelemetry.profiler.context.StackToSpanLinkage;
 import com.splunk.opentelemetry.profiler.exporter.CpuEventExporter;
 import com.splunk.opentelemetry.profiler.old.AgentInternalsFilter;
-import com.splunk.opentelemetry.profiler.threaddump.ThreadDumpProcessor;
+import com.splunk.opentelemetry.profiler.threaddump.ThreadDumpProcessorImpl;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -62,10 +62,10 @@ public class ThreadDumpProcessorBenchmark {
     }
   }
 
-  private static ThreadDumpProcessor buildNewThreadDumpProcessor() {
+  private static ThreadDumpProcessorImpl buildNewThreadDumpProcessor() {
     SpanContextualizer contextualizer = new SpanContextualizer(new EventReader());
     CpuEventExporter cpuEventExporter = x -> {};
-    return ThreadDumpProcessor.builder()
+    return ThreadDumpProcessorImpl.builder()
         .cpuEventExporter(cpuEventExporter)
         .spanContextualizer(contextualizer)
         .build();
@@ -93,7 +93,7 @@ public class ThreadDumpProcessorBenchmark {
 
   @State(Scope.Benchmark)
   public static class RecordingFileState {
-    public final ThreadDumpProcessor newThreadDumpProcessor = buildNewThreadDumpProcessor();
+    public final ThreadDumpProcessorImpl newThreadDumpProcessor = buildNewThreadDumpProcessor();
     public final com.splunk.opentelemetry.profiler.old.ThreadDumpProcessor oldThreadDumpProcessor =
         buildOldThreadDumpProcessor();
 

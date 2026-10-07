@@ -25,6 +25,7 @@ import com.splunk.opentelemetry.profiler.exporter.CpuEventExporter;
 import com.splunk.opentelemetry.profiler.exporter.PprofCpuEventExporter;
 import com.splunk.opentelemetry.profiler.threaddump.StackTraceFilter;
 import com.splunk.opentelemetry.profiler.threaddump.ThreadDumpProcessor;
+import com.splunk.opentelemetry.profiler.threaddump.ThreadDumpProcessorImpl;
 import com.splunk.opentelemetry.profiler.util.DeclarativeConfigPropertiesUtil;
 import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
 import io.opentelemetry.sdk.logs.LogRecordProcessor;
@@ -65,17 +66,21 @@ class ProfilerFactory {
     SpanContextualizer spanContextualizer = new SpanContextualizer(eventReader);
     LogRecordExporter logsExporter = createLogRecordExporter(config.getConfigProperties());
 
-    CpuEventExporter cpuEventExporter =
-        PprofCpuEventExporter.builder()
-            .otelLogger(buildOtelLogger(SimpleLogRecordProcessor.create(logsExporter), resource))
-            .period(config.getCallStackInterval())
-            .stackDepth(stackDepth)
-            .build();
-
     StackTraceFilter stackTraceFilter = buildStackTraceFilter(config, eventReader);
-    ThreadDumpProcessor threadDumpProcessor =
-        buildThreadDumpProcessor(
-            eventReader, spanContextualizer, cpuEventExporter, stackTraceFilter, config);
+
+    ThreadDumpProcessor threadDumpProcessor = ThreadDumpProcessor.noop();
+    if (config.getCpuProfilingMode() == ProfilerConfiguration.CpuProfilingMode.JFR) {
+      CpuEventExporter cpuEventExporter =
+          PprofCpuEventExporter.builder()
+              .otelLogger(buildOtelLogger(SimpleLogRecordProcessor.create(logsExporter), resource))
+              .period(config.getCallStackInterval())
+              .stackDepth(stackDepth)
+              .build();
+
+      threadDumpProcessor =
+          buildThreadDumpProcessor(
+              eventReader, spanContextualizer, cpuEventExporter, stackTraceFilter, config);
+    }
 
     AllocationEventExporter allocationEventExporter =
         PprofAllocationEventExporter.builder()
@@ -148,7 +153,7 @@ class ProfilerFactory {
       CpuEventExporter profilingEventExporter,
       StackTraceFilter stackTraceFilter,
       ProfilerConfiguration config) {
-    return ThreadDumpProcessor.builder()
+    return ThreadDumpProcessorImpl.builder()
         .eventReader(eventReader)
         .spanContextualizer(spanContextualizer)
         .cpuEventExporter(profilingEventExporter)
@@ -156,7 +161,6 @@ class ProfilerFactory {
         .onlyTracingSpans(config.getTracingStacksOnly())
         .stackDepth(config.getStackDepth())
         .locksEnabled(config.getLocksEnabled())
-        .enabled(config.getCpuMode() == ProfilerConfiguration.CpuMode.JFR)
         .build();
   }
 

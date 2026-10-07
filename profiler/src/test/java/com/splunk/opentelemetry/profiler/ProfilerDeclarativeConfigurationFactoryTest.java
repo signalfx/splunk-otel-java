@@ -19,6 +19,7 @@ package com.splunk.opentelemetry.profiler;
 import static com.splunk.opentelemetry.testing.declarativeconfig.DeclarativeConfigTestUtil.getProfilingConfig;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.splunk.opentelemetry.profiler.ProfilerConfiguration.CpuProfilingMode;
 import com.splunk.opentelemetry.testing.declarativeconfig.DeclarativeConfigTestUtil;
 import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.OpenTelemetryConfigurationModel;
@@ -48,6 +49,7 @@ class ProfilerDeclarativeConfigurationFactoryTest {
 
                     cpu_profiler:
                       sampling_interval: 1410
+                      mode: java
                     memory_profiler:
                       event_rate: "250/s"
                       native_sampling: true
@@ -73,6 +75,7 @@ class ProfilerDeclarativeConfigurationFactoryTest {
     assertThat(config.getUseAllocationSampleEvent())
         .isEqualTo(ProfilerConfiguration.HAS_OBJECT_ALLOCATION_SAMPLE_EVENT);
     assertThat(config.getConfigProperties()).isSameAs(profilingConfig);
+    assertThat(config.getCpuProfilingMode()).isEqualTo(CpuProfilingMode.JAVA);
   }
 
   @Test

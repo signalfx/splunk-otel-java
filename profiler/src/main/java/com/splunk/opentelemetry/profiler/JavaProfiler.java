@@ -80,7 +80,10 @@ class JavaProfiler {
           }
 
           // capture platform threads along with lock info
-          ThreadInfo[] threadInfos = threadMXBean.dumpAllThreads(locksEnabled, locksEnabled);
+          ThreadInfo[] threadInfos =
+              threadMXBean.dumpAllThreads(
+                  locksEnabled && threadMXBean.isObjectMonitorUsageSupported(),
+                  locksEnabled && threadMXBean.isSynchronizerUsageSupported());
           for (ThreadInfo threadInfo : threadInfos) {
             threadDataList.add(ThreadData.from(threadInfo));
           }
@@ -98,7 +101,7 @@ class JavaProfiler {
             }
 
             SpanContext spanContext = threadIdContexts.get(threadData.getThreadId());
-            if (onlyTracingSpans && !spanContext.isValid()) {
+            if (onlyTracingSpans && (spanContext == null || !spanContext.isValid())) {
               continue;
             }
 

@@ -325,9 +325,9 @@ public class ProfilerConfiguration {
 
     public Builder setCallStackInterval(Duration callStackInterval) {
       Objects.requireNonNull(callStackInterval);
-      if (callStackInterval.isNegative()) {
+      if (callStackInterval.toMillis() <= 0) {
         throw new IllegalArgumentException(
-            "Invalid call stack interval: " + callStackInterval.toMillis() + ". Must be >= 0.");
+            "Invalid call stack interval: " + callStackInterval.toMillis() + ". Must be > 0.");
       }
       this.callStackInterval = callStackInterval;
       return this;

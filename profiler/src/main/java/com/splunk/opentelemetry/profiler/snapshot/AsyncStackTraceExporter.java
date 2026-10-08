@@ -34,17 +34,11 @@ class AsyncStackTraceExporter implements StackTraceExporter {
       HelpfulExecutors.newSingleThreadExecutor("async-stack-trace-exporter");
   private final Logger otelLogger;
   private final int maxDepth;
-  private final boolean locksEnabled;
   private volatile boolean closed = false;
 
   AsyncStackTraceExporter(Logger logger, int maxDepth) {
-    this(logger, maxDepth, false);
-  }
-
-  AsyncStackTraceExporter(Logger logger, int maxDepth, boolean locksEnabled) {
     this.otelLogger = logger;
     this.maxDepth = maxDepth;
-    this.locksEnabled = locksEnabled;
   }
 
   @Override
@@ -77,7 +71,6 @@ class AsyncStackTraceExporter implements StackTraceExporter {
             PprofCpuEventExporter.builder()
                 .otelLogger(otelLogger)
                 .stackDepth(maxDepth)
-                .locksEnabled(locksEnabled)
                 .instrumentationSource(InstrumentationSource.SNAPSHOT)
                 .build();
 

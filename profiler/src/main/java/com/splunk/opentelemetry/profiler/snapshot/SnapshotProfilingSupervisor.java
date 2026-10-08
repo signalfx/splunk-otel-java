@@ -228,8 +228,7 @@ public class SnapshotProfilingSupervisor {
     io.opentelemetry.api.logs.Logger otelLogger =
         buildLogger(otelLoggerFactory, resource, configuration.getConfigProperties());
 
-    return new AsyncStackTraceExporter(
-        otelLogger, configuration.getStackDepth(), configuration.getLocksEnabled());
+    return new AsyncStackTraceExporter(otelLogger, configuration.getStackDepth());
   }
 
   private io.opentelemetry.api.logs.Logger buildLogger(

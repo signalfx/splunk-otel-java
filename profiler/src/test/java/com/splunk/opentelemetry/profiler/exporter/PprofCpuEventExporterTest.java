@@ -326,7 +326,6 @@ class PprofCpuEventExporterTest {
             .otelLogger(logger)
             .period(Duration.ofMillis(20))
             .stackDepth(1024)
-            .locksEnabled(true)
             .instrumentationSource(InstrumentationSource.SNAPSHOT)
             .build();
     var frame = new StackTraceElement("example.Worker", "run", "Worker.java", 42);
@@ -363,7 +362,6 @@ class PprofCpuEventExporterTest {
             .otelLogger(logger)
             .period(Duration.ofMillis(20))
             .stackDepth(1024)
-            .locksEnabled(true)
             .instrumentationSource(InstrumentationSource.SNAPSHOT)
             .build();
     StackTraceData stackTrace =

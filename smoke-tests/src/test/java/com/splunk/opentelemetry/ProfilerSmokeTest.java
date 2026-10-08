@@ -53,6 +53,7 @@ import okhttp3.Request;
 import okhttp3.Response;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.io.TempDir;
@@ -72,14 +73,16 @@ public abstract class ProfilerSmokeTest {
   private TelemetryRetriever telemetryRetriever;
   private final String jdkVersion;
   private final boolean useJfrCpu;
+  private final boolean locksEnabled;
 
   ProfilerSmokeTest(String jdkVersion) {
-    this(jdkVersion, true);
+    this(jdkVersion, true, true);
   }
 
-  ProfilerSmokeTest(String jdkVersion, boolean useJfrCpu) {
+  ProfilerSmokeTest(String jdkVersion, boolean useJfrCpu, boolean locksEnabled) {
     this.jdkVersion = jdkVersion;
     this.useJfrCpu = useJfrCpu;
+    this.locksEnabled = locksEnabled;
   }
 
   public static class TestJdk8 extends ProfilerSmokeTest {
@@ -106,6 +109,12 @@ public abstract class ProfilerSmokeTest {
     }
   }
 
+  public static class TestJdk21WithoutLocks extends ProfilerSmokeTest {
+    TestJdk21WithoutLocks() {
+      super("21", true, false);
+    }
+  }
+
   public static class TestJdk25 extends ProfilerSmokeTest {
     TestJdk25() {
       super("25");
@@ -114,7 +123,13 @@ public abstract class ProfilerSmokeTest {
 
   public static class TestJdk21JavaProfiler extends ProfilerSmokeTest {
     TestJdk21JavaProfiler() {
-      super("21", false);
+      super("21", false, true);
+    }
+  }
+
+  public static class TestJdk21JavaProfilerWithoutLocks extends ProfilerSmokeTest {
+    TestJdk21JavaProfilerWithoutLocks() {
+      super("21", false, false);
     }
   }
 
@@ -181,6 +196,12 @@ public abstract class ProfilerSmokeTest {
         .anyMatch(hasThreadName("Catalina-utility-1"));
 
     assertThat(logs.getCpuSamples()).anyMatch(hasThreadName("main"));
+
+    if (locksEnabled) {
+      assertThat(logs.getCpuSamples()).anyMatch(sample -> sample.getLockCount() > 0);
+    } else {
+      assertThat(logs.getCpuSamples()).allMatch(sample -> sample.getLockCount() == 0);
+    }
 
     assertThat(logs.getMemorySamples())
         .isNotEmpty()
@@ -323,6 +344,9 @@ public abstract class ProfilerSmokeTest {
                 ));
     if (!useJfrCpu) {
       command.add("-Dsplunk.profiler.cpu.mode=java");
+    }
+    if (locksEnabled) {
+      command.add("-Dsplunk.profiler.locks.enabled=true");
     }
     command.addAll(Arrays.asList("-jar", "/app/spring-petclinic-rest.jar"));
 

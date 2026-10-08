@@ -393,7 +393,7 @@ public class ProfilerConfiguration {
     }
 
     public Builder setCpuProfilingMode(CpuProfilingMode cpuProfilingMode) {
-      this.cpuProfilingMode = cpuProfilingMode;
+      this.cpuProfilingMode = Objects.requireNonNull(cpuProfilingMode);
       return this;
     }
 

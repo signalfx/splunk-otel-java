@@ -75,6 +75,7 @@ class ProfilerFactory {
               .otelLogger(buildOtelLogger(SimpleLogRecordProcessor.create(logsExporter), resource))
               .period(config.getCallStackInterval())
               .stackDepth(stackDepth)
+              .locksEnabled(config.getLocksEnabled())
               .build();
 
       threadDumpProcessor =
@@ -129,6 +130,7 @@ class ProfilerFactory {
                     SimpleLogRecordProcessor.create(logsExporter), resource))
             .period(config.getCallStackInterval())
             .stackDepth(stackDepth)
+            .locksEnabled(config.getLocksEnabled())
             .build();
 
     StackTraceFilter stackTraceFilter = ProfilerFactory.buildStackTraceFilter(config, null);

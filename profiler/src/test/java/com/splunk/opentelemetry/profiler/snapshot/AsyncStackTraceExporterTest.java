@@ -213,7 +213,7 @@ class AsyncStackTraceExporterTest {
 
   @Test
   void includeThreadLockInformationInSamples() throws Exception {
-    var locksEnabledExporter = new AsyncStackTraceExporter(logger, 200);
+    var locksEnabledExporter = new AsyncStackTraceExporter(logger, 200, true);
     var frame = new StackTraceElement("example.Worker", "run", "Worker.java", 42);
     ThreadInfo threadInfo = mock(ThreadInfo.class);
     when(threadInfo.getThreadId()).thenReturn(17L);

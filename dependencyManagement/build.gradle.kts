@@ -4,9 +4,9 @@ plugins {
 
 val otelVersion = "1.66.0"
 val otelAlphaVersion = otelVersion.replaceFirst("(-SNAPSHOT)?$".toRegex(), "-alpha$1")
-val otelInstrumentationVersion = "2.32.0-SNAPSHOT"
+val otelInstrumentationVersion = "2.32.0"
 val otelInstrumentationAlphaVersion =  otelInstrumentationVersion.replaceFirst("(-SNAPSHOT)?$".toRegex(), "-alpha$1")
-val otelContribAlphaVersion = "1.59.0-alpha"
+val otelContribAlphaVersion = "1.60.0-alpha"
 
 val autoValueVersion = "1.11.1"
 val dockerJavaVersion = "3.7.1"

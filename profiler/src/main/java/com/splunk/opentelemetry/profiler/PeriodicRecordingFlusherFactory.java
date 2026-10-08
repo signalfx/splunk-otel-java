@@ -101,7 +101,8 @@ class PeriodicRecordingFlusherFactory {
     JfrRecorder recorder =
         JfrRecorder.builder()
             .settings(jfrSettings)
-            .maxAgeDuration(recordingDuration.multipliedBy(10))
+            // slightly longer than the interval between snapshots
+            .maxAgeDuration(recordingDuration.plusSeconds(5))
             .jfr(jfr)
             .onNewRecording(jfrRecordingHandler)
             .namingConvention(namingConvention)

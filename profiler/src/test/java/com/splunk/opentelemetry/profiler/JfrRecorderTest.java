@@ -58,7 +58,7 @@ class JfrRecorderTest {
     JfrRecorder jfrRecorder = buildJfrRecorder(mock(JFR.class));
     jfrRecorder.start();
     verify(recording).setSettings(settings);
-    verify(recording).setToDisk(false);
+    verify(recording).setToDisk(true);
     verify(recording).setName(RECORDING_NAME);
     verify(recording).setDuration(null);
     verify(recording).setMaxAge(maxAge);

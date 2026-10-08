@@ -66,7 +66,7 @@ class JfrRecorder {
     logger.fine("Profiler is starting a JFR recording");
     recording = newRecording();
     recording.setSettings(settings);
-    recording.setToDisk(false);
+    recording.setToDisk(true);
     recording.setName(RECORDING_NAME);
     recording.setDuration(null); // record forever
     recording.setMaxAge(maxAgeDuration);

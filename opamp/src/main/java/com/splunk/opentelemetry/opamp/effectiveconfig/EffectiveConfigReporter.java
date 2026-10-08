@@ -36,9 +36,9 @@ public class EffectiveConfigReporter
     implements AlwaysOnProfilerStateListener, SnapshotProfilerStateListener {
   private final UpdatableEffectiveConfigState effectiveConfigState;
   private final EffectiveConfigFileFactory effectiveConfigFactory;
-  private ProfilerConfiguration profilerConfiguration = ProfilerConfiguration.builder().build();
+  private ProfilerConfiguration profilerConfiguration = ProfilerConfiguration.defaultConfiguration();
   private SnapshotProfilingConfiguration snapshotConfiguration =
-      SnapshotProfilingConfiguration.builder().build();
+      SnapshotProfilingConfiguration.defaultConfiguration();
   private String lastReportedConfigContent;
 
   @VisibleForTesting

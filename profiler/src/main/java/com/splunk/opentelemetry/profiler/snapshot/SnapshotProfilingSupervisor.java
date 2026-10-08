@@ -122,7 +122,7 @@ public class SnapshotProfilingSupervisor {
   }
 
   /**
-   * Returns the last applied settings, with profiling disabled after a successful stop.
+   * Returns current effective configuration. If profiler is running then it is reported as enabled.
    *
    * <p>Before the first successful start, returns the requested settings with profiling disabled.
    */

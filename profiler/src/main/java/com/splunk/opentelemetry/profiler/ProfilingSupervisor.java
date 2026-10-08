@@ -119,10 +119,10 @@ public class ProfilingSupervisor {
   }
 
   /**
-   * Returns the last applied settings, with profiling and memory profiling disabled after a
-   * successful stop.
+   * Returns current effective configuration. If profiler is running then it is reported as enabled.
+   * If profiler is not running then both, CPU and memory profilers are reported as disabled.
    *
-   * <p>Before the first successful start, returns the requested settings with profiling and memory
+   * <p>Before the first successful start, returns the requested settings with CPU and memory
    * profiling disabled.
    */
   public ProfilerConfiguration getEffectiveConfiguration() {

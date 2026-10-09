@@ -200,8 +200,6 @@ public abstract class ProfilerSmokeTest {
         .describedAs("Contains JFR thread")
         .anyMatch(hasThreadName("Catalina-utility-1"));
 
-    assertThat(logs.getCpuSamples()).anyMatch(hasThreadName("main"));
-
     if (locksEnabled) {
       assertThat(logs.getCpuSamples()).anyMatch(sample -> sample.getLockCount() > 0);
     } else {

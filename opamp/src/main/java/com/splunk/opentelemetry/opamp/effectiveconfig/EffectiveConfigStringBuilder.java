@@ -16,19 +16,21 @@
 
 package com.splunk.opentelemetry.opamp.effectiveconfig;
 
-import io.opentelemetry.opamp.client.internal.state.State;
-import opamp.proto.AgentConfigMap;
+import java.time.Duration;
 
-public class UpdatableEffectiveConfigState extends State.EffectiveConfig {
-  private volatile AgentConfigMap agentConfigMap;
+class EffectiveConfigStringBuilder {
+  private final StringBuilder stringBuilder = new StringBuilder();
 
-  public void set(AgentConfigMap configMap) {
-    agentConfigMap = configMap;
-    notifyUpdate();
+  EffectiveConfigStringBuilder add(String propertyName, Object value) {
+    stringBuilder.append(propertyName).append('=').append(value).append('\n');
+    return this;
   }
 
-  @Override
-  public opamp.proto.EffectiveConfig get() {
-    return new opamp.proto.EffectiveConfig(agentConfigMap);
+  EffectiveConfigStringBuilder add(String propertyName, Duration value) {
+    return add(propertyName, value.toMillis() + "ms");
+  }
+
+  String build() {
+    return stringBuilder.toString();
   }
 }

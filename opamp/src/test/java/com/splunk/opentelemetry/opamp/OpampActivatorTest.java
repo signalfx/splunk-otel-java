@@ -275,6 +275,35 @@ class OpampActivatorTest {
   }
 
   @Test
+  void sendsChangedEffectiveConfigBeforeTheNextScheduledHeartbeat() throws Exception {
+    enqueueEmptyResponse();
+    enqueueEmptyResponse();
+
+    AgentConfigMap initialConfig = profilerConfig(false);
+    UpdatableEffectiveConfigState effectiveConfig = new UpdatableEffectiveConfigState();
+    effectiveConfig.set(initialConfig);
+    OpampClientConfiguration configuration =
+        OpampClientConfiguration.builder()
+            .withEnabled(true)
+            .withEndpoint(server.httpUri().toString())
+            .withPollingInterval(60_000)
+            .build();
+    OpampClient client =
+        OpampActivator.startOpampClient(
+            configuration, Resource.empty(), effectiveConfig, mock(OpampClient.Callbacks.class));
+    cleanup.deferCleanup(client);
+
+    // Observe the initial request before changing the config, so the requests stay distinct.
+    assertThat(takeRequest().effective_config.config_map).isEqualTo(initialConfig);
+
+    AgentConfigMap updatedConfig = profilerConfig(true);
+    effectiveConfig.set(updatedConfig);
+
+    // The 10-second request timeout is shorter than the 60-second heartbeat interval.
+    assertThat(takeRequest().effective_config.config_map).isEqualTo(updatedConfig);
+  }
+
+  @Test
   void shouldNotAdvertiseRemoteConfigCapabilitiesWhenRemoteConfigIsDisabled() throws Exception {
     AgentToServer agentToServer = startClientAndTakeInitialRequest(false);
 
@@ -284,8 +313,7 @@ class OpampActivatorTest {
 
   private AgentToServer startClientAndTakeInitialRequest(boolean remoteConfigurationEnabled)
       throws Exception {
-    ServerToAgent response = new ServerToAgent.Builder().build();
-    server.enqueue(HttpResponse.of(HttpStatus.OK, MediaType.X_PROTOBUF, response.encode()));
+    enqueueEmptyResponse();
 
     OpampClientConfiguration configuration =
         OpampClientConfiguration.builder()
@@ -299,7 +327,25 @@ class OpampActivatorTest {
             configuration, Resource.empty(), mock(), mock(OpampClient.Callbacks.class));
     cleanup.deferCleanup(client);
 
-    RecordedRequest recordedRequest = server.takeRequest();
+    return takeRequest();
+  }
+
+  private static AgentConfigMap profilerConfig(boolean enabled) {
+    return new AgentConfigMap(
+        Map.of(
+            "environment",
+            new AgentConfigFile(
+                ByteString.encodeUtf8("SPLUNK_PROFILER_ENABLED=" + enabled), "text/plain")));
+  }
+
+  private static void enqueueEmptyResponse() {
+    ServerToAgent response = new ServerToAgent.Builder().build();
+    server.enqueue(HttpResponse.of(HttpStatus.OK, MediaType.X_PROTOBUF, response.encode()));
+  }
+
+  private static AgentToServer takeRequest() throws Exception {
+    RecordedRequest recordedRequest = server.takeRequest(10, TimeUnit.SECONDS);
+    assertThat(recordedRequest).as("Expected an OpAMP request within 10 seconds").isNotNull();
     return AgentToServer.ADAPTER.decode(recordedRequest.request().content().array());
   }
 

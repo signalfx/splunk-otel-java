@@ -43,7 +43,7 @@ import org.snakeyaml.engine.v2.common.ScalarStyle;
 import org.snakeyaml.engine.v2.nodes.Tag;
 import org.snakeyaml.engine.v2.representer.StandardRepresenter;
 
-class DeclarativeEffectiveConfigFileFactory implements EffectiveConfigFactory {
+class DeclarativeEffectiveConfigFileFactory implements EffectiveConfigFileFactory {
   private static final String GRPC_DEFAULT_ENDPOINT = "http://localhost:4317";
 
   DeclarativeEffectiveConfigFileFactory() {}
@@ -62,16 +62,14 @@ class DeclarativeEffectiveConfigFileFactory implements EffectiveConfigFactory {
     return fileName;
   }
 
-  public String createEffectiveConfigContent() {
+  public String createEffectiveConfigContent(
+      ProfilerConfiguration profilerConfiguration,
+      SnapshotProfilingConfiguration snapshotConfiguration) {
     OpenTelemetryConfigurationModel model =
         DeclarativeConfigurationInterceptor.getConfigurationModel();
     if (model == null) {
       return "";
     }
-    ProfilerConfiguration profilerConfiguration = ProfilerConfiguration.SUPPLIER.get();
-    SnapshotProfilingConfiguration snapshotConfiguration =
-        SnapshotProfilingConfiguration.SUPPLIER.get();
-
     return processModel(model, profilerConfiguration, snapshotConfiguration);
   }
 

@@ -14,21 +14,14 @@
  * limitations under the License.
  */
 
-package com.splunk.opentelemetry.opamp.effectiveconfig;
+package com.splunk.opentelemetry.profiler;
 
-import io.opentelemetry.opamp.client.internal.state.State;
-import opamp.proto.AgentConfigMap;
-
-public class UpdatableEffectiveConfigState extends State.EffectiveConfig {
-  private volatile AgentConfigMap agentConfigMap;
-
-  public void set(AgentConfigMap configMap) {
-    agentConfigMap = configMap;
-    notifyUpdate();
-  }
-
-  @Override
-  public opamp.proto.EffectiveConfig get() {
-    return new opamp.proto.EffectiveConfig(agentConfigMap);
-  }
+public interface AlwaysOnProfilerStateListener {
+  /**
+   * Receives the current effective configuration on registration and subsequent configuration
+   * changes.
+   *
+   * @param effectiveConfiguration the configuration describing the profiler's current state
+   */
+  void onAlwaysOnProfilerStateChanged(ProfilerConfiguration effectiveConfiguration);
 }

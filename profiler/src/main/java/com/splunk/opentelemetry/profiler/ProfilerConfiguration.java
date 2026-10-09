@@ -71,6 +71,10 @@ public class ProfilerConfiguration {
     configProperties = builder.configProperties;
   }
 
+  public static ProfilerConfiguration defaultConfiguration() {
+    return new Builder().build();
+  }
+
   public static Builder builder() {
     return new Builder();
   }

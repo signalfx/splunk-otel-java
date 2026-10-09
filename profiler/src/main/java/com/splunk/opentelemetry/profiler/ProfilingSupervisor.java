@@ -29,11 +29,15 @@ import io.opentelemetry.context.ContextStorage;
 import io.opentelemetry.sdk.autoconfigure.AutoConfigureUtil;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 import io.opentelemetry.sdk.resources.Resource;
+import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
+import javax.annotation.Nullable;
 
 /**
  * This class oversees the profiling subsystem. It runs for the entire time that the agent is
@@ -54,8 +58,10 @@ public class ProfilingSupervisor {
   private final PeriodicRecordingFlusherFactory recordingFlusherFactory;
   private final OtelAllocatedMemoryMetrics allocatedMemoryMetrics;
   private final OtelGcMemoryMetrics gcMemoryMetrics;
+  private final List<AlwaysOnProfilerStateListener> listeners = new CopyOnWriteArrayList<>();
   private final AtomicReference<PeriodicRecordingFlusher> recordingFlusher =
       new AtomicReference<>();
+  @Nullable private volatile ProfilerConfiguration activeConfiguration;
   private static final AtomicReference<JfrContextStorage> jfrContextStorage =
       new AtomicReference<>();
   private static final AtomicBoolean contextStorageSetup = new AtomicBoolean();
@@ -96,6 +102,36 @@ public class ProfilingSupervisor {
     return supervisor;
   }
 
+  /**
+   * Registers a listener and immediately reports the current effective configuration to it.
+   *
+   * <p>Registration waits for an ongoing reinitialization to finish.
+   */
+  public synchronized void addAlwaysOnProfilerStateListener(
+      AlwaysOnProfilerStateListener listener) {
+    listeners.add(listener);
+    // Send current state immediately to the newly added listener.
+    listener.onAlwaysOnProfilerStateChanged(getEffectiveConfiguration());
+  }
+
+  public void removeAlwaysOnProfilerStateListener(AlwaysOnProfilerStateListener listener) {
+    listeners.remove(listener);
+  }
+
+  /**
+   * Returns current effective configuration. If profiler is running then it is reported as enabled.
+   * If profiler is not running then both, CPU and memory profilers are reported as disabled.
+   *
+   * <p>Before the first successful start, returns the requested settings with CPU and memory
+   * profiling disabled.
+   */
+  public ProfilerConfiguration getEffectiveConfiguration() {
+    ProfilerConfiguration configuration = activeConfiguration;
+    return configuration != null
+        ? configuration
+        : configSupplier.get().toBuilder().setEnabled(false).setMemoryEnabled(false).build();
+  }
+
   @VisibleForTesting
   void start(ExecutorService executor) {
     executor.submit(this::commandLoop);
@@ -131,10 +167,10 @@ public class ProfilingSupervisor {
   private void handleCommand(ProfilingCommand command) {
     switch (command) {
       case START:
-        tryStart();
+        tryStart(true);
         break;
       case STOP:
-        tryStop();
+        tryStop(true);
         break;
       case REINITIALIZE:
         tryReinitialize();
@@ -150,10 +186,12 @@ public class ProfilingSupervisor {
   }
 
   /**
-   * Try and start the profiler. This does not check configuration, just responds to a command
-   * request.
+   * Starts an inactive profiler with the requested settings when JFR is available. The start
+   * command overrides the supplied configuration's enabled flag.
+   *
+   * @param notifyListeners whether to notify listeners if the effective configuration changes
    */
-  private void tryStart() {
+  private void tryStart(boolean notifyListeners) {
     if (isJfrRecordingActive()) {
       logger.fine("JFR is already running, not starting again.");
       return;
@@ -165,42 +203,87 @@ public class ProfilingSupervisor {
       return;
     }
 
-    configSupplier.get().log();
+    ProfilerConfiguration configuration = configSupplier.get();
+    configuration.log();
     updateJvmMemoryMetrics();
+    activateJfrRecording(configuration, getResource(sdk));
     setJfrContextStorageEnabled(true);
-    activateJfrRecording(getResource(sdk));
+    updateActiveConfiguration(configuration.toBuilder().setEnabled(true).build(), notifyListeners);
     logger.info("Profiler is active.");
   }
 
-  private void tryStop() {
+  /**
+   * Stops an active profiler and marks its current state as disabled in the effective
+   * configuration.
+   *
+   * @param notifyListeners whether to notify listeners if the effective configuration changes
+   */
+  private void tryStop(boolean notifyListeners) {
     if (!isJfrRecordingActive()) {
       logger.fine("JFR is not running already, not stopping again.");
       return;
     }
     setJfrContextStorageEnabled(false);
     deactivateJfrRecording();
+    updateActiveConfiguration(
+        getEffectiveConfiguration().toBuilder().setEnabled(false).setMemoryEnabled(false).build(),
+        notifyListeners);
     logger.info("Profiler is deactivated.");
   }
 
-  private void tryReinitialize() {
-    updateJvmMemoryMetrics();
-    tryStop();
-    // Start the profiler with current settings if it is enabled. New settings will be applied.
-    if (configSupplier.get().isEnabled()) {
-      tryStart();
+  /**
+   * Stops profiling and starts it with the requested settings if profiling is enabled.
+   *
+   * <p>Notifies listeners at most once after reinitialization finishes, if the final effective
+   * configuration changed, including when the restart fails.
+   */
+  private synchronized void tryReinitialize() {
+    ProfilerConfiguration previousConfiguration = activeConfiguration;
+    try {
+      updateJvmMemoryMetrics();
+      tryStop(false);
+      // Start the profiler with current settings if it is enabled. New settings will be applied.
+      if (configSupplier.get().isEnabled()) {
+        tryStart(false);
+      }
+    } finally {
+      // Report only the final state, including after a failed restart.
+      if (!Objects.equals(activeConfiguration, previousConfiguration)) {
+        notifyStateChanged();
+      }
     }
+  }
+
+  private synchronized void updateActiveConfiguration(
+      ProfilerConfiguration effectiveConfiguration, boolean notifyListeners) {
+    if (effectiveConfiguration.equals(activeConfiguration)) {
+      return;
+    }
+    activeConfiguration = effectiveConfiguration;
+    if (notifyListeners) {
+      notifyStateChanged();
+    }
+  }
+
+  private void notifyStateChanged() {
+    ProfilerConfiguration effectiveConfiguration = getEffectiveConfiguration();
+    listeners.forEach(listener -> listener.onAlwaysOnProfilerStateChanged(effectiveConfiguration));
   }
 
   private boolean isJfrRecordingActive() {
     return recordingFlusher.get() != null;
   }
 
-  private void activateJfrRecording(Resource resource) {
+  private void activateJfrRecording(ProfilerConfiguration configuration, Resource resource) {
     PeriodicRecordingFlusher recordingFlusher =
-        recordingFlusherFactory.create(configSupplier.get(), resource, jfr);
-    if (this.recordingFlusher.compareAndSet(null, recordingFlusher)) {
+        recordingFlusherFactory.create(configuration, resource, jfr);
+    try {
       recordingFlusher.start();
+    } catch (RuntimeException e) {
+      recordingFlusher.stop();
+      throw e;
     }
+    this.recordingFlusher.set(recordingFlusher);
   }
 
   private void deactivateJfrRecording() {

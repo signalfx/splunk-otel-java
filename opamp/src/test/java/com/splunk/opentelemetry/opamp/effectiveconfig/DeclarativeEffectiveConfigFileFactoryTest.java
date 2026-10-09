@@ -115,7 +115,10 @@ class DeclarativeEffectiveConfigFileFactoryTest {
     // when
     DeclarativeConfigTestUtil.createAutoConfiguredSdk(configurationYaml, tempDir, autoCleanup);
     String effectiveConfigYaml =
-        new DeclarativeEffectiveConfigFileFactory().createEffectiveConfigContent();
+        new DeclarativeEffectiveConfigFileFactory()
+            .createEffectiveConfigContent(
+                ProfilerConfiguration.SUPPLIER.get(),
+                SnapshotProfilingConfiguration.SUPPLIER.get());
 
     // then
     assertThat(effectiveConfigYaml)
@@ -133,6 +136,20 @@ class DeclarativeEffectiveConfigFileFactoryTest {
                   callgraphs:
                     sampling_interval: 10
                     selection_probability: 0.1507
+            """);
+
+    String disabledConfigYaml =
+        new DeclarativeEffectiveConfigFileFactory()
+            .createEffectiveConfigContent(
+                ProfilerConfiguration.SUPPLIER.get().toBuilder().setEnabled(false).build(),
+                SnapshotProfilingConfiguration.SUPPLIER.get().toBuilder()
+                    .setEnabled(false)
+                    .build());
+    assertThat(disabledConfigYaml)
+        .isEqualTo(
+            """
+            otel_config_file: null
+            otel_experimental_config_file: null
             """);
   }
 
@@ -430,7 +447,11 @@ class DeclarativeEffectiveConfigFileFactoryTest {
         builder.customizeModel(model);
       }
 
-      System.out.print(new DeclarativeEffectiveConfigFileFactory().createEffectiveConfigContent());
+      System.out.print(
+          new DeclarativeEffectiveConfigFileFactory()
+              .createEffectiveConfigContent(
+                  ProfilerConfiguration.SUPPLIER.get(),
+                  SnapshotProfilingConfiguration.SUPPLIER.get()));
     }
   }
 

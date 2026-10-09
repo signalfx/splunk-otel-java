@@ -16,36 +16,10 @@
 
 package com.splunk.opentelemetry.opamp.effectiveconfig;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
+import com.splunk.opentelemetry.profiler.ProfilerConfiguration;
+import com.splunk.opentelemetry.profiler.snapshot.SnapshotProfilingConfiguration;
 
-import java.util.HashMap;
-import java.util.Map;
-import okio.ByteString;
-import opamp.proto.AgentConfigFile;
-import opamp.proto.AgentConfigMap;
-
-interface EffectiveConfigFactory {
-  /**
-   * Build <code>AgentConfigMap</code> object containing current effective config with proper
-   * content type and file name
-   *
-   * @return agent config map containing effective config.
-   * @see AgentConfigMap
-   * @see AgentConfigFile
-   * @see #createEffectiveConfigContent()
-   * @see #getContentType()
-   * @see #getFileName()
-   */
-  default AgentConfigMap createEffectiveConfigMap() {
-    Map<String, AgentConfigFile> configMap = new HashMap<>();
-
-    ByteString content = new ByteString(createEffectiveConfigContent().getBytes(UTF_8));
-    AgentConfigFile configFile = new AgentConfigFile(content, getContentType());
-    configMap.put(getFileName(), configFile);
-
-    return new AgentConfigMap(configMap);
-  }
-
+interface EffectiveConfigFileFactory {
   /**
    * Create an appropriately formatted string containing effective config of the agent. Format and
    * content may vary depending on the agent configuration.
@@ -55,7 +29,9 @@ interface EffectiveConfigFactory {
    *     href="https://github.com/signalfx/gdi-specification/blob/main/specification/opamp_datamodel.md#effective-configuration">GDI
    *     Spec</a> for details
    */
-  String createEffectiveConfigContent();
+  String createEffectiveConfigContent(
+      ProfilerConfiguration profilerConfiguration,
+      SnapshotProfilingConfiguration snapshotConfiguration);
 
   /**
    * Return content type that needs to be associated with content of the effective config.

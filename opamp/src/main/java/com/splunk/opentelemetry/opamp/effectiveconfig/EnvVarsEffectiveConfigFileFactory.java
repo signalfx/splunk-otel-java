@@ -20,7 +20,7 @@ import com.splunk.opentelemetry.profiler.ProfilerConfiguration;
 import com.splunk.opentelemetry.profiler.snapshot.SnapshotProfilingConfiguration;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 
-class EnvVarsEffectiveConfigFileFactory implements EffectiveConfigFactory {
+class EnvVarsEffectiveConfigFileFactory implements EffectiveConfigFileFactory {
   private final ConfigProperties config;
 
   EnvVarsEffectiveConfigFileFactory(ConfigProperties config) {
@@ -37,20 +37,21 @@ class EnvVarsEffectiveConfigFileFactory implements EffectiveConfigFactory {
     return "environment";
   }
 
-  public String createEffectiveConfigContent() {
-    EffectiveConfigBuilder builder = new EffectiveConfigBuilder();
+  public String createEffectiveConfigContent(
+      ProfilerConfiguration profilerConfiguration,
+      SnapshotProfilingConfiguration snapshotConfiguration) {
+    EffectiveConfigStringBuilder builder = new EffectiveConfigStringBuilder();
 
     addOtelEnvVars(builder);
-    addSplunkEnvVars(builder);
+    addSplunkEnvVars(builder, profilerConfiguration, snapshotConfiguration);
 
     return builder.build();
   }
 
-  private void addSplunkEnvVars(EffectiveConfigBuilder builder) {
-    ProfilerConfiguration profilerConfiguration = ProfilerConfiguration.SUPPLIER.get();
-    SnapshotProfilingConfiguration snapshotConfiguration =
-        SnapshotProfilingConfiguration.SUPPLIER.get();
-
+  private void addSplunkEnvVars(
+      EffectiveConfigStringBuilder builder,
+      ProfilerConfiguration profilerConfiguration,
+      SnapshotProfilingConfiguration snapshotConfiguration) {
     builder
         .add("SPLUNK_PROFILER_ENABLED", profilerConfiguration.isEnabled())
         .add("SPLUNK_PROFILER_CALL_STACK_INTERVAL", profilerConfiguration.getCallStackInterval())
@@ -64,7 +65,7 @@ class EnvVarsEffectiveConfigFileFactory implements EffectiveConfigFactory {
             snapshotConfiguration.getSnapshotSelectionProbability());
   }
 
-  private void addOtelEnvVars(EffectiveConfigBuilder builder) {
+  private void addOtelEnvVars(EffectiveConfigStringBuilder builder) {
     builder
         .add("OTEL_EXPORTER_OTLP_TRACES_ENDPOINT", getSignalEndpoint(config, "traces"))
         .add("OTEL_EXPORTER_OTLP_METRICS_ENDPOINT", getSignalEndpoint(config, "metrics"))

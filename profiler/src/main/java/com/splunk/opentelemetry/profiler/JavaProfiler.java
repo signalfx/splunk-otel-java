@@ -27,6 +27,7 @@ import io.opentelemetry.api.trace.SpanContext;
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadInfo;
 import java.lang.management.ThreadMXBean;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -44,6 +45,11 @@ class JavaProfiler {
   private final CpuEventExporter cpuEventExporter;
   private final StackTraceFilter stackTraceFilter;
   private final ProfilerContextStorage contextStorage;
+  // defaults copied from snapshot profiler
+  private final Duration exportInterval = Duration.ofMillis(5000);
+  private final int maxBatchSize = 2000;
+  private int batchSize;
+  private long lastExportTime;
 
   JavaProfiler(
       ProfilerConfiguration config,
@@ -61,6 +67,7 @@ class JavaProfiler {
     boolean locksEnabled = config.getLocksEnabled();
     ThreadMXBean threadMXBean = ManagementFactory.getThreadMXBean();
 
+    lastExportTime = System.nanoTime();
     Runnable profiler =
         () -> {
           Instant now = Instant.now();
@@ -111,11 +118,25 @@ class JavaProfiler {
                 spanContext != null ? spanContext.getTraceId() : null,
                 spanContext != null ? spanContext.getSpanId() : null,
                 config.getCallStackInterval());
+
+            batchSize++;
+            if (batchSize >= maxBatchSize) {
+              export();
+            }
           }
-          cpuEventExporter.flush();
+
+          if (lastExportTime + exportInterval.toNanos() < System.nanoTime()) {
+            export();
+          }
         };
     long period = config.getCallStackInterval().toMillis();
     scheduler.scheduleAtFixedRate(logUncaught(profiler), period, period, TimeUnit.MILLISECONDS);
+  }
+
+  private void export() {
+    cpuEventExporter.flush();
+    lastExportTime = System.nanoTime();
+    batchSize = 0;
   }
 
   void stop() {

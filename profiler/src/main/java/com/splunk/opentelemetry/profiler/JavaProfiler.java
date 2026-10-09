@@ -140,6 +140,7 @@ class JavaProfiler {
   }
 
   void stop() {
+    scheduler.submit(this::export);
     scheduler.shutdown();
   }
 }

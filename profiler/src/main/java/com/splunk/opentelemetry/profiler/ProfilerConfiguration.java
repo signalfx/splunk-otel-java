@@ -373,9 +373,9 @@ public class ProfilerConfiguration {
 
     public Builder setRecordingDuration(Duration recordingDuration) {
       Objects.requireNonNull(recordingDuration);
-      if (recordingDuration.isNegative()) {
+      if (recordingDuration.toMillis() <= 0) {
         throw new IllegalArgumentException(
-            "Invalid recording duration: " + recordingDuration.toMillis() + ". Must be >= 0.");
+            "Invalid recording duration: " + recordingDuration.toMillis() + ". Must be > 0.");
       }
       this.recordingDuration = recordingDuration;
 

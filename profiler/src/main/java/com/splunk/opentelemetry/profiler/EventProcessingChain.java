@@ -56,7 +56,13 @@ class EventProcessingChain {
     this.tlabProcessor = tlabProcessor;
   }
 
-  void accept(IItem event) {
+  void accept(IItem event, Instant startTime) {
+    // filter out events that ended before the requested time
+    Instant eventEnd = eventReader.getEndInstant(event);
+    if (eventEnd != null && eventEnd.isBefore(startTime)) {
+      return;
+    }
+
     eventStats.incEventCount();
     buffer.add(event);
   }

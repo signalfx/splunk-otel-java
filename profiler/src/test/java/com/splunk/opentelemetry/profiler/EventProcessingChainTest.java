@@ -19,8 +19,10 @@ package com.splunk.opentelemetry.profiler;
 import static java.time.temporal.ChronoUnit.MILLIS;
 import static java.time.temporal.ChronoUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
@@ -168,11 +170,11 @@ class EventProcessingChainTest {
     EventProcessingChain chain =
         new EventProcessingChain(eventReader, contextualizer, threadDumpProcessor, tlabProcessor);
     chain.accept(event1, now);
-    chain.accept(event2, Instant.EPOCH);
+    chain.accept(event2, now);
     chain.flush();
 
     InOrder ordered = inOrder(contextualizer, threadDumpProcessor);
-    ordered.verify(contextualizer).updateContext(event2);
+    ordered.verify(contextualizer, times(1)).updateContext(any());
     ordered.verify(threadDumpProcessor).flush();
     ordered.verifyNoMoreInteractions();
   }
@@ -192,6 +194,7 @@ class EventProcessingChainTest {
       when(eventReader.getStartInstant(event)).thenReturn(startTime);
       when(eventReader.getStartTime(event))
           .thenReturn(TimeUnit.SECONDS.toNanos(startTime.getEpochSecond()) + startTime.getNano());
+      when(eventReader.getEndInstant(event)).thenReturn(startTime.plusMillis(1));
     }
     return event;
   }

@@ -36,13 +36,19 @@ class JfrContextStorage implements ContextStorage {
   private volatile boolean enabled = false;
 
   JfrContextStorage(ContextStorage delegate) {
-    this(delegate, JfrContextStorage::newEvent);
+    this(delegate, JfrContextStorage::newEvent, false);
   }
 
   @VisibleForTesting
   JfrContextStorage(ContextStorage delegate, Function<SpanContext, JfrEvent> newEvent) {
+    this(delegate, newEvent, true);
+  }
+
+  private JfrContextStorage(
+      ContextStorage delegate, Function<SpanContext, JfrEvent> newEvent, boolean enabled) {
     this.delegate = delegate;
     this.newEvent = newEvent;
+    this.enabled = enabled;
   }
 
   public void setEnabled(boolean enabled) {
@@ -69,9 +75,10 @@ class JfrContextStorage implements ContextStorage {
     }
     Span span = Span.fromContext(toAttach);
     Span current = activeSpan.get();
-    // do nothing when active span didn't change
-    // do nothing if the span isn't sampled
-    if (span == current || !span.getSpanContext().isSampled()) {
+    // Do nothing when active span didn't change. Also skip tracking when the current span isn't
+    // sampled unless the current span is invalid. Invalid span usually means that span is missing
+    // from context e.g. Context.root().makeCurrent() was called to clear the current span.
+    if (span == current || (span != Span.getInvalid() && !span.getSpanContext().isSampled())) {
       return delegatedScope;
     }
 

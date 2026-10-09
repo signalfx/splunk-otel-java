@@ -47,6 +47,7 @@ import jdk.jfr.consumer.RecordingFile;
 import okhttp3.Request;
 import okhttp3.Response;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -114,6 +115,11 @@ public abstract class ProfilerSmokeTest {
   @AfterAll
   void teardown() {
     containerManager.stopEnvironment();
+  }
+
+  @AfterEach
+  void clearTelemetry() throws IOException {
+    telemetryRetriever.clearTelemetry();
   }
 
   String getPetclinicImageName() {
@@ -288,14 +294,14 @@ public abstract class ProfilerSmokeTest {
                 "-Dotel.resource.attributes=service.name=smoketest,deployment.environment=smokeytown",
                 "-Dotel.javaagent.debug=true",
                 "-Dotel.logs.exporter=none",
+                "-Dotel.metrics.exporter=none",
+                "-Dotel.traces.exporter=none",
                 "-Dsplunk.profiler.enabled=true",
                 "-Dsplunk.profiler.memory.enabled=true",
                 "-Dsplunk.profiler.directory=/app/jfr",
                 "-Dsplunk.profiler.keep-files=true",
                 "-Dsplunk.profiler.call.stack.interval=1001",
-                "-Dsplunk.profiler.logs-endpoint=http://collector:4318/v1/logs",
-                // uncomment to enable exporting traces
-                // "-Dotel.exporter.otlp.endpoint=http://collector:4318",
+                "-Dsplunk.profiler.logs-endpoint=http://collector:4319/v1/logs",
                 "-jar",
                 "/app/spring-petclinic-rest.jar"));
 

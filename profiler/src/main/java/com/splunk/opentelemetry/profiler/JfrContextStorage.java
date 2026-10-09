@@ -75,10 +75,10 @@ class JfrContextStorage implements ContextStorage {
     }
     Span span = Span.fromContext(toAttach);
     Span current = activeSpan.get();
-    // do nothing when active span didn't change
-    // do nothing if the span isn't sampled
-    if (span == current
-        || (span.getSpanContext().isValid() && !span.getSpanContext().isSampled())) {
+    // Do nothing when active span didn't change. Also skip tracking when the current span isn't
+    // sampled unless the current span is invalid. Invalid span usually means that span is missing
+    // from context e.g. Context.root().makeCurrent() was called to clear the current span.
+    if (span == current || (span != Span.getInvalid() && !span.getSpanContext().isSampled())) {
       return delegatedScope;
     }
 

@@ -125,7 +125,12 @@ class JfrContextStorageTest {
 
   @Test
   void testAttachRootContext() {
-    spanContext = SpanContext.getInvalid();
+    spanContext =
+        SpanContext.createFromRemoteParent(
+            "ff01020304050600ff0a0b0c0d0e0f00",
+            "090a0b0c0d0e0f00",
+            TraceFlags.getSampled(),
+            TraceState.getDefault());
     span = Span.wrap(spanContext);
     newContext = Context.root().with(span);
 
@@ -141,8 +146,9 @@ class JfrContextStorageTest {
 
     JfrContextStorage contextStorage = new JfrContextStorage(delegate, newEvent);
     contextStorage.attach(newContext);
+    contextStorage.attach(Context.root());
 
-    assertEquals(1, counter.get());
+    assertEquals(2, counter.get());
   }
 
   @Test

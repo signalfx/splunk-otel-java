@@ -19,8 +19,10 @@ package com.splunk.opentelemetry.profiler;
 import static java.time.temporal.ChronoUnit.MILLIS;
 import static java.time.temporal.ChronoUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
@@ -72,10 +74,10 @@ class EventProcessingChainTest {
 
     EventProcessingChain chain =
         new EventProcessingChain(eventReader, contextualizer, threadDumpProcessor, tlabProcessor);
-    chain.accept(tlab1);
-    chain.accept(contextEvent);
-    chain.accept(tlab2);
-    chain.accept(threadDump);
+    chain.accept(tlab1, Instant.EPOCH);
+    chain.accept(contextEvent, Instant.EPOCH);
+    chain.accept(tlab2, Instant.EPOCH);
+    chain.accept(threadDump, Instant.EPOCH);
 
     verifyNoInteractions(contextualizer, threadDumpProcessor, tlabProcessor);
 
@@ -105,9 +107,9 @@ class EventProcessingChainTest {
 
     EventProcessingChain chain =
         new EventProcessingChain(eventReader, contextualizer, threadDumpProcessor, tlabProcessor);
-    chain.accept(event2); // Out of order
-    chain.accept(event1); // Out of order
-    chain.accept(event3);
+    chain.accept(event2, Instant.EPOCH); // Out of order
+    chain.accept(event1, Instant.EPOCH); // Out of order
+    chain.accept(event3, Instant.EPOCH);
     chain.flush();
 
     InOrder ordered = inOrder(contextualizer, threadDumpProcessor);
@@ -145,13 +147,36 @@ class EventProcessingChainTest {
     EventProcessingChain chain =
         new EventProcessingChain(eventReader, contextualizer, threadDumpProcessor, processor);
     for (IItem event : events) {
-      chain.accept(event);
+      chain.accept(event, Instant.EPOCH);
     }
     chain.flush();
 
     // probabilistic sampling can over or undersample
     assertThat(receivedCount.get()).isCloseTo(100, Offset.offset(30));
     assertThat(sampler.maxEventsPerSecond()).isEqualTo(100);
+  }
+
+  @Test
+  void oldEventFiltered() {
+    IType<?> contextAttachedType = newEventType(ContextAttached.EVENT_NAME);
+    Instant now = Instant.now();
+    IItem event1 = newEvent(contextAttachedType, Instant.EPOCH);
+    IItem event2 = newEvent(contextAttachedType, now.plus(1, SECONDS));
+
+    // Our events are in time order: context1, context2, threadDump1, threadDump2.
+    // However, we will send them to the chain out of order: context2, context1, threadDump.
+    // Expectation is that we see them dispatched in the correct order.
+
+    EventProcessingChain chain =
+        new EventProcessingChain(eventReader, contextualizer, threadDumpProcessor, tlabProcessor);
+    chain.accept(event1, now);
+    chain.accept(event2, now);
+    chain.flush();
+
+    InOrder ordered = inOrder(contextualizer, threadDumpProcessor);
+    ordered.verify(contextualizer, times(1)).updateContext(any());
+    ordered.verify(threadDumpProcessor).flush();
+    ordered.verifyNoMoreInteractions();
   }
 
   private IType<?> newEventType(String name) {
@@ -169,6 +194,7 @@ class EventProcessingChainTest {
       when(eventReader.getStartInstant(event)).thenReturn(startTime);
       when(eventReader.getStartTime(event))
           .thenReturn(TimeUnit.SECONDS.toNanos(startTime.getEpochSecond()) + startTime.getNano());
+      when(eventReader.getEndInstant(event)).thenReturn(startTime.plusMillis(1));
     }
     return event;
   }

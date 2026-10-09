@@ -36,6 +36,7 @@ import io.opentelemetry.context.Context;
 import io.opentelemetry.context.ContextStorage;
 import io.opentelemetry.context.Scope;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -103,8 +104,13 @@ class ProfilerContextStorageTest {
   }
 
   @Test
-  void testAttachWithInvalidContextDoesNotCreateAnyEvents() {
-    spanContext = SpanContext.getInvalid();
+  void testAttachWithNotSampledContextDoesNotCreateAnyEvents() {
+    spanContext =
+        SpanContext.createFromRemoteParent(
+            "ff01020304050600ff0a0b0c0d0e0f00",
+            "090a0b0c0d0e0f00",
+            TraceFlags.getDefault(),
+            TraceState.getDefault());
     span = Span.wrap(spanContext);
     newContext = Context.root().with(span);
 
@@ -118,8 +124,35 @@ class ProfilerContextStorageTest {
 
     ProfilerContextStorage contextStorage = new ProfilerContextStorage(delegate, newEvent);
     contextStorage.setEmitJfrEvents(true);
-
     contextStorage.attach(newContext);
+  }
+
+  @Test
+  void testAttachRootContext() {
+    spanContext =
+        SpanContext.createFromRemoteParent(
+            "ff01020304050600ff0a0b0c0d0e0f00",
+            "090a0b0c0d0e0f00",
+            TraceFlags.getSampled(),
+            TraceState.getDefault());
+    span = Span.wrap(spanContext);
+    newContext = Context.root().with(span);
+
+    AtomicInteger counter = new AtomicInteger();
+    JfrEvent event = mock(JfrEvent.class);
+    Function<SpanContext, JfrEvent> newEvent =
+        sc -> {
+          counter.incrementAndGet();
+          return event;
+        };
+
+    when(delegate.attach(newContext)).thenReturn(delegatedScope);
+
+    ProfilerContextStorage contextStorage = new ProfilerContextStorage(delegate, newEvent);
+    contextStorage.attach(newContext);
+    contextStorage.attach(Context.root());
+
+    assertEquals(2, counter.get());
   }
 
   @Test

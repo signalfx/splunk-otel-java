@@ -48,6 +48,16 @@ public class EventReader {
     return accessor.getMember(event).longValue();
   }
 
+  public Instant getEndInstant(IItem event) {
+    IMemberAccessor<IQuantity, IItem> accessor =
+        getItemType(event).getAccessor(JfrAttributes.END_TIME.getKey());
+    if (accessor == null) {
+      return null;
+    }
+    IQuantity value = accessor.getMember(event);
+    return value != null ? Instant.ofEpochSecond(0, value.longValue()) : null;
+  }
+
   public String getThreadDumpResult(IItem event) {
     IMemberAccessor<String, IItem> accessor =
         getItemType(event).getAccessor(THREAD_DUMP_RESULT.getKey());

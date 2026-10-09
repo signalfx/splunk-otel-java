@@ -149,6 +149,7 @@ class ProfilerContextStorageTest {
     when(delegate.attach(newContext)).thenReturn(delegatedScope);
 
     ProfilerContextStorage contextStorage = new ProfilerContextStorage(delegate, newEvent);
+    contextStorage.setEmitJfrEvents(true);
     contextStorage.attach(newContext);
     contextStorage.attach(Context.root());
 

@@ -113,7 +113,7 @@ public class ThreadData {
 
     private static LockData[] from(LockInfo[] lockInfos) {
       if (lockInfos == null) {
-        return null;
+        return new LockData[0];
       }
 
       LockData[] lockData = new LockData[lockInfos.length];

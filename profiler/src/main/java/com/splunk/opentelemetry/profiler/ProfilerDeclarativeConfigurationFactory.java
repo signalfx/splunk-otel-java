@@ -27,6 +27,7 @@ public final class ProfilerDeclarativeConfigurationFactory {
   private static final String DEFAULT_PROFILER_DIRECTORY = System.getProperty("java.io.tmpdir");
   private static final long DEFAULT_RECORDING_DURATION = Duration.ofSeconds(20).toMillis();
   private static final long DEFAULT_SAMPLING_INTERVAL = Duration.ofSeconds(10).toMillis();
+  private static final String DEFAULT_CPU_MODE = "jfr";
 
   private static final String MEMORY_PROFILER = "memory_profiler";
   private static final String CPU_PROFILER = "cpu_profiler";
@@ -42,11 +43,9 @@ public final class ProfilerDeclarativeConfigurationFactory {
     boolean useAllocationSampleEvent =
         ProfilerConfiguration.HAS_OBJECT_ALLOCATION_SAMPLE_EVENT
             && memoryProfilerConfig.getBoolean("native_sampling", false);
+    DeclarativeConfigProperties cpuProfiler = configRoot.getStructured("cpu_profiler", empty());
     Duration callStackInterval =
-        getDuration(
-            configRoot.getStructured("cpu_profiler", empty()),
-            "sampling_interval",
-            DEFAULT_SAMPLING_INTERVAL);
+        getDuration(cpuProfiler, "sampling_interval", DEFAULT_SAMPLING_INTERVAL);
 
     return ProfilerConfiguration.builder()
         .setEnabled(configRoot.getPropertyKeys().contains(CPU_PROFILER))
@@ -66,6 +65,7 @@ public final class ProfilerDeclarativeConfigurationFactory {
         .setRecordingDuration(
             getDuration(configRoot, "recording_duration", DEFAULT_RECORDING_DURATION))
         .setConfigProperties(config)
+        .setCpuProfilingMode(cpuProfiler.getString("mode", DEFAULT_CPU_MODE))
         .build();
   }
 

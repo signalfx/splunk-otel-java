@@ -119,7 +119,7 @@ _java_thread_list=0x0000000bce759ba0, length=52, elements={
         at com.splunk.opentelemetry.profiler.snapshot.OrphanedTraceCleaner$$Lambda$275/0x00000008003827a0.run(Unknown Source)
         at java.lang.Thread.run(java.base@17.0.12/Thread.java:840)
 
-"JFR Profiler" #20 daemon prio=5 os_prio=31 cpu=115.25ms elapsed=10.14s tid=0x0000000bc818de00 nid=0x8603 waiting on condition  [0x0000000173d56000]
+"Splunk Profiler" #20 daemon prio=5 os_prio=31 cpu=115.25ms elapsed=10.14s tid=0x0000000bc818de00 nid=0x8603 waiting on condition  [0x0000000173d56000]
    java.lang.Thread.State: WAITING (parking)
         at jdk.internal.misc.Unsafe.park(java.base@17.0.12/Native Method)
         - parking to wait for  <0x00000005c0000b10> (a java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject)

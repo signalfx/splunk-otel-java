@@ -98,7 +98,9 @@ public class PprofCpuEventExporter implements CpuEventExporter {
       pprof.addLabel(sample, SPAN_ID, spanContext.getSpanId());
     }
 
-    addLockInfo(sample, stackToSpanLinkage.getStackTrace().getThreadLockData());
+    if (locksEnabled) {
+      addLockInfo(sample, stackToSpanLinkage.getStackTrace().getThreadLockData());
+    }
 
     pprof.getProfileBuilder().addSample(sample);
   }

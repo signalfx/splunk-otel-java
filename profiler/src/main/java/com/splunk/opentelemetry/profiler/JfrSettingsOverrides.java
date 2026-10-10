@@ -36,8 +36,10 @@ class JfrSettingsOverrides {
   Map<String, String> apply(Map<String, String> jfrSettings) {
     Map<String, String> settings = new HashMap<>(jfrSettings);
     Duration customInterval = config.getCallStackInterval();
-    if (!Duration.ZERO.equals(customInterval)) {
+    if (config.getCpuProfilingMode() == ProfilerConfiguration.CpuProfilingMode.JFR) {
       settings.put("jdk.ThreadDump#period", customInterval.toMillis() + " ms");
+    } else {
+      settings.put("jdk.ThreadDump#enabled", "false");
     }
     return maybeEnableTLABs(settings);
   }

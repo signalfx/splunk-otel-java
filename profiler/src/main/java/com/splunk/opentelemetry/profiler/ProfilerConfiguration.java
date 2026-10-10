@@ -18,6 +18,7 @@ package com.splunk.opentelemetry.profiler;
 
 import com.splunk.opentelemetry.profiler.util.OptionalConfigurableSupplier;
 import java.time.Duration;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.logging.Logger;
 import javax.annotation.Nullable;
@@ -49,6 +50,7 @@ public class ProfilerConfiguration {
   private final boolean keepFiles;
   private final String profilerDirectory;
   private final Duration recordingDuration;
+  private final CpuProfilingMode cpuProfilingMode;
   @Nullable private final Object configProperties;
 
   private ProfilerConfiguration(Builder builder) {
@@ -68,6 +70,7 @@ public class ProfilerConfiguration {
     keepFiles = builder.keepFiles;
     profilerDirectory = builder.profilerDirectory;
     recordingDuration = builder.recordingDuration;
+    cpuProfilingMode = builder.cpuProfilingMode;
     configProperties = builder.configProperties;
   }
 
@@ -93,6 +96,7 @@ public class ProfilerConfiguration {
         .setKeepFiles(keepFiles)
         .setProfilerDirectory(profilerDirectory)
         .setRecordingDuration(recordingDuration)
+        .setCpuProfilingMode(cpuProfilingMode)
         .setConfigProperties(configProperties);
   }
 
@@ -189,6 +193,10 @@ public class ProfilerConfiguration {
     return recordingDuration;
   }
 
+  public CpuProfilingMode getCpuProfilingMode() {
+    return cpuProfilingMode;
+  }
+
   @Nullable
   public Object getConfigProperties() {
     return configProperties;
@@ -213,6 +221,7 @@ public class ProfilerConfiguration {
         && locksEnabled == that.locksEnabled
         && stackDepth == that.stackDepth
         && keepFiles == that.keepFiles
+        && cpuProfilingMode == that.cpuProfilingMode
         && Objects.equals(ingestUrl, that.ingestUrl)
         && Objects.equals(otlpProtocol, that.otlpProtocol)
         && Objects.equals(memoryEventRate, that.memoryEventRate)
@@ -241,6 +250,7 @@ public class ProfilerConfiguration {
         keepFiles,
         profilerDirectory,
         recordingDuration,
+        cpuProfilingMode,
         configProperties);
   }
 
@@ -269,6 +279,7 @@ public class ProfilerConfiguration {
     private boolean keepFiles;
     private String profilerDirectory = DEFAULT_PROFILER_DIRECTORY;
     private Duration recordingDuration = DEFAULT_RECORDING_DURATION;
+    private CpuProfilingMode cpuProfilingMode = CpuProfilingMode.JFR;
     @Nullable private Object configProperties;
 
     private Builder() {}
@@ -314,9 +325,9 @@ public class ProfilerConfiguration {
 
     public Builder setCallStackInterval(Duration callStackInterval) {
       Objects.requireNonNull(callStackInterval);
-      if (callStackInterval.isNegative()) {
+      if (callStackInterval.toMillis() <= 0) {
         throw new IllegalArgumentException(
-            "Invalid call stack interval: " + callStackInterval.toMillis() + ". Must be >= 0.");
+            "Invalid call stack interval: " + callStackInterval.toMillis() + ". Must be > 0.");
       }
       this.callStackInterval = callStackInterval;
       return this;
@@ -362,12 +373,27 @@ public class ProfilerConfiguration {
 
     public Builder setRecordingDuration(Duration recordingDuration) {
       Objects.requireNonNull(recordingDuration);
-      if (recordingDuration.isNegative()) {
+      if (recordingDuration.toMillis() <= 0) {
         throw new IllegalArgumentException(
-            "Invalid recording duration: " + recordingDuration.toMillis() + ". Must be >= 0.");
+            "Invalid recording duration: " + recordingDuration.toMillis() + ". Must be > 0.");
       }
       this.recordingDuration = recordingDuration;
 
+      return this;
+    }
+
+    public Builder setCpuProfilingMode(String cpuProfilingMode) {
+      try {
+        return setCpuProfilingMode(
+            CpuProfilingMode.valueOf(
+                Objects.requireNonNull(cpuProfilingMode).toUpperCase(Locale.ROOT)));
+      } catch (IllegalArgumentException exception) {
+        throw new IllegalArgumentException("Invalid cpu mode: " + cpuProfilingMode, exception);
+      }
+    }
+
+    public Builder setCpuProfilingMode(CpuProfilingMode cpuProfilingMode) {
+      this.cpuProfilingMode = Objects.requireNonNull(cpuProfilingMode);
       return this;
     }
 
@@ -375,5 +401,10 @@ public class ProfilerConfiguration {
       this.configProperties = configProperties;
       return this;
     }
+  }
+
+  public enum CpuProfilingMode {
+    JFR,
+    JAVA
   }
 }

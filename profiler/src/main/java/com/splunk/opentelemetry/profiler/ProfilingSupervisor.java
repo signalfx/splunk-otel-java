@@ -37,7 +37,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
-import javax.annotation.Nullable;
 
 /**
  * This class oversees the profiling subsystem. It runs for the entire time that the agent is
@@ -61,7 +60,7 @@ public class ProfilingSupervisor {
   private final List<AlwaysOnProfilerStateListener> listeners = new CopyOnWriteArrayList<>();
   private final AtomicReference<PeriodicRecordingFlusher> recordingFlusher =
       new AtomicReference<>();
-  @Nullable private volatile ProfilerConfiguration activeConfiguration;
+  private volatile ProfilerConfiguration activeConfiguration;
   private static final AtomicReference<JfrContextStorage> jfrContextStorage =
       new AtomicReference<>();
   private static final AtomicBoolean contextStorageSetup = new AtomicBoolean();
@@ -80,6 +79,7 @@ public class ProfilingSupervisor {
     this.recordingFlusherFactory = recordingFlusherFactory;
     this.allocatedMemoryMetrics = allocatedMemoryMetrics;
     this.gcMemoryMetrics = gcMemoryMetrics;
+    this.activeConfiguration = withDisabledProfilers(configSupplier.get());
   }
 
   static ProfilingSupervisor createAndStart(AutoConfiguredOpenTelemetrySdk sdk) {
@@ -122,14 +122,15 @@ public class ProfilingSupervisor {
    * Returns current effective configuration. If profiler is running then it is reported as enabled.
    * If profiler is not running then both, CPU and memory profilers are reported as disabled.
    *
-   * <p>Before the first successful start, returns the requested settings with CPU and memory
-   * profiling disabled.
+   * <p>Initially reports the requested settings with CPU and memory profiling disabled. Failed
+   * start attempts also report the attempted settings with CPU and memory profiling disabled.
    */
   public ProfilerConfiguration getEffectiveConfiguration() {
-    ProfilerConfiguration configuration = activeConfiguration;
-    return configuration != null
-        ? configuration
-        : configSupplier.get().toBuilder().setEnabled(false).setMemoryEnabled(false).build();
+    return activeConfiguration;
+  }
+
+  private static ProfilerConfiguration withDisabledProfilers(ProfilerConfiguration configuration) {
+    return configuration.toBuilder().setEnabled(false).setMemoryEnabled(false).build();
   }
 
   @VisibleForTesting
@@ -197,19 +198,27 @@ public class ProfilingSupervisor {
       return;
     }
 
-    if (!jfr.isAvailable()) {
-      logger.warning(
-          "JDK Flight Recorder (JFR) is not available in this JVM. Profiling will not start.");
-      return;
-    }
-
     ProfilerConfiguration configuration = configSupplier.get();
-    configuration.log();
-    updateJvmMemoryMetrics();
-    activateJfrRecording(configuration, getResource(sdk));
-    setJfrContextStorageEnabled(true);
-    updateActiveConfiguration(configuration.toBuilder().setEnabled(true).build(), notifyListeners);
-    logger.info("Profiler is active.");
+    try {
+      if (!jfr.isAvailable()) {
+        logger.warning(
+            "JDK Flight Recorder (JFR) is not available in this JVM. Profiling will not start.");
+        return;
+      }
+
+      configuration.log();
+      updateJvmMemoryMetrics();
+      activateJfrRecording(configuration, getResource(sdk));
+      setJfrContextStorageEnabled(true);
+      updateActiveConfiguration(
+          configuration.toBuilder().setEnabled(true).build(), notifyListeners);
+      logger.info("Profiler is active.");
+    } finally {
+      // Publish disabled settings when JFR is unavailable or startup throws.
+      if (!isJfrRecordingActive()) {
+        updateActiveConfiguration(withDisabledProfilers(configuration), notifyListeners);
+      }
+    }
   }
 
   /**
@@ -225,9 +234,7 @@ public class ProfilingSupervisor {
     }
     setJfrContextStorageEnabled(false);
     deactivateJfrRecording();
-    updateActiveConfiguration(
-        getEffectiveConfiguration().toBuilder().setEnabled(false).setMemoryEnabled(false).build(),
-        notifyListeners);
+    updateActiveConfiguration(withDisabledProfilers(configSupplier.get()), notifyListeners);
     logger.info("Profiler is deactivated.");
   }
 

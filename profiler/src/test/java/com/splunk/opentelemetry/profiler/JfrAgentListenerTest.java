@@ -66,8 +66,8 @@ class JfrAgentListenerTest {
 
     when(jfr.isAvailable()).thenReturn(true);
 
-    JfrAgentListener listener =
-        new JfrAgentListener(jfr) {
+    ProfilerAgentListener listener =
+        new ProfilerAgentListener(jfr) {
           @Override
           ProfilingSupervisor makeProfilingSupervisor(AutoConfiguredOpenTelemetrySdk sdk) {
             return supervisor;
@@ -100,8 +100,8 @@ class JfrAgentListenerTest {
     var jfr = mock(JFR.class);
     when(jfr.isAvailable()).thenReturn(false);
 
-    JfrAgentListener listener =
-        new JfrAgentListener(jfr) {
+    ProfilerAgentListener listener =
+        new ProfilerAgentListener(jfr) {
           @Override
           ProfilingSupervisor makeProfilingSupervisor(AutoConfiguredOpenTelemetrySdk sdk) {
             return supervisor;
@@ -127,8 +127,8 @@ class JfrAgentListenerTest {
     var supervisor = mock(ProfilingSupervisor.class);
     when(jfr.isAvailable()).thenReturn(true);
 
-    JfrAgentListener listener =
-        new JfrAgentListener(jfr) {
+    ProfilerAgentListener listener =
+        new ProfilerAgentListener(jfr) {
           @Override
           ProfilingSupervisor makeProfilingSupervisor(AutoConfiguredOpenTelemetrySdk sdk) {
             return supervisor;

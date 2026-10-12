@@ -36,7 +36,6 @@ import java.util.concurrent.TimeUnit;
 import okhttp3.Request;
 import okhttp3.Response;
 import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -101,11 +100,6 @@ public abstract class SnapshotProfilerSmokeTest {
   @AfterAll
   void teardown() {
     containerManager.stopEnvironment();
-  }
-
-  @AfterEach
-  void clearTelemetry() throws IOException {
-    telemetryRetriever.clearTelemetry();
   }
 
   String getPetclinicImageName() {

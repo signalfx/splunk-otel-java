@@ -45,7 +45,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class JfrContextStorageTest {
+class ProfilerContextStorageTest {
 
   String traceId;
   String spanId;
@@ -67,7 +67,7 @@ class JfrContextStorageTest {
 
   @Test
   void testNewEvent() {
-    ContextAttached result = JfrContextStorage.newEvent(spanContext);
+    ContextAttached result = (ContextAttached) ProfilerContextStorage.newEvent(spanContext);
     assertEquals(traceId, result.getTraceId());
     assertEquals(spanId, result.getSpanId());
   }
@@ -84,8 +84,9 @@ class JfrContextStorageTest {
     when(newEvent.apply(spanContext)).thenReturn(inEvent);
     when(newEvent.apply(SpanContext.getInvalid())).thenReturn(outEvent);
 
-    JfrContextStorage contextStorage = new JfrContextStorage(delegate, newEvent);
+    ProfilerContextStorage contextStorage = new ProfilerContextStorage(delegate, newEvent);
     contextStorage.setEnabled(true);
+    contextStorage.setEmitJfrEvents(true);
 
     Scope resultScope = contextStorage.attach(newContext);
     verify(inEvent).begin();
@@ -93,6 +94,8 @@ class JfrContextStorageTest {
     verify(outEvent, never()).begin();
     verify(outEvent, never()).commit();
     verify(delegatedScope, never()).close();
+
+    assertEquals(0, contextStorage.getActiveContextMap().approximateSize());
 
     resultScope.close(); // returns back to the initial/default span
     verify(outEvent).begin();
@@ -119,7 +122,8 @@ class JfrContextStorageTest {
 
     when(delegate.attach(newContext)).thenReturn(delegatedScope);
 
-    JfrContextStorage contextStorage = new JfrContextStorage(delegate, newEvent);
+    ProfilerContextStorage contextStorage = new ProfilerContextStorage(delegate, newEvent);
+    contextStorage.setEmitJfrEvents(true);
     contextStorage.attach(newContext);
   }
 
@@ -144,7 +148,8 @@ class JfrContextStorageTest {
 
     when(delegate.attach(newContext)).thenReturn(delegatedScope);
 
-    JfrContextStorage contextStorage = new JfrContextStorage(delegate, newEvent);
+    ProfilerContextStorage contextStorage = new ProfilerContextStorage(delegate, newEvent);
+    contextStorage.setEmitJfrEvents(true);
     contextStorage.attach(newContext);
     contextStorage.attach(Context.root());
 
@@ -158,14 +163,16 @@ class JfrContextStorageTest {
 
     when(delegate.current()).thenReturn(expected);
 
-    JfrContextStorage contextStorage = new JfrContextStorage(delegate);
+    ProfilerContextStorage contextStorage = new ProfilerContextStorage(delegate);
+    contextStorage.setEmitJfrEvents(true);
+    contextStorage.setTrackActiveContext(true);
+
     Context result = contextStorage.current();
     assertEquals(expected, result);
   }
 
   @Test
   void testNotSampled() {
-
     Scope scope = mock(Scope.class);
     ContextStorage delegate = mock(ContextStorage.class);
 
@@ -183,10 +190,33 @@ class JfrContextStorageTest {
           return null;
         };
 
-    JfrContextStorage contextStorage = new JfrContextStorage(delegate, newEvent);
+    ProfilerContextStorage contextStorage = new ProfilerContextStorage(delegate, newEvent);
+    contextStorage.setEmitJfrEvents(true);
     Scope result = contextStorage.attach(newContext);
 
     assertEquals(scope, result);
     assertFalse(newEventWasCalled.get());
+  }
+
+  @Test
+  void testActiveContextTracking() {
+    Function<SpanContext, JfrEvent> newEvent =
+        spanContext -> {
+          throw new IllegalStateException("Should not have been called");
+        };
+
+    when(delegate.attach(newContext)).thenReturn(delegatedScope);
+
+    ProfilerContextStorage contextStorage = new ProfilerContextStorage(delegate, newEvent);
+    contextStorage.setEnabled(true);
+    contextStorage.setTrackActiveContext(true);
+
+    Scope resultScope = contextStorage.attach(newContext);
+    verify(delegatedScope, never()).close();
+
+    assertEquals(1, contextStorage.getActiveContextMap().approximateSize());
+
+    resultScope.close(); // returns back to the initial/default span
+    verify(delegatedScope).close();
   }
 }

@@ -35,6 +35,7 @@ class JfrSettingsOverridesTest {
     when(config.getMemoryEnabled()).thenReturn(true);
     when(config.getMemoryEventRateLimitEnabled()).thenReturn(false);
     when(config.getUseAllocationSampleEvent()).thenReturn(false);
+    when(config.getCpuProfilingMode()).thenReturn(ProfilerConfiguration.CpuProfilingMode.JFR);
 
     JfrSettingsOverrides overrides = new JfrSettingsOverrides(config);
     Map<String, String> jfrSettings =
@@ -63,6 +64,7 @@ class JfrSettingsOverridesTest {
     when(config.getMemoryEventRateLimitEnabled()).thenReturn(true);
     when(config.getUseAllocationSampleEvent()).thenReturn(true);
     when(config.getMemoryEventRate()).thenReturn("200/s");
+    when(config.getCpuProfilingMode()).thenReturn(ProfilerConfiguration.CpuProfilingMode.JFR);
 
     JfrSettingsOverrides overrides = new JfrSettingsOverrides(config);
     Map<String, String> jfrSettings =
@@ -88,22 +90,17 @@ class JfrSettingsOverridesTest {
   void shouldNotOverrideWhenMemoryDisabledAndIntervalIsZero() {
     // given
     ProfilerConfiguration config = mock(ProfilerConfiguration.class);
-    when(config.getCallStackInterval()).thenReturn(Duration.ofMillis(0));
     when(config.getMemoryEnabled()).thenReturn(false);
 
     JfrSettingsOverrides overrides = new JfrSettingsOverrides(config);
-    Map<String, String> jfrSettings =
-        Map.of(
-            "jdk.ThreadDump#period", "12",
-            "jdk.ThreadDump#enabled", "false");
+    Map<String, String> jfrSettings = Map.of("jdk.ThreadDump#enabled", "false");
 
     // when
     Map<String, String> result = overrides.apply(jfrSettings);
 
     // then
     assertNotSame(result, jfrSettings);
-    assertThat(result.get("jdk.ThreadDump#period")).isEqualTo("12");
     assertThat(result.get("jdk.ThreadDump#enabled")).isEqualTo("false");
-    assertThat(result).hasSize(2);
+    assertThat(result).hasSize(1);
   }
 }

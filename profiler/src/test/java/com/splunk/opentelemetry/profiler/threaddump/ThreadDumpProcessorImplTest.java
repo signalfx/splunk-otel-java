@@ -49,7 +49,7 @@ import org.openjdk.jmc.common.item.IType;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
-class ThreadDumpProcessorTest {
+class ThreadDumpProcessorImplTest {
 
   static String traceId = "deadbeefdeadbeefdeadbeefdeadbeef";
   static String spanId = "0123012301230123";
@@ -320,8 +320,8 @@ class ThreadDumpProcessorTest {
     EventReader eventReader = mock(EventReader.class);
     List<StackToSpanLinkage> results = new ArrayList<>();
     CpuEventExporter profilingEventExporter = results::add;
-    ThreadDumpProcessor processor =
-        ThreadDumpProcessor.builder()
+    ThreadDumpProcessorImpl processor =
+        ThreadDumpProcessorImpl.builder()
             .eventReader(eventReader)
             .spanContextualizer(contextualizer)
             .cpuEventExporter(profilingEventExporter)

@@ -36,7 +36,6 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.logging.Logger;
-import javax.annotation.Nullable;
 
 public class SnapshotProfilingSupervisor {
   public static final OptionalConfigurableSupplier<SnapshotProfilingSupervisor> SUPPLIER =
@@ -57,7 +56,7 @@ public class SnapshotProfilingSupervisor {
   private final List<SnapshotProfilerStateListener> listeners = new CopyOnWriteArrayList<>();
   private final AutoConfiguredOpenTelemetrySdk sdk;
   private final OtelLoggerFactory otelLoggerFactory;
-  @Nullable private volatile SnapshotProfilingConfiguration activeConfiguration;
+  private volatile SnapshotProfilingConfiguration activeConfiguration;
 
   @VisibleForTesting
   SnapshotProfilingSupervisor(
@@ -79,6 +78,7 @@ public class SnapshotProfilingSupervisor {
     this.profilingSpanProcessorSupplier = profilingSpanProcessorSupplier;
     this.sdk = sdk;
     this.otelLoggerFactory = otelLoggerFactory;
+    this.activeConfiguration = withDisabledProfiler(configurationSupplier.get());
   }
 
   public static SnapshotProfilingSupervisor initialize(AutoConfiguredOpenTelemetrySdk sdk) {
@@ -124,13 +124,16 @@ public class SnapshotProfilingSupervisor {
   /**
    * Returns current effective configuration. If profiler is running then it is reported as enabled.
    *
-   * <p>Before the first successful start, returns the requested settings with profiling disabled.
+   * <p>Initially reports the requested settings with profiling disabled. Failed start attempts
+   * also report the attempted settings with profiling disabled.
    */
   public SnapshotProfilingConfiguration getEffectiveConfiguration() {
-    SnapshotProfilingConfiguration configuration = activeConfiguration;
-    return configuration != null
-        ? configuration
-        : configurationSupplier.get().toBuilder().setEnabled(false).build();
+    return activeConfiguration;
+  }
+
+  private static SnapshotProfilingConfiguration withDisabledProfiler(
+      SnapshotProfilingConfiguration configuration) {
+    return configuration.toBuilder().setEnabled(false).build();
   }
 
   @VisibleForTesting
@@ -167,8 +170,7 @@ public class SnapshotProfilingSupervisor {
 
   @VisibleForTesting
   boolean isRunning() {
-    SnapshotProfilingConfiguration configuration = activeConfiguration;
-    return configuration != null && configuration.isEnabled();
+    return activeConfiguration.isEnabled();
   }
 
   private void handleCommand(ProfilingCommand command) {
@@ -198,9 +200,9 @@ public class SnapshotProfilingSupervisor {
     }
 
     SnapshotProfilingConfiguration configuration = configurationSupplier.get();
-    configuration.log();
 
     try {
+      configuration.log();
       // Create new components
       stagingAreaSupplier.configure(createStagingArea(configuration));
       stackTraceSamplerSupplier.configure(createStackTraceSampler(configuration));
@@ -215,7 +217,11 @@ public class SnapshotProfilingSupervisor {
           .setSnapshotSelectionProbability(configuration.getSnapshotSelectionProbability());
       profilingSpanProcessorSupplier.get().setEnabled(true);
     } catch (RuntimeException e) {
-      stopRuntimeComponents();
+      try {
+        stopRuntimeComponents();
+      } finally {
+        updateActiveConfiguration(withDisabledProfiler(configuration), notifyListeners);
+      }
       throw e;
     }
 
@@ -235,8 +241,7 @@ public class SnapshotProfilingSupervisor {
     }
 
     stopRuntimeComponents();
-    updateActiveConfiguration(
-        getEffectiveConfiguration().toBuilder().setEnabled(false).build(), notifyListeners);
+    updateActiveConfiguration(withDisabledProfiler(configurationSupplier.get()), notifyListeners);
     logger.info("Snapshot profiling is deactivated.");
   }
 

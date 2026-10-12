@@ -29,7 +29,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.function.Consumer;
+import java.util.function.BiConsumer;
 import java.util.logging.Logger;
 import javax.annotation.Nullable;
 import org.openjdk.jmc.common.item.IItem;
@@ -44,7 +44,7 @@ import org.openjdk.jmc.flightrecorder.internal.parser.LoaderContext;
  * Responsible for processing a single jfr recording snapshot. It streams events from the recoding
  * into the processing chain.
  */
-class JfrRecordingHandler implements Consumer<InputStream> {
+class JfrRecordingHandler implements BiConsumer<InputStream, Instant> {
 
   private static final Logger logger = Logger.getLogger(JfrRecordingHandler.class.getName());
   // set of accepted event types
@@ -63,7 +63,7 @@ class JfrRecordingHandler implements Consumer<InputStream> {
   }
 
   @Override
-  public void accept(InputStream inputStream) {
+  public void accept(InputStream inputStream, Instant startTime) {
     Instant start = Instant.now();
     try {
       IChunkSupplier chunkSupplier = FlightRecordingLoader.createChunkSupplier(inputStream);
@@ -82,7 +82,8 @@ class JfrRecordingHandler implements Consumer<InputStream> {
         for (EventArray eventArray : context.buildEventArrays().getArrays()) {
           IType<IItem> type = eventArray.getType();
           if (eventTypes.contains(type.getIdentifier())) {
-            Arrays.asList(eventArray.getEvents()).forEach(eventProcessingChain::accept);
+            Arrays.asList(eventArray.getEvents())
+                .forEach(item -> eventProcessingChain.accept(item, startTime));
           }
         }
 

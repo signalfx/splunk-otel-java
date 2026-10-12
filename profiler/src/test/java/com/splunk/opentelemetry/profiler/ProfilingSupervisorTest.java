@@ -51,7 +51,7 @@ class ProfilingSupervisorTest {
       "otel.instrumentation.jvm-metrics-splunk.enabled";
 
   @Mock JFR jfr;
-  @Mock PeriodicRecordingFlusherFactory recordingFlusherFactory;
+  @Mock ProfilerFactory recordingFlusherFactory;
   @Mock PeriodicRecordingFlusher recordingFlusher;
   @Mock OtelAllocatedMemoryMetrics allocatedMemoryMetrics;
   @Mock OtelGcMemoryMetrics gcMemoryMetrics;
@@ -74,7 +74,7 @@ class ProfilingSupervisorTest {
     configSupplier.configure(config);
     lenient()
         .when(
-            recordingFlusherFactory.create(
+            recordingFlusherFactory.createJfrProfiler(
                 any(ProfilerConfiguration.class), any(Resource.class), any(JFR.class)))
         .thenReturn(recordingFlusher);
   }
@@ -98,7 +98,7 @@ class ProfilingSupervisorTest {
     // then
     await().untilAsserted(() -> verify(jfr).isAvailable());
     verify(jfr, never()).setStackDepth(anyInt());
-    verify(recordingFlusherFactory, never()).create(any(), any(), any());
+    verify(recordingFlusherFactory, never()).createJfrProfiler(any(), any(), any());
   }
 
   @Test
@@ -123,7 +123,9 @@ class ProfilingSupervisorTest {
 
     // when
     supervisor.requestStartProfiling();
-    await().untilAsserted(() -> verify(recordingFlusherFactory).create(any(), any(), any()));
+    await()
+        .untilAsserted(
+            () -> verify(recordingFlusherFactory).createJfrProfiler(any(), any(), any()));
     supervisor.requestStartProfiling();
 
     // then
@@ -246,7 +248,7 @@ class ProfilingSupervisorTest {
     verify(jfr, never()).isAvailable();
     verify(recordingFlusher, never()).start();
     verify(recordingFlusher, never()).stop();
-    verify(recordingFlusherFactory, never()).create(any(), any(), any());
+    verify(recordingFlusherFactory, never()).createJfrProfiler(any(), any(), any());
   }
 
   @Test
@@ -267,7 +269,7 @@ class ProfilingSupervisorTest {
               verify(allocatedMemoryMetrics).install();
               verify(gcMemoryMetrics).install();
             });
-    verify(recordingFlusherFactory, never()).create(any(), any(), any());
+    verify(recordingFlusherFactory, never()).createJfrProfiler(any(), any(), any());
   }
 
   @Test
@@ -288,7 +290,7 @@ class ProfilingSupervisorTest {
               verify(allocatedMemoryMetrics).uninstall();
               verify(gcMemoryMetrics).uninstall();
             });
-    verify(recordingFlusherFactory, never()).create(any(), any(), any());
+    verify(recordingFlusherFactory, never()).createJfrProfiler(any(), any(), any());
   }
 
   @Test
@@ -311,7 +313,7 @@ class ProfilingSupervisorTest {
             });
     verify(allocatedMemoryMetrics, never()).install();
     verify(gcMemoryMetrics, never()).install();
-    verify(recordingFlusherFactory, never()).create(any(), any(), any());
+    verify(recordingFlusherFactory, never()).createJfrProfiler(any(), any(), any());
   }
 
   private AutoConfiguredOpenTelemetrySdk createSdk(Map<String, String> properties) {
@@ -346,10 +348,10 @@ class ProfilingSupervisorTest {
   }
 
   private void verifyRecordingFlusherCreated(int count) {
-    verify(recordingFlusherFactory, times(count)).create(any(), any(), any());
+    verify(recordingFlusherFactory, times(count)).createJfrProfiler(any(), any(), any());
   }
 
   private void verifyRecordingFlusherCreatedWith(ProfilerConfiguration config) {
-    verify(recordingFlusherFactory).create(same(config), any(Resource.class), same(jfr));
+    verify(recordingFlusherFactory).createJfrProfiler(same(config), any(Resource.class), same(jfr));
   }
 }

@@ -26,7 +26,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
+import java.util.function.BiConsumer;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -110,7 +110,7 @@ class PeriodicRecordingFlusherTest {
               .settings(Collections.emptyMap())
               .maxAgeDuration(Duration.ofSeconds(10))
               .namingConvention(namingConvention)
-              .onNewRecording(mock(Consumer.class)));
+              .onNewRecording(mock(BiConsumer.class)));
       this.flushLatch = flushLatch;
       started = false;
     }

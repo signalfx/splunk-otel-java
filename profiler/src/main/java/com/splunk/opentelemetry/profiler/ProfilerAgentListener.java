@@ -18,30 +18,29 @@ package com.splunk.opentelemetry.profiler;
 
 import com.google.auto.service.AutoService;
 import com.google.common.annotations.VisibleForTesting;
+import com.splunk.opentelemetry.profiler.ProfilerConfiguration.CpuProfilingMode;
 import io.opentelemetry.javaagent.extension.AgentListener;
 import io.opentelemetry.javaagent.tooling.BeforeAgentListener;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 import java.util.logging.Logger;
 
 @AutoService({AgentListener.class, BeforeAgentListener.class})
-public class JfrAgentListener implements AgentListener, BeforeAgentListener {
-  private static final Logger logger = Logger.getLogger(JfrAgentListener.class.getName());
+public class ProfilerAgentListener implements AgentListener, BeforeAgentListener {
+  private static final Logger logger = Logger.getLogger(ProfilerAgentListener.class.getName());
   private final JFR jfr;
 
-  public JfrAgentListener() {
+  public ProfilerAgentListener() {
     this(JFR.getInstance());
   }
 
   @VisibleForTesting
-  JfrAgentListener(JFR jfr) {
+  ProfilerAgentListener(JFR jfr) {
     this.jfr = jfr;
   }
 
   @Override
   public void beforeAgent(AutoConfiguredOpenTelemetrySdk sdk) {
-    if (jfr.isAvailable()) {
-      ProfilingSupervisor.setupJfrContextStorage();
-    }
+    ProfilingSupervisor.setupJfrContextStorage();
   }
 
   @Override
@@ -50,7 +49,16 @@ public class JfrAgentListener implements AgentListener, BeforeAgentListener {
     ProfilingSupervisor supervisor = makeProfilingSupervisor(sdk);
 
     ProfilerConfiguration config = ProfilerConfiguration.SUPPLIER.get();
-    if (notClearForTakeoff(config)) {
+    if (!config.isEnabled()) {
+      logger.fine("Profiler is not enabled.");
+      return;
+    }
+
+    CpuProfilingMode cpuProfilingMode = config.getCpuProfilingMode();
+    if ((cpuProfilingMode == CpuProfilingMode.JFR || config.getMemoryEnabled())
+        && !jfr.isAvailable()) {
+      logger.warning(
+          "JDK Flight Recorder (JFR) is not available in this JVM. Profiling is disabled.");
       return;
     }
 
@@ -66,19 +74,5 @@ public class JfrAgentListener implements AgentListener, BeforeAgentListener {
   // Exists for testing
   ProfilingSupervisor makeProfilingSupervisor(AutoConfiguredOpenTelemetrySdk sdk) {
     return ProfilingSupervisor.createAndStart(sdk);
-  }
-
-  private boolean notClearForTakeoff(ProfilerConfiguration config) {
-    if (!config.isEnabled()) {
-      logger.fine("Profiler is not enabled.");
-      return true;
-    }
-    if (!jfr.isAvailable()) {
-      logger.warning(
-          "JDK Flight Recorder (JFR) is not available in this JVM. Profiling is disabled.");
-      return true;
-    }
-
-    return false;
   }
 }

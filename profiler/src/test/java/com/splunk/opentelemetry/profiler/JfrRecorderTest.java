@@ -26,9 +26,10 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.Duration;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.Consumer;
+import java.util.function.BiConsumer;
 import jdk.jfr.Recording;
 import jdk.jfr.RecordingState;
 import org.junit.jupiter.api.BeforeEach;
@@ -44,7 +45,7 @@ class JfrRecorderTest {
   Duration maxAge = Duration.ofMinutes(13);
   Map<String, String> settings;
   @Mock Recording recording;
-  @Mock Consumer<InputStream> onNewRecording;
+  @Mock BiConsumer<InputStream, Instant> onNewRecording;
   @Mock RecordingFileNamingConvention namingConvention;
 
   @BeforeEach
@@ -58,7 +59,7 @@ class JfrRecorderTest {
     JfrRecorder jfrRecorder = buildJfrRecorder(mock(JFR.class));
     jfrRecorder.start();
     verify(recording).setSettings(settings);
-    verify(recording).setToDisk(false);
+    verify(recording).setToDisk(true);
     verify(recording).setName(RECORDING_NAME);
     verify(recording).setDuration(null);
     verify(recording).setMaxAge(maxAge);
@@ -81,7 +82,7 @@ class JfrRecorderTest {
     JFR jfr = mock(JFR.class);
     Recording snap = mock(Recording.class);
     ArgumentCaptor<InputStream> inputStreamCaptor = ArgumentCaptor.forClass(InputStream.class);
-    doNothing().when(onNewRecording).accept(inputStreamCaptor.capture());
+    doNothing().when(onNewRecording).accept(inputStreamCaptor.capture(), any(Instant.class));
     when(snap.getStream(any(), any())).thenReturn(new ByteArrayInputStream(new byte[0]));
     when(jfr.takeSnapshot()).thenReturn(snap);
     JfrRecorder jfrRecorder = buildJfrRecorder(jfr);

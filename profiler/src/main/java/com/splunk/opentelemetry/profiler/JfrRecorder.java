@@ -29,7 +29,7 @@ import java.nio.file.Path;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Map;
-import java.util.function.Consumer;
+import java.util.function.BiConsumer;
 import java.util.logging.Logger;
 import jdk.jfr.Recording;
 import jdk.jfr.RecordingState;
@@ -44,7 +44,7 @@ class JfrRecorder {
 
   private final Duration maxAgeDuration;
   private final JFR jfr;
-  private final Consumer<InputStream> onNewRecording;
+  private final BiConsumer<InputStream, Instant> onNewRecording;
   private final RecordingFileNamingConvention namingConvention;
   private final boolean keepRecordingFiles;
   private volatile Recording recording;
@@ -66,7 +66,7 @@ class JfrRecorder {
     logger.fine("Profiler is starting a JFR recording");
     recording = newRecording();
     recording.setSettings(settings);
-    recording.setToDisk(false);
+    recording.setToDisk(true);
     recording.setName(RECORDING_NAME);
     recording.setDuration(null); // record forever
     recording.setMaxAge(maxAgeDuration);
@@ -76,6 +76,7 @@ class JfrRecorder {
   public void stop() {
     if (isStarted()) {
       recording.stop();
+      recording.close();
     }
     recording = null;
   }
@@ -105,11 +106,11 @@ class JfrRecorder {
           }
         }
         try (InputStream in = Files.newInputStream(path)) {
-          onNewRecording.accept(in);
+          onNewRecording.accept(in, start);
         }
       } else {
         try (InputStream in = snap.getStream(start, snapshotEnd)) {
-          onNewRecording.accept(in);
+          onNewRecording.accept(in, start);
         }
       }
     } catch (IOException e) {
@@ -138,7 +139,7 @@ class JfrRecorder {
     private Map<String, String> settings;
     private Duration maxAgeDuration;
     private JFR jfr = JFR.getInstance();
-    private Consumer<InputStream> onNewRecording;
+    private BiConsumer<InputStream, Instant> onNewRecording;
     private boolean keepRecordingFiles;
 
     public Builder settings(Map<String, String> settings) {
@@ -156,7 +157,7 @@ class JfrRecorder {
       return this;
     }
 
-    public Builder onNewRecording(Consumer<InputStream> onNewRecording) {
+    public Builder onNewRecording(BiConsumer<InputStream, Instant> onNewRecording) {
       this.onNewRecording = onNewRecording;
       return this;
     }

@@ -167,11 +167,11 @@ public abstract class SnapshotProfilerSmokeTest {
                 "-Dotel.resource.attributes=service.name=smoketest,deployment.environment=smokeytown",
                 "-Dotel.javaagent.debug=true",
                 "-Dotel.logs.exporter=none",
+                "-Dotel.metrics.exporter=none",
+                "-Dotel.traces.exporter=none",
                 "-Dsplunk.snapshot.profiler.enabled=true",
                 "-Dsplunk.snapshot.selection.probability=0.1",
-                "-Dsplunk.profiler.logs-endpoint=http://collector:4318/v1/logs",
-                // uncomment to enable exporting traces
-                // "-Dotel.exporter.otlp.endpoint=http://collector:4318",
+                "-Dsplunk.profiler.logs-endpoint=http://collector:4319/v1/logs",
                 "-jar",
                 "/app/spring-petclinic-rest.jar"));
 

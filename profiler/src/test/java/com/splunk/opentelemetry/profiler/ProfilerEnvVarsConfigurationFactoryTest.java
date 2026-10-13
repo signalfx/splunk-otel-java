@@ -18,6 +18,7 @@ package com.splunk.opentelemetry.profiler;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
+import com.splunk.opentelemetry.profiler.ProfilerConfiguration.CpuProfilingMode;
 import io.opentelemetry.common.ComponentLoader;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import io.opentelemetry.sdk.autoconfigure.spi.internal.DefaultConfigProperties;
@@ -56,7 +57,8 @@ class ProfilerEnvVarsConfigurationFactoryTest {
                 Map.entry("splunk.profiler.include.jvm.internals", "true"),
                 Map.entry("splunk.profiler.tracing.stacks.only", "true"),
                 Map.entry("splunk.profiler.locks.enabled", "true"),
-                Map.entry("splunk.profiler.max.stack.depth", "73")));
+                Map.entry("splunk.profiler.max.stack.depth", "73"),
+                Map.entry("splunk.profiler.cpu.mode", "java")));
 
     ProfilerConfiguration profilerConfiguration =
         ProfilerEnvVarsConfigurationFactory.create(configProperties);
@@ -79,6 +81,7 @@ class ProfilerEnvVarsConfigurationFactoryTest {
     assertThat(profilerConfiguration.getProfilerDirectory()).isEqualTo("/tmp/prof");
     assertThat(profilerConfiguration.getRecordingDuration()).isEqualTo(Duration.ofMillis(12345));
     assertThat(profilerConfiguration.getConfigProperties()).isSameAs(configProperties);
+    assertThat(profilerConfiguration.getCpuProfilingMode()).isEqualTo(CpuProfilingMode.JAVA);
   }
 
   @Test
@@ -176,6 +179,14 @@ class ProfilerEnvVarsConfigurationFactoryTest {
         ProfilerEnvVarsConfigurationFactory.create(config(map));
 
     assertThat(profilerConfiguration.getOtlpProtocol()).isEqualTo("test2");
+  }
+
+  @Test
+  void getCpuProfilingModeDefault() {
+    ProfilerConfiguration profilerConfiguration =
+        ProfilerEnvVarsConfigurationFactory.create(config(Collections.emptyMap()));
+
+    assertThat(profilerConfiguration.getCpuProfilingMode()).isEqualTo(CpuProfilingMode.JFR);
   }
 
   private static ConfigProperties config(Map<String, String> map) {

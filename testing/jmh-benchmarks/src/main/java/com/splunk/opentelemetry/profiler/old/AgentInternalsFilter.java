@@ -28,7 +28,9 @@ public class AgentInternalsFilter implements Predicate<String> {
         "\"JFR Recorder Thread\"",
         "\"JFR Periodic Tasks\"",
         "\"JFR Recording Scheduler\"",
-        "\"JFR Recording Flusher\""
+        "\"JFR Recording Flusher\"",
+        "\"Splunk Profiler\"",
+        "\"Splunk CPU Profiler\""
       };
 
   @Override

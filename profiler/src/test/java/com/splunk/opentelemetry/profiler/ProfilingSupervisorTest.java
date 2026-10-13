@@ -19,6 +19,7 @@ package com.splunk.opentelemetry.profiler;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.doAnswer;
@@ -33,6 +34,7 @@ import static org.mockito.Mockito.when;
 
 import com.splunk.opentelemetry.instrumentation.jvmmetrics.otel.OtelAllocatedMemoryMetrics;
 import com.splunk.opentelemetry.instrumentation.jvmmetrics.otel.OtelGcMemoryMetrics;
+import com.splunk.opentelemetry.profiler.ProfilerConfiguration.CpuProfilingMode;
 import com.splunk.opentelemetry.profiler.util.OptionalConfigurableSupplier;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 import io.opentelemetry.sdk.resources.Resource;
@@ -50,6 +52,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -60,8 +63,9 @@ class ProfilingSupervisorTest {
       "otel.instrumentation.jvm-metrics-splunk.enabled";
 
   @Mock JFR jfr;
-  @Mock PeriodicRecordingFlusherFactory recordingFlusherFactory;
+  @Mock ProfilerFactory recordingFlusherFactory;
   @Mock PeriodicRecordingFlusher recordingFlusher;
+  @Mock JavaProfiler javaProfiler;
   @Mock OtelAllocatedMemoryMetrics allocatedMemoryMetrics;
   @Mock OtelGcMemoryMetrics gcMemoryMetrics;
   @Mock AlwaysOnProfilerStateListener listener;
@@ -84,9 +88,16 @@ class ProfilingSupervisorTest {
     configSupplier.configure(config);
     lenient()
         .when(
-            recordingFlusherFactory.create(
+            recordingFlusherFactory.createJfrProfiler(
                 any(ProfilerConfiguration.class), any(Resource.class), any(JFR.class)))
         .thenReturn(recordingFlusher);
+    lenient()
+        .when(
+            recordingFlusherFactory.createJavaProfiler(
+                any(ProfilerConfiguration.class),
+                any(Resource.class),
+                nullable(ProfilerContextStorage.class)))
+        .thenReturn(javaProfiler);
   }
 
   @AfterEach
@@ -338,8 +349,9 @@ class ProfilingSupervisorTest {
     assertThat(supervisor.getEffectiveConfiguration()).isEqualTo(config);
   }
 
-  @Test
-  void reportsUpdatedDisabledSettingsWhenJfrRemainsUnavailable() {
+  @ParameterizedTest
+  @EnumSource(CpuProfilingMode.class)
+  void reportsUpdatedDisabledSettingsWhenJfrRemainsUnavailable(CpuProfilingMode cpuMode) {
     // given
     startSupervisor();
     supervisor.addAlwaysOnProfilerStateListener(listener);
@@ -349,6 +361,7 @@ class ProfilingSupervisorTest {
 
     ProfilerConfiguration updatedConfiguration =
         config.toBuilder()
+            .setCpuProfilingMode(cpuMode)
             .setCallStackInterval(Duration.ofMillis(50))
             .setMemoryEnabled(true)
             .build();
@@ -407,7 +420,161 @@ class ProfilingSupervisorTest {
               verify(jfr, times(4)).isAvailable();
               verifyNoInteractions(listener);
             });
-    verifyNoInteractions(recordingFlusherFactory, recordingFlusher);
+    verifyNoInteractions(recordingFlusherFactory, recordingFlusher, javaProfiler);
+  }
+
+  @ParameterizedTest
+  @ValueSource(booleans = {false, true})
+  void startsAndStopsJavaProfilerWithOptionalMemoryProfiling(boolean memoryEnabled) {
+    // given
+    ProfilerConfiguration javaConfiguration =
+        config.toBuilder()
+            .setCpuProfilingMode(CpuProfilingMode.JAVA)
+            .setMemoryEnabled(memoryEnabled)
+            .build();
+    configSupplier.configure(javaConfiguration);
+    startSupervisor();
+    if (memoryEnabled) {
+      when(jfr.isAvailable()).thenReturn(true);
+    }
+    supervisor.addAlwaysOnProfilerStateListener(listener);
+    clearInvocations(listener);
+
+    // when
+    supervisor.requestStartProfiling();
+
+    // then: Java CPU profiling needs JFR only when memory profiling is enabled
+    await().untilAsserted(() -> verify(listener).onAlwaysOnProfilerStateChanged(javaConfiguration));
+    verify(javaProfiler).start();
+    assertThat(supervisor.getEffectiveConfiguration()).isEqualTo(javaConfiguration);
+    if (memoryEnabled) {
+      verify(recordingFlusher).start();
+      verifyRecordingFlusherCreatedWith(javaConfiguration);
+    } else {
+      verifyNoInteractions(jfr, recordingFlusher);
+      verify(recordingFlusherFactory, never()).createJfrProfiler(any(), any(), any());
+    }
+
+    // when: starting an active Java profiler again
+    clearInvocations(listener);
+    supervisor.requestStartProfiling();
+
+    // then: neither component is started twice
+    await()
+        .during(Duration.ofMillis(200))
+        .untilAsserted(
+            () -> {
+              verify(javaProfiler).start();
+              verifyNoInteractions(listener);
+              if (memoryEnabled) {
+                verify(recordingFlusher).start();
+              }
+            });
+
+    // when
+    supervisor.requestStopProfiling();
+
+    // then
+    ProfilerConfiguration disabledConfiguration =
+        javaConfiguration.toBuilder().setEnabled(false).setMemoryEnabled(false).build();
+    await()
+        .untilAsserted(
+            () -> {
+              verify(listener).onAlwaysOnProfilerStateChanged(disabledConfiguration);
+              verify(javaProfiler).stop();
+              verifyNoMoreInteractions(listener);
+            });
+    if (memoryEnabled) {
+      verify(recordingFlusher).stop();
+    } else {
+      verifyNoInteractions(jfr, recordingFlusher);
+    }
+    assertThat(supervisor.getEffectiveConfiguration()).isEqualTo(disabledConfiguration);
+  }
+
+  @Test
+  void cleansUpBothProfilersAfterPartialStartupFailureAndCanRetry() {
+    // given
+    startSupervisor();
+    when(jfr.isAvailable()).thenReturn(true);
+    supervisor.addAlwaysOnProfilerStateListener(listener);
+    clearInvocations(listener);
+    ProfilerConfiguration javaConfiguration =
+        config.toBuilder()
+            .setCpuProfilingMode(CpuProfilingMode.JAVA)
+            .setMemoryEnabled(true)
+            .setCallStackInterval(Duration.ofMillis(50))
+            .build();
+    configSupplier.configure(javaConfiguration);
+    doThrow(new IllegalStateException("Cannot start Java profiler"))
+        .doNothing()
+        .when(javaProfiler)
+        .start();
+
+    // when: JFR starts but Java CPU profiling fails
+    supervisor.requestStartProfiling();
+
+    // then: both components are cleaned up and the requested settings are reported as disabled
+    ProfilerConfiguration disabledConfiguration =
+        javaConfiguration.toBuilder().setEnabled(false).setMemoryEnabled(false).build();
+    await()
+        .untilAsserted(
+            () -> {
+              verify(listener).onAlwaysOnProfilerStateChanged(disabledConfiguration);
+              verify(recordingFlusher).stop();
+              verify(javaProfiler).stop();
+              verifyNoMoreInteractions(listener);
+            });
+    assertThat(supervisor.getEffectiveConfiguration()).isEqualTo(disabledConfiguration);
+
+    // when: retry startup
+    clearInvocations(listener);
+    supervisor.requestStartProfiling();
+
+    // then
+    await().untilAsserted(() -> verify(listener).onAlwaysOnProfilerStateChanged(javaConfiguration));
+    verify(recordingFlusher, times(2)).start();
+    verify(javaProfiler, times(2)).start();
+    verifyNoMoreInteractions(listener);
+    assertThat(supervisor.getEffectiveConfiguration()).isEqualTo(javaConfiguration);
+  }
+
+  @ParameterizedTest
+  @EnumSource(CpuProfilingMode.class)
+  void switchesCpuProfilingModeOnReinitialization(CpuProfilingMode initialMode) {
+    // given
+    ProfilerConfiguration initialConfiguration =
+        config.toBuilder().setCpuProfilingMode(initialMode).build();
+    configSupplier.configure(initialConfiguration);
+    startSupervisor();
+    when(jfr.isAvailable()).thenReturn(true);
+    supervisor.addAlwaysOnProfilerStateListener(listener);
+    supervisor.requestStartProfiling();
+    await()
+        .untilAsserted(() -> verify(listener).onAlwaysOnProfilerStateChanged(initialConfiguration));
+    clearInvocations(listener);
+    CpuProfilingMode nextMode =
+        initialMode == CpuProfilingMode.JFR ? CpuProfilingMode.JAVA : CpuProfilingMode.JFR;
+    ProfilerConfiguration nextConfiguration =
+        initialConfiguration.toBuilder().setCpuProfilingMode(nextMode).build();
+    configSupplier.configure(nextConfiguration);
+
+    // when
+    supervisor.requestReinitializeProfiling();
+
+    // then: the previous component is stopped and the new mode is reported once
+    await().untilAsserted(() -> verify(listener).onAlwaysOnProfilerStateChanged(nextConfiguration));
+    verify(recordingFlusher).start();
+    verify(javaProfiler).start();
+    if (initialMode == CpuProfilingMode.JFR) {
+      verify(recordingFlusher).stop();
+      verify(javaProfiler, never()).stop();
+    } else {
+      verify(javaProfiler).stop();
+      verify(recordingFlusher, never()).stop();
+    }
+    verifyNoMoreInteractions(listener);
+    assertThat(supervisor.getEffectiveConfiguration()).isEqualTo(nextConfiguration);
   }
 
   @Test
@@ -420,7 +587,9 @@ class ProfilingSupervisorTest {
 
     // when
     supervisor.requestStartProfiling();
-    await().untilAsserted(() -> verify(recordingFlusherFactory).create(any(), any(), any()));
+    await()
+        .untilAsserted(
+            () -> verify(recordingFlusherFactory).createJfrProfiler(any(), any(), any()));
     supervisor.requestStartProfiling();
 
     // then
@@ -545,7 +714,7 @@ class ProfilingSupervisorTest {
     verify(jfr, never()).isAvailable();
     verify(recordingFlusher, never()).start();
     verify(recordingFlusher, never()).stop();
-    verify(recordingFlusherFactory, never()).create(any(), any(), any());
+    verify(recordingFlusherFactory, never()).createJfrProfiler(any(), any(), any());
   }
 
   @Test
@@ -566,7 +735,7 @@ class ProfilingSupervisorTest {
               verify(allocatedMemoryMetrics).install();
               verify(gcMemoryMetrics).install();
             });
-    verify(recordingFlusherFactory, never()).create(any(), any(), any());
+    verify(recordingFlusherFactory, never()).createJfrProfiler(any(), any(), any());
   }
 
   @Test
@@ -587,7 +756,7 @@ class ProfilingSupervisorTest {
               verify(allocatedMemoryMetrics).uninstall();
               verify(gcMemoryMetrics).uninstall();
             });
-    verify(recordingFlusherFactory, never()).create(any(), any(), any());
+    verify(recordingFlusherFactory, never()).createJfrProfiler(any(), any(), any());
   }
 
   @Test
@@ -610,7 +779,7 @@ class ProfilingSupervisorTest {
             });
     verify(allocatedMemoryMetrics, never()).install();
     verify(gcMemoryMetrics, never()).install();
-    verify(recordingFlusherFactory, never()).create(any(), any(), any());
+    verify(recordingFlusherFactory, never()).createJfrProfiler(any(), any(), any());
   }
 
   private AutoConfiguredOpenTelemetrySdk createSdk(Map<String, String> properties) {
@@ -645,10 +814,10 @@ class ProfilingSupervisorTest {
   }
 
   private void verifyRecordingFlusherCreated(int count) {
-    verify(recordingFlusherFactory, times(count)).create(any(), any(), any());
+    verify(recordingFlusherFactory, times(count)).createJfrProfiler(any(), any(), any());
   }
 
   private void verifyRecordingFlusherCreatedWith(ProfilerConfiguration config) {
-    verify(recordingFlusherFactory).create(same(config), any(Resource.class), same(jfr));
+    verify(recordingFlusherFactory).createJfrProfiler(same(config), any(Resource.class), same(jfr));
   }
 }

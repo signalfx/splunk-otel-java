@@ -167,6 +167,8 @@ public final class LogsInspector {
     String getTraceId();
 
     String getSpanId();
+
+    long getLockCount();
   }
 
   public class PprofProfilerSample implements ProfilerSample {
@@ -217,6 +219,11 @@ public final class LogsInspector {
     @Override
     public String getSpanId() {
       return getStringLabel(SPAN_ID);
+    }
+
+    @Override
+    public long getLockCount() {
+      return labels.keySet().stream().filter(label -> label.startsWith("lock.held.")).count();
     }
   }
 }

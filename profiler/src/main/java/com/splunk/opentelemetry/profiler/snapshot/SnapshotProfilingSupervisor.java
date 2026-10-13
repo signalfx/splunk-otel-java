@@ -124,8 +124,8 @@ public class SnapshotProfilingSupervisor {
   /**
    * Returns current effective configuration. If profiler is running then it is reported as enabled.
    *
-   * <p>Initially reports the requested settings with profiling disabled. Failed start attempts
-   * also report the attempted settings with profiling disabled.
+   * <p>Initially reports the requested settings with profiling disabled. Failed start attempts also
+   * report the attempted settings with profiling disabled.
    */
   public SnapshotProfilingConfiguration getEffectiveConfiguration() {
     return activeConfiguration;

@@ -294,7 +294,8 @@ class SnapshotProfilingSupervisorTest {
     }
     await()
         .untilAsserted(
-            () -> assertThat(supervisor.getEffectiveConfiguration()).isEqualTo(configuration(true)));
+            () ->
+                assertThat(supervisor.getEffectiveConfiguration()).isEqualTo(configuration(true)));
   }
 
   @Test
@@ -430,7 +431,8 @@ class SnapshotProfilingSupervisorTest {
     if (previouslyStarted) {
       requestStartProfiling();
       await()
-          .untilAsserted(() -> verify(listener).onSnapshotProfilerStateChanged(configuration(true)));
+          .untilAsserted(
+              () -> verify(listener).onSnapshotProfilerStateChanged(configuration(true)));
     }
     clearInvocations(listener);
     doThrow(new IllegalStateException("Cannot restart snapshot profiling"))

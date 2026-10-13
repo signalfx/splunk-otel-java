@@ -206,14 +206,14 @@ public class ProfilingSupervisor {
     ProfilerConfiguration.CpuProfilingMode cpuMode = configuration.getCpuProfilingMode();
     boolean jfrUsed =
         cpuMode == ProfilerConfiguration.CpuProfilingMode.JFR || configuration.getMemoryEnabled();
-    boolean startupSucceeded = false;
-    try {
-      if (jfrUsed && !jfr.isAvailable()) {
-        logger.warning(
-            "JDK Flight Recorder (JFR) is not available in this JVM. Profiling will not start.");
-        return;
-      }
+    if (jfrUsed && !jfr.isAvailable()) {
+      logger.warning(
+          "JDK Flight Recorder (JFR) is not available in this JVM. Profiling will not start.");
+      updateActiveConfiguration(withDisabledProfilers(configuration), notifyListeners);
+      return;
+    }
 
+    try {
       configuration.log();
       updateJvmMemoryMetrics();
       setJfrContextStorageEnabled(
@@ -225,18 +225,10 @@ public class ProfilingSupervisor {
       if (cpuMode == ProfilerConfiguration.CpuProfilingMode.JAVA) {
         activateJavaCpuProfiler(configuration, resource);
       }
-      startupSucceeded = true;
     } catch (RuntimeException e) {
-      try {
-        stopRuntimeComponents();
-      } catch (RuntimeException cleanupFailure) {
-        e.addSuppressed(cleanupFailure);
-      }
+      handleException(e, this::stopRuntimeComponents);
+      updateActiveConfiguration(withDisabledProfilers(configuration), notifyListeners);
       throw e;
-    } finally {
-      if (!startupSucceeded) {
-        updateActiveConfiguration(withDisabledProfilers(configuration), notifyListeners);
-      }
     }
 
     updateActiveConfiguration(configuration.toBuilder().setEnabled(true).build(), notifyListeners);
@@ -310,11 +302,7 @@ public class ProfilingSupervisor {
     try {
       recordingFlusher.start();
     } catch (RuntimeException e) {
-      try {
-        recordingFlusher.stop();
-      } catch (RuntimeException cleanupFailure) {
-        e.addSuppressed(cleanupFailure);
-      }
+      handleException(e, () -> recordingFlusher.stop());
       throw e;
     }
     this.recordingFlusher.set(recordingFlusher);
@@ -333,11 +321,7 @@ public class ProfilingSupervisor {
     try {
       javaProfiler.start();
     } catch (RuntimeException e) {
-      try {
-        javaProfiler.stop();
-      } catch (RuntimeException cleanupFailure) {
-        e.addSuppressed(cleanupFailure);
-      }
+      handleException(e, () -> javaProfiler.stop());
       throw e;
     }
     this.javaProfiler.set(javaProfiler);
@@ -372,6 +356,14 @@ public class ProfilingSupervisor {
 
     return AutoConfigureUtil.getConfig(sdk)
         .getBoolean(JVM_METRICS_ENABLED_CONFIG_KEY, config.getMemoryEnabled());
+  }
+
+  private static void handleException(Exception cause, Runnable exceptionHandler) {
+    try {
+      exceptionHandler.run();
+    } catch (Exception e) {
+      cause.addSuppressed(e);
+    }
   }
 
   static void setupJfrContextStorage() {

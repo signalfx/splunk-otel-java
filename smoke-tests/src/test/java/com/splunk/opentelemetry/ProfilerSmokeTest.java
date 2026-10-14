@@ -200,6 +200,10 @@ public abstract class ProfilerSmokeTest {
       assertThat(logs.getCpuSamples()).allMatch(sample -> sample.getLockCount() == 0);
     }
 
+    await()
+        .atMost(30, TimeUnit.SECONDS)
+        .pollInterval(1, TimeUnit.SECONDS)
+        .untilAsserted(() -> assertThat(logs.getMemorySamples()).isNotEmpty());
     assertThat(logs.getMemorySamples())
         .isNotEmpty()
         .allMatch(sample -> sample.getAllocated() > 0)

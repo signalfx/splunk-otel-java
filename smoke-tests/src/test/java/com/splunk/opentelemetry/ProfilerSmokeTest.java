@@ -174,7 +174,11 @@ public abstract class ProfilerSmokeTest {
     await()
         .atMost(2, TimeUnit.MINUTES)
         .pollInterval(1, TimeUnit.SECONDS)
-        .untilAsserted(() -> assertThat(countThreadDumpsInFakeBackend()).isGreaterThan(0));
+        .untilAsserted(
+            () -> {
+              assertThat(countThreadDumpsInFakeBackend()).isGreaterThan(0);
+              assertThat(countMemorySamplesInFakeBackend()).isGreaterThan(0);
+            });
 
     LogsInspector logs = telemetryRetriever.waitForLogs();
 
@@ -241,6 +245,10 @@ public abstract class ProfilerSmokeTest {
 
   private long countThreadDumpsInFakeBackend() throws IOException, InterruptedException {
     return telemetryRetriever.waitForLogs().getCpuSamples().size();
+  }
+
+  private long countMemorySamplesInFakeBackend() throws IOException, InterruptedException {
+    return telemetryRetriever.waitForLogs().getMemorySamples().size();
   }
 
   private boolean contextEventsHaveStackTraces() throws Exception {

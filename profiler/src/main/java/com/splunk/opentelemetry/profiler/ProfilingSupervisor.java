@@ -29,7 +29,10 @@ import io.opentelemetry.context.ContextStorage;
 import io.opentelemetry.sdk.autoconfigure.AutoConfigureUtil;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 import io.opentelemetry.sdk.resources.Resource;
+import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -54,10 +57,11 @@ public class ProfilingSupervisor {
   private final ProfilerFactory profilerFactory;
   private final OtelAllocatedMemoryMetrics allocatedMemoryMetrics;
   private final OtelGcMemoryMetrics gcMemoryMetrics;
-  private final AtomicBoolean started = new AtomicBoolean(false);
+  private final List<AlwaysOnProfilerStateListener> listeners = new CopyOnWriteArrayList<>();
   private final AtomicReference<PeriodicRecordingFlusher> recordingFlusher =
       new AtomicReference<>();
   private final AtomicReference<JavaProfiler> javaProfiler = new AtomicReference<>();
+  private volatile ProfilerConfiguration activeConfiguration;
   private static final AtomicReference<ProfilerContextStorage> profilerContextStorage =
       new AtomicReference<>();
   private static final AtomicBoolean contextStorageSetup = new AtomicBoolean();
@@ -76,6 +80,7 @@ public class ProfilingSupervisor {
     this.profilerFactory = profilerFactory;
     this.allocatedMemoryMetrics = allocatedMemoryMetrics;
     this.gcMemoryMetrics = gcMemoryMetrics;
+    this.activeConfiguration = withDisabledProfilers(configSupplier.get());
   }
 
   static ProfilingSupervisor createAndStart(AutoConfiguredOpenTelemetrySdk sdk) {
@@ -96,6 +101,37 @@ public class ProfilingSupervisor {
     supervisor.updateJvmMemoryMetrics();
 
     return supervisor;
+  }
+
+  /**
+   * Registers a listener and immediately reports the current effective configuration to it.
+   *
+   * <p>Registration waits for an ongoing reinitialization to finish.
+   */
+  public synchronized void addAlwaysOnProfilerStateListener(
+      AlwaysOnProfilerStateListener listener) {
+    listeners.add(listener);
+    // Send current state immediately to the newly added listener.
+    listener.onAlwaysOnProfilerStateChanged(getEffectiveConfiguration());
+  }
+
+  public void removeAlwaysOnProfilerStateListener(AlwaysOnProfilerStateListener listener) {
+    listeners.remove(listener);
+  }
+
+  /**
+   * Returns current effective configuration. If profiler is running then it is reported as enabled.
+   * If profiler is not running then both, CPU and memory profilers are reported as disabled.
+   *
+   * <p>Initially reports the requested settings with CPU and memory profiling disabled. Failed
+   * start attempts also report the attempted settings with CPU and memory profiling disabled.
+   */
+  public ProfilerConfiguration getEffectiveConfiguration() {
+    return activeConfiguration;
+  }
+
+  private static ProfilerConfiguration withDisabledProfilers(ProfilerConfiguration configuration) {
+    return configuration.toBuilder().setEnabled(false).setMemoryEnabled(false).build();
   }
 
   @VisibleForTesting
@@ -133,10 +169,10 @@ public class ProfilingSupervisor {
   private void handleCommand(ProfilingCommand command) {
     switch (command) {
       case START:
-        tryStart();
+        tryStart(true);
         break;
       case STOP:
-        tryStop();
+        tryStop(true);
         break;
       case REINITIALIZE:
         tryReinitialize();
@@ -145,76 +181,131 @@ public class ProfilingSupervisor {
   }
 
   private void setJfrContextStorageEnabled(
-      boolean enabled, boolean emitJrfContextEvents, boolean trackActiveContext) {
+      boolean enabled, boolean emitJfrContextEvents, boolean trackActiveContext) {
     ProfilerContextStorage contextStorage = profilerContextStorage.get();
     if (contextStorage != null) {
       contextStorage.setEnabled(enabled);
-      contextStorage.setEmitJfrEvents(emitJrfContextEvents);
+      contextStorage.setEmitJfrEvents(emitJfrContextEvents);
       contextStorage.setTrackActiveContext(trackActiveContext);
     }
   }
 
   /**
-   * Try and start the profiler. This does not check configuration, just responds to a command
-   * request.
+   * Starts an inactive profiler with the requested settings. JFR must be available when JFR CPU or
+   * memory profiling is requested. The start command overrides the supplied enabled flag.
+   *
+   * @param notifyListeners whether to notify listeners if the effective configuration changes
    */
-  private void tryStart() {
-    if (started.get()) {
+  private void tryStart(boolean notifyListeners) {
+    if (activeConfiguration.isEnabled()) {
       logger.fine("Profiler is already running, not starting again.");
       return;
     }
 
-    ProfilerConfiguration config = configSupplier.get();
-    ProfilerConfiguration.CpuProfilingMode cpuProfilingMode = config.getCpuProfilingMode();
+    ProfilerConfiguration configuration = configSupplier.get();
+    ProfilerConfiguration.CpuProfilingMode cpuMode = configuration.getCpuProfilingMode();
     boolean jfrUsed =
-        cpuProfilingMode == ProfilerConfiguration.CpuProfilingMode.JFR || config.getMemoryEnabled();
+        cpuMode == ProfilerConfiguration.CpuProfilingMode.JFR || configuration.getMemoryEnabled();
     if (jfrUsed && !jfr.isAvailable()) {
       logger.warning(
           "JDK Flight Recorder (JFR) is not available in this JVM. Profiling will not start.");
+      updateActiveConfiguration(withDisabledProfilers(configuration), notifyListeners);
       return;
     }
 
-    config.log();
-    updateJvmMemoryMetrics();
-    setJfrContextStorageEnabled(
-        true, jfrUsed, cpuProfilingMode == ProfilerConfiguration.CpuProfilingMode.JAVA);
-    if (jfrUsed) {
-      activateJfrRecording(getResource(sdk));
+    try {
+      configuration.log();
+      updateJvmMemoryMetrics();
+      setJfrContextStorageEnabled(
+          true, jfrUsed, cpuMode == ProfilerConfiguration.CpuProfilingMode.JAVA);
+      Resource resource = getResource(sdk);
+      if (jfrUsed) {
+        activateJfrRecording(configuration, resource);
+      }
+      if (cpuMode == ProfilerConfiguration.CpuProfilingMode.JAVA) {
+        activateJavaCpuProfiler(configuration, resource);
+      }
+    } catch (RuntimeException e) {
+      handleException(e, this::stopRuntimeComponents);
+      updateActiveConfiguration(withDisabledProfilers(configuration), notifyListeners);
+      throw e;
     }
-    if (cpuProfilingMode == ProfilerConfiguration.CpuProfilingMode.JAVA) {
-      activateJavaCpuProfiler(getResource(sdk));
-    }
-    started.set(true);
+
+    updateActiveConfiguration(configuration.toBuilder().setEnabled(true).build(), notifyListeners);
     logger.info("Profiler is active.");
   }
 
-  private void tryStop() {
-    if (!started.get()) {
+  /**
+   * Stops both profiler components and publishes the requested settings with profiling disabled.
+   */
+  private void tryStop(boolean notifyListeners) {
+    if (!activeConfiguration.isEnabled()) {
       logger.fine("Profiler is not running, not stopping again.");
       return;
     }
-    setJfrContextStorageEnabled(false, false, false);
-    deactivateJfrRecording();
-    deactivateJavaCpuProfiler();
-    started.set(false);
+    stopRuntimeComponents();
+    updateActiveConfiguration(withDisabledProfilers(configSupplier.get()), notifyListeners);
     logger.info("Profiler is deactivated.");
   }
 
-  private void tryReinitialize() {
-    updateJvmMemoryMetrics();
-    tryStop();
-    // Start the profiler with current settings if it is enabled. New settings will be applied.
-    if (configSupplier.get().isEnabled()) {
-      tryStart();
+  private void stopRuntimeComponents() {
+    setJfrContextStorageEnabled(false, false, false);
+    try {
+      deactivateJavaCpuProfiler();
+    } finally {
+      deactivateJfrRecording();
     }
   }
 
-  private void activateJfrRecording(Resource resource) {
-    PeriodicRecordingFlusher recordingFlusher =
-        profilerFactory.createJfrProfiler(configSupplier.get(), resource, jfr);
-    if (this.recordingFlusher.compareAndSet(null, recordingFlusher)) {
-      recordingFlusher.start();
+  /**
+   * Stops profiling and starts it with the requested settings if profiling is enabled.
+   *
+   * <p>Notifies listeners at most once after reinitialization finishes, if the final effective
+   * configuration changed, including when the restart fails.
+   */
+  private synchronized void tryReinitialize() {
+    ProfilerConfiguration previousConfiguration = activeConfiguration;
+    try {
+      updateJvmMemoryMetrics();
+      tryStop(false);
+      // Start the profiler with current settings if it is enabled. New settings will be applied.
+      if (configSupplier.get().isEnabled()) {
+        tryStart(false);
+      }
+    } finally {
+      // Report only the final state, including after a failed restart.
+      if (!Objects.equals(activeConfiguration, previousConfiguration)) {
+        notifyStateChanged();
+      }
     }
+  }
+
+  private synchronized void updateActiveConfiguration(
+      ProfilerConfiguration effectiveConfiguration, boolean notifyListeners) {
+    if (effectiveConfiguration.equals(activeConfiguration)) {
+      return;
+    }
+    activeConfiguration = effectiveConfiguration;
+    if (notifyListeners) {
+      notifyStateChanged();
+    }
+  }
+
+  private void notifyStateChanged() {
+    ProfilerConfiguration effectiveConfiguration = getEffectiveConfiguration();
+    listeners.forEach(listener -> listener.onAlwaysOnProfilerStateChanged(effectiveConfiguration));
+  }
+
+  private void activateJfrRecording(ProfilerConfiguration configuration, Resource resource) {
+    PeriodicRecordingFlusher recordingFlusher =
+        profilerFactory.createJfrProfiler(configuration, resource, jfr);
+    try {
+      recordingFlusher.start();
+    } catch (RuntimeException e) {
+      handleException(e, () -> recordingFlusher.stop());
+      throw e;
+    }
+    this.recordingFlusher.set(recordingFlusher);
   }
 
   private void deactivateJfrRecording() {
@@ -224,13 +315,16 @@ public class ProfilingSupervisor {
     }
   }
 
-  private void activateJavaCpuProfiler(Resource resource) {
+  private void activateJavaCpuProfiler(ProfilerConfiguration configuration, Resource resource) {
     JavaProfiler javaProfiler =
-        profilerFactory.createJavaProfiler(
-            configSupplier.get(), resource, profilerContextStorage.get());
-    if (this.javaProfiler.compareAndSet(null, javaProfiler)) {
+        profilerFactory.createJavaProfiler(configuration, resource, profilerContextStorage.get());
+    try {
       javaProfiler.start();
+    } catch (RuntimeException e) {
+      handleException(e, () -> javaProfiler.stop());
+      throw e;
     }
+    this.javaProfiler.set(javaProfiler);
   }
 
   private void deactivateJavaCpuProfiler() {
@@ -262,6 +356,14 @@ public class ProfilingSupervisor {
 
     return AutoConfigureUtil.getConfig(sdk)
         .getBoolean(JVM_METRICS_ENABLED_CONFIG_KEY, config.getMemoryEnabled());
+  }
+
+  private static void handleException(Exception cause, Runnable exceptionHandler) {
+    try {
+      exceptionHandler.run();
+    } catch (Exception e) {
+      cause.addSuppressed(e);
+    }
   }
 
   static void setupJfrContextStorage() {

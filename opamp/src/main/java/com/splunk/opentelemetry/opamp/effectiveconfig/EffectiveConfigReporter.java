@@ -20,6 +20,10 @@ import static io.opentelemetry.sdk.autoconfigure.AutoConfigureUtil.getConfig;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.splunk.opentelemetry.profiler.AlwaysOnProfilerStateListener;
+import com.splunk.opentelemetry.profiler.ProfilerConfiguration;
+import com.splunk.opentelemetry.profiler.snapshot.SnapshotProfilerStateListener;
+import com.splunk.opentelemetry.profiler.snapshot.SnapshotProfilingConfiguration;
 import io.opentelemetry.sdk.autoconfigure.AutoConfigureUtil;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 import java.util.HashMap;
@@ -28,14 +32,19 @@ import okio.ByteString;
 import opamp.proto.AgentConfigFile;
 import opamp.proto.AgentConfigMap;
 
-public class EffectiveConfigReporter {
+public class EffectiveConfigReporter
+    implements AlwaysOnProfilerStateListener, SnapshotProfilerStateListener {
   private final UpdatableEffectiveConfigState effectiveConfigState;
-  private final EffectiveConfigFactory effectiveConfigFactory;
+  private final EffectiveConfigFileFactory effectiveConfigFactory;
+  private ProfilerConfiguration profilerConfiguration =
+      ProfilerConfiguration.defaultConfiguration();
+  private SnapshotProfilingConfiguration snapshotConfiguration =
+      SnapshotProfilingConfiguration.defaultConfiguration();
   private String lastReportedConfigContent;
 
   @VisibleForTesting
   EffectiveConfigReporter(
-      EffectiveConfigFactory effectiveConfigFactory,
+      EffectiveConfigFileFactory effectiveConfigFactory,
       UpdatableEffectiveConfigState effectiveConfigState) {
     this.effectiveConfigFactory = effectiveConfigFactory;
     this.effectiveConfigState = effectiveConfigState;
@@ -46,9 +55,25 @@ public class EffectiveConfigReporter {
     return new EffectiveConfigReporter(createEffectiveConfigFactory(sdk), effectiveConfigState);
   }
 
-  public boolean reportEffectiveConfigIfChanged() {
+  @Override
+  public synchronized void onAlwaysOnProfilerStateChanged(
+      ProfilerConfiguration effectiveConfiguration) {
+    profilerConfiguration = effectiveConfiguration;
+    reportEffectiveConfigIfChanged();
+  }
+
+  @Override
+  public synchronized void onSnapshotProfilerStateChanged(
+      SnapshotProfilingConfiguration effectiveConfiguration) {
+    snapshotConfiguration = effectiveConfiguration;
+    reportEffectiveConfigIfChanged();
+  }
+
+  public synchronized boolean reportEffectiveConfigIfChanged() {
     // Detect if effectiveConfig changed and needs to be reported
-    String configContent = effectiveConfigFactory.createEffectiveConfigContent();
+    String configContent =
+        effectiveConfigFactory.createEffectiveConfigContent(
+            profilerConfiguration, snapshotConfiguration);
     if (configContent.equals(lastReportedConfigContent)) {
       return false;
     }
@@ -65,7 +90,7 @@ public class EffectiveConfigReporter {
     return true;
   }
 
-  private static EffectiveConfigFactory createEffectiveConfigFactory(
+  private static EffectiveConfigFileFactory createEffectiveConfigFactory(
       AutoConfiguredOpenTelemetrySdk sdk) {
     if (AutoConfigureUtil.isDeclarativeConfig(sdk)) {
       return new DeclarativeEffectiveConfigFileFactory();

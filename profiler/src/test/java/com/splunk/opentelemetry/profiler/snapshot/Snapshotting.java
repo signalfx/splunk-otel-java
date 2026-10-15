@@ -83,13 +83,13 @@ class Snapshotting {
   }
 
   static void resetProfiling() {
-    SnapshotProfilingConfiguration.SUPPLIER.reset();
-
     if (SnapshotProfilingSupervisor.SUPPLIER.isConfigured()) {
       SnapshotProfilingSupervisor.SUPPLIER.get().requestStopProfiling();
       await().until(() -> !SnapshotProfilingSupervisor.SUPPLIER.get().isRunning());
       SnapshotProfilingSupervisor.SUPPLIER.reset();
     }
+
+    SnapshotProfilingConfiguration.SUPPLIER.reset();
 
     StackTraceSampler.SUPPLIER.reset();
     StagingArea.SUPPLIER.reset();

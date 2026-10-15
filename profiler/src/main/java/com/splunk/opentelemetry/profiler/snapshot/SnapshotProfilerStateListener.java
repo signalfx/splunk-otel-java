@@ -14,23 +14,14 @@
  * limitations under the License.
  */
 
-package com.splunk.opentelemetry.opamp.effectiveconfig;
+package com.splunk.opentelemetry.profiler.snapshot;
 
-import java.time.Duration;
-
-class EffectiveConfigBuilder {
-  private final StringBuilder stringBuilder = new StringBuilder();
-
-  EffectiveConfigBuilder add(String propertyName, Object value) {
-    stringBuilder.append(propertyName).append('=').append(value).append('\n');
-    return this;
-  }
-
-  EffectiveConfigBuilder add(String propertyName, Duration value) {
-    return add(propertyName, value.toMillis() + "ms");
-  }
-
-  String build() {
-    return stringBuilder.toString();
-  }
+public interface SnapshotProfilerStateListener {
+  /**
+   * Receives the current effective configuration on registration and subsequent configuration
+   * changes.
+   *
+   * @param effectiveConfiguration the configuration describing the profiler's current state
+   */
+  void onSnapshotProfilerStateChanged(SnapshotProfilingConfiguration effectiveConfiguration);
 }

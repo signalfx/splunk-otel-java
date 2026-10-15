@@ -102,6 +102,39 @@ class EnvVarsEffectiveConfigFileFactoryTest {
   }
 
   @Test
+  void reportsDisabledProfilersWhenRequestedSettingsEnableThem() throws IOException {
+    DefaultConfigProperties config =
+        DefaultConfigProperties.createFromMap(
+            Map.of(
+                "splunk.profiler.enabled", "true",
+                "splunk.profiler.memory.enabled", "true",
+                "splunk.snapshot.profiler.enabled", "true"));
+    ProfilerConfiguration.SUPPLIER.configure(ProfilerEnvVarsConfigurationFactory.create(config));
+    SnapshotProfilingConfiguration.SUPPLIER.configure(
+        SnapshotProfilingEnvVarsConfigurationFactory.create(config));
+
+    String content =
+        new EnvVarsEffectiveConfigFileFactory(config)
+            .createEffectiveConfigContent(
+                ProfilerConfiguration.SUPPLIER.get().toBuilder()
+                    .setEnabled(false)
+                    .setMemoryEnabled(false)
+                    .build(),
+                SnapshotProfilingConfiguration.SUPPLIER.get().toBuilder()
+                    .setEnabled(false)
+                    .build());
+
+    Properties properties = new Properties();
+    properties.load(new StringReader(content));
+    assertProperties(
+        properties,
+        Map.of(
+            "SPLUNK_PROFILER_ENABLED", "false",
+            "SPLUNK_PROFILER_MEMORY_ENABLED", "false",
+            "SPLUNK_SNAPSHOT_PROFILER_ENABLED", "false"));
+  }
+
+  @Test
   void buildFileContent_appendsSignalPathsToBaseHttpProtobufEndpoint() throws IOException {
     Properties fileContent =
         createFileContent(
@@ -173,7 +206,10 @@ class EnvVarsEffectiveConfigFileFactoryTest {
     SnapshotProfilingConfiguration.SUPPLIER.configure(
         SnapshotProfilingEnvVarsConfigurationFactory.create(config));
     String fileContent =
-        new EnvVarsEffectiveConfigFileFactory(config).createEffectiveConfigContent();
+        new EnvVarsEffectiveConfigFileFactory(config)
+            .createEffectiveConfigContent(
+                ProfilerConfiguration.SUPPLIER.get(),
+                SnapshotProfilingConfiguration.SUPPLIER.get());
 
     Properties properties = new Properties();
     properties.load(new StringReader(fileContent));

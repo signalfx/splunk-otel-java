@@ -56,6 +56,10 @@ public class SnapshotProfilingConfiguration {
     configProperties = builder.configProperties;
   }
 
+  public static SnapshotProfilingConfiguration defaultConfiguration() {
+    return new Builder().build();
+  }
+
   public static Builder builder() {
     return new Builder();
   }

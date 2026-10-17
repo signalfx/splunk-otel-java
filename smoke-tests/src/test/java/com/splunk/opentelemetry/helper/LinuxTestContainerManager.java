@@ -60,6 +60,7 @@ public class LinuxTestContainerManager extends AbstractTestContainerManager {
                     "mockserver/mockserver:"
                         + MockServerClient.class.getPackage().getImplementationVersion()))
             .withExposedPorts(HEC_BACKEND_PORT)
+            .withEnv("MOCKSERVER_LOG_LEVEL", "WARN")
             .waitingFor(
                 Wait.forHttp("/mockserver/status").withMethod("PUT").forPort(HEC_BACKEND_PORT))
             .withNetwork(network)

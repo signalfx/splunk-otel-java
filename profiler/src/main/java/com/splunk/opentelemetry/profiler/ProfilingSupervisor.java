@@ -29,10 +29,10 @@ import io.opentelemetry.context.ContextStorage;
 import io.opentelemetry.sdk.autoconfigure.AutoConfigureUtil;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 import io.opentelemetry.sdk.resources.Resource;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -53,11 +53,12 @@ public class ProfilingSupervisor {
   private final OptionalConfigurableSupplier<ProfilerConfiguration> configSupplier;
   private final JFR jfr;
   private final AutoConfiguredOpenTelemetrySdk sdk;
-  private final BlockingQueue<ProfilingCommand> commandQueue = new LinkedBlockingQueue<>();
+  private final BlockingQueue<Runnable> commandQueue = new LinkedBlockingQueue<>();
   private final ProfilerFactory profilerFactory;
   private final OtelAllocatedMemoryMetrics allocatedMemoryMetrics;
   private final OtelGcMemoryMetrics gcMemoryMetrics;
-  private final List<AlwaysOnProfilerStateListener> listeners = new CopyOnWriteArrayList<>();
+  // Accessed only by commands running on the supervisor thread.
+  private final List<AlwaysOnProfilerStateListener> listeners = new ArrayList<>();
   private final AtomicReference<PeriodicRecordingFlusher> recordingFlusher =
       new AtomicReference<>();
   private final AtomicReference<JavaProfiler> javaProfiler = new AtomicReference<>();
@@ -104,19 +105,24 @@ public class ProfilingSupervisor {
   }
 
   /**
-   * Registers a listener and immediately reports the current effective configuration to it.
+   * Queues listener registration and delivery of the current effective configuration.
    *
-   * <p>Registration waits for an ongoing reinitialization to finish.
+   * <p>Registration and callbacks run on the supervisor thread, after earlier queued commands have
+   * finished. The initial callback is asynchronous and observes the state after any earlier
+   * reinitialization completes.
    */
-  public synchronized void addAlwaysOnProfilerStateListener(
-      AlwaysOnProfilerStateListener listener) {
-    listeners.add(listener);
-    // Send current state immediately to the newly added listener.
-    listener.onAlwaysOnProfilerStateChanged(getEffectiveConfiguration());
+  public void addAlwaysOnProfilerStateListener(AlwaysOnProfilerStateListener listener) {
+    Objects.requireNonNull(listener, "listener");
+    commandQueue.add(
+        () -> {
+          listeners.add(listener);
+          listener.onAlwaysOnProfilerStateChanged(getEffectiveConfiguration());
+        });
   }
 
+  /** Queues removal after earlier commands and their callbacks have finished. */
   public void removeAlwaysOnProfilerStateListener(AlwaysOnProfilerStateListener listener) {
-    listeners.remove(listener);
+    commandQueue.add(() -> listeners.remove(listener));
   }
 
   /**
@@ -142,8 +148,7 @@ public class ProfilingSupervisor {
   private void commandLoop() {
     while (true) {
       try {
-        ProfilingCommand command = commandQueue.take();
-        handleCommand(command);
+        commandQueue.take().run();
       } catch (InterruptedException e) {
         Thread.currentThread().interrupt();
         logger.fine("ProfilingSupervisor is shutting down");
@@ -155,29 +160,15 @@ public class ProfilingSupervisor {
   }
 
   public void requestStartProfiling() {
-    commandQueue.add(ProfilingCommand.START);
+    commandQueue.add(() -> tryStart(true));
   }
 
   public void requestStopProfiling() {
-    commandQueue.add(ProfilingCommand.STOP);
+    commandQueue.add(() -> tryStop(true));
   }
 
   public void requestReinitializeProfiling() {
-    commandQueue.add(ProfilingCommand.REINITIALIZE);
-  }
-
-  private void handleCommand(ProfilingCommand command) {
-    switch (command) {
-      case START:
-        tryStart(true);
-        break;
-      case STOP:
-        tryStop(true);
-        break;
-      case REINITIALIZE:
-        tryReinitialize();
-        break;
-    }
+    commandQueue.add(this::tryReinitialize);
   }
 
   private void setJfrContextStorageEnabled(
@@ -263,7 +254,7 @@ public class ProfilingSupervisor {
    * <p>Notifies listeners at most once after reinitialization finishes, if the final effective
    * configuration changed, including when the restart fails.
    */
-  private synchronized void tryReinitialize() {
+  private void tryReinitialize() {
     ProfilerConfiguration previousConfiguration = activeConfiguration;
     try {
       updateJvmMemoryMetrics();
@@ -280,7 +271,7 @@ public class ProfilingSupervisor {
     }
   }
 
-  private synchronized void updateActiveConfiguration(
+  private void updateActiveConfiguration(
       ProfilerConfiguration effectiveConfiguration, boolean notifyListeners) {
     if (effectiveConfiguration.equals(activeConfiguration)) {
       return;
@@ -377,11 +368,5 @@ public class ProfilingSupervisor {
           profilerContextStorage.set(storage);
           return storage;
         });
-  }
-
-  enum ProfilingCommand {
-    START,
-    STOP,
-    REINITIALIZE
   }
 }

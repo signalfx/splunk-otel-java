@@ -18,8 +18,8 @@ package com.splunk.opentelemetry.profiler.snapshot;
 
 public interface SnapshotProfilerStateListener {
   /**
-   * Receives the current effective configuration on registration and subsequent configuration
-   * changes.
+   * Receives the current effective configuration after registration and subsequent
+   * configuration changes. All callbacks run on the supervisor thread and should return quickly.
    *
    * @param effectiveConfiguration the configuration describing the profiler's current state
    */

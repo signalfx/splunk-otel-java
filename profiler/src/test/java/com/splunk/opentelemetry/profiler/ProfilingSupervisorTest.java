@@ -145,7 +145,7 @@ class ProfilingSupervisorTest {
     // given
     startSupervisor();
     when(jfr.isAvailable()).thenReturn(true);
-    supervisor.addAlwaysOnProfilerStateListener(listener);
+    registerListenerAndAwaitCurrentConfiguration();
     // Clear the initial callback to check that a failed start sends no duplicate notification.
     clearInvocations(listener);
     // Fail the first start attempt and allow the retry to succeed.
@@ -176,7 +176,7 @@ class ProfilingSupervisorTest {
     // given
     startSupervisor();
     when(jfr.isAvailable()).thenReturn(true);
-    supervisor.addAlwaysOnProfilerStateListener(listener);
+    registerListenerAndAwaitCurrentConfiguration();
     supervisor.requestStartProfiling();
     await().untilAsserted(() -> verify(listener).onAlwaysOnProfilerStateChanged(config));
     clearInvocations(listener);
@@ -230,7 +230,7 @@ class ProfilingSupervisorTest {
     // given
     startSupervisor();
     when(jfr.isAvailable()).thenReturn(true);
-    supervisor.addAlwaysOnProfilerStateListener(listener);
+    registerListenerAndAwaitCurrentConfiguration();
     if (previouslyStarted) {
       supervisor.requestStartProfiling();
       await().untilAsserted(() -> verify(listener).onAlwaysOnProfilerStateChanged(config));
@@ -268,7 +268,7 @@ class ProfilingSupervisorTest {
     when(jfr.isAvailable()).thenReturn(true);
 
     // when: register before profiling starts
-    supervisor.addAlwaysOnProfilerStateListener(listener);
+    registerListenerAndAwaitCurrentConfiguration();
 
     // then
     verify(listener).onAlwaysOnProfilerStateChanged(disabledConfiguration());
@@ -280,7 +280,7 @@ class ProfilingSupervisorTest {
     clearInvocations(listener);
 
     // when: register again while profiling is running
-    supervisor.addAlwaysOnProfilerStateListener(listener);
+    registerListenerAndAwaitCurrentConfiguration();
 
     // then
     verify(listener).onAlwaysOnProfilerStateChanged(config);
@@ -296,7 +296,7 @@ class ProfilingSupervisorTest {
     // given
     startSupervisor();
     when(jfr.isAvailable()).thenReturn(jfrAvailable);
-    supervisor.addAlwaysOnProfilerStateListener(listener);
+    registerListenerAndAwaitCurrentConfiguration();
     clearInvocations(listener);
     if (jfrAvailable) {
       doThrow(new IllegalStateException("Cannot start JFR")).when(recordingFlusher).start();
@@ -336,7 +336,7 @@ class ProfilingSupervisorTest {
     configSupplier.configure(disabledRequestedConfiguration);
     startSupervisor();
     when(jfr.isAvailable()).thenReturn(true);
-    supervisor.addAlwaysOnProfilerStateListener(listener);
+    registerListenerAndAwaitCurrentConfiguration();
     clearInvocations(listener);
 
     // when
@@ -354,7 +354,7 @@ class ProfilingSupervisorTest {
   void reportsUpdatedDisabledSettingsWhenJfrRemainsUnavailable(CpuProfilingMode cpuMode) {
     // given
     startSupervisor();
-    supervisor.addAlwaysOnProfilerStateListener(listener);
+    registerListenerAndAwaitCurrentConfiguration();
     supervisor.requestStartProfiling();
     await().untilAsserted(() -> verify(jfr).isAvailable());
     clearInvocations(listener);
@@ -437,7 +437,7 @@ class ProfilingSupervisorTest {
     if (memoryEnabled) {
       when(jfr.isAvailable()).thenReturn(true);
     }
-    supervisor.addAlwaysOnProfilerStateListener(listener);
+    registerListenerAndAwaitCurrentConfiguration();
     clearInvocations(listener);
 
     // when
@@ -497,7 +497,7 @@ class ProfilingSupervisorTest {
     // given
     startSupervisor();
     when(jfr.isAvailable()).thenReturn(true);
-    supervisor.addAlwaysOnProfilerStateListener(listener);
+    registerListenerAndAwaitCurrentConfiguration();
     clearInvocations(listener);
     ProfilerConfiguration javaConfiguration =
         config.toBuilder()
@@ -548,7 +548,7 @@ class ProfilingSupervisorTest {
     configSupplier.configure(initialConfiguration);
     startSupervisor();
     when(jfr.isAvailable()).thenReturn(true);
-    supervisor.addAlwaysOnProfilerStateListener(listener);
+    registerListenerAndAwaitCurrentConfiguration();
     supervisor.requestStartProfiling();
     await()
         .untilAsserted(() -> verify(listener).onAlwaysOnProfilerStateChanged(initialConfiguration));
@@ -582,7 +582,7 @@ class ProfilingSupervisorTest {
     // given
     startSupervisor();
     when(jfr.isAvailable()).thenReturn(true);
-    supervisor.addAlwaysOnProfilerStateListener(listener);
+    registerListenerAndAwaitCurrentConfiguration();
     clearInvocations(listener);
 
     // when
@@ -613,7 +613,7 @@ class ProfilingSupervisorTest {
     supervisor.requestStartProfiling();
     await()
         .untilAsserted(() -> assertThat(supervisor.getEffectiveConfiguration()).isEqualTo(config));
-    supervisor.addAlwaysOnProfilerStateListener(listener);
+    registerListenerAndAwaitCurrentConfiguration();
     clearInvocations(listener);
     // Request different settings to check that stopping publishes them with profiling disabled.
     ProfilerConfiguration requestedConfiguration =
@@ -780,6 +780,13 @@ class ProfilingSupervisorTest {
     verify(allocatedMemoryMetrics, never()).install();
     verify(gcMemoryMetrics, never()).install();
     verify(recordingFlusherFactory, never()).createJfrProfiler(any(), any(), any());
+  }
+
+  private void registerListenerAndAwaitCurrentConfiguration() {
+    ProfilerConfiguration currentConfiguration = supervisor.getEffectiveConfiguration();
+    supervisor.addAlwaysOnProfilerStateListener(listener);
+    await()
+        .untilAsserted(() -> verify(listener).onAlwaysOnProfilerStateChanged(currentConfiguration));
   }
 
   private AutoConfiguredOpenTelemetrySdk createSdk(Map<String, String> properties) {

@@ -29,10 +29,10 @@ import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import io.opentelemetry.sdk.resources.Resource;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.logging.Logger;
@@ -44,7 +44,7 @@ public class SnapshotProfilingSupervisor {
       Logger.getLogger(SnapshotProfilingSupervisor.class.getName());
 
   private final OptionalConfigurableSupplier<SnapshotProfilingConfiguration> configurationSupplier;
-  private final BlockingQueue<ProfilingCommand> commandQueue = new LinkedBlockingQueue<>();
+  private final BlockingQueue<Runnable> commandQueue = new LinkedBlockingQueue<>();
   private final ConfigurableSupplier<StagingArea> stagingAreaSupplier;
   private final ConfigurableSupplier<StackTraceSampler> stackTraceSamplerSupplier;
   private final ConfigurableSupplier<StackTraceExporter> stackTraceExporterSupplier;
@@ -53,7 +53,8 @@ public class SnapshotProfilingSupervisor {
       traceThreadChangeDetectorSupplier;
   private final OptionalConfigurableSupplier<SnapshotProfilingSpanProcessor>
       profilingSpanProcessorSupplier;
-  private final List<SnapshotProfilerStateListener> listeners = new CopyOnWriteArrayList<>();
+  // Accessed only by commands running on the supervisor thread.
+  private final List<SnapshotProfilerStateListener> listeners = new ArrayList<>();
   private final AutoConfiguredOpenTelemetrySdk sdk;
   private final OtelLoggerFactory otelLoggerFactory;
   private volatile SnapshotProfilingConfiguration activeConfiguration;
@@ -106,19 +107,24 @@ public class SnapshotProfilingSupervisor {
   }
 
   /**
-   * Registers a listener and immediately reports the current effective configuration to it.
+   * Queues listener registration and delivery of the current effective configuration.
    *
-   * <p>Registration waits for an ongoing reinitialization to finish.
+   * <p>Registration and callbacks run on the supervisor thread, after earlier queued commands have
+   * finished. The initial callback is asynchronous and observes the state after any earlier
+   * reinitialization completes.
    */
-  public synchronized void addSnapshotProfilerStateListener(
-      SnapshotProfilerStateListener listener) {
-    listeners.add(listener);
-    // Send current state immediately to the newly added listener.
-    listener.onSnapshotProfilerStateChanged(getEffectiveConfiguration());
+  public void addSnapshotProfilerStateListener(SnapshotProfilerStateListener listener) {
+    Objects.requireNonNull(listener, "listener");
+    commandQueue.add(
+        () -> {
+          listeners.add(listener);
+          listener.onSnapshotProfilerStateChanged(getEffectiveConfiguration());
+        });
   }
 
+  /** Queues removal after earlier commands and their callbacks have finished. */
   public void removeSnapshotProfilerStateListener(SnapshotProfilerStateListener listener) {
-    listeners.remove(listener);
+    commandQueue.add(() -> listeners.remove(listener));
   }
 
   /**
@@ -144,8 +150,7 @@ public class SnapshotProfilingSupervisor {
   private void commandLoop() {
     while (true) {
       try {
-        ProfilingCommand command = commandQueue.take();
-        handleCommand(command);
+        commandQueue.take().run();
       } catch (InterruptedException e) {
         Thread.currentThread().interrupt();
         logger.fine("SnapshotProfilingSupervisor is shutting down");
@@ -157,34 +162,20 @@ public class SnapshotProfilingSupervisor {
   }
 
   public void requestStartProfiling() {
-    commandQueue.add(ProfilingCommand.START);
+    commandQueue.add(() -> tryStart(true));
   }
 
   public void requestStopProfiling() {
-    commandQueue.add(ProfilingCommand.STOP);
+    commandQueue.add(() -> tryStop(true));
   }
 
   public void requestReinitializeProfiling() {
-    commandQueue.add(ProfilingCommand.REINITIALIZE);
+    commandQueue.add(this::tryReinitialize);
   }
 
   @VisibleForTesting
   boolean isRunning() {
     return activeConfiguration.isEnabled();
-  }
-
-  private void handleCommand(ProfilingCommand command) {
-    switch (command) {
-      case START:
-        tryStart(true);
-        break;
-      case STOP:
-        tryStop(true);
-        break;
-      case REINITIALIZE:
-        tryReinitialize();
-        break;
-    }
   }
 
   /**
@@ -268,7 +259,7 @@ public class SnapshotProfilingSupervisor {
    * <p>Notifies listeners at most once after reinitialization finishes, if the final effective
    * configuration changed, including when the restart fails.
    */
-  private synchronized void tryReinitialize() {
+  private void tryReinitialize() {
     SnapshotProfilingConfiguration previousConfiguration = activeConfiguration;
     try {
       tryStop(false);
@@ -284,7 +275,7 @@ public class SnapshotProfilingSupervisor {
     }
   }
 
-  private synchronized void updateActiveConfiguration(
+  private void updateActiveConfiguration(
       SnapshotProfilingConfiguration effectiveConfiguration, boolean notifyListeners) {
     if (effectiveConfiguration.equals(activeConfiguration)) {
       return;
@@ -334,11 +325,5 @@ public class SnapshotProfilingSupervisor {
     }
     throw new IllegalArgumentException(
         "Unsupported config properties type: " + configProperties.getClass().getName());
-  }
-
-  enum ProfilingCommand {
-    START,
-    STOP,
-    REINITIALIZE
   }
 }

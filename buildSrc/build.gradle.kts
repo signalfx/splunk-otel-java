@@ -29,7 +29,16 @@ spotless {
 }
 
 repositories {
-  gradlePluginPortal()
+  val artifactoryUrl = System.getenv("MAVEN_REPOSITORY_URL")
+  if (artifactoryUrl != null) {
+    maven {
+      name = "artifactory"
+      url = uri(artifactoryUrl)
+      credentials(PasswordCredentials::class)
+    }
+  } else {
+    gradlePluginPortal()
+  }
 
   // for otel upstream snapshots
   maven {

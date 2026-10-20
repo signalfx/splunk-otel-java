@@ -103,7 +103,7 @@ public class RemoteConfigProcessorImpl implements RemoteConfigProcessor {
           remoteConfig.config_hash, "Exception occurred: " + e.getMessage(), opampClient);
     }
 
-    // TODO: Maybe should be postponed after profiler is enabled/disabled?
+    // Report the current state; supervisors report again when asynchronous commands complete.
     effectiveConfigReporter.reportEffectiveConfigIfChanged();
   }
 

@@ -29,6 +29,9 @@ import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import io.opentelemetry.sdk.resources.Resource;
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -41,7 +44,7 @@ public class SnapshotProfilingSupervisor {
       Logger.getLogger(SnapshotProfilingSupervisor.class.getName());
 
   private final OptionalConfigurableSupplier<SnapshotProfilingConfiguration> configurationSupplier;
-  private final BlockingQueue<ProfilingCommand> commandQueue = new LinkedBlockingQueue<>();
+  private final BlockingQueue<Runnable> commandQueue = new LinkedBlockingQueue<>();
   private final ConfigurableSupplier<StagingArea> stagingAreaSupplier;
   private final ConfigurableSupplier<StackTraceSampler> stackTraceSamplerSupplier;
   private final ConfigurableSupplier<StackTraceExporter> stackTraceExporterSupplier;
@@ -50,9 +53,11 @@ public class SnapshotProfilingSupervisor {
       traceThreadChangeDetectorSupplier;
   private final OptionalConfigurableSupplier<SnapshotProfilingSpanProcessor>
       profilingSpanProcessorSupplier;
+  // Accessed only by commands running on the supervisor thread.
+  private final List<SnapshotProfilerStateListener> listeners = new ArrayList<>();
   private final AutoConfiguredOpenTelemetrySdk sdk;
   private final OtelLoggerFactory otelLoggerFactory;
-  private volatile boolean running;
+  private volatile SnapshotProfilingConfiguration activeConfiguration;
 
   @VisibleForTesting
   SnapshotProfilingSupervisor(
@@ -74,6 +79,7 @@ public class SnapshotProfilingSupervisor {
     this.profilingSpanProcessorSupplier = profilingSpanProcessorSupplier;
     this.sdk = sdk;
     this.otelLoggerFactory = otelLoggerFactory;
+    this.activeConfiguration = withDisabledProfiler(configurationSupplier.get());
   }
 
   public static SnapshotProfilingSupervisor initialize(AutoConfiguredOpenTelemetrySdk sdk) {
@@ -100,6 +106,42 @@ public class SnapshotProfilingSupervisor {
     return supervisor;
   }
 
+  /**
+   * Queues listener registration and delivery of the current effective configuration.
+   *
+   * <p>Registration and callbacks run on the supervisor thread, after earlier queued commands have
+   * finished. The initial callback is asynchronous and observes the state after any earlier
+   * reinitialization completes.
+   */
+  public void addSnapshotProfilerStateListener(SnapshotProfilerStateListener listener) {
+    Objects.requireNonNull(listener, "listener");
+    commandQueue.add(
+        () -> {
+          listeners.add(listener);
+          listener.onSnapshotProfilerStateChanged(getEffectiveConfiguration());
+        });
+  }
+
+  /** Queues removal after earlier commands and their callbacks have finished. */
+  public void removeSnapshotProfilerStateListener(SnapshotProfilerStateListener listener) {
+    commandQueue.add(() -> listeners.remove(listener));
+  }
+
+  /**
+   * Returns current effective configuration. If profiler is running then it is reported as enabled.
+   *
+   * <p>Initially reports the requested settings with profiling disabled. Failed start attempts also
+   * report the attempted settings with profiling disabled.
+   */
+  public SnapshotProfilingConfiguration getEffectiveConfiguration() {
+    return activeConfiguration;
+  }
+
+  private static SnapshotProfilingConfiguration withDisabledProfiler(
+      SnapshotProfilingConfiguration configuration) {
+    return configuration.toBuilder().setEnabled(false).build();
+  }
+
   @VisibleForTesting
   void start(ExecutorService executor) {
     executor.submit(this::commandLoop);
@@ -108,8 +150,7 @@ public class SnapshotProfilingSupervisor {
   private void commandLoop() {
     while (true) {
       try {
-        ProfilingCommand command = commandQueue.take();
-        handleCommand(command);
+        commandQueue.take().run();
       } catch (InterruptedException e) {
         Thread.currentThread().interrupt();
         logger.fine("SnapshotProfilingSupervisor is shutting down");
@@ -121,67 +162,81 @@ public class SnapshotProfilingSupervisor {
   }
 
   public void requestStartProfiling() {
-    commandQueue.add(ProfilingCommand.START);
+    commandQueue.add(() -> tryStart(true));
   }
 
   public void requestStopProfiling() {
-    commandQueue.add(ProfilingCommand.STOP);
+    commandQueue.add(() -> tryStop(true));
   }
 
   public void requestReinitializeProfiling() {
-    commandQueue.add(ProfilingCommand.REINITIALIZE);
+    commandQueue.add(this::tryReinitialize);
   }
 
   @VisibleForTesting
   boolean isRunning() {
-    return running;
+    return activeConfiguration.isEnabled();
   }
 
-  private void handleCommand(ProfilingCommand command) {
-    switch (command) {
-      case START:
-        tryStart();
-        break;
-      case STOP:
-        tryStop();
-        break;
-      case REINITIALIZE:
-        tryReinitialize();
-        break;
-    }
-  }
-
-  private void tryStart() {
-    if (running) {
+  /**
+   * Starts an inactive profiler with the requested settings. The start command does not check if
+   * profiler is enabled in supplied configuration, but marks profiler as enabled in the effective
+   * configuration.
+   *
+   * @param notifyListeners whether to notify listeners if the effective configuration changes
+   */
+  private void tryStart(boolean notifyListeners) {
+    if (isRunning()) {
       return;
     }
 
     SnapshotProfilingConfiguration configuration = configurationSupplier.get();
-    configuration.log();
 
-    // Create a new components
-    stagingAreaSupplier.configure(createStagingArea(configuration));
-    stackTraceSamplerSupplier.configure(createStackTraceSampler(configuration));
-    stackTraceExporterSupplier.configure(createStackTraceExporter(configuration));
+    try {
+      configuration.log();
+      // Create new components
+      stagingAreaSupplier.configure(createStagingArea(configuration));
+      stackTraceSamplerSupplier.configure(createStackTraceSampler(configuration));
+      stackTraceExporterSupplier.configure(createStackTraceExporter(configuration));
 
-    // Enable components created during SDK initialization
-    spanTrackerSupplier.get().setEnabled(true);
-    traceThreadChangeDetectorSupplier.get().setEnabled(true);
+      // Enable components created during SDK initialization
+      spanTrackerSupplier.get().setEnabled(true);
+      traceThreadChangeDetectorSupplier.get().setEnabled(true);
 
-    profilingSpanProcessorSupplier
-        .get()
-        .setSnapshotSelectionProbability(configuration.getSnapshotSelectionProbability());
-    profilingSpanProcessorSupplier.get().setEnabled(true);
+      profilingSpanProcessorSupplier
+          .get()
+          .setSnapshotSelectionProbability(configuration.getSnapshotSelectionProbability());
+      profilingSpanProcessorSupplier.get().setEnabled(true);
+    } catch (RuntimeException e) {
+      try {
+        stopRuntimeComponents();
+      } finally {
+        updateActiveConfiguration(withDisabledProfiler(configuration), notifyListeners);
+      }
+      throw e;
+    }
 
-    running = true;
+    updateActiveConfiguration(configuration.toBuilder().setEnabled(true).build(), notifyListeners);
     logger.info("Snapshot profiling is active.");
   }
 
-  private void tryStop() {
-    if (!running) {
+  /**
+   * Stops an active profiler and marks its current state as disabled in the effective
+   * configuration.
+   *
+   * @param notifyListeners whether to notify listeners if the effective configuration changes
+   */
+  private void tryStop(boolean notifyListeners) {
+    if (!isRunning()) {
       return;
     }
 
+    stopRuntimeComponents();
+    updateActiveConfiguration(withDisabledProfiler(configurationSupplier.get()), notifyListeners);
+    logger.info("Snapshot profiling is deactivated.");
+  }
+
+  private void stopRuntimeComponents() {
     // Dispose components that can be recreated
     stackTraceSamplerSupplier.get().close();
     stackTraceSamplerSupplier.reset();
@@ -196,19 +251,44 @@ public class SnapshotProfilingSupervisor {
     spanTrackerSupplier.get().setEnabled(false);
     traceThreadChangeDetectorSupplier.get().setEnabled(false);
     profilingSpanProcessorSupplier.get().setEnabled(false);
-
-    running = false;
-    logger.info("Snapshot profiling is deactivated.");
   }
 
+  /**
+   * Stops profiling and starts it with the requested settings if profiling is enabled.
+   *
+   * <p>Notifies listeners at most once after reinitialization finishes, if the final effective
+   * configuration changed, including when the restart fails.
+   */
   private void tryReinitialize() {
-    if (running) {
-      tryStop();
-    }
+    SnapshotProfilingConfiguration previousConfiguration = activeConfiguration;
+    try {
+      tryStop(false);
 
-    if (configurationSupplier.get().isEnabled()) {
-      tryStart();
+      if (configurationSupplier.get().isEnabled()) {
+        tryStart(false);
+      }
+    } finally {
+      // Report only the final state, including after a failed restart.
+      if (!Objects.equals(activeConfiguration, previousConfiguration)) {
+        notifyStateChanged();
+      }
     }
+  }
+
+  private void updateActiveConfiguration(
+      SnapshotProfilingConfiguration effectiveConfiguration, boolean notifyListeners) {
+    if (effectiveConfiguration.equals(activeConfiguration)) {
+      return;
+    }
+    activeConfiguration = effectiveConfiguration;
+    if (notifyListeners) {
+      notifyStateChanged();
+    }
+  }
+
+  private void notifyStateChanged() {
+    SnapshotProfilingConfiguration effectiveConfiguration = getEffectiveConfiguration();
+    listeners.forEach(listener -> listener.onSnapshotProfilerStateChanged(effectiveConfiguration));
   }
 
   StagingArea createStagingArea(SnapshotProfilingConfiguration configuration) {
@@ -245,11 +325,5 @@ public class SnapshotProfilingSupervisor {
     }
     throw new IllegalArgumentException(
         "Unsupported config properties type: " + configProperties.getClass().getName());
-  }
-
-  enum ProfilingCommand {
-    START,
-    STOP,
-    REINITIALIZE
   }
 }

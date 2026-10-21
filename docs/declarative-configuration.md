@@ -6,7 +6,9 @@ In areas where deviations are allowed, it MAY differ from GDI recommendations or
 ## Profiling configuration
 
 Additional profiling options specific to Java are available under `distribution.splunk.profiling`.
-The following YAML shows the complete supported structure:
+Include the `Extra-Content-Type: otel-profiling-stacktraces` header with either `otlp_log_grpc` or `otlp_log_http` so receivers can identify profiling data.
+
+The following YAML snippet shows the complete supported structure of the profiling configuration:
 
 ```yaml
 distribution:
@@ -15,6 +17,9 @@ distribution:
       exporter:
         otlp_log_grpc:                # Allowed values: otlp_log_http, otlp_log_grpc
           endpoint: "http://localhost:4317" # SPLUNK_PROFILER_LOGS_ENDPOINT (default: http://localhost:4318/v1/logs or http://localhost:4317 for grpc)
+          headers:
+            - name: Extra-Content-Type
+              value: otel-profiling-stacktraces
 
       always_on:
         include_agent_internals: true # SPLUNK_PROFILER_INCLUDE_AGENT_INTERNALS (default: false)

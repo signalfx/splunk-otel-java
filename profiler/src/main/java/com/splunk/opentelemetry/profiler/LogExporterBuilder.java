@@ -22,12 +22,12 @@ import com.google.common.annotations.VisibleForTesting;
 import com.splunk.opentelemetry.profiler.util.DeclarativeConfigPropertiesUtil;
 import io.opentelemetry.api.incubator.config.ConfigProvider;
 import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
+import io.opentelemetry.api.metrics.MeterProvider;
 import io.opentelemetry.common.ComponentLoader;
 import io.opentelemetry.exporter.otlp.http.logs.OtlpHttpLogRecordExporter;
 import io.opentelemetry.exporter.otlp.http.logs.OtlpHttpLogRecordExporterBuilder;
 import io.opentelemetry.exporter.otlp.internal.OtlpConfigUtil;
-import io.opentelemetry.exporter.otlp.internal.OtlpGrpcLogRecordExporterComponentProvider;
-import io.opentelemetry.exporter.otlp.internal.OtlpHttpLogRecordExporterComponentProvider;
+import io.opentelemetry.exporter.otlp.internal.OtlpDeclarativeConfigUtil;
 import io.opentelemetry.exporter.otlp.logs.OtlpGrpcLogRecordExporter;
 import io.opentelemetry.exporter.otlp.logs.OtlpGrpcLogRecordExporterBuilder;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
@@ -53,27 +53,21 @@ class LogExporterBuilder {
       Set<String> propertyKeys = exporterConfigProperties.getPropertyKeys();
       if (propertyKeys.isEmpty()) {
         DeclarativeConfigProperties otlpHttp = defaultOtlpHttpConfig(exporterConfigProperties);
-        OtlpHttpLogRecordExporterComponentProvider provider =
-            new OtlpHttpLogRecordExporterComponentProvider();
-        return provider.create(toExtended(otlpHttp));
+        return buildDeclarativeHttpExporter(otlpHttp);
       }
 
       if (propertyKeys.contains("otlp_log_http")) {
         DeclarativeConfigProperties otlpHttp =
             DeclarativeConfigPropertiesUtil.getStructuredOrEmpty(
                 exporterConfigProperties, "otlp_log_http");
-        OtlpHttpLogRecordExporterComponentProvider provider =
-            new OtlpHttpLogRecordExporterComponentProvider();
-        return provider.create(toExtended(otlpHttp));
+        return buildDeclarativeHttpExporter(otlpHttp);
       }
 
       if (propertyKeys.contains("otlp_log_grpc")) {
         DeclarativeConfigProperties otlpGrpc =
             DeclarativeConfigPropertiesUtil.getStructuredOrEmpty(
                 exporterConfigProperties, "otlp_log_grpc");
-        OtlpGrpcLogRecordExporterComponentProvider provider =
-            new OtlpGrpcLogRecordExporterComponentProvider();
-        return provider.create(toExtended(otlpGrpc));
+        return buildDeclarativeGrpcExporter(otlpGrpc);
       }
     }
 
@@ -87,6 +81,50 @@ class LogExporterBuilder {
     properties.put("encoding", "protobuf");
     return DeclarativeConfigPropertiesUtil.createPreservingLoader(
         exporterConfigProperties, properties);
+  }
+
+  private static LogRecordExporter buildDeclarativeHttpExporter(
+      DeclarativeConfigProperties config) {
+    OtlpHttpLogRecordExporterBuilder builder = OtlpHttpLogRecordExporter.builder();
+    OtlpDeclarativeConfigUtil.configureOtlpExporterBuilder(
+        DATA_TYPE_LOGS,
+        toExtended(config),
+        builder::setComponentLoader,
+        builder::setEndpoint,
+        builder::addHeader,
+        builder::setCompression,
+        builder::setTimeout,
+        builder::setTrustedCertificates,
+        builder::setClientTls,
+        builder::setRetryPolicy,
+        builder::setMemoryMode,
+        /* isHttpProtobuf= */ true,
+        builder::setInternalTelemetryVersion,
+        () -> builder.setMeterProvider(MeterProvider::noop));
+
+    return builder.addHeader(EXTRA_CONTENT_TYPE, STACKTRACES_HEADER_VALUE).build();
+  }
+
+  private static LogRecordExporter buildDeclarativeGrpcExporter(
+      DeclarativeConfigProperties config) {
+    OtlpGrpcLogRecordExporterBuilder builder = OtlpGrpcLogRecordExporter.builder();
+    OtlpDeclarativeConfigUtil.configureOtlpExporterBuilder(
+        DATA_TYPE_LOGS,
+        toExtended(config),
+        builder::setComponentLoader,
+        builder::setEndpoint,
+        builder::addHeader,
+        builder::setCompression,
+        builder::setTimeout,
+        builder::setTrustedCertificates,
+        builder::setClientTls,
+        builder::setRetryPolicy,
+        builder::setMemoryMode,
+        /* isHttpProtobuf= */ false,
+        builder::setInternalTelemetryVersion,
+        () -> builder.setMeterProvider(MeterProvider::noop));
+
+    return builder.addHeader(EXTRA_CONTENT_TYPE, STACKTRACES_HEADER_VALUE).build();
   }
 
   static LogRecordExporter fromEnvironmentConfig() {

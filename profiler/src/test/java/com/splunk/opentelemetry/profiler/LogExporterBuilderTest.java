@@ -20,7 +20,7 @@ import static com.splunk.opentelemetry.profiler.LogExporterBuilder.EXTRA_CONTENT
 import static com.splunk.opentelemetry.profiler.LogExporterBuilder.STACKTRACES_HEADER_VALUE;
 import static com.splunk.opentelemetry.testing.declarativeconfig.DeclarativeConfigTestUtil.getProfilingConfig;
 import static io.opentelemetry.api.incubator.config.DeclarativeConfigProperties.empty;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -40,15 +40,22 @@ import io.opentelemetry.sdk.autoconfigure.declarativeconfig.YamlDeclarativeConfi
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.model.OpenTelemetryConfigurationModel;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigurationException;
+import io.opentelemetry.sdk.common.CompletableResultCode;
+import io.opentelemetry.sdk.common.export.GrpcSender;
 import io.opentelemetry.sdk.common.export.GrpcSenderProvider;
+import io.opentelemetry.sdk.common.export.HttpSender;
 import io.opentelemetry.sdk.common.export.HttpSenderProvider;
 import io.opentelemetry.sdk.logs.export.LogRecordExporter;
+import java.net.URI;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 class LogExporterBuilderTest {
 
@@ -161,6 +168,66 @@ class LogExporterBuilderTest {
 
   @Nested
   class DeclarativeConfig {
+
+    @ParameterizedTest
+    @ValueSource(strings = {"otlp_log_http", "otlp_log_grpc", "default"})
+    void shouldAddProfilingHeaderAutomatically(String exporterType) {
+      // given
+      CapturingComponentLoader componentLoader = new CapturingComponentLoader();
+      Map<String, Object> properties = new HashMap<>();
+      if (!"default".equals(exporterType)) {
+        properties.put(exporterType, null);
+      }
+      DeclarativeConfigProperties exporterConfig =
+          YamlDeclarativeConfigProperties.create(properties, componentLoader);
+
+      // when
+      try (LogRecordExporter exporter = LogExporterBuilder.fromDeclarativeConfig(exporterConfig)) {
+        // then
+        assertThat(exporter).isNotNull();
+        assertThat(componentLoader.headers)
+            .containsEntry(EXTRA_CONTENT_TYPE, List.of(STACKTRACES_HEADER_VALUE));
+        assertThat(componentLoader.endpoint)
+            .isEqualTo(
+                URI.create(
+                    "otlp_log_grpc".equals(exporterType)
+                        ? "http://localhost:4317"
+                        : "http://localhost:4318/v1/logs"));
+      }
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"otlp_log_http", "otlp_log_grpc"})
+    void shouldPreserveConfiguredSettingsAndSetProfilingHeader(String exporterType) {
+      // given
+      CapturingComponentLoader componentLoader = new CapturingComponentLoader();
+      Map<String, Object> exporterSettings =
+          Map.of(
+              "endpoint", "http://localhost:1234",
+              "timeout", 1234,
+              "compression", "gzip",
+              "headers_list", "X-From-List=one",
+              "headers",
+                  List.of(
+                      Map.of("name", "X-Custom-Header", "value", "two"),
+                      Map.of("name", EXTRA_CONTENT_TYPE, "value", "custom")));
+      DeclarativeConfigProperties exporterConfig =
+          YamlDeclarativeConfigProperties.create(
+              Map.of(exporterType, exporterSettings), componentLoader);
+
+      // when
+      try (LogRecordExporter exporter = LogExporterBuilder.fromDeclarativeConfig(exporterConfig)) {
+        // then
+        assertThat(exporter).isNotNull();
+        assertThat(componentLoader.headers)
+            .containsEntry(EXTRA_CONTENT_TYPE, List.of(STACKTRACES_HEADER_VALUE))
+            .containsEntry("X-From-List", List.of("one"))
+            .containsEntry("X-Custom-Header", List.of("two"));
+        assertThat(componentLoader.endpoint).isEqualTo(URI.create("http://localhost:1234"));
+        assertThat(componentLoader.timeout).isEqualTo(Duration.ofMillis(1234));
+        assertThat(componentLoader.compression).isEqualTo("gzip");
+      }
+    }
 
     @Test
     void shouldCreateHttpExporter() {
@@ -317,6 +384,48 @@ class LogExporterBuilderTest {
       Map<String, Object> properties = new HashMap<>();
       properties.put(exporterName, null);
       return YamlDeclarativeConfigProperties.create(properties, componentLoader);
+    }
+
+    private static class CapturingComponentLoader implements ComponentLoader {
+      private final ComponentLoader delegate =
+          ComponentLoader.forClassLoader(LogExporterBuilderTest.class.getClassLoader());
+      private Map<String, List<String>> headers;
+      private URI endpoint;
+      private Duration timeout;
+      private String compression;
+
+      @Override
+      public <T> Iterable<T> load(Class<T> spiClass) {
+        if (spiClass == HttpSenderProvider.class) {
+          HttpSenderProvider provider =
+              config -> {
+                headers = config.getHeadersSupplier().get();
+                endpoint = config.getEndpoint();
+                timeout = config.getTimeout();
+                compression =
+                    config.getCompressor() == null ? null : config.getCompressor().getEncoding();
+                HttpSender sender = mock(HttpSender.class);
+                when(sender.shutdown()).thenReturn(CompletableResultCode.ofSuccess());
+                return sender;
+              };
+          return List.of(spiClass.cast(provider));
+        }
+        if (spiClass == GrpcSenderProvider.class) {
+          GrpcSenderProvider provider =
+              config -> {
+                headers = config.getHeadersSupplier().get();
+                endpoint = config.getEndpoint();
+                timeout = config.getTimeout();
+                compression =
+                    config.getCompressor() == null ? null : config.getCompressor().getEncoding();
+                GrpcSender sender = mock(GrpcSender.class);
+                when(sender.shutdown()).thenReturn(CompletableResultCode.ofSuccess());
+                return sender;
+              };
+          return List.of(spiClass.cast(provider));
+        }
+        return delegate.load(spiClass);
+      }
     }
 
     private static class RecordingComponentLoader implements ComponentLoader {

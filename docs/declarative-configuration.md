@@ -6,8 +6,6 @@ In areas where deviations are allowed, it MAY differ from GDI recommendations or
 ## Profiling configuration
 
 Additional profiling options specific to Java are available under `distribution.splunk.profiling`.
-Include the `Extra-Content-Type: otel-profiling-stacktraces` header with either `otlp_log_grpc` or `otlp_log_http` so receivers can identify profiling data.
-
 The following YAML snippet shows the complete supported structure of the profiling configuration:
 
 ```yaml
@@ -40,9 +38,11 @@ distribution:
 
       callgraphs:                   # SPLUNK_SNAPSHOT_PROFILER_ENABLED
         sampling_interval: 5        # SPLUNK_SNAPSHOT_SAMPLING_INTERVAL         (default: 10)
-        export_interval: 2000       # SPLUNK_PROFILER_EXPORT_INTERVAL           (default: 5000)
+        export_interval: 2000       # SPLUNK_SNAPSHOT_PROFILER_EXPORT_INTERVAL  (default: 5000)
         selection_probability: 0.5  # SPLUNK_SNAPSHOT_SELECTION_PROBABILITY     (default: 0.01)
         report_locks: true          # SPLUNK_SNAPSHOT_PROFILER_LOCKS_ENABLED    (default: false)
         staging_capacity: 1000      # SPLUNK_SNAPSHOT_PROFILER_STAGING_CAPACITY (default: 2000)
         stack_depth: 2048           # SPLUNK_SNAPSHOT_PROFILER_MAX_STACK_DEPTH  (default: 1024)
 ```
+Parsing content of `.distribution` node is relaxed. Any additional node can be put under it and parser
+do not report any error, as long as YAML is well-formed.

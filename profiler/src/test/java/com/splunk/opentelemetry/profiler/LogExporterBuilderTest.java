@@ -16,8 +16,6 @@
 
 package com.splunk.opentelemetry.profiler;
 
-import static com.splunk.opentelemetry.profiler.LogExporterBuilder.EXTRA_CONTENT_TYPE;
-import static com.splunk.opentelemetry.profiler.LogExporterBuilder.STACKTRACES_HEADER_VALUE;
 import static com.splunk.opentelemetry.testing.declarativeconfig.DeclarativeConfigTestUtil.getProfilingConfig;
 import static io.opentelemetry.api.incubator.config.DeclarativeConfigProperties.empty;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
@@ -64,7 +62,6 @@ class LogExporterBuilderTest {
       OtlpGrpcLogRecordExporterBuilder builder = mock(OtlpGrpcLogRecordExporterBuilder.class);
       OtlpGrpcLogRecordExporter expected = mock(OtlpGrpcLogRecordExporter.class);
 
-      when(builder.addHeader(EXTRA_CONTENT_TYPE, STACKTRACES_HEADER_VALUE)).thenReturn(builder);
       when(builder.build()).thenReturn(expected);
       when(config.getIngestUrl()).thenReturn(DEFAULT_GRPC_LOG_ENDPOINT);
 
@@ -74,6 +71,7 @@ class LogExporterBuilderTest {
       // then
       assertThat(exporter).isSameAs(expected);
       verify(builder).setEndpoint(DEFAULT_GRPC_LOG_ENDPOINT);
+      verify(builder, never()).addHeader(anyString(), anyString());
     }
 
     @Test
@@ -84,7 +82,6 @@ class LogExporterBuilderTest {
       OtlpHttpLogRecordExporterBuilder builder = mock(OtlpHttpLogRecordExporterBuilder.class);
       OtlpHttpLogRecordExporter expected = mock(OtlpHttpLogRecordExporter.class);
 
-      when(builder.addHeader(EXTRA_CONTENT_TYPE, STACKTRACES_HEADER_VALUE)).thenReturn(builder);
       when(builder.build()).thenReturn(expected);
       when(config.getConfigProperties()).thenReturn(configProperties);
       when(configProperties.getString(eq("otel.exporter.otlp.protocol"), anyString()))
@@ -97,6 +94,7 @@ class LogExporterBuilderTest {
       // then
       assertThat(exporter).isSameAs(expected);
       verify(builder).setEndpoint(DEFAULT_HTTP_LOG_ENDPOINT);
+      verify(builder, never()).addHeader(anyString(), anyString());
     }
 
     @Test
@@ -117,7 +115,6 @@ class LogExporterBuilderTest {
       OtlpHttpLogRecordExporterBuilder builder = mock(OtlpHttpLogRecordExporterBuilder.class);
       OtlpHttpLogRecordExporter expected = mock(OtlpHttpLogRecordExporter.class);
 
-      when(builder.addHeader(anyString(), anyString())).thenReturn(builder);
       when(builder.build()).thenReturn(expected);
 
       // when
@@ -125,7 +122,6 @@ class LogExporterBuilderTest {
 
       // then
       assertThat(exporter).isSameAs(expected);
-      verify(builder).addHeader(EXTRA_CONTENT_TYPE, STACKTRACES_HEADER_VALUE);
       verify(builder).addHeader("log", "lady");
       verify(builder, never()).addHeader("foo", "bar");
       verify(builder, never()).addHeader("bar", "baz");
@@ -147,7 +143,6 @@ class LogExporterBuilderTest {
       OtlpHttpLogRecordExporterBuilder builder = mock(OtlpHttpLogRecordExporterBuilder.class);
       OtlpHttpLogRecordExporter expected = mock(OtlpHttpLogRecordExporter.class);
 
-      when(builder.addHeader(anyString(), anyString())).thenReturn(builder);
       when(builder.build()).thenReturn(expected);
 
       // when
@@ -155,7 +150,8 @@ class LogExporterBuilderTest {
 
       // then
       assertThat(exporter).isSameAs(expected);
-      verify(builder).addHeader(EXTRA_CONTENT_TYPE, STACKTRACES_HEADER_VALUE);
+      verify(builder).addHeader("foo", "bar");
+      verify(builder).addHeader("bar", "baz");
     }
   }
 
@@ -231,6 +227,29 @@ class LogExporterBuilderTest {
 
       // then
       assertThat(exporter).isNotNull();
+    }
+
+    @Test
+    void shouldCreateDefaultExporter() {
+      // given
+      OpenTelemetryConfigurationModel model =
+          DeclarativeConfigTestUtil.parse(
+              """
+            file_format: "1.1"
+            distribution:
+              splunk:
+                profiling:
+          """);
+
+      DeclarativeConfigProperties exporterConfig = getExporterConfig(model);
+
+      // when
+      LogRecordExporter exporter = LogExporterBuilder.fromDeclarativeConfig(exporterConfig);
+
+      // then
+      assertThat(exporter).isNotNull();
+      assertThat(exporter).isInstanceOf(OtlpHttpLogRecordExporter.class);
+      assertThat(exporter.toString()).contains("http://localhost:4318/v1/logs");
     }
 
     @Test

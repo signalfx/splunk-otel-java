@@ -30,15 +30,15 @@ public final class DeclarativeConfigPropertiesUtil {
     if (structured != null) {
       return structured;
     }
-    return emptyPreservingLoader(parent);
+    return emptyWithLoaderPreserved(parent);
   }
 
-  public static DeclarativeConfigProperties emptyPreservingLoader(
+  public static DeclarativeConfigProperties emptyWithLoaderPreserved(
       DeclarativeConfigProperties parent) {
-    return createPreservingLoader(parent, Collections.emptyMap());
+    return createWithLoaderPreserved(parent, Collections.emptyMap());
   }
 
-  public static DeclarativeConfigProperties createPreservingLoader(
+  public static DeclarativeConfigProperties createWithLoaderPreserved(
       DeclarativeConfigProperties parent, Map<String, Object> properties) {
     return YamlDeclarativeConfigProperties.create(properties, parent.getComponentLoader());
   }

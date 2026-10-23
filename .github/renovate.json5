@@ -3,7 +3,10 @@
   "extends": [
     "config:base"
   ],
-  "ignorePaths": ["instrumentation/**"],
+  "ignorePaths": [
+    "instrumentation/**",
+    ".gitlab-ci.yml"
+  ],
   "packageRules": [
     {
       "description": "Update the bundled CSA release",

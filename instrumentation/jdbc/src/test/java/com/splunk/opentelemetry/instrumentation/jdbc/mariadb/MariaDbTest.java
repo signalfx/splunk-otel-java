@@ -39,7 +39,9 @@ class MariaDbTest extends AbstractConnectionUsingDbContextPropagationTest {
   static final AgentInstrumentationExtension testing = AgentInstrumentationExtension.create();
 
   private static final MariaDBContainer server =
-      new MariaDBContainer("mariadb:10.3.6").withLogConsumer(new Slf4jLogConsumer(logger));
+      new MariaDBContainer("mariadb:10.3.6")
+          .withLogConsumer(new Slf4jLogConsumer(logger))
+          .withUrlParam("sslMode", "disable");
 
   @BeforeAll
   static void setup() throws Exception {

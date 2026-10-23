@@ -22,71 +22,95 @@ import com.google.common.annotations.VisibleForTesting;
 import com.splunk.opentelemetry.profiler.util.DeclarativeConfigPropertiesUtil;
 import io.opentelemetry.api.incubator.config.ConfigProvider;
 import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
+import io.opentelemetry.api.metrics.MeterProvider;
 import io.opentelemetry.common.ComponentLoader;
 import io.opentelemetry.exporter.otlp.http.logs.OtlpHttpLogRecordExporter;
 import io.opentelemetry.exporter.otlp.http.logs.OtlpHttpLogRecordExporterBuilder;
 import io.opentelemetry.exporter.otlp.internal.OtlpConfigUtil;
-import io.opentelemetry.exporter.otlp.internal.OtlpGrpcLogRecordExporterComponentProvider;
-import io.opentelemetry.exporter.otlp.internal.OtlpHttpLogRecordExporterComponentProvider;
+import io.opentelemetry.exporter.otlp.internal.OtlpDeclarativeConfigUtil;
 import io.opentelemetry.exporter.otlp.logs.OtlpGrpcLogRecordExporter;
 import io.opentelemetry.exporter.otlp.logs.OtlpGrpcLogRecordExporterBuilder;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigurationException;
 import io.opentelemetry.sdk.autoconfigure.spi.internal.ExtendedDeclarativeConfigProperties;
 import io.opentelemetry.sdk.logs.export.LogRecordExporter;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Supplier;
 import javax.annotation.Nullable;
 
 class LogExporterBuilder {
 
-  static final String EXTRA_CONTENT_TYPE = "Extra-Content-Type";
-  static final String STACKTRACES_HEADER_VALUE = "otel-profiling-stacktraces";
-  private static final String DEFAULT_HTTP_LOG_ENDPOINT = "http://localhost:4318/v1/logs";
-
   static LogRecordExporter fromDeclarativeConfig(
       DeclarativeConfigProperties exporterConfigProperties) {
     if (exporterConfigProperties != null) {
       Set<String> propertyKeys = exporterConfigProperties.getPropertyKeys();
       if (propertyKeys.isEmpty()) {
-        DeclarativeConfigProperties otlpHttp = defaultOtlpHttpConfig(exporterConfigProperties);
-        OtlpHttpLogRecordExporterComponentProvider provider =
-            new OtlpHttpLogRecordExporterComponentProvider();
-        return provider.create(toExtended(otlpHttp));
+        // Create a default exporter if no exporter config provided
+        return buildDeclarativeHttpExporter(exporterConfigProperties);
       }
 
       if (propertyKeys.contains("otlp_log_http")) {
         DeclarativeConfigProperties otlpHttp =
             DeclarativeConfigPropertiesUtil.getStructuredOrEmpty(
                 exporterConfigProperties, "otlp_log_http");
-        OtlpHttpLogRecordExporterComponentProvider provider =
-            new OtlpHttpLogRecordExporterComponentProvider();
-        return provider.create(toExtended(otlpHttp));
+        return buildDeclarativeHttpExporter(otlpHttp);
       }
 
       if (propertyKeys.contains("otlp_log_grpc")) {
         DeclarativeConfigProperties otlpGrpc =
             DeclarativeConfigPropertiesUtil.getStructuredOrEmpty(
                 exporterConfigProperties, "otlp_log_grpc");
-        OtlpGrpcLogRecordExporterComponentProvider provider =
-            new OtlpGrpcLogRecordExporterComponentProvider();
-        return provider.create(toExtended(otlpGrpc));
+        return buildDeclarativeGrpcExporter(otlpGrpc);
       }
     }
 
     throw new ConfigurationException("Profiler exporter configuration is invalid");
   }
 
-  private static DeclarativeConfigProperties defaultOtlpHttpConfig(
-      DeclarativeConfigProperties exporterConfigProperties) {
-    Map<String, Object> properties = new HashMap<>();
-    properties.put("endpoint", DEFAULT_HTTP_LOG_ENDPOINT);
-    properties.put("encoding", "protobuf");
-    return DeclarativeConfigPropertiesUtil.createPreservingLoader(
-        exporterConfigProperties, properties);
+  private static LogRecordExporter buildDeclarativeHttpExporter(
+      DeclarativeConfigProperties config) {
+    OtlpHttpLogRecordExporterBuilder builder = OtlpHttpLogRecordExporter.builder();
+    OtlpDeclarativeConfigUtil.configureOtlpExporterBuilder(
+        DATA_TYPE_LOGS,
+        toExtended(config),
+        builder::setComponentLoader,
+        builder::setEndpoint,
+        builder::addHeader,
+        builder::setCompression,
+        builder::setTimeout,
+        builder::setTrustedCertificates,
+        builder::setClientTls,
+        builder::setRetryPolicy,
+        builder::setMemoryMode,
+        /* isHttpProtobuf= */ true,
+        builder::setInternalTelemetryVersion,
+        () -> builder.setMeterProvider(MeterProvider::noop));
+
+    return builder.build();
+  }
+
+  private static LogRecordExporter buildDeclarativeGrpcExporter(
+      DeclarativeConfigProperties config) {
+    OtlpGrpcLogRecordExporterBuilder builder = OtlpGrpcLogRecordExporter.builder();
+    OtlpDeclarativeConfigUtil.configureOtlpExporterBuilder(
+        DATA_TYPE_LOGS,
+        toExtended(config),
+        builder::setComponentLoader,
+        builder::setEndpoint,
+        builder::addHeader,
+        builder::setCompression,
+        builder::setTimeout,
+        builder::setTrustedCertificates,
+        builder::setClientTls,
+        builder::setRetryPolicy,
+        builder::setMemoryMode,
+        /* isHttpProtobuf= */ false,
+        builder::setInternalTelemetryVersion,
+        () -> builder.setMeterProvider(MeterProvider::noop));
+
+    return builder.build();
   }
 
   static LogRecordExporter fromEnvironmentConfig() {
@@ -104,15 +128,21 @@ class LogExporterBuilder {
   static LogRecordExporter buildGrpcExporter(
       ProfilerConfiguration config, Supplier<OtlpGrpcLogRecordExporterBuilder> makeBuilder) {
     OtlpGrpcLogRecordExporterBuilder builder = makeBuilder.get();
-    String ingestUrl = config.getIngestUrl();
-    builder.setEndpoint(ingestUrl);
 
-    return builder.addHeader(EXTRA_CONTENT_TYPE, STACKTRACES_HEADER_VALUE).build();
+    String ingestUrl = config.getIngestUrl();
+    if (ingestUrl != null) {
+      builder.setEndpoint(ingestUrl);
+    }
+
+    return builder.build();
   }
 
   @VisibleForTesting
   static LogRecordExporter buildHttpExporter(
       ProfilerConfiguration config, Supplier<OtlpHttpLogRecordExporterBuilder> makeBuilder) {
+    Objects.requireNonNull(
+        config.getConfigProperties(),
+        "Null env-vars based ConfigProperties in ProfilerConfiguration.");
     OtlpHttpLogRecordExporterBuilder builder = makeBuilder.get();
     String ingestUrl = config.getIngestUrl();
 
@@ -130,9 +160,11 @@ class LogExporterBuilder {
         builder::setMemoryMode,
         builder::setInternalTelemetryVersion);
 
-    builder.setEndpoint(ingestUrl);
+    if (ingestUrl != null) {
+      builder.setEndpoint(ingestUrl);
+    }
 
-    return builder.addHeader(EXTRA_CONTENT_TYPE, STACKTRACES_HEADER_VALUE).build();
+    return builder.build();
   }
 
   public static ExtendedDeclarativeConfigProperties toExtended(

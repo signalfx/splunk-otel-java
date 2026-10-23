@@ -33,8 +33,8 @@ distribution:
           mode: java
           sampling_interval: 1000   # SPLUNK_PROFILER_CALL_STACK_INTERVAL       (default: 10000)
         memory_profiler:            # SPLUNK_PROFILER_MEMORY_ENABLED
-          event_rate: "200/s"       # SPLUNK_PROFILER_MEMORY_EVENT_RATE         (default: 150/s)
-          native_sampling: true     # SPLUNK_PROFILER_MEMORY_NATIVE_SAMPLING   (default: false)
+          event_rate: "150/s"       # SPLUNK_PROFILER_MEMORY_EVENT_RATE         (omitted: no rate limit)
+          native_sampling: true     # SPLUNK_PROFILER_MEMORY_NATIVE_SAMPLING    (default: false)
 
       callgraphs:                   # SPLUNK_SNAPSHOT_PROFILER_ENABLED
         sampling_interval: 5        # SPLUNK_SNAPSHOT_SAMPLING_INTERVAL         (default: 10)

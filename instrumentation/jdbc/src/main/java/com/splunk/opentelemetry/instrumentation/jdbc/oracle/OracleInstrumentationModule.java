@@ -54,10 +54,11 @@ public class OracleInstrumentationModule extends InstrumentationModule {
 
   @Override
   public List<String> exposedClassNames() {
-    // OracleContextPropagator is used with CallDepth to skip instrumenting nested calls.
-    // This class is loaded in the insolated instrumentation class loaded we expose it to
-    // application class loader so that tests can temporarily disable instrumentation to read
-    // tracing state.
+    // Statement instrumentation uses OracleContextPropagator class with CallDepth to skip
+    // instrumenting the nested statement that propagates context to db. This class is loaded in the
+    // isolated instrumentation class loader. We expose it to application class loader so that tests
+    // can temporarily disable instrumentation with CallDepth to read the curent tracing context
+    // from the db.
     return Boolean.getBoolean("jdbcTestMode")
         ? singletonList(
             "com.splunk.opentelemetry.instrumentation.jdbc.oracle.OracleContextPropagator")

@@ -118,8 +118,7 @@ public class WebLogicAttributesInstrumentationModule extends InstrumentationModu
   @SuppressWarnings("unused")
   private static class ServletAdvice {
     @Advice.OnMethodEnter(suppress = Throwable.class, inline = false)
-    public static void start(
-        @Advice.Argument(value = 0, readOnly = false) HttpServletRequest request) {
+    public static void start(@Advice.Argument(0) HttpServletRequest request) {
       Object value = request.getAttribute("otel.webengine");
 
       if (value instanceof Map<?, ?>) {

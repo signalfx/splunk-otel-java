@@ -45,7 +45,7 @@ public class SpringBootSmokeTest extends AppServerTest {
     return Map.of(
         "SPRING_APPLICATION_NAME",
         "smoke-test-app",
-        "OTEL_INSTRUMENTATION_COMMON_EXPERIMENTAL_CONTROLLER_TELEMETRY_ENABLED",
+        "OTEL_INSTRUMENTATION_COMMON_CONTROLLER_TELEMETRY_ENABLED",
         "true",
         "OTEL_INSTRUMENTATION_JVM_METRICS_SPLUNK_ENABLED",
         "true");

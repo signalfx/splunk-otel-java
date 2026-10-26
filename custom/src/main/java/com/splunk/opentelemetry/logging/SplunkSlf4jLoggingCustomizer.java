@@ -65,6 +65,14 @@ public class SplunkSlf4jLoggingCustomizer implements LoggingCustomizer {
       setLogLevelIfNotSet(
           "org.openjdk.jmc.flightrecorder.internal.parser.v1.ValueReaders$ReflectiveReader",
           "ERROR");
+
+      // Silence log messages about merging resources with different schema urls. This can be
+      // removed after upstream fix.
+      // [otel.javaagent 2026-10-26 08:16:26:423 +0200] [main] INFO
+      // io.opentelemetry.sdk.resources.Resource - Attempting to merge Resources with different
+      // schemaUrls. The resulting Resource will have no schemaUrl assigned. Schema 1:
+      // https://opentelemetry.io/schemas/1.40.0 Schema 2: https://opentelemetry.io/schemas/1.24.0
+      setLogLevelIfNotSet("io.opentelemetry.sdk.resources.Resource", "WARN");
     }
   }
 

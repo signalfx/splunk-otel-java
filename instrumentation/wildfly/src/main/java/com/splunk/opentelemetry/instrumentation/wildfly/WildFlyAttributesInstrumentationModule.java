@@ -67,14 +67,14 @@ public class WildFlyAttributesInstrumentationModule extends InstrumentationModul
 
   @SuppressWarnings("unused")
   public static class WebengineInitializedAdvice {
-    @Advice.OnMethodEnter
+    @Advice.OnMethodEnter(inline = false)
     public static CallDepth onEnter() {
       CallDepth callDepth = CallDepth.forClass(ProductConfig.class);
       callDepth.getAndIncrement();
       return callDepth;
     }
 
-    @Advice.OnMethodExit(suppress = Throwable.class)
+    @Advice.OnMethodExit(suppress = Throwable.class, inline = false)
     public static void onExit(
         @Advice.Enter CallDepth callDepth,
         @Advice.FieldValue("productConfig") ProductConfig productConfig) {

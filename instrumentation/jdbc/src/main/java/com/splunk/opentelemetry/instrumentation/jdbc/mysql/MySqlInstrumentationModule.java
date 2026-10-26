@@ -16,6 +16,7 @@
 
 package com.splunk.opentelemetry.instrumentation.jdbc.mysql;
 
+import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 
 import com.google.auto.service.AutoService;
@@ -49,5 +50,17 @@ public class MySqlInstrumentationModule extends InstrumentationModule {
   @Override
   public boolean isHelperClass(String className) {
     return className.startsWith("com.splunk.opentelemetry.instrumentation");
+  }
+
+  @Override
+  public List<String> exposedClassNames() {
+    // MySqlContextPropagator is used with CallDepth to skip instrumenting nested calls.
+    // This class is loaded in the insolated instrumentation class loaded we expose it to
+    // application class loader so that tests can temporarily disable instrumentation to read
+    // tracing state.
+    return Boolean.getBoolean("jdbcTestMode")
+        ? singletonList(
+            "com.splunk.opentelemetry.instrumentation.jdbc.mysql.MySqlContextPropagator")
+        : emptyList();
   }
 }

@@ -59,6 +59,7 @@ dependencies {
 
 tasks.withType<Test>().configureEach {
   systemProperty("testLatestDeps", findProperty("testLatestDeps") as Boolean)
+  systemProperty("jdbcTestMode", "true")
   jvmArgs("-Dotel.instrumentation.splunk-jdbc.enabled=true")
   jvmArgs("-Dotel.service.name=test-service")
 }

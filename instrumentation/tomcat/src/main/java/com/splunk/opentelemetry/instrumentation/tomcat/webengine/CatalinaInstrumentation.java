@@ -45,7 +45,7 @@ final class CatalinaInstrumentation implements TypeInstrumentation {
   @SuppressWarnings("unused")
   public static class WebengineInitializedAdvice {
 
-    @Advice.OnMethodEnter(suppress = Throwable.class)
+    @Advice.OnMethodEnter(suppress = Throwable.class, inline = false)
     public static void onEnter() {
       WebengineHolder.trySetVersion(ServerInfo.getServerNumber());
       WebengineHolder.trySetName("tomcat");

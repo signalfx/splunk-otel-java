@@ -27,7 +27,7 @@ import static net.bytebuddy.matcher.ElementMatchers.takesArgument;
 
 import com.google.auto.service.AutoService;
 import io.opentelemetry.api.trace.Span;
-import io.opentelemetry.javaagent.bootstrap.Java8BytecodeBridge;
+import io.opentelemetry.context.Context;
 import io.opentelemetry.javaagent.extension.instrumentation.InstrumentationModule;
 import io.opentelemetry.javaagent.extension.instrumentation.TypeInstrumentation;
 import io.opentelemetry.javaagent.extension.instrumentation.TypeTransformer;
@@ -84,8 +84,9 @@ public class WebLogicAttributesInstrumentationModule extends InstrumentationModu
     }
   }
 
+  @SuppressWarnings("unused")
   private static class WebengineAdvice {
-    @Advice.OnMethodEnter(suppress = Throwable.class)
+    @Advice.OnMethodEnter(suppress = Throwable.class, inline = false)
     public static void start(@Advice.Argument(1) HttpServletRequest servletRequest) {
       WebLogicAttributeCollector.attachWebengineAttributes(servletRequest);
     }
@@ -114,15 +115,15 @@ public class WebLogicAttributesInstrumentationModule extends InstrumentationModu
     }
   }
 
+  @SuppressWarnings("unused")
   private static class ServletAdvice {
-    @Advice.OnMethodEnter(suppress = Throwable.class)
+    @Advice.OnMethodEnter(suppress = Throwable.class, inline = false)
     public static void start(
         @Advice.Argument(value = 0, readOnly = false) HttpServletRequest request) {
       Object value = request.getAttribute("otel.webengine");
 
       if (value instanceof Map<?, ?>) {
-        Span span = Java8BytecodeBridge.currentSpan();
-
+        Span span = Span.fromContextOrNull(Context.current());
         if (span != null) {
           for (Map.Entry<?, ?> entry : ((Map<?, ?>) value).entrySet()) {
             if (entry.getValue() != null) {

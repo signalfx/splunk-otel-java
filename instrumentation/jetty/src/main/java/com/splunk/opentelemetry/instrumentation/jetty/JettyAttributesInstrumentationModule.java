@@ -67,7 +67,7 @@ public class JettyAttributesInstrumentationModule extends InstrumentationModule 
 
   @SuppressWarnings("unused")
   public static class WebengineInitializedAdvice {
-    @Advice.OnMethodEnter(suppress = Throwable.class)
+    @Advice.OnMethodEnter(suppress = Throwable.class, inline = false)
     public static void onEnter() {
       WebengineHolder.trySetVersion(Server.getVersion());
       WebengineHolder.trySetName("jetty");

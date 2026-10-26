@@ -60,7 +60,7 @@ public class TomeeAttributesInstrumentationModule extends InstrumentationModule 
 
   @SuppressWarnings("unused")
   public static class WebengineInitializedAdvice {
-    @Advice.OnMethodEnter(suppress = Throwable.class)
+    @Advice.OnMethodEnter(suppress = Throwable.class, inline = false)
     public static void onEnter() {
       String version = OpenEjbVersion.get().getVersion();
       WebengineHolder.trySetVersion(version);

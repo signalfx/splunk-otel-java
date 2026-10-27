@@ -52,23 +52,28 @@ public class RuleBasedSamplerProvider implements ConfigurableSamplerProvider {
     logger.log(INFO, "Received following rules: {0}", samplerConfiguration);
 
     ComposableRuleBasedSamplerBuilder builder = ComposableSampler.ruleBasedBuilder();
+    // non-server spans are always sampled
+    builder.add(
+        (parentContext, name, spanKind, attributes, parentLinks) -> spanKind != SpanKind.SERVER,
+        ComposableSampler.alwaysOn());
     samplerConfiguration.drop.forEach(
         s -> {
           Pattern pattern = Pattern.compile(s);
           builder.add(
               (parentContext, name, spanKind, attributes, parentLinks) -> {
-                if (spanKind != SpanKind.SERVER) {
-                  return true;
-                }
                 String value = attributes.get(getHttpPathAttribute());
                 if (value == null) {
-                  return true;
+                  return false;
                 }
 
-                return !pattern.matcher(value).find();
+                return pattern.matcher(value).find();
               },
-              ComposableSampler.alwaysOn());
+              ComposableSampler.alwaysOff());
         });
+    // everything that wasn't matched by previous rules is sampled
+    builder.add(
+        (parentContext, name, spanKind, attributes, parentLinks) -> true,
+        ComposableSampler.alwaysOn());
 
     Sampler ruleBasedSampler = CompositeSampler.wrap(builder.build());
     return new Sampler() {

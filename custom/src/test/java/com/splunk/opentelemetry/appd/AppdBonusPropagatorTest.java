@@ -81,11 +81,6 @@ class AppdBonusPropagatorTest {
         context,
         map,
         new TextMapGetter<>() {
-          @Override
-          public Iterable<String> keys(Map<String, String> carrier) {
-            return carrier.keySet();
-          }
-
           @Nullable
           @Override
           public String get(@Nullable Map<String, String> carrier, String key) {

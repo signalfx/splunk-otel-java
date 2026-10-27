@@ -103,7 +103,7 @@ public class KHttpInstrumentation implements TypeInstrumentation {
     }
 
     @AssignReturned.ToArguments(@ToArgument(value = 2, index = 1))
-    @Advice.OnMethodEnter(suppress = Throwable.class)
+    @Advice.OnMethodEnter(suppress = Throwable.class, inline = false)
     public static Object[] methodEnter(
         @Advice.Argument(0) String method,
         @Advice.Argument(1) String uri,
@@ -116,7 +116,7 @@ public class KHttpInstrumentation implements TypeInstrumentation {
       return new Object[] {adviceScope, adviceScope.getHeaders()};
     }
 
-    @Advice.OnMethodExit(onThrowable = Throwable.class, suppress = Throwable.class)
+    @Advice.OnMethodExit(onThrowable = Throwable.class, suppress = Throwable.class, inline = false)
     public static void methodExit(
         @Advice.Return Response response,
         @Advice.Thrown Throwable throwable,

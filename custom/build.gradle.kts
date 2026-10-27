@@ -21,7 +21,6 @@ dependencies {
   annotationProcessor("com.google.auto.service:auto-service")
   compileOnly("com.google.auto.service:auto-service")
 
-  implementation("io.opentelemetry.contrib:opentelemetry-samplers")
   implementation("io.opentelemetry.contrib:opentelemetry-resource-providers")
   testFixturesApi(project(":testing:common"))
   testImplementation("io.opentelemetry:opentelemetry-sdk")

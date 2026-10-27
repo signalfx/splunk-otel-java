@@ -16,21 +16,28 @@
 
 package com.splunk.opentelemetry.sampler;
 
+import static io.opentelemetry.sdk.trace.samplers.SamplingDecision.DROP;
 import static java.util.logging.Level.INFO;
 import static java.util.logging.Level.WARNING;
 
 import com.google.auto.service.AutoService;
 import io.opentelemetry.api.common.AttributeKey;
+import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.trace.SpanKind;
-import io.opentelemetry.contrib.sampler.RuleBasedRoutingSampler;
-import io.opentelemetry.contrib.sampler.RuleBasedRoutingSamplerBuilder;
+import io.opentelemetry.context.Context;
 import io.opentelemetry.sdk.autoconfigure.spi.ConfigProperties;
 import io.opentelemetry.sdk.autoconfigure.spi.traces.ConfigurableSamplerProvider;
+import io.opentelemetry.sdk.extension.incubator.trace.samplers.ComposableRuleBasedSamplerBuilder;
+import io.opentelemetry.sdk.extension.incubator.trace.samplers.ComposableSampler;
+import io.opentelemetry.sdk.extension.incubator.trace.samplers.CompositeSampler;
+import io.opentelemetry.sdk.trace.data.LinkData;
 import io.opentelemetry.sdk.trace.samplers.Sampler;
+import io.opentelemetry.sdk.trace.samplers.SamplingResult;
 import io.opentelemetry.semconv.UrlAttributes;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
 
 @AutoService(ConfigurableSamplerProvider.class)
 public class RuleBasedSamplerProvider implements ConfigurableSamplerProvider {
@@ -44,11 +51,50 @@ public class RuleBasedSamplerProvider implements ConfigurableSamplerProvider {
 
     logger.log(INFO, "Received following rules: {0}", samplerConfiguration);
 
-    RuleBasedRoutingSamplerBuilder builder =
-        RuleBasedRoutingSampler.builder(SpanKind.SERVER, samplerConfiguration.fallback);
-    samplerConfiguration.drop.forEach(d -> builder.drop(getHttpPathAttribute(), d));
+    ComposableRuleBasedSamplerBuilder builder = ComposableSampler.ruleBasedBuilder();
+    samplerConfiguration.drop.forEach(
+        s -> {
+          Pattern pattern = Pattern.compile(s);
+          builder.add(
+              (parentContext, name, spanKind, attributes, parentLinks) -> {
+                if (spanKind != SpanKind.SERVER) {
+                  return true;
+                }
+                String value = attributes.get(getHttpPathAttribute());
+                if (value == null) {
+                  return true;
+                }
 
-    return builder.build();
+                return !pattern.matcher(value).find();
+              },
+              ComposableSampler.alwaysOn());
+        });
+
+    Sampler ruleBasedSampler = CompositeSampler.wrap(builder.build());
+    return new Sampler() {
+      @Override
+      public SamplingResult shouldSample(
+          Context parentContext,
+          String traceId,
+          String name,
+          SpanKind spanKind,
+          Attributes attributes,
+          List<LinkData> parentLinks) {
+        SamplingResult result =
+            ruleBasedSampler.shouldSample(
+                parentContext, traceId, name, spanKind, attributes, parentLinks);
+        if (result.getDecision() == DROP) {
+          return result;
+        }
+        return samplerConfiguration.fallback.shouldSample(
+            parentContext, traceId, name, spanKind, attributes, parentLinks);
+      }
+
+      @Override
+      public String getDescription() {
+        return "RuleBasedSampler";
+      }
+    };
   }
 
   private AttributeKey<String> getHttpPathAttribute() {

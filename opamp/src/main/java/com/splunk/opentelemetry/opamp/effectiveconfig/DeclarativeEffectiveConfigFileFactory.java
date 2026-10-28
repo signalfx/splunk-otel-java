@@ -116,8 +116,7 @@ class DeclarativeEffectiveConfigFileFactory implements EffectiveConfigFileFactor
                 "sampling_interval", snapshotConfiguration.getSamplingInterval().toMillis());
             callgraphs.addNode(
                 "selection_probability", snapshotConfiguration.getSnapshotSelectionProbability());
-            callgraphs.addNode(
-                "report_locks", snapshotConfiguration.getLocksEnabled());
+            callgraphs.addNode("report_locks", snapshotConfiguration.getLocksEnabled());
           });
     }
   }
@@ -128,10 +127,13 @@ class DeclarativeEffectiveConfigFileFactory implements EffectiveConfigFileFactor
       profiling.addNode(
           "always_on",
           alwaysOn -> {
-            alwaysOn.addNode("cpu_profiler", cpuProfiler -> {
-              cpuProfiler.addNode("sampling_interval", profilerConfiguration.getCallStackInterval().toMillis());
-              cpuProfiler.addNode("report_locks", profilerConfiguration.getLocksEnabled());
-            });
+            alwaysOn.addNode(
+                "cpu_profiler",
+                cpuProfiler -> {
+                  cpuProfiler.addNode(
+                      "sampling_interval", profilerConfiguration.getCallStackInterval().toMillis());
+                  cpuProfiler.addNode("report_locks", profilerConfiguration.getLocksEnabled());
+                });
             if (profilerConfiguration.getMemoryEnabled()) {
               alwaysOn.addNode("memory_profiler", EmptyYamlNode.INSTANCE);
             }

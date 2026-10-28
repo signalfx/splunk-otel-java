@@ -57,6 +57,7 @@ class EnvVarsEffectiveConfigFileFactory implements EffectiveConfigFileFactory {
         .add("SPLUNK_PROFILER_CALL_STACK_INTERVAL", profilerConfiguration.getCallStackInterval())
         .add("SPLUNK_PROFILER_MEMORY_ENABLED", profilerConfiguration.getMemoryEnabled())
         .add("SPLUNK_SNAPSHOT_PROFILER_ENABLED", snapshotConfiguration.isEnabled())
+        .add("SPLUNK_SNAPSHOT_PROFILER_LOCKS_ENABLED", snapshotConfiguration.getLocksEnabled())
         .add(
             "SPLUNK_SNAPSHOT_PROFILER_SAMPLING_INTERVAL",
             snapshotConfiguration.getSamplingInterval())

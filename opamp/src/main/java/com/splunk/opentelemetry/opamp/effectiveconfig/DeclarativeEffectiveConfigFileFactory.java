@@ -116,6 +116,8 @@ class DeclarativeEffectiveConfigFileFactory implements EffectiveConfigFileFactor
                 "sampling_interval", snapshotConfiguration.getSamplingInterval().toMillis());
             callgraphs.addNode(
                 "selection_probability", snapshotConfiguration.getSnapshotSelectionProbability());
+            callgraphs.addNode(
+                "report_locks", snapshotConfiguration.getLocksEnabled());
           });
     }
   }

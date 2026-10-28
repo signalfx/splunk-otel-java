@@ -111,6 +111,7 @@ class DeclarativeEffectiveConfigFileFactoryTest {
               callgraphs:
                 sampling_interval: 10
                 selection_probability: 0.1507
+                report_locks: true
         """;
 
     // when
@@ -138,6 +139,7 @@ class DeclarativeEffectiveConfigFileFactoryTest {
                   callgraphs:
                     sampling_interval: 10
                     selection_probability: 0.1507
+                    report_locks: true
             """);
 
     String disabledConfigYaml =
@@ -429,6 +431,7 @@ class DeclarativeEffectiveConfigFileFactoryTest {
                   callgraphs:
                     sampling_interval: 10
                     selection_probability: 0.0123
+                    report_locks: false
             """);
   }
 

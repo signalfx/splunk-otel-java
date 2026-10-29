@@ -52,7 +52,7 @@ class JfrAgentListenerTest {
     // given
     String yaml =
         """
-        file_format: "1.1"
+        file_format: "1.2"
         distribution:
           splunk:
             profiling:
@@ -87,7 +87,7 @@ class JfrAgentListenerTest {
     // given
     String yaml =
         """
-        file_format: "1.1"
+        file_format: "1.2"
         distribution:
           splunk:
             profiling:
@@ -144,21 +144,21 @@ class JfrAgentListenerTest {
 
   private List<Arguments> generateNoProfilerYamlStrings() {
     return List.of(
-        Arguments.of("file_format: \"1.1\""),
+        Arguments.of("file_format: \"1.2\""),
         Arguments.of(
             """
-        file_format: "1.1"
+        file_format: "1.2"
         distribution:
         """),
         Arguments.of(
             """
-        file_format: "1.1"
+        file_format: "1.2"
         distribution:
           splunk:
         """),
         Arguments.of(
             """
-        file_format: "1.1"
+        file_format: "1.2"
         distribution:
           splunk:
             something:

@@ -32,7 +32,7 @@ class SnapshotProfilingDeclarativeConfigurationFactoryTest {
     OpenTelemetryConfigurationModel model =
         DeclarativeConfigTestUtil.parse(
             """
-            file_format: "1.1"
+            file_format: "1.2"
             distribution:
               splunk:
                 profiling:
@@ -67,7 +67,7 @@ class SnapshotProfilingDeclarativeConfigurationFactoryTest {
     OpenTelemetryConfigurationModel model =
         DeclarativeConfigTestUtil.parse(
             """
-            file_format: "1.1"
+            file_format: "1.2"
             distribution:
               splunk:
                 profiling:
@@ -96,7 +96,7 @@ class SnapshotProfilingDeclarativeConfigurationFactoryTest {
     OpenTelemetryConfigurationModel model =
         DeclarativeConfigTestUtil.parse(
             """
-            file_format: "1.1"
+            file_format: "1.2"
             distribution:
               splunk:
                 profiling:
@@ -118,7 +118,7 @@ class SnapshotProfilingDeclarativeConfigurationFactoryTest {
     OpenTelemetryConfigurationModel model =
         DeclarativeConfigTestUtil.parse(
             """
-            file_format: "1.1"
+            file_format: "1.2"
             distribution:
               splunk:
                 profiling:
@@ -143,7 +143,7 @@ class SnapshotProfilingDeclarativeConfigurationFactoryTest {
     OpenTelemetryConfigurationModel model =
         DeclarativeConfigTestUtil.parse(
             """
-            file_format: "1.1"
+            file_format: "1.2"
             distribution:
               splunk:
                 profiling:

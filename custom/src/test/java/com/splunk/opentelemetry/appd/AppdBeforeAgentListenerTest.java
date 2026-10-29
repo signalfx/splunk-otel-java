@@ -51,7 +51,7 @@ class AppdBeforeAgentListenerTest {
     AppdBeforeAgentListener agentListener = new AppdBeforeAgentListener();
     var yaml =
         """
-            file_format: "1.1"
+            file_format: "1.2"
             resource:
               attributes:
                 - name: service.name

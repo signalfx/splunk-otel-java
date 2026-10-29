@@ -122,12 +122,6 @@ public class MetadataGenerator {
             "https://github.com/open-telemetry/opentelemetry-java-contrib/tree/main/resource-providers",
             otelJavaContribAlphaVersion,
             Stability.EXPERIMENTAL));
-    dependencies.add(
-        dependency(
-            "OpenTelemetry Java Contrib Samplers",
-            "https://github.com/open-telemetry/opentelemetry-java-contrib/tree/main/samplers",
-            otelJavaContribAlphaVersion,
-            Stability.EXPERIMENTAL));
 
     List<Map<String, Object>> settings = new ArrayList<>();
     root.put("settings", settings);

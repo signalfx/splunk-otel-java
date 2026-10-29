@@ -53,7 +53,6 @@ dependencies {
     api("com.google.auto.value:auto-value:$autoValueVersion")
     api("com.google.auto.value:auto-value-annotations:$autoValueVersion")
 
-    api("io.opentelemetry.contrib:opentelemetry-samplers:$otelContribAlphaVersion")
     api("io.opentelemetry.contrib:opentelemetry-resource-providers:$otelContribAlphaVersion")
     api("io.opentelemetry.contrib:opentelemetry-opamp-client:${otelContribAlphaVersion}")
     api("io.opentelemetry.proto:opentelemetry-proto:1.11.1-alpha")

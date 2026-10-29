@@ -128,7 +128,7 @@ class NocodeInitializerTest {
       // given
       String yaml =
           """
-              file_format: "1.1"
+              file_format: "1.2"
               instrumentation/development:
                 java:
                   splunk:
@@ -153,7 +153,7 @@ class NocodeInitializerTest {
 
       String yaml =
           """
-              file_format: "1.1"
+              file_format: "1.2"
               instrumentation/development:
                 java:
                   splunk:
@@ -176,7 +176,7 @@ class NocodeInitializerTest {
       // given
       String yaml =
           """
-              file_format: "1.1"
+              file_format: "1.2"
               instrumentation/development:
                 java:
                   splunk:

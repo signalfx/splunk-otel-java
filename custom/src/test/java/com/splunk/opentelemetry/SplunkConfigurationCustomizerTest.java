@@ -100,6 +100,16 @@ class SplunkConfigurationCustomizerTest {
     assertInstrumentationNotChanged(config, "logback-appender");
   }
 
+  @Test
+  void attributeLengthLimit() {
+    ConfigProperties config = configuration(Map::of);
+    assertThat(config.getString("otel.attribute.value.length.limit")).isEqualTo("12000");
+
+    ConfigProperties overrideConfig =
+        configuration(() -> Map.of("otel.attribute.value.length.limit", "1"));
+    assertThat(overrideConfig.getString("otel.attribute.value.length.limit")).isEqualTo("1");
+  }
+
   private static ConfigProperties configuration() {
     return configuration(Map::of);
   }

@@ -48,6 +48,7 @@ public class SplunkConfigurationCustomizer implements AutoConfigurationCustomize
     Map<String, String> config = new HashMap<>();
 
     config.put("otel.traces.sampler", "always_on");
+    config.put("otel.attribute.value.length.limit", "12000");
 
     // truncate commandline when metrics enabled by default
     config.put(METRICS_FULL_COMMAND_LINE, "false");

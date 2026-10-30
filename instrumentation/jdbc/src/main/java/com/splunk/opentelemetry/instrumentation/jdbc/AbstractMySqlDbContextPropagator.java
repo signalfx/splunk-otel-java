@@ -26,8 +26,9 @@ public class AbstractMySqlDbContextPropagator extends AbstractDbContextPropagato
   @Override
   protected void setContext(Connection connection, @Nullable String contextInfo)
       throws SQLException {
-    PreparedStatement statement = connection.prepareStatement("set @traceparent=?");
-    statement.setString(1, contextInfo);
-    statement.executeUpdate();
+    try (PreparedStatement statement = connection.prepareStatement("set @traceparent=?")) {
+      statement.setString(1, contextInfo);
+      statement.executeUpdate();
+    }
   }
 }

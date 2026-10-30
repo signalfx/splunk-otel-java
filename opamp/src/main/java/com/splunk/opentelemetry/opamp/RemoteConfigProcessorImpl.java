@@ -125,6 +125,7 @@ public class RemoteConfigProcessorImpl implements RemoteConfigProcessor {
         currentConfiguration.toBuilder()
             .setEnabled(receivedConfiguration.isEnabled())
             .setCallStackInterval(receivedConfiguration.getCallStackInterval())
+            .setLocksEnabled(receivedConfiguration.getLocksEnabled())
             .setMemoryEnabled(receivedConfiguration.getMemoryEnabled())
             .build();
 
@@ -148,6 +149,7 @@ public class RemoteConfigProcessorImpl implements RemoteConfigProcessor {
             .setSamplingInterval(receivedConfiguration.getSamplingInterval())
             .setSnapshotSelectionProbability(
                 receivedConfiguration.getSnapshotSelectionProbability())
+            .setLocksEnabled(receivedConfiguration.getLocksEnabled())
             .build();
 
     if (!currentConfiguration.equals(updatedConfiguration)) {

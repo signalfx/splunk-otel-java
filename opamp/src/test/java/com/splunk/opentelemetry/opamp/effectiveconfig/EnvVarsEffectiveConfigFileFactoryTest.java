@@ -52,11 +52,13 @@ class EnvVarsEffectiveConfigFileFactoryTest {
         createFileContent(
             Map.ofEntries(
                 Map.entry("splunk.profiler.enabled", "true"),
+                Map.entry("splunk.profiler.call.stack.interval", "1235ms"),
+                Map.entry("splunk.profiler.locks.enabled", "true"),
                 Map.entry("splunk.profiler.memory.enabled", "true"),
                 Map.entry("splunk.snapshot.profiler.enabled", "true"),
+                Map.entry("splunk.snapshot.profiler.locks.enabled", "true"),
                 Map.entry("splunk.snapshot.sampling.interval", "26ms"),
                 Map.entry("splunk.snapshot.selection.probability", "0.0123"),
-                Map.entry("splunk.profiler.call.stack.interval", "1235ms"),
                 Map.entry("otel.exporter.otlp.endpoint", "https://base.example.com"),
                 Map.entry("otel.exporter.otlp.traces.endpoint", "https://traces.example.com"),
                 Map.entry("otel.exporter.otlp.metrics.endpoint", "https://metrics.example.com"),
@@ -67,17 +69,19 @@ class EnvVarsEffectiveConfigFileFactoryTest {
         fileContent,
         Map.ofEntries(
             Map.entry("SPLUNK_PROFILER_ENABLED", "true"),
+            Map.entry("SPLUNK_PROFILER_CALL_STACK_INTERVAL", "1235ms"),
+            Map.entry("SPLUNK_PROFILER_LOCKS_ENABLED", "true"),
             Map.entry("SPLUNK_PROFILER_MEMORY_ENABLED", "true"),
             Map.entry("SPLUNK_SNAPSHOT_PROFILER_ENABLED", "true"),
+            Map.entry("SPLUNK_SNAPSHOT_PROFILER_LOCKS_ENABLED", "true"),
             Map.entry("SPLUNK_SNAPSHOT_PROFILER_SAMPLING_INTERVAL", "26ms"),
             Map.entry("SPLUNK_SNAPSHOT_SELECTION_PROBABILITY", "0.0123"),
-            Map.entry("SPLUNK_PROFILER_CALL_STACK_INTERVAL", "1235ms"),
             Map.entry("OTEL_EXPORTER_OTLP_TRACES_ENDPOINT", "https://traces.example.com"),
             Map.entry("OTEL_EXPORTER_OTLP_METRICS_ENDPOINT", "https://metrics.example.com"),
             Map.entry("OTEL_EXPORTER_OTLP_LOGS_ENDPOINT", "https://logs.example.com"),
             Map.entry("OTEL_CONFIG_FILE", "null"),
             Map.entry("OTEL_EXPERIMENTAL_CONFIG_FILE", "null")));
-    assertThat(fileContent.size()).isEqualTo(11);
+    assertThat(fileContent.size()).isEqualTo(13);
   }
 
   @Test
@@ -88,17 +92,19 @@ class EnvVarsEffectiveConfigFileFactoryTest {
         fileContent,
         Map.ofEntries(
             Map.entry("SPLUNK_PROFILER_ENABLED", "false"),
+            Map.entry("SPLUNK_PROFILER_CALL_STACK_INTERVAL", "10000ms"),
+            Map.entry("SPLUNK_PROFILER_LOCKS_ENABLED", "false"),
             Map.entry("SPLUNK_PROFILER_MEMORY_ENABLED", "false"),
             Map.entry("SPLUNK_SNAPSHOT_PROFILER_ENABLED", "false"),
+            Map.entry("SPLUNK_SNAPSHOT_PROFILER_LOCKS_ENABLED", "false"),
             Map.entry("SPLUNK_SNAPSHOT_PROFILER_SAMPLING_INTERVAL", "10ms"),
             Map.entry("SPLUNK_SNAPSHOT_SELECTION_PROBABILITY", "0.01"),
-            Map.entry("SPLUNK_PROFILER_CALL_STACK_INTERVAL", "10000ms"),
             Map.entry("OTEL_EXPORTER_OTLP_TRACES_ENDPOINT", "http://localhost:4318/v1/traces"),
             Map.entry("OTEL_EXPORTER_OTLP_METRICS_ENDPOINT", "http://localhost:4318/v1/metrics"),
             Map.entry("OTEL_EXPORTER_OTLP_LOGS_ENDPOINT", "http://localhost:4318/v1/logs"),
             Map.entry("OTEL_CONFIG_FILE", "null"),
             Map.entry("OTEL_EXPERIMENTAL_CONFIG_FILE", "null")));
-    assertThat(fileContent.size()).isEqualTo(11);
+    assertThat(fileContent.size()).isEqualTo(13);
   }
 
   @Test

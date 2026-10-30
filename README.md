@@ -2,7 +2,7 @@
 
 ![Stable](https://img.shields.io/badge/status-stable-informational)
 [![OpenTelemetry Instrumentation for Java Version](https://img.shields.io/badge/otel-2.33.1-blueviolet)](https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/tag/v2.33.1)
-[![Splunk GDI specification](https://img.shields.io/badge/GDI-1.9.0-blueviolet)](https://github.com/signalfx/gdi-specification/releases/tag/v1.9.0)
+[![Splunk GDI specification](https://img.shields.io/badge/GDI-1.10.0-blueviolet)](https://github.com/signalfx/gdi-specification/releases/tag/v1.10.0)
 [![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/signalfx/splunk-otel-java?include_prereleases)](https://github.com/signalfx/splunk-otel-java/releases)
 [![Maven Central](https://img.shields.io/maven-central/v/com.splunk/splunk-otel-javaagent)](https://central.sonatype.com/artifact/com.splunk/splunk-otel-javaagent)
 [![Build Status](https://img.shields.io/github/actions/workflow/status/signalfx/splunk-otel-java/ci.yaml?branch=main)](https://github.com/signalfx/splunk-otel-java/actions/workflows/ci.yaml)
@@ -31,9 +31,6 @@ This distribution comes with the following defaults:
   exporter](https://opentelemetry.io/docs/specs/otlp/#otlphttp)
   configured to send spans to a locally running [Splunk OpenTelemetry
   Collector](https://github.com/signalfx/splunk-otel-collector)
-- Unlimited default limits for [configuration
-  options](docs/advanced-config.md#trace-configuration) to support
-  full-fidelity traces.
 
 If you're currently using the SignalFx Java Agent and want to
 migrate to the Splunk Distribution of OpenTelemetry Java,

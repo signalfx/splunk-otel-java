@@ -1,10 +1,31 @@
 version: 3
 
+targets:
+  exclude:
+    - type: gradle
+      path: ./
+      target: ":instrumentation:nocode-testing"
+    - type: gradle
+      path: ./
+      target: ":instrumentation:servlet-3-testing"
+    - type: gradle
+      path: ./
+      target: ":smoke-tests"
+    - type: gradle
+      path: ./
+      target: ":testing:agent-for-testing"
+    - type: gradle
+      path: ./
+      target: ":testing:agent-test-extension"
+    - type: gradle
+      path: ./
+      target: ":testing:jmh-benchmarks"
+    - type: gradle
+      path: ./
+      target: ":testing:common"
+
 experimental:
   gradle:
     # other configurations will be excluded, we don't wish to analyze compile only and test dependencies
     configurations-only:
       - runtimeClasspath
-      - runtime
-      - runtimeOnly
-      - runtimeOnlyDependenciesMetadata

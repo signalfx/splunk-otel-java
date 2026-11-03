@@ -194,10 +194,9 @@ class OpampActivatorTest {
     List<KeyValue> nonIdentifyingAttributes =
         agentToServer.agent_description.non_identifying_attributes;
     assertThat(nonIdentifyingAttributes)
-        .anyMatch(
-            kv ->
-                kv.key.equals(DEPLOYMENT_ENVIRONMENT_NAME.getKey())
-                    && kv.value.string_value.equals("test-deployment-env"));
+        .anyMatch(kv ->
+            kv.key.equals(DEPLOYMENT_ENVIRONMENT_NAME.getKey())
+                && kv.value.string_value.equals("test-deployment-env"));
     assertThat(nonIdentifyingAttributes)
         .anyMatch(kv -> kv.key.equals("long") && kv.value.int_value.equals(12L));
     assertThat(nonIdentifyingAttributes)
@@ -261,9 +260,8 @@ class OpampActivatorTest {
         .anyMatch(
             kv -> kv.key.equals(OS_TYPE.getKey()) && kv.value.string_value.equals("test-os-type"));
     assertThat(nonIdentifyingAttributes)
-        .anyMatch(
-            kv ->
-                kv.key.equals(OS_VERSION.getKey()) && kv.value.string_value.equals("test-os-ver"));
+        .anyMatch(kv ->
+            kv.key.equals(OS_VERSION.getKey()) && kv.value.string_value.equals("test-os-ver"));
   }
 
   @Test

@@ -245,19 +245,18 @@ public class WindowsTestContainerManager extends AbstractTestContainerManager {
               if (!builder.fileSystemBinds.isEmpty()) {
                 List<Bind> binds =
                     builder.fileSystemBinds.stream()
-                        .map(
-                            bind -> {
-                              MountableFile file = MountableFile.forHostPath(bind.hostPath);
-                              String pathWithDisk =
-                                  bind.containerPath.startsWith("/")
-                                      ? "C:" + bind.containerPath
-                                      : bind.containerPath;
-                              String pathWithBackSlashes = pathWithDisk.replace("/", "\\");
-                              return new Bind(
-                                  file.getResolvedPath(),
-                                  new Volume(pathWithBackSlashes),
-                                  bind.isReadOnly ? AccessMode.ro : AccessMode.rw);
-                            })
+                        .map(bind -> {
+                          MountableFile file = MountableFile.forHostPath(bind.hostPath);
+                          String pathWithDisk =
+                              bind.containerPath.startsWith("/")
+                                  ? "C:" + bind.containerPath
+                                  : bind.containerPath;
+                          String pathWithBackSlashes = pathWithDisk.replace("/", "\\");
+                          return new Bind(
+                              file.getResolvedPath(),
+                              new Volume(pathWithBackSlashes),
+                              bind.isReadOnly ? AccessMode.ro : AccessMode.rw);
+                        })
                         .collect(Collectors.toList());
 
                 hostConfig.withBinds(binds);
@@ -280,7 +279,7 @@ public class WindowsTestContainerManager extends AbstractTestContainerManager {
                 command.withCmd(builder.command);
               }
             },
-            (containerId) -> {
+            containerId -> {
               try {
                 if (builder.agentPath != null) {
                   try (InputStream agentFileStream = new FileInputStream(builder.agentPath)) {
@@ -509,14 +508,13 @@ public class WindowsTestContainerManager extends AbstractTestContainerManager {
 
     @Override
     public void configureLogger(ContainerLogHandler logHandler) {
-      logHandler.addListener(
-          (type, text) -> {
-            if (lineHit.getCount() > 0) {
-              if (regex.matcher(text).find()) {
-                lineHit.countDown();
-              }
-            }
-          });
+      logHandler.addListener((type, text) -> {
+        if (lineHit.getCount() > 0) {
+          if (regex.matcher(text).find()) {
+            lineHit.countDown();
+          }
+        }
+      });
     }
 
     @Override
@@ -574,19 +572,18 @@ public class WindowsTestContainerManager extends AbstractTestContainerManager {
             (int) timeout.toMillis(),
             TimeUnit.MILLISECONDS,
             () -> {
-              rateLimiter.doWhenReady(
-                  () -> {
-                    try {
-                      Response response = CLIENT.newCall(request).execute();
+              rateLimiter.doWhenReady(() -> {
+                try {
+                  Response response = CLIENT.newCall(request).execute();
 
-                      if (response.code() != 200) {
-                        throw new RuntimeException(
-                            "Received status code " + response.code() + " from " + request.url());
-                      }
-                    } catch (IOException e) {
-                      throw new RuntimeException(e);
-                    }
-                  });
+                  if (response.code() != 200) {
+                    throw new RuntimeException(
+                        "Received status code " + response.code() + " from " + request.url());
+                  }
+                } catch (IOException e) {
+                  throw new RuntimeException(e);
+                }
+              });
 
               return true;
             });
@@ -625,17 +622,15 @@ public class WindowsTestContainerManager extends AbstractTestContainerManager {
             (int) timeout.toMillis(),
             TimeUnit.MILLISECONDS,
             () -> {
-              rateLimiter.doWhenReady(
-                  () -> {
-                    int externalPort = extractMappedPort(container, internalPort);
+              rateLimiter.doWhenReady(() -> {
+                int externalPort = extractMappedPort(container, internalPort);
 
-                    try {
-                      (new Socket("localhost", externalPort)).close();
-                    } catch (IOException e) {
-                      throw new IllegalStateException(
-                          "Socket not listening yet: " + externalPort, e);
-                    }
-                  });
+                try {
+                  (new Socket("localhost", externalPort)).close();
+                } catch (IOException e) {
+                  throw new IllegalStateException("Socket not listening yet: " + externalPort, e);
+                }
+              });
 
               return true;
             });

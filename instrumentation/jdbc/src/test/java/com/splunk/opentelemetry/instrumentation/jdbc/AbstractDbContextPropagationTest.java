@@ -293,17 +293,16 @@ public abstract class AbstractDbContextPropagationTest {
     AtomicReference<SpanContext> jdbcSpan = new AtomicReference<>();
     AtomicReference<SpanContext> parentSpan = new AtomicReference<>();
     getTesting()
-        .waitAndAssertTraces(
-            trace ->
-                trace.hasSpansSatisfyingExactly(
-                    span -> {
-                      span.hasName("parent").hasNoParent();
-                      parentSpan.set(span.actual().getSpanContext());
-                    },
-                    span -> {
-                      span.hasParent(trace.getSpan(0));
-                      jdbcSpan.set(span.actual().getSpanContext());
-                    }));
+        .waitAndAssertTraces(trace ->
+            trace.hasSpansSatisfyingExactly(
+                span -> {
+                  span.hasName("parent").hasNoParent();
+                  parentSpan.set(span.actual().getSpanContext());
+                },
+                span -> {
+                  span.hasParent(trace.getSpan(0));
+                  jdbcSpan.set(span.actual().getSpanContext());
+                }));
 
     assertAfterQuery(connection, parentSpan.get(), jdbcSpan.get());
   }

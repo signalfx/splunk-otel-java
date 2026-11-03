@@ -40,29 +40,27 @@ public class ProfilerConfigurationInitializer
   @Override
   public void customize(DeclarativeConfigurationCustomizer configurationCustomizer) {
     // Initialize profiler configuration from declarative config
-    configurationCustomizer.addModelCustomizer(
-        (model) -> {
-          DeclarativeConfigProperties distributionConfig =
-              AutoConfigureUtil.getDistributionConfig(model);
-          DeclarativeConfigProperties profilingConfig =
-              DeclarativeConfigPropertiesUtil.getStructuredOrEmpty(distributionConfig, "profiling");
+    configurationCustomizer.addModelCustomizer(model -> {
+      DeclarativeConfigProperties distributionConfig =
+          AutoConfigureUtil.getDistributionConfig(model);
+      DeclarativeConfigProperties profilingConfig =
+          DeclarativeConfigPropertiesUtil.getStructuredOrEmpty(distributionConfig, "profiling");
 
-          ProfilerConfiguration.SUPPLIER.configure(
-              ProfilerDeclarativeConfigurationFactory.create(profilingConfig));
+      ProfilerConfiguration.SUPPLIER.configure(
+          ProfilerDeclarativeConfigurationFactory.create(profilingConfig));
 
-          return model;
-        });
+      return model;
+    });
   }
 
   @Override
   public void customize(AutoConfigurationCustomizer autoConfiguration) {
     // Initialize profiler configuration from environment config
-    autoConfiguration.addPropertiesCustomizer(
-        configProperties -> {
-          ProfilerConfiguration.SUPPLIER.configure(
-              ProfilerEnvVarsConfigurationFactory.create(configProperties));
-          return Collections.emptyMap();
-        });
+    autoConfiguration.addPropertiesCustomizer(configProperties -> {
+      ProfilerConfiguration.SUPPLIER.configure(
+          ProfilerEnvVarsConfigurationFactory.create(configProperties));
+      return Collections.emptyMap();
+    });
   }
 
   @Override

@@ -19,6 +19,7 @@ afterEvaluate {
 
 dependencies {
   add(dependencyManagementConf.name, platform(project(":dependencyManagement")))
+  add("testImplementation", platform("org.junit:junit-bom:6.1.3"))
   add("testImplementation", "org.assertj:assertj-core")
   add("testImplementation", "org.awaitility:awaitility")
   add("testImplementation", "org.mockito:mockito-core")

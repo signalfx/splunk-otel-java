@@ -143,7 +143,7 @@ class YamlParserTest {
     // given
     var yaml =
         """
-            file_format: "1.1"
+            file_format: "1.2"
             instrumentation/development:
               java:
                 splunk:
@@ -169,16 +169,16 @@ class YamlParserTest {
   void shouldParseCurrentSpanRuleAndWarnAboutUnsupportedFields() throws Exception {
     String yaml =
         """
-            - class: someClass
-              method: someMethod
-              current_span: true
-              span_name: ignoredName
-              span_kind: CLIENT
-              span_status: ignoredStatus
-              attributes:
-                - key: key
-                  value: this.toString()
-            """;
+        - class: someClass
+          method: someMethod
+          current_span: true
+          span_name: ignoredName
+          span_kind: CLIENT
+          span_status: ignoredStatus
+          attributes:
+            - key: key
+              value: this.toString()
+        """;
 
     List<NocodeRules.Rule> rules = YamlParser.parseFromString(yaml);
 

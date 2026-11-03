@@ -33,11 +33,10 @@ public class SqlCommenterInitializer implements SqlCommenterCustomizer {
     sqlCommenterBuilder.setEnabled(
         DeclarativeConfigUtil.getInstrumentationConfig(GlobalOpenTelemetry.get(), "splunk-jdbc")
             .getBoolean("enabled", false));
-    sqlCommenterBuilder.setPropagator(
-        (connection, executed) -> {
-          // note that besides jdbc this applies to r2dbc and other data access apis that upstream
-          // has sqlcommenter support for
-          return propagator;
-        });
+    sqlCommenterBuilder.setPropagator((connection, executed) -> {
+      // note that besides jdbc this applies to r2dbc and other data access apis that upstream
+      // has sqlcommenter support for
+      return propagator;
+    });
   }
 }

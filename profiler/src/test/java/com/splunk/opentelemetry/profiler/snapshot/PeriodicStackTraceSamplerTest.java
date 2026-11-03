@@ -75,14 +75,13 @@ class PeriodicStackTraceSamplerTest {
     CountDownLatch latch = new CountDownLatch(1);
     Thread thread =
         Thread.ofVirtual()
-            .start(
-                () -> {
-                  try {
-                    latch.await();
-                  } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                  }
-                });
+            .start(() -> {
+              try {
+                latch.await();
+              } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+              }
+            });
 
     var spanContext = Snapshotting.spanContext().build();
 
@@ -336,12 +335,11 @@ class PeriodicStackTraceSamplerTest {
     await().until(() -> staging.allStackTraces().size() > 1);
 
     assertThat(staging.allStackTraces())
-        .map(
-            st ->
-                Snapshotting.spanContext()
-                    .withTraceId(st.getTraceId())
-                    .withSpanId(st.getSpanId())
-                    .build())
+        .map(st ->
+            Snapshotting.spanContext()
+                .withTraceId(st.getTraceId())
+                .withSpanId(st.getSpanId())
+                .build())
         .contains(spanContext1);
   }
 

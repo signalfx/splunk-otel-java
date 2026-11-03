@@ -57,14 +57,13 @@ public class JfrFileMaker {
 
   private static void startThreads(int runSeconds) {
     for (int i = 0; i < NUM_THREADS; i++) {
-      pool.submit(
-          () -> {
-            try {
-              TimeUnit.SECONDS.sleep(runSeconds);
-            } catch (InterruptedException e) {
-              e.printStackTrace();
-            }
-          });
+      pool.submit(() -> {
+        try {
+          TimeUnit.SECONDS.sleep(runSeconds);
+        } catch (InterruptedException e) {
+          e.printStackTrace();
+        }
+      });
     }
   }
 }

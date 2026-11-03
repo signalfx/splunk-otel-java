@@ -164,14 +164,14 @@ class LogExporterBuilderTest {
       OpenTelemetryConfigurationModel model =
           DeclarativeConfigTestUtil.parse(
               """
-            file_format: "1.1"
-            distribution:
-              splunk:
-                profiling:
-                  exporter:
-                    otlp_log_http:
-                      endpoint: "http://acme.com"
-          """);
+                file_format: "1.2"
+                distribution:
+                  splunk:
+                    profiling:
+                      exporter:
+                        otlp_log_http:
+                          endpoint: "http://acme.com"
+              """);
 
       DeclarativeConfigProperties exporterConfig = getExporterConfig(model);
 
@@ -188,7 +188,7 @@ class LogExporterBuilderTest {
       OpenTelemetryConfigurationModel model =
           DeclarativeConfigTestUtil.parse(
               """
-                file_format: "1.1"
+                file_format: "1.2"
                 distribution:
                   splunk:
                     profiling:
@@ -212,13 +212,13 @@ class LogExporterBuilderTest {
       OpenTelemetryConfigurationModel model =
           DeclarativeConfigTestUtil.parse(
               """
-            file_format: "1.1"
-            distribution:
-              splunk:
-                profiling:
-                  exporter:
-                    otlp_log_http:
-          """);
+                file_format: "1.2"
+                distribution:
+                  splunk:
+                    profiling:
+                      exporter:
+                        otlp_log_http:
+              """);
 
       DeclarativeConfigProperties exporterConfig = getExporterConfig(model);
 
@@ -235,11 +235,11 @@ class LogExporterBuilderTest {
       OpenTelemetryConfigurationModel model =
           DeclarativeConfigTestUtil.parse(
               """
-            file_format: "1.1"
-            distribution:
-              splunk:
-                profiling:
-          """);
+                file_format: "1.2"
+                distribution:
+                  splunk:
+                    profiling:
+              """);
 
       DeclarativeConfigProperties exporterConfig = getExporterConfig(model);
 
@@ -258,7 +258,7 @@ class LogExporterBuilderTest {
       OpenTelemetryConfigurationModel model =
           DeclarativeConfigTestUtil.parse(
               """
-                file_format: "1.1"
+                file_format: "1.2"
                 distribution:
                   splunk:
                     profiling:
@@ -311,7 +311,7 @@ class LogExporterBuilderTest {
       OpenTelemetryConfigurationModel model =
           DeclarativeConfigTestUtil.parse(
               """
-                file_format: "1.1"
+                file_format: "1.2"
                 distribution:
                   splunk:
                     profiling:

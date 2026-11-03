@@ -75,10 +75,9 @@ class NocodeInitializerTest {
 
     AutoConfiguredOpenTelemetrySdk sdk =
         AutoConfiguredOpenTelemetrySdk.builder()
-            .addPropertiesSupplier(
-                () ->
-                    Collections.singletonMap(
-                        "splunk.otel.instrumentation.nocode.yml.file", rulesFilePath.toString()))
+            .addPropertiesSupplier(() ->
+                Collections.singletonMap(
+                    "splunk.otel.instrumentation.nocode.yml.file", rulesFilePath.toString()))
             .build();
     autoCleanup.deferCleanup(sdk.getOpenTelemetrySdk());
 
@@ -128,15 +127,15 @@ class NocodeInitializerTest {
       // given
       String yaml =
           """
-              file_format: "1.1"
-              instrumentation/development:
-                java:
-                  splunk:
-                    no_code_file: "/tmp/does-not-exist.yml"
-                    no_code:
-                      - class: foo.Foo
-                        method: bar
-              """;
+          file_format: "1.2"
+          instrumentation/development:
+            java:
+              splunk:
+                no_code_file: "/tmp/does-not-exist.yml"
+                no_code:
+                  - class: foo.Foo
+                    method: bar
+          """;
 
       AutoConfiguredOpenTelemetrySdk sdk =
           DeclarativeConfigTestUtil.createAutoConfiguredSdk(yaml, tempDir, autoCleanup);
@@ -153,12 +152,12 @@ class NocodeInitializerTest {
 
       String yaml =
           """
-              file_format: "1.1"
-              instrumentation/development:
-                java:
-                  splunk:
-                    no_code_file: "%s"
-              """
+          file_format: "1.2"
+          instrumentation/development:
+            java:
+              splunk:
+                no_code_file: "%s"
+          """
               .formatted(rulesFile.toString());
 
       AutoConfiguredOpenTelemetrySdk sdk =
@@ -176,14 +175,14 @@ class NocodeInitializerTest {
       // given
       String yaml =
           """
-              file_format: "1.1"
-              instrumentation/development:
-                java:
-                  splunk:
-                    no_code:
-                      - class: foo.Foo
-                        method: bar
-              """;
+          file_format: "1.2"
+          instrumentation/development:
+            java:
+              splunk:
+                no_code:
+                  - class: foo.Foo
+                    method: bar
+          """;
 
       AutoConfiguredOpenTelemetrySdk sdk =
           DeclarativeConfigTestUtil.createAutoConfiguredSdk(yaml, tempDir, autoCleanup);

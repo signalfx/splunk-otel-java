@@ -119,11 +119,11 @@ class RemoteConfigProcessorImplTest {
     // given
     String remoteConfigYaml =
         """
-        distribution:
-          splunk:
-            profiling:
-        INVALID YAML HERE
-    """;
+            distribution:
+              splunk:
+                profiling:
+            INVALID YAML HERE
+        """;
     ByteString configHash = ByteString.encodeUtf8("test-config-hash");
     AgentRemoteConfig remoteConfig = createRemoteConfig(configHash, remoteConfigYaml);
 
@@ -168,12 +168,12 @@ class RemoteConfigProcessorImplTest {
       // given
       String remoteConfigYaml =
           """
-          distribution:
-            splunk:
-              profiling:
-                always_on:
-                  cpu_profiler:
-      """;
+              distribution:
+                splunk:
+                  profiling:
+                    always_on:
+                      cpu_profiler:
+          """;
       ByteString configHash = ByteString.encodeUtf8("test-config-hash");
       AgentRemoteConfig remoteConfig = createRemoteConfig(configHash, remoteConfigYaml);
 
@@ -200,15 +200,15 @@ class RemoteConfigProcessorImplTest {
 
       String remoteConfigYaml =
           """
-          distribution:
-            splunk:
-              profiling:
-                always_on:
-                  cpu_profiler:
-                    sampling_interval: 123
-                    report_locks: true
-                  memory_profiler:
-      """;
+              distribution:
+                splunk:
+                  profiling:
+                    always_on:
+                      cpu_profiler:
+                        sampling_interval: 123
+                        report_locks: true
+                      memory_profiler:
+          """;
       ByteString configHash = ByteString.encodeUtf8("test-config-hash");
       AgentRemoteConfig remoteConfig = createRemoteConfig(configHash, remoteConfigYaml);
 
@@ -234,11 +234,11 @@ class RemoteConfigProcessorImplTest {
           ProfilerConfiguration.builder().setEnabled(true).build());
       String remoteConfigYaml =
           """
-          distribution:
-            splunk:
-              profiling:
-                always_on:
-      """;
+              distribution:
+                splunk:
+                  profiling:
+                    always_on:
+          """;
       ByteString configHash = ByteString.encodeUtf8("test-config-hash");
       AgentRemoteConfig remoteConfig = createRemoteConfig(configHash, remoteConfigYaml);
 
@@ -265,10 +265,10 @@ class RemoteConfigProcessorImplTest {
       ProfilerConfiguration.SUPPLIER.configure(initialConfiguration);
       String remoteConfigYaml =
           """
-          distribution:
-            splunk:
-              profiling:
-      """;
+              distribution:
+                splunk:
+                  profiling:
+          """;
       ByteString configHash = ByteString.encodeUtf8("test-config-hash");
       AgentRemoteConfig remoteConfig = createRemoteConfig(configHash, remoteConfigYaml);
 
@@ -288,11 +288,11 @@ class RemoteConfigProcessorImplTest {
       // given
       String remoteConfigYaml =
           """
-          distribution:
-            splunk:
-              profiling:
-                callgraphs:
-      """;
+              distribution:
+                splunk:
+                  profiling:
+                    callgraphs:
+          """;
       ByteString configHash = ByteString.encodeUtf8("test-config-hash");
       AgentRemoteConfig remoteConfig = createRemoteConfig(configHash, remoteConfigYaml);
 
@@ -318,11 +318,11 @@ class RemoteConfigProcessorImplTest {
           SnapshotProfilingConfiguration.builder().setEnabled(true).build());
       String remoteConfigYaml =
           """
-          distribution:
-            splunk:
-              profiling:
-                callgraphs:
-      """;
+              distribution:
+                splunk:
+                  profiling:
+                    callgraphs:
+          """;
       ByteString configHash = ByteString.encodeUtf8("test-config-hash");
       AgentRemoteConfig remoteConfig = createRemoteConfig(configHash, remoteConfigYaml);
 
@@ -370,10 +370,10 @@ class RemoteConfigProcessorImplTest {
           SnapshotProfilingConfiguration.builder().setEnabled(true).build());
       String remoteConfigYaml =
           """
-          distribution:
-            splunk:
-              profiling:
-      """;
+              distribution:
+                splunk:
+                  profiling:
+          """;
       ByteString configHash = ByteString.encodeUtf8("test-config-hash");
       AgentRemoteConfig remoteConfig = createRemoteConfig(configHash, remoteConfigYaml);
 

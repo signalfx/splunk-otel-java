@@ -85,7 +85,7 @@ public class WebLogicAttributesInstrumentationModule extends InstrumentationModu
   }
 
   @SuppressWarnings("unused")
-  private static class WebengineAdvice {
+  public static class WebengineAdvice {
     @Advice.OnMethodEnter(suppress = Throwable.class, inline = false)
     public static void start(@Advice.Argument(1) HttpServletRequest servletRequest) {
       WebLogicAttributeCollector.attachWebengineAttributes(servletRequest);
@@ -116,7 +116,7 @@ public class WebLogicAttributesInstrumentationModule extends InstrumentationModu
   }
 
   @SuppressWarnings("unused")
-  private static class ServletAdvice {
+  public static class ServletAdvice {
     @Advice.OnMethodEnter(suppress = Throwable.class, inline = false)
     public static void start(@Advice.Argument(0) HttpServletRequest request) {
       Object value = request.getAttribute("otel.webengine");

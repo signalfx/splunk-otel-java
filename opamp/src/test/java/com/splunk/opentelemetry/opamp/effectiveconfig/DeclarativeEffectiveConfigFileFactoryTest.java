@@ -65,7 +65,7 @@ class DeclarativeEffectiveConfigFileFactoryTest {
   void buildFileContent_handleRealConfigPaths(@TempDir Path tempDir) throws Exception {
     // given
     Path configFile = tempDir.resolve("declarative-config.yaml");
-    Files.writeString(configFile, "file_format: 1.1", UTF_8);
+    Files.writeString(configFile, "file_format: 1.2", UTF_8);
 
     ProcessBuilder processBuilder =
         new ProcessBuilder(
@@ -99,7 +99,7 @@ class DeclarativeEffectiveConfigFileFactoryTest {
     // given
     String configurationYaml =
         """
-        file_format: 1.1
+        file_format: 1.2
         distribution:
           splunk:
             profiling:
@@ -159,7 +159,7 @@ class DeclarativeEffectiveConfigFileFactoryTest {
 
   @Test
   void handlesBlankConfig() throws Exception {
-    OpenTelemetryConfigurationModel model = parseModel("file_format: 1.1");
+    OpenTelemetryConfigurationModel model = parseModel("file_format: 1.2");
 
     String yaml =
         new DeclarativeEffectiveConfigFileFactory()
@@ -196,7 +196,7 @@ class DeclarativeEffectiveConfigFileFactoryTest {
     OpenTelemetryConfigurationModel model =
         parseModel(
             """
-            file_format: 1.1
+            file_format: 1.2
             tracer_provider:
               processors:
                 - batch:
@@ -249,7 +249,7 @@ class DeclarativeEffectiveConfigFileFactoryTest {
     OpenTelemetryConfigurationModel model =
         parseModel(
             """
-            file_format: 1.1
+            file_format: 1.2
             tracer_provider:
               processors:
                 - batch:
@@ -302,7 +302,7 @@ class DeclarativeEffectiveConfigFileFactoryTest {
     OpenTelemetryConfigurationModel model =
         parseModel(
             """
-            file_format: 1.1
+            file_format: 1.2
             tracer_provider:
               processors:
                 - batch:
@@ -384,7 +384,7 @@ class DeclarativeEffectiveConfigFileFactoryTest {
 
   @Test
   void supportsAlwaysOnProfiler() throws Exception {
-    OpenTelemetryConfigurationModel model = parseModel("file_format: 1.1");
+    OpenTelemetryConfigurationModel model = parseModel("file_format: 1.2");
     when(mockProfilerConfiguration.isEnabled()).thenReturn(true);
     when(mockProfilerConfiguration.getCallStackInterval()).thenReturn(Duration.ofMillis(1410));
     when(mockProfilerConfiguration.getMemoryEnabled()).thenReturn(true);
@@ -411,7 +411,7 @@ class DeclarativeEffectiveConfigFileFactoryTest {
 
   @Test
   void supportsSnapshotProfiler() throws Exception {
-    OpenTelemetryConfigurationModel model = parseModel("file_format: 1.1");
+    OpenTelemetryConfigurationModel model = parseModel("file_format: 1.2");
     when(mockSnapshotConfiguration.isEnabled()).thenReturn(true);
     when(mockSnapshotConfiguration.getSamplingInterval()).thenReturn(Duration.ofMillis(10));
     when(mockSnapshotConfiguration.getSnapshotSelectionProbability()).thenReturn(0.0123);

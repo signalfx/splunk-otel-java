@@ -50,11 +50,10 @@ class RunnablesTest {
     AtomicBoolean hasRun = new AtomicBoolean(false);
     RuntimeException exception = new RuntimeException("Kaboom");
     Runnable runnable =
-        Runnables.logUncaught(
-            () -> {
-              hasRun.set(true);
-              throw exception;
-            });
+        Runnables.logUncaught(() -> {
+          hasRun.set(true);
+          throw exception;
+        });
     runnable.run();
     assertTrue(hasRun.get());
     verify(logger)
@@ -67,10 +66,9 @@ class RunnablesTest {
     Runnables.createLogger = x -> logger;
     AtomicBoolean hasRun = new AtomicBoolean(false);
     Runnable runnable =
-        Runnables.logUncaught(
-            () -> {
-              hasRun.set(true);
-            });
+        Runnables.logUncaught(() -> {
+          hasRun.set(true);
+        });
     runnable.run();
     assertTrue(hasRun.get());
     verifyNoInteractions(logger);

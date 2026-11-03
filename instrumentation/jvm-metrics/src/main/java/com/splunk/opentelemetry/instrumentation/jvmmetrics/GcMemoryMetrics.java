@@ -52,13 +52,12 @@ public class GcMemoryMetrics implements AutoCloseable {
                   .getType()
                   .equals(GarbageCollectionNotificationInfo.GARBAGE_COLLECTION_NOTIFICATION),
           null);
-      notificationListenerCleanUpRunnables.add(
-          () -> {
-            try {
-              notificationEmitter.removeNotificationListener(gcNotificationListener);
-            } catch (ListenerNotFoundException ignore) {
-            }
-          });
+      notificationListenerCleanUpRunnables.add(() -> {
+        try {
+          notificationEmitter.removeNotificationListener(gcNotificationListener);
+        } catch (ListenerNotFoundException ignore) {
+        }
+      });
     }
   }
 

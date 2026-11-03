@@ -167,12 +167,11 @@ public class LinuxTestContainerManager extends AbstractTestContainerManager {
           getAgentEnvironment(builder.jvmArgsEnvVarName, !builder.autodetectServiceName));
     }
 
-    builder.fileSystemBinds.forEach(
-        it ->
-            target.withFileSystemBind(
-                it.hostPath,
-                it.containerPath,
-                it.isReadOnly ? BindMode.READ_ONLY : BindMode.READ_WRITE));
+    builder.fileSystemBinds.forEach(it ->
+        target.withFileSystemBind(
+            it.hostPath,
+            it.containerPath,
+            it.isReadOnly ? BindMode.READ_ONLY : BindMode.READ_WRITE));
 
     if (builder.command != null) {
       target.withCommand(builder.command.toArray(new String[0]));

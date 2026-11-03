@@ -41,11 +41,10 @@ public class DeclarativeConfigurationInterceptor
 
   @Override
   public void customize(DeclarativeConfigurationCustomizer customizer) {
-    customizer.addModelCustomizer(
-        (model) -> {
-          configurationModel = model;
-          return model;
-        });
+    customizer.addModelCustomizer(model -> {
+      configurationModel = model;
+      return model;
+    });
   }
 
   @Override

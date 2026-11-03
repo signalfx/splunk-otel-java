@@ -69,26 +69,25 @@ public class OtelGcMemoryMetrics {
                 "Time spent in GC pause. This metric will be removed in a future release.")
             .build();
 
-    newGcMemoryMetrics.registerListener(
-        notificationInfo -> {
-          GcInfo gcInfo = notificationInfo.getGcInfo();
-          String gcName = notificationInfo.getGcName();
-          String gcCause = notificationInfo.getGcCause();
-          String gcAction = notificationInfo.getGcAction();
-          long duration = gcInfo.getDuration();
-          if (!isConcurrentPhase(gcCause, gcName)) {
-            Attributes attributes =
-                Attributes.of(
-                    stringKey("gc"),
-                    gcName,
-                    stringKey("action"),
-                    gcAction,
-                    stringKey("cause"),
-                    gcCause);
-            gcPauseCounter.add(1, attributes);
-            gcPauseTime.add(duration, attributes);
-          }
-        });
+    newGcMemoryMetrics.registerListener(notificationInfo -> {
+      GcInfo gcInfo = notificationInfo.getGcInfo();
+      String gcName = notificationInfo.getGcName();
+      String gcCause = notificationInfo.getGcCause();
+      String gcAction = notificationInfo.getGcAction();
+      long duration = gcInfo.getDuration();
+      if (!isConcurrentPhase(gcCause, gcName)) {
+        Attributes attributes =
+            Attributes.of(
+                stringKey("gc"),
+                gcName,
+                stringKey("action"),
+                gcAction,
+                stringKey("cause"),
+                gcCause);
+        gcPauseCounter.add(1, attributes);
+        gcPauseTime.add(duration, attributes);
+      }
+    });
     gcMemoryMetrics = newGcMemoryMetrics;
   }
 

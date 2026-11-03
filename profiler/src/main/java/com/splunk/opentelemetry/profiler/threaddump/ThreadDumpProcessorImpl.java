@@ -125,11 +125,10 @@ public class ThreadDumpProcessorImpl implements ThreadDumpProcessor {
   private static Map<String, List<String>> groupOwnableSynchronizersByOwnerName(
       Map<String, String> lockToOwnerNameMapping) {
     Map<String, List<String>> synchronizersByOwnerName = new HashMap<>();
-    lockToOwnerNameMapping.forEach(
-        (lock, ownerName) ->
-            synchronizersByOwnerName
-                .computeIfAbsent(ownerName, ignored -> new ArrayList<>())
-                .add(lock));
+    lockToOwnerNameMapping.forEach((lock, ownerName) ->
+        synchronizersByOwnerName
+            .computeIfAbsent(ownerName, ignored -> new ArrayList<>())
+            .add(lock));
     return synchronizersByOwnerName;
   }
 
@@ -162,20 +161,18 @@ public class ThreadDumpProcessorImpl implements ThreadDumpProcessor {
 
   private void exportWaitingStacks(
       List<StackToSpanLinkage> waitingStacks, Map<String, String> lockToOwnerNameMapping) {
-    waitingStacks.forEach(
-        spanLinkage -> {
-          if (!resolveLockOwnerThreadName(
-              spanLinkage.getStackTrace().getThreadLockData(), lockToOwnerNameMapping)) {
-            logger.fine(
-                () ->
-                    "No lock owner name for thread \""
-                        + spanLinkage.getStackTrace().getThreadName()
-                        + "\" waiting on lock "
-                        + spanLinkage.getStackTrace().getThreadLockData().getWaitingOn());
-          }
-          // Stack trace is exported even if it was impossible to resolve lock owner thread name
-          cpuEventExporter.export(spanLinkage);
-        });
+    waitingStacks.forEach(spanLinkage -> {
+      if (!resolveLockOwnerThreadName(
+          spanLinkage.getStackTrace().getThreadLockData(), lockToOwnerNameMapping)) {
+        logger.fine(() ->
+            "No lock owner name for thread \""
+                + spanLinkage.getStackTrace().getThreadName()
+                + "\" waiting on lock "
+                + spanLinkage.getStackTrace().getThreadLockData().getWaitingOn());
+      }
+      // Stack trace is exported even if it was impossible to resolve lock owner thread name
+      cpuEventExporter.export(spanLinkage);
+    });
   }
 
   private boolean resolveLockOwnerThreadName(
@@ -202,10 +199,9 @@ public class ThreadDumpProcessorImpl implements ThreadDumpProcessor {
     stackTrace
         .getThreadLockData()
         .getLockedMonitors()
-        .forEach(
-            lockId -> {
-              lockToOwnerNameMapping.put(lockId, stackTraceThreadName);
-            });
+        .forEach(lockId -> {
+          lockToOwnerNameMapping.put(lockId, stackTraceThreadName);
+        });
   }
 
   public void flush() {

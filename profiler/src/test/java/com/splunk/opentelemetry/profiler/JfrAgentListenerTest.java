@@ -147,21 +147,21 @@ class JfrAgentListenerTest {
         Arguments.of("file_format: \"1.2\""),
         Arguments.of(
             """
-        file_format: "1.2"
-        distribution:
-        """),
+            file_format: "1.2"
+            distribution:
+            """),
         Arguments.of(
             """
-        file_format: "1.2"
-        distribution:
-          splunk:
-        """),
+            file_format: "1.2"
+            distribution:
+              splunk:
+            """),
         Arguments.of(
             """
-        file_format: "1.2"
-        distribution:
-          splunk:
-            something:
-        """));
+            file_format: "1.2"
+            distribution:
+              splunk:
+                something:
+            """));
   }
 }

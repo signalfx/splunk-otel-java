@@ -34,11 +34,10 @@ class HelpfulExecutorsTest {
     ExecutorService exec = HelpfulExecutors.newSingleThreadExecutor("test!!!");
     AtomicReference<String> seenName = new AtomicReference<>();
     AtomicBoolean seenIsDaemon = new AtomicBoolean(false);
-    exec.submit(
-        () -> {
-          seenName.set(Thread.currentThread().getName());
-          seenIsDaemon.set(Thread.currentThread().isDaemon());
-        });
+    exec.submit(() -> {
+      seenName.set(Thread.currentThread().getName());
+      seenIsDaemon.set(Thread.currentThread().isDaemon());
+    });
     exec.shutdown();
     assertTrue(exec.awaitTermination(5, TimeUnit.SECONDS));
     assertEquals("test!!!", seenName.get());

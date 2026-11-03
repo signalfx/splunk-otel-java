@@ -256,17 +256,16 @@ class SpanContextualizerTest {
     List<Events> openEventThreads = new ArrayList<>();
 
     IntStream.range(0, num)
-        .forEach(
-            i -> {
-              long threadId = rootEvents.threadId + i + 1;
-              Events ev = buildEvents(spanId, threadId);
-              testClass.updateContext(ev.scopeStart);
-              if (rand.nextInt(100) > 50) { // sometimes nested, sometimes hopping
-                testClass.updateContext(ev.scopeEnd);
-              } else {
-                openEventThreads.add(ev);
-              }
-            });
+        .forEach(i -> {
+          long threadId = rootEvents.threadId + i + 1;
+          Events ev = buildEvents(spanId, threadId);
+          testClass.updateContext(ev.scopeStart);
+          if (rand.nextInt(100) > 50) { // sometimes nested, sometimes hopping
+            testClass.updateContext(ev.scopeEnd);
+          } else {
+            openEventThreads.add(ev);
+          }
+        });
 
     assertLinkage(testClass, rootEvents);
     Collections.shuffle(openEventThreads);

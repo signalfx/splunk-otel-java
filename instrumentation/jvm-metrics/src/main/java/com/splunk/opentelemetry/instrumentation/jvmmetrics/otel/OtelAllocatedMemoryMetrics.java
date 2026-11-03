@@ -47,10 +47,9 @@ public class OtelAllocatedMemoryMetrics {
             .counterBuilder(METRIC_NAME)
             .setUnit("By")
             .setDescription("Approximate sum of heap allocations.")
-            .buildWithCallback(
-                measurement ->
-                    measurement.record(
-                        allocatedMemoryMetrics.getCumulativeAllocationTotal(), attributes));
+            .buildWithCallback(measurement ->
+                measurement.record(
+                    allocatedMemoryMetrics.getCumulativeAllocationTotal(), attributes));
   }
 
   public synchronized void uninstall() {

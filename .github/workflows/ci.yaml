@@ -137,9 +137,6 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Free disk space
-        run: .github/scripts/gha-free-disk-space.sh
-
       - name: Docker issue workaround
         if: startsWith(matrix.os, 'windows')
         run: |

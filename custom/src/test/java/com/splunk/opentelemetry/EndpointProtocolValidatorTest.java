@@ -48,13 +48,12 @@ class EndpointProtocolValidatorTest {
   @Test
   void testGrpcEndpointAndProtocol() {
     ConfigProperties config =
-        configuration(
-            () ->
-                Map.of(
-                    "otel.exporter.otlp.endpoint",
-                    "http://localhost:4317",
-                    "otel.exporter.otlp.protocol",
-                    "grpc"));
+        configuration(() ->
+            Map.of(
+                "otel.exporter.otlp.endpoint",
+                "http://localhost:4317",
+                "otel.exporter.otlp.protocol",
+                "grpc"));
     List<String> messages = new ArrayList<>();
     EndpointProtocolValidator.validate(Collections.emptyMap(), config, messages::add);
     assertThat(messages).isEmpty();
@@ -72,15 +71,14 @@ class EndpointProtocolValidatorTest {
   @Test
   void testSignalGrpcEndpoint() {
     ConfigProperties config =
-        configuration(
-            () ->
-                Map.of(
-                    "otel.exporter.otlp.traces.endpoint",
-                    "http://localhost:4317",
-                    "otel.exporter.otlp.metrics.endpoint",
-                    "http://localhost:4317",
-                    "otel.exporter.otlp.logs.endpoint",
-                    "http://localhost:4317"));
+        configuration(() ->
+            Map.of(
+                "otel.exporter.otlp.traces.endpoint",
+                "http://localhost:4317",
+                "otel.exporter.otlp.metrics.endpoint",
+                "http://localhost:4317",
+                "otel.exporter.otlp.logs.endpoint",
+                "http://localhost:4317"));
     List<String> messages = new ArrayList<>();
     EndpointProtocolValidator.validate(Collections.emptyMap(), config, messages::add);
     assertThat(messages).hasSize(3);

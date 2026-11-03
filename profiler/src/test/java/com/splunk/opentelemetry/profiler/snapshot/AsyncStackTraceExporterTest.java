@@ -104,12 +104,11 @@ class AsyncStackTraceExporterTest {
     await().until(() -> !logger.records().isEmpty());
 
     var logRecord = logger.records().get(0);
-    assertDoesNotThrow(
-        () -> {
-          var bytes = new ByteArrayInputStream(PprofUtils.decode(logRecord));
-          var inputStream = new GZIPInputStream(bytes);
-          inputStream.readAllBytes();
-        });
+    assertDoesNotThrow(() -> {
+      var bytes = new ByteArrayInputStream(PprofUtils.decode(logRecord));
+      var inputStream = new GZIPInputStream(bytes);
+      inputStream.readAllBytes();
+    });
   }
 
   @Test

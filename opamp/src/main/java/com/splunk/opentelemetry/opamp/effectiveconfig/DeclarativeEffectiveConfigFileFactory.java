@@ -173,15 +173,13 @@ class DeclarativeEffectiveConfigFileFactory implements EffectiveConfigFileFactor
     List<Map<String, Object>> processors = new ArrayList<>();
     model
         .getProcessors()
-        .forEach(
-            logProcessorModel -> {
-              if (logProcessorModel.getBatch() != null) {
-                addLogExporterNode("batch", logProcessorModel.getBatch().getExporter(), processors);
-              } else if (logProcessorModel.getSimple() != null) {
-                addLogExporterNode(
-                    "simple", logProcessorModel.getSimple().getExporter(), processors);
-              }
-            });
+        .forEach(logProcessorModel -> {
+          if (logProcessorModel.getBatch() != null) {
+            addLogExporterNode("batch", logProcessorModel.getBatch().getExporter(), processors);
+          } else if (logProcessorModel.getSimple() != null) {
+            addLogExporterNode("simple", logProcessorModel.getSimple().getExporter(), processors);
+          }
+        });
 
     if (!processors.isEmpty()) {
       root.addNestedNode("logger_provider.processors", processors);
@@ -196,13 +194,12 @@ class DeclarativeEffectiveConfigFileFactory implements EffectiveConfigFileFactor
     List<Map<String, Object>> readers = new ArrayList<>();
     model
         .getReaders()
-        .forEach(
-            metricReaderModel -> {
-              if (metricReaderModel.getPeriodic() != null) {
-                addMetricExporterNode(
-                    "periodic", metricReaderModel.getPeriodic().getExporter(), readers);
-              }
-            });
+        .forEach(metricReaderModel -> {
+          if (metricReaderModel.getPeriodic() != null) {
+            addMetricExporterNode(
+                "periodic", metricReaderModel.getPeriodic().getExporter(), readers);
+          }
+        });
 
     if (!readers.isEmpty()) {
       root.addNestedNode("meter_provider.readers", readers);

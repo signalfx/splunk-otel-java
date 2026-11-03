@@ -66,13 +66,12 @@ class SplunkConfigurationCustomizerTest {
   @Test
   void shouldAppendToOtlpHeaders() {
     ConfigProperties config =
-        configuration(
-            () ->
-                Map.of(
-                    SplunkConfigurationCustomizer.SPLUNK_ACCESS_TOKEN,
-                    "token",
-                    "otel.exporter.otlp.headers",
-                    "key=value"));
+        configuration(() ->
+            Map.of(
+                SplunkConfigurationCustomizer.SPLUNK_ACCESS_TOKEN,
+                "token",
+                "otel.exporter.otlp.headers",
+                "key=value"));
 
     assertThat(config.getString("otel.exporter.otlp.headers"))
         .isEqualTo("key=value,X-SF-TOKEN=token");

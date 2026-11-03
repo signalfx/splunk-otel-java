@@ -43,13 +43,12 @@ class KHttpClientTest extends AbstractHttpClientTest<Void> {
     // these tests will pass, but they don't really test anything since REQUEST is Void
     optionsBuilder.disableTestReusedRequest();
     optionsBuilder.disableTestCallback();
-    optionsBuilder.setHttpAttributes(
-        uri -> {
-          Set<AttributeKey<?>> attributes =
-              new HashSet<>(HttpClientTestOptions.DEFAULT_HTTP_ATTRIBUTES);
-          attributes.remove(AttributeKey.stringKey("network.protocol.version"));
-          return attributes;
-        });
+    optionsBuilder.setHttpAttributes(uri -> {
+      Set<AttributeKey<?>> attributes =
+          new HashSet<>(HttpClientTestOptions.DEFAULT_HTTP_ATTRIBUTES);
+      attributes.remove(AttributeKey.stringKey("network.protocol.version"));
+      return attributes;
+    });
     optionsBuilder.spanEndsAfterBody();
   }
 

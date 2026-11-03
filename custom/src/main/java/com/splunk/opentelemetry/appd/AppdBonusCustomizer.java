@@ -46,14 +46,13 @@ public final class AppdBonusCustomizer implements AutoConfigurationCustomizerPro
   void customize(AutoConfigurationCustomizer customizer, AppdBonusPropagator propagator) {
     customizer.addPropertiesCustomizer(this::customizeProperties);
 
-    customizer.addTracerProviderCustomizer(
-        (builder, config) -> {
-          if (featureEnabled(config)) {
-            SpanProcessor processor = OnStartSpanProcessor.create(new AppdBonusSpanProcessor());
-            return builder.addSpanProcessor(processor);
-          }
-          return builder;
-        });
+    customizer.addTracerProviderCustomizer((builder, config) -> {
+      if (featureEnabled(config)) {
+        SpanProcessor processor = OnStartSpanProcessor.create(new AppdBonusSpanProcessor());
+        return builder.addSpanProcessor(processor);
+      }
+      return builder;
+    });
   }
 
   private static boolean featureEnabled(ConfigProperties config) {

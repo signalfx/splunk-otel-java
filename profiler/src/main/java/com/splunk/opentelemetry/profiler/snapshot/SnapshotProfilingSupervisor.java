@@ -115,11 +115,10 @@ public class SnapshotProfilingSupervisor {
    */
   public void addSnapshotProfilerStateListener(SnapshotProfilerStateListener listener) {
     Objects.requireNonNull(listener, "listener");
-    commandQueue.add(
-        () -> {
-          listeners.add(listener);
-          listener.onSnapshotProfilerStateChanged(getEffectiveConfiguration());
-        });
+    commandQueue.add(() -> {
+      listeners.add(listener);
+      listener.onSnapshotProfilerStateChanged(getEffectiveConfiguration());
+    });
   }
 
   /** Queues removal after earlier commands and their callbacks have finished. */

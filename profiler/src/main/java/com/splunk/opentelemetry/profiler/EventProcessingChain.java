@@ -164,7 +164,7 @@ class EventProcessingChain {
 
     @Override
     public EventTimer time(String name) {
-      EventCounter counter = eventCounters.computeIfAbsent(name, (k) -> new EventCounter());
+      EventCounter counter = eventCounters.computeIfAbsent(name, k -> new EventCounter());
       counter.count++;
       return new EventTimer(counter);
     }

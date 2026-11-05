@@ -38,28 +38,27 @@ public final class AppdBonusConfigurationCustomizerProvider
 
   @Override
   public void customize(DeclarativeConfigurationCustomizer autoConfiguration) {
-    autoConfiguration.addModelCustomizer(
-        model -> {
-          if (!maybeAddAppdBonusPropagator(model)) {
-            return model;
-          }
+    autoConfiguration.addModelCustomizer(model -> {
+      if (!maybeAddAppdBonusPropagator(model)) {
+        return model;
+      }
 
-          // Appd propagator has been added so add also a corresponding Appd span processor
-          SpanProcessorModel appdSpanProcessorModel =
-              new SpanProcessorModel()
-                  .setExtensionProperty(AppdBonusSpanProcessorComponentProvider.NAME, null);
-          if (model.getTracerProvider() == null) {
-            model.setTracerProvider(new TracerProviderModel());
-          }
-          List<SpanProcessorModel> processors = model.getTracerProvider().getProcessors();
-          if (processors == null) {
-            processors = new ArrayList<>();
-            model.getTracerProvider().setProcessors(processors);
-          }
-          processors.add(appdSpanProcessorModel);
+      // Appd propagator has been added so add also a corresponding Appd span processor
+      SpanProcessorModel appdSpanProcessorModel =
+          new SpanProcessorModel()
+              .setExtensionProperty(AppdBonusSpanProcessorComponentProvider.NAME, null);
+      if (model.getTracerProvider() == null) {
+        model.setTracerProvider(new TracerProviderModel());
+      }
+      List<SpanProcessorModel> processors = model.getTracerProvider().getProcessors();
+      if (processors == null) {
+        processors = new ArrayList<>();
+        model.getTracerProvider().setProcessors(processors);
+      }
+      processors.add(appdSpanProcessorModel);
 
-          return model;
-        });
+      return model;
+    });
   }
 
   private static boolean isFeatureEnabled(OpenTelemetryConfigurationModel model) {

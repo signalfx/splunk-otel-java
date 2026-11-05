@@ -51,19 +51,19 @@ class AppdBeforeAgentListenerTest {
     AppdBeforeAgentListener agentListener = new AppdBeforeAgentListener();
     var yaml =
         """
-            file_format: "1.2"
-            resource:
-              attributes:
-                - name: service.name
-                  value: test-service
-                - name: deployment.environment.name
-                  value: test-deployment-env
-            instrumentation/development:
-              java:
-                cisco:
-                   ctx:
-                     enabled: true
-            """;
+        file_format: "1.2"
+        resource:
+          attributes:
+            - name: service.name
+              value: test-service
+            - name: deployment.environment.name
+              value: test-deployment-env
+        instrumentation/development:
+          java:
+            cisco:
+               ctx:
+                 enabled: true
+        """;
     AutoConfiguredOpenTelemetrySdk autoConfiguredOpenTelemetrySdk =
         DeclarativeConfigTestUtil.createAutoConfiguredSdk(yaml, tempDir, autoCleanup);
 

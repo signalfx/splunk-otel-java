@@ -125,11 +125,10 @@ class StackDescriptorLineParserTest {
     long result = parser.parseThreadId(region);
 
     Stream.of(DISRUPTIVE_AFFIXES)
-        .forEach(
-            it -> {
-              assertEqualsWithAffixes(result, parser, descriptorLine, "", it);
-              assertEqualsWithAffixes(result, parser, descriptorLine, it, "");
-            });
+        .forEach(it -> {
+          assertEqualsWithAffixes(result, parser, descriptorLine, "", it);
+          assertEqualsWithAffixes(result, parser, descriptorLine, it, "");
+        });
 
     return result;
   }

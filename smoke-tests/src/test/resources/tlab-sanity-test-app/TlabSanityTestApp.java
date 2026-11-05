@@ -36,12 +36,11 @@ public class TlabSanityTestApp {
     TimeUnit.SECONDS.sleep(5);
 
     var pool = Executors.newSingleThreadExecutor(namedThreadFactory);
-    pool.submit(
-        () -> {
-          instrumentedMethod();
-          latch.countDown();
-          return null;
-        });
+    pool.submit(() -> {
+      instrumentedMethod();
+      latch.countDown();
+      return null;
+    });
 
     System.out.println("Waiting for thread to finish ...");
     latch.await(30, TimeUnit.SECONDS);

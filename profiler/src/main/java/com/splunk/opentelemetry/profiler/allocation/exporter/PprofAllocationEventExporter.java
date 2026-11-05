@@ -83,30 +83,29 @@ public class PprofAllocationEventExporter implements AllocationEventExporter {
         // limit the number of stack frames in case jfr stack depth is greater than our stack depth
         // truncate the bottom stack frames the same way as jfr
         .limit(stackDepth)
-        .forEachOrdered(
-            frame -> {
-              IMCMethod method = frame.getMethod();
-              if (method == null) {
-                sample.addLocationId(pprof.getLocationId("unknown", "unknown", "unknown", 0));
-              } else {
-                String className = method.getType().getFullName();
-                if (className == null) {
-                  className = "unknown";
-                }
-                String methodName = method.getMethodName();
-                if (methodName == null) {
-                  methodName = "unknown";
-                }
-                Integer lineNumber = frame.getFrameLineNumber();
-                sample.addLocationId(
-                    pprof.getLocationId(
-                        "unknown", // file name is not known
-                        className,
-                        methodName,
-                        lineNumber != null && lineNumber != -1 ? lineNumber : 0));
-              }
-              pprof.incFrameCount();
-            });
+        .forEachOrdered(frame -> {
+          IMCMethod method = frame.getMethod();
+          if (method == null) {
+            sample.addLocationId(pprof.getLocationId("unknown", "unknown", "unknown", 0));
+          } else {
+            String className = method.getType().getFullName();
+            if (className == null) {
+              className = "unknown";
+            }
+            String methodName = method.getMethodName();
+            if (methodName == null) {
+              methodName = "unknown";
+            }
+            Integer lineNumber = frame.getFrameLineNumber();
+            sample.addLocationId(
+                pprof.getLocationId(
+                    "unknown", // file name is not known
+                    className,
+                    methodName,
+                    lineNumber != null && lineNumber != -1 ? lineNumber : 0));
+          }
+          pprof.incFrameCount();
+        });
 
     String eventName = event.getType().getIdentifier();
     pprof.addLabel(sample, SOURCE_EVENT_NAME, eventName);

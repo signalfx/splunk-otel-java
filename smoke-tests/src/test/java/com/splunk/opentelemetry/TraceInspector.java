@@ -114,9 +114,8 @@ public class TraceInspector {
         .filter(attr -> attributeKey.equals(attr.getKey()))
         .map(keyValue -> keyValue.getValue().getStringValue())
         .findFirst()
-        .orElseThrow(
-            () ->
-                new NoSuchElementException(
-                    "Attribute " + attributeKey + " is not found on server span"));
+        .orElseThrow(() ->
+            new NoSuchElementException(
+                "Attribute " + attributeKey + " is not found on server span"));
   }
 }

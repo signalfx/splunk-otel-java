@@ -34,7 +34,6 @@ dependencies {
   api(enforcedPlatform("io.grpc:grpc-bom:1.85.1"))
   api(enforcedPlatform("io.opentelemetry:opentelemetry-bom-alpha:$otelAlphaVersion"))
   api(enforcedPlatform("io.opentelemetry.instrumentation:opentelemetry-instrumentation-bom-alpha:$otelInstrumentationAlphaVersion"))
-  api(enforcedPlatform("org.junit:junit-bom:6.1.3"))
   api(enforcedPlatform("org.testcontainers:testcontainers-bom:2.0.5"))
 
   constraints {
@@ -53,7 +52,6 @@ dependencies {
     api("com.google.auto.value:auto-value:$autoValueVersion")
     api("com.google.auto.value:auto-value-annotations:$autoValueVersion")
 
-    api("io.opentelemetry.contrib:opentelemetry-samplers:$otelContribAlphaVersion")
     api("io.opentelemetry.contrib:opentelemetry-resource-providers:$otelContribAlphaVersion")
     api("io.opentelemetry.contrib:opentelemetry-opamp-client:${otelContribAlphaVersion}")
     api("io.opentelemetry.proto:opentelemetry-proto:1.11.1-alpha")

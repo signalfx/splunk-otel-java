@@ -99,14 +99,13 @@ public class OpampActivator implements AgentListener {
 
     Runtime.getRuntime()
         .addShutdownHook(
-            new Thread(
-                () -> {
-                  try {
-                    client.close();
-                  } catch (IOException e) {
-                    logger.log(WARNING, "Error shutting down OpAMP client", e);
-                  }
-                }));
+            new Thread(() -> {
+              try {
+                client.close();
+              } catch (IOException e) {
+                logger.log(WARNING, "Error shutting down OpAMP client", e);
+              }
+            }));
   }
 
   @NotNull

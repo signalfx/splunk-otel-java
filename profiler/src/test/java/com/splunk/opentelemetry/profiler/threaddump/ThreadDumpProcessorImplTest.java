@@ -142,16 +142,12 @@ class ThreadDumpProcessorImplTest {
     assertEquals(27, results.size());
 
     Stream.of(StackTraceFilter.UNWANTED_PREFIXES)
-        .map(
-            prefix ->
-                prefix.endsWith("\"")
-                    ? prefix.substring(1, prefix.length() - 1)
-                    : prefix.substring(1))
-        .forEach(
-            prefix -> {
-              assertThat(results)
-                  .noneMatch(stack -> stack.getStackTrace().getThreadName().startsWith(prefix));
-            });
+        .map(prefix ->
+            prefix.endsWith("\"") ? prefix.substring(1, prefix.length() - 1) : prefix.substring(1))
+        .forEach(prefix -> {
+          assertThat(results)
+              .noneMatch(stack -> stack.getStackTrace().getThreadName().startsWith(prefix));
+        });
   }
 
   @Test
@@ -166,11 +162,9 @@ class ThreadDumpProcessorImplTest {
 
     assertEquals(sampleThreadsFromDump.size(), results.size());
 
-    sampleThreadsFromDump.forEach(
-        sample ->
-            assertThat(results)
-                .anyMatch(
-                    stack -> stack.getStackTrace().getThreadName().equals(sample.threadName)));
+    sampleThreadsFromDump.forEach(sample ->
+        assertThat(results)
+            .anyMatch(stack -> stack.getStackTrace().getThreadName().equals(sample.threadName)));
   }
 
   @Test

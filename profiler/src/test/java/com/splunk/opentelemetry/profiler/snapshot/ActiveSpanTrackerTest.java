@@ -285,11 +285,10 @@ class ActiveSpanTrackerTest {
     registry.register(span.getSpanContext());
 
     Thread thread =
-        new Thread(
-            () -> {
-              var context = Context.root().with(span);
-              spanTracker.attach(context);
-            });
+        new Thread(() -> {
+          var context = Context.root().with(span);
+          spanTracker.attach(context);
+        });
     thread.start();
     thread.join();
     WeakReference<Thread> threadReference = new WeakReference<>(thread);

@@ -84,9 +84,8 @@ public class StackTraceFilter {
     }
     if (!includeAgentInternalStacks) {
       if (Stream.of(StackTraceFilter.UNWANTED_PREFIXES)
-          .anyMatch(
-              prefix ->
-                  wallOfStacks.regionMatches(region.getStartIndex(), prefix, 0, prefix.length()))) {
+          .anyMatch(prefix ->
+              wallOfStacks.regionMatches(region.getStartIndex(), prefix, 0, prefix.length()))) {
         return false;
       }
     }

@@ -31,6 +31,50 @@ These metrics are enabled only when memory profiler is enabled.
 | `jvm.gc.pause.count`     | [Counter][c] | Number of gc pauses. This metric will be removed in a future release.    |
 | `jvm.gc.pause.totalTime` | [Counter][c] | Time spent in GC pause. This metric will be removed in a future release. |
 
+## Custom JMX metrics in declarative configuration
+
+Define inline JMX mapping rules under `distribution.splunk.java.jmx.rules` in the
+file selected by `otel.config.file`:
+
+```yaml
+file_format: "1.2"
+meter_provider:
+  readers:
+    - periodic:
+        exporter:
+          otlp_http:
+
+distribution:
+  splunk:
+    java:
+      jmx:
+        rules:
+          - bean: petclinic:type=CallMonitor
+            mapping:
+              CallCount:
+                metric: petclinic.repository.call.count
+                type: gauge
+                unit: "{call}"
+                desc: Completed repository calls since the last reset.
+              CallTime:
+                metric: petclinic.repository.call.duration.average
+                type: gauge
+                sourceUnit: ms
+                unit: s
+                desc: Average repository call duration since the last reset.
+```
+
+Rules use the [upstream JMX mapping syntax](https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/instrumentation/jmx-metrics/README.md).
+The agent collects from MBeans in the current JVM and exports through the configured
+`meter_provider` readers. No remote JMX connection is required.
+
+The upstream settings under `instrumentation/development.java.jmx` also apply to inline
+rules: `discovery.delay` controls MBean discovery and `metrics.included` / `metrics.excluded`
+filter metric names. Include your custom metric names if an inclusion filter is configured.
+Disabling `jmx` through `distribution.javaagent.instrumentation` also disables inline rules.
+Inline rules supplement rules configured through the upstream JMX instrumentation;
+avoid defining the same metric in both locations. Invalid inline rules are logged and skipped.
+
 ## Webengine Attributes
 
 > :construction: &nbsp;Status: Experimental

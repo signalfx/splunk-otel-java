@@ -16,12 +16,11 @@
 
 package com.splunk.opentelemetry.jmx;
 
-import static io.opentelemetry.sdk.autoconfigure.AutoConfigureUtil.getConfigProvider;
 import static io.opentelemetry.sdk.autoconfigure.AutoConfigureUtil.isDeclarativeConfig;
 
 import com.google.auto.service.AutoService;
+import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
 import io.opentelemetry.javaagent.extension.AgentListener;
-import io.opentelemetry.javaagent.extension.instrumentation.internal.AgentDistributionConfig;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -29,31 +28,30 @@ import java.util.logging.Logger;
 @AutoService(AgentListener.class)
 public class JmxMetricsInitializer implements AgentListener, AutoCloseable {
   private static final Logger logger = Logger.getLogger(JmxMetricsInitializer.class.getName());
-  private static final String RULES_PATH = "distribution.splunk.java.jmx.rules";
+  private static final String CONFIG_PATH = "distribution.splunk.java.jmx";
 
   private JmxMetricsService metricsService;
   private Thread shutdownHook;
 
   @Override
   public synchronized void afterAgent(AutoConfiguredOpenTelemetrySdk sdk) {
-    if (metricsService != null
-        || !isDeclarativeConfig(sdk)
-        || !AgentDistributionConfig.get().isInstrumentationEnabled("jmx")) {
+    if (metricsService != null || !isDeclarativeConfig(sdk)) {
+      return;
+    }
+
+    DeclarativeConfigProperties config = JmxMetricsConfigurationCustomizerProvider.getJmxConfig();
+    if (config == null) {
       return;
     }
 
     try {
       JmxMetricsService service = new JmxMetricsService(sdk.getOpenTelemetrySdk());
-      if (!service.start(
-          JmxMetricsConfigurationCustomizerProvider.getJmxConfig(),
-          getConfigProvider(sdk).getInstrumentationConfig("jmx"))) {
-        return;
-      }
+      service.start(config);
       metricsService = service;
       shutdownHook = new Thread(this::close, "splunk-jmx-shutdown");
       Runtime.getRuntime().addShutdownHook(shutdownHook);
     } catch (Exception e) {
-      logger.log(Level.WARNING, "Unable to start JMX metrics from " + RULES_PATH, e);
+      logger.log(Level.WARNING, "Unable to start JMX metrics from " + CONFIG_PATH, e);
       close();
     }
   }

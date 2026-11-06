@@ -16,6 +16,7 @@
 
 package com.splunk.opentelemetry.jmx;
 
+import static io.opentelemetry.sdk.autoconfigure.AutoConfigureUtil.getConfigProvider;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.mockito.Mockito.mock;
@@ -122,6 +123,14 @@ class JmxMetricsInitializerTest {
     }
     AutoConfiguredOpenTelemetrySdk sdk = createSdk(YAML);
 
+    assertThat(AgentDistributionConfig.get().isInstrumentationEnabled("jmx")).isFalse();
+    assertThat(
+            getConfigProvider(sdk)
+                .getInstrumentationConfig("jmx")
+                .get("discovery")
+                .getLong("delay"))
+        .isEqualTo(1000);
+
     initializer.afterAgent(sdk);
     autoCleanup.deferCleanup(initializer);
     // Repeated startup must not register duplicate callbacks.
@@ -171,13 +180,13 @@ class JmxMetricsInitializerTest {
   }
 
   @Test
-  void appliesUpstreamMetricFilters() throws Exception {
+  void appliesDistributionMetricFilters() throws Exception {
     registerMBean(new CallMonitor());
     AutoConfiguredOpenTelemetrySdk sdk =
         createSdk(
             YAML.replace(
-                "\n    jmx:\n",
-                "\n    jmx:\n      metrics:\n        included: [petclinic.*]\n        excluded: [petclinic.repository.call.duration.*]\n"));
+                "\n      jmx:\n",
+                "\n      jmx:\n        metrics:\n          included: [petclinic.*]\n          excluded: [petclinic.repository.call.duration.*]\n"));
 
     initializer.afterAgent(sdk);
     autoCleanup.deferCleanup(initializer);
@@ -232,9 +241,9 @@ class JmxMetricsInitializerTest {
   @ValueSource(
       strings = {
         "file_format: '1.2'",
-        "file_format: '1.2'\ndistribution:\n  splunk:\n    java:\n      jmx:\n        rules: []"
+        "file_format: '1.2'\ndistribution:\n  splunk:\n    java:\n      other: {}"
       })
-  void doesNotStartWithoutInlineRules(String yaml) throws Exception {
+  void doesNotStartWithoutDistributionJmxNode(String yaml) throws Exception {
     AutoConfiguredOpenTelemetrySdk sdk = createSdk(yaml);
     try (var jmx = mockStatic(JmxTelemetry.class)) {
       initializer.afterAgent(sdk);
@@ -258,6 +267,40 @@ class JmxMetricsInitializerTest {
       initializer.afterAgent(sdk);
       jmx.verifyNoInteractions();
     }
+  }
+
+  @Test
+  void startsBuiltinsForAnEmptyDistributionNode() throws Exception {
+    var server = ManagementFactory.getPlatformMBeanServer();
+    var name = new ObjectName("splunk.test:type=BuiltIn");
+    server.registerMBean(new StandardMBean(new CallMonitor(), CallMonitorMBean.class), name);
+    autoCleanup.deferCleanup(() -> server.unregisterMBean(name));
+    AutoConfiguredOpenTelemetrySdk sdk =
+        createSdk(
+            """
+            file_format: "1.2"
+            meter_provider:
+              readers:
+                - periodic:
+                    interval: 50
+                    exporter:
+                      console:
+            distribution:
+              splunk:
+                java:
+                  jmx:
+            """);
+
+    assertThat(AgentDistributionConfig.get().isInstrumentationEnabled("jmx")).isFalse();
+    initializer.afterAgent(sdk);
+    autoCleanup.deferCleanup(initializer);
+
+    await()
+        .atMost(Duration.ofSeconds(10))
+        .untilAsserted(() ->
+            assertThat(lastMetric("test.jmx.builtin.stable").getLongSumData().getPoints())
+                .singleElement()
+                .satisfies(point -> assertThat(point.getValue()).isEqualTo(7)));
   }
 
   @Test
@@ -293,7 +336,7 @@ class JmxMetricsInitializerTest {
 
     ArgumentCaptor<LogRecord> record = ArgumentCaptor.forClass(LogRecord.class);
     verify(handler).publish(record.capture());
-    assertThat(record.getValue().getMessage()).contains("distribution.splunk.java.jmx.rules");
+    assertThat(record.getValue().getMessage()).contains("distribution.splunk.java.jmx");
     assertThat(record.getValue().getThrown()).isInstanceOf(IllegalArgumentException.class);
     assertThat(jmxMetrics()).isEmpty();
   }

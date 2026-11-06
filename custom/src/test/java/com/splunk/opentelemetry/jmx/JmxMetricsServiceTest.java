@@ -32,6 +32,8 @@ import io.opentelemetry.sdk.testing.exporter.InMemoryMetricReader;
 import java.io.ByteArrayInputStream;
 import java.lang.management.ManagementFactory;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
@@ -40,6 +42,7 @@ import javax.management.StandardMBean;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.io.TempDir;
 
 class JmxMetricsServiceTest {
   private static final String RULES =
@@ -57,6 +60,8 @@ class JmxMetricsServiceTest {
 
   private final InMemoryMetricReader reader = InMemoryMetricReader.create();
   private OpenTelemetrySdk sdk;
+
+  @TempDir Path tempDir;
 
   @BeforeEach
   void setUp() throws Exception {
@@ -76,11 +81,12 @@ class JmxMetricsServiceTest {
   @Test
   void startsAfterSdkCreationAndCanRestartWithDifferentRules() throws Exception {
     JmxMetricsService service = newService();
-    assertThat(service.start(empty(), empty())).isFalse();
+    assertThat(service.start(empty())).isTrue();
+    service.close();
 
     var firstRules = config(RULES.formatted("petclinic.first"));
-    assertThat(service.start(firstRules, empty())).isTrue();
-    assertThat(service.start(firstRules, empty())).isTrue();
+    assertThat(service.start(firstRules)).isTrue();
+    assertThat(service.start(firstRules)).isTrue();
     awaitMetric("petclinic.first");
 
     service.close();
@@ -90,12 +96,13 @@ class JmxMetricsServiceTest {
     assertThatThrownBy(() ->
             service.start(
                 config(
-                    RULES.formatted("petclinic.invalid").replace("type: counter", "type: invalid")),
-                empty()))
+                    RULES
+                        .formatted("petclinic.invalid")
+                        .replace("type: counter", "type: invalid"))))
         .isInstanceOf(IllegalArgumentException.class);
     assertThat(jmxMetrics()).isEmpty();
 
-    assertThat(service.start(config(RULES.formatted("petclinic.second")), empty())).isTrue();
+    assertThat(service.start(config(RULES.formatted("petclinic.second")))).isTrue();
     awaitMetric("petclinic.second");
     assertThat(jmxMetrics()).extracting(MetricData::getName).containsExactly("petclinic.second");
   }
@@ -104,16 +111,7 @@ class JmxMetricsServiceTest {
   void instancesHaveIndependentRulesSettingsAndLifecycles() throws Exception {
     JmxMetricsService first = newService();
     JmxMetricsService second = newService();
-    var settings =
-        config(
-            """
-            discovery:
-              delay: 1000
-            metrics:
-              included: [petclinic.second]
-            """);
-
-    assertThat(first.start(config(RULES.formatted("petclinic.first")), empty())).isTrue();
+    assertThat(first.start(config(RULES.formatted("petclinic.first")))).isTrue();
     assertThat(
             second.start(
                 config(
@@ -125,8 +123,13 @@ class JmxMetricsServiceTest {
                                 metric: petclinic.filtered
                                 type: counter
                                 unit: "{call}"
-                        """),
-                settings))
+                        """
+                        + """
+                        discovery:
+                          delay: 1000
+                        metrics:
+                          included: [petclinic.second]
+                        """)))
         .isTrue();
 
     await()
@@ -168,7 +171,7 @@ class JmxMetricsServiceTest {
                                     "unit", "{call}",
                                     "desc", description))))));
 
-    assertThat(newService().start(rules, empty())).isTrue();
+    assertThat(newService().start(rules)).isTrue();
 
     awaitMetric("petclinic.escaped");
     assertThat(jmxMetrics())
@@ -180,6 +183,78 @@ class JmxMetricsServiceTest {
               .satisfies(point ->
                   assertThat(point.getAttributes().get(stringKey("label"))).isEqualTo(label));
         });
+  }
+
+  @Test
+  void loadsExternalAndInlineRulesWhileSkippingBadFiles() throws Exception {
+    Path valid = tempDir.resolve("valid.yaml");
+    Path invalid = tempDir.resolve("invalid.yaml");
+    Files.writeString(valid, RULES.formatted("petclinic.file"));
+    Files.writeString(invalid, "rules: [not-a-rule]");
+    var rules =
+        config(
+            RULES.formatted("petclinic.inline")
+                + """
+                config:
+                  - "%s"
+                  - "%s"
+                  - "%s"
+                """
+                    .formatted(tempDir.resolve("missing.yaml"), invalid, valid));
+
+    newService().start(rules);
+
+    await()
+        .atMost(Duration.ofSeconds(10))
+        .untilAsserted(() ->
+            assertThat(jmxMetrics())
+                .extracting(MetricData::getName)
+                .containsExactlyInAnyOrder("petclinic.file", "petclinic.inline"));
+  }
+
+  @Test
+  void matchesUpstreamStableDefaultsAndExperimentalOptIn() throws Exception {
+    var server = ManagementFactory.getPlatformMBeanServer();
+    var stable = new ObjectName("splunk.test:type=BuiltIn");
+    var unstable = new ObjectName("Catalina:type=GlobalRequestProcessor,name=custom-test");
+    server.registerMBean(new StandardMBean(() -> 7, CallMonitorMBean.class), stable);
+    server.registerMBean(new StandardMBean(() -> 7, TomcatMBean.class), unstable);
+    autoCleanup.deferCleanup(() -> server.unregisterMBean(stable));
+    autoCleanup.deferCleanup(() -> server.unregisterMBean(unstable));
+    JmxMetricsService service = newService();
+
+    service.start(empty());
+    awaitMetric("test.jmx.builtin.stable");
+    // JVM rules are excluded and experimental metrics are not collected by default.
+    assertThat(jmxMetrics())
+        .extracting(MetricData::getName)
+        .containsExactly("test.jmx.builtin.stable");
+
+    service.close();
+    service.start(
+        config(
+            """
+            metrics:
+              experimental:
+                included: [tomcat.request.count]
+            """));
+    await()
+        .atMost(Duration.ofSeconds(10))
+        .untilAsserted(() ->
+            assertThat(jmxMetrics())
+                .extracting(MetricData::getName)
+                .containsExactlyInAnyOrder("test.jmx.builtin.stable", "tomcat.request.count"));
+
+    service.close();
+    service.start(
+        config(
+            """
+            metrics:
+              experimental:
+                included: [tomcat.*]
+              excluded: [tomcat.*]
+            """));
+    awaitMetric("test.jmx.builtin.stable");
   }
 
   private JmxMetricsService newService() {
@@ -216,5 +291,9 @@ class JmxMetricsServiceTest {
 
   public interface CallMonitorMBean {
     long getCallCount();
+  }
+
+  public interface TomcatMBean {
+    long getrequestCount();
   }
 }

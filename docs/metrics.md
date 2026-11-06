@@ -48,6 +48,10 @@ distribution:
   splunk:
     java:
       jmx:
+        discovery:
+          delay: 5000
+        metrics:
+          included: [petclinic.*]
         rules:
           - bean: petclinic:type=CallMonitor
             mapping:
@@ -68,12 +72,53 @@ Rules use the [upstream JMX mapping syntax](https://github.com/open-telemetry/op
 The agent collects from MBeans in the current JVM and exports through the configured
 `meter_provider` readers. No remote JMX connection is required.
 
-The upstream settings under `instrumentation/development.java.jmx` also apply to inline
-rules: `discovery.delay` controls MBean discovery and `metrics.included` / `metrics.excluded`
-filter metric names. Include your custom metric names if an inclusion filter is configured.
-Disabling `jmx` through `distribution.javaagent.instrumentation` also disables inline rules.
-Inline rules supplement rules configured through the upstream JMX instrumentation;
-avoid defining the same metric in both locations. Invalid inline rules are logged and skipped.
+The distribution JMX node accepts the same settings and defaults as the upstream agent:
+
+* `discovery.delay`: MBean discovery delay in milliseconds (default: `60000`).
+* `config`: a list of paths to external JMX mapping files. Invalid files are logged and skipped.
+* `metrics.included` / `metrics.excluded`: filters applied to all JMX metric names.
+* `metrics.experimental.included`: opt in to experimental built-in metrics by name.
+
+Stable built-in metrics are enabled by default, except bundled JVM rules that overlap with
+runtime telemetry. Inline and external custom rules do not require experimental opt-in.
+The inclusion filter in the example restricts collection to the Petclinic metric names.
+An empty distribution JMX node selects upstream defaults.
+
+When `distribution.splunk.java` contains `jmx`, the agent takes ownership of JMX collection.
+If `instrumentation/development.java.jmx` is also present, its settings are merged into the
+distribution node while the instrumentation node is retained. Distribution values take precedence;
+nested mappings are merged and configured lists replace the corresponding upstream lists.
+The takeover is logged at INFO level, and upstream JMX startup is disabled automatically to
+prevent duplicate collection. Without a distribution JMX node, upstream behavior is unchanged.
+
+Explicit `jmx` enable/disable selectors in `distribution.javaagent.instrumentation` are respected
+before the takeover. They determine whether the custom collection starts; the automatically
+injected upstream disablement does not disable it. Invalid inline rules are logged and skipped.
+
+JMX configuration is customized in two stages:
+
+* `JmxUpstreamDisablingCustomizerProvider` runs at order `-1`. It saves the original enablement
+  decision and disables upstream JMX before `JavaagentDistributionAccessCustomizerProvider`
+  snapshots instrumentation enablement at order `0`. Both JMX nodes remain available to other
+  model customizers.
+* `JmxMetricsConfigurationCustomizerProvider` runs at order `Integer.MAX_VALUE - 1`. It merges
+  the customized JMX settings while retaining the instrumentation node, and captures the merged
+  settings for `JmxMetricsInitializer`. Order `Integer.MAX_VALUE` is reserved for final model
+  capture, including the OpAMP configuration interceptor.
+
+Running the entire customization late would leave upstream JMX enabled: changing the model does
+not update its earlier enablement snapshot. Saving the original decision also ensures that our
+injected disablement does not turn off distribution-owned collection.
+
+The distribution JMX node must exist before the early stage; enablement is evaluated then using
+the configured selectors and their defaults. Customizers that create this node or change enablement
+must run before order `-1`. Later customizers can change the JMX mapping rules and collection
+settings before the merge. A node first added after the early stage does not start custom
+collection, because upstream may already be enabled.
+
+This distribution-specific startup wiring and upstream configuration adapter are temporary and
+isolated in `custom`'s `com.splunk.opentelemetry.jmx` package for removal when upstream supports
+embedded rules.
 
 ## Webengine Attributes
 

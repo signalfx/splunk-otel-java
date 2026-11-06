@@ -16,7 +16,6 @@
 
 package com.splunk.opentelemetry.jmx;
 
-import static io.opentelemetry.api.incubator.config.DeclarativeConfigProperties.empty;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonMap;
 import static java.util.Objects.requireNonNull;
@@ -26,16 +25,13 @@ import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.api.common.KeyValue;
 import io.opentelemetry.api.common.Value;
 import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
-import io.opentelemetry.instrumentation.api.config.IncludeExclude;
-import io.opentelemetry.instrumentation.jmx.JmxTelemetry;
 import io.opentelemetry.instrumentation.jmx.JmxTelemetryBuilder;
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
-import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 
-/** Collects inline JMX metrics using an existing SDK, independently of agent startup. */
+/** Collects distribution-configured JMX metrics using an existing SDK, independently of startup. */
 public final class JmxMetricsService implements AutoCloseable {
   private final OpenTelemetry openTelemetry;
   private AutoCloseable collection;
@@ -50,42 +46,27 @@ public final class JmxMetricsService implements AutoCloseable {
    * <p>Repeated calls while running leave the current collection unchanged. Close this service
    * before starting it with different rules. The caller owns its lifecycle, including shutdown.
    *
-   * @param jmxConfig the {@code distribution.splunk.java.jmx} node containing {@code rules}
-   * @param instrumentationConfig the {@code instrumentation/development.java.jmx} node containing
-   *     discovery and filtering settings; may be {@link DeclarativeConfigProperties#empty()}
-   * @return whether collection is running; false if no rules are configured
+   * @param jmxConfig the {@code distribution.splunk.java.jmx} node containing upstream JMX settings
+   *     and optional inline {@code rules}
+   * @return whether collection is running
    * @throws IllegalArgumentException if the rules or settings are invalid
    */
-  public synchronized boolean start(
-      DeclarativeConfigProperties jmxConfig, DeclarativeConfigProperties instrumentationConfig) {
+  public synchronized boolean start(DeclarativeConfigProperties jmxConfig) {
     if (collection != null) {
       return true;
     }
 
+    JmxTelemetryBuilder builder = UpstreamJmxConfiguration.createBuilder(openTelemetry, jmxConfig);
+
     List<DeclarativeConfigProperties> rules = jmxConfig.getStructuredList("rules", emptyList());
-    if (rules.isEmpty()) {
-      return false;
+    if (!rules.isEmpty()) {
+      List<Map<String, Object>> ruleMaps =
+          rules.stream().map(DeclarativeConfigProperties::toMap).collect(toList());
+      // JSON is valid YAML; use the existing OpenTelemetry API to encode it for the upstream
+      // parser.
+      String json = toValue(singletonMap("rules", ruleMaps)).asString();
+      builder.addRules(new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8)));
     }
-
-    DeclarativeConfigProperties metrics = instrumentationConfig.getStructured("metrics", empty());
-    JmxTelemetryBuilder builder =
-        JmxTelemetry.builder(openTelemetry)
-            .beanDiscoveryDelay(
-                Duration.ofMillis(
-                    instrumentationConfig
-                        .getStructured("discovery", empty())
-                        .getLong("delay", Duration.ofMinutes(1).toMillis())))
-            .setMetrics(
-                IncludeExclude.builder()
-                    .setIncluded(metrics.getScalarList("included", String.class, emptyList()))
-                    .setExcluded(metrics.getScalarList("excluded", String.class, emptyList()))
-                    .build());
-
-    List<Map<String, Object>> ruleMaps =
-        rules.stream().map(DeclarativeConfigProperties::toMap).collect(toList());
-    // JSON is valid YAML; use the existing OpenTelemetry API to encode it for the upstream parser.
-    String json = toValue(singletonMap("rules", ruleMaps)).asString();
-    builder.addRules(new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8)));
 
     collection = builder.build().start();
     return true;

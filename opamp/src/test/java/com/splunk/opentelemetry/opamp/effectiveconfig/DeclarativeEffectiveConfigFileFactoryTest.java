@@ -106,10 +106,12 @@ class DeclarativeEffectiveConfigFileFactoryTest {
               always_on:
                 cpu_profiler:
                   sampling_interval: 1410
+                  report_locks: true
                 memory_profiler:
               callgraphs:
                 sampling_interval: 10
                 selection_probability: 0.1507
+                report_locks: true
         """;
 
     // when
@@ -132,10 +134,12 @@ class DeclarativeEffectiveConfigFileFactoryTest {
                   always_on:
                     cpu_profiler:
                       sampling_interval: 1410
+                      report_locks: true
                     memory_profiler:
                   callgraphs:
                     sampling_interval: 10
                     selection_probability: 0.1507
+                    report_locks: true
             """);
 
     String disabledConfigYaml =
@@ -400,6 +404,7 @@ class DeclarativeEffectiveConfigFileFactoryTest {
                   always_on:
                     cpu_profiler:
                       sampling_interval: 1410
+                      report_locks: false
                     memory_profiler:
             """);
   }
@@ -426,6 +431,7 @@ class DeclarativeEffectiveConfigFileFactoryTest {
                   callgraphs:
                     sampling_interval: 10
                     selection_probability: 0.0123
+                    report_locks: false
             """);
   }
 

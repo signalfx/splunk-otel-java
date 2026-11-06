@@ -86,6 +86,7 @@ public class SnapshotProfilingConfiguration {
     log("SamplingInterval", getSamplingInterval().toMillis() + "ms");
     log("ExportInterval", getExportInterval().toMillis() + "ms");
     log("StagingCapacity", getStagingCapacity());
+    log("LocksEnabled", getLocksEnabled());
 
     logger.info("--------------------------------");
   }

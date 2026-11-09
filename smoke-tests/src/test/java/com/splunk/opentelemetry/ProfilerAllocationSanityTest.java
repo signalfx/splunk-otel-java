@@ -83,27 +83,23 @@ abstract class ProfilerAllocationSanityTest extends SmokeTest {
         .pollDelay(25, TimeUnit.SECONDS)
         .atMost(60, TimeUnit.SECONDS)
         .pollInterval(1, TimeUnit.SECONDS)
-        .untilAsserted(
-            () -> {
-              var traces = waitForTraces();
-              Span span =
-                  traces
-                      .getSpanStream()
-                      .findFirst()
-                      .orElseThrow(() -> new AssertionError("Did not find any span"));
+        .untilAsserted(() -> {
+          var traces = waitForTraces();
+          Span span =
+              traces
+                  .getSpanStream()
+                  .findFirst()
+                  .orElseThrow(() -> new AssertionError("Did not find any span"));
 
-              var logs = waitForLogs();
-              assertThat(logs.getMemorySamples())
-                  .filteredOn(LogsInspector.hasThreadName("tlab-test-thread"))
-                  // can't verify that all events match, but most of them definitely should
-                  .anyMatch(
-                      sample ->
-                          sample
-                                  .getTraceId()
-                                  .equals(TraceId.fromBytes(span.getTraceId().toByteArray()))
-                              && sample
-                                  .getSpanId()
-                                  .equals(SpanId.fromBytes(span.getSpanId().toByteArray())));
-            });
+          var logs = waitForLogs();
+          assertThat(logs.getMemorySamples())
+              .filteredOn(LogsInspector.hasThreadName("tlab-test-thread"))
+              // can't verify that all events match, but most of them definitely should
+              .anyMatch(sample ->
+                  sample.getTraceId().equals(TraceId.fromBytes(span.getTraceId().toByteArray()))
+                      && sample
+                          .getSpanId()
+                          .equals(SpanId.fromBytes(span.getSpanId().toByteArray())));
+        });
   }
 }

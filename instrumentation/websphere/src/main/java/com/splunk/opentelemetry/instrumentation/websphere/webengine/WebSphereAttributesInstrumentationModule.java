@@ -65,7 +65,7 @@ public class WebSphereAttributesInstrumentationModule extends InstrumentationMod
 
   @SuppressWarnings("unused")
   public static class WebengineInitializedAdvice {
-    @Advice.OnMethodExit(suppress = Throwable.class)
+    @Advice.OnMethodExit(suppress = Throwable.class, inline = false)
     public static void onExit() {
       WebengineHolder.trySetVersion(PlatformHelper.getPlatformVersion());
       WebengineHolder.trySetName("websphere");

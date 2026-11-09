@@ -34,22 +34,21 @@ class MetadataGeneratorTest {
 
     assertThat(instrumentations)
         .singleElement()
-        .satisfies(
-            instrumentation -> {
-              List<Map<String, Object>> settings =
-                  (List<Map<String, Object>>) instrumentation.get("settings");
-              assertThat(settings)
-                  .extracting(setting -> setting.get("property"))
-                  .containsExactly("otel.instrumentation.test.enabled");
+        .satisfies(instrumentation -> {
+          List<Map<String, Object>> settings =
+              (List<Map<String, Object>>) instrumentation.get("settings");
+          assertThat(settings)
+              .extracting(setting -> setting.get("property"))
+              .containsExactly("otel.instrumentation.test.enabled");
 
-              List<Map<String, Object>> signals =
-                  (List<Map<String, Object>>) instrumentation.get("signals");
-              List<Map<String, Object>> metrics =
-                  (List<Map<String, Object>>) signals.get(0).get("metrics");
-              assertThat(metrics)
-                  .extracting(metric -> metric.get("metric_name"))
-                  .containsExactly("test.requests");
-            });
+          List<Map<String, Object>> signals =
+              (List<Map<String, Object>>) instrumentation.get("signals");
+          List<Map<String, Object>> metrics =
+              (List<Map<String, Object>>) signals.get(0).get("metrics");
+          assertThat(metrics)
+              .extracting(metric -> metric.get("metric_name"))
+              .containsExactly("test.requests");
+        });
   }
 
   private static List<Map<String, Object>> parseInstrumentations(String resourceName)

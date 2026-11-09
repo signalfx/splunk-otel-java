@@ -119,7 +119,7 @@ public final class NocodeInstrumentation implements TypeInstrumentation {
       }
     }
 
-    @Advice.OnMethodEnter(suppress = Throwable.class)
+    @Advice.OnMethodEnter(suppress = Throwable.class, inline = false)
     @Nullable
     public static AdviceScope onEnter(
         @RuleId int ruleId,
@@ -131,7 +131,7 @@ public final class NocodeInstrumentation implements TypeInstrumentation {
     }
 
     @Advice.AssignReturned.ToReturned
-    @Advice.OnMethodExit(onThrowable = Throwable.class, suppress = Throwable.class)
+    @Advice.OnMethodExit(onThrowable = Throwable.class, suppress = Throwable.class, inline = false)
     public static Object stopSpan(
         @MethodReturnType Class<?> methodReturnType,
         @Advice.Enter @Nullable AdviceScope adviceScope,

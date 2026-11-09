@@ -33,7 +33,7 @@ class ProfilerDeclarativeConfigurationFactoryTest {
     OpenTelemetryConfigurationModel model =
         DeclarativeConfigTestUtil.parse(
             """
-            file_format: "1.1"
+            file_format: "1.2"
             distribution:
               splunk:
                 profiling:
@@ -41,7 +41,6 @@ class ProfilerDeclarativeConfigurationFactoryTest {
                     include_agent_internals: true
                     include_jvm_internals: true
                     tracing_stacks_only: true
-                    report_locks: true
                     stack_depth: 73
                     keep_recording_files: true
                     recording_directory: "/tmp/prof"
@@ -49,6 +48,7 @@ class ProfilerDeclarativeConfigurationFactoryTest {
 
                     cpu_profiler:
                       sampling_interval: 1410
+                      report_locks: true
                       mode: java
                     memory_profiler:
                       event_rate: "250/s"
@@ -83,7 +83,7 @@ class ProfilerDeclarativeConfigurationFactoryTest {
     OpenTelemetryConfigurationModel model =
         DeclarativeConfigTestUtil.parse(
             """
-            file_format: "1.1"
+            file_format: "1.2"
             distribution:
               splunk:
                 profiling:

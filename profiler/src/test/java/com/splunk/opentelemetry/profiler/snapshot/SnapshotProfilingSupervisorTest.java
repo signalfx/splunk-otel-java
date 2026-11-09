@@ -148,19 +148,18 @@ class SnapshotProfilingSupervisorTest {
     // then
     await()
         .during(Duration.ofMillis(200))
-        .untilAsserted(
-            () -> {
-              verify(profilingSpanProcessor)
-                  .setSnapshotSelectionProbability(
-                      SnapshotProfilingConfiguration.DEFAULT_SELECTION_PROBABILITY);
-              verifyEnabled(true);
-              assertThat(stackTraceSamplerSupplier.get()).isSameAs(configuredSampler);
-              assertThat(stagingAreaSupplier.get()).isSameAs(configuredStagingArea);
-              assertThat(stackTraceExporterSupplier.get()).isSameAs(configuredExporter);
-              assertRuntimeComponentsConfigured();
-              verify(listener).onSnapshotProfilerStateChanged(configuration);
-              verifyNoMoreInteractions(listener);
-            });
+        .untilAsserted(() -> {
+          verify(profilingSpanProcessor)
+              .setSnapshotSelectionProbability(
+                  SnapshotProfilingConfiguration.DEFAULT_SELECTION_PROBABILITY);
+          verifyEnabled(true);
+          assertThat(stackTraceSamplerSupplier.get()).isSameAs(configuredSampler);
+          assertThat(stagingAreaSupplier.get()).isSameAs(configuredStagingArea);
+          assertThat(stackTraceExporterSupplier.get()).isSameAs(configuredExporter);
+          assertRuntimeComponentsConfigured();
+          verify(listener).onSnapshotProfilerStateChanged(configuration);
+          verifyNoMoreInteractions(listener);
+        });
   }
 
   @Test
@@ -224,11 +223,10 @@ class SnapshotProfilingSupervisorTest {
     // then
     await()
         .during(Duration.ofMillis(200))
-        .untilAsserted(
-            () -> {
-              verifyNoInteractions(spanTracker, traceThreadChangeDetector, profilingSpanProcessor);
-              assertRuntimeComponentsReset();
-            });
+        .untilAsserted(() -> {
+          verifyNoInteractions(spanTracker, traceThreadChangeDetector, profilingSpanProcessor);
+          assertRuntimeComponentsReset();
+        });
   }
 
   @Test
@@ -293,9 +291,8 @@ class SnapshotProfilingSupervisorTest {
       finishStartup.countDown();
     }
     await()
-        .untilAsserted(
-            () ->
-                assertThat(supervisor.getEffectiveConfiguration()).isEqualTo(configuration(true)));
+        .untilAsserted(() ->
+            assertThat(supervisor.getEffectiveConfiguration()).isEqualTo(configuration(true)));
   }
 
   @Test
@@ -325,11 +322,10 @@ class SnapshotProfilingSupervisorTest {
     SnapshotProfilingConfiguration disabledUpdatedConfiguration =
         updatedConfiguration.toBuilder().setEnabled(false).build();
     await()
-        .untilAsserted(
-            () -> {
-              verify(listener).onSnapshotProfilerStateChanged(disabledUpdatedConfiguration);
-              verifyNoMoreInteractions(listener);
-            });
+        .untilAsserted(() -> {
+          verify(listener).onSnapshotProfilerStateChanged(disabledUpdatedConfiguration);
+          verifyNoMoreInteractions(listener);
+        });
     verify(profilingSpanProcessor).setEnabled(false);
     assertRuntimeComponentsReset();
     assertThat(supervisor.isRunning()).isFalse();
@@ -386,21 +382,19 @@ class SnapshotProfilingSupervisorTest {
 
     // then
     await()
-        .untilAsserted(
-            () -> {
-              verify(listener).onSnapshotProfilerStateChanged(updatedConfiguration);
-              verifyClosedRuntimeComponents();
-              verify(spanTracker).setEnabled(false);
-              verify(spanTracker).setEnabled(true);
-              verify(traceThreadChangeDetector).setEnabled(false);
-              verify(traceThreadChangeDetector).setEnabled(true);
-              verify(profilingSpanProcessor).setEnabled(false);
-              verify(profilingSpanProcessor).setSnapshotSelectionProbability(0.5);
-              verify(profilingSpanProcessor).setEnabled(true);
-              verifyNoMoreInteractions(
-                  spanTracker, traceThreadChangeDetector, profilingSpanProcessor);
-              verifyNoMoreInteractions(listener);
-            });
+        .untilAsserted(() -> {
+          verify(listener).onSnapshotProfilerStateChanged(updatedConfiguration);
+          verifyClosedRuntimeComponents();
+          verify(spanTracker).setEnabled(false);
+          verify(spanTracker).setEnabled(true);
+          verify(traceThreadChangeDetector).setEnabled(false);
+          verify(traceThreadChangeDetector).setEnabled(true);
+          verify(profilingSpanProcessor).setEnabled(false);
+          verify(profilingSpanProcessor).setSnapshotSelectionProbability(0.5);
+          verify(profilingSpanProcessor).setEnabled(true);
+          verifyNoMoreInteractions(spanTracker, traceThreadChangeDetector, profilingSpanProcessor);
+          verifyNoMoreInteractions(listener);
+        });
     assertThat(stackTraceSamplerSupplier.get()).isNotSameAs(initialSampler);
     assertThat(stagingAreaSupplier.get()).isNotSameAs(initialStagingArea);
     assertThat(stackTraceExporterSupplier.get()).isNotSameAs(initialExporter);
@@ -414,12 +408,11 @@ class SnapshotProfilingSupervisorTest {
     // then: the unchanged final configuration produces no notification
     await()
         .during(Duration.ofMillis(200))
-        .untilAsserted(
-            () -> {
-              verify(profilingSpanProcessor, times(2)).setEnabled(true);
-              assertThat(supervisor.getEffectiveConfiguration()).isEqualTo(updatedConfiguration);
-              verifyNoInteractions(listener);
-            });
+        .untilAsserted(() -> {
+          verify(profilingSpanProcessor, times(2)).setEnabled(true);
+          assertThat(supervisor.getEffectiveConfiguration()).isEqualTo(updatedConfiguration);
+          verifyNoInteractions(listener);
+        });
   }
 
   @ParameterizedTest
@@ -454,12 +447,11 @@ class SnapshotProfilingSupervisorTest {
     // then
     // Wait for cleanup of the previous profiler and the failed restart.
     await()
-        .untilAsserted(
-            () -> {
-              verify(profilingSpanProcessor, times(previouslyStarted ? 2 : 1)).setEnabled(false);
-              verify(listener).onSnapshotProfilerStateChanged(disabledUpdatedConfiguration);
-              verifyNoMoreInteractions(listener);
-            });
+        .untilAsserted(() -> {
+          verify(profilingSpanProcessor, times(previouslyStarted ? 2 : 1)).setEnabled(false);
+          verify(listener).onSnapshotProfilerStateChanged(disabledUpdatedConfiguration);
+          verifyNoMoreInteractions(listener);
+        });
     assertThat(supervisor.getEffectiveConfiguration()).isEqualTo(disabledUpdatedConfiguration);
     assertRuntimeComponentsReset();
   }
@@ -506,12 +498,11 @@ class SnapshotProfilingSupervisorTest {
 
     // then
     await()
-        .untilAsserted(
-            () -> {
-              verifyClosedRuntimeComponents();
-              verifyEnabled(false);
-              assertRuntimeComponentsReset();
-            });
+        .untilAsserted(() -> {
+          verifyClosedRuntimeComponents();
+          verifyEnabled(false);
+          assertRuntimeComponentsReset();
+        });
   }
 
   private void registerListenerAndAwaitCurrentConfiguration() {
@@ -524,11 +515,10 @@ class SnapshotProfilingSupervisorTest {
   private void requestStartProfiling() {
     supervisor.requestStartProfiling();
     await()
-        .untilAsserted(
-            () -> {
-              assertRuntimeComponentsConfigured();
-              assertThat(supervisor.isRunning()).isTrue();
-            });
+        .untilAsserted(() -> {
+          assertRuntimeComponentsConfigured();
+          assertThat(supervisor.isRunning()).isTrue();
+        });
   }
 
   private void configureRuntimeComponents() {

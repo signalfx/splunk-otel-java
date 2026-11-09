@@ -113,11 +113,10 @@ public class ProfilingSupervisor {
    */
   public void addAlwaysOnProfilerStateListener(AlwaysOnProfilerStateListener listener) {
     Objects.requireNonNull(listener, "listener");
-    commandQueue.add(
-        () -> {
-          listeners.add(listener);
-          listener.onAlwaysOnProfilerStateChanged(getEffectiveConfiguration());
-        });
+    commandQueue.add(() -> {
+      listeners.add(listener);
+      listener.onAlwaysOnProfilerStateChanged(getEffectiveConfiguration());
+    });
   }
 
   /** Queues removal after earlier commands and their callbacks have finished. */
@@ -362,11 +361,10 @@ public class ProfilingSupervisor {
       return;
     }
 
-    ContextStorage.addWrapper(
-        (delegate) -> {
-          ProfilerContextStorage storage = new ProfilerContextStorage(delegate);
-          profilerContextStorage.set(storage);
-          return storage;
-        });
+    ContextStorage.addWrapper(delegate -> {
+      ProfilerContextStorage storage = new ProfilerContextStorage(delegate);
+      profilerContextStorage.set(storage);
+      return storage;
+    });
   }
 }

@@ -17,9 +17,9 @@
 package com.splunk.opentelemetry.instrumentation.nocode;
 
 import com.splunk.opentelemetry.javaagent.bootstrap.nocode.NocodeRules;
-import io.opentelemetry.instrumentation.api.incubator.semconv.code.CodeSpanNameExtractor;
 import io.opentelemetry.instrumentation.api.incubator.semconv.util.ClassAndMethod;
 import io.opentelemetry.instrumentation.api.instrumenter.SpanNameExtractor;
+import io.opentelemetry.instrumentation.api.semconv.code.CodeSpanNameExtractor;
 
 class NocodeSpanNameExtractor implements SpanNameExtractor<NocodeMethodInvocation> {
   private final SpanNameExtractor<ClassAndMethod> defaultNamer;

@@ -8,6 +8,28 @@ and this repository adheres to [Semantic Versioning](https://semver.org/spec/v2.
 
 ## Unreleased
 
+### General
+
+- Comply with [GDI spec version 1.10.0](https://github.com/signalfx/gdi-specification/releases/tag/v1.10.0)
+
+### ⚠️⚠️ Breaking changes ⚠️⚠️
+
+- Maximum number of span attributes, span events, span links, event and link attributes is now set
+  to OpenTelemetry default of 128 instead of unlimited [#3163](https://github.com/signalfx/splunk-otel-java/pull/3163)
+
+## v2.33.1 - 2026-10-28
+
+### General
+
+- OpenTelemetry Instrumentation for Java has been updated to version [2.33.1](https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/tag/v2.33.1).
+
+## v2.33.0 - 2026-10-26
+
+### General
+
+- OpenTelemetry Java SDK has been updated to version [1.67.0](https://github.com/open-telemetry/opentelemetry-java/releases/tag/v1.67.0).
+- OpenTelemetry Instrumentation for Java has been updated to version [2.33.0](https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/tag/v2.33.0).
+
 ## v2.32.0 - 2026-10-12
 
 ### General

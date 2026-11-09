@@ -55,16 +55,14 @@ public class ThreadDumpProcessor {
     Stream.of(stacks)
         .filter(stack -> stack.charAt(0) == '"') // omit non-stack entries
         .filter(agentInternalsFilter)
-        .map(
-            stack -> {
-              StackTraceData stackTraceData =
-                  StackTraceParser.parse(stack, Integer.MAX_VALUE, true);
-              return new StackToSpanLinkage(
-                  event.getStartTime(),
-                  stackTraceData,
-                  event.getEventType().getName(),
-                  contextualizer.link(new ThreadDumpRegion(stack, 0, stack.length())));
-            })
+        .map(stack -> {
+          StackTraceData stackTraceData = StackTraceParser.parse(stack, Integer.MAX_VALUE, true);
+          return new StackToSpanLinkage(
+              event.getStartTime(),
+              stackTraceData,
+              event.getEventType().getName(),
+              contextualizer.link(new ThreadDumpRegion(stack, 0, stack.length())));
+        })
         .forEach(processor);
   }
 }

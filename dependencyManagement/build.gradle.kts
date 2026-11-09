@@ -2,9 +2,9 @@ plugins {
   `java-platform`
 }
 
-val otelVersion = "1.66.0"
+val otelVersion = "1.68.0"
 val otelAlphaVersion = otelVersion.replaceFirst("(-SNAPSHOT)?$".toRegex(), "-alpha$1")
-val otelInstrumentationVersion = "2.32.0"
+val otelInstrumentationVersion = "3.0.0-SNAPSHOT"
 val otelInstrumentationAlphaVersion =  otelInstrumentationVersion.replaceFirst("(-SNAPSHOT)?$".toRegex(), "-alpha$1")
 val otelContribAlphaVersion = "1.61.0-alpha"
 
@@ -28,13 +28,12 @@ javaPlatform {
 dependencies {
 
   // BOMs
-  api(enforcedPlatform("com.fasterxml.jackson:jackson-bom:2.22.4"))
+  api(enforcedPlatform("com.fasterxml.jackson:jackson-bom:2.23.0"))
   api(enforcedPlatform("com.google.protobuf:protobuf-bom:$protobufVersion"))
   api(enforcedPlatform("com.squareup.okhttp3:okhttp-bom:5.5.1"))
   api(enforcedPlatform("io.grpc:grpc-bom:1.85.1"))
   api(enforcedPlatform("io.opentelemetry:opentelemetry-bom-alpha:$otelAlphaVersion"))
   api(enforcedPlatform("io.opentelemetry.instrumentation:opentelemetry-instrumentation-bom-alpha:$otelInstrumentationAlphaVersion"))
-  api(enforcedPlatform("org.junit:junit-bom:6.1.3"))
   api(enforcedPlatform("org.testcontainers:testcontainers-bom:2.0.5"))
 
   constraints {
@@ -53,7 +52,6 @@ dependencies {
     api("com.google.auto.value:auto-value:$autoValueVersion")
     api("com.google.auto.value:auto-value-annotations:$autoValueVersion")
 
-    api("io.opentelemetry.contrib:opentelemetry-samplers:$otelContribAlphaVersion")
     api("io.opentelemetry.contrib:opentelemetry-resource-providers:$otelContribAlphaVersion")
     api("io.opentelemetry.contrib:opentelemetry-opamp-client:${otelContribAlphaVersion}")
     api("io.opentelemetry.proto:opentelemetry-proto:1.11.1-alpha")

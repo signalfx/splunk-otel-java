@@ -48,11 +48,10 @@ class JfrSettingsReader {
       reader
           .lines()
           .filter(line -> !line.trim().startsWith("#")) // ignore commented lines
-          .forEach(
-              line -> {
-                String[] kv = line.split("=");
-                result.put(kv[0], kv[1]);
-              });
+          .forEach(line -> {
+            String[] kv = line.split("=");
+            result.put(kv[0], kv[1]);
+          });
       logger.log(FINE, "Read {0} JFR settings entries.", result.size());
       return result;
     } catch (IOException e) {

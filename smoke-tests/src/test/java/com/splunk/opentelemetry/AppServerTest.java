@@ -213,7 +213,7 @@ public abstract class AppServerTest extends SmokeTest {
         List<String> vms,
         String... jdks) {
       ImageFactory imageFactory =
-          (jdk) -> {
+          jdk -> {
             String name = OTEL_REPO_PREFIX + serverName + ":" + version + "-jdk" + jdk + "-" + tag;
             return linuxImage(name);
           };
@@ -237,7 +237,7 @@ public abstract class AppServerTest extends SmokeTest {
         String... jdks) {
 
       ImageFactory imageFactory =
-          (jdk) -> {
+          jdk -> {
             String name = SPLUNK_REPO_PREFIX + serverName + ":" + version + "-jdk" + jdk;
             return proprietaryLinuxImage(name);
           };
@@ -253,7 +253,7 @@ public abstract class AppServerTest extends SmokeTest {
         String... jdks) {
 
       ImageFactory imageFactory =
-          (jdk) -> {
+          jdk -> {
             String name =
                 OTEL_REPO_PREFIX
                     + serverName

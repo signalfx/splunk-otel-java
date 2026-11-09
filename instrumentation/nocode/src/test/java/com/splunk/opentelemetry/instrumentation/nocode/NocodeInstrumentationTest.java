@@ -37,36 +37,32 @@ class NocodeInstrumentationTest {
   @Test
   void testBasicMethod() {
     new SampleClass().doSomething();
-    testing.waitAndAssertTraces(
-        trace ->
-            trace.hasSpansSatisfyingExactly(
-                span ->
-                    span.hasName("name")
-                        .hasKind(SpanKind.INTERNAL)
-                        .hasStatus(StatusData.unset())
-                        .hasAttributesSatisfying(
-                            equalTo(AttributeKey.doubleKey("getFloat"), 7.0),
-                            equalTo(AttributeKey.doubleKey("getDouble"), 8.0),
-                            equalTo(AttributeKey.longKey("getLong"), 9),
-                            equalTo(AttributeKey.longKey("getShort"), 10),
-                            equalTo(AttributeKey.longKey("getByte"), 11),
-                            equalTo(AttributeKey.booleanKey("map.isEmpty"), false),
-                            equalTo(AttributeKey.longKey("map.size"), 2),
-                            equalTo(AttributeKey.stringKey("details"), "details"))));
+    testing.waitAndAssertTraces(trace ->
+        trace.hasSpansSatisfyingExactly(span ->
+            span.hasName("name")
+                .hasKind(SpanKind.INTERNAL)
+                .hasStatus(StatusData.unset())
+                .hasAttributesSatisfying(
+                    equalTo(AttributeKey.doubleKey("getFloat"), 7.0),
+                    equalTo(AttributeKey.doubleKey("getDouble"), 8.0),
+                    equalTo(AttributeKey.longKey("getLong"), 9),
+                    equalTo(AttributeKey.longKey("getShort"), 10),
+                    equalTo(AttributeKey.longKey("getByte"), 11),
+                    equalTo(AttributeKey.booleanKey("map.isEmpty"), false),
+                    equalTo(AttributeKey.longKey("map.size"), 2),
+                    equalTo(AttributeKey.stringKey("details"), "details"))));
   }
 
   @Test
   void testRuleWithManyInvalidFields() {
     new SampleClass().doInvalidRule();
-    testing.waitAndAssertTraces(
-        trace ->
-            trace.hasSpansSatisfyingExactly(
-                span ->
-                    span.hasName("SampleClass.doInvalidRule")
-                        .hasKind(SpanKind.INTERNAL)
-                        .hasStatus(StatusData.unset())
-                        .hasTotalAttributeCount(
-                            2))); // two code. attribute but nothing from the invalid rule
+    testing.waitAndAssertTraces(trace ->
+        trace.hasSpansSatisfyingExactly(span ->
+            span.hasName("SampleClass.doInvalidRule")
+                .hasKind(SpanKind.INTERNAL)
+                .hasStatus(StatusData.unset())
+                .hasTotalAttributeCount(
+                    1))); // one code attribute but nothing from the invalid rule
   }
 
   @Test
@@ -77,51 +73,41 @@ class NocodeInstrumentationTest {
       // nop
     }
 
-    testing.waitAndAssertTraces(
-        trace ->
-            trace.hasSpansSatisfyingExactly(
-                span ->
-                    span.hasName("SampleClass.throwException")
-                        .hasKind(SpanKind.SERVER)
-                        .hasEventsSatisfyingExactly(event -> event.hasName("exception"))
-                        .hasStatusSatisfying(StatusDataAssert::isError)
-                        .hasAttributesSatisfying(equalTo(AttributeKey.stringKey("five"), "5"))));
+    testing.waitAndAssertTraces(trace ->
+        trace.hasSpansSatisfyingExactly(span ->
+            span.hasName("SampleClass.throwException")
+                .hasKind(SpanKind.SERVER)
+                .hasEventsSatisfyingExactly(event -> event.hasName("exception"))
+                .hasStatusSatisfying(StatusDataAssert::isError)
+                .hasAttributesSatisfying(equalTo(AttributeKey.stringKey("five"), "5"))));
   }
 
   @Test
   void testEchoTrueIsError() {
     new SampleClass().echo(true);
-    testing.waitAndAssertTraces(
-        trace ->
-            trace.hasSpansSatisfyingExactly(
-                span ->
-                    span.hasName("SampleClass.echo")
-                        .hasStatusSatisfying(StatusDataAssert::isError)));
+    testing.waitAndAssertTraces(trace ->
+        trace.hasSpansSatisfyingExactly(span ->
+            span.hasName("SampleClass.echo").hasStatusSatisfying(StatusDataAssert::isError)));
   }
 
   @Test
   void testEchoFalseIsOK() {
     new SampleClass().echo(false);
-    testing.waitAndAssertTraces(
-        trace ->
-            trace.hasSpansSatisfyingExactly(
-                span ->
-                    span.hasName("SampleClass.echo").hasStatusSatisfying(StatusDataAssert::isOk)));
+    testing.waitAndAssertTraces(trace ->
+        trace.hasSpansSatisfyingExactly(
+            span -> span.hasName("SampleClass.echo").hasStatusSatisfying(StatusDataAssert::isOk)));
   }
 
   @Test
   void testCurrentSpanAddsAttributesToActiveSpan() {
     testing.runWithSpan("parent", () -> new SampleClass().currentSpanOnly("value-from-parent"));
 
-    testing.waitAndAssertTraces(
-        trace ->
-            trace.hasSpansSatisfyingExactly(
-                span ->
-                    span.hasName("parent")
-                        .hasNoParent()
-                        .hasAttributesSatisfying(
-                            equalTo(
-                                AttributeKey.stringKey("current.value"), "value-from-parent"))));
+    testing.waitAndAssertTraces(trace ->
+        trace.hasSpansSatisfyingExactly(span ->
+            span.hasName("parent")
+                .hasNoParent()
+                .hasAttributesSatisfying(
+                    equalTo(AttributeKey.stringKey("current.value"), "value-from-parent"))));
   }
 
   @Test
@@ -137,42 +123,39 @@ class NocodeInstrumentationTest {
   void testRegularRuleBeforeCurrentSpanTargetsNewSpan() {
     testing.runWithSpan("parent", () -> new SampleClass().regularThenCurrent("child-target"));
 
-    testing.waitAndAssertTraces(
-        trace ->
-            trace.hasSpansSatisfyingExactly(
-                span -> span.hasName("parent").hasNoParent(),
-                span ->
-                    span.hasName("regularThenCurrent.child")
-                        .hasParent(trace.getSpan(0))
-                        .hasAttributesSatisfying(
-                            equalTo(AttributeKey.stringKey("current.target"), "child-target"))));
+    testing.waitAndAssertTraces(trace ->
+        trace.hasSpansSatisfyingExactly(
+            span -> span.hasName("parent").hasNoParent(),
+            span ->
+                span.hasName("regularThenCurrent.child")
+                    .hasParent(trace.getSpan(0))
+                    .hasAttributesSatisfying(
+                        equalTo(AttributeKey.stringKey("current.target"), "child-target"))));
   }
 
   @Test
   void testCurrentSpanRuleBeforeRegularTargetsParentSpan() {
     testing.runWithSpan("parent", () -> new SampleClass().currentThenRegular("parent-target"));
 
-    testing.waitAndAssertTraces(
-        trace ->
-            trace.hasSpansSatisfyingExactly(
-                span ->
-                    span.hasName("parent")
-                        .hasNoParent()
-                        .hasAttributesSatisfying(
-                            equalTo(AttributeKey.stringKey("current.target"), "parent-target")),
-                span -> span.hasName("currentThenRegular.child").hasParent(trace.getSpan(0))));
+    testing.waitAndAssertTraces(trace ->
+        trace.hasSpansSatisfyingExactly(
+            span ->
+                span.hasName("parent")
+                    .hasNoParent()
+                    .hasAttributesSatisfying(
+                        equalTo(AttributeKey.stringKey("current.target"), "parent-target")),
+            span -> span.hasName("currentThenRegular.child").hasParent(trace.getSpan(0))));
   }
 
   @Test
   void testCanMatchMethodPrefixAndGenerateSeparateSpans() {
     new SampleClass().methodPrefixFoo();
     // foo calls bar, bar calls baz.
-    testing.waitAndAssertTraces(
-        trace ->
-            trace.hasSpansSatisfyingExactly(
-                span -> span.hasName("SampleClass.methodPrefixFoo"),
-                span -> span.hasName("SampleClass.methodPrefixBar"),
-                span -> span.hasName("SampleClass.methodPrefixBaz")));
+    testing.waitAndAssertTraces(trace ->
+        trace.hasSpansSatisfyingExactly(
+            span -> span.hasName("SampleClass.methodPrefixFoo"),
+            span -> span.hasName("SampleClass.methodPrefixBar"),
+            span -> span.hasName("SampleClass.methodPrefixBaz")));
   }
 
   public static class SampleClass {

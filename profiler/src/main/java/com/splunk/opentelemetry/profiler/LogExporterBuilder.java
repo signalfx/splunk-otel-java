@@ -84,6 +84,7 @@ class LogExporterBuilder {
         builder::setClientTls,
         builder::setRetryPolicy,
         builder::setMemoryMode,
+        builder::setMaxRequestBodySize,
         /* isHttpProtobuf= */ true,
         builder::setInternalTelemetryVersion,
         () -> builder.setMeterProvider(MeterProvider::noop));
@@ -106,6 +107,7 @@ class LogExporterBuilder {
         builder::setClientTls,
         builder::setRetryPolicy,
         builder::setMemoryMode,
+        builder::setMaxRequestMessageSize,
         /* isHttpProtobuf= */ false,
         builder::setInternalTelemetryVersion,
         () -> builder.setMeterProvider(MeterProvider::noop));
@@ -228,6 +230,31 @@ class LogExporterBuilder {
     @Override
     public <T> List<T> getScalarList(String name, Class<T> scalarType) {
       return delegate.getScalarList(name, scalarType);
+    }
+
+    @Override
+    public boolean isString(String name) {
+      return delegate.isString(name);
+    }
+
+    @Override
+    public boolean isBoolean(String name) {
+      return delegate.isBoolean(name);
+    }
+
+    @Override
+    public boolean isInt(String name) {
+      return delegate.isInt(name);
+    }
+
+    @Override
+    public boolean isLong(String name) {
+      return delegate.isLong(name);
+    }
+
+    @Override
+    public boolean isDouble(String name) {
+      return delegate.isDouble(name);
     }
 
     @Nullable

@@ -33,8 +33,9 @@ public final class SqlServerContextPropagator extends AbstractDbContextPropagato
       throws SQLException {
     byte[] contextBytes =
         contextInfo == null ? new byte[0] : contextInfo.getBytes(StandardCharsets.UTF_8);
-    PreparedStatement statement = connection.prepareStatement("set context_info ?");
-    statement.setBytes(1, contextBytes);
-    statement.executeUpdate();
+    try (PreparedStatement statement = connection.prepareStatement("set context_info ?")) {
+      statement.setBytes(1, contextBytes);
+      statement.executeUpdate();
+    }
   }
 }

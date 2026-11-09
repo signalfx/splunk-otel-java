@@ -35,7 +35,7 @@ public class RulesBasedSamplerSmokeTest extends AppServerTest {
         "rules",
         "OTEL_TRACES_SAMPLER_ARG",
         "drop=/front;fallback=parentbased_always_on",
-        "OTEL_INSTRUMENTATION_COMMON_EXPERIMENTAL_CONTROLLER_TELEMETRY_ENABLED",
+        "OTEL_INSTRUMENTATION_COMMON_CONTROLLER_TELEMETRY_ENABLED",
         "true");
   }
 

@@ -65,13 +65,13 @@ class OpampClientConfigurationFactoryTest {
     // given
     String yaml =
         """
-            file_format: "1.1"
-            distribution:
-              splunk:
-                opamp/development:
-                  endpoint: http://some.opamp-host.com:3420/v1/opamp
-                  polling_interval: 4567
-            """;
+        file_format: "1.2"
+        distribution:
+          splunk:
+            opamp/development:
+              endpoint: http://some.opamp-host.com:3420/v1/opamp
+              polling_interval: 4567
+        """;
     AutoConfiguredOpenTelemetrySdk sdk =
         DeclarativeConfigTestUtil.createAutoConfiguredSdk(yaml, tempDir, autoCleanup);
 
@@ -92,14 +92,14 @@ class OpampClientConfigurationFactoryTest {
     // given
     String yaml =
         """
-            file_format: "1.1"
-            distribution:
-              splunk:
-                opamp/development:
-                  endpoint: http://some.opamp-host.com:3420/v1/opamp
-                  features:
-                    remote_config:
-            """;
+        file_format: "1.2"
+        distribution:
+          splunk:
+            opamp/development:
+              endpoint: http://some.opamp-host.com:3420/v1/opamp
+              features:
+                remote_config:
+        """;
     AutoConfiguredOpenTelemetrySdk sdk =
         DeclarativeConfigTestUtil.createAutoConfiguredSdk(yaml, tempDir, autoCleanup);
 

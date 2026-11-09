@@ -49,8 +49,8 @@ class SnapshotProfilingConfigurationCustomizerProviderTest {
     // given
     String yaml =
         """
-          file_format: "1.1"
-          """;
+        file_format: "1.2"
+        """;
 
     // when
     OpenTelemetryConfigurationModel model = getCustomizedModel(yaml);
@@ -75,14 +75,14 @@ class SnapshotProfilingConfigurationCustomizerProviderTest {
     // given
     String yaml =
         """
-          file_format: "1.1"
-          propagator:
-            composite_list: "propagator1,propagator2"
-          distribution:
-            splunk:
-              profiling:
-                callgraphs:
-          """;
+        file_format: "1.2"
+        propagator:
+          composite_list: "propagator1,propagator2"
+        distribution:
+          splunk:
+            profiling:
+              callgraphs:
+        """;
 
     // when
     OpenTelemetryConfigurationModel model = getCustomizedModel(yaml);
@@ -97,16 +97,16 @@ class SnapshotProfilingConfigurationCustomizerProviderTest {
     // given
     String yaml =
         """
-          file_format: "1.1"
-          tracer_provider:
-            processors:
-              - batch:
-              - simple:
-          distribution:
-            splunk:
-              profiling:
-                callgraphs:
-          """;
+        file_format: "1.2"
+        tracer_provider:
+          processors:
+            - batch:
+            - simple:
+        distribution:
+          splunk:
+            profiling:
+              callgraphs:
+        """;
 
     // when
     OpenTelemetryConfigurationModel model = getCustomizedModel(yaml);
@@ -133,12 +133,12 @@ class SnapshotProfilingConfigurationCustomizerProviderTest {
     OpenTelemetryConfigurationModel model =
         DeclarativeConfigTestUtil.parse(
             """
-              file_format: "1.1"
-              distribution:
-                splunk:
-                  profiling:
-                    callgraphs:
-              """);
+            file_format: "1.2"
+            distribution:
+              splunk:
+                profiling:
+                  callgraphs:
+            """);
 
     TraceRegistry traceRegistryMock = mock(TraceRegistry.class);
     ContextStorageWrapper contextStorageWrapperMock = mock(ContextStorageWrapper.class);

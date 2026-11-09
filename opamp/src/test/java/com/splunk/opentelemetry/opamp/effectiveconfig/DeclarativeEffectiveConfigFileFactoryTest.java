@@ -65,7 +65,7 @@ class DeclarativeEffectiveConfigFileFactoryTest {
   void buildFileContent_handleRealConfigPaths(@TempDir Path tempDir) throws Exception {
     // given
     Path configFile = tempDir.resolve("declarative-config.yaml");
-    Files.writeString(configFile, "file_format: 1.1", UTF_8);
+    Files.writeString(configFile, "file_format: 1.2", UTF_8);
 
     ProcessBuilder processBuilder =
         new ProcessBuilder(
@@ -99,17 +99,19 @@ class DeclarativeEffectiveConfigFileFactoryTest {
     // given
     String configurationYaml =
         """
-        file_format: 1.1
+        file_format: 1.2
         distribution:
           splunk:
             profiling:
               always_on:
                 cpu_profiler:
                   sampling_interval: 1410
+                  report_locks: true
                 memory_profiler:
               callgraphs:
                 sampling_interval: 10
                 selection_probability: 0.1507
+                report_locks: true
         """;
 
     // when
@@ -132,10 +134,12 @@ class DeclarativeEffectiveConfigFileFactoryTest {
                   always_on:
                     cpu_profiler:
                       sampling_interval: 1410
+                      report_locks: true
                     memory_profiler:
                   callgraphs:
                     sampling_interval: 10
                     selection_probability: 0.1507
+                    report_locks: true
             """);
 
     String disabledConfigYaml =
@@ -155,7 +159,7 @@ class DeclarativeEffectiveConfigFileFactoryTest {
 
   @Test
   void handlesBlankConfig() throws Exception {
-    OpenTelemetryConfigurationModel model = parseModel("file_format: 1.1");
+    OpenTelemetryConfigurationModel model = parseModel("file_format: 1.2");
 
     String yaml =
         new DeclarativeEffectiveConfigFileFactory()
@@ -192,7 +196,7 @@ class DeclarativeEffectiveConfigFileFactoryTest {
     OpenTelemetryConfigurationModel model =
         parseModel(
             """
-            file_format: 1.1
+            file_format: 1.2
             tracer_provider:
               processors:
                 - batch:
@@ -245,7 +249,7 @@ class DeclarativeEffectiveConfigFileFactoryTest {
     OpenTelemetryConfigurationModel model =
         parseModel(
             """
-            file_format: 1.1
+            file_format: 1.2
             tracer_provider:
               processors:
                 - batch:
@@ -298,7 +302,7 @@ class DeclarativeEffectiveConfigFileFactoryTest {
     OpenTelemetryConfigurationModel model =
         parseModel(
             """
-            file_format: 1.1
+            file_format: 1.2
             tracer_provider:
               processors:
                 - batch:
@@ -380,7 +384,7 @@ class DeclarativeEffectiveConfigFileFactoryTest {
 
   @Test
   void supportsAlwaysOnProfiler() throws Exception {
-    OpenTelemetryConfigurationModel model = parseModel("file_format: 1.1");
+    OpenTelemetryConfigurationModel model = parseModel("file_format: 1.2");
     when(mockProfilerConfiguration.isEnabled()).thenReturn(true);
     when(mockProfilerConfiguration.getCallStackInterval()).thenReturn(Duration.ofMillis(1410));
     when(mockProfilerConfiguration.getMemoryEnabled()).thenReturn(true);
@@ -400,13 +404,14 @@ class DeclarativeEffectiveConfigFileFactoryTest {
                   always_on:
                     cpu_profiler:
                       sampling_interval: 1410
+                      report_locks: false
                     memory_profiler:
             """);
   }
 
   @Test
   void supportsSnapshotProfiler() throws Exception {
-    OpenTelemetryConfigurationModel model = parseModel("file_format: 1.1");
+    OpenTelemetryConfigurationModel model = parseModel("file_format: 1.2");
     when(mockSnapshotConfiguration.isEnabled()).thenReturn(true);
     when(mockSnapshotConfiguration.getSamplingInterval()).thenReturn(Duration.ofMillis(10));
     when(mockSnapshotConfiguration.getSnapshotSelectionProbability()).thenReturn(0.0123);
@@ -426,6 +431,7 @@ class DeclarativeEffectiveConfigFileFactoryTest {
                   callgraphs:
                     sampling_interval: 10
                     selection_probability: 0.0123
+                    report_locks: false
             """);
   }
 

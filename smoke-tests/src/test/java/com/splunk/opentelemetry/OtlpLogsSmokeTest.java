@@ -40,7 +40,7 @@ public class OtlpLogsSmokeTest extends SmokeTest {
     return Map.of(
         "OTEL_LOGS_EXPORTER",
         "otlp",
-        "OTEL_INSTRUMENTATION_COMMON_EXPERIMENTAL_CONTROLLER_TELEMETRY_ENABLED",
+        "OTEL_INSTRUMENTATION_COMMON_CONTROLLER_TELEMETRY_ENABLED",
         "true");
   }
 

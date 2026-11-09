@@ -28,13 +28,13 @@ class AppdBonusConfigurationCustomizerProviderTest {
   void shouldAddAppdPropagatorWithDefaultPropagatorsAndSpanProcessorWhenFeatureIsEnabled() {
     var yaml =
         """
-            file_format: "1.1"
-            instrumentation/development:
-              java:
-                cisco:
-                   ctx:
-                     enabled: true
-            """;
+        file_format: "1.2"
+        instrumentation/development:
+          java:
+            cisco:
+               ctx:
+                 enabled: true
+        """;
 
     AppdBonusConfigurationCustomizerProvider customizer =
         new AppdBonusConfigurationCustomizerProvider();
@@ -53,15 +53,15 @@ class AppdBonusConfigurationCustomizerProviderTest {
   void shouldAddAppdPropagatorToExistingListAndSpanProcessorWhenFeatureIsEnabled() {
     var yaml =
         """
-            file_format: "1.1"
-            propagator:
-               composite_list: "b3"
-            instrumentation/development:
-              java:
-                cisco:
-                   ctx:
-                     enabled: true
-            """;
+        file_format: "1.2"
+        propagator:
+           composite_list: "b3"
+        instrumentation/development:
+          java:
+            cisco:
+               ctx:
+                 enabled: true
+        """;
 
     AppdBonusConfigurationCustomizerProvider customizer =
         new AppdBonusConfigurationCustomizerProvider();
@@ -79,13 +79,13 @@ class AppdBonusConfigurationCustomizerProviderTest {
   void shouldNotAddPropagatorAndSpanProcessorWhenFeatureIsDisabled() {
     var yaml =
         """
-            file_format: "1.1"
-            instrumentation/development:
-              java:
-                cisco:
-                   ctx:
-                     enabled: false
-            """;
+        file_format: "1.2"
+        instrumentation/development:
+          java:
+            cisco:
+               ctx:
+                 enabled: false
+        """;
 
     AppdBonusConfigurationCustomizerProvider customizer =
         new AppdBonusConfigurationCustomizerProvider();
@@ -99,10 +99,10 @@ class AppdBonusConfigurationCustomizerProviderTest {
   void shouldNotAddPropagatorAndSpanProcessorWhenFeaturePropertyIsMissing() {
     var yaml =
         """
-            file_format: "1.1"
-            instrumentation/development:
-              java:
-            """;
+        file_format: "1.2"
+        instrumentation/development:
+          java:
+        """;
 
     AppdBonusConfigurationCustomizerProvider customizer =
         new AppdBonusConfigurationCustomizerProvider();

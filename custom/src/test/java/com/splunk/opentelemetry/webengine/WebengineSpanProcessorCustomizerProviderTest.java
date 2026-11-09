@@ -28,13 +28,13 @@ class WebengineSpanProcessorCustomizerProviderTest {
   void shouldAddWebengineSpanProcessor() {
     String yaml =
         """
-            file_format: "1.1"
-            tracer_provider:
-              processors:
-                - simple:
-                    exporter:
-                      console:
-            """;
+        file_format: "1.2"
+        tracer_provider:
+          processors:
+            - simple:
+                exporter:
+                  console:
+        """;
     WebengineSpanProcessorCustomizerProvider customizer =
         new WebengineSpanProcessorCustomizerProvider();
 

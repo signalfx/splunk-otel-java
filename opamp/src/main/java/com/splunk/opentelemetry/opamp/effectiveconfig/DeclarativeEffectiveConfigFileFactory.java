@@ -116,6 +116,7 @@ class DeclarativeEffectiveConfigFileFactory implements EffectiveConfigFileFactor
                 "sampling_interval", snapshotConfiguration.getSamplingInterval().toMillis());
             callgraphs.addNode(
                 "selection_probability", snapshotConfiguration.getSnapshotSelectionProbability());
+            callgraphs.addNode("report_locks", snapshotConfiguration.getLocksEnabled());
           });
     }
   }
@@ -126,9 +127,13 @@ class DeclarativeEffectiveConfigFileFactory implements EffectiveConfigFileFactor
       profiling.addNode(
           "always_on",
           alwaysOn -> {
-            alwaysOn.addNestedNode(
-                "cpu_profiler.sampling_interval",
-                profilerConfiguration.getCallStackInterval().toMillis());
+            alwaysOn.addNode(
+                "cpu_profiler",
+                cpuProfiler -> {
+                  cpuProfiler.addNode(
+                      "sampling_interval", profilerConfiguration.getCallStackInterval().toMillis());
+                  cpuProfiler.addNode("report_locks", profilerConfiguration.getLocksEnabled());
+                });
             if (profilerConfiguration.getMemoryEnabled()) {
               alwaysOn.addNode("memory_profiler", EmptyYamlNode.INSTANCE);
             }
@@ -173,15 +178,13 @@ class DeclarativeEffectiveConfigFileFactory implements EffectiveConfigFileFactor
     List<Map<String, Object>> processors = new ArrayList<>();
     model
         .getProcessors()
-        .forEach(
-            logProcessorModel -> {
-              if (logProcessorModel.getBatch() != null) {
-                addLogExporterNode("batch", logProcessorModel.getBatch().getExporter(), processors);
-              } else if (logProcessorModel.getSimple() != null) {
-                addLogExporterNode(
-                    "simple", logProcessorModel.getSimple().getExporter(), processors);
-              }
-            });
+        .forEach(logProcessorModel -> {
+          if (logProcessorModel.getBatch() != null) {
+            addLogExporterNode("batch", logProcessorModel.getBatch().getExporter(), processors);
+          } else if (logProcessorModel.getSimple() != null) {
+            addLogExporterNode("simple", logProcessorModel.getSimple().getExporter(), processors);
+          }
+        });
 
     if (!processors.isEmpty()) {
       root.addNestedNode("logger_provider.processors", processors);
@@ -196,13 +199,12 @@ class DeclarativeEffectiveConfigFileFactory implements EffectiveConfigFileFactor
     List<Map<String, Object>> readers = new ArrayList<>();
     model
         .getReaders()
-        .forEach(
-            metricReaderModel -> {
-              if (metricReaderModel.getPeriodic() != null) {
-                addMetricExporterNode(
-                    "periodic", metricReaderModel.getPeriodic().getExporter(), readers);
-              }
-            });
+        .forEach(metricReaderModel -> {
+          if (metricReaderModel.getPeriodic() != null) {
+            addMetricExporterNode(
+                "periodic", metricReaderModel.getPeriodic().getExporter(), readers);
+          }
+        });
 
     if (!readers.isEmpty()) {
       root.addNestedNode("meter_provider.readers", readers);

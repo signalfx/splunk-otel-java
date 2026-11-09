@@ -32,22 +32,21 @@ public class WebengineSpanProcessorCustomizerProvider
 
   @Override
   public void customize(DeclarativeConfigurationCustomizer autoConfiguration) {
-    autoConfiguration.addModelCustomizer(
-        model -> {
-          if (model.getTracerProvider() != null) {
-            logger.fine("Adding webengine span processor to the configuration");
-            List<SpanProcessorModel> processors = model.getTracerProvider().getProcessors();
-            if (processors == null) {
-              processors = new ArrayList<>();
-              model.getTracerProvider().setProcessors(processors);
-            }
-            processors.add(
-                0,
-                new SpanProcessorModel()
-                    .setExtensionProperty(WebengineSpanProcessorComponentProvider.NAME, null));
-          }
-          return model;
-        });
+    autoConfiguration.addModelCustomizer(model -> {
+      if (model.getTracerProvider() != null) {
+        logger.fine("Adding webengine span processor to the configuration");
+        List<SpanProcessorModel> processors = model.getTracerProvider().getProcessors();
+        if (processors == null) {
+          processors = new ArrayList<>();
+          model.getTracerProvider().setProcessors(processors);
+        }
+        processors.add(
+            0,
+            new SpanProcessorModel()
+                .setExtensionProperty(WebengineSpanProcessorComponentProvider.NAME, null));
+      }
+      return model;
+    });
   }
 
   @Override

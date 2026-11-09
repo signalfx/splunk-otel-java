@@ -119,11 +119,11 @@ class RemoteConfigProcessorImplTest {
     // given
     String remoteConfigYaml =
         """
-        distribution:
-          splunk:
-            profiling:
-        INVALID YAML HERE
-    """;
+            distribution:
+              splunk:
+                profiling:
+            INVALID YAML HERE
+        """;
     ByteString configHash = ByteString.encodeUtf8("test-config-hash");
     AgentRemoteConfig remoteConfig = createRemoteConfig(configHash, remoteConfigYaml);
 
@@ -168,12 +168,12 @@ class RemoteConfigProcessorImplTest {
       // given
       String remoteConfigYaml =
           """
-          distribution:
-            splunk:
-              profiling:
-                always_on:
-                  cpu_profiler:
-      """;
+              distribution:
+                splunk:
+                  profiling:
+                    always_on:
+                      cpu_profiler:
+          """;
       ByteString configHash = ByteString.encodeUtf8("test-config-hash");
       AgentRemoteConfig remoteConfig = createRemoteConfig(configHash, remoteConfigYaml);
 
@@ -200,14 +200,15 @@ class RemoteConfigProcessorImplTest {
 
       String remoteConfigYaml =
           """
-          distribution:
-            splunk:
-              profiling:
-                always_on:
-                  cpu_profiler:
-                    sampling_interval: 123
-                  memory_profiler:
-      """;
+              distribution:
+                splunk:
+                  profiling:
+                    always_on:
+                      cpu_profiler:
+                        sampling_interval: 123
+                        report_locks: true
+                      memory_profiler:
+          """;
       ByteString configHash = ByteString.encodeUtf8("test-config-hash");
       AgentRemoteConfig remoteConfig = createRemoteConfig(configHash, remoteConfigYaml);
 
@@ -215,10 +216,11 @@ class RemoteConfigProcessorImplTest {
       handler.applyConfig(remoteConfig, opampClient);
 
       // then
-      assertThat(ProfilerConfiguration.SUPPLIER.get().isEnabled()).isTrue();
-      assertThat(ProfilerConfiguration.SUPPLIER.get().getCallStackInterval().toMillis())
-          .isEqualTo(123);
-      assertThat(ProfilerConfiguration.SUPPLIER.get().getMemoryEnabled()).isTrue();
+      ProfilerConfiguration configuration = ProfilerConfiguration.SUPPLIER.get();
+      assertThat(configuration.isEnabled()).isTrue();
+      assertThat(configuration.getCallStackInterval().toMillis()).isEqualTo(123);
+      assertThat(configuration.getLocksEnabled()).isTrue();
+      assertThat(configuration.getMemoryEnabled()).isTrue();
       verify(profilingSupervisor).requestReinitializeProfiling();
       verifyNoMoreInteractions(profilingSupervisor);
       verifyNoInteractions(snapshotProfilingSupervisor);
@@ -232,11 +234,11 @@ class RemoteConfigProcessorImplTest {
           ProfilerConfiguration.builder().setEnabled(true).build());
       String remoteConfigYaml =
           """
-          distribution:
-            splunk:
-              profiling:
-                always_on:
-      """;
+              distribution:
+                splunk:
+                  profiling:
+                    always_on:
+          """;
       ByteString configHash = ByteString.encodeUtf8("test-config-hash");
       AgentRemoteConfig remoteConfig = createRemoteConfig(configHash, remoteConfigYaml);
 
@@ -263,10 +265,10 @@ class RemoteConfigProcessorImplTest {
       ProfilerConfiguration.SUPPLIER.configure(initialConfiguration);
       String remoteConfigYaml =
           """
-          distribution:
-            splunk:
-              profiling:
-      """;
+              distribution:
+                splunk:
+                  profiling:
+          """;
       ByteString configHash = ByteString.encodeUtf8("test-config-hash");
       AgentRemoteConfig remoteConfig = createRemoteConfig(configHash, remoteConfigYaml);
 
@@ -286,11 +288,11 @@ class RemoteConfigProcessorImplTest {
       // given
       String remoteConfigYaml =
           """
-          distribution:
-            splunk:
-              profiling:
-                callgraphs:
-      """;
+              distribution:
+                splunk:
+                  profiling:
+                    callgraphs:
+          """;
       ByteString configHash = ByteString.encodeUtf8("test-config-hash");
       AgentRemoteConfig remoteConfig = createRemoteConfig(configHash, remoteConfigYaml);
 
@@ -316,11 +318,11 @@ class RemoteConfigProcessorImplTest {
           SnapshotProfilingConfiguration.builder().setEnabled(true).build());
       String remoteConfigYaml =
           """
-          distribution:
-            splunk:
-              profiling:
-                callgraphs:
-      """;
+              distribution:
+                splunk:
+                  profiling:
+                    callgraphs:
+          """;
       ByteString configHash = ByteString.encodeUtf8("test-config-hash");
       AgentRemoteConfig remoteConfig = createRemoteConfig(configHash, remoteConfigYaml);
 
@@ -345,16 +347,17 @@ class RemoteConfigProcessorImplTest {
                 callgraphs:
                   selection_probability: 0.5
                   sampling_interval: 123
+                  report_locks: true
           """;
       AgentRemoteConfig remoteConfig =
           createRemoteConfig(ByteString.encodeUtf8("test-config-hash"), remoteConfigYaml);
 
       handler.applyConfig(remoteConfig, opampClient);
 
-      assertThat(SnapshotProfilingConfiguration.SUPPLIER.get().getSnapshotSelectionProbability())
-          .isEqualTo(0.5);
-      assertThat(SnapshotProfilingConfiguration.SUPPLIER.get().getSamplingInterval())
-          .isEqualTo(Duration.ofMillis(123));
+      SnapshotProfilingConfiguration configuration = SnapshotProfilingConfiguration.SUPPLIER.get();
+      assertThat(configuration.getSnapshotSelectionProbability()).isEqualTo(0.5);
+      assertThat(configuration.getSamplingInterval()).isEqualTo(Duration.ofMillis(123));
+      assertThat(configuration.getLocksEnabled()).isTrue();
       verify(snapshotProfilingSupervisor).requestReinitializeProfiling();
       verifyNoMoreInteractions(snapshotProfilingSupervisor);
       verifyNoInteractions(profilingSupervisor);
@@ -367,10 +370,10 @@ class RemoteConfigProcessorImplTest {
           SnapshotProfilingConfiguration.builder().setEnabled(true).build());
       String remoteConfigYaml =
           """
-          distribution:
-            splunk:
-              profiling:
-      """;
+              distribution:
+                splunk:
+                  profiling:
+          """;
       ByteString configHash = ByteString.encodeUtf8("test-config-hash");
       AgentRemoteConfig remoteConfig = createRemoteConfig(configHash, remoteConfigYaml);
 

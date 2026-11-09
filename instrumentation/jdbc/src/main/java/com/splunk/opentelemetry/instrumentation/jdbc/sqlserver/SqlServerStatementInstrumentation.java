@@ -51,7 +51,7 @@ public class SqlServerStatementInstrumentation implements TypeInstrumentation {
 
   @SuppressWarnings("unused")
   public static class SetContextAdvice {
-    @Advice.OnMethodEnter(suppress = Throwable.class)
+    @Advice.OnMethodEnter(suppress = Throwable.class, inline = false)
     public static CallDepth onEnter(@Advice.This Statement statement) throws Exception {
       CallDepth callDepth = CallDepth.forClass(SqlServerContextPropagator.class);
       if (callDepth.getAndIncrement() == 0) {
@@ -61,7 +61,7 @@ public class SqlServerStatementInstrumentation implements TypeInstrumentation {
       return callDepth;
     }
 
-    @Advice.OnMethodExit(suppress = Throwable.class)
+    @Advice.OnMethodExit(suppress = Throwable.class, inline = false)
     public static void onExit(@Advice.Enter CallDepth callDepth) {
       callDepth.decrementAndGet();
     }

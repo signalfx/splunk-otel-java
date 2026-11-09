@@ -66,13 +66,12 @@ class SplunkConfigurationCustomizerTest {
   @Test
   void shouldAppendToOtlpHeaders() {
     ConfigProperties config =
-        configuration(
-            () ->
-                Map.of(
-                    SplunkConfigurationCustomizer.SPLUNK_ACCESS_TOKEN,
-                    "token",
-                    "otel.exporter.otlp.headers",
-                    "key=value"));
+        configuration(() ->
+            Map.of(
+                SplunkConfigurationCustomizer.SPLUNK_ACCESS_TOKEN,
+                "token",
+                "otel.exporter.otlp.headers",
+                "key=value"));
 
     assertThat(config.getString("otel.exporter.otlp.headers"))
         .isEqualTo("key=value,X-SF-TOKEN=token");
@@ -98,6 +97,16 @@ class SplunkConfigurationCustomizerTest {
     assertInstrumentationNotChanged(config, "jboss-logmanager");
     assertInstrumentationNotChanged(config, "log4j-appender");
     assertInstrumentationNotChanged(config, "logback-appender");
+  }
+
+  @Test
+  void attributeLengthLimit() {
+    ConfigProperties config = configuration(Map::of);
+    assertThat(config.getString("otel.attribute.value.length.limit")).isEqualTo("12000");
+
+    ConfigProperties overrideConfig =
+        configuration(() -> Map.of("otel.attribute.value.length.limit", "1"));
+    assertThat(overrideConfig.getString("otel.attribute.value.length.limit")).isEqualTo("1");
   }
 
   private static ConfigProperties configuration() {

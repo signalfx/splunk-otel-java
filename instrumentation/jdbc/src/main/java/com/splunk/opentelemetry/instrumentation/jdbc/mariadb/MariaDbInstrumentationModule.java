@@ -16,6 +16,7 @@
 
 package com.splunk.opentelemetry.instrumentation.jdbc.mariadb;
 
+import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 
 import com.google.auto.service.AutoService;
@@ -49,5 +50,18 @@ public class MariaDbInstrumentationModule extends InstrumentationModule {
   @Override
   public boolean isHelperClass(String className) {
     return className.startsWith("com.splunk.opentelemetry.instrumentation");
+  }
+
+  @Override
+  public List<String> exposedClassNames() {
+    // Statement instrumentation uses MariaDbContextPropagator class with CallDepth to skip
+    // instrumenting the nested statement that propagates context to db. This class is loaded in the
+    // isolated instrumentation class loader. We expose it to application class loader so that tests
+    // can temporarily disable instrumentation with CallDepth to read the curent tracing context
+    // from the db.
+    return Boolean.getBoolean("jdbcTestMode")
+        ? singletonList(
+            "com.splunk.opentelemetry.instrumentation.jdbc.mariadb.MariaDbContextPropagator")
+        : emptyList();
   }
 }

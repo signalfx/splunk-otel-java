@@ -35,7 +35,7 @@ dependencies {
   javaagentLibs(project(":testing:agent-test-extension"))
 
   // and finally include everything from otel agent for testing
-  upstreamAgent("io.opentelemetry.javaagent:opentelemetry-agent-for-testing")
+  upstreamAgent("io.opentelemetry.javaagent:opentelemetry-javaagent-for-testing")
 }
 
 tasks {

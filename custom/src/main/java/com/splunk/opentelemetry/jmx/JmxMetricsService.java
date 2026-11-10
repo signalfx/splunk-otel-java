@@ -25,6 +25,7 @@ import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.api.common.KeyValue;
 import io.opentelemetry.api.common.Value;
 import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
+import io.opentelemetry.instrumentation.jmx.JmxTelemetry;
 import io.opentelemetry.instrumentation.jmx.JmxTelemetryBuilder;
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
@@ -56,10 +57,29 @@ public final class JmxMetricsService implements AutoCloseable {
       return true;
     }
 
+    collection = createTelemetry(jmxConfig).start();
+    return true;
+  }
+
+  /** Validates replacement settings before stopping the current collection. */
+  synchronized void reconfigure(DeclarativeConfigProperties jmxConfig) throws Exception {
+    JmxTelemetry telemetry = createTelemetry(jmxConfig);
+    close();
+    collection = telemetry.start();
+  }
+
+  synchronized boolean isRunning() {
+    return collection != null;
+  }
+
+  private JmxTelemetry createTelemetry(DeclarativeConfigProperties jmxConfig) {
     JmxTelemetryBuilder builder = UpstreamJmxConfiguration.createBuilder(openTelemetry, jmxConfig);
 
     List<DeclarativeConfigProperties> rules = jmxConfig.getStructuredList("rules", emptyList());
     if (!rules.isEmpty()) {
+      // TODO: Upstream builder change to accept parsed DeclarativeConfigProperties as well.
+      // It could be then:  builder.addRules(DeclarativeConfigProperties.toMap(jmxConfig));
+
       List<Map<String, Object>> ruleMaps =
           rules.stream().map(DeclarativeConfigProperties::toMap).collect(toList());
       // JSON is valid YAML; use the existing OpenTelemetry API to encode it for the upstream
@@ -68,8 +88,7 @@ public final class JmxMetricsService implements AutoCloseable {
       builder.addRules(new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8)));
     }
 
-    collection = builder.build().start();
-    return true;
+    return builder.build();
   }
 
   /** Stops discovery and unregisters metric callbacks. May be called more than once. */

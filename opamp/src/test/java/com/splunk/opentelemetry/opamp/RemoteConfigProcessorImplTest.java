@@ -17,17 +17,21 @@
 package com.splunk.opentelemetry.opamp;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
+import com.splunk.opentelemetry.jmx.JmxMetricInsightSupervisor;
 import com.splunk.opentelemetry.opamp.effectiveconfig.EffectiveConfigReporter;
 import com.splunk.opentelemetry.profiler.ProfilerConfiguration;
 import com.splunk.opentelemetry.profiler.ProfilingSupervisor;
 import com.splunk.opentelemetry.profiler.snapshot.SnapshotProfilingConfiguration;
 import com.splunk.opentelemetry.profiler.snapshot.SnapshotProfilingSupervisor;
+import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
 import io.opentelemetry.opamp.client.OpampClient;
 import java.time.Duration;
 import java.util.List;
@@ -51,6 +55,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class RemoteConfigProcessorImplTest {
   @Mock ProfilingSupervisor profilingSupervisor;
   @Mock SnapshotProfilingSupervisor snapshotProfilingSupervisor;
+  @Mock JmxMetricInsightSupervisor jmxMetricInsightSupervisor;
   @Mock EffectiveConfigReporter effectiveConfigReporter;
   @Mock OpampClient opampClient;
   private RemoteConfigProcessorImpl handler;
@@ -62,7 +67,10 @@ class RemoteConfigProcessorImplTest {
         SnapshotProfilingConfiguration.defaultConfiguration());
     handler =
         new RemoteConfigProcessorImpl(
-            profilingSupervisor, snapshotProfilingSupervisor, effectiveConfigReporter);
+            profilingSupervisor,
+            snapshotProfilingSupervisor,
+            jmxMetricInsightSupervisor,
+            effectiveConfigReporter);
   }
 
   @AfterEach
@@ -111,7 +119,8 @@ class RemoteConfigProcessorImplTest {
     assertThat(status.error_message).isEmpty();
     assertThat(ProfilerConfiguration.SUPPLIER.get().isEnabled()).isFalse();
     verify(effectiveConfigReporter).reportEffectiveConfigIfChanged();
-    verifyNoInteractions(profilingSupervisor, snapshotProfilingSupervisor);
+    verifyNoInteractions(
+        profilingSupervisor, snapshotProfilingSupervisor, jmxMetricInsightSupervisor);
   }
 
   @Test
@@ -138,7 +147,8 @@ class RemoteConfigProcessorImplTest {
     assertThat(ProfilerConfiguration.SUPPLIER.get().isEnabled()).isFalse();
     assertThat(ProfilerConfiguration.SUPPLIER.get().getCallStackInterval().toMillis())
         .isEqualTo(10000);
-    verifyNoInteractions(profilingSupervisor, snapshotProfilingSupervisor);
+    verifyNoInteractions(
+        profilingSupervisor, snapshotProfilingSupervisor, jmxMetricInsightSupervisor);
     verify(effectiveConfigReporter).reportEffectiveConfigIfChanged();
   }
 
@@ -157,8 +167,79 @@ class RemoteConfigProcessorImplTest {
 
     // then
     assertThat(ProfilerConfiguration.SUPPLIER.get().isEnabled()).isFalse();
-    verifyNoInteractions(opampClient, profilingSupervisor, snapshotProfilingSupervisor);
+    verifyNoInteractions(
+        opampClient, profilingSupervisor, snapshotProfilingSupervisor, jmxMetricInsightSupervisor);
     verify(effectiveConfigReporter, never()).reportEffectiveConfigIfChanged();
+  }
+
+  @Nested
+  class JmxConfigurationTest {
+    @Test
+    void forwardsDistributionJmxSettingsToSupervisor() throws Exception {
+      AgentRemoteConfig remoteConfig =
+          createRemoteConfig(
+              ByteString.encodeUtf8("jmx-config-hash"),
+              """
+              distribution:
+                splunk:
+                  java:
+                    jmx:
+                      discovery:
+                        delay: 2000
+                      rules:
+                        - bean: test:type=Monitor
+              """);
+
+      handler.applyConfig(remoteConfig, opampClient);
+
+      ArgumentCaptor<DeclarativeConfigProperties> configuration =
+          ArgumentCaptor.forClass(DeclarativeConfigProperties.class);
+      verify(jmxMetricInsightSupervisor).applyConfiguration(configuration.capture());
+      assertThat(DeclarativeConfigProperties.toMap(configuration.getValue()))
+          .isEqualTo(
+              Map.of(
+                  "discovery", Map.of("delay", 2000L),
+                  "rules", List.of(Map.of("bean", "test:type=Monitor"))));
+      assertThat(getFinalReportedRemoteConfigStatus().status)
+          .isEqualTo(RemoteConfigStatuses.RemoteConfigStatuses_APPLIED);
+      verifyNoInteractions(profilingSupervisor, snapshotProfilingSupervisor);
+      verify(effectiveConfigReporter).reportEffectiveConfigIfChanged();
+    }
+
+    @Test
+    void forwardsAnEmptyDistributionJmxNode() throws Exception {
+      AgentRemoteConfig remoteConfig =
+          createRemoteConfig(
+              ByteString.encodeUtf8("jmx-config-hash"),
+              "distribution:\n  splunk:\n    java:\n      jmx:\n");
+
+      handler.applyConfig(remoteConfig, opampClient);
+
+      ArgumentCaptor<DeclarativeConfigProperties> configuration =
+          ArgumentCaptor.forClass(DeclarativeConfigProperties.class);
+      verify(jmxMetricInsightSupervisor).applyConfiguration(configuration.capture());
+      assertThat(configuration.getValue().getPropertyKeys()).isEmpty();
+      assertThat(getFinalReportedRemoteConfigStatus().status)
+          .isEqualTo(RemoteConfigStatuses.RemoteConfigStatuses_APPLIED);
+    }
+
+    @Test
+    void reportsFailureWhenSupervisorCannotApplyTheUpdate() throws Exception {
+      doThrow(new IllegalArgumentException("Invalid JMX rules"))
+          .when(jmxMetricInsightSupervisor)
+          .applyConfiguration(any());
+      AgentRemoteConfig remoteConfig =
+          createRemoteConfig(
+              ByteString.encodeUtf8("jmx-config-hash"),
+              "distribution:\n  splunk:\n    java:\n      jmx: {}\n");
+
+      handler.applyConfig(remoteConfig, opampClient);
+
+      RemoteConfigStatus status = getFinalReportedRemoteConfigStatus();
+      assertThat(status.status).isEqualTo(RemoteConfigStatuses.RemoteConfigStatuses_FAILED);
+      assertThat(status.error_message).contains("Invalid JMX rules");
+      verify(effectiveConfigReporter).reportEffectiveConfigIfChanged();
+    }
   }
 
   @Nested

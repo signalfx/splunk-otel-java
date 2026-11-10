@@ -116,6 +116,18 @@ must run before order `-1`. Later customizers can change the JMX mapping rules a
 settings before the merge. A node first added after the early stage does not start custom
 collection, because upstream may already be enabled.
 
+When OpAMP remote configuration is enabled, updates under `distribution.splunk.java.jmx` are
+applied by `JmxMetricInsightSupervisor`, which also owns the startup collection. Each received JMX
+node is a complete replacement for the current JMX configuration. Omitted settings use their
+defaults, and an empty node resets collection to defaults, clearing previous custom rules and
+filters. A message without this JMX node leaves collection unchanged, and an identical
+configuration does not restart it. New rules are validated before stopping the previous
+collection; invalid inline rules are reported as a failed remote update.
+
+Remote JMX updates require distribution-owned JMX to be enabled at startup, for example with
+`distribution.splunk.java.jmx: {}`. Startup disablement remains effective, and an already-running
+upstream collector cannot be taken over remotely.
+
 This distribution-specific startup wiring and upstream configuration adapter are temporary and
 isolated in `custom`'s `com.splunk.opentelemetry.jmx` package for removal when upstream supports
 embedded rules.

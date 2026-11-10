@@ -18,6 +18,7 @@ package com.splunk.opentelemetry.jmx;
 
 import static io.opentelemetry.sdk.autoconfigure.AutoConfigureUtil.getConfigProvider;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.awaitility.Awaitility.await;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
@@ -30,6 +31,7 @@ import io.opentelemetry.instrumentation.testing.internal.AutoCleanupExtension;
 import io.opentelemetry.javaagent.extension.AgentListener;
 import io.opentelemetry.javaagent.extension.instrumentation.internal.AgentDistributionConfig;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
+import io.opentelemetry.sdk.autoconfigure.declarativeconfig.DeclarativeConfiguration;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.DeclarativeConfigurationCustomizerProvider;
 import io.opentelemetry.sdk.metrics.data.MetricData;
 import io.opentelemetry.sdk.metrics.export.MetricExporter;
@@ -96,7 +98,7 @@ class JmxMetricsInitializerTest {
   @TempDir Path tempDir;
 
   private final InMemoryMetricExporter exporter = InMemoryMetricExporter.create();
-  private JmxMetricsInitializer initializer;
+  private SplunkJmxMetricsInitializer initializer;
 
   @BeforeEach
   void setUp() {
@@ -104,14 +106,15 @@ class JmxMetricsInitializerTest {
     autoCleanup.deferCleanup(AgentDistributionConfig::resetForTest);
     // Exercise the generated agent-listener SPI registration as well as the SDK customizer SPI.
     initializer =
-        (JmxMetricsInitializer)
+        (SplunkJmxMetricsInitializer)
             ComponentLoader.loadList(
                     ComponentLoader.forClassLoader(getClass().getClassLoader()),
                     AgentListener.class)
                 .stream()
-                .filter(JmxMetricsInitializer.class::isInstance)
+                .filter(SplunkJmxMetricsInitializer.class::isInstance)
                 .findFirst()
                 .orElseThrow();
+    autoCleanup.deferCleanup(initializer);
   }
 
   @ParameterizedTest
@@ -177,6 +180,49 @@ class JmxMetricsInitializerTest {
         .forceFlush()
         .join(5, java.util.concurrent.TimeUnit.SECONDS);
     assertThat(jmxMetrics()).isEmpty();
+  }
+
+  @Test
+  void remoteUpdatesUseTheStartupCollectionSupervisor() throws Exception {
+    registerMBean(new CallMonitor());
+    AutoConfiguredOpenTelemetrySdk sdk = createSdk(YAML);
+    initializer.afterAgent(sdk);
+
+    var supervisor = JmxMetricInsightSupervisor.getInstance();
+    supervisor.applyConfiguration(
+        DeclarativeConfiguration.toConfigProperties(
+            Map.of(
+                "rules",
+                List.of(
+                    Map.of(
+                        "bean",
+                        "splunk.test:type=CallMonitor",
+                        "mapping",
+                        Map.of(
+                            "CallCount",
+                            Map.of(
+                                "metric", "petclinic.remote.call.count",
+                                "type", "counter",
+                                "unit", "{call}")))))));
+
+    await()
+        .atMost(Duration.ofSeconds(10))
+        .untilAsserted(() -> {
+          exporter.reset();
+          sdk.getOpenTelemetrySdk()
+              .getSdkMeterProvider()
+              .forceFlush()
+              .join(5, java.util.concurrent.TimeUnit.SECONDS);
+          assertThat(jmxMetrics())
+              .extracting(MetricData::getName)
+              .contains("petclinic.remote.call.count")
+              .doesNotContain(
+                  "petclinic.repository.call.count", "petclinic.repository.call.duration.average");
+        });
+
+    initializer.close();
+    assertThatThrownBy(JmxMetricInsightSupervisor::getInstance)
+        .isInstanceOf(IllegalStateException.class);
   }
 
   @Test
@@ -327,7 +373,7 @@ class JmxMetricsInitializerTest {
   @Test
   void reportsInvalidRulesWithoutFailingAgentStartup() throws Exception {
     AutoConfiguredOpenTelemetrySdk sdk = createSdk(YAML.replace("type: counter", "type: invalid"));
-    Logger logger = Logger.getLogger(JmxMetricsInitializer.class.getName());
+    Logger logger = Logger.getLogger(SplunkJmxMetricsInitializer.class.getName());
     Handler handler = mock(Handler.class);
     logger.addHandler(handler);
     autoCleanup.deferCleanup(() -> logger.removeHandler(handler));

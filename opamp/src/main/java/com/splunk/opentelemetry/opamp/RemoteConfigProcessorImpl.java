@@ -16,9 +16,8 @@
 
 package com.splunk.opentelemetry.opamp;
 
-import static io.opentelemetry.api.incubator.config.DeclarativeConfigProperties.empty;
-
 import com.google.common.annotations.VisibleForTesting;
+import com.splunk.opentelemetry.jmx.JmxMetricInsightSupervisor;
 import com.splunk.opentelemetry.opamp.effectiveconfig.EffectiveConfigReporter;
 import com.splunk.opentelemetry.profiler.ProfilerConfiguration;
 import com.splunk.opentelemetry.profiler.ProfilerDeclarativeConfigurationFactory;
@@ -49,14 +48,17 @@ public class RemoteConfigProcessorImpl implements RemoteConfigProcessor {
 
   private final ProfilingSupervisor profilingSupervisor;
   private final SnapshotProfilingSupervisor snapshotProfilingSupervisor;
+  private final JmxMetricInsightSupervisor jmxMetricInsightSupervisor;
   private final EffectiveConfigReporter effectiveConfigReporter;
 
   public RemoteConfigProcessorImpl(
       ProfilingSupervisor profilingSupervisor,
       SnapshotProfilingSupervisor snapshotProfilingSupervisor,
+      JmxMetricInsightSupervisor jmxMetricInsightSupervisor,
       EffectiveConfigReporter effectiveConfigReporter) {
     this.profilingSupervisor = Objects.requireNonNull(profilingSupervisor);
     this.snapshotProfilingSupervisor = Objects.requireNonNull(snapshotProfilingSupervisor);
+    this.jmxMetricInsightSupervisor = Objects.requireNonNull(jmxMetricInsightSupervisor);
     this.effectiveConfigReporter = Objects.requireNonNull(effectiveConfigReporter);
   }
 
@@ -83,15 +85,15 @@ public class RemoteConfigProcessorImpl implements RemoteConfigProcessor {
       DeclarativeConfigProperties remoteConfigProperties =
           toDeclarativeConfigProperties(configFile);
       DeclarativeConfigProperties distributionRemoteConfigProperties =
-          remoteConfigProperties
-              .getStructured("distribution", empty())
-              .getStructured("splunk", empty());
+          remoteConfigProperties.get("distribution").get("splunk");
 
       // Update profiler configuration only when profiling node exists
       if (distributionRemoteConfigProperties.getPropertyKeys().contains(PROFILING_NODE_NAME)) {
         applyAlwaysOnProfilingConfiguration(distributionRemoteConfigProperties);
         applySnapshotProfilingConfiguration(distributionRemoteConfigProperties);
       }
+
+      handleJmxConfiguration(remoteConfigProperties);
 
       // Confirm to the OpAMP Server that remote config has been applied.
       reportRemoteConfigStatus(
@@ -107,10 +109,19 @@ public class RemoteConfigProcessorImpl implements RemoteConfigProcessor {
     effectiveConfigReporter.reportEffectiveConfigIfChanged();
   }
 
+  private void handleJmxConfiguration(DeclarativeConfigProperties remoteConfigProperties)
+      throws Exception {
+    DeclarativeConfigProperties javaConfig =
+        remoteConfigProperties.get("distribution").get("splunk").get("java");
+    if (javaConfig.getPropertyKeys().contains("jmx")) {
+      jmxMetricInsightSupervisor.applyConfiguration(javaConfig.get("jmx"));
+    }
+  }
+
   private void applyAlwaysOnProfilingConfiguration(
       DeclarativeConfigProperties distributionRemoteConfigProperties) {
     DeclarativeConfigProperties profilingConfig =
-        distributionRemoteConfigProperties.getStructured(PROFILING_NODE_NAME, empty());
+        distributionRemoteConfigProperties.get(PROFILING_NODE_NAME);
     if (!profilingConfig.getPropertyKeys().contains(ALWAYS_ON_NODE_NAME)) {
       // Always On Profiling is managed by profiling.always_on.cpu_profiler node so if parent
       // node is missing then there is nothing to do.
@@ -139,7 +150,7 @@ public class RemoteConfigProcessorImpl implements RemoteConfigProcessor {
       DeclarativeConfigProperties distributionRemoteConfigProperties) {
     SnapshotProfilingConfiguration receivedConfiguration =
         SnapshotProfilingDeclarativeConfigurationFactory.create(
-            distributionRemoteConfigProperties.getStructured(PROFILING_NODE_NAME, empty()));
+            distributionRemoteConfigProperties.get(PROFILING_NODE_NAME));
 
     SnapshotProfilingConfiguration currentConfiguration =
         SnapshotProfilingConfiguration.SUPPLIER.get();

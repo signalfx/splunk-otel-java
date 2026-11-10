@@ -26,54 +26,41 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 @AutoService(AgentListener.class)
-public class JmxMetricsInitializer implements AgentListener, AutoCloseable {
-  private static final Logger logger = Logger.getLogger(JmxMetricsInitializer.class.getName());
+public class SplunkJmxMetricsInitializer implements AgentListener, AutoCloseable {
+  private static final Logger logger =
+      Logger.getLogger(SplunkJmxMetricsInitializer.class.getName());
   private static final String CONFIG_PATH = "distribution.splunk.java.jmx";
 
-  private JmxMetricsService metricsService;
-  private Thread shutdownHook;
+  private JmxMetricInsightSupervisor supervisor;
 
   @Override
   public synchronized void afterAgent(AutoConfiguredOpenTelemetrySdk sdk) {
-    if (metricsService != null || !isDeclarativeConfig(sdk)) {
+    if (supervisor != null) {
       return;
     }
 
-    DeclarativeConfigProperties config = JmxMetricsConfigurationCustomizerProvider.getJmxConfig();
-    if (config == null) {
-      return;
-    }
+    DeclarativeConfigProperties config =
+        isDeclarativeConfig(sdk) ? JmxMetricsConfigurationCustomizerProvider.getJmxConfig() : null;
+    // Publish the same lifecycle owner for OpAMP, including when JMX is disabled or unmanaged.
+    supervisor = JmxMetricInsightSupervisor.initialize(sdk.getOpenTelemetrySdk(), config);
 
     try {
-      JmxMetricsService service = new JmxMetricsService(sdk.getOpenTelemetrySdk());
-      service.start(config);
-      metricsService = service;
-      shutdownHook = new Thread(this::close, "splunk-jmx-shutdown");
-      Runtime.getRuntime().addShutdownHook(shutdownHook);
+      supervisor.start();
     } catch (Exception e) {
       logger.log(Level.WARNING, "Unable to start JMX metrics from " + CONFIG_PATH, e);
-      close();
+      // Keep the supervisor available so a later remote update can repair invalid startup rules.
     }
   }
 
   @Override
   public synchronized void close() {
-    if (metricsService != null) {
+    if (supervisor != null) {
       try {
-        metricsService.close();
+        supervisor.close();
       } catch (Exception e) {
         logger.log(Level.WARNING, "Unable to stop JMX metrics collection", e);
       } finally {
-        metricsService = null;
-      }
-    }
-    if (shutdownHook != null) {
-      try {
-        Runtime.getRuntime().removeShutdownHook(shutdownHook);
-      } catch (IllegalStateException ignored) {
-        // Shutdown is already in progress.
-      } finally {
-        shutdownHook = null;
+        supervisor = null;
       }
     }
   }

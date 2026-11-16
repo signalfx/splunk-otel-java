@@ -114,10 +114,9 @@ public class JmxMetricsConfigurationCustomizerProvider
       Map<String, Object> defaults, Map<String, Object> overrides) {
     Map<String, Object> result = new LinkedHashMap<>(defaults);
     overrides.forEach((key, value) -> {
-      Object previous = result.get(key);
-      result.put(
+      result.compute(
           key,
-          previous instanceof Map && value instanceof Map
+          (k, previous) -> previous instanceof Map && value instanceof Map
               ? merge((Map<String, Object>) previous, (Map<String, Object>) value)
               : value);
     });

@@ -16,24 +16,29 @@
 
 package com.splunk.opentelemetry.jmx;
 
+import static io.opentelemetry.instrumentation.api.incubator.config.internal.SelectorConfig.Stability.STABLE;
 import static java.util.Collections.emptyList;
-import static java.util.Collections.singletonMap;
 import static java.util.Objects.requireNonNull;
+import static java.util.logging.Level.SEVERE;
 import static java.util.stream.Collectors.toList;
 
 import io.opentelemetry.api.OpenTelemetry;
-import io.opentelemetry.api.common.KeyValue;
-import io.opentelemetry.api.common.Value;
 import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
+import io.opentelemetry.instrumentation.api.config.IncludeExclude;
+import io.opentelemetry.instrumentation.api.incubator.config.internal.SelectorConfig;
 import io.opentelemetry.instrumentation.jmx.JmxTelemetry;
 import io.opentelemetry.instrumentation.jmx.JmxTelemetryBuilder;
-import java.io.ByteArrayInputStream;
-import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.time.Duration;
 import java.util.List;
-import java.util.Map;
+import java.util.logging.Logger;
 
 /** Collects distribution-configured JMX metrics using an existing SDK, independently of startup. */
 public final class JmxMetricsService implements AutoCloseable {
+  private static final Logger logger = Logger.getLogger(JmxMetricsService.class.getName());
+  private static final String INSTRUMENTATION_NAME = "jmx";
+
   private final OpenTelemetry openTelemetry;
   private AutoCloseable collection;
 
@@ -54,6 +59,7 @@ public final class JmxMetricsService implements AutoCloseable {
    */
   public synchronized boolean start(DeclarativeConfigProperties jmxConfig) {
     if (collection != null) {
+      logger.fine("Already started");
       return true;
     }
 
@@ -73,22 +79,18 @@ public final class JmxMetricsService implements AutoCloseable {
   }
 
   private JmxTelemetry createTelemetry(DeclarativeConfigProperties jmxConfig) {
-    JmxTelemetryBuilder builder = UpstreamJmxConfiguration.createBuilder(openTelemetry, jmxConfig);
-
-    List<DeclarativeConfigProperties> rules = jmxConfig.getStructuredList("rules", emptyList());
-    if (!rules.isEmpty()) {
-      // TODO: Upstream builder change to accept parsed DeclarativeConfigProperties as well.
-      // It could be then:  builder.addRules(DeclarativeConfigProperties.toMap(jmxConfig));
-
-      List<Map<String, Object>> ruleMaps =
-          rules.stream().map(DeclarativeConfigProperties::toMap).collect(toList());
-      // JSON is valid YAML; use the existing OpenTelemetry API to encode it for the upstream
-      // parser.
-      String json = toValue(singletonMap("rules", ruleMaps)).asString();
-      builder.addRules(new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8)));
-    }
+    JmxTelemetryBuilder builder = createBuilder(openTelemetry, jmxConfig);
+    configure(builder, jmxConfig);
 
     return builder.build();
+  }
+
+  private static JmxTelemetryBuilder createBuilder(
+      OpenTelemetry openTelemetry, DeclarativeConfigProperties config) {
+    return JmxTelemetry.builder(openTelemetry)
+        .beanDiscoveryDelay(
+            Duration.ofMillis(
+                config.get("discovery").getLong("delay", Duration.ofMinutes(1).toMillis())));
   }
 
   /** Stops discovery and unregisters metric callbacks. May be called more than once. */
@@ -103,33 +105,52 @@ public final class JmxMetricsService implements AutoCloseable {
     }
   }
 
-  private static Value<?> toValue(Object value) {
-    if (value == null) {
-      return Value.empty();
+  // visible for testing
+  // Implementation copied from upstream JmxMetricInsightInstaller class
+  static void configure(JmxTelemetryBuilder jmx, DeclarativeConfigProperties config) {
+    config.getScalarList("config", String.class, emptyList()).stream()
+        .map(Paths::get)
+        .forEach(path -> addFileRules(path, jmx));
+
+    addInlineRules(config, jmx);
+
+    List<String> unstableInclude =
+        config
+            .get("metrics")
+            .get("experimental")
+            .getScalarList("included", String.class, emptyList());
+    // JVM rules overlap with runtime-telemetry.
+    jmx.setInternalMetricsSystemFilter(IncludeExclude.builder().setExcluded("jvm").build());
+    jmx.setInternalMetricsUnstableMetricsFilter(
+        unstableInclude.isEmpty()
+            ? IncludeExclude.builder().setExcluded("*").build()
+            : IncludeExclude.builder().setIncluded(unstableInclude).build());
+
+    // include/exclude metrics by name
+    IncludeExclude metrics =
+        SelectorConfig.resolve(config, INSTRUMENTATION_NAME, "metrics", STABLE);
+    if (metrics != null) {
+      jmx.setMetrics(metrics);
     }
-    if (value instanceof String) {
-      return Value.of((String) value);
+  }
+
+  private static void addInlineRules(DeclarativeConfigProperties config, JmxTelemetryBuilder jmx) {
+    try {
+      jmx.addRules(
+          config.getStructuredList("rules", emptyList()).stream()
+              .map(DeclarativeConfigProperties::toMap)
+              .collect(toList()));
+    } catch (RuntimeException e) {
+      logger.log(SEVERE, "Error while loading inline JMX rules", e);
     }
-    if (value instanceof Boolean) {
-      return Value.of((Boolean) value);
+  }
+
+  private static void addFileRules(Path path, JmxTelemetryBuilder builder) {
+    try {
+      builder.addRules(path);
+    } catch (RuntimeException e) {
+      // for now only log JMX metric configuration errors as they do not prevent agent startup
+      logger.log(SEVERE, "Error while loading JMX configuration from " + path, e);
     }
-    if (value instanceof Long) {
-      return Value.of((Long) value);
-    }
-    if (value instanceof Double) {
-      return Value.of((Double) value);
-    }
-    if (value instanceof List<?>) {
-      return Value.of(((List<?>) value).stream().map(JmxMetricsService::toValue).collect(toList()));
-    }
-    if (value instanceof Map<?, ?>) {
-      return Value.of(
-          ((Map<?, ?>) value)
-              .entrySet().stream()
-                  .map(entry -> KeyValue.of((String) entry.getKey(), toValue(entry.getValue())))
-                  .toArray(KeyValue[]::new));
-    }
-    throw new IllegalArgumentException(
-        "Unsupported JMX rule value type: " + value.getClass().getName());
   }
 }

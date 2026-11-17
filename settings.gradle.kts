@@ -25,6 +25,7 @@ if (artifactoryUrl != null) {
 }
 dependencyResolutionManagement {
   repositories {
+    mavenLocal()
     if (artifactoryUrl != null) {
       maven {
         name = "artifactory"

@@ -14,21 +14,32 @@
  * limitations under the License.
  */
 
-package com.splunk.opentelemetry.jmx;
+// Includes work from:
+/*
+ * Copyright The OpenTelemetry Authors
+ * SPDX-License-Identifier: Apache-2.0
+ */
 
-import static io.opentelemetry.sdk.autoconfigure.AutoConfigureUtil.isDeclarativeConfig;
+package io.opentelemetry.javaagent.instrumentation.jmx;
 
-import com.google.auto.service.AutoService;
+import com.splunk.opentelemetry.jmx.JmxMetricInsightSupervisor;
+import io.opentelemetry.api.GlobalOpenTelemetry;
 import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
+import io.opentelemetry.instrumentation.api.incubator.config.internal.DeclarativeConfigUtil;
 import io.opentelemetry.javaagent.extension.AgentListener;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-@AutoService(AgentListener.class)
-public class SplunkJmxMetricsInitializer implements AgentListener, AutoCloseable {
-  private static final Logger logger =
-      Logger.getLogger(SplunkJmxMetricsInitializer.class.getName());
+/**
+ * Distribution replacement for the upstream JMX startup listener.
+ *
+ * <p>The package and class name must match upstream. The agent build keeps this class ahead of the
+ * upstream copy, and the upstream {@link AgentListener} service descriptor registers it.
+ */
+public class JmxMetricInsightInstaller implements AgentListener, AutoCloseable {
+  private static final Logger logger = Logger.getLogger(JmxMetricInsightInstaller.class.getName());
+  private static final String INSTRUMENTATION_NAME = "jmx";
   private static final String CONFIG_PATH = "distribution.splunk.java.jmx";
 
   private JmxMetricInsightSupervisor supervisor;
@@ -40,7 +51,9 @@ public class SplunkJmxMetricsInitializer implements AgentListener, AutoCloseable
     }
 
     DeclarativeConfigProperties config =
-        isDeclarativeConfig(sdk) ? JmxMetricsConfigurationCustomizerProvider.getJmxConfig() : null;
+        DeclarativeConfigUtil.getInstrumentationConfig(
+            GlobalOpenTelemetry.get(), INSTRUMENTATION_NAME);
+
     // Publish the same lifecycle owner for OpAMP, including when JMX is disabled or unmanaged.
     supervisor = JmxMetricInsightSupervisor.initialize(sdk.getOpenTelemetrySdk(), config);
 

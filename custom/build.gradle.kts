@@ -34,6 +34,7 @@ dependencies {
   testImplementation("io.opentelemetry.semconv:opentelemetry-semconv")
   testImplementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-api")
   testImplementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-api-incubator")
+  testImplementation("io.opentelemetry.instrumentation:opentelemetry-declarative-config-bridge")
   testImplementation("io.opentelemetry.instrumentation:opentelemetry-resources")
   testImplementation("io.opentelemetry.instrumentation:opentelemetry-jmx-metrics")
   testImplementation("io.opentelemetry.javaagent:opentelemetry-javaagent-extension-api")

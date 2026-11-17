@@ -29,15 +29,20 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
+import io.opentelemetry.instrumentation.config.bridge.DeclarativeConfigBridge;
 import io.opentelemetry.instrumentation.testing.internal.AutoCleanupExtension;
+import io.opentelemetry.javaagent.extension.instrumentation.internal.AgentDistributionConfig;
 import io.opentelemetry.sdk.OpenTelemetrySdk;
 import io.opentelemetry.sdk.autoconfigure.declarativeconfig.DeclarativeConfiguration;
+import io.opentelemetry.sdk.autoconfigure.spi.internal.DefaultConfigProperties;
 import io.opentelemetry.sdk.metrics.SdkMeterProvider;
 import io.opentelemetry.sdk.metrics.data.MetricData;
 import io.opentelemetry.sdk.testing.exporter.InMemoryMetricReader;
 import java.io.ByteArrayInputStream;
 import java.lang.management.ManagementFactory;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
@@ -46,6 +51,7 @@ import javax.management.StandardMBean;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.io.TempDir;
 import org.mockito.ArgumentCaptor;
 
 class JmxMetricInsightSupervisorTest {
@@ -62,11 +68,15 @@ class JmxMetricInsightSupervisorTest {
 
   @RegisterExtension static final AutoCleanupExtension cleanup = AutoCleanupExtension.create();
 
+  @TempDir Path tempDir;
+
   private final InMemoryMetricReader reader = InMemoryMetricReader.create();
   private OpenTelemetrySdk sdk;
 
   @BeforeEach
   void setUp() throws Exception {
+    AgentDistributionConfig.resetForTest();
+    cleanup.deferCleanup(AgentDistributionConfig::resetForTest);
     sdk =
         OpenTelemetrySdk.builder()
             .setMeterProvider(SdkMeterProvider.builder().registerMetricReader(reader).build())
@@ -180,7 +190,7 @@ class JmxMetricInsightSupervisorTest {
   }
 
   @Test
-  void disabledOrUnmanagedStartupRejectsRemoteUpdates() {
+  void unmanagedStartupRejectsRemoteUpdates() {
     JmxMetricsService service = mock(JmxMetricsService.class);
     var supervisor = new JmxMetricInsightSupervisor(service, null);
 
@@ -192,8 +202,108 @@ class JmxMetricInsightSupervisorTest {
     verifyNoInteractions(service);
   }
 
+  @Test
+  void preservesBridgedStartupSettings() {
+    var startup =
+        bridgedConfig(
+            Map.of(
+                "otel.jmx.config", "first.yaml,second.yaml",
+                "otel.jmx.discovery.delay", "1234ms",
+                "otel.jmx.metrics.included", "test.*",
+                "otel.jmx.metrics.excluded", "test.excluded",
+                "otel.jmx.metrics.experimental.included", "tomcat.*"));
+    assertThat(startup.getPropertyKeys()).isEmpty();
+    JmxMetricsService service = mock(JmxMetricsService.class);
+    var supervisor = new JmxMetricInsightSupervisor(service, startup);
+    cleanup.deferCleanup(supervisor);
+
+    supervisor.start();
+
+    var configuration = ArgumentCaptor.forClass(DeclarativeConfigProperties.class);
+    verify(service).start(configuration.capture());
+    var collected = configuration.getValue();
+    assertThat(collected.getScalarList("config", String.class))
+        .containsExactly("first.yaml", "second.yaml");
+    assertThat(collected.get("discovery").getLong("delay")).isEqualTo(1234);
+    assertThat(collected.get("metrics").getScalarList("included", String.class))
+        .containsExactly("test.*");
+    assertThat(collected.get("metrics").getScalarList("excluded", String.class))
+        .containsExactly("test.excluded");
+    assertThat(collected.get("metrics").get("experimental").getScalarList("included", String.class))
+        .containsExactly("tomcat.*");
+  }
+
+  @Test
+  void preservesBridgedDiscoveryDelayFallbackToExportInterval() {
+    JmxMetricsService service = mock(JmxMetricsService.class);
+    var supervisor =
+        new JmxMetricInsightSupervisor(
+            service, bridgedConfig(Map.of("otel.metric.export.interval", "7s")));
+    cleanup.deferCleanup(supervisor);
+
+    supervisor.start();
+
+    var configuration = ArgumentCaptor.forClass(DeclarativeConfigProperties.class);
+    verify(service).start(configuration.capture());
+    assertThat(configuration.getValue().get("discovery").getLong("delay")).isEqualTo(7000);
+  }
+
+  @Test
+  void emptyRemoteUpdateResetsBridgedStartupAndRepeatedUpdatesDoNotRestart() throws Exception {
+    JmxMetricsService service = mock(JmxMetricsService.class);
+    when(service.start(any())).thenReturn(true);
+    var supervisor =
+        new JmxMetricInsightSupervisor(
+            service, bridgedConfig(Map.of("otel.jmx.config", "startup.yaml")));
+    cleanup.deferCleanup(supervisor);
+    supervisor.start();
+
+    supervisor.applyConfiguration(DeclarativeConfigProperties.empty());
+    supervisor.applyConfiguration(DeclarativeConfigProperties.empty());
+
+    var configuration = ArgumentCaptor.forClass(DeclarativeConfigProperties.class);
+    verify(service).reconfigure(configuration.capture());
+    assertThat(configuration.getValue().getPropertyKeys()).isEmpty();
+  }
+
+  @Test
+  void collectsFileRulesAndAppliesFiltersFromBridgedStartup() throws Exception {
+    Path rules = tempDir.resolve("jmx.yaml");
+    Files.writeString(
+        rules,
+        RULES.formatted("test.environment.keep")
+            + RULES.formatted("test.environment.excluded").replace("rules:\n", "")
+            + RULES.formatted("other.filtered").replace("rules:\n", ""));
+    var supervisor =
+        new JmxMetricInsightSupervisor(
+            new JmxMetricsService(sdk),
+            bridgedConfig(
+                Map.of(
+                    "otel.jmx.config", rules.toString(),
+                    "otel.jmx.discovery.delay", "50ms",
+                    "otel.jmx.metrics.included", "test.environment.*",
+                    "otel.jmx.metrics.excluded", "test.environment.excluded")));
+    cleanup.deferCleanup(supervisor);
+
+    supervisor.start();
+    awaitMetric("test.environment.keep");
+
+    supervisor.applyConfiguration(config(RULES.formatted("test.remote.replacement")));
+    awaitMetric("test.remote.replacement");
+
+    supervisor.close();
+    assertThat(metrics()).isEmpty();
+  }
+
+  private static DeclarativeConfigProperties bridgedConfig(Map<String, String> properties) {
+    return DeclarativeConfigBridge.createInstrumentationConfig(
+            DefaultConfigProperties.createFromMap(properties))
+        .getInstrumentationConfig("jmx");
+  }
+
   private JmxMetricInsightSupervisor newSupervisor(String configuration) {
-    var supervisor = new JmxMetricInsightSupervisor(sdk, config(configuration));
+    var supervisor =
+        new JmxMetricInsightSupervisor(new JmxMetricsService(sdk), config(configuration));
     cleanup.deferCleanup(supervisor);
     return supervisor;
   }

@@ -44,6 +44,7 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.ArgumentCaptor;
 
 class JmxMetricInsightSupervisorInitializationTest {
   private static final String YAML =
@@ -176,24 +177,40 @@ class JmxMetricInsightSupervisorInitializationTest {
 
   @ParameterizedTest
   @ValueSource(booleans = {false, true})
-  void installerPublishesAndRemovesSupervisor(boolean enabled) throws Exception {
+  void installerPublishesSupervisor(boolean enabled) throws Exception {
     var sdk =
         createAutoConfiguredSdk(
             YAML.formatted(("default_enabled: " + enabled).indent(6)), tempDir, cleanup);
-    try (var global = mockStatic(GlobalOpenTelemetry.class);
-        var installer = new JmxMetricInsightInstaller()) {
+    try (var global = mockStatic(GlobalOpenTelemetry.class)) {
       global.when(GlobalOpenTelemetry::get).thenReturn(sdk.getOpenTelemetrySdk());
+      var installer = new JmxMetricInsightInstaller();
       installer.afterAgent(sdk);
-      var supervisor = JmxMetricInsightSupervisor.getInstance();
-      assertThat(supervisor.isEnabled()).isEqualTo(enabled);
-
-      installer.afterAgent(sdk);
-      assertThat(JmxMetricInsightSupervisor.getInstance()).isSameAs(supervisor);
+      try (var supervisor = JmxMetricInsightSupervisor.getInstance()) {
+        assertThat(supervisor.isEnabled()).isEqualTo(enabled);
+      }
     }
 
     assertThatThrownBy(JmxMetricInsightSupervisor::getInstance)
         .isInstanceOf(IllegalStateException.class)
         .hasMessageContaining("not initialized");
+  }
+
+  @Test
+  void installerReadsInstrumentationJmxSettings() throws Exception {
+    var sdk =
+        createAutoConfiguredSdk(
+            YAML.formatted("default_enabled: true".indent(6)), tempDir, cleanup);
+    try (var global = mockStatic(GlobalOpenTelemetry.class);
+        var services = mockConstruction(JmxMetricsService.class)) {
+      global.when(GlobalOpenTelemetry::get).thenReturn(sdk.getOpenTelemetrySdk());
+      new JmxMetricInsightInstaller().afterAgent(sdk);
+      try (var supervisor = JmxMetricInsightSupervisor.getInstance()) {
+        assertThat(supervisor.isEnabled()).isTrue();
+        var configuration = ArgumentCaptor.forClass(DeclarativeConfigProperties.class);
+        verify(services.constructed().get(0)).start(configuration.capture());
+        assertThat(configuration.getValue().get("discovery").getLong("delay")).isEqualTo(1000);
+      }
+    }
   }
 
   private static void assertDisabledSupervisor(

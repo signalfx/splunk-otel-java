@@ -112,7 +112,7 @@ public class RemoteConfigProcessorImpl implements RemoteConfigProcessor {
   private void handleJmxConfiguration(DeclarativeConfigProperties remoteConfigProperties)
       throws Exception {
     DeclarativeConfigProperties javaConfig =
-        remoteConfigProperties.get("distribution").get("splunk").get("java");
+        remoteConfigProperties.get("instrumentation/development").get("java");
     if (javaConfig.getPropertyKeys().contains("jmx")) {
       jmxMetricInsightSupervisor.applyConfiguration(javaConfig.get("jmx"));
     }

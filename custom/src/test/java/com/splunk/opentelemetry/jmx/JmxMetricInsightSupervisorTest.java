@@ -26,7 +26,6 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.when;
 
 import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
 import io.opentelemetry.instrumentation.config.bridge.DeclarativeConfigBridge;
@@ -172,7 +171,6 @@ class JmxMetricInsightSupervisorTest {
   @Test
   void canRetryPreviousSettingsAfterReplacementFailsToStart() throws Exception {
     JmxMetricsService service = mock(JmxMetricsService.class);
-    when(service.start(any())).thenReturn(true);
     doThrow(new IllegalStateException("Cannot start collection"))
         .doNothing()
         .when(service)
@@ -198,7 +196,7 @@ class JmxMetricInsightSupervisorTest {
 
     assertThatThrownBy(() -> supervisor.applyConfiguration(DeclarativeConfigProperties.empty()))
         .isInstanceOf(IllegalStateException.class)
-        .hasMessageContaining("enabled at agent startup");
+        .hasMessageContaining("startup configuration");
     verifyNoInteractions(service);
   }
 
@@ -251,7 +249,6 @@ class JmxMetricInsightSupervisorTest {
   @Test
   void emptyRemoteUpdateResetsBridgedStartupAndRepeatedUpdatesDoNotRestart() throws Exception {
     JmxMetricsService service = mock(JmxMetricsService.class);
-    when(service.start(any())).thenReturn(true);
     var supervisor =
         new JmxMetricInsightSupervisor(
             service, bridgedConfig(Map.of("otel.jmx.config", "startup.yaml")));

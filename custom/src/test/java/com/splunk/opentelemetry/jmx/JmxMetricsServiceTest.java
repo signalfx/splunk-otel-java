@@ -81,12 +81,12 @@ class JmxMetricsServiceTest {
   @Test
   void startsAfterSdkCreationAndCanRestartWithDifferentRules() throws Exception {
     JmxMetricsService service = newService();
-    assertThat(service.start(empty())).isTrue();
+    service.start(empty());
     service.close();
 
     var firstRules = config(RULES.formatted("petclinic.first"));
-    assertThat(service.start(firstRules)).isTrue();
-    assertThat(service.start(firstRules)).isTrue();
+    service.start(firstRules);
+    service.start(firstRules);
     awaitMetric("petclinic.first");
 
     service.close();
@@ -102,7 +102,7 @@ class JmxMetricsServiceTest {
         .isInstanceOf(IllegalArgumentException.class);
     assertThat(jmxMetrics()).isEmpty();
 
-    assertThat(service.start(config(RULES.formatted("petclinic.second")))).isTrue();
+    service.start(config(RULES.formatted("petclinic.second")));
     awaitMetric("petclinic.second");
     assertThat(jmxMetrics()).extracting(MetricData::getName).containsExactly("petclinic.second");
   }
@@ -111,26 +111,24 @@ class JmxMetricsServiceTest {
   void instancesHaveIndependentRulesSettingsAndLifecycles() throws Exception {
     JmxMetricsService first = newService();
     JmxMetricsService second = newService();
-    assertThat(first.start(config(RULES.formatted("petclinic.first")))).isTrue();
-    assertThat(
-            second.start(
-                config(
-                    RULES.formatted("petclinic.second")
-                        + """
-                          - bean: splunk.test:type=DynamicCallMonitor
-                            mapping:
-                              CallCount:
-                                metric: petclinic.filtered
-                                type: counter
-                                unit: "{call}"
-                        """
-                        + """
-                        discovery:
-                          delay: 1000
-                        metrics:
-                          included: [petclinic.second]
-                        """)))
-        .isTrue();
+    first.start(config(RULES.formatted("petclinic.first")));
+    second.start(
+        config(
+            RULES.formatted("petclinic.second")
+                + """
+                  - bean: splunk.test:type=DynamicCallMonitor
+                    mapping:
+                      CallCount:
+                        metric: petclinic.filtered
+                        type: counter
+                        unit: "{call}"
+                """
+                + """
+                discovery:
+                  delay: 1000
+                metrics:
+                  included: [petclinic.second]
+                """));
 
     await()
         .atMost(Duration.ofSeconds(10))
@@ -171,7 +169,7 @@ class JmxMetricsServiceTest {
                                     "unit", "{call}",
                                     "desc", description))))));
 
-    assertThat(newService().start(rules)).isTrue();
+    newService().start(rules);
 
     awaitMetric("petclinic.escaped");
     assertThat(jmxMetrics())

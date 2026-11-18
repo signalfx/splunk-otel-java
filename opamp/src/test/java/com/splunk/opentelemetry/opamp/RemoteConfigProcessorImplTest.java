@@ -47,6 +47,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -175,19 +177,18 @@ class RemoteConfigProcessorImplTest {
   @Nested
   class JmxConfigurationTest {
     @Test
-    void forwardsDistributionJmxSettingsToSupervisor() throws Exception {
+    void forwardsInstrumentationJmxSettingsToSupervisor() throws Exception {
       AgentRemoteConfig remoteConfig =
           createRemoteConfig(
               ByteString.encodeUtf8("jmx-config-hash"),
               """
-              distribution:
-                splunk:
-                  java:
-                    jmx:
-                      discovery:
-                        delay: 2000
-                      rules:
-                        - bean: test:type=Monitor
+              instrumentation/development:
+                java:
+                  jmx:
+                    discovery:
+                      delay: 2000
+                    rules:
+                      - bean: test:type=Monitor
               """);
 
       handler.applyConfig(remoteConfig, opampClient);
@@ -206,12 +207,13 @@ class RemoteConfigProcessorImplTest {
       verify(effectiveConfigReporter).reportEffectiveConfigIfChanged();
     }
 
-    @Test
-    void forwardsAnEmptyDistributionJmxNode() throws Exception {
+    @ParameterizedTest
+    @ValueSource(strings = {"jmx:", "jmx: {}"})
+    void forwardsAnEmptyInstrumentationJmxNode(String jmxNode) throws Exception {
       AgentRemoteConfig remoteConfig =
           createRemoteConfig(
               ByteString.encodeUtf8("jmx-config-hash"),
-              "distribution:\n  splunk:\n    java:\n      jmx:\n");
+              "instrumentation/development:\n  java:\n    " + jmxNode + "\n");
 
       handler.applyConfig(remoteConfig, opampClient);
 
@@ -231,13 +233,31 @@ class RemoteConfigProcessorImplTest {
       AgentRemoteConfig remoteConfig =
           createRemoteConfig(
               ByteString.encodeUtf8("jmx-config-hash"),
-              "distribution:\n  splunk:\n    java:\n      jmx: {}\n");
+              "instrumentation/development:\n  java:\n    jmx: {}\n");
 
       handler.applyConfig(remoteConfig, opampClient);
 
       RemoteConfigStatus status = getFinalReportedRemoteConfigStatus();
       assertThat(status.status).isEqualTo(RemoteConfigStatuses.RemoteConfigStatuses_FAILED);
       assertThat(status.error_message).contains("Invalid JMX rules");
+      verify(effectiveConfigReporter).reportEffectiveConfigIfChanged();
+    }
+
+    @ParameterizedTest
+    @ValueSource(
+        strings = {
+          "{}",
+          "instrumentation/development: {}",
+          "instrumentation/development:\n  java:\n    jdbc: {}\n"
+        })
+    void ignoresConfigurationWithoutInstrumentationJmxNode(String yaml) {
+      handler.applyConfig(
+          createRemoteConfig(ByteString.encodeUtf8("jmx-config-hash"), yaml), opampClient);
+
+      verifyNoInteractions(
+          jmxMetricInsightSupervisor, profilingSupervisor, snapshotProfilingSupervisor);
+      assertThat(getFinalReportedRemoteConfigStatus().status)
+          .isEqualTo(RemoteConfigStatuses.RemoteConfigStatuses_APPLIED);
       verify(effectiveConfigReporter).reportEffectiveConfigIfChanged();
     }
   }

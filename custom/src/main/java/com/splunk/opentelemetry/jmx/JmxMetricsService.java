@@ -34,15 +34,19 @@ import java.time.Duration;
 import java.util.List;
 import java.util.logging.Logger;
 
-/** Collects distribution-configured JMX metrics using an existing SDK, independently of startup. */
-public final class JmxMetricsService implements AutoCloseable {
+/**
+ * Collects configured JMX metrics using an existing SDK, independently of startup.
+ *
+ * <p>This class is not thread-safe. Its owner must serialize access to its lifecycle and state.
+ */
+final class JmxMetricsService implements AutoCloseable {
   private static final Logger logger = Logger.getLogger(JmxMetricsService.class.getName());
   private static final String INSTRUMENTATION_NAME = "jmx";
 
   private final OpenTelemetry openTelemetry;
-  private AutoCloseable collection;
+  private AutoCloseable jmxCollector;
 
-  public JmxMetricsService(OpenTelemetry openTelemetry) {
+  JmxMetricsService(OpenTelemetry openTelemetry) {
     this.openTelemetry = requireNonNull(openTelemetry, "openTelemetry");
   }
 
@@ -52,30 +56,28 @@ public final class JmxMetricsService implements AutoCloseable {
    * <p>Repeated calls while running leave the current collection unchanged. Close this service
    * before starting it with different rules. The caller owns its lifecycle, including shutdown.
    *
-   * @param jmxConfig the {@code distribution.splunk.java.jmx} node containing upstream JMX settings
-   *     and optional inline {@code rules}
-   * @return whether collection is running
+   * @param jmxConfig the {@code instrumentation/development.java.jmx} node containing upstream JMX
+   *     settings and optional inline {@code rules}
    * @throws IllegalArgumentException if the rules or settings are invalid
    */
-  public synchronized boolean start(DeclarativeConfigProperties jmxConfig) {
-    if (collection != null) {
+  void start(DeclarativeConfigProperties jmxConfig) {
+    if (jmxCollector != null) {
       logger.fine("Already started");
-      return true;
+      return;
     }
 
-    collection = createTelemetry(jmxConfig).start();
-    return true;
+    jmxCollector = createTelemetry(jmxConfig).start();
   }
 
   /** Validates replacement settings before stopping the current collection. */
-  synchronized void reconfigure(DeclarativeConfigProperties jmxConfig) throws Exception {
+  void reconfigure(DeclarativeConfigProperties jmxConfig) throws Exception {
     JmxTelemetry telemetry = createTelemetry(jmxConfig);
     close();
-    collection = telemetry.start();
+    jmxCollector = telemetry.start();
   }
 
-  synchronized boolean isRunning() {
-    return collection != null;
+  boolean isRunning() {
+    return jmxCollector != null;
   }
 
   private JmxTelemetry createTelemetry(DeclarativeConfigProperties jmxConfig) {
@@ -95,12 +97,12 @@ public final class JmxMetricsService implements AutoCloseable {
 
   /** Stops discovery and unregisters metric callbacks. May be called more than once. */
   @Override
-  public synchronized void close() throws Exception {
-    if (collection != null) {
+  public void close() throws Exception {
+    if (jmxCollector != null) {
       try {
-        collection.close();
+        jmxCollector.close();
       } finally {
-        collection = null;
+        jmxCollector = null;
       }
     }
   }

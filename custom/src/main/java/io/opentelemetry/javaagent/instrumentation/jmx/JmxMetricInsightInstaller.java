@@ -37,44 +37,23 @@ import java.util.logging.Logger;
  * <p>The package and class name must match upstream. The agent build keeps this class ahead of the
  * upstream copy, and the upstream {@link AgentListener} service descriptor registers it.
  */
-public class JmxMetricInsightInstaller implements AgentListener, AutoCloseable {
+public class JmxMetricInsightInstaller implements AgentListener {
   private static final Logger logger = Logger.getLogger(JmxMetricInsightInstaller.class.getName());
   private static final String INSTRUMENTATION_NAME = "jmx";
-  private static final String CONFIG_PATH = "distribution.splunk.java.jmx";
-
-  private JmxMetricInsightSupervisor supervisor;
 
   @Override
   public synchronized void afterAgent(AutoConfiguredOpenTelemetrySdk sdk) {
-    if (supervisor != null) {
-      return;
-    }
-
     DeclarativeConfigProperties config =
         DeclarativeConfigUtil.getInstrumentationConfig(
             GlobalOpenTelemetry.get(), INSTRUMENTATION_NAME);
 
-    // Publish the same lifecycle owner for OpAMP, including when JMX is disabled or unmanaged.
-    supervisor = JmxMetricInsightSupervisor.initialize(sdk.getOpenTelemetrySdk(), config);
+    JmxMetricInsightSupervisor supervisor =
+        JmxMetricInsightSupervisor.initialize(sdk.getOpenTelemetrySdk(), config);
 
     try {
       supervisor.start();
     } catch (Exception e) {
-      logger.log(Level.WARNING, "Unable to start JMX metrics from " + CONFIG_PATH, e);
-      // Keep the supervisor available so a later remote update can repair invalid startup rules.
-    }
-  }
-
-  @Override
-  public synchronized void close() {
-    if (supervisor != null) {
-      try {
-        supervisor.close();
-      } catch (Exception e) {
-        logger.log(Level.WARNING, "Unable to stop JMX metrics collection", e);
-      } finally {
-        supervisor = null;
-      }
+      logger.log(Level.WARNING, "Unable to start JMX metrics", e);
     }
   }
 }

@@ -27,7 +27,7 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 import javax.annotation.Nullable;
 
-/** Owns distribution JMX collection across startup and synchronous remote configuration updates. */
+/** Owns JMX collection across startup and synchronous remote configuration updates. */
 public class JmxMetricInsightSupervisor implements AutoCloseable {
   private static final AtomicReference<JmxMetricInsightSupervisor> instance =
       new AtomicReference<>();
@@ -47,7 +47,8 @@ public class JmxMetricInsightSupervisor implements AutoCloseable {
     enabled = AgentDistributionConfig.get().isInstrumentationEnabled("jmx");
     configuration = startupConfiguration;
     // TODO: This will be refactored when effective config reporting is implemented for JMX
-    // For now null is stored for env vars configuration
+    // For now null is stored for env vars configuration, and first received remote config will set
+    // it to non-null
     configurationSnapshot =
         startupConfiguration == null || startupConfiguration.getPropertyKeys().isEmpty()
             ? null
@@ -82,16 +83,16 @@ public class JmxMetricInsightSupervisor implements AutoCloseable {
   public synchronized void start() {
     checkOpen();
     if (isEnabled()) {
-      running = metricsService.start(configuration);
+      metricsService.start(configuration);
+      running = true;
     }
   }
 
   /**
-   * Replaces the current configuration with a complete {@code distribution.splunk.java.jmx} node.
-   * Omitted settings use their defaults; an empty node resets collection to defaults. Identical
-   * configurations leave the running collection alone. Invalid rules leave the previous collection
-   * active and propagate to the remote processor so it can report failure. The first remote update
-   * replaces startup settings whose property keys cannot be enumerated.
+   * Replaces the current configuration with a complete {@code instrumentation/development.java.jmx}
+   * node. Omitted settings use their defaults; an empty node resets collection to defaults.
+   * Identical configurations leave the running collection. Invalid rules leave the previous
+   * collection active and throws Exception, so the caller can handle the failure.
    */
   public synchronized void applyConfiguration(DeclarativeConfigProperties update) throws Exception {
     checkOpen();
@@ -99,8 +100,7 @@ public class JmxMetricInsightSupervisor implements AutoCloseable {
       throw new IllegalStateException("JMX instrumentation was disabled at agent startup");
     }
     if (configuration == null) {
-      throw new IllegalStateException(
-          "Remote JMX updates require distribution.splunk.java.jmx to be enabled at agent startup");
+      throw new IllegalStateException("Remote JMX updates require a JMX startup configuration");
     }
 
     Map<String, Object> updated =

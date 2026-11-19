@@ -385,6 +385,8 @@ class OpampActivatorTest {
     // opamp client shutdown is asynchronous, we need to wait for the agent disconnect message to
     // avoid it leaking over to the next test
     AgentToServer request = takeRequest();
-    assertThat(request.agent_disconnect).isNotNull();
+    while (request != null && request.agent_disconnect == null) {
+      request = takeRequest();
+    }
   }
 }

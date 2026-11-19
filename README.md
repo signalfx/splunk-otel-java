@@ -41,7 +41,7 @@ see [Migrate from the SignalFx Java Agent](https://help.splunk.com/en/splunk-obs
 <!-- Comments, spacing, empty and new lines in the section below are intentional, please do not modify them! -->
 <!--DEV_DOCS_WARNING-->
 <!--DEV_DOCS_WARNING_START-->
-The following documentation refers to the in-development version of `splunk-otel-java`. Docs for the latest version ([v2.33.1](https://github.com/signalfx/splunk-otel-java/releases/latest)) can be found [here](https://github.com/signalfx/splunk-otel-java/blob/v2.33.1/README.md).
+The following documentation refers to the in-development version of `splunk-otel-java`. Docs for the latest version ([v2.34.0](https://github.com/signalfx/splunk-otel-java/releases/latest)) can be found [here](https://github.com/signalfx/splunk-otel-java/blob/v2.34.0/README.md).
 
 ---
 <!--DEV_DOCS_WARNING_END-->

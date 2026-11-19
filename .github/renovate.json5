@@ -3,6 +3,10 @@
   "extends": [
     "config:base"
   ],
+  baseBranchPatterns: [
+    'main',
+    'v2.x'
+  ],
   "ignorePaths": [
     "instrumentation/**",
     ".gitlab-ci.yml"

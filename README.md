@@ -45,11 +45,6 @@ The following documentation refers to the in-development version of `splunk-otel
 
 ---
 <!--DEV_DOCS_WARNING_END-->
-<!--DEV_DOCS_WARNING_START-->
-The following documentation refers to the in-development version of `splunk-otel-java`. Docs for the latest version ([v2.33.1](https://github.com/signalfx/splunk-otel-java/releases/latest)) can be found [here](https://github.com/signalfx/splunk-otel-java/blob/v2.33.1/README.md).
-
----
-<!--DEV_DOCS_WARNING_END-->
 
 ## Requirements
 

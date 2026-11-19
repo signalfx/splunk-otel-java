@@ -38,6 +38,7 @@ import io.opentelemetry.instrumentation.testing.internal.AutoCleanupExtension;
 import io.opentelemetry.opamp.client.OpampClient;
 import io.opentelemetry.opamp.client.internal.response.MessageData;
 import io.opentelemetry.sdk.resources.Resource;
+import io.opentelemetry.testing.internal.armeria.common.HttpData;
 import io.opentelemetry.testing.internal.armeria.common.HttpResponse;
 import io.opentelemetry.testing.internal.armeria.common.HttpStatus;
 import io.opentelemetry.testing.internal.armeria.common.MediaType;
@@ -168,7 +169,7 @@ class OpampActivatorTest {
                 result.complete(messageData);
               }
             });
-    cleanup.deferCleanup(client);
+    cleanup.deferCleanup(() -> close(client));
 
     // when
     MessageData message = result.get(5, TimeUnit.SECONDS);
@@ -289,7 +290,7 @@ class OpampActivatorTest {
     OpampClient client =
         OpampActivator.startOpampClient(
             configuration, Resource.empty(), effectiveConfig, mock(OpampClient.Callbacks.class));
-    cleanup.deferCleanup(client);
+    cleanup.deferCleanup(() -> close(client));
 
     // Observe the initial request before changing the config, so the requests stay distinct.
     assertThat(takeRequest().effective_config.config_map).isEqualTo(initialConfig);
@@ -323,7 +324,7 @@ class OpampActivatorTest {
     OpampClient client =
         OpampActivator.startOpampClient(
             configuration, Resource.empty(), mock(), mock(OpampClient.Callbacks.class));
-    cleanup.deferCleanup(client);
+    cleanup.deferCleanup(() -> close(client));
 
     return takeRequest();
   }
@@ -344,7 +345,9 @@ class OpampActivatorTest {
   private static AgentToServer takeRequest() throws Exception {
     RecordedRequest recordedRequest = server.takeRequest(10, TimeUnit.SECONDS);
     assertThat(recordedRequest).as("Expected an OpAMP request within 10 seconds").isNotNull();
-    return AgentToServer.ADAPTER.decode(recordedRequest.request().content().array());
+    try (HttpData data = recordedRequest.request().content()) {
+      return AgentToServer.ADAPTER.decode(data.array());
+    }
   }
 
   private static void assertRemoteConfigCapabilities(
@@ -375,5 +378,13 @@ class OpampActivatorTest {
       AgentToServer agentToServer, AttributeKey<String> attr, String expected) {
     assertThat(agentToServer.agent_description.identifying_attributes)
         .anyMatch(kv -> kv.key.equals(attr.getKey()) && kv.value.string_value.equals(expected));
+  }
+
+  private void close(OpampClient client) throws Exception {
+    client.close();
+    // opamp client shutdown is asynchronous, we need to wait for the agent disconnect message to
+    // avoid it leaking over to the next test
+    AgentToServer request = takeRequest();
+    assertThat(request.agent_disconnect).isNotNull();
   }
 }

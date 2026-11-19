@@ -27,7 +27,7 @@ import static net.bytebuddy.matcher.ElementMatchers.takesArgument;
 
 import com.google.auto.service.AutoService;
 import io.opentelemetry.api.trace.Span;
-import io.opentelemetry.context.Context;
+import io.opentelemetry.javaagent.bootstrap.Java8BytecodeBridge;
 import io.opentelemetry.javaagent.extension.instrumentation.InstrumentationModule;
 import io.opentelemetry.javaagent.extension.instrumentation.TypeInstrumentation;
 import io.opentelemetry.javaagent.extension.instrumentation.TypeTransformer;
@@ -122,8 +122,8 @@ public class WebLogicAttributesInstrumentationModule extends InstrumentationModu
       Object value = request.getAttribute("otel.webengine");
 
       if (value instanceof Map<?, ?>) {
-        Span span = Span.fromContextOrNull(Context.current());
-        if (span != null) {
+        Span span = Java8BytecodeBridge.currentSpan();
+        if (span.isRecording()) {
           for (Map.Entry<?, ?> entry : ((Map<?, ?>) value).entrySet()) {
             if (entry.getValue() != null) {
               span.setAttribute(entry.getKey().toString(), entry.getValue().toString());

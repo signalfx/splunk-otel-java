@@ -62,7 +62,7 @@ class NocodeInstrumentationTest {
                 .hasKind(SpanKind.INTERNAL)
                 .hasStatus(StatusData.unset())
                 .hasTotalAttributeCount(
-                    1))); // one code attribute but nothing from the invalid rule
+                    2))); // two code. attribute but nothing from the invalid rule
   }
 
   @Test

@@ -21,6 +21,7 @@ import static io.opentelemetry.sdk.autoconfigure.AutoConfigureUtil.getResource;
 import static java.util.logging.Level.WARNING;
 
 import com.google.auto.service.AutoService;
+import com.splunk.opentelemetry.jmx.JmxMetricInsightSupervisor;
 import com.splunk.opentelemetry.opamp.effectiveconfig.EffectiveConfigReporter;
 import com.splunk.opentelemetry.opamp.effectiveconfig.UpdatableEffectiveConfigState;
 import com.splunk.opentelemetry.profiler.ProfilingSupervisor;
@@ -125,6 +126,7 @@ public class OpampActivator implements AgentListener {
       return new RemoteConfigProcessorImpl(
           ProfilingSupervisor.SUPPLIER.get(),
           SnapshotProfilingSupervisor.SUPPLIER.get(),
+          JmxMetricInsightSupervisor.getInstance(),
           effectiveConfigReporter);
     }
     return RemoteConfigProcessor.NOOP;

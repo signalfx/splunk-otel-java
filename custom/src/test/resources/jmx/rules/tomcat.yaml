@@ -1,0 +1,7 @@
+rules:
+  - bean: splunk.test:type=BuiltIn
+    mapping:
+      CallCount:
+        metric: test.jmx.builtin.stable
+        type: counter
+        unit: "{call}"

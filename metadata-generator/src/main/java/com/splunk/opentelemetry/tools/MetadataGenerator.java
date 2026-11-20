@@ -1177,6 +1177,7 @@ public class MetadataGenerator {
                     "cloud.account.id",
                     "cloud.availability_zone",
                     "cloud.region",
+                    "cloud.resource_id",
                     "host.id",
                     "host.name",
                     "host.type",

@@ -36,7 +36,7 @@ dependencies {
   implementation("io.opentelemetry:opentelemetry-sdk-logs")
   implementation("io.opentelemetry:opentelemetry-exporter-otlp")
   implementation("com.google.protobuf:protobuf-java")
-  implementation("org.openjdk.jmc:flightrecorder:8.3.1") {
+  implementation("org.openjdk.jmc:flightrecorder:9.1.2") {
     exclude(group = "org.lz4", module = "lz4-java")
   }
 

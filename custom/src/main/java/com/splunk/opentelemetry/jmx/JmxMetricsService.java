@@ -20,7 +20,6 @@ import static io.opentelemetry.instrumentation.api.incubator.config.internal.Sel
 import static java.util.Collections.emptyList;
 import static java.util.Objects.requireNonNull;
 import static java.util.logging.Level.SEVERE;
-import static java.util.stream.Collectors.toList;
 
 import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.api.incubator.config.DeclarativeConfigProperties;
@@ -28,6 +27,7 @@ import io.opentelemetry.instrumentation.api.config.IncludeExclude;
 import io.opentelemetry.instrumentation.api.incubator.config.internal.SelectorConfig;
 import io.opentelemetry.instrumentation.jmx.JmxTelemetry;
 import io.opentelemetry.instrumentation.jmx.JmxTelemetryBuilder;
+import io.opentelemetry.instrumentation.jmx.internal.Internal;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
@@ -137,13 +137,12 @@ final class JmxMetricsService implements AutoCloseable {
   }
 
   private static void addInlineRules(DeclarativeConfigProperties config, JmxTelemetryBuilder jmx) {
-    try {
-      jmx.addRules(
-          config.getStructuredList("rules", emptyList()).stream()
-              .map(DeclarativeConfigProperties::toMap)
-              .collect(toList()));
-    } catch (RuntimeException e) {
-      logger.log(SEVERE, "Error while loading inline JMX rules", e);
+    for (DeclarativeConfigProperties rule : config.getStructuredList("rules", emptyList())) {
+      try {
+        Internal.addRule(jmx, DeclarativeConfigProperties.toMap(rule));
+      } catch (RuntimeException e) {
+        logger.log(SEVERE, "Error while loading an inline JMX rule", e);
+      }
     }
   }
 

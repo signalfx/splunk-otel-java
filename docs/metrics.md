@@ -31,6 +31,67 @@ These metrics are enabled only when memory profiler is enabled.
 | `jvm.gc.pause.count`     | [Counter][c] | Number of gc pauses. This metric will be removed in a future release.    |
 | `jvm.gc.pause.totalTime` | [Counter][c] | Time spent in GC pause. This metric will be removed in a future release. |
 
+## Custom JMX metrics in declarative configuration
+
+Define inline JMX mapping rules under `instrumentation/development.java.jmx.rules` in the
+file selected by `otel.config.file`:
+
+```yaml
+file_format: "1.2"
+meter_provider:
+  readers:
+    - periodic:
+        exporter:
+          otlp_http:
+
+instrumentation/development:
+  java:
+    jmx:
+      discovery:
+        delay: 5000
+      metrics:
+        included: [petclinic.*]
+      rules:
+        - bean: petclinic:type=CallMonitor
+          mapping:
+            CallCount:
+              metric: petclinic.repository.call.count
+              type: gauge
+              unit: "{call}"
+              desc: Completed repository calls since the last reset.
+            CallTime:
+              metric: petclinic.repository.call.duration.average
+              type: gauge
+              sourceUnit: ms
+              unit: s
+              desc: Average repository call duration since the last reset.
+```
+
+Rules use the [upstream JMX mapping syntax](https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/instrumentation/jmx-metrics/README.md).
+The agent collects from MBeans in the current JVM and exports through the configured
+`meter_provider` readers. No remote JMX connection is required.
+
+The JMX node accepts the same settings and defaults as the upstream agent:
+
+* `discovery.delay`: MBean discovery delay in milliseconds (default: `60000`).
+* `config`: a list of paths to external JMX mapping files. Invalid files are logged and skipped.
+* `metrics.included` / `metrics.excluded`: filters applied to all JMX metric names.
+* `metrics.experimental.included`: opt in to experimental built-in metrics by name.
+
+Stable built-in metrics are enabled by default, except bundled JVM rules that overlap with
+runtime telemetry. Inline and external custom rules do not require experimental opt-in.
+The inclusion filter in the example restricts collection to the Petclinic metric names.
+An empty JMX node selects upstream defaults. Invalid inline rules are logged and skipped.
+
+The `jmx` enable/disable selectors in `distribution.javaagent.instrumentation` determine whether
+collection is allowed. For example, `disabled: [jmx]` disables collection. Setting
+`default_enabled: false` also disables JMX unless `enabled: [jmx]` is configured.
+
+Environment and system-property configuration is supported through the upstream configuration
+bridge, including `OTEL_JMX_CONFIG`, `OTEL_JMX_DISCOVERY_DELAY`, and the JMX metric filters.
+`OTEL_INSTRUMENTATION_JMX_ENABLED=false` disables collection. The common instrumentation default
+applies when JMX enablement is not explicitly configured.
+
 ## Webengine Attributes
 
 > :construction: &nbsp;Status: Experimental

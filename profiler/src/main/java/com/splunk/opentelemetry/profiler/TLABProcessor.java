@@ -32,6 +32,7 @@ public class TLABProcessor {
   public static final String ALLOCATION_SAMPLE_EVENT_NAME = "jdk.ObjectAllocationSample";
 
   private final boolean enabled;
+  private final boolean useAllocationSampleEvent;
   private final EventReader eventReader;
   private final AllocationEventExporter allocationEventExporter;
   private final AllocationEventSampler sampler;
@@ -40,6 +41,7 @@ public class TLABProcessor {
 
   private TLABProcessor(Builder builder) {
     this.enabled = builder.enabled;
+    this.useAllocationSampleEvent = builder.useAllocationSampleEvent;
     this.eventReader = builder.eventReader;
     this.allocationEventExporter = builder.allocationEventExporter;
     this.sampler = builder.sampler;
@@ -48,9 +50,8 @@ public class TLABProcessor {
   }
 
   public void accept(IItem event) {
-    // If there is another JFR recording in progress that has enabled TLAB events we might also get
-    // them because JFR sends all enabled events to all recordings, if that is the case ignore them.
-    if (!enabled) {
+    // JFR shares events across recordings. Process only the allocation events we enabled.
+    if (!enabled || !isEnabledEvent(event.getType().getIdentifier())) {
       return;
     }
     IMCStackTrace stackTrace = eventReader.getStackTrace(event);
@@ -75,6 +76,16 @@ public class TLABProcessor {
     allocationEventExporter.export(event, sampler, spanContext);
   }
 
+  private boolean isEnabledEvent(String eventName) {
+    return useAllocationSampleEvent
+        ? ALLOCATION_SAMPLE_EVENT_NAME.equals(eventName)
+        : isTlabEvent(eventName);
+  }
+
+  static boolean isTlabEvent(String eventName) {
+    return NEW_TLAB_EVENT_NAME.equals(eventName) || OUTSIDE_TLAB_EVENT_NAME.equals(eventName);
+  }
+
   public void flush() {
     allocationEventExporter.flush();
   }
@@ -84,9 +95,9 @@ public class TLABProcessor {
   }
 
   static Builder builder(ProfilerConfiguration config) {
-    boolean enabled = config.getMemoryEnabled();
-    Builder builder = new Builder(enabled);
-    if (config.getMemoryEventRateLimitEnabled() && !config.getUseAllocationSampleEvent()) {
+    boolean useAllocationSampleEvent = config.isNativeAllocationSamplingEnabled();
+    Builder builder = new Builder(config.getMemoryEnabled(), useAllocationSampleEvent);
+    if (config.getMemoryEventRateLimitEnabled() && !useAllocationSampleEvent) {
       String rateLimit = config.getMemoryEventRate();
       builder.sampler(new RateLimitingAllocationEventSampler(rateLimit));
     }
@@ -95,14 +106,16 @@ public class TLABProcessor {
 
   static class Builder {
     private final boolean enabled;
+    private final boolean useAllocationSampleEvent;
     private EventReader eventReader;
     private AllocationEventExporter allocationEventExporter;
     private AllocationEventSampler sampler;
     private SpanContextualizer spanContextualizer;
     private StackTraceFilter stackTraceFilter;
 
-    public Builder(boolean enabled) {
+    Builder(boolean enabled, boolean useAllocationSampleEvent) {
       this.enabled = enabled;
+      this.useAllocationSampleEvent = useAllocationSampleEvent;
     }
 
     TLABProcessor build() {

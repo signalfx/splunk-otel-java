@@ -16,11 +16,13 @@ exclude = [
   '^https://developers.redhat.com/download-manager/file/jboss-eap-.*.zip',
   '^http://localhost.*',
   '^https://central.sonatype.com/service/rest/repository/browse/maven-snapshots/com/splunk/',
+  '^https://central.sonatype.com/artifact/com.splunk/splunk-otel-javaagent',
   '^https://nvd.nist.gov/vuln/.*',
   # fails with 403 in ci
   '^https://www.ibm.com/docs/en/was-liberty/base.*',
 ]
 
 exclude_path = [
-  'licenses/licenses.md'
+  'licenses/licenses.md',
+  '.*\.xml$'
 ]

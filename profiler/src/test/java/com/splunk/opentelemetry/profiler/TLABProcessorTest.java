@@ -19,6 +19,7 @@ package com.splunk.opentelemetry.profiler;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.splunk.opentelemetry.profiler.allocation.exporter.AllocationEventExporter;
@@ -26,7 +27,6 @@ import com.splunk.opentelemetry.profiler.allocation.sampler.AllocationEventSampl
 import com.splunk.opentelemetry.profiler.allocation.sampler.RateLimitingAllocationEventSampler;
 import com.splunk.opentelemetry.profiler.context.SpanContextualizer;
 import com.splunk.opentelemetry.profiler.context.SpanLinkage;
-import com.splunk.opentelemetry.profiler.util.StackSerializer;
 import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.api.trace.SpanId;
 import io.opentelemetry.api.trace.TraceFlags;
@@ -59,7 +59,7 @@ class TLABProcessorTest {
 
   @Test
   void testNullStack() {
-    IItem event = mock(IItem.class);
+    IItem event = createMockEvent(TLABProcessor.NEW_TLAB_EVENT_NAME, Instant.EPOCH);
     when(eventReader.getStackTrace(event)).thenReturn(null); // just to be explicit
 
     ProfilerConfiguration config = mock(ProfilerConfiguration.class);
@@ -67,7 +67,7 @@ class TLABProcessorTest {
 
     TLABProcessor processor = TLABProcessor.builder(config).eventReader(eventReader).build();
     processor.accept(event);
-    // success, no NPEs
+    verify(eventReader).getStackTrace(event);
   }
 
   @Test
@@ -92,10 +92,7 @@ class TLABProcessorTest {
 
   @Test
   void testProcess() {
-    Instant now = Instant.now();
-    StackSerializer serializer = mock(StackSerializer.class);
-
-    IItem event = createMockEvent(serializer, now);
+    IItem event = createMockEvent(TLABProcessor.NEW_TLAB_EVENT_NAME, Instant.EPOCH);
 
     ProfilerConfiguration config = mock(ProfilerConfiguration.class);
     when(config.getMemoryEnabled()).thenReturn(true);
@@ -123,9 +120,7 @@ class TLABProcessorTest {
     assertThat(allocationEventExporter.events).isNotEmpty();
   }
 
-  private IItem createMockEvent(StackSerializer serializer, Instant now) {
-    String stackAsString = "i am a serialized stack believe me";
-
+  private IItem createMockEvent(String eventName, Instant now) {
     IItem event = mock(IItem.class);
     IMCStackTrace stack = mock(IMCStackTrace.class);
     IType eventType = mock(IType.class);
@@ -139,15 +134,13 @@ class TLABProcessorTest {
     when(mockThread.getThreadId()).thenReturn(THREAD_ID);
     when(mockThread.getThreadName()).thenReturn("mockingbird");
     when(stack.getTruncationState()).thenReturn(IMCStackTrace.TruncationState.NOT_TRUNCATED);
-    when(eventType.getIdentifier()).thenReturn("tee-lab");
-    when(serializer.serialize(stack)).thenReturn(stackAsString);
+    when(eventType.getIdentifier()).thenReturn(eventName);
 
     return event;
   }
 
   @Test
   void testSampling() {
-    StackSerializer serializer = mock(StackSerializer.class);
     SpanContextualizer spanContextualizer = mock(SpanContextualizer.class);
     when(spanContextualizer.link(anyLong())).thenReturn(SpanLinkage.NONE);
 
@@ -158,14 +151,14 @@ class TLABProcessorTest {
 
     RateLimitingAllocationEventSampler sampler = new RateLimitingAllocationEventSampler("100/s");
     TLABProcessor processor =
-        new TLABProcessor.Builder(true)
+        new TLABProcessor.Builder(true, false)
             .eventReader(eventReader)
             .allocationEventExporter(allocationEventExporter)
             .spanContextualizer(spanContextualizer)
             .sampler(sampler)
             .build();
 
-    IItem event = createMockEvent(serializer, Instant.now());
+    IItem event = createMockEvent(TLABProcessor.NEW_TLAB_EVENT_NAME, Instant.EPOCH);
 
     for (int i = 0; i < 10; i++) {
       sampler.updateSampler(i % 2 == 0 ? 1.0 : 0.0);
@@ -179,6 +172,31 @@ class TLABProcessorTest {
 
       allocationEventExporter.reset();
     }
+  }
+
+  @Test
+  void nativeAllocationSamplingIgnoresTlabEventsFromAnotherRecording() {
+    ProfilerConfiguration config =
+        ProfilerConfiguration.builder()
+            .setMemoryEnabled(true)
+            .setUseAllocationSampleEvent(true)
+            .build();
+    SpanContextualizer spanContextualizer = mock(SpanContextualizer.class);
+    when(spanContextualizer.link(THREAD_ID)).thenReturn(SpanLinkage.NONE);
+    TestAllocationEventExporter exporter = new TestAllocationEventExporter();
+    TLABProcessor processor =
+        TLABProcessor.builder(config)
+            .eventReader(eventReader)
+            .allocationEventExporter(exporter)
+            .spanContextualizer(spanContextualizer)
+            .build();
+
+    IItem sample = createMockEvent(TLABProcessor.ALLOCATION_SAMPLE_EVENT_NAME, Instant.EPOCH);
+    processor.accept(createMockEvent(TLABProcessor.NEW_TLAB_EVENT_NAME, Instant.EPOCH));
+    processor.accept(createMockEvent(TLABProcessor.OUTSIDE_TLAB_EVENT_NAME, Instant.EPOCH));
+    processor.accept(sample);
+
+    assertThat(exporter.events).containsExactly(sample);
   }
 
   private static class TestAllocationEventExporter implements AllocationEventExporter {

@@ -161,6 +161,10 @@ public class ProfilerConfiguration {
     return useAllocationSampleEvent;
   }
 
+  boolean isNativeAllocationSamplingEnabled() {
+    return memoryEventRateLimitEnabled && useAllocationSampleEvent;
+  }
+
   public Duration getCallStackInterval() {
     return callStackInterval;
   }

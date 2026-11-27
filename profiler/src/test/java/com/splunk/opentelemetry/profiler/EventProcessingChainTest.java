@@ -22,7 +22,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
@@ -138,7 +140,7 @@ class EventProcessingChainTest {
     SpanContextualizer spanContextualizer = mock(SpanContextualizer.class);
 
     TLABProcessor processor =
-        new TLABProcessor.Builder(true)
+        new TLABProcessor.Builder(true, false)
             .eventReader(eventReader)
             .allocationEventExporter(exporter)
             .spanContextualizer(spanContextualizer)
@@ -154,6 +156,32 @@ class EventProcessingChainTest {
     // probabilistic sampling can over or undersample
     assertThat(receivedCount.get()).isCloseTo(100, Offset.offset(30));
     assertThat(sampler.maxEventsPerSecond()).isEqualTo(100);
+  }
+
+  @Test
+  void allocationSampleFromAnotherRecordingDoesNotInterruptCpuProfiling() {
+    IItem sample =
+        newEvent(newEventType(TLABProcessor.ALLOCATION_SAMPLE_EVENT_NAME), Instant.EPOCH);
+    when(eventReader.getStackTrace(sample)).thenReturn(mock(IMCStackTrace.class));
+    IItem threadDump =
+        newEvent(newEventType(ThreadDumpProcessor.EVENT_NAME), Instant.EPOCH.plusSeconds(1));
+
+    AllocationEventExporter exporter = mock(AllocationEventExporter.class);
+    TLABProcessor processor =
+        TLABProcessor.builder(ProfilerConfiguration.builder().setMemoryEnabled(true).build())
+            .eventReader(eventReader)
+            .allocationEventExporter(exporter)
+            .spanContextualizer(contextualizer)
+            .build();
+    EventProcessingChain chain =
+        new EventProcessingChain(eventReader, contextualizer, threadDumpProcessor, processor);
+
+    chain.accept(sample, Instant.EPOCH);
+    chain.accept(threadDump, Instant.EPOCH);
+    chain.flush();
+
+    verify(threadDumpProcessor).accept(threadDump);
+    verify(exporter, never()).export(any(), any(), any());
   }
 
   @Test

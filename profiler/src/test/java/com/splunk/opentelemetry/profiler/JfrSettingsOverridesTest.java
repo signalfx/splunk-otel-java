@@ -30,12 +30,12 @@ class JfrSettingsOverridesTest {
   @Test
   void shouldOverride_memoryEnabled_noAllocationSampling() {
     // given
-    ProfilerConfiguration config = mock(ProfilerConfiguration.class);
-    when(config.getCallStackInterval()).thenReturn(Duration.ofMillis(163));
-    when(config.getMemoryEnabled()).thenReturn(true);
-    when(config.getMemoryEventRateLimitEnabled()).thenReturn(false);
-    when(config.getUseAllocationSampleEvent()).thenReturn(false);
-    when(config.getCpuProfilingMode()).thenReturn(ProfilerConfiguration.CpuProfilingMode.JFR);
+    ProfilerConfiguration config =
+        ProfilerConfiguration.builder()
+            .setCallStackInterval(Duration.ofMillis(163))
+            .setMemoryEnabled(true)
+            .setMemoryEventRateLimitEnabled(false)
+            .build();
 
     JfrSettingsOverrides overrides = new JfrSettingsOverrides(config);
     Map<String, String> jfrSettings =
@@ -58,13 +58,13 @@ class JfrSettingsOverridesTest {
   @Test
   void shouldOverride_memoryEnabled_allocationSampling() {
     // given
-    ProfilerConfiguration config = mock(ProfilerConfiguration.class);
-    when(config.getCallStackInterval()).thenReturn(Duration.ofMillis(163));
-    when(config.getMemoryEnabled()).thenReturn(true);
-    when(config.getMemoryEventRateLimitEnabled()).thenReturn(true);
-    when(config.getUseAllocationSampleEvent()).thenReturn(true);
-    when(config.getMemoryEventRate()).thenReturn("200/s");
-    when(config.getCpuProfilingMode()).thenReturn(ProfilerConfiguration.CpuProfilingMode.JFR);
+    ProfilerConfiguration config =
+        ProfilerConfiguration.builder()
+            .setCallStackInterval(Duration.ofMillis(163))
+            .setMemoryEnabled(true)
+            .setUseAllocationSampleEvent(true)
+            .setMemoryEventRate("200/s")
+            .build();
 
     JfrSettingsOverrides overrides = new JfrSettingsOverrides(config);
     Map<String, String> jfrSettings =
